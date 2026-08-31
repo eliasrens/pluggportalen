@@ -37,20 +37,33 @@ import {
 const SESSION_KEY = "pluggportalen.session";
 
 // ---------------------------------------------------------------------------
-// Session (localStorage) – bara vem som är inloggad.
+// Session – bara vem som är inloggad (ID + namn).
+//
+// "Kom-ihåg-mig": när eleven kryssar i det sparas sessionen i localStorage och
+// ligger kvar tills hen loggar ut (praktiskt på elevens vanliga dator). Annars
+// sparas den i sessionStorage och försvinner när fliken stängs (bra på en delad
+// eller offentlig dator).
 // ---------------------------------------------------------------------------
 
 export function getSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    const raw =
+      localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-function setSession(session) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+function setSession(session, remember) {
+  const raw = JSON.stringify(session);
+  // Rensa båda lagren först så vi aldrig får två olika sessioner.
+  try {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {}
+  const store = remember ? localStorage : sessionStorage;
+  store.setItem(SESSION_KEY, raw);
 }
 
 export function isLoggedIn() {
@@ -58,7 +71,10 @@ export function isLoggedIn() {
 }
 
 export function logout() {
-  localStorage.removeItem(SESSION_KEY);
+  try {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {}
 }
 
 /** Den inloggade elevens ID, eller null. */
@@ -74,7 +90,7 @@ export function currentStudentId() {
  * Logga in en elev med användarnamn + lösenord.
  * @returns {Promise<{ok: true, student: object} | {ok: false, error: string}>}
  */
-export async function login(username, password) {
+export async function login(username, password, remember = false) {
   const uname = String(username || "").trim().toLowerCase();
   const pw = String(password || "");
   if (!uname || !pw) {
@@ -93,7 +109,10 @@ export async function login(username, password) {
     return { ok: false, error: "Fel lösenord. Försök igen." };
   }
 
-  setSession({ studentId: student.id, namn: student.namn, username: student.username });
+  setSession(
+    { studentId: student.id, namn: student.namn, username: student.username },
+    remember
+  );
   // Säkerställ att elevdata-dokumentet finns.
   await ensureStudentData(student.id, student.avatarId);
   return { ok: true, student };
@@ -110,6 +129,7 @@ function defaultStudentData(avatarId) {
     ownedItems: [], // shop-sak-id:n
     room: { placements: {} }, // { [itemId]: { x, y } }
     avatarId: avatarId || "fox",
+    avatarChosen: false, // sätts true när eleven själv valt en grundavatar
   };
 }
 
@@ -275,10 +295,49 @@ export async function getAvatar(studentId = currentStudentId()) {
 export async function setAvatar(avatarId, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
-  await updateDoc(ref, { avatarId });
+  // avatarChosen markeras true så vi vet att eleven själv gjort ett val.
+  await setDoc(ref, { avatarId, avatarChosen: true }, { merge: true });
   // Håll students-dokumentet i synk också (avatarId finns på båda ställena).
   await updateDoc(doc(db, "students", studentId), { avatarId }).catch(() => {});
   return avatarId;
+}
+
+/** Har eleven valt en grundavatar själv (annars: visa avatarvalet först)? */
+export async function hasChosenAvatar(studentId = currentStudentId()) {
+  const data = await getStudentData(studentId);
+  return !!data.avatarChosen;
+}
+
+// ---------------------------------------------------------------------------
+// Enkel statistik (för profilsidan). Räknas ur progress-objektet.
+// ---------------------------------------------------------------------------
+
+/**
+ * Sammanställer enkel statistik för profilsidan.
+ * @returns {Promise<{coins:number, playedExercises:number, completed:number, stars:number, areas:number}>}
+ */
+export async function getStats(studentId = currentStudentId()) {
+  const data = await getStudentData(studentId);
+  const progress = data.progress || {};
+  let playedExercises = 0; // antal spelade övningar (område × gamemode)
+  let completed = 0;
+  let stars = 0;
+  const areaSet = new Set();
+  for (const [areaId, modes] of Object.entries(progress)) {
+    for (const result of Object.values(modes || {})) {
+      playedExercises += 1;
+      areaSet.add(areaId);
+      if (result && result.completed) completed += 1;
+      if (result && typeof result.stars === "number") stars += result.stars;
+    }
+  }
+  return {
+    coins: data.coins || 0,
+    playedExercises,
+    completed,
+    stars,
+    areas: areaSet.size,
+  };
 }
 
 // ---------------------------------------------------------------------------

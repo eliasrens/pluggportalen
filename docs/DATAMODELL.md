@@ -93,7 +93,7 @@ Enkel inloggning (skolbruk, **ej säkerhetskritiskt** – lösenord i klartext).
 | `namn`     | string | Elevens namn (visas i appen)                 |
 | `username` | string | Användarnamn, gemener (används vid login)    |
 | `password` | string | Lösenord i klartext                          |
-| `avatarId` | string | Vald avatar (se `AVATARS` i `src/app.js`)    |
+| `avatarId` | string | Vald avatar (se `AVATARS` i `src/avatars.js`)|
 
 Exempel (`students/elev1`):
 
@@ -112,6 +112,7 @@ Exempel (`students/elev1`):
 | `ownedItems` | array  | Id:n på köpta shop-saker                               |
 | `room`       | map    | `{ placements: { [itemId]: { x, y } } }`               |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
+| `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
@@ -139,7 +140,8 @@ Exempel (`studentData/elev1`):
 Övriga delar återanvänder dessa funktioner:
 
 **Session / inloggning**
-- `login(username, password)` → `{ ok, student }` eller `{ ok:false, error }`
+- `login(username, password, remember)` → `{ ok, student }` eller `{ ok:false, error }`
+  (`remember=true` sparar sessionen i `localStorage`, annars i `sessionStorage`)
 - `logout()`, `isLoggedIn()`, `getSession()`, `currentStudentId()`
 
 **Coins**
@@ -155,7 +157,10 @@ Exempel (`studentData/elev1`):
 - `getRoom()`, `saveRoom(room)`
 
 **Avatar**
-- `getAvatar()`, `setAvatar(avatarId)`
+- `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`
+
+**Statistik (profil)**
+- `getStats()` → `{ coins, playedExercises, completed, stars, areas }`
 
 **Innehåll**
 - `getSubjects()`, `getAreas(subjectId)`, `getArea(subjectId, areaId)`
