@@ -248,23 +248,154 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 .avatar-pick {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
+  margin: 8px 0 20px;
 }
 
-.avatar-pick button {
-  font-size: 2.4rem;
-  width: 68px;
-  height: 68px;
+.avatar-opt {
+  font-size: 2.6rem;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   border: 4px solid transparent;
   background: #eef4ff;
   cursor: pointer;
+  line-height: 1;
+  transition: transform 0.08s ease, border-color 0.08s ease;
 }
 
-.avatar-pick button.selected {
+.avatar-opt:hover {
+  transform: translateY(-3px);
+}
+
+.avatar-opt.selected {
   border-color: var(--gron);
   background: #e5f8ec;
+  transform: translateY(-2px);
+}
+
+/* Stor förhandsvisning av vald avatar. */
+.preview {
+  font-size: 5rem;
+  line-height: 1;
+  margin: 6px 0 12px;
+}
+
+/* --- Sidhuvud: inloggad elev ---------------------------------------------- */
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  background: #eef4ff;
+  color: var(--bla-mork);
+  font-family: var(--font);
+  font-weight: 800;
+  padding: 6px 14px 6px 8px;
+  border-radius: 999px;
+}
+
+.avatar-chip .avatar-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.avatar-chip .avatar-namn {
+  font-size: 1rem;
+}
+
+.btn.liten {
+  font-size: 0.95rem;
+  padding: 9px 16px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn.ghost.liten {
+  box-shadow: 0 4px 0 #cdddf5;
+}
+
+/* --- Kom-ihåg-mig ---------------------------------------------------------- */
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--gron);
+  cursor: pointer;
+}
+
+/* --- Startsida-hero + platshållare ---------------------------------------- */
+
+.hero-avatar {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.hero .coins {
+  font-size: 1rem;
+  padding: 4px 12px;
+}
+
+.big-emoji {
+  font-size: 4.5rem;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+/* --- Profil: statistik ----------------------------------------------------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  border-radius: var(--radie);
+  padding: 20px 16px;
+  text-align: center;
+  color: #fff;
+  box-shadow: var(--skugga);
+}
+
+.stat-card.gul { background: linear-gradient(160deg, #f6d666, var(--gul)); color: #7a5c00; }
+.stat-card.gron { background: linear-gradient(160deg, #6fcf97, var(--gron)); }
+.stat-card.bla { background: linear-gradient(160deg, #56ccf2, var(--bla)); }
+.stat-card.lila { background: linear-gradient(160deg, #bb6bd9, var(--lila)); }
+
+.stat-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.stat-tal {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 4px 0 2px;
+}
+
+.stat-etikett {
+  font-size: 0.9rem;
+  font-weight: 700;
+  opacity: 0.95;
 }
 
 .spinner {
