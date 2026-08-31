@@ -1,0 +1,15 @@
+{
+  "name": "pluggportalen",
+  "version": "1.0.0",
+  "description": "Barnvänlig SO-studiesida (åk 4) – statisk sajt + Firebase/Firestore.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "seed": "node seed/seed.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

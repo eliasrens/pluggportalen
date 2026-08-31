@@ -1,0 +1,42 @@
+name: Deploy till GitHub Pages
+
+# Publicerar den statiska sajten till GitHub Pages vid varje push till main.
+# Sajten är ren HTML/CSS/JS – inget byggsteg behövs, vi laddar bara upp filerna.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # gör att läraren kan trigga en deploy manuellt via GitHub
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Kör bara en deploy i taget.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hämta koden
+        uses: actions/checkout@v4
+
+      - name: Konfigurera Pages
+        uses: actions/configure-pages@v5
+
+      - name: Ladda upp sajten
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Hela repot är statiskt och kan serveras direkt.
+          path: "."
+
+      - name: Deploya till Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

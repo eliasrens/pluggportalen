@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seed – Pluggportalen</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="brand"><span class="logo">🌱</span> Seed Pluggportalen</div>
+    </div>
+    <div class="container">
+      <div class="panel">
+        <h1>Fyll databasen med exempeldata</h1>
+        <p class="hint">
+          Den här sidan skriver in exempelämnet <b>SO → Vikingatiden</b> (texter, quizfrågor
+          och fakta-par) samt en exempelelev i Firestore. Säkert att köra flera gånger –
+          befintlig data skrivs bara över.
+        </p>
+        <button id="run" class="btn stor gron">Seed:a databasen nu</button>
+        <div id="out" style="margin-top: 18px"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { db } from "../src/firebase-config.js";
+      import {
+        doc,
+        setDoc,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      import { subjects, areas, students } from "./seed-data.js";
+
+      const out = document.getElementById("out");
+      const log = (m, cls = "") =>
+        (out.innerHTML += `<div class="msg ${cls}">${m}</div>`);
+
+      document.getElementById("run").addEventListener("click", async () => {
+        out.innerHTML = "";
+        try {
+          for (const s of subjects) {
+            await setDoc(doc(db, "subjects", s.id), s);
+            log(`✓ Ämne: ${s.name}`, "ok");
+            for (const area of areas[s.id] || []) {
+              await setDoc(doc(db, "subjects", s.id, "areas", area.id), area);
+              log(
+                `&nbsp;&nbsp;✓ Arbetsområde: ${area.name} ` +
+                  `(${area.texts.length} texter, ${area.quiz.length} frågor, ${area.pairs.length} par)`,
+                "ok"
+              );
+            }
+          }
+          for (const st of students) {
+            const { id, ...rest } = st;
+            await setDoc(doc(db, "students", id), rest);
+            await setDoc(
+              doc(db, "studentData", id),
+              { coins: 0, progress: {}, ownedItems: [], room: { placements: {} }, avatarId: st.avatarId },
+              { merge: true }
+            );
+            log(`✓ Elev: ${st.namn} (logga in med ${st.username} / ${st.password})`, "ok");
+          }
+          log("<b>Klart!</b> Databasen är seedad. 🎉", "ok");
+        } catch (e) {
+          log("Fel: " + e.message, "error");
+          console.error(e);
+        }
+      });
+    </script>
+  </body>
+</html>
