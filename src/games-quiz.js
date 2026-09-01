@@ -2,13 +2,12 @@
 // Pluggportalen – games-quiz.js
 // De frågebaserade gamemoderna:
 //   • Quiz          – flervalsfrågor med direkt feedback, resultat i slutet
-//   • Läsförståelse – läs faktatext(er) och svara sedan på frågor; texten går
-//                     att titta tillbaka på under tiden.
+//   • Läsförståelse – faktatext(erna) står kvar överst medan eleven svarar på
+//                     frågorna direkt under, på samma scrollbara sida.
 // Frågemotorn (runQuestions) och resultatskärmen ligger i game-shared.js.
 // ============================================================================
 
 import { app, el } from "./ui.js";
-import { sound } from "./fx.js";
 import {
   gameFrame,
   runQuestions,
@@ -55,76 +54,45 @@ export function startLasforstaelse(ctx) {
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
 
-  // --- Läsfas: visa faktatexterna ---
-  function renderReading() {
-    const textsHtml = texts
-      .map(
-        (t) => `<article class="read-text">
-          <h3>${t.title}</h3>
-          <p>${t.body}</p>
-        </article>`
-      )
-      .join("");
-    const wrap = el(`<div>
-      <p class="hint center">Läs texten noga. Sedan får du svara på frågor – du kan titta tillbaka på texten när du vill. 📖</p>
+  // Faktatexten/faktatexterna renderas ÖVERST och står kvar hela tiden, så
+  // eleven kan läsa och svara samtidigt. Frågorna körs i en egen ruta direkt
+  // under texten (samma scrollbara sida) – ingen tvingande overlay.
+  const textsHtml = texts
+    .map(
+      (t) => `<article class="read-text">
+        ${t.title ? `<h3>${t.title}</h3>` : ""}
+        <p>${t.body}</p>
+      </article>`
+    )
+    .join("");
+
+  const layout = el(`<div class="lasf-layout">
+    <section class="lasf-text">
+      <p class="hint lasf-intro">Läs texten och svara på frågorna under. Texten stannar kvar – titta tillbaka så ofta du vill. 📖</p>
       ${textsHtml || '<p class="hint">Ingen text för det här området ännu.</p>'}
-      <button class="btn stor gron" id="start-q">Jag har läst – starta frågorna!</button>
-    </div>`);
-    wrap.querySelector("#start-q").addEventListener("click", () => {
-      sound.click();
-      renderQuiz();
-    });
-    body.replaceChildren(wrap);
-  }
+    </section>
+    <div class="lasf-quiz" id="lasf-quiz"></div>
+  </div>`);
+  body.replaceChildren(layout);
 
-  // Knapp + overlay för att "titta tillbaka" på texten under frågorna.
-  function reviewButton() {
-    const b = el(`<button class="btn ghost liten review-btn">📖 Visa texten</button>`);
-    b.addEventListener("click", openTextOverlay);
-    return b;
-  }
+  const quizArea = layout.querySelector("#lasf-quiz");
 
-  function openTextOverlay() {
-    const textsHtml = texts
-      .map((t) => `<article class="read-text"><h3>${t.title}</h3><p>${t.body}</p></article>`)
-      .join("");
-    const overlay = el(`<div class="overlay">
-      <div class="overlay-card">
-        <div class="overlay-head">
-          <h2>Texten 📖</h2>
-          <button class="btn liten" id="close">Stäng</button>
-        </div>
-        <div class="overlay-body">${textsHtml}</div>
-      </div>
-    </div>`);
-    const close = () => overlay.remove();
-    overlay.querySelector("#close").addEventListener("click", close);
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) close();
-    });
-    document.body.appendChild(overlay);
-  }
-
-  function renderQuiz() {
-    runQuestions({
-      body,
-      questions,
-      reviewButton,
-      onFinish: (correct, total) => {
-        const stars = starsFromRatio(correct / total);
-        const baseCoins = 6 + correct * 2 + (correct === total ? 4 : 0);
-        showResult({
-          container: body,
-          subj, area, mode: "lasforstaelse",
-          stars,
-          scoreLine: `Du hade ${correct} av ${total} rätt.`,
-          baseCoins,
-          bestScore: correct,
-          replay: () => startLasforstaelse(ctx),
-        });
-      },
-    });
-  }
-
-  renderReading();
+  runQuestions({
+    body: quizArea,
+    questions,
+    onFinish: (correct, total) => {
+      const stars = starsFromRatio(correct / total);
+      const baseCoins = 6 + correct * 2 + (correct === total ? 4 : 0);
+      // Resultatskärmen ersätter hela sidan (text + frågor).
+      showResult({
+        container: body,
+        subj, area, mode: "lasforstaelse",
+        stars,
+        scoreLine: `Du hade ${correct} av ${total} rätt.`,
+        baseCoins,
+        bestScore: correct,
+        replay: () => startLasforstaelse(ctx),
+      });
+    },
+  });
 }

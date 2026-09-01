@@ -179,7 +179,42 @@
   margin-top: 14px;
 }
 
-/* --- Läsförståelse: texter + overlay -------------------------------------- */
+/* --- Läsförståelse: texten står kvar överst, frågorna direkt under --------- */
+
+/* Läsförståelse-sidan: text överst, quiz direkt under, allt på samma
+   scrollbara sida. */
+.lasf-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.lasf-intro {
+  margin: 0 0 4px;
+}
+
+/* Textblocket får en tydlig ram så eleven ser att det hör ihop och står kvar. */
+.lasf-text {
+  background: var(--panel);
+  border: 3px solid #d7e3f7;
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 18px 20px;
+}
+
+/* Inne i textblocket räcker en enkel avdelare mellan texterna. */
+.lasf-text .read-text {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lasf-text .read-text + .read-text {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 2px solid #e3ecfa;
+}
 
 .read-text {
   background: var(--panel);
@@ -194,10 +229,12 @@
   color: var(--bla-mork);
 }
 
+/* Bekväm radlängd för läsning i åk 4. */
 .read-text p {
   margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  max-width: 62ch;
+  font-size: 1.15rem;
+  line-height: 1.7;
 }
 
 .overlay {
