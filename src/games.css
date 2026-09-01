@@ -495,14 +495,14 @@
 
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   margin-top: 10px;
 }
 
 .memory-card {
   position: relative;
-  min-height: 96px;
+  min-height: 104px;
   border: none;
   border-radius: 16px;
   cursor: pointer;
@@ -512,30 +512,41 @@
 }
 
 .mem-face {
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  padding: 10px;
+  padding: 12px 12px;
   font-weight: 700;
   text-align: center;
   backface-visibility: hidden;
+  /* Låt längre förklaringar radbrytas och rymmas i rutan. */
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  line-height: 1.25;
 }
 
+/* Baksidan (?) läggs som en overlay ovanpå framsidan. */
 .mem-back {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(160deg, #bb6bd9, var(--lila));
   color: #fff;
   font-size: 2rem;
   box-shadow: var(--skugga);
+  transition: opacity 0.2s ease;
 }
 
+/* Framsidan (texten) ligger i normalt flöde och BESTÄMMER kortets höjd, så
+   rutan alltid växer så att hela texten får plats. */
 .mem-front {
+  position: relative;
+  min-height: 104px;
+  height: 100%;
   background: #fbfdff;
   color: var(--text);
   border: 3px solid #d7e3f7;
-  font-size: 1rem;
+  font-size: 0.95rem;
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 0.2s ease, transform 0.2s ease;
