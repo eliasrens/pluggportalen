@@ -1030,3 +1030,168 @@ code {
 .flash.error {
   background: var(--rod);
 }
+
+/* --- Klassöversikt (lärarsidan, #/larare/klass) ---------------------------- */
+
+.class-tbl {
+  min-width: 720px;
+  font-size: 0.92rem;
+}
+
+/* Elevkolumnen fastnålad till vänster så namnet syns när man scrollar i sidled. */
+.class-tbl .cx-corner,
+.class-tbl .cx-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  text-align: left;
+}
+
+.class-tbl thead th {
+  vertical-align: bottom;
+  text-align: center;
+}
+
+.class-tbl .cx-corner {
+  z-index: 2;
+  background: #f6faff;
+}
+
+.class-tbl .cx-head {
+  min-width: 84px;
+  max-width: 120px;
+}
+
+.class-tbl .cx-head-emoji {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.class-tbl .cx-head-name {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.class-tbl .cx-total-head {
+  min-width: 74px;
+  text-align: center;
+}
+
+.class-tbl tbody tr:nth-child(even) td,
+.class-tbl tbody tr:nth-child(even) .cx-name {
+  background: #f9fbff;
+}
+
+.class-tbl .cx-name {
+  font-weight: 700;
+  white-space: nowrap;
+  padding-right: 14px;
+}
+
+.class-tbl .cx-avatar {
+  font-size: 1.2rem;
+  margin-right: 6px;
+}
+
+.class-tbl .cx {
+  text-align: center;
+  border-left: 1px solid #eef2f9;
+}
+
+.class-tbl .cx-stars {
+  display: block;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--bla-mork);
+  white-space: nowrap;
+}
+
+.class-tbl .cx-slash {
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+.class-tbl .cx-bar {
+  display: block;
+  height: 6px;
+  margin: 4px auto 0;
+  width: 80%;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.class-tbl .cx-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+
+.class-tbl .cx-empty {
+  color: var(--text-svag);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Nivåfärger (bakgrundston + stapel). */
+.class-tbl .cx.hog { background: #eafaf0; }
+.class-tbl .cx.mellan { background: #fff7e6; }
+.class-tbl .cx.lag { background: #fdecef; }
+.class-tbl .cx.hog .cx-bar-fill { background: var(--gron); }
+.class-tbl .cx.mellan .cx-bar-fill { background: var(--orange); }
+.class-tbl .cx.lag .cx-bar-fill { background: var(--rosa); }
+
+.class-tbl .cx-total {
+  text-align: center;
+  font-weight: 800;
+  border-left: 2px solid #e2ecfb;
+}
+
+.class-tbl .cx-total-pct {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.class-tbl .cx-total-stars {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-svag);
+}
+
+.class-tbl .cx-total.hog { color: var(--gron-mork); }
+.class-tbl .cx-total.mellan { color: #b9770f; }
+.class-tbl .cx-total.lag { color: #c0396a; }
+.class-tbl .cx-total.tom { color: var(--text-svag); }
+
+.cx-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--text-svag);
+}
+
+.cx-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.cx-dot.hog { background: #8fe0ab; }
+.cx-dot.mellan { background: #f6c777; }
+.cx-dot.lag { background: #f4a0b8; }
+.cx-dot.tom { background: #e2ecfb; }
