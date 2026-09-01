@@ -57,6 +57,35 @@ body {
   z-index: 10;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Hem-knapp i sidhuvudet – stor nog för barnfingrar på mobil. */
+.topbar .hem-btn {
+  font-size: 1.05rem;
+  padding: 10px 18px;
+  border-radius: 999px;
+  min-height: 48px;
+  background: var(--gul, #ffd85e);
+  color: #7a5c00;
+  box-shadow: 0 4px 0 #d9ac1f;
+  white-space: nowrap;
+}
+
+.topbar .hem-btn .hem-ikon {
+  font-size: 1.4rem;
+}
+
+@media (max-width: 560px) {
+  .topbar .brand .brand-text {
+    display: none;
+  }
+}
+
 .topbar .brand {
   display: flex;
   align-items: center;
