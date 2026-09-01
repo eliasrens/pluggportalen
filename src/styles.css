@@ -1360,9 +1360,20 @@ code {
   gap: 8px;
   padding: 18px 12px 14px;
   background: #fff;
+  border: none;
   border-radius: var(--radie);
   box-shadow: var(--skugga);
   text-align: center;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.foto-card:hover,
+.foto-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
 }
 
 .foto-card.du {
@@ -1394,6 +1405,18 @@ code {
   border-radius: 999px;
   box-shadow: var(--skugga);
   transform: rotate(6deg);
+}
+
+/* --- Klasskamratens rum (läs-endast) ------------------------------------- */
+.klasskamrat-figur {
+  font-size: 4.2rem;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+/* Läs-läge: rummets saker är inte flyttbara/valbara – bara att titta på. */
+.room-stage.readonly .room-item.readonly {
+  cursor: default;
 }
 
 /* ==========================================================================

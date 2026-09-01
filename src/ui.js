@@ -115,6 +115,7 @@ export async function renderTopbar() {
   } catch {}
 
   const wrap = el(`<div class="topbar-user">
+    <button class="btn ghost liten minklass-btn" id="minklass-btn" title="Se min klass">👩‍👦‍👦 Min klass</button>
     <button class="avatar-chip" id="profil-btn" title="Min profil">
       <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems, evo)}</span>
       <span class="avatar-namn">${session.namn || "Elev"}</span>
@@ -122,6 +123,7 @@ export async function renderTopbar() {
     <span class="coins">🪙 ${coins}</span>
     <button class="btn ghost liten" id="logout-btn">Logga ut</button>
   </div>`);
+  wrap.querySelector("#minklass-btn").addEventListener("click", () => go("#/elev/klassfoto"));
   wrap.querySelector("#profil-btn").addEventListener("click", () => go("#/elev/profil"));
   wrap.querySelector("#logout-btn").addEventListener("click", () => {
     data.logout();
