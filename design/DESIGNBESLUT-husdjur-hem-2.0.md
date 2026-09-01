@@ -51,12 +51,15 @@ Inga fria färgval – bara paletter (blir alltid snyggt, enkel datamodell).
   **Evolutionen ska synas (Pokémon-principen): ny siluett + färgskifte + nya element per stadium.**
   Stadium 1 = gullig unge, stadium 2 = mer karaktär, stadium 3 = cool slutform med bestämd blick
   (ögonbryn), vingar/eld/blixtar/kosmisk päls. Exempel-linjer i prototypen:
-  - Gnistra-linjen: **Gnizt → Gnistra → Stjärnglans** (vit kattunge med hornknopp → spiralhorn & man →
-    kosmisk alicorn: rymdblå `#46557A` päls, norrskensman i rosa/lila/mint, vingar, guldhovar, stjärnfläckar)
-  - Taggen-linjen: **Knytt → Taggen → Eldvakt** (grön drakunge → taggar & små vingar →
-    mörkgrön `#4E9B5E` kropp, stora röda `#EF6F6C` vingar, guldpansar på bröstet, bakåtsvepta horn, stor eldsvans)
-  - Snurran-linjen: **Plutt → Snurran → Blixtlopp** (lila harunge → sprinter med blixtmärke →
-    elladdad: mörklila `#9C7ED0` päls, blixtformad svans i guld, kantiga öron med guldspetsar, taggig lugg, gnistor)
+  - Gnistra-linjen: **Gnizt → Gnistra → Stjärnglans** (vit kattunge med hornknopp → slank katt med
+    spiralhorn & stjärnsvans → kosmisk alicorn: rymdmörk `#46557A` päls, galax-vingar i gradient
+    marin→lila→mint med stjärnprickar, norrskensman, guldkrage med gem, guldhovar)
+  - Taggen-linjen: **Knytt → Taggen → Eldvakt** (grön drakunge med magplattor & nos → stående drake
+    med vingar, horn & klor → pansarklädd elddrake: röd `#C9534E` kropp, enorma röda vingar med
+    guldspar, segmenterat guldpansar + axelplattor, hornkrona med regnbågskam, pannplåt med gem, eldsvans)
+  - Snurran-linjen: **Plutt → Snurran → Blixtlopp** (rund lila unge → smäcker sprinter med
+    fjädersvans-spiral & blixtmärke → blixtvarg: mörklila `#9C7ED0`, mörk ansiktsmask `#4C4661`,
+    svarta örontoppar med blixtar, stor blixtformad svans i guld, gnistor)
 - **Tillväxt:** varje matning ger +0.022 i skala. Stadiebas-skala: **0.66 / 0.90 / 1.18**
   (10 matningar ≈ +22 % → nästa stadiebas tar vid nästan sömlöst).
 - **Evolution: efter 10 matningar** → nästa stadium, maträknaren nollas.
@@ -72,17 +75,29 @@ Inga fria färgval – bara paletter (blir alltid snyggt, enkel datamodell).
   Uttryck är utbytbara ansiktslager – funkar för alla arter och stadier utan ny ritkod.
 - Klick på husdjur → ramlar på rygg (ofarligt, bara kul).
 
-## Djurdesign 2.0 (putsprinciper för ALLA arter)
+## Djurdesign 2.0 (principer för ALLA arter — kalibrerade mot Pokémon-referens)
 
-- Stadium 1 gulligast (huvud r≈23, rund blob-kropp), stadium 2 mer karaktär (r≈20,
-  sittande kropp med ben), stadium 3 coolast (r≈17.5, stående högre kropp, smalare siluett).
-- **Stadium 3 får bestämda ögonbryn** (statiskt lager ovanpå ansiktet) och ett tydligt
-  **färgskifte** mot en mörkare/djupare ton — det är detta som ger wow-känslan vid evolution.
-- Skuggpass (`#3B3350` op 0.07) på kroppens ena sida + detaljpass (fjäderlinjer i vingar,
-  spirallinjer i horn, plattor på drakmage, innerteckning i öron) höjer kvaliteten
-  utan att lämna den platta stilen.
-- Sekundärfärg används som accent (man/tofs/taggar/blixtar), max 3–4 färger + kontur per djur.
-- Ton: blanda gulligt och coolt över artbeståndet — inte allt ska vara sött.
+- **Riktig anatomi, inte blob-med-huvud:** fyra ben (eller ben+armar för tvåbenta),
+  tassar/klor, nos/mun-parti, kindtofsar, haunches. Stadium 1 sittande unge (huvud r≈19),
+  stadium 2 smäcker sittande/stående (r≈16–17), stadium 3 stående med full siluett (r≈16
+  men mycket större kropp/vingspann).
+- **Ögon: mandelformade med iris** — vit ögonvita, bärnstensiris `#F2A93B`
+  (guld `#F7C948` på el-arter), mörk pupill, ljusglimt. Rosa kinder ENDAST på stadium 1.
+- **Stadium 2–3 får bestämda ögonbryn**; stadium 3 dessutom tydligt **färgskifte**
+  (vit → rymdmörk, grön → röd, ljuslila → mörklila med mask).
+- **Detaljpass per djur:** fjäderlinjer + stjärnprickar i vingar, spiralräfflor i horn,
+  segmenterat guldpansar (gradient `#F7C948→#F2A93B`), magplattor, klor i benvit,
+  mörk ansiktsmask, gnistor/blixtar. Gradients är tillåtna för vingar/manar/pansar
+  (t.ex. norrsken `#F890B7→#B79BE0→#58C6A9`).
+- Skuggpass (`#3B3350` op 0.07) på kroppens ena sida behålls.
+- Ton: blanda gulligt och coolt över artbeståndet — stadium 1 får vara sött,
+  slutformerna ska kännas mäktiga.
+
+### Rigg för animation (alla arter)
+
+Varje djur-SVG grupperas för CSS-animation: `g.benA`/`g.benB` (ben i motfas),
+`g.svans` (svans), `g.face` (utbytbart ansikte). Transform-origin via
+`transform-box:fill-box` (höft = 50 % 8 %, svansfäste = 12 % 60 %).
 
 ## Animationstajming
 
@@ -93,7 +108,9 @@ Inga fria färgval – bara paletter (blir alltid snyggt, enkel datamodell).
 | Moln i fönstret | 34–52 s per varv, 2 moln |
 | Solstrålar | rotation 70 s/varv |
 | Skorstensrök | puff 4 s, 3 puffar med 1,3 s fasförskjutning |
-| Promenad | ~7 %/s; mot mat ~11 %/s; vaggning ±3,5° i 0,55 s-takt; flip via `scaleX(-1)` |
+| Gångcykel | bensteg ±8° i 0,5 s (benA/benB i motfas), kroppen gungar ±1,4° och lyfter 2,8 % två gånger per cykel; ~7 %/s (mot mat ~11 %/s); flip via `scaleX(-1)` |
+| Svans | vajar ±4–5° kontinuerligt, 2,8 s per cykel |
+| Vila (andning) | kroppen skalas 1,8 % i höjdled kring fotpunkten, 3,4 s per andetag |
 | Ramla på rygg | 700 ms med studs till rot. 157° kring fotpunkten (origin 50 %/92 %); ligger 2,6 s; reser sig 550 ms |
 | Äta | mums-puls 450 ms → tillväxt-pop 450 ms `cubic-bezier(.34,1.56,.64,1)` |
 | Evolution | vit blink 3×250 ms → formbyte → ✨🌟-burst ~900 ms, namnskylt får ⭐ |

@@ -126,8 +126,25 @@
   .pet-flip{transition:transform .25s}
   .pet-grow{transition:transform .45s cubic-bezier(.34,1.56,.64,1);transform-origin:50% 100%}
   .pet-tilt{transform-origin:50% 92%}
-  .pet.gaar .pet-tilt{animation:vagga .55s ease-in-out infinite}
-  @keyframes vagga{0%,100%{transform:rotate(-3.5deg)}50%{transform:rotate(3.5deg)}}
+
+  /* --- gångcykel: bensteg + kroppsgung + svansvaj + andning --- */
+  .pet svg .benA,.pet svg .benB{transform-box:fill-box;transform-origin:50% 8%}
+  .pet svg .svans{transform-box:fill-box;transform-origin:12% 60%}
+  .pet.gaar .benA{animation:kliv .5s ease-in-out infinite}
+  .pet.gaar .benB{animation:kliv .5s ease-in-out infinite -0.25s}
+  @keyframes kliv{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-8deg)}}
+  .pet.gaar .pet-tilt{animation:lunk .5s ease-in-out infinite}
+  @keyframes lunk{
+    0%,100%{transform:translateY(0) rotate(-1.4deg)}
+    25%{transform:translateY(-2.8%)}
+    50%{transform:translateY(0) rotate(1.4deg)}
+    75%{transform:translateY(-2.8%)}
+  }
+  .pet svg .svans{animation:svansa 2.8s ease-in-out infinite}
+  @keyframes svansa{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+  .pet:not(.gaar) .pet-tilt:not(.pa-rygg):not(.reser-sig){animation:andas 3.4s ease-in-out infinite}
+  @keyframes andas{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.018)}}
+
   .pet-tilt.pa-rygg{animation:ramla .7s cubic-bezier(.5,1.6,.4,1) forwards}
   @keyframes ramla{
     0%{transform:rotate(0)}
@@ -208,9 +225,9 @@
   }
   .evolinje .steg{text-align:center;padding:0 6px}
   .evolinje .steg svg{width:100%;display:block;margin:0 auto}
-  .evolinje .steg:nth-child(1) svg{height:88px}
-  .evolinje .steg:nth-child(2) svg{height:116px}
-  .evolinje .steg:nth-child(3) svg{height:148px}
+  .evolinje .steg:nth-child(1) svg{height:84px}
+  .evolinje .steg:nth-child(2) svg{height:118px}
+  .evolinje .steg:nth-child(3) svg{height:158px}
   .evolinje .pil{
     position:absolute;top:44%;font-size:22px;font-weight:800;color:var(--marin);
   }
@@ -234,14 +251,16 @@
   .fotnot{color:var(--muted);font-size:14px;max-width:66ch}
 
   @media (prefers-reduced-motion:reduce){
-    .moln,.moln-fonster,#solstralar,.rok,.pet.gaar .pet-tilt{animation:none}
+    .moln,.moln-fonster,#solstralar,.rok,
+    .pet.gaar .pet-tilt,.pet.gaar .benA,.pet.gaar .benB,
+    .pet svg .svans,.pet:not(.gaar) .pet-tilt{animation:none !important}
     #outside,#inside,.pet-grow,.pet-flip{transition-duration:.01s}
   }
 </style>
 
 <div class="wrap">
   <header class="top">
-    <div class="eyebrow">Pluggportalen · Designprototyp v2 · kräver ditt godkännande</div>
+    <div class="eyebrow">Pluggportalen · Designprototyp v4 · kräver ditt godkännande</div>
     <h1>Husdjur &amp; Hem 2.0 🏠</h1>
     <p class="lede">Hela målbilden, klickbar: gå in i huset, <strong>dra möblerna</strong> dit du vill,
     byt färg på hus och väggar, köp äpplen i shoppen och <strong>lägg ut dem på golvet</strong> —
@@ -287,9 +306,9 @@
     <h2>Husdjurens evolution ⭐</h2>
     <p>Varje art har <strong>3 stadier</strong>. Varje matning gör djuret lite större, och efter
     <strong>10 matningar</strong> evolverar det — och evolutionen ska <em>synas</em>, som hos Pokémon:
-    <strong>ny siluett, nytt färgskifte och nya element</strong> för varje stadium. Stadium 1 är den
-    gulliga ungen, stadium 3 är den coola slutformen med bestämd blick, vingar, eld, blixtar eller
-    kosmisk päls. Tre exempel-linjer (samma system byggs för alla arter):</p>
+    <strong>ny siluett, nytt färgskifte och nya element</strong> för varje stadium. Djuren har riktig
+    anatomi (fyra ben, nos, tassar), mandelformade ögon med gyllene iris och detaljer som rustning,
+    vingfjädrar och manar. Tre exempel-linjer (samma system byggs för alla arter):</p>
     <div id="evolinjer"></div>
   </section>
 
@@ -332,6 +351,7 @@
       <tr><td>Golv</td><td><code>#C9996B</code> plankor, linjer <code>#B0805A</code></td><td>färgas aldrig om</td></tr>
       <tr><td>Hus/tak/vägg/panel</td><td>5 paletter (sektionen ovan)</td><td>sparas som <code>room.paletteId</code></td></tr>
       <tr><td>Himmel</td><td><code>#9AD3F0 → #E8F6FD</code>, sol <code>#F7C948</code></td><td>samma ute och i fönstret</td></tr>
+      <tr><td>Iris (ögon)</td><td><code>#F2A93B</code> bärnsten (guld <code>#F7C948</code> på elarter)</td><td>alla stadier</td></tr>
     </table></div>
 
     <h3>Mått &amp; layout</h3>
@@ -359,15 +379,17 @@
       <tr><td>Uttryck</td><td>hungrig när inte matad idag, sömnig på kvällen, mätt efter matning, annars glad; yr på rygg</td></tr>
     </table></div>
 
-    <h3>Animationstajming</h3>
+    <h3>Animation</h3>
     <div class="tabellram"><table class="spec">
       <tr><th>Vad</th><th>Värde</th></tr>
       <tr><td>In/ut ur huset</td><td>900 ms, <code>cubic-bezier(.55,0,.2,1)</code>, zoom mot husets fönster (origin 48.5 % / 52 %)</td></tr>
       <tr><td>Moln</td><td>ute 46–75 s per varv; i fönstret 34–52 s; linjär, olika hastighet per moln</td></tr>
-      <tr><td>Promenad</td><td>~7 %/s (mot mat ~11 %/s), vaggning ±3,5° i 0,55 s-takt</td></tr>
+      <tr><td>Gångcykel</td><td>bensteg ±8° i 0,5 s (fram/bak i motfas), kroppen gungar ±1,4° och lyfter 2,8 % två gånger per cykel; ~7 %/s (mot mat ~11 %/s)</td></tr>
+      <tr><td>Svans</td><td>vajar ±4–5° kontinuerligt, 2,8 s per cykel</td></tr>
+      <tr><td>Vila</td><td>andning: kroppen skalas 1,8 % i höjdled, 3,4 s per andetag</td></tr>
       <tr><td>Ramla på rygg</td><td>700 ms med studs (rot. 157° kring fotpunkten), ligger 2,6 s, reser sig 550 ms</td></tr>
       <tr><td>Äta</td><td>mums-puls 450 ms → tillväxt-pop 450 ms med overshoot</td></tr>
-      <tr><td>Evolution</td><td>vit blink 3×250 ms → formbyte → ✨🌟-burst 900 ms, namnskylt får ⭐</td></tr>
+      <tr><td>Evolution</td><td>vit blink 3×250 ms → formbyte → ✨🌟-burst ~900 ms, namnskylt får ⭐</td></tr>
       <tr><td>Mat landar</td><td>studs 400 ms</td></tr>
     </table></div>
   </section>
@@ -385,227 +407,287 @@ const LINE = 'stroke="'+O+'" stroke-width="3" stroke-linecap="round" stroke-line
 const THIN = 'stroke="'+O+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"';
 const WOOD="#B0805A", WOOD_DARK="#8A6242", WOOD_LIGHT="#E0B98C", FLOOR="#C9996B";
 
-const eye=(x,y,r=6)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#fff" '+THIN+'/>'+
-  '<circle cx="'+(x+0.8)+'" cy="'+(y+0.9)+'" r="'+(r*0.55).toFixed(1)+'" fill="'+O+'"/>'+
-  '<circle cx="'+(x+2.1)+'" cy="'+(y-1)+'" r="'+(r*0.2).toFixed(1)+'" fill="#fff"/>';
-const eyes=(y=34,dx=9,r=6)=>eye(50-dx,y,r)+eye(50+dx,y,r);
-const cheeks=(y=43,dx=18)=>'<ellipse cx="'+(50-dx)+'" cy="'+y+'" rx="4.3" ry="2.8" fill="#FFB1B8" opacity="0.85"/>'+
-  '<ellipse cx="'+(50+dx)+'" cy="'+y+'" rx="4.3" ry="2.8" fill="#FFB1B8" opacity="0.85"/>';
-const smile=(y=46,w=6.5)=>'<path d="M '+(50-w)+' '+y+' Q 50 '+(y+w)+' '+(50+w)+' '+y+'" fill="none" '+LINE+'/>';
-const nose=(y=41.5,c="#E88A9C")=>'<ellipse cx="50" cy="'+y+'" rx="3" ry="2.3" fill="'+c+'" stroke="none"/>';
 const limb=(d,c,w=8)=>'<path d="'+d+'" fill="none" stroke="'+O+'" stroke-width="'+(w+4.5)+'" stroke-linecap="round"/>'+
   '<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round"/>';
 const shadow=(cx,cy,rx)=>'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+(rx*0.22).toFixed(1)+'" fill="'+O+'" opacity="0.09"/>';
+const shade=(d)=>'<path d="'+d+'" fill="'+O+'" opacity="0.07" stroke="none"/>';
 const stjarna=(x,y,s,c)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 -5 L1.4 -1.5 L5 -1.2 L2.3 1.1 L3.1 4.8 L0 2.8 L-3.1 4.8 L-2.3 1.1 L-5 -1.2 L-1.4 -1.5 Z" fill="'+c+'" stroke="none"/>';
 const svgw=(vb,art,label)=>'<svg viewBox="'+vb+'" role="img" aria-label="'+(label||"")+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+art+'</svg>';
 
 /* ============================================================
-   ANSIKTEN – utbytbara lager (alla arter & stadier)
+   ANSIKTEN – mandelformade ögon med iris, utbytbara uttryck.
+   Ritas i standardgrid (ögon y=34, x=41/59) och placeras per
+   stadium med en transform (faceT) så de landar på huvudet.
    ============================================================ */
-function face(kind){
-  const closedHappy='<path d="M37 34 Q41 29 45 34 M55 34 Q59 29 63 34" fill="none" '+LINE+'/>';
-  const closedSleep='<path d="M37 34 Q41 38 45 34 M55 34 Q59 38 63 34" fill="none" '+LINE+'/>';
+const eyeC=(x,y,r,iris)=>
+  '<path d="M'+(x-r)+' '+y+' Q'+x+' '+(y-r*1.2)+' '+(x+r)+' '+y+' Q'+x+' '+(y+r*0.95)+' '+(x-r)+' '+y+' Z" fill="#fff" '+THIN+'/>'+
+  '<circle cx="'+x+'" cy="'+(y-r*0.05)+'" r="'+(r*0.52).toFixed(1)+'" fill="'+iris+'"/>'+
+  '<circle cx="'+x+'" cy="'+(y-r*0.05)+'" r="'+(r*0.26).toFixed(1)+'" fill="'+O+'"/>'+
+  '<circle cx="'+(x+r*0.2)+'" cy="'+(y-r*0.38)+'" r="'+(r*0.15).toFixed(1)+'" fill="#fff"/>';
+const faceT=(dy,s)=>'translate(50 '+(36+dy)+') scale('+s+') translate(-50 -36)';
+
+function face(kind,fo={}){
+  const ir=fo.iris||"#F2A93B";
+  const r=fo.stor?6:5.2;
+  const ogon=eyeC(41,34,r,ir)+eyeC(59,34,r,ir);
+  const bryn=fo.brows?'<path d="M34.5 26 L44.5 28.6 M65.5 26 L55.5 28.6" fill="none" '+LINE+'/>':"";
+  const kind_=fo.cheeks?'<ellipse cx="33" cy="42" rx="3.8" ry="2.5" fill="#FFB1B8" opacity="0.8"/><ellipse cx="67" cy="42" rx="3.8" ry="2.5" fill="#FFB1B8" opacity="0.8"/>':"";
+  const nos=fo.nos===false?"":'<path d="M47.6 41 Q50 39.4 52.4 41 L50 43.6 Z" fill="#E88A9C" '+'stroke="'+O+'" stroke-width="1.6" stroke-linejoin="round"'+'/>';
+  const closedSleep='<path d="M36.5 34 Q41 37.5 45.5 34 M54.5 34 Q59 37.5 63.5 34" fill="none" '+LINE+'/>';
+  const closedHappy='<path d="M36.5 34 Q41 30 45.5 34 M54.5 34 Q59 30 63.5 34" fill="none" '+LINE+'/>';
   switch(kind){
-    case "hungrig": return eyes()+nose()+
-      '<path d="M43 45 Q50 55 57 45 Z" fill="#7C4A57" '+LINE+'/>'+
-      '<path d="M46.5 48.5 Q50 52.5 53.5 48.5 Z" fill="#FF9AA6" stroke="none"/>'+
-      '<path d="M59 51 Q61 55 59 57 Q56.7 55 58 51 Z" fill="#9BD3EF" '+THIN+'/>'+cheeks();
-    case "somnig": return closedSleep+nose()+
-      '<ellipse cx="50" cy="47" rx="3" ry="3.6" fill="#7C4A57" '+THIN+'/>'+cheeks();
-    case "matt": return closedHappy+nose()+smile(46,7.5)+cheeks();
-    case "yr": return stjarna(41,33,1.3,"#F7C948")+stjarna(59,33,1.3,"#F7C948")+nose()+
-      '<path d="M45 47 Q47.5 44.5 50 47 Q52.5 49.5 55 47" fill="none" '+LINE+'/>'+cheeks();
-    default: return eyes()+nose()+smile()+cheeks();
+    case "hungrig": return bryn+ogon+nos+
+      '<path d="M45 46 Q50 53 55 46 Z" fill="#7C4A57" '+THIN+'/>'+
+      '<path d="M47.5 48.3 Q50 51 52.5 48.3 Z" fill="#FF9AA6" stroke="none"/>'+
+      '<path d="M57.5 50 Q59 53 57.5 55 Q55.8 53 56.6 50 Z" fill="#9BD3EF" '+'stroke="'+O+'" stroke-width="1.6"'+'/>'+kind_;
+    case "somnig": return closedSleep+nos+
+      '<ellipse cx="50" cy="47" rx="2.4" ry="3" fill="#7C4A57" '+'stroke="'+O+'" stroke-width="1.6"'+'/>'+kind_;
+    case "matt": return closedHappy+nos+
+      '<path d="M44.5 45.5 Q50 50.5 55.5 45.5" fill="none" '+LINE+'/>'+kind_;
+    case "yr": return stjarna(41,33.5,1.2,"#F7C948")+stjarna(59,33.5,1.2,"#F7C948")+nos+
+      '<path d="M45.5 46.5 Q47.7 44.5 50 46.5 Q52.3 48.5 54.5 46.5" fill="none" '+LINE+'/>'+kind_;
+    default: return bryn+ogon+nos+
+      '<path d="M46 45 Q48 47.3 50 45 Q52 47.3 54 45" fill="none" '+LINE+'/>'+kind_;
   }
 }
+const ansikte=(f,fo)=>'<g class="face" transform="'+faceT(fo.dy||0,fo.s||1)+'">'+face(f,fo)+'</g>';
 
 /* ============================================================
-   EVOLUTIONSLINJER – 3 stadier per art, putsad design
-   Alla ritas i viewBox 0 0 100 100 med huvudankare (50,36) så
-   ansiktslagren passar. Stadium 1 = gulligast, 3 = ståtligast.
+   EVOLUTIONSLINJER – riktig anatomi, 3 stadier, dramatiska skiften
    ============================================================ */
-const shade=(d)=>'<path d="'+d+'" fill="'+O+'" opacity="0.07" stroke="none"/>';
 
-/* ---- Linje A: enhörningskatt (vit/rosa/guld) ---- */
-const A_FUR="#FFFFFF", A_BELLY="#FDEBF2", A_PINK="#F890B7", A_LILA="#B79BE0";
-function hornA(h){ // h = höjd
-  return '<path d="M'+(50-3.2)+' 16 L50 '+(16-h)+' L'+(50+3.2)+' 16 Z" fill="#F7C948" '+LINE+'/>'+
-    '<path d="M'+(50-2.2)+' '+(16-h*0.3)+' L'+(50+2.4)+' '+(16-h*0.42)+' M'+(50-1.5)+' '+(16-h*0.62)+' L'+(50+1.6)+' '+(16-h*0.72)+'" fill="none" '+THIN+'/>';
-}
-const oraA=(dir,s=1,fur=A_FUR,inner=A_PINK)=>'<g transform="translate(50 0) scale('+s+' '+s+') translate(-50 0)">'+
-  '<path d="M '+(50+dir*8)+' 24 L '+(50+dir*16)+' 5 L '+(50+dir*24)+' 21 Z" fill="'+fur+'" '+LINE+'/>'+
-  '<path d="M '+(50+dir*12)+' 19 L '+(50+dir*16)+' 9.5 L '+(50+dir*20)+' 17.5 Z" fill="'+inner+'" stroke="none"/></g>';
-const brows='<path d="M37 25 L45 27.5 M63 25 L55 27.5" fill="none" '+LINE+'/>';
+/* ---- Linje A: enhörningskatt → kosmisk alicorn ---- */
+const A_FUR="#FFFFFF", A_PINK="#F5C1CB", A_NAVY="#46557A", A_LJUS="#A9C2DE";
+const kattOra=(dir,x,h,fur,inner)=>
+  '<path d="M'+(50+dir*x)+' 24 L'+(50+dir*(x+7))+' '+(24-h)+' L'+(50+dir*(x+13))+' 21 Z" fill="'+fur+'" '+LINE+'/>'+
+  '<path d="M'+(50+dir*(x+3))+' 20 L'+(50+dir*(x+7))+' '+(28-h)+' L'+(50+dir*(x+10))+' 18 Z" fill="'+inner+'" stroke="none"/>';
+const kindTofs=(dir,y,fur)=>'<path d="M'+(50+dir*18)+' '+(y-3)+' L'+(50+dir*25)+' '+(y-1)+' L'+(50+dir*18)+' '+(y+2)+' L'+(50+dir*24)+' '+(y+5)+' L'+(50+dir*17)+' '+(y+6)+' Z" fill="'+fur+'" '+THIN+'/>';
+
 const A_STADIER=[
- {namn:"Gnizt",not:"nykläckt gnista",art:f=>
-   shadow(50,94,22)+
-   limb("M64 84 Q73 82 72 74",A_FUR,4)+
-   '<circle cx="72" cy="72" r="4" fill="'+A_PINK+'" '+THIN+'/>'+
-   '<path d="M33 68 Q28 92 50 92 Q72 92 67 68 Q50 61 33 68 Z" fill="'+A_FUR+'" '+LINE+'/>'+
-   shade("M62 69 Q68 80 61 90 Q70 82 66 69 Z")+
-   '<ellipse cx="50" cy="81" rx="10" ry="8.5" fill="'+A_BELLY+'"/>'+
-   '<ellipse cx="42" cy="90.5" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
-   '<ellipse cx="58" cy="90.5" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
-   oraA(-1,0.8)+oraA(1,0.8)+
-   '<circle cx="50" cy="37" r="23" fill="'+A_FUR+'" '+LINE+'/>'+
-   '<path d="M46.5 15.5 Q50 7 53.5 15.5 Z" fill="#F7C948" '+THIN+'/>'+
-   '<path d="M43 14 Q46 8 51 11 Q48 14 43 14 Z" fill="'+A_PINK+'" '+THIN+'/>'+
-   '<g class="face">'+face(f)+'</g>'},
- {namn:"Gnistra",not:"vig och lekfull",art:f=>
-   shadow(50,95,26)+
-   limb("M68 78 Q86 74 84 58",A_FUR,6)+
-   '<circle cx="84" cy="55" r="5.5" fill="'+A_PINK+'" '+THIN+'/>'+
-   '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+A_FUR+'" '+LINE+'/>'+
-   shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
-   '<path d="M40 58 Q50 54 60 58 L60 72 L56 68 L52 73 L48 68 L44 73 L40 68 Z" fill="'+A_BELLY+'" stroke="none"/>'+
-   limb("M43 78 L43 90",A_FUR,6)+limb("M57 78 L57 90",A_FUR,6)+
-   '<ellipse cx="43" cy="91" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
-   '<ellipse cx="57" cy="91" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
-   '<ellipse cx="67" cy="80" rx="9" ry="11" fill="'+A_FUR+'" '+LINE+'/>'+
-   stjarna(67,80,1.1,"#F7C948")+
-   oraA(-1)+oraA(1)+
-   '<circle cx="50" cy="36" r="20" fill="'+A_FUR+'" '+LINE+'/>'+
-   hornA(13)+
-   '<path d="M41 15 Q44 5 51 8 Q55 11 53 16 Q46 18 41 15 Z" fill="'+A_PINK+'" '+THIN+'/>'+
-   '<path d="M44 13 Q46 9 50 10" fill="none" stroke="'+A_LILA+'" stroke-width="2" stroke-linecap="round"/>'+
-   '<g class="face">'+face(f)+'</g>'},
- {namn:"Stjärnglans",not:"kosmisk alicorn – rymdblå med norrskensman",art:f=>
-   shadow(50,96,28)+
-   '<path d="M30 52 Q2 38 8 63 Q11 78 32 68 Z" fill="#E8F0FA" '+LINE+'/>'+
-   '<path d="M12 56 Q20 60 29 61 M11 64 Q20 66 29 65" fill="none" stroke="#F7C948" stroke-width="2.2" stroke-linecap="round"/>'+
-   '<path d="M70 52 Q98 38 92 63 Q89 78 68 68 Z" fill="#E8F0FA" '+LINE+'/>'+
-   '<path d="M88 56 Q80 60 71 61 M89 64 Q80 66 71 65" fill="none" stroke="#F7C948" stroke-width="2.2" stroke-linecap="round"/>'+
-   limb("M66 76 Q94 78 95 54 Q95 44 86 42","#F890B7",7)+
-   '<path d="M70 73 Q90 72 91 52" fill="none" stroke="'+A_LILA+'" stroke-width="2.8" stroke-linecap="round"/>'+
-   '<path d="M74 77 Q93 74 92 58" fill="none" stroke="#58C6A9" stroke-width="2.4" stroke-linecap="round"/>'+
-   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="#46557A" '+LINE+'/>'+
-   shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
-   '<path d="M43 56 Q50 53 57 56 L57 70 Q50 74 43 70 Z" fill="#A9C2DE" stroke="none"/>'+
-   stjarna(59,66,0.6,"#F7C948")+
-   '<circle cx="42" cy="76" r="1.4" fill="#fff"/><circle cx="60" cy="82" r="1.2" fill="#fff"/><circle cx="45" cy="64" r="1.1" fill="#fff"/>'+
-   limb("M43 84 L43 93","#46557A",5)+limb("M57 84 L57 93","#46557A",5)+
-   '<path d="M40 93 L46 93 M54 93 L60 93" stroke="#F7C948" stroke-width="4.5" stroke-linecap="round"/>'+
-   '<path d="M37 14 Q28 32 36 52 Q41 40 41 22 Z" fill="#F890B7" '+LINE+'/>'+
-   '<path d="M38 22 Q35 34 38 44" fill="none" stroke="'+A_LILA+'" stroke-width="2.4" stroke-linecap="round"/>'+
-   '<path d="M40 26 Q38 36 40 46" fill="none" stroke="#58C6A9" stroke-width="2" stroke-linecap="round"/>'+
-   oraA(-1,0.92,"#46557A","#F890B7")+oraA(1,0.92,"#46557A","#F890B7")+
-   '<circle cx="50" cy="36" r="17.5" fill="#46557A" '+LINE+'/>'+
-   hornA(18)+
-   '<path d="M40 13 Q45 3 55 6 Q60 9 57 15 Q47 18 40 13 Z" fill="#F890B7" '+THIN+'/>'+
-   '<path d="M44 11 Q48 7 53 8" fill="none" stroke="#58C6A9" stroke-width="2" stroke-linecap="round"/>'+
-   stjarna(64,44,0.85,"#F7C948")+
-   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Gnizt",not:"nykläckt gnista",fo:{dy:3,s:1.02,cheeks:true},art(f){return ""+
+   shadow(50,93,23)+
+   '<g class="svans">'+limb("M62 85 Q78 87 80 74 Q81 66 73 65",A_FUR,5.5)+
+   '<path d="M71 69 Q77 71 76 76" fill="none" stroke="#F7C948" stroke-width="2.6" stroke-linecap="round"/></g>'+
+   '<ellipse cx="36" cy="83" rx="9" ry="7.5" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<ellipse cx="64" cy="83" rx="9" ry="7.5" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<path d="M38 60 Q33 88 50 89 Q67 88 62 60 Q50 55 38 60 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   shade("M58 62 Q64 76 59 87 Q66 78 61 62 Z")+
+   '<path d="M42 61 Q50 57 58 61 L58 67 L54 63.5 L50 68 L46 63.5 L42 67 Z" fill="#FDF3F6" stroke="none"/>'+
+   '<g class="benA">'+limb("M44 74 L44 87",A_FUR,5)+'<ellipse cx="44" cy="88" rx="4.5" ry="3" fill="'+A_FUR+'" '+THIN+'/></g>'+
+   '<g class="benB">'+limb("M56 74 L56 87",A_FUR,5)+'<ellipse cx="56" cy="88" rx="4.5" ry="3" fill="'+A_FUR+'" '+THIN+'/></g>'+
+   kattOra(-1,8,16,A_FUR,A_PINK)+kattOra(1,8,16,A_FUR,A_PINK)+
+   '<circle cx="50" cy="39" r="19.5" fill="'+A_FUR+'" '+LINE+'/>'+
+   kindTofs(-1,44,A_FUR)+kindTofs(1,44,A_FUR)+
+   '<path d="M43 22 L46.5 15.5 L49.5 20.5 L52.5 14.5 L56 21.5 Q50 24 43 22 Z" fill="'+A_FUR+'" '+THIN+'/>'+
+   '<path d="M47 15 Q50 9 53 15 Z" fill="#F7C948" '+THIN+'/>'+
+   ansikte(f,this.fo);}},
+ {namn:"Gnistra",not:"vig och lekfull",fo:{dy:-2,s:0.94},art(f){return ""+
+   shadow(50,94,25)+
+   '<g class="svans">'+limb("M63 80 Q83 76 82 54 Q81 46 74 44",A_FUR,5)+
+   stjarna(73,42,1.1,"#F7C948")+'</g>'+
+   '<ellipse cx="63" cy="79" rx="10.5" ry="12" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<path d="M40 52 Q31 86 48 90 Q64 89 61 54 Q50 47 40 52 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   shade("M56 55 Q62 74 58 88 Q65 74 60 55 Z")+
+   '<path d="M43 55 Q50 51 57 55 L57 62 L53 58.5 L49.5 63 L46 58.5 L43 62 Z" fill="#FDF3F6" stroke="none"/>'+
+   '<g class="benA">'+limb("M45 70 L44 88",A_FUR,4.5)+'<ellipse cx="44" cy="89" rx="4.2" ry="2.8" fill="'+A_FUR+'" '+THIN+'/></g>'+
+   '<g class="benB">'+limb("M56 70 L57 88",A_FUR,4.5)+'<ellipse cx="57" cy="89" rx="4.2" ry="2.8" fill="'+A_FUR+'" '+THIN+'/></g>'+
+   kattOra(-1,7,18,A_FUR,A_PINK)+kattOra(1,7,18,A_FUR,A_PINK)+
+   '<circle cx="50" cy="33" r="17" fill="'+A_FUR+'" '+LINE+'/>'+
+   kindTofs(-1,38,A_FUR)+kindTofs(1,38,A_FUR)+
+   '<path d="M44 18 L47 12.5 L50 17 L53 11.5 L56 18 Q50 20.5 44 18 Z" fill="'+A_FUR+'" '+THIN+'/>'+
+   '<path d="M47.2 13 L50 4 L52.8 13 Z" fill="#F7C948" '+LINE+'/>'+
+   '<path d="M48.3 10.5 L51.8 10.5 M48.9 8 L51.3 8" fill="none" stroke="'+O+'" stroke-width="1.6" stroke-linecap="round"/>'+
+   ansikte(f,this.fo);}},
+ {namn:"Stjärnglans",not:"kosmisk alicorn – rymdmörk med norrskensman",fo:{dy:-3,s:0.9,brows:true},art(f){return ""+
+   '<defs><linearGradient id="a3w" x1="0" y1="0" x2="1" y2="1">'+
+   '<stop offset="0" stop-color="#46557A"/><stop offset="0.55" stop-color="#6B5AA8"/><stop offset="1" stop-color="#58C6A9"/></linearGradient>'+
+   '<linearGradient id="a3m" x1="0" y1="0" x2="0" y2="1">'+
+   '<stop offset="0" stop-color="#F890B7"/><stop offset="0.5" stop-color="#B79BE0"/><stop offset="1" stop-color="#58C6A9"/></linearGradient></defs>'+
+   shadow(50,95,30)+
+   '<path d="M33 50 Q6 16 2 42 Q0 56 13 54 Q4 64 18 62 Q12 72 30 63 Z" fill="url(#a3w)" '+LINE+'/>'+
+   '<path d="M10 44 Q19 48 28 52 M13 55 Q20 56 28 57 M20 62 Q25 60 29 59" fill="none" '+THIN+'/>'+
+   '<circle cx="14" cy="42" r="1.1" fill="#fff"/><circle cx="21" cy="53" r="0.9" fill="#fff"/>'+
+   '<g transform="translate(100 0) scale(-1 1)">'+
+   '<path d="M33 50 Q6 16 2 42 Q0 56 13 54 Q4 64 18 62 Q12 72 30 63 Z" fill="url(#a3w)" '+LINE+'/>'+
+   '<path d="M10 44 Q19 48 28 52 M13 55 Q20 56 28 57 M20 62 Q25 60 29 59" fill="none" '+THIN+'/>'+
+   '<circle cx="14" cy="42" r="1.1" fill="#fff"/><circle cx="21" cy="53" r="0.9" fill="#fff"/></g>'+
+   '<g class="svans"><path d="M66 70 Q90 74 93 54 Q95 44 85 40" fill="none" stroke="'+O+'" stroke-width="11" stroke-linecap="round"/>'+
+   '<path d="M66 70 Q90 74 93 54 Q95 44 85 40" fill="none" stroke="url(#a3m)" stroke-width="7" stroke-linecap="round"/></g>'+
+   '<path d="M34 55 Q28 78 40 80 L62 80 Q71 77 66 55 Q50 48 34 55 Z" fill="'+A_NAVY+'" '+LINE+'/>'+
+   shade("M61 57 Q67 68 62 78 Q69 70 65 57 Z")+
+   '<circle cx="41" cy="64" r="1.2" fill="#fff"/><circle cx="58" cy="72" r="1" fill="#fff"/>'+
+   stjarna(60,62,0.55,"#F7C948")+'<circle cx="47" cy="74" r="0.9" fill="#fff"/>'+
+   '<g class="benA">'+limb("M40 78 L40 90",A_NAVY,5)+
+   '<rect x="36.4" y="87" width="7.2" height="5" rx="2" fill="#F7C948" '+THIN+'/></g>'+
+   '<g class="benB">'+limb("M48 79 L48 91",A_NAVY,5)+
+   '<rect x="44.4" y="88" width="7.2" height="5" rx="2" fill="#F7C948" '+THIN+'/></g>'+
+   '<g class="benA">'+limb("M58 79 L58 91",A_NAVY,5)+
+   '<rect x="54.4" y="88" width="7.2" height="5" rx="2" fill="#F7C948" '+THIN+'/></g>'+
+   '<g class="benB">'+limb("M66 78 L66 90",A_NAVY,5)+
+   '<rect x="62.4" y="87" width="7.2" height="5" rx="2" fill="#F7C948" '+THIN+'/></g>'+
+   '<path d="M41 55 Q50 60 59 55 L59 62 Q50 67 41 62 Z" fill="#F7C948" '+THIN+'/>'+
+   '<path d="M47 60 L50 64 L53 60 L50 57.5 Z" fill="#58C6A9" '+'stroke="'+O+'" stroke-width="1.6"'+'/>'+
+   '<path d="M37 12 Q26 22 31 40 Q25 50 32 58 Q36 46 36 30 Q38 20 42 14 Z" fill="url(#a3m)" '+LINE+'/>'+
+   '<path d="M35 22 Q31 34 33 46" fill="none" stroke="#FDEBF2" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>'+
+   kattOra(-1,7,17,A_NAVY,"#F890B7")+kattOra(1,7,17,A_NAVY,"#F890B7")+
+   '<circle cx="50" cy="33" r="16" fill="'+A_NAVY+'" '+LINE+'/>'+
+   '<ellipse cx="50" cy="41" rx="7.5" ry="5" fill="'+A_LJUS+'" stroke="none"/>'+
+   kindTofs(-1,38,A_NAVY)+kindTofs(1,38,A_NAVY)+
+   '<path d="M42 16 Q46 6 54 8 Q58 10 56 16 Q49 20 42 16 Z" fill="url(#a3m)" '+THIN+'/>'+
+   '<path d="M47.4 14 L50 1 L52.6 14 Z" fill="#F7C948" '+LINE+'/>'+
+   '<path d="M48.2 11 L51.8 11 M48.7 7.5 L51.4 7.5 M49 4.5 L51 4.5" fill="none" stroke="'+O+'" stroke-width="1.5" stroke-linecap="round"/>'+
+   stjarna(63,42,0.7,"#F7C948")+
+   ansikte(f,this.fo);}},
 ];
 
-/* ---- Linje B: drake (grön/guld/eld) ---- */
-const B_FUR="#6FC66F", B_MORK="#4E9B5E", B_BELLY="#D8F0C0", B_GULD="#F7C948";
-const spadeB=(x,y,s)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 -5 Q6 0 0 6 Q-6 0 0 -5 Z" fill="'+B_GULD+'" '+THIN+'/>';
-const plattorB=(y1)=>'<path d="M42 '+y1+' Q50 '+(y1+3)+' 58 '+y1+' M41 '+(y1+7)+' Q50 '+(y1+10)+' 59 '+(y1+7)+' M42 '+(y1+14)+' Q50 '+(y1+17)+' 58 '+(y1+14)+'" fill="none" stroke="'+B_MORK+'" stroke-width="2" stroke-linecap="round" opacity="0.65"/>';
+/* ---- Linje B: drake → pansarklädd elddrake ---- */
+const B_FUR="#6FC66F", B_MORK="#4E9B5E", B_BELLY="#D8F0C0", B_GULD="#F7C948", B_ROD="#C9534E";
+const drakNos=(y,rx,c)=>'<ellipse cx="50" cy="'+y+'" rx="'+rx+'" ry="'+(rx*0.66).toFixed(1)+'" fill="'+c+'" '+THIN+'/>'+
+  '<circle cx="'+(50-rx*0.38)+'" cy="'+(y-1)+'" r="1.2" fill="'+O+'"/><circle cx="'+(50+rx*0.38)+'" cy="'+(y-1)+'" r="1.2" fill="'+O+'"/>';
+const klor=(x,y)=>'<path d="M'+(x-3)+' '+y+' L'+(x-3)+' '+(y+3)+' M'+x+' '+y+' L'+x+' '+(y+3.4)+' M'+(x+3)+' '+y+' L'+(x+3)+' '+(y+3)+'" stroke="#FFF3DC" stroke-width="2" stroke-linecap="round"/>';
+
 const B_STADIER=[
- {namn:"Knytt",not:"nykläckt drakunge",art:f=>
-   shadow(50,94,22)+
-   limb("M64 85 Q73 84 73 77",B_FUR,4)+spadeB(74,74,0.8)+
-   '<path d="M33 68 Q28 92 50 92 Q72 92 67 68 Q50 61 33 68 Z" fill="'+B_FUR+'" '+LINE+'/>'+
-   shade("M62 69 Q68 80 61 90 Q70 82 66 69 Z")+
-   '<ellipse cx="50" cy="81" rx="10" ry="8.5" fill="'+B_BELLY+'"/>'+plattorB(75)+
-   '<ellipse cx="42" cy="90.5" rx="5" ry="3.4" fill="'+B_FUR+'" '+THIN+'/>'+
-   '<ellipse cx="58" cy="90.5" rx="5" ry="3.4" fill="'+B_FUR+'" '+THIN+'/>'+
-   '<circle cx="50" cy="37" r="23" fill="'+B_FUR+'" '+LINE+'/>'+
-   '<path d="M41 16 Q40 9 46 11 Q47 14 45 17 Z" fill="'+B_GULD+'" '+THIN+'/>'+
-   '<path d="M59 16 Q60 9 54 11 Q53 14 55 17 Z" fill="'+B_GULD+'" '+THIN+'/>'+
-   '<g class="face">'+face(f)+'</g>'},
- {namn:"Taggen",not:"taggig och modig",art:f=>
+ {namn:"Knytt",not:"nykläckt drakunge",fo:{dy:2,s:1,nos:false},art(f){return ""+
+   shadow(50,94,23)+
+   '<g class="svans">'+limb("M61 85 Q74 85 76 77",B_FUR,5)+
+   '<path d="M75 72 Q81 76 76 81 Q71 78 75 72 Z" fill="'+B_GULD+'" '+THIN+'/></g>'+
+   '<path d="M37 60 Q31 88 45 90 L55 90 Q69 88 63 60 Q50 54 37 60 Z" fill="'+B_FUR+'" '+LINE+'/>'+
+   shade("M59 62 Q65 76 60 88 Q67 78 62 62 Z")+
+   '<path d="M43 63 Q50 60 57 63 L57 86 Q50 90 43 86 Z" fill="'+B_BELLY+'" stroke="none"/>'+
+   '<path d="M44 68 Q50 70.5 56 68 M43.5 74 Q50 76.5 56.5 74 M44 80 Q50 82.5 56 80" fill="none" stroke="'+B_MORK+'" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>'+
+   '<g class="benA">'+limb("M42 86 L41 93",B_FUR,5)+klor(41,92)+'</g>'+
+   '<g class="benB">'+limb("M58 86 L59 93",B_FUR,5)+klor(59,92)+'</g>'+
+   limb("M39 68 Q34 72 35 77",B_FUR,4)+limb("M61 68 Q66 72 65 77",B_FUR,4)+
+   '<circle cx="50" cy="38" r="19" fill="'+B_FUR+'" '+LINE+'/>'+
+   '<circle cx="40" cy="26" r="2" fill="'+B_MORK+'" opacity="0.55"/><circle cx="61" cy="29" r="1.7" fill="'+B_MORK+'" opacity="0.55"/><circle cx="55" cy="22" r="1.4" fill="'+B_MORK+'" opacity="0.55"/>'+
+   drakNos(45,8.5,B_BELLY)+
+   '<path d="M46 20 L48.5 14 L51 19 M51 19 L53.5 13 L56 19.5" fill="none" '+THIN+'/>'+
+   '<path d="M47 15 Q50 10 53 15 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   ansikte(f,this.fo);}},
+ {namn:"Taggen",not:"taggig och modig",fo:{dy:-2,s:0.94,brows:true,nos:false},art(f){return ""+
    shadow(50,95,26)+
-   limb("M66 80 Q86 80 88 66",B_FUR,6)+spadeB(89,62,1)+
-   '<path d="M28 60 Q12 52 16 68 Q18 77 30 70 Z" fill="'+B_GULD+'" '+LINE+'/>'+
-   '<path d="M20 62 Q25 64 29 64" fill="none" '+THIN+'/>'+
-   '<path d="M72 60 Q88 52 84 68 Q82 77 70 70 Z" fill="'+B_GULD+'" '+LINE+'/>'+
-   '<path d="M80 62 Q75 64 71 64" fill="none" '+THIN+'/>'+
-   '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+B_FUR+'" '+LINE+'/>'+
-   shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
-   '<ellipse cx="50" cy="78" rx="11.5" ry="12" fill="'+B_BELLY+'"/>'+plattorB(71)+
-   limb("M43 80 L43 91",B_FUR,6)+limb("M57 80 L57 91",B_FUR,6)+
-   '<ellipse cx="43" cy="91.5" rx="5" ry="3.2" fill="'+B_FUR+'" '+THIN+'/>'+
-   '<ellipse cx="57" cy="91.5" rx="5" ry="3.2" fill="'+B_FUR+'" '+THIN+'/>'+
-   '<circle cx="50" cy="36" r="20" fill="'+B_FUR+'" '+LINE+'/>'+
-   '<path d="M36 18 Q33 8 40 10 Q42 13 41 18 Z" fill="'+B_GULD+'" '+LINE+'/>'+
-   '<path d="M64 18 Q67 8 60 10 Q58 13 59 18 Z" fill="'+B_GULD+'" '+LINE+'/>'+
-   '<path d="M45 16 L50 7 L55 16 Z" fill="'+B_GULD+'" '+THIN+'/>'+
-   '<g class="face">'+face(f)+'</g>'},
- {namn:"Eldvakt",not:"eldsprutare – röda vingar & guldpansar",art:f=>
-   shadow(50,96,30)+
-   '<path d="M30 46 Q-8 20 5 60 Q10 80 31 70 Z" fill="#EF6F6C" '+LINE+'/>'+
-   '<path d="M8 46 Q18 54 28 58 M6 57 Q17 63 28 64 M12 36 Q20 44 29 50" fill="none" '+THIN+'/>'+
-   '<path d="M70 46 Q108 20 95 60 Q90 80 69 70 Z" fill="#EF6F6C" '+LINE+'/>'+
-   '<path d="M92 46 Q82 54 72 58 M94 57 Q83 63 72 64 M88 36 Q80 44 71 50" fill="none" '+THIN+'/>'+
-   limb("M64 78 Q94 78 94 56","#4E9B5E",7)+
-   '<path d="M94 56 Q103 44 93 34 Q95 45 90 49 Q87 40 92 33 Q81 39 86 52 Q88 58 94 56 Z" fill="#F08A3C" '+THIN+'/>'+
-   '<path d="M90 50 Q93 44 91 40" fill="none" stroke="#F7C948" stroke-width="2.6" stroke-linecap="round"/>'+
-   '<path d="M38 50 Q30 68 35 85 Q37 95 50 95 Q63 95 65 85 Q70 68 62 50 Q50 45 38 50 Z" fill="#4E9B5E" '+LINE+'/>'+
-   shade("M58 52 Q66 72 60 93 Q69 74 62 52 Z")+
-   '<path d="M43 55 Q50 58 57 55 L58 62 Q50 65 42 62 Z M42 65 Q50 68 58 65 L58 72 Q50 75 42 72 Z M42 75 Q50 78 58 75 L57 82 Q50 85 43 82 Z" fill="#F7C948" '+THIN+'/>'+
-   limb("M43 85 L43 94","#4E9B5E",5)+limb("M57 85 L57 94","#4E9B5E",5)+
-   '<path d="M40 94 L46 94 M54 94 L60 94" stroke="#FFF3DC" stroke-width="4.5" stroke-linecap="round"/>'+
-   '<path d="M32 30 L23 20 L34 23 Z M29 44 L18 39 L29 36 Z" fill="#F08A3C" '+THIN+'/>'+
-   '<path d="M68 30 L77 20 L66 23 Z M71 44 L82 39 L71 36 Z" fill="#F08A3C" '+THIN+'/>'+
-   '<circle cx="50" cy="36" r="17.5" fill="#4E9B5E" '+LINE+'/>'+
-   '<path d="M39 15 Q30 2 19 7 Q22 17 36 20 Z" fill="#FFF3DC" '+LINE+'/>'+
-   '<path d="M61 15 Q70 2 81 7 Q78 17 64 20 Z" fill="#FFF3DC" '+LINE+'/>'+
-   '<path d="M45 13 L50 4 L55 13 Z" fill="#F7C948" '+THIN+'/>'+
-   '<g class="face">'+face(f)+'</g>'+brows},
+   '<path d="M30 52 Q8 32 11 58 Q12 69 30 65 Z" fill="'+B_MORK+'" '+LINE+'/>'+
+   '<path d="M15 48 Q22 52 29 56 M14 58 Q21 60 29 61" fill="none" '+THIN+'/>'+
+   '<path d="M70 52 Q92 32 89 58 Q88 69 70 65 Z" fill="'+B_MORK+'" '+LINE+'/>'+
+   '<path d="M85 48 Q78 52 71 56 M86 58 Q79 60 71 61" fill="none" '+THIN+'/>'+
+   '<g class="svans">'+limb("M62 82 Q84 84 88 70",B_FUR,6)+
+   '<path d="M78 76 L82 70 L85 76 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<path d="M88 64 Q95 68 89 74 Q84 70 88 64 Z" fill="'+B_GULD+'" '+THIN+'/></g>'+
+   '<path d="M36 54 Q29 88 45 91 L55 91 Q71 88 64 54 Q50 47 36 54 Z" fill="'+B_FUR+'" '+LINE+'/>'+
+   shade("M60 56 Q67 74 61 89 Q69 76 64 56 Z")+
+   '<path d="M43 58 Q50 55 57 58 L57 87 Q50 91 43 87 Z" fill="'+B_BELLY+'" stroke="none"/>'+
+   '<path d="M43.5 64 Q50 66.5 56.5 64 M43 71 Q50 73.5 57 71 M43 78 Q50 80.5 57 78 M43.5 84 Q50 86.5 56.5 84" fill="none" stroke="'+B_MORK+'" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>'+
+   '<g class="benA">'+limb("M42 87 L41 94",B_FUR,5.5)+klor(41,93)+'</g>'+
+   '<g class="benB">'+limb("M58 87 L59 94",B_FUR,5.5)+klor(59,93)+'</g>'+
+   limb("M38 62 Q32 67 34 73",B_FUR,4.5)+klor(34,73)+
+   limb("M62 62 Q68 67 66 73",B_FUR,4.5)+klor(66,73)+
+   '<path d="M32 34 L25 26 L34 27.5 Z M30 46 L21 42 L30 39 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<path d="M68 34 L75 26 L66 27.5 Z M70 46 L79 42 L70 39 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<circle cx="50" cy="34" r="17" fill="'+B_FUR+'" '+LINE+'/>'+
+   '<path d="M40 20 Q35 5 26 7 Q27 17 38 22 Z" fill="'+WOOD_LIGHT+'" '+LINE+'/>'+
+   '<path d="M33 10 L35 15 M30 9 L31.5 13" stroke="'+WOOD_DARK+'" stroke-width="1.6" stroke-linecap="round"/>'+
+   '<path d="M60 20 Q65 5 74 7 Q73 17 62 22 Z" fill="'+WOOD_LIGHT+'" '+LINE+'/>'+
+   '<path d="M67 10 L65 15 M70 9 L68.5 13" stroke="'+WOOD_DARK+'" stroke-width="1.6" stroke-linecap="round"/>'+
+   '<path d="M44 17 L47 11 L50 16 M50 16 L53 10 L56 16.5" fill="none" '+THIN+'/>'+
+   drakNos(42,9,B_BELLY)+
+   ansikte(f,this.fo);}},
+ {namn:"Eldvakt",not:"pansarklädd elddrake",fo:{dy:-3,s:0.9,brows:true,nos:false,iris:"#F7C948"},art(f){return ""+
+   '<defs><linearGradient id="b3a" x1="0" y1="0" x2="0" y2="1">'+
+   '<stop offset="0" stop-color="#F7C948"/><stop offset="1" stop-color="#F2A93B"/></linearGradient>'+
+   '<linearGradient id="b3c" x1="0" y1="1" x2="0" y2="0">'+
+   '<stop offset="0" stop-color="#58C6A9"/><stop offset="0.5" stop-color="#B79BE0"/><stop offset="1" stop-color="#F890B7"/></linearGradient></defs>'+
+   shadow(50,95,31)+
+   '<path d="M31 46 Q-12 8 1 50 Q4 68 30 64 Z" fill="'+B_ROD+'" '+LINE+'/>'+
+   '<path d="M31 46 Q-4 16 1 50" fill="none" stroke="#F2A93B" stroke-width="3" stroke-linecap="round"/>'+
+   '<path d="M6 40 Q17 48 28 54 M4 51 Q16 57 28 60" fill="none" '+THIN+'/>'+
+   '<g transform="translate(100 0) scale(-1 1)">'+
+   '<path d="M31 46 Q-12 8 1 50 Q4 68 30 64 Z" fill="'+B_ROD+'" '+LINE+'/>'+
+   '<path d="M31 46 Q-4 16 1 50" fill="none" stroke="#F2A93B" stroke-width="3" stroke-linecap="round"/>'+
+   '<path d="M6 40 Q17 48 28 54 M4 51 Q16 57 28 60" fill="none" '+THIN+'/></g>'+
+   '<g class="svans">'+limb("M62 80 Q90 84 93 62 Q94 55 89 51",B_ROD,6.5)+
+   '<path d="M84 74 L88 69 L90 75 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<path d="M89 51 Q97 42 89 35 Q91 44 86 47 Q84 39 88 33 Q78 38 83 49 Q85 54 89 51 Z" fill="#F08A3C" '+THIN+'/>'+
+   '<path d="M86 46 Q89 41 87 37" fill="none" stroke="#F7C948" stroke-width="2.4" stroke-linecap="round"/></g>'+
+   '<ellipse cx="35" cy="80" rx="10" ry="11" fill="'+B_ROD+'" '+LINE+'/>'+
+   '<ellipse cx="65" cy="80" rx="10" ry="11" fill="'+B_ROD+'" '+LINE+'/>'+
+   '<path d="M37 50 Q30 84 50 88 Q70 84 63 50 Q50 43 37 50 Z" fill="'+B_ROD+'" '+LINE+'/>'+
+   shade("M59 52 Q67 70 61 86 Q69 72 63 52 Z")+
+   '<path d="M42 54 Q50 58 58 54 L58.5 61 Q50 65 41.5 61 Z M41.5 63 Q50 67 58.5 63 L59 70 Q50 74 41 70 Z M41 72 Q50 76 59 72 L58.5 79 Q50 83 41.5 79 Z M42 81 Q50 85 58 81 L57 86 Q50 89 43 86 Z" fill="url(#b3a)" '+THIN+'/>'+
+   '<rect x="30" y="50" width="12" height="9" rx="4" fill="url(#b3a)" '+THIN+'/>'+
+   '<rect x="58" y="50" width="12" height="9" rx="4" fill="url(#b3a)" '+THIN+'/>'+
+   '<g class="benA">'+limb("M41 86 L40 94",B_ROD,5.5)+klor(40,93)+'</g>'+
+   '<g class="benB">'+limb("M59 86 L60 94",B_ROD,5.5)+klor(60,93)+'</g>'+
+   limb("M36 60 Q30 66 32 72",B_ROD,4.5)+klor(32,72)+
+   limb("M64 60 Q70 66 68 72",B_ROD,4.5)+klor(68,72)+
+   '<circle cx="50" cy="32" r="16" fill="'+B_ROD+'" '+LINE+'/>'+
+   '<path d="M38 15 Q30 0 19 4 Q22 15 36 20 Z" fill="'+WOOD_LIGHT+'" '+LINE+'/>'+
+   '<path d="M27 7 L29 12 M23 6 L25 10" stroke="'+WOOD_DARK+'" stroke-width="1.6" stroke-linecap="round"/>'+
+   '<path d="M62 15 Q70 0 81 4 Q78 15 64 20 Z" fill="'+WOOD_LIGHT+'" '+LINE+'/>'+
+   '<path d="M73 7 L71 12 M77 6 L75 10" stroke="'+WOOD_DARK+'" stroke-width="1.6" stroke-linecap="round"/>'+
+   '<path d="M41 14 Q38 5 44 7 Q45 1 50 6 Q55 1 56 7 Q62 5 59 14 Q50 18 41 14 Z" fill="url(#b3c)" '+THIN+'/>'+
+   '<path d="M36 25 Q50 16 64 25 L62 32 Q50 25 38 32 Z" fill="url(#b3a)" '+THIN+'/>'+
+   '<path d="M47.5 24 L50 20.5 L52.5 24 L50 27 Z" fill="#58C6A9" '+'stroke="'+O+'" stroke-width="1.6"'+'/>'+
+   drakNos(41,9,"#E8907F")+
+   ansikte(f,this.fo);}},
 ];
 
-/* ---- Linje C: blixthare (lila/guld) ---- */
-const C_FUR="#B79BE0", C_MORK="#9C7ED0", C_BELLY="#FFF3DC", C_INNER="#F5C1CB", C_EL="#F7C948";
+/* ---- Linje C: rund unge → blixtsprinter → blixtvarg ---- */
+const C_FUR="#B79BE0", C_MORK="#9C7ED0", C_MASK="#4C4661", C_BELLY="#FFF3DC", C_EL="#F7C948";
 const boltC=(x,y,s)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 8 L5 -2 L2 -2 L8 -10 L4 -1 L7 -1 Z" fill="'+C_EL+'" '+THIN+'/>';
-const oronC=(h,lut)=>'<g>'+
-  '<path d="M42 22 Q'+(38-lut)+' '+(22-h)+' '+(45-lut)+' '+(20-h)+' Q48 '+(26-h)+' 47 23 Z" fill="'+C_FUR+'" '+LINE+'/>'+
-  '<path d="M43.5 20 Q'+(41-lut*0.7)+' '+(24-h*0.8)+' '+(45-lut*0.7)+' '+(23-h*0.8)+' Q46 '+(28-h*0.7)+' 45.5 21 Z" fill="'+C_INNER+'" stroke="none"/>'+
-  '<path d="M58 22 Q'+(62+lut)+' '+(22-h)+' '+(55+lut)+' '+(20-h)+' Q52 '+(26-h)+' 53 23 Z" fill="'+C_FUR+'" '+LINE+'/>'+
-  '<path d="M56.5 20 Q'+(59+lut*0.7)+' '+(24-h*0.8)+' '+(55+lut*0.7)+' '+(23-h*0.8)+' Q54 '+(28-h*0.7)+' 54.5 21 Z" fill="'+C_INNER+'" stroke="none"/></g>';
+const fjaderTass=(x,c)=>'<ellipse cx="'+x+'" cy="92.5" rx="5" ry="3.2" fill="'+c+'" '+THIN+'/>';
+
 const C_STADIER=[
- {namn:"Plutt",not:"liten och rund",art:f=>
-   shadow(50,94,22)+
-   '<circle cx="69" cy="82" r="6.5" fill="'+C_BELLY+'" '+THIN+'/>'+
-   '<path d="M33 68 Q28 92 50 92 Q72 92 67 68 Q50 61 33 68 Z" fill="'+C_FUR+'" '+LINE+'/>'+
-   shade("M62 69 Q68 80 61 90 Q70 82 66 69 Z")+
-   '<ellipse cx="50" cy="81" rx="10" ry="8.5" fill="'+C_BELLY+'"/>'+
-   '<ellipse cx="42" cy="90.5" rx="5" ry="3.4" fill="'+C_FUR+'" '+THIN+'/>'+
-   '<ellipse cx="58" cy="90.5" rx="5" ry="3.4" fill="'+C_FUR+'" '+THIN+'/>'+
-   oronC(12,2)+
-   '<circle cx="50" cy="37" r="23" fill="'+C_FUR+'" '+LINE+'/>'+
-   '<g class="face">'+face(f)+'</g>'},
- {namn:"Snurran",not:"studsig sprinter med blixtmärke",art:f=>
-   shadow(50,95,26)+
-   boltC(73,80,0.9)+
-   '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+C_FUR+'" '+LINE+'/>'+
-   shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
-   '<ellipse cx="50" cy="78" rx="11.5" ry="12" fill="'+C_BELLY+'"/>'+
-   '<ellipse cx="40" cy="90" rx="8.5" ry="4.2" fill="'+C_FUR+'" '+LINE+'/>'+
-   '<ellipse cx="60" cy="90" rx="8.5" ry="4.2" fill="'+C_FUR+'" '+LINE+'/>'+
-   '<path d="M36 90 L40 90 M56 90 L60 90" stroke="'+C_INNER+'" stroke-width="2.2" stroke-linecap="round"/>'+
-   oronC(19,4)+
-   '<circle cx="50" cy="36" r="20" fill="'+C_FUR+'" '+LINE+'/>'+
-   '<path d="M44 16 Q47 10 51 13 Q49 16 44 16 Z" fill="'+C_MORK+'" '+THIN+'/>'+
-   '<g class="face">'+face(f)+'</g>'},
- {namn:"Blixtlopp",not:"elladdad sprinter – blixtsvans & öronspetsar",art:f=>
-   shadow(50,96,28)+
-   '<path d="M16 38 L24 42 L17 49 M84 38 L76 42 L83 49" fill="none" stroke="'+C_EL+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'+
-   '<path d="M62 82 L72 66 L67 66 L79 48 L74 62 L79 62 L66 82 Z" fill="'+C_EL+'" '+LINE+'/>'+
-   '<path d="M39 50 Q31 68 36 85 Q38 95 50 95 Q62 95 64 85 Q69 68 61 50 Q50 45 39 50 Z" fill="'+C_MORK+'" '+LINE+'/>'+
-   shade("M58 52 Q66 72 60 93 Q68 74 62 52 Z")+
-   '<path d="M43 54 Q50 51 57 54 L57 68 L53 64 L50 70 L47 64 L43 68 Z" fill="'+C_BELLY+'" stroke="none"/>'+
-   boltC(50,80,0.75)+
-   '<ellipse cx="41" cy="93" rx="8.5" ry="4" fill="'+C_MORK+'" '+LINE+'/>'+
-   '<ellipse cx="59" cy="93" rx="8.5" ry="4" fill="'+C_MORK+'" '+LINE+'/>'+
-   '<path d="M42 22 L33 1 L46 12 L47 22 Z" fill="'+C_MORK+'" '+LINE+'/>'+
-   '<path d="M35 6 L39 13 L42 10 Z" fill="'+C_EL+'" stroke="none"/>'+
-   '<path d="M58 22 L67 1 L54 12 L53 22 Z" fill="'+C_MORK+'" '+LINE+'/>'+
-   '<path d="M65 6 L61 13 L58 10 Z" fill="'+C_EL+'" stroke="none"/>'+
-   '<circle cx="50" cy="36" r="17.5" fill="'+C_MORK+'" '+LINE+'/>'+
-   '<path d="M38 21 L43 12 L46 19 L50 11 L54 19 L57 12 L62 21 Q50 27 38 21 Z" fill="'+C_FUR+'" '+THIN+'/>'+
-   boltC(65,45,0.45)+
-   '<g class="face">'+face(f)+'</g>'+brows},
+ {namn:"Plutt",not:"liten och rund",fo:{dy:24,s:1,cheeks:true},art(f){return ""+
+   shadow(50,95,25)+
+   '<g class="svans">'+boltC(76,80,0.7)+'</g>'+
+   '<circle cx="36" cy="42" r="6.5" fill="'+C_FUR+'" '+LINE+'/><circle cx="36" cy="42" r="3" fill="#F5C1CB" stroke="none"/>'+
+   '<circle cx="64" cy="42" r="6.5" fill="'+C_FUR+'" '+LINE+'/><circle cx="64" cy="42" r="3" fill="#F5C1CB" stroke="none"/>'+
+   '<ellipse cx="50" cy="66" rx="26" ry="27" fill="'+C_FUR+'" '+LINE+'/>'+
+   shade("M66 50 Q76 66 66 86 Q74 68 68 50 Z")+
+   '<path d="M28 60 Q26 66 27 72 M73 60 Q74 66 73 72" fill="none" stroke="'+C_MORK+'" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>'+
+   '<ellipse cx="50" cy="78" rx="13" ry="10" fill="'+C_BELLY+'"/>'+
+   fjaderTass(40,C_FUR)+fjaderTass(60,C_FUR)+
+   ansikte(f,this.fo);}},
+ {namn:"Snurran",not:"blixtsprinter med fjädersvans",fo:{dy:-3,s:0.92},art(f){return ""+
+   shadow(50,95,25)+
+   '<g class="svans"><path d="M62 74 Q76 72 74 64 Q72 58 65 60 Q59 62 62 68 Q64 73 71 71" fill="none" stroke="'+O+'" stroke-width="7.5" stroke-linecap="round"/>'+
+   '<path d="M62 74 Q76 72 74 64 Q72 58 65 60 Q59 62 62 68 Q64 73 71 71" fill="none" stroke="'+C_FUR+'" stroke-width="4" stroke-linecap="round"/></g>'+
+   '<path d="M40 52 Q33 86 46 90 L54 90 Q67 86 60 52 Q50 46 40 52 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+   shade("M56 54 Q63 72 58 88 Q65 74 60 54 Z")+
+   '<path d="M44 55 Q50 52 56 55 L56 70 Q50 74 44 70 Z" fill="'+C_BELLY+'" stroke="none"/>'+
+   boltC(50,80,0.55)+
+   '<g class="benA">'+limb("M44 84 Q42 88 44 93",C_FUR,4.5)+fjaderTass(44,C_FUR)+'</g>'+
+   '<g class="benB">'+limb("M56 84 L56 93",C_FUR,4.5)+fjaderTass(56,C_FUR)+'</g>'+
+   '<path d="M41 22 L36 3 L46 13 L47 22 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<path d="M39 9 L42 15 L44 12 Z" fill="#F5C1CB" stroke="none"/>'+
+   '<path d="M59 22 L64 3 L54 13 L53 22 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<path d="M61 9 L58 15 L56 12 Z" fill="#F5C1CB" stroke="none"/>'+
+   '<circle cx="50" cy="33" r="16" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<ellipse cx="50" cy="41" rx="6.5" ry="4.5" fill="'+C_BELLY+'" stroke="none"/>'+
+   boltC(64,42,0.4)+
+   ansikte(f,this.fo);}},
+ {namn:"Blixtlopp",not:"blixtvarg – mörk mask & laddad svans",fo:{dy:-4,s:0.9,brows:true,iris:"#F7C948"},art(f){return ""+
+   shadow(50,95,28)+
+   '<path d="M14 34 L22 39 L15 46 M86 34 L78 39 L85 46" fill="none" stroke="'+C_EL+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'+
+   '<g class="svans"><path d="M60 78 L74 58 L68 58 L82 38 L76 54 L82 54 L64 78 Z" fill="'+C_EL+'" '+LINE+'/></g>'+
+   '<path d="M38 48 Q30 78 40 90 L60 90 Q70 78 62 48 Q50 42 38 48 Z" fill="'+C_MORK+'" '+LINE+'/>'+
+   shade("M58 50 Q67 70 60 88 Q68 72 62 50 Z")+
+   '<path d="M43 52 Q50 49 57 52 L57 68 L53 64 L50 70 L47 64 L43 68 Z" fill="'+C_BELLY+'" stroke="none"/>'+
+   boltC(50,80,0.7)+
+   '<g class="benA">'+limb("M43 86 L43 93",C_MORK,6)+fjaderTass(43,C_MORK)+'</g>'+
+   '<g class="benB">'+limb("M57 86 L57 93",C_MORK,6)+fjaderTass(57,C_MORK)+'</g>'+
+   limb("M40 58 Q34 64 36 70",C_MORK,4.5)+
+   limb("M60 58 Q68 52 72 46",C_MORK,4.5)+'<circle cx="73" cy="45" r="4" fill="'+C_MORK+'" '+THIN+'/>'+
+   '<path d="M41 21 L36 1 L47 11 L48 21 Z" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M37 4 L43 10 L46 7 Z" fill="'+C_MASK+'" stroke="none"/>'+
+   '<path d="M40 13 L42.5 9 L41 15 Z" fill="'+C_EL+'" stroke="none"/>'+
+   '<path d="M59 21 L64 1 L53 11 L52 21 Z" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M63 4 L57 10 L54 7 Z" fill="'+C_MASK+'" stroke="none"/>'+
+   '<path d="M60 13 L57.5 9 L59 15 Z" fill="'+C_EL+'" stroke="none"/>'+
+   '<circle cx="50" cy="32" r="16" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M34.5 29 Q36 17 50 16.5 Q64 17 65.5 29 Q57 23 50 23.5 Q43 23 34.5 29 Z" fill="'+C_MASK+'" stroke="none"/>'+
+   '<ellipse cx="50" cy="41" rx="7" ry="4.8" fill="'+C_BELLY+'" stroke="none"/>'+
+   ansikte(f,this.fo);}},
 ];
 
 const LINJER={
@@ -711,7 +793,7 @@ const MOBLER={
     '<path d="M60 56 L82 56 L82 74 Q71 80 60 74 Z" fill="#EF6F6C" '+THIN+'/>'+
     '<path d="M64 60 H78 M64 66 H78" stroke="#FFB1B8" stroke-width="2.2" stroke-linecap="round"/>',
   },
-  matta:{namn:"Solmatta",not:"volangkant & stjärnor",vb:"0 0 140 64",art:
+  matta:{namn:"Solmatta",not:"ringar & stjärnor",vb:"0 0 140 64",art:
     '<ellipse cx="70" cy="32" rx="64" ry="26" fill="#F890B7" '+LINE+'/>'+
     '<ellipse cx="70" cy="32" rx="52" ry="20" fill="#FFF3DC" '+THIN+'/>'+
     '<ellipse cx="70" cy="32" rx="34" ry="13" fill="#7FC7E8" '+THIN+'/>'+
@@ -748,6 +830,8 @@ function molnArt(x,y,s){
   return '<g transform="translate('+x+' '+y+') scale('+s+')">'+
     '<path d="M0 20 Q-2 8 10 8 Q14 -2 26 2 Q36 -2 40 8 Q52 6 50 18 Q46 26 34 24 Q24 30 14 24 Q2 28 0 20 Z" fill="#FFFFFF" '+THIN+' opacity="0.95"/></g>';
 }
+const eyeDot=(x,y,r)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#fff" '+THIN+'/>'+
+  '<circle cx="'+(x+0.5)+'" cy="'+(y+0.5)+'" r="'+(r*0.55).toFixed(1)+'" fill="'+O+'"/>';
 function uteScen(){
   return svgw("0 0 960 600",
     '<defs><linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">'+
@@ -788,7 +872,7 @@ function uteScen(){
     '<circle cx="551" cy="425" r="16" fill="#6FC66F" '+THIN+'/>'+
     '<path d="M540 415 L537 402 L547 408 Z" fill="#6FC66F" '+THIN+'/>'+
     '<path d="M562 415 L565 402 L555 408 Z" fill="#6FC66F" '+THIN+'/>'+
-    eye(545,424,3.6)+eye(557,424,3.6)+
+    eyeDot(545,424,3.6)+eyeDot(557,424,3.6)+
     '<path d="M515 335 L515 455 M445 395 L585 395" stroke="'+O+'" stroke-width="5" stroke-linecap="round"/>'+
     '<rect x="440" y="330" width="150" height="130" rx="10" fill="none" stroke="'+O+'" stroke-width="6"/>'+
     '<rect x="430" y="456" width="170" height="14" rx="7" fill="#FFF3DC" '+LINE+'/>'+
@@ -934,7 +1018,7 @@ function sattArt(p,faceKind){
   p.tilt.innerHTML=petSvg(p.linje,p.stadie,faceKind,p.namn);
   p.faceEl=p.tilt.querySelector(".face");
 }
-function sattFace(p,kind){p.faceEl.innerHTML=face(kind);}
+function sattFace(p,kind){p.faceEl.innerHTML=face(kind,LINJER[p.linje].stadier[p.stadie].fo);}
 function sattTag(p){p.tagEl.textContent="⭐".repeat(p.stadie)+(p.stadie?" ":"")+p.namn;}
 function arFull(p){return p.stadie>=2&&p.feeds>=MAX_MAT;}
 function uppdatera(p){
