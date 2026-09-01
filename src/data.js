@@ -554,3 +554,62 @@ export async function setClassStudents(classId, studentIds) {
   await setDoc(ref, { studentIds: list }, { merge: true });
   return list;
 }
+
+// ---------------------------------------------------------------------------
+// Tilldelade arbetsområden per klass (läraren väljer vad som är AKTIVT nu).
+// ----------------------------------------------------------------------------
+// classes/{classId}.assignedAreas = [{ subjectId, areaId }]
+// En tom/saknad lista betyder "ingen tilldelning" → eleven ser HELA biblioteket
+// (bakåtkompatibelt). Vi lägger listan direkt på klassdokumentet, samma mönster
+// som studentIds ovan.
+// ---------------------------------------------------------------------------
+
+/** Normalisera en tilldelningslista till rena { subjectId, areaId }-par (utan dubletter). */
+function normalizeAssignments(assignments) {
+  if (!Array.isArray(assignments)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const a of assignments) {
+    const subjectId = String(a?.subjectId || "").trim();
+    const areaId = String(a?.areaId || "").trim();
+    if (!subjectId || !areaId) continue;
+    const key = `${subjectId}/${areaId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ subjectId, areaId });
+  }
+  return out;
+}
+
+/**
+ * Sätt exakt vilka arbetsområden som är aktiva/tilldelade för en klass
+ * (ersätter hela listan). Tom lista = ingen tilldelning (eleven ser allt).
+ * @param {string} classId
+ * @param {Array<{subjectId:string, areaId:string}>} assignments
+ */
+export async function setClassAssignments(classId, assignments) {
+  const list = normalizeAssignments(assignments);
+  const ref = doc(db, "classes", classId);
+  await setDoc(ref, { assignedAreas: list }, { merge: true });
+  return list;
+}
+
+/** Hämta en klass tilldelade arbetsområden ([] om inga). */
+export async function getClassAssignments(classId) {
+  const snap = await getDoc(doc(db, "classes", classId));
+  return snap.exists() ? normalizeAssignments(snap.data().assignedAreas) : [];
+}
+
+/**
+ * Hitta elevens klass utifrån klassernas studentIds. Om eleven finns i flera
+ * klasser returneras den första (efter getClasses ordning). Null om ingen.
+ * @param {string} studentId
+ * @returns {Promise<object|null>} klassdokumentet ({ id, name, studentIds, assignedAreas, ... })
+ */
+export async function getClassForStudent(studentId = currentStudentId()) {
+  if (!studentId) return null;
+  const classes = await getClasses();
+  return (
+    classes.find((c) => Array.isArray(c.studentIds) && c.studentIds.includes(studentId)) || null
+  );
+}

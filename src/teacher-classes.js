@@ -96,13 +96,16 @@ export async function pageLarareKlasser(ctx) {
         <div class="row-inline">
           <button class="btn ghost small" data-act="rename">✏️ Döp om</button>
           <button class="btn ghost small" data-act="toggle">🧑‍🎓 Elever</button>
+          <button class="btn ghost small" data-act="areas">📌 Områden</button>
           <button class="btn ghost small danger" data-act="del">🗑 Ta bort</button>
         </div>
       </div>
       <div class="class-members" hidden></div>
+      <div class="class-assign" hidden></div>
     </div>`);
 
     const membersEl = card.querySelector(".class-members");
+    const assignEl = card.querySelector(".class-assign");
     const nameEl = card.querySelector(".class-name");
     const countEl = card.querySelector(".class-count");
 
@@ -137,6 +140,7 @@ export async function pageLarareKlasser(ctx) {
     // Elever (visa/dölj kryssrutor) ------------------------------------------
     card.querySelector('[data-act="toggle"]').addEventListener("click", () => {
       if (membersEl.hidden) {
+        assignEl.hidden = true;
         renderMembers(cls, membersEl, countEl);
         membersEl.hidden = false;
       } else {
@@ -144,7 +148,123 @@ export async function pageLarareKlasser(ctx) {
       }
     });
 
+    // Områden (visa/dölj tilldelning) ----------------------------------------
+    card.querySelector('[data-act="areas"]').addEventListener("click", () => {
+      if (assignEl.hidden) {
+        membersEl.hidden = true;
+        renderAssignments(cls, assignEl);
+        assignEl.hidden = false;
+      } else {
+        assignEl.hidden = true;
+      }
+    });
+
     return card;
+  }
+
+  // --- Kryssrute-lista: vilka arbetsområden är AKTIVA för klassen ------------
+  async function renderAssignments(cls, assignEl) {
+    assignEl.replaceChildren(el(`<div class="spinner">Laddar arbetsområden…</div>`));
+
+    // Ämnen + områden. Hämta bara en gång och cacha på funktionen.
+    let library;
+    try {
+      library = await loadLibrary();
+    } catch (err) {
+      assignEl.replaceChildren(
+        el(`<p class="err-inline">Kunde inte ladda arbetsområden: ${esc(err.message)}</p>`)
+      );
+      return;
+    }
+
+    if (library.length === 0) {
+      assignEl.replaceChildren(
+        el(`<p class="hint">Det finns inga arbetsområden än. Lägg in innehåll under
+          <a data-hash="#/larare/innehall">Innehåll</a> först.</p>`)
+      );
+      wireHashLinks(ctx, assignEl);
+      return;
+    }
+
+    const assigned = new Set(
+      (Array.isArray(cls.assignedAreas) ? cls.assignedAreas : []).map(
+        (a) => `${a.subjectId}/${a.areaId}`
+      )
+    );
+
+    const groups = library
+      .map((subj) => {
+        const rows = subj.areas
+          .map(
+            (a) => `<label class="member-row">
+              <input type="checkbox" data-subj="${esc(subj.id)}" data-area="${esc(a.id)}"
+                ${assigned.has(`${subj.id}/${a.id}`) ? "checked" : ""} />
+              <span class="member-avatar">${esc(a.coverEmoji || "📖")}</span>
+              <span class="member-name">${esc(a.name || a.id)}</span>
+            </label>`
+          )
+          .join("");
+        return `<div class="assign-group">
+          <div class="assign-subject">${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)}</div>
+          <div class="member-grid">${rows}</div>
+        </div>`;
+      })
+      .join("");
+
+    const box = el(`<div>
+      <p class="hint">Kryssa i de arbetsområden klassen jobbar med <b>nu</b>. Eleverna
+        ser då bara dem i Plugga. Lämnar du allt tomt ser eleverna hela biblioteket.</p>
+      ${groups}
+      <div class="row-inline" style="margin-top:12px">
+        <button class="btn gron small" data-act="save-areas">💾 Spara områden</button>
+        <button class="btn ghost small" data-act="clear-areas">Rensa (visa allt)</button>
+        <span class="assign-result"></span>
+      </div>
+    </div>`);
+
+    const resultEl = box.querySelector(".assign-result");
+
+    box.querySelector('[data-act="clear-areas"]').addEventListener("click", () => {
+      box.querySelectorAll('input[type="checkbox"]').forEach((c) => (c.checked = false));
+    });
+
+    box.querySelector('[data-act="save-areas"]').addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      const picked = [...box.querySelectorAll('input[type="checkbox"]:checked')].map((c) => ({
+        subjectId: c.dataset.subj,
+        areaId: c.dataset.area,
+      }));
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = "Sparar…";
+      resultEl.innerHTML = "";
+      try {
+        await data.setClassAssignments(cls.id, picked);
+        cls.assignedAreas = picked;
+        resultEl.innerHTML = picked.length
+          ? `<span class="ok-inline">✓ Sparat (${picked.length} område${picked.length === 1 ? "" : "n"})</span>`
+          : `<span class="ok-inline">✓ Sparat – eleverna ser allt</span>`;
+      } catch (err) {
+        resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+
+    assignEl.replaceChildren(box);
+  }
+
+  // Ämnen + deras områden, hämtas en gång och cachas (delas av alla klasskort).
+  let libraryCache = null;
+  async function loadLibrary() {
+    if (libraryCache) return libraryCache;
+    const subjects = await data.getSubjects();
+    const withAreas = await Promise.all(
+      subjects.map(async (subj) => ({ ...subj, areas: await data.getAreas(subj.id) }))
+    );
+    libraryCache = withAreas.filter((subj) => subj.areas.length > 0);
+    return libraryCache;
   }
 
   // --- Kryssrute-lista för en klass ----------------------------------------
