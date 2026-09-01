@@ -195,11 +195,6 @@ export async function pageElevHem() {
         <span class="title">Mitt rum</span>
         <span class="sub">Inred och pynta</span>
       </button>
-      <button class="big-card bla" id="to-klassfoto">
-        <span class="emoji">👩‍👦‍👦</span>
-        <span class="title">Min klass</span>
-        <span class="sub">Se dina klasskamrater</span>
-      </button>
       <button class="big-card orange" id="to-husdjur">
         <span class="emoji">🥚</span>
         <span class="title">Mitt husdjur</span>
@@ -211,7 +206,6 @@ export async function pageElevHem() {
   view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
-  view.querySelector("#to-klassfoto").addEventListener("click", () => go("#/elev/klassfoto"));
   view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   app.replaceChildren(view);
@@ -316,7 +310,6 @@ export async function pageElevProfil() {
       <div class="btn-row center">
         <button class="btn liten" id="byt-avatar">Byt figur</button>
         <button class="btn liten" id="utveckling">⚡ Utveckling</button>
-        <button class="btn liten ghost" id="till-klassfoto">👩‍👦‍👦 Min klass</button>
         <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
         <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
       </div>
@@ -355,7 +348,6 @@ export async function pageElevProfil() {
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
   view.querySelector("#utveckling").addEventListener("click", () => go("#/elev/utveckling"));
-  view.querySelector("#till-klassfoto").addEventListener("click", () => go("#/elev/klassfoto"));
   view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));
 
