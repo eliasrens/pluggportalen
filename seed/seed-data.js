@@ -62,8 +62,9 @@ export const areas = {
           answerIndex: 0,
           explanation: "Vikingatiden brukar räknas från cirka år 800 till 1050.",
           passage:
-            "Vikingarna levde i Norden för mer än tusen år sedan. Vikingatiden brukar räknas " +
-            "från ungefär år 800 till år 1050.",
+            "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för " +
+            "vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var " +
+            "alltså mycket längre sedan än när dina far- och morföräldrar levde.",
         },
         {
           id: "q2",
@@ -72,8 +73,9 @@ export const areas = {
           answerIndex: 1,
           explanation: "De långa, smala träskeppen kallas långskepp.",
           passage:
-            "Vikingarnas skepp kallas långskepp. De var långa, smala och byggda av trä, med ett " +
-            "stort segel av ylle.",
+            "Vikingarna var skickliga på att bygga båtar. Deras skepp kallas för långskepp. De " +
+            "var långa, smala och byggda av trä. Skeppen hade ett stort segel av ylle och kunde " +
+            "ta sig fram både på hav och i floder.",
         },
         {
           id: "q3",
@@ -82,8 +84,9 @@ export const areas = {
           answerIndex: 2,
           explanation: "Oden var gudarnas kung och gud för visdom och krig.",
           passage:
-            "Innan vikingarna blev kristna trodde de på många gudar. Oden var gudarnas kung och " +
-            "guden för visdom och krig.",
+            "Innan vikingarna blev kristna trodde de på många olika gudar. Den högsta guden var " +
+            "Oden. Han var gudarnas kung och guden för visdom och krig. Vikingarna trodde att " +
+            "Oden bodde i Asgård.",
         },
         {
           id: "q4",
@@ -97,8 +100,9 @@ export const areas = {
           answerIndex: 1,
           explanation: "Åskan förklarades med att Tor svingade hammaren Mjölner.",
           passage:
-            "Tor var stark och åkte i en vagn dragen av bockar. När det åskade trodde man att det " +
-            "var Tor som svingade sin hammare Mjölner.",
+            "Tor var en av vikingarnas starkaste gudar. Han åkte i en vagn som drogs av bockar. " +
+            "När det åskade trodde vikingarna att det var Tor som svingade sin hammare. Hammaren " +
+            "hette Mjölner och var mycket kraftfull.",
         },
         {
           id: "q5",
@@ -107,8 +111,9 @@ export const areas = {
           answerIndex: 0,
           explanation: "De flesta vikingar var bönder som odlade och hade djur.",
           passage:
-            "De flesta vikingar var bönder. De är mest kända för sina resor med snabba skepp, men " +
-            "till vardags odlade de och skötte djur.",
+            "Vikingarna är mest kända för sina resor med snabba skepp. Men i vardagen var de " +
+            "flesta vikingar bönder. De odlade säd och skötte om djur på sina gårdar. Bara ibland " +
+            "gav de sig ut på långa resor.",
         },
       ],
 
