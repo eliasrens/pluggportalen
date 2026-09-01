@@ -193,6 +193,32 @@
   margin: 0 0 4px;
 }
 
+/* Frågans egna korta text (passage): ett lugnt, tydligt block ovanför frågan.
+   Byts automatiskt när eleven går vidare eftersom det ritas om per fråga. */
+.lasf-passage {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #f4f8ff;
+  border-left: 5px solid var(--bla);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.lasf-passage-emoji {
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+
+.lasf-passage p {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
 /* Textblocket får en tydlig ram så eleven ser att det hör ihop och står kvar. */
 .lasf-text {
   background: var(--panel);

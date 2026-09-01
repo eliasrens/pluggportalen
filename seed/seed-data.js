@@ -52,6 +52,8 @@ export const areas = {
       ],
 
       // Quizfrågor (flerval). answerIndex pekar på rätt alternativ i options[].
+      // "passage" (valfritt) är en kort text kopplad till JUST den frågan – den
+      // visas ovanför frågan i läsförståelse-läget (och byts per fråga).
       quiz: [
         {
           id: "q1",
@@ -59,6 +61,9 @@ export const areas = {
           options: ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
           answerIndex: 0,
           explanation: "Vikingatiden brukar räknas från cirka år 800 till 1050.",
+          passage:
+            "Vikingarna levde i Norden för mer än tusen år sedan. Vikingatiden brukar räknas " +
+            "från ungefär år 800 till år 1050.",
         },
         {
           id: "q2",
@@ -66,6 +71,9 @@ export const areas = {
           options: ["Ubåtar", "Långskepp", "Kanoter", "Flottar"],
           answerIndex: 1,
           explanation: "De långa, smala träskeppen kallas långskepp.",
+          passage:
+            "Vikingarnas skepp kallas långskepp. De var långa, smala och byggda av trä, med ett " +
+            "stort segel av ylle.",
         },
         {
           id: "q3",
@@ -73,6 +81,9 @@ export const areas = {
           options: ["Tor", "Freja", "Oden", "Loke"],
           answerIndex: 2,
           explanation: "Oden var gudarnas kung och gud för visdom och krig.",
+          passage:
+            "Innan vikingarna blev kristna trodde de på många gudar. Oden var gudarnas kung och " +
+            "guden för visdom och krig.",
         },
         {
           id: "q4",
@@ -85,6 +96,9 @@ export const areas = {
           ],
           answerIndex: 1,
           explanation: "Åskan förklarades med att Tor svingade hammaren Mjölner.",
+          passage:
+            "Tor var stark och åkte i en vagn dragen av bockar. När det åskade trodde man att det " +
+            "var Tor som svingade sin hammare Mjölner.",
         },
         {
           id: "q5",
@@ -92,6 +106,9 @@ export const areas = {
           options: ["De var bönder", "De var kungar", "De var läkare", "De var lärare"],
           answerIndex: 0,
           explanation: "De flesta vikingar var bönder som odlade och hade djur.",
+          passage:
+            "De flesta vikingar var bönder. De är mest kända för sina resor med snabba skepp, men " +
+            "till vardags odlade de och skötte djur.",
         },
       ],
 
