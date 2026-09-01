@@ -10,6 +10,8 @@
 //   #/elev/avatar     välj grundavatar (första gången + byta senare)
 //   #/elev/hem        elev-startsida (kräver inloggning)
 //   #/elev/plugga     välj arbetsområde att öva på
+//   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
+//   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
@@ -38,6 +40,7 @@ import {
 } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
+import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
 // av seed/verktyg). Källan är numera avatars.js.
@@ -95,6 +98,8 @@ const routes = {
   "/elev/avatar": pageElevAvatar,
   "/elev/hem": pageElevHem,
   "/elev/plugga": pageElevPlugga,
+  "/elev/omrade": pageElevOmrade,
+  "/elev/spela": pageElevSpela,
   "/elev/shop": pageElevShop,
   "/elev/rum": pageElevRum,
   "/elev/profil": pageElevProfil,
@@ -105,7 +110,9 @@ const routes = {
 };
 
 function router() {
-  const path = (window.location.hash || "#/").slice(1) || "/";
+  // Skala bort ev. query-del (?area=…&mode=…) innan route-uppslag.
+  const raw = (window.location.hash || "#/").slice(1) || "/";
+  const path = raw.split("?")[0] || "/";
   const handler = routes[path] || pageNotFound;
   handler();
 }
