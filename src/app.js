@@ -49,6 +49,8 @@ import { pageElevKlassfoto } from "./pages-klassfoto.js";
 import { pageLarareKlasser } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
+// Utveckling (#/elev/utveckling) – karaktärs-evolution i Pokémon-stil.
+import { pageElevUtveckling } from "./pages-evolution.js";
 // Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
 import { pageElevHusdjur } from "./pages-pet.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
@@ -116,6 +118,8 @@ const routes = {
   // Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
   "/elev/husdjur": pageElevHusdjur,
   "/elev/profil": pageElevProfil,
+  // Utveckling – figuren växer i steg (Pokémon-stil) med grenval på slutet.
+  "/elev/utveckling": pageElevUtveckling,
   // Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
   "/elev/klassfoto": pageElevKlassfoto,
   "/larare": () => pageLarare(teacherCtx),

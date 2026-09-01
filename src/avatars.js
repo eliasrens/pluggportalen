@@ -9,10 +9,10 @@
 // ============================================================================
 
 import { getItem } from "./shop-items.js";
-import { CHARACTERS, characterSvg } from "./art-characters.js";
+import { CHARACTERS, characterSvg, EVOLUTIONS } from "./art-characters.js";
 import { wearableSvg } from "./art-wearables.js";
 
-export { CHARACTERS, characterSvg };
+export { CHARACTERS, characterSvg, EVOLUTIONS };
 
 /** id → emoji-etikett (fallback). Ta aldrig bort ett id – de är sparade val. */
 export const AVATARS = {
@@ -47,9 +47,11 @@ export function avatarName(id) {
 /**
  * Fristående helkropps-SVG för en karaktär (utan klädsel) – används i
  * avatarväljarens knappar och förhandsvisning. Skalar med CSS width/height.
+ * @param {{stage?: number, branch?: string|null}} [evo]
+ *   Evolutionsläge (från evolution.js: evoFromStudentData). Utelämnas → steg 1.
  */
-export function avatarSvg(id) {
-  return characterSvg(AVATARS[id] ? id : DEFAULT_AVATAR);
+export function avatarSvg(id, evo) {
+  return characterSvg(AVATARS[id] ? id : DEFAULT_AVATAR, evo);
 }
 
 /**
@@ -61,13 +63,15 @@ export function avatarSvg(id) {
  *
  * @param {string} avatarId
  * @param {string[]} [equipped] id:n på burna klädsaker (från studentData.avatarItems)
+ * @param {{stage?: number, branch?: string|null}} [evo]
+ *   Evolutionsläge (evolution.js: evoFromStudentData) – utelämnas → steg 1.
  * @returns {string} HTML-sträng
  */
-export function avatarMarkup(avatarId, equipped = []) {
+export function avatarMarkup(avatarId, equipped = [], evo = undefined) {
   const overlays = (equipped || [])
     .map((id) => getItem(id))
     .filter((it) => it && it.category === "klader")
     .map((it) => `<span class="af-wear af-${it.slot}">${wearableSvg(it.id) || it.emoji}</span>`)
     .join("");
-  return `<span class="avatar-figure"><span class="af-base">${avatarSvg(avatarId)}</span>${overlays}</span>`;
+  return `<span class="avatar-figure"><span class="af-base">${avatarSvg(avatarId, evo)}</span>${overlays}</span>`;
 }

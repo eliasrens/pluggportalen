@@ -14,6 +14,8 @@ import {
   eye, eyes, cheeks, smile, laugh,
   limb, feet, stdBody, head, pointyEar, roundEar, nose,
 } from "./art-style.js";
+// Roboten har evolution (3 steg + grenval) och bor i en egen fil.
+import { robotArt, ROBOT_EVOLUTION } from "./art-characters-robot.js";
 
 export { STYLE };
 
@@ -223,36 +225,6 @@ function koalaArt() {
   );
 }
 
-function robotArt() {
-  const metal = "#A9C2DE", dark = "#7E97B8", accent = "#F2A93B";
-  return (
-    // antenn
-    `<line x1="50" y1="14" x2="50" y2="6" ${LINE}/>` +
-    `<circle cx="50" cy="4.5" r="3.5" fill="#EF6F6C" ${THIN}/>` +
-    // larvfötter
-    `<rect x="31" y="103" width="16" height="9" rx="4.5" fill="${dark}" ${LINE}/>` +
-    `<rect x="53" y="103" width="16" height="9" rx="4.5" fill="${dark}" ${LINE}/>` +
-    // kropp med panel + lampor
-    `<rect x="33" y="60" width="34" height="44" rx="10" fill="${metal}" ${LINE}/>` +
-    `<rect x="40" y="72" width="20" height="14" rx="4" fill="${dark}" stroke="none"/>` +
-    `<circle cx="44" cy="93" r="2.6" fill="${accent}" stroke="none"/>` +
-    `<circle cx="52" cy="93" r="2.6" fill="#EF6F6C" stroke="none"/>` +
-    `<circle cx="60" cy="93" r="2.6" fill="#6FC66F" stroke="none"/>` +
-    // armar
-    limb("M35 66 Q28 72 28 80", metal, 7) +
-    `<circle cx="28" cy="81" r="5" fill="${dark}" ${THIN}/>` +
-    limb("M65 66 Q76 68 78 75", metal, 7) +
-    `<circle cx="79" cy="77" r="5" fill="${dark}" ${THIN}/>` +
-    // huvud med skruvöron
-    `<rect x="24" y="30" width="5" height="12" rx="2.5" fill="${dark}" ${THIN}/>` +
-    `<rect x="71" y="30" width="5" height="12" rx="2.5" fill="${dark}" ${THIN}/>` +
-    `<rect x="27" y="15" width="46" height="42" rx="13" fill="${metal}" ${LINE}/>` +
-    eyes() +
-    `<path d="M43 46 Q50 51 57 46" fill="none" ${LINE}/>` +
-    cheeks(44)
-  );
-}
-
 function bearArt() {
   const fur = "#B0805A", belly = "#E9D3AE", muzzle = "#F1DFC0";
   return (
@@ -305,14 +277,42 @@ export const CHARACTERS = {
   tiger: { name: "Tiger", art: tigerArt() },
 };
 
+// --- Evolution (Pokémon-stil) ----------------------------------------------
+// avatar-id → evolutionsdefinition { maxStage, branches, art(stage, branch) }.
+// Karaktärer som saknas här har bara sitt grundutseende (steg 1) – de renderas
+// precis som förut och kraschar aldrig. Nya figurer: rita stegen i en egen
+// art-characters-<figur>.js (se robot-filen som mall) och registrera här.
+export const EVOLUTIONS = {
+  robot: ROBOT_EVOLUTION,
+};
+
 /**
  * Fristående helkropps-SVG för en karaktär (skalar med CSS width/height).
  * Okänt id faller tillbaka på räven så gamla sparade val aldrig kraschar.
+ *
+ * @param {string} id  avatar-id (t.ex. "robot")
+ * @param {{stage?: number, branch?: string|null}} [evo]
+ *   Evolutionsläge: `stage` (1 = grund) och `branch` (grenval i sista steget).
+ *   Utelämnas → steg 1, precis som innan. Figurer utan evolutionsdefinition
+ *   ignorerar argumentet helt.
  */
-export function characterSvg(id) {
-  const c = CHARACTERS[id] || CHARACTERS.fox;
+export function characterSvg(id, evo = {}) {
+  const key = CHARACTERS[id] ? id : "fox";
+  const c = CHARACTERS[key];
+  let art = c.art;
+  let label = c.name;
+  const def = EVOLUTIONS[key];
+  if (def) {
+    // Klampa till det som faktiskt finns ritat – trasiga värden blir steg 1.
+    const stage = Math.min(Math.max(1, Math.round(Number(evo?.stage) || 1)), def.maxStage);
+    const r = stage > 1 ? def.art(stage, evo?.branch) : null;
+    if (r) {
+      art = r.art;
+      label = r.name || c.name;
+    }
+  }
   return (
-    `<svg viewBox="${STYLE.viewBox}" role="img" aria-label="${c.name}" ` +
-    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${c.art}</svg>`
+    `<svg viewBox="${STYLE.viewBox}" role="img" aria-label="${label}" ` +
+    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${art}</svg>`
   );
 }
