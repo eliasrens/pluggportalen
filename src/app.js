@@ -15,6 +15,7 @@
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
+//   #/elev/klassfoto  klassfoto: se alla elevers figurer + namn (läs-endast)
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON)
@@ -41,6 +42,8 @@ import {
 } from "./teacher.js";
 // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
 import { pageLarareKlass } from "./teacher.js";
+// Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
+import { pageElevKlassfoto } from "./pages-klassfoto.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
@@ -106,6 +109,8 @@ const routes = {
   "/elev/shop": pageElevShop,
   "/elev/rum": pageElevRum,
   "/elev/profil": pageElevProfil,
+  // Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
+  "/elev/klassfoto": pageElevKlassfoto,
   "/larare": () => pageLarare(teacherCtx),
   // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
   "/larare/klass": () => pageLarareKlass(teacherCtx),

@@ -190,12 +190,18 @@ export async function pageElevHem() {
         <span class="title">Mitt rum</span>
         <span class="sub">Inred och pynta</span>
       </button>
+      <button class="big-card bla" id="to-klassfoto">
+        <span class="emoji">📸</span>
+        <span class="title">Klassfoto</span>
+        <span class="sub">Se alla elevers figurer</span>
+      </button>
     </div>
   </div>`);
 
   view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
+  view.querySelector("#to-klassfoto").addEventListener("click", () => go("#/elev/klassfoto"));
 
   app.replaceChildren(view);
 }
@@ -283,6 +289,7 @@ export async function pageElevProfil() {
       <p class="hint">Användarnamn: <b>${session.username || ""}</b></p>
       <div class="btn-row center">
         <button class="btn liten" id="byt-avatar">Byt figur</button>
+        <button class="btn liten ghost" id="till-klassfoto">📸 Klassfoto</button>
         <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
         <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
       </div>
@@ -320,6 +327,7 @@ export async function pageElevProfil() {
 
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
+  view.querySelector("#till-klassfoto").addEventListener("click", () => go("#/elev/klassfoto"));
   view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));
 
