@@ -66,6 +66,7 @@ export async function pageElevRum() {
 
     <div class="center">
       <button class="btn ghost" id="to-shop">🛍️ Till shoppen</button>
+      <button class="btn ghost" id="to-husdjur">🥚 Mitt husdjur</button>
     </div>
   </div>`);
 
@@ -147,6 +148,7 @@ export async function pageElevRum() {
 
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
+  view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   // Placera en sak från lådan (klick).
   tray.addEventListener("click", (e) => {
@@ -155,7 +157,7 @@ export async function pageElevRum() {
     const id = btn.dataset.place;
     if (id in placements) return;
     placements[id] = { x: 50, y: 50 }; // mitten
-    selectedId = id;
+    selectedId = null; // ny sak placeras utan ram – markeras först vid klick
     renderStage();
     renderTray();
     scheduleSaveRoom();
@@ -203,7 +205,16 @@ export async function pageElevRum() {
   let drag = null;
   stage.addEventListener("pointerdown", (e) => {
     const node = e.target.closest(".room-item");
-    if (!node) return;
+    if (!node) {
+      // Klick på tom yta i rummet → avmarkera direkt (ram + 🗑️ försvinner).
+      // Görs på pointerdown (inte click) för att undvika krock med att
+      // renderStage() bygger om DOM-noderna innan ev. click-event hinner fyra.
+      if (selectedId !== null) {
+        selectedId = null;
+        renderStage();
+      }
+      return;
+    }
     if (e.target.closest("[data-remove]")) return; // låt borttagning ske
     const rect = stage.getBoundingClientRect();
     drag = { id: node.dataset.id, node, rect, moved: false, startX: e.clientX, startY: e.clientY };

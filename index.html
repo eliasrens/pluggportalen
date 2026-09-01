@@ -23,9 +23,15 @@
   </head>
   <body>
     <div class="topbar">
-      <button class="brand" id="brand">
-        <span class="logo">📚</span> Pluggportalen
-      </button>
+      <div id="topbar-left" class="topbar-left">
+        <button class="brand" id="brand">
+          <span class="logo">📚</span> <span class="brand-text">Pluggportalen</span>
+        </button>
+        <button class="btn ghost hem-btn" id="hem-btn" title="Till startskärmen" hidden>
+          <span class="hem-ikon" aria-hidden="true">🏠</span>
+          <span class="hem-text">Hem</span>
+        </button>
+      </div>
       <div id="topbar-right"></div>
     </div>
 

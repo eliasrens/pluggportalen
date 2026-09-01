@@ -8,6 +8,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
+import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { CATEGORIES, getItem, itemsInCategory } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
@@ -85,16 +86,27 @@ export async function pageElevShop() {
     btn.disabled = true;
     btn.textContent = "Köper…";
     try {
-      const res = await data.buyItem(item.id, item.price);
+      // Ägget/värmelampan sätter även studentData.pet (kläckningsklockan) och
+      // köps därför via data-pet.js – i övrigt samma transaktionsmönster.
+      let res;
+      if (item.id === EGG_ITEM_ID) res = await buyEgg(item.price);
+      else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
+      else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
       state.owned = new Set(res.owned);
       saldoEl.textContent = `🪙 ${state.coins}`;
       renderKatalog();
       if (res.ok) {
         await renderTopbar(); // uppdatera saldot i sidhuvudet
-        flash(item.category === "klader"
-          ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`
-          : `Du köpte ${item.name}! Placera den i Mitt rum.`);
+        if (item.id === EGG_ITEM_ID) {
+          flash(`Du köpte ett mystiskt ägg! 🥚 Se det på sidan Mitt husdjur.`);
+        } else if (item.id === LAMP_ITEM_ID) {
+          flash(`Du köpte en värmelampa! 🔦 Nu kläcks ägget dubbelt så snabbt.`);
+        } else {
+          flash(item.category === "klader"
+            ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`
+            : `Du köpte ${item.name}! Placera den i Mitt rum.`);
+        }
       } else {
         // Täcker inte (t.ex. saldot ändrat i en annan flik).
         flash("Du har inte råd med den just nu.", true);

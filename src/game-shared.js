@@ -152,28 +152,50 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
 // Frågemotor (delas av Quiz och Läsförståelse)
 // ---------------------------------------------------------------------------
 
+// Hur många gånger en felsvarad fråga får komma tillbaka innan vi släpper den.
+// Taket gör att en fråga eleven kämpar med inte loopar i all oändlighet.
+const MAX_RETURNS = 2;
+
 /**
- * Kör en omgång flervalsfrågor med direkt feedback. Anropar onFinish(correct,
- * total) när alla frågor är besvarade. reviewButton (valfri) läggs överst på
- * varje fråga – används av Läsförståelse för att titta tillbaka på texten.
+ * Kör en omgång flervalsfrågor med direkt feedback och repetition inom rundan:
+ * en fråga man svarar FEL på köas upp igen ett par frågor senare (med omblandade
+ * svarsalternativ) tills den besvaras rätt, dock högst MAX_RETURNS gånger.
+ *
+ * Anropar onFinish(correct, total) när kön är tom. Både correct och total räknas
+ * per UNIK fråga – repetitioner dubbelräknas alltså inte, så stjärnor/coins blir
+ * rätt. total = antal unika frågor; correct = antal unika frågor eleven till slut
+ * svarade rätt på.
+ *
+ * Progress-visningen är ärlig trots att kön kan växa: vi räknar unika frågor
+ * eleven är klar med (rätt-svarade) av det totala antalet unika frågor, i stället
+ * för att räkna varje kö-plats. Det gör att "Fråga X av Y" och progressbaren inte
+ * hoppar bakåt eller överstiger Y när en fråga återkommer.
+ *
+ * reviewButton (valfri) läggs överst på varje fråga – används av Läsförståelse.
  */
 export function runQuestions({ body, questions, onFinish, reviewButton }) {
-  const qs = shuffle(questions).map((q) => {
-    // Blanda svarsalternativen men kom ihåg vilket som är rätt.
+  // Bygg ett frågeobjekt per unik fråga (med stabilt id för unik-räkningen).
+  const built = shuffle(questions).map((q, id) => {
     const opts = q.options.map((text, i) => ({ text, correct: i === q.answerIndex }));
-    return { question: q.question, explanation: q.explanation, options: shuffle(opts) };
+    return { id, question: q.question, explanation: q.explanation, options: shuffle(opts), returns: 0 };
   });
 
-  let i = 0;
-  let correct = 0;
+  const totalUnique = built.length;
+  const resolved = new Set(); // id:n på frågor som till slut besvarats rätt
+
+  // Kön av frågor att visa. Kan växa när fel-svarade frågor köas om.
+  const queue = built.slice();
+  let pos = 0;
 
   function renderQ() {
-    const q = qs[i];
+    const q = queue[pos];
+    // Ärlig progress: hur många unika frågor är klara (rätt) av totalen.
+    const doneUnique = resolved.size;
     const wrap = el(`<div class="quiz-wrap">
       <div class="quiz-progress">
-        <div class="quiz-progress-bar" style="width:${(i / qs.length) * 100}%"></div>
+        <div class="quiz-progress-bar" style="width:${(doneUnique / totalUnique) * 100}%"></div>
       </div>
-      <p class="quiz-count">Fråga ${i + 1} av ${qs.length}</p>
+      <p class="quiz-count">Fråga ${Math.min(doneUnique + 1, totalUnique)} av ${totalUnique}</p>
       <div class="quiz-question">${q.question}</div>
       <div class="quiz-options">
         ${q.options
@@ -198,7 +220,7 @@ export function runQuestions({ body, questions, onFinish, reviewButton }) {
           if (q.options[idx].correct) b.classList.add("correct");
         });
         if (chosen.correct) {
-          correct++;
+          resolved.add(q.id); // unik fråga klar (räknas bara en gång)
           btn.classList.add("chosen-correct");
           sound.correct();
           fb.innerHTML = `<div class="msg ok">Rätt! ✅ ${q.explanation || ""}</div>`;
@@ -206,12 +228,20 @@ export function runQuestions({ body, questions, onFinish, reviewButton }) {
           btn.classList.add("chosen-wrong");
           sound.wrong();
           fb.innerHTML = `<div class="msg soft">Inte riktigt – men bra försök! 💡 ${q.explanation || ""}</div>`;
+          // Köa om frågan ett par frågor senare (om vi inte nått taket).
+          if (q.returns < MAX_RETURNS) {
+            q.returns++;
+            q.options = shuffle(q.options); // blanda om alternativen till återkomsten
+            const gap = 2 + Math.floor(Math.random() * 2); // 2–3 frågor senare
+            const insertAt = Math.min(pos + gap, queue.length); // sist om vi är nära slutet
+            queue.splice(insertAt, 0, q);
+          }
         }
-        const last = i === qs.length - 1;
+        const last = pos >= queue.length - 1;
         const next = el(`<button class="btn gron">${last ? "Se resultat" : "Nästa fråga →"}</button>`);
         next.addEventListener("click", () => {
-          i++;
-          if (i >= qs.length) onFinish(correct, qs.length);
+          pos++;
+          if (pos >= queue.length) onFinish(resolved.size, totalUnique);
           else renderQ();
         });
         nextWrap.replaceChildren(next);

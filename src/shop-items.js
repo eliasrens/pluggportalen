@@ -42,6 +42,17 @@ export const SHOP_ITEMS = [
   { id: "ballong", name: "Ballong", emoji: "🎈", category: "klader", slot: "hand", price: 15 },
   { id: "trollstav", name: "Trollstav", emoji: "🪄", category: "klader", slot: "hand", price: 110 },
   { id: "svard", name: "Träsvärd", emoji: "🗡️", category: "klader", slot: "hand", price: 80 },
+  // fler kläder
+  { id: "vintermossa", name: "Vintermössa", emoji: "🧶", category: "klader", slot: "hatt", price: 30 },
+  { id: "strahatt", name: "Stråhatt", emoji: "👒", category: "klader", slot: "hatt", price: 55 },
+  { id: "cowboyhatt", name: "Cowboyhatt", emoji: "🤠", category: "klader", slot: "hatt", price: 130 },
+  { id: "pilotglasogon", name: "Runda glasögon", emoji: "👓", category: "klader", slot: "ansikte", price: 50 },
+  { id: "ogonlapp", name: "Ögonlapp", emoji: "🏴‍☠️", category: "klader", slot: "ansikte", price: 30 },
+  { id: "fluga", name: "Fluga", emoji: "🎀", category: "klader", slot: "hals", price: 40 },
+  { id: "slips", name: "Slips", emoji: "👔", category: "klader", slot: "hals", price: 45 },
+  { id: "blomma", name: "Blomma", emoji: "🌷", category: "klader", slot: "hand", price: 12 },
+  { id: "glasstrut", name: "Glasstrut", emoji: "🍦", category: "klader", slot: "hand", price: 28 },
+  { id: "bok", name: "Bok", emoji: "📕", category: "klader", slot: "hand", price: 35 },
 
   // --- Möbler & prylar (placeras i rummet) ---------------------------------
   { id: "stol", name: "Pall", emoji: "🪑", category: "mobler", price: 30 },
@@ -51,14 +62,27 @@ export const SHOP_ITEMS = [
   { id: "dator", name: "Dator", emoji: "🖥️", category: "mobler", price: 200 },
   { id: "tv", name: "TV", emoji: "📺", category: "mobler", price: 180 },
   { id: "matta", name: "Mysmatta", emoji: "🟦", category: "mobler", price: 40 },
+  // fler möbler
+  { id: "sittpuff", name: "Sittpuff", emoji: "🛋️", category: "mobler", price: 45 },
+  { id: "byra", name: "Byrå", emoji: "🗄️", category: "mobler", price: 95 },
+  { id: "skrivbord", name: "Skrivbord", emoji: "🪵", category: "mobler", price: 110 },
+  { id: "fatolj", name: "Fåtölj", emoji: "🛋️", category: "mobler", price: 150 },
 
   // --- Husdjur (placeras i rummet) -----------------------------------------
+  // Mystiskt ägg + värmelampa hör till det kläckbara husdjuret (#/elev/husdjur).
+  // Köps via buyEgg()/buyHeatLamp() i data-pet.js (sätter även studentData.pet).
+  { id: "mystery-egg", name: "Mystiskt ägg", emoji: "🥚", category: "husdjur", price: 200 },
+  { id: "varmelampa", name: "Värmelampa", emoji: "🔦", category: "husdjur", price: 120 },
   { id: "hund", name: "Hundvalp", emoji: "🐶", category: "husdjur", price: 160 },
   { id: "katt", name: "Kattunge", emoji: "🐱", category: "husdjur", price: 160 },
   { id: "kanin", name: "Kanin", emoji: "🐰", category: "husdjur", price: 130 },
   { id: "fisk", name: "Akvariefisk", emoji: "🐠", category: "husdjur", price: 70 },
   { id: "papegoja", name: "Papegoja", emoji: "🦜", category: "husdjur", price: 220 },
   { id: "dinosaurie", name: "Husdinosaurie", emoji: "🦕", category: "husdjur", price: 500 },
+  // fler husdjur
+  { id: "hamster", name: "Hamster", emoji: "🐹", category: "husdjur", price: 90 },
+  { id: "igelkott", name: "Igelkott", emoji: "🦔", category: "husdjur", price: 120 },
+  { id: "skoldpadda", name: "Sköldpadda", emoji: "🐢", category: "husdjur", price: 140 },
 
   // --- Dekor & pynt (placeras i rummet) ------------------------------------
   { id: "krukvaxt", name: "Krukväxt", emoji: "🪴", category: "dekor", price: 25 },
@@ -67,6 +91,11 @@ export const SHOP_ITEMS = [
   { id: "stjarnor", name: "Stjärnljus", emoji: "✨", category: "dekor", price: 20 },
   { id: "regnbage", name: "Regnbåge", emoji: "🌈", category: "dekor", price: 85 },
   { id: "akvarium", name: "Akvarium", emoji: "🐟", category: "dekor", price: 140 },
+  // fler dekor
+  { id: "girlang", name: "Vimpelgirlang", emoji: "🎏", category: "dekor", price: 18 },
+  { id: "ballonger", name: "Ballongbukett", emoji: "🎈", category: "dekor", price: 22 },
+  { id: "kaktus", name: "Kaktus", emoji: "🌵", category: "dekor", price: 30 },
+  { id: "vaggklocka", name: "Väggklocka", emoji: "🕰️", category: "dekor", price: 60 },
 ];
 
 /** Slå upp en shop-sak på id. */

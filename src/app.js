@@ -15,8 +15,10 @@
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
+//   #/elev/klassfoto  klassfoto: se alla elevers figurer + namn (läs-endast)
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
+//   #/larare/klasser  klasshantering (skapa klasser, lägg elever i dem)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON)
 //   #/larare/prompter färdiga AI-prompter
 //   #/larare/elever   elevkontohantering
@@ -41,10 +43,16 @@ import {
 } from "./teacher.js";
 // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
 import { pageLarareKlass } from "./teacher.js";
+// Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
+import { pageElevKlassfoto } from "./pages-klassfoto.js";
+// Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
+import { pageLarareKlasser } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
 // Utveckling (#/elev/utveckling) – karaktärs-evolution i Pokémon-stil.
 import { pageElevUtveckling } from "./pages-evolution.js";
+// Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
+import { pageElevHusdjur } from "./pages-pet.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
@@ -107,12 +115,18 @@ const routes = {
   "/elev/spela": pageElevSpela,
   "/elev/shop": pageElevShop,
   "/elev/rum": pageElevRum,
+  // Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
+  "/elev/husdjur": pageElevHusdjur,
   "/elev/profil": pageElevProfil,
   // Utveckling – figuren växer i steg (Pokémon-stil) med grenval på slutet.
   "/elev/utveckling": pageElevUtveckling,
+  // Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
+  "/elev/klassfoto": pageElevKlassfoto,
   "/larare": () => pageLarare(teacherCtx),
   // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
   "/larare/klass": () => pageLarareKlass(teacherCtx),
+  // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
+  "/larare/klasser": () => pageLarareKlasser(teacherCtx),
   "/larare/innehall": () => pageLarareInnehall(teacherCtx),
   "/larare/prompter": () => pageLararePrompter(teacherCtx),
   "/larare/elever": () => pageLarareElever(teacherCtx),

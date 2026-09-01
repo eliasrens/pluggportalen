@@ -10,6 +10,22 @@ import { evoFromStudentData } from "./evolution.js";
 
 export const app = document.getElementById("app");
 export const topbarRight = document.getElementById("topbar-right");
+export const hemBtn = document.getElementById("hem-btn");
+
+// Hem-knappen i sidhuvudet: alltid samma väg tillbaka till elevens startskärm.
+// Den ligger kvar mellan sidbyten, så lyssnaren kopplas en gång här.
+hemBtn?.addEventListener("click", () => go("#/elev/hem"));
+
+/**
+ * Visa hem-knappen på elevens sidor (plugga, område, spel, shop, rum, profil),
+ * men inte när ingen är inloggad, på inloggningssidan eller på lärarsidorna –
+ * där finns redan egen navigering.
+ */
+function uppdateraHemKnapp(session) {
+  if (!hemBtn) return;
+  const path = (window.location.hash || "#/").slice(1).split("?")[0];
+  hemBtn.hidden = !(session && path.startsWith("/elev/") && path !== "/elev/avatar");
+}
 
 /** Navigera till en hash-route. */
 export function go(hash) {
@@ -80,6 +96,7 @@ export function flash(text, isError = false) {
  */
 export async function renderTopbar() {
   const session = data.getSession();
+  uppdateraHemKnapp(session);
   if (!session) {
     topbarRight.innerHTML = "";
     return;

@@ -18,8 +18,9 @@ import {
   query,
   where,
   orderBy,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { ensureStudentData } from "./data.js";
+import { ensureStudentData, currentStudentId } from "./data.js";
 
 // ---------------------------------------------------------------------------
 // Kunskapsinnehåll (ämnen och arbetsområden)
@@ -92,6 +93,36 @@ export async function getStudents() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+/**
+ * Lista alla elever tillsammans med sitt "utseende": grundavatar (avatarId) och
+ * burna klädsaker (avatarItems). Används av klassfotot (#/elev/klassfoto).
+ *
+ * avatarId finns redan på students-dokumentet, men avatarItems ligger i
+ * studentData/{id}. Vi läser alla studentData-dokument parallellt (Promise.all)
+ * med en per-elev catch, så att en enda trasig/saknad elevdata inte fäller hela
+ * vyn – då används bara students-dokumentets avatarId utan klädsel.
+ *
+ * @returns {Promise<Array<{id, namn, username, avatarId, avatarItems: string[]}>>}
+ */
+export async function getStudentsWithLooks() {
+  const students = await getStudents();
+  return Promise.all(
+    students.map(async (s) => {
+      try {
+        const snap = await getDoc(doc(db, "studentData", s.id));
+        const d = snap.exists() ? snap.data() : {};
+        return {
+          ...s,
+          avatarId: d.avatarId || s.avatarId || "fox",
+          avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
+        };
+      } catch {
+        return { ...s, avatarId: s.avatarId || "fox", avatarItems: [] };
+      }
+    })
+  );
+}
+
 /** Skapa (eller uppdatera) ett elevkonto. */
 export async function upsertStudent(studentId, { namn, username, password, avatarId }) {
   const ref = doc(db, "students", studentId);
@@ -126,4 +157,119 @@ export async function usernameTaken(username, exceptId = null) {
     query(collection(db, "students"), where("username", "==", uname))
   );
   return snap.docs.some((d) => d.id !== exceptId);
+}
+
+// ---------------------------------------------------------------------------
+// Klasser (lärarsidan) – läraren grupperar elever i klasser, t.ex. "6A".
+// ----------------------------------------------------------------------------
+// classes/{classId} = { name, order?, createdAt, studentIds: string[] }
+// Vi lägger elevlistan som en array (studentIds) DIREKT på klassdokumentet i
+// stället för en subkollektion eller en klass-referens på varje elev. För den
+// här appen (en handfull klasser med ~30 elever styck) är det enklast: hela
+// klassen läses/skrivs i ett dokument, och en elev kan finnas i flera klasser
+// utan extra kopplingsdata. Följer samma mönster som getStudents/upsertStudent.
+// ---------------------------------------------------------------------------
+
+/** Lista alla klasser, sorterade efter `order` och sedan namn. */
+export async function getClasses() {
+  const snap = await getDocs(collection(db, "classes"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort(
+      (a, b) =>
+        (Number(a.order) || 0) - (Number(b.order) || 0) ||
+        String(a.name || "").localeCompare(String(b.name || ""), "sv")
+    );
+}
+
+/**
+ * Skapa (eller uppdatera) en klass. Skriver bara de fält som skickas med
+ * (merge), så studentIds rörs inte när man bara döper om klassen.
+ * @param {string} classId klassens id (t.ex. "6a")
+ * @param {object} fields  { name, order? }
+ */
+export async function upsertClass(classId, { name, order } = {}) {
+  const ref = doc(db, "classes", classId);
+  const snap = await getDoc(ref);
+  const payload = { name: String(name || "").trim() };
+  if (order !== undefined) payload.order = Number(order) || 0;
+  // Sätt createdAt + tom elevlista bara första gången klassen skapas.
+  if (!snap.exists()) {
+    payload.createdAt = serverTimestamp();
+    payload.studentIds = [];
+  }
+  await setDoc(ref, payload, { merge: true });
+  return classId;
+}
+
+/** Ta bort en klass (elevkontona rörs inte – bara grupperingen försvinner). */
+export async function deleteClass(classId) {
+  await deleteDoc(doc(db, "classes", classId));
+}
+
+/** Sätt exakt vilka elever som ingår i en klass (ersätter hela listan). */
+export async function setClassStudents(classId, studentIds) {
+  const list = Array.isArray(studentIds) ? [...new Set(studentIds)] : [];
+  const ref = doc(db, "classes", classId);
+  await setDoc(ref, { studentIds: list }, { merge: true });
+  return list;
+}
+
+// ---------------------------------------------------------------------------
+// Tilldelade arbetsområden per klass (läraren väljer vad som är AKTIVT nu).
+// ----------------------------------------------------------------------------
+// classes/{classId}.assignedAreas = [{ subjectId, areaId }]
+// En tom/saknad lista betyder "ingen tilldelning" → eleven ser HELA biblioteket
+// (bakåtkompatibelt). Vi lägger listan direkt på klassdokumentet, samma mönster
+// som studentIds ovan.
+// ---------------------------------------------------------------------------
+
+/** Normalisera en tilldelningslista till rena { subjectId, areaId }-par (utan dubletter). */
+export function normalizeAssignments(assignments) {
+  if (!Array.isArray(assignments)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const a of assignments) {
+    const subjectId = String(a?.subjectId || "").trim();
+    const areaId = String(a?.areaId || "").trim();
+    if (!subjectId || !areaId) continue;
+    const key = `${subjectId}/${areaId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ subjectId, areaId });
+  }
+  return out;
+}
+
+/**
+ * Sätt exakt vilka arbetsområden som är aktiva/tilldelade för en klass
+ * (ersätter hela listan). Tom lista = ingen tilldelning (eleven ser allt).
+ * @param {string} classId
+ * @param {Array<{subjectId:string, areaId:string}>} assignments
+ */
+export async function setClassAssignments(classId, assignments) {
+  const list = normalizeAssignments(assignments);
+  const ref = doc(db, "classes", classId);
+  await setDoc(ref, { assignedAreas: list }, { merge: true });
+  return list;
+}
+
+/** Hämta en klass tilldelade arbetsområden ([] om inga). */
+export async function getClassAssignments(classId) {
+  const snap = await getDoc(doc(db, "classes", classId));
+  return snap.exists() ? normalizeAssignments(snap.data().assignedAreas) : [];
+}
+
+/**
+ * Hitta elevens klass utifrån klassernas studentIds. Om eleven finns i flera
+ * klasser returneras den första (efter getClasses ordning). Null om ingen.
+ * @param {string} studentId
+ * @returns {Promise<object|null>} klassdokumentet ({ id, name, studentIds, assignedAreas, ... })
+ */
+export async function getClassForStudent(studentId = currentStudentId()) {
+  if (!studentId) return null;
+  const classes = await getClasses();
+  return (
+    classes.find((c) => Array.isArray(c.studentIds) && c.studentIds.includes(studentId)) || null
+  );
 }
