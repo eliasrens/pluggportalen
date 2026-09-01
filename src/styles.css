@@ -1563,3 +1563,13 @@ code {
   background: var(--ljus); border: 2px solid rgba(0, 0, 0, 0.15);
 }
 .pet-prick.full { background: var(--gron); border-color: var(--gron); }
+
+/* Lärare: "Ge coins" i elevlistan */
+.give-coins-cell { vertical-align: middle; }
+.give-coins .gc-row {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.give-coins .gc-amount { width: 64px; text-align: center; }
+.give-coins .gc-flash { margin-top: 6px; font-size: 0.9rem; min-height: 1.1em; }
+.give-coins .gc-ok { color: #1e7a45; font-weight: 700; }
+.give-coins .gc-err { color: #b3261e; font-weight: 700; }
