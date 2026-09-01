@@ -15,7 +15,8 @@
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
-//   #/elev/klassfoto  klassfoto: se alla elevers figurer + namn (läs-endast)
+//   #/elev/klassfoto  min klass: se klasskamraternas figurer + namn (läs-endast)
+//   #/elev/klasskamrat  en klasskamrats rum i läsläge (?id=<studentId>)
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
 //   #/larare/klasser  klasshantering (skapa klasser, lägg elever i dem)
@@ -45,6 +46,8 @@ import {
 import { pageLarareKlass } from "./teacher.js";
 // Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
 import { pageElevKlassfoto } from "./pages-klassfoto.js";
+// Klasskamratens rum (#/elev/klasskamrat) – läs-endast vy av en annan elevs rum.
+import { pageElevKlasskamrat } from "./pages-klasskamrat.js";
 // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
 import { pageLarareKlasser } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
@@ -122,6 +125,8 @@ const routes = {
   "/elev/utveckling": pageElevUtveckling,
   // Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
   "/elev/klassfoto": pageElevKlassfoto,
+  // Klasskamratens rum (#/elev/klasskamrat?id=…) – läs-endast vy av annans rum.
+  "/elev/klasskamrat": pageElevKlasskamrat,
   "/larare": () => pageLarare(teacherCtx),
   // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
   "/larare/klass": () => pageLarareKlass(teacherCtx),

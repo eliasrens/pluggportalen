@@ -196,9 +196,9 @@ export async function pageElevHem() {
         <span class="sub">Inred och pynta</span>
       </button>
       <button class="big-card bla" id="to-klassfoto">
-        <span class="emoji">📸</span>
-        <span class="title">Klassfoto</span>
-        <span class="sub">Se alla elevers figurer</span>
+        <span class="emoji">👩‍👦‍👦</span>
+        <span class="title">Min klass</span>
+        <span class="sub">Se dina klasskamrater</span>
       </button>
       <button class="big-card orange" id="to-husdjur">
         <span class="emoji">🥚</span>
@@ -316,7 +316,7 @@ export async function pageElevProfil() {
       <div class="btn-row center">
         <button class="btn liten" id="byt-avatar">Byt figur</button>
         <button class="btn liten" id="utveckling">⚡ Utveckling</button>
-        <button class="btn liten ghost" id="till-klassfoto">📸 Klassfoto</button>
+        <button class="btn liten ghost" id="till-klassfoto">👩‍👦‍👦 Min klass</button>
         <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
         <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
       </div>
