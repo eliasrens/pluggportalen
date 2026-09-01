@@ -1,7 +1,8 @@
 // ============================================================================
 // Pluggportalen – gemensamma UI-hjälpare
 // Delas av app.js (router) och sidmodulerna: DOM-referenser, navigering,
-// en liten mall-hjälpare och sidhuvudet (topbar) med avatar, coins och utloggning.
+// en liten mall-hjälpare och den bestående sidomenyn (renderTopbar) med
+// karaktärspanel, XP-bar, ⚡-genväg, navlänkar, coins och utloggning.
 // ============================================================================
 
 import * as data from "./data.js";
@@ -9,23 +10,31 @@ import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { evoFromStudentData } from "./evolution.js";
 
 export const app = document.getElementById("app");
-export const topbarRight = document.getElementById("topbar-right");
-export const hemBtn = document.getElementById("hem-btn");
+export const sidebar = document.getElementById("sidebar");
+export const sidebarBody = document.getElementById("sidebar-body");
 
-// Hem-knappen i sidhuvudet: alltid samma väg tillbaka till elevens startskärm.
-// Den ligger kvar mellan sidbyten, så lyssnaren kopplas en gång här.
-hemBtn?.addEventListener("click", () => go("#/elev/hem"));
+// --- Mobil: hopfällbar off-canvas-meny --------------------------------------
+// Hamburger + overlay ligger kvar mellan sidbyten (statiska i index.html), så
+// lyssnarna kopplas en gång här. På desktop är menyn alltid fast (se CSS).
+const hamburger = document.getElementById("hamburger");
+const overlay = document.getElementById("sidebar-overlay");
 
-/**
- * Visa hem-knappen på elevens sidor (plugga, område, spel, shop, rum, profil),
- * men inte när ingen är inloggad, på inloggningssidan eller på lärarsidorna –
- * där finns redan egen navigering.
- */
-function uppdateraHemKnapp(session) {
-  if (!hemBtn) return;
-  const path = (window.location.hash || "#/").slice(1).split("?")[0];
-  hemBtn.hidden = !(session && path.startsWith("/elev/") && path !== "/elev/avatar");
+/** Öppna/stäng sidomenyn på mobil. */
+export function toggleSidomeny(open) {
+  const willOpen = open ?? !document.body.classList.contains("sidomeny-oppen");
+  document.body.classList.toggle("sidomeny-oppen", willOpen);
+  hamburger?.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  if (overlay) overlay.hidden = !willOpen;
 }
+
+hamburger?.addEventListener("click", () => toggleSidomeny());
+overlay?.addEventListener("click", () => toggleSidomeny(false));
+// Klick på en navlänk i menyn stänger den på mobil.
+sidebar?.addEventListener("click", (e) => {
+  if (e.target.closest("a,button") && document.body.classList.contains("sidomeny-oppen")) {
+    toggleSidomeny(false);
+  }
+});
 
 /** Navigera till en hash-route. */
 export function go(hash) {
@@ -90,22 +99,44 @@ export function flash(text, isError = false) {
   }, 2600);
 }
 
+// Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
+const NAV_LANKAR = [
+  { hash: "#/elev/hem", ikon: "🏠", label: "Hem" },
+  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga" },
+  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen" },
+  { hash: "#/elev/rum", ikon: "🛏️", label: "Mitt rum" },
+  { hash: "#/elev/husdjur", ikon: "🐾", label: "Husdjur" },
+  { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass" },
+];
+
 /**
- * Rita sidhuvudets högra del. När eleven är inloggad visas avatar + namn
- * (klick → profil), pluggcoins-saldo och en utloggningsknapp – överallt.
+ * Rita sidomenyn. Namnet behålls (renderTopbar) eftersom alla sidor redan
+ * anropar det vid varje navigering – nu ritar det i stället den bestående
+ * vänstermenyn med karaktärspanel, XP-bar, ⚡-genväg och navlänkar.
+ *
+ * Sidomenyn (karaktär + nav) visas bara för en inloggad elev på elevsidorna.
+ * På start-, inloggnings- och lärarsidorna fälls den ihop (body saknar
+ * `.med-sidomeny`) så att innehållsytan får full bredd – lärarsidorna har sin
+ * egen navigering (teacherNav) inuti #app.
  */
 export async function renderTopbar() {
   const session = data.getSession();
-  uppdateraHemKnapp(session);
-  if (!session) {
-    topbarRight.innerHTML = "";
+  const path = (window.location.hash || "#/").slice(1).split("?")[0] || "/";
+  const visaMeny = !!session && path.startsWith("/elev/") && path !== "/elev/avatar";
+
+  document.body.classList.toggle("med-sidomeny", visaMeny);
+  if (hamburger) hamburger.hidden = !visaMeny;
+  if (!visaMeny) {
+    if (sidebarBody) sidebarBody.replaceChildren();
+    toggleSidomeny(false); // stäng ev. öppen mobilmeny när vi lämnar elevläget
     return;
   }
-  // Hämta coins + avatar (inkl. burna klädsaker) i ett svep.
+
+  // Hämta coins + avatar (inkl. burna klädsaker) + XP/nivå i ett svep.
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
-  let evo; // aktuellt utvecklingssteg + ev. grenval (härlett ur framstegen)
+  let evo; // nivå, XP-progress och utvecklingssteg (härlett ur framstegen)
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -114,21 +145,51 @@ export async function renderTopbar() {
     evo = evoFromStudentData(sd);
   } catch {}
 
-  const wrap = el(`<div class="topbar-user">
-    <button class="btn ghost liten minklass-btn" id="minklass-btn" title="Se min klass">👩‍👦‍👦 Min klass</button>
-    <button class="avatar-chip" id="profil-btn" title="Min profil">
-      <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems, evo)}</span>
-      <span class="avatar-namn">${session.namn || "Elev"}</span>
-    </button>
-    ${evo ? `<span class="niva" title="Din nivå">⭐ Nivå ${evo.level}</span>` : ""}
-    <span class="coins">🪙 ${coins}</span>
-    <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+  // XP-baren speglar exakt samma värde som utvecklingssidan (evoFromStudentData
+  // → xpIntoLevel(xp).progressRatio).
+  const pct = evo ? Math.round(Math.min(1, Math.max(0, evo.progressRatio)) * 100) : 0;
+  const niva = evo ? evo.level : 1;
+
+  const navHtml = NAV_LANKAR.map(
+    (l) =>
+      `<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
+        <span class="sido-nav-ikon" aria-hidden="true">${l.ikon}</span>
+        <span class="sido-nav-text">${l.label}</span>
+      </a>`
+  ).join("");
+
+  const wrap = el(`<div class="sido-inner">
+    <div class="sido-karaktar">
+      <a class="sido-figur" href="#/elev/profil" title="Min profil">
+        <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems, evo)}</span>
+      </a>
+      <a class="sido-namn" href="#/elev/profil" title="Min profil">${session.namn || "Elev"}</a>
+      <div class="sido-xp-rad">
+        <div class="sido-xp-kol">
+          <div class="sido-xp-topp">
+            <span class="sido-niva" title="Din nivå">Nivå ${niva}</span>
+          </div>
+          <div class="sido-xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+               aria-valuenow="${pct}" aria-label="Framsteg mot nästa nivå">
+            <div class="sido-xp-fyll" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <a class="sido-blixt" href="#/elev/utveckling" title="Till Utveckling" aria-label="Till Utveckling">⚡</a>
+      </div>
+    </div>
+
+    <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
+
+    <div class="sido-fot">
+      <span class="coins" title="Dina pluggcoins">🪙 ${coins}</span>
+      <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+    </div>
   </div>`);
-  wrap.querySelector("#minklass-btn").addEventListener("click", () => go("#/elev/klassfoto"));
-  wrap.querySelector("#profil-btn").addEventListener("click", () => go("#/elev/profil"));
+
   wrap.querySelector("#logout-btn").addEventListener("click", () => {
     data.logout();
     go("#/");
   });
-  topbarRight.replaceChildren(wrap);
+
+  sidebarBody.replaceChildren(wrap);
 }
