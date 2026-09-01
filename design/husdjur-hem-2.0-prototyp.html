@@ -48,10 +48,6 @@
   }
   .card > p{max-width:66ch}
   .hint{color:var(--muted);font-size:14.5px}
-  .pill{
-    display:inline-block;background:var(--cream);border:2.5px solid var(--ink);
-    border-radius:999px;padding:2px 12px;font-weight:800;font-size:13px;margin-right:6px;
-  }
 
   /* ============ SCENEN ============ */
   .stage{
@@ -59,8 +55,9 @@
     border:3px solid var(--ink);border-radius:18px;overflow:hidden;
     background:#BDE3F5;
   }
+  .stage.placerar{cursor:crosshair}
   .scene{position:absolute;inset:0}
-  .scene svg{display:block;width:100%;height:100%}
+  .scene > svg{display:block;width:100%;height:100%}
   #outside{
     transform-origin:48.5% 52%;
     transition:transform .9s cubic-bezier(.55,0,.2,1),opacity .55s ease .25s;
@@ -77,12 +74,11 @@
     position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
     background:var(--card);border:2.5px solid var(--ink);border-radius:999px;
     padding:5px 16px;font-weight:800;font-size:14px;white-space:nowrap;
-    box-shadow:3px 3px 0 rgba(59,51,80,.18);pointer-events:none;
-    transition:opacity .4s;
+    box-shadow:3px 3px 0 rgba(59,51,80,.18);pointer-events:none;z-index:8;
+    transition:opacity .4s;max-width:92%;overflow:hidden;text-overflow:ellipsis;
   }
-  .stage.inne .stage-hint{opacity:0}
   #ut-knapp{
-    position:absolute;top:12px;left:12px;z-index:5;
+    position:absolute;top:12px;left:12px;z-index:9;
     opacity:0;pointer-events:none;transition:opacity .4s .6s;
   }
   .stage.inne #ut-knapp{opacity:1;pointer-events:auto}
@@ -102,14 +98,27 @@
     100%{opacity:0;transform:translate(14px,-46px) scale(1.5)}
   }
 
-  /* ============ HUSDJUR ============ */
+  /* ============ FLYTTBARA MÖBLER ============ */
+  .furn{
+    position:absolute;transform:translate(-50%,-100%);
+    cursor:grab;touch-action:none;z-index:2;
+  }
+  .furn.bakgrund{z-index:1}
+  .furn svg{display:block;width:100%;height:auto;pointer-events:none}
+  .furn.drar{cursor:grabbing;z-index:6;filter:drop-shadow(0 6px 4px rgba(59,51,80,.25))}
+  .furn::after{
+    content:"";position:absolute;inset:-6px;border:2.5px dashed transparent;border-radius:12px;
+  }
+  .furn:hover::after{border-color:rgba(59,51,80,.35)}
+
+  /* ============ HUSDJUR & MAT ============ */
   .pet{
-    position:absolute;width:11.5%;bottom:6%;
-    transform:translateX(-50%);
+    position:absolute;width:13%;bottom:6%;
+    transform:translateX(-50%);z-index:3;
     cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;
   }
   .pet .tag{
-    position:absolute;left:50%;top:-14%;transform:translateX(-50%);
+    position:absolute;left:50%;top:-16%;transform:translateX(-50%);
     background:var(--card);border:2px solid var(--ink);border-radius:999px;
     padding:0 10px;font-weight:800;font-size:clamp(9px,1.5vw,14px);white-space:nowrap;
     box-shadow:2px 2px 0 rgba(59,51,80,.15);
@@ -130,14 +139,23 @@
   @keyframes resa{from{transform:rotate(157deg)}to{transform:rotate(0)}}
   .pet.mums .pet-grow{animation:mums .45s ease}
   @keyframes mums{0%,100%{scale:1}35%{scale:1.12 .9}70%{scale:.94 1.08}}
+  .pet.evolverar{animation:evoblink .25s ease 3}
+  @keyframes evoblink{50%{filter:brightness(2.2) saturate(.2)}}
   .gnista{
-    position:absolute;font-size:clamp(12px,2.2vw,22px);pointer-events:none;
+    position:absolute;font-size:clamp(12px,2.2vw,22px);pointer-events:none;z-index:7;
     animation:gnista .9s ease-out forwards;
   }
   @keyframes gnista{
     0%{opacity:1;transform:translate(0,0) scale(.5)}
     100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.3)}
   }
+  .mat{
+    position:absolute;width:4.2%;transform:translate(-50%,-50%);z-index:2;
+    pointer-events:none;
+  }
+  .mat svg{display:block;width:100%;height:auto}
+  .mat.ny{animation:studs .4s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes studs{from{transform:translate(-50%,-120%) scale(.6)}to{transform:translate(-50%,-50%) scale(1)}}
 
   /* ============ KONTROLLER ============ */
   .kontroller{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin-top:14px}
@@ -161,9 +179,18 @@
   .btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(59,51,80,.18)}
   .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(59,51,80,.18)}
   .btn:focus-visible,.swatch:focus-visible{outline:3px solid var(--marin);outline-offset:2px}
-  .btn.mata{background:#D8F0C0}
-  .btn.mata:disabled{background:#EDE9DA;color:#9a94ad;cursor:default;box-shadow:none;transform:none}
+  .btn:disabled{background:#EDE9DA;color:#9a94ad;cursor:default;box-shadow:none;transform:none}
+  .btn.kop{background:#D8F0C0}
+  .btn.lagg{background:#FDE9A8}
+  .btn.lagg.aktiv{background:var(--sun);outline:3px solid var(--marin);outline-offset:2px}
   .btn.ghost{background:var(--card)}
+  .btn.mini{font-size:12px;padding:3px 10px;box-shadow:2px 2px 0 rgba(59,51,80,.18)}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;background:var(--cream);
+    border:2.5px solid var(--ink);border-radius:999px;padding:5px 14px;
+    font-weight:800;font-size:14px;
+  }
+  .petstatus{display:flex;align-items:center;gap:6px}
 
   /* ============ GALLERIER ============ */
   .galleri{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;margin-top:14px}
@@ -174,6 +201,20 @@
   .g-item svg{width:100%;height:110px;display:block}
   .g-namn{font-weight:800;font-size:14px;margin-top:8px}
   .g-not{font-size:12.5px;color:var(--muted)}
+  .evolinje{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-items:end;
+    background:var(--cream);border:2.5px solid var(--ink);border-radius:16px;
+    padding:16px 8px 12px;margin-top:14px;position:relative;
+  }
+  .evolinje .steg{text-align:center;padding:0 6px}
+  .evolinje .steg svg{width:100%;display:block;margin:0 auto}
+  .evolinje .steg:nth-child(1) svg{height:88px}
+  .evolinje .steg:nth-child(2) svg{height:116px}
+  .evolinje .steg:nth-child(3) svg{height:148px}
+  .evolinje .pil{
+    position:absolute;top:44%;font-size:22px;font-weight:800;color:var(--marin);
+  }
+  .evo-rubrik{font-weight:800;font-size:15px;margin:20px 0 0}
   .palettrad{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px;margin-top:14px}
   .palett{
     border:2.5px solid var(--ink);border-radius:16px;overflow:hidden;background:var(--card);
@@ -200,20 +241,20 @@
 
 <div class="wrap">
   <header class="top">
-    <div class="eyebrow">Pluggportalen · Designprototyp · kräver ditt godkännande</div>
+    <div class="eyebrow">Pluggportalen · Designprototyp v2 · kräver ditt godkännande</div>
     <h1>Husdjur &amp; Hem 2.0 🏠</h1>
-    <p class="lede">Så här är hela målbilden tänkt att kännas: eleven ser sitt <strong>hus utifrån</strong>,
-    kliver in i ett <strong>ombonat rum</strong> med finare möbler, ett fönster där moln driver förbi,
-    väljer <strong>färg på hus och väggar</strong> — och där bor <strong>flera husdjur</strong> med egna namn
-    som går omkring, äter, växer och ramlar på rygg när man klickar på dem.
-    Allt nedan är klickbart. Prova!</p>
+    <p class="lede">Hela målbilden, klickbar: gå in i huset, <strong>dra möblerna</strong> dit du vill,
+    byt färg på hus och väggar, köp äpplen i shoppen och <strong>lägg ut dem på golvet</strong> —
+    husdjuren går själva dit och äter, växer för varje matning och
+    <strong>evolverar till nästa stadium efter 10 matningar</strong>, precis som Pokémon.</p>
   </header>
 
   <!-- ==================== 1. INTERAKTIV SCEN ==================== -->
   <section class="card">
     <h2>Prova målbilden</h2>
-    <p class="hint">Klicka på huset för att gå in. Klicka på ett husdjur → det ramlar på rygg.
-    Mata med knapparna så växer de (i appen: 1 matning/dag, här går det snabbare).</p>
+    <p class="hint">Klicka på huset för att gå in. Därinne: <strong>dra möblerna</strong> för att möblera om,
+    klicka på ett husdjur så ramlar det på rygg, och använd shoppen nedan för att lägga ut mat.
+    (⏩-knapparna är bara för demon — i appen är det 1 matning per dag.)</p>
 
     <div class="stage" id="stage">
       <div class="scene" id="outside"></div>
@@ -224,25 +265,43 @@
 
     <div class="kontroller">
       <div class="kgrupp">
-        <span class="klabel">Färg på hus &amp; väggar</span>
+        <span class="klabel">Färg</span>
         <span id="swatches"></span>
       </div>
-      <div class="kgrupp" id="matknappar"></div>
+      <div class="kgrupp">
+        <span class="klabel">Shop</span>
+        <span class="chip" id="coins">💰 300</span>
+        <button class="btn kop" id="kop-apple">🛒 Köp äpple (5 💰)</button>
+        <button class="btn lagg" id="lagg-mat">🍎 Lägg ut mat (×0)</button>
+      </div>
       <div class="kgrupp"><button class="btn ghost" id="reset">↺ Börja om</button></div>
     </div>
-    <p class="hint" style="margin-top:10px">Golvet behåller alltid sin träfärg — bara hus och väggar färgas om.</p>
+    <div class="kontroller" id="petstatusrad"></div>
+    <p class="hint" style="margin-top:10px">Golvet behåller alltid sin träfärg — bara hus och väggar färgas om.
+    Möblernas positioner sparas i procent, precis som i dagens rum.</p>
   </section>
 
-  <!-- ==================== 2. MÖBLER ==================== -->
+  <!-- ==================== 2. EVOLUTION ==================== -->
+  <section class="card">
+    <h2>Husdjurens evolution ⭐</h2>
+    <p>Varje art har <strong>3 stadier</strong>. Varje matning gör djuret lite större, och efter
+    <strong>10 matningar</strong> evolverar det till nästa stadium — ny, mer utvecklad form med samma
+    själ. Designen är putsad: mindre bebis, mer karaktär — stadium 1 är gulligast, stadium 3 mest
+    ståtligt. Tre exempel-linjer (samma system byggs för alla arter):</p>
+    <div id="evolinjer"></div>
+  </section>
+
+  <!-- ==================== 3. MÖBLER ==================== -->
   <section class="card">
     <h2>Möbler i nya stilen 🛋️</h2>
     <p>Samma stilguide som figurerna (kontur <code>#3B3350</code>, platt vektor, glad palett) men med
     <strong>mer kärlek per möbel</strong>: tvåtonat trä, textilier med volang och sömmar, växter,
-    ljusslingor och en mjuk kontaktskugga under varje sak. Detta är nivån alla möbler ritas om till.</p>
+    ljusslingor och en mjuk kontaktskugga. <strong>Alla möbler är flyttbara</strong> — prova att dra
+    dem i rummet ovan.</p>
     <div class="galleri" id="mobler"></div>
   </section>
 
-  <!-- ==================== 3. PALETTER ==================== -->
+  <!-- ==================== 4. PALETTER ==================== -->
   <section class="card">
     <h2>Färgpaletter för hus &amp; väggar 🎨</h2>
     <p>Fem färdiga paletter (inga fria färgval — då blir det alltid snyggt). Varje palett sätter
@@ -250,15 +309,15 @@
     <div class="palettrad" id="paletter"></div>
   </section>
 
-  <!-- ==================== 4. UTTRYCK ==================== -->
+  <!-- ==================== 5. UTTRYCK ==================== -->
   <section class="card">
     <h2>Husdjurens ansiktsuttryck 😊</h2>
-    <p>Uttrycken är utbytbara "ansikts-lager" ovanpå samma kropp — funkar för alla ~50 arter i
-    <code>art-pets-creatures.js</code> utan ny ritkod per art.</p>
+    <p>Uttrycken är utbytbara "ansikts-lager" ovanpå samma kropp — funkar för alla arter och
+    stadier utan ny ritkod per art.</p>
     <div class="galleri" id="uttryck"></div>
   </section>
 
-  <!-- ==================== 5. DESIGNBESLUT ==================== -->
+  <!-- ==================== 6. DESIGNBESLUT ==================== -->
   <section class="card">
     <h2>Designbeslut (utkast) 📐</h2>
     <p>Detta blir facit för implementations-uppgifterna när du godkänt prototypen.</p>
@@ -269,7 +328,7 @@
       <tr><td>Kontur</td><td><code>#3B3350</code>, stroke 3 (tunt 2.2)</td><td>oförändrat från art-style.js</td></tr>
       <tr><td>Golv</td><td><code>#C9996B</code> plankor, linjer <code>#B0805A</code></td><td>färgas aldrig om</td></tr>
       <tr><td>Hus/tak/vägg/panel</td><td>5 paletter (sektionen ovan)</td><td>sparas som <code>room.paletteId</code></td></tr>
-      <tr><td>Himmel</td><td><code>#BDE3F5 → #E8F6FD</code>, sol <code>#F7C948</code></td><td>samma ute och i fönstret</td></tr>
+      <tr><td>Himmel</td><td><code>#9AD3F0 → #E8F6FD</code>, sol <code>#F7C948</code></td><td>samma ute och i fönstret</td></tr>
     </table></div>
 
     <h3>Mått &amp; layout</h3>
@@ -277,10 +336,24 @@
       <tr><th>Vad</th><th>Värde</th></tr>
       <tr><td>Scen</td><td>viewBox 960×600, skalas till 100 % bredd (aspect-ratio 96/60)</td></tr>
       <tr><td>Vägg / golv</td><td>vägglinje vid y=430 (72 %), panelband y=340–430</td></tr>
-      <tr><td>Fönster i rummet</td><td>240×220 vid (90,70), spröjs i kors, moln bakom clip-path</td></tr>
-      <tr><td>Husdjur</td><td>bas-bredd 11,5 % av scenen; tillväxtskala 0.75 / 1.0 / 1.25 per steg</td></tr>
+      <tr><td>Fönster i rummet</td><td>228×196 vid (96,76), spröjs i kors, moln bakom clip-path</td></tr>
+      <tr><td>Möbler</td><td>flyttbara med drag &amp; drop; position i procent (ankare mitt-bottenkant), sparas som <code>room.placements</code> precis som idag; matta ligger i eget bakgrundslager</td></tr>
+      <tr><td>Husdjur</td><td>bas-bredd 13 % av scenen; skala = stadiebas (0.66 / 0.90 / 1.18) + 0.022 per matning</td></tr>
       <tr><td>Promenadzon</td><td>x 10–78 % av scenbredden, fötterna på golvet (bottom 6 %)</td></tr>
-      <tr><td>Namnskylt</td><td>pill ovanför huvudet, 2px kontur, max ~12 tecken</td></tr>
+      <tr><td>Mat på golv</td><td>äpple 4.2 % bredd, placeras fritt i golvzonen (y 62–90 %)</td></tr>
+      <tr><td>Namnskylt</td><td>pill ovanför huvudet, 2px kontur, max ~12 tecken, ⭐ per uppnått stadium</td></tr>
+    </table></div>
+
+    <h3>Evolution &amp; matning (produktion)</h3>
+    <div class="tabellram"><table class="spec">
+      <tr><th>Regel</th><th>Värde</th></tr>
+      <tr><td>Stadier</td><td>3 per art, med egen form och eget stadienamn (t.ex. Knytt → Taggen → Eldvakt)</td></tr>
+      <tr><td>Tillväxt per matning</td><td>+0.022 i skala (10 matningar ≈ +22 %)</td></tr>
+      <tr><td>Evolution</td><td>efter <strong>10 matningar</strong> → nästa stadium, maträknaren nollas</td></tr>
+      <tr><td>Mat</td><td>köps i shoppen (äpple, 5 mynt), läggs i förrådet, placeras ut på golvet i rummet</td></tr>
+      <tr><td>Ätande</td><td>närmast lediga (hungrigaste) husdjur går själv till maten och äter; fullvuxna djur ignorerar mat</td></tr>
+      <tr><td>Dagsgräns</td><td>1 matning per husdjur och dag (prototypen är obegränsad för demo)</td></tr>
+      <tr><td>Uttryck</td><td>hungrig när inte matad idag, sömnig på kvällen, mätt efter matning, annars glad; yr på rygg</td></tr>
     </table></div>
 
     <h3>Animationstajming</h3>
@@ -288,22 +361,16 @@
       <tr><th>Vad</th><th>Värde</th></tr>
       <tr><td>In/ut ur huset</td><td>900 ms, <code>cubic-bezier(.55,0,.2,1)</code>, zoom mot husets fönster (origin 48.5 % / 52 %)</td></tr>
       <tr><td>Moln</td><td>ute 46–75 s per varv; i fönstret 34–52 s; linjär, olika hastighet per moln</td></tr>
-      <tr><td>Promenad</td><td>~7 %/s, vaggning ±3,5° i 0,55 s-takt; byter riktning vid zonkanten</td></tr>
+      <tr><td>Promenad</td><td>~7 %/s (mot mat ~11 %/s), vaggning ±3,5° i 0,55 s-takt</td></tr>
       <tr><td>Ramla på rygg</td><td>700 ms med studs (rot. 157° kring fotpunkten), ligger 2,6 s, reser sig 550 ms</td></tr>
-      <tr><td>Matning</td><td>mums-puls 450 ms → tillväxt-pop 450 ms med overshoot</td></tr>
-      <tr><td>Evolution (steg 3)</td><td>gnist-burst 900 ms + namnskylt får ⭐</td></tr>
+      <tr><td>Äta</td><td>mums-puls 450 ms → tillväxt-pop 450 ms med overshoot</td></tr>
+      <tr><td>Evolution</td><td>vit blink 3×250 ms → formbyte → ✨🌟-burst 900 ms, namnskylt får ⭐</td></tr>
+      <tr><td>Mat landar</td><td>studs 400 ms</td></tr>
     </table></div>
-
-    <h3>Regler (produktion)</h3>
-    <p class="fotnot">Matning 1 gång/dag per husdjur (som idag, <code>data-pet.js</code>); steg 2 vid 3 matningar,
-    steg 3 vid 7. Flera husdjur = flera ägg köpta i shoppen; varje husdjur får namn vid kläckning
-    (förslag + eget fält, max 12 tecken). Uttryck väljs av humör: hungrig när den inte matats idag,
-    sömnig på kvällen, annars glad; mätt direkt efter matning. Klick = ramla på rygg (ingen skada — bara kul).</p>
   </section>
 
-  <p class="fotnot" style="padding:0 6px">Säg vad du vill ändra — färger, möbelstil, tempo i animationerna,
-  eller något som saknas — så uppdaterar jag prototypen tills den känns rätt. Implementationen startar
-  först när du godkänt. 💛</p>
+  <p class="fotnot" style="padding:0 6px">Säg vad du vill ändra — djurens utseende, tempo, möbler,
+  eller något som saknas — så uppdaterar jag prototypen (samma länk) tills den känns rätt. 💛</p>
 </div>
 
 <script>
@@ -326,53 +393,15 @@ const nose=(y=41.5,c="#E88A9C")=>'<ellipse cx="50" cy="'+y+'" rx="3" ry="2.3" fi
 const limb=(d,c,w=8)=>'<path d="'+d+'" fill="none" stroke="'+O+'" stroke-width="'+(w+4.5)+'" stroke-linecap="round"/>'+
   '<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round"/>';
 const shadow=(cx,cy,rx)=>'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+(rx*0.22).toFixed(1)+'" fill="'+O+'" opacity="0.09"/>';
+const stjarna=(x,y,s,c)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 -5 L1.4 -1.5 L5 -1.2 L2.3 1.1 L3.1 4.8 L0 2.8 L-3.1 4.8 L-2.3 1.1 L-5 -1.2 L-1.4 -1.5 Z" fill="'+c+'" stroke="none"/>';
 const svgw=(vb,art,label)=>'<svg viewBox="'+vb+'" role="img" aria-label="'+(label||"")+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+art+'</svg>';
 
 /* ============================================================
-   HUSDJUR – kropp + utbytbara ansikten (samma ankargrid)
+   ANSIKTEN – utbytbara lager (alla arter & stadier)
    ============================================================ */
-function sitBody(fur,belly){
-  return '<ellipse cx="38" cy="90" rx="7" ry="4.5" fill="'+fur+'" '+LINE+'/>'+
-    '<ellipse cx="62" cy="90" rx="7" ry="4.5" fill="'+fur+'" '+LINE+'/>'+
-    '<path d="M30 60 Q24 92 50 92 Q76 92 70 60 Q50 54 30 60 Z" fill="'+fur+'" '+LINE+'/>'+
-    '<ellipse cx="50" cy="80" rx="12" ry="12" fill="'+belly+'"/>';
-}
-const headC=(fur,r=22)=>'<circle cx="50" cy="36" r="'+r+'" fill="'+fur+'" '+LINE+'/>';
-function pointyEar(dir,fur,inner){
-  const x=50+dir*14;
-  return '<path d="M '+(x-dir*6)+' 24 L '+(x+dir*4)+' 3 L '+(x+dir*12)+' 20 Z" fill="'+fur+'" '+LINE+'/>'+
-    '<path d="M '+(x-dir*1.5)+' 19 L '+(x+dir*4)+' 8.5 L '+(x+dir*8)+' 17 Z" fill="'+inner+'" stroke="none"/>';
-}
-const hornArt='<path d="M45 18 L50 2 L55 18 Z" fill="#F7C948" '+LINE+'/>'+
-  '<path d="M46.5 13 L53.5 13 M48 8 L52.5 8" fill="none" '+THIN+'/>';
-const horns2=(c)=>'<path d="M36 18 Q33 8 40 10 Q42 13 41 18 Z" fill="'+c+'" '+LINE+'/>'+
-  '<path d="M64 18 Q67 8 60 10 Q58 13 59 18 Z" fill="'+c+'" '+LINE+'/>';
-const spikes=(c)=>'<path d="M30 32 L21 22 L34 23 Z" fill="'+c+'" '+LINE+'/>'+
-  '<path d="M70 32 L79 22 L66 23 Z" fill="'+c+'" '+LINE+'/>'+
-  '<path d="M26 58 L14 52 L25 45 Z" fill="'+c+'" '+LINE+'/>'+
-  '<path d="M74 58 L86 52 L75 45 Z" fill="'+c+'" '+LINE+'/>';
-const bunnyEars=(fur,inner)=>'<path d="M41 20 Q35 2 44 4 Q47 10 46 22 Z" fill="'+fur+'" '+LINE+'/>'+
-  '<path d="M59 20 Q65 2 56 4 Q53 10 54 22 Z" fill="'+fur+'" '+LINE+'/>'+
-  '<path d="M42 18 Q38 5 43 8 Q45 13 45 20 Z" fill="'+inner+'" stroke="none"/>'+
-  '<path d="M58 18 Q62 5 57 8 Q55 13 55 20 Z" fill="'+inner+'" stroke="none"/>';
-
-const ARTER={
-  stjarna:{fur:"#FFFFFF",belly:"#FDEBF2",inner:"#F5C1CB",
-    fore:s=>pointyEar(-1,s.fur,s.inner)+pointyEar(1,s.fur,s.inner),
-    krona:()=>hornArt, bak:()=>"", svans:s=>limb("M68 80 Q80 78 78 70 Q76 64 70 68",s.fur,5)},
-  draken:{fur:"#6FC66F",belly:"#D8F0C0",inner:"#F7C948",
-    fore:()=>"", krona:s=>horns2(s.inner), bak:s=>spikes(s.inner),
-    svans:s=>limb("M68 82 Q88 84 92 70",s.fur,9)},
-  snurran:{fur:"#B79BE0",belly:"#FFF3DC",inner:"#F5C1CB",
-    fore:s=>bunnyEars(s.fur,s.inner), krona:()=>"", bak:()=>"",
-    svans:s=>'<circle cx="75" cy="81" r="8" fill="'+s.inner+'" '+LINE+'/>'},
-};
-
-/* Ansikten: 'glad' | 'hungrig' | 'somnig' | 'matt' | 'yr' */
 function face(kind){
   const closedHappy='<path d="M37 34 Q41 29 45 34 M55 34 Q59 29 63 34" fill="none" '+LINE+'/>';
   const closedSleep='<path d="M37 34 Q41 38 45 34 M55 34 Q59 38 63 34" fill="none" '+LINE+'/>';
-  const star=(x)=>'<path d="M'+x+' 27 L'+(x+1.9)+' 31.6 L'+(x+6.6)+' 32 L'+(x+3)+' 35.2 L'+(x+4.2)+' 39.8 L'+x+' 37.3 L'+(x-4.2)+' 39.8 L'+(x-3)+' 35.2 L'+(x-6.6)+' 32 L'+(x-1.9)+' 31.6 Z" fill="#F7C948" '+THIN+'/>';
   switch(kind){
     case "hungrig": return eyes()+nose()+
       '<path d="M43 45 Q50 55 57 45 Z" fill="#7C4A57" '+LINE+'/>'+
@@ -381,20 +410,203 @@ function face(kind){
     case "somnig": return closedSleep+nose()+
       '<ellipse cx="50" cy="47" rx="3" ry="3.6" fill="#7C4A57" '+THIN+'/>'+cheeks();
     case "matt": return closedHappy+nose()+smile(46,7.5)+cheeks();
-    case "yr": return star(41)+star(59)+nose()+
+    case "yr": return stjarna(41,33,1.3,"#F7C948")+stjarna(59,33,1.3,"#F7C948")+nose()+
       '<path d="M45 47 Q47.5 44.5 50 47 Q52.5 49.5 55 47" fill="none" '+LINE+'/>'+cheeks();
     default: return eyes()+nose()+smile()+cheeks();
   }
 }
-function petArt(artId,faceKind){
-  const s=ARTER[artId];
-  return s.bak(s)+s.svans(s)+sitBody(s.fur,s.belly)+s.fore(s)+headC(s.fur)+s.krona(s)+
-    '<g class="face">'+face(faceKind)+'</g>';
-}
-const petSvg=(artId,faceKind,label)=>svgw("0 0 100 100",shadow(50,95,26)+petArt(artId,faceKind),label);
 
 /* ============================================================
-   MÖBLER – ny, rikare stil
+   EVOLUTIONSLINJER – 3 stadier per art, putsad design
+   Alla ritas i viewBox 0 0 100 100 med huvudankare (50,36) så
+   ansiktslagren passar. Stadium 1 = gulligast, 3 = ståtligast.
+   ============================================================ */
+const shade=(d)=>'<path d="'+d+'" fill="'+O+'" opacity="0.07" stroke="none"/>';
+
+/* ---- Linje A: enhörningskatt (vit/rosa/guld) ---- */
+const A_FUR="#FFFFFF", A_BELLY="#FDEBF2", A_PINK="#F890B7", A_LILA="#B79BE0";
+function hornA(h){ // h = höjd
+  return '<path d="M'+(50-3.2)+' 16 L50 '+(16-h)+' L'+(50+3.2)+' 16 Z" fill="#F7C948" '+LINE+'/>'+
+    '<path d="M'+(50-2.2)+' '+(16-h*0.3)+' L'+(50+2.4)+' '+(16-h*0.42)+' M'+(50-1.5)+' '+(16-h*0.62)+' L'+(50+1.6)+' '+(16-h*0.72)+'" fill="none" '+THIN+'/>';
+}
+const oraA=(dir,s=1)=>'<g transform="translate(50 0) scale('+s+' '+s+') translate(-50 0)">'+
+  '<path d="M '+(50+dir*8)+' 24 L '+(50+dir*16)+' 5 L '+(50+dir*24)+' 21 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+  '<path d="M '+(50+dir*12)+' 19 L '+(50+dir*16)+' 9.5 L '+(50+dir*20)+' 17.5 Z" fill="'+A_PINK+'" stroke="none"/></g>';
+const A_STADIER=[
+ {namn:"Gnizt",not:"nykläckt gnista",art:f=>
+   shadow(50,94,22)+
+   limb("M64 84 Q73 82 72 74",A_FUR,4)+
+   '<circle cx="72" cy="72" r="4" fill="'+A_PINK+'" '+THIN+'/>'+
+   '<path d="M33 68 Q28 92 50 92 Q72 92 67 68 Q50 61 33 68 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   shade("M62 69 Q68 80 61 90 Q70 82 66 69 Z")+
+   '<ellipse cx="50" cy="81" rx="10" ry="8.5" fill="'+A_BELLY+'"/>'+
+   '<ellipse cx="42" cy="90.5" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
+   '<ellipse cx="58" cy="90.5" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
+   oraA(-1,0.8)+oraA(1,0.8)+
+   '<circle cx="50" cy="37" r="23" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<path d="M46.5 15.5 Q50 7 53.5 15.5 Z" fill="#F7C948" '+THIN+'/>'+
+   '<path d="M43 14 Q46 8 51 11 Q48 14 43 14 Z" fill="'+A_PINK+'" '+THIN+'/>'+
+   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Gnistra",not:"vig och lekfull",art:f=>
+   shadow(50,95,26)+
+   limb("M68 78 Q86 74 84 58",A_FUR,6)+
+   '<circle cx="84" cy="55" r="5.5" fill="'+A_PINK+'" '+THIN+'/>'+
+   '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
+   '<path d="M40 58 Q50 54 60 58 L60 72 L56 68 L52 73 L48 68 L44 73 L40 68 Z" fill="'+A_BELLY+'" stroke="none"/>'+
+   limb("M43 78 L43 90",A_FUR,6)+limb("M57 78 L57 90",A_FUR,6)+
+   '<ellipse cx="43" cy="91" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
+   '<ellipse cx="57" cy="91" rx="5" ry="3.4" fill="'+A_FUR+'" '+THIN+'/>'+
+   '<ellipse cx="67" cy="80" rx="9" ry="11" fill="'+A_FUR+'" '+LINE+'/>'+
+   stjarna(67,80,1.1,"#F7C948")+
+   oraA(-1)+oraA(1)+
+   '<circle cx="50" cy="36" r="20" fill="'+A_FUR+'" '+LINE+'/>'+
+   hornA(13)+
+   '<path d="M41 15 Q44 5 51 8 Q55 11 53 16 Q46 18 41 15 Z" fill="'+A_PINK+'" '+THIN+'/>'+
+   '<path d="M44 13 Q46 9 50 10" fill="none" stroke="'+A_LILA+'" stroke-width="2" stroke-linecap="round"/>'+
+   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Stjärnglans",not:"bevingad och ståtlig",art:f=>
+   shadow(50,96,28)+
+   '<path d="M30 54 Q4 42 9 64 Q12 77 32 68 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<path d="M14 58 Q22 60 29 60 M13 65 Q21 66 29 64" fill="none" stroke="'+A_PINK+'" stroke-width="2.2" stroke-linecap="round"/>'+
+   '<path d="M70 54 Q96 42 91 64 Q88 77 68 68 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<path d="M86 58 Q78 60 71 60 M87 65 Q79 66 71 64" fill="none" stroke="'+A_PINK+'" stroke-width="2.2" stroke-linecap="round"/>'+
+   limb("M66 76 Q92 80 94 58 Q95 48 87 46","#F890B7",7)+
+   '<path d="M78 76 Q90 70 90 56" fill="none" stroke="'+A_LILA+'" stroke-width="2.6" stroke-linecap="round"/>'+
+   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
+   '<path d="M43 56 Q50 53 57 56 L57 70 Q50 74 43 70 Z" fill="'+A_BELLY+'" stroke="none"/>'+
+   limb("M43 84 L43 93",A_FUR,5)+limb("M57 84 L57 93",A_FUR,5)+
+   '<path d="M40 93 L46 93 M54 93 L60 93" stroke="#F890B7" stroke-width="4.5" stroke-linecap="round"/>'+
+   '<path d="M37 14 Q29 32 36 52 Q41 40 41 22 Z" fill="'+A_PINK+'" '+LINE+'/>'+
+   '<path d="M38 22 Q35 34 38 44" fill="none" stroke="'+A_LILA+'" stroke-width="2.4" stroke-linecap="round"/>'+
+   oraA(-1,0.92)+oraA(1,0.92)+
+   '<circle cx="50" cy="36" r="17.5" fill="'+A_FUR+'" '+LINE+'/>'+
+   hornA(17)+
+   '<path d="M40 13 Q45 3 55 6 Q60 9 57 15 Q47 18 40 13 Z" fill="'+A_PINK+'" '+THIN+'/>'+
+   '<path d="M44 11 Q48 7 53 8" fill="none" stroke="'+A_LILA+'" stroke-width="2" stroke-linecap="round"/>'+
+   stjarna(64,44,0.85,"#F7C948")+
+   '<g class="face">'+face(f)+'</g>'},
+];
+
+/* ---- Linje B: drake (grön/guld/eld) ---- */
+const B_FUR="#6FC66F", B_MORK="#4E9B5E", B_BELLY="#D8F0C0", B_GULD="#F7C948";
+const spadeB=(x,y,s)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 -5 Q6 0 0 6 Q-6 0 0 -5 Z" fill="'+B_GULD+'" '+THIN+'/>';
+const plattorB=(y1)=>'<path d="M42 '+y1+' Q50 '+(y1+3)+' 58 '+y1+' M41 '+(y1+7)+' Q50 '+(y1+10)+' 59 '+(y1+7)+' M42 '+(y1+14)+' Q50 '+(y1+17)+' 58 '+(y1+14)+'" fill="none" stroke="'+B_MORK+'" stroke-width="2" stroke-linecap="round" opacity="0.65"/>';
+const B_STADIER=[
+ {namn:"Knytt",not:"nykläckt drakunge",art:f=>
+   shadow(50,94,22)+
+   limb("M64 85 Q73 84 73 77",B_FUR,4)+spadeB(74,74,0.8)+
+   '<path d="M33 68 Q28 92 50 92 Q72 92 67 68 Q50 61 33 68 Z" fill="'+B_FUR+'" '+LINE+'/>'+
+   shade("M62 69 Q68 80 61 90 Q70 82 66 69 Z")+
+   '<ellipse cx="50" cy="81" rx="10" ry="8.5" fill="'+B_BELLY+'"/>'+plattorB(75)+
+   '<ellipse cx="42" cy="90.5" rx="5" ry="3.4" fill="'+B_FUR+'" '+THIN+'/>'+
+   '<ellipse cx="58" cy="90.5" rx="5" ry="3.4" fill="'+B_FUR+'" '+THIN+'/>'+
+   '<circle cx="50" cy="37" r="23" fill="'+B_FUR+'" '+LINE+'/>'+
+   '<path d="M41 16 Q40 9 46 11 Q47 14 45 17 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<path d="M59 16 Q60 9 54 11 Q53 14 55 17 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Taggen",not:"taggig och modig",art:f=>
+   shadow(50,95,26)+
+   limb("M66 80 Q86 80 88 66",B_FUR,6)+spadeB(89,62,1)+
+   '<path d="M28 60 Q12 52 16 68 Q18 77 30 70 Z" fill="'+B_GULD+'" '+LINE+'/>'+
+   '<path d="M20 62 Q25 64 29 64" fill="none" '+THIN+'/>'+
+   '<path d="M72 60 Q88 52 84 68 Q82 77 70 70 Z" fill="'+B_GULD+'" '+LINE+'/>'+
+   '<path d="M80 62 Q75 64 71 64" fill="none" '+THIN+'/>'+
+   '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+B_FUR+'" '+LINE+'/>'+
+   shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
+   '<ellipse cx="50" cy="78" rx="11.5" ry="12" fill="'+B_BELLY+'"/>'+plattorB(71)+
+   limb("M43 80 L43 91",B_FUR,6)+limb("M57 80 L57 91",B_FUR,6)+
+   '<ellipse cx="43" cy="91.5" rx="5" ry="3.2" fill="'+B_FUR+'" '+THIN+'/>'+
+   '<ellipse cx="57" cy="91.5" rx="5" ry="3.2" fill="'+B_FUR+'" '+THIN+'/>'+
+   '<circle cx="50" cy="36" r="20" fill="'+B_FUR+'" '+LINE+'/>'+
+   '<path d="M36 18 Q33 8 40 10 Q42 13 41 18 Z" fill="'+B_GULD+'" '+LINE+'/>'+
+   '<path d="M64 18 Q67 8 60 10 Q58 13 59 18 Z" fill="'+B_GULD+'" '+LINE+'/>'+
+   '<path d="M45 16 L50 7 L55 16 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Eldvakt",not:"vingar och eldsvans",art:f=>
+   shadow(50,96,28)+
+   '<path d="M29 48 Q0 30 8 62 Q12 79 31 70 Z" fill="'+B_MORK+'" '+LINE+'/>'+
+   '<path d="M12 52 Q20 58 28 60 M10 61 Q19 65 28 65" fill="none" stroke="'+B_GULD+'" stroke-width="2.2" stroke-linecap="round"/>'+
+   '<path d="M71 48 Q100 30 92 62 Q88 79 69 70 Z" fill="'+B_MORK+'" '+LINE+'/>'+
+   '<path d="M88 52 Q80 58 72 60 M90 61 Q81 65 72 65" fill="none" stroke="'+B_GULD+'" stroke-width="2.2" stroke-linecap="round"/>'+
+   limb("M64 78 Q92 78 93 58",B_FUR,7)+
+   '<path d="M93 58 Q98 50 93 44 Q88 49 90 54 Q85 50 86 45 Q92 40 96 47 Q99 54 93 58 Z" fill="#F08A3C" '+THIN+'/>'+
+   '<path d="M92 52 Q94 48 92 46" fill="none" stroke="#F7C948" stroke-width="2.4" stroke-linecap="round"/>'+
+   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="'+B_FUR+'" '+LINE+'/>'+
+   shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
+   '<path d="M43 56 Q50 59 57 56 M42 63 Q50 66 58 63 M42 70 Q50 73 58 70 M43 77 Q50 80 57 77" fill="none" stroke="'+B_MORK+'" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>'+
+   '<path d="M43 55 Q50 52 57 55 L58 80 Q50 84 42 80 Z" fill="'+B_BELLY+'" stroke="none" opacity="0.9"/>'+plattorB(60)+
+   limb("M43 84 L43 93",B_FUR,5)+limb("M57 84 L57 93",B_FUR,5)+
+   '<path d="M40 93 L46 93 M54 93 L60 93" stroke="'+B_MORK+'" stroke-width="4.5" stroke-linecap="round"/>'+
+   '<path d="M30 30 L22 22 L33 24 Z M27 44 L17 40 L27 36 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<path d="M70 30 L78 22 L67 24 Z M73 44 L83 40 L73 36 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<circle cx="50" cy="36" r="17.5" fill="'+B_FUR+'" '+LINE+'/>'+
+   '<path d="M38 16 Q31 6 24 9 Q25 17 36 20 Z" fill="'+B_GULD+'" '+LINE+'/>'+
+   '<path d="M62 16 Q69 6 76 9 Q75 17 64 20 Z" fill="'+B_GULD+'" '+LINE+'/>'+
+   '<path d="M45 14 L50 5 L55 14 Z" fill="'+B_GULD+'" '+THIN+'/>'+
+   '<g class="face">'+face(f)+'</g>'},
+];
+
+/* ---- Linje C: månhare (lila/kräm/guld) ---- */
+const C_FUR="#B79BE0", C_MORK="#9C7ED0", C_BELLY="#FFF3DC", C_INNER="#F5C1CB";
+const manC=(x,y,s)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 -5 A5 5 0 1 0 0 5 A3.8 3.8 0 1 1 0 -5 Z" fill="#F7C948" stroke="none"/>';
+const oronC=(h,lut)=>'<g>'+
+  '<path d="M42 22 Q'+(38-lut)+' '+(22-h)+' '+(45-lut)+' '+(20-h)+' Q48 '+(26-h)+' 47 23 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+  '<path d="M43.5 20 Q'+(41-lut*0.7)+' '+(24-h*0.8)+' '+(45-lut*0.7)+' '+(23-h*0.8)+' Q46 '+(28-h*0.7)+' 45.5 21 Z" fill="'+C_INNER+'" stroke="none"/>'+
+  '<path d="M58 22 Q'+(62+lut)+' '+(22-h)+' '+(55+lut)+' '+(20-h)+' Q52 '+(26-h)+' 53 23 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+  '<path d="M56.5 20 Q'+(59+lut*0.7)+' '+(24-h*0.8)+' '+(55+lut*0.7)+' '+(23-h*0.8)+' Q54 '+(28-h*0.7)+' 54.5 21 Z" fill="'+C_INNER+'" stroke="none"/></g>';
+const C_STADIER=[
+ {namn:"Plutt",not:"liten och rund",art:f=>
+   shadow(50,94,22)+
+   '<circle cx="69" cy="82" r="6.5" fill="'+C_BELLY+'" '+THIN+'/>'+
+   '<path d="M33 68 Q28 92 50 92 Q72 92 67 68 Q50 61 33 68 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+   shade("M62 69 Q68 80 61 90 Q70 82 66 69 Z")+
+   '<ellipse cx="50" cy="81" rx="10" ry="8.5" fill="'+C_BELLY+'"/>'+
+   '<ellipse cx="42" cy="90.5" rx="5" ry="3.4" fill="'+C_FUR+'" '+THIN+'/>'+
+   '<ellipse cx="58" cy="90.5" rx="5" ry="3.4" fill="'+C_FUR+'" '+THIN+'/>'+
+   oronC(12,2)+
+   '<circle cx="50" cy="37" r="23" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Snurran",not:"studsig och snabb",art:f=>
+   shadow(50,95,26)+
+   '<circle cx="71" cy="80" r="8" fill="'+C_BELLY+'" '+THIN+'/>'+
+   '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+   shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
+   '<ellipse cx="50" cy="78" rx="11.5" ry="12" fill="'+C_BELLY+'"/>'+
+   '<ellipse cx="40" cy="90" rx="8.5" ry="4.2" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<ellipse cx="60" cy="90" rx="8.5" ry="4.2" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<path d="M36 90 L40 90 M56 90 L60 90" stroke="'+C_INNER+'" stroke-width="2.2" stroke-linecap="round"/>'+
+   oronC(19,4)+
+   '<circle cx="50" cy="36" r="20" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<path d="M44 16 Q47 10 51 13 Q49 16 44 16 Z" fill="'+C_MORK+'" '+THIN+'/>'+
+   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Månglans",not:"månens väktare",art:f=>
+   shadow(50,96,28)+
+   '<circle cx="72" cy="72" r="10" fill="'+C_BELLY+'" '+LINE+'/>'+
+   stjarna(28,26,0.8,"#F7C948")+stjarna(76,34,0.6,"#F7C948")+stjarna(22,52,0.55,"#F7C948")+
+   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="'+C_FUR+'" '+LINE+'/>'+
+   shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
+   '<path d="M43 56 Q50 53 57 56 L57 72 Q50 76 43 72 Z" fill="'+C_BELLY+'" stroke="none"/>'+
+   '<ellipse cx="42" cy="92" rx="8" ry="4" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<ellipse cx="58" cy="92" rx="8" ry="4" fill="'+C_FUR+'" '+LINE+'/>'+
+   '<path d="M40 54 Q50 48 60 54 Q56 60 50 59 Q44 60 40 54 Z" fill="'+C_BELLY+'" '+THIN+'/>'+
+   oronC(26,5)+
+   '<circle cx="50" cy="36" r="17.5" fill="'+C_FUR+'" '+LINE+'/>'+
+   manC(50,21,1.05)+
+   '<g class="face">'+face(f)+'</g>'},
+];
+
+const LINJER={
+  gnistra:{namn:"Gnistra-linjen",stadier:A_STADIER},
+  taggen:{namn:"Taggen-linjen",stadier:B_STADIER},
+  snurran:{namn:"Snurran-linjen",stadier:C_STADIER},
+};
+const petSvg=(lineId,stadieIx,faceKind,label)=>
+  svgw("0 0 100 100",LINJER[lineId].stadier[stadieIx].art(faceKind),label);
+
+/* ============================================================
+   MÖBLER – ny, rikare stil (flyttbara i rummet)
    ============================================================ */
 const MOBLER={
   sang:{namn:"Himmelsäng",not:"volangtäcke, hjärtgavel",vb:"0 0 124 88",art:
@@ -430,7 +642,7 @@ const MOBLER={
     '<path d="M46 94 L46 82 M46 84 Q39 82 40 74 Q47 74 46 84 M46 86 Q53 84 52 76 Q45 76 46 86" fill="#6FC66F" '+THIN+'/>'+
     '<path d="M42 94 L58 94 L56 100 L44 100 Z" fill="#F49E4C" '+THIN+'/>',
   },
-  skrivhorna:{namn:"Pluggöhörna",not:"skrivbord, lampa & pallar",vb:"0 0 132 96",art:
+  skrivhorna:{namn:"Pluggöhörna",not:"skrivbord, lampa & pall",vb:"0 0 132 96",art:
     shadow(64,90,56)+
     limb("M18 46 L14 84",WOOD_DARK,5)+limb("M112 46 L118 84",WOOD_DARK,5)+
     '<rect x="6" y="38" width="120" height="10" rx="5" fill="'+FLOOR+'" '+LINE+'/>'+
@@ -465,8 +677,7 @@ const MOBLER={
     '<ellipse cx="70" cy="32" rx="52" ry="20" fill="#FFF3DC" '+THIN+'/>'+
     '<ellipse cx="70" cy="32" rx="34" ry="13" fill="#7FC7E8" '+THIN+'/>'+
     '<ellipse cx="70" cy="32" rx="16" ry="6.5" fill="#F7C948" '+THIN+'/>'+
-    '<path d="M34 24 L35.4 27.4 L39 27.7 L36.3 30 L37.2 33.5 L34 31.7 L30.8 33.5 L31.7 30 L29 27.7 L32.6 27.4 Z" fill="#F890B7" stroke="none"/>'+
-    '<path d="M104 32 L105.4 35.4 L109 35.7 L106.3 38 L107.2 41.5 L104 39.7 L100.8 41.5 L101.7 38 L99 35.7 L102.6 35.4 Z" fill="#F890B7" stroke="none"/>',
+    stjarna(34,29,0.9,"#F890B7")+stjarna(104,36,0.9,"#F890B7"),
   },
   vaxt:{namn:"Krukväxt",not:"stor monstera i randig kruka",vb:"0 0 74 104",art:
     shadow(37,99,26)+
@@ -482,6 +693,15 @@ const MOBLER={
   },
 };
 
+/* Äpplet (shopens mat) */
+const appleSvg=svgw("0 0 40 44",
+  '<ellipse cx="20" cy="40" rx="12" ry="2.6" fill="'+O+'" opacity="0.12"/>'+
+  '<path d="M20 12 Q19 6 14 4" fill="none" stroke="'+WOOD_DARK+'" stroke-width="3" stroke-linecap="round"/>'+
+  '<path d="M20 10 Q28 2 32 8 Q28 14 20 10 Z" fill="#6FC66F" '+THIN+'/>'+
+  '<path d="M20 14 Q8 8 6 22 Q5 34 16 38 Q20 40 24 38 Q35 34 34 22 Q32 8 20 14 Z" fill="#EF6F6C" '+LINE+'/>'+
+  '<path d="M12 20 Q10 24 11 29" fill="none" stroke="#FFB1B8" stroke-width="2.6" stroke-linecap="round"/>'
+,"Äpple");
+
 /* ============================================================
    SCEN: UTE
    ============================================================ */
@@ -494,46 +714,35 @@ function uteScen(){
     '<defs><linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">'+
     '<stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/></linearGradient></defs>'+
     '<rect width="960" height="600" fill="url(#himmel)"/>'+
-    /* sol med snurrande strålar */
     '<g id="solstralar">'+[0,45,90,135].map(a=>'<path d="M110 30 L110 142 M54 86 L166 86" stroke="#FDE9A8" stroke-width="10" stroke-linecap="round" transform="rotate('+a+' 110 86)"/>').join('')+'</g>'+
     '<circle cx="110" cy="86" r="34" fill="#F7C948" '+LINE+'/>'+
-    /* moln (drivande) */
     '<g class="moln" style="--t:62s">'+molnArt(0,70,1.25)+'</g>'+
     '<g class="moln" style="--t:46s;animation-delay:-18s">'+molnArt(0,150,0.9)+'</g>'+
     '<g class="moln" style="--t:75s;animation-delay:-40s">'+molnArt(0,40,0.7)+'</g>'+
-    /* kullar & mark */
     '<path d="M-10 480 Q240 380 520 470 Q760 380 970 460 L970 610 L-10 610 Z" fill="#A8DA8F" '+LINE+'/>'+
     '<path d="M-10 520 Q300 470 620 525 Q820 500 970 520 L970 610 L-10 610 Z" fill="#8FCB74" '+LINE+'/>'+
-    /* träd */
     '<g>'+limb("M800 500 L800 430",WOOD,14)+
     '<circle cx="800" cy="392" r="52" fill="#6FC66F" '+LINE+'/>'+
     '<circle cx="766" cy="416" r="30" fill="#6FC66F" '+LINE+'/>'+
     '<circle cx="836" cy="414" r="32" fill="#6FC66F" '+LINE+'/>'+
     '<circle cx="784" cy="384" r="6" fill="#EF6F6C" '+THIN+'/><circle cx="820" cy="404" r="6" fill="#EF6F6C" '+THIN+'/></g>'+
-    /* HUSET (klickbart) */
     '<g id="husgrupp" role="button" tabindex="0" aria-label="Gå in i huset">'+
     shadow(480,512,190)+
-    /* skorsten + rök */
     '<rect x="560" y="150" width="40" height="80" rx="6" fill="'+O+'" opacity="0.15"/>'+
     '<rect x="556" y="146" width="40" height="70" rx="6" fill="#C97B63" '+LINE+'/>'+
     '<g class="rok"><circle cx="576" cy="136" r="12" fill="#fff" opacity="0.85"/></g>'+
     '<g class="rok r2"><circle cx="576" cy="136" r="9" fill="#fff" opacity="0.85"/></g>'+
     '<g class="rok r3"><circle cx="576" cy="136" r="11" fill="#fff" opacity="0.85"/></g>'+
-    /* kropp + tak */
     '<rect x="330" y="240" width="300" height="270" rx="12" fill="var(--house)" '+LINE+'/>'+
     '<path d="M300 250 L480 130 L660 250 Z" fill="var(--roof)" '+LINE+'/>'+
-    '<path d="M330 250 L480 150 L630 250" fill="none" stroke="#3B3350" stroke-width="0" />'+
     '<circle cx="480" cy="210" r="20" fill="#FFF3DC" '+LINE+'/>'+
-    '<circle cx="480" cy="210" r="9" fill="var(--sky, #7FC7E8)" '+THIN+'/>'+
-    /* dörr */
+    '<circle cx="480" cy="210" r="9" fill="var(--sky)" '+THIN+'/>'+
     '<path d="M362 510 L362 420 Q362 396 390 396 Q418 396 418 420 L418 510 Z" fill="'+WOOD+'" '+LINE+'/>'+
     '<path d="M372 505 L372 422 Q372 406 390 406 Q408 406 408 422 L408 505 Z" fill="'+WOOD_LIGHT+'" stroke="none"/>'+
     '<circle cx="404" cy="458" r="4.5" fill="'+WOOD_DARK+'" '+THIN+'/>'+
-    /* FÖNSTRET IN I RUMMET */
     '<g>'+
     '<rect x="440" y="330" width="150" height="130" rx="10" fill="var(--wall)" '+LINE+'/>'+
     '<rect x="452" y="404" width="126" height="26" rx="4" fill="var(--wall2)" stroke="none"/>'+
-    /* glimt av rummet: lampa + husdjursöron */
     '<path d="M492 362 L512 362 L518 380 L486 380 Z" fill="#F7C948" '+THIN+'/>'+
     limb("M502 386 L502 402","#8A6242",3)+
     '<ellipse cx="502" cy="384" rx="17" ry="3.4" fill="#FDE9A8" opacity="0.75"/>'+
@@ -541,16 +750,13 @@ function uteScen(){
     '<path d="M540 415 L537 402 L547 408 Z" fill="#6FC66F" '+THIN+'/>'+
     '<path d="M562 415 L565 402 L555 408 Z" fill="#6FC66F" '+THIN+'/>'+
     eye(545,424,3.6)+eye(557,424,3.6)+
-    /* spröjs + karm */
     '<path d="M515 335 L515 455 M445 395 L585 395" stroke="'+O+'" stroke-width="5" stroke-linecap="round"/>'+
     '<rect x="440" y="330" width="150" height="130" rx="10" fill="none" stroke="'+O+'" stroke-width="6"/>'+
     '<rect x="430" y="456" width="170" height="14" rx="7" fill="#FFF3DC" '+LINE+'/>'+
     '</g>'+
-    /* blomlåda */
     '<rect x="446" y="470" width="138" height="6" rx="3" fill="'+WOOD_DARK+'" stroke="none"/>'+
     '<circle cx="466" cy="468" r="7" fill="#F890B7" '+THIN+'/><circle cx="520" cy="466" r="7" fill="#F7C948" '+THIN+'/><circle cx="566" cy="468" r="7" fill="#EF6F6C" '+THIN+'/>'+
     '</g>'+
-    /* stig + brevlåda */
     '<path d="M390 512 Q380 560 340 600 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" '+LINE+'/>'+
     '<ellipse cx="395" cy="545" rx="12" ry="5" fill="#D8C4A4" stroke="none"/>'+
     '<ellipse cx="410" cy="575" rx="14" ry="6" fill="#D8C4A4" stroke="none"/>'+
@@ -563,20 +769,14 @@ function uteScen(){
 }
 
 /* ============================================================
-   SCEN: INNE
+   SCEN: INNE (väggar, fönster, dekor – möbler ligger som
+   flyttbara HTML-lager ovanpå)
    ============================================================ */
-function mobelPlacerad(id,x,y,w){
-  const m=MOBLER[id];
-  const vb=m.vb.split(" ");
-  const h=w*(+vb[3]/+vb[2]);
-  return '<g transform="translate('+x+' '+(y-h)+')"><svg width="'+w+'" height="'+h+'" viewBox="'+m.vb+'" overflow="visible">'+m.art+'</svg></g>';
-}
 function inneScen(){
   return svgw("0 0 960 600",
     '<defs><linearGradient id="fhimmel" x1="0" y1="0" x2="0" y2="1">'+
     '<stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E0F3FC"/></linearGradient>'+
     '<clipPath id="fclip"><rect x="104" y="84" width="212" height="180" rx="8"/></clipPath></defs>'+
-    /* vägg + panel + golv */
     '<rect width="960" height="430" fill="var(--wall)"/>'+
     '<rect y="340" width="960" height="90" fill="var(--wall2)"/>'+
     '<path d="M0 340 H960" stroke="'+O+'" stroke-width="3" opacity="0.35"/>'+
@@ -584,14 +784,12 @@ function inneScen(){
     '<rect y="430" width="960" height="170" fill="'+FLOOR+'"/>'+
     '<path d="M0 472 H960 M0 516 H960 M0 560 H960" stroke="'+WOOD+'" stroke-width="3" opacity="0.7"/>'+
     '<path d="M140 430 L130 472 M420 430 L414 472 M730 430 L724 472 M260 472 L252 516 M580 472 L572 516 M860 472 L852 516 M180 516 L172 560 M500 516 L492 560 M790 516 L782 560" stroke="'+WOOD+'" stroke-width="3" opacity="0.55"/>'+
-    /* ljusslinga */
     '<path d="M-10 34 Q240 76 480 40 Q720 8 970 48" fill="none" '+THIN+'/>'+
     [80,190,300,410,520,630,740,850].map((x,i)=>{
       const y=[46,62,54,36,28,26,34,44][i];
       const c=["#F7C948","#F890B7","#7FC7E8","#6FC66F","#F7C948","#B79BE0","#EF6F6C","#F7C948"][i];
       return '<circle cx="'+x+'" cy="'+y+'" r="9" fill="'+c+'" '+THIN+'/>';
     }).join('')+
-    /* FÖNSTER med moln bakom */
     '<g>'+
     '<rect x="96" y="76" width="228" height="196" rx="12" fill="url(#fhimmel)" '+LINE+'/>'+
     '<g clip-path="url(#fclip)">'+
@@ -606,32 +804,14 @@ function inneScen(){
     '<path d="M296 268 L296 254 M290 258 Q296 250 302 258" stroke="#6FC66F" stroke-width="3.4" stroke-linecap="round" fill="none"/>'+
     '<path d="M290 268 L302 268 L300 258 L292 258 Z" fill="#F890B7" '+THIN+'/>'+
     '</g>'+
-    /* tavlor */
     '<g><rect x="420" y="110" width="86" height="66" rx="8" fill="#FFF3DC" '+LINE+'/>'+
     '<path d="M428 160 L448 132 L462 150 L474 138 L498 164" fill="none" stroke="#58C6A9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'+
     '<circle cx="482" cy="126" r="7" fill="#F7C948" stroke="none"/></g>'+
     '<g><rect x="530" y="96" width="60" height="60" rx="30" fill="#FFF3DC" '+LINE+'/>'+
     '<circle cx="560" cy="122" r="12" fill="#F890B7" '+THIN+'/>'+
-    '<path d="M560 134 L560 144" '+THIN+'/></g>'+
-    /* möbler (nya stilen) */
-    mobelPlacerad("sang",640,470,270)+
-    mobelPlacerad("bokhylla",510,452,112)+
-    mobelPlacerad("vaxt",20,462,86)+
-    mobelPlacerad("matta",300,590,330)+
-    mobelPlacerad("fatolj",100,545,150)
+    '<path d="M560 134 L560 144" '+THIN+'/></g>'
   ,"Elevens rum");
 }
-
-/* ============================================================
-   PALETTER
-   ============================================================ */
-const PALETTER=[
-  {id:"persika",namn:"Persika",house:"#F49E4C",roof:"#EF6F6C",wall:"#FFE9CC",wall2:"#FBD9A6"},
-  {id:"mint",namn:"Mintgrön",house:"#58C6A9",roof:"#46557A",wall:"#D7F2E4",wall2:"#AFE3CB"},
-  {id:"himmel",namn:"Himmelsblå",house:"#7FC7E8",roof:"#46557A",wall:"#DDF0FB",wall2:"#B7E0F5"},
-  {id:"rosa",namn:"Rosa dröm",house:"#F890B7",roof:"#B79BE0",wall:"#FDE4EE",wall2:"#F9C8DD"},
-  {id:"sol",namn:"Solgul",house:"#F7C948",roof:"#F08A3C",wall:"#FDF0C8",wall2:"#FAE29B"},
-];
 
 /* ============================================================
    Bygg sidan
@@ -639,43 +819,94 @@ const PALETTER=[
 const stage=document.getElementById("stage");
 const outside=document.getElementById("outside");
 const inside=document.getElementById("inside");
+const stageHint=document.getElementById("stage-hint");
 outside.innerHTML=uteScen();
 inside.innerHTML=inneScen();
 
-/* -- husdjur i rummet -- */
-const PETS=[
-  {id:"p1",art:"stjarna",namn:"Stjärna",x:34,dir:1,speed:0.115,state:"walk",feeds:0,stage:1,busy:false},
-  {id:"p2",art:"draken",namn:"Draken",x:62,dir:-1,speed:0.135,state:"idle",feeds:0,stage:1,busy:false},
+/* -- flyttbara möbler -- */
+const FURN_START=[
+  {id:"matta",x:32,y:96,w:34,bak:true},
+  {id:"sang",x:80,y:79,w:28},
+  {id:"bokhylla",x:58,y:76,w:12},
+  {id:"vaxt",x:7,y:78,w:9},
+  {id:"fatolj",x:18,y:92,w:15.5},
 ];
-const SKALOR=[0.75,1.0,1.25];
-const TROSKLAR={2:2,3:4}; // demo: steg2 vid 2 matningar, steg3 vid 4 (prod: 3/7)
+const furnEls=[];
+for(const fdef of FURN_START){
+  const m=MOBLER[fdef.id];
+  const div=document.createElement("div");
+  div.className="furn"+(fdef.bak?" bakgrund":"");
+  div.style.width=fdef.w+"%";
+  div.style.left=fdef.x+"%";
+  div.style.top=fdef.y+"%";
+  div.title=m.namn+" – dra för att flytta";
+  div.innerHTML=svgw(m.vb,m.art,m.namn);
+  inside.appendChild(div);
+  furnEls.push(div);
+  div.addEventListener("pointerdown",e=>{
+    if(!stage.classList.contains("inne"))return;
+    e.preventDefault();
+    const rect=stage.getBoundingClientRect();
+    div.setPointerCapture(e.pointerId);
+    div.classList.add("drar");
+    const move=ev=>{
+      const x=Math.min(98,Math.max(2,((ev.clientX-rect.left)/rect.width)*100));
+      const y=Math.min(99,Math.max(22,((ev.clientY-rect.top)/rect.height)*100+4));
+      div.style.left=x+"%";div.style.top=y+"%";
+    };
+    const up=()=>{
+      div.classList.remove("drar");
+      div.removeEventListener("pointermove",move);
+      div.removeEventListener("pointerup",up);
+      div.removeEventListener("pointercancel",up);
+      sattHint("Snyggt möblerat! ✨");
+    };
+    div.addEventListener("pointermove",move);
+    div.addEventListener("pointerup",up);
+    div.addEventListener("pointercancel",up);
+  });
+}
 
+/* -- husdjur -- */
+const MAX_MAT=10;                 // matningar per evolution (Pokémon-regeln)
+const BAS_SKALA=[0.66,0.90,1.18]; // stadiebas
+const VAXT_PER_MAT=0.022;
+const PETS=[
+  {id:"p1",linje:"gnistra",namn:"Stjärna",x:34,dir:1,speed:0.115,state:"walk",feeds:0,stadie:0,busy:false},
+  {id:"p2",linje:"taggen",namn:"Draken",x:62,dir:-1,speed:0.135,state:"idle",feeds:0,stadie:0,busy:false},
+];
 for(const p of PETS){
   const div=document.createElement("div");
   div.className="pet gaar";
   div.id=p.id;
-  div.innerHTML='<span class="tag">'+p.namn+'</span>'+
-    '<div class="pet-flip"><div class="pet-grow"><div class="pet-tilt">'+
-    petSvg(p.art,"glad",p.namn)+'</div></div></div>';
+  div.innerHTML='<span class="tag"></span>'+
+    '<div class="pet-flip"><div class="pet-grow"><div class="pet-tilt"></div></div></div>';
   inside.appendChild(div);
   p.el=div;
   p.flip=div.querySelector(".pet-flip");
   p.grow=div.querySelector(".pet-grow");
   p.tilt=div.querySelector(".pet-tilt");
-  p.faceEl=div.querySelector(".face");
   p.tagEl=div.querySelector(".tag");
-  div.addEventListener("click",()=>rampaRygg(p));
+  div.addEventListener("click",()=>{if(!laggerMat)rampaRygg(p);});
+  sattArt(p,"glad");
+  sattTag(p);
+}
+function sattArt(p,faceKind){
+  p.tilt.innerHTML=petSvg(p.linje,p.stadie,faceKind,p.namn);
+  p.faceEl=p.tilt.querySelector(".face");
 }
 function sattFace(p,kind){p.faceEl.innerHTML=face(kind);}
+function sattTag(p){p.tagEl.textContent="⭐".repeat(p.stadie)+(p.stadie?" ":"")+p.namn;}
+function arFull(p){return p.stadie>=2&&p.feeds>=MAX_MAT;}
 function uppdatera(p){
   p.el.style.left=p.x+"%";
   p.flip.style.transform="scaleX("+(p.dir>0?1:-1)+")";
-  p.grow.style.transform="scale("+SKALOR[p.stage-1]+")";
-  p.el.classList.toggle("gaar",p.state==="walk"&&!p.busy);
+  p.grow.style.transform="scale("+(BAS_SKALA[p.stadie]+Math.min(p.feeds,MAX_MAT)*VAXT_PER_MAT).toFixed(3)+")";
+  p.el.classList.toggle("gaar",(p.state==="walk"||p.state==="seek")&&!p.busy);
 }
 function rampaRygg(p){
   if(p.busy)return;
-  p.busy=true;p.state="idle";uppdatera(p);
+  p.busy=true;uppdatera(p);
   sattFace(p,"yr");
   p.tilt.classList.remove("reser-sig");
   p.tilt.classList.add("pa-rygg");
@@ -697,32 +928,69 @@ function gnistor(p,n,emoji){
     setTimeout(()=>s.remove(),950);
   }
 }
-function mata(p){
-  if(p.busy||p.feeds>=TROSKLAR[3])return;
-  p.busy=true;p.state="idle";uppdatera(p);
-  sattFace(p,"hungrig");
-  gnistor(p,1,"🍎");
+function evolvera(p){
+  p.el.classList.add("evolverar");
   setTimeout(()=>{
-    p.el.classList.add("mums");
-    sattFace(p,"matt");
-    setTimeout(()=>p.el.classList.remove("mums"),480);
-    p.feeds++;
-    const nytt=p.feeds>=TROSKLAR[3]?3:(p.feeds>=TROSKLAR[2]?2:1);
-    if(nytt>p.stage){
-      p.stage=nytt;uppdatera(p);
-      gnistor(p,nytt===3?10:5,"✨");
-      if(nytt===3){p.tagEl.textContent="⭐ "+p.namn;gnistor(p,6,"🌟");}
-    }
-    uppdateraMatknappar();
-    setTimeout(()=>{sattFace(p,"glad");p.busy=false;p.state="walk";uppdatera(p);},900);
-  },420);
+    p.stadie++;p.feeds=0;
+    sattArt(p,"glad");sattTag(p);uppdatera(p);
+    gnistor(p,10,"✨");gnistor(p,6,"🌟");
+    sattHint(p.namn+" evolverade till "+LINJER[p.linje].stadier[p.stadie].namn+"! 🎉");
+  },750);
+  setTimeout(()=>p.el.classList.remove("evolverar"),800);
+}
+function atMat(p,f){
+  p.busy=true;p.state="idle";uppdatera(p);
+  f.el.remove();
+  foods.splice(foods.indexOf(f),1);
+  p.el.classList.add("mums");
+  sattFace(p,"matt");
+  gnistor(p,2,"💛");
+  setTimeout(()=>p.el.classList.remove("mums"),480);
+  p.feeds++;
+  const evo=p.feeds>=MAX_MAT&&p.stadie<2;
+  uppdatera(p);uppdateraStatus();
+  setTimeout(()=>{
+    if(evo)evolvera(p);
+    setTimeout(()=>{sattFace(p,"glad");p.busy=false;p.state="walk";uppdatera(p);},evo?1300:200);
+  },600);
 }
 
-/* promenad-loop + slumpade uttryck */
+/* -- mat på golvet -- */
+let foods=[];
+function placeraMat(x,y){
+  const div=document.createElement("div");
+  div.className="mat ny";
+  div.style.left=x+"%";div.style.top=y+"%";
+  div.innerHTML=appleSvg;
+  inside.appendChild(div);
+  setTimeout(()=>div.classList.remove("ny"),450);
+  foods.push({x,y,el:div});
+}
+
+/* promenad + gå-till-mat + slumpade uttryck */
 setInterval(()=>{
+  const tagna=new Set();
   for(const p of PETS){
     if(p.busy)continue;
-    if(p.state==="walk"){
+    let mal=null;
+    if(!arFull(p)){
+      let bast=1e9;
+      for(const f of foods){
+        if(tagna.has(f))continue;
+        const d=Math.abs(f.x-p.x);
+        if(d<bast){bast=d;mal=f;}
+      }
+    }
+    if(mal){
+      tagna.add(mal);
+      p.state="seek";
+      const dx=mal.x-p.x;
+      if(Math.abs(dx)<2.2){atMat(p,mal);continue;}
+      p.dir=dx>0?1:-1;
+      p.x+=p.dir*p.speed*1.6;
+    }else if(p.state==="seek"){
+      p.state="walk";
+    }else if(p.state==="walk"){
       p.x+=p.dir*p.speed;
       if(p.x>78){p.x=78;p.dir=-1;}
       if(p.x<10){p.x=10;p.dir=1;}
@@ -732,12 +1000,12 @@ setInterval(()=>{
 },50);
 setInterval(()=>{
   for(const p of PETS){
-    if(p.busy)continue;
+    if(p.busy||p.state==="seek")continue;
     if(Math.random()<0.45){
       p.state=p.state==="walk"?"idle":"walk";
       if(p.state==="idle"&&Math.random()<0.5){
         sattFace(p,Math.random()<0.5?"somnig":"hungrig");
-        setTimeout(()=>{if(!p.busy)sattFace(p,"glad");},1600);
+        setTimeout(()=>{if(!p.busy&&p.state!=="seek")sattFace(p,"glad");},1600);
       }
     }
   }
@@ -746,14 +1014,23 @@ PETS.forEach(uppdatera);
 
 /* -- in/ut ur huset -- */
 const husgrupp=outside.querySelector("#husgrupp");
-function gaIn(){stage.classList.add("inne");}
-function gaUt(){stage.classList.remove("inne");}
+function sattHint(t){stageHint.textContent=t;stageHint.style.opacity=1;
+  clearTimeout(sattHint.t);sattHint.t=setTimeout(()=>{stageHint.style.opacity=0;},3200);}
+function gaIn(){stage.classList.add("inne");sattHint("Dra möblerna dit du vill! 🛋️");}
+function gaUt(){stage.classList.remove("inne");avbrytPlacering();sattHint("🏠 Klicka på huset för att gå in!");}
 husgrupp.addEventListener("click",gaIn);
 husgrupp.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();gaIn();}});
 document.getElementById("ut-knapp").addEventListener("click",gaUt);
 
 /* -- palettväljare -- */
 const swatchesEl=document.getElementById("swatches");
+const PALETTER=[
+  {id:"persika",namn:"Persika",house:"#F49E4C",roof:"#EF6F6C",wall:"#FFE9CC",wall2:"#FBD9A6"},
+  {id:"mint",namn:"Mintgrön",house:"#58C6A9",roof:"#46557A",wall:"#D7F2E4",wall2:"#AFE3CB"},
+  {id:"himmel",namn:"Himmelsblå",house:"#7FC7E8",roof:"#46557A",wall:"#DDF0FB",wall2:"#B7E0F5"},
+  {id:"rosa",namn:"Rosa dröm",house:"#F890B7",roof:"#B79BE0",wall:"#FDE4EE",wall2:"#F9C8DD"},
+  {id:"sol",namn:"Solgul",house:"#F7C948",roof:"#F08A3C",wall:"#FDF0C8",wall2:"#FAE29B"},
+];
 function valjPalett(pal,knapp){
   for(const k of ["house","roof","wall","wall2"])stage.style.setProperty("--"+k,pal[k]);
   swatchesEl.querySelectorAll(".swatch").forEach(s=>s.classList.remove("vald"));
@@ -768,28 +1045,99 @@ PALETTER.forEach((pal,i)=>{
   swatchesEl.appendChild(b);
 });
 
-/* -- matknappar -- */
-const matEl=document.getElementById("matknappar");
-function uppdateraMatknappar(){
-  matEl.querySelectorAll("button").forEach(b=>{
-    const p=PETS.find(x=>x.id===b.dataset.pet);
-    if(p.feeds>=TROSKLAR[3]){b.disabled=true;b.textContent="⭐ "+p.namn+" är fullvuxen";}
-    else b.textContent="🍎 Mata "+p.namn+" ("+p.feeds+"/"+TROSKLAR[3]+")";
-  });
+/* -- shop: köp äpple + lägg ut mat -- */
+let coins=300, forrad=0, laggerMat=false;
+const APPLE_PRIS=5;
+const coinsEl=document.getElementById("coins");
+const kopBtn=document.getElementById("kop-apple");
+const laggBtn=document.getElementById("lagg-mat");
+function uppdateraShop(){
+  coinsEl.textContent="💰 "+coins;
+  kopBtn.disabled=coins<APPLE_PRIS;
+  laggBtn.textContent="🍎 Lägg ut mat (×"+forrad+")";
+  laggBtn.disabled=forrad===0&&!laggerMat;
 }
-for(const p of PETS){
-  const b=document.createElement("button");
-  b.className="btn mata";b.dataset.pet=p.id;
-  b.addEventListener("click",()=>{const inne=stage.classList.contains("inne");if(!inne)gaIn();setTimeout(()=>mata(p),inne?0:950);});
-  matEl.appendChild(b);
-}
-uppdateraMatknappar();
-document.getElementById("reset").addEventListener("click",()=>{
-  for(const p of PETS){p.feeds=0;p.stage=1;p.busy=false;p.state="walk";p.tagEl.textContent=p.namn;sattFace(p,"glad");uppdatera(p);}
-  uppdateraMatknappar();
+function avbrytPlacering(){laggerMat=false;laggBtn.classList.remove("aktiv");stage.classList.remove("placerar");uppdateraShop();}
+kopBtn.addEventListener("click",()=>{
+  if(coins<APPLE_PRIS)return;
+  coins-=APPLE_PRIS;forrad++;uppdateraShop();
+  sattHint("Äpple köpt! 🍎 Klicka på ”Lägg ut mat” och sedan på golvet.");
 });
+laggBtn.addEventListener("click",()=>{
+  if(laggerMat){avbrytPlacering();return;}
+  if(forrad===0)return;
+  laggerMat=true;laggBtn.classList.add("aktiv");stage.classList.add("placerar");
+  if(!stage.classList.contains("inne"))gaIn();
+  sattHint("Klicka på golvet där maten ska ligga! 👇");
+});
+stage.addEventListener("click",e=>{
+  if(!laggerMat||!stage.classList.contains("inne"))return;
+  if(e.target.closest("#ut-knapp"))return;
+  const rect=stage.getBoundingClientRect();
+  const x=Math.min(95,Math.max(5,((e.clientX-rect.left)/rect.width)*100));
+  const y=Math.min(90,Math.max(64,((e.clientY-rect.top)/rect.height)*100));
+  placeraMat(x,y);
+  forrad--;
+  if(forrad===0)avbrytPlacering();else uppdateraShop();
+  sattHint("Nam nam – nu kommer de! 🐾");
+},true);
 
-/* -- gallerier -- */
+/* -- statusrad per husdjur -- */
+const statusRad=document.getElementById("petstatusrad");
+function uppdateraStatus(){
+  statusRad.replaceChildren();
+  for(const p of PETS){
+    const wrap=document.createElement("span");
+    wrap.className="petstatus";
+    const chip=document.createElement("span");
+    chip.className="chip";
+    const st=LINJER[p.linje].stadier[p.stadie];
+    chip.textContent=p.namn+" · "+st.namn+" (steg "+(p.stadie+1)+"/3) · 🍎 "+
+      (arFull(p)?"fullvuxen ⭐":Math.min(p.feeds,MAX_MAT)+"/"+MAX_MAT);
+    wrap.appendChild(chip);
+    if(!arFull(p)){
+      const demo=document.createElement("button");
+      demo.className="btn mini";demo.textContent="⏩ +9";
+      demo.title="Bara för demon: hoppa fram 9 matningar";
+      demo.addEventListener("click",()=>{
+        p.feeds=Math.min(p.feeds+9,MAX_MAT-1); // nästa riktiga äpple fullbordar steget
+        uppdatera(p);uppdateraStatus();
+        sattHint("Nästa äpple gör susen! 🍎");
+      });
+      wrap.appendChild(demo);
+    }
+    statusRad.appendChild(wrap);
+  }
+}
+uppdateraStatus();
+
+/* -- reset -- */
+document.getElementById("reset").addEventListener("click",()=>{
+  for(const p of PETS){
+    p.feeds=0;p.stadie=0;p.busy=false;p.state="walk";
+    p.tilt.classList.remove("pa-rygg","reser-sig");
+    sattArt(p,"glad");sattTag(p);uppdatera(p);
+  }
+  foods.forEach(f=>f.el.remove());foods=[];
+  coins=300;forrad=0;avbrytPlacering();
+  FURN_START.forEach((fd,i)=>{furnEls[i].style.left=fd.x+"%";furnEls[i].style.top=fd.y+"%";});
+  uppdateraShop();uppdateraStatus();
+  sattHint("Allt återställt! ↺");
+});
+uppdateraShop();
+
+/* ============================================================
+   Gallerier
+   ============================================================ */
+document.getElementById("evolinjer").innerHTML=Object.entries(LINJER).map(([id,l])=>
+  '<div class="evo-rubrik">'+l.namn+'</div>'+
+  '<div class="evolinje">'+
+  l.stadier.map((st,i)=>'<div class="steg">'+petSvg(id,i,"glad",st.namn)+
+    '<div class="g-namn">'+(i+1)+'. '+st.namn+'</div><div class="g-not">'+st.not+'</div></div>').join('')+
+  '<span class="pil" style="left:31.5%">→</span><span class="pil" style="left:65%">→</span>'+
+  '</div>'
+).join('');
+
 document.getElementById("mobler").innerHTML=Object.values(MOBLER).map(m=>
   '<div class="g-item">'+svgw(m.vb,m.art,m.namn)+'<div class="g-namn">'+m.namn+'</div><div class="g-not">'+m.not+'</div></div>'
 ).join('');
@@ -811,7 +1159,7 @@ const UTTRYCK=[
   ["yr","Yr","när den ramlat på rygg"],
 ];
 document.getElementById("uttryck").innerHTML=UTTRYCK.map(([k,n,not],i)=>
-  '<div class="g-item">'+petSvg(i%2?"draken":"stjarna",k,n)+
+  '<div class="g-item">'+petSvg(i%2?"taggen":"gnistra",1,k,n)+
   '<div class="g-namn">'+n+'</div><div class="g-not">'+not+'</div></div>'
 ).join('');
 </script>
