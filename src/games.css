@@ -1,0 +1,609 @@
+/* ==========================================================================
+   Pluggportalen – gamemodes-design
+   Stilar för pluggdelen: områdesöversikt, quiz/läsförståelse, para ihop,
+   kunskapsjakt, memory, samt gemensam resultat-/firande-skärm, konfetti
+   och små effekter. Bygger på färgvariablerna i styles.css.
+   ========================================================================== */
+
+/* --- Stjärnor på gamemode-korten (områdesöversikt) ------------------------- */
+
+.gm-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gm-card[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
+.card-stars {
+  margin-top: 10px;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.card-stars.won {
+  color: #fff3b0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.card-lock {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* --- Övningsram (game-head) ------------------------------------------------ */
+
+.game-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.game-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.game-emoji {
+  font-size: 1.8rem;
+}
+
+.game-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mute-btn {
+  border: none;
+  background: #eef4ff;
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cdddf5;
+}
+
+.mute-btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+/* --- Quiz / Läsförståelse -------------------------------------------------- */
+
+.quiz-wrap {
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 24px;
+}
+
+.review-btn {
+  margin-bottom: 14px;
+}
+
+.quiz-progress {
+  height: 12px;
+  background: #eaf0fb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.quiz-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6fcf97, var(--gron));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.quiz-count {
+  color: var(--text-svag);
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.quiz-question {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 12px;
+}
+
+.quiz-opt {
+  font-family: var(--font);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: left;
+  padding: 16px 18px;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  background: #fbfdff;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.06s ease, border-color 0.1s ease, background 0.1s ease;
+}
+
+.quiz-opt:hover:not(:disabled) {
+  border-color: var(--bla);
+  transform: translateY(-2px);
+}
+
+.quiz-opt:disabled {
+  cursor: default;
+}
+
+.quiz-opt.correct {
+  border-color: var(--gron);
+  background: #e5f8ec;
+}
+
+.quiz-opt.chosen-correct {
+  border-color: var(--gron);
+  background: #d4f5e1;
+}
+
+.quiz-opt.chosen-wrong {
+  border-color: var(--rod);
+  background: #ffe6e6;
+}
+
+.quiz-feedback {
+  margin-top: 16px;
+}
+
+.quiz-feedback .msg.soft {
+  background: #fff6e0;
+  color: #8a6100;
+  border: 2px solid #ffe4a3;
+}
+
+.quiz-next {
+  margin-top: 14px;
+}
+
+/* --- Läsförståelse: texter + overlay -------------------------------------- */
+
+.read-text {
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.read-text h3 {
+  margin: 0 0 8px;
+  color: var(--bla-mork);
+}
+
+.read-text p {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 30, 50, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.overlay-card {
+  background: var(--ljus);
+  border-radius: var(--radie);
+  max-width: 640px;
+  width: 100%;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--skugga-mjuk);
+}
+
+.overlay-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 2px solid #e3ecfa;
+}
+
+.overlay-head h2 {
+  margin: 0;
+}
+
+.overlay-body {
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+
+/* --- Para ihop ------------------------------------------------------------- */
+
+.para-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.para-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.para-card {
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 16px 14px;
+  border: 3px solid #d7e3f7;
+  border-radius: 16px;
+  background: #fbfdff;
+  color: var(--text);
+  cursor: pointer;
+  min-height: 64px;
+  transition: transform 0.06s ease, border-color 0.1s ease, background 0.1s ease;
+}
+
+.para-card:hover:not(.matched) {
+  transform: translateY(-2px);
+  border-color: var(--bla);
+}
+
+.para-card.selected {
+  border-color: var(--lila);
+  background: #f3e8ff;
+  transform: translateY(-2px);
+}
+
+.para-card.matched {
+  border-color: var(--gron);
+  background: #d4f5e1;
+  color: var(--gron-mork);
+  cursor: default;
+  animation: pop 0.3s ease;
+}
+
+.para-card.wrong-flash {
+  border-color: var(--rod);
+  background: #ffe6e6;
+}
+
+/* --- Kunskapsjakt ---------------------------------------------------------- */
+
+.jakt-intro {
+  animation: pop 0.3s ease;
+}
+
+.jakt-arena {
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 20px;
+}
+
+.jakt-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.jakt-stat {
+  text-align: center;
+  background: #eef4ff;
+  border-radius: 14px;
+  padding: 10px 6px;
+}
+
+.jakt-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-svag);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.jakt-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.combo-box {
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.combo-box.hot {
+  color: #fff;
+}
+
+.combo-box.lvl2.hot { background: #f2c94c; color: #7a5c00; }
+.combo-box.lvl3.hot { background: var(--orange); color: #fff; }
+.combo-box.lvl4.hot { background: var(--rosa); color: #fff; }
+.combo-box.lvl5.hot { background: linear-gradient(135deg, var(--rosa), var(--lila)); color: #fff; }
+
+.combo-box.bump .jakt-value {
+  animation: bump 0.3s ease;
+}
+
+.jakt-timebar {
+  height: 14px;
+  background: #eaf0fb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.jakt-timebar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #6fcf97, var(--gron));
+  transition: width 0.1s linear;
+}
+
+.jakt-timebar-fill.low {
+  background: linear-gradient(90deg, #f2994a, var(--rod));
+}
+
+.jakt-question {
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 16px;
+  min-height: 2.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jakt-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.jakt-opt {
+  font-family: var(--font);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 18px 14px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #56ccf2, var(--bla));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--skugga);
+  transition: transform 0.06s ease;
+}
+
+.jakt-opt:nth-child(2) { background: linear-gradient(160deg, #bb6bd9, var(--lila)); }
+.jakt-opt:nth-child(3) { background: linear-gradient(160deg, #f2c94c, var(--orange)); }
+.jakt-opt:nth-child(4) { background: linear-gradient(160deg, #6fcf97, var(--gron)); }
+
+.jakt-opt:hover:not(:disabled) { transform: translateY(-2px); }
+.jakt-opt.hit { animation: pop 0.3s ease; outline: 4px solid #fff; }
+.jakt-opt.miss { opacity: 0.5; }
+.jakt-opt.show-correct { outline: 4px solid #fff; filter: brightness(1.1); }
+
+.jakt-float {
+  position: relative;
+  height: 0;
+  text-align: center;
+}
+
+.float-item {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.6rem;
+  font-weight: 800;
+  animation: floatUp 0.8s ease forwards;
+  pointer-events: none;
+}
+
+.float-item.good { color: var(--gron); }
+.float-item.bad { color: var(--rod); }
+
+/* --- Memory ---------------------------------------------------------------- */
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.memory-card {
+  position: relative;
+  min-height: 96px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: var(--font);
+  padding: 0;
+  background: transparent;
+}
+
+.mem-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  padding: 10px;
+  font-weight: 700;
+  text-align: center;
+  backface-visibility: hidden;
+}
+
+.mem-back {
+  background: linear-gradient(160deg, #bb6bd9, var(--lila));
+  color: #fff;
+  font-size: 2rem;
+  box-shadow: var(--skugga);
+}
+
+.mem-front {
+  background: #fbfdff;
+  color: var(--text);
+  border: 3px solid #d7e3f7;
+  font-size: 1rem;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.memory-card.open .mem-back { opacity: 0; }
+.memory-card.open .mem-front { opacity: 1; transform: scale(1); }
+
+.memory-card.matched {
+  animation: pop 0.3s ease;
+}
+
+.memory-card.matched .mem-front {
+  opacity: 1;
+  transform: scale(1);
+  border-color: var(--gron);
+  background: #d4f5e1;
+  color: var(--gron-mork);
+}
+
+.memory-card.matched .mem-back { opacity: 0; }
+
+/* --- Resultat / firande ---------------------------------------------------- */
+
+.result-card {
+  animation: pop 0.4s ease;
+}
+
+.result-emoji {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+.result-stars {
+  font-size: 3rem;
+  color: #f2c94c;
+  letter-spacing: 6px;
+  margin: 6px 0;
+  animation: bump 0.5s ease;
+}
+
+.result-score {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.coin-pop {
+  display: inline-block;
+  background: var(--gul);
+  color: #7a5c00;
+  font-weight: 800;
+  font-size: 1.4rem;
+  padding: 10px 24px;
+  border-radius: 999px;
+  margin: 8px 0;
+  box-shadow: var(--skugga);
+  animation: bump 0.5s ease;
+}
+
+.cheer {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 12px 0 20px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* --- Konfetti -------------------------------------------------------------- */
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 200;
+}
+
+.confetti-bit {
+  position: absolute;
+  top: -20px;
+  width: 12px;
+  height: 12px;
+  opacity: 0.9;
+  animation: confettiFall linear forwards;
+}
+
+/* --- Animationer ----------------------------------------------------------- */
+
+@keyframes pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.shake {
+  animation: shake 0.45s ease;
+}
+
+@keyframes floatUp {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, -60px); opacity: 0; }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(540deg); opacity: 0.9; }
+}
+
+/* --- Responsivt ------------------------------------------------------------ */
+
+@media (max-width: 520px) {
+  .jakt-options { grid-template-columns: 1fr; }
+  .para-grid { gap: 10px; }
+  .para-card { font-size: 0.95rem; min-height: 56px; }
+}

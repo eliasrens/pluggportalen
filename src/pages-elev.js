@@ -243,12 +243,9 @@ export async function pageElevPlugga() {
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelectorAll(".area-card").forEach((btn) => {
     btn.addEventListener("click", () => {
-      // Gamemodes byggs i senare issues; visa vänlig platshållare tills vidare.
-      alert(
-        "Här kommer övningarna (quiz, läsförståelse och para ihop) för " +
-          btn.querySelector(".title").textContent +
-          " snart! 🚧"
-      );
+      const subj = btn.dataset.subj;
+      const area = btn.dataset.area;
+      go(`#/elev/omrade?subj=${encodeURIComponent(subj)}&area=${encodeURIComponent(area)}`);
     });
   });
 

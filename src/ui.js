@@ -15,6 +15,20 @@ export function go(hash) {
   window.location.hash = hash;
 }
 
+/**
+ * Läs query-parametrar ur hashen, t.ex. `#/elev/spela?area=vikingatiden&mode=quiz`.
+ * @returns {Record<string,string>}
+ */
+export function getParams() {
+  const hash = window.location.hash || "";
+  const q = hash.indexOf("?");
+  const out = {};
+  if (q === -1) return out;
+  const sp = new URLSearchParams(hash.slice(q + 1));
+  for (const [k, v] of sp.entries()) out[k] = v;
+  return out;
+}
+
 /** Bygg ett element från en HTML-sträng (första elementet returneras). */
 export function el(html) {
   const t = document.createElement("template");
