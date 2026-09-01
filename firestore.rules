@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Kunskapsinnehåll (ämnen/arbetsområden): alla får läsa; skrivning tillåten för lärarbruk i skolklass.
+    match /subjects/{subjectId} {
+      allow read: if true;
+      allow write: if true;
+      match /areas/{areaId} {
+        allow read: if true;
+        allow write: if true;
+      }
+    }
+    // Elevkonton: läsbara (behövs för enkel inloggning), skrivbara (skapa/uppdatera elev).
+    match /students/{studentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering).
+    match /studentData/{studentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    // Allt annat nekas.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
