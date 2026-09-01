@@ -5,7 +5,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { avatarEmoji, DEFAULT_AVATAR } from "./avatars.js";
+import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 
 export const app = document.getElementById("app");
 export const topbarRight = document.getElementById("topbar-right");
@@ -27,6 +27,38 @@ export function loading(msg = "Laddar…") {
   app.innerHTML = `<div class="spinner">${msg}</div>`;
 }
 
+/** Visa ett felmeddelande som fyller huvudytan. */
+export function pageError(title, err) {
+  app.replaceChildren(
+    el(`<div class="panel"><div class="msg error">${title}: ${err?.message || err}</div></div>`)
+  );
+}
+
+/** Begränsa ett tal till [min, max] (ogiltigt tal → min). */
+export function clamp(n, min, max) {
+  n = Number(n);
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, n));
+}
+
+/** Liten toast-ruta längst ner på sidan. */
+export function flash(text, isError = false) {
+  let box = document.getElementById("flash-box");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "flash-box";
+    box.className = "flash-box";
+    document.body.appendChild(box);
+  }
+  const note = el(`<div class="flash${isError ? " error" : ""}">${text}</div>`);
+  box.appendChild(note);
+  requestAnimationFrame(() => note.classList.add("show"));
+  setTimeout(() => {
+    note.classList.remove("show");
+    setTimeout(() => note.remove(), 300);
+  }, 2600);
+}
+
 /**
  * Rita sidhuvudets högra del. När eleven är inloggad visas avatar + namn
  * (klick → profil), pluggcoins-saldo och en utloggningsknapp – överallt.
@@ -37,18 +69,20 @@ export async function renderTopbar() {
     topbarRight.innerHTML = "";
     return;
   }
-  // Hämta coins + avatar i ett svep.
+  // Hämta coins + avatar (inkl. burna klädsaker) i ett svep.
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
+  let avatarItems = [];
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
+    avatarItems = sd.avatarItems || [];
   } catch {}
 
   const wrap = el(`<div class="topbar-user">
     <button class="avatar-chip" id="profil-btn" title="Min profil">
-      <span class="avatar-emoji">${avatarEmoji(avatarId)}</span>
+      <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems)}</span>
       <span class="avatar-namn">${session.namn || "Elev"}</span>
     </button>
     <span class="coins">🪙 ${coins}</span>
