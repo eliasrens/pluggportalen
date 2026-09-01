@@ -179,7 +179,68 @@
   margin-top: 14px;
 }
 
-/* --- Läsförståelse: texter + overlay -------------------------------------- */
+/* --- Läsförståelse: texten står kvar överst, frågorna direkt under --------- */
+
+/* Läsförståelse-sidan: text överst, quiz direkt under, allt på samma
+   scrollbara sida. */
+.lasf-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.lasf-intro {
+  margin: 0 0 4px;
+}
+
+/* Frågans egna korta text (passage): ett lugnt, tydligt block ovanför frågan.
+   Byts automatiskt när eleven går vidare eftersom det ritas om per fråga. */
+.lasf-passage {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #f4f8ff;
+  border-left: 5px solid var(--bla);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.lasf-passage-emoji {
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+
+.lasf-passage p {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* Textblocket får en tydlig ram så eleven ser att det hör ihop och står kvar. */
+.lasf-text {
+  background: var(--panel);
+  border: 3px solid #d7e3f7;
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 18px 20px;
+}
+
+/* Inne i textblocket räcker en enkel avdelare mellan texterna. */
+.lasf-text .read-text {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lasf-text .read-text + .read-text {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 2px solid #e3ecfa;
+}
 
 .read-text {
   background: var(--panel);
@@ -194,10 +255,12 @@
   color: var(--bla-mork);
 }
 
+/* Bekväm radlängd för läsning i åk 4. */
 .read-text p {
   margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  max-width: 62ch;
+  font-size: 1.15rem;
+  line-height: 1.7;
 }
 
 .overlay {
@@ -432,14 +495,14 @@
 
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   margin-top: 10px;
 }
 
 .memory-card {
   position: relative;
-  min-height: 96px;
+  min-height: 104px;
   border: none;
   border-radius: 16px;
   cursor: pointer;
@@ -449,30 +512,41 @@
 }
 
 .mem-face {
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  padding: 10px;
+  padding: 12px 12px;
   font-weight: 700;
   text-align: center;
   backface-visibility: hidden;
+  /* Låt längre förklaringar radbrytas och rymmas i rutan. */
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  line-height: 1.25;
 }
 
+/* Baksidan (?) läggs som en overlay ovanpå framsidan. */
 .mem-back {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(160deg, #bb6bd9, var(--lila));
   color: #fff;
   font-size: 2rem;
   box-shadow: var(--skugga);
+  transition: opacity 0.2s ease;
 }
 
+/* Framsidan (texten) ligger i normalt flöde och BESTÄMMER kortets höjd, så
+   rutan alltid växer så att hela texten får plats. */
 .mem-front {
+  position: relative;
+  min-height: 104px;
+  height: 100%;
   background: #fbfdff;
   color: var(--text);
   border: 3px solid #d7e3f7;
-  font-size: 1rem;
+  font-size: 0.95rem;
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -526,6 +600,32 @@
   font-weight: 800;
   font-size: 1.4rem;
   padding: 10px 24px;
+  border-radius: 999px;
+  margin: 8px 0;
+  box-shadow: var(--skugga);
+  animation: bump 0.5s ease;
+}
+
+/* XP-vinst på resultatskärmen (bredvid coin-pop). */
+.xp-pop {
+  display: inline-block;
+  background: #eef4ff;
+  color: #3a5bbf;
+  font-weight: 800;
+  font-size: 1.2rem;
+  padding: 8px 20px;
+  border-radius: 999px;
+  margin: 6px 0;
+}
+
+/* Level-up-banner på resultatskärmen. */
+.levelup-pop {
+  display: inline-block;
+  background: linear-gradient(90deg, #ffd76a, #ffb347);
+  color: #7a4a00;
+  font-weight: 800;
+  font-size: 1.15rem;
+  padding: 10px 22px;
   border-radius: 999px;
   margin: 8px 0;
   box-shadow: var(--skugga);

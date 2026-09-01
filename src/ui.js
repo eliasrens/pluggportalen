@@ -6,9 +6,26 @@
 
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { evoFromStudentData } from "./evolution.js";
 
 export const app = document.getElementById("app");
 export const topbarRight = document.getElementById("topbar-right");
+export const hemBtn = document.getElementById("hem-btn");
+
+// Hem-knappen i sidhuvudet: alltid samma väg tillbaka till elevens startskärm.
+// Den ligger kvar mellan sidbyten, så lyssnaren kopplas en gång här.
+hemBtn?.addEventListener("click", () => go("#/elev/hem"));
+
+/**
+ * Visa hem-knappen på elevens sidor (plugga, område, spel, shop, rum, profil),
+ * men inte när ingen är inloggad, på inloggningssidan eller på lärarsidorna –
+ * där finns redan egen navigering.
+ */
+function uppdateraHemKnapp(session) {
+  if (!hemBtn) return;
+  const path = (window.location.hash || "#/").slice(1).split("?")[0];
+  hemBtn.hidden = !(session && path.startsWith("/elev/") && path !== "/elev/avatar");
+}
 
 /** Navigera till en hash-route. */
 export function go(hash) {
@@ -79,6 +96,7 @@ export function flash(text, isError = false) {
  */
 export async function renderTopbar() {
   const session = data.getSession();
+  uppdateraHemKnapp(session);
   if (!session) {
     topbarRight.innerHTML = "";
     return;
@@ -87,21 +105,26 @@ export async function renderTopbar() {
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
+  let evo; // aktuellt utvecklingssteg + ev. grenval (härlett ur framstegen)
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
+    evo = evoFromStudentData(sd);
   } catch {}
 
   const wrap = el(`<div class="topbar-user">
+    <button class="btn ghost liten minklass-btn" id="minklass-btn" title="Se min klass">👩‍👦‍👦 Min klass</button>
     <button class="avatar-chip" id="profil-btn" title="Min profil">
-      <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems)}</span>
+      <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems, evo)}</span>
       <span class="avatar-namn">${session.namn || "Elev"}</span>
     </button>
+    ${evo ? `<span class="niva" title="Din nivå">⭐ Nivå ${evo.level}</span>` : ""}
     <span class="coins">🪙 ${coins}</span>
     <button class="btn ghost liten" id="logout-btn">Logga ut</button>
   </div>`);
+  wrap.querySelector("#minklass-btn").addEventListener("click", () => go("#/elev/klassfoto"));
   wrap.querySelector("#profil-btn").addEventListener("click", () => go("#/elev/profil"));
   wrap.querySelector("#logout-btn").addEventListener("click", () => {
     data.logout();

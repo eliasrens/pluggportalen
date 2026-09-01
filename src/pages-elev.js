@@ -6,6 +6,7 @@
 
 import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { evoFromStudentData, evoForAvatar } from "./evolution.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
 
 // --- Inloggning -------------------------------------------------------------
@@ -82,16 +83,19 @@ export async function pageElevAvatar() {
 
   let selected = DEFAULT_AVATAR;
   let firstTime = true;
+  let sd = null;
   try {
-    const sd = await data.getStudentData();
+    sd = await data.getStudentData();
     selected = sd.avatarId || DEFAULT_AVATAR;
     firstTime = !sd.avatarChosen;
   } catch {}
+  // Figurer med evolution visas i sitt AKTUELLA steg (med elevens grenval).
+  const evoFor = (id) => (sd ? evoForAvatar(sd, id) : undefined);
 
   const buttons = Object.keys(AVATARS)
     .map(
       (id) =>
-        `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${avatarName(id)}">${avatarSvg(id)}</button>`
+        `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${avatarName(id)}">${avatarSvg(id, evoFor(id))}</button>`
     )
     .join("");
 
@@ -102,7 +106,7 @@ export async function pageElevAvatar() {
       <p class="hint">${firstTime
         ? "Vilken figur vill du vara? Du kan byta när du vill i profilen."
         : "Välj en ny figur. Den syns överallt när du pluggar."}</p>
-      <div class="preview" id="preview">${avatarSvg(selected)}</div>
+      <div class="preview" id="preview">${avatarSvg(selected, evoFor(selected))}</div>
       <div class="avatar-pick" id="grid">${buttons}</div>
       <div id="msg"></div>
       <button class="btn stor gron" id="save">${firstTime ? "Kör igång!" : "Spara"}</button>
@@ -119,7 +123,7 @@ export async function pageElevAvatar() {
     selected = b.dataset.id;
     grid.querySelectorAll(".avatar-opt").forEach((x) => x.classList.remove("selected"));
     b.classList.add("selected");
-    preview.innerHTML = avatarSvg(selected);
+    preview.innerHTML = avatarSvg(selected, evoFor(selected));
   });
 
   if (!firstTime) {
@@ -167,10 +171,11 @@ export async function pageElevHem() {
   if (!sd.avatarChosen) return go("#/elev/avatar");
 
   const avatar = sd.avatarId || DEFAULT_AVATAR;
+  const evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
 
   const view = el(`<div>
     <div class="panel center hero">
-      <div class="hero-avatar">${avatarMarkup(avatar, sd.avatarItems || [])}</div>
+      <div class="hero-avatar">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
       <h1>Hej ${session.namn}! 👋</h1>
       <p class="hint">Du har <span class="coins">🪙 ${sd.coins || 0}</span> pluggcoins. Vad vill du göra idag?</p>
     </div>
@@ -190,12 +195,18 @@ export async function pageElevHem() {
         <span class="title">Mitt rum</span>
         <span class="sub">Inred och pynta</span>
       </button>
+      <button class="big-card orange" id="to-husdjur">
+        <span class="emoji">🥚</span>
+        <span class="title">Mitt husdjur</span>
+        <span class="sub">Kläck och mata din kompis</span>
+      </button>
     </div>
   </div>`);
 
   view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
+  view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   app.replaceChildren(view);
 }
@@ -208,8 +219,18 @@ export async function pageElevPlugga() {
   await renderTopbar();
 
   let subjects;
+  let assigned = null; // Set av "subjectId/areaId" om klassen har tilldelning, annars null.
   try {
-    subjects = await data.getSubjects();
+    // Elevens klass (för att ev. filtrera på tilldelade områden) parallellt med ämnen.
+    const [subj, cls] = await Promise.all([
+      data.getSubjects(),
+      data.getClassForStudent().catch(() => null),
+    ]);
+    subjects = subj;
+    const list = cls && Array.isArray(cls.assignedAreas) ? cls.assignedAreas : [];
+    if (list.length > 0) {
+      assigned = new Set(list.map((a) => `${a.subjectId}/${a.areaId}`));
+    }
   } catch (err) {
     app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda innehållet: ${err.message}</div></div>`)
@@ -221,6 +242,8 @@ export async function pageElevPlugga() {
   for (const subj of subjects) {
     const areas = await data.getAreas(subj.id);
     for (const a of areas) {
+      // Har klassen en tilldelning? Visa då BARA de tilldelade områdena.
+      if (assigned && !assigned.has(`${subj.id}/${a.id}`)) continue;
       areaCards.push(`<button class="big-card orange area-card" data-subj="${subj.id}" data-area="${a.id}">
         <span class="emoji">${a.coverEmoji || "📖"}</span>
         <span class="title">${a.name}</span>
@@ -232,8 +255,10 @@ export async function pageElevPlugga() {
   const view = el(`<div>
     <a class="back-link" id="back">← Till startsidan</a>
     <div class="panel center">
-      <h1>Plugga ✏️</h1>
-      <p class="hint">Välj ett arbetsområde och börja öva!</p>
+      <h1>${assigned ? "Det här jobbar vi med nu 📌" : "Plugga ✏️"}</h1>
+      <p class="hint">${assigned
+        ? "Din lärare har valt ut det här åt klassen. Välj ett område och börja öva!"
+        : "Välj ett arbetsområde och börja öva!"}</p>
     </div>
     <div class="card-grid">
       ${areaCards.join("") || '<p class="hint">Inga arbetsområden ännu. Be din lärare fylla på innehåll.</p>'}
@@ -262,11 +287,12 @@ export async function pageElevProfil() {
   await renderTopbar();
   const session = data.getSession();
 
-  let stats, avatar, avatarItems;
+  let stats, avatar, avatarItems, evo;
   try {
     const [sd, s] = await Promise.all([data.getStudentData(), data.getStats()]);
     avatar = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
+    evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
     stats = s;
   } catch (err) {
     app.replaceChildren(
@@ -278,11 +304,12 @@ export async function pageElevProfil() {
   const view = el(`<div>
     <a class="back-link" id="back">← Till startsidan</a>
     <div class="panel center">
-      <div class="hero-avatar">${avatarMarkup(avatar, avatarItems)}</div>
+      <div class="hero-avatar">${avatarMarkup(avatar, avatarItems, evo)}</div>
       <h1>${session.namn}</h1>
       <p class="hint">Användarnamn: <b>${session.username || ""}</b></p>
       <div class="btn-row center">
         <button class="btn liten" id="byt-avatar">Byt figur</button>
+        <button class="btn liten" id="utveckling">⚡ Utveckling</button>
         <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
         <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
       </div>
@@ -320,6 +347,7 @@ export async function pageElevProfil() {
 
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
+  view.querySelector("#utveckling").addEventListener("click", () => go("#/elev/utveckling"));
   view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));
 

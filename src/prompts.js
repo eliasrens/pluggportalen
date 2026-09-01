@@ -20,10 +20,14 @@ const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "texts": lista med faktatexter. Varje text: { "id": string, "title": string, "body": string }
 - "quiz": lista med flervalsfrågor. Varje fråga:
     { "id": string, "question": string, "options": [string, ...],
-      "answerIndex": number, "explanation": string }
+      "answerIndex": number, "explanation": string, "passage": string }
     * "options" måste ha minst 2 alternativ.
     * "answerIndex" är index (0 = första alternativet) för det RÄTTA svaret.
     * "explanation" förklarar kort varför svaret är rätt.
+    * "passage" (VALFRITT) är en text på 3–5 meningar, hämtad ur materialet,
+      som eleven kan besvara JUST DEN frågan utifrån. Används i läsförståelse-läget
+      där passagen visas ovanför frågan. Skriv en egen passande passage per fråga
+      (3–5 fullständiga meningar – inte bara en enda mening).
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
     { "id": string, "term": string, "definition": string }`;
 
@@ -46,7 +50,8 @@ const EXAMPLE = `{
       "question": "Ungefär när levde vikingarna?",
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
       "answerIndex": 0,
-      "explanation": "Vikingatiden räknas från cirka år 800 till 1050."
+      "explanation": "Vikingatiden räknas från cirka år 800 till 1050.",
+      "passage": "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var alltså mycket längre sedan än när dina far- och morföräldrar levde."
     }
   ],
   "pairs": [
@@ -54,6 +59,32 @@ const EXAMPLE = `{
     { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" }
   ]
 }`;
+
+// Skalningsregler: mängden övningsinnehåll ska växa med hur mycket text läraren
+// matar in, så att en lång text inte ger ett tunt övningsmaterial.
+const SKALA_QUIZ = `Anpassa ANTALET quizfrågor efter hur mycket text du fått:
+- Kort text (ungefär 1 stycke): 5–6 frågor.
+- Medellång text (ungefär en halv sida): 8–10 frågor.
+- Lång text (ungefär en sida eller mer): 12–15 frågor.
+- Är texten ännu längre? Fortsätt lägga till frågor i samma takt (ca 3–4 frågor per halvsida).
+Täck HELA texten jämnt – ta med frågor från början, mitten och slutet, inte bara det första stycket.
+Undvik upprepade frågor och triviala frågor som eleven kan svara på utan att ha läst texten.
+Ge VARJE fråga ett "passage": en text på 3–5 meningar hämtad ur materialet, som just den
+frågan kan besvaras utifrån. Skriv en egen, passande passage per fråga (3–5 fullständiga meningar –
+inte bara en enda mening, och upprepa inte samma text till alla frågor). Passagen används i
+läsförståelse-läget och visas ovanför frågan.`;
+
+const SKALA_PAR = `Anpassa ANTALET fakta-par efter hur mycket text du fått:
+- Kort text: minst 6 par.
+- Medellång text: 8–10 par.
+- Lång text (en sida eller mer): 12–15 par.
+Välj de viktigaste begreppen från HELA texten, inte bara början. Undvik dubbletter.`;
+
+const SKALA_TEXTER = `Anpassa ANTALET faktatexter efter hur mycket material du fått:
+- Kort text: 1–2 faktatexter.
+- Medellång text: 2–3 faktatexter.
+- Lång text (en sida eller mer): 3–5 faktatexter.
+Dela upp innehållet i tydliga delämnen så att hela materialet täcks.`;
 
 const REGLER = `Viktiga regler:
 - Svara med ENBART giltig JSON – ingen förklarande text före eller efter, inga \`\`\`-kodstaket.
@@ -70,10 +101,13 @@ Utifrån den bifogade PDF:en / texten nedan ska du skapa ETT arbetsområde som J
 
 ${SCHEMA}
 
-Innehållskrav:
-- 2–4 faktatexter (varje "body" ca 3–6 meningar).
-- 5–8 quizfrågor med 4 svarsalternativ vardera.
-- 6–10 fakta-par (begrepp ↔ kort förklaring).
+Innehållskrav (mängden ska VÄXA med hur mycket text du fått – ju mer text, desto fler frågor och par):
+- Faktatexter (varje "body" ca 3–6 meningar):
+${SKALA_TEXTER}
+- Quizfrågor med 4 svarsalternativ vardera:
+${SKALA_QUIZ}
+- Fakta-par (begrepp ↔ kort förklaring):
+${SKALA_PAR}
 
 ${REGLER}
 
@@ -92,9 +126,9 @@ Utifrån den bifogade PDF:en / texten nedan ska du skapa ETT arbetsområde som J
 
 ${SCHEMA}
 
-Innehållskrav:
-- 8–10 quizfrågor med 4 svarsalternativ vardera.
-- Variera svårighetsgraden. "answerIndex" ska peka på det rätta alternativet.
+Innehållskrav (antalet frågor ska VÄXA med hur mycket text du fått):
+${SKALA_QUIZ}
+- Alla frågor har 4 svarsalternativ. Variera svårighetsgraden. "answerIndex" ska peka på det rätta alternativet.
 
 ${REGLER}
 
@@ -110,7 +144,8 @@ Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
       "question": "Ungefär när levde vikingarna?",
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
       "answerIndex": 0,
-      "explanation": "Vikingatiden räknas från cirka år 800 till 1050."
+      "explanation": "Vikingatiden räknas från cirka år 800 till 1050.",
+      "passage": "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var alltså mycket längre sedan än när dina far- och morföräldrar levde."
     }
   ],
   "pairs": []
@@ -128,8 +163,9 @@ Utifrån den bifogade PDF:en / texten nedan ska du skapa ETT arbetsområde som J
 
 ${SCHEMA}
 
-Innehållskrav:
-- 8–12 fakta-par. "term" är ett kort begrepp, "definition" en kort förklaring (max en mening).
+Innehållskrav (antalet par ska VÄXA med hur mycket text du fått):
+${SKALA_PAR}
+- "term" är ett kort begrepp, "definition" en kort förklaring (max en mening).
 
 ${REGLER}
 

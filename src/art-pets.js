@@ -125,6 +125,89 @@ function dinoPet() {
   );
 }
 
+function hamsterPet() {
+  const fur = "#F2A93B", belly = "#FFE9CC", inner = "#F5C1CB";
+  return (
+    sitBody(fur, belly) +
+    `<circle cx="36" cy="19" r="6.5" fill="${fur}" ${LINE}/>` +
+    `<circle cx="64" cy="19" r="6.5" fill="${fur}" ${LINE}/>` +
+    `<circle cx="36" cy="19" r="3" fill="${inner}" stroke="none"/>` +
+    `<circle cx="64" cy="19" r="3" fill="${inner}" stroke="none"/>` +
+    head(fur) +
+    eyes() +
+    nose(42, "#E88A9C") +
+    `<path d="M50 44 L50 46 M50 46 Q47 48 45.5 46.5 M50 46 Q53 48 54.5 46.5" fill="none" ${THIN}/>` +
+    `<path d="M44 49 L46 49 M54 49 L56 49" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>` +
+    cheeks(46, 20) +
+    `<ellipse cx="43" cy="88" rx="5" ry="3.6" fill="${belly}" ${THIN}/>` +
+    `<ellipse cx="57" cy="88" rx="5" ry="3.6" fill="${belly}" ${THIN}/>`
+  );
+}
+
+function hedgehogPet() {
+  const quill = "#8A6242", face = "#E0B98C";
+  return (
+    `<ellipse cx="38" cy="94" rx="7" ry="4.5" fill="${face}" ${LINE}/>` +
+    `<ellipse cx="62" cy="94" rx="7" ry="4.5" fill="${face}" ${LINE}/>` +
+    `<path d="M12 70 L18 40 L26 56 L34 32 L42 54 L50 28 L58 54 L66 32 L74 56 L82 40 L88 70 Q50 94 12 70 Z" fill="${quill}" ${LINE}/>` +
+    `<path d="M30 52 L34 42 M50 48 L50 36 M70 52 L66 42" fill="none" ${THIN}/>` +
+    `<ellipse cx="50" cy="70" rx="23" ry="17" fill="${face}" ${LINE}/>` +
+    `<path d="M50 87 L44 79 L56 79 Z" fill="${face}" ${THIN}/>` +
+    eye(42, 64, 5) + eye(58, 64, 5) +
+    `<ellipse cx="50" cy="82" rx="3.4" ry="2.6" fill="${O}" stroke="none"/>` +
+    `<path d="M44 74 Q50 78 56 74" fill="none" ${THIN}/>` +
+    cheeks(74, 17)
+  );
+}
+
+function turtlePet() {
+  const shell = "#6FC66F", shellDark = "#4FA85A", skin = "#A9D98A", belly = "#D8F0C0";
+  return (
+    `<ellipse cx="26" cy="62" rx="9" ry="7" fill="${skin}" ${LINE}/>` +
+    `<ellipse cx="60" cy="64" rx="9" ry="7" fill="${skin}" ${LINE}/>` +
+    `<path d="M18 48 Q6 50 9 42" fill="${skin}" ${THIN}/>` +
+    `<ellipse cx="82" cy="44" rx="13" ry="12" fill="${skin}" ${LINE}/>` +
+    `<path d="M18 50 Q18 18 50 18 Q82 18 82 50 Z" fill="${shell}" ${LINE}/>` +
+    `<ellipse cx="50" cy="50" rx="33" ry="7" fill="${belly}" ${LINE}/>` +
+    `<path d="M40 44 Q50 37 60 44 Q56 50 44 50 Z" fill="${shellDark}" stroke="none"/>` +
+    `<path d="M50 22 L50 37 M34 30 L42 42 M66 30 L58 42 M22 45 L40 46 M78 45 L60 46" fill="none" ${THIN}/>` +
+    eye(84, 42, 5) +
+    `<path d="M80 51 Q85 54 90 50" fill="none" ${THIN}/>` +
+    `<ellipse cx="88" cy="48" rx="3" ry="2" fill="#FFB1B8" opacity="0.85"/>`
+  );
+}
+
+// --- Mystery egg + värmelampa (kläckbara husdjuret, se pages-pet.js) --------
+
+function mysteryEgg() {
+  const shell = "#EADFF7", spot = "#B79BE0", star = "#F7C948";
+  return (
+    `<ellipse cx="50" cy="90" rx="27" ry="6" fill="#B0805A" opacity="0.25" stroke="none"/>` +
+    `<path d="M50 12 C31 12 25 46 25 63 A25 25 0 0 0 75 63 C75 46 69 12 50 12 Z" fill="${shell}" ${LINE}/>` +
+    `<ellipse cx="40" cy="30" rx="6" ry="9" fill="#FFFFFF" opacity="0.7" stroke="none"/>` +
+    `<circle cx="60" cy="40" r="5" fill="${spot}" stroke="none"/>` +
+    `<circle cx="38" cy="56" r="4" fill="${spot}" stroke="none"/>` +
+    `<circle cx="58" cy="70" r="3.2" fill="${spot}" stroke="none"/>` +
+    `<path d="M47 47 L48.6 51 L53 51.4 L49.8 54.2 L50.8 58.4 L47 56.2 L43.2 58.4 L44.2 54.2 L41 51.4 L45.4 51 Z" fill="${star}" stroke="none"/>` +
+    `<path d="M84 22 L84 32 M79 27 L89 27" fill="none" stroke="${star}" stroke-width="3" stroke-linecap="round"/>` +
+    `<path d="M15 46 L15 54 M11 50 L19 50" fill="none" stroke="${star}" stroke-width="2.6" stroke-linecap="round"/>`
+  );
+}
+
+function heatLamp() {
+  const metal = "#A8BAD1", shade = "#EF6F6C", glow = "#F7C948";
+  return (
+    `<path d="M46 62 Q40 74 44 86" fill="none" stroke="${glow}" stroke-width="3" stroke-linecap="round" opacity="0.8"/>` +
+    `<path d="M58 62 Q64 74 60 86" fill="none" stroke="${glow}" stroke-width="3" stroke-linecap="round" opacity="0.8"/>` +
+    `<path d="M52 64 Q52 76 52 88" fill="none" stroke="${glow}" stroke-width="3" stroke-linecap="round" opacity="0.8"/>` +
+    `<ellipse cx="22" cy="92" rx="14" ry="5" fill="${metal}" ${LINE}/>` +
+    limb("M22 90 L22 26 Q22 14 36 14 L52 14", metal, 5) +
+    `<path d="M36 8 Q52 4 68 8 L62 34 Q52 40 42 34 Z" fill="${shade}" ${LINE}/>` +
+    `<path d="M42 34 Q52 40 62 34 Q60 44 52 44 Q44 44 42 34 Z" fill="#FDE9A8" ${LINE}/>` +
+    `<circle cx="52" cy="36" r="4" fill="${glow}" stroke="none"/>`
+  );
+}
+
 /** id → { viewBox, art } */
 export const PETS = {
   hund: { viewBox: "0 0 100 100", art: dogPet() },
@@ -133,4 +216,18 @@ export const PETS = {
   fisk: { viewBox: "0 0 100 76", art: fishPet() },
   papegoja: { viewBox: "0 0 84 100", art: parrotPet() },
   dinosaurie: { viewBox: "0 0 100 92", art: dinoPet() },
+  hamster: { viewBox: "0 0 100 100", art: hamsterPet() },
+  igelkott: { viewBox: "0 0 100 100", art: hedgehogPet() },
+  skoldpadda: { viewBox: "0 0 100 76", art: turtlePet() },
+  // Kläckbara husdjuret (varelserna själva ligger i art-pets-creatures.js).
+  "mystery-egg": { viewBox: "0 0 100 100", art: mysteryEgg() },
+  varmelampa: { viewBox: "0 0 100 100", art: heatLamp() },
 };
+
+/** Fristående <svg> för ägget (används på husdjurssidan). */
+export function eggSvg() {
+  return (
+    `<svg viewBox="0 0 100 100" role="img" aria-label="Mystiskt ägg" ` +
+    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${PETS["mystery-egg"].art}</svg>`
+  );
+}

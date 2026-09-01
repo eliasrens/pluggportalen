@@ -83,6 +83,9 @@ export async function copyText(text, btn) {
 export function teacherNav(ctx, active) {
   const tabs = [
     { hash: "#/larare", key: "hem", label: "🏠 Översikt" },
+    { hash: "#/larare/klass", key: "klass", label: "📊 Klass" },
+    // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
+    { hash: "#/larare/klasser", key: "klasser", label: "🏫 Klasser" },
     { hash: "#/larare/innehall", key: "innehall", label: "📚 Innehåll" },
     { hash: "#/larare/prompter", key: "prompter", label: "🤖 AI-prompter" },
     { hash: "#/larare/elever", key: "elever", label: "🧑‍🎓 Elevkonton" },
@@ -121,6 +124,17 @@ export function pageLarare(ctx) {
       <p class="hint">Hantera kunskapsinnehåll, hämta AI-prompter och lägg in elevkonton.</p>
     </div>
     <div class="card-grid">
+      <button class="big-card orange" data-hash="#/larare/klass">
+        <span class="emoji">📊</span>
+        <span class="title">Klassöversikt</span>
+        <span class="sub">Se hur långt varje elev kommit</span>
+      </button>
+      <!-- Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase). -->
+      <button class="big-card rosa" data-hash="#/larare/klasser">
+        <span class="emoji">🏫</span>
+        <span class="title">Klasser</span>
+        <span class="sub">Skapa klasser och lägg elever i dem</span>
+      </button>
       <button class="big-card bla" data-hash="#/larare/innehall">
         <span class="emoji">📚</span>
         <span class="title">Innehåll</span>

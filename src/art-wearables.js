@@ -132,6 +132,113 @@ export const WEARABLES = {
       `<path d="M17 45 L17 56" stroke="#8A6242" stroke-width="7" stroke-linecap="round"/>` +
       `<circle cx="17" cy="58" r="3.4" fill="#F7C948" ${THIN}/>`,
   },
+
+  // --- fler hattar --------------------------------------------------------
+  vintermossa: {
+    viewBox: "0 0 56 42",
+    par: "xMidYMax",
+    art:
+      `<path d="M8 32 Q8 6 28 6 Q48 6 48 32 Z" fill="#7FC7E8" ${LINE}/>` +
+      `<path d="M18 10 L16 31 M28 7 L28 32 M38 10 L40 31" fill="none" ${THIN}/>` +
+      `<rect x="5" y="29" width="46" height="10" rx="5" fill="#5FB0D8" ${LINE}/>` +
+      `<path d="M9 34 L47 34" fill="none" ${THIN}/>` +
+      `<circle cx="28" cy="5" r="4.6" fill="#fff" ${THIN}/>`,
+  },
+  strahatt: {
+    viewBox: "0 0 64 38",
+    par: "xMidYMax",
+    art:
+      `<ellipse cx="32" cy="28" rx="30" ry="8" fill="#F2A93B" ${LINE}/>` +
+      `<path d="M15 26 Q16 7 32 7 Q48 7 49 26 Z" fill="#F7C948" ${LINE}/>` +
+      `<path d="M15 24 Q32 30 49 24 L49 27 Q32 33 15 27 Z" fill="#EF6F6C" ${LINE}/>` +
+      `<path d="M20 15 Q26 11 32 12" fill="none" stroke="#FDE9A8" stroke-width="2.2" stroke-linecap="round"/>`,
+  },
+  cowboyhatt: {
+    viewBox: "0 0 64 42",
+    par: "xMidYMax",
+    art:
+      `<path d="M4 31 Q32 22 60 31 Q32 41 4 31 Z" fill="#B0805A" ${LINE}/>` +
+      `<path d="M18 31 Q17 12 24 9 Q32 6 40 9 Q47 12 46 31 Z" fill="#C9996B" ${LINE}/>` +
+      `<path d="M18 27 Q32 32 46 27" fill="none" stroke="#8A6242" stroke-width="3.4" stroke-linecap="round"/>` +
+      `<path d="M32 15 L33.4 18.4 L37 18.7 L34.2 21.1 L35 24.6 L32 22.7 L29 24.6 L29.8 21.1 L27 18.7 L30.6 18.4 Z" fill="#F7C948" ${THIN}/>`,
+  },
+
+  // --- fler ansikte -------------------------------------------------------
+  pilotglasogon: {
+    viewBox: "0 0 60 24",
+    par: "xMidYMid",
+    art:
+      `<path d="M2 8 L9 9 M58 8 L51 9" fill="none" stroke="#F2A93B" stroke-width="3" stroke-linecap="round"/>` +
+      `<path d="M25 10 Q30 7 35 10" fill="none" stroke="#F2A93B" stroke-width="3" stroke-linecap="round"/>` +
+      `<circle cx="16" cy="12" r="9" fill="#D9F0FA" stroke="#F2A93B" stroke-width="3"/>` +
+      `<circle cx="44" cy="12" r="9" fill="#D9F0FA" stroke="#F2A93B" stroke-width="3"/>` +
+      `<path d="M11 9 Q14 6 18 8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>` +
+      `<path d="M39 9 Q42 6 46 8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>`,
+  },
+  ogonlapp: {
+    viewBox: "0 0 60 26",
+    par: "xMidYMid",
+    art:
+      `<path d="M4 6 L56 17" fill="none" ${LINE}/>` +
+      `<ellipse cx="20" cy="13" rx="10" ry="9" fill="#4C4661" ${LINE}/>` +
+      `<path d="M14 9 Q18 7 22 8" fill="none" stroke="#6E6784" stroke-width="2.2" stroke-linecap="round"/>` +
+      `<path d="M40 12 Q44 9 48 12" fill="none" ${THIN}/>`,
+  },
+
+  // --- fler hals ----------------------------------------------------------
+  fluga: {
+    viewBox: "0 0 48 26",
+    par: "xMidYMin",
+    art:
+      `<path d="M24 13 L6 4 Q1 13 6 22 Z" fill="#EF6F6C" ${LINE}/>` +
+      `<path d="M24 13 L42 4 Q47 13 42 22 Z" fill="#EF6F6C" ${LINE}/>` +
+      `<path d="M11 9 Q9 13 11 17 M37 9 Q39 13 37 17" fill="none" ${THIN}/>` +
+      `<rect x="19" y="7" width="10" height="12" rx="3" fill="#D95550" ${LINE}/>`,
+  },
+  slips: {
+    viewBox: "0 0 34 48",
+    par: "xMidYMin",
+    art:
+      `<path d="M11 3 L23 3 L26 12 L8 12 Z" fill="#46557A" ${LINE}/>` +
+      `<path d="M10 12 L24 12 L20 40 L17 45 L14 40 Z" fill="#7FC7E8" ${LINE}/>` +
+      `<path d="M12 20 L21 20 M13 28 L20 28 M14 35 L19 35" fill="none" stroke="#5FB0D8" stroke-width="2.2" stroke-linecap="round"/>`,
+  },
+
+  // --- fler hand ----------------------------------------------------------
+  blomma: {
+    viewBox: "0 0 40 62",
+    par: "xMidYMax",
+    art:
+      `<path d="M20 24 L20 58" fill="none" stroke="#4FA85A" stroke-width="5" stroke-linecap="round"/>` +
+      `<path d="M20 42 Q9 38 7 47 Q16 49 20 43 Z" fill="#6FC66F" ${THIN}/>` +
+      `<circle cx="20" cy="8" r="7" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="30" cy="14" r="7" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="26" cy="25" r="7" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="14" cy="25" r="7" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="10" cy="14" r="7" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="20" cy="16" r="6" fill="#F7C948" ${THIN}/>`,
+  },
+  glasstrut: {
+    viewBox: "0 0 36 62",
+    par: "xMidYMax",
+    art:
+      `<path d="M10 30 L26 30 L18 58 Z" fill="#E0B98C" ${LINE}/>` +
+      `<path d="M13 34 L21 43 M20 33 L26 39 M11 40 L16 46" fill="none" stroke="#B0805A" stroke-width="1.8" stroke-linecap="round"/>` +
+      `<circle cx="18" cy="24" r="11" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="18" cy="13" r="8.5" fill="#58C6A9" ${LINE}/>` +
+      `<path d="M18 5 Q18 2 21 2" fill="none" stroke="#4FA85A" stroke-width="2.2" stroke-linecap="round"/>` +
+      `<circle cx="18" cy="5" r="3" fill="#EF6F6C" ${THIN}/>`,
+  },
+  bok: {
+    viewBox: "0 0 44 54",
+    par: "xMidYMax",
+    art:
+      `<rect x="9" y="9" width="28" height="40" rx="3" fill="#EF6F6C" ${LINE}/>` +
+      `<rect x="9" y="9" width="7" height="40" rx="3" fill="#D95550" ${LINE}/>` +
+      `<rect x="34" y="12" width="4" height="34" rx="1.5" fill="#FFF3DC" ${THIN}/>` +
+      `<path d="M22 18 L23.4 21.4 L27 21.7 L24.2 24.1 L25 27.6 L22 25.7 L19 27.6 L19.8 24.1 L17 21.7 L20.6 21.4 Z" fill="#F7C948" stroke="none"/>` +
+      `<path d="M20 34 L32 34 M20 39 L30 39" fill="none" stroke="#F7C948" stroke-width="2" stroke-linecap="round"/>`,
+  },
 };
 
 /**

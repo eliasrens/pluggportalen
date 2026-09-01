@@ -8,6 +8,8 @@
 import * as data from "./data.js";
 import { app, el, go, renderTopbar } from "./ui.js";
 import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
+import { addXp } from "./data-xp.js";
+import { xpForExercise, xpIntoLevel } from "./leveling.js";
 
 export const enc = encodeURIComponent;
 
@@ -94,9 +96,11 @@ export function muteButton() {
 // ---------------------------------------------------------------------------
 
 /**
- * Dela ut belöning + spara framsteg för en avklarad övning.
- * Grind-skydd: bara första gången ger full pott, omspel ger ca 30 %.
- * @returns {Promise<{coins:number, firstTime:boolean}>}
+ * Dela ut belöning (coins + XP) + spara framsteg för en avklarad övning.
+ * Grind-skydd: bara första gången ger full pott, omspel ger ca 30 % (både coins
+ * och XP), så det inte lönar sig att grinda samma övning. XP-potten (basXP +
+ * stjärnor × perStar) definieras i leveling.js.
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {
   let firstTime = true;
@@ -105,14 +109,22 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
     firstTime = !progress?.[area]?.[mode]?.completed;
   } catch {}
   let coins = Math.max(1, Math.round(baseCoins));
-  if (!firstTime) coins = Math.max(1, Math.round(baseCoins * 0.3));
+  let xp = xpForExercise(stars);
+  if (!firstTime) {
+    coins = Math.max(1, Math.round(baseCoins * 0.3));
+    xp = Math.max(1, Math.round(xp * 0.3));
+  }
+  let totalXp = 0;
   try {
     await data.addCoins(coins);
   } catch {}
   try {
+    totalXp = await addXp(xp);
+  } catch {}
+  try {
     await data.saveProgress(area, mode, { completed: true, stars, bestScore });
   } catch {}
-  return { coins, firstTime };
+  return { coins, xp, totalXp, firstTime };
 }
 
 /**
@@ -122,8 +134,13 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  */
 export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, firstTime } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
-  await renderTopbar(); // uppdatera coins-saldot i sidhuvudet
+  const { coins, xp, totalXp, firstTime } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
+  await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
+
+  // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
+  const after = xpIntoLevel(totalXp);
+  const before = xpIntoLevel(Math.max(0, totalXp - xp));
+  const leveledUp = after.level > before.level;
 
   const view = el(`<div class="result-card panel center">
     <div class="result-emoji">${stars >= 2 ? "🎉" : "😀"}</div>
@@ -131,7 +148,9 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="result-stars">${starRow(stars)}</div>
     ${scoreLine ? `<p class="result-score">${scoreLine}</p>` : ""}
     <div class="coin-pop">🪙 +${coins} pluggcoins</div>
-    ${firstTime ? "" : '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins den här gången.</p>'}
+    <div class="xp-pop">⭐ +${xp} XP</div>
+    ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
+    ${firstTime ? "" : '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>'}
     <p class="cheer">${cheer(stars)}</p>
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
@@ -152,28 +171,57 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
 // Frågemotor (delas av Quiz och Läsförståelse)
 // ---------------------------------------------------------------------------
 
+// Hur många gånger en felsvarad fråga får komma tillbaka innan vi släpper den.
+// Taket gör att en fråga eleven kämpar med inte loopar i all oändlighet.
+const MAX_RETURNS = 2;
+
 /**
- * Kör en omgång flervalsfrågor med direkt feedback. Anropar onFinish(correct,
- * total) när alla frågor är besvarade. reviewButton (valfri) läggs överst på
- * varje fråga – används av Läsförståelse för att titta tillbaka på texten.
+ * Kör en omgång flervalsfrågor med direkt feedback och repetition inom rundan:
+ * en fråga man svarar FEL på köas upp igen ett par frågor senare (med omblandade
+ * svarsalternativ) tills den besvaras rätt, dock högst MAX_RETURNS gånger.
+ *
+ * Anropar onFinish(correct, total) när kön är tom. Både correct och total räknas
+ * per UNIK fråga – repetitioner dubbelräknas alltså inte, så stjärnor/coins blir
+ * rätt. total = antal unika frågor; correct = antal unika frågor eleven till slut
+ * svarade rätt på.
+ *
+ * Progress-visningen är ärlig trots att kön kan växa: vi räknar unika frågor
+ * eleven är klar med (rätt-svarade) av det totala antalet unika frågor, i stället
+ * för att räkna varje kö-plats. Det gör att "Fråga X av Y" och progressbaren inte
+ * hoppar bakåt eller överstiger Y när en fråga återkommer.
+ *
+ * reviewButton (valfri) läggs överst på varje fråga – används av Läsförståelse.
+ *
+ * showPassage (valfri): när sant visas frågans egna korta text (q.passage) i ett
+ * lugnt block OVANFÖR just den frågan. Passage följer med i frågeobjektet, så den
+ * visas korrekt även när en felsvarad fråga återkommer. Saknar frågan passage
+ * visas inget extra block (aldrig hela texten på en gång) – se startLasforstaelse.
+ * Quiz-läget skickar inte flaggan och är därför helt oförändrat.
  */
-export function runQuestions({ body, questions, onFinish, reviewButton }) {
-  const qs = shuffle(questions).map((q) => {
-    // Blanda svarsalternativen men kom ihåg vilket som är rätt.
+export function runQuestions({ body, questions, onFinish, reviewButton, showPassage }) {
+  // Bygg ett frågeobjekt per unik fråga (med stabilt id för unik-räkningen).
+  const built = shuffle(questions).map((q, id) => {
     const opts = q.options.map((text, i) => ({ text, correct: i === q.answerIndex }));
-    return { question: q.question, explanation: q.explanation, options: shuffle(opts) };
+    return { id, question: q.question, explanation: q.explanation, passage: q.passage, options: shuffle(opts), returns: 0 };
   });
 
-  let i = 0;
-  let correct = 0;
+  const totalUnique = built.length;
+  const resolved = new Set(); // id:n på frågor som till slut besvarats rätt
+
+  // Kön av frågor att visa. Kan växa när fel-svarade frågor köas om.
+  const queue = built.slice();
+  let pos = 0;
 
   function renderQ() {
-    const q = qs[i];
+    const q = queue[pos];
+    // Ärlig progress: hur många unika frågor är klara (rätt) av totalen.
+    const doneUnique = resolved.size;
     const wrap = el(`<div class="quiz-wrap">
       <div class="quiz-progress">
-        <div class="quiz-progress-bar" style="width:${(i / qs.length) * 100}%"></div>
+        <div class="quiz-progress-bar" style="width:${(doneUnique / totalUnique) * 100}%"></div>
       </div>
-      <p class="quiz-count">Fråga ${i + 1} av ${qs.length}</p>
+      <p class="quiz-count">Fråga ${Math.min(doneUnique + 1, totalUnique)} av ${totalUnique}</p>
+      ${showPassage && q.passage ? `<div class="lasf-passage"><span class="lasf-passage-emoji">📖</span><p>${q.passage}</p></div>` : ""}
       <div class="quiz-question">${q.question}</div>
       <div class="quiz-options">
         ${q.options
@@ -198,7 +246,7 @@ export function runQuestions({ body, questions, onFinish, reviewButton }) {
           if (q.options[idx].correct) b.classList.add("correct");
         });
         if (chosen.correct) {
-          correct++;
+          resolved.add(q.id); // unik fråga klar (räknas bara en gång)
           btn.classList.add("chosen-correct");
           sound.correct();
           fb.innerHTML = `<div class="msg ok">Rätt! ✅ ${q.explanation || ""}</div>`;
@@ -206,12 +254,20 @@ export function runQuestions({ body, questions, onFinish, reviewButton }) {
           btn.classList.add("chosen-wrong");
           sound.wrong();
           fb.innerHTML = `<div class="msg soft">Inte riktigt – men bra försök! 💡 ${q.explanation || ""}</div>`;
+          // Köa om frågan ett par frågor senare (om vi inte nått taket).
+          if (q.returns < MAX_RETURNS) {
+            q.returns++;
+            q.options = shuffle(q.options); // blanda om alternativen till återkomsten
+            const gap = 2 + Math.floor(Math.random() * 2); // 2–3 frågor senare
+            const insertAt = Math.min(pos + gap, queue.length); // sist om vi är nära slutet
+            queue.splice(insertAt, 0, q);
+          }
         }
-        const last = i === qs.length - 1;
+        const last = pos >= queue.length - 1;
         const next = el(`<button class="btn gron">${last ? "Se resultat" : "Nästa fråga →"}</button>`);
         next.addEventListener("click", () => {
-          i++;
-          if (i >= qs.length) onFinish(correct, qs.length);
+          pos++;
+          if (pos >= queue.length) onFinish(resolved.size, totalUnique);
           else renderQ();
         });
         nextWrap.replaceChildren(next);

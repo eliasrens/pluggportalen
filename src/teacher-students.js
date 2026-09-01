@@ -36,15 +36,18 @@ export async function pageLarareElever(ctx) {
       <p class="hint">Skriv in eleverna i tabellen – namn, användarnamn och lösenord.
         Lägg till rader för en hel klass och klicka <b>Spara alla</b>. Användarnamn skrivs
         automatiskt om till gemener. Eleverna loggar in på elevsidan med användarnamn + lösenord.</p>
+      <p class="hint">🪙 <b>Belöna en elev:</b> för redan sparade elever kan du ge pluggcoins –
+        skriv ett antal eller använd snabbknapparna och klicka <b>Ge 🪙</b>.</p>
       <div class="table-scroll">
         <table class="tbl student-tbl">
           <thead>
             <tr>
-              <th style="width:26%">Namn</th>
-              <th style="width:24%">Användarnamn</th>
-              <th style="width:22%">Lösenord</th>
-              <th style="width:16%">Avatar</th>
-              <th style="width:12%"></th>
+              <th style="width:22%">Namn</th>
+              <th style="width:18%">Användarnamn</th>
+              <th style="width:14%">Lösenord</th>
+              <th style="width:10%">Avatar</th>
+              <th style="width:26%">Belöna 🪙</th>
+              <th style="width:10%"></th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -68,6 +71,42 @@ export async function pageLarareElever(ctx) {
       .join("")}</select>`;
   }
 
+  // Koppla "Ge coins"-kontrollen för en elevrad: snabbknappar, validering och flash.
+  function wireGiveCoins(row, student) {
+    const amountEl = row.querySelector(".gc-amount");
+    const giveBtn = row.querySelector(".gc-give");
+    const flashEl = row.querySelector(".gc-flash");
+
+    row.querySelectorAll(".gc-quick").forEach((b) =>
+      b.addEventListener("click", () => {
+        amountEl.value = b.dataset.add;
+        amountEl.focus();
+      })
+    );
+
+    giveBtn.addEventListener("click", async () => {
+      const amount = Math.floor(Number(amountEl.value));
+      if (!Number.isFinite(amount) || amount <= 0) {
+        flashEl.innerHTML = `<span class="gc-err">Skriv ett antal (positivt tal).</span>`;
+        amountEl.focus();
+        return;
+      }
+      giveBtn.disabled = true;
+      flashEl.innerHTML = `<span class="hint">Ger coins…</span>`;
+      try {
+        await data.addCoins(amount, student.id);
+        const nytt = await data.getCoins(student.id);
+        const namn = student.namn || student.username || "eleven";
+        flashEl.innerHTML =
+          `<span class="gc-ok">✓ ${esc(namn)} fick ${amount} 🪙 – nytt saldo: ${nytt} 🪙</span>`;
+      } catch (err) {
+        flashEl.innerHTML = `<span class="gc-err">Kunde inte ge coins: ${esc(err.message)}</span>`;
+      } finally {
+        giveBtn.disabled = false;
+      }
+    });
+  }
+
   function addRow(student = null) {
     const isExisting = !!student;
     const row = el(`<tr class="student-row" ${isExisting ? `data-id="${esc(student.id)}"` : ""}>
@@ -75,6 +114,19 @@ export async function pageLarareElever(ctx) {
       <td><input class="cell username" value="${esc(student?.username || "")}" placeholder="användarnamn" autocapitalize="none" /></td>
       <td><input class="cell password" value="${esc(student?.password || "")}" placeholder="lösenord" /></td>
       <td>${avatarSelectHtml(student?.avatarId || "fox")}</td>
+      <td class="give-coins-cell">${
+        isExisting
+          ? `<div class="give-coins">
+              <div class="gc-row">
+                <input class="cell gc-amount" type="number" min="1" step="1" value="10" aria-label="Antal coins" />
+                <button class="btn ghost small gc-quick" data-add="10">+10</button>
+                <button class="btn ghost small gc-quick" data-add="50">+50</button>
+                <button class="btn gron small gc-give">Ge 🪙</button>
+              </div>
+              <div class="gc-flash" aria-live="polite"></div>
+            </div>`
+          : `<span class="hint">Spara först</span>`
+      }</td>
       <td class="row-actions">
         <button class="btn ghost small danger" data-act="del">Ta bort</button>
       </td>
@@ -91,6 +143,9 @@ export async function pageLarareElever(ctx) {
       });
       userInput.addEventListener("input", () => (userInput.dataset.touched = "1"));
     }
+
+    // Ge coins (belöning) – bara för redan sparade elever.
+    if (isExisting) wireGiveCoins(row, student);
 
     row.querySelector('[data-act="del"]').addEventListener("click", async () => {
       const id = row.dataset.id;

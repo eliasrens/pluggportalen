@@ -94,4 +94,47 @@ export const DECOR = {
       `<circle cx="46" cy="18" r="2.2" fill="#C9EEFB" ${THIN}/>` +
       `<circle cx="50" cy="12" r="1.6" fill="#C9EEFB" ${THIN}/>`,
   },
+  girlang: {
+    viewBox: "0 0 72 44",
+    art:
+      `<path d="M4 8 Q36 22 68 8" fill="none" ${LINE}/>` +
+      `<path d="M10 11 L22 11 L16 27 Z" fill="#EF6F6C" ${THIN}/>` +
+      `<path d="M23 15 L35 15 L29 31 Z" fill="#F7C948" ${THIN}/>` +
+      `<path d="M37 16 L49 16 L43 32 Z" fill="#6FC66F" ${THIN}/>` +
+      `<path d="M50 15 L62 15 L56 31 Z" fill="#7FC7E8" ${THIN}/>` +
+      `<circle cx="4" cy="8" r="2.4" fill="#B79BE0" ${THIN}/>` +
+      `<circle cx="68" cy="8" r="2.4" fill="#B79BE0" ${THIN}/>`,
+  },
+  ballonger: {
+    viewBox: "0 0 56 66",
+    art:
+      `<path d="M18 32 Q28 44 28 58 M38 30 Q30 44 28 58 M28 40 L28 58" fill="none" ${THIN}/>` +
+      `<ellipse cx="18" cy="18" rx="13" ry="15" fill="#EF6F6C" ${LINE}/>` +
+      `<ellipse cx="38" cy="16" rx="13" ry="15" fill="#7FC7E8" ${LINE}/>` +
+      `<ellipse cx="28" cy="30" rx="12" ry="14" fill="#F7C948" ${LINE}/>` +
+      `<ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="#fff" opacity="0.45"/>` +
+      `<ellipse cx="33" cy="10" rx="3.4" ry="4.6" fill="#fff" opacity="0.45"/>` +
+      `<ellipse cx="23" cy="25" rx="3" ry="4" fill="#fff" opacity="0.4"/>`,
+  },
+  kaktus: {
+    viewBox: "0 0 48 66",
+    art:
+      `<path d="M17 44 L14 62 L34 62 L31 44 Z" fill="#F08A3C" ${LINE}/>` +
+      `<rect x="11" y="39" width="26" height="8" rx="3" fill="#F49E4C" ${LINE}/>` +
+      `<path d="M18 44 Q13 30 18 16 Q24 10 30 16 Q35 30 30 44 Z" fill="#6FC66F" ${LINE}/>` +
+      `<path d="M12 38 Q6 34 8 26 Q11 22 15 26 L15 34" fill="#6FC66F" ${LINE}/>` +
+      `<path d="M36 34 Q42 30 40 22 Q37 18 33 22 L33 30" fill="#6FC66F" ${LINE}/>` +
+      `<path d="M24 20 L24 40 M20 28 L28 28" fill="none" ${THIN}/>` +
+      `<circle cx="24" cy="14" r="3.4" fill="#F890B7" ${THIN}/>`,
+  },
+  vaggklocka: {
+    viewBox: "0 0 56 56",
+    art:
+      `<circle cx="28" cy="28" r="23" fill="#F7C948" ${LINE}/>` +
+      `<circle cx="28" cy="28" r="18" fill="#FFF3DC" ${THIN}/>` +
+      `<path d="M28 12 L28 16 M44 28 L40 28 M28 44 L28 40 M12 28 L16 28" fill="none" ${THIN}/>` +
+      `<path d="M28 28 L28 17" fill="none" stroke="${O}" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<path d="M28 28 L37 32" fill="none" stroke="${O}" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<circle cx="28" cy="28" r="2.4" fill="#EF6F6C"/>`,
+  },
 };

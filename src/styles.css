@@ -57,6 +57,35 @@ body {
   z-index: 10;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Hem-knapp i sidhuvudet – stor nog för barnfingrar på mobil. */
+.topbar .hem-btn {
+  font-size: 1.05rem;
+  padding: 10px 18px;
+  border-radius: 999px;
+  min-height: 48px;
+  background: var(--gul, #ffd85e);
+  color: #7a5c00;
+  box-shadow: 0 4px 0 #d9ac1f;
+  white-space: nowrap;
+}
+
+.topbar .hem-btn .hem-ikon {
+  font-size: 1.4rem;
+}
+
+@media (max-width: 560px) {
+  .topbar .brand .brand-text {
+    display: none;
+  }
+}
+
 .topbar .brand {
   display: flex;
   align-items: center;
@@ -84,6 +113,19 @@ body {
   padding: 8px 16px;
   border-radius: 999px;
   font-size: 1.1rem;
+}
+
+/* Liten, diskret nivåetikett i sidhuvudet (bredvid coins). */
+.topbar .niva {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef4ff;
+  color: #3a5bbf;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 1rem;
 }
 
 .container {
@@ -1030,3 +1072,580 @@ code {
 .flash.error {
   background: var(--rod);
 }
+
+/* --- Klassöversikt (lärarsidan, #/larare/klass) ---------------------------- */
+
+.class-tbl {
+  min-width: 720px;
+  font-size: 0.92rem;
+}
+
+/* Elevkolumnen fastnålad till vänster så namnet syns när man scrollar i sidled. */
+.class-tbl .cx-corner,
+.class-tbl .cx-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  text-align: left;
+}
+
+.class-tbl thead th {
+  vertical-align: bottom;
+  text-align: center;
+}
+
+.class-tbl .cx-corner {
+  z-index: 2;
+  background: #f6faff;
+}
+
+.class-tbl .cx-head {
+  min-width: 84px;
+  max-width: 120px;
+}
+
+.class-tbl .cx-head-emoji {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.class-tbl .cx-head-name {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.class-tbl .cx-total-head {
+  min-width: 74px;
+  text-align: center;
+}
+
+.class-tbl tbody tr:nth-child(even) td,
+.class-tbl tbody tr:nth-child(even) .cx-name {
+  background: #f9fbff;
+}
+
+.class-tbl .cx-name {
+  font-weight: 700;
+  white-space: nowrap;
+  padding-right: 14px;
+}
+
+.class-tbl .cx-avatar {
+  font-size: 1.2rem;
+  margin-right: 6px;
+}
+
+.class-tbl .cx {
+  text-align: center;
+  border-left: 1px solid #eef2f9;
+}
+
+.class-tbl .cx-stars {
+  display: block;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--bla-mork);
+  white-space: nowrap;
+}
+
+.class-tbl .cx-slash {
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+.class-tbl .cx-bar {
+  display: block;
+  height: 6px;
+  margin: 4px auto 0;
+  width: 80%;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.class-tbl .cx-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+
+.class-tbl .cx-empty {
+  color: var(--text-svag);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Nivåfärger (bakgrundston + stapel). */
+.class-tbl .cx.hog { background: #eafaf0; }
+.class-tbl .cx.mellan { background: #fff7e6; }
+.class-tbl .cx.lag { background: #fdecef; }
+.class-tbl .cx.hog .cx-bar-fill { background: var(--gron); }
+.class-tbl .cx.mellan .cx-bar-fill { background: var(--orange); }
+.class-tbl .cx.lag .cx-bar-fill { background: var(--rosa); }
+
+.class-tbl .cx-total {
+  text-align: center;
+  font-weight: 800;
+  border-left: 2px solid #e2ecfb;
+}
+
+.class-tbl .cx-total-pct {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.class-tbl .cx-total-stars {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-svag);
+}
+
+.class-tbl .cx-total.hog { color: var(--gron-mork); }
+.class-tbl .cx-total.mellan { color: #b9770f; }
+.class-tbl .cx-total.lag { color: #c0396a; }
+.class-tbl .cx-total.tom { color: var(--text-svag); }
+
+.cx-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--text-svag);
+}
+
+.cx-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.cx-dot.hog { background: #8fe0ab; }
+.cx-dot.mellan { background: #f6c777; }
+.cx-dot.lag { background: #f4a0b8; }
+.cx-dot.tom { background: #e2ecfb; }
+
+/* --- Utveckling (karaktärs-evolution, #/elev/utveckling) ------------------- */
+
+.evo-hero {
+  font-size: 5.5rem;
+}
+
+.evo-stegrad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0 6px;
+}
+
+.evo-steg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+}
+
+.evo-steg-prick {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: #e2ecfb;
+  color: var(--bla-mork);
+}
+
+.evo-steg.klar .evo-steg-prick,
+.evo-steg.nu .evo-steg-prick {
+  background: var(--gron);
+  color: #fff;
+}
+
+.evo-steg.nu .evo-steg-prick {
+  box-shadow: 0 0 0 4px #b9ecc9;
+}
+
+.evo-steg-text {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.evo-steg-krav {
+  font-size: 0.78rem;
+  color: #7c88a6;
+  font-weight: 700;
+}
+
+.evo-pil {
+  font-size: 1.3rem;
+  color: #b9c6e0;
+  font-weight: 800;
+}
+
+.evo-status {
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+/* Nivå + XP-mätare på utvecklingssidan */
+.evo-niva-rad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 8px;
+  flex-wrap: wrap;
+}
+
+.evo-niva-badge {
+  background: #eef4ff;
+  color: #3a5bbf;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 1.1rem;
+}
+
+.evo-niva-xp {
+  color: #7c88a6;
+  font-weight: 700;
+}
+
+.evo-xp-bar {
+  height: 16px;
+  background: #eaf0fb;
+  border-radius: 999px;
+  overflow: hidden;
+  max-width: 340px;
+  margin: 0 auto 6px;
+}
+
+.evo-xp-fyll {
+  height: 100%;
+  background: linear-gradient(90deg, #6fa8ff, #3a5bbf);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* Grenvalskorten (sista steget) */
+.evo-gren-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 14px 0 18px;
+}
+
+.evo-gren {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  border-radius: 18px;
+  border: 4px solid transparent;
+  background: #eef4ff;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+
+.evo-gren:hover {
+  transform: translateY(-3px);
+}
+
+.evo-gren.selected {
+  border-color: var(--gron);
+  background: #e5f8ec;
+}
+
+.evo-gren-bild {
+  font-size: 4.2rem;
+  line-height: 1;
+}
+
+.evo-gren-bild svg {
+  width: 1em;
+  height: 1.2em;
+}
+
+.evo-gren-namn {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--bla-mork);
+}
+
+.evo-gren-desc {
+  font-size: 0.88rem;
+  color: #5d6a89;
+  font-weight: 600;
+}
+/* --- Klassfoto (#/elev/klassfoto) ----------------------------------------- */
+/* Additivt tillägg – håll separat för enkel rebase. */
+
+.foto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.foto-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px 14px;
+  background: #fff;
+  border: none;
+  border-radius: var(--radie);
+  box-shadow: var(--skugga);
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.foto-card:hover,
+.foto-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+}
+
+.foto-card.du {
+  background: linear-gradient(160deg, #eafaf0, #d7f3e2);
+  outline: 3px solid var(--gron);
+  outline-offset: -3px;
+}
+
+.foto-figur {
+  font-size: 3.4rem;
+  line-height: 1;
+}
+
+.foto-namn {
+  font-weight: 800;
+  font-size: 0.98rem;
+  word-break: break-word;
+}
+
+.foto-du {
+  position: absolute;
+  top: -10px;
+  right: -6px;
+  background: var(--gron);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  box-shadow: var(--skugga);
+  transform: rotate(6deg);
+}
+
+/* --- Klasskamratens rum (läs-endast) ------------------------------------- */
+.klasskamrat-figur {
+  font-size: 4.2rem;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+/* Läs-läge: rummets saker är inte flyttbara/valbara – bara att titta på. */
+.room-stage.readonly .room-item.readonly {
+  cursor: default;
+}
+
+/* ==========================================================================
+   Klasshantering (#/larare/klasser) – teacher-classes.js
+   Additivt tillägg (håll separat för enkel rebase).
+   ========================================================================== */
+
+.new-class {
+  margin-top: 14px;
+  align-items: center;
+}
+
+.new-class #new-name {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 2px solid #dbe6f5;
+  border-radius: 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+}
+
+.new-class #new-name:focus {
+  outline: none;
+  border-color: var(--bla);
+}
+
+.class-card {
+  margin-top: 14px;
+}
+
+.class-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.class-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.class-emoji {
+  font-size: 1.4rem;
+}
+
+.class-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.class-count {
+  font-size: 0.82rem;
+  color: var(--text-svag);
+  background: #eef4fd;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.class-members,
+.class-assign {
+  margin-top: 14px;
+  border-top: 2px dashed #e2ecfb;
+  padding-top: 14px;
+}
+
+.assign-group {
+  margin-bottom: 12px;
+}
+
+.assign-subject {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.assign-result {
+  margin-left: 4px;
+}
+
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 2px solid #e6eefa;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.member-row:hover {
+  border-color: var(--bla);
+}
+
+.member-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gron);
+}
+
+.member-avatar {
+  font-size: 1.2rem;
+}
+
+.member-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ok-inline {
+  color: var(--gron-mork);
+  font-weight: 600;
+}
+
+.err-inline {
+  color: var(--rod);
+  font-weight: 600;
+}
+
+/* --- Mitt husdjur (#/elev/husdjur) – ägg, varelse och tillväxt ------------ */
+.pet-figur { margin: 14px auto; }
+.pet-figur svg { width: 100%; height: 100%; display: block; }
+.pet-agg { width: 150px; height: 150px; }
+/* Varelsen växer i 3 steg – sista steget rätt stort. */
+.pet-stage-1 { width: 110px; height: 110px; }
+.pet-stage-2 { width: 175px; height: 175px; }
+.pet-stage-3 { width: 270px; height: 270px; max-width: 80vw; }
+.pet-wiggle { animation: pet-wiggle 3.2s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes pet-wiggle {
+  0%, 82%, 100% { transform: rotate(0); }
+  86% { transform: rotate(-4deg); }
+  90% { transform: rotate(4deg); }
+  94% { transform: rotate(-2deg); }
+}
+.pet-pop { animation: pet-pop 0.6s ease-out; }
+@keyframes pet-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pet-nedrakning { font-size: 1.25rem; font-weight: 700; }
+.pet-steg { display: flex; gap: 8px; justify-content: center; margin: 10px 0 4px; flex-wrap: wrap; }
+.pet-steg-chip {
+  padding: 6px 14px; border-radius: 14px; background: var(--ljus);
+  border: 2px solid rgba(0, 0, 0, 0.08); font-weight: 700; line-height: 1.15;
+}
+.pet-steg-chip small { font-weight: 600; opacity: 0.7; }
+.pet-steg-chip.aktiv { background: var(--gul); border-color: rgba(0, 0, 0, 0.15); }
+.pet-steg-chip.klar { background: #d9f4e4; }
+.pet-prickar { display: flex; gap: 8px; justify-content: center; margin: 6px 0 10px; }
+.pet-prick {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ljus); border: 2px solid rgba(0, 0, 0, 0.15);
+}
+.pet-prick.full { background: var(--gron); border-color: var(--gron); }
+
+/* Lärare: "Ge coins" i elevlistan */
+.give-coins-cell { vertical-align: middle; }
+.give-coins .gc-row {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.give-coins .gc-amount { width: 64px; text-align: center; }
+.give-coins .gc-flash { margin-top: 6px; font-size: 0.9rem; min-height: 1.1em; }
+.give-coins .gc-ok { color: #1e7a45; font-weight: 700; }
+.give-coins .gc-err { color: #b3261e; font-weight: 700; }
