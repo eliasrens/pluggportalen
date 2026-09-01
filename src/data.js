@@ -27,10 +27,8 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -132,6 +130,7 @@ function defaultStudentData(avatarId) {
     room: { placements: {} }, // { [itemId]: { x, y } }
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
+    evolution: {}, // { [avatarId]: { stage, branch } } – elevens grenval (se evolution.js)
   };
 }
 
@@ -324,6 +323,29 @@ export async function setAvatar(avatarId, studentId = currentStudentId()) {
   return avatarId;
 }
 
+// --- Evolution (Pokémon-stil) ----------------------------------------------
+// Vilket steg figuren NÅTT härleds alltid ur framstegen (se evolution.js) –
+// här sparas bara elevens aktiva VAL: grenen i sista steget.
+
+/** Hela evolution-objektet: { [avatarId]: { stage, branch } }. */
+export async function getEvolution(studentId = currentStudentId()) {
+  const data = await getStudentData(studentId);
+  return data.evolution || {};
+}
+
+/**
+ * Spara elevens grenval för en figur (t.ex. roboten i sista steget).
+ * @param {string} avatarId figuren valet gäller (t.ex. "robot")
+ * @param {{stage?: number, branch?: string|null}} choice
+ */
+export async function setEvolutionChoice(avatarId, { stage = null, branch = null } = {}, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  // merge:true slår ihop nästlade maps → val för andra figurer bevaras.
+  await setDoc(ref, { evolution: { [avatarId]: { stage, branch } } }, { merge: true });
+  return { stage, branch };
+}
+
 /** Har eleven valt en grundavatar själv (annars: visa avatarvalet först)? */
 export async function hasChosenAvatar(studentId = currentStudentId()) {
   const data = await getStudentData(studentId);
@@ -363,108 +385,20 @@ export async function getStats(studentId = currentStudentId()) {
 }
 
 // ---------------------------------------------------------------------------
-// Kunskapsinnehåll (ämnen och arbetsområden)
+// Kunskapsinnehåll + elevkonton (lärarsidans data) – utbrutet till
+// data-content.js men re-exporteras här så alla `import * as data` fungerar.
 // ---------------------------------------------------------------------------
 
-/** Lista alla ämnen, sorterade efter `order`. */
-export async function getSubjects() {
-  const snap = await getDocs(query(collection(db, "subjects"), orderBy("order")));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-/** Lista alla arbetsområden i ett ämne, sorterade efter `order`. */
-export async function getAreas(subjectId) {
-  const snap = await getDocs(
-    query(collection(db, "subjects", subjectId, "areas"), orderBy("order"))
-  );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-/** Hämta ett enskilt arbetsområde (med texts[], quiz[], pairs[]). */
-export async function getArea(subjectId, areaId) {
-  const snap = await getDoc(doc(db, "subjects", subjectId, "areas", areaId));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-}
-
-// ---------------------------------------------------------------------------
-// Ämnen och arbetsområden – skrivning (lärarsidan)
-// ---------------------------------------------------------------------------
-
-/** Skapa (eller uppdatera) ett ämne, t.ex. { name, order, icon, description }. */
-export async function upsertSubject(subjectId, subject) {
-  const ref = doc(db, "subjects", subjectId);
-  await setDoc(ref, subject, { merge: true });
-  return subjectId;
-}
-
-/**
- * Spara ett arbetsområde (skapar eller ersätter hela dokumentet).
- * @param {string} subjectId ämnets id (t.ex. "so")
- * @param {string} areaId    arbetsområdets id (t.ex. "vikingatiden")
- * @param {object} area      { name, order, coverEmoji, description, texts[], quiz[], pairs[] }
- */
-export async function saveArea(subjectId, areaId, area) {
-  const ref = doc(db, "subjects", subjectId, "areas", areaId);
-  // { id } hör inte hemma inuti dokumentet – det är dokumentets id.
-  const { id, ...rest } = area;
-  await setDoc(ref, rest);
-  return areaId;
-}
-
-/** Ta bort ett arbetsområde. */
-export async function deleteArea(subjectId, areaId) {
-  await deleteDoc(doc(db, "subjects", subjectId, "areas", areaId));
-}
-
-/** Nästa lediga order-nummer i ett ämne (max befintlig + 1). */
-export async function nextAreaOrder(subjectId) {
-  const areas = await getAreas(subjectId);
-  const max = areas.reduce((m, a) => Math.max(m, Number(a.order) || 0), 0);
-  return max + 1;
-}
-
-// ---------------------------------------------------------------------------
-// Elevkonton (lärarsidan)
-// ---------------------------------------------------------------------------
-
-/** Lista alla elevkonton. */
-export async function getStudents() {
-  const snap = await getDocs(collection(db, "students"));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-/** Skapa (eller uppdatera) ett elevkonto. */
-export async function upsertStudent(studentId, { namn, username, password, avatarId }) {
-  const ref = doc(db, "students", studentId);
-  await setDoc(
-    ref,
-    {
-      namn,
-      username: String(username).trim().toLowerCase(),
-      password,
-      avatarId: avatarId || "fox",
-    },
-    { merge: true }
-  );
-  await ensureStudentData(studentId, avatarId);
-  return studentId;
-}
-
-/** Ta bort ett elevkonto och dess speldata. */
-export async function deleteStudent(studentId) {
-  await deleteDoc(doc(db, "students", studentId));
-  await deleteDoc(doc(db, "studentData", studentId)).catch(() => {});
-}
-
-/**
- * Finns användarnamnet redan (på någon ANNAN elev än exceptId)?
- * Används för att varna för dubletter innan man sparar.
- */
-export async function usernameTaken(username, exceptId = null) {
-  const uname = String(username || "").trim().toLowerCase();
-  if (!uname) return false;
-  const snap = await getDocs(
-    query(collection(db, "students"), where("username", "==", uname))
-  );
-  return snap.docs.some((d) => d.id !== exceptId);
-}
+export {
+  getSubjects,
+  getAreas,
+  getArea,
+  upsertSubject,
+  saveArea,
+  deleteArea,
+  nextAreaOrder,
+  getStudents,
+  upsertStudent,
+  deleteStudent,
+  usernameTaken,
+} from "./data-content.js";

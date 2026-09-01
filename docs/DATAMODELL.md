@@ -6,6 +6,8 @@ eftertanke.
 
 All åtkomst går genom datamodulen [`src/data.js`](../src/data.js). Bygg inte
 egna Firestore-anrop i andra filer – använd modulens funktioner.
+(Kunskapsinnehåll + elevkonton är internt utbrutna till `src/data-content.js`,
+men re-exporteras av `data.js` – importera fortfarande bara från `data.js`.)
 
 ## Översikt av collections
 
@@ -114,6 +116,7 @@ Exempel (`students/elev1`):
 | `room`       | map    | `{ placements: { [itemId]: { x, y } } }` – `x`/`y` i **procent** (0–100) av rummet |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
+| `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds alltid ur stjärnorna i `progress` (trösklarna ligger i `src/evolution.js`). |
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
@@ -131,7 +134,8 @@ Exempel (`studentData/elev1`):
   "ownedItems": ["keps", "sang", "hund"],
   "avatarItems": ["keps"],
   "room": { "placements": { "sang": { "x": 30, "y": 70 }, "hund": { "x": 60, "y": 80 } } },
-  "avatarId": "fox"
+  "avatarId": "fox",
+  "evolution": { "robot": { "stage": 3, "branch": "kraft" } }
 }
 ```
 
@@ -168,6 +172,15 @@ Exempel (`studentData/elev1`):
 
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`
+
+**Karaktärs-evolution (Pokémon-stil)**
+- `getEvolution()` → `{ [avatarId]: { stage, branch } }` – elevens sparade grenval.
+- `setEvolutionChoice(avatarId, { stage, branch })` – spara grenvalet i sista steget.
+- Vilket steg figuren nått **härleds** ur stjärnorna i `progress` – se
+  `src/evolution.js` (`STAGE_STARS`-trösklarna, `evoFromStudentData(sd)`).
+  Rendera figuren med `avatarMarkup(avatarId, itemIds, evo)` /
+  `characterSvg(id, { stage, branch })`. Konsten per steg ligger i
+  `src/art-characters-robot.js`, registret `EVOLUTIONS` i `src/art-characters.js`.
 
 **Statistik (profil)**
 - `getStats()` → `{ coins, playedExercises, completed, stars, areas }`

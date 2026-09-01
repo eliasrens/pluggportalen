@@ -1195,3 +1195,122 @@ code {
 .cx-dot.mellan { background: #f6c777; }
 .cx-dot.lag { background: #f4a0b8; }
 .cx-dot.tom { background: #e2ecfb; }
+
+/* --- Utveckling (karaktärs-evolution, #/elev/utveckling) ------------------- */
+
+.evo-hero {
+  font-size: 5.5rem;
+}
+
+.evo-stegrad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0 6px;
+}
+
+.evo-steg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+}
+
+.evo-steg-prick {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: #e2ecfb;
+  color: var(--bla-mork);
+}
+
+.evo-steg.klar .evo-steg-prick,
+.evo-steg.nu .evo-steg-prick {
+  background: var(--gron);
+  color: #fff;
+}
+
+.evo-steg.nu .evo-steg-prick {
+  box-shadow: 0 0 0 4px #b9ecc9;
+}
+
+.evo-steg-text {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.evo-steg-krav {
+  font-size: 0.78rem;
+  color: #7c88a6;
+  font-weight: 700;
+}
+
+.evo-pil {
+  font-size: 1.3rem;
+  color: #b9c6e0;
+  font-weight: 800;
+}
+
+.evo-status {
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+/* Grenvalskorten (sista steget) */
+.evo-gren-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 14px 0 18px;
+}
+
+.evo-gren {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  border-radius: 18px;
+  border: 4px solid transparent;
+  background: #eef4ff;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+
+.evo-gren:hover {
+  transform: translateY(-3px);
+}
+
+.evo-gren.selected {
+  border-color: var(--gron);
+  background: #e5f8ec;
+}
+
+.evo-gren-bild {
+  font-size: 4.2rem;
+  line-height: 1;
+}
+
+.evo-gren-bild svg {
+  width: 1em;
+  height: 1.2em;
+}
+
+.evo-gren-namn {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--bla-mork);
+}
+
+.evo-gren-desc {
+  font-size: 0.88rem;
+  color: #5d6a89;
+  font-weight: 600;
+}

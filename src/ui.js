@@ -6,6 +6,7 @@
 
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { evoFromStudentData } from "./evolution.js";
 
 export const app = document.getElementById("app");
 export const topbarRight = document.getElementById("topbar-right");
@@ -87,16 +88,18 @@ export async function renderTopbar() {
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
+  let evo; // aktuellt utvecklingssteg + ev. grenval (härlett ur framstegen)
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
+    evo = evoFromStudentData(sd);
   } catch {}
 
   const wrap = el(`<div class="topbar-user">
     <button class="avatar-chip" id="profil-btn" title="Min profil">
-      <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems)}</span>
+      <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems, evo)}</span>
       <span class="avatar-namn">${session.namn || "Elev"}</span>
     </button>
     <span class="coins">🪙 ${coins}</span>

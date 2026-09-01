@@ -43,6 +43,8 @@ import {
 import { pageLarareKlass } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
+// Utveckling (#/elev/utveckling) – karaktärs-evolution i Pokémon-stil.
+import { pageElevUtveckling } from "./pages-evolution.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
@@ -106,6 +108,8 @@ const routes = {
   "/elev/shop": pageElevShop,
   "/elev/rum": pageElevRum,
   "/elev/profil": pageElevProfil,
+  // Utveckling – figuren växer i steg (Pokémon-stil) med grenval på slutet.
+  "/elev/utveckling": pageElevUtveckling,
   "/larare": () => pageLarare(teacherCtx),
   // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
   "/larare/klass": () => pageLarareKlass(teacherCtx),
