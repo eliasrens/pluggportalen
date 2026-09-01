@@ -16,6 +16,7 @@
 //   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/larare          lärarsida (översikt)
+//   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON)
 //   #/larare/prompter färdiga AI-prompter
 //   #/larare/elever   elevkontohantering
@@ -38,6 +39,8 @@ import {
   pageLararePrompter,
   pageLarareElever,
 } from "./teacher.js";
+// Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
+import { pageLarareKlass } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
@@ -104,6 +107,8 @@ const routes = {
   "/elev/rum": pageElevRum,
   "/elev/profil": pageElevProfil,
   "/larare": () => pageLarare(teacherCtx),
+  // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
+  "/larare/klass": () => pageLarareKlass(teacherCtx),
   "/larare/innehall": () => pageLarareInnehall(teacherCtx),
   "/larare/prompter": () => pageLararePrompter(teacherCtx),
   "/larare/elever": () => pageLarareElever(teacherCtx),
