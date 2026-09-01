@@ -5,7 +5,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { AVATARS, avatarEmoji, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
 
 // --- Inloggning -------------------------------------------------------------
@@ -88,10 +88,10 @@ export async function pageElevAvatar() {
     firstTime = !sd.avatarChosen;
   } catch {}
 
-  const buttons = Object.entries(AVATARS)
+  const buttons = Object.keys(AVATARS)
     .map(
-      ([id, emoji]) =>
-        `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${id}">${emoji}</button>`
+      (id) =>
+        `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${avatarName(id)}">${avatarSvg(id)}</button>`
     )
     .join("");
 
@@ -102,7 +102,7 @@ export async function pageElevAvatar() {
       <p class="hint">${firstTime
         ? "Vilken figur vill du vara? Du kan byta när du vill i profilen."
         : "Välj en ny figur. Den syns överallt när du pluggar."}</p>
-      <div class="preview" id="preview">${avatarEmoji(selected)}</div>
+      <div class="preview" id="preview">${avatarSvg(selected)}</div>
       <div class="avatar-pick" id="grid">${buttons}</div>
       <div id="msg"></div>
       <button class="btn stor gron" id="save">${firstTime ? "Kör igång!" : "Spara"}</button>
@@ -119,7 +119,7 @@ export async function pageElevAvatar() {
     selected = b.dataset.id;
     grid.querySelectorAll(".avatar-opt").forEach((x) => x.classList.remove("selected"));
     b.classList.add("selected");
-    preview.textContent = avatarEmoji(selected);
+    preview.innerHTML = avatarSvg(selected);
   });
 
   if (!firstTime) {

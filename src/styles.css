@@ -282,6 +282,14 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   margin: 6px 0 12px;
 }
 
+/* Fristående karaktärs-SVG:er (avatarval, preview) skalar med font-size. */
+.preview svg,
+.avatar-opt svg {
+  width: 1em;
+  height: 1.2em;
+  vertical-align: middle;
+}
+
 /* --- Sidhuvud: inloggad elev ---------------------------------------------- */
 
 .topbar-user {
@@ -670,33 +678,51 @@ code {
   justify-content: center;
 }
 
-/* --- Avatar med kläder (bygger på emoji-overlay) --------------------------- */
+/* --- Avatar med kläder (SVG-karaktär + SVG-klädsel per slot) --------------- */
 
-/* Basen är avatar-emojin; klädseln läggs ovanpå och skalar med font-size, så
-   samma markup funkar litet (sidhuvud) som stort (hjältebild). */
+/* Figuren är en inline SVG i viewBox 100×120; containern är 1em × 1.2em så
+   allt fortfarande skalar med font-size och samma markup funkar litet
+   (sidhuvud) som stort (hjältebild). Klädseln läggs i slot-boxar satta i %
+   av containern – de träffar det gemensamma ankargriddet (se art-style.js)
+   som alla karaktärer ritas på, så en hatt sitter rätt på alla figurer. */
 .avatar-figure {
   position: relative;
   display: inline-block;
+  width: 1em;
+  height: 1.2em;
   line-height: 1;
+  vertical-align: -0.2em;
 }
 
 .avatar-figure .af-base {
-  display: inline-block;
-  line-height: 1;
+  position: absolute;
+  inset: 0;
+}
+
+.avatar-figure .af-base svg,
+.avatar-figure .af-wear svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .avatar-figure .af-wear {
   position: absolute;
-  font-size: 0.5em;
   line-height: 1;
   pointer-events: none;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+  /* emoji-fallback (om en klädsak saknar SVG-konst) */
+  font-size: 0.4em;
+  text-align: center;
 }
 
-.af-wear.af-hatt { top: -0.22em; left: 50%; transform: translateX(-50%); }
-.af-wear.af-ansikte { top: 0.34em; left: 50%; transform: translateX(-50%); font-size: 0.42em; }
-.af-wear.af-hals { bottom: -0.02em; left: 50%; transform: translateX(-50%); font-size: 0.4em; }
-.af-wear.af-hand { bottom: 0.05em; right: -0.12em; font-size: 0.42em; }
+/* Slot-boxar i % av containern (100 bred × 120 hög i viewBox-mått):
+   hatt sjunker mot hjässan (y≈14), ansikte över ögonen (y=34),
+   hals hänger från kraglinjen (y≈58), hand vid höger tass (79,77). */
+.af-wear.af-hatt { top: -6%; left: 50%; width: 62%; height: 26%; transform: translateX(-50%); }
+.af-wear.af-ansikte { top: 21%; left: 50%; width: 50%; height: 16%; transform: translateX(-50%); }
+.af-wear.af-hals { top: 44%; left: 50%; width: 46%; height: 22%; transform: translateX(-50%); }
+.af-wear.af-hand { top: 26%; left: 65%; width: 32%; height: 46%; }
 
 /* --- Shop ------------------------------------------------------------------ */
 
@@ -764,6 +790,14 @@ code {
 .shop-emoji {
   font-size: 2.8rem;
   line-height: 1;
+}
+
+/* Klädsaker i shoppen/lådan ritas som SVG och skalar med font-size. */
+.shop-emoji svg,
+.tray-emoji svg {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
 }
 
 .shop-namn {
