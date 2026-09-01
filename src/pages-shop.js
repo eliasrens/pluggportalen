@@ -11,6 +11,7 @@ import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { CATEGORIES, getItem, itemsInCategory } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
+import { itemSvg, categorySvg } from "./art-items.js";
 
 export async function pageElevShop() {
   if (!data.isLoggedIn()) return go("#/elev");
@@ -57,8 +58,10 @@ export async function pageElevShop() {
         const cards = itemsInCategory(cat.id)
           .map((it) => shopCardHtml(it, state))
           .join("");
+        const ico = categorySvg(cat.id);
+        const rubrik = ico ? `<span class="cat-ico">${ico}</span>` : cat.emoji;
         return el(`<section class="shop-cat">
-          <h2>${cat.emoji} ${cat.name}</h2>
+          <h2>${rubrik} ${cat.name}</h2>
           <div class="shop-grid">${cards}</div>
         </section>`);
       })
@@ -117,9 +120,10 @@ function shopCardHtml(it, state) {
   } else {
     btn = `<button class="buy-btn" data-id="${it.id}">Köp</button>`;
   }
-  // Klädsaker har egen SVG-konst; övriga kategorier visas som emoji tills
-  // deras konst-issues (möbler/husdjur/dekor) är gjorda.
-  const bild = (it.category === "klader" && wearableSvg(it.id)) || it.emoji;
+  // Kläder ritas av art-wearables.js, övriga rums-saker av art-items.js.
+  // emoji-fältet är kvar som ofarlig fallback om konst saknas.
+  const bild =
+    (it.category === "klader" ? wearableSvg(it.id) : itemSvg(it.id)) || it.emoji;
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
