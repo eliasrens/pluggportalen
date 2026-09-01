@@ -792,12 +792,22 @@ code {
   line-height: 1;
 }
 
-/* Klädsaker i shoppen/lådan ritas som SVG och skalar med font-size. */
+/* Shop-/lådsaker ritas som SVG och skalar med font-size. */
 .shop-emoji svg,
 .tray-emoji svg {
   width: 1.1em;
   height: 1.1em;
   vertical-align: middle;
+}
+
+/* Kategori-ikon i rubriken (SVG i stället för emoji). */
+.cat-ico {
+  display: inline-block;
+  vertical-align: -0.22em;
+}
+.cat-ico svg {
+  width: 1.35em;
+  height: 1.35em;
 }
 
 .shop-namn {
@@ -886,6 +896,16 @@ code {
 
 .room-item .ri-emoji {
   display: block;
+  pointer-events: none;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+/* Placerad sak: SVG fyller sin ruta och skalar snyggt (behåller proportioner). */
+.room-item .ri-emoji svg {
+  display: block;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
