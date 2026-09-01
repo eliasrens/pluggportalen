@@ -22,22 +22,25 @@
     />
   </head>
   <body>
-    <div class="topbar">
-      <div id="topbar-left" class="topbar-left">
-        <button class="brand" id="brand">
+    <!-- Hamburgerknapp (bara synlig på små skärmar) – öppnar sidomenyn. -->
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <!-- Mörk overlay bakom off-canvas-menyn på mobil. -->
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <button class="brand" id="brand" title="Till startsidan">
           <span class="logo">📚</span> <span class="brand-text">Pluggportalen</span>
         </button>
-        <button class="btn ghost hem-btn" id="hem-btn" title="Till startskärmen" hidden>
-          <span class="hem-ikon" aria-hidden="true">🏠</span>
-          <span class="hem-text">Hem</span>
-        </button>
-      </div>
-      <div id="topbar-right"></div>
-    </div>
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
 
-    <main id="app" class="container">
-      <div class="spinner">Laddar…</div>
-    </main>
+      <main id="app" class="container">
+        <div class="spinner">Laddar…</div>
+      </main>
+    </div>
 
     <script type="module" src="./src/app.js"></script>
   </body>
