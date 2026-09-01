@@ -128,6 +128,7 @@ function defaultStudentData(avatarId) {
     coins: 0,
     progress: {}, // { [areaId]: { [gamemode]: { completed, bestScore, stars, lastPlayed } } }
     ownedItems: [], // shop-sak-id:n
+    avatarItems: [], // burna klädsaker (delmängd av ownedItems)
     room: { placements: {} }, // { [itemId]: { x, y } }
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
@@ -269,6 +270,26 @@ export async function buyItem(itemId, price, studentId = currentStudentId()) {
     else tx.set(ref, { ...defaultStudentData(), ...next });
     return { ok: true, coins: next.coins, owned: next.ownedItems };
   });
+}
+
+// --- Avatar-påklädnad (burna klädsaker) ------------------------------------
+
+/** Id:n på de klädsaker eleven har på sin avatar just nu. */
+export async function getAvatarItems(studentId = currentStudentId()) {
+  const data = await getStudentData(studentId);
+  return data.avatarItems || [];
+}
+
+/**
+ * Spara vilka klädsaker som bärs på avataren.
+ * @param {string[]} items id:n (bör vara en delmängd av ownedItems)
+ */
+export async function saveAvatarItems(items, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const list = Array.isArray(items) ? [...new Set(items)] : [];
+  await updateDoc(ref, { avatarItems: list });
+  return list;
 }
 
 // --- Rum (placering av saker) ----------------------------------------------

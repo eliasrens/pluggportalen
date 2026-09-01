@@ -117,5 +117,8 @@ export const students = [
     username: "elev1",
     password: "passa123",
     avatarId: "fox",
+    // Välkomstsaldo så shoppen går att prova innan pluggövningarna (som delar ut
+    // coins) är byggda. Justera fritt – riktiga coins tjänas in genom att plugga.
+    coins: 300,
   },
 ];

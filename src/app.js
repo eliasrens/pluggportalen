@@ -10,8 +10,8 @@
 //   #/elev/avatar     välj grundavatar (första gången + byta senare)
 //   #/elev/hem        elev-startsida (kräver inloggning)
 //   #/elev/plugga     välj arbetsområde att öva på
-//   #/elev/shop       shoppen (platshållare tills shop-issuen landar)
-//   #/elev/rum        mitt rum (platshållare tills rum-issuen landar)
+//   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
+//   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/larare          lärarsida (översikt)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON)
@@ -28,8 +28,6 @@ import {
   pageElevAvatar,
   pageElevHem,
   pageElevPlugga,
-  pageElevShop,
-  pageElevRum,
   pageElevProfil,
 } from "./pages-elev.js";
 import {
@@ -38,6 +36,8 @@ import {
   pageLararePrompter,
   pageLarareElever,
 } from "./teacher.js";
+import { pageElevShop } from "./pages-shop.js";
+import { pageElevRum } from "./pages-rum.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
 // av seed/verktyg). Källan är numera avatars.js.

@@ -68,9 +68,10 @@ async function main() {
     const { id, ...rest } = st;
     await setDoc(`students/${id}`, rest);
     await setDoc(`studentData/${id}`, {
-      coins: 0,
+      coins: st.coins ?? 0,
       progress: {},
       ownedItems: [],
+      avatarItems: [],
       room: { placements: {} },
       avatarId: st.avatarId,
     });

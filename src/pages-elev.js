@@ -5,7 +5,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { AVATARS, avatarEmoji, DEFAULT_AVATAR } from "./avatars.js";
+import { AVATARS, avatarEmoji, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
 
 // --- Inloggning -------------------------------------------------------------
@@ -170,7 +170,7 @@ export async function pageElevHem() {
 
   const view = el(`<div>
     <div class="panel center hero">
-      <div class="hero-avatar">${avatarEmoji(avatar)}</div>
+      <div class="hero-avatar">${avatarMarkup(avatar, sd.avatarItems || [])}</div>
       <h1>Hej ${session.namn}! 👋</h1>
       <p class="hint">Du har <span class="coins">🪙 ${sd.coins || 0}</span> pluggcoins. Vad vill du göra idag?</p>
     </div>
@@ -255,39 +255,7 @@ export async function pageElevPlugga() {
   app.replaceChildren(view);
 }
 
-// --- Shop / Rum (platshållare tills respektive issue landar) ----------------
-
-function placeholderPage({ title, emoji, text, colorClass }) {
-  return async function () {
-    if (!data.isLoggedIn()) return go("#/elev");
-    await renderTopbar();
-    const view = el(`<div>
-      <a class="back-link" id="back">← Till startsidan</a>
-      <div class="panel center">
-        <div class="big-emoji ${colorClass}">${emoji}</div>
-        <h1>${title}</h1>
-        <p>${text}</p>
-        <p class="hint">🚧 Den här delen byggs i ett senare steg. Snart kan du använda den här!</p>
-      </div>
-    </div>`);
-    view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
-    app.replaceChildren(view);
-  };
-}
-
-export const pageElevShop = placeholderPage({
-  title: "Shoppen 🛍️",
-  emoji: "🛍️",
-  text: "Här kommer du att kunna handla saker till ditt rum med dina pluggcoins.",
-  colorClass: "rosa",
-});
-
-export const pageElevRum = placeholderPage({
-  title: "Mitt rum 🛏️",
-  emoji: "🛏️",
-  text: "Här kommer du att kunna inreda och pynta ditt eget rum med sakerna du köpt.",
-  colorClass: "lila",
-});
+// Shoppen ligger i pages-shop.js och Mitt rum i pages-rum.js. Profilen nedan.
 
 // --- Profil -----------------------------------------------------------------
 
@@ -297,10 +265,11 @@ export async function pageElevProfil() {
   await renderTopbar();
   const session = data.getSession();
 
-  let stats, avatar;
+  let stats, avatar, avatarItems;
   try {
     const [sd, s] = await Promise.all([data.getStudentData(), data.getStats()]);
     avatar = sd.avatarId || DEFAULT_AVATAR;
+    avatarItems = sd.avatarItems || [];
     stats = s;
   } catch (err) {
     app.replaceChildren(
@@ -312,10 +281,14 @@ export async function pageElevProfil() {
   const view = el(`<div>
     <a class="back-link" id="back">← Till startsidan</a>
     <div class="panel center">
-      <div class="hero-avatar">${avatarEmoji(avatar)}</div>
+      <div class="hero-avatar">${avatarMarkup(avatar, avatarItems)}</div>
       <h1>${session.namn}</h1>
       <p class="hint">Användarnamn: <b>${session.username || ""}</b></p>
-      <button class="btn liten" id="byt-avatar">Byt figur</button>
+      <div class="btn-row center">
+        <button class="btn liten" id="byt-avatar">Byt figur</button>
+        <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
+        <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
+      </div>
     </div>
 
     <h2>Min statistik</h2>
@@ -350,6 +323,8 @@ export async function pageElevProfil() {
 
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
+  view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
+  view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));
 
   app.replaceChildren(view);
 }

@@ -109,8 +109,9 @@ Exempel (`students/elev1`):
 | ------------ | ------ | ------------------------------------------------------ |
 | `coins`      | number | Antal pluggcoins                                       |
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
-| `ownedItems` | array  | Id:n på köpta shop-saker                               |
-| `room`       | map    | `{ placements: { [itemId]: { x, y } } }`               |
+| `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
+| `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
+| `room`       | map    | `{ placements: { [itemId]: { x, y } } }` – `x`/`y` i **procent** (0–100) av rummet |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 
@@ -127,8 +128,9 @@ Exempel (`studentData/elev1`):
       "quiz": { "completed": true, "bestScore": 4, "stars": 2, "lastPlayed": "<timestamp>" }
     }
   },
-  "ownedItems": ["poster-vikingaskepp"],
-  "room": { "placements": { "poster-vikingaskepp": { "x": 120, "y": 60 } } },
+  "ownedItems": ["keps", "sang", "hund"],
+  "avatarItems": ["keps"],
+  "room": { "placements": { "sang": { "x": 30, "y": 70 }, "hund": { "x": 60, "y": 80 } } },
   "avatarId": "fox"
 }
 ```
@@ -151,10 +153,18 @@ Exempel (`studentData/elev1`):
 - `getProgress()`, `saveProgress(areaId, gamemode, result)`
 
 **Shop / ägda saker**
-- `getOwnedItems()`, `addOwnedItem(itemId)`, `buyItem(itemId, price)`
+- `getOwnedItems()`, `addOwnedItem(itemId)`, `buyItem(itemId, price)` → `{ ok, coins, owned }`
+  (`buyItem` drar coins och lägger till saken i **en** transaktion – ingen täckning
+  eller redan ägd sak → `ok:false`, inga negativa saldon eller dubbelköp)
+- Katalogen (kategorier, priser, emoji) ligger i [`src/shop-items.js`](../src/shop-items.js).
+
+**Avatar-påklädnad**
+- `getAvatarItems()`, `saveAvatarItems(itemIds)` – vilka klädsaker som bärs på avataren.
+  Rendera avataren med `avatarMarkup(avatarId, itemIds)` från `src/avatars.js`.
 
 **Rum**
-- `getRoom()`, `saveRoom(room)`
+- `getRoom()`, `saveRoom(room)` – `room = { placements: { [itemId]: { x, y } } }`,
+  där `x`/`y` är procent (0–100) så rummet ser likadant ut på alla skärmar.
 
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`

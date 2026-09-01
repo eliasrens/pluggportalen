@@ -55,7 +55,7 @@
             await setDoc(doc(db, "students", id), rest);
             await setDoc(
               doc(db, "studentData", id),
-              { coins: 0, progress: {}, ownedItems: [], room: { placements: {} }, avatarId: st.avatarId },
+              { coins: st.coins ?? 0, progress: {}, ownedItems: [], avatarItems: [], room: { placements: {} }, avatarId: st.avatarId },
               { merge: true }
             );
             log(`✓ Elev: ${st.namn} (logga in med ${st.username} / ${st.password})`, "ok");
