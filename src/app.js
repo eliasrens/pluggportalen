@@ -1,18 +1,22 @@
 // ============================================================================
 // Pluggportalen – app.js
 // Hash-router och de gemensamma sidorna (start + lärare). Elevsidorna ligger i
-// pages-elev.js och delade UI-hjälpare i ui.js. Avatarer i avatars.js.
+// pages-elev.js, lärarsidorna i teacher.js och delade UI-hjälpare i ui.js.
+// Avatarer i avatars.js.
 //
 // Sidor / routes:
-//   #/              startsida (välj lärare eller elev)
-//   #/elev          elev-inloggning
-//   #/elev/avatar   välj grundavatar (första gången + byta senare)
-//   #/elev/hem      elev-startsida (kräver inloggning)
-//   #/elev/plugga   välj arbetsområde att öva på
-//   #/elev/shop     shoppen (platshållare tills shop-issuen landar)
-//   #/elev/rum      mitt rum (platshållare tills rum-issuen landar)
-//   #/elev/profil   profil: avatar, namn, coins, statistik
-//   #/larare        lärarsida (enkel start – byggs ut i senare issues)
+//   #/                startsida (välj lärare eller elev)
+//   #/elev            elev-inloggning
+//   #/elev/avatar     välj grundavatar (första gången + byta senare)
+//   #/elev/hem        elev-startsida (kräver inloggning)
+//   #/elev/plugga     välj arbetsområde att öva på
+//   #/elev/shop       shoppen (platshållare tills shop-issuen landar)
+//   #/elev/rum        mitt rum (platshållare tills rum-issuen landar)
+//   #/elev/profil     profil: avatar, namn, coins, statistik
+//   #/larare          lärarsida (översikt)
+//   #/larare/innehall innehållsinmatning (arbetsområdes-JSON)
+//   #/larare/prompter färdiga AI-prompter
+//   #/larare/elever   elevkontohantering
 //
 // Hash-routing används medvetet så att GitHub Pages inte behöver någon
 // server-omskrivning (alla "sidor" ligger i index.html).
@@ -28,6 +32,12 @@ import {
   pageElevRum,
   pageElevProfil,
 } from "./pages-elev.js";
+import {
+  pageLarare,
+  pageLarareInnehall,
+  pageLararePrompter,
+  pageLarareElever,
+} from "./teacher.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
 // av seed/verktyg). Källan är numera avatars.js.
@@ -61,23 +71,9 @@ function pageHome() {
   app.querySelector("#to-larare").addEventListener("click", () => go("#/larare"));
 }
 
-function pageLarare() {
-  renderTopbar();
-  app.replaceChildren(
-    el(`<div>
-      <a class="back-link" id="back">← Tillbaka</a>
-      <div class="panel">
-        <h1>Lärarsida 👩‍🏫</h1>
-        <p>Här kommer läraren att kunna hantera arbetsområden och elevkonton.</p>
-        <p class="hint">Den fulla lärarsidan byggs i ett senare steg. Grunden – databasen,
-          datamodellen och elevinloggningen – är på plats.</p>
-        <p class="hint">Fyll databasen med exempeldata via
-          <a href="./seed/seed.html">seed-sidan</a>.</p>
-      </div>
-    </div>`)
-  );
-  app.querySelector("#back").addEventListener("click", () => go("#/"));
-}
+// Delad kontext som lärarsidorna (teacher.js) får: app-ytan, navigering och
+// topbar-renderaren. Håller lärarmodulen fri från globala beroenden.
+const teacherCtx = { app, go, renderTopbar };
 
 function pageNotFound() {
   renderTopbar();
@@ -102,7 +98,10 @@ const routes = {
   "/elev/shop": pageElevShop,
   "/elev/rum": pageElevRum,
   "/elev/profil": pageElevProfil,
-  "/larare": pageLarare,
+  "/larare": () => pageLarare(teacherCtx),
+  "/larare/innehall": () => pageLarareInnehall(teacherCtx),
+  "/larare/prompter": () => pageLararePrompter(teacherCtx),
+  "/larare/elever": () => pageLarareElever(teacherCtx),
 };
 
 function router() {
