@@ -115,6 +115,31 @@ Exempel (`students/elev1`):
 | `room`       | map    | `{ placements: { [itemId]: { x, y } } }` – `x`/`y` i **procent** (0–100) av rummet |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
+| `pet`        | map    | Kläckbara husdjuret (mystery egg) – se nedan. Saknas tills eleven köpt ägget/värmelampan |
+
+### `studentData.pet` – kläckbara husdjuret
+
+Skapas när eleven köper det mystiska ägget (eller värmelampan) i shoppen.
+Tidsstämplar är **millisekunder** (`Date.now()`); kläckning och tillväxt räknas
+ut **vid inläsning** – ingen bakgrundsprocess. Husdjuret kan aldrig dö.
+
+| Fält          | Typ         | Beskrivning                                              |
+| ------------- | ----------- | -------------------------------------------------------- |
+| `eggBoughtAt` | number      | När ägget köptes (ms). Kläcks ~3 dagar senare            |
+| `hasHeatLamp` | bool        | Värmelampa köpt → ägget kläcks på **halva** tiden        |
+| `speciesId`   | string/null | Slumpad art vid kläckning (se `SPECIES` i `src/art-pets-creatures.js`) |
+| `hatchedAt`   | number/null | När ägget kläcktes (ms); `null` = ruvar fortfarande      |
+| `stage`       | number      | Tillväxtsteg 1–3 (0 = okläckt ägg). Härleds ur `feedCount` |
+| `feedCount`   | number      | Antal matningar totalt (styr steget: ≥3 → steg 2, ≥7 → steg 3) |
+| `lastFedAt`   | number/null | Senaste matningen (ms) – max 1 matning per kalenderdag   |
+
+```json
+{
+  "eggBoughtAt": 1756700000000, "hasHeatLamp": true,
+  "speciesId": "blomp", "hatchedAt": 1756830000000,
+  "stage": 2, "feedCount": 4, "lastFedAt": 1757000000000
+}
+```
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
@@ -196,6 +221,14 @@ Exempel (`classes/6a`):
 
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`
+
+**Husdjur (mystery egg)** – ligger i systermodulen [`src/data-pet.js`](../src/data-pet.js)
+- `buyEgg(price)` / `buyHeatLamp(price)` → `{ ok, coins, owned, pet }` –
+  transaktioner som drar coins, lägger saken i `ownedItems` och uppdaterar `pet`
+- `getPet()` → `pet` eller `null`
+- `hatchIfReady()` → `{ pet, justHatched }` – kläcker (slumpar art) om kläcktiden passerats
+- `feedPet()` → `{ ok, reason?, pet, stageUp }` – gratis, max 1 gång/kalenderdag
+- Hjälpare: `hatchTimeFor(pet)`, `canFeed(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`
 
 **Statistik (profil)**
 - `getStats()` → `{ coins, playedExercises, completed, stars, areas }`
