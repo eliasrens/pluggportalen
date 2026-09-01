@@ -1341,10 +1341,24 @@ code {
   border-radius: 999px;
 }
 
-.class-members {
+.class-members,
+.class-assign {
   margin-top: 14px;
   border-top: 2px dashed #e2ecfb;
   padding-top: 14px;
+}
+
+.assign-group {
+  margin-bottom: 12px;
+}
+
+.assign-subject {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.assign-result {
+  margin-left: 4px;
 }
 
 .member-grid {

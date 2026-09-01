@@ -20,8 +20,9 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
-    // Klasser (lärarens gruppering av elever, t.ex. "6A"). Samma skolinterna,
-    // ej säkerhetskritiska nivå som övriga collections ovan.
+    // Klasser (lärarens gruppering av elever, t.ex. "6A", samt tilldelade
+    // arbetsområden i assignedAreas). Samma skolinterna, ej säkerhetskritiska
+    // nivå som övriga collections ovan.
     match /classes/{classId} {
       allow read: if true;
       allow write: if true;

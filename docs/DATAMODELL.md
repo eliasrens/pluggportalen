@@ -173,15 +173,28 @@ flera klasser utan extra kopplingsdata).
 
 | Fält         | Typ            | Beskrivning                                   |
 | ------------ | -------------- | --------------------------------------------- |
-| `name`       | string         | Klassens namn, t.ex. "6A"                     |
-| `order`      | number         | Sorteringsordning i listor (valfritt)         |
-| `createdAt`  | timestamp      | När klassen skapades (`serverTimestamp`)      |
-| `studentIds` | array\<string\>| Id:n på eleverna i klassen (pekar på `students`)|
+| `name`          | string                | Klassens namn, t.ex. "6A"                     |
+| `order`         | number                | Sorteringsordning i listor (valfritt)         |
+| `createdAt`     | timestamp             | När klassen skapades (`serverTimestamp`)      |
+| `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
+| `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
+
+**Assignment**: `{ subjectId, areaId }` – pekar på ett `subjects/{subjectId}/areas/{areaId}`.
+
+`assignedAreas` styr elevens Plugga-vy: läraren väljer vilka arbetsområden som
+är **aktiva nu** för klassen. Har klassen en icke-tom lista ser eleverna i
+klassen **bara** de områdena; är listan tom eller saknas (eller tillhör eleven
+ingen klass) ser eleverna **hela** biblioteket (bakåtkompatibelt – aldrig en tom
+sida).
 
 Exempel (`classes/6a`):
 
 ```json
-{ "name": "6A", "order": 1, "createdAt": "<timestamp>", "studentIds": ["elev1", "elev2"] }
+{
+  "name": "6A", "order": 1, "createdAt": "<timestamp>",
+  "studentIds": ["elev1", "elev2"],
+  "assignedAreas": [{ "subjectId": "so", "areaId": "demokrati" }]
+}
 ```
 
 > **OBS – två liknande begrepp i lärar-UI:t:** `#/larare/klasser` (HANTERA
@@ -243,6 +256,14 @@ Exempel (`classes/6a`):
 - `getClasses()`, `upsertClass(id, {name, order})`, `deleteClass(id)`,
   `setClassStudents(id, studentIds)` – `upsertClass` skriver med merge så
   `studentIds` bevaras vid namnbyte; `setClassStudents` ersätter hela listan.
+
+**Tilldelade arbetsområden per klass**
+- `setClassAssignments(id, assignments)` – ersätter `assignedAreas`
+  (`assignments = [{ subjectId, areaId }]`; tom lista = eleverna ser allt).
+- `getClassAssignments(id)` → `[{ subjectId, areaId }]`.
+- `getClassForStudent(studentId?)` → klassdokumentet eleven tillhör (eller `null`),
+  hittas via klassernas `studentIds`. Används av elevens Plugga-vy för att
+  filtrera på `assignedAreas`.
 
 De flesta funktioner använder den inloggade eleven automatiskt, men tar ett
 valfritt sista `studentId`-argument.
