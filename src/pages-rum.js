@@ -10,6 +10,7 @@
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, clamp } from "./ui.js";
 import { getItem, isWearable } from "./shop-items.js";
+import { wearableSvg } from "./art-wearables.js";
 
 export async function pageElevRum() {
   if (!data.isLoggedIn()) return go("#/elev");
@@ -132,7 +133,7 @@ export async function pageElevRum() {
       const item = getItem(id);
       const on = equipped.has(id);
       wearTray.appendChild(el(`<button class="wear-item${on ? " on" : ""}" data-wear="${id}" title="${item.name}">
-        <span class="tray-emoji">${item.emoji}</span>
+        <span class="tray-emoji">${wearableSvg(id) || item.emoji}</span>
         <span class="tray-namn">${item.name}</span>
         <span class="wear-state">${on ? "På ✓" : "Sätt på"}</span>
       </button>`));
