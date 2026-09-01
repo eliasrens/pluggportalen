@@ -433,6 +433,36 @@ export async function getStudents() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+/**
+ * Lista alla elever tillsammans med sitt "utseende": grundavatar (avatarId) och
+ * burna klädsaker (avatarItems). Används av klassfotot (#/elev/klassfoto).
+ *
+ * avatarId finns redan på students-dokumentet, men avatarItems ligger i
+ * studentData/{id}. Vi läser alla studentData-dokument parallellt (Promise.all)
+ * med en per-elev catch, så att en enda trasig/saknad elevdata inte fäller hela
+ * vyn – då används bara students-dokumentets avatarId utan klädsel.
+ *
+ * @returns {Promise<Array<{id, namn, username, avatarId, avatarItems: string[]}>>}
+ */
+export async function getStudentsWithLooks() {
+  const students = await getStudents();
+  return Promise.all(
+    students.map(async (s) => {
+      try {
+        const snap = await getDoc(doc(db, "studentData", s.id));
+        const d = snap.exists() ? snap.data() : {};
+        return {
+          ...s,
+          avatarId: d.avatarId || s.avatarId || "fox",
+          avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
+        };
+      } catch {
+        return { ...s, avatarId: s.avatarId || "fox", avatarItems: [] };
+      }
+    })
+  );
+}
+
 /** Skapa (eller uppdatera) ett elevkonto. */
 export async function upsertStudent(studentId, { namn, username, password, avatarId }) {
   const ref = doc(db, "students", studentId);
