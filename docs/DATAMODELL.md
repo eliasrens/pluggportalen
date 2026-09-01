@@ -14,6 +14,7 @@ subjects/{subjectId}                     ← ämne (t.ex. "so")
 subjects/{subjectId}/areas/{areaId}      ← arbetsområde (t.ex. "vikingatiden")
 students/{studentId}                     ← elevkonto (inloggning)
 studentData/{studentId}                  ← elevens speldata (coins, framsteg, ...)
+classes/{classId}                        ← klass (lärarens gruppering, t.ex. "6A")
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -137,6 +138,33 @@ Exempel (`studentData/elev1`):
 
 ---
 
+## `classes/{classId}` – klass
+
+Lärarens gruppering av elever, t.ex. "6A". Används som grund för att senare
+tilldela uppgifter per klass. Elevlistan ligger som en **array (`studentIds`)
+direkt på klassdokumentet** – enklast för den här appen (en handfull klasser
+med ~30 elever styck läses/skrivs i ett dokument, och en elev kan finnas i
+flera klasser utan extra kopplingsdata).
+
+| Fält         | Typ            | Beskrivning                                   |
+| ------------ | -------------- | --------------------------------------------- |
+| `name`       | string         | Klassens namn, t.ex. "6A"                     |
+| `order`      | number         | Sorteringsordning i listor (valfritt)         |
+| `createdAt`  | timestamp      | När klassen skapades (`serverTimestamp`)      |
+| `studentIds` | array\<string\>| Id:n på eleverna i klassen (pekar på `students`)|
+
+Exempel (`classes/6a`):
+
+```json
+{ "name": "6A", "order": 1, "createdAt": "<timestamp>", "studentIds": ["elev1", "elev2"] }
+```
+
+> **OBS – två liknande begrepp i lärar-UI:t:** `#/larare/klasser` (HANTERA
+> klasser – den här collectionen) skiljer sig från `#/larare/klass`
+> (klassöversikt/framsteg, som är läs-endast och inte använder `classes`).
+
+---
+
 ## Datamodulens API (`src/data.js`)
 
 Övriga delar återanvänder dessa funktioner:
@@ -177,6 +205,11 @@ Exempel (`studentData/elev1`):
 
 **Elevkonton (lärarsida)**
 - `getStudents()`, `upsertStudent(id, {namn, username, password, avatarId})`
+
+**Klasser (lärarsida)**
+- `getClasses()`, `upsertClass(id, {name, order})`, `deleteClass(id)`,
+  `setClassStudents(id, studentIds)` – `upsertClass` skriver med merge så
+  `studentIds` bevaras vid namnbyte; `setClassStudents` ersätter hela listan.
 
 De flesta funktioner använder den inloggade eleven automatiskt, men tar ett
 valfritt sista `studentId`-argument.

@@ -1195,3 +1195,120 @@ code {
 .cx-dot.mellan { background: #f6c777; }
 .cx-dot.lag { background: #f4a0b8; }
 .cx-dot.tom { background: #e2ecfb; }
+
+/* ==========================================================================
+   Klasshantering (#/larare/klasser) – teacher-classes.js
+   Additivt tillägg (håll separat för enkel rebase).
+   ========================================================================== */
+
+.new-class {
+  margin-top: 14px;
+  align-items: center;
+}
+
+.new-class #new-name {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 2px solid #dbe6f5;
+  border-radius: 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+}
+
+.new-class #new-name:focus {
+  outline: none;
+  border-color: var(--bla);
+}
+
+.class-card {
+  margin-top: 14px;
+}
+
+.class-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.class-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.class-emoji {
+  font-size: 1.4rem;
+}
+
+.class-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.class-count {
+  font-size: 0.82rem;
+  color: var(--text-svag);
+  background: #eef4fd;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.class-members {
+  margin-top: 14px;
+  border-top: 2px dashed #e2ecfb;
+  padding-top: 14px;
+}
+
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 2px solid #e6eefa;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.member-row:hover {
+  border-color: var(--bla);
+}
+
+.member-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gron);
+}
+
+.member-avatar {
+  font-size: 1.2rem;
+}
+
+.member-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ok-inline {
+  color: var(--gron-mork);
+  font-weight: 600;
+}
+
+.err-inline {
+  color: var(--rod);
+  font-weight: 600;
+}
