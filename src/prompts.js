@@ -20,10 +20,13 @@ const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "texts": lista med faktatexter. Varje text: { "id": string, "title": string, "body": string }
 - "quiz": lista med flervalsfrågor. Varje fråga:
     { "id": string, "question": string, "options": [string, ...],
-      "answerIndex": number, "explanation": string }
+      "answerIndex": number, "explanation": string, "passage": string }
     * "options" måste ha minst 2 alternativ.
     * "answerIndex" är index (0 = första alternativet) för det RÄTTA svaret.
     * "explanation" förklarar kort varför svaret är rätt.
+    * "passage" (VALFRITT) är en KORT text på 1–3 meningar, hämtad ur materialet,
+      som eleven kan besvara JUST DEN frågan utifrån. Används i läsförståelse-läget
+      där passagen visas ovanför frågan. Skriv en egen passande passage per fråga.
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
     { "id": string, "term": string, "definition": string }`;
 
@@ -46,7 +49,8 @@ const EXAMPLE = `{
       "question": "Ungefär när levde vikingarna?",
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
       "answerIndex": 0,
-      "explanation": "Vikingatiden räknas från cirka år 800 till 1050."
+      "explanation": "Vikingatiden räknas från cirka år 800 till 1050.",
+      "passage": "Vikingarna levde i Norden för mer än tusen år sedan, ungefär mellan år 800 och 1050."
     }
   ],
   "pairs": [
@@ -63,7 +67,10 @@ const SKALA_QUIZ = `Anpassa ANTALET quizfrågor efter hur mycket text du fått:
 - Lång text (ungefär en sida eller mer): 12–15 frågor.
 - Är texten ännu längre? Fortsätt lägga till frågor i samma takt (ca 3–4 frågor per halvsida).
 Täck HELA texten jämnt – ta med frågor från början, mitten och slutet, inte bara det första stycket.
-Undvik upprepade frågor och triviala frågor som eleven kan svara på utan att ha läst texten.`;
+Undvik upprepade frågor och triviala frågor som eleven kan svara på utan att ha läst texten.
+Ge VARJE fråga ett "passage": en kort text (1–3 meningar) hämtad ur materialet, som just den
+frågan kan besvaras utifrån. Skriv en egen, passande passage per fråga (upprepa inte samma text
+till alla frågor). Passagen används i läsförståelse-läget och visas ovanför frågan.`;
 
 const SKALA_PAR = `Anpassa ANTALET fakta-par efter hur mycket text du fått:
 - Kort text: minst 6 par.
@@ -135,7 +142,8 @@ Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
       "question": "Ungefär när levde vikingarna?",
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
       "answerIndex": 0,
-      "explanation": "Vikingatiden räknas från cirka år 800 till 1050."
+      "explanation": "Vikingatiden räknas från cirka år 800 till 1050.",
+      "passage": "Vikingarna levde i Norden för mer än tusen år sedan, ungefär mellan år 800 och 1050."
     }
   ],
   "pairs": []

@@ -172,12 +172,18 @@ const MAX_RETURNS = 2;
  * hoppar bakåt eller överstiger Y när en fråga återkommer.
  *
  * reviewButton (valfri) läggs överst på varje fråga – används av Läsförståelse.
+ *
+ * showPassage (valfri): när sant visas frågans egna korta text (q.passage) i ett
+ * lugnt block OVANFÖR just den frågan. Passage följer med i frågeobjektet, så den
+ * visas korrekt även när en felsvarad fråga återkommer. Saknar frågan passage
+ * visas inget extra block (aldrig hela texten på en gång) – se startLasforstaelse.
+ * Quiz-läget skickar inte flaggan och är därför helt oförändrat.
  */
-export function runQuestions({ body, questions, onFinish, reviewButton }) {
+export function runQuestions({ body, questions, onFinish, reviewButton, showPassage }) {
   // Bygg ett frågeobjekt per unik fråga (med stabilt id för unik-räkningen).
   const built = shuffle(questions).map((q, id) => {
     const opts = q.options.map((text, i) => ({ text, correct: i === q.answerIndex }));
-    return { id, question: q.question, explanation: q.explanation, options: shuffle(opts), returns: 0 };
+    return { id, question: q.question, explanation: q.explanation, passage: q.passage, options: shuffle(opts), returns: 0 };
   });
 
   const totalUnique = built.length;
@@ -196,6 +202,7 @@ export function runQuestions({ body, questions, onFinish, reviewButton }) {
         <div class="quiz-progress-bar" style="width:${(doneUnique / totalUnique) * 100}%"></div>
       </div>
       <p class="quiz-count">Fråga ${Math.min(doneUnique + 1, totalUnique)} av ${totalUnique}</p>
+      ${showPassage && q.passage ? `<div class="lasf-passage"><span class="lasf-passage-emoji">📖</span><p>${q.passage}</p></div>` : ""}
       <div class="quiz-question">${q.question}</div>
       <div class="quiz-options">
         ${q.options

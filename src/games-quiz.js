@@ -2,8 +2,9 @@
 // Pluggportalen – games-quiz.js
 // De frågebaserade gamemoderna:
 //   • Quiz          – flervalsfrågor med direkt feedback, resultat i slutet
-//   • Läsförståelse – faktatext(erna) står kvar överst medan eleven svarar på
-//                     frågorna direkt under, på samma scrollbara sida.
+//   • Läsförståelse – varje fråga har en egen KORT text (passage) som visas
+//                     ovanför just den frågan och byts när eleven går vidare
+//                     (inte längre hela områdets text ovanför alla frågor).
 // Frågemotorn (runQuestions) och resultatskärmen ligger i game-shared.js.
 // ============================================================================
 
@@ -47,30 +48,27 @@ export function startQuiz(ctx) {
 
 export function startLasforstaelse(ctx) {
   const { subj, area, areaData } = ctx;
-  const texts = areaData.texts || [];
   const questions = areaData.quiz || [];
 
   const view = gameFrame({ subj, area, title: "Läsförståelse", emoji: "📖" });
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
 
-  // Faktatexten/faktatexterna renderas ÖVERST och står kvar hela tiden, så
-  // eleven kan läsa och svara samtidigt. Frågorna körs i en egen ruta direkt
-  // under texten (samma scrollbara sida) – ingen tvingande overlay.
-  const textsHtml = texts
-    .map(
-      (t) => `<article class="read-text">
-        ${t.title ? `<h3>${t.title}</h3>` : ""}
-        <p>${t.body}</p>
-      </article>`
-    )
-    .join("");
+  // NYTT: varje fråga bär en egen kort text (passage) som visas OVANFÖR just den
+  // frågan – inte längre hela områdets texter ovanför alla frågor på en gång
+  // (det blev rörigt). runQuestions renderar q.passage när showPassage är satt.
+  //
+  // Fallback (bakåtkompatibelt, aldrig rörigt): gamla frågor utan passage får
+  // INGET extra textblock – vi dumpar aldrig hela texten. Har INGEN fråga en
+  // passage byter vi bara introtexten till en snäll ledtext, så sidan aldrig
+  // ser trasig ut. Quiz-läget är oförändrat (skickar inte showPassage).
+  const anyPassage = questions.some((q) => q && typeof q.passage === "string" && q.passage.trim());
+  const intro = anyPassage
+    ? "Läs den korta texten ovanför varje fråga och svara. Texten byts för varje ny fråga. 📖"
+    : "Läs frågan noga och svara så gott du kan. 📖";
 
   const layout = el(`<div class="lasf-layout">
-    <section class="lasf-text">
-      <p class="hint lasf-intro">Läs texten och svara på frågorna under. Texten stannar kvar – titta tillbaka så ofta du vill. 📖</p>
-      ${textsHtml || '<p class="hint">Ingen text för det här området ännu.</p>'}
-    </section>
+    <p class="hint lasf-intro">${intro}</p>
     <div class="lasf-quiz" id="lasf-quiz"></div>
   </div>`);
   body.replaceChildren(layout);
@@ -80,6 +78,7 @@ export function startLasforstaelse(ctx) {
   runQuestions({
     body: quizArea,
     questions,
+    showPassage: true,
     onFinish: (correct, total) => {
       const stars = starsFromRatio(correct / total);
       const baseCoins = 6 + correct * 2 + (correct === total ? 4 : 0);

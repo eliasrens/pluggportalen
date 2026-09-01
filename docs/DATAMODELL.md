@@ -58,8 +58,12 @@ läsning för klienten).
 
 **Text**: `{ id, title, body }`
 
-**Quiz**: `{ id, question, options: string[], answerIndex, explanation }`
+**Quiz**: `{ id, question, options: string[], answerIndex, explanation, passage? }`
 – `answerIndex` är index (0-baserat) i `options` för rätt svar.
+– `passage` är **valfritt**: en kort text (1–3 meningar) kopplad till just den
+  frågan. I läsförståelse-läget visas passagen i ett lugnt block ovanför frågan
+  och byts per fråga. Saknas `passage` visas inget extra textblock (bakåtkompatibelt
+  – gamla frågor utan fältet fungerar oförändrat). Övriga gamemodes ignorerar det.
 
 **Pair**: `{ id, term, definition }` – används för para ihop / memory.
 
@@ -77,7 +81,8 @@ Exempel (`subjects/so/areas/vikingatiden`, förkortat):
   "quiz": [
     { "id": "q1", "question": "Ungefär när levde vikingarna?",
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
-      "answerIndex": 0, "explanation": "Vikingatiden räknas från ca 800 till 1050." }
+      "answerIndex": 0, "explanation": "Vikingatiden räknas från ca 800 till 1050.",
+      "passage": "Vikingarna levde i Norden ungefär mellan år 800 och 1050." }
   ],
   "pairs": [
     { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" }

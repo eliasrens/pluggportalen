@@ -129,13 +129,18 @@ export function validateArea(obj) {
           );
         }
 
-        quiz.push({
+        const built = {
           id: isNonEmptyString(q.id) ? slugify(q.id) : `q${nr}`,
           question: String(q.question || "").trim(),
           options,
           answerIndex: typeof ai === "number" ? ai : 0,
           explanation: typeof q.explanation === "string" ? q.explanation.trim() : "",
-        });
+        };
+        // "passage" är VALFRITT: en kort text (1–3 meningar) kopplad till just
+        // denna fråga, visad i läsförståelse-läget. Tas bara med när den finns,
+        // så gamla frågor utan passage lämnas orörda (bakåtkompatibelt).
+        if (isNonEmptyString(q.passage)) built.passage = q.passage.trim();
+        quiz.push(built);
       });
     }
   }
