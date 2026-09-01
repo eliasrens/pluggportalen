@@ -246,7 +246,8 @@
     <p class="lede">Hela målbilden, klickbar: gå in i huset, <strong>dra möblerna</strong> dit du vill,
     byt färg på hus och väggar, köp äpplen i shoppen och <strong>lägg ut dem på golvet</strong> —
     husdjuren går själva dit och äter, växer för varje matning och
-    <strong>evolverar till nästa stadium efter 10 matningar</strong>, precis som Pokémon.</p>
+    <strong>evolverar till nästa stadium efter 10 matningar</strong>, precis som Pokémon —
+    med dramatiska formbyten och coolare slutformer. Stilen blandar gulligt och coolt.</p>
   </header>
 
   <!-- ==================== 1. INTERAKTIV SCEN ==================== -->
@@ -285,19 +286,21 @@
   <section class="card">
     <h2>Husdjurens evolution ⭐</h2>
     <p>Varje art har <strong>3 stadier</strong>. Varje matning gör djuret lite större, och efter
-    <strong>10 matningar</strong> evolverar det till nästa stadium — ny, mer utvecklad form med samma
-    själ. Designen är putsad: mindre bebis, mer karaktär — stadium 1 är gulligast, stadium 3 mest
-    ståtligt. Tre exempel-linjer (samma system byggs för alla arter):</p>
+    <strong>10 matningar</strong> evolverar det — och evolutionen ska <em>synas</em>, som hos Pokémon:
+    <strong>ny siluett, nytt färgskifte och nya element</strong> för varje stadium. Stadium 1 är den
+    gulliga ungen, stadium 3 är den coola slutformen med bestämd blick, vingar, eld, blixtar eller
+    kosmisk päls. Tre exempel-linjer (samma system byggs för alla arter):</p>
     <div id="evolinjer"></div>
   </section>
 
   <!-- ==================== 3. MÖBLER ==================== -->
   <section class="card">
     <h2>Möbler i nya stilen 🛋️</h2>
-    <p>Samma stilguide som figurerna (kontur <code>#3B3350</code>, platt vektor, glad palett) men med
-    <strong>mer kärlek per möbel</strong>: tvåtonat trä, textilier med volang och sömmar, växter,
-    ljusslingor och en mjuk kontaktskugga. <strong>Alla möbler är flyttbara</strong> — prova att dra
-    dem i rummet ovan.</p>
+    <p>Samma stilguide som figurerna (kontur <code>#3B3350</code>, platt vektor) men med
+    <strong>mer kärlek per möbel</strong> — och <strong>blandade stilar</strong>: varje möbeltyp finns
+    i flera varianter i shoppen, från mysigt till coolt, så alla kan bygga sitt eget rum. Här visas
+    t.ex. <strong>tre olika sängar</strong>: rymd, racer och himmelsäng.
+    <strong>Alla möbler är flyttbara</strong> — prova att dra dem i rummet ovan.</p>
     <div class="galleri" id="mobler"></div>
   </section>
 
@@ -429,9 +432,10 @@ function hornA(h){ // h = höjd
   return '<path d="M'+(50-3.2)+' 16 L50 '+(16-h)+' L'+(50+3.2)+' 16 Z" fill="#F7C948" '+LINE+'/>'+
     '<path d="M'+(50-2.2)+' '+(16-h*0.3)+' L'+(50+2.4)+' '+(16-h*0.42)+' M'+(50-1.5)+' '+(16-h*0.62)+' L'+(50+1.6)+' '+(16-h*0.72)+'" fill="none" '+THIN+'/>';
 }
-const oraA=(dir,s=1)=>'<g transform="translate(50 0) scale('+s+' '+s+') translate(-50 0)">'+
-  '<path d="M '+(50+dir*8)+' 24 L '+(50+dir*16)+' 5 L '+(50+dir*24)+' 21 Z" fill="'+A_FUR+'" '+LINE+'/>'+
-  '<path d="M '+(50+dir*12)+' 19 L '+(50+dir*16)+' 9.5 L '+(50+dir*20)+' 17.5 Z" fill="'+A_PINK+'" stroke="none"/></g>';
+const oraA=(dir,s=1,fur=A_FUR,inner=A_PINK)=>'<g transform="translate(50 0) scale('+s+' '+s+') translate(-50 0)">'+
+  '<path d="M '+(50+dir*8)+' 24 L '+(50+dir*16)+' 5 L '+(50+dir*24)+' 21 Z" fill="'+fur+'" '+LINE+'/>'+
+  '<path d="M '+(50+dir*12)+' 19 L '+(50+dir*16)+' 9.5 L '+(50+dir*20)+' 17.5 Z" fill="'+inner+'" stroke="none"/></g>';
+const brows='<path d="M37 25 L45 27.5 M63 25 L55 27.5" fill="none" '+LINE+'/>';
 const A_STADIER=[
  {namn:"Gnizt",not:"nykläckt gnista",art:f=>
    shadow(50,94,22)+
@@ -465,26 +469,30 @@ const A_STADIER=[
    '<path d="M41 15 Q44 5 51 8 Q55 11 53 16 Q46 18 41 15 Z" fill="'+A_PINK+'" '+THIN+'/>'+
    '<path d="M44 13 Q46 9 50 10" fill="none" stroke="'+A_LILA+'" stroke-width="2" stroke-linecap="round"/>'+
    '<g class="face">'+face(f)+'</g>'},
- {namn:"Stjärnglans",not:"bevingad och ståtlig",art:f=>
+ {namn:"Stjärnglans",not:"kosmisk alicorn – rymdblå med norrskensman",art:f=>
    shadow(50,96,28)+
-   '<path d="M30 54 Q4 42 9 64 Q12 77 32 68 Z" fill="'+A_FUR+'" '+LINE+'/>'+
-   '<path d="M14 58 Q22 60 29 60 M13 65 Q21 66 29 64" fill="none" stroke="'+A_PINK+'" stroke-width="2.2" stroke-linecap="round"/>'+
-   '<path d="M70 54 Q96 42 91 64 Q88 77 68 68 Z" fill="'+A_FUR+'" '+LINE+'/>'+
-   '<path d="M86 58 Q78 60 71 60 M87 65 Q79 66 71 64" fill="none" stroke="'+A_PINK+'" stroke-width="2.2" stroke-linecap="round"/>'+
-   limb("M66 76 Q92 80 94 58 Q95 48 87 46","#F890B7",7)+
-   '<path d="M78 76 Q90 70 90 56" fill="none" stroke="'+A_LILA+'" stroke-width="2.6" stroke-linecap="round"/>'+
-   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="'+A_FUR+'" '+LINE+'/>'+
+   '<path d="M30 52 Q2 38 8 63 Q11 78 32 68 Z" fill="#E8F0FA" '+LINE+'/>'+
+   '<path d="M12 56 Q20 60 29 61 M11 64 Q20 66 29 65" fill="none" stroke="#F7C948" stroke-width="2.2" stroke-linecap="round"/>'+
+   '<path d="M70 52 Q98 38 92 63 Q89 78 68 68 Z" fill="#E8F0FA" '+LINE+'/>'+
+   '<path d="M88 56 Q80 60 71 61 M89 64 Q80 66 71 65" fill="none" stroke="#F7C948" stroke-width="2.2" stroke-linecap="round"/>'+
+   limb("M66 76 Q94 78 95 54 Q95 44 86 42","#F890B7",7)+
+   '<path d="M70 73 Q90 72 91 52" fill="none" stroke="'+A_LILA+'" stroke-width="2.8" stroke-linecap="round"/>'+
+   '<path d="M74 77 Q93 74 92 58" fill="none" stroke="#58C6A9" stroke-width="2.4" stroke-linecap="round"/>'+
+   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="#46557A" '+LINE+'/>'+
    shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
-   '<path d="M43 56 Q50 53 57 56 L57 70 Q50 74 43 70 Z" fill="'+A_BELLY+'" stroke="none"/>'+
-   limb("M43 84 L43 93",A_FUR,5)+limb("M57 84 L57 93",A_FUR,5)+
-   '<path d="M40 93 L46 93 M54 93 L60 93" stroke="#F890B7" stroke-width="4.5" stroke-linecap="round"/>'+
-   '<path d="M37 14 Q29 32 36 52 Q41 40 41 22 Z" fill="'+A_PINK+'" '+LINE+'/>'+
+   '<path d="M43 56 Q50 53 57 56 L57 70 Q50 74 43 70 Z" fill="#A9C2DE" stroke="none"/>'+
+   stjarna(59,66,0.6,"#F7C948")+
+   '<circle cx="42" cy="76" r="1.4" fill="#fff"/><circle cx="60" cy="82" r="1.2" fill="#fff"/><circle cx="45" cy="64" r="1.1" fill="#fff"/>'+
+   limb("M43 84 L43 93","#46557A",5)+limb("M57 84 L57 93","#46557A",5)+
+   '<path d="M40 93 L46 93 M54 93 L60 93" stroke="#F7C948" stroke-width="4.5" stroke-linecap="round"/>'+
+   '<path d="M37 14 Q28 32 36 52 Q41 40 41 22 Z" fill="#F890B7" '+LINE+'/>'+
    '<path d="M38 22 Q35 34 38 44" fill="none" stroke="'+A_LILA+'" stroke-width="2.4" stroke-linecap="round"/>'+
-   oraA(-1,0.92)+oraA(1,0.92)+
-   '<circle cx="50" cy="36" r="17.5" fill="'+A_FUR+'" '+LINE+'/>'+
-   hornA(17)+
-   '<path d="M40 13 Q45 3 55 6 Q60 9 57 15 Q47 18 40 13 Z" fill="'+A_PINK+'" '+THIN+'/>'+
-   '<path d="M44 11 Q48 7 53 8" fill="none" stroke="'+A_LILA+'" stroke-width="2" stroke-linecap="round"/>'+
+   '<path d="M40 26 Q38 36 40 46" fill="none" stroke="#58C6A9" stroke-width="2" stroke-linecap="round"/>'+
+   oraA(-1,0.92,"#46557A","#F890B7")+oraA(1,0.92,"#46557A","#F890B7")+
+   '<circle cx="50" cy="36" r="17.5" fill="#46557A" '+LINE+'/>'+
+   hornA(18)+
+   '<path d="M40 13 Q45 3 55 6 Q60 9 57 15 Q47 18 40 13 Z" fill="#F890B7" '+THIN+'/>'+
+   '<path d="M44 11 Q48 7 53 8" fill="none" stroke="#58C6A9" stroke-width="2" stroke-linecap="round"/>'+
    stjarna(64,44,0.85,"#F7C948")+
    '<g class="face">'+face(f)+'</g>'},
 ];
@@ -524,33 +532,32 @@ const B_STADIER=[
    '<path d="M64 18 Q67 8 60 10 Q58 13 59 18 Z" fill="'+B_GULD+'" '+LINE+'/>'+
    '<path d="M45 16 L50 7 L55 16 Z" fill="'+B_GULD+'" '+THIN+'/>'+
    '<g class="face">'+face(f)+'</g>'},
- {namn:"Eldvakt",not:"vingar och eldsvans",art:f=>
-   shadow(50,96,28)+
-   '<path d="M29 48 Q0 30 8 62 Q12 79 31 70 Z" fill="'+B_MORK+'" '+LINE+'/>'+
-   '<path d="M12 52 Q20 58 28 60 M10 61 Q19 65 28 65" fill="none" stroke="'+B_GULD+'" stroke-width="2.2" stroke-linecap="round"/>'+
-   '<path d="M71 48 Q100 30 92 62 Q88 79 69 70 Z" fill="'+B_MORK+'" '+LINE+'/>'+
-   '<path d="M88 52 Q80 58 72 60 M90 61 Q81 65 72 65" fill="none" stroke="'+B_GULD+'" stroke-width="2.2" stroke-linecap="round"/>'+
-   limb("M64 78 Q92 78 93 58",B_FUR,7)+
-   '<path d="M93 58 Q98 50 93 44 Q88 49 90 54 Q85 50 86 45 Q92 40 96 47 Q99 54 93 58 Z" fill="#F08A3C" '+THIN+'/>'+
-   '<path d="M92 52 Q94 48 92 46" fill="none" stroke="#F7C948" stroke-width="2.4" stroke-linecap="round"/>'+
-   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="'+B_FUR+'" '+LINE+'/>'+
-   shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
-   '<path d="M43 56 Q50 59 57 56 M42 63 Q50 66 58 63 M42 70 Q50 73 58 70 M43 77 Q50 80 57 77" fill="none" stroke="'+B_MORK+'" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>'+
-   '<path d="M43 55 Q50 52 57 55 L58 80 Q50 84 42 80 Z" fill="'+B_BELLY+'" stroke="none" opacity="0.9"/>'+plattorB(60)+
-   limb("M43 84 L43 93",B_FUR,5)+limb("M57 84 L57 93",B_FUR,5)+
-   '<path d="M40 93 L46 93 M54 93 L60 93" stroke="'+B_MORK+'" stroke-width="4.5" stroke-linecap="round"/>'+
-   '<path d="M30 30 L22 22 L33 24 Z M27 44 L17 40 L27 36 Z" fill="'+B_GULD+'" '+THIN+'/>'+
-   '<path d="M70 30 L78 22 L67 24 Z M73 44 L83 40 L73 36 Z" fill="'+B_GULD+'" '+THIN+'/>'+
-   '<circle cx="50" cy="36" r="17.5" fill="'+B_FUR+'" '+LINE+'/>'+
-   '<path d="M38 16 Q31 6 24 9 Q25 17 36 20 Z" fill="'+B_GULD+'" '+LINE+'/>'+
-   '<path d="M62 16 Q69 6 76 9 Q75 17 64 20 Z" fill="'+B_GULD+'" '+LINE+'/>'+
-   '<path d="M45 14 L50 5 L55 14 Z" fill="'+B_GULD+'" '+THIN+'/>'+
-   '<g class="face">'+face(f)+'</g>'},
+ {namn:"Eldvakt",not:"eldsprutare – röda vingar & guldpansar",art:f=>
+   shadow(50,96,30)+
+   '<path d="M30 46 Q-8 20 5 60 Q10 80 31 70 Z" fill="#EF6F6C" '+LINE+'/>'+
+   '<path d="M8 46 Q18 54 28 58 M6 57 Q17 63 28 64 M12 36 Q20 44 29 50" fill="none" '+THIN+'/>'+
+   '<path d="M70 46 Q108 20 95 60 Q90 80 69 70 Z" fill="#EF6F6C" '+LINE+'/>'+
+   '<path d="M92 46 Q82 54 72 58 M94 57 Q83 63 72 64 M88 36 Q80 44 71 50" fill="none" '+THIN+'/>'+
+   limb("M64 78 Q94 78 94 56","#4E9B5E",7)+
+   '<path d="M94 56 Q103 44 93 34 Q95 45 90 49 Q87 40 92 33 Q81 39 86 52 Q88 58 94 56 Z" fill="#F08A3C" '+THIN+'/>'+
+   '<path d="M90 50 Q93 44 91 40" fill="none" stroke="#F7C948" stroke-width="2.6" stroke-linecap="round"/>'+
+   '<path d="M38 50 Q30 68 35 85 Q37 95 50 95 Q63 95 65 85 Q70 68 62 50 Q50 45 38 50 Z" fill="#4E9B5E" '+LINE+'/>'+
+   shade("M58 52 Q66 72 60 93 Q69 74 62 52 Z")+
+   '<path d="M43 55 Q50 58 57 55 L58 62 Q50 65 42 62 Z M42 65 Q50 68 58 65 L58 72 Q50 75 42 72 Z M42 75 Q50 78 58 75 L57 82 Q50 85 43 82 Z" fill="#F7C948" '+THIN+'/>'+
+   limb("M43 85 L43 94","#4E9B5E",5)+limb("M57 85 L57 94","#4E9B5E",5)+
+   '<path d="M40 94 L46 94 M54 94 L60 94" stroke="#FFF3DC" stroke-width="4.5" stroke-linecap="round"/>'+
+   '<path d="M32 30 L23 20 L34 23 Z M29 44 L18 39 L29 36 Z" fill="#F08A3C" '+THIN+'/>'+
+   '<path d="M68 30 L77 20 L66 23 Z M71 44 L82 39 L71 36 Z" fill="#F08A3C" '+THIN+'/>'+
+   '<circle cx="50" cy="36" r="17.5" fill="#4E9B5E" '+LINE+'/>'+
+   '<path d="M39 15 Q30 2 19 7 Q22 17 36 20 Z" fill="#FFF3DC" '+LINE+'/>'+
+   '<path d="M61 15 Q70 2 81 7 Q78 17 64 20 Z" fill="#FFF3DC" '+LINE+'/>'+
+   '<path d="M45 13 L50 4 L55 13 Z" fill="#F7C948" '+THIN+'/>'+
+   '<g class="face">'+face(f)+'</g>'+brows},
 ];
 
-/* ---- Linje C: månhare (lila/kräm/guld) ---- */
-const C_FUR="#B79BE0", C_MORK="#9C7ED0", C_BELLY="#FFF3DC", C_INNER="#F5C1CB";
-const manC=(x,y,s)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 -5 A5 5 0 1 0 0 5 A3.8 3.8 0 1 1 0 -5 Z" fill="#F7C948" stroke="none"/>';
+/* ---- Linje C: blixthare (lila/guld) ---- */
+const C_FUR="#B79BE0", C_MORK="#9C7ED0", C_BELLY="#FFF3DC", C_INNER="#F5C1CB", C_EL="#F7C948";
+const boltC=(x,y,s)=>'<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 8 L5 -2 L2 -2 L8 -10 L4 -1 L7 -1 Z" fill="'+C_EL+'" '+THIN+'/>';
 const oronC=(h,lut)=>'<g>'+
   '<path d="M42 22 Q'+(38-lut)+' '+(22-h)+' '+(45-lut)+' '+(20-h)+' Q48 '+(26-h)+' 47 23 Z" fill="'+C_FUR+'" '+LINE+'/>'+
   '<path d="M43.5 20 Q'+(41-lut*0.7)+' '+(24-h*0.8)+' '+(45-lut*0.7)+' '+(23-h*0.8)+' Q46 '+(28-h*0.7)+' 45.5 21 Z" fill="'+C_INNER+'" stroke="none"/>'+
@@ -568,9 +575,9 @@ const C_STADIER=[
    oronC(12,2)+
    '<circle cx="50" cy="37" r="23" fill="'+C_FUR+'" '+LINE+'/>'+
    '<g class="face">'+face(f)+'</g>'},
- {namn:"Snurran",not:"studsig och snabb",art:f=>
+ {namn:"Snurran",not:"studsig sprinter med blixtmärke",art:f=>
    shadow(50,95,26)+
-   '<circle cx="71" cy="80" r="8" fill="'+C_BELLY+'" '+THIN+'/>'+
+   boltC(73,80,0.9)+
    '<path d="M35 58 Q28 93 50 93 Q73 93 66 58 Q50 52 35 58 Z" fill="'+C_FUR+'" '+LINE+'/>'+
    shade("M61 60 Q68 78 60 91 Q70 80 65 60 Z")+
    '<ellipse cx="50" cy="78" rx="11.5" ry="12" fill="'+C_BELLY+'"/>'+
@@ -581,20 +588,24 @@ const C_STADIER=[
    '<circle cx="50" cy="36" r="20" fill="'+C_FUR+'" '+LINE+'/>'+
    '<path d="M44 16 Q47 10 51 13 Q49 16 44 16 Z" fill="'+C_MORK+'" '+THIN+'/>'+
    '<g class="face">'+face(f)+'</g>'},
- {namn:"Månglans",not:"månens väktare",art:f=>
+ {namn:"Blixtlopp",not:"elladdad sprinter – blixtsvans & öronspetsar",art:f=>
    shadow(50,96,28)+
-   '<circle cx="72" cy="72" r="10" fill="'+C_BELLY+'" '+LINE+'/>'+
-   stjarna(28,26,0.8,"#F7C948")+stjarna(76,34,0.6,"#F7C948")+stjarna(22,52,0.55,"#F7C948")+
-   '<path d="M39 52 Q32 68 36 84 Q38 94 50 94 Q62 94 64 84 Q68 68 61 52 Q50 47 39 52 Z" fill="'+C_FUR+'" '+LINE+'/>'+
-   shade("M58 54 Q65 72 60 92 Q68 74 62 54 Z")+
-   '<path d="M43 56 Q50 53 57 56 L57 72 Q50 76 43 72 Z" fill="'+C_BELLY+'" stroke="none"/>'+
-   '<ellipse cx="42" cy="92" rx="8" ry="4" fill="'+C_FUR+'" '+LINE+'/>'+
-   '<ellipse cx="58" cy="92" rx="8" ry="4" fill="'+C_FUR+'" '+LINE+'/>'+
-   '<path d="M40 54 Q50 48 60 54 Q56 60 50 59 Q44 60 40 54 Z" fill="'+C_BELLY+'" '+THIN+'/>'+
-   oronC(26,5)+
-   '<circle cx="50" cy="36" r="17.5" fill="'+C_FUR+'" '+LINE+'/>'+
-   manC(50,21,1.05)+
-   '<g class="face">'+face(f)+'</g>'},
+   '<path d="M16 38 L24 42 L17 49 M84 38 L76 42 L83 49" fill="none" stroke="'+C_EL+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'+
+   '<path d="M62 82 L72 66 L67 66 L79 48 L74 62 L79 62 L66 82 Z" fill="'+C_EL+'" '+LINE+'/>'+
+   '<path d="M39 50 Q31 68 36 85 Q38 95 50 95 Q62 95 64 85 Q69 68 61 50 Q50 45 39 50 Z" fill="'+C_MORK+'" '+LINE+'/>'+
+   shade("M58 52 Q66 72 60 93 Q68 74 62 52 Z")+
+   '<path d="M43 54 Q50 51 57 54 L57 68 L53 64 L50 70 L47 64 L43 68 Z" fill="'+C_BELLY+'" stroke="none"/>'+
+   boltC(50,80,0.75)+
+   '<ellipse cx="41" cy="93" rx="8.5" ry="4" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<ellipse cx="59" cy="93" rx="8.5" ry="4" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M42 22 L33 1 L46 12 L47 22 Z" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M35 6 L39 13 L42 10 Z" fill="'+C_EL+'" stroke="none"/>'+
+   '<path d="M58 22 L67 1 L54 12 L53 22 Z" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M65 6 L61 13 L58 10 Z" fill="'+C_EL+'" stroke="none"/>'+
+   '<circle cx="50" cy="36" r="17.5" fill="'+C_MORK+'" '+LINE+'/>'+
+   '<path d="M38 21 L43 12 L46 19 L50 11 L54 19 L57 12 L62 21 Q50 27 38 21 Z" fill="'+C_FUR+'" '+THIN+'/>'+
+   boltC(65,45,0.45)+
+   '<g class="face">'+face(f)+'</g>'+brows},
 ];
 
 const LINJER={
@@ -609,7 +620,35 @@ const petSvg=(lineId,stadieIx,faceKind,label)=>
    MÖBLER – ny, rikare stil (flyttbara i rummet)
    ============================================================ */
 const MOBLER={
-  sang:{namn:"Himmelsäng",not:"volangtäcke, hjärtgavel",vb:"0 0 124 88",art:
+  rymdsang:{namn:"Rymdsäng",not:"cool stil: stjärntäcke & planetgavel",vb:"0 0 124 88",art:
+    shadow(62,82,52)+
+    limb("M14 66 L12 79","#7E97B8",5)+limb("M104 66 L106 79","#7E97B8",5)+
+    '<rect x="4" y="8" width="14" height="62" rx="6" fill="#46557A" '+LINE+'/>'+
+    '<circle cx="11" cy="24" r="6" fill="#7FC7E8" '+THIN+'/>'+
+    '<ellipse cx="11" cy="24" rx="10" ry="2.8" fill="none" stroke="#F7C948" stroke-width="2" transform="rotate(-18 11 24)"/>'+
+    '<rect x="102" y="28" width="12" height="42" rx="5" fill="#46557A" '+LINE+'/>'+
+    '<rect x="12" y="42" width="96" height="18" rx="7" fill="#FFF3DC" '+LINE+'/>'+
+    '<path d="M44 42 L108 42 L108 60 L44 60 Q40 51 44 42 Z" fill="#46405C" '+LINE+'/>'+
+    stjarna(60,50,0.8,"#F7C948")+stjarna(88,54,0.6,"#F7C948")+stjarna(75,46,0.5,"#FFFFFF")+
+    '<circle cx="98" cy="47" r="1.3" fill="#fff"/><circle cx="52" cy="55" r="1.2" fill="#fff"/>'+
+    '<rect x="18" y="32" width="26" height="15" rx="7" fill="#A9C2DE" '+LINE+'/>'+
+    '<path d="M24 39 Q31 36 38 39" fill="none" '+THIN+'/>',
+  },
+  racersang:{namn:"Racersäng",not:"cool stil: bilform, spoiler & startnummer",vb:"0 0 132 74",art:
+    shadow(66,68,56)+
+    '<rect x="110" y="12" width="16" height="6" rx="3" fill="#46405C" '+LINE+'/>'+
+    limb("M117 18 L117 32","#46405C",3.5)+
+    '<circle cx="34" cy="58" r="11" fill="#46405C" '+LINE+'/><circle cx="34" cy="58" r="4.5" fill="#A9C2DE" '+THIN+'/>'+
+    '<circle cx="100" cy="58" r="11" fill="#46405C" '+LINE+'/><circle cx="100" cy="58" r="4.5" fill="#A9C2DE" '+THIN+'/>'+
+    '<rect x="50" y="14" width="18" height="10" rx="5" fill="#FFF3DC" '+THIN+'/>'+
+    '<path d="M46 24 Q62 18 80 24 L80 32 L46 32 Z" fill="#7FC7E8" '+THIN+'/>'+
+    '<path d="M6 56 L6 42 Q6 32 18 32 L36 32 Q44 18 62 18 L86 18 Q102 18 108 32 L114 32 Q126 32 126 44 L126 56 Z" fill="#EF6F6C" '+LINE+'/>'+
+    '<path d="M12 40 H120" stroke="#FFF3DC" stroke-width="4" stroke-linecap="round"/>'+
+    '<circle cx="24" cy="47" r="8" fill="#FFF3DC" '+THIN+'/>'+
+    '<path d="M22 45 L25 43 L25 51 M21 51 L29 51" fill="none" '+THIN+'/>'+
+    '<circle cx="120" cy="48" r="4" fill="#F7C948" '+THIN+'/>',
+  },
+  sang:{namn:"Himmelsäng",not:"mysig stil: volangtäcke & hjärtgavel",vb:"0 0 124 88",art:
     shadow(62,82,52)+
     limb("M14 66 L12 79",WOOD_DARK,5)+limb("M104 66 L106 79",WOOD_DARK,5)+
     '<rect x="4" y="10" width="14" height="60" rx="6" fill="'+WOOD+'" '+LINE+'/>'+
@@ -668,7 +707,7 @@ const MOBLER={
     '<rect x="8" y="40" width="20" height="40" rx="10" fill="#9C7ED0" '+LINE+'/>'+
     '<rect x="76" y="40" width="20" height="40" rx="10" fill="#9C7ED0" '+LINE+'/>'+
     '<rect x="22" y="56" width="60" height="26" rx="10" fill="#C9B3EC" '+LINE+'/>'+
-    '<path d="M30 34 Q30 28 36 28 Q40 28 41 32 Q45 30 47 34 Q50 38 46 42 Q40 47 34 43 Q29 40 30 34 Z" fill="#F7C948" '+THIN+'/>'+
+    stjarna(38,36,1.5,"#F7C948")+
     '<path d="M60 56 L82 56 L82 74 Q71 80 60 74 Z" fill="#EF6F6C" '+THIN+'/>'+
     '<path d="M64 60 H78 M64 66 H78" stroke="#FFB1B8" stroke-width="2.2" stroke-linecap="round"/>',
   },
@@ -826,7 +865,7 @@ inside.innerHTML=inneScen();
 /* -- flyttbara möbler -- */
 const FURN_START=[
   {id:"matta",x:32,y:96,w:34,bak:true},
-  {id:"sang",x:80,y:79,w:28},
+  {id:"rymdsang",x:80,y:79,w:28},
   {id:"bokhylla",x:58,y:76,w:12},
   {id:"vaxt",x:7,y:78,w:9},
   {id:"fatolj",x:18,y:92,w:15.5},

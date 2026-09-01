@@ -48,10 +48,15 @@ Inga fria färgval – bara paletter (blir alltid snyggt, enkel datamodell).
 ## Evolution & matning (Pokémon-modellen)
 
 - **3 stadier per art**, var och en med egen form och eget stadienamn.
-  Exempel-linjer i prototypen (samma system för alla arter):
-  - Gnistra-linjen: **Gnizt → Gnistra → Stjärnglans** (enhörningskatt: hornknopp → spiralhorn → vingar & man)
-  - Taggen-linjen: **Knytt → Taggen → Eldvakt** (drake: hornknoppar → taggar & vingknoppar → stora vingar & eldsvans)
-  - Snurran-linjen: **Plutt → Snurran → Månglans** (månhare: korta öron → långa öron → månmärke & stjärngnistor)
+  **Evolutionen ska synas (Pokémon-principen): ny siluett + färgskifte + nya element per stadium.**
+  Stadium 1 = gullig unge, stadium 2 = mer karaktär, stadium 3 = cool slutform med bestämd blick
+  (ögonbryn), vingar/eld/blixtar/kosmisk päls. Exempel-linjer i prototypen:
+  - Gnistra-linjen: **Gnizt → Gnistra → Stjärnglans** (vit kattunge med hornknopp → spiralhorn & man →
+    kosmisk alicorn: rymdblå `#46557A` päls, norrskensman i rosa/lila/mint, vingar, guldhovar, stjärnfläckar)
+  - Taggen-linjen: **Knytt → Taggen → Eldvakt** (grön drakunge → taggar & små vingar →
+    mörkgrön `#4E9B5E` kropp, stora röda `#EF6F6C` vingar, guldpansar på bröstet, bakåtsvepta horn, stor eldsvans)
+  - Snurran-linjen: **Plutt → Snurran → Blixtlopp** (lila harunge → sprinter med blixtmärke →
+    elladdad: mörklila `#9C7ED0` päls, blixtformad svans i guld, kantiga öron med guldspetsar, taggig lugg, gnistor)
 - **Tillväxt:** varje matning ger +0.022 i skala. Stadiebas-skala: **0.66 / 0.90 / 1.18**
   (10 matningar ≈ +22 % → nästa stadiebas tar vid nästan sömlöst).
 - **Evolution: efter 10 matningar** → nästa stadium, maträknaren nollas.
@@ -70,11 +75,14 @@ Inga fria färgval – bara paletter (blir alltid snyggt, enkel datamodell).
 ## Djurdesign 2.0 (putsprinciper för ALLA arter)
 
 - Stadium 1 gulligast (huvud r≈23, rund blob-kropp), stadium 2 mer karaktär (r≈20,
-  sittande kropp med ben), stadium 3 ståtligast (r≈17.5, stående högre kropp, smalare siluett).
+  sittande kropp med ben), stadium 3 coolast (r≈17.5, stående högre kropp, smalare siluett).
+- **Stadium 3 får bestämda ögonbryn** (statiskt lager ovanpå ansiktet) och ett tydligt
+  **färgskifte** mot en mörkare/djupare ton — det är detta som ger wow-känslan vid evolution.
 - Skuggpass (`#3B3350` op 0.07) på kroppens ena sida + detaljpass (fjäderlinjer i vingar,
   spirallinjer i horn, plattor på drakmage, innerteckning i öron) höjer kvaliteten
   utan att lämna den platta stilen.
-- Sekundärfärg används som accent (man/tofs/taggar), max 3 färger + kontur per djur.
+- Sekundärfärg används som accent (man/tofs/taggar/blixtar), max 3–4 färger + kontur per djur.
+- Ton: blanda gulligt och coolt över artbeståndet — inte allt ska vara sött.
 
 ## Animationstajming
 
@@ -94,7 +102,14 @@ Inga fria färgval – bara paletter (blir alltid snyggt, enkel datamodell).
 ## Möbelstil 2.0
 
 Samma stilguide som figurerna men rikare: tvåtonat trä (`#B0805A`/`#8A6242`/`#E0B98C`),
-textilier med volang/sömmar (dash-linjer), växter, ljusslinga, mjuk kontaktskugga.
-Referensmöbler i prototypen: Himmelsäng, Bokhylla (växt/pokal/vimpel), Pluggöhörna
-(skrivbord+lampa+pall), Mysfåtölj (pläd+kudde), Solmatta (volangkant+stjärnor), Krukväxt.
+textilier med sömmar (dash-linjer), växter, ljusslinga, mjuk kontaktskugga.
+
+**Stilmix-princip:** varje möbeltyp får minst 2–3 stilvarianter i shoppen — mysigt OCH coolt —
+så rummet inte blir "gulligull" om man inte vill. Sängexemplen i prototypen:
+- **Rymdsäng** (cool, default i rummet): marin `#46557A` gavel med planet, mörkt stjärntäcke `#46405C`, stålben
+- **Racersäng** (cool): bilform `#EF6F6C` med spoiler, hjul, startnummer och strålkastare
+- **Himmelsäng** (mysig): volangtäcke, hjärtgavel — det gulliga alternativet finns kvar att köpa
+
+Övriga referensmöbler: Bokhylla (växt/pokal/vimpel), Pluggöhörna (skrivbord+lampa+pall),
+Mysfåtölj (pläd+kudde+stjärna), Solmatta, Krukväxt.
 Alla möbler flyttbara i rummet (drag & drop, procentpositioner).
