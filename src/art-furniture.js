@@ -102,4 +102,45 @@ export const FURNITURE = {
       `<ellipse cx="32" cy="22" rx="20" ry="10.5" fill="#FFF3DC" ${LINE}/>` +
       `<ellipse cx="32" cy="22" rx="11" ry="5.5" fill="#7FC7E8" ${THIN}/>`,
   },
+  sittpuff: {
+    viewBox: "0 0 60 48",
+    art:
+      `<path d="M8 40 Q3 18 30 14 Q57 18 52 40 Q30 48 8 40 Z" fill="#58C6A9" ${LINE}/>` +
+      `<path d="M30 14 Q26 28 12 39 M30 14 Q34 28 48 39 M30 15 L30 44" fill="none" ${THIN}/>` +
+      `<circle cx="30" cy="16" r="3.4" fill="#C9F0DC" ${THIN}/>`,
+  },
+  byra: {
+    viewBox: "0 0 56 62",
+    art:
+      limb("M11 52 L9 59", WOOD_DARK, 4) +
+      limb("M45 52 L47 59", WOOD_DARK, 4) +
+      `<rect x="6" y="5" width="44" height="49" rx="4" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="11" y="10" width="34" height="12" rx="3" fill="${WOOD_LIGHT}" ${LINE}/>` +
+      `<rect x="11" y="25" width="34" height="12" rx="3" fill="${WOOD_LIGHT}" ${LINE}/>` +
+      `<rect x="11" y="40" width="34" height="12" rx="3" fill="${WOOD_LIGHT}" ${LINE}/>` +
+      `<circle cx="21" cy="16" r="2.2" fill="${WOOD_DARK}"/><circle cx="35" cy="16" r="2.2" fill="${WOOD_DARK}"/>` +
+      `<circle cx="21" cy="31" r="2.2" fill="${WOOD_DARK}"/><circle cx="35" cy="31" r="2.2" fill="${WOOD_DARK}"/>` +
+      `<circle cx="21" cy="46" r="2.2" fill="${WOOD_DARK}"/><circle cx="35" cy="46" r="2.2" fill="${WOOD_DARK}"/>`,
+  },
+  skrivbord: {
+    viewBox: "0 0 66 58",
+    art:
+      `<rect x="4" y="12" width="58" height="9" rx="3" fill="#C9996B" ${LINE}/>` +
+      limb("M12 21 L12 52", WOOD_DARK, 4) +
+      `<rect x="38" y="21" width="24" height="31" rx="3" fill="${WOOD}" ${LINE}/>` +
+      `<path d="M40 32 L60 32 M40 42 L60 42" fill="none" ${THIN}/>` +
+      `<path d="M46 26 L54 26 M46 37 L54 37 M46 47 L54 47" fill="none" stroke="${WOOD_DARK}" stroke-width="2.4" stroke-linecap="round"/>` +
+      `<rect x="14" y="4" width="18" height="9" rx="2" fill="#EF6F6C" ${THIN}/>`,
+  },
+  fatolj: {
+    viewBox: "0 0 64 58",
+    art:
+      limb("M16 46 L14 55", WOOD_DARK, 4) +
+      limb("M48 46 L50 55", WOOD_DARK, 4) +
+      `<rect x="12" y="4" width="40" height="36" rx="11" fill="#B79BE0" ${LINE}/>` +
+      `<rect x="5" y="22" width="13" height="26" rx="6" fill="#9C7ED0" ${LINE}/>` +
+      `<rect x="46" y="22" width="13" height="26" rx="6" fill="#9C7ED0" ${LINE}/>` +
+      `<rect x="14" y="30" width="36" height="18" rx="7" fill="#C9B3EC" ${LINE}/>` +
+      `<path d="M22 14 Q32 10 42 14" fill="none" ${THIN}/>`,
+  },
 };
