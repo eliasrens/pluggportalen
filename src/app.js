@@ -43,6 +43,8 @@ import {
 import { pageLarareKlass } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
+// Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
+import { pageElevHusdjur } from "./pages-pet.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
@@ -105,6 +107,8 @@ const routes = {
   "/elev/spela": pageElevSpela,
   "/elev/shop": pageElevShop,
   "/elev/rum": pageElevRum,
+  // Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
+  "/elev/husdjur": pageElevHusdjur,
   "/elev/profil": pageElevProfil,
   "/larare": () => pageLarare(teacherCtx),
   // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).

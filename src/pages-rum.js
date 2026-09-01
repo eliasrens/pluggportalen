@@ -66,6 +66,7 @@ export async function pageElevRum() {
 
     <div class="center">
       <button class="btn ghost" id="to-shop">🛍️ Till shoppen</button>
+      <button class="btn ghost" id="to-husdjur">🥚 Mitt husdjur</button>
     </div>
   </div>`);
 
@@ -147,6 +148,7 @@ export async function pageElevRum() {
 
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
+  view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   // Placera en sak från lådan (klick).
   tray.addEventListener("click", (e) => {
