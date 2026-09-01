@@ -116,13 +116,14 @@ Exempel (`students/elev1`):
 | Fält         | Typ    | Beskrivning                                            |
 | ------------ | ------ | ------------------------------------------------------ |
 | `coins`      | number | Antal pluggcoins                                       |
+| `xp`         | number | Kumulativt erfarenhets-XP. Nivån räknas fram ur detta (obegränsad, stigande kurva) – se `src/leveling.js`. Saknas fältet härleds ett startvärde ur `progress` (migrering). |
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
 | `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
 | `room`       | map    | `{ placements: { [itemId]: { x, y } } }` – `x`/`y` i **procent** (0–100) av rummet |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
-| `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds alltid ur stjärnorna i `progress` (trösklarna ligger i `src/evolution.js`). |
+| `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds numera ur elevens **nivå** (nivåtrösklarna `STAGE_LEVELS` i `src/evolution.js`; nivån ur `xp` via `src/leveling.js`). |
 | `pet`        | map    | Kläckbara husdjuret (mystery egg) – se nedan. Saknas tills eleven köpt ägget/värmelampan |
 
 ### `studentData.pet` – kläckbara husdjuret
@@ -157,6 +158,7 @@ Exempel (`studentData/elev1`):
 ```json
 {
   "coins": 40,
+  "xp": 130,
   "progress": {
     "vikingatiden": {
       "quiz": { "completed": true, "bestScore": 4, "stars": 2, "lastPlayed": "<timestamp>" }
@@ -224,6 +226,16 @@ Exempel (`classes/6a`):
 **Coins**
 - `getCoins()`, `addCoins(n)`, `spendCoins(n)` → `{ ok, coins }`
 
+**XP / nivå** – Firestore-delen i systermodulen [`src/data-xp.js`](../src/data-xp.js) (som `data-pet.js`)
+- `getXp()` → elevens samlade XP; `addXp(n)` → nytt totalt XP (transaktion, samma
+  mönster som `addCoins`; migrerar automatiskt elever utan `xp`-fält ur `progress`).
+- XP delas ut i `awardExercise()` (`src/game-shared.js`): full pott första gången en
+  övning klaras, ~30 % vid omspel (grind-skydd, som coins).
+- Nivåkurvan (obegränsad, stigande) + XP-potten per övning ligger i
+  [`src/leveling.js`](../src/leveling.js): `xpForLevel(L)`, `levelForXp(xp)`,
+  `xpIntoLevel(xp)` → `{ level, intoLevel, neededForNext, progressRatio }`,
+  `xpForExercise(stars)`, `XP_BASE`/`XP_PER_STAR` (justerbar balans, kommenterad tabell).
+
 **Framsteg**
 - `getProgress()`, `saveProgress(areaId, gamemode, result)`
 
@@ -247,8 +259,11 @@ Exempel (`classes/6a`):
 **Karaktärs-evolution (Pokémon-stil)**
 - `getEvolution()` → `{ [avatarId]: { stage, branch } }` – elevens sparade grenval.
 - `setEvolutionChoice(avatarId, { stage, branch })` – spara grenvalet i sista steget.
-- Vilket steg figuren nått **härleds** ur stjärnorna i `progress` – se
-  `src/evolution.js` (`STAGE_STARS`-trösklarna, `evoFromStudentData(sd)`).
+- Vilket steg figuren nått **härleds** ur elevens **nivå** (inte längre direkt ur
+  stjärnorna) – se `src/evolution.js` (`STAGE_LEVELS`-trösklarna,
+  `evoFromStudentData(sd)` → `{ stage, branch, level, xp, intoLevel, ... }`).
+  Nivån räknas ur `xp` via `src/leveling.js`. Evolutionen kapas vid sista steget
+  (steg 3) även om nivåerna fortsätter uppåt.
   Rendera figuren med `avatarMarkup(avatarId, itemIds, evo)` /
   `characterSvg(id, { stage, branch })`. Konsten per steg ligger i
   `src/art-characters-robot.js`, registret `EVOLUTIONS` i `src/art-characters.js`.

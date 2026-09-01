@@ -115,6 +115,19 @@ body {
   font-size: 1.1rem;
 }
 
+/* Liten, diskret nivåetikett i sidhuvudet (bredvid coins). */
+.topbar .niva {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef4ff;
+  color: #3a5bbf;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 1rem;
+}
+
 .container {
   max-width: 880px;
   margin: 0 auto;
@@ -1289,6 +1302,46 @@ code {
 .evo-status {
   font-size: 1.05rem;
   margin-top: 8px;
+}
+
+/* Nivå + XP-mätare på utvecklingssidan */
+.evo-niva-rad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 8px;
+  flex-wrap: wrap;
+}
+
+.evo-niva-badge {
+  background: #eef4ff;
+  color: #3a5bbf;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 1.1rem;
+}
+
+.evo-niva-xp {
+  color: #7c88a6;
+  font-weight: 700;
+}
+
+.evo-xp-bar {
+  height: 16px;
+  background: #eaf0fb;
+  border-radius: 999px;
+  overflow: hidden;
+  max-width: 340px;
+  margin: 0 auto 6px;
+}
+
+.evo-xp-fyll {
+  height: 100%;
+  background: linear-gradient(90deg, #6fa8ff, #3a5bbf);
+  border-radius: 999px;
+  transition: width 0.4s ease;
 }
 
 /* Grenvalskorten (sista steget) */

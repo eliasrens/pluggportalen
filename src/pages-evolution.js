@@ -1,31 +1,43 @@
 // ============================================================================
 // Pluggportalen – Utveckling (#/elev/utveckling)
 // ----------------------------------------------------------------------------
-// Elevens evolutionssida (Pokémon-stil): visar figurens nuvarande steg, hur
-// många stjärnor som är kvar till nästa utveckling och – när sista steget är
-// nått – valet mellan grenvarianterna. Grenvalet sparas via
+// Elevens evolutionssida (Pokémon-stil): visar figurens NIVÅ, en XP-mätare mot
+// nästa nivå, nuvarande steg + vid vilken nivå nästa utveckling sker och – när
+// sista steget är nått – valet mellan grenvarianterna. Grenvalet sparas via
 // data.setEvolutionChoice och syns sedan överallt (topbar, hem, profil...).
-// Logiken (trösklar, härlett steg) ligger i evolution.js, konsten i
-// art-characters-robot.js.
+// Logiken (nivåtrösklar, härlett steg) ligger i evolution.js, XP/nivåkurvan i
+// leveling.js, konsten i art-characters-robot.js.
 // ============================================================================
 
 import * as data from "./data.js";
 import { avatarMarkup, avatarName, characterSvg, DEFAULT_AVATAR } from "./avatars.js";
-import { STAGE_STARS, evoFromStudentData, nextGoal, evolutionFor } from "./evolution.js";
+import { STAGE_LEVELS, evoFromStudentData, nextEvolution, evolutionFor } from "./evolution.js";
 import { app, el, go, loading, renderTopbar, flash } from "./ui.js";
 
-/** Stegraden: en prick per steg med stjärntröskeln under. */
+/** Stegraden: en prick per steg med nivåtröskeln under. */
 function stageTimeline(stage) {
-  const dots = STAGE_STARS.map((at, i) => {
+  const dots = STAGE_LEVELS.map((atLevel, i) => {
     const n = i + 1;
     const cls = n < stage ? "klar" : n === stage ? "nu" : "";
     return `<div class="evo-steg ${cls}">
       <span class="evo-steg-prick">${n <= stage ? "★" : n}</span>
       <span class="evo-steg-text">Steg ${n}</span>
-      <span class="evo-steg-krav">${at === 0 ? "start" : `${at} ⭐`}</span>
+      <span class="evo-steg-krav">${atLevel <= 1 ? "start" : `nivå ${atLevel}`}</span>
     </div>`;
   });
   return `<div class="evo-stegrad">${dots.join('<span class="evo-pil">→</span>')}</div>`;
+}
+
+/** XP-mätare mot nästa nivå + text om hur mycket XP som är kvar. */
+function xpMeter(evo) {
+  const pct = Math.round(Math.min(1, Math.max(0, evo.progressRatio)) * 100);
+  const left = Math.max(0, evo.neededForNext - evo.intoLevel);
+  return `<div class="evo-niva-rad">
+      <span class="evo-niva-badge">⭐ Nivå ${evo.level}</span>
+      <span class="evo-niva-xp">${evo.intoLevel} / ${evo.neededForNext} XP</span>
+    </div>
+    <div class="evo-xp-bar"><div class="evo-xp-fyll" style="width:${pct}%"></div></div>
+    <p class="hint center">Bara <b>${left} XP</b> kvar till nivå ${evo.level + 1}! 🚀</p>`;
 }
 
 export async function pageElevUtveckling() {
@@ -46,24 +58,24 @@ export async function pageElevUtveckling() {
   const avatarId = sd.avatarId || DEFAULT_AVATAR;
   const evo = evoFromStudentData(sd);
   const def = evolutionFor(avatarId);
-  const goal = nextGoal(evo.stars);
+  const nextEvo = nextEvolution(evo.level); // nästa evolutionssteg (eller null)
   const maxStage = def?.maxStage || 1;
   const atFinal = def && evo.stage >= maxStage;
 
-  // Peppande statusrad under figuren.
+  // Peppande statusrad under figuren – berättar vid vilken NIVÅ nästa steg sker.
   let statusHtml;
   if (!def) {
     statusHtml = `<p class="hint">${avatarName(avatarId)} kan inte utvecklas ännu – fler figurer får
       utvecklingar snart! Roboten kan redan – byt figur i profilen om du vill testa. 🤖</p>`;
-  } else if (goal) {
-    statusHtml = `<p class="evo-status">Du har <b>${evo.stars} ⭐</b> –
-      bara <b>${goal.left} ⭐</b> kvar till nästa utveckling! Kör en övning till! 🚀</p>`;
+  } else if (nextEvo && nextEvo.stage <= maxStage) {
+    statusHtml = `<p class="evo-status">Nästa utveckling (steg ${nextEvo.stage}) sker vid
+      <b>nivå ${nextEvo.atLevel}</b> – bara <b>${nextEvo.levelsLeft} nivåer</b> kvar! Kör en övning till! 🚀</p>`;
   } else if (atFinal && !evo.branch) {
-    statusHtml = `<p class="evo-status">WOW – du har nått sista steget med <b>${evo.stars} ⭐</b>!
+    statusHtml = `<p class="evo-status">WOW – du har nått sista steget på <b>nivå ${evo.level}</b>!
       Välj hur din figur ska utvecklas här nedanför. 🎉</p>`;
   } else {
-    statusHtml = `<p class="evo-status">Din figur är färdigutvecklad med <b>${evo.stars} ⭐</b> –
-      superjobbat! Du kan byta gren när du vill. 🏆</p>`;
+    statusHtml = `<p class="evo-status">Din figur är färdigutvecklad (<b>nivå ${evo.level}</b>) –
+      superjobbat! Du fortsätter levla uppåt och kan byta gren när du vill. 🏆</p>`;
   }
 
   // Grenvalet (visas bara när sista steget är nått och figuren har grenar).
@@ -89,6 +101,7 @@ export async function pageElevUtveckling() {
     <div class="panel center">
       <h1>Utveckling ⚡</h1>
       <div class="hero-avatar evo-hero">${avatarMarkup(avatarId, sd.avatarItems || [], evo)}</div>
+      ${xpMeter(evo)}
       ${stageTimeline(def ? evo.stage : 1)}
       ${statusHtml}
     </div>
