@@ -125,6 +125,58 @@ function dinoPet() {
   );
 }
 
+function hamsterPet() {
+  const fur = "#F2A93B", belly = "#FFE9CC", inner = "#F5C1CB";
+  return (
+    sitBody(fur, belly) +
+    `<circle cx="36" cy="19" r="6.5" fill="${fur}" ${LINE}/>` +
+    `<circle cx="64" cy="19" r="6.5" fill="${fur}" ${LINE}/>` +
+    `<circle cx="36" cy="19" r="3" fill="${inner}" stroke="none"/>` +
+    `<circle cx="64" cy="19" r="3" fill="${inner}" stroke="none"/>` +
+    head(fur) +
+    eyes() +
+    nose(42, "#E88A9C") +
+    `<path d="M50 44 L50 46 M50 46 Q47 48 45.5 46.5 M50 46 Q53 48 54.5 46.5" fill="none" ${THIN}/>` +
+    `<path d="M44 49 L46 49 M54 49 L56 49" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>` +
+    cheeks(46, 20) +
+    `<ellipse cx="43" cy="88" rx="5" ry="3.6" fill="${belly}" ${THIN}/>` +
+    `<ellipse cx="57" cy="88" rx="5" ry="3.6" fill="${belly}" ${THIN}/>`
+  );
+}
+
+function hedgehogPet() {
+  const quill = "#8A6242", face = "#E0B98C";
+  return (
+    `<ellipse cx="38" cy="94" rx="7" ry="4.5" fill="${face}" ${LINE}/>` +
+    `<ellipse cx="62" cy="94" rx="7" ry="4.5" fill="${face}" ${LINE}/>` +
+    `<path d="M12 70 L18 40 L26 56 L34 32 L42 54 L50 28 L58 54 L66 32 L74 56 L82 40 L88 70 Q50 94 12 70 Z" fill="${quill}" ${LINE}/>` +
+    `<path d="M30 52 L34 42 M50 48 L50 36 M70 52 L66 42" fill="none" ${THIN}/>` +
+    `<ellipse cx="50" cy="70" rx="23" ry="17" fill="${face}" ${LINE}/>` +
+    `<path d="M50 87 L44 79 L56 79 Z" fill="${face}" ${THIN}/>` +
+    eye(42, 64, 5) + eye(58, 64, 5) +
+    `<ellipse cx="50" cy="82" rx="3.4" ry="2.6" fill="${O}" stroke="none"/>` +
+    `<path d="M44 74 Q50 78 56 74" fill="none" ${THIN}/>` +
+    cheeks(74, 17)
+  );
+}
+
+function turtlePet() {
+  const shell = "#6FC66F", shellDark = "#4FA85A", skin = "#A9D98A", belly = "#D8F0C0";
+  return (
+    `<ellipse cx="26" cy="62" rx="9" ry="7" fill="${skin}" ${LINE}/>` +
+    `<ellipse cx="60" cy="64" rx="9" ry="7" fill="${skin}" ${LINE}/>` +
+    `<path d="M18 48 Q6 50 9 42" fill="${skin}" ${THIN}/>` +
+    `<ellipse cx="82" cy="44" rx="13" ry="12" fill="${skin}" ${LINE}/>` +
+    `<path d="M18 50 Q18 18 50 18 Q82 18 82 50 Z" fill="${shell}" ${LINE}/>` +
+    `<ellipse cx="50" cy="50" rx="33" ry="7" fill="${belly}" ${LINE}/>` +
+    `<path d="M40 44 Q50 37 60 44 Q56 50 44 50 Z" fill="${shellDark}" stroke="none"/>` +
+    `<path d="M50 22 L50 37 M34 30 L42 42 M66 30 L58 42 M22 45 L40 46 M78 45 L60 46" fill="none" ${THIN}/>` +
+    eye(84, 42, 5) +
+    `<path d="M80 51 Q85 54 90 50" fill="none" ${THIN}/>` +
+    `<ellipse cx="88" cy="48" rx="3" ry="2" fill="#FFB1B8" opacity="0.85"/>`
+  );
+}
+
 /** id → { viewBox, art } */
 export const PETS = {
   hund: { viewBox: "0 0 100 100", art: dogPet() },
@@ -133,4 +185,7 @@ export const PETS = {
   fisk: { viewBox: "0 0 100 76", art: fishPet() },
   papegoja: { viewBox: "0 0 84 100", art: parrotPet() },
   dinosaurie: { viewBox: "0 0 100 92", art: dinoPet() },
+  hamster: { viewBox: "0 0 100 100", art: hamsterPet() },
+  igelkott: { viewBox: "0 0 100 100", art: hedgehogPet() },
+  skoldpadda: { viewBox: "0 0 100 76", art: turtlePet() },
 };
