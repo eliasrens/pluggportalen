@@ -10,6 +10,7 @@
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { CATEGORIES, getItem, itemsInCategory } from "./shop-items.js";
+import { wearableSvg } from "./art-wearables.js";
 
 export async function pageElevShop() {
   if (!data.isLoggedIn()) return go("#/elev");
@@ -116,8 +117,11 @@ function shopCardHtml(it, state) {
   } else {
     btn = `<button class="buy-btn" data-id="${it.id}">Köp</button>`;
   }
+  // Klädsaker har egen SVG-konst; övriga kategorier visas som emoji tills
+  // deras konst-issues (möbler/husdjur/dekor) är gjorda.
+  const bild = (it.category === "klader" && wearableSvg(it.id)) || it.emoji;
   return `<div class="shop-card${owned ? " is-owned" : ""}">
-    <div class="shop-emoji">${it.emoji}</div>
+    <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
     <div class="shop-pris">🪙 ${it.price}</div>
     ${btn}
