@@ -498,3 +498,59 @@ export async function usernameTaken(username, exceptId = null) {
   );
   return snap.docs.some((d) => d.id !== exceptId);
 }
+
+// ---------------------------------------------------------------------------
+// Klasser (lärarsidan) – läraren grupperar elever i klasser, t.ex. "6A".
+// ----------------------------------------------------------------------------
+// classes/{classId} = { name, order?, createdAt, studentIds: string[] }
+// Vi lägger elevlistan som en array (studentIds) DIREKT på klassdokumentet i
+// stället för en subkollektion eller en klass-referens på varje elev. För den
+// här appen (en handfull klasser med ~30 elever styck) är det enklast: hela
+// klassen läses/skrivs i ett dokument, och en elev kan finnas i flera klasser
+// utan extra kopplingsdata. Följer samma mönster som getStudents/upsertStudent.
+// ---------------------------------------------------------------------------
+
+/** Lista alla klasser, sorterade efter `order` och sedan namn. */
+export async function getClasses() {
+  const snap = await getDocs(collection(db, "classes"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort(
+      (a, b) =>
+        (Number(a.order) || 0) - (Number(b.order) || 0) ||
+        String(a.name || "").localeCompare(String(b.name || ""), "sv")
+    );
+}
+
+/**
+ * Skapa (eller uppdatera) en klass. Skriver bara de fält som skickas med
+ * (merge), så studentIds rörs inte när man bara döper om klassen.
+ * @param {string} classId klassens id (t.ex. "6a")
+ * @param {object} fields  { name, order? }
+ */
+export async function upsertClass(classId, { name, order } = {}) {
+  const ref = doc(db, "classes", classId);
+  const snap = await getDoc(ref);
+  const payload = { name: String(name || "").trim() };
+  if (order !== undefined) payload.order = Number(order) || 0;
+  // Sätt createdAt + tom elevlista bara första gången klassen skapas.
+  if (!snap.exists()) {
+    payload.createdAt = serverTimestamp();
+    payload.studentIds = [];
+  }
+  await setDoc(ref, payload, { merge: true });
+  return classId;
+}
+
+/** Ta bort en klass (elevkontona rörs inte – bara grupperingen försvinner). */
+export async function deleteClass(classId) {
+  await deleteDoc(doc(db, "classes", classId));
+}
+
+/** Sätt exakt vilka elever som ingår i en klass (ersätter hela listan). */
+export async function setClassStudents(classId, studentIds) {
+  const list = Array.isArray(studentIds) ? [...new Set(studentIds)] : [];
+  const ref = doc(db, "classes", classId);
+  await setDoc(ref, { studentIds: list }, { merge: true });
+  return list;
+}
