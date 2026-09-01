@@ -606,6 +606,32 @@
   animation: bump 0.5s ease;
 }
 
+/* XP-vinst på resultatskärmen (bredvid coin-pop). */
+.xp-pop {
+  display: inline-block;
+  background: #eef4ff;
+  color: #3a5bbf;
+  font-weight: 800;
+  font-size: 1.2rem;
+  padding: 8px 20px;
+  border-radius: 999px;
+  margin: 6px 0;
+}
+
+/* Level-up-banner på resultatskärmen. */
+.levelup-pop {
+  display: inline-block;
+  background: linear-gradient(90deg, #ffd76a, #ffb347);
+  color: #7a4a00;
+  font-weight: 800;
+  font-size: 1.15rem;
+  padding: 10px 22px;
+  border-radius: 999px;
+  margin: 8px 0;
+  box-shadow: var(--skugga);
+  animation: bump 0.5s ease;
+}
+
 .cheer {
   font-size: 1.2rem;
   font-weight: 700;

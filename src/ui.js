@@ -120,6 +120,7 @@ export async function renderTopbar() {
       <span class="avatar-emoji">${avatarMarkup(avatarId, avatarItems, evo)}</span>
       <span class="avatar-namn">${session.namn || "Elev"}</span>
     </button>
+    ${evo ? `<span class="niva" title="Din nivå">⭐ Nivå ${evo.level}</span>` : ""}
     <span class="coins">🪙 ${coins}</span>
     <button class="btn ghost liten" id="logout-btn">Logga ut</button>
   </div>`);

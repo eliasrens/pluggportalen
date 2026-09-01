@@ -16,7 +16,7 @@
 //   subjects/{subjectId}/areas/{areaId}       – arbetsområde (t.ex. "vikingatiden")
 //       innehåller: texts[], quiz[], pairs[]
 //   students/{studentId}                      – { namn, username, password, avatarId }
-//   studentData/{studentId}                   – { coins, progress, ownedItems, room, avatarId }
+//   studentData/{studentId}                   – { coins, xp, progress, ownedItems, room, avatarId }
 // ============================================================================
 
 import { db } from "./firebase-config.js";
@@ -121,9 +121,10 @@ export async function login(username, password, remember = false) {
 // Elevdata (Firestore) – coins, framsteg, ägda saker, avatar, rum.
 // ---------------------------------------------------------------------------
 
-function defaultStudentData(avatarId) {
+export function defaultStudentData(avatarId) {
   return {
     coins: 0,
+    xp: 0, // kumulativt erfarenhets-XP (nivån härleds ur detta – se leveling.js)
     progress: {}, // { [areaId]: { [gamemode]: { completed, bestScore, stars, lastPlayed } } }
     ownedItems: [], // shop-sak-id:n
     avatarItems: [], // burna klädsaker (delmängd av ownedItems)
@@ -196,6 +197,9 @@ export async function spendCoins(amount, studentId = currentStudentId()) {
     return { ok: true, coins: cur - n };
   });
 }
+
+// XP / nivå: se systermodulen data-xp.js (additiv, som data-pet.js) – håller
+// data.js under filtaket. getXp()/addXp() importeras därifrån direkt.
 
 // --- Framsteg ---------------------------------------------------------------
 
