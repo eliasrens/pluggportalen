@@ -120,7 +120,13 @@ export function husScen(avatarHtml) {
       <path d="M668 456 L682 460 L668 466 Z" fill="#F7C948" ${THIN}/></g>
 
     ${shadow(316, 538, 46)}
-    <foreignObject x="256" y="392" width="120" height="150" pointer-events="none">
+    <!-- Extra höjd UPPÅT (y flyttad upp lika mycket som height ökat) så burna
+         hattar/kepsar som sticker upp ovanför huvudet ryms utan att klippas mot
+         foreignObject-kanten. Avataren botten-justeras i CSS (.varld-avatar,
+         flex align-items:flex-end) så fötterna står kvar på samma marklinje
+         (foreignObject-botten y≈536) oavsett hur mycket headroom vi lägger till
+         eller hur --varld-avatar-font skalas i en framtida by-nivå. -->
+    <foreignObject x="256" y="346" width="120" height="190" pointer-events="none">
       <div xmlns="http://www.w3.org/1999/xhtml" class="varld-avatar" id="ute-avatar">${avatarHtml}</div>
     </foreignObject>
   </svg>`;

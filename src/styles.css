@@ -1995,8 +1995,18 @@ body.varld-lage .container {
 
 .varld-ute svg { display: block; width: 100%; height: 100%; }
 
-/* Elevens avatar framför huset (foreignObject i ute-SVG:n → skalar med scenen). */
-.varld-avatar { font-size: var(--varld-avatar-font, 120px); line-height: 0; }
+/* Elevens avatar framför huset (foreignObject i ute-SVG:n → skalar med scenen).
+   Botten-justerad (flex-end) och fyller foreignObject:ens höjd, så fötterna
+   står kvar på marklinjen (foreignObject-botten) medan extrautrymmet hamnar
+   OVANFÖR huvudet – där ger det plats åt hattar/kepsar utan att de klipps. */
+.varld-avatar {
+  font-size: var(--varld-avatar-font, 120px);
+  line-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
 .varld-avatar .avatar-figure { vertical-align: top; }
 
 /* Rummets lager återanvänder .room-stage-utseendet (väggfärger m.m.) men
@@ -2006,6 +2016,12 @@ body.varld-lage .container {
   margin: 0;
   border-radius: 0;
   box-shadow: none;
+  /* Möbler & husdjur var måttsatta i rem för den gamla lilla rums-vyn (360px).
+     I den stora spelcanvasen ser samma rem-mått för små ut mot golv & fönster,
+     så rums-sakerna skalas upp med denna faktor (multiplicerar bredd/höjd →
+     nodens faktiska mått växer, så golv-clampen i varld-rum.js följer med).
+     Inbördes storleksskillnader (säng stor, pall liten) bevaras. */
+  --rum-skala: 1.55;
 }
 
 #husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
@@ -2155,14 +2171,17 @@ body.varld-lage .container {
 /* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
    med storlek per tillväxtsteg och en liten namnskylt under figuren. */
 
-.room-pet .ri-emoji { width: 3.2rem; height: 3.2rem; }
-.room-pet.pet-vuxen-2 .ri-emoji { width: 4.4rem; height: 4.4rem; }
-.room-pet.pet-vuxen-3 .ri-emoji { width: 5.8rem; height: 5.8rem; }
+/* Husdjuren skalas med scenens --rum-skala (default 1) precis som möblerna, så
+   de håller proportionerna mot de större möblerna i den stora spelcanvasen.
+   Faktisk bredd/höjd (calc, inte transform) → drag-clampen följer med. */
+.room-pet .ri-emoji { width: calc(3.2rem * var(--rum-skala, 1)); height: calc(3.2rem * var(--rum-skala, 1)); }
+.room-pet.pet-vuxen-2 .ri-emoji { width: calc(4.4rem * var(--rum-skala, 1)); height: calc(4.4rem * var(--rum-skala, 1)); }
+.room-pet.pet-vuxen-3 .ri-emoji { width: calc(5.8rem * var(--rum-skala, 1)); height: calc(5.8rem * var(--rum-skala, 1)); }
 
 /* Ägget i rummet: lite mindre + vaggar lugnt (samma keyframes som pet-sidan hade). */
 .room-pet.pet-agg-i-rum .ri-emoji {
-  width: 2.9rem;
-  height: 2.9rem;
+  width: calc(2.9rem * var(--rum-skala, 1));
+  height: calc(2.9rem * var(--rum-skala, 1));
   animation: pet-wiggle 3.2s ease-in-out infinite;
   transform-origin: 50% 90%;
 }
