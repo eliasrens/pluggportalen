@@ -2294,6 +2294,13 @@ body.varld-lage .container {
   height: auto;
 }
 
+/* Självmätande rigg: medan delarnas PNG-mått läses (art-pet-sprites.js) saknar
+   delarna position – håll dem dolda och tona in dem på plats när måtten finns,
+   så det aldrig syns någon layout-"pop". Containern har fast aspect-ratio, så
+   den yttre ytan är stabil redan innan delarna målas. */
+.pet-sprite .ps-del { transition: opacity 0.28s ease; }
+.pet-sprite.ps-laddar .ps-del { opacity: 0; }
+
 /* Rotationspunkter (designdoket): nacke 50 %/80 %, kropp 50 %/92 %,
    höft = fotens topp 50 %/10 %. De här arternas armar hänger lodrätt
    (tassen nedåt), så axeln sitter i armens topp – inte i inre änden. */
@@ -2434,6 +2441,7 @@ body.varld-lage .container {
   .pet-sprite .ps-humor {
     animation: none !important;
   }
+  .pet-sprite .ps-del { transition: none; }
 }
 
 /* Husdjurspanelen under rumsscenen. */
