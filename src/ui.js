@@ -99,14 +99,13 @@ export function flash(text, isError = false) {
 }
 
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
-// `grupp` avskiljer profil-relaterade val (Hem/Plugga/Shoppen) från övriga
-// destinationer. "Min klass" hör inte till den egna profilen och renderas
-// därför i en egen grupp med en visuell avdelare ovanför.
+// `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
+// (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
+// numera i spelvärlden via klasskylten vid gården (#/elev/by, klassbyn).
 const NAV_LANKAR = [
   { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil" },
-  { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass", grupp: "socialt" },
 ];
 
 /**
@@ -144,7 +143,7 @@ export async function renderTopbar() {
   } catch {}
 
   const navHtml = NAV_LANKAR.map((l, i) => {
-    // Avdelare när gruppen byts (t.ex. mellan profil-valen och "Min klass").
+    // Avdelare när gruppen byts (om en framtida länk får en egen grupp).
     const nyGrupp = i > 0 && l.grupp !== NAV_LANKAR[i - 1].grupp;
     const avdelare = nyGrupp ? `<hr class="sido-nav-avdelare" aria-hidden="true" />` : "";
     return `${avdelare}<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">

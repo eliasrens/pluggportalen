@@ -250,7 +250,7 @@ body.med-sidomeny .sidebar {
   text-align: center;
 }
 
-/* Avdelare mellan profil-valen och övriga destinationer (t.ex. "Min klass"). */
+/* Avdelare mellan nav-grupper (används om en länk får en egen grupp igen). */
 .sido-nav-avdelare {
   border: 0;
   height: 1px;
@@ -1715,70 +1715,6 @@ code {
   color: #5d6a89;
   font-weight: 600;
 }
-/* --- Klassfoto (#/elev/klassfoto) ----------------------------------------- */
-/* Additivt tillägg – håll separat för enkel rebase. */
-
-.foto-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 16px;
-}
-
-.foto-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 18px 12px 14px;
-  background: #fff;
-  border: none;
-  border-radius: var(--radie);
-  box-shadow: var(--skugga);
-  text-align: center;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-.foto-card:hover,
-.foto-card:focus-visible {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
-}
-
-.foto-card.du {
-  background: linear-gradient(160deg, #eafaf0, #d7f3e2);
-  outline: 3px solid var(--gron);
-  outline-offset: -3px;
-}
-
-.foto-figur {
-  font-size: 3.4rem;
-  line-height: 1;
-}
-
-.foto-namn {
-  font-weight: 800;
-  font-size: 0.98rem;
-  word-break: break-word;
-}
-
-.foto-du {
-  position: absolute;
-  top: -10px;
-  right: -6px;
-  background: var(--gron);
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.8rem;
-  padding: 3px 10px;
-  border-radius: 999px;
-  box-shadow: var(--skugga);
-  transform: rotate(6deg);
-}
-
 /* --- Klasskamratens rum (läs-endast) ------------------------------------- */
 .klasskamrat-figur {
   font-size: 4.2rem;
@@ -2040,6 +1976,90 @@ body.varld-lage .container {
 #husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
 #husgrupp:hover, #husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
 
+/* Klasskylten vid gårdskanten – klick zoomar ut till klassbyn. */
+#klasskylt {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  transition: transform 0.25s;
+  outline: none;
+}
+#klasskylt:hover, #klasskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
+
+/* --- Klassbyn (by-nivån): alla elevers hus i rader med vägar emellan ------- */
+.varld-by { background: #a8da8f; }
+
+.by-mark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* En tomt = ett minihus + elevens avatar (husMini) med namnskylt under.
+   left/top/width/height sätts inline av varld-by-scen.js utifrån byLayout
+   (procent av lagret – samma koordinater som kamerans fokuspunkter). */
+.by-tomt {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  outline: none;
+}
+.by-tomt > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 90%;
+}
+.by-tomt:hover > svg,
+.by-tomt:focus-visible > svg { transform: scale(1.06); }
+.by-tomt:focus-visible { outline: 3px solid var(--lila, #7c5cd6); outline-offset: 4px; border-radius: 12px; }
+
+.by-namn {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 150%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #3b3350;
+}
+.by-tomt.du .by-namn {
+  background: var(--gron, #34a853);
+  border-color: rgba(59, 51, 80, 0.55);
+  color: #fff;
+}
+
+.by-du {
+  position: absolute;
+  top: -4px;
+  left: 72%;
+  background: var(--gron, #34a853);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  box-shadow: var(--skugga);
+  transform: rotate(6deg);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
+.varld-stage[data-niva="by"] .varld-knapp.bara-rum,
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"] { display: none; }
+
 /* --- Overlay-UI i spelvyn (integrerade scen-kontroller) -------------------- */
 /* Själva overlay-skiktet släpper igenom pekare; bara knappar/paneler fångar. */
 .varld-ui {
@@ -2177,7 +2197,7 @@ body.varld-lage .container {
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
-  .varld-lager, #husgrupp { transition-duration: 0.01s; }
+  .varld-lager, #husgrupp, #klasskylt, .by-tomt > svg { transition-duration: 0.01s; }
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
