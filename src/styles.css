@@ -1847,3 +1847,68 @@ code {
 .give-coins .gc-flash { margin-top: 6px; font-size: 0.9rem; min-height: 1.1em; }
 .give-coins .gc-ok { color: #1e7a45; font-weight: 700; }
 .give-coins .gc-err { color: #b3261e; font-weight: 700; }
+
+/* ============================================================================
+   Mitt hem (#/elev/hus) – huset utifrån med zoom-övergång in i rummet
+   ============================================================================ */
+.hus-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 96 / 60;
+  border-radius: var(--radie);
+  overflow: hidden;
+  box-shadow: var(--skugga-mjuk);
+  background: #bde3f5;
+  margin-bottom: 20px;
+}
+.hus-scen {
+  position: absolute;
+  inset: 0;
+  /* Zoom-origin mot husets fönster (48,5 % / 52 %) enligt designbeslutet. */
+  transform-origin: 48.5% 52%;
+  transition: transform 0.9s cubic-bezier(0.55, 0, 0.2, 1), opacity 0.55s ease 0.25s;
+}
+.hus-scen svg { display: block; width: 100%; height: 100%; }
+.hus-stage.gar-in .hus-scen { transform: scale(6); opacity: 0; pointer-events: none; }
+
+#husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
+#husgrupp:hover, #husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
+
+.hus-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2.5px solid #3b3350;
+  border-radius: 999px;
+  padding: 5px 16px;
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.18);
+  pointer-events: none;
+  z-index: 8;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ambient: drivande moln, roterande solstrålar, skorstensrök */
+.hus-moln { animation: hus-driva var(--t, 50s) linear infinite; }
+@keyframes hus-driva { from { transform: translateX(-260px); } to { transform: translateX(1220px); } }
+.hus-solstralar { transform-origin: 110px 86px; animation: hus-snurra 70s linear infinite; }
+@keyframes hus-snurra { to { transform: rotate(360deg); } }
+.hus-rok { animation: hus-puffa 4s ease-in infinite; opacity: 0; }
+.hus-rok.r2 { animation-delay: 1.3s; }
+.hus-rok.r3 { animation-delay: 2.6s; }
+@keyframes hus-puffa {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+  25% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(14px, -46px) scale(1.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
+  .hus-scen, #husgrupp { transition-duration: 0.01s; }
+}

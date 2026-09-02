@@ -43,7 +43,7 @@ export async function pageElevRum() {
   const wearItemsOwned = owned.filter((id) => isWearable(id) && getItem(id));
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till startsidan</a>
+    <a class="back-link" id="back">← Gå ut ur huset</a>
     <div class="panel">
       <h1>Mitt rum 🛏️</h1>
       <p class="hint">Klicka på en sak i lådan för att ställa den i rummet. Dra för att
@@ -146,7 +146,8 @@ export async function pageElevRum() {
   renderTray();
   renderWearTray();
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  // "Ut ur huset" = tillbaka till hus-vyn (rummet nås via huset, #/elev/hus).
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 

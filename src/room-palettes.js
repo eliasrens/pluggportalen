@@ -1,0 +1,29 @@
+// ============================================================================
+// Pluggportalen – färgpaletter för hus & väggar (Husdjur & Hem 2.0)
+// ----------------------------------------------------------------------------
+// Delad datamodell för hus-vyn (pages-hus.js) och rummets väggfärg: eleven
+// väljer en PALETT (inga fria färgval) som sparas som `room.paletteId` i
+// studentData. Varje palett har fyra roller: husfasad, tak, vägg, väggpanel.
+// Golv, möbler och husdjur färgas ALDRIG om.
+// Källa: design/DESIGNBESLUT-husdjur-hem-2.0.md ("Paletter (hus & väggar)").
+// ============================================================================
+
+export const DEFAULT_PALETTE_ID = "persika";
+
+export const ROOM_PALETTES = {
+  persika: { namn: "Persika", house: "#F49E4C", roof: "#EF6F6C", wall: "#FFE9CC", wall2: "#FBD9A6" },
+  mint: { namn: "Mintgrön", house: "#58C6A9", roof: "#46557A", wall: "#D7F2E4", wall2: "#AFE3CB" },
+  himmel: { namn: "Himmelsblå", house: "#7FC7E8", roof: "#46557A", wall: "#DDF0FB", wall2: "#B7E0F5" },
+  rosa: { namn: "Rosa dröm", house: "#F890B7", roof: "#B79BE0", wall: "#FDE4EE", wall2: "#F9C8DD" },
+  sol: { namn: "Solgul", house: "#F7C948", roof: "#F08A3C", wall: "#FDF0C8", wall2: "#FAE29B" },
+};
+
+/** Hämta en palett med säkert fallback till default (okänt/saknat id). */
+export function getPalette(paletteId) {
+  return ROOM_PALETTES[paletteId] || ROOM_PALETTES[DEFAULT_PALETTE_ID];
+}
+
+/** Palett-id ur studentData (rummets sparade val). */
+export function paletteIdFromStudentData(sd) {
+  return (sd && sd.room && sd.room.paletteId) || DEFAULT_PALETTE_ID;
+}

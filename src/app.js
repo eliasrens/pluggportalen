@@ -13,6 +13,7 @@
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
+//   #/elev/hus        mitt hem: huset utifrån, klick → in i rummet – pages-hus.js
 //   #/elev/rum        mitt rum (placera saker + klä på avataren) – pages-rum.js
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/elev/klassfoto  min klass: se klasskamraternas figurer + namn (läs-endast)
@@ -52,6 +53,8 @@ import { pageElevKlasskamrat } from "./pages-klasskamrat.js";
 import { pageLarareKlasser } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
+// Mitt hem (#/elev/hus) – hus-skalet framför rummet (håll separat för enkel rebase).
+import { pageElevHus } from "./pages-hus.js";
 // Utveckling (#/elev/utveckling) – karaktärs-evolution i Pokémon-stil.
 import { pageElevUtveckling } from "./pages-evolution.js";
 // Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
@@ -117,6 +120,8 @@ const routes = {
   "/elev/omrade": pageElevOmrade,
   "/elev/spela": pageElevSpela,
   "/elev/shop": pageElevShop,
+  // Mitt hem (#/elev/hus) – huset utifrån; klick på huset leder in i rummet.
+  "/elev/hus": pageElevHus,
   "/elev/rum": pageElevRum,
   // Mitt husdjur (#/elev/husdjur) – additivt tillägg (håll separat för enkel rebase).
   "/elev/husdjur": pageElevHusdjur,
