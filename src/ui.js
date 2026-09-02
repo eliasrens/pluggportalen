@@ -139,7 +139,7 @@ export async function renderTopbar() {
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
   let evo; // nivå, XP-progress och utvecklingssteg (härlett ur framstegen)
-  let stjarnor = 0; // insamlade stjärnor – visas i avatar-popovern
+  let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -148,11 +148,6 @@ export async function renderTopbar() {
     evo = evoFromStudentData(sd);
     stjarnor = (await data.getStats()).stars || 0;
   } catch {}
-
-  // Uppmuntrande rad i popovern (ingen "rätta svar"-räknare finns – vi visar
-  // insamlade stjärnor, den mest positiva befintliga metriken).
-  const uppmuntran =
-    stjarnor > 0 ? "Vad bra du är – fortsätt så! 🌟" : "Din första stjärna väntar – kör igång! 🚀";
 
   // XP-baren speglar exakt samma värde som utvecklingssidan (evoFromStudentData
   // → xpIntoLevel(xp).progressRatio).
@@ -171,19 +166,9 @@ export async function renderTopbar() {
 
   const wrap = el(`<div class="sido-inner">
     <div class="sido-karaktar">
-      <div class="sido-figur-wrap">
-        <button class="sido-figur" id="sido-avatar-btn" type="button"
-                aria-haspopup="dialog" aria-expanded="false" aria-controls="sido-stat-popover"
-                title="Se dina stjärnor">
-          <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems, evo)}</span>
-        </button>
-        <div class="sido-stat-popover" id="sido-stat-popover" role="dialog"
-             aria-label="Dina stjärnor" hidden>
-          <span class="sido-stat-tal">⭐ ${stjarnor} stjärnor</span>
-          <span class="sido-stat-text">${uppmuntran}</span>
-          <span class="coins sido-stat-coins" title="Dina pluggcoins">${coinIcon(18)} ${coins} pluggcoins</span>
-        </div>
-      </div>
+      <span class="sido-figur">
+        <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems, evo)}</span>
+      </span>
       <a class="sido-namn" href="#/elev/profil" title="Min profil">${session.namn || "Elev"}</a>
       <div class="sido-xp-rad">
         <div class="sido-xp-kol">
@@ -202,52 +187,17 @@ export async function renderTopbar() {
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">
-      <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
-      <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      <span class="sido-stjarnor" title="Dina stjärnor">⭐ ${stjarnor} stjärnor</span>
+      <div class="sido-fot-rad">
+        <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
+        <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      </div>
     </div>
   </div>`);
 
   wrap.querySelector("#logout-btn").addEventListener("click", () => {
     data.logout();
     go("#/");
-  });
-
-  // Avatar-popover med stjärnstatistik: klick/Enter växlar, Escape och klick
-  // utanför stänger. Dokument-lyssnarna kopplas bara medan popovern är öppen så
-  // de inte ackumuleras när menyn ritas om vid varje navigering.
-  const figurWrap = wrap.querySelector(".sido-figur-wrap");
-  const avatarBtn = wrap.querySelector("#sido-avatar-btn");
-  const popover = wrap.querySelector("#sido-stat-popover");
-
-  const onDocClick = (e) => {
-    if (!figurWrap.contains(e.target)) stangPopover();
-  };
-  const onDocKey = (e) => {
-    if (e.key === "Escape") {
-      stangPopover();
-      avatarBtn.focus();
-    }
-  };
-  function oppnaPopover() {
-    popover.hidden = false;
-    avatarBtn.setAttribute("aria-expanded", "true");
-    document.addEventListener("click", onDocClick, true);
-    document.addEventListener("keydown", onDocKey);
-  }
-  function stangPopover() {
-    popover.hidden = true;
-    avatarBtn.setAttribute("aria-expanded", "false");
-    document.removeEventListener("click", onDocClick, true);
-    document.removeEventListener("keydown", onDocKey);
-  }
-  function vaxlaPopover() {
-    popover.hidden ? oppnaPopover() : stangPopover();
-  }
-
-  avatarBtn.addEventListener("click", (e) => {
-    // Stoppa bubbling så sidomenyns "stäng på mobil"-lyssnare inte triggas.
-    e.stopPropagation();
-    vaxlaPopover();
   });
 
   sidebarBody.replaceChildren(wrap);
