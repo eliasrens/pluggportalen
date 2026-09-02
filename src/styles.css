@@ -1957,30 +1957,160 @@ code {
 .give-coins .gc-err { color: #b3261e; font-weight: 700; }
 
 /* ============================================================================
-   Mitt hem (#/elev/hus) – huset utifrån med zoom-övergång in i rummet
-   ============================================================================ */
-.hus-stage {
+   Husvärlden (#/elev/hus + #/elev/rum) – EN spelscen med kamerazoom-nivåer
+   ============================================================================
+   Scenen (.varld-stage) täcker större delen av innehållsytan och innehåller
+   fullstora LAGER (.varld-lager) – ett per zoomnivå (ute/rummet, senare byn).
+   Kameran (varld-kamera.js) sätter transform/transform-origin/opacity inline;
+   timing & easing (samma som gamla .gar-in-zoomen: 900 ms, cubic-bezier,
+   origin mot fönstret) ligger här. Sidomenyn påverkas inte – bara #app-ytan
+   breddas i världsläget (body.varld-lage sätts av routern). */
+
+body.varld-lage .container {
+  max-width: 1440px;
+}
+
+.varld-stage {
   position: relative;
   width: 100%;
-  aspect-ratio: 96 / 60;
+  height: clamp(420px, calc(100vh - 150px), 900px);
   border-radius: var(--radie);
   overflow: hidden;
   box-shadow: var(--skugga-mjuk);
   background: #bde3f5;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  /* Avatarens storlek i scen-koordinater (px i ute-SVG:ns viewBox). En
+     framtida by-nivå sätter ett mindre värde på sina hus-kopior. */
+  --varld-avatar-font: 120px;
 }
-.hus-scen {
+
+.varld-lager {
   position: absolute;
   inset: 0;
-  /* Zoom-origin mot husets fönster (48,5 % / 52 %) enligt designbeslutet. */
-  transform-origin: 48.5% 52%;
   transition: transform 0.9s cubic-bezier(0.55, 0, 0.2, 1), opacity 0.55s ease 0.25s;
+  will-change: transform, opacity;
 }
-.hus-scen svg { display: block; width: 100%; height: 100%; }
-.hus-stage.gar-in .hus-scen { transform: scale(6); opacity: 0; pointer-events: none; }
+.varld-lager.varld-dold { visibility: hidden; }
+.varld-lager.varld-utan-anim { transition: none !important; }
+
+.varld-ute svg { display: block; width: 100%; height: 100%; }
+
+/* Elevens avatar framför huset (foreignObject i ute-SVG:n → skalar med scenen). */
+.varld-avatar { font-size: var(--varld-avatar-font, 120px); line-height: 0; }
+.varld-avatar .avatar-figure { vertical-align: top; }
+
+/* Rummets lager återanvänder .room-stage-utseendet (väggfärger m.m.) men
+   fyller hela scenen i stället för att vara ett eget block. */
+.varld-lager.room-stage {
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
 
 #husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
 #husgrupp:hover, #husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
+
+/* --- Overlay-UI i spelvyn (integrerade scen-kontroller) -------------------- */
+/* Själva overlay-skiktet släpper igenom pekare; bara knappar/paneler fångar. */
+.varld-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 12px;
+  pointer-events: none;
+}
+
+.varld-ui-topp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.varld-titel {
+  flex: 1 1 auto;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #3b3350;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.varld-verktyg { display: flex; gap: 8px; }
+
+.varld-knapp {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 2.5px solid #3b3350;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  color: #3b3350;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.18);
+  white-space: nowrap;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.varld-knapp:hover { transform: translateY(-1px); }
+.varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
+.varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
+
+/* Lådan & Kläder finns bara inne i rummet. */
+.varld-stage[data-niva="hus"] .varld-knapp.bara-rum { display: none; }
+
+/* Flytande verktygspanel (Måla om / Lådan / Kläder) under knappraden. */
+.varld-panel {
+  pointer-events: auto;
+  margin-top: 10px;
+  width: min(440px, 100%);
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2.5px solid #3b3350;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
+}
+.varld-panel h3 { margin: 0 0 6px; }
+.varld-panel .hint { margin-top: 0; }
+
+/* Husdjurspanelen som overlay nere i scenen (matning/namn/nedräkning). */
+.varld-petpanel {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: min(480px, 94%);
+  max-height: 62%;
+  overflow-y: auto;
+  z-index: 14;
+}
+.varld-petpanel:empty { pointer-events: none; }
+.varld-petpanel .rum-pet-panel {
+  margin: 0;
+  border: 2.5px solid #3b3350;
+  background: rgba(255, 255, 255, 0.97);
+}
+
+@media (max-width: 700px) {
+  .varld-stage { height: clamp(380px, calc(100vh - 120px), 700px); }
+  .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
+  .varld-titel { font-size: 0.95rem; }
+}
 
 .hus-hint {
   position: absolute;
@@ -2018,7 +2148,7 @@ code {
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
-  .hus-scen, #husgrupp { transition-duration: 0.01s; }
+  .varld-lager, #husgrupp { transition-duration: 0.01s; }
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
