@@ -12,8 +12,8 @@ import { app, el, go, loading, renderTopbar } from "./ui.js";
 
 export function pageElevLogin() {
   renderTopbar();
-  // Redan inloggad? Gå vidare till hemmet.
-  if (data.isLoggedIn()) return go("#/elev/hem");
+  // Redan inloggad? Gå direkt in i hus-scenen.
+  if (data.isLoggedIn()) return go("#/elev/hus");
 
   const view = el(`<div>
     <a class="back-link" id="back">← Tillbaka</a>
@@ -57,8 +57,9 @@ export function pageElevLogin() {
       );
       if (res.ok) {
         // Första gången (ingen avatar vald) → låt eleven välja sin figur.
+        // Annars: landa direkt i hus-scenen (ingen mellanliggande hem-sida).
         const chosen = await data.hasChosenAvatar().catch(() => true);
-        go(chosen ? "#/elev/hem" : "#/elev/avatar");
+        go(chosen ? "#/elev/hus" : "#/elev/avatar");
       } else {
         msg.innerHTML = `<div class="msg error">${res.error}</div>`;
       }
@@ -135,7 +136,7 @@ export async function pageElevAvatar() {
     try {
       await data.setAvatar(selected);
       await renderTopbar();
-      go(firstTime ? "#/elev/hem" : "#/elev/profil");
+      go(firstTime ? "#/elev/hus" : "#/elev/profil");
     } catch (err) {
       msg.innerHTML = `<div class="msg error">Kunde inte spara: ${err.message}</div>`;
       btn.disabled = false;
@@ -146,60 +147,9 @@ export async function pageElevAvatar() {
   app.replaceChildren(view);
 }
 
-// --- Startsida --------------------------------------------------------------
-
-export async function pageElevHem() {
-  if (!data.isLoggedIn()) return go("#/elev");
-  loading();
-  await renderTopbar();
-  const session = data.getSession();
-
-  let sd;
-  try {
-    sd = await data.getStudentData();
-  } catch (err) {
-    app.replaceChildren(
-      el(`<div class="panel"><div class="msg error">Kunde inte ladda din sida: ${err.message}</div></div>`)
-    );
-    return;
-  }
-  // Inte valt avatar än? Skicka till avatarvalet.
-  if (!sd.avatarChosen) return go("#/elev/avatar");
-
-  const avatar = sd.avatarId || DEFAULT_AVATAR;
-
-  const view = el(`<div>
-    <div class="panel center hero">
-      <div class="hero-avatar">${avatarMarkup(avatar, sd.avatarItems || [])}</div>
-      <h1>Hej ${session.namn}! 👋</h1>
-      <p class="hint">Du har <span class="coins">🪙 ${sd.coins || 0}</span> pluggcoins. Vad vill du göra idag?</p>
-    </div>
-    <div class="card-grid">
-      <button class="big-card gron" id="to-plugga">
-        <span class="emoji">✏️</span>
-        <span class="title">Plugga</span>
-        <span class="sub">Öva och samla coins</span>
-      </button>
-      <button class="big-card rosa" id="to-shop">
-        <span class="emoji">🛍️</span>
-        <span class="title">Shoppen</span>
-        <span class="sub">Handla saker till ditt rum</span>
-      </button>
-      <button class="big-card lila" id="to-rum">
-        <span class="emoji">🏠</span>
-        <span class="title">Mitt rum</span>
-        <span class="sub">Gå hem till ditt hus</span>
-      </button>
-    </div>
-  </div>`);
-
-  view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
-  view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
-  // "Mitt rum" går via hus-vyn (huset utifrån) – klick på huset leder in i rummet.
-  view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/hus"));
-
-  app.replaceChildren(view);
-}
+// Hem-hjälten (pageElevHem) är slopad: eleven landar direkt i hus-scenen
+// (#/elev/hus, se pages-varld.js) efter inloggning. Plugga och Shoppen nås via
+// sidomenyn (NAV_LANKAR i ui.js). #/elev/hem omdirigeras till #/elev/hus i app.js.
 
 // --- Plugga (välj arbetsområde) ---------------------------------------------
 
@@ -255,7 +205,7 @@ export async function pageElevPlugga() {
     </div>
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelectorAll(".area-card").forEach((btn) => {
     btn.addEventListener("click", () => {
       const subj = btn.dataset.subj;
@@ -333,7 +283,7 @@ export async function pageElevProfil() {
     }
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
   view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));

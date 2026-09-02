@@ -98,7 +98,7 @@ export async function pageElevKlassfoto() {
     </div>
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector(".foto-grid").addEventListener("click", (e) => {
     const card = e.target.closest("[data-href]");
     if (card) go(card.dataset.href);
