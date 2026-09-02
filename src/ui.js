@@ -8,6 +8,7 @@
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { evoFromStudentData } from "./evolution.js";
+import { coinIcon } from "./icons.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -133,17 +134,19 @@ export async function renderTopbar() {
     return;
   }
 
-  // Hämta coins + avatar (inkl. burna klädsaker) + XP/nivå i ett svep.
+  // Hämta coins + avatar (inkl. burna klädsaker) + XP/nivå + stjärnor i ett svep.
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
   let evo; // nivå, XP-progress och utvecklingssteg (härlett ur framstegen)
+  let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
     evo = evoFromStudentData(sd);
+    stjarnor = (await data.getStats()).stars || 0;
   } catch {}
 
   // XP-baren speglar exakt samma värde som utvecklingssidan (evoFromStudentData
@@ -163,9 +166,9 @@ export async function renderTopbar() {
 
   const wrap = el(`<div class="sido-inner">
     <div class="sido-karaktar">
-      <a class="sido-figur" href="#/elev/profil" title="Min profil">
+      <span class="sido-figur">
         <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems, evo)}</span>
-      </a>
+      </span>
       <a class="sido-namn" href="#/elev/profil" title="Min profil">${session.namn || "Elev"}</a>
       <div class="sido-xp-rad">
         <div class="sido-xp-kol">
@@ -184,8 +187,11 @@ export async function renderTopbar() {
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">
-      <span class="coins" title="Dina pluggcoins">🪙 ${coins}</span>
-      <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      <span class="sido-stjarnor" title="Dina stjärnor">⭐ ${stjarnor} stjärnor</span>
+      <div class="sido-fot-rad">
+        <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
+        <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      </div>
     </div>
   </div>`);
 

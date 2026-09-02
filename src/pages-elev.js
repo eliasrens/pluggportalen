@@ -8,6 +8,7 @@ import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { evoFromStudentData, evoForAvatar } from "./evolution.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
+import { coinIcon } from "./icons.js";
 
 // --- Inloggning -------------------------------------------------------------
 
@@ -174,34 +175,13 @@ export async function pageElevHem() {
   const evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
 
   const view = el(`<div>
-    <div class="panel center hero">
-      <div class="hero-avatar">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
+    <div class="panel center hero hero-slim">
+      <div class="hero-avatar hero-avatar-stor">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
       <h1>Hej ${session.namn}! 👋</h1>
-      <p class="hint">Du har <span class="coins">🪙 ${sd.coins || 0}</span> pluggcoins. Vad vill du göra idag?</p>
-    </div>
-    <div class="card-grid">
-      <button class="big-card gron" id="to-plugga">
-        <span class="emoji">✏️</span>
-        <span class="title">Plugga</span>
-        <span class="sub">Öva och samla coins</span>
-      </button>
-      <button class="big-card rosa" id="to-shop">
-        <span class="emoji">🛍️</span>
-        <span class="title">Shoppen</span>
-        <span class="sub">Handla saker till ditt rum</span>
-      </button>
-      <button class="big-card lila" id="to-rum">
-        <span class="emoji">🏠</span>
-        <span class="title">Mitt rum</span>
-        <span class="sub">Gå hem till ditt hus</span>
-      </button>
+      <p class="hint hero-halsning">Kul att du är här – vad vill du plugga idag?</p>
+      <span class="coins hero-coins" title="Dina pluggcoins">${coinIcon(19)} ${sd.coins || 0} pluggcoins</span>
     </div>
   </div>`);
-
-  view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
-  view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
-  // "Mitt rum" går via hus-vyn (huset utifrån) – klick på huset leder in i rummet.
-  view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/hus"));
 
   app.replaceChildren(view);
 }
@@ -313,7 +293,7 @@ export async function pageElevProfil() {
     <h2>Min statistik</h2>
     <div class="stat-grid">
       <div class="stat-card gul">
-        <div class="stat-emoji">🪙</div>
+        <div class="stat-emoji">${coinIcon(35)}</div>
         <div class="stat-tal">${stats.coins}</div>
         <div class="stat-etikett">pluggcoins</div>
       </div>
