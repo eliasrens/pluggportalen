@@ -159,10 +159,9 @@ export async function pageElevHem() {
   await renderTopbar();
   const session = data.getSession();
 
-  let sd, stats;
+  let sd;
   try {
-    // Studentdata (avatar/coins) + enkel statistik i ett svep.
-    [sd, stats] = await Promise.all([data.getStudentData(), data.getStats()]);
+    sd = await data.getStudentData();
   } catch (err) {
     app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda din sida: ${err.message}</div></div>`)
@@ -175,22 +174,12 @@ export async function pageElevHem() {
   const avatar = sd.avatarId || DEFAULT_AVATAR;
   const evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
 
-  // Uppmuntrande statistik: vi har ingen "rätta svar"-räknare, så vi visar
-  // insamlade stjärnor (den mest positiva befintliga metriken) med en glad rad.
-  const stjarnor = stats.stars || 0;
-  const uppmuntran =
-    stjarnor > 0 ? "Vad bra du är – fortsätt så! 🌟" : "Din första stjärna väntar – kör igång! 🚀";
-
   const view = el(`<div>
     <div class="panel center hero hero-slim">
       <div class="hero-avatar hero-avatar-stor">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
       <h1>Hej ${session.namn}! 👋</h1>
       <p class="hint hero-halsning">Kul att du är här – vad vill du plugga idag?</p>
       <span class="coins hero-coins" title="Dina pluggcoins">${coinIcon(19)} ${sd.coins || 0} pluggcoins</span>
-      <div class="hero-stat" aria-label="Dina stjärnor">
-        <span class="hero-stat-tal">⭐ ${stjarnor} stjärnor</span>
-        <span class="hero-stat-text">${uppmuntran}</span>
-      </div>
     </div>
   </div>`);
 
