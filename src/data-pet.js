@@ -32,9 +32,9 @@ import { randomSpeciesId } from "./art-pets-creatures.js";
 export const EGG_ITEM_ID = "mystery-egg";
 export const LAMP_ITEM_ID = "varmelampa";
 
-// Kläcktid: ~3 dagar realtid; värmelampan halverar tiden.
-export const HATCH_MS = 3 * 24 * 60 * 60 * 1000;
-export const LAMP_HATCH_FACTOR = 0.5;
+// Kläcktid: 1 dygn utan värmelampa, 10 minuter MED värmelampa (fast tid).
+export const HATCH_MS = 24 * 60 * 60 * 1000; // 1 dygn
+export const LAMP_HATCH_MS = 10 * 60 * 1000; // 10 minuter med värmelampa
 
 // Tillväxt: steget beräknas ur antal matningar (3 steg, sista rätt stort).
 export const STAGE2_FEEDS = 3; // så många matningar → steg 2
@@ -59,11 +59,11 @@ export function feedsToNextStage(feedCount) {
   return { needed: target, have: n };
 }
 
-/** Tidpunkten (ms) då ägget kläcks – halva tiden med värmelampa. */
+/** Tidpunkten (ms) då ägget kläcks – 1 dygn, eller 10 min med värmelampa. */
 export function hatchTimeFor(pet, hasLamp = false) {
   if (!pet || !pet.eggBoughtAt) return Infinity;
-  const factor = pet.hasHeatLamp || hasLamp ? LAMP_HATCH_FACTOR : 1;
-  return pet.eggBoughtAt + Math.round(HATCH_MS * factor);
+  const dur = pet.hasHeatLamp || hasLamp ? LAMP_HATCH_MS : HATCH_MS;
+  return pet.eggBoughtAt + dur;
 }
 
 /** Är två ms-tidsstämplar samma (lokala) kalenderdag? */
