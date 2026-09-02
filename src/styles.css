@@ -1115,13 +1115,20 @@ code {
   margin-bottom: 20px;
   overflow: hidden;
   box-shadow: var(--skugga-mjuk);
-  /* Rum enligt designfacit: varm vägg + panelband upptill, plankgolvet
-     (#C9996B, ritas som SVG i .room-bg) täcker nedersta 38 %. */
+  /* Rum enligt designfacit: vägg + panelband upptill i elevens palettfärger
+     (--rum-wall/--rum-wall2 sätts av Mitt rum, default = persika-paletten);
+     plankgolvet (#C9996B, ritas som SVG i .room-bg) täcker nedersta 38 %
+     och färgas ALDRIG om. Ljus takrand & mörkare panelfot räknas fram ur
+     palettfärgen med color-mix. */
+  --rum-wall: #ffe9cc;
+  --rum-wall2: #fbd9a6;
   background:
     linear-gradient(to bottom,
-      #fff1dc 0%, #ffe9cc 36%, #ffe9cc 49.3%,
+      color-mix(in srgb, var(--rum-wall) 72%, #fff) 0%,
+      var(--rum-wall) 36%, var(--rum-wall) 49.3%,
       rgba(59, 51, 80, 0.25) 49.3%, rgba(59, 51, 80, 0.25) 50%,
-      #fbd9a6 50%, #f5cd93 62%, #c9996b 62%);
+      var(--rum-wall2) 50%,
+      color-mix(in srgb, var(--rum-wall2) 88%, #8a6242) 62%, #c9996b 62%);
   touch-action: none;
 }
 
@@ -1147,6 +1154,56 @@ code {
   top: 5%;
   width: clamp(120px, 24%, 190px);
   display: block;
+}
+
+/* --- Palettväljaren (Måla om – delas av Mitt rum & hus-vyn) ---------------- */
+
+.palett-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.palett-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 3px solid #e3d9f2;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.palett-knapp:hover {
+  transform: translateY(-2px);
+}
+
+.palett-knapp.vald {
+  border-color: var(--lila, #7c5cd6);
+  box-shadow: 0 4px 0 rgba(124, 92, 214, 0.25);
+}
+
+.palett-farger {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #3b3350;
+}
+
+.palett-farger span {
+  width: 22px;
+  height: 26px;
+  display: block;
+}
+
+.palett-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b3350;
 }
 
 /* Moln som driver förbi i fönstret – ren transform-animation (låg CPU). */

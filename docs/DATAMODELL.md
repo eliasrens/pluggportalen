@@ -120,7 +120,7 @@ Exempel (`students/elev1`):
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
 | `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
-| `room`       | map    | `{ placements: { [itemId]: { x, y } } }` – `x`/`y` i **procent** (0–100) av rummet |
+| `room`       | map    | `{ placements: { [itemId]: { x, y } }, paletteId }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om) |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 | `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds numera ur elevens **nivå** (nivåtrösklarna `STAGE_LEVELS` i `src/evolution.js`; nivån ur `xp` via `src/leveling.js`). |
@@ -256,8 +256,11 @@ Exempel (`classes/6a`):
   Rendera avataren med `avatarMarkup(avatarId, itemIds)` från `src/avatars.js`.
 
 **Rum**
-- `getRoom()`, `saveRoom(room)` – `room = { placements: { [itemId]: { x, y } } }`,
+- `getRoom()`, `saveRoom(room)` – `room = { placements: { [itemId]: { x, y } }, paletteId }`,
   där `x`/`y` är procent (0–100) så rummet ser likadant ut på alla skärmar.
+  `saveRoom` skriver varje angivet fält med dot-path (`room.placements` osv.) –
+  utelämnade fält (t.ex. `paletteId`) lämnas orörda. Paletterna för hus & väggar
+  ligger i `src/room-palettes.js`; golvet färgas aldrig om.
 
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`
