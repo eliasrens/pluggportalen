@@ -100,12 +100,14 @@ export function flash(text, isError = false) {
 }
 
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
+// `grupp` avskiljer profil-relaterade val (Hem/Plugga/Shoppen) från övriga
+// destinationer. "Min klass" hör inte till den egna profilen och renderas
+// därför i en egen grupp med en visuell avdelare ovanför.
 const NAV_LANKAR = [
-  { hash: "#/elev/hem", ikon: "🏠", label: "Hem" },
-  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga" },
-  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen" },
-  { hash: "#/elev/rum", ikon: "🛏️", label: "Mitt rum" },
-  { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass" },
+  { hash: "#/elev/hem", ikon: "🏠", label: "Hem", grupp: "profil" },
+  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil" },
+  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil" },
+  { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass", grupp: "socialt" },
 ];
 
 /**
@@ -149,13 +151,15 @@ export async function renderTopbar() {
   const pct = evo ? Math.round(Math.min(1, Math.max(0, evo.progressRatio)) * 100) : 0;
   const niva = evo ? evo.level : 1;
 
-  const navHtml = NAV_LANKAR.map(
-    (l) =>
-      `<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
+  const navHtml = NAV_LANKAR.map((l, i) => {
+    // Avdelare när gruppen byts (t.ex. mellan profil-valen och "Min klass").
+    const nyGrupp = i > 0 && l.grupp !== NAV_LANKAR[i - 1].grupp;
+    const avdelare = nyGrupp ? `<hr class="sido-nav-avdelare" aria-hidden="true" />` : "";
+    return `${avdelare}<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
         <span class="sido-nav-ikon" aria-hidden="true">${l.ikon}</span>
         <span class="sido-nav-text">${l.label}</span>
-      </a>`
-  ).join("");
+      </a>`;
+  }).join("");
 
   const wrap = el(`<div class="sido-inner">
     <div class="sido-karaktar">

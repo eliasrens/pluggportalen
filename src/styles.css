@@ -250,6 +250,14 @@ body.med-sidomeny .sidebar {
   text-align: center;
 }
 
+/* Avdelare mellan profil-valen och övriga destinationer (t.ex. "Min klass"). */
+.sido-nav-avdelare {
+  border: 0;
+  height: 1px;
+  background: var(--linje, #e4e9f2);
+  margin: 8px 10px;
+}
+
 /* --- Fot: coins + logga ut --- */
 .sido-fot {
   margin-top: auto;
