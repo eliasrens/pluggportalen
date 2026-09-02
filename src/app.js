@@ -56,8 +56,6 @@ import { pageElevShop } from "./pages-shop.js";
 import { pageElevRum } from "./pages-rum.js";
 // Mitt hem (#/elev/hus) – hus-skalet framför rummet (håll separat för enkel rebase).
 import { pageElevHus } from "./pages-hus.js";
-// Utveckling (#/elev/utveckling) – karaktärs-evolution i Pokémon-stil.
-import { pageElevUtveckling } from "./pages-evolution.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
@@ -125,8 +123,6 @@ const routes = {
   // Husdjuren bor numera i Mitt rum – gamla länkar skickas dit.
   "/elev/husdjur": () => go("#/elev/rum"),
   "/elev/profil": pageElevProfil,
-  // Utveckling – figuren växer i steg (Pokémon-stil) med grenval på slutet.
-  "/elev/utveckling": pageElevUtveckling,
   // Klassfoto (#/elev/klassfoto) – additivt tillägg (håll separat för enkel rebase).
   "/elev/klassfoto": pageElevKlassfoto,
   // Klasskamratens rum (#/elev/klasskamrat?id=…) – läs-endast vy av annans rum.
