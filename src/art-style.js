@@ -146,3 +146,18 @@ export function roundEar(dir, fur, inner, r = 8.5) {
 export function nose(y = 41.5, color = O, rx = 3.2, ry = 2.5) {
   return `<ellipse cx="50" cy="${y}" rx="${rx}" ry="${ry}" fill="${color}" stroke="none"/>`;
 }
+
+// --- Rums-/möbelhjälpare (designfacit: design/DESIGNBESLUT-husdjur-hem-2.0.md) --
+
+/** Mjuk kontaktskugga under en sak (kontur-lila, låg opacitet). */
+export function shadow(cx, cy, rx) {
+  return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}" fill="${O}" opacity="0.09"/>`;
+}
+
+/** Liten dekorstjärna (fylld, utan kontur). */
+export function stjarna(x, y, s, c) {
+  return (
+    `<path transform="translate(${x} ${y}) scale(${s})" d="M0 -5 L1.4 -1.5 L5 -1.2 ` +
+    `L2.3 1.1 L3.1 4.8 L0 2.8 L-3.1 4.8 L-2.3 1.1 L-5 -1.2 L-1.4 -1.5 Z" fill="${c}" stroke="none"/>`
+  );
+}

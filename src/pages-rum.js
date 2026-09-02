@@ -11,7 +11,14 @@ import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, clamp } from "./ui.js";
 import { getItem, isWearable } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
-import { itemSvg } from "./art-items.js";
+import { itemSvg, itemSize } from "./art-items.js";
+import { roomBackdropHtml, FLOOR_TOP } from "./art-room.js";
+
+/** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
+function isFloorItem(id) {
+  const it = getItem(id);
+  return !!(it && (it.category === "mobler" || it.category === "husdjur"));
+}
 
 export async function pageElevRum() {
   if (!data.isLoggedIn()) return go("#/elev");
@@ -32,7 +39,9 @@ export async function pageElevRum() {
   const savedPlacements = (sd.room && sd.room.placements) || {};
   for (const [id, pos] of Object.entries(savedPlacements)) {
     if (owned.includes(id) && !isWearable(id) && pos) {
-      placements[id] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
+      // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
+      const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
+      placements[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
     }
   }
 
@@ -89,13 +98,15 @@ export async function pageElevRum() {
   // --- Rita rummets scen ---------------------------------------------------
   function renderStage() {
     stage.replaceChildren();
+    stage.insertAdjacentHTML("beforeend", roomBackdropHtml());
     for (const id of Object.keys(placements)) {
       const item = getItem(id);
       if (!item) continue;
       const pos = placements[id];
+      const size = itemSize(id);
       stage.appendChild(el(`<div class="room-item${selectedId === id ? " selected" : ""}"
         data-id="${id}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
-        <span class="ri-emoji">${itemSvg(id) || item.emoji}</span>
+        <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
     }
@@ -156,7 +167,8 @@ export async function pageElevRum() {
     if (!btn) return;
     const id = btn.dataset.place;
     if (id in placements) return;
-    placements[id] = { x: 50, y: 50 }; // mitten
+    // Golvsaker ställs på golvet, väggdekor hängs på väggen.
+    placements[id] = isFloorItem(id) ? { x: 50, y: 78 } : { x: 50, y: 32 };
     selectedId = null; // ny sak placeras utan ram – markeras först vid klick
     renderStage();
     renderTray();
@@ -217,7 +229,15 @@ export async function pageElevRum() {
     }
     if (e.target.closest("[data-remove]")) return; // låt borttagning ske
     const rect = stage.getBoundingClientRect();
-    drag = { id: node.dataset.id, node, rect, moved: false, startX: e.clientX, startY: e.clientY };
+    drag = {
+      id: node.dataset.id, node, rect, moved: false,
+      startX: e.clientX, startY: e.clientY,
+      // Halva sakens bredd/höjd i procent av scenen → hela saken hålls
+      // innanför rummet (saker är centrerade med translate(-50%,-50%)).
+      halfW: ((node.offsetWidth / rect.width) * 100) / 2,
+      halfH: ((node.offsetHeight / rect.height) * 100) / 2,
+      floor: isFloorItem(node.dataset.id),
+    };
     node.setPointerCapture(e.pointerId);
     node.classList.add("dragging");
   });
@@ -227,8 +247,17 @@ export async function pageElevRum() {
     if (Math.abs(e.clientX - drag.startX) > 3 || Math.abs(e.clientY - drag.startY) > 3) {
       drag.moved = true;
     }
-    const x = clamp(((e.clientX - drag.rect.left) / drag.rect.width) * 100, 0, 100);
-    const y = clamp(((e.clientY - drag.rect.top) / drag.rect.height) * 100, 0, 100);
+    // MÖBLER ENDAST INOMHUS: hela saken clampas innanför scenkanterna, och
+    // golvsaker (möbler/husdjur) måste dessutom stå nere i golvzonen.
+    const x = clamp(
+      ((e.clientX - drag.rect.left) / drag.rect.width) * 100,
+      drag.halfW, 100 - drag.halfW
+    );
+    const minY = drag.floor ? Math.max(drag.halfH, FLOOR_TOP + 4 - drag.halfH) : drag.halfH;
+    const y = clamp(
+      ((e.clientY - drag.rect.top) / drag.rect.height) * 100,
+      minY, 100 - drag.halfH
+    );
     placements[drag.id] = { x, y };
     drag.node.style.left = x + "%";
     drag.node.style.top = y + "%";

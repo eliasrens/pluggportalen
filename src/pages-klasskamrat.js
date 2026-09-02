@@ -17,7 +17,8 @@ import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { evoFromStudentData } from "./evolution.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable } from "./shop-items.js";
-import { itemSvg } from "./art-items.js";
+import { itemSvg, itemSize } from "./art-items.js";
+import { roomBackdropHtml } from "./art-room.js";
 
 /** Minimal HTML-escape för elevnamn som kommer från Firestore. */
 function esc(s) {
@@ -72,8 +73,9 @@ export async function pageElevKlasskamrat() {
     .map((id) => {
       const item = getItem(id);
       const pos = placements[id];
+      const size = itemSize(id);
       return `<div class="room-item readonly" style="left:${pos.x}%;top:${pos.y}%" title="${esc(item.name)}">
-        <span class="ri-emoji">${itemSvg(id) || item.emoji}</span>
+        <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
       </div>`;
     })
     .join("");
@@ -87,6 +89,7 @@ export async function pageElevKlasskamrat() {
     </div>
 
     <div class="room-stage readonly" id="stage">
+      ${roomBackdropHtml()}
       ${items || '<div class="room-empty">Det här rummet är fortfarande tomt. 🕸️</div>'}
     </div>
 
