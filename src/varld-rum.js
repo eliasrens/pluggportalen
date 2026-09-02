@@ -137,9 +137,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, sd, pe
       if (!item) continue;
       const pos = placements[id];
       const size = itemSize(id);
+      // Bredd/höjd skalas med scenens --rum-skala (calc → faktiskt layoutmått,
+      // så drag-clampen som läser offsetWidth/Height följer med automatiskt).
       stage.appendChild(el(`<div class="room-item${selectedId === id ? " selected" : ""}"
         data-id="${id}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
-        <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
+        <span class="ri-emoji" style="width:calc(${size.w}rem * var(--rum-skala, 1));height:calc(${size.h}rem * var(--rum-skala, 1))">${itemSvg(id) || item.emoji}</span>
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
     }
