@@ -15,6 +15,20 @@ import { O, LINE, THIN } from "./art-style.js";
 /** Procent av scenhöjden där golvet börjar (används av drag & drop-clampen). */
 export const FLOOR_TOP = 62;
 
+/**
+ * Väggskarven i procent av scenhöjden – där väggen (#FFE9CC / palettens wall)
+ * möter panelbandet (#FBD9A6 / wall2). Gradienten i .room-stage lägger den
+ * mörka skarvlinjen vid ~49.6 % (49.3–50 %). Fönstrets default-läge centreras
+ * på denna linje.
+ */
+export const WALL_SEAM = 49.6;
+
+/** "Sak-id" för det flyttbara/raderbara fönstret (inte en riktig shop-sak). */
+export const WINDOW_ID = "__window";
+
+/** Fönstrets default-läge (procent av scenen): centrerat på väggskarven. */
+export const WINDOW_DEFAULT = { x: 50, y: WALL_SEAM };
+
 const FLOOR = "#C9996B";
 const PLANK = "#B0805A";
 
@@ -26,16 +40,39 @@ const moln = (x, y, s) =>
 
 // Plankgolvet (sträcks till scenens bredd med preserveAspectRatio="none";
 // raka linjer tål det). Skarvarna ligger omlott som riktiga plankor.
-const floorSvg =
-  `<svg class="room-floor" viewBox="0 0 960 190" preserveAspectRatio="none" aria-hidden="true">` +
-  `<rect width="960" height="190" fill="${FLOOR}"/>` +
-  `<rect y="4" width="960" height="24" fill="#fff" opacity="0.1"/>` +
-  `<path d="M0 48 H960 M0 96 H960 M0 144 H960" stroke="${PLANK}" stroke-width="3" opacity="0.7"/>` +
-  `<path d="M140 2 L130 48 M420 2 L414 48 M730 2 L724 48 M260 48 L252 96 M580 48 L572 96 ` +
-  `M860 48 L852 96 M180 96 L172 144 M500 96 L492 144 M790 96 L782 144 M320 144 L314 188 ` +
-  `M640 144 L634 188 M60 144 L54 188 M900 144 L894 188" stroke="${PLANK}" stroke-width="3" opacity="0.55"/>` +
-  `<path d="M0 2 H960" stroke="${O}" stroke-width="4"/>` +
-  `</svg>`;
+// MÖNSTRET ritas ~3× tätare än förr (12 rader i st.f. 4) så plankorna ser
+// proportionerliga ut mot de uppskalade möblerna (--rum-skala 1.55). Rader &
+// skarvar genereras i loop → tätheten styrs av FLOOR_ROWS. Golvets FÄRG
+// (#C9996B) rörs ALDRIG – bara texturens skala/täthet.
+const FLOOR_ROWS = 12;
+function buildFloorSvg() {
+  const rowH = 190 / FLOOR_ROWS;
+  let horiz = "";
+  for (let i = 1; i < FLOOR_ROWS; i++) {
+    horiz += `M0 ${+(i * rowH).toFixed(1)} H960 `;
+  }
+  // Korta skarvar förskjutna i tegelförband rad för rad (~1/3 av förra längden).
+  let seams = "";
+  const gap = 150; // avstånd mellan skarvar i x-led
+  for (let r = 0; r < FLOOR_ROWS; r++) {
+    const y0 = +(r * rowH).toFixed(1);
+    const y1 = +((r + 1) * rowH).toFixed(1);
+    const off = (r % 2) * (gap / 2);
+    for (let x = 50 + off; x < 960; x += gap) {
+      seams += `M${x} ${y0} L${+(x - 3).toFixed(1)} ${y1} `;
+    }
+  }
+  return (
+    `<svg class="room-floor" viewBox="0 0 960 190" preserveAspectRatio="none" aria-hidden="true">` +
+    `<rect width="960" height="190" fill="${FLOOR}"/>` +
+    `<rect y="2" width="960" height="8" fill="#fff" opacity="0.1"/>` +
+    `<path d="${horiz.trim()}" stroke="${PLANK}" stroke-width="2" opacity="0.7"/>` +
+    `<path d="${seams.trim()}" stroke="${PLANK}" stroke-width="2" opacity="0.55"/>` +
+    `<path d="M0 2 H960" stroke="${O}" stroke-width="4"/>` +
+    `</svg>`
+  );
+}
+const floorSvg = buildFloorSvg();
 
 // Fönstret: himmel med sol, två drivande moln bakom clip-path, kulle,
 // spröjs i kors, fönsterbräda med liten blomkruka.
@@ -59,9 +96,36 @@ const windowSvg =
   `</svg>`;
 
 /**
- * Rummets bakgrundslager som HTML-sträng. Läggs FÖRST i .room-stage
- * (under alla placerade saker); tar inte emot pekhändelser.
+ * Fönstret som ett INTERAKTIVT rums-objekt (samma .room-item-pipeline som
+ * möbler/dekor). Centreras med translate(-50%,-50%) via CSS, moln-animationen
+ * (.rum-moln) ligger inuti svg:n och följer därför med när fönstret flyttas.
+ *
+ * @param {object} o
+ * @param {number} o.x  vänsterkant i procent av scenen (sak-centrum)
+ * @param {number} o.y  topp i procent av scenen (sak-centrum)
+ * @param {boolean} [o.interactive=true] false = läs-läge (klasskamratens rum):
+ *        ingen 🗑️-knapp, saken märks .readonly.
+ * @param {boolean} [o.selected=false] rita valramen (visar 🗑️).
+ */
+export function windowItemHtml({ x, y, interactive = true, selected = false }) {
+  const cls =
+    "room-item room-window-item" +
+    (interactive ? "" : " readonly") +
+    (selected ? " selected" : "");
+  const remove = interactive
+    ? `<button class="ri-remove" data-remove="${WINDOW_ID}" title="Ta bort fönstret">🗑️</button>`
+    : "";
+  return (
+    `<div class="${cls}" data-id="${WINDOW_ID}" style="left:${x}%;top:${y}%" title="Fönster">` +
+    `<span class="rw-svg">${windowSvg}</span>${remove}</div>`
+  );
+}
+
+/**
+ * Rummets bakgrundslager (plankgolvet) som HTML-sträng. Läggs FÖRST i
+ * .room-stage (under alla placerade saker); tar inte emot pekhändelser.
+ * Fönstret ritas numera separat som ett interaktivt objekt (se windowItemHtml).
  */
 export function roomBackdropHtml() {
-  return `<div class="room-bg" aria-hidden="true">${floorSvg}${windowSvg}</div>`;
+  return `<div class="room-bg" aria-hidden="true">${floorSvg}</div>`;
 }

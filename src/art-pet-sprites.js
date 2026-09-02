@@ -9,10 +9,23 @@
 // Till skillnad från katt-riggen i designdoket hänger de här arternas armar
 // LODRÄTT (tassen nedåt), så axeln sitter i armens topp – inte i inre änden.
 // Delarnas storlekar varierar per art och steg, därför räknas monteringen ut
-// ur delarnas faktiska pixelmått (PART_DIMS) i stället för fasta procent:
-// kroppen ankras mot bottenkanten och huvud/armar/fötter hängs på den.
+// ur delarnas faktiska pixelmått: kroppen ankras mot bottenkanten och
+// huvud/armar/fötter hängs på den.
 //
-// Animationerna (andning, gång, sprattel på rygg, blinkning) bor i styles.css
+// SJÄLVMÄTANDE RIGG: måtten läses i runtime ur PNG:ernas intrinsiska storlek
+// (naturalWidth/naturalHeight via new Image()) – ingen handmatad måttabell.
+// Måtten cachas per art+steg (mäts bara en gång) och riggen flödar om när de
+// finns. Se "async-laddning" nedan.
+//
+// >>> RECEPT: lägg till en ny art (ingen kod-mätning behövs) <<<
+//   1. Släpp in 18 PNG-filer:
+//        design/assets/husdjur/<dir>/evolution-{0,1,2}/
+//          00-head.png 01-left-hand.png 02-torso.png
+//          03-right-hand.png 04-left-foot.png 05-right-foot.png
+//   2. Lägg till EN rad i SPRITE_SPECIES: { id, name, kind: "sprite", dir }.
+//   Klart – riggen mäter PNG:erna själv och monterar figuren.
+//
+// Animationerna (andning, gång, rull-på-rygg + sprattel) bor i styles.css
 // under ".pet-sprite"/".ps-*" och styrs av samma klasser som SVG-djuren
 // (.promenerar, .pet-rygg, .vand-vanster) – riggen är ren DOM.
 //
@@ -35,20 +48,58 @@ export function isSpriteSpecies(speciesId) {
   return !!BY_ID[speciesId];
 }
 
-// Delarnas pixelmått [w, h] per art och evolutionssteg (head/lh/torso/rh/lf/rf
-// = filerna 00–05). Uppmätta ur PNG-filerna – nya arter/steg: lägg till en rad här.
-const PART_DIMS = {
-  butterfly: [
-    { head: [212, 199], lh: [108, 173], torso: [203, 271], rh: [108, 171], lf: [121, 147], rf: [122, 149] },
-    { head: [252, 219], lh: [119, 183], torso: [264, 272], rh: [119, 184], lf: [133, 157], rf: [132, 156] },
-    { head: [249, 216], lh: [106, 186], torso: [224, 272], rh: [108, 184], lf: [131, 151], rf: [131, 152] },
-  ],
-  salamander: [
-    { head: [219, 209], lh: [105, 162], torso: [225, 272], rh: [105, 162], lf: [114, 140], rf: [114, 139] },
-    { head: [225, 214], lh: [112, 145], torso: [241, 276], rh: [110, 140], lf: [123, 131], rf: [123, 141] },
-    { head: [252, 219], lh: [132, 188], torso: [243, 276], rh: [132, 188], lf: [130, 162], rf: [129, 161] },
-  ],
-};
+// Delarnas filnamn i z-/mät-ordning: head, lh, torso, rh, lf, rf (00–05).
+const PART_FILES = [
+  "00-head.png",
+  "01-left-hand.png",
+  "02-torso.png",
+  "03-right-hand.png",
+  "04-left-foot.png",
+  "05-right-foot.png",
+];
+const PART_KEYS = ["head", "lh", "torso", "rh", "lf", "rf"];
+
+// --- Självmätning av delbildernas intrinsiska mått ---------------------------
+// Måtten (naturalWidth/naturalHeight) laddas ASYNKRONT och cachas per art+steg.
+// dimCache: färdiga mått. dimPromises: pågående mätning (mät bara en gång).
+
+const dimCache = new Map(); // "dir:stageIdx" -> { head:[w,h], lh, torso, rh, lf, rf }
+const dimPromises = new Map(); // "dir:stageIdx" -> Promise<dims|null>
+
+const clampStage = (stage) => Math.min(Math.max((stage || 1) - 1, 0), 2);
+const cacheKey = (dir, stageIdx) => `${dir}:${stageIdx}`;
+const evoDir = (dir, stageIdx) => `${ASSET_ROOT}/${dir}/evolution-${stageIdx}`;
+
+/** Läs en delbilds [w, h] via new Image(). Resolvar null om laddningen failar. */
+function measureOne(src) {
+  return new Promise((resolve) => {
+    if (typeof Image === "undefined") return resolve(null);
+    const img = new Image();
+    img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+/**
+ * Mät alla 6 delar för en art+steg och cacha resultatet. Returnerar ett löfte
+ * som resolvar dims-objektet (eller null om någon del inte kunde laddas).
+ */
+function measureDims(dir, stageIdx) {
+  const key = cacheKey(dir, stageIdx);
+  if (dimCache.has(key)) return Promise.resolve(dimCache.get(key));
+  if (dimPromises.has(key)) return dimPromises.get(key);
+  const base = evoDir(dir, stageIdx);
+  const p = Promise.all(PART_FILES.map((f) => measureOne(`${base}/${f}`))).then((sizes) => {
+    if (sizes.some((s) => !s)) return null; // en del kunde inte laddas
+    const dims = {};
+    PART_KEYS.forEach((k, i) => (dims[k] = sizes[i]));
+    dimCache.set(key, dims);
+    return dims;
+  });
+  dimPromises.set(key, p);
+  return p;
+}
 
 // --- Rigg-geometri (enheter: referensytan 340×360) ---------------------------
 
@@ -107,9 +158,48 @@ function layoutFor(dims) {
 
 const pct = (u, ref) => ((u / ref) * 100).toFixed(2) + "%";
 
+// Geometri-nyckel → delens CSS-klass (för omflöde av redan renderade riggar).
+const PART_SEL = {
+  lf: ".ps-fot-v",
+  rf: ".ps-fot-h",
+  torso: ".ps-kropp",
+  lh: ".ps-arm-v",
+  rh: ".ps-arm-h",
+  head: ".ps-huvud",
+};
+
 function partHtml(cls, geom, src) {
-  const style = `left:${pct(geom.x, REF_W)};top:${pct(geom.y, REF_H)};width:${pct(geom.w, REF_W)}`;
+  // geom saknas medan måtten laddas → dela renderas utan position (dold via
+  // .ps-laddar) och positioneras när måtten är klara.
+  const style = geom
+    ? `left:${pct(geom.x, REF_W)};top:${pct(geom.y, REF_H)};width:${pct(geom.w, REF_W)}`
+    : "";
   return `<span class="ps-del ${cls}" style="${style}"><img src="${src}" alt="" draggable="false"/></span>`;
+}
+
+/** Skriv beräknad geometri på en redan renderad .pet-sprite-nod. */
+function applyGeom(sprite, g) {
+  for (const key in PART_SEL) {
+    const node = sprite.querySelector(PART_SEL[key]);
+    if (!node) continue;
+    const geom = g[key];
+    node.style.left = pct(geom.x, REF_W);
+    node.style.top = pct(geom.y, REF_H);
+    node.style.width = pct(geom.w, REF_W);
+  }
+}
+
+/**
+ * Flöda om alla redan monterade riggar för en art+steg när måtten blivit klara.
+ * Rör bara inline-positioner + laddar-klassen – innehållet (och därmed
+ * animationerna) rörs inte, så pågående animationer nollställs inte.
+ */
+function reflowSprites(key, g) {
+  if (typeof document === "undefined") return;
+  document.querySelectorAll(`.pet-sprite[data-sprite="${key}"]`).forEach((sprite) => {
+    applyGeom(sprite, g);
+    sprite.classList.remove("ps-laddar");
+  });
 }
 
 // Humör-partiklar (designdoket: 💤 sömnig, ❤️ mätt/glad, 🍎 äter). Uttrycken
@@ -119,26 +209,40 @@ export const SPRITE_MOODS = { somnig: "💤", glad: "❤️", ater: "🍎", nyfi
 
 /**
  * HTML för en färdigmonterad sprite-rigg (eller null om arten inte är en
- * sprite-art / steget saknas). stage 1–3 → assetmapp evolution-0..2.
- * mood (valfri): "glad" | "nyfiken" | "ater" | "somnig" → humör-partikel.
+ * sprite-art). stage 1–3 → assetmapp evolution-0..2. mood (valfri):
+ * "glad" | "nyfiken" | "ater" | "somnig" → humör-partikel.
+ *
+ * Async-laddning: är måtten redan cachade byggs riggen direkt med rätt
+ * geometri. Annars renderas delarna dolda (.ps-laddar) med korrekt yttermått
+ * (containern har fast aspect-ratio → ingen yttre layout-"pop"), mätningen
+ * startas, och när måtten finns positioneras delarna och tonas in på plats.
  */
 export function spriteRigHtml(speciesId, stage, mood) {
   const s = BY_ID[speciesId];
-  const dims = s && (PART_DIMS[s.dir] || [])[Math.min(Math.max((stage || 1) - 1, 0), 2)];
-  if (!dims) return null;
-  const dir = `${ASSET_ROOT}/${s.dir}/evolution-${Math.min(Math.max((stage || 1) - 1, 0), 2)}`;
-  const g = layoutFor(dims);
-  // Blink-cykeln slumpas per rendering (3–6 s) via en CSS-variabel; själva
-  // blinken (snabb scaleY-squash av huvudet) ligger i styles.css.
-  const blink = (3 + Math.random() * 3).toFixed(2);
+  if (!s) return null;
+  const stageIdx = clampStage(stage);
+  const key = cacheKey(s.dir, stageIdx);
+  const dims = dimCache.get(key);
+  const dir = evoDir(s.dir, stageIdx);
+  const g = dims ? layoutFor(dims) : null;
+
+  if (!dims) {
+    // Mät (en gång) och flöda om alla riggar för art+steg när måtten finns.
+    measureDims(s.dir, stageIdx).then((d) => {
+      if (d) reflowSprites(key, layoutFor(d));
+    });
+  }
+
+  // Stapling bakifrån och fram (senare = ovanpå): fötter → torso → ARMAR →
+  // huvud. Armarna ritas FRAMFÖR kroppen så de syns framför magen, huvudet överst.
   return (
-    `<span class="pet-sprite" role="img" aria-label="${s.name}" style="--blink:${blink}s">` +
-    partHtml("ps-arm-v", g.lh, `${dir}/01-left-hand.png`) +
-    partHtml("ps-arm-h", g.rh, `${dir}/03-right-hand.png`) +
-    partHtml("ps-fot-v", g.lf, `${dir}/04-left-foot.png`) +
-    partHtml("ps-fot-h", g.rf, `${dir}/05-right-foot.png`) +
-    partHtml("ps-kropp", g.torso, `${dir}/02-torso.png`) +
-    partHtml("ps-huvud", g.head, `${dir}/00-head.png`) +
+    `<span class="pet-sprite${dims ? "" : " ps-laddar"}" data-sprite="${key}" role="img" aria-label="${s.name}">` +
+    partHtml("ps-fot-v", g && g.lf, `${dir}/04-left-foot.png`) +
+    partHtml("ps-fot-h", g && g.rf, `${dir}/05-right-foot.png`) +
+    partHtml("ps-kropp", g && g.torso, `${dir}/02-torso.png`) +
+    partHtml("ps-arm-v", g && g.lh, `${dir}/01-left-hand.png`) +
+    partHtml("ps-arm-h", g && g.rh, `${dir}/03-right-hand.png`) +
+    partHtml("ps-huvud", g && g.head, `${dir}/00-head.png`) +
     `<span class="ps-humor">${SPRITE_MOODS[mood] || ""}</span>` +
     `</span>`
   );

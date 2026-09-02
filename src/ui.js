@@ -2,12 +2,11 @@
 // Pluggportalen – gemensamma UI-hjälpare
 // Delas av app.js (router) och sidmodulerna: DOM-referenser, navigering,
 // en liten mall-hjälpare och den bestående sidomenyn (renderTopbar) med
-// karaktärspanel, XP-bar, ⚡-genväg, navlänkar, coins och utloggning.
+// karaktärspanel, navlänkar, coins och utloggning.
 // ============================================================================
 
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { evoFromStudentData } from "./evolution.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -100,14 +99,13 @@ export function flash(text, isError = false) {
 }
 
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
-// `grupp` avskiljer profil-relaterade val (Hem/Plugga/Shoppen) från övriga
-// destinationer. "Min klass" hör inte till den egna profilen och renderas
-// därför i en egen grupp med en visuell avdelare ovanför.
+// `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
+// (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
+// numera i spelvärlden via klasskylten vid gården (#/elev/by, klassbyn).
 const NAV_LANKAR = [
-  { hash: "#/elev/hem", ikon: "🏠", label: "Hem", grupp: "profil" },
+  { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil" },
-  { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass", grupp: "socialt" },
 ];
 
 /**
@@ -133,26 +131,19 @@ export async function renderTopbar() {
     return;
   }
 
-  // Hämta coins + avatar (inkl. burna klädsaker) + XP/nivå i ett svep.
+  // Hämta coins + avatar (inkl. burna klädsaker) i ett svep.
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
-  let evo; // nivå, XP-progress och utvecklingssteg (härlett ur framstegen)
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
-    evo = evoFromStudentData(sd);
   } catch {}
 
-  // XP-baren speglar exakt samma värde som utvecklingssidan (evoFromStudentData
-  // → xpIntoLevel(xp).progressRatio).
-  const pct = evo ? Math.round(Math.min(1, Math.max(0, evo.progressRatio)) * 100) : 0;
-  const niva = evo ? evo.level : 1;
-
   const navHtml = NAV_LANKAR.map((l, i) => {
-    // Avdelare när gruppen byts (t.ex. mellan profil-valen och "Min klass").
+    // Avdelare när gruppen byts (om en framtida länk får en egen grupp).
     const nyGrupp = i > 0 && l.grupp !== NAV_LANKAR[i - 1].grupp;
     const avdelare = nyGrupp ? `<hr class="sido-nav-avdelare" aria-hidden="true" />` : "";
     return `${avdelare}<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
@@ -164,21 +155,9 @@ export async function renderTopbar() {
   const wrap = el(`<div class="sido-inner">
     <div class="sido-karaktar">
       <a class="sido-figur" href="#/elev/profil" title="Min profil">
-        <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems, evo)}</span>
+        <span class="sido-avatar">${avatarMarkup(avatarId, avatarItems)}</span>
       </a>
       <a class="sido-namn" href="#/elev/profil" title="Min profil">${session.namn || "Elev"}</a>
-      <div class="sido-xp-rad">
-        <div class="sido-xp-kol">
-          <div class="sido-xp-topp">
-            <span class="sido-niva" title="Din nivå">Nivå ${niva}</span>
-          </div>
-          <div class="sido-xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-               aria-valuenow="${pct}" aria-label="Framsteg mot nästa nivå">
-            <div class="sido-xp-fyll" style="width:${pct}%"></div>
-          </div>
-        </div>
-        <a class="sido-blixt" href="#/elev/utveckling" title="Till Utveckling" aria-label="Till Utveckling">⚡</a>
-      </div>
     </div>
 
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>

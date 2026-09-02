@@ -8,9 +8,9 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
+import { buyEgg, buyHeatLamp, buyApple, EGG_ITEM_ID, LAMP_ITEM_ID, APPLE_ITEM_ID } from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
-import { CATEGORIES, getItem, itemsInCategory } from "./shop-items.js";
+import { CATEGORIES, getItem, itemsInCategory, isConsumable } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
 
@@ -30,6 +30,7 @@ export async function pageElevShop() {
   const state = {
     coins: sd.coins || 0,
     owned: new Set(sd.ownedItems || []),
+    appleCount: sd.appleCount || 0, // förbrukningsvara: antal, inte "ägd"
   };
 
   const view = el(`<div>
@@ -71,7 +72,7 @@ export async function pageElevShop() {
 
   renderKatalog();
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
 
   // Ett köp-klick (delegerat). Knappen låses direkt så dubbelklick inte kan
@@ -81,7 +82,9 @@ export async function pageElevShop() {
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
     const item = getItem(id);
-    if (!item || item.comingSoon || state.owned.has(id)) return;
+    // Förbrukningsvaror (äpplen) kan köpas hur många gånger som helst; övriga
+    // saker bara om de inte redan ägs.
+    if (!item || item.comingSoon || (!isConsumable(id) && state.owned.has(id))) return;
 
     btn.disabled = true;
     btn.textContent = "Köper…";
@@ -93,9 +96,11 @@ export async function pageElevShop() {
       let res;
       if (item.id === EGG_ITEM_ID) res = await buyEgg(item.price);
       else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
+      else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
       else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
+      if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
       saldoEl.textContent = `🪙 ${state.coins}`;
       renderKatalog();
       if (res.ok) {
@@ -104,6 +109,8 @@ export async function pageElevShop() {
           flash(`Du köpte ett mystiskt ägg! 🥚 Det ruvar nu i Mitt rum.`);
         } else if (item.id === LAMP_ITEM_ID) {
           flash(`Du köpte en värmelampa! 🔦 Nu kläcks ägget dubbelt så snabbt.`);
+        } else if (item.id === APPLE_ITEM_ID) {
+          flash(`Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`);
         } else {
           flash(item.category === "klader"
             ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`
@@ -124,7 +131,9 @@ export async function pageElevShop() {
 
 /** HTML för ett shop-kort, med rätt knappläge utifrån ägande/saldo. */
 function shopCardHtml(it, state) {
-  const owned = state.owned.has(it.id);
+  const consumable = isConsumable(it.id);
+  // Förbrukningsvaror "ägs" aldrig – de har ett antal och kan alltid köpas fler.
+  const owned = !consumable && state.owned.has(it.id);
   const affordable = state.coins >= it.price;
   let btn;
   if (it.comingSoon) {
@@ -140,10 +149,15 @@ function shopCardHtml(it, state) {
   // emoji-fältet är kvar som ofarlig fallback om konst saknas.
   const bild =
     (it.category === "klader" ? wearableSvg(it.id) : itemSvg(it.id)) || it.emoji;
+  // Förbrukningsvaror visar hur många man redan har i stället för "Köpt".
+  const antal = consumable
+    ? `<div class="shop-antal">Du har: ${state.appleCount} st</div>`
+    : "";
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
     <div class="shop-pris">🪙 ${it.price}</div>
+    ${antal}
     ${btn}
   </div>`;
 }
