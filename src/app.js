@@ -8,7 +8,7 @@
 //   #/                startsida (välj lärare eller elev)
 //   #/elev            elev-inloggning
 //   #/elev/avatar     välj grundavatar (första gången + byta senare)
-//   #/elev/hem        elev-startsida (kräver inloggning)
+//   #/elev/hem        (borttagen sida – omdirigerar till #/elev/hus)
 //   #/elev/plugga     välj arbetsområde att öva på
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
@@ -34,7 +34,6 @@ import { app, el, go, renderTopbar } from "./ui.js";
 import {
   pageElevLogin,
   pageElevAvatar,
-  pageElevHem,
   pageElevPlugga,
   pageElevProfil,
 } from "./pages-elev.js";
@@ -112,7 +111,9 @@ const routes = {
   "/": pageHome,
   "/elev": pageElevLogin,
   "/elev/avatar": pageElevAvatar,
-  "/elev/hem": pageElevHem,
+  // Hem-hjälten är slopad: eleven landar direkt i hus-scenen. Gamla länkar/
+  // bokmärken till #/elev/hem omdirigeras snällt till huset.
+  "/elev/hem": () => go("#/elev/hus"),
   "/elev/plugga": pageElevPlugga,
   "/elev/omrade": pageElevOmrade,
   "/elev/spela": pageElevSpela,

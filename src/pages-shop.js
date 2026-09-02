@@ -71,7 +71,7 @@ export async function pageElevShop() {
 
   renderKatalog();
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
 
   // Ett köp-klick (delegerat). Knappen låses direkt så dubbelklick inte kan

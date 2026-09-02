@@ -103,7 +103,7 @@ export function flash(text, isError = false) {
 // destinationer. "Min klass" hör inte till den egna profilen och renderas
 // därför i en egen grupp med en visuell avdelare ovanför.
 const NAV_LANKAR = [
-  { hash: "#/elev/hem", ikon: "🏠", label: "Hem", grupp: "profil" },
+  { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil" },
   { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass", grupp: "socialt" },

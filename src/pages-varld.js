@@ -168,11 +168,10 @@ export async function pageElevVarld(startNiva) {
     },
   };
 
-  // Ut/hem-knappen (nivåberoende).
-  utBtn.addEventListener("click", () => {
-    if (stage.dataset.niva === "rum") go("#/elev/hus");
-    else go("#/elev/hem");
-  });
+  // Ut-knappen: gå ut ur rummet till huset. På hus-nivån ÄR vi redan hemma
+  // (hus-scenen är elevens landningssida sedan hem-hjälten slopades), så där
+  // blir klicket en no-op i stället för att peka på en borttagen sida.
+  utBtn.addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
 
   // Verktygspaneler (en öppen åt gången, klick igen stänger).
