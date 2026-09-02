@@ -250,6 +250,14 @@ body.med-sidomeny .sidebar {
   text-align: center;
 }
 
+/* Avdelare mellan profil-valen och övriga destinationer (t.ex. "Min klass"). */
+.sido-nav-avdelare {
+  border: 0;
+  height: 1px;
+  background: var(--linje, #e4e9f2);
+  margin: 8px 10px;
+}
+
 /* --- Fot: coins + logga ut --- */
 .sido-fot {
   margin-top: auto;
@@ -1107,10 +1115,110 @@ code {
   margin-bottom: 20px;
   overflow: hidden;
   box-shadow: var(--skugga-mjuk);
-  /* Enkel "rum"-känsla: vägg upptill, golv nedtill. */
+  /* Rum enligt designfacit: vägg + panelband upptill i elevens palettfärger
+     (--rum-wall/--rum-wall2 sätts av Mitt rum, default = persika-paletten);
+     plankgolvet (#C9996B, ritas som SVG i .room-bg) täcker nedersta 38 %
+     och färgas ALDRIG om. Ljus takrand & mörkare panelfot räknas fram ur
+     palettfärgen med color-mix. */
+  --rum-wall: #ffe9cc;
+  --rum-wall2: #fbd9a6;
   background:
-    linear-gradient(to bottom, #cfe8ff 0%, #cfe8ff 62%, #f6d9a8 62%, #f4cf95 100%);
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--rum-wall) 72%, #fff) 0%,
+      var(--rum-wall) 36%, var(--rum-wall) 49.3%,
+      rgba(59, 51, 80, 0.25) 49.3%, rgba(59, 51, 80, 0.25) 50%,
+      var(--rum-wall2) 50%,
+      color-mix(in srgb, var(--rum-wall2) 88%, #8a6242) 62%, #c9996b 62%);
   touch-action: none;
+}
+
+/* Bakgrundslagret (plankgolv + fönster) – under sakerna, tar inga pekare. */
+.room-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.room-bg .room-floor {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 38%;
+  display: block;
+}
+
+.room-bg .room-window {
+  position: absolute;
+  left: 6%;
+  top: 5%;
+  width: clamp(120px, 24%, 190px);
+  display: block;
+}
+
+/* --- Palettväljaren (Måla om – delas av Mitt rum & hus-vyn) ---------------- */
+
+.palett-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.palett-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 3px solid #e3d9f2;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.palett-knapp:hover {
+  transform: translateY(-2px);
+}
+
+.palett-knapp.vald {
+  border-color: var(--lila, #7c5cd6);
+  box-shadow: 0 4px 0 rgba(124, 92, 214, 0.25);
+}
+
+.palett-farger {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #3b3350;
+}
+
+.palett-farger span {
+  width: 22px;
+  height: 26px;
+  display: block;
+}
+
+.palett-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
+/* Moln som driver förbi i fönstret – ren transform-animation (låg CPU). */
+.rum-moln {
+  animation: rum-moln-driva var(--t, 40s) linear infinite;
+  will-change: transform;
+}
+
+@keyframes rum-moln-driva {
+  from { transform: translateX(-70px); }
+  to { transform: translateX(290px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rum-moln { animation: none; }
 }
 
 .room-empty {
@@ -1847,3 +1955,188 @@ code {
 .give-coins .gc-flash { margin-top: 6px; font-size: 0.9rem; min-height: 1.1em; }
 .give-coins .gc-ok { color: #1e7a45; font-weight: 700; }
 .give-coins .gc-err { color: #b3261e; font-weight: 700; }
+
+/* ============================================================================
+   Mitt hem (#/elev/hus) – huset utifrån med zoom-övergång in i rummet
+   ============================================================================ */
+.hus-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 96 / 60;
+  border-radius: var(--radie);
+  overflow: hidden;
+  box-shadow: var(--skugga-mjuk);
+  background: #bde3f5;
+  margin-bottom: 20px;
+}
+.hus-scen {
+  position: absolute;
+  inset: 0;
+  /* Zoom-origin mot husets fönster (48,5 % / 52 %) enligt designbeslutet. */
+  transform-origin: 48.5% 52%;
+  transition: transform 0.9s cubic-bezier(0.55, 0, 0.2, 1), opacity 0.55s ease 0.25s;
+}
+.hus-scen svg { display: block; width: 100%; height: 100%; }
+.hus-stage.gar-in .hus-scen { transform: scale(6); opacity: 0; pointer-events: none; }
+
+#husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
+#husgrupp:hover, #husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
+
+.hus-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2.5px solid #3b3350;
+  border-radius: 999px;
+  padding: 5px 16px;
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.18);
+  pointer-events: none;
+  z-index: 8;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ambient: drivande moln, roterande solstrålar, skorstensrök */
+.hus-moln { animation: hus-driva var(--t, 50s) linear infinite; }
+@keyframes hus-driva { from { transform: translateX(-260px); } to { transform: translateX(1220px); } }
+.hus-solstralar { transform-origin: 110px 86px; animation: hus-snurra 70s linear infinite; }
+@keyframes hus-snurra { to { transform: rotate(360deg); } }
+.hus-rok { animation: hus-puffa 4s ease-in infinite; opacity: 0; }
+.hus-rok.r2 { animation-delay: 1.3s; }
+.hus-rok.r3 { animation-delay: 2.6s; }
+@keyframes hus-puffa {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+  25% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(14px, -46px) scale(1.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
+  .hus-scen, #husgrupp { transition-duration: 0.01s; }
+}
+
+/* --- Husdjur i Mitt rum ----------------------------------------------------- */
+/* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
+   med storlek per tillväxtsteg och en liten namnskylt under figuren. */
+
+.room-pet .ri-emoji { width: 3.2rem; height: 3.2rem; }
+.room-pet.pet-vuxen-2 .ri-emoji { width: 4.4rem; height: 4.4rem; }
+.room-pet.pet-vuxen-3 .ri-emoji { width: 5.8rem; height: 5.8rem; }
+
+/* Ägget i rummet: lite mindre + vaggar lugnt (samma keyframes som pet-sidan hade). */
+.room-pet.pet-agg-i-rum .ri-emoji {
+  width: 2.9rem;
+  height: 2.9rem;
+  animation: pet-wiggle 3.2s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+.room-pet .rp-namn {
+  display: block;
+  margin-top: 2px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #3c4a63;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1px 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-pet .rp-namn.rp-agg { color: #8a6d3b; }
+
+/* Promenad-AI (rum-promenad.js): mjukt tassande medan djuret går, och figuren
+   speglas när det går åt vänster. Klasserna sätts/tas bort av rAF-loopen. */
+.room-pet.promenerar .ri-emoji {
+  animation: pet-tassa 0.55s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+.room-pet.vand-vanster .ri-emoji svg { transform: scaleX(-1); }
+
+@keyframes pet-tassa {
+  0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+  50% { transform: translateY(-7%) rotate(1.2deg); }
+}
+
+/* Klick-lek: djuret lägger sig på rygg, sprattlar och reser sig igen.
+   Tajming från design-facit: 700 ms flip + 2600 ms sprattel + 550 ms upp
+   (totalt 3,85 s → flip klar vid ~18 %, sprattel till ~86 %). */
+.room-pet.pet-rygg .ri-emoji {
+  animation: pet-rygg 3.85s ease-in-out both;
+  transform-origin: 50% 62%;
+}
+
+@keyframes pet-rygg {
+  0% { transform: rotate(0); }
+  11% { transform: rotate(178deg); }   /* liten studs över… */
+  18% { transform: rotate(157deg); }   /* …och landar på rygg */
+  30% { transform: rotate(166deg); }
+  42% { transform: rotate(149deg); }   /* sprattel fram och tillbaka */
+  54% { transform: rotate(166deg); }
+  66% { transform: rotate(149deg); }
+  78% { transform: rotate(163deg); }
+  86% { transform: rotate(157deg); }
+  100% { transform: rotate(0); }       /* reser sig */
+}
+
+/* Hjärtan som bubblar upp medan djuret ligger och sprattlar. */
+.pet-rygg-fx {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 1.28s ease-out 3;
+}
+
+@keyframes pet-rygg-fx {
+  0% { opacity: 0; transform: translate(-50%, 2px) scale(0.6); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -26px) scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-pet.promenerar .ri-emoji { animation: none; }
+  .room-pet.pet-rygg .ri-emoji,
+  .pet-rygg-fx,
+  .room-pet.pet-agg-i-rum .ri-emoji {
+    animation: none;
+  }
+}
+
+/* Husdjurspanelen under rumsscenen. */
+.rum-pet-panel { margin-bottom: 20px; }
+
+.pet-namn-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
+
+.pet-namn-input {
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 10px 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  width: 220px;
+  max-width: 70vw;
+}
+
+.pet-namn-input:focus { outline: none; border-color: var(--lila); }

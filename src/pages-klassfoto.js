@@ -84,8 +84,8 @@ export async function pageElevKlassfoto() {
   const rubrik = fallback ? "Alla elever 👩‍👦‍👦" : `Min klass 👩‍👦‍👦`;
   const klassnamn = !fallback && klass?.name ? ` – ${esc(klass.name)}` : "";
   const hint = fallback
-    ? "Du är inte med i någon klass än, så här ser du alla elever. Klicka på en kompis figur för att titta in i deras rum!"
-    : "Här är du och dina klasskamrater. Klicka på en kompis figur för att titta in i deras rum! Du är märkt med <b>Du!</b>";
+    ? "Du är inte med i någon klass än, så här ser du alla elever. Klicka på en kompis figur för att titta in i deras hem!"
+    : "Här är du och dina klasskamrater. Klicka på en kompis figur för att titta in i deras hem! Du är märkt med <b>Du!</b>";
 
   const view = el(`<div>
     <a class="back-link" id="back">← Till startsidan</a>

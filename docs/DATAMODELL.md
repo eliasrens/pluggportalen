@@ -120,20 +120,26 @@ Exempel (`students/elev1`):
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
 | `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
-| `room`       | map    | `{ placements: { [itemId]: { x, y } } }` – `x`/`y` i **procent** (0–100) av rummet |
+| `room`       | map    | `{ placements: { [itemId]: { x, y } }, paletteId }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om) |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 | `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds numera ur elevens **nivå** (nivåtrösklarna `STAGE_LEVELS` i `src/evolution.js`; nivån ur `xp` via `src/leveling.js`). |
-| `pet`        | map    | Kläckbara husdjuret (mystery egg) – se nedan. Saknas tills eleven köpt ägget/värmelampan |
+| `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
+| `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
 
-### `studentData.pet` – kläckbara husdjuret
+### `studentData.pets[]` – kläckbara husdjuren
 
-Skapas när eleven köper det mystiska ägget (eller värmelampan) i shoppen.
-Tidsstämplar är **millisekunder** (`Date.now()`); kläckning och tillväxt räknas
-ut **vid inläsning** – ingen bakgrundsprocess. Husdjuret kan aldrig dö.
+Varje äggköp i shoppen lägger till ett nytt objekt i listan. Husdjuren **bor i
+Mitt rum** (`#/elev/rum`): ägget ruvar/kläcks där och djuret matas/döps via
+rumsvyn. Tidsstämplar är **millisekunder** (`Date.now()`); kläckning och
+tillväxt räknas ut **vid inläsning** – ingen bakgrundsprocess. Husdjuret kan
+aldrig dö.
 
 | Fält          | Typ         | Beskrivning                                              |
 | ------------- | ----------- | -------------------------------------------------------- |
+| `id`          | string      | Stabilt slump-id för djuret (sätts vid köp/migrering)    |
+| `name`        | string/null | Elevens eget namn på djuret (max 16 tecken); `null` = odöpt |
+| `pos`         | map         | `{ x, y }` – position i **procent** (0–100) av rumsscenen |
 | `eggBoughtAt` | number      | När ägget köptes (ms). Kläcks ~3 dagar senare            |
 | `hasHeatLamp` | bool        | Värmelampa köpt → ägget kläcks på **halva** tiden        |
 | `speciesId`   | string/null | Slumpad art vid kläckning (se `SPECIES` i `src/art-pets-creatures.js`) |
@@ -250,8 +256,11 @@ Exempel (`classes/6a`):
   Rendera avataren med `avatarMarkup(avatarId, itemIds)` från `src/avatars.js`.
 
 **Rum**
-- `getRoom()`, `saveRoom(room)` – `room = { placements: { [itemId]: { x, y } } }`,
+- `getRoom()`, `saveRoom(room)` – `room = { placements: { [itemId]: { x, y } }, paletteId }`,
   där `x`/`y` är procent (0–100) så rummet ser likadant ut på alla skärmar.
+  `saveRoom` skriver varje angivet fält med dot-path (`room.placements` osv.) –
+  utelämnade fält (t.ex. `paletteId`) lämnas orörda. Paletterna för hus & väggar
+  ligger i `src/room-palettes.js`; golvet färgas aldrig om.
 
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`
@@ -267,13 +276,16 @@ Exempel (`classes/6a`):
   Rendera figuren med `avatarMarkup(avatarId, itemIds, evo)` /
   `characterSvg(id, { stage, branch })`. Konsten per steg ligger i
   `src/art-characters-robot.js`, registret `EVOLUTIONS` i `src/art-characters.js`.
-**Husdjur (mystery egg)** – ligger i systermodulen [`src/data-pet.js`](../src/data-pet.js)
-- `buyEgg(price)` / `buyHeatLamp(price)` → `{ ok, coins, owned, pet }` –
-  transaktioner som drar coins, lägger saken i `ownedItems` och uppdaterar `pet`
-- `getPet()` → `pet` eller `null`
-- `hatchIfReady()` → `{ pet, justHatched }` – kläcker (slumpar art) om kläcktiden passerats
-- `feedPet()` → `{ ok, reason?, pet, stageUp }` – gratis, max 1 gång/kalenderdag
-- Hjälpare: `hatchTimeFor(pet)`, `canFeed(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`
+**Husdjur (mystery eggs, flera per elev)** – ligger i systermodulen [`src/data-pet.js`](../src/data-pet.js)
+- `buyEgg(price)` → `{ ok, coins, pets }` – transaktion som drar coins och lägger
+  ett **nytt** ägg i `pets[]` (kan köpas flera gånger; hamnar inte i `ownedItems`)
+- `buyHeatLamp(price)` → `{ ok, coins, owned, pets }` – lägger lampan i
+  `ownedItems` och sätter `hasHeatLamp` på alla okläckta ägg
+- `getPets()` → `pets[]` (migrerar ett ev. äldre `studentData.pet` först)
+- `hatchReadyPets()` → `{ pets, justHatchedIds }` – kläcker alla ägg vars kläcktid passerats
+- `feedPet(petId)` → `{ ok, reason?, pet, pets, stageUp }` – gratis, max 1 gång/kalenderdag per djur
+- `setPetName(petId, name)` / `savePetPositions({ [petId]: { x, y } })`
+- Hjälpare: `hatchTimeFor(pet, hasLamp)`, `canFeed(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`, `cleanPetName(s)`
 
 **Statistik (profil)**
 - `getStats()` → `{ coins, playedExercises, completed, stars, areas }`

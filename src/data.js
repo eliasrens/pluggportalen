@@ -275,86 +275,8 @@ export async function buyItem(itemId, price, studentId = currentStudentId()) {
   });
 }
 
-// --- Avatar-påklädnad (burna klädsaker) ------------------------------------
-
-/** Id:n på de klädsaker eleven har på sin avatar just nu. */
-export async function getAvatarItems(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return data.avatarItems || [];
-}
-
-/**
- * Spara vilka klädsaker som bärs på avataren.
- * @param {string[]} items id:n (bör vara en delmängd av ownedItems)
- */
-export async function saveAvatarItems(items, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  const list = Array.isArray(items) ? [...new Set(items)] : [];
-  await updateDoc(ref, { avatarItems: list });
-  return list;
-}
-
-// --- Rum (placering av saker) ----------------------------------------------
-
-export async function getRoom(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return data.room || { placements: {} };
-}
-
-/** Spara rummets placeringar: { [itemId]: { x, y } }. */
-export async function saveRoom(room, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  await updateDoc(ref, { room });
-  return room;
-}
-
-// --- Avatar -----------------------------------------------------------------
-
-export async function getAvatar(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return data.avatarId || "fox";
-}
-
-export async function setAvatar(avatarId, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  // avatarChosen markeras true så vi vet att eleven själv gjort ett val.
-  await setDoc(ref, { avatarId, avatarChosen: true }, { merge: true });
-  // Håll students-dokumentet i synk också (avatarId finns på båda ställena).
-  await updateDoc(doc(db, "students", studentId), { avatarId }).catch(() => {});
-  return avatarId;
-}
-
-// --- Evolution (Pokémon-stil) ----------------------------------------------
-// Vilket steg figuren NÅTT härleds alltid ur framstegen (se evolution.js) –
-// här sparas bara elevens aktiva VAL: grenen i sista steget.
-
-/** Hela evolution-objektet: { [avatarId]: { stage, branch } }. */
-export async function getEvolution(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return data.evolution || {};
-}
-
-/**
- * Spara elevens grenval för en figur (t.ex. roboten i sista steget).
- * @param {string} avatarId figuren valet gäller (t.ex. "robot")
- * @param {{stage?: number, branch?: string|null}} choice
- */
-export async function setEvolutionChoice(avatarId, { stage = null, branch = null } = {}, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  // merge:true slår ihop nästlade maps → val för andra figurer bevaras.
-  await setDoc(ref, { evolution: { [avatarId]: { stage, branch } } }, { merge: true });
-  return { stage, branch };
-}
-
-/** Har eleven valt en grundavatar själv (annars: visa avatarvalet först)? */
-export async function hasChosenAvatar(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return !!data.avatarChosen;
-}
+// Rum & avatar-utseende (rum, klädsaker, avatar, evolution): utbrutet till
+// data-room.js (additiv systermodul som data-xp.js) – re-exporteras nedan.
 
 // ---------------------------------------------------------------------------
 // Enkel statistik (för profilsidan). Räknas ur progress-objektet.
@@ -392,6 +314,18 @@ export async function getStats(studentId = currentStudentId()) {
 // Kunskapsinnehåll + elevkonton (lärarsidans data) – utbrutet till
 // data-content.js men re-exporteras här så alla `import * as data` fungerar.
 // ---------------------------------------------------------------------------
+
+export {
+  getAvatarItems,
+  saveAvatarItems,
+  getRoom,
+  saveRoom,
+  getAvatar,
+  setAvatar,
+  hasChosenAvatar,
+  getEvolution,
+  setEvolutionChoice,
+} from "./data-room.js";
 
 export {
   getSubjects,
