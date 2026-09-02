@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – sprite-djur</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för sprite-riggen (art-pet-sprites.js). Ritar båda
+         arterna × 3 evolutionssteg i samma DOM som rummet (.room-pet > .ri-emoji
+         > .pet-sprite) och ger knappar för promenera/rygg per djur. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.8; }
+      .art { padding: 8px 20px 28px; }
+      .art h2 { font-size: 1.05rem; margin: 12px 0 8px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 22px; }
+      .cell { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      /* Scen bakom varje djur så man ser flip:en tydligt. */
+      .scen {
+        position: relative;
+        width: 200px; height: 220px;
+        background: linear-gradient(#eaf5ff, #dff0e6);
+        border: 1px solid #d8cbb5; border-radius: 14px;
+        display: flex; align-items: flex-end; justify-content: center;
+        overflow: hidden;
+      }
+      /* .room-pet i rummet är absolut-positionerad; här centrerar vi den. */
+      .scen .room-pet { position: relative; left: auto !important; top: auto !important; height: 190px; margin-bottom: 6px; }
+      .scen .ri-emoji { display: block; height: 170px; }
+      .knappar { display: flex; gap: 6px; }
+      .knappar button {
+        font: inherit; font-size: 0.8rem; padding: 4px 10px;
+        border: 1px solid #c9b48f; border-radius: 999px; background: #fff7ea;
+        cursor: pointer;
+      }
+      .knappar button:hover { background: #ffeccd; }
+      .steg-txt { font-size: 0.8rem; opacity: 0.75; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – sprite-djur 🐛🦎</h1>
+      <p>Fjärlis & Flammis × 3 evolutionssteg. Knapparna kör promenad-/rygg-leken. Håll koll: armar framför magen, ingen huvud-blink, tydlig rygg-rull.</p>
+    </header>
+    <div id="rot"></div>
+
+    <script type="module">
+      import { SPRITE_SPECIES, spriteRigHtml } from "./src/art-pet-sprites.js";
+
+      const RYGG_MS = 3850;
+      const rot = document.getElementById("rot");
+
+      function cell(species, stage) {
+        const wrap = document.createElement("div");
+        wrap.className = "cell";
+        wrap.innerHTML = `
+          <div class="scen">
+            <div class="room-pet pet-vuxen-${stage}">
+              <span class="ri-emoji">${spriteRigHtml(species.id, stage)}</span>
+            </div>
+          </div>
+          <div class="steg-txt">Steg ${stage}</div>
+          <div class="knappar">
+            <button data-act="gata">Promenera</button>
+            <button data-act="rygg">Ramla på rygg</button>
+          </div>`;
+        const petNode = wrap.querySelector(".room-pet");
+        wrap.querySelector('[data-act="gata"]').addEventListener("click", () => {
+          petNode.classList.toggle("promenerar");
+        });
+        wrap.querySelector('[data-act="rygg"]').addEventListener("click", () => {
+          if (petNode.classList.contains("pet-rygg")) return;
+          petNode.classList.add("pet-rygg");
+          const fx = document.createElement("span");
+          fx.className = "pet-rygg-fx";
+          fx.textContent = "💖";
+          petNode.appendChild(fx);
+          setTimeout(() => { petNode.classList.remove("pet-rygg"); fx.remove(); }, RYGG_MS);
+        });
+        return wrap;
+      }
+
+      for (const species of SPRITE_SPECIES) {
+        const block = document.createElement("section");
+        block.className = "art";
+        block.innerHTML = `<h2>${species.name} <small>(${species.id})</small></h2>`;
+        const rad = document.createElement("div");
+        rad.className = "rad";
+        for (let stage = 1; stage <= 3; stage++) rad.appendChild(cell(species, stage));
+        block.appendChild(rad);
+        rot.appendChild(block);
+      }
+    </script>
+  </body>
+</html>
