@@ -17,6 +17,7 @@ import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, renderPetPanel } from "./pages-rum-pets.js";
 import { confetti } from "./fx.js";
 import { roomBackdropHtml, FLOOR_TOP } from "./art-room.js";
+import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 
 /** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
 function isFloorItem(id) {
@@ -75,6 +76,13 @@ export async function pageElevRum() {
     <div id="pet-panel"></div>
 
     <div class="panel">
+      <h2>Måla om 🎨</h2>
+      <p class="hint">Välj en färgpalett till dina väggar och ditt hus – de hänger ihop!
+        Golvet behåller sin färg.</p>
+      <div class="palett-rad" id="palettrad"></div>
+    </div>
+
+    <div class="panel">
       <h2>Lådan 📦</h2>
       <p class="hint" id="tray-hint"></p>
       <div class="room-tray" id="tray"></div>
@@ -96,6 +104,23 @@ export async function pageElevRum() {
   const tray = view.querySelector("#tray");
   const trayHint = view.querySelector("#tray-hint");
   const wearTray = view.querySelector("#weartray");
+
+  // Väggfärgerna = elevens palettval (delas med husets fasad, se pages-hus.js).
+  // Golvet ligger i .room-bg och färgas aldrig om.
+  let paletteId = paletteIdFromStudentData(sd);
+  function applyPalette() {
+    const pal = getPalette(paletteId);
+    stage.style.setProperty("--rum-wall", pal.wall);
+    stage.style.setProperty("--rum-wall2", pal.wall2);
+  }
+  applyPalette();
+  renderPalettePicker(view.querySelector("#palettrad"), paletteId, (id) => {
+    paletteId = id;
+    applyPalette();
+    data.saveRoom({ paletteId: id }).catch((err) => {
+      flash("Kunde inte spara färgvalet: " + err.message, true);
+    });
+  });
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
   let selectedPetId = null; // valt husdjur (visar husdjurspanelen)

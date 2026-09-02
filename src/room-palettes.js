@@ -27,3 +27,38 @@ export function getPalette(paletteId) {
 export function paletteIdFromStudentData(sd) {
   return (sd && sd.room && sd.room.paletteId) || DEFAULT_PALETTE_ID;
 }
+
+// --- Palettväljaren (delas av Mitt rum och hus-vyn) -------------------------
+// Barnvänligt: bara förvalda paletter, inga fria färgval. Varje knapp visar
+// palettens fyra färgroller (fasad/tak/vägg/panel) som ett litet färgprov.
+
+/**
+ * Rita palettväljaren i `container` och lyssna på klick.
+ * @param {HTMLElement} container tomt element (t.ex. <div class="palett-rad">)
+ * @param {string} activeId       elevens nuvarande palett-id
+ * @param {(id: string, palette: object) => void} onPick körs vid NYTT val
+ */
+export function renderPalettePicker(container, activeId, onPick) {
+  const draw = () => {
+    container.innerHTML = Object.entries(ROOM_PALETTES)
+      .map(
+        ([id, p]) => `<button class="palett-knapp${id === activeId ? " vald" : ""}"
+          data-palette="${id}" aria-pressed="${id === activeId}" title="${p.namn}">
+          <span class="palett-farger" aria-hidden="true">
+            <span style="background:${p.house}"></span><span style="background:${p.roof}"></span>
+            <span style="background:${p.wall}"></span><span style="background:${p.wall2}"></span>
+          </span>
+          <span class="palett-namn">${p.namn}${id === activeId ? " ✓" : ""}</span>
+        </button>`
+      )
+      .join("");
+  };
+  draw();
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-palette]");
+    if (!btn || btn.dataset.palette === activeId) return;
+    activeId = btn.dataset.palette;
+    draw();
+    onPick(activeId, getPalette(activeId));
+  });
+}

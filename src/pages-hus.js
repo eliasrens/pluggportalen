@@ -14,9 +14,9 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { app, el, go, loading, renderTopbar, pageError } from "./ui.js";
+import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { O, LINE, THIN, limb } from "./art-style.js";
-import { getPalette, paletteIdFromStudentData } from "./room-palettes.js";
+import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 
 // Trä/golv-färger ur stilguiden (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -151,12 +151,29 @@ export async function pageElevHus() {
       <div class="hus-scen" id="scen">${husScen()}</div>
       <div class="hus-hint" id="hint">🏠 Klicka på huset för att gå in!</div>
     </div>
+    <div class="panel">
+      <h2>Måla om huset 🎨</h2>
+      <p class="hint">Välj en färgpalett – samma färger används på väggarna inne i ditt rum!</p>
+      <div class="palett-rad" id="palettrad"></div>
+    </div>
   </div>`);
 
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
 
   const stage = view.querySelector("#stage");
   const husgrupp = view.querySelector("#husgrupp");
+
+  // Måla om: nytt palettval appliceras direkt på scenen (CSS-variablerna på
+  // stage) och sparas i studentData – rummets väggar använder samma val.
+  renderPalettePicker(view.querySelector("#palettrad"), paletteIdFromStudentData(sd), (id, p) => {
+    stage.style.setProperty("--hus-house", p.house);
+    stage.style.setProperty("--hus-roof", p.roof);
+    stage.style.setProperty("--hus-wall", p.wall);
+    stage.style.setProperty("--hus-wall2", p.wall2);
+    data.saveRoom({ paletteId: id }).catch((err) => {
+      flash("Kunde inte spara färgvalet: " + err.message, true);
+    });
+  });
 
   // Gå in: zooma mot fönstret (origin 48,5 %/52 %) och landa i rummet.
   let paVagIn = false;

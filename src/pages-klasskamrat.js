@@ -19,6 +19,7 @@ import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { roomBackdropHtml } from "./art-room.js";
+import { getPalette, paletteIdFromStudentData } from "./room-palettes.js";
 
 /** Minimal HTML-escape för elevnamn som kommer från Firestore. */
 function esc(s) {
@@ -55,6 +56,8 @@ export async function pageElevKlasskamrat() {
   const namn = esc(
     student?.namn || student?.username || sd.namn || avatarName(sd.avatarId || DEFAULT_AVATAR)
   );
+  // Kamratens väggfärger (palettval delas med huset – golvet färgas aldrig om).
+  const pal = getPalette(paletteIdFromStudentData(sd));
   const owned = sd.ownedItems || [];
   const equipped = sd.avatarItems || [];
   const evo = evoFromStudentData(sd);
@@ -88,7 +91,8 @@ export async function pageElevKlasskamrat() {
       <p class="hint">Du tittar in i ${namn}s rum. Det här är bara en titt – du kan inte ändra något här. 👀</p>
     </div>
 
-    <div class="room-stage readonly" id="stage">
+    <div class="room-stage readonly" id="stage"
+      style="--rum-wall:${pal.wall};--rum-wall2:${pal.wall2}">
       ${roomBackdropHtml()}
       ${items || '<div class="room-empty">Det här rummet är fortfarande tomt. 🕸️</div>'}
     </div>
