@@ -8,19 +8,30 @@
 // det och väljer ett nytt mål). Tempo enligt designfacit: lugnt, mjukt,
 // barnvänligt – accelererar/bromsar mjukt och pausar ofta.
 //
+// SEEK-LÄGE (matning): ligger det äpplen på golvet styr varje hungrigt (icke-
+// fullvuxet) djur mot NÄRMASTE lediga äpple och äter upp det när det når fram.
+// Varje äpple "bokas" (claims) av som mest ett djur så flera djur inte slåss om
+// samma äpple och inget dödläge uppstår. När inga äpplen finns vandrar djuren
+// som vanligt. Fullvuxna djur bryr sig inte om mat.
+//
 // Kollisionsrutor läses från DOM:en (.room-item[data-id]) i procent av scenen,
 // så modulen fungerar oavsett hur sakerna är ritade/skalade. Loopen drivs av
 // requestAnimationFrame och städar sig själv när scenen lämnar dokumentet.
 // ============================================================================
 
 import { FLOOR_TOP } from "./art-room.js";
+import { isHungry } from "./data-pet.js";
 
 const SPEED = 6; // %/s – lugnt promenadtempo (designfacit ~7 %/s)
+const SEEK_SPEED = 8; // %/s – lite piggare fart fram mot ett äpple
 const RAMP = 5; // % sträcka för mjuk gasa/bromsa i början/slutet av en tur
 const IDLE_MIN = 1600; // ms paus mellan promenader …
 const IDLE_MAX = 5200; // … slumpas i detta spann (ibland längre, se pickIdle)
 const OBSTACLE_TTL = 1200; // ms mellan omläsningar av möblernas rutor
 const TRIES = 14; // målförsök per promenadstart innan djuret väntar kvar
+// Vinklar (grader) att prova om raka vägen mot äpplet är blockerad – enkel
+// undanmanöver runt en möbel utan riktig vägsökning.
+const SEEK_ANGLES = [0, 22, -22, 45, -45, 70, -70];
 
 const rand = (min, max) => min + Math.random() * (max - min);
 
@@ -35,22 +46,27 @@ function pickIdle(now) {
  * @param {HTMLElement} o.stage  rumsscenen (.room-stage)
  * @param {() => object[]} o.getPets  aktuell pets-array (positioner i procent)
  * @param {(pet: object) => boolean} o.isPetPaused  true = rör dig inte (vald/dras)
+ * @param {() => object[]} [o.getApples]  äpplen på golvet ([{id,x,y}], procent)
+ * @param {(pet: object, apple: object) => void} [o.onEat]  djuret nådde ett äpple
  * @param {() => void} [o.onSettled]  kallas när ett djur stannar (för ev. sparning)
  * @returns {() => void} stoppfunktion (loopen stoppar även sig själv när
  *   scenen försvinner ur DOM:en, samma mönster som äggens nedräkningstimer)
  */
-export function startPetPromenad({ stage, getPets, isPetPaused, onSettled }) {
+export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat, onSettled }) {
   // Respektera reduced motion: inga promenader alls (designfacit).
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return () => {};
   }
 
   const states = new Map(); // petId → { mode, until, target, node, halfW, halfH }
+  const appleClaims = new Map(); // appleId → petId (ett äpple bokas av ett djur)
   let obstacles = [];
   let obstaclesAt = 0;
   let raf = 0;
   let last = 0;
   let stopped = false;
+
+  const apples = () => (getApples ? getApples() : []);
 
   // --- Kollisionsrutor: placerade saker i procent av scenen -----------------
   function refreshObstacles(now) {
@@ -198,6 +214,73 @@ export function startPetPromenad({ stage, getPets, isPetPaused, onSettled }) {
     if (onSettled) onSettled();
   }
 
+  // --- Seek-läge: gå till närmaste lediga äpple och ät ----------------------
+
+  /** Släpp ett djurs ev. bokning (t.ex. när det pausas eller äpplet försvann). */
+  function releaseClaim(petId) {
+    // Nyckeln är appleId → petId; hitta och ta bort djurets ev. bokning.
+    for (const [aid, pid] of appleClaims) if (pid === petId) appleClaims.delete(aid);
+  }
+
+  /** Djurets nuvarande bokade äpple (om det fortfarande ligger kvar), annars null. */
+  function claimedApple(pet, list) {
+    for (const [aid, pid] of appleClaims) {
+      if (pid !== pet.id) continue;
+      const a = list.find((x) => x.id === aid);
+      if (a) return a;
+      appleClaims.delete(aid); // äpplet är uppätet/borta – släpp bokningen
+    }
+    return null;
+  }
+
+  /** Boka det närmaste lediga äpplet till djuret (om något finns). */
+  function claimNearestApple(pet, list) {
+    let best = null, bestD = Infinity;
+    for (const a of list) {
+      if (appleClaims.has(a.id)) continue; // redan bokat av ett annat djur
+      const d = Math.hypot(a.x - pet.pos.x, a.y - pet.pos.y);
+      if (d < bestD) { bestD = d; best = a; }
+    }
+    if (best) appleClaims.set(best.id, pet.id);
+    return best;
+  }
+
+  /** Ett steg mot äpplet – provar små undanvinklar om raka vägen är blockerad. */
+  function seekStep(pet, st, node, apple, dt, now) {
+    const dx = apple.x - pet.pos.x;
+    const dy = apple.y - pet.pos.y;
+    const dist = Math.hypot(dx, dy);
+    // Framme? (djurets halva bredd + liten marginal) → ät upp äpplet.
+    if (dist <= st.halfW + 1.5) {
+      appleClaims.delete(apple.id);
+      st.mode = "idle";
+      st.until = pickIdle(now);
+      node.classList.remove("promenerar");
+      if (onEat) onEat(pet, apple);
+      return;
+    }
+    const z = walkZone(st);
+    const base = Math.atan2(dy, dx);
+    const step = Math.min(dist, SEEK_SPEED * dt);
+    for (const deg of SEEK_ANGLES) {
+      const ang = base + (deg * Math.PI) / 180;
+      const nx = Math.min(z.maxX, Math.max(z.minX, pet.pos.x + Math.cos(ang) * step));
+      const ny = Math.min(z.maxY, Math.max(z.minY, pet.pos.y + Math.sin(ang) * step));
+      if (hitsObstacle(nx, ny, st)) continue;
+      if (nearOtherPet(pet, nx, ny, 0.8, true)) continue;
+      pet.pos.x = nx;
+      pet.pos.y = ny;
+      node.style.left = nx + "%";
+      node.style.top = ny + "%";
+      node.classList.add("promenerar");
+      node.classList.toggle("vand-vanster", Math.cos(ang) < 0);
+      return;
+    }
+    // Helt inklämd just nu – vänta en kort stund och prova igen (inget dödläge).
+    node.classList.remove("promenerar");
+    st.until = now + 250;
+  }
+
   // --- Huvudloopen ----------------------------------------------------------
   function tick(now) {
     if (stopped) return;
@@ -206,6 +289,7 @@ export function startPetPromenad({ stage, getPets, isPetPaused, onSettled }) {
     last = now;
     refreshObstacles(now);
 
+    const appleList = apples();
     for (const pet of getPets()) {
       if (!pet.hatchedAt || !pet.pos) continue; // ägg ligger stilla och ruvar
       let st = states.get(pet.id);
@@ -218,9 +302,26 @@ export function startPetPromenad({ stage, getPets, isPetPaused, onSettled }) {
 
       // Interaktion (djuret är valt/matas eller dras) → stå still och vänta.
       if (isPetPaused(pet)) {
-        if (st.mode === "walk") settle(pet, st, node, now);
+        if (st.mode === "walk" || st.mode === "seek") settle(pet, st, node, now);
+        releaseClaim(pet.id);
         st.until = Math.max(st.until, now + 1200);
         continue;
+      }
+
+      // SEEK: hungriga (icke-fullvuxna) djur styr mot närmaste lediga äpple.
+      if (appleList.length && isHungry(pet)) {
+        const apple = claimedApple(pet, appleList) || claimNearestApple(pet, appleList);
+        if (apple) {
+          st.mode = "seek";
+          seekStep(pet, st, node, apple, dt, now);
+          continue;
+        }
+      }
+      // Inget (ledigt) äpple att söka just nu → tillbaka till vanlig vandring
+      // (undvik att fastna i seek-läge med ett gammalt/ogiltigt mål).
+      if (st.mode === "seek") {
+        releaseClaim(pet.id);
+        settle(pet, st, node, now);
       }
 
       if (st.mode === "idle") {
@@ -236,6 +337,7 @@ export function startPetPromenad({ stage, getPets, isPetPaused, onSettled }) {
     stopped = true;
     cancelAnimationFrame(raf);
     states.clear();
+    appleClaims.clear();
   }
 
   raf = requestAnimationFrame((now) => {

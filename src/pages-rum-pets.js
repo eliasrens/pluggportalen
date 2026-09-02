@@ -35,16 +35,16 @@ export function petDisplayName(pet) {
 }
 
 // --- Uttryck & klick-lek (flyktigt runtime-tillstånd, per djur) -------------
-// Uttrycken sparas inte: äter vid matning, glad efter interaktion, nyfiken när
-// pekaren är nära djuret, sömnig när djuret redan är matat idag. Timers är
-// per djur och rör bara noder som fortfarande sitter i DOM:en.
+// Uttrycken sparas inte: äter när djuret når ett äpple, glad efter interaktion,
+// nyfiken när pekaren är nära djuret. Timers är per djur och rör bara noder som
+// fortfarande sitter i DOM:en.
 
 const moodTimers = new Map(); // petId -> timeout (återgång till vilouttryck)
 const moodBusy = new Map(); // petId -> tidsstämpel: tidsatt uttryck pågår
 
-/** Vilouttryck: mätt & dåsig efter dagens matning, annars neutral. */
-function idleExpression(pet) {
-  return petData.canFeed(pet) ? "" : "somnig";
+/** Vilouttryck: neutral (matningen sker via äpplen på golvet, inte här). */
+function idleExpression() {
+  return "";
 }
 
 function findPetNode(petId) {
@@ -178,21 +178,21 @@ function creaturePanel(pet, opts) {
   const namn = petDisplayName(pet);
   const stage = pet.stage || 1;
   const next = petData.feedsToNextStage(pet.feedCount);
-  const kanMata = petData.canFeed(pet);
   const behoverNamn = !pet.name;
 
   let vaxHtml;
   if (next) {
-    const dots = [];
+    // Kompakt matnings-mätare (10 äpplen per steg) i stället för många prickar.
     const from = stage === 1 ? 0 : petData.STAGE2_FEEDS;
-    for (let i = from; i < next.needed; i++) {
-      dots.push(`<span class="pet-prick${i < next.have ? " full" : ""}"></span>`);
-    }
+    const inSteg = Math.max(0, (pet.feedCount || 0) - from);
+    const behovs = next.needed - from;
     const kvar = next.needed - next.have;
-    vaxHtml = `<p class="hint">Mata ${kvar} gång${kvar === 1 ? "" : "er"} till så växer ${namn} till nästa steg!</p>
-      <div class="pet-prickar">${dots.join("")}</div>`;
+    const pct = Math.min(100, Math.round((inSteg / behovs) * 100));
+    vaxHtml = `<p class="hint">Mata ${kvar} äppl${kvar === 1 ? "e" : "en"} till så växer ${namn} till nästa steg!</p>
+      <div class="pet-matbar"><div class="pet-matbar-fyll" style="width:${pct}%"></div>
+      <span class="pet-matbar-text">🍎 ${inSteg} / ${behovs}</span></div>`;
   } else {
-    vaxHtml = `<p class="hint">🌟 ${namn} är fullvuxen – vilken bjässe! Du kan fortfarande mata den varje dag om du vill mysa.</p>`;
+    vaxHtml = `<p class="hint">🌟 ${namn} är fullvuxen – vilken bjässe! Den behöver ingen mer mat, men du kan förstås fortsätta mysa. 💚</p>`;
   }
 
   const view = el(`<div class="panel center rum-pet-panel">
@@ -205,12 +205,10 @@ function creaturePanel(pet, opts) {
       ? `<p><b>Vad ska din nya kompis heta?</b></p>${nameFormHtml("")}`
       : `<p class="hint">${species ? `Art: <b>${species.name}</b> · ` : ""}Steg ${stage} av 3 · 🍎 ${pet.feedCount || 0} matningar</p>`}
     </div>
-    <div id="mata-rad">
-      ${kanMata
-        ? `<button class="btn stor gron" id="mata">🍎 Mata ${namn}</button>`
-        : '<button class="btn stor" disabled>✓ Matad idag</button><p class="hint">Kom tillbaka imorgon och mata igen! 💤</p>'}
-    </div>
     <div id="vax">${vaxHtml}</div>
+    ${next
+      ? `<p class="hint pet-mat-tips">🍎 Mata ${namn} genom att köpa <b>äpplen</b> i shoppen och lägga ut dem på golvet med <b>🍎 Lägg mat</b> – då går ${namn} dit och äter!</p>`
+      : ""}
     ${behoverNamn ? "" : '<button class="btn liten ghost" id="byt-namn">✏️ Byt namn</button>'}
   </div>`);
 
@@ -223,40 +221,6 @@ function creaturePanel(pet, opts) {
       rad.innerHTML = `<p><b>Vad ska ${namn} heta i stället?</b></p>${nameFormHtml(pet.name || "")}`;
       wireNameForm(view, pet, opts);
       rad.querySelector(".pet-namn-input")?.focus();
-    });
-  }
-
-  // Matning.
-  const mataBtn = view.querySelector("#mata");
-  if (mataBtn) {
-    mataBtn.addEventListener("click", async () => {
-      mataBtn.disabled = true;
-      mataBtn.textContent = "Mums…";
-      try {
-        const res = await petData.feedPet(pet.id);
-        if (res.ok) {
-          if (res.stageUp) {
-            confetti();
-            flash(`${petDisplayName(res.pet)} växte till steg ${res.pet.stage}! 🎉`);
-          } else {
-            flash(`Mums! ${petDisplayName(res.pet)} smaskar glatt. 😋`);
-          }
-        } else {
-          flash(res.reason === "redan-matad"
-            ? `${namn} är redan mätt idag – kom tillbaka imorgon!`
-            : "Det gick inte att mata just nu.", true);
-        }
-        opts.onUpdate(res.pets, res.pet ? res.pet.id : pet.id);
-        if (res.ok && res.pet) {
-          // Uttrycksskifte i scenen: gnager en stund, sedan glad, sedan vila.
-          setPetMood(res.pet, "ater", 1800);
-          setTimeout(() => setPetMood(res.pet, "glad", 2600), 1800);
-        }
-      } catch (err) {
-        flash("Något gick fel: " + err.message, true);
-        mataBtn.disabled = false;
-        mataBtn.textContent = `🍎 Mata ${namn}`;
-      }
     });
   }
 

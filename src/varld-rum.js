@@ -19,6 +19,7 @@ import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
 import { roomBackdropHtml, FLOOR_TOP, WINDOW_ID, WINDOW_DEFAULT, windowItemHtml } from "./art-room.js";
 import { mountWearTray } from "./varld-rum-wear.js";
+import { mountRumMat } from "./varld-rum-mat.js";
 
 /** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
 function isFloorItem(id) {
@@ -35,13 +36,14 @@ function isFloorItem(id) {
  * @param {HTMLElement} o.tray      behållare för sak-lådan
  * @param {HTMLElement} o.trayHint  hint-rad ovanför sak-lådan
  * @param {HTMLElement} o.wearTray  behållare för klädlådan
+ * @param {HTMLElement} [o.matBtn]  "Lägg mat"-knappen (lägger äpplen på golvet)
  * @param {object} o.sd             studentData (ägda saker, rum, avatar)
  * @param {Array}  o.pets           husdjuren (redan kläck-kollade)
  * @param {string[]} o.justHatchedIds nykläckta denna sidladdning
  * @param {(equipped: string[]) => void} [o.onEquippedChange]
  *        körs när klädseln ändrats (så ute-avataren kan ritas om)
  */
-export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, sd, pets, justHatchedIds, onEquippedChange }) {
+export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange }) {
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
 
@@ -166,6 +168,13 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, sd, pe
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
     }
+    // Äpplen på golvet ritas UNDER husdjuren (så djuret syns ovanpå när det
+    // står och gnager). De är inga .room-item (data-id) och räknas därför inte
+    // som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
+    for (const apple of mat.apples()) {
+      stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
+        style="left:${apple.x}%;top:${apple.y}%" title="Äpple">🍎</div>`));
+    }
     for (const pet of pets) {
       if (!pet.pos) pet.pos = { x: 50, y: 70 };
       stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
@@ -205,6 +214,17 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, sd, pe
 
   // Klädlådan lever i sin egen modul (rendering + sätt-på/ta-av + sparning).
   mountWearTray({ wearTray, sd, onEquippedChange });
+
+  // Matningen (äpplen på golvet) lever i sin egen modul: äger floorApples +
+  // "Lägg mat"-knappen och ger promenad-AI:n apples()/onEat. renderStage() läser
+  // äpplena via mat.apples(), så mat måste skapas före första ritningen.
+  const mat = mountRumMat({
+    matBtn, sd,
+    getPets: () => pets,
+    renderScene: () => renderStage(),
+    renderPanel: () => renderPets(),
+    isSelected: (petId) => selectedPetId === petId,
+  });
 
   // Nykläckt ägg? Fira och öppna panelen för namngivning direkt.
   if (justHatchedId) {
@@ -364,12 +384,15 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, sd, pe
   stage.addEventListener("pointercancel", endDrag);
 
   // Promenad-AI: kläckta husdjur går själva omkring på golvet mellan möblerna
-  // (rum-promenad.js). Valda/dragna djur pausar; loopen stoppar sig själv när
-  // scenen försvinner ur DOM:en (sidbyte).
+  // (rum-promenad.js). Finns äpplen på golvet styr hungriga djur dit och äter
+  // (seek-läge, mat.onEat). Valda/dragna djur pausar; loopen stoppar sig själv
+  // när scenen försvinner ur DOM:en (sidbyte).
   startPetPromenad({
     stage,
     getPets: () => pets,
     isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id),
+    getApples: mat.apples,
+    onEat: mat.onEat,
     onSettled: saveWalkPositions,
   });
 }
