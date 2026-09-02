@@ -1967,8 +1967,9 @@ body.varld-lage .container {
   --rum-skala: 1.55;
 }
 
-#husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
-#husgrupp:hover, #husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
+#husgrupp, #kompis-husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
+#husgrupp:hover, #husgrupp:focus-visible,
+#kompis-husgrupp:hover, #kompis-husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
 
 /* Klasskylten vid gårdskanten – klick zoomar ut till klassbyn. */
 #klasskylt {
@@ -2053,6 +2054,10 @@ body.varld-lage .container {
 /* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
 .varld-stage[data-niva="by"] .varld-knapp.bara-rum,
 .varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"] { display: none; }
+
+/* På en KAMRATS hus (läs-vy) göms alla scen-kontroller helt – man kan bara
+   titta in i deras rum eller gå tillbaka till byn. */
+.varld-stage[data-niva="kompishus"] .varld-verktyg { display: none; }
 
 /* --- Overlay-UI i spelvyn (integrerade scen-kontroller) -------------------- */
 /* Själva overlay-skiktet släpper igenom pekare; bara knappar/paneler fångar. */
@@ -2191,7 +2196,7 @@ body.varld-lage .container {
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
-  .varld-lager, #husgrupp, #klasskylt, .by-tomt > svg { transition-duration: 0.01s; }
+  .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, .by-tomt > svg { transition-duration: 0.01s; }
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */

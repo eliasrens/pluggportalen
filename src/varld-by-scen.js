@@ -32,8 +32,10 @@ function esc(s) {
  * @param {Array<{id:string, namn?:string, username?:string, avatarId?:string,
  *   avatarItems?:string[], paletteId?:string, husSkalId?:string}>} o.students
  *   eleverna som ska bo i byn, i visningsordning (tomt 0 = första).
- * @returns {{fokus:{x:number,y:number}, zoom:number}}
- *   kamerafokus (den egna tomtens mitt) + zoom för by-nivån.
+ * @returns {{fokus:{x:number,y:number}, zoom:number,
+ *   fokusById:Record<string,{x:number,y:number}>}}
+ *   kamerafokus (den egna tomtens mitt) + zoom för by-nivån, samt en karta
+ *   id → tomtfokus för VARJE elev (kompis-hus-nivån zoomar mot en kamrats tomt).
  */
 export function mountByScen({ lager, meId, students }) {
   const layout = byLayout(byParams(students.length));
@@ -72,7 +74,15 @@ export function mountByScen({ lager, meId, students }) {
 
   lager.innerHTML = mark + tomter;
 
+  // Kamerafokus per elev-id (den egna tomten OCH alla kamraters) – används
+  // av by↔hus (egen) och kompis-hus-nivån (en klickad kamrats tomt).
+  const fokusById = {};
+  students.forEach((s, i) => {
+    const t = layout.tomter[i];
+    if (t) fokusById[s.id] = layout.fokusFor(t);
+  });
+
   const minIndex = students.findIndex((s) => s.id === meId);
   const minTomt = layout.tomter[minIndex] || layout.tomter[0];
-  return { fokus: layout.fokusFor(minTomt), zoom: BY_ZOOM };
+  return { fokus: layout.fokusFor(minTomt), zoom: BY_ZOOM, fokusById };
 }
