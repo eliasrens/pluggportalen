@@ -1,7 +1,7 @@
 // ============================================================================
-// Pluggportalen – by-layout (förberedelse för klassbyn, den yttre zoomnivån)
+// Pluggportalen – by-layout (klassbyn, den yttre zoomnivån)
 // ----------------------------------------------------------------------------
-// Klassbyn (nästa uppgift) visar ALLA elevers hus i en utzoomad by-nivå ovanpå
+// Klassbyn (varld-by-scen.js) visar ALLA elevers hus i en utzoomad by-nivå ovanpå
 // husvärldens kamera (varld-kamera.js). För att byn ska kännas som ett riktigt
 // litet kvarter – inte hus staplade bredvid varandra – ligger husen i RADER
 // med VÄGAR/stigar mellan raderna. Den här modulen är ren layout-matte +
@@ -25,6 +25,29 @@
 export const BY_ZOOM = 5;
 
 /**
+ * Välj bra byLayout-parametrar för ett givet antal hus. Dimensionerad för
+ * upp till ~30 elever (realistisk klass är 23–24) men ska se bra ut även för
+ * små byar: radantalet växer ~kvadratiskt-rot med antalet (max 8 hus/rad),
+ * och radhöjd/väghöjd krymper så alla rader ryms i lagret. Små byar centreras
+ * vertikalt via toppY i stället för att klänga i överkanten.
+ *
+ * @param {number} antalHus
+ * @returns {{antalHus:number, husPerRad:number, toppY:number, radHojd:number, vagHojd:number}}
+ */
+export function byParams(antalHus) {
+  const antal = Math.max(1, antalHus);
+  const husPerRad = Math.min(8, Math.max(3, Math.ceil(Math.sqrt(antal * 1.9))));
+  const rader = Math.ceil(antal / husPerRad);
+  // Vertikalt utrymme 8–92 % delas på raderna; stora hus (radHojd) kapas vid
+  // 26 % så en enda rad inte blir jättehus, och resten centreras.
+  const cell = 84 / rader;
+  const radHojd = Math.min(26, cell * 0.8);
+  const vagHojd = Math.max(3, Math.min(7, cell - radHojd));
+  const toppY = Math.max(8, 8 + (84 - rader * (radHojd + vagHojd)) / 2);
+  return { antalHus: antal, husPerRad, toppY, radHojd, vagHojd };
+}
+
+/**
  * Beräkna by-layouten: tomter i rader med vägar mellan raderna.
  *
  * @param {object} [o]
@@ -38,6 +61,9 @@ export const BY_ZOOM = 5;
  *   tomter: Array<{x:number, y:number, skala:number, rad:number, kol:number}>,
  *   vagar: Array<{y:number, hojd:number}>,
  *   skala: number,
+ *   cellW: number,
+ *   radHojd: number,
+ *   vagHojd: number,
  *   fokusFor: (tomt: {x:number, y:number}) => {x:number, y:number},
  * }}
  *   tomter[i] = mittpunkten (i %) där hus nr i ställs; `skala` är den
@@ -67,6 +93,10 @@ export function byLayout({ antalHus = 8, husPerRad = 4, vagHojd = 7, margX = 8, 
     tomter,
     vagar,
     skala: 1 / BY_ZOOM,
+    // Tomtens cellbredd + radmått i % – by-scenen använder dem som CSS-mått.
+    cellW: (100 - margX * 2) / husPerRad,
+    radHojd,
+    vagHojd,
     // Kamerafokus för en tomt = tomtens mittpunkt (kameran zoomar dit).
     fokusFor: (tomt) => ({ x: tomt.x, y: tomt.y }),
   };

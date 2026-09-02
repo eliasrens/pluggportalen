@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // En LÄS-ENDAST vy av en annan elevs rum: deras utplacerade saker + figur. Ingen
 // redigering – ingen drag/drop, ingen låda, ingen 🗑️. Öppnas genom att klicka
-// på en klasskamrat i "Min klass" (#/elev/klassfoto).
+// på en klasskamrats hus i klassbyn (#/elev/by).
 //
 // Vi läser BARA andras data (getStudentData/getRoom för den andra eleven) och
 // skriver aldrig. Rummets scen återanvänder .room-stage/.room-item-stilarna, men
@@ -31,7 +31,7 @@ export async function pageElevKlasskamrat() {
   if (!data.isLoggedIn()) return go("#/elev");
 
   const otherId = getParams().id;
-  if (!otherId) return go("#/elev/klassfoto");
+  if (!otherId) return go("#/elev/by");
 
   // Säkerhetsnät: den egna profilen redigeras i det riktiga rummet.
   if (otherId === data.currentStudentId()) return go("#/elev/rum");
@@ -96,7 +96,7 @@ export async function pageElevKlasskamrat() {
     .join("");
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till Min klass</a>
+    <a class="back-link" id="back">← Till klassbyn</a>
     <div class="panel center">
       <div class="klasskamrat-figur">${avatarMarkup(sd.avatarId || DEFAULT_AVATAR, equipped)}</div>
       <h1>${namn}s rum 🛏️</h1>
@@ -111,12 +111,12 @@ export async function pageElevKlasskamrat() {
     </div>
 
     <div class="center">
-      <button class="btn ghost" id="to-klass">👩‍👦‍👦 Till Min klass</button>
+      <button class="btn ghost" id="to-klass">🏘️ Till klassbyn</button>
     </div>
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/klassfoto"));
-  view.querySelector("#to-klass").addEventListener("click", () => go("#/elev/klassfoto"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
+  view.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
 
   app.replaceChildren(view);
 }

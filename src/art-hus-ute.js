@@ -11,8 +11,13 @@
 // letterboxa). Elevens avatar ritas framför huset via foreignObject – den
 // lever i scenens koordinatsystem och följer därmed alla kamerazoomar
 // perfekt; storleken styrs av CSS-variabeln --varld-avatar-font (px i
-// scen-koordinater) så en framtida by-nivå kan återanvända samma markup
-// nedskalad (sätt en mindre font på by-lagrets kopior).
+// scen-koordinater).
+//
+// HUSSKAL: själva huset ritas av ett utbytbart "skal" ur HUS_SKAL-registret
+// (husSkalMarkup). Idag finns bara "stuga", men framtida "Köp nytt hus" byter
+// bara skal-id per elev – rummet/interiören påverkas inte. Både ute-scenen och
+// by-vyns minihus (husMini, klassbyn i varld-by-scen.js) ritar via registret,
+// så ett nytt skal slår igenom överallt.
 // ============================================================================
 
 import { O, LINE, THIN, limb } from "./art-style.js";
@@ -35,45 +40,17 @@ function molnArt(x, y, s) {
       fill="#FFFFFF" ${THIN} opacity="0.95"/></g>`;
 }
 
-/**
- * Hela ute-scenen som SVG-sträng.
- * @param {string} avatarHtml avatarMarkup-sträng som ställs framför huset
- *   (uppdateras senare via elementet #ute-avatar). Skicka INTE evo – avataren
- *   ritas alltid i basutseende + kläder.
- */
-export function husScen(avatarHtml) {
-  const sol = [0, 45, 90, 135]
-    .map(
-      (a) =>
-        `<path d="M110 30 L110 142 M54 86 L166 86" stroke="#FDE9A8" stroke-width="10"
-          stroke-linecap="round" transform="rotate(${a} 110 86)"/>`
-    )
-    .join("");
+// --- Husskal-registret ------------------------------------------------------
+// Ett "skal" är hela husets exteriör (skorsten+rök, fasad, tak, dörr, fönster,
+// blomlåda) ritad i ute-scenens koordinater (huset kring x 300–660, marklinje
+// y≈512). Fasad/tak/vägg färgas via --hus-house/--hus-roof/--hus-wall/
+// --hus-wall2 så samma skal funkar med varje elevs palett. Framtida köpbara
+// hus = fler poster här; okänt/saknat id faller alltid tillbaka på stugan.
 
-  return `<svg viewBox="0 0 960 600" role="img" aria-label="Ditt hus utifrån"
-      preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="hus-himmel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>
-    </linearGradient></defs>
-    <rect x="-480" y="-300" width="1920" height="1200" fill="url(#hus-himmel)"/>
-    <g class="hus-solstralar">${sol}</g>
-    <circle cx="110" cy="86" r="34" fill="#F7C948" ${LINE}/>
-    <g class="hus-moln" style="--t:62s">${molnArt(0, 70, 1.25)}</g>
-    <g class="hus-moln" style="--t:46s;animation-delay:-18s">${molnArt(0, 150, 0.9)}</g>
-    <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
+export const DEFAULT_HUS_SKAL = "stuga";
 
-    <path d="M-480 480 Q240 380 520 470 Q760 380 1440 460 L1440 900 L-480 900 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-480 520 Q300 470 620 525 Q820 500 1440 520 L1440 900 L-480 900 Z" fill="#8FCB74" ${LINE}/>
-
-    <g>${limb("M800 500 L800 430", WOOD, 14)}
-      <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
-      <circle cx="766" cy="416" r="30" fill="#6FC66F" ${LINE}/>
-      <circle cx="836" cy="414" r="32" fill="#6FC66F" ${LINE}/>
-      <circle cx="784" cy="384" r="6" fill="#EF6F6C" ${THIN}/>
-      <circle cx="820" cy="404" r="6" fill="#EF6F6C" ${THIN}/></g>
-
-    <g id="husgrupp" role="button" tabindex="0" aria-label="Gå in i huset">
-      ${shadow(480, 512, 190)}
+function stugaMarkup() {
+  return `${shadow(480, 512, 190)}
       <rect x="560" y="150" width="40" height="80" rx="6" fill="${O}" opacity="0.15"/>
       <rect x="556" y="146" width="40" height="70" rx="6" fill="#C97B63" ${LINE}/>
       <g class="hus-rok"><circle cx="576" cy="136" r="12" fill="#fff" opacity="0.85"/></g>
@@ -106,10 +83,103 @@ export function husScen(avatarHtml) {
       <rect x="446" y="470" width="138" height="6" rx="3" fill="${WOOD_DARK}" stroke="none"/>
       <circle cx="466" cy="468" r="7" fill="#F890B7" ${THIN}/>
       <circle cx="520" cy="466" r="7" fill="#F7C948" ${THIN}/>
-      <circle cx="566" cy="468" r="7" fill="#EF6F6C" ${THIN}/>
+      <circle cx="566" cy="468" r="7" fill="#EF6F6C" ${THIN}/>`;
+}
+
+const HUS_SKAL = {
+  stuga: { namn: "Stuga", markup: stugaMarkup },
+};
+
+/** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
+export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
+  return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
+}
+
+/** Minimal HTML/SVG-escape för text som ritas in i skylten. */
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+/**
+ * Klasskylten vid gårdskanten (höger om gruset, vänster om blomrabatten).
+ * Rad 1 = "Klass <namn>", rad 2 = byns namn om det finns. Långa texter kläms
+ * med textLength så de aldrig rinner utanför brädan. Görs klickbar (role=
+ * button) av husScen – klick zoomar ut till klassbyn (pages-varld.js).
+ */
+function skyltMarkup({ rad1, rad2 = "" }) {
+  const textAttr = (t, storlek) =>
+    t.length * storlek * 0.62 > 174 ? ` textLength="174" lengthAdjust="spacingAndGlyphs"` : "";
+  const rader = rad2
+    ? `<text x="560" y="507" font-size="24"${textAttr(rad1, 24)}>${esc(rad1)}</text>
+       <text x="560" y="530" font-size="15" opacity="0.85"${textAttr(rad2, 15)}>${esc(rad2)}</text>`
+    : `<text x="560" y="517" font-size="24"${textAttr(rad1, 24)}>${esc(rad1)}</text>`;
+  return `${shadow(560, 585, 74)}
+    ${limb("M500 582 L500 540", WOOD_DARK, 10)}
+    ${limb("M620 582 L620 540", WOOD_DARK, 10)}
+    <rect x="460" y="478" width="200" height="68" rx="10" fill="${WOOD}" ${LINE}/>
+    <rect x="467" y="485" width="186" height="54" rx="7" fill="${WOOD_LIGHT}" stroke="none"/>
+    <circle cx="475" cy="493" r="2.6" fill="${WOOD_DARK}"/>
+    <circle cx="645" cy="493" r="2.6" fill="${WOOD_DARK}"/>
+    <circle cx="475" cy="531" r="2.6" fill="${WOOD_DARK}"/>
+    <circle cx="645" cy="531" r="2.6" fill="${WOOD_DARK}"/>
+    <g fill="${O}" font-weight="800" text-anchor="middle"
+      font-family="'Baloo 2','Nunito',system-ui,sans-serif">${rader}</g>`;
+}
+
+/**
+ * Hela ute-scenen som SVG-sträng.
+ * @param {string} avatarHtml avatarMarkup-sträng som ställs framför huset
+ *   (uppdateras senare via elementet #ute-avatar). Skicka INTE evo – avataren
+ *   ritas alltid i basutseende + kläder.
+ * @param {object} [o]
+ * @param {string} [o.skalId] husskal (framtida "Köp nytt hus"); default stugan.
+ * @param {{rad1:string, rad2?:string, aria?:string}|null} [o.skylt]
+ *   klasskylten vid gårdskanten; null/utelämnad → ingen skylt.
+ */
+export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } = {}) {
+  const sol = [0, 45, 90, 135]
+    .map(
+      (a) =>
+        `<path d="M110 30 L110 142 M54 86 L166 86" stroke="#FDE9A8" stroke-width="10"
+          stroke-linecap="round" transform="rotate(${a} 110 86)"/>`
+    )
+    .join("");
+
+  const skyltHtml = skylt
+    ? `<g id="klasskylt" role="button" tabindex="0"
+        aria-label="${esc(skylt.aria || skylt.rad1)}">${skyltMarkup(skylt)}</g>`
+    : "";
+
+  return `<svg viewBox="0 0 960 600" role="img" aria-label="Ditt hus utifrån"
+      preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="hus-himmel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>
+    </linearGradient></defs>
+    <rect x="-480" y="-300" width="1920" height="1200" fill="url(#hus-himmel)"/>
+    <g class="hus-solstralar">${sol}</g>
+    <circle cx="110" cy="86" r="34" fill="#F7C948" ${LINE}/>
+    <g class="hus-moln" style="--t:62s">${molnArt(0, 70, 1.25)}</g>
+    <g class="hus-moln" style="--t:46s;animation-delay:-18s">${molnArt(0, 150, 0.9)}</g>
+    <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
+
+    <path d="M-480 480 Q240 380 520 470 Q760 380 1440 460 L1440 900 L-480 900 Z" fill="#A8DA8F" ${LINE}/>
+    <path d="M-480 520 Q300 470 620 525 Q820 500 1440 520 L1440 900 L-480 900 Z" fill="#8FCB74" ${LINE}/>
+
+    <g>${limb("M800 500 L800 430", WOOD, 14)}
+      <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
+      <circle cx="766" cy="416" r="30" fill="#6FC66F" ${LINE}/>
+      <circle cx="836" cy="414" r="32" fill="#6FC66F" ${LINE}/>
+      <circle cx="784" cy="384" r="6" fill="#EF6F6C" ${THIN}/>
+      <circle cx="820" cy="404" r="6" fill="#EF6F6C" ${THIN}/></g>
+
+    <g id="husgrupp" role="button" tabindex="0" aria-label="Gå in i huset">
+      ${husSkalMarkup(skalId)}
     </g>
 
     <path d="M390 512 Q380 560 340 600 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
+    ${skyltHtml}
     <ellipse cx="395" cy="545" rx="12" ry="5" fill="#D8C4A4" stroke="none"/>
     <ellipse cx="410" cy="575" rx="14" ry="6" fill="#D8C4A4" stroke="none"/>
 
@@ -128,6 +198,30 @@ export function husScen(avatarHtml) {
          eller hur --varld-avatar-font skalas i en framtida by-nivå. -->
     <foreignObject x="256" y="346" width="120" height="190" pointer-events="none">
       <div xmlns="http://www.w3.org/1999/xhtml" class="varld-avatar" id="ute-avatar">${avatarHtml}</div>
+    </foreignObject>
+  </svg>`;
+}
+
+/**
+ * Minihus för by-nivån (klassbyn): samma husskal + avatar-rigg som ute-scenen
+ * men som fristående SVG, tätt beskuren kring huset (viewBox 230..730 ×
+ * 100..560). Hela SVG:n skalas av by-tomtens CSS-storlek, så avataren (som
+ * lever i samma scen-koordinater, --varld-avatar-font) krymper automatiskt i
+ * exakt samma proportion som huset – parameterstyrd skalning utan extra mått.
+ * Färgsätts via samma --hus-*-variabler (sätt elevens palett på tomt-elementet).
+ * preserveAspectRatio "xMidYMax meet" bottnar huset i sin ruta så alla hus i
+ * en by-rad står på samma marklinje.
+ *
+ * @param {object} [o]
+ * @param {string} [o.skalId]     elevens husskal (framtida "Köp nytt hus")
+ * @param {string} [o.avatarHtml] avatarMarkup-sträng som ställs framför huset
+ */
+export function husMini({ skalId = DEFAULT_HUS_SKAL, avatarHtml = "" } = {}) {
+  return `<svg viewBox="230 100 500 460" aria-hidden="true" focusable="false"
+      preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    ${husSkalMarkup(skalId)}
+    <foreignObject x="256" y="346" width="120" height="190" pointer-events="none">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="varld-avatar">${avatarHtml}</div>
     </foreignObject>
   </svg>`;
 }
