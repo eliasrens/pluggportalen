@@ -1,29 +1,26 @@
 // ============================================================================
-// Pluggportalen – Mitt hem (hus-vyn, #/elev/hus)
+// Pluggportalen – ute-scenen: elevens hus utifrån (illustrerad SVG)
 // ----------------------------------------------------------------------------
-// Ingången till elevens rum: huset visas UTIFRÅN (illustrerat i appens
-// SVG-stil) med ett fönster där man skymtar in i rummet. Klick på huset →
-// zoom-övergång mot fönstret och vidare in i rummet (#/elev/rum).
-//
-// Utseendet följer design/DESIGNBESLUT-husdjur-hem-2.0.md:
-//  - scen viewBox 960×600, kontur #3B3350 (art-style.js)
-//  - husets fönster 150×130 vid (440,330) som visar väggfärgen + glimt av rummet
-//  - zoom-origin 48,5 % / 52 % (mot fönstret), 900 ms
-//  - husfasad/tak/vägg färgas av elevens palett (room.paletteId, delas med
-//    rummets väggfärg via room-palettes.js) – golv & natur påverkas inte.
+// Ritar hus-vyn (viewBox 960×600) som husvärldens "hus"-nivå använder
+// (pages-varld.js). Utseendet följer design/DESIGNBESLUT-husdjur-hem-2.0.md:
+//  - kontur #3B3350 (art-style.js), fönster 150×130 vid (440,330)
+//  - husfasad/tak/vägg färgas via CSS-variablerna --hus-house/--hus-roof/
+//    --hus-wall/--hus-wall2 (elevens palett) – golv & natur påverkas inte.
+// preserveAspectRatio="slice" låter scenen FYLLA hela den stora spelcanvasen
+// (himmel/gräs är övertecknade långt utanför viewBoxen i stället för att
+// letterboxa). Elevens avatar ritas framför huset via foreignObject – den
+// lever i scenens koordinatsystem och följer därmed alla kamerazoomar
+// perfekt; storleken styrs av CSS-variabeln --varld-avatar-font (px i
+// scen-koordinater) så en framtida by-nivå kan återanvända samma markup
+// nedskalad (sätt en mindre font på by-lagrets kopior).
 // ============================================================================
 
-import * as data from "./data.js";
-import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { O, LINE, THIN, limb } from "./art-style.js";
-import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 
-// Trä/golv-färger ur stilguiden (färgas aldrig om av paletten).
+// Trä-färger ur stilguiden (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
 const WOOD_DARK = "#8A6242";
 const WOOD_LIGHT = "#E0B98C";
-
-// --- Små rit-hjälpare (samma stil som prototypen) ---------------------------
 
 const shadow = (cx, cy, rx) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}" fill="${O}" opacity="0.09"/>`;
@@ -38,11 +35,13 @@ function molnArt(x, y, s) {
       fill="#FFFFFF" ${THIN} opacity="0.95"/></g>`;
 }
 
-// --- Scenen: elevens hus utifrån (viewBox 960×600) --------------------------
-// Palettfärgerna (hus/tak/vägg/panel) läses via CSS-variabler som sätts på
-// stage-elementet – så återanvänder ev. palettväljare exakt samma scen.
-
-function husScen() {
+/**
+ * Hela ute-scenen som SVG-sträng.
+ * @param {string} avatarHtml avatarMarkup-sträng som ställs framför huset
+ *   (uppdateras senare via elementet #ute-avatar). Skicka INTE evo – avataren
+ *   ritas alltid i basutseende + kläder.
+ */
+export function husScen(avatarHtml) {
   const sol = [0, 45, 90, 135]
     .map(
       (a) =>
@@ -52,19 +51,19 @@ function husScen() {
     .join("");
 
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Ditt hus utifrån"
-      preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="hus-himmel" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>
     </linearGradient></defs>
-    <rect width="960" height="600" fill="url(#hus-himmel)"/>
+    <rect x="-480" y="-300" width="1920" height="1200" fill="url(#hus-himmel)"/>
     <g class="hus-solstralar">${sol}</g>
     <circle cx="110" cy="86" r="34" fill="#F7C948" ${LINE}/>
     <g class="hus-moln" style="--t:62s">${molnArt(0, 70, 1.25)}</g>
     <g class="hus-moln" style="--t:46s;animation-delay:-18s">${molnArt(0, 150, 0.9)}</g>
     <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
 
-    <path d="M-10 480 Q240 380 520 470 Q760 380 970 460 L970 610 L-10 610 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-10 520 Q300 470 620 525 Q820 500 970 520 L970 610 L-10 610 Z" fill="#8FCB74" ${LINE}/>
+    <path d="M-480 480 Q240 380 520 470 Q760 380 1440 460 L1440 900 L-480 900 Z" fill="#A8DA8F" ${LINE}/>
+    <path d="M-480 520 Q300 470 620 525 Q820 500 1440 520 L1440 900 L-480 900 Z" fill="#8FCB74" ${LINE}/>
 
     <g>${limb("M800 500 L800 430", WOOD, 14)}
       <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
@@ -119,81 +118,10 @@ function husScen() {
       <circle cx="702" cy="484" r="3.4" fill="#FFF3DC" ${THIN}/>
       ${limb("M668 470 L668 456", "#F7C948", 3.4)}
       <path d="M668 456 L682 460 L668 466 Z" fill="#F7C948" ${THIN}/></g>
+
+    ${shadow(316, 538, 46)}
+    <foreignObject x="256" y="392" width="120" height="150" pointer-events="none">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="varld-avatar" id="ute-avatar">${avatarHtml}</div>
+    </foreignObject>
   </svg>`;
-}
-
-// --- Sidan ------------------------------------------------------------------
-
-export async function pageElevHus() {
-  if (!data.isLoggedIn()) return go("#/elev");
-  loading();
-  await renderTopbar();
-  const session = data.getSession();
-
-  let sd;
-  try {
-    sd = await data.getStudentData();
-  } catch (err) {
-    return pageError("Kunde inte ladda ditt hem", err);
-  }
-
-  // Husets färger = elevens palettval (delas med rummets väggfärg).
-  const pal = getPalette(paletteIdFromStudentData(sd));
-
-  const view = el(`<div>
-    <a class="back-link" id="back">← Till startsidan</a>
-    <div class="panel center">
-      <h1>${session.namn ? session.namn + "s" : "Mitt"} hus 🏠</h1>
-      <p class="hint">Här bor du! Klicka på huset för att gå in i ditt rum.</p>
-    </div>
-    <div class="hus-stage" id="stage"
-      style="--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
-      <div class="hus-scen" id="scen">${husScen()}</div>
-      <div class="hus-hint" id="hint">🏠 Klicka på huset för att gå in!</div>
-    </div>
-    <div class="panel">
-      <h2>Måla om huset 🎨</h2>
-      <p class="hint">Välj en färgpalett – samma färger används på väggarna inne i ditt rum!</p>
-      <div class="palett-rad" id="palettrad"></div>
-    </div>
-  </div>`);
-
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
-
-  const stage = view.querySelector("#stage");
-  const husgrupp = view.querySelector("#husgrupp");
-
-  // Måla om: nytt palettval appliceras direkt på scenen (CSS-variablerna på
-  // stage) och sparas i studentData – rummets väggar använder samma val.
-  renderPalettePicker(view.querySelector("#palettrad"), paletteIdFromStudentData(sd), (id, p) => {
-    stage.style.setProperty("--hus-house", p.house);
-    stage.style.setProperty("--hus-roof", p.roof);
-    stage.style.setProperty("--hus-wall", p.wall);
-    stage.style.setProperty("--hus-wall2", p.wall2);
-    data.saveRoom({ paletteId: id }).catch((err) => {
-      flash("Kunde inte spara färgvalet: " + err.message, true);
-    });
-  });
-
-  // Gå in: zooma mot fönstret (origin 48,5 %/52 %) och landa i rummet.
-  let paVagIn = false;
-  function gaIn() {
-    if (paVagIn) return;
-    paVagIn = true;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) return go("#/elev/rum");
-    stage.classList.add("gar-in");
-    view.querySelector("#hint").textContent = "Välkommen hem! 🏡";
-    setTimeout(() => go("#/elev/rum"), 750);
-  }
-
-  husgrupp.addEventListener("click", gaIn);
-  husgrupp.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      gaIn();
-    }
-  });
-
-  app.replaceChildren(view);
 }

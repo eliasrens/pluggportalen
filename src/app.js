@@ -13,8 +13,8 @@
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
-//   #/elev/hus        mitt hem: huset utifrån, klick → in i rummet – pages-hus.js
-//   #/elev/rum        mitt rum (saker, avatar + husdjuren bor här) – pages-rum.js
+//   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
+//   #/elev/rum        husvärlden, inne-nivån (rummet; husdjuren bor här) – pages-varld.js
 //   #/elev/husdjur    (borttagen sida – omdirigerar till #/elev/rum)
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/elev/klassfoto  min klass: se klasskamraternas figurer + namn (läs-endast)
@@ -53,9 +53,9 @@ import { pageElevKlasskamrat } from "./pages-klasskamrat.js";
 // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
 import { pageLarareKlasser } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
-import { pageElevRum } from "./pages-rum.js";
-// Mitt hem (#/elev/hus) – hus-skalet framför rummet (håll separat för enkel rebase).
-import { pageElevHus } from "./pages-hus.js";
+// Husvärlden (#/elev/hus + #/elev/rum) – EN stateful spelscen med kamerazoom
+// mellan ute (huset) och inne (rummet), utan sidladdning – pages-varld.js.
+import { pageElevVarld } from "./pages-varld.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
@@ -117,9 +117,11 @@ const routes = {
   "/elev/omrade": pageElevOmrade,
   "/elev/spela": pageElevSpela,
   "/elev/shop": pageElevShop,
-  // Mitt hem (#/elev/hus) – huset utifrån; klick på huset leder in i rummet.
-  "/elev/hus": pageElevHus,
-  "/elev/rum": pageElevRum,
+  // Husvärlden – samma scen för båda routes: "hus" startar ute, "rum" inne.
+  // Är scenen redan uppe byter route-bytet bara zoomnivå (sömlöst, ingen
+  // omrendering) – se pages-varld.js.
+  "/elev/hus": () => pageElevVarld("hus"),
+  "/elev/rum": () => pageElevVarld("rum"),
   // Husdjuren bor numera i Mitt rum – gamla länkar skickas dit.
   "/elev/husdjur": () => go("#/elev/rum"),
   "/elev/profil": pageElevProfil,
@@ -141,6 +143,9 @@ function router() {
   // Skala bort ev. query-del (?area=…&mode=…) innan route-uppslag.
   const raw = (window.location.hash || "#/").slice(1) || "/";
   const path = raw.split("?")[0] || "/";
+  // Husvärlden får en bredare innehållsyta (större spelcanvas) – sidomenyn
+  // påverkas inte (den ligger utanför .container).
+  document.body.classList.toggle("varld-lage", path === "/elev/hus" || path === "/elev/rum");
   const handler = routes[path] || pageNotFound;
   handler();
 }
