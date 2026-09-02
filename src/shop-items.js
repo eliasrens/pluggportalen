@@ -74,9 +74,7 @@ export const SHOP_ITEMS = [
   // --- Husdjur (placeras i rummet) -----------------------------------------
   // Mystiskt ägg + värmelampa hör till de kläckbara husdjuren (bor i Mitt rum).
   // Köps via buyEgg()/buyHeatLamp() i data-pet.js (uppdaterar studentData.pets).
-  // OBS: ägget är tillfälligt AVSTÄNGT (comingSoon) tills djur-rostern är klar –
-  // ta bort flaggan för att öppna köpet igen (kläck-logiken är på plats).
-  { id: "mystery-egg", name: "Mystiskt ägg", emoji: "🥚", category: "husdjur", price: 200, comingSoon: true },
+  { id: "mystery-egg", name: "Mystiskt ägg", emoji: "🥚", category: "husdjur", price: 200 },
   { id: "varmelampa", name: "Värmelampa", emoji: "🔦", category: "husdjur", price: 120 },
   { id: "hund", name: "Hundvalp", emoji: "🐶", category: "husdjur", price: 160 },
   { id: "katt", name: "Kattunge", emoji: "🐱", category: "husdjur", price: 160 },
