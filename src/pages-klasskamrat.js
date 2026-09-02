@@ -17,7 +17,7 @@ import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
-import { roomBackdropHtml } from "./art-room.js";
+import { roomBackdropHtml, windowItemHtml, WINDOW_DEFAULT } from "./art-room.js";
 import { getPalette, paletteIdFromStudentData } from "./room-palettes.js";
 
 /** Minimal HTML-escape för elevnamn som kommer från Firestore. */
@@ -70,6 +70,18 @@ export async function pageElevKlasskamrat() {
     }
   }
 
+  // Kamratens fönster (läs-läge): ritas på sin sparade plats, borttaget om så
+  // sparats. Default vid väggskarven precis som i elevens eget rum.
+  const savedWin = (sd.room && sd.room.window) || null;
+  const windowHtml =
+    savedWin && savedWin.removed
+      ? ""
+      : windowItemHtml({
+          x: savedWin && Number.isFinite(savedWin.x) ? clamp(savedWin.x, 0, 100) : WINDOW_DEFAULT.x,
+          y: savedWin && Number.isFinite(savedWin.y) ? clamp(savedWin.y, 0, 100) : WINDOW_DEFAULT.y,
+          interactive: false,
+        });
+
   // Platta golvsaker (mattor) ritas FÖRST så möbler/dekor staplas ovanpå dem.
   const items = Object.keys(placements)
     .sort((a, b) => (isFlatItem(a) ? 0 : 1) - (isFlatItem(b) ? 0 : 1))
@@ -94,6 +106,7 @@ export async function pageElevKlasskamrat() {
     <div class="room-stage readonly" id="stage"
       style="--rum-wall:${pal.wall};--rum-wall2:${pal.wall2}">
       ${roomBackdropHtml()}
+      ${windowHtml}
       ${items || '<div class="room-empty">Det här rummet är fortfarande tomt. 🕸️</div>'}
     </div>
 
