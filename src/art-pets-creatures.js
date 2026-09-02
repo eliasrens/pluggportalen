@@ -300,9 +300,15 @@ export function getSpecies(speciesId) {
   return SPECIES_BY_ID[speciesId] || null;
 }
 
-/** Slumpa en art (används vid kläckning – ägget kan ge alla arter). */
+// Arter som ÄGGEN kan kläcka: ENBART sprite-djuren (de användaren ritar/skickar
+// in). De 14 procedurella SVG-arterna finns kvar för rendering av ev. äldre
+// husdjur men delas INTE längre ut av ägg. Lägg till nya sprite-arter i
+// SPRITE_SPECIES (art-pet-sprites.js) så följer de automatiskt med här.
+const HATCHABLE_SPECIES = SPRITE_SPECIES.length ? SPRITE_SPECIES : ALL_SPECIES;
+
+/** Slumpa en art vid kläckning – ägget ger bara sprite-djuren. */
 export function randomSpeciesId() {
-  return ALL_SPECIES[Math.floor(Math.random() * ALL_SPECIES.length)].id;
+  return HATCHABLE_SPECIES[Math.floor(Math.random() * HATCHABLE_SPECIES.length)].id;
 }
 
 /**
