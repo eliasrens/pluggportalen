@@ -123,6 +123,9 @@ const routes = {
   "/elev/by": () => pageElevVarld("by"),
   "/elev/hus": () => pageElevVarld("hus"),
   "/elev/rum": () => pageElevVarld("rum"),
+  // Kompis-hus-nivån (#/elev/kompis?id=…): zooma in till en kamrats hus-
+  // exteriör (läs-vy) innan man går in i deras rum – samma scen, ny zoomnivå.
+  "/elev/kompis": () => pageElevVarld("kompis"),
   // Husdjuren bor numera i Mitt rum – gamla länkar skickas dit.
   "/elev/husdjur": () => go("#/elev/rum"),
   "/elev/profil": pageElevProfil,
@@ -149,7 +152,7 @@ function router() {
   // påverkas inte (den ligger utanför .container).
   document.body.classList.toggle(
     "varld-lage",
-    path === "/elev/by" || path === "/elev/hus" || path === "/elev/rum"
+    path === "/elev/by" || path === "/elev/hus" || path === "/elev/rum" || path === "/elev/kompis"
   );
   const handler = routes[path] || pageNotFound;
   handler();

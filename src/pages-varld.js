@@ -7,6 +7,10 @@
 // fönstret till rummet; klick på klasskylten vid gårdskanten zoomar ut till
 // byn – HELT klientsidigt, utan sidladdning; "Gå ut"/"Mitt hus" zoomar ut/in.
 //
+// KOMPIS-HUS-NIVÅN (#/elev/kompis?id=…): klick på en KAMRATS tomt zoomar först
+// in till DERAS hus-exteriör (läs-vy) innan man går in i rummet – all logik i
+// varld-kompis.js, kopplad in här via liveScen/updateUi.
+//
 // Routing: #/elev/by startar i byn, #/elev/hus ute och #/elev/rum inne
 // (djuplänkar funkar). Alla tre routes pekar hit; om scenen redan står i
 // DOM:en byter vi bara zoomnivå (mjuk kameraresa) i stället för att rendera om
@@ -20,6 +24,7 @@
 //   varld-rum.js      rummets innehåll (saker, husdjur, drag & drop, AI)
 //   varld-by.js       by-layoutens matte (tomter, vägar, radmått)
 //   varld-by-scen.js  byns rendering (minihus + avatar per klasskamrat)
+//   varld-kompis.js   kompis-hus-nivån (läs-vy av en kamrats hus-exteriör)
 //
 // Scenens kontroller (Måla om, Lådan, Kläder, husdjurspanelen, ut-knappen)
 // ligger som overlays I spelvyn; sidomenyn till vänster är orörd.
@@ -27,7 +32,7 @@
 
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
-import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
+import { app, el, go, loading, renderTopbar, pageError, flash, getParams } from "./ui.js";
 import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { husScen } from "./art-hus-ute.js";
@@ -35,11 +40,12 @@ import { mountRumScen } from "./varld-rum.js";
 import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { mountByScen } from "./varld-by-scen.js";
+import { createKompisVy } from "./varld-kompis.js";
 
 // Levande scen (för sömlösa route-byten): när routern träffar #/elev/hus eller
 // #/elev/rum och scenen redan står i DOM:en byter vi bara kameranivå i stället
 // för att bygga om sidan.
-let liveScen = null; // { stage: HTMLElement, visaNiva(nivaId) }
+let liveScen = null; // { stage: HTMLElement, visaNiva(nivaId, id?) }
 
 /**
  * Sidfunktion för ALLA tre routerna. `startNiva` = "by" (klassbyn), "hus"
@@ -48,9 +54,12 @@ let liveScen = null; // { stage: HTMLElement, visaNiva(nivaId) }
 export async function pageElevVarld(startNiva) {
   if (!data.isLoggedIn()) return go("#/elev");
 
+  // Kompis-hus-nivån bär den klickade kamratens id i query (?id=…).
+  const kompisId = startNiva === "kompis" ? getParams().id : null;
+
   // Sömlöst: scenen lever redan → mjuk kameraresa, ingen omrendering.
   if (liveScen && liveScen.stage.isConnected) {
-    liveScen.visaNiva(startNiva);
+    liveScen.visaNiva(startNiva, kompisId);
     return;
   }
   liveScen = null;
@@ -100,6 +109,7 @@ export async function pageElevVarld(startNiva) {
       style="--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
       <div class="varld-lager varld-by" id="by-lager"></div>
       <div class="varld-lager varld-ute" id="ute-lager">${husScen(avatarMarkup(avatarId, sd.avatarItems || []), { skalId: sd.husSkalId, skylt })}</div>
+      <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager"></div>
       <div class="varld-lager room-stage varld-rum" id="rum-lager"></div>
 
       <div class="varld-ui">
@@ -140,6 +150,7 @@ export async function pageElevVarld(startNiva) {
   const stage = view.querySelector("#varld-stage");
   const byLager = view.querySelector("#by-lager");
   const uteLager = view.querySelector("#ute-lager");
+  const kompisLager = view.querySelector("#kompis-lager");
   const rumLager = view.querySelector("#rum-lager");
   const hint = view.querySelector("#hint");
   const titel = view.querySelector("#titel");
@@ -156,7 +167,12 @@ export async function pageElevVarld(startNiva) {
       { id: "hus", el: uteLager, fokus: { x: 48.5, y: 52 }, zoom: 6 },
       { id: "rum", el: rumLager, fokus: { x: 50, y: 50 }, zoom: 6 },
     ],
-    startId: startNiva === "rum" ? "rum" : startNiva === "by" ? "by" : "hus",
+    // Djuplänk till en kompis (#/elev/kompis?id=…) startar i byn – kompis-vyn
+    // zoomar sedan in ovanpå, och "Till byn" har då nåt att zooma ut till.
+    startId:
+      startNiva === "rum" ? "rum"
+      : startNiva === "by" || startNiva === "kompis" ? "by"
+      : "hus",
     onNiva: (id) => updateUi(id),
   });
 
@@ -164,6 +180,8 @@ export async function pageElevVarld(startNiva) {
   // Klasskamraternas utseenden (avatarer, paletter) läses först när byn
   // faktiskt öppnas. Utan klass, eller med tom klass, visas ALLA elever –
   // samma snälla fallback som gamla klassfotot.
+  // laddaBy() resolvar med { students, fokusById } så kompis-hus-vyn kan slå
+  // upp en kamrats utseende + tomtfokus utan en extra Firestore-runda.
   let byLaddning = null;
   function laddaBy() {
     byLaddning ??= (async () => {
@@ -180,8 +198,9 @@ export async function pageElevVarld(startNiva) {
         if (b.id === meId) return 1;
         return String(a.namn || "").localeCompare(String(b.namn || ""), "sv");
       });
-      const { fokus } = mountByScen({ lager: byLager, meId, students: boende });
+      const { fokus, fokusById } = mountByScen({ lager: byLager, meId, students: boende });
       byNiva.fokus = fokus; // kameran läser fokus vid varje övergång
+      return { students: boende, fokusById };
     })().catch((err) => {
       byLaddning = null; // låt nästa försök hämta igen
       throw err;
@@ -189,19 +208,30 @@ export async function pageElevVarld(startNiva) {
     return byLaddning;
   }
 
-  // Klick i byn: eget hus → zooma in (ute-vyn); kamratens hus → deras rum i
-  // läsläge. Delegerat på lagret så det funkar oavsett när byn byggs.
+  // Klick i byn: eget hus → zooma in (ute-vyn); kamratens hus → zooma in till
+  // DERAS hus-exteriör (kompis-hus-nivån), inte direkt in i rummet. Delegerat
+  // på lagret så det funkar oavsett när byn byggs.
   byLager.addEventListener("click", (e) => {
     const tomt = e.target.closest(".by-tomt");
     if (!tomt || stage.dataset.niva !== "by") return;
     if (tomt.dataset.me) go("#/elev/hus");
-    else go(`#/elev/klasskamrat?id=${encodeURIComponent(tomt.dataset.id)}`);
+    else go(`#/elev/kompis?id=${encodeURIComponent(tomt.dataset.id)}`);
   });
   byLager.addEventListener("keydown", (e) => {
     if ((e.key === "Enter" || e.key === " ") && e.target.closest(".by-tomt")) {
       e.preventDefault();
       e.target.closest(".by-tomt").click();
     }
+  });
+
+  // --- Kompis-hus-nivån (läs-vy av en kamrats hus-exteriör) -----------------
+  // Egen modul (varld-kompis.js): en liten kamera som korszoomar byLager ↔
+  // kompis-lager mot den klickade tomten. onNiva=updateUi delas med huvud-
+  // kameran, så titel/knappar uppdateras likadant.
+  const kompisVy = createKompisVy({
+    stage, byLager, kompisLager, byNiva, meId,
+    ensureBy: laddaBy,
+    onNiva: (id) => updateUi(id),
   });
 
   // --- Overlay-UI per nivå --------------------------------------------------
@@ -225,6 +255,14 @@ export async function pageElevVarld(startNiva) {
       titel.textContent = `${session.namn ? session.namn + "s" : "Mitt"} hus 🏠`;
       hint.textContent = "🏠 Klicka på huset för att gå in – eller på skylten för att se hela byn!";
       hint.hidden = false;
+    } else if (nivaId === "kompishus") {
+      const k = kompisVy.kompis;
+      const namn = (k && (k.namn || k.username)) || "Kompisens";
+      utBtn.innerHTML = "← <span>Till byn</span>";
+      utBtn.title = "Tillbaka till klassbyn";
+      titel.textContent = `${namn}s hus 🏠`;
+      hint.textContent = `🏠 Klicka på huset för att gå in i ${namn}s rum – eller på pilen tillbaka till byn.`;
+      hint.hidden = false;
     } else {
       utBtn.innerHTML = "🚪 <span>Gå ut</span>";
       utBtn.title = "Gå ut ur huset";
@@ -243,7 +281,21 @@ export async function pageElevVarld(startNiva) {
   // kan behöva hämta sitt innehåll först (lat laddning) – därför async.
   liveScen = {
     stage,
-    async visaNiva(nivaId) {
+    async visaNiva(nivaId, id) {
+      // Kompis-hus-nivån: zooma in till den klickade kamratens exteriör.
+      if (nivaId === "kompis") return kompisVy.visa(id);
+
+      // Står vi på en kamrats hus? Tillbaka till byn = zooma ut med kompis-
+      // kameran; hus/rum-hopp därifrån nollställs först (huvudkameran är kvar
+      // i byn så länge vi rör oss i kompis-grenen).
+      if (kompisVy.aktivId === "kompishus") {
+        if (nivaId === "by") {
+          kompisVy.tillbaka();
+          return;
+        }
+        kompisVy.nollstall();
+      }
+
       if (nivaId === "by" && kamera.aktivId !== "by") {
         if (!byLaddning) hint.textContent = "Hämtar byn… 🏘️";
         try {
@@ -261,10 +313,11 @@ export async function pageElevVarld(startNiva) {
     },
   };
 
-  // Ut-knappen: i rummet = gå ut till huset, i byn = zooma in till egna huset.
-  // På hus-nivån ÄR vi redan hemma (hus-scenen är elevens landningssida sedan
-  // hem-hjälten slopades), så där blir klicket en no-op.
-  utBtn.addEventListener("click", () => go("#/elev/hus"));
+  // Ut-knappen: på kompisens hus = tillbaka till byn; annars = ut till/in i
+  // egna huset (i rummet = gå ut, i byn = zooma in, på hus-nivån no-op).
+  utBtn.addEventListener("click", () =>
+    go(stage.dataset.niva === "kompishus" ? "#/elev/by" : "#/elev/hus")
+  );
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
 
   // Verktygspaneler (en öppen åt gången, klick igen stänger).
@@ -344,9 +397,10 @@ export async function pageElevVarld(startNiva) {
     },
   });
 
-  // Djuplänk rakt in i byn (#/elev/by): bygg byn INNAN scenen visas, så
-  // kameran inte står och tittar på ett tomt lager.
-  if (startNiva === "by") {
+  // Djuplänk rakt in i byn (#/elev/by) eller till en kompis (#/elev/kompis):
+  // bygg byn INNAN scenen visas, så kameran inte står och tittar på ett tomt
+  // lager (kompis-vyn behöver dessutom byns fokuspunkter + kompisdata).
+  if (startNiva === "by" || startNiva === "kompis") {
     try {
       await laddaBy();
     } catch (err) {
@@ -355,4 +409,7 @@ export async function pageElevVarld(startNiva) {
   }
 
   app.replaceChildren(view);
+
+  // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
+  if (startNiva === "kompis") kompisVy.visa(kompisId);
 }
