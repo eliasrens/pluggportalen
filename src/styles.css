@@ -1847,3 +1847,62 @@ code {
 .give-coins .gc-flash { margin-top: 6px; font-size: 0.9rem; min-height: 1.1em; }
 .give-coins .gc-ok { color: #1e7a45; font-weight: 700; }
 .give-coins .gc-err { color: #b3261e; font-weight: 700; }
+
+/* --- Husdjur i Mitt rum ----------------------------------------------------- */
+/* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
+   med storlek per tillväxtsteg och en liten namnskylt under figuren. */
+
+.room-pet .ri-emoji { width: 3.2rem; height: 3.2rem; }
+.room-pet.pet-vuxen-2 .ri-emoji { width: 4.4rem; height: 4.4rem; }
+.room-pet.pet-vuxen-3 .ri-emoji { width: 5.8rem; height: 5.8rem; }
+
+/* Ägget i rummet: lite mindre + vaggar lugnt (samma keyframes som pet-sidan hade). */
+.room-pet.pet-agg-i-rum .ri-emoji {
+  width: 2.9rem;
+  height: 2.9rem;
+  animation: pet-wiggle 3.2s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+.room-pet .rp-namn {
+  display: block;
+  margin-top: 2px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #3c4a63;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1px 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-pet .rp-namn.rp-agg { color: #8a6d3b; }
+
+/* Husdjurspanelen under rumsscenen. */
+.rum-pet-panel { margin-bottom: 20px; }
+
+.pet-namn-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
+
+.pet-namn-input {
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 10px 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  width: 220px;
+  max-width: 70vw;
+}
+
+.pet-namn-input:focus { outline: none; border-color: var(--lila); }

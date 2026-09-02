@@ -81,25 +81,27 @@ export async function pageElevShop() {
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
     const item = getItem(id);
-    if (!item || state.owned.has(id)) return;
+    if (!item || item.comingSoon || state.owned.has(id)) return;
 
     btn.disabled = true;
     btn.textContent = "Köper…";
     try {
-      // Ägget/värmelampan sätter även studentData.pet (kläckningsklockan) och
-      // köps därför via data-pet.js – i övrigt samma transaktionsmönster.
+      // Ägget/värmelampan uppdaterar även studentData.pets (kläckningsklockan)
+      // och köps därför via data-pet.js – i övrigt samma transaktionsmönster.
+      // Ägget kan köpas FLERA gånger (varje köp = ett nytt ägg i rummet) och
+      // hamnar därför aldrig i ownedItems.
       let res;
       if (item.id === EGG_ITEM_ID) res = await buyEgg(item.price);
       else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
       else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
-      state.owned = new Set(res.owned);
+      if (res.owned) state.owned = new Set(res.owned);
       saldoEl.textContent = `🪙 ${state.coins}`;
       renderKatalog();
       if (res.ok) {
         await renderTopbar(); // uppdatera saldot i sidhuvudet
         if (item.id === EGG_ITEM_ID) {
-          flash(`Du köpte ett mystiskt ägg! 🥚 Se det på sidan Mitt husdjur.`);
+          flash(`Du köpte ett mystiskt ägg! 🥚 Det ruvar nu i Mitt rum.`);
         } else if (item.id === LAMP_ITEM_ID) {
           flash(`Du köpte en värmelampa! 🔦 Nu kläcks ägget dubbelt så snabbt.`);
         } else {
@@ -125,7 +127,9 @@ function shopCardHtml(it, state) {
   const owned = state.owned.has(it.id);
   const affordable = state.coins >= it.price;
   let btn;
-  if (owned) {
+  if (it.comingSoon) {
+    btn = `<button class="buy-btn nej" disabled title="Snart kläcks nya vänner här!">🔒 Kommer snart</button>`;
+  } else if (owned) {
     btn = `<button class="buy-btn kopt" disabled>✓ Köpt</button>`;
   } else if (!affordable) {
     btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till">Har inte råd</button>`;

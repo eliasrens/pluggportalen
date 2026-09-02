@@ -193,12 +193,7 @@ export async function pageElevHem() {
       <button class="big-card lila" id="to-rum">
         <span class="emoji">🛏️</span>
         <span class="title">Mitt rum</span>
-        <span class="sub">Inred och pynta</span>
-      </button>
-      <button class="big-card orange" id="to-husdjur">
-        <span class="emoji">🥚</span>
-        <span class="title">Mitt husdjur</span>
-        <span class="sub">Kläck och mata din kompis</span>
+        <span class="sub">Inred, pynta och träffa dina husdjur</span>
       </button>
     </div>
   </div>`);
@@ -206,7 +201,6 @@ export async function pageElevHem() {
   view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
-  view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   app.replaceChildren(view);
 }
