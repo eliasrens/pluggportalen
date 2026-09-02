@@ -76,6 +76,20 @@ export function itemSvg(id) {
   );
 }
 
+/**
+ * Visningsstorlek i rummet (rem). Konsten kan ange `w` (bredd i rem) i sin
+ * definition; höjden räknas ut ur viewBox-proportionen så en säng blir bred
+ * och låg medan en bokhylla blir smal och hög. Utan `w` används 3.6 rem.
+ */
+export function itemSize(id) {
+  const it = ITEMS[id];
+  const w = (it && it.w) || 3.6;
+  if (!it) return { w, h: w };
+  const vb = it.viewBox.split(" ").map(Number);
+  const h = vb[2] > 0 ? +((w * vb[3]) / vb[2]).toFixed(2) : w;
+  return { w, h };
+}
+
 /** Fristående SVG för en kategori-ikon, eller null om ikon saknas. */
 export function categorySvg(catId) {
   const c = CATEGORY_ICONS[catId];
