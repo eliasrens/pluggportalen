@@ -1991,6 +1991,52 @@ code {
 
 .room-pet .rp-namn.rp-agg { color: #8a6d3b; }
 
+/* Klick-lek: djuret lägger sig på rygg, sprattlar och reser sig igen.
+   Tajming från design-facit: 700 ms flip + 2600 ms sprattel + 550 ms upp
+   (totalt 3,85 s → flip klar vid ~18 %, sprattel till ~86 %). */
+.room-pet.pet-rygg .ri-emoji {
+  animation: pet-rygg 3.85s ease-in-out both;
+  transform-origin: 50% 62%;
+}
+
+@keyframes pet-rygg {
+  0% { transform: rotate(0); }
+  11% { transform: rotate(178deg); }   /* liten studs över… */
+  18% { transform: rotate(157deg); }   /* …och landar på rygg */
+  30% { transform: rotate(166deg); }
+  42% { transform: rotate(149deg); }   /* sprattel fram och tillbaka */
+  54% { transform: rotate(166deg); }
+  66% { transform: rotate(149deg); }
+  78% { transform: rotate(163deg); }
+  86% { transform: rotate(157deg); }
+  100% { transform: rotate(0); }       /* reser sig */
+}
+
+/* Hjärtan som bubblar upp medan djuret ligger och sprattlar. */
+.pet-rygg-fx {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 1.28s ease-out 3;
+}
+
+@keyframes pet-rygg-fx {
+  0% { opacity: 0; transform: translate(-50%, 2px) scale(0.6); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -26px) scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-pet.pet-rygg .ri-emoji,
+  .pet-rygg-fx,
+  .room-pet.pet-agg-i-rum .ri-emoji {
+    animation: none;
+  }
+}
+
 /* Husdjurspanelen under rumsscenen. */
 .rum-pet-panel { margin-bottom: 20px; }
 

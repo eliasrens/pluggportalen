@@ -14,7 +14,7 @@ import { app, el, go, loading, renderTopbar, pageError, flash, clamp } from "./u
 import { getItem, isWearable } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, itemSize } from "./art-items.js";
-import { petStageNode, renderPetPanel } from "./pages-rum-pets.js";
+import { petStageNode, renderPetPanel, petBellyFlop } from "./pages-rum-pets.js";
 import { confetti } from "./fx.js";
 import { roomBackdropHtml, FLOOR_TOP } from "./art-room.js";
 
@@ -332,11 +332,15 @@ export async function pageElevRum() {
       if (drag.petId) scheduleSavePets();
       else scheduleSaveRoom();
     } else if (drag.petId) {
-      // Klick på ett husdjur → välj det (öppnar husdjurspanelen).
+      // Klick på ett husdjur → välj det (öppnar husdjurspanelen) och låt det
+      // lägga sig på rygg och sprattla av glädje (efter omritningen, så
+      // animationen träffar den nya noden).
       selectedPetId = selectedPetId === drag.petId ? null : drag.petId;
       selectedId = null;
       renderStage();
       renderPets();
+      const pet = pets.find((p) => p.id === drag.petId);
+      if (pet && pet.hatchedAt) petBellyFlop(pet);
     } else {
       // Ingen förflyttning = klick → markera/avmarkera (visar 🗑️).
       selectedId = selectedId === drag.id ? null : drag.id;

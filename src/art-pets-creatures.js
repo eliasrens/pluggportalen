@@ -107,15 +107,15 @@ function headPlates(color) {
 }
 
 // Grodögon: två knölar på hjässan MED ögonen (ersätter standardögonen).
-function frogEyesArt(fur) {
+function frogEyesArt(fur, expr) {
   return (
     `<circle cx="38" cy="17" r="9" fill="${fur}" ${LINE}/>` +
     `<circle cx="62" cy="17" r="9" fill="${fur}" ${LINE}/>` +
-    eye(38, 17, 5.5) + eye(62, 17, 5.5)
+    exprEye(38, 17, 5.5, expr) + exprEye(62, 17, 5.5, expr)
   );
 }
 
-function crownFor(s) {
+function crownFor(s, expr) {
   const c = s.inner || "#F7C948";
   switch ((s.features || {}).crown) {
     case "horn": return hornArt();
@@ -124,7 +124,7 @@ function crownFor(s) {
     case "crest": return crestArt(c);
     case "tuft": return tuftArt(c);
     case "plates": return ""; // ritas bakom huvudet, se backFor()
-    case "frogeyes": return frogEyesArt(s.fur);
+    case "frogeyes": return frogEyesArt(s.fur, expr);
     default: return "";
   }
 }
@@ -189,10 +189,59 @@ function patternFor(s) {
   }
 }
 
+// --- Uttryck (EXPRESSIONS) --------------------------------------------------
+// Uttrycket byter bara ögon + mun – art, kropp och features rörs inte, så alla
+// befintliga arter/steg funkar. Giltiga: "glad", "nyfiken", "ater", "somnig".
+
+export const EXPRESSIONS = ["glad", "nyfiken", "ater", "somnig"];
+
+/** Ett öga i givet uttryck (glad/ater = lyckligt slutet ^, sömnig = tungt lock). */
+function exprEye(x, y, r, expr) {
+  if (expr === "somnig") {
+    return `<path d="M ${x - r * 0.8} ${y} Q ${x} ${y + r * 0.75} ${x + r * 0.8} ${y}" fill="none" ${LINE}/>`;
+  }
+  if (expr === "glad" || expr === "ater") {
+    return `<path d="M ${x - r * 0.8} ${y + 1.5} Q ${x} ${y - r * 0.85} ${x + r * 0.8} ${y + 1.5}" fill="none" ${LINE}/>`;
+  }
+  if (expr === "nyfiken") return eye(x, y, r * 1.2); // stora spanarögon
+  return eye(x, y, r);
+}
+
+/** Munnen för ett uttryck (ersätter artens standardmun). */
+function exprMouth(expr) {
+  switch (expr) {
+    case "glad":
+      return laugh(46.5, 7.5);
+    case "ater": // mums – öppen gnager-mun med en smula bredvid
+      return (
+        `<ellipse cx="50" cy="46.5" rx="5" ry="3.8" fill="#7C4A57" ${LINE}/>` +
+        `<circle cx="57.5" cy="49.5" r="1.8" fill="#EF6F6C" stroke="none"/>`
+      );
+    case "nyfiken": // litet förvånat "o"
+      return `<circle cx="50" cy="46.5" r="2.7" fill="#7C4A57" ${THIN}/>`;
+    case "somnig": // liten gäsp-mun + zzz vid huvudet
+      return (
+        `<circle cx="50" cy="47" r="1.9" fill="#7C4A57" stroke="none"/>` +
+        `<text x="70" y="18" font-size="11" font-weight="bold" fill="${O}" stroke="none">z</text>` +
+        `<text x="77" y="10" font-size="8" font-weight="bold" fill="${O}" stroke="none">z</text>`
+      );
+    default:
+      return "";
+  }
+}
+
 // --- Ansikte (ögon + mun; features.mouth) -----------------------------------
 
-function faceFor(s) {
+function faceFor(s, expr) {
   const f = s.features || {};
+  // Uttrycksläge: uttryckets ögon/mun ersätter artens standardansikte
+  // (frogeyes-arter får uttrycksögonen i sina knölar via crownFor).
+  if (expr) {
+    const eyesArt = f.crown === "frogeyes"
+      ? ""
+      : exprEye(41, 34, 6, expr) + exprEye(59, 34, 6, expr);
+    return eyesArt + exprMouth(expr) + cheeks(f.crown === "frogeyes" ? 40 : 43);
+  }
   let out = f.crown === "frogeyes" ? "" : eyes();
   switch (f.mouth) {
     case "beak":
@@ -250,8 +299,11 @@ export function randomSpeciesId() {
   return SPECIES[Math.floor(Math.random() * SPECIES.length)].id;
 }
 
-/** Varelsens SVG-innehåll (utan <svg>-wrapper), eller null om arten saknas. */
-export function creatureArt(speciesId) {
+/**
+ * Varelsens SVG-innehåll (utan <svg>-wrapper), eller null om arten saknas.
+ * expression (valfri): "glad" | "nyfiken" | "ater" | "somnig" – byter ansikte.
+ */
+export function creatureArt(speciesId, expression) {
   const s = SPECIES_BY_ID[speciesId];
   if (!s) return null;
   return (
@@ -260,16 +312,16 @@ export function creatureArt(speciesId) {
     sitBody(s.fur, s.belly) +
     earsFor(s) +
     head(s.fur) +
-    crownFor(s) +
+    crownFor(s, expression) +
     patternFor(s) +
-    faceFor(s)
+    faceFor(s, expression)
   );
 }
 
 /** Fristående <svg> för en varelse, eller null om arten saknas. */
-export function creatureSvg(speciesId) {
+export function creatureSvg(speciesId, expression) {
   const s = SPECIES_BY_ID[speciesId];
-  const art = creatureArt(speciesId);
+  const art = creatureArt(speciesId, expression);
   if (!art) return null;
   return (
     `<svg viewBox="0 0 100 100" role="img" aria-label="${s.name}" ` +
