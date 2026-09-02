@@ -15,6 +15,7 @@ import { getItem, isWearable } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, renderPetPanel } from "./pages-rum-pets.js";
+import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
 import { roomBackdropHtml, FLOOR_TOP } from "./art-room.js";
 
@@ -121,6 +122,18 @@ export async function pageElevRum() {
     }, 250);
   }
 
+  // Promenad-AI:ns positionsändringar sparas glest (Firestore-skrivningar är
+  // inte gratis) – som mest en gång per minut, och bara när ett djur stannat.
+  let lastWalkSave = 0;
+  function saveWalkPositions() {
+    const now = Date.now();
+    if (now - lastWalkSave < 60000) return;
+    lastWalkSave = now;
+    const positions = {};
+    for (const p of pets) if (p.pos) positions[p.id] = { x: p.pos.x, y: p.pos.y };
+    petData.savePetPositions(positions).catch(() => {});
+  }
+
   // Husdjurspanelen under scenen (valt djur, eller det nykläckta).
   function renderPets() {
     const pet = pets.find((p) => p.id === selectedPetId) || null;
@@ -128,6 +141,12 @@ export async function pageElevRum() {
       hasLamp,
       justHatched: !!pet && pet.id === justHatchedId,
       onUpdate(nextPets, petId) {
+        // Behåll rummets aktuella positioner – serverns pos kan vara äldre än
+        // dit promenad-AI:n hunnit gå (positioner sparas glest).
+        for (const np of nextPets) {
+          const old = pets.find((p) => p.id === np.id);
+          if (old && old.pos) np.pos = old.pos;
+        }
         pets = nextPets;
         if (petId === justHatchedId) justHatchedId = null; // firad
         selectedPetId = petId;
@@ -348,6 +367,16 @@ export async function pageElevRum() {
   }
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
+
+  // Promenad-AI: kläckta husdjur går själva omkring på golvet mellan möblerna
+  // (rum-promenad.js). Valda/dragna djur pausar; loopen stoppar sig själv när
+  // scenen försvinner ur DOM:en (sidbyte).
+  startPetPromenad({
+    stage,
+    getPets: () => pets,
+    isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id),
+    onSettled: saveWalkPositions,
+  });
 
   app.replaceChildren(view);
 }

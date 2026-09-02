@@ -1999,6 +1999,24 @@ code {
 
 .room-pet .rp-namn.rp-agg { color: #8a6d3b; }
 
+/* Promenad-AI (rum-promenad.js): mjukt tassande medan djuret går, och figuren
+   speglas när det går åt vänster. Klasserna sätts/tas bort av rAF-loopen. */
+.room-pet.promenerar .ri-emoji {
+  animation: pet-tassa 0.55s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+.room-pet.vand-vanster .ri-emoji svg { transform: scaleX(-1); }
+
+@keyframes pet-tassa {
+  0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+  50% { transform: translateY(-7%) rotate(1.2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-pet.promenerar .ri-emoji { animation: none; }
+}
+
 /* Husdjurspanelen under rumsscenen. */
 .rum-pet-panel { margin-bottom: 20px; }
 
