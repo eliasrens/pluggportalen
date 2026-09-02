@@ -16,6 +16,7 @@ import {
   eye, eyes, cheeks, smile, laugh, nose,
   head, pointyEar, roundEar, limb,
 } from "./art-style.js";
+import { SPRITE_SPECIES } from "./art-pet-sprites.js";
 
 // --- Grundkropp (samma sittande chibi-kropp som husdjuren i art-pets.js) ----
 
@@ -287,16 +288,21 @@ export const SPECIES = [
   { id: "mysko", name: "Mysko", fur: "#B0805A", belly: "#FFF3DC", inner: "#8A6242", features: { ears: "round", crown: "tuft", pattern: "spots" } },
 ];
 
-const SPECIES_BY_ID = Object.fromEntries(SPECIES.map((s) => [s.id, s]));
+// Alla arter = SVG-arterna ovan + sprite-riggade bild-arter (art-pet-sprites.js).
+// Sprite-arterna har kind: "sprite" och ritas via spriteRigHtml() i stället för
+// creatureSvg() – resten av pipelinen väljer render-väg på det fältet.
+const ALL_SPECIES = [...SPECIES, ...SPRITE_SPECIES];
 
-/** Artinfo ({ id, name, ... }) eller null. */
+const SPECIES_BY_ID = Object.fromEntries(ALL_SPECIES.map((s) => [s.id, s]));
+
+/** Artinfo ({ id, name, kind?, ... }) eller null. */
 export function getSpecies(speciesId) {
   return SPECIES_BY_ID[speciesId] || null;
 }
 
-/** Slumpa en art (används vid kläckning). */
+/** Slumpa en art (används vid kläckning – ägget kan ge alla arter). */
 export function randomSpeciesId() {
-  return SPECIES[Math.floor(Math.random() * SPECIES.length)].id;
+  return ALL_SPECIES[Math.floor(Math.random() * ALL_SPECIES.length)].id;
 }
 
 /**
@@ -305,7 +311,7 @@ export function randomSpeciesId() {
  */
 export function creatureArt(speciesId, expression) {
   const s = SPECIES_BY_ID[speciesId];
-  if (!s) return null;
+  if (!s || s.kind === "sprite") return null; // sprite-arter ritas i art-pet-sprites.js
   return (
     backFor(s) +
     tailFor(s) +

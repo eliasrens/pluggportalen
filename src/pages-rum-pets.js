@@ -10,6 +10,7 @@
 import * as petData from "./data-pet.js";
 import { el, flash } from "./ui.js";
 import { getSpecies, creatureSvg } from "./art-pets-creatures.js";
+import { spriteRigHtml, SPRITE_MOODS } from "./art-pet-sprites.js";
 import { eggSvg } from "./art-pets.js";
 import { confetti } from "./fx.js";
 
@@ -50,9 +51,31 @@ function findPetNode(petId) {
   return document.querySelector(`.room-pet[data-pet-id="${petId}"]`);
 }
 
+/** Är husdjuret en sprite-riggad art (bild-delar) i stället för SVG? */
+function isSpritePet(pet) {
+  const species = pet.speciesId ? getSpecies(pet.speciesId) : null;
+  return !!(species && species.kind === "sprite");
+}
+
+/** Figurens HTML: sprite-rigg för sprite-arter, annars procedurell SVG. */
+function petArtHtml(pet, expr) {
+  if (isSpritePet(pet)) {
+    return spriteRigHtml(pet.speciesId, pet.stage || 1, expr) || "🐾";
+  }
+  return creatureSvg(pet.speciesId, expr) || "🐾";
+}
+
 function swapArt(node, pet, expr) {
   const slot = node && node.querySelector(".ri-emoji");
-  if (slot) slot.innerHTML = creatureSvg(pet.speciesId, expr) || "🐾";
+  if (!slot) return;
+  // Sprite-arter: rita INTE om riggen (det skulle nollställa animationerna) –
+  // uttrycket visas som humör-partikel vid huvudet (💤/❤️/🍎, designdoket).
+  if (isSpritePet(pet)) {
+    const fx = slot.querySelector(".ps-humor");
+    if (fx) fx.textContent = SPRITE_MOODS[expr] || "";
+    return;
+  }
+  slot.innerHTML = creatureSvg(pet.speciesId, expr) || "🐾";
 }
 
 /** Visa ett uttryck i ms millisekunder, sedan tillbaka till vilouttrycket. */
@@ -91,9 +114,7 @@ export function petBellyFlop(pet) {
  */
 export function petStageNode(pet, selected) {
   const pos = pet.pos || { x: 50, y: 70 };
-  const art = pet.hatchedAt
-    ? creatureSvg(pet.speciesId, idleExpression(pet)) || "🐾"
-    : eggSvg();
+  const art = pet.hatchedAt ? petArtHtml(pet, idleExpression(pet)) : eggSvg();
   const stageClass = pet.hatchedAt ? ` pet-vuxen-${pet.stage || 1}` : " pet-agg-i-rum";
   const label = pet.hatchedAt
     ? `<span class="rp-namn">${petDisplayName(pet)}</span>`

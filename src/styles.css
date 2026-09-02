@@ -2117,6 +2117,161 @@ code {
   }
 }
 
+/* --- Sprite-riggade husdjur (art-pet-sprites.js) ---------------------------- */
+/* Figuren monteras av 6 absolut positionerade bilddelar i en procent-rigg
+   (referensyta 340×360). Positioner/storlekar sätts inline per art & steg;
+   här bor rotationspunkter och animationer. Samma yttre klasser som SVG-djuren
+   (.promenerar, .pet-rygg, .vand-vanster) styr vilka del-animationer som går. */
+
+.pet-sprite {
+  position: relative;
+  display: block;
+  height: 100%;
+  aspect-ratio: 340 / 360;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.pet-sprite .ps-del {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.pet-sprite .ps-del img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Rotationspunkter (designdoket): nacke 50 %/80 %, kropp 50 %/92 %,
+   höft = fotens topp 50 %/10 %. De här arternas armar hänger lodrätt
+   (tassen nedåt), så axeln sitter i armens topp – inte i inre änden. */
+.pet-sprite .ps-huvud { transform-origin: 50% 80%; }
+.pet-sprite .ps-kropp { transform-origin: 50% 92%; }
+.pet-sprite .ps-arm-v,
+.pet-sprite .ps-arm-h { transform-origin: 50% 12%; }
+.pet-sprite .ps-fot-v,
+.pet-sprite .ps-fot-h { transform-origin: 50% 10%; }
+
+/* Viloläge: armarna hänger med en lätt utåtvinkel. */
+.pet-sprite .ps-arm-v { transform: rotate(-6deg); }
+.pet-sprite .ps-arm-h { transform: rotate(6deg); }
+
+/* Spegling när djuret går åt vänster (hela riggen – delarna följer med). */
+.room-pet.vand-vanster .ri-emoji .pet-sprite { transform: scaleX(-1); }
+
+/* Blinkning: snabb vertikal squash av huvudBILDEN (ögonen är inbakade i
+   00-head.png). Ligger på <img>, inte på delen, så den inte krockar med
+   huvudets nick/funder-transform. Cykeln (3–6 s) slumpas per djur i --blink. */
+.pet-sprite .ps-huvud img {
+  transform-origin: 50% 78%;
+  animation: ps-blink var(--blink, 4.5s) linear infinite;
+}
+
+@keyframes ps-blink {
+  0%, 92%, 96%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.1); }
+}
+
+/* Vila: kroppen andas lugnt, huvudet tittar runt, armarna svajar. */
+.room-pet .pet-sprite .ps-kropp { animation: ps-andas 3.4s ease-in-out infinite; }
+@keyframes ps-andas {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.025); }
+}
+
+.room-pet .pet-sprite .ps-huvud { animation: ps-funder 4.6s ease-in-out infinite; }
+@keyframes ps-funder {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-3deg); }
+  60% { transform: rotate(2.4deg); }
+}
+
+.room-pet .pet-sprite .ps-arm-v { animation: ps-svaj-v 3.4s ease-in-out infinite; }
+@keyframes ps-svaj-v {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(-11deg); }
+}
+
+.room-pet .pet-sprite .ps-arm-h { animation: ps-svaj-h 3.4s ease-in-out infinite; }
+@keyframes ps-svaj-h {
+  0%, 100% { transform: rotate(6deg); }
+  50% { transform: rotate(11deg); }
+}
+
+/* Gång (promenad-AI:ns .promenerar): bensteg + armpendling i motfas + huvudnick.
+   Kroppsgunget sköter pet-tassa på .ri-emoji (samma som SVG-djuren). */
+.room-pet.promenerar .pet-sprite .ps-fot-v { animation: ps-steg 0.5s ease-in-out infinite; }
+.room-pet.promenerar .pet-sprite .ps-fot-h { animation: ps-steg 0.5s ease-in-out infinite -0.25s; }
+@keyframes ps-steg {
+  0%, 100% { transform: rotate(14deg); }
+  50% { transform: rotate(-14deg); }
+}
+
+.room-pet.promenerar .pet-sprite .ps-arm-v { animation: ps-sving-v 0.5s ease-in-out infinite; }
+@keyframes ps-sving-v {
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(6deg); }
+}
+
+.room-pet.promenerar .pet-sprite .ps-arm-h { animation: ps-sving-h 0.5s ease-in-out infinite; }
+@keyframes ps-sving-h {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-6deg); }
+}
+
+.room-pet.promenerar .pet-sprite .ps-huvud { animation: ps-nick 0.5s ease-in-out infinite; }
+@keyframes ps-nick {
+  0%, 100% { transform: translateY(0) rotate(-1.6deg); }
+  50% { transform: translateY(2.5%) rotate(1.6deg); }
+}
+
+/* På rygg (klick-leken): .pet-rygg roterar hela .ri-emoji 157° som för
+   SVG-djuren – här sprattlar dessutom ben och armar i motfas (designdoket:
+   0,32 s / 0,4 s) medan djuret ligger. */
+.room-pet.pet-rygg .pet-sprite .ps-fot-v { animation: ps-sprattel-fot 0.32s ease-in-out infinite; }
+.room-pet.pet-rygg .pet-sprite .ps-fot-h { animation: ps-sprattel-fot 0.32s ease-in-out infinite -0.16s; }
+@keyframes ps-sprattel-fot {
+  0%, 100% { transform: rotate(12deg); }
+  50% { transform: rotate(-16deg); }
+}
+
+.room-pet.pet-rygg .pet-sprite .ps-arm-v { animation: ps-sprattel-arm-v 0.4s ease-in-out infinite; }
+@keyframes ps-sprattel-arm-v {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.room-pet.pet-rygg .pet-sprite .ps-arm-h { animation: ps-sprattel-arm-h 0.4s ease-in-out infinite -0.2s; }
+@keyframes ps-sprattel-arm-h {
+  0%, 100% { transform: rotate(20deg); }
+  50% { transform: rotate(-8deg); }
+}
+
+/* Humör-partikel (💤/❤️/🍎) – svävar stilla vid huvudet. */
+.pet-sprite .ps-humor {
+  position: absolute;
+  top: -4%;
+  right: -12%;
+  font-size: 0.95rem;
+  line-height: 1;
+  animation: ps-humor-svav 2.4s ease-in-out infinite;
+}
+
+@keyframes ps-humor-svav {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-sprite .ps-del,
+  .pet-sprite .ps-del img,
+  .pet-sprite .ps-humor {
+    animation: none !important;
+  }
+}
+
 /* Husdjurspanelen under rumsscenen. */
 .rum-pet-panel { margin-bottom: 20px; }
 
