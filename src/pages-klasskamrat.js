@@ -14,7 +14,6 @@
 
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
-import { evoFromStudentData } from "./evolution.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -60,7 +59,6 @@ export async function pageElevKlasskamrat() {
   const pal = getPalette(paletteIdFromStudentData(sd));
   const owned = sd.ownedItems || [];
   const equipped = sd.avatarItems || [];
-  const evo = evoFromStudentData(sd);
 
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
   // i rummet (inte kläder). Positioner i procent (0–100) av scenen.
@@ -88,7 +86,7 @@ export async function pageElevKlasskamrat() {
   const view = el(`<div>
     <a class="back-link" id="back">← Till Min klass</a>
     <div class="panel center">
-      <div class="klasskamrat-figur">${avatarMarkup(sd.avatarId || DEFAULT_AVATAR, equipped, evo)}</div>
+      <div class="klasskamrat-figur">${avatarMarkup(sd.avatarId || DEFAULT_AVATAR, equipped)}</div>
       <h1>${namn}s rum 🛏️</h1>
       <p class="hint">Du tittar in i ${namn}s rum. Det här är bara en titt – du kan inte ändra något här. 👀</p>
     </div>
