@@ -2241,6 +2241,7 @@ body.varld-lage .container {
 @media (prefers-reduced-motion: reduce) {
   .room-pet.promenerar .ri-emoji { animation: none; }
   .room-pet.pet-rygg .ri-emoji,
+  .room-pet.pet-rygg .ri-emoji:has(.pet-sprite),
   .pet-rygg-fx,
   .room-pet.pet-agg-i-rum .ri-emoji {
     animation: none;
@@ -2291,18 +2292,10 @@ body.varld-lage .container {
 /* Spegling när djuret går åt vänster (hela riggen – delarna följer med). */
 .room-pet.vand-vanster .ri-emoji .pet-sprite { transform: scaleX(-1); }
 
-/* Blinkning: snabb vertikal squash av huvudBILDEN (ögonen är inbakade i
-   00-head.png). Ligger på <img>, inte på delen, så den inte krockar med
-   huvudets nick/funder-transform. Cykeln (3–6 s) slumpas per djur i --blink. */
-.pet-sprite .ps-huvud img {
-  transform-origin: 50% 78%;
-  animation: ps-blink var(--blink, 4.5s) linear infinite;
-}
-
-@keyframes ps-blink {
-  0%, 92%, 96%, 100% { transform: scaleY(1); }
-  94% { transform: scaleY(0.1); }
-}
+/* Ingen blinkning: ögonen är inbakade i 00-head.png och sitter olika per art
+   och steg (Fjärlis två ögon, Flammis slutform ett öga), så en ren ögon-enda
+   blink går inte att göra snyggt för alla arter/steg. En helhuvud-squash såg
+   inte bra ut → blinken är slopad (hellre ingen blink än att huvudet studsar). */
 
 /* Vila: kroppen andas lugnt, huvudet tittar runt, armarna svajar. */
 .room-pet .pet-sprite .ps-kropp { animation: ps-andas 3.4s ease-in-out infinite; }
@@ -2357,9 +2350,31 @@ body.varld-lage .container {
   50% { transform: translateY(2.5%) rotate(1.6deg); }
 }
 
-/* På rygg (klick-leken): .pet-rygg roterar hela .ri-emoji 157° som för
-   SVG-djuren – här sprattlar dessutom ben och armar i motfas (designdoket:
-   0,32 s / 0,4 s) medan djuret ligger. */
+/* På rygg (klick-leken): SVG-djurens 157°-rotation läser inte som "ligger på
+   rygg" för sprite-riggen (den ser mest tiltad ut). Sprite-riggen rullar i
+   stället HELA vägen över till mage upp (~180°) så det tydligt syns att djuret
+   ligger på rygg, vaggar där, och reser sig igen. Högre specificitet än den
+   generella .ri-emoji-regeln (via :has) → vinner för sprite-arter. */
+.room-pet.pet-rygg .ri-emoji:has(.pet-sprite) {
+  animation: pet-rygg-sprite 3.85s ease-in-out both;
+  transform-origin: 50% 68%;
+}
+
+@keyframes pet-rygg-sprite {
+  0% { transform: rotate(0); }
+  14% { transform: rotate(192deg); }   /* rullar över kanten… */
+  20% { transform: rotate(180deg); }   /* …och landar på rygg, mage upp */
+  32% { transform: rotate(171deg); }
+  44% { transform: rotate(189deg); }   /* vaggar fram och tillbaka på ryggen */
+  56% { transform: rotate(171deg); }
+  68% { transform: rotate(187deg); }
+  80% { transform: rotate(177deg); }
+  88% { transform: rotate(180deg); }
+  100% { transform: rotate(0); }        /* reser sig igen */
+}
+
+/* Ben och armar sprattlar dessutom i motfas (designdoket: 0,32 s / 0,4 s)
+   medan djuret ligger på rygg. */
 .room-pet.pet-rygg .pet-sprite .ps-fot-v { animation: ps-sprattel-fot 0.32s ease-in-out infinite; }
 .room-pet.pet-rygg .pet-sprite .ps-fot-h { animation: ps-sprattel-fot 0.32s ease-in-out infinite -0.16s; }
 @keyframes ps-sprattel-fot {

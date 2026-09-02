@@ -12,7 +12,7 @@
 // ur delarnas faktiska pixelmått (PART_DIMS) i stället för fasta procent:
 // kroppen ankras mot bottenkanten och huvud/armar/fötter hängs på den.
 //
-// Animationerna (andning, gång, sprattel på rygg, blinkning) bor i styles.css
+// Animationerna (andning, gång, rull-på-rygg + sprattel) bor i styles.css
 // under ".pet-sprite"/".ps-*" och styrs av samma klasser som SVG-djuren
 // (.promenerar, .pet-rygg, .vand-vanster) – riggen är ren DOM.
 //
@@ -128,16 +128,15 @@ export function spriteRigHtml(speciesId, stage, mood) {
   if (!dims) return null;
   const dir = `${ASSET_ROOT}/${s.dir}/evolution-${Math.min(Math.max((stage || 1) - 1, 0), 2)}`;
   const g = layoutFor(dims);
-  // Blink-cykeln slumpas per rendering (3–6 s) via en CSS-variabel; själva
-  // blinken (snabb scaleY-squash av huvudet) ligger i styles.css.
-  const blink = (3 + Math.random() * 3).toFixed(2);
+  // Stapling bakifrån och fram (senare = ovanpå): fötter → torso → ARMAR →
+  // huvud. Armarna ritas FRAMFÖR kroppen så de syns framför magen, huvudet överst.
   return (
-    `<span class="pet-sprite" role="img" aria-label="${s.name}" style="--blink:${blink}s">` +
-    partHtml("ps-arm-v", g.lh, `${dir}/01-left-hand.png`) +
-    partHtml("ps-arm-h", g.rh, `${dir}/03-right-hand.png`) +
+    `<span class="pet-sprite" role="img" aria-label="${s.name}">` +
     partHtml("ps-fot-v", g.lf, `${dir}/04-left-foot.png`) +
     partHtml("ps-fot-h", g.rf, `${dir}/05-right-foot.png`) +
     partHtml("ps-kropp", g.torso, `${dir}/02-torso.png`) +
+    partHtml("ps-arm-v", g.lh, `${dir}/01-left-hand.png`) +
+    partHtml("ps-arm-h", g.rh, `${dir}/03-right-hand.png`) +
     partHtml("ps-huvud", g.head, `${dir}/00-head.png`) +
     `<span class="ps-humor">${SPRITE_MOODS[mood] || ""}</span>` +
     `</span>`
