@@ -36,7 +36,7 @@ export async function pageElevKlasskamrat() {
   // Säkerhetsnät: den egna profilen redigeras i det riktiga rummet.
   if (otherId === data.currentStudentId()) return go("#/elev/rum");
 
-  loading("Kikar in i rummet…");
+  loading("Kikar in i hemmet…");
 
   let sd;
   let student;
