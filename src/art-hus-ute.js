@@ -147,11 +147,15 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
     )
     .join("");
 
-  // Skylten flyttad åt vänster (translate) så den står i vänstra gårdskanten
-  // och inte täcker huset (huskroppen ligger x=330–630).
+  // Skylten: mindre och nere i VÄNSTRA gårdshörnet, klar av huset (x=330–630).
+  // Positionen/skalan ligger på en YTTRE grupp – #klasskylt behåller sin egna
+  // hover-transform (scale/rotate). Lägg ALDRIG transform-attribut direkt på
+  // #klasskylt: CSS-hover-transformen kör över det → skylten "snäpper tillbaka".
   const skyltHtml = skylt
-    ? `<g id="klasskylt" role="button" tabindex="0" transform="translate(-360 0)"
-        aria-label="${esc(skylt.aria || skylt.rad1)}">${skyltMarkup(skylt)}</g>`
+    ? `<g transform="translate(-226 211) scale(0.6)">
+        <g id="klasskylt" role="button" tabindex="0"
+          aria-label="${esc(skylt.aria || skylt.rad1)}">${skyltMarkup(skylt)}</g>
+      </g>`
     : "";
 
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Ditt hus utifrån"
