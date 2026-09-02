@@ -8,6 +8,7 @@
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { evoFromStudentData } from "./evolution.js";
+import { coinIcon } from "./icons.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -184,7 +185,7 @@ export async function renderTopbar() {
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">
-      <span class="coins" title="Dina pluggcoins">🪙 ${coins}</span>
+      <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
       <button class="btn ghost liten" id="logout-btn">Logga ut</button>
     </div>
   </div>`);

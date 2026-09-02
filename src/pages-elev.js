@@ -8,6 +8,7 @@ import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { evoFromStudentData, evoForAvatar } from "./evolution.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
+import { coinIcon } from "./icons.js";
 
 // --- Inloggning -------------------------------------------------------------
 
@@ -158,9 +159,10 @@ export async function pageElevHem() {
   await renderTopbar();
   const session = data.getSession();
 
-  let sd;
+  let sd, stats;
   try {
-    sd = await data.getStudentData();
+    // Studentdata (avatar/coins) + enkel statistik i ett svep.
+    [sd, stats] = await Promise.all([data.getStudentData(), data.getStats()]);
   } catch (err) {
     app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda din sida: ${err.message}</div></div>`)
@@ -173,35 +175,24 @@ export async function pageElevHem() {
   const avatar = sd.avatarId || DEFAULT_AVATAR;
   const evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
 
+  // Uppmuntrande statistik: vi har ingen "rätta svar"-räknare, så vi visar
+  // insamlade stjärnor (den mest positiva befintliga metriken) med en glad rad.
+  const stjarnor = stats.stars || 0;
+  const uppmuntran =
+    stjarnor > 0 ? "Vad bra du är – fortsätt så! 🌟" : "Din första stjärna väntar – kör igång! 🚀";
+
   const view = el(`<div>
-    <div class="panel center hero">
-      <div class="hero-avatar">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
+    <div class="panel center hero hero-slim">
+      <div class="hero-avatar hero-avatar-stor">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
       <h1>Hej ${session.namn}! 👋</h1>
-      <p class="hint">Du har <span class="coins">🪙 ${sd.coins || 0}</span> pluggcoins. Vad vill du göra idag?</p>
-    </div>
-    <div class="card-grid">
-      <button class="big-card gron" id="to-plugga">
-        <span class="emoji">✏️</span>
-        <span class="title">Plugga</span>
-        <span class="sub">Öva och samla coins</span>
-      </button>
-      <button class="big-card rosa" id="to-shop">
-        <span class="emoji">🛍️</span>
-        <span class="title">Shoppen</span>
-        <span class="sub">Handla saker till ditt rum</span>
-      </button>
-      <button class="big-card lila" id="to-rum">
-        <span class="emoji">🏠</span>
-        <span class="title">Mitt rum</span>
-        <span class="sub">Gå hem till ditt hus</span>
-      </button>
+      <p class="hint hero-halsning">Kul att du är här – vad vill du plugga idag?</p>
+      <span class="coins hero-coins" title="Dina pluggcoins">${coinIcon(19)} ${sd.coins || 0} pluggcoins</span>
+      <div class="hero-stat" aria-label="Dina stjärnor">
+        <span class="hero-stat-tal">⭐ ${stjarnor} stjärnor</span>
+        <span class="hero-stat-text">${uppmuntran}</span>
+      </div>
     </div>
   </div>`);
-
-  view.querySelector("#to-plugga").addEventListener("click", () => go("#/elev/plugga"));
-  view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
-  // "Mitt rum" går via hus-vyn (huset utifrån) – klick på huset leder in i rummet.
-  view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/hus"));
 
   app.replaceChildren(view);
 }
@@ -313,7 +304,7 @@ export async function pageElevProfil() {
     <h2>Min statistik</h2>
     <div class="stat-grid">
       <div class="stat-card gul">
-        <div class="stat-emoji">🪙</div>
+        <div class="stat-emoji">${coinIcon(35)}</div>
         <div class="stat-tal">${stats.coins}</div>
         <div class="stat-etikett">pluggcoins</div>
       </div>
