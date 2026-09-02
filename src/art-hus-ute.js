@@ -147,8 +147,10 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
     )
     .join("");
 
+  // Skylten flyttad åt vänster (translate) så den står i vänstra gårdskanten
+  // och inte täcker huset (huskroppen ligger x=330–630).
   const skyltHtml = skylt
-    ? `<g id="klasskylt" role="button" tabindex="0"
+    ? `<g id="klasskylt" role="button" tabindex="0" transform="translate(-360 0)"
         aria-label="${esc(skylt.aria || skylt.rad1)}">${skyltMarkup(skylt)}</g>`
     : "";
 
