@@ -33,22 +33,88 @@ export function petDisplayName(pet) {
   return species ? species.name : "Mystiskt ägg";
 }
 
+// --- Uttryck & klick-lek (flyktigt runtime-tillstånd, per djur) -------------
+// Uttrycken sparas inte: äter vid matning, glad efter interaktion, nyfiken när
+// pekaren är nära djuret, sömnig när djuret redan är matat idag. Timers är
+// per djur och rör bara noder som fortfarande sitter i DOM:en.
+
+const moodTimers = new Map(); // petId -> timeout (återgång till vilouttryck)
+const moodBusy = new Map(); // petId -> tidsstämpel: tidsatt uttryck pågår
+
+/** Vilouttryck: mätt & dåsig efter dagens matning, annars neutral. */
+function idleExpression(pet) {
+  return petData.canFeed(pet) ? "" : "somnig";
+}
+
+function findPetNode(petId) {
+  return document.querySelector(`.room-pet[data-pet-id="${petId}"]`);
+}
+
+function swapArt(node, pet, expr) {
+  const slot = node && node.querySelector(".ri-emoji");
+  if (slot) slot.innerHTML = creatureSvg(pet.speciesId, expr) || "🐾";
+}
+
+/** Visa ett uttryck i ms millisekunder, sedan tillbaka till vilouttrycket. */
+export function setPetMood(pet, expr, ms) {
+  const node = findPetNode(pet.id);
+  if (!node || !pet.hatchedAt) return;
+  clearTimeout(moodTimers.get(pet.id));
+  moodBusy.set(pet.id, Date.now() + ms);
+  swapArt(node, pet, expr);
+  moodTimers.set(pet.id, setTimeout(() => {
+    moodBusy.delete(pet.id);
+    swapArt(findPetNode(pet.id), pet, idleExpression(pet));
+  }, ms));
+}
+
+// Tajming från design-facit: 700 ms flip + 2600 ms sprattel + 550 ms upp igen.
+const RYGG_MS = 3850;
+
+/** Klick-lek: djuret lägger sig på rygg, sprattlar och blir extra glatt. */
+export function petBellyFlop(pet) {
+  const node = findPetNode(pet.id);
+  if (!node || !pet.hatchedAt || node.classList.contains("pet-rygg")) return;
+  setPetMood(pet, "glad", RYGG_MS + 1500); // extra glad en stund efteråt
+  node.classList.add("pet-rygg");
+  const fx = el('<span class="pet-rygg-fx">💖</span>');
+  node.appendChild(fx);
+  setTimeout(() => {
+    node.classList.remove("pet-rygg");
+    fx.remove();
+  }, RYGG_MS);
+}
+
 /**
  * DOM-nod för ett husdjur i rumsscenen (samma dra-pipeline som sakerna:
  * klassen room-item + data-pet-id, position i procent).
  */
 export function petStageNode(pet, selected) {
   const pos = pet.pos || { x: 50, y: 70 };
-  const art = pet.hatchedAt ? creatureSvg(pet.speciesId) || "🐾" : eggSvg();
+  const art = pet.hatchedAt
+    ? creatureSvg(pet.speciesId, idleExpression(pet)) || "🐾"
+    : eggSvg();
   const stageClass = pet.hatchedAt ? ` pet-vuxen-${pet.stage || 1}` : " pet-agg-i-rum";
   const label = pet.hatchedAt
     ? `<span class="rp-namn">${petDisplayName(pet)}</span>`
     : `<span class="rp-namn rp-agg">🥚 ruvar…</span>`;
-  return el(`<div class="room-item room-pet${stageClass}${selected ? " selected" : ""}"
+  const node = el(`<div class="room-item room-pet${stageClass}${selected ? " selected" : ""}"
     data-pet-id="${pet.id}" style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">
     <span class="ri-emoji">${art}</span>
     ${label}
   </div>`);
+  if (pet.hatchedAt) {
+    // Nyfiken när man är nära (hovrar) – men stör inte pågående uttryck/lek.
+    const calm = () => !node.classList.contains("pet-rygg") &&
+      (moodBusy.get(pet.id) || 0) <= Date.now();
+    node.addEventListener("pointerenter", () => {
+      if (calm()) swapArt(node, pet, "nyfiken");
+    });
+    node.addEventListener("pointerleave", () => {
+      if (calm()) swapArt(node, pet, idleExpression(pet));
+    });
+  }
+  return node;
 }
 
 /**
@@ -160,6 +226,11 @@ function creaturePanel(pet, opts) {
             : "Det gick inte att mata just nu.", true);
         }
         opts.onUpdate(res.pets, res.pet ? res.pet.id : pet.id);
+        if (res.ok && res.pet) {
+          // Uttrycksskifte i scenen: gnager en stund, sedan glad, sedan vila.
+          setPetMood(res.pet, "ater", 1800);
+          setTimeout(() => setPetMood(res.pet, "glad", 2600), 1800);
+        }
       } catch (err) {
         flash("Något gick fel: " + err.message, true);
         mataBtn.disabled = false;
