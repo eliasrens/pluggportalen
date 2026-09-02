@@ -1148,12 +1148,25 @@ code {
   display: block;
 }
 
-.room-bg .room-window {
-  position: absolute;
-  left: 6%;
-  top: 5%;
+/* Fönstret är numera ett interaktivt rums-objekt (flyttbart/raderbart) och
+   ritas som en .room-item, inte i bakgrunden. Storleken hålls oförändrad
+   (klamp mot scenbredden) och skalas INTE med --rum-skala. */
+.room-window-item {
   width: clamp(120px, 24%, 190px);
+  font-size: 0;
+}
+
+.room-window-item .rw-svg {
   display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.room-window-item .rw-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
 }
 
 /* --- Palettväljaren (Måla om – delas av Mitt rum & hus-vyn) ---------------- */
