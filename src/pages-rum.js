@@ -11,7 +11,7 @@
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, clamp } from "./ui.js";
-import { getItem, isWearable } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, renderPetPanel, petBellyFlop } from "./pages-rum-pets.js";
@@ -185,7 +185,12 @@ export async function pageElevRum() {
   function renderStage() {
     stage.replaceChildren();
     stage.insertAdjacentHTML("beforeend", roomBackdropHtml());
-    for (const id of Object.keys(placements)) {
+    // Rita platta golvsaker (mattor) FÖRST så vanliga möbler, dekor och husdjur
+    // alltid staplas ovanpå dem – oavsett i vilken ordning de placerats/flyttats.
+    const orderedIds = Object.keys(placements).sort(
+      (a, b) => (isFlatItem(a) ? 0 : 1) - (isFlatItem(b) ? 0 : 1)
+    );
+    for (const id of orderedIds) {
       const item = getItem(id);
       if (!item) continue;
       const pos = placements[id];

@@ -61,7 +61,10 @@ export const SHOP_ITEMS = [
   { id: "bokhylla", name: "Bokhylla", emoji: "📚", category: "mobler", price: 100 },
   { id: "dator", name: "Dator", emoji: "🖥️", category: "mobler", price: 200 },
   { id: "tv", name: "TV", emoji: "📺", category: "mobler", price: 180 },
-  { id: "matta", name: "Mysmatta", emoji: "🟦", category: "mobler", price: 40 },
+  // `flat: true` = platt golvsak (matta) som alltid ritas UNDERST i rummet, så
+  // möbler, dekor och husdjur hamnar ovanpå oavsett placeringsordning. Sätt
+  // flaggan på fler mattliknande saker vid behov.
+  { id: "matta", name: "Mysmatta", emoji: "🟦", category: "mobler", price: 40, flat: true },
   // fler möbler
   { id: "sittpuff", name: "Sittpuff", emoji: "🛋️", category: "mobler", price: 45 },
   { id: "byra", name: "Byrå", emoji: "🗄️", category: "mobler", price: 95 },
@@ -109,6 +112,12 @@ export function getItem(id) {
 export function isWearable(id) {
   const it = getItem(id);
   return !!(it && it.category === "klader");
+}
+
+/** Är saken en platt golvsak (matta) som alltid ska ligga underst i rummet? */
+export function isFlatItem(id) {
+  const it = getItem(id);
+  return !!(it && it.flat);
 }
 
 /** Saker i en kategori. */

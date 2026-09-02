@@ -16,7 +16,7 @@ import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { evoFromStudentData } from "./evolution.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
-import { getItem, isWearable } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { roomBackdropHtml } from "./art-room.js";
 import { getPalette, paletteIdFromStudentData } from "./room-palettes.js";
@@ -72,7 +72,9 @@ export async function pageElevKlasskamrat() {
     }
   }
 
+  // Platta golvsaker (mattor) ritas FÖRST så möbler/dekor staplas ovanpå dem.
   const items = Object.keys(placements)
+    .sort((a, b) => (isFlatItem(a) ? 0 : 1) - (isFlatItem(b) ? 0 : 1))
     .map((id) => {
       const item = getItem(id);
       const pos = placements[id];
