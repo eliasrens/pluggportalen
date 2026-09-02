@@ -1952,12 +1952,6 @@ code {
 .pet-steg-chip small { font-weight: 600; opacity: 0.7; }
 .pet-steg-chip.aktiv { background: var(--gul); border-color: rgba(0, 0, 0, 0.15); }
 .pet-steg-chip.klar { background: #d9f4e4; }
-.pet-prickar { display: flex; gap: 8px; justify-content: center; margin: 6px 0 10px; }
-.pet-prick {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: var(--ljus); border: 2px solid rgba(0, 0, 0, 0.15);
-}
-.pet-prick.full { background: var(--gron); border-color: var(--gron); }
 
 /* Lärare: "Ge coins" i elevlistan */
 .give-coins-cell { vertical-align: middle; }
@@ -2181,6 +2175,63 @@ body.varld-lage .container {
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
+/* Äpplen på golvet (matning): ett litet emoji-äpple centrerat på sin procent-
+   position. Inga pekhändelser (djuren äter dem – man drar dem inte), och de är
+   inga .room-item så promenad-AI:n räknar dem inte som hinder. Ligger under
+   husdjuren i DOM-ordningen så djuret syns ovanpå när det gnager. */
+.room-apple {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: calc(1.5rem * var(--rum-skala, 1));
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+  animation: apple-pop 0.32s ease-out;
+}
+@keyframes apple-pop {
+  from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-apple { animation: none; }
+}
+
+/* Matnings-mätare i husdjurspanelen: fylls med antal uppätna äpplen i steget. */
+.pet-matbar {
+  position: relative;
+  height: 22px;
+  border-radius: 11px;
+  background: #f3ead9;
+  border: 2px solid #e2cfa8;
+  overflow: hidden;
+  margin: 6px auto 2px;
+  max-width: 240px;
+}
+.pet-matbar-fyll {
+  height: 100%;
+  background: linear-gradient(90deg, #8fd18a, #5fbf62);
+  transition: width 0.4s ease;
+}
+.pet-matbar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
+/* Antal-rad på förbrukningsvaror (äpplen) i shoppen. */
+.shop-antal {
+  font-size: 0.8rem;
+  color: #5b6b86;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
 /* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
    med storlek per tillväxtsteg och en liten namnskylt under figuren. */
 

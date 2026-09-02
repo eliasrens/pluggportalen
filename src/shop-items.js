@@ -11,6 +11,12 @@
 //   mobler   – möbler & prylar som placeras i rummet
 //   husdjur  – husdjur som placeras i rummet
 //   dekor    – dekor & pynt som placeras i rummet
+//   mat      – KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren
+//
+// Mat (`mat`) är en förbrukningsvara: den ligger INTE i ownedItems (en-gång-per-
+// sak), utan köp ökar ett ANTAL (studentData.appleCount) man kan köpa flera av.
+// Sätt `consumable: true` på sådana saker (se isConsumable). Hanteras via
+// buyApple()/placeApple()/eatApple() i data-pet.js.
 //
 // Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/hand).
 // Bara en sak per slot kan bäras samtidigt. Övriga kategorier placeras i rummet.
@@ -22,6 +28,7 @@ export const CATEGORIES = [
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
   { id: "mobler", name: "Möbler & prylar", emoji: "🪑" },
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
+  { id: "mat", name: "Mat", emoji: "🍎" },
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
 ];
 
@@ -87,6 +94,12 @@ export const SHOP_ITEMS = [
   { id: "igelkott", name: "Igelkott", emoji: "🦔", category: "husdjur", price: 120 },
   { id: "skoldpadda", name: "Sköldpadda", emoji: "🐢", category: "husdjur", price: 140 },
 
+  // --- Mat (konsumerbar – läggs på golvet, äts av husdjuren) ----------------
+  // Äpplet köps i valfritt ANTAL (ökar studentData.appleCount, hamnar aldrig i
+  // ownedItems). Lägg ut det på golvet i Mitt rum → närmaste hungriga djur går
+  // dit och äter, och växer efter 10 matningar. Se data-pet.js.
+  { id: "apple", name: "Äpple", emoji: "🍎", category: "mat", price: 5, consumable: true },
+
   // --- Dekor & pynt (placeras i rummet) ------------------------------------
   { id: "krukvaxt", name: "Krukväxt", emoji: "🪴", category: "dekor", price: 25 },
   { id: "poster-varld", name: "Världskarta", emoji: "🗺️", category: "dekor", price: 55 },
@@ -116,6 +129,12 @@ export function isWearable(id) {
 export function isFlatItem(id) {
   const it = getItem(id);
   return !!(it && it.flat);
+}
+
+/** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
+export function isConsumable(id) {
+  const it = getItem(id);
+  return !!(it && it.consumable);
 }
 
 /** Saker i en kategori. */
