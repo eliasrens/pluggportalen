@@ -195,11 +195,6 @@ export async function pageElevHem() {
         <span class="title">Mitt rum</span>
         <span class="sub">Gå hem till ditt hus</span>
       </button>
-      <button class="big-card orange" id="to-husdjur">
-        <span class="emoji">🥚</span>
-        <span class="title">Mitt husdjur</span>
-        <span class="sub">Kläck och mata din kompis</span>
-      </button>
     </div>
   </div>`);
 
@@ -207,7 +202,6 @@ export async function pageElevHem() {
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
   // "Mitt rum" går via hus-vyn (huset utifrån) – klick på huset leder in i rummet.
   view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/hus"));
-  view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   app.replaceChildren(view);
 }

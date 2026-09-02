@@ -105,7 +105,6 @@ const NAV_LANKAR = [
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen" },
   { hash: "#/elev/rum", ikon: "🛏️", label: "Mitt rum" },
-  { hash: "#/elev/husdjur", ikon: "🐾", label: "Husdjur" },
   { hash: "#/elev/klassfoto", ikon: "👩‍👦‍👦", label: "Min klass" },
 ];
 

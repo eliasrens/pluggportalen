@@ -2,36 +2,45 @@
 // Pluggportalen – Mitt rum
 // ----------------------------------------------------------------------------
 // Eleven placerar ut sina köpta saker (möbler/husdjur/dekor) i ett eget rum och
-// sätter kläder på avataren. Placeringar sparas i procent av scenen → ser
-// likadana ut oavsett skärm/dator. Allt sparas per elev i Firestore via
-// datamodulen (saveRoom / saveAvatarItems).
+// sätter kläder på avataren. Här BOR även de kläckbara husdjuren (mystery
+// eggs): ägg ruvar och kläcks i rummet, djuren namnges/matas via panelen under
+// scenen (pages-rum-pets.js, data i studentData.pets via data-pet.js).
+// Placeringar sparas i procent av scenen → ser likadana ut oavsett skärm.
 // ============================================================================
 
 import * as data from "./data.js";
+import * as petData from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, clamp } from "./ui.js";
 import { getItem, isWearable } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg } from "./art-items.js";
+import { petStageNode, renderPetPanel } from "./pages-rum-pets.js";
+import { confetti } from "./fx.js";
 
 export async function pageElevRum() {
   if (!data.isLoggedIn()) return go("#/elev");
   loading();
   await renderTopbar();
 
-  let sd;
+  let sd, pets, justHatchedIds;
   try {
     sd = await data.getStudentData();
+    // Husdjuren: migrera ev. gammalt singular-pet och kläck färdiga ägg.
+    const res = await petData.hatchReadyPets();
+    pets = res.pets;
+    justHatchedIds = res.justHatchedIds;
   } catch (err) {
     return pageError("Kunde inte ladda ditt rum", err);
   }
 
   const owned = sd.ownedItems || [];
+  const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
-  // i rummet (inte kläder). Positioner i procent (0–100) av scenen.
+  // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak).
   const placements = {};
   const savedPlacements = (sd.room && sd.room.placements) || {};
   for (const [id, pos] of Object.entries(savedPlacements)) {
-    if (owned.includes(id) && !isWearable(id) && pos) {
+    if (owned.includes(id) && !isWearable(id) && id !== petData.EGG_ITEM_ID && pos) {
       placements[id] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
     }
   }
@@ -39,7 +48,9 @@ export async function pageElevRum() {
   // Burna klädsaker (för avatarstället längst ner).
   const equipped = new Set(sd.avatarItems || []);
 
-  const roomItemsOwned = owned.filter((id) => !isWearable(id) && getItem(id));
+  const roomItemsOwned = owned.filter(
+    (id) => !isWearable(id) && id !== petData.EGG_ITEM_ID && getItem(id)
+  );
   const wearItemsOwned = owned.filter((id) => isWearable(id) && getItem(id));
 
   const view = el(`<div>
@@ -47,10 +58,12 @@ export async function pageElevRum() {
     <div class="panel">
       <h1>Mitt rum 🛏️</h1>
       <p class="hint">Klicka på en sak i lådan för att ställa den i rummet. Dra för att
-        flytta. Klicka på en placerad sak och välj 🗑️ för att plocka bort den.</p>
+        flytta. Klicka på en placerad sak och välj 🗑️ för att plocka bort den.
+        Dina husdjur bor också här – klicka på ett djur för att mata eller döpa det! 🐾</p>
     </div>
 
     <div class="room-stage" id="stage"></div>
+    <div id="pet-panel"></div>
 
     <div class="panel">
       <h2>Lådan 📦</h2>
@@ -66,16 +79,18 @@ export async function pageElevRum() {
 
     <div class="center">
       <button class="btn ghost" id="to-shop">🛍️ Till shoppen</button>
-      <button class="btn ghost" id="to-husdjur">🥚 Mitt husdjur</button>
     </div>
   </div>`);
 
   const stage = view.querySelector("#stage");
+  const petPanel = view.querySelector("#pet-panel");
   const tray = view.querySelector("#tray");
   const trayHint = view.querySelector("#tray-hint");
   const wearTray = view.querySelector("#weartray");
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
+  let selectedPetId = null; // valt husdjur (visar husdjurspanelen)
+  let justHatchedId = justHatchedIds[0] || null; // firas i panelen en gång
 
   // Spara rummet (debounce – tät dragrörelse skriver inte varje pixel).
   let saveTimer = null;
@@ -86,7 +101,34 @@ export async function pageElevRum() {
     }, 250);
   }
 
-  // --- Rita rummets scen ---------------------------------------------------
+  // Spara husdjurens positioner (samma debounce-mönster).
+  let petSaveTimer = null;
+  function scheduleSavePets() {
+    clearTimeout(petSaveTimer);
+    petSaveTimer = setTimeout(() => {
+      const positions = {};
+      for (const p of pets) positions[p.id] = { x: p.pos.x, y: p.pos.y };
+      petData.savePetPositions(positions).catch(() => {});
+    }, 250);
+  }
+
+  // Husdjurspanelen under scenen (valt djur, eller det nykläckta).
+  function renderPets() {
+    const pet = pets.find((p) => p.id === selectedPetId) || null;
+    renderPetPanel(petPanel, pet, {
+      hasLamp,
+      justHatched: !!pet && pet.id === justHatchedId,
+      onUpdate(nextPets, petId) {
+        pets = nextPets;
+        if (petId === justHatchedId) justHatchedId = null; // firad
+        selectedPetId = petId;
+        renderStage();
+        renderPets();
+      },
+    });
+  }
+
+  // --- Rita rummets scen (saker + husdjur) ---------------------------------
   function renderStage() {
     stage.replaceChildren();
     for (const id of Object.keys(placements)) {
@@ -99,7 +141,11 @@ export async function pageElevRum() {
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
     }
-    if (Object.keys(placements).length === 0) {
+    for (const pet of pets) {
+      if (!pet.pos) pet.pos = { x: 50, y: 70 };
+      stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
+    }
+    if (Object.keys(placements).length === 0 && pets.length === 0) {
       stage.appendChild(el(`<div class="room-empty">Ditt rum är tomt – välj saker i lådan nedan! 👇</div>`));
     }
   }
@@ -142,14 +188,21 @@ export async function pageElevRum() {
     }
   }
 
+  // Nykläckt ägg? Fira och öppna panelen för namngivning direkt.
+  if (justHatchedId) {
+    selectedPetId = justHatchedId;
+    confetti();
+    flash("Ett ägg har kläckts i ditt rum! 🎉");
+  }
+
   renderStage();
   renderTray();
   renderWearTray();
+  renderPets();
 
   // "Ut ur huset" = tillbaka till hus-vyn (rummet nås via huset, #/elev/hus).
   view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
-  view.querySelector("#to-husdjur").addEventListener("click", () => go("#/elev/husdjur"));
 
   // Placera en sak från lådan (klick).
   tray.addEventListener("click", (e) => {
@@ -190,7 +243,7 @@ export async function pageElevRum() {
     }
   });
 
-  // Ta bort en placerad sak (🗑️).
+  // Ta bort en placerad sak (🗑️). Husdjur kan inte plockas bort – de bor här.
   stage.addEventListener("click", (e) => {
     const removeBtn = e.target.closest("[data-remove]");
     if (!removeBtn) return;
@@ -203,22 +256,27 @@ export async function pageElevRum() {
   });
 
   // --- Dra-och-släpp i rummet (pointer events, procentbaserat) -------------
+  // Samma pipeline för saker och husdjur: data-id = sak, data-pet-id = husdjur.
   let drag = null;
   stage.addEventListener("pointerdown", (e) => {
     const node = e.target.closest(".room-item");
     if (!node) {
-      // Klick på tom yta i rummet → avmarkera direkt (ram + 🗑️ försvinner).
-      // Görs på pointerdown (inte click) för att undvika krock med att
-      // renderStage() bygger om DOM-noderna innan ev. click-event hinner fyra.
-      if (selectedId !== null) {
+      // Klick på tom yta i rummet → avmarkera direkt (ram + 🗑️/panel försvinner).
+      if (selectedId !== null || selectedPetId !== null) {
         selectedId = null;
+        selectedPetId = null;
         renderStage();
+        renderPets();
       }
       return;
     }
     if (e.target.closest("[data-remove]")) return; // låt borttagning ske
     const rect = stage.getBoundingClientRect();
-    drag = { id: node.dataset.id, node, rect, moved: false, startX: e.clientX, startY: e.clientY };
+    drag = {
+      id: node.dataset.id || null,
+      petId: node.dataset.petId || null,
+      node, rect, moved: false, startX: e.clientX, startY: e.clientY,
+    };
     node.setPointerCapture(e.pointerId);
     node.classList.add("dragging");
   });
@@ -230,7 +288,12 @@ export async function pageElevRum() {
     }
     const x = clamp(((e.clientX - drag.rect.left) / drag.rect.width) * 100, 0, 100);
     const y = clamp(((e.clientY - drag.rect.top) / drag.rect.height) * 100, 0, 100);
-    placements[drag.id] = { x, y };
+    if (drag.petId) {
+      const pet = pets.find((p) => p.id === drag.petId);
+      if (pet) pet.pos = { x, y };
+    } else {
+      placements[drag.id] = { x, y };
+    }
     drag.node.style.left = x + "%";
     drag.node.style.top = y + "%";
   });
@@ -239,11 +302,20 @@ export async function pageElevRum() {
     if (!drag) return;
     drag.node.classList.remove("dragging");
     if (drag.moved) {
-      scheduleSaveRoom();
+      if (drag.petId) scheduleSavePets();
+      else scheduleSaveRoom();
+    } else if (drag.petId) {
+      // Klick på ett husdjur → välj det (öppnar husdjurspanelen).
+      selectedPetId = selectedPetId === drag.petId ? null : drag.petId;
+      selectedId = null;
+      renderStage();
+      renderPets();
     } else {
       // Ingen förflyttning = klick → markera/avmarkera (visar 🗑️).
       selectedId = selectedId === drag.id ? null : drag.id;
+      selectedPetId = null;
       renderStage();
+      renderPets();
     }
     drag = null;
   }
