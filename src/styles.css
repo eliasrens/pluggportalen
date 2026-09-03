@@ -1594,6 +1594,237 @@ code {
 .cx-dot.lag { background: #f4a0b8; }
 .cx-dot.tom { background: #e2ecfb; }
 
+.cx-legend-tip {
+  margin-left: auto;
+  color: var(--bla-mork);
+  font-weight: 600;
+}
+
+/* Klickbara elevrader → fördjupad statistik. */
+.class-tbl tr.cx-row {
+  cursor: pointer;
+}
+.class-tbl tr.cx-row:hover td,
+.class-tbl tr.cx-row:hover .cx-name,
+.class-tbl tr.cx-row:focus-visible td,
+.class-tbl tr.cx-row:focus-visible .cx-name {
+  background: #eaf3ff;
+}
+.class-tbl tr.cx-row:focus-visible {
+  outline: 2px solid var(--bla);
+  outline-offset: -2px;
+}
+.class-tbl .cx-row-more {
+  float: right;
+  color: var(--bla);
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.class-tbl tr.cx-row:hover .cx-row-more,
+.class-tbl tr.cx-row:focus-visible .cx-row-more {
+  opacity: 1;
+}
+
+/* --- Per-elev-fördjupning (modal, lärarsidan) ------------------------------ */
+
+.cx-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(20, 30, 50, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 14px;
+  overflow-y: auto;
+  animation: cx-fade 0.14s ease;
+}
+
+@keyframes cx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.cx-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 720px;
+  padding: 22px 24px 26px;
+  box-shadow: 0 18px 50px rgba(20, 30, 50, 0.28);
+  margin: auto 0;
+}
+
+.cx-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: #f0f4fb;
+  color: var(--text-svag);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.cx-modal-close:hover { background: #e2ecfb; color: var(--bla-mork); }
+
+.cx-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-right: 32px;
+}
+.cx-modal-avatar { font-size: 2.6rem; }
+.cx-modal-name { margin: 0; font-size: 1.5rem; }
+.cx-modal-sub { margin: 2px 0 0; color: var(--text-svag); font-size: 0.85rem; }
+
+/* Nyckeltalskort */
+.cx-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.cx-stat {
+  background: #f6faff;
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.cx-stat-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--bla-mork);
+  line-height: 1.1;
+}
+.cx-stat-num.cx-stat-when { font-size: 1.05rem; }
+.cx-stat-of { color: var(--text-svag); font-weight: 600; font-size: 0.9rem; }
+.cx-stat-lbl {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--text-svag);
+  line-height: 1.2;
+}
+
+.cx-detail-total {
+  margin: 14px 0 4px;
+}
+.cx-detail-total-bar {
+  height: 10px;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cx-detail-total-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+.cx-detail-total.mellan .cx-detail-total-bar > span { background: var(--orange); }
+.cx-detail-total.lag .cx-detail-total-bar > span { background: var(--rosa); }
+.cx-detail-total.tom .cx-detail-total-bar > span { background: #cfdcef; }
+
+.cx-detail-sec { margin-top: 20px; }
+.cx-detail-sec h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+.cx-chip-lbl {
+  margin: 8px 0 6px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  font-weight: 600;
+}
+.cx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.cx-chip-emoji { font-size: 0.95rem; }
+.cx-chip.weak { background: #fdecef; color: #c0396a; }
+.cx-chip.not { background: #eef2f9; color: var(--text-svag); }
+.cx-chip b { font-weight: 800; }
+
+.cx-subject-block { margin-bottom: 16px; }
+.cx-subject-block h4 {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  color: var(--text-svag);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cx-area-row {
+  padding: 8px 0;
+  border-top: 1px solid #eef2f9;
+}
+.cx-area-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cx-area-name { font-weight: 700; }
+.cx-area-emoji { margin-right: 6px; }
+.cx-area-stars {
+  white-space: nowrap;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--bla-mork);
+}
+.cx-area-bar {
+  height: 6px;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+.cx-area-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+.cx-area-bar.mellan > span { background: var(--orange); }
+.cx-area-bar.lag > span { background: var(--rosa); }
+.cx-area-bar.tom > span { background: transparent; }
+
+.cx-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cx-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #f6faff;
+}
+.cx-mode.tom { opacity: 0.55; }
+.cx-mode-val { font-weight: 800; color: var(--bla-mork); }
+.cx-mode.tom .cx-mode-val { color: var(--text-svag); }
+
+@media (max-width: 560px) {
+  .cx-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .cx-modal { padding: 20px 16px 22px; border-radius: 16px; }
+}
+
 /* --- Utveckling (karaktärs-evolution, #/elev/utveckling) ------------------- */
 
 .evo-hero {

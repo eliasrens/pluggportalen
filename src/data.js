@@ -283,31 +283,55 @@ export async function buyItem(itemId, price, studentId = currentStudentId()) {
 // ---------------------------------------------------------------------------
 
 /**
- * Sammanställer enkel statistik för profilsidan.
- * @returns {Promise<{coins:number, playedExercises:number, completed:number, stars:number, areas:number}>}
+ * Räknar enkla nyckeltal direkt ur ett progress-objekt (ingen Firestore-läsning).
+ * Bruten ut ur getStats så att lärarsidan kan återanvända den på redan inläst
+ * progress (se teacher-class.js) utan att läsa om datan.
+ * @param {object} progress  progress[areaId][gamemode] = { completed, stars, ... }
+ * @returns {{playedExercises:number, completed:number, stars:number, areas:number, lastPlayed:(Date|null)}}
  */
-export async function getStats(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  const progress = data.progress || {};
+export function statsFromProgress(progress) {
   let playedExercises = 0; // antal spelade övningar (område × gamemode)
   let completed = 0;
   let stars = 0;
+  let lastPlayed = null; // senaste aktivitet (Date) över alla övningar
   const areaSet = new Set();
-  for (const [areaId, modes] of Object.entries(progress)) {
+  for (const [areaId, modes] of Object.entries(progress || {})) {
     for (const result of Object.values(modes || {})) {
+      if (!result) continue;
       playedExercises += 1;
       areaSet.add(areaId);
-      if (result && result.completed) completed += 1;
-      if (result && typeof result.stars === "number") stars += result.stars;
+      if (result.completed) completed += 1;
+      if (typeof result.stars === "number") stars += result.stars;
+      const d = toDate(result.lastPlayed);
+      if (d && (!lastPlayed || d > lastPlayed)) lastPlayed = d;
     }
   }
-  return {
-    coins: data.coins || 0,
-    playedExercises,
-    completed,
-    stars,
-    areas: areaSet.size,
-  };
+  return { playedExercises, completed, stars, areas: areaSet.size, lastPlayed };
+}
+
+/**
+ * Tolkar ett lastPlayed-fält (Firestore Timestamp, {seconds}, ms-tal eller
+ * ISO-sträng) till ett Date, eller null om det saknas/inte går att tolka.
+ */
+export function toDate(ts) {
+  if (!ts) return null;
+  if (typeof ts.toDate === "function") return ts.toDate(); // Firestore Timestamp
+  if (typeof ts.seconds === "number") return new Date(ts.seconds * 1000);
+  if (typeof ts === "number") return new Date(ts);
+  if (typeof ts === "string") {
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+
+/**
+ * Sammanställer enkel statistik för profilsidan.
+ * @returns {Promise<{coins:number, playedExercises:number, completed:number, stars:number, areas:number, lastPlayed:(Date|null)}>}
+ */
+export async function getStats(studentId = currentStudentId()) {
+  const data = await getStudentData(studentId);
+  return { coins: data.coins || 0, ...statsFromProgress(data.progress || {}) };
 }
 
 // ---------------------------------------------------------------------------
