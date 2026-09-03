@@ -6,9 +6,12 @@
 //  - kontur #3B3350 (art-style.js), fönster 150×130 vid (440,330)
 //  - husfasad/tak/vägg färgas via CSS-variablerna --hus-house/--hus-roof/
 //    --hus-wall/--hus-wall2 (elevens palett) – golv & natur påverkas inte.
-// preserveAspectRatio="slice" låter scenen FYLLA hela den stora spelcanvasen
-// (himmel/gräs är övertecknade långt utanför viewBoxen i stället för att
-// letterboxa). Elevens avatar ritas framför huset via foreignObject – den
+// preserveAspectRatio="xMidYMid meet" ser till att HELA viewBoxen (hus + avatar
+// + all natur) ALLTID ryms – inget beskärs på korta/breda eller smala/höga
+// skärmar. Himmel/gräs är övertecknade långt utanför viewBoxen och scenens
+// svg får overflow:visible (styles.css .varld-ute svg), så letterbox-ytan
+// fylls av naturen i stället för tomma kanter; .varld-stage klipper mot ramen.
+// Elevens avatar ritas framför huset via foreignObject – den
 // lever i scenens koordinatsystem och följer därmed alla kamerazoomar
 // perfekt; storleken styrs av CSS-variabeln --varld-avatar-font (px i
 // scen-koordinater).
@@ -159,19 +162,19 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
     : "";
 
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Ditt hus utifrån"
-      preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="hus-himmel" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>
     </linearGradient></defs>
-    <rect x="-480" y="-300" width="1920" height="1200" fill="url(#hus-himmel)"/>
+    <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#hus-himmel)"/>
     <g class="hus-solstralar">${sol}</g>
     <circle cx="110" cy="86" r="34" fill="#F7C948" ${LINE}/>
     <g class="hus-moln" style="--t:62s">${molnArt(0, 70, 1.25)}</g>
     <g class="hus-moln" style="--t:46s;animation-delay:-18s">${molnArt(0, 150, 0.9)}</g>
     <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
 
-    <path d="M-480 480 Q240 380 520 470 Q760 380 1440 460 L1440 900 L-480 900 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-480 520 Q300 470 620 525 Q820 500 1440 520 L1440 900 L-480 900 Z" fill="#8FCB74" ${LINE}/>
+    <path d="M-2400 470 L-480 480 Q240 380 520 470 Q760 380 1440 460 L3360 470 L3360 2100 L-2400 2100 Z" fill="#A8DA8F" ${LINE}/>
+    <path d="M-2400 520 L-480 520 Q300 470 620 525 Q820 500 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
 
     <g>${limb("M800 500 L800 430", WOOD, 14)}
       <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
