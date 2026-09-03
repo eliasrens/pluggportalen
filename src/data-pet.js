@@ -133,7 +133,7 @@ function migratedLegacyPet(pet) {
 }
 
 /** pets[] ur ett studentData-objekt, med migrering av ev. legacy-pet i minnet. */
-function petsFromData(data) {
+export function petsFromData(data) {
   if (Array.isArray(data.pets)) return data.pets;
   if (data.pet && data.pet.eggBoughtAt) return [migratedLegacyPet(data.pet)];
   return [];

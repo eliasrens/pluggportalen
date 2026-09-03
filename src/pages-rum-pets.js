@@ -139,6 +139,23 @@ export function petStageNode(pet, selected) {
 }
 
 /**
+ * READ-ONLY nod för ett KLÄCKT husdjur (t.ex. i en kompis läs-vy): exakt samma
+ * sprite-/SVG-utseende som i eget rum, men helt stilla – inga hover-/klick-/
+ * drag-listeners, ingen panel, inga humör-/matningsuttryck. Idle-andningen är
+ * gratis via CSS-klasserna. Ägg (ej kläckta) ritas inte här → returnerar null.
+ */
+export function petReadonlyNode(pet) {
+  if (!pet || !pet.hatchedAt) return null;
+  const pos = pet.pos || { x: 50, y: 70 };
+  const art = petArtHtml(pet, idleExpression(pet));
+  return el(`<div class="room-item room-pet readonly pet-vuxen-${pet.stage || 1}"
+    style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">
+    <span class="ri-emoji">${art}</span>
+    <span class="rp-namn">${petDisplayName(pet)}</span>
+  </div>`);
+}
+
+/**
  * Rita husdjurspanelen (under rumsscenen) för det valda djuret.
  * opts: { hasLamp, justHatched, onUpdate(pets), onClose() }
  */

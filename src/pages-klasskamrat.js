@@ -19,6 +19,9 @@ import { getItem, isWearable, isFlatItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { roomBackdropHtml, windowItemHtml, WINDOW_DEFAULT } from "./art-room.js";
 import { getPalette, paletteIdFromStudentData } from "./room-palettes.js";
+import { petsFromData } from "./data-pet.js";
+import { petReadonlyNode } from "./pages-rum-pets.js";
+import { animalsFromData } from "./data-animals.js";
 
 /** Minimal HTML-escape för elevnamn som kommer från Firestore. */
 function esc(s) {
@@ -95,6 +98,17 @@ export async function pageElevKlasskamrat() {
     })
     .join("");
 
+  // Kompisens djur (READ-ONLY): mystery-djuren (kläckta pets) + vanliga djuren.
+  // De ritas som stilla noder EFTER möblerna så de staplas ovanpå mattor/möbler
+  // (samma z-känsla som eget rum). Inga listeners, ingen matning, inga skrivningar.
+  const petNodes = petsFromData(sd)
+    .map((pet) => petReadonlyNode(pet))
+    .filter(Boolean);
+  const djurNodes = animalsFromData(sd)
+    .map((a) => animalReadonlyNode(a))
+    .filter(Boolean);
+  const hasDjur = petNodes.length > 0 || djurNodes.length > 0;
+
   const view = el(`<div>
     <a class="back-link" id="back">← Till klassbyn</a>
     <div class="panel center">
@@ -107,7 +121,7 @@ export async function pageElevKlasskamrat() {
       style="--rum-wall:${pal.wall};--rum-wall2:${pal.wall2}">
       ${roomBackdropHtml()}
       ${windowHtml}
-      ${items || '<div class="room-empty">Det här rummet är fortfarande tomt. 🕸️</div>'}
+      ${items || (hasDjur ? "" : '<div class="room-empty">Det här rummet är fortfarande tomt. 🕸️</div>')}
     </div>
 
     <div class="center">
@@ -115,8 +129,31 @@ export async function pageElevKlasskamrat() {
     </div>
   </div>`);
 
+  // Djuren läggs in som DOM-noder EFTER möblerna (som redan står i #stage), så
+  // de hamnar överst i staplingen. Mystery-djur först, sedan vanliga djur –
+  // samma ordning som i elevens eget rum (varld-rum.js).
+  const stage = view.querySelector("#stage");
+  for (const node of petNodes) stage.appendChild(node);
+  for (const node of djurNodes) stage.appendChild(node);
+
   view.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
   view.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
 
   app.replaceChildren(view);
+}
+
+/**
+ * READ-ONLY nod för ett VANLIGT djur (hund/katt m.fl.) i kompisens rum: fast
+ * storlek (itemSize, som i varld-rum-djur.js) men utan drag/klick/panel. Bara
+ * att titta på – inga listeners, inga skrivningar.
+ */
+function animalReadonlyNode(a) {
+  const item = getItem(a.id);
+  if (!item) return null;
+  const size = itemSize(a.id);
+  return el(`<div class="room-item room-pet room-djur readonly"
+    style="left:${a.pos.x}%;top:${a.pos.y}%" title="${esc(item.name)}">
+    <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(a.id) || item.emoji}</span>
+    <span class="rp-namn">${esc(item.name)}</span>
+  </div>`);
 }
