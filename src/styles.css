@@ -2230,6 +2230,16 @@ body.varld-lage .container {
   .varld-titel { font-size: 0.95rem; }
   .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */
   .varld-panel { width: 100%; }        /* panelerna fyller bredden på mobil */
+
+  /* Rummets möbler/djur är måttsatta i FASTA rem × --rum-skala (1.55), avstämt
+     mot den breda desktop-scenen. På den smala porträtt-mobilen blir samma
+     fasta mått ~4× för stora i förhållande till bredden → sakerna krockar och
+     hopkryms/överlappar i golvzonen (en enskild möbel tog ~57 % av scenbredden
+     mot ~13 % på desktop). En lägre skala här ger lagom stora, lätt-dragbara
+     möbler & djur som fyller scenen proportionerligt utan att krocka. Positioner
+     är procentbaserade och drag-clampen läser offsetWidth, så allt följer med.
+     Desktop/laptop (> 700px) rör vi inte – de behåller 1.55. */
+  .varld-lager.room-stage { --rum-skala: 1.15; }
 }
 
 .hus-hint {
