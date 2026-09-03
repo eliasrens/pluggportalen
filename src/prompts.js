@@ -21,13 +21,22 @@ const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "quiz": lista med flervalsfrågor. Varje fråga:
     { "id": string, "question": string, "options": [string, ...],
       "answerIndex": number, "explanation": string, "passage": string }
-    * "options" måste ha minst 2 alternativ.
-    * "answerIndex" är index (0 = första alternativet) för det RÄTTA svaret.
-    * "explanation" förklarar kort varför svaret är rätt.
-    * "passage" (VALFRITT) är en text på 3–5 meningar, hämtad ur materialet,
-      som eleven kan besvara JUST DEN frågan utifrån. Används i läsförståelse-läget
-      där passagen visas ovanför frågan. Skriv en egen passande passage per fråga
-      (3–5 fullständiga meningar – inte bara en enda mening).
+    * "options" ska ha exakt 4 alternativ (minst 2), alla olika och rimliga.
+      Undvik svarsalternativ som "alla ovanstående" eller "vet ej".
+    * "answerIndex" är 0-baserat index i "options" för det RÄTTA svaret
+      (0 = första alternativet, 1 = andra, osv.). Kontrollera att talet verkligen
+      pekar på det alternativ som är rätt.
+    * "explanation" förklarar kort (1–2 meningar) varför svaret är rätt.
+    * "passage" är källtexten som JUST DEN frågan bygger på: 3–5 fullständiga
+      meningar hämtade ur materialet, formulerade så att eleven kan besvara frågan
+      enbart utifrån passagen. Visas ovanför frågan i läsförståelse-läget.
+      OBLIGATORISK för läsförståelse – varje fråga MÅSTE ha en egen passage, och
+      samma passage får inte återanvändas ordagrant till flera frågor. Frågan och
+      alternativen ska vara helt begripliga utifrån frågans egen passage: hänvisa
+      ALDRIG till "texten ovan", "enligt texten" eller liknande om inte den texten
+      finns i just denna frågas passage. (Endast för ett rent quiz utan läsförståelse
+      får "passage" utelämnas – men alla prompter här skapar quiz som även används
+      som läsförståelse, så ta alltid med passage.)
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
     { "id": string, "term": string, "definition": string }`;
 
@@ -69,10 +78,12 @@ const SKALA_QUIZ = `Anpassa ANTALET quizfrågor efter hur mycket text du fått:
 - Är texten ännu längre? Fortsätt lägga till frågor i samma takt (ca 3–4 frågor per halvsida).
 Täck HELA texten jämnt – ta med frågor från början, mitten och slutet, inte bara det första stycket.
 Undvik upprepade frågor och triviala frågor som eleven kan svara på utan att ha läst texten.
-Ge VARJE fråga ett "passage": en text på 3–5 meningar hämtad ur materialet, som just den
-frågan kan besvaras utifrån. Skriv en egen, passande passage per fråga (3–5 fullständiga meningar –
-inte bara en enda mening, och upprepa inte samma text till alla frågor). Passagen används i
-läsförståelse-läget och visas ovanför frågan.`;
+Ge VARJE fråga ett "passage" (OBLIGATORISKT): en källtext på 3–5 fullständiga meningar hämtad ur
+materialet, som just den frågan kan besvaras enbart utifrån. Skriv en egen, passande passage per
+fråga (inte bara en enda mening, och upprepa inte samma text ordagrant till alla frågor). Frågan
+och svarsalternativen får INTE hänvisa till text utanför frågans egen passage ("enligt texten
+ovan" utan medskickad text är förbjudet). Passagen används i läsförståelse-läget och visas
+ovanför frågan – en fråga utan passage godkänns inte i läsförståelse.`;
 
 const SKALA_PAR = `Anpassa ANTALET fakta-par efter hur mycket text du fått:
 - Kort text: minst 6 par.
@@ -90,7 +101,13 @@ const REGLER = `Viktiga regler:
 - Svara med ENBART giltig JSON – ingen förklarande text före eller efter, inga \`\`\`-kodstaket.
 - Använd dubbla citattecken runt alla nycklar och strängar. Inga avslutande kommatecken.
 - Skriv på svenska och anpassa språket till elever i årskurs 4 (ca 10 år): korta meningar, enkla ord.
-- Hitta INTE på fakta. Använd bara innehållet i det bifogade materialet / texten nedan.`;
+- Hitta INTE på fakta. Använd bara innehållet i det bifogade materialet / texten nedan.
+- Varje quizfråga: exakt 4 svarsalternativ (alla olika och rimliga) och "answerIndex" 0-baserat
+  som pekar på det rätta alternativet (0 = första). Dubbelkolla att rätt svar ligger på det indexet.
+- Varje fråga ska gå att svara på fristående – hänvisa inte till andra frågor eller till text som
+  inte visas. I läsförståelse betyder det att frågan besvaras utifrån frågans egna "passage".
+- Håll texter lagom korta: "passage" 3–5 meningar, "explanation" 1–2 meningar, alternativ korta.
+- Skriv INTE ledtrådar i själva frågan om vilket alternativ som är rätt.`;
 
 /**
  * Prompt: komplett arbetsområde (texter + quiz + fakta-par).

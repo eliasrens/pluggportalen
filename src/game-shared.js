@@ -32,6 +32,15 @@ export const GAMEMODES = [
 // Små hjälpare
 // ---------------------------------------------------------------------------
 
+/** Enkel HTML-escape för att lägga in text säkert i markup. */
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 /** Blanda en array (kopia, Fisher–Yates). */
 export function shuffle(arr) {
   const a = arr.slice();
@@ -222,7 +231,7 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
         <div class="quiz-progress-bar" style="width:${(doneUnique / totalUnique) * 100}%"></div>
       </div>
       <p class="quiz-count">Fråga ${Math.min(doneUnique + 1, totalUnique)} av ${totalUnique}</p>
-      ${showPassage && q.passage ? `<div class="lasf-passage"><span class="lasf-passage-emoji">📖</span><p>${q.passage}</p></div>` : ""}
+      ${showPassage && q.passage ? `<div class="lasf-passage"><span class="lasf-passage-emoji">📖</span><p>${esc(q.passage)}</p></div>` : ""}
       <div class="quiz-question">${q.question}</div>
       <div class="quiz-options">
         ${q.options
