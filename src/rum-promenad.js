@@ -1,8 +1,9 @@
 // ============================================================================
 // Pluggportalen – promenad-AI för husdjuren i Mitt rum
 // ----------------------------------------------------------------------------
-// Låter kläckta husdjur promenera lugnt omkring på golvet i rumsscenen
-// (pages-rum.js) utan att gå genom eller ställa sig ovanpå utplacerade möbler
+// Låter husdjuren (kläckta mystery-djur OCH de vanliga djuren från shoppen –
+// se varld-rum-djur.js) promenera lugnt omkring på golvet i rumsscenen
+// utan att gå genom eller ställa sig ovanpå utplacerade möbler
 // och dekor. Ingen väg-sökning: djuret väljer bara mål dit den raka vägen är
 // fri (kolliderar rummet ändå, t.ex. när en möbel dras ovanpå djuret, stannar
 // det och väljer ett nytt mål). Tempo enligt designfacit: lugnt, mjukt,

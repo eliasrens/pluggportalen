@@ -10,7 +10,8 @@
 import * as data from "./data.js";
 import { buyEgg, buyHeatLamp, buyApple, EGG_ITEM_ID, LAMP_ITEM_ID, APPLE_ITEM_ID } from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
-import { CATEGORIES, getItem, itemsInCategory, isConsumable } from "./shop-items.js";
+import { buyAnimal, animalsFromData } from "./data-animals.js";
+import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
 import { coinIcon } from "./icons.js";
@@ -32,6 +33,8 @@ export async function pageElevShop() {
     coins: sd.coins || 0,
     owned: new Set(sd.ownedItems || []),
     appleCount: sd.appleCount || 0, // förbrukningsvara: antal, inte "ägd"
+    // Vanliga djur bor i roomAnimals (inte ownedItems) – ett per art.
+    animals: new Set(animalsFromData(sd).map((a) => a.id)),
   };
 
   const view = el(`<div>
@@ -40,7 +43,8 @@ export async function pageElevShop() {
       <div>
         <h1>Shoppen 🛍️</h1>
         <p class="hint">Köp saker för dina pluggcoins. Kläder sätter du på din figur,
-          möbler och husdjur placerar du i <b>Mitt rum</b>.</p>
+          möbler placerar du i <b>Mitt rum</b> – husdjur flyttar in själva och
+          promenerar omkring där!</p>
       </div>
       <div class="shop-saldo">Ditt saldo<br /><span class="coins" id="saldo">${coinIcon(24)} ${state.coins}</span></div>
     </div>
@@ -85,7 +89,8 @@ export async function pageElevShop() {
     const item = getItem(id);
     // Förbrukningsvaror (äpplen) kan köpas hur många gånger som helst; övriga
     // saker bara om de inte redan ägs.
-    if (!item || item.comingSoon || (!isConsumable(id) && state.owned.has(id))) return;
+    if (!item || item.comingSoon) return;
+    if (!isConsumable(id) && (state.owned.has(id) || state.animals.has(id))) return;
 
     btn.disabled = true;
     btn.textContent = "Köper…";
@@ -94,13 +99,17 @@ export async function pageElevShop() {
       // och köps därför via data-pet.js – i övrigt samma transaktionsmönster.
       // Ägget kan köpas FLERA gånger (varje köp = ett nytt ägg i rummet) och
       // hamnar därför aldrig i ownedItems.
+      // Vanliga djur (hund/katt …) blir LEVANDE, promenerande djur i rummet
+      // (studentData.roomAnimals) – inte statiska saker i ownedItems.
       let res;
       if (item.id === EGG_ITEM_ID) res = await buyEgg(item.price);
       else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
       else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
+      else if (isAnimalItem(item.id)) res = await buyAnimal(item.id, item.price);
       else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
+      if (res.animals) state.animals = new Set(res.animals.map((a) => a.id));
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
       saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
       renderKatalog();
@@ -112,6 +121,8 @@ export async function pageElevShop() {
           flash(`Du köpte en värmelampa! 🔦 Nu kläcks ägget dubbelt så snabbt.`);
         } else if (item.id === APPLE_ITEM_ID) {
           flash(`Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`);
+        } else if (isAnimalItem(item.id)) {
+          flash(`Du köpte ${item.name}! ${item.emoji} Den promenerar nu omkring i Mitt rum.`);
         } else {
           flash(item.category === "klader"
             ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`
@@ -134,7 +145,8 @@ export async function pageElevShop() {
 function shopCardHtml(it, state) {
   const consumable = isConsumable(it.id);
   // Förbrukningsvaror "ägs" aldrig – de har ett antal och kan alltid köpas fler.
-  const owned = !consumable && state.owned.has(it.id);
+  // Vanliga djur "ägs" när de bor i rummet (roomAnimals) – ett per art.
+  const owned = !consumable && (state.owned.has(it.id) || state.animals.has(it.id));
   const affordable = state.coins >= it.price;
   let btn;
   if (it.comingSoon) {
