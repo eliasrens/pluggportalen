@@ -15,13 +15,15 @@ import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, isAnimalItem } from "./shop-items.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
-import { petStageNode, renderPetPanel, petBellyFlop, petPat, isPetBusy, animalNamePanel } from "./pages-rum-pets.js";
+import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb } from "./pages-rum-pets.js";
+import { renderPetPanel, animalNamePanel } from "./pages-rum-pet-panel.js";
 import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
 import { roomBackdropHtml, FLOOR_TOP, WINDOW_ID } from "./art-room.js";
 import { mountRumFonster } from "./varld-rum-fonster.js";
 import { mountWearTray } from "./varld-rum-wear.js";
 import { mountRumMat } from "./varld-rum-mat.js";
+import { mountRumDjurTray } from "./varld-rum-djurtray.js";
 
 /** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
 function isFloorItem(id) {
@@ -37,6 +39,8 @@ function isFloorItem(id) {
  * @param {HTMLElement} o.petPanel  overlay-behållare för husdjurspanelen
  * @param {HTMLElement} o.tray      behållare för sak-lådan
  * @param {HTMLElement} o.trayHint  hint-rad ovanför sak-lådan
+ * @param {HTMLElement} o.djurTray  behållare för "Mina djur"-lådan (undanstuvade)
+ * @param {HTMLElement} o.djurHint  hint-rad ovanför "Mina djur"-lådan
  * @param {HTMLElement} o.wearTray  behållare för klädlådan
  * @param {HTMLElement} [o.matBtn]  "Lägg mat"-knappen (lägger äpplen på golvet)
  * @param {object} o.sd             studentData (ägda saker, rum, avatar)
@@ -45,7 +49,7 @@ function isFloorItem(id) {
  * @param {(equipped: string[]) => void} [o.onEquippedChange]
  *        körs när klädseln ändrats (så ute-avataren kan ritas om)
  */
-export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange }) {
+export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange }) {
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
 
@@ -54,7 +58,32 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
   // walkers() = allt som promenerar (mystery-djur + vanliga djur): de delar
   // promenad-AI, drag-pipeline och selectedPetId men bor i skilda datamodeller.
   const djur = mountRumDjur({ sd });
-  const walkers = () => [...pets, ...djur.list()];
+  // Bara djur som är I RUMMET promenerar/ritas; undanstuvade (stowed) mystery-
+  // djur hålls utanför precis som de vanliga djuren (djur.list() filtrerar dem).
+  const roomPets = () => pets.filter((p) => !p.stowed);
+  const walkers = () => [...roomPets(), ...djur.list()];
+
+  // "Mina djur"-lådan (undanstuvade djur) monteras längre ner; stow/return-
+  // hjälparna refererar den vid klicktillfället (då är den satt).
+  let djurTrayCtl = null;
+
+  // Stuva undan / lägg tillbaka ett djur: uppdaterar data (via djur-modulen
+  // resp. petData) + scenen + "Mina djur"-lådan. Djuret tappas aldrig, bara
+  // flaggan flyttas. `kind` skiljer vanliga djur ("animal") från mystery ("pet").
+  function setStowed(kind, id, stowed) {
+    if (kind === "animal") {
+      djur.setStowed(id, stowed);
+    } else {
+      const p = pets.find((x) => x.id === id);
+      if (p) p.stowed = stowed;
+      petData.setPetStowed(id, stowed).catch(() => {});
+    }
+    if (stowed && selectedPetId === id) selectedPetId = null;
+    renderStage();
+    renderPets();
+    djurTrayCtl?.render();
+    flash(stowed ? "Djuret vilar nu i Mina djur 🐾" : "Djuret är tillbaka i rummet! 🐾");
+  }
 
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
   // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak; vanliga
@@ -134,6 +163,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
           if (res.ok) { renderStage(); renderPets(); }
           return res;
         },
+        onStow: () => setStowed("animal", animal.id, true),
       }));
       return;
     }
@@ -141,6 +171,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
       hasLamp,
       justHatched: !!pet && pet.id === justHatchedId,
       startRename: openRename === selectedPetId,
+      onStow: pet && pet.hatchedAt ? () => setStowed("pet", pet.id, true) : null,
       onUpdate(nextPets, petId) {
         // Behåll rummets aktuella positioner – serverns pos kan vara äldre än
         // dit promenad-AI:n hunnit gå (positioner sparas glest).
@@ -190,7 +221,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
       stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
         style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍎</div>`));
     }
-    for (const pet of pets) {
+    for (const pet of roomPets()) {
       if (!pet.pos) pet.pos = { x: 50, y: 70 };
       stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
     }
@@ -198,7 +229,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     for (const a of djur.list()) {
       stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
     }
-    if (Object.keys(placements).length === 0 && pets.length === 0 && djur.list().length === 0) {
+    if (Object.keys(placements).length === 0 && roomPets().length === 0 && djur.list().length === 0) {
       stage.appendChild(el(`<div class="room-empty">Ditt rum är tomt – öppna Lådan 📦 och ställ in dina saker!</div>`));
     }
   }
@@ -229,6 +260,24 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
 
   // Klädlådan lever i sin egen modul (rendering + sätt-på/ta-av + sparning).
   mountWearTray({ wearTray, sd, onEquippedChange });
+
+  // "Mina djur"-lådan (undanstuvade djur) lever i sin egen modul. Vi räknar fram
+  // korten här (vanliga djur + kläckta mystery-djur som är undanstuvade) och
+  // låter ett klick lägga tillbaka djuret i rummet.
+  djurTrayCtl = mountRumDjurTray({
+    tray: djurTray,
+    hint: djurHint,
+    listStowed: () => [
+      ...djur.stowedList().map((a) => ({
+        kind: "animal", id: a.id, name: djur.displayName(a),
+        artHtml: itemSvg(a.id) || (getItem(a.id)?.emoji ?? "🐾"),
+      })),
+      ...pets.filter((p) => p.stowed && p.hatchedAt).map((p) => ({
+        kind: "pet", id: p.id, name: petDisplayName(p), artHtml: petArtThumb(p),
+      })),
+    ],
+    onReturn: (kind, id) => setStowed(kind, id, false),
+  });
 
   // Matningen (äpplen på golvet) lever i sin egen modul: äger floorApples +
   // "Lägg mat"-knappen och ger promenad-AI:n apples()/onEat. renderStage() läser

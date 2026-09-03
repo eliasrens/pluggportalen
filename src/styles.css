@@ -1376,6 +1376,15 @@ code {
   font-weight: 700;
 }
 
+/* "Mina djur"-lådan: mystery-djurens sprite-rigg är höjd-driven (aspect-ratio),
+   så thumbnailen behöver en fast-höjd-ruta för att inte kollapsa. Procedurella
+   SVG-djur skalar redan via .tray-emoji svg. */
+.tray-pet-sprite {
+  display: inline-block;
+  height: 2.6rem;
+  vertical-align: middle;
+}
+
 .wear-item .wear-state {
   font-size: 0.75rem;
   font-weight: 800;

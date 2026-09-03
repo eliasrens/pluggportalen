@@ -8,7 +8,8 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { buyEgg, buyHeatLamp, buyApple, EGG_ITEM_ID, LAMP_ITEM_ID, APPLE_ITEM_ID } from "./data-pet.js";
+import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
+import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
 import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem } from "./shop-items.js";

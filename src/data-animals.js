@@ -10,11 +10,14 @@
 //     (isHungry i data-pet.js är false för dem: de är inga sprite-arter).
 //
 // Datamodell (studentData.roomAnimals: array):
-//   { id, pos: { x, y }, name }  id = shop-sakens id ("hund", "katt" …) –
-//                                man kan bara äga ETT djur per art, så arten
+//   { id, pos: { x, y }, name, stowed }  id = shop-sakens id ("hund", "katt" …)
+//                                – man kan bara äga ETT djur per art, så arten
 //                                ÄR identiteten. pos i procent av rumsscenen.
 //                                name = elevens eget namn (sträng) eller null –
 //                                saneras med cleanPetName (samma som mystery-djur).
+//                                stowed = true → djuret är UNDANSTUVAT ("Mina
+//                                djur"): det syns inte i rummet men räknas som
+//                                ägt (kan läggas tillbaka). Se setAnimalStowed.
 //
 // Hålls medvetet HELT åtskild från pets[]: matnings-/evolutionslogiken i
 // data-pet.js rör aldrig roomAnimals, och den här modulen rör aldrig pets.
@@ -54,12 +57,12 @@ export function animalsFromData(data) {
     const pos = a.pos && Number.isFinite(a.pos.x) && Number.isFinite(a.pos.y)
       ? { x: a.pos.x, y: a.pos.y }
       : randomFloorPos();
-    out.push({ id: a.id, pos, name: cleanPetName(a.name) });
+    out.push({ id: a.id, pos, name: cleanPetName(a.name), stowed: !!a.stowed });
   }
   for (const id of data.ownedItems || []) {
     if (!isAnimalItem(id) || seen.has(id)) continue;
     seen.add(id);
-    out.push({ id, pos: randomFloorPos(), name: null });
+    out.push({ id, pos: randomFloorPos(), name: null, stowed: false });
   }
   return out;
 }
@@ -82,7 +85,7 @@ export async function buyAnimal(itemId, price, studentId = currentStudentId()) {
     const animals = animalsFromData(data);
     if (animals.some((a) => a.id === itemId)) return { ok: true, coins, animals };
     if (coins < cost) return { ok: false, coins, animals };
-    const next = [...animals, { id: itemId, pos: randomFloorPos(), name: null }];
+    const next = [...animals, { id: itemId, pos: randomFloorPos(), name: null, stowed: false }];
     const write = { coins: coins - cost, roomAnimals: next };
     if (snap.exists()) tx.update(ref, write);
     else tx.set(ref, write);
@@ -134,6 +137,29 @@ export async function saveAnimalName(animalId, name, studentId = currentStudentI
     const i = animals.findIndex((a) => a.id === animalId);
     if (i === -1) return { ok: false, animal: null, animals };
     const next = animals.map((a) => (a.id === animalId ? { ...a, name: clean } : a));
+    tx.update(ref, { roomAnimals: next });
+    return { ok: true, animal: next[i], animals: next };
+  });
+}
+
+/**
+ * Stuva undan / lägg tillbaka ett vanligt djur: sätter roomAnimals-postens
+ * stowed-flagga. Djuret TAPPAS aldrig – det ligger kvar i roomAnimals (räknas
+ * fortfarande som ägt, blockerar nyköp) men ritas inte i rummet när stowed:true.
+ * Skriver ner hela listan (inkl. ev. legacy-merge) i EN transaktion – samma
+ * mönster som saveAnimalName.
+ * @returns {Promise<{ok: boolean, animal: object|null, animals: object[]}>}
+ */
+export async function setAnimalStowed(animalId, stowed, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) return { ok: false, animal: null, animals: [] };
+    const animals = animalsFromData(snap.data());
+    const i = animals.findIndex((a) => a.id === animalId);
+    if (i === -1) return { ok: false, animal: null, animals };
+    const next = animals.map((a) => (a.id === animalId ? { ...a, stowed: !!stowed } : a));
     tx.update(ref, { roomAnimals: next });
     return { ok: true, animal: next[i], animals: next };
   });

@@ -119,6 +119,7 @@ export async function pageElevVarld(startNiva) {
           <div class="varld-verktyg">
             <button class="varld-knapp" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
             <button class="varld-knapp bara-rum" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
+            <button class="varld-knapp bara-rum" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
             <button class="varld-knapp rum-och-hus" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
             <button class="varld-knapp bara-rum" id="mat-btn" title="Klicka ut Mysterymat på golvet">🍎 <span>Mysterymat</span></button>
             <button class="varld-knapp" id="to-shop" title="Till shoppen">🛍️</button>
@@ -134,6 +135,11 @@ export async function pageElevVarld(startNiva) {
           <h3>Lådan 📦</h3>
           <p class="hint" id="tray-hint"></p>
           <div class="room-tray" id="tray"></div>
+        </div>
+        <div class="varld-panel" id="panel-djur" hidden>
+          <h3>Mina djur 🐾</h3>
+          <p class="hint" id="djur-hint"></p>
+          <div class="room-tray" id="djurtray"></div>
         </div>
         <div class="varld-panel" id="panel-klader" hidden>
           <h3>Klä på din figur 👗</h3>
@@ -390,6 +396,8 @@ export async function pageElevVarld(startNiva) {
     petPanel: view.querySelector("#pet-panel"),
     tray: view.querySelector("#tray"),
     trayHint: view.querySelector("#tray-hint"),
+    djurTray: view.querySelector("#djurtray"),
+    djurHint: view.querySelector("#djur-hint"),
     wearTray: view.querySelector("#weartray"),
     matBtn: view.querySelector("#mat-btn"),
     sd, pets, justHatchedIds,

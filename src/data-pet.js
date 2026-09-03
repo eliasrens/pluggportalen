@@ -6,17 +6,17 @@
 //
 // Datamodell (studentData.pets: array av pet-objekt):
 //   { id, name, eggBoughtAt, hasHeatLamp, speciesId, hatchedAt, stage,
-//     feedCount, lastFedAt, pos: { x, y } }   (pos i procent av rumsscenen)
+//     feedCount, lastFedAt, pos: { x, y }, stowed }  (pos i procent av scenen)
+//   stowed = true → djuret är UNDANSTUVAT ("Mina djur"): det promenerar/äter
+//   inte (utanför walkers()) men behåller namn/steg/feedCount och räknas som
+//   ägt. Lägg tillbaka → fortsätter som förr. Se setPetStowed.
 //
-// Matning via äpplen (ersätter den gamla gratis-panelknappen):
-//   studentData.appleCount        antal köpta men outlagda äpplen (heltal ≥ 0)
-//   studentData.floorApples[]     äpplen som ligger på golvet, { id, x, y }
-//                                 (x/y i procent av rumsscenen, golvzonen)
-//   Köp av äpple (buyApple) ökar appleCount; att lägga ut ett (placeApple)
-//   flyttar ett från appleCount → floorApples; när ett djur äter upp det
-//   (eatApple) tas det ur floorApples och djurets feedCount ökar med 1.
-//   Tillväxten sker ENBART via uppätna äpplen (10 per steg) – ingen gratis
-//   dagsmatning finns kvar.
+// Matning via äpplen (ersätter den gamla gratis-panelknappen): köp/utläggning
+// av äpplen (appleCount/floorApples, buyApple/placeApple) bor i äppel-ekonomin
+// (data-pet-mat.js). Här sköts bara djurets TILLVÄXT när det äter upp ett äpple
+// (eatApple): äpplet tas ur floorApples och djurets feedCount ökar med 1.
+// Tillväxten sker ENBART via uppätna äpplen (10 per steg) – ingen gratis
+// dagsmatning finns kvar.
 //
 // Bakåtkompatibilitet: ett äldre studentData.pet (singular) migreras till
 // pets[] vid första inläsningen (fältet lämnas kvar men ignoreras sedan –
@@ -38,10 +38,10 @@ import {
 import { currentStudentId } from "./data.js";
 import { randomSpeciesId, getSpecies } from "./art-pets-creatures.js";
 
-// Shop-id:n (måste matcha shop-items.js).
+// Shop-id:n (måste matcha shop-items.js). Äpplet (APPLE_ITEM_ID) bor i
+// äppel-ekonomin (data-pet-mat.js) tillsammans med köp/utläggning.
 export const EGG_ITEM_ID = "mystery-egg";
 export const LAMP_ITEM_ID = "varmelampa";
-export const APPLE_ITEM_ID = "apple";
 
 // Kläcktid: 1 dygn utan värmelampa, 10 minuter MED värmelampa (fast tid).
 export const HATCH_MS = 24 * 60 * 60 * 1000; // 1 dygn
@@ -110,10 +110,6 @@ export function cleanPetName(name) {
 
 function newPetId() {
   return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-
-function newAppleId() {
-  return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 /** Gör ett äldre singular-pet till en post i pets[] (behåller alla fält). */
@@ -267,58 +263,9 @@ export async function hatchReadyPets(studentId = currentStudentId()) {
   });
 }
 
-// --- Matning via äpplen -----------------------------------------------------
-
-/** floorApples[] ur ett studentData-objekt (tom lista om fältet saknas). */
-function floorApplesFromData(data) {
-  return Array.isArray(data.floorApples) ? data.floorApples : [];
-}
-
-/**
- * Köp ETT äpple: drar coins och ökar studentData.appleCount. Äpplet är en
- * förbrukningsvara (hamnar aldrig i ownedItems) – man kan köpa hur många som
- * helst. Allt i EN transaktion (samma mönster som buyItem).
- * @returns {Promise<{ok: boolean, coins: number, appleCount: number}>}
- */
-export async function buyApple(price, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const cost = Math.max(0, Math.round(price || 0));
-  const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const coins = data.coins || 0;
-    const count = data.appleCount || 0;
-    if (coins < cost) return { ok: false, coins, appleCount: count };
-    const next = { coins: coins - cost, appleCount: count + 1 };
-    if (snap.exists()) tx.update(ref, next);
-    else tx.set(ref, next);
-    return { ok: true, coins: next.coins, appleCount: next.appleCount };
-  });
-}
-
-/**
- * Lägg ut ETT äpple på golvet: flyttar ett äpple från appleCount till
- * floorApples[] (position i procent av rumsscenen). Misslyckas om man är slut
- * på äpplen. Allt i EN transaktion.
- * @returns {Promise<{ok: boolean, appleCount: number, floorApples: object[], apple: object|null}>}
- */
-export async function placeApple(x, y, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const count = data.appleCount || 0;
-    const apples = floorApplesFromData(data);
-    if (count <= 0) return { ok: false, appleCount: count, floorApples: apples, apple: null };
-    const apple = { id: newAppleId(), x, y };
-    const nextApples = [...apples, apple];
-    if (snap.exists()) tx.update(ref, { appleCount: count - 1, floorApples: nextApples });
-    else tx.set(ref, { appleCount: count - 1, floorApples: nextApples });
-    return { ok: true, appleCount: count - 1, floorApples: nextApples, apple };
-  });
-}
+// --- Matning: djurets tillväxt när det äter upp ett äpple -------------------
+// Köp/utläggning av äpplen bor i äppel-ekonomin (data-pet-mat.js). Här räknas
+// bara djurets steg om när det faktiskt äter (måste läsa+skriva pets[]).
 
 /**
  * Ett husdjur äter upp ett äpple från golvet: tar bort äpplet ur floorApples,
@@ -329,7 +276,7 @@ export async function placeApple(x, y, studentId = currentStudentId()) {
  */
 export async function eatApple(petId, appleId, studentId = currentStudentId()) {
   return updatePets(studentId, (pets, data) => {
-    const apples = floorApplesFromData(data);
+    const apples = Array.isArray(data.floorApples) ? data.floorApples : [];
     const hasApple = apples.some((a) => a.id === appleId);
     const i = pets.findIndex((p) => p.id === petId);
     const pet = i === -1 ? null : pets[i];
@@ -367,6 +314,23 @@ export async function setPetName(petId, name, studentId = currentStudentId()) {
     if (i === -1) return { result: { ok: false, pet: null, pets } };
     const next = [...pets];
     next[i] = { ...next[i], name: clean };
+    return { write: true, pets: next, result: { ok: true, pet: next[i], pets: next } };
+  });
+}
+
+/**
+ * Stuva undan / lägg tillbaka ett husdjur: sätter pet-postens stowed-flagga.
+ * Djuret TAPPAS aldrig – det ligger kvar i pets[] (räknas som ägt, behåller
+ * namn/steg/feedCount) men promenerar/äter inte medan stowed:true. En
+ * transaktion – samma mönster som setPetName.
+ * @returns {Promise<{ok: boolean, pet: object|null, pets: object[]}>}
+ */
+export async function setPetStowed(petId, stowed, studentId = currentStudentId()) {
+  return updatePets(studentId, (pets) => {
+    const i = pets.findIndex((p) => p.id === petId);
+    if (i === -1) return { result: { ok: false, pet: null, pets } };
+    const next = [...pets];
+    next[i] = { ...next[i], stowed: !!stowed };
     return { write: true, pets: next, result: { ok: true, pet: next[i], pets: next } };
   });
 }
