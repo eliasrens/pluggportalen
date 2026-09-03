@@ -2027,8 +2027,23 @@ body.varld-lage .container {
 }
 #klasskylt:hover, #klasskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
 
-/* --- Klassbyn (by-nivån): alla elevers hus i rader med vägar emellan ------- */
+/* --- Klassbyn (by-nivån): hus längs en slingrande väg med dekor ------------ */
 .varld-by { background: #a8da8f; }
+
+/* Stämningsdekor (träd/granar/buskar/lyktstolpar, art-by-dekor.js): egna små
+   SVG:er ankrade med bottenmitten på sin markpunkt (left/top i % av lagret,
+   inline från varld-by-scen.js). Aldrig klickbara – klick ska alltid nå
+   husen/tomterna bakom. */
+.by-dekor {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+.by-dekor > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 
 .by-mark {
   position: absolute;
