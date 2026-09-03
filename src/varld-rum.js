@@ -173,7 +173,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     // som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
     for (const apple of mat.apples()) {
       stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
-        style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍖</div>`));
+        style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍎</div>`));
     }
     for (const pet of pets) {
       if (!pet.pos) pet.pos = { x: 50, y: 70 };

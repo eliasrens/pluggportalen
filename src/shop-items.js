@@ -98,7 +98,7 @@ export const SHOP_ITEMS = [
   // Äpplet köps i valfritt ANTAL (ökar studentData.appleCount, hamnar aldrig i
   // ownedItems). Lägg ut det på golvet i Mitt rum → närmaste hungriga djur går
   // dit och äter, och växer efter 10 matningar. Se data-pet.js.
-  { id: "apple", name: "Mysterymat", emoji: "🍖", category: "mat", price: 5, consumable: true },
+  { id: "apple", name: "Mysterymat", emoji: "🍎", category: "mat", price: 5, consumable: true },
 
   // --- Dekor & pynt (placeras i rummet) ------------------------------------
   { id: "krukvaxt", name: "Krukväxt", emoji: "🪴", category: "dekor", price: 25 },

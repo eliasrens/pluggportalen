@@ -207,7 +207,7 @@ function creaturePanel(pet, opts) {
     </div>
     <div id="vax">${vaxHtml}</div>
     ${next
-      ? `<p class="hint pet-mat-tips">🍎 Mata ${namn} genom att köpa <b>äpplen</b> i shoppen och lägga ut dem på golvet med <b>🍎 Lägg mat</b> – då går ${namn} dit och äter!</p>`
+      ? `<p class="hint pet-mat-tips">🍎 Mata ${namn} genom att köpa <b>Mysterymat</b> i shoppen och lägga ut den på golvet med <b>🍎 Mysterymat</b> – då går ${namn} dit och äter!</p>`
       : ""}
     ${behoverNamn ? "" : '<button class="btn liten ghost" id="byt-namn">✏️ Byt namn</button>'}
   </div>`);

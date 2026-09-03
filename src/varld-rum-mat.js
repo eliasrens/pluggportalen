@@ -50,7 +50,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   function updateMatBtn() {
     if (!matBtn) return;
     const label = placing ? "Klicka på golvet" : "Mysterymat";
-    matBtn.innerHTML = `🍖 <span>${label}${appleCount > 0 ? ` (${appleCount})` : ""}</span>`;
+    matBtn.innerHTML = `🍎 <span>${label}${appleCount > 0 ? ` (${appleCount})` : ""}</span>`;
     matBtn.disabled = appleCount <= 0;
     matBtn.classList.toggle("aktiv", placing);
     matBtn.setAttribute("aria-pressed", placing ? "true" : "false");
@@ -102,7 +102,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     // Golv-only: klick ovanför golvlinjen (på väggen) lägger ingen mat.
     if (y < FLOOR_TOP + 2) {
-      flash("Klicka på golvet för att lägga ut Mysterymat! 🍖", true);
+      flash("Klicka på golvet för att lägga ut Mysterymat! 🍎", true);
       return;
     }
     // Klampa in en bit från kanterna så maten alltid syns helt på golvet.
@@ -114,7 +114,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   async function placeAt(x, y) {
     if (appleCount <= 0) {
       setPlacing(false);
-      flash("Du har ingen Mysterymat kvar – köp mer i shoppen! 🍖", true);
+      flash("Du har ingen Mysterymat kvar – köp mer i shoppen! 🍎", true);
       return;
     }
     try {
@@ -123,7 +123,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
       if (res.ok && res.apple) {
         floorApples.push({ ...res.apple });
         renderScene();
-        flash("Du la ut Mysterymat! 🍖 Mystery-djuren kommer och äter.");
+        flash("Du la ut Mysterymat! 🍎 Mystery-djuren kommer och äter.");
       } else {
         flash("Du har ingen Mysterymat kvar.", true);
       }
@@ -143,7 +143,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     eating.add(apple.id);
     floorApples = floorApples.filter((a) => a.id !== apple.id);
     renderScene();
-    setPetMood(pet, "ater", 1800); // gnager en stund (partikel/uttryck 🍖)
+    setPetMood(pet, "ater", 1800); // gnager en stund (partikel/uttryck 🍎)
     try {
       const res = await petData.eatApple(pet.id, apple.id);
       if (res.ok && res.pet) {
@@ -178,7 +178,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   if (matBtn) {
     matBtn.addEventListener("click", () => {
       if (appleCount <= 0) {
-        flash("Du har ingen Mysterymat – köp i shoppen! 🍖", true);
+        flash("Du har ingen Mysterymat – köp i shoppen! 🍎", true);
         return;
       }
       setPlacing(!placing);
