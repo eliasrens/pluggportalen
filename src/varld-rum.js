@@ -1,24 +1,25 @@
 // ============================================================================
-// Pluggportalen – Mitt rum
+// Pluggportalen – rummets innehåll i husvärlden ("rum"-nivåns lager)
 // ----------------------------------------------------------------------------
-// Eleven placerar ut sina köpta saker (möbler/husdjur/dekor) i ett eget rum och
-// sätter kläder på avataren. Här BOR även de kläckbara husdjuren (mystery
-// eggs): ägg ruvar och kläcks i rummet, djuren namnges/matas via panelen under
-// scenen (pages-rum-pets.js, data i studentData.pets via data-pet.js).
+// Monterar hela inne-vyn i ett givet scen-lager: bakdrop, placerade saker,
+// husdjuren (ägg/varelser, matning, klick-på-rygg), drag & drop och
+// promenad-AI:n. Logiken är porterad oförändrad från gamla pages-rum.js –
+// skillnaden är bara att lådan/klädlådan/husdjurspanelen numera ritas i
+// overlay-paneler som husvärldssidan (pages-varld.js) äger och skickar in.
 // Placeringar sparas i procent av scenen → ser likadana ut oavsett skärm.
 // ============================================================================
 
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
-import { app, el, go, loading, renderTopbar, pageError, flash, clamp } from "./ui.js";
+import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem } from "./shop-items.js";
-import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, renderPetPanel, petBellyFlop } from "./pages-rum-pets.js";
 import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
-import { roomBackdropHtml, FLOOR_TOP } from "./art-room.js";
-import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
+import { roomBackdropHtml, FLOOR_TOP, WINDOW_ID, WINDOW_DEFAULT, windowItemHtml } from "./art-room.js";
+import { mountWearTray } from "./varld-rum-wear.js";
+import { mountRumMat } from "./varld-rum-mat.js";
 
 /** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
 function isFloorItem(id) {
@@ -26,24 +27,26 @@ function isFloorItem(id) {
   return !!(it && (it.category === "mobler" || it.category === "husdjur"));
 }
 
-export async function pageElevRum() {
-  if (!data.isLoggedIn()) return go("#/elev");
-  loading();
-  await renderTopbar();
-
-  let sd, pets, justHatchedIds;
-  try {
-    sd = await data.getStudentData();
-    // Husdjuren: migrera ev. gammalt singular-pet och kläck färdiga ägg.
-    const res = await petData.hatchReadyPets();
-    pets = res.pets;
-    justHatchedIds = res.justHatchedIds;
-  } catch (err) {
-    return pageError("Kunde inte ladda ditt rum", err);
-  }
-
+/**
+ * Montera rummet i `stage` (ett fullstort lager i husvärldens scen).
+ *
+ * @param {object} o
+ * @param {HTMLElement} o.stage     rummets lager (får .room-item-barn m.m.)
+ * @param {HTMLElement} o.petPanel  overlay-behållare för husdjurspanelen
+ * @param {HTMLElement} o.tray      behållare för sak-lådan
+ * @param {HTMLElement} o.trayHint  hint-rad ovanför sak-lådan
+ * @param {HTMLElement} o.wearTray  behållare för klädlådan
+ * @param {HTMLElement} [o.matBtn]  "Lägg mat"-knappen (lägger äpplen på golvet)
+ * @param {object} o.sd             studentData (ägda saker, rum, avatar)
+ * @param {Array}  o.pets           husdjuren (redan kläck-kollade)
+ * @param {string[]} o.justHatchedIds nykläckta denna sidladdning
+ * @param {(equipped: string[]) => void} [o.onEquippedChange]
+ *        körs när klädseln ändrats (så ute-avataren kan ritas om)
+ */
+export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange }) {
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
+
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
   // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak).
   const placements = {};
@@ -56,72 +59,20 @@ export async function pageElevRum() {
     }
   }
 
-  // Burna klädsaker (för avatarstället längst ner).
-  const equipped = new Set(sd.avatarItems || []);
+  // Fönstret är ett flyttbart/raderbart VÄGG-objekt (inte en shop-sak). Läget
+  // sparas separat i room.window = { x, y, removed }: saknas data → default vid
+  // väggskarven; removed:true → borttaget (kvarstår efter reload, kan läggas
+  // tillbaka via lådan). Positionen clampas till väggzonen (ovanför golvet).
+  const savedWin = (sd.room && sd.room.window) || null;
+  let windowRemoved = !!(savedWin && savedWin.removed);
+  let windowPos = {
+    x: savedWin && Number.isFinite(savedWin.x) ? clamp(savedWin.x, 3, 97) : WINDOW_DEFAULT.x,
+    y: savedWin && Number.isFinite(savedWin.y) ? clamp(savedWin.y, 4, FLOOR_TOP) : WINDOW_DEFAULT.y,
+  };
 
   const roomItemsOwned = owned.filter(
     (id) => !isWearable(id) && id !== petData.EGG_ITEM_ID && getItem(id)
   );
-  const wearItemsOwned = owned.filter((id) => isWearable(id) && getItem(id));
-
-  const view = el(`<div>
-    <a class="back-link" id="back">← Gå ut ur huset</a>
-    <div class="panel">
-      <h1>Mitt rum 🛏️</h1>
-      <p class="hint">Klicka på en sak i lådan för att ställa den i rummet. Dra för att
-        flytta. Klicka på en placerad sak och välj 🗑️ för att plocka bort den.
-        Dina husdjur bor också här – klicka på ett djur för att mata eller döpa det! 🐾</p>
-    </div>
-
-    <div class="room-stage" id="stage"></div>
-    <div id="pet-panel"></div>
-
-    <div class="panel">
-      <h2>Måla om 🎨</h2>
-      <p class="hint">Välj en färgpalett till dina väggar och ditt hus – de hänger ihop!
-        Golvet behåller sin färg.</p>
-      <div class="palett-rad" id="palettrad"></div>
-    </div>
-
-    <div class="panel">
-      <h2>Lådan 📦</h2>
-      <p class="hint" id="tray-hint"></p>
-      <div class="room-tray" id="tray"></div>
-    </div>
-
-    <div class="panel">
-      <h2>Klä på din figur 👗</h2>
-      <p class="hint">Klicka för att sätta på eller ta av. Din figur syns i sidhuvudet.</p>
-      <div class="wear-tray" id="weartray"></div>
-    </div>
-
-    <div class="center">
-      <button class="btn ghost" id="to-shop">🛍️ Till shoppen</button>
-    </div>
-  </div>`);
-
-  const stage = view.querySelector("#stage");
-  const petPanel = view.querySelector("#pet-panel");
-  const tray = view.querySelector("#tray");
-  const trayHint = view.querySelector("#tray-hint");
-  const wearTray = view.querySelector("#weartray");
-
-  // Väggfärgerna = elevens palettval (delas med husets fasad, se pages-hus.js).
-  // Golvet ligger i .room-bg och färgas aldrig om.
-  let paletteId = paletteIdFromStudentData(sd);
-  function applyPalette() {
-    const pal = getPalette(paletteId);
-    stage.style.setProperty("--rum-wall", pal.wall);
-    stage.style.setProperty("--rum-wall2", pal.wall2);
-  }
-  applyPalette();
-  renderPalettePicker(view.querySelector("#palettrad"), paletteId, (id) => {
-    paletteId = id;
-    applyPalette();
-    data.saveRoom({ paletteId: id }).catch((err) => {
-      flash("Kunde inte spara färgvalet: " + err.message, true);
-    });
-  });
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
   let selectedPetId = null; // valt husdjur (visar husdjurspanelen)
@@ -133,6 +84,15 @@ export async function pageElevRum() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       data.saveRoom({ placements }).catch(() => {});
+    }, 250);
+  }
+
+  // Spara fönstrets läge/borttagning (samma debounce – dot-path room.window).
+  let winSaveTimer = null;
+  function scheduleSaveWindow() {
+    clearTimeout(winSaveTimer);
+    winSaveTimer = setTimeout(() => {
+      data.saveRoom({ window: { x: windowPos.x, y: windowPos.y, removed: windowRemoved } }).catch(() => {});
     }, 250);
   }
 
@@ -159,7 +119,7 @@ export async function pageElevRum() {
     petData.savePetPositions(positions).catch(() => {});
   }
 
-  // Husdjurspanelen under scenen (valt djur, eller det nykläckta).
+  // Husdjurspanelen (overlay i scenen – valt djur, eller det nykläckta).
   function renderPets() {
     const pet = pets.find((p) => p.id === selectedPetId) || null;
     renderPetPanel(petPanel, pet, {
@@ -185,6 +145,11 @@ export async function pageElevRum() {
   function renderStage() {
     stage.replaceChildren();
     stage.insertAdjacentHTML("beforeend", roomBackdropHtml());
+    // Fönstret (väggobjekt) ritas direkt ovanpå bakgrunden så golvsaker/möbler
+    // kan staplas framför det. Borttaget fönster ritas inte alls.
+    if (!windowRemoved) {
+      stage.appendChild(el(windowItemHtml({ x: windowPos.x, y: windowPos.y, selected: selectedId === WINDOW_ID })));
+    }
     // Rita platta golvsaker (mattor) FÖRST så vanliga möbler, dekor och husdjur
     // alltid staplas ovanpå dem – oavsett i vilken ordning de placerats/flyttats.
     const orderedIds = Object.keys(placements).sort(
@@ -195,18 +160,27 @@ export async function pageElevRum() {
       if (!item) continue;
       const pos = placements[id];
       const size = itemSize(id);
+      // Bredd/höjd skalas med scenens --rum-skala (calc → faktiskt layoutmått,
+      // så drag-clampen som läser offsetWidth/Height följer med automatiskt).
       stage.appendChild(el(`<div class="room-item${selectedId === id ? " selected" : ""}"
         data-id="${id}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
-        <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
+        <span class="ri-emoji" style="width:calc(${size.w}rem * var(--rum-skala, 1));height:calc(${size.h}rem * var(--rum-skala, 1))">${itemSvg(id) || item.emoji}</span>
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
+    }
+    // Äpplen på golvet ritas UNDER husdjuren (så djuret syns ovanpå när det
+    // står och gnager). De är inga .room-item (data-id) och räknas därför inte
+    // som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
+    for (const apple of mat.apples()) {
+      stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
+        style="left:${apple.x}%;top:${apple.y}%" title="Äpple">🍎</div>`));
     }
     for (const pet of pets) {
       if (!pet.pos) pet.pos = { x: 50, y: 70 };
       stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
     }
     if (Object.keys(placements).length === 0 && pets.length === 0) {
-      stage.appendChild(el(`<div class="room-empty">Ditt rum är tomt – välj saker i lådan nedan! 👇</div>`));
+      stage.appendChild(el(`<div class="room-empty">Ditt rum är tomt – öppna Lådan 📦 och ställ in dina saker!</div>`));
     }
   }
 
@@ -228,25 +202,29 @@ export async function pageElevRum() {
         <span class="tray-namn">${item.name}</span>
       </button>`));
     }
-  }
-
-  // --- Rita klädlådan ------------------------------------------------------
-  function renderWearTray() {
-    wearTray.replaceChildren();
-    if (wearItemsOwned.length === 0) {
-      wearTray.appendChild(el(`<p class="hint">Du har inga kläder än – köp kläder & accessoarer i shoppen! 🧢</p>`));
-      return;
-    }
-    for (const id of wearItemsOwned) {
-      const item = getItem(id);
-      const on = equipped.has(id);
-      wearTray.appendChild(el(`<button class="wear-item${on ? " on" : ""}" data-wear="${id}" title="${item.name}">
-        <span class="tray-emoji">${wearableSvg(id) || item.emoji}</span>
-        <span class="tray-namn">${item.name}</span>
-        <span class="wear-state">${on ? "På ✓" : "Sätt på"}</span>
+    // Borttaget fönster kan alltid läggas tillbaka härifrån (hamnar då åter
+    // vid väggskarven). Visas bara när fönstret faktiskt är borttaget.
+    if (windowRemoved) {
+      tray.appendChild(el(`<button class="tray-item" data-restore="${WINDOW_ID}" title="Fönster">
+        <span class="tray-emoji">🪟</span>
+        <span class="tray-namn">Fönster</span>
       </button>`));
     }
   }
+
+  // Klädlådan lever i sin egen modul (rendering + sätt-på/ta-av + sparning).
+  mountWearTray({ wearTray, sd, onEquippedChange });
+
+  // Matningen (äpplen på golvet) lever i sin egen modul: äger floorApples +
+  // "Lägg mat"-knappen och ger promenad-AI:n apples()/onEat. renderStage() läser
+  // äpplena via mat.apples(), så mat måste skapas före första ritningen.
+  const mat = mountRumMat({
+    matBtn, sd,
+    getPets: () => pets,
+    renderScene: () => renderStage(),
+    renderPanel: () => renderPets(),
+    isSelected: (petId) => selectedPetId === petId,
+  });
 
   // Nykläckt ägg? Fira och öppna panelen för namngivning direkt.
   if (justHatchedId) {
@@ -257,15 +235,21 @@ export async function pageElevRum() {
 
   renderStage();
   renderTray();
-  renderWearTray();
   renderPets();
-
-  // "Ut ur huset" = tillbaka till hus-vyn (rummet nås via huset, #/elev/hus).
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
-  view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
 
   // Placera en sak från lådan (klick).
   tray.addEventListener("click", (e) => {
+    // Lägg tillbaka ett borttaget fönster (åter vid väggskarven).
+    const restoreBtn = e.target.closest("[data-restore]");
+    if (restoreBtn && restoreBtn.dataset.restore === WINDOW_ID) {
+      windowRemoved = false;
+      windowPos = { ...WINDOW_DEFAULT };
+      selectedId = null;
+      renderStage();
+      renderTray();
+      scheduleSaveWindow();
+      return;
+    }
     const btn = e.target.closest("[data-place]");
     if (!btn) return;
     const id = btn.dataset.place;
@@ -278,37 +262,21 @@ export async function pageElevRum() {
     scheduleSaveRoom();
   });
 
-  // Klädsaker: sätt på / ta av (en per slot).
-  wearTray.addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-wear]");
-    if (!btn) return;
-    const id = btn.dataset.wear;
-    const item = getItem(id);
-    if (!item) return;
-    if (equipped.has(id)) {
-      equipped.delete(id);
-    } else {
-      // Bara en sak per slot – ta av ev. annan i samma slot.
-      for (const otherId of [...equipped]) {
-        const other = getItem(otherId);
-        if (other && other.slot === item.slot) equipped.delete(otherId);
-      }
-      equipped.add(id);
-    }
-    renderWearTray();
-    try {
-      await data.saveAvatarItems([...equipped]);
-      await renderTopbar(); // figuren i sidhuvudet uppdateras direkt
-    } catch (err) {
-      flash("Kunde inte spara påklädnaden: " + err.message, true);
-    }
-  });
-
   // Ta bort en placerad sak (🗑️). Husdjur kan inte plockas bort – de bor här.
   stage.addEventListener("click", (e) => {
     const removeBtn = e.target.closest("[data-remove]");
     if (!removeBtn) return;
     const id = removeBtn.dataset.remove;
+    // Fönstret raderas (kvarstår borta efter reload) – kan läggas tillbaka via
+    // lådan. Övriga saker plockas bort ur placements som förr.
+    if (id === WINDOW_ID) {
+      windowRemoved = true;
+      if (selectedId === WINDOW_ID) selectedId = null;
+      renderStage();
+      renderTray();
+      scheduleSaveWindow();
+      return;
+    }
     delete placements[id];
     if (selectedId === id) selectedId = null;
     renderStage();
@@ -343,6 +311,8 @@ export async function pageElevRum() {
       halfH: ((node.offsetHeight / rect.height) * 100) / 2,
       // Möbler, husdjur-saker OCH levande husdjur hör hemma i golvzonen.
       floor: !!node.dataset.petId || isFloorItem(node.dataset.id),
+      // Fönstret är ett väggobjekt → egen väggzon-clamp (inte golv-clampen).
+      win: node.dataset.id === WINDOW_ID,
     };
     node.setPointerCapture(e.pointerId);
     node.classList.add("dragging");
@@ -359,14 +329,24 @@ export async function pageElevRum() {
       ((e.clientX - drag.rect.left) / drag.rect.width) * 100,
       drag.halfW, 100 - drag.halfW
     );
-    const minY = drag.floor ? Math.max(drag.halfH, FLOOR_TOP + 4 - drag.halfH) : drag.halfH;
+    // Väggobjekt (fönstret) hålls i väggzonen ovanför golvlinjen; golvsaker
+    // hålls nere i golvzonen; övrig väggdekor får hela väggen.
+    let minY = drag.halfH;
+    let maxY = 100 - drag.halfH;
+    if (drag.win) {
+      maxY = FLOOR_TOP; // fönstrets centrum korsar aldrig golvlinjen
+    } else if (drag.floor) {
+      minY = Math.max(drag.halfH, FLOOR_TOP + 4 - drag.halfH);
+    }
     const y = clamp(
       ((e.clientY - drag.rect.top) / drag.rect.height) * 100,
-      minY, 100 - drag.halfH
+      minY, maxY
     );
     if (drag.petId) {
       const pet = pets.find((p) => p.id === drag.petId);
       if (pet) pet.pos = { x, y };
+    } else if (drag.win) {
+      windowPos = { x, y };
     } else {
       placements[drag.id] = { x, y };
     }
@@ -379,6 +359,7 @@ export async function pageElevRum() {
     drag.node.classList.remove("dragging");
     if (drag.moved) {
       if (drag.petId) scheduleSavePets();
+      else if (drag.win) scheduleSaveWindow();
       else scheduleSaveRoom();
     } else if (drag.petId) {
       // Klick på ett husdjur → välj det (öppnar husdjurspanelen) och låt det
@@ -403,14 +384,15 @@ export async function pageElevRum() {
   stage.addEventListener("pointercancel", endDrag);
 
   // Promenad-AI: kläckta husdjur går själva omkring på golvet mellan möblerna
-  // (rum-promenad.js). Valda/dragna djur pausar; loopen stoppar sig själv när
-  // scenen försvinner ur DOM:en (sidbyte).
+  // (rum-promenad.js). Finns äpplen på golvet styr hungriga djur dit och äter
+  // (seek-läge, mat.onEat). Valda/dragna djur pausar; loopen stoppar sig själv
+  // när scenen försvinner ur DOM:en (sidbyte).
   startPetPromenad({
     stage,
     getPets: () => pets,
     isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id),
+    getApples: mat.apples,
+    onEat: mat.onEat,
     onSettled: saveWalkPositions,
   });
-
-  app.replaceChildren(view);
 }

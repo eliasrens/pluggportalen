@@ -125,6 +125,8 @@ Exempel (`students/elev1`):
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 | `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds numera ur elevens **nivå** (nivåtrösklarna `STAGE_LEVELS` i `src/evolution.js`; nivån ur `xp` via `src/leveling.js`). |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
+| `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
+| `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
 
 ### `studentData.pets[]` – kläckbara husdjuren
@@ -145,16 +147,34 @@ aldrig dö.
 | `speciesId`   | string/null | Slumpad art vid kläckning (se `SPECIES` i `src/art-pets-creatures.js`) |
 | `hatchedAt`   | number/null | När ägget kläcktes (ms); `null` = ruvar fortfarande      |
 | `stage`       | number      | Tillväxtsteg 1–3 (0 = okläckt ägg). Härleds ur `feedCount` |
-| `feedCount`   | number      | Antal matningar totalt (styr steget: ≥3 → steg 2, ≥7 → steg 3) |
-| `lastFedAt`   | number/null | Senaste matningen (ms) – max 1 matning per kalenderdag   |
+| `feedCount`   | number      | Antal **uppätna äpplen** totalt (styr steget: ≥10 → steg 2, ≥20 → steg 3) |
+| `lastFedAt`   | number/null | När djuret senast åt ett äpple (ms)                     |
 
 ```json
 {
   "eggBoughtAt": 1756700000000, "hasHeatLamp": true,
   "speciesId": "blomp", "hatchedAt": 1756830000000,
-  "stage": 2, "feedCount": 4, "lastFedAt": 1757000000000
+  "stage": 2, "feedCount": 12, "lastFedAt": 1757000000000
 }
 ```
+
+### Matning via äpplen (`studentData.appleCount` + `studentData.floorApples[]`)
+
+Matning sker genom att köpa **äpplen** (förbrukningsvara, ~5 mynt) i shoppen,
+lägga ut dem på golvet i Mitt rum och låta djuren gå dit och äta. Ingen
+gratis-matning finns kvar – tillväxten drivs helt av uppätna äpplen (10 per steg).
+
+| Fält                    | Typ    | Beskrivning                                                     |
+| ----------------------- | ------ | -------------------------------------------------------------- |
+| `appleCount`            | number | Köpta men **outlagda** äpplen. `buyApple` ökar, `placeApple` minskar |
+| `floorApples[]`         | array  | Äpplen som ligger på golvet: `{ id, x, y }` (x/y i procent av rumsscenen) |
+
+Flöde (allt i transaktioner, `src/data-pet.js`): `buyApple(price)` drar mynt och
+ökar `appleCount`; `placeApple(x, y)` flyttar ett äpple → `floorApples`; när ett
+hungrigt (icke-fullvuxet) djur når fram i promenad-AI:ns **seek-läge**
+(`src/rum-promenad.js`) tar `eatApple(petId, appleId)` bort äpplet och ökar
+djurets `feedCount`. Äpplet är en `mat`-kategori-vara i `src/shop-items.js`
+(`consumable: true`) och hamnar därför aldrig i `ownedItems`.
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
@@ -283,9 +303,11 @@ Exempel (`classes/6a`):
   `ownedItems` och sätter `hasHeatLamp` på alla okläckta ägg
 - `getPets()` → `pets[]` (migrerar ett ev. äldre `studentData.pet` först)
 - `hatchReadyPets()` → `{ pets, justHatchedIds }` – kläcker alla ägg vars kläcktid passerats
-- `feedPet(petId)` → `{ ok, reason?, pet, pets, stageUp }` – gratis, max 1 gång/kalenderdag per djur
+- `buyApple(price)` → `{ ok, coins, appleCount }` – köp ett äpple (förbrukningsvara)
+- `placeApple(x, y)` → `{ ok, appleCount, floorApples, apple }` – lägg ett äpple på golvet
+- `eatApple(petId, appleId)` → `{ ok, pet, pets, floorApples, stageUp }` – djur äter äpple, `feedCount++`
 - `setPetName(petId, name)` / `savePetPositions({ [petId]: { x, y } })`
-- Hjälpare: `hatchTimeFor(pet, hasLamp)`, `canFeed(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`, `cleanPetName(s)`
+- Hjälpare: `hatchTimeFor(pet, hasLamp)`, `isHungry(pet)`, `isFullGrown(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`, `cleanPetName(s)`
 
 **Statistik (profil)**
 - `getStats()` → `{ coins, playedExercises, completed, stars, areas }`

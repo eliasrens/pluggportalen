@@ -94,15 +94,17 @@ export async function getStudents() {
 }
 
 /**
- * Lista alla elever tillsammans med sitt "utseende": grundavatar (avatarId) och
- * burna klädsaker (avatarItems). Används av klassfotot (#/elev/klassfoto).
+ * Lista alla elever tillsammans med sitt "utseende": grundavatar (avatarId),
+ * burna klädsaker (avatarItems), husets palett (paletteId) och husskal
+ * (husSkalId, framtida "Köp nytt hus"). Används av klassbyn (#/elev/by).
  *
- * avatarId finns redan på students-dokumentet, men avatarItems ligger i
+ * avatarId finns redan på students-dokumentet, men resten ligger i
  * studentData/{id}. Vi läser alla studentData-dokument parallellt (Promise.all)
  * med en per-elev catch, så att en enda trasig/saknad elevdata inte fäller hela
- * vyn – då används bara students-dokumentets avatarId utan klädsel.
+ * vyn – då används bara students-dokumentets avatarId utan klädsel/palett.
  *
- * @returns {Promise<Array<{id, namn, username, avatarId, avatarItems: string[]}>>}
+ * @returns {Promise<Array<{id, namn, username, avatarId, avatarItems: string[],
+ *   paletteId: string|null, husSkalId: string|null}>>}
  */
 export async function getStudentsWithLooks() {
   const students = await getStudents();
@@ -115,9 +117,11 @@ export async function getStudentsWithLooks() {
           ...s,
           avatarId: d.avatarId || s.avatarId || "fox",
           avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
+          paletteId: (d.room && d.room.paletteId) || null,
+          husSkalId: d.husSkalId || null,
         };
       } catch {
-        return { ...s, avatarId: s.avatarId || "fox", avatarItems: [] };
+        return { ...s, avatarId: s.avatarId || "fox", avatarItems: [], paletteId: null, husSkalId: null };
       }
     })
   );
