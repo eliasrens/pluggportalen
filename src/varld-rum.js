@@ -15,7 +15,7 @@ import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, isAnimalItem } from "./shop-items.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
-import { petStageNode, renderPetPanel, petBellyFlop } from "./pages-rum-pets.js";
+import { petStageNode, renderPetPanel, petBellyFlop, petPat, isPetBusy, animalNamePanel } from "./pages-rum-pets.js";
 import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
 import { roomBackdropHtml, FLOOR_TOP, WINDOW_ID } from "./art-room.js";
@@ -79,7 +79,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
   );
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
-  let selectedPetId = null; // valt husdjur (visar husdjurspanelen)
+  let selectedPetId = null; // djur vars namn-/matnings-vy är öppen (via ✏️)
+  let openRenameForId = null; // ✏️ nyss klickad → öppna namnfältet + fokusera (engångs)
   let justHatchedId = justHatchedIds[0] || null; // firas i panelen en gång
 
   // Spara rummet (debounce – tät dragrörelse skriver inte varje pixel).
@@ -114,18 +115,32 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     petData.savePetPositions(positions).catch(() => {});
   }
 
-  // Husdjurspanelen (overlay i scenen – valt djur, eller det nykläckta).
+  // Namn-/matnings-vyn (overlay under scenen). Öppnas ENBART via ✏️-affordansen
+  // (namn-etiketten) eller vid nykläckning – klick på djuret självt klappar det
+  // bara (ingen inforuta). openRenameForId är engångs: konsumeras vid ritning.
   function renderPets() {
+    const openRename = openRenameForId;
+    openRenameForId = null;
     const pet = pets.find((p) => p.id === selectedPetId) || null;
-    // Vanliga djur har en egen enkel infopanel (ingen matning/tillväxt).
+    // Vanliga djur (fast storlek): lättviktig namn-vy (bara inline-namnfältet).
     const animal = !pet && djur.byId(selectedPetId);
     if (animal) {
-      petPanel.replaceChildren(djur.panelNode(animal));
+      petPanel.replaceChildren(animalNamePanel({
+        displayName: djur.displayName(animal),
+        currentName: animal.name || "",
+        autoFocus: openRename === animal.id,
+        onSave: async (clean) => {
+          const res = await djur.saveName(animal.id, clean);
+          if (res.ok) { renderStage(); renderPets(); }
+          return res;
+        },
+      }));
       return;
     }
     renderPetPanel(petPanel, pet, {
       hasLamp,
       justHatched: !!pet && pet.id === justHatchedId,
+      startRename: openRename === selectedPetId,
       onUpdate(nextPets, petId) {
         // Behåll rummets aktuella positioner – serverns pos kan vara äldre än
         // dit promenad-AI:n hunnit gå (positioner sparas glest).
@@ -262,6 +277,17 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
 
   // Ta bort en placerad sak (🗑️). Husdjur kan inte plockas bort – de bor här.
   stage.addEventListener("click", (e) => {
+    // ✏️-affordansen (namn-etiketten under ett djur): öppna namn-/matnings-vyn.
+    // Gäller BÅDE mystery-djur och vanliga djur – döpningen känns likadan.
+    const renameBtn = e.target.closest("[data-rename]");
+    if (renameBtn) {
+      openRenameForId = renameBtn.dataset.rename;
+      selectedPetId = renameBtn.dataset.rename;
+      selectedId = null;
+      renderStage();
+      renderPets();
+      return;
+    }
     const removeBtn = e.target.closest("[data-remove]");
     if (!removeBtn) return;
     const id = removeBtn.dataset.remove;
@@ -296,7 +322,9 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
       }
       return;
     }
-    if (e.target.closest("[data-remove]")) return; // låt borttagning ske
+    // Låt 🗑️ (borttagning) och ✏️ (namn-etikett/döpning) hanteras som klick –
+    // starta ingen drag-rörelse på dem.
+    if (e.target.closest("[data-remove]") || e.target.closest("[data-rename]")) return;
     const rect = stage.getBoundingClientRect();
     drag = {
       id: node.dataset.id || null,
@@ -359,15 +387,13 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
       else if (drag.win) fonster.scheduleSave();
       else scheduleSaveRoom();
     } else if (drag.petId) {
-      // Klick på ett husdjur → välj det (öppnar husdjurspanelen) och låt det
-      // lägga sig på rygg och sprattla av glädje (efter omritningen, så
-      // animationen träffar den nya noden).
-      selectedPetId = selectedPetId === drag.petId ? null : drag.petId;
-      selectedId = null;
-      renderStage();
-      renderPets();
+      // Klick på ett djur → KLAPPA det (ingen inforuta): mystery-djur lägger sig
+      // på rygg och sprattlar (petBellyFlop), vanliga fast-storleks-djur gör ett
+      // gulligt glädjeskutt med hjärtan (petPat). Namn-/matnings-vyn öppnas i
+      // stället via ✏️-affordansen på namn-etiketten under djuret.
       const pet = pets.find((p) => p.id === drag.petId);
       if (pet && pet.hatchedAt) petBellyFlop(pet);
+      else if (djur.byId(drag.petId)) petPat(drag.petId);
     } else {
       // Ingen förflyttning = klick → markera/avmarkera (visar 🗑️).
       selectedId = selectedId === drag.id ? null : drag.id;
@@ -389,7 +415,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     // Mystery-djur OCH vanliga djur promenerar; bara mystery-djuren är
     // hungriga (isHungry i data-pet.js) så maten träffar aldrig de vanliga.
     getPets: walkers,
-    isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id),
+    isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id) || isPetBusy(pet.id),
     getApples: mat.apples,
     onEat: mat.onEat,
     onSettled: () => {

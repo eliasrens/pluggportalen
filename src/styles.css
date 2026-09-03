@@ -2372,6 +2372,24 @@ body.varld-lage .container {
 
 .room-pet .rp-namn.rp-agg { color: #8a6d3b; }
 
+/* Namn-etiketten som döpnings-affordans: klickbar (till skillnad från den
+   generella pointer-events:none-etiketten) med en liten ✏️-hint. Öppnar det
+   lilla inline-namnfältet – samma för mystery-djur och vanliga djur. */
+.room-pet .rp-namn.rp-namn-edit {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.room-pet .rp-namn.rp-namn-edit::after {
+  content: " ✏️";
+  font-size: 0.82em;
+  opacity: 0.5;
+}
+.room-pet .rp-namn.rp-namn-edit:hover {
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+}
+.room-pet .rp-namn.rp-namn-edit:hover::after { opacity: 0.9; }
+
 /* Promenad-AI (rum-promenad.js): mjukt tassande medan djuret går, och figuren
    speglas när det går åt vänster. Klasserna sätts/tas bort av rAF-loopen. */
 .room-pet.promenerar .ri-emoji {
@@ -2424,11 +2442,41 @@ body.varld-lage .container {
   100% { opacity: 0; transform: translate(-50%, -26px) scale(1.35); }
 }
 
+/* Klick-klapp för de vanliga (fast-storleks-)djuren: ett kort glädjeskutt i
+   stället för rygg-lek (de lägger sig inte på rygg). Gullig, ~0,9 s, med
+   hjärtan – i samma anda som petBellyFlop men utan vändningen. */
+.room-pet.pet-klapp .ri-emoji {
+  animation: pet-klapp 0.9s ease-in-out both;
+  transform-origin: 50% 100%;
+}
+
+@keyframes pet-klapp {
+  0% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.12, 0.88); }   /* laddar – trycks ihop */
+  45% { transform: translateY(-22%) scale(0.92, 1.1); } /* studsar upp, sträcks */
+  62% { transform: translateY(0) scale(1.06, 0.96); }   /* landar mjukt */
+  80% { transform: translateY(-7%) scale(1, 1); }        /* liten extrastuds */
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* Hjärtan vid klick-klappen (en kort puff, till skillnad från rygg-lekens 3). */
+.pet-klapp-fx {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 0.9s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .room-pet.promenerar .ri-emoji { animation: none; }
   .room-pet.pet-rygg .ri-emoji,
   .room-pet.pet-rygg .ri-emoji:has(.pet-sprite),
+  .room-pet.pet-klapp .ri-emoji,
   .pet-rygg-fx,
+  .pet-klapp-fx,
   .room-pet.pet-agg-i-rum .ri-emoji {
     animation: none;
   }
