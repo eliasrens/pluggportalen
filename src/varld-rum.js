@@ -52,7 +52,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
   const placements = {};
   const savedPlacements = (sd.room && sd.room.placements) || {};
   for (const [id, pos] of Object.entries(savedPlacements)) {
-    if (owned.includes(id) && !isWearable(id) && id !== petData.EGG_ITEM_ID && pos) {
+    if (owned.includes(id) && getItem(id) && !isWearable(id) && id !== petData.EGG_ITEM_ID && pos) {
       // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
       const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
       placements[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
