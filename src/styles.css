@@ -2114,6 +2114,7 @@ body.varld-lage .container {
 
 /* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
 .varld-stage[data-niva="by"] .varld-knapp.bara-rum,
+.varld-stage[data-niva="by"] .varld-knapp.rum-och-hus,
 .varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"] { display: none; }
 
 /* På en KAMRATS hus (läs-vy) göms alla scen-kontroller helt – man kan bara
@@ -2179,7 +2180,8 @@ body.varld-lage .container {
 .varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
 .varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
 
-/* Lådan & Kläder finns bara inne i rummet. */
+/* Lådan & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
+   ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */
 .varld-stage[data-niva="hus"] .varld-knapp.bara-rum { display: none; }
 
 /* Flytande verktygspanel (Måla om / Lådan / Kläder) under knappraden. */

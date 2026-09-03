@@ -119,7 +119,7 @@ export async function pageElevVarld(startNiva) {
           <div class="varld-verktyg">
             <button class="varld-knapp" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
             <button class="varld-knapp bara-rum" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
-            <button class="varld-knapp bara-rum" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
+            <button class="varld-knapp rum-och-hus" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
             <button class="varld-knapp bara-rum" id="mat-btn" title="Klicka ut Mysterymat på golvet">🍎 <span>Mysterymat</span></button>
             <button class="varld-knapp" id="to-shop" title="Till shoppen">🛍️</button>
           </div>
