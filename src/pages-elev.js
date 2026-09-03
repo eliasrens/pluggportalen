@@ -7,6 +7,7 @@
 import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
+import { coinIcon } from "./icons.js";
 
 // --- Inloggning -------------------------------------------------------------
 
@@ -256,7 +257,7 @@ export async function pageElevProfil() {
     <h2>Min statistik</h2>
     <div class="stat-grid">
       <div class="stat-card gul">
-        <div class="stat-emoji">🪙</div>
+        <div class="stat-emoji">${coinIcon(35)}</div>
         <div class="stat-tal">${stats.coins}</div>
         <div class="stat-etikett">pluggcoins</div>
       </div>

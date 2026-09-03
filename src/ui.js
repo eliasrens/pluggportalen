@@ -7,6 +7,7 @@
 
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { coinIcon } from "./icons.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -111,7 +112,7 @@ const NAV_LANKAR = [
 /**
  * Rita sidomenyn. Namnet behålls (renderTopbar) eftersom alla sidor redan
  * anropar det vid varje navigering – nu ritar det i stället den bestående
- * vänstermenyn med karaktärspanel, XP-bar, ⚡-genväg och navlänkar.
+ * vänstermenyn med karaktärspanel, navlänkar, stjärnor och coins.
  *
  * Sidomenyn (karaktär + nav) visas bara för en inloggad elev på elevsidorna.
  * På start-, inloggnings- och lärarsidorna fälls den ihop (body saknar
@@ -131,15 +132,17 @@ export async function renderTopbar() {
     return;
   }
 
-  // Hämta coins + avatar (inkl. burna klädsaker) i ett svep.
+  // Hämta coins + avatar (inkl. burna klädsaker) + stjärnor i ett svep.
   let coins = 0;
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
+  let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
     avatarId = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
+    stjarnor = (await data.getStats()).stars || 0;
   } catch {}
 
   const navHtml = NAV_LANKAR.map((l, i) => {
@@ -163,8 +166,11 @@ export async function renderTopbar() {
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">
-      <span class="coins" title="Dina pluggcoins">🪙 ${coins}</span>
-      <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      <span class="sido-stjarnor" title="Dina stjärnor">⭐ ${stjarnor} stjärnor</span>
+      <div class="sido-fot-rad">
+        <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
+        <button class="btn ghost liten" id="logout-btn">Logga ut</button>
+      </div>
     </div>
   </div>`);
 

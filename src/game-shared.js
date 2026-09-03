@@ -10,6 +10,7 @@ import { app, el, go, renderTopbar } from "./ui.js";
 import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
 import { addXp } from "./data-xp.js";
 import { xpForExercise, xpIntoLevel } from "./leveling.js";
+import { coinIcon } from "./icons.js";
 
 export const enc = encodeURIComponent;
 
@@ -147,7 +148,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <h1>Bra jobbat!</h1>
     <div class="result-stars">${starRow(stars)}</div>
     ${scoreLine ? `<p class="result-score">${scoreLine}</p>` : ""}
-    <div class="coin-pop">🪙 +${coins} pluggcoins</div>
+    <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
     ${firstTime ? "" : '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>'}

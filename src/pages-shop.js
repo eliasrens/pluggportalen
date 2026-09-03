@@ -13,6 +13,7 @@ import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { CATEGORIES, getItem, itemsInCategory, isConsumable } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
+import { coinIcon } from "./icons.js";
 
 export async function pageElevShop() {
   if (!data.isLoggedIn()) return go("#/elev");
@@ -41,7 +42,7 @@ export async function pageElevShop() {
         <p class="hint">Köp saker för dina pluggcoins. Kläder sätter du på din figur,
           möbler och husdjur placerar du i <b>Mitt rum</b>.</p>
       </div>
-      <div class="shop-saldo">Ditt saldo<br /><span class="coins" id="saldo">🪙 ${state.coins}</span></div>
+      <div class="shop-saldo">Ditt saldo<br /><span class="coins" id="saldo">${coinIcon(24)} ${state.coins}</span></div>
     </div>
     <div id="katalog"></div>
     <div class="center" style="margin-top:8px">
@@ -101,7 +102,7 @@ export async function pageElevShop() {
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
-      saldoEl.textContent = `🪙 ${state.coins}`;
+      saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
       renderKatalog();
       if (res.ok) {
         await renderTopbar(); // uppdatera saldot i sidhuvudet
@@ -156,7 +157,7 @@ function shopCardHtml(it, state) {
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
-    <div class="shop-pris">🪙 ${it.price}</div>
+    <div class="shop-pris">${coinIcon(16)} ${it.price}</div>
     ${antal}
     ${btn}
   </div>`;
