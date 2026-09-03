@@ -131,6 +131,17 @@ export function isFlatItem(id) {
   return !!(it && it.flat);
 }
 
+/**
+ * Är saken ett VANLIGT djur (hund/katt/kanin …)? De köps i shoppen och blir
+ * LEVANDE, promenerande djur i rummet (studentData.roomAnimals via
+ * data-animals.js) – inte statiska möbler i room.placements. Ägget och
+ * värmelampan hör till mystery-systemet (data-pet.js) och räknas inte hit.
+ */
+export function isAnimalItem(id) {
+  const it = getItem(id);
+  return !!(it && it.category === "husdjur" && id !== "mystery-egg" && id !== "varmelampa");
+}
+
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
 export function isConsumable(id) {
   const it = getItem(id);

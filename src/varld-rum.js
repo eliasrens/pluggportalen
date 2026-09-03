@@ -3,21 +3,23 @@
 // ----------------------------------------------------------------------------
 // Monterar hela inne-vyn i ett givet scen-lager: bakdrop, placerade saker,
 // husdjuren (ägg/varelser, matning, klick-på-rygg), drag & drop och
-// promenad-AI:n. Logiken är porterad oförändrad från gamla pages-rum.js –
-// skillnaden är bara att lådan/klädlådan/husdjurspanelen numera ritas i
-// overlay-paneler som husvärldssidan (pages-varld.js) äger och skickar in.
+// promenad-AI:n. Systermoduler äger delarna: kläder (varld-rum-wear), maten
+// (varld-rum-mat), vanliga djur (varld-rum-djur) och fönstret (varld-rum-
+// fonster); overlay-panelerna ägs av husvärldssidan (pages-varld.js).
 // Placeringar sparas i procent av scenen → ser likadana ut oavsett skärm.
 // ============================================================================
 
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
-import { getItem, isWearable, isFlatItem } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem, isAnimalItem } from "./shop-items.js";
+import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, renderPetPanel, petBellyFlop } from "./pages-rum-pets.js";
 import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
-import { roomBackdropHtml, FLOOR_TOP, WINDOW_ID, WINDOW_DEFAULT, windowItemHtml } from "./art-room.js";
+import { roomBackdropHtml, FLOOR_TOP, WINDOW_ID } from "./art-room.js";
+import { mountRumFonster } from "./varld-rum-fonster.js";
 import { mountWearTray } from "./varld-rum-wear.js";
 import { mountRumMat } from "./varld-rum-mat.js";
 
@@ -47,31 +49,33 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
 
+  // De VANLIGA djuren (hund/katt …) är LEVANDE promenerande djur med fast
+  // storlek – egen modul (varld-rum-djur.js, data: studentData.roomAnimals).
+  // walkers() = allt som promenerar (mystery-djur + vanliga djur): de delar
+  // promenad-AI, drag-pipeline och selectedPetId men bor i skilda datamodeller.
+  const djur = mountRumDjur({ sd });
+  const walkers = () => [...pets, ...djur.list()];
+
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
-  // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak).
+  // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak; vanliga
+  // djur promenerar och har ingen statisk placering längre).
   const placements = {};
   const savedPlacements = (sd.room && sd.room.placements) || {};
   for (const [id, pos] of Object.entries(savedPlacements)) {
-    if (owned.includes(id) && !isWearable(id) && id !== petData.EGG_ITEM_ID && pos) {
+    if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && id !== petData.EGG_ITEM_ID && pos) {
       // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
       const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
       placements[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
     }
   }
 
-  // Fönstret är ett flyttbart/raderbart VÄGG-objekt (inte en shop-sak). Läget
-  // sparas separat i room.window = { x, y, removed }: saknas data → default vid
-  // väggskarven; removed:true → borttaget (kvarstår efter reload, kan läggas
-  // tillbaka via lådan). Positionen clampas till väggzonen (ovanför golvet).
-  const savedWin = (sd.room && sd.room.window) || null;
-  let windowRemoved = !!(savedWin && savedWin.removed);
-  let windowPos = {
-    x: savedWin && Number.isFinite(savedWin.x) ? clamp(savedWin.x, 3, 97) : WINDOW_DEFAULT.x,
-    y: savedWin && Number.isFinite(savedWin.y) ? clamp(savedWin.y, 4, FLOOR_TOP) : WINDOW_DEFAULT.y,
-  };
+  // Fönstret är ett flyttbart/raderbart VÄGG-objekt (inte en shop-sak) – egen
+  // modul (varld-rum-fonster.js, data: studentData.room.window).
+  const fonster = mountRumFonster({ sd });
 
+  // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
   const roomItemsOwned = owned.filter(
-    (id) => !isWearable(id) && id !== petData.EGG_ITEM_ID && getItem(id)
+    (id) => !isWearable(id) && !isAnimalItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
   );
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
@@ -84,15 +88,6 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       data.saveRoom({ placements }).catch(() => {});
-    }, 250);
-  }
-
-  // Spara fönstrets läge/borttagning (samma debounce – dot-path room.window).
-  let winSaveTimer = null;
-  function scheduleSaveWindow() {
-    clearTimeout(winSaveTimer);
-    winSaveTimer = setTimeout(() => {
-      data.saveRoom({ window: { x: windowPos.x, y: windowPos.y, removed: windowRemoved } }).catch(() => {});
     }, 250);
   }
 
@@ -122,6 +117,12 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
   // Husdjurspanelen (overlay i scenen – valt djur, eller det nykläckta).
   function renderPets() {
     const pet = pets.find((p) => p.id === selectedPetId) || null;
+    // Vanliga djur har en egen enkel infopanel (ingen matning/tillväxt).
+    const animal = !pet && djur.byId(selectedPetId);
+    if (animal) {
+      petPanel.replaceChildren(djur.panelNode(animal));
+      return;
+    }
     renderPetPanel(petPanel, pet, {
       hasLamp,
       justHatched: !!pet && pet.id === justHatchedId,
@@ -147,9 +148,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     stage.insertAdjacentHTML("beforeend", roomBackdropHtml());
     // Fönstret (väggobjekt) ritas direkt ovanpå bakgrunden så golvsaker/möbler
     // kan staplas framför det. Borttaget fönster ritas inte alls.
-    if (!windowRemoved) {
-      stage.appendChild(el(windowItemHtml({ x: windowPos.x, y: windowPos.y, selected: selectedId === WINDOW_ID })));
-    }
+    const winNode = fonster.stageNode(selectedId === WINDOW_ID);
+    if (winNode) stage.appendChild(winNode);
     // Rita platta golvsaker (mattor) FÖRST så vanliga möbler, dekor och husdjur
     // alltid staplas ovanpå dem – oavsett i vilken ordning de placerats/flyttats.
     const orderedIds = Object.keys(placements).sort(
@@ -179,7 +179,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
       if (!pet.pos) pet.pos = { x: 50, y: 70 };
       stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
     }
-    if (Object.keys(placements).length === 0 && pets.length === 0) {
+    // Vanliga djur (fast storlek) promenerar bland mystery-djuren.
+    for (const a of djur.list()) {
+      stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
+    }
+    if (Object.keys(placements).length === 0 && pets.length === 0 && djur.list().length === 0) {
       stage.appendChild(el(`<div class="room-empty">Ditt rum är tomt – öppna Lådan 📦 och ställ in dina saker!</div>`));
     }
   }
@@ -204,12 +208,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     }
     // Borttaget fönster kan alltid läggas tillbaka härifrån (hamnar då åter
     // vid väggskarven). Visas bara när fönstret faktiskt är borttaget.
-    if (windowRemoved) {
-      tray.appendChild(el(`<button class="tray-item" data-restore="${WINDOW_ID}" title="Fönster">
-        <span class="tray-emoji">🪟</span>
-        <span class="tray-namn">Fönster</span>
-      </button>`));
-    }
+    const winBtn = fonster.trayNode();
+    if (winBtn) tray.appendChild(winBtn);
   }
 
   // Klädlådan lever i sin egen modul (rendering + sätt-på/ta-av + sparning).
@@ -242,12 +242,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     // Lägg tillbaka ett borttaget fönster (åter vid väggskarven).
     const restoreBtn = e.target.closest("[data-restore]");
     if (restoreBtn && restoreBtn.dataset.restore === WINDOW_ID) {
-      windowRemoved = false;
-      windowPos = { ...WINDOW_DEFAULT };
+      fonster.restore();
       selectedId = null;
       renderStage();
       renderTray();
-      scheduleSaveWindow();
       return;
     }
     const btn = e.target.closest("[data-place]");
@@ -270,11 +268,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     // Fönstret raderas (kvarstår borta efter reload) – kan läggas tillbaka via
     // lådan. Övriga saker plockas bort ur placements som förr.
     if (id === WINDOW_ID) {
-      windowRemoved = true;
+      fonster.remove();
       if (selectedId === WINDOW_ID) selectedId = null;
       renderStage();
       renderTray();
-      scheduleSaveWindow();
       return;
     }
     delete placements[id];
@@ -343,10 +340,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
       minY, maxY
     );
     if (drag.petId) {
-      const pet = pets.find((p) => p.id === drag.petId);
+      const pet = walkers().find((p) => p.id === drag.petId);
       if (pet) pet.pos = { x, y };
     } else if (drag.win) {
-      windowPos = { x, y };
+      fonster.setPos(x, y);
     } else {
       placements[drag.id] = { x, y };
     }
@@ -358,8 +355,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
     if (!drag) return;
     drag.node.classList.remove("dragging");
     if (drag.moved) {
-      if (drag.petId) scheduleSavePets();
-      else if (drag.win) scheduleSaveWindow();
+      if (drag.petId) (djur.byId(drag.petId) ? djur.scheduleSave() : scheduleSavePets());
+      else if (drag.win) fonster.scheduleSave();
       else scheduleSaveRoom();
     } else if (drag.petId) {
       // Klick på ett husdjur → välj det (öppnar husdjurspanelen) och låt det
@@ -389,10 +386,15 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, wearTray, matBtn
   // när scenen försvinner ur DOM:en (sidbyte).
   startPetPromenad({
     stage,
-    getPets: () => pets,
+    // Mystery-djur OCH vanliga djur promenerar; bara mystery-djuren är
+    // hungriga (isHungry i data-pet.js) så maten träffar aldrig de vanliga.
+    getPets: walkers,
     isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id),
     getApples: mat.apples,
     onEat: mat.onEat,
-    onSettled: saveWalkPositions,
+    onSettled: () => {
+      saveWalkPositions();
+      djur.saveWalkPositions();
+    },
   });
 }
