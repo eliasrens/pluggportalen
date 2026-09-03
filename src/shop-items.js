@@ -83,16 +83,6 @@ export const SHOP_ITEMS = [
   // Köps via buyEgg()/buyHeatLamp() i data-pet.js (uppdaterar studentData.pets).
   { id: "mystery-egg", name: "Mystiskt ägg", emoji: "🥚", category: "husdjur", price: 200 },
   { id: "varmelampa", name: "Värmelampa", emoji: "🔦", category: "husdjur", price: 120 },
-  { id: "hund", name: "Hundvalp", emoji: "🐶", category: "husdjur", price: 160 },
-  { id: "katt", name: "Kattunge", emoji: "🐱", category: "husdjur", price: 160 },
-  { id: "kanin", name: "Kanin", emoji: "🐰", category: "husdjur", price: 130 },
-  { id: "fisk", name: "Akvariefisk", emoji: "🐠", category: "husdjur", price: 70 },
-  { id: "papegoja", name: "Papegoja", emoji: "🦜", category: "husdjur", price: 220 },
-  { id: "dinosaurie", name: "Husdinosaurie", emoji: "🦕", category: "husdjur", price: 500 },
-  // fler husdjur
-  { id: "hamster", name: "Hamster", emoji: "🐹", category: "husdjur", price: 90 },
-  { id: "igelkott", name: "Igelkott", emoji: "🦔", category: "husdjur", price: 120 },
-  { id: "skoldpadda", name: "Sköldpadda", emoji: "🐢", category: "husdjur", price: 140 },
 
   // --- Mat (konsumerbar – läggs på golvet, äts av husdjuren) ----------------
   // Äpplet köps i valfritt ANTAL (ökar studentData.appleCount, hamnar aldrig i
