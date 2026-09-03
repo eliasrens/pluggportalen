@@ -19,6 +19,10 @@ export function pageLararePrompter(ctx) {
         Gemini) och bifoga en PDF eller klistra in din lektionstext. AI:n svarar då med en JSON
         som du kan klistra in under <a data-hash="#/larare/innehall">Innehåll</a>. Prompterna
         innehåller schemat och ett exempel så att resultatet passerar valideringen direkt.</p>
+      <p class="hint">📖 <b>Läsförståelse:</b> varje quizfråga behöver en egen källtext
+        (<code>passage</code>) som frågan kan besvaras utifrån. Prompterna skapar detta
+        automatiskt – saknar en fråga källtext får du ett tydligt felmeddelande när du
+        sparar innehållet.</p>
     </div>
     <div id="prompts"></div>
   </div>`);

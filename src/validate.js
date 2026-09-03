@@ -136,12 +136,31 @@ export function validateArea(obj) {
           answerIndex: typeof ai === "number" ? ai : 0,
           explanation: typeof q.explanation === "string" ? q.explanation.trim() : "",
         };
-        // "passage" är VALFRITT: en kort text (1–3 meningar) kopplad till just
-        // denna fråga, visad i läsförståelse-läget. Tas bara med när den finns,
-        // så gamla frågor utan passage lämnas orörda (bakåtkompatibelt).
+        // "passage" är källtexten som just denna fråga bygger på, visad ovanför
+        // frågan i läsförståelse-läget. Tas bara med när den finns; obligatoriskheten
+        // (för läsförståelse) kontrolleras samlat nedan.
         if (isNonEmptyString(q.passage)) built.passage = q.passage.trim();
         quiz.push(built);
       });
+
+      // --- Läsförståelse: källtext obligatorisk på VARJE fråga -------------
+      // Det finns ingen separat övningstyp i datamodellen – en och samma quiz-
+      // lista används av både Quiz och Läsförståelse. En övning räknas därför som
+      // läsförståelse så snart NÅGON fråga har en källtext ("passage"). Då MÅSTE
+      // varje fråga ha en egen passage, annars skulle en fråga i läsförståelse-
+      // läget kunna visas utan synlig källtext (t.ex. "enligt texten ..." utan text).
+      // Ett rent quiz (ingen fråga har passage) påverkas inte.
+      const nrUtanPassage = quiz
+        .map((q, i) => (isNonEmptyString(q.passage) ? null : i + 1))
+        .filter((n) => n !== null);
+      if (quiz.length > 0 && nrUtanPassage.length > 0 && nrUtanPassage.length < quiz.length) {
+        const flera = nrUtanPassage.length > 1;
+        errors.push(
+          `Läsförståelse kräver en källtext ("passage") på VARJE fråga, men ${flera ? "frågorna" : "fråga"} ${nrUtanPassage.join(", ")} saknar "passage". ` +
+            `Lägg till en kort källtext (3–5 meningar som ${flera ? "de frågorna" : "den frågan"} kan besvaras utifrån), ` +
+            `eller ta bort alla passager om övningen bara ska vara ett vanligt quiz.`
+        );
+      }
     }
   }
 
