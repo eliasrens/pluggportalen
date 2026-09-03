@@ -1953,7 +1953,11 @@ body.varld-lage .container {
 .varld-stage {
   position: relative;
   width: 100%;
+  /* Höjden fyller innehållsytan minus header/marginaler. 100dvh (inte 100vh)
+     räknar bort mobilens dynamiska webbläsar-chrome, så scenen inte hamnar
+     under adressfältet. vh-raden är en fallback för mycket gamla motorer. */
   height: clamp(420px, calc(100vh - 150px), 900px);
+  height: clamp(420px, calc(100dvh - 150px), 900px);
   border-radius: var(--radie);
   overflow: hidden;
   box-shadow: var(--skugga-mjuk);
@@ -1973,7 +1977,12 @@ body.varld-lage .container {
 .varld-lager.varld-dold { visibility: hidden; }
 .varld-lager.varld-utan-anim { transition: none !important; }
 
-.varld-ute svg { display: block; width: 100%; height: 100%; }
+/* Ute-scenen ritas med preserveAspectRatio="xMidYMid meet" så att hus + avatar
+   + all natur ALLTID får plats (inget beskärs på korta/breda eller smala/höga
+   skärmar). overflow:visible låter den övertecknade himlen/gräset (ritade långt
+   utanför viewBoxen) fylla ut letterbox-ytan i stället för att lämna tomma
+   kanter – .varld-stage (overflow:hidden) klipper det mot scenramen. */
+.varld-ute svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 /* Elevens avatar framför huset (foreignObject i ute-SVG:n → skalar med scenen).
    Botten-justerad (flex-end) och fyller foreignObject:ens höjd, så fötterna
@@ -2114,6 +2123,8 @@ body.varld-lage .container {
   align-items: center;
   gap: 10px;
   width: 100%;
+  /* På smala bredder får raden wrappa så knappar aldrig trängs/klipps. */
+  flex-wrap: wrap;
 }
 
 .varld-titel {
@@ -2129,7 +2140,7 @@ body.varld-lage .container {
   white-space: nowrap;
 }
 
-.varld-verktyg { display: flex; gap: 8px; }
+.varld-verktyg { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 .varld-knapp {
   pointer-events: auto;
@@ -2162,6 +2173,7 @@ body.varld-lage .container {
   margin-top: 10px;
   width: min(440px, 100%);
   max-height: min(52vh, 420px);
+  max-height: min(52dvh, 420px);
   overflow-y: auto;
   background: rgba(255, 255, 255, 0.96);
   border: 2.5px solid #3b3350;
@@ -2192,9 +2204,15 @@ body.varld-lage .container {
 }
 
 @media (max-width: 700px) {
-  .varld-stage { height: clamp(380px, calc(100vh - 120px), 700px); }
+  .varld-stage {
+    height: clamp(380px, calc(100vh - 120px), 700px);
+    height: clamp(380px, calc(100dvh - 120px), 700px);
+  }
   .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
+  .varld-knapp { padding: 6px 11px; }  /* tightare så alla ikoner ryms på raden */
   .varld-titel { font-size: 0.95rem; }
+  .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */
+  .varld-panel { width: 100%; }        /* panelerna fyller bredden på mobil */
 }
 
 .hus-hint {
