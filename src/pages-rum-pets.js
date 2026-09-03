@@ -42,6 +42,18 @@ export function petDisplayName(pet) {
 const moodTimers = new Map(); // petId -> timeout (återgång till vilouttryck)
 const moodBusy = new Map(); // petId -> tidsstämpel: tidsatt uttryck pågår
 
+// Klappa-lek pågår: promenad-AI:n (rum-promenad.js) ska stå still medan djuret
+// klappas, annars går det ifrån sin gulliga reaktion mitt i animationen.
+const patBusy = new Map(); // petId -> tidsstämpel (klappa-lek pågår till dess)
+
+/** Klappas djuret just nu (litet skutt/rygg-lek)? Promenad-AI:n pausar då. */
+export function isPetBusy(petId) {
+  return (patBusy.get(petId) || 0) > Date.now();
+}
+function markPatBusy(petId, ms) {
+  patBusy.set(petId, Date.now() + ms);
+}
+
 /** Vilouttryck: neutral (matningen sker via äpplen på golvet, inte här). */
 function idleExpression() {
   return "";
@@ -98,6 +110,7 @@ const RYGG_MS = 3850;
 export function petBellyFlop(pet) {
   const node = findPetNode(pet.id);
   if (!node || !pet.hatchedAt || node.classList.contains("pet-rygg")) return;
+  markPatBusy(pet.id, RYGG_MS);
   setPetMood(pet, "glad", RYGG_MS + 1500); // extra glad en stund efteråt
   node.classList.add("pet-rygg");
   const fx = el('<span class="pet-rygg-fx">💖</span>');
@@ -108,6 +121,28 @@ export function petBellyFlop(pet) {
   }, RYGG_MS);
 }
 
+// Klappa för fast-storleks-djur (de vanliga djuren): ett litet glädjeskutt med
+// hjärtan i stället för rygg-lek (de "lägger sig inte på rygg"). Kort & gulligt.
+const KLAPP_MS = 900;
+
+/**
+ * Klick-klapp för ett djur med fast storlek (varld-rum-djur.js): litet studs
+ * upp + hjärtan, i samma anda som petBellyFlop men utan rygg-vändningen. Tar ett
+ * petId (de vanliga djuren delar .room-pet/data-pet-id-noden med mystery-djuren).
+ */
+export function petPat(petId) {
+  const node = findPetNode(petId);
+  if (!node || node.classList.contains("pet-klapp")) return;
+  markPatBusy(petId, KLAPP_MS);
+  node.classList.add("pet-klapp");
+  const fx = el('<span class="pet-klapp-fx">💖</span>');
+  node.appendChild(fx);
+  setTimeout(() => {
+    node.classList.remove("pet-klapp");
+    fx.remove();
+  }, KLAPP_MS);
+}
+
 /**
  * DOM-nod för ett husdjur i rumsscenen (samma dra-pipeline som sakerna:
  * klassen room-item + data-pet-id, position i procent).
@@ -116,8 +151,10 @@ export function petStageNode(pet, selected) {
   const pos = pet.pos || { x: 50, y: 70 };
   const art = pet.hatchedAt ? petArtHtml(pet, idleExpression(pet)) : eggSvg();
   const stageClass = pet.hatchedAt ? ` pet-vuxen-${pet.stage || 1}` : " pet-agg-i-rum";
+  // Kläckt djur: namn-etiketten är en lättviktig döpnings-affordans (klick →
+  // liten ✏️-hint → namn-vyn). Ägg går inte att döpa än (ingen art kläckt).
   const label = pet.hatchedAt
-    ? `<span class="rp-namn">${petDisplayName(pet)}</span>`
+    ? `<span class="rp-namn rp-namn-edit" data-rename="${pet.id}" title="Byt namn ✏️">${petDisplayName(pet)}</span>`
     : `<span class="rp-namn rp-agg">🥚 ruvar…</span>`;
   const node = el(`<div class="room-item room-pet${stageClass}${selected ? " selected" : ""}"
     data-pet-id="${pet.id}" style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">
@@ -136,6 +173,23 @@ export function petStageNode(pet, selected) {
     });
   }
   return node;
+}
+
+/**
+ * READ-ONLY nod för ett KLÄCKT husdjur (t.ex. i en kompis läs-vy): exakt samma
+ * sprite-/SVG-utseende som i eget rum, men helt stilla – inga hover-/klick-/
+ * drag-listeners, ingen panel, inga humör-/matningsuttryck. Idle-andningen är
+ * gratis via CSS-klasserna. Ägg (ej kläckta) ritas inte här → returnerar null.
+ */
+export function petReadonlyNode(pet) {
+  if (!pet || !pet.hatchedAt) return null;
+  const pos = pet.pos || { x: 50, y: 70 };
+  const art = petArtHtml(pet, idleExpression(pet));
+  return el(`<div class="room-item room-pet readonly pet-vuxen-${pet.stage || 1}"
+    style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">
+    <span class="ri-emoji">${art}</span>
+    <span class="rp-namn">${petDisplayName(pet)}</span>
+  </div>`);
 }
 
 /**
@@ -179,6 +233,9 @@ function creaturePanel(pet, opts) {
   const stage = pet.stage || 1;
   const next = petData.feedsToNextStage(pet.feedCount);
   const behoverNamn = !pet.name;
+  // Öppna namnfältet direkt när djuret saknar namn ELLER när panelen nåddes via
+  // ✏️-affordansen (namn-etiketten under djuret) – matnings-mätaren visas ändå.
+  const visaNamnfalt = behoverNamn || !!opts.startRename;
 
   let vaxHtml;
   if (next) {
@@ -201,19 +258,24 @@ function creaturePanel(pet, opts) {
     <div class="pet-steg">
       ${[1, 2, 3].map((s) => `<span class="pet-steg-chip${s === stage ? " aktiv" : ""}${s < stage ? " klar" : ""}">Steg ${s}<br><small>${STAGE_NAMES[s]}</small></span>`).join("")}
     </div>
-    <div id="namn-rad">${behoverNamn
-      ? `<p><b>Vad ska din nya kompis heta?</b></p>${nameFormHtml("")}`
+    <div id="namn-rad">${visaNamnfalt
+      ? `<p><b>${behoverNamn ? "Vad ska din nya kompis heta?" : `Vad ska ${namn} heta?`}</b></p>${nameFormHtml(pet.name || "")}`
       : `<p class="hint">${species ? `Art: <b>${species.name}</b> · ` : ""}Steg ${stage} av 3 · 🍎 ${pet.feedCount || 0} matningar</p>`}
     </div>
     <div id="vax">${vaxHtml}</div>
     ${next
-      ? `<p class="hint pet-mat-tips">🍎 Mata ${namn} genom att köpa <b>äpplen</b> i shoppen och lägga ut dem på golvet med <b>🍎 Lägg mat</b> – då går ${namn} dit och äter!</p>`
+      ? `<p class="hint pet-mat-tips">🍎 Mata ${namn} genom att köpa <b>Mysterymat</b> i shoppen och lägga ut den på golvet med <b>🍎 Mysterymat</b> – då går ${namn} dit och äter!</p>`
       : ""}
-    ${behoverNamn ? "" : '<button class="btn liten ghost" id="byt-namn">✏️ Byt namn</button>'}
+    ${visaNamnfalt ? "" : '<button class="btn liten ghost" id="byt-namn">✏️ Byt namn</button>'}
   </div>`);
 
   // Namnformulär (nytt namn eller byte).
   wireNameForm(view, pet, opts);
+  // Nåddes panelen via ✏️-affordansen? Fokusera namnfältet direkt (efter att
+  // noden monterats i DOM:en av anroparen).
+  if (visaNamnfalt && opts.startRename) {
+    setTimeout(() => view.querySelector(".pet-namn-input")?.focus(), 0);
+  }
   const bytBtn = view.querySelector("#byt-namn");
   if (bytBtn) {
     bytBtn.addEventListener("click", () => {
@@ -233,6 +295,58 @@ function nameFormHtml(value) {
       placeholder="Skriv ett namn…" autocomplete="off" />
     <button class="btn gron" type="submit">Spara namn</button>
   </form>`;
+}
+
+/**
+ * LÄTTVIKTIG namn-vy för ett vanligt djur (varld-rum-djur.js): bara det lilla
+ * inline-namnfältet (samma nameFormHtml-stil som mystery-djuren) – ingen
+ * matnings-/tillväxtinfo, för de vanliga djuren har ingen. Nås via ✏️-
+ * affordansen (namn-etiketten), aldrig genom att panelen tvingas fram vid klick.
+ *
+ * @param {object} o
+ * @param {string} o.displayName  djurets visningsnamn just nu (namn ell. art)
+ * @param {string} o.currentName  ev. sparat namn att förifylla (tom sträng = inget)
+ * @param {(clean: string) => Promise<{ok: boolean}>} o.onSave  sparar namnet
+ * @param {boolean} [o.autoFocus] fokusera fältet direkt (öppnat via ✏️)
+ */
+export function animalNamePanel({ displayName, currentName, onSave, autoFocus }) {
+  const behoverNamn = !currentName;
+  const view = el(`<div class="panel center rum-pet-panel rum-namn-panel">
+    <p><b>${behoverNamn ? "Vad ska ditt djur heta?" : `Vad ska ${displayName} heta?`}</b></p>
+    ${nameFormHtml(currentName || "")}
+    <p class="hint">Klick på djuret = klappa det! 💚</p>
+  </div>`);
+  const form = view.querySelector("#namn-form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = form.querySelector(".pet-namn-input");
+    const clean = petData.cleanPetName(input.value);
+    if (!clean) {
+      flash("Skriv ett namn först! ✏️", true);
+      input.focus();
+      return;
+    }
+    const btn = form.querySelector("button");
+    btn.disabled = true;
+    btn.textContent = "Sparar…";
+    try {
+      const res = await onSave(clean);
+      if (res && res.ok) {
+        confetti();
+        flash(`${clean} – vilket fint namn! 💚`);
+      } else {
+        flash("Kunde inte spara namnet.", true);
+        btn.disabled = false;
+        btn.textContent = "Spara namn";
+      }
+    } catch (err) {
+      flash("Kunde inte spara namnet: " + err.message, true);
+      btn.disabled = false;
+      btn.textContent = "Spara namn";
+    }
+  });
+  if (autoFocus) setTimeout(() => view.querySelector(".pet-namn-input")?.focus(), 0);
+  return view;
 }
 
 function wireNameForm(view, pet, opts) {

@@ -36,7 +36,7 @@ import {
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "./data.js";
-import { randomSpeciesId } from "./art-pets-creatures.js";
+import { randomSpeciesId, getSpecies } from "./art-pets-creatures.js";
 
 // Shop-id:n (måste matcha shop-items.js).
 export const EGG_ITEM_ID = "mystery-egg";
@@ -83,9 +83,21 @@ export function isFullGrown(pet) {
   return !!(pet && pet.hatchedAt && stageForFeeds(pet.feedCount) >= 3);
 }
 
-/** Är varelsen kläckt och hungrig (dvs. söker äpplen på golvet)? */
+/**
+ * Är arten ett MYSTERY-djur (sprite-riggad art, t.ex. Fjärlis/Flammis)? Bara de
+ * dras mot och äter Mysterymat – vanliga (icke-sprite) djur ignorerar maten helt.
+ */
+export function isMysteryPet(pet) {
+  const s = pet && pet.speciesId ? getSpecies(pet.speciesId) : null;
+  return !!(s && s.kind === "sprite");
+}
+
+/**
+ * Är varelsen ett kläckt mystery-djur som är hungrigt (dvs. söker Mysterymat på
+ * golvet)? Endast sprite-djuren – vanliga djur blir aldrig hungriga.
+ */
 export function isHungry(pet) {
-  return !!(pet && pet.hatchedAt) && !isFullGrown(pet);
+  return isMysteryPet(pet) && !!pet.hatchedAt && !isFullGrown(pet);
 }
 
 /** Städat namn (trimmat, maxlängd, utan HTML-tecken) eller null. */
@@ -121,7 +133,7 @@ function migratedLegacyPet(pet) {
 }
 
 /** pets[] ur ett studentData-objekt, med migrering av ev. legacy-pet i minnet. */
-function petsFromData(data) {
+export function petsFromData(data) {
   if (Array.isArray(data.pets)) return data.pets;
   if (data.pet && data.pet.eggBoughtAt) return [migratedLegacyPet(data.pet)];
   return [];

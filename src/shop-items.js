@@ -98,7 +98,7 @@ export const SHOP_ITEMS = [
   // Äpplet köps i valfritt ANTAL (ökar studentData.appleCount, hamnar aldrig i
   // ownedItems). Lägg ut det på golvet i Mitt rum → närmaste hungriga djur går
   // dit och äter, och växer efter 10 matningar. Se data-pet.js.
-  { id: "apple", name: "Äpple", emoji: "🍎", category: "mat", price: 5, consumable: true },
+  { id: "apple", name: "Mysterymat", emoji: "🍎", category: "mat", price: 5, consumable: true },
 
   // --- Dekor & pynt (placeras i rummet) ------------------------------------
   { id: "krukvaxt", name: "Krukväxt", emoji: "🪴", category: "dekor", price: 25 },
@@ -129,6 +129,17 @@ export function isWearable(id) {
 export function isFlatItem(id) {
   const it = getItem(id);
   return !!(it && it.flat);
+}
+
+/**
+ * Är saken ett VANLIGT djur (hund/katt/kanin …)? De köps i shoppen och blir
+ * LEVANDE, promenerande djur i rummet (studentData.roomAnimals via
+ * data-animals.js) – inte statiska möbler i room.placements. Ägget och
+ * värmelampan hör till mystery-systemet (data-pet.js) och räknas inte hit.
+ */
+export function isAnimalItem(id) {
+  const it = getItem(id);
+  return !!(it && it.category === "husdjur" && id !== "mystery-egg" && id !== "varmelampa");
 }
 
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
