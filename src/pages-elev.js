@@ -242,14 +242,12 @@ export async function pageElevProfil() {
   }
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till startsidan</a>
     <div class="panel center">
       <div class="hero-avatar">${avatarMarkup(avatar, avatarItems)}</div>
       <h1>${session.namn}</h1>
       <p class="hint">Användarnamn: <b>${session.username || ""}</b></p>
       <div class="btn-row center">
         <button class="btn liten" id="byt-avatar">Byt figur</button>
-        <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
         <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
       </div>
     </div>
@@ -284,9 +282,7 @@ export async function pageElevProfil() {
     }
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
-  view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));
 
   app.replaceChildren(view);
