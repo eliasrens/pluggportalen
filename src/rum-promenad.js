@@ -8,11 +8,12 @@
 // det och väljer ett nytt mål). Tempo enligt designfacit: lugnt, mjukt,
 // barnvänligt – accelererar/bromsar mjukt och pausar ofta.
 //
-// SEEK-LÄGE (matning): ligger det äpplen på golvet styr varje hungrigt (icke-
-// fullvuxet) djur mot NÄRMASTE lediga äpple och äter upp det när det når fram.
-// Varje äpple "bokas" (claims) av som mest ett djur så flera djur inte slåss om
-// samma äpple och inget dödläge uppstår. När inga äpplen finns vandrar djuren
-// som vanligt. Fullvuxna djur bryr sig inte om mat.
+// SEEK-LÄGE (matning): ligger det Mysterymat på golvet styr varje hungrigt
+// mystery-djur (sprite-art, icke-fullvuxet – se isHungry i data-pet.js) mot
+// NÄRMASTE lediga mat och äter upp den när det når fram. Vanliga (icke-sprite)
+// djur ignorerar maten helt. Varje mat "bokas" (claims) av som mest ett djur så
+// flera djur inte slåss om samma mat och inget dödläge uppstår. När ingen mat
+// finns vandrar djuren som vanligt. Fullvuxna mystery-djur bryr sig inte om mat.
 //
 // Kollisionsrutor läses från DOM:en (.room-item[data-id]) i procent av scenen,
 // så modulen fungerar oavsett hur sakerna är ritade/skalade. Loopen drivs av

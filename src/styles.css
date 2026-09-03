@@ -2274,6 +2274,14 @@ body.varld-lage .container {
    position. Inga pekhändelser (djuren äter dem – man drar dem inte), och de är
    inga .room-item så promenad-AI:n räknar dem inte som hinder. Ligger under
    husdjuren i DOM-ordningen så djuret syns ovanpå när det gnager. */
+/* Placera-läge för Mysterymat: hela scenen får hårkors-pekare så det är tydligt
+   att nästa klick lägger ut mat på golvet (knappen markeras via .aktiv). */
+.room-stage.mat-placering,
+.room-stage.mat-placering .room-item,
+.room-stage.mat-placering .room-item * {
+  cursor: crosshair;
+}
+
 .room-apple {
   position: absolute;
   transform: translate(-50%, -50%);
