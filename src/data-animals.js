@@ -10,9 +10,11 @@
 //     (isHungry i data-pet.js är false för dem: de är inga sprite-arter).
 //
 // Datamodell (studentData.roomAnimals: array):
-//   { id, pos: { x, y } }        id = shop-sakens id ("hund", "katt" …) –
+//   { id, pos: { x, y }, name }  id = shop-sakens id ("hund", "katt" …) –
 //                                man kan bara äga ETT djur per art, så arten
 //                                ÄR identiteten. pos i procent av rumsscenen.
+//                                name = elevens eget namn (sträng) eller null –
+//                                saneras med cleanPetName (samma som mystery-djur).
 //
 // Hålls medvetet HELT åtskild från pets[]: matnings-/evolutionslogiken i
 // data-pet.js rör aldrig roomAnimals, och den här modulen rör aldrig pets.
@@ -30,6 +32,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "./data.js";
 import { isAnimalItem } from "./shop-items.js";
+import { cleanPetName } from "./data-pet.js";
 
 /** Slumpad startposition nere på golvet (samma spridning som nya ägg). */
 function randomFloorPos() {
@@ -51,12 +54,12 @@ export function animalsFromData(data) {
     const pos = a.pos && Number.isFinite(a.pos.x) && Number.isFinite(a.pos.y)
       ? { x: a.pos.x, y: a.pos.y }
       : randomFloorPos();
-    out.push({ id: a.id, pos });
+    out.push({ id: a.id, pos, name: cleanPetName(a.name) });
   }
   for (const id of data.ownedItems || []) {
     if (!isAnimalItem(id) || seen.has(id)) continue;
     seen.add(id);
-    out.push({ id, pos: randomFloorPos() });
+    out.push({ id, pos: randomFloorPos(), name: null });
   }
   return out;
 }
@@ -79,7 +82,7 @@ export async function buyAnimal(itemId, price, studentId = currentStudentId()) {
     const animals = animalsFromData(data);
     if (animals.some((a) => a.id === itemId)) return { ok: true, coins, animals };
     if (coins < cost) return { ok: false, coins, animals };
-    const next = [...animals, { id: itemId, pos: randomFloorPos() }];
+    const next = [...animals, { id: itemId, pos: randomFloorPos(), name: null }];
     const write = { coins: coins - cost, roomAnimals: next };
     if (snap.exists()) tx.update(ref, write);
     else tx.set(ref, write);
@@ -110,5 +113,28 @@ export async function saveAnimalPositions(positions, studentId = currentStudentI
     if (!changed) return { animals };
     tx.update(ref, { roomAnimals: next });
     return { animals: next };
+  });
+}
+
+/**
+ * Döp (eller döp om) ett vanligt djur. Namnet saneras precis som mystery-djurens
+ * (cleanPetName: trimmat, maxlängd, utan HTML-tecken). Skriver ner hela listan
+ * (inkl. ev. legacy-merge från ownedItems) i EN transaktion – samma mönster som
+ * saveAnimalPositions och setPetName i data-pet.js.
+ * @returns {Promise<{ok: boolean, animal: object|null, animals: object[]}>}
+ */
+export async function saveAnimalName(animalId, name, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const clean = cleanPetName(name);
+  const ref = doc(db, "studentData", studentId);
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) return { ok: false, animal: null, animals: [] };
+    const animals = animalsFromData(snap.data());
+    const i = animals.findIndex((a) => a.id === animalId);
+    if (i === -1) return { ok: false, animal: null, animals };
+    const next = animals.map((a) => (a.id === animalId ? { ...a, name: clean } : a));
+    tx.update(ref, { roomAnimals: next });
+    return { ok: true, animal: next[i], animals: next };
   });
 }

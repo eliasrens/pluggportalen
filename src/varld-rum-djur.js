@@ -26,14 +26,21 @@ import { itemSvg, itemSize } from "./art-items.js";
  * @param {object} o
  * @param {object} o.sd  studentData (roomAnimals + ev. legacy ownedItems-djur)
  * @returns {{ list: () => object[], byId: (id: string) => object|undefined,
+ *   displayName: (a: object) => string,
  *   stageNode: (a: object, selected: boolean) => HTMLElement,
- *   panelNode: (a: object) => HTMLElement,
+ *   saveName: (id: string, name: string) => Promise<object>,
  *   scheduleSave: () => void, saveWalkPositions: () => void }}
  */
 export function mountRumDjur({ sd }) {
   const animals = animalData
     .animalsFromData(sd)
     .map((a) => ({ ...a, hatchedAt: true }));
+
+  /** Visningsnamn: elevens eget namn om satt, annars artnamnet. */
+  function displayName(a) {
+    const item = getItem(a.id);
+    return a.name || (item ? item.name : "Djuret");
+  }
 
   // Spara positioner (debounce vid drag – samma mönster som scheduleSavePets).
   let saveTimer = null;
@@ -68,29 +75,36 @@ export function mountRumDjur({ sd }) {
     const item = getItem(a.id);
     if (!item) return el("<span></span>");
     const size = itemSize(a.id);
+    const namn = displayName(a);
+    // Namn-etiketten är en lättviktig döpnings-affordans (klick → liten ✏️-hint
+    // → inline-namnfält), precis som mystery-djuren. Ingen inforuta poppar vid
+    // klick på djuret självt – det ger bara en klappa-effekt (petPat).
     return el(`<div class="room-item room-pet room-djur${selected ? " selected" : ""}"
-      data-pet-id="${a.id}" style="left:${a.pos.x}%;top:${a.pos.y}%" title="${item.name}">
+      data-pet-id="${a.id}" style="left:${a.pos.x}%;top:${a.pos.y}%" title="${namn}">
       <span class="ri-emoji" style="width:calc(${size.w}rem * var(--rum-skala, 1));height:calc(${size.h}rem * var(--rum-skala, 1))">${itemSvg(a.id) || item.emoji}</span>
-      <span class="rp-namn">${item.name}</span>
+      <span class="rp-namn rp-namn-edit" data-rename="${a.id}" title="Byt namn ✏️">${namn}</span>
     </div>`);
   }
 
-  /** Liten infopanel när djuret är valt (ingen matning/tillväxt att visa). */
-  function panelNode(a) {
-    const item = getItem(a.id);
-    const namn = item ? item.name : "Djuret";
-    return el(`<div class="panel center rum-pet-panel">
-      <h2>${namn} ${item ? item.emoji : "🐾"}</h2>
-      <p class="hint">${namn} bor här och promenerar lugnt omkring i rummet.
-        Den är precis lagom stor som den är och behöver ingen mat. 💚</p>
-    </div>`);
+  /**
+   * Döp djuret (Firestore) och uppdatera det in-memory så namn-etiketten kan
+   * ritas om direkt. Returnerar transaktionsresultatet ({ ok, animal, animals }).
+   */
+  async function saveName(id, name) {
+    const res = await animalData.saveAnimalName(id, name);
+    if (res.ok) {
+      const a = animals.find((x) => x.id === id);
+      if (a) a.name = res.animal ? res.animal.name : null;
+    }
+    return res;
   }
 
   return {
     list: () => animals,
     byId: (id) => animals.find((a) => a.id === id),
+    displayName,
     stageNode,
-    panelNode,
+    saveName,
     scheduleSave,
     saveWalkPositions,
   };
