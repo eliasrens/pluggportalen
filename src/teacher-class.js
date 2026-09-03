@@ -14,46 +14,10 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { GAMEMODES } from "./game-shared.js";
 import { avatarEmoji } from "./avatars.js";
 import { el, esc, isTeacher, teacherNav, renderGate } from "./teacher-shared.js";
-
-const MAX_STARS_PER_MODE = 3;
-
-/** Antal möjliga stjärnor för ett område = tillgängliga gamemodes × 3. */
-function areaMaxStars(area) {
-  const hasQuiz = Array.isArray(area.quiz) && area.quiz.length > 0;
-  const hasPairs = Array.isArray(area.pairs) && area.pairs.length > 0;
-  let modes = 0;
-  for (const gm of GAMEMODES) {
-    if (gm.needs === "quiz" && hasQuiz) modes++;
-    else if (gm.needs === "pairs" && hasPairs) modes++;
-  }
-  return modes * MAX_STARS_PER_MODE;
-}
-
-/** Sammanställ en elevs progress för ett område ur progress-objektet. */
-function areaEarned(progress, areaId) {
-  const modes = (progress && progress[areaId]) || {};
-  let stars = 0;
-  let completed = 0;
-  let played = 0;
-  for (const result of Object.values(modes)) {
-    if (!result) continue;
-    played++;
-    if (typeof result.stars === "number") stars += Math.min(MAX_STARS_PER_MODE, result.stars);
-    if (result.completed) completed++;
-  }
-  return { stars, completed, played };
-}
-
-/** Progress-klass (färg) utifrån andel intjänade stjärnor. */
-function progressLevel(ratio) {
-  if (ratio >= 0.67) return "hog";
-  if (ratio >= 0.34) return "mellan";
-  if (ratio > 0) return "lag";
-  return "tom";
-}
+import { areaMaxStars, areaEarned, progressLevel } from "./teacher-class-stats.js";
+import { openStudentDetail } from "./teacher-class-detail.js";
 
 /** Cellens innehåll för en elev × ett område. */
 function cellHtml(earned, maxStars) {
@@ -107,7 +71,7 @@ export async function pageLarareKlass(ctx) {
       </div>
       <p class="hint">Se hur långt varje elev kommit. Varje cell visar intjänade stjärnor av
         möjliga för arbetsområdet (max 3 per övning), och <b>Totalt</b> summerar elevens
-        framsteg. Läs-endast – inget ändras här.</p>
+        framsteg. <b>Klicka på en elev</b> för fördjupad statistik. Läs-endast – inget ändras här.</p>
       <div class="field" id="subject-field">
         <label for="klass-subject">Ämne</label>
         <select id="klass-subject" class="select"></select>
@@ -153,11 +117,24 @@ export async function pageLarareKlass(ctx) {
     return;
   }
 
+  // Arbetsområden cachas per ämne så matris-byten och elev-fördjupningen delar
+  // samma läsningar (läraren är läs-endast, så det är säkert att memoisera).
+  const areasCache = new Map();
+  function loadAreas(subjectId) {
+    if (!areasCache.has(subjectId)) {
+      areasCache.set(
+        subjectId,
+        data.getAreas(subjectId).catch(() => [])
+      );
+    }
+    return areasCache.get(subjectId);
+  }
+
   async function renderMatrix() {
     matrixEl.replaceChildren(el(`<div class="spinner">Laddar arbetsområden…</div>`));
     let areas = [];
     try {
-      areas = await data.getAreas(selectedSubject);
+      areas = await loadAreas(selectedSubject);
     } catch (err) {
       matrixEl.replaceChildren(
         el(`<div class="msg error">Kunde inte ladda arbetsområden: ${esc(err.message)}</div>`)
@@ -210,10 +187,12 @@ export async function pageLarareKlass(ctx) {
         const totRatio = subjectMaxStars > 0 ? earnedTotal / subjectMaxStars : 0;
         const totPct = Math.round(totRatio * 100);
         const totLvl = progressLevel(totRatio);
-        return `<tr>
+        return `<tr class="cx-row" data-student="${esc(s.id)}" tabindex="0" role="button"
+            title="Klicka för fördjupad statistik om ${esc(s.namn || s.username || s.id)}">
           <th class="cx-name" scope="row">
             <span class="cx-avatar">${avatarEmoji(s.avatarId)}</span>
             <span class="cx-name-txt">${esc(s.namn || s.username || s.id)}</span>
+            <span class="cx-row-more" aria-hidden="true">›</span>
           </th>
           ${cells}
           <td class="cx-total ${totLvl}" title="${earnedTotal} av ${subjectMaxStars} möjliga stjärnor">
@@ -242,7 +221,24 @@ export async function pageLarareKlass(ctx) {
       <span class="cx-legend-item"><span class="cx-dot mellan"></span>På gång</span>
       <span class="cx-legend-item"><span class="cx-dot lag"></span>Precis börjat</span>
       <span class="cx-legend-item"><span class="cx-dot tom"></span>Ej börjat</span>
+      <span class="cx-legend-tip">💡 Klicka på en elev för fördjupad statistik</span>
     </div>`);
+
+    // Klick (eller Enter/mellanslag) på en elevrad → fördjupad per-elev-vy.
+    const studentById = new Map(students.map((s) => [s.id, s]));
+    const openRow = (tr) => {
+      const s = studentById.get(tr.dataset.student);
+      if (s) openStudentDetail(s, progressByStudent.get(s.id) || {}, subjects, loadAreas);
+    };
+    table.querySelectorAll("tr.cx-row").forEach((tr) => {
+      tr.addEventListener("click", () => openRow(tr));
+      tr.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openRow(tr);
+        }
+      });
+    });
 
     matrixEl.replaceChildren(table, legend);
   }

@@ -60,10 +60,13 @@ läsning för klienten).
 
 **Quiz**: `{ id, question, options: string[], answerIndex, explanation, passage? }`
 – `answerIndex` är index (0-baserat) i `options` för rätt svar.
-– `passage` är **valfritt**: en kort text (1–3 meningar) kopplad till just den
-  frågan. I läsförståelse-läget visas passagen i ett lugnt block ovanför frågan
-  och byts per fråga. Saknas `passage` visas inget extra textblock (bakåtkompatibelt
-  – gamla frågor utan fältet fungerar oförändrat). Övriga gamemodes ignorerar det.
+– `passage` är källtexten (3–5 meningar) som just den frågan bygger på. I
+  läsförståelse-läget visas passagen i ett lugnt block ovanför frågan och byts per
+  fråga. **Obligatorisk för läsförståelse:** eftersom samma `quiz`-lista används av
+  både Quiz och Läsförståelse räknas en övning som läsförståelse så snart någon fråga
+  har `passage` – och då kräver valideringen (`validate.js`) `passage` på *varje*
+  fråga, så ingen fråga kan visas utan sin källtext. Ett rent quiz (ingen fråga har
+  `passage`) påverkas inte. Övriga gamemodes ignorerar fältet.
 
 **Pair**: `{ id, term, definition }` – används för para ihop / memory.
 
