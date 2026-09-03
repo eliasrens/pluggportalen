@@ -8,6 +8,16 @@
 //   { id, name, eggBoughtAt, hasHeatLamp, speciesId, hatchedAt, stage,
 //     feedCount, lastFedAt, pos: { x, y } }   (pos i procent av rumsscenen)
 //
+// Matning via äpplen (ersätter den gamla gratis-panelknappen):
+//   studentData.appleCount        antal köpta men outlagda äpplen (heltal ≥ 0)
+//   studentData.floorApples[]     äpplen som ligger på golvet, { id, x, y }
+//                                 (x/y i procent av rumsscenen, golvzonen)
+//   Köp av äpple (buyApple) ökar appleCount; att lägga ut ett (placeApple)
+//   flyttar ett från appleCount → floorApples; när ett djur äter upp det
+//   (eatApple) tas det ur floorApples och djurets feedCount ökar med 1.
+//   Tillväxten sker ENBART via uppätna äpplen (10 per steg) – ingen gratis
+//   dagsmatning finns kvar.
+//
 // Bakåtkompatibilitet: ett äldre studentData.pet (singular) migreras till
 // pets[] vid första inläsningen (fältet lämnas kvar men ignoreras sedan –
 // pets[] är sanningen så fort den finns).
@@ -31,14 +41,16 @@ import { randomSpeciesId } from "./art-pets-creatures.js";
 // Shop-id:n (måste matcha shop-items.js).
 export const EGG_ITEM_ID = "mystery-egg";
 export const LAMP_ITEM_ID = "varmelampa";
+export const APPLE_ITEM_ID = "apple";
 
-// Kläcktid: ~3 dagar realtid; värmelampan halverar tiden.
-export const HATCH_MS = 3 * 24 * 60 * 60 * 1000;
-export const LAMP_HATCH_FACTOR = 0.5;
+// Kläcktid: 1 dygn utan värmelampa, 10 minuter MED värmelampa (fast tid).
+export const HATCH_MS = 24 * 60 * 60 * 1000; // 1 dygn
+export const LAMP_HATCH_MS = 10 * 60 * 1000; // 10 minuter med värmelampa
 
-// Tillväxt: steget beräknas ur antal matningar (3 steg, sista rätt stort).
-export const STAGE2_FEEDS = 3; // så många matningar → steg 2
-export const STAGE3_FEEDS = 7; // så många matningar → steg 3 (max)
+// Tillväxt: steget beräknas ur antal matningar (uppätna äpplen). 3 steg –
+// 10 matningar per steg: steg 1→2 vid 10 äpplen, steg 2→3 (fullvuxen) vid 20.
+export const STAGE2_FEEDS = 10; // så många uppätna äpplen → steg 2
+export const STAGE3_FEEDS = 20; // så många uppätna äpplen → steg 3 (max)
 
 // Namn: sätts av eleven, barnvänlig maxlängd.
 export const NAME_MAX_LEN = 16;
@@ -59,27 +71,21 @@ export function feedsToNextStage(feedCount) {
   return { needed: target, have: n };
 }
 
-/** Tidpunkten (ms) då ägget kläcks – halva tiden med värmelampa. */
+/** Tidpunkten (ms) då ägget kläcks – 1 dygn, eller 10 min med värmelampa. */
 export function hatchTimeFor(pet, hasLamp = false) {
   if (!pet || !pet.eggBoughtAt) return Infinity;
-  const factor = pet.hasHeatLamp || hasLamp ? LAMP_HATCH_FACTOR : 1;
-  return pet.eggBoughtAt + Math.round(HATCH_MS * factor);
+  const dur = pet.hasHeatLamp || hasLamp ? LAMP_HATCH_MS : HATCH_MS;
+  return pet.eggBoughtAt + dur;
 }
 
-/** Är två ms-tidsstämplar samma (lokala) kalenderdag? */
-export function isSameLocalDay(a, b) {
-  const da = new Date(a), db_ = new Date(b);
-  return (
-    da.getFullYear() === db_.getFullYear() &&
-    da.getMonth() === db_.getMonth() &&
-    da.getDate() === db_.getDate()
-  );
+/** Är husdjuret fullvuxet (steg 3)? Fullvuxna djur söker inte längre mat. */
+export function isFullGrown(pet) {
+  return !!(pet && pet.hatchedAt && stageForFeeds(pet.feedCount) >= 3);
 }
 
-/** Får varelsen matas nu? (kläckt + inte redan matad idag – 1 gång/dygn) */
-export function canFeed(pet, now = Date.now()) {
-  if (!pet || !pet.hatchedAt) return false;
-  return !pet.lastFedAt || !isSameLocalDay(pet.lastFedAt, now);
+/** Är varelsen kläckt och hungrig (dvs. söker äpplen på golvet)? */
+export function isHungry(pet) {
+  return !!(pet && pet.hatchedAt) && !isFullGrown(pet);
 }
 
 /** Städat namn (trimmat, maxlängd, utan HTML-tecken) eller null. */
@@ -92,6 +98,10 @@ export function cleanPetName(name) {
 
 function newPetId() {
   return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function newAppleId() {
+  return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 /** Gör ett äldre singular-pet till en post i pets[] (behåller alla fält). */
@@ -245,21 +255,76 @@ export async function hatchReadyPets(studentId = currentStudentId()) {
   });
 }
 
+// --- Matning via äpplen -----------------------------------------------------
+
+/** floorApples[] ur ett studentData-objekt (tom lista om fältet saknas). */
+function floorApplesFromData(data) {
+  return Array.isArray(data.floorApples) ? data.floorApples : [];
+}
+
 /**
- * Mata ETT husdjur (gratis, max 1 gång per dygn och djur). Ökar feedCount och
- * räknar om steget. Ingen bestraffning om man missar dagar.
- * @returns {Promise<{ok: boolean, reason?: string, pet: object|null, pets: object[], stageUp: boolean}>}
+ * Köp ETT äpple: drar coins och ökar studentData.appleCount. Äpplet är en
+ * förbrukningsvara (hamnar aldrig i ownedItems) – man kan köpa hur många som
+ * helst. Allt i EN transaktion (samma mönster som buyItem).
+ * @returns {Promise<{ok: boolean, coins: number, appleCount: number}>}
  */
-export async function feedPet(petId, studentId = currentStudentId()) {
-  return updatePets(studentId, (pets) => {
+export async function buyApple(price, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const cost = Math.max(0, Math.round(price || 0));
+  const ref = doc(db, "studentData", studentId);
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const coins = data.coins || 0;
+    const count = data.appleCount || 0;
+    if (coins < cost) return { ok: false, coins, appleCount: count };
+    const next = { coins: coins - cost, appleCount: count + 1 };
+    if (snap.exists()) tx.update(ref, next);
+    else tx.set(ref, next);
+    return { ok: true, coins: next.coins, appleCount: next.appleCount };
+  });
+}
+
+/**
+ * Lägg ut ETT äpple på golvet: flyttar ett äpple från appleCount till
+ * floorApples[] (position i procent av rumsscenen). Misslyckas om man är slut
+ * på äpplen. Allt i EN transaktion.
+ * @returns {Promise<{ok: boolean, appleCount: number, floorApples: object[], apple: object|null}>}
+ */
+export async function placeApple(x, y, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const count = data.appleCount || 0;
+    const apples = floorApplesFromData(data);
+    if (count <= 0) return { ok: false, appleCount: count, floorApples: apples, apple: null };
+    const apple = { id: newAppleId(), x, y };
+    const nextApples = [...apples, apple];
+    if (snap.exists()) tx.update(ref, { appleCount: count - 1, floorApples: nextApples });
+    else tx.set(ref, { appleCount: count - 1, floorApples: nextApples });
+    return { ok: true, appleCount: count - 1, floorApples: nextApples, apple };
+  });
+}
+
+/**
+ * Ett husdjur äter upp ett äpple från golvet: tar bort äpplet ur floorApples,
+ * ökar djurets feedCount med 1 och räknar om steget. Ingen dagsgräns – tillväxt
+ * sker helt via uppätna äpplen. Är äpplet redan borta (annat djur hann först)
+ * eller djuret saknas/okläckt görs inget. Allt i EN transaktion.
+ * @returns {Promise<{ok: boolean, pet: object|null, pets: object[], floorApples: object[], stageUp: boolean}>}
+ */
+export async function eatApple(petId, appleId, studentId = currentStudentId()) {
+  return updatePets(studentId, (pets, data) => {
+    const apples = floorApplesFromData(data);
+    const hasApple = apples.some((a) => a.id === appleId);
     const i = pets.findIndex((p) => p.id === petId);
     const pet = i === -1 ? null : pets[i];
-    if (!pet || !pet.hatchedAt) {
-      return { result: { ok: false, reason: "inte-klackt", pet, pets, stageUp: false } };
+    if (!hasApple || !pet || !pet.hatchedAt) {
+      return { result: { ok: false, pet, pets, floorApples: apples, stageUp: false } };
     }
-    if (!canFeed(pet)) {
-      return { result: { ok: false, reason: "redan-matad", pet, pets, stageUp: false } };
-    }
+    const nextApples = apples.filter((a) => a.id !== appleId);
     const feedCount = (pet.feedCount || 0) + 1;
     const fed = { ...pet, feedCount, stage: stageForFeeds(feedCount), lastFedAt: Date.now() };
     const next = [...pets];
@@ -267,7 +332,14 @@ export async function feedPet(petId, studentId = currentStudentId()) {
     return {
       write: true,
       pets: next,
-      result: { ok: true, pet: fed, pets: next, stageUp: fed.stage > (pet.stage || 1) },
+      extra: { floorApples: nextApples },
+      result: {
+        ok: true,
+        pet: fed,
+        pets: next,
+        floorApples: nextApples,
+        stageUp: fed.stage > (pet.stage || 1),
+      },
     };
   });
 }

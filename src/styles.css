@@ -154,70 +154,6 @@ body.med-sidomeny .sidebar {
   text-decoration: underline;
 }
 
-.sido-xp-rad {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.sido-xp-kol {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.sido-xp-topp {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.sido-niva {
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: #3a5bbf;
-}
-
-.sido-xp-bar {
-  height: 14px;
-  background: #ffffff;
-  border-radius: 999px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(31, 45, 74, 0.15);
-}
-
-.sido-xp-fyll {
-  height: 100%;
-  background: linear-gradient(90deg, #6fa8ff, #3a5bbf);
-  border-radius: 999px;
-  transition: width 0.4s ease;
-}
-
-/* ⚡-genväg direkt till Utveckling. */
-.sido-blixt {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(160deg, #f6d666, #f2c94c);
-  box-shadow: 0 4px 0 #d9ac1f;
-  font-size: 1.5rem;
-  text-decoration: none;
-  transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.1s ease;
-}
-
-.sido-blixt:hover {
-  transform: translateY(-2px) rotate(8deg);
-}
-
-.sido-blixt:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #d9ac1f;
-}
-
 /* --- Navlänkar: tre lägen (vila / hover / aktiv) + ikon-studs --- */
 .sido-nav {
   display: flex;
@@ -312,7 +248,7 @@ body.med-sidomeny .sidebar {
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
 }
 
-/* Avdelare mellan profil-valen och övriga destinationer (t.ex. "Min klass"). */
+/* Avdelare mellan nav-grupper (används om en länk får en egen grupp igen). */
 .sido-nav-avdelare {
   border: 0;
   height: 2px;
@@ -374,13 +310,11 @@ body.med-sidomeny .sidebar {
 /* Respektera reduced-motion: stäng av sidomenyns hover-/studsanimationer. */
 @media (prefers-reduced-motion: reduce) {
   .sido-figur,
-  .sido-blixt,
   .sido-nav-lank,
   .sido-nav-ikon {
     transition: none;
   }
   .sido-figur:hover,
-  .sido-blixt:hover,
   .sido-nav-lank:not(.aktiv):hover,
   .sido-nav-lank:active,
   .sido-nav-lank:not(.aktiv):hover:active {
@@ -718,29 +652,6 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 
 .hero .coins {
   font-size: 1rem;
-}
-
-/* Slimmad hem-hjälte (kort-rutnätet är borttaget – sidomenyn navigerar). */
-.hero-slim {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  max-width: 560px;
-}
-
-.hero-avatar-stor {
-  font-size: 4.2rem;
-  margin-bottom: 0;
-}
-
-.hero-halsning {
-  margin: 0;
-}
-
-.hero-coins {
-  font-size: 1.05rem;
-  margin-top: 6px;
 }
 
 .big-emoji {
@@ -1274,12 +1185,25 @@ code {
   display: block;
 }
 
-.room-bg .room-window {
-  position: absolute;
-  left: 6%;
-  top: 5%;
+/* Fönstret är numera ett interaktivt rums-objekt (flyttbart/raderbart) och
+   ritas som en .room-item, inte i bakgrunden. Storleken hålls oförändrad
+   (klamp mot scenbredden) och skalas INTE med --rum-skala. */
+.room-window-item {
   width: clamp(120px, 24%, 190px);
+  font-size: 0;
+}
+
+.room-window-item .rw-svg {
   display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.room-window-item .rw-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
 }
 
 /* --- Palettväljaren (Måla om – delas av Mitt rum & hus-vyn) ---------------- */
@@ -1828,70 +1752,6 @@ code {
   color: #5d6a89;
   font-weight: 600;
 }
-/* --- Klassfoto (#/elev/klassfoto) ----------------------------------------- */
-/* Additivt tillägg – håll separat för enkel rebase. */
-
-.foto-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 16px;
-}
-
-.foto-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 18px 12px 14px;
-  background: #fff;
-  border: none;
-  border-radius: var(--radie);
-  box-shadow: var(--skugga);
-  text-align: center;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-.foto-card:hover,
-.foto-card:focus-visible {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
-}
-
-.foto-card.du {
-  background: linear-gradient(160deg, #eafaf0, #d7f3e2);
-  outline: 3px solid var(--gron);
-  outline-offset: -3px;
-}
-
-.foto-figur {
-  font-size: 3.4rem;
-  line-height: 1;
-}
-
-.foto-namn {
-  font-weight: 800;
-  font-size: 0.98rem;
-  word-break: break-word;
-}
-
-.foto-du {
-  position: absolute;
-  top: -10px;
-  right: -6px;
-  background: var(--gron);
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.8rem;
-  padding: 3px 10px;
-  border-radius: 999px;
-  box-shadow: var(--skugga);
-  transform: rotate(6deg);
-}
-
 /* --- Klasskamratens rum (läs-endast) ------------------------------------- */
 .klasskamrat-figur {
   font-size: 4.2rem;
@@ -2065,12 +1925,6 @@ code {
 .pet-steg-chip small { font-weight: 600; opacity: 0.7; }
 .pet-steg-chip.aktiv { background: var(--gul); border-color: rgba(0, 0, 0, 0.15); }
 .pet-steg-chip.klar { background: #d9f4e4; }
-.pet-prickar { display: flex; gap: 8px; justify-content: center; margin: 6px 0 10px; }
-.pet-prick {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: var(--ljus); border: 2px solid rgba(0, 0, 0, 0.15);
-}
-.pet-prick.full { background: var(--gron); border-color: var(--gron); }
 
 /* Lärare: "Ge coins" i elevlistan */
 .give-coins-cell { vertical-align: middle; }
@@ -2083,30 +1937,265 @@ code {
 .give-coins .gc-err { color: #b3261e; font-weight: 700; }
 
 /* ============================================================================
-   Mitt hem (#/elev/hus) – huset utifrån med zoom-övergång in i rummet
-   ============================================================================ */
-.hus-stage {
+   Husvärlden (#/elev/hus + #/elev/rum) – EN spelscen med kamerazoom-nivåer
+   ============================================================================
+   Scenen (.varld-stage) täcker större delen av innehållsytan och innehåller
+   fullstora LAGER (.varld-lager) – ett per zoomnivå (ute/rummet, senare byn).
+   Kameran (varld-kamera.js) sätter transform/transform-origin/opacity inline;
+   timing & easing (samma som gamla .gar-in-zoomen: 900 ms, cubic-bezier,
+   origin mot fönstret) ligger här. Sidomenyn påverkas inte – bara #app-ytan
+   breddas i världsläget (body.varld-lage sätts av routern). */
+
+body.varld-lage .container {
+  max-width: 1440px;
+}
+
+.varld-stage {
   position: relative;
   width: 100%;
-  aspect-ratio: 96 / 60;
+  height: clamp(420px, calc(100vh - 150px), 900px);
   border-radius: var(--radie);
   overflow: hidden;
   box-shadow: var(--skugga-mjuk);
   background: #bde3f5;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  /* Avatarens storlek i scen-koordinater (px i ute-SVG:ns viewBox). En
+     framtida by-nivå sätter ett mindre värde på sina hus-kopior. */
+  --varld-avatar-font: 120px;
 }
-.hus-scen {
+
+.varld-lager {
   position: absolute;
   inset: 0;
-  /* Zoom-origin mot husets fönster (48,5 % / 52 %) enligt designbeslutet. */
-  transform-origin: 48.5% 52%;
   transition: transform 0.9s cubic-bezier(0.55, 0, 0.2, 1), opacity 0.55s ease 0.25s;
+  will-change: transform, opacity;
 }
-.hus-scen svg { display: block; width: 100%; height: 100%; }
-.hus-stage.gar-in .hus-scen { transform: scale(6); opacity: 0; pointer-events: none; }
+.varld-lager.varld-dold { visibility: hidden; }
+.varld-lager.varld-utan-anim { transition: none !important; }
 
-#husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
-#husgrupp:hover, #husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
+.varld-ute svg { display: block; width: 100%; height: 100%; }
+
+/* Elevens avatar framför huset (foreignObject i ute-SVG:n → skalar med scenen).
+   Botten-justerad (flex-end) och fyller foreignObject:ens höjd, så fötterna
+   står kvar på marklinjen (foreignObject-botten) medan extrautrymmet hamnar
+   OVANFÖR huvudet – där ger det plats åt hattar/kepsar utan att de klipps. */
+.varld-avatar {
+  font-size: var(--varld-avatar-font, 120px);
+  line-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+.varld-avatar .avatar-figure { vertical-align: top; }
+
+/* Rummets lager återanvänder .room-stage-utseendet (väggfärger m.m.) men
+   fyller hela scenen i stället för att vara ett eget block. */
+.varld-lager.room-stage {
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  /* Möbler & husdjur var måttsatta i rem för den gamla lilla rums-vyn (360px).
+     I den stora spelcanvasen ser samma rem-mått för små ut mot golv & fönster,
+     så rums-sakerna skalas upp med denna faktor (multiplicerar bredd/höjd →
+     nodens faktiska mått växer, så golv-clampen i varld-rum.js följer med).
+     Inbördes storleksskillnader (säng stor, pall liten) bevaras. */
+  --rum-skala: 1.55;
+}
+
+#husgrupp, #kompis-husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
+#husgrupp:hover, #husgrupp:focus-visible,
+#kompis-husgrupp:hover, #kompis-husgrupp:focus-visible { transform: scale(1.02) rotate(-0.6deg); }
+
+/* Klasskylten vid gårdskanten – klick zoomar ut till klassbyn. */
+#klasskylt {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  transition: transform 0.25s;
+  outline: none;
+}
+#klasskylt:hover, #klasskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
+
+/* --- Klassbyn (by-nivån): alla elevers hus i rader med vägar emellan ------- */
+.varld-by { background: #a8da8f; }
+
+.by-mark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* En tomt = ett minihus + elevens avatar (husMini) med namnskylt under.
+   left/top/width/height sätts inline av varld-by-scen.js utifrån byLayout
+   (procent av lagret – samma koordinater som kamerans fokuspunkter). */
+.by-tomt {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  outline: none;
+}
+.by-tomt > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 90%;
+}
+.by-tomt:hover > svg,
+.by-tomt:focus-visible > svg { transform: scale(1.06); }
+.by-tomt:focus-visible { outline: 3px solid var(--lila, #7c5cd6); outline-offset: 4px; border-radius: 12px; }
+
+.by-namn {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 150%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #3b3350;
+}
+.by-tomt.du .by-namn {
+  background: var(--gron, #34a853);
+  border-color: rgba(59, 51, 80, 0.55);
+  color: #fff;
+}
+
+.by-du {
+  position: absolute;
+  top: -4px;
+  left: 72%;
+  background: var(--gron, #34a853);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  box-shadow: var(--skugga);
+  transform: rotate(6deg);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
+.varld-stage[data-niva="by"] .varld-knapp.bara-rum,
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"] { display: none; }
+
+/* På en KAMRATS hus (läs-vy) göms alla scen-kontroller helt – man kan bara
+   titta in i deras rum eller gå tillbaka till byn. */
+.varld-stage[data-niva="kompishus"] .varld-verktyg { display: none; }
+
+/* --- Overlay-UI i spelvyn (integrerade scen-kontroller) -------------------- */
+/* Själva overlay-skiktet släpper igenom pekare; bara knappar/paneler fångar. */
+.varld-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 12px;
+  pointer-events: none;
+}
+
+.varld-ui-topp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.varld-titel {
+  flex: 1 1 auto;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #3b3350;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.varld-verktyg { display: flex; gap: 8px; }
+
+.varld-knapp {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 2.5px solid #3b3350;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  color: #3b3350;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.18);
+  white-space: nowrap;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.varld-knapp:hover { transform: translateY(-1px); }
+.varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
+.varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
+
+/* Lådan & Kläder finns bara inne i rummet. */
+.varld-stage[data-niva="hus"] .varld-knapp.bara-rum { display: none; }
+
+/* Flytande verktygspanel (Måla om / Lådan / Kläder) under knappraden. */
+.varld-panel {
+  pointer-events: auto;
+  margin-top: 10px;
+  width: min(440px, 100%);
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2.5px solid #3b3350;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
+}
+.varld-panel h3 { margin: 0 0 6px; }
+.varld-panel .hint { margin-top: 0; }
+
+/* Husdjurspanelen som overlay nere i scenen (matning/namn/nedräkning). */
+.varld-petpanel {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: min(480px, 94%);
+  max-height: 62%;
+  overflow-y: auto;
+  z-index: 14;
+}
+.varld-petpanel:empty { pointer-events: none; }
+.varld-petpanel .rum-pet-panel {
+  margin: 0;
+  border: 2.5px solid #3b3350;
+  background: rgba(255, 255, 255, 0.97);
+}
+
+@media (max-width: 700px) {
+  .varld-stage { height: clamp(380px, calc(100vh - 120px), 700px); }
+  .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
+  .varld-titel { font-size: 0.95rem; }
+}
 
 .hus-hint {
   position: absolute;
@@ -2144,21 +2233,81 @@ code {
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
-  .hus-scen, #husgrupp { transition-duration: 0.01s; }
+  .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, .by-tomt > svg { transition-duration: 0.01s; }
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
+/* Äpplen på golvet (matning): ett litet emoji-äpple centrerat på sin procent-
+   position. Inga pekhändelser (djuren äter dem – man drar dem inte), och de är
+   inga .room-item så promenad-AI:n räknar dem inte som hinder. Ligger under
+   husdjuren i DOM-ordningen så djuret syns ovanpå när det gnager. */
+.room-apple {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: calc(1.5rem * var(--rum-skala, 1));
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+  animation: apple-pop 0.32s ease-out;
+}
+@keyframes apple-pop {
+  from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-apple { animation: none; }
+}
+
+/* Matnings-mätare i husdjurspanelen: fylls med antal uppätna äpplen i steget. */
+.pet-matbar {
+  position: relative;
+  height: 22px;
+  border-radius: 11px;
+  background: #f3ead9;
+  border: 2px solid #e2cfa8;
+  overflow: hidden;
+  margin: 6px auto 2px;
+  max-width: 240px;
+}
+.pet-matbar-fyll {
+  height: 100%;
+  background: linear-gradient(90deg, #8fd18a, #5fbf62);
+  transition: width 0.4s ease;
+}
+.pet-matbar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
+/* Antal-rad på förbrukningsvaror (äpplen) i shoppen. */
+.shop-antal {
+  font-size: 0.8rem;
+  color: #5b6b86;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
 /* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
    med storlek per tillväxtsteg och en liten namnskylt under figuren. */
 
-.room-pet .ri-emoji { width: 3.2rem; height: 3.2rem; }
-.room-pet.pet-vuxen-2 .ri-emoji { width: 4.4rem; height: 4.4rem; }
-.room-pet.pet-vuxen-3 .ri-emoji { width: 5.8rem; height: 5.8rem; }
+/* Husdjuren skalas med scenens --rum-skala (default 1) precis som möblerna, så
+   de håller proportionerna mot de större möblerna i den stora spelcanvasen.
+   Faktisk bredd/höjd (calc, inte transform) → drag-clampen följer med. */
+.room-pet .ri-emoji { width: calc(3.2rem * var(--rum-skala, 1)); height: calc(3.2rem * var(--rum-skala, 1)); }
+.room-pet.pet-vuxen-2 .ri-emoji { width: calc(4.4rem * var(--rum-skala, 1)); height: calc(4.4rem * var(--rum-skala, 1)); }
+.room-pet.pet-vuxen-3 .ri-emoji { width: calc(5.8rem * var(--rum-skala, 1)); height: calc(5.8rem * var(--rum-skala, 1)); }
 
 /* Ägget i rummet: lite mindre + vaggar lugnt (samma keyframes som pet-sidan hade). */
 .room-pet.pet-agg-i-rum .ri-emoji {
-  width: 2.9rem;
-  height: 2.9rem;
+  width: calc(2.9rem * var(--rum-skala, 1));
+  height: calc(2.9rem * var(--rum-skala, 1));
   animation: pet-wiggle 3.2s ease-in-out infinite;
   transform-origin: 50% 90%;
 }
@@ -2237,6 +2386,7 @@ code {
 @media (prefers-reduced-motion: reduce) {
   .room-pet.promenerar .ri-emoji { animation: none; }
   .room-pet.pet-rygg .ri-emoji,
+  .room-pet.pet-rygg .ri-emoji:has(.pet-sprite),
   .pet-rygg-fx,
   .room-pet.pet-agg-i-rum .ri-emoji {
     animation: none;
@@ -2270,6 +2420,13 @@ code {
   height: auto;
 }
 
+/* Självmätande rigg: medan delarnas PNG-mått läses (art-pet-sprites.js) saknar
+   delarna position – håll dem dolda och tona in dem på plats när måtten finns,
+   så det aldrig syns någon layout-"pop". Containern har fast aspect-ratio, så
+   den yttre ytan är stabil redan innan delarna målas. */
+.pet-sprite .ps-del { transition: opacity 0.28s ease; }
+.pet-sprite.ps-laddar .ps-del { opacity: 0; }
+
 /* Rotationspunkter (designdoket): nacke 50 %/80 %, kropp 50 %/92 %,
    höft = fotens topp 50 %/10 %. De här arternas armar hänger lodrätt
    (tassen nedåt), så axeln sitter i armens topp – inte i inre änden. */
@@ -2287,18 +2444,10 @@ code {
 /* Spegling när djuret går åt vänster (hela riggen – delarna följer med). */
 .room-pet.vand-vanster .ri-emoji .pet-sprite { transform: scaleX(-1); }
 
-/* Blinkning: snabb vertikal squash av huvudBILDEN (ögonen är inbakade i
-   00-head.png). Ligger på <img>, inte på delen, så den inte krockar med
-   huvudets nick/funder-transform. Cykeln (3–6 s) slumpas per djur i --blink. */
-.pet-sprite .ps-huvud img {
-  transform-origin: 50% 78%;
-  animation: ps-blink var(--blink, 4.5s) linear infinite;
-}
-
-@keyframes ps-blink {
-  0%, 92%, 96%, 100% { transform: scaleY(1); }
-  94% { transform: scaleY(0.1); }
-}
+/* Ingen blinkning: ögonen är inbakade i 00-head.png och sitter olika per art
+   och steg (Fjärlis två ögon, Flammis slutform ett öga), så en ren ögon-enda
+   blink går inte att göra snyggt för alla arter/steg. En helhuvud-squash såg
+   inte bra ut → blinken är slopad (hellre ingen blink än att huvudet studsar). */
 
 /* Vila: kroppen andas lugnt, huvudet tittar runt, armarna svajar. */
 .room-pet .pet-sprite .ps-kropp { animation: ps-andas 3.4s ease-in-out infinite; }
@@ -2353,9 +2502,31 @@ code {
   50% { transform: translateY(2.5%) rotate(1.6deg); }
 }
 
-/* På rygg (klick-leken): .pet-rygg roterar hela .ri-emoji 157° som för
-   SVG-djuren – här sprattlar dessutom ben och armar i motfas (designdoket:
-   0,32 s / 0,4 s) medan djuret ligger. */
+/* På rygg (klick-leken): SVG-djurens 157°-rotation läser inte som "ligger på
+   rygg" för sprite-riggen (den ser mest tiltad ut). Sprite-riggen rullar i
+   stället HELA vägen över till mage upp (~180°) så det tydligt syns att djuret
+   ligger på rygg, vaggar där, och reser sig igen. Högre specificitet än den
+   generella .ri-emoji-regeln (via :has) → vinner för sprite-arter. */
+.room-pet.pet-rygg .ri-emoji:has(.pet-sprite) {
+  animation: pet-rygg-sprite 3.85s ease-in-out both;
+  transform-origin: 50% 68%;
+}
+
+@keyframes pet-rygg-sprite {
+  0% { transform: rotate(0); }
+  14% { transform: rotate(192deg); }   /* rullar över kanten… */
+  20% { transform: rotate(180deg); }   /* …och landar på rygg, mage upp */
+  32% { transform: rotate(171deg); }
+  44% { transform: rotate(189deg); }   /* vaggar fram och tillbaka på ryggen */
+  56% { transform: rotate(171deg); }
+  68% { transform: rotate(187deg); }
+  80% { transform: rotate(177deg); }
+  88% { transform: rotate(180deg); }
+  100% { transform: rotate(0); }        /* reser sig igen */
+}
+
+/* Ben och armar sprattlar dessutom i motfas (designdoket: 0,32 s / 0,4 s)
+   medan djuret ligger på rygg. */
 .room-pet.pet-rygg .pet-sprite .ps-fot-v { animation: ps-sprattel-fot 0.32s ease-in-out infinite; }
 .room-pet.pet-rygg .pet-sprite .ps-fot-h { animation: ps-sprattel-fot 0.32s ease-in-out infinite -0.16s; }
 @keyframes ps-sprattel-fot {
@@ -2396,6 +2567,7 @@ code {
   .pet-sprite .ps-humor {
     animation: none !important;
   }
+  .pet-sprite .ps-del { transition: none; }
 }
 
 /* Husdjurspanelen under rumsscenen. */

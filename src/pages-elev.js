@@ -6,7 +6,6 @@
 
 import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { evoFromStudentData, evoForAvatar } from "./evolution.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
 import { coinIcon } from "./icons.js";
 
@@ -14,8 +13,8 @@ import { coinIcon } from "./icons.js";
 
 export function pageElevLogin() {
   renderTopbar();
-  // Redan inloggad? Gå vidare till hemmet.
-  if (data.isLoggedIn()) return go("#/elev/hem");
+  // Redan inloggad? Gå direkt in i hus-scenen.
+  if (data.isLoggedIn()) return go("#/elev/hus");
 
   const view = el(`<div>
     <a class="back-link" id="back">← Tillbaka</a>
@@ -59,8 +58,9 @@ export function pageElevLogin() {
       );
       if (res.ok) {
         // Första gången (ingen avatar vald) → låt eleven välja sin figur.
+        // Annars: landa direkt i hus-scenen (ingen mellanliggande hem-sida).
         const chosen = await data.hasChosenAvatar().catch(() => true);
-        go(chosen ? "#/elev/hem" : "#/elev/avatar");
+        go(chosen ? "#/elev/hus" : "#/elev/avatar");
       } else {
         msg.innerHTML = `<div class="msg error">${res.error}</div>`;
       }
@@ -90,13 +90,10 @@ export async function pageElevAvatar() {
     selected = sd.avatarId || DEFAULT_AVATAR;
     firstTime = !sd.avatarChosen;
   } catch {}
-  // Figurer med evolution visas i sitt AKTUELLA steg (med elevens grenval).
-  const evoFor = (id) => (sd ? evoForAvatar(sd, id) : undefined);
-
   const buttons = Object.keys(AVATARS)
     .map(
       (id) =>
-        `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${avatarName(id)}">${avatarSvg(id, evoFor(id))}</button>`
+        `<button class="avatar-opt${id === selected ? " selected" : ""}" data-id="${id}" title="${avatarName(id)}">${avatarSvg(id)}</button>`
     )
     .join("");
 
@@ -107,7 +104,7 @@ export async function pageElevAvatar() {
       <p class="hint">${firstTime
         ? "Vilken figur vill du vara? Du kan byta när du vill i profilen."
         : "Välj en ny figur. Den syns överallt när du pluggar."}</p>
-      <div class="preview" id="preview">${avatarSvg(selected, evoFor(selected))}</div>
+      <div class="preview" id="preview">${avatarSvg(selected)}</div>
       <div class="avatar-pick" id="grid">${buttons}</div>
       <div id="msg"></div>
       <button class="btn stor gron" id="save">${firstTime ? "Kör igång!" : "Spara"}</button>
@@ -124,7 +121,7 @@ export async function pageElevAvatar() {
     selected = b.dataset.id;
     grid.querySelectorAll(".avatar-opt").forEach((x) => x.classList.remove("selected"));
     b.classList.add("selected");
-    preview.innerHTML = avatarSvg(selected, evoFor(selected));
+    preview.innerHTML = avatarSvg(selected);
   });
 
   if (!firstTime) {
@@ -140,7 +137,7 @@ export async function pageElevAvatar() {
     try {
       await data.setAvatar(selected);
       await renderTopbar();
-      go(firstTime ? "#/elev/hem" : "#/elev/profil");
+      go(firstTime ? "#/elev/hus" : "#/elev/profil");
     } catch (err) {
       msg.innerHTML = `<div class="msg error">Kunde inte spara: ${err.message}</div>`;
       btn.disabled = false;
@@ -151,40 +148,9 @@ export async function pageElevAvatar() {
   app.replaceChildren(view);
 }
 
-// --- Startsida --------------------------------------------------------------
-
-export async function pageElevHem() {
-  if (!data.isLoggedIn()) return go("#/elev");
-  loading();
-  await renderTopbar();
-  const session = data.getSession();
-
-  let sd;
-  try {
-    sd = await data.getStudentData();
-  } catch (err) {
-    app.replaceChildren(
-      el(`<div class="panel"><div class="msg error">Kunde inte ladda din sida: ${err.message}</div></div>`)
-    );
-    return;
-  }
-  // Inte valt avatar än? Skicka till avatarvalet.
-  if (!sd.avatarChosen) return go("#/elev/avatar");
-
-  const avatar = sd.avatarId || DEFAULT_AVATAR;
-  const evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
-
-  const view = el(`<div>
-    <div class="panel center hero hero-slim">
-      <div class="hero-avatar hero-avatar-stor">${avatarMarkup(avatar, sd.avatarItems || [], evo)}</div>
-      <h1>Hej ${session.namn}! 👋</h1>
-      <p class="hint hero-halsning">Kul att du är här – vad vill du plugga idag?</p>
-      <span class="coins hero-coins" title="Dina pluggcoins">${coinIcon(19)} ${sd.coins || 0} pluggcoins</span>
-    </div>
-  </div>`);
-
-  app.replaceChildren(view);
-}
+// Hem-hjälten (pageElevHem) är slopad: eleven landar direkt i hus-scenen
+// (#/elev/hus, se pages-varld.js) efter inloggning. Plugga och Shoppen nås via
+// sidomenyn (NAV_LANKAR i ui.js). #/elev/hem omdirigeras till #/elev/hus i app.js.
 
 // --- Plugga (välj arbetsområde) ---------------------------------------------
 
@@ -240,7 +206,7 @@ export async function pageElevPlugga() {
     </div>
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelectorAll(".area-card").forEach((btn) => {
     btn.addEventListener("click", () => {
       const subj = btn.dataset.subj;
@@ -262,12 +228,11 @@ export async function pageElevProfil() {
   await renderTopbar();
   const session = data.getSession();
 
-  let stats, avatar, avatarItems, evo;
+  let stats, avatar, avatarItems;
   try {
     const [sd, s] = await Promise.all([data.getStudentData(), data.getStats()]);
     avatar = sd.avatarId || DEFAULT_AVATAR;
     avatarItems = sd.avatarItems || [];
-    evo = evoFromStudentData(sd); // aktuellt utvecklingssteg + grenval
     stats = s;
   } catch (err) {
     app.replaceChildren(
@@ -279,12 +244,11 @@ export async function pageElevProfil() {
   const view = el(`<div>
     <a class="back-link" id="back">← Till startsidan</a>
     <div class="panel center">
-      <div class="hero-avatar">${avatarMarkup(avatar, avatarItems, evo)}</div>
+      <div class="hero-avatar">${avatarMarkup(avatar, avatarItems)}</div>
       <h1>${session.namn}</h1>
       <p class="hint">Användarnamn: <b>${session.username || ""}</b></p>
       <div class="btn-row center">
         <button class="btn liten" id="byt-avatar">Byt figur</button>
-        <button class="btn liten" id="utveckling">⚡ Utveckling</button>
         <button class="btn liten ghost" id="till-shop">🛍️ Shoppen</button>
         <button class="btn liten ghost" id="till-rum">🛏️ Mitt rum</button>
       </div>
@@ -320,9 +284,8 @@ export async function pageElevProfil() {
     }
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hem"));
+  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelector("#byt-avatar").addEventListener("click", () => go("#/elev/avatar"));
-  view.querySelector("#utveckling").addEventListener("click", () => go("#/elev/utveckling"));
   view.querySelector("#till-shop").addEventListener("click", () => go("#/elev/shop"));
   view.querySelector("#till-rum").addEventListener("click", () => go("#/elev/rum"));
 
