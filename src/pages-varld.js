@@ -243,6 +243,7 @@ export async function pageElevVarld(startNiva) {
   function updateUi(nivaId) {
     stage.dataset.niva = nivaId;
     stangPaneler();
+    utBtn.style.display = "";
     if (nivaId === "by") {
       utBtn.innerHTML = "🏠 <span>Mitt hus</span>";
       utBtn.title = "Zooma in till ditt hus";
@@ -250,8 +251,9 @@ export async function pageElevVarld(startNiva) {
       hint.textContent = "🏘️ Klicka på en kompis hus för att hälsa på – ditt eget hus tar dig hem!";
       hint.hidden = false;
     } else if (nivaId === "hus") {
-      utBtn.innerHTML = "← <span>Hem</span>";
-      utBtn.title = "Till startsidan";
+      // Hus-nivån ÄR startsidan – ingen "hem"-knapp behövs (den vore en no-op).
+      // Byn nås via klasskylten, rummet genom att klicka på huset.
+      utBtn.style.display = "none";
       titel.textContent = `${session.namn ? session.namn + "s" : "Mitt"} hus 🏠`;
       hint.textContent = "🏠 Klicka på huset för att gå in – eller på skylten för att se hela byn!";
       hint.hidden = false;
@@ -314,7 +316,8 @@ export async function pageElevVarld(startNiva) {
   };
 
   // Ut-knappen: på kompisens hus = tillbaka till byn; annars = ut till/in i
-  // egna huset (i rummet = gå ut, i byn = zooma in, på hus-nivån no-op).
+  // egna huset (i rummet = gå ut, i byn = zooma in). På hus-nivån är knappen
+  // dold (updateUi), så den grenen nås aldrig därifrån.
   utBtn.addEventListener("click", () =>
     go(stage.dataset.niva === "kompishus" ? "#/elev/by" : "#/elev/hus")
   );
