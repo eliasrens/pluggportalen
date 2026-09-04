@@ -2298,12 +2298,30 @@ body.varld-lage .container {
   margin: 0;
   border-radius: 0;
   box-shadow: none;
-  /* Möbler & husdjur var måttsatta i rem för den gamla lilla rums-vyn (360px).
-     I den stora spelcanvasen ser samma rem-mått för små ut mot golv & fönster,
-     så rums-sakerna skalas upp med denna faktor (multiplicerar bredd/höjd →
-     nodens faktiska mått växer, så golv-clampen i varld-rum.js följer med).
-     Inbördes storleksskillnader (säng stor, pall liten) bevaras. */
-  --rum-skala: 1.55;
+  /* KOHERENT SKALNING: rummet ska se ut som SAMMA rum i olika storlek på alla
+     bredder – möbler, djur OCH deras inbördes avstånd (procent-positioner) ska
+     krympa/växa TILLSAMMANS. Tidigare var storleken fast (rem × --rum-skala med
+     en fast desktop/mobil-breakpoint) medan positionerna var i procent → på en
+     smal scen blev sakerna ~samma pixelstorlek men avstånden få pixlar, så allt
+     "klumpades mot mitten".
+     Lösning: scenen är en container (container-type: inline-size) och saker mäts
+     i en "rums-enhet" som följer scenBREDDEN kontinuerligt
+     (1cqw = 1 % av scenbredden). Därmed upptar varje sak SAMMA andel av scenen
+     vid varje bredd → ingen ihopklumpning, ingen fast breakpoint.
+     Capen (--rum-cap) håller stora desktop-scener på samma pixelstorlek som förr
+     (gamla --rum-skala:1.55 ≈ 24.8px), så laptop/desktop ser likadant ut.
+
+     EN "rums-enhet" (motsvarar gamla 1rem × skala) räknas fram som
+       min(var(--rum-koeff) * 1cqw, var(--rum-cap))
+     OBS: cqw MÅSTE skrivas direkt där måttet används (i .room-item/.room-pet-
+     reglerna nedan och i de inline-satta storlekarna i varld-rum*.js) – en
+     container-enhet som bärs via en egen var() (t.ex. --rum-enhet: 2.5cqw)
+     resolvas mot fel container (deklarations-elementets, dvs viewporten) i
+     Chromium. Därför bär vi bara de ENHETSLÖSA rattarna i variabler och
+     multiplicerar med 1cqw på plats. */
+  container-type: inline-size;
+  --rum-koeff: 2.5; /* rums-enheter per 1 % scenbredd (1cqw) */
+  --rum-cap: 25px;  /* tak per enhet → desktop = gamla fasta storleken */
 }
 
 #husgrupp, #kompis-husgrupp { cursor: pointer; transform-origin: 50% 75%; transition: transform 0.25s; outline: none; }
@@ -2542,15 +2560,10 @@ body.varld-lage .container {
   .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */
   .varld-panel { width: 100%; }        /* panelerna fyller bredden på mobil */
 
-  /* Rummets möbler/djur är måttsatta i FASTA rem × --rum-skala (1.55), avstämt
-     mot den breda desktop-scenen. På den smala porträtt-mobilen blir samma
-     fasta mått ~4× för stora i förhållande till bredden → sakerna krockar och
-     hopkryms/överlappar i golvzonen (en enskild möbel tog ~57 % av scenbredden
-     mot ~13 % på desktop). En lägre skala här ger lagom stora, lätt-dragbara
-     möbler & djur som fyller scenen proportionerligt utan att krocka. Positioner
-     är procentbaserade och drag-clampen läser offsetWidth, så allt följer med.
-     Desktop/laptop (> 700px) rör vi inte – de behåller 1.55. */
-  .varld-lager.room-stage { --rum-skala: 1.15; }
+  /* Rums-sakernas storlek behöver INTE längre en egen mobil-skala: --rum-enhet
+     följer nu scenbredden kontinuerligt (se .varld-lager.room-stage), så möbler,
+     djur och avstånd skalar ihop vid varje bredd. Höjd-capen ovan bevaras dock –
+     den håller golv/vägg-aspekten rums-lik på den smala telefonen. */
 }
 
 .hus-hint {
@@ -2608,13 +2621,15 @@ body.varld-lage .container {
 .room-apple {
   position: absolute;
   transform: translate(-50%, -50%);
-  font-size: calc(1.5rem * var(--rum-skala, 1));
+  font-size: 1.5rem;
   line-height: 1;
   pointer-events: none;
   user-select: none;
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
   animation: apple-pop 0.32s ease-out;
 }
+/* Äpplet skalar med scenbredden i husvärldens rum (som möbler/djur). */
+.varld-lager.room-stage .room-apple { font-size: calc(1.5 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
 @keyframes apple-pop {
   from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
   to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -2661,20 +2676,28 @@ body.varld-lage .container {
 /* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
    med storlek per tillväxtsteg och en liten namnskylt under figuren. */
 
-/* Husdjuren skalas med scenens --rum-skala (default 1) precis som möblerna, så
-   de håller proportionerna mot de större möblerna i den stora spelcanvasen.
-   Faktisk bredd/höjd (calc, inte transform) → drag-clampen följer med. */
-.room-pet .ri-emoji { width: calc(3.2rem * var(--rum-skala, 1)); height: calc(3.2rem * var(--rum-skala, 1)); }
-.room-pet.pet-vuxen-2 .ri-emoji { width: calc(4.4rem * var(--rum-skala, 1)); height: calc(4.4rem * var(--rum-skala, 1)); }
-.room-pet.pet-vuxen-3 .ri-emoji { width: calc(5.8rem * var(--rum-skala, 1)); height: calc(5.8rem * var(--rum-skala, 1)); }
+/* BAS-storlek (fasta rem) – används av den lilla READ-ONLY kompis-vyn
+   (.room-stage utan container). I husvärldens rum skalas de om nedan. */
+.room-pet .ri-emoji { width: 3.2rem; height: 3.2rem; }
+.room-pet.pet-vuxen-2 .ri-emoji { width: 4.4rem; height: 4.4rem; }
+.room-pet.pet-vuxen-3 .ri-emoji { width: 5.8rem; height: 5.8rem; }
 
 /* Ägget i rummet: lite mindre + vaggar lugnt (samma keyframes som pet-sidan hade). */
 .room-pet.pet-agg-i-rum .ri-emoji {
-  width: calc(2.9rem * var(--rum-skala, 1));
-  height: calc(2.9rem * var(--rum-skala, 1));
+  width: 2.9rem;
+  height: 2.9rem;
   animation: pet-wiggle 3.2s ease-in-out infinite;
   transform-origin: 50% 90%;
 }
+
+/* Husvärldens rum: husdjuren skalas med scenBREDDEN precis som möblerna, så de
+   håller proportionerna och krymper/växer med scenen (se .varld-lager.room-stage).
+   1cqw skrivs direkt här (Chromium resolvar cqw fel via en egen var). Faktisk
+   bredd/höjd (calc, inte transform) → drag-clampen följer med. */
+.varld-lager.room-stage .room-pet .ri-emoji { width: calc(3.2 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(3.2 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+.varld-lager.room-stage .room-pet.pet-vuxen-2 .ri-emoji { width: calc(4.4 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(4.4 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+.varld-lager.room-stage .room-pet.pet-vuxen-3 .ri-emoji { width: calc(5.8 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(5.8 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+.varld-lager.room-stage .room-pet.pet-agg-i-rum .ri-emoji { width: calc(2.9 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(2.9 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
 
 .room-pet .rp-namn {
   display: block;
