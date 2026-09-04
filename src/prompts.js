@@ -10,6 +10,14 @@
 // JSON:en passerar valideringen direkt.
 // ============================================================================
 
+import { listPairImageKeys } from "./pair-images.js";
+
+// Punktlista över de inbyggda bildnycklarna (partisymbol-paketet), så att
+// schemat/exemplen alltid matchar pair-images.js utan manuell synk.
+const BILDNYCKLAR = listPairImageKeys()
+  .map((x) => `    * "${x.key}" – ${x.name}`)
+  .join("\n");
+
 // Schemabeskrivning som stoppas in i prompterna.
 const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "id": string – kort id i gemener med bindestreck, t.ex. "vikingatiden". (Får utelämnas; skapas då från namnet.)
@@ -38,7 +46,20 @@ const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
       får "passage" utelämnas – men alla prompter här skapar quiz som även används
       som läsförståelse, så ta alltid med passage.)
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
-    { "id": string, "term": string, "definition": string }`;
+    { "id": string, "term": string, "definition": string,
+      "termImage": string, "defImage": string }
+    * "term" är begreppet, "definition" förklaringen. Vanliga par har bara dessa två.
+    * "termImage"/"defImage" är VALFRIA och används för BILDPAR: i stället för (eller
+      utöver) text visas en färdig bild på term- respektive definition-sidan. Fältet
+      anges som en NYCKEL in i det inbyggda bildpaketet – ladda inte upp egna bilder.
+      Använd bildpar när eleven ska matcha en bild mot en text, t.ex. en partisymbol
+      mot partinamnet: sätt "termImage" till symbolens nyckel och "definition" till namnet
+      (lämna då "term" som "").
+    * Varje sida (term/definition) måste ha ANTINGEN text ELLER bild (eller båda).
+    * Tillgängliga bildnycklar just nu (partisymbol-paketet, riksdagens 8 partier):
+${BILDNYCKLAR}
+      Skriv nyckeln EXAKT som ovan. Andra nycklar finns inte – använd bara text om det
+      inte passar en av dessa. (Fler bildpaket för andra ämnen/moment kan tillkomma senare.)`;
 
 const EXAMPLE = `{
   "id": "vikingatiden",
@@ -65,9 +86,15 @@ const EXAMPLE = `{
   ],
   "pairs": [
     { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" },
-    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" }
+    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" },
+    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna" }
   ]
 }`;
+
+// Kommentar (ej del av JSON:en): sista paret ovan är ett BILDPAR – "termImage"
+// pekar på en färdig partisymbol och matchas mot partinamnet i "definition".
+// Bildpar fungerar i vilket arbetsområde som helst; just nu finns
+// partisymbol-nycklarna (se listan i schemat).
 
 // Skalningsregler: mängden övningsinnehåll ska växa med hur mycket text läraren
 // matar in, så att en lång text inte ger ett tunt övningsmaterial.
@@ -89,7 +116,11 @@ const SKALA_PAR = `Anpassa ANTALET fakta-par efter hur mycket text du fått:
 - Kort text: minst 6 par.
 - Medellång text: 8–10 par.
 - Lång text (en sida eller mer): 12–15 par.
-Välj de viktigaste begreppen från HELA texten, inte bara början. Undvik dubbletter.`;
+Välj de viktigaste begreppen från HELA texten, inte bara början. Undvik dubbletter.
+BILDPAR (valfritt): passar temat en bild i det inbyggda paketet kan du göra ett bildpar –
+sätt "termImage"/"defImage" till en bildnyckel (se listan i schemat) och matcha mot texten
+på andra sidan. Exempel: en partisymbol matchas mot partinamnet. Hitta INTE på nya nycklar –
+använd bara de som finns; passar ingen bild, gör vanliga text-par.`;
 
 const SKALA_TEXTER = `Anpassa ANTALET faktatexter efter hur mycket material du fått:
 - Kort text: 1–2 faktatexter.
@@ -195,9 +226,11 @@ Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
   "quiz": [],
   "pairs": [
     { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" },
-    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" }
+    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" },
+    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna" }
   ]
 }
+(Sista paret visar ett bildpar – ta bara med sådana om en bildnyckel i listan passar temat.)
 
 Här är materialet du ska utgå ifrån:
 <<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;
