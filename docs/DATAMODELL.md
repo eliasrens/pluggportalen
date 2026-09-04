@@ -68,7 +68,16 @@ läsning för klienten).
   fråga, så ingen fråga kan visas utan sin källtext. Ett rent quiz (ingen fråga har
   `passage`) påverkas inte. Övriga gamemodes ignorerar fältet.
 
-**Pair**: `{ id, term, definition }` – används för para ihop / memory.
+**Pair**: `{ id, term, definition, termImage?, defImage? }` – används för para ihop / memory.
+
+- `termImage` / `defImage` är **valfria** och pekar med en **nyckel** in i det inbyggda
+  bildpaketet ([`src/pair-images.js`](../src/pair-images.js)). Nyckelformat: `"partier/<bokstav>"`
+  (t.ex. `"partier/s"`, `"partier/sd"`, `"partier/kd"`). Se `listPairImageKeys()` för hela listan
+  (riksdagens 8 partier: s, m, sd, c, v, kd, l, mp).
+- Regel: varje sida (term/definition) måste ha **antingen text eller bild** (eller båda). `term`
+  får alltså vara tom om `termImage` finns – och tvärtom för `definition`/`defImage`. Bilderna
+  renderas som inline-SVG-brickor i Para ihop och Memory; bild↔text och bild↔bild fungerar båda.
+- Okänd bildnyckel eller en sida helt utan innehåll ger ett tydligt valideringsfel.
 
 Exempel (`subjects/so/areas/vikingatiden`, förkortat):
 

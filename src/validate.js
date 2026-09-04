@@ -12,6 +12,8 @@
 // satta, trimmade strängar) som är redo att spara till Firestore.
 // ============================================================================
 
+import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
+
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
   return String(str || "")
@@ -27,6 +29,13 @@ export function slugify(str) {
 
 function isNonEmptyString(v) {
   return typeof v === "string" && v.trim().length > 0;
+}
+
+/** Kommaseparerad lista över giltiga bildnycklar, för felmeddelanden. */
+function validImageKeys() {
+  return listPairImageKeys()
+    .map((x) => `"${x.key}"`)
+    .join(", ");
 }
 
 /**
@@ -176,15 +185,43 @@ export function validateArea(obj) {
           errors.push(`Par ${nr}: måste vara ett objekt med "term" och "definition".`);
           return;
         }
-        if (!isNonEmptyString(p.term))
-          errors.push(`Par ${nr}: "term" (begreppet) saknas eller är tomt.`);
-        if (!isNonEmptyString(p.definition))
-          errors.push(`Par ${nr}: "definition" (förklaringen) saknas eller är tom.`);
-        pairs.push({
+
+        // Valfria bildfält: en nyckel in i bildpaketet (pair-images.js). Ett par
+        // kan ha en bild på term- och/eller definition-sidan. Varje sida måste ha
+        // ANTINGEN text ELLER bild (eller båda) – annars är sidan tom.
+        const hasTermImage = isNonEmptyString(p.termImage);
+        const hasDefImage = isNonEmptyString(p.defImage);
+        const termKey = hasTermImage ? p.termImage.trim() : "";
+        const defKey = hasDefImage ? p.defImage.trim() : "";
+
+        if (hasTermImage && !isKnownPairImage(termKey)) {
+          errors.push(
+            `Par ${nr}: okänd bildnyckel "${termKey}" i "termImage". Giltiga nycklar: ${validImageKeys()}.`
+          );
+        }
+        if (hasDefImage && !isKnownPairImage(defKey)) {
+          errors.push(
+            `Par ${nr}: okänd bildnyckel "${defKey}" i "defImage". Giltiga nycklar: ${validImageKeys()}.`
+          );
+        }
+
+        // Regel: term får vara tom OM termImage finns (samma för definition/defImage).
+        if (!isNonEmptyString(p.term) && !hasTermImage)
+          errors.push(`Par ${nr}: term-sidan är tom – ange "term" (begreppet) eller en bild i "termImage".`);
+        if (!isNonEmptyString(p.definition) && !hasDefImage)
+          errors.push(
+            `Par ${nr}: definition-sidan är tom – ange "definition" (förklaringen) eller en bild i "defImage".`
+          );
+
+        const built = {
           id: isNonEmptyString(p.id) ? slugify(p.id) : `p${nr}`,
           term: String(p.term || "").trim(),
           definition: String(p.definition || "").trim(),
-        });
+        };
+        // Bildfälten tas bara med när de finns (bakåtkompatibelt).
+        if (hasTermImage) built.termImage = termKey;
+        if (hasDefImage) built.defImage = defKey;
+        pairs.push(built);
       });
     }
   }
