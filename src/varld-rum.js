@@ -98,6 +98,20 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     }
   }
 
+  // Utspritt startläge för en NY sak från lådan: golvsaker sprids i sidled längs
+  // golvet, väggdekor längs väggen. Vi cyklar genom ett utspritt x-mönster
+  // (mitten först, sedan ut mot kanterna) utifrån hur många saker som redan står
+  // i samma zon, och radar i höjdled när ett varv är fullt. Så staplas aldrig
+  // flera nyplacerade saker på exakt samma punkt ("klump mot mitten").
+  const SPREAD_X = [50, 30, 70, 20, 80, 40, 60, 15, 85];
+  function nextSpot(floor) {
+    const n = Object.keys(placements).filter((pid) => isFloorItem(pid) === floor).length;
+    const x = SPREAD_X[n % SPREAD_X.length];
+    const row = Math.floor(n / SPREAD_X.length);
+    const y = floor ? 78 - (row % 2) * 8 : 32 + (row % 2) * 12;
+    return { x, y };
+  }
+
   // Fönstret är ett flyttbart/raderbart VÄGG-objekt (inte en shop-sak) – egen
   // modul (varld-rum-fonster.js, data: studentData.room.window).
   const fonster = mountRumFonster({ sd });
@@ -206,11 +220,14 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       if (!item) continue;
       const pos = placements[id];
       const size = itemSize(id);
-      // Bredd/höjd skalas med scenens --rum-skala (calc → faktiskt layoutmått,
-      // så drag-clampen som läser offsetWidth/Height följer med automatiskt).
+      // Bredd/höjd skalas med scenBREDDEN (1cqw = 1 % av scen), cap:ad per enhet,
+      // se .varld-lager.room-stage i styles.css → saken upptar samma andel av
+      // scenen vid varje bredd (ingen ihopklumpning). cqw skrivs DIREKT här (inte
+      // via en egen var) – annars resolvas den mot fel container i Chromium. calc
+      // → faktiskt layoutmått, så drag-clampen (offsetWidth/Height) följer med.
       stage.appendChild(el(`<div class="room-item${selectedId === id ? " selected" : ""}"
         data-id="${id}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
-        <span class="ri-emoji" style="width:calc(${size.w}rem * var(--rum-skala, 1));height:calc(${size.h}rem * var(--rum-skala, 1))">${itemSvg(id) || item.emoji}</span>
+        <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(id) || item.emoji}</span>
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
     }
@@ -316,8 +333,12 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     if (!btn) return;
     const id = btn.dataset.place;
     if (id in placements) return;
-    // Golvsaker ställs på golvet, väggdekor hängs på väggen.
-    placements[id] = isFloorItem(id) ? { x: 50, y: 78 } : { x: 50, y: 32 };
+    // Golvsaker ställs på golvet, väggdekor hängs på väggen – men SPRIDS ut i
+    // sidled i stället för att alla landa mitt i scenen (annars staplas nya
+    // saker ovanpå varandra och ser "hopklumpade mot mitten" ut). Nästa lediga
+    // punkt väljs ur ett utspritt mönster utifrån hur många som redan står i
+    // samma zon; positionen är fortfarande procent så den kan dras/sparas fritt.
+    placements[id] = nextSpot(isFloorItem(id));
     selectedId = null; // ny sak placeras utan ram – markeras först vid klick
     renderStage();
     renderTray();
