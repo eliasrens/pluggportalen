@@ -72,10 +72,10 @@ doc-id, så kopplingen till `studentData` behålls) och tar sedan bort
 node admin/migrate-passwords.mjs
 ```
 
-**Skarpt:**
+**Skarpt (det avsedda kommandot – se beslutet om korta lösenord nedan):**
 
 ```bash
-node admin/migrate-passwords.mjs --commit
+node admin/migrate-passwords.mjs --commit --short=set:lilla123
 ```
 
 ### Korta lösenord (< 6 tecken) – VIKTIGT
@@ -103,9 +103,11 @@ lägg i `admin/firebase-hash-config.json` (också `.gitignore`:ad):
 }
 ```
 
-> Beställaren har bekräftat att **elev1 ska behålla `123`** → använd
-> `--short=preserve` (eller `--short=set:` om ni hellre byter). Logga in som elev1
-> efteråt och bekräfta att `123` funkar.
+> **BESLUT (beställaren):** använd **`--short=set:lilla123`**. Elever med lösenord
+> under 6 tecken (t.ex. **elev1**) får det nya lösenordet **`lilla123`**. Elever
+> med ≥ 6 tecken behåller sitt. Meddela de berörda eleverna det nya lösenordet.
+> (Alternativet `--short=preserve` – behåll exakt `123` via SCRYPT – finns kvar i
+> skriptet men används alltså inte här.)
 
 ---
 
@@ -174,15 +176,21 @@ reglerna *innan* eleverna fått Auth-konton kan ingen logga in. Rätt ordning:
 
 1. **Aktivera Email/Password** i Console (steg 1) – gör detta först.
 2. **Skapa lärarkonto + claim** (steg 2).
-3. **Migrera** eleverna (steg 3, `--commit`). Nu har alla Auth-konton och
-   `password`-fälten är borta.
+3. **Migrera** eleverna med det avsedda kommandot:
+   ```bash
+   node admin/migrate-passwords.mjs --commit --short=set:lilla123
+   ```
+   Nu har alla Auth-konton och `password`-fälten är borta. Elever med lösenord
+   under 6 tecken (t.ex. **elev1**) har fått det nya lösenordet **`lilla123`** –
+   meddela dem.
 4. **Deploya koden** (auth-lagret) till hosting – i samma veva som:
 5. **Deploya reglerna:**
    ```bash
    firebase deploy --only firestore:rules
    ```
-6. **Rök-test:** logga in som **elev1 / 123** (ser bara egen data) och som
-   läraren (skapar/ger coins). Kolla att inga konsolfel syns.
+6. **Rök-test:** logga in som **elev1 / lilla123** (nytt lösenord efter
+   migreringen; ser bara egen data) och som läraren (skapar/ger coins). Kolla att
+   inga konsolfel syns.
 
 > Steg 3 och 5 hör ihop: migrering **före** regel-deploy. Gör man tvärtom slutar
 > befintliga elever kunna logga in tills migreringen är klar.
