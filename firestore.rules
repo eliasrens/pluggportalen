@@ -1,32 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Kunskapsinnehåll (ämnen/arbetsområden): alla får läsa; skrivning tillåten för lärarbruk i skolklass.
+
+    // ------------------------------------------------------------------
+    // Hjälpfunktioner. Se docs/security-plan.md §3.4.
+    // request.auth finns bara med äkta Firebase Auth (src/auth.js). Utan
+    // inloggning är request.auth == null och allt nedan faller igenom till
+    // den avslutande "neka allt"-regeln.
+    // ------------------------------------------------------------------
+    function signedIn() { return request.auth != null; }
+    // Lärare = Auth-användare med custom claim teacher:true
+    // (sätts en gång via admin/set-teacher-claim.mjs).
+    function isTeacher() { return signedIn() && request.auth.token.teacher == true; }
+    // Eleven själv = den inloggades uid == dokumentets id (uid sattes = det
+    // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
+    function isSelf(id)  { return signedIn() && request.auth.uid == id; }
+
+    // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
+    // bara lärare skriver. Inget world-read längre.
     match /subjects/{subjectId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:  if signedIn();
+      allow write: if isTeacher();
       match /areas/{areaId} {
-        allow read: if true;
-        allow write: if true;
+        allow read:  if signedIn();
+        allow write: if isTeacher();
       }
     }
-    // Elevkonton: läsbara (behövs för enkel inloggning), skrivbara (skapa/uppdatera elev).
+
+    // Elevkonton: eleven läser SITT eget dokument, lärare läser/skriver alla.
+    // Inga lösenord finns kvar här (de bor i Firebase Auth) → ingen världsläsbar
+    // lösenordslista. Elever kan inte skapa/ändra konton (bara läraren).
     match /students/{studentId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:  if isTeacher() || isSelf(studentId);
+      allow write: if isTeacher();
     }
-    // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering).
+
+    // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering): eleven
+    // äger sitt eget; lärare läser alla (klassöversikt) och skriver (ge coins).
     match /studentData/{studentId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:  if isTeacher() || isSelf(studentId);
+      allow write: if isTeacher() || isSelf(studentId);
     }
-    // Klasser (lärarens gruppering av elever, t.ex. "6A", samt tilldelade
-    // arbetsområden i assignedAreas). Samma skolinterna, ej säkerhetskritiska
-    // nivå som övriga collections ovan.
+
+    // Klasser: alla inloggade läser (eleven behöver sin tilldelning);
+    // bara lärare skriver.
     match /classes/{classId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:  if signedIn();
+      allow write: if isTeacher();
     }
+
     // Allt annat nekas.
     match /{document=**} {
       allow read, write: if false;
