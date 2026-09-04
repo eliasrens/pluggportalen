@@ -31,7 +31,8 @@
 // server-omskrivning (alla "sidor" ligger i index.html).
 // ============================================================================
 
-import { app, el, go, renderTopbar } from "./ui.js";
+import { app, el, go, renderTopbar, loading } from "./ui.js";
+import { whenAuthReady } from "./auth.js";
 import {
   pageElevLogin,
   pageElevAvatar,
@@ -160,6 +161,20 @@ function router() {
 
 document.getElementById("brand").addEventListener("click", () => go("#/"));
 window.addEventListener("hashchange", router);
-window.addEventListener("DOMContentLoaded", router);
-// DOMContentLoaded kan redan ha hänt (modulen laddas defer):
-if (document.readyState !== "loading") router();
+
+// Boot: vänta in att Firebase Auth återställt (eller bekräftat frånvaron av) en
+// session INNAN första sidan ritas – annars skulle en "kom-ihåg-mig"-elev
+// kastas ut till inloggningen vid en omladdning (auth.currentUser är null en
+// kort stund medan SDK:t initierar). Efterföljande hashchange kör router direkt.
+async function boot() {
+  loading();
+  try {
+    await whenAuthReady();
+  } catch {}
+  router();
+}
+if (document.readyState === "loading") {
+  window.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}

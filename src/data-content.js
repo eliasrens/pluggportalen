@@ -21,6 +21,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData, currentStudentId } from "./data.js";
+import { createStudentAuthAccount } from "./auth.js";
 
 // ---------------------------------------------------------------------------
 // Kunskapsinnehåll (ämnen och arbetsområden)
@@ -127,24 +128,46 @@ export async function getStudentsWithLooks() {
   );
 }
 
-/** Skapa (eller uppdatera) ett elevkonto. */
+/**
+ * Skapa (eller uppdatera) ett elevkonto.
+ *
+ *  - NY elev (studentId falsy): skapar ett Firebase Auth-konto via en sekundär
+ *    app-instans (så lärarens egen session inte kastas ut). Auth-uid:t blir
+ *    dokumentets id → students/{uid} + studentData/{uid}. Returnerar uid:t.
+ *  - BEFINTLIG elev (studentId satt): uppdaterar bara namn/avatar på dokumentet.
+ *    Användarnamn och lösenord är knutna till Auth-kontot och kan INTE ändras
+ *    från klienten (SDK saknar behörighet). Lösenordsåterställning för en elev
+ *    kräver admin-vägen – se admin/reset-student-password.mjs.
+ *
+ * @returns {Promise<string>} elevens id (= Auth-uid)
+ */
 export async function upsertStudent(studentId, { namn, username, password, avatarId }) {
-  const ref = doc(db, "students", studentId);
-  await setDoc(
-    ref,
-    {
-      namn,
-      username: String(username).trim().toLowerCase(),
-      password,
-      avatarId: avatarId || "fox",
-    },
-    { merge: true }
-  );
-  await ensureStudentData(studentId, avatarId);
-  return studentId;
+  if (studentId) {
+    // Uppdatera befintlig elev. Rör inte username/lösenord (bor i Auth).
+    const ref = doc(db, "students", studentId);
+    await setDoc(ref, { namn, avatarId: avatarId || "fox" }, { merge: true });
+    await ensureStudentData(studentId, avatarId);
+    return studentId;
+  }
+  // Ny elev: skapa Auth-kontot först; uid:t blir dokumentets id.
+  const uid = await createStudentAuthAccount(username, password);
+  await setDoc(doc(db, "students", uid), {
+    namn,
+    username: String(username).trim().toLowerCase(),
+    avatarId: avatarId || "fox",
+  });
+  await ensureStudentData(uid, avatarId);
+  return uid;
 }
 
-/** Ta bort ett elevkonto och dess speldata. */
+/**
+ * Ta bort ett elevkonto och dess speldata (Firestore).
+ *
+ * OBS: själva Firebase Auth-kontot går INTE att radera från klienten (SDK:t kan
+ * bara radera den inloggade användaren). Dokumenten tas bort här; för att även
+ * radera Auth-kontot, kör admin/delete-student.mjs. Ett kvarblivet Auth-konto
+ * utan students-dokument kommer inte åt någon annans data.
+ */
 export async function deleteStudent(studentId) {
   await deleteDoc(doc(db, "students", studentId));
   await deleteDoc(doc(db, "studentData", studentId)).catch(() => {});

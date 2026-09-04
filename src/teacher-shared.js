@@ -2,33 +2,26 @@
 // Pluggportalen – lärarsidan: delat (teacher-shared.js)
 // ----------------------------------------------------------------------------
 // Delade byggstenar för lärarsidans undersidor:
-//   * Enkel lärarspärr (lösenord) så att elever inte råkar in. EJ säkerhets-
-//     kritiskt – bara en tröskel. Sparas i sessionStorage.
+//   * Lärarinloggning via Firebase Auth (custom claim teacher:true). Ersätter
+//     det gamla hårdkodade lösenordet. Logiken bor i src/auth.js.
 //   * Små DOM-/text-hjälpare (el, esc, copyText).
 //   * Gemensam lärar-toppnav (teacherNav).
-//   * Lärarspärr-vy (renderGate) + översiktssidan (pageLarare).
+//   * Lärarinloggnings-vy (renderGate) + översiktssidan (pageLarare).
 //
 // Sidorna anropas från app.js router med ett `ctx` som innehåller de delade
 // hjälparna { app, go, renderTopbar }.
 // ============================================================================
 
-// --- Lärarspärr -------------------------------------------------------------
-// Inte säkerhetskritiskt – bara så att elever inte klickar sig in av misstag.
-export const TEACHER_PASSWORD = "larare2026";
-export const TEACHER_KEY = "pluggportalen.teacher";
+import { isTeacher, signInTeacher, signOutCurrent } from "./auth.js";
 
-export function isTeacher() {
-  try {
-    return sessionStorage.getItem(TEACHER_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
+// --- Lärarläge --------------------------------------------------------------
+// isTeacher() läser custom claim (teacher:true) ur den inloggade Auth-användaren
+// – re-exporteras här eftersom lärarsidans moduler importerar den härifrån.
+export { isTeacher };
+
+/** Lås lärarläget (logga ut lärar-Auth-användaren). */
 export function setTeacher(on) {
-  try {
-    if (on) sessionStorage.setItem(TEACHER_KEY, "1");
-    else sessionStorage.removeItem(TEACHER_KEY);
-  } catch {}
+  if (!on) signOutCurrent();
 }
 
 // --- Små hjälpare -----------------------------------------------------------
@@ -169,30 +162,46 @@ export function renderGate(ctx) {
     <a class="back-link" id="back">← Tillbaka</a>
     <div class="panel">
       <h1 class="center">Lärarläge 🔐</h1>
-      <p class="hint center">Ange lärarlösenordet för att komma vidare. (Bara en spärr så att
-        elever inte råkar in – inte säkerhetskritiskt.)</p>
+      <p class="hint center">Logga in med ditt lärarkonto (e-post + lösenord) för att komma vidare.</p>
       <div id="msg"></div>
       <form id="form">
         <div class="field">
-          <label for="p">Lärarlösenord</label>
-          <input id="p" type="password" autocomplete="off" placeholder="Lösenord" />
+          <label for="email">E-post</label>
+          <input id="email" type="email" autocomplete="username" autocapitalize="none" placeholder="larare@skolan.se" />
         </div>
-        <button class="btn stor" type="submit">Lås upp</button>
+        <div class="field">
+          <label for="p">Lösenord</label>
+          <input id="p" type="password" autocomplete="current-password" placeholder="Lösenord" />
+        </div>
+        <button class="btn stor" type="submit" id="submit">Logga in</button>
       </form>
-      <p class="hint center" style="margin-top:14px">Standardlösenord: <b>larare2026</b></p>
     </div>
   </div>`);
 
+  const msg = view.querySelector("#msg");
   view.querySelector("#back").addEventListener("click", () => ctx.go("#/"));
-  view.querySelector("#form").addEventListener("submit", (e) => {
+  view.querySelector("#form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const pw = view.querySelector("#p").value;
-    if (pw === TEACHER_PASSWORD) {
-      setTeacher(true);
-      pageLarare(ctx);
-    } else {
-      view.querySelector("#msg").innerHTML =
-        `<div class="msg error">Fel lösenord. Försök igen.</div>`;
+    msg.innerHTML = "";
+    const btn = view.querySelector("#submit");
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = "Loggar in…";
+    try {
+      const res = await signInTeacher(
+        view.querySelector("#email").value,
+        view.querySelector("#p").value
+      );
+      if (res.ok) {
+        pageLarare(ctx);
+      } else {
+        msg.innerHTML = `<div class="msg error">${esc(res.error)}</div>`;
+      }
+    } catch (err) {
+      msg.innerHTML = `<div class="msg error">Något gick fel: ${esc(err.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = old;
     }
   });
   ctx.app.replaceChildren(view);
