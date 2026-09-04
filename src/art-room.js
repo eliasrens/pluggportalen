@@ -41,7 +41,7 @@ const moln = (x, y, s) =>
 // Plankgolvet (sträcks till scenens bredd med preserveAspectRatio="none";
 // raka linjer tål det). Skarvarna ligger omlott som riktiga plankor.
 // MÖNSTRET ritas ~3× tätare än förr (12 rader i st.f. 4) så plankorna ser
-// proportionerliga ut mot de uppskalade möblerna (--rum-skala 1.55). Rader &
+// proportionerliga ut mot de scenbredds-skalade möblerna (cqw-skala). Rader &
 // skarvar genereras i loop → tätheten styrs av FLOOR_ROWS. Golvets FÄRG
 // (#C9996B) rörs ALDRIG – bara texturens skala/täthet.
 const FLOOR_ROWS = 12;

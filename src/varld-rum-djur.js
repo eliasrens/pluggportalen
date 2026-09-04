@@ -82,7 +82,7 @@ export function mountRumDjur({ sd }) {
     // klick på djuret självt – det ger bara en klappa-effekt (petPat).
     return el(`<div class="room-item room-pet room-djur${selected ? " selected" : ""}"
       data-pet-id="${a.id}" style="left:${a.pos.x}%;top:${a.pos.y}%" title="${namn}">
-      <span class="ri-emoji" style="width:calc(${size.w}rem * var(--rum-skala, 1));height:calc(${size.h}rem * var(--rum-skala, 1))">${itemSvg(a.id) || item.emoji}</span>
+      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(a.id) || item.emoji}</span>
       <span class="rp-namn rp-namn-edit" data-rename="${a.id}" title="Byt namn ✏️">${namn}</span>
     </div>`);
   }
