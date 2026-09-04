@@ -5,26 +5,34 @@
 // (src/teacher-shared.js → signInTeacher) och firestore.rules ger isTeacher()
 // full behörighet.
 //
-//   node admin/set-teacher-claim.mjs --email=larare@skolan.se --password=<minst6>
-//   node admin/set-teacher-claim.mjs --email=larare@skolan.se           (bara sätt claim på befintligt konto)
+//   node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>
+//   node admin/set-teacher-claim.mjs --username=teacher26            (bara sätt claim på befintligt konto)
+//   node admin/set-teacher-claim.mjs --email=larare@skolan.se --password=<minst6>   (avancerat: valfri e-post)
 //
 // Flaggor:
-//   --email=<e-post>       lärarens inloggnings-e-post (valfri riktig adress)
+//   --username=<namn>      lärarens användarnamn (t.ex. teacher26); e-posten
+//                          byggs internt som <namn>@larare.pluggportalen.local.
+//   --email=<e-post>       AVANCERAT: valfri riktig adress i stället för username.
 //   --password=<lösen>     sätts om kontot skapas/ska uppdateras (minst 6 tecken)
 //   --off                  TA BORT teacher-claim (avaktivera lärarbehörighet)
 //
 // Se docs/ADMIN.md. Kräver service-account (eller emulator-env).
 // ============================================================================
 
-import { auth, parseArgs, isEmulator } from "./_shared.mjs";
+import { auth, parseArgs, isEmulator, teacherUsernameToEmail } from "./_shared.mjs";
 
 const { flags, opts } = parseArgs();
-const email = (opts.email || "").trim();
+const email = (opts.username
+  ? teacherUsernameToEmail(opts.username)
+  : opts.email || ""
+).trim();
 const password = opts.password;
 const removeClaim = flags.has("off");
 
 if (!email) {
-  console.error("✗ Ange --email=<lärarens e-post>. Se docs/ADMIN.md.");
+  console.error(
+    "✗ Ange --username=<lärarens användarnamn> (eller --email=<e-post>). Se docs/ADMIN.md."
+  );
   process.exit(1);
 }
 

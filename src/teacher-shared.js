@@ -162,12 +162,12 @@ export function renderGate(ctx) {
     <a class="back-link" id="back">← Tillbaka</a>
     <div class="panel">
       <h1 class="center">Lärarläge 🔐</h1>
-      <p class="hint center">Logga in med ditt lärarkonto (e-post + lösenord) för att komma vidare.</p>
+      <p class="hint center">Logga in med ditt lärarkonto (användarnamn + lösenord) för att komma vidare.</p>
       <div id="msg"></div>
       <form id="form">
         <div class="field">
-          <label for="email">E-post</label>
-          <input id="email" type="email" autocomplete="username" autocapitalize="none" placeholder="larare@skolan.se" />
+          <label for="username">Användarnamn</label>
+          <input id="username" type="text" autocomplete="username" autocapitalize="none" placeholder="teacher26" />
         </div>
         <div class="field">
           <label for="p">Lösenord</label>
@@ -189,7 +189,7 @@ export function renderGate(ctx) {
     btn.textContent = "Loggar in…";
     try {
       const res = await signInTeacher(
-        view.querySelector("#email").value,
+        view.querySelector("#username").value,
         view.querySelector("#p").value
       );
       if (res.ok) {

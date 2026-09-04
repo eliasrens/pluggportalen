@@ -49,6 +49,11 @@ const PROJECT_ID =
   "pluggportalen-so-2026";
 const DOMAIN = "elev.pluggportalen.local";
 const usernameToEmail = (u) => `${String(u).trim().toLowerCase()}@${DOMAIN}`;
+// Lärare loggar in med användarnamn (t.ex. "teacher26") → syntetisk lärar-e-post,
+// samma mappning som src/auth.js teacherUsernameToEmail / admin/_shared.mjs.
+const TEACHER_DOMAIN = "larare.pluggportalen.local";
+const teacherUsernameToEmail = (u) =>
+  `${String(u).trim().toLowerCase()}@${TEACHER_DOMAIN}`;
 
 const FS_HOST = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080";
 const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
@@ -67,7 +72,8 @@ const clientDb = getFirestore(clientApp);
 connectAuthEmulator(clientAuth, `http://${AUTH_HOST}`, { disableWarnings: true });
 connectFirestoreEmulator(clientDb, FS_HOST.split(":")[0], Number(FS_HOST.split(":")[1]));
 
-const TEACHER_EMAIL = "larare@skolan.se";
+const TEACHER_USERNAME = "teacher26";
+const TEACHER_EMAIL = teacherUsernameToEmail(TEACHER_USERNAME);
 const TEACHER_PW = "larare123";
 const ELEV1_PW = "hejsan6"; // >= 6 för emulator-seed via createUser-liknande väg
 
@@ -137,8 +143,13 @@ test("obehörig (utloggad) kan inte läsa students eller skriva studentData", as
   );
 });
 
-test("lärare loggar in, skapar elev-dokument och ger coins", async () => {
-  const cred = await signInWithEmailAndPassword(clientAuth, TEACHER_EMAIL, TEACHER_PW);
+test("lärare loggar in (användarnamn→e-post), skapar elev-dokument och ger coins", async () => {
+  // Läraren skriver bara "teacher26"; mappas internt till lärar-e-posten.
+  const cred = await signInWithEmailAndPassword(
+    clientAuth,
+    teacherUsernameToEmail(TEACHER_USERNAME),
+    TEACHER_PW
+  );
   const tok = await cred.user.getIdTokenResult(true);
   assert.equal(tok.claims.teacher, true, "läraren ska ha teacher-claim");
 

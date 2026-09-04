@@ -26,10 +26,18 @@ import admin from "firebase-admin";
 export const PROJECT_ID = "pluggportalen-so-2026";
 // Syntetisk e-postdomän – MÅSTE matcha ELEV_EMAIL_DOMAIN i src/auth.js.
 export const ELEV_EMAIL_DOMAIN = "elev.pluggportalen.local";
+// Syntetisk e-postdomän för LÄRARKONTON – MÅSTE matcha TEACHER_EMAIL_DOMAIN i
+// src/auth.js. Skild från elevernas domän (blanda INTE ihop).
+export const TEACHER_EMAIL_DOMAIN = "larare.pluggportalen.local";
 
 /** username -> syntetisk e-post (samma mappning som src/auth.js usernameToEmail). */
 export function usernameToEmail(username) {
   return `${String(username || "").trim().toLowerCase()}@${ELEV_EMAIL_DOMAIN}`;
+}
+
+/** lärar-username -> syntetisk e-post (samma mappning som src/auth.js teacherUsernameToEmail). */
+export function teacherUsernameToEmail(name) {
+  return `${String(name || "").trim().toLowerCase()}@${TEACHER_EMAIL_DOMAIN}`;
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

@@ -38,6 +38,11 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 // av mappningen username -> Auth-konto och måste matcha migreringsskriptet.
 export const ELEV_EMAIL_DOMAIN = "elev.pluggportalen.local";
 
+// Syntetisk e-postdomän för LÄRARKONTON. Skild från elevernas (blanda INTE ihop)
+// – läraren loggar in med enbart ett användarnamn (t.ex. "teacher26") och den
+// här domänen läggs på internt. Måste matcha admin/_shared.mjs.
+export const TEACHER_EMAIL_DOMAIN = "larare.pluggportalen.local";
+
 /** Firebase Auth kräver minst 6 tecken i ett lösenord. */
 export const MIN_PASSWORD_LEN = 6;
 
@@ -48,6 +53,14 @@ export const MIN_PASSWORD_LEN = 6;
  */
 export function usernameToEmail(username) {
   return `${String(username || "").trim().toLowerCase()}@${ELEV_EMAIL_DOMAIN}`;
+}
+
+/**
+ * Mappar ett lärar-användarnamn till dess syntetiska e-post. Samma stil som
+ * usernameToEmail men egen domän. `teacher26` -> `teacher26@larare.pluggportalen.local`.
+ */
+export function teacherUsernameToEmail(name) {
+  return `${String(name || "").trim().toLowerCase()}@${TEACHER_EMAIL_DOMAIN}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -223,21 +236,28 @@ export function signOutCurrent() {
 // ---------------------------------------------------------------------------
 
 /**
- * Logga in en lärare med e-post + lösenord. Kräver att kontot har custom claim
- * teacher:true (sätts via admin/set-teacher-claim.mjs). Annars nekas det och
- * användaren loggas ut igen.
+ * Logga in en lärare med ANVÄNDARNAMN + lösenord (precis som eleverna, t.ex.
+ * "teacher26" – ingen e-post syns). Användarnamnet mappas internt till en
+ * syntetisk lärar-e-post via teacherUsernameToEmail. Kräver att kontot har
+ * custom claim teacher:true (sätts via admin/set-teacher-claim.mjs). Annars
+ * nekas det och användaren loggas ut igen.
+ * @param {string} username lärarens användarnamn (INTE en e-post)
  * @returns {Promise<{ok:true} | {ok:false, error:string}>}
  */
-export async function signInTeacher(email, password) {
-  const mail = String(email || "").trim();
+export async function signInTeacher(username, password) {
+  const uname = String(username || "").trim().toLowerCase();
   const pw = String(password || "");
-  if (!mail || !pw) {
-    return { ok: false, error: "Fyll i både e-post och lösenord." };
+  if (!uname || !pw) {
+    return { ok: false, error: "Fyll i både användarnamn och lösenord." };
   }
   try {
     // Lärarsession behöver inte "kom-ihåg" mellan datorns sessioner.
     await setPersistence(auth, browserSessionPersistence);
-    const cred = await signInWithEmailAndPassword(auth, mail, pw);
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      teacherUsernameToEmail(uname),
+      pw
+    );
     const tok = await cred.user.getIdTokenResult(true);
     if (tok.claims.teacher !== true) {
       await signOut(auth).catch(() => {});
