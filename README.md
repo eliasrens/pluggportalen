@@ -12,7 +12,9 @@ JS SDK. Inloggning sker via **Firebase Auth** (se `docs/security-plan.md` och
 > **Före** lösenordsmigreringen (nuvarande live): lösenord `123`.
 > **Efter** migreringen: lösenord `lilla123` (elev1 har < 6 tecken och får det
 > nya lösenordet via `--short=set:lilla123`, se `docs/ADMIN.md`).
-> (Läraren loggar in med sitt eget lärarkonto – e-post + lösenord.)
+> (Läraren loggar in med sitt eget lärarkonto – **användarnamn** (t.ex.
+> `teacher26`) + lösenord, precis som eleverna. Kontot skapas med
+> `node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>`.)
 
 ## Innehåll
 

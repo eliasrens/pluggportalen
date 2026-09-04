@@ -46,16 +46,22 @@ Detta kan **inte** göras programmatiskt utan konsol/inloggning:
 ## 2. Skapa lärarkonto + sätt `teacher`-claim
 
 ```bash
-node admin/set-teacher-claim.mjs --email=larare@skolan.se --password=<minst6>
+node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>
 ```
 
+- Läraren loggar in med enbart ett **användarnamn** (t.ex. `teacher26`) – ingen
+  e-post syns. Skriptet bygger internt e-posten
+  `teacher26@larare.pluggportalen.local` (Firebase Auth kräver e-postformat).
 - Skapar kontot om det inte finns och sätter custom claim `teacher:true`.
 - Redan skapat konto? Kör utan `--password` för att bara sätta claimen.
 - Ta bort behörighet: `--off`.
+- Avancerat: `--email=<riktig adress>` finns kvar för specialfall i stället för
+  `--username`.
 
-Läraren loggar sedan in i lärarläget (📚-sidan) med **e-post + lösenord**.
-`isTeacher()` i `src/auth.js` läser claimen ur ID-token. **Obs:** efter att
-claimen satts måste läraren logga ut/in en gång för att den ska hamna i token.
+Läraren loggar sedan in i lärarläget (📚-sidan) med **användarnamn + lösenord**
+(precis som eleverna). `isTeacher()` i `src/auth.js` läser claimen ur ID-token.
+**Obs:** efter att claimen satts måste läraren logga ut/in en gång för att den
+ska hamna i token.
 
 ---
 
