@@ -58,6 +58,31 @@ export async function saveRoom(room, studentId = currentStudentId()) {
   return room;
 }
 
+// --- Husskal (byter husets exteriör – "Köp nytt hus") -----------------------
+// Aktivt skal ligger i ett TOP-LEVEL fält (studentData.husSkalId), inte i room:
+// det påverkar bara husets utsida (ute-scenen + minihuset i byn), aldrig rummet.
+// Läses redan av pages-varld.js, varld-by-scen.js, varld-kompis.js och
+// data-content.js. Okänt/saknat id faller alltid tillbaka på default-stugan.
+
+/** Elevens aktiva husskal-id (null = default-stugan). */
+export async function getHusSkal(studentId = currentStudentId()) {
+  const data = await getStudentData(studentId);
+  return data.husSkalId || null;
+}
+
+/**
+ * Spara elevens aktiva husskal. Drar INGA coins (köpet sker separat via
+ * buyItem, som lägger skal-id:t i ownedItems). Byter bara vilket ägt skal som
+ * ritas – rummet/interiören lämnas orört.
+ * @param {string} skalId husskal-id (bör vara "stuga" eller ett ägt skal)
+ */
+export async function saveHusSkal(skalId, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  await updateDoc(ref, { husSkalId: skalId });
+  return skalId;
+}
+
 // --- Avatar -----------------------------------------------------------------
 
 export async function getAvatar(studentId = currentStudentId()) {

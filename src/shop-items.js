@@ -30,6 +30,7 @@ export const CATEGORIES = [
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
   { id: "mat", name: "Mat", emoji: "🍎" },
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
+  { id: "hus", name: "Hus", emoji: "🏠" },
 ];
 
 // Slot = var på avataren en klädsak sitter (för positionering + en per slot).
@@ -112,6 +113,14 @@ export const SHOP_ITEMS = [
   { id: "ballonger", name: "Ballongbukett", emoji: "🎈", category: "dekor", price: 22 },
   { id: "kaktus", name: "Kaktus", emoji: "🌵", category: "dekor", price: 30 },
   { id: "vaggklocka", name: "Väggklocka", emoji: "🕰️", category: "dekor", price: 60 },
+
+  // --- Hus (byter husets EXTERIÖR/skal – rummet inuti är oförändrat) ---------
+  // Köp lägger skal-id:t i ownedItems (som vanliga saker). Man väljer sedan
+  // aktivt skal i husvärldens "🏠 Nytt hus"-panel (sparas i studentData.
+  // husSkalId). Stugan är default/gratis och säljs INTE här. Item-id === skal-id
+  // i HUS_SKAL-registret (art-hus-ute.js) – håll dem i synk.
+  { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
+  { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
 ];
 
 /** Slå upp en shop-sak på id. */
@@ -129,6 +138,12 @@ export function isWearable(id) {
 export function isFlatItem(id) {
   const it = getItem(id);
   return !!(it && it.flat);
+}
+
+/** Är saken ett köpbart husskal (byter husets exteriör)? */
+export function isHouseItem(id) {
+  const it = getItem(id);
+  return !!(it && it.category === "hus");
 }
 
 /**

@@ -129,6 +129,7 @@ export function defaultStudentData(avatarId) {
     ownedItems: [], // shop-sak-id:n
     avatarItems: [], // burna klädsaker (delmängd av ownedItems)
     room: { placements: {} }, // { [itemId]: { x, y } }
+    husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
     evolution: {}, // { [avatarId]: { stage, branch } } – elevens grenval (se evolution.js)
@@ -320,6 +321,8 @@ export {
   saveAvatarItems,
   getRoom,
   saveRoom,
+  getHusSkal,
+  saveHusSkal,
   getAvatar,
   setAvatar,
   hasChosenAvatar,
