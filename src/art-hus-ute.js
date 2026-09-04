@@ -95,30 +95,47 @@ function stugaMarkup() {
 // Samma koordinatsystem/marklinje som stugan (huset ~x300–660, y≈512) och
 // samma --hus-*-variabler, så avatar/skylt/palett fortsätter sitta rätt.
 function slottMarkup() {
+  // Krenelering (tinnar) centrerad ovanpå ett väggsegment [x, x+w]. Tänderna
+  // sitter med basen y-16..y+6 så de överlappar väggens överkant (y) → ingen
+  // glipa. Bara mittkeepen har tinnar; tornen kröns av spetsiga tak i stället.
   const tinnar = (x, w, y) => {
-    const n = Math.floor(w / 24);
+    const step = 26, tw = 15, gap = step - tw;
+    const n = Math.max(2, Math.floor((w + gap) / step));
+    const span = n * tw + (n - 1) * gap;
+    const start = x + (w - span) / 2;
     let s = "";
     for (let i = 0; i < n; i++)
-      s += `<rect x="${x + i * 24}" y="${y - 14}" width="14" height="16" fill="var(--hus-house)" ${LINE}/>`;
+      s += `<rect x="${(start + i * step).toFixed(1)}" y="${y - 16}" width="${tw}" height="22" fill="var(--hus-house)" ${LINE}/>`;
     return s;
   };
+  // Ett fönster (rundbågigt) med enkel mittpost, centrerat på cx.
+  const fonster = (cx, top, w, h) =>
+    `<rect x="${cx - w / 2}" y="${top}" width="${w}" height="${h}" rx="${(w / 2).toFixed(0)}" fill="var(--hus-wall)" ${LINE}/>
+     <path d="M${cx} ${top + 6} L${cx} ${top + h - 6} M${cx - w / 2 + 4} ${top + h * 0.42} L${cx + w / 2 - 4} ${top + h * 0.42}" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
   return `${shadow(480, 512, 190)}
-      <rect x="356" y="270" width="248" height="240" rx="4" fill="var(--hus-house)" ${LINE}/>
-      <rect x="300" y="220" width="72" height="290" rx="4" fill="var(--hus-house)" ${LINE}/>
-      <rect x="588" y="220" width="72" height="290" rx="4" fill="var(--hus-house)" ${LINE}/>
-      ${tinnar(302, 68, 220)}${tinnar(590, 68, 220)}${tinnar(360, 244, 270)}
-      <path d="M296 200 L336 140 L376 200 Z" fill="var(--hus-roof)" ${LINE}/>
-      <path d="M584 200 L624 140 L664 200 Z" fill="var(--hus-roof)" ${LINE}/>
-      ${limb("M336 140 L336 108", WOOD_DARK, 3)}
-      <path d="M336 108 L372 116 L336 128 Z" fill="#EF6F6C" ${THIN}/>
-      <path d="M446 510 L446 372 Q446 330 502 330 Q558 330 558 372 L558 510 Z" fill="var(--hus-roof)" ${LINE}/>
-      <path d="M458 505 L458 376 Q458 344 502 344 Q546 344 546 376 L546 505 Z" fill="${WOOD}" ${LINE}/>
-      <path d="M502 344 L502 505 M462 420 L542 420" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
-      <circle cx="533" cy="428" r="5" fill="#F7C948" ${THIN}/>
-      <rect x="326" y="300" width="34" height="52" rx="16" fill="var(--hus-wall)" ${LINE}/>
-      <rect x="600" y="300" width="34" height="52" rx="16" fill="var(--hus-wall)" ${LINE}/>
-      <rect x="384" y="300" width="34" height="50" rx="16" fill="var(--hus-wall)" ${LINE}/>
-      <rect x="586" y="300" width="34" height="50" rx="16" fill="var(--hus-wall)" ${LINE}/>`;
+      <!-- Torn (ritas före mittkeepen så väggarna möts rent i skarvarna) -->
+      <rect x="300" y="214" width="72" height="296" rx="4" fill="var(--hus-house)" ${LINE}/>
+      <rect x="588" y="214" width="72" height="296" rx="4" fill="var(--hus-house)" ${LINE}/>
+      <!-- Mittkeep, kortare än tornen -->
+      <rect x="356" y="272" width="248" height="238" rx="4" fill="var(--hus-house)" ${LINE}/>
+      ${tinnar(356, 248, 272)}
+      <!-- Tornens spetsiga tak: basen (y=214) vilar exakt på tornets överkant -->
+      <path d="M292 214 L336 150 L380 214 Z" fill="var(--hus-roof)" ${LINE}/>
+      <path d="M580 214 L624 150 L668 214 Z" fill="var(--hus-roof)" ${LINE}/>
+      ${limb("M336 150 L336 116", WOOD_DARK, 3)}
+      <path d="M336 116 L372 124 L336 136 Z" fill="#EF6F6C" ${THIN}/>
+      ${limb("M624 150 L624 116", WOOD_DARK, 3)}
+      <path d="M624 116 L660 124 L624 136 Z" fill="#EF6F6C" ${THIN}/>
+      <!-- Port, centrerad på keepen (x=480) -->
+      <path d="M428 510 L428 372 Q428 336 480 336 Q532 336 532 372 L532 510 Z" fill="var(--hus-roof)" ${LINE}/>
+      <path d="M440 505 L440 376 Q440 348 480 348 Q520 348 520 376 L520 505 Z" fill="${WOOD}" ${LINE}/>
+      <path d="M480 348 L480 505 M442 424 L518 424" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="508" cy="432" r="5" fill="#F7C948" ${THIN}/>
+      <!-- Fönster: symmetriskt par i tornen + par i keepen, inga överlapp -->
+      ${fonster(336, 300, 34, 52)}
+      ${fonster(624, 300, 34, 52)}
+      ${fonster(392, 298, 34, 50)}
+      ${fonster(568, 298, 34, 50)}`;
 }
 
 // --- Svamphus: rund stam + prickig hatt ------------------------------------
@@ -135,10 +152,10 @@ function svampMarkup() {
       <path d="M452 510 L452 396 Q452 366 480 366 Q508 366 508 396 L508 510 Z" fill="${WOOD}" ${LINE}/>
       <path d="M462 504 L462 398 Q462 376 480 376 Q498 376 498 398 L498 504 Z" fill="${WOOD_LIGHT}" stroke="none"/>
       <circle cx="493" cy="446" r="4.5" fill="${WOOD_DARK}" ${THIN}/>
-      <circle cx="406" cy="404" r="26" fill="var(--hus-wall)" ${LINE}/>
-      <path d="M406 380 L406 428 M382 404 L430 404" stroke="${O}" stroke-width="4"/>
-      <circle cx="556" cy="404" r="26" fill="var(--hus-wall)" ${LINE}/>
-      <path d="M556 380 L556 428 M532 404 L580 404" stroke="${O}" stroke-width="4"/>`;
+      <circle cx="412" cy="404" r="22" fill="var(--hus-wall)" ${LINE}/>
+      <path d="M412 384 L412 424 M392 404 L432 404" stroke="${O}" stroke-width="4"/>
+      <circle cx="548" cy="404" r="22" fill="var(--hus-wall)" ${LINE}/>
+      <path d="M548 384 L548 424 M528 404 L568 404" stroke="${O}" stroke-width="4"/>`;
 }
 
 const HUS_SKAL = {
@@ -173,7 +190,7 @@ export function listHusSkal() {
  * Färgas via --hus-*-variabler från ett förälderelement, precis som husMini.
  */
 export function husSkalPreview(skalId = DEFAULT_HUS_SKAL) {
-  return `<svg viewBox="280 120 400 410" aria-hidden="true" focusable="false"
+  return `<svg viewBox="280 112 400 420" aria-hidden="true" focusable="false"
       preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
     ${husSkalMarkup(skalId)}
   </svg>`;
