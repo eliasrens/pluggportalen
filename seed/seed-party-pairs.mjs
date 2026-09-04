@@ -1,5 +1,5 @@
 // ============================================================================
-// Lägg till partibilds-par i DEMOKRATI-området (live-Firestore).
+// Lägg till partibilds-par i DEMOKRATI-området (Admin SDK).
 // ----------------------------------------------------------------------------
 //   node seed/seed-party-pairs.mjs          (torrkörning – hämtar, validerar, visar)
 //   node seed/seed-party-pairs.mjs --write  (skriver tillbaka till Firestore)
@@ -7,25 +7,24 @@
 // Detta verktyg är ADDITIVT och idempotent: det HÄMTAR arbetsområdet
 // subjects/so/areas/valet-och-demokrati-stort, lägger till bildpar för riksdagens
 // 8 partier (partisymbol ↔ partinamn) UTAN att röra befintliga texter/quiz/pairs,
-// kör HELA området genom validate.js och skriver tillbaka via samma REST-väg som
-// seed/seed.mjs (öppna säkerhetsregler, webb-API-nyckel). Kör man det igen läggs
-// inga dubbletter till (par-id:na är stabila).
+// kör HELA området genom validate.js och skriver tillbaka.
+//
+// Sedan härdningen är reglerna stängda, så skrivningen går via Admin SDK med
+// service-account (admin/_shared.mjs) i stället för REST + webb-nyckel. Mot
+// emulatorn: sätt FIRESTORE_EMULATOR_HOST (se docs/ADMIN.md). Kör man det igen
+// läggs inga dubbletter till (par-id:na är stabila).
 // ============================================================================
 
+import { db, isEmulator } from "../admin/_shared.mjs";
 import { validateArea } from "../src/validate.js";
 import { listPairImageKeys } from "../src/pair-images.js";
 
-const PROJECT = "pluggportalen-so-2026";
-const KEY = "AIzaSyB34GPjLkIuJNbgTGOrm6sRMIAisx9aJ3w";
-const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
 const SUBJECT = "so";
 const AREA = "valet-och-demokrati-stort";
 const WRITE = process.argv.includes("--write");
+const DOC_PATH = `subjects/${SUBJECT}/areas/${AREA}`;
 
 // Riksdagens 8 partier som bildpar: partisymbol (term-bild) ↔ partinamn (definition).
-// Nyckel + namn hämtas ur bildpaketet så listan alltid matchar pair-images.js.
-// Varje bildpar får en "group" "parti-<bokstav>" så att det aldrig visas i samma
-// omgång som ett annat par för samma parti (t.ex. ett äldre partiledar-text-par).
 const PARTY_PAIRS = listPairImageKeys().map(({ key, name }) => {
   const letter = key.split("/").pop();
   return {
@@ -37,71 +36,25 @@ const PARTY_PAIRS = listPairImageKeys().map(({ key, name }) => {
   };
 });
 
-// Ömsesidigt uteslutande dubbletter: befintliga text-par (partiledare) som pekar
-// på SAMMA parti som ett bildpar ska få SAMMA group. Mappning par-id -> group
-// (verifierad i live-datan): bild-paret "partisymbol-<x>" och text-paret pXX för
-// samma parti hamnar i "parti-<x>".
+// Ömsesidigt uteslutande dubbletter: text-par (partiledare) som pekar på SAMMA
+// parti som ett bildpar ska få SAMMA group.
 const TEXT_PAIR_GROUPS = {
-  p20: "parti-m", // Moderaterna
-  p21: "parti-s", // Socialdemokraterna
-  p22: "parti-v", // Vänsterpartiet
-  p23: "parti-sd", // Sverigedemokraterna
-  p24: "parti-kd", // Kristdemokraterna
+  p20: "parti-m",
+  p21: "parti-s",
+  p22: "parti-v",
+  p23: "parti-sd",
+  p24: "parti-kd",
 };
 
-// --- Firestore REST <-> JS -------------------------------------------------
-function toValue(v) {
-  if (v === null || v === undefined) return { nullValue: null };
-  if (typeof v === "boolean") return { booleanValue: v };
-  if (typeof v === "number")
-    return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
-  if (typeof v === "string") return { stringValue: v };
-  if (Array.isArray(v)) return { arrayValue: { values: v.map(toValue) } };
-  if (typeof v === "object") return { mapValue: { fields: toFields(v) } };
-  throw new Error("Kan inte koda värde: " + v);
-}
-function toFields(obj) {
-  const fields = {};
-  for (const [k, val] of Object.entries(obj)) fields[k] = toValue(val);
-  return fields;
-}
-function fromValue(v) {
-  if ("nullValue" in v) return null;
-  if ("booleanValue" in v) return v.booleanValue;
-  if ("integerValue" in v) return Number(v.integerValue);
-  if ("doubleValue" in v) return v.doubleValue;
-  if ("stringValue" in v) return v.stringValue;
-  if ("arrayValue" in v) return (v.arrayValue.values || []).map(fromValue);
-  if ("mapValue" in v) return fromFields(v.mapValue.fields || {});
-  return null;
-}
-function fromFields(f) {
-  const o = {};
-  for (const [k, val] of Object.entries(f)) o[k] = fromValue(val);
-  return o;
-}
-
 async function getArea() {
-  const url = `${BASE}/subjects/${SUBJECT}/areas/${AREA}?key=${KEY}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} kunde inte hämta området: ${await res.text()}`);
-  const doc = await res.json();
-  return fromFields(doc.fields || {});
-}
-
-async function setArea(value) {
-  const url = `${BASE}/subjects/${SUBJECT}/areas/${AREA}?key=${KEY}`;
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: toFields(value) }),
-  });
-  if (!res.ok) throw new Error(`${res.status} kunde inte spara: ${await res.text()}`);
+  const snap = await db.doc(DOC_PATH).get();
+  if (!snap.exists) throw new Error(`Området ${DOC_PATH} hittades inte.`);
+  return { id: AREA, ...snap.data() };
 }
 
 async function main() {
+  console.log(`Mål: ${isEmulator ? "EMULATOR" : "LIVE"}`);
   const area = await getArea();
-  area.id = AREA;
   const before = (area.pairs || []).length;
 
   // Additivt: lägg bara till partibilds-par som inte redan finns (per id).
@@ -109,8 +62,7 @@ async function main() {
   const toAdd = PARTY_PAIRS.filter((p) => !existingIds.has(p.id));
   area.pairs = [...(area.pairs || []), ...toAdd];
 
-  // Idempotent: sätt "group" på rätt par (bildpar + motsvarande text-par) utan att
-  // röra något annat. Bildparens group följer PARTY_PAIRS; text-parens TEXT_PAIR_GROUPS.
+  // Idempotent: sätt "group" på rätt par utan att röra något annat.
   const groupById = new Map(PARTY_PAIRS.map((p) => [p.id, p.group]));
   for (const [id, group] of Object.entries(TEXT_PAIR_GROUPS)) groupById.set(id, group);
   let grouped = 0;
@@ -137,13 +89,14 @@ async function main() {
   imgPairs.forEach((p) => console.log(`   ${p.termImage || p.defImage} ↔ "${p.definition || p.term}"`));
   const withGroup = res.value.pairs.filter((p) => p.group);
   console.log(`Par med group: ${withGroup.length} (${grouped} uppdaterade denna körning)`);
-  withGroup.forEach((p) => console.log(`   [${p.group}] ${p.id}: "${p.term || p.termImage}" ↔ "${p.definition || p.defImage}"`));
 
   if (!WRITE) {
     console.log("\nTorrkörning (validerat, inte sparat). Kör med --write för att spara.");
     return;
   }
-  await setArea(res.value);
+  // Skriv tillbaka HELA området (validate.js normaliserar) – utan id-fältet.
+  const { id, ...toWrite } = res.value;
+  await db.doc(DOC_PATH).set(toWrite);
   console.log("\n✓ Sparat till Firestore. 🎉");
 }
 

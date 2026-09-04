@@ -37,7 +37,7 @@ export function pageElevLogin() {
         <button class="btn stor gron" type="submit" id="submit">Logga in</button>
       </form>
       <p class="hint center" style="margin-top:16px">
-        Testkonto: <b>elev1</b> / <b>passa123</b>
+        Testkonto: <b>elev1</b> / <b>123123</b>
       </p>
     </div>
   </div>`);

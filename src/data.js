@@ -5,9 +5,10 @@
 // gamemodes (quiz/läsförståelse/para ihop), shoppen, elevrummet och lärarsidan.
 //
 // Ansvar:
-//   * Inloggning mot elevkonton i Firestore (användarnamn + lösenord).
-//     OBS: enkel skolinloggning, INTE säkerhetskritisk. Lösenord i klartext.
-//   * Session i localStorage (bara vem som är inloggad – ID + namn).
+//   * Inloggning mot elevkonton via Firebase Auth (användarnamn + lösenord).
+//     Själva auth-logiken (mappning username->e-post, sessionsspegel, lärar-
+//     claim) bor i src/auth.js; login()/logout() här är tunna omslag som även
+//     ser till att elevdata-dokumentet finns.
 //   * All riktig elevdata (coins, framsteg, ägda saker, avatar, rum) i Firestore.
 //   * Kunskapsinnehåll: hämta ämnen och arbetsområden.
 //
@@ -15,106 +16,59 @@
 //   subjects/{subjectId}                      – ämne (t.ex. "so")
 //   subjects/{subjectId}/areas/{areaId}       – arbetsområde (t.ex. "vikingatiden")
 //       innehåller: texts[], quiz[], pairs[]
-//   students/{studentId}                      – { namn, username, password, avatarId }
+//   students/{studentId}                      – { namn, username, avatarId }   (studentId = Auth-uid)
 //   studentData/{studentId}                   – { coins, xp, progress, ownedItems, room, avatarId }
 // ============================================================================
 
 import { db } from "./firebase-config.js";
 import {
-  collection,
   doc,
   getDoc,
-  getDocs,
   setDoc,
   updateDoc,
-  query,
-  where,
   serverTimestamp,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  signInStudent,
+  signOutCurrent,
+  getSession,
+  currentStudentId,
+  isLoggedIn,
+} from "./auth.js";
 
-const SESSION_KEY = "pluggportalen.session";
-
-// ---------------------------------------------------------------------------
-// Session – bara vem som är inloggad (ID + namn).
-//
-// "Kom-ihåg-mig": när eleven kryssar i det sparas sessionen i localStorage och
-// ligger kvar tills hen loggar ut (praktiskt på elevens vanliga dator). Annars
-// sparas den i sessionStorage och försvinner när fliken stängs (bra på en delad
-// eller offentlig dator).
-// ---------------------------------------------------------------------------
-
-export function getSession() {
-  try {
-    const raw =
-      localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function setSession(session, remember) {
-  const raw = JSON.stringify(session);
-  // Rensa båda lagren först så vi aldrig får två olika sessioner.
-  try {
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch {}
-  const store = remember ? localStorage : sessionStorage;
-  store.setItem(SESSION_KEY, raw);
-}
-
-export function isLoggedIn() {
-  return !!getSession();
-}
-
-export function logout() {
-  try {
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch {}
-}
-
-/** Den inloggade elevens ID, eller null. */
-export function currentStudentId() {
-  return getSession()?.studentId ?? null;
-}
+// Session-API:t bor numera i auth.js (backat av Firebase Auth) men re-exporteras
+// här så att `import * as data from "./data.js"` fortsätter fungera överallt.
+export { getSession, currentStudentId, isLoggedIn };
 
 // ---------------------------------------------------------------------------
-// Inloggning
+// Inloggning / utloggning
 // ---------------------------------------------------------------------------
 
 /**
- * Logga in en elev med användarnamn + lösenord.
+ * Logga in en elev med användarnamn + lösenord (via Firebase Auth).
+ * "Kom-ihåg-mig" mappas till Auth-persistens (local vs session) i auth.js.
  * @returns {Promise<{ok: true, student: object} | {ok: false, error: string}>}
  */
 export async function login(username, password, remember = false) {
-  const uname = String(username || "").trim().toLowerCase();
-  const pw = String(password || "");
-  if (!uname || !pw) {
-    return { ok: false, error: "Fyll i både användarnamn och lösenord." };
-  }
+  const res = await signInStudent(username, password, remember);
+  if (!res.ok) return res;
 
-  const q = query(collection(db, "students"), where("username", "==", uname));
-  const snap = await getDocs(q);
-  if (snap.empty) {
-    return { ok: false, error: "Det finns ingen elev med det användarnamnet." };
-  }
-
-  const docSnap = snap.docs[0];
-  const student = { id: docSnap.id, ...docSnap.data() };
-  if (student.password !== pw) {
-    return { ok: false, error: "Fel lösenord. Försök igen." };
-  }
-
-  setSession(
-    { studentId: student.id, namn: student.namn, username: student.username },
-    remember
-  );
+  const uid = res.uid;
+  // Läs elevdokumentet för namn/avatar (reglerna tillåter eleven att läsa sitt eget).
+  let student = { id: uid };
+  try {
+    const snap = await getDoc(doc(db, "students", uid));
+    if (snap.exists()) student = { id: uid, ...snap.data() };
+  } catch {}
   // Säkerställ att elevdata-dokumentet finns.
-  await ensureStudentData(student.id, student.avatarId);
+  await ensureStudentData(uid, student.avatarId);
   return { ok: true, student };
+}
+
+/** Logga ut den inloggade eleven (Firebase Auth signOut + rensa spegeln). */
+export function logout() {
+  return signOutCurrent();
 }
 
 // ---------------------------------------------------------------------------

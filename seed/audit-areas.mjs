@@ -1,60 +1,30 @@
 // ============================================================================
-// Read-only innehållsgranskning (Node) för Pluggportalen.
+// Read-only innehållsgranskning (Node, Admin SDK) för Pluggportalen.
 //
 //   node seed/audit-areas.mjs
 //
-// Läser ALLA subjects/*/areas/* från Firestore via REST-API:t (samma öppna väg
-// som webbklienten och seedern använder), konverterar till vanlig JS och kör
-// varje arbetsområde genom src/validate.js – exakt samma kontrakt som läraren
-// valideras mot när hen klistrar in JSON. Utöver validate.js flaggas frågor vars
-// text förutsätter en synlig källtext ("enligt texten", "i stycket ovan" …) men
-// som saknar per-fråga-passage, samt tomma/dubblerade svarsalternativ.
+// Läser ALLA subjects/*/areas/* från Firestore via Admin SDK (service-account,
+// kringgår de härdade reglerna legitimt – den gamla REST + webb-nyckel-vägen
+// funkar inte längre mot stängda regler) och kör varje arbetsområde genom
+// src/validate.js – samma kontrakt som läraren valideras mot. Utöver validate.js
+// flaggas frågor vars text förutsätter en synlig källtext ("enligt texten" …)
+// men som saknar per-fråga-passage, samt tomma/dubblerade svarsalternativ.
 //
-// Skriver INGENTING – enbart granskning/rapport. Använd för att verifiera att
-// redan inmatad övningsdata följer läsförståelse-kontraktet (passage per fråga,
-// självbärande) innan/efter städning.
+// Skriver INGENTING – enbart granskning/rapport. Mot emulatorn: sätt
+// FIRESTORE_EMULATOR_HOST (se docs/ADMIN.md).
 // ============================================================================
 
+import { db, isEmulator } from "../admin/_shared.mjs";
 import { validateArea } from "../src/validate.js";
-
-const PROJECT = "pluggportalen-so-2026";
-const KEY = "AIzaSyB34GPjLkIuJNbgTGOrm6sRMIAisx9aJ3w";
-const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
-
-// --- Firestore REST Value -> vanligt JS-värde (motsats till seederns toValue) --
-function fromValue(v) {
-  if (v == null || "nullValue" in v) return null;
-  if ("booleanValue" in v) return v.booleanValue;
-  if ("integerValue" in v) return Number(v.integerValue);
-  if ("doubleValue" in v) return v.doubleValue;
-  if ("stringValue" in v) return v.stringValue;
-  if ("arrayValue" in v) return (v.arrayValue.values || []).map(fromValue);
-  if ("mapValue" in v) return fromFields(v.mapValue.fields || {});
-  return null;
-}
-function fromFields(fields) {
-  const o = {};
-  for (const [k, val] of Object.entries(fields)) o[k] = fromValue(val);
-  return o;
-}
-
-async function getJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-  return res.json();
-}
 
 // Alla ämnen -> alla arbetsområden under varje ämne.
 async function collectAreas() {
-  const subjectsDoc = await getJson(`${BASE}/subjects?pageSize=300&key=${KEY}`);
   const out = [];
-  for (const s of subjectsDoc.documents || []) {
-    const subjectId = s.name.split("/documents/subjects/")[1];
-    const areasDoc = await getJson(
-      `${BASE}/subjects/${subjectId}/areas?pageSize=300&key=${KEY}`
-    );
-    for (const d of areasDoc.documents || []) {
-      out.push({ path: d.name.split("/documents/")[1], obj: fromFields(d.fields || {}) });
+  const subjectsSnap = await db.collection("subjects").get();
+  for (const s of subjectsSnap.docs) {
+    const areasSnap = await db.collection(`subjects/${s.id}/areas`).get();
+    for (const d of areasSnap.docs) {
+      out.push({ path: `subjects/${s.id}/areas/${d.id}`, obj: { id: d.id, ...d.data() } });
     }
   }
   return out;
@@ -94,6 +64,7 @@ function heuristics(obj) {
 }
 
 const areas = await collectAreas();
+console.log(`Källa: ${isEmulator ? "EMULATOR" : "LIVE"}`);
 console.log(`Hittade ${areas.length} arbetsområde(n).\n`);
 let problems = 0;
 for (const { path, obj } of areas) {

@@ -5,9 +5,16 @@ En glad, barnvänlig studiesida för åk 4. Eleverna övar SO genom spel, samlar
 
 Sajten är en **statisk sida** (ren HTML/CSS/JS – inget byggsteg) som ligger på
 **GitHub Pages** och använder **Firebase/Firestore** som databas via Firebase
-JS SDK.
+JS SDK. Inloggning sker via **Firebase Auth** (se `docs/security-plan.md` och
+`docs/ADMIN.md`).
 
-> **Testkonto:** användarnamn `elev1`, lösenord `passa123`.
+> **Testkonto (live):** användarnamn `elev1`.
+> **Före** lösenordsmigreringen (nuvarande live): lösenord `123`.
+> **Efter** migreringen: lösenord `lilla123` (elev1 har < 6 tecken och får det
+> nya lösenordet via `--short=set:lilla123`, se `docs/ADMIN.md`).
+> (Läraren loggar in med sitt eget lärarkonto – **användarnamn** (t.ex.
+> `teacher26`) + lösenord, precis som eleverna. Kontot skapas med
+> `node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>`.)
 
 ## Innehåll
 
@@ -18,14 +25,24 @@ src/
   data.js               Datamodulen – ALLA Firestore-anrop går här
   app.js                Router + sidor + gemensam layout
   styles.css            Gemensam barnvänlig design
+  auth.js               Firebase Auth: elev-/lärarinloggning + session
 seed/
   seed-data.js          Exempeldata (SO → Vikingatiden + exempelelev)
-  seed.html             Seed:a databasen från webbläsaren
-  seed.mjs              Seed:a databasen från terminalen (node)
+  seed.mjs              Seed:a databasen från terminalen (node, Admin SDK)
+  seed.html             (avstängd – webbläsar-seeding funkar ej mot stängda regler)
+admin/
+  set-teacher-claim.mjs Skapa lärarkonto + custom claim teacher:true
+  migrate-passwords.mjs Engångs: klartextlösenord → Firebase Auth-konton
+  reset-student-password.mjs / delete-student.mjs  Per-elev-underhåll
+test/
+  firestore-rules.test.js  Regel-tester (Firestore-emulator)
+  e2e-auth.test.mjs        E2E auth→regler→data (emulator)
 docs/
   DATAMODELL.md         Dokumentation av Firestore-datamodellen
-firestore.rules         Säkerhetsregler
-firebase.json           Firebase-konfiguration
+  security-plan.md      Säkerhets-/auth-plan (Alt A)
+  ADMIN.md              Drift: Auth-aktivering, migrering, live-deploy-ordning
+firestore.rules         Säkerhetsregler (härdade – kräver inloggning)
+firebase.json           Firebase-konfiguration (inkl. emulatorer)
 .github/workflows/deploy.yml   Auto-deploy till GitHub Pages
 ```
 
@@ -59,16 +76,27 @@ python -m http.server 8000
 
 ## Fylla databasen med exempeldata (seed)
 
-**Från webbläsaren:** öppna `seed/seed.html` och klicka på knappen.
-
-**Från terminalen:**
+Sedan säkerhetshärdningen är Firestore-reglerna **stängda**, så seeding går via
+**Admin SDK** med ett service-account (webbläsar-seedern är avstängd). Se
+`docs/ADMIN.md` för hur du hämtar nyckeln / kör mot emulatorn.
 
 ```bash
 node seed/seed.mjs
 ```
 
-Båda skriver in ämnet **SO → Vikingatiden** (3 faktatexter, 5 quizfrågor,
-6 fakta-par) och exempeleleven. Säkert att köra flera gånger.
+Skriver in ämnet **SO → Vikingatiden** (3 faktatexter, 5 quizfrågor, 6 fakta-par)
+och exempeleleven (och skapar elevens Auth-konto). Säkert att köra flera gånger.
+
+## Tester
+
+```bash
+npm install          # engångs (devDependencies)
+npm run test:rules   # firestore.rules mot Firestore-emulatorn
+npm run test:e2e     # auth→regler→data end-to-end mot emulatorerna
+```
+
+Emulatorerna kräver **Java 21+**. `firebase emulators:exec` startar/river dem
+automatiskt.
 
 ## Firebase
 
@@ -77,11 +105,16 @@ Båda skriver in ämnet **SO → Vikingatiden** (3 faktatexter, 5 quizfrågor,
 - Webbconfigen i `src/firebase-config.js` är publik – det är så Firebase
   fungerar. Skyddet ligger i säkerhetsreglerna (`firestore.rules`).
 
-Deploya om säkerhetsreglerna:
+Deploya om säkerhetsreglerna (reglerna aktiveras **bara** av detta – en
+repo-ändring räcker inte):
 
 ```bash
 firebase deploy --only firestore:rules
 ```
+
+> **Ordning vid live-gång:** kör lösenordsmigreringen **innan** reglerna
+> deployas, annars slutar befintliga elever kunna logga in. Se den exakta
+> sekvensen i **[docs/ADMIN.md](docs/ADMIN.md) §7**.
 
 ## Datamodell
 
