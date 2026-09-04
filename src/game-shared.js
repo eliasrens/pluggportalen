@@ -121,8 +121,8 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   let coins = Math.max(1, Math.round(baseCoins));
   let xp = xpForExercise(stars);
   if (!firstTime) {
-    coins = Math.max(1, Math.round(baseCoins * 0.3));
-    xp = Math.max(1, Math.round(xp * 0.3));
+    coins = Math.max(1, Math.round(baseCoins * 0.8));
+    xp = Math.max(1, Math.round(xp * 0.8));
   }
   let totalXp = 0;
   try {

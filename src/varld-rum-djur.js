@@ -25,10 +25,11 @@ import { itemSvg, itemSize } from "./art-items.js";
  * Montera de vanliga djuren för rumsscenen.
  * @param {object} o
  * @param {object} o.sd  studentData (roomAnimals + ev. legacy ownedItems-djur)
- * @returns {{ list: () => object[], byId: (id: string) => object|undefined,
- *   displayName: (a: object) => string,
+ * @returns {{ list: () => object[], stowedList: () => object[],
+ *   byId: (id: string) => object|undefined, displayName: (a: object) => string,
  *   stageNode: (a: object, selected: boolean) => HTMLElement,
  *   saveName: (id: string, name: string) => Promise<object>,
+ *   setStowed: (id: string, stowed: boolean) => void,
  *   scheduleSave: () => void, saveWalkPositions: () => void }}
  */
 export function mountRumDjur({ sd }) {
@@ -99,12 +100,28 @@ export function mountRumDjur({ sd }) {
     return res;
   }
 
+  /**
+   * Stuva undan (stowed=true) eller lägg tillbaka (false) ett djur. Uppdaterar
+   * in-memory direkt (så scenen/panelen kan ritas om utan väntan) och sparar i
+   * bakgrunden. Djuret tappas aldrig – bara flaggan flyttas.
+   */
+  function setStowed(id, stowed) {
+    const a = animals.find((x) => x.id === id);
+    if (a) a.stowed = !!stowed;
+    animalData.setAnimalStowed(id, stowed).catch(() => {});
+  }
+
   return {
-    list: () => animals,
+    // list() = djur som är I RUMMET (promenerar/ritas); stowedList() = de
+    // undanstuvade (visas i "Mina djur"). byId() hittar oavsett – rummet ritar
+    // ändå bara de icke-undanstuvade, så drag/klick träffar aldrig ett stuvat.
+    list: () => animals.filter((a) => !a.stowed),
+    stowedList: () => animals.filter((a) => a.stowed),
     byId: (id) => animals.find((a) => a.id === id),
     displayName,
     stageNode,
     saveName,
+    setStowed,
     scheduleSave,
     saveWalkPositions,
   };

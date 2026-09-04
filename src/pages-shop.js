@@ -8,7 +8,8 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { buyEgg, buyHeatLamp, buyApple, EGG_ITEM_ID, LAMP_ITEM_ID, APPLE_ITEM_ID } from "./data-pet.js";
+import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
+import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
 import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem } from "./shop-items.js";
@@ -123,6 +124,8 @@ export async function pageElevShop() {
           flash(`Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`);
         } else if (isAnimalItem(item.id)) {
           flash(`Du köpte ${item.name}! ${item.emoji} Den promenerar nu omkring i Mitt rum.`);
+        } else if (item.category === "hus") {
+          flash(`Du köpte ${item.name}! ${item.emoji} Byt till det via 🏠 Nytt hus i din husvärld.`);
         } else {
           flash(item.category === "klader"
             ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`

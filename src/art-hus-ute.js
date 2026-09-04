@@ -17,10 +17,12 @@
 // scen-koordinater).
 //
 // HUSSKAL: själva huset ritas av ett utbytbart "skal" ur HUS_SKAL-registret
-// (husSkalMarkup). Idag finns bara "stuga", men framtida "Köp nytt hus" byter
-// bara skal-id per elev – rummet/interiören påverkas inte. Både ute-scenen och
-// by-vyns minihus (husMini, klassbyn i varld-by-scen.js) ritar via registret,
-// så ett nytt skal slår igenom överallt.
+// (husSkalMarkup). "stuga" är default/gratis; övriga (slott, svamphus, …) köps
+// i shoppen ("Köp nytt hus") och väljs via husvärldens "🏠 Nytt hus"-panel –
+// aktivt val sparas i studentData.husSkalId. Bytet rör bara EXTERIÖREN; rummet/
+// interiören påverkas inte. Både ute-scenen och by-vyns minihus (husMini,
+// klassbyn i varld-by-scen.js) ritar via registret, så ett nytt skal slår
+// igenom överallt.
 // ============================================================================
 
 import { O, LINE, THIN, limb } from "./art-style.js";
@@ -89,13 +91,150 @@ function stugaMarkup() {
       <circle cx="566" cy="468" r="7" fill="#EF6F6C" ${THIN}/>`;
 }
 
+// --- Slott: torn med tinnar + vimpel ---------------------------------------
+// Samma koordinatsystem/marklinje som stugan (huset ~x300–660, y≈512) och
+// samma --hus-*-variabler, så avatar/skylt/palett fortsätter sitta rätt.
+function slottMarkup() {
+  // Krenelering (tinnar) centrerad ovanpå ett väggsegment [x, x+w]. Tänderna
+  // sitter med basen y-16..y+6 så de överlappar väggens överkant (y) → ingen
+  // glipa. Bara mittkeepen har tinnar; tornen kröns av spetsiga tak i stället.
+  const tinnar = (x, w, y) => {
+    const step = 26, tw = 15, gap = step - tw;
+    const n = Math.max(2, Math.floor((w + gap) / step));
+    const span = n * tw + (n - 1) * gap;
+    const start = x + (w - span) / 2;
+    let s = "";
+    for (let i = 0; i < n; i++)
+      s += `<rect x="${(start + i * step).toFixed(1)}" y="${y - 16}" width="${tw}" height="22" fill="var(--hus-house)" ${LINE}/>`;
+    return s;
+  };
+  // Ett fönster (rundbågigt) med enkel mittpost, centrerat på cx.
+  const fonster = (cx, top, w, h) =>
+    `<rect x="${cx - w / 2}" y="${top}" width="${w}" height="${h}" rx="${(w / 2).toFixed(0)}" fill="var(--hus-wall)" ${LINE}/>
+     <path d="M${cx} ${top + 6} L${cx} ${top + h - 6} M${cx - w / 2 + 4} ${top + h * 0.42} L${cx + w / 2 - 4} ${top + h * 0.42}" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+  return `${shadow(480, 512, 190)}
+      <!-- Torn (ritas före mittkeepen så väggarna möts rent i skarvarna) -->
+      <rect x="300" y="214" width="72" height="296" rx="4" fill="var(--hus-house)" ${LINE}/>
+      <rect x="588" y="214" width="72" height="296" rx="4" fill="var(--hus-house)" ${LINE}/>
+      <!-- Mittkeep, kortare än tornen -->
+      <rect x="356" y="272" width="248" height="238" rx="4" fill="var(--hus-house)" ${LINE}/>
+      ${tinnar(356, 248, 272)}
+      <!-- Tornens spetsiga tak: basen (y=214) vilar exakt på tornets överkant -->
+      <path d="M292 214 L336 150 L380 214 Z" fill="var(--hus-roof)" ${LINE}/>
+      <path d="M580 214 L624 150 L668 214 Z" fill="var(--hus-roof)" ${LINE}/>
+      ${limb("M336 150 L336 116", WOOD_DARK, 3)}
+      <path d="M336 116 L372 124 L336 136 Z" fill="#EF6F6C" ${THIN}/>
+      ${limb("M624 150 L624 116", WOOD_DARK, 3)}
+      <path d="M624 116 L660 124 L624 136 Z" fill="#EF6F6C" ${THIN}/>
+      <!-- Port, centrerad på keepen (x=480) -->
+      <path d="M428 510 L428 372 Q428 336 480 336 Q532 336 532 372 L532 510 Z" fill="var(--hus-roof)" ${LINE}/>
+      <path d="M440 505 L440 376 Q440 348 480 348 Q520 348 520 376 L520 505 Z" fill="${WOOD}" ${LINE}/>
+      <path d="M480 348 L480 505 M442 424 L518 424" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="508" cy="432" r="5" fill="#F7C948" ${THIN}/>
+      <!-- Fönster: symmetriskt par i tornen + par i keepen, inga överlapp -->
+      ${fonster(336, 300, 34, 52)}
+      ${fonster(624, 300, 34, 52)}
+      ${fonster(392, 298, 34, 50)}
+      ${fonster(568, 298, 34, 50)}`;
+}
+
+// --- Svamphus: rund stam + prickig hatt ------------------------------------
+function svampMarkup() {
+  return `${shadow(480, 512, 200)}
+      <path d="M380 510 L380 360 Q380 330 480 330 Q580 330 580 360 L580 510 Z" fill="var(--hus-house)" ${LINE}/>
+      <path d="M300 360 Q300 210 480 210 Q660 210 660 360 Q560 336 480 336 Q400 336 300 360 Z"
+        fill="var(--hus-roof)" ${LINE}/>
+      <circle cx="392" cy="292" r="20" fill="var(--hus-wall)" ${THIN}/>
+      <circle cx="480" cy="264" r="26" fill="var(--hus-wall)" ${THIN}/>
+      <circle cx="572" cy="292" r="20" fill="var(--hus-wall)" ${THIN}/>
+      <circle cx="436" cy="242" r="13" fill="var(--hus-wall)" ${THIN}/>
+      <circle cx="528" cy="242" r="13" fill="var(--hus-wall)" ${THIN}/>
+      <path d="M452 510 L452 396 Q452 366 480 366 Q508 366 508 396 L508 510 Z" fill="${WOOD}" ${LINE}/>
+      <path d="M462 504 L462 398 Q462 376 480 376 Q498 376 498 398 L498 504 Z" fill="${WOOD_LIGHT}" stroke="none"/>
+      <circle cx="493" cy="446" r="4.5" fill="${WOOD_DARK}" ${THIN}/>
+      <circle cx="412" cy="404" r="22" fill="var(--hus-wall)" ${LINE}/>
+      <path d="M412 384 L412 424 M392 404 L432 404" stroke="${O}" stroke-width="4"/>
+      <circle cx="548" cy="404" r="22" fill="var(--hus-wall)" ${LINE}/>
+      <path d="M548 384 L548 424 M528 404 L568 404" stroke="${O}" stroke-width="4"/>`;
+}
+
 const HUS_SKAL = {
-  stuga: { namn: "Stuga", markup: stugaMarkup },
+  stuga: { namn: "Stuga", emoji: "🏡", markup: stugaMarkup },
+  slott: { namn: "Slott", emoji: "🏰", markup: slottMarkup },
+  svamphus: { namn: "Svamphus", emoji: "🍄", markup: svampMarkup },
 };
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
 export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
   return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
+}
+
+/** Känt husskal-id? (annars faller allt tillbaka på default-stugan) */
+export function isHusSkal(skalId) {
+  return Object.prototype.hasOwnProperty.call(HUS_SKAL, skalId);
+}
+
+/** Visningsnamn + emoji för ett husskal (säkert fallback till stugan). */
+export function husSkalInfo(skalId = DEFAULT_HUS_SKAL) {
+  const s = HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL];
+  return { namn: s.namn, emoji: s.emoji };
+}
+
+/** Alla husskal som [{id, namn, emoji}] – stugan (default) alltid först. */
+export function listHusSkal() {
+  return Object.entries(HUS_SKAL).map(([id, s]) => ({ id, namn: s.namn, emoji: s.emoji }));
+}
+
+/**
+ * Litet förhandsvisnings-SVG av ett husskal (tätt beskuret, ingen avatar).
+ * Färgas via --hus-*-variabler från ett förälderelement, precis som husMini.
+ */
+export function husSkalPreview(skalId = DEFAULT_HUS_SKAL) {
+  return `<svg viewBox="280 112 400 420" aria-hidden="true" focusable="false"
+      preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    ${husSkalMarkup(skalId)}
+  </svg>`;
+}
+
+/**
+ * Rita husskal-väljaren i `container` och lyssna på klick. Visar bara skal
+ * eleven äger (default-stugan är alltid med, gratis). Förhandsvisningarna
+ * färgas av elevens palett via --hus-*-variabler satta på varje knapp.
+ * @param {HTMLElement} container tom behållare
+ * @param {object} o
+ * @param {string}   o.activeId  elevens nuvarande husskal
+ * @param {Set<string>|string[]} o.owned  ägda husskal-id (utöver default)
+ * @param {object}   [o.palette] {house, roof, wall, wall2} för förhandsvisning.
+ *   Utelämnas den ärvs --hus-*-färgerna från ett förälderelement (t.ex. scenen)
+ *   i stället – då följer förhandsvisningarna elevens palett live.
+ * @param {(id:string)=>void} o.onPick körs vid NYTT val
+ */
+export function renderHusSkalPicker(container, { activeId, owned, palette, onPick }) {
+  const ownedSet = owned instanceof Set ? owned : new Set(owned || []);
+  const skinar = listHusSkal().filter((s) => s.id === DEFAULT_HUS_SKAL || ownedSet.has(s.id));
+  let vald = isHusSkal(activeId) ? activeId : DEFAULT_HUS_SKAL;
+  const farg = palette
+    ? `--hus-house:${palette.house};--hus-roof:${palette.roof};--hus-wall:${palette.wall};--hus-wall2:${palette.wall2}`
+    : "";
+  const draw = () => {
+    container.innerHTML = skinar
+      .map(
+        (s) => `<button class="hus-skal-knapp${s.id === vald ? " vald" : ""}"
+          data-skal="${s.id}" aria-pressed="${s.id === vald}" title="${s.namn}" style="${farg}">
+          <span class="hus-skal-bild" aria-hidden="true">${husSkalPreview(s.id)}</span>
+          <span class="hus-skal-namn">${s.emoji} ${s.namn}${s.id === vald ? " ✓" : ""}</span>
+        </button>`
+      )
+      .join("");
+  };
+  draw();
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-skal]");
+    if (!btn || btn.dataset.skal === vald) return;
+    vald = btn.dataset.skal;
+    draw();
+    onPick(vald);
+  });
 }
 
 /** Minimal HTML/SVG-escape för text som ritas in i skylten. */

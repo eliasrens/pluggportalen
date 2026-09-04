@@ -21,6 +21,7 @@
 // ============================================================================
 
 import * as petData from "./data-pet.js";
+import { placeApple } from "./data-pet-mat.js";
 import { flash } from "./ui.js";
 import { confetti } from "./fx.js";
 import { setPetMood, petDisplayName } from "./pages-rum-pets.js";
@@ -118,7 +119,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
       return;
     }
     try {
-      const res = await petData.placeApple(x, y);
+      const res = await placeApple(x, y);
       appleCount = res.appleCount;
       if (res.ok && res.apple) {
         floorApples.push({ ...res.apple });

@@ -1256,6 +1256,59 @@ code {
   color: #3b3350;
 }
 
+/* Husskal-väljaren ("Nytt hus") – samma knapp-look som paletten, men varje
+   ruta visar en liten förhandsvisning av husets exteriör (färgas av paletten). */
+.hus-skal-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hus-skal-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 3px solid #e3d9f2;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.hus-skal-knapp:hover {
+  transform: translateY(-2px);
+}
+
+.hus-skal-knapp.vald {
+  border-color: var(--lila, #7c5cd6);
+  box-shadow: 0 4px 0 rgba(124, 92, 214, 0.25);
+}
+
+.hus-skal-bild {
+  width: 76px;
+  height: 68px;
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(#e8f6fd, #d7efe0);
+  border: 2px solid #3b3350;
+}
+
+.hus-skal-bild svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hus-skal-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
 /* Moln som driver förbi i fönstret – ren transform-animation (låg CPU). */
 .rum-moln {
   animation: rum-moln-driva var(--t, 40s) linear infinite;
@@ -1374,6 +1427,15 @@ code {
 .tray-namn {
   font-size: 0.85rem;
   font-weight: 700;
+}
+
+/* "Mina djur"-lådan: mystery-djurens sprite-rigg är höjd-driven (aspect-ratio),
+   så thumbnailen behöver en fast-höjd-ruta för att inte kollapsa. Procedurella
+   SVG-djur skalar redan via .tray-emoji svg. */
+.tray-pet-sprite {
+  display: inline-block;
+  height: 2.6rem;
+  vertical-align: middle;
 }
 
 .wear-item .wear-state {
@@ -2345,7 +2407,9 @@ body.varld-lage .container {
 
 /* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
 .varld-stage[data-niva="by"] .varld-knapp.bara-rum,
-.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"] { display: none; }
+.varld-stage[data-niva="by"] .varld-knapp.rum-och-hus,
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"],
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="hus"] { display: none; }
 
 /* På en KAMRATS hus (läs-vy) göms alla scen-kontroller helt – man kan bara
    titta in i deras rum eller gå tillbaka till byn. */
@@ -2410,7 +2474,8 @@ body.varld-lage .container {
 .varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
 .varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
 
-/* Lådan & Kläder finns bara inne i rummet. */
+/* Lådan & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
+   ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */
 .varld-stage[data-niva="hus"] .varld-knapp.bara-rum { display: none; }
 
 /* Flytande verktygspanel (Måla om / Lådan / Kläder) under knappraden. */
@@ -2454,11 +2519,38 @@ body.varld-lage .container {
     height: clamp(380px, calc(100vh - 120px), 700px);
     height: clamp(380px, calc(100dvh - 120px), 700px);
   }
+  /* RUMMET på mobil: scenen delas med ute-vyn, som fyller hela höjden (bra –
+     rör vi inte). Men rummet ritar vägg + golv som FYLLER scenen, så på den
+     smala telefonen (~360px bred × ~600–700px hög) blev rums-scenen extremt
+     PORTRÄTT (aspect ~0.50 mot desktops ~1.75): en jättehög vägg, en tunn
+     golv-remsa där alla möbler/djur trängdes högst upp, och ett stort tomt
+     golv längst ner. Golv/vägg är procentbaserade så proportionen var i sig
+     "rätt", men den höga/smala aspekten gjorde rummet oanvändbart.
+     Fix: cap:a BARA rums-scenens höjd (data-niva="rum") mot bredden så aspekten
+     blir rums-lik (~0.77) – vägg och golv får normala proportioner och möbler/
+     djur sprids över golvet i stället för att klumpa ihop sig. Ute-vyn (andra
+     nivåer) behåller full höjd. min() väljer den lägre av den vanliga
+     höjd-clampen och 116 % av viewport-bredden, så vi aldrig blir högre än
+     tillgängligt utrymme på korta skärmar. Desktop/laptop (> 700px) oförändrat. */
+  .varld-stage[data-niva="rum"] {
+    height: min(clamp(380px, calc(100vh - 120px), 700px), 116vw);
+    height: min(clamp(380px, calc(100dvh - 120px), 700px), 116vw);
+  }
   .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
   .varld-knapp { padding: 6px 11px; }  /* tightare så alla ikoner ryms på raden */
   .varld-titel { font-size: 0.95rem; }
   .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */
   .varld-panel { width: 100%; }        /* panelerna fyller bredden på mobil */
+
+  /* Rummets möbler/djur är måttsatta i FASTA rem × --rum-skala (1.55), avstämt
+     mot den breda desktop-scenen. På den smala porträtt-mobilen blir samma
+     fasta mått ~4× för stora i förhållande till bredden → sakerna krockar och
+     hopkryms/överlappar i golvzonen (en enskild möbel tog ~57 % av scenbredden
+     mot ~13 % på desktop). En lägre skala här ger lagom stora, lätt-dragbara
+     möbler & djur som fyller scenen proportionerligt utan att krocka. Positioner
+     är procentbaserade och drag-clampen läser offsetWidth, så allt följer med.
+     Desktop/laptop (> 700px) rör vi inte – de behåller 1.55. */
+  .varld-lager.room-stage { --rum-skala: 1.15; }
 }
 
 .hus-hint {
