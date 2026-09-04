@@ -5,7 +5,7 @@
 // arbetsområdes-JSON åt läraren.
 // ============================================================================
 
-import { PROMPTS } from "./prompts.js";
+import { PROMPTS, buildPromptWith } from "./prompts.js";
 import { listPairImageKeys } from "./pair-images.js";
 import { el, esc, isTeacher, teacherNav, renderGate, copyText } from "./teacher-shared.js";
 
@@ -19,7 +19,9 @@ export function pageLararePrompter(ctx) {
       <p class="hint">Kopiera en prompt, klistra in den i valfri AI (t.ex. ChatGPT, Claude eller
         Gemini) och bifoga en PDF eller klistra in din lektionstext. AI:n svarar då med en JSON
         som du kan klistra in under <a data-hash="#/larare/innehall">Innehåll</a>. Prompterna
-        innehåller schemat och ett exempel så att resultatet passerar valideringen direkt.</p>
+        innehåller schemat och ett exempel så att resultatet passerar valideringen direkt.
+        <b>Har du ingen PDF?</b> Skriv ett önskemål i fältet nedan så vävs det in i prompten
+        du kopierar.</p>
       <p class="hint">📖 <b>Läsförståelse:</b> varje quizfråga behöver en egen källtext
         (<code>passage</code>) som frågan kan besvaras utifrån. Prompterna skapar detta
         automatiskt – saknar en fråga källtext får du ett tydligt felmeddelande när du
@@ -31,12 +33,24 @@ export function pageLararePrompter(ctx) {
         ${listPairImageKeys().map((k) => `<code>${esc(k.key)}</code>`).join(", ")}.
         Fler bildpaket för andra ämnen kan tillkomma senare.</p>
     </div>
+    <div class="panel">
+      <div class="field">
+        <label for="onskemal">✍️ Eget önskemål (valfritt)</label>
+        <textarea id="onskemal" class="json-input" spellcheck="false" rows="2"
+          placeholder="Vill ha uppgifter för politik som passar åk 4."></textarea>
+      </div>
+      <p class="hint">Skriv här om du <b>inte</b> vill bifoga en PDF eller lektionstext –
+        beskriv ämne, årskurs och ev. omfattning, så vävs det in i prompten du kopierar.
+        Lämnar du fältet tomt fungerar allt precis som idag (platshållaren för PDF/text är kvar).</p>
+    </div>
     <div id="prompts"></div>
   </div>`);
 
   view.querySelectorAll("[data-hash]").forEach((a) =>
     a.addEventListener("click", () => ctx.go(a.dataset.hash))
   );
+
+  const onskemalEl = view.querySelector("#onskemal");
 
   const wrap = view.querySelector("#prompts");
   for (const p of PROMPTS) {
@@ -49,7 +63,7 @@ export function pageLararePrompter(ctx) {
       <pre class="code-block">${esc(p.text)}</pre>
     </div>`);
     card.querySelector(".copy-btn").addEventListener("click", (e) =>
-      copyText(p.text, e.currentTarget)
+      copyText(buildPromptWith(p.text, onskemalEl.value), e.currentTarget)
     );
     wrap.appendChild(card);
   }
