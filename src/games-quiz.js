@@ -48,21 +48,28 @@ export function startQuiz(ctx) {
 
 export function startLasforstaelse(ctx) {
   const { subj, area, areaData } = ctx;
-  const questions = areaData.quiz || [];
+  const allQuestions = areaData.quiz || [];
 
   const view = gameFrame({ subj, area, title: "Läsförståelse", emoji: "📖" });
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
 
-  // NYTT: varje fråga bär en egen kort text (passage) som visas OVANFÖR just den
+  // Varje fråga bär en egen kort källtext (passage) som visas OVANFÖR just den
   // frågan – inte längre hela områdets texter ovanför alla frågor på en gång
   // (det blev rörigt). runQuestions renderar q.passage när showPassage är satt.
   //
-  // Fallback (bakåtkompatibelt, aldrig rörigt): gamla frågor utan passage får
-  // INGET extra textblock – vi dumpar aldrig hela texten. Har INGEN fråga en
-  // passage byter vi bara introtexten till en snäll ledtext, så sidan aldrig
+  // Läsförståelse ska vara SJÄLVBÄRANDE: ingen fråga får visas utan sin källtext,
+  // annars kan en fråga hänvisa till en text som inte syns ("enligt texten ...").
+  // Nya övningar tvingas därför ha passage på ALLA frågor (se validate.js). Här
+  // kör vi ändå bara de frågor som faktiskt har en passage, så även ev. gammal
+  // data blir självbärande. Saknar HELA övningen passager (rent gammalt quiz)
+  // faller vi tillbaka till alla frågor med en snäll ledtext, så sidan aldrig
   // ser trasig ut. Quiz-läget är oförändrat (skickar inte showPassage).
-  const anyPassage = questions.some((q) => q && typeof q.passage === "string" && q.passage.trim());
+  const withPassage = allQuestions.filter(
+    (q) => q && typeof q.passage === "string" && q.passage.trim()
+  );
+  const anyPassage = withPassage.length > 0;
+  const questions = anyPassage ? withPassage : allQuestions;
   const intro = anyPassage
     ? "Läs den korta texten ovanför varje fråga och svara. Texten byts för varje ny fråga. 📖"
     : "Läs frågan noga och svara så gott du kan. 📖";

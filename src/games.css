@@ -356,6 +356,30 @@
   background: #ffe6e6;
 }
 
+/* --- Bild-brickor i par-korten (Para ihop & Memory) ------------------------ */
+
+/* Behåller kort-looken – bilden sitter centrerad i kortet, lagom stor och
+   responsiv. Samma bricka fungerar i både para-grid och memory-grid. */
+.pair-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.pair-img-svg {
+  width: 72px;
+  height: 72px;
+  max-width: 100%;
+  display: block;
+}
+
+/* I memory-korten får brickan ta lite mer plats. */
+.mem-front .pair-img-svg {
+  width: 84px;
+  height: 84px;
+}
+
 /* --- Kunskapsjakt ---------------------------------------------------------- */
 
 .jakt-intro {
@@ -706,4 +730,6 @@
   .jakt-options { grid-template-columns: 1fr; }
   .para-grid { gap: 10px; }
   .para-card { font-size: 0.95rem; min-height: 56px; }
+  .pair-img-svg { width: 58px; height: 58px; }
+  .mem-front .pair-img-svg { width: 66px; height: 66px; }
 }

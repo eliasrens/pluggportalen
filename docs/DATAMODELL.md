@@ -60,12 +60,38 @@ läsning för klienten).
 
 **Quiz**: `{ id, question, options: string[], answerIndex, explanation, passage? }`
 – `answerIndex` är index (0-baserat) i `options` för rätt svar.
-– `passage` är **valfritt**: en kort text (1–3 meningar) kopplad till just den
-  frågan. I läsförståelse-läget visas passagen i ett lugnt block ovanför frågan
-  och byts per fråga. Saknas `passage` visas inget extra textblock (bakåtkompatibelt
-  – gamla frågor utan fältet fungerar oförändrat). Övriga gamemodes ignorerar det.
+– `passage` är källtexten (3–5 meningar) som just den frågan bygger på. I
+  läsförståelse-läget visas passagen i ett lugnt block ovanför frågan och byts per
+  fråga. **Obligatorisk för läsförståelse:** eftersom samma `quiz`-lista används av
+  både Quiz och Läsförståelse räknas en övning som läsförståelse så snart någon fråga
+  har `passage` – och då kräver valideringen (`validate.js`) `passage` på *varje*
+  fråga, så ingen fråga kan visas utan sin källtext. Ett rent quiz (ingen fråga har
+  `passage`) påverkas inte. Övriga gamemodes ignorerar fältet.
 
-**Pair**: `{ id, term, definition }` – används för para ihop / memory.
+**Pair**: `{ id, term, definition, termImage?, defImage?, group? }` – används för para ihop / memory.
+
+- `termImage` / `defImage` är **valfria** och pekar med en **nyckel** in i det inbyggda
+  bildpaketet ([`src/pair-images.js`](../src/pair-images.js)). Nyckelformat: `"partier/<bokstav>"`
+  (t.ex. `"partier/s"`, `"partier/sd"`, `"partier/kd"`). Se `listPairImageKeys()` för hela listan
+  (riksdagens 8 partier: s, m, sd, c, v, kd, l, mp).
+- Regel: varje sida (term/definition) måste ha **antingen text eller bild** (eller båda). `term`
+  får alltså vara tom om `termImage` finns – och tvärtom för `definition`/`defImage`. Bilderna
+  renderas som inline-SVG-brickor i Para ihop och Memory; bild↔text och bild↔bild fungerar båda.
+- Okänd bildnyckel eller en sida helt utan innehåll ger ett tydligt valideringsfel.
+- `group` är **valfri** (sträng): par med samma `group` visas aldrig samtidigt i en och samma
+  spelomgång – Para ihop/Memory plockar slumpmässigt högst ett par per group innan urvalet
+  begränsas till max 6. Använd den för ömsesidigt uteslutande varianter av samma sak (t.ex.
+  ett bild-par och ett text-par för samma parti). Par utan `group` är opåverkade.
+
+**Nyckel-namnrymd & fler bildpaket:** en bildnyckel har formen `"<paket>/<id>"`
+(idag bara paketet `partier`, t.ex. `"partier/s"`). Mekaniken är **generell** – spelen
+(Para ihop, Memory) och valideringen slår upp nyckeln via `resolvePairImage()` /
+`isKnownPairImage()` i `pair-images.js` och bryr sig inte om vilket ämne eller moment
+paret ligger i. Vill man lägga bildpar i ett annat moment/ämne (t.ex. kartor i geografi
+eller symboler i religion) **lägger man bara till ett nytt paket i `pair-images.js`** med
+sin egen prefix och sina nycklar – ingen ändring behövs i spelen, valideringen eller
+lärar-UI:t (prompt-, innehålls- och hjälptexter listar nycklarna automatiskt via
+`listPairImageKeys()`). Nya prefix ska vara korta och beskrivande (`partier`, `kartor`, …).
 
 Exempel (`subjects/so/areas/vikingatiden`, förkortat):
 

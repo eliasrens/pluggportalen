@@ -10,6 +10,14 @@
 // JSON:en passerar valideringen direkt.
 // ============================================================================
 
+import { listPairImageKeys } from "./pair-images.js";
+
+// Punktlista över de inbyggda bildnycklarna (partisymbol-paketet), så att
+// schemat/exemplen alltid matchar pair-images.js utan manuell synk.
+const BILDNYCKLAR = listPairImageKeys()
+  .map((x) => `    * "${x.key}" – ${x.name}`)
+  .join("\n");
+
 // Schemabeskrivning som stoppas in i prompterna.
 const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "id": string – kort id i gemener med bindestreck, t.ex. "vikingatiden". (Får utelämnas; skapas då från namnet.)
@@ -21,15 +29,40 @@ const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "quiz": lista med flervalsfrågor. Varje fråga:
     { "id": string, "question": string, "options": [string, ...],
       "answerIndex": number, "explanation": string, "passage": string }
-    * "options" måste ha minst 2 alternativ.
-    * "answerIndex" är index (0 = första alternativet) för det RÄTTA svaret.
-    * "explanation" förklarar kort varför svaret är rätt.
-    * "passage" (VALFRITT) är en text på 3–5 meningar, hämtad ur materialet,
-      som eleven kan besvara JUST DEN frågan utifrån. Används i läsförståelse-läget
-      där passagen visas ovanför frågan. Skriv en egen passande passage per fråga
-      (3–5 fullständiga meningar – inte bara en enda mening).
+    * "options" ska ha exakt 4 alternativ (minst 2), alla olika och rimliga.
+      Undvik svarsalternativ som "alla ovanstående" eller "vet ej".
+    * "answerIndex" är 0-baserat index i "options" för det RÄTTA svaret
+      (0 = första alternativet, 1 = andra, osv.). Kontrollera att talet verkligen
+      pekar på det alternativ som är rätt.
+    * "explanation" förklarar kort (1–2 meningar) varför svaret är rätt.
+    * "passage" är källtexten som JUST DEN frågan bygger på: 3–5 fullständiga
+      meningar hämtade ur materialet, formulerade så att eleven kan besvara frågan
+      enbart utifrån passagen. Visas ovanför frågan i läsförståelse-läget.
+      OBLIGATORISK för läsförståelse – varje fråga MÅSTE ha en egen passage, och
+      samma passage får inte återanvändas ordagrant till flera frågor. Frågan och
+      alternativen ska vara helt begripliga utifrån frågans egen passage: hänvisa
+      ALDRIG till "texten ovan", "enligt texten" eller liknande om inte den texten
+      finns i just denna frågas passage. (Endast för ett rent quiz utan läsförståelse
+      får "passage" utelämnas – men alla prompter här skapar quiz som även används
+      som läsförståelse, så ta alltid med passage.)
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
-    { "id": string, "term": string, "definition": string }`;
+    { "id": string, "term": string, "definition": string,
+      "termImage": string, "defImage": string, "group": string }
+    * "term" är begreppet, "definition" förklaringen. Vanliga par har bara dessa två.
+    * "group" är VALFRI. Par med samma "group" visas aldrig samtidigt i en och samma
+      spelomgång (Para ihop/Memory plockar högst ett par per group) – använd den för att
+      undvika att två varianter av samma sak dyker upp tillsammans. Utelämna den annars.
+    * "termImage"/"defImage" är VALFRIA och används för BILDPAR: i stället för (eller
+      utöver) text visas en färdig bild på term- respektive definition-sidan. Fältet
+      anges som en NYCKEL in i det inbyggda bildpaketet – ladda inte upp egna bilder.
+      Använd bildpar när eleven ska matcha en bild mot en text, t.ex. en partisymbol
+      mot partinamnet: sätt "termImage" till symbolens nyckel och "definition" till namnet
+      (lämna då "term" som "").
+    * Varje sida (term/definition) måste ha ANTINGEN text ELLER bild (eller båda).
+    * Tillgängliga bildnycklar just nu (partisymbol-paketet, riksdagens 8 partier):
+${BILDNYCKLAR}
+      Skriv nyckeln EXAKT som ovan. Andra nycklar finns inte – använd bara text om det
+      inte passar en av dessa. (Fler bildpaket för andra ämnen/moment kan tillkomma senare.)`;
 
 const EXAMPLE = `{
   "id": "vikingatiden",
@@ -56,9 +89,15 @@ const EXAMPLE = `{
   ],
   "pairs": [
     { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" },
-    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" }
+    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" },
+    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna" }
   ]
 }`;
+
+// Kommentar (ej del av JSON:en): sista paret ovan är ett BILDPAR – "termImage"
+// pekar på en färdig partisymbol och matchas mot partinamnet i "definition".
+// Bildpar fungerar i vilket arbetsområde som helst; just nu finns
+// partisymbol-nycklarna (se listan i schemat).
 
 // Skalningsregler: mängden övningsinnehåll ska växa med hur mycket text läraren
 // matar in, så att en lång text inte ger ett tunt övningsmaterial.
@@ -69,16 +108,22 @@ const SKALA_QUIZ = `Anpassa ANTALET quizfrågor efter hur mycket text du fått:
 - Är texten ännu längre? Fortsätt lägga till frågor i samma takt (ca 3–4 frågor per halvsida).
 Täck HELA texten jämnt – ta med frågor från början, mitten och slutet, inte bara det första stycket.
 Undvik upprepade frågor och triviala frågor som eleven kan svara på utan att ha läst texten.
-Ge VARJE fråga ett "passage": en text på 3–5 meningar hämtad ur materialet, som just den
-frågan kan besvaras utifrån. Skriv en egen, passande passage per fråga (3–5 fullständiga meningar –
-inte bara en enda mening, och upprepa inte samma text till alla frågor). Passagen används i
-läsförståelse-läget och visas ovanför frågan.`;
+Ge VARJE fråga ett "passage" (OBLIGATORISKT): en källtext på 3–5 fullständiga meningar hämtad ur
+materialet, som just den frågan kan besvaras enbart utifrån. Skriv en egen, passande passage per
+fråga (inte bara en enda mening, och upprepa inte samma text ordagrant till alla frågor). Frågan
+och svarsalternativen får INTE hänvisa till text utanför frågans egen passage ("enligt texten
+ovan" utan medskickad text är förbjudet). Passagen används i läsförståelse-läget och visas
+ovanför frågan – en fråga utan passage godkänns inte i läsförståelse.`;
 
 const SKALA_PAR = `Anpassa ANTALET fakta-par efter hur mycket text du fått:
 - Kort text: minst 6 par.
 - Medellång text: 8–10 par.
 - Lång text (en sida eller mer): 12–15 par.
-Välj de viktigaste begreppen från HELA texten, inte bara början. Undvik dubbletter.`;
+Välj de viktigaste begreppen från HELA texten, inte bara början. Undvik dubbletter.
+BILDPAR (valfritt): passar temat en bild i det inbyggda paketet kan du göra ett bildpar –
+sätt "termImage"/"defImage" till en bildnyckel (se listan i schemat) och matcha mot texten
+på andra sidan. Exempel: en partisymbol matchas mot partinamnet. Hitta INTE på nya nycklar –
+använd bara de som finns; passar ingen bild, gör vanliga text-par.`;
 
 const SKALA_TEXTER = `Anpassa ANTALET faktatexter efter hur mycket material du fått:
 - Kort text: 1–2 faktatexter.
@@ -90,7 +135,13 @@ const REGLER = `Viktiga regler:
 - Svara med ENBART giltig JSON – ingen förklarande text före eller efter, inga \`\`\`-kodstaket.
 - Använd dubbla citattecken runt alla nycklar och strängar. Inga avslutande kommatecken.
 - Skriv på svenska och anpassa språket till elever i årskurs 4 (ca 10 år): korta meningar, enkla ord.
-- Hitta INTE på fakta. Använd bara innehållet i det bifogade materialet / texten nedan.`;
+- Hitta INTE på fakta. Använd bara innehållet i det bifogade materialet / texten nedan.
+- Varje quizfråga: exakt 4 svarsalternativ (alla olika och rimliga) och "answerIndex" 0-baserat
+  som pekar på det rätta alternativet (0 = första). Dubbelkolla att rätt svar ligger på det indexet.
+- Varje fråga ska gå att svara på fristående – hänvisa inte till andra frågor eller till text som
+  inte visas. I läsförståelse betyder det att frågan besvaras utifrån frågans egna "passage".
+- Håll texter lagom korta: "passage" 3–5 meningar, "explanation" 1–2 meningar, alternativ korta.
+- Skriv INTE ledtrådar i själva frågan om vilket alternativ som är rätt.`;
 
 /**
  * Prompt: komplett arbetsområde (texter + quiz + fakta-par).
@@ -178,9 +229,11 @@ Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
   "quiz": [],
   "pairs": [
     { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" },
-    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" }
+    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" },
+    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna" }
   ]
 }
+(Sista paret visar ett bildpar – ta bara med sådana om en bildnyckel i listan passar temat.)
 
 Här är materialet du ska utgå ifrån:
 <<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;

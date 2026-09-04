@@ -12,6 +12,8 @@
 // satta, trimmade strängar) som är redo att spara till Firestore.
 // ============================================================================
 
+import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
+
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
   return String(str || "")
@@ -27,6 +29,13 @@ export function slugify(str) {
 
 function isNonEmptyString(v) {
   return typeof v === "string" && v.trim().length > 0;
+}
+
+/** Kommaseparerad lista över giltiga bildnycklar, för felmeddelanden. */
+function validImageKeys() {
+  return listPairImageKeys()
+    .map((x) => `"${x.key}"`)
+    .join(", ");
 }
 
 /**
@@ -136,12 +145,31 @@ export function validateArea(obj) {
           answerIndex: typeof ai === "number" ? ai : 0,
           explanation: typeof q.explanation === "string" ? q.explanation.trim() : "",
         };
-        // "passage" är VALFRITT: en kort text (1–3 meningar) kopplad till just
-        // denna fråga, visad i läsförståelse-läget. Tas bara med när den finns,
-        // så gamla frågor utan passage lämnas orörda (bakåtkompatibelt).
+        // "passage" är källtexten som just denna fråga bygger på, visad ovanför
+        // frågan i läsförståelse-läget. Tas bara med när den finns; obligatoriskheten
+        // (för läsförståelse) kontrolleras samlat nedan.
         if (isNonEmptyString(q.passage)) built.passage = q.passage.trim();
         quiz.push(built);
       });
+
+      // --- Läsförståelse: källtext obligatorisk på VARJE fråga -------------
+      // Det finns ingen separat övningstyp i datamodellen – en och samma quiz-
+      // lista används av både Quiz och Läsförståelse. En övning räknas därför som
+      // läsförståelse så snart NÅGON fråga har en källtext ("passage"). Då MÅSTE
+      // varje fråga ha en egen passage, annars skulle en fråga i läsförståelse-
+      // läget kunna visas utan synlig källtext (t.ex. "enligt texten ..." utan text).
+      // Ett rent quiz (ingen fråga har passage) påverkas inte.
+      const nrUtanPassage = quiz
+        .map((q, i) => (isNonEmptyString(q.passage) ? null : i + 1))
+        .filter((n) => n !== null);
+      if (quiz.length > 0 && nrUtanPassage.length > 0 && nrUtanPassage.length < quiz.length) {
+        const flera = nrUtanPassage.length > 1;
+        errors.push(
+          `Läsförståelse kräver en källtext ("passage") på VARJE fråga, men ${flera ? "frågorna" : "fråga"} ${nrUtanPassage.join(", ")} saknar "passage". ` +
+            `Lägg till en kort källtext (3–5 meningar som ${flera ? "de frågorna" : "den frågan"} kan besvaras utifrån), ` +
+            `eller ta bort alla passager om övningen bara ska vara ett vanligt quiz.`
+        );
+      }
     }
   }
 
@@ -157,15 +185,48 @@ export function validateArea(obj) {
           errors.push(`Par ${nr}: måste vara ett objekt med "term" och "definition".`);
           return;
         }
-        if (!isNonEmptyString(p.term))
-          errors.push(`Par ${nr}: "term" (begreppet) saknas eller är tomt.`);
-        if (!isNonEmptyString(p.definition))
-          errors.push(`Par ${nr}: "definition" (förklaringen) saknas eller är tom.`);
-        pairs.push({
+
+        // Valfria bildfält: en nyckel in i bildpaketet (pair-images.js). Ett par
+        // kan ha en bild på term- och/eller definition-sidan. Varje sida måste ha
+        // ANTINGEN text ELLER bild (eller båda) – annars är sidan tom.
+        const hasTermImage = isNonEmptyString(p.termImage);
+        const hasDefImage = isNonEmptyString(p.defImage);
+        const termKey = hasTermImage ? p.termImage.trim() : "";
+        const defKey = hasDefImage ? p.defImage.trim() : "";
+
+        if (hasTermImage && !isKnownPairImage(termKey)) {
+          errors.push(
+            `Par ${nr}: okänd bildnyckel "${termKey}" i "termImage". Giltiga nycklar: ${validImageKeys()}.`
+          );
+        }
+        if (hasDefImage && !isKnownPairImage(defKey)) {
+          errors.push(
+            `Par ${nr}: okänd bildnyckel "${defKey}" i "defImage". Giltiga nycklar: ${validImageKeys()}.`
+          );
+        }
+
+        // Regel: term får vara tom OM termImage finns (samma för definition/defImage).
+        if (!isNonEmptyString(p.term) && !hasTermImage)
+          errors.push(`Par ${nr}: term-sidan är tom – ange "term" (begreppet) eller en bild i "termImage".`);
+        if (!isNonEmptyString(p.definition) && !hasDefImage)
+          errors.push(
+            `Par ${nr}: definition-sidan är tom – ange "definition" (förklaringen) eller en bild i "defImage".`
+          );
+
+        const built = {
           id: isNonEmptyString(p.id) ? slugify(p.id) : `p${nr}`,
           term: String(p.term || "").trim(),
           definition: String(p.definition || "").trim(),
-        });
+        };
+        // Bildfälten tas bara med när de finns (bakåtkompatibelt).
+        if (hasTermImage) built.termImage = termKey;
+        if (hasDefImage) built.defImage = defKey;
+        // Valfritt: "group" markerar ömsesidigt uteslutande par. Par med samma
+        // group visas aldrig samtidigt i en och samma spelomgång (Para ihop/Memory
+        // plockar högst ett par per group). Tas bara med när den finns
+        // (bakåtkompatibelt, precis som termImage/defImage).
+        if (isNonEmptyString(p.group)) built.group = p.group.trim();
+        pairs.push(built);
       });
     }
   }
