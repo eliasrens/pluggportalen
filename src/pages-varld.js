@@ -35,7 +35,7 @@ import * as petData from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, getParams } from "./ui.js";
 import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { husScen } from "./art-hus-ute.js";
+import { husScen, husSkalMarkup, renderHusSkalPicker } from "./art-hus-ute.js";
 import { mountRumScen } from "./varld-rum.js";
 import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
@@ -118,6 +118,7 @@ export async function pageElevVarld(startNiva) {
           <div class="varld-titel" id="titel"></div>
           <div class="varld-verktyg">
             <button class="varld-knapp" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
+            <button class="varld-knapp" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
             <button class="varld-knapp bara-rum" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
             <button class="varld-knapp bara-rum" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
             <button class="varld-knapp rum-och-hus" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
@@ -130,6 +131,11 @@ export async function pageElevVarld(startNiva) {
           <h3>Måla om 🎨</h3>
           <p class="hint">Välj en färgpalett – samma färger används på huset och väggarna i ditt rum! Golvet behåller sin färg.</p>
           <div class="palett-rad" id="palettrad"></div>
+        </div>
+        <div class="varld-panel" id="panel-hus" hidden>
+          <h3>Nytt hus 🏠</h3>
+          <p class="hint">Byt husets utsida! Rummet inne är detsamma. Fler hus köper du i shoppen 🛍️</p>
+          <div class="hus-skal-rad" id="husskalrad"></div>
         </div>
         <div class="varld-panel" id="panel-lada" hidden>
           <h3>Lådan 📦</h3>
@@ -388,6 +394,24 @@ export async function pageElevVarld(startNiva) {
     data.saveRoom({ paletteId: id }).catch((err) => {
       flash("Kunde inte spara färgvalet: " + err.message, true);
     });
+  });
+
+  // --- Husskal ("Nytt hus"): byter BARA husets exteriör, inte rummet --------
+  // Väljaren visar default-stugan + ägda skal (ownedItems). Byte ritar om
+  // husets skal live inuti #husgrupp (skylten/avataren, som ligger utanför
+  // gruppen, rörs inte) och slår igenom i byn/kompisvyn nästa besök via det
+  // sparade husSkalId. Förhandsvisningarna ärver --hus-* från scenen → följer
+  // paletten live (ingen palette skickas med).
+  const husgruppEl = view.querySelector("#husgrupp");
+  renderHusSkalPicker(view.querySelector("#husskalrad"), {
+    activeId: sd.husSkalId,
+    owned: sd.ownedItems || [],
+    onPick: (skalId) => {
+      if (husgruppEl) husgruppEl.innerHTML = husSkalMarkup(skalId);
+      data.saveHusSkal(skalId).catch((err) => {
+        flash("Kunde inte spara husbytet: " + err.message, true);
+      });
+    },
   });
 
   // --- Rummet: hela inne-vyn monteras i sitt lager (varld-rum.js) -----------

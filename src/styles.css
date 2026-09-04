@@ -1256,6 +1256,59 @@ code {
   color: #3b3350;
 }
 
+/* Husskal-väljaren ("Nytt hus") – samma knapp-look som paletten, men varje
+   ruta visar en liten förhandsvisning av husets exteriör (färgas av paletten). */
+.hus-skal-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hus-skal-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 3px solid #e3d9f2;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.hus-skal-knapp:hover {
+  transform: translateY(-2px);
+}
+
+.hus-skal-knapp.vald {
+  border-color: var(--lila, #7c5cd6);
+  box-shadow: 0 4px 0 rgba(124, 92, 214, 0.25);
+}
+
+.hus-skal-bild {
+  width: 76px;
+  height: 68px;
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(#e8f6fd, #d7efe0);
+  border: 2px solid #3b3350;
+}
+
+.hus-skal-bild svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hus-skal-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
 /* Moln som driver förbi i fönstret – ren transform-animation (låg CPU). */
 .rum-moln {
   animation: rum-moln-driva var(--t, 40s) linear infinite;
@@ -2124,7 +2177,8 @@ body.varld-lage .container {
 /* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
 .varld-stage[data-niva="by"] .varld-knapp.bara-rum,
 .varld-stage[data-niva="by"] .varld-knapp.rum-och-hus,
-.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"] { display: none; }
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"],
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="hus"] { display: none; }
 
 /* På en KAMRATS hus (läs-vy) göms alla scen-kontroller helt – man kan bara
    titta in i deras rum eller gå tillbaka till byn. */
