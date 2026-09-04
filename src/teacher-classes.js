@@ -13,7 +13,16 @@
 import * as data from "./data.js";
 import { slugify } from "./validate.js";
 import { avatarEmoji } from "./avatars.js";
-import { el, esc, isTeacher, teacherNav, renderGate } from "./teacher-shared.js";
+import {
+  el,
+  esc,
+  isTeacher,
+  teacherNav,
+  teacherHead,
+  emptyState,
+  wireHashLinks,
+  renderGate,
+} from "./teacher-shared.js";
 
 export async function pageLarareKlasser(ctx) {
   ctx.renderTopbar();
@@ -38,15 +47,21 @@ export async function pageLarareKlasser(ctx) {
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
   const studentById = new Map(students.map((s) => [s.id, s]));
 
-  const container = el(`<div></div>`);
+  const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "klasser"));
+  container.appendChild(
+    teacherHead(ctx, {
+      emoji: "🏫",
+      title: "Klasser",
+      lead: `Skapa egna klasser (t.ex. <b>6A</b>) och lägg elever i dem. Det här är
+        grunden för att senare kunna tilldela uppgifter per klass. Vill du i stället se hur
+        långt eleverna kommit? Gå till <a data-hash="#/larare/klass">Klassöversikt</a>.`,
+    })
+  );
 
   const view = el(`<div>
     <div class="panel">
-      <h1>Klasser 🏫</h1>
-      <p class="hint">Skapa egna klasser (t.ex. <b>6A</b>) och lägg elever i dem. Det här är
-        grunden för att senare kunna tilldela uppgifter per klass. Vill du i stället se hur
-        långt eleverna kommit? Gå till <a data-hash="#/larare/klass">Klassöversikt</a>.</p>
+      <h2 class="subhead">➕ Skapa en ny klass</h2>
       <form id="new-form" class="row-inline new-class">
         <input id="new-name" class="cell" placeholder="Ny klass, t.ex. 6A" autocomplete="off" />
         <button class="btn gron" type="submit">➕ Skapa klass</button>
@@ -66,9 +81,15 @@ export async function pageLarareKlasser(ctx) {
   // --- Rendera hela klasslistan från in-memory `classes` -------------------
   function renderClasses() {
     if (classes.length === 0) {
-      classesEl.replaceChildren(
-        el(`<div class="panel"><p class="hint">Inga klasser än. Skapa din första klass ovan.</p></div>`)
+      const panel = el(`<div class="panel"></div>`);
+      panel.appendChild(
+        emptyState(ctx, {
+          emoji: "🏫",
+          title: "Inga klasser än",
+          text: "Skapa din första klass i rutan ovan – t.ex. <b>6A</b> – så dyker den upp här.",
+        })
       );
+      classesEl.replaceChildren(panel);
       return;
     }
     classesEl.replaceChildren();
@@ -179,10 +200,14 @@ export async function pageLarareKlasser(ctx) {
 
     if (library.length === 0) {
       assignEl.replaceChildren(
-        el(`<p class="hint">Det finns inga arbetsområden än. Lägg in innehåll under
-          <a data-hash="#/larare/innehall">Innehåll</a> först.</p>`)
+        emptyState(ctx, {
+          emoji: "📚",
+          title: "Inga arbetsområden än",
+          text: "Lägg in innehåll först, så kan du välja vad klassen ska jobba med.",
+          actionLabel: "Lägg in innehåll",
+          actionHash: "#/larare/innehall",
+        })
       );
-      wireHashLinks(ctx, assignEl);
       return;
     }
 
@@ -271,10 +296,14 @@ export async function pageLarareKlasser(ctx) {
   function renderMembers(cls, membersEl, countEl) {
     if (students.length === 0) {
       membersEl.replaceChildren(
-        el(`<p class="hint">Det finns inga elevkonton än. Lägg in en klass under
-          <a data-hash="#/larare/elever">Elevkonton</a> först.</p>`)
+        emptyState(ctx, {
+          emoji: "🧑‍🎓",
+          title: "Inga elevkonton än",
+          text: "Lägg in elevkonton först, så kan du lägga dem i klassen härifrån.",
+          actionLabel: "Lägg in elevkonton",
+          actionHash: "#/larare/elever",
+        })
       );
-      wireHashLinks(ctx, membersEl);
       return;
     }
 
@@ -348,14 +377,4 @@ export async function pageLarareKlasser(ctx) {
   });
 
   renderClasses();
-}
-
-/** Koppla data-hash-länkar (interna navigeringar) i ett element. */
-function wireHashLinks(ctx, root) {
-  root.querySelectorAll("[data-hash]").forEach((a) =>
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      ctx.go(a.dataset.hash);
-    })
-  );
 }

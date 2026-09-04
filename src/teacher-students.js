@@ -9,7 +9,7 @@
 import * as data from "./data.js";
 import { slugify } from "./validate.js";
 import { AVATARS } from "./avatars.js";
-import { el, esc, isTeacher, teacherNav, renderGate } from "./teacher-shared.js";
+import { el, esc, isTeacher, teacherNav, teacherHead, renderGate } from "./teacher-shared.js";
 
 export async function pageLarareElever(ctx) {
   ctx.renderTopbar();
@@ -32,10 +32,6 @@ export async function pageLarareElever(ctx) {
 
   const view = el(`<div>
     <div class="panel">
-      <h1>Elevkonton 🧑‍🎓</h1>
-      <p class="hint">Skriv in eleverna i tabellen – namn, användarnamn och lösenord.
-        Lägg till rader för en hel klass och klicka <b>Spara alla</b>. Användarnamn skrivs
-        automatiskt om till gemener. Eleverna loggar in på elevsidan med användarnamn + lösenord.</p>
       <p class="hint">🪙 <b>Belöna en elev:</b> för redan sparade elever kan du ge pluggcoins –
         skriv ett antal eller använd snabbknapparna och klicka <b>Ge 🪙</b>.</p>
       <div class="table-scroll">
@@ -255,8 +251,17 @@ export async function pageLarareElever(ctx) {
     }
   });
 
-  const container = el(`<div></div>`);
+  const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "elever"));
+  container.appendChild(
+    teacherHead(ctx, {
+      emoji: "🎓",
+      title: "Elevkonton",
+      lead: `Skriv in eleverna i tabellen – namn, användarnamn och lösenord.
+        Lägg till rader för en hel klass och klicka <b>Spara alla</b>. Användarnamn skrivs
+        automatiskt om till gemener. Eleverna loggar in på elevsidan med användarnamn + lösenord.`,
+    })
+  );
   container.appendChild(view);
   ctx.app.replaceChildren(container);
 }
