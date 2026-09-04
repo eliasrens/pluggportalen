@@ -116,14 +116,26 @@ export async function pageElevVarld(startNiva) {
         <div class="varld-ui-topp">
           <button class="varld-knapp" id="ut-btn"></button>
           <div class="varld-titel" id="titel"></div>
+          <!-- Verktygen samlas i EN rullgardin (samma på alla bredder) så scenen
+               hålls ren – på mobil trängdes 7 pillerknappar annars ihop. Trigger-
+               knappen ärver .varld-knapp; menyn ärver .varld-panel-känslan.
+               Knapparna behåller sina bara-rum/rum-och-hus/data-panel-klasser +
+               id:n, så både den kontextstyrda synlighets-CSS:en och panel-toggle-
+               logiken fortsätter gälla oförändrat inuti menyn. -->
           <div class="varld-verktyg">
-            <button class="varld-knapp" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
-            <button class="varld-knapp" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
-            <button class="varld-knapp bara-rum" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
-            <button class="varld-knapp bara-rum" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
-            <button class="varld-knapp rum-och-hus" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
-            <button class="varld-knapp bara-rum" id="mat-btn" title="Klicka ut Mysterymat på golvet">🍎 <span>Mysterymat</span></button>
-            <button class="varld-knapp" id="to-shop" title="Till shoppen">🛍️</button>
+            <button class="varld-knapp varld-verktyg-trigger" id="verktyg-trigger"
+              aria-haspopup="true" aria-expanded="false" aria-controls="verktyg-meny"
+              title="Verktyg för rummet och huset">🧰 <span>Verktyg</span></button>
+            <div class="varld-verktyg-meny" id="verktyg-meny" role="menu"
+              aria-label="Verktyg" hidden>
+              <button class="varld-knapp" role="menuitem" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
+              <button class="varld-knapp" role="menuitem" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
+              <button class="varld-knapp bara-rum" role="menuitem" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
+              <button class="varld-knapp bara-rum" role="menuitem" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
+              <button class="varld-knapp rum-och-hus" role="menuitem" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
+              <button class="varld-knapp bara-rum" role="menuitem" id="mat-btn" title="Klicka ut Mysterymat på golvet">🍎 <span>Mysterymat</span></button>
+              <button class="varld-knapp" role="menuitem" id="to-shop" title="Till shoppen">🛍️ <span>Shop</span></button>
+            </div>
           </div>
         </div>
 
@@ -347,6 +359,45 @@ export async function pageElevVarld(startNiva) {
       }
     });
   }
+
+  // --- Verktygsmenyn (rullgardin) -------------------------------------------
+  // Wrappar bara ÖPPNING/STÄNGNING runt den befintliga logiken ovan – varje
+  // verktygsknapp gör exakt som förr när den väljs. Att välja ett verktyg
+  // stänger menyn (panelen/mat-läget syns då ostört bakom den stängda menyn).
+  const verktygTrigger = view.querySelector("#verktyg-trigger");
+  const verktygMeny = view.querySelector("#verktyg-meny");
+  function stangMeny() {
+    verktygMeny.hidden = true;
+    verktygTrigger.setAttribute("aria-expanded", "false");
+  }
+  function oppnaMeny() {
+    verktygMeny.hidden = false;
+    verktygTrigger.setAttribute("aria-expanded", "true");
+    // Fokusera första synliga verktyget för tangentbordsnavigering.
+    const forsta = [...verktygMeny.querySelectorAll(".varld-knapp")]
+      .find((b) => b.offsetParent !== null);
+    forsta?.focus();
+  }
+  verktygTrigger.addEventListener("click", () => {
+    if (verktygMeny.hidden) oppnaMeny(); else stangMeny();
+  });
+  // Val av verktyg stänger menyn (efter att knappens egen handler kört).
+  verktygMeny.addEventListener("click", (e) => {
+    if (e.target.closest(".varld-knapp")) stangMeny();
+  });
+  // Esc stänger och lämnar fokus på triggern; klick utanför stänger.
+  view.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !verktygMeny.hidden) {
+      stangMeny();
+      verktygTrigger.focus();
+    }
+  });
+  // Scenen fyller vyn; scopa klick-utanför hit så listenern städas bort med
+  // vyn (inget kvarlämnat document-lyssnare vid route-byten).
+  view.addEventListener("pointerdown", (e) => {
+    if (verktygMeny.hidden) return;
+    if (!e.target.closest(".varld-verktyg")) stangMeny();
+  });
 
   // --- Gå in i huset: klick på husgruppen → route-byte (kameran zoomar) -----
   const husgrupp = view.querySelector("#husgrupp");
