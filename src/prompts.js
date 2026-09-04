@@ -131,6 +131,11 @@ const SKALA_TEXTER = `Anpassa ANTALET faktatexter efter hur mycket material du f
 - Lång text (en sida eller mer): 3–5 faktatexter.
 Dela upp innehållet i tydliga delämnen så att hela materialet täcks.`;
 
+// Slut-blocket där läraren bifogar sitt material. Definieras EN gång så att
+// buildPromptWith() kan hitta och ev. ersätta det i alla tre prompterna.
+export const MATERIAL_ANCHOR = `Här är materialet du ska utgå ifrån:
+<<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;
+
 const REGLER = `Viktiga regler:
 - Svara med ENBART giltig JSON – ingen förklarande text före eller efter, inga \`\`\`-kodstaket.
 - Använd dubbla citattecken runt alla nycklar och strängar. Inga avslutande kommatecken.
@@ -165,8 +170,7 @@ ${REGLER}
 Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
 ${EXAMPLE}
 
-Här är materialet du ska utgå ifrån:
-<<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;
+${MATERIAL_ANCHOR}`;
 
 /**
  * Prompt: bara quizfrågor.
@@ -202,8 +206,7 @@ Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
   "pairs": []
 }
 
-Här är materialet du ska utgå ifrån:
-<<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;
+${MATERIAL_ANCHOR}`;
 
 /**
  * Prompt: bara fakta-par.
@@ -235,8 +238,7 @@ Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
 }
 (Sista paret visar ett bildpar – ta bara med sådana om en bildnyckel i listan passar temat.)
 
-Här är materialet du ska utgå ifrån:
-<<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;
+${MATERIAL_ANCHOR}`;
 
 /** Lista för rendering på prompt-sidan. */
 export const PROMPTS = [
@@ -265,3 +267,26 @@ export const PROMPTS = [
 
 // Exempel-JSON som även innehållssidan kan visa som mall.
 export const EXAMPLE_JSON = EXAMPLE;
+
+/**
+ * Vävar in ett fritext-önskemål i en prompt.
+ *
+ * Är önskemålet tomt returneras prompten OFÖRÄNDRAD (platshållaren för
+ * PDF/text är kvar – exakt dagens beteende). Har läraren skrivit ett önskemål
+ * ersätts slut-blocket (MATERIAL_ANCHOR) med ett önskemåls-block så att AI:n
+ * genererar innehåll utifrån beskrivningen istället för utifrån bifogat material.
+ * Önskemåls-blocket säger uttryckligen att AI:n får använda allmän, korrekt
+ * ämneskunskap, så att det inte krockar med "använd bara bifogat material"-regeln.
+ *
+ * @param {string} promptText – en av PROMPTS[].text.
+ * @param {string} onskemal – lärarens fritext (får vara tom/undefined).
+ * @returns {string} färdig prompt att kopiera.
+ */
+export function buildPromptWith(promptText, onskemal) {
+  const text = (onskemal || "").trim();
+  if (!text) return promptText;
+  const block = `Lärarens önskemål (ingen text/PDF bifogas – utgå från beskrivningen nedan):
+"${text}"
+Skapa lämpligt, faktakorrekt och åldersanpassat innehåll för detta utifrån reglerna ovan. Eftersom inget material bifogas får du använda allmän, korrekt ämneskunskap om det efterfrågade ämnet. Hitta inte på felaktiga fakta.`;
+  return promptText.replace(MATERIAL_ANCHOR, block);
+}
