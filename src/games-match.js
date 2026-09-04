@@ -8,6 +8,35 @@
 import { app, el } from "./ui.js";
 import { sound } from "./fx.js";
 import { gameFrame, showResult, shuffle } from "./game-shared.js";
+import { resolvePairImage } from "./pair-images.js";
+
+/** Enkel HTML-escape för lärar-inmatad text (samma som i game-shared). */
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Bygg innehållet för en kort-sida. Om paret har en bildnyckel på sidan
+ * (termImage/defImage) och nyckeln finns i bildpaketet renderas den betrodda
+ * inline-SVG:n, annars textfältet (esc:at). Bild↔text och bild↔bild funkar.
+ *   side = "term"  -> använder p.term / p.termImage
+ *   side = "def"   -> använder p.definition / p.defImage
+ */
+function sideContent(p, side) {
+  const imageKey = side === "term" ? p.termImage : p.defImage;
+  const text = side === "term" ? p.term : p.definition;
+  if (imageKey) {
+    const img = resolvePairImage(imageKey);
+    if (img) {
+      return `<span class="pair-img" role="img" aria-label="${esc(img.alt)}">${img.markup}</span>`;
+    }
+  }
+  return esc(text);
+}
 
 // --- Para ihop --------------------------------------------------------------
 
@@ -27,10 +56,10 @@ export function startPara(ctx) {
     <p class="hint center">Klicka på ett begrepp och sedan på förklaringen som hör ihop. Rätt par låser sig! 🧩</p>
     <div class="para-grid">
       <div class="para-col" id="col-term">
-        ${terms.map((p) => `<button class="para-card" data-pair="${p.id}" data-col="term">${p.term}</button>`).join("")}
+        ${terms.map((p) => `<button class="para-card" data-pair="${p.id}" data-col="term">${sideContent(p, "term")}</button>`).join("")}
       </div>
       <div class="para-col" id="col-def">
-        ${defs.map((p) => `<button class="para-card" data-pair="${p.id}" data-col="def">${p.definition}</button>`).join("")}
+        ${defs.map((p) => `<button class="para-card" data-pair="${p.id}" data-col="def">${sideContent(p, "def")}</button>`).join("")}
       </div>
     </div>
   </div>`);
@@ -124,11 +153,12 @@ export function startMemory(ctx) {
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
 
-  // Två kort per par: begreppet och förklaringen.
+  // Två kort per par: begreppet och förklaringen. Varje kort bär med paret och
+  // vilken sida det är, så bilder kan renderas på mem-front (annars texten).
   const cards = shuffle(
     pairs.flatMap((p) => [
-      { pair: p.id, text: p.term, kind: "term" },
-      { pair: p.id, text: p.definition, kind: "def" },
+      { pair: p.id, p, side: "term" },
+      { pair: p.id, p, side: "def" },
     ])
   );
 
@@ -139,7 +169,7 @@ export function startMemory(ctx) {
         .map(
           (c, idx) => `<button class="memory-card" data-idx="${idx}" data-pair="${c.pair}">
             <span class="mem-face mem-back">?</span>
-            <span class="mem-face mem-front">${c.text}</span>
+            <span class="mem-face mem-front">${sideContent(c.p, c.side)}</span>
           </button>`
         )
         .join("")}
