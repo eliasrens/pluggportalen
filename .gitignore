@@ -6,6 +6,13 @@ firebase-debug.log
 
 # Node
 node_modules/
+package-lock.json
+
+# Hemligheter – checka ALDRIG in (lokala Admin-skript)
+admin/serviceAccountKey.json
+admin/firebase-hash-config.json
+serviceAccountKey.json
+*serviceAccount*.json
 
 # OS/editor
 .DS_Store

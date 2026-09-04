@@ -120,19 +120,26 @@ Exempel (`subjects/so/areas/vikingatiden`, förkortat):
 
 ## `students/{studentId}` – elevkonto
 
-Enkel inloggning (skolbruk, **ej säkerhetskritiskt** – lösenord i klartext).
+Inloggning sker via **Firebase Auth** (Email/Password), inte via Firestore. Efter
+härdningen (se `docs/security-plan.md` + `docs/ADMIN.md`) finns **inget
+`password`-fält** kvar i dokumentet – lösenorden bor i Firebase Auth. `uid` för
+Auth-kontot är samma som `studentId` (kopplingen till `studentData` behålls).
+Reglerna låter eleven läsa bara sitt eget dokument; bara läraren skriver.
 
 | Fält       | Typ    | Beskrivning                                  |
 | ---------- | ------ | -------------------------------------------- |
 | `namn`     | string | Elevens namn (visas i appen)                 |
-| `username` | string | Användarnamn, gemener (används vid login)    |
-| `password` | string | Lösenord i klartext                          |
+| `username` | string | Användarnamn, gemener (mappas till `username@elev.pluggportalen.local` vid login) |
 | `avatarId` | string | Vald avatar (se `AVATARS` i `src/avatars.js`)|
+
+> `password` är **borttaget** efter migreringen (`admin/migrate-passwords.mjs`).
+> Äldre dokument kan fortfarande ha ett kvarblivet `password`-fält tills
+> migreringen körts – det tas bort då.
 
 Exempel (`students/elev1`):
 
 ```json
-{ "namn": "Astrid", "username": "elev1", "password": "passa123", "avatarId": "fox" }
+{ "namn": "Astrid", "username": "elev1", "avatarId": "fox" }
 ```
 
 ---

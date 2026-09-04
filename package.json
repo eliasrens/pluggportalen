@@ -7,9 +7,19 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "node server.mjs",
-    "seed": "node seed/seed.mjs"
+    "seed": "node seed/seed.mjs",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore-rules.test.js\"",
+    "test:e2e": "firebase emulators:exec --only auth,firestore \"node test/e2e-auth.test.mjs\"",
+    "emulators": "firebase emulators:start --only auth,firestore",
+    "migrate:passwords": "node admin/migrate-passwords.mjs",
+    "set-teacher": "node admin/set-teacher-claim.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.0.0",
+    "firebase-admin": "^12.7.0"
   }
 }
