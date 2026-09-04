@@ -68,7 +68,7 @@ läsning för klienten).
   fråga, så ingen fråga kan visas utan sin källtext. Ett rent quiz (ingen fråga har
   `passage`) påverkas inte. Övriga gamemodes ignorerar fältet.
 
-**Pair**: `{ id, term, definition, termImage?, defImage? }` – används för para ihop / memory.
+**Pair**: `{ id, term, definition, termImage?, defImage?, group? }` – används för para ihop / memory.
 
 - `termImage` / `defImage` är **valfria** och pekar med en **nyckel** in i det inbyggda
   bildpaketet ([`src/pair-images.js`](../src/pair-images.js)). Nyckelformat: `"partier/<bokstav>"`
@@ -78,6 +78,10 @@ läsning för klienten).
   får alltså vara tom om `termImage` finns – och tvärtom för `definition`/`defImage`. Bilderna
   renderas som inline-SVG-brickor i Para ihop och Memory; bild↔text och bild↔bild fungerar båda.
 - Okänd bildnyckel eller en sida helt utan innehåll ger ett tydligt valideringsfel.
+- `group` är **valfri** (sträng): par med samma `group` visas aldrig samtidigt i en och samma
+  spelomgång – Para ihop/Memory plockar slumpmässigt högst ett par per group innan urvalet
+  begränsas till max 6. Använd den för ömsesidigt uteslutande varianter av samma sak (t.ex.
+  ett bild-par och ett text-par för samma parti). Par utan `group` är opåverkade.
 
 **Nyckel-namnrymd & fler bildpaket:** en bildnyckel har formen `"<paket>/<id>"`
 (idag bara paketet `partier`, t.ex. `"partier/s"`). Mekaniken är **generell** – spelen
