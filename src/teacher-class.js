@@ -15,7 +15,15 @@
 
 import * as data from "./data.js";
 import { avatarEmoji } from "./avatars.js";
-import { el, esc, isTeacher, teacherNav, renderGate } from "./teacher-shared.js";
+import {
+  el,
+  esc,
+  isTeacher,
+  teacherNav,
+  teacherHead,
+  emptyState,
+  renderGate,
+} from "./teacher-shared.js";
 import { areaMaxStars, areaEarned, progressLevel } from "./teacher-class-stats.js";
 import { openStudentDetail } from "./teacher-class-detail.js";
 
@@ -61,17 +69,20 @@ export async function pageLarareKlass(ctx) {
   // Valt ämne: SO först om det finns, annars första.
   let selectedSubject = subjects.find((s) => s.id === "so")?.id || subjects[0]?.id || null;
 
-  const container = el(`<div></div>`);
+  const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "klass"));
+  container.appendChild(
+    teacherHead(ctx, {
+      emoji: "📊",
+      title: "Klassöversikt",
+      lead: `Se hur långt varje elev kommit. Varje cell visar intjänade stjärnor av
+        möjliga för arbetsområdet (max 3 per övning), och <b>Totalt</b> summerar elevens
+        framsteg. <b>Klicka på en elev</b> för fördjupad statistik. Läs-endast – inget ändras här.`,
+    })
+  );
 
   const view = el(`<div>
     <div class="panel">
-      <div class="panel-head">
-        <h1>Klassöversikt 📊</h1>
-      </div>
-      <p class="hint">Se hur långt varje elev kommit. Varje cell visar intjänade stjärnor av
-        möjliga för arbetsområdet (max 3 per övning), och <b>Totalt</b> summerar elevens
-        framsteg. <b>Klicka på en elev</b> för fördjupad statistik. Läs-endast – inget ändras här.</p>
       <div class="field" id="subject-field">
         <label for="klass-subject">Ämne</label>
         <select id="klass-subject" class="select"></select>
@@ -89,10 +100,14 @@ export async function pageLarareKlass(ctx) {
   if (subjects.length === 0) {
     view.querySelector("#subject-field").style.display = "none";
     matrixEl.replaceChildren(
-      el(`<p class="hint">Det finns inga ämnen än. Lägg in innehåll under
-        <a data-hash="#/larare/innehall">Innehåll</a> först.</p>`)
+      emptyState(ctx, {
+        emoji: "📚",
+        title: "Inga ämnen än",
+        text: "Lägg in ditt första arbetsområde så dyker klassens framsteg upp här.",
+        actionLabel: "Lägg in innehåll",
+        actionHash: "#/larare/innehall",
+      })
     );
-    wireHashLinks(ctx, matrixEl);
     return;
   }
 
@@ -144,18 +159,26 @@ export async function pageLarareKlass(ctx) {
 
     if (students.length === 0) {
       matrixEl.replaceChildren(
-        el(`<p class="hint">Det finns inga elevkonton än. Lägg in en klass under
-          <a data-hash="#/larare/elever">Elevkonton</a>.</p>`)
+        emptyState(ctx, {
+          emoji: "🧑‍🎓",
+          title: "Inga elevkonton än",
+          text: "Lägg in en klass med elevkonton så kan du följa deras framsteg här.",
+          actionLabel: "Lägg in elevkonton",
+          actionHash: "#/larare/elever",
+        })
       );
-      wireHashLinks(ctx, matrixEl);
       return;
     }
     if (areas.length === 0) {
       matrixEl.replaceChildren(
-        el(`<p class="hint">Ämnet har inga arbetsområden än. Lägg in innehåll under
-          <a data-hash="#/larare/innehall">Innehåll</a>.</p>`)
+        emptyState(ctx, {
+          emoji: "📖",
+          title: "Ämnet har inga arbetsområden än",
+          text: "Lägg in innehåll i ämnet så visas elevernas stjärnor per område.",
+          actionLabel: "Lägg in innehåll",
+          actionHash: "#/larare/innehall",
+        })
       );
-      wireHashLinks(ctx, matrixEl);
       return;
     }
 
@@ -249,14 +272,4 @@ export async function pageLarareKlass(ctx) {
   });
 
   await renderMatrix();
-}
-
-/** Koppla data-hash-länkar (interna navigeringar) i ett element. */
-function wireHashLinks(ctx, root) {
-  root.querySelectorAll("[data-hash]").forEach((a) =>
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      ctx.go(a.dataset.hash);
-    })
-  );
 }

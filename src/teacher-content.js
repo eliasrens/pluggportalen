@@ -10,7 +10,16 @@ import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
 import { EXAMPLE_JSON } from "./prompts.js";
 import { listPairImageKeys } from "./pair-images.js";
-import { el, esc, isTeacher, teacherNav, renderGate } from "./teacher-shared.js";
+import {
+  el,
+  esc,
+  isTeacher,
+  teacherNav,
+  teacherHead,
+  emptyState,
+  wireHashLinks,
+  renderGate,
+} from "./teacher-shared.js";
 
 export async function pageLarareInnehall(ctx) {
   ctx.renderTopbar();
@@ -33,13 +42,6 @@ export async function pageLarareInnehall(ctx) {
 
   const view = el(`<div>
     <div class="panel">
-      <div class="panel-head">
-        <h1>Innehåll 📚</h1>
-      </div>
-      <p class="hint">Välj ämne, klistra in eller ladda upp en arbetsområdes-JSON, kontrollera
-        att den är giltig och spara till databasen. Behöver du en JSON? Hämta en färdig
-        <a data-hash="#/larare/prompter">AI-prompt</a> som skapar den åt dig.</p>
-
       <div class="field">
         <label for="subject">Ämne</label>
         <div class="row-inline">
@@ -95,9 +97,7 @@ export async function pageLarareInnehall(ctx) {
     refreshAreaList();
   });
 
-  view.querySelectorAll("[data-hash]").forEach((a) =>
-    a.addEventListener("click", () => ctx.go(a.dataset.hash))
-  );
+  wireHashLinks(ctx, view);
 
   // --- Nytt ämne ------------------------------------------------------------
   const newSubjBtn = view.querySelector("#new-subject");
@@ -174,7 +174,13 @@ export async function pageLarareInnehall(ctx) {
       return;
     }
     if (areas.length === 0) {
-      areaListEl.innerHTML = `<p class="hint">Inga arbetsområden i det här ämnet ännu.</p>`;
+      areaListEl.replaceChildren(
+        emptyState(ctx, {
+          emoji: "🗂️",
+          title: "Inga arbetsområden i ämnet ännu",
+          text: "Klistra in eller ladda upp en JSON nedan för att lägga in det första området.",
+        })
+      );
       return;
     }
     const list = el(`<div class="area-rows"></div>`);
@@ -296,9 +302,17 @@ export async function pageLarareInnehall(ctx) {
     }
   });
 
-  ctx.app.replaceChildren(el(`<div></div>`));
-  const container = el(`<div></div>`);
+  const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "innehall"));
+  container.appendChild(
+    teacherHead(ctx, {
+      emoji: "📚",
+      title: "Innehåll",
+      lead: `Välj ämne, klistra in eller ladda upp en arbetsområdes-JSON, kontrollera
+        att den är giltig och spara till databasen. Behöver du en JSON? Hämta en färdig
+        <a data-hash="#/larare/prompter">AI-prompt</a> som skapar den åt dig.`,
+    })
+  );
   container.appendChild(view);
   ctx.app.replaceChildren(container);
   refreshAreaList();

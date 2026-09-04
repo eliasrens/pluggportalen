@@ -4,8 +4,10 @@
 // Delade byggstenar för lärarsidans undersidor:
 //   * Enkel lärarspärr (lösenord) så att elever inte råkar in. EJ säkerhets-
 //     kritiskt – bara en tröskel. Sparas i sessionStorage.
-//   * Små DOM-/text-hjälpare (el, esc, copyText).
-//   * Gemensam lärar-toppnav (teacherNav).
+//   * Små DOM-/text-hjälpare (el, esc, copyText, wireHashLinks).
+//   * Gemensam lärar-toppnav (teacherNav) – sticky flikrad.
+//   * Enhetligt sidhuvud (teacherHead) och vänliga tomtillstånd (emptyState)
+//     så alla undersidor känns som en familj.
 //   * Lärarspärr-vy (renderGate) + översiktssidan (pageLarare).
 //
 // Sidorna anropas från app.js router med ett `ctx` som innehåller de delade
@@ -48,6 +50,19 @@ export function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Koppla interna navigeringslänkar/-knappar (`data-hash`) i ett element till
+ * routern. Delas av alla lärarvyer så länkar mellan vyer beter sig likadant.
+ */
+export function wireHashLinks(ctx, root) {
+  root.querySelectorAll("[data-hash]").forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      ctx.go(a.dataset.hash);
+    })
+  );
+}
+
 export async function copyText(text, btn) {
   const done = () => {
     const old = btn.textContent;
@@ -79,7 +94,9 @@ export async function copyText(text, btn) {
   }
 }
 
-/** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. */
+// --- Gemensam navigation & sidhuvud ----------------------------------------
+
+/** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */
 export function teacherNav(ctx, active) {
   const tabs = [
     { hash: "#/larare", key: "hem", label: "🏠 Översikt" },
@@ -90,15 +107,19 @@ export function teacherNav(ctx, active) {
     { hash: "#/larare/prompter", key: "prompter", label: "🤖 AI-prompter" },
     { hash: "#/larare/elever", key: "elever", label: "🧑‍🎓 Elevkonton" },
   ];
-  const nav = el(`<div class="teacher-nav">
-    ${tabs
-      .map(
-        (t) =>
-          `<a class="tnav ${t.key === active ? "active" : ""}" data-hash="${t.hash}">${t.label}</a>`
-      )
-      .join("")}
-    <a class="tnav logout" data-logout="1">Lås lärarläge 🔒</a>
-  </div>`);
+  const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
+    <div class="teacher-nav-inner">
+      ${tabs
+        .map(
+          (t) =>
+            `<a class="tnav ${t.key === active ? "active" : ""}" data-hash="${t.hash}"${
+              t.key === active ? ' aria-current="page"' : ""
+            }>${t.label}</a>`
+        )
+        .join("")}
+      <a class="tnav logout" data-logout="1">🔒 Lås lärarläge</a>
+    </div>
+  </nav>`);
   nav.querySelectorAll("[data-hash]").forEach((a) =>
     a.addEventListener("click", () => ctx.go(a.dataset.hash))
   );
@@ -109,6 +130,46 @@ export function teacherNav(ctx, active) {
   return nav;
 }
 
+/**
+ * Enhetligt sidhuvud för en lärar-undersida: en brödsmula tillbaka till
+ * översikten, en ikon, rubrik och en kort ingress. `lead` får innehålla enkel
+ * markup (t.ex. <b> och `data-hash`-länkar) – dessa kopplas till routern.
+ */
+export function teacherHead(ctx, { emoji = "📋", title = "", lead = "" } = {}) {
+  const head = el(`<header class="panel teacher-head">
+    <a class="crumb" data-hash="#/larare">← Till översikten</a>
+    <div class="teacher-head-row">
+      <span class="teacher-head-icon">${esc(emoji)}</span>
+      <div class="teacher-head-text">
+        <h1>${esc(title)}</h1>
+        ${lead ? `<p class="teacher-head-lead">${lead}</p>` : ""}
+      </div>
+    </div>
+  </header>`);
+  wireHashLinks(ctx, head);
+  return head;
+}
+
+/**
+ * Vänligt tomtillstånd: ikon + rubrik + kort text + (valfri) knapp till nästa
+ * steg. Används när det inte finns klasser/elever/innehåll ännu, i stället för
+ * en tom yta. `text` får innehålla enkel markup.
+ */
+export function emptyState(ctx, { emoji = "✨", title = "", text = "", actionLabel = "", actionHash = "" } = {}) {
+  const box = el(`<div class="empty-state">
+    <span class="empty-state-icon">${esc(emoji)}</span>
+    <h3 class="empty-state-title">${esc(title)}</h3>
+    ${text ? `<p class="empty-state-text">${text}</p>` : ""}
+    ${
+      actionHash
+        ? `<button class="btn" data-hash="${esc(actionHash)}">${esc(actionLabel || "Nästa steg →")}</button>`
+        : ""
+    }
+  </div>`);
+  if (ctx) wireHashLinks(ctx, box);
+  return box;
+}
+
 // ============================================================================
 // Lärarspärr + översikt
 // ============================================================================
@@ -117,58 +178,85 @@ export function pageLarare(ctx) {
   ctx.renderTopbar();
   if (!isTeacher()) return renderGate(ctx);
 
-  const view = el(`<div>
+  // Genvägar (big-cards). Ordningen speglar en naturlig arbetsgång:
+  // följ upp klassen → bygg upp klasser/elever → fyll på innehåll/prompter.
+  const cards = [
+    {
+      hash: "#/larare/klass",
+      color: "orange",
+      emoji: "📊",
+      title: "Klassöversikt",
+      sub: "Se hur långt varje elev kommit",
+    },
+    {
+      // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
+      hash: "#/larare/klasser",
+      color: "rosa",
+      emoji: "🏫",
+      title: "Klasser",
+      sub: "Skapa klasser och lägg elever i dem",
+    },
+    {
+      hash: "#/larare/elever",
+      color: "gron",
+      emoji: "🧑‍🎓",
+      title: "Elevkonton",
+      sub: "Lägg in en hel klass snabbt",
+    },
+    {
+      hash: "#/larare/innehall",
+      color: "bla",
+      emoji: "📚",
+      title: "Innehåll",
+      sub: "Lägg in och hantera arbetsområden",
+    },
+    {
+      hash: "#/larare/prompter",
+      color: "lila",
+      emoji: "🤖",
+      title: "AI-prompter",
+      sub: "Färdiga prompter som skapar innehåll åt dig",
+    },
+  ];
+
+  const view = el(`<div class="teacher-page">
     <a class="back-link" id="back">← Till startsidan</a>
-    <div class="panel">
-      <h1>Lärarsida 👩‍🏫</h1>
-      <p class="hint">Hantera kunskapsinnehåll, hämta AI-prompter och lägg in elevkonton.</p>
+    <header class="panel teacher-hero">
+      <span class="teacher-hero-icon">👩‍🏫</span>
+      <div class="teacher-hero-text">
+        <h1>Lärarsida</h1>
+        <p class="teacher-hero-lead">Välkommen! Här bygger du upp klasser och innehåll,
+          hämtar AI-prompter och följer hur eleverna kommer framåt.</p>
+      </div>
+    </header>
+    <div class="card-grid teacher-cards">
+      ${cards
+        .map(
+          (c) => `<button class="big-card ${c.color}" data-hash="${c.hash}">
+            <span class="emoji">${c.emoji}</span>
+            <span class="title">${esc(c.title)}</span>
+            <span class="sub">${esc(c.sub)}</span>
+          </button>`
+        )
+        .join("")}
     </div>
-    <div class="card-grid">
-      <button class="big-card orange" data-hash="#/larare/klass">
-        <span class="emoji">📊</span>
-        <span class="title">Klassöversikt</span>
-        <span class="sub">Se hur långt varje elev kommit</span>
-      </button>
-      <!-- Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase). -->
-      <button class="big-card rosa" data-hash="#/larare/klasser">
-        <span class="emoji">🏫</span>
-        <span class="title">Klasser</span>
-        <span class="sub">Skapa klasser och lägg elever i dem</span>
-      </button>
-      <button class="big-card bla" data-hash="#/larare/innehall">
-        <span class="emoji">📚</span>
-        <span class="title">Innehåll</span>
-        <span class="sub">Lägg in och hantera arbetsområden</span>
-      </button>
-      <button class="big-card lila" data-hash="#/larare/prompter">
-        <span class="emoji">🤖</span>
-        <span class="title">AI-prompter</span>
-        <span class="sub">Färdiga prompter som skapar innehåll åt dig</span>
-      </button>
-      <button class="big-card gron" data-hash="#/larare/elever">
-        <span class="emoji">🧑‍🎓</span>
-        <span class="title">Elevkonton</span>
-        <span class="sub">Lägg in en hel klass snabbt</span>
-      </button>
-    </div>
-    <p class="hint" style="margin-top:18px">
-      Vill du fylla databasen med färdig exempeldata? Använd
+    <p class="hint teacher-seed-hint">
+      💾 Vill du fylla databasen med färdig exempeldata? Använd
       <a href="./seed/seed.html">seed-sidan</a>.
     </p>
   </div>`);
 
   view.querySelector("#back").addEventListener("click", () => ctx.go("#/"));
-  view.querySelectorAll("[data-hash]").forEach((b) =>
-    b.addEventListener("click", () => ctx.go(b.dataset.hash))
-  );
+  wireHashLinks(ctx, view);
   ctx.app.replaceChildren(view);
 }
 
 export function renderGate(ctx) {
-  const view = el(`<div>
+  const view = el(`<div class="teacher-page">
     <a class="back-link" id="back">← Tillbaka</a>
-    <div class="panel">
-      <h1 class="center">Lärarläge 🔐</h1>
+    <div class="panel gate-panel center">
+      <span class="gate-icon">🔐</span>
+      <h1 class="center">Lärarläge</h1>
       <p class="hint center">Ange lärarlösenordet för att komma vidare. (Bara en spärr så att
         elever inte råkar in – inte säkerhetskritiskt.)</p>
       <div id="msg"></div>
