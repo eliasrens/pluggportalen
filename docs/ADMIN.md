@@ -75,7 +75,7 @@ node admin/migrate-passwords.mjs
 **Skarpt (det avsedda kommandot – se beslutet om korta lösenord nedan):**
 
 ```bash
-node admin/migrate-passwords.mjs --commit --short=preserve
+node admin/migrate-passwords.mjs --commit --short=set:lilla123
 ```
 
 ### Korta lösenord (< 6 tecken) – VIKTIGT
@@ -103,17 +103,11 @@ lägg i `admin/firebase-hash-config.json` (också `.gitignore`:ad):
 }
 ```
 
-> **BESLUT (beställaren):** **elev1 ska behålla lösenordet `123`.** Använd därför
-> **`--short=preserve`**, som importerar de korta lösenorden via SCRYPT så att de
-> fortsätter fungera exakt (elev1 loggar in med `123` även efter migreringen –
-> matchar README:s testkonto). Detta kräver `admin/firebase-hash-config.json` med
-> projektets hash-parametrar (se ovan) **och** att du verifierar en inloggning
-> direkt efteråt (hash-vägen är känslig för fel parametrar).
->
-> Fallback: vill man inte hämta hash-parametrarna kan man i stället köra
-> `--short=set:<nytt lösenord ≥ 6>` – då byts elev1:s (och övriga korta) lösenord,
-> och **då måste README:s testkonto uppdateras** till det nya lösenordet och de
-> berörda eleverna meddelas.
+> **BESLUT (beställaren):** använd **`--short=set:lilla123`**. Elever med lösenord
+> under 6 tecken (t.ex. **elev1**) får det nya lösenordet **`lilla123`**. Elever
+> med ≥ 6 tecken behåller sitt. Meddela de berörda eleverna det nya lösenordet.
+> (Alternativet `--short=preserve` – behåll exakt `123` via SCRYPT – finns kvar i
+> skriptet men används alltså inte här.)
 
 ---
 
@@ -182,24 +176,21 @@ reglerna *innan* eleverna fått Auth-konton kan ingen logga in. Rätt ordning:
 
 1. **Aktivera Email/Password** i Console (steg 1) – gör detta först.
 2. **Skapa lärarkonto + claim** (steg 2).
-3. **Migrera** eleverna med det avsedda kommandot (kräver
-   `admin/firebase-hash-config.json`, se steg 3 ovan):
+3. **Migrera** eleverna med det avsedda kommandot:
    ```bash
-   node admin/migrate-passwords.mjs --commit --short=preserve
+   node admin/migrate-passwords.mjs --commit --short=set:lilla123
    ```
-   Nu har alla Auth-konton och `password`-fälten är borta. Korta lösenord
-   (t.ex. **elev1 = `123`**) bevaras exakt via SCRYPT-import, så inget behöver
-   meddelas eleverna. (Väljer man i stället fallbacken `--short=set:<pw>` byts de
-   korta lösenorden – uppdatera då README:s testkonto och meddela eleverna.)
+   Nu har alla Auth-konton och `password`-fälten är borta. Elever med lösenord
+   under 6 tecken (t.ex. **elev1**) har fått det nya lösenordet **`lilla123`** –
+   meddela dem.
 4. **Deploya koden** (auth-lagret) till hosting – i samma veva som:
 5. **Deploya reglerna:**
    ```bash
    firebase deploy --only firestore:rules
    ```
-6. **Rök-test:** logga in som **elev1 / 123** (oförändrat lösenord efter
-   `--short=preserve`; ser bara egen data) och som läraren (skapar/ger coins).
-   Kolla att inga konsolfel syns. (Kördes fallbacken `--short=set:<pw>` i stället
-   – logga in med det nya lösenordet.)
+6. **Rök-test:** logga in som **elev1 / lilla123** (nytt lösenord efter
+   migreringen; ser bara egen data) och som läraren (skapar/ger coins). Kolla att
+   inga konsolfel syns.
 
 > Steg 3 och 5 hör ihop: migrering **före** regel-deploy. Gör man tvärtom slutar
 > befintliga elever kunna logga in tills migreringen är klar.
