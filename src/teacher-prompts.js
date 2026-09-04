@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { PROMPTS } from "./prompts.js";
+import { listPairImageKeys } from "./pair-images.js";
 import { el, esc, isTeacher, teacherNav, renderGate, copyText } from "./teacher-shared.js";
 
 export function pageLararePrompter(ctx) {
@@ -23,6 +24,12 @@ export function pageLararePrompter(ctx) {
         (<code>passage</code>) som frågan kan besvaras utifrån. Prompterna skapar detta
         automatiskt – saknar en fråga källtext får du ett tydligt felmeddelande när du
         sparar innehållet.</p>
+      <p class="hint">🖼️ <b>Bildpar:</b> ett fakta-par kan visa en färdig bild i stället för
+        (eller utöver) text – t.ex. matcha en partisymbol mot partinamnet. Sätt
+        <code>termImage</code>/<code>defImage</code> i paret till en <b>bildnyckel</b> (ladda
+        inte upp egna bilder). Nycklar som finns just nu (partisymbol-paketet):
+        ${listPairImageKeys().map((k) => `<code>${esc(k.key)}</code>`).join(", ")}.
+        Fler bildpaket för andra ämnen kan tillkomma senare.</p>
     </div>
     <div id="prompts"></div>
   </div>`);

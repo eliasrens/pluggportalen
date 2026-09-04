@@ -9,6 +9,7 @@
 import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
 import { EXAMPLE_JSON } from "./prompts.js";
+import { listPairImageKeys } from "./pair-images.js";
 import { el, esc, isTeacher, teacherNav, renderGate } from "./teacher-shared.js";
 
 export async function pageLarareInnehall(ctx) {
@@ -56,6 +57,11 @@ export async function pageLarareInnehall(ctx) {
       <h2>Lägg in / ersätt arbetsområde</h2>
       <p class="hint">Klistra in JSON nedan eller ladda upp en <b>.json</b>-fil. Ett befintligt
         arbetsområde med samma <b>id</b> ersätts.</p>
+      <p class="hint">🖼️ <b>Bildpar:</b> ett par (<code>pairs</code>) kan visa en färdig bild i
+        stället för text – sätt <code>termImage</code> och/eller <code>defImage</code> till en
+        <b>bildnyckel</b> nedan (ingen egen uppladdning). Inbyggda nycklar (partisymbol-paketet):
+        ${listPairImageKeys().map((k) => `<code>${esc(k.key)}</code> (${esc(k.name)})`).join(", ")}.
+        Fler bildpaket för andra ämnen kan tillkomma senare.</p>
       <div class="row-inline" style="margin-bottom:10px">
         <label class="btn ghost file-btn">
           📂 Ladda upp .json

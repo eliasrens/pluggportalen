@@ -79,6 +79,16 @@ läsning för klienten).
   renderas som inline-SVG-brickor i Para ihop och Memory; bild↔text och bild↔bild fungerar båda.
 - Okänd bildnyckel eller en sida helt utan innehåll ger ett tydligt valideringsfel.
 
+**Nyckel-namnrymd & fler bildpaket:** en bildnyckel har formen `"<paket>/<id>"`
+(idag bara paketet `partier`, t.ex. `"partier/s"`). Mekaniken är **generell** – spelen
+(Para ihop, Memory) och valideringen slår upp nyckeln via `resolvePairImage()` /
+`isKnownPairImage()` i `pair-images.js` och bryr sig inte om vilket ämne eller moment
+paret ligger i. Vill man lägga bildpar i ett annat moment/ämne (t.ex. kartor i geografi
+eller symboler i religion) **lägger man bara till ett nytt paket i `pair-images.js`** med
+sin egen prefix och sina nycklar – ingen ändring behövs i spelen, valideringen eller
+lärar-UI:t (prompt-, innehålls- och hjälptexter listar nycklarna automatiskt via
+`listPairImageKeys()`). Nya prefix ska vara korta och beskrivande (`partier`, `kartor`, …).
+
 Exempel (`subjects/so/areas/vikingatiden`, förkortat):
 
 ```json
