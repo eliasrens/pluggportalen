@@ -98,7 +98,7 @@ export function startPara(ctx) {
   function finish() {
     // Stjärnor efter hur få fel: 0 fel = 3, ≤2 = 2, annars 1.
     const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
-    const baseCoins = 8 + (mistakes === 0 ? 8 : Math.max(0, 6 - mistakes));
+    const baseCoins = 2 * (8 + (mistakes === 0 ? 8 : Math.max(0, 6 - mistakes)));
     setTimeout(() => {
       showResult({
         container: body,
@@ -192,7 +192,7 @@ export function startMemory(ctx) {
   function finish() {
     // Färre försök = fler stjärnor. Perfekt = total försök.
     const stars = tries <= total ? 3 : tries <= total + 3 ? 2 : 1;
-    const baseCoins = Math.max(5, 6 + Math.max(0, 10 - (tries - total)));
+    const baseCoins = 2 * Math.max(5, 6 + Math.max(0, 10 - (tries - total)));
     setTimeout(() => {
       showResult({
         container: body,

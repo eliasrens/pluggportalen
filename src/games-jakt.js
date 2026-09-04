@@ -161,7 +161,7 @@ function runRound(ctx, body) {
     ended = true;
     clearInterval(timer);
     const stars = score >= 400 ? 3 : score >= 180 ? 2 : 1;
-    const baseCoins = Math.min(25, Math.max(5, 4 + Math.round(score / 45)));
+    const baseCoins = 2 * Math.min(25, Math.max(5, 4 + Math.round(score / 45)));
     showResult({
       container: body,
       subj, area, mode: "kunskapsjakt",

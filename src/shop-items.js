@@ -88,8 +88,8 @@ export const SHOP_ITEMS = [
   { id: "katt", name: "Kattunge", emoji: "🐱", category: "husdjur", price: 160 },
   { id: "kanin", name: "Kanin", emoji: "🐰", category: "husdjur", price: 130 },
   { id: "fisk", name: "Akvariefisk", emoji: "🐠", category: "husdjur", price: 70 },
-  { id: "papegoja", name: "Papegoja", emoji: "🦜", category: "husdjur", price: 220 },
-  { id: "dinosaurie", name: "Husdinosaurie", emoji: "🦕", category: "husdjur", price: 500 },
+  { id: "papegoja", name: "Papegoja", emoji: "🦜", category: "husdjur", price: 185 },
+  { id: "dinosaurie", name: "Husdinosaurie", emoji: "🦕", category: "husdjur", price: 190 },
   // fler husdjur
   { id: "hamster", name: "Hamster", emoji: "🐹", category: "husdjur", price: 90 },
   { id: "igelkott", name: "Igelkott", emoji: "🦔", category: "husdjur", price: 120 },

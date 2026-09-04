@@ -30,7 +30,7 @@ export function startQuiz(ctx) {
     questions,
     onFinish: (correct, total) => {
       const stars = starsFromRatio(correct / total);
-      const baseCoins = 5 + correct * 2 + (correct === total ? 5 : 0);
+      const baseCoins = 2 * (5 + correct * 2 + (correct === total ? 5 : 0));
       showResult({
         container: body,
         subj, area, mode: "quiz",
@@ -81,7 +81,7 @@ export function startLasforstaelse(ctx) {
     showPassage: true,
     onFinish: (correct, total) => {
       const stars = starsFromRatio(correct / total);
-      const baseCoins = 6 + correct * 2 + (correct === total ? 4 : 0);
+      const baseCoins = 2 * (6 + correct * 2 + (correct === total ? 4 : 0));
       // Resultatskärmen ersätter hela sidan (text + frågor).
       showResult({
         container: body,
