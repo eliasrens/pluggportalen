@@ -2074,7 +2074,7 @@ body.varld-lage .container {
      smal scen blev sakerna ~samma pixelstorlek men avstånden få pixlar, så allt
      "klumpades mot mitten".
      Lösning: scenen är en container (container-type: inline-size) och saker mäts
-     i --rum-enhet = en "rem-enhet" som följer scenBREDDEN kontinuerligt
+     i en "rums-enhet" som följer scenBREDDEN kontinuerligt
      (1cqw = 1 % av scenbredden). Därmed upptar varje sak SAMMA andel av scenen
      vid varje bredd → ingen ihopklumpning, ingen fast breakpoint.
      Capen (--rum-cap) håller stora desktop-scener på samma pixelstorlek som förr
@@ -2390,13 +2390,15 @@ body.varld-lage .container {
 .room-apple {
   position: absolute;
   transform: translate(-50%, -50%);
-  font-size: calc(1.5 * var(--rum-enhet, 1rem));
+  font-size: 1.5rem;
   line-height: 1;
   pointer-events: none;
   user-select: none;
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
   animation: apple-pop 0.32s ease-out;
 }
+/* Äpplet skalar med scenbredden i husvärldens rum (som möbler/djur). */
+.varld-lager.room-stage .room-apple { font-size: calc(1.5 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
 @keyframes apple-pop {
   from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
   to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
