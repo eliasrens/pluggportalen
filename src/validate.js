@@ -221,6 +221,11 @@ export function validateArea(obj) {
         // Bildfälten tas bara med när de finns (bakåtkompatibelt).
         if (hasTermImage) built.termImage = termKey;
         if (hasDefImage) built.defImage = defKey;
+        // Valfritt: "group" markerar ömsesidigt uteslutande par. Par med samma
+        // group visas aldrig samtidigt i en och samma spelomgång (Para ihop/Memory
+        // plockar högst ett par per group). Tas bara med när den finns
+        // (bakåtkompatibelt, precis som termImage/defImage).
+        if (isNonEmptyString(p.group)) built.group = p.group.trim();
         pairs.push(built);
       });
     }

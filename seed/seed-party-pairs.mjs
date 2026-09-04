@@ -24,12 +24,30 @@ const WRITE = process.argv.includes("--write");
 
 // Riksdagens 8 partier som bildpar: partisymbol (term-bild) ↔ partinamn (definition).
 // Nyckel + namn hämtas ur bildpaketet så listan alltid matchar pair-images.js.
-const PARTY_PAIRS = listPairImageKeys().map(({ key, name }) => ({
-  id: `partisymbol-${key.split("/").pop()}`,
-  term: "",
-  termImage: key,
-  definition: name,
-}));
+// Varje bildpar får en "group" "parti-<bokstav>" så att det aldrig visas i samma
+// omgång som ett annat par för samma parti (t.ex. ett äldre partiledar-text-par).
+const PARTY_PAIRS = listPairImageKeys().map(({ key, name }) => {
+  const letter = key.split("/").pop();
+  return {
+    id: `partisymbol-${letter}`,
+    term: "",
+    termImage: key,
+    definition: name,
+    group: `parti-${letter}`,
+  };
+});
+
+// Ömsesidigt uteslutande dubbletter: befintliga text-par (partiledare) som pekar
+// på SAMMA parti som ett bildpar ska få SAMMA group. Mappning par-id -> group
+// (verifierad i live-datan): bild-paret "partisymbol-<x>" och text-paret pXX för
+// samma parti hamnar i "parti-<x>".
+const TEXT_PAIR_GROUPS = {
+  p20: "parti-m", // Moderaterna
+  p21: "parti-s", // Socialdemokraterna
+  p22: "parti-v", // Vänsterpartiet
+  p23: "parti-sd", // Sverigedemokraterna
+  p24: "parti-kd", // Kristdemokraterna
+};
 
 // --- Firestore REST <-> JS -------------------------------------------------
 function toValue(v) {
@@ -91,6 +109,19 @@ async function main() {
   const toAdd = PARTY_PAIRS.filter((p) => !existingIds.has(p.id));
   area.pairs = [...(area.pairs || []), ...toAdd];
 
+  // Idempotent: sätt "group" på rätt par (bildpar + motsvarande text-par) utan att
+  // röra något annat. Bildparens group följer PARTY_PAIRS; text-parens TEXT_PAIR_GROUPS.
+  const groupById = new Map(PARTY_PAIRS.map((p) => [p.id, p.group]));
+  for (const [id, group] of Object.entries(TEXT_PAIR_GROUPS)) groupById.set(id, group);
+  let grouped = 0;
+  for (const p of area.pairs) {
+    const g = groupById.get(p.id);
+    if (g && p.group !== g) {
+      p.group = g;
+      grouped++;
+    }
+  }
+
   // Kör HELA området genom valideringen innan sparning.
   const res = validateArea(area);
   if (!res.ok) {
@@ -104,6 +135,9 @@ async function main() {
   console.log(`Par: ${before} → ${res.value.pairs.length} (+${toAdd.length} nya bildpar)`);
   console.log(`Bildpar totalt: ${imgPairs.length}`);
   imgPairs.forEach((p) => console.log(`   ${p.termImage || p.defImage} ↔ "${p.definition || p.term}"`));
+  const withGroup = res.value.pairs.filter((p) => p.group);
+  console.log(`Par med group: ${withGroup.length} (${grouped} uppdaterade denna körning)`);
+  withGroup.forEach((p) => console.log(`   [${p.group}] ${p.id}: "${p.term || p.termImage}" ↔ "${p.definition || p.defImage}"`));
 
   if (!WRITE) {
     console.log("\nTorrkörning (validerat, inte sparat). Kör med --write för att spara.");

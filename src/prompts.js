@@ -47,8 +47,11 @@ const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
       som läsförståelse, så ta alltid med passage.)
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
     { "id": string, "term": string, "definition": string,
-      "termImage": string, "defImage": string }
+      "termImage": string, "defImage": string, "group": string }
     * "term" är begreppet, "definition" förklaringen. Vanliga par har bara dessa två.
+    * "group" är VALFRI. Par med samma "group" visas aldrig samtidigt i en och samma
+      spelomgång (Para ihop/Memory plockar högst ett par per group) – använd den för att
+      undvika att två varianter av samma sak dyker upp tillsammans. Utelämna den annars.
     * "termImage"/"defImage" är VALFRIA och används för BILDPAR: i stället för (eller
       utöver) text visas en färdig bild på term- respektive definition-sidan. Fältet
       anges som en NYCKEL in i det inbyggda bildpaketet – ladda inte upp egna bilder.

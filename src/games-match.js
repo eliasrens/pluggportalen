@@ -9,6 +9,7 @@ import { app, el } from "./ui.js";
 import { sound } from "./fx.js";
 import { gameFrame, showResult, shuffle } from "./game-shared.js";
 import { resolvePairImage } from "./pair-images.js";
+import { pickOnePerGroup } from "./pick-group.js";
 
 /** Enkel HTML-escape för lärar-inmatad text (samma som i game-shared). */
 function esc(s) {
@@ -42,8 +43,9 @@ function sideContent(p, side) {
 
 export function startPara(ctx) {
   const { subj, area, areaData } = ctx;
-  // Max 6 par åt gången så det blir lagom för åk 4.
-  const pairs = shuffle(areaData.pairs || []).slice(0, 6);
+  // Max 6 par åt gången så det blir lagom för åk 4. Först ett par per "group"
+  // (ömsesidigt uteslutande dubbletter), sedan slumpa fram max 6.
+  const pairs = pickOnePerGroup(areaData.pairs || []).slice(0, 6);
 
   const view = gameFrame({ subj, area, title: "Para ihop", emoji: "🧩" });
   const body = view.querySelector("#game-body");
@@ -146,8 +148,9 @@ export function startPara(ctx) {
 
 export function startMemory(ctx) {
   const { subj, area, areaData } = ctx;
-  // Håll brädet lagom: max 6 par = 12 kort.
-  const pairs = shuffle(areaData.pairs || []).slice(0, 6);
+  // Håll brädet lagom: max 6 par = 12 kort. Först ett par per "group"
+  // (ömsesidigt uteslutande dubbletter), sedan slumpa fram max 6.
+  const pairs = pickOnePerGroup(areaData.pairs || []).slice(0, 6);
 
   const view = gameFrame({ subj, area, title: "Memory", emoji: "🃏" });
   const body = view.querySelector("#game-body");
