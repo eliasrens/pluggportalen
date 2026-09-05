@@ -66,7 +66,7 @@ Firestore REST-API:t.
 ### 1.4 Datamodell (nuläge)
 ```
 students/{id}      = { namn, username, password (KLARTEXT), avatarId }
-studentData/{id}   = { coins, xp, progress, ownedItems, avatarItems, room, husSkalId, avatarId, evolution }
+studentData/{id}   = { coins, xp, progress, ownedItems, avatarItems, room, husSkalId, avatarId }
 subjects/{id}      = { name, order, icon, description }
 subjects/{id}/areas/{id} = { name, order, coverEmoji, texts[], quiz[], pairs[] }
 classes/{id}       = { name, order, createdAt, studentIds[], assignedAreas[] }
