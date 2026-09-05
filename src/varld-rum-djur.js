@@ -33,13 +33,21 @@ import { itemSvg, itemSize } from "./art-items.js";
  *   scheduleSave: () => void, saveWalkPositions: () => void }}
  */
 export function mountRumDjur({ sd }) {
-  const animals = animalData
-    .animalsFromData(sd)
-    .map((a) => ({ ...a, hatchedAt: true }));
+  // Runtime-objekt: `id` = INSTANSENS uid (unikt, matchar DOM:ens data-pet-id och
+  // delas med promenad-AI:n/drag-pipen som nyckel), `art` = shop-sakens id (styr
+  // emoji/storlek/artnamn). Flera exemplar av samma art får därför olika id.
+  const animals = animalData.animalsFromData(sd).map((a) => ({
+    id: a.uid,
+    art: a.id,
+    pos: a.pos,
+    name: a.name,
+    stowed: !!a.stowed,
+    hatchedAt: true,
+  }));
 
   /** Visningsnamn: elevens eget namn om satt, annars artnamnet. */
   function displayName(a) {
-    const item = getItem(a.id);
+    const item = getItem(a.art);
     return a.name || (item ? item.name : "Djuret");
   }
 
@@ -73,9 +81,9 @@ export function mountRumDjur({ sd }) {
    * en statisk sak) och det finns inga humör-/matningsuttryck.
    */
   function stageNode(a, selected) {
-    const item = getItem(a.id);
+    const item = getItem(a.art);
     if (!item) return el("<span></span>");
-    const size = itemSize(a.id);
+    const size = itemSize(a.art);
     const namn = displayName(a);
     // Namn-etiketten är en lättviktig döpnings-affordans (klick → inline-namnfält),
     // precis som mystery-djuren. ✏️-pennan visas BARA innan djuret fått ett eget
@@ -84,7 +92,7 @@ export function mountRumDjur({ sd }) {
     // på djuret självt – det ger bara en klappa-effekt (petPat).
     return el(`<div class="room-item room-pet room-djur${selected ? " selected" : ""}"
       data-pet-id="${a.id}" style="left:${a.pos.x}%;top:${a.pos.y}%" title="${namn}">
-      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(a.id) || item.emoji}</span>
+      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(a.art) || item.emoji}</span>
       <span class="rp-namn ${a.name ? "rp-namn-tap" : "rp-namn-edit"}" data-rename="${a.id}" title="${a.name ? "Öppna namn-vyn" : "Döp mig ✏️"}">${namn}</span>
     </div>`);
   }

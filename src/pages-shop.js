@@ -12,7 +12,7 @@ import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
 import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
-import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem } from "./shop-items.js";
+import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isMultiItem } from "./shop-items.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
 import { coinIcon } from "./icons.js";
@@ -32,10 +32,12 @@ export async function pageElevShop() {
   // Lokalt tillstånd som speglar Firestore. Uppdateras vid varje köp.
   const state = {
     coins: sd.coins || 0,
-    owned: new Set(sd.ownedItems || []),
+    owned: new Set(sd.ownedItems || []), // binärt "ägd" (single-kategorier & legacy)
+    ownedCounts: { ...(sd.ownedCounts || {}) }, // antal per multi-sak (möbler/dekor)
     appleCount: sd.appleCount || 0, // förbrukningsvara: antal, inte "ägd"
-    // Vanliga djur bor i roomAnimals (inte ownedItems) – ett per art.
-    animals: new Set(animalsFromData(sd).map((a) => a.id)),
+    // Vanliga djur bor i roomAnimals (inte ownedItems) – flera exemplar per art
+    // tillåts, så vi räknar antal per art.
+    animalCounts: countAnimalsByArt(animalsFromData(sd)),
   };
 
   const view = el(`<div>
@@ -88,10 +90,11 @@ export async function pageElevShop() {
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
     const item = getItem(id);
-    // Förbrukningsvaror (äpplen) kan köpas hur många gånger som helst; övriga
-    // saker bara om de inte redan ägs.
+    // Förbrukningsvaror (äpplen), multi-saker (möbler/dekor) och vanliga djur kan
+    // köpas hur många gånger som helst; single-saker bara om de inte redan ägs.
     if (!item || item.comingSoon) return;
-    if (!isConsumable(id) && (state.owned.has(id) || state.animals.has(id))) return;
+    const rebuyable = isConsumable(id) || isMultiItem(id) || isAnimalItem(id);
+    if (!rebuyable && state.owned.has(id)) return;
 
     btn.disabled = true;
     btn.textContent = "Köper…";
@@ -110,7 +113,8 @@ export async function pageElevShop() {
       else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
-      if (res.animals) state.animals = new Set(res.animals.map((a) => a.id));
+      if (res.counts) state.ownedCounts = { ...res.counts };
+      if (res.animals) state.animalCounts = countAnimalsByArt(res.animals);
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
       saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
       renderKatalog();
@@ -146,12 +150,29 @@ export async function pageElevShop() {
   app.replaceChildren(view);
 }
 
+/** Antal vanliga djur per art ur en animalsFromData-lista: { [art]: n }. */
+function countAnimalsByArt(animals) {
+  const counts = {};
+  for (const a of animals || []) counts[a.id] = (counts[a.id] || 0) + 1;
+  return counts;
+}
+
+/** Hur många exemplar eleven äger av en multi-sak (möbler/dekor) i shop-state. */
+function multiCount(id, state) {
+  const counts = state.ownedCounts || {};
+  if (Object.prototype.hasOwnProperty.call(counts, id)) return Math.max(0, Math.round(counts[id] || 0));
+  return state.owned.has(id) ? 1 : 0;
+}
+
 /** HTML för ett shop-kort, med rätt knappläge utifrån ägande/saldo. */
 function shopCardHtml(it, state) {
   const consumable = isConsumable(it.id);
-  // Förbrukningsvaror "ägs" aldrig – de har ett antal och kan alltid köpas fler.
-  // Vanliga djur "ägs" när de bor i rummet (roomAnimals) – ett per art.
-  const owned = !consumable && (state.owned.has(it.id) || state.animals.has(it.id));
+  const multi = isMultiItem(it.id); // möbler/dekor – flera exemplar tillåts
+  const animal = isAnimalItem(it.id); // vanliga djur – flera exemplar tillåts
+  // Dessa kan alltid köpas igen (blockeras aldrig som "Köpt"); övriga single-
+  // saker (kläder/hus/…) blockeras när de redan ägs.
+  const rebuyable = consumable || multi || animal;
+  const owned = !rebuyable && state.owned.has(it.id);
   const affordable = state.coins >= it.price;
   let btn;
   if (it.comingSoon) {
@@ -167,10 +188,12 @@ function shopCardHtml(it, state) {
   // emoji-fältet är kvar som ofarlig fallback om konst saknas.
   const bild =
     (it.category === "klader" ? wearableSvg(it.id) : itemSvg(it.id)) || it.emoji;
-  // Förbrukningsvaror visar hur många man redan har i stället för "Köpt".
-  const antal = consumable
-    ? `<div class="shop-antal">Du har: ${state.appleCount} st</div>`
-    : "";
+  // Rebuyable-saker visar hur många man redan äger i stället för "Köpt".
+  let have = 0;
+  if (consumable) have = state.appleCount;
+  else if (animal) have = state.animalCounts[it.id] || 0;
+  else if (multi) have = multiCount(it.id, state);
+  const antal = rebuyable ? `<div class="shop-antal">Du har: ${have} st</div>` : "";
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>

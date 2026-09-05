@@ -15,7 +15,7 @@
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR, avatarName } from "./avatars.js";
 import { app, el, go, loading, pageError, getParams, clamp } from "./ui.js";
-import { getItem, isWearable, isFlatItem } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem, itemIdFromKey } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { roomBackdropHtml, windowItemHtml, WINDOW_DEFAULT } from "./art-room.js";
 import { getPalette } from "./room-palettes.js";
@@ -138,18 +138,22 @@ export async function pageElevKlasskamrat() {
 
     // Behåll bara placeringar för saker eleven fortfarande äger och som hör
     // hemma i rummet (inte kläder). Positioner i procent (0–100).
+    // Nyckeln kan vara "<id>#<n>" (extra exemplar av samma möbel/dekor) – härled
+    // sak-id:t med itemIdFromKey. owned räcker som "äger minst ett" här (läs-läge).
     const placements = {};
-    for (const [id, pos] of Object.entries(room.placements || {})) {
+    for (const [key, pos] of Object.entries(room.placements || {})) {
+      const id = itemIdFromKey(key);
       if (owned.includes(id) && !isWearable(id) && getItem(id) && pos) {
-        placements[id] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
+        placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
       }
     }
     // Platta golvsaker (mattor) ritas FÖRST så möbler/dekor staplas ovanpå dem.
     const itemsHtml = Object.keys(placements)
-      .sort((a, b) => (isFlatItem(a) ? 0 : 1) - (isFlatItem(b) ? 0 : 1))
-      .map((id) => {
+      .sort((a, b) => (isFlatItem(itemIdFromKey(a)) ? 0 : 1) - (isFlatItem(itemIdFromKey(b)) ? 0 : 1))
+      .map((key) => {
+        const id = itemIdFromKey(key);
         const item = getItem(id);
-        const pos = placements[id];
+        const pos = placements[key];
         const size = itemSize(id);
         return `<div class="room-item readonly" style="left:${pos.x}%;top:${pos.y}%" title="${esc(item.name)}">
           <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
