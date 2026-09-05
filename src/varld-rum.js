@@ -12,7 +12,7 @@
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
-import { getItem, isWearable, isFlatItem, isAnimalItem } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem } from "./shop-items.js";
 import { getPalette } from "./room-palettes.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -53,10 +53,13 @@ function isFloorItem(id) {
  * @param {number} [o.startRoom=0]  rum-index att starta i (flerrums-huset)
  * @param {(index:number, paletteId:string|null) => void} [o.onRoomChange]
  *        körs vid rums-byte (så husvärlden kan uppdatera palett/verktyg per rum)
+ * @param {() => void} [o.onMatActivate]  körs när mat-läget slås på (så husvärlden
+ *        kan stänga öppna paneler – mat och paneler är ömsesidigt uteslutande)
  * @returns {{ count:number, current:()=>number, wallPaletteId:()=>string|null,
- *   setWallPalette:(id:string)=>void }} styr-API för husvärldens palett/verktyg
+ *   setWallPalette:(id:string)=>void, exitMat:()=>void }} styr-API för husvärldens
+ *   palett/verktyg per rum + exitMat() som avslutar mat-läget
  */
-export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange, startRoom = 0, onRoomChange }) {
+export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange, startRoom = 0, onRoomChange, onMatActivate }) {
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
 
@@ -104,11 +107,12 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
   // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak; vanliga
   // djur promenerar och har ingen statisk placering längre). Samma owned-lista
-  // gäller alla rum → en ägd sak kan ställas in i valfritt/flera rum.
+  // gäller alla rum → en ägd sak kan ställas in i valfritt/flera rum. Husskal
+  // (isHouseItem) är exteriör, aldrig en golvsak i rummet.
   function filterPlacements(saved) {
     const out = {};
     for (const [id, pos] of Object.entries(saved || {})) {
-      if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && id !== petData.EGG_ITEM_ID && pos) {
+      if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
         // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
         const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
         out[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
@@ -147,8 +151,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   }
 
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
+  // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
+  // panelen och byter husets exteriör, inte rummets möblering.
   const roomItemsOwned = owned.filter(
-    (id) => !isWearable(id) && !isAnimalItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
+    (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
   );
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
@@ -365,6 +371,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     renderScene: () => renderStage(),
     renderPanel: () => renderPets(),
     isSelected: (petId) => selectedPetId === petId,
+    onActivate: onMatActivate,
   });
 
   // --- Rums-växling (dörrar + rumslista) -----------------------------------
@@ -593,7 +600,52 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     },
   });
 
-  // Styr-API åt husvärlden (pages-varld.js): palett per rum + verktygssynlighet.
+  // --- Live-kläckning: kläck ägg medan rummet står öppet (utan sidrefresh) ---
+  // hatchReadyPets() körs annars bara en gång vid sidinit. Här kollar vi lokalt
+  // (utan Firestore-läsning) om något ägg PASSERAT sin kläcktid och persisterar
+  // först då – nykläckta firas som vid init via justHatchedId. Timern städas när
+  // scenen lämnar DOM:en (sidbyte) – samma självstädning som promenad-AI:n.
+  // (Ägg/husdjur hör bara till grundrummet; kläckningen visas nästa gång rum 0
+  // ritas, men firandet sker direkt.)
+  let hatching = false;
+  function anyEggDue() {
+    const now = Date.now();
+    return pets.some(
+      (p) => p.eggBoughtAt && !p.hatchedAt && now >= petData.hatchTimeFor(p, hasLamp)
+    );
+  }
+  const hatchTimer = setInterval(async () => {
+    if (!stage.isConnected) return clearInterval(hatchTimer); // vy stängd → städa
+    if (hatching || !anyEggDue()) return;
+    hatching = true;
+    try {
+      const res = await petData.hatchReadyPets();
+      if (!res.justHatchedIds.length) return;
+      // Behåll rummets aktuella positioner + undanstuvning (serverns pos kan vara
+      // äldre än dit promenad-AI:n hunnit gå; stow-flaggan lever lokalt).
+      for (const np of res.pets) {
+        const old = pets.find((p) => p.id === np.id);
+        if (old) {
+          if (old.pos) np.pos = old.pos;
+          np.stowed = old.stowed;
+        }
+      }
+      pets = res.pets;
+      justHatchedId = res.justHatchedIds[0];
+      selectedPetId = justHatchedId;
+      confetti();
+      flash("Ett ägg har kläckts i ditt rum! 🎉");
+      renderStage();
+      renderPets();
+    } catch {
+      // Nätverksfel: låt nästa tick försöka igen (ägget är fortfarande "due").
+    } finally {
+      hatching = false;
+    }
+  }, 15000);
+
+  // Styr-API åt husvärlden (pages-varld.js): palett/verktyg per rum + exitMat()
+  // som avslutar mat-läget (panel-/nivåbyten stänger mat-läget).
   return {
     count: roomCount,
     current: () => currentRoom,
@@ -605,5 +657,6 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       applyWallPalette();
       data.saveRoomAt(currentRoom, { paletteId: id }).catch(() => {});
     },
+    exitMat: mat.exitPlacing,
   };
 }

@@ -85,9 +85,10 @@ export function parseArgs(argv = process.argv.slice(2)) {
   const opts = {};
   for (const a of argv) {
     if (a.startsWith("--")) {
-      const [k, v] = a.slice(2).split("=");
-      if (v === undefined) flags.add(k);
-      else opts[k] = v;
+      const body = a.slice(2);
+      const eq = body.indexOf("=");
+      if (eq === -1) flags.add(body);
+      else opts[body.slice(0, eq)] = body.slice(eq + 1);
     }
   }
   return { flags, opts };

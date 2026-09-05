@@ -45,13 +45,15 @@ export async function pageElevKlasskamrat() {
   let sd;
   let student;
   try {
-    // Endast LÄSNING av den andra elevens data.
-    const [sdRes, studentsRes] = await Promise.all([
+    // Endast LÄSNING av den andra elevens data. Hämta bara DEN eleven per
+    // dokument (getStudent) – en elev får inte lista hela students-kollektionen,
+    // bara läsa klasskamrater i samma klass (se firestore.rules sharesClass).
+    const [sdRes, studentRes] = await Promise.all([
       data.getStudentData(otherId),
-      data.getStudents().catch(() => []),
+      data.getStudent(otherId).catch(() => null),
     ]);
     sd = sdRes;
-    student = studentsRes.find((s) => s.id === otherId) || null;
+    student = studentRes;
   } catch (err) {
     return pageError("Kunde inte ladda rummet", err);
   }

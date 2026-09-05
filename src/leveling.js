@@ -15,7 +15,7 @@
 //   basXP  : grundpott bara för att klara övningen
 //   perStar: bonus per stjärna (1–3) man fick
 // En förstagångs-3-stjärnig övning ger alltså 20 + 3×10 = 50 XP. Vid OMSPEL
-// ges ~30 % (grind-skydd, samma mönster som coins) – se game-shared.js.
+// ges 80 % (medvetet produktbeslut, samma mönster som coins) – se game-shared.js.
 // Justera dessa två tal för att göra det snabbare/långsammare att levla.
 // ---------------------------------------------------------------------------
 export const XP_BASE = 20;
@@ -126,4 +126,68 @@ export function xpFromProgress(progress = {}) {
 export function xpFromStudentData(sd) {
   if (sd && typeof sd.xp === "number" && sd.xp >= 0) return sd.xp;
   return xpFromProgress(sd?.progress);
+}
+
+// ---------------------------------------------------------------------------
+// KLASSAGGREGAT (gemensam klasstatistik & klass-nivå för klassbyn, #/elev/by)
+// ----------------------------------------------------------------------------
+// Byn visar BARA POSITIVA, icke-utpekande mått för hela klassen tillsammans:
+// summan av allas XP → en gemensam KLASS-NIVÅ (samma stigande kurva som eleven,
+// applicerad på totalsumman), plus hur många övningar klassen klarat och hur
+// många stjärnor de samlat ihop. Inga jämförelser mellan elever, inga negativa
+// tal – bara sådant som VÄXER när klassen pluggar. Rena funktioner (ingen
+// Firestore); klassbyn härleder aggregatet vid inläsning ur kamraternas redan
+// klass-scopat läsbara studentData (se firestore.rules sharesClass), så inget
+// behöver persisteras och behörighetsreglerna rörs inte.
+// ---------------------------------------------------------------------------
+
+/**
+ * Räkna avklarade övningar + intjänade stjärnor i ett progress-objekt.
+ * Samma form som xpFromProgress går igenom (progress[areaId][mode] =
+ * { completed, stars, ... }); robust mot trasiga/tomma objekt.
+ * @returns {{completed:number, stars:number}}
+ */
+export function progressTotals(progress = {}) {
+  let completed = 0;
+  let stars = 0;
+  for (const modes of Object.values(progress || {})) {
+    for (const r of Object.values(modes || {})) {
+      if (!r || typeof r !== "object") continue;
+      if (r.completed) completed++;
+      if (typeof r.stars === "number") stars += Math.max(0, r.stars);
+    }
+  }
+  return { completed, stars };
+}
+
+/**
+ * Aggregera POSITIV klasstatistik ur en lista elever, var och en med redan
+ * uträknade per-elev-mått { xp, completed, stars } (se
+ * data.getStudentsWithLooks, som fyller dem ur samma studentData-läsning som
+ * husens utseende). Klass-nivån härleds ur SUMMAN av allas XP med samma
+ * nivåkurva som en enskild elev – klassen "levlar" alltså gemensamt och utan
+ * tak. Endast summor returneras; inga per-elev-tal läcker ut ur funktionen.
+ *
+ * @param {Array<{xp?:number, completed?:number, stars?:number}>} students
+ * @returns {{antalElever:number, totalXp:number, totalCompleted:number,
+ *   totalStars:number, level:number, intoLevel:number, neededForNext:number,
+ *   progressRatio:number, xp:number}}
+ */
+export function aggregateKlassStats(students = []) {
+  const list = Array.isArray(students) ? students : [];
+  let totalXp = 0;
+  let totalCompleted = 0;
+  let totalStars = 0;
+  for (const s of list) {
+    totalXp += Math.max(0, Number(s?.xp) || 0);
+    totalCompleted += Math.max(0, Number(s?.completed) || 0);
+    totalStars += Math.max(0, Number(s?.stars) || 0);
+  }
+  return {
+    antalElever: list.length,
+    totalXp,
+    totalCompleted,
+    totalStars,
+    ...xpIntoLevel(totalXp), // level, intoLevel, neededForNext, progressRatio, xp
+  };
 }

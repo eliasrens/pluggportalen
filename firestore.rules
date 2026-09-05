@@ -16,6 +16,23 @@ service cloud.firestore {
     // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
     function isSelf(id)  { return signedIn() && request.auth.uid == id; }
 
+    // Klass-scopad kamratläsning (klassbyn, #/elev/by). En elev får läsa en
+    // ANNAN elevs students/studentData ENDAST om de delar minst en klass.
+    // Klasstillhörigheten är denormaliserad som students/{id}.classIds (en
+    // lista klass-id:n) eftersom regler inte kan loopa över classes-kollektionen
+    // för att hitta en gemensam klass. Fältet underhålls av läraren via
+    // data.setClassStudents/deleteClass och backfillas med
+    // admin/backfill-class-ids.mjs. Saknat/tomt classIds ⇒ ingen kamratåtkomst
+    // (fail-closed): en klasslös elev når bara sitt eget.
+    function classIdsOf(id) {
+      return exists(/databases/$(database)/documents/students/$(id))
+        ? get(/databases/$(database)/documents/students/$(id)).data.get('classIds', [])
+        : [];
+    }
+    function sharesClass(id) {
+      return signedIn() && classIdsOf(request.auth.uid).hasAny(classIdsOf(id));
+    }
+
     // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
     // bara lärare skriver. Inget world-read längre.
     match /subjects/{subjectId} {
@@ -30,24 +47,28 @@ service cloud.firestore {
     // Elevkonton: eleven läser SITT eget dokument, lärare läser/skriver alla.
     // Inga lösenord finns kvar här (de bor i Firebase Auth) → ingen världsläsbar
     // lösenordslista. Elever kan inte skapa/ändra konton (bara läraren).
+    // Läsning: eleven själv + lärare + klasskamrat (samma klass, se sharesClass)
+    // så klassbyn kan visa kamraternas namn/avatar. Skrivning: bara läraren.
     match /students/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId);
+      allow read:  if isTeacher() || isSelf(studentId) || sharesClass(studentId);
       allow write: if isTeacher();
     }
 
     // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering): eleven
     // äger sitt eget; lärare läser alla (klassöversikt) och skriver (ge coins).
+    // En klasskamrat (samma klass, sharesClass) får LÄSA – byn/kompisrummet visar
+    // hus, avatar och palett – men aldrig skriva. Endast eleven själv/läraren skriver.
     //
-    // HUSLÅS (#33): studentData bär ett fält `husLast` (bool). Kamratläsning av
-    // en annan elevs studentData är i dagsläget HELT spärrad här (read tillåts
-    // bara för läraren eller eleven själv), så låset kan INTE kringgås klient-
-    // sida – ingen kan läsa en annans rum, låst eller ej.
-    // OBS för Epic C:s by-fix: om kamratläsning öppnas (t.ex. för att visa en
-    // klasskamrats rum) MÅSTE den grenen även kräva `resource.data.husLast != true`,
-    // annars går låset att kringgå. Exteriören i byn bör då läsas ur ett
-    // fält/dokument som inte omfattas av låset (huset syns även när det är låst).
+    // HUSLÅS (#33 + Epic C:s by-fix): fältet `husLast` (bool) på studentData. När
+    // det är true NEKAS kamratläsning här på servern (sharesClass-grenen kräver
+    // `resource.data.husLast != true`), så låset går INTE att kringgå enbart
+    // klient-sida. Eleven själv och läraren läser alltid (även när det är låst).
+    // Byn tål detta: getStudentsWithLooks (data-content.js) fångar nekad läsning
+    // PER elev och visar då default-utseende (ett låst hus = generiskt hus i byn),
+    // och klasskamratens läs-vy (pages-klasskamrat.js) visar "🔒 Låst" när läsning
+    // nekas. husLast saknas på gamla dokument → `!= true` → olåst (läsbart).
     match /studentData/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId);
+      allow read:  if isTeacher() || isSelf(studentId) || (sharesClass(studentId) && resource.data.husLast != true);
       allow write: if isTeacher() || isSelf(studentId);
     }
 

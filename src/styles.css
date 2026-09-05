@@ -1041,6 +1041,12 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   gap: 10px;
 }
 
+.area-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .area-row {
   display: flex;
   align-items: center;
@@ -1051,6 +1057,14 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   border-radius: 14px;
   background: #fbfdff;
 }
+
+/* Inline-formuläret "Lägg till nytt innehåll" som fälls ut under en områdesrad. */
+.area-merge {
+  margin-left: 14px;
+  border-left: 3px solid #cfe0f7;
+  padding-left: 12px;
+}
+.area-merge .subpanel { margin: 0; }
 
 .area-info {
   display: flex;
@@ -2454,6 +2468,21 @@ code {
   white-space: nowrap;
 }
 
+/* Övningstyper-kryssrutor (Fix område): etikett + kort hjälptext på två rader,
+   så återanvänder vi .member-row/.member-name men släpper ellips-klippningen. */
+#ex-types .member-row {
+  align-items: flex-start;
+}
+#ex-types .member-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.3;
+}
+#ex-types .member-name .hint {
+  font-weight: 400;
+}
+
 .ok-inline {
   color: var(--gron-mork);
   font-weight: 600;
@@ -2699,6 +2728,89 @@ body.varld-lage .container {
   pointer-events: none;
 }
 
+/* --- Klassbyns gemensamma statistik-skylt (#klass-stats) -------------------- */
+/* Liten "byskylt" överst i byn: klassens gemensamma nivå + positiva totaler.
+   Absolut placerad strax under knappraden och horisontellt centrerad, så den
+   inte stör overlay-flexen. pointer-events auto bara för att skylten ska kännas
+   som ett fast objekt (den har inga egna klick). */
+.varld-klass-stats {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: max-content;
+  max-width: min(360px, 92%);
+  padding: 8px 16px;
+  background: #fff;
+  border: 3px solid #3b3350;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
+  text-align: center;
+}
+.varld-klass-stats .ks-rubrik {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #3b3350;
+}
+.varld-klass-stats .ks-niva {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.varld-klass-stats .ks-niva-badge {
+  flex: 0 0 auto;
+  background: var(--lila, #7c5cd6);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.varld-klass-stats .ks-bar {
+  flex: 1 1 auto;
+  height: 12px;
+  min-width: 70px;
+  background: #ece7f6;
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.varld-klass-stats .ks-bar-fyll {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ffd34d, #ffb703);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+.varld-klass-stats .ks-rad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+}
+.varld-klass-stats .ks-stat {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #3b3350;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .varld-klass-stats .ks-bar-fyll { transition: none; }
+}
+@media (max-width: 700px) {
+  /* Knappraden kan wrappa till två rader på smala skärmar → skylten lite lägre. */
+  .varld-klass-stats { top: 92px; padding: 6px 12px; }
+  .varld-klass-stats .ks-rubrik { font-size: 0.85rem; }
+}
+
 /* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
 .varld-stage[data-niva="by"] .varld-knapp.bara-rum,
 .varld-stage[data-niva="by"] .varld-knapp.rum-och-hus,
@@ -2708,6 +2820,136 @@ body.varld-lage .container {
 /* På en KAMRATS hus (läs-vy) göms alla scen-kontroller helt – man kan bara
    titta in i deras rum eller gå tillbaka till byn. */
 .varld-stage[data-niva="kompishus"] .varld-verktyg { display: none; }
+
+/* På skol-/grannby-nivån (andra klassers byar) göms rums-/husverktygen – här
+   tittar man bara på byar, inget att måla om eller pyssla med. */
+.varld-stage[data-niva="skola"] .varld-verktyg,
+.varld-stage[data-niva="grannby"] .varld-verktyg { display: none; }
+
+/* --- Skol-nivån (områdesöversikt): en klass-by per klass ------------------- */
+.varld-skola { background: #a8da8f; }
+.omrade-mark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* En klass-by-enhet: generisk by-silhuett + en namnskylt. left/top/width/height
+   sätts inline av varld-omrade.js (procent av lagret – samma koordinater som
+   kamerans fokuspunkter). */
+.omrade-by {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  outline: none;
+}
+.omrade-by-hus {
+  width: 100%;
+  height: 76%;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 90%;
+}
+.omrade-by:hover .omrade-by-hus,
+.omrade-by:focus-visible .omrade-by-hus { transform: scale(1.06); }
+.omrade-by:focus-visible {
+  outline: 3px solid var(--lila, #7c5cd6);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+.omrade-by-hus > svg { width: 100%; height: 100%; display: block; }
+
+.omrade-by-namn {
+  margin-top: 2px;
+  max-width: 150%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #3b3350;
+}
+.omrade-by-namn b { color: var(--lila, #7c5cd6); }
+.omrade-by.du .omrade-by-namn {
+  background: var(--gron, #34a853);
+  border-color: rgba(59, 51, 80, 0.55);
+  color: #fff;
+}
+.omrade-by.du .omrade-by-namn b { color: #fff; }
+
+.omrade-du {
+  position: absolute;
+  top: 2px;
+  left: 68%;
+  background: var(--gron, #34a853);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  box-shadow: var(--skugga);
+  transform: rotate(6deg);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* --- Grannby-nivån (läs-vy av en annan klass by) -------------------------- */
+.varld-grannby { background: #a8da8f; }
+.grannby-scen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 4%;
+  background:
+    linear-gradient(#9AD3F0 0 12%, transparent 12%),
+    #a8da8f;
+}
+.grannby-by {
+  width: min(70%, 620px);
+  max-height: 46%;
+}
+.grannby-by > svg { width: 100%; height: 100%; display: block; }
+.grannby-skylt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #fff;
+  border: 3px solid #3b3350;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
+  padding: 8px 20px;
+  text-align: center;
+}
+.grannby-skylt-titel { font-weight: 800; font-size: 1.05rem; color: #3b3350; }
+.grannby-skylt-by { font-weight: 700; font-size: 0.85rem; color: #7c5cd6; }
+.grannby-skylt-antal { font-weight: 800; font-size: 0.82rem; color: #3b3350; }
+.grannby-not {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  padding: 3px 14px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #3b3350;
+}
+@media (max-width: 700px) {
+  .grannby-skylt-titel { font-size: 0.95rem; }
+  .grannby-not { font-size: 0.76rem; }
+}
 
 /* --- Overlay-UI i spelvyn (integrerade scen-kontroller) -------------------- */
 /* Själva overlay-skiktet släpper igenom pekare; bara knappar/paneler fångar. */
@@ -2938,7 +3180,7 @@ body.varld-lage .container {
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
-  .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, .by-tomt > svg { transition-duration: 0.01s; }
+  .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
@@ -3054,10 +3296,13 @@ body.varld-lage .container {
 
 .room-pet .rp-namn.rp-agg { color: #8a6d3b; }
 
-/* Namn-etiketten som döpnings-affordans: klickbar (till skillnad från den
-   generella pointer-events:none-etiketten) med en liten ✏️-hint. Öppnar det
-   lilla inline-namnfältet – samma för mystery-djur och vanliga djur. */
-.room-pet .rp-namn.rp-namn-edit {
+/* Namn-etiketten som döpnings-/panel-affordans: klickbar (till skillnad från den
+   generella pointer-events:none-etiketten). Öppnar inline-namnfältet/panelen –
+   samma för mystery-djur och vanliga djur. rp-namn-edit visar dessutom en liten
+   ✏️-hint (BARA innan djuret döpts); rp-namn-tap är samma klickbara etikett utan
+   den permanenta pennan (för ett redan namngivet djur). */
+.room-pet .rp-namn.rp-namn-edit,
+.room-pet .rp-namn.rp-namn-tap {
   pointer-events: auto;
   cursor: pointer;
 }
@@ -3066,7 +3311,8 @@ body.varld-lage .container {
   font-size: 0.82em;
   opacity: 0.5;
 }
-.room-pet .rp-namn.rp-namn-edit:hover {
+.room-pet .rp-namn.rp-namn-edit:hover,
+.room-pet .rp-namn.rp-namn-tap:hover {
   background: #fff;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
 }

@@ -21,7 +21,7 @@
 // ============================================================================
 
 import * as petData from "./data-pet.js";
-import { placeApple } from "./data-pet-mat.js";
+import { placeApple, newAppleId } from "./data-pet-mat.js";
 import { flash } from "./ui.js";
 import { confetti } from "./fx.js";
 import { setPetMood, petDisplayName } from "./pages-rum-pets.js";
@@ -38,10 +38,13 @@ import { FLOOR_TOP } from "./art-room.js";
  * @param {() => void} o.renderScene  rita om rumsscenen (visar mat + djur)
  * @param {() => void} o.renderPanel  rita om husdjurspanelen (ny feedCount)
  * @param {(petId: string) => boolean} o.isSelected  är djurets panel öppen?
- * @returns {{ apples: () => object[], onEat: (pet: object, apple: object) => void }}
- *   apples() = mat på golvet (för scenritning + AI), onEat = ät-callback åt AI:n.
+ * @param {() => void} [o.onActivate]  körs när placera-läget slås PÅ (så
+ *   husvärlden kan stänga öppna paneler – lägena är ömsesidigt uteslutande)
+ * @returns {{ apples: () => object[], onEat: (pet, apple) => void, exitPlacing: () => void }}
+ *   apples() = mat på golvet (för scenritning + AI), onEat = ät-callback åt AI:n,
+ *   exitPlacing() = gemensam väg att avsluta mat-läget (panel-/menystängning).
  */
-export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPanel, isSelected }) {
+export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPanel, isSelected, onActivate }) {
   // Speglar studentData: floorApples (på golvet) + appleCount (outlagd mat).
   let floorApples = Array.isArray(sd.floorApples) ? sd.floorApples.map((a) => ({ ...a })) : [];
   let appleCount = sd.appleCount || 0;
@@ -75,8 +78,14 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     if (placing) {
       // Fånga golvklick i capture-fasen så scenens vanliga drag/markera-logik
       // (bubbel-fasen på samma nod) inte kör – klicket ska bara lägga mat.
+      // pointerdown ligger på stage → försvinner med scenen. keydown MÅSTE ligga
+      // på document (Esc ska fångas oavsett fokus), så den städar sig själv om
+      // scenen lämnats (se onKeyDown) – samma isConnected-mönster som rum-promenad.js.
       stage.addEventListener("pointerdown", onPlaceClick, true);
       document.addEventListener("keydown", onKeyDown, true);
+      // Mat och paneler (Kläder m.fl.) är ömsesidigt uteslutande: att slå på
+      // mat-läget stänger öppna paneler (husvärlden sköter själva stängningen).
+      onActivate?.();
     } else {
       stage.removeEventListener("pointerdown", onPlaceClick, true);
       document.removeEventListener("keydown", onKeyDown, true);
@@ -85,6 +94,14 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   }
 
   function onKeyDown(e) {
+    // Rummet lämnat (scenen borta ur DOM:en) medan placera-läget var aktivt?
+    // Då avregistrerade setPlacing(false) aldrig lyssnaren – städa den här så
+    // den varken läcker (håller den detacherade scenen vid liv) eller påverkar
+    // fel scen med fantom-tangenttryck.
+    if (!stage.isConnected) {
+      document.removeEventListener("keydown", onKeyDown, true);
+      return;
+    }
     if (e.key === "Escape") {
       e.preventDefault();
       setPlacing(false);
@@ -112,28 +129,43 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     placeAt(cx, cy);
   }
 
-  async function placeAt(x, y) {
+  // OPTIMISTISK placering: rita maten direkt (ingen server-round-trip att vänta
+  // på) och persistera i bakgrunden. Ingen toast per matbit – att lägga ut flera
+  // bitar snabbt ska kännas omedelbart. Misslyckas persisteringen rullas biten
+  // tillbaka så ingen "spökmat" blir kvar. Äpplet får sitt id lokalt och samma
+  // id skickas till servern, så ät-flödet (onEat → eatApple) hittar rätt bit.
+  function placeAt(x, y) {
     if (appleCount <= 0) {
       setPlacing(false);
       flash("Du har ingen Mysterymat kvar – köp mer i shoppen! 🍎", true);
       return;
     }
-    try {
-      const res = await placeApple(x, y);
-      appleCount = res.appleCount;
-      if (res.ok && res.apple) {
-        floorApples.push({ ...res.apple });
-        renderScene();
-        flash("Du la ut Mysterymat! 🍎 Mystery-djuren kommer och äter.");
-      } else {
-        flash("Du har ingen Mysterymat kvar.", true);
-      }
-    } catch (err) {
-      flash("Kunde inte lägga ut maten: " + err.message, true);
-    }
+    const apple = { id: newAppleId(), x, y };
+    floorApples.push(apple);
+    appleCount -= 1;
+    renderScene();
     // Slut på mat → lämna placera-läget automatiskt.
     if (appleCount <= 0) setPlacing(false);
     updateMatBtn();
+
+    placeApple(x, y, undefined, apple.id).then((res) => {
+      if (!res.ok) {
+        // Servern hade slut på mat: rulla tillbaka biten och korrigera räknaren.
+        floorApples = floorApples.filter((a) => a.id !== apple.id);
+        appleCount = res.appleCount;
+        renderScene();
+        updateMatBtn();
+        flash("Du har ingen Mysterymat kvar.", true);
+      }
+      // OK → den optimistiska maten står redan rätt (samma id) – inget att göra.
+    }).catch((err) => {
+      // Nätverksfel: ta bort spökmaten och ge tillbaka räknaren.
+      floorApples = floorApples.filter((a) => a.id !== apple.id);
+      appleCount += 1;
+      renderScene();
+      updateMatBtn();
+      flash("Kunde inte lägga ut maten: " + err.message, true);
+    });
   }
 
   // Ett djur nådde fram till ett stycke mat (kallas av promenad-AI:n). Ta bort
@@ -187,7 +219,10 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   }
   updateMatBtn();
 
-  // Avbryt placera-läget utifrån (t.ex. när man byter rum i flerrums-huset, så
-  // capture-lyssnaren på golvet inte sväljer klick på dörrar/rumslistan).
-  return { apples: () => floorApples, onEat, cancelPlacing: () => setPlacing(false) };
+  // Avsluta placera-läget utifrån. Två alias för samma sak: cancelPlacing()
+  // används vid rums-byte i flerrums-huset (så golvets capture-lyssnare inte
+  // sväljer klick på dörrar/rumslistan), exitPlacing() av husvärldens panel-/
+  // menystängning (mat och paneler är ömsesidigt uteslutande lägen).
+  const stopPlacing = () => setPlacing(false);
+  return { apples: () => floorApples, onEat, cancelPlacing: stopPlacing, exitPlacing: stopPlacing };
 }
