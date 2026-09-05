@@ -41,6 +41,8 @@ import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { mountByScen } from "./varld-by-scen.js";
 import { createKompisVy } from "./varld-kompis.js";
+import { aggregateKlassStats } from "./leveling.js";
+import { klassStatsSkylt } from "./varld-by-stats.js";
 
 // Levande scen (för sömlösa route-byten): när routern träffar #/elev/hus eller
 // #/elev/rum och scenen redan står i DOM:en byter vi bara kameranivå i stället
@@ -139,6 +141,11 @@ export async function pageElevVarld(startNiva) {
           </div>
         </div>
 
+        <!-- Klassbyns gemensamma statistik-skylt: bara positiva klasstotaler
+             (klass-nivå + klarade övningar + stjärnor). Fylls lat när byn laddas
+             och visas bara på by-nivån (updateUi/visaKlassStats). -->
+        <div class="varld-klass-stats" id="klass-stats" role="status" hidden></div>
+
         <div class="varld-panel" id="panel-palett" hidden>
           <h3>Måla om 🎨</h3>
           <p class="hint">Välj en färgpalett – samma färger används på huset och väggarna i ditt rum! Golvet behåller sin färg.</p>
@@ -179,6 +186,14 @@ export async function pageElevVarld(startNiva) {
   const hint = view.querySelector("#hint");
   const titel = view.querySelector("#titel");
   const utBtn = view.querySelector("#ut-btn");
+  const klassStatsEl = view.querySelector("#klass-stats");
+
+  // Klassbyns statistik-skylt: fylls när byn laddats (lat) och visas bara på
+  // by-nivån. `statsRedo` gör att den inte blinkar fram tom innan datan finns.
+  let statsRedo = false;
+  function visaKlassStats() {
+    klassStatsEl.hidden = !(statsRedo && stage.dataset.niva === "by");
+  }
 
   // --- Kameran: nivåer ordnade ytterst → innerst ----------------------------
   // Fokus 48,5 % / 52 % = husets fönster; zoom 6 = gamla .gar-in-skalan.
@@ -223,6 +238,11 @@ export async function pageElevVarld(startNiva) {
       });
       const { fokus, fokusById } = mountByScen({ lager: byLager, meId, students: boende });
       byNiva.fokus = fokus; // kameran läser fokus vid varje övergång
+      // Gemensam klasstatistik: summera allas positiva bidrag (XP → klass-nivå,
+      // klarade övningar, stjärnor) och måla upp byskylten. Bara klasstotaler.
+      klassStatsEl.innerHTML = klassStatsSkylt(aggregateKlassStats(boende), klassNamn);
+      statsRedo = true;
+      visaKlassStats();
       return { students: boende, fokusById };
     })().catch((err) => {
       byLaddning = null; // låt nästa försök hämta igen
@@ -266,6 +286,7 @@ export async function pageElevVarld(startNiva) {
   function updateUi(nivaId) {
     stage.dataset.niva = nivaId;
     stangPaneler();
+    visaKlassStats(); // klass-skylten syns bara på by-nivån
     utBtn.style.display = "";
     if (nivaId === "by") {
       utBtn.innerHTML = "🏠 <span>Mitt hus</span>";
