@@ -255,6 +255,35 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     });
   }
 
+  // DOM-nod för ett golväpple (Mysterymat). Delas av full-ritningen (renderStage)
+  // och den inkrementella syncApples() så markup/utseende alltid är identiskt.
+  function appleNode(apple) {
+    return el(`<div class="room-apple" data-apple-id="${apple.id}"
+      style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍎</div>`);
+  }
+
+  // Inkrementell mat-uppdatering (issue #60): lägg till/ta bort BARA de golväpplen
+  // som ändrats i stället för att bygga om hela scenen (renderStage) vid varje
+  // utplacering/ätning. Djur- och husdjursnoder rörs aldrig → pågående promenad-
+  // animationer nollställs inte, och att snabbt lägga ut flera bitar känns
+  // omedelbart (bara den nya .room-apple-noden appendas, med sin egen pop-in).
+  // Nya äpplen sätts FÖRE första djuret så de fortsatt ritas UNDER husdjuren.
+  function syncApples() {
+    if (!showPets()) return; // äpplen visas bara i grundrummet (som renderStage)
+    const wanted = new Map(mat.apples().map((a) => [a.id, a]));
+    for (const node of stage.querySelectorAll(".room-apple")) {
+      const id = node.dataset.appleId;
+      if (wanted.has(id)) wanted.delete(id); // redan ritad → behåll
+      else node.remove(); // borttagen (äten/rollback) → ta bort enstaka nod
+    }
+    const firstPet = stage.querySelector(".room-pet");
+    for (const apple of wanted.values()) {
+      const node = appleNode(apple);
+      if (firstPet) stage.insertBefore(node, firstPet);
+      else stage.appendChild(node);
+    }
+  }
+
   // --- Rita rummets scen (saker + husdjur) ---------------------------------
   function renderStage() {
     stage.replaceChildren();
@@ -290,8 +319,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // inte som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
     if (showPets()) {
       for (const apple of mat.apples()) {
-        stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
-          style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍎</div>`));
+        stage.appendChild(appleNode(apple));
       }
       for (const pet of roomPets()) {
         if (!pet.pos) pet.pos = { x: 50, y: 70 };
@@ -369,6 +397,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     matBtn, stage, sd,
     getPets: () => pets,
     renderScene: () => renderStage(),
+    renderApples: () => syncApples(),
     renderPanel: () => renderPets(),
     isSelected: (petId) => selectedPetId === petId,
     onActivate: onMatActivate,
