@@ -187,5 +187,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   }
   updateMatBtn();
 
-  return { apples: () => floorApples, onEat };
+  // Avbryt placera-läget utifrån (t.ex. när man byter rum i flerrums-huset, så
+  // capture-lyssnaren på golvet inte sväljer klick på dörrar/rumslistan).
+  return { apples: () => floorApples, onEat, cancelPlacing: () => setPlacing(false) };
 }

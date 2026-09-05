@@ -124,6 +124,8 @@ export async function pageElevShop() {
           flash(`Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`);
         } else if (isAnimalItem(item.id)) {
           flash(`Du köpte ${item.name}! ${item.emoji} Den promenerar nu omkring i Mitt rum.`);
+        } else if (item.roomUpgrade) {
+          flash(`Du köpte ${item.name}! 🚪 Ett nytt rum finns nu i ditt hus – gå in och byt rum via dörren eller rumslistan.`);
         } else if (item.category === "hus") {
           flash(`Du köpte ${item.name}! ${item.emoji} Byt till det via 🏠 Nytt hus i din husvärld.`);
         } else {
