@@ -68,7 +68,7 @@ service cloud.firestore {
     // och klasskamratens läs-vy (pages-klasskamrat.js) visar "🔒 Låst" när läsning
     // nekas. husLast saknas på gamla dokument → `!= true` → olåst (läsbart).
     match /studentData/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId) || (sharesClass(studentId) && resource.data.husLast != true);
+      allow read:  if isTeacher() || isSelf(studentId) || (sharesClass(studentId) && resource.data.get('husLast', false) != true);
       allow write: if isTeacher() || isSelf(studentId);
     }
 
