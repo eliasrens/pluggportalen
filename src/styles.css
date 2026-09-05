@@ -2778,31 +2778,49 @@ body.varld-lage .container {
   pointer-events: none;
 }
 
-/* --- Klassbyns gemensamma statistik-skylt (#klass-stats) -------------------- */
-/* Liten "byskylt" överst i byn: klassens gemensamma nivå + positiva totaler.
-   Absolut placerad strax under knappraden och horisontellt centrerad, så den
-   inte stör overlay-flexen. pointer-events auto bara för att skylten ska kännas
-   som ett fast objekt (den har inga egna klick). */
+/* --- Klasspoäng: stjärn-toggle uppe till höger (#klass-toggle-wrap) --------- */
+/* Kompakt ✨-knapp i by-scenens högra hörn som fäller ut/in klassens stats-
+   skylt; default infälld så byn inte skyms. Wrappen är ankaret (position:
+   relative) som skylten hänger under, i samma anda som verktygs-rullgardinen. */
+.varld-klass-toggle { position: relative; display: flex; justify-content: flex-end; }
+.varld-klass-toggle[hidden] { display: none; }
+
+/* Själva ✨-knappen ärver .varld-knapp; en gul touch + siffra gör den till en
+   tydlig "klasspoäng"-pill. */
+.varld-klass-stjarna {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.varld-klass-stjarna .ks-toggle-tal { font-weight: 800; }
+.varld-klass-stjarna[aria-expanded="true"] {
+  background: #fff6d9;
+  border-color: #ffb703;
+}
+
+/* Utfällbar "byskylt": klassens gemensamma nivå + positiva totaler. Absolut
+   under ✨-knappen (höger-ankrad), samma popover-känsla som verktygsmenyn. */
 .varld-klass-stats {
   position: absolute;
-  top: 56px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 16;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 5px;
   width: max-content;
-  max-width: min(360px, 92%);
+  max-width: min(360px, 80vw);
   padding: 8px 16px;
   background: #fff;
   border: 3px solid #3b3350;
   border-radius: 16px;
   box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
   text-align: center;
+  animation: verktyg-meny-in 0.12s ease;
 }
+.varld-klass-stats[hidden] { display: none; }
 .varld-klass-stats .ks-rubrik {
   font-weight: 800;
   font-size: 0.92rem;
@@ -2856,9 +2874,12 @@ body.varld-lage .container {
   .varld-klass-stats .ks-bar-fyll { transition: none; }
 }
 @media (max-width: 700px) {
-  /* Knappraden kan wrappa till två rader på smala skärmar → skylten lite lägre. */
-  .varld-klass-stats { top: 92px; padding: 6px 12px; }
+  /* Tightare utfälld skylt på smala skärmar; den hänger fortsatt under ✨-knappen. */
+  .varld-klass-stats { padding: 6px 12px; }
   .varld-klass-stats .ks-rubrik { font-size: 0.85rem; }
+  /* Övriga knappar visar bara ikon på mobil, men ✨-siffran är hela poängen med
+     togglen → behåll talet synligt. */
+  .varld-klass-stjarna .ks-toggle-tal { display: inline; }
 }
 
 /* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
