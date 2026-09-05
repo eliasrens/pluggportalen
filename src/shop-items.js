@@ -61,6 +61,23 @@ export const SHOP_ITEMS = [
   { id: "blomma", name: "Blomma", emoji: "🌷", category: "klader", slot: "hand", price: 12 },
   { id: "glasstrut", name: "Glasstrut", emoji: "🍦", category: "klader", slot: "hand", price: 28 },
   { id: "bok", name: "Bok", emoji: "📕", category: "klader", slot: "hand", price: 35 },
+  // ännu fler kläder (issue #32) – fördelat över alla fyra slots
+  { id: "kockmossa", name: "Kockmössa", emoji: "👨‍🍳", category: "klader", slot: "hatt", price: 45 },
+  { id: "vikinghjalm", name: "Vikingahjälm", emoji: "⛑️", category: "klader", slot: "hatt", price: 140 },
+  { id: "riddarhjalm", name: "Riddarhjälm", emoji: "🪖", category: "klader", slot: "hatt", price: 125 },
+  { id: "djuroron", name: "Djuröron", emoji: "🐼", category: "klader", slot: "hatt", price: 35 },
+  { id: "mustasch", name: "Mustasch", emoji: "👨", category: "klader", slot: "ansikte", price: 25 },
+  { id: "monokel", name: "Monokel", emoji: "🧐", category: "klader", slot: "ansikte", price: 60 },
+  { id: "hjartglasogon", name: "Hjärtglasögon", emoji: "😍", category: "klader", slot: "ansikte", price: 45 },
+  { id: "snorkelmask", name: "Snorkelmask", emoji: "🤿", category: "klader", slot: "ansikte", price: 55 },
+  { id: "parlhalsband", name: "Pärlhalsband", emoji: "📿", category: "klader", slot: "hals", price: 70 },
+  { id: "cape", name: "Hjältemantel", emoji: "🦸", category: "klader", slot: "hals", price: 120 },
+  { id: "fjaderboa", name: "Fjäderboa", emoji: "🪶", category: "klader", slot: "hals", price: 50 },
+  { id: "amulett", name: "Ädelstensamulett", emoji: "💎", category: "klader", slot: "hals", price: 95 },
+  { id: "paraply", name: "Paraply", emoji: "☂️", category: "klader", slot: "hand", price: 40 },
+  { id: "gitarr", name: "Gitarr", emoji: "🎸", category: "klader", slot: "hand", price: 130 },
+  { id: "fiskespo", name: "Fiskespö", emoji: "🎣", category: "klader", slot: "hand", price: 65 },
+  { id: "godisklubba", name: "Godisklubba", emoji: "🍭", category: "klader", slot: "hand", price: 18 },
 
   // --- Möbler & prylar (placeras i rummet) ---------------------------------
   { id: "stol", name: "Pall", emoji: "🪑", category: "mobler", price: 30 },
