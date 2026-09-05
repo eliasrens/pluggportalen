@@ -20,6 +20,7 @@ import { HATT_WEARABLES } from "./art-wearables-hatt.js";
 import { ANSIKTE_WEARABLES } from "./art-wearables-ansikte.js";
 import { HALS_WEARABLES } from "./art-wearables-hals.js";
 import { HAND_WEARABLES } from "./art-wearables-hand.js";
+import { RYGG_WEARABLES } from "./art-wearables-rygg.js";
 
 /** id → { viewBox, par (preserveAspectRatio), art } – sammanslaget från slot-modulerna. */
 export const WEARABLES = {
@@ -27,6 +28,7 @@ export const WEARABLES = {
   ...ANSIKTE_WEARABLES,
   ...HALS_WEARABLES,
   ...HAND_WEARABLES,
+  ...RYGG_WEARABLES,
 };
 
 /**
