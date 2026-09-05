@@ -125,6 +125,9 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   const roomModels = roomsData.map((room, i) => ({
     placements: filterPlacements(room.placements),
     paletteId: room.paletteId || null,
+    // Rums-dörrarnas sparade lägen per sida ({ prev:{x,y}, next:{x,y} }); saknas
+    // → växlaren placerar dörren på sin snygga default-plats på väggen (#59).
+    doors: room.doors && typeof room.doors === "object" ? { ...room.doors } : {},
     fonster: mountRumFonster({
       saved: room.window,
       save: (win) => data.saveRoomAt(i, { window: win }),
@@ -186,6 +189,23 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     const t = saveTarget;
     saveTarget = null;
     if (t) data.saveRoomAt(t.idx, { placements: t.pl }).catch(() => {});
+  }
+
+  // Spara rums-dörrarnas lägen (debounce per rum, samma mönster som placements).
+  // doorSaveTargets samlar väntande sidor per rum-index så en snabb rums-växling
+  // inte skriver ett rums dörrläge till fel rum.
+  let doorSaveTimer = null;
+  const doorSaveTargets = new Map(); // idx → doors-objekt att skriva
+  function scheduleSaveDoors() {
+    doorSaveTargets.set(currentRoom, { ...roomModels[currentRoom].doors });
+    clearTimeout(doorSaveTimer);
+    doorSaveTimer = setTimeout(() => {
+      doorSaveTimer = null;
+      for (const [idx, doors] of doorSaveTargets) {
+        data.saveRoomAt(idx, { doors }).catch(() => {});
+      }
+      doorSaveTargets.clear();
+    }, 250);
   }
 
   // Spara husdjurens positioner (samma debounce-mönster).
@@ -408,7 +428,16 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // Växlaren byggs bara när huset faktiskt har fler än ett rum (enrums-hus är
   // helt oförändrade). Den läggs in i scenen av renderStage().
   const vaxlare = roomCount > 1
-    ? mountRumVaxlare({ count: roomCount, getCurrent: () => currentRoom, onPick: goToRoom })
+    ? mountRumVaxlare({
+        count: roomCount,
+        getCurrent: () => currentRoom,
+        onPick: goToRoom,
+        getDoorPos: (side) => roomModels[currentRoom].doors[side] || null,
+        saveDoorPos: (side, pos) => {
+          roomModels[currentRoom].doors[side] = pos;
+          scheduleSaveDoors();
+        },
+      })
     : null;
 
   // Nykläckt ägg? Fira och öppna panelen för namngivning direkt.
