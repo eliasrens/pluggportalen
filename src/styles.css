@@ -1041,6 +1041,12 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   gap: 10px;
 }
 
+.area-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .area-row {
   display: flex;
   align-items: center;
@@ -1051,6 +1057,14 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   border-radius: 14px;
   background: #fbfdff;
 }
+
+/* Inline-formuläret "Lägg till nytt innehåll" som fälls ut under en områdesrad. */
+.area-merge {
+  margin-left: 14px;
+  border-left: 3px solid #cfe0f7;
+  padding-left: 12px;
+}
+.area-merge .subpanel { margin: 0; }
 
 .area-info {
   display: flex;

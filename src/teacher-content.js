@@ -8,6 +8,7 @@
 
 import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
+import { buildMergeForm } from "./teacher-content-merge.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { EXERCISE_TYPES, areaExerciseTypes } from "./exercise-types.js";
 import { listPairImageKeys } from "./pair-images.js";
@@ -232,6 +233,7 @@ export async function pageLarareInnehall(ctx) {
     }
     const list = el(`<div class="area-rows"></div>`);
     for (const a of areas) {
+      const wrap = el(`<div class="area-row-wrap"></div>`);
       const row = el(`<div class="area-row">
         <div class="area-info">
           <span class="area-emoji">${esc(a.coverEmoji || "📖")}</span>
@@ -241,10 +243,25 @@ export async function pageLarareInnehall(ctx) {
           </div>
         </div>
         <div class="row-actions">
+          <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
           <button class="btn ghost small" data-act="edit">Ersätt</button>
           <button class="btn ghost small danger" data-act="del">Ta bort</button>
         </div>
       </div>`);
+      // Inline-slot för "lägg till nytt innehåll" (issue #40) – öppnas under raden.
+      const mergeSlot = el(`<div class="area-merge" hidden></div>`);
+      row.querySelector('[data-act="add"]').addEventListener("click", () => {
+        if (!mergeSlot.hidden) {
+          mergeSlot.hidden = true;
+          mergeSlot.innerHTML = "";
+          return;
+        }
+        mergeSlot.replaceChildren(
+          buildMergeForm(a, mergeSlot, { subjectId: selected, onSaved: refreshAreaList })
+        );
+        mergeSlot.hidden = false;
+        mergeSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
       row.querySelector('[data-act="edit"]').addEventListener("click", () => {
         // Ladda in i textrutan för redigering/ersättning. Övningstyperna hör hemma
         // i kryssrutorna (inte i JSON:en), så vi lyfter ut dem och fyller boxen.
@@ -264,7 +281,9 @@ export async function pageLarareInnehall(ctx) {
           alert("Kunde inte ta bort: " + err.message);
         }
       });
-      list.appendChild(row);
+      wrap.appendChild(row);
+      wrap.appendChild(mergeSlot);
+      list.appendChild(wrap);
     }
     areaListEl.replaceChildren(list);
   }
