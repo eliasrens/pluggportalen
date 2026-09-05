@@ -216,6 +216,41 @@ describe("Klasskamrat-läsning (klassbyn) – scopad till samma klass", () => {
   });
 });
 
+describe("Huslås (#33): husLast==true spärrar kamratläsning av studentData", () => {
+  // elev1 & elev2 delar klass 6a; elev2 LÅSER sitt hus (studentData.husLast).
+  // Låset får inte gå att kringgå klient-sida: en klasskamrat ska då nekas läsa
+  // studentData server-sidan, men eleven själv/läraren når den alltid, och husets
+  // EXTERIÖR (students-dokumentet) är fortfarande läsbar så huset syns i byn.
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, "students", "elev1"), { classIds: ["6a"] }, { merge: true });
+      await setDoc(doc(db, "students", "elev2"), { classIds: ["6a"] }, { merge: true });
+      await setDoc(
+        doc(db, "studentData", "elev2"),
+        { coins: 50, progress: {}, husLast: true },
+        { merge: true }
+      );
+    });
+  });
+
+  it("klasskamrat får INTE läsa en LÅST elevs studentData", async () => {
+    await assertFails(getDoc(doc(elev("elev1"), "studentData", "elev2")));
+  });
+  it("eleven själv läser/skriver sin egen studentData även när den är låst", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev2"), "studentData", "elev2")));
+    await assertSucceeds(
+      setDoc(doc(elev("elev2"), "studentData", "elev2"), { husLast: false }, { merge: true })
+    );
+  });
+  it("läraren får läsa en låst elevs studentData", async () => {
+    await assertSucceeds(getDoc(doc(teacher(), "studentData", "elev2")));
+  });
+  it("klasskamrat får ändå läsa students (husets exteriör/figur syns i byn)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev2")));
+  });
+});
+
 describe("Lärare (claim teacher:true) når allt", () => {
   it("kan läsa alla elevers students och studentData", async () => {
     await assertSucceeds(getDoc(doc(teacher(), "students", "elev1")));

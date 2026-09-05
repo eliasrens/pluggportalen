@@ -193,6 +193,17 @@ export function isFlatItem(id) {
 }
 
 /**
+ * Är saken en HUS-sak (kategori "hus")? Det täcker både köpbara husskal som
+ * byter husets exteriör (slott/svamphus) och rums-uppgraderingar (rum-2/3/4).
+ * Ingen av dem placeras som en vanlig sak i rummet → varld-rum.js filtrerar bort
+ * dem ur room.placements med !isHouseItem(id).
+ */
+export function isHouseItem(id) {
+  const it = getItem(id);
+  return !!(it && it.category === "hus");
+}
+
+/**
  * Är saken ett VANLIGT djur (hund/katt/kanin …)? De köps i shoppen och blir
  * LEVANDE, promenerande djur i rummet (studentData.roomAnimals via
  * data-animals.js) – inte statiska möbler i room.placements. Ägget och
