@@ -154,6 +154,8 @@ Exempel (`students/elev1`):
 | `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
 | `room`       | map    | `{ placements: { [itemId]: { x, y } }, paletteId }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om) |
+| `husSkalId`  | string/null | Aktivt husskal (byter husets exteriör); `null` = default-stugan |
+| `husLast`    | bool   | `true` = huset är **låst**: en klasskamrats läs-vy (`src/pages-klasskamrat.js`) visar `🔒 Låst` i stället för rummet. Toggle i verktygsmenyn (`src/pages-varld.js`); delad hjälpare `isHouseLocked(studentData)` i `src/data-room.js`. Husets exteriör i byn påverkas inte. |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 | `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds numera ur elevens **nivå** (nivåtrösklarna `STAGE_LEVELS` i `src/evolution.js`; nivån ur `xp` via `src/leveling.js`). |

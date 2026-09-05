@@ -130,6 +130,7 @@ export async function pageElevVarld(startNiva) {
               aria-label="Verktyg" hidden>
               <button class="varld-knapp" role="menuitem" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
               <button class="varld-knapp" role="menuitem" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
+              <button class="varld-knapp rum-och-hus" role="menuitem" id="las-btn"></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
               <button class="varld-knapp rum-och-hus" role="menuitem" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
@@ -346,6 +347,36 @@ export async function pageElevVarld(startNiva) {
     go(stage.dataset.niva === "kompishus" ? "#/elev/by" : "#/elev/hus")
   );
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
+
+  // --- Huslås ("Lås ditt hus"): en enkel toggle i verktygsmenyn -------------
+  // Låser man huset visar en klasskamrats läs-vy "🔒 Låst" i stället för rummet
+  // (pages-klasskamrat.js läser samma husLast-fält). Exteriören i byn påverkas
+  // inte. Optimistisk UI: knappen slår om direkt och rullas tillbaka om
+  // sparningen fallerar.
+  let husLast = data.isHouseLocked(sd);
+  const lasBtn = view.querySelector("#las-btn");
+  function renderLasBtn() {
+    lasBtn.innerHTML = husLast ? "🔒 <span>Lås upp huset</span>" : "🔓 <span>Lås huset</span>";
+    lasBtn.title = husLast
+      ? "Huset är låst – klasskamrater ser inte in i rummet. Klicka för att låsa upp."
+      : "Lås huset så att klasskamrater inte kan titta in i rummet.";
+    lasBtn.setAttribute("aria-pressed", String(husLast));
+  }
+  renderLasBtn();
+  lasBtn.addEventListener("click", () => {
+    const next = !husLast;
+    husLast = next;
+    renderLasBtn();
+    data.setHusLast(next).then(() => {
+      flash(next
+        ? "🔒 Huset är låst – nu kan ingen kompis titta in i rummet."
+        : "🔓 Huset är upplåst – kompisar kan hälsa på igen.");
+    }).catch((err) => {
+      husLast = !next; // rulla tillbaka i UI om skrivningen inte gick
+      renderLasBtn();
+      flash("Kunde inte spara låset: " + err.message, true);
+    });
+  });
 
   // Verktygspaneler (en öppen åt gången, klick igen stänger).
   for (const btn of view.querySelectorAll("[data-panel]")) {

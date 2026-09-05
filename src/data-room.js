@@ -83,6 +83,47 @@ export async function saveHusSkal(skalId, studentId = currentStudentId()) {
   return skalId;
 }
 
+// --- Huslås ("Lås ditt hus" – hindra andra elever från att titta in) --------
+// Ett TOP-LEVEL fält (studentData.husLast, bool). När det är true ska en
+// klasskamrats LÄS-vy (pages-klasskamrat.js) visa ett "🔒 Låst"-tillstånd i
+// stället för rummets innehåll – husets exteriör i byn syns fortfarande.
+//
+// isHouseLocked() är en REN hjälpare (ingen Firestore) så alla läs-vyer kan
+// avgöra låset ur en redan inläst studentData utan en extra runda. Den är
+// generisk med flit: sub-issue #34 (fler rum) ska respektera EXAKT samma lås.
+//
+// Server-sida: klasskamratläsning av studentData är i dagsläget HELT spärrad i
+// firestore.rules (read: isTeacher() || isSelf) – ingen kan alltså läsa en
+// annans rum, låst eller ej. Öppnas kamratläsning senare (Epic C:s by-fix)
+// MÅSTE den regeln även kräva `resource.data.husLast != true`, annars kan låset
+// kringgås klient-sida. Se kommentaren i firestore.rules.
+
+/**
+ * Är elevens hus låst? Ren hjälpare över ett redan inläst studentData-objekt.
+ * @param {object|null|undefined} studentData
+ * @returns {boolean}
+ */
+export function isHouseLocked(studentData) {
+  return !!(studentData && studentData.husLast === true);
+}
+
+/** Elevens huslås-status (async läsning). */
+export async function getHusLast(studentId = currentStudentId()) {
+  return isHouseLocked(await getStudentData(studentId));
+}
+
+/**
+ * Lås eller lås upp elevens hus. Rör bara husLast-fältet.
+ * @param {boolean} locked true = lås, false = lås upp
+ */
+export async function setHusLast(locked, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const val = !!locked;
+  await updateDoc(ref, { husLast: val });
+  return val;
+}
+
 // --- Avatar -----------------------------------------------------------------
 
 export async function getAvatar(studentId = currentStudentId()) {
