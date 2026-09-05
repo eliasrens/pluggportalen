@@ -45,6 +45,7 @@ import { OMRADE_ZOOM, mountOmradeScen } from "./varld-omrade.js";
 import { createGrannbyVy } from "./varld-grannby.js";
 import { aggregateKlassStats } from "./leveling.js";
 import { klassStatsSkylt } from "./varld-by-stats.js";
+import { classmateIds } from "./klass-membership.js";
 
 // Levande scen (för sömlösa route-byten): när routern träffar #/elev/hus eller
 // #/elev/rum och scenen redan står i DOM:en byter vi bara kameranivå i stället
@@ -258,9 +259,12 @@ export async function pageElevVarld(startNiva) {
     byLaddning ??= (async () => {
       // Läs BARA sig själv + klasskamraterna, per dokument. En elev får enligt
       // reglerna inte lista hela students-kollektionen (world-read är borta) –
-      // bara läsa kamrater i samma klass. Utan klass blir byn bara det egna huset.
-      const classIds = Array.isArray(klass?.studentIds) ? klass.studentIds : [];
-      const ids = [meId, ...classIds].filter(Boolean);
+      // bara läsa kamrater i samma klass. Kamraterna hämtas ur UNIONEN av alla
+      // elevens klassers studentIds (inte bara första matchande klassen), så en
+      // elev i flera klasser ser hela sin by. Utan klass blir byn bara det egna
+      // huset. En nekad läsning per elev (t.ex. låst hus, osynkad classIds)
+      // hoppas tyst över i getStudentsWithLooks – byn faller inte för det.
+      const ids = classmateIds(meId, allClasses);
       let boende = await data.getStudentsWithLooks(ids);
       // Egen tomt först, resten i namnordning (svensk kollation).
       boende = boende.slice().sort((a, b) => {
