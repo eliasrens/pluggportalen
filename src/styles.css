@@ -1066,6 +1066,49 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 }
 .area-merge .subpanel { margin: 0; }
 
+/* Read-only "granska"-vy som fälls ut under en områdesrad (issue #66). */
+.area-review {
+  margin-left: 14px;
+  border-left: 3px solid #cfe0f7;
+  padding-left: 12px;
+}
+.area-review .subpanel { margin: 0; }
+.btn.small.active { box-shadow: inset 0 0 0 2px var(--bla); }
+
+.rv-panel { display: flex; flex-direction: column; gap: 18px; }
+.rv-section { display: flex; flex-direction: column; gap: 8px; }
+.rv-h { margin: 0; font-size: 1.05rem; }
+.rv-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
+
+.rv-q-text { font-weight: 700; margin-bottom: 4px; }
+.rv-opts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.rv-opt { display: flex; gap: 6px; align-items: baseline; }
+.rv-opt.correct { font-weight: 700; color: var(--gron-mork, #1e7a3a); }
+.rv-mark { flex: none; }
+
+.rv-passage, .rv-expl {
+  background: #f0f6ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+.rv-expl { background: #fff7e6; }
+.rv-tag { font-weight: 700; margin-right: 4px; }
+
+.rv-pairs { padding-left: 0; list-style: none; }
+.rv-pair { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rv-term { font-weight: 700; }
+.rv-arrow { color: var(--bla-mork); flex: none; }
+.rv-imgflag {
+  display: inline-block;
+  font-size: 0.8rem;
+  background: #eef4ff;
+  border-radius: 8px;
+  padding: 1px 6px;
+}
+
+.rv-text-title { font-weight: 700; margin-bottom: 4px; }
+
 .area-info {
   display: flex;
   align-items: center;

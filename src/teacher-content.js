@@ -9,6 +9,7 @@
 import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
+import { buildReviewPanel } from "./teacher-content-review.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { EXERCISE_TYPES, areaExerciseTypes } from "./exercise-types.js";
 import { listPairImageKeys } from "./pair-images.js";
@@ -252,11 +253,27 @@ export async function pageLarareInnehall(ctx) {
           </div>
         </div>
         <div class="row-actions">
+          <button class="btn ghost small" data-act="review">👁️ Granska</button>
           <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
           <button class="btn ghost small" data-act="edit">Ersätt</button>
           <button class="btn ghost small danger" data-act="del">Ta bort</button>
         </div>
       </div>`);
+      // Inline-slot för read-only "granska"-vy (issue #66) – öppnas under raden.
+      const reviewSlot = el(`<div class="area-review" hidden></div>`);
+      const reviewBtn = row.querySelector('[data-act="review"]');
+      reviewBtn.addEventListener("click", () => {
+        if (!reviewSlot.hidden) {
+          reviewSlot.hidden = true;
+          reviewSlot.innerHTML = "";
+          reviewBtn.classList.remove("active");
+          return;
+        }
+        reviewSlot.replaceChildren(buildReviewPanel(a));
+        reviewSlot.hidden = false;
+        reviewBtn.classList.add("active");
+        reviewSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
       // Inline-slot för "lägg till nytt innehåll" (issue #40) – öppnas under raden.
       const mergeSlot = el(`<div class="area-merge" hidden></div>`);
       row.querySelector('[data-act="add"]').addEventListener("click", () => {
@@ -291,6 +308,7 @@ export async function pageLarareInnehall(ctx) {
         }
       });
       wrap.appendChild(row);
+      wrap.appendChild(reviewSlot);
       wrap.appendChild(mergeSlot);
       list.appendChild(wrap);
     }
