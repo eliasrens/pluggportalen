@@ -74,13 +74,23 @@ export function mountByScen({ lager, meId, students }) {
       const t = layout.tomter[i];
       if (!t) return "";
       const me = s.id === meId;
+      // Låst kamrat-hus (husLast → studentData-läsningen nekades, se
+      // getStudentsWithLooks): huset ritas låst och klicket öppnar en liten
+      // "🔒"-ruta i stället för att navigera in (pages-varld.js). Egna huset
+      // låser vi aldrig ute – man kommer alltid in i sitt eget.
+      const last = !me && !!s.locked;
       const namn = esc(s.namn || s.username || s.id);
       const pal = getPalette(s.paletteId);
-      const aria = me ? "Ditt hus – zooma in" : `${namn}s hus – titta in i deras rum`;
-      return `<div class="by-tomt${me ? " du" : ""}" role="button" tabindex="0"
-        data-id="${esc(s.id)}"${me ? ` data-me="1"` : ""} aria-label="${aria}"
+      const aria = me
+        ? "Ditt hus – zooma in"
+        : last
+          ? `${namn}s hus – låst just nu`
+          : `${namn}s hus – titta in i deras rum`;
+      return `<div class="by-tomt${me ? " du" : ""}${last ? " last" : ""}" role="button" tabindex="0"
+        data-id="${esc(s.id)}"${me ? ` data-me="1"` : ""}${last ? ` data-locked="1"` : ""} aria-label="${aria}"
         style="left:${t.x.toFixed(2)}%;top:${t.y.toFixed(2)}%;width:${layout.cellW.toFixed(2)}%;height:${layout.radHojd.toFixed(2)}%;z-index:${Math.round((t.y + layout.radHojd / 2) * 10)};--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
         ${me ? '<span class="by-du">Du!</span>' : ""}
+        ${last ? '<span class="by-last-ikon" aria-hidden="true">🔒</span>' : ""}
         ${husMini({
           skalId: s.husSkalId || DEFAULT_HUS_SKAL,
           avatarHtml: avatarMarkup(s.avatarId || DEFAULT_AVATAR, s.avatarItems || []),

@@ -31,6 +31,40 @@ function esc(s) {
   );
 }
 
+/**
+ * Sant när ett fel beror på att Firestore NEKADE läsningen (behörighet). Det är
+ * INTE ett äkta fel – det betyder att kamraten har låst sitt hus (husLast==true
+ * gör att sharesClass-grenen i firestore.rules inte matchar) → vi visar den
+ * vänliga låst-vyn i stället för den generiska felrutan.
+ */
+function isPermissionDenied(err) {
+  return (
+    err?.code === "permission-denied" ||
+    /Missing or insufficient permissions/i.test(err?.message || "")
+  );
+}
+
+/**
+ * Bygger och monterar den vänliga "🔒 Låst"-vyn (samma markup/klass som husLast-
+ * tillståndet). Återanvänds både när vi VET att huset är låst (husLast i datan)
+ * och när servern nekar läsningen (permission-denied → vi kan inte se datan men
+ * vet att det beror på låset). rubrik/text hålls vänliga; ingen redirect.
+ */
+function showLocked(heading, body) {
+  const locked = el(`<div>
+    <a class="back-link" id="back">← Till klassbyn</a>
+    <div class="panel center klasskamrat-last">
+      <div class="klasskamrat-last-ikon" aria-hidden="true">🔒</div>
+      <h1>${heading}</h1>
+      <p class="hint">${body}</p>
+      <button class="btn ghost" id="to-klass">🏘️ Till klassbyn</button>
+    </div>
+  </div>`);
+  locked.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
+  locked.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
+  app.replaceChildren(locked);
+}
+
 export async function pageElevKlasskamrat() {
   if (!data.isLoggedIn()) return go("#/elev");
 
@@ -55,6 +89,24 @@ export async function pageElevKlasskamrat() {
     sd = sdRes;
     student = studentRes;
   } catch (err) {
+    // Nekad läsning (permission-denied) = kamraten har låst sitt hus (husLast).
+    // Det är INTE ett äkta fel: visa den vänliga låst-vyn i stället för den
+    // generiska felrutan, och kasta INTE ut användaren. Detta är en säkerhets-
+    // fallback – normalt fångas låset redan i byn (pages-varld.js) och man
+    // navigerar aldrig hit till ett låst hus.
+    if (isPermissionDenied(err)) {
+      // Vi kan inte läsa studentData, men elevens namn ligger i students-
+      // kollektionen (egen regel) – hämta det för en personlig text om möjligt.
+      const s = await data.getStudent(otherId).catch(() => null);
+      const who = esc(s?.namn || s?.username || "");
+      showLocked(
+        "Dörren verkar vara låst 🔒",
+        who
+          ? `${who}s hus är låst, kika in en annan gång! 🙂`
+          : "Huset är låst just nu, kika in en annan gång! 🙂"
+      );
+      return;
+    }
     return pageError("Kunde inte ladda rummet", err);
   }
 
@@ -67,18 +119,10 @@ export async function pageElevKlasskamrat() {
   // isHouseLocked är den delade hjälparen så sub-issue #34 kan återanvända exakt
   // samma lås). Husets exteriör i byn påverkas inte – bara den inre läs-vyn.
   if (data.isHouseLocked(sd)) {
-    const locked = el(`<div>
-      <a class="back-link" id="back">← Till klassbyn</a>
-      <div class="panel center klasskamrat-last">
-        <div class="klasskamrat-last-ikon" aria-hidden="true">🔒</div>
-        <h1>${namn}s hus är låst</h1>
-        <p class="hint">${namn} har låst sitt hus, så rummet är privat just nu. Kika in en annan gång! 🙂</p>
-        <button class="btn ghost" id="to-klass">🏘️ Till klassbyn</button>
-      </div>
-    </div>`);
-    locked.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
-    locked.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
-    app.replaceChildren(locked);
+    showLocked(
+      `${namn}s hus är låst`,
+      `${namn} har låst sitt hus, så rummet är privat just nu. Kika in en annan gång! 🙂`
+    );
     return;
   }
 

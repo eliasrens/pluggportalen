@@ -164,11 +164,20 @@ export async function getStudentsWithLooks(ids = null) {
           xp: xpFromStudentData(d),
           completed,
           stars,
+          locked: false,
         };
-      } catch {
+      } catch (err) {
+        // En NEKAD läsning (permission-denied) betyder att kamraten låst sitt
+        // hus (husLast → sharesClass-grenen i firestore.rules matchar inte).
+        // Det är inget äkta fel: markera huset som `locked` så byn kan rita det
+        // låst och visa en liten "🔒"-ruta i stället för att navigera in. Äkta
+        // fel (nätverk, saknad data) faller tyst tillbaka på default-utseendet.
+        const locked =
+          err?.code === "permission-denied" ||
+          /Missing or insufficient permissions/i.test(err?.message || "");
         return {
           ...s, avatarId: s.avatarId || "fox", avatarItems: [], paletteId: null,
-          husSkalId: null, xp: 0, completed: 0, stars: 0,
+          husSkalId: null, xp: 0, completed: 0, stars: 0, locked,
         };
       }
     })

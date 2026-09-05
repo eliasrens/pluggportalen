@@ -2782,6 +2782,59 @@ body.varld-lage .container {
   pointer-events: none;
 }
 
+/* Låst kompis-hus: en liten hänglås-bricka på huset + huset tonas lätt så det
+   syns att man inte kommer in just nu (klick öppnar .by-last-bubbla i stället). */
+.by-tomt.last > svg { filter: grayscale(0.35) brightness(0.97); }
+.by-last-ikon {
+  position: absolute;
+  top: -2px;
+  left: 68%;
+  font-size: 0.95rem;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+/* Vänlig pratbubbla ovanför ett låst hus (visas i byn, ingen navigering). Hänger
+   ovanför tomt-noden och pekar ned mot huset; tonar in/ut via .show. */
+.by-last-bubbla {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translate(-50%, 6px);
+  background: #fff;
+  color: #3b3350;
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  box-shadow: var(--skugga-mjuk);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 6;
+  pointer-events: none;
+}
+.by-last-bubbla::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #fff;
+  filter: drop-shadow(0 2px 0 rgba(59, 51, 80, 0.35));
+}
+.by-last-bubbla.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .by-last-bubbla { transition-duration: 0.01s; }
+}
+
 /* --- Klasspoäng: stjärn-toggle uppe till höger (#klass-toggle-wrap) --------- */
 /* Kompakt ✨-knapp i by-scenens högra hörn som fäller ut/in klassens stats-
    skylt; default infälld så byn inte skyms. Wrappen är ankaret (position:

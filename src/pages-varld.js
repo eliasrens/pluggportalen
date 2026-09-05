@@ -303,8 +303,11 @@ export async function pageElevVarld(startNiva) {
   byLager.addEventListener("click", (e) => {
     const tomt = e.target.closest(".by-tomt");
     if (!tomt || stage.dataset.niva !== "by") return;
-    if (tomt.dataset.me) go("#/elev/hus");
-    else go(`#/elev/kompis?id=${encodeURIComponent(tomt.dataset.id)}`);
+    if (tomt.dataset.me) return go("#/elev/hus");
+    // Låst kompis-hus (husLast): navigera INTE bort – stanna kvar i byn och
+    // visa en liten vänlig "🔒"-ruta ovanför huset. Olåsta hus öppnas som vanligt.
+    if (tomt.dataset.locked) return visaLastBubbla(tomt);
+    go(`#/elev/kompis?id=${encodeURIComponent(tomt.dataset.id)}`);
   });
   byLager.addEventListener("keydown", (e) => {
     if ((e.key === "Enter" || e.key === " ") && e.target.closest(".by-tomt")) {
@@ -312,6 +315,38 @@ export async function pageElevVarld(startNiva) {
       e.target.closest(".by-tomt").click();
     }
   });
+
+  // Liten vänlig "🔒"-ruta ovanför ett låst kompis-hus. Ankras i tomt-noden
+  // (position: absolute → hänger ovanför huset), försvinner av sig själv efter
+  // en stund eller vid klick/Escape utanför. Bara en ruta i taget.
+  let lastBubblaStad = null;
+  function visaLastBubbla(tomt) {
+    if (lastBubblaStad) lastBubblaStad();
+    const bubbla = el(`<div class="by-last-bubbla" role="status">Dörren verkar vara låst 🔒</div>`);
+    tomt.appendChild(bubbla);
+    requestAnimationFrame(() => bubbla.classList.add("show"));
+
+    const stang = () => {
+      if (!lastBubblaStad) return;
+      lastBubblaStad = null;
+      clearTimeout(timer);
+      document.removeEventListener("pointerdown", utanfor, true);
+      document.removeEventListener("keydown", vidEsc, true);
+      bubbla.classList.remove("show");
+      bubbla.addEventListener("transitionend", () => bubbla.remove(), { once: true });
+      setTimeout(() => bubbla.remove(), 400); // säkerhetsnät om transition uteblir
+    };
+    const utanfor = (ev) => { if (!bubbla.contains(ev.target)) stang(); };
+    const vidEsc = (ev) => { if (ev.key === "Escape") stang(); };
+
+    lastBubblaStad = stang;
+    const timer = setTimeout(stang, 2800);
+    // Nästa tick, annars fångar denna klick-runda sin egen pointerdown.
+    setTimeout(() => {
+      document.addEventListener("pointerdown", utanfor, true);
+      document.addEventListener("keydown", vidEsc, true);
+    }, 0);
+  }
 
   // --- Kompis-hus-nivån (läs-vy av en kamrats hus-exteriör) -----------------
   // Egen modul (varld-kompis.js): en liten kamera som korszoomar byLager ↔
