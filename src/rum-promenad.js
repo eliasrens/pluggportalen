@@ -21,8 +21,8 @@
 // requestAnimationFrame och städar sig själv när scenen lämnar dokumentet.
 // ============================================================================
 
-import { FLOOR_TOP } from "./art-room.js";
 import { isHungry } from "./data-pet.js";
+import { clampRange, petWalkZone } from "./rum-promenad-golv.js";
 
 const SPEED = 6; // %/s – lugnt promenadtempo (designfacit ~7 %/s)
 const SEEK_SPEED = 8; // %/s – lite piggare fart fram mot ett äpple
@@ -139,8 +139,15 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
       st.node = stage.querySelector(`.room-item[data-pet-id="${pet.id}"]`);
       if (st.node) {
         const sr = stage.getBoundingClientRect();
-        st.halfW = sr.width ? ((st.node.offsetWidth / sr.width) * 100) / 2 : 3;
-        st.halfH = sr.height ? ((st.node.offsetHeight / sr.height) * 100) / 2 : 5;
+        // Mät SJÄLVA djur-spriten (.ri-emoji), inte hela noden: noden är
+        // center-ankrad (translate(-50%,-50%)) och innehåller även namn-etiketten
+        // (.rp-namn) UNDER spriten. Mäter man hela nodens offsetHeight blåses
+        // halfH upp långt över spritens verkliga höjd → golv-clampen (walkZone)
+        // tror att djurets fötter når längre ner än de gör och släpper upp
+        // centrum (och därmed fötterna) på väggen. (regression #63)
+        const art = st.node.querySelector(".ri-emoji") || st.node;
+        st.halfW = sr.width ? ((art.offsetWidth / sr.width) * 100) / 2 : 3;
+        st.halfH = sr.height ? ((art.offsetHeight / sr.height) * 100) / 2 : 5;
       }
     }
     return st.node;
@@ -148,12 +155,7 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
 
   /** Golvzonen djuret får röra sig i (samma clamp som drag & drop). */
   function walkZone(st) {
-    return {
-      minX: Math.max(3, st.halfW),
-      maxX: Math.min(97, 100 - st.halfW),
-      minY: Math.max(st.halfH, FLOOR_TOP + 4 - st.halfH),
-      maxY: 100 - st.halfH,
-    };
+    return petWalkZone(st.halfW, st.halfH);
   }
 
   // --- Välj nytt promenadmål ------------------------------------------------
@@ -193,8 +195,13 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
     const traveled = Math.max(0.001, st.startDist - dist);
     const ease = Math.max(0.28, Math.min(1, traveled / RAMP, dist / RAMP));
     const step = Math.min(dist, SPEED * ease * dt);
-    const nx = pet.pos.x + (dx / dist) * step;
-    const ny = pet.pos.y + (dy / dist) * step;
+    // Hård golv-clamp (bälte-och-hängslen, som i seekStep): även om målet valdes
+    // innan noden växte, eller ett steg skulle skjuta förbi zonen, hålls centrum
+    // – och därmed fötterna – kvar på golvytan så djuret aldrig går upp på
+    // väggen. (regression #63)
+    const z = walkZone(st);
+    const nx = clampRange(pet.pos.x + (dx / dist) * step, z.minX, z.maxX);
+    const ny = clampRange(pet.pos.y + (dy / dist) * step, z.minY, z.maxY);
 
     // Möbel i vägen (flyttad under promenaden) eller kompis för nära → stanna.
     if (hitsObstacle(nx, ny, st)) return settle(pet, st, node, now);
