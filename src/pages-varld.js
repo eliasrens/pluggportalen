@@ -152,6 +152,7 @@ export async function pageElevVarld(startNiva) {
               aria-label="Verktyg" hidden>
               <button class="varld-knapp" role="menuitem" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
               <button class="varld-knapp" role="menuitem" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
+              <button class="varld-knapp rum-och-hus" role="menuitem" id="las-btn"></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
               <button class="varld-knapp rum-och-hus" role="menuitem" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
@@ -499,6 +500,36 @@ export async function pageElevVarld(startNiva) {
   skolaBtn.addEventListener("click", () => go("#/elev/skolan"));
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
 
+  // --- Huslås ("Lås ditt hus"): en enkel toggle i verktygsmenyn -------------
+  // Låser man huset visar en klasskamrats läs-vy "🔒 Låst" i stället för rummet
+  // (pages-klasskamrat.js läser samma husLast-fält). Exteriören i byn påverkas
+  // inte. Optimistisk UI: knappen slår om direkt och rullas tillbaka om
+  // sparningen fallerar.
+  let husLast = data.isHouseLocked(sd);
+  const lasBtn = view.querySelector("#las-btn");
+  function renderLasBtn() {
+    lasBtn.innerHTML = husLast ? "🔒 <span>Lås upp huset</span>" : "🔓 <span>Lås huset</span>";
+    lasBtn.title = husLast
+      ? "Huset är låst – klasskamrater ser inte in i rummet. Klicka för att låsa upp."
+      : "Lås huset så att klasskamrater inte kan titta in i rummet.";
+    lasBtn.setAttribute("aria-pressed", String(husLast));
+  }
+  renderLasBtn();
+  lasBtn.addEventListener("click", () => {
+    const next = !husLast;
+    husLast = next;
+    renderLasBtn();
+    data.setHusLast(next).then(() => {
+      flash(next
+        ? "🔒 Huset är låst – nu kan ingen kompis titta in i rummet."
+        : "🔓 Huset är upplåst – kompisar kan hälsa på igen.");
+    }).catch((err) => {
+      husLast = !next; // rulla tillbaka i UI om skrivningen inte gick
+      renderLasBtn();
+      flash("Kunde inte spara låset: " + err.message, true);
+    });
+  });
+
   // Verktygspaneler (en öppen åt gången, klick igen stänger).
   for (const btn of view.querySelectorAll("[data-panel]")) {
     btn.addEventListener("click", () => {
@@ -588,25 +619,49 @@ export async function pageElevVarld(startNiva) {
     }
   });
 
-  // --- Paletten: färgar huset (ute) OCH väggarna (inne) i ett svep ----------
-  let paletteId = paletteIdFromStudentData(sd);
-  function applyPalette() {
-    const p = getPalette(paletteId);
+  // --- Paletten: färgar huset (ute) OCH väggarna (inne) --------------------
+  // Husets EXTERIÖR (--hus-*) följer GRUNDRUMMETS palett (rum 0 = husets palett).
+  // VÄGGARNA inne (--rum-wall*) sätts per rum av rumsscenen (varld-rum.js), så
+  // varje rum kan ha egen väggfärg utan att husets utsida ändras. "Måla om"
+  // målar det AKTIVA rummet; är det rum 0 färgas även exteriören.
+  let husPaletteId = paletteIdFromStudentData(sd); // rum 0 / exteriör
+  function applyExterior() {
+    const p = getPalette(husPaletteId);
     stage.style.setProperty("--hus-house", p.house);
     stage.style.setProperty("--hus-roof", p.roof);
     stage.style.setProperty("--hus-wall", p.wall);
     stage.style.setProperty("--hus-wall2", p.wall2);
-    rumLager.style.setProperty("--rum-wall", p.wall);
-    rumLager.style.setProperty("--rum-wall2", p.wall2);
   }
-  applyPalette();
-  renderPalettePicker(view.querySelector("#palettrad"), paletteId, (id) => {
-    paletteId = id;
-    applyPalette();
-    data.saveRoom({ paletteId: id }).catch((err) => {
-      flash("Kunde inte spara färgvalet: " + err.message, true);
+  applyExterior();
+  let palettRad = view.querySelector("#palettrad");
+  const palettHint = view.querySelector("#panel-palett .hint");
+  // Rita palettväljaren för det AKTIVA rummet (markerar rummets nuvarande färg).
+  // renderPalettePicker lägger en click-lyssnare PER anrop, så vi byter ut
+  // behållaren mot en frisk (tom) nod varje gång → inga staplade lyssnare när
+  // väljaren ritas om vid rums-byte.
+  function renderPalett() {
+    const aktivtRum = rumCtl ? rumCtl.current() : 0;
+    const nuvarande = rumCtl ? (rumCtl.wallPaletteId() || husPaletteId) : husPaletteId;
+    const fresh = palettRad.cloneNode(false);
+    palettRad.replaceWith(fresh);
+    palettRad = fresh;
+    renderPalettePicker(palettRad, nuvarande, (id) => {
+      // Spara + färga AKTIVA rummets väggar (rumsscenen äger --rum-wall).
+      if (rumCtl) rumCtl.setWallPalette(id);
+      // Rum 0:s palett är även husets exteriör → uppdatera utsidan.
+      if (!rumCtl || rumCtl.current() === 0) {
+        husPaletteId = id;
+        applyExterior();
+      }
+      renderPalett(); // markera det nyss valda
     });
-  });
+    // Liten kontext-hint per rum (huset vs bara rummets väggar).
+    if (palettHint) {
+      palettHint.textContent = aktivtRum === 0
+        ? "Välj en färgpalett – samma färger används på huset och väggarna i ditt rum! Golvet behåller sin färg."
+        : `Välj väggfärg för Rum ${aktivtRum + 1}. Det ändrar bara det här rummets väggar – husets utsida är oförändrad. Golvet behåller sin färg.`;
+    }
+  }
 
   // --- Husskal ("Nytt hus"): byter BARA husets exteriör, inte rummet --------
   // Väljaren visar default-stugan + ägda skal (ownedItems). Byte ritar om
@@ -627,6 +682,10 @@ export async function pageElevVarld(startNiva) {
   });
 
   // --- Rummet: hela inne-vyn monteras i sitt lager (varld-rum.js) -----------
+  // Rum-0-verktygen (Mysterymat + Mina djur) hör bara till grundrummet – i extra
+  // rum finns inga husdjur att mata/stuva, så de döljs där.
+  const matBtnEl = view.querySelector("#mat-btn");
+  const djurBtnEl = view.querySelector('[data-panel="djur"]');
   rumCtl = mountRumScen({
     stage: rumLager,
     petPanel: view.querySelector("#pet-panel"),
@@ -635,7 +694,7 @@ export async function pageElevVarld(startNiva) {
     djurTray: view.querySelector("#djurtray"),
     djurHint: view.querySelector("#djur-hint"),
     wearTray: view.querySelector("#weartray"),
-    matBtn: view.querySelector("#mat-btn"),
+    matBtn: matBtnEl,
     sd, pets, justHatchedIds,
     // Att slå på mysterymat stänger öppna paneler (ömsesidigt uteslutande lägen).
     onMatActivate: stangPaneler,
@@ -644,7 +703,16 @@ export async function pageElevVarld(startNiva) {
       const holder = uteLager.querySelector("#ute-avatar");
       if (holder) holder.innerHTML = avatarMarkup(avatarId, equipped);
     },
+    onRoomChange(index) {
+      // Bara grundrummet (0) har husdjur/mat → dölj de verktygen i extra rum.
+      const rum0 = index === 0;
+      if (matBtnEl) matBtnEl.style.display = rum0 ? "" : "none";
+      if (djurBtnEl) djurBtnEl.style.display = rum0 ? "" : "none";
+      renderPalett(); // palettväljaren markerar det nya rummets väggfärg
+    },
   });
+  // rumCtl finns nu → rita palettväljaren för aktivt rum (rum 0 vid start).
+  renderPalett();
 
   // Djuplänk rakt in i byn (#/elev/by) eller till en kompis (#/elev/kompis):
   // bygg byn INNAN scenen visas, så kameran inte står och tittar på ett tomt

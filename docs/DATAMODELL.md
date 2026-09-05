@@ -164,7 +164,10 @@ Exempel (`students/elev1`):
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
 | `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
-| `room`       | map    | `{ placements: { [itemId]: { x, y } }, paletteId }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om) |
+| `room`       | map    | **Grundrummet (rum 0)** – `{ placements: { [itemId]: { x, y } }, paletteId, window }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om). `window` = fönstrets läge `{ x, y, removed }`. |
+| `extraRooms` | map    | **Fler rum** (husuppgradering, `src/data-room.js`): map keyad på `"0"`,`"1"`,… där `"0"` = rum **#2**. Varje värde har samma form som `room` (`{ placements, paletteId, window }`). Antalet upplåsta extra rum = antal ägda rums-uppgraderingar (`rum-2`/`rum-3`/`rum-4` i `ownedItems`, se `roomUpgradeCount`). `getRooms(sd)` presenterar allt som en 0-indexerad lista `[rum0, rum1, …]` (rum → rooms[0], bakåtkompatibelt: saknas `extraRooms` funkar enrums-hus oförändrat). Rum 0:s `paletteId` är även husets **exteriör**-palett; extra rums palett rör bara det rummets väggar. |
+| `husSkalId`  | string/null | Aktivt husskal (byter husets exteriör); `null` = default-stugan |
+| `husLast`    | bool   | `true` = huset är **låst**: en klasskamrats läs-vy (`src/pages-klasskamrat.js`) visar `🔒 Låst` i stället för rummet. Toggle i verktygsmenyn (`src/pages-varld.js`); delad hjälpare `isHouseLocked(studentData)` i `src/data-room.js`. Husets exteriör i byn påverkas inte. |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
@@ -318,11 +321,17 @@ Exempel (`classes/6a`):
   Rendera avataren med `avatarMarkup(avatarId, itemIds)` från `src/avatars.js`.
 
 **Rum**
-- `getRoom()`, `saveRoom(room)` – `room = { placements: { [itemId]: { x, y } }, paletteId }`,
+- `getRoom()`, `saveRoom(room)` – **grundrummet (rum 0)**. `room = { placements: { [itemId]: { x, y } }, paletteId, window }`,
   där `x`/`y` är procent (0–100) så rummet ser likadant ut på alla skärmar.
   `saveRoom` skriver varje angivet fält med dot-path (`room.placements` osv.) –
   utelämnade fält (t.ex. `paletteId`) lämnas orörda. Paletterna för hus & väggar
   ligger i `src/room-palettes.js`; golvet färgas aldrig om.
+- **Fler rum** (husuppgradering): `getRoomCount(sd)` = `1 + roomUpgradeCount(sd.ownedItems)`;
+  `getRooms(sd)` → 0-indexerad lista `[rum0, rum1, …]` (rena hjälpare, ingen Firestore).
+  `saveRoomAt(index, partial)` skriver rum `index`: `index 0` → `room.*` (som `saveRoom`),
+  `index ≥ 1` → `extraRooms.<index-1>.*`. Bakåtkompatibelt: enrums-hus (bara `room`,
+  inga rums-uppgraderingar) ger `getRoomCount = 1` och fungerar oförändrat.
+  Husdjur/mat hör bara till rum 0; extra rum = möbler + väggfärg + fönster.
 
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`

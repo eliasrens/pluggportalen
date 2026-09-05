@@ -56,10 +56,19 @@ service cloud.firestore {
 
     // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering): eleven
     // äger sitt eget; lärare läser alla (klassöversikt) och skriver (ge coins).
-    // En klasskamrat får LÄSA (byn/kompisrummet visar hus, avatar, palett) men
-    // aldrig skriva. Endast eleven själv/läraren skriver.
+    // En klasskamrat (samma klass, sharesClass) får LÄSA – byn/kompisrummet visar
+    // hus, avatar och palett – men aldrig skriva. Endast eleven själv/läraren skriver.
+    //
+    // HUSLÅS (#33 + Epic C:s by-fix): fältet `husLast` (bool) på studentData. När
+    // det är true NEKAS kamratläsning här på servern (sharesClass-grenen kräver
+    // `resource.data.husLast != true`), så låset går INTE att kringgå enbart
+    // klient-sida. Eleven själv och läraren läser alltid (även när det är låst).
+    // Byn tål detta: getStudentsWithLooks (data-content.js) fångar nekad läsning
+    // PER elev och visar då default-utseende (ett låst hus = generiskt hus i byn),
+    // och klasskamratens läs-vy (pages-klasskamrat.js) visar "🔒 Låst" när läsning
+    // nekas. husLast saknas på gamla dokument → `!= true` → olåst (läsbart).
     match /studentData/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId) || sharesClass(studentId);
+      allow read:  if isTeacher() || isSelf(studentId) || (sharesClass(studentId) && resource.data.husLast != true);
       allow write: if isTeacher() || isSelf(studentId);
     }
 

@@ -219,5 +219,10 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   }
   updateMatBtn();
 
-  return { apples: () => floorApples, onEat, exitPlacing: () => setPlacing(false) };
+  // Avsluta placera-läget utifrån. Två alias för samma sak: cancelPlacing()
+  // används vid rums-byte i flerrums-huset (så golvets capture-lyssnare inte
+  // sväljer klick på dörrar/rumslistan), exitPlacing() av husvärldens panel-/
+  // menystängning (mat och paneler är ömsesidigt uteslutande lägen).
+  const stopPlacing = () => setPlacing(false);
+  return { apples: () => floorApples, onEat, cancelPlacing: stopPlacing, exitPlacing: stopPlacing };
 }

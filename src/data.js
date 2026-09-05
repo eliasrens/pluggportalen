@@ -84,6 +84,7 @@ export function defaultStudentData(avatarId) {
     avatarItems: [], // burna klädsaker (delmängd av ownedItems)
     room: { placements: {} }, // { [itemId]: { x, y } }
     husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
+    husLast: false, // true = huset är låst → klasskamrater ser "🔒 Låst" i stället för rummet
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
   };
@@ -261,8 +262,14 @@ export {
   saveAvatarItems,
   getRoom,
   saveRoom,
+  getRooms,
+  getRoomCount,
+  saveRoomAt,
   getHusSkal,
   saveHusSkal,
+  isHouseLocked,
+  getHusLast,
+  setHusLast,
   getAvatar,
   setAvatar,
   hasChosenAvatar,

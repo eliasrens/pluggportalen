@@ -58,6 +58,23 @@ export const SHOP_ITEMS = [
   { id: "blomma", name: "Blomma", emoji: "🌷", category: "klader", slot: "hand", price: 12 },
   { id: "glasstrut", name: "Glasstrut", emoji: "🍦", category: "klader", slot: "hand", price: 28 },
   { id: "bok", name: "Bok", emoji: "📕", category: "klader", slot: "hand", price: 35 },
+  // ännu fler kläder (issue #32) – fördelat över alla fyra slots
+  { id: "kockmossa", name: "Kockmössa", emoji: "👨‍🍳", category: "klader", slot: "hatt", price: 45 },
+  { id: "vikinghjalm", name: "Vikingahjälm", emoji: "⛑️", category: "klader", slot: "hatt", price: 140 },
+  { id: "riddarhjalm", name: "Riddarhjälm", emoji: "🪖", category: "klader", slot: "hatt", price: 125 },
+  { id: "djuroron", name: "Djuröron", emoji: "🐼", category: "klader", slot: "hatt", price: 35 },
+  { id: "mustasch", name: "Mustasch", emoji: "👨", category: "klader", slot: "ansikte", price: 25 },
+  { id: "monokel", name: "Monokel", emoji: "🧐", category: "klader", slot: "ansikte", price: 60 },
+  { id: "hjartglasogon", name: "Hjärtglasögon", emoji: "😍", category: "klader", slot: "ansikte", price: 45 },
+  { id: "snorkelmask", name: "Snorkelmask", emoji: "🤿", category: "klader", slot: "ansikte", price: 55 },
+  { id: "parlhalsband", name: "Pärlhalsband", emoji: "📿", category: "klader", slot: "hals", price: 70 },
+  { id: "cape", name: "Hjältemantel", emoji: "🦸", category: "klader", slot: "hals", price: 120 },
+  { id: "fjaderboa", name: "Fjäderboa", emoji: "🪶", category: "klader", slot: "hals", price: 50 },
+  { id: "amulett", name: "Ädelstensamulett", emoji: "💎", category: "klader", slot: "hals", price: 95 },
+  { id: "paraply", name: "Paraply", emoji: "☂️", category: "klader", slot: "hand", price: 40 },
+  { id: "gitarr", name: "Gitarr", emoji: "🎸", category: "klader", slot: "hand", price: 130 },
+  { id: "fiskespo", name: "Fiskespö", emoji: "🎣", category: "klader", slot: "hand", price: 65 },
+  { id: "godisklubba", name: "Godisklubba", emoji: "🍭", category: "klader", slot: "hand", price: 18 },
 
   // --- Möbler & prylar (placeras i rummet) ---------------------------------
   { id: "stol", name: "Pall", emoji: "🪑", category: "mobler", price: 30 },
@@ -75,6 +92,18 @@ export const SHOP_ITEMS = [
   { id: "byra", name: "Byrå", emoji: "🗄️", category: "mobler", price: 95 },
   { id: "skrivbord", name: "Skrivbord", emoji: "🪵", category: "mobler", price: 110 },
   { id: "fatolj", name: "Fåtölj", emoji: "🛋️", category: "mobler", price: 150 },
+  // fler sängvarianter
+  { id: "enkelsang", name: "Enkelsäng", emoji: "🛏️", category: "mobler", price: 90 },
+  { id: "vaningsang", name: "Våningssäng", emoji: "🛏️", category: "mobler", price: 170 },
+  { id: "hangmatta", name: "Hängmatta", emoji: "🛖", category: "mobler", price: 75 },
+  { id: "golvmadrass", name: "Golvmadrass", emoji: "🛌", category: "mobler", price: 55 },
+  // ännu fler möbeltyper
+  { id: "soffa", name: "Soffa", emoji: "🛋️", category: "mobler", price: 160 },
+  { id: "matbord", name: "Matbord", emoji: "🍽️", category: "mobler", price: 115 },
+  { id: "gungstol", name: "Gungstol", emoji: "🪑", category: "mobler", price: 85 },
+  { id: "garderob", name: "Garderob", emoji: "🚪", category: "mobler", price: 130 },
+  { id: "kylskap", name: "Kylskåp", emoji: "🧊", category: "mobler", price: 140 },
+  { id: "nattduksbord", name: "Nattduksbord", emoji: "🛎️", category: "mobler", price: 60 },
 
   // --- Husdjur (placeras i rummet) -----------------------------------------
   // Mystiskt ägg + värmelampa hör till de kläckbara husdjuren (bor i Mitt rum).
@@ -118,7 +147,33 @@ export const SHOP_ITEMS = [
   // i HUS_SKAL-registret (art-hus-ute.js) – håll dem i synk.
   { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
   { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
+  // Rums-uppgraderingar: varje köp låser upp ETT extra rum i huset (dörr inne +
+  // rumslista i husvärlden). roomUpgrade:true → köpet räknas av getRoomCount()
+  // som +1 rum. De köps i ordning (billigast först) men funktionellt ger var och
+  // en exakt +1 rum – ordningen styr bara pris/namn. Se data-room.js.
+  { id: "rum-2", name: "Extra rum", emoji: "🚪", category: "hus", price: 250, roomUpgrade: true },
+  { id: "rum-3", name: "Tredje rummet", emoji: "🚪", category: "hus", price: 500, roomUpgrade: true },
+  { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
 ];
+
+/**
+ * Rums-uppgraderingarnas id:n i pris-/upplåsningsordning. Antalet ÄGDA av dessa
+ * avgör hur många EXTRA rum eleven har (utöver grundrummet) – se getRoomCount()
+ * i data-room.js. Håll listan i pris-ordning; håll id:na stabila (Firestore).
+ */
+export const ROOM_UPGRADE_IDS = ["rum-2", "rum-3", "rum-4"];
+
+/** Är saken en rums-uppgradering (låser upp ett extra rum)? */
+export function isRoomUpgrade(id) {
+  const it = getItem(id);
+  return !!(it && it.roomUpgrade);
+}
+
+/** Hur många EXTRA rum en ownedItems-lista låst upp (0 = bara grundrummet). */
+export function roomUpgradeCount(ownedItems) {
+  if (!Array.isArray(ownedItems)) return 0;
+  return ROOM_UPGRADE_IDS.filter((id) => ownedItems.includes(id)).length;
+}
 
 /** Slå upp en shop-sak på id. */
 export function getItem(id) {

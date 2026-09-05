@@ -13,6 +13,7 @@ import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem } from "./shop-items.js";
+import { getPalette } from "./room-palettes.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb } from "./pages-rum-pets.js";
@@ -24,6 +25,7 @@ import { mountRumFonster } from "./varld-rum-fonster.js";
 import { mountWearTray } from "./varld-rum-wear.js";
 import { mountRumMat } from "./varld-rum-mat.js";
 import { mountRumDjurTray } from "./varld-rum-djurtray.js";
+import { mountRumVaxlare } from "./varld-rum-vaxlare.js";
 
 /** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
 function isFloorItem(id) {
@@ -48,12 +50,16 @@ function isFloorItem(id) {
  * @param {string[]} o.justHatchedIds nykläckta denna sidladdning
  * @param {(equipped: string[]) => void} [o.onEquippedChange]
  *        körs när klädseln ändrats (så ute-avataren kan ritas om)
+ * @param {number} [o.startRoom=0]  rum-index att starta i (flerrums-huset)
+ * @param {(index:number, paletteId:string|null) => void} [o.onRoomChange]
+ *        körs vid rums-byte (så husvärlden kan uppdatera palett/verktyg per rum)
  * @param {() => void} [o.onMatActivate]  körs när mat-läget slås på (så husvärlden
  *        kan stänga öppna paneler – mat och paneler är ömsesidigt uteslutande)
- * @returns {{ exitMat: () => void }}  exitMat() avslutar mat-läget (anropas av
- *        husvärldens panel-/menystängning så inget läge hänger kvar)
+ * @returns {{ count:number, current:()=>number, wallPaletteId:()=>string|null,
+ *   setWallPalette:(id:string)=>void, exitMat:()=>void }} styr-API för husvärldens
+ *   palett/verktyg per rum + exitMat() som avslutar mat-läget
  */
-export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange, onMatActivate }) {
+export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange, startRoom = 0, onRoomChange, onMatActivate }) {
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
 
@@ -89,18 +95,46 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     flash(stowed ? "Djuret vilar nu i Mina djur 🐾" : "Djuret är tillbaka i rummet! 🐾");
   }
 
+  // --- Flerrums-modell (issue #34) -----------------------------------------
+  // Huset kan ha flera rum (getRooms → 0-indexerad lista, rum0 = det gamla
+  // studentData.room). VARJE rum har egen möblering (placements), väggpalett och
+  // eget fönster; husdjur/vanliga djur/mat hör bara till GRUNDRUMMET (rum 0) –
+  // de bor i huset och promenerar i huvudrummet. Vi bygger en modell per rum och
+  // pekar `placements`/`fonster` mot det AKTIVA rummet (byts av goToRoom).
+  const roomsData = data.getRooms(sd); // längd = antal upplåsta rum (≥1)
+  const roomCount = roomsData.length;
+
   // Behåll bara placeringar för saker eleven fortfarande äger och som hör hemma
   // i rummet (inte kläder; ägget ritas som husdjur, inte som vanlig sak; vanliga
-  // djur promenerar och har ingen statisk placering längre).
-  const placements = {};
-  const savedPlacements = (sd.room && sd.room.placements) || {};
-  for (const [id, pos] of Object.entries(savedPlacements)) {
-    if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
-      // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
-      const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
-      placements[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
+  // djur promenerar och har ingen statisk placering längre). Samma owned-lista
+  // gäller alla rum → en ägd sak kan ställas in i valfritt/flera rum. Husskal
+  // (isHouseItem) är exteriör, aldrig en golvsak i rummet.
+  function filterPlacements(saved) {
+    const out = {};
+    for (const [id, pos] of Object.entries(saved || {})) {
+      if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
+        // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
+        const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
+        out[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
+      }
     }
+    return out;
   }
+  // Fönstret är ett flyttbart/raderbart VÄGG-objekt (inte en shop-sak) – egen
+  // modul (varld-rum-fonster.js) per rum, som sparar till rätt rum via saveRoomAt.
+  const roomModels = roomsData.map((room, i) => ({
+    placements: filterPlacements(room.placements),
+    paletteId: room.paletteId || null,
+    fonster: mountRumFonster({
+      saved: room.window,
+      save: (win) => data.saveRoomAt(i, { window: win }),
+    }),
+  }));
+  let currentRoom = clamp(startRoom, 0, roomCount - 1);
+  let placements = roomModels[currentRoom].placements;
+  let fonster = roomModels[currentRoom].fonster;
+  // Husdjur/mat syns bara i grundrummet; extra rum är möbler + väggfärg + fönster.
+  const showPets = () => currentRoom === 0;
 
   // Utspritt startläge för en NY sak från lådan: golvsaker sprids i sidled längs
   // golvet, väggdekor längs väggen. Vi cyklar genom ett utspritt x-mönster
@@ -116,10 +150,6 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     return { x, y };
   }
 
-  // Fönstret är ett flyttbart/raderbart VÄGG-objekt (inte en shop-sak) – egen
-  // modul (varld-rum-fonster.js, data: studentData.room.window).
-  const fonster = mountRumFonster({ sd });
-
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
   // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
   // panelen och byter husets exteriör, inte rummets möblering.
@@ -132,13 +162,30 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   let openRenameForId = null; // ✏️ nyss klickad → öppna namnfältet + fokusera (engångs)
   let justHatchedId = justHatchedIds[0] || null; // firas i panelen en gång
 
-  // Spara rummet (debounce – tät dragrörelse skriver inte varje pixel).
+  // Spara rummet (debounce – tät dragrörelse skriver inte varje pixel). Index +
+  // placeringsobjekt fångas vid schemaläggningen så en snabb rums-växling inte
+  // råkar spara det gamla rummets ändring till fel rum.
   let saveTimer = null;
+  let saveTarget = null; // { idx, pl } för den vändande skrivningen
   function scheduleSaveRoom() {
+    saveTarget = { idx: currentRoom, pl: placements };
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      data.saveRoom({ placements }).catch(() => {});
+      saveTimer = null;
+      const t = saveTarget;
+      saveTarget = null;
+      if (t) data.saveRoomAt(t.idx, { placements: t.pl }).catch(() => {});
     }, 250);
+  }
+  // Skriv en väntande rums-sparning DIREKT (t.ex. innan man byter rum) så inget
+  // tappas när debounce-timern annars skulle brytas av nästa rums placeringar.
+  function flushRoomSave() {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    const t = saveTarget;
+    saveTarget = null;
+    if (t) data.saveRoomAt(t.idx, { placements: t.pl }).catch(() => {});
   }
 
   // Spara husdjurens positioner (samma debounce-mönster).
@@ -237,23 +284,36 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
         <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
       </div>`));
     }
-    // Äpplen på golvet ritas UNDER husdjuren (så djuret syns ovanpå när det
-    // står och gnager). De är inga .room-item (data-id) och räknas därför inte
-    // som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
-    for (const apple of mat.apples()) {
-      stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
-        style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍎</div>`));
+    // Husdjur/mat hör bara till grundrummet (rum 0) – extra rum ritar bara
+    // möbler/dekor. Äpplen på golvet ritas UNDER husdjuren (så djuret syns
+    // ovanpå när det gnager). De är inga .room-item (data-id) och räknas därför
+    // inte som hinder i promenad-AI:n – precis som husdjuren själva (data-pet-id).
+    if (showPets()) {
+      for (const apple of mat.apples()) {
+        stage.appendChild(el(`<div class="room-apple" data-apple-id="${apple.id}"
+          style="left:${apple.x}%;top:${apple.y}%" title="Mysterymat">🍎</div>`));
+      }
+      for (const pet of roomPets()) {
+        if (!pet.pos) pet.pos = { x: 50, y: 70 };
+        stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
+      }
+      // Vanliga djur (fast storlek) promenerar bland mystery-djuren.
+      for (const a of djur.list()) {
+        stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
+      }
     }
-    for (const pet of roomPets()) {
-      if (!pet.pos) pet.pos = { x: 50, y: 70 };
-      stage.appendChild(petStageNode(pet, selectedPetId === pet.id));
+    const petsHere = showPets() && (roomPets().length > 0 || djur.list().length > 0);
+    if (Object.keys(placements).length === 0 && !petsHere) {
+      stage.appendChild(el(`<div class="room-empty">${roomCount > 1
+        ? `Rum ${currentRoom + 1} är tomt – öppna Lådan 📦 och möblera det!`
+        : "Ditt rum är tomt – öppna Lådan 📦 och ställ in dina saker!"}</div>`));
     }
-    // Vanliga djur (fast storlek) promenerar bland mystery-djuren.
-    for (const a of djur.list()) {
-      stage.appendChild(djur.stageNode(a, selectedPetId === a.id));
-    }
-    if (Object.keys(placements).length === 0 && roomPets().length === 0 && djur.list().length === 0) {
-      stage.appendChild(el(`<div class="room-empty">Ditt rum är tomt – öppna Lådan 📦 och ställ in dina saker!</div>`));
+    // Rums-växlaren (dörrar + rumslista) läggs överst – bara i flerrums-hus.
+    // Samma nod-objekt återanvänds vid varje renderStage så lyssnarna sitter kvar.
+    if (roomCount > 1 && vaxlare) {
+      stage.appendChild(vaxlare.listBar);
+      stage.appendChild(vaxlare.doorsWrap);
+      vaxlare.render();
     }
   }
 
@@ -313,6 +373,43 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     isSelected: (petId) => selectedPetId === petId,
     onActivate: onMatActivate,
   });
+
+  // --- Rums-växling (dörrar + rumslista) -----------------------------------
+  // Väggpaletten sätts per rum DIREKT på scenen (rum 0:s palett = husets, se
+  // pages-varld.js); okänt/saknat palett-id faller tillbaka på default via
+  // getPalette. Extra rummets palett rör aldrig husets exteriör.
+  function applyWallPalette() {
+    const p = getPalette(roomModels[currentRoom].paletteId);
+    stage.style.setProperty("--rum-wall", p.wall);
+    stage.style.setProperty("--rum-wall2", p.wall2);
+  }
+  applyWallPalette();
+
+  // Byt aktivt rum: spara ev. väntande ändring i det gamla rummet, peka om
+  // placements/fonster, färga väggarna och rita om. onRoomChange låter husvärlden
+  // uppdatera palettväljaren och dölja rum-0-verktyg (mat/djur) i extra rum.
+  function goToRoom(index) {
+    index = clamp(index, 0, roomCount - 1);
+    if (index === currentRoom) return;
+    if (mat && mat.cancelPlacing) mat.cancelPlacing(); // lämna ev. mat-placering
+    flushRoomSave();
+    currentRoom = index;
+    placements = roomModels[index].placements;
+    fonster = roomModels[index].fonster;
+    selectedId = null;
+    selectedPetId = null;
+    petPanel.replaceChildren();
+    applyWallPalette();
+    renderStage();
+    renderTray();
+    if (onRoomChange) onRoomChange(index, roomModels[index].paletteId);
+  }
+
+  // Växlaren byggs bara när huset faktiskt har fler än ett rum (enrums-hus är
+  // helt oförändrade). Den läggs in i scenen av renderStage().
+  const vaxlare = roomCount > 1
+    ? mountRumVaxlare({ count: roomCount, getCurrent: () => currentRoom, onPick: goToRoom })
+    : null;
 
   // Nykläckt ägg? Fira och öppna panelen för namngivning direkt.
   if (justHatchedId) {
@@ -491,9 +588,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     stage,
     // Mystery-djur OCH vanliga djur promenerar; bara mystery-djuren är
     // hungriga (isHungry i data-pet.js) så maten träffar aldrig de vanliga.
-    getPets: walkers,
+    // Djuren promenerar bara i grundrummet – i extra rum ritas de inte, så
+    // getPets ger tom lista där (AI:n har då inget att flytta).
+    getPets: () => (showPets() ? walkers() : []),
     isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id) || isPetBusy(pet.id),
-    getApples: mat.apples,
+    getApples: () => (showPets() ? mat.apples() : []),
     onEat: mat.onEat,
     onSettled: () => {
       saveWalkPositions();
@@ -506,6 +605,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // (utan Firestore-läsning) om något ägg PASSERAT sin kläcktid och persisterar
   // först då – nykläckta firas som vid init via justHatchedId. Timern städas när
   // scenen lämnar DOM:en (sidbyte) – samma självstädning som promenad-AI:n.
+  // (Ägg/husdjur hör bara till grundrummet; kläckningen visas nästa gång rum 0
+  // ritas, men firandet sker direkt.)
   let hatching = false;
   function anyEggDue() {
     const now = Date.now();
@@ -543,5 +644,19 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     }
   }, 15000);
 
-  return { exitMat: mat.exitPlacing };
+  // Styr-API åt husvärlden (pages-varld.js): palett/verktyg per rum + exitMat()
+  // som avslutar mat-läget (panel-/nivåbyten stänger mat-läget).
+  return {
+    count: roomCount,
+    current: () => currentRoom,
+    wallPaletteId: () => roomModels[currentRoom].paletteId,
+    // Sätt & spara AKTIVA rummets väggpalett (används av "Måla om"-panelen).
+    // Rum 0:s palett är även husets exteriör – den delen sköts i pages-varld.js.
+    setWallPalette: (id) => {
+      roomModels[currentRoom].paletteId = id;
+      applyWallPalette();
+      data.saveRoomAt(currentRoom, { paletteId: id }).catch(() => {});
+    },
+    exitMat: mat.exitPlacing,
+  };
 }
