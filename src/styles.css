@@ -1210,11 +1210,14 @@ code {
 
 /* Slot-boxar i % av containern (100 bred × 120 hög i viewBox-mått):
    hatt sjunker mot hjässan (y≈14), ansikte över ögonen (y=34),
-   hals hänger från kraglinjen (y≈58), hand vid höger tass (79,77). */
+   hals hänger från kraglinjen (y≈58), hand vid höger tass (79,77).
+   rygg (manteln) hänger från axel-/halslinjen och ritas BAKOM figuren
+   (af-rygg-spannet ligger före af-base i DOM, se avatarMarkup). */
 .af-wear.af-hatt { top: -6%; left: 50%; width: 62%; height: 26%; transform: translateX(-50%); }
 .af-wear.af-ansikte { top: 21%; left: 50%; width: 50%; height: 16%; transform: translateX(-50%); }
 .af-wear.af-hals { top: 44%; left: 50%; width: 46%; height: 22%; transform: translateX(-50%); }
 .af-wear.af-hand { top: 26%; left: 65%; width: 32%; height: 46%; }
+.af-wear.af-rygg { top: 28%; left: 50%; width: 68%; height: 54%; transform: translateX(-50%); }
 
 /* --- Shop ------------------------------------------------------------------ */
 

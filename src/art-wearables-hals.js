@@ -59,14 +59,6 @@ export const HALS_WEARABLES = {
       `<circle cx="42" cy="4" r="3" fill="#ffffff" ${THIN}/>` +
       `<circle cx="24" cy="20" r="5" fill="#7FC7E8" ${LINE}/>`,
   },
-  cape: {
-    viewBox: "0 0 52 44",
-    par: "xMidYMin",
-    art:
-      `<path d="M6 8 Q26 4 46 8 L42 40 Q26 46 10 40 Z" fill="#EF6F6C" ${LINE}/>` +
-      `<path d="M16 11 L14 39 M26 9 L26 43 M36 11 L38 39" fill="none" ${THIN}/>` +
-      `<path d="M8 4 Q26 12 44 4 Q47 9 44 13 Q26 21 8 13 Q5 9 8 4 Z" fill="#F7C948" ${LINE}/>`,
-  },
   fjaderboa: {
     viewBox: "0 0 52 30",
     par: "xMidYMin",
