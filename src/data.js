@@ -136,23 +136,6 @@ export async function addCoins(amount, studentId = currentStudentId()) {
   });
 }
 
-/**
- * Spendera coins. Misslyckas om saldot inte räcker.
- * @returns {Promise<{ok: boolean, coins: number}>}
- */
-export async function spendCoins(amount, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const n = Math.max(0, Math.round(amount || 0));
-  const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const cur = snap.exists() ? snap.data().coins || 0 : 0;
-    if (cur < n) return { ok: false, coins: cur };
-    tx.update(ref, { coins: cur - n });
-    return { ok: true, coins: cur - n };
-  });
-}
-
 // XP / nivå: se systermodulen data-xp.js (additiv, som data-pet.js) – håller
 // data.js under filtaket. getXp()/addXp() importeras därifrån direkt.
 
@@ -188,26 +171,6 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
 }
 
 // --- Ägda saker (shop) ------------------------------------------------------
-
-export async function getOwnedItems(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return data.ownedItems || [];
-}
-
-/** Markera en sak som köpt/ägd (idempotent). Drar INTE coins – gör det separat. */
-export async function addOwnedItem(itemId, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const owned = snap.exists() ? snap.data().ownedItems || [] : [];
-    if (owned.includes(itemId)) return owned;
-    const next = [...owned, itemId];
-    if (snap.exists()) tx.update(ref, { ownedItems: next });
-    else tx.set(ref, { ...defaultStudentData(), ownedItems: next });
-    return next;
-  });
-}
 
 /**
  * Köp en sak: drar coins OCH lägger till i ägda saker i samma transaktion.
