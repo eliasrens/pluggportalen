@@ -36,6 +36,7 @@ import {
   currentStudentId,
   isLoggedIn,
 } from "./auth.js";
+import { isMultiItem } from "./shop-items.js";
 
 // Session-API:t bor numera i auth.js (backat av Firebase Auth) men re-exporteras
 // här så att `import * as data from "./data.js"` fortsätter fungera överallt.
@@ -80,7 +81,8 @@ export function defaultStudentData(avatarId) {
     coins: 0,
     xp: 0, // kumulativt erfarenhets-XP (nivån härleds ur detta – se leveling.js)
     progress: {}, // { [areaId]: { [gamemode]: { completed, bestScore, stars, lastPlayed } } }
-    ownedItems: [], // shop-sak-id:n
+    ownedItems: [], // shop-sak-id:n (binärt "ägd" – single-kategorier & legacy)
+    ownedCounts: {}, // { [id]: antal } för multi-saker (möbler/dekor) – se buyItem/ownedCount
     avatarItems: [], // burna klädsaker (delmängd av ownedItems)
     room: { placements: {} }, // { [itemId]: { x, y } }
     husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
@@ -173,23 +175,55 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
 // --- Ägda saker (shop) ------------------------------------------------------
 
 /**
+ * Hur många exemplar eleven äger av en sak. För multi-saker (möbler/dekor) läses
+ * antalet ur studentData.ownedCounts; saknas ett värde där räknas ett äldre
+ * dokument som 1 om id:t finns i den binära ownedItems-listan (bakåtkompatibelt).
+ * För single-saker (kläder/hus/…) är svaret 0 eller 1 utifrån ownedItems.
+ * @param {object} data studentData-objekt
+ * @param {string} id   shop-sakens id
+ * @returns {number}
+ */
+export function ownedCount(data, id) {
+  const counts = data && data.ownedCounts;
+  if (counts && Object.prototype.hasOwnProperty.call(counts, id)) {
+    return Math.max(0, Math.round(counts[id] || 0));
+  }
+  return data && Array.isArray(data.ownedItems) && data.ownedItems.includes(id) ? 1 : 0;
+}
+
+/**
  * Köp en sak: drar coins OCH lägger till i ägda saker i samma transaktion.
- * @returns {Promise<{ok: boolean, coins: number, owned: string[]}>}
+ *
+ * Multi-saker (möbler/dekor, isMultiItem) kan köpas FLERA gånger – varje köp ökar
+ * studentData.ownedCounts[id] med 1 (och id:t hålls kvar en gång i ownedItems så
+ * äldre kod som bara kollar "ägd?" fortsätter fungera). Single-saker (kläder, hus)
+ * blockeras som förr när de redan ägs.
+ * @returns {Promise<{ok: boolean, coins: number, owned: string[], counts: object}>}
  */
 export async function buyItem(itemId, price, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const cost = Math.max(0, Math.round(price || 0));
+  const multi = isMultiItem(itemId);
   const ref = doc(db, "studentData", studentId);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : defaultStudentData();
     const owned = data.ownedItems || [];
-    if (owned.includes(itemId)) return { ok: true, coins: data.coins || 0, owned };
-    if ((data.coins || 0) < cost) return { ok: false, coins: data.coins || 0, owned };
-    const next = { coins: (data.coins || 0) - cost, ownedItems: [...owned, itemId] };
+    const coins = data.coins || 0;
+    const counts = data.ownedCounts || {};
+    // Single-kategori: redan ägd → köpet är en no-op (som förr).
+    if (!multi && owned.includes(itemId)) return { ok: true, coins, owned, counts };
+    if (coins < cost) return { ok: false, coins, owned, counts };
+    const nextOwned = owned.includes(itemId) ? owned : [...owned, itemId];
+    const next = { coins: coins - cost, ownedItems: nextOwned };
+    let nextCounts = counts;
+    if (multi) {
+      nextCounts = { ...counts, [itemId]: ownedCount(data, itemId) + 1 };
+      next.ownedCounts = nextCounts;
+    }
     if (snap.exists()) tx.update(ref, next);
     else tx.set(ref, { ...defaultStudentData(), ...next });
-    return { ok: true, coins: next.coins, owned: next.ownedItems };
+    return { ok: true, coins: next.coins, owned: nextOwned, counts: nextCounts };
   });
 }
 

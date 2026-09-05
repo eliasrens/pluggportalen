@@ -162,9 +162,11 @@ Exempel (`students/elev1`):
 | `coins`      | number | Antal pluggcoins                                       |
 | `xp`         | number | Kumulativt erfarenhets-XP. Nivån räknas fram ur detta (obegränsad, stigande kurva) – se `src/leveling.js`. Saknas fältet härleds ett startvärde ur `progress` (migrering). |
 | `progress`   | map    | Framsteg: `{ [areaId]: { [gamemode]: {...} } }`        |
-| `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`)      |
+| `ownedItems` | array  | Id:n på köpta shop-saker (se `src/shop-items.js`). Binärt "äger minst ett" – single-kategorier (kläder, hus) och legacy. För **multi-saker** (möbler/dekor) står id:t kvar en gång här medan antalet räknas i `ownedCounts`. |
+| `ownedCounts`| map    | `{ [itemId]: antal }` – hur många exemplar eleven äger av **multi-saker** (möbler/dekor, `isMultiItem`). Saknas ett id men finns i `ownedItems` räknas det som **1** (bakåtkompat). Se `buyItem`/`ownedCount` i `src/data.js`. Vanliga djur (husdjur) räknas i stället per instans i `roomAnimals`. |
 | `avatarItems`| array  | Id:n på klädsaker eleven bär på avataren (delmängd av `ownedItems`) |
-| `room`       | map    | **Grundrummet (rum 0)** – `{ placements: { [itemId]: { x, y } }, paletteId, window }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om). `window` = fönstrets läge `{ x, y, removed }`. |
+| `roomAnimals`| array  | **Vanliga djuren** (köpbara promenerande djur, `src/data-animals.js`): `{ uid, id, pos:{x,y}, name, stowed }`. `id` = arten (shop-id, "hund"), `uid` = unik **instans** – eleven får äga **flera** av samma art. Legacy-poster utan `uid` använder art-id:t som uid. |
+| `room`       | map    | **Grundrummet (rum 0)** – `{ placements: { [key]: { x, y } }, paletteId, window }` – `x`/`y` i **procent** (0–100) av rummet. `key` är ett sak-id ("soffa") för ett exemplar, eller `"<id>#<n>"` ("soffa#2") för **flera exemplar** av samma möbel/dekor (`itemIdFromKey` härleder sak-id:t). `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om). `window` = fönstrets läge `{ x, y, removed }`. |
 | `extraRooms` | map    | **Fler rum** (husuppgradering, `src/data-room.js`): map keyad på `"0"`,`"1"`,… där `"0"` = rum **#2**. Varje värde har samma form som `room` (`{ placements, paletteId, window }`). Antalet upplåsta extra rum = antal ägda rums-uppgraderingar (`rum-2`/`rum-3`/`rum-4` i `ownedItems`, se `roomUpgradeCount`). `getRooms(sd)` presenterar allt som en 0-indexerad lista `[rum0, rum1, …]` (rum → rooms[0], bakåtkompatibelt: saknas `extraRooms` funkar enrums-hus oförändrat). Rum 0:s `paletteId` är även husets **exteriör**-palett; extra rums palett rör bara det rummets väggar. |
 | `husSkalId`  | string/null | Aktivt husskal (byter husets exteriör); `null` = default-stugan |
 | `husLast`    | bool   | `true` = huset är **låst**: en klasskamrats läs-vy (`src/pages-klasskamrat.js`) visar `🔒 Låst` i stället för rummet. Toggle i verktygsmenyn (`src/pages-varld.js`); delad hjälpare `isHouseLocked(studentData)` i `src/data-room.js`. Husets exteriör i byn påverkas inte. |
@@ -311,9 +313,11 @@ Exempel (`classes/6a`):
 - `getProgress()`, `saveProgress(areaId, gamemode, result)`
 
 **Shop / ägda saker**
-- `buyItem(itemId, price)` → `{ ok, coins, owned }` (ägda saker läses via `getStudentData().ownedItems`)
+- `buyItem(itemId, price)` → `{ ok, coins, owned, counts }` (ägda saker läses via `getStudentData().ownedItems`/`ownedCounts`)
   (`buyItem` drar coins och lägger till saken i **en** transaktion – ingen täckning
-  eller redan ägd sak → `ok:false`, inga negativa saldon eller dubbelköp)
+  → `ok:false`, inga negativa saldon. **Single-saker**: redan ägd = no-op. **Multi-saker**
+  (möbler/dekor): varje köp ökar `ownedCounts[id]` med 1 så flera exemplar kan ägas.)
+- `ownedCount(data, id)` – antal ägda exemplar av en sak (multi-medveten, bakåtkompat: id i `ownedItems` = 1).
 - Katalogen (kategorier, priser, emoji) ligger i [`src/shop-items.js`](../src/shop-items.js).
 
 **Avatar-påklädnad**
@@ -321,7 +325,7 @@ Exempel (`classes/6a`):
   Rendera avataren med `avatarMarkup(avatarId, itemIds)` från `src/avatars.js`.
 
 **Rum**
-- `getRoom()`, `saveRoom(room)` – **grundrummet (rum 0)**. `room = { placements: { [itemId]: { x, y } }, paletteId, window }`,
+- `getRoom()`, `saveRoom(room)` – **grundrummet (rum 0)**. `room = { placements: { [key]: { x, y } }, paletteId, window }` (`key` = sak-id eller `"<id>#<n>"` för extra exemplar),
   där `x`/`y` är procent (0–100) så rummet ser likadant ut på alla skärmar.
   `saveRoom` skriver varje angivet fält med dot-path (`room.placements` osv.) –
   utelämnade fält (t.ex. `paletteId`) lämnas orörda. Paletterna för hus & väggar

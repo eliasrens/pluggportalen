@@ -12,7 +12,7 @@
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
-import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, itemIdFromKey } from "./shop-items.js";
 import { getPalette } from "./room-palettes.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -109,13 +109,16 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // djur promenerar och har ingen statisk placering längre). Samma owned-lista
   // gäller alla rum → en ägd sak kan ställas in i valfritt/flera rum. Husskal
   // (isHouseItem) är exteriör, aldrig en golvsak i rummet.
+  // Nyckeln kan vara ett rent sak-id (ett exemplar / äldre data) eller "<id>#<n>"
+  // (extra exemplar av samma möbel/dekor). Sak-id:t härleds med itemIdFromKey.
   function filterPlacements(saved) {
     const out = {};
-    for (const [id, pos] of Object.entries(saved || {})) {
-      if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
+    for (const [key, pos] of Object.entries(saved || {})) {
+      const id = itemIdFromKey(key);
+      if (data.ownedCount(sd, id) > 0 && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
         // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
         const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
-        out[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
+        out[key] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
       }
     }
     return out;
@@ -146,11 +149,21 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // flera nyplacerade saker på exakt samma punkt ("klump mot mitten").
   const SPREAD_X = [50, 30, 70, 20, 80, 40, 60, 15, 85];
   function nextSpot(floor) {
-    const n = Object.keys(placements).filter((pid) => isFloorItem(pid) === floor).length;
+    const n = Object.keys(placements).filter((pid) => isFloorItem(itemIdFromKey(pid)) === floor).length;
     const x = SPREAD_X[n % SPREAD_X.length];
     const row = Math.floor(n / SPREAD_X.length);
     const y = floor ? 78 - (row % 2) * 8 : 32 + (row % 2) * 12;
     return { x, y };
+  }
+
+  // Skapa en unik placerings-nyckel för ett NYTT exemplar av en sak i det aktiva
+  // rummet. Första exemplaret får det rena sak-id:t (bakåtkompatibelt med gammal
+  // data och enrums-hus), extra exemplar får "<id>#<n>".
+  function makePlacementKey(id) {
+    if (!(id in placements)) return id;
+    let n = 2;
+    while (`${id}#${n}` in placements) n++;
+    return `${id}#${n}`;
   }
 
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
@@ -314,23 +327,26 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     if (winNode) stage.appendChild(winNode);
     // Rita platta golvsaker (mattor) FÖRST så vanliga möbler, dekor och husdjur
     // alltid staplas ovanpå dem – oavsett i vilken ordning de placerats/flyttats.
-    const orderedIds = Object.keys(placements).sort(
-      (a, b) => (isFlatItem(a) ? 0 : 1) - (isFlatItem(b) ? 0 : 1)
+    // Nycklar (kan vara "<id>#<n>" för extra exemplar); sortera platta golvsaker
+    // (mattor) först så möbler/dekor/husdjur alltid staplas ovanpå dem.
+    const orderedKeys = Object.keys(placements).sort(
+      (a, b) => (isFlatItem(itemIdFromKey(a)) ? 0 : 1) - (isFlatItem(itemIdFromKey(b)) ? 0 : 1)
     );
-    for (const id of orderedIds) {
+    for (const key of orderedKeys) {
+      const id = itemIdFromKey(key);
       const item = getItem(id);
       if (!item) continue;
-      const pos = placements[id];
+      const pos = placements[key];
       const size = itemSize(id);
       // Bredd/höjd skalas med scenBREDDEN (1cqw = 1 % av scen), cap:ad per enhet,
       // se .varld-lager.room-stage i styles.css → saken upptar samma andel av
       // scenen vid varje bredd (ingen ihopklumpning). cqw skrivs DIREKT här (inte
       // via en egen var) – annars resolvas den mot fel container i Chromium. calc
       // → faktiskt layoutmått, så drag-clampen (offsetWidth/Height) följer med.
-      stage.appendChild(el(`<div class="room-item${selectedId === id ? " selected" : ""}"
-        data-id="${id}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
+      stage.appendChild(el(`<div class="room-item${selectedId === key ? " selected" : ""}"
+        data-id="${key}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
         <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(id) || item.emoji}</span>
-        <button class="ri-remove" data-remove="${id}" title="Plocka bort">🗑️</button>
+        <button class="ri-remove" data-remove="${key}" title="Plocka bort">🗑️</button>
       </div>`));
     }
     // Husdjur/mat hör bara till grundrummet (rum 0) – extra rum ritar bara
@@ -366,9 +382,22 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   }
 
   // --- Rita lådan (ägda, oplacerade rums-saker) ----------------------------
+  // Hur många exemplar av `id` som redan står i det AKTIVA rummet.
+  function placedCountInRoom(id) {
+    let n = 0;
+    for (const key of Object.keys(placements)) if (itemIdFromKey(key) === id) n++;
+    return n;
+  }
+  // Hur många exemplar av `id` som ännu KAN ställas in i det aktiva rummet
+  // (ägda − redan placerade här). Multi-saker (möbler/dekor) kan ägas i flera
+  // exemplar; single-saker är kvar på max 1.
+  function remainingToPlace(id) {
+    return data.ownedCount(sd, id) - placedCountInRoom(id);
+  }
+
   function renderTray() {
     tray.replaceChildren();
-    const notPlaced = roomItemsOwned.filter((id) => !(id in placements));
+    const notPlaced = roomItemsOwned.filter((id) => remainingToPlace(id) > 0);
     if (roomItemsOwned.length === 0) {
       trayHint.textContent = "Du har inga saker än. Köp möbler, husdjur och dekor i shoppen!";
     } else if (notPlaced.length === 0) {
@@ -378,9 +407,12 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     }
     for (const id of notPlaced) {
       const item = getItem(id);
+      const rem = remainingToPlace(id);
+      // Visa antal kvar att ställa in när man äger flera exemplar.
+      const namn = rem > 1 ? `${item.name} (${rem})` : item.name;
       tray.appendChild(el(`<button class="tray-item" data-place="${id}" title="${item.name}">
         <span class="tray-emoji">${itemSvg(id) || item.emoji}</span>
-        <span class="tray-namn">${item.name}</span>
+        <span class="tray-namn">${namn}</span>
       </button>`));
     }
     // Borttaget fönster kan alltid läggas tillbaka härifrån (hamnar då åter
@@ -401,7 +433,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     listStowed: () => [
       ...djur.stowedList().map((a) => ({
         kind: "animal", id: a.id, name: djur.displayName(a),
-        artHtml: itemSvg(a.id) || (getItem(a.id)?.emoji ?? "🐾"),
+        artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
       })),
       ...pets.filter((p) => p.stowed && p.hatchedAt).map((p) => ({
         kind: "pet", id: p.id, name: petDisplayName(p), artHtml: petArtThumb(p),
@@ -494,13 +526,15 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     const btn = e.target.closest("[data-place]");
     if (!btn) return;
     const id = btn.dataset.place;
-    if (id in placements) return;
+    // Inga fler exemplar kvar att ställa in i det här rummet? Gör inget.
+    if (remainingToPlace(id) <= 0) return;
     // Golvsaker ställs på golvet, väggdekor hängs på väggen – men SPRIDS ut i
     // sidled i stället för att alla landa mitt i scenen (annars staplas nya
     // saker ovanpå varandra och ser "hopklumpade mot mitten" ut). Nästa lediga
     // punkt väljs ur ett utspritt mönster utifrån hur många som redan står i
     // samma zon; positionen är fortfarande procent så den kan dras/sparas fritt.
-    placements[id] = nextSpot(isFloorItem(id));
+    // En unik nyckel gör att flera exemplar av samma möbel/dekor kan samsas.
+    placements[makePlacementKey(id)] = nextSpot(isFloorItem(id));
     selectedId = null; // ny sak placeras utan ram – markeras först vid klick
     renderStage();
     renderTray();
@@ -567,7 +601,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       halfW: ((node.offsetWidth / rect.width) * 100) / 2,
       halfH: ((node.offsetHeight / rect.height) * 100) / 2,
       // Möbler, husdjur-saker OCH levande husdjur hör hemma i golvzonen.
-      floor: !!node.dataset.petId || isFloorItem(node.dataset.id),
+      // data-id är en placerings-nyckel ("<id>#<n>" för extra exemplar) → härled id.
+      floor: !!node.dataset.petId || isFloorItem(itemIdFromKey(node.dataset.id)),
       // Fönstret är ett väggobjekt → egen väggzon-clamp (inte golv-clampen).
       win: node.dataset.id === WINDOW_ID,
     };

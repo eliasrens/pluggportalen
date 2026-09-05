@@ -222,6 +222,33 @@ export function isConsumable(id) {
   return !!(it && it.consumable);
 }
 
+/**
+ * Kategorier där man får äga/placera FLERA exemplar av samma sak (t.ex. flera
+ * soffor eller krukväxter). Antalet ägda per id räknas i studentData.ownedCounts
+ * (se data.js: buyItem/ownedCount) i stället för den binära ownedItems-listan.
+ * De VANLIGA djuren (husdjur, isAnimalItem) får också ägas i flera exemplar men
+ * bor i studentData.roomAnimals (data-animals.js) – inte här.
+ */
+const MULTI_CATEGORIES = new Set(["mobler", "dekor"]);
+
+/** Får man äga flera exemplar av den här saken? (möbler & dekor) */
+export function isMultiItem(id) {
+  const it = getItem(id);
+  return !!(it && MULTI_CATEGORIES.has(it.category));
+}
+
+/**
+ * En placerings-NYCKEL i room.placements är antingen ett rent sak-id ("soffa" –
+ * äldre data / första exemplaret) eller "<id>#<n>" ("soffa#2" – extra exemplar
+ * av samma sak). Här plockas sak-id:t ur en nyckel. Sak-id:n innehåller aldrig
+ * "#", så separatorn är säker. Nya nycklar skapas i varld-rum.js.
+ */
+export function itemIdFromKey(key) {
+  const s = String(key || "");
+  const i = s.indexOf("#");
+  return i === -1 ? s : s.slice(0, i);
+}
+
 /** Saker i en kategori. */
 export function itemsInCategory(catId) {
   return SHOP_ITEMS.filter((it) => it.category === catId);
