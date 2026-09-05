@@ -9,6 +9,7 @@
 import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
+import { buildReviewPanel } from "./teacher-content-review.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { EXERCISE_TYPES, areaExerciseTypes } from "./exercise-types.js";
 import { listPairImageKeys } from "./pair-images.js";
@@ -63,15 +64,22 @@ export async function pageLarareInnehall(ctx) {
       <p class="hint">Klistra in JSON nedan eller ladda upp en <b>.json</b>-fil. Ett befintligt
         arbetsområde med samma <b>id</b> ersätts.</p>
 
+      <h3 style="margin:18px 0 4px">🤖 Skapa innehållet med AI (valfritt)</h3>
+      <p class="hint">Kryssa i vilka övningstyper området ska ha, kopiera prompten och klistra in
+        den i valfri AI (t.ex. ChatGPT, Claude eller Gemini) tillsammans med en PDF/lektionstext –
+        eller skriv ett eget önskemål nedan. AI:n svarar med en JSON som du klistrar in i rutan
+        längst ner. 📖 Quiz-frågor får automatiskt en egen källtext (<code>passage</code>) för
+        läsförståelsen.</p>
+
       <div class="field">
         <label>Övningstyper på området</label>
-        <p class="hint">Kryssa i vilka typer av övningar området ska ha. Valen sparas på området
-          och styr AI-prompten nedan så att du bara ber AI:n skapa passande innehåll (t.ex. inga
-          bildpar om det inte kryssats i).</p>
+        <p class="hint">Bara de <b>ikryssade</b> typerna kommer med – prompten (och det som sparas
+          på området) anpassas efter dina val, så du tvingas inte ha med alla typer. Standard är
+          Quiz; kryssa i fler bara när du behöver dem (t.ex. bildpar).</p>
         <div class="member-grid" id="ex-types">
           ${EXERCISE_TYPES.map(
             (t) => `<label class="member-row">
-              <input type="checkbox" value="${esc(t.id)}" checked />
+              <input type="checkbox" value="${esc(t.id)}"${t.id === "quiz" ? " checked" : ""} />
               <span class="member-avatar">${esc(t.emoji)}</span>
               <span class="member-name">${esc(t.label)}<br><span class="hint">${esc(t.hint)}</span></span>
             </label>`
@@ -82,6 +90,8 @@ export async function pageLarareInnehall(ctx) {
       <div class="field">
         <label for="area-onskemal">✍️ Eget önskemål till AI:n (valfritt)</label>
         <input id="area-onskemal" placeholder="T.ex. ämne, tema eller omfattning – vävs in i prompten" />
+        <p class="hint">Har du ingen PDF/text? Beskriv ämne, årskurs och ev. omfattning här, så vävs
+          det in i prompten i stället för platshållaren för bifogat material.</p>
       </div>
       <div class="row-inline" style="margin-bottom:16px">
         <button class="btn ghost" id="copy-area-prompt">📋 Kopiera AI-prompt för valda typer</button>
@@ -243,11 +253,27 @@ export async function pageLarareInnehall(ctx) {
           </div>
         </div>
         <div class="row-actions">
+          <button class="btn ghost small" data-act="review">👁️ Granska</button>
           <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
           <button class="btn ghost small" data-act="edit">Ersätt</button>
           <button class="btn ghost small danger" data-act="del">Ta bort</button>
         </div>
       </div>`);
+      // Inline-slot för read-only "granska"-vy (issue #66) – öppnas under raden.
+      const reviewSlot = el(`<div class="area-review" hidden></div>`);
+      const reviewBtn = row.querySelector('[data-act="review"]');
+      reviewBtn.addEventListener("click", () => {
+        if (!reviewSlot.hidden) {
+          reviewSlot.hidden = true;
+          reviewSlot.innerHTML = "";
+          reviewBtn.classList.remove("active");
+          return;
+        }
+        reviewSlot.replaceChildren(buildReviewPanel(a));
+        reviewSlot.hidden = false;
+        reviewBtn.classList.add("active");
+        reviewSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
       // Inline-slot för "lägg till nytt innehåll" (issue #40) – öppnas under raden.
       const mergeSlot = el(`<div class="area-merge" hidden></div>`);
       row.querySelector('[data-act="add"]').addEventListener("click", () => {
@@ -282,6 +308,7 @@ export async function pageLarareInnehall(ctx) {
         }
       });
       wrap.appendChild(row);
+      wrap.appendChild(reviewSlot);
       wrap.appendChild(mergeSlot);
       list.appendChild(wrap);
     }
@@ -375,8 +402,8 @@ export async function pageLarareInnehall(ctx) {
       emoji: "📚",
       title: "Innehåll",
       lead: `Välj ämne, klistra in eller ladda upp en arbetsområdes-JSON, kontrollera
-        att den är giltig och spara till databasen. Behöver du en JSON? Hämta en färdig
-        <a data-hash="#/larare/prompter">AI-prompt</a> som skapar den åt dig.`,
+        att den är giltig och spara till databasen. Behöver du en JSON? Kryssa i övningstyper
+        och kopiera en <b>AI-prompt</b> nedan som skapar den åt dig.`,
     })
   );
   container.appendChild(view);

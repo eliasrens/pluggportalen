@@ -82,10 +82,13 @@ export function avatarSvg(id) {
  * @returns {string} HTML-sträng
  */
 export function avatarMarkup(avatarId, equipped = []) {
-  const overlays = (equipped || [])
+  const worn = (equipped || [])
     .map((id) => getItem(id))
-    .filter((it) => it && it.category === "klader")
-    .map((it) => `<span class="af-wear af-${it.slot}">${wearableSvg(it.id) || it.emoji}</span>`)
-    .join("");
-  return `<span class="avatar-figure"><span class="af-base">${avatarSvg(avatarId)}</span>${overlays}</span>`;
+    .filter((it) => it && it.category === "klader");
+  const span = (it) => `<span class="af-wear af-${it.slot}">${wearableSvg(it.id) || it.emoji}</span>`;
+  // Rygg-plagg (manteln) ritas FÖRE af-base → hänger bakom figuren; övriga
+  // plagg ritas efter → ovanpå. Samma markup i rum- och ute-vyn.
+  const behind = worn.filter((it) => it.slot === "rygg").map(span).join("");
+  const front = worn.filter((it) => it.slot !== "rygg").map(span).join("");
+  return `<span class="avatar-figure">${behind}<span class="af-base">${avatarSvg(avatarId)}</span>${front}</span>`;
 }

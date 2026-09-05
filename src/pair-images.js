@@ -26,12 +26,12 @@
  *   name    : partinamnet (används som alt-text: "<name>s partisymbol")
  *   bg      : brickans färg
  *   fg      : bokstävernas färg (hög kontrast mot bg – WCAG AA för stor text)
- *   ring    : valfri kantfärg (SD: gul ram runt mörkblå botten för sin look)
+ *   ring    : valfri kantfärg (SD: gul ram runt partiblå botten för sin look)
  */
 const PARTIER = [
   { id: "s", letters: "S", name: "Socialdemokraterna", bg: "#D72638", fg: "#FFFFFF" },
   { id: "m", letters: "M", name: "Moderaterna", bg: "#0A2A66", fg: "#FFFFFF" },
-  { id: "sd", letters: "SD", name: "Sverigedemokraterna", bg: "#003876", fg: "#F3C700", ring: "#F3C700" },
+  { id: "sd", letters: "SD", name: "Sverigedemokraterna", bg: "#1B5FA6", fg: "#F3C700", ring: "#F3C700" },
   { id: "c", letters: "C", name: "Centerpartiet", bg: "#009933", fg: "#FFFFFF" },
   { id: "v", letters: "V", name: "Vänsterpartiet", bg: "#A11526", fg: "#FFFFFF" },
   { id: "kd", letters: "KD", name: "Kristdemokraterna", bg: "#2C5FA8", fg: "#FFFFFF" },

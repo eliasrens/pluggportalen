@@ -35,7 +35,11 @@ import { FLOOR_TOP } from "./art-room.js";
  * @param {HTMLElement} o.stage     rumsscenen (.room-stage) – klick placerar mat
  * @param {object} o.sd             studentData (läser appleCount + floorApples)
  * @param {() => object[]} o.getPets  aktuell pets-lista (muteras vid matning)
- * @param {() => void} o.renderScene  rita om rumsscenen (visar mat + djur)
+ * @param {() => void} o.renderScene  rita om HELA rumsscenen (bara vid tillväxt –
+ *   djuret byter storlek). Vardaglig mat-ritning går via renderApples (issue #60).
+ * @param {() => void} o.renderApples  inkrementell mat-ritning: lägg till/ta bort
+ *   bara ändrade golväpplen utan att röra djur-/husdjursnoderna (bevarar promenad-
+ *   animationer). Anropas efter varje mutation av floorApples.
  * @param {() => void} o.renderPanel  rita om husdjurspanelen (ny feedCount)
  * @param {(petId: string) => boolean} o.isSelected  är djurets panel öppen?
  * @param {() => void} [o.onActivate]  körs när placera-läget slås PÅ (så
@@ -44,7 +48,7 @@ import { FLOOR_TOP } from "./art-room.js";
  *   apples() = mat på golvet (för scenritning + AI), onEat = ät-callback åt AI:n,
  *   exitPlacing() = gemensam väg att avsluta mat-läget (panel-/menystängning).
  */
-export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPanel, isSelected, onActivate }) {
+export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderApples, renderPanel, isSelected, onActivate }) {
   // Speglar studentData: floorApples (på golvet) + appleCount (outlagd mat).
   let floorApples = Array.isArray(sd.floorApples) ? sd.floorApples.map((a) => ({ ...a })) : [];
   let appleCount = sd.appleCount || 0;
@@ -143,7 +147,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     const apple = { id: newAppleId(), x, y };
     floorApples.push(apple);
     appleCount -= 1;
-    renderScene();
+    renderApples(); // appenda BARA den nya matnoden (ingen full scen-ombyggnad)
     // Slut på mat → lämna placera-läget automatiskt.
     if (appleCount <= 0) setPlacing(false);
     updateMatBtn();
@@ -153,7 +157,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
         // Servern hade slut på mat: rulla tillbaka biten och korrigera räknaren.
         floorApples = floorApples.filter((a) => a.id !== apple.id);
         appleCount = res.appleCount;
-        renderScene();
+        renderApples(); // ta bort den enstaka spökmaten
         updateMatBtn();
         flash("Du har ingen Mysterymat kvar.", true);
       }
@@ -162,7 +166,7 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
       // Nätverksfel: ta bort spökmaten och ge tillbaka räknaren.
       floorApples = floorApples.filter((a) => a.id !== apple.id);
       appleCount += 1;
-      renderScene();
+      renderApples(); // ta bort den enstaka spökmaten
       updateMatBtn();
       flash("Kunde inte lägga ut maten: " + err.message, true);
     });
@@ -175,12 +179,13 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     if (eating.has(apple.id)) return;
     eating.add(apple.id);
     floorApples = floorApples.filter((a) => a.id !== apple.id);
-    renderScene();
+    renderApples(); // ta bort BARA den ätna matnoden (rör inte djurens promenad)
     setPetMood(pet, "ater", 1800); // gnager en stund (partikel/uttryck 🍎)
     try {
       const res = await petData.eatApple(pet.id, apple.id);
       if (res.ok && res.pet) {
         floorApples = res.floorApples.map((a) => ({ ...a }));
+        renderApples(); // stäm av golvmaten mot servern (utan att röra djuren)
         const pets = getPets();
         const idx = pets.findIndex((p) => p.id === res.pet.id);
         if (idx !== -1) {
@@ -190,18 +195,18 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
         if (res.stageUp) {
           confetti();
           flash(`${petDisplayName(res.pet)} växte till steg ${res.pet.stage}! 🎉`);
+          renderScene(); // djuret VÄXTE (ny storlek) → rita om scenen en gång
         }
-        renderScene();
         if (isSelected(res.pet.id)) renderPanel(); // panelen visar ny feedCount
         const grownPet = idx !== -1 ? pets[idx] : res.pet;
         setTimeout(() => setPetMood(grownPet, "glad", 2200), 1800);
       } else {
-        renderScene(); // maten var redan borta / annat djur hann först
+        renderApples(); // maten var redan borta / annat djur hann först
       }
     } catch (err) {
       // Nätverksfel: lägg tillbaka maten så den inte försvinner spårlöst.
       if (!floorApples.some((a) => a.id === apple.id)) floorApples.push({ ...apple });
-      renderScene();
+      renderApples();
     } finally {
       eating.delete(apple.id);
     }

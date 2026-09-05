@@ -78,7 +78,7 @@ export async function saveRoom(room, studentId = currentStudentId()) {
 
 /** Tomt rum (nytt/oinrett extra rum). */
 function emptyRoom() {
-  return { placements: {}, paletteId: null, window: null };
+  return { placements: {}, paletteId: null, window: null, doors: null };
 }
 
 /** Normalisera ett (ev. saknat) rum-objekt till fast form. */
@@ -88,6 +88,9 @@ function normalizeRoom(r) {
     placements: room.placements && typeof room.placements === "object" ? room.placements : {},
     paletteId: room.paletteId || null,
     window: room.window || null,
+    // Rums-dörrarnas (växlarens) sparade lägen per sida: { prev:{x,y}, next:{x,y} }.
+    // Saknas → dörrarna hamnar på sin snygga default-plats på väggen (issue #59).
+    doors: room.doors && typeof room.doors === "object" ? room.doors : null,
   };
 }
 
@@ -107,7 +110,7 @@ export function getRoomCount(sd) {
  * studentData.room (bakåtkompatibelt); extra rum fylls ur studentData.extraRooms
  * och saknade/oinredda extra rum blir tomma rum (så de kan inredas).
  * @param {object|null|undefined} sd studentData
- * @returns {Array<{placements:object, paletteId:string|null, window:object|null}>}
+ * @returns {Array<{placements:object, paletteId:string|null, window:object|null, doors:object|null}>}
  */
 export function getRooms(sd) {
   const count = getRoomCount(sd);

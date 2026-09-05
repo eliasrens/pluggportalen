@@ -18,8 +18,10 @@
 // Sätt `consumable: true` på sådana saker (se isConsumable). Hanteras via
 // buyApple()/placeApple()/eatApple() i data-pet.js.
 //
-// Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/hand).
-// Bara en sak per slot kan bäras samtidigt. Övriga kategorier placeras i rummet.
+// Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/
+// hand/rygg). Bara en sak per slot kan bäras samtidigt. `rygg` ritas BAKOM
+// figuren (mantel) – se avatarMarkup i avatars.js. Övriga kategorier placeras
+// i rummet.
 //
 // Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
@@ -68,7 +70,7 @@ export const SHOP_ITEMS = [
   { id: "hjartglasogon", name: "Hjärtglasögon", emoji: "😍", category: "klader", slot: "ansikte", price: 45 },
   { id: "snorkelmask", name: "Snorkelmask", emoji: "🤿", category: "klader", slot: "ansikte", price: 55 },
   { id: "parlhalsband", name: "Pärlhalsband", emoji: "📿", category: "klader", slot: "hals", price: 70 },
-  { id: "cape", name: "Hjältemantel", emoji: "🦸", category: "klader", slot: "hals", price: 120 },
+  { id: "cape", name: "Hjältemantel", emoji: "🦸", category: "klader", slot: "rygg", price: 120 },
   { id: "fjaderboa", name: "Fjäderboa", emoji: "🪶", category: "klader", slot: "hals", price: 50 },
   { id: "amulett", name: "Ädelstensamulett", emoji: "💎", category: "klader", slot: "hals", price: 95 },
   { id: "paraply", name: "Paraply", emoji: "☂️", category: "klader", slot: "hand", price: 40 },

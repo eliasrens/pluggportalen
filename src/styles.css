@@ -1066,6 +1066,49 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 }
 .area-merge .subpanel { margin: 0; }
 
+/* Read-only "granska"-vy som fälls ut under en områdesrad (issue #66). */
+.area-review {
+  margin-left: 14px;
+  border-left: 3px solid #cfe0f7;
+  padding-left: 12px;
+}
+.area-review .subpanel { margin: 0; }
+.btn.small.active { box-shadow: inset 0 0 0 2px var(--bla); }
+
+.rv-panel { display: flex; flex-direction: column; gap: 18px; }
+.rv-section { display: flex; flex-direction: column; gap: 8px; }
+.rv-h { margin: 0; font-size: 1.05rem; }
+.rv-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
+
+.rv-q-text { font-weight: 700; margin-bottom: 4px; }
+.rv-opts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.rv-opt { display: flex; gap: 6px; align-items: baseline; }
+.rv-opt.correct { font-weight: 700; color: var(--gron-mork, #1e7a3a); }
+.rv-mark { flex: none; }
+
+.rv-passage, .rv-expl {
+  background: #f0f6ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+.rv-expl { background: #fff7e6; }
+.rv-tag { font-weight: 700; margin-right: 4px; }
+
+.rv-pairs { padding-left: 0; list-style: none; }
+.rv-pair { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rv-term { font-weight: 700; }
+.rv-arrow { color: var(--bla-mork); flex: none; }
+.rv-imgflag {
+  display: inline-block;
+  font-size: 0.8rem;
+  background: #eef4ff;
+  border-radius: 8px;
+  padding: 1px 6px;
+}
+
+.rv-text-title { font-weight: 700; margin-bottom: 4px; }
+
 .area-info {
   display: flex;
   align-items: center;
@@ -1210,11 +1253,14 @@ code {
 
 /* Slot-boxar i % av containern (100 bred × 120 hög i viewBox-mått):
    hatt sjunker mot hjässan (y≈14), ansikte över ögonen (y=34),
-   hals hänger från kraglinjen (y≈58), hand vid höger tass (79,77). */
+   hals hänger från kraglinjen (y≈58), hand vid höger tass (79,77).
+   rygg (manteln) hänger från axel-/halslinjen och ritas BAKOM figuren
+   (af-rygg-spannet ligger före af-base i DOM, se avatarMarkup). */
 .af-wear.af-hatt { top: -6%; left: 50%; width: 62%; height: 26%; transform: translateX(-50%); }
 .af-wear.af-ansikte { top: 21%; left: 50%; width: 50%; height: 16%; transform: translateX(-50%); }
 .af-wear.af-hals { top: 44%; left: 50%; width: 46%; height: 22%; transform: translateX(-50%); }
 .af-wear.af-hand { top: 26%; left: 65%; width: 32%; height: 46%; }
+.af-wear.af-rygg { top: 28%; left: 50%; width: 68%; height: 54%; transform: translateX(-50%); }
 
 /* --- Shop ------------------------------------------------------------------ */
 
@@ -1577,26 +1623,30 @@ code {
 }
 
 .rum-dorrar { pointer-events: none; }
+/* Dörren sitter på VÄGGEN (inte på golvet framför spelaren, issue #59): läget
+   sätts som centrum-koordinater inline (left/top %) av växlaren och centreras
+   med translate(-50%,-50%). Den är flyttbar (drag) → cursor:grab + touch-action
+   avstängd så pekdraget inte skrollar sidan. */
 .rum-dorr {
   position: absolute;
-  bottom: 6%;
+  transform: translate(-50%, -50%);
   z-index: 6;
   pointer-events: auto;
+  touch-action: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
   border: 0;
   background: transparent;
-  cursor: pointer;
+  cursor: grab;
   padding: 0;
   filter: drop-shadow(0 2px 3px rgba(59, 51, 80, 0.28));
 }
+.rum-dorr.dragging { cursor: grabbing; }
 /* display:flex ovan skulle annars slå ut hidden-attributet (UA:s [hidden]-regel);
    återställ göm-beteendet explicit så dörren döljs i första/sista rummet. */
 .rum-dorr[hidden] { display: none; }
-.rum-dorr-vanster { left: 3%; }
-.rum-dorr-hoger { right: 3%; }
 .rum-dorr-svg { width: clamp(34px, 9cqw, 62px); display: block; }
 .rum-dorr-svg svg { width: 100%; height: auto; display: block; }
 .rum-dorr-nr {

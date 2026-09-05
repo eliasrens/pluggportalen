@@ -139,7 +139,7 @@ export const SKALA_TEXTER = `Anpassa ANTALET faktatexter efter hur mycket materi
 Dela upp innehållet i tydliga delämnen så att hela materialet täcks.`;
 
 // Slut-blocket där läraren bifogar sitt material. Definieras EN gång så att
-// buildPromptWith()/materialBlock() kan hitta och ev. ersätta det i prompterna.
+// materialBlock() kan använda det (eller ersätta det med ett önskemåls-block).
 export const MATERIAL_ANCHOR = `Här är materialet du ska utgå ifrån:
 <<< KLISTRA IN DIN LEKTIONSTEXT HÄR, eller bifoga en PDF >>>`;
 
@@ -158,7 +158,7 @@ export const REGLER = `Viktiga regler:
 /**
  * Slut-blocket i en prompt: antingen platshållaren för bifogad PDF/text
  * (MATERIAL_ANCHOR, tomt önskemål) eller ett önskemåls-block när läraren skrivit
- * en beskrivning. Delas av buildPromptWith och buildAreaPrompt (prompts.js).
+ * en beskrivning. Används av buildAreaPrompt (prompts.js).
  */
 export function materialBlock(onskemal) {
   const text = (onskemal || "").trim();
