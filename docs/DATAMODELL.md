@@ -287,7 +287,7 @@ Exempel (`classes/6a`):
 - `getXp()` → elevens samlade XP; `addXp(n)` → nytt totalt XP (transaktion, samma
   mönster som `addCoins`; migrerar automatiskt elever utan `xp`-fält ur `progress`).
 - XP delas ut i `awardExercise()` (`src/game-shared.js`): full pott första gången en
-  övning klaras, ~30 % vid omspel (grind-skydd, som coins).
+  övning klaras, 80 % vid omspel (medvetet produktbeslut, som coins).
 - Nivåkurvan (obegränsad, stigande) + XP-potten per övning ligger i
   [`src/leveling.js`](../src/leveling.js): `xpForLevel(L)`, `levelForXp(xp)`,
   `xpIntoLevel(xp)` → `{ level, intoLevel, neededForNext, progressRatio }`,
