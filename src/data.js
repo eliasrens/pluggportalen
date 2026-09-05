@@ -86,7 +86,6 @@ export function defaultStudentData(avatarId) {
     husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
-    evolution: {}, // { [avatarId]: { stage, branch } } – elevens grenval (se evolution.js)
   };
 }
 
@@ -267,8 +266,6 @@ export {
   getAvatar,
   setAvatar,
   hasChosenAvatar,
-  getEvolution,
-  setEvolutionChoice,
 } from "./data-room.js";
 
 export {
