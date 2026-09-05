@@ -209,13 +209,12 @@ export async function pageElevVarld(startNiva) {
   let byLaddning = null;
   function laddaBy() {
     byLaddning ??= (async () => {
-      const students = await data.getStudentsWithLooks();
+      // Läs BARA sig själv + klasskamraterna, per dokument. En elev får enligt
+      // reglerna inte lista hela students-kollektionen (world-read är borta) –
+      // bara läsa kamrater i samma klass. Utan klass blir byn bara det egna huset.
       const classIds = Array.isArray(klass?.studentIds) ? klass.studentIds : [];
-      let boende = students;
-      if (classIds.length > 0) {
-        const iKlassen = students.filter((s) => classIds.includes(s.id));
-        if (iKlassen.length > 0) boende = iKlassen;
-      }
+      const ids = [meId, ...classIds].filter(Boolean);
+      let boende = await data.getStudentsWithLooks(ids);
       // Egen tomt först, resten i namnordning (svensk kollation).
       boende = boende.slice().sort((a, b) => {
         if (a.id === meId) return -1;

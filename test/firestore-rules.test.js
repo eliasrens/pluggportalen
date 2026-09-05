@@ -178,6 +178,44 @@ describe("Elev når bara sitt eget", () => {
   });
 });
 
+describe("Klasskamrat-läsning (klassbyn) – scopad till samma klass", () => {
+  // Sätt upp denormaliserade classIds: elev1 & elev2 i "6a", elev3 i "6b".
+  // (Reglerna avgör "samma klass" via students/{id}.classIds, se sharesClass.)
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, "students", "elev1"), { classIds: ["6a"] }, { merge: true });
+      await setDoc(doc(db, "students", "elev2"), { classIds: ["6a"] }, { merge: true });
+      await setDoc(doc(db, "students", "elev3"), {
+        namn: "Cecilia",
+        username: "elev3",
+        classIds: ["6b"],
+      });
+      await setDoc(doc(db, "studentData", "elev3"), { coins: 10, progress: {} });
+    });
+  });
+
+  it("elev får LÄSA en klasskamrats students (namn/avatar till byn)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev2")));
+  });
+  it("elev får LÄSA en klasskamrats studentData (hus/palett till byn)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "studentData", "elev2")));
+  });
+  it("elev får INTE läsa en elev i en ANNAN klass", async () => {
+    await assertFails(getDoc(doc(elev("elev1"), "students", "elev3")));
+    await assertFails(getDoc(doc(elev("elev1"), "studentData", "elev3")));
+  });
+  it("elev får ändå INTE skriva en klasskamrats studentData eller students", async () => {
+    await assertFails(setDoc(doc(elev("elev1"), "studentData", "elev2"), { coins: 0 }));
+    await assertFails(setDoc(doc(elev("elev1"), "students", "elev2"), { namn: "x" }));
+  });
+  it("klasslös elev (inga classIds) når bara sitt eget", async () => {
+    // elev3 delar ingen klass med elev1/elev2.
+    await assertFails(getDoc(doc(elev("elev3"), "students", "elev1")));
+    await assertFails(getDoc(doc(elev("elev3"), "studentData", "elev2")));
+  });
+});
+
 describe("Lärare (claim teacher:true) når allt", () => {
   it("kan läsa alla elevers students och studentData", async () => {
     await assertSucceeds(getDoc(doc(teacher(), "students", "elev1")));
