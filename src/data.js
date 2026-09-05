@@ -277,6 +277,8 @@ export {
   deleteArea,
   nextAreaOrder,
   getStudents,
+  getStudent,
+  getStudentsByIds,
   getStudentsWithLooks,
   upsertStudent,
   deleteStudent,

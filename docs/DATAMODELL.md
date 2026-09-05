@@ -133,13 +133,15 @@ Inloggning sker via **Firebase Auth** (Email/Password), inte via Firestore. Efte
 härdningen (se `docs/security-plan.md` + `docs/ADMIN.md`) finns **inget
 `password`-fält** kvar i dokumentet – lösenorden bor i Firebase Auth. `uid` för
 Auth-kontot är samma som `studentId` (kopplingen till `studentData` behålls).
-Reglerna låter eleven läsa bara sitt eget dokument; bara läraren skriver.
+Reglerna låter eleven läsa sitt eget dokument, läraren allt, och en **klasskamrat**
+(samma klass) elevens namn/avatar till klassbyn – se `classIds` nedan.
 
 | Fält       | Typ    | Beskrivning                                  |
 | ---------- | ------ | -------------------------------------------- |
 | `namn`     | string | Elevens namn (visas i appen)                 |
 | `username` | string | Användarnamn, gemener (mappas till `username@elev.pluggportalen.local` vid login) |
 | `avatarId` | string | Vald avatar (se `AVATARS` i `src/avatars.js`)|
+| `classIds` | array\<string\> | **Denormaliserad** klasstillhörighet (klass-id:n). Speglar vilka `classes` som listar eleven i `studentIds`. Låter `firestore.rules` avgöra "samma klass" utan att loopa över `classes` → klassbyn får läsa klasskamraters `students`/`studentData`. Underhålls av `setClassStudents`/`deleteClass`; backfill: `admin/backfill-class-ids.mjs`. Saknas/tom ⇒ ingen kamratåtkomst. |
 
 > `password` är **borttaget** efter migreringen (`admin/migrate-passwords.mjs`).
 > Äldre dokument kan fortfarande ha ett kvarblivet `password`-fält tills
@@ -148,7 +150,7 @@ Reglerna låter eleven läsa bara sitt eget dokument; bara läraren skriver.
 Exempel (`students/elev1`):
 
 ```json
-{ "namn": "Astrid", "username": "elev1", "avatarId": "fox" }
+{ "namn": "Astrid", "username": "elev1", "avatarId": "fox", "classIds": ["6a"] }
 ```
 
 ---
@@ -358,7 +360,11 @@ Exempel (`classes/6a`):
 **Klasser (lärarsida)**
 - `getClasses()`, `upsertClass(id, {name, order})`, `deleteClass(id)`,
   `setClassStudents(id, studentIds)` – `upsertClass` skriver med merge så
-  `studentIds` bevaras vid namnbyte; `setClassStudents` ersätter hela listan.
+  `studentIds` bevaras vid namnbyte; `setClassStudents` ersätter hela listan
+  **och** synkar medlemmarnas `students/{id}.classIds` (arrayUnion/arrayRemove)
+  i samma batch; `deleteClass` städar bort klass-id:t ur medlemmarnas `classIds`.
+- `getStudent(id)` (ett elevkonto), `getStudentsByIds(ids)` (flera per dokument –
+  klassbyn läser sig själv + kamrater, aldrig hela kollektionen).
 
 **Tilldelade arbetsområden per klass**
 - `setClassAssignments(id, assignments)` – ersätter `assignedAreas`

@@ -15,6 +15,9 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
+  writeBatch,
+  arrayUnion,
+  arrayRemove,
   query,
   where,
   orderBy,
@@ -22,6 +25,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData, currentStudentId } from "./data.js";
 import { createStudentAuthAccount } from "./auth.js";
+import { xpFromStudentData, progressTotals } from "./leveling.js";
 
 // ---------------------------------------------------------------------------
 // Kunskapsinnehåll (ämnen och arbetsområden)
@@ -88,10 +92,36 @@ export async function nextAreaOrder(subjectId) {
 // Elevkonton (lärarsidan)
 // ---------------------------------------------------------------------------
 
-/** Lista alla elevkonton. */
+/** Lista alla elevkonton. Kräver lärarbehörighet (regeln nekar list för elever). */
 export async function getStudents() {
   const snap = await getDocs(collection(db, "students"));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** Hämta ETT elevkonto (eller null). Läsbart för eleven själv, läraren och
+ *  klasskamrater (se firestore.rules sharesClass). */
+export async function getStudent(studentId) {
+  if (!studentId) return null;
+  const snap = await getDoc(doc(db, "students", studentId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+/**
+ * Hämta specifika elevkonton PER ID (inte en collection-listning). Klassbyn
+ * använder detta i stället för getStudents() eftersom en elev enligt reglerna
+ * inte får LISTA hela students-kollektionen – bara läsa sig själv + kamrater i
+ * samma klass, dokument för dokument. En saknad/nekad elev hoppas tyst över.
+ */
+export async function getStudentsByIds(ids) {
+  const uniq = [...new Set((Array.isArray(ids) ? ids : []).filter(Boolean))];
+  const docs = await Promise.all(
+    uniq.map((id) =>
+      getDoc(doc(db, "students", id))
+        .then((snap) => (snap.exists() ? { id: snap.id, ...snap.data() } : null))
+        .catch(() => null)
+    )
+  );
+  return docs.filter(Boolean);
 }
 
 /**
@@ -104,25 +134,42 @@ export async function getStudents() {
  * med en per-elev catch, så att en enda trasig/saknad elevdata inte fäller hela
  * vyn – då används bara students-dokumentets avatarId utan klädsel/palett.
  *
+ * Utöver utseendet fylls även POSITIVA per-elev-mått ur SAMMA studentData-
+ * läsning (ingen extra runda): `xp` (samlat, härlett vid behov), `completed`
+ * (avklarade övningar) och `stars` (intjänade stjärnor). Klassbyn summerar dem
+ * till en gemensam klass-nivå + klasstatistik (leveling.aggregateKlassStats) –
+ * de visas aldrig per elev, bara som klasstotaler.
+ *
+ * @param {string[]|null} ids Om en id-lista skickas läses BARA de eleverna, per
+ *   dokument (klassbyn: eleven själv + klasskamrater). Utan lista listas hela
+ *   students-kollektionen – bara tillåtet för läraren enligt reglerna.
  * @returns {Promise<Array<{id, namn, username, avatarId, avatarItems: string[],
- *   paletteId: string|null, husSkalId: string|null}>>}
+ *   paletteId: string|null, husSkalId: string|null,
+ *   xp: number, completed: number, stars: number}>>}
  */
-export async function getStudentsWithLooks() {
-  const students = await getStudents();
+export async function getStudentsWithLooks(ids = null) {
+  const students = ids ? await getStudentsByIds(ids) : await getStudents();
   return Promise.all(
     students.map(async (s) => {
       try {
         const snap = await getDoc(doc(db, "studentData", s.id));
         const d = snap.exists() ? snap.data() : {};
+        const { completed, stars } = progressTotals(d.progress);
         return {
           ...s,
           avatarId: d.avatarId || s.avatarId || "fox",
           avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
           paletteId: (d.room && d.room.paletteId) || null,
           husSkalId: d.husSkalId || null,
+          xp: xpFromStudentData(d),
+          completed,
+          stars,
         };
       } catch {
-        return { ...s, avatarId: s.avatarId || "fox", avatarItems: [], paletteId: null, husSkalId: null };
+        return {
+          ...s, avatarId: s.avatarId || "fox", avatarItems: [], paletteId: null,
+          husSkalId: null, xp: 0, completed: 0, stars: 0,
+        };
       }
     })
   );
@@ -229,16 +276,50 @@ export async function upsertClass(classId, { name, order } = {}) {
   return classId;
 }
 
-/** Ta bort en klass (elevkontona rörs inte – bara grupperingen försvinner). */
+/** Ta bort en klass (elevkontona rörs inte – bara grupperingen försvinner).
+ *  Städar även bort klass-id:t ur medlemmarnas students/{id}.classIds så att
+ *  reglernas kamratläsning (sharesClass) inte lämnar kvar stale-åtkomst. */
 export async function deleteClass(classId) {
-  await deleteDoc(doc(db, "classes", classId));
+  const snap = await getDoc(doc(db, "classes", classId));
+  const members = snap.exists() && Array.isArray(snap.data().studentIds)
+    ? snap.data().studentIds
+    : [];
+  const batch = writeBatch(db);
+  batch.delete(doc(db, "classes", classId));
+  for (const id of members) {
+    batch.set(doc(db, "students", id), { classIds: arrayRemove(classId) }, { merge: true });
+  }
+  await batch.commit();
 }
 
-/** Sätt exakt vilka elever som ingår i en klass (ersätter hela listan). */
+/**
+ * Sätt exakt vilka elever som ingår i en klass (ersätter hela listan).
+ *
+ * Håller den denormaliserade students/{id}.classIds i synk: elever som TILLKOMMER
+ * får klass-id:t (arrayUnion), elever som TAS BORT tappar det (arrayRemove).
+ * classIds är det enda reglerna kan använda för att avgöra "samma klass" (de kan
+ * inte loopa över classes) → klassbyns kamratläsning bygger på att fältet stämmer.
+ * Allt skrivs i EN batch (atomiskt) så klasslistan och medlemmarnas classIds inte
+ * kan glida isär. Kräver lärarbehörighet (students-skrivning = isTeacher).
+ */
 export async function setClassStudents(classId, studentIds) {
-  const list = Array.isArray(studentIds) ? [...new Set(studentIds)] : [];
-  const ref = doc(db, "classes", classId);
-  await setDoc(ref, { studentIds: list }, { merge: true });
+  const list = Array.isArray(studentIds) ? [...new Set(studentIds.filter(Boolean))] : [];
+  const prevSnap = await getDoc(doc(db, "classes", classId));
+  const prev = prevSnap.exists() && Array.isArray(prevSnap.data().studentIds)
+    ? prevSnap.data().studentIds
+    : [];
+  const added = list.filter((id) => !prev.includes(id));
+  const removed = prev.filter((id) => !list.includes(id));
+
+  const batch = writeBatch(db);
+  batch.set(doc(db, "classes", classId), { studentIds: list }, { merge: true });
+  for (const id of added) {
+    batch.set(doc(db, "students", id), { classIds: arrayUnion(classId) }, { merge: true });
+  }
+  for (const id of removed) {
+    batch.set(doc(db, "students", id), { classIds: arrayRemove(classId) }, { merge: true });
+  }
+  await batch.commit();
   return list;
 }
 
