@@ -1589,7 +1589,11 @@ code {
    --------------------------------------------------------------------------- */
 .rum-lista {
   position: absolute;
-  top: 8px;
+  /* Sitter under scenens topp-rad (.varld-ui-topp: "Mitt rum 🛏️" + knappar,
+     ~46 px hög) i stället för i samma topp-zon – annars ritas pill-raden ovanpå
+     titeln och de överlappar. På mobil är topp-raden lägre (ikon-knappar), så
+     samma offset ger fortfarande luft. */
+  top: 54px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -3140,6 +3144,11 @@ body.varld-lage .container {
 .varld-knapp:hover { transform: translateY(-1px); }
 .varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
 .varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
+/* display:inline-flex ovan slår annars ut UA:s [hidden]-regel (samma specificitet,
+   men författar-CSS vinner över UA-lagret). "🔭 Andra byar" (#skola-btn) sätts
+   hidden=true i updateUi på alla nivåer utom by – utan denna regel skulle knappen
+   ändå synas (textlös innan by-nivån, kvarhängande efteråt). */
+.varld-knapp[hidden] { display: none; }
 
 /* Lådan & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
    ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */
