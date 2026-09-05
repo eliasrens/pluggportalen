@@ -283,7 +283,7 @@ Exempel (`classes/6a`):
 - `logout()`, `isLoggedIn()`, `getSession()`, `currentStudentId()`
 
 **Coins**
-- `getCoins()`, `addCoins(n)`, `spendCoins(n)` → `{ ok, coins }`
+- `getCoins()`, `addCoins(n)` → nytt saldo (coins dras via `buyItem`, se Shop nedan)
 
 **XP / nivå** – Firestore-delen i systermodulen [`src/data-xp.js`](../src/data-xp.js) (som `data-pet.js`)
 - `getXp()` → elevens samlade XP; `addXp(n)` → nytt totalt XP (transaktion, samma
@@ -299,7 +299,7 @@ Exempel (`classes/6a`):
 - `getProgress()`, `saveProgress(areaId, gamemode, result)`
 
 **Shop / ägda saker**
-- `getOwnedItems()`, `addOwnedItem(itemId)`, `buyItem(itemId, price)` → `{ ok, coins, owned }`
+- `buyItem(itemId, price)` → `{ ok, coins, owned }` (ägda saker läses via `getStudentData().ownedItems`)
   (`buyItem` drar coins och lägger till saken i **en** transaktion – ingen täckning
   eller redan ägd sak → `ok:false`, inga negativa saldon eller dubbelköp)
 - Katalogen (kategorier, priser, emoji) ligger i [`src/shop-items.js`](../src/shop-items.js).
