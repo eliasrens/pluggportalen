@@ -97,7 +97,6 @@ export function teacherNav(ctx, active) {
     // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
     { hash: "#/larare/klasser", key: "klasser", label: "🏫 Klasser" },
     { hash: "#/larare/innehall", key: "innehall", label: "📚 Innehåll" },
-    { hash: "#/larare/prompter", key: "prompter", label: "🤖 AI-prompter" },
     { hash: "#/larare/elever", key: "elever", label: "🧑‍🎓 Elevkonton" },
   ];
   const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
@@ -172,7 +171,8 @@ export function pageLarare(ctx) {
   if (!isTeacher()) return renderGate(ctx);
 
   // Genvägar (big-cards). Ordningen speglar en naturlig arbetsgång:
-  // följ upp klassen → bygg upp klasser/elever → fyll på innehåll/prompter.
+  // följ upp klassen → bygg upp klasser/elever → fyll på innehåll (med den
+  // inbyggda AI-promptbyggaren).
   const cards = [
     {
       hash: "#/larare/klass",
@@ -201,14 +201,7 @@ export function pageLarare(ctx) {
       color: "bla",
       emoji: "📚",
       title: "Innehåll",
-      sub: "Lägg in och hantera arbetsområden",
-    },
-    {
-      hash: "#/larare/prompter",
-      color: "lila",
-      emoji: "🤖",
-      title: "AI-prompter",
-      sub: "Färdiga prompter som skapar innehåll åt dig",
+      sub: "Lägg in arbetsområden – bygg AI-prompter direkt här",
     },
   ];
 
@@ -218,8 +211,8 @@ export function pageLarare(ctx) {
       <span class="teacher-hero-icon">👩‍🏫</span>
       <div class="teacher-hero-text">
         <h1>Lärarsida</h1>
-        <p class="teacher-hero-lead">Välkommen! Här bygger du upp klasser och innehåll,
-          hämtar AI-prompter och följer hur eleverna kommer framåt.</p>
+        <p class="teacher-hero-lead">Välkommen! Här bygger du upp klasser och innehåll
+          (med AI-prompter direkt på innehållssidan) och följer hur eleverna kommer framåt.</p>
       </div>
     </header>
     <div class="card-grid teacher-cards">

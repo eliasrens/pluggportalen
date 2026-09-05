@@ -23,8 +23,7 @@
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
 //   #/larare/klasser  klasshantering (skapa klasser, lägg elever i dem)
-//   #/larare/innehall innehållsinmatning (arbetsområdes-JSON)
-//   #/larare/prompter färdiga AI-prompter
+//   #/larare/innehall innehållsinmatning (arbetsområdes-JSON) + AI-promptbyggare
 //   #/larare/elever   elevkontohantering
 //
 // Hash-routing används medvetet så att GitHub Pages inte behöver någon
@@ -42,7 +41,6 @@ import {
 import {
   pageLarare,
   pageLarareInnehall,
-  pageLararePrompter,
   pageLarareElever,
 } from "./teacher.js";
 // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
@@ -146,7 +144,9 @@ const routes = {
   // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
   "/larare/klasser": () => pageLarareKlasser(teacherCtx),
   "/larare/innehall": () => pageLarareInnehall(teacherCtx),
-  "/larare/prompter": () => pageLararePrompter(teacherCtx),
+  // AI-prompt-sidan är sammanslagen med innehållssidan (issue #62): den
+  // dynamiska promptbyggaren bor nu där. Gamla länkar/bokmärken skickas dit.
+  "/larare/prompter": () => go("#/larare/innehall"),
   "/larare/elever": () => pageLarareElever(teacherCtx),
 };
 
