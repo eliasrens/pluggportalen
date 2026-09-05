@@ -25,18 +25,18 @@
  *   letters : texten på brickan (1–2 bokstäver)
  *   name    : partinamnet (används som alt-text: "<name>s partisymbol")
  *   bg      : brickans färg
- *   fg      : bokstävernas färg (hög kontrast mot bg)
- *   ring    : valfri kantfärg (används av SD för gul+mörkblå-looken)
+ *   fg      : bokstävernas färg (hög kontrast mot bg – WCAG AA för stor text)
+ *   ring    : valfri kantfärg (SD: gul ram runt mörkblå botten för sin look)
  */
 const PARTIER = [
   { id: "s", letters: "S", name: "Socialdemokraterna", bg: "#D72638", fg: "#FFFFFF" },
   { id: "m", letters: "M", name: "Moderaterna", bg: "#0A2A66", fg: "#FFFFFF" },
-  { id: "sd", letters: "SD", name: "Sverigedemokraterna", bg: "#F3C700", fg: "#14284B", ring: "#14284B" },
+  { id: "sd", letters: "SD", name: "Sverigedemokraterna", bg: "#003876", fg: "#F3C700", ring: "#F3C700" },
   { id: "c", letters: "C", name: "Centerpartiet", bg: "#009933", fg: "#FFFFFF" },
   { id: "v", letters: "V", name: "Vänsterpartiet", bg: "#A11526", fg: "#FFFFFF" },
   { id: "kd", letters: "KD", name: "Kristdemokraterna", bg: "#2C5FA8", fg: "#FFFFFF" },
   { id: "l", letters: "L", name: "Liberalerna", bg: "#38B6E8", fg: "#0A2A66" },
-  { id: "mp", letters: "MP", name: "Miljöpartiet", bg: "#6DAE2C", fg: "#FFFFFF" },
+  { id: "mp", letters: "MP", name: "Miljöpartiet", bg: "#6DAE2C", fg: "#123A15" },
 ];
 
 const PREFIX = "partier";
