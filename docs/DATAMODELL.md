@@ -165,7 +165,6 @@ Exempel (`students/elev1`):
 | `room`       | map    | `{ placements: { [itemId]: { x, y } }, paletteId }` – `x`/`y` i **procent** (0–100) av rummet. `paletteId` är elevens färgpalett för hus & väggar (`src/room-palettes.js`, default `"persika"`; golvet färgas aldrig om) |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
-| `evolution`  | map    | Karaktärs-evolution: `{ [avatarId]: { stage, branch } }` – elevens **grenval** i sista utvecklingssteget (t.ex. `{ "robot": { "stage": 3, "branch": "kraft" } }`). Vilket steg figuren *nått* sparas inte – det härleds numera ur elevens **nivå** (nivåtrösklarna `STAGE_LEVELS` i `src/evolution.js`; nivån ur `xp` via `src/leveling.js`). |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
 | `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
@@ -235,8 +234,7 @@ Exempel (`studentData/elev1`):
   "ownedItems": ["keps", "sang", "hund"],
   "avatarItems": ["keps"],
   "room": { "placements": { "sang": { "x": 30, "y": 70 }, "hund": { "x": 60, "y": 80 } } },
-  "avatarId": "fox",
-  "evolution": { "robot": { "stage": 3, "branch": "kraft" } }
+  "avatarId": "fox"
 }
 ```
 
@@ -292,13 +290,13 @@ Exempel (`classes/6a`):
 - `logout()`, `isLoggedIn()`, `getSession()`, `currentStudentId()`
 
 **Coins**
-- `getCoins()`, `addCoins(n)`, `spendCoins(n)` → `{ ok, coins }`
+- `getCoins()`, `addCoins(n)` → nytt saldo (coins dras via `buyItem`, se Shop nedan)
 
 **XP / nivå** – Firestore-delen i systermodulen [`src/data-xp.js`](../src/data-xp.js) (som `data-pet.js`)
 - `getXp()` → elevens samlade XP; `addXp(n)` → nytt totalt XP (transaktion, samma
   mönster som `addCoins`; migrerar automatiskt elever utan `xp`-fält ur `progress`).
 - XP delas ut i `awardExercise()` (`src/game-shared.js`): full pott första gången en
-  övning klaras, ~30 % vid omspel (grind-skydd, som coins).
+  övning klaras, 80 % vid omspel (medvetet produktbeslut, som coins).
 - Nivåkurvan (obegränsad, stigande) + XP-potten per övning ligger i
   [`src/leveling.js`](../src/leveling.js): `xpForLevel(L)`, `levelForXp(xp)`,
   `xpIntoLevel(xp)` → `{ level, intoLevel, neededForNext, progressRatio }`,
@@ -308,7 +306,7 @@ Exempel (`classes/6a`):
 - `getProgress()`, `saveProgress(areaId, gamemode, result)`
 
 **Shop / ägda saker**
-- `getOwnedItems()`, `addOwnedItem(itemId)`, `buyItem(itemId, price)` → `{ ok, coins, owned }`
+- `buyItem(itemId, price)` → `{ ok, coins, owned }` (ägda saker läses via `getStudentData().ownedItems`)
   (`buyItem` drar coins och lägger till saken i **en** transaktion – ingen täckning
   eller redan ägd sak → `ok:false`, inga negativa saldon eller dubbelköp)
 - Katalogen (kategorier, priser, emoji) ligger i [`src/shop-items.js`](../src/shop-items.js).
@@ -327,17 +325,14 @@ Exempel (`classes/6a`):
 **Avatar**
 - `getAvatar()`, `setAvatar(avatarId)`, `hasChosenAvatar()`
 
-**Karaktärs-evolution (Pokémon-stil)**
-- `getEvolution()` → `{ [avatarId]: { stage, branch } }` – elevens sparade grenval.
-- `setEvolutionChoice(avatarId, { stage, branch })` – spara grenvalet i sista steget.
-- Vilket steg figuren nått **härleds** ur elevens **nivå** (inte längre direkt ur
-  stjärnorna) – se `src/evolution.js` (`STAGE_LEVELS`-trösklarna,
-  `evoFromStudentData(sd)` → `{ stage, branch, level, xp, intoLevel, ... }`).
-  Nivån räknas ur `xp` via `src/leveling.js`. Evolutionen kapas vid sista steget
-  (steg 3) även om nivåerna fortsätter uppåt.
-  Rendera figuren med `avatarMarkup(avatarId, itemIds, evo)` /
-  `characterSvg(id, { stage, branch })`. Konsten per steg ligger i
-  `src/art-characters-robot.js`, registret `EVOLUTIONS` i `src/art-characters.js`.
+**Karaktärs-evolution (Pokémon-stil) – vilande**
+- Ingen evolution persisteras eller renderas i dag: avataren ritas alltid i sitt
+  basutseende (steg 1). Det tidigare `evolution`-fältet i `studentData` och
+  funktionerna `getEvolution`/`setEvolutionChoice` är **borttagna** (var död kod –
+  se issue #49); den planerade `src/evolution.js` skapades aldrig.
+- Konsten per steg finns dock kvar som vilande kapacitet: `characterSvg(id, { stage, branch })`
+  kan rita högre steg, registret `EVOLUTIONS` i `src/art-characters.js` och robotens
+  stegkonst i `src/art-characters-robot.js`. Utan `evo`-argument (som i dag) blir det steg 1.
 **Husdjur (mystery eggs, flera per elev)** – ligger i systermodulen [`src/data-pet.js`](../src/data-pet.js)
 - `buyEgg(price)` → `{ ok, coins, pets }` – transaktion som drar coins och lägger
   ett **nytt** ägg i `pets[]` (kan köpas flera gånger; hamnar inte i `ownedItems`)

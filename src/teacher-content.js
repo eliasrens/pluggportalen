@@ -353,10 +353,6 @@ export async function pageLarareInnehall(ctx) {
     const old = saveBtn.textContent;
     saveBtn.textContent = "Sparar…";
     try {
-      // Sätt order om det saknades: nästa lediga i ämnet.
-      if (typeof res.value.order !== "number" || res.value.order === 1) {
-        // Behåll uttryckligt order om användaren angav ett annat än standard.
-      }
       // Lärarens kryssrutor är det uttryckliga valet av övningstyper och vinner
       // över det validate.js härlett ur innehållet.
       const value = { ...res.value, exerciseTypes: getSelectedTypes() };

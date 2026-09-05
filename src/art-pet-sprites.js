@@ -43,11 +43,6 @@ export const SPRITE_SPECIES = [
 
 const BY_ID = Object.fromEntries(SPRITE_SPECIES.map((s) => [s.id, s]));
 
-/** Är arten en sprite-art (bild-rigg) i stället för procedurell SVG? */
-export function isSpriteSpecies(speciesId) {
-  return !!BY_ID[speciesId];
-}
-
 // Delarnas filnamn i z-/mät-ordning: head, lh, torso, rh, lf, rf (00–05).
 const PART_FILES = [
   "00-head.png",

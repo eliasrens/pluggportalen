@@ -33,9 +33,6 @@ export const CATEGORIES = [
   { id: "hus", name: "Hus", emoji: "🏠" },
 ];
 
-// Slot = var på avataren en klädsak sitter (för positionering + en per slot).
-export const WEARABLE_SLOTS = ["hatt", "ansikte", "hals", "hand"];
-
 export const SHOP_ITEMS = [
   // --- Kläder & accessoarer (bärs på avataren) -----------------------------
   { id: "keps", name: "Keps", emoji: "🧢", category: "klader", slot: "hatt", price: 20 },
@@ -138,12 +135,6 @@ export function isWearable(id) {
 export function isFlatItem(id) {
   const it = getItem(id);
   return !!(it && it.flat);
-}
-
-/** Är saken ett köpbart husskal (byter husets exteriör)? */
-export function isHouseItem(id) {
-  const it = getItem(id);
-  return !!(it && it.category === "hus");
 }
 
 /**
