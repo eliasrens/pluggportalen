@@ -25,6 +25,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData, currentStudentId } from "./data.js";
 import { createStudentAuthAccount } from "./auth.js";
+import { xpFromStudentData, progressTotals } from "./leveling.js";
 
 // ---------------------------------------------------------------------------
 // Kunskapsinnehåll (ämnen och arbetsområden)
@@ -133,11 +134,18 @@ export async function getStudentsByIds(ids) {
  * med en per-elev catch, så att en enda trasig/saknad elevdata inte fäller hela
  * vyn – då används bara students-dokumentets avatarId utan klädsel/palett.
  *
+ * Utöver utseendet fylls även POSITIVA per-elev-mått ur SAMMA studentData-
+ * läsning (ingen extra runda): `xp` (samlat, härlett vid behov), `completed`
+ * (avklarade övningar) och `stars` (intjänade stjärnor). Klassbyn summerar dem
+ * till en gemensam klass-nivå + klasstatistik (leveling.aggregateKlassStats) –
+ * de visas aldrig per elev, bara som klasstotaler.
+ *
  * @param {string[]|null} ids Om en id-lista skickas läses BARA de eleverna, per
  *   dokument (klassbyn: eleven själv + klasskamrater). Utan lista listas hela
  *   students-kollektionen – bara tillåtet för läraren enligt reglerna.
  * @returns {Promise<Array<{id, namn, username, avatarId, avatarItems: string[],
- *   paletteId: string|null, husSkalId: string|null}>>}
+ *   paletteId: string|null, husSkalId: string|null,
+ *   xp: number, completed: number, stars: number}>>}
  */
 export async function getStudentsWithLooks(ids = null) {
   const students = ids ? await getStudentsByIds(ids) : await getStudents();
@@ -146,15 +154,22 @@ export async function getStudentsWithLooks(ids = null) {
       try {
         const snap = await getDoc(doc(db, "studentData", s.id));
         const d = snap.exists() ? snap.data() : {};
+        const { completed, stars } = progressTotals(d.progress);
         return {
           ...s,
           avatarId: d.avatarId || s.avatarId || "fox",
           avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
           paletteId: (d.room && d.room.paletteId) || null,
           husSkalId: d.husSkalId || null,
+          xp: xpFromStudentData(d),
+          completed,
+          stars,
         };
       } catch {
-        return { ...s, avatarId: s.avatarId || "fox", avatarItems: [], paletteId: null, husSkalId: null };
+        return {
+          ...s, avatarId: s.avatarId || "fox", avatarItems: [], paletteId: null,
+          husSkalId: null, xp: 0, completed: 0, stars: 0,
+        };
       }
     })
   );
