@@ -12,6 +12,7 @@
     "test:e2e": "firebase emulators:exec --only auth,firestore \"node test/e2e-auth.test.mjs\"",
     "emulators": "firebase emulators:start --only auth,firestore",
     "migrate:passwords": "node admin/migrate-passwords.mjs",
+    "backfill:class-ids": "node admin/backfill-class-ids.mjs",
     "set-teacher": "node admin/set-teacher-claim.mjs"
   },
   "engines": {
