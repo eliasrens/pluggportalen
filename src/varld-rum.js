@@ -12,7 +12,7 @@
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
-import { getItem, isWearable, isFlatItem, isAnimalItem } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem } from "./shop-items.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb } from "./pages-rum-pets.js";
@@ -48,8 +48,12 @@ function isFloorItem(id) {
  * @param {string[]} o.justHatchedIds nykläckta denna sidladdning
  * @param {(equipped: string[]) => void} [o.onEquippedChange]
  *        körs när klädseln ändrats (så ute-avataren kan ritas om)
+ * @param {() => void} [o.onMatActivate]  körs när mat-läget slås på (så husvärlden
+ *        kan stänga öppna paneler – mat och paneler är ömsesidigt uteslutande)
+ * @returns {{ exitMat: () => void }}  exitMat() avslutar mat-läget (anropas av
+ *        husvärldens panel-/menystängning så inget läge hänger kvar)
  */
-export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange }) {
+export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHint, wearTray, matBtn, sd, pets, justHatchedIds, onEquippedChange, onMatActivate }) {
   const owned = sd.ownedItems || [];
   const hasLamp = owned.includes(petData.LAMP_ITEM_ID);
 
@@ -91,7 +95,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   const placements = {};
   const savedPlacements = (sd.room && sd.room.placements) || {};
   for (const [id, pos] of Object.entries(savedPlacements)) {
-    if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && id !== petData.EGG_ITEM_ID && pos) {
+    if (owned.includes(id) && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
       // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
       const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
       placements[id] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
@@ -117,8 +121,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   const fonster = mountRumFonster({ sd });
 
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
+  // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
+  // panelen och byter husets exteriör, inte rummets möblering.
   const roomItemsOwned = owned.filter(
-    (id) => !isWearable(id) && !isAnimalItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
+    (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
   );
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
@@ -305,6 +311,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     renderScene: () => renderStage(),
     renderPanel: () => renderPets(),
     isSelected: (petId) => selectedPetId === petId,
+    onActivate: onMatActivate,
   });
 
   // Nykläckt ägg? Fira och öppna panelen för namngivning direkt.
@@ -493,4 +500,48 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       djur.saveWalkPositions();
     },
   });
+
+  // --- Live-kläckning: kläck ägg medan rummet står öppet (utan sidrefresh) ---
+  // hatchReadyPets() körs annars bara en gång vid sidinit. Här kollar vi lokalt
+  // (utan Firestore-läsning) om något ägg PASSERAT sin kläcktid och persisterar
+  // först då – nykläckta firas som vid init via justHatchedId. Timern städas när
+  // scenen lämnar DOM:en (sidbyte) – samma självstädning som promenad-AI:n.
+  let hatching = false;
+  function anyEggDue() {
+    const now = Date.now();
+    return pets.some(
+      (p) => p.eggBoughtAt && !p.hatchedAt && now >= petData.hatchTimeFor(p, hasLamp)
+    );
+  }
+  const hatchTimer = setInterval(async () => {
+    if (!stage.isConnected) return clearInterval(hatchTimer); // vy stängd → städa
+    if (hatching || !anyEggDue()) return;
+    hatching = true;
+    try {
+      const res = await petData.hatchReadyPets();
+      if (!res.justHatchedIds.length) return;
+      // Behåll rummets aktuella positioner + undanstuvning (serverns pos kan vara
+      // äldre än dit promenad-AI:n hunnit gå; stow-flaggan lever lokalt).
+      for (const np of res.pets) {
+        const old = pets.find((p) => p.id === np.id);
+        if (old) {
+          if (old.pos) np.pos = old.pos;
+          np.stowed = old.stowed;
+        }
+      }
+      pets = res.pets;
+      justHatchedId = res.justHatchedIds[0];
+      selectedPetId = justHatchedId;
+      confetti();
+      flash("Ett ägg har kläckts i ditt rum! 🎉");
+      renderStage();
+      renderPets();
+    } catch {
+      // Nätverksfel: låt nästa tick försöka igen (ägget är fortfarande "due").
+    } finally {
+      hatching = false;
+    }
+  }, 15000);
+
+  return { exitMat: mat.exitPlacing };
 }

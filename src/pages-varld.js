@@ -259,6 +259,10 @@ export async function pageElevVarld(startNiva) {
   });
 
   // --- Overlay-UI per nivå --------------------------------------------------
+  // Rumskontrollern (varld-rum.js) sätts nedan; exitMat() avslutar mat-läget så
+  // panel-/menystängning kan nollställa det (mat & paneler ömsesidigt uteslutande).
+  let rumCtl = null;
+
   function stangPaneler() {
     for (const p of view.querySelectorAll(".varld-panel")) p.hidden = true;
     for (const b of view.querySelectorAll("[data-panel]")) b.classList.remove("aktiv");
@@ -267,6 +271,7 @@ export async function pageElevVarld(startNiva) {
   function updateUi(nivaId) {
     stage.dataset.niva = nivaId;
     stangPaneler();
+    rumCtl?.exitMat(); // byte av nivå (t.ex. ut ur rummet) lämnar inget mat-läge kvar
     utBtn.style.display = "";
     if (nivaId === "by") {
       utBtn.innerHTML = "🏠 <span>Mitt hus</span>";
@@ -353,6 +358,7 @@ export async function pageElevVarld(startNiva) {
       const panel = view.querySelector(`#panel-${btn.dataset.panel}`);
       const oppna = panel.hidden;
       stangPaneler();
+      rumCtl?.exitMat(); // att öppna en panel (t.ex. Kläder) stänger mat-läget
       if (oppna) {
         panel.hidden = false;
         btn.classList.add("aktiv");
@@ -366,9 +372,17 @@ export async function pageElevVarld(startNiva) {
   // stänger menyn (panelen/mat-läget syns då ostört bakom den stängda menyn).
   const verktygTrigger = view.querySelector("#verktyg-trigger");
   const verktygMeny = view.querySelector("#verktyg-meny");
-  function stangMeny() {
+  // `rensa` = nollställ aktiv markering också (panelernas .aktiv + mat-läget).
+  // Att VÄLJA ett verktyg stänger menyn utan att rensa (verktygets eget läge ska
+  // bestå); att ÖVERGE menyn (Esc / triggern igen / klick utanför) rensar, så
+  // inget läge hänger kvar osynligt bakom den stängda menyn.
+  function stangMeny(rensa = false) {
     verktygMeny.hidden = true;
     verktygTrigger.setAttribute("aria-expanded", "false");
+    if (rensa) {
+      stangPaneler();
+      rumCtl?.exitMat();
+    }
   }
   function oppnaMeny() {
     verktygMeny.hidden = false;
@@ -379,7 +393,7 @@ export async function pageElevVarld(startNiva) {
     forsta?.focus();
   }
   verktygTrigger.addEventListener("click", () => {
-    if (verktygMeny.hidden) oppnaMeny(); else stangMeny();
+    if (verktygMeny.hidden) oppnaMeny(); else stangMeny(true);
   });
   // Val av verktyg stänger menyn (efter att knappens egen handler kört).
   verktygMeny.addEventListener("click", (e) => {
@@ -388,7 +402,7 @@ export async function pageElevVarld(startNiva) {
   // Esc stänger och lämnar fokus på triggern; klick utanför stänger.
   view.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !verktygMeny.hidden) {
-      stangMeny();
+      stangMeny(true);
       verktygTrigger.focus();
     }
   });
@@ -396,7 +410,7 @@ export async function pageElevVarld(startNiva) {
   // vyn (inget kvarlämnat document-lyssnare vid route-byten).
   view.addEventListener("pointerdown", (e) => {
     if (verktygMeny.hidden) return;
-    if (!e.target.closest(".varld-verktyg")) stangMeny();
+    if (!e.target.closest(".varld-verktyg")) stangMeny(true);
   });
 
   // --- Gå in i huset: klick på husgruppen → route-byte (kameran zoomar) -----
@@ -466,7 +480,7 @@ export async function pageElevVarld(startNiva) {
   });
 
   // --- Rummet: hela inne-vyn monteras i sitt lager (varld-rum.js) -----------
-  mountRumScen({
+  rumCtl = mountRumScen({
     stage: rumLager,
     petPanel: view.querySelector("#pet-panel"),
     tray: view.querySelector("#tray"),
@@ -476,6 +490,8 @@ export async function pageElevVarld(startNiva) {
     wearTray: view.querySelector("#weartray"),
     matBtn: view.querySelector("#mat-btn"),
     sd, pets, justHatchedIds,
+    // Att slå på mysterymat stänger öppna paneler (ömsesidigt uteslutande lägen).
+    onMatActivate: stangPaneler,
     onEquippedChange(equipped) {
       // Avataren framför huset speglar alltid aktuell klädsel.
       const holder = uteLager.querySelector("#ute-avatar");
