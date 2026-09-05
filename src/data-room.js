@@ -16,6 +16,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, getStudentData } from "./data.js";
+import { roomUpgradeCount } from "./shop-items.js";
 
 // --- Avatar-påklädnad (burna klädsaker) ------------------------------------
 
@@ -56,6 +57,86 @@ export async function saveRoom(room, studentId = currentStudentId()) {
   for (const [key, value] of Object.entries(room)) updates[`room.${key}`] = value;
   await updateDoc(ref, updates);
   return room;
+}
+
+// --- Fler rum (husuppgradering: dörrar inne + rumslista) -------------------
+// Rums-begreppet är BAKÅTKOMPATIBELT ovanpå det gamla enskilda rummet:
+//
+//   * GRUNDRUMMET (rum 0) ligger kvar OFÖRÄNDRAT i studentData.room
+//     ({ placements, paletteId, window }). Dess paletteId är även husets
+//     EXTERIÖR-palett (paletteIdFromStudentData/getStudentsWithLooks läser den),
+//     så gamla enrums-hus och by-vyn fungerar precis som förr utan migrering.
+//
+//   * EXTRA RUM (rum 1, 2 …) ligger i studentData.extraRooms – en MAP keyad på
+//     "0","1",… (inte en array: Firestore kan då punkt-skriva ett enskilt rum,
+//     extraRooms.0.placements, utan att röra de andra). extraRooms."0" = rum #2.
+//
+// getRooms(sd) presenterar detta som en enda 0-indexerad logisk lista
+// [rum0, rum1, …] (rum -> rooms[0]) vars längd = getRoomCount(sd). Antalet
+// upplåsta rum härleds ur ägda rums-uppgraderingar (roomUpgradeCount), samma
+// mönster som husskalen härleds ur ownedItems – inget separat räknar-fält.
+
+/** Tomt rum (nytt/oinrett extra rum). */
+function emptyRoom() {
+  return { placements: {}, paletteId: null, window: null };
+}
+
+/** Normalisera ett (ev. saknat) rum-objekt till fast form. */
+function normalizeRoom(r) {
+  const room = r && typeof r === "object" ? r : {};
+  return {
+    placements: room.placements && typeof room.placements === "object" ? room.placements : {},
+    paletteId: room.paletteId || null,
+    window: room.window || null,
+  };
+}
+
+/**
+ * Hur många rum eleven har totalt (grundrummet + upplåsta extra rum).
+ * Ren hjälpare över en redan inläst studentData (ingen Firestore).
+ * @param {object|null|undefined} sd studentData
+ * @returns {number} ≥ 1
+ */
+export function getRoomCount(sd) {
+  return 1 + roomUpgradeCount(sd && sd.ownedItems);
+}
+
+/**
+ * Elevens rum som en 0-indexerad logisk lista [rum0, rum1, …] med längd
+ * getRoomCount(sd). Ren hjälpare (ingen Firestore). rum0 = det gamla
+ * studentData.room (bakåtkompatibelt); extra rum fylls ur studentData.extraRooms
+ * och saknade/oinredda extra rum blir tomma rum (så de kan inredas).
+ * @param {object|null|undefined} sd studentData
+ * @returns {Array<{placements:object, paletteId:string|null, window:object|null}>}
+ */
+export function getRooms(sd) {
+  const count = getRoomCount(sd);
+  const extra = (sd && sd.extraRooms && typeof sd.extraRooms === "object") ? sd.extraRooms : {};
+  const rooms = [normalizeRoom(sd && sd.room)];
+  for (let i = 1; i < count; i++) {
+    rooms.push(normalizeRoom(extra[String(i - 1)]));
+  }
+  return rooms;
+}
+
+/**
+ * Spara delar av ETT visst rum (per index). Rum 0 skrivs till det gamla
+ * studentData.room (via saveRoom, dot-paths room.<fält>); extra rum skrivs till
+ * studentData.extraRooms.<index-1>.<fält>. Andra rum lämnas alltid orörda.
+ * @param {number} index rum-index (0 = grundrummet)
+ * @param {object} partial t.ex. { placements } / { paletteId } / { window }
+ */
+export async function saveRoomAt(index, partial, studentId = currentStudentId()) {
+  if (index === 0) return saveRoom(partial, studentId);
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const key = String(index - 1);
+  const updates = {};
+  for (const [field, value] of Object.entries(partial)) {
+    updates[`extraRooms.${key}.${field}`] = value;
+  }
+  await updateDoc(ref, updates);
+  return partial;
 }
 
 // --- Husskal (byter husets exteriör – "Köp nytt hus") -----------------------
