@@ -77,13 +77,15 @@ export function mountRumDjur({ sd }) {
     if (!item) return el("<span></span>");
     const size = itemSize(a.id);
     const namn = displayName(a);
-    // Namn-etiketten är en lättviktig döpnings-affordans (klick → liten ✏️-hint
-    // → inline-namnfält), precis som mystery-djuren. Ingen inforuta poppar vid
-    // klick på djuret självt – det ger bara en klappa-effekt (petPat).
+    // Namn-etiketten är en lättviktig döpnings-affordans (klick → inline-namnfält),
+    // precis som mystery-djuren. ✏️-pennan visas BARA innan djuret fått ett eget
+    // namn; ett namngivet djur får en penn-lös men klickbar etikett (rp-namn-tap)
+    // så namn-vyn (och namnbyte) fortfarande nås. Ingen inforuta poppar vid klick
+    // på djuret självt – det ger bara en klappa-effekt (petPat).
     return el(`<div class="room-item room-pet room-djur${selected ? " selected" : ""}"
       data-pet-id="${a.id}" style="left:${a.pos.x}%;top:${a.pos.y}%" title="${namn}">
       <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(a.id) || item.emoji}</span>
-      <span class="rp-namn rp-namn-edit" data-rename="${a.id}" title="Byt namn ✏️">${namn}</span>
+      <span class="rp-namn ${a.name ? "rp-namn-tap" : "rp-namn-edit"}" data-rename="${a.id}" title="${a.name ? "Öppna namn-vyn" : "Döp mig ✏️"}">${namn}</span>
     </div>`);
   }
 

@@ -2993,10 +2993,13 @@ body.varld-lage .container {
 
 .room-pet .rp-namn.rp-agg { color: #8a6d3b; }
 
-/* Namn-etiketten som döpnings-affordans: klickbar (till skillnad från den
-   generella pointer-events:none-etiketten) med en liten ✏️-hint. Öppnar det
-   lilla inline-namnfältet – samma för mystery-djur och vanliga djur. */
-.room-pet .rp-namn.rp-namn-edit {
+/* Namn-etiketten som döpnings-/panel-affordans: klickbar (till skillnad från den
+   generella pointer-events:none-etiketten). Öppnar inline-namnfältet/panelen –
+   samma för mystery-djur och vanliga djur. rp-namn-edit visar dessutom en liten
+   ✏️-hint (BARA innan djuret döpts); rp-namn-tap är samma klickbara etikett utan
+   den permanenta pennan (för ett redan namngivet djur). */
+.room-pet .rp-namn.rp-namn-edit,
+.room-pet .rp-namn.rp-namn-tap {
   pointer-events: auto;
   cursor: pointer;
 }
@@ -3005,7 +3008,8 @@ body.varld-lage .container {
   font-size: 0.82em;
   opacity: 0.5;
 }
-.room-pet .rp-namn.rp-namn-edit:hover {
+.room-pet .rp-namn.rp-namn-edit:hover,
+.room-pet .rp-namn.rp-namn-tap:hover {
   background: #fff;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
 }

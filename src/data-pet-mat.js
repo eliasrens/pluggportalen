@@ -28,7 +28,7 @@ export function floorApplesFromData(data) {
   return Array.isArray(data.floorApples) ? data.floorApples : [];
 }
 
-function newAppleId() {
+export function newAppleId() {
   return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
@@ -59,9 +59,12 @@ export async function buyApple(price, studentId = currentStudentId()) {
  * Lägg ut ETT äpple på golvet: flyttar ett äpple från appleCount till
  * floorApples[] (position i procent av rumsscenen). Misslyckas om man är slut
  * på äpplen. Allt i EN transaktion.
+ * `presetId` låter anroparen bestämma äpplets id i förväg (optimistisk placering:
+ * ritas lokalt direkt och persisteras sedan med SAMMA id, så ingen ommappning
+ * behövs och ät-flödet hittar rätt äpple även innan skrivningen hunnit klart).
  * @returns {Promise<{ok: boolean, appleCount: number, floorApples: object[], apple: object|null}>}
  */
-export async function placeApple(x, y, studentId = currentStudentId()) {
+export async function placeApple(x, y, studentId = currentStudentId(), presetId = null) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
   return runTransaction(db, async (tx) => {
@@ -70,7 +73,7 @@ export async function placeApple(x, y, studentId = currentStudentId()) {
     const count = data.appleCount || 0;
     const apples = floorApplesFromData(data);
     if (count <= 0) return { ok: false, appleCount: count, floorApples: apples, apple: null };
-    const apple = { id: newAppleId(), x, y };
+    const apple = { id: presetId || newAppleId(), x, y };
     const nextApples = [...apples, apple];
     if (snap.exists()) tx.update(ref, { appleCount: count - 1, floorApples: nextApples });
     else tx.set(ref, { appleCount: count - 1, floorApples: nextApples });
