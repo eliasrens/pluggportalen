@@ -37,6 +37,15 @@ service cloud.firestore {
 
     // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering): eleven
     // äger sitt eget; lärare läser alla (klassöversikt) och skriver (ge coins).
+    //
+    // HUSLÅS (#33): studentData bär ett fält `husLast` (bool). Kamratläsning av
+    // en annan elevs studentData är i dagsläget HELT spärrad här (read tillåts
+    // bara för läraren eller eleven själv), så låset kan INTE kringgås klient-
+    // sida – ingen kan läsa en annans rum, låst eller ej.
+    // OBS för Epic C:s by-fix: om kamratläsning öppnas (t.ex. för att visa en
+    // klasskamrats rum) MÅSTE den grenen även kräva `resource.data.husLast != true`,
+    // annars går låset att kringgå. Exteriören i byn bör då läsas ur ett
+    // fält/dokument som inte omfattas av låset (huset syns även när det är låst).
     match /studentData/{studentId} {
       allow read:  if isTeacher() || isSelf(studentId);
       allow write: if isTeacher() || isSelf(studentId);

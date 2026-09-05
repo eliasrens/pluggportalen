@@ -58,6 +58,27 @@ export async function pageElevKlasskamrat() {
   const namn = esc(
     student?.namn || student?.username || sd.namn || avatarName(sd.avatarId || DEFAULT_AVATAR)
   );
+
+  // Huslås: har kamraten låst sitt hus visar vi ett "🔒 Låst"-tillstånd i
+  // stället för rummets innehåll (samma husLast-fält som toggeln i by-vyn skriver;
+  // isHouseLocked är den delade hjälparen så sub-issue #34 kan återanvända exakt
+  // samma lås). Husets exteriör i byn påverkas inte – bara den inre läs-vyn.
+  if (data.isHouseLocked(sd)) {
+    const locked = el(`<div>
+      <a class="back-link" id="back">← Till klassbyn</a>
+      <div class="panel center klasskamrat-last">
+        <div class="klasskamrat-last-ikon" aria-hidden="true">🔒</div>
+        <h1>${namn}s hus är låst</h1>
+        <p class="hint">${namn} har låst sitt hus, så rummet är privat just nu. Kika in en annan gång! 🙂</p>
+        <button class="btn ghost" id="to-klass">🏘️ Till klassbyn</button>
+      </div>
+    </div>`);
+    locked.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
+    locked.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
+    app.replaceChildren(locked);
+    return;
+  }
+
   // Kamratens väggfärger (palettval delas med huset – golvet färgas aldrig om).
   const pal = getPalette(paletteIdFromStudentData(sd));
   const owned = sd.ownedItems || [];
