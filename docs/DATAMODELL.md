@@ -55,6 +55,15 @@ läsning för klienten).
 | `texts`       | array\<Text\>  | Faktatexter för läsförståelse            |
 | `quiz`        | array\<Quiz\>  | Quizfrågor (flerval)                     |
 | `pairs`       | array\<Pair\>  | Fakta-par (begrepp ↔ förklaring)         |
+| `exerciseTypes` | string[]     | Valda övningstyper (se nedan)            |
+
+**exerciseTypes**: läraren kryssar i vilka övningstyper området ska ha i
+"Fix område"-formuläret (`src/teacher-content.js`). Giltiga id (se
+[`src/exercise-types.js`](../src/exercise-types.js)): `"quiz"` (Quiz, Läsförståelse,
+Kunskapsjakt), `"pairs"` (Para ihop, Memory) och `"bildpar"` (fakta-par med bild).
+Valet styr AI-prompten (`buildAreaPrompt`) så att bara passande innehåll efterfrågas
+(t.ex. inga bildpar om `"bildpar"` inte kryssats). Saknas fältet (äldre områden)
+härleds typerna ur innehållet vid validering, så dokumentet får alltid fältet.
 
 **Text**: `{ id, title, body }`
 

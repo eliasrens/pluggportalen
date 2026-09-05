@@ -2364,6 +2364,21 @@ code {
   white-space: nowrap;
 }
 
+/* Övningstyper-kryssrutor (Fix område): etikett + kort hjälptext på två rader,
+   så återanvänder vi .member-row/.member-name men släpper ellips-klippningen. */
+#ex-types .member-row {
+  align-items: flex-start;
+}
+#ex-types .member-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.3;
+}
+#ex-types .member-name .hint {
+  font-weight: 400;
+}
+
 .ok-inline {
   color: var(--gron-mork);
   font-weight: 600;

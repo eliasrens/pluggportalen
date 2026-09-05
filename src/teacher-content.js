@@ -8,7 +8,8 @@
 
 import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
-import { EXAMPLE_JSON } from "./prompts.js";
+import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
+import { EXERCISE_TYPES, areaExerciseTypes } from "./exercise-types.js";
 import { listPairImageKeys } from "./pair-images.js";
 import {
   el,
@@ -19,6 +20,7 @@ import {
   emptyState,
   wireHashLinks,
   renderGate,
+  copyText,
 } from "./teacher-shared.js";
 
 export async function pageLarareInnehall(ctx) {
@@ -59,6 +61,31 @@ export async function pageLarareInnehall(ctx) {
       <h2>Lägg in / ersätt arbetsområde</h2>
       <p class="hint">Klistra in JSON nedan eller ladda upp en <b>.json</b>-fil. Ett befintligt
         arbetsområde med samma <b>id</b> ersätts.</p>
+
+      <div class="field">
+        <label>Övningstyper på området</label>
+        <p class="hint">Kryssa i vilka typer av övningar området ska ha. Valen sparas på området
+          och styr AI-prompten nedan så att du bara ber AI:n skapa passande innehåll (t.ex. inga
+          bildpar om det inte kryssats i).</p>
+        <div class="member-grid" id="ex-types">
+          ${EXERCISE_TYPES.map(
+            (t) => `<label class="member-row">
+              <input type="checkbox" value="${esc(t.id)}" checked />
+              <span class="member-avatar">${esc(t.emoji)}</span>
+              <span class="member-name">${esc(t.label)}<br><span class="hint">${esc(t.hint)}</span></span>
+            </label>`
+          ).join("")}
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="area-onskemal">✍️ Eget önskemål till AI:n (valfritt)</label>
+        <input id="area-onskemal" placeholder="T.ex. ämne, tema eller omfattning – vävs in i prompten" />
+      </div>
+      <div class="row-inline" style="margin-bottom:16px">
+        <button class="btn ghost" id="copy-area-prompt">📋 Kopiera AI-prompt för valda typer</button>
+      </div>
+
       <p class="hint">🖼️ <b>Bildpar:</b> ett par (<code>pairs</code>) kan visa en färdig bild i
         stället för text – sätt <code>termImage</code> och/eller <code>defImage</code> till en
         <b>bildnyckel</b> nedan (ingen egen uppladdning). Inbyggda nycklar (partisymbol-paketet):
@@ -156,6 +183,26 @@ export async function pageLarareInnehall(ctx) {
     newSubjForm.replaceChildren(f);
   });
 
+  // --- Övningstyper (kryssrutor) -------------------------------------------
+  // Styr både vad som sparas på området (value.exerciseTypes) och AI-prompten
+  // som knappen kopierar. Se src/exercise-types.js och buildAreaPrompt.
+  const exTypesBox = view.querySelector("#ex-types");
+  const onskemalEl = view.querySelector("#area-onskemal");
+
+  function getSelectedTypes() {
+    return [...exTypesBox.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
+  }
+  function setSelectedTypes(types) {
+    const want = new Set(types || []);
+    exTypesBox.querySelectorAll('input[type="checkbox"]').forEach((c) => {
+      c.checked = want.has(c.value);
+    });
+  }
+
+  view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
+    copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value), e.currentTarget)
+  );
+
   // --- Lista befintliga arbetsområden --------------------------------------
   const areaListEl = view.querySelector("#area-list");
   const jsonEl = view.querySelector("#json");
@@ -199,8 +246,10 @@ export async function pageLarareInnehall(ctx) {
         </div>
       </div>`);
       row.querySelector('[data-act="edit"]').addEventListener("click", () => {
-        // Ladda in i textrutan för redigering/ersättning.
-        const { id, ...rest } = a;
+        // Ladda in i textrutan för redigering/ersättning. Övningstyperna hör hemma
+        // i kryssrutorna (inte i JSON:en), så vi lyfter ut dem och fyller boxen.
+        setSelectedTypes(areaExerciseTypes(a));
+        const { id, exerciseTypes, ...rest } = a;
         jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
         jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
         view.querySelector("#result").innerHTML =
@@ -289,7 +338,9 @@ export async function pageLarareInnehall(ctx) {
       if (typeof res.value.order !== "number" || res.value.order === 1) {
         // Behåll uttryckligt order om användaren angav ett annat än standard.
       }
-      const value = { ...res.value };
+      // Lärarens kryssrutor är det uttryckliga valet av övningstyper och vinner
+      // över det validate.js härlett ur innehållet.
+      const value = { ...res.value, exerciseTypes: getSelectedTypes() };
       await data.saveArea(selected, value.id, value);
       resultEl.innerHTML = `<div class="msg ok">✓ Sparat! "${esc(value.name)}" finns nu i ämnet
         ${esc(subjects.find((s) => s.id === selected)?.name || selected)}.</div>`;
