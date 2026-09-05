@@ -78,6 +78,18 @@ export const SHOP_ITEMS = [
   { id: "byra", name: "Byrå", emoji: "🗄️", category: "mobler", price: 95 },
   { id: "skrivbord", name: "Skrivbord", emoji: "🪵", category: "mobler", price: 110 },
   { id: "fatolj", name: "Fåtölj", emoji: "🛋️", category: "mobler", price: 150 },
+  // fler sängvarianter
+  { id: "enkelsang", name: "Enkelsäng", emoji: "🛏️", category: "mobler", price: 90 },
+  { id: "vaningsang", name: "Våningssäng", emoji: "🛏️", category: "mobler", price: 170 },
+  { id: "hangmatta", name: "Hängmatta", emoji: "🛖", category: "mobler", price: 75 },
+  { id: "golvmadrass", name: "Golvmadrass", emoji: "🛌", category: "mobler", price: 55 },
+  // ännu fler möbeltyper
+  { id: "soffa", name: "Soffa", emoji: "🛋️", category: "mobler", price: 160 },
+  { id: "matbord", name: "Matbord", emoji: "🍽️", category: "mobler", price: 115 },
+  { id: "gungstol", name: "Gungstol", emoji: "🪑", category: "mobler", price: 85 },
+  { id: "garderob", name: "Garderob", emoji: "🚪", category: "mobler", price: 130 },
+  { id: "kylskap", name: "Kylskåp", emoji: "🧊", category: "mobler", price: 140 },
+  { id: "nattduksbord", name: "Nattduksbord", emoji: "🛎️", category: "mobler", price: 60 },
 
   // --- Husdjur (placeras i rummet) -----------------------------------------
   // Mystiskt ägg + värmelampa hör till de kläckbara husdjuren (bor i Mitt rum).

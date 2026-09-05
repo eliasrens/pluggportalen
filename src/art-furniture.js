@@ -207,4 +207,173 @@ export const FURNITURE = {
       `<path d="M60 56 L82 56 L82 74 Q71 80 60 74 Z" fill="#EF6F6C" ${THIN}/>` +
       `<path d="M64 60 H78 M64 66 H78" stroke="#FFB1B8" stroke-width="2.2" stroke-linecap="round"/>`,
   },
+
+  // --- Fler sängvarianter --------------------------------------------------
+  // Enkelsäng: låg träram, mjuk madrass, hopvikt grönt täcke & kudde.
+  enkelsang: {
+    viewBox: "0 0 120 72",
+    w: 6.8,
+    art:
+      shadow(60, 67, 50) +
+      limb("M14 52 L12 66", WOOD_DARK, 5) +
+      limb("M106 52 L108 66", WOOD_DARK, 5) +
+      `<rect x="6" y="14" width="13" height="42" rx="5" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="101" y="30" width="12" height="26" rx="5" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="12" y="40" width="96" height="16" rx="6" fill="#FFF3DC" ${LINE}/>` +
+      `<path d="M46 40 L108 40 L108 54 Q98 60 88 54 Q78 60 68 54 Q58 60 48 54 Q46 48 46 40 Z" fill="#6FC66F" ${LINE}/>` +
+      `<path d="M54 46 Q80 42 104 46" fill="none" stroke="#C9F0DC" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.1 6"/>` +
+      `<rect x="18" y="31" width="26" height="14" rx="6" fill="#7FC7E8" ${LINE}/>` +
+      `<path d="M24 38 Q31 35 38 38" fill="none" ${THIN}/>`,
+  },
+  // Våningssäng: två plan med kuddar, täcken, skyddsräcke & stege.
+  vaningsang: {
+    viewBox: "0 0 124 130",
+    w: 6.6,
+    art:
+      shadow(58, 124, 50) +
+      `<rect x="8" y="10" width="11" height="112" rx="5" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="82" y="10" width="11" height="112" rx="5" fill="${WOOD}" ${LINE}/>` +
+      // stege
+      `<path d="M100 46 L104 118 M117 46 L113 118" fill="none" stroke="${WOOD_DARK}" stroke-width="4.5" stroke-linecap="round"/>` +
+      `<path d="M101 62 L116 62 M101 82 L114 82 M101 102 L113 102" fill="none" stroke="${WOOD_DARK}" stroke-width="3.5" stroke-linecap="round"/>` +
+      // överslaf
+      `<path d="M20 24 L82 24" fill="none" stroke="${WOOD_DARK}" stroke-width="3.5" stroke-linecap="round"/>` +
+      `<rect x="12" y="30" width="82" height="15" rx="6" fill="#FFF3DC" ${LINE}/>` +
+      `<path d="M42 30 L94 30 L94 43 Q86 48 78 43 Q70 48 62 43 Q54 48 46 43 Q42 38 42 30 Z" fill="#F890B7" ${LINE}/>` +
+      `<rect x="16" y="22" width="22" height="12" rx="5" fill="#7FC7E8" ${LINE}/>` +
+      // underslaf
+      `<rect x="12" y="92" width="82" height="15" rx="6" fill="#FFF3DC" ${LINE}/>` +
+      `<path d="M42 92 L94 92 L94 105 Q86 110 78 105 Q70 110 62 105 Q54 110 46 105 Q42 100 42 92 Z" fill="#6FC66F" ${LINE}/>` +
+      `<rect x="16" y="84" width="22" height="12" rx="5" fill="#F7C948" ${LINE}/>`,
+  },
+  // Hängmatta: två träställ, spända rep och en solig randduk med kudde.
+  hangmatta: {
+    viewBox: "0 0 128 90",
+    w: 7.0,
+    art:
+      shadow(64, 84, 54) +
+      limb("M18 20 L9 82", WOOD, 6) +
+      limb("M18 20 L30 82", WOOD, 6) +
+      limb("M110 20 L98 82", WOOD, 6) +
+      limb("M110 20 L119 82", WOOD, 6) +
+      `<path d="M18 22 Q22 40 40 52 M110 22 Q106 40 88 52" fill="none" ${THIN}/>` +
+      `<path d="M40 50 Q64 84 88 50 Q64 60 40 50 Z" fill="#F49E4C" ${LINE}/>` +
+      `<path d="M46 55 Q64 76 82 55" fill="none" stroke="#FDE9A8" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.1 5"/>` +
+      `<rect x="43" y="45" width="22" height="12" rx="6" fill="#7FC7E8" ${LINE}/>`,
+  },
+  // Golvmadrass: tuftad madrass på golvet med lilakudde och rött täcke.
+  golvmadrass: {
+    viewBox: "0 0 120 54",
+    w: 6.6,
+    art:
+      shadow(60, 48, 50) +
+      `<rect x="8" y="20" width="104" height="24" rx="10" fill="#FFF3DC" ${LINE}/>` +
+      `<circle cx="28" cy="32" r="1.8" fill="${WOOD_DARK}"/>` +
+      `<circle cx="52" cy="32" r="1.8" fill="${WOOD_DARK}"/>` +
+      `<circle cx="76" cy="32" r="1.8" fill="${WOOD_DARK}"/>` +
+      `<circle cx="100" cy="32" r="1.8" fill="${WOOD_DARK}"/>` +
+      `<path d="M54 44 L108 44 L108 28 Q81 22 54 28 Q54 36 54 44 Z" fill="#EF6F6C" ${LINE}/>` +
+      `<path d="M60 34 Q81 30 103 34" fill="none" stroke="#FFB1B8" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.1 6"/>` +
+      `<rect x="14" y="12" width="30" height="15" rx="7" fill="#B79BE0" ${LINE}/>` +
+      `<path d="M20 20 Q29 16 38 20" fill="none" ${THIN}/>`,
+  },
+
+  // --- Fler möbeltyper -----------------------------------------------------
+  // Soffa: mintstoppad rygg, två sittdynor, stjärnkudde & träfötter.
+  soffa: {
+    viewBox: "0 0 120 74",
+    w: 6.6,
+    art:
+      shadow(60, 69, 50) +
+      limb("M18 60 L16 70", WOOD_DARK, 4) +
+      limb("M102 60 L104 70", WOOD_DARK, 4) +
+      `<path d="M10 40 Q10 30 20 30 L100 30 Q110 30 110 40 L110 60 L10 60 Z" fill="#58C6A9" ${LINE}/>` +
+      `<rect x="4" y="38" width="16" height="26" rx="8" fill="#46B396" ${LINE}/>` +
+      `<rect x="100" y="38" width="16" height="26" rx="8" fill="#46B396" ${LINE}/>` +
+      `<rect x="20" y="46" width="37" height="16" rx="7" fill="#C9F0DC" ${LINE}/>` +
+      `<rect x="60" y="46" width="37" height="16" rx="7" fill="#C9F0DC" ${LINE}/>` +
+      `<rect x="26" y="33" width="19" height="15" rx="6" fill="#F7C948" ${LINE}/>` +
+      stjarna(35, 41, 1.1, "#fff"),
+  },
+  // Matbord: tvåtonad skiva, korsben och en blå vas med blomma.
+  matbord: {
+    viewBox: "0 0 104 80",
+    w: 5.8,
+    art:
+      shadow(52, 75, 44) +
+      limb("M20 34 L14 72", WOOD_DARK, 5) +
+      limb("M84 34 L90 72", WOOD_DARK, 5) +
+      limb("M22 54 L82 54", WOOD_DARK, 4) +
+      `<rect x="6" y="26" width="92" height="11" rx="5" fill="${WOOD}" ${LINE}/>` +
+      `<path d="M12 30 H70" stroke="${WOOD_LIGHT}" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<path d="M45 13 Q41 26 52 26 Q63 26 59 13 Z" fill="#7FC7E8" ${LINE}/>` +
+      `<path d="M52 13 L52 8" fill="none" stroke="#6FC66F" stroke-width="2.4" stroke-linecap="round"/>` +
+      `<circle cx="52" cy="6" r="5" fill="#F890B7" ${THIN}/>` +
+      `<circle cx="52" cy="6" r="2" fill="#F7C948" stroke="none"/>`,
+  },
+  // Gungstol: böjda medar, spjälryggstöd och en röd sittdyna.
+  gungstol: {
+    viewBox: "0 0 82 94",
+    w: 4.6,
+    art:
+      shadow(41, 88, 32) +
+      `<path d="M10 84 Q42 94 72 78" fill="none" stroke="${WOOD_DARK}" stroke-width="5" stroke-linecap="round"/>` +
+      limb("M24 54 L20 82", WOOD, 5) +
+      limb("M58 50 L62 80", WOOD, 5) +
+      `<path d="M50 14 Q66 18 62 54 L48 54 Q45 20 50 14 Z" fill="${WOOD}" ${LINE}/>` +
+      `<path d="M53 22 L55 50 M58 22 L59 50" fill="none" stroke="${WOOD_LIGHT}" stroke-width="2.2" stroke-linecap="round"/>` +
+      `<rect x="18" y="50" width="44" height="12" rx="5" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="24" y="42" width="26" height="14" rx="6" fill="#EF6F6C" ${LINE}/>` +
+      `<path d="M30 49 Q37 46 44 49" fill="none" ${THIN}/>`,
+  },
+  // Garderob: hög träskåp med två dörrar, knoppar och stjärndekaler.
+  garderob: {
+    viewBox: "0 0 78 116",
+    w: 4.6,
+    art:
+      shadow(39, 110, 32) +
+      limb("M18 100 L16 108", WOOD_DARK, 4) +
+      limb("M60 100 L62 108", WOOD_DARK, 4) +
+      `<rect x="10" y="8" width="58" height="94" rx="6" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="14" y="12" width="23" height="86" rx="3" fill="${WOOD_LIGHT}" stroke="none"/>` +
+      `<rect x="41" y="12" width="23" height="86" rx="3" fill="${WOOD_LIGHT}" stroke="none"/>` +
+      `<path d="M39 12 L39 98" fill="none" ${LINE}/>` +
+      `<circle cx="34" cy="56" r="2.4" fill="${WOOD_DARK}"/>` +
+      `<circle cx="44" cy="56" r="2.4" fill="${WOOD_DARK}"/>` +
+      stjarna(25, 32, 1.3, "#F890B7") +
+      stjarna(53, 32, 1.3, "#7FC7E8"),
+  },
+  // Kylskåp: gråblått skåp med frysfack, handtag, magnetstjärna & lapp.
+  kylskap: {
+    viewBox: "0 0 66 112",
+    w: 3.9,
+    art:
+      shadow(33, 106, 27) +
+      `<rect x="10" y="6" width="46" height="100" rx="8" fill="#A9C2DE" ${LINE}/>` +
+      `<rect x="14" y="10" width="38" height="30" rx="4" fill="#C6D6E8" stroke="none"/>` +
+      `<rect x="14" y="48" width="38" height="54" rx="4" fill="#C6D6E8" stroke="none"/>` +
+      `<path d="M10 44 H56" fill="none" ${LINE}/>` +
+      `<rect x="45" y="14" width="6" height="18" rx="3" fill="${WOOD_DARK}" ${THIN}/>` +
+      `<rect x="45" y="52" width="6" height="26" rx="3" fill="${WOOD_DARK}" ${THIN}/>` +
+      stjarna(26, 25, 1.4, "#F7C948") +
+      `<rect x="20" y="58" width="15" height="17" rx="2" fill="#FFF3DC" ${THIN}/>` +
+      `<path d="M23 63 H32 M23 67 H32 M23 71 H29" stroke="#7FC7E8" stroke-width="1.6" stroke-linecap="round"/>`,
+  },
+  // Nattduksbord: litet skåp med två lådor och en tänd bordslampa på toppen.
+  nattduksbord: {
+    viewBox: "0 0 62 82",
+    w: 3.4,
+    art:
+      shadow(31, 77, 24) +
+      `<ellipse cx="31" cy="30" rx="13" ry="3.4" fill="#FDE9A8" opacity="0.7"/>` +
+      `<path d="M22 12 L40 12 L45 29 L17 29 Z" fill="#F7C948" ${LINE}/>` +
+      `<path d="M31 29 L31 14" fill="none" stroke="#F2A93B" stroke-width="2.4" stroke-linecap="round"/>` +
+      limb("M14 62 L12 76", WOOD_DARK, 4) +
+      limb("M48 62 L50 76", WOOD_DARK, 4) +
+      `<rect x="8" y="32" width="46" height="34" rx="5" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="12" y="37" width="38" height="11" rx="3" fill="${WOOD_LIGHT}" ${LINE}/>` +
+      `<rect x="12" y="51" width="38" height="11" rx="3" fill="${WOOD_LIGHT}" ${LINE}/>` +
+      `<circle cx="31" cy="42.5" r="2" fill="${WOOD_DARK}"/>` +
+      `<circle cx="31" cy="56.5" r="2" fill="${WOOD_DARK}"/>`,
+  },
 };
