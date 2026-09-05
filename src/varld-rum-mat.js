@@ -75,6 +75,9 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
     if (placing) {
       // Fånga golvklick i capture-fasen så scenens vanliga drag/markera-logik
       // (bubbel-fasen på samma nod) inte kör – klicket ska bara lägga mat.
+      // pointerdown ligger på stage → försvinner med scenen. keydown MÅSTE ligga
+      // på document (Esc ska fångas oavsett fokus), så den städar sig själv om
+      // scenen lämnats (se onKeyDown) – samma isConnected-mönster som rum-promenad.js.
       stage.addEventListener("pointerdown", onPlaceClick, true);
       document.addEventListener("keydown", onKeyDown, true);
     } else {
@@ -85,6 +88,14 @@ export function mountRumMat({ matBtn, stage, sd, getPets, renderScene, renderPan
   }
 
   function onKeyDown(e) {
+    // Rummet lämnat (scenen borta ur DOM:en) medan placera-läget var aktivt?
+    // Då avregistrerade setPlacing(false) aldrig lyssnaren – städa den här så
+    // den varken läcker (håller den detacherade scenen vid liv) eller påverkar
+    // fel scen med fantom-tangenttryck.
+    if (!stage.isConnected) {
+      document.removeEventListener("keydown", onKeyDown, true);
+      return;
+    }
     if (e.key === "Escape") {
       e.preventDefault();
       setPlacing(false);
