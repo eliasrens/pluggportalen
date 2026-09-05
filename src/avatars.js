@@ -30,6 +30,22 @@ export const AVATARS = {
   robot: "🤖",
   bjorn: "🐻",
   tiger: "🐯",
+  rabbit: "🐰",
+  pig: "🐷",
+  cow: "🐮",
+  monkey: "🐵",
+  hamster: "🐹",
+  mouse: "🐭",
+  chick: "🐤",
+  sheep: "🐑",
+  hedgehog: "🦔",
+  wolf: "🐺",
+  deer: "🦌",
+  raccoon: "🦝",
+  turtle: "🐢",
+  bee: "🐝",
+  elephant: "🐘",
+  goat: "🐐",
 };
 
 export const DEFAULT_AVATAR = "fox";
