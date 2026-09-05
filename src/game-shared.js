@@ -107,9 +107,10 @@ export function muteButton() {
 
 /**
  * Dela ut belöning (coins + XP) + spara framsteg för en avklarad övning.
- * Grind-skydd: bara första gången ger full pott, omspel ger ca 30 % (både coins
- * och XP), så det inte lönar sig att grinda samma övning. XP-potten (basXP +
- * stjärnor × perStar) definieras i leveling.js.
+ * Grind-skydd: bara första gången ger full pott, omspel ger 80 % (både coins
+ * och XP). 80 % är ett medvetet produktbeslut – lägre (t.ex. 30 %) upplevdes
+ * som för snålt för omspel. XP-potten (basXP + stjärnor × perStar) definieras
+ * i leveling.js.
  * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {

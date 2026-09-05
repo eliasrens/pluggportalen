@@ -15,7 +15,7 @@
 //   basXP  : grundpott bara för att klara övningen
 //   perStar: bonus per stjärna (1–3) man fick
 // En förstagångs-3-stjärnig övning ger alltså 20 + 3×10 = 50 XP. Vid OMSPEL
-// ges ~30 % (grind-skydd, samma mönster som coins) – se game-shared.js.
+// ges 80 % (medvetet produktbeslut, samma mönster som coins) – se game-shared.js.
 // Justera dessa två tal för att göra det snabbare/långsammare att levla.
 // ---------------------------------------------------------------------------
 export const XP_BASE = 20;

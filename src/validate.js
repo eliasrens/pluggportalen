@@ -13,6 +13,7 @@
 // ============================================================================
 
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
+import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -242,6 +243,15 @@ export function validateArea(obj) {
     return { ok: false, errors, value: null };
   }
 
+  // --- Övningstyper ---------------------------------------------------------
+  // Läraren väljer vilka övningstyper området har (se src/exercise-types.js).
+  // Anges de uttryckligen normaliseras de; saknas de (äldre områden) härleds de
+  // ur innehållet, så fältet alltid finns på det sparade dokumentet.
+  let exerciseTypes = normalizeExerciseTypes(obj.exerciseTypes);
+  if (exerciseTypes.length === 0) {
+    exerciseTypes = deriveExerciseTypes({ quiz, pairs });
+  }
+
   const value = {
     id,
     name: obj.name.trim(),
@@ -251,6 +261,7 @@ export function validateArea(obj) {
     texts,
     quiz,
     pairs,
+    exerciseTypes,
   };
   return { ok: true, errors: [], value };
 }

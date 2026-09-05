@@ -138,10 +138,12 @@ export function petStageNode(pet, selected) {
   const pos = pet.pos || { x: 50, y: 70 };
   const art = pet.hatchedAt ? petArtHtml(pet, idleExpression(pet)) : eggSvg();
   const stageClass = pet.hatchedAt ? ` pet-vuxen-${pet.stage || 1}` : " pet-agg-i-rum";
-  // Kläckt djur: namn-etiketten är en lättviktig döpnings-affordans (klick →
-  // liten ✏️-hint → namn-vyn). Ägg går inte att döpa än (ingen art kläckt).
+  // Kläckt djur: namn-etiketten öppnar husdjurspanelen (namn/matning). ✏️-pennan
+  // visas BARA innan djuret fått ett eget namn (döpnings-hint) – ett namngivet
+  // djur får en penn-lös men fortfarande klickbar etikett (rp-namn-tap), så
+  // panelen (och namnbyte där) nås fortfarande. Ägg går inte att döpa än.
   const label = pet.hatchedAt
-    ? `<span class="rp-namn rp-namn-edit" data-rename="${pet.id}" title="Byt namn ✏️">${petDisplayName(pet)}</span>`
+    ? `<span class="rp-namn ${pet.name ? "rp-namn-tap" : "rp-namn-edit"}" data-rename="${pet.id}" title="${pet.name ? "Öppna djurets panel" : "Döp mig ✏️"}">${petDisplayName(pet)}</span>`
     : `<span class="rp-namn rp-agg">🥚 ruvar…</span>`;
   const node = el(`<div class="room-item room-pet${stageClass}${selected ? " selected" : ""}"
     data-pet-id="${pet.id}" style="left:${pos.x}%;top:${pos.y}%" title="${petDisplayName(pet)}">

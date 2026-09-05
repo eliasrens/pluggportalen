@@ -174,12 +174,6 @@ export function isHusSkal(skalId) {
   return Object.prototype.hasOwnProperty.call(HUS_SKAL, skalId);
 }
 
-/** Visningsnamn + emoji för ett husskal (säkert fallback till stugan). */
-export function husSkalInfo(skalId = DEFAULT_HUS_SKAL) {
-  const s = HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL];
-  return { namn: s.namn, emoji: s.emoji };
-}
-
 /** Alla husskal som [{id, namn, emoji}] – stugan (default) alltid först. */
 export function listHusSkal() {
   return Object.entries(HUS_SKAL).map(([id, s]) => ({ id, namn: s.namn, emoji: s.emoji }));

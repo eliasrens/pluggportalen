@@ -4,7 +4,7 @@
 // Systermodul till data.js (som ligger nära filtaket, samma mönster som
 // data-xp.js/data-pet.js): allt Firestore som rör hur eleven SER UT och hur
 // rummet är inrett – rummet (placeringar + palettval), burna klädsaker,
-// grundavatar och evolutionsval. Allt re-exporteras från data.js så att
+// grundavatar. Allt re-exporteras från data.js så att
 // `import * as data from "./data.js"` fortsätter fungera överallt.
 // Fältbeskrivningar: docs/DATAMODELL.md.
 // ============================================================================
@@ -104,27 +104,4 @@ export async function setAvatar(avatarId, studentId = currentStudentId()) {
 export async function hasChosenAvatar(studentId = currentStudentId()) {
   const data = await getStudentData(studentId);
   return !!data.avatarChosen;
-}
-
-// --- Evolution (Pokémon-stil) ----------------------------------------------
-// Vilket steg figuren NÅTT härleds alltid ur framstegen (se evolution.js) –
-// här sparas bara elevens aktiva VAL: grenen i sista steget.
-
-/** Hela evolution-objektet: { [avatarId]: { stage, branch } }. */
-export async function getEvolution(studentId = currentStudentId()) {
-  const data = await getStudentData(studentId);
-  return data.evolution || {};
-}
-
-/**
- * Spara elevens grenval för en figur (t.ex. roboten i sista steget).
- * @param {string} avatarId figuren valet gäller (t.ex. "robot")
- * @param {{stage?: number, branch?: string|null}} choice
- */
-export async function setEvolutionChoice(avatarId, { stage = null, branch = null } = {}, studentId = currentStudentId()) {
-  if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  // merge:true slår ihop nästlade maps → val för andra figurer bevaras.
-  await setDoc(ref, { evolution: { [avatarId]: { stage, branch } } }, { merge: true });
-  return { stage, branch };
 }
