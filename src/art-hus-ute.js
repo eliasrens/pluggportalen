@@ -35,10 +35,6 @@ const WOOD_LIGHT = "#E0B98C";
 const shadow = (cx, cy, rx) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}" fill="${O}" opacity="0.09"/>`;
 
-const eyeDot = (x, y, r) =>
-  `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" ${THIN}/>` +
-  `<circle cx="${x + 0.5}" cy="${y + 0.5}" r="${(r * 0.55).toFixed(1)}" fill="${O}"/>`;
-
 function molnArt(x, y, s) {
   return `<g transform="translate(${x} ${y}) scale(${s})">
     <path d="M0 20 Q-2 8 10 8 Q14 -2 26 2 Q36 -2 40 8 Q52 6 50 18 Q46 26 34 24 Q24 30 14 24 Q2 28 0 20 Z"
@@ -77,10 +73,18 @@ function stugaMarkup() {
         <path d="M492 362 L512 362 L518 380 L486 380 Z" fill="#F7C948" ${THIN}/>
         ${limb("M502 386 L502 402", WOOD_DARK, 3)}
         <ellipse cx="502" cy="384" rx="17" ry="3.4" fill="#FDE9A8" opacity="0.75"/>
-        <circle cx="551" cy="425" r="16" fill="#6FC66F" ${THIN}/>
-        <path d="M540 415 L537 402 L547 408 Z" fill="#6FC66F" ${THIN}/>
-        <path d="M562 415 L565 402 L555 408 Z" fill="#6FC66F" ${THIN}/>
-        ${eyeDot(545, 424, 3.6)}${eyeDot(557, 424, 3.6)}
+        <!-- Krukväxt på fönsterbrädan: en glad blomma i kruka (daisy-stil som -->
+        <!-- klädsel-blomman i art-wearables-hand.js) -->
+        <path d="M540 413 L562 413 L558 430 L544 430 Z" fill="${WOOD}" ${LINE}/>
+        <rect x="538" y="409" width="26" height="7" rx="3" fill="${WOOD_DARK}" stroke="none"/>
+        <path d="M551 413 L551 388" fill="none" stroke="#6FC66F" stroke-width="4" stroke-linecap="round"/>
+        <path d="M551 401 Q561 397 563 405 Q554 407 551 402 Z" fill="#6FC66F" ${THIN}/>
+        <circle cx="551" cy="376" r="6" fill="#F890B7" ${THIN}/>
+        <circle cx="559" cy="382" r="6" fill="#F890B7" ${THIN}/>
+        <circle cx="556" cy="390" r="6" fill="#F890B7" ${THIN}/>
+        <circle cx="546" cy="390" r="6" fill="#F890B7" ${THIN}/>
+        <circle cx="543" cy="382" r="6" fill="#F890B7" ${THIN}/>
+        <circle cx="551" cy="384" r="5" fill="#F7C948" ${THIN}/>
         <path d="M515 335 L515 455 M445 395 L585 395" stroke="${O}" stroke-width="5" stroke-linecap="round"/>
         <rect x="440" y="330" width="150" height="130" rx="10" fill="none" stroke="${O}" stroke-width="6"/>
         <rect x="430" y="456" width="170" height="14" rx="7" fill="#FFF3DC" ${LINE}/>
