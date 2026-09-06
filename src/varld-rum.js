@@ -382,17 +382,29 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   }
 
   // --- Rita lådan (ägda, oplacerade rums-saker) ----------------------------
-  // Hur många exemplar av `id` som redan står i det AKTIVA rummet.
-  function placedCountInRoom(id) {
+  // Hur många exemplar av `id` som står ute i HELA huset – summerat över ALLA
+  // rum, inte bara det aktiva. roomModels håller varje rums placements i minnet,
+  // och det aktiva rummets `placements` är SAMMA objekt-referens som
+  // roomModels[currentRoom].placements, så nyss placerade/borttagna saker i
+  // detta rum räknas med direkt (live). Att räkna över alla rum gör att en ägd
+  // möbel bara kan stå på ETT ställe totalt – annars kan samma soffa dubbleras
+  // in i varje rum.
+  function placedCountAllRooms(id) {
     let n = 0;
-    for (const key of Object.keys(placements)) if (itemIdFromKey(key) === id) n++;
+    for (const room of roomModels) {
+      for (const key of Object.keys(room.placements)) {
+        if (itemIdFromKey(key) === id) n++;
+      }
+    }
     return n;
   }
-  // Hur många exemplar av `id` som ännu KAN ställas in i det aktiva rummet
-  // (ägda − redan placerade här). Multi-saker (möbler/dekor) kan ägas i flera
-  // exemplar; single-saker är kvar på max 1.
+  // Hur många exemplar av `id` som ännu KAN ställas in någonstans (ägda − redan
+  // placerade i hela huset). Multi-saker (möbler/dekor) kan ägas i flera
+  // exemplar och fördelas då över rummen (N totalt, inte N per rum);
+  // single-saker är kvar på max 1. Att "flytta" en möbel till ett annat rum
+  // görs genom att plocka bort den här (åter till lådan) och ställa den där.
   function remainingToPlace(id) {
-    return data.ownedCount(sd, id) - placedCountInRoom(id);
+    return data.ownedCount(sd, id) - placedCountAllRooms(id);
   }
 
   function renderTray() {
