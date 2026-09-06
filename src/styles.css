@@ -1688,10 +1688,10 @@ code {
   filter: drop-shadow(0 2px 3px rgba(59, 51, 80, 0.28));
 }
 .rum-dorr.dragging { cursor: grabbing; }
-/* (display:flex ovan skulle förr slå ut hidden – nu täcks det av den globala
+/* display:flex ovan skulle förr slå ut hidden – nu täcks det av den globala
    [hidden]{display:none!important}-regeln högst upp, så dörren döljs i
-   första/sista rummet utan en egen override.) */
-.rum-dorr-svg { width: clamp(34px, 9cqw, 62px); display: block; }
+   första/sista rummet utan en egen override. */
+.rum-dorr-svg { width: clamp(48px, 13cqw, 90px); display: block; }
 .rum-dorr-svg svg { width: 100%; height: auto; display: block; }
 .rum-dorr-nr {
   font-weight: 800;
@@ -3318,12 +3318,13 @@ body.varld-lage .container {
    hidden=true i updateUi på alla nivåer utom by och hängde ändå kvar. Det täcks
    nu av den globala [hidden]{display:none!important}-regeln högst upp. */
 
-/* Lådan & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
+/* Möbler & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
    ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */
 .varld-stage[data-niva="hus"] .varld-knapp.bara-rum { display: none; }
 
-/* Flytande verktygspanel (Måla om / Lådan / Kläder) under knappraden. */
+/* Flytande verktygspanel (Måla om / Möbler / Kläder) under knappraden. */
 .varld-panel {
+  position: relative;
   pointer-events: auto;
   margin-top: 10px;
   width: min(440px, 100%);
@@ -3336,8 +3337,26 @@ body.varld-lage .container {
   padding: 14px 16px;
   box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
 }
-.varld-panel h3 { margin: 0 0 6px; }
+.varld-panel h3 { margin: 0 0 6px; padding-right: 34px; }
 .varld-panel .hint { margin-top: 0; }
+
+/* ✕-knapp uppe till höger i varje panel – stänger panelen direkt. Ärver samma
+   runda, diskreta look som modalens stängknapp (.cx-modal-close). */
+.varld-panel-stang {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: #f0f4fb;
+  color: var(--text-svag);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.varld-panel-stang:hover { background: #e2ecfb; color: var(--bla-mork); }
 
 /* Husdjurspanelen som overlay nere i scenen (matning/namn/nedräkning). */
 .varld-petpanel {

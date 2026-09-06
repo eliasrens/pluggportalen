@@ -369,8 +369,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     const petsHere = showPets() && (roomPets().length > 0 || djur.list().length > 0);
     if (Object.keys(placements).length === 0 && !petsHere) {
       stage.appendChild(el(`<div class="room-empty">${roomCount > 1
-        ? `Rum ${currentRoom + 1} är tomt – öppna Lådan 📦 och möblera det!`
-        : "Ditt rum är tomt – öppna Lådan 📦 och ställ in dina saker!"}</div>`));
+        ? `Rum ${currentRoom + 1} är tomt – öppna Möbler 📦 och möblera det!`
+        : "Ditt rum är tomt – öppna Möbler 📦 och ställ in dina saker!"}</div>`));
     }
     // Rums-växlaren (dörrar + rumslista) läggs överst – bara i flerrums-hus.
     // Samma nod-objekt återanvänds vid varje renderStage så lyssnarna sitter kvar.
