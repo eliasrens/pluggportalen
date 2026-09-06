@@ -51,6 +51,27 @@ export function shuffle(arr) {
   return a;
 }
 
+// Max antal frågor per NY quiz-/läsförståelse-session. Har arbetsområdet fler
+// frågor i poolen slumpas exakt så här många fram den sessionen; har det färre
+// körs alla.
+export const MAX_QUESTIONS_PER_SESSION = 20;
+
+/**
+ * Välj vilka frågor en NY session ska köra ur områdets pool.
+ * • Är poolen större än taket: slumpa fram exakt MAX_QUESTIONS_PER_SESSION st
+ *   (riktig Fisher–Yates-blandning + slice, inte partisk sortering).
+ * • Är poolen ≤ taket: kör alla (i poolens ordning; runQuestions blandar sedan).
+ *
+ * OBS: Detta gäller BARA när en ny session byggs. Omspel/retry av fel-svarade
+ * frågor går inte via den här – de kör exakt sina specifika frågor (repetition
+ * inom rundan sköts av runQuestions och rör inte det här taket).
+ */
+export function pickSessionQuestions(pool) {
+  if (!Array.isArray(pool)) return [];
+  if (pool.length <= MAX_QUESTIONS_PER_SESSION) return pool.slice();
+  return shuffle(pool).slice(0, MAX_QUESTIONS_PER_SESSION);
+}
+
 /** Stjärnor (1–3) ur en andel rätt (0–1). Den som klarar övningen får minst 1. */
 export function starsFromRatio(ratio) {
   if (ratio >= 0.99) return 3;

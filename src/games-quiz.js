@@ -14,13 +14,15 @@ import {
   runQuestions,
   showResult,
   starsFromRatio,
+  pickSessionQuestions,
 } from "./game-shared.js";
 
 // --- Quiz -------------------------------------------------------------------
 
 export function startQuiz(ctx) {
   const { subj, area, areaData } = ctx;
-  const questions = areaData.quiz || [];
+  // Ny session: kör max 20 frågor. Har poolen fler slumpas 20 fram (annars alla).
+  const questions = pickSessionQuestions(areaData.quiz || []);
   const view = gameFrame({ subj, area, title: "Quiz", emoji: "❓" });
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
@@ -69,7 +71,9 @@ export function startLasforstaelse(ctx) {
     (q) => q && typeof q.passage === "string" && q.passage.trim()
   );
   const anyPassage = withPassage.length > 0;
-  const questions = anyPassage ? withPassage : allQuestions;
+  // Ny session: kör max 20 frågor ur den valda poolen (passager om de finns,
+  // annars alla). Har poolen fler slumpas 20 fram, annars körs alla.
+  const questions = pickSessionQuestions(anyPassage ? withPassage : allQuestions);
   const intro = anyPassage
     ? "Läs den korta texten ovanför varje fråga och svara. Texten byts för varje ny fråga. 📖"
     : "Läs frågan noga och svara så gott du kan. 📖";
