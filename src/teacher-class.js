@@ -27,6 +27,11 @@ import {
 import { areaMaxStars, areaEarned, progressLevel } from "./teacher-class-stats.js";
 import { openStudentDetail } from "./teacher-class-detail.js";
 
+// localStorage-nyckel: kom ihåg senast valda klassen mellan besök.
+const LAST_CLASS_KEY = "pluggportalen.klassoversikt.klass";
+// Specialvärde i klassväljaren för elever som inte tillhör någon klass.
+const UNASSIGNED = "__none__";
+
 /** Cellens innehåll för en elev × ett område. */
 function cellHtml(earned, maxStars) {
   if (maxStars === 0) {
@@ -50,11 +55,16 @@ export async function pageLarareKlass(ctx) {
 
   ctx.app.replaceChildren(el(`<div class="spinner">Laddar klassöversikt…</div>`));
 
-  // 1) Ämnen + elever parallellt.
+  // 1) Ämnen + elever + klasser parallellt.
   let subjects = [];
   let students = [];
+  let classes = [];
   try {
-    [subjects, students] = await Promise.all([data.getSubjects(), data.getStudents()]);
+    [subjects, students, classes] = await Promise.all([
+      data.getSubjects(),
+      data.getStudents(),
+      data.getClasses(),
+    ]);
   } catch (err) {
     ctx.app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda översikten: ${esc(err.message)}</div></div>`)
@@ -65,6 +75,45 @@ export async function pageLarareKlass(ctx) {
   students = students
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
+
+  const studentById = new Map(students.map((s) => [s.id, s]));
+
+  // Vilka elever är med i NÅGON klass? (union av alla klassers studentIds).
+  // Elever utanför denna mängd är "klasslösa" och hamnar bara under "Utan klass".
+  const assignedIds = new Set();
+  for (const c of classes) {
+    if (Array.isArray(c.studentIds)) c.studentIds.forEach((id) => assignedIds.add(id));
+  }
+  const unassignedStudents = students.filter((s) => !assignedIds.has(s.id));
+
+  // Klassväljarens val: en post per klass + ev. "Utan klass" om lösa elever finns.
+  const classOptions = classes.map((c) => ({
+    value: c.id,
+    label: c.name || c.id,
+    students: (Array.isArray(c.studentIds) ? c.studentIds : [])
+      .map((id) => studentById.get(id))
+      .filter(Boolean)
+      .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv")),
+  }));
+  if (unassignedStudents.length > 0) {
+    classOptions.push({
+      value: UNASSIGNED,
+      label: `Utan klass (${unassignedStudents.length})`,
+      students: unassignedStudents,
+    });
+  }
+
+  // Vald klass: kom ihåg senaste valet om det fortfarande finns, annars första.
+  let remembered = null;
+  try {
+    remembered = localStorage.getItem(LAST_CLASS_KEY);
+  } catch {
+    /* ignorera – privat läge etc. */
+  }
+  let selectedClass =
+    classOptions.find((o) => o.value === remembered)?.value ||
+    classOptions[0]?.value ||
+    null;
 
   // Valt ämne: SO först om det finns, annars första.
   let selectedSubject = subjects.find((s) => s.id === "so")?.id || subjects[0]?.id || null;
@@ -83,6 +132,10 @@ export async function pageLarareKlass(ctx) {
 
   const view = el(`<div>
     <div class="panel">
+      <div class="field" id="class-field">
+        <label for="klass-class">Klass</label>
+        <select id="klass-class" class="select"></select>
+      </div>
       <div class="field" id="subject-field">
         <label for="klass-subject">Ämne</label>
         <select id="klass-subject" class="select"></select>
@@ -94,8 +147,32 @@ export async function pageLarareKlass(ctx) {
   container.appendChild(view);
   ctx.app.replaceChildren(container);
 
+  const classSel = view.querySelector("#klass-class");
   const subjectSel = view.querySelector("#klass-subject");
   const matrixEl = view.querySelector("#matrix");
+
+  // Inga klasser alls → vänligt tomt-tillstånd, ingen matris att scopa.
+  if (classOptions.length === 0) {
+    view.querySelector("#class-field").style.display = "none";
+    view.querySelector("#subject-field").style.display = "none";
+    matrixEl.replaceChildren(
+      emptyState(ctx, {
+        emoji: "🧑‍🏫",
+        title: "Inga klasser än",
+        text: "Skapa en klass i Klasshantering först, så kan du följa dess elever här.",
+        actionLabel: "Till Klasshantering",
+        actionHash: "#/larare/klasser",
+      })
+    );
+    return;
+  }
+
+  classSel.innerHTML = classOptions
+    .map(
+      (o) =>
+        `<option value="${esc(o.value)}" ${o.value === selectedClass ? "selected" : ""}>${esc(o.label)}</option>`
+    )
+    .join("");
 
   if (subjects.length === 0) {
     view.querySelector("#subject-field").style.display = "none";
@@ -145,7 +222,14 @@ export async function pageLarareKlass(ctx) {
     return areasCache.get(subjectId);
   }
 
+  /** Eleverna som ska visas just nu = den valda klassens (eller "Utan klass"). */
+  function visibleStudents() {
+    return classOptions.find((o) => o.value === selectedClass)?.students || [];
+  }
+
   async function renderMatrix() {
+    const shown = visibleStudents();
+
     matrixEl.replaceChildren(el(`<div class="spinner">Laddar arbetsområden…</div>`));
     let areas = [];
     try {
@@ -157,13 +241,19 @@ export async function pageLarareKlass(ctx) {
       return;
     }
 
-    if (students.length === 0) {
+    if (shown.length === 0) {
       matrixEl.replaceChildren(
         emptyState(ctx, {
           emoji: "🧑‍🎓",
-          title: "Inga elevkonton än",
-          text: "Lägg in en klass med elevkonton så kan du följa deras framsteg här.",
-          actionLabel: "Lägg in elevkonton",
+          title:
+            selectedClass === UNASSIGNED
+              ? "Inga klasslösa elever"
+              : "Klassen har inga elever än",
+          text:
+            selectedClass === UNASSIGNED
+              ? "Alla elever tillhör en klass."
+              : "Lägg till elever i klassen i Klasshantering så syns deras framsteg här.",
+          actionLabel: "Till Klasshantering",
           actionHash: "#/larare/klasser",
         })
       );
@@ -195,7 +285,7 @@ export async function pageLarareKlass(ctx) {
       )
       .join("");
 
-    const bodyRows = students
+    const bodyRows = shown
       .map((s) => {
         const progress = progressByStudent.get(s.id) || {};
         let earnedTotal = 0;
@@ -248,7 +338,6 @@ export async function pageLarareKlass(ctx) {
     </div>`);
 
     // Klick (eller Enter/mellanslag) på en elevrad → fördjupad per-elev-vy.
-    const studentById = new Map(students.map((s) => [s.id, s]));
     const openRow = (tr) => {
       const s = studentById.get(tr.dataset.student);
       if (s) openStudentDetail(s, progressByStudent.get(s.id) || {}, subjects, loadAreas);
@@ -265,6 +354,16 @@ export async function pageLarareKlass(ctx) {
 
     matrixEl.replaceChildren(table, legend);
   }
+
+  classSel.addEventListener("change", () => {
+    selectedClass = classSel.value;
+    try {
+      localStorage.setItem(LAST_CLASS_KEY, selectedClass);
+    } catch {
+      /* ignorera – privat läge etc. */
+    }
+    renderMatrix();
+  });
 
   subjectSel.addEventListener("change", () => {
     selectedSubject = subjectSel.value;
