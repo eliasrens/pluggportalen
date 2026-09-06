@@ -41,8 +41,8 @@ const ASSET_ROOT = "design/assets/husdjur";
 // faller panelen tillbaka på de generiska namnen (Bebis/Halvstor/Fullvuxen).
 export const SPRITE_SPECIES = [
   { id: "butterfly", name: "Fjärlis", kind: "sprite", dir: "butterfly" },
-  { id: "salamander", name: "Flammis", kind: "sprite", dir: "salamander" },
   { id: "eldis", name: "Eldis", kind: "sprite", dir: "eldis", stageNames: ["Gnista", "Låga", "Brasa"] },
+  { id: "broorgis", name: "Broorgis", kind: "sprite", dir: "broorgis", stageNames: ["Grodd", "Glöd", "Solbrand"] },
 ];
 
 const BY_ID = Object.fromEntries(SPRITE_SPECIES.map((s) => [s.id, s]));
