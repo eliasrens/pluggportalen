@@ -16,6 +16,12 @@ import { petDisplayName } from "./pages-rum-pets.js";
 
 const STAGE_NAMES = ["", "Bebis", "Halvstor", "Fullvuxen"];
 
+/** Stegnamn för ett steg (1–3): artens egna (species.stageNames) om det finns,
+ *  annars de generiska (Bebis/Halvstor/Fullvuxen). */
+function stageNameFor(species, stage) {
+  return (species && species.stageNames && species.stageNames[stage - 1]) || STAGE_NAMES[stage];
+}
+
 /** "kläcks om ~2 dagar" – barnvänlig grov nedräkning. */
 export function countdownText(msLeft) {
   if (msLeft <= 0) return "kläcks vilken sekund som helst!";
@@ -91,7 +97,7 @@ function creaturePanel(pet, opts) {
     <h2>${opts.justHatched ? "Ägget har kläckts! 🎉" : namn}</h2>
     ${opts.justHatched ? `<p class="hint">Ur ägget kläcktes… en <b>${species ? species.name : "varelse"}</b>!</p>` : ""}
     <div class="pet-steg">
-      ${[1, 2, 3].map((s) => `<span class="pet-steg-chip${s === stage ? " aktiv" : ""}${s < stage ? " klar" : ""}">Steg ${s}<br><small>${STAGE_NAMES[s]}</small></span>`).join("")}
+      ${[1, 2, 3].map((s) => `<span class="pet-steg-chip${s === stage ? " aktiv" : ""}${s < stage ? " klar" : ""}">Steg ${s}<br><small>${stageNameFor(species, s)}</small></span>`).join("")}
     </div>
     <div id="namn-rad">${visaNamnfalt
       ? `<p><b>${behoverNamn ? "Vad ska din nya kompis heta?" : `Vad ska ${namn} heta?`}</b></p>${nameFormHtml(pet.name || "")}`

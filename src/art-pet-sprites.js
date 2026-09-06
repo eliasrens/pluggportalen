@@ -36,9 +36,13 @@
 // (repo-roten servas, så sökvägen funkar relativt index.html).
 const ASSET_ROOT = "design/assets/husdjur";
 
+// stageNames (valfri): namn på de 3 utvecklingsstegen [bebis, ung, fullvuxen].
+// Visas i husdjurspanelens steg-chips (pages-rum-pet-panel.js); saknas den
+// faller panelen tillbaka på de generiska namnen (Bebis/Halvstor/Fullvuxen).
 export const SPRITE_SPECIES = [
   { id: "butterfly", name: "Fjärlis", kind: "sprite", dir: "butterfly" },
   { id: "salamander", name: "Flammis", kind: "sprite", dir: "salamander" },
+  { id: "eldis", name: "Eldis", kind: "sprite", dir: "eldis", stageNames: ["Gnista", "Låga", "Brasa"] },
 ];
 
 const BY_ID = Object.fromEntries(SPRITE_SPECIES.map((s) => [s.id, s]));
