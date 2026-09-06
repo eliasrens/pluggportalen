@@ -23,6 +23,7 @@ import { petsFromData } from "./data-pet.js";
 import { petReadonlyNode } from "./pages-rum-pets.js";
 import { animalsFromData } from "./data-animals.js";
 import { mountRumVaxlare } from "./varld-rum-vaxlare.js";
+import { possessiv } from "./text-format.js";
 
 /** Minimal HTML-escape för elevnamn som kommer från Firestore. */
 function esc(s) {
@@ -102,7 +103,7 @@ export async function pageElevKlasskamrat() {
       showLocked(
         "Dörren verkar vara låst 🔒",
         who
-          ? `${who}s hus är låst, kika in en annan gång! 🙂`
+          ? `${possessiv(who)} hus är låst, kika in en annan gång! 🙂`
           : "Huset är låst just nu, kika in en annan gång! 🙂"
       );
       return;
@@ -120,7 +121,7 @@ export async function pageElevKlasskamrat() {
   // samma lås). Husets exteriör i byn påverkas inte – bara den inre läs-vyn.
   if (data.isHouseLocked(sd)) {
     showLocked(
-      `${namn}s hus är låst`,
+      `${possessiv(namn)} hus är låst`,
       `${namn} har låst sitt hus, så rummet är privat just nu. Kika in en annan gång! 🙂`
     );
     return;
@@ -147,8 +148,8 @@ export async function pageElevKlasskamrat() {
     <a class="back-link" id="back">← Till klassbyn</a>
     <div class="panel center">
       <div class="klasskamrat-figur">${avatarMarkup(sd.avatarId || DEFAULT_AVATAR, equipped)}</div>
-      <h1>${namn}s rum 🛏️</h1>
-      <p class="hint">Du tittar in i ${namn}s ${roomCount > 1 ? "hem – bläddra mellan rummen via dörrarna eller rumslistan" : "rum"}. Det här är bara en titt – du kan inte ändra något här. 👀</p>
+      <h1>${possessiv(namn)} rum 🛏️</h1>
+      <p class="hint">Du tittar in i ${possessiv(namn)} ${roomCount > 1 ? "hem – bläddra mellan rummen via dörrarna eller rumslistan" : "rum"}. Det här är bara en titt – du kan inte ändra något här. 👀</p>
     </div>
 
     <div class="room-stage readonly" id="stage"></div>

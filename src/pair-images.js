@@ -18,6 +18,8 @@
 // NYCKELFORMAT: "partier/<bokstav>"  (t.ex. "partier/s", "partier/sd", "partier/kd")
 // ============================================================================
 
+import { possessiv } from "./text-format.js";
+
 /**
  * Partidefinitioner. Färgerna är TYDLIGA, rimliga val – inte de officiella
  * logotyperna. Blå-partierna (M, KD, L) hålls isär med olika blå-nyanser,
@@ -78,7 +80,7 @@ function buildTile(p) {
 export function resolvePairImage(key) {
   const p = BY_KEY.get(normKey(key));
   if (!p) return null;
-  return { markup: buildTile(p), alt: `${p.name}s partisymbol` };
+  return { markup: buildTile(p), alt: `${possessiv(p.name)} partisymbol` };
 }
 
 /** True om nyckeln finns i paketet (för validering). */
