@@ -49,6 +49,7 @@ export const SPRITE_SPECIES = [
   { id: "buuu", name: "Buuu", kind: "sprite", dir: "buuu", stageNames: ["Skuggfjun", "Dunkelande", "Ametistfursten"] },
   { id: "electrofox", name: "Electrofox", kind: "sprite", dir: "electrofox", stageNames: ["Gnistvalp", "Blixtrev", "Åskfursten"] },
   { id: "turtleted", name: "Turtleted", kind: "sprite", dir: "turtleted", stageNames: ["Skalknopp", "Sköldvandrare", "Pansardraken"] },
+  { id: "catjacaj", name: "Catjacaj", kind: "sprite", dir: "catjacaj", stageNames: ["Spinnfjun", "Runklo", "Runkrigaren"] },
 ];
 
 const BY_ID = Object.fromEntries(SPRITE_SPECIES.map((s) => [s.id, s]));
