@@ -51,6 +51,27 @@ export function shuffle(arr) {
   return a;
 }
 
+// Max antal frågor per NY quiz-/läsförståelse-session. Har arbetsområdet fler
+// frågor i poolen slumpas exakt så här många fram den sessionen; har det färre
+// körs alla.
+export const MAX_QUESTIONS_PER_SESSION = 20;
+
+/**
+ * Välj vilka frågor en NY session ska köra ur områdets pool.
+ * • Är poolen större än taket: slumpa fram exakt MAX_QUESTIONS_PER_SESSION st
+ *   (riktig Fisher–Yates-blandning + slice, inte partisk sortering).
+ * • Är poolen ≤ taket: kör alla (i poolens ordning; runQuestions blandar sedan).
+ *
+ * OBS: Detta gäller BARA när en ny session byggs. Omspel/retry av fel-svarade
+ * frågor går inte via den här – de kör exakt sina specifika frågor (repetition
+ * inom rundan sköts av runQuestions och rör inte det här taket).
+ */
+export function pickSessionQuestions(pool) {
+  if (!Array.isArray(pool)) return [];
+  if (pool.length <= MAX_QUESTIONS_PER_SESSION) return pool.slice();
+  return shuffle(pool).slice(0, MAX_QUESTIONS_PER_SESSION);
+}
+
 /** Stjärnor (1–3) ur en andel rätt (0–1). Den som klarar övningen får minst 1. */
 export function starsFromRatio(ratio) {
   if (ratio >= 0.99) return 3;
@@ -105,13 +126,22 @@ export function muteButton() {
 // Belöning + framsteg
 // ---------------------------------------------------------------------------
 
+// Lägen som bygger en HELT NY session vid varje omspel: de slumpar fram ett nytt
+// urval på max 20 frågor (se pickSessionQuestions), så ett omspel är i praktiken
+// en ny övning – inte samma runda igen. Därför räknas de som full övning varje
+// gång och slipper grind-reduktionen (full pott coins + XP alltid).
+// Övriga lägen (kunskapsjakt = tidsloop på hela poolen, para/memory = par) kör
+// oförändrat grind-skydd. Rör inte de par-baserade lägena.
+const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
+
 /**
  * Dela ut belöning (coins + XP) + spara framsteg för en avklarad övning.
  * Grind-skydd: bara första gången ger full pott, omspel ger 80 % (både coins
  * och XP). 80 % är ett medvetet produktbeslut – lägre (t.ex. 30 %) upplevdes
  * som för snålt för omspel. XP-potten (basXP + stjärnor × perStar) definieras
- * i leveling.js.
- * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean}>}
+ * i leveling.js. UNDANTAG: FULL_REWARD_MODES (quiz + läsförståelse) ger full
+ * pott varje gång eftersom varje omspel är en ny slumpad session.
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {
   let firstTime = true;
@@ -121,7 +151,8 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   } catch {}
   let coins = Math.max(1, Math.round(baseCoins));
   let xp = xpForExercise(stars);
-  if (!firstTime) {
+  const reduced = !firstTime && !FULL_REWARD_MODES.has(mode);
+  if (reduced) {
     coins = Math.max(1, Math.round(baseCoins * 0.8));
     xp = Math.max(1, Math.round(xp * 0.8));
   }
@@ -135,7 +166,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   try {
     await data.saveProgress(area, mode, { completed: true, stars, bestScore });
   } catch {}
-  return { coins, xp, totalXp, firstTime };
+  return { coins, xp, totalXp, firstTime, reduced };
 }
 
 /**
@@ -145,7 +176,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  */
 export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, xp, totalXp, firstTime } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
+  const { coins, xp, totalXp, reduced } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
@@ -161,7 +192,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
-    ${firstTime ? "" : '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>'}
+    ${reduced ? '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>' : ""}
     <p class="cheer">${cheer(stars)}</p>
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
