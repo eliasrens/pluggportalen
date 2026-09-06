@@ -16,6 +16,7 @@ import { DEKOR_ART, DEKOR_MATT, dekorMarkSvg } from "./art-by-dekor.js";
 import { husMini, DEFAULT_HUS_SKAL } from "./art-hus-ute.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { getPalette } from "./room-palettes.js";
+import { possessiv } from "./text-format.js";
 
 /** Minimal HTML-escape för elevnamn/id:n som kommer från Firestore. */
 function esc(s) {
@@ -84,8 +85,8 @@ export function mountByScen({ lager, meId, students }) {
       const aria = me
         ? "Ditt hus – zooma in"
         : last
-          ? `${namn}s hus – låst just nu`
-          : `${namn}s hus – titta in i deras rum`;
+          ? `${possessiv(namn)} hus – låst just nu`
+          : `${possessiv(namn)} hus – titta in i deras rum`;
       return `<div class="by-tomt${me ? " du" : ""}${last ? " last" : ""}" role="button" tabindex="0"
         data-id="${esc(s.id)}"${me ? ` data-me="1"` : ""}${last ? ` data-locked="1"` : ""} aria-label="${aria}"
         style="left:${t.x.toFixed(2)}%;top:${t.y.toFixed(2)}%;width:${layout.cellW.toFixed(2)}%;height:${layout.radHojd.toFixed(2)}%;z-index:${Math.round((t.y + layout.radHojd / 2) * 10)};--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">

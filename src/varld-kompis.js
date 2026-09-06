@@ -25,6 +25,7 @@ import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { husScen } from "./art-hus-ute.js";
 import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
+import { possessiv } from "./text-format.js";
 
 /** Minimal escape för elevnamn som skrivs in i aria-attribut. */
 function escAttr(s) {
@@ -47,8 +48,8 @@ function kompisHusHtml(friend) {
   )
     .replace('id="husgrupp"', 'id="kompis-husgrupp"')
     .replace('id="ute-avatar"', 'id="kompis-avatar"')
-    .replace('aria-label="Ditt hus utifrån"', `aria-label="${escAttr(namn)}s hus utifrån"`)
-    .replace('aria-label="Gå in i huset"', `aria-label="Gå in i ${escAttr(namn)}s rum"`);
+    .replace('aria-label="Ditt hus utifrån"', `aria-label="${possessiv(escAttr(namn))} hus utifrån"`)
+    .replace('aria-label="Gå in i huset"', `aria-label="Gå in i ${possessiv(escAttr(namn))} rum"`);
 }
 
 /**

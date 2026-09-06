@@ -46,6 +46,7 @@ import { createGrannbyVy } from "./varld-grannby.js";
 import { aggregateKlassStats } from "./leveling.js";
 import { klassStatsMarkup, mountKlassStatsToggle } from "./varld-by-stats.js";
 import { classmateIds } from "./klass-membership.js";
+import { possessiv } from "./text-format.js";
 
 // Levande scen (för sömlösa route-byten): när routern träffar #/elev/hus eller
 // #/elev/rum och scenen redan står i DOM:en byter vi bara kameranivå i stället
@@ -453,7 +454,7 @@ export async function pageElevVarld(startNiva) {
       const namn = (k && (k.name || k.id)) || "Klassens";
       utBtn.innerHTML = "← <span>Till skolan</span>";
       utBtn.title = "Tillbaka till skolan";
-      titel.textContent = `Klass ${namn}s by 🏘️`;
+      titel.textContent = `Klass ${possessiv(namn)} by 🏘️`;
       hint.textContent = "👀 En annan klass by – du kan bara titta. Klicka pilen för att gå tillbaka.";
       hint.hidden = false;
     } else if (nivaId === "by") {
@@ -472,7 +473,7 @@ export async function pageElevVarld(startNiva) {
       // Hus-nivån ÄR startsidan – ingen "hem"-knapp behövs (den vore en no-op).
       // Byn nås via klasskylten, rummet genom att klicka på huset.
       utBtn.style.display = "none";
-      titel.textContent = `${session.namn ? session.namn + "s" : "Mitt"} hus 🏠`;
+      titel.textContent = `${session.namn ? possessiv(session.namn) : "Mitt"} hus 🏠`;
       hint.textContent = "🏠 Klicka på huset för att gå in – eller på skylten för att se hela byn!";
       hint.hidden = false;
     } else if (nivaId === "kompishus") {
@@ -480,8 +481,8 @@ export async function pageElevVarld(startNiva) {
       const namn = (k && (k.namn || k.username)) || "Kompisens";
       utBtn.innerHTML = "← <span>Till byn</span>";
       utBtn.title = "Tillbaka till klassbyn";
-      titel.textContent = `${namn}s hus 🏠`;
-      hint.textContent = `🏠 Klicka på huset för att gå in i ${namn}s rum – eller på pilen tillbaka till byn.`;
+      titel.textContent = `${possessiv(namn)} hus 🏠`;
+      hint.textContent = `🏠 Klicka på huset för att gå in i ${possessiv(namn)} rum – eller på pilen tillbaka till byn.`;
       hint.hidden = false;
     } else {
       utBtn.innerHTML = "🚪 <span>Gå ut</span>";
