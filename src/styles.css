@@ -2588,6 +2588,80 @@ code {
 .give-coins .gc-ok { color: #1e7a45; font-weight: 700; }
 .give-coins .gc-err { color: #b3261e; font-weight: 700; }
 
+/* ==========================================================================
+   Klasser & elevkonton (#/larare/klasser) – enad sida: kontoskapande +
+   medlemshantering (teacher-classes.js / teacher-class-accounts.js).
+   ========================================================================== */
+
+/* Antal-fältet i "Skapa ny klass"-formuläret. */
+.new-class #new-count {
+  flex: 0 0 96px;
+  width: 96px;
+  padding: 10px 12px;
+  border: 2px solid #dbe6f5;
+  border-radius: 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+}
+.new-class #new-count:focus { outline: none; border-color: var(--bla); }
+
+/* Panel med genererade inloggningsuppgifter (visas en gång vid skapande). */
+.cred-panel {
+  margin-top: 12px;
+  border: 2px solid #f2d98a;
+  background: #fffaef;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.mm-creds:empty { display: none; }
+.mm-creds .cred-panel { margin-top: 0; margin-bottom: 14px; }
+.cred-warn { font-weight: 600; margin-bottom: 10px; line-height: 1.35; }
+.cred-tbl td.cred-user,
+.cred-tbl td.cred-pass {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+}
+
+/* Medlemshanteraren under "Elever" på ett klasskort. */
+.subhead.sm { font-size: 1rem; margin: 4px 0 10px; }
+.member-manage { display: flex; flex-direction: column; gap: 12px; }
+.mm-list { display: flex; flex-direction: column; gap: 10px; }
+
+.member-manage-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 12px;
+  border: 2px solid #e6eefa;
+  border-radius: 12px;
+  background: #fff;
+}
+.mm-main { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mm-main .mm-namn { width: 150px; }
+.mm-main .mm-username { width: 120px; color: var(--text-svag); }
+.mm-save-flash { font-size: 0.88rem; min-height: 1.1em; }
+.mm-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+
+/* Utfällbara paneler: skapa nya konton / lägg till befintliga. */
+.mm-add {
+  border: 2px dashed #e2ecfb;
+  border-radius: 12px;
+  padding: 4px 12px;
+}
+.mm-add > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 8px 2px;
+  list-style: none;
+}
+.mm-add > summary::-webkit-details-marker { display: none; }
+.mm-add[open] > summary { border-bottom: 2px dashed #e2ecfb; margin-bottom: 10px; }
+.mm-add-body { padding-bottom: 10px; }
+.mm-add-body .mm-count { width: 80px; text-align: center; }
+.mm-create-flash, .mm-link-flash { font-size: 0.9rem; }
+
 /* ============================================================================
    Husvärlden (#/elev/hus + #/elev/rum) – EN spelscen med kamerazoom-nivåer
    ============================================================================
