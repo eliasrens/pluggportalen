@@ -20,7 +20,8 @@
   --skugga: 0 6px 0 rgba(0, 0, 0, 0.12);
   --skugga-mjuk: 0 8px 24px rgba(31, 45, 74, 0.12);
   --radie: 18px;
-  --font: "Baloo 2", "Comic Sans MS", "Segoe UI", system-ui, sans-serif;
+  --font: "Baloo 2", "Segoe UI Rounded", system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
 
   /* --- Z-lager (våningsordningen), se docs/DESIGNSYSTEM.md ------------------
      Centraliserad staplingsordning så överlapp-buggfamiljen slutar uppstå.
@@ -75,6 +76,8 @@ body {
 
 body {
   font-family: var(--font);
+  /* Brödtext i Baloo 2 500 – lagom rund men läsbar för längre texter. */
+  font-weight: 500;
   color: var(--text);
   background: linear-gradient(160deg, #eaf3ff 0%, #f6ecff 60%, #fff6ec 100%);
   min-height: 100vh;
