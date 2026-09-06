@@ -26,7 +26,7 @@
 //   varld-by-scen.js  byns rendering (minihus + avatar per klasskamrat)
 //   varld-kompis.js   kompis-hus-nivån (läs-vy av en kamrats hus-exteriör)
 //
-// Scenens kontroller (Måla om, Lådan, Kläder, husdjurspanelen, ut-knappen)
+// Scenens kontroller (Måla om, Möbler, Kläder, husdjurspanelen, ut-knappen)
 // ligger som overlays I spelvyn; sidomenyn till vänster är orörd.
 // ============================================================================
 
@@ -154,7 +154,7 @@ export async function pageElevVarld(startNiva) {
               <button class="varld-knapp" role="menuitem" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
               <button class="varld-knapp" role="menuitem" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
               <button class="varld-knapp rum-och-hus" role="menuitem" id="las-btn"></button>
-              <button class="varld-knapp bara-rum" role="menuitem" data-panel="lada" title="Dina saker">📦 <span>Lådan</span></button>
+              <button class="varld-knapp bara-rum" role="menuitem" data-panel="lada" title="Dina möbler och saker">📦 <span>Möbler</span></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
               <button class="varld-knapp rum-och-hus" role="menuitem" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
               <button class="varld-knapp bara-rum" role="menuitem" id="mat-btn" title="Klicka ut Mysterymat på golvet">🍎 <span>Mysterymat</span></button>
@@ -170,26 +170,31 @@ export async function pageElevVarld(startNiva) {
         </div>
 
         <div class="varld-panel" id="panel-palett" hidden>
+          <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
           <h3>Måla om 🎨</h3>
           <p class="hint">Välj en färgpalett – samma färger används på huset och väggarna i ditt rum! Golvet behåller sin färg.</p>
           <div class="palett-rad" id="palettrad"></div>
         </div>
         <div class="varld-panel" id="panel-hus" hidden>
+          <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
           <h3>Nytt hus 🏠</h3>
           <p class="hint">Byt husets utsida! Rummet inne är detsamma. Fler hus köper du i shoppen 🛍️</p>
           <div class="hus-skal-rad" id="husskalrad"></div>
         </div>
         <div class="varld-panel" id="panel-lada" hidden>
-          <h3>Lådan 📦</h3>
+          <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
+          <h3>Möbler 📦</h3>
           <p class="hint" id="tray-hint"></p>
           <div class="room-tray" id="tray"></div>
         </div>
         <div class="varld-panel" id="panel-djur" hidden>
+          <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
           <h3>Mina djur 🐾</h3>
           <p class="hint" id="djur-hint"></p>
           <div class="room-tray" id="djurtray"></div>
         </div>
         <div class="varld-panel" id="panel-klader" hidden>
+          <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
           <h3>Klä på din figur 👗</h3>
           <p class="hint">Klicka för att sätta på eller ta av. Din figur syns i menyn och framför huset.</p>
           <div class="wear-tray" id="weartray"></div>
@@ -590,6 +595,16 @@ export async function pageElevVarld(startNiva) {
         panel.hidden = false;
         btn.classList.add("aktiv");
       }
+    });
+  }
+
+  // ✕-knappen på varje panel stänger den direkt (utan att gå via verktygsmenyn).
+  // Går exakt samma väg som stangPaneler() – döljer panelen OCH nollställer
+  // "aktiv"-markeringen på motsvarande verktygsknapp, så inget läge fastnar.
+  for (const stang of view.querySelectorAll(".varld-panel-stang")) {
+    stang.addEventListener("click", () => {
+      stangPaneler();
+      rumCtl?.exitMat();
     });
   }
 
