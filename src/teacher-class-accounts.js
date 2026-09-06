@@ -16,6 +16,7 @@
 import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
 import { el, esc, copyText } from "./teacher-shared.js";
+import { renderAccountEditor, printLoginCards } from "./teacher-login-cards.js";
 
 // --- Genererade inloggningsuppgifter ----------------------------------------
 
@@ -39,7 +40,7 @@ export function usernamePrefix(className) {
 }
 
 /** Nästa lediga användarnamn `${prefix}NN` som inte finns i `taken` (uppdaterar `taken`). */
-function nextUsername(prefix, taken) {
+export function nextUsername(prefix, taken) {
   let n = 1;
   let u;
   do {
@@ -51,34 +52,41 @@ function nextUsername(prefix, taken) {
 }
 
 /**
- * Skapa `count` elevkonton med auto-genererade användarnamn/lösenord. Skapar
- * Auth-kontot + students-dokumentet via data.upsertStudent(null, …) och
- * returnerar listan { id, namn, username, password } (lösenordet i klartext –
- * enda tillfället läraren kan se det).
- * @param {{count:number, prefix:string, taken:Set<string>, onProgress?:Function}} o
+ * Bygg `count` auto-förslag { namn, username, password } utan att skapa något.
+ * Används som default-värden i den redigerbara kontotabellen (läraren kan ändra
+ * dem innan kontona faktiskt skapas). Muterar `taken` med de valda namnen.
+ * @param {{count:number, prefix:string, taken:Set<string>}} o
  */
-export async function createAccounts({ count, prefix, taken, onProgress }) {
-  const created = [];
+export function buildAccountPlan({ count, prefix, taken }) {
+  const plan = [];
   for (let i = 0; i < count; i++) {
-    let attempts = 0;
-    // Krockar användarnamnet mot ett kvarblivet Auth-konto tar vi nästa nummer.
-    while (true) {
-      const username = nextUsername(prefix, taken);
-      const password = generatePassword();
-      const namn = username; // Läraren kan döpa om eleven efteråt.
-      try {
-        const id = await data.upsertStudent(null, { namn, username, password, avatarId: "fox" });
-        created.push({ id, namn, username, password });
-        break;
-      } catch (err) {
-        if (/redan taget|already-in-use/i.test(err?.message || "") && attempts < 30) {
-          attempts++;
-          continue; // `taken` har redan namnet → nextUsername hoppar vidare.
-        }
-        throw err;
-      }
+    const username = nextUsername(prefix, taken);
+    plan.push({ namn: username, username, password: generatePassword() });
+  }
+  return plan;
+}
+
+/**
+ * Skapa elevkonton från färdiga (ev. lärar-redigerade) rader. Varje rad skapar
+ * Auth-kontot + students-dokumentet via data.upsertStudent(null, …) och läggs
+ * till i `created` som { id, namn, username, password } (lösenordet i klartext –
+ * enda tillfället läraren kan se det). Kastar vid fel, men bifogar `err.created`
+ * med de rader som hann skapas så anroparen inte tappar dem.
+ * @param {Array<{namn:string, username:string, password:string}>} entries
+ * @param {Function=} onProgress (done, total)
+ */
+export async function createAccountsFromEntries(entries, onProgress) {
+  const created = [];
+  for (let i = 0; i < entries.length; i++) {
+    const { namn, username, password } = entries[i];
+    try {
+      const id = await data.upsertStudent(null, { namn, username, password, avatarId: "fox" });
+      created.push({ id, namn, username, password });
+    } catch (err) {
+      err.created = created;
+      throw err;
     }
-    if (onProgress) onProgress(i + 1, count);
+    if (onProgress) onProgress(i + 1, entries.length);
   }
   return created;
 }
@@ -108,9 +116,11 @@ export function credentialsPanel(className, created) {
     </table></div>
     <div class="row-inline" style="margin-top:10px">
       <button class="btn gron small cred-copy">📋 Kopiera alla</button>
+      <button class="btn small cred-print">🖨️ Skriv ut inloggningskort</button>
     </div>
   </div>`);
   box.querySelector(".cred-copy").addEventListener("click", (e) => copyText(text, e.currentTarget));
+  box.querySelector(".cred-print").addEventListener("click", () => printLoginCards(className, created));
   return box;
 }
 
@@ -271,9 +281,10 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
             auto-genererade användarnamn (<b>${esc(prefix)}NN</b>) och lösenord.</p>
           <div class="row-inline">
             <input class="cell mm-count" type="number" min="1" max="40" step="1" value="5" aria-label="Antal nya elever" />
-            <button class="btn gron small mm-create">➕ Skapa konton</button>
+            <button class="btn gron small mm-create">➕ Förbered konton</button>
             <span class="mm-create-flash" aria-live="polite"></span>
           </div>
+          <div class="mm-editor"></div>
         </div>
       </details>
       <details class="mm-add">
@@ -289,39 +300,40 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
       members.forEach((s) => listEl.appendChild(memberRow(s)));
     }
 
-    // Skapa nya konton i klassen.
+    // Skapa nya konton i klassen: förslag → redigerbar tabell → skapa.
     const createBtn = wrap.querySelector(".mm-create");
     const createFlash = wrap.querySelector(".mm-create-flash");
-    createBtn.addEventListener("click", async () => {
+    const editorHost = wrap.querySelector(".mm-editor");
+    createBtn.addEventListener("click", () => {
       const count = Math.floor(Number(wrap.querySelector(".mm-count").value));
       if (!Number.isFinite(count) || count <= 0) {
         createFlash.innerHTML = `<span class="gc-err">Ange ett antal (minst 1).</span>`;
         return;
       }
-      createBtn.disabled = true;
+      createFlash.innerHTML = "";
       const taken = new Set(students.map((x) => String(x.username || "").toLowerCase()).filter(Boolean));
-      try {
-        const created = await createAccounts({
-          count,
-          prefix,
-          taken,
-          onProgress: (done, total) => {
-            createFlash.innerHTML = `<span class="hint">Skapar ${done}/${total}…</span>`;
-          },
-        });
-        created.forEach((c) =>
-          students.push({ id: c.id, namn: c.namn, username: c.username, avatarId: "fox" })
-        );
-        const nextIds = [...(cls.studentIds || []), ...created.map((c) => c.id)];
-        await data.setClassStudents(cls.id, nextIds);
-        cls.studentIds = nextIds;
-        credsHost.replaceChildren(credentialsPanel(cls.name || cls.id, created));
-        updateCount();
-        draw();
-      } catch (err) {
-        createFlash.innerHTML = `<span class="gc-err">Kunde inte skapa konton: ${esc(err.message)}</span>`;
-        createBtn.disabled = false;
-      }
+      renderAccountEditor(editorHost, {
+        count,
+        prefix,
+        className: cls.name || cls.id,
+        taken,
+        onCancel: () => editorHost.replaceChildren(),
+        onCreated: async (created) => {
+          created.forEach((c) =>
+            students.push({ id: c.id, namn: c.namn, username: c.username, avatarId: "fox" })
+          );
+          const nextIds = [...(cls.studentIds || []), ...created.map((c) => c.id)];
+          try {
+            await data.setClassStudents(cls.id, nextIds);
+            cls.studentIds = nextIds;
+          } catch (err) {
+            createFlash.innerHTML = `<span class="gc-err">Kontona skapades men klasskopplingen misslyckades: ${esc(err.message)}</span>`;
+          }
+          credsHost.replaceChildren(credentialsPanel(cls.name || cls.id, created));
+          updateCount();
+          draw();
+        },
+      });
     });
 
     // Lägg till befintliga elever.

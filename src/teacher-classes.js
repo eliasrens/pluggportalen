@@ -25,11 +25,11 @@ import {
   renderGate,
 } from "./teacher-shared.js";
 import {
-  createAccounts,
   credentialsPanel,
   usernamePrefix,
   renderMemberManager,
 } from "./teacher-class-accounts.js";
+import { renderAccountEditor } from "./teacher-login-cards.js";
 
 export async function pageLarareKlasser(ctx) {
   ctx.renderTopbar();
@@ -326,48 +326,66 @@ export async function pageLarareKlasser(ctx) {
     const nextOrder = classes.reduce((m, c) => Math.max(m, Number(c.order) || 0), 0) + 1;
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
+    let cls;
     try {
       await data.upsertClass(id, { name, order: nextOrder });
-      const cls = { id, name, order: nextOrder, studentIds: [] };
+      cls = { id, name, order: nextOrder, studentIds: [] };
+      classes.push(cls);
+      input.value = "";
+      countInput.value = "0";
+      renderClasses();
+    } catch (err) {
+      newMsg.innerHTML = `<div class="msg error">Kunde inte skapa klassen: ${esc(err.message)}</div>`;
+      submitBtn.disabled = false;
+      return;
+    }
+    submitBtn.disabled = false;
 
-      let created = [];
-      if (count > 0) {
-        newMsg.innerHTML = `<div class="msg ok">Skapar ${count} elevkonto${count === 1 ? "" : "n"}…</div>`;
-        const taken = new Set(
-          state.students.map((s) => String(s.username || "").toLowerCase()).filter(Boolean)
-        );
-        created = await createAccounts({
-          count,
-          prefix: usernamePrefix(name),
-          taken,
-          onProgress: (done, total) => {
-            newMsg.innerHTML = `<div class="msg ok">Skapar elevkonton… ${done}/${total}</div>`;
-          },
-        });
+    if (count === 0) {
+      newMsg.replaceChildren(
+        el(`<div class="msg ok">✓ Klassen "${esc(name)}" skapades. Klicka <b>Elever</b> på
+          klasskortet för att lägga till elever.</div>`)
+      );
+      return;
+    }
+
+    // Visa den redigerbara kontotabellen (förslag ifyllda) innan kontona skapas.
+    newMsg.replaceChildren(
+      el(`<div class="msg ok">✓ Klassen "${esc(name)}" skapades. Kontrollera elevkontona nedan
+        och klicka sedan Skapa.</div>`)
+    );
+    const editorHost = el(`<div class="new-editor"></div>`);
+    newMsg.appendChild(editorHost);
+    const taken = new Set(
+      state.students.map((s) => String(s.username || "").toLowerCase()).filter(Boolean)
+    );
+    renderAccountEditor(editorHost, {
+      count,
+      prefix: usernamePrefix(name),
+      className: name,
+      taken,
+      onCancel: () => editorHost.replaceChildren(),
+      onCreated: async (created) => {
         created.forEach((c) =>
           state.students.push({ id: c.id, namn: c.namn, username: c.username, avatarId: "fox" })
         );
         cls.studentIds = created.map((c) => c.id);
-        await data.setClassStudents(id, cls.studentIds);
-      }
-
-      classes.push(cls);
-      input.value = "";
-      countInput.value = "0";
-      newMsg.replaceChildren(
-        el(
-          `<div class="msg ok">✓ Klassen "${esc(name)}" skapades${
-            count > 0 ? ` med ${created.length} elevkonto${created.length === 1 ? "" : "n"}` : ""
-          }. Klicka <b>Elever</b> på klasskortet för att hantera dem.</div>`
-        )
-      );
-      if (created.length > 0) newMsg.appendChild(credentialsPanel(name, created));
-      renderClasses();
-    } catch (err) {
-      newMsg.innerHTML = `<div class="msg error">Kunde inte skapa klassen: ${esc(err.message)}</div>`;
-    } finally {
-      submitBtn.disabled = false;
-    }
+        let linkErr = "";
+        try {
+          await data.setClassStudents(id, cls.studentIds);
+        } catch (err) {
+          linkErr = ` (kontona skapades men klasskopplingen misslyckades: ${esc(err.message)})`;
+        }
+        renderClasses();
+        newMsg.replaceChildren(
+          el(
+            `<div class="msg ok">✓ ${created.length} elevkonto${created.length === 1 ? "" : "n"}
+              skapades i "${esc(name)}"${linkErr}. Skriv ut eller kopiera lösenorden nu.</div>`
+          )
+        );
+        newMsg.appendChild(credentialsPanel(name, created));
+      },
+    });
   });
 
   renderClasses();

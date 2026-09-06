@@ -3880,3 +3880,102 @@ body.varld-lage .container {
 }
 
 .pet-namn-input:focus { outline: none; border-color: var(--lila); }
+
+/* ==========================================================================
+   Redigerbar kontotabell (förslag före skapande) – teacher-login-cards.js
+   ========================================================================== */
+.acct-editor {
+  margin-top: 12px;
+  border: 2px solid #e6eefa;
+  background: #fbfdff;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.new-editor:empty,
+.mm-editor:empty { display: none; }
+.acct-editor-head .subhead.sm { margin-top: 0; }
+.acct-editor-tools { margin: 4px 0 10px; }
+.acct-tbl td { vertical-align: top; }
+.acct-tbl .cell { width: 100%; min-width: 110px; }
+.acct-tbl .ae-gen { padding: 6px 8px; }
+.acct-tbl .ae-invalid .cell { border-color: var(--rod); }
+.ae-err-row td { padding-top: 0; border-top: none; }
+.ae-err { color: var(--rod); font-size: 0.85rem; font-weight: 600; }
+.acct-editor-actions { margin-top: 12px; align-items: center; }
+.acct-editor-actions .ae-flash { font-size: 0.9rem; min-height: 1.1em; }
+
+/* ==========================================================================
+   Inloggningskort – utskriftsvänlig vy (printLoginCards)
+   ========================================================================== */
+.login-cards-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: #eef3fb;
+  overflow: auto;
+  padding: 20px clamp(16px, 4vw, 40px) 40px;
+}
+.lc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.lc-title { margin: 0; font-size: 1.25rem; }
+.lc-hint { color: var(--text-svag); margin: 0 0 16px; }
+
+.login-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.login-card {
+  border: 2px dashed #b9c9e6;
+  border-radius: 14px;
+  background: #fff;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.login-card .lc-app { font-size: 0.9rem; color: var(--text-svag); font-weight: 600; }
+.login-card .lc-name { font-size: 1.35rem; font-weight: 800; line-height: 1.2; }
+.login-card .lc-field {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #eef2f8;
+  padding-top: 8px;
+}
+.login-card .lc-label { color: var(--text-svag); font-size: 0.9rem; }
+.login-card .lc-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+}
+.login-card .lc-class { margin-top: 4px; font-size: 0.85rem; color: var(--text-svag); }
+
+@media print {
+  /* Dölj all app-chrome; visa bara korten. */
+  body > *:not(.login-cards-overlay) { display: none !important; }
+  .login-cards-overlay {
+    position: static;
+    padding: 0;
+    background: #fff;
+    overflow: visible;
+  }
+  .lc-toolbar,
+  .lc-hint { display: none !important; }
+  .login-cards-grid { gap: 0; }
+  .login-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px dashed #999;
+    border-radius: 10px;
+    margin: 5mm;
+  }
+}
