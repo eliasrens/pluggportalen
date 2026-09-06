@@ -41,8 +41,8 @@
   </head>
   <body>
     <header>
-      <h1>Förhandsvisning – sprite-djur 🐛🦎</h1>
-      <p>Fjärlis & Flammis × 3 evolutionssteg. Knapparna kör promenad-/rygg-leken. Håll koll: armar framför magen, ingen huvud-blink, tydlig rygg-rull.</p>
+      <h1>Förhandsvisning – sprite-djur 🐛🦎🔥</h1>
+      <p>Alla sprite-arter × 3 evolutionssteg. Knapparna kör promenad-/rygg-leken. Håll koll: armar framför magen, ingen huvud-blink, tydlig rygg-rull.</p>
     </header>
     <div id="rot"></div>
 
@@ -55,13 +55,14 @@
       function cell(species, stage) {
         const wrap = document.createElement("div");
         wrap.className = "cell";
+        const stegNamn = species.stageNames ? ` · ${species.stageNames[stage - 1]}` : "";
         wrap.innerHTML = `
           <div class="scen">
             <div class="room-pet pet-vuxen-${stage}">
               <span class="ri-emoji">${spriteRigHtml(species.id, stage)}</span>
             </div>
           </div>
-          <div class="steg-txt">Steg ${stage}</div>
+          <div class="steg-txt">Steg ${stage}${stegNamn}</div>
           <div class="knappar">
             <button data-act="gata">Promenera</button>
             <button data-act="rygg">Ramla på rygg</button>
