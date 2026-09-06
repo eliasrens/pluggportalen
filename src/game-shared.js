@@ -126,13 +126,22 @@ export function muteButton() {
 // Belöning + framsteg
 // ---------------------------------------------------------------------------
 
+// Lägen som bygger en HELT NY session vid varje omspel: de slumpar fram ett nytt
+// urval på max 20 frågor (se pickSessionQuestions), så ett omspel är i praktiken
+// en ny övning – inte samma runda igen. Därför räknas de som full övning varje
+// gång och slipper grind-reduktionen (full pott coins + XP alltid).
+// Övriga lägen (kunskapsjakt = tidsloop på hela poolen, para/memory = par) kör
+// oförändrat grind-skydd. Rör inte de par-baserade lägena.
+const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
+
 /**
  * Dela ut belöning (coins + XP) + spara framsteg för en avklarad övning.
  * Grind-skydd: bara första gången ger full pott, omspel ger 80 % (både coins
  * och XP). 80 % är ett medvetet produktbeslut – lägre (t.ex. 30 %) upplevdes
  * som för snålt för omspel. XP-potten (basXP + stjärnor × perStar) definieras
- * i leveling.js.
- * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean}>}
+ * i leveling.js. UNDANTAG: FULL_REWARD_MODES (quiz + läsförståelse) ger full
+ * pott varje gång eftersom varje omspel är en ny slumpad session.
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {
   let firstTime = true;
@@ -142,7 +151,8 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   } catch {}
   let coins = Math.max(1, Math.round(baseCoins));
   let xp = xpForExercise(stars);
-  if (!firstTime) {
+  const reduced = !firstTime && !FULL_REWARD_MODES.has(mode);
+  if (reduced) {
     coins = Math.max(1, Math.round(baseCoins * 0.8));
     xp = Math.max(1, Math.round(xp * 0.8));
   }
@@ -156,7 +166,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   try {
     await data.saveProgress(area, mode, { completed: true, stars, bestScore });
   } catch {}
-  return { coins, xp, totalXp, firstTime };
+  return { coins, xp, totalXp, firstTime, reduced };
 }
 
 /**
@@ -166,7 +176,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  */
 export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, xp, totalXp, firstTime } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
+  const { coins, xp, totalXp, reduced } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
@@ -182,7 +192,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
-    ${firstTime ? "" : '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>'}
+    ${reduced ? '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>' : ""}
     <p class="cheer">${cheer(stars)}</p>
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
