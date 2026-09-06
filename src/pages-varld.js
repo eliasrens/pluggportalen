@@ -425,6 +425,21 @@ export async function pageElevVarld(startNiva) {
     visaKlassStats(); // klass-skylten syns bara på by-nivån
     utBtn.style.display = "";
     skolaBtn.hidden = true; // "Andra byar" syns bara på by-nivån (nedan)
+    // 🧰 Verktyg är rum/hus-actions – visa triggern BARA i egna rummet/huset.
+    // Deterministiskt varje gång: dölj den i by/kompis/kompishus/skola/grannby
+    // och stäng ev. öppen meny så den inte hänger kvar synlig när man lämnar.
+    const verktygWrap = view.querySelector(".varld-verktyg");
+    if (verktygWrap) {
+      const visaVerktyg = nivaId === "rum" || nivaId === "hus";
+      verktygWrap.hidden = !visaVerktyg;
+      if (!visaVerktyg) {
+        const meny = verktygWrap.querySelector("#verktyg-meny");
+        if (meny) meny.hidden = true;
+        verktygWrap
+          .querySelector("#verktyg-trigger")
+          ?.setAttribute("aria-expanded", "false");
+      }
+    }
     if (nivaId === "skola") {
       // Ytterst: andra klassers byar. Ut-knappen zoomar in till den egna byn.
       utBtn.innerHTML = "🏠 <span>Min by</span>";
