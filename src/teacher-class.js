@@ -164,7 +164,7 @@ export async function pageLarareKlass(ctx) {
           title: "Inga elevkonton än",
           text: "Lägg in en klass med elevkonton så kan du följa deras framsteg här.",
           actionLabel: "Lägg in elevkonton",
-          actionHash: "#/larare/elever",
+          actionHash: "#/larare/klasser",
         })
       );
       return;

@@ -22,9 +22,9 @@
 //   #/elev/klasskamrat  en klasskamrats rum i läsläge (?id=<studentId>)
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
-//   #/larare/klasser  klasshantering (skapa klasser, lägg elever i dem)
+//   #/larare/klasser  klasser & elevkonton (skapa klass + konton, medlemshantering)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON) + AI-promptbyggare
-//   #/larare/elever   elevkontohantering
+//   #/larare/elever   (sammanslagen med #/larare/klasser – omdirigerar dit)
 //
 // Hash-routing används medvetet så att GitHub Pages inte behöver någon
 // server-omskrivning (alla "sidor" ligger i index.html).
@@ -41,7 +41,6 @@ import {
 import {
   pageLarare,
   pageLarareInnehall,
-  pageLarareElever,
 } from "./teacher.js";
 // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
 import { pageLarareKlass } from "./teacher.js";
@@ -141,13 +140,16 @@ const routes = {
   "/larare": () => pageLarare(teacherCtx),
   // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
   "/larare/klass": () => pageLarareKlass(teacherCtx),
-  // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
+  // Klasser & elevkonton (#/larare/klasser) – den ENADE lärarsidan (skapa klass +
+  // elevkonton, medlemshantering). Gamla #/larare/elever är sammanslagen hit.
   "/larare/klasser": () => pageLarareKlasser(teacherCtx),
   "/larare/innehall": () => pageLarareInnehall(teacherCtx),
   // AI-prompt-sidan är sammanslagen med innehållssidan (issue #62): den
   // dynamiska promptbyggaren bor nu där. Gamla länkar/bokmärken skickas dit.
   "/larare/prompter": () => go("#/larare/innehall"),
-  "/larare/elever": () => pageLarareElever(teacherCtx),
+  // Elevkontohanteringen är sammanslagen med klass-sidan (klass-centrerad). Gamla
+  // länkar/bokmärken skickas dit (samma mönster som /larare/prompter).
+  "/larare/elever": () => go("#/larare/klasser"),
 };
 
 function router() {

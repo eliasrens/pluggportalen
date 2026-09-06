@@ -94,10 +94,10 @@ export function teacherNav(ctx, active) {
   const tabs = [
     { hash: "#/larare", key: "hem", label: "🏠 Översikt" },
     { hash: "#/larare/klass", key: "klass", label: "📊 Klass" },
-    // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
-    { hash: "#/larare/klasser", key: "klasser", label: "🏫 Klasser" },
+    // Klasser & elevkonton (#/larare/klasser) – den enade sidan (elevkonton-sidan
+    // är sammanslagen hit).
+    { hash: "#/larare/klasser", key: "klasser", label: "🏫 Klasser & elever" },
     { hash: "#/larare/innehall", key: "innehall", label: "📚 Innehåll" },
-    { hash: "#/larare/elever", key: "elever", label: "🧑‍🎓 Elevkonton" },
   ];
   const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
     <div class="teacher-nav-inner">
@@ -182,19 +182,12 @@ export function pageLarare(ctx) {
       sub: "Se hur långt varje elev kommit",
     },
     {
-      // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
+      // Klasser & elevkonton (#/larare/klasser) – den enade sidan.
       hash: "#/larare/klasser",
       color: "rosa",
       emoji: "🏫",
-      title: "Klasser",
-      sub: "Skapa klasser och lägg elever i dem",
-    },
-    {
-      hash: "#/larare/elever",
-      color: "gron",
-      emoji: "🧑‍🎓",
-      title: "Elevkonton",
-      sub: "Lägg in en hel klass snabbt",
+      title: "Klasser & elever",
+      sub: "Skapa en klass med elevkonton på en gång",
     },
     {
       hash: "#/larare/innehall",

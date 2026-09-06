@@ -1,18 +1,19 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: klasshantering (teacher-classes.js)
+// Pluggportalen – lärarsidan: klasser & elevkonton (teacher-classes.js)
 // ----------------------------------------------------------------------------
-// #/larare/klasser: läraren SKAPAR egna klasser (t.ex. "6A") och lägger elever
-// i dem. Grunden för att senare kunna tilldela uppgifter per klass. Skiljer sig
-// från #/larare/klass (klassöversikt/framsteg, läs-endast) – här ändrar man.
-//
-// Vyn: skapa klass · lista klasser · döp om · ta bort · lägg till/ta bort
-// elever (kryssrutor mot data.getStudents()). Enkel lärarvy i stil med
-// teacher-students.js. Data via src/data.js (classes-collection).
+// #/larare/klasser: den ENADE lärarsidan för klasser OCH elevkonton (den gamla
+// #/larare/elever är sammanslagen hit och omdirigeras). Klass-centrerat:
+//   * Skapa en klass + N elevkonton på en gång (auto-genererade användarnamn +
+//     lösenord som visas för läraren att dela ut).
+//   * Per klass: lägg till/ta bort elever, döp om, ge 🪙, ta bort konto,
+//     tilldela arbetsområden.
+// Skiljer sig från #/larare/klass (klassöversikt/framsteg, läs-endast).
+// Kontoskapandet/medlemshanteringen bor i teacher-class-accounts.js (fil-cap).
+// Data via src/data.js (classes-/students-collection).
 // ============================================================================
 
 import * as data from "./data.js";
 import { slugify } from "./validate.js";
-import { avatarEmoji } from "./avatars.js";
 import {
   el,
   esc,
@@ -23,6 +24,12 @@ import {
   wireHashLinks,
   renderGate,
 } from "./teacher-shared.js";
+import {
+  createAccounts,
+  credentialsPanel,
+  usernamePrefix,
+  renderMemberManager,
+} from "./teacher-class-accounts.js";
 
 export async function pageLarareKlasser(ctx) {
   ctx.renderTopbar();
@@ -45,16 +52,18 @@ export async function pageLarareKlasser(ctx) {
   students = students
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
-  const studentById = new Map(students.map((s) => [s.id, s]));
+  // Delad, muterbar referens – medlemshanteraren pushar/plockar bort elever här
+  // så alla klasskort ser samma lista utan omladdning.
+  const state = { students };
 
   const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "klasser"));
   container.appendChild(
     teacherHead(ctx, {
       emoji: "🏫",
-      title: "Klasser",
-      lead: `Skapa egna klasser (t.ex. <b>6A</b>) och lägg elever i dem. Det här är
-        grunden för att senare kunna tilldela uppgifter per klass. Vill du i stället se hur
+      title: "Klasser & elevkonton",
+      lead: `Skapa en klass (t.ex. <b>6A</b>) och dess elevkonton på en gång. Du kan lägga
+        till fler elever, döpa om, ge 🪙 och ta bort konton härifrån. Vill du i stället se hur
         långt eleverna kommit? Gå till <a data-hash="#/larare/klass">Klassöversikt</a>.`,
     })
   );
@@ -62,8 +71,13 @@ export async function pageLarareKlasser(ctx) {
   const view = el(`<div>
     <div class="panel">
       <h2 class="subhead">➕ Skapa en ny klass</h2>
+      <p class="hint">Ange klassnamn och antal elever. Vi skapar klassen och elevkontona på en
+        gång – med auto-genererade användarnamn och lösenord som du får dela ut. (Sätt 0 elever
+        om du bara vill skapa en tom klass.)</p>
       <form id="new-form" class="row-inline new-class">
         <input id="new-name" class="cell" placeholder="Ny klass, t.ex. 6A" autocomplete="off" />
+        <input id="new-count" class="cell" type="number" min="0" max="40" step="1" value="0"
+          aria-label="Antal elever" />
         <button class="btn gron" type="submit">➕ Skapa klass</button>
       </form>
       <div id="new-msg"></div>
@@ -162,7 +176,7 @@ export async function pageLarareKlasser(ctx) {
     card.querySelector('[data-act="toggle"]').addEventListener("click", () => {
       if (membersEl.hidden) {
         assignEl.hidden = true;
-        renderMembers(cls, membersEl, countEl);
+        renderMemberManager(ctx, { cls, state, membersEl, countEl });
         membersEl.hidden = false;
       } else {
         membersEl.hidden = true;
@@ -292,87 +306,67 @@ export async function pageLarareKlasser(ctx) {
     return libraryCache;
   }
 
-  // --- Kryssrute-lista för en klass ----------------------------------------
-  function renderMembers(cls, membersEl, countEl) {
-    if (students.length === 0) {
-      membersEl.replaceChildren(
-        emptyState(ctx, {
-          emoji: "🧑‍🎓",
-          title: "Inga elevkonton än",
-          text: "Lägg in elevkonton först, så kan du lägga dem i klassen härifrån.",
-          actionLabel: "Lägg in elevkonton",
-          actionHash: "#/larare/elever",
-        })
-      );
-      return;
-    }
-
-    const selected = new Set(Array.isArray(cls.studentIds) ? cls.studentIds : []);
-    const rows = students
-      .map(
-        (s) => `<label class="member-row">
-          <input type="checkbox" value="${esc(s.id)}" ${selected.has(s.id) ? "checked" : ""} />
-          <span class="member-avatar">${avatarEmoji(s.avatarId)}</span>
-          <span class="member-name">${esc(s.namn || s.username || s.id)}</span>
-        </label>`
-      )
-      .join("");
-
-    const box = el(`<div>
-      <div class="member-grid">${rows}</div>
-      <div class="row-inline" style="margin-top:12px">
-        <button class="btn gron small" data-act="save">💾 Spara elever</button>
-        <span class="member-result"></span>
-      </div>
-    </div>`);
-
-    const resultEl = box.querySelector(".member-result");
-    box.querySelector('[data-act="save"]').addEventListener("click", async (e) => {
-      const btn = e.currentTarget;
-      const picked = [...box.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
-      btn.disabled = true;
-      const old = btn.textContent;
-      btn.textContent = "Sparar…";
-      try {
-        await data.setClassStudents(cls.id, picked);
-        cls.studentIds = picked;
-        countEl.textContent = `${picked.length} elev${picked.length === 1 ? "" : "er"}`;
-        resultEl.innerHTML = `<span class="ok-inline">✓ Sparat</span>`;
-      } catch (err) {
-        resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = old;
-      }
-    });
-
-    membersEl.replaceChildren(box);
-  }
-
-  // --- Skapa ny klass -------------------------------------------------------
+  // --- Skapa ny klass (+ N elevkonton) -------------------------------------
   view.querySelector("#new-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     newMsg.innerHTML = "";
     const input = view.querySelector("#new-name");
+    const countInput = view.querySelector("#new-count");
     const name = input.value.trim();
     if (!name) {
       newMsg.innerHTML = `<div class="msg error">Skriv ett namn på klassen först.</div>`;
       return;
     }
+    const count = Math.max(0, Math.floor(Number(countInput.value) || 0));
     const id = slugify(name) || `klass-${Date.now()}`;
     if (classes.some((c) => c.id === id)) {
       newMsg.innerHTML = `<div class="msg error">Det finns redan en klass som heter "${esc(name)}".</div>`;
       return;
     }
     const nextOrder = classes.reduce((m, c) => Math.max(m, Number(c.order) || 0), 0) + 1;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
     try {
       await data.upsertClass(id, { name, order: nextOrder });
-      classes.push({ id, name, order: nextOrder, studentIds: [] });
+      const cls = { id, name, order: nextOrder, studentIds: [] };
+
+      let created = [];
+      if (count > 0) {
+        newMsg.innerHTML = `<div class="msg ok">Skapar ${count} elevkonto${count === 1 ? "" : "n"}…</div>`;
+        const taken = new Set(
+          state.students.map((s) => String(s.username || "").toLowerCase()).filter(Boolean)
+        );
+        created = await createAccounts({
+          count,
+          prefix: usernamePrefix(name),
+          taken,
+          onProgress: (done, total) => {
+            newMsg.innerHTML = `<div class="msg ok">Skapar elevkonton… ${done}/${total}</div>`;
+          },
+        });
+        created.forEach((c) =>
+          state.students.push({ id: c.id, namn: c.namn, username: c.username, avatarId: "fox" })
+        );
+        cls.studentIds = created.map((c) => c.id);
+        await data.setClassStudents(id, cls.studentIds);
+      }
+
+      classes.push(cls);
       input.value = "";
-      newMsg.innerHTML = `<div class="msg ok">✓ Klassen "${esc(name)}" skapades. Klicka <b>Elever</b> för att lägga in elever.</div>`;
+      countInput.value = "0";
+      newMsg.replaceChildren(
+        el(
+          `<div class="msg ok">✓ Klassen "${esc(name)}" skapades${
+            count > 0 ? ` med ${created.length} elevkonto${created.length === 1 ? "" : "n"}` : ""
+          }. Klicka <b>Elever</b> på klasskortet för att hantera dem.</div>`
+        )
+      );
+      if (created.length > 0) newMsg.appendChild(credentialsPanel(name, created));
       renderClasses();
     } catch (err) {
       newMsg.innerHTML = `<div class="msg error">Kunde inte skapa klassen: ${esc(err.message)}</div>`;
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 
