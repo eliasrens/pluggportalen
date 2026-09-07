@@ -108,22 +108,6 @@ export async function pageElevVarld(startNiva) {
   const pal = getPalette(paletteIdFromStudentData(sd));
   const avatarId = sd.avatarId || DEFAULT_AVATAR;
 
-  // Spegla den egna elevens utseende till looks/{meId} (#114) så GRANNKLASSER kan
-  // rita hens riktiga hus/avatar i sin grannby-översikt utan att röra studentData
-  // (coins/progress). Best-effort: en nekad/misslyckad skrivning får aldrig fälla
-  // vyn. Projektionen freshas vid varje husvärld-besök (och när huslåset togglas).
-  function speglaLooks() {
-    data.setLooks(meId, {
-      namn: session.namn,
-      avatarId,
-      avatarItems: sd.avatarItems || [],
-      paletteId: paletteIdFromStudentData(sd),
-      husSkalId: sd.husSkalId || "",
-      husLast: data.isHouseLocked(sd),
-    }).catch(() => {});
-  }
-  speglaLooks();
-
   // Skylten vid gårdskanten: "Klass <namn> – <By>". Klassmodellen har inget
   // by-fält än – klass.by är ett VALFRITT Firestore-fält (fylls i för hand
   // per klass tills lärar-UI finns); saknas det visas bara klassnamnet.
@@ -190,7 +174,8 @@ export async function pageElevVarld(startNiva) {
           <div class="varld-klass-toggle" id="klass-toggle-wrap" hidden>${klassStatsMarkup()}</div>
           <!-- Grannby-stjärnorna (#114): en ANNAN klass stjärn-toggle, samma UI
                som den egna byns men egen instans/egna id:n. Syns bara på grannby-
-               nivån och fylls med den klickade klassens classStats-aggregat. -->
+               nivån och fylls med den klickade klassens LIVE-beräknade aggregat
+               (aggregateKlassStats ur deras studentData). -->
           <div class="varld-klass-toggle" id="grannby-klass-toggle-wrap" hidden>${klassStatsMarkup("grannby-klass")}</div>
         </div>
 
@@ -329,14 +314,8 @@ export async function pageElevVarld(startNiva) {
       // klasstotaler; ✨-knappen visar totalantalet stjärnor kortfattat.
       const agg = aggregateKlassStats(boende);
       klassStats.fyll(agg, klassNamn);
-      // Spegla HELA klassaggregatet till classStats/{klass} så GRANNKLASSER kan
-      // visa den egna byns stjärn-skylt identiskt (#114: nivå + mätare + klarade
-      // övningar + stjärnor), inte bara stjärnraden från #113 – bara klasstotaler,
-      // inga per-elev-data. Best-effort: en nekad/misslyckad skrivning (t.ex.
-      // klasslös elev) får aldrig fälla byn.
-      if (meClassId) {
-        data.setClassStats(meClassId, agg).catch(() => {});
-      }
+      // (Grannklasser räknar numera fram DENNA klass stjärnor live ur samma
+      // studentData – ingen denormaliserad classStats-spegling behövs längre.)
       statsRedo = true;
       visaKlassStats();
       return { students: boende, fokusById };
@@ -431,29 +410,21 @@ export async function pageElevVarld(startNiva) {
     return skolaLaddning;
   }
 
-  // Hämta EN grannklass looks (→ riktiga hus/avatarer) + stjärn-aggregat, först
-  // när man zoomar in på den (perf: en klass i taget). Looks-projektionen är
-  // lätt (bara kosmetik, alla inloggade får läsa); classStats är ETT dokument.
-  // Best-effort: en elev utan speglad looks utelämnas tyst; saknat aggregat → null.
+  // Hämta EN grannklass elever + utseenden, först när man zoomar in på den (perf:
+  // en klass i taget – IDENTISKT med vad egna byn (laddaBy) redan gör). Läser
+  // grannklassens studentData direkt (cross-class-läsning är öppen för inloggade
+  // sedan #114) så byn fylls DIREKT ur befintlig data – ingen elev behöver ha
+  // loggat in först. getStudentsWithLooks hanterar huslåset per elev (nekad läsning
+  // → default-utseende + locked). Stjärnorna räknas fram LIVE (aggregateKlassStats),
+  // exakt som klassen själv ser dem – ingen denormaliserad classStats behövs.
   async function laddaGrannbyData(klass) {
     const ids = Array.isArray(klass.studentIds) ? klass.studentIds : [];
-    const [looks, stats] = await Promise.all([
-      data.getLooks(ids).catch(() => []),
-      data.getClassStats(klass.id).catch(() => null),
-    ]);
-    // looks → students-form för mountByScen (samma render som egna byn). Namn-
-    // ordning (svensk kollation); husLast → `locked` (spärrar inträde, visar 🔒).
-    const students = looks
-      .map((l) => ({
-        id: l.id,
-        namn: l.namn,
-        avatarId: l.avatarId,
-        avatarItems: Array.isArray(l.avatarItems) ? l.avatarItems : [],
-        paletteId: l.paletteId || null,
-        husSkalId: l.husSkalId || null,
-        locked: !!l.husLast,
-      }))
+    let students = await data.getStudentsWithLooks(ids);
+    // Namnordning (svensk kollation) – ingen "egen" tomt i en annan klass.
+    students = students
+      .slice()
       .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
+    const stats = aggregateKlassStats(students);
     return { students, stats };
   }
 
@@ -687,10 +658,7 @@ export async function pageElevVarld(startNiva) {
     husLast = next;
     renderLasBtn();
     data.setHusLast(next).then(() => {
-      // Spegla det nya låset till looks-projektionen (#114) så grannklasser ser
-      // huset som låst/olåst i sin översikt. Best-effort.
       sd.husLast = next;
-      speglaLooks();
       flash(next
         ? "🔒 Huset är låst – nu kan ingen kompis titta in i rummet."
         : "🔓 Huset är upplåst – kompisar kan hälsa på igen.");

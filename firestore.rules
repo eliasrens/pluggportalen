@@ -16,28 +16,11 @@ service cloud.firestore {
     // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
     function isSelf(id)  { return signedIn() && request.auth.uid == id; }
 
-    // Klass-scopad kamratläsning (klassbyn, #/elev/by). En elev får läsa en
-    // ANNAN elevs students/studentData ENDAST om de delar minst en klass.
-    // Klasstillhörigheten är denormaliserad som students/{id}.classIds (en
-    // lista klass-id:n) eftersom regler inte kan loopa över classes-kollektionen
-    // för att hitta en gemensam klass. Fältet underhålls av läraren via
-    // data.setClassStudents/deleteClass och backfillas med
-    // admin/backfill-class-ids.mjs. Saknat/tomt classIds ⇒ ingen kamratåtkomst
-    // (fail-closed): en klasslös elev når bara sitt eget.
-    function classIdsOf(id) {
-      return exists(/databases/$(database)/documents/students/$(id))
-        ? get(/databases/$(database)/documents/students/$(id)).data.get('classIds', [])
-        : [];
-    }
-    function sharesClass(id) {
-      return signedIn() && classIdsOf(request.auth.uid).hasAny(classIdsOf(id));
-    }
-    // Är den inloggade medlem i klassen classId? (Elevens denormaliserade
-    // classIds avgör – reglerna kan inte loopa över classes.) Används för att
-    // låta en elev uppdatera SIN EGEN klass gemensamma aggregat (classStats).
-    function isClassMember(classId) {
-      return signedIn() && classIdsOf(request.auth.uid).hasAny([classId]);
-    }
+    // (#114) De klass-scopade hjälparna (classIdsOf/sharesClass/isClassMember)
+    // är borttagna: students/studentData-läsning är numera öppen för alla
+    // inloggade (grannby-vyn går in i andra klassers rum), och de denormaliserade
+    // classStats/looks-kollektionerna som isClassMember skyddade finns inte kvar.
+    // Isoleringen ligger nu i skrivreglerna (isSelf/isTeacher) + huslåset.
 
     // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
     // bara lärare skriver. Inget world-read längre.
@@ -66,8 +49,8 @@ service cloud.firestore {
 
     // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering): eleven
     // äger sitt eget; lärare läser alla (klassöversikt) och skriver (ge coins).
-    // En klasskamrat (samma klass, sharesClass) får LÄSA – byn/kompisrummet visar
-    // hus, avatar och palett – men aldrig skriva. Endast eleven själv/läraren skriver.
+    // Alla inloggade får LÄSA (byn/grannbyn/kompisrummet visar hus, avatar och
+    // palett) – men aldrig skriva. Endast eleven själv/läraren skriver.
     //
     // HUSLÅS (#33 + Epic C:s by-fix): fältet `husLast` (bool) på studentData. När
     // det är true NEKAS annan-elev-läsning här på servern (läs-grenen kräver
@@ -78,8 +61,8 @@ service cloud.firestore {
     // och klasskamratens läs-vy (pages-klasskamrat.js) visar "🔒 Låst" när läsning
     // nekas. husLast saknas på gamla dokument → `!= true` → olåst (läsbart).
     //
-    // LÄSNING (#114): tidigare var annan-elev-läsning scopad till samma klass
-    // (sharesClass). Grannby-vyn ska nu kunna gå in i en ANNAN klass elevers rum
+    // LÄSNING (#114): tidigare var annan-elev-läsning scopad till samma klass.
+    // Grannby-vyn ska nu kunna gå in i en ANNAN klass elevers rum
     // som läs-vy → läsning öppnas för ALLA inloggade, MEN huslås-guarden behålls
     // oförändrad (en låst elevs rum går inte att kika in i, varken inom eller
     // mellan klasser). OBS: studentData bär även coins/progress/inventarie – de
@@ -92,28 +75,6 @@ service cloud.firestore {
       allow write: if isTeacher() || isSelf(studentId);
     }
 
-    // Utseende-projektion (#114): en PUBLIK (för inloggade) spegling av en elevs
-    // COSMETISKA fält – namn, grundavatar, burna kläder, hus-palett, husskal och
-    // huslås-flaggan. Grannby-ÖVERSIKTEN (#/elev/grannby) läser den för alla
-    // elever i den klickade klassen för att rita deras riktiga hus/avatarer utan
-    // att röra studentData (som bär coins/progress). Skrivs (denormaliseras) av
-    // eleven SJÄLV när dess utseende laddas/ändras – best-effort, en nekad/
-    // misslyckad skrivning fäller aldrig vyn. Skrivning är låst till isSelf +
-    // en VITLISTA av fält med typkoll, så projektionen inte kan missbrukas.
-    // Läsning öppen för alla inloggade (bara kosmetik, inga känsliga fält).
-    match /looks/{studentId} {
-      allow read:  if signedIn();
-      allow write: if isSelf(studentId)
-        && request.resource.data.keys().hasOnly(
-             ['namn', 'avatarId', 'avatarItems', 'paletteId', 'husSkalId', 'husLast', 'updatedAt'])
-        && request.resource.data.namn is string
-        && request.resource.data.avatarId is string
-        && request.resource.data.avatarItems is list
-        && request.resource.data.paletteId is string
-        && request.resource.data.husSkalId is string
-        && request.resource.data.husLast is bool;
-    }
-
     // Klasser: alla inloggade läser (eleven behöver sin tilldelning);
     // bara lärare skriver.
     match /classes/{classId} {
@@ -121,28 +82,11 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
 
-    // Klass-aggregat: gemensamt klass-aggregat per klass (classStats/{classId}).
-    // #113 speglade bara { totalStars }; #114 utökar det till hela klassaggregatet
-    // (totalStars, totalXp, totalCompleted, level, progressRatio) så grannby-vyn
-    // kan visa en ANNAN klass stjärn-skylt IDENTISKT med hur klassen själv ser
-    // den (samma ✨-toggle + stats). Läs-öppet för alla inloggade – bara
-    // klasstotaler, aldrig per-elev-data. Skrivs av läraren ELLER av en elev i
-    // klassen (speglar sin egen klass aggregat när byn laddas); en elev får BARA
-    // sätta de vitlistade fälten (inga godtyckliga fält). De extra aggregat-fälten
-    // är valfria (bakåtkompatibelt med #113:s totalStars-bara-skrivning) men
-    // typkollas när de finns, så aggregatet inte kan missbrukas.
-    match /classStats/{classId} {
-      allow read:  if signedIn();
-      allow write: if isTeacher() ||
-        (isClassMember(classId)
-          && request.resource.data.keys().hasOnly(
-               ['totalStars', 'totalXp', 'totalCompleted', 'level', 'progressRatio', 'updatedAt'])
-          && request.resource.data.totalStars is number
-          && request.resource.data.get('totalXp', 0) is number
-          && request.resource.data.get('totalCompleted', 0) is number
-          && request.resource.data.get('level', 0) is number
-          && request.resource.data.get('progressRatio', 0) is number);
-    }
+    // (Borttaget #114) Kollektionerna `looks` (utseende-projektion) och
+    // `classStats` (denormaliserat stjärn-aggregat, #113) behövs inte längre:
+    // grannby-vyn läser grannklassens students/studentData direkt (öppnat ovan)
+    // och räknar hus + stjärnor LIVE, precis som klassen själv gör. Utan reader
+    // eller writer faller båda på "neka allt"-regeln nedan.
 
     // Allt annat nekas.
     match /{document=**} {
