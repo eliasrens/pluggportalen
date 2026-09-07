@@ -134,28 +134,51 @@ export function muteButton() {
 // oförändrat grind-skydd. Rör inte de par-baserade lägena.
 const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
 
+// Grind-trappa för omspel i icke-quiz/läsförståelse-lägen: belöningen skalas ned
+// steg för steg ju fler gånger samma övning körts i samma läge, med ett golv på
+// 20 %. n = antal TIDIGARE avklarade körningar (0 = första gången).
+//   n=0 → 100 %, 1 → 80 %, 2 → 60 %, 3 → 40 %, 4 → 20 %, 5+ → 20 % (golv).
+const GRIND_STEP = 0.2; // hur mycket varje omspel drar av
+const GRIND_FLOOR = 0.2; // lägsta andel man kan sjunka till
+/** max(0.2, 1 − 0.2·n) – andelen av full pott vid n tidigare körningar. */
+function grindMultiplier(prevPlays) {
+  return Math.max(GRIND_FLOOR, 1 - GRIND_STEP * prevPlays);
+}
+
 /**
  * Dela ut belöning (coins + XP) + spara framsteg för en avklarad övning.
- * Grind-skydd: bara första gången ger full pott, omspel ger 80 % (både coins
- * och XP). 80 % är ett medvetet produktbeslut – lägre (t.ex. 30 %) upplevdes
- * som för snålt för omspel. XP-potten (basXP + stjärnor × perStar) definieras
- * i leveling.js. UNDANTAG: FULL_REWARD_MODES (quiz + läsförståelse) ger full
- * pott varje gång eftersom varje omspel är en ny slumpad session.
- * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean}>}
+ * Grind-skydd (trappa): första gången ger full pott, därefter skalas coins och
+ * XP ned med grindMultiplier() baserat på antalet TIDIGARE körningar av samma
+ * övning i samma läge (100 → 80 → 60 → 40 → 20 % golv). Räknaren lagras per
+ * (elev, område, läge) i studentData.progress[area][mode].plays (se data.js) och
+ * höjs varje gång en övning slutförs. UNDANTAG: FULL_REWARD_MODES (quiz +
+ * läsförståelse) ger full pott varje gång eftersom varje omspel är en ny slumpad
+ * session. XP-potten (basXP + stjärnor × perStar) definieras i leveling.js.
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {
   let firstTime = true;
+  let prevPlays = 0; // antal tidigare avklarade körningar (n i trappan)
   try {
     const progress = await data.getProgress();
-    firstTime = !progress?.[area]?.[mode]?.completed;
+    const node = progress?.[area]?.[mode];
+    firstTime = !node?.completed;
+    // Bakåtkompatibel räknare: saknas plays → 0. Har en äldre elev redan klarat
+    // övningen (completed) men inget plays-fält, räkna det som (minst) en tidigare
+    // körning så omspel skalas som förr i stället för att nollställas till full pott.
+    prevPlays =
+      typeof node?.plays === "number" ? node.plays : node?.completed ? 1 : 0;
   } catch {}
   let coins = Math.max(1, Math.round(baseCoins));
   let xp = xpForExercise(stars);
   const reduced = !firstTime && !FULL_REWARD_MODES.has(mode);
+  let mult = 1;
   if (reduced) {
-    coins = Math.max(1, Math.round(baseCoins * 0.8));
-    xp = Math.max(1, Math.round(xp * 0.8));
+    mult = grindMultiplier(prevPlays);
+    coins = Math.max(1, Math.round(baseCoins * mult));
+    xp = Math.max(1, Math.round(xp * mult));
   }
+  const pct = Math.round(mult * 100); // andel av full pott den här körningen, för hinten
   let totalXp = 0;
   try {
     await data.addCoins(coins);
@@ -164,9 +187,15 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
     totalXp = await addXp(xp);
   } catch {}
   try {
-    await data.saveProgress(area, mode, { completed: true, stars, bestScore });
+    // Höj räknaren för nästa gång (prevPlays var värdet FÖRE denna körning).
+    await data.saveProgress(area, mode, {
+      completed: true,
+      stars,
+      bestScore,
+      plays: prevPlays + 1,
+    });
   } catch {}
-  return { coins, xp, totalXp, firstTime, reduced };
+  return { coins, xp, totalXp, firstTime, reduced, pct };
 }
 
 /**
@@ -176,7 +205,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  */
 export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, xp, totalXp, reduced } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
+  const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
@@ -192,7 +221,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
-    ${reduced ? '<p class="hint">Du har spelat den här övningen förut, så du får lite färre coins och XP den här gången.</p>' : ""}
+    ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
     <p class="cheer">${cheer(stars)}</p>
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
