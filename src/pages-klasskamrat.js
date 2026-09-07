@@ -51,18 +51,18 @@ function isPermissionDenied(err) {
  * och när servern nekar läsningen (permission-denied → vi kan inte se datan men
  * vet att det beror på låset). rubrik/text hålls vänliga; ingen redirect.
  */
-function showLocked(heading, body) {
+function showLocked(heading, body, back = { href: "#/elev/by", label: "Till klassbyn" }) {
   const locked = el(`<div>
-    <a class="back-link" id="back">← Till klassbyn</a>
+    <a class="back-link" id="back">← ${back.label}</a>
     <div class="panel center klasskamrat-last">
       <div class="klasskamrat-last-ikon" aria-hidden="true">🔒</div>
       <h1>${heading}</h1>
       <p class="hint">${body}</p>
-      <button class="btn ghost" id="to-klass">🏘️ Till klassbyn</button>
+      <button class="btn ghost" id="to-klass">🏘️ ${back.label}</button>
     </div>
   </div>`);
-  locked.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
-  locked.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
+  locked.querySelector("#back").addEventListener("click", () => go(back.href));
+  locked.querySelector("#to-klass").addEventListener("click", () => go(back.href));
   app.replaceChildren(locked);
 }
 
@@ -71,6 +71,14 @@ export async function pageElevKlasskamrat() {
 
   const otherId = getParams().id;
   if (!otherId) return go("#/elev/by");
+
+  // Cross-class-besök (#114): klick i en GRANNBY bär klassens id i ?klass=…, så
+  // "tillbaka" landar i grannbyn (deras by), inte den egna klassbyn. Utan klass
+  // (klick i egna byn) → tillbaka till egna byn som förr.
+  const fromKlass = getParams().klass;
+  const back = fromKlass
+    ? { href: `#/elev/grannby?id=${encodeURIComponent(fromKlass)}`, label: "Till klassens by" }
+    : { href: "#/elev/by", label: "Till klassbyn" };
 
   // Säkerhetsnät: den egna profilen redigeras i det riktiga rummet.
   if (otherId === data.currentStudentId()) return go("#/elev/rum");
@@ -104,7 +112,8 @@ export async function pageElevKlasskamrat() {
         "Dörren verkar vara låst 🔒",
         who
           ? `${possessiv(who)} hus är låst, kika in en annan gång! 🙂`
-          : "Huset är låst just nu, kika in en annan gång! 🙂"
+          : "Huset är låst just nu, kika in en annan gång! 🙂",
+        back
       );
       return;
     }
@@ -122,7 +131,8 @@ export async function pageElevKlasskamrat() {
   if (data.isHouseLocked(sd)) {
     showLocked(
       `${possessiv(namn)} hus är låst`,
-      `${namn} har låst sitt hus, så rummet är privat just nu. Kika in en annan gång! 🙂`
+      `${namn} har låst sitt hus, så rummet är privat just nu. Kika in en annan gång! 🙂`,
+      back
     );
     return;
   }
@@ -145,7 +155,7 @@ export async function pageElevKlasskamrat() {
   const hasDjurRum0 = petNodes.length > 0 || djurNodes.length > 0;
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till klassbyn</a>
+    <a class="back-link" id="back">← ${back.label}</a>
     <div class="panel center">
       <div class="klasskamrat-figur">${avatarMarkup(sd.avatarId || DEFAULT_AVATAR, equipped)}</div>
       <h1>${possessiv(namn)} rum 🛏️</h1>
@@ -155,7 +165,7 @@ export async function pageElevKlasskamrat() {
     <div class="room-stage readonly" id="stage"></div>
 
     <div class="center">
-      <button class="btn ghost" id="to-klass">🏘️ Till klassbyn</button>
+      <button class="btn ghost" id="to-klass">🏘️ ${back.label}</button>
     </div>
   </div>`);
 
@@ -238,8 +248,8 @@ export async function pageElevKlasskamrat() {
   }
   renderRoomStage();
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/by"));
-  view.querySelector("#to-klass").addEventListener("click", () => go("#/elev/by"));
+  view.querySelector("#back").addEventListener("click", () => go(back.href));
+  view.querySelector("#to-klass").addEventListener("click", () => go(back.href));
 
   app.replaceChildren(view);
 }

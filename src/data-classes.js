@@ -184,14 +184,28 @@ export async function getClassForStudent(studentId = currentStudentId()) {
 // ---------------------------------------------------------------------------
 
 /**
- * Spegla en klass gemensamma stjärnaggregat till classStats/{classId}.
+ * Spegla en klass gemensamma aggregat till classStats/{classId}.
+ *
+ * #113 speglade bara totalStars (för grannby-skyltens stjärnrad). #114 speglar
+ * HELA klassaggregatet (leveling.aggregateKlassStats) så grannby-vyn kan visa en
+ * ANNAN klass stjärn-skylt identiskt med hur klassen själv ser den (nivå,
+ * framstegsmätare, klarade övningar, stjärnor) – utan att läsa per-elev-data.
+ * Bara klasstotaler; inga per-elev-tal. Fälten matchar regelns vitlista.
+ *
  * @param {string} classId
- * @param {{totalStars:number}} agg
+ * @param {{totalStars?:number, totalXp?:number, totalCompleted?:number,
+ *   level?:number, progressRatio?:number}} agg
  */
-export async function setClassStats(classId, { totalStars } = {}) {
+export async function setClassStats(classId, agg = {}) {
   if (!classId) return;
+  const num = (v) => Math.max(0, Number(v) || 0);
   await setDoc(doc(db, "classStats", classId), {
-    totalStars: Math.max(0, Math.round(Number(totalStars) || 0)),
+    totalStars: Math.round(num(agg.totalStars)),
+    totalXp: Math.round(num(agg.totalXp)),
+    totalCompleted: Math.round(num(agg.totalCompleted)),
+    level: Math.max(1, Math.round(num(agg.level) || 1)),
+    // progressRatio klampas 0–1 (mätaren mot nästa nivå).
+    progressRatio: Math.min(1, Math.max(0, Number(agg.progressRatio) || 0)),
     updatedAt: serverTimestamp(),
   });
 }

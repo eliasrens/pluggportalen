@@ -53,10 +53,14 @@ service cloud.firestore {
     // Elevkonton: eleven läser SITT eget dokument, lärare läser/skriver alla.
     // Inga lösenord finns kvar här (de bor i Firebase Auth) → ingen världsläsbar
     // lösenordslista. Elever kan inte skapa/ändra konton (bara läraren).
-    // Läsning: eleven själv + lärare + klasskamrat (samma klass, se sharesClass)
-    // så klassbyn kan visa kamraternas namn/avatar. Skrivning: bara läraren.
+    //
+    // LÄSNING (#114): öppen för ALLA inloggade. Grannby-vyn (#/elev/grannby) ska
+    // kunna gå in i en ANNAN klass elevers hus/rum som läs-vy (produktägar-beslut,
+    // river #37 för utseende-data mellan klasser). students-dokumentet bär bara
+    // namn/avatar/klasstillhörighet – inga lösenord/coins/progress – så det är
+    // ofarligt att låta alla inloggade läsa det. Skrivning: fortfarande bara läraren.
     match /students/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId) || sharesClass(studentId);
+      allow read:  if signedIn();
       allow write: if isTeacher();
     }
 
@@ -66,16 +70,48 @@ service cloud.firestore {
     // hus, avatar och palett – men aldrig skriva. Endast eleven själv/läraren skriver.
     //
     // HUSLÅS (#33 + Epic C:s by-fix): fältet `husLast` (bool) på studentData. När
-    // det är true NEKAS kamratläsning här på servern (sharesClass-grenen kräver
+    // det är true NEKAS annan-elev-läsning här på servern (läs-grenen kräver
     // `resource.data.husLast != true`), så låset går INTE att kringgå enbart
     // klient-sida. Eleven själv och läraren läser alltid (även när det är låst).
     // Byn tål detta: getStudentsWithLooks (data-content.js) fångar nekad läsning
     // PER elev och visar då default-utseende (ett låst hus = generiskt hus i byn),
     // och klasskamratens läs-vy (pages-klasskamrat.js) visar "🔒 Låst" när läsning
     // nekas. husLast saknas på gamla dokument → `!= true` → olåst (läsbart).
+    //
+    // LÄSNING (#114): tidigare var annan-elev-läsning scopad till samma klass
+    // (sharesClass). Grannby-vyn ska nu kunna gå in i en ANNAN klass elevers rum
+    // som läs-vy → läsning öppnas för ALLA inloggade, MEN huslås-guarden behålls
+    // oförändrad (en låst elevs rum går inte att kika in i, varken inom eller
+    // mellan klasser). OBS: studentData bär även coins/progress/inventarie – de
+    // blir därmed tekniskt läsbara mellan klasser (klasskamrater hade redan den
+    // åtkomsten inom klassen). Appen visar aldrig andras coins/progress. Detta är
+    // ett medvetet produktägar-beslut (#114). Skrivning: fortfarande bara eleven
+    // själv/läraren – ingen kan ändra en annan elevs data.
     match /studentData/{studentId} {
-      allow read:  if isTeacher() || isSelf(studentId) || (sharesClass(studentId) && resource.data.get('husLast', false) != true);
+      allow read:  if isTeacher() || isSelf(studentId) || (signedIn() && resource.data.get('husLast', false) != true);
       allow write: if isTeacher() || isSelf(studentId);
+    }
+
+    // Utseende-projektion (#114): en PUBLIK (för inloggade) spegling av en elevs
+    // COSMETISKA fält – namn, grundavatar, burna kläder, hus-palett, husskal och
+    // huslås-flaggan. Grannby-ÖVERSIKTEN (#/elev/grannby) läser den för alla
+    // elever i den klickade klassen för att rita deras riktiga hus/avatarer utan
+    // att röra studentData (som bär coins/progress). Skrivs (denormaliseras) av
+    // eleven SJÄLV när dess utseende laddas/ändras – best-effort, en nekad/
+    // misslyckad skrivning fäller aldrig vyn. Skrivning är låst till isSelf +
+    // en VITLISTA av fält med typkoll, så projektionen inte kan missbrukas.
+    // Läsning öppen för alla inloggade (bara kosmetik, inga känsliga fält).
+    match /looks/{studentId} {
+      allow read:  if signedIn();
+      allow write: if isSelf(studentId)
+        && request.resource.data.keys().hasOnly(
+             ['namn', 'avatarId', 'avatarItems', 'paletteId', 'husSkalId', 'husLast', 'updatedAt'])
+        && request.resource.data.namn is string
+        && request.resource.data.avatarId is string
+        && request.resource.data.avatarItems is list
+        && request.resource.data.paletteId is string
+        && request.resource.data.husSkalId is string
+        && request.resource.data.husLast is bool;
     }
 
     // Klasser: alla inloggade läser (eleven behöver sin tilldelning);
@@ -85,19 +121,27 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
 
-    // Klass-aggregat: gemensamt, BARA aggregerat stjärnantal per klass
-    // (classStats/{classId} = { totalStars, updatedAt }). Läs-öppet för alla
-    // inloggade så grannby-skylten (#113) kan visa en ANNAN klass totala
-    // stjärnor – bara aggregatet, aldrig per-elev-data (#37). Skrivs av läraren
-    // ELLER av en elev i klassen (speglar sin egen klass aggregat när byn
-    // laddas); en elev får BARA sätta de vitlistade fälten (inga godtyckliga
-    // fält) och totalStars måste vara ett tal, så aggregatet inte kan missbrukas.
+    // Klass-aggregat: gemensamt klass-aggregat per klass (classStats/{classId}).
+    // #113 speglade bara { totalStars }; #114 utökar det till hela klassaggregatet
+    // (totalStars, totalXp, totalCompleted, level, progressRatio) så grannby-vyn
+    // kan visa en ANNAN klass stjärn-skylt IDENTISKT med hur klassen själv ser
+    // den (samma ✨-toggle + stats). Läs-öppet för alla inloggade – bara
+    // klasstotaler, aldrig per-elev-data. Skrivs av läraren ELLER av en elev i
+    // klassen (speglar sin egen klass aggregat när byn laddas); en elev får BARA
+    // sätta de vitlistade fälten (inga godtyckliga fält). De extra aggregat-fälten
+    // är valfria (bakåtkompatibelt med #113:s totalStars-bara-skrivning) men
+    // typkollas när de finns, så aggregatet inte kan missbrukas.
     match /classStats/{classId} {
       allow read:  if signedIn();
       allow write: if isTeacher() ||
         (isClassMember(classId)
-          && request.resource.data.keys().hasOnly(['totalStars', 'updatedAt'])
-          && request.resource.data.totalStars is number);
+          && request.resource.data.keys().hasOnly(
+               ['totalStars', 'totalXp', 'totalCompleted', 'level', 'progressRatio', 'updatedAt'])
+          && request.resource.data.totalStars is number
+          && request.resource.data.get('totalXp', 0) is number
+          && request.resource.data.get('totalCompleted', 0) is number
+          && request.resource.data.get('level', 0) is number
+          && request.resource.data.get('progressRatio', 0) is number);
     }
 
     // Allt annat nekas.
