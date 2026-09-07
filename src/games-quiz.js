@@ -9,6 +9,7 @@
 // ============================================================================
 
 import { app, el } from "./ui.js";
+import * as data from "./data.js";
 import {
   gameFrame,
   runQuestions,
@@ -19,10 +20,13 @@ import {
 
 // --- Quiz -------------------------------------------------------------------
 
-export function startQuiz(ctx) {
+export async function startQuiz(ctx) {
   const { subj, area, areaData } = ctx;
-  // Ny session: kör max 20 frågor. Har poolen fler slumpas 20 fram (annars alla).
-  const questions = pickSessionQuestions(areaData.quiz || []);
+  // Ny session: servera max 10 OSEDDA frågor (roterande urval). Sparar vilka som
+  // serverats så nästa session ger nya, tills varvet är klart → nollställs.
+  const seen = await data.getQuestionRotation(area, "quiz");
+  const { questions, seen: nextSeen } = pickSessionQuestions(areaData.quiz || [], seen);
+  data.saveQuestionRotation(area, "quiz", nextSeen);
   const view = gameFrame({ subj, area, title: "Quiz", emoji: "❓" });
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
@@ -32,7 +36,10 @@ export function startQuiz(ctx) {
     questions,
     onFinish: (correct, total) => {
       const stars = starsFromRatio(correct / total);
-      const baseCoins = 2 * (5 + correct * 2 + (correct === total ? 5 : 0));
+      // Coins ~halverade jämfört med förr: dels via 20→10 frågor (correct*2 halveras),
+      // dels genom en trimmad FAST del (5→3, allt-rätt-bonus 5→2). En perfekt
+      // 10-frågors-runda ger 2*(3+20+2)=50 (var 100 vid 20 frågor). XP oförändrat.
+      const baseCoins = 2 * (3 + correct * 2 + (correct === total ? 2 : 0));
       showResult({
         container: body,
         subj, area, mode: "quiz",
@@ -48,7 +55,7 @@ export function startQuiz(ctx) {
 
 // --- Läsförståelse ----------------------------------------------------------
 
-export function startLasforstaelse(ctx) {
+export async function startLasforstaelse(ctx) {
   const { subj, area, areaData } = ctx;
   const allQuestions = areaData.quiz || [];
 
@@ -71,9 +78,12 @@ export function startLasforstaelse(ctx) {
     (q) => q && typeof q.passage === "string" && q.passage.trim()
   );
   const anyPassage = withPassage.length > 0;
-  // Ny session: kör max 20 frågor ur den valda poolen (passager om de finns,
-  // annars alla). Har poolen fler slumpas 20 fram, annars körs alla.
-  const questions = pickSessionQuestions(anyPassage ? withPassage : allQuestions);
+  // Ny session: servera max 10 OSEDDA frågor ur den valda poolen (passager om de
+  // finns, annars alla), roterande urval spårat per (elev, område, läge).
+  const pool = anyPassage ? withPassage : allQuestions;
+  const seen = await data.getQuestionRotation(area, "lasforstaelse");
+  const { questions, seen: nextSeen } = pickSessionQuestions(pool, seen);
+  data.saveQuestionRotation(area, "lasforstaelse", nextSeen);
   const intro = anyPassage
     ? "Läs den korta texten ovanför varje fråga och svara. Texten byts för varje ny fråga. 📖"
     : "Läs frågan noga och svara så gott du kan. 📖";
@@ -92,7 +102,9 @@ export function startLasforstaelse(ctx) {
     showPassage: true,
     onFinish: (correct, total) => {
       const stars = starsFromRatio(correct / total);
-      const baseCoins = 2 * (6 + correct * 2 + (correct === total ? 4 : 0));
+      // Coins ~halverade (samma princip som quiz): 20→10 frågor + trimmad fast del
+      // (6→3, allt-rätt-bonus 4→2). Perfekt 10-frågors-runda ger 2*(3+20+2)=50.
+      const baseCoins = 2 * (3 + correct * 2 + (correct === total ? 2 : 0));
       // Resultatskärmen ersätter hela sidan (text + frågor).
       showResult({
         container: body,
