@@ -292,7 +292,15 @@ export async function pageElevVarld(startNiva) {
       // Gemensam klasstatistik: summera allas positiva bidrag (XP → klass-nivå,
       // klarade övningar, stjärnor) och fyll stjärn-toggeln + skylten. Bara
       // klasstotaler; ✨-knappen visar totalantalet stjärnor kortfattat.
-      klassStats.fyll(aggregateKlassStats(boende), klassNamn);
+      const agg = aggregateKlassStats(boende);
+      klassStats.fyll(agg, klassNamn);
+      // Spegla klassens totala stjärnor till classStats/{klass} så GRANNKLASSER
+      // kan visa dem på sin grannby-skylt (#113) – bara aggregatet, inga per-
+      // elev-data. Best-effort: en nekad/misslyckad skrivning (t.ex. klasslös
+      // elev) får aldrig fälla byn.
+      if (meClassId) {
+        data.setClassStats(meClassId, { totalStars: agg.totalStars }).catch(() => {});
+      }
       statsRedo = true;
       visaKlassStats();
       return { students: boende, fokusById };
@@ -376,7 +384,14 @@ export async function pageElevVarld(startNiva) {
         lager: skolaLager, meClassId, classes: allClasses,
       });
       skolaNiva.fokus = fokus; // kameran läser fokus vid varje övergång
-      return { classes: allClasses, fokusById };
+      // Hämta varje klass gemensamma stjärnaggregat (classStats) så grannby-
+      // skylten kan visa en ANNAN klass totala stjärnor (#113). Best-effort:
+      // saknat/nekat aggregat faller till 0 och skylten utelämnar då raden.
+      const starsById = await data
+        .getClassStatsMap(allClasses.map((c) => c.id))
+        .catch(() => new Map());
+      const classes = allClasses.map((c) => ({ ...c, totalStars: starsById.get(c.id) || 0 }));
+      return { classes, fokusById };
     })().catch((err) => {
       skolaLaddning = null; // låt nästa försök bygga om
       throw err;

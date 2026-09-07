@@ -3185,6 +3185,8 @@ body.varld-lage .container {
 .grannby-skylt-titel { font-weight: 800; font-size: 1.05rem; color: #3b3350; }
 .grannby-skylt-by { font-weight: 700; font-size: 0.85rem; color: #7c5cd6; }
 .grannby-skylt-antal { font-weight: 800; font-size: 0.82rem; color: #3b3350; }
+/* Klassens gemensamma stjärnor – i linje med by-nivåns ✨-toggle. */
+.grannby-skylt-stjarnor { font-weight: 800; font-size: 0.82rem; color: #b07d00; }
 .grannby-not {
   background: rgba(255, 255, 255, 0.92);
   border: 2px solid rgba(59, 51, 80, 0.55);

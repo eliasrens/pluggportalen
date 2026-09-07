@@ -324,6 +324,9 @@ export {
   upsertStudent,
   deleteStudent,
   usernameTaken,
+} from "./data-content.js";
+
+export {
   getClasses,
   upsertClass,
   deleteClass,
@@ -332,4 +335,7 @@ export {
   setClassAssignments,
   getClassAssignments,
   getClassForStudent,
-} from "./data-content.js";
+  setClassStats,
+  getClassStats,
+  getClassStatsMap,
+} from "./data-classes.js";
