@@ -321,6 +321,8 @@ export {
   getStudent,
   getStudentsByIds,
   getStudentsWithLooks,
+  setLooks,
+  getLooks,
   upsertStudent,
   deleteStudent,
   usernameTaken,

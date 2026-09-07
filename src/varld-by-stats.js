@@ -30,13 +30,16 @@ function nf(n) {
  * har role="status" (aria-live) så utfällningen läses upp.
  * @returns {string} innerHTML att lägga i overlay-toppen (#klass-toggle-wrap)
  */
-export function klassStatsMarkup() {
-  return `<button class="varld-knapp varld-klass-stjarna" id="klass-toggle"
-      aria-expanded="false" aria-controls="klass-stats"
+export function klassStatsMarkup(idPrefix = "klass") {
+  const toggleId = `${idPrefix}-toggle`;
+  const talId = `${idPrefix}-toggle-tal`;
+  const statsId = `${idPrefix}-stats`;
+  return `<button class="varld-knapp varld-klass-stjarna" id="${toggleId}"
+      aria-expanded="false" aria-controls="${statsId}"
       title="Klassens gemensamma stjärnor – klicka för att se klassens framsteg">
-      ✨ <span class="ks-toggle-tal" id="klass-toggle-tal">0</span>
+      ✨ <span class="ks-toggle-tal" id="${talId}">0</span>
     </button>
-    <div class="varld-klass-stats" id="klass-stats" role="status" hidden></div>`;
+    <div class="varld-klass-stats" id="${statsId}" role="status" hidden></div>`;
 }
 
 /**
