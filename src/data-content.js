@@ -18,7 +18,6 @@ import {
   query,
   where,
   orderBy,
-  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData } from "./data.js";
 import { createStudentAuthAccount } from "./auth.js";
@@ -179,58 +178,6 @@ export async function getStudentsWithLooks(ids = null) {
       }
     })
   );
-}
-
-// ---------------------------------------------------------------------------
-// Utseende-projektion (looks/{studentId}) – publik (för inloggade) spegling av
-// en elevs COSMETISKA fält, se firestore.rules match /looks (#114).
-// ---------------------------------------------------------------------------
-// Grannby-ÖVERSIKTEN läser den för alla elever i en ANNAN klass för att rita
-// deras riktiga hus/avatarer utan att röra studentData (coins/progress). Bara
-// eleven själv skriver sin egen looks; skrivningen är best-effort (fäller aldrig
-// vyn). Fält: { namn, avatarId, avatarItems[], paletteId, husSkalId, husLast }.
-
-/**
- * Spegla den egna elevens utseende till looks/{studentId}. Alla fält skickas
- * alltid (som strängar/lista/bool) så regelns typkoll passerar. Best-effort:
- * anropas med .catch(()=>{}) av vyn.
- * @param {string} studentId  eleven själv (currentStudentId)
- * @param {{namn?:string, avatarId?:string, avatarItems?:string[],
- *   paletteId?:string, husSkalId?:string, husLast?:boolean}} looks
- */
-export async function setLooks(studentId, {
-  namn, avatarId, avatarItems, paletteId, husSkalId, husLast,
-} = {}) {
-  if (!studentId) return;
-  await setDoc(doc(db, "looks", studentId), {
-    namn: String(namn ?? ""),
-    avatarId: String(avatarId || "fox"),
-    avatarItems: Array.isArray(avatarItems) ? avatarItems : [],
-    paletteId: String(paletteId ?? ""),
-    husSkalId: String(husSkalId ?? ""),
-    husLast: !!husLast,
-    updatedAt: serverTimestamp(),
-  });
-}
-
-/**
- * Läs looks-projektionen för en lista elev-id:n (grannby-översikten: alla elever
- * i den klickade klassen), per dokument. En saknad/nekad läsning hoppas tyst
- * över – vyn tål att en elev ännu inte speglat sin looks.
- * @param {string[]} ids
- * @returns {Promise<Array<{id:string, namn?:string, avatarId?:string,
- *   avatarItems?:string[], paletteId?:string, husSkalId?:string, husLast?:boolean}>>}
- */
-export async function getLooks(ids) {
-  const uniq = [...new Set((Array.isArray(ids) ? ids : []).filter(Boolean))];
-  const docs = await Promise.all(
-    uniq.map((id) =>
-      getDoc(doc(db, "looks", id))
-        .then((snap) => (snap.exists() ? { id: snap.id, ...snap.data() } : null))
-        .catch(() => null)
-    )
-  );
-  return docs.filter(Boolean);
 }
 
 /**

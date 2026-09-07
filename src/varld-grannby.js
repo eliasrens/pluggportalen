@@ -14,16 +14,20 @@
 //   grannbyhus – EN elevs hus-exteriör (läs-vy); klick på huset → deras rum
 //
 // INTEGRITET (#114, medvetet produktägar-beslut som river #37 för looks):
-//   * Översikten (grannby) ritas ur en PUBLIK looks-projektion (looks/{id}) –
-//     bara kosmetiska fält, aldrig coins/progress. En elev som ännu inte speglat
-//     sin looks utelämnas tyst (best-effort).
-//   * Klassens stjärnor läses ur classStats/{id} (samma aggregat klassen själv
-//     ser) och visas via den egna byns stjärn-UI (✨-toggle + skylt).
+//   * Översikten (grannby) läser grannklassens students/studentData DIREKT –
+//     exakt som egna byn (laddaBy) gör – sedan cross-class-läsning öppnades. Byn
+//     fylls därmed direkt ur befintlig data (ingen elev behöver ha loggat in
+//     först). Huslåset hanteras per elev: en låst elev (nekad studentData) faller
+//     till default-utseende, precis som i egna byn.
+//   * Klassens stjärnor räknas fram LIVE (aggregateKlassStats ur samma elever) –
+//     samma siffror klassen själv ser – och visas via den egna byns stjärn-UI
+//     (✨-toggle + skylt). Ingen denormaliserad classStats behövs.
 //   * Att gå IN i ett rum (grannbyhus → #/elev/klasskamrat) läser full studentData
 //     för DEN eleven – men huslåset (#33, husLast) spärrar låsta rum precis som
 //     inom klassen, och man kan aldrig ändra något (läs-vy).
-//   * Prestanda: EN klass ritas i taget (bara den man zoomat in på). Skol-
-//     översikten förblir lätta silhuetter (varld-omrade.js) – oförändrad.
+//   * Prestanda: EN klass ritas i taget (bara den man zoomat in på) – dess ~20-24
+//     studentData-dok, identiskt med egna byn. Skol-översikten förblir lätta
+//     silhuetter (varld-omrade.js) – oförändrad.
 // ============================================================================
 
 import { go, flash } from "./ui.js";
@@ -47,8 +51,8 @@ import { kompisHusHtml } from "./varld-kompis.js";
  * @param {() => Promise<{classes:Array, fokusById:Record<string,{x:number,y:number}>}>} o.ensureSkola
  *        bygger skolan vid behov och resolvar dess klasser + byfokus per id.
  * @param {(klass:object) => Promise<{students:Array, stats:object|null}>} o.laddaData
- *        hämtar den klickade klassens looks (→ students för mountByScen) + stjärn-
- *        aggregat (classStats). Best-effort; en tom lista/nullaggregat tål vyn.
+ *        hämtar den klickade klassens elever (studentData → students för mountByScen)
+ *        + LIVE-beräknat stjärn-aggregat. Best-effort; en tom lista tål vyn.
  * @param {(stats:object|null, klassNamn:string) => void} o.onStats  fyll grannby-stjärn-UI:t.
  * @param {(nivaId:string) => void} o.onNiva  körs när grannby-kameran bytt nivå.
  * @returns {object}

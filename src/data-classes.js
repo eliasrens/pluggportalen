@@ -171,67 +171,8 @@ export async function getClassForStudent(studentId = currentStudentId()) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Klass-aggregat (classStats/{classId}) – gemensamt, BARA aggregerat stjärnantal
-// per klass.
-// ---------------------------------------------------------------------------
-// classStats/{classId} = { totalStars: number, updatedAt }. Skrivs lazyt av en
-// klassmedlem när klassbyn laddas (pages-varld.js speglar aggregatet dit) och
-// läses av grannby-skylten (varld-grannby.js) så en ANNAN klass totala stjärnor
-// kan visas. INTEGRITET (#37): bara klasstotalen, aldrig per-elev-data. Läsning
-// är öppen för alla inloggade i firestore.rules; skrivning är scopad till klass-
-// medlemmar (eller läraren) och vitlistar just de här fälten.
-// ---------------------------------------------------------------------------
-
-/**
- * Spegla en klass gemensamma aggregat till classStats/{classId}.
- *
- * #113 speglade bara totalStars (för grannby-skyltens stjärnrad). #114 speglar
- * HELA klassaggregatet (leveling.aggregateKlassStats) så grannby-vyn kan visa en
- * ANNAN klass stjärn-skylt identiskt med hur klassen själv ser den (nivå,
- * framstegsmätare, klarade övningar, stjärnor) – utan att läsa per-elev-data.
- * Bara klasstotaler; inga per-elev-tal. Fälten matchar regelns vitlista.
- *
- * @param {string} classId
- * @param {{totalStars?:number, totalXp?:number, totalCompleted?:number,
- *   level?:number, progressRatio?:number}} agg
- */
-export async function setClassStats(classId, agg = {}) {
-  if (!classId) return;
-  const num = (v) => Math.max(0, Number(v) || 0);
-  await setDoc(doc(db, "classStats", classId), {
-    totalStars: Math.round(num(agg.totalStars)),
-    totalXp: Math.round(num(agg.totalXp)),
-    totalCompleted: Math.round(num(agg.totalCompleted)),
-    level: Math.max(1, Math.round(num(agg.level) || 1)),
-    // progressRatio klampas 0–1 (mätaren mot nästa nivå).
-    progressRatio: Math.min(1, Math.max(0, Number(agg.progressRatio) || 0)),
-    updatedAt: serverTimestamp(),
-  });
-}
-
-/** Läs en klass aggregat ({ id, totalStars, ... } eller null om det saknas). */
-export async function getClassStats(classId) {
-  if (!classId) return null;
-  const snap = await getDoc(doc(db, "classStats", classId));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-}
-
-/**
- * Läs aggregatet för flera klasser parallellt → Map(classId → totalStars).
- * Saknad/nekad läsning per klass faller tyst till 0, så grannby-vyn tål en klass
- * utan aggregat (den skrivs först när någon i klassen öppnat sin by).
- * @param {string[]} classIds
- * @returns {Promise<Map<string, number>>}
- */
-export async function getClassStatsMap(classIds = []) {
-  const ids = [...new Set((Array.isArray(classIds) ? classIds : []).filter(Boolean))];
-  const entries = await Promise.all(
-    ids.map((id) =>
-      getDoc(doc(db, "classStats", id))
-        .then((snap) => [id, snap.exists() ? Math.max(0, Number(snap.data().totalStars) || 0) : 0])
-        .catch(() => [id, 0])
-    )
-  );
-  return new Map(entries);
-}
+// Klass-aggregatet (classStats/{classId}) från #113 är BORTTAGET (#114): en
+// grannklass stjärnor räknas numera fram LIVE ur klassens studentData (samma
+// aggregateKlassStats som klassen själv använder), sedan cross-class-läsning av
+// studentData öppnades. Ingen denormaliserad spegling behövs – den blev bara en
+// tom skylt tills varje elev loggat in efter en regel-deploy.

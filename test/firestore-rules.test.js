@@ -262,103 +262,19 @@ describe("Huslås (#33): husLast==true spärrar kamratläsning av studentData", 
   });
 });
 
-describe("Klass-aggregat (classStats, #113): läs-öppet, skriv-scopat", () => {
-  // elev1 i klass 6a, elev2 i klass 6b (denormaliserade classIds styr
-  // isClassMember i reglerna). Ett aggregat finns redan för 6a.
-  beforeEach(async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      const db = ctx.firestore();
-      await setDoc(doc(db, "students", "elev1"), { classIds: ["6a"] }, { merge: true });
-      await setDoc(doc(db, "students", "elev2"), {
-        namn: "Björn", username: "elev2", classIds: ["6b"],
-      }, { merge: true });
-      await setDoc(doc(db, "classStats", "6a"), { totalStars: 42, updatedAt: 0 });
-    });
+// (#114) Kollektionerna classStats (#113) och looks är borttagna – grannby-vyn
+// räknar hus + stjärnor live ur grannklassens studentData. Verifiera att båda nu
+// faller på "neka allt"-regeln (ingen kvarlämnad öppen regel).
+describe("Borttagna collections (looks/classStats, #114) nekas helt", () => {
+  it("neka läs/skriv på classStats även för lärare/elev (död collection)", async () => {
+    await assertFails(getDoc(doc(elev("elev1"), "classStats", "6a")));
+    await assertFails(setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: 1 }));
+    await assertFails(setDoc(doc(teacher(), "classStats", "6a"), { totalStars: 1 }));
   });
-
-  it("alla inloggade får LÄSA ett klass-aggregat (även en ANNAN klass)", async () => {
-    await assertSucceeds(getDoc(doc(elev("elev1"), "classStats", "6a")));
-    await assertSucceeds(getDoc(doc(elev("elev2"), "classStats", "6a")));
-  });
-  it("obehörig får INTE läsa klass-aggregat", async () => {
-    await assertFails(getDoc(doc(unauth(), "classStats", "6a")));
-  });
-  it("en elev i klassen får skriva sin egen klass aggregat", async () => {
-    await assertSucceeds(
-      setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: 99, updatedAt: 0 })
-    );
-  });
-  it("en elev får INTE skriva en ANNAN klass aggregat", async () => {
-    await assertFails(
-      setDoc(doc(elev("elev2"), "classStats", "6a"), { totalStars: 0, updatedAt: 0 })
-    );
-  });
-  it("en elev får INTE smuggla in extra fält eller icke-tal i aggregatet", async () => {
-    await assertFails(
-      setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: 1, updatedAt: 0, hacked: true })
-    );
-    await assertFails(
-      setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: "massor", updatedAt: 0 })
-    );
-  });
-  it("läraren får skriva valfritt klass-aggregat", async () => {
-    await assertSucceeds(
-      setDoc(doc(teacher(), "classStats", "6b"), { totalStars: 7, updatedAt: 0 })
-    );
-  });
-  it("en elev får skriva HELA klassaggregatet (#114: nivå/framsteg/övningar)", async () => {
-    await assertSucceeds(
-      setDoc(doc(elev("elev1"), "classStats", "6a"), {
-        totalStars: 12, totalXp: 340, totalCompleted: 8, level: 4, progressRatio: 0.42, updatedAt: 0,
-      })
-    );
-  });
-  it("ett icke-tal i ett aggregat-fält nekas (#114)", async () => {
-    await assertFails(
-      setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: 1, level: "hög", updatedAt: 0 })
-    );
-    await assertFails(
-      setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: 1, progressRatio: "halv", updatedAt: 0 })
-    );
-  });
-});
-
-describe("Utseende-projektion (looks, #114): läs-öppet, skriv self + vitlistat", () => {
-  const validLooks = {
-    namn: "Astrid", avatarId: "fox", avatarItems: ["hatt1"],
-    paletteId: "solig", husSkalId: "stuga", husLast: false, updatedAt: 0,
-  };
-  beforeEach(async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      const db = ctx.firestore();
-      await setDoc(doc(db, "looks", "elev2"), { ...validLooks, namn: "Björn" });
-    });
-  });
-
-  it("alla inloggade får LÄSA en looks-projektion (även en annan klass)", async () => {
-    await assertSucceeds(getDoc(doc(elev("elev1"), "looks", "elev2")));
-  });
-  it("obehörig får INTE läsa looks", async () => {
-    await assertFails(getDoc(doc(unauth(), "looks", "elev2")));
-  });
-  it("eleven själv får skriva sin egen looks (vitlistade fält)", async () => {
-    await assertSucceeds(setDoc(doc(elev("elev1"), "looks", "elev1"), validLooks));
-  });
-  it("en elev får INTE skriva någon annans looks", async () => {
-    await assertFails(setDoc(doc(elev("elev1"), "looks", "elev2"), validLooks));
-  });
-  it("smuggla in ett extra fält i looks nekas", async () => {
-    await assertFails(
-      setDoc(doc(elev("elev1"), "looks", "elev1"), { ...validLooks, coins: 999 })
-    );
-  });
-  it("fel typ på ett looks-fält nekas", async () => {
-    await assertFails(
-      setDoc(doc(elev("elev1"), "looks", "elev1"), { ...validLooks, avatarItems: "inte-en-lista" })
-    );
-    await assertFails(
-      setDoc(doc(elev("elev1"), "looks", "elev1"), { ...validLooks, husLast: "ja" })
-    );
+  it("neka läs/skriv på looks även för lärare/elev (död collection)", async () => {
+    await assertFails(getDoc(doc(elev("elev1"), "looks", "elev2")));
+    await assertFails(setDoc(doc(elev("elev1"), "looks", "elev1"), { namn: "x" }));
+    await assertFails(setDoc(doc(teacher(), "looks", "elev1"), { namn: "x" }));
   });
 });
 

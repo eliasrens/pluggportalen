@@ -321,8 +321,6 @@ export {
   getStudent,
   getStudentsByIds,
   getStudentsWithLooks,
-  setLooks,
-  getLooks,
   upsertStudent,
   deleteStudent,
   usernameTaken,
@@ -337,7 +335,4 @@ export {
   setClassAssignments,
   getClassAssignments,
   getClassForStudent,
-  setClassStats,
-  getClassStats,
-  getClassStatsMap,
 } from "./data-classes.js";
