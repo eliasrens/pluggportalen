@@ -3134,22 +3134,6 @@ body.varld-lage .container {
 }
 .omrade-by.du .omrade-by-namn b { color: #fff; }
 
-.omrade-du {
-  position: absolute;
-  top: 2px;
-  left: 68%;
-  background: var(--gron, #34a853);
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.8rem;
-  padding: 2px 10px;
-  border-radius: 999px;
-  box-shadow: var(--skugga);
-  transform: rotate(6deg);
-  z-index: var(--z-scen-markor);
-  pointer-events: none;
-}
-
 /* --- Grannby-nivån (läs-vy av en annan klass by) -------------------------- */
 .varld-grannby { background: #a8da8f; }
 .grannby-scen {

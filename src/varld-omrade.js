@@ -156,7 +156,6 @@ export function mountOmradeScen({ lager, meClassId, classes }) {
       return `<div class="omrade-by${me ? " du" : ""}" role="button" tabindex="0"
         data-id="${esc(c.id)}"${me ? ` data-me="1"` : ""} aria-label="${aria}"
         style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%;width:${layout.cellW.toFixed(2)}%;height:${layout.cellH.toFixed(2)}%">
-        ${me ? '<span class="omrade-du">Din klass</span>' : ""}
         <div class="omrade-by-hus">${byMiniSvg(antal, hue)}</div>
         <span class="omrade-by-namn">${etikett} <b>${antal} 🏠</b></span>
       </div>`;
