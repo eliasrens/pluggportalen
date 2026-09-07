@@ -32,6 +32,12 @@ service cloud.firestore {
     function sharesClass(id) {
       return signedIn() && classIdsOf(request.auth.uid).hasAny(classIdsOf(id));
     }
+    // Är den inloggade medlem i klassen classId? (Elevens denormaliserade
+    // classIds avgör – reglerna kan inte loopa över classes.) Används för att
+    // låta en elev uppdatera SIN EGEN klass gemensamma aggregat (classStats).
+    function isClassMember(classId) {
+      return signedIn() && classIdsOf(request.auth.uid).hasAny([classId]);
+    }
 
     // Kunskapsinnehåll (ämnen/arbetsområden): alla INLOGGADE får läsa;
     // bara lärare skriver. Inget world-read längre.
@@ -77,6 +83,21 @@ service cloud.firestore {
     match /classes/{classId} {
       allow read:  if signedIn();
       allow write: if isTeacher();
+    }
+
+    // Klass-aggregat: gemensamt, BARA aggregerat stjärnantal per klass
+    // (classStats/{classId} = { totalStars, updatedAt }). Läs-öppet för alla
+    // inloggade så grannby-skylten (#113) kan visa en ANNAN klass totala
+    // stjärnor – bara aggregatet, aldrig per-elev-data (#37). Skrivs av läraren
+    // ELLER av en elev i klassen (speglar sin egen klass aggregat när byn
+    // laddas); en elev får BARA sätta de vitlistade fälten (inga godtyckliga
+    // fält) och totalStars måste vara ett tal, så aggregatet inte kan missbrukas.
+    match /classStats/{classId} {
+      allow read:  if signedIn();
+      allow write: if isTeacher() ||
+        (isClassMember(classId)
+          && request.resource.data.keys().hasOnly(['totalStars', 'updatedAt'])
+          && request.resource.data.totalStars is number);
     }
 
     // Allt annat nekas.

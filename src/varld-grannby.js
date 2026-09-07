@@ -31,12 +31,17 @@ function grannbyMarkup(klass) {
   const namn = esc(klass.name || klass.id);
   const by = esc(klass.by || "");
   const antal = Array.isArray(klass.studentIds) ? klass.studentIds.length : 0;
+  // Klassens gemensamma stjärnor (aggregat från classStats, läses in i
+  // laddaSkola). Bara aggregerat – inga per-elev-data (#37). Saknas siffran
+  // (aggregatet ännu inte skrivet) → visa ingen rad i stället för "0 stjärnor".
+  const stjarnor = Math.max(0, Math.round(Number(klass.totalStars) || 0));
   const hue = hueForKlass(klass);
   return `<div class="grannby-scen">
     <div class="grannby-skylt">
       <span class="grannby-skylt-titel">Klass ${namn}</span>
       ${by ? `<span class="grannby-skylt-by">– ${by} –</span>` : ""}
       <span class="grannby-skylt-antal">${antal} hus 🏠</span>
+      ${stjarnor > 0 ? `<span class="grannby-skylt-stjarnor">✨ ${stjarnor.toLocaleString("sv-SE")} stjärnor</span>` : ""}
     </div>
     <div class="grannby-by">${byMiniSvg(antal, hue, 8)}</div>
     <div class="grannby-not">👀 En annan klass by – du kan titta, men inte gå in.</div>
