@@ -61,12 +61,13 @@ export async function pageElevVarld(startNiva) {
   if (!data.isLoggedIn()) return go("#/elev");
 
   // Kompis-hus-nivån bär den klickade kamratens id i query (?id=…); grannby-
-  // nivån bär den klickade klassens id på samma sätt.
+  // nivån bär den klickade klassens id på samma sätt; grannby-HUS-nivån bär den
+  // klickade elevens id (+ klass) i query.
   const kompisId = startNiva === "kompis" ? getParams().id : null;
   const grannbyId = startNiva === "grannby" ? getParams().id : null;
 
-  // Sömlöst: scenen lever redan → mjuk kameraresa, ingen omrendering. Kompis-
-  // och grannby-nivåerna bär sitt mål-id (kamrat resp. klass) i query.
+  // Sömlöst: scenen lever redan → mjuk kameraresa, ingen omrendering. Kompis-,
+  // grannby- och grannby-hus-nivåerna bär sitt mål-id i query (läses i visaNiva).
   if (liveScen && liveScen.stage.isConnected) {
     liveScen.visaNiva(startNiva, startNiva === "grannby" ? grannbyId : kompisId);
     return;
@@ -131,6 +132,9 @@ export async function pageElevVarld(startNiva) {
       <div class="varld-lager varld-by" id="by-lager"></div>
       <div class="varld-lager varld-ute" id="ute-lager">${husScen(avatarMarkup(avatarId, sd.avatarItems || []), { skalId: sd.husSkalId, skylt })}</div>
       <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager"></div>
+      <!-- Grannby-HUS-lagret: en ANNAN klass elevs hus-exteriör (läs-vy, #114).
+           Samma sorts ute-lager som kompis-lagret, fast över klassgränser. -->
+      <div class="varld-lager varld-ute varld-kompis varld-grannbyhus varld-dold" id="grannbyhus-lager"></div>
       <div class="varld-lager room-stage varld-rum" id="rum-lager"></div>
 
       <div class="varld-ui">
@@ -168,6 +172,11 @@ export async function pageElevVarld(startNiva) {
                stats-skylt. Fylls lat när byn laddas och hela togglen syns bara
                på by-nivån (visaKlassStats). -->
           <div class="varld-klass-toggle" id="klass-toggle-wrap" hidden>${klassStatsMarkup()}</div>
+          <!-- Grannby-stjärnorna (#114): en ANNAN klass stjärn-toggle, samma UI
+               som den egna byns men egen instans/egna id:n. Syns bara på grannby-
+               nivån och fylls med den klickade klassens LIVE-beräknade aggregat
+               (aggregateKlassStats ur deras studentData). -->
+          <div class="varld-klass-toggle" id="grannby-klass-toggle-wrap" hidden>${klassStatsMarkup("grannby-klass")}</div>
         </div>
 
         <div class="varld-panel" id="panel-palett" hidden>
@@ -202,7 +211,6 @@ export async function pageElevVarld(startNiva) {
         </div>
 
         <div class="varld-petpanel" id="pet-panel"></div>
-        <div class="hus-hint" id="hint"></div>
       </div>
     </div>
   </div>`);
@@ -213,8 +221,8 @@ export async function pageElevVarld(startNiva) {
   const byLager = view.querySelector("#by-lager");
   const uteLager = view.querySelector("#ute-lager");
   const kompisLager = view.querySelector("#kompis-lager");
+  const grannbyhusLager = view.querySelector("#grannbyhus-lager");
   const rumLager = view.querySelector("#rum-lager");
-  const hint = view.querySelector("#hint");
   const titel = view.querySelector("#titel");
   const utBtn = view.querySelector("#ut-btn");
   const skolaBtn = view.querySelector("#skola-btn");
@@ -228,11 +236,23 @@ export async function pageElevVarld(startNiva) {
     statsEl: view.querySelector("#klass-stats"),
   });
 
-  // Toggeln visas bara på by-nivån och först när datan finns. `statsRedo` gör
-  // att den inte blinkar fram tom innan aggregatet räknats.
+  // Grannbyns stjärn-toggle (#114): samma UI, egen instans/egna id:n. Fylls när
+  // en grannby laddas (grannbyVy.onStats) och syns bara på grannby-nivån.
+  const grannbyStats = mountKlassStatsToggle({
+    wrap: view.querySelector("#grannby-klass-toggle-wrap"),
+    toggle: view.querySelector("#grannby-klass-toggle"),
+    talEl: view.querySelector("#grannby-klass-toggle-tal"),
+    statsEl: view.querySelector("#grannby-klass-stats"),
+  });
+
+  // Toggeln visas bara på rätt nivå och först när datan finns. `statsRedo`/
+  // `grannbyStatsRedo` gör att de inte blinkar fram tomma innan aggregatet finns.
   let statsRedo = false;
+  let grannbyStatsRedo = false;
   function visaKlassStats() {
-    klassStats.visa(statsRedo && stage.dataset.niva === "by");
+    const niva = stage.dataset.niva;
+    klassStats.visa(statsRedo && niva === "by");
+    grannbyStats.visa(grannbyStatsRedo && niva === "grannby");
   }
 
   // --- Kameran: nivåer ordnade ytterst → innerst ----------------------------
@@ -258,7 +278,7 @@ export async function pageElevVarld(startNiva) {
     startId:
       startNiva === "rum" ? "rum"
       : startNiva === "by" || startNiva === "kompis" ? "by"
-      : startNiva === "skola" || startNiva === "grannby" ? "skola"
+      : startNiva === "skola" || startNiva === "grannby" || startNiva === "grannhus" ? "skola"
       : "hus",
     onNiva: (id) => updateUi(id),
   });
@@ -292,7 +312,10 @@ export async function pageElevVarld(startNiva) {
       // Gemensam klasstatistik: summera allas positiva bidrag (XP → klass-nivå,
       // klarade övningar, stjärnor) och fyll stjärn-toggeln + skylten. Bara
       // klasstotaler; ✨-knappen visar totalantalet stjärnor kortfattat.
-      klassStats.fyll(aggregateKlassStats(boende), klassNamn);
+      const agg = aggregateKlassStats(boende);
+      klassStats.fyll(agg, klassNamn);
+      // (Grannklasser räknar numera fram DENNA klass stjärnor live ur samma
+      // studentData – ingen denormaliserad classStats-spegling behövs längre.)
       statsRedo = true;
       visaKlassStats();
       return { students: boende, fokusById };
@@ -376,6 +399,9 @@ export async function pageElevVarld(startNiva) {
         lager: skolaLager, meClassId, classes: allClasses,
       });
       skolaNiva.fokus = fokus; // kameran läser fokus vid varje övergång
+      // Skol-översikten läser INGEN elev-/aggregat-data (#114-perf: bara lätta
+      // silhuetter ur klass-dokumenten). De riktiga husen + klassens stjärnor
+      // hämtas först vid inzoomning till en specifik grannby (laddaGrannbyData).
       return { classes: allClasses, fokusById };
     })().catch((err) => {
       skolaLaddning = null; // låt nästa försök bygga om
@@ -384,14 +410,58 @@ export async function pageElevVarld(startNiva) {
     return skolaLaddning;
   }
 
+  // Hämta EN grannklass elever + utseenden, först när man zoomar in på den (perf:
+  // en klass i taget – IDENTISKT med vad egna byn (laddaBy) redan gör). Läser
+  // grannklassens studentData direkt (cross-class-läsning är öppen för inloggade
+  // sedan #114) så byn fylls DIREKT ur befintlig data – ingen elev behöver ha
+  // loggat in först. getStudentsWithLooks hanterar huslåset per elev (nekad läsning
+  // → default-utseende + locked). Stjärnorna räknas fram LIVE (aggregateKlassStats),
+  // exakt som klassen själv ser dem – ingen denormaliserad classStats behövs.
+  async function laddaGrannbyData(klass) {
+    const ids = Array.isArray(klass.studentIds) ? klass.studentIds : [];
+    let students = await data.getStudentsWithLooks(ids);
+    // Namnordning (svensk kollation) – ingen "egen" tomt i en annan klass.
+    students = students
+      .slice()
+      .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
+    const stats = aggregateKlassStats(students);
+    return { students, stats };
+  }
+
   // --- Grannby-nivån (läs-vy av en ANNAN klass by) --------------------------
   // Egen modul (varld-grannby.js): en liten kamera som korszoomar skolaLager ↔
-  // grannby-lager mot den klickade klassens plats. onNiva=updateUi delas med
-  // huvudkameran, så titel/knappar uppdateras likadant.
+  // grannby-lager ↔ grannbyhus-lager mot den klickade klassen/eleven. onNiva=
+  // updateUi delas med huvudkameran, så titel/knappar uppdateras likadant.
   const grannbyVy = createGrannbyVy({
-    stage, skolaLager, grannbyLager, skolaNiva, meClassId,
+    stage, skolaLager, grannbyLager, grannbyhusLager, skolaNiva, meId, meClassId,
     ensureSkola: laddaSkola,
+    laddaData: laddaGrannbyData,
+    onStats: (stats, klassNamn) => {
+      grannbyStats.fyll(stats || {}, klassNamn);
+      grannbyStatsRedo = true;
+      visaKlassStats();
+    },
     onNiva: (id) => updateUi(id),
+  });
+
+  // Klick i grannbyn: samma mönster som egna byn – klick på ett hus zoomar in
+  // till DEN elevens hus-exteriör (läs-vy), aldrig direkt in i rummet. Låst hus
+  // (husLast) → ingen inträde, bara en vänlig "🔒"-bubbla. Egen tomt (edge, om man
+  // ingår i grannklassen) → eget hus. Delegerat på lagret så det funkar oavsett
+  // när grannbyn byggs.
+  grannbyLager.addEventListener("click", (e) => {
+    const tomt = e.target.closest(".by-tomt");
+    if (!tomt || stage.dataset.niva !== "grannby") return;
+    if (tomt.dataset.me) return go("#/elev/hus");
+    if (tomt.dataset.locked) return visaLastBubbla(tomt);
+    const klassId = grannbyVy.klass ? grannbyVy.klass.id : "";
+    go(`#/elev/grannhus?id=${encodeURIComponent(tomt.dataset.id)}&klass=${encodeURIComponent(klassId)}`);
+  });
+  grannbyLager.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.closest(".by-tomt")) {
+      e.preventDefault();
+      e.target.closest(".by-tomt").click();
+    }
   });
 
   // Klick i skolan: egen klass → zooma in till klassbyn; annan klass → zooma in
@@ -427,8 +497,8 @@ export async function pageElevVarld(startNiva) {
     utBtn.style.display = "";
     skolaBtn.hidden = true; // "Andra byar" syns bara på by-nivån (nedan)
     // 🧰 Verktyg är rum/hus-actions – visa triggern BARA i egna rummet/huset.
-    // Deterministiskt varje gång: dölj den i by/kompis/kompishus/skola/grannby
-    // och stäng ev. öppen meny så den inte hänger kvar synlig när man lämnar.
+    // Deterministiskt varje gång: dölj den i by/kompis/kompishus/skola/grannby/
+    // grannbyhus och stäng ev. öppen meny så den inte hänger kvar synlig när man lämnar.
     const verktygWrap = view.querySelector(".varld-verktyg");
     if (verktygWrap) {
       const visaVerktyg = nivaId === "rum" || nivaId === "hus";
@@ -446,8 +516,6 @@ export async function pageElevVarld(startNiva) {
       utBtn.innerHTML = "🏠 <span>Min by</span>";
       utBtn.title = "Zooma in till din klass by";
       titel.textContent = "Skolan 🏫";
-      hint.textContent = "🏫 Klicka på din klass för att gå till er by – eller kika på en annan klass by!";
-      hint.hidden = false;
     } else if (nivaId === "grannby") {
       // Läs-vy av en annan klass by. Bara "tillbaka till skolan".
       const k = grannbyVy.klass;
@@ -455,8 +523,13 @@ export async function pageElevVarld(startNiva) {
       utBtn.innerHTML = "← <span>Till skolan</span>";
       utBtn.title = "Tillbaka till skolan";
       titel.textContent = `Klass ${possessiv(namn)} by 🏘️`;
-      hint.textContent = "👀 En annan klass by – du kan bara titta. Klicka pilen för att gå tillbaka.";
-      hint.hidden = false;
+    } else if (nivaId === "grannbyhus") {
+      // En annan klass elevs hus-exteriör (läs-vy). Tillbaka till grannbyn.
+      const e = grannbyVy.elev;
+      const namn = (e && (e.namn || e.username)) || "Elevens";
+      utBtn.innerHTML = "← <span>Till byn</span>";
+      utBtn.title = "Tillbaka till klassens by";
+      titel.textContent = `${possessiv(namn)} hus 🏠`;
     } else if (nivaId === "by") {
       utBtn.innerHTML = "🏠 <span>Mitt hus</span>";
       utBtn.title = "Zooma in till ditt hus";
@@ -465,35 +538,21 @@ export async function pageElevVarld(startNiva) {
       skolaBtn.innerHTML = "🔭 <span>Andra byar</span>";
       skolaBtn.title = "Zooma ut och se andra klassers byar";
       titel.textContent = `${skyltTitel} 🏘️`;
-      hint.textContent = flerByar
-        ? "🏘️ Klicka på en kompis hus för att hälsa på · 🔭 zooma ut för att se andra klassers byar!"
-        : "🏘️ Klicka på en kompis hus för att hälsa på – ditt eget hus tar dig hem!";
-      hint.hidden = false;
     } else if (nivaId === "hus") {
       // Hus-nivån ÄR startsidan – ingen "hem"-knapp behövs (den vore en no-op).
       // Byn nås via klasskylten, rummet genom att klicka på huset.
       utBtn.style.display = "none";
       titel.textContent = `${session.namn ? possessiv(session.namn) : "Mitt"} hus 🏠`;
-      hint.textContent = "🏠 Klicka på huset för att gå in – eller på skylten för att se hela byn!";
-      hint.hidden = false;
     } else if (nivaId === "kompishus") {
       const k = kompisVy.kompis;
       const namn = (k && (k.namn || k.username)) || "Kompisens";
       utBtn.innerHTML = "← <span>Till byn</span>";
       utBtn.title = "Tillbaka till klassbyn";
       titel.textContent = `${possessiv(namn)} hus 🏠`;
-      hint.textContent = `🏠 Klicka på huset för att gå in i ${possessiv(namn)} rum – eller på pilen tillbaka till byn.`;
-      hint.hidden = false;
     } else {
       utBtn.innerHTML = "🚪 <span>Gå ut</span>";
       utBtn.title = "Gå ut ur huset";
       titel.textContent = "Mitt rum 🛏️";
-      hint.textContent = "Dra saker för att flytta dem · klicka på ett husdjur för att mysa! 🐾";
-      hint.hidden = false;
-      // Låt inne-hinten smälta undan av sig själv efter en stund.
-      setTimeout(() => {
-        if (stage.dataset.niva === "rum") hint.hidden = true;
-      }, 5000);
     }
   }
   updateUi(kamera.aktivId);
@@ -505,8 +564,15 @@ export async function pageElevVarld(startNiva) {
     async visaNiva(nivaId, id) {
       // Kompis-hus-nivån: zooma in till den klickade kamratens exteriör.
       if (nivaId === "kompis") return kompisVy.visa(id);
-      // Grannby-nivån: zooma in till en annan klass by-översikt.
+      // Grannby-nivån: zooma in till en annan klass by-översikt (grannbyVy.visa
+      // zoomar även UT från ett grannby-hus till översikten om vi står där).
       if (nivaId === "grannby") return grannbyVy.visa(id);
+      // Grannby-HUS-nivån: gå in i en annan klass elevs hus-exteriör (läs-vy).
+      // Elev-id + klass bärs i query.
+      if (nivaId === "grannhus") {
+        const p = getParams();
+        return grannbyVy.visaHus(p.id, p.klass);
+      }
 
       // Står vi på en kamrats hus? Tillbaka till byn = zooma ut med kompis-
       // kameran; hus/rum-hopp därifrån nollställs först (huvudkameran är kvar
@@ -518,10 +584,12 @@ export async function pageElevVarld(startNiva) {
         }
         kompisVy.nollstall();
       }
-      // Samma sak för grannbyn: tillbaka till skolan = zooma ut med grannby-
-      // kameran; hopp längre in nollställs först (huvudkameran står i skolan
-      // så länge vi rör oss i grannby-grenen).
-      if (grannbyVy.aktivId === "grannby") {
+      // Samma sak för grannby-grenen (grannby ELLER grannbyhus aktiv): tillbaka
+      // till skolan = zooma ut med grannby-kameran; hopp UT ur grenen (by/hus/rum)
+      // nollställs först (huvudkameran står i skolan så länge vi rör oss i grenen).
+      if (grannbyVy.aktivId === "grannbyhus") {
+        grannbyVy.nollstall();
+      } else if (grannbyVy.aktivId === "grannby") {
         if (nivaId === "skola") {
           grannbyVy.tillbaka();
           return;
@@ -537,30 +605,30 @@ export async function pageElevVarld(startNiva) {
           return;
         }
       } else if (nivaId === "by" && kamera.aktivId !== "by") {
-        if (!byLaddning) hint.textContent = "Hämtar byn… 🏘️";
         try {
           await laddaBy();
         } catch (err) {
           flash("Kunde inte hämta byn: " + err.message, true);
           return;
         }
-      } else if (nivaId === "hus" && kamera.aktivId === "rum") {
-        hint.textContent = "Hej då, rummet! 👋";
-      } else if (nivaId === "rum" && kamera.aktivId !== "rum") {
-        hint.textContent = "Välkommen hem! 🏡";
       }
       kamera.gaTill(nivaId);
     },
   };
 
   // Ut-knappen (kontextberoende, se updateUi):
-  //   grannby  → tillbaka till skolan
-  //   skola    → zooma in till den egna byn
+  //   grannbyhus → tillbaka till grannbyns översikt (samma klass)
+  //   grannby   → tillbaka till skolan
+  //   skola     → zooma in till den egna byn
   //   kompishus → tillbaka till byn
-  //   by/rum   → ut till/in i egna huset (rummet = gå ut, byn = zooma in)
+  //   by/rum    → ut till/in i egna huset (rummet = gå ut, byn = zooma in)
   // På hus-nivån är knappen dold (updateUi), så den grenen nås aldrig därifrån.
   utBtn.addEventListener("click", () => {
     const n = stage.dataset.niva;
+    if (n === "grannbyhus") {
+      const k = grannbyVy.klass;
+      return go(`#/elev/grannby?id=${encodeURIComponent(k ? k.id : "")}`);
+    }
     if (n === "grannby") return go("#/elev/skolan");
     if (n === "skola") return go("#/elev/by");
     if (n === "kompishus") return go("#/elev/by");
@@ -590,6 +658,7 @@ export async function pageElevVarld(startNiva) {
     husLast = next;
     renderLasBtn();
     data.setHusLast(next).then(() => {
+      sd.husLast = next;
       flash(next
         ? "🔒 Huset är låst – nu kan ingen kompis titta in i rummet."
         : "🔓 Huset är upplåst – kompisar kan hälsa på igen.");
@@ -804,9 +873,10 @@ export async function pageElevVarld(startNiva) {
       return pageError("Kunde inte hämta byn", err);
     }
   }
-  // Djuplänk rakt in i skolan (#/elev/skolan) eller en grannby (#/elev/grannby):
-  // bygg skolan INNAN scenen visas (grannby-vyn behöver dess fokuspunkter).
-  if (startNiva === "skola" || startNiva === "grannby") {
+  // Djuplänk rakt in i skolan (#/elev/skolan), en grannby (#/elev/grannby) eller
+  // ett grannby-hus (#/elev/grannhus): bygg skolan INNAN scenen visas (grannby-
+  // vyn behöver dess fokuspunkter).
+  if (startNiva === "skola" || startNiva === "grannby" || startNiva === "grannhus") {
     try {
       await laddaSkola();
     } catch (err) {
@@ -820,4 +890,6 @@ export async function pageElevVarld(startNiva) {
   if (startNiva === "kompis") kompisVy.visa(kompisId);
   // Djuplänk till en grannby: zooma in till klassens by när scenen står i DOM:en.
   if (startNiva === "grannby") grannbyVy.visa(grannbyId);
+  // Djuplänk till ett grannby-hus: zooma in till elevens exteriör (läs-vy).
+  if (startNiva === "grannhus") grannbyVy.visaHus(getParams().id, getParams().klass);
 }

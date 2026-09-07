@@ -127,8 +127,11 @@ const routes = {
   // Skol-nivån (#/elev/skolan): zooma UT från byn och se andra klassers byar.
   "/elev/skolan": () => pageElevVarld("skola"),
   // Grannby-nivån (#/elev/grannby?id=…): zooma in till en annan klass by-
-  // översikt (läs-vy, inga enskilda elevers rum) – samma scen, ny zoomnivå.
+  // översikt (läs-vy med deras riktiga hus + stjärnor) – samma scen, ny zoomnivå.
   "/elev/grannby": () => pageElevVarld("grannby"),
+  // Grannby-HUS-nivån (#/elev/grannhus?id=…&klass=…): gå in i en annan klass elevs
+  // hus-exteriör (läs-vy) innan man går in i deras rum (#114) – samma scen, ny nivå.
+  "/elev/grannhus": () => pageElevVarld("grannhus"),
   // Husdjuren bor numera i Mitt rum – gamla länkar skickas dit.
   "/elev/husdjur": () => go("#/elev/rum"),
   "/elev/profil": pageElevProfil,
@@ -161,7 +164,8 @@ function router() {
   document.body.classList.toggle(
     "varld-lage",
     path === "/elev/by" || path === "/elev/hus" || path === "/elev/rum" ||
-    path === "/elev/kompis" || path === "/elev/skolan" || path === "/elev/grannby"
+    path === "/elev/kompis" || path === "/elev/skolan" || path === "/elev/grannby" ||
+    path === "/elev/grannhus"
   );
   const handler = routes[path] || pageNotFound;
   handler();

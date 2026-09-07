@@ -35,19 +35,28 @@ function escAttr(s) {
 }
 
 /**
- * Kamratens exteriör som SVG-sträng (läsläge). Återanvänder husScen med
- * kamratens skal/avatar men UTAN skylt; id:n döps om så de inte krockar med
- * det egna hus-lagret, och aria får kamratens namn. Huset görs klickbart →
- * deras rum av kompis-lagrets klickhanterare.
+ * En annan elevs exteriör som SVG-sträng (läsläge). Återanvänder husScen med
+ * elevens skal/avatar men UTAN skylt; id:n döps om (med `prefix`) så de inte
+ * krockar med det egna hus-lagret, och aria får elevens namn. Huset görs
+ * klickbart → deras rum av lagrets klickhanterare.
+ *
+ * Exporteras så grannby-vyn (varld-grannby.js) kan rita en ANNAN klass elevs
+ * exteriör på EXAKT samma sätt som kompis-hus-nivån gör inom klassen (#114) –
+ * bara med en egen id-prefix så de två lagren aldrig delar element-id:n.
+ *
+ * @param {{namn?:string, username?:string, id?:string, avatarId?:string,
+ *   avatarItems?:string[], husSkalId?:string}} friend
+ * @param {string} [prefix]  id-prefix, "kompis" (default) eller t.ex. "grannbyhus"
+ * @returns {string} husScen-markup med `${prefix}-husgrupp` / `${prefix}-avatar`
  */
-function kompisHusHtml(friend) {
+export function kompisHusHtml(friend, prefix = "kompis") {
   const namn = friend.namn || friend.username || friend.id;
   return husScen(
     avatarMarkup(friend.avatarId || DEFAULT_AVATAR, friend.avatarItems || []),
     { skalId: friend.husSkalId || undefined, skylt: null }
   )
-    .replace('id="husgrupp"', 'id="kompis-husgrupp"')
-    .replace('id="ute-avatar"', 'id="kompis-avatar"')
+    .replace('id="husgrupp"', `id="${prefix}-husgrupp"`)
+    .replace('id="ute-avatar"', `id="${prefix}-avatar"`)
     .replace('aria-label="Ditt hus utifrån"', `aria-label="${possessiv(escAttr(namn))} hus utifrån"`)
     .replace('aria-label="Gå in i huset"', `aria-label="Gå in i ${possessiv(escAttr(namn))} rum"`);
 }

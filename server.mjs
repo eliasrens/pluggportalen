@@ -42,7 +42,13 @@ const server = createServer(async (req, res) => {
       return;
     }
     const body = await readFile(filePath);
-    res.writeHead(200, { "Content-Type": TYPES[extname(filePath)] || "application/octet-stream" });
+    res.writeHead(200, {
+      "Content-Type": TYPES[extname(filePath)] || "application/octet-stream",
+      // Ingen cache: preview/utveckling ska alltid visa senaste koden (samma
+      // no-cache-hållning som firebase.json ger live-sajten). Utan detta cachar
+      // webbläsaren ES-modulerna hårt och en omladdning visar gammal kod.
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+    });
     res.end(body);
   } catch (e) {
     res.writeHead(500).end("Serverfel: " + e.message);

@@ -146,11 +146,14 @@ describe("Elev når bara sitt eget", () => {
     await assertSucceeds(getDoc(doc(elev("elev1"), "classes", "6a")));
   });
 
-  it("kan INTE läsa en annan elevs students-dokument", async () => {
-    await assertFails(getDoc(doc(elev("elev1"), "students", "elev2")));
+  // #114: läsning av en ANNAN elevs students/studentData är numera öppen för alla
+  // inloggade (grannby-vyn ska kunna gå in i andra klassers rum). Isoleringen
+  // ligger nu i SKRIVreglerna (nedan) + huslåset – inte i läsningen.
+  it("FÅR nu läsa en annan elevs students-dokument (#114: öppet för inloggade)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev2")));
   });
-  it("kan INTE läsa en annan elevs studentData", async () => {
-    await assertFails(getDoc(doc(elev("elev1"), "studentData", "elev2")));
+  it("FÅR nu läsa en annan elevs (olåsta) studentData (#114: öppet för inloggade)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "studentData", "elev2")));
   });
   it("kan INTE skriva en annan elevs studentData", async () => {
     await assertFails(
@@ -178,9 +181,11 @@ describe("Elev når bara sitt eget", () => {
   });
 });
 
-describe("Klasskamrat-läsning (klassbyn) – scopad till samma klass", () => {
-  // Sätt upp denormaliserade classIds: elev1 & elev2 i "6a", elev3 i "6b".
-  // (Reglerna avgör "samma klass" via students/{id}.classIds, se sharesClass.)
+describe("Cross-class-läsning (#114) – öppen för inloggade, skriv-isolerad", () => {
+  // elev1 & elev2 i "6a", elev3 i "6b" (olika klasser). #114: grannby-vyn ska
+  // kunna gå in i en ANNAN klass elevers hus/rum → students/studentData-läsning
+  // är öppen för ALLA inloggade (huslåset spärrar fortfarande låsta rum, och
+  // skrivning är alltid isolerad till eleven själv/läraren).
   beforeEach(async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
       const db = ctx.firestore();
@@ -195,24 +200,23 @@ describe("Klasskamrat-läsning (klassbyn) – scopad till samma klass", () => {
     });
   });
 
-  it("elev får LÄSA en klasskamrats students (namn/avatar till byn)", async () => {
+  it("elev får LÄSA en klasskamrats students + studentData (byn)", async () => {
     await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev2")));
-  });
-  it("elev får LÄSA en klasskamrats studentData (hus/palett till byn)", async () => {
     await assertSucceeds(getDoc(doc(elev("elev1"), "studentData", "elev2")));
   });
-  it("elev får INTE läsa en elev i en ANNAN klass", async () => {
-    await assertFails(getDoc(doc(elev("elev1"), "students", "elev3")));
-    await assertFails(getDoc(doc(elev("elev1"), "studentData", "elev3")));
+  it("elev får nu LÄSA en elev i en ANNAN klass (grannby-rum, #114)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev3")));
+    await assertSucceeds(getDoc(doc(elev("elev1"), "studentData", "elev3")));
   });
-  it("elev får ändå INTE skriva en klasskamrats studentData eller students", async () => {
+  it("elev får ändå INTE skriva en annan elevs studentData eller students (någon klass)", async () => {
     await assertFails(setDoc(doc(elev("elev1"), "studentData", "elev2"), { coins: 0 }));
     await assertFails(setDoc(doc(elev("elev1"), "students", "elev2"), { namn: "x" }));
+    await assertFails(setDoc(doc(elev("elev1"), "studentData", "elev3"), { coins: 0 }));
   });
-  it("klasslös elev (inga classIds) når bara sitt eget", async () => {
-    // elev3 delar ingen klass med elev1/elev2.
-    await assertFails(getDoc(doc(elev("elev3"), "students", "elev1")));
-    await assertFails(getDoc(doc(elev("elev3"), "studentData", "elev2")));
+  it("en klasslös elev får också läsa andra (öppet), men inte skriva", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev3"), "students", "elev1")));
+    await assertSucceeds(getDoc(doc(elev("elev3"), "studentData", "elev2")));
+    await assertFails(setDoc(doc(elev("elev3"), "studentData", "elev1"), { coins: 0 }));
   });
 });
 
@@ -226,6 +230,9 @@ describe("Huslås (#33): husLast==true spärrar kamratläsning av studentData", 
       const db = ctx.firestore();
       await setDoc(doc(db, "students", "elev1"), { classIds: ["6a"] }, { merge: true });
       await setDoc(doc(db, "students", "elev2"), { classIds: ["6a"] }, { merge: true });
+      await setDoc(doc(db, "students", "elev3"), {
+        namn: "Cecilia", username: "elev3", classIds: ["6b"],
+      });
       await setDoc(
         doc(db, "studentData", "elev2"),
         { coins: 50, progress: {}, husLast: true },
@@ -236,6 +243,10 @@ describe("Huslås (#33): husLast==true spärrar kamratläsning av studentData", 
 
   it("klasskamrat får INTE läsa en LÅST elevs studentData", async () => {
     await assertFails(getDoc(doc(elev("elev1"), "studentData", "elev2")));
+  });
+  it("en elev i en ANNAN klass får INTE heller läsa en LÅST elevs studentData (#114)", async () => {
+    // Huslåset spärrar oavsett klass – låset går inte att kringgå cross-class.
+    await assertFails(getDoc(doc(elev("elev3"), "studentData", "elev2")));
   });
   it("eleven själv läser/skriver sin egen studentData även när den är låst", async () => {
     await assertSucceeds(getDoc(doc(elev("elev2"), "studentData", "elev2")));
@@ -248,6 +259,22 @@ describe("Huslås (#33): husLast==true spärrar kamratläsning av studentData", 
   });
   it("klasskamrat får ändå läsa students (husets exteriör/figur syns i byn)", async () => {
     await assertSucceeds(getDoc(doc(elev("elev1"), "students", "elev2")));
+  });
+});
+
+// (#114) Kollektionerna classStats (#113) och looks är borttagna – grannby-vyn
+// räknar hus + stjärnor live ur grannklassens studentData. Verifiera att båda nu
+// faller på "neka allt"-regeln (ingen kvarlämnad öppen regel).
+describe("Borttagna collections (looks/classStats, #114) nekas helt", () => {
+  it("neka läs/skriv på classStats även för lärare/elev (död collection)", async () => {
+    await assertFails(getDoc(doc(elev("elev1"), "classStats", "6a")));
+    await assertFails(setDoc(doc(elev("elev1"), "classStats", "6a"), { totalStars: 1 }));
+    await assertFails(setDoc(doc(teacher(), "classStats", "6a"), { totalStars: 1 }));
+  });
+  it("neka läs/skriv på looks även för lärare/elev (död collection)", async () => {
+    await assertFails(getDoc(doc(elev("elev1"), "looks", "elev2")));
+    await assertFails(setDoc(doc(elev("elev1"), "looks", "elev1"), { namn: "x" }));
+    await assertFails(setDoc(doc(teacher(), "looks", "elev1"), { namn: "x" }));
   });
 });
 
