@@ -81,6 +81,7 @@ export function defaultStudentData(avatarId) {
     coins: 0,
     xp: 0, // kumulativt erfarenhets-XP (nivån härleds ur detta – se leveling.js)
     progress: {}, // { [areaId]: { [gamemode]: { completed, bestScore, stars, lastPlayed } } }
+    questionRotation: {}, // { [areaId]: { [mode]: [frågenycklar serverade i pågående varv] } } – se question-rotation.js
     ownedItems: [], // shop-sak-id:n (binärt "ägd" – single-kategorier & legacy)
     ownedCounts: {}, // { [id]: antal } för multi-saker (möbler/dekor) – se buyItem/ownedCount
     avatarItems: [], // burna klädsaker (delmängd av ownedItems)
@@ -170,6 +171,37 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
   }
   await updateDoc(ref, { [key]: { ...existing, ...payload } });
   return payload;
+}
+
+// --- Roterande frågeurval (per elev, område, läge) --------------------------
+
+/**
+ * Hämtar listan över frågenycklar som redan serverats i det PÅGÅENDE varvet för
+ * ett (område, läge). Saknas data → tom lista (→ slumpad start; bakåtkompatibelt).
+ * @returns {Promise<string[]>}
+ */
+export async function getQuestionRotation(areaId, mode, studentId = currentStudentId()) {
+  try {
+    const data = await getStudentData(studentId);
+    const keys = data?.questionRotation?.[areaId]?.[mode];
+    return Array.isArray(keys) ? keys : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Sparar den uppdaterade listan serverade frågenycklar för ett (område, läge).
+ * Anropas när en ny session byggts (se games-quiz.js). Fel sväljs – misslyckad
+ * sparning innebär bara att nästa session slumpar om, aldrig en trasig övning.
+ */
+export async function saveQuestionRotation(areaId, mode, keys, studentId = currentStudentId()) {
+  if (!studentId) return;
+  const ref = doc(db, "studentData", studentId);
+  const key = `questionRotation.${areaId}.${mode}`;
+  try {
+    await updateDoc(ref, { [key]: Array.isArray(keys) ? keys : [] });
+  } catch {}
 }
 
 // --- Ägda saker (shop) ------------------------------------------------------

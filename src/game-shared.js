@@ -11,6 +11,10 @@ import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
 import { addXp } from "./data-xp.js";
 import { xpForExercise, xpIntoLevel } from "./leveling.js";
 import { coinIcon } from "./icons.js";
+import {
+  MAX_QUESTIONS_PER_SESSION,
+  pickRotatingQuestions,
+} from "./question-rotation.js";
 
 export const enc = encodeURIComponent;
 
@@ -51,25 +55,27 @@ export function shuffle(arr) {
   return a;
 }
 
-// Max antal frågor per NY quiz-/läsförståelse-session. Har arbetsområdet fler
-// frågor i poolen slumpas exakt så här många fram den sessionen; har det färre
-// körs alla.
-export const MAX_QUESTIONS_PER_SESSION = 20;
+// Max antal frågor per NY quiz-/läsförståelse-session (10). Själva taket + den
+// roterande urvalslogiken bor i question-rotation.js (browser-fri → enhetstestbar).
+export { MAX_QUESTIONS_PER_SESSION };
 
 /**
- * Välj vilka frågor en NY session ska köra ur områdets pool.
- * • Är poolen större än taket: slumpa fram exakt MAX_QUESTIONS_PER_SESSION st
- *   (riktig Fisher–Yates-blandning + slice, inte partisk sortering).
- * • Är poolen ≤ taket: kör alla (i poolens ordning; runQuestions blandar sedan).
+ * Välj vilka frågor en NY session ska köra ur områdets pool, MED rotation:
+ * varje session serverar osedda frågor tills poolen körts igenom (ett varv),
+ * sedan nollställs spårningen och nästa varv slumpas om.
+ *
+ * @param {Array} pool  hela områdets fråge-pool (för läget)
+ * @param {string[]} seen  nycklar som redan serverats i pågående varv (från
+ *                          data.getQuestionRotation; saknas → slumpad start)
+ * @returns {{questions: Array, seen: string[]}}  frågorna att köra + den
+ *          uppdaterade listan sedda nycklar att spara (data.saveQuestionRotation).
  *
  * OBS: Detta gäller BARA när en ny session byggs. Omspel/retry av fel-svarade
  * frågor går inte via den här – de kör exakt sina specifika frågor (repetition
- * inom rundan sköts av runQuestions och rör inte det här taket).
+ * inom rundan sköts av runQuestions och rör inte det här urvalet).
  */
-export function pickSessionQuestions(pool) {
-  if (!Array.isArray(pool)) return [];
-  if (pool.length <= MAX_QUESTIONS_PER_SESSION) return pool.slice();
-  return shuffle(pool).slice(0, MAX_QUESTIONS_PER_SESSION);
+export function pickSessionQuestions(pool, seen) {
+  return pickRotatingQuestions(pool, seen);
 }
 
 /** Stjärnor (1–3) ur en andel rätt (0–1). Den som klarar övningen får minst 1. */
@@ -126,10 +132,10 @@ export function muteButton() {
 // Belöning + framsteg
 // ---------------------------------------------------------------------------
 
-// Lägen som bygger en HELT NY session vid varje omspel: de slumpar fram ett nytt
-// urval på max 20 frågor (se pickSessionQuestions), så ett omspel är i praktiken
-// en ny övning – inte samma runda igen. Därför räknas de som full övning varje
-// gång och slipper grind-reduktionen (full pott coins + XP alltid).
+// Lägen som bygger en HELT NY session vid varje omspel: de serverar ett nytt,
+// roterande urval på max 10 osedda frågor (se pickSessionQuestions), så ett omspel
+// är i praktiken en ny övning – inte samma runda igen. Därför räknas de som full
+// övning varje gång och slipper grind-reduktionen (full pott coins + XP alltid).
 // Övriga lägen (kunskapsjakt = tidsloop på hela poolen, para/memory = par) kör
 // oförändrat grind-skydd. Rör inte de par-baserade lägena.
 const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
