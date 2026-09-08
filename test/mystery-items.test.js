@@ -4,7 +4,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   MYSTERY_ITEMS,
+  MYSTERY_BOX_ID,
   MYSTERY_BOX_PRICE,
+  MYSTERY_BOXES,
   RARITIES,
   RARITY_ORDER,
   getMysteryItem,
@@ -107,6 +109,39 @@ test("rollMysteryItem returnerar alltid ett item ur poolen", () => {
     const it = rollMysteryItem();
     assert.ok(idSet.has(it.id));
   }
+});
+
+test("MYSTERY_BOXES: tre nivåer 500/1000/2000, stigande legendary-chans", () => {
+  assert.equal(MYSTERY_BOXES.length, 3);
+  const [vanlig, mega, epic] = MYSTERY_BOXES;
+  // Vanliga boxen är oförändrad: id/pris + basviktning (legendaryChance null).
+  assert.equal(vanlig.id, MYSTERY_BOX_ID);
+  assert.equal(vanlig.price, MYSTERY_BOX_PRICE);
+  assert.equal(vanlig.legendaryChance, null);
+  // Mega & Epic: dyrare + explicit högre legendary-chans.
+  assert.equal(mega.id, "mysterybox-mega");
+  assert.equal(mega.price, 1000);
+  assert.equal(epic.id, "mysterybox-epic");
+  assert.equal(epic.price, 2000);
+  assert.ok(mega.legendaryChance > 0.05 && mega.legendaryChance < 0.2, `mega ${mega.legendaryChance}`);
+  assert.ok(epic.legendaryChance >= 0.85, `epic ${epic.legendaryChance}`);
+  // Priserna i stigande ordning (visas billigast → dyrast sist i shoppen).
+  assert.ok(vanlig.price < mega.price && mega.price < epic.price);
+});
+
+test("rollMysteryItem: legendaryChance parametrerar legendary-oddsen", () => {
+  // rng < chansen → legendary; annars viktas övriga tre nivåer inbördes.
+  assert.equal(rollMysteryItem(seqRng([0.0, 0]), { legendaryChance: 0.9 }).rarity, "legendary");
+  assert.notEqual(rollMysteryItem(seqRng([0.95, 0, 0]), { legendaryChance: 0.9 }).rarity, "legendary");
+  // Epic-chans (0.9): stor andel legendary över många drag.
+  let leg = 0;
+  const N = 20000;
+  for (let k = 0; k < N; k++) if (rollMysteryItem(Math.random, { legendaryChance: 0.9 }).rarity === "legendary") leg++;
+  assert.ok(leg / N > 0.85, `epic legendary-andel ${leg / N}`);
+  // Mega-chans (0.11): tydligt högre än basboxens ~2 %, men långt från Epic.
+  let mleg = 0;
+  for (let k = 0; k < N; k++) if (rollMysteryItem(Math.random, { legendaryChance: 0.11 }).rarity === "legendary") mleg++;
+  assert.ok(mleg / N > 0.08 && mleg / N < 0.15, `mega legendary-andel ${mleg / N}`);
 });
 
 test("distributionen speglar vikterna grovt (vanlig > ovanlig > sällsynt > legendary)", () => {
