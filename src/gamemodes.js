@@ -73,7 +73,6 @@ export async function pageElevOmrade() {
   }).join("");
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till områdena</a>
     <div class="panel center">
       <div class="big-emoji">${areaData.coverEmoji || "📖"}</div>
       <h1>${areaData.name}</h1>
@@ -82,7 +81,6 @@ export async function pageElevOmrade() {
     <div class="card-grid">${cards}</div>
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/plugga"));
   view.querySelectorAll(".gm-card").forEach((btn) => {
     if (btn.disabled) return;
     btn.addEventListener("click", () => {
