@@ -223,14 +223,17 @@ export function startMemory(ctx) {
   }
 
   function finish() {
-    // Färre försök = fler stjärnor. Perfekt = total försök.
-    const stars = tries <= total ? 3 : tries <= total + 3 ? 2 : 1;
+    // Memory är turbaserat → inga stjärnor. Övningen räknas ändå avklarad och
+    // ger coins (grind-skalat via trappan i awardExercise, precis som förr).
+    // Coins skalas fortfarande efter hur effektivt paren hittades (färre försök
+    // = fler coins). XP: flat bas utan per-stjärne-bonus (stars=0 → XP_BASE).
     const baseCoins = 2 * Math.max(5, 6 + Math.max(0, 10 - (tries - total)));
     setTimeout(() => {
       showResult({
         container: body,
         subj, area, mode: "memory",
-        stars,
+        stars: 0,
+        noStars: true,
         scoreLine: `Klart på ${tries} försök.`,
         baseCoins,
         bestScore: Math.max(0, total * 3 - tries),

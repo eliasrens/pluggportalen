@@ -208,8 +208,11 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  * Gemensam resultat-/firande-skärm. Delar ut belöning och visar konfetti.
  * @param {object} opts
  * @param {function} opts.replay  startar om samma övning
+ * @param {boolean} [opts.noStars]  turbaserade lägen (t.ex. Memory) har inga
+ *   stjärnor: dölj stjärnraden och ersätt med neutral uppmuntran. Övriga lägen
+ *   (para-ihop/quiz m.fl.) skickar inte flaggan och är helt oförändrade.
  */
-export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay }) {
+export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
   const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
@@ -220,22 +223,22 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
   const leveledUp = after.level > before.level;
 
   const view = el(`<div class="result-card panel center">
-    <div class="result-emoji">${stars >= 2 ? "🎉" : "😀"}</div>
+    <div class="result-emoji">${noStars || stars >= 2 ? "🎉" : "😀"}</div>
     <h1>Bra jobbat!</h1>
-    <div class="result-stars">${starRow(stars)}</div>
+    ${noStars ? "" : `<div class="result-stars">${starRow(stars)}</div>`}
     ${scoreLine ? `<p class="result-score">${scoreLine}</p>` : ""}
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
     ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
-    <p class="cheer">${cheer(stars)}</p>
+    <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars)}</p>
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
       <button class="btn ghost" id="more">Till området</button>
     </div>
   </div>`);
   container.replaceChildren(view);
-  if (stars >= 2) confetti();
+  if (noStars || stars >= 2) confetti();
   sound.finish();
 
   view.querySelector("#again").addEventListener("click", () => replay());
