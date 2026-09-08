@@ -7,9 +7,11 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { parseAndValidateArea, slugify } from "./validate.js";
+import { parseAndValidateArea } from "./validate.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
 import { buildReviewPanel } from "./teacher-content-review.js";
+import { buildReadingEditor } from "./teacher-reading.js";
+import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { EXERCISE_TYPES, areaExerciseTypes } from "./exercise-types.js";
 import { listPairImageKeys } from "./pair-images.js";
@@ -138,60 +140,15 @@ export async function pageLarareInnehall(ctx) {
   wireHashLinks(ctx, view);
 
   // --- Nytt ämne ------------------------------------------------------------
-  const newSubjBtn = view.querySelector("#new-subject");
-  const newSubjForm = view.querySelector("#new-subject-form");
-  newSubjBtn.addEventListener("click", () => {
-    if (newSubjForm.firstChild) {
-      newSubjForm.innerHTML = "";
-      return;
-    }
-    const f = el(`<div class="subpanel">
-      <div class="grid-2">
-        <div class="field"><label>Id (kort, t.ex. "ma")</label><input id="ns-id" placeholder="ma" /></div>
-        <div class="field"><label>Namn</label><input id="ns-name" placeholder="Matematik" /></div>
-        <div class="field"><label>Ikon (emoji)</label><input id="ns-icon" placeholder="➗" /></div>
-        <div class="field"><label>Beskrivning</label><input id="ns-desc" placeholder="Kort beskrivning" /></div>
-      </div>
-      <div id="ns-msg"></div>
-      <button class="btn gron" id="ns-save">Skapa ämne</button>
-    </div>`);
-    f.querySelector("#ns-name").addEventListener("input", (e) => {
-      const idInput = f.querySelector("#ns-id");
-      if (!idInput.dataset.touched) idInput.value = slugify(e.target.value);
-    });
-    f.querySelector("#ns-id").addEventListener("input", (e) => {
-      e.target.dataset.touched = "1";
-    });
-    f.querySelector("#ns-save").addEventListener("click", async () => {
-      const id = slugify(f.querySelector("#ns-id").value || f.querySelector("#ns-name").value);
-      const name = f.querySelector("#ns-name").value.trim();
-      const msg = f.querySelector("#ns-msg");
-      if (!id || !name) {
-        msg.innerHTML = `<div class="msg error">Fyll i både id och namn.</div>`;
-        return;
-      }
-      if (subjects.some((s) => s.id === id)) {
-        msg.innerHTML = `<div class="msg error">Det finns redan ett ämne med id "${esc(id)}".</div>`;
-        return;
-      }
-      try {
-        const order = subjects.reduce((m, s) => Math.max(m, Number(s.order) || 0), 0) + 1;
-        await data.upsertSubject(id, {
-          name,
-          order,
-          icon: f.querySelector("#ns-icon").value.trim() || "📘",
-          description: f.querySelector("#ns-desc").value.trim() || "",
-        });
-        subjects.push({ id, name, order });
-        selected = id;
-        fillSubjectOptions();
-        newSubjForm.innerHTML = "";
-        refreshAreaList();
-      } catch (err) {
-        msg.innerHTML = `<div class="msg error">Kunde inte spara: ${esc(err.message)}</div>`;
-      }
-    });
-    newSubjForm.replaceChildren(f);
+  wireNewSubjectForm({
+    toggleBtn: view.querySelector("#new-subject"),
+    formEl: view.querySelector("#new-subject-form"),
+    subjects,
+    onCreated: (id) => {
+      selected = id;
+      fillSubjectOptions();
+      refreshAreaList();
+    },
   });
 
   // --- Övningstyper (kryssrutor) -------------------------------------------
@@ -249,12 +206,13 @@ export async function pageLarareInnehall(ctx) {
           <span class="area-emoji">${esc(a.coverEmoji || "📖")}</span>
           <div>
             <div class="area-name">${esc(a.name)} <span class="badge">${esc(a.id)}</span></div>
-            <div class="hint">${(a.texts?.length || 0)} texter · ${(a.quiz?.length || 0)} frågor · ${(a.pairs?.length || 0)} par</div>
+            <div class="hint">${(a.texts?.length || 0)} texter · ${(a.quiz?.length || 0)} frågor · ${(a.pairs?.length || 0)} par${a.readingTexts?.length ? ` · ${a.readingTexts.length} nivåtexter` : ""}</div>
           </div>
         </div>
         <div class="row-actions">
           <button class="btn ghost small" data-act="review">👁️ Granska</button>
           <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
+          <button class="btn ghost small" data-act="reading">📖 Nivåtexter</button>
           <button class="btn ghost small" data-act="edit">Ersätt</button>
           <button class="btn ghost small danger" data-act="del">Ta bort</button>
         </div>
@@ -288,6 +246,20 @@ export async function pageLarareInnehall(ctx) {
         mergeSlot.hidden = false;
         mergeSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
+      // Inline-slot för läsförståelse-editorn (3 nivåer, issue #152) – under raden.
+      const readingSlot = el(`<div class="area-reading" hidden></div>`);
+      row.querySelector('[data-act="reading"]').addEventListener("click", () => {
+        if (!readingSlot.hidden) {
+          readingSlot.hidden = true;
+          readingSlot.innerHTML = "";
+          return;
+        }
+        readingSlot.replaceChildren(
+          buildReadingEditor(a, readingSlot, { subjectId: selected, onSaved: refreshAreaList })
+        );
+        readingSlot.hidden = false;
+        readingSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
       row.querySelector('[data-act="edit"]').addEventListener("click", () => {
         // Ladda in i textrutan för redigering/ersättning. Övningstyperna hör hemma
         // i kryssrutorna (inte i JSON:en), så vi lyfter ut dem och fyller boxen.
@@ -310,6 +282,7 @@ export async function pageLarareInnehall(ctx) {
       wrap.appendChild(row);
       wrap.appendChild(reviewSlot);
       wrap.appendChild(mergeSlot);
+      wrap.appendChild(readingSlot);
       list.appendChild(wrap);
     }
     areaListEl.replaceChildren(list);
@@ -354,7 +327,7 @@ export async function pageLarareInnehall(ctx) {
   function showValidSummary(value) {
     resultEl.innerHTML = `<div class="msg ok">
       ✓ Giltig JSON! <b>${esc(value.name)}</b> (id: <code>${esc(value.id)}</code>) –
-      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par.
+      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par${value.readingTexts.length ? `, ${value.readingTexts.length} nivåtexter` : ""}.
       Klicka <b>Spara till databasen</b> för att lägga in den i ämnet.
     </div>`;
   }

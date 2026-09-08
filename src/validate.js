@@ -14,6 +14,7 @@
 
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
+import { validateReadingTexts } from "./validate-reading.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -232,10 +233,16 @@ export function validateArea(obj) {
     }
   }
 
+  // --- readingTexts[] (läsförståelse 2.0, 3 nivåer) -------------------------
+  // Valfritt fält: läs-texter där samma tema finns i tre svårighetsnivåer, var
+  // och en med egen brödtext + egna kryssfrågor. Bakåtkompatibelt (saknas fältet
+  // → tom lista). Regeln bor i src/validate-reading.js.
+  const readingTexts = validateReadingTexts(obj.readingTexts, errors, slugify);
+
   // --- Minst något innehåll -------------------------------------------------
-  if (texts.length === 0 && quiz.length === 0 && pairs.length === 0) {
+  if (texts.length === 0 && quiz.length === 0 && pairs.length === 0 && readingTexts.length === 0) {
     errors.push(
-      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga eller ett fakta-par."
+      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par eller en läs-text."
     );
   }
 
@@ -261,6 +268,7 @@ export function validateArea(obj) {
     texts,
     quiz,
     pairs,
+    readingTexts,
     exerciseTypes,
   };
   return { ok: true, errors: [], value };
