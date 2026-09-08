@@ -21,6 +21,13 @@ export async function saveProgress(area, mode, node) {
   mem.progress[area][mode] = { ...(mem.progress[area][mode] || {}), ...node };
 }
 
+export async function saveReadingProgress(areaId, textId, result) {
+  mem.progress[areaId] = mem.progress[areaId] || {};
+  mem.progress[areaId].reading = mem.progress[areaId].reading || {};
+  mem.progress[areaId].reading[textId] = { ...result };
+  console.log("[preview] reading-progress", areaId, textId, result);
+}
+
 export async function getQuestionRotation(areaId, mode) {
   return mem.rotation?.[areaId]?.[mode] || [];
 }
@@ -33,4 +40,17 @@ export async function saveQuestionRotation(areaId, mode, keys) {
 
 export function isLoggedIn() {
   return true;
+}
+
+// Overview-harnessen sätter området via globalThis.__PREVIEW_AREA.
+export async function getArea() {
+  return globalThis.__PREVIEW_AREA || null;
+}
+
+// Test-hjälpare för overview-harnessen (byt seed mellan scenarier).
+export function __setProgress(p) {
+  mem.progress = p || {};
+}
+export function __getProgress() {
+  return mem.progress;
 }

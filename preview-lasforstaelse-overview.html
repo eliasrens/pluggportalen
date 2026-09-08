@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förkravs-lås – översikt (issue #153/#155)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      body { padding: 20px; }
+      .preview-bar {
+        max-width: 900px; margin: 0 auto 16px; padding: 12px 16px;
+        background: #eef4ff; border: 2px solid #cfe0ff; border-radius: 14px;
+      }
+      .preview-bar h1 { margin: 0 0 8px; font-size: 1.15rem; }
+      .scenario-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+      .scenario-btns button {
+        font-family: var(--font, sans-serif); font-weight: 700; cursor: pointer;
+        padding: 8px 14px; border-radius: 10px; border: 2px solid #2a6df4;
+        background: #fff; color: #2a6df4;
+      }
+      #app { max-width: 900px; margin: 0 auto; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/lasf-stubs/ui.js",
+          "/src/data.js": "/preview/lasf-stubs/data.js",
+          "/src/fx.js": "/preview/lasf-stubs/fx.js",
+          "/src/data-xp.js": "/preview/lasf-stubs/data-xp.js",
+          "/src/games-quiz.js": "/preview/lasf-stubs/games-quiz.js",
+          "/src/games-match.js": "/preview/lasf-stubs/games-match.js",
+          "/src/games-jakt.js": "/preview/lasf-stubs/games-jakt.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>🔒 Läsförståelse-förkrav × Läsuppdrag – lås-verifiering (real pageElevOmrade)</h1>
+      <div class="scenario-btns">
+        <button data-sc="a">(a) Förkrav PÅ, inget klarat</button>
+        <button data-sc="b">(b) Nog många texter klarade</button>
+        <button data-sc="c">Bara nivåtexter (deadlock-test)</button>
+      </div>
+    </div>
+    <div id="app"></div>
+
+    <script type="module">
+      import { pageElevOmrade } from "/src/gamemodes.js";
+      import { __setProgress } from "/src/data.js";
+
+      globalThis.__PREVIEW_PARAMS = { subj: "so", area: "vikingatiden" };
+
+      const readingTexts = [
+        { id: "t1", title: "Text 1", levels: {} },
+        { id: "t2", title: "Text 2", levels: {} },
+        { id: "t3", title: "Text 3", levels: {} },
+        { id: "t4", title: "Text 4", levels: {} },
+      ];
+      const quiz = [{ question: "q", options: ["a", "b"], answerIndex: 0 }];
+      const pairs = [{ term: "a", definition: "b" }];
+
+      const scenarios = {
+        // (a) förkrav (kräv 2 godkända) PÅ, inget klarat → övriga låsta, läslägen fria
+        a: {
+          area: { name: "Vikingatiden", coverEmoji: "⚔️", readingPrereq: { required: 2 }, readingTexts, quiz, pairs },
+          progress: {},
+        },
+        // (b) 2 texter godkända (stars≥2) → förkravet uppfyllt → inget låst
+        b: {
+          area: { name: "Vikingatiden", coverEmoji: "⚔️", readingPrereq: { required: 2 }, readingTexts, quiz, pairs },
+          progress: { vikingatiden: { reading: { t1: { stars: 3 }, t2: { stars: 2 } } } },
+        },
+        // (c) förkrav PÅ men området har BARA nivåtexter (ingen quiz/pairs) →
+        //     Läsuppdrag spelbart, inget deadlock
+        c: {
+          area: { name: "Vikingatiden", coverEmoji: "⚔️", readingPrereq: { required: 1 }, readingTexts },
+          progress: {},
+        },
+      };
+
+      async function show(sc) {
+        const s = scenarios[sc];
+        globalThis.__PREVIEW_AREA = s.area;
+        __setProgress(JSON.parse(JSON.stringify(s.progress)));
+        await pageElevOmrade();
+      }
+
+      document.querySelectorAll(".scenario-btns button").forEach((b) =>
+        b.addEventListener("click", () => show(b.dataset.sc))
+      );
+      show("a");
+    </script>
+  </body>
+</html>

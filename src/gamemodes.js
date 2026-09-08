@@ -63,14 +63,19 @@ export async function pageElevOmrade() {
   // Fail-safe: bara ett förkrav när läsförståelsen faktiskt går att spela – annars
   // skulle området kunna deadlocka. Bakåtkompatibelt (inget förkrav → allt öppet).
   const prereq = readingPrereqStatus(areaData, areaProgress);
-  const readingPlayable = has.quiz; // läsförståelse-gamemodet kräver quiz-innehåll
+  // Läsförståelse går att spela om området har nivåtexter (Läsuppdrag/lastext)
+  // ELLER quiz-innehåll (gamla lasforstaelse). Utan något av dem finns ingen
+  // uppgift att låsa upp med → lås inget (annars deadlock).
+  const readingPlayable = has.readingTexts || has.quiz;
   const lockOthers = prereq.enabled && !prereq.met && readingPlayable;
 
   const cards = GAMEMODES.map((gm) => {
     const available = has[gm.needs];
     const stars = areaProgress[gm.id]?.stars || 0;
-    // Själva läsförståelsen låses aldrig – det är ju den eleven ska göra först.
-    const locked = lockOthers && gm.id !== "lasforstaelse" && available;
+    // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
+    // (både gamla "lasforstaelse" och nya "lastext"/Läsuppdrag).
+    const locked =
+      lockOthers && gm.id !== "lasforstaelse" && gm.id !== "lastext" && available;
     let statusHtml;
     if (locked) {
       statusHtml = `<span class="card-lock">🔒 Gör läsförståelsen först</span>`;

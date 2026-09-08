@@ -17,7 +17,8 @@ export function go(hash) {
 }
 
 export function getParams() {
-  return {};
+  // Overview-harnessen sätter globalThis.__PREVIEW_PARAMS { subj, area }.
+  return globalThis.__PREVIEW_PARAMS || {};
 }
 
 export function loading() {}

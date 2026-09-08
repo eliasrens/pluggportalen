@@ -217,6 +217,11 @@ async function runSession(ctx, body, texts, levelId) {
 
         if (passed) {
           if (attempt === 0) firstTryPasses++;
+          // Per-text-handskaket med läsförståelse-förkravet (#155): godkänt ger
+          // stars ≥ 2 (chans-skyddet kräver nästan allt rätt), så texten räknas
+          // i progress[area].reading[textId] som reading-prereq.js läser.
+          const textStars = starsFromRatio(qset.length ? correct / qset.length : 0);
+          data.saveReadingProgress(area, rt.id, { stars: textStars, bestScore: correct });
           idx++;
           if (idx >= total) finish();
           else runText();
