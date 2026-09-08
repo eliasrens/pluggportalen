@@ -163,6 +163,11 @@ export const SHOP_ITEMS = [
   // i HUS_SKAL-registret (art-hus-ute.js) – håll dem i synk.
   { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
   { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
+  // Lyxiga husskal (egen-tecknade, art-hus-lyx.js) – dyra spar-belöningar (1000+).
+  { id: "skepp", name: "Skepp", emoji: "⛵", category: "hus", price: 1000, skalId: "skepp" },
+  { id: "fotboll", name: "Fotbollshus", emoji: "⚽", category: "hus", price: 1200, skalId: "fotboll" },
+  { id: "skyskrapa", name: "Skyskrapa", emoji: "🏢", category: "hus", price: 1500, skalId: "skyskrapa" },
+  { id: "glasvilla", name: "Glasvilla", emoji: "🏙️", category: "hus", price: 2000, skalId: "glasvilla" },
   // Rums-uppgraderingar: varje köp låser upp ETT extra rum i huset (dörr inne +
   // rumslista i husvärlden). roomUpgrade:true → köpet räknas av getRoomCount()
   // som +1 rum. De köps i ordning (billigast först) men funktionellt ger var och
