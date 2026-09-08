@@ -166,7 +166,6 @@ export async function pageElevVarld(startNiva) {
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
               <button class="varld-knapp rum-och-hus" role="menuitem" data-panel="klader" title="Klä på din figur">👗 <span>Kläder</span></button>
               <button class="varld-knapp bara-rum" role="menuitem" id="mat-btn" title="Klicka ut Mysterymat på golvet">🍎 <span>Mysterymat</span></button>
-              <button class="varld-knapp" role="menuitem" id="to-shop" title="Till shoppen">🛍️ <span>Shop</span></button>
             </div>
           </div>
 
@@ -650,7 +649,6 @@ export async function pageElevVarld(startNiva) {
     go("#/elev/hus");
   });
   // "Andra byar"/"Min by" är nu skyltar (mountNavSkyltar) – klicken kopplas där.
-  view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
 
   // --- Huslås ("Lås ditt hus"): en enkel toggle i verktygsmenyn -------------
   // Låser man huset visar en klasskamrats läs-vy "🔒 Låst" i stället för rummet
