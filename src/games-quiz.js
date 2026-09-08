@@ -16,16 +16,21 @@ import {
   showResult,
   starsFromRatio,
   pickSessionQuestions,
+  plainQuizPool,
+  hasPassage,
 } from "./game-shared.js";
 
 // --- Quiz -------------------------------------------------------------------
 
 export async function startQuiz(ctx) {
   const { subj, area, areaData } = ctx;
+  // Quiz visar ingen källtext → servera bara RÄKNE-/vanliga frågor (utan passage).
+  // Läsförståelse-frågor (med passage) hålls isär och körs bara i Läsförståelse.
+  const pool = plainQuizPool(areaData.quiz || []);
   // Ny session: servera max 10 OSEDDA frågor (roterande urval). Sparar vilka som
   // serverats så nästa session ger nya, tills varvet är klart → nollställs.
   const seen = await data.getQuestionRotation(area, "quiz");
-  const { questions, seen: nextSeen } = pickSessionQuestions(areaData.quiz || [], seen);
+  const { questions, seen: nextSeen } = pickSessionQuestions(pool, seen);
   data.saveQuestionRotation(area, "quiz", nextSeen);
   const view = gameFrame({ subj, area, title: "Quiz", emoji: "❓" });
   const body = view.querySelector("#game-body");
@@ -74,9 +79,7 @@ export async function startLasforstaelse(ctx) {
   // data blir självbärande. Saknar HELA övningen passager (rent gammalt quiz)
   // faller vi tillbaka till alla frågor med en snäll ledtext, så sidan aldrig
   // ser trasig ut. Quiz-läget är oförändrat (skickar inte showPassage).
-  const withPassage = allQuestions.filter(
-    (q) => q && typeof q.passage === "string" && q.passage.trim()
-  );
+  const withPassage = allQuestions.filter(hasPassage);
   const anyPassage = withPassage.length > 0;
   // Ny session: servera max 10 OSEDDA frågor ur den valda poolen (passager om de
   // finns, annars alla), roterande urval spårat per (elev, område, läge).

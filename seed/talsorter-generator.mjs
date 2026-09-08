@@ -11,16 +11,20 @@
 // idempotent (samma dokument varje gång) och gör facit granskningsbart.
 //
 // Datamodellen (se src/validate.js / docs/DATAMODELL.md):
-//   • quiz  = { id, question, options[4], answerIndex, explanation }  (rent quiz)
+//   • quiz  = { id, question, options[4], answerIndex, explanation, passage? }
 //   • pairs = { id, term, definition }                                (text-par)
 //   • texts = { id, title, body }                                     (faktatext)
-// OBS: valideringen tillåter INTE att blanda quiz med och utan "passage" i samma
-// område. Därför är quiz här RENT quiz (utan passage) som driver Quiz,
-// Kunskapsjakt och Läsförståelse (fallback), medan texts[] är fristående
-// läsförståelse-texter. Se seed-talsorter-ma.mjs för hur det skrivs.
+// quiz[] innehåller TVÅ slags frågor som lägena håller isär på "passage"-fältet:
+//   • RÄKNE-frågorna nedan (utan passage) → driver Quiz, Kunskapsjakt och
+//     Fånga sanningar (rena räkneuppgifter, ingen text att läsa).
+//   • läsförståelse-frågorna i talsorter-lasforstaelse.mjs (MED passage) →
+//     driver Läsförståelse (källtext visas ovanför varje fråga).
+// Se src/game-shared.js (plainQuizPool) och src/games-quiz.js (startLasforstaelse)
+// för uppdelningen, och src/validate.js för att blandningen är tillåten.
 // ============================================================================
 
 import { TALSORTER_TEXTS } from "./talsorter-texts.mjs";
+import { TALSORTER_LASFORSTAELSE } from "./talsorter-lasforstaelse.mjs";
 
 // --- Deterministisk slump (mulberry32) --------------------------------------
 function makeRng(seed) {
@@ -342,13 +346,16 @@ function genPairDigitValues(rng, count) {
 }
 
 // ============================================================================
-// Huvud-API: bygg hela innehållet. Antalen är valda så att totalen ligger runt
-// 200 (quiz ~124, pairs ~50, texts 6). Läsförståelse-texterna är handskrivna
-// och bor i talsorter-texts.mjs (importeras ovan).
+// Huvud-API: bygg hela innehållet. quiz[] = 140 RÄKNE-frågor (utan passage) +
+// de handskrivna läsförståelse-frågorna (med passage) från
+// talsorter-lasforstaelse.mjs. pairs ~50, texts 6. Läsförståelse-texterna är
+// handskrivna och bor i talsorter-texts.mjs (importeras ovan).
 // ============================================================================
 export function generateTalsorter(seed = 20260908) {
   const rng = makeRng(seed);
-  const quiz = [
+  // De 140 rena räkne-frågorna (utan passage) – driver Quiz/Kunskapsjakt/Fånga
+  // sanningar. Ordning + antal oförändrade (idempotent seed).
+  const raknequiz = [
     ...genDigitAtPlace(rng, 27),
     ...genValueOfDigit(rng, 27),
     ...genBuildNumber(rng, 22),
@@ -356,6 +363,9 @@ export function generateTalsorter(seed = 20260908) {
     ...genExchange(rng, 18),
     ...genDecompose(rng, 22),
   ];
+  // Läggs SIST i quiz[]: läsförståelse-frågorna (med passage) driver enbart
+  // Läsförståelse-läget. Se plainQuizPool i src/game-shared.js.
+  const quiz = [...raknequiz, ...TALSORTER_LASFORSTAELSE];
   const pairs = [
     ...genPairNumbers(rng, 26),
     ...genPairPlaceValues(),
