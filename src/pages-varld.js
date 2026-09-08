@@ -37,6 +37,7 @@ import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./roo
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { husScen, husSkalMarkup, renderHusSkalPicker } from "./art-hus-ute.js";
 import { mountRumScen } from "./varld-rum.js";
+import { mountTradgard } from "./varld-tradgard.js";
 import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { mountByScen } from "./varld-by-scen.js";
@@ -158,6 +159,7 @@ export async function pageElevVarld(startNiva) {
               aria-label="Verktyg" hidden>
               <button class="varld-knapp" role="menuitem" data-panel="palett" title="Måla om huset och väggarna">🎨 <span>Måla om</span></button>
               <button class="varld-knapp" role="menuitem" data-panel="hus" title="Byt husets utseende">🏠 <span>Nytt hus</span></button>
+              <button class="varld-knapp bara-hus" role="menuitem" data-panel="tradgard" title="Ställ ut träd, buskar och fordon i trädgården">🌳 <span>Trädgård</span></button>
               <button class="varld-knapp rum-och-hus" role="menuitem" id="las-btn"></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="lada" title="Dina möbler och saker">📦 <span>Möbler</span></button>
               <button class="varld-knapp bara-rum" role="menuitem" data-panel="djur" title="Dina undanstuvade djur">🐾 <span>Mina djur</span></button>
@@ -190,6 +192,12 @@ export async function pageElevVarld(startNiva) {
           <h3>Nytt hus 🏠</h3>
           <p class="hint">Byt husets utsida! Rummet inne är detsamma. Fler hus köper du i shoppen 🛍️</p>
           <div class="hus-skal-rad" id="husskalrad"></div>
+        </div>
+        <div class="varld-panel" id="panel-tradgard" hidden>
+          <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
+          <h3>Trädgård 🌳</h3>
+          <p class="hint" id="tradgard-hint"></p>
+          <div class="room-tray" id="tradgardtray"></div>
         </div>
         <div class="varld-panel" id="panel-lada" hidden>
           <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
@@ -828,6 +836,18 @@ export async function pageElevVarld(startNiva) {
         flash("Kunde inte spara husbytet: " + err.message, true);
       });
     },
+  });
+
+  // --- Trädgården: köpta utomhussaker placeras runt huset i ute-vyn ---------
+  // Lagret läggs OVANPÅ husScen-SVG:n i #ute-lager (pointer-events:none, så
+  // husklick fortsätter fungera). Lådan bor i "🌳 Trädgård"-panelen (bara-hus
+  // → syns bara på hus-nivån). Renderas direkt så redan utplacerade saker syns
+  // vid inladdning, oavsett om panelen öppnas.
+  mountTradgard({
+    uteLager,
+    tray: view.querySelector("#tradgardtray"),
+    trayHint: view.querySelector("#tradgard-hint"),
+    sd,
   });
 
   // --- Rummet: hela inne-vyn monteras i sitt lager (varld-rum.js) -----------

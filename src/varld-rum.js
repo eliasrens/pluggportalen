@@ -12,7 +12,7 @@
 import * as data from "./data.js";
 import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
-import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, itemIdFromKey } from "./shop-items.js";
+import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, isGardenItem, itemIdFromKey } from "./shop-items.js";
 import { getPalette } from "./room-palettes.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -115,7 +115,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     const out = {};
     for (const [key, pos] of Object.entries(saved || {})) {
       const id = itemIdFromKey(key);
-      if (data.ownedCount(sd, id) > 0 && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && pos) {
+      if (data.ownedCount(sd, id) > 0 && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && pos) {
         // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
         const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
         out[key] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
@@ -169,8 +169,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
   // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
   // panelen och byter husets exteriör, inte rummets möblering.
+  // Trädgårdssaker (isGardenItem) placeras UTE (varld-tradgard.js), aldrig i
+  // rummets möbel-låda → filtrera bort dem här också.
   const roomItemsOwned = owned.filter(
-    (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
+    (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
   );
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
