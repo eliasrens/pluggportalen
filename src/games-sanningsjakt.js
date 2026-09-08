@@ -1,16 +1,11 @@
 // ============================================================================
 // Pluggportalen – games-sanningsjakt.js
-// Arkad-läget "Fånga sanningar": avataren står längst ner med uppsträckta armar
-// och rör sig i sidled (piltangenter/A-D + touch/drag). Påståenden faller
-// uppifrån i slumpade x-lägen i ett tempo som ökar gradvis. Avataren fångar med
-// SIG SJÄLV (händer/huvud/överkropp). Fånga SANT = poäng + glädje, fånga FALSKT
-// = −1 liv (3 liv, hjärtan). Missat påstående som når golvet ger ingen straff.
-// Game over vid 0 liv → resultat + grind-skalad belöning.
-//
-// Innehållet härleds ur områdets fakta-par ({term,definition}): rätt parning =
-// sant "<term> betyder <definition>", felparad = falskt. Saknas par (minst 2)
-// faller vi tillbaka på quiz: rätt alternativ = sant, distraktor = falskt.
-// Själva innehållshärledningen bor i sanningsjakt-content.js (browser-fri).
+// Arkad-läget "Fånga sanningar": avataren står längst ner med uppsträckta armar,
+// rör sig i sidled (piltangenter/A-D + touch/drag) och fångar fallande påståenden
+// med sig själv (händer/huvud/överkropp). SANT = poäng, FALSKT = −1 liv (3 liv);
+// missat vid golvet ger ingen straff. Game over vid 0 liv → grind-skalad belöning.
+// Innehållet härleds i sanningsjakt-content.js (browser-fri): par → sant/falskt,
+// annars quiz (rätt alt = sant, distraktor = falskt).
 // ============================================================================
 
 import { app, el } from "./ui.js";
@@ -22,11 +17,8 @@ import { gameFrame, muteButton, showResult } from "./game-shared.js";
 import { buildStatements, statementFeeder } from "./sanningsjakt-content.js";
 
 const START_LIVES = 3;
-// Coin-ekonomi (lätt att tune:a). Första varvet genom påstående-poolen (färska,
-// osedda påståenden) ger COINS_FRESH_TRUTH per sann fångst; så fort poolen
-// varvat ett varv och innehållet börjar upprepas sjunker det till
-// COINS_REPEAT_TRUTH för resten av sessionen. 3-liv-modellen låter en skicklig
-// spelare hålla på länge, men upprepat innehåll ger mindre → inget farmande.
+// Coin-ekonomi (lätt att tune:a): färska påståenden (första varvet i poolen) ger
+// COINS_FRESH per sann fångst, upprepade ger COINS_REPEAT → inget oändligt farm.
 const COINS_FRESH_TRUTH = 2;
 const COINS_REPEAT_TRUTH = 1;
 
@@ -40,11 +32,9 @@ function esc(s) {
 }
 
 /**
- * Uppsträckta "fånga"-armar som overlay ovanpå avataren (samma ankargrid/stil
- * som karaktärskonsten, art-style.js). Avataren fångar MED SIG SJÄLV – ingen
- * hink. Armarna sitter i .sj-figure så de följer gång-/idle-animationen och
- * spegelvänds med figuren. Krämfärgade "vantar" (vita tassar) läser som att
- * figuren sträcker upp händerna, oavsett vilken avatar som är vald.
+ * Uppsträckta "fånga"-armar som overlay ovanpå avataren (art-style-ankargrid).
+ * Sitter i .sj-figure → följer gång-/idle-animationen och spegelvänds med
+ * figuren. Krämfärgade "vantar" läser som uppsträckta händer på valfri avatar.
  */
 function raisedArmsSvg() {
   return (
@@ -124,9 +114,8 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   const scoreEl = arena.querySelector("#score");
   const heartsEl = arena.querySelector("#hearts");
 
-  // Arena-mått + fångstzon. Avataren fångar med SIG SJÄLV (uppsträckta armar),
-  // så zonen är figurens övre del (händer/huvud/överkropp). Mäts ur figur-
-  // elementet så den följer figurens faktiska storlek – uppdateras vid resize.
+  // Arena-mått + fångstzon (figurens övre del: händer/huvud/överkropp). Mäts ur
+  // figur-elementet så den följer figurens storlek – uppdateras vid resize.
   let aw = arena.clientWidth;
   let ah = arena.clientHeight;
   const PLAYER_W = player.offsetWidth || 92;
@@ -177,26 +166,22 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     field.appendChild(eln);
     const w = Math.min(eln.offsetWidth, aw - 16);
     const h = eln.offsetHeight;
-    // Slumpa x, men undvik att lägga brickan så den överlappar en annan bricka
-    // som fortfarande är nära toppen (så breda/höga brickor inte krockar fult).
+    // Slumpa x men undvik att överlappa en bricka som ännu är nära toppen (så
+    // breda/höga brickor inte krockar fult). Välj det friaste av ~10 försök.
     const maxX = Math.max(1, aw - w - 16);
     const nearTop = tiles.filter((t) => t.y < h + 24);
-    const gap = 10;
     let x = Math.random() * maxX + 8;
-    let bestX = x;
     let bestClear = -Infinity;
     for (let attempt = 0; attempt < 10; attempt++) {
       const cand = Math.random() * maxX + 8;
-      let clear = Infinity; // minsta horisontella avstånd till en topp-bricka
+      let clear = Infinity; // minsta horisontella mellanrum till en topp-bricka
       for (const t of nearTop) {
-        const overlap = Math.min(cand + w, t.x + t.w) - Math.max(cand, t.x);
-        clear = Math.min(clear, -overlap); // positivt = mellanrum, negativt = överlapp
+        clear = Math.min(clear, Math.max(cand, t.x) - Math.min(cand + w, t.x + t.w));
       }
-      if (clear > bestClear) { bestClear = clear; bestX = cand; }
-      if (clear >= gap) { bestX = cand; break; } // tillräckligt fritt – ta den
+      if (clear > bestClear) { bestClear = clear; x = cand; }
+      if (clear >= 10) break; // tillräckligt fritt
     }
-    x = bestX;
-    // Färskt = första gången just den texten visas (första varvet i poolen).
+    // Färskt = första gången texten visas (första varvet i poolen).
     const fresh = !seenTexts.has(st.text);
     seenTexts.add(st.text);
     const tile = { eln, x, y: -h, w, h, truth: st.truth, fresh, caught: false };
@@ -378,8 +363,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   function endGame() {
     if (ended) return;
     teardown();
-    // Coins summeras under spelet (2 färskt / 1 upprepat per sann fångst) och
-    // skickas som baspott genom awardExercise → grind-trappan gäller vid omspel.
+    // coinsEarned summeras under spelet → baspott till awardExercise (grind kvar).
     const baseCoins = Math.max(1, coinsEarned);
     const stars = caughtTrue >= 24 ? 3 : caughtTrue >= 10 ? 2 : 1;
     showResult({
