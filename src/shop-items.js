@@ -26,7 +26,7 @@
 // Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
 
-import { MYSTERY_ITEMS, MYSTERY_BOX_ID, MYSTERY_BOX_PRICE } from "./mystery-items.js";
+import { MYSTERY_ITEMS, MYSTERY_BOXES } from "./mystery-items.js";
 
 export const CATEGORIES = [
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
@@ -39,17 +39,10 @@ export const CATEGORIES = [
   // Mysteryboxen visas SIST i shoppen (längst ner), efter alla vanliga
   // kategorier – CATEGORIES-ordningen styr renderingen i pages-shop.js.
   { id: "mystery", name: "Mysterybox", emoji: "🎁",
-    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga, sällsynta och (mkt sällsynt) legendariska finns – legendarys kan vara fordon eller hus! Dubbletter blir coins." },
+    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga, sällsynta och (mycket sällsynt) legendariska finns – legendarys kan vara fordon eller hus! Mega- och Epic-boxen ger legendary mycket oftare. Dubbletter blir coins." },
 ];
 
 export const SHOP_ITEMS = [
-  // --- Mysterybox (köp & öppna → slumpad kosmetik ur viktad pool) -----------
-  // Boxen köps hur många gånger som helst (aldrig "ägd"); öppnandet sker via
-  // openMysteryBox() (data-mystery.js) och reveal-flödet i pages-shop-mystery.js.
-  // Själva vinsterna (MYSTERY_ITEMS) slås in nedan med mysteryOnly:true så de
-  // resolvas av getItem() men INTE visas som köpbara i den vanliga katalogen.
-  { id: MYSTERY_BOX_ID, name: "Mysterybox", emoji: "🎁", category: "mystery", price: MYSTERY_BOX_PRICE, mysteryBox: true },
-
   // --- Kläder & accessoarer (bärs på avataren) -----------------------------
   { id: "keps", name: "Keps", emoji: "🧢", category: "klader", slot: "hatt", price: 20 },
   { id: "partyhatt", name: "Partyhatt", emoji: "🎉", category: "klader", slot: "hatt", price: 35 },
@@ -184,6 +177,21 @@ export const SHOP_ITEMS = [
   // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
   { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
 ];
+
+// --- Mysteryboxarna (köp & öppna → slumpad kosmetik ur viktad pool) ---------
+// Tre nivåer (#186): vanlig 500, Mega 1000, Epic 2000 – samma item-pool men
+// olika legendary-chans (legendaryChance styr lottningen, se mystery-items.js).
+// Boxarna köps hur många gånger som helst (aldrig "ägd"); öppnandet sker via
+// openMysteryBox() (data-mystery.js) och reveal-flödet i pages-shop-mystery.js.
+// De läggs SIST i SHOP_ITEMS + kategorin "mystery" är sist i CATEGORIES → de
+// hamnar längst ner i shoppen, i pris-ordning. `mysteryBox:true` gör att
+// pages-shop.js kör öppna-flödet i stället för ett vanligt köp.
+for (const box of MYSTERY_BOXES) {
+  SHOP_ITEMS.push({
+    id: box.id, name: box.name, emoji: box.emoji, category: "mystery",
+    price: box.price, mysteryBox: true, legendaryChance: box.legendaryChance,
+  });
+}
 
 // Mystery-vinsterna slås in i katalogen så getItem()/isWearable()/isHouseItem()
 // m.fl. resolvar dem överallt (garderob, husskal-väljare, rums-låda). De är

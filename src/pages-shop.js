@@ -128,7 +128,7 @@ export async function pageElevShop() {
       btn.disabled = true;
       btn.textContent = "Öppnar…";
       try {
-        const res = await runMysteryBox({ price: item.price });
+        const res = await runMysteryBox({ price: item.price, legendaryChance: item.legendaryChance });
         if (res.ok) {
           state.coins = res.coins;
           if (res.owned) state.owned = new Set(res.owned);
