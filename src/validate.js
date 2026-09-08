@@ -15,6 +15,7 @@
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
 import { validateReadingTexts } from "./validate-reading.js";
+import { normalizeReadingPrereq } from "./reading-prereq.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -259,6 +260,11 @@ export function validateArea(obj) {
     exerciseTypes = deriveExerciseTypes({ quiz, pairs });
   }
 
+  // --- Läsförståelse-förkrav (issue #155) -----------------------------------
+  // Valfritt: läraren kan kräva att eleven klarar läsförståelsen först. Lagras
+  // som { required: N } eller utelämnas helt (bakåtkompatibelt → allt öppet).
+  const readingPrereq = normalizeReadingPrereq(obj.readingPrereq);
+
   const value = {
     id,
     name: obj.name.trim(),
@@ -271,6 +277,9 @@ export function validateArea(obj) {
     readingTexts,
     exerciseTypes,
   };
+  // Ta bara med förkravsfältet när det är PÅ, så gamla områden inte får ett
+  // tomt fält och Firestore-dokumenten hålls rena.
+  if (readingPrereq) value.readingPrereq = readingPrereq;
   return { ok: true, errors: [], value };
 }
 
