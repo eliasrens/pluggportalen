@@ -59,7 +59,7 @@
         if (item.category === "hus") return `<div class="hus">${husSkalPreview(item.skalId || item.id)}</div>`;
         return itemSvg(item.id) || item.emoji;
       }
-      const catLabel = { klader: "Kläder", dekor: "Dekor", hus: "Husskal" };
+      const catLabel = { klader: "Kläder", dekor: "Dekor", tradgard: "Fordon", hus: "Husskal" };
 
       // Galleri per nivå.
       for (const r of RARITY_ORDER) {
@@ -83,10 +83,10 @@
       }
 
       // Reveal-demo (samma .mb-*-klasser som riktiga flödet i pages-shop-mystery.js).
-      const tally = { vanlig: 0, ovanlig: 0, sallsynt: 0 };
+      const tally = { vanlig: 0, ovanlig: 0, sallsynt: 0, legendary: 0 };
       function showTally() {
         document.getElementById("tally").textContent =
-          `Öppnade: vanlig ${tally.vanlig} · ovanlig ${tally.ovanlig} · sällsynt ${tally.sallsynt}`;
+          `Öppnade: vanlig ${tally.vanlig} · ovanlig ${tally.ovanlig} · sällsynt ${tally.sallsynt} · legendary ${tally.legendary}`;
       }
 
       function reveal(item) {
@@ -117,7 +117,8 @@
         setTimeout(() => {
           box.classList.add("burst");
           rev.hidden = false;
-          if (item.rarity === "sallsynt") confetti(70);
+          if (item.rarity === "legendary") confetti(140);
+          else if (item.rarity === "sallsynt") confetti(70);
         }, 900);
       }
 
