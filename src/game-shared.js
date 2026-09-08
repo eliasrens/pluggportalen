@@ -28,6 +28,8 @@ export const GAMEMODES = [
     sub: "Flervalsfrågor med direkt svar", needs: "quiz" },
   { id: "kunskapsjakt", name: "Kunskapsjakt", emoji: "⚡", color: "rosa",
     sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
+  { id: "sanningsjakt", name: "Fånga sanningar", emoji: "🪣", color: "orange",
+    sub: "Fånga de sanna påståendena – undvik de falska!", needs: "sanningsjakt" },
   { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
     sub: "Hitta fakta-paren", needs: "pairs" },
 ];
