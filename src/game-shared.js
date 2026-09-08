@@ -28,6 +28,8 @@ export const GAMEMODES = [
     sub: "Flervalsfrågor med direkt svar", needs: "quiz" },
   { id: "kunskapsjakt", name: "Kunskapsjakt", emoji: "⚡", color: "rosa",
     sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
+  { id: "sanningsjakt", name: "Fånga sanningar", emoji: "🙌", color: "orange",
+    sub: "Fånga de sanna påståendena – undvik de falska!", needs: "sanningsjakt" },
   { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
     sub: "Hitta fakta-paren", needs: "pairs" },
 ];
@@ -181,7 +183,10 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   let mult = 1;
   if (reduced) {
     mult = grindMultiplier(prevPlays);
-    coins = Math.max(1, Math.round(baseCoins * mult));
+    // Coins avrundas ALLTID uppåt (Math.ceil) – hellre ett mynt för mycket än
+    // för lite, så en udda baspott inte blir orättvist nedåt-avrundad vid
+    // grind-nedskalning. Gäller alla grind-lägen. XP avrundas som förr.
+    coins = Math.max(1, Math.ceil(baseCoins * mult));
     xp = Math.max(1, Math.round(xp * mult));
   }
   const pct = Math.round(mult * 100); // andel av full pott den här körningen, för hinten

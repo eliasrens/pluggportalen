@@ -733,3 +733,179 @@
   .pair-img-svg { width: 58px; height: 58px; }
   .mem-front .pair-img-svg { width: 66px; height: 66px; }
 }
+
+/* --- Fånga sanningar (arkad-läge, games-sanningsjakt.js) ------------------- */
+
+.sj-intro .hint { max-width: 46ch; margin-left: auto; margin-right: auto; }
+
+.sj-arena {
+  position: relative;
+  height: 62vh;
+  min-height: 380px;
+  max-height: 560px;
+  overflow: hidden;
+  border-radius: var(--radie);
+  background: linear-gradient(180deg, #dcefff 0%, #eaf6ff 55%, #d7f0dc 100%);
+  box-shadow: var(--skugga-mjuk);
+  touch-action: none; /* dra styr spelaren, inte sidscroll */
+  user-select: none;
+}
+
+/* Golv-remsa så det syns var påståenden landar. */
+.sj-arena::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 10px;
+  background: rgba(30, 142, 78, 0.35);
+}
+
+.sj-hud {
+  position: absolute;
+  top: 10px; left: 12px; right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: var(--z-scen-ui);
+  pointer-events: none;
+}
+.sj-hearts { font-size: 1.4rem; letter-spacing: 2px; }
+.sj-score {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.sj-score b { color: var(--bla-mork); }
+
+.sj-field { position: absolute; inset: 0; }
+
+.sj-tile {
+  position: absolute;
+  top: 0; left: 0;
+  will-change: transform;
+  /* Rimlig max-bredd: långa påståenden radbryter (flera rader) och brickan blir
+     högre i stället för superbred. Kollisionen mäter faktisk storlek i JS. */
+  width: max-content;
+  max-width: min(44%, 300px);
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+  border: 3px solid var(--bla);
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+/* Sant/falskt ser likadant ut – eleven ska AVGÖRA, inte färgläsa. */
+.sj-tile.caught { transition: transform 0.12s ease, opacity 0.12s ease; opacity: 0; }
+.sj-tile.caught.truth { transform: scale(1.15); }
+.sj-tile.caught.false { transform: scale(0.7); }
+.sj-tile-sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-svag);
+  margin-bottom: 2px;
+}
+.sj-tile-main { display: block; font-size: 0.95rem; }
+
+.sj-float {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: 800;
+  font-size: 1.2rem;
+  pointer-events: none;
+  animation: sj-float-up 0.75s ease-out forwards;
+  z-index: var(--z-scen-ui);
+}
+.sj-float.good { color: var(--gron-mork); }
+.sj-float.bad { color: var(--rod); }
+@keyframes sj-float-up {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(0.7); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -160%) scale(1.1); }
+}
+
+/* Spelaren: avatar som fångar med SIG SJÄLV (uppsträckta armar). Positioneras i
+   px av spelmotorn (left); figuren står på golvet. */
+.sj-player {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  width: 92px;
+  height: 92px;
+  z-index: var(--z-scen-objekt);
+}
+.sj-player.face-left { transform: scaleX(-1); }
+
+.sj-figure {
+  position: absolute;
+  left: 50%;
+  bottom: 0; /* fötterna på golvet */
+  transform: translateX(-50%);
+  font-size: 64px; /* .avatar-figure skalar med font-size */
+  transform-origin: 50% 100%;
+}
+.sj-figure .avatar-figure { display: block; }
+
+/* Uppsträckta "fånga"-armar ovanpå avataren (samma viewBox/ankargrid). Fyller
+   figurens box och ligger överst → armarna sträcker sig upp bredvid huvudet. */
+.sj-arms {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Gång-cykel: lätt studs + vaggning (armar/ben antyds av vaggningen). Idle =
+   lugn andning. Spegelvändning görs på .sj-player (face-left), så samma
+   animation funkar åt båda håll. Respekterar reducerad rörelse. */
+.sj-figure { animation: sj-idle 2.4s ease-in-out infinite; }
+.sj-figure.walking { animation: sj-walk 0.42s ease-in-out infinite; }
+.sj-figure.cheer { animation: sj-cheer 0.4s ease; }
+
+@keyframes sj-idle {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+  50% { transform: translateX(-50%) translateY(-3%) rotate(0deg); }
+}
+@keyframes sj-walk {
+  0% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+  25% { transform: translateX(-50%) translateY(-9%) rotate(0deg); }
+  50% { transform: translateX(-50%) translateY(0) rotate(5deg); }
+  75% { transform: translateX(-50%) translateY(-9%) rotate(0deg); }
+  100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+}
+@keyframes sj-cheer {
+  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+  40% { transform: translateX(-50%) translateY(-14%) scale(1.08); }
+}
+
+.sj-arena.shake { animation: sj-shake 0.32s ease; }
+@keyframes sj-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sj-figure, .sj-figure.walking, .sj-figure.cheer { animation: none; }
+  .sj-arena.shake { animation: none; }
+}
+
+@media (max-width: 520px) {
+  .sj-arena { height: 66vh; }
+  .sj-player { width: 80px; height: 84px; }
+  .sj-figure { font-size: 56px; }
+  .sj-tile { max-width: min(60%, 240px); }
+  .sj-tile-main { font-size: 0.88rem; }
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Fånga sanningar</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      body { padding: 16px; }
+      .preview-note { max-width: 640px; margin: 0 auto 12px; }
+    </style>
+  </head>
+  <body>
+    <!-- DOM-skalet som ui.js förväntar sig (annars kastar getElementById). -->
+    <button class="hamburger" id="hamburger" hidden></button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <aside class="sidebar" id="sidebar"><div id="sidebar-body"></div></aside>
+    <div class="preview-note panel">
+      <b>Förhandsvisning av arkad-läget "Fånga sanningar"</b> – kör mot mock-data
+      (ingen inloggning). Styr med piltangenter/A-D eller dra med musen/fingret.
+    </div>
+    <main id="app" class="container"></main>
+
+    <script type="module">
+      import { startSanningsjakt } from "./src/games-sanningsjakt.js";
+      // Mock-område med fakta-par → påståenden härleds ur paren.
+      const areaData = {
+        name: "Vikingatiden",
+        pairs: [
+          { term: "Vikingar", definition: "sjöfarare och handelsmän från Norden som levde för mer än tusen år sedan" },
+          { term: "Drakskepp", definition: "vikingarnas långa båtar" },
+          { term: "Handel", definition: "att köpa och sälja varor" },
+          { term: "Runor", definition: "vikingarnas skrivtecken" },
+          { term: "Tors hammare", definition: "en viktig symbol" },
+        ],
+        quiz: [],
+      };
+      startSanningsjakt({ subj: "so", area: "vikingatiden", areaData });
+    </script>
+  </body>
+</html>
