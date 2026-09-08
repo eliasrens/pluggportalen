@@ -1335,6 +1335,76 @@ code {
   margin-top: 4px;
 }
 
+/* --- Shop-flikar (kategori-tabbar) ---------------------------------------- */
+/* Klibbig flikrad högst upp i katalogen: en flik per kategori som har varor.
+   Aktiv flik markerad; endast den aktiva kategorins varor visas under raden. */
+.shop-tabs {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-flik-nav);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+  margin-bottom: 6px;
+  background: rgba(247, 250, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.shop-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.96rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(31, 45, 74, 0.08);
+  border: 2px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease,
+    color 0.12s ease, border-color 0.12s ease;
+}
+
+.shop-tab:hover {
+  transform: translateY(-2px);
+  border-color: #d7e3f7;
+  box-shadow: 0 5px 12px rgba(31, 45, 74, 0.13);
+}
+
+.shop-tab.active {
+  background: linear-gradient(160deg, #56ccf2, var(--bla));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(47, 128, 237, 0.35);
+}
+
+.shop-tab.active:hover {
+  border-color: transparent;
+  transform: translateY(-2px);
+}
+
+.shop-tab-emoji {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Mobil: låt flikarna scrolla i en rad i stället för att brytas i flera rader. */
+@media (max-width: 560px) {
+  .shop-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shop-tabs::-webkit-scrollbar { display: none; }
+  .shop-tab { flex: 0 0 auto; }
+}
+
 .shop-cat {
   margin-bottom: 22px;
 }
