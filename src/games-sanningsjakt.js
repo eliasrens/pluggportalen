@@ -35,7 +35,7 @@ function esc(s) {
 export async function startSanningsjakt(ctx) {
   const { subj, area } = ctx;
 
-  const view = gameFrame({ subj, area, title: "Fånga sanningar", emoji: "🙌" });
+  const view = gameFrame({ subj, area, title: "Fånga sanningar", emoji: "🎯" });
   view.querySelector(".game-head-right").appendChild(muteButton());
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
@@ -50,9 +50,9 @@ export async function startSanningsjakt(ctx) {
   } catch {}
 
   const intro = el(`<div class="panel center sj-intro">
-    <div class="big-emoji">🙌</div>
+    <div class="big-emoji">🎯</div>
     <h2>Fånga sanningar!</h2>
-    <p>Påståenden regnar ner. Sträck upp armarna och fånga de som är <b>sanna</b> – men undvik de <b>falska</b>!</p>
+    <p>Påståenden regnar ner. Fånga de som är <b>sanna</b> – men undvik de <b>falska</b>!</p>
     <p class="hint">Styr med <b>piltangenter</b> eller <b>A/D</b> – eller dra med fingret. Du har <b>${START_LIVES} liv</b> ❤️❤️❤️, fångar du ett falskt påstående kostar det ett liv. Tempot ökar efter hand!</p>
     <button class="btn stor gron" id="go">Starta! 🚀</button>
   </div>`);
@@ -182,13 +182,14 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     setTimeout(() => f.remove(), 750);
   }
 
-  // Lugnt i starten, ökar sedan gradvis. Fallhastigheten börjar lågt (70 px/s)
-  // och klättrar långsamt; spawns är glesa först (var ~2,6 s) och tätnar sakta.
+  // Lugnt i starten, ökar sedan gradvis. Fallhastigheten börjar riktigt lågt
+  // (40 px/s) och klättrar sedan (snabbare och snabbare) upp mot taket; spawns är
+  // glesa först (var ~3 s) och tätnar sakta.
   function fallSpeed() {
-    return Math.min(300, 70 + elapsed * 3.2); // px/s
+    return Math.min(300, 40 + elapsed * 3.4); // px/s
   }
   function spawnInterval() {
-    return Math.max(0.9, 2.6 - elapsed * 0.02); // s mellan brickor
+    return Math.max(0.9, 3.0 - elapsed * 0.02); // s mellan brickor
   }
 
   function catchTile(tile) {
