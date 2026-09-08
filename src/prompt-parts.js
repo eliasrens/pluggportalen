@@ -146,7 +146,7 @@ export const MATERIAL_ANCHOR = `Här är materialet du ska utgå ifrån:
 export const REGLER = `Viktiga regler:
 - Svara med ENBART giltig JSON – ingen förklarande text före eller efter, inga \`\`\`-kodstaket.
 - Använd dubbla citattecken runt alla nycklar och strängar. Inga avslutande kommatecken.
-- Skriv på svenska och anpassa språket till elever i årskurs 4 (ca 10 år): korta meningar, enkla ord.
+- Skriv på svenska med korta meningar och enkla ord, anpassat till elevernas ålder (se årskursen ovan).
 - Hitta INTE på fakta. Använd bara innehållet i det bifogade materialet / texten nedan.
 - Varje quizfråga: exakt 4 svarsalternativ (alla olika och rimliga) och "answerIndex" 0-baserat
   som pekar på det rätta alternativet (0 = första). Dubbelkolla att rätt svar ligger på det indexet.
