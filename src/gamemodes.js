@@ -12,12 +12,11 @@
 
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
-import { GAMEMODES, starRow, enc } from "./game-shared.js";
+import { GAMEMODES, starRow, enc, areaContentFlags, isModeHidden } from "./game-shared.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 import { startSanningsjakt } from "./games-sanningsjakt.js";
-import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
 
 // ---------------------------------------------------------------------------
 // Områdesöversikt: välj gamemode (med stjärnor per övning)
@@ -51,14 +50,12 @@ export async function pageElevOmrade() {
   }
 
   const areaProgress = progress?.[area] || {};
-  const has = {
-    quiz: Array.isArray(areaData.quiz) && areaData.quiz.length > 0,
-    pairs: Array.isArray(areaData.pairs) && areaData.pairs.length > 0,
-    // Arkad-läget kan härleda påståenden ur par (minst 2) eller quiz.
-    sanningsjakt: hasSanningsjaktContent(areaData),
-  };
+  const has = areaContentFlags(areaData);
 
-  const cards = GAMEMODES.map((gm) => {
+  // Läraren kan dölja lägen per område (issue #200): avbockade lägen visas inte
+  // alls som kort. Lägen UTAN underlag visas fortfarande som låsta ("Inget
+  // innehåll än"), precis som förr – det är bara de urbockade som filtreras bort.
+  const cards = GAMEMODES.filter((gm) => !isModeHidden(areaData, gm.id)).map((gm) => {
     const available = has[gm.needs];
     const stars = areaProgress[gm.id]?.stars || 0;
     const starsHtml = available
@@ -114,6 +111,11 @@ export async function pageElevSpela() {
     return;
   }
   if (!areaData) return go("#/elev/plugga");
+
+  // Ett läge som läraren bockat ur ska inte gå att starta direkt via URL heller.
+  if (isModeHidden(areaData, mode)) {
+    return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
+  }
 
   const ctx = { subj, area, areaData };
   switch (mode) {
