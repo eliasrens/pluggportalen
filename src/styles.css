@@ -1152,6 +1152,34 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 
 .rv-text-title { font-weight: 700; margin-bottom: 4px; }
 
+/* Läsförståelse i 3 nivåer – granska-vyn (issue #152). */
+.rv-level { margin: 10px 0 0; padding-left: 10px; border-left: 3px solid #cfe0f7; }
+.rv-level-h { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+
+/* Läsförståelse-editorn (issue #152). */
+.area-reading { margin-left: 14px; border-left: 3px solid #cfe0f7; padding-left: 12px; }
+.area-reading .subpanel { margin: 0; }
+.rt-editor { display: flex; flex-direction: column; gap: 10px; }
+.rt-ai { background: #f0f6ff; border-radius: 12px; padding: 12px; }
+.rt-lbl { font-weight: 700; display: block; margin-bottom: 4px; }
+.rt-input { width: 100%; box-sizing: border-box; }
+.rt-body { font-family: inherit; }
+.rt-list { display: flex; flex-direction: column; gap: 14px; }
+.rt-card { border: 1px solid #e2e8f5; border-radius: 12px; padding: 12px; background: #fff; }
+.rt-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rt-card-head .rt-title { flex: 1; }
+.rt-num { flex: none; }
+.rt-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.rt-tab.active { box-shadow: inset 0 0 0 2px var(--bla); font-weight: 700; }
+.rt-level { display: flex; flex-direction: column; gap: 4px; }
+.rt-qlist { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.rt-q { border: 1px dashed #d5deee; border-radius: 10px; padding: 10px; }
+.rt-q-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.rt-q-head .badge { flex: 1; }
+.rt-opts { display: flex; flex-direction: column; gap: 5px; }
+.rt-opt { display: flex; align-items: center; gap: 8px; }
+.rt-opt input[type="text"] { flex: 1; }
+
 .area-info {
   display: flex;
   align-items: center;
