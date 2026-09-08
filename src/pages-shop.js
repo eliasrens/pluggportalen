@@ -160,6 +160,8 @@ export async function pageElevShop() {
           flash(`Du köpte ${item.name}! 🚪 Ett nytt rum finns nu i ditt hus – gå in och byt rum via dörren eller rumslistan.`);
         } else if (item.category === "hus") {
           flash(`Du köpte ${item.name}! ${item.emoji} Byt till det via 🏠 Nytt hus i din husvärld.`);
+        } else if (item.category === "tradgard") {
+          flash(`Du köpte ${item.name}! ${item.emoji} Ställ ut den via 🌳 Trädgård i din husvärld.`);
         } else {
           flash(item.category === "klader"
             ? `Du köpte ${item.name}! Sätt på den i Mitt rum.`

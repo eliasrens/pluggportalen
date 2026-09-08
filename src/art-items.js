@@ -17,11 +17,14 @@ import { getItem, CATEGORIES } from "./shop-items.js";
 import { FURNITURE } from "./art-furniture.js";
 import { PETS } from "./art-pets.js";
 import { DECOR } from "./art-decor.js";
+import { GARDEN } from "./art-garden.js";
 import { MYSTERY_DECOR } from "./art-mystery.js";
 
-// Alla rum-saker i en uppslagning (id → { viewBox, art }). Mystery-dekor
-// (vinns ur mysteryboxen) placeras i rummet precis som köpt dekor.
-const ITEMS = { ...FURNITURE, ...PETS, ...DECOR, ...MYSTERY_DECOR };
+// Alla rum-, trädgårds- OCH mystery-saker i en uppslagning (id → { viewBox, art }).
+// Trädgårdssakerna (art-garden.js) placeras utomhus i ute-vyn, mystery-dekor
+// (art-mystery.js, vinns ur mysteryboxen) placeras i rummet som köpt dekor –
+// alla delar samma itemSvg/itemSize-uppslagning så shop-miniatyren funkar direkt.
+const ITEMS = { ...FURNITURE, ...PETS, ...DECOR, ...GARDEN, ...MYSTERY_DECOR };
 
 const WOOD = "#B0805A";
 const WOOD_DARK = "#8A6242";
@@ -60,6 +63,16 @@ const CATEGORY_ICONS = {
       `<circle cx="31" cy="18" r="3.5" fill="#FDE9A8" ${THIN}/>` +
       `<path d="M10 33 Q18 22 26 30 Q31 25 38 33 Z" fill="#6FC66F" stroke="none"/>` +
       `<rect x="10" y="11" width="28" height="22" rx="2" fill="none" ${THIN}/>`,
+  },
+  tradgard: {
+    viewBox: "0 0 46 46",
+    art:
+      limb("M23 42 L23 26", WOOD, 5) +
+      `<circle cx="23" cy="17" r="14" fill="#6FC66F" ${LINE}/>` +
+      `<circle cx="12" cy="24" r="8" fill="#6FC66F" ${LINE}/>` +
+      `<circle cx="34" cy="24" r="8" fill="#6FC66F" ${LINE}/>` +
+      `<circle cx="18" cy="14" r="3" fill="#EF6F6C" ${THIN}/>` +
+      `<circle cx="29" cy="20" r="3" fill="#EF6F6C" ${THIN}/>`,
   },
 };
 

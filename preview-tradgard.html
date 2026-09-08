@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – trädgård & utomhussaker</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #132: ute-scenen (art-hus-ute.js) med
+         trädgårds-lagret (varld-tradgard.js) ovanpå + lådan. Ingen inloggning
+         behövs – sd är en attrapp (saveGarden fallerar tyst utan elev). */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 60ch; }
+      .wrap { padding: 12px 20px 40px; }
+      /* Scenramen: samma proportion som ute-scenens viewBox (960×600). */
+      #stage {
+        position: relative;
+        width: min(96vw, 900px);
+        aspect-ratio: 3 / 2;
+        margin: 8px 0 18px;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(59, 51, 80, 0.18);
+        --hus-house: #F7C948; --hus-roof: #EF6F6C; --hus-wall: #7FC7E8; --hus-wall2: #C9EEFB;
+      }
+      #stage .varld-lager { position: absolute; inset: 0; }
+      .panelbox {
+        background: #fff; border: 3px solid #ffe0b3; border-radius: 16px;
+        padding: 14px 16px; max-width: 620px;
+      }
+      .panelbox h3 { margin: 0 0 6px; }
+      .panelbox .hint { margin: 0 0 10px; font-size: 0.9rem; opacity: 0.85; }
+      .art-strip { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 22px; }
+      .art-cell { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 110px; }
+      .art-cell .bild { width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; }
+      .art-cell .bild svg { width: 100%; height: 100%; }
+      .art-cell small { font-size: 0.8rem; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – trädgård & utomhussaker 🌳🚗</h1>
+      <p>
+        Ute-scenen med det nya trädgårds-lagret ovanpå. Klicka en sak i lådan för
+        att ställa ut den, dra runt den i gården, klicka den och tryck 🗑️ för att
+        plocka bort. (Placeringar sparas inte här – ingen inloggad elev.)
+      </p>
+    </header>
+    <div class="wrap">
+      <div id="stage">
+        <div class="varld-lager varld-ute" id="ute-lager"></div>
+      </div>
+
+      <div class="panelbox">
+        <h3>Trädgård 🌳</h3>
+        <p class="hint" id="tradgard-hint"></p>
+        <div class="room-tray" id="tradgardtray"></div>
+      </div>
+
+      <div class="art-strip" id="art-strip"></div>
+    </div>
+
+    <script type="module">
+      import { husScen } from "./src/art-hus-ute.js";
+      import { avatarMarkup } from "./src/avatars.js";
+      import { mountTradgard } from "./src/varld-tradgard.js";
+      import { itemsInCategory } from "./src/shop-items.js";
+      import { itemSvg } from "./src/art-items.js";
+
+      // Attrapp-elev som äger alla trädgårdssaker (flera exemplar av ett par).
+      const sd = {
+        ownedItems: ["buske", "blomrabatt", "trad", "cykel", "parkering", "bil"],
+        ownedCounts: { buske: 3, trad: 2, blomrabatt: 2 },
+        garden: { placements: {} },
+      };
+
+      const uteLager = document.getElementById("ute-lager");
+      uteLager.innerHTML = husScen(avatarMarkup("fox", []), {
+        skalId: "stuga",
+        skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" },
+      });
+
+      mountTradgard({
+        uteLager,
+        tray: document.getElementById("tradgardtray"),
+        trayHint: document.getElementById("tradgard-hint"),
+        sd,
+      });
+
+      // Konst-strip: alla köpbara utomhussaker i art-stil (shop-miniatyren).
+      const strip = document.getElementById("art-strip");
+      for (const it of itemsInCategory("tradgard")) {
+        const cell = document.createElement("div");
+        cell.className = "art-cell";
+        cell.innerHTML = `<div class="bild">${itemSvg(it.id) || it.emoji}</div>
+          <small>${it.emoji} ${it.name}</small><small>${it.price} coins</small>`;
+        strip.appendChild(cell);
+      }
+    </script>
+  </body>
+</html>

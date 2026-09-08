@@ -86,6 +86,7 @@ export function defaultStudentData(avatarId) {
     ownedCounts: {}, // { [id]: antal } för multi-saker (möbler/dekor) – se buyItem/ownedCount
     avatarItems: [], // burna klädsaker (delmängd av ownedItems)
     room: { placements: {} }, // { [itemId]: { x, y } }
+    garden: { placements: {} }, // utomhussaker placerade runt huset i ute-vyn – { [key]: { x, y } }
     husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
     husLast: false, // true = huset är låst → klasskamrater ser "🔒 Låst" i stället för rummet
     avatarId: avatarId || "fox",
@@ -328,6 +329,9 @@ export {
   saveAvatarItems,
   getRoom,
   saveRoom,
+  getGarden,
+  getGardenFrom,
+  saveGarden,
   getRooms,
   getRoomCount,
   saveRoomAt,

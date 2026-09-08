@@ -59,6 +59,40 @@ export async function saveRoom(room, studentId = currentStudentId()) {
   return room;
 }
 
+// --- Trädgård (köpbara utomhussaker placerade runt huset i ute-vyn) ---------
+// Ett TOP-LEVEL fält (studentData.garden), skilt från room: det rör bara
+// ute-scenen (art-hus-ute.js / varld-tradgard.js), aldrig rummet inuti. Samma
+// form som ett rum men bara placeringar: { placements: { <key>: {x,y} } } där
+// nyckeln är ett sak-id ("trad") eller "<id>#<n>" (extra exemplar), x/y i procent
+// av scenen. BAKÅTKOMPATIBELT: saknas fältet är trädgården bara tom (getGarden
+// ger { placements: {} }), så gamla elever renderar precis som förr.
+
+/** Elevens trädgård som ren form (ingen Firestore). */
+export function getGardenFrom(sd) {
+  const g = sd && sd.garden && typeof sd.garden === "object" ? sd.garden : {};
+  return { placements: g.placements && typeof g.placements === "object" ? g.placements : {} };
+}
+
+/** Elevens trädgård (async läsning). */
+export async function getGarden(studentId = currentStudentId()) {
+  return getGardenFrom(await getStudentData(studentId));
+}
+
+/**
+ * Spara delar av trädgården (t.ex. { placements }). Varje fält skrivs med
+ * dot-path ("garden.placements") så övriga garden-fält lämnas orörda – samma
+ * mönster som saveRoom.
+ * @param {object} partial t.ex. { placements }
+ */
+export async function saveGarden(partial, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const updates = {};
+  for (const [key, value] of Object.entries(partial)) updates[`garden.${key}`] = value;
+  await updateDoc(ref, updates);
+  return partial;
+}
+
 // --- Fler rum (husuppgradering: dörrar inne + rumslista) -------------------
 // Rums-begreppet är BAKÅTKOMPATIBELT ovanpå det gamla enskilda rummet:
 //

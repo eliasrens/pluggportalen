@@ -29,14 +29,17 @@
 import { MYSTERY_ITEMS, MYSTERY_BOX_ID, MYSTERY_BOX_PRICE } from "./mystery-items.js";
 
 export const CATEGORIES = [
-  { id: "mystery", name: "Mysterybox", emoji: "🎁",
-    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga och sällsynta finns. Dubbletter blir coins." },
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
   { id: "mobler", name: "Möbler & prylar", emoji: "🪑" },
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
   { id: "mat", name: "Mat", emoji: "🍎" },
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
   { id: "hus", name: "Hus", emoji: "🏠" },
+  { id: "tradgard", name: "Trädgård & utomhus", emoji: "🌳" },
+  // Mysteryboxen visas SIST i shoppen (längst ner), efter alla vanliga
+  // kategorier – CATEGORIES-ordningen styr renderingen i pages-shop.js.
+  { id: "mystery", name: "Mysterybox", emoji: "🎁",
+    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga och sällsynta finns. Dubbletter blir coins." },
 ];
 
 export const SHOP_ITEMS = [
@@ -167,6 +170,19 @@ export const SHOP_ITEMS = [
   { id: "rum-2", name: "Extra rum", emoji: "🚪", category: "hus", price: 250, roomUpgrade: true },
   { id: "rum-3", name: "Tredje rummet", emoji: "🚪", category: "hus", price: 500, roomUpgrade: true },
   { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
+
+  // --- Trädgård & utomhus (placeras UTE runt huset i ute-vyn, issue #132) ----
+  // Egen kategori i MULTI_CATEGORIES nedan → man får äga/placera FLERA exemplar
+  // (flera träd, flera blomrabatter …). Placeringen sparas i studentData.garden
+  // (data-room.js), skild från rummets möbler. `flat:true`-saker (rabatt,
+  // parkering) ritas platt mot marken, UNDER övriga trädgårdssaker.
+  { id: "buske", name: "Buske", emoji: "🌿", category: "tradgard", price: 25 },
+  { id: "blomrabatt", name: "Blomrabatt", emoji: "🌷", category: "tradgard", price: 35, flat: true },
+  { id: "trad", name: "Träd", emoji: "🌳", category: "tradgard", price: 60 },
+  { id: "cykel", name: "Cykel", emoji: "🚲", category: "tradgard", price: 300 },
+  { id: "parkering", name: "Parkeringsruta", emoji: "🅿️", category: "tradgard", price: 110, flat: true },
+  // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
+  { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
 ];
 
 // Mystery-vinsterna slås in i katalogen så getItem()/isWearable()/isHouseItem()
@@ -235,6 +251,17 @@ export function isAnimalItem(id) {
   return !!(it && it.category === "husdjur" && id !== "mystery-egg" && id !== "varmelampa");
 }
 
+/**
+ * Är saken en TRÄDGÅRDS-/utomhussak (kategori "tradgard")? De köps i shoppen och
+ * placeras UTOMHUS runt huset i ute-vyn (studentData.garden via data-room.js) –
+ * inte som möbler i rummet. varld-rum.js filtrerar bort dem ur rums-lådan och
+ * room.placements med !isGardenItem(id), och varld-tradgard.js äger dem i stället.
+ */
+export function isGardenItem(id) {
+  const it = getItem(id);
+  return !!(it && it.category === "tradgard");
+}
+
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
 export function isConsumable(id) {
   const it = getItem(id);
@@ -248,7 +275,7 @@ export function isConsumable(id) {
  * De VANLIGA djuren (husdjur, isAnimalItem) får också ägas i flera exemplar men
  * bor i studentData.roomAnimals (data-animals.js) – inte här.
  */
-const MULTI_CATEGORIES = new Set(["mobler", "dekor"]);
+const MULTI_CATEGORIES = new Set(["mobler", "dekor", "tradgard"]);
 
 /**
  * Får man äga flera exemplar av den här saken? (möbler & dekor). Mystery-saker
