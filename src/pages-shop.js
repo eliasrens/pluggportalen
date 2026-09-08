@@ -259,7 +259,7 @@ function shopCardHtml(it, state) {
   } else if (owned) {
     btn = `<button class="buy-btn kopt" disabled>✓ Köpt</button>`;
   } else if (!affordable) {
-    btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till"><span class="buy-text">Har inte råd</span>${pris}</button>`;
+    btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till">${pris}</button>`;
   } else {
     btn = `<button class="buy-btn" data-id="${it.id}"><span class="buy-text">${box ? "Öppna 🎁" : "Köp"}</span>${pris}</button>`;
   }
