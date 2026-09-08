@@ -2,7 +2,16 @@
 // Pluggportalen – klädselkonst: ANSIKTE-slotens plagg
 // ----------------------------------------------------------------------------
 // Del av WEARABLES-registret (se art-wearables.js). Ansiktssaker använder
-// par "xMidYMid" och sitter över ögonlinjen. Följ stilguiden i art-style.js.
+// par "xMidYMid" och ankras som standard på ÖGONLINJEN (y≈34 i ankargriddet,
+// se art-style.js) – det stämmer för glasögon, masker och lapp på ALLA figurer.
+//
+// Vissa plagg hör dock hemma längre ner i ansiktet. Sätt då `anchor` på posten:
+//   anchor: "mun"  → plagget flyttas till över-läpps-/munlinjen (y≈46). Används
+//                    för mustaschen, som annars hamnar mitt över ögonen. Alla
+//                    figurer följer samma normaliserade ansiktsmodell (ögon y34,
+//                    mun y≈46), så samma ankare träffar rätt på hela galleriet.
+// avatarMarkup (avatars.js) läser `anchor` och lägger på CSS-klassen
+// `af-anchor-<anchor>` som styr boxens y-läge (se styles.css).
 // Id:na måste matcha shop-items.js exakt (sparas i Firestore).
 // ============================================================================
 
@@ -55,6 +64,7 @@ export const ANSIKTE_WEARABLES = {
   mustasch: {
     viewBox: "0 0 60 24",
     par: "xMidYMid",
+    anchor: "mun", // sitter på över-läppen (y≈46), inte över ögonen
     art:
       `<path d="M30 7 Q28 13 21 13 Q10 13 5 4 Q9 18 22 17 Q28 17 30 11 Q32 17 38 17 Q51 18 55 4 Q50 13 39 13 Q32 13 30 7 Z" fill="#8A6242" ${LINE}/>` +
       `<path d="M14 9 Q18 12 22 12 M46 9 Q42 12 38 12" fill="none" stroke="#6B4A32" stroke-width="1.8" stroke-linecap="round"/>`,
