@@ -18,11 +18,13 @@ import { FURNITURE } from "./art-furniture.js";
 import { PETS } from "./art-pets.js";
 import { DECOR } from "./art-decor.js";
 import { GARDEN } from "./art-garden.js";
+import { MYSTERY_DECOR } from "./art-mystery.js";
 
-// Alla rum- OCH trädgårdssaker i en uppslagning (id → { viewBox, art }).
-// Trädgårdssakerna (art-garden.js) placeras utomhus i ute-vyn, men delar
-// samma itemSvg/itemSize-uppslagning så shop-miniatyren funkar direkt.
-const ITEMS = { ...FURNITURE, ...PETS, ...DECOR, ...GARDEN };
+// Alla rum-, trädgårds- OCH mystery-saker i en uppslagning (id → { viewBox, art }).
+// Trädgårdssakerna (art-garden.js) placeras utomhus i ute-vyn, mystery-dekor
+// (art-mystery.js, vinns ur mysteryboxen) placeras i rummet som köpt dekor –
+// alla delar samma itemSvg/itemSize-uppslagning så shop-miniatyren funkar direkt.
+const ITEMS = { ...FURNITURE, ...PETS, ...DECOR, ...GARDEN, ...MYSTERY_DECOR };
 
 const WOOD = "#B0805A";
 const WOOD_DARK = "#8A6242";

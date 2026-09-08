@@ -21,6 +21,7 @@ import { ANSIKTE_WEARABLES } from "./art-wearables-ansikte.js";
 import { HALS_WEARABLES } from "./art-wearables-hals.js";
 import { HAND_WEARABLES } from "./art-wearables-hand.js";
 import { RYGG_WEARABLES } from "./art-wearables-rygg.js";
+import { MYSTERY_WEARABLES } from "./art-mystery.js";
 
 /** id → { viewBox, par (preserveAspectRatio), art } – sammanslaget från slot-modulerna. */
 export const WEARABLES = {
@@ -29,7 +30,20 @@ export const WEARABLES = {
   ...HALS_WEARABLES,
   ...HAND_WEARABLES,
   ...RYGG_WEARABLES,
+  // Mystery-kläder (vinns ur mysteryboxen) – samma slots & konvention.
+  ...MYSTERY_WEARABLES,
 };
+
+/**
+ * Ankarnyckel för en klädsak, eller null om den använder slotens standardläge.
+ * Ansiktssaker sitter som standard på ögonlinjen; `anchor: "mun"` flyttar saken
+ * till över-läpps-linjen (mustaschen). avatarMarkup översätter detta till CSS-
+ * klassen `af-anchor-<anchor>` (se styles.css).
+ */
+export function wearableAnchor(id) {
+  const w = WEARABLES[id];
+  return (w && w.anchor) || null;
+}
 
 /**
  * Fristående SVG för en klädsak, eller null om saken inte har SVG-konst

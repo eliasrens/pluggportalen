@@ -16,6 +16,14 @@ export const ROOM_PALETTES = {
   himmel: { namn: "Himmelsblå", house: "#7FC7E8", roof: "#46557A", wall: "#DDF0FB", wall2: "#B7E0F5" },
   rosa: { namn: "Rosa dröm", house: "#F890B7", roof: "#B79BE0", wall: "#FDE4EE", wall2: "#F9C8DD" },
   sol: { namn: "Solgul", house: "#F7C948", roof: "#F08A3C", wall: "#FDF0C8", wall2: "#FAE29B" },
+  // Nya paletter (issue #130) – samma egentecknade stil, fyra roller per palett.
+  lavendel: { namn: "Lavendel", house: "#A98BD6", roof: "#6E5AA0", wall: "#EFE7FA", wall2: "#DCCBF2" },
+  korall: { namn: "Korall", house: "#FF8A65", roof: "#E85B4A", wall: "#FFE7DE", wall2: "#FFCBB8" },
+  skog: { namn: "Skogsgrön", house: "#5FA45C", roof: "#3C6E4F", wall: "#E1F1DC", wall2: "#BFE0B4" },
+  hav: { namn: "Havsblå", house: "#3FA8B8", roof: "#2E6D82", wall: "#DCF1F3", wall2: "#B0E0E6" },
+  korsbar: { namn: "Körsbär", house: "#E7607A", roof: "#A63A55", wall: "#FCE3E9", wall2: "#F7C0CD" },
+  plommon: { namn: "Plommon", house: "#8E5A8C", roof: "#5C3A63", wall: "#F0E4EF", wall2: "#DCC3DB" },
+  is: { namn: "Isblå", house: "#9FB8CC", roof: "#5F7488", wall: "#ECF3F8", wall2: "#CDDEEA" },
 };
 
 /** Hämta en palett med säkert fallback till default (okänt/saknat id). */

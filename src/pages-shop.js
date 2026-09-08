@@ -12,7 +12,8 @@ import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
 import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
-import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isMultiItem } from "./shop-items.js";
+import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isMultiItem, isMysteryBox } from "./shop-items.js";
+import { runMysteryBox } from "./pages-shop-mystery.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
 import { coinIcon } from "./icons.js";
@@ -70,8 +71,10 @@ export async function pageElevShop() {
           .join("");
         const ico = categorySvg(cat.id);
         const rubrik = ico ? `<span class="cat-ico">${ico}</span>` : cat.emoji;
+        const hint = cat.hint ? `<p class="hint shop-cat-hint">${cat.hint}</p>` : "";
         return el(`<section class="shop-cat">
           <h2>${rubrik} ${cat.name}</h2>
+          ${hint}
           <div class="shop-grid">${cards}</div>
         </section>`);
       })
@@ -93,6 +96,31 @@ export async function pageElevShop() {
     // Förbrukningsvaror (äpplen), multi-saker (möbler/dekor) och vanliga djur kan
     // köpas hur många gånger som helst; single-saker bara om de inte redan ägs.
     if (!item || item.comingSoon) return;
+
+    // Mysterybox: köp & öppna → reveal-flöde (pages-shop-mystery.js). Boxen kan
+    // köpas hur många gånger som helst; den lottade saken sparas i ownedItems.
+    if (isMysteryBox(id)) {
+      btn.disabled = true;
+      btn.textContent = "Öppnar…";
+      try {
+        const res = await runMysteryBox({ price: item.price });
+        if (res.ok) {
+          state.coins = res.coins;
+          if (res.owned) state.owned = new Set(res.owned);
+          saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
+          renderKatalog();
+          await renderTopbar();
+        } else {
+          renderKatalog();
+          flash("Du har inte råd med en mysterybox just nu.", true);
+        }
+      } catch (err) {
+        renderKatalog();
+        flash("Något gick fel när boxen öppnades: " + err.message, true);
+      }
+      return;
+    }
+
     const rebuyable = isConsumable(id) || isMultiItem(id) || isAnimalItem(id);
     if (!rebuyable && state.owned.has(id)) return;
 
@@ -171,9 +199,10 @@ function shopCardHtml(it, state) {
   const consumable = isConsumable(it.id);
   const multi = isMultiItem(it.id); // möbler/dekor – flera exemplar tillåts
   const animal = isAnimalItem(it.id); // vanliga djur – flera exemplar tillåts
+  const box = isMysteryBox(it.id); // mysteryboxen – öppnas hur många gånger som helst
   // Dessa kan alltid köpas igen (blockeras aldrig som "Köpt"); övriga single-
   // saker (kläder/hus/…) blockeras när de redan ägs.
-  const rebuyable = consumable || multi || animal;
+  const rebuyable = consumable || multi || animal || box;
   const owned = !rebuyable && state.owned.has(it.id);
   const affordable = state.coins >= it.price;
   let btn;
@@ -184,18 +213,19 @@ function shopCardHtml(it, state) {
   } else if (!affordable) {
     btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till">Har inte råd</button>`;
   } else {
-    btn = `<button class="buy-btn" data-id="${it.id}">Köp</button>`;
+    btn = `<button class="buy-btn" data-id="${it.id}">${box ? "Öppna 🎁" : "Köp"}</button>`;
   }
   // Kläder ritas av art-wearables.js, övriga rums-saker av art-items.js.
   // emoji-fältet är kvar som ofarlig fallback om konst saknas.
   const bild =
     (it.category === "klader" ? wearableSvg(it.id) : itemSvg(it.id)) || it.emoji;
   // Rebuyable-saker visar hur många man redan äger i stället för "Köpt".
+  // Mysteryboxen är en handling (öppnas), inte en ägd sak → ingen antal-rad.
   let have = 0;
   if (consumable) have = state.appleCount;
   else if (animal) have = state.animalCounts[it.id] || 0;
   else if (multi) have = multiCount(it.id, state);
-  const antal = rebuyable ? `<div class="shop-antal">Du har: ${have} st</div>` : "";
+  const antal = rebuyable && !box ? `<div class="shop-antal">Du har: ${have} st</div>` : "";
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
