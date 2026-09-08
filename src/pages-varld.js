@@ -35,7 +35,7 @@ import * as petData from "./data-pet.js";
 import { app, el, go, loading, renderTopbar, pageError, flash, getParams } from "./ui.js";
 import { getPalette, paletteIdFromStudentData, renderPalettePicker } from "./room-palettes.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { husScen, husSkalMarkup, renderHusSkalPicker } from "./art-hus-ute.js";
+import { husScen, husSkalMarkup, renderHusSkalPicker, navSkyltSvg } from "./art-hus-ute.js";
 import { mountRumScen } from "./varld-rum.js";
 import { mountTradgard } from "./varld-tradgard.js";
 import { createKamera } from "./varld-kamera.js";
@@ -44,6 +44,7 @@ import { mountByScen } from "./varld-by-scen.js";
 import { createKompisVy } from "./varld-kompis.js";
 import { OMRADE_ZOOM, mountOmradeScen } from "./varld-omrade.js";
 import { createGrannbyVy } from "./varld-grannby.js";
+import { mountNavSkyltar } from "./varld-navskylt.js";
 import { aggregateKlassStats } from "./leveling.js";
 import { klassStatsMarkup, mountKlassStatsToggle } from "./varld-by-stats.js";
 import { classmateIds } from "./klass-membership.js";
@@ -141,9 +142,9 @@ export async function pageElevVarld(startNiva) {
       <div class="varld-ui">
         <div class="varld-ui-topp">
           <button class="varld-knapp" id="ut-btn"></button>
-          <!-- Zooma UT från byn till skolan (andra klassers byar). Syns bara på
-               by-nivån och bara om det finns fler än en klass (updateUi). -->
-          <button class="varld-knapp" id="skola-btn" hidden></button>
+          <!-- "Andra byar" (by→skolan) och "Min by" (skolan→byn) är inte längre
+               knappar utan trä-SKYLTAR nere i vänstra hörnet – samma skylt-
+               komponent som gårdskylten (mountNavSkyltar, varld-navskylt.js). -->
           <div class="varld-titel" id="titel"></div>
           <!-- Verktygen samlas i EN rullgardin (samma på alla bredder) så scenen
                hålls ren – på mobil trängdes 7 pillerknappar annars ihop. Trigger-
@@ -233,7 +234,14 @@ export async function pageElevVarld(startNiva) {
   const rumLager = view.querySelector("#rum-lager");
   const titel = view.querySelector("#titel");
   const utBtn = view.querySelector("#ut-btn");
-  const skolaBtn = view.querySelector("#skola-btn");
+
+  // Nav-skyltarna nere i vänstra hörnet (ersätter "Andra byar"/"Min by"-knapparna):
+  // "Andra byar" (by → skolan) och "Min by" (skolan → egna byn). Samma skylt-
+  // komponent + klick-som-zoom som gårdskylten; updateUi styr vilken som syns.
+  const navSkyltar = mountNavSkyltar({
+    ui: view.querySelector(".varld-ui"),
+    onAndraByar: () => go("#/elev/skolan"),
+  });
 
   // Klassbyns stjärn-toggle (uppe till höger): fälls ut/in med ✨-knappen och
   // fylls när byn laddats (lat). Presentationslogiken bor i varld-by-stats.js.
@@ -503,7 +511,7 @@ export async function pageElevVarld(startNiva) {
     rumCtl?.exitMat(); // byte av nivå (t.ex. ut ur rummet) lämnar inget mat-läge kvar
     visaKlassStats(); // klass-skylten syns bara på by-nivån
     utBtn.style.display = "";
-    skolaBtn.hidden = true; // "Andra byar" syns bara på by-nivån (nedan)
+    navSkyltar.visa(nivaId, flerByar); // "Andra byar"/"Min by"-skyltarna per nivå
     // 🧰 Verktyg är rum/hus-actions – visa triggern BARA i egna rummet/huset.
     // Deterministiskt varje gång: dölj den i by/kompis/kompishus/skola/grannby/
     // grannbyhus och stäng ev. öppen meny så den inte hänger kvar synlig när man lämnar.
@@ -520,9 +528,10 @@ export async function pageElevVarld(startNiva) {
       }
     }
     if (nivaId === "skola") {
-      // Ytterst: andra klassers byar. Ut-knappen zoomar in till den egna byn.
-      utBtn.innerHTML = "🏠 <span>Min by</span>";
-      utBtn.title = "Zooma in till din klass by";
+      // Ytterst: andra klassers byar. Tillbaka till egna byn = klick på den egna
+      // byn (markerad "Din klass", skolaLager-klicket) ELLER "Min by"-skylten
+      // nere till vänster – ingen egen knapp behövs.
+      utBtn.style.display = "none";
       titel.textContent = "Skolan 🏫";
     } else if (nivaId === "grannby") {
       // Läs-vy av en annan klass by. Bara "tillbaka till skolan".
@@ -539,12 +548,10 @@ export async function pageElevVarld(startNiva) {
       utBtn.title = "Tillbaka till klassens by";
       titel.textContent = `${possessiv(namn)} hus 🏠`;
     } else if (nivaId === "by") {
-      utBtn.innerHTML = "🏠 <span>Mitt hus</span>";
-      utBtn.title = "Zooma in till ditt hus";
-      // Zooma UT till skolan – bara om det finns andra klasser att titta på.
-      skolaBtn.hidden = !flerByar;
-      skolaBtn.innerHTML = "🔭 <span>Andra byar</span>";
-      skolaBtn.title = "Zooma ut och se andra klassers byar";
+      // Klassbyn: eget hus nås via "Hem" i sidomenyn ELLER klick på egna huset
+      // (den egna tomten, byLager-klicket) – ingen "Mitt hus"-knapp. "Andra byar"
+      // är nu skylten nere till vänster (navSkyltar, bara om flerByar).
+      utBtn.style.display = "none";
       titel.textContent = `${skyltTitel} 🏘️`;
     } else if (nivaId === "hus") {
       // Hus-nivån ÄR startsidan – ingen "hem"-knapp behövs (den vore en no-op).
@@ -642,8 +649,7 @@ export async function pageElevVarld(startNiva) {
     if (n === "kompishus") return go("#/elev/by");
     go("#/elev/hus");
   });
-  // "Andra byar": zooma ut från byn till skolan (bara synlig på by-nivån).
-  skolaBtn.addEventListener("click", () => go("#/elev/skolan"));
+  // "Andra byar"/"Min by" är nu skyltar (mountNavSkyltar) – klicken kopplas där.
   view.querySelector("#to-shop").addEventListener("click", () => go("#/elev/shop"));
 
   // --- Huslås ("Lås ditt hus"): en enkel toggle i verktygsmenyn -------------

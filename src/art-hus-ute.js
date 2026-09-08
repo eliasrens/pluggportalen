@@ -272,6 +272,20 @@ function skyltMarkup({ rad1, rad2 = "" }) {
 }
 
 /**
+ * Fristående nav-skylt: EXAKT samma trä-skylt (skyltMarkup) som gårdskylten vid
+ * huset, men i en egen SVG tätt beskuren kring brädan. Används som liten
+ * navigerings-skylt nere i vänstra hörnet på by-/skol-nivån (pages-varld.js) i
+ * stället för nav-knappar – samma stil och klick-som-zoom-interaktion som
+ * gårdskylten. Klick-/fokus-riggen (role=button, aria) sätts av anroparen.
+ * @param {{rad1:string, rad2?:string}} skylt
+ */
+export function navSkyltSvg(skylt) {
+  return `<svg class="navskylt-svg" viewBox="452 470 216 140" role="img"
+      aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet"
+      xmlns="http://www.w3.org/2000/svg">${skyltMarkup(skylt)}</svg>`;
+}
+
+/**
  * Hela ute-scenen som SVG-sträng.
  * @param {string} avatarHtml avatarMarkup-sträng som ställs framför huset
  *   (uppdateras senare via elementet #ute-avatar). Skicka INTE evo – avataren
