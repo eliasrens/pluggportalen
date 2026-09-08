@@ -8,7 +8,7 @@
 // dessutom genom att klicka på det egna huset/den egna byn (kvar i pages-varld).
 //
 //   by-nivå (klassbyn):  skylt "Andra byar"  → zoomar ut till skolan (#/elev/skolan)
-//   skol-nivå (skolan):  skylt "Min by"      → zoomar in till egna byn (#/elev/by)
+//   (Ingen "Min by"-skylt – tillbaka till egna byn sker genom att klicka på den.)
 //
 // Skyltarna är overlay-UI (i .varld-ui), inte scen-element, så de återanvänds
 // aldrig av grannby-vyn (som ritar med samma mountByScen). visa() styr vilken
@@ -42,32 +42,24 @@ function byggSkylt({ id, rad1, rad2 = "", aria, onClick }) {
  * @param {object} o
  * @param {HTMLElement} o.ui           overlay-lagret skyltarna läggs i (.varld-ui)
  * @param {() => void} o.onAndraByar   klick på "Andra byar" (by-nivån)
- * @param {() => void} o.onMinBy       klick på "Min by" (skol-nivån)
  * @returns {{ visa(nivaId:string, flerByar:boolean):void }}
  *   `visa` visar rätt skylt för nivån (och "Andra byar" bara om det finns fler
  *   klasser att titta på) och döljer alla på övriga nivåer.
  */
-export function mountNavSkyltar({ ui, onAndraByar, onMinBy }) {
+export function mountNavSkyltar({ ui, onAndraByar }) {
   const bySkylt = byggSkylt({
     id: "by-skylt",
     rad1: "Andra byar",
     aria: "Andra byar. Zooma ut och se andra klassers byar",
     onClick: onAndraByar,
   });
-  const skolaSkylt = byggSkylt({
-    id: "skola-skylt",
-    rad1: "Min by",
-    aria: "Min by. Zooma in till din klass by",
-    onClick: onMinBy,
-  });
-  ui.append(bySkylt, skolaSkylt);
+  ui.append(bySkylt);
 
   return {
     visa(nivaId, flerByar) {
       // "Andra byar" bara på klassbyn och bara om det finns fler än egna klassen.
+      // (Ingen "Min by"-skylt – man klickar på sin egen by för att komma tillbaka.)
       bySkylt.hidden = !(nivaId === "by" && flerByar);
-      // "Min by" bara i skol-översikten (klick på egna byn gör samma sak).
-      skolaSkylt.hidden = nivaId !== "skola";
     },
   };
 }

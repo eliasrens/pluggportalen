@@ -241,7 +241,6 @@ export async function pageElevVarld(startNiva) {
   const navSkyltar = mountNavSkyltar({
     ui: view.querySelector(".varld-ui"),
     onAndraByar: () => go("#/elev/skolan"),
-    onMinBy: () => go("#/elev/by"),
   });
 
   // Klassbyns stjärn-toggle (uppe till höger): fälls ut/in med ✨-knappen och
