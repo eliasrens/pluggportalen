@@ -108,6 +108,15 @@ export function buildContentView() {
       </div>
       <textarea id="json" class="json-input" spellcheck="false"
         placeholder='Klistra in JSON här, t.ex. { "name": "Vikingatiden", "quiz": [ ... ] }'></textarea>
+
+      <div class="field" style="margin-top:16px">
+        <label>👁️ Synliga lägen för eleverna</label>
+        <p class="hint">Bocka i vilka spellägen som ska visas för det här arbetsområdet. Bara lägen
+          området har innehåll för kan väljas. Klicka <b>Kontrollera</b> ovan (eller ladda ett
+          befintligt område) för att uppdatera listan efter att du ändrat innehållet.</p>
+        <div class="member-grid" id="mode-visibility"></div>
+      </div>
+
       <div class="row-inline" style="margin-top:12px">
         <button class="btn" id="check">Kontrollera</button>
         <button class="btn gron" id="save">Spara till databasen</button>

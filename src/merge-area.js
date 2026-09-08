@@ -157,6 +157,9 @@ export function mergeAreaContent(existing, incoming) {
     coverEmoji: existing.coverEmoji,
     description: existing.description,
     grade: existing.grade,
+    // Lärarens synlighetsval per läge (issue #200) hör till området, inte
+    // innehållet – behåll det oförändrat när nytt innehåll mergas in.
+    hiddenModes: existing.hiddenModes,
     exerciseTypes,
     texts: mergedTexts,
     quiz: mergedQuiz,

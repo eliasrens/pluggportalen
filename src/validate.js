@@ -15,6 +15,7 @@
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
 import { normalizeGrade } from "./grades.js";
+import { normalizeHiddenModes } from "./gamemode-visibility.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -84,6 +85,13 @@ export function validateArea(obj) {
   // Saknas fältet, eller är det okänt/tomt, räknas området som "ospecificerad"
   // (null). Inget fel rapporteras – fältet är en valfri styrning (issue #145).
   const grade = normalizeGrade(obj.grade);
+
+  // --- Synliga lägen (valfri, bakåtkompatibel) ------------------------------
+  // Läraren kan bocka UR spellägen per område (issue #200). "hiddenModes" är en
+  // lista med mode-id som ska döljas i elevvyn. Saknas fältet (eller är listan
+  // tom) visas alla tillgängliga lägen som förr. Okända/tomma id rensas bort;
+  // inget fel rapporteras (valfri styrning, jfr grade ovan).
+  const hiddenModes = normalizeHiddenModes(obj.hiddenModes);
 
   // --- texts[] --------------------------------------------------------------
   const texts = [];
@@ -261,6 +269,7 @@ export function validateArea(obj) {
     quiz,
     pairs,
     exerciseTypes,
+    hiddenModes,
   };
   return { ok: true, errors: [], value };
 }
