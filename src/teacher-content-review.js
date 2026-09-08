@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { el, esc } from "./teacher-shared.js";
+import { normalizeReadingPrereq } from "./reading-prereq.js";
 
 /** En sektion med rubrik + antal; body byggs av respektive render-funktion. */
 function section(emoji, title, count, bodyHtml) {
@@ -122,9 +123,16 @@ export function buildReviewPanel(a) {
   if (readingTexts.length)
     sections.push(section("📖", "Läsförståelse (3 nivåer)", readingTexts.length, renderReadingTexts(readingTexts)));
 
+  // Läsförståelse-förkrav (issue #155): visa om det är påslaget för området.
+  const prereq = normalizeReadingPrereq(a.readingPrereq);
+  const prereqNote = prereq
+    ? `<p class="hint rv-prereq">🔒 <b>Förkrav:</b> eleven måste klara läsförståelsen
+        (godkänt) ${prereq.required > 1 ? `– ${prereq.required} st ` : ""}innan andra övningar låses upp.</p>`
+    : "";
+
   const body = sections.length
-    ? sections.join("")
-    : `<p class="hint">Området har inget innehåll att granska ännu.</p>`;
+    ? prereqNote + sections.join("")
+    : prereqNote + `<p class="hint">Området har inget innehåll att granska ännu.</p>`;
 
   return el(`<div class="subpanel rv-panel">${body}</div>`);
 }
