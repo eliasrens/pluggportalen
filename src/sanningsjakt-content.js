@@ -36,7 +36,9 @@ export function textualPairs(areaData) {
  */
 export function hasSanningsjaktContent(areaData) {
   if (textualPairs(areaData).length >= 2) return true;
-  return Array.isArray(areaData?.quiz) && areaData.quiz.length > 0;
+  // Bara frågor utan passage kan bli påståenden (se buildStatements).
+  const quiz = Array.isArray(areaData?.quiz) ? areaData.quiz : [];
+  return quiz.some((q) => !(q && typeof q.passage === "string" && q.passage.trim()));
 }
 
 /**
@@ -56,7 +58,11 @@ export function buildStatements(areaData) {
     });
     return out;
   }
-  const quiz = Array.isArray(areaData?.quiz) ? areaData.quiz : [];
+  // Bara RÄKNE-/vanliga frågor (utan passage): en läsförståelse-fråga bygger på en
+  // källtext som inte visas här, så den skulle ge ett obegripligt påstående.
+  const quiz = (Array.isArray(areaData?.quiz) ? areaData.quiz : []).filter(
+    (q) => !(q && typeof q.passage === "string" && q.passage.trim())
+  );
   quiz.forEach((q) => {
     const opts = Array.isArray(q.options) ? q.options : [];
     const answer = opts[q.answerIndex];

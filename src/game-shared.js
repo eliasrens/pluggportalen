@@ -80,6 +80,29 @@ export function pickSessionQuestions(pool, seen) {
   return pickRotatingQuestions(pool, seen);
 }
 
+/** Har frågan en icke-tom källtext ("passage")? En sådan fråga är en
+ *  läsförståelse-fråga (visas med sin text ovanför i Läsförståelse-läget). */
+export function hasPassage(q) {
+  return !!(q && typeof q.passage === "string" && q.passage.trim());
+}
+
+/**
+ * Pool för de frågelägen som INTE visar någon källtext (Quiz, Kunskapsjakt):
+ * bara frågor UTAN passage. Läsförståelse-frågor (med passage) skulle annars
+ * läcka in oläsbara ("enligt texten ..." utan synlig text). Läsförståelse gör
+ * tvärtom och kör bara frågor MED passage (se startLasforstaelse).
+ *
+ * Faller tillbaka till hela poolen om ALLA frågor har passage (ett rent
+ * läsförståelse-område), så Quiz/Kunskapsjakt aldrig blir tomma.
+ * @param {Array} quiz  områdets quiz-lista
+ * @returns {Array}
+ */
+export function plainQuizPool(quiz) {
+  const arr = Array.isArray(quiz) ? quiz : [];
+  const plain = arr.filter((q) => !hasPassage(q));
+  return plain.length > 0 ? plain : arr;
+}
+
 /** Stjärnor (1–3) ur en andel rätt (0–1). Den som klarar övningen får minst 1. */
 export function starsFromRatio(ratio) {
   if (ratio >= 0.99) return 3;

@@ -103,7 +103,10 @@ test("tomt nytt innehåll ger tydligt fel", () => {
   assert.match(res.errors.join(" | "), /minst en "texts", "quiz" eller "pairs"/);
 });
 
-test("läsförståelse-regeln gäller helheten: fråga utan passage till ett passage-område ger fel", () => {
+test("frågor med och utan passage får blandas (lägena håller isär dem)", () => {
+  // Passage = läsförståelse-fråga, ingen passage = räkne-/vanlig fråga. De körs
+  // i olika lägen (Läsförståelse resp. Quiz/Kunskapsjakt), så en blandning i
+  // samma område är tillåten och ska INTE ge valideringsfel.
   const area = baseArea();
   area.quiz = [
     { id: "q1", question: "Enligt texten?", options: ["A", "B"], answerIndex: 0, passage: "En källtext." },
@@ -111,8 +114,10 @@ test("läsförståelse-regeln gäller helheten: fråga utan passage till ett pas
   const res = mergeAreaContent(area, {
     quiz: [{ question: "Utan källtext?", options: ["A", "B"], answerIndex: 0 }],
   });
-  assert.equal(res.ok, false);
-  assert.match(res.errors.join(" | "), /passage/);
+  assert.equal(res.ok, true, res.errors.join(" | "));
+  assert.equal(res.value.quiz.length, 2);
+  assert.equal(res.value.quiz[0].passage, "En källtext."); // läs-frågan behåller sin passage
+  assert.equal(res.value.quiz[1].passage, undefined); // vanlig fråga saknar passage
 });
 
 test("ett helt område kan klistras in – bara innehållslistorna mergas", () => {
