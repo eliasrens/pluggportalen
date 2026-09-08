@@ -2975,6 +2975,28 @@ body.varld-lage .container {
 }
 #klasskylt:hover, #klasskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
 
+/* Nav-skyltarna nere till VÄNSTER (by → "Andra byar", skola → "Min by"): samma
+   trä-skylt (navSkyltSvg → skyltMarkup) och klick-som-zoom-känsla som gårdskylten
+   ovan, men som overlay-UI i .varld-ui (position:absolute mot scenen). Speglar
+   gårdskyltens placering: nere till vänster. Ligger i scenens overlay-skikt
+   (.varld-ui = --z-scen-ui), egen z-index behövs inte. */
+.varld-navskylt {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: clamp(96px, 16vw, 150px);
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: 50% 90%;
+  transition: transform 0.25s;
+  outline: none;
+  /* Liten skugga/lyft så skylten läser som ett klickbart objekt mot scenen. */
+  filter: drop-shadow(2px 3px 0 rgba(59, 51, 80, 0.18));
+}
+.varld-navskylt:hover, .varld-navskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
+.varld-navskylt:active { transform: scale(0.98) rotate(-1.2deg); }
+.varld-navskylt .navskylt-svg { display: block; width: 100%; height: auto; }
+
 /* --- Klassbyn (by-nivån): hus längs en slingrande väg med dekor ------------ */
 .varld-by { background: #a8da8f; }
 
@@ -3418,10 +3440,10 @@ body.varld-lage .container {
 .varld-knapp:hover { transform: translateY(-1px); }
 .varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
 .varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
-/* display:inline-flex ovan slog förr ut UA:s [hidden]-regel (samma specificitet,
-   men författar-CSS vinner över UA-lagret): "🔭 Andra byar" (#skola-btn) sätts
-   hidden=true i updateUi på alla nivåer utom by och hängde ändå kvar. Det täcks
-   nu av den globala [hidden]{display:none!important}-regeln högst upp. */
+/* display:inline-flex ovan slår ut UA:s [hidden]-regel (samma specificitet, men
+   författar-CSS vinner över UA-lagret) för .varld-knapp. Det täcks av den globala
+   [hidden]{display:none!important}-regeln högst upp, så en knapp med hidden=true
+   verkligen döljs. (Historiskt bet detta "🔭 Andra byar", numera en skylt.) */
 
 /* Möbler & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
    ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */
