@@ -1465,22 +1465,13 @@ code {
   font-size: 0.98rem;
 }
 
-.shop-pris {
-  font-weight: 800;
-  color: #7a5c00;
-  background: var(--gul);
-  border-radius: 999px;
-  padding: 2px 12px;
-  font-size: 0.95rem;
-}
-
 .buy-btn {
   font-family: var(--font);
   font-weight: 800;
   font-size: 1rem;
   border: none;
   border-radius: 12px;
-  padding: 10px 18px;
+  padding: 10px 16px;
   cursor: pointer;
   color: #fff;
   background: var(--gron);
@@ -1488,7 +1479,28 @@ code {
   transition: transform 0.06s ease;
   margin-top: 4px;
   width: 100%;
+  /* Text + pris-chip sitter på samma rad, centrerade. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+
+/* Pris-chip på köp-knappen (ersätter den gamla separata prisraden). */
+.buy-pris {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: #7a5c00;
+  background: var(--gul);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 0.9rem;
+}
+/* "Har inte råd": priset syns men tonas ned. */
+.buy-btn.nej .buy-pris { opacity: 0.6; }
 
 .buy-btn:hover:not(:disabled) { filter: brightness(1.03); }
 .buy-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--gron-mork); }

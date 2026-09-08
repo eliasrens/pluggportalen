@@ -251,15 +251,17 @@ function shopCardHtml(it, state) {
   const rebuyable = consumable || multi || animal || box;
   const owned = !rebuyable && state.owned.has(it.id);
   const affordable = state.coins >= it.price;
+  // Priset sitter numera PÅ köp-knappen (eget chip) i stället för på en egen rad.
+  const pris = `<span class="buy-pris">${coinIcon(15)} ${it.price}</span>`;
   let btn;
   if (it.comingSoon) {
     btn = `<button class="buy-btn nej" disabled title="Snart kläcks nya vänner här!">🔒 Kommer snart</button>`;
   } else if (owned) {
     btn = `<button class="buy-btn kopt" disabled>✓ Köpt</button>`;
   } else if (!affordable) {
-    btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till">Har inte råd</button>`;
+    btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till"><span class="buy-text">Har inte råd</span>${pris}</button>`;
   } else {
-    btn = `<button class="buy-btn" data-id="${it.id}">${box ? "Öppna 🎁" : "Köp"}</button>`;
+    btn = `<button class="buy-btn" data-id="${it.id}"><span class="buy-text">${box ? "Öppna 🎁" : "Köp"}</span>${pris}</button>`;
   }
   // Kläder ritas av art-wearables.js, övriga rums-saker av art-items.js.
   // emoji-fältet är kvar som ofarlig fallback om konst saknas.
@@ -275,7 +277,6 @@ function shopCardHtml(it, state) {
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
-    <div class="shop-pris">${coinIcon(16)} ${it.price}</div>
     ${antal}
     ${btn}
   </div>`;
