@@ -42,24 +42,10 @@ export async function pageElevShop() {
   };
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till startsidan</a>
-    <div class="panel shop-head">
-      <div>
-        <h1>Shoppen 🛍️</h1>
-        <p class="hint">Köp saker för dina pluggcoins. Kläder sätter du på din figur,
-          möbler placerar du i <b>Mitt rum</b> – husdjur flyttar in själva och
-          promenerar omkring där!</p>
-      </div>
-      <div class="shop-saldo">Ditt saldo<br /><span class="coins" id="saldo">${coinIcon(24)} ${state.coins}</span></div>
-    </div>
     <div id="katalog"></div>
-    <div class="center" style="margin-top:8px">
-      <button class="btn ghost" id="to-rum">🛏️ Gå till Mitt rum</button>
-    </div>
   </div>`);
 
   const katalog = view.querySelector("#katalog");
-  const saldoEl = view.querySelector("#saldo");
 
   // Bara kategorier som faktiskt har köpbara varor blir flikar. CATEGORIES-
   // ordningen bevaras, så mysteryboxen (sist i listan) hamnar sist i flikraden.
@@ -112,8 +98,6 @@ export async function pageElevShop() {
 
   renderKatalog();
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
-  view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
 
   // Flikbyte (delegerat). Byter aktiv kategori, sparar valet och ritar om
   // listan – ingen sidladdning. Köp-listenern nedan ignorerar flik-klick.
@@ -148,7 +132,6 @@ export async function pageElevShop() {
         if (res.ok) {
           state.coins = res.coins;
           if (res.owned) state.owned = new Set(res.owned);
-          saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
           renderKatalog();
           await renderTopbar();
         } else {
@@ -185,7 +168,6 @@ export async function pageElevShop() {
       if (res.counts) state.ownedCounts = { ...res.counts };
       if (res.animals) state.animalCounts = countAnimalsByArt(res.animals);
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
-      saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
       renderKatalog();
       if (res.ok) {
         await renderTopbar(); // uppdatera saldot i sidhuvudet
