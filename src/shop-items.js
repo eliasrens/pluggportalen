@@ -39,7 +39,7 @@ export const CATEGORIES = [
   // Mysteryboxen visas SIST i shoppen (längst ner), efter alla vanliga
   // kategorier – CATEGORIES-ordningen styr renderingen i pages-shop.js.
   { id: "mystery", name: "Mysterybox", emoji: "🎁",
-    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga och sällsynta finns. Dubbletter blir coins." },
+    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga, sällsynta och (mkt sällsynt) legendariska finns – legendarys kan vara fordon eller hus! Dubbletter blir coins." },
 ];
 
 export const SHOP_ITEMS = [
@@ -189,7 +189,11 @@ export const SHOP_ITEMS = [
 // m.fl. resolvar dem överallt (garderob, husskal-väljare, rums-låda). De är
 // mysteryOnly → filtreras bort ur den vanliga shoppens katalog (itemsInCategory)
 // och kan bara vinnas ur boxen. price:0 (de köps aldrig direkt).
+// `existingShopItem` (legendary-fordon: bil/cykel) finns REDAN i katalogen som
+// köpbara saker → hoppas över här så de inte dubbleras (de kan ändå vinnas ur
+// boxen; deras vanliga shop-post står kvar orörd).
 for (const it of MYSTERY_ITEMS) {
+  if (it.existingShopItem) continue;
   SHOP_ITEMS.push({ price: 0, ...it, mysteryOnly: true });
 }
 

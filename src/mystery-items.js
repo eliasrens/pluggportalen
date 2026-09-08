@@ -3,49 +3,60 @@
 // ----------------------------------------------------------------------------
 // Mysteryboxen är en NY KÄLLA till KOSMETIK – inget parallellt system. Varje
 // mystery-item är en vanlig kosmetisk sak som återanvänder befintliga slots:
-//   * category "klader" (slot hatt/ansikte/hals/hand/rygg) → bärs på avataren
+//   * category "klader"   (slot hatt/ansikte/hals/hand/rygg) → bärs på avataren
 //     via klädlådan (varld-rum-wear.js), precis som köpta kläder.
-//   * category "dekor" → placeras i rummet via sak-lådan (varld-rum.js).
-//   * category "hus"   (skalId) → husskal som väljs i "🏠 Nytt hus"-panelen.
+//   * category "dekor"    → placeras i rummet via sak-lådan (varld-rum.js).
+//   * category "tradgard" → placeras UTOMHUS runt huset (varld-tradgard.js).
+//   * category "hus"      (skalId) → husskal som väljs i "🏠 Nytt hus"-panelen.
 // Items ÄGS binärt i studentData.ownedItems (som köpta single-saker) – de dyker
 // därför automatiskt upp i garderob/inventarie utan extra kod. Mystery-saker
 // säljs INTE i den vanliga shoppen (mysteryOnly:true → filtreras bort där); de
 // kan bara vinnas ur boxen. DJUREN (ägg/kläckning) rörs INTE av det här.
 //
+// LEGENDARY-nivån (#140) kan innehålla saker som redan finns i shoppen: FORDON
+// ("bil"/"cykel" ur trädgårds-katalogen). Dessa markeras `existingShopItem:true`
+// så shop-items.js INTE dubblerar dem i katalogen – de finns redan där som
+// köpbara saker, men kan nu även VINNAS ur boxen. HUS-legendarys är mystery-
+// husskal (art-mystery.js). Håll id:na STABILA – de sparas i Firestore.
+//
 // Denna modul är REN (ingen Firestore, inget DOM) och självförsörjande så att
 // shop-items.js kan slå ihop MYSTERY_ITEMS i SHOP_ITEMS utan cirkelimport.
-// Håll id:na STABILA – de sparas i Firestore.
 // ============================================================================
 
 /** Mysteryboxens shop-id och pris (köps hur många gånger som helst). */
 export const MYSTERY_BOX_ID = "mysterybox";
-export const MYSTERY_BOX_PRICE = 120;
+export const MYSTERY_BOX_PRICE = 500;
 
 /**
  * Sällsynthetsnivåer med LOTTNINGSVIKT (weight) och DUBBLETT-coins (coins man
  * får i stället om man redan äger den lottade saken). Vikten styr hur ofta en
- * NIVÅ dyker upp; inom en nivå lottas saker likformigt. Färgen används i
- * reveal-kortet. Håll nivå-nycklarna stabila – de sparas via items rarity-fält.
+ * NIVÅ dyker upp; inom en nivå lottas saker likformigt. Ordningen legendary ≪
+ * sällsynt < ovanlig < vanlig gör att legendary känns speciellt (~2 % chans).
+ * Färgen används i reveal-kortet. Håll nivå-nycklarna stabila – de sparas via
+ * items rarity-fält.
  */
 export const RARITIES = {
-  vanlig: { label: "Vanlig", weight: 60, dupCoins: 15, farg: "#7FC7E8" },
-  ovanlig: { label: "Ovanlig", weight: 30, dupCoins: 45, farg: "#B79BE0" },
-  sallsynt: { label: "Sällsynt", weight: 10, dupCoins: 110, farg: "#F7C948" },
+  vanlig: { label: "Vanlig", weight: 58, dupCoins: 40, farg: "#7FC7E8" },
+  ovanlig: { label: "Ovanlig", weight: 28, dupCoins: 90, farg: "#B79BE0" },
+  sallsynt: { label: "Sällsynt", weight: 12, dupCoins: 180, farg: "#F7C948" },
+  legendary: { label: "Legendarisk", weight: 2, dupCoins: 400, farg: "#FF7A1A" },
 };
 
-/** Nivåer i ordning vanlig → sällsynt (för UI-listor). */
-export const RARITY_ORDER = ["vanlig", "ovanlig", "sallsynt"];
+/** Nivåer i ordning vanlig → legendary (för UI-listor). */
+export const RARITY_ORDER = ["vanlig", "ovanlig", "sallsynt", "legendary"];
 
 /**
  * Hela item-poolen. Varje post:
- *   id       STABILT shop-id (sparas i ownedItems) – unikt, krockar ej med
- *            befintliga shop-id:n. Alla mystery-id:n är prefixade "myst-".
+ *   id       STABILT shop-id (sparas i ownedItems) – unikt. Mystery-egna saker
+ *            är prefixade "myst-"; legendary FORDON återanvänder shop-id:n.
  *   name     visningsnamn
- *   category "klader" | "dekor" | "hus"
+ *   category "klader" | "dekor" | "tradgard" | "hus"
  *   slot     (bara klader) hatt|ansikte|hals|hand|rygg
  *   skalId   (bara hus) === id (husskal-id i art-hus-ute.js)
  *   rarity   nyckel i RARITIES
  *   emoji    ofarlig fallback om SVG-konst saknas (art-mystery.js ritar riktig)
+ *   existingShopItem  true = id:t finns REDAN i SHOP_ITEMS (fordon) → injiceras
+ *            INTE på nytt av shop-items.js; kan bara vinnas som legendary-drop.
  */
 export const MYSTERY_ITEMS = [
   // --- Vanliga -------------------------------------------------------------
@@ -59,14 +70,25 @@ export const MYSTERY_ITEMS = [
   { id: "myst-fevingar", name: "Févingar", category: "klader", slot: "rygg", rarity: "ovanlig", emoji: "🧚" },
   { id: "myst-manhatt", name: "Månhatt", category: "klader", slot: "hatt", rarity: "ovanlig", emoji: "🌙" },
   { id: "myst-trollspo", name: "Kristalltrollspö", category: "klader", slot: "hand", rarity: "ovanlig", emoji: "🪄" },
+  { id: "myst-fjarilsvingar", name: "Fjärilsvingar", category: "klader", slot: "rygg", rarity: "ovanlig", emoji: "🦋" },
   { id: "myst-kristallklunga", name: "Kristallklunga", category: "dekor", rarity: "ovanlig", emoji: "💎" },
+  { id: "myst-lyktstolpe", name: "Sagolykta", category: "dekor", rarity: "ovanlig", emoji: "🏮" },
   { id: "myst-tradkoja", name: "Trädkoja", category: "hus", skalId: "myst-tradkoja", rarity: "ovanlig", emoji: "🌳" },
 
   // --- Sällsynta -----------------------------------------------------------
   { id: "myst-stjarnkrona", name: "Stjärnkrona", category: "klader", slot: "hatt", rarity: "sallsynt", emoji: "👑" },
   { id: "myst-drakvingar", name: "Drakvingar", category: "klader", slot: "rygg", rarity: "sallsynt", emoji: "🐉" },
+  { id: "myst-anglavingar", name: "Änglavingar", category: "klader", slot: "rygg", rarity: "sallsynt", emoji: "😇" },
   { id: "myst-regnbagsfontan", name: "Regnbågsfontän", category: "dekor", rarity: "sallsynt", emoji: "⛲" },
-  { id: "myst-kristallhus", name: "Kristallhus", category: "hus", skalId: "myst-kristallhus", rarity: "sallsynt", emoji: "🏯" },
+  { id: "myst-trollportal", name: "Trollportal", category: "dekor", rarity: "sallsynt", emoji: "🌀" },
+
+  // --- Legendariska (mkt sällsynta – de häftigaste sakerna) ----------------
+  // FORDON (återanvänder shop-id:n → existingShopItem, injiceras ej på nytt).
+  { id: "bil", name: "Bil", category: "tradgard", rarity: "legendary", emoji: "🚗", existingShopItem: true },
+  { id: "cykel", name: "Cykel", category: "tradgard", rarity: "legendary", emoji: "🚲", existingShopItem: true },
+  // HUS (mystery-husskal).
+  { id: "myst-kristallhus", name: "Kristallhus", category: "hus", skalId: "myst-kristallhus", rarity: "legendary", emoji: "🏯" },
+  { id: "myst-molnslott", name: "Molnslott", category: "hus", skalId: "myst-molnslott", rarity: "legendary", emoji: "☁️" },
 ];
 
 /** Alla mystery-id:n i en Set (snabb uppslagning). */
