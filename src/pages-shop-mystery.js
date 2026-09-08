@@ -47,11 +47,12 @@ function usageHint(item) {
  *
  * @param {object} o
  * @param {number} o.price boxens pris
+ * @param {number|null} [o.legendaryChance] per-box legendary-chans (null = basbox)
  * @param {() => void} [o.onClose] körs när modalen stängs (t.ex. rerender)
  * @returns {Promise<object>} openMysteryBox-resultatet ({ok, coins, item, ...})
  */
-export async function runMysteryBox({ price, onClose }) {
-  const res = await openMysteryBox(price);
+export async function runMysteryBox({ price, legendaryChance = null, onClose }) {
+  const res = await openMysteryBox(price, legendaryChance);
   if (!res.ok) return res; // hade inte råd – anroparen visar meddelande
   showRevealModal(res, onClose);
   return res;
