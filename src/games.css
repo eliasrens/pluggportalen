@@ -854,17 +854,6 @@
 }
 .sj-figure .avatar-figure { display: block; }
 
-/* Uppsträckta "fånga"-armar ovanpå avataren (samma viewBox/ankargrid). Fyller
-   figurens box och ligger överst → armarna sträcker sig upp bredvid huvudet. */
-.sj-arms {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
 /* Gång-cykel: lätt studs + vaggning (armar/ben antyds av vaggningen). Idle =
    lugn andning. Spegelvändning görs på .sj-player (face-left), så samma
    animation funkar åt båda håll. Respekterar reducerad rörelse. */
