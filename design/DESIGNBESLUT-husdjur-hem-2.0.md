@@ -84,6 +84,13 @@ Husdjuren ritas INTE längre som genererad SVG. Varje djur (och varje evolutions
 | himmel | Himmelsblå | `#7FC7E8` | `#46557A` | `#DDF0FB` | `#B7E0F5` |
 | rosa | Rosa dröm | `#F890B7` | `#B79BE0` | `#FDE4EE` | `#F9C8DD` |
 | sol | Solgul | `#F7C948` | `#F08A3C` | `#FDF0C8` | `#FAE29B` |
+| lavendel | Lavendel | `#A98BD6` | `#6E5AA0` | `#EFE7FA` | `#DCCBF2` |
+| korall | Korall | `#FF8A65` | `#E85B4A` | `#FFE7DE` | `#FFCBB8` |
+| skog | Skogsgrön | `#5FA45C` | `#3C6E4F` | `#E1F1DC` | `#BFE0B4` |
+| hav | Havsblå | `#3FA8B8` | `#2E6D82` | `#DCF1F3` | `#B0E0E6` |
+| korsbar | Körsbär | `#E7607A` | `#A63A55` | `#FCE3E9` | `#F7C0CD` |
+| plommon | Plommon | `#8E5A8C` | `#5C3A63` | `#F0E4EF` | `#DCC3DB` |
+| is | Isblå | `#9FB8CC` | `#5F7488` | `#ECF3F8` | `#CDDEEA` |
 
 Inga fria färgval – bara paletter. Golv, möbler och husdjur påverkas inte.
 
