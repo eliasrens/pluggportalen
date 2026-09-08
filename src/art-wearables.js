@@ -32,6 +32,17 @@ export const WEARABLES = {
 };
 
 /**
+ * Ankarnyckel för en klädsak, eller null om den använder slotens standardläge.
+ * Ansiktssaker sitter som standard på ögonlinjen; `anchor: "mun"` flyttar saken
+ * till över-läpps-linjen (mustaschen). avatarMarkup översätter detta till CSS-
+ * klassen `af-anchor-<anchor>` (se styles.css).
+ */
+export function wearableAnchor(id) {
+  const w = WEARABLES[id];
+  return (w && w.anchor) || null;
+}
+
+/**
  * Fristående SVG för en klädsak, eller null om saken inte har SVG-konst
  * (då visar anroparen emoji-fältet från shop-items.js som fallback).
  */

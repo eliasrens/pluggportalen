@@ -1305,6 +1305,12 @@ code {
 .af-wear.af-hand { top: 26%; left: 65%; width: 32%; height: 46%; }
 .af-wear.af-rygg { top: 28%; left: 50%; width: 68%; height: 54%; transform: translateX(-50%); }
 
+/* Ansiktssaker som hör hemma på över-läppen istället för ögonlinjen (mustasch):
+   sätts av avatarMarkup via af-anchor-mun när wearablen har anchor:"mun". Flyttar
+   ner ansikts-boxen så saken landar på mun-ankaret (y≈46) på alla figurer, som
+   följer samma normaliserade ansiktsmodell (se art-style.js / art-wearables-ansikte.js). */
+.af-wear.af-ansikte.af-anchor-mun { top: 31%; }
+
 /* --- Shop ------------------------------------------------------------------ */
 
 .shop-head {
