@@ -27,6 +27,7 @@
 
 import { O, LINE, THIN, limb } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
+import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -167,6 +168,8 @@ const HUS_SKAL = {
   stuga: { namn: "Stuga", emoji: "🏡", markup: stugaMarkup },
   slott: { namn: "Slott", emoji: "🏰", markup: slottMarkup },
   svamphus: { namn: "Svamphus", emoji: "🍄", markup: svampMarkup },
+  // Lyxiga köpbara husskal (skepp/fotboll/skyskrapa/glasvilla, 1000+ coins).
+  ...LYX_HUS_SKAL,
   // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
   ...MYSTERY_HUS_SKAL,
 };
