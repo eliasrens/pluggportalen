@@ -3906,3 +3906,103 @@ body.varld-lage .container {
     margin: 5mm;
   }
 }
+
+/* ============================================================================
+   Mysterybox – kategori-hint i shoppen + öppnings-/reveal-modal
+   (pages-shop.js, pages-shop-mystery.js)
+   ========================================================================== */
+.shop-cat-hint {
+  margin: -2px 0 10px;
+  max-width: 640px;
+}
+
+/* Overlay-backdrop (samma känsla som cx-modal-overlay). */
+.mb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(20, 30, 50, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 14px;
+  animation: cx-fade 0.14s ease;
+}
+
+.mb-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 22px;
+  width: 100%;
+  max-width: 380px;
+  padding: 26px 22px 24px;
+  box-shadow: 0 18px 50px rgba(20, 30, 50, 0.3);
+  text-align: center;
+}
+
+.mb-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 240px;
+  justify-content: center;
+}
+
+/* Presentboxen som skakar och sedan poppar bort. */
+.mb-box {
+  width: 150px;
+  height: 150px;
+}
+.mb-box svg { width: 100%; height: 100%; }
+.mb-box.shake { animation: mb-shake 0.5s ease-in-out infinite; transform-origin: 50% 80%; }
+.mb-box.burst { animation: mb-burst 0.35s ease forwards; }
+
+@keyframes mb-shake {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  20% { transform: rotate(-7deg) translateY(-3px); }
+  40% { transform: rotate(6deg) translateY(0); }
+  60% { transform: rotate(-5deg) translateY(-2px); }
+  80% { transform: rotate(4deg) translateY(0); }
+}
+@keyframes mb-burst {
+  0% { transform: scale(1); opacity: 1; }
+  40% { transform: scale(1.25) rotate(4deg); opacity: 1; }
+  100% { transform: scale(0.2); opacity: 0; }
+}
+
+/* Reveal-kortet (saken som vunnits). */
+.mb-reveal { animation: mb-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+@keyframes mb-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.mb-rarity {
+  margin: 0 0 8px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rar, #7FC7E8);
+}
+
+.mb-card {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  border-radius: 20px;
+  border: 4px solid var(--rar, #7FC7E8);
+  background: #f8fbff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--rar, #7FC7E8) 40%, transparent);
+}
+.mb-art { width: 78%; height: 78%; display: flex; align-items: center; justify-content: center; }
+.mb-art svg { width: 100%; height: 100%; }
+.mb-art .mb-hus { width: 100%; height: 100%; }
+.mb-art .mb-hus svg { width: 100%; height: 100%; }
+
+.mb-name { margin: 12px 0 4px; font-size: 1.3rem; font-weight: 800; color: var(--bla-mork); }
+.mb-got { margin: 0 0 16px; color: var(--text-svag); font-size: 0.92rem; }
+.mb-ok { min-width: 130px; }

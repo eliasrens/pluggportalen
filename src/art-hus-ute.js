@@ -26,6 +26,7 @@
 // ============================================================================
 
 import { O, LINE, THIN, limb } from "./art-style.js";
+import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -166,6 +167,8 @@ const HUS_SKAL = {
   stuga: { namn: "Stuga", emoji: "🏡", markup: stugaMarkup },
   slott: { namn: "Slott", emoji: "🏰", markup: slottMarkup },
   svamphus: { namn: "Svamphus", emoji: "🍄", markup: svampMarkup },
+  // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
+  ...MYSTERY_HUS_SKAL,
 };
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
