@@ -14,6 +14,7 @@ import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
 import { GAMEMODES, starRow, enc } from "./game-shared.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
+import { startLastext } from "./games-lastext.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 
@@ -52,6 +53,8 @@ export async function pageElevOmrade() {
   const has = {
     quiz: Array.isArray(areaData.quiz) && areaData.quiz.length > 0,
     pairs: Array.isArray(areaData.pairs) && areaData.pairs.length > 0,
+    readingTexts:
+      Array.isArray(areaData.readingTexts) && areaData.readingTexts.length > 0,
   };
 
   const cards = GAMEMODES.map((gm) => {
@@ -117,6 +120,7 @@ export async function pageElevSpela() {
   switch (mode) {
     case "quiz": return startQuiz(ctx);
     case "lasforstaelse": return startLasforstaelse(ctx);
+    case "lastext": return startLastext(ctx);
     case "para": return startPara(ctx);
     case "kunskapsjakt": return startKunskapsjakt(ctx);
     case "memory": return startMemory(ctx);

@@ -13,7 +13,9 @@ import { xpForExercise, xpIntoLevel } from "./leveling.js";
 import { coinIcon } from "./icons.js";
 import {
   MAX_QUESTIONS_PER_SESSION,
+  MAX_TEXTS_PER_SESSION,
   pickRotatingQuestions,
+  textKey,
 } from "./question-rotation.js";
 
 export const enc = encodeURIComponent;
@@ -22,6 +24,8 @@ export const enc = encodeURIComponent;
 export const GAMEMODES = [
   { id: "lasforstaelse", name: "Läsförståelse", emoji: "📖", color: "bla",
     sub: "Läs en text och svara på frågor", needs: "quiz" },
+  { id: "lastext", name: "Läsuppdrag", emoji: "📚", color: "gul",
+    sub: "Läs hela texten – klara alla frågorna", needs: "readingTexts" },
   { id: "para", name: "Para ihop", emoji: "🧩", color: "gron",
     sub: "Matcha begrepp med förklaring", needs: "pairs" },
   { id: "quiz", name: "Quiz", emoji: "❓", color: "orange",
@@ -37,7 +41,7 @@ export const GAMEMODES = [
 // ---------------------------------------------------------------------------
 
 /** Enkel HTML-escape för att lägga in text säkert i markup. */
-function esc(s) {
+export function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -76,6 +80,18 @@ export { MAX_QUESTIONS_PER_SESSION };
  */
 export function pickSessionQuestions(pool, seen) {
   return pickRotatingQuestions(pool, seen);
+}
+
+/**
+ * Som pickSessionQuestions men för LÄS-TEXTER (issue #153): samma roterande motor
+ * serverar max MAX_TEXTS_PER_SESSION osedda texter per session (nyckel = textKey),
+ * så eleven får nya texter tills områdets alla körts igenom, inte samma om igen.
+ * @param {Array} pool  områdets readingTexts
+ * @param {string[]} seen  sedda text-nycklar i pågående varv
+ * @returns {{questions: Array, seen: string[]}}  texterna att köra + sedda att spara.
+ */
+export function pickSessionTexts(pool, seen) {
+  return pickRotatingQuestions(pool, seen, MAX_TEXTS_PER_SESSION, textKey);
 }
 
 /** Stjärnor (1–3) ur en andel rätt (0–1). Den som klarar övningen får minst 1. */
@@ -138,7 +154,7 @@ export function muteButton() {
 // övning varje gång och slipper grind-reduktionen (full pott coins + XP alltid).
 // Övriga lägen (kunskapsjakt = tidsloop på hela poolen, para/memory = par) kör
 // oförändrat grind-skydd. Rör inte de par-baserade lägena.
-const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
+const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse", "lastext"]);
 
 // Grind-trappa för omspel i icke-quiz/läsförståelse-lägen: belöningen skalas ned
 // steg för steg ju fler gånger samma övning körts i samma läge, med ett golv på
