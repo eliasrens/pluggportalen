@@ -69,11 +69,14 @@ async function main() {
   }
   const area = res.value;
 
-  // 2) Rapportera antal per typ.
+  // 2) Rapportera antal per typ. quiz[] delas upp i läsförståelse-frågor (med
+  //    källtext "passage") och rena räkne-frågor (utan) – lägena håller isär dem.
+  const las = area.quiz.filter((q) => typeof q.passage === "string" && q.passage.trim()).length;
+  const rakne = area.quiz.length - las;
   console.log(`  Ämne:   ${SUBJECT_ID} — "${SUBJECT_DEFAULTS.name}" (om det saknas)`);
   console.log(`  Område: ${area.id} — "${area.name}" (grade=${area.grade ?? "—"})`);
   console.log(
-    `  Innehåll: ${area.texts.length} texter · ${area.quiz.length} quiz · ${area.pairs.length} par` +
+    `  Innehåll: ${area.texts.length} texter · ${area.quiz.length} quiz (${rakne} räkne + ${las} läsförståelse) · ${area.pairs.length} par` +
       ` = ${area.texts.length + area.quiz.length + area.pairs.length} objekt`
   );
   console.log(`  Övningstyper: ${area.exerciseTypes.join(", ") || "—"}`);

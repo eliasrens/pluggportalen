@@ -8,7 +8,7 @@
 
 import { app, el } from "./ui.js";
 import { sound } from "./fx.js";
-import { gameFrame, muteButton, showResult, shuffle } from "./game-shared.js";
+import { gameFrame, muteButton, showResult, shuffle, plainQuizPool } from "./game-shared.js";
 
 const ROUND_SECONDS = 40;
 
@@ -37,7 +37,9 @@ export function startKunskapsjakt(ctx) {
 
 function runRound(ctx, body) {
   const { subj, area, areaData } = ctx;
-  const pool = areaData.quiz || [];
+  // Snabba frågor utan källtext → bara RÄKNE-/vanliga frågor (utan passage).
+  // Läsförståelse-frågor (med passage) skulle bli oläsbara här utan sin text.
+  const pool = plainQuizPool(areaData.quiz || []);
 
   let score = 0;
   let combo = 0;
