@@ -1,8 +1,8 @@
 // ============================================================================
 // Pluggportalen – games-sanningsjakt.js
-// Arkad-läget "Fånga sanningar": avataren står längst ner med uppsträckta armar,
+// Arkad-läget "Fånga sanningar": avataren står längst ner (med sina vanliga armar),
 // rör sig i sidled (piltangenter/A-D + touch/drag) och fångar fallande påståenden
-// med sig själv (händer/huvud/överkropp). SANT = poäng, FALSKT = −1 liv (3 liv);
+// med sig själv (huvud/överkropp). SANT = poäng, FALSKT = −1 liv (3 liv);
 // missat vid golvet ger ingen straff. Game over vid 0 liv → grind-skalad belöning.
 // Innehållet härleds i sanningsjakt-content.js (browser-fri): par → sant/falskt,
 // annars quiz (rätt alt = sant, distraktor = falskt).
@@ -12,7 +12,6 @@ import { app, el } from "./ui.js";
 import * as data from "./data.js";
 import { sound } from "./fx.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { THIN, limb } from "./art-style.js";
 import { gameFrame, muteButton, showResult } from "./game-shared.js";
 import { buildStatements, statementFeeder } from "./sanningsjakt-content.js";
 
@@ -29,22 +28,6 @@ function esc(s) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-/**
- * Uppsträckta "fånga"-armar som overlay ovanpå avataren (art-style-ankargrid).
- * Sitter i .sj-figure → följer gång-/idle-animationen och spegelvänds med
- * figuren. Krämfärgade "vantar" läser som uppsträckta händer på valfri avatar.
- */
-function raisedArmsSvg() {
-  return (
-    `<svg class="sj-arms" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
-    limb("M38 70 Q23 46 27 18", "#FFF3DC", 7) +
-    limb("M62 70 Q77 46 73 18", "#FFF3DC", 7) +
-    `<circle cx="27" cy="15" r="7.2" fill="#fff" ${THIN}/>` +
-    `<circle cx="73" cy="15" r="7.2" fill="#fff" ${THIN}/>` +
-    `</svg>`
-  );
 }
 
 // --- Spelet -----------------------------------------------------------------
@@ -103,7 +86,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     </div>
     <div class="sj-field" id="field"></div>
     <div class="sj-player" id="player">
-      <div class="sj-figure" id="figure">${avatarMarkup(avatarId, avatarItems)}${raisedArmsSvg()}</div>
+      <div class="sj-figure" id="figure">${avatarMarkup(avatarId, avatarItems)}</div>
     </div>
   </div>`);
   body.replaceChildren(arena);
@@ -114,7 +97,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   const scoreEl = arena.querySelector("#score");
   const heartsEl = arena.querySelector("#hearts");
 
-  // Arena-mått + fångstzon (figurens övre del: händer/huvud/överkropp). Mäts ur
+  // Arena-mått + fångstzon (figurens övre del: huvud/överkropp). Mäts ur
   // figur-elementet så den följer figurens storlek – uppdateras vid resize.
   let aw = arena.clientWidth;
   let ah = arena.clientHeight;
@@ -126,9 +109,9 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   function measureCatchZone() {
     const ar = arena.getBoundingClientRect();
     const fr = figure.getBoundingClientRect();
-    catchTop = fr.top - ar.top + fr.height * 0.06; // ungefär de uppsträckta händerna
+    catchTop = fr.top - ar.top + fr.height * 0.06; // ungefär figurens topp (huvud)
     catchDepth = fr.height * 0.55; // ner till överkroppen
-    mouthHalf = (fr.width / 2) * 1.05; // ungefär armspannet
+    mouthHalf = (fr.width / 2) * 1.05; // ungefär figurens bredd
   }
 
   let bucketX = aw / 2; // spelarens mittpunkt (px)
