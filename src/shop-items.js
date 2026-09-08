@@ -29,8 +29,6 @@
 import { MYSTERY_ITEMS, MYSTERY_BOX_ID, MYSTERY_BOX_PRICE } from "./mystery-items.js";
 
 export const CATEGORIES = [
-  { id: "mystery", name: "Mysterybox", emoji: "🎁",
-    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga och sällsynta finns. Dubbletter blir coins." },
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
   { id: "mobler", name: "Möbler & prylar", emoji: "🪑" },
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
@@ -38,6 +36,10 @@ export const CATEGORIES = [
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
   { id: "hus", name: "Hus", emoji: "🏠" },
   { id: "tradgard", name: "Trädgård & utomhus", emoji: "🌳" },
+  // Mysteryboxen visas SIST i shoppen (längst ner), efter alla vanliga
+  // kategorier – CATEGORIES-ordningen styr renderingen i pages-shop.js.
+  { id: "mystery", name: "Mysterybox", emoji: "🎁",
+    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga och sällsynta finns. Dubbletter blir coins." },
 ];
 
 export const SHOP_ITEMS = [
@@ -177,9 +179,10 @@ export const SHOP_ITEMS = [
   { id: "buske", name: "Buske", emoji: "🌿", category: "tradgard", price: 25 },
   { id: "blomrabatt", name: "Blomrabatt", emoji: "🌷", category: "tradgard", price: 35, flat: true },
   { id: "trad", name: "Träd", emoji: "🌳", category: "tradgard", price: 60 },
-  { id: "cykel", name: "Cykel", emoji: "🚲", category: "tradgard", price: 90 },
+  { id: "cykel", name: "Cykel", emoji: "🚲", category: "tradgard", price: 300 },
   { id: "parkering", name: "Parkeringsruta", emoji: "🅿️", category: "tradgard", price: 110, flat: true },
-  { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 220 },
+  // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
+  { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
 ];
 
 // Mystery-vinsterna slås in i katalogen så getItem()/isWearable()/isHouseItem()
