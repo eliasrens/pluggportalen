@@ -20,6 +20,13 @@ import { gameFrame, muteButton, showResult } from "./game-shared.js";
 import { buildStatements, statementFeeder } from "./sanningsjakt-content.js";
 
 const START_LIVES = 3;
+// Coin-ekonomi (lätt att tune:a). Första varvet genom påstående-poolen (färska,
+// osedda påståenden) ger COINS_FRESH_TRUTH per sann fångst; så fort poolen
+// varvat ett varv och innehållet börjar upprepas sjunker det till
+// COINS_REPEAT_TRUTH för resten av sessionen. 3-liv-modellen låter en skicklig
+// spelare hålla på länge, men upprepat innehåll ger mindre → inget farmande.
+const COINS_FRESH_TRUTH = 2;
+const COINS_REPEAT_TRUTH = 1;
 
 /** HTML-escape för lärar-inmatad text i en fallande bricka. */
 function esc(s) {
@@ -68,9 +75,14 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   const deck = buildStatements(areaData);
   const feed = statementFeeder(deck);
 
+  // Texter som visats hittills: när en text setts förut är den inte "färsk"
+  // längre (poolen har varvat), och en fångst av den ger färre coins.
+  const seenTexts = new Set();
+
   let lives = START_LIVES;
   let score = 0;
   let caughtTrue = 0;
+  let coinsEarned = 0; // summeras under spelet enligt fresh/repeat-regeln
   let streak = 0;
   let ended = false;
 
@@ -90,15 +102,24 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   const field = arena.querySelector("#field");
   const player = arena.querySelector("#player");
   const figure = arena.querySelector("#figure");
+  const bucketEl = arena.querySelector(".sj-bucket");
   const scoreEl = arena.querySelector("#score");
   const heartsEl = arena.querySelector("#hearts");
 
-  // Arena-mått (uppdateras vid resize).
+  // Arena-mått + hink-geometri (mäts av DOM så kollisionen alltid matchar den
+  // BURNA hinkens öppning – uppdateras vid resize).
   let aw = arena.clientWidth;
   let ah = arena.clientHeight;
-  const PLAYER_W = 92; // matchar CSS-bredd
-  const MOUTH_HALF = 42; // halva hinkens fångstöppning
-  const CATCH_BAND = 60; // hur högt över golvet hinken fångar
+  const PLAYER_W = player.offsetWidth || 92;
+  let mouthHalf = 40; // halva hinkens fångstöppning (mäts nedan)
+  let catchLineY = ah - 70; // y (arena-koord) för hinkens överkant (mäts nedan)
+
+  function measureBucket() {
+    const ar = arena.getBoundingClientRect();
+    const br = bucketEl.getBoundingClientRect();
+    catchLineY = br.top - ar.top; // hinkens öppning, i höjd med magen
+    mouthHalf = (br.width / 2) * 0.92;
+  }
 
   let bucketX = aw / 2; // mittpunkt (px)
   let facingLeft = false;
@@ -136,7 +157,10 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     const w = Math.min(eln.offsetWidth, aw - 16);
     const h = eln.offsetHeight;
     const x = Math.random() * Math.max(1, aw - w - 16) + 8;
-    const tile = { eln, x, y: -h, w, h, truth: st.truth, caught: false };
+    // Färskt = första gången just den texten visas (första varvet i poolen).
+    const fresh = !seenTexts.has(st.text);
+    seenTexts.add(st.text);
+    const tile = { eln, x, y: -h, w, h, truth: st.truth, fresh, caught: false };
     eln.style.transform = `translate(${x}px, ${tile.y}px)`;
     tiles.push(tile);
   }
@@ -151,23 +175,26 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     setTimeout(() => f.remove(), 750);
   }
 
+  // Lugnt i starten, ökar sedan gradvis. Fallhastigheten börjar lågt (70 px/s)
+  // och klättrar långsamt; spawns är glesa först (var ~2,6 s) och tätnar sakta.
   function fallSpeed() {
-    return Math.min(360, 120 + elapsed * 8); // px/s, ökar gradvis
+    return Math.min(300, 70 + elapsed * 3.2); // px/s
   }
   function spawnInterval() {
-    return Math.max(0.7, 1.7 - elapsed * 0.02); // s, tätnar gradvis
+    return Math.max(0.9, 2.6 - elapsed * 0.02); // s mellan brickor
   }
 
   function catchTile(tile) {
     tile.caught = true;
     tile.eln.classList.add("caught");
     const cx = tile.x + tile.w / 2;
-    const cy = ah - CATCH_BAND;
+    const cy = catchLineY;
     if (tile.truth) {
       streak++;
       const gained = 10 + Math.min(20, (streak - 1) * 2);
       score += gained;
       caughtTrue++;
+      coinsEarned += tile.fresh ? COINS_FRESH_TRUTH : COINS_REPEAT_TRUTH;
       sound.correct();
       joy(cx, cy, `+${gained}`, "good");
       figure.classList.remove("cheer");
@@ -223,8 +250,8 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
 
     // Flytta + kolla kollision/golv.
     const vy = fallSpeed();
-    const mouthMin = bucketX - MOUTH_HALF;
-    const mouthMax = bucketX + MOUTH_HALF;
+    const mouthMin = bucketX - mouthHalf;
+    const mouthMax = bucketX + mouthHalf;
     for (let i = tiles.length - 1; i >= 0; i--) {
       const t = tiles[i];
       if (t.caught) continue;
@@ -232,7 +259,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
       t.eln.style.transform = `translate(${t.x}px, ${t.y}px)`;
       const cx = t.x + t.w / 2;
       const bottom = t.y + t.h;
-      if (bottom >= ah - CATCH_BAND && bottom <= ah - CATCH_BAND + t.h + 8 &&
+      if (bottom >= catchLineY && bottom <= catchLineY + t.h + 12 &&
           cx >= mouthMin && cx <= mouthMax) {
         catchTile(t);
         tiles.splice(i, 1);
@@ -283,6 +310,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     aw = arena.clientWidth;
     ah = arena.clientHeight;
     placePlayer();
+    measureBucket();
   }
 
   window.addEventListener("keydown", onKeyDown);
@@ -309,8 +337,10 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   function endGame() {
     if (ended) return;
     teardown();
-    const stars = score >= 300 ? 3 : score >= 140 ? 2 : 1;
-    const baseCoins = 2 * Math.min(25, Math.max(5, 4 + Math.round(score / 40)));
+    // Coins summeras under spelet (2 färskt / 1 upprepat per sann fångst) och
+    // skickas som baspott genom awardExercise → grind-trappan gäller vid omspel.
+    const baseCoins = Math.max(1, coinsEarned);
+    const stars = caughtTrue >= 24 ? 3 : caughtTrue >= 10 ? 2 : 1;
     showResult({
       container: body,
       subj, area, mode: "sanningsjakt",
@@ -324,5 +354,6 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
 
   renderHearts();
   placePlayer();
+  measureBucket();
   raf = requestAnimationFrame(step);
 }
