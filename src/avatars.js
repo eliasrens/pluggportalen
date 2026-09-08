@@ -10,7 +10,7 @@
 
 import { getItem } from "./shop-items.js";
 import { CHARACTERS, characterSvg } from "./art-characters.js";
-import { wearableSvg } from "./art-wearables.js";
+import { wearableSvg, wearableAnchor } from "./art-wearables.js";
 
 export { CHARACTERS, characterSvg };
 
@@ -85,7 +85,13 @@ export function avatarMarkup(avatarId, equipped = []) {
   const worn = (equipped || [])
     .map((id) => getItem(id))
     .filter((it) => it && it.category === "klader");
-  const span = (it) => `<span class="af-wear af-${it.slot}">${wearableSvg(it.id) || it.emoji}</span>`;
+  const span = (it) => {
+    // Vissa ansiktssaker (mustaschen) ankras lägre än ögonlinjen – lägg på
+    // af-anchor-<anchor> som flyttar slot-boxen (se styles.css).
+    const anchor = wearableAnchor(it.id);
+    const cls = `af-wear af-${it.slot}${anchor ? ` af-anchor-${anchor}` : ""}`;
+    return `<span class="${cls}">${wearableSvg(it.id) || it.emoji}</span>`;
+  };
   // Rygg-plagg (manteln) ritas FÖRE af-base → hänger bakom figuren; övriga
   // plagg ritas efter → ovanpå. Samma markup i rum- och ute-vyn.
   const behind = worn.filter((it) => it.slot === "rygg").map(span).join("");
