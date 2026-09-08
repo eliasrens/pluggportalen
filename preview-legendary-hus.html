@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legendary husskal – förhandsvisning</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+  <style>
+    body { margin: 0; font-family: 'Baloo 2','Nunito',system-ui,sans-serif; background: #F4EEFB; color: #3B3350; }
+    header { padding: 20px 24px 4px; }
+    header h1 { margin: 0 0 4px; font-size: 26px; }
+    header p { margin: 0; opacity: .7; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 22px; padding: 22px 24px 40px; }
+    .kort { background: #fff; border: 3px solid #F7C948; border-radius: 18px; overflow: hidden;
+      box-shadow: 0 8px 22px rgba(59,51,80,.10); }
+    .kort .scen { aspect-ratio: 8 / 5; background: linear-gradient(#9AD3F0, #E8F6FD); }
+    .kort .scen svg { width: 100%; height: 100%; display: block; }
+    .kort .rad { display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-weight: 800; font-size: 19px; }
+    .kort .rad .tag { margin-left: auto; font-size: 13px; font-weight: 800; color: #fff;
+      background: #FF7A1A; padding: 3px 10px; border-radius: 999px; }
+    .palett { padding: 0 24px 24px; }
+    .palett button { font: inherit; font-weight: 700; border: 2px solid #3B3350; background: #fff;
+      border-radius: 999px; padding: 6px 14px; margin-right: 8px; cursor: pointer; }
+    .palett button.aktiv { background: #3B3350; color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏆 Legendary husskal — exklusiva mysterybox-drops</h1>
+    <p>Går <b>inte</b> att köpa i shoppen. Bara vinnbara ur Mega-/Epic-boxen. Färgas av elevens palett.</p>
+  </header>
+  <div class="palett" id="palett"></div>
+  <div class="grid" id="rot"></div>
+
+  <script type="module">
+    import { husScen } from "./src/art-hus-ute.js";
+    import { LEGENDARY_HUS_SKAL } from "./src/art-hus-legendary.js";
+    import { avatarMarkup } from "./src/avatars.js";
+
+    // Ett par paletter för att visa att husen följer elevens färger.
+    const PALETTER = {
+      "Varm": { house: "#F4C57B", roof: "#E8927C", wall: "#9AD3F0", wall2: "#6FB7DE" },
+      "Sval": { house: "#B7A6E0", roof: "#7F9BE8", wall: "#CDEFE0", wall2: "#9AD9C4" },
+      "Sten": { house: "#C9C2D6", roof: "#8A8296", wall: "#E7DCC4", wall2: "#C7B38C" },
+    };
+    const rot = document.getElementById("rot");
+    const palettEl = document.getElementById("palett");
+    const avatar = avatarMarkup("fox", []);
+    let aktiv = "Varm";
+
+    function rita() {
+      const p = PALETTER[aktiv];
+      const stil = `--hus-house:${p.house};--hus-roof:${p.roof};--hus-wall:${p.wall};--hus-wall2:${p.wall2}`;
+      rot.innerHTML = Object.entries(LEGENDARY_HUS_SKAL).map(([id, s]) =>
+        `<div class="kort">
+          <div class="scen" style="${stil}">${husScen(avatar, { skalId: id })}</div>
+          <div class="rad">${s.emoji} ${s.namn} <span class="tag">LEGENDARY</span></div>
+        </div>`).join("");
+    }
+    palettEl.innerHTML = Object.keys(PALETTER).map((n) =>
+      `<button data-p="${n}" class="${n === aktiv ? "aktiv" : ""}">${n} palett</button>`).join("");
+    palettEl.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-p]");
+      if (!b) return;
+      aktiv = b.dataset.p;
+      palettEl.querySelectorAll("button").forEach((x) => x.classList.toggle("aktiv", x.dataset.p === aktiv));
+      rita();
+    });
+    rita();
+  </script>
+</body>
+</html>
