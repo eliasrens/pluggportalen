@@ -26,7 +26,11 @@
 // Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
 
+import { MYSTERY_ITEMS, MYSTERY_BOX_ID, MYSTERY_BOX_PRICE } from "./mystery-items.js";
+
 export const CATEGORIES = [
+  { id: "mystery", name: "Mysterybox", emoji: "🎁",
+    hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga och sällsynta finns. Dubbletter blir coins." },
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
   { id: "mobler", name: "Möbler & prylar", emoji: "🪑" },
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
@@ -36,6 +40,13 @@ export const CATEGORIES = [
 ];
 
 export const SHOP_ITEMS = [
+  // --- Mysterybox (köp & öppna → slumpad kosmetik ur viktad pool) -----------
+  // Boxen köps hur många gånger som helst (aldrig "ägd"); öppnandet sker via
+  // openMysteryBox() (data-mystery.js) och reveal-flödet i pages-shop-mystery.js.
+  // Själva vinsterna (MYSTERY_ITEMS) slås in nedan med mysteryOnly:true så de
+  // resolvas av getItem() men INTE visas som köpbara i den vanliga katalogen.
+  { id: MYSTERY_BOX_ID, name: "Mysterybox", emoji: "🎁", category: "mystery", price: MYSTERY_BOX_PRICE, mysteryBox: true },
+
   // --- Kläder & accessoarer (bärs på avataren) -----------------------------
   { id: "keps", name: "Keps", emoji: "🧢", category: "klader", slot: "hatt", price: 20 },
   { id: "partyhatt", name: "Partyhatt", emoji: "🎉", category: "klader", slot: "hatt", price: 35 },
@@ -158,6 +169,14 @@ export const SHOP_ITEMS = [
   { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
 ];
 
+// Mystery-vinsterna slås in i katalogen så getItem()/isWearable()/isHouseItem()
+// m.fl. resolvar dem överallt (garderob, husskal-väljare, rums-låda). De är
+// mysteryOnly → filtreras bort ur den vanliga shoppens katalog (itemsInCategory)
+// och kan bara vinnas ur boxen. price:0 (de köps aldrig direkt).
+for (const it of MYSTERY_ITEMS) {
+  SHOP_ITEMS.push({ price: 0, ...it, mysteryOnly: true });
+}
+
 /**
  * Rums-uppgraderingarnas id:n i pris-/upplåsningsordning. Antalet ÄGDA av dessa
  * avgör hur många EXTRA rum eleven har (utöver grundrummet) – se getRoomCount()
@@ -231,10 +250,20 @@ export function isConsumable(id) {
  */
 const MULTI_CATEGORIES = new Set(["mobler", "dekor"]);
 
-/** Får man äga flera exemplar av den här saken? (möbler & dekor) */
+/**
+ * Får man äga flera exemplar av den här saken? (möbler & dekor). Mystery-saker
+ * är UNIKA samlarobjekt (mysteryOnly) och ägs binärt även om de har en multi-
+ * kategori (dekor) – dubbletter omvandlas till coins i stället, se data-mystery.js.
+ */
 export function isMultiItem(id) {
   const it = getItem(id);
-  return !!(it && MULTI_CATEGORIES.has(it.category));
+  return !!(it && MULTI_CATEGORIES.has(it.category) && !it.mysteryOnly);
+}
+
+/** Är saken själva mysteryboxen (köp & öppna → slumpad kosmetik)? */
+export function isMysteryBox(id) {
+  const it = getItem(id);
+  return !!(it && it.mysteryBox);
 }
 
 /**
@@ -249,7 +278,10 @@ export function itemIdFromKey(key) {
   return i === -1 ? s : s.slice(0, i);
 }
 
-/** Saker i en kategori. */
+/**
+ * Köpbara saker i en kategori (för shop-katalogen). Mystery-vinsterna
+ * (mysteryOnly) filtreras bort – de säljs aldrig direkt, bara ur boxen.
+ */
 export function itemsInCategory(catId) {
-  return SHOP_ITEMS.filter((it) => it.category === catId);
+  return SHOP_ITEMS.filter((it) => it.category === catId && !it.mysteryOnly);
 }

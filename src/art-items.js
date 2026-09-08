@@ -17,9 +17,11 @@ import { getItem, CATEGORIES } from "./shop-items.js";
 import { FURNITURE } from "./art-furniture.js";
 import { PETS } from "./art-pets.js";
 import { DECOR } from "./art-decor.js";
+import { MYSTERY_DECOR } from "./art-mystery.js";
 
-// Alla rum-saker i en uppslagning (id → { viewBox, art }).
-const ITEMS = { ...FURNITURE, ...PETS, ...DECOR };
+// Alla rum-saker i en uppslagning (id → { viewBox, art }). Mystery-dekor
+// (vinns ur mysteryboxen) placeras i rummet precis som köpt dekor.
+const ITEMS = { ...FURNITURE, ...PETS, ...DECOR, ...MYSTERY_DECOR };
 
 const WOOD = "#B0805A";
 const WOOD_DARK = "#8A6242";

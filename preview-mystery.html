@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – mysterybox</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för mysterybox-kosmetiken (mystery-items.js +
+         art-mystery.js). Ingen inloggning/Firestore – lottningen körs lokalt. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 6px; }
+      header h1 { margin: 0 0 4px; font-size: 1.35rem; }
+      header p { margin: 0; font-size: 0.92rem; opacity: 0.82; max-width: 780px; }
+      .open-row { padding: 10px 20px 4px; }
+      .open-row button { font: inherit; font-weight: 700; padding: 10px 20px; border: none; border-radius: 999px;
+        background: #EF6F6C; color: #fff; cursor: pointer; box-shadow: 0 4px 0 #c8514e; }
+      .open-row button:active { transform: translateY(2px); box-shadow: 0 2px 0 #c8514e; }
+      .tally { margin-left: 14px; font-size: 0.85rem; opacity: 0.8; }
+      .art { padding: 8px 20px 24px; }
+      .art h2 { font-size: 1.05rem; margin: 14px 0 8px; display: flex; align-items: center; gap: 8px; }
+      .dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+      .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+      .cell { width: 132px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+        background: #fff; border-radius: 14px; padding: 12px 8px; border: 2px solid #eadfce; }
+      .cell .bild { width: 92px; height: 92px; display: flex; align-items: center; justify-content: center; }
+      .cell .bild svg { width: 100%; height: 100%; }
+      .cell .bild .hus { width: 100%; height: 100%; --hus-house:#F4C57B;--hus-roof:#E8927C;--hus-wall:#9AD3F0;--hus-wall2:#6FB7DE; }
+      .cell .bild .hus svg { width: 100%; height: 100%; }
+      .cell .namn { font-size: 0.86rem; font-weight: 700; text-align: center; }
+      .cell .cat { font-size: 0.72rem; opacity: 0.6; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – mysterybox 🎁</h1>
+      <p>Alla kosmetiska mystery-items grupperade per sällsynthetsnivå, med sina egentecknade SVG-assets. Klicka
+        <b>Öppna en box</b> för att se lottnings- och reveal-animationen (körs lokalt, ingen inloggning). Dubbletter
+        ger coins i den riktiga appen – här visas alltid vinsten.</p>
+    </header>
+    <div class="open-row">
+      <button id="oppna">🎁 Öppna en box</button>
+      <span class="tally" id="tally"></span>
+    </div>
+    <div id="rot"></div>
+
+    <script type="module">
+      import { MYSTERY_ITEMS, RARITIES, RARITY_ORDER, rarityInfo, rollMysteryItem, itemsOfRarity } from "./src/mystery-items.js";
+      import { confetti } from "./src/fx.js";
+      import { wearableSvg } from "./src/art-wearables.js";
+      import { itemSvg } from "./src/art-items.js";
+      import { husSkalPreview } from "./src/art-hus-ute.js";
+
+      const HUS = "--hus-house:#F4C57B;--hus-roof:#E8927C;--hus-wall:#9AD3F0;--hus-wall2:#6FB7DE";
+      const rot = document.getElementById("rot");
+
+      function art(item) {
+        if (item.category === "klader") return wearableSvg(item.id) || item.emoji;
+        if (item.category === "hus") return `<div class="hus">${husSkalPreview(item.skalId || item.id)}</div>`;
+        return itemSvg(item.id) || item.emoji;
+      }
+      const catLabel = { klader: "Kläder", dekor: "Dekor", hus: "Husskal" };
+
+      // Galleri per nivå.
+      for (const r of RARITY_ORDER) {
+        const info = RARITIES[r];
+        const block = document.createElement("section");
+        block.className = "art";
+        block.innerHTML = `<h2><span class="dot" style="background:${info.farg}"></span>
+          ${info.label} <small style="opacity:.6">· vikt ${info.weight} · dubblett ${info.dupCoins} coins</small></h2>`;
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        for (const it of itemsOfRarity(r)) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.style.borderColor = info.farg;
+          cell.innerHTML = `<div class="bild">${art(it)}</div>
+            <div class="namn">${it.name}</div><div class="cat">${catLabel[it.category] || it.category}</div>`;
+          grid.appendChild(cell);
+        }
+        block.appendChild(grid);
+        rot.appendChild(block);
+      }
+
+      // Reveal-demo (samma .mb-*-klasser som riktiga flödet i pages-shop-mystery.js).
+      const tally = { vanlig: 0, ovanlig: 0, sallsynt: 0 };
+      function showTally() {
+        document.getElementById("tally").textContent =
+          `Öppnade: vanlig ${tally.vanlig} · ovanlig ${tally.ovanlig} · sällsynt ${tally.sallsynt}`;
+      }
+
+      function reveal(item) {
+        tally[item.rarity]++; showTally();
+        const rar = rarityInfo(item.rarity);
+        const overlay = document.createElement("div");
+        overlay.className = "mb-overlay";
+        overlay.innerHTML = `<div class="mb-modal">
+          <button class="cx-modal-close mb-close">✕</button>
+          <div class="mb-stage">
+            <div class="mb-box">${gift()}</div>
+            <div class="mb-reveal" hidden>
+              <p class="mb-rarity" style="--rar:${rar.farg}">${rar.label}</p>
+              <div class="mb-card" style="--rar:${rar.farg}"><div class="mb-art">${art(item)}</div></div>
+              <p class="mb-name">${item.name}</p>
+              <p class="mb-got">Du fick <b>${item.name}</b>! 🎉</p>
+              <button class="btn mb-ok">Toppen!</button>
+            </div>
+          </div></div>`;
+        const close = () => overlay.remove();
+        overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+        overlay.querySelector(".mb-close").addEventListener("click", close);
+        overlay.querySelector(".mb-ok").addEventListener("click", close);
+        document.body.appendChild(overlay);
+        const box = overlay.querySelector(".mb-box");
+        const rev = overlay.querySelector(".mb-reveal");
+        box.classList.add("shake");
+        setTimeout(() => {
+          box.classList.add("burst");
+          rev.hidden = false;
+          if (item.rarity === "sallsynt") confetti(70);
+        }, 900);
+      }
+
+      function gift() {
+        return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <rect x="18" y="42" width="64" height="46" rx="8" fill="#EF6F6C" stroke="#3B3350" stroke-width="3"/>
+          <rect x="14" y="32" width="72" height="18" rx="6" fill="#F08A3C" stroke="#3B3350" stroke-width="3"/>
+          <rect x="44" y="32" width="12" height="56" fill="#F7C948" stroke="#3B3350" stroke-width="2.4"/>
+          <path d="M50 32 Q34 12 26 24 Q22 32 50 34 Q78 32 74 24 Q66 12 50 32 Z" fill="#F7C948" stroke="#3B3350" stroke-width="3" stroke-linejoin="round"/>
+          <circle cx="50" cy="30" r="5" fill="#FDE9A8" stroke="#3B3350" stroke-width="2.4"/>
+          <text x="50" y="72" font-size="20" text-anchor="middle" fill="#fff" font-weight="800" font-family="system-ui">?</text>
+        </svg>`;
+      }
+
+      document.getElementById("oppna").addEventListener("click", () => reveal(rollMysteryItem()));
+      showTally();
+    </script>
+  </body>
+</html>
