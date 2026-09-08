@@ -1,10 +1,11 @@
 // ============================================================================
 // Pluggportalen – games-sanningsjakt.js
-// Arkad-läget "Fånga sanningar": avataren står längst ner med en hink och rör
-// sig i sidled (piltangenter/A-D + touch/drag). Påståenden faller uppifrån i
-// slumpade x-lägen i ett tempo som ökar gradvis. Fånga SANT = poäng + glädje,
-// fånga FALSKT = −1 liv (3 liv, hjärtan). Missat påstående som når golvet ger
-// ingen straff. Game over vid 0 liv → resultat + grind-skalad belöning.
+// Arkad-läget "Fånga sanningar": avataren står längst ner med uppsträckta armar
+// och rör sig i sidled (piltangenter/A-D + touch/drag). Påståenden faller
+// uppifrån i slumpade x-lägen i ett tempo som ökar gradvis. Avataren fångar med
+// SIG SJÄLV (händer/huvud/överkropp). Fånga SANT = poäng + glädje, fånga FALSKT
+// = −1 liv (3 liv, hjärtan). Missat påstående som når golvet ger ingen straff.
+// Game over vid 0 liv → resultat + grind-skalad belöning.
 //
 // Innehållet härleds ur områdets fakta-par ({term,definition}): rätt parning =
 // sant "<term> betyder <definition>", felparad = falskt. Saknas par (minst 2)
@@ -16,6 +17,7 @@ import { app, el } from "./ui.js";
 import * as data from "./data.js";
 import { sound } from "./fx.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
+import { THIN, limb } from "./art-style.js";
 import { gameFrame, muteButton, showResult } from "./game-shared.js";
 import { buildStatements, statementFeeder } from "./sanningsjakt-content.js";
 
@@ -37,12 +39,30 @@ function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Uppsträckta "fånga"-armar som overlay ovanpå avataren (samma ankargrid/stil
+ * som karaktärskonsten, art-style.js). Avataren fångar MED SIG SJÄLV – ingen
+ * hink. Armarna sitter i .sj-figure så de följer gång-/idle-animationen och
+ * spegelvänds med figuren. Krämfärgade "vantar" (vita tassar) läser som att
+ * figuren sträcker upp händerna, oavsett vilken avatar som är vald.
+ */
+function raisedArmsSvg() {
+  return (
+    `<svg class="sj-arms" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
+    limb("M38 70 Q23 46 27 18", "#FFF3DC", 7) +
+    limb("M62 70 Q77 46 73 18", "#FFF3DC", 7) +
+    `<circle cx="27" cy="15" r="7.2" fill="#fff" ${THIN}/>` +
+    `<circle cx="73" cy="15" r="7.2" fill="#fff" ${THIN}/>` +
+    `</svg>`
+  );
+}
+
 // --- Spelet -----------------------------------------------------------------
 
 export async function startSanningsjakt(ctx) {
   const { subj, area } = ctx;
 
-  const view = gameFrame({ subj, area, title: "Fånga sanningar", emoji: "🪣" });
+  const view = gameFrame({ subj, area, title: "Fånga sanningar", emoji: "🙌" });
   view.querySelector(".game-head-right").appendChild(muteButton());
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
@@ -57,10 +77,10 @@ export async function startSanningsjakt(ctx) {
   } catch {}
 
   const intro = el(`<div class="panel center sj-intro">
-    <div class="big-emoji">🪣</div>
+    <div class="big-emoji">🙌</div>
     <h2>Fånga sanningar!</h2>
-    <p>Påståenden regnar ner. Fånga de som är <b>sanna</b> med hinken – men undvik de <b>falska</b>!</p>
-    <p class="hint">Styr med <b>piltangenter</b> eller <b>A/D</b> – eller dra med fingret. Du har <b>${START_LIVES} liv</b> ❤️❤️❤️, ett falskt påstående i hinken kostar ett liv. Tempot ökar efter hand!</p>
+    <p>Påståenden regnar ner. Sträck upp armarna och fånga de som är <b>sanna</b> – men undvik de <b>falska</b>!</p>
+    <p class="hint">Styr med <b>piltangenter</b> eller <b>A/D</b> – eller dra med fingret. Du har <b>${START_LIVES} liv</b> ❤️❤️❤️, fångar du ett falskt påstående kostar det ett liv. Tempot ökar efter hand!</p>
     <button class="btn stor gron" id="go">Starta! 🚀</button>
   </div>`);
   intro.querySelector("#go").addEventListener("click", () => {
@@ -93,8 +113,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     </div>
     <div class="sj-field" id="field"></div>
     <div class="sj-player" id="player">
-      <div class="sj-figure" id="figure">${avatarMarkup(avatarId, avatarItems)}</div>
-      <div class="sj-bucket" aria-hidden="true"></div>
+      <div class="sj-figure" id="figure">${avatarMarkup(avatarId, avatarItems)}${raisedArmsSvg()}</div>
     </div>
   </div>`);
   body.replaceChildren(arena);
@@ -102,26 +121,28 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
   const field = arena.querySelector("#field");
   const player = arena.querySelector("#player");
   const figure = arena.querySelector("#figure");
-  const bucketEl = arena.querySelector(".sj-bucket");
   const scoreEl = arena.querySelector("#score");
   const heartsEl = arena.querySelector("#hearts");
 
-  // Arena-mått + hink-geometri (mäts av DOM så kollisionen alltid matchar den
-  // BURNA hinkens öppning – uppdateras vid resize).
+  // Arena-mått + fångstzon. Avataren fångar med SIG SJÄLV (uppsträckta armar),
+  // så zonen är figurens övre del (händer/huvud/överkropp). Mäts ur figur-
+  // elementet så den följer figurens faktiska storlek – uppdateras vid resize.
   let aw = arena.clientWidth;
   let ah = arena.clientHeight;
   const PLAYER_W = player.offsetWidth || 92;
-  let mouthHalf = 40; // halva hinkens fångstöppning (mäts nedan)
-  let catchLineY = ah - 70; // y (arena-koord) för hinkens överkant (mäts nedan)
+  let mouthHalf = 40; // halva fångstzonens bredd (mäts nedan)
+  let catchTop = ah - 90; // y (arena-koord) för händernas nivå (mäts nedan)
+  let catchDepth = 70; // hur långt ner i figuren zonen räcker (huvud/överkropp)
 
-  function measureBucket() {
+  function measureCatchZone() {
     const ar = arena.getBoundingClientRect();
-    const br = bucketEl.getBoundingClientRect();
-    catchLineY = br.top - ar.top; // hinkens öppning, i höjd med magen
-    mouthHalf = (br.width / 2) * 0.92;
+    const fr = figure.getBoundingClientRect();
+    catchTop = fr.top - ar.top + fr.height * 0.06; // ungefär de uppsträckta händerna
+    catchDepth = fr.height * 0.55; // ner till överkroppen
+    mouthHalf = (fr.width / 2) * 1.05; // ungefär armspannet
   }
 
-  let bucketX = aw / 2; // mittpunkt (px)
+  let bucketX = aw / 2; // spelarens mittpunkt (px)
   let facingLeft = false;
   let keyDir = 0; // -1 vänster, +1 höger (tangenter)
   let pointerTarget = null; // px (touch/mus-drag), null = ingen aktiv styrning
@@ -156,7 +177,25 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     field.appendChild(eln);
     const w = Math.min(eln.offsetWidth, aw - 16);
     const h = eln.offsetHeight;
-    const x = Math.random() * Math.max(1, aw - w - 16) + 8;
+    // Slumpa x, men undvik att lägga brickan så den överlappar en annan bricka
+    // som fortfarande är nära toppen (så breda/höga brickor inte krockar fult).
+    const maxX = Math.max(1, aw - w - 16);
+    const nearTop = tiles.filter((t) => t.y < h + 24);
+    const gap = 10;
+    let x = Math.random() * maxX + 8;
+    let bestX = x;
+    let bestClear = -Infinity;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const cand = Math.random() * maxX + 8;
+      let clear = Infinity; // minsta horisontella avstånd till en topp-bricka
+      for (const t of nearTop) {
+        const overlap = Math.min(cand + w, t.x + t.w) - Math.max(cand, t.x);
+        clear = Math.min(clear, -overlap); // positivt = mellanrum, negativt = överlapp
+      }
+      if (clear > bestClear) { bestClear = clear; bestX = cand; }
+      if (clear >= gap) { bestX = cand; break; } // tillräckligt fritt – ta den
+    }
+    x = bestX;
     // Färskt = första gången just den texten visas (första varvet i poolen).
     const fresh = !seenTexts.has(st.text);
     seenTexts.add(st.text);
@@ -188,7 +227,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     tile.caught = true;
     tile.eln.classList.add("caught");
     const cx = tile.x + tile.w / 2;
-    const cy = catchLineY;
+    const cy = catchTop;
     if (tile.truth) {
       streak++;
       const gained = 10 + Math.min(20, (streak - 1) * 2);
@@ -222,7 +261,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     lastTs = ts;
     elapsed += dt;
 
-    // Styrning: tangent-håll rör hinken, drag styr mot mål.
+    // Styrning: tangent-håll rör spelaren, drag styr mot mål.
     const moveSpeed = 520; // px/s
     let moving = false;
     if (keyDir !== 0) {
@@ -259,7 +298,9 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
       t.eln.style.transform = `translate(${t.x}px, ${t.y}px)`;
       const cx = t.x + t.w / 2;
       const bottom = t.y + t.h;
-      if (bottom >= catchLineY && bottom <= catchLineY + t.h + 12 &&
+      // Fångad när brickans underkant når in i figurens övre zon (händer →
+      // överkropp) och den är i sidled över figuren.
+      if (bottom >= catchTop && bottom <= catchTop + catchDepth + t.h &&
           cx >= mouthMin && cx <= mouthMax) {
         catchTile(t);
         tiles.splice(i, 1);
@@ -310,7 +351,7 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     aw = arena.clientWidth;
     ah = arena.clientHeight;
     placePlayer();
-    measureBucket();
+    measureCatchZone();
   }
 
   window.addEventListener("keydown", onKeyDown);
@@ -354,6 +395,6 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
 
   renderHearts();
   placePlayer();
-  measureBucket();
+  measureCatchZone();
   raf = requestAnimationFrame(step);
 }
