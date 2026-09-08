@@ -747,7 +747,7 @@
   border-radius: var(--radie);
   background: linear-gradient(180deg, #dcefff 0%, #eaf6ff 55%, #d7f0dc 100%);
   box-shadow: var(--skugga-mjuk);
-  touch-action: none; /* dra styr hinken, inte sidscroll */
+  touch-action: none; /* dra styr spelaren, inte sidscroll */
   user-select: none;
 }
 
@@ -785,7 +785,10 @@
   position: absolute;
   top: 0; left: 0;
   will-change: transform;
-  max-width: 68%;
+  /* Rimlig max-bredd: långa påståenden radbryter (flera rader) och brickan blir
+     högre i stället för superbred. Kollisionen mäter faktisk storlek i JS. */
+  width: max-content;
+  max-width: min(44%, 300px);
   padding: 8px 12px;
   border-radius: 14px;
   background: var(--panel);
@@ -795,6 +798,9 @@
   font-weight: 700;
   color: var(--text);
   line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 /* Sant/falskt ser likadant ut – eleven ska AVGÖRA, inte färgläsa. */
 .sj-tile.caught { transition: transform 0.12s ease, opacity 0.12s ease; opacity: 0; }
@@ -826,14 +832,14 @@
   100% { opacity: 0; transform: translate(-50%, -160%) scale(1.1); }
 }
 
-/* Spelaren: avatar som HÅLLER en hink framför sig. Positioneras i px av
-   spelmotorn (left); figuren står på golvet, hinken sitter i maghöjd framför. */
+/* Spelaren: avatar som fångar med SIG SJÄLV (uppsträckta armar). Positioneras i
+   px av spelmotorn (left); figuren står på golvet. */
 .sj-player {
   position: absolute;
   bottom: 6px;
   left: 0;
   width: 92px;
-  height: 100px;
+  height: 92px;
   z-index: var(--z-scen-objekt);
 }
 .sj-player.face-left { transform: scaleX(-1); }
@@ -841,12 +847,23 @@
 .sj-figure {
   position: absolute;
   left: 50%;
-  bottom: 0; /* fötterna på golvet – står INTE i hinken */
+  bottom: 0; /* fötterna på golvet */
   transform: translateX(-50%);
   font-size: 64px; /* .avatar-figure skalar med font-size */
   transform-origin: 50% 100%;
 }
 .sj-figure .avatar-figure { display: block; }
+
+/* Uppsträckta "fånga"-armar ovanpå avataren (samma viewBox/ankargrid). Fyller
+   figurens box och ligger överst → armarna sträcker sig upp bredvid huvudet. */
+.sj-arms {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
 
 /* Gång-cykel: lätt studs + vaggning (armar/ben antyds av vaggningen). Idle =
    lugn andning. Spegelvändning görs på .sj-player (face-left), så samma
@@ -871,45 +888,6 @@
   40% { transform: translateX(-50%) translateY(-14%) scale(1.08); }
 }
 
-/* Hinken: en enkel trapets-form i CSS som avataren HÅLLER framför sig i
-   maghöjd. Ritas efter figuren i DOM → ligger framför den. Kollisionens
-   fångst-linje mäts ur just detta element (measureBucket i JS). */
-.sj-bucket {
-  position: absolute;
-  left: 50%;
-  bottom: 14px;
-  transform: translateX(-50%);
-  width: 62px;
-  height: 34px;
-  background: linear-gradient(180deg, #c9d7ea 0%, #9fb4d4 100%);
-  border: 3px solid #6b7fa3;
-  border-radius: 6px 6px 14px 14px / 8px 8px 26px 26px;
-  clip-path: polygon(6% 0, 94% 0, 82% 100%, 18% 100%);
-  box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.4);
-}
-.sj-bucket::before {
-  content: "";
-  position: absolute;
-  top: -6px; left: 4%;
-  width: 92%;
-  height: 10px;
-  border: 3px solid #6b7fa3;
-  border-radius: 50%;
-  background: #dbe6f5;
-}
-/* Liten "hänk-tass": antyder att figuren greppar hinkens kant. */
-.sj-bucket::after {
-  content: "";
-  position: absolute;
-  top: -9px; left: 50%;
-  width: 74%;
-  height: 12px;
-  transform: translateX(-50%);
-  border: 3px solid #6b7fa3;
-  border-bottom: none;
-  border-radius: 40px 40px 0 0;
-}
-
 .sj-arena.shake { animation: sj-shake 0.32s ease; }
 @keyframes sj-shake {
   0%, 100% { transform: translateX(0); }
@@ -926,8 +904,8 @@
 
 @media (max-width: 520px) {
   .sj-arena { height: 66vh; }
-  .sj-player { width: 80px; height: 92px; }
+  .sj-player { width: 80px; height: 84px; }
   .sj-figure { font-size: 56px; }
-  .sj-bucket { width: 56px; height: 30px; bottom: 12px; }
+  .sj-tile { max-width: min(60%, 240px); }
   .sj-tile-main { font-size: 0.88rem; }
 }
