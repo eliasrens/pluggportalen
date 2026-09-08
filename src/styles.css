@@ -1768,6 +1768,76 @@ code {
   display: block;
 }
 
+/* --- Trädgården: köpta utomhussaker placerade i ute-scenen (issue #132) -----
+   Lagret ligger OVANPÅ husScen-SVG:n i #ute-lager. pointer-events:none så klick
+   på huset/gräset går vidare till scenen; varje sak slår på pointer-events själv.
+   container-type:inline-size → sakernas cqw-storlek mäts mot scenens bredd (samma
+   idé som .varld-lager.room-stage), och --gard-koeff/--gard-cap sätter skalan. */
+.tradgard-lager {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  container-type: inline-size;
+  --gard-koeff: 2.4;
+  --gard-cap: 34px;
+}
+
+.garden-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  line-height: 1;
+  user-select: none;
+  touch-action: none;
+  pointer-events: auto;
+  z-index: var(--z-scen-markor);
+}
+
+.garden-item .gi-bild {
+  display: block;
+  pointer-events: none;
+}
+
+.garden-item .gi-bild svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Mjuk markskugga så sakerna sitter fast i gräset, inte svävar. */
+  filter: drop-shadow(0 3px 2px rgba(59, 51, 80, 0.18));
+}
+
+.garden-item.dragging {
+  cursor: grabbing;
+  z-index: var(--z-scen-drag);
+}
+
+.garden-item.selected {
+  outline: 3px dashed var(--lila);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.garden-item .gi-remove {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  border: none;
+  background: var(--rod);
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.garden-item.selected .gi-remove {
+  display: block;
+}
+
 .room-tray,
 .wear-tray {
   display: flex;
@@ -3268,6 +3338,11 @@ body.varld-lage .container {
 /* Möbler & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
    ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */
 .varld-stage[data-niva="hus"] .varld-knapp.bara-rum { display: none; }
+
+/* Trädgården (🌳) finns bara UTE runt huset → dölj knappen inne i rummet
+   (bara-hus, motsvarigheten till bara-rum). På by-/kompis-/skolnivåerna är hela
+   verktygsmenyn redan dold, så en hus-vs-rum-regel räcker. */
+.varld-stage[data-niva="rum"] .varld-knapp.bara-hus { display: none; }
 
 /* Flytande verktygspanel (Måla om / Möbler / Kläder) under knappraden. */
 .varld-panel {
