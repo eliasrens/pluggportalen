@@ -156,6 +156,7 @@ export function mergeAreaContent(existing, incoming) {
     order: existing.order,
     coverEmoji: existing.coverEmoji,
     description: existing.description,
+    grade: existing.grade,
     exerciseTypes,
     texts: mergedTexts,
     quiz: mergedQuiz,

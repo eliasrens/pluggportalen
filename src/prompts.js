@@ -18,6 +18,7 @@
 // ============================================================================
 
 import { normalizeExerciseTypes } from "./exercise-types.js";
+import { gradeNr, gradeAge, DEFAULT_GRADE_NR } from "./grades.js";
 import {
   SCHEMA,
   EXAMPLE,
@@ -43,11 +44,16 @@ export const EXAMPLE_JSON = EXAMPLE;
  * behandlas som "allt utom bildpar" (quiz + text-par), så knappen aldrig ger en
  * innehållslös prompt.
  *
+ * Årskursen (om satt) styr språk, svårighetsgrad och exempel – men bara som en
+ * styrning läraren kan sätta, inte tvingande (issue #145). Saknas den används
+ * dagens standard (årskurs 4), så äldre områden får samma prompt som förut.
+ *
  * @param {string[]} types – valda typ-id ("quiz", "pairs", "bildpar").
  * @param {string} [onskemal] – valfritt fritext-önskemål (vävs in i materialblocket).
+ * @param {string|number|null} [grade] – årskurs ("ak1".."ak9" eller null).
  * @returns {string} färdig prompt att kopiera.
  */
-export function buildAreaPrompt(types, onskemal) {
+export function buildAreaPrompt(types, onskemal, grade) {
   const set = new Set(normalizeExerciseTypes(types));
   const inget = set.size === 0;
   const wantQuiz = inget || set.has("quiz");
@@ -77,10 +83,18 @@ export function buildAreaPrompt(types, onskemal) {
     krav.push(`- Skapa INGA fakta-par – låt "pairs" vara en tom lista [].`);
   }
 
-  return `Du hjälper en lärare att skapa studiematerial för en studiesajt för årskurs 4.
+  // Årskurs: sätt av läraren → styr språk/svårighetsgrad. Saknas den används
+  // dagens standard (åk 4) så prompten ser likadan ut som förut.
+  const nr = gradeNr(grade) ?? DEFAULT_GRADE_NR;
+  const age = gradeAge(grade) ?? nr + 6;
+  const gradniva = `Materialet riktar sig till elever i årskurs ${nr} (ca ${age} år). Anpassa språk, svårighetsgrad och exempel efter den årskursen – enklare och mer konkret för låga årskurser, mer nyanserat och abstrakt för höga. Detta är en styrning, inte en tvingande regel.`;
+
+  return `Du hjälper en lärare att skapa studiematerial för en studiesajt för årskurs ${nr}.
 
 Utifrån den bifogade PDF:en / texten nedan ska du skapa ETT arbetsområde som JSON i exakt det här formatet.
 Läraren har valt vilka övningstyper området ska ha: ${valda}. Skapa BARA innehåll för de valda typerna – låt alla övriga listor vara tomma ([]).
+
+${gradniva}
 
 ${SCHEMA}
 

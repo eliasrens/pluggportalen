@@ -14,6 +14,7 @@
 
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
+import { normalizeGrade } from "./grades.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -78,6 +79,11 @@ export function validateArea(obj) {
 
   const coverEmoji = isNonEmptyString(obj.coverEmoji) ? obj.coverEmoji.trim() : "📖";
   const description = typeof obj.description === "string" ? obj.description.trim() : "";
+
+  // --- Årskurs (valfri, bakåtkompatibel) ------------------------------------
+  // Saknas fältet, eller är det okänt/tomt, räknas området som "ospecificerad"
+  // (null). Inget fel rapporteras – fältet är en valfri styrning (issue #145).
+  const grade = normalizeGrade(obj.grade);
 
   // --- texts[] --------------------------------------------------------------
   const texts = [];
@@ -258,6 +264,7 @@ export function validateArea(obj) {
     order: typeof order === "number" ? order : 1,
     coverEmoji,
     description,
+    grade,
     texts,
     quiz,
     pairs,
