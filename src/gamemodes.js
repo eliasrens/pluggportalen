@@ -16,6 +16,8 @@ import { GAMEMODES, starRow, enc } from "./game-shared.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
+import { startSanningsjakt } from "./games-sanningsjakt.js";
+import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
 
 // ---------------------------------------------------------------------------
 // Områdesöversikt: välj gamemode (med stjärnor per övning)
@@ -52,6 +54,8 @@ export async function pageElevOmrade() {
   const has = {
     quiz: Array.isArray(areaData.quiz) && areaData.quiz.length > 0,
     pairs: Array.isArray(areaData.pairs) && areaData.pairs.length > 0,
+    // Arkad-läget kan härleda påståenden ur par (minst 2) eller quiz.
+    sanningsjakt: hasSanningsjaktContent(areaData),
   };
 
   const cards = GAMEMODES.map((gm) => {
@@ -119,6 +123,7 @@ export async function pageElevSpela() {
     case "lasforstaelse": return startLasforstaelse(ctx);
     case "para": return startPara(ctx);
     case "kunskapsjakt": return startKunskapsjakt(ctx);
+    case "sanningsjakt": return startSanningsjakt(ctx);
     case "memory": return startMemory(ctx);
     default: return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
   }
