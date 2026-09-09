@@ -5,8 +5,9 @@
 // lägen för klassen" på ett klasskort. Läraren bockar UR spellägen/spel som ska
 // döljas för HELA klassen (issue #208), utöver per-område-valet (#200).
 //
-// Listan härleds GENERISKT ur GAMEMODES, så nya lägen/spel (inkl. äventyrsspelen)
-// dyker upp automatiskt. Ikryssat = synligt; urbockat sparas i
+// Listan härleds GENERISKT ur ALL_MODES (vanliga lägen + äventyrs-teman), så nya
+// lägen/spel (inkl. äventyrsspelen) dyker upp automatiskt. Klass-nivån gate:as
+// INTE på innehåll – alla teman listas. Ikryssat = synligt; urbockat sparas i
 // classes/{id}.hiddenModes. Tomt = allt synligt (bakåtkompatibelt).
 //
 // Skiljer sig från per-område-kryssrutorna (teacher-content.js) på en punkt:
@@ -16,7 +17,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { GAMEMODES, isModeHiddenForClass } from "./game-shared.js";
+import { ALL_MODES, isModeHiddenForClass } from "./game-shared.js";
 import { el, esc } from "./teacher-shared.js";
 
 /**
@@ -26,7 +27,7 @@ import { el, esc } from "./teacher-shared.js";
  * @param {HTMLElement} modesEl värd-element att fylla
  */
 export function renderClassModes(ctx, cls, modesEl) {
-  const rows = GAMEMODES.map((gm) => {
+  const rows = ALL_MODES.map((gm) => {
     const checked = isModeHiddenForClass(cls, gm.id) ? "" : " checked";
     return `<label class="member-row">
       <input type="checkbox" data-mode="${esc(gm.id)}"${checked} />

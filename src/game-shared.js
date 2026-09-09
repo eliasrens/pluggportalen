@@ -25,6 +25,7 @@ export const enc = encodeURIComponent;
 // redan importerar { GAMEMODES } från game-shared.js.
 export {
   GAMEMODES,
+  ALL_MODES,
   areaContentFlags,
   availableGamemodes,
   visibleGamemodes,
