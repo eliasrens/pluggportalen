@@ -17,6 +17,12 @@
 // körs alla (och rotationen är då meningslös → nollställs).
 export const MAX_QUESTIONS_PER_SESSION = 10;
 
+// Max antal LÄS-TEXTER per ny läsförståelse-session (issue #153). Färre än
+// frågetaket: varje text är flera stycken + 3–5 kryssfrågor och kan behöva läsas
+// om, så en session om 3 texter räcker. Rotationen (samma motor som frågorna)
+// ser till att nästa session ger nya texter tills områdets alla körts igenom.
+export const MAX_TEXTS_PER_SESSION = 3;
+
 /** Blanda en array (kopia, Fisher–Yates). Lokal kopia för att hålla modulen fri
  *  från beroenden (game-shared.js har en egen exporterad shuffle för UI-koden). */
 function shuffle(arr) {
@@ -36,11 +42,27 @@ function shuffle(arr) {
  */
 export function questionKey(q) {
   const text = q && typeof q.question === "string" ? q.question : "";
+  return hashKey(text, "q");
+}
+
+/**
+ * Stabil nyckel för en LÄS-TEXT (issue #153). Vi föredrar textens `id` (som
+ * validate-reading.js sätter, stabilt även om titeln redigeras) och faller
+ * tillbaka på titeln. Låter samma rotationsmotor servera nya texter, inte samma
+ * om igen.
+ */
+export function textKey(t) {
+  const base = t && (t.id || t.title) ? String(t.id || t.title) : "";
+  return hashKey(base, "t");
+}
+
+/** djb2-hash → prefix + base36 (delas av question-/text-nycklarna). */
+function hashKey(str, prefix) {
   let h = 5381;
-  for (let i = 0; i < text.length; i++) {
-    h = ((h << 5) + h + text.charCodeAt(i)) | 0; // h * 33 + char
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) + h + str.charCodeAt(i)) | 0; // h * 33 + char
   }
-  return "q" + (h >>> 0).toString(36);
+  return prefix + (h >>> 0).toString(36);
 }
 
 /** Ta bort dubbletter men behåll ordningen (första förekomsten vinner). */
@@ -63,7 +85,10 @@ function dedupe(keys) {
  * @param {string[]} seen  nycklar som redan serverats i pågående varv (kan sakna
  *                         data → tom lista → slumpad start, bakåtkompatibelt)
  * @param {number} limit  max frågor per session (default MAX_QUESTIONS_PER_SESSION)
- * @returns {{questions: Array, seen: string[]}}  frågorna att köra + den
+ * @param {(item:*)=>string} keyOf  nyckel-funktion per pool-objekt (default
+ *                         questionKey). Läsförståelse-läget skickar textKey så
+ *                         samma motor roterar läs-texter i stället för frågor.
+ * @returns {{questions: Array, seen: string[]}}  objekten att köra + den
  *          uppdaterade listan sedda nycklar att spara inför nästa session.
  *
  * Regler:
@@ -74,14 +99,14 @@ function dedupe(keys) {
  *    upp till `limit` med färska frågor ur ett NYTT varv, och låt sedda börja om
  *    med enbart de färska frågorna (så nästa varv rullar vidare korrekt).
  */
-export function pickRotatingQuestions(pool, seen, limit = MAX_QUESTIONS_PER_SESSION) {
+export function pickRotatingQuestions(pool, seen, limit = MAX_QUESTIONS_PER_SESSION, keyOf = questionKey) {
   if (!Array.isArray(pool) || pool.length === 0) return { questions: [], seen: [] };
 
   // Liten pool: kör alla varje gång, ingen rotation att spåra.
   if (pool.length <= limit) return { questions: shuffle(pool), seen: [] };
 
   const seenSet = new Set(Array.isArray(seen) ? seen : []);
-  const withKey = pool.map((q) => ({ q, key: questionKey(q) }));
+  const withKey = pool.map((q) => ({ q, key: keyOf(q) }));
   const poolKeys = new Set(withKey.map((x) => x.key));
   const unseen = withKey.filter((x) => !seenSet.has(x.key));
 

@@ -180,6 +180,25 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
   return payload;
 }
 
+/**
+ * Spara PER-TEXT-framsteg för läsförståelse (Läsuppdrag/lastext, issue #153) i
+ * `progress[areaId].reading[textId]`. Handskaket som reading-prereq.js (#155)
+ * räknar: varje godkänd text (stars ≥ 2) räknas för sig. Anropas BARA vid godkänt
+ * (då är stars alltid ≥ 2), utöver det vanliga lastext-framsteget. Fel sväljs –
+ * en misslyckad skrivning får aldrig krascha övningen.
+ * @param {string} areaId  arbetsområdets id
+ * @param {string} textId  läs-textens id (validate-reading.js sätter det)
+ * @param {object} result  { stars, bestScore?, ... }
+ */
+export async function saveReadingProgress(areaId, textId, result, studentId = currentStudentId()) {
+  if (!studentId || !areaId || !textId) return;
+  const ref = doc(db, "studentData", studentId);
+  const key = `progress.${areaId}.reading.${textId}`;
+  try {
+    await updateDoc(ref, { [key]: { ...result, lastPlayed: serverTimestamp() } });
+  } catch {}
+}
+
 // --- Roterande frågeurval (per elev, område, läge) --------------------------
 
 /**

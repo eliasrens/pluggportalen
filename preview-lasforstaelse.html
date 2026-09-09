@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Läsförståelse (issue #153)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      body { padding: 20px; }
+      .preview-bar {
+        max-width: 820px; margin: 0 auto 16px; padding: 12px 16px;
+        background: #eef4ff; border: 2px solid #cfe0ff; border-radius: 14px;
+      }
+      .preview-bar h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      .preview-bar p { margin: 0; color: #35507a; }
+      #preview-note { font-weight: 700; color: #6b46c1; }
+      #app { max-width: 820px; margin: 0 auto; }
+    </style>
+
+    <!-- Rikta de Firebase-/router-beroende modulerna till lätta preview-stubbar,
+         så att den RIKTIGA spelkoden (games-lastext.js, game-shared.js,
+         question-rotation.js) körs oförändrad men helt lokalt. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/lasf-stubs/ui.js",
+          "/src/data.js": "/preview/lasf-stubs/data.js",
+          "/src/fx.js": "/preview/lasf-stubs/fx.js",
+          "/src/data-xp.js": "/preview/lasf-stubs/data-xp.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>📖 Läsförståelse 2.0 – förhandsvisning (issue #153)</h1>
+      <p>
+        Testdata: 4 läs-texter i 3 nivåer. Välj nivå → läs → svara. Underkänt
+        (för många fel) visar texten igen med omblandad omgång; godkänt går vidare
+        till nästa text. <span id="preview-note"></span>
+      </p>
+    </div>
+    <div id="app"></div>
+
+    <script type="module">
+      import { startLastext } from "/src/games-lastext.js";
+
+      // Testområde med 4 läs-texter (samma modell som validate-reading.js).
+      const areaData = {
+        id: "vikingatiden",
+        name: "Vikingatiden",
+        readingTexts: [
+          {
+            id: "vikingaresor",
+            title: "Vikingarnas resor",
+            levels: {
+              "1": {
+                body: "Vikingarna bodde i Norden för länge sedan.\nDe var bra på att bygga båtar.\n\nMed sina båtar reste de långt bort. Ibland handlade de med andra folk. Ibland tog de saker med våld.",
+                questions: [
+                  { question: "Var bodde vikingarna?", options: ["I Norden", "I Afrika", "I Kina", "I Amerika"], answerIndex: 0 },
+                  { question: "Vad var vikingarna bra på att bygga?", options: ["Båtar", "Bilar", "Hus av glas", "Flygplan"], answerIndex: 0 },
+                  { question: "Vad gjorde de ibland när de reste?", options: ["Handlade med andra", "Sov hela tiden", "Byggde skolor", "Odlade ris"], answerIndex: 0 }
+                ]
+              },
+              "2": {
+                body: "Vikingarna levde i Norden för mer än tusen år sedan. De var skickliga båtbyggare och byggde snabba, smala skepp.\n\nMed skeppen kunde de resa långa sträckor över havet. På resorna handlade de med varor som pälsar och silver, men de plundrade också byar längs kusterna.",
+                questions: [
+                  { question: "Ungefär hur länge sedan levde vikingarna?", options: ["Mer än tusen år sedan", "För hundra år sedan", "För tio år sedan", "I framtiden"], answerIndex: 0 },
+                  { question: "Vad kännetecknade skeppen?", options: ["Snabba och smala", "Stora och långsamma", "Gjorda av sten", "Utan segel"], answerIndex: 0 },
+                  { question: "Vilka varor handlade de med?", options: ["Pälsar och silver", "Datorer", "Bananer", "Glasögon"], answerIndex: 0 },
+                  { question: "Vad gjorde de förutom att handla?", options: ["Plundrade byar", "Byggde tåg", "Spelade fotboll", "Målade tavlor"], answerIndex: 0 }
+                ]
+              },
+              "3": {
+                body: "Vikingarna levde i Norden under perioden ungefär år 800 till 1050. De var kända som ovanligt skickliga skeppsbyggare och konstruerade långskepp som var både snabba och sjövärdiga.\n\nTack vare skeppen kunde vikingarna företa långa expeditioner över öppet hav, ända till platser som England, Ryssland och till och med Nordamerika. Resorna hade flera syften: de bedrev handel, koloniserade nya områden, men genomförde också plundringståg mot kloster och kustsamhällen.",
+                questions: [
+                  { question: "Under vilken period räknas vikingatiden?", options: ["Cirka år 800–1050", "Cirka år 1500–1700", "Cirka år 0–200", "Cirka år 1900–2000"], answerIndex: 0 },
+                  { question: "Vad menas med att långskeppen var sjövärdiga?", options: ["De klarade öppet hav", "De kunde flyga", "De var av guld", "De sjönk lätt"], answerIndex: 0 },
+                  { question: "Vilka platser kunde de nå?", options: ["England, Ryssland, Nordamerika", "Bara sin egen by", "Månen", "Australien"], answerIndex: 0 },
+                  { question: "Vilka syften hade resorna?", options: ["Handel, kolonisation, plundring", "Enbart semester", "Enbart fiske", "Enbart krig mot varandra"], answerIndex: 0 }
+                ]
+              }
+            }
+          },
+          {
+            id: "gudarna",
+            title: "De nordiska gudarna",
+            levels: {
+              "1": {
+                body: "Vikingarna trodde på många gudar.\n\nOden var den viktigaste guden. Tor hade en hammare. Frej gav bra skördar.",
+                questions: [
+                  { question: "Hur många gudar trodde vikingarna på?", options: ["Många", "En", "Inga", "Två"], answerIndex: 0 },
+                  { question: "Vem var viktigast?", options: ["Oden", "Tor", "Frej", "Loke"], answerIndex: 0 },
+                  { question: "Vad hade Tor?", options: ["En hammare", "En båt", "En bok", "En häst"], answerIndex: 0 }
+                ]
+              },
+              "2": {
+                body: "Vikingarna dyrkade flera olika gudar. Oden var gudarnas ledare och guden för visdom och krig.\n\nTor styrde över åska och skyddade människorna med sin hammare Mjölner. Frej och Freja gav goda skördar och kärlek.",
+                questions: [
+                  { question: "Vad var Oden gud för?", options: ["Visdom och krig", "Bara mat", "Bara havet", "Bara sömn"], answerIndex: 0 },
+                  { question: "Vad hette Tors hammare?", options: ["Mjölner", "Gungner", "Sleipner", "Draupner"], answerIndex: 0 },
+                  { question: "Vad gav Frej och Freja?", options: ["Skördar och kärlek", "Snö och kyla", "Böcker", "Guld"], answerIndex: 0 }
+                ]
+              },
+              "3": {
+                body: "Den fornnordiska religionen omfattade ett stort antal gudar, indelade i asar och vaner. Oden framställdes som gudarnas härskare och förknippades med visdom, poesi och krig.\n\nTor, åskguden, var folkets beskyddare och bar den mäktiga hammaren Mjölner. Vanerna, som Frej och Freja, kopplades i stället till fruktbarhet, god skörd och kärlek.",
+                questions: [
+                  { question: "I vilka två grupper delades gudarna?", options: ["Asar och vaner", "Stora och små", "Onda och goda", "Gamla och unga"], answerIndex: 0 },
+                  { question: "Vad förknippades Oden med?", options: ["Visdom, poesi och krig", "Enbart fiske", "Enbart jordbruk", "Enbart handel"], answerIndex: 0 },
+                  { question: "Vad kopplades vanerna till?", options: ["Fruktbarhet och kärlek", "Krig och död", "Kyla och mörker", "Handel och silver"], answerIndex: 0 }
+                ]
+              }
+            }
+          },
+          {
+            id: "vardagsliv",
+            title: "Livet på en vikingagård",
+            levels: {
+              "1": {
+                body: "Vikingar bodde på gårdar.\n\nDe hade djur som kor och får. Barnen hjälpte till med arbetet.",
+                questions: [
+                  { question: "Var bodde vikingarna?", options: ["På gårdar", "I slott", "I grottor", "I träd"], answerIndex: 0 },
+                  { question: "Vilka djur hade de?", options: ["Kor och får", "Lejon", "Elefanter", "Pingviner"], answerIndex: 0 },
+                  { question: "Vad gjorde barnen?", options: ["Hjälpte till", "Sov jämt", "Reste bort", "Gjorde inget"], answerIndex: 0 }
+                ]
+              },
+              "2": {
+                body: "De flesta vikingar var bönder och bodde på gårdar med långhus. Djuren, som kor, får och grisar, gav mat och ull.\n\nAlla i familjen hjälpte till: barnen vaktade djur och de vuxna odlade, vävde och smidde järn.",
+                questions: [
+                  { question: "Vad var de flesta vikingar?", options: ["Bönder", "Kungar", "Sjörövare bara", "Munkar"], answerIndex: 0 },
+                  { question: "Vad gav djuren?", options: ["Mat och ull", "Guld", "Böcker", "Vapen"], answerIndex: 0 },
+                  { question: "Vad gjorde de vuxna?", options: ["Odlade och smidde", "Bara sov", "Gick i skolan", "Reste jämt"], answerIndex: 0 }
+                ]
+              },
+              "3": {
+                body: "Majoriteten av vikingarna var bönder som levde på självförsörjande gårdar med stora långhus i mitten. Boskap som kor, får, getter och grisar var avgörande – de gav kött, mjölk, ull och skinn.\n\nArbetet var uppdelat men krävde allas insats: barnen vallade djuren, medan de vuxna odlade säd, vävde tyg och bearbetade järn i smedjan.",
+                questions: [
+                  { question: "Hur beskrivs gårdarna?", options: ["Självförsörjande med långhus", "Övergivna", "Byggda av sten", "Utan djur"], answerIndex: 0 },
+                  { question: "Varför var boskapen avgörande?", options: ["Gav kött, mjölk, ull och skinn", "Kunde flyga", "Var husdjur bara", "Gav guld"], answerIndex: 0 },
+                  { question: "Hur var arbetet organiserat?", options: ["Uppdelat men allas insats", "Bara barnen jobbade", "Ingen jobbade", "Bara de äldsta"], answerIndex: 0 }
+                ]
+              }
+            }
+          },
+          {
+            id: "skrivkonst",
+            title: "Runor och skrift",
+            levels: {
+              "1": {
+                body: "Vikingarna skrev med runor.\n\nRunor är tecken som ristades i sten och trä.",
+                questions: [
+                  { question: "Vad skrev vikingarna med?", options: ["Runor", "Siffror", "Bilder", "Emoji"], answerIndex: 0 },
+                  { question: "Var ristades runor?", options: ["I sten och trä", "I papper", "I sand", "I luften"], answerIndex: 0 },
+                  { question: "Vad är runor?", options: ["Tecken", "Djur", "Båtar", "Gudar"], answerIndex: 0 }
+                ]
+              },
+              "2": {
+                body: "Vikingarna använde ett eget alfabet av runor. Runorna ristades ofta i sten eller trä eftersom de var lätta att hugga med raka streck.\n\nRunstenar restes för att minnas döda personer eller viktiga händelser.",
+                questions: [
+                  { question: "Vad använde vikingarna för att skriva?", options: ["Ett runalfabet", "Kinesiska tecken", "Latin bara", "Inga tecken"], answerIndex: 0 },
+                  { question: "Varför var runor lätta att hugga?", options: ["Raka streck", "De var målade", "De var små", "De var runda"], answerIndex: 0 },
+                  { question: "Varför restes runstenar?", options: ["Minnas döda och händelser", "Som vägmärken", "Som leksaker", "Som bord"], answerIndex: 0 }
+                ]
+              },
+              "3": {
+                body: "Vikingarna skrev med ett runalfabet som kallas futharken, uppkallat efter sina första tecken. Runorna bestod av raka linjer, vilket gjorde dem lämpliga att rista i hårda material som sten och trä.\n\nDe mest kända lämningarna är runstenarna, som restes till minne av avlidna släktingar eller för att hylla stordåd och resor.",
+                questions: [
+                  { question: "Vad kallas runalfabetet?", options: ["Futharken", "Alfabetet", "Hieroglyfer", "Kilskrift"], answerIndex: 0 },
+                  { question: "Varför passade runor för sten och trä?", options: ["Raka linjer", "De var färgglada", "De var mjuka", "De var stora"], answerIndex: 0 },
+                  { question: "Vad hyllade runstenar ofta?", options: ["Avlidna och stordåd", "Kungars mat", "Vädret", "Djur"], answerIndex: 0 }
+                ]
+              }
+            }
+          }
+        ]
+      };
+
+      const ctx = { subj: "so", area: "vikingatiden", areaData };
+      startLastext(ctx);
+      // "Till området"/"Till frågorna" i preview → starta om från nivåvalet.
+      window.addEventListener("preview-restart", () => startLastext(ctx));
+    </script>
+  </body>
+</html>

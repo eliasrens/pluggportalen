@@ -16,14 +16,13 @@
 import * as data from "./data.js";
 import { validateArea } from "./validate.js";
 import { READING_LEVELS } from "./validate-reading.js";
+import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { buildReadingPrompt } from "./prompts.js";
 import { el, esc, copyText } from "./teacher-shared.js";
+import { blankQuestion, levelPane } from "./teacher-reading-level.js";
 
 // --- Editor-state (djupkopior så området inte muteras förrän man sparar) ------
 
-function blankQuestion() {
-  return { question: "", options: ["", "", "", ""], answerIndex: 0, explanation: "" };
-}
 function blankLevel() {
   return { body: "", questions: [blankQuestion(), blankQuestion(), blankQuestion()] };
 }
@@ -75,107 +74,6 @@ function toSaveForm(texts) {
   });
 }
 
-// --- Delrenderare -----------------------------------------------------------
-
-/** Editor för EN fråga (frågetext, alternativ med radioknapp för rätt svar). */
-function questionEditor(q, qi, onRemove) {
-  const box = el(`<div class="rt-q"></div>`);
-  const head = el(`<div class="rt-q-head"><span class="badge">Fråga ${qi + 1}</span></div>`);
-  const delQ = el(`<button type="button" class="btn ghost small danger">🗑️ Ta bort</button>`);
-  delQ.addEventListener("click", () => onRemove(qi));
-  head.appendChild(delQ);
-
-  const qIn = el(`<textarea class="rt-input" rows="2" placeholder="Skriv frågan…"></textarea>`);
-  qIn.value = q.question;
-  qIn.addEventListener("input", () => (q.question = qIn.value));
-
-  const optsWrap = el(`<div class="rt-opts"></div>`);
-  const rname = "rt-ans-" + Math.random().toString(36).slice(2, 8);
-  function renderOpts() {
-    optsWrap.replaceChildren();
-    q.options.forEach((o, oi) => {
-      const row = el(`<label class="rt-opt"></label>`);
-      const radio = el(`<input type="radio" name="${rname}" title="Markera det rätta svaret" />`);
-      radio.checked = q.answerIndex === oi;
-      radio.addEventListener("change", () => (q.answerIndex = oi));
-      const inp = el(`<input type="text" class="rt-input" placeholder="Svarsalternativ ${oi + 1}" />`);
-      inp.value = o;
-      inp.addEventListener("input", () => (q.options[oi] = inp.value));
-      const del = el(`<button type="button" class="btn ghost small danger" title="Ta bort alternativet">✕</button>`);
-      del.addEventListener("click", () => {
-        if (q.options.length <= 2) return;
-        q.options.splice(oi, 1);
-        if (q.answerIndex >= q.options.length) q.answerIndex = 0;
-        renderOpts();
-      });
-      row.append(radio, inp, del);
-      optsWrap.appendChild(row);
-    });
-  }
-  renderOpts();
-
-  const addOpt = el(`<button type="button" class="btn ghost small">➕ Alternativ</button>`);
-  addOpt.addEventListener("click", () => {
-    if (q.options.length < 6) {
-      q.options.push("");
-      renderOpts();
-    }
-  });
-
-  const expl = el(`<input type="text" class="rt-input" placeholder="Förklaring till rätt svar (valfritt)" />`);
-  expl.value = q.explanation || "";
-  expl.addEventListener("input", () => (q.explanation = expl.value));
-
-  box.append(
-    head,
-    qIn,
-    el(`<div class="rt-lbl hint">Svarsalternativ (markera det rätta):</div>`),
-    optsWrap,
-    addOpt,
-    el(`<div class="rt-lbl hint" style="margin-top:8px">Förklaring:</div>`),
-    expl
-  );
-  return box;
-}
-
-/** Panel för den aktiva nivån av en läs-text: brödtext + frågor. */
-function levelPane(t) {
-  const lvl = t._active;
-  const L = t.levels[lvl];
-  const pane = el(`<div class="rt-level"></div>`);
-
-  const bodyLbl = el(`<div class="rt-lbl hint">📄 Text för nivå ${esc(lvl)} (skriv gärna flera stycken – tomrad mellan):</div>`);
-  const body = el(`<textarea class="rt-input rt-body" rows="6" placeholder="Läs-texten för nivå ${esc(lvl)}…"></textarea>`);
-  body.value = L.body;
-  body.addEventListener("input", () => (L.body = body.value));
-
-  const qHead = el(`<div class="rt-lbl hint" style="margin-top:12px">❓ Kryssfrågor för nivå ${esc(lvl)} (${L.questions.length} st, håll 3–5):</div>`);
-  const qList = el(`<div class="rt-qlist"></div>`);
-  function renderQs() {
-    qList.replaceChildren();
-    L.questions.forEach((q, qi) =>
-      qList.appendChild(
-        questionEditor(q, qi, (idx) => {
-          L.questions.splice(idx, 1);
-          renderQs();
-          qHead.textContent = `❓ Kryssfrågor för nivå ${lvl} (${L.questions.length} st, håll 3–5):`;
-        })
-      )
-    );
-  }
-  renderQs();
-
-  const addQ = el(`<button type="button" class="btn ghost small">➕ Lägg till fråga</button>`);
-  addQ.addEventListener("click", () => {
-    L.questions.push(blankQuestion());
-    renderQs();
-    qHead.textContent = `❓ Kryssfrågor för nivå ${lvl} (${L.questions.length} st, håll 3–5):`;
-  });
-
-  pane.append(bodyLbl, body, qHead, qList, addQ);
-  return pane;
-}
-
 // --- Editorns skal ----------------------------------------------------------
 
 /**
@@ -186,12 +84,30 @@ function levelPane(t) {
  * @returns {HTMLElement}
  */
 export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
-  const state = { texts: (Array.isArray(area.readingTexts) ? area.readingTexts : []).map(normText) };
+  const initPrereq = normalizeReadingPrereq(area.readingPrereq);
+  const state = {
+    texts: (Array.isArray(area.readingTexts) ? area.readingTexts : []).map(normText),
+    // Förkrav (issue #155): on/av + hur många godkända läsförståelser som krävs.
+    prereqOn: !!initPrereq,
+    prereqRequired: initPrereq ? initPrereq.required : 1,
+  };
 
   const root = el(`<div class="subpanel rt-editor">
     <p class="hint">Läsförståelse-texter i <b>tre nivåer</b>: samma tema och samma fakta, men olika
       språklig svårighet (nivå 1 lättast, 3 svårast). Varje nivå har en egen text och egna
       kryssfrågor. Redigera nivåerna var för sig nedan.</p>
+
+    <div class="rt-prereq">
+      <label class="rt-prereq-toggle">
+        <input type="checkbox" data-act="rt-prereq-on" />
+        <span><b>🔒 Obligatoriskt förkrav:</b> eleven måste klara läsförståelsen (godkänt resultat,
+          inte bara påbörjad) innan de andra övningarna i området låses upp.</span>
+      </label>
+      <div class="rt-prereq-count" hidden>
+        <label class="rt-lbl hint" for="rt-prereq-n">Antal läsförståelser som måste klaras:</label>
+        <input id="rt-prereq-n" class="rt-input rt-prereq-n" type="number" min="1" step="1" />
+      </div>
+    </div>
 
     <div class="rt-ai">
       <label class="rt-lbl hint" for="rt-onskemal">🤖 Skapa med AI (valfritt)</label>
@@ -222,7 +138,43 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
   const onskemal = root.querySelector("#rt-onskemal");
   const jsonEl = root.querySelector("#rt-json");
 
+  // --- Förkrav-kontroller (issue #155) --------------------------------------
+  const prereqOnEl = root.querySelector('[data-act="rt-prereq-on"]');
+  const prereqCountWrap = root.querySelector(".rt-prereq-count");
+  const prereqNEl = root.querySelector("#rt-prereq-n");
+  prereqOnEl.checked = state.prereqOn;
+  prereqNEl.value = String(state.prereqRequired);
+
+  // Övre gräns för "hur många": så många läs-texter som finns (minst 1). Fler går
+  // inte att klara, så vi tillåter inte att kräva fler än vad som är skapat.
+  function prereqMax() {
+    return Math.max(1, state.texts.length);
+  }
+  function syncPrereqUI() {
+    prereqCountWrap.hidden = !state.prereqOn;
+    prereqNEl.max = String(prereqMax());
+    if (state.prereqRequired > prereqMax()) {
+      state.prereqRequired = prereqMax();
+      prereqNEl.value = String(state.prereqRequired);
+    }
+  }
+  prereqOnEl.addEventListener("change", () => {
+    state.prereqOn = prereqOnEl.checked;
+    syncPrereqUI();
+  });
+  prereqNEl.addEventListener("input", () => {
+    const n = parseInt(prereqNEl.value, 10);
+    state.prereqRequired = Number.isFinite(n) && n >= 1 ? n : 1;
+  });
+  prereqNEl.addEventListener("blur", () => {
+    // Klamma till [1, antal texter] när fältet lämnas.
+    state.prereqRequired = Math.min(prereqMax(), Math.max(1, state.prereqRequired || 1));
+    prereqNEl.value = String(state.prereqRequired);
+  });
+  syncPrereqUI();
+
   function renderList() {
+    syncPrereqUI(); // antal texter kan ha ändrats → uppdatera taket för förkravet
     listEl.replaceChildren();
     if (state.texts.length === 0) {
       listEl.appendChild(
@@ -311,7 +263,12 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
     try {
       const fresh = (await data.getArea(subjectId, area.id)) || area;
       const readingTexts = toSaveForm(state.texts);
-      const res = validateArea({ ...fresh, id: fresh.id, readingTexts });
+      // Förkrav (issue #155): PÅ → { required } (klamma till antal texter), AV → null
+      // så fältet tas bort ur dokumentet. validateArea normaliserar slutligt.
+      const readingPrereq = state.prereqOn
+        ? { required: Math.min(prereqMax(), Math.max(1, state.prereqRequired || 1)) }
+        : null;
+      const res = validateArea({ ...fresh, id: fresh.id, readingTexts, readingPrereq });
       if (!res.ok) {
         msgEl.innerHTML = `<div class="msg error">
           <div style="margin-bottom:6px">Läs-texterna kunde inte sparas. Rätta det här:</div>

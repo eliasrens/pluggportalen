@@ -492,6 +492,41 @@ body.med-sidomeny .sidebar {
 .big-card.orange { background: linear-gradient(160deg, #f2c94c, var(--orange)); }
 .big-card.rosa { background: linear-gradient(160deg, #ff9ebb, var(--rosa)); }
 
+/* Låst övning: förkravet (läsförståelse) är inte klarat ännu (issue #155).
+   Dämpad, ej klickbar, med en tydlig "gör läsförståelsen först"-etikett. */
+.big-card:disabled { cursor: not-allowed; }
+.big-card.locked {
+  filter: grayscale(0.55) brightness(0.97);
+  opacity: 0.72;
+}
+.big-card.locked:hover { transform: none; }
+.big-card .card-lock {
+  display: block;
+  margin-top: 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.big-card .card-stars {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  opacity: 0.85;
+}
+.big-card .card-stars.won { opacity: 1; }
+
+/* Tydlig hint ovanför övningskorten när läsförståelse-förkravet inte är klart. */
+.prereq-note {
+  background: #fff6e5;
+  border: 3px solid #f2c94c;
+  color: #6b4e00;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 /* --- Knappar --------------------------------------------------------------- */
 
 .btn {
@@ -1160,6 +1195,12 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 .area-reading { margin-left: 14px; border-left: 3px solid #cfe0f7; padding-left: 12px; }
 .area-reading .subpanel { margin: 0; }
 .rt-editor { display: flex; flex-direction: column; gap: 10px; }
+/* Förkravs-kontroll: kräv läsförståelse innan andra övningar (issue #155). */
+.rt-prereq { background: #fff6e5; border: 2px solid #f2c94c; border-radius: 12px; padding: 12px; }
+.rt-prereq-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; line-height: 1.35; }
+.rt-prereq-toggle input { margin-top: 3px; flex: none; }
+.rt-prereq-count { margin-top: 10px; }
+.rt-prereq-n { width: 90px; }
 .rt-ai { background: #f0f6ff; border-radius: 12px; padding: 12px; }
 .rt-lbl { font-weight: 700; display: block; margin-bottom: 4px; }
 .rt-input { width: 100%; box-sizing: border-box; }
