@@ -37,6 +37,7 @@ import {
   isLoggedIn,
 } from "./auth.js";
 import { isMultiItem } from "./shop-items.js";
+import { DEFAULT_READING_LEVEL } from "./reading-level.js";
 
 // Session-API:t bor numera i auth.js (backat av Firebase Auth) men re-exporteras
 // här så att `import * as data from "./data.js"` fortsätter fungera överallt.
@@ -89,6 +90,7 @@ export function defaultStudentData(avatarId) {
     garden: { placements: {} }, // utomhussaker placerade runt huset i ute-vyn – { [key]: { x, y } }
     husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
     husLast: false, // true = huset är låst → klasskamrater ser "🔒 Låst" i stället för rummet
+    readingLevel: DEFAULT_READING_LEVEL, // läsförståelsenivå (1–3), sätts av läraren (#154)
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
   };
@@ -113,6 +115,9 @@ export async function getStudentData(studentId = currentStudentId()) {
   const snap = await getDoc(ref);
   return snap.exists() ? snap.data() : await ensureStudentData(studentId);
 }
+
+// Läsnivå (#154): getReadingLevel/setReadingLevel bor i data-reading-level.js
+// (re-exporteras längst ned). Håller data.js under filtaket.
 
 // --- Coins ------------------------------------------------------------------
 
@@ -391,3 +396,5 @@ export {
   getClassAssignments,
   getClassForStudent,
 } from "./data-classes.js";
+
+export { getReadingLevel, setReadingLevel } from "./data-reading-level.js";

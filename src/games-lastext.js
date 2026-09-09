@@ -6,7 +6,9 @@
 // Mode-id: "lastext". Namn i UI: "Läsuppdrag".
 //
 // FLÖDE
-//   1. Eleven väljer svårighetsnivå (1 lättast … 3 svårast) för sessionen.
+//   1. Nivån är ELEVENS tilldelade läsnivå (1–3), som läraren sätter per elev
+//      (#154, teacher-student-level.js). Inget manuellt nivåval – svagare läsare
+//      får nivå 1:s text, starkare nivå 3:s, på samma tema.
 //   2. En läs-text visas i arbetsbok-layout (flera stycken) med sina 3–5
 //      kryssfrågor direkt under. Texten står kvar medan man svarar.
 //   3. Text KLARAD (godkänt) → nästa text. Rotationen (question-rotation.js via
@@ -35,6 +37,7 @@ import {
   starsFromRatio,
   pickSessionTexts,
 } from "./game-shared.js";
+import { normalizeReadingLevel, readingLevelName } from "./reading-level.js";
 
 // --- Tune:bara reglage -------------------------------------------------------
 
@@ -96,25 +99,17 @@ export async function startLastext(ctx) {
     return;
   }
 
-  // Steg 1: låt eleven välja svårighetsnivå för hela sessionen.
-  const picker = el(`<div class="panel center lasf-levelpick">
-    <div class="big-emoji">📚</div>
-    <h1>Välj din nivå</h1>
-    <p class="hint">Samma texter finns på tre nivåer. Välj den som passar dig bäst.</p>
-    <div class="lasf-level-grid">
-      ${LEVELS.map(
-        (l) => `<button class="big-card bla lasf-level-card" data-level="${l.id}">
-        <span class="emoji">${l.emoji}</span>
-        <span class="title">${l.name}</span>
-        <span class="sub">${l.sub}</span>
-      </button>`
-      ).join("")}
-    </div>
-  </div>`);
-  body.replaceChildren(picker);
-  picker.querySelectorAll(".lasf-level-card").forEach((btn) => {
-    btn.addEventListener("click", () => runSession(ctx, body, texts, btn.dataset.level));
-  });
+  // Per-elev läsnivå (#154): ingen manuell nivåval-ruta – eleven kör direkt på
+  // sin TILLDELADE nivå (läraren sätter den per elev i klasshanteringen,
+  // teacher-student-level.js). Saknas nivån → mellannivå (default). En trasig
+  // läsning ska inte fälla övningen, så vi faller tillbaka på default vid fel.
+  let level;
+  try {
+    level = await data.getReadingLevel();
+  } catch {
+    level = undefined; // normalizeReadingLevel → default (nivå 2)
+  }
+  runSession(ctx, body, texts, String(normalizeReadingLevel(level)));
 }
 
 // --- Session (kör igenom sessionens texter) ---------------------------------
@@ -171,7 +166,7 @@ async function runSession(ctx, body, texts, levelId) {
       const chosen = new Array(qset.length).fill(-1); // valt alternativ per fråga
 
       const wrap = el(`<div class="lasf-worksheet">
-        <p class="quiz-count">Text ${idx + 1} av ${total}</p>
+        <p class="quiz-count">Text ${idx + 1} av ${total} · <span class="lasf-level-tag">${esc(readingLevelName(levelId))}</span></p>
         <article class="lasf-text lasf-reader">
           <h3>${esc(rt.title || "Läs-text")}</h3>
           ${paragraphsHtml(level.body)}
