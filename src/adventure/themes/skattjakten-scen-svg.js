@@ -18,10 +18,24 @@
 // ============================================================================
 
 import { O } from "../../art-style.js";
+// EN GEOMETRI-KÄLLA (issue #243): kustlinjen och alla hinder bor i skattjakten-map.js
+// och läses av BÅDE konsten (här) och kollisionen → de kan aldrig driva isär.
+import {
+  WORLD,
+  ISLAND_CENTER,
+  COAST,
+  POND,
+  STREAM_UPPER,
+  STREAM_LOWER,
+  BRIDGE,
+  CLIFF_NW,
+  CLIFF_MID,
+  RUINS,
+} from "./skattjakten-map.js";
 
 // Världsmått (matchar WORLD i skattjakten-map.js). SVG:n ritas i dessa pixlar.
-const W = 1536;
-const H = 1024;
+const W = WORLD.w;
+const H = WORLD.h;
 
 // --- Palett (tropisk ö, ur stilguiden) --------------------------------------
 const HAV_DJUP = "#2F8FC4"; // öppet hav (samma ton som temats stamning.mark)
@@ -78,16 +92,10 @@ function smoothOpen(pts) {
   return d;
 }
 
-// --- Kustlinje: organisk blob som matchar COLLISION_GRID --------------------
-// Bredast i mitten (~y 300–560, ut till x≈0 vänster och x≈1490 höger), smalnar
-// upp mot toppen och ned mot botten; hav biter in i hörnen. Medurs från toppen.
-const COAST = [
-  [650, 55], [1000, 68], [1245, 88], [1400, 178], [1470, 330], [1492, 470],
-  [1418, 612], [1300, 702], [1178, 782], [1030, 852], [828, 906], [600, 936],
-  [378, 896], [238, 815], [148, 700], [66, 560], [34, 440], [30, 300],
-  [112, 172], [332, 88],
-];
-const CENTER = [700, 500];
+// --- Kustlinje: organisk blob (COAST/ISLAND_CENTER importeras från map.js så
+// konst och kollision delar EXAKT samma kustlinje – issue #243). Bredast i mitten,
+// smalnar upp/ned; hav biter in i hörnen. Kollisionen blockerar allt utanför COAST.
+const CENTER = ISLAND_CENTER;
 /** Skala en punktlista mot öns centrum (f<1 = inåt, för gräs innanför sanden). */
 function inset(pts, f) {
   return pts.map(([x, y]) => [CENTER[0] + (x - CENTER[0]) * f, CENTER[1] + (y - CENTER[1]) * f]);
@@ -152,12 +160,12 @@ function trail() {
   );
 }
 
-/** Damm (POND ~0.335,0.13, uppe-mitten): liten blå damm med sandkant. */
+/** Damm (POND, uppe-mitten): liten blå damm med sandkant (geometri ur map.js). */
 function pond() {
-  const cx = 618, cy = 220;
+  const cx = POND.cx, cy = POND.cy;
   return (
-    `<ellipse cx="${cx}" cy="${cy}" rx="118" ry="96" fill="${SAND_MORK}" ${L2}/>` +
-    `<ellipse cx="${cx}" cy="${cy}" rx="100" ry="80" fill="${VATTEN}"/>` +
+    `<ellipse cx="${cx}" cy="${cy}" rx="${POND.sandRx}" ry="${POND.sandRy}" fill="${SAND_MORK}" ${L2}/>` +
+    `<ellipse cx="${cx}" cy="${cy}" rx="${POND.rx}" ry="${POND.ry}" fill="${VATTEN}"/>` +
     `<ellipse cx="${cx - 26}" cy="${cy - 22}" rx="42" ry="24" fill="${VATTEN_LJUS}" opacity="0.6"/>` +
     `<path d="M${cx - 60} ${cy + 10} q60 26 120 0" fill="none" stroke="${VATTEN_LJUS}" stroke-width="5" opacity="0.7"/>` +
     lilja(cx + 34, cy + 8) + lilja(cx - 40, cy + 30)
@@ -170,10 +178,10 @@ function lilja(x, y) {
 /** Å med vattenfall (STREAM_N), bro över mellanrummet, och nedre lopp till havet
  *  (STREAM_S). Bron är den gångbara luckan y≈0.42–0.48. */
 function streamAndBridge() {
-  // Övre segment: vattenfall uppe-höger, ner till strax ovan bron.
-  const upper = smoothOpen([[1210, 300], [1180, 360], [1150, 420]]);
-  // Nedre segment: från strax under bron, svänger vänster ut i havet (botten).
-  const lower = smoothOpen([[1120, 500], [1040, 590], [980, 680], [940, 780], [900, 880]]);
+  // Åns lopp (STREAM_UPPER/STREAM_LOWER) och bron (BRIDGE) kommer ur map.js så
+  // kollisionen följer exakt samma vatten och samma bro-lucka (issue #243).
+  const upper = smoothOpen(STREAM_UPPER);
+  const lower = smoothOpen(STREAM_LOWER);
   const water = (d, w) =>
     `<path d="${d}" fill="none" stroke="${VATTEN}" stroke-width="${w}" stroke-linecap="round"/>` +
     `<path d="${d}" fill="none" stroke="${VATTEN_LJUS}" stroke-width="${w * 0.4}" stroke-linecap="round" opacity="0.7"/>`;
@@ -182,13 +190,13 @@ function streamAndBridge() {
     `<rect x="1188" y="286" width="44" height="30" rx="10" fill="${VATTEN_LJUS}"/>` +
     `<ellipse cx="1210" cy="316" rx="26" ry="8" fill="#fff" opacity="0.7"/>`;
   // Bro (gångbar lucka): tvärgående plankbro med räcken över gapet y≈430–500.
-  const bx = 1135, by = 465;
+  const bx = BRIDGE.cx, by = BRIDGE.cy, bw = BRIDGE.w, bh = BRIDGE.h;
   const bridge =
-    `<g transform="rotate(28 ${bx} ${by})">` +
-    `<rect x="${bx - 90}" y="${by - 30}" width="180" height="60" rx="8" fill="${TRA}" ${L2}/>` +
-    planks(bx - 90, by - 30, 180, 60) +
-    `<rect x="${bx - 90}" y="${by - 40}" width="180" height="8" rx="4" fill="${TRA_MORK}" ${L2}/>` +
-    `<rect x="${bx - 90}" y="${by + 32}" width="180" height="8" rx="4" fill="${TRA_MORK}" ${L2}/>` +
+    `<g transform="rotate(${BRIDGE.rotDeg} ${bx} ${by})">` +
+    `<rect x="${bx - bw / 2}" y="${by - bh / 2}" width="${bw}" height="${bh}" rx="8" fill="${TRA}" ${L2}/>` +
+    planks(bx - bw / 2, by - bh / 2, bw, bh) +
+    `<rect x="${bx - bw / 2}" y="${by - bh / 2 - 10}" width="${bw}" height="8" rx="4" fill="${TRA_MORK}" ${L2}/>` +
+    `<rect x="${bx - bw / 2}" y="${by + bh / 2 + 2}" width="${bw}" height="8" rx="4" fill="${TRA_MORK}" ${L2}/>` +
     `</g>`;
   return water(upper, 40) + fall + water(lower, 40) + bridge;
 }
@@ -216,17 +224,19 @@ function cliff(x, y, w, h) {
     )
     .join("");
 }
-/** Klipporna: NV-hörnet (CLIFF_NW) + center-nedre klippkluster (CLIFF_MID). */
+/** Klipporna: NV-hörnet (CLIFF_NW) + center-nedre klippkluster (CLIFF_MID).
+ *  Boxarna kommer ur map.js så kollisionen blockerar exakt de ritade klustren. */
 function cliffs() {
   return (
-    `<g>${cliff(-10, -10, 300, 300)}</g>` +
-    `<g>${cliff(453, 655, 184, 154)}</g>`
+    `<g>${cliff(CLIFF_NW.x, CLIFF_NW.y, CLIFF_NW.w, CLIFF_NW.h)}</g>` +
+    `<g>${cliff(CLIFF_MID.x, CLIFF_MID.y, CLIFF_MID.w, CLIFF_MID.h)}</g>`
   );
 }
 
-/** Ruiner (RUINS ~0.6,0.05, uppe-höger): brutna stenpelare + fundament. */
+/** Ruiner (RUINS, uppe-höger): brutna stenpelare + fundament. (x,y) = konstens
+ *  origo ur map.js; hela footprinten blockeras i kollisionen (issue #243). */
 function ruins() {
-  const x = 921, y = 60;
+  const x = RUINS.x, y = RUINS.y;
   const col = (cx, top, w) =>
     `<rect x="${cx - w / 2}" y="${top}" width="${w}" height="${y + 165 - top}" rx="6" fill="${RUIN}" ${L2}/>` +
     `<line x1="${cx}" y1="${top + 6}" x2="${cx}" y2="${y + 158}" stroke="${RUIN_MORK}" stroke-width="4" opacity="0.6"/>`;
