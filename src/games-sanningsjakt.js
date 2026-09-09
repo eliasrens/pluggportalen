@@ -21,6 +21,16 @@ const START_LIVES = 3;
 const COINS_FRESH_TRUTH = 2;
 const COINS_REPEAT_TRUTH = 1;
 
+// Tempo (lätt att tune:a): påståendena ska hinna LÄSAS, särskilt långa. Lugn
+// start, mild acceleration och ett tydligt tak – så man hinner läsa hela vägen
+// ner. Höjt spawn-golv → ingen trängsel. Se fallSpeed()/spawnInterval() nedan.
+const FALL_SPEED_START = 40; // px/s – hastighet vid start
+const FALL_SPEED_MAX = 165; // px/s – tak (tidigare 300)
+const FALL_ACCEL = 1.8; // px/s per sekund spelad (tidigare 3.4)
+const SPAWN_INTERVAL_START = 3.0; // s mellan brickor vid start
+const SPAWN_INTERVAL_MIN = 1.4; // s – tätaste spawn (tidigare 0.9)
+const SPAWN_ACCEL = 0.02; // hur snabbt intervallet krymper per sekund
+
 /** HTML-escape för lärar-inmatad text i en fallande bricka. */
 function esc(s) {
   return String(s == null ? "" : s)
@@ -182,14 +192,15 @@ function runGame(ctx, body, { avatarId, avatarItems }) {
     setTimeout(() => f.remove(), 750);
   }
 
-  // Lugnt i starten, ökar sedan gradvis. Fallhastigheten börjar riktigt lågt
-  // (40 px/s) och klättrar sedan (snabbare och snabbare) upp mot taket; spawns är
-  // glesa först (var ~3 s) och tätnar sakta.
+  // Lugnt i starten, ökar sedan gradvis men snällt. Fallhastigheten börjar lågt
+  // (FALL_SPEED_START) och klättrar milt upp mot ett tydligt tak (FALL_SPEED_MAX)
+  // så man hinner läsa hela vägen ner; spawns är glesa först och tätnar sakta ner
+  // till SPAWN_INTERVAL_MIN. Alla värden är namngivna konstanter högst upp i filen.
   function fallSpeed() {
-    return Math.min(300, 40 + elapsed * 3.4); // px/s
+    return Math.min(FALL_SPEED_MAX, FALL_SPEED_START + elapsed * FALL_ACCEL); // px/s
   }
   function spawnInterval() {
-    return Math.max(0.9, 3.0 - elapsed * 0.02); // s mellan brickor
+    return Math.max(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_START - elapsed * SPAWN_ACCEL); // s
   }
 
   function catchTile(tile) {
