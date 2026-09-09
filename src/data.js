@@ -385,6 +385,8 @@ export {
   deleteStudent,
   usernameTaken,
   getClassProjection,
+  getClassOverview,
+  getOwnVillageOverview,
   buildProjectionEntries,
   ensureClassProjection,
   updateStudentProjection,

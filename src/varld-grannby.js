@@ -14,19 +14,19 @@
 //   grannbyhus – EN elevs hus-exteriör (läs-vy); klick på huset → deras rum
 //
 // INTEGRITET (#114, medvetet produktägar-beslut som river #37 för looks):
-//   * Översikten (grannby) läser grannklassens students/studentData DIREKT –
-//     exakt som egna byn (laddaBy) gör – sedan cross-class-läsning öppnades. Byn
-//     fylls därmed direkt ur befintlig data (ingen elev behöver ha loggat in
-//     först). Huslåset hanteras per elev: en låst elev (nekad studentData) faller
-//     till default-utseende, precis som i egna byn.
-//   * Klassens stjärnor räknas fram LIVE (aggregateKlassStats ur samma elever) –
+//   * Översikten (grannby) läser grannklassens PROJEKTION (#234): 1 dok/klass
+//     (classProjections/{classId}) i stället för ett studentData-dok per elev.
+//     Byn fylls direkt ur den förberäknade projektionen (saknas den self-healar
+//     den EN gång). Huslåset härleds ur entryns husLast (locked) → låsta hus ritas
+//     🔒, precis som i egna byn.
+//   * Klassens stjärnor räknas fram LIVE (aggregateKlassStats ur samma entries) –
 //     samma siffror klassen själv ser – och visas via den egna byns stjärn-UI
 //     (✨-toggle + skylt). Ingen denormaliserad classStats behövs.
 //   * Att gå IN i ett rum (grannbyhus → #/elev/klasskamrat) läser full studentData
 //     för DEN eleven – men huslåset (#33, husLast) spärrar låsta rum precis som
 //     inom klassen, och man kan aldrig ändra något (läs-vy).
-//   * Prestanda: EN klass ritas i taget (bara den man zoomat in på) – dess ~20-24
-//     studentData-dok, identiskt med egna byn. Skol-översikten förblir lätta
+//   * Prestanda: EN klass ritas i taget (bara den man zoomat in på) och kostar
+//     O(1) = 1 projektions-dok, oavsett klasstorlek. Skol-översikten förblir lätta
 //     silhuetter (varld-omrade.js) – oförändrad.
 // ============================================================================
 

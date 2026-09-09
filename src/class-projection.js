@@ -35,7 +35,23 @@
 // skapar den riktiga store:n med de riktiga Firestore-funktionerna inkopplade.
 // ============================================================================
 
-import { xpFromStudentData, progressTotals } from "./leveling.js";
+import { myClasses, classmateIds } from "./klass-membership.js";
+import {
+  projectionEntryFrom,
+  fallbackEntryFrom,
+  boendeFromMembers,
+  missingMemberIds,
+} from "./class-projection-entries.js";
+
+// De rena entry/boende-hjälparna bor i class-projection-entries.js men re-
+// exporteras här så befintliga importvägar (data-content.js, testerna) består.
+export {
+  projectionEntryFrom,
+  fallbackEntryFrom,
+  missingMemberIds,
+  entryToBoende,
+  boendeFromMembers,
+} from "./class-projection-entries.js";
 
 const DEFAULT_TTL_MS = 30_000; // kort session-cache: zooma ut/in läser inte om
 
@@ -51,61 +67,6 @@ function isPermissionDenied(err) {
 /** Är felet "dokumentet finns inte" (updateDoc mot ett saknat dokument)? */
 function isNotFound(err) {
   return err?.code === "not-found" || /No document to update/i.test(err?.message || "");
-}
-
-/**
- * REN hjälpare: bygg en members-entry ur ett students-dokument + dess
- * studentData. Samma fält-härledning som getStudentsWithLooks (en KÄLLA för
- * fältformen), men keyad in i projektionen och med `husLast` i stället för det
- * härledda `locked` (vyn härleder locked ur husLast).
- * @param {object} student students/{id}-data (namn, username, avatarId)
- * @param {object} sd       studentData/{id}-data
- */
-export function projectionEntryFrom(student = {}, sd = {}) {
-  const s = student || {};
-  const d = sd || {};
-  const { completed, stars } = progressTotals(d.progress);
-  return {
-    namn: s.namn || "",
-    username: s.username || "",
-    avatarId: d.avatarId || s.avatarId || "fox",
-    avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
-    paletteId: (d.room && d.room.paletteId) || null,
-    husSkalId: d.husSkalId || null,
-    stars,
-    xp: xpFromStudentData(d),
-    completed,
-    husLast: d.husLast === true,
-  };
-}
-
-/**
- * REN hjälpare: fallback-entry när studentData INTE gick att läsa. Vid en nekad
- * läsning (locked=true) är huset låst (husLast → true) och vi ritar ett
- * generiskt hus; vid andra fel faller vi tyst tillbaka på default-utseendet.
- */
-export function fallbackEntryFrom(student = {}, locked = false) {
-  const s = student || {};
-  return {
-    namn: s.namn || "",
-    username: s.username || "",
-    avatarId: s.avatarId || "fox",
-    avatarItems: [],
-    paletteId: null,
-    husSkalId: null,
-    stars: 0,
-    xp: 0,
-    completed: 0,
-    husLast: !!locked,
-  };
-}
-
-/** Vilka av `memberIds` saknar en entry i projektionen? (för self-heal) */
-export function missingMemberIds(members = {}, memberIds = []) {
-  const have = members && typeof members === "object" ? members : {};
-  return [...new Set((Array.isArray(memberIds) ? memberIds : []).filter(Boolean))].filter(
-    (id) => !have[id]
-  );
 }
 
 /**
@@ -220,6 +181,69 @@ export function createClassProjectionStore(adapter) {
   }
 
   /**
+   * By-/grannby-översikt för EN klass: säkerställ projektionen (self-heal EN gång
+   * om den saknas/är ofullständig) och returnera den boende-array som mountByScen
+   * + aggregateKlassStats ritar. Kostar EXAKT 1 getDoc när projektionen finns –
+   * O(1) per klass oavsett antal klasskamrater (det som #234 handlar om).
+   * @param {string} classId
+   * @param {string[]} memberIds  klassens elev-id (classes/{id}.studentIds)
+   * @returns {Promise<Array>} boende (id, namn, avatarId, …, locked)
+   */
+  async function getClassOverview(classId, memberIds = []) {
+    const { members } = await ensureClassProjection(classId, memberIds);
+    return boendeFromMembers(members, memberIds);
+  }
+
+  /**
+   * By-översikt för den EGNA byn = unionen av elevens ALLA klasser. Läser:
+   *   • den egna studentData:n FÄRSKT (1 dok) – egna husets utseende/stjärnor/
+   *     nivå är alltid up-to-date även om projektionens self-entry släpar efter,
+   *   • EN projektion per egen klass (O(1)/klass, oavsett klasstorlek).
+   * Öppna egna byn kostar alltså egna studentData + 1 projektion = 2 dok för en
+   * elev i en klass (acceptanskravet ≤2). Egen elev sorteras INTE hit – anroparen
+   * lägger den först (self-first), som byn gjort sedan tidigare.
+   * @param {object} o
+   * @param {string} o.meId
+   * @param {Array} o.classes  hela klasslistan (getClasses)
+   * @param {string} [o.meNamn]  namn-fallback för egen elev (utan klass finns
+   *   ingen projektions-entry att läsa namnet ur – vi läser inte students/{meId})
+   * @returns {Promise<Array>} boende, egen elev inkluderad (osorterad)
+   */
+  async function getOwnVillageOverview({ meId, classes = [], meNamn = "" } = {}) {
+    if (!meId) return [];
+    // Egen studentData färskt (1 läsning) – oberoende av när projektionen skrevs.
+    let ownSd = {};
+    try {
+      const snap = await getDoc(doc(db, "studentData", meId));
+      ownSd = snap && snap.exists && snap.exists() ? snap.data() : {};
+    } catch {
+      ownSd = {};
+    }
+    // Union av alla egna klassers projektioner (1 läsning/klass, self-heal en gång).
+    const merged = {};
+    for (const c of myClasses(meId, classes)) {
+      const ids = Array.isArray(c.studentIds) ? c.studentIds : [];
+      const { members } = await ensureClassProjection(c.id, ids);
+      for (const [id, entry] of Object.entries(members)) {
+        if (!merged[id]) merged[id] = entry;
+      }
+    }
+    // Egen entry byggs ur den FÄRSKA studentData:n. Namn/username tas ur
+    // projektionen om den finns (annars meNamn-fallback) – students/{meId} läses
+    // aldrig, så vi håller oss inom ≤2 dok.
+    const selfBase = merged[meId] || {};
+    merged[meId] = projectionEntryFrom(
+      {
+        namn: selfBase.namn || meNamn || "",
+        username: selfBase.username || "",
+        avatarId: selfBase.avatarId,
+      },
+      ownSd
+    );
+    return boendeFromMembers(merged, classmateIds(meId, classes));
+  }
+
+  /**
    * Skriv-API: uppdatera BARA en elevs egen entry via fält-path `updateDoc`.
    * Atomärt per path → samtidiga skrivningar för olika elever krockar inte.
    * Tål att dokumentet ännu inte finns (skapar med setDoc merge). Invaliderar
@@ -288,6 +312,8 @@ export function createClassProjectionStore(adapter) {
 
   return {
     getClassProjection,
+    getClassOverview,
+    getOwnVillageOverview,
     buildProjectionEntries,
     ensureClassProjection,
     updateStudentProjection,
