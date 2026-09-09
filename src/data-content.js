@@ -26,6 +26,7 @@ import {
   createClassProjectionStore,
   projectionEntryFrom,
 } from "./class-projection.js";
+import { mirrorStudentProjection } from "./projection-sync.js";
 
 // ---------------------------------------------------------------------------
 // Kunskapsinnehåll (ämnen och arbetsområden)
@@ -206,6 +207,13 @@ export async function upsertStudent(studentId, { namn, username, password, avata
     const ref = doc(db, "students", studentId);
     await setDoc(ref, { namn, avatarId: avatarId || "fox" }, { merge: true });
     await ensureStudentData(studentId, avatarId);
+    // Spegla namn + grundavatar in i klass-projektionen (#233). Lågfrekvent
+    // (lärarvyn), men håller by-översikten färsk utan en per-elev-läsning.
+    // Aldrig kastande – en misslyckad projektions-skrivning fäller inte sparet.
+    await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
+      namn,
+      avatarId: avatarId || "fox",
+    });
     return studentId;
   }
   // Ny elev: skapa Auth-kontot först; uid:t blir dokumentets id.
