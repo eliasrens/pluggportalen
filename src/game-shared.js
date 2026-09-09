@@ -18,21 +18,17 @@ import {
 
 export const enc = encodeURIComponent;
 
-// Metadata för gamemodes: ordning, namn, ikon, färg och vilket innehåll de kräver.
-export const GAMEMODES = [
-  { id: "lasforstaelse", name: "Läsförståelse", emoji: "📖", color: "bla",
-    sub: "Läs en text och svara på frågor", needs: "quiz" },
-  { id: "para", name: "Para ihop", emoji: "🧩", color: "gron",
-    sub: "Matcha begrepp med förklaring", needs: "pairs" },
-  { id: "quiz", name: "Quiz", emoji: "❓", color: "orange",
-    sub: "Flervalsfrågor med direkt svar", needs: "quiz" },
-  { id: "kunskapsjakt", name: "Kunskapsjakt", emoji: "⚡", color: "rosa",
-    sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
-  { id: "sanningsjakt", name: "Fånga sanningar", emoji: "🙌", color: "orange",
-    sub: "Fånga de sanna påståendena – undvik de falska!", needs: "sanningsjakt" },
-  { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
-    sub: "Hitta fakta-paren", needs: "pairs" },
-];
+// Gamemode-katalogen och synlighets-hjälparna bor i gamemode-visibility.js
+// (browser-fritt → enhetstestbart). Re-exporteras här för de många moduler som
+// redan importerar { GAMEMODES } från game-shared.js.
+export {
+  GAMEMODES,
+  areaContentFlags,
+  availableGamemodes,
+  visibleGamemodes,
+  normalizeHiddenModes,
+  isModeHidden,
+} from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
 // Små hjälpare

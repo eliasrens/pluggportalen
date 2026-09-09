@@ -13,6 +13,7 @@ import { buildContentView } from "./teacher-content-view.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { areaExerciseTypes } from "./exercise-types.js";
 import { normalizeGrade, filterSortAreas } from "./grades.js";
+import { availableGamemodes, isModeHidden } from "./game-shared.js";
 import {
   el,
   esc,
@@ -143,6 +144,50 @@ export async function pageLarareInnehall(ctx) {
     gradeSel.value = normalizeGrade(grade) || "";
   };
 
+  // --- Synliga lägen (kryssrutor, per område) -------------------------------
+  // Härleds GENERISKT ur GAMEMODES (via availableGamemodes) så nya spellägen
+  // dyker upp automatiskt – bara lägen området har underlag för visas. Ikryssat
+  // = synligt för eleven; urbockat sparas i value.hiddenModes (issue #200).
+  const modeBox = view.querySelector("#mode-visibility");
+
+  // Rendera kryssrutorna utifrån ett områdes innehåll.
+  //   • fromArea=true  → utgå från områdets sparade hiddenModes (vid inladdning)
+  //   • fromArea=false → behåll lärarens nuvarande i-/urbockningar och lägg bara
+  //                       till/ta bort lägen som innehållet ändrat (vid Kontrollera)
+  function renderModeVisibility(area, fromArea) {
+    const modes = availableGamemodes(area);
+    if (modes.length === 0) {
+      modeBox.innerHTML = `<p class="hint">Inga lägen än – lägg till innehåll (frågor eller par)
+        och klicka Kontrollera.</p>`;
+      return;
+    }
+    const prev = new Map();
+    if (!fromArea) {
+      modeBox.querySelectorAll('input[type="checkbox"]').forEach((c) => prev.set(c.value, c.checked));
+    }
+    modeBox.innerHTML = modes
+      .map((gm) => {
+        const checked = prev.has(gm.id) ? prev.get(gm.id) : !isModeHidden(area, gm.id);
+        return `<label class="member-row">
+          <input type="checkbox" value="${esc(gm.id)}"${checked ? " checked" : ""} />
+          <span class="member-avatar">${esc(gm.emoji)}</span>
+          <span class="member-name">${esc(gm.name)}<br><span class="hint">${esc(gm.sub)}</span></span>
+        </label>`;
+      })
+      .join("");
+  }
+  renderModeVisibility({}, true); // tom start tills ett område laddas/kontrolleras
+
+  // Vilka lägen som ska DÖLJAS: bara lägen som (a) har en renderad kryssruta som
+  // är urbockad OCH (b) faktiskt har underlag i det som sparas. Nya lägen utan
+  // kryssruta räknas som synliga (default), så nytt innehåll aldrig göms av misstag.
+  function getSelectedHiddenModes(value) {
+    const availableIds = new Set(availableGamemodes(value).map((gm) => gm.id));
+    return [...modeBox.querySelectorAll('input[type="checkbox"]:not(:checked)')]
+      .map((c) => c.value)
+      .filter((id) => availableIds.has(id));
+  }
+
   view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
     copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value, getSelectedGrade()), e.currentTarget)
   );
@@ -159,6 +204,7 @@ export async function pageLarareInnehall(ctx) {
   function loadAreaForEdit(a) {
     setSelectedTypes(areaExerciseTypes(a));
     setSelectedGrade(a.grade);
+    renderModeVisibility(a, true);
     const { id, exerciseTypes, grade, ...rest } = a;
     jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
     jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -261,8 +307,11 @@ export async function pageLarareInnehall(ctx) {
 
   view.querySelector("#check").addEventListener("click", () => {
     const res = parseAndValidateArea(jsonEl.value);
-    if (res.ok) showValidSummary(res.value);
-    else showErrors(res.errors);
+    if (res.ok) {
+      // Uppdatera synliga-lägen-listan efter innehållet, men behåll lärarens val.
+      renderModeVisibility(res.value, false);
+      showValidSummary(res.value);
+    } else showErrors(res.errors);
   });
 
   view.querySelector("#save").addEventListener("click", async () => {
@@ -280,12 +329,16 @@ export async function pageLarareInnehall(ctx) {
     const old = saveBtn.textContent;
     saveBtn.textContent = "Sparar…";
     try {
+      // Synka synliga-lägen-listan mot innehållet som sparas (behåll lärarens
+      // i-/urbockningar) innan vi läser av vilka lägen som ska döljas.
+      renderModeVisibility(res.value, false);
       // Lärarens kryssrutor (övningstyper) och årskurs-väljaren är de uttryckliga
       // valen och vinner över det som ligger i/härleds ur JSON:en.
       const value = {
         ...res.value,
         exerciseTypes: getSelectedTypes(),
         grade: getSelectedGrade(),
+        hiddenModes: getSelectedHiddenModes(res.value),
       };
       await data.saveArea(selected, value.id, value);
       resultEl.innerHTML = `<div class="msg ok">✓ Sparat! "${esc(value.name)}" finns nu i ämnet
