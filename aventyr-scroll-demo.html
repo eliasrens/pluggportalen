@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Äventyrsmotorn – scroll-demo (#220)</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+  <link rel="stylesheet" href="./src/games.css" />
+  <style>
+    body { margin: 0; padding: 24px; background: var(--bg, #f3f6fb); font-family: system-ui, sans-serif; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 1.1rem; }
+    .demo-note { color: #555; font-size: 0.92rem; margin-bottom: 12px; }
+    #mount { position: relative; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🗺️ Äventyrsmotorn – scrollande kamera + bild-karta (issue #220, dev-preview)</h1>
+    <p class="demo-note">
+      Opt-in scroll-läge: kameran följer avataren, kartan scrollar under dig (~1/6 syns),
+      damm + träd är grova hinder. Gå fram till en 🎈 och tryck <b>E</b>/mellanslag (rätt svar auto-simuleras),
+      samla alla och gå till slottet 🏰. Frågemodalen är stubbad (ingen Firebase).
+    </p>
+    <div id="mount"></div>
+  </div>
+
+  <script type="module">
+    import { startAdventure } from "./src/adventure/engine.js";
+    import { scrollDemoTheme } from "./src/adventure/themes/scroll-demo.js";
+    import { avatarMarkup, DEFAULT_AVATAR } from "./src/avatars.js";
+
+    // Stubbad frågeadapter – simulerar ett rätt svar direkt, utan Firebase/modal.
+    const questions = {
+      hasQuestions: () => true,
+      remaining: () => 99,
+      reset: () => {},
+      async askNext() {
+        // liten paus så frysningen syns; svara alltid rätt i demoläget
+        await new Promise((r) => setTimeout(r, 120));
+        return { correct: true, cancelled: false };
+      },
+    };
+
+    const avatarHtml = avatarMarkup(DEFAULT_AVATAR, []);
+    startAdventure({
+      mount: document.getElementById("mount"),
+      theme: scrollDemoTheme,
+      questions,
+      player: { avatarHtml },
+      subj: "demo",
+      area: "demo",
+      onComplete: (r) => console.log("[scroll-demo] klart", r),
+      onReplay: () => location.reload(),
+    });
+  </script>
+</body>
+</html>

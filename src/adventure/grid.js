@@ -91,6 +91,22 @@ export function tileSizePct(cols, rows) {
   return { w: cols > 0 ? 100 / cols : 100, h: rows > 0 ? 100 / rows : 100 };
 }
 
+/**
+ * ISOTROPT avstånd mellan två procent-punkter mätt i RUTOR (inte i råa procent).
+ * Rutorna är sällan kvadratiska i procent (100/cols ≠ 100/rows), så ett råt
+ * euklidiskt procent-avstånd når olika långt horisontellt vs vertikalt – det var
+ * bakgrunden till #218 (kistan gick bara att öppna från vissa håll). Genom att
+ * skala om varje axel med cols/rows blir en ruta "1.0" åt alla håll, så en
+ * interaktions-radie blir RIKTNINGSOBEROENDE. Motorn använder detta för att
+ * avgöra om avataren står tillräckligt nära en station/mål – från vilket håll
+ * som helst. DOM-fritt → enhetstestbart.
+ */
+export function cellDistance(a, b, cols, rows) {
+  const dx = (a.x - b.x) * (cols > 0 ? cols : 1) / 100;
+  const dy = (a.y - b.y) * (rows > 0 ? rows : 1) / 100;
+  return Math.hypot(dx, dy);
+}
+
 /** Vilken ruta (col,row) en procent-koordinat hamnar i (utanför → clampas in). */
 export function percentToCell(x, y, cols, rows) {
   const col = clampInt(Math.floor((x / 100) * cols), 0, cols - 1);

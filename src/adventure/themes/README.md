@@ -38,6 +38,32 @@ kollision, frågor, progress, belöning, avatar, loop, städning) ägs av motorn
 | `goalPrompt` | Remsan när avataren står vid det framme-spawnade slutmålet. |
 | `klart` | Inleder resultatraden på firande-skärmen. |
 
+## Opt-in: scrollande kamera + bild-karta (issue #220)
+
+Ett tema kan välja ett **scroll-läge** i stället för det lilla ASCII-gridet genom
+att ange `mapImage`. Då byter motorn koordinatsystem till **världspixlar** och
+kör en scrollande kamera (avataren nära mitten, världen scrollar under den, ~1/6
+av kartan syns). Grid-teman (Spökjakten/Gruvan) är helt oberörda – `mapImage`
+saknas → allt funkar som förr. Rörelse, kollision, frågor, progress, completion
+och belöning är **oförändrade** – bara koordinatsystemet generaliseras.
+
+| Fält | Typ | Beskrivning |
+|------|-----|-------------|
+| `mapImage` | `string` | **Slår på läget.** Bakgrundsbildens URL/data-URI (den stora rasterbilden som blir världen). |
+| `worldSize` | `{w,h}` | Världens pixelmått (default `1600×1200`). Kamera-clampen ser till att man aldrig ser utanför bildkanten. |
+| `viewFraction` | `number` | *Valfritt.* ~andel av kartbredden som syns åt gången (default `1/6`, tune:bar). |
+| `startAt` | `{x,y}` | Spelarens start, **normaliserat 0..1** av världen (default mitten). |
+| `stationsAt` | `[{x,y}]` | Stationernas positioner (normaliserat). Antalet styr default-`goal`. |
+| `goalAt` | `{x,y}` | Slutmålets position (normaliserat, default = `startAt`). |
+| `collision` | `{grid?, rects?, blockedAt?, blockChars?}` | *Valfritt.* Grovt kollisionslager i världskoordinater: `grid` = lågupplöst ASCII-rutnät som sträcks över hela världen (`#`/`1`/`x` blockerar), `rects` = normaliserade `{x,y,w,h}` (0..1), `blockedAt(x,y)` = egen predikatfunktion i pixlar. Utanför bilden = alltid blockerat. |
+| `avatarFrac` | `number` | *Valfritt.* Avatarens storlek som andel av kortaste världsmåttet (default `0.07`). |
+| `speedFrac` | `number` | *Valfritt.* Gångfart som andel av kortaste världsmåttet/sekund (default `0.14`). |
+| `interactFrac` | `number` | *Valfritt.* Interaktionsradie som andel av kortaste världsmåttet (default `0.06`). Räckvidden är **isotrop** (samma åt alla håll) → objekt aktiveras från vilken sida som helst, men bara på nära håll (fix för #218). |
+
+`stationArt`/`goalArt`/`progressIcon`/`texter`/`questionKinds` fungerar likadant
+som i grid-läget. Se `themes/scroll-demo.js` för ett komplett exempel och
+`aventyr-scroll-demo.html` för en Firebase-fri preview-harness.
+
 ## Gemensamt (motorn) vs unikt (temat)
 
 **Motorn** äger: rörelse, kollision, grid-tolkning, frågeadapter + frågemodal,
