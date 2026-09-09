@@ -17,6 +17,7 @@
 // ============================================================================
 
 import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
+import { ADVENTURE_THEME_META } from "./adventure/themes/meta.js";
 
 // Metadata för gamemodes: ordning, namn, ikon, färg och vilket innehåll de kräver.
 export const GAMEMODES = [
@@ -35,6 +36,42 @@ export const GAMEMODES = [
   { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
     sub: "Hitta fakta-paren", needs: "pairs" },
 ];
+
+// Frågekälla (questionKind) → innehållsflagga den drar från. Samma mappning som
+// gamemodes.js (KIND_NEEDS) så kort-låset och synlighetsgaten är exakt lika.
+const ADVENTURE_KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
+
+// Äventyrs-temana som spellägen i synlighetslistan, nyckelade "aventyr:<id>".
+// Härleds GENERISKT ur den lätta metadatan (adventure/themes/meta.js) så nya
+// teman dyker upp automatiskt UTAN att den browser-fria modulen drar in
+// temagrafiken. Till skillnad från vanliga lägen (ett enda `needs`) kan ett tema
+// använda FLERA frågekällor: `needsAny` = tillgängligt om NÅGON flagga har underlag.
+export const ADVENTURE_MODES = ADVENTURE_THEME_META.map((t) => ({
+  id: `aventyr:${t.id}`,
+  name: `Äventyr: ${t.namn}`,
+  emoji: t.emoji,
+  color: "orange",
+  sub: "Äventyrsspel på området",
+  needsAny: [...new Set((t.needs || []).map((k) => ADVENTURE_KIND_NEEDS[k]).filter(Boolean))],
+}));
+
+// Hela lägeskatalogen som lärarens synlighets-kryssrutor byggs ur: de vanliga
+// lägena + äventyrs-temana. Elevens vanliga kort använder GAMEMODES separat
+// (gamemodes.js), och äventyrskorten byggs ur tema-registret – den här listan är
+// synlighets-UI:ts källa.
+export const ALL_MODES = [...GAMEMODES, ...ADVENTURE_MODES];
+
+/**
+ * Har området underlag för läget? Vanliga lägen har ett enda `needs`-flaggnamn;
+ * äventyrs-teman har `needsAny` (tillgängligt om NÅGON av flaggorna finns).
+ * @param {object} mode – post ur ALL_MODES
+ * @param {object} has – areaContentFlags(area)
+ * @returns {boolean}
+ */
+function modeAvailable(mode, has) {
+  if (Array.isArray(mode.needsAny)) return mode.needsAny.some((k) => has[k]);
+  return !!has[mode.needs];
+}
 
 /**
  * Rensa en lista med dolda mode-id: behåll bara icke-tomma strängar, trimmade,
@@ -86,15 +123,16 @@ export function areaContentFlags(area) {
 }
 
 /**
- * Vilka lägen området faktiskt HAR underlag för (has[gm.needs]) – oavsett
- * lärarens synlighetsval. Härleds GENERISKT ur GAMEMODES, så nya lägen dyker
- * upp automatiskt. Används av lärar-UI:t för kryssrutorna.
+ * Vilka lägen området faktiskt HAR underlag för – oavsett lärarens synlighetsval.
+ * Härleds GENERISKT ur ALL_MODES (vanliga lägen + äventyrs-teman), så nya lägen
+ * OCH nya äventyrs-teman dyker upp automatiskt. Används av lärar-UI:t för
+ * kryssrutorna (per-område); äventyren gate:as på needsAny (quiz ELLER par).
  * @param {object} area
- * @returns {typeof GAMEMODES}
+ * @returns {typeof ALL_MODES}
  */
 export function availableGamemodes(area) {
   const has = areaContentFlags(area);
-  return GAMEMODES.filter((gm) => has[gm.needs]);
+  return ALL_MODES.filter((gm) => modeAvailable(gm, has));
 }
 
 /**
