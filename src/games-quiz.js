@@ -17,6 +17,7 @@ import {
   starsFromRatio,
   pickSessionQuestions,
 } from "./game-shared.js";
+import { buildReadingPool, readingLevelName } from "./reading-level.js";
 
 // --- Quiz -------------------------------------------------------------------
 
@@ -59,34 +60,48 @@ export async function startLasforstaelse(ctx) {
   const { subj, area, areaData } = ctx;
   const allQuestions = areaData.quiz || [];
 
+  // Per-elev läsnivå (#154): eleven får sin nivås texter/frågor. Läses ur
+  // studentData; saknas den → mellannivå (default). En trasig läsning ska inte
+  // fälla övningen, så vi faller tillbaka på default-nivån vid fel.
+  let readingLevel;
+  try {
+    readingLevel = await data.getReadingLevel();
+  } catch {
+    readingLevel = undefined; // buildReadingPool/normalize → default (nivå 2)
+  }
+
   const view = gameFrame({ subj, area, title: "Läsförståelse", emoji: "📖" });
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
 
-  // Varje fråga bär en egen kort källtext (passage) som visas OVANFÖR just den
-  // frågan – inte längre hela områdets texter ovanför alla frågor på en gång
-  // (det blev rörigt). runQuestions renderar q.passage när showPassage är satt.
-  //
-  // Läsförståelse ska vara SJÄLVBÄRANDE: ingen fråga får visas utan sin källtext,
-  // annars kan en fråga hänvisa till en text som inte syns ("enligt texten ...").
-  // Nya övningar tvingas därför ha passage på ALLA frågor (se validate.js). Här
-  // kör vi ändå bara de frågor som faktiskt har en passage, så även ev. gammal
-  // data blir självbärande. Saknar HELA övningen passager (rent gammalt quiz)
-  // faller vi tillbaka till alla frågor med en snäll ledtext, så sidan aldrig
-  // ser trasig ut. Quiz-läget är oförändrat (skickar inte showPassage).
+  // Innehållskälla i prioritetsordning:
+  //   1) readingTexts (läsförståelse 2.0, #152) – SAMMA tema i tre nivåer. Vi
+  //      bygger poolen på ELEVENS nivå (#154): svagare läsare får nivå 1:s
+  //      text/frågor, starkare nivå 3:s. Varje frågas passage = nivåns brödtext.
+  //   2) gammalt quiz med passage per fråga (självbärande läsförståelse).
+  //   3) rent quiz utan passager – snäll ledtext, sidan ser aldrig trasig ut.
+  // runQuestions renderar q.passage när showPassage är satt. Quiz-läget är
+  // oförändrat (skickar inte showPassage).
+  const readingPool = buildReadingPool(areaData.readingTexts, readingLevel);
+  const usesLevels = readingPool.length > 0;
+
   const withPassage = allQuestions.filter(
     (q) => q && typeof q.passage === "string" && q.passage.trim()
   );
   const anyPassage = withPassage.length > 0;
-  // Ny session: servera max 10 OSEDDA frågor ur den valda poolen (passager om de
-  // finns, annars alla), roterande urval spårat per (elev, område, läge).
-  const pool = anyPassage ? withPassage : allQuestions;
-  const seen = await data.getQuestionRotation(area, "lasforstaelse");
+  // Ny session: servera max 10 OSEDDA frågor ur den valda poolen, roterande
+  // urval spårat per (elev, område, läge). Nivåtexterna roteras per nivå så att
+  // ett nivåbyte inte drar med sig den gamla nivåns "sedda"-lista.
+  const pool = usesLevels ? readingPool : anyPassage ? withPassage : allQuestions;
+  const rotKey = usesLevels ? `lasforstaelse:n${readingLevel || 2}` : "lasforstaelse";
+  const seen = await data.getQuestionRotation(area, rotKey);
   const { questions, seen: nextSeen } = pickSessionQuestions(pool, seen);
-  data.saveQuestionRotation(area, "lasforstaelse", nextSeen);
-  const intro = anyPassage
-    ? "Läs den korta texten ovanför varje fråga och svara. Texten byts för varje ny fråga. 📖"
-    : "Läs frågan noga och svara så gott du kan. 📖";
+  data.saveQuestionRotation(area, rotKey, nextSeen);
+  const intro = usesLevels
+    ? `Din läsnivå: <b>${readingLevelName(readingLevel)}</b>. Läs texten ovanför varje fråga och svara. 📖`
+    : anyPassage
+      ? "Läs den korta texten ovanför varje fråga och svara. Texten byts för varje ny fråga. 📖"
+      : "Läs frågan noga och svara så gott du kan. 📖";
 
   const layout = el(`<div class="lasf-layout">
     <p class="hint lasf-intro">${intro}</p>

@@ -192,6 +192,7 @@ Exempel (`students/elev1`):
 | `husLast`    | bool   | `true` = huset är **låst**: en klasskamrats läs-vy (`src/pages-klasskamrat.js`) visar `🔒 Låst` i stället för rummet. Toggle i verktygsmenyn (`src/pages-varld.js`); delad hjälpare `isHouseLocked(studentData)` i `src/data-room.js`. Husets exteriör i byn påverkas inte. |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
+| `readingLevel` | number | **Läsnivå (1–3)** för läsförståelse (#154): läraren sätter den per elev i klasshanteringen (`src/teacher-reading-level.js`), och läsförståelse-läget serverar då områdets `readingTexts` på elevens nivå (`buildReadingPool` i `src/reading-level.js`). **Bakåtkompatibelt:** saknas fältet → `normalizeReadingLevel` ger default `2` (mellan). Helpers `getReadingLevel`/`setReadingLevel` i `src/data-reading-level.js`. |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
 | `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |

@@ -52,10 +52,15 @@ export async function pageElevOmrade() {
   const has = {
     quiz: Array.isArray(areaData.quiz) && areaData.quiz.length > 0,
     pairs: Array.isArray(areaData.pairs) && areaData.pairs.length > 0,
+    // Läsförståelse 2.0 (#152/#154): nivåtexter räcker för läsförståelse även
+    // utan gammalt quiz. Egen "behovs-flagga" så kortet blir tillgängligt.
+    reading: Array.isArray(areaData.readingTexts) && areaData.readingTexts.length > 0,
   };
 
   const cards = GAMEMODES.map((gm) => {
-    const available = has[gm.needs];
+    // Läsförståelse kan drivas av antingen nivåtexter (readingTexts) eller
+    // gammalt quiz med passager; övriga lägen använder sin egen needs-flagga.
+    const available = gm.id === "lasforstaelse" ? has.quiz || has.reading : has[gm.needs];
     const stars = areaProgress[gm.id]?.stars || 0;
     const starsHtml = available
       ? `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`
