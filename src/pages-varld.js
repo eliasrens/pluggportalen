@@ -47,7 +47,6 @@ import { createGrannbyVy } from "./varld-grannby.js";
 import { mountNavSkyltar } from "./varld-navskylt.js";
 import { aggregateKlassStats } from "./leveling.js";
 import { klassStatsMarkup, mountKlassStatsToggle } from "./varld-by-stats.js";
-import { classmateIds } from "./klass-membership.js";
 import { possessiv } from "./text-format.js";
 
 // Levande scen (för sömlösa route-byten): när routern träffar #/elev/hus eller
@@ -307,15 +306,17 @@ export async function pageElevVarld(startNiva) {
   let byLaddning = null;
   function laddaBy() {
     byLaddning ??= (async () => {
-      // Läs BARA sig själv + klasskamraterna, per dokument. En elev får enligt
-      // reglerna inte lista hela students-kollektionen (world-read är borta) –
-      // bara läsa kamrater i samma klass. Kamraterna hämtas ur UNIONEN av alla
-      // elevens klassers studentIds (inte bara första matchande klassen), så en
-      // elev i flera klasser ser hela sin by. Utan klass blir byn bara det egna
-      // huset. En nekad läsning per elev (t.ex. låst hus, osynkad classIds)
-      // hoppas tyst över i getStudentsWithLooks – byn faller inte för det.
-      const ids = classmateIds(meId, allClasses);
-      let boende = await data.getStudentsWithLooks(ids);
+      // Klass-projektionen (#231/#234): EN läsning per egen klass i stället för
+      // ett studentData-dok per klasskamrat. Öppna egna byn kostar därmed egna
+      // studentData (färskt, för egna stjärnor/nivå) + 1 projektion/klass = ≤2
+      // dok för en elev i en klass, oavsett klasstorlek. Union av alla elevens
+      // klasser (en elev kan vara i flera). Saknad projektion self-healar EN
+      // gång (core ensureClassProjection). Utan klass blir byn bara egna huset.
+      let boende = await data.getOwnVillageOverview({
+        meId,
+        classes: allClasses,
+        meNamn: session.namn,
+      });
       // Egen tomt först, resten i namnordning (svensk kollation).
       boende = boende.slice().sort((a, b) => {
         if (a.id === meId) return -1;
@@ -426,15 +427,15 @@ export async function pageElevVarld(startNiva) {
   }
 
   // Hämta EN grannklass elever + utseenden, först när man zoomar in på den (perf:
-  // en klass i taget – IDENTISKT med vad egna byn (laddaBy) redan gör). Läser
-  // grannklassens studentData direkt (cross-class-läsning är öppen för inloggade
-  // sedan #114) så byn fylls DIREKT ur befintlig data – ingen elev behöver ha
-  // loggat in först. getStudentsWithLooks hanterar huslåset per elev (nekad läsning
-  // → default-utseende + locked). Stjärnorna räknas fram LIVE (aggregateKlassStats),
-  // exakt som klassen själv ser dem – ingen denormaliserad classStats behövs.
+  // en klass i taget). Läser grannklassens PROJEKTION (#234): 1 dok/klass i
+  // stället för ett studentData-dok per elev → O(1) per klass oavsett klass-
+  // storlek. Saknad projektion self-healar EN gång (core ensureClassProjection),
+  // sedan 1 dok. Huslåset härleds ur entryns husLast (locked). Stjärnorna räknas
+  // fram LIVE (aggregateKlassStats) ur samma entries, exakt som klassen själv ser
+  // dem – ingen denormaliserad classStats behövs.
   async function laddaGrannbyData(klass) {
     const ids = Array.isArray(klass.studentIds) ? klass.studentIds : [];
-    let students = await data.getStudentsWithLooks(ids);
+    let students = await data.getClassOverview(klass.id, ids);
     // Namnordning (svensk kollation) – ingen "egen" tomt i en annan klass.
     students = students
       .slice()
