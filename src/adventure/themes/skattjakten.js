@@ -9,7 +9,8 @@
 // Skattjakten kör motorns OPT-IN scroll/bild-karta-läge (issue #220): en STOR
 // illustrerad ö-karta (src/adventure/assets/skattjakten-karta.jpg, serverad som
 // fil – inte inline) blir världen, kameran scrollar mjukt under en nära centrerad
-// avatar (~1/6 syns). Banans geometri – världsmått, kollision, start, fråge-spawns
+// avatar (~1/3 av kartbredden syns, SKATTJAKT_VIEW_FRACTION – utzoomat efter
+// användar-feedback). Banans geometri – världsmått, kollision, start, fråge-spawns
 // och skattkist-platser – bor i themes/skattjakten-map.js (ren, testbar matte).
 //
 // Flöde: eleven anländer med båt vid bryggan nere-höger, utforskar ön (fastnar i
@@ -32,6 +33,12 @@ import {
   pickChest,
   buildSkattjaktenCollision,
 } from "./skattjakten-map.js";
+
+// --- Kamera-utzoom (lätt att tuna) ------------------------------------------
+// Andel av kartBREDDEN som syns åt gången. HÖJ → mer utzoomat (mer av ön syns),
+// SÄNK → mer inzoomat på avataren. Tune-intervall som känns bra: 0.30–0.45.
+// Historik: 1/6 (~0.17) var för tight inzoomat (användar-feedback) → 0.36.
+const SKATTJAKT_VIEW_FRACTION = 0.36;
 
 // --- Palett (tropisk, ur stilguiden) ----------------------------------------
 const SAND_LJUS = "#FBEFCB";
@@ -130,7 +137,8 @@ export const skattjaktenTheme = {
   // Opt-in-flaggan: mapImage → motorn väljer scroll/bild-karta-läget (world.js).
   mapImage: MAP_IMAGE,
   worldSize: WORLD,
-  viewFraction: 1 / 6, // ~1/6 av ön syns åt gången (mjuk scroll)
+  // Andel av kartbredden som syns åt gången – tune:bar konstant högst upp.
+  viewFraction: SKATTJAKT_VIEW_FRACTION,
 
   startAt: START_AT, // vid bryggan/båten nere-höger ("anländer med båt")
   // Fråge-spawns: 18 fasta kandidater, spelet väljer 10 (getter → nytt urval per
