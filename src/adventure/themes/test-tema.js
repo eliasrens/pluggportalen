@@ -24,9 +24,7 @@
 //   questionKinds  string[] – frågekällor stationerna drar från: quiz|lasforstaelse|para
 // ============================================================================
 
-import { skattjaktenTheme } from "./skattjakten.js";
-import { spokjaktenTheme } from "./spokjakten.js";
-import { gruvanTheme } from "./gruvan.js";
+import { THEMES as REAL_THEMES } from "./index.js";
 
 export const testTheme = {
   id: "test",
@@ -58,12 +56,12 @@ export const testTheme = {
   questionKinds: ["quiz", "lasforstaelse", "para"],
 };
 
-/** Alla inbyggda teman (id → config). Ett nytt tema = importera dess config och
- *  lägg till EN rad här; teman med ett `oversikt`-fält får automatiskt ett kort i
- *  områdesöversikten (gamemodes.js). Test-temat saknar `oversikt` → syns ej för elev. */
+/** Test-routens temaregister: test-banan + de tre RIKTIGA temana (från det
+ *  gemensamma produktionsregistret themes/index.js, så listan har EN källa till
+ *  sanning). Elevens kort/route använder index.js direkt – test-temat saknar
+ *  `oversikt` och syns därför aldrig som kort. Nya riktiga teman läggs till i
+ *  index.js, inte här. */
 export const THEMES = {
   test: testTheme,
-  skattjakten: skattjaktenTheme,
-  spokjakten: spokjaktenTheme,
-  gruvan: gruvanTheme,
+  ...REAL_THEMES,
 };

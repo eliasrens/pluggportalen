@@ -18,7 +18,7 @@ import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 import { startSanningsjakt } from "./games-sanningsjakt.js";
 import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
-import { THEMES } from "./adventure/themes/test-tema.js";
+import { THEMES } from "./adventure/themes/index.js";
 
 // Vilket innehåll varje frågekälla i ett äventyrstema kräver (för kort-låset).
 const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };

@@ -14,7 +14,8 @@ import { avatarMarkup, DEFAULT_AVATAR } from "./../avatars.js";
 import { gameFrame } from "./../game-shared.js";
 import { startAdventure } from "./engine.js";
 import { makeQuestionAdapter } from "./question-adapter.js";
-import { THEMES, testTheme } from "./themes/test-tema.js";
+import { THEMES } from "./themes/index.js";
+import { testTheme } from "./themes/test-tema.js";
 
 /**
  * Elevens äventyrssida. Kräver ?subj=&area=; ?tema= väljer tema (default testbanan).
