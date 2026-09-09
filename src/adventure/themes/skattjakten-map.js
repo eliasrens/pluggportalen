@@ -1,10 +1,11 @@
 // ============================================================================
 // Pluggportalen – äventyrsmotorn: themes/skattjakten-map.js  (issue #221)
 // ----------------------------------------------------------------------------
-// REN DATA + REN MATTE för Skattjaktens ö-karta i motorns scroll/bild-karta-läge
-// (world.js). DOM-fri och Firebase-fri → enhetstestbar (test/skattjakten-map.test.js).
-// Här bor bara banans GEOMETRI på den illustrerade ön (src/adventure/assets/
-// skattjakten-karta.jpg) samt de två små urvalshjälparna som gör att banan varierar:
+// REN DATA + REN MATTE för Skattjaktens ö-karta i motorns scroll-läge (world.js).
+// DOM-fri och Firebase-fri → enhetstestbar (test/skattjakten-map.test.js).
+// Här bor bara banans GEOMETRI på ön (världen ritas egenhändigt i inline-SVG sedan
+// issue #238, se themes/skattjakten-scen-svg.js – konsten följer denna geometri)
+// samt de två små urvalshjälparna som gör att banan varierar:
 //   • SPAWN_CANDIDATES – 18 fasta möjliga frågeplatser på gångbar mark; pickSpawns()
 //     väljer 10 av dem (issue: "spelet väljer 10").
 //   • CHEST_CANDIDATES – 3 möjliga skattkist-platser; pickChest() väljer en.
@@ -14,12 +15,13 @@
 //   • COLLISION_RECTS – dammen, ån (utom bron), ruinerna och de stora klipporna
 // ============================================================================
 
-// Bildens pixelmått (3:2). worldSize matchar aspekten så bakgrunden inte tänjs.
+// Världsmått (3:2). worldSize matchar aspekten så den egenritade ö-SVG:n
+// (skattjakten-scen-svg.js, viewBox 1536×1024) fyller lagret utan tänjning.
 export const WORLD = { w: 1536, h: 1024 };
 
-// Bakgrundsbilden serveras som fil (inte inline) – sökväg relativt dokumentet
-// (SPA:t laddas från roten, hash-routing → dokument-URL:en ändras aldrig), så
-// den funkar både lokalt (server.mjs), på Firebase Hosting och på ev. subpath.
+// Referensbilden ligger kvar i repot som INSPIRATIONSKÄLLA (issue #238) men
+// laddas INTE längre i spelet – ön ritas egenhändigt i inline-SVG. Exporten
+// behålls för bakåtkompatibilitet/dokumentation (och det befintliga testet).
 export const MAP_IMAGE = "src/adventure/assets/skattjakten-karta.jpg";
 
 // --- Grov land/hav-mask (20 kolumner × 14 rader) ----------------------------
