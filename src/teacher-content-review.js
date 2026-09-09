@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { el, esc } from "./teacher-shared.js";
+import { normalizeReadingPrereq } from "./reading-prereq.js";
 
 /** En sektion med rubrik + antal; body byggs av respektive render-funktion. */
 function section(emoji, title, count, bodyHtml) {
@@ -78,23 +79,60 @@ function renderTexts(texts) {
   return `<ul class="rv-list">${items}</ul>`;
 }
 
+// Läsförståelse i 3 nivåer (issue #152): varje läs-text visas med sina tre nivåer
+// (egen brödtext + egna frågor per nivå). Återanvänder renderQuiz för frågorna.
+function renderReadingTexts(readingTexts) {
+  const items = readingTexts
+    .map((rt) => {
+      const levels = ["1", "2", "3"]
+        .map((lvl) => {
+          const L = rt.levels?.[lvl];
+          if (!L) return "";
+          const qs = Array.isArray(L.questions) ? L.questions : [];
+          return `<div class="rv-level">
+            <div class="rv-level-h"><span class="rv-tag">Nivå ${lvl}</span>
+              <span class="badge">${qs.length} frågor</span></div>
+            <div class="rv-passage">${esc(L.body || "")}</div>
+            ${qs.length ? renderQuiz(qs) : ""}
+          </div>`;
+        })
+        .join("");
+      return `<li class="rv-text">
+        <div class="rv-text-title">📖 ${esc(rt.title || "")}</div>
+        ${levels}
+      </li>`;
+    })
+    .join("");
+  return `<ul class="rv-list">${items}</ul>`;
+}
+
 /**
  * Bygg den read-only granska-vyn för ett arbetsområde `a`.
- * Läser bara från `a` (quiz/pairs/texts) och renderar; ändrar inget.
+ * Läser bara från `a` (quiz/pairs/texts/readingTexts) och renderar; ändrar inget.
  */
 export function buildReviewPanel(a) {
   const quiz = Array.isArray(a.quiz) ? a.quiz : [];
   const pairs = Array.isArray(a.pairs) ? a.pairs : [];
   const texts = Array.isArray(a.texts) ? a.texts : [];
+  const readingTexts = Array.isArray(a.readingTexts) ? a.readingTexts : [];
 
   const sections = [];
   if (quiz.length) sections.push(section("📝", "Quiz", quiz.length, renderQuiz(quiz)));
   if (pairs.length) sections.push(section("🔗", "Begreppspar", pairs.length, renderPairs(pairs)));
   if (texts.length) sections.push(section("📄", "Texter", texts.length, renderTexts(texts)));
+  if (readingTexts.length)
+    sections.push(section("📖", "Läsförståelse (3 nivåer)", readingTexts.length, renderReadingTexts(readingTexts)));
+
+  // Läsförståelse-förkrav (issue #155): visa om det är påslaget för området.
+  const prereq = normalizeReadingPrereq(a.readingPrereq);
+  const prereqNote = prereq
+    ? `<p class="hint rv-prereq">🔒 <b>Förkrav:</b> eleven måste klara läsförståelsen
+        (godkänt) ${prereq.required > 1 ? `– ${prereq.required} st ` : ""}innan andra övningar låses upp.</p>`
+    : "";
 
   const body = sections.length
-    ? sections.join("")
-    : `<p class="hint">Området har inget innehåll att granska ännu.</p>`;
+    ? prereqNote + sections.join("")
+    : prereqNote + `<p class="hint">Området har inget innehåll att granska ännu.</p>`;
 
   return el(`<div class="subpanel rv-panel">${body}</div>`);
 }

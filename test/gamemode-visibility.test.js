@@ -57,14 +57,23 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
   assert.deepEqual(areaContentFlags({ quiz: QUIZ }), {
     quiz: true,
     pairs: false,
+    readingTexts: false,
     sanningsjakt: true, // härleds ur quiz
   });
   assert.deepEqual(areaContentFlags({ pairs: PAIRS }), {
     quiz: false,
     pairs: true,
+    readingTexts: false,
     sanningsjakt: true, // ≥2 par
   });
-  assert.deepEqual(areaContentFlags({}), { quiz: false, pairs: false, sanningsjakt: false });
+  assert.deepEqual(areaContentFlags({}), {
+    quiz: false,
+    pairs: false,
+    readingTexts: false,
+    sanningsjakt: false,
+  });
+  // Läsuppdrag (issue #153): nivåtexter ger readingTexts-flaggan.
+  assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, true);
 });
 
 test("availableGamemodes ger bara lägen med underlag, oavsett hiddenModes", () => {
@@ -168,9 +177,9 @@ test("mergeAreaContent behåller områdets hiddenModes", () => {
 });
 
 // Katalogen ska ha alla lägen (skydd mot att någon råkar tömma den).
-test("GAMEMODES har de sex lägena", () => {
+test("GAMEMODES har de sju lägena", () => {
   assert.deepEqual(
     GAMEMODES.map((gm) => gm.id),
-    ["lasforstaelse", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory"]
+    ["lasforstaelse", "lastext", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory"]
   );
 });

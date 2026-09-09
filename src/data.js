@@ -37,6 +37,7 @@ import {
   isLoggedIn,
 } from "./auth.js";
 import { isMultiItem } from "./shop-items.js";
+import { DEFAULT_READING_LEVEL } from "./reading-level.js";
 
 // Session-API:t bor numera i auth.js (backat av Firebase Auth) men re-exporteras
 // här så att `import * as data from "./data.js"` fortsätter fungera överallt.
@@ -89,6 +90,7 @@ export function defaultStudentData(avatarId) {
     garden: { placements: {} }, // utomhussaker placerade runt huset i ute-vyn – { [key]: { x, y } }
     husSkalId: null, // aktivt husskal (byter husets exteriör); null = default-stugan
     husLast: false, // true = huset är låst → klasskamrater ser "🔒 Låst" i stället för rummet
+    readingLevel: DEFAULT_READING_LEVEL, // läsförståelsenivå (1–3), sätts av läraren (#154)
     avatarId: avatarId || "fox",
     avatarChosen: false, // sätts true när eleven själv valt en grundavatar
   };
@@ -113,6 +115,9 @@ export async function getStudentData(studentId = currentStudentId()) {
   const snap = await getDoc(ref);
   return snap.exists() ? snap.data() : await ensureStudentData(studentId);
 }
+
+// Läsnivå (#154): getReadingLevel/setReadingLevel bor i data-reading-level.js
+// (re-exporteras längst ned). Håller data.js under filtaket.
 
 // --- Coins ------------------------------------------------------------------
 
@@ -172,6 +177,25 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
   }
   await updateDoc(ref, { [key]: { ...existing, ...payload } });
   return payload;
+}
+
+/**
+ * Spara PER-TEXT-framsteg för läsförståelse (Läsuppdrag/lastext, issue #153) i
+ * `progress[areaId].reading[textId]`. Handskaket som reading-prereq.js (#155)
+ * räknar: varje godkänd text (stars ≥ 2) räknas för sig. Anropas BARA vid godkänt
+ * (då är stars alltid ≥ 2), utöver det vanliga lastext-framsteget. Fel sväljs –
+ * en misslyckad skrivning får aldrig krascha övningen.
+ * @param {string} areaId  arbetsområdets id
+ * @param {string} textId  läs-textens id (validate-reading.js sätter det)
+ * @param {object} result  { stars, bestScore?, ... }
+ */
+export async function saveReadingProgress(areaId, textId, result, studentId = currentStudentId()) {
+  if (!studentId || !areaId || !textId) return;
+  const ref = doc(db, "studentData", studentId);
+  const key = `progress.${areaId}.reading.${textId}`;
+  try {
+    await updateDoc(ref, { [key]: { ...result, lastPlayed: serverTimestamp() } });
+  } catch {}
 }
 
 // --- Roterande frågeurval (per elev, område, läge) --------------------------
@@ -373,3 +397,5 @@ export {
   setClassHiddenModes,
   getClassForStudent,
 } from "./data-classes.js";
+
+export { getReadingLevel, setReadingLevel } from "./data-reading-level.js";

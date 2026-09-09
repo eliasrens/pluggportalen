@@ -164,6 +164,11 @@ export function mergeAreaContent(existing, incoming) {
     texts: mergedTexts,
     quiz: mergedQuiz,
     pairs: mergedPairs,
+    // Läs-texterna (3 nivåer) rörs inte av "lägg till innehåll"-flödet, men måste
+    // behållas orörda så de inte tappas när området sparas om (issue #152).
+    readingTexts: existing.readingTexts,
+    // Läsförståelse-förkravet (issue #155) rörs inte heller här – behåll det.
+    readingPrereq: existing.readingPrereq,
   });
   if (!merged.ok) return { ok: false, errors: merged.errors, value: null };
 

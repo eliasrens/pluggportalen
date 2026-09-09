@@ -17,6 +17,7 @@ import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
 import { el, esc, copyText } from "./teacher-shared.js";
 import { renderAccountEditor, printLoginCards } from "./teacher-login-cards.js";
+import { mountMemberLevels } from "./teacher-student-level.js";
 
 // --- Genererade inloggningsuppgifter ----------------------------------------
 
@@ -194,6 +195,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
         <button class="btn ghost small mm-save" title="Spara namn/avatar">💾</button>
         <span class="mm-save-flash" aria-live="polite"></span>
       </div>
+      <div class="mm-level"><span class="rl-slot"></span></div>
       <div class="give-coins">
         <div class="gc-row">
           <input class="cell gc-amount" type="number" min="1" step="1" value="10" aria-label="Antal coins" />
@@ -273,6 +275,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
 
     const wrap = el(`<div class="member-manage">
       <h3 class="subhead sm">🧑‍🎓 Elever i klassen (${members.length})</h3>
+      <div class="mm-level-bulk"></div>
       <div class="mm-list"></div>
       <details class="mm-add">
         <summary>➕ Skapa nya elevkonton i klassen</summary>
@@ -294,11 +297,21 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
     </div>`);
 
     const listEl = wrap.querySelector(".mm-list");
+    // Läsnivå per elev (#211): en väljare direkt i varje elevrad. Vi renderar
+    // raderna med en tom platshållare och samlar dem så teacher-student-level.js
+    // kan batch-ladda nivåerna en gång och fylla i varje väljare.
+    const levelSlots = new Map(); // id → platshållarelement
     if (members.length === 0) {
       listEl.appendChild(el(`<p class="hint">Inga elever i klassen än – skapa konton nedan.</p>`));
     } else {
-      members.forEach((s) => listEl.appendChild(memberRow(s)));
+      members.forEach((s) => {
+        const row = memberRow(s);
+        levelSlots.set(s.id, row.querySelector(".rl-slot"));
+        listEl.appendChild(row);
+      });
     }
+    // Fyll väljarna + koppla "Sätt för alla"-snabbknappen (batch-laddar nivåerna).
+    mountMemberLevels(wrap.querySelector(".mm-level-bulk"), levelSlots, members);
 
     // Skapa nya konton i klassen: förslag → redigerbar tabell → skapa.
     const createBtn = wrap.querySelector(".mm-create");

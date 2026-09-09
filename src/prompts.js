@@ -35,6 +35,11 @@ import {
 // Exempel-JSON som innehållssidan visar som mall ("Visa exempel-JSON").
 export const EXAMPLE_JSON = EXAMPLE;
 
+// Läsförståelse 2.0 (issue #152): prompt + exempel för en läs-text i 3 nivåer.
+// Ligger i src/prompt-reading.js; re-exporteras här så lärar-UI:t bara importerar
+// från prompts.js.
+export { buildReadingPrompt, READING_EXAMPLE_JSON } from "./prompt-reading.js";
+
 /**
  * Bygg en komplett områdes-prompt som speglar de valda övningstyperna.
  *

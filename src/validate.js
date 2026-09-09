@@ -14,6 +14,8 @@
 
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
+import { validateReadingTexts } from "./validate-reading.js";
+import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { normalizeGrade } from "./grades.js";
 import { normalizeHiddenModes } from "./gamemode-visibility.js";
 
@@ -238,10 +240,16 @@ export function validateArea(obj) {
     }
   }
 
+  // --- readingTexts[] (läsförståelse 2.0, 3 nivåer) -------------------------
+  // Valfritt fält: läs-texter där samma tema finns i tre svårighetsnivåer, var
+  // och en med egen brödtext + egna kryssfrågor. Bakåtkompatibelt (saknas fältet
+  // → tom lista). Regeln bor i src/validate-reading.js.
+  const readingTexts = validateReadingTexts(obj.readingTexts, errors, slugify);
+
   // --- Minst något innehåll -------------------------------------------------
-  if (texts.length === 0 && quiz.length === 0 && pairs.length === 0) {
+  if (texts.length === 0 && quiz.length === 0 && pairs.length === 0 && readingTexts.length === 0) {
     errors.push(
-      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga eller ett fakta-par."
+      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par eller en läs-text."
     );
   }
 
@@ -258,6 +266,11 @@ export function validateArea(obj) {
     exerciseTypes = deriveExerciseTypes({ quiz, pairs });
   }
 
+  // --- Läsförståelse-förkrav (issue #155) -----------------------------------
+  // Valfritt: läraren kan kräva att eleven klarar läsförståelsen först. Lagras
+  // som { required: N } eller utelämnas helt (bakåtkompatibelt → allt öppet).
+  const readingPrereq = normalizeReadingPrereq(obj.readingPrereq);
+
   const value = {
     id,
     name: obj.name.trim(),
@@ -268,9 +281,13 @@ export function validateArea(obj) {
     texts,
     quiz,
     pairs,
+    readingTexts,
     exerciseTypes,
     hiddenModes,
   };
+  // Ta bara med förkravsfältet när det är PÅ, så gamla områden inte får ett
+  // tomt fält och Firestore-dokumenten hålls rena.
+  if (readingPrereq) value.readingPrereq = readingPrereq;
   return { ok: true, errors: [], value };
 }
 

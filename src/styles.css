@@ -492,6 +492,41 @@ body.med-sidomeny .sidebar {
 .big-card.orange { background: linear-gradient(160deg, #f2c94c, var(--orange)); }
 .big-card.rosa { background: linear-gradient(160deg, #ff9ebb, var(--rosa)); }
 
+/* Låst övning: förkravet (läsförståelse) är inte klarat ännu (issue #155).
+   Dämpad, ej klickbar, med en tydlig "gör läsförståelsen först"-etikett. */
+.big-card:disabled { cursor: not-allowed; }
+.big-card.locked {
+  filter: grayscale(0.55) brightness(0.97);
+  opacity: 0.72;
+}
+.big-card.locked:hover { transform: none; }
+.big-card .card-lock {
+  display: block;
+  margin-top: 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.big-card .card-stars {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  opacity: 0.85;
+}
+.big-card .card-stars.won { opacity: 1; }
+
+/* Tydlig hint ovanför övningskorten när läsförståelse-förkravet inte är klart. */
+.prereq-note {
+  background: #fff6e5;
+  border: 3px solid #f2c94c;
+  color: #6b4e00;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 /* --- Knappar --------------------------------------------------------------- */
 
 .btn {
@@ -1151,6 +1186,40 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 }
 
 .rv-text-title { font-weight: 700; margin-bottom: 4px; }
+
+/* Läsförståelse i 3 nivåer – granska-vyn (issue #152). */
+.rv-level { margin: 10px 0 0; padding-left: 10px; border-left: 3px solid #cfe0f7; }
+.rv-level-h { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+
+/* Läsförståelse-editorn (issue #152). */
+.area-reading { margin-left: 14px; border-left: 3px solid #cfe0f7; padding-left: 12px; }
+.area-reading .subpanel { margin: 0; }
+.rt-editor { display: flex; flex-direction: column; gap: 10px; }
+/* Förkravs-kontroll: kräv läsförståelse innan andra övningar (issue #155). */
+.rt-prereq { background: #fff6e5; border: 2px solid #f2c94c; border-radius: 12px; padding: 12px; }
+.rt-prereq-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; line-height: 1.35; }
+.rt-prereq-toggle input { margin-top: 3px; flex: none; }
+.rt-prereq-count { margin-top: 10px; }
+.rt-prereq-n { width: 90px; }
+.rt-ai { background: #f0f6ff; border-radius: 12px; padding: 12px; }
+.rt-lbl { font-weight: 700; display: block; margin-bottom: 4px; }
+.rt-input { width: 100%; box-sizing: border-box; }
+.rt-body { font-family: inherit; }
+.rt-list { display: flex; flex-direction: column; gap: 14px; }
+.rt-card { border: 1px solid #e2e8f5; border-radius: 12px; padding: 12px; background: #fff; }
+.rt-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rt-card-head .rt-title { flex: 1; }
+.rt-num { flex: none; }
+.rt-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.rt-tab.active { box-shadow: inset 0 0 0 2px var(--bla); font-weight: 700; }
+.rt-level { display: flex; flex-direction: column; gap: 4px; }
+.rt-qlist { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.rt-q { border: 1px dashed #d5deee; border-radius: 10px; padding: 10px; }
+.rt-q-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.rt-q-head .badge { flex: 1; }
+.rt-opts { display: flex; flex-direction: column; gap: 5px; }
+.rt-opt { display: flex; align-items: center; gap: 8px; }
+.rt-opt input[type="text"] { flex: 1; }
 
 .area-info {
   display: flex;
@@ -2865,6 +2934,17 @@ code {
 .mm-add-body { padding-bottom: 10px; }
 .mm-add-body .mm-count { width: 80px; text-align: center; }
 .mm-create-flash, .mm-link-flash { font-size: 0.9rem; }
+
+/* Läsnivå per elev (#154/#211): nivåväljare direkt i elevraden + "Sätt för alla". */
+.mm-level-bulk .rl-bulk { align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.rl-bulk-flash { font-size: 0.9rem; }
+.mm-level { display: flex; align-items: center; }
+.rl-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rl-cell-label { font-size: 0.9rem; color: #4a5a73; font-weight: 600; }
+.rl-sel { width: 160px; }
+.rl-flash { font-size: 0.88rem; min-width: 70px; }
+.rl-flash .gc-ok, .rl-bulk-flash .gc-ok { color: #1e7a45; font-weight: 700; }
+.rl-flash .gc-err, .rl-bulk-flash .gc-err { color: #b3261e; font-weight: 700; }
 
 /* ============================================================================
    Husvärlden (#/elev/hus + #/elev/rum) – EN spelscen med kamerazoom-nivåer
