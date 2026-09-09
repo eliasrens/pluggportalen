@@ -25,6 +25,7 @@
 // ============================================================================
 
 import { skattjaktenTheme } from "./skattjakten.js";
+import { spokjaktenTheme } from "./spokjakten.js";
 
 export const testTheme = {
   id: "test",
@@ -62,4 +63,5 @@ export const testTheme = {
 export const THEMES = {
   test: testTheme,
   skattjakten: skattjaktenTheme,
+  spokjakten: spokjaktenTheme,
 };
