@@ -306,6 +306,27 @@ test("HUSLÅS: rums-inträde gate:as fortsatt ur husLast (samma fält som by-vyn
   assert.equal(entryToBoende("x", projectionEntryFrom({}, { husLast: false })).locked, false);
 });
 
+test("#240 HUSLÅS-UTSEENDE: LÅST elev med egen palett/husskal ritas RIKTIGT + locked", () => {
+  // Kärnan i #240: när projektionen väl bär den låstas RIKTIGA utseende (efter
+  // self-publish) ska by-/grannby-scenen rita rätt husSkalId/paletteId/avatar
+  // OCH locked=true (🔒, ingen inträde) – inte standardhuset. Vi kör den låstas
+  // FÄRSKA studentData genom hela kedjan projectionEntryFrom → entryToBoende
+  // (exakt formen varld-by-scen.js läser: paletteId/husSkalId/avatarId/locked).
+  const sd = {
+    avatarId: "cat",
+    avatarItems: ["hatt"],
+    room: { paletteId: "skog" },
+    husSkalId: "molnslott",
+    husLast: true,
+  };
+  const boende = entryToBoende("lisa", projectionEntryFrom({ namn: "Lisa" }, sd));
+  assert.equal(boende.locked, true, "låst → 🔒, inget rums-inträde");
+  assert.equal(boende.paletteId, "skog", "RIKTIG färg, inte standardhuset");
+  assert.equal(boende.husSkalId, "molnslott", "RIKTIGT husskal");
+  assert.equal(boende.avatarId, "cat");
+  assert.deepEqual(boende.avatarItems, ["hatt"]);
+});
+
 // ---------------------------------------------------------------------------
 // (5) REGRESSION: den gamla per-elev-läsformen (rums-inträde) är intakt
 // ---------------------------------------------------------------------------
