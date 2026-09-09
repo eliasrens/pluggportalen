@@ -33,11 +33,17 @@ import {
   buildGruvanCollision,
 } from "./gruvan-map.js";
 
-// --- Palett (kristaller) ----------------------------------------------------
+// --- Palett (kristaller + pickhacka) ----------------------------------------
 const STEN_MORK = "#6E6254";
+const STEN_LJUS = "#BDAF9B";
 const KRISTALL = "#5FE0A0";
 const KRISTALL_LJUS = "#C4F6DE";
 const KRISTALL_MORK = "#34B07A";
+const MINERAL_LJUS = "#DCF5FA";
+const TRA = "#B0805A"; // pickhackans skaft
+const TRA_LJUS = "#C89A6E";
+const METALL = "#8A8296"; // pickhackans stålhuvud
+const METALL_MORK = "#5A5470";
 
 /** Centrerad objekt-SVG (behåller proportioner). */
 function obj(inner, size = "100%") {
@@ -112,6 +118,32 @@ function giantCrystal() {
   );
 }
 
+/** Pickhacka i handen (issue #225): trä-skaft + böjt stål-pickhuvud. Ritas som
+ *  extra lager i avatarens hand av motorn (hand-tool.js) – ett ÅTERANVÄNDBART
+ *  "tema-verktyg", framtida teman sätter bara sitt eget `handTool`. Följer
+ *  stilguiden (plommonkontur, platta former). viewBox 0 0 100 100, skaftets grepp
+ *  ligger nere till vänster (~30,86) där avatarens hand är. */
+function pickaxe() {
+  return (
+    `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" ` +
+    `style="width:100%;height:100%;display:block;overflow:visible">` +
+    // skaft (trä): mörk kontur under + varm träyta + ljusdager
+    `<path d="M30 88 L63 25" stroke="${O}" stroke-width="15" stroke-linecap="round"/>` +
+    `<path d="M30 88 L63 25" stroke="${TRA}" stroke-width="10" stroke-linecap="round"/>` +
+    `<path d="M31 85 L61 28" stroke="${TRA_LJUS}" stroke-width="3" stroke-linecap="round" opacity="0.6"/>` +
+    // pickhuvud (böjd stålbar med två spetsar, korsar skaftets topp)
+    `<path d="M14 34 Q38 10 60 22 Q82 10 100 30 Q80 22 60 31 Q40 22 14 34 Z" ` +
+    `fill="${METALL}" ${LINE}/>` +
+    `<path d="M18 33 Q40 14 60 24 Q80 14 96 30" fill="none" stroke="${STEN_LJUS}" ` +
+    `stroke-width="2.4" stroke-linecap="round" opacity="0.7"/>` +
+    // fäste (kil) där huvudet möter skaftet
+    `<rect x="55" y="19" width="14" height="13" rx="3" fill="${METALL_MORK}" ${LINE}/>` +
+    // liten glimt på stålspetsen
+    gnista(96, 29, MINERAL_LJUS) +
+    `</svg>`
+  );
+}
+
 // ============================================================================
 export const gruvanTheme = {
   id: "gruvan",
@@ -144,6 +176,9 @@ export const gruvanTheme = {
   progressIcon: "💎",
   stationArt: () => crystal(),
   goalArt: () => giantCrystal(),
+  // Verktyg i handen: en pickhacka ritas som extra lager i avatarens hand och
+  // svingar en kort hackrörelse när en kristall bryts (motorn via hand-tool.js).
+  handTool: { namn: "pickhacka", svg: () => pickaxe() },
 
   texter: {
     intro:
