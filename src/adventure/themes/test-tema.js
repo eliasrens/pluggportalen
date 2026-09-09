@@ -24,6 +24,8 @@
 //   questionKinds  string[] – frågekällor stationerna drar från: quiz|lasforstaelse|para
 // ============================================================================
 
+import { skattjaktenTheme } from "./skattjakten.js";
+
 export const testTheme = {
   id: "test",
   namn: "Testbanan",
@@ -54,7 +56,10 @@ export const testTheme = {
   questionKinds: ["quiz", "lasforstaelse", "para"],
 };
 
-/** Alla inbyggda teman (id → config). Fler teman läggs till här. */
+/** Alla inbyggda teman (id → config). Ett nytt tema = importera dess config och
+ *  lägg till EN rad här; teman med ett `oversikt`-fält får automatiskt ett kort i
+ *  områdesöversikten (gamemodes.js). Test-temat saknar `oversikt` → syns ej för elev. */
 export const THEMES = {
   test: testTheme,
+  skattjakten: skattjaktenTheme,
 };
