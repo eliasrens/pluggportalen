@@ -82,9 +82,23 @@ function mcq(rng, correct, distractors, pad) {
   };
   for (const d of distractors) if (out.length < 4) push(d);
   for (const d of pad || []) if (out.length < 4) push(d);
-  // Sista utväg: fyll med varianter så vi aldrig hamnar under 4 alternativ.
-  let k = 1;
-  while (out.length < 4) push(`${correct}${" ".repeat(k++)}`);
+  // Sista utväg: fyll med DISTINKTA närliggande tal. (Tidigare fylldes det med
+  // facit + trailing spaces, vilket såg IDENTISKT ut med rätt svar för eleven –
+  // två lika alternativ, ett rätt/ett fel.) Perturbera facitets numeriska värde
+  // och formatera med fmt precis som övriga alternativ, så alla fyra blir olika.
+  const base = Number(String(correct).replace(/\s+/g, ""));
+  if (Number.isFinite(base)) {
+    for (const dl of [1, -1, 2, -2, 3, -3, 4, 5, 10, -10, 100, -100, 1000, -1000]) {
+      if (out.length >= 4) break;
+      const v = base + dl;
+      if (v >= 0) push(fmt(v));
+    }
+    let k = 1;
+    while (out.length < 4) push(fmt(base + 100000 + k++)); // garanterat unika
+  } else {
+    let k = 1;
+    while (out.length < 4) push(`${correct} (${k++})`);
+  }
   // Deterministisk Fisher–Yates.
   const opts = out.slice(0, 4);
   for (let i = opts.length - 1; i > 0; i--) {
