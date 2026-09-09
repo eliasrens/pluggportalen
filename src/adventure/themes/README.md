@@ -23,6 +23,7 @@ kollision, frågor, progress, belöning, avatar, loop, städning) ägs av motorn
 | `progressIcon` | `string` | Ikon i framstegsräknaren (`x / mål`). Används även som default-stationsmarkör. |
 | `stationArt` | `() => htmlString` | *Valfri.* Grafik för en station (default = `progressIcon`). Kan vara emoji eller inline-SVG. |
 | `goalArt` | `() => htmlString` | *Valfri.* Slutmålets grafik (default = `🏆`). |
+| `handTool` | `string \| () => svg \| { svg, namn? }` | *Valfrit.* Ett **verktyg i handen** (t.ex. pickhacka/yxa) som ritas som EXTRA lager i elevens avatar-hand ovanpå `avatarMarkup` – klädsel/spegling/gå-studs rörs inte. Motorn svingar dessutom verktyget i en kort **hack/hugg-rörelse** när en station "bryts". Inline-SVG (viewBox `0 0 100 100`, greppet nere till vänster ~30,86 där handen är) enligt stilguiden. Se `themes/gruvan.js` (pickhacka) + `adventure/hand-tool.js`. |
 | `tileArt` | `{ [type]: (tile) => htmlString }` | *Valfri.* Grafik per tiletyp (`floor`/`wall`/`void`/…). Utelämnas → motorn ritar enkla färgrutor via CSS. Följ stilguiden `art-style.js` (kontur `#3B3350`, palett) för SVG. |
 | `avatarScale` | `number` | *Valfritt.* Avatarens `font-size` i `cqw` (procent av scenbredden). Default ≈ en rutstorlek. |
 | `texter` | se nedan | Text-UI (alla valfria, motorn har fallbacks). |
