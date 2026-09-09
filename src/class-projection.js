@@ -174,8 +174,19 @@ export function createClassProjectionStore(adapter) {
     const built = await buildProjectionEntries(missing);
     // Skriv bara de saknade entries (merge deep-mergar in i members utan att
     // röra befintliga nycklar). setDoc merge skapar dokumentet om det saknas.
-    await setDoc(projRef(classId), { members: built }, { merge: true });
-    invalidateClassProjection(classId);
+    //
+    // BEST-EFFORT: en cross-class-BESÖKARE (grannby) får enligt reglerna INTE
+    // skriva en ANNAN klass projektion (skriv = egen klass/lärare) → skrivningen
+    // nekas. Det får ALDRIG fälla vyn: vi behåller de byggda entries i minnet och
+    // ritar ändå. En medlem i klassen (eller läraren) fyller projektionen nästa
+    // gång den rör sig i sin egen by, varefter grannby-svepet blir O(1) igen.
+    // Bara permission-denied sväljs; andra fel (t.ex. nät) bubblar som förr.
+    try {
+      await setDoc(projRef(classId), { members: built }, { merge: true });
+      invalidateClassProjection(classId);
+    } catch (err) {
+      if (!isPermissionDenied(err)) throw err;
+    }
     const members = { ...current.members, ...built };
     return { members, healed: true };
   }
