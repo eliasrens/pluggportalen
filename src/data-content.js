@@ -14,6 +14,7 @@ import {
   getDoc,
   getDocs,
   setDoc,
+  updateDoc,
   deleteDoc,
   query,
   where,
@@ -21,7 +22,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData } from "./data.js";
 import { createStudentAuthAccount } from "./auth.js";
-import { xpFromStudentData, progressTotals } from "./leveling.js";
+import {
+  createClassProjectionStore,
+  projectionEntryFrom,
+} from "./class-projection.js";
 
 // ---------------------------------------------------------------------------
 // Kunskapsinnehåll (ämnen och arbetsområden)
@@ -150,16 +154,19 @@ export async function getStudentsWithLooks(ids = null) {
       try {
         const snap = await getDoc(doc(db, "studentData", s.id));
         const d = snap.exists() ? snap.data() : {};
-        const { completed, stars } = progressTotals(d.progress);
+        // Samma fält-härledning som klass-projektionens entry (en KÄLLA för
+        // formen, se class-projection.projectionEntryFrom). Vyn vill här ha
+        // `locked` (härlett ur husLast), inte husLast-fältet självt.
+        const e = projectionEntryFrom(s, d);
         return {
           ...s,
-          avatarId: d.avatarId || s.avatarId || "fox",
-          avatarItems: Array.isArray(d.avatarItems) ? d.avatarItems : [],
-          paletteId: (d.room && d.room.paletteId) || null,
-          husSkalId: d.husSkalId || null,
-          xp: xpFromStudentData(d),
-          completed,
-          stars,
+          avatarId: e.avatarId,
+          avatarItems: e.avatarItems,
+          paletteId: e.paletteId,
+          husSkalId: e.husSkalId,
+          xp: e.xp,
+          completed: e.completed,
+          stars: e.stars,
           locked: false,
         };
       } catch (err) {
@@ -236,4 +243,62 @@ export async function usernameTaken(username, exceptId = null) {
     query(collection(db, "students"), where("username", "==", uname))
   );
   return snap.docs.some((d) => d.id !== exceptId);
+}
+
+// ---------------------------------------------------------------------------
+// Klass-projektion (O(1)-läsning för by-/grannby-översikten) – se #231/#232.
+// ---------------------------------------------------------------------------
+// Kärnlogiken bor i den Firebase-fria class-projection.js så den kan
+// enhetstestas med en fejk-adapter som räknar läsningar. Här kopplar vi in de
+// riktiga Firestore-funktionerna och exponerar API:t (re-exporteras via data.js).
+// ---------------------------------------------------------------------------
+
+const _projectionStore = createClassProjectionStore({
+  db,
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+});
+
+/** Läs en klass-projektion via EXAKT 1 getDoc (session-cachad). #231 */
+export function getClassProjection(classId) {
+  return _projectionStore.getClassProjection(classId);
+}
+
+/** Bygg members-entries via per-elev-läsning (self-heal-fallback). #231 */
+export function buildProjectionEntries(ids) {
+  return _projectionStore.buildProjectionEntries(ids);
+}
+
+/** Self-heal: säkerställ + skriv projektionen om den saknas/är ofullständig. */
+export function ensureClassProjection(classId, memberIds) {
+  return _projectionStore.ensureClassProjection(classId, memberIds);
+}
+
+/** Skriv-API: uppdatera bara elevens egen members-entry via fält-path. */
+export function updateStudentProjection(classId, studentId, patch) {
+  return _projectionStore.updateStudentProjection(classId, studentId, patch);
+}
+
+/** Skriv-API: uppdatera elevens entry i ALLA sina klassers projektioner. */
+export function updateStudentProjectionAllClasses(studentId, patch) {
+  return _projectionStore.updateStudentProjectionAllClasses(studentId, patch);
+}
+
+/** Klass-id:n en elev är medlem i (via classes/{id}.studentIds), EN getDocs. */
+export function classIdsForStudent(studentId) {
+  return _projectionStore.classIdsForStudent(studentId);
+}
+
+/** Töm session-cachen för en klass (skriv-vägen/tester). */
+export function invalidateClassProjection(classId) {
+  return _projectionStore.invalidateClassProjection(classId);
+}
+
+/** Töm hela projektions-session-cachen (tester/utloggning). */
+export function clearProjectionCache() {
+  return _projectionStore.clearProjectionCache();
 }

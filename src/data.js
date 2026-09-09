@@ -384,6 +384,14 @@ export {
   upsertStudent,
   deleteStudent,
   usernameTaken,
+  getClassProjection,
+  buildProjectionEntries,
+  ensureClassProjection,
+  updateStudentProjection,
+  updateStudentProjectionAllClasses,
+  classIdsForStudent,
+  invalidateClassProjection,
+  clearProjectionCache,
 } from "./data-content.js";
 
 export {
