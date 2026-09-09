@@ -2935,23 +2935,14 @@ code {
 .mm-add-body .mm-count { width: 80px; text-align: center; }
 .mm-create-flash, .mm-link-flash { font-size: 0.9rem; }
 
-/* Läsnivå per elev (#154): kompakt lista med en nivåväljare per elev. */
-.reading-level-panel .rl-bulk { align-items: center; gap: 8px; margin-bottom: 10px; }
-.reading-level-panel .rl-bulk-flash { font-size: 0.9rem; }
-.rl-list { display: flex; flex-direction: column; gap: 6px; }
-.rl-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border: 2px solid #e6eefa;
-  border-radius: 10px;
-  background: #fff;
-}
-.rl-row .rl-avatar { font-size: 1.2rem; }
-.rl-row .rl-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rl-row .rl-sel { width: 160px; }
-.rl-row .rl-flash { font-size: 0.88rem; min-width: 70px; }
+/* Läsnivå per elev (#154/#211): nivåväljare direkt i elevraden + "Sätt för alla". */
+.mm-level-bulk .rl-bulk { align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.rl-bulk-flash { font-size: 0.9rem; }
+.mm-level { display: flex; align-items: center; }
+.rl-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rl-cell-label { font-size: 0.9rem; color: #4a5a73; font-weight: 600; }
+.rl-sel { width: 160px; }
+.rl-flash { font-size: 0.88rem; min-width: 70px; }
 .rl-flash .gc-ok, .rl-bulk-flash .gc-ok { color: #1e7a45; font-weight: 700; }
 .rl-flash .gc-err, .rl-bulk-flash .gc-err { color: #b3261e; font-weight: 700; }
 
