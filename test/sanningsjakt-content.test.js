@@ -67,12 +67,12 @@ test("buildStatements ur par ger balanserat sant/falskt med korrekt sant-text", 
   const falses = st.filter((s) => !s.truth);
   assert.equal(truths.length, PAIRS.pairs.length);
   assert.equal(falses.length, PAIRS.pairs.length);
-  // Varje sant-påstående är den korrekta parningen.
+  // Varje sant-påstående är den korrekta parningen (tankstreck-form "X – Y").
   for (const p of PAIRS.pairs) {
-    assert.ok(truths.some((s) => s.text === `${p.term} betyder ${p.definition}`));
+    assert.ok(truths.some((s) => s.text === `${p.term} – ${p.definition}`));
   }
   // Falska påståenden paras ihop fel (term hör inte till definitionen).
-  const correct = new Set(PAIRS.pairs.map((p) => `${p.term} betyder ${p.definition}`));
+  const correct = new Set(PAIRS.pairs.map((p) => `${p.term} – ${p.definition}`));
   for (const f of falses) assert.ok(!correct.has(f.text));
 });
 
