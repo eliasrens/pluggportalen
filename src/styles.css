@@ -1404,6 +1404,76 @@ code {
   margin-top: 4px;
 }
 
+/* --- Shop-flikar (kategori-tabbar) ---------------------------------------- */
+/* Klibbig flikrad högst upp i katalogen: en flik per kategori som har varor.
+   Aktiv flik markerad; endast den aktiva kategorins varor visas under raden. */
+.shop-tabs {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-flik-nav);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+  margin-bottom: 6px;
+  background: rgba(247, 250, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.shop-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.96rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(31, 45, 74, 0.08);
+  border: 2px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease,
+    color 0.12s ease, border-color 0.12s ease;
+}
+
+.shop-tab:hover {
+  transform: translateY(-2px);
+  border-color: #d7e3f7;
+  box-shadow: 0 5px 12px rgba(31, 45, 74, 0.13);
+}
+
+.shop-tab.active {
+  background: linear-gradient(160deg, #56ccf2, var(--bla));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(47, 128, 237, 0.35);
+}
+
+.shop-tab.active:hover {
+  border-color: transparent;
+  transform: translateY(-2px);
+}
+
+.shop-tab-emoji {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Mobil: låt flikarna scrolla i en rad i stället för att brytas i flera rader. */
+@media (max-width: 560px) {
+  .shop-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shop-tabs::-webkit-scrollbar { display: none; }
+  .shop-tab { flex: 0 0 auto; }
+}
+
 .shop-cat {
   margin-bottom: 22px;
 }
@@ -1464,22 +1534,13 @@ code {
   font-size: 0.98rem;
 }
 
-.shop-pris {
-  font-weight: 800;
-  color: #7a5c00;
-  background: var(--gul);
-  border-radius: 999px;
-  padding: 2px 12px;
-  font-size: 0.95rem;
-}
-
 .buy-btn {
   font-family: var(--font);
   font-weight: 800;
   font-size: 1rem;
   border: none;
   border-radius: 12px;
-  padding: 10px 18px;
+  padding: 10px 16px;
   cursor: pointer;
   color: #fff;
   background: var(--gron);
@@ -1487,7 +1548,28 @@ code {
   transition: transform 0.06s ease;
   margin-top: 4px;
   width: 100%;
+  /* Text + pris-chip sitter på samma rad, centrerade. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+
+/* Pris-chip på köp-knappen (ersätter den gamla separata prisraden). */
+.buy-pris {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: #7a5c00;
+  background: var(--gul);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 0.9rem;
+}
+/* "Har inte råd": priset syns men tonas ned. */
+.buy-btn.nej .buy-pris { opacity: 0.6; }
 
 .buy-btn:hover:not(:disabled) { filter: brightness(1.03); }
 .buy-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--gron-mork); }
@@ -2982,6 +3064,28 @@ body.varld-lage .container {
 }
 #klasskylt:hover, #klasskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
 
+/* Nav-skyltarna nere till VÄNSTER (by → "Andra byar", skola → "Min by"): samma
+   trä-skylt (navSkyltSvg → skyltMarkup) och klick-som-zoom-känsla som gårdskylten
+   ovan, men som overlay-UI i .varld-ui (position:absolute mot scenen). Speglar
+   gårdskyltens placering: nere till vänster. Ligger i scenens overlay-skikt
+   (.varld-ui = --z-scen-ui), egen z-index behövs inte. */
+.varld-navskylt {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: clamp(96px, 16vw, 150px);
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: 50% 90%;
+  transition: transform 0.25s;
+  outline: none;
+  /* Liten skugga/lyft så skylten läser som ett klickbart objekt mot scenen. */
+  filter: drop-shadow(2px 3px 0 rgba(59, 51, 80, 0.18));
+}
+.varld-navskylt:hover, .varld-navskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
+.varld-navskylt:active { transform: scale(0.98) rotate(-1.2deg); }
+.varld-navskylt .navskylt-svg { display: block; width: 100%; height: auto; }
+
 /* --- Klassbyn (by-nivån): hus längs en slingrande väg med dekor ------------ */
 .varld-by { background: #a8da8f; }
 
@@ -3425,10 +3529,10 @@ body.varld-lage .container {
 .varld-knapp:hover { transform: translateY(-1px); }
 .varld-knapp:active { transform: translateY(1px); box-shadow: 1px 1px 0 rgba(59, 51, 80, 0.18); }
 .varld-knapp.aktiv { background: #efe7ff; border-color: var(--lila, #7c5cd6); }
-/* display:inline-flex ovan slog förr ut UA:s [hidden]-regel (samma specificitet,
-   men författar-CSS vinner över UA-lagret): "🔭 Andra byar" (#skola-btn) sätts
-   hidden=true i updateUi på alla nivåer utom by och hängde ändå kvar. Det täcks
-   nu av den globala [hidden]{display:none!important}-regeln högst upp. */
+/* display:inline-flex ovan slår ut UA:s [hidden]-regel (samma specificitet, men
+   författar-CSS vinner över UA-lagret) för .varld-knapp. Det täcks av den globala
+   [hidden]{display:none!important}-regeln högst upp, så en knapp med hidden=true
+   verkligen döljs. (Historiskt bet detta "🔭 Andra byar", numera en skylt.) */
 
 /* Möbler & Mysterymat finns bara inne i rummet. Kläder (👗) visas även i
    ute-vyn (rum-och-hus) så avataren framför huset kan bytas om på plats. */

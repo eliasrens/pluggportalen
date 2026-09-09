@@ -20,21 +20,20 @@ import {
 
 export const enc = encodeURIComponent;
 
-// Metadata för gamemodes: ordning, namn, ikon, färg och vilket innehåll de kräver.
-export const GAMEMODES = [
-  { id: "lasforstaelse", name: "Läsförståelse", emoji: "📖", color: "bla",
-    sub: "Läs en text och svara på frågor", needs: "quiz" },
-  { id: "lastext", name: "Läsuppdrag", emoji: "📚", color: "gul",
-    sub: "Läs hela texten – klara alla frågorna", needs: "readingTexts" },
-  { id: "para", name: "Para ihop", emoji: "🧩", color: "gron",
-    sub: "Matcha begrepp med förklaring", needs: "pairs" },
-  { id: "quiz", name: "Quiz", emoji: "❓", color: "orange",
-    sub: "Flervalsfrågor med direkt svar", needs: "quiz" },
-  { id: "kunskapsjakt", name: "Kunskapsjakt", emoji: "⚡", color: "rosa",
-    sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
-  { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
-    sub: "Hitta fakta-paren", needs: "pairs" },
-];
+// Gamemode-katalogen och synlighets-hjälparna bor i gamemode-visibility.js
+// (browser-fritt → enhetstestbart). Re-exporteras här för de många moduler som
+// redan importerar { GAMEMODES } från game-shared.js.
+export {
+  GAMEMODES,
+  areaContentFlags,
+  availableGamemodes,
+  visibleGamemodes,
+  visibleGamemodesForStudent,
+  normalizeHiddenModes,
+  isModeHidden,
+  isModeHiddenForClass,
+  isModeHiddenForStudent,
+} from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
 // Små hjälpare
@@ -92,6 +91,29 @@ export function pickSessionQuestions(pool, seen) {
  */
 export function pickSessionTexts(pool, seen) {
   return pickRotatingQuestions(pool, seen, MAX_TEXTS_PER_SESSION, textKey);
+}
+
+/** Har frågan en icke-tom källtext ("passage")? En sådan fråga är en
+ *  läsförståelse-fråga (visas med sin text ovanför i Läsförståelse-läget). */
+export function hasPassage(q) {
+  return !!(q && typeof q.passage === "string" && q.passage.trim());
+}
+
+/**
+ * Pool för de frågelägen som INTE visar någon källtext (Quiz, Kunskapsjakt):
+ * bara frågor UTAN passage. Läsförståelse-frågor (med passage) skulle annars
+ * läcka in oläsbara ("enligt texten ..." utan synlig text). Läsförståelse gör
+ * tvärtom och kör bara frågor MED passage (se startLasforstaelse).
+ *
+ * Faller tillbaka till hela poolen om ALLA frågor har passage (ett rent
+ * läsförståelse-område), så Quiz/Kunskapsjakt aldrig blir tomma.
+ * @param {Array} quiz  områdets quiz-lista
+ * @returns {Array}
+ */
+export function plainQuizPool(quiz) {
+  const arr = Array.isArray(quiz) ? quiz : [];
+  const plain = arr.filter((q) => !hasPassage(q));
+  return plain.length > 0 ? plain : arr;
 }
 
 /** Stjärnor (1–3) ur en andel rätt (0–1). Den som klarar övningen får minst 1. */
@@ -197,7 +219,10 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
   let mult = 1;
   if (reduced) {
     mult = grindMultiplier(prevPlays);
-    coins = Math.max(1, Math.round(baseCoins * mult));
+    // Coins avrundas ALLTID uppåt (Math.ceil) – hellre ett mynt för mycket än
+    // för lite, så en udda baspott inte blir orättvist nedåt-avrundad vid
+    // grind-nedskalning. Gäller alla grind-lägen. XP avrundas som förr.
+    coins = Math.max(1, Math.ceil(baseCoins * mult));
     xp = Math.max(1, Math.round(xp * mult));
   }
   const pct = Math.round(mult * 100); // andel av full pott den här körningen, för hinten
@@ -224,8 +249,11 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  * Gemensam resultat-/firande-skärm. Delar ut belöning och visar konfetti.
  * @param {object} opts
  * @param {function} opts.replay  startar om samma övning
+ * @param {boolean} [opts.noStars]  turbaserade lägen (t.ex. Memory) har inga
+ *   stjärnor: dölj stjärnraden och ersätt med neutral uppmuntran. Övriga lägen
+ *   (para-ihop/quiz m.fl.) skickar inte flaggan och är helt oförändrade.
  */
-export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay }) {
+export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
   const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
@@ -236,22 +264,22 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
   const leveledUp = after.level > before.level;
 
   const view = el(`<div class="result-card panel center">
-    <div class="result-emoji">${stars >= 2 ? "🎉" : "😀"}</div>
+    <div class="result-emoji">${noStars || stars >= 2 ? "🎉" : "😀"}</div>
     <h1>Bra jobbat!</h1>
-    <div class="result-stars">${starRow(stars)}</div>
+    ${noStars ? "" : `<div class="result-stars">${starRow(stars)}</div>`}
     ${scoreLine ? `<p class="result-score">${scoreLine}</p>` : ""}
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
     ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
-    <p class="cheer">${cheer(stars)}</p>
+    <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars)}</p>
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
       <button class="btn ghost" id="more">Till området</button>
     </div>
   </div>`);
   container.replaceChildren(view);
-  if (stars >= 2) confetti();
+  if (noStars || stars >= 2) confetti();
   sound.finish();
 
   view.querySelector("#again").addEventListener("click", () => replay());

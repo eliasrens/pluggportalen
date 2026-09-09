@@ -11,6 +11,9 @@
 //   • "pairs"  → Para ihop och Memory (kräver fakta-par)
 //   • "bildpar"→ fakta-par som visar en färdig bild i stället för text
 //                (delmängd av "pairs" – kräver alltså också fakta-par)
+// Arkad-läget "Fånga sanningar" (sanningsjakt) härleder påståenden ur BÅDA
+// källorna: minst 2 textpar, annars quiz. Det syns alltså så fort området har
+// antingen quiz eller (minst två) fakta-par – ingen egen övningstyp behövs.
 // ============================================================================
 
 /** De valbara övningstyperna, i visnings-/kanonisk ordning. */
@@ -18,7 +21,7 @@ export const EXERCISE_TYPES = [
   {
     id: "quiz",
     emoji: "❓",
-    label: "Quiz, läsförståelse & kunskapsjakt",
+    label: "Quiz, läsförståelse, kunskapsjakt & fånga sanningar",
     hint: "Flervalsfrågor med källtext",
   },
   {

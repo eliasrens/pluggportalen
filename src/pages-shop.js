@@ -42,49 +42,74 @@ export async function pageElevShop() {
   };
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till startsidan</a>
-    <div class="panel shop-head">
-      <div>
-        <h1>Shoppen 🛍️</h1>
-        <p class="hint">Köp saker för dina pluggcoins. Kläder sätter du på din figur,
-          möbler placerar du i <b>Mitt rum</b> – husdjur flyttar in själva och
-          promenerar omkring där!</p>
-      </div>
-      <div class="shop-saldo">Ditt saldo<br /><span class="coins" id="saldo">${coinIcon(24)} ${state.coins}</span></div>
-    </div>
     <div id="katalog"></div>
-    <div class="center" style="margin-top:8px">
-      <button class="btn ghost" id="to-rum">🛏️ Gå till Mitt rum</button>
-    </div>
   </div>`);
 
   const katalog = view.querySelector("#katalog");
-  const saldoEl = view.querySelector("#saldo");
 
-  // Rita katalogen (per kategori). Anropas om vid varje köp så knapparnas läge
-  // ("köp" / "har inte råd" / "köpt") alltid stämmer med saldot.
+  // Bara kategorier som faktiskt har köpbara varor blir flikar. CATEGORIES-
+  // ordningen bevaras, så mysteryboxen (sist i listan) hamnar sist i flikraden.
+  const tabCats = CATEGORIES.filter((cat) => itemsInCategory(cat.id).length > 0);
+
+  // Aktiv flik minns i localStorage (tåligt om storage saknas/är blockerad).
+  // Default: första kategorin med varor.
+  let activeCat = readSavedCat(tabCats) || (tabCats[0] && tabCats[0].id) || null;
+
+  // Rita flikraden + den aktiva kategorins varor. Anropas om vid varje köp så
+  // knapparnas läge ("köp" / "har inte råd" / "köpt") alltid stämmer med saldot,
+  // och vid flikbyte (ingen sidladdning – bara listan byts).
   function renderKatalog() {
+    const cat = tabCats.find((c) => c.id === activeCat) || tabCats[0];
+    if (!cat) {
+      katalog.replaceChildren(el(`<p class="hint">Shoppen är tom just nu.</p>`));
+      return;
+    }
+    activeCat = cat.id;
+
+    const tabs = tabCats
+      .map((c) => {
+        const ico = categorySvg(c.id);
+        const label = ico
+          ? `<span class="cat-ico">${ico}</span>`
+          : `<span class="shop-tab-emoji">${c.emoji}</span>`;
+        const on = c.id === cat.id;
+        return `<button type="button" class="shop-tab${on ? " active" : ""}"
+          role="tab" aria-selected="${on ? "true" : "false"}" data-cat="${c.id}">
+          ${label}<span class="shop-tab-namn">${c.name}</span>
+        </button>`;
+      })
+      .join("");
+
+    const cards = itemsInCategory(cat.id)
+      .map((it) => shopCardHtml(it, state))
+      .join("");
+    const hint = cat.hint ? `<p class="hint shop-cat-hint">${cat.hint}</p>` : "";
+
     katalog.replaceChildren(
-      ...CATEGORIES.map((cat) => {
-        const cards = itemsInCategory(cat.id)
-          .map((it) => shopCardHtml(it, state))
-          .join("");
-        const ico = categorySvg(cat.id);
-        const rubrik = ico ? `<span class="cat-ico">${ico}</span>` : cat.emoji;
-        const hint = cat.hint ? `<p class="hint shop-cat-hint">${cat.hint}</p>` : "";
-        return el(`<section class="shop-cat">
-          <h2>${rubrik} ${cat.name}</h2>
+      el(`<div>
+        <div class="shop-tabs" role="tablist">${tabs}</div>
+        <section class="shop-cat" role="tabpanel">
           ${hint}
           <div class="shop-grid">${cards}</div>
-        </section>`);
-      })
+        </section>
+      </div>`)
     );
   }
 
   renderKatalog();
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
-  view.querySelector("#to-rum").addEventListener("click", () => go("#/elev/rum"));
+
+  // Flikbyte (delegerat). Byter aktiv kategori, sparar valet och ritar om
+  // listan – ingen sidladdning. Köp-listenern nedan ignorerar flik-klick.
+  katalog.addEventListener("click", (e) => {
+    const tab = e.target.closest(".shop-tab");
+    if (!tab) return;
+    const id = tab.dataset.cat;
+    if (!id || id === activeCat) return;
+    activeCat = id;
+    saveCat(id);
+    renderKatalog();
+  });
 
   // Ett köp-klick (delegerat). Knappen låses direkt så dubbelklick inte kan
   // trigga två köp; buyItem() i datamodulen är dessutom en transaktion.
@@ -103,11 +128,10 @@ export async function pageElevShop() {
       btn.disabled = true;
       btn.textContent = "Öppnar…";
       try {
-        const res = await runMysteryBox({ price: item.price });
+        const res = await runMysteryBox({ price: item.price, legendaryChance: item.legendaryChance });
         if (res.ok) {
           state.coins = res.coins;
           if (res.owned) state.owned = new Set(res.owned);
-          saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
           renderKatalog();
           await renderTopbar();
         } else {
@@ -144,7 +168,6 @@ export async function pageElevShop() {
       if (res.counts) state.ownedCounts = { ...res.counts };
       if (res.animals) state.animalCounts = countAnimalsByArt(res.animals);
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
-      saldoEl.innerHTML = `${coinIcon(24)} ${state.coins}`;
       renderKatalog();
       if (res.ok) {
         await renderTopbar(); // uppdatera saldot i sidhuvudet
@@ -180,6 +203,29 @@ export async function pageElevShop() {
   app.replaceChildren(view);
 }
 
+// Nyckeln som minns senast valda shop-flik mellan besök.
+const ACTIVE_CAT_KEY = "pp:shop:aktivFlik";
+
+/** Läs sparad aktiv flik, men bara om den fortfarande finns bland flikarna. */
+function readSavedCat(tabCats) {
+  try {
+    const id = localStorage.getItem(ACTIVE_CAT_KEY);
+    if (id && tabCats.some((c) => c.id === id)) return id;
+  } catch (_) {
+    // storage saknas/blockerad (privat läge m.m.) – strunta i det.
+  }
+  return null;
+}
+
+/** Spara vald flik (tåligt om storage saknas). */
+function saveCat(id) {
+  try {
+    localStorage.setItem(ACTIVE_CAT_KEY, id);
+  } catch (_) {
+    // ignorera – valet lever ändå kvar i minnet under sessionen.
+  }
+}
+
 /** Antal vanliga djur per art ur en animalsFromData-lista: { [art]: n }. */
 function countAnimalsByArt(animals) {
   const counts = {};
@@ -205,15 +251,17 @@ function shopCardHtml(it, state) {
   const rebuyable = consumable || multi || animal || box;
   const owned = !rebuyable && state.owned.has(it.id);
   const affordable = state.coins >= it.price;
+  // Priset sitter numera PÅ köp-knappen (eget chip) i stället för på en egen rad.
+  const pris = `<span class="buy-pris">${coinIcon(15)} ${it.price}</span>`;
   let btn;
   if (it.comingSoon) {
     btn = `<button class="buy-btn nej" disabled title="Snart kläcks nya vänner här!">🔒 Kommer snart</button>`;
   } else if (owned) {
     btn = `<button class="buy-btn kopt" disabled>✓ Köpt</button>`;
   } else if (!affordable) {
-    btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till">Har inte råd</button>`;
+    btn = `<button class="buy-btn nej" disabled title="Du behöver ${it.price - state.coins} coins till">${pris}</button>`;
   } else {
-    btn = `<button class="buy-btn" data-id="${it.id}">${box ? "Öppna 🎁" : "Köp"}</button>`;
+    btn = `<button class="buy-btn" data-id="${it.id}"><span class="buy-text">${box ? "Öppna 🎁" : "Köp"}</span>${pris}</button>`;
   }
   // Kläder ritas av art-wearables.js, övriga rums-saker av art-items.js.
   // emoji-fältet är kvar som ofarlig fallback om konst saknas.
@@ -229,7 +277,6 @@ function shopCardHtml(it, state) {
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>
     <div class="shop-namn">${it.name}</div>
-    <div class="shop-pris">${coinIcon(16)} ${it.price}</div>
     ${antal}
     ${btn}
   </div>`;

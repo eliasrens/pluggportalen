@@ -7,14 +7,14 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { parseAndValidateArea } from "./validate.js";
-import { buildMergeForm } from "./teacher-content-merge.js";
-import { buildReviewPanel } from "./teacher-content-review.js";
-import { buildReadingEditor } from "./teacher-reading.js";
+import { parseAndValidateArea, slugify } from "./validate.js";
+import { buildAreaList } from "./teacher-content-list.js";
+import { buildContentView } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
-import { EXERCISE_TYPES, areaExerciseTypes } from "./exercise-types.js";
-import { listPairImageKeys } from "./pair-images.js";
+import { areaExerciseTypes } from "./exercise-types.js";
+import { normalizeGrade, filterSortAreas } from "./grades.js";
+import { createModeVisibility } from "./teacher-mode-visibility.js";
 import {
   el,
   esc,
@@ -46,81 +46,7 @@ export async function pageLarareInnehall(ctx) {
   // Valt ämne: SO först om det finns, annars första.
   let selected = subjects.find((s) => s.id === "so")?.id || subjects[0]?.id || null;
 
-  const view = el(`<div>
-    <div class="panel">
-      <div class="field">
-        <label for="subject">Ämne</label>
-        <div class="row-inline">
-          <select id="subject" class="select"></select>
-          <button class="btn ghost" id="new-subject">➕ Nytt ämne</button>
-        </div>
-      </div>
-      <div id="new-subject-form"></div>
-
-      <h2 style="margin-top:22px">Befintliga arbetsområden</h2>
-      <div id="area-list"><div class="spinner">Laddar…</div></div>
-    </div>
-
-    <div class="panel">
-      <h2>Lägg in / ersätt arbetsområde</h2>
-      <p class="hint">Klistra in JSON nedan eller ladda upp en <b>.json</b>-fil. Ett befintligt
-        arbetsområde med samma <b>id</b> ersätts.</p>
-
-      <h3 style="margin:18px 0 4px">🤖 Skapa innehållet med AI (valfritt)</h3>
-      <p class="hint">Kryssa i vilka övningstyper området ska ha, kopiera prompten och klistra in
-        den i valfri AI (t.ex. ChatGPT, Claude eller Gemini) tillsammans med en PDF/lektionstext –
-        eller skriv ett eget önskemål nedan. AI:n svarar med en JSON som du klistrar in i rutan
-        längst ner. 📖 Quiz-frågor får automatiskt en egen källtext (<code>passage</code>) för
-        läsförståelsen.</p>
-
-      <div class="field">
-        <label>Övningstyper på området</label>
-        <p class="hint">Bara de <b>ikryssade</b> typerna kommer med – prompten (och det som sparas
-          på området) anpassas efter dina val, så du tvingas inte ha med alla typer. Standard är
-          Quiz; kryssa i fler bara när du behöver dem (t.ex. bildpar).</p>
-        <div class="member-grid" id="ex-types">
-          ${EXERCISE_TYPES.map(
-            (t) => `<label class="member-row">
-              <input type="checkbox" value="${esc(t.id)}"${t.id === "quiz" ? " checked" : ""} />
-              <span class="member-avatar">${esc(t.emoji)}</span>
-              <span class="member-name">${esc(t.label)}<br><span class="hint">${esc(t.hint)}</span></span>
-            </label>`
-          ).join("")}
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="area-onskemal">✍️ Eget önskemål till AI:n (valfritt)</label>
-        <input id="area-onskemal" placeholder="T.ex. ämne, tema eller omfattning – vävs in i prompten" />
-        <p class="hint">Har du ingen PDF/text? Beskriv ämne, årskurs och ev. omfattning här, så vävs
-          det in i prompten i stället för platshållaren för bifogat material.</p>
-      </div>
-      <div class="row-inline" style="margin-bottom:16px">
-        <button class="btn ghost" id="copy-area-prompt">📋 Kopiera AI-prompt för valda typer</button>
-      </div>
-
-      <p class="hint">🖼️ <b>Bildpar:</b> ett par (<code>pairs</code>) kan visa en färdig bild i
-        stället för text – sätt <code>termImage</code> och/eller <code>defImage</code> till en
-        <b>bildnyckel</b> nedan (ingen egen uppladdning). Inbyggda nycklar (partisymbol-paketet):
-        ${listPairImageKeys().map((k) => `<code>${esc(k.key)}</code> (${esc(k.name)})`).join(", ")}.
-        Fler bildpaket för andra ämnen kan tillkomma senare.</p>
-      <div class="row-inline" style="margin-bottom:10px">
-        <label class="btn ghost file-btn">
-          📂 Ladda upp .json
-          <input type="file" id="file" accept=".json,application/json" hidden />
-        </label>
-        <button class="btn ghost" id="example">Visa exempel-JSON</button>
-        <button class="btn ghost" id="clear">Rensa</button>
-      </div>
-      <textarea id="json" class="json-input" spellcheck="false"
-        placeholder='Klistra in JSON här, t.ex. { "name": "Vikingatiden", "quiz": [ ... ] }'></textarea>
-      <div class="row-inline" style="margin-top:12px">
-        <button class="btn" id="check">Kontrollera</button>
-        <button class="btn gron" id="save">Spara till databasen</button>
-      </div>
-      <div id="result" style="margin-top:14px"></div>
-    </div>
-  </div>`);
+  const view = buildContentView();
 
   // --- Ämnesväljare ---------------------------------------------------------
   const subjectSel = view.querySelector("#subject");
@@ -156,6 +82,7 @@ export async function pageLarareInnehall(ctx) {
   // som knappen kopierar. Se src/exercise-types.js och buildAreaPrompt.
   const exTypesBox = view.querySelector("#ex-types");
   const onskemalEl = view.querySelector("#area-onskemal");
+  const gradeSel = view.querySelector("#area-grade");
 
   function getSelectedTypes() {
     return [...exTypesBox.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
@@ -166,29 +93,71 @@ export async function pageLarareInnehall(ctx) {
       c.checked = want.has(c.value);
     });
   }
+  // Årskurs: select-värdet "" betyder ospecificerad (null). normalizeGrade gör
+  // läsningen robust mot äldre/okända värden.
+  const getSelectedGrade = () => normalizeGrade(gradeSel.value);
+  const setSelectedGrade = (grade) => {
+    gradeSel.value = normalizeGrade(grade) || "";
+  };
+
+  // --- Synliga lägen (kryssrutor, per område) -------------------------------
+  // UI:t bor i teacher-mode-visibility.js (issue #207). render() ritar utifrån ett
+  // områdes innehåll, getHidden() läser av value.hiddenModes och autoFromJson()
+  // ritar DIREKT ur redigeringsrutan så listan aldrig är tom tills man klickar
+  // Kontrollera. Lägena härleds generiskt ur GAMEMODES – nya lägen dyker upp av
+  // sig själva; ikryssat = synligt, urbockat = dolt (issue #200).
+  const modeBox = view.querySelector("#mode-visibility");
+  const modeVis = createModeVisibility(modeBox);
+  const renderModeVisibility = modeVis.render;
+  const getSelectedHiddenModes = modeVis.getHidden;
 
   view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
-    copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value), e.currentTarget)
+    copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value, getSelectedGrade()), e.currentTarget)
   );
 
   // --- Lista befintliga arbetsområden --------------------------------------
   const areaListEl = view.querySelector("#area-list");
   const jsonEl = view.querySelector("#json");
+  const editSel = view.querySelector("#edit-area-select");
+  const gradeFilterSel = view.querySelector("#area-grade-filter");
+  const sortSel = view.querySelector("#area-sort");
+  let currentAreas = []; // senast hämtade områden, filtreras/sorteras vid render
 
-  async function refreshAreaList() {
-    if (!selected) {
-      areaListEl.innerHTML = `<p class="hint">Inget ämne valt.</p>`;
-      return;
+  // Ladda ett område i redigeringsrutan. Övningstyper och årskurs hör hemma i
+  // egna kontrollerna (inte i JSON:en), så vi lyfter ut dem och fyller dem där.
+  function loadAreaForEdit(a) {
+    setSelectedTypes(areaExerciseTypes(a));
+    setSelectedGrade(a.grade);
+    renderModeVisibility(a, true);
+    const { id, exerciseTypes, grade, ...rest } = a;
+    jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
+    jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    view.querySelector("#result").innerHTML =
+      `<div class="msg ok">Laddade "${esc(a.name)}" i rutan. Ändra och spara för att ersätta.</div>`;
+  }
+
+  // Väljaren "Redigera ett befintligt område" (issue #207): fylls ur currentAreas
+  // (alla områden i ämnet, oberoende av listans filter) så läraren slipper
+  // hand-klistra JSON. Val → ladda in samma väg som listans "Ersätt".
+  function fillEditAreaOptions() {
+    const opts = ['<option value="">— Välj ett område att redigera —</option>'];
+    for (const a of currentAreas) {
+      opts.push(
+        `<option value="${esc(a.id)}">${esc(a.coverEmoji || "📖")} ${esc(a.name)} (${esc(a.id)})</option>`
+      );
     }
-    areaListEl.innerHTML = `<div class="spinner">Laddar…</div>`;
-    let areas = [];
-    try {
-      areas = await data.getAreas(selected);
-    } catch (err) {
-      areaListEl.innerHTML = `<div class="msg error">Kunde inte ladda arbetsområden: ${esc(err.message)}</div>`;
-      return;
-    }
-    if (areas.length === 0) {
+    editSel.innerHTML = opts.join("");
+  }
+  editSel.addEventListener("change", () => {
+    const a = currentAreas.find((x) => x.id === editSel.value);
+    if (a) loadAreaForEdit(a);
+  });
+
+  // Rendera listan ur currentAreas enligt filter-/sorteringsvalen (ingen ny
+  // hämtning – körs både efter hämtning och när läraren ändrar filter/sortering).
+  function renderAreaList() {
+    fillEditAreaOptions(); // väljaren speglar alltid alla områden i ämnet
+    if (currentAreas.length === 0) {
       areaListEl.replaceChildren(
         emptyState(ctx, {
           emoji: "🗂️",
@@ -198,95 +167,46 @@ export async function pageLarareInnehall(ctx) {
       );
       return;
     }
-    const list = el(`<div class="area-rows"></div>`);
-    for (const a of areas) {
-      const wrap = el(`<div class="area-row-wrap"></div>`);
-      const row = el(`<div class="area-row">
-        <div class="area-info">
-          <span class="area-emoji">${esc(a.coverEmoji || "📖")}</span>
-          <div>
-            <div class="area-name">${esc(a.name)} <span class="badge">${esc(a.id)}</span></div>
-            <div class="hint">${(a.texts?.length || 0)} texter · ${(a.quiz?.length || 0)} frågor · ${(a.pairs?.length || 0)} par${a.readingTexts?.length ? ` · ${a.readingTexts.length} nivåtexter` : ""}</div>
-          </div>
-        </div>
-        <div class="row-actions">
-          <button class="btn ghost small" data-act="review">👁️ Granska</button>
-          <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
-          <button class="btn ghost small" data-act="reading">📖 Nivåtexter</button>
-          <button class="btn ghost small" data-act="edit">Ersätt</button>
-          <button class="btn ghost small danger" data-act="del">Ta bort</button>
-        </div>
-      </div>`);
-      // Inline-slot för read-only "granska"-vy (issue #66) – öppnas under raden.
-      const reviewSlot = el(`<div class="area-review" hidden></div>`);
-      const reviewBtn = row.querySelector('[data-act="review"]');
-      reviewBtn.addEventListener("click", () => {
-        if (!reviewSlot.hidden) {
-          reviewSlot.hidden = true;
-          reviewSlot.innerHTML = "";
-          reviewBtn.classList.remove("active");
-          return;
-        }
-        reviewSlot.replaceChildren(buildReviewPanel(a));
-        reviewSlot.hidden = false;
-        reviewBtn.classList.add("active");
-        reviewSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-      // Inline-slot för "lägg till nytt innehåll" (issue #40) – öppnas under raden.
-      const mergeSlot = el(`<div class="area-merge" hidden></div>`);
-      row.querySelector('[data-act="add"]').addEventListener("click", () => {
-        if (!mergeSlot.hidden) {
-          mergeSlot.hidden = true;
-          mergeSlot.innerHTML = "";
-          return;
-        }
-        mergeSlot.replaceChildren(
-          buildMergeForm(a, mergeSlot, { subjectId: selected, onSaved: refreshAreaList })
-        );
-        mergeSlot.hidden = false;
-        mergeSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-      // Inline-slot för läsförståelse-editorn (3 nivåer, issue #152) – under raden.
-      const readingSlot = el(`<div class="area-reading" hidden></div>`);
-      row.querySelector('[data-act="reading"]').addEventListener("click", () => {
-        if (!readingSlot.hidden) {
-          readingSlot.hidden = true;
-          readingSlot.innerHTML = "";
-          return;
-        }
-        readingSlot.replaceChildren(
-          buildReadingEditor(a, readingSlot, { subjectId: selected, onSaved: refreshAreaList })
-        );
-        readingSlot.hidden = false;
-        readingSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-      row.querySelector('[data-act="edit"]').addEventListener("click", () => {
-        // Ladda in i textrutan för redigering/ersättning. Övningstyperna hör hemma
-        // i kryssrutorna (inte i JSON:en), så vi lyfter ut dem och fyller boxen.
-        setSelectedTypes(areaExerciseTypes(a));
-        const { id, exerciseTypes, ...rest } = a;
-        jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
-        jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        view.querySelector("#result").innerHTML =
-          `<div class="msg ok">Laddade "${esc(a.name)}" i rutan. Ändra och spara för att ersätta.</div>`;
-      });
-      row.querySelector('[data-act="del"]').addEventListener("click", async () => {
-        if (!confirm(`Ta bort arbetsområdet "${a.name}"? Detta går inte att ångra.`)) return;
-        try {
-          await data.deleteArea(selected, a.id);
-          refreshAreaList();
-        } catch (err) {
-          alert("Kunde inte ta bort: " + err.message);
-        }
-      });
-      wrap.appendChild(row);
-      wrap.appendChild(reviewSlot);
-      wrap.appendChild(mergeSlot);
-      wrap.appendChild(readingSlot);
-      list.appendChild(wrap);
+    const shown = filterSortAreas(currentAreas, {
+      filter: gradeFilterSel.value,
+      sort: sortSel.value,
+    });
+    if (shown.length === 0) {
+      areaListEl.innerHTML = `<p class="hint">Inga arbetsområden matchar filtret. Ändra "Visa årskurs" ovan.</p>`;
+      return;
     }
-    areaListEl.replaceChildren(list);
+    areaListEl.replaceChildren(
+      buildAreaList(shown, {
+        ctx,
+        subjectId: selected,
+        onEdit: loadAreaForEdit,
+        onRefresh: refreshAreaList,
+      })
+    );
   }
+
+  gradeFilterSel.addEventListener("change", renderAreaList);
+  sortSel.addEventListener("change", renderAreaList);
+
+  async function refreshAreaList() {
+    if (!selected) {
+      areaListEl.innerHTML = `<p class="hint">Inget ämne valt.</p>`;
+      return;
+    }
+    areaListEl.innerHTML = `<div class="spinner">Laddar…</div>`;
+    try {
+      currentAreas = await data.getAreas(selected);
+    } catch (err) {
+      areaListEl.innerHTML = `<div class="msg error">Kunde inte ladda arbetsområden: ${esc(err.message)}</div>`;
+      return;
+    }
+    renderAreaList();
+  }
+
+  // Rita synliga-lägen-listan DIREKT ur redigeringsrutan (issue #207) så den inte
+  // är tom tills man klickar Kontrollera. Körs vid inladdning och medan man skriver.
+  modeVis.autoFromJson(jsonEl.value);
+  jsonEl.addEventListener("input", () => modeVis.autoFromJson(jsonEl.value));
 
   // --- Filuppladdning / exempel / rensa ------------------------------------
   view.querySelector("#file").addEventListener("change", (e) => {
@@ -295,6 +215,7 @@ export async function pageLarareInnehall(ctx) {
     const reader = new FileReader();
     reader.onload = () => {
       jsonEl.value = String(reader.result || "");
+      modeVis.autoFromJson(jsonEl.value);
       view.querySelector("#result").innerHTML =
         `<div class="msg ok">Laddade filen "${esc(file.name)}". Klicka Kontrollera eller Spara.</div>`;
     };
@@ -308,9 +229,12 @@ export async function pageLarareInnehall(ctx) {
 
   view.querySelector("#example").addEventListener("click", () => {
     jsonEl.value = EXAMPLE_JSON;
+    modeVis.autoFromJson(jsonEl.value);
   });
   view.querySelector("#clear").addEventListener("click", () => {
     jsonEl.value = "";
+    modeVis.autoFromJson(jsonEl.value); // → tom-state
+    editSel.value = "";
     view.querySelector("#result").innerHTML = "";
   });
 
@@ -334,8 +258,11 @@ export async function pageLarareInnehall(ctx) {
 
   view.querySelector("#check").addEventListener("click", () => {
     const res = parseAndValidateArea(jsonEl.value);
-    if (res.ok) showValidSummary(res.value);
-    else showErrors(res.errors);
+    if (res.ok) {
+      // Uppdatera synliga-lägen-listan efter innehållet, men behåll lärarens val.
+      renderModeVisibility(res.value, false);
+      showValidSummary(res.value);
+    } else showErrors(res.errors);
   });
 
   view.querySelector("#save").addEventListener("click", async () => {
@@ -353,9 +280,17 @@ export async function pageLarareInnehall(ctx) {
     const old = saveBtn.textContent;
     saveBtn.textContent = "Sparar…";
     try {
-      // Lärarens kryssrutor är det uttryckliga valet av övningstyper och vinner
-      // över det validate.js härlett ur innehållet.
-      const value = { ...res.value, exerciseTypes: getSelectedTypes() };
+      // Synka synliga-lägen-listan mot innehållet som sparas (behåll lärarens
+      // i-/urbockningar) innan vi läser av vilka lägen som ska döljas.
+      renderModeVisibility(res.value, false);
+      // Lärarens kryssrutor (övningstyper) och årskurs-väljaren är de uttryckliga
+      // valen och vinner över det som ligger i/härleds ur JSON:en.
+      const value = {
+        ...res.value,
+        exerciseTypes: getSelectedTypes(),
+        grade: getSelectedGrade(),
+        hiddenModes: getSelectedHiddenModes(res.value),
+      };
       await data.saveArea(selected, value.id, value);
       resultEl.innerHTML = `<div class="msg ok">✓ Sparat! "${esc(value.name)}" finns nu i ämnet
         ${esc(subjects.find((s) => s.id === selected)?.name || selected)}.</div>`;

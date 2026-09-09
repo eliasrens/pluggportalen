@@ -121,6 +121,28 @@ export const MYSTERY_WEARABLES = {
       `<path d="M28 10 Q48 4 52 18 L42 16 L48 26 L38 24 L42 32 Q32 30 28 16 Z" fill="#6FC66F" ${LINE}/>` +
       `<path d="M16 15 Q22 20 24 27 M40 15 Q34 20 32 27" fill="none" ${THIN}/>`,
   },
+  // Ovanlig – fjärilsvingar (rygg): två rundade vingpar med prickar.
+  "myst-fjarilsvingar": {
+    viewBox: "0 0 56 46",
+    par: "xMidYMin",
+    art:
+      `<path d="M28 12 Q10 0 4 12 Q0 22 14 24 Q10 34 22 38 Q28 30 28 20 Z" fill="#F890B7" ${LINE}/>` +
+      `<path d="M28 12 Q46 0 52 12 Q56 22 42 24 Q46 34 34 38 Q28 30 28 20 Z" fill="#F890B7" ${LINE}/>` +
+      `<circle cx="12" cy="12" r="3.4" fill="#FDE9A8" stroke="none"/>` +
+      `<circle cx="44" cy="12" r="3.4" fill="#FDE9A8" stroke="none"/>` +
+      `<circle cx="16" cy="30" r="2.6" fill="#fff" stroke="none"/>` +
+      `<circle cx="40" cy="30" r="2.6" fill="#fff" stroke="none"/>`,
+  },
+  // Sällsynt – änglavingar (rygg): mjuka fjäderklädda vita vingar.
+  "myst-anglavingar": {
+    viewBox: "0 0 56 46",
+    par: "xMidYMin",
+    art:
+      `<path d="M28 10 Q12 4 6 14 Q2 22 12 22 Q4 28 14 30 Q8 36 20 36 Q26 28 28 16 Z" fill="#FFFFFF" ${LINE}/>` +
+      `<path d="M28 10 Q44 4 50 14 Q54 22 44 22 Q52 28 42 30 Q48 36 36 36 Q30 28 28 16 Z" fill="#FFFFFF" ${LINE}/>` +
+      `<path d="M14 16 Q20 20 22 26 M42 16 Q36 20 34 26" fill="none" ${THIN}/>` +
+      star5(28, 6, 3, "#F7C948"),
+  },
 };
 
 // En liten daisy-blomma runt (cx,cy) med gul mitt.
@@ -195,6 +217,34 @@ export const MYSTERY_DECOR = {
       båge(12, "#7FC7E8") +
       `<circle cx="48" cy="70" r="4" fill="#FDE9A8" ${THIN}/>`,
   },
+  // Ovanlig – sagolykta: liten smidd stolpe med lysande lykta upptill.
+  "myst-lyktstolpe": {
+    viewBox: "0 0 48 92",
+    w: 2.6,
+    art:
+      shadow(24, 87, 14) +
+      `<rect x="20" y="40" width="8" height="46" rx="3" fill="#46557A" ${LINE}/>` +
+      `<rect x="12" y="82" width="24" height="7" rx="3" fill="#46557A" ${LINE}/>` +
+      `<path d="M24 40 Q24 30 32 30" fill="none" stroke="#46557A" stroke-width="4" stroke-linecap="round"/>` +
+      `<path d="M14 22 L14 34 L34 34 L34 22 L24 12 Z" fill="#FDE9A8" ${LINE}/>` +
+      `<rect x="17" y="24" width="14" height="10" rx="2" fill="#F7C948" stroke="none"/>` +
+      `<circle cx="24" cy="10" r="3" fill="#46557A" ${THIN}/>` +
+      star5(24, 29, 3, "#fff", 1.4),
+  },
+  // Sällsynt – trollportal: virvlande magisk portal i en stenram.
+  "myst-trollportal": {
+    viewBox: "0 0 84 90",
+    w: 3.8,
+    art:
+      shadow(42, 85, 30) +
+      `<path d="M42 8 Q10 8 10 48 Q10 82 42 82 Q74 82 74 48 Q74 8 42 8 Z" fill="#8A6242" ${LINE}/>` +
+      `<path d="M42 16 Q18 16 18 48 Q18 74 42 74 Q66 74 66 48 Q66 16 42 16 Z" fill="#B79BE0" ${LINE}/>` +
+      `<path d="M42 26 Q26 26 26 48 Q26 66 42 66 Q58 66 58 48 Q58 26 42 26 Z" fill="#7FC7E8" stroke="none"/>` +
+      `<path d="M42 34 Q34 34 34 48 Q34 58 42 58 Q50 58 50 48 Q50 40 42 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>` +
+      star5(42, 48, 4, "#FDE9A8", 1.8) +
+      star5(30, 30, 2.4, "#fff") +
+      star5(56, 60, 2.4, "#fff"),
+  },
 };
 
 // Regnbågsbåge (halvcirkel) över fontänskålen, centrerad i (48,70).
@@ -260,8 +310,50 @@ function kristallhusMarkup() {
       ${star5(560, 470, 5, "#fff", 2.2)}`;
 }
 
+// En liten pösig molntuss centrerad kring (cx,cy) med bredd ~w.
+function moln(cx, cy, w) {
+  const r = w / 4;
+  return (
+    `<circle cx="${cx - r * 1.6}" cy="${cy}" r="${r * 1.2}" fill="#fff" ${THIN}/>` +
+    `<circle cx="${cx}" cy="${cy - r * 0.6}" r="${r * 1.5}" fill="#fff" ${THIN}/>` +
+    `<circle cx="${cx + r * 1.6}" cy="${cy}" r="${r * 1.2}" fill="#fff" ${THIN}/>` +
+    `<rect x="${cx - w / 2}" y="${cy}" width="${w}" height="${r}" rx="${r}" fill="#fff" stroke="none"/>`
+  );
+}
+
+// Molnslott (legendary): luftigt slott som svävar på ett moln, med gyllene spiror.
+function molnslottMarkup() {
+  return `${shadow(480, 512, 170)}
+      <!-- Bärande moln under slottet -->
+      ${moln(480, 470, 300)}
+      ${moln(360, 500, 150)}
+      ${moln(600, 500, 150)}
+      <!-- Slottskropp -->
+      <rect x="360" y="290" width="240" height="180" rx="12" fill="var(--hus-house)" ${LINE}/>
+      <!-- Sidotorn -->
+      <rect x="330" y="250" width="60" height="220" rx="6" fill="var(--hus-house)" ${LINE}/>
+      <rect x="570" y="250" width="60" height="220" rx="6" fill="var(--hus-house)" ${LINE}/>
+      <!-- Spetsiga tak med gyllene knoppar -->
+      <path d="M324 250 L360 190 L396 250 Z" fill="var(--hus-roof)" ${LINE}/>
+      <path d="M564 250 L600 190 L636 250 Z" fill="var(--hus-roof)" ${LINE}/>
+      <path d="M356 290 L480 208 L604 290 Z" fill="var(--hus-roof)" ${LINE}/>
+      <circle cx="360" cy="186" r="7" fill="#F7C948" ${THIN}/>
+      <circle cx="600" cy="186" r="7" fill="#F7C948" ${THIN}/>
+      <circle cx="480" cy="204" r="8" fill="#F7C948" ${THIN}/>
+      <!-- Port -->
+      <path d="M440 470 L440 360 Q440 330 480 330 Q520 330 520 360 L520 470 Z" fill="var(--hus-wall)" ${LINE}/>
+      <path d="M480 330 L480 470 M446 400 L514 400" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="507" cy="410" r="4.5" fill="#F7C948" ${THIN}/>
+      <!-- Fönster i tornen -->
+      <rect x="346" y="300" width="28" height="40" rx="14" fill="var(--hus-wall)" ${LINE}/>
+      <rect x="586" y="300" width="28" height="40" rx="14" fill="var(--hus-wall)" ${LINE}/>
+      ${star5(410, 320, 5, "#fff", 2.2)}
+      ${star5(552, 320, 5, "#fff", 2.2)}`;
+}
+
 /** id → { namn, emoji, markup } – slås in i HUS_SKAL i art-hus-ute.js. */
 export const MYSTERY_HUS_SKAL = {
   "myst-tradkoja": { namn: "Trädkoja", emoji: "🌳", markup: tradkojaMarkup },
   "myst-kristallhus": { namn: "Kristallhus", emoji: "🏯", markup: kristallhusMarkup },
+  "myst-molnslott": { namn: "Molnslott", emoji: "☁️", markup: molnslottMarkup },
 };

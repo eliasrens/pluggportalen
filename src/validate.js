@@ -16,6 +16,8 @@ import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
 import { validateReadingTexts } from "./validate-reading.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
+import { normalizeGrade } from "./grades.js";
+import { normalizeHiddenModes } from "./gamemode-visibility.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -80,6 +82,18 @@ export function validateArea(obj) {
 
   const coverEmoji = isNonEmptyString(obj.coverEmoji) ? obj.coverEmoji.trim() : "📖";
   const description = typeof obj.description === "string" ? obj.description.trim() : "";
+
+  // --- Årskurs (valfri, bakåtkompatibel) ------------------------------------
+  // Saknas fältet, eller är det okänt/tomt, räknas området som "ospecificerad"
+  // (null). Inget fel rapporteras – fältet är en valfri styrning (issue #145).
+  const grade = normalizeGrade(obj.grade);
+
+  // --- Synliga lägen (valfri, bakåtkompatibel) ------------------------------
+  // Läraren kan bocka UR spellägen per område (issue #200). "hiddenModes" är en
+  // lista med mode-id som ska döljas i elevvyn. Saknas fältet (eller är listan
+  // tom) visas alla tillgängliga lägen som förr. Okända/tomma id rensas bort;
+  // inget fel rapporteras (valfri styrning, jfr grade ovan).
+  const hiddenModes = normalizeHiddenModes(obj.hiddenModes);
 
   // --- texts[] --------------------------------------------------------------
   const texts = [];
@@ -155,24 +169,16 @@ export function validateArea(obj) {
         quiz.push(built);
       });
 
-      // --- Läsförståelse: källtext obligatorisk på VARJE fråga -------------
-      // Det finns ingen separat övningstyp i datamodellen – en och samma quiz-
-      // lista används av både Quiz och Läsförståelse. En övning räknas därför som
-      // läsförståelse så snart NÅGON fråga har en källtext ("passage"). Då MÅSTE
-      // varje fråga ha en egen passage, annars skulle en fråga i läsförståelse-
-      // läget kunna visas utan synlig källtext (t.ex. "enligt texten ..." utan text).
-      // Ett rent quiz (ingen fråga har passage) påverkas inte.
-      const nrUtanPassage = quiz
-        .map((q, i) => (isNonEmptyString(q.passage) ? null : i + 1))
-        .filter((n) => n !== null);
-      if (quiz.length > 0 && nrUtanPassage.length > 0 && nrUtanPassage.length < quiz.length) {
-        const flera = nrUtanPassage.length > 1;
-        errors.push(
-          `Läsförståelse kräver en källtext ("passage") på VARJE fråga, men ${flera ? "frågorna" : "fråga"} ${nrUtanPassage.join(", ")} saknar "passage". ` +
-            `Lägg till en kort källtext (3–5 meningar som ${flera ? "de frågorna" : "den frågan"} kan besvaras utifrån), ` +
-            `eller ta bort alla passager om övningen bara ska vara ett vanligt quiz.`
-        );
-      }
+      // --- Passage = läsförståelse-fråga, ingen passage = räkne-/vanlig fråga
+      // En och samma quiz-lista används av alla frågelägen, men de HÅLLS ISÄR på
+      // "passage"-fältet: frågor MED passage kör bara i Läsförståelse (källtexten
+      // visas ovanför frågan), frågor UTAN passage kör i Quiz/Kunskapsjakt/Fånga
+      // sanningar (ingen text att läsa). Se plainQuizPool i src/game-shared.js och
+      // startLasforstaelse i src/games-quiz.js. Därför är det HELT OK att blanda
+      // frågor med och utan passage i samma område – lägena serverar rätt delmängd
+      // och en läsförståelse-fråga kan aldrig hamna i Quiz utan sin synliga text.
+      // (Tidigare krävdes passage på ALLA eller INGEN fråga; den regeln är borta nu
+      // när uppdelningen sker per läge i stället.)
     }
   }
 
@@ -271,11 +277,13 @@ export function validateArea(obj) {
     order: typeof order === "number" ? order : 1,
     coverEmoji,
     description,
+    grade,
     texts,
     quiz,
     pairs,
     readingTexts,
     exerciseTypes,
+    hiddenModes,
   };
   // Ta bara med förkravsfältet när det är PÅ, så gamla områden inte får ett
   // tomt fält och Firestore-dokumenten hålls rena.

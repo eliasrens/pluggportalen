@@ -394,6 +394,7 @@ export {
   normalizeAssignments,
   setClassAssignments,
   getClassAssignments,
+  setClassHiddenModes,
   getClassForStudent,
 } from "./data-classes.js";
 

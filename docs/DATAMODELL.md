@@ -52,6 +52,7 @@ läsning för klienten).
 | `order`       | number         | Sorteringsordning                        |
 | `coverEmoji`  | string         | Emoji på kortet                          |
 | `description` | string         | Kort beskrivning                         |
+| `grade`       | string \| null | Årskurs, `"ak1"`–`"ak9"` eller `null` (se nedan) |
 | `texts`       | array\<Text\>  | Faktatexter för läsförståelse            |
 | `quiz`        | array\<Quiz\>  | Quizfrågor (flerval)                     |
 | `pairs`       | array\<Pair\>  | Fakta-par (begrepp ↔ förklaring)         |
@@ -65,6 +66,14 @@ Kunskapsjakt), `"pairs"` (Para ihop, Memory) och `"bildpar"` (fakta-par med bild
 Valet styr AI-prompten (`buildAreaPrompt`) så att bara passande innehåll efterfrågas
 (t.ex. inga bildpar om `"bildpar"` inte kryssats). Saknas fältet (äldre områden)
 härleds typerna ur innehållet vid validering, så dokumentet får alltid fältet.
+
+**grade**: valfri årskurs på området (`"ak1"`–`"ak9"`), satt i innehålls-
+formuläret (`src/teacher-content.js`). Fältet är **valfritt och bakåtkompatibelt**:
+saknas det, eller är värdet okänt, räknas området som *ospecificerad* (`null`) och
+inget går sönder. Normaliseras i [`src/grades.js`](../src/grades.js) (`normalizeGrade`
+tål även tal och `"åk4"`-stavning). Används för att (1) sortera/filtrera område-
+listan i lärarvyn och (2) styra AI-prompten (`buildAreaPrompt`) så språk, svårighets-
+grad och exempel anpassas till årskursen – en styrning läraren kan sätta, inte tvingande.
 
 **Text**: `{ id, title, body }`
 
@@ -129,6 +138,7 @@ Exempel (`subjects/so/areas/vikingatiden`, förkortat):
   "order": 1,
   "coverEmoji": "🛶",
   "description": "Lär dig om vikingarna – hur de levde, reste och trodde.",
+  "grade": "ak4",
   "texts": [
     { "id": "vem-var-vikingarna", "title": "Vilka var vikingarna?", "body": "Vikingarna levde ..." }
   ],

@@ -21,6 +21,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "./data.js";
+import { normalizeHiddenModes } from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
 // Klasser (lärarsidan) – läraren grupperar elever i klasser, t.ex. "6A".
@@ -155,6 +156,25 @@ export async function setClassAssignments(classId, assignments) {
 export async function getClassAssignments(classId) {
   const snap = await getDoc(doc(db, "classes", classId));
   return snap.exists() ? normalizeAssignments(snap.data().assignedAreas) : [];
+}
+
+// ---------------------------------------------------------------------------
+// Synliga lägen per klass (issue #208): läraren kan dölja spellägen för HELA
+// klassen. Lagras som classes/{classId}.hiddenModes = string[] (mode-id att
+// DÖLJA). Tom/saknad lista = allt synligt (bakåtkompatibelt). Semantiken (union
+// med områdets hiddenModes) bor i gamemode-visibility.js; här bara persistensen.
+// ---------------------------------------------------------------------------
+
+/**
+ * Sätt vilka spellägen som ska döljas för klassen (ersätter hela listan).
+ * Tom lista = inget dolt på klass-nivå (eleverna ser allt områdena tillåter).
+ * @param {string} classId
+ * @param {string[]} hiddenModes mode-id att dölja (normaliseras)
+ */
+export async function setClassHiddenModes(classId, hiddenModes) {
+  const list = normalizeHiddenModes(hiddenModes);
+  await setDoc(doc(db, "classes", classId), { hiddenModes: list }, { merge: true });
+  return list;
 }
 
 /**

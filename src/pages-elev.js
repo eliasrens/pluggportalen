@@ -194,7 +194,6 @@ export async function pageElevPlugga() {
   }
 
   const view = el(`<div>
-    <a class="back-link" id="back">← Till startsidan</a>
     <div class="panel center">
       <h1>${assigned ? "Det här jobbar vi med nu 📌" : "Plugga ✏️"}</h1>
       <p class="hint">${assigned
@@ -206,7 +205,6 @@ export async function pageElevPlugga() {
     </div>
   </div>`);
 
-  view.querySelector("#back").addEventListener("click", () => go("#/elev/hus"));
   view.querySelectorAll(".area-card").forEach((btn) => {
     btn.addEventListener("click", () => {
       const subj = btn.dataset.subj;

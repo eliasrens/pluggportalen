@@ -27,6 +27,8 @@
 
 import { O, LINE, THIN, limb } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
+import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
+import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -167,8 +169,12 @@ const HUS_SKAL = {
   stuga: { namn: "Stuga", emoji: "🏡", markup: stugaMarkup },
   slott: { namn: "Slott", emoji: "🏰", markup: slottMarkup },
   svamphus: { namn: "Svamphus", emoji: "🍄", markup: svampMarkup },
+  // Lyxiga köpbara husskal (skepp/fotboll/skyskrapa/glasvilla, 1000+ coins).
+  ...LYX_HUS_SKAL,
   // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
   ...MYSTERY_HUS_SKAL,
+  // Legendary husskal (exklusiva Mega/Epic-box-drops, ej köpbara i shoppen).
+  ...LEGENDARY_HUS_SKAL,
 };
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
@@ -269,6 +275,20 @@ function skyltMarkup({ rad1, rad2 = "" }) {
     <circle cx="645" cy="531" r="2.6" fill="${WOOD_DARK}"/>
     <g fill="${O}" font-weight="800" text-anchor="middle"
       font-family="'Baloo 2','Nunito',system-ui,sans-serif">${rader}</g>`;
+}
+
+/**
+ * Fristående nav-skylt: EXAKT samma trä-skylt (skyltMarkup) som gårdskylten vid
+ * huset, men i en egen SVG tätt beskuren kring brädan. Används som liten
+ * navigerings-skylt nere i vänstra hörnet på by-/skol-nivån (pages-varld.js) i
+ * stället för nav-knappar – samma stil och klick-som-zoom-interaktion som
+ * gårdskylten. Klick-/fokus-riggen (role=button, aria) sätts av anroparen.
+ * @param {{rad1:string, rad2?:string}} skylt
+ */
+export function navSkyltSvg(skylt) {
+  return `<svg class="navskylt-svg" viewBox="452 470 216 140" role="img"
+      aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet"
+      xmlns="http://www.w3.org/2000/svg">${skyltMarkup(skylt)}</svg>`;
 }
 
 /**
