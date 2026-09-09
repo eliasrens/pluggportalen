@@ -97,6 +97,71 @@ test("bron är en gångbar lucka i ån (kan korsa mellan segmenten)", () => {
   assert.ok(walkable({ x: 0.63, y: 0.45 }), "bro-partiet ska vara gångbart");
 });
 
+// --- Nåbarhet (flood-fill) --------------------------------------------------
+// Att en punkt är gångbar (fri från hav/damm/å/klippor) räcker INTE – den måste
+// också gå att NÅ från startbryggan utan att korsa vatten. Annars kan en station
+// eller skattkistan hamna på en isolerad landtunga → banan blir omöjlig att klara.
+// Vi flood-fill:ar (4-grannar) ett samplat rutnät från START_AT och kräver att
+// varje fråge- och kist-kandidat ligger i samma sammanhängande gångbara region.
+const FF_N = 220; // upplösning på samplingsrutnätet (fint nog för bro-luckan)
+function reachableSetFrom(startNorm) {
+  const cellOf = (p) => ({
+    cx: Math.round(p.x * (FF_N - 1)),
+    cy: Math.round(p.y * (FF_N - 1)),
+  });
+  const walkCell = (cx, cy) => !blocked((cx / (FF_N - 1)) * WORLD.w, (cy / (FF_N - 1)) * WORLD.h);
+  const key = (x, y) => y * FF_N + x;
+  const seenSet = new Set();
+  const s = cellOf(startNorm);
+  const stack = [[s.cx, s.cy]];
+  seenSet.add(key(s.cx, s.cy));
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= FF_N || ny >= FF_N) continue;
+      if (seenSet.has(key(nx, ny))) continue;
+      if (!walkCell(nx, ny)) continue;
+      seenSet.add(key(nx, ny));
+      stack.push([nx, ny]);
+    }
+  }
+  return { seenSet, key, cellOf };
+}
+/** Är punkten nåbar? (tillåt liten snap-radie – avataren har storlek/glider.) */
+function isReachable(reach, p) {
+  const c = reach.cellOf(p);
+  for (let r = 0; r <= 3; r++) {
+    for (let dx = -r; dx <= r; dx++)
+      for (let dy = -r; dy <= r; dy++) {
+        const nx = c.cx + dx, ny = c.cy + dy;
+        if (nx < 0 || ny < 0 || nx >= FF_N || ny >= FF_N) continue;
+        if (reach.seenSet.has(reach.key(nx, ny))) return true;
+      }
+  }
+  return false;
+}
+
+test("ALLA fråge-kandidater är NÅBARA från startbryggan (flood-fill, ej isolerade)", () => {
+  const reach = reachableSetFrom(START_AT);
+  for (const p of SPAWN_CANDIDATES) {
+    assert.ok(isReachable(reach, p), `spawn (${p.x},${p.y}) måste vara nåbar från start`);
+  }
+});
+
+test("ALLA kist-kandidater är NÅBARA från startbryggan (kistan går alltid att nå)", () => {
+  const reach = reachableSetFrom(START_AT);
+  for (const p of CHEST_CANDIDATES) {
+    assert.ok(isReachable(reach, p), `kist-plats (${p.x},${p.y}) måste vara nåbar från start`);
+  }
+});
+
+test("öster om ån går att nå via bron (inte avskuret av vattnet)", () => {
+  const reach = reachableSetFrom(START_AT);
+  // En punkt tydligt öster om ån (höger gräs) måste ligga i start-regionen.
+  assert.ok(isReachable(reach, { x: 0.86, y: 0.4 }), "höger sida om ån ska nås via bron");
+});
+
 test("pickSpawns väljer 10 unika kandidater (default)", () => {
   const spawns = pickSpawns();
   assert.equal(spawns.length, 10);
