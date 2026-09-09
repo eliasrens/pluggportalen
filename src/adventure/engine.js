@@ -31,6 +31,7 @@ import { moveStep } from "./movement.js";
 import { createInput } from "./input.js";
 import { createImageWorld } from "./world.js";
 import { createScrollScene } from "./scene-scroll.js";
+import { playerAvatarHtml, playHack } from "./hand-tool.js";
 import { awardAdventure } from "./reward.js";
 
 const SPEED = 34; // %/s – lugnt men responsivt promenadtempo på grid-läget
@@ -169,6 +170,7 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
   function clearStation(index) {
     if (cleared.has(index)) return; // varje station triggar bara en gång
     cleared.add(index);
+    scene.playHack && scene.playHack(); // kort hack/hugg-rörelse: stationen "bryts"
     scene.markStationCleared(index);
     scene.setCount(cleared.size);
     if (cleared.size >= goal) spawnGoal();
@@ -319,7 +321,7 @@ function createGridScene({ space, theme, avatarHtml, progressIcon, goal }) {
     `<span class="adv-progress"><span class="adv-progress-icon">${progressIcon}</span> ` +
     `<b id="adv-count">0</b> / ${goal}</span></div>` +
     `<div class="adv-prompt" id="adv-prompt" hidden></div>` +
-    `<div class="adventure-player" id="adv-player"><div class="adv-avatar">${avatarHtml}</div></div>`;
+    `<div class="adventure-player" id="adv-player">${playerAvatarHtml(avatarHtml, theme)}</div>`;
 
   const playerEl = stage.querySelector("#adv-player");
   const promptEl = stage.querySelector("#adv-prompt");
@@ -351,6 +353,9 @@ function createGridScene({ space, theme, avatarHtml, progressIcon, goal }) {
         promptEl.textContent = text;
         promptEl.hidden = false;
       }
+    },
+    playHack() {
+      playHack(playerEl);
     },
     markStationCleared(index) {
       const node = stationsWrap.querySelector(`.adv-station[data-station="${index}"]`);

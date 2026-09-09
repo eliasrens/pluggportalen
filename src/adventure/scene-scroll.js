@@ -16,6 +16,7 @@
 // ============================================================================
 
 import { createCamera } from "./camera.js";
+import { playerAvatarHtml, playHack } from "./hand-tool.js";
 
 export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal }) {
   // OBS: camera vill ha världens mått {w,h} (world.size), inte hela space-objektet.
@@ -50,7 +51,7 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
 
   const playerEl = document.createElement("div");
   playerEl.className = "adventure-player";
-  playerEl.innerHTML = `<div class="adv-avatar">${avatarHtml}</div>`;
+  playerEl.innerHTML = playerAvatarHtml(avatarHtml, theme);
 
   worldEl.append(mapEl, objectsEl, goalEl, playerEl);
 
@@ -119,6 +120,9 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
         promptEl.textContent = text;
         promptEl.hidden = false;
       }
+    },
+    playHack() {
+      playHack(playerEl);
     },
     markStationCleared(index) {
       const node = objectsEl.querySelector(`.adv-station[data-station="${index}"]`);
