@@ -69,6 +69,34 @@ function isNotFound(err) {
   return err?.code === "not-found" || /No document to update/i.test(err?.message || "");
 }
 
+/** Djupjämför två avatarItems-listor (ordningskänsligt, elementen är strängar). */
+function sameAvatarItems(a, b) {
+  const xa = Array.isArray(a) ? a : [];
+  const xb = Array.isArray(b) ? b : [];
+  if (xa.length !== xb.length) return false;
+  for (let i = 0; i < xa.length; i++) {
+    if (JSON.stringify(xa[i]) !== JSON.stringify(xb[i])) return false;
+  }
+  return true;
+}
+
+/**
+ * Skiljer sig det FÄRSKA egna utseendet (ur studentData) från det som redan står
+ * i projektionens self-entry? Jämför exakt de fält by-/grannby-vyn ritar plus
+ * husLast (lås-flaggan). Lika → ingen self-publish-skrivning behövs.
+ */
+function appearanceChanged(fresh, base) {
+  const f = fresh || {};
+  const b = base || {};
+  return (
+    (f.avatarId || null) !== (b.avatarId || null) ||
+    (f.paletteId || null) !== (b.paletteId || null) ||
+    (f.husSkalId || null) !== (b.husSkalId || null) ||
+    !!f.husLast !== !!b.husLast ||
+    !sameAvatarItems(f.avatarItems, b.avatarItems)
+  );
+}
+
 /**
  * Skapa en klass-projektions-store kring en injicerad Firestore-adapter.
  *
@@ -231,9 +259,14 @@ export function createClassProjectionStore(adapter) {
       ownSd = {};
     }
     // Union av alla egna klassers projektioner (1 läsning/klass, self-heal en gång).
+    // Vi samlar samtidigt de egna klass-id:na så self-publish (nedan) kan skriva
+    // till exakt dem UTAN en ny läsning (updateStudentProjectionAllClasses hade
+    // kostat en extra getDocs via classIdsForStudent – det bryter #231:s O(1)).
     const merged = {};
+    const myClassIds = [];
     for (const c of myClasses(meId, classes)) {
       const ids = Array.isArray(c.studentIds) ? c.studentIds : [];
+      myClassIds.push(c.id);
       const { members } = await ensureClassProjection(c.id, ids);
       for (const [id, entry] of Object.entries(members)) {
         if (!merged[id]) merged[id] = entry;
@@ -243,7 +276,7 @@ export function createClassProjectionStore(adapter) {
     // projektionen om den finns (annars meNamn-fallback) – students/{meId} läses
     // aldrig, så vi håller oss inom ≤2 dok.
     const selfBase = merged[meId] || {};
-    merged[meId] = projectionEntryFrom(
+    const freshSelf = projectionEntryFrom(
       {
         namn: selfBase.namn || meNamn || "",
         username: selfBase.username || "",
@@ -251,6 +284,35 @@ export function createClassProjectionStore(adapter) {
       },
       ownSd
     );
+    merged[meId] = freshSelf;
+
+    // SELF-PUBLISH (#240): en LÅST elev (husLast) får sin projektions-entry
+    // self-heal:ad med NULL-utseende av en BESÖKARE – som enligt firestore.rules
+    // inte får läsa den låstas studentData (#231) – så klasskompisar ritar
+    // standardhuset. Eleven själv får dock skriva sin EGEN klass-entry OBEROENDE
+    // av husLast. Här publicerar vi därför det RIKTIGA utseendet (färg/husskal/
+    // avatar) + den färska husLast-flaggan till projektionen, så kompisar ser det.
+    //   • BARA vid faktisk skillnad mot projektionen (appearanceChanged).
+    //   • INGA nya läsningar: vi skriver till de redan itererade myClassIds
+    //     (samma mängd som updateStudentProjectionAllClasses hade nått) – inget
+    //     classIdsForStudent-getDocs.
+    //   • BEST-EFFORT & icke-blockerande: översiktens returvärde är oförändrat
+    //     oavsett skriv-utfall; fel sväljs (jfr #231 self-heal, commit b7022c3).
+    if (myClassIds.length > 0 && appearanceChanged(freshSelf, selfBase)) {
+      const patch = {
+        avatarId: freshSelf.avatarId,
+        avatarItems: freshSelf.avatarItems,
+        paletteId: freshSelf.paletteId,
+        husSkalId: freshSelf.husSkalId,
+        husLast: freshSelf.husLast,
+      };
+      for (const cid of myClassIds) {
+        Promise.resolve()
+          .then(() => updateStudentProjection(cid, meId, patch))
+          .catch(() => {});
+      }
+    }
+
     return boendeFromMembers(merged, classmateIds(meId, classes));
   }
 
