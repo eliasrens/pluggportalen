@@ -13,9 +13,12 @@ import {
   GAMEMODES,
   normalizeHiddenModes,
   isModeHidden,
+  isModeHiddenForClass,
+  isModeHiddenForStudent,
   areaContentFlags,
   availableGamemodes,
   visibleGamemodes,
+  visibleGamemodesForStudent,
 } from "../src/gamemode-visibility.js";
 import { validateArea } from "../src/validate.js";
 import { mergeAreaContent } from "../src/merge-area.js";
@@ -89,6 +92,49 @@ test("visibleGamemodes utan hiddenModes visar alla lägen med underlag (bakåtko
 test("okänt mode-id i hiddenModes är ofarligt (matchar inget läge)", () => {
   const area = { quiz: QUIZ, hiddenModes: ["finns-inte"] };
   assert.equal(visibleGamemodes(area).length, availableGamemodes(area).length);
+});
+
+// --- klass-nivå (issue #208) ------------------------------------------------
+
+test("isModeHiddenForClass är sant bara för id i klassens hiddenModes", () => {
+  const cls = { hiddenModes: ["memory"] };
+  assert.equal(isModeHiddenForClass(cls, "memory"), true);
+  assert.equal(isModeHiddenForClass(cls, "quiz"), false);
+  assert.equal(isModeHiddenForClass({}, "memory"), false); // saknas → inget dolt
+  assert.equal(isModeHiddenForClass(null, "memory"), false); // ingen klass → inget dolt
+});
+
+test("isModeHiddenForStudent tar UNIONEN av klass- och områdes-dolda", () => {
+  const area = { quiz: QUIZ, hiddenModes: ["quiz"] };
+  const cls = { hiddenModes: ["memory"] };
+  assert.equal(isModeHiddenForStudent(area, cls, "quiz"), true); // dolt via område
+  assert.equal(isModeHiddenForStudent(area, cls, "memory"), true); // dolt via klass
+  assert.equal(isModeHiddenForStudent(area, cls, "lasforstaelse"), false); // inget håll
+  // Ingen klass (null) → faller tillbaka på enbart områdes-gaten (bakåtkompatibelt).
+  assert.equal(isModeHiddenForStudent(area, null, "quiz"), true);
+  assert.equal(isModeHiddenForStudent(area, null, "memory"), false);
+});
+
+test("visibleGamemodesForStudent döljer union klass ∪ område, respekterar has-gaten", () => {
+  const area = { quiz: QUIZ, hiddenModes: ["quiz"] };
+  const cls = { hiddenModes: ["kunskapsjakt"] };
+  const ids = visibleGamemodesForStudent(area, cls).map((gm) => gm.id);
+  assert.ok(!ids.includes("quiz"), "urbockat på område ska bort");
+  assert.ok(!ids.includes("kunskapsjakt"), "urbockat på klass ska bort");
+  assert.ok(ids.includes("lasforstaelse"), "övriga quiz-lägen kvar");
+  assert.ok(!ids.includes("para"), "inget par-underlag → has-gaten döljer para");
+});
+
+test("visibleGamemodesForStudent utan klass-val = visibleGamemodes (bakåtkompatibelt)", () => {
+  const area = { quiz: QUIZ, hiddenModes: ["quiz"] };
+  assert.deepEqual(
+    visibleGamemodesForStudent(area, null).map((gm) => gm.id),
+    visibleGamemodes(area).map((gm) => gm.id)
+  );
+  assert.deepEqual(
+    visibleGamemodesForStudent(area, { hiddenModes: [] }).map((gm) => gm.id),
+    visibleGamemodes(area).map((gm) => gm.id)
+  );
 });
 
 // --- validate.js ------------------------------------------------------------

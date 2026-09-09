@@ -26,8 +26,11 @@ export {
   areaContentFlags,
   availableGamemodes,
   visibleGamemodes,
+  visibleGamemodesForStudent,
   normalizeHiddenModes,
   isModeHidden,
+  isModeHiddenForClass,
+  isModeHiddenForStudent,
 } from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------

@@ -103,3 +103,44 @@ export function availableGamemodes(area) {
 export function visibleGamemodes(area) {
   return availableGamemodes(area).filter((gm) => !isModeHidden(area, gm.id));
 }
+
+// ---------------------------------------------------------------------------
+// Klass-nivå (issue #208): läraren kan dölja lägen för HELA klassen, utöver
+// per-område-valet ovan (#200). Valet lagras på klassdokumentet i samma form –
+// classes/{id}.hiddenModes: en lista med mode-id som ska döljas i elevvyn.
+// Bakåtkompatibelt: saknas fältet (eller är listan tom) döljs inget på klass-nivå.
+// ---------------------------------------------------------------------------
+
+/**
+ * Är läget `modeId` urbockat (dolt) på KLASS-nivå?
+ * @param {object} cls – klassdokument (kan sakna hiddenModes / vara null)
+ * @param {string} modeId
+ * @returns {boolean}
+ */
+export function isModeHiddenForClass(cls, modeId) {
+  return normalizeHiddenModes(cls?.hiddenModes).includes(modeId);
+}
+
+/**
+ * Är läget dolt för eleven? UNION av de dolda mängderna: klass ∪ område.
+ * Ett läge visas bara om det INTE är dolt på någondera nivå (has-gaten – att
+ * området har underlag – hanteras separat av anroparen, jfr availableGamemodes).
+ * @param {object} area – arbetsområde (kan sakna hiddenModes)
+ * @param {object|null} cls – elevens klass (kan sakna hiddenModes / vara null)
+ * @param {string} modeId
+ * @returns {boolean}
+ */
+export function isModeHiddenForStudent(area, cls, modeId) {
+  return isModeHidden(area, modeId) || isModeHiddenForClass(cls, modeId);
+}
+
+/**
+ * Vilka lägen eleven ska se, med BÅDE klass- och område-synlighet invägd:
+ * har underlag OCH inte urbockat på vare sig område- eller klass-nivå.
+ * @param {object} area
+ * @param {object|null} cls
+ * @returns {typeof GAMEMODES}
+ */
+export function visibleGamemodesForStudent(area, cls) {
+  return availableGamemodes(area).filter((gm) => !isModeHiddenForStudent(area, cls, gm.id));
+}
