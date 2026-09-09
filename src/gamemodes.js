@@ -18,6 +18,36 @@ import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 import { startSanningsjakt } from "./games-sanningsjakt.js";
 import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
+import { THEMES } from "./adventure/themes/test-tema.js";
+
+// Vilket innehåll varje frågekälla i ett äventyrstema kräver (för kort-låset).
+const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
+
+/**
+ * Bygg äventyrskorten generiskt ur tema-registret: varje tema med ett `oversikt`-
+ * fält blir ett kort "Äventyr: <namn>". Nya teman (Spökjakten/Gruvan) behöver bara
+ * lägga till en rad i THEMES – ingen ändring här. Kortet är låst tills området har
+ * innehåll som temats frågekällor kan använda; annars visas stjärnor (mode "aventyr:<id>").
+ */
+function adventureCards(has, areaProgress) {
+  return Object.values(THEMES)
+    .filter((t) => t && t.oversikt)
+    .map((t) => {
+      const kinds = t.questionKinds || ["quiz"];
+      const available = kinds.some((k) => has[KIND_NEEDS[k]]);
+      const stars = areaProgress[`aventyr:${t.id}`]?.stars || 0;
+      const starsHtml = available
+        ? `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`
+        : `<span class="card-lock">Inget innehåll än</span>`;
+      return `<button class="big-card ${t.oversikt.color || "orange"} adv-card" data-tema="${t.id}" ${available ? "" : "disabled"}>
+      <span class="emoji">${t.progressIcon || "🗺️"}</span>
+      <span class="title">Äventyr: ${t.namn}</span>
+      <span class="sub">${t.oversikt.sub || "Ett äventyr på området"}</span>
+      ${starsHtml}
+    </button>`;
+    })
+    .join("");
+}
 
 // ---------------------------------------------------------------------------
 // Områdesöversikt: välj gamemode (med stjärnor per övning)
@@ -72,13 +102,15 @@ export async function pageElevOmrade() {
     </button>`;
   }).join("");
 
+  const advCards = adventureCards(has, areaProgress);
+
   const view = el(`<div>
     <div class="panel center">
       <div class="big-emoji">${areaData.coverEmoji || "📖"}</div>
       <h1>${areaData.name}</h1>
       <p class="hint">${areaData.description || "Välj en övning och samla pluggcoins!"}</p>
     </div>
-    <div class="card-grid">${cards}</div>
+    <div class="card-grid">${cards}${advCards}</div>
   </div>`);
 
   view.querySelectorAll(".gm-card").forEach((btn) => {
@@ -86,6 +118,13 @@ export async function pageElevOmrade() {
     btn.addEventListener("click", () => {
       const mode = btn.dataset.mode;
       go(`#/elev/spela?subj=${enc(subj)}&area=${enc(area)}&mode=${enc(mode)}`);
+    });
+  });
+  view.querySelectorAll(".adv-card").forEach((btn) => {
+    if (btn.disabled) return;
+    btn.addEventListener("click", () => {
+      const tema = btn.dataset.tema;
+      go(`#/elev/aventyr?subj=${enc(subj)}&area=${enc(area)}&tema=${enc(tema)}`);
     });
   });
 
