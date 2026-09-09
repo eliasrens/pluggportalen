@@ -13,7 +13,7 @@ import { buildContentView } from "./teacher-content-view.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { areaExerciseTypes } from "./exercise-types.js";
 import { normalizeGrade, filterSortAreas } from "./grades.js";
-import { availableGamemodes, isModeHidden } from "./game-shared.js";
+import { createModeVisibility } from "./teacher-mode-visibility.js";
 import {
   el,
   esc,
@@ -145,48 +145,15 @@ export async function pageLarareInnehall(ctx) {
   };
 
   // --- Synliga lägen (kryssrutor, per område) -------------------------------
-  // Härleds GENERISKT ur GAMEMODES (via availableGamemodes) så nya spellägen
-  // dyker upp automatiskt – bara lägen området har underlag för visas. Ikryssat
-  // = synligt för eleven; urbockat sparas i value.hiddenModes (issue #200).
+  // UI:t bor i teacher-mode-visibility.js (issue #207). render() ritar utifrån ett
+  // områdes innehåll, getHidden() läser av value.hiddenModes och autoFromJson()
+  // ritar DIREKT ur redigeringsrutan så listan aldrig är tom tills man klickar
+  // Kontrollera. Lägena härleds generiskt ur GAMEMODES – nya lägen dyker upp av
+  // sig själva; ikryssat = synligt, urbockat = dolt (issue #200).
   const modeBox = view.querySelector("#mode-visibility");
-
-  // Rendera kryssrutorna utifrån ett områdes innehåll.
-  //   • fromArea=true  → utgå från områdets sparade hiddenModes (vid inladdning)
-  //   • fromArea=false → behåll lärarens nuvarande i-/urbockningar och lägg bara
-  //                       till/ta bort lägen som innehållet ändrat (vid Kontrollera)
-  function renderModeVisibility(area, fromArea) {
-    const modes = availableGamemodes(area);
-    if (modes.length === 0) {
-      modeBox.innerHTML = `<p class="hint">Inga lägen än – lägg till innehåll (frågor eller par)
-        och klicka Kontrollera.</p>`;
-      return;
-    }
-    const prev = new Map();
-    if (!fromArea) {
-      modeBox.querySelectorAll('input[type="checkbox"]').forEach((c) => prev.set(c.value, c.checked));
-    }
-    modeBox.innerHTML = modes
-      .map((gm) => {
-        const checked = prev.has(gm.id) ? prev.get(gm.id) : !isModeHidden(area, gm.id);
-        return `<label class="member-row">
-          <input type="checkbox" value="${esc(gm.id)}"${checked ? " checked" : ""} />
-          <span class="member-avatar">${esc(gm.emoji)}</span>
-          <span class="member-name">${esc(gm.name)}<br><span class="hint">${esc(gm.sub)}</span></span>
-        </label>`;
-      })
-      .join("");
-  }
-  renderModeVisibility({}, true); // tom start tills ett område laddas/kontrolleras
-
-  // Vilka lägen som ska DÖLJAS: bara lägen som (a) har en renderad kryssruta som
-  // är urbockad OCH (b) faktiskt har underlag i det som sparas. Nya lägen utan
-  // kryssruta räknas som synliga (default), så nytt innehåll aldrig göms av misstag.
-  function getSelectedHiddenModes(value) {
-    const availableIds = new Set(availableGamemodes(value).map((gm) => gm.id));
-    return [...modeBox.querySelectorAll('input[type="checkbox"]:not(:checked)')]
-      .map((c) => c.value)
-      .filter((id) => availableIds.has(id));
-  }
+  const modeVis = createModeVisibility(modeBox);
+  const renderModeVisibility = modeVis.render;
+  const getSelectedHiddenModes = modeVis.getHidden;
 
   view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
     copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value, getSelectedGrade()), e.currentTarget)
@@ -195,6 +162,7 @@ export async function pageLarareInnehall(ctx) {
   // --- Lista befintliga arbetsområden --------------------------------------
   const areaListEl = view.querySelector("#area-list");
   const jsonEl = view.querySelector("#json");
+  const editSel = view.querySelector("#edit-area-select");
   const gradeFilterSel = view.querySelector("#area-grade-filter");
   const sortSel = view.querySelector("#area-sort");
   let currentAreas = []; // senast hämtade områden, filtreras/sorteras vid render
@@ -212,9 +180,27 @@ export async function pageLarareInnehall(ctx) {
       `<div class="msg ok">Laddade "${esc(a.name)}" i rutan. Ändra och spara för att ersätta.</div>`;
   }
 
+  // Väljaren "Redigera ett befintligt område" (issue #207): fylls ur currentAreas
+  // (alla områden i ämnet, oberoende av listans filter) så läraren slipper
+  // hand-klistra JSON. Val → ladda in samma väg som listans "Ersätt".
+  function fillEditAreaOptions() {
+    const opts = ['<option value="">— Välj ett område att redigera —</option>'];
+    for (const a of currentAreas) {
+      opts.push(
+        `<option value="${esc(a.id)}">${esc(a.coverEmoji || "📖")} ${esc(a.name)} (${esc(a.id)})</option>`
+      );
+    }
+    editSel.innerHTML = opts.join("");
+  }
+  editSel.addEventListener("change", () => {
+    const a = currentAreas.find((x) => x.id === editSel.value);
+    if (a) loadAreaForEdit(a);
+  });
+
   // Rendera listan ur currentAreas enligt filter-/sorteringsvalen (ingen ny
   // hämtning – körs både efter hämtning och när läraren ändrar filter/sortering).
   function renderAreaList() {
+    fillEditAreaOptions(); // väljaren speglar alltid alla områden i ämnet
     if (currentAreas.length === 0) {
       areaListEl.replaceChildren(
         emptyState(ctx, {
@@ -261,6 +247,11 @@ export async function pageLarareInnehall(ctx) {
     renderAreaList();
   }
 
+  // Rita synliga-lägen-listan DIREKT ur redigeringsrutan (issue #207) så den inte
+  // är tom tills man klickar Kontrollera. Körs vid inladdning och medan man skriver.
+  modeVis.autoFromJson(jsonEl.value);
+  jsonEl.addEventListener("input", () => modeVis.autoFromJson(jsonEl.value));
+
   // --- Filuppladdning / exempel / rensa ------------------------------------
   view.querySelector("#file").addEventListener("change", (e) => {
     const file = e.target.files?.[0];
@@ -268,6 +259,7 @@ export async function pageLarareInnehall(ctx) {
     const reader = new FileReader();
     reader.onload = () => {
       jsonEl.value = String(reader.result || "");
+      modeVis.autoFromJson(jsonEl.value);
       view.querySelector("#result").innerHTML =
         `<div class="msg ok">Laddade filen "${esc(file.name)}". Klicka Kontrollera eller Spara.</div>`;
     };
@@ -281,9 +273,12 @@ export async function pageLarareInnehall(ctx) {
 
   view.querySelector("#example").addEventListener("click", () => {
     jsonEl.value = EXAMPLE_JSON;
+    modeVis.autoFromJson(jsonEl.value);
   });
   view.querySelector("#clear").addEventListener("click", () => {
     jsonEl.value = "";
+    modeVis.autoFromJson(jsonEl.value); // → tom-state
+    editSel.value = "";
     view.querySelector("#result").innerHTML = "";
   });
 
