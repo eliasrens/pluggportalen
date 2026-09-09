@@ -268,6 +268,39 @@ test("ensureClassProjection: DELVIS saknad medlem byggs (bara den saknade)", asy
   assert.equal(fake.counts.getDoc, 3);
 });
 
+test("ensureClassProjection: cross-class nekad SKRIVNING → ritar ändå (best-effort, kastar ej)", async () => {
+  // Grannby-fallet: en besökare får enligt reglerna inte skriva en ANNAN klass
+  // projektion. Self-heal-skrivningen nekas → får ALDRIG fälla vyn.
+  const fake = makeFakeDb({
+    students: { anna: { namn: "Anna", avatarId: "fox" }, bo: { namn: "Bo", avatarId: "owl" } },
+    studentData: { anna: { xp: 30 }, bo: { xp: 5 } },
+  });
+  fake.adapter.setDoc = async () => {
+    const err = new Error("Missing or insufficient permissions");
+    err.code = "permission-denied";
+    throw err;
+  };
+  const store = createClassProjectionStore(fake.adapter);
+  const res = await store.ensureClassProjection("7b", ["anna", "bo"]);
+  // Vyn får datan trots att skrivningen nekades:
+  assert.equal(res.healed, true);
+  assert.equal(res.members.anna.namn, "Anna");
+  assert.equal(res.members.bo.namn, "Bo");
+  assert.equal(res.members.anna.xp, 30);
+});
+
+test("ensureClassProjection: ICKE-permission-fel på skrivning bubblar (nät e.d.)", async () => {
+  const fake = makeFakeDb({
+    students: { anna: { namn: "Anna", avatarId: "fox" } },
+    studentData: { anna: { xp: 1 } },
+  });
+  fake.adapter.setDoc = async () => {
+    throw new Error("network glitch");
+  };
+  const store = createClassProjectionStore(fake.adapter);
+  await assert.rejects(() => store.ensureClassProjection("7b", ["anna"]), /network glitch/);
+});
+
 test("buildProjectionEntries: nekad studentData → husLast true (låst hus)", async () => {
   const fake = makeFakeDb({ students: { cia: { namn: "Cia", avatarId: "fox" } } });
   // Simulera permission-denied på studentData/cia:
