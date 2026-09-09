@@ -82,6 +82,34 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
 
+    // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som
+    // by-/grannby-översikten läser i O(1) läsningar (1 getDoc för hela klassen)
+    // i stället för ett studentData-dok PER elev (prod-incident 2026-09-09).
+    // `members` är en MAP keyad på studentId; varje entry bär bara KOSMETISK
+    // översikts-data (namn, avatar, palett, husskal, stjärnor/xp/klarade, husLast).
+    //
+    // LÄSNING: öppen för alla inloggade – speglar den redan uppmjukade
+    // cross-class-läsningen av students/studentData (#114/#111). Datat här är en
+    // delmängd av det som redan är läsbart, så ingen ny exponering.
+    //
+    // SKRIVNING (create+update): en autentiserad elev som är MEDLEM i klassen
+    // (finns i classes/{classId}.studentIds). VALT MEDVETET: vi begränsar INTE
+    // skribenten till sin egen members.{uid}-entry på server-sidan. Med
+    // fält-path-updateDoc ligger de ändrade nycklarna i request.resource.data
+    // och att i reglerna diffa fram att BARA members.{uid} rördes (mot ~24 andra
+    // nycklar) är opraktiskt att uttrycka robust. Givet den redan relaxade
+    // posturen för kosmetisk klass-data (#114) räcker en medlemskaps-check:
+    // det värsta en elev kan göra är att peta i en klasskamrats kosmetiska
+    // översikts-cache i sin EGEN klass (self-heal återställer den ur källan).
+    // Coins/progress/lösenord finns inte här. Lärare får också skriva (backfill).
+    match /classProjections/{classId} {
+      allow read:  if signedIn();
+      allow write: if isTeacher() ||
+        (signedIn() &&
+         exists(/databases/$(database)/documents/classes/$(classId)) &&
+         request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds);
+    }
+
     // (Borttaget #114) Kollektionerna `looks` (utseende-projektion) och
     // `classStats` (denormaliserat stjärn-aggregat, #113) behövs inte längre:
     // grannby-vyn läser grannklassens students/studentData direkt (öppnat ovan)
