@@ -15,7 +15,12 @@ import {
   setDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, getStudentData } from "./data.js";
+import {
+  currentStudentId,
+  getStudentData,
+  updateStudentProjectionAllClasses,
+} from "./data.js";
+import { mirrorStudentProjection } from "./projection-sync.js";
 import { roomUpgradeCount } from "./shop-items.js";
 
 // --- Avatar-påklädnad (burna klädsaker) ------------------------------------
@@ -35,6 +40,10 @@ export async function saveAvatarItems(items, studentId = currentStudentId()) {
   const ref = doc(db, "studentData", studentId);
   const list = Array.isArray(items) ? [...new Set(items)] : [];
   await updateDoc(ref, { avatarItems: list });
+  // Spegla in i klass-projektionen (#233, aldrig kastande).
+  await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
+    avatarItems: list,
+  });
   return list;
 }
 
@@ -56,6 +65,14 @@ export async function saveRoom(room, studentId = currentStudentId()) {
   const updates = {};
   for (const [key, value] of Object.entries(room)) updates[`room.${key}`] = value;
   await updateDoc(ref, updates);
+  // Grundrummets paletteId ÄR husets exteriör-palett (projectionEntryFrom läser
+  // room.paletteId), så spegla den in i klass-projektionen när den ändras (#233).
+  // Övriga rum-fält (placements, window) rör inte by-översikten – hoppa dem.
+  if (Object.prototype.hasOwnProperty.call(room, "paletteId")) {
+    await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
+      paletteId: room.paletteId || null,
+    });
+  }
   return room;
 }
 
@@ -198,6 +215,10 @@ export async function saveHusSkal(skalId, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
   await updateDoc(ref, { husSkalId: skalId });
+  // Spegla in i klass-projektionen (#233, aldrig kastande).
+  await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
+    husSkalId: skalId || null,
+  });
   return skalId;
 }
 
@@ -239,6 +260,11 @@ export async function setHusLast(locked, studentId = currentStudentId()) {
   const ref = doc(db, "studentData", studentId);
   const val = !!locked;
   await updateDoc(ref, { husLast: val });
+  // Spegla in i klass-projektionen (#233): det är detta som gör att låsta hus
+  // ritas låsta i by-översikten UTAN en per-elev-läsning. Aldrig kastande.
+  await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
+    husLast: val,
+  });
   return val;
 }
 
@@ -256,6 +282,10 @@ export async function setAvatar(avatarId, studentId = currentStudentId()) {
   await setDoc(ref, { avatarId, avatarChosen: true }, { merge: true });
   // Håll students-dokumentet i synk också (avatarId finns på båda ställena).
   await updateDoc(doc(db, "students", studentId), { avatarId }).catch(() => {});
+  // Spegla grundavataren in i klass-projektionen (#233, aldrig kastande).
+  await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
+    avatarId,
+  });
   return avatarId;
 }
 

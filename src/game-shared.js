@@ -10,6 +10,7 @@ import { app, el, go, renderTopbar } from "./ui.js";
 import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
 import { addXp } from "./data-xp.js";
 import { xpForExercise, xpIntoLevel } from "./leveling.js";
+import { awardProjectionPatch, mirrorStudentProjection } from "./projection-sync.js";
 import { coinIcon } from "./icons.js";
 import {
   MAX_QUESTIONS_PER_SESSION,
@@ -242,6 +243,23 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
       bestScore,
       plays: prevPlays + 1,
     });
+  } catch {}
+  // Håll klass-projektionen färsk (#233): spegla elevens nya totaler in i alla
+  // dess klassers projektioner. Läs elevens FÄRSKA studentData EN gång (efter
+  // att coins/xp/progress sparats) och härled stars/xp/completed EXAKT som
+  // by-översikten (awardProjectionPatch → progressTotals/xpFromStudentData).
+  // Aldrig kastande: en misslyckad projektions-skrivning – eller läsning – får
+  // inte fälla själva belöningen (self-heal täcker upp).
+  try {
+    const uid = data.currentStudentId();
+    if (uid) {
+      const sd = await data.getStudentData(uid);
+      await mirrorStudentProjection(
+        data.updateStudentProjectionAllClasses,
+        uid,
+        awardProjectionPatch(sd)
+      );
+    }
   } catch {}
   return { coins, xp, totalXp, firstTime, reduced, pct };
 }
