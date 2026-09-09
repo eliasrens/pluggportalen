@@ -286,6 +286,12 @@
   gap: 18px;
 }
 
+/* Elevens tilldelade läsnivå (#154) – liten etikett i arbetsbokshuvudet. */
+.lasf-level-tag {
+  font-weight: 700;
+  color: var(--bla, #2f80ed);
+}
+
 /* Flera stycken i läs-texten får luft mellan sig. */
 .lasf-reader p {
   margin: 0 0 14px;

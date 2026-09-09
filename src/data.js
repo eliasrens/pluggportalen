@@ -116,9 +116,8 @@ export async function getStudentData(studentId = currentStudentId()) {
   return snap.exists() ? snap.data() : await ensureStudentData(studentId);
 }
 
-// Läsnivå (läsförståelse, #154): se systermodulen data-reading-level.js
-// (getReadingLevel/setReadingLevel) – re-exporteras längst ned så
-// `data.getReadingLevel(...)` fortsätter fungera. Håller data.js under filtaket.
+// Läsnivå (#154): getReadingLevel/setReadingLevel bor i data-reading-level.js
+// (re-exporteras längst ned). Håller data.js under filtaket.
 
 // --- Coins ------------------------------------------------------------------
 
