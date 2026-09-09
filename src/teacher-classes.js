@@ -30,6 +30,7 @@ import {
   renderMemberManager,
 } from "./teacher-class-accounts.js";
 import { renderAccountEditor } from "./teacher-login-cards.js";
+import { renderClassModes } from "./teacher-class-modes.js";
 
 export async function pageLarareKlasser(ctx) {
   ctx.renderTopbar();
@@ -132,17 +133,31 @@ export async function pageLarareKlasser(ctx) {
           <button class="btn ghost small" data-act="rename">✏️ Döp om</button>
           <button class="btn ghost small" data-act="toggle">🧑‍🎓 Elever</button>
           <button class="btn ghost small" data-act="areas">📌 Områden</button>
+          <button class="btn ghost small" data-act="modes">🎮 Lägen</button>
           <button class="btn ghost small danger" data-act="del">🗑 Ta bort</button>
         </div>
       </div>
       <div class="class-members" hidden></div>
       <div class="class-assign" hidden></div>
+      <div class="class-modes" hidden></div>
     </div>`);
 
     const membersEl = card.querySelector(".class-members");
     const assignEl = card.querySelector(".class-assign");
+    const modesEl = card.querySelector(".class-modes");
     const nameEl = card.querySelector(".class-name");
     const countEl = card.querySelector(".class-count");
+
+    // Bara en utfällbar sektion öppen i taget (klick på öppen fäller ihop).
+    const panels = [membersEl, assignEl, modesEl];
+    const togglePanel = (target, render) => {
+      const show = target.hidden;
+      panels.forEach((p) => (p.hidden = true));
+      if (show) {
+        render();
+        target.hidden = false;
+      }
+    };
 
     // Döp om -----------------------------------------------------------------
     card.querySelector('[data-act="rename"]').addEventListener("click", async () => {
@@ -173,26 +188,19 @@ export async function pageLarareKlasser(ctx) {
     });
 
     // Elever (visa/dölj kryssrutor) ------------------------------------------
-    card.querySelector('[data-act="toggle"]').addEventListener("click", () => {
-      if (membersEl.hidden) {
-        assignEl.hidden = true;
-        renderMemberManager(ctx, { cls, state, membersEl, countEl });
-        membersEl.hidden = false;
-      } else {
-        membersEl.hidden = true;
-      }
-    });
+    card.querySelector('[data-act="toggle"]').addEventListener("click", () =>
+      togglePanel(membersEl, () => renderMemberManager(ctx, { cls, state, membersEl, countEl }))
+    );
 
     // Områden (visa/dölj tilldelning) ----------------------------------------
-    card.querySelector('[data-act="areas"]').addEventListener("click", () => {
-      if (assignEl.hidden) {
-        membersEl.hidden = true;
-        renderAssignments(cls, assignEl);
-        assignEl.hidden = false;
-      } else {
-        assignEl.hidden = true;
-      }
-    });
+    card.querySelector('[data-act="areas"]').addEventListener("click", () =>
+      togglePanel(assignEl, () => renderAssignments(cls, assignEl))
+    );
+
+    // Synliga lägen för klassen (issue #208) ---------------------------------
+    card.querySelector('[data-act="modes"]').addEventListener("click", () =>
+      togglePanel(modesEl, () => renderClassModes(ctx, cls, modesEl))
+    );
 
     return card;
   }

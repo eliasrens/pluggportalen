@@ -12,7 +12,7 @@
 
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
-import { GAMEMODES, starRow, enc, areaContentFlags, isModeHidden } from "./game-shared.js";
+import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForStudent } from "./game-shared.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
@@ -30,11 +30,12 @@ export async function pageElevOmrade() {
   const { subj, area } = getParams();
   if (!subj || !area) return go("#/elev/plugga");
 
-  let areaData, progress;
+  let areaData, progress, studentClass;
   try {
-    [areaData, progress] = await Promise.all([
+    [areaData, progress, studentClass] = await Promise.all([
       data.getArea(subj, area),
       data.getProgress(),
+      data.getClassForStudent().catch(() => null),
     ]);
   } catch (err) {
     app.replaceChildren(
@@ -52,10 +53,11 @@ export async function pageElevOmrade() {
   const areaProgress = progress?.[area] || {};
   const has = areaContentFlags(areaData);
 
-  // Läraren kan dölja lägen per område (issue #200): avbockade lägen visas inte
-  // alls som kort. Lägen UTAN underlag visas fortfarande som låsta ("Inget
-  // innehåll än"), precis som förr – det är bara de urbockade som filtreras bort.
-  const cards = GAMEMODES.filter((gm) => !isModeHidden(areaData, gm.id)).map((gm) => {
+  // Läraren kan dölja lägen per område (#200) OCH för hela klassen (#208):
+  // avbockade lägen (på någondera nivå) visas inte alls som kort. Lägen UTAN
+  // underlag visas fortfarande som låsta ("Inget innehåll än"), precis som förr
+  // – det är bara de urbockade (union klass ∪ område) som filtreras bort.
+  const cards = GAMEMODES.filter((gm) => !isModeHiddenForStudent(areaData, studentClass, gm.id)).map((gm) => {
     const available = has[gm.needs];
     const stars = areaProgress[gm.id]?.stars || 0;
     const starsHtml = available
@@ -101,9 +103,12 @@ export async function pageElevSpela() {
   const { subj, area, mode } = getParams();
   if (!subj || !area || !mode) return go("#/elev/plugga");
 
-  let areaData;
+  let areaData, studentClass;
   try {
-    areaData = await data.getArea(subj, area);
+    [areaData, studentClass] = await Promise.all([
+      data.getArea(subj, area),
+      data.getClassForStudent().catch(() => null),
+    ]);
   } catch (err) {
     app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda övningen: ${err.message}</div></div>`)
@@ -112,8 +117,9 @@ export async function pageElevSpela() {
   }
   if (!areaData) return go("#/elev/plugga");
 
-  // Ett läge som läraren bockat ur ska inte gå att starta direkt via URL heller.
-  if (isModeHidden(areaData, mode)) {
+  // Ett läge som läraren bockat ur (på område- ELLER klass-nivå) ska inte gå att
+  // starta direkt via URL heller.
+  if (isModeHiddenForStudent(areaData, studentClass, mode)) {
     return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
   }
 
