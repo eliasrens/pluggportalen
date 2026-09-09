@@ -1120,6 +1120,40 @@
 .adventure-player.gar .adv-avatar { animation: adv-bob 0.42s ease-in-out infinite; }
 
 /* --------------------------------------------------------------------------
+   Tema-verktyg i handen + hack-animation (issue #225, hand-tool.js).
+   Verktyget (t.ex. Gruvans pickhacka) ritas som extra lager i .adv-fig-wrappern
+   (samma 1em×1.2em-box som .avatar-figure) och placeras vid avatarens högra hand
+   (jfr af-hand-ankaret i styles.css). Klädsel/gå-studs rörs inte; spegling
+   flippas på wrappern så figur + verktyg vänder ihop. Bara teman med handTool
+   får .adv-has-tool → övriga teman är helt oberörda.
+   -------------------------------------------------------------------------- */
+.adventure-player .adv-fig {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1.2em;
+  line-height: 1;
+}
+.adventure-player .adv-hand-tool {
+  position: absolute;
+  left: 50%; top: 6%;
+  width: 58%; height: 66%;
+  transform-origin: 40% 84%; /* pivot vid greppet/handen → svinget roterar kring handen */
+  pointer-events: none;
+  z-index: 1; /* verktyget ovanpå figuren */
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+/* Spegling: flippa hela wrappern (figur + verktyg ihop) och neutralisera figurens
+   egen spegling (mer specifik selektor vinner) så den inte flippas dubbelt. */
+.adventure-player.vand-vanster .adv-fig { transform: scaleX(-1); }
+.adventure-player.vand-vanster .adv-fig .avatar-figure { transform: none; }
+/* Hack/hugg: kort sving på verktyget + liten kroppsansträngning (self-cleaning
+   klass .adv-hacking sätts av playHack). .gar tas bort under interaktionen så
+   bob:en krockar inte. */
+.adventure-player.adv-hacking .adv-hand-tool { animation: adv-hack-tool 0.5s ease; }
+.adventure-player.adv-hacking .adv-avatar { animation: adv-hack-body 0.5s ease; }
+
+/* --------------------------------------------------------------------------
    OPT-IN scroll/bild-karta-läge (issue #220). Bara scroll-teman (theme.mapImage)
    får .adv-scroll; grid-teman (Spökjakten/Gruvan) är helt orörda ovanför.
    Lager bakifrån→fram: .adv-map < (kollision, osynlig) < .adv-objects < spelare < UI.
@@ -1204,6 +1238,20 @@
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50% { transform: translate(-50%, -50%) scale(1.12); }
 }
+/* Hack: lyft verktyget bakåt och slå ner (svinget) – tydlig "bryter"-rörelse. */
+@keyframes adv-hack-tool {
+  0% { transform: rotate(0deg); }
+  30% { transform: rotate(-46deg); }
+  55% { transform: rotate(30deg); }
+  72% { transform: rotate(16deg); }
+  100% { transform: rotate(0deg); }
+}
+/* Kropp: liten framåtlutning + studs i takt med slaget. */
+@keyframes adv-hack-body {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35% { transform: translateY(-5%) rotate(-3deg); }
+  60% { transform: translateY(3%) rotate(4deg); }
+}
 @keyframes adv-goal-pop {
   from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
   to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -1216,6 +1264,8 @@
 /* Respektera reduced motion: ingen gå-studs eller pulserande markörer. */
 @media (prefers-reduced-motion: reduce) {
   .adventure-player.gar .adv-avatar,
+  .adventure-player.adv-hacking .adv-hand-tool,
+  .adventure-player.adv-hacking .adv-avatar,
   .adv-station,
   .adv-goal .adv-goal-art { animation: none; }
 }
