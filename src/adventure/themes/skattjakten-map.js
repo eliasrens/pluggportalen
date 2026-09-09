@@ -52,9 +52,11 @@ export const COAST = [
 // (rx/ry) och en bredare sandkant (sandRx/sandRy); kollisionen blockerar en aning
 // utanför vattnet (så man inte kan stå mitt i dammen).
 export const POND = { cx: 618, cy: 220, rx: 100, ry: 80, sandRx: 118, sandRy: 96 };
-// Kollisionsradier (vatten + liten marginal in på sandkanten) ≈ (105, 88).
-const POND_BLOCK_RX = POND.rx + 5;
-const POND_BLOCK_RY = POND.ry + 8;
+// Kollisionsradier: täck HELA den ritade poolen (inkl. toppen) ända ut till strax
+// innanför sand-ytterkanten (118/96) – annars blev ett gångbart band på kanten,
+// särskilt upptill (issue #243 r2). Strax innanför sanden så gräset ej överblockeras.
+const POND_BLOCK_RX = 114;
+const POND_BLOCK_RY = 92;
 
 // --- Å med bro. Övre loppet (vattenfall → strax ovan bron) och nedre loppet (den
 // diagonala kurvan under bron → havet). Bron är en GÅNGBAR lucka mellan dem.
@@ -66,15 +68,124 @@ export const STREAM_HALF_WIDTH = 28;
 // Bron: tvärgående plankbro, ~180×60 px, roterad 28° runt sitt centrum.
 export const BRIDGE = { cx: 1135, cy: 465, w: 180, h: 60, rotDeg: 28 };
 
-// --- Klippor (staplade stenblock). Två kluster; kollisionen blockerar hela den
-// ritade boxen. NV-hörnet ligger delvis utanför bild (redan blockerat av kanten).
+// --- Klippor (staplade stenblock). Två kluster. En box räcker INTE – de ritade
+// blocken sticker ut utanför boxen (man gick igenom vänster/topp av CLIFF_MID).
+// Därför härleds kollisionen PER RITAT STENBLOCK ur samma geometri som konsten
+// (cliffStones), så rött ligger exakt på stenarna (issue #243 r2).
 export const CLIFF_NW = { x: -10, y: -10, w: 300, h: 300 };
 export const CLIFF_MID = { x: 453, y: 655, w: 184, h: 154 };
 export const CLIFF_RECTS = [CLIFF_NW, CLIFF_MID];
 
+/** Stenblocken i ett klippkluster: [cx, cy, r] (delad källa för konst + kollision).
+ *  Varje block ritas som ett valv med topp cy−r och botten cy+r*0.7, bredd 2r. */
+export function cliffStones(r) {
+  return [
+    [r.x + r.w * 0.2, r.y + r.h * 0.6, r.w * 0.34],
+    [r.x + r.w * 0.6, r.y + r.h * 0.7, r.w * 0.3],
+    [r.x + r.w * 0.42, r.y + r.h * 0.36, r.w * 0.3],
+    [r.x + r.w * 0.72, r.y + r.h * 0.4, r.w * 0.24],
+    [r.x + r.w * 0.5, r.y + r.h * 0.14, r.w * 0.22],
+  ];
+}
+
+// --- Buskar som RIKTIGA hinder (visuellt ärlig kollision, issue #243 r2). Ett
+// fåtal buskar ritas solida OCH blockerar; övrig låg dekor (gräs/blommor) är
+// gångbar och saknar kollision. Placerade på öppet gräs, spridda, klara av
+// spawns/kist/start/bron så de aldrig spärrar vägen. Delad källa: konsten ritar
+// samma buskar. Kollisionen är en cirkel som täcker hela den ritade busken.
+export const BLOCKING_BUSHES = [
+  { x: 340, y: 250 }, // vänster-övre gräs
+  { x: 880, y: 250 }, // center-övre gräs
+  { x: 500, y: 530 }, // center-vänster gräs
+];
+// Kollisionen är en ELLIPS som täcker HELA den ritade kronan (~84×68 px vid s=1),
+// centrerad något ovanför (x,y) (kronans tyngdpunkt) – inga utstickande gångbara
+// lober. Konsten ritar busken i skala 1 vid dessa punkter.
+export const BUSH_BLOCK_RX = 44;
+export const BUSH_BLOCK_RY = 34;
+const BUSH_BLOCK_DY = -4;
+
 // --- Ruiner (uppe-höger): brutna stenpelare + fundament. (x,y) är konstens origo;
 // hela footprinten blockeras (box ≈ x[921..1241] y[60..232]).
 export const RUINS = { x: 921, y: 60, w: 320, h: 172 };
+
+// ============================================================================
+// DELAD KURV-MATTE (issue #243, runda 2): konsten ritar kust/å som en Catmull-Rom-
+// SPLINE (mjuka bezier-kurvor), inte som raka linjer mellan kontrollpunkterna. Om
+// kollisionen testar mot den RÅA polygonen bågnar splinen utanför i utbuktningar och
+// innanför i vikar → ett tunt felband längs HELA kusten (man fastnar på synligt land
+// / kan kliva ut i ritat hav). Därför samplas SAMMA spline här och BÅDE konsten
+// (skattjakten-scen-svg.js) och kollisionen ritas/testas ur exakt denna matte.
+// ----------------------------------------------------------------------------
+
+/** Runda tal → 1 decimal (kompakt SVG-path-data). */
+const n1 = (v) => Number(v).toFixed(1);
+
+/** Bezier-punkt (kubisk) vid t∈[0,1]. */
+function bezierPoint(p1, c1, c2, p2, t) {
+  const mt = 1 - t;
+  const a = mt * mt * mt, b = 3 * mt * mt * t, c = 3 * mt * t * t, d = t * t * t;
+  return [
+    a * p1[0] + b * c1[0] + c * c2[0] + d * p2[0],
+    a * p1[1] + b * c1[1] + c * c2[1] + d * p2[1],
+  ];
+}
+
+/** Catmull-Rom → kubiska bezier-segment [p1,c1,c2,p2]. closed=true → sluten slinga. */
+function catmullSegments(pts, closed) {
+  const n = pts.length;
+  const segs = [];
+  const last = closed ? n : n - 1;
+  for (let i = 0; i < last; i++) {
+    const p0 = closed ? pts[(i - 1 + n) % n] : pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = closed ? pts[(i + 1) % n] : pts[i + 1];
+    const p3 = closed ? pts[(i + 2) % n] : pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    segs.push([p1, c1, c2, p2]);
+  }
+  return segs;
+}
+
+/** SVG-path för en SLUTEN Catmull-Rom-kurva (organisk kustlinje) – för konsten. */
+export function smoothClosedPath(pts) {
+  const segs = catmullSegments(pts, true);
+  let d = `M ${n1(pts[0][0])} ${n1(pts[0][1])} `;
+  for (const [, c1, c2, p2] of segs) {
+    d += `C ${n1(c1[0])} ${n1(c1[1])} ${n1(c2[0])} ${n1(c2[1])} ${n1(p2[0])} ${n1(p2[1])} `;
+  }
+  return d + "Z";
+}
+
+/** SVG-path för en ÖPPEN Catmull-Rom-kurva (stigar/åar) – för konsten. */
+export function smoothOpenPath(pts) {
+  const segs = catmullSegments(pts, false);
+  let d = `M ${n1(pts[0][0])} ${n1(pts[0][1])} `;
+  for (const [, c1, c2, p2] of segs) {
+    d += `C ${n1(c1[0])} ${n1(c1[1])} ${n1(c2[0])} ${n1(c2[1])} ${n1(p2[0])} ${n1(p2[1])} `;
+  }
+  return d;
+}
+
+/** Sampla en Catmull-Rom-kurva till ett tätt punktpolygon (för kollisionen). */
+function sampleSpline(pts, closed, perSeg) {
+  const segs = catmullSegments(pts, closed);
+  const out = [];
+  for (let i = 0; i < segs.length; i++) {
+    const [p1, c1, c2, p2] = segs[i];
+    // Sluten kurva: hoppa över sista punkten per segment (= nästa segments start)
+    // för att undvika dubbletter; öppen: ta med ändpunkten på sista segmentet.
+    const end = closed ? perSeg - 1 : (i === segs.length - 1 ? perSeg : perSeg - 1);
+    for (let s = 0; s <= end; s++) out.push(bezierPoint(p1, c1, c2, p2, s / perSeg));
+  }
+  return out;
+}
+
+// Täta spline-polygoner: EXAKT den kurva konsten ritar (sand-ytterkant + åns lopp).
+export const COAST_SMOOTH = sampleSpline(COAST, true, 14);
+const STREAM_UPPER_SMOOTH = sampleSpline(STREAM_UPPER, false, 10);
+const STREAM_LOWER_SMOOTH = sampleSpline(STREAM_LOWER, false, 10);
 
 // ============================================================================
 // KOLLISIONS-MATTE (ren, DOM-fri). Allt i världspixlar.
@@ -138,20 +249,31 @@ function onBridge(x, y) {
  * Exakt funktion av samma geometri som konsten ritas ur (issue #243).
  */
 export function isBlockedWorld(x, y) {
-  // Hav: allt utanför kustlinjen (sanden är gångbar ända ut till kanten).
-  if (!pointInPolygon(x, y, COAST)) return true;
+  // Hav: allt utanför den RITADE kustlinjen (sanden gångbar ända ut till kanten).
+  // COAST_SMOOTH = samma Catmull-Rom-spline som konsten ritar sand-kanten ur, så
+  // gränsen ligger PRECIS vid den synliga kanten – inget felband (issue #243 r2).
+  if (!pointInPolygon(x, y, COAST_SMOOTH)) return true;
   // Damm.
   if (insideEllipse(x, y, POND.cx, POND.cy, POND_BLOCK_RX, POND_BLOCK_RY)) return true;
   // Ruiner.
   if (insideRect(x, y, RUINS)) return true;
-  // Klippor.
+  // Klippor – per ritat stenblock (box kring valvet: x[cx±r], y[cy−r .. cy+r*0.7]).
   for (let i = 0; i < CLIFF_RECTS.length; i++) {
-    if (insideRect(x, y, CLIFF_RECTS[i])) return true;
+    const stones = cliffStones(CLIFF_RECTS[i]);
+    for (let s = 0; s < stones.length; s++) {
+      const [cx, cy, r] = stones[s];
+      if (x >= cx - r && x <= cx + r && y >= cy - r && y <= cy + r * 0.7) return true;
+    }
   }
-  // Å – blockera nära vattnet, men lämna bron gångbar.
+  // Blockerande buskar (riktiga hinder) – ellips kring hela den ritade kronan.
+  for (let i = 0; i < BLOCKING_BUSHES.length; i++) {
+    const b = BLOCKING_BUSHES[i];
+    if (insideEllipse(x, y, b.x, b.y + BUSH_BLOCK_DY, BUSH_BLOCK_RX, BUSH_BLOCK_RY)) return true;
+  }
+  // Å – blockera nära den RITADE kurvan (samplad spline), men lämna bron gångbar.
   if (!onBridge(x, y)) {
-    if (nearPolyline(x, y, STREAM_UPPER, STREAM_HALF_WIDTH)) return true;
-    if (nearPolyline(x, y, STREAM_LOWER, STREAM_HALF_WIDTH)) return true;
+    if (nearPolyline(x, y, STREAM_UPPER_SMOOTH, STREAM_HALF_WIDTH)) return true;
+    if (nearPolyline(x, y, STREAM_LOWER_SMOOTH, STREAM_HALF_WIDTH)) return true;
   }
   return false;
 }
@@ -168,7 +290,7 @@ export const SPAWN_CANDIDATES = [
   { x: 0.3, y: 0.28 },  // vänster gräs, ovan stigen
   { x: 0.25, y: 0.5 },  // vänster stig
   { x: 0.18, y: 0.62 }, // nedre-vänster gräs
-  { x: 0.29, y: 0.74 }, // nedre-vänster sand
+  { x: 0.25, y: 0.74 }, // nedre-vänster sand (flyttad ut från CLIFF_MID-stenarna, #243 r2)
   { x: 0.34, y: 0.42 }, // center-vänster
   { x: 0.45, y: 0.5 },  // mitten
   { x: 0.4, y: 0.61 },  // stig-korsning mitten

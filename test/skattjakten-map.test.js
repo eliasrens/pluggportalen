@@ -26,6 +26,8 @@ import {
   STREAM_UPPER,
   STREAM_LOWER,
   BRIDGE,
+  BLOCKING_BUSHES,
+  cliffStones,
   isBlockedWorld,
   pickSpawns,
   pickChest,
@@ -122,6 +124,49 @@ test("kollision blockerar damm, ruiner och stora klippor HELT (inga halva hinder
   assert.ok(isBlockedWorld(60, 60), "NV-klippan blockerad");
   const mc = boxCenter(CLIFF_MID);
   assert.ok(isBlockedWorld(mc.x, mc.y), "center-klippan blockerad");
+});
+
+test("dammen blockerar HELA poolen inkl. toppen (inget gångbart kantband, #243 r2)", () => {
+  // Toppen av den ritade poolen (nära sand-ytterkanten) ska vara blockerad.
+  assert.ok(isBlockedWorld(POND.cx, POND.cy - 88), "dammens topp blockerad");
+  assert.ok(isBlockedWorld(POND.cx, POND.cy + 88), "dammens botten blockerad");
+  assert.ok(isBlockedWorld(POND.cx - 108, POND.cy), "dammens vänsterkant blockerad");
+  // Men gräset strax utanför sand-ytterkanten (rx118) är gångbart (ej överblockat).
+  assert.ok(!isBlockedWorld(POND.cx + 130, POND.cy), "gräset utanför dammen gångbart");
+});
+
+test("klippkluster blockerar HELA de ritade stenarna (vänster/topp, #243 r2)", () => {
+  // CLIFF_MID: de ritade stenarna sträcker sig utanför den gamla boxen (x453/y655).
+  // Kontrollera att ett par punkter i vänster/topp-stenarna nu blockeras.
+  const stones = cliffStones(CLIFF_MID);
+  for (const [cx, cy] of stones) {
+    assert.ok(isBlockedWorld(cx, cy), `stenens mitt (${cx},${cy}) blockerad`);
+  }
+  // Vänster utkant av vänstra stenen (fd. gångbart hål) ska nu blockera.
+  assert.ok(isBlockedWorld(440, 750), "CLIFF_MID vänsterkant blockerad");
+});
+
+test("blockerande buskar är RIKTIGA hinder (hela kronan blockerar, #243 r2)", () => {
+  assert.ok(BLOCKING_BUSHES.length >= 2 && BLOCKING_BUSHES.length <= 4, "ett fåtal hinder-buskar");
+  for (const b of BLOCKING_BUSHES) {
+    assert.ok(isBlockedWorld(b.x, b.y), `busk-mitten (${b.x},${b.y}) blockerad`);
+    // hela kronan: prova några punkter runt centrum
+    assert.ok(isBlockedWorld(b.x - 38, b.y - 4), "busk vänsterkant blockerad");
+    assert.ok(isBlockedWorld(b.x + 38, b.y - 4), "busk högerkant blockerad");
+    assert.ok(isBlockedWorld(b.x, b.y - 28), "busk topp blockerad");
+    // men strax utanför kronan är gångbart (ej hela ön full av blockerare)
+    assert.ok(!isBlockedWorld(b.x + 60, b.y), "gräset utanför busken gångbart");
+  }
+});
+
+test("blockerande buskar spärrar INTE en spawn/kist-plats eller start", () => {
+  const targets = [...SPAWN_CANDIDATES, ...CHEST_CANDIDATES, START_AT];
+  for (const b of BLOCKING_BUSHES) {
+    for (const t of targets) {
+      const d = Math.hypot(b.x - t.x * WORLD.w, b.y - t.y * WORLD.h);
+      assert.ok(d > 55, `busk (${b.x},${b.y}) för nära mål (${t.x},${t.y}) d=${d.toFixed(0)}`);
+    }
+  }
 });
 
 test("ån blockerar (utom bron): nära åns lopp = vatten, bron = gångbar lucka", () => {

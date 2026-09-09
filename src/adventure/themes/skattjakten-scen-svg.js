@@ -31,6 +31,10 @@ import {
   CLIFF_NW,
   CLIFF_MID,
   RUINS,
+  cliffStones,
+  BLOCKING_BUSHES,
+  smoothClosedPath,
+  smoothOpenPath,
 } from "./skattjakten-map.js";
 
 // Världsmått (matchar WORLD i skattjakten-map.js). SVG:n ritas i dessa pixlar.
@@ -62,35 +66,13 @@ const RUIN_MORK = "#9C8F79";
 const L2 = `stroke="${O}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"`;
 const L3 = `stroke="${O}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"`;
 
-/** Fisher-fritt: rund tal → 1 decimal (kompakt path-data). */
+/** Runda tal → 1 decimal (kompakt path-data). */
 const n1 = (v) => Number(v).toFixed(1);
 
-/** Catmull-Rom → slät SLUTEN kurva genom punkterna (organisk kustlinje). */
-function smoothClosed(pts) {
-  const n = pts.length;
-  let d = `M ${n1(pts[0][0])} ${n1(pts[0][1])} `;
-  for (let i = 0; i < n; i++) {
-    const p0 = pts[(i - 1 + n) % n], p1 = pts[i];
-    const p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += `C ${n1(c1x)} ${n1(c1y)} ${n1(c2x)} ${n1(c2y)} ${n1(p2[0])} ${n1(p2[1])} `;
-  }
-  return d + "Z";
-}
-/** Catmull-Rom → slät ÖPPEN kurva (stigar/åar). */
-function smoothOpen(pts) {
-  const n = pts.length;
-  let d = `M ${n1(pts[0][0])} ${n1(pts[0][1])} `;
-  for (let i = 0; i < n - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i];
-    const p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += `C ${n1(c1x)} ${n1(c1y)} ${n1(c2x)} ${n1(c2y)} ${n1(p2[0])} ${n1(p2[1])} `;
-  }
-  return d;
-}
+// Kurv-matten (smoothClosed/smoothOpen) bor i skattjakten-map.js så konsten ritar
+// ur EXAKT samma spline som kollisionen samplar (issue #243 r2). Alias för läsbarhet.
+const smoothClosed = smoothClosedPath;
+const smoothOpen = smoothOpenPath;
 
 // --- Kustlinje: organisk blob (COAST/ISLAND_CENTER importeras från map.js så
 // konst och kollision delar EXAKT samma kustlinje – issue #243). Bredast i mitten,
@@ -207,15 +189,10 @@ function planks(x, y, w, h) {
 }
 
 /** Klippformation (staplade stenblock). */
-function cliff(x, y, w, h) {
-  const blocks = [
-    [x + w * 0.2, y + h * 0.6, w * 0.34],
-    [x + w * 0.6, y + h * 0.7, w * 0.3],
-    [x + w * 0.42, y + h * 0.36, w * 0.3],
-    [x + w * 0.72, y + h * 0.4, w * 0.24],
-    [x + w * 0.5, y + h * 0.14, w * 0.22],
-  ];
-  return blocks
+function cliff(rect) {
+  // Stenblocken kommer ur map.js (cliffStones) → konsten ritar EXAKT de block
+  // kollisionen blockerar (issue #243 r2, ingen partiell täckning).
+  return cliffStones(rect)
     .map(([bx, by, r], i) =>
       `<path d="M${n1(bx - r)} ${n1(by + r * 0.7)} Q${n1(bx - r)} ${n1(by - r)} ${n1(bx)} ${n1(by - r)} ` +
       `Q${n1(bx + r)} ${n1(by - r)} ${n1(bx + r)} ${n1(by + r * 0.7)} Z" ` +
@@ -227,10 +204,7 @@ function cliff(x, y, w, h) {
 /** Klipporna: NV-hörnet (CLIFF_NW) + center-nedre klippkluster (CLIFF_MID).
  *  Boxarna kommer ur map.js så kollisionen blockerar exakt de ritade klustren. */
 function cliffs() {
-  return (
-    `<g>${cliff(CLIFF_NW.x, CLIFF_NW.y, CLIFF_NW.w, CLIFF_NW.h)}</g>` +
-    `<g>${cliff(CLIFF_MID.x, CLIFF_MID.y, CLIFF_MID.w, CLIFF_MID.h)}</g>`
-  );
+  return `<g>${cliff(CLIFF_NW)}</g>` + `<g>${cliff(CLIFF_MID)}</g>`;
 }
 
 /** Ruiner (RUINS, uppe-höger): brutna stenpelare + fundament. (x,y) = konstens
@@ -300,13 +274,39 @@ function palm(x, y, s = 1) {
     `<circle cx="${x + 6 * s}" cy="${y - 108 * s}" r="${10 * s}" fill="${TRA}"/>`
   );
 }
-/** Buske (dekor). */
+/** Buske som RIKTIGT hinder (blockerar) – ritas rejäl/solid med bär så den tydligt
+ *  läser som ett hinder, inte som gångbar markdekor. Placeras vid BLOCKING_BUSHES
+ *  och kollisionen täcker hela kronan (issue #243 r2). */
 function bush(x, y, s = 1) {
   return (
-    `<ellipse cx="${x}" cy="${y + 8 * s}" rx="${30 * s}" ry="${8 * s}" fill="${O}" opacity="0.1"/>` +
-    `<circle cx="${x - 16 * s}" cy="${y}" r="${18 * s}" fill="${GRAS_MORK}" ${L2}/>` +
-    `<circle cx="${x + 16 * s}" cy="${y}" r="${18 * s}" fill="${GRAS_MORK}" ${L2}/>` +
-    `<circle cx="${x}" cy="${y - 12 * s}" r="${20 * s}" fill="${GRAS}" ${L2}/>`
+    `<ellipse cx="${x}" cy="${y + 10 * s}" rx="${38 * s}" ry="${10 * s}" fill="${O}" opacity="0.14"/>` +
+    `<circle cx="${x - 20 * s}" cy="${y + 2 * s}" r="${22 * s}" fill="${GRAS_MORK}" ${L2}/>` +
+    `<circle cx="${x + 20 * s}" cy="${y + 2 * s}" r="${22 * s}" fill="${GRAS_MORK}" ${L2}/>` +
+    `<circle cx="${x}" cy="${y - 6 * s}" r="${26 * s}" fill="${GRAS}" ${L2}/>` +
+    `<circle cx="${x - 10 * s}" cy="${y - 2 * s}" r="${14 * s}" fill="${GRAS_LJUS}" opacity="0.6"/>` +
+    // bär (röda prickar) → tydligt en buske, inte gräs
+    `<circle cx="${x + 8 * s}" cy="${y - 4 * s}" r="${4 * s}" fill="${TALT_MORK}"/>` +
+    `<circle cx="${x - 4 * s}" cy="${y + 6 * s}" r="${4 * s}" fill="${TALT_MORK}"/>` +
+    `<circle cx="${x + 16 * s}" cy="${y + 4 * s}" r="${4 * s}" fill="${TALT_MORK}"/>`
+  );
+}
+/** Grästuvor (låg, platt markdekor) – ser TYDLIGT gångbar ut, ingen kollision. */
+function grassTuft(x, y) {
+  const blade = (dx, h) =>
+    `<path d="M${x + dx} ${y + 6} q${-dx * 0.4} ${-h * 0.6} ${dx * 0.5} ${-h}" fill="none" stroke="${GRAS_MORK}" stroke-width="4" stroke-linecap="round" opacity="0.85"/>`;
+  return (
+    `<ellipse cx="${x}" cy="${y + 8}" rx="26" ry="6" fill="${GRAS_MORK}" opacity="0.18"/>` +
+    blade(-12, 22) + blade(-4, 30) + blade(4, 26) + blade(12, 20) + blade(0, 34)
+  );
+}
+/** Blomma (låg markdekor) – gångbar, ingen kollision. */
+function flower(x, y) {
+  const petal = (a) =>
+    `<circle cx="${x + Math.cos(a) * 8}" cy="${y - 10 + Math.sin(a) * 8}" r="6" fill="#F6A6C1" ${L2}/>`;
+  return (
+    `<path d="M${x} ${y + 6} q-3 -12 0 -18" fill="none" stroke="${GRAS_MORK}" stroke-width="3" stroke-linecap="round"/>` +
+    petal(0) + petal(1.256) + petal(2.513) + petal(3.769) + petal(5.026) +
+    `<circle cx="${x}" cy="${y - 10}" r="5" fill="${GULDish()}" ${L2}/>`
   );
 }
 /** Sten (dekor). */
@@ -318,15 +318,22 @@ function rock(x, y, s = 1) {
   );
 }
 
-/** Utspridd dekor (palmer/buskar/stenar) – placerad på gräs/sand, ej på hinder. */
+/** Utspridd dekor. Visuellt ÄRLIG (issue #243 r2): palmer, stenar, grästuvor och
+ *  blommor är LÅG/tydligt gångbar markdekor utan kollision; endast de FÅ buskarna
+ *  (BLOCKING_BUSHES) ritas solida OCH blockerar. */
 function decor() {
   const palms = [[150, 470, 1.1], [1300, 470, 1], [430, 830, 0.9], [1060, 780, 0.95], [760, 470, 0.8], [250, 300, 0.85]];
-  const bushes = [[520, 400], [880, 540], [640, 720], [1180, 560], [360, 640], [1000, 400], [700, 250]];
   const rocks = [[600, 500], [980, 700], [300, 720], [820, 380], [500, 640], [1220, 640]];
+  // Låg, gångbar markdekor där buskarna förr stod (+ lite till).
+  const flowers = [[520, 400], [1000, 400], [1180, 560], [360, 640], [820, 300]];
+  const tufts = [[880, 540], [640, 720], [430, 560], [1060, 470], [720, 760]];
   return (
     palms.map(([x, y, s]) => palm(x, y, s)).join("") +
-    bushes.map(([x, y]) => bush(x, y)).join("") +
-    rocks.map(([x, y]) => rock(x, y)).join("")
+    rocks.map(([x, y]) => rock(x, y)).join("") +
+    tufts.map(([x, y]) => grassTuft(x, y)).join("") +
+    flowers.map(([x, y]) => flower(x, y)).join("") +
+    // De få RIKTIGA hinder-buskarna (solid + kollision, delad källa map.js).
+    BLOCKING_BUSHES.map((b) => bush(b.x, b.y, 1)).join("")
   );
 }
 
