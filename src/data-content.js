@@ -268,6 +268,17 @@ export function getClassProjection(classId) {
   return _projectionStore.getClassProjection(classId);
 }
 
+/** By-/grannby-översikt för EN klass ur projektionen: 1 getDoc (O(1)/klass). #234 */
+export function getClassOverview(classId, memberIds) {
+  return _projectionStore.getClassOverview(classId, memberIds);
+}
+
+/** By-översikt för EGNA byn (unionen av mina klasser): egna studentData + 1
+ *  projektion/klass (≤2 dok för en klass). #234 */
+export function getOwnVillageOverview(opts) {
+  return _projectionStore.getOwnVillageOverview(opts);
+}
+
 /** Bygg members-entries via per-elev-läsning (self-heal-fallback). #231 */
 export function buildProjectionEntries(ids) {
   return _projectionStore.buildProjectionEntries(ids);
