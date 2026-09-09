@@ -28,6 +28,7 @@
 import { O, LINE, THIN, limb } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
+import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -172,6 +173,8 @@ const HUS_SKAL = {
   ...LYX_HUS_SKAL,
   // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
   ...MYSTERY_HUS_SKAL,
+  // Legendary husskal (exklusiva Mega/Epic-box-drops, ej köpbara i shoppen).
+  ...LEGENDARY_HUS_SKAL,
 };
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */

@@ -106,6 +106,12 @@ export const MYSTERY_ITEMS = [
   // HUS (mystery-husskal).
   { id: "myst-kristallhus", name: "Kristallhus", category: "hus", skalId: "myst-kristallhus", rarity: "legendary", emoji: "🏯" },
   { id: "myst-molnslott", name: "Molnslott", category: "hus", skalId: "myst-molnslott", rarity: "legendary", emoji: "☁️" },
+  // Exklusiva legendary-hus (art-hus-legendary.js) – bara vinnbara ur boxen,
+  // finns ALDRIG i shoppens hus-kategori.
+  { id: "myst-drakborg", name: "Drakborg", category: "hus", skalId: "myst-drakborg", rarity: "legendary", emoji: "🐉" },
+  { id: "myst-regnbagspalats", name: "Regnbågspalats", category: "hus", skalId: "myst-regnbagspalats", rarity: "legendary", emoji: "🌈" },
+  { id: "myst-rymdstation", name: "Rymdstation", category: "hus", skalId: "myst-rymdstation", rarity: "legendary", emoji: "🛸" },
+  { id: "myst-pyramid", name: "Gyllene pyramid", category: "hus", skalId: "myst-pyramid", rarity: "legendary", emoji: "🔺" },
 ];
 
 /** Alla mystery-id:n i en Set (snabb uppslagning). */
