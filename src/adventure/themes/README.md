@@ -7,7 +7,8 @@ kollision, frågor, progress, belöning, avatar, loop, städning) ägs av motorn
 
 > **Ett nytt tema = EN ny `themes/<x>.js`-fil** som exporterar ett config-objekt.
 > Rör aldrig motorn för att lägga till en bana. Registrera temat i `THEMES`-tabellen
-> (se `test-tema.js`) så en route kan välja det med `#/elev/aventyr?...&tema=<id>`.
+> (produktionsregistret `themes/index.js`) så det syns som kort och en route kan
+> välja det med `#/elev/aventyr?...&tema=<id>`.
 
 ## Fält motorn läser
 
@@ -68,6 +69,7 @@ export const spokjaktenTheme = {
 };
 ```
 
-Registrera det i `THEMES`-tabellen (`test-tema.js`) och starta med
+Registrera det i produktionsregistret `themes/index.js` (`test-tema.js` speglar
+det för testbanans route) och starta med
 `#/elev/aventyr?subj=<ämne>&area=<område>&tema=spokjakten`. Inget annat behövs –
 motorn är oförändrad.
