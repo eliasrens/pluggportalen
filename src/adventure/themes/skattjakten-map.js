@@ -1,18 +1,26 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/skattjakten-map.js  (issue #221)
+// Pluggportalen – äventyrsmotorn: themes/skattjakten-map.js  (issue #221, #243)
 // ----------------------------------------------------------------------------
 // REN DATA + REN MATTE för Skattjaktens ö-karta i motorns scroll-läge (world.js).
 // DOM-fri och Firebase-fri → enhetstestbar (test/skattjakten-map.test.js).
-// Här bor bara banans GEOMETRI på ön (världen ritas egenhändigt i inline-SVG sedan
-// issue #238, se themes/skattjakten-scen-svg.js – konsten följer denna geometri)
-// samt de två små urvalshjälparna som gör att banan varierar:
-//   • SPAWN_CANDIDATES – 18 fasta möjliga frågeplatser på gångbar mark; pickSpawns()
-//     väljer 10 av dem (issue: "spelet väljer 10").
-//   • CHEST_CANDIDATES – 3 möjliga skattkist-platser; pickChest() väljer en.
-// Allt normaliserat 0..1 av världen så det matchar bildens 1536×1024 utan pixellås.
-// Kollisionen är MEDVETET grov (issue: "lågupplöst mask/rutnät duger"):
-//   • COLLISION_GRID – 20×14 land/hav-mask (# = hav, sträcks över hela ön)
-//   • COLLISION_RECTS – dammen, ån (utom bron), ruinerna och de stora klipporna
+//
+// EN GEOMETRI-KÄLLA (issue #243): all ö-geometri – kustlinjen, dammen, ån, bron,
+// klipporna och ruinerna – bor HÄR, i världspixlar (1536×1024). BÅDE konsten
+// (themes/skattjakten-scen-svg.js) OCH kollisionen läser samma konstanter, så de
+// kan aldrig driva isär igen. Efter ombyggnaden till egenritad SVG (#238) matchade
+// den gamla grova COLLISION_GRID/COLLISION_RECTS inte längre var konsten faktiskt
+// ritade kusten och hindren ("halva" hinder, kunde gå ut i havet). Därför är
+// kollisionen nu ett EXAKT predikat, blockedAt(x,y), byggt ur samma geometri:
+//   • Hav   – punkt UTANFÖR kustlinje-polygonen (point-in-polygon) = blockerat.
+//   • Damm  – innanför vatten-ellipsen = blockerat.
+//   • Å     – nära åns polylinjer (< halvbredd) = blockerat, MEN bron är en lucka.
+//   • Klippor/ruiner – innanför de ritade boxarna = blockerat.
+// Dekor (palmer, buskar, stenar, blommor, stig, brygga, båt, tält, X, eld) är
+// GÅNGBAR och blockeras inte.
+//
+// Utöver geometrin bor här de två urvalshjälparna som gör att banan varierar:
+//   • SPAWN_CANDIDATES – 18 fasta möjliga frågeplatser (normaliserat); pickSpawns() väljer 10.
+//   • CHEST_CANDIDATES – 3 möjliga skattkist-platser (normaliserat); pickChest() väljer en.
 // ============================================================================
 
 // Världsmått (3:2). worldSize matchar aspekten så den egenritade ö-SVG:n
@@ -24,48 +32,137 @@ export const WORLD = { w: 1536, h: 1024 };
 // behålls för bakåtkompatibilitet/dokumentation (och det befintliga testet).
 export const MAP_IMAGE = "src/adventure/assets/skattjakten-karta.jpg";
 
-// --- Grov land/hav-mask (20 kolumner × 14 rader) ----------------------------
-// '#' = hav (blockerat), '.' = gångbar ö. Medvetet generös: hela gräs/sand/stigar
-// är gångbart, bara tydligt öppet vatten är '#'. Interiöra hinder (damm/å/klippor/
-// ruiner) läggs ovanpå som rects nedan, inte i masken.
-export const COLLISION_GRID = [
-  "####################", // r0  hav
-  "#...............####", // r1
-  "#.................##", // r2
-  "..................##", // r3
-  "...................#", // r4  bredast
-  "...................#", // r5
-  "...................#", // r6
-  "...................#", // r7
-  "#.................##", // r8
-  "#................###", // r9
-  "#...............####", // r10
-  "##............######", // r11
-  "###.........########", // r12
-  "####################", // r13 hav
+// ============================================================================
+// DELAD GEOMETRI (världspixlar). Konsten och kollisionen läser SAMMA konstanter.
+// ============================================================================
+
+// Öns mittpunkt – används för att skala kustlinjen inåt/utåt (sand vs gräs).
+export const ISLAND_CENTER = [700, 500];
+
+// --- Kustlinje: organisk blob (medurs från toppen). Detta är sandens YTTERKANT.
+// Punkter INNANFÖR polygonen är land (gräs/sand = gångbart), UTANFÖR = hav.
+export const COAST = [
+  [650, 55], [1000, 68], [1245, 88], [1400, 178], [1470, 330], [1492, 470],
+  [1418, 612], [1300, 702], [1178, 782], [1030, 852], [828, 906], [600, 936],
+  [378, 896], [238, 815], [148, 700], [66, 560], [34, 440], [30, 300],
+  [112, 172], [332, 88],
 ];
 
-// --- Interiöra hinder (normaliserade rects {x,y,w,h}, 0..1) -----------------
-// Dammen (uppe-mitten), ån/bäcken (höger, delad så BRON blir en gångbar lucka),
-// ruinerna (uppe-höger), stora klippformationer (uppe-vänster hörnet + klippkluster
-// nere-mitten). Små blommor/buskar/stenar/stockar/palmer blockeras INTE.
-export const POND = { x: 0.335, y: 0.13, w: 0.135, h: 0.17 };
-export const RUINS = { x: 0.6, y: 0.05, w: 0.22, h: 0.17 };
-export const CLIFF_NW = { x: 0.0, y: 0.0, w: 0.185, h: 0.28 };
-export const CLIFF_MID = { x: 0.295, y: 0.64, w: 0.12, h: 0.15 };
-// Ån: övre segment (vattenfall → strax ovan bron) och nedre segment (under bron →
-// havet). Mellanrummet i y ≈ 0.42..0.48 vid bron lämnas gångbart (BRON).
-export const STREAM_N = { x: 0.72, y: 0.28, w: 0.09, h: 0.14 };
-export const STREAM_S = { x: 0.6, y: 0.48, w: 0.12, h: 0.2 };
+// --- Damm (uppe-mitten): sött vatten med sandkant. Konsten ritar vatten-ellipsen
+// (rx/ry) och en bredare sandkant (sandRx/sandRy); kollisionen blockerar en aning
+// utanför vattnet (så man inte kan stå mitt i dammen).
+export const POND = { cx: 618, cy: 220, rx: 100, ry: 80, sandRx: 118, sandRy: 96 };
+// Kollisionsradier (vatten + liten marginal in på sandkanten) ≈ (105, 88).
+const POND_BLOCK_RX = POND.rx + 5;
+const POND_BLOCK_RY = POND.ry + 8;
 
-export const COLLISION_RECTS = [POND, RUINS, CLIFF_NW, CLIFF_MID, STREAM_N, STREAM_S];
+// --- Å med bro. Övre loppet (vattenfall → strax ovan bron) och nedre loppet (den
+// diagonala kurvan under bron → havet). Bron är en GÅNGBAR lucka mellan dem.
+export const STREAM_UPPER = [[1210, 300], [1180, 360], [1150, 420]];
+export const STREAM_LOWER = [[1120, 500], [1040, 590], [980, 680], [940, 780], [900, 880]];
+// Åns halvbredd i px (lite generösare än den ritade stroke:n så man inte kan
+// klippa igenom det synliga vattnet).
+export const STREAM_HALF_WIDTH = 28;
+// Bron: tvärgående plankbro, ~180×60 px, roterad 28° runt sitt centrum.
+export const BRIDGE = { cx: 1135, cy: 465, w: 180, h: 60, rotDeg: 28 };
+
+// --- Klippor (staplade stenblock). Två kluster; kollisionen blockerar hela den
+// ritade boxen. NV-hörnet ligger delvis utanför bild (redan blockerat av kanten).
+export const CLIFF_NW = { x: -10, y: -10, w: 300, h: 300 };
+export const CLIFF_MID = { x: 453, y: 655, w: 184, h: 154 };
+export const CLIFF_RECTS = [CLIFF_NW, CLIFF_MID];
+
+// --- Ruiner (uppe-höger): brutna stenpelare + fundament. (x,y) är konstens origo;
+// hela footprinten blockeras (box ≈ x[921..1241] y[60..232]).
+export const RUINS = { x: 921, y: 60, w: 320, h: 172 };
+
+// ============================================================================
+// KOLLISIONS-MATTE (ren, DOM-fri). Allt i världspixlar.
+// ============================================================================
+
+/** Punkt-i-polygon (ray casting). poly = [[x,y],...] (sluten underförstått). */
+function pointInPolygon(x, y, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1];
+    const xj = poly[j][0], yj = poly[j][1];
+    const intersect =
+      (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+/** Innanför en ellips (cx,cy,rx,ry)? */
+function insideEllipse(x, y, cx, cy, rx, ry) {
+  const dx = (x - cx) / rx, dy = (y - cy) / ry;
+  return dx * dx + dy * dy <= 1;
+}
+
+/** Innanför en axelriktad box {x,y,w,h}? */
+function insideRect(x, y, r) {
+  return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+}
+
+/** Kortaste avstånd (px) från punkt till linjesegment a→b. */
+function segDist(px, py, a, b) {
+  const vx = b[0] - a[0], vy = b[1] - a[1];
+  const wx = px - a[0], wy = py - a[1];
+  const len2 = vx * vx + vy * vy;
+  let t = len2 > 0 ? (wx * vx + wy * vy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = a[0] + t * vx, cy = a[1] + t * vy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+/** Nära någon del av en polylinje (< half px)? */
+function nearPolyline(x, y, pts, half) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (segDist(x, y, pts[i], pts[i + 1]) <= half) return true;
+  }
+  return false;
+}
+
+/** Står punkten på den (roterade) bron? (gångbar lucka i ån.) */
+function onBridge(x, y) {
+  const t = (-BRIDGE.rotDeg * Math.PI) / 180;
+  const dx = x - BRIDGE.cx, dy = y - BRIDGE.cy;
+  const lx = dx * Math.cos(t) - dy * Math.sin(t);
+  const ly = dx * Math.sin(t) + dy * Math.cos(t);
+  // Liten marginal så man kan kliva på/av bron utan att fastna i vattnet.
+  return Math.abs(lx) <= BRIDGE.w / 2 + 8 && Math.abs(ly) <= BRIDGE.h / 2 + 12;
+}
+
+/**
+ * AUKTORITATIVT kollisions-predikat i VÄRLDSKOORDINATER (px). true = blockerat.
+ * Exakt funktion av samma geometri som konsten ritas ur (issue #243).
+ */
+export function isBlockedWorld(x, y) {
+  // Hav: allt utanför kustlinjen (sanden är gångbar ända ut till kanten).
+  if (!pointInPolygon(x, y, COAST)) return true;
+  // Damm.
+  if (insideEllipse(x, y, POND.cx, POND.cy, POND_BLOCK_RX, POND_BLOCK_RY)) return true;
+  // Ruiner.
+  if (insideRect(x, y, RUINS)) return true;
+  // Klippor.
+  for (let i = 0; i < CLIFF_RECTS.length; i++) {
+    if (insideRect(x, y, CLIFF_RECTS[i])) return true;
+  }
+  // Å – blockera nära vattnet, men lämna bron gångbar.
+  if (!onBridge(x, y)) {
+    if (nearPolyline(x, y, STREAM_UPPER, STREAM_HALF_WIDTH)) return true;
+    if (nearPolyline(x, y, STREAM_LOWER, STREAM_HALF_WIDTH)) return true;
+  }
+  return false;
+}
 
 // --- Startpunkt: vid bryggan/båten nere-höger (anländer med båt), på sand -----
 export const START_AT = { x: 0.74, y: 0.66 };
 
 // --- 18 fasta möjliga frågeplatser på gångbar mark, utspridda över ön ---------
 // Längs stigarna, öppna gräsytor, vid tältet, nära ruinerna, vid dammen. Inte på
-// rad, inte ovanpå varandra. Alla verifierade fria från hav/damm/å/klippor/ruiner.
+// rad, inte ovanpå varandra. Alla verifierade fria från hav/damm/å/klippor/ruiner
+// (och nåbara från start) i test/skattjakten-map.test.js.
 export const SPAWN_CANDIDATES = [
   { x: 0.2, y: 0.36 },  // vid tältet/lägret (vänster)
   { x: 0.3, y: 0.28 },  // vänster gräs, ovan stigen
@@ -89,6 +186,7 @@ export const SPAWN_CANDIDATES = [
 
 // --- 2–4 kandidat-platser för skattkistan -----------------------------------
 // Nära ruinerna, en dold glänta (mitten), nära klipporna (nere-vänster).
+// (Konsten ritar diskreta röda X vid dessa: (1014,287),(722,573),(353,696).)
 export const CHEST_CANDIDATES = [
   { x: 0.66, y: 0.28 }, // nära ruinerna
   { x: 0.47, y: 0.56 }, // dold glänta (mitten)
@@ -118,7 +216,9 @@ export function pickChest(candidates = CHEST_CANDIDATES, rng = Math.random) {
   return candidates[Math.floor(rng() * candidates.length)];
 }
 
-/** Bygg temats collision-config (grid + rects) – gemensam källa för tema & test. */
+/** Bygg temats collision-config. Predikatet blockedAt(x,y) är auktoritativt och
+ *  byggt ur exakt samma geometri som konsten ritas ur (issue #243) – ingen grov
+ *  grid/rects längre, de kunde driva isär från konsten. */
 export function buildSkattjaktenCollision() {
-  return { grid: COLLISION_GRID, rects: COLLISION_RECTS };
+  return { blockedAt: isBlockedWorld };
 }

@@ -1,9 +1,11 @@
 // ============================================================================
 // Enhetstest för Skattjaktens ö-karta-geometri (src/adventure/themes/
-// skattjakten-map.js, #221). Ren matte/data, ingen DOM. Körs med: node --test
-// Verifierar att kollisionen blockerar hav/damm/å/ruiner/klippor men släpper fram
-// gräs/sand/bron, att start + ALLA fråge- och kist-kandidater ligger på gångbar
-// mark, och att urvalshjälparna (pickSpawns/pickChest) beter sig rätt.
+// skattjakten-map.js, #221, #243). Ren matte/data, ingen DOM. Körs med: node --test
+// Verifierar att kollisionen (nu ett EXAKT blockedAt-predikat byggt ur samma
+// geometri som konsten ritas ur, #243) blockerar hav/damm/å/ruiner/klippor men
+// släpper fram gräs/sand/bron, att start + ALLA fråge- och kist-kandidater ligger
+// på gångbar mark OCH är nåbara från startbryggan (flood-fill), och att
+// urvalshjälparna (pickSpawns/pickChest) beter sig rätt.
 // ============================================================================
 
 import { test } from "node:test";
@@ -16,11 +18,15 @@ import {
   START_AT,
   SPAWN_CANDIDATES,
   CHEST_CANDIDATES,
+  COAST,
   POND,
   RUINS,
   CLIFF_NW,
-  STREAM_N,
-  STREAM_S,
+  CLIFF_MID,
+  STREAM_UPPER,
+  STREAM_LOWER,
+  BRIDGE,
+  isBlockedWorld,
   pickSpawns,
   pickChest,
   buildSkattjaktenCollision,
@@ -33,8 +39,8 @@ const blocked = buildCollision(buildSkattjaktenCollision(), WORLD);
 function walkable(p) {
   return !blocked(p.x * WORLD.w, p.y * WORLD.h);
 }
-/** Mittpunkten av en normaliserad rect. */
-function center(r) {
+/** Mittpunkt av en world-px box {x,y,w,h}. */
+function boxCenter(r) {
   return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
 }
 
@@ -49,6 +55,13 @@ test("temat ritar en egenritad inline-SVG-värld (mapSvg), inte JPG-bilden (#238
 
 test("worldSize matchar bildens 3:2-aspekt (ingen tänjning)", () => {
   assert.equal(WORLD.w / WORLD.h, 1536 / 1024);
+});
+
+test("kollisionen är ett auktoritativt blockedAt-predikat (ingen grov grid/rects, #243)", () => {
+  const c = buildSkattjaktenCollision();
+  assert.equal(typeof c.blockedAt, "function", "blockedAt ska vara predikatet");
+  assert.ok(!c.grid, "ingen grov grid längre");
+  assert.ok(!c.rects, "inga grova rects längre");
 });
 
 test("startpunkten (vid bryggan) ligger på gångbar mark", () => {
@@ -79,25 +92,49 @@ test("2–4 kist-kandidater, alla på gångbar mark", () => {
   }
 });
 
-test("kollision blockerar havet runt ön (hörn + utanför bilden)", () => {
+test("kollision blockerar havet runt ön (hörn, kant utanför kustlinjen, utanför bild)", () => {
   assert.ok(!walkable({ x: 0.02, y: 0.02 }), "uppe-vänster hörn = hav/klippa");
   assert.ok(!walkable({ x: 0.98, y: 0.05 }), "uppe-höger hörn = hav");
   assert.ok(!walkable({ x: 0.02, y: 0.95 }), "nere-vänster hörn = hav");
   assert.ok(!walkable({ x: 0.98, y: 0.95 }), "nere-höger hörn = hav");
+  // Precis ovanför öns topp (utanför kustlinjen) = hav.
+  assert.ok(isBlockedWorld(700, 20), "ovanför kusten = hav");
+  assert.ok(isBlockedWorld(700, 1010), "under kusten = hav");
   assert.ok(blocked(-5, 500), "utanför bilden = alltid blockerat");
 });
 
-test("kollision blockerar damm, ruiner och stora klippor", () => {
-  assert.ok(!walkable(center(POND)), "dammen blockerad");
-  assert.ok(!walkable(center(RUINS)), "ruinerna blockerade");
-  assert.ok(!walkable(center(CLIFF_NW)), "uppe-vänstra klippan blockerad");
-  assert.ok(!walkable(center(STREAM_N)), "ån (övre) blockerad");
-  assert.ok(!walkable(center(STREAM_S)), "ån (nedre) blockerad");
+test("inuti kustlinjen (gräs/sand) är gångbart – man kan gå ända ut till kanten", () => {
+  // Öns mitt och en punkt nära (men innanför) kustlinjen ska vara fria.
+  assert.ok(!isBlockedWorld(700, 500), "öns mitt gångbar");
+  // En punkt strax innanför nordkusten (mellan topp-punkterna, ej på hinder).
+  assert.ok(!isBlockedWorld(700, 150), "strax innanför nordkusten = sand/gräs");
 });
 
-test("bron är en gångbar lucka i ån (kan korsa mellan segmenten)", () => {
-  // Luckan i y mellan STREAM_N (slutar 0.42) och STREAM_S (börjar 0.48), x vid bron.
-  assert.ok(walkable({ x: 0.63, y: 0.45 }), "bro-partiet ska vara gångbart");
+test("kollision blockerar damm, ruiner och stora klippor HELT (inga halva hinder, #243)", () => {
+  // Damm: hela vatten-ellipsen blockeras.
+  assert.ok(isBlockedWorld(POND.cx, POND.cy), "dammens mitt blockerad");
+  assert.ok(isBlockedWorld(POND.cx + POND.rx * 0.8, POND.cy), "dammens kant blockerad");
+  // Ruiner: hela footprinten.
+  const rc = boxCenter(RUINS);
+  assert.ok(isBlockedWorld(rc.x, rc.y), "ruinernas mitt blockerad");
+  assert.ok(isBlockedWorld(RUINS.x + 5, RUINS.y + 5), "ruinernas hörn blockerat");
+  // Klippor: båda klustren.
+  assert.ok(isBlockedWorld(60, 60), "NV-klippan blockerad");
+  const mc = boxCenter(CLIFF_MID);
+  assert.ok(isBlockedWorld(mc.x, mc.y), "center-klippan blockerad");
+});
+
+test("ån blockerar (utom bron): nära åns lopp = vatten, bron = gångbar lucka", () => {
+  // Mittpunkter på åns polylinjer ska blockeras.
+  assert.ok(isBlockedWorld(STREAM_UPPER[1][0], STREAM_UPPER[1][1]), "övre ån blockerad");
+  assert.ok(isBlockedWorld(STREAM_LOWER[1][0], STREAM_LOWER[1][1]), "nedre ån blockerad");
+  assert.ok(isBlockedWorld(STREAM_LOWER[2][0], STREAM_LOWER[2][1]), "nedre ån (kurva) blockerad");
+  // Bron: mittpunkten (och strax runt) ska vara gångbar trots att den bryter ån.
+  assert.ok(!isBlockedWorld(BRIDGE.cx, BRIDGE.cy), "bro-mitten gångbar");
+});
+
+test("bron är en gångbar lucka så man kan korsa ån (öster ↔ väster)", () => {
+  assert.ok(!isBlockedWorld(BRIDGE.cx, BRIDGE.cy), "bro-partiet gångbart");
 });
 
 // --- Nåbarhet (flood-fill) --------------------------------------------------
@@ -163,6 +200,20 @@ test("öster om ån går att nå via bron (inte avskuret av vattnet)", () => {
   const reach = reachableSetFrom(START_AT);
   // En punkt tydligt öster om ån (höger gräs) måste ligga i start-regionen.
   assert.ok(isReachable(reach, { x: 0.86, y: 0.4 }), "höger sida om ån ska nås via bron");
+});
+
+test("havet omsluter hela ön (start-regionen läcker inte ut i havet)", () => {
+  // Flood-fill från start får inte nå bildhörnen (då vore havet gångbart).
+  const reach = reachableSetFrom(START_AT);
+  assert.ok(!isReachable(reach, { x: 0.01, y: 0.01 }), "hörnet ska inte vara nåbart (hav)");
+  assert.ok(!isReachable(reach, { x: 0.99, y: 0.99 }), "hörnet ska inte vara nåbart (hav)");
+});
+
+test("kustlinjen är en sluten polygon med 20 punkter (delad geometri-källa)", () => {
+  assert.equal(COAST.length, 20);
+  for (const [x, y] of COAST) {
+    assert.ok(Number.isFinite(x) && Number.isFinite(y), "kustpunkt ska vara tal");
+  }
 });
 
 test("pickSpawns väljer 10 unika kandidater (default)", () => {
