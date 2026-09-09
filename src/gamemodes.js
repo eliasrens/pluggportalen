@@ -29,10 +29,14 @@ const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
  * fält blir ett kort "Äventyr: <namn>". Nya teman (Spökjakten/Gruvan) behöver bara
  * lägga till en rad i THEMES – ingen ändring här. Kortet är låst tills området har
  * innehåll som temats frågekällor kan använda; annars visas stjärnor (mode "aventyr:<id>").
+ *
+ * Läraren kan dölja ett tema per område (#200) ELLER för hela klassen (#208), precis
+ * som övriga lägen: är "aventyr:<id>" dolt (union klass ∪ område) byggs inget kort alls.
  */
-function adventureCards(has, areaProgress) {
+function adventureCards(has, areaProgress, areaData, studentClass) {
   return Object.values(THEMES)
     .filter((t) => t && t.oversikt)
+    .filter((t) => !isModeHiddenForStudent(areaData, studentClass, `aventyr:${t.id}`))
     .map((t) => {
       const kinds = t.questionKinds || ["quiz"];
       const available = kinds.some((k) => has[KIND_NEEDS[k]]);
@@ -124,7 +128,7 @@ export async function pageElevOmrade() {
     </button>`;
   }).join("");
 
-  const advCards = adventureCards(has, areaProgress);
+  const advCards = adventureCards(has, areaProgress, areaData, studentClass);
 
   // Tydlig hint ovanför korten när förkravet ännu inte är uppfyllt.
   const prereqBanner = lockOthers

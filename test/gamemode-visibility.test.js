@@ -11,6 +11,8 @@ import assert from "node:assert/strict";
 
 import {
   GAMEMODES,
+  ALL_MODES,
+  ADVENTURE_MODES,
   normalizeHiddenModes,
   isModeHidden,
   isModeHiddenForClass,
@@ -22,6 +24,8 @@ import {
 } from "../src/gamemode-visibility.js";
 import { validateArea } from "../src/validate.js";
 import { mergeAreaContent } from "../src/merge-area.js";
+import { ADVENTURE_THEME_META } from "../src/adventure/themes/meta.js";
+import { THEMES } from "../src/adventure/themes/index.js";
 
 const QUIZ = [{ question: "Q?", options: ["a", "b"], answerIndex: 0 }];
 const PAIRS = [
@@ -78,8 +82,32 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
 
 test("availableGamemodes ger bara lägen med underlag, oavsett hiddenModes", () => {
   const ids = availableGamemodes({ pairs: PAIRS, hiddenModes: ["para"] }).map((gm) => gm.id);
-  // pairs ger para, memory (och sanningsjakt via ≥2 par); ingen quiz.
-  assert.deepEqual(new Set(ids), new Set(["para", "memory", "sanningsjakt"]));
+  // pairs ger para, memory (och sanningsjakt via ≥2 par); ingen quiz. Äventyrs-
+  // temana kan spelas ur par (needsAny innehåller "pairs") → de ingår också.
+  assert.deepEqual(
+    new Set(ids),
+    new Set([
+      "para",
+      "memory",
+      "sanningsjakt",
+      "aventyr:skattjakten",
+      "aventyr:spokjakten",
+      "aventyr:gruvan",
+    ])
+  );
+});
+
+test("availableGamemodes tar med äventyrs-temana bara när området har underlag", () => {
+  // Inget innehåll → inga äventyrskort i listan.
+  assert.equal(
+    availableGamemodes({}).some((gm) => gm.id.startsWith("aventyr:")),
+    false
+  );
+  // Quiz räcker (needsAny: quiz|par) → alla tre temana tillgängliga.
+  const advIds = availableGamemodes({ quiz: QUIZ })
+    .map((gm) => gm.id)
+    .filter((id) => id.startsWith("aventyr:"));
+  assert.deepEqual(new Set(advIds), new Set(["aventyr:skattjakten", "aventyr:spokjakten", "aventyr:gruvan"]));
 });
 
 test("visibleGamemodes = har underlag OCH inte urbockat", () => {
@@ -182,4 +210,45 @@ test("GAMEMODES har de sju lägena", () => {
     GAMEMODES.map((gm) => gm.id),
     ["lasforstaelse", "lastext", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory"]
   );
+});
+
+// --- äventyrs-teman i synlighetslistan (issue #214) -------------------------
+
+test("ADVENTURE_MODES är nyckelade aventyr:<id> och ligger sist i ALL_MODES", () => {
+  const advIds = ADVENTURE_MODES.map((m) => m.id);
+  assert.deepEqual(new Set(advIds), new Set(["aventyr:skattjakten", "aventyr:spokjakten", "aventyr:gruvan"]));
+  // ALL_MODES = de sju vanliga + äventyren (i den ordningen).
+  assert.deepEqual(
+    ALL_MODES.map((m) => m.id),
+    [...GAMEMODES.map((m) => m.id), ...advIds]
+  );
+});
+
+test("dolt äventyrs-tema (område ELLER klass) filtreras bort för eleven", () => {
+  const area = { quiz: QUIZ, hiddenModes: ["aventyr:skattjakten"] };
+  const cls = { hiddenModes: ["aventyr:gruvan"] };
+  const ids = visibleGamemodesForStudent(area, cls).map((gm) => gm.id);
+  assert.ok(!ids.includes("aventyr:skattjakten"), "dolt på område ska bort");
+  assert.ok(!ids.includes("aventyr:gruvan"), "dolt på klass ska bort");
+  assert.ok(ids.includes("aventyr:spokjakten"), "odolt tema kvar");
+  // isModeHiddenForStudent svarar direkt med samma union-hjälpare som övriga lägen.
+  assert.equal(isModeHiddenForStudent(area, cls, "aventyr:skattjakten"), true);
+  assert.equal(isModeHiddenForStudent(area, cls, "aventyr:gruvan"), true);
+  assert.equal(isModeHiddenForStudent(area, cls, "aventyr:spokjakten"), false);
+});
+
+// Lätt metadata (meta.js) och det tunga registret (index.js) får inte glida isär –
+// en glömd rad när ett nytt tema läggs till fångas här.
+test("ADVENTURE_THEME_META är i synk med THEMES (id/namn/emoji/needs)", () => {
+  assert.deepEqual(
+    ADVENTURE_THEME_META.map((m) => m.id).sort(),
+    Object.keys(THEMES).sort()
+  );
+  for (const m of ADVENTURE_THEME_META) {
+    const theme = THEMES[m.id];
+    assert.ok(theme, `THEMES saknar ${m.id}`);
+    assert.equal(m.namn, theme.namn, `namn skiljer för ${m.id}`);
+    assert.equal(m.emoji, theme.progressIcon, `emoji/progressIcon skiljer för ${m.id}`);
+    assert.deepEqual(m.needs, theme.questionKinds, `needs/questionKinds skiljer för ${m.id}`);
+  }
 });
