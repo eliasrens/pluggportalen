@@ -1,10 +1,13 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: läsnivå per elev (teacher-reading-level.js)
+// Pluggportalen – lärarsidan: läsnivå per elev (teacher-student-level.js)
 // ----------------------------------------------------------------------------
-// Issue #154: läraren sätter en LÄSNIVÅ (1–3) per elev, så läsförståelse-läget
-// kan servera texterna/frågorna på elevens nivå (svagare läsare → nivå 1,
-// starkare → nivå 3, samma tema). Panelen mountas under ett klasskort i
+// Issue #154: läraren sätter en LÄSNIVÅ (1–3) per elev, så Läsuppdrag-läget
+// (games-lastext.js) kan servera texterna på elevens nivå (svagare läsare →
+// nivå 1, starkare → nivå 3, samma tema). Panelen mountas under ett klasskort i
 // klasshanteringen (teacher-class-accounts.js) som en egen <details>.
+//
+// OBS: separat från #155:s teacher-reading-level.js (nivå-/frågeredigerarna för
+// SJÄLVA innehållet). Den här filen rör bara den PER-ELEV tilldelade nivån.
 //
 // Nivån bor i studentData.readingLevel (data.setReadingLevel/getReadingLevel).
 // Panelen läser medlemmarnas nuvarande nivåer LATT (först när den öppnas) och
@@ -31,13 +34,13 @@ function levelOptions(sel) {
  * @param {HTMLElement} body            container inuti details att fylla
  * @param {object[]} members            klassens elever
  */
-export function mountReadingLevelDetails(details, body, members) {
+export function mountStudentLevelDetails(details, body, members) {
   if (!details || !body) return;
   let loaded = false;
   details.addEventListener("toggle", () => {
     if (details.open && !loaded) {
       loaded = true;
-      renderReadingLevelPanel(body, members);
+      renderStudentLevelPanel(body, members);
     }
   });
 }
@@ -47,7 +50,7 @@ export function mountReadingLevelDetails(details, body, members) {
  * @param {HTMLElement} host   container att fylla
  * @param {object[]} members   klassens elever ({ id, namn, username, avatarId })
  */
-export function renderReadingLevelPanel(host, members) {
+export function renderStudentLevelPanel(host, members) {
   if (!Array.isArray(members) || members.length === 0) {
     host.replaceChildren(el(`<p class="hint">Inga elever i klassen än – skapa konton ovan först.</p>`));
     return;

@@ -15,18 +15,12 @@ import { GAMEMODES } from "./game-shared.js";
 
 export const MAX_STARS_PER_MODE = 3;
 
-/** Tillgängliga gamemodes för ett område (utifrån quiz/pairs/nivåtext-innehåll). */
+/** Tillgängliga gamemodes för ett område (utifrån quiz/pairs-innehåll). */
 export function areaModes(area) {
   const hasQuiz = Array.isArray(area.quiz) && area.quiz.length > 0;
   const hasPairs = Array.isArray(area.pairs) && area.pairs.length > 0;
-  // Läsförståelse kan drivas av nivåtexter (readingTexts, #152/#154) även utan
-  // gammalt quiz – speglar tillgänglighetslogiken i gamemodes.js (elevsidan).
-  const hasReading = Array.isArray(area.readingTexts) && area.readingTexts.length > 0;
   return GAMEMODES.filter(
-    (gm) =>
-      gm.id === "lasforstaelse"
-        ? hasQuiz || hasReading
-        : (gm.needs === "quiz" && hasQuiz) || (gm.needs === "pairs" && hasPairs)
+    (gm) => (gm.needs === "quiz" && hasQuiz) || (gm.needs === "pairs" && hasPairs)
   );
 }
 

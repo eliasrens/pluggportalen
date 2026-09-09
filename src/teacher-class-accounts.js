@@ -17,7 +17,7 @@ import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
 import { el, esc, copyText } from "./teacher-shared.js";
 import { renderAccountEditor, printLoginCards } from "./teacher-login-cards.js";
-import { mountReadingLevelDetails } from "./teacher-reading-level.js";
+import { mountStudentLevelDetails } from "./teacher-student-level.js";
 
 // --- Genererade inloggningsuppgifter ----------------------------------------
 
@@ -342,7 +342,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
     });
 
     // Läsnivå per elev (#154): panelen laddar lazily när den öppnas.
-    mountReadingLevelDetails(wrap.querySelector(".mm-reading"), wrap.querySelector(".mm-reading-body"), members);
+    mountStudentLevelDetails(wrap.querySelector(".mm-reading"), wrap.querySelector(".mm-reading-body"), members);
 
     // Lägg till befintliga elever.
     const existingEl = wrap.querySelector(".mm-existing");
