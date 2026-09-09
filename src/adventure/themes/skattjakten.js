@@ -1,49 +1,47 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/skattjakten.js
+// Pluggportalen – äventyrsmotorn: themes/skattjakten.js  (issue #221)
 // ----------------------------------------------------------------------------
-// TEMA (ren data + inline-SVG) ovanpå den tema-agnostiska motorn (engine.js).
-// INGEN spellogik här: rörelse/kollision, frågor, progress, belöning (1–3★,
-// grind-skalat mode "aventyr:skattjakten") ägs helt av motorn – se
-// themes/README.md för motor↔tema-kontraktet. Den här filen levererar bara
-// kartan, grafiken, färgerna och texterna för en mysig tropisk skattjakt.
+// TEMA (ren data + inline-SVG-strängar) ovanpå den tema-agnostiska motorn
+// (engine.js). INGEN spellogik här: rörelse/kollision, frågor, progress, belöning
+// (1–3★, grind-skalat mode "aventyr:skattjakten") ägs helt av motorn – se
+// themes/README.md för motor↔tema-kontraktet.
 //
-// Skattjakten: en liten ö uppifrån (sand, gräs, palmer, stenar, strandvatten).
-// Objekten (?) är träskyltar där man hittar en frågeställning; rätt svar ger en
-// bit av skattkartan (progress 🗺️ x/10). Vid 10 rätt spawnar motorn slutmålet –
-// här en skattkista med ljussken – som eleven går till för att avsluta + belönas.
+// Skattjakten kör motorns OPT-IN scroll/bild-karta-läge (issue #220): en STOR
+// illustrerad ö-karta (src/adventure/assets/skattjakten-karta.jpg, serverad som
+// fil – inte inline) blir världen, kameran scrollar mjukt under en nära centrerad
+// avatar (~1/6 syns). Banans geometri – världsmått, kollision, start, fråge-spawns
+// och skattkist-platser – bor i themes/skattjakten-map.js (ren, testbar matte).
+//
+// Flöde: eleven anländer med båt vid bryggan nere-höger, utforskar ön (fastnar i
+// hav/damm/å/klippor men går smidigt på gräs/sand/stigar), hittar 10 utspridda
+// frågeobjekt (träskylt/frågelåda/kartpinne), svarar rätt → en bit av skattkartan
+// (🗺️ x/10). Vid 10 rätt spawnar skattkistan på en kandidatplats med tydligt
+// ljussken – eleven går dit och öppnar den → bana klar + belöning.
 //
 // Art följer stilguiden (src/art-style.js): mörk plommonkontur #3B3350, platta
 // mjuka former, glad palett. Kortet i områdesöversikten drivs generiskt av
-// `oversikt`-fältet (gamemodes.js) så Spökjakten/Gruvan bara lägger till en rad.
+// `oversikt`-fältet (gamemodes.js).
 // ============================================================================
 
 import { O, LINE } from "../../art-style.js";
+import {
+  WORLD,
+  MAP_IMAGE,
+  START_AT,
+  pickSpawns,
+  pickChest,
+  buildSkattjaktenCollision,
+} from "./skattjakten-map.js";
 
 // --- Palett (tropisk, ur stilguiden) ----------------------------------------
-const SAND = "#F3DFAE";
 const SAND_LJUS = "#FBEFCB";
-const SAND_MORK = "#E4C88A";
-const GRAS = "#7FC77A";
-const GRAS_MORK = "#5FB268";
-const VATTEN = "#8FD6EF";
-const VATTEN_LJUS = "#C4ECF8";
 const TRA = "#B0805A";
 const TRA_MORK = "#8A6242";
-const STEN = "#AEB4BE";
-const STEN_LJUS = "#CDD2DA";
 const GULD = "#F7C948";
 const GULD_MORK = "#E0A92E";
-const LOV = "#6FC66F";
-const LOV_MORK = "#4FA85B";
+const PAPPER = "#F0E2BE";
 
-/** Full-bleed tile-SVG (sträcks ut över hela rutan – bra för mark/vatten). */
-function fill(inner) {
-  return (
-    `<svg viewBox="0 0 100 100" preserveAspectRatio="none" ` +
-    `style="width:100%;height:100%;display:block">${inner}</svg>`
-  );
-}
-/** Centrerad objekt-SVG (behåller proportioner – bra för palm/sten/skylt). */
+/** Centrerad objekt-SVG (behåller proportioner). */
 function obj(inner, size = "100%") {
   return (
     `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" ` +
@@ -51,73 +49,46 @@ function obj(inner, size = "100%") {
   );
 }
 
-// --- Marktexturer -----------------------------------------------------------
-function sandTile() {
-  return fill(
-    `<rect x="0" y="0" width="100" height="100" fill="${SAND}"/>` +
-    `<circle cx="24" cy="30" r="4.5" fill="${SAND_LJUS}"/>` +
-    `<circle cx="70" cy="22" r="3.5" fill="${SAND_MORK}" opacity="0.7"/>` +
-    `<circle cx="58" cy="66" r="5" fill="${SAND_LJUS}"/>` +
-    `<circle cx="34" cy="78" r="3" fill="${SAND_MORK}" opacity="0.6"/>`
-  );
-}
-function grassTile() {
-  return fill(
-    `<rect x="0" y="0" width="100" height="100" fill="${SAND}"/>` +
-    `<path d="M0 34 Q28 20 52 32 Q78 44 100 30 L100 100 L0 100 Z" fill="${GRAS}"/>` +
-    `<path d="M16 60 l4 -12 M30 74 l3 -12 M52 66 l4 -13 M72 76 l3 -12 M86 58 l4 -12" ` +
-    `stroke="${GRAS_MORK}" stroke-width="4" stroke-linecap="round" fill="none"/>`
-  );
-}
-function waterTile() {
-  return fill(
-    `<rect x="0" y="0" width="100" height="100" fill="${VATTEN}"/>` +
-    `<path d="M-4 34 Q18 24 40 34 T84 34 T128 34" fill="none" ` +
-    `stroke="${VATTEN_LJUS}" stroke-width="5" stroke-linecap="round"/>` +
-    `<path d="M-4 66 Q18 56 40 66 T84 66 T128 66" fill="none" ` +
-    `stroke="${VATTEN_LJUS}" stroke-width="5" stroke-linecap="round"/>`
-  );
-}
-function bridgeTile() {
-  return fill(
-    `<rect x="0" y="0" width="100" height="100" fill="${VATTEN}"/>` +
-    `<rect x="6" y="20" width="88" height="60" rx="8" fill="${TRA}" ` +
-    `stroke="${O}" stroke-width="4"/>` +
-    `<path d="M22 20 V80 M44 20 V80 M66 20 V80" stroke="${TRA_MORK}" stroke-width="4"/>`
-  );
-}
-
-// --- Objekt (hinder + slutmål) ----------------------------------------------
-function palm() {
+// --- Stationer: tre mysiga skattjakts-objekt (varieras per station) ----------
+/** Träskylt med gåtan (?). */
+function sign() {
   return obj(
-    `<ellipse cx="50" cy="90" rx="30" ry="9" fill="${SAND_MORK}"/>` +
-    // stam (kontur + fyllning, som limb() i stilguiden)
-    `<path d="M50 88 Q44 62 56 40" fill="none" stroke="${O}" stroke-width="13" stroke-linecap="round"/>` +
-    `<path d="M50 88 Q44 62 56 40" fill="none" stroke="${TRA}" stroke-width="8" stroke-linecap="round"/>` +
-    `<path d="M50 66 h10 M49 78 h10" stroke="${TRA_MORK}" stroke-width="3" stroke-linecap="round"/>` +
-    // kokosnötter
-    `<circle cx="50" cy="40" r="4.5" fill="${TRA_MORK}" ${LINE}/>` +
-    `<circle cx="61" cy="42" r="4.5" fill="${TRA_MORK}" ${LINE}/>` +
-    // kronblad
-    palmFrond("M56 40 Q34 26 16 34 Q36 34 56 44") +
-    palmFrond("M56 40 Q78 26 92 40 Q72 36 56 46") +
-    palmFrond("M56 40 Q40 18 30 8 Q46 22 58 40") +
-    palmFrond("M56 40 Q72 20 84 12 Q68 24 58 42")
+    `<ellipse cx="50" cy="90" rx="20" ry="6" fill="${O}" opacity="0.14"/>` +
+    `<rect x="45" y="52" width="10" height="40" rx="3" fill="${TRA_MORK}" ${LINE}/>` +
+    `<rect x="18" y="26" width="64" height="34" rx="6" fill="${TRA}" ${LINE}/>` +
+    `<path d="M28 34 h44 M28 52 h44" stroke="${TRA_MORK}" stroke-width="2.4" opacity="0.6"/>` +
+    `<text x="50" y="52" text-anchor="middle" font-size="30" font-weight="900" ` +
+    `font-family="system-ui,sans-serif" fill="${SAND_LJUS}" stroke="${O}" stroke-width="1.4">?</text>`
   );
 }
-function palmFrond(d) {
-  return (
-    `<path d="${d}" fill="${LOV}" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>` +
-    `<path d="${d}" fill="none" stroke="${LOV_MORK}" stroke-width="1.6" opacity="0.7"/>`
-  );
-}
-function rock() {
+/** Liten frågelåda (skattkista i miniatyr med ett ?). */
+function box() {
   return obj(
-    `<ellipse cx="50" cy="84" rx="30" ry="8" fill="${SAND_MORK}"/>` +
-    `<path d="M20 78 Q14 52 38 48 Q52 30 70 46 Q90 52 82 78 Z" fill="${STEN}" ${LINE}/>` +
-    `<path d="M34 62 Q46 50 60 60" fill="none" stroke="${STEN_LJUS}" stroke-width="5" stroke-linecap="round"/>` +
-    `<circle cx="40" cy="70" r="3" fill="${STEN_LJUS}"/>`
+    `<ellipse cx="50" cy="90" rx="24" ry="6" fill="${O}" opacity="0.14"/>` +
+    `<rect x="24" y="52" width="52" height="34" rx="5" fill="${TRA}" ${LINE}/>` +
+    `<path d="M24 54 Q24 36 50 36 Q76 36 76 54 Z" fill="${TRA_MORK}" ${LINE}/>` +
+    `<rect x="24" y="54" width="52" height="7" fill="${GULD}" stroke="${O}" stroke-width="2"/>` +
+    `<text x="50" y="80" text-anchor="middle" font-size="22" font-weight="900" ` +
+    `font-family="system-ui,sans-serif" fill="${SAND_LJUS}" stroke="${O}" stroke-width="1.2">?</text>`
   );
+}
+/** Kartpinne: en hoprullad karta på en käpp. */
+function mapPin() {
+  return obj(
+    `<ellipse cx="50" cy="90" rx="16" ry="5" fill="${O}" opacity="0.14"/>` +
+    `<rect x="47" y="40" width="6" height="52" rx="3" fill="${TRA_MORK}" ${LINE}/>` +
+    `<g transform="rotate(-12 50 36)">` +
+    `<rect x="30" y="24" width="40" height="30" rx="4" fill="${PAPPER}" ${LINE}/>` +
+    `<path d="M36 32 q8 6 16 0 t16 0" fill="none" stroke="${TRA_MORK}" stroke-width="2" opacity="0.6"/>` +
+    `<path d="M40 42 l8 -5 l10 6" fill="none" stroke="${GULD_MORK}" stroke-width="2.4" stroke-linecap="round"/>` +
+    `<text x="58" y="50" font-size="12" font-weight="900" fill="${GULD_MORK}">✕</text>` +
+    `</g>`
+  );
+}
+const STATION_ARTS = [sign, box, mapPin];
+/** Motorn anropar stationArt() en gång per station → slumpa objekt för variation. */
+function stationArt() {
+  return STATION_ARTS[Math.floor(Math.random() * STATION_ARTS.length)]();
 }
 
 /** Skattkistan (slutmål) med ett mjukt ljussken bakom – "skatten hittad". */
@@ -129,17 +100,13 @@ function chest() {
     `<stop offset="100%" stop-color="${GULD}" stop-opacity="0"/>` +
     `</radialGradient></defs>` +
     `<circle cx="50" cy="52" r="48" fill="url(#sk-glow)"/>` +
-    // ljusstrålar
     strale(50, 8) + strale(14, 30) + strale(86, 30) + strale(20, 74) + strale(80, 74) +
     `<ellipse cx="50" cy="92" rx="30" ry="7" fill="${O}" opacity="0.14"/>` +
-    // kista: botten + lock
     `<rect x="24" y="58" width="52" height="30" rx="6" fill="${TRA}" ${LINE}/>` +
     `<path d="M24 60 Q24 40 50 40 Q76 40 76 60 Z" fill="${TRA_MORK}" ${LINE}/>` +
-    // guldband + lås
     `<rect x="24" y="60" width="52" height="7" fill="${GULD}" stroke="${O}" stroke-width="2.2"/>` +
     `<rect x="44" y="54" width="12" height="20" rx="2" fill="${GULD}" ${LINE}/>` +
     `<circle cx="50" cy="66" r="3.2" fill="${GULD_MORK}" ${LINE}/>` +
-    // glittrar
     gnista(30, 30) + gnista(72, 24) + gnista(64, 46)
   );
 }
@@ -153,74 +120,45 @@ function gnista(x, y) {
   );
 }
 
-/** Träskylt (station) – en frågeplats där en bit av skattkartan gömmer sig. */
-function sign() {
-  return obj(
-    `<ellipse cx="50" cy="90" rx="20" ry="6" fill="${O}" opacity="0.14"/>` +
-    `<rect x="45" y="52" width="10" height="40" rx="3" fill="${TRA_MORK}" ${LINE}/>` +
-    `<rect x="18" y="26" width="64" height="34" rx="6" fill="${TRA}" ${LINE}/>` +
-    `<path d="M28 34 h44 M28 52 h44" stroke="${TRA_MORK}" stroke-width="2.4" opacity="0.6"/>` +
-    `<text x="50" y="52" text-anchor="middle" font-size="30" font-weight="900" ` +
-    `font-family="system-ui,sans-serif" fill="${SAND_LJUS}" stroke="${O}" stroke-width="1.4">?</text>`,
-    "1.9em"
-  );
-}
-
 // ============================================================================
 export const skattjaktenTheme = {
   id: "skattjakten",
   namn: "Skattjakten",
-  // Bakgrund = havet runt ön (void-rutorna visar denna gradient som öppet vatten).
-  stamning: { himmel: "#79CFEC", mark: "#3E9FD1" },
+  // Havet runt ön (kamerans letterbox utanför bildkanten) hålls i samma blå ton.
+  stamning: { himmel: "#79CFEC", mark: "#2F8FC4" },
 
-  // Ö uppifrån. Legend nedan ger vatten/palm/sten egna tecken (alla = hinder) och
-  // sand/gräs/bro egna golv-tecken, så tileArt kan rita rätt grafik per ruta.
-  // Validerad: alla 94 gångrutor sammanhängande, 10 stationer, start+mål nåbara.
-  map: [
-    "    ~~~~~~~~    ",
-    "  ~~.,?,,.?.~~  ",
-    " ~..?..,,..?..~ ",
-    " ~.,..oo...,.,~ ",
-    " ~..,..,,..,..~ ",
-    " ~?..,.PP.,..?~ ",
-    " ~..,...M..,..~ ",
-    " ~?..,.oo.,..?~ ",
-    " ~..?..,,..?..~ ",
-    "  ~~..S...,.~~  ",
-    "    ~~~~~~~~    ",
-  ],
-  legend: {
-    " ": "void", // öppet hav (ritas ej – bakgrunds-gradienten syns)
-    "~": "wall", // strandvatten (hinder)
-    P: "wall", // palm (hinder)
-    o: "wall", // sten (hinder)
-    ".": "floor", // sand
-    ",": "floor", // gräs
-    "=": "floor", // brygga
-    S: "start",
-    "?": "station",
-    M: "goal",
+  // Opt-in-flaggan: mapImage → motorn väljer scroll/bild-karta-läget (world.js).
+  mapImage: MAP_IMAGE,
+  worldSize: WORLD,
+  viewFraction: 1 / 6, // ~1/6 av ön syns åt gången (mjuk scroll)
+
+  startAt: START_AT, // vid bryggan/båten nere-höger ("anländer med båt")
+  // Fråge-spawns: 18 fasta kandidater, spelet väljer 10 (getter → nytt urval per
+  // spelomgång). goal=10 → alla valda stationer måste klaras innan kistan spawnar.
+  get stationsAt() {
+    return pickSpawns(10);
   },
-  goal: 10, // 10 rätt → skattkartan komplett → kistan spawnar
+  // Skattkistan spawnar på EN av 2–4 kandidat-platser (getter → varierar per spel).
+  get goalAt() {
+    return pickChest();
+  },
+  goal: 10,
+
+  // Grovt kollisionslager (grid = hav-mask + rects = damm/å/ruiner/klippor).
+  collision: buildSkattjaktenCollision(),
 
   progressIcon: "🗺️",
-  stationArt: () => sign(),
+  stationArt,
   goalArt: () => chest(),
-  tileArt: {
-    floor: (t) => (t.char === "," ? grassTile() : t.char === "=" ? bridgeTile() : sandTile()),
-    start: () => sandTile(),
-    station: (t) => (t.char === "," ? grassTile() : sandTile()),
-    goal: () => sandTile(),
-    wall: (t) => (t.char === "P" ? palm() : t.char === "o" ? rock() : waterTile()),
-    void: () => "", // öppet hav – låt scen-gradienten vara
-  },
 
   texter: {
     intro:
-      "Välkommen till Skattön! 🏝️ Utforska ön och gå fram till varje träskylt 🪧. " +
-      "Svara rätt så får du en bit av skattkartan (🗺️ 10 bitar). När kartan är hel " +
-      "dyker skattkistan upp – gå dit och öppna den!",
-    stationPrompt: "En träskylt med en gåta! Tryck E (eller mellanslag) för att svara.",
+      "Du anländer med båt till Skattön! 🏝️ Utforska ön – gå på gräs, sand och " +
+      "stigar (men akta dig för havet, dammen, ån och de stora klipporna – använd " +
+      "bron!). Vid varje skylt 🪧 gömmer sig en gåta; svara rätt så får du en bit av " +
+      "skattkartan (🗺️ 10 bitar). När kartan är hel dyker skattkistan upp – spring dit " +
+      "och öppna den!",
+    stationPrompt: "En gåta! Tryck E (eller mellanslag) för att svara.",
     stationTitle: "Skattgåta",
     goalPrompt: "Skattkistan glittrar! ✨ Tryck E för att öppna den och hämta belöningen.",
     klart: "Du hittade skatten på Skattön! 🏴‍☠️💰",
@@ -228,10 +166,9 @@ export const skattjaktenTheme = {
 
   questionKinds: ["quiz", "lasforstaelse", "para"],
 
-  // Kort i områdesöversikten (drivs generiskt av gamemodes.js). Ett nytt tema som
-  // vill synas som kort lägger bara till detta fält – ingen ändring i gamemodes.js.
+  // Kort i områdesöversikten (drivs generiskt av gamemodes.js).
   oversikt: {
-    sub: "Utforska ön och samla ihop skattkartan!",
+    sub: "Anländ med båt, utforska ön och samla ihop skattkartan!",
     color: "orange",
   },
 };

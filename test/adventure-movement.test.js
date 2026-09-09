@@ -72,6 +72,23 @@ test("clamp och margin håller figuren innanför scenen", () => {
   assert.equal(r.x, 4, "stoppas vid marginalen, inte utanför scenen");
 });
 
+test("maxX/maxY clampar till en STÖRRE värld (pixel-koordinater, #220)", () => {
+  // Default är 0..100 (procent-gridet). En bild-karta-värld skickar sina pixelmått.
+  const r = moveStep({ x: 1990, y: 500 }, { x: 1, y: 0 }, {
+    speed: 1000, dt: 1, blockedAt: free, margin: 5, maxX: 2000, maxY: 1000,
+  });
+  assert.equal(r.x, 1995, "stoppas vid maxX - margin, inte vid 100");
+  const up = moveStep({ x: 500, y: 3 }, { x: 0, y: -1 }, {
+    speed: 1000, dt: 1, blockedAt: free, margin: 5, maxX: 2000, maxY: 1000,
+  });
+  assert.equal(up.y, 5, "clampas mot marginalen i den nya världens höjd");
+});
+
+test("utan maxX/maxY behålls 0..100-beteendet (bakåtkompatibelt)", () => {
+  const r = moveStep({ x: 98, y: 50 }, { x: 1, y: 0 }, { speed: 100, dt: 1, blockedAt: free });
+  assert.equal(r.x, 100, "clampas fortfarande till 100 som förr");
+});
+
 test("nearestWithin hittar närmaste punkt inom radie, annars null", () => {
   const from = { x: 50, y: 50 };
   const pts = [{ x: 90, y: 90 }, { x: 55, y: 50 }, { x: 40, y: 60 }];

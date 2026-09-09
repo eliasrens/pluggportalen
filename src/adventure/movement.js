@@ -36,24 +36,30 @@ export function normalizeDir(dir) {
  * @param {{x:number,y:number}} pos   nuvarande position i procent
  * @param {{x:number,y:number}} dir   riktning (behöver inte vara normaliserad)
  * @param {object} o
- * @param {number} o.speed            fart i procent/sekund
+ * @param {number} o.speed            fart i världsenheter/sekund
  * @param {number} o.dt               tidssteg i sekunder (clampas av anroparen)
  * @param {(x:number,y:number)=>boolean} o.blockedAt  true = rutan går inte att gå i
- * @param {number} [o.margin=0]       minsta avstånd till scenkant i procent
+ * @param {number} [o.margin=0]       minsta avstånd till världskant (samma enhet)
+ * @param {number} [o.maxX=100]       världens bredd (default 100 = procent-gridet)
+ * @param {number} [o.maxY=100]       världens höjd (default 100 = procent-gridet)
  * @returns {{x:number,y:number,moving:boolean,facingLeft:boolean|null}}
  *   facingLeft: true/false vid horisontell rörelse, annars null (behåll förra).
+ *
+ * Generaliserad över koordinatsystem (issue #220): default-gränserna 0–100 ger
+ * exakt samma beteende som förr för procent-gridet (Spökjakten/Gruvan), men ett
+ * bild-karta-tema kan skicka maxX/maxY = världens pixelstorlek så rörelsen och
+ * kant-clampen jobbar i VÄRLDSKOORDINATER i stället.
  */
-export function moveStep(pos, dir, { speed, dt, blockedAt, margin = 0 }) {
+export function moveStep(pos, dir, { speed, dt, blockedAt, margin = 0, maxX = 100, maxY = 100 }) {
   const unit = normalizeDir(dir);
   if (unit.x === 0 && unit.y === 0) {
     return { x: pos.x, y: pos.y, moving: false, facingLeft: null };
   }
   const dist = speed * dt;
   const lo = margin;
-  const hi = 100 - margin;
 
-  let nx = clamp(pos.x + unit.x * dist, lo, hi);
-  let ny = clamp(pos.y + unit.y * dist, lo, hi);
+  let nx = clamp(pos.x + unit.x * dist, lo, maxX - margin);
+  let ny = clamp(pos.y + unit.y * dist, lo, maxY - margin);
 
   // Axel-separerad kollision: pröva X först (mot nuvarande Y), sedan Y (mot den
   // ev. redan flyttade X) → glid längs väggar utan att fastna i hörn.
