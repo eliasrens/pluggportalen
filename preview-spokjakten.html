@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Spökjakten</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      body { padding: 16px; }
+      .preview-note { max-width: 640px; margin: 0 auto 12px; }
+    </style>
+  </head>
+  <body>
+    <!-- DOM-skalet som ui.js förväntar sig (annars kastar getElementById). -->
+    <button class="hamburger" id="hamburger" hidden></button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <aside class="sidebar" id="sidebar"><div id="sidebar-body"></div></aside>
+    <div class="preview-note panel">
+      <b>Förhandsvisning av Spökjakten 👻🌙</b> (tema ovanpå gemensam spelmotor) –
+      kör mot mock-data (ingen inloggning). Styr med <b>piltangenter/WASD</b>, gå fram
+      till ett <b>söt spöke 👻</b> och tryck <b>E</b> eller mellanslag. Fånga alla 10
+      → det vänliga guldspöket ✨ dyker upp → gå dit för att avsluta och få belöning.
+    </div>
+    <main id="app" class="container"><div id="adv-mount"></div></main>
+
+    <script type="module">
+      import { startAdventure } from "./src/adventure/engine.js";
+      import { makeQuestionAdapter } from "./src/adventure/question-adapter.js";
+      import { spokjaktenTheme } from "./src/adventure/themes/spokjakten.js";
+      import { avatarMarkup } from "./src/avatars.js";
+
+      // Mock-område: quiz (utan passage), läsförståelse (med passage) och par –
+      // så alla tre frågekällor i adaptern får testas i banan. (Samma mock som
+      // preview-aventyr.html; goal=10 kräver omspel av frågor, det är meningen.)
+      const areaData = {
+        name: "Testområde",
+        quiz: [
+          { question: "Vilken färg får man av gult + blått?", options: ["Grönt", "Lila", "Orange", "Brunt"], answerIndex: 0, explanation: "Gult och blått blir grönt." },
+          { question: "Hur många ben har en spindel?", options: ["6", "8", "10", "4"], answerIndex: 1, explanation: "Spindlar har åtta ben." },
+          { question: "Vilket är störst?", options: ["Solen", "Jorden", "Månen", "Mars"], answerIndex: 0, explanation: "Solen är i särklass störst." },
+          { question: "Enligt texten – var bodde vikingarna?", passage: "Vikingarna bodde i Norden för mer än tusen år sedan. De var sjöfarare och handelsmän.", options: ["I Norden", "I Afrika", "I Amerika", "I Asien"], answerIndex: 0, explanation: "Texten säger Norden." },
+          { question: "Enligt texten – vad var vikingarna?", passage: "Vikingarna bodde i Norden för mer än tusen år sedan. De var sjöfarare och handelsmän.", options: ["Sjöfarare och handelsmän", "Bönder", "Kungar", "Munkar"], answerIndex: 0, explanation: "Texten säger sjöfarare och handelsmän." },
+        ],
+        pairs: [
+          { id: "p1", term: "Drakskepp", definition: "vikingarnas långa båtar" },
+          { id: "p2", term: "Runor", definition: "vikingarnas skrivtecken" },
+          { id: "p3", term: "Handel", definition: "att köpa och sälja varor" },
+          { id: "p4", term: "Tors hammare", definition: "en viktig symbol" },
+        ],
+      };
+
+      const mount = document.getElementById("adv-mount");
+      const questions = makeQuestionAdapter({
+        areaData,
+        kinds: spokjaktenTheme.questionKinds,
+        host: document.body,
+      });
+      startAdventure({
+        mount,
+        theme: spokjaktenTheme,
+        questions,
+        player: { avatarHtml: avatarMarkup("fox", []) },
+        subj: "so",
+        area: "test",
+        onReplay: () => location.reload(),
+      });
+    </script>
+  </body>
+</html>
