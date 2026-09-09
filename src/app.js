@@ -53,6 +53,8 @@ import { pageElevShop } from "./pages-shop.js";
 // mellan ute (huset) och inne (rummet), utan sidladdning – pages-varld.js.
 import { pageElevVarld } from "./pages-varld.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
+// Äventyrsläget (#/elev/aventyr) – den gemensamma äventyrsspelmotorn (issue #194).
+import { pageElevAventyr } from "./adventure/index.js";
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
 // av seed/verktyg). Källan är numera avatars.js.
@@ -114,6 +116,8 @@ const routes = {
   "/elev/plugga": pageElevPlugga,
   "/elev/omrade": pageElevOmrade,
   "/elev/spela": pageElevSpela,
+  // Äventyrsläget: gemensam spelmotor, tema väljs via ?tema= (default testbanan).
+  "/elev/aventyr": pageElevAventyr,
   "/elev/shop": pageElevShop,
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
