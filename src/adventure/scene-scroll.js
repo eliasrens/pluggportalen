@@ -36,7 +36,10 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
   const mapEl = document.createElement("div");
   mapEl.className = "adv-map";
   mapEl.setAttribute("aria-hidden", "true");
-  if (world.mapImage) mapEl.style.backgroundImage = `url("${world.mapImage}")`;
+  // Opt-in: egenritad inline-SVG-värld (issue #238) har företräde – rendera den
+  // rakt in i kartlagret. Annars backwards-compat med bild-karta (mapImage).
+  if (world.mapSvg) mapEl.innerHTML = world.mapSvg;
+  else if (world.mapImage) mapEl.style.backgroundImage = `url("${world.mapImage}")`;
 
   const objectsEl = document.createElement("div");
   objectsEl.className = "adv-objects";

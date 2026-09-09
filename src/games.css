@@ -1175,6 +1175,17 @@
   background-position: center;
   z-index: var(--z-scen-botten, 0);
 }
+/* Egenritad inline-SVG-värld (issue #238): SVG:n fyller kartlagret helt. */
+.adv-map > svg { width: 100%; height: 100%; display: block; }
+/* Station-/mål-konsten i scroll-läget: bind storleken till font-size (1em) precis
+   som avataren. Utan detta löser SVG:ns width:100% mot fel block och objekten blir
+   flera gånger för stora i förhållande till avataren (feedback: "gigantiska"). */
+.adv-scroll .adv-station-art,
+.adv-scroll .adv-goal-art {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
 .adv-scroll .adv-objects {
   position: absolute;
   inset: 0;

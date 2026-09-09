@@ -5,7 +5,7 @@
 // falskt-påståenden ur områdets fakta-par, med quiz som fallback, och matar ut
 // dem ett i taget utan snabb upprepning.
 //
-//   • par ({term,definition}): rätt parning = sant "<term> betyder <def>",
+//   • par ({term,definition}): rätt parning = sant "<term> – <def>" (tankstreck),
 //     felparad definition = falskt. Kräver minst 2 textpar (för att kunna felpara).
 //   • fallback quiz: rätt alternativ = sant, distraktor = falskt.
 // ============================================================================
@@ -50,11 +50,12 @@ export function buildStatements(areaData) {
   const out = [];
   if (pairs.length >= 2) {
     pairs.forEach((p, i) => {
-      out.push({ text: `${p.term} betyder ${p.definition}`, truth: true });
+      // Tankstreck-form "<term> – <def>" (EN DASH U+2013, ett mellanslag på var sida).
+      out.push({ text: `${p.term} – ${p.definition}`, truth: true });
       // Felpara med en ANNAN definition → falskt.
       let j = i;
       while (j === i) j = Math.floor(Math.random() * pairs.length);
-      out.push({ text: `${p.term} betyder ${pairs[j].definition}`, truth: false });
+      out.push({ text: `${p.term} – ${pairs[j].definition}`, truth: false });
     });
     return out;
   }
