@@ -100,6 +100,10 @@ function entry(over = {}) {
   };
 }
 
+// Dränera micro-/makrotask-kön så en fire-and-forget-skrivning (self-publish i
+// #240 körs icke-blockerande) hunnit slå igenom innan vi läser fake-db:n.
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
 // --- getClassOverview: O(1) per klass --------------------------------------
 
 test("getClassOverview: projektionen finns → EXAKT 1 getDoc, 0 getDocs", async () => {
@@ -225,6 +229,104 @@ test("getOwnVillageOverview: utan klass → bara egna huset (1 studentData-läsn
   assert.equal(boende[0].id, "me");
   assert.equal(boende[0].namn, "Jag");
   assert.equal(boende[0].xp, 50);
+});
+
+// --- #240: self-publish av eget (även LÅST) utseende -----------------------
+
+test("getOwnVillageOverview self-publishar riktigt utseende när det skiljer sig (även husLast)", async () => {
+  // Eleven är LÅST men har färgat/bytt hus: projektionens self-entry bär det
+  // GAMLA/tomma utseendet (som en besökare self-heal:ade utan att kunna läsa den
+  // låstas studentData). Egen öppning ska publicera det riktiga utseendet.
+  const fake = makeFakeDb({
+    studentData: {
+      me: { avatarId: "cat", avatarItems: ["hatt"], room: { paletteId: "skog" }, husSkalId: "molnslott", husLast: true, xp: 300 },
+    },
+    classProjections: {
+      "6a": {
+        members: {
+          me: entry({ namn: "Jag", username: "jag" }), // tomt utseende, husLast:false
+          anna: entry({ namn: "Anna" }),
+        },
+      },
+    },
+  });
+  const classes = [{ id: "6a", studentIds: ["me", "anna"] }];
+  const store = createClassProjectionStore(fake.adapter);
+
+  const boende = await store.getOwnVillageOverview({ meId: "me", classes, meNamn: "Jag" });
+  // Ingen extra LÄSning: bara egna studentData + 1 projektion.
+  assert.equal(fake.counts.getDoc, 2);
+  assert.equal(fake.counts.getDocs, 0);
+
+  await flush(); // låt fire-and-forget-skrivningen slå igenom
+
+  // Projektionen bär nu det RIKTIGA utseendet inkl. husLast.
+  const meEntry = fake.store.get("classProjections/6a").members.me;
+  assert.equal(meEntry.avatarId, "cat");
+  assert.deepEqual(meEntry.avatarItems, ["hatt"]);
+  assert.equal(meEntry.paletteId, "skog");
+  assert.equal(meEntry.husSkalId, "molnslott");
+  assert.equal(meEntry.husLast, true, "lås-flaggan hålls färsk men blockerar inte skrivningen");
+  // Skrevs via fält-path (updateDoc), inte hel-dok-omskrivning; anna orörd.
+  assert.equal(fake.counts.updateDoc, 1);
+  assert.equal(fake.store.get("classProjections/6a").members.anna.namn, "Anna");
+  // Egen elev i översikten är förstås det färska utseendet.
+  const me = boende.find((s) => s.id === "me");
+  assert.equal(me.husSkalId, "molnslott");
+  assert.equal(me.paletteId, "skog");
+});
+
+test("getOwnVillageOverview: self-publishar i ALLA egna klasser (flera klasser)", async () => {
+  const fake = makeFakeDb({
+    studentData: { me: { avatarId: "cat", room: { paletteId: "skog" }, husLast: true } },
+    classProjections: {
+      "6a": { members: { me: entry({ namn: "Jag" }) } },
+      grupp: { members: { me: entry({ namn: "Jag" }) } },
+    },
+  });
+  const classes = [
+    { id: "6a", studentIds: ["me"] },
+    { id: "grupp", studentIds: ["me"] },
+  ];
+  const store = createClassProjectionStore(fake.adapter);
+  await store.getOwnVillageOverview({ meId: "me", classes, meNamn: "Jag" });
+  await flush();
+
+  assert.equal(fake.counts.getDocs, 0, "self-publish gör INGEN classIdsForStudent-getDocs");
+  for (const cid of ["6a", "grupp"]) {
+    const m = fake.store.get(`classProjections/${cid}`).members.me;
+    assert.equal(m.paletteId, "skog", `${cid} fick riktigt utseende`);
+    assert.equal(m.husLast, true);
+  }
+});
+
+test("getOwnVillageOverview: skriver INTE när utseendet redan matchar (kör två gånger)", async () => {
+  const fake = makeFakeDb({
+    studentData: {
+      me: { avatarId: "cat", avatarItems: ["hatt"], room: { paletteId: "skog" }, husSkalId: "molnslott", husLast: true, xp: 300 },
+    },
+    classProjections: {
+      "6a": {
+        members: {
+          // Projektionen bär REDAN exakt det färska utseendet.
+          me: entry({ namn: "Jag", avatarId: "cat", avatarItems: ["hatt"], paletteId: "skog", husSkalId: "molnslott", husLast: true }),
+        },
+      },
+    },
+  });
+  const classes = [{ id: "6a", studentIds: ["me"] }];
+  const store = createClassProjectionStore(fake.adapter);
+
+  await store.getOwnVillageOverview({ meId: "me", classes, meNamn: "Jag" });
+  await flush();
+  assert.equal(fake.counts.updateDoc, 0, "lika utseende → ingen skrivning");
+  assert.equal(fake.counts.setDoc, 0);
+
+  // Andra körningen (cache invaliderad? nej – ingen skrivning skedde) – ändå ingen skrivning.
+  await store.getOwnVillageOverview({ meId: "me", classes, meNamn: "Jag" });
+  await flush();
+  assert.equal(fake.counts.updateDoc, 0, "andra körningen skriver inte heller");
+  assert.equal(fake.counts.setDoc, 0);
 });
 
 // --- Self-heal: saknad projektion → engångskostnad, sen 1 dok --------------
