@@ -64,7 +64,7 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
   const avatarHtml = (player && player.avatarHtml) || avatarMarkup(DEFAULT_AVATAR, []);
 
   // Välj VÄRLD (koordinater/kollision) och SCEN (DOM) utifrån temat.
-  const space = theme.mapImage ? createImageWorld(theme) : createGridSpace(theme);
+  const space = (theme.mapImage || theme.mapSvg) ? createImageWorld(theme) : createGridSpace(theme);
   const goal = Number.isFinite(theme.goal) ? theme.goal : space.stations.length;
   const scene = space.scroll
     ? createScrollScene({ world: space, theme, avatarHtml, progressIcon, goal })

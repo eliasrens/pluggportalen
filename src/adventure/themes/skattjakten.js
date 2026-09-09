@@ -6,11 +6,14 @@
 // (1–3★, grind-skalat mode "aventyr:skattjakten") ägs helt av motorn – se
 // themes/README.md för motor↔tema-kontraktet.
 //
-// Skattjakten kör motorns OPT-IN scroll/bild-karta-läge (issue #220): en STOR
-// illustrerad ö-karta (src/adventure/assets/skattjakten-karta.jpg, serverad som
-// fil – inte inline) blir världen, kameran scrollar mjukt under en nära centrerad
-// avatar (~1/6 syns). Banans geometri – världsmått, kollision, start, fråge-spawns
-// och skattkist-platser – bor i themes/skattjakten-map.js (ren, testbar matte).
+// Skattjakten kör motorns OPT-IN scroll-läge (issue #220): en STOR ö-värld blir
+// världen och kameran scrollar mjukt under en nära centrerad avatar (~1/3 av
+// kartbredden syns, SKATTJAKT_VIEW_FRACTION – utzoomat efter användar-feedback).
+// Sedan issue #238 ritas ön EGENHÄNDIGT i inline-SVG (themes/skattjakten-scen-svg.js,
+// mapSvg) i portalens platta vektorstil – den gamla rasterbilden (skattjakten-karta.jpg)
+// var enbart INSPIRATION och laddas inte längre. Banans geometri – världsmått,
+// kollision, start, fråge-spawns och skattkist-platser – bor i skattjakten-map.js
+// (ren, testbar matte) och SVG-konsten ritas så den visuellt matchar den.
 //
 // Flöde: eleven anländer med båt vid bryggan nere-höger, utforskar ön (fastnar i
 // hav/damm/å/klippor men går smidigt på gräs/sand/stigar), hittar 10 utspridda
@@ -26,12 +29,18 @@
 import { O, LINE } from "../../art-style.js";
 import {
   WORLD,
-  MAP_IMAGE,
   START_AT,
   pickSpawns,
   pickChest,
   buildSkattjaktenCollision,
 } from "./skattjakten-map.js";
+import { SKATTJAKTEN_SCEN_SVG } from "./skattjakten-scen-svg.js";
+
+// --- Kamera-utzoom (lätt att tuna) ------------------------------------------
+// Andel av kartBREDDEN som syns åt gången. HÖJ → mer utzoomat (mer av ön syns),
+// SÄNK → mer inzoomat på avataren. Tune-intervall som känns bra: 0.30–0.45.
+// Historik: 1/6 (~0.17) var för tight inzoomat (användar-feedback) → 0.36.
+const SKATTJAKT_VIEW_FRACTION = 0.36;
 
 // --- Palett (tropisk, ur stilguiden) ----------------------------------------
 const SAND_LJUS = "#FBEFCB";
@@ -127,10 +136,12 @@ export const skattjaktenTheme = {
   // Havet runt ön (kamerans letterbox utanför bildkanten) hålls i samma blå ton.
   stamning: { himmel: "#79CFEC", mark: "#2F8FC4" },
 
-  // Opt-in-flaggan: mapImage → motorn väljer scroll/bild-karta-läget (world.js).
-  mapImage: MAP_IMAGE,
+  // Opt-in-flaggan: mapSvg → motorn väljer scroll-läget (world.js/engine.js) och
+  // renderar den egenritade ö-SVG:n rakt in i kartlagret (scene-scroll.js).
+  mapSvg: SKATTJAKTEN_SCEN_SVG,
   worldSize: WORLD,
-  viewFraction: 1 / 6, // ~1/6 av ön syns åt gången (mjuk scroll)
+  // Andel av kartbredden som syns åt gången – tune:bar konstant högst upp.
+  viewFraction: SKATTJAKT_VIEW_FRACTION,
 
   startAt: START_AT, // vid bryggan/båten nere-höger ("anländer med båt")
   // Fråge-spawns: 18 fasta kandidater, spelet väljer 10 (getter → nytt urval per
