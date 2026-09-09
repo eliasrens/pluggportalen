@@ -38,10 +38,13 @@ function center(r) {
   return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
 }
 
-test("mapImage serveras som fil (ingen inline data-URI) och pekar på .jpg", () => {
-  assert.equal(MAP_IMAGE, skattjaktenTheme.mapImage);
-  assert.ok(!MAP_IMAGE.startsWith("data:"), "får inte vara inline-a:d");
-  assert.match(MAP_IMAGE, /skattjakten-karta\.jpg$/);
+test("temat ritar en egenritad inline-SVG-värld (mapSvg), inte JPG-bilden (#238)", () => {
+  // Sedan #238: ön ritas egenhändigt i inline-SVG. mapImage-JPG:n används INTE
+  // längre som värld; referenssökvägen behålls bara som dokumentation.
+  assert.ok(!skattjaktenTheme.mapImage, "temat får inte längre ladda JPG:n som värld");
+  assert.ok(typeof skattjaktenTheme.mapSvg === "string" && skattjaktenTheme.mapSvg.includes("<svg"),
+    "temat ska rendera en inline-SVG-värld");
+  assert.match(MAP_IMAGE, /skattjakten-karta\.jpg$/, "referensbilden ligger kvar som inspiration");
 });
 
 test("worldSize matchar bildens 3:2-aspekt (ingen tänjning)", () => {

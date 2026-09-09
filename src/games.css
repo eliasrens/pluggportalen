@@ -1141,6 +1141,8 @@
   background-position: center;
   z-index: var(--z-scen-botten, 0);
 }
+/* Egenritad inline-SVG-värld (issue #238): SVG:n fyller kartlagret helt. */
+.adv-map > svg { width: 100%; height: 100%; display: block; }
 .adv-scroll .adv-objects {
   position: absolute;
   inset: 0;

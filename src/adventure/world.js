@@ -124,6 +124,7 @@ export function createImageWorld(theme) {
     margin,
     // render-hintar för scroll-scenen
     mapImage: theme.mapImage,
+    mapSvg: theme.mapSvg,
     viewFraction: num(theme.viewFraction, 1 / 6),
     avatarSize,
   };
