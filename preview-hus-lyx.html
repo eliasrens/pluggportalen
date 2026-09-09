@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – lyxiga husskal</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #183: nya köpbara husskal (skepp, fotboll,
+         skyskrapa, glasvilla) renderade i ute-scenen (art-hus-ute.js) med avatar,
+         samt "🏠 Nytt hus"-väljaren. Ingen inloggning behövs (attrapp-elev). */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .wrap { padding: 12px 20px 40px; }
+      .grid { display: flex; flex-wrap: wrap; gap: 20px; }
+      .stage {
+        position: relative;
+        width: min(92vw, 460px);
+        aspect-ratio: 3 / 2;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(59, 51, 80, 0.18);
+        --hus-house: #F7C948; --hus-roof: #EF6F6C; --hus-wall: #7FC7E8; --hus-wall2: #C9EEFB;
+      }
+      .stage .varld-lager { position: absolute; inset: 0; }
+      .stage .cap {
+        position: absolute; left: 10px; top: 8px; z-index: 2;
+        background: rgba(255,255,255,0.82); border-radius: 10px;
+        padding: 3px 10px; font-weight: 800; font-size: 0.95rem;
+      }
+      /* Mobil-simulering: en smal ram för att kolla att inget klipps. */
+      .stage.mobil { width: min(92vw, 240px); }
+      .palettbar { margin: 10px 0 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .palettbar button { font: inherit; padding: 6px 12px; border-radius: 10px; border: 2px solid #ffd39a; background: #fff; cursor: pointer; }
+      .panelbox { background: #fff; border: 3px solid #ffe0b3; border-radius: 16px; padding: 14px 16px; max-width: 720px; margin-top: 22px; }
+      .panelbox h3 { margin: 0 0 10px; }
+      #husskalrad { display: flex; flex-wrap: wrap; gap: 12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – lyxiga husskal ⛵⚽🏢🏙️</h1>
+      <p>
+        De nya köpbara husskalen (issue #183) i ute-scenen med avatar och klasskylt.
+        Byt elevpalett med knapparna för att se att fasad/tak/vägg/glas följer paletten.
+        Den sista rutan visar ett skal i en smal "mobil"-ram för att kontrollera att inget klipps.
+        Längst ner: "🏠 Nytt hus"-väljaren med alla ägda skal.
+      </p>
+    </header>
+    <div class="wrap">
+      <div class="palettbar">
+        <strong>Palett:</strong>
+        <button data-pal="sol">Sol</button>
+        <button data-pal="hav">Hav</button>
+        <button data-pal="skog">Skog</button>
+        <button data-pal="lila">Lila</button>
+      </div>
+      <div class="grid" id="grid"></div>
+
+      <div class="panelbox">
+        <h3>🏠 Nytt hus – väljare</h3>
+        <div id="husskalrad"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { husScen, renderHusSkalPicker } from "./src/art-hus-ute.js";
+      import { avatarMarkup } from "./src/avatars.js";
+      import { itemsInCategory } from "./src/shop-items.js";
+
+      const PALETTER = {
+        sol:  { house: "#F7C948", roof: "#EF6F6C", wall: "#7FC7E8", wall2: "#C9EEFB" },
+        hav:  { house: "#7FC7E8", roof: "#46557A", wall: "#C9F0DC", wall2: "#E8F6FD" },
+        skog: { house: "#6FC66F", roof: "#8A6242", wall: "#FDE9A8", wall2: "#C9F0DC" },
+        lila: { house: "#B79BE0", roof: "#46557A", wall: "#F890B7", wall2: "#FFF3DC" },
+      };
+      const SKAL = ["skepp", "fotboll", "skyskrapa", "glasvilla"];
+      const NAMN = { skepp: "⛵ Skepp", fotboll: "⚽ Fotbollshus", skyskrapa: "🏢 Skyskrapa", glasvilla: "🏙️ Glasvilla" };
+
+      const grid = document.getElementById("grid");
+      function draw() {
+        grid.innerHTML = "";
+        for (const id of SKAL) {
+          const stage = document.createElement("div");
+          stage.className = "stage";
+          stage.innerHTML = `<span class="cap">${NAMN[id]}</span>
+            <div class="varld-lager varld-ute">${husScen(avatarMarkup("fox", ["krona"]), {
+              skalId: id, skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" },
+            })}</div>`;
+          grid.appendChild(stage);
+        }
+        // Mobil-ram med skeppet (smalast fall).
+        const m = document.createElement("div");
+        m.className = "stage mobil";
+        m.innerHTML = `<span class="cap">📱 mobil</span>
+          <div class="varld-lager varld-ute">${husScen(avatarMarkup("fox", []), { skalId: "skyskrapa" })}</div>`;
+        grid.appendChild(m);
+      }
+
+      function setPalette(pal) {
+        const p = PALETTER[pal] || PALETTER.sol;
+        for (const s of document.querySelectorAll(".stage")) {
+          s.style.setProperty("--hus-house", p.house);
+          s.style.setProperty("--hus-roof", p.roof);
+          s.style.setProperty("--hus-wall", p.wall);
+          s.style.setProperty("--hus-wall2", p.wall2);
+        }
+      }
+      document.querySelector(".palettbar").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-pal]");
+        if (b) setPalette(b.dataset.pal);
+      });
+
+      draw();
+      // Väljaren: elev som äger alla köpbara husskal.
+      renderHusSkalPicker(document.getElementById("husskalrad"), {
+        activeId: "skepp",
+        owned: itemsInCategory("hus").filter((it) => it.skalId).map((it) => it.skalId),
+        palette: PALETTER.sol,
+        onPick: (id) => console.log("valde", id),
+      });
+    </script>
+  </body>
+</html>

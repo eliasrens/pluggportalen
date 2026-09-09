@@ -12,12 +12,13 @@
 
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
-import { GAMEMODES, starRow, enc } from "./game-shared.js";
+import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForStudent } from "./game-shared.js";
+import { readingPrereqStatus } from "./reading-prereq.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
+import { startLastext } from "./games-lastext.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 import { startSanningsjakt } from "./games-sanningsjakt.js";
-import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
 import { THEMES } from "./adventure/themes/index.js";
 
 // Vilket innehåll varje frågekälla i ett äventyrstema kräver (för kort-låset).
@@ -61,11 +62,12 @@ export async function pageElevOmrade() {
   const { subj, area } = getParams();
   if (!subj || !area) return go("#/elev/plugga");
 
-  let areaData, progress;
+  let areaData, progress, studentClass;
   try {
-    [areaData, progress] = await Promise.all([
+    [areaData, progress, studentClass] = await Promise.all([
       data.getArea(subj, area),
       data.getProgress(),
+      data.getClassForStudent().catch(() => null),
     ]);
   } catch (err) {
     app.replaceChildren(
@@ -81,28 +83,55 @@ export async function pageElevOmrade() {
   }
 
   const areaProgress = progress?.[area] || {};
-  const has = {
-    quiz: Array.isArray(areaData.quiz) && areaData.quiz.length > 0,
-    pairs: Array.isArray(areaData.pairs) && areaData.pairs.length > 0,
-    // Arkad-läget kan härleda påståenden ur par (minst 2) eller quiz.
-    sanningsjakt: hasSanningsjaktContent(areaData),
-  };
+  const has = areaContentFlags(areaData);
 
-  const cards = GAMEMODES.map((gm) => {
+  // Läsförståelse-förkrav (issue #155): läraren kan kräva att eleven klarar
+  // läsförståelsen (godkänt, inte bara påbörjad) innan ÖVRIGA övningar låses upp.
+  // Fail-safe: bara ett förkrav när läsförståelsen faktiskt går att spela – annars
+  // skulle området kunna deadlocka. Bakåtkompatibelt (inget förkrav → allt öppet).
+  const prereq = readingPrereqStatus(areaData, areaProgress);
+  // Läsförståelse går att spela om området har nivåtexter (Läsuppdrag/lastext)
+  // ELLER quiz-innehåll (gamla lasforstaelse). Utan något av dem finns ingen
+  // uppgift att låsa upp med → lås inget (annars deadlock).
+  const readingPlayable = has.readingTexts || has.quiz;
+  const lockOthers = prereq.enabled && !prereq.met && readingPlayable;
+
+  // Läraren kan dölja lägen per område (#200) OCH för hela klassen (#208):
+  // avbockade lägen (på någondera nivå) visas inte alls som kort. Lägen UTAN
+  // underlag visas fortfarande som låsta ("Inget innehåll än"), precis som förr
+  // – det är bara de urbockade (union klass ∪ område) som filtreras bort.
+  const cards = GAMEMODES.filter((gm) => !isModeHiddenForStudent(areaData, studentClass, gm.id)).map((gm) => {
     const available = has[gm.needs];
     const stars = areaProgress[gm.id]?.stars || 0;
-    const starsHtml = available
-      ? `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`
-      : `<span class="card-lock">Inget innehåll än</span>`;
-    return `<button class="big-card ${gm.color} gm-card" data-mode="${gm.id}" ${available ? "" : "disabled"}>
+    // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
+    // (både gamla "lasforstaelse" och nya "lastext"/Läsuppdrag).
+    const locked =
+      lockOthers && gm.id !== "lasforstaelse" && gm.id !== "lastext" && available;
+    let statusHtml;
+    if (locked) {
+      statusHtml = `<span class="card-lock">🔒 Gör läsförståelsen först</span>`;
+    } else if (available) {
+      statusHtml = `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
+    } else {
+      statusHtml = `<span class="card-lock">Inget innehåll än</span>`;
+    }
+    const disabled = !available || locked;
+    return `<button class="big-card ${gm.color} gm-card${locked ? " locked" : ""}" data-mode="${gm.id}" ${disabled ? "disabled" : ""}>
       <span class="emoji">${gm.emoji}</span>
       <span class="title">${gm.name}</span>
       <span class="sub">${gm.sub}</span>
-      ${starsHtml}
+      ${statusHtml}
     </button>`;
   }).join("");
 
   const advCards = adventureCards(has, areaProgress);
+
+  // Tydlig hint ovanför korten när förkravet ännu inte är uppfyllt.
+  const prereqBanner = lockOthers
+    ? `<div class="panel prereq-note" role="status">🔒 <b>Gör läsförståelsen först.</b>
+        Klara läsförståelsen med godkänt resultat${prereq.required > 1 ? ` (${prereq.passed}/${prereq.required} klara)` : ""}
+        för att låsa upp de andra övningarna i området.</div>`
+    : "";
 
   const view = el(`<div>
     <div class="panel center">
@@ -110,6 +139,7 @@ export async function pageElevOmrade() {
       <h1>${areaData.name}</h1>
       <p class="hint">${areaData.description || "Välj en övning och samla pluggcoins!"}</p>
     </div>
+    ${prereqBanner}
     <div class="card-grid">${cards}${advCards}</div>
   </div>`);
 
@@ -143,9 +173,12 @@ export async function pageElevSpela() {
   const { subj, area, mode } = getParams();
   if (!subj || !area || !mode) return go("#/elev/plugga");
 
-  let areaData;
+  let areaData, studentClass;
   try {
-    areaData = await data.getArea(subj, area);
+    [areaData, studentClass] = await Promise.all([
+      data.getArea(subj, area),
+      data.getClassForStudent().catch(() => null),
+    ]);
   } catch (err) {
     app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda övningen: ${err.message}</div></div>`)
@@ -154,10 +187,17 @@ export async function pageElevSpela() {
   }
   if (!areaData) return go("#/elev/plugga");
 
+  // Ett läge som läraren bockat ur (på område- ELLER klass-nivå) ska inte gå att
+  // starta direkt via URL heller.
+  if (isModeHiddenForStudent(areaData, studentClass, mode)) {
+    return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
+  }
+
   const ctx = { subj, area, areaData };
   switch (mode) {
     case "quiz": return startQuiz(ctx);
     case "lasforstaelse": return startLasforstaelse(ctx);
+    case "lastext": return startLastext(ctx);
     case "para": return startPara(ctx);
     case "kunskapsjakt": return startKunskapsjakt(ctx);
     case "sanningsjakt": return startSanningsjakt(ctx);

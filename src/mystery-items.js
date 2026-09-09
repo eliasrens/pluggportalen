@@ -23,9 +23,26 @@
 // shop-items.js kan slå ihop MYSTERY_ITEMS i SHOP_ITEMS utan cirkelimport.
 // ============================================================================
 
-/** Mysteryboxens shop-id och pris (köps hur många gånger som helst). */
+/** Vanliga mysteryboxens shop-id och pris (köps hur många gånger som helst). */
 export const MYSTERY_BOX_ID = "mysterybox";
 export const MYSTERY_BOX_PRICE = 500;
+
+/**
+ * BOX-NIVÅER (#186). Samma item-pool (MYSTERY_ITEMS) för alla tre, men olika
+ * pris och olika LEGENDARY-CHANS (per-box-parameter i stället för hårdkodad).
+ * `legendaryChance` skickas ända ner till rollMysteryItem():
+ *   * null  → basviktning (alla nivåer viktade tillsammans, ~2 % legendary) –
+ *             används av vanliga boxen så dess odds är HELT oförändrade (#140).
+ *   * tal   → chansen att lotta legendary; resten fördelas viktat på
+ *             vanlig/ovanlig/sällsynt enligt RARITIES.
+ * Boxarna visas SIST i shoppen i denna ordning (billigast → dyrast). Håll
+ * id:na stabila. `art` = itemSvg-id för egen box-ikon (art-mystery-box.js).
+ */
+export const MYSTERY_BOXES = [
+  { id: MYSTERY_BOX_ID, name: "Mysterybox", price: MYSTERY_BOX_PRICE, emoji: "🎁", legendaryChance: null },
+  { id: "mysterybox-mega", name: "Mega-mysterybox", price: 1000, emoji: "🎁", legendaryChance: 0.11 },
+  { id: "mysterybox-epic", name: "Epic-mysterybox", price: 2000, emoji: "🎁", legendaryChance: 0.9 },
+];
 
 /**
  * Sällsynthetsnivåer med LOTTNINGSVIKT (weight) och DUBBLETT-coins (coins man
@@ -82,13 +99,19 @@ export const MYSTERY_ITEMS = [
   { id: "myst-regnbagsfontan", name: "Regnbågsfontän", category: "dekor", rarity: "sallsynt", emoji: "⛲" },
   { id: "myst-trollportal", name: "Trollportal", category: "dekor", rarity: "sallsynt", emoji: "🌀" },
 
-  // --- Legendariska (mkt sällsynta – de häftigaste sakerna) ----------------
+  // --- Legendariska (mycket sällsynta – de häftigaste sakerna) -------------
   // FORDON (återanvänder shop-id:n → existingShopItem, injiceras ej på nytt).
   { id: "bil", name: "Bil", category: "tradgard", rarity: "legendary", emoji: "🚗", existingShopItem: true },
   { id: "cykel", name: "Cykel", category: "tradgard", rarity: "legendary", emoji: "🚲", existingShopItem: true },
   // HUS (mystery-husskal).
   { id: "myst-kristallhus", name: "Kristallhus", category: "hus", skalId: "myst-kristallhus", rarity: "legendary", emoji: "🏯" },
   { id: "myst-molnslott", name: "Molnslott", category: "hus", skalId: "myst-molnslott", rarity: "legendary", emoji: "☁️" },
+  // Exklusiva legendary-hus (art-hus-legendary.js) – bara vinnbara ur boxen,
+  // finns ALDRIG i shoppens hus-kategori.
+  { id: "myst-drakborg", name: "Drakborg", category: "hus", skalId: "myst-drakborg", rarity: "legendary", emoji: "🐉" },
+  { id: "myst-regnbagspalats", name: "Regnbågspalats", category: "hus", skalId: "myst-regnbagspalats", rarity: "legendary", emoji: "🌈" },
+  { id: "myst-rymdstation", name: "Rymdstation", category: "hus", skalId: "myst-rymdstation", rarity: "legendary", emoji: "🛸" },
+  { id: "myst-pyramid", name: "Gyllene pyramid", category: "hus", skalId: "myst-pyramid", rarity: "legendary", emoji: "🔺" },
 ];
 
 /** Alla mystery-id:n i en Set (snabb uppslagning). */
@@ -125,16 +148,8 @@ export function itemsOfRarity(rarity) {
   return MYSTERY_ITEMS.filter((it) => it.rarity === rarity);
 }
 
-/**
- * Lotta ETT mystery-item ur poolen. Två steg: (1) välj NIVÅ viktat efter
- * RARITIES.weight, (2) välj sak likformigt inom nivån. Så vikterna styr hur
- * ofta varje sällsynthetsnivå faller, oberoende av hur många saker en nivå har.
- * @param {() => number} [rng] slumpkälla i [0,1) (injicerbar för tester)
- * @returns {object} det lottade item-objektet
- */
-export function rollMysteryItem(rng = Math.random) {
-  // (1) Viktad nivå.
-  const tiers = RARITY_ORDER.filter((r) => itemsOfRarity(r).length > 0);
+/** Viktad nivå bland ett givet urval av nivåer (drar EN gång ur rng). */
+function weightedTier(rng, tiers) {
   const totalWeight = tiers.reduce((s, r) => s + RARITIES[r].weight, 0);
   let pick = rng() * totalWeight;
   let tier = tiers[tiers.length - 1];
@@ -144,6 +159,40 @@ export function rollMysteryItem(rng = Math.random) {
       tier = r;
       break;
     }
+  }
+  return tier;
+}
+
+/**
+ * Lotta ETT mystery-item ur poolen. Två steg: (1) välj NIVÅ, (2) välj sak
+ * likformigt inom nivån. Så vikterna styr hur ofta varje sällsynthetsnivå
+ * faller, oberoende av hur många saker en nivå har.
+ *
+ * NIVÅ-valet beror på `legendaryChance` (per-box-parameter, se MYSTERY_BOXES):
+ *   * null/undefined → alla nivåer viktas TILLSAMMANS efter RARITIES.weight
+ *     (~2 % legendary) – vanliga boxens oförändrade beteende.
+ *   * ett tal        → med sannolikhet `legendaryChance` blir det legendary,
+ *     annars viktas vanlig/ovanlig/sällsynt inbördes. Så Mega/Epic-boxarna kan
+ *     höja legendary-oddsen utan att röra själva poolen.
+ *
+ * @param {() => number} [rng] slumpkälla i [0,1) (injicerbar för tester)
+ * @param {{legendaryChance?: number|null}} [opts]
+ * @returns {object} det lottade item-objektet
+ */
+export function rollMysteryItem(rng = Math.random, { legendaryChance = null } = {}) {
+  const tiers = RARITY_ORDER.filter((r) => itemsOfRarity(r).length > 0);
+  const hasLegendary = itemsOfRarity("legendary").length > 0;
+  let tier;
+  if (legendaryChance != null && hasLegendary) {
+    // (1a) Parametrerad legendary-chans: legendary ja/nej, annars övriga viktat.
+    if (rng() < legendaryChance) {
+      tier = "legendary";
+    } else {
+      tier = weightedTier(rng, tiers.filter((r) => r !== "legendary"));
+    }
+  } else {
+    // (1b) Standard: alla nivåer viktade tillsammans (oförändrad basbox).
+    tier = weightedTier(rng, tiers);
   }
   // (2) Likformig sak inom nivån.
   const pool = itemsOfRarity(tier);

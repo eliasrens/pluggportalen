@@ -10,6 +10,7 @@
 import * as data from "./data.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
 import { buildReviewPanel } from "./teacher-content-review.js";
+import { buildReadingEditor } from "./teacher-reading.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
 import { el, esc } from "./teacher-shared.js";
 
@@ -37,12 +38,13 @@ export function buildAreaList(areas, { ctx, subjectId, onEdit, onRefresh }) {
         <span class="area-emoji">${esc(a.coverEmoji || "📖")}</span>
         <div>
           <div class="area-name">${esc(a.name)} <span class="badge">${esc(a.id)}</span>${gradeBadge}</div>
-          <div class="hint">${(a.texts?.length || 0)} texter · ${(a.quiz?.length || 0)} frågor · ${(a.pairs?.length || 0)} par</div>
+          <div class="hint">${(a.texts?.length || 0)} texter · ${(a.quiz?.length || 0)} frågor · ${(a.pairs?.length || 0)} par${a.readingTexts?.length ? ` · ${a.readingTexts.length} nivåtexter` : ""}</div>
         </div>
       </div>
       <div class="row-actions">
         <button class="btn ghost small" data-act="review">👁️ Granska</button>
         <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
+        <button class="btn ghost small" data-act="reading">📖 Nivåtexter</button>
         <button class="btn ghost small" data-act="edit">Ersätt</button>
         <button class="btn ghost small danger" data-act="del">Ta bort</button>
       </div>
@@ -79,6 +81,21 @@ export function buildAreaList(areas, { ctx, subjectId, onEdit, onRefresh }) {
       mergeSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
 
+    // Inline-slot för läsförståelse-editorn (3 nivåer, issue #152) – under raden.
+    const readingSlot = el(`<div class="area-reading" hidden></div>`);
+    row.querySelector('[data-act="reading"]').addEventListener("click", () => {
+      if (!readingSlot.hidden) {
+        readingSlot.hidden = true;
+        readingSlot.innerHTML = "";
+        return;
+      }
+      readingSlot.replaceChildren(
+        buildReadingEditor(a, readingSlot, { subjectId, onSaved: onRefresh })
+      );
+      readingSlot.hidden = false;
+      readingSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
     row.querySelector('[data-act="edit"]').addEventListener("click", () => onEdit(a));
 
     row.querySelector('[data-act="del"]').addEventListener("click", async () => {
@@ -94,6 +111,7 @@ export function buildAreaList(areas, { ctx, subjectId, onEdit, onRefresh }) {
     wrap.appendChild(row);
     wrap.appendChild(reviewSlot);
     wrap.appendChild(mergeSlot);
+    wrap.appendChild(readingSlot);
     list.appendChild(wrap);
   }
   return list;

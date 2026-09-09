@@ -13,30 +13,40 @@ import { xpForExercise, xpIntoLevel } from "./leveling.js";
 import { coinIcon } from "./icons.js";
 import {
   MAX_QUESTIONS_PER_SESSION,
+  MAX_TEXTS_PER_SESSION,
   pickRotatingQuestions,
+  textKey,
 } from "./question-rotation.js";
 
 export const enc = encodeURIComponent;
 
-// Metadata för gamemodes: ordning, namn, ikon, färg och vilket innehåll de kräver.
-export const GAMEMODES = [
-  { id: "lasforstaelse", name: "Läsförståelse", emoji: "📖", color: "bla",
-    sub: "Läs en text och svara på frågor", needs: "quiz" },
-  { id: "para", name: "Para ihop", emoji: "🧩", color: "gron",
-    sub: "Matcha begrepp med förklaring", needs: "pairs" },
-  { id: "quiz", name: "Quiz", emoji: "❓", color: "orange",
-    sub: "Flervalsfrågor med direkt svar", needs: "quiz" },
-  { id: "kunskapsjakt", name: "Kunskapsjakt", emoji: "⚡", color: "rosa",
-    sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
-  { id: "sanningsjakt", name: "Fånga sanningar", emoji: "🙌", color: "orange",
-    sub: "Fånga de sanna påståendena – undvik de falska!", needs: "sanningsjakt" },
-  { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
-    sub: "Hitta fakta-paren", needs: "pairs" },
-];
+// Gamemode-katalogen och synlighets-hjälparna bor i gamemode-visibility.js
+// (browser-fritt → enhetstestbart). Re-exporteras här för de många moduler som
+// redan importerar { GAMEMODES } från game-shared.js.
+export {
+  GAMEMODES,
+  areaContentFlags,
+  availableGamemodes,
+  visibleGamemodes,
+  visibleGamemodesForStudent,
+  normalizeHiddenModes,
+  isModeHidden,
+  isModeHiddenForClass,
+  isModeHiddenForStudent,
+} from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
 // Små hjälpare
 // ---------------------------------------------------------------------------
+
+/** Enkel HTML-escape för att lägga in text säkert i markup. */
+export function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 /** Blanda en array (kopia, Fisher–Yates). */
 export function shuffle(arr) {
@@ -69,6 +79,18 @@ export { MAX_QUESTIONS_PER_SESSION };
  */
 export function pickSessionQuestions(pool, seen) {
   return pickRotatingQuestions(pool, seen);
+}
+
+/**
+ * Som pickSessionQuestions men för LÄS-TEXTER (issue #153): samma roterande motor
+ * serverar max MAX_TEXTS_PER_SESSION osedda texter per session (nyckel = textKey),
+ * så eleven får nya texter tills områdets alla körts igenom, inte samma om igen.
+ * @param {Array} pool  områdets readingTexts
+ * @param {string[]} seen  sedda text-nycklar i pågående varv
+ * @returns {{questions: Array, seen: string[]}}  texterna att köra + sedda att spara.
+ */
+export function pickSessionTexts(pool, seen) {
+  return pickRotatingQuestions(pool, seen, MAX_TEXTS_PER_SESSION, textKey);
 }
 
 /** Har frågan en icke-tom källtext ("passage")? En sådan fråga är en
@@ -154,7 +176,7 @@ export function muteButton() {
 // övning varje gång och slipper grind-reduktionen (full pott coins + XP alltid).
 // Övriga lägen (kunskapsjakt = tidsloop på hela poolen, para/memory = par) kör
 // oförändrat grind-skydd. Rör inte de par-baserade lägena.
-const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
+const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse", "lastext"]);
 
 // Grind-trappa för omspel i icke-quiz/läsförståelse-lägen: belöningen skalas ned
 // steg för steg ju fler gånger samma övning körts i samma läge, med ett golv på

@@ -26,6 +26,7 @@ import { rollMysteryItem, dupCoins } from "./mystery-items.js";
  * i en enda transaktion.
  *
  * @param {number} price boxens pris (coins)
+ * @param {number|null} [legendaryChance] per-box legendary-chans (null = basbox)
  * @param {string} [studentId]
  * @returns {Promise<{
  *   ok: boolean,          // false = hade inte råd (inget drogs)
@@ -36,11 +37,12 @@ import { rollMysteryItem, dupCoins } from "./mystery-items.js";
  *   owned?: string[]      // uppdaterad ownedItems-lista
  * }>}
  */
-export async function openMysteryBox(price, studentId = currentStudentId()) {
+export async function openMysteryBox(price, legendaryChance = null, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const cost = Math.max(0, Math.round(price || 0));
-  // Lotta EN gång (stabilt vid ev. transaktions-retry).
-  const item = rollMysteryItem();
+  // Lotta EN gång (stabilt vid ev. transaktions-retry). legendaryChance styr
+  // hur ofta legendary faller (Mega/Epic-boxarna); null = vanliga boxen.
+  const item = rollMysteryItem(Math.random, { legendaryChance });
   const ref = doc(db, "studentData", studentId);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);

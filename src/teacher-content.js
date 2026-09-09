@@ -10,9 +10,11 @@ import * as data from "./data.js";
 import { parseAndValidateArea, slugify } from "./validate.js";
 import { buildAreaList } from "./teacher-content-list.js";
 import { buildContentView } from "./teacher-content-view.js";
+import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { areaExerciseTypes } from "./exercise-types.js";
 import { normalizeGrade, filterSortAreas } from "./grades.js";
+import { createModeVisibility } from "./teacher-mode-visibility.js";
 import {
   el,
   esc,
@@ -64,60 +66,15 @@ export async function pageLarareInnehall(ctx) {
   wireHashLinks(ctx, view);
 
   // --- Nytt ämne ------------------------------------------------------------
-  const newSubjBtn = view.querySelector("#new-subject");
-  const newSubjForm = view.querySelector("#new-subject-form");
-  newSubjBtn.addEventListener("click", () => {
-    if (newSubjForm.firstChild) {
-      newSubjForm.innerHTML = "";
-      return;
-    }
-    const f = el(`<div class="subpanel">
-      <div class="grid-2">
-        <div class="field"><label>Id (kort, t.ex. "ma")</label><input id="ns-id" placeholder="ma" /></div>
-        <div class="field"><label>Namn</label><input id="ns-name" placeholder="Matematik" /></div>
-        <div class="field"><label>Ikon (emoji)</label><input id="ns-icon" placeholder="➗" /></div>
-        <div class="field"><label>Beskrivning</label><input id="ns-desc" placeholder="Kort beskrivning" /></div>
-      </div>
-      <div id="ns-msg"></div>
-      <button class="btn gron" id="ns-save">Skapa ämne</button>
-    </div>`);
-    f.querySelector("#ns-name").addEventListener("input", (e) => {
-      const idInput = f.querySelector("#ns-id");
-      if (!idInput.dataset.touched) idInput.value = slugify(e.target.value);
-    });
-    f.querySelector("#ns-id").addEventListener("input", (e) => {
-      e.target.dataset.touched = "1";
-    });
-    f.querySelector("#ns-save").addEventListener("click", async () => {
-      const id = slugify(f.querySelector("#ns-id").value || f.querySelector("#ns-name").value);
-      const name = f.querySelector("#ns-name").value.trim();
-      const msg = f.querySelector("#ns-msg");
-      if (!id || !name) {
-        msg.innerHTML = `<div class="msg error">Fyll i både id och namn.</div>`;
-        return;
-      }
-      if (subjects.some((s) => s.id === id)) {
-        msg.innerHTML = `<div class="msg error">Det finns redan ett ämne med id "${esc(id)}".</div>`;
-        return;
-      }
-      try {
-        const order = subjects.reduce((m, s) => Math.max(m, Number(s.order) || 0), 0) + 1;
-        await data.upsertSubject(id, {
-          name,
-          order,
-          icon: f.querySelector("#ns-icon").value.trim() || "📘",
-          description: f.querySelector("#ns-desc").value.trim() || "",
-        });
-        subjects.push({ id, name, order });
-        selected = id;
-        fillSubjectOptions();
-        newSubjForm.innerHTML = "";
-        refreshAreaList();
-      } catch (err) {
-        msg.innerHTML = `<div class="msg error">Kunde inte spara: ${esc(err.message)}</div>`;
-      }
-    });
-    newSubjForm.replaceChildren(f);
+  wireNewSubjectForm({
+    toggleBtn: view.querySelector("#new-subject"),
+    formEl: view.querySelector("#new-subject-form"),
+    subjects,
+    onCreated: (id) => {
+      selected = id;
+      fillSubjectOptions();
+      refreshAreaList();
+    },
   });
 
   // --- Övningstyper (kryssrutor) -------------------------------------------
@@ -143,6 +100,17 @@ export async function pageLarareInnehall(ctx) {
     gradeSel.value = normalizeGrade(grade) || "";
   };
 
+  // --- Synliga lägen (kryssrutor, per område) -------------------------------
+  // UI:t bor i teacher-mode-visibility.js (issue #207). render() ritar utifrån ett
+  // områdes innehåll, getHidden() läser av value.hiddenModes och autoFromJson()
+  // ritar DIREKT ur redigeringsrutan så listan aldrig är tom tills man klickar
+  // Kontrollera. Lägena härleds generiskt ur GAMEMODES – nya lägen dyker upp av
+  // sig själva; ikryssat = synligt, urbockat = dolt (issue #200).
+  const modeBox = view.querySelector("#mode-visibility");
+  const modeVis = createModeVisibility(modeBox);
+  const renderModeVisibility = modeVis.render;
+  const getSelectedHiddenModes = modeVis.getHidden;
+
   view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
     copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value, getSelectedGrade()), e.currentTarget)
   );
@@ -150,6 +118,7 @@ export async function pageLarareInnehall(ctx) {
   // --- Lista befintliga arbetsområden --------------------------------------
   const areaListEl = view.querySelector("#area-list");
   const jsonEl = view.querySelector("#json");
+  const editSel = view.querySelector("#edit-area-select");
   const gradeFilterSel = view.querySelector("#area-grade-filter");
   const sortSel = view.querySelector("#area-sort");
   let currentAreas = []; // senast hämtade områden, filtreras/sorteras vid render
@@ -159,6 +128,7 @@ export async function pageLarareInnehall(ctx) {
   function loadAreaForEdit(a) {
     setSelectedTypes(areaExerciseTypes(a));
     setSelectedGrade(a.grade);
+    renderModeVisibility(a, true);
     const { id, exerciseTypes, grade, ...rest } = a;
     jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
     jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -166,9 +136,27 @@ export async function pageLarareInnehall(ctx) {
       `<div class="msg ok">Laddade "${esc(a.name)}" i rutan. Ändra och spara för att ersätta.</div>`;
   }
 
+  // Väljaren "Redigera ett befintligt område" (issue #207): fylls ur currentAreas
+  // (alla områden i ämnet, oberoende av listans filter) så läraren slipper
+  // hand-klistra JSON. Val → ladda in samma väg som listans "Ersätt".
+  function fillEditAreaOptions() {
+    const opts = ['<option value="">— Välj ett område att redigera —</option>'];
+    for (const a of currentAreas) {
+      opts.push(
+        `<option value="${esc(a.id)}">${esc(a.coverEmoji || "📖")} ${esc(a.name)} (${esc(a.id)})</option>`
+      );
+    }
+    editSel.innerHTML = opts.join("");
+  }
+  editSel.addEventListener("change", () => {
+    const a = currentAreas.find((x) => x.id === editSel.value);
+    if (a) loadAreaForEdit(a);
+  });
+
   // Rendera listan ur currentAreas enligt filter-/sorteringsvalen (ingen ny
   // hämtning – körs både efter hämtning och när läraren ändrar filter/sortering).
   function renderAreaList() {
+    fillEditAreaOptions(); // väljaren speglar alltid alla områden i ämnet
     if (currentAreas.length === 0) {
       areaListEl.replaceChildren(
         emptyState(ctx, {
@@ -215,6 +203,11 @@ export async function pageLarareInnehall(ctx) {
     renderAreaList();
   }
 
+  // Rita synliga-lägen-listan DIREKT ur redigeringsrutan (issue #207) så den inte
+  // är tom tills man klickar Kontrollera. Körs vid inladdning och medan man skriver.
+  modeVis.autoFromJson(jsonEl.value);
+  jsonEl.addEventListener("input", () => modeVis.autoFromJson(jsonEl.value));
+
   // --- Filuppladdning / exempel / rensa ------------------------------------
   view.querySelector("#file").addEventListener("change", (e) => {
     const file = e.target.files?.[0];
@@ -222,6 +215,7 @@ export async function pageLarareInnehall(ctx) {
     const reader = new FileReader();
     reader.onload = () => {
       jsonEl.value = String(reader.result || "");
+      modeVis.autoFromJson(jsonEl.value);
       view.querySelector("#result").innerHTML =
         `<div class="msg ok">Laddade filen "${esc(file.name)}". Klicka Kontrollera eller Spara.</div>`;
     };
@@ -235,9 +229,12 @@ export async function pageLarareInnehall(ctx) {
 
   view.querySelector("#example").addEventListener("click", () => {
     jsonEl.value = EXAMPLE_JSON;
+    modeVis.autoFromJson(jsonEl.value);
   });
   view.querySelector("#clear").addEventListener("click", () => {
     jsonEl.value = "";
+    modeVis.autoFromJson(jsonEl.value); // → tom-state
+    editSel.value = "";
     view.querySelector("#result").innerHTML = "";
   });
 
@@ -254,15 +251,18 @@ export async function pageLarareInnehall(ctx) {
   function showValidSummary(value) {
     resultEl.innerHTML = `<div class="msg ok">
       ✓ Giltig JSON! <b>${esc(value.name)}</b> (id: <code>${esc(value.id)}</code>) –
-      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par.
+      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par${value.readingTexts.length ? `, ${value.readingTexts.length} nivåtexter` : ""}.
       Klicka <b>Spara till databasen</b> för att lägga in den i ämnet.
     </div>`;
   }
 
   view.querySelector("#check").addEventListener("click", () => {
     const res = parseAndValidateArea(jsonEl.value);
-    if (res.ok) showValidSummary(res.value);
-    else showErrors(res.errors);
+    if (res.ok) {
+      // Uppdatera synliga-lägen-listan efter innehållet, men behåll lärarens val.
+      renderModeVisibility(res.value, false);
+      showValidSummary(res.value);
+    } else showErrors(res.errors);
   });
 
   view.querySelector("#save").addEventListener("click", async () => {
@@ -280,12 +280,16 @@ export async function pageLarareInnehall(ctx) {
     const old = saveBtn.textContent;
     saveBtn.textContent = "Sparar…";
     try {
+      // Synka synliga-lägen-listan mot innehållet som sparas (behåll lärarens
+      // i-/urbockningar) innan vi läser av vilka lägen som ska döljas.
+      renderModeVisibility(res.value, false);
       // Lärarens kryssrutor (övningstyper) och årskurs-väljaren är de uttryckliga
       // valen och vinner över det som ligger i/härleds ur JSON:en.
       const value = {
         ...res.value,
         exerciseTypes: getSelectedTypes(),
         grade: getSelectedGrade(),
+        hiddenModes: getSelectedHiddenModes(res.value),
       };
       await data.saveArea(selected, value.id, value);
       resultEl.innerHTML = `<div class="msg ok">✓ Sparat! "${esc(value.name)}" finns nu i ämnet
