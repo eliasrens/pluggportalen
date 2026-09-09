@@ -15,6 +15,7 @@ import {
   tileSizePct,
   percentToCell,
   makeBlockedAt,
+  cellDistance,
 } from "../src/adventure/grid.js";
 
 const MAP = [
@@ -65,6 +66,26 @@ test("percentToCell är invers till cellCenter och clampar utanför", () => {
   assert.deepEqual(percentToCell(c.x, c.y, 5, 4), { col: 2, row: 1 });
   assert.deepEqual(percentToCell(-5, -5, 5, 4), { col: 0, row: 0 });
   assert.deepEqual(percentToCell(999, 999, 5, 4), { col: 4, row: 3 });
+});
+
+test("cellDistance: räckvidd i RUTOR är isotrop (samma åt alla håll → fix #218)", () => {
+  // Ojämnt grid (15 kolumner × 11 rader) → rutorna är INTE kvadratiska i procent.
+  // Ett grann-center ligger 1 ruta bort oavsett riktning – i råa procent skulle
+  // horisontellt (6.67 %) och vertikalt (9.09 %) skilja sig, vilket var #218.
+  const cols = 15, rows = 11;
+  const c = cellCenter(7, 5, cols, rows);
+  const right = cellCenter(8, 5, cols, rows);
+  const left = cellCenter(6, 5, cols, rows);
+  const up = cellCenter(7, 4, cols, rows);
+  const down = cellCenter(7, 6, cols, rows);
+  const dR = cellDistance(c, right, cols, rows);
+  const dL = cellDistance(c, left, cols, rows);
+  const dU = cellDistance(c, up, cols, rows);
+  const dD = cellDistance(c, down, cols, rows);
+  assert.ok(Math.abs(dR - 1) < 1e-9 && Math.abs(dU - 1) < 1e-9, "en ruta = 1.0 åt alla håll");
+  assert.ok(Math.abs(dR - dU) < 1e-9 && Math.abs(dL - dD) < 1e-9, "samma räckvidd i alla riktningar");
+  // Med en radie på 1.25 rutor når man alla fyra grannar (aktivera från alla sidor).
+  for (const d of [dR, dL, dU, dD]) assert.ok(d <= 1.25);
 });
 
 test("makeBlockedAt: väggrutor och utanför-scenen blockerar, golv släpper igenom", () => {

@@ -1119,6 +1119,76 @@
 /* Gå-studs: billig vertikal bob + lätt vagga när .gar är satt (ingen ny SVG). */
 .adventure-player.gar .adv-avatar { animation: adv-bob 0.42s ease-in-out infinite; }
 
+/* --------------------------------------------------------------------------
+   OPT-IN scroll/bild-karta-läge (issue #220). Bara scroll-teman (theme.mapImage)
+   får .adv-scroll; grid-teman (Spökjakten/Gruvan) är helt orörda ovanför.
+   Lager bakifrån→fram: .adv-map < (kollision, osynlig) < .adv-objects < spelare < UI.
+   .adv-world translateras+skalas av kameran (world scrollar); .adv-hud/.adv-prompt
+   ligger fast. transform-origin 0 0 = samma matte som camera.cameraTransform().
+   -------------------------------------------------------------------------- */
+.adventure-stage.adv-scroll { touch-action: none; }
+.adv-world {
+  position: absolute;
+  top: 0; left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.adv-map {
+  position: absolute;
+  inset: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: var(--z-scen-botten, 0);
+}
+.adv-scroll .adv-objects {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-scen-markor);
+  pointer-events: none;
+}
+/* Stationer/mål i scroll-läget placeras med left/top i VÄRLDSPIXLAR (inte %),
+   centrerade på punkten; storleken (font-size) sätts i px av scenen → skalar med
+   zoomen. Pulsen återanvänder grid-lägets keyframes. */
+.adv-scroll .adv-station {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  line-height: 1;
+  font-size: 1em;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+  transition: opacity 0.2s ease;
+  animation: adv-station-pulse 1.8s ease-in-out infinite;
+}
+.adv-scroll .adv-station.cleared { opacity: 0.45; animation: none; }
+.adv-scroll .adv-station.cleared::after {
+  content: "✅";
+  position: absolute;
+  right: -0.3em; top: -0.3em;
+  font-size: 0.6em;
+}
+.adv-scroll .adv-goal {
+  position: absolute;
+  inset: auto;
+  z-index: var(--z-scen-markor);
+  pointer-events: none;
+  font-size: 1em;
+}
+.adv-scroll .adv-goal .adv-goal-art {
+  position: absolute;
+  left: 0; top: 0;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
+  animation: adv-goal-pop 0.4s ease, adv-station-pulse 1.6s ease-in-out 0.4s infinite;
+}
+.adv-scroll .adventure-player {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-scen-objekt);
+  line-height: 1;
+  will-change: left, top;
+  pointer-events: none;
+}
+
 /* Frågemodalen ovanpå världen – följer .cx-modal men lite smalare. */
 .adv-q-modal { max-width: 560px; }
 .adv-q-body .quiz-wrap { margin-top: 4px; }
