@@ -26,6 +26,7 @@
 
 import { skattjaktenTheme } from "./skattjakten.js";
 import { spokjaktenTheme } from "./spokjakten.js";
+import { gruvanTheme } from "./gruvan.js";
 
 export const testTheme = {
   id: "test",
@@ -64,4 +65,5 @@ export const THEMES = {
   test: testTheme,
   skattjakten: skattjaktenTheme,
   spokjakten: spokjaktenTheme,
+  gruvan: gruvanTheme,
 };
