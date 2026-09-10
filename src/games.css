@@ -1002,8 +1002,14 @@
   background: linear-gradient(180deg, var(--adv-himmel, #cdeafd) 0%, var(--adv-mark, #9ad07b) 42%);
   box-shadow: var(--skugga-mjuk);
   container-type: size; /* gör cqw-enheten (avatarstorlek) relativ till scenen */
+  /* Touch-styrning (#250): dra styr avataren – aldrig sidscroll/zoom/markering/
+     callout på spelytan. touch-action:none blockerar pan+dubbeltap-zoom. */
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer; /* peka: hela ytan är "gå hit / tryck för att svara" */
 }
 
 /* Tile-lagret (statiskt, ritas en gång). Varje tile centreras på sin ruta. */
