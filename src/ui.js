@@ -55,12 +55,10 @@ export function getParams() {
   return out;
 }
 
-/** Bygg ett element från en HTML-sträng (första elementet returneras). */
-export function el(html) {
-  const t = document.createElement("template");
-  t.innerHTML = html.trim();
-  return t.content.firstElementChild;
-}
+// el() bor numera i dom.js (så lätta moduler kan använda den utan hela
+// firebase-kedjan) men re-exporteras här: `import { el } from "./ui.js"`
+// fungerar oförändrat i alla sidmoduler.
+export { el } from "./dom.js";
 
 /** Visa en enkel laddningsindikator i huvudytan. */
 export function loading(msg = "Laddar…") {

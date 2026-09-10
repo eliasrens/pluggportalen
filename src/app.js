@@ -53,8 +53,11 @@ import { pageElevShop } from "./pages-shop.js";
 // mellan ute (huset) och inne (rummet), utan sidladdning – pages-varld.js.
 import { pageElevVarld } from "./pages-varld.js";
 import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
-// Äventyrsläget (#/elev/aventyr) – den gemensamma äventyrsspelmotorn (issue #194).
-import { pageElevAventyr } from "./adventure/index.js";
+// Äventyrsläget (#/elev/aventyr) importeras INTE statiskt här. Se pageElevAventyr()
+// längre ner: modulen laddas DYNAMISKT först när eleven faktiskt navigerar till ett
+// äventyr (issue #267). Så hamnar den tunga äventyrs-modulgrafen (motor, teman,
+// kompass, scener) ALDRIG i app-bootens importkedja – ett runtime-fel där kan då
+// aldrig fälla login/hem till en vit sida igen (incidenten 2026-09-10, PR #265).
 
 // Avatar-API:t exporteras vidare härifrån för bakåtkompatibilitet (importeras
 // av seed/verktyg). Källan är numera avatars.js.
@@ -102,6 +105,30 @@ function pageNotFound() {
     </div>`)
   );
   app.querySelector("#home").addEventListener("click", () => go("#/"));
+}
+
+// Äventyrsläget (#/elev/aventyr): ladda den tunga äventyrs-modulen DYNAMISKT
+// (issue #267) först vid navigering hit. Ett fel i äventyrsgrafen fångas här och
+// visas som ett snällt fel INNE i äventyrsvyn – aldrig som vit sida i hela appen.
+async function pageElevAventyr() {
+  loading();
+  try {
+    const mod = await import("./adventure/index.js");
+    return await mod.pageElevAventyr();
+  } catch (err) {
+    console.error("Äventyrsläget kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(
+      el(`<div class="panel center">
+        <div class="big-emoji">🗺️</div>
+        <h2>Äventyret kunde inte laddas</h2>
+        <p class="hint">Något gick fel när äventyret skulle startas. Prova igen om en stund, eller välj ett annat sätt att öva så länge.</p>
+        <button class="btn" id="adv-tillbaka">Tillbaka till att plugga</button>
+      </div>`)
+    );
+    const back = app.querySelector("#adv-tillbaka");
+    if (back) back.addEventListener("click", () => go("#/elev/plugga"));
+  }
 }
 
 // --- Router -----------------------------------------------------------------
