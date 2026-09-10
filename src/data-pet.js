@@ -35,7 +35,7 @@ import {
   getDoc,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId } from "./data.js";
+import { currentStudentId, invalidateStudentData } from "./data.js";
 import { randomSpeciesId, getSpecies } from "./art-pets-creatures.js";
 
 // Shop-id:n (måste matcha shop-items.js). Äpplet (APPLE_ITEM_ID) bor i
@@ -143,7 +143,7 @@ export function petsFromData(data) {
 async function updatePets(studentId, fn) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : {};
     const hadList = Array.isArray(data.pets);
@@ -160,6 +160,10 @@ async function updatePets(studentId, fn) {
     }
     return out ? out.result : { pets };
   });
+  // Enda skriv-choke-punkten för husdjur (pets[] + ev. coins i out.extra) →
+  // invalidera studentData-cachen så saldo/husdjur alltid är färskt (#274).
+  invalidateStudentData(studentId);
+  return result;
 }
 
 // --- Publikt API ------------------------------------------------------------

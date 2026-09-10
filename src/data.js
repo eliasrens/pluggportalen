@@ -38,6 +38,9 @@ import {
 } from "./auth.js";
 import { isMultiItem } from "./shop-items.js";
 import { DEFAULT_READING_LEVEL } from "./reading-level.js";
+import { createTtlCache } from "./class-projection.js";
+import { clearContentCache, clearProjectionCache } from "./data-content.js";
+import { clearClassCache } from "./data-classes.js";
 
 // Session-API:t bor numera i auth.js (backat av Firebase Auth) men re-exporteras
 // här så att `import * as data from "./data.js"` fortsätter fungera överallt.
@@ -56,6 +59,10 @@ export async function login(username, password, remember = false) {
   const res = await signInStudent(username, password, remember);
   if (!res.ok) return res;
 
+  // Ny elev i sessionen → töm ALLA session-cachar så en tidigare elevs cachade
+  // studentData/innehåll/klasser aldrig läcker in (#274, dela-inte-mellan-elever).
+  clearAllSessionCaches();
+
   const uid = res.uid;
   // Läs elevdokumentet för namn/avatar (reglerna tillåter eleven att läsa sitt eget).
   let student = { id: uid };
@@ -70,12 +77,45 @@ export async function login(username, password, remember = false) {
 
 /** Logga ut den inloggade eleven (Firebase Auth signOut + rensa spegeln). */
 export function logout() {
+  // Töm alla session-cachar så nästa elev aldrig ser förra elevens data (#274).
+  clearAllSessionCaches();
   return signOutCurrent();
+}
+
+/**
+ * Töm samtliga in-memory session-cachar (#274): elevdata (denna modul),
+ * kunskapsinnehåll (data-content), klasslistan (data-classes) och by-/grannby-
+ * projektionen (data-content). Anropas vid in-/utloggning. Motsvarar den gamla
+ * clearProjectionCache-punkten men täcker alla nya cachar.
+ */
+function clearAllSessionCaches() {
+  clearStudentDataCache();
+  clearContentCache();
+  clearClassCache();
+  clearProjectionCache();
 }
 
 // ---------------------------------------------------------------------------
 // Elevdata (Firestore) – coins, framsteg, ägda saker, avatar, rum.
 // ---------------------------------------------------------------------------
+// Session-cache (#274): getStudentData läses på så gott som varje sida (saldo,
+// framsteg, ägda saker, avatar, rum). En kort TTL-cache (INLINE, se
+// class-projection-entries.createTtlCache) gör återbesök omedelbara. NYCKLAD PER
+// studentId → aldrig delad mellan elever. FÄRSKHET: varje egen SKRIVNING
+// invaliderar sin studentId via invalidateStudentData(), så saldo/olåst aldrig
+// är gammalt (krav 2); alla skrivvägar i data.js/data-room.js/data-reading-
+// level.js anropar den efter lyckad skrivning.
+const _studentDataCache = createTtlCache();
+
+/** Invalidera studentData-cachen för en elev (anropas av ALLA skrivvägar). */
+export function invalidateStudentData(studentId = currentStudentId()) {
+  if (studentId) _studentDataCache.invalidate(studentId);
+}
+
+/** Töm hela studentData-cachen (in-/utloggning, test). */
+export function clearStudentDataCache() {
+  _studentDataCache.clear();
+}
 
 export function defaultStudentData(avatarId) {
   return {
@@ -103,17 +143,21 @@ export async function ensureStudentData(studentId, avatarId) {
   if (!snap.exists()) {
     const data = defaultStudentData(avatarId);
     await setDoc(ref, data);
+    invalidateStudentData(studentId); // nyskapat dok → ev. cachad "saknad" är död
     return data;
   }
   return snap.data();
 }
 
-/** Hämtar hela elevdata-dokumentet för inloggad (eller angiven) elev. */
+/** Hämtar hela elevdata-dokumentet för inloggad (eller angiven) elev
+ *  (session-cachad per studentId, se _studentDataCache). */
 export async function getStudentData(studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
-  const ref = doc(db, "studentData", studentId);
-  const snap = await getDoc(ref);
-  return snap.exists() ? snap.data() : await ensureStudentData(studentId);
+  return _studentDataCache.read(studentId, async () => {
+    const ref = doc(db, "studentData", studentId);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : await ensureStudentData(studentId);
+  });
 }
 
 // Läsnivå (#154): getReadingLevel/setReadingLevel bor i data-reading-level.js
@@ -135,14 +179,16 @@ export async function addCoins(amount, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const n = Math.max(0, Math.round(amount || 0));
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const next = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const cur = snap.exists() ? snap.data().coins || 0 : 0;
-    const next = cur + n;
-    if (snap.exists()) tx.update(ref, { coins: next });
-    else tx.set(ref, { ...defaultStudentData(), coins: next });
-    return next;
+    const nextCoins = cur + n;
+    if (snap.exists()) tx.update(ref, { coins: nextCoins });
+    else tx.set(ref, { ...defaultStudentData(), coins: nextCoins });
+    return nextCoins;
   });
+  invalidateStudentData(studentId); // saldot ändrat → nästa läsning måste vara färsk
+  return next;
 }
 
 // XP / nivå: se systermodulen data-xp.js (additiv, som data-pet.js) – håller
@@ -176,6 +222,7 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
     payload.stars = Math.max(existing.stars, payload.stars);
   }
   await updateDoc(ref, { [key]: { ...existing, ...payload } });
+  invalidateStudentData(studentId);
   return payload;
 }
 
@@ -195,6 +242,7 @@ export async function saveReadingProgress(areaId, textId, result, studentId = cu
   const key = `progress.${areaId}.reading.${textId}`;
   try {
     await updateDoc(ref, { [key]: { ...result, lastPlayed: serverTimestamp() } });
+    invalidateStudentData(studentId);
   } catch {}
 }
 
@@ -226,6 +274,7 @@ export async function saveQuestionRotation(areaId, mode, keys, studentId = curre
   const key = `questionRotation.${areaId}.${mode}`;
   try {
     await updateDoc(ref, { [key]: Array.isArray(keys) ? keys : [] });
+    invalidateStudentData(studentId);
   } catch {}
 }
 
@@ -262,7 +311,7 @@ export async function buyItem(itemId, price, studentId = currentStudentId()) {
   const cost = Math.max(0, Math.round(price || 0));
   const multi = isMultiItem(itemId);
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : defaultStudentData();
     const owned = data.ownedItems || [];
@@ -282,6 +331,9 @@ export async function buyItem(itemId, price, studentId = currentStudentId()) {
     else tx.set(ref, { ...defaultStudentData(), ...next });
     return { ok: true, coins: next.coins, owned: nextOwned, counts: nextCounts };
   });
+  // Coins + ägda saker kan ha ändrats → invalidera så saldo/olåst blir färskt.
+  if (result.ok) invalidateStudentData(studentId);
+  return result;
 }
 
 // Rum & avatar-utseende (rum, klädsaker, avatar, evolution): utbrutet till
