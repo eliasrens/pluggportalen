@@ -78,7 +78,7 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
     `<div class="big-emoji">${progressIcon}</div>` +
     `<h2>${esc(theme.namn || "Äventyr")}</h2>` +
     `<p>${esc((theme.texter && theme.texter.intro) || "Gå runt och svara rätt vid varje station för att nå målet!")}</p>` +
-    `<p class="hint">Styr med <b>piltangenter</b> eller <b>WASD</b>. Gå fram till en station och tryck <b>E</b> (eller mellanslag) för att svara.</p>` +
+    `<p class="hint">Styr med <b>piltangenter</b>/<b>WASD</b> – eller <b>håll fingret</b> på spelytan och gå mot det. Gå fram till en station och tryck <b>E</b>/mellanslag (eller <b>tryck</b> på spelytan) för att svara.</p>` +
     `<button class="btn stor gron" id="adv-go">Starta! 🚀</button>`;
 
   mount.replaceChildren(intro);
@@ -99,7 +99,15 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
   let raf = 0;
   let started = false;
   const startTime = Date.now();
-  const input = createInput({ onInteract: tryInteract });
+  // Touch-styrning (issue #250): peklyssnare på SPELYTAN (scene.stage), inte window,
+  // så bara spelytan styr. getAimOrigin ger avatarens skärmpunkt så "gå mot fingret"
+  // riktas rätt i grid-läget; scroll-scenen saknar den ⇒ null ⇒ spelytans mitt
+  // (avataren är då visuellt centrerad). Tangentbordet ligger kvar på window som förr.
+  const input = createInput({
+    onInteract: tryInteract,
+    pointerTarget: scene.stage,
+    getAimOrigin: () => (scene.getAimOrigin ? scene.getAimOrigin() : null),
+  });
 
   function begin() {
     if (started) return;
@@ -339,6 +347,12 @@ function createGridScene({ space, theme, avatarHtml, progressIcon, goal }) {
       playerEl.style.left = pos.x + "%";
       playerEl.style.top = pos.y + "%";
       playerEl.classList.toggle("vand-vanster", !!facingLeft);
+    },
+    // Touch-styrning (#250): avataren RÖR sig i grid-läget → sikta mot dess faktiska
+    // skärmpunkt (bounding rect-centrum), så "gå mot fingret" pekar rätt.
+    getAimOrigin() {
+      const r = playerEl.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     },
     setWalking(v) {
       playerEl.classList.toggle("gar", !!v);
