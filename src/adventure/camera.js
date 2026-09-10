@@ -100,6 +100,13 @@ export function createCamera({ world, viewFraction = 1 / 6, tau = 0.12 } = {}) {
     setScreen,
     getZoom: () => zoom,
     getFocus: () => ({ ...focus }),
+    /** Synlig världsruta {x,y,w,h} (världspixlar) utifrån aktuellt fokus + zoom.
+     *  Används av flee-logiken (#276) för att respawna spöken UTANFÖR synhåll. */
+    getViewport() {
+      const w = screen.w / zoom;
+      const h = screen.h / zoom;
+      return { x: focus.x - w / 2, y: focus.y - h / 2, w, h };
+    },
     /**
      * Följ spelaren ett steg och returnera CSS-transformen för världslagret.
      * @param {{x:number,y:number}} target  spelarens världsposition
