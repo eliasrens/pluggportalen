@@ -108,6 +108,8 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
     pointerTarget: scene.stage,
     getAimOrigin: () => (scene.getAimOrigin ? scene.getAimOrigin() : null),
   });
+  const isCoarsePointer =
+    typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
 
   function begin() {
     if (started) return;
@@ -144,7 +146,10 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
       t.type === "goal"
         ? (theme.texter && theme.texter.goalPrompt) || "Du är framme vid målet! Tryck för att avsluta 🎉"
         : (theme.texter && theme.texter.stationPrompt) || "En kunskapsstation! Tryck E för att svara.";
-    scene.setPrompt(text);
+    // Touch (#250): temats prompt är skriven för tangentbord ("Tryck E …"); på
+    // pekskärm finns ingen E-tangent, så på coarse-pointer byts den mot "tryck på
+    // skärmen" (interagera funkar redan via TAP på spelytan/prompten). Desktop orört.
+    scene.setPrompt(isCoarsePointer ? text.replace(/Tryck E( \(eller mellanslag\))?/g, "Tryck på skärmen") : text);
   }
 
   async function tryInteract() {
