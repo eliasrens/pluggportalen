@@ -44,6 +44,9 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
 
   const objectsEl = document.createElement("div");
   objectsEl.className = "adv-objects";
+  // Lugn-min-konsten per station beräknas EN gång (vissa teman varierar per anrop,
+  // t.ex. Gruvans kristaller) → stabil bild att återställa till efter en flykt (#276).
+  const calmArt = world.stations.map(() => (theme.stationArt ? theme.stationArt() : progressIcon));
   objectsEl.innerHTML = renderStations();
 
   const goalEl = document.createElement("div");
@@ -74,17 +77,21 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
   stage.append(worldEl, hud, promptEl, compass.el);
 
   function renderStations() {
-    // stationArt() anropas en gång PER station (vissa teman varierar per anrop,
-    // t.ex. Gruvans kristaller) → stabil variation, samma mönster som grid-scenen.
+    // Använd den EN gång beräknade lugn-min-konsten (calmArt) → stabil variation,
+    // samma mönster som grid-scenen, och samma bild att återställa till efter flykt.
     return world.stations
       .map((p, i) => {
-        const art = theme.stationArt ? theme.stationArt() : progressIcon;
         return (
-          `<div class="adv-station" data-station="${i}" style="left:${p.x}px;top:${p.y}px">` +
-          `<span class="adv-station-art">${art}</span></div>`
+          `<div class="adv-station" data-station="${i}" data-mood="calm" style="left:${p.x}px;top:${p.y}px">` +
+          `<span class="adv-station-art">${calmArt[i]}</span></div>`
         );
       })
       .join("");
+  }
+
+  /** DOM-noden för station #index (eller null om utanför/redan borttagen). */
+  function stationNode(index) {
+    return objectsEl.querySelector(`.adv-station[data-station="${index}"]`);
   }
 
   // --- Kamera-storlek: mät scenen och håll den aktuell vid resize ------------
@@ -98,8 +105,10 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
     stage,
     begin() {
       // Storlek på objekt/avatar i VÄRLDSPIXLAR → skalar korrekt med zoomen.
+      // objectScale är tune:bar per tema (#276 gör Spökjaktens spöken mindre);
+      // default 1.1 = oförändrat för övriga teman.
       playerEl.style.fontSize = world.avatarSize + "px";
-      objectsEl.style.fontSize = world.avatarSize * 1.1 + "px";
+      objectsEl.style.fontSize = world.avatarSize * (world.objectScale || 1.1) + "px";
       goalEl.style.fontSize = world.avatarSize * 1.3 + "px";
       syncScreen();
       if (typeof ResizeObserver !== "undefined") {
@@ -133,8 +142,52 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
       playHack(playerEl);
     },
     markStationCleared(index) {
-      const node = objectsEl.querySelector(`.adv-station[data-station="${index}"]`);
-      if (node) node.classList.add("cleared");
+      const node = stationNode(index);
+      if (node) {
+        node.classList.remove("scared");
+        node.classList.add("cleared");
+      }
+    },
+    // --- Flyende spöken (#276): motorn flyttar/varierar min på levande stationer ---
+    // Flytta en stations DOM-nod till en ny världsposition (px). Billig – bara left/top.
+    moveStation(index, pos) {
+      const node = stationNode(index);
+      if (!node) return;
+      node.style.left = pos.x + "px";
+      node.style.top = pos.y + "px";
+    },
+    // Växla lugn/rädd min. Byter bara DOM när minen faktiskt ändras (dedupe) så
+    // puls-animationen inte startas om varje bildruta. "scared" ⇒ temats
+    // stationScaredArt (om finns) + CSS-klass; "calm" ⇒ den lagrade lugn-konsten.
+    setStationMood(index, mood) {
+      const node = stationNode(index);
+      if (!node) return;
+      const want = mood === "scared" ? "scared" : "calm";
+      if (node.dataset.mood === want) return;
+      node.dataset.mood = want;
+      node.classList.toggle("scared", want === "scared");
+      const art = node.querySelector(".adv-station-art");
+      if (art) {
+        art.innerHTML =
+          want === "scared" && theme.stationScaredArt ? theme.stationScaredArt() : calmArt[index];
+      }
+    },
+    // Escape → respawn: flytta + återställ lugn + en kort fade-in på den nya platsen.
+    respawnStation(index, pos) {
+      this.moveStation(index, pos);
+      this.setStationMood(index, "calm");
+      const node = stationNode(index);
+      if (!node) return;
+      const art = node.querySelector(".adv-station-art");
+      if (!art) return;
+      art.classList.remove("adv-respawn");
+      // reflow → animationen kan spelas om även vid täta respawns.
+      void art.offsetWidth;
+      art.classList.add("adv-respawn");
+    },
+    // Synlig världsruta {x,y,w,h} (px) för off-screen-respawn (#276).
+    getViewport() {
+      return camera.getViewport();
     },
     spawnGoal(pt) {
       goalEl.style.left = pt.x + "px";
