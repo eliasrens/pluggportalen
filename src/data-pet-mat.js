@@ -18,7 +18,7 @@ import {
   doc,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId } from "./data.js";
+import { currentStudentId, invalidateStudentData } from "./data.js";
 
 // Shop-id (måste matcha shop-items.js). Äpplet är en förbrukningsvara.
 export const APPLE_ITEM_ID = "apple";
@@ -42,7 +42,7 @@ export async function buyApple(price, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const cost = Math.max(0, Math.round(price || 0));
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : {};
     const coins = data.coins || 0;
@@ -53,6 +53,8 @@ export async function buyApple(price, studentId = currentStudentId()) {
     else tx.set(ref, next);
     return { ok: true, coins: next.coins, appleCount: next.appleCount };
   });
+  if (result.ok) invalidateStudentData(studentId); // coins/äpplen ändrat (#274)
+  return result;
 }
 
 /**
@@ -67,7 +69,7 @@ export async function buyApple(price, studentId = currentStudentId()) {
 export async function placeApple(x, y, studentId = currentStudentId(), presetId = null) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : {};
     const count = data.appleCount || 0;
@@ -79,4 +81,6 @@ export async function placeApple(x, y, studentId = currentStudentId(), presetId 
     else tx.set(ref, { appleCount: count - 1, floorApples: nextApples });
     return { ok: true, appleCount: count - 1, floorApples: nextApples, apple };
   });
+  if (result.ok) invalidateStudentData(studentId); // appleCount/floorApples ändrat (#274)
+  return result;
 }

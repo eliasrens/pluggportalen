@@ -16,7 +16,7 @@ import {
   doc,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, getStudentData, defaultStudentData } from "./data.js";
+import { currentStudentId, getStudentData, defaultStudentData, invalidateStudentData } from "./data.js";
 import { xpFromStudentData } from "./leveling.js";
 
 /** Elevens samlade XP (sparat fält, annars härlett ur progress). */
@@ -33,12 +33,14 @@ export async function addXp(amount, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const n = Math.max(0, Math.round(amount || 0));
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const next = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const cur = snap.exists() ? xpFromStudentData(snap.data()) : 0;
-    const next = cur + n;
-    if (snap.exists()) tx.update(ref, { xp: next });
-    else tx.set(ref, { ...defaultStudentData(), xp: next });
-    return next;
+    const total = cur + n;
+    if (snap.exists()) tx.update(ref, { xp: total });
+    else tx.set(ref, { ...defaultStudentData(), xp: total });
+    return total;
   });
+  invalidateStudentData(studentId); // xp ändrat → nästa läsning färsk (#274)
+  return next;
 }

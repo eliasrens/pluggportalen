@@ -9,9 +9,73 @@
 // Utbrutet ur class-projection.js (som bär Firestore-store:n) så shaping-logiken
 // kan enhetstestas isolerat och båda filerna hålls under filtaket. class-
 // projection.js re-exporterar allt härifrån, så befintliga importvägar består.
+//
+// Här bor även den GENERISKA TTL-session-cachen (createTtlCache, #274): en ren,
+// Firebase-fri cache-fabrik som data.js/data-content.js/data-classes.js
+// återanvänder INLINE. Den ligger i den här redan-existerande boot-graf-filen
+// (INTE i en NY fil) så att inget nytt hamnar i den boot-kritiska modulgrafen –
+// en ny boot-graf-fil ger ett 404-fönster vid GitHub Pages-deploy och fäller
+// boot (prod-incident 2026-09-10, se #271). Firebase-fri = enhetstestbar utan
+// emulator (test/data-cache.test.js).
 // ============================================================================
 
 import { xpFromStudentData, progressTotals } from "./leveling.js";
+
+// ---------------------------------------------------------------------------
+// Generisk TTL-session-cache (#274)
+// ---------------------------------------------------------------------------
+// Samma anda som klass-projektionens inbyggda cache (createClassProjectionStore):
+// Map<key,{value,ts}>, kort TTL, injicerbar now()-klocka för testbarhet, explicit
+// invalidering. Semantik = kort TTL (INTE stale-while-revalidate): ett färskt
+// värde (ålder < ttl) returneras direkt utan att loadern körs → snabba återbesök
+// under en session slipper nätrundan. När TTL löpt ut hämtas färskt EN gång och
+// cachas. Lärar-ändringar (hiddenModes/innehåll) når därför eleven inom en
+// TTL-cykel vid nästa navigering, utan hård-omladdning (krav 1). Egna skrivningar
+// invaliderar nyckeln explicit så saldo/olåst aldrig är gammalt (krav 2).
+//
+// @param {object} [o]
+// @param {function} [o.now]   () → ms (injicerbar klocka; default Date.now)
+// @param {number}   [o.ttlMs] TTL i ms (default 30 s, som projektions-cachen)
+const DEFAULT_TTL_MS = 30_000;
+
+export function createTtlCache({ now = () => Date.now(), ttlMs = DEFAULT_TTL_MS } = {}) {
+  const store = new Map(); // key -> { value, ts }
+  const isFresh = (hit) => hit && now() - hit.ts < ttlMs;
+
+  return {
+    /** Cachad läsning: färsk träff returneras direkt (loadern körs INTE),
+     *  annars körs `loader()`, resultatet cachas och returneras. */
+    async read(key, loader) {
+      const hit = store.get(key);
+      if (isFresh(hit)) return hit.value;
+      const value = await loader();
+      store.set(key, { value, ts: now() });
+      return value;
+    },
+    /** Färskt cachat värde eller undefined (utan att hämta). */
+    getFresh(key) {
+      const hit = store.get(key);
+      return isFresh(hit) ? hit.value : undefined;
+    },
+    /** Finns en FÄRSK post för nyckeln? (för test/introspektion) */
+    has(key) {
+      return isFresh(store.get(key));
+    },
+    /** Skriv in ett värde direkt (t.ex. det färska saldot ur en transaktion). */
+    set(key, value) {
+      store.set(key, { value, ts: now() });
+      return value;
+    },
+    /** Töm EN nyckel (anropas av skriv-vägen efter lyckad skrivning). */
+    invalidate(key) {
+      store.delete(key);
+    },
+    /** Töm hela cachen (in-/utloggning, test). */
+    clear() {
+      store.clear();
+    },
+  };
+}
 
 /**
  * REN hjälpare: bygg en members-entry ur ett students-dokument + dess

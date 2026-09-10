@@ -43,7 +43,7 @@ import {
   doc,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId } from "./data.js";
+import { currentStudentId, invalidateStudentData } from "./data.js";
 import { isAnimalItem } from "./shop-items.js";
 import { cleanPetName } from "./data-pet.js";
 
@@ -103,7 +103,7 @@ export async function buyAnimal(itemId, price, studentId = currentStudentId()) {
   if (!isAnimalItem(itemId)) throw new Error("Inte ett vanligt djur: " + itemId);
   const cost = Math.max(0, Math.round(price || 0));
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : {};
     const coins = data.coins || 0;
@@ -118,6 +118,8 @@ export async function buyAnimal(itemId, price, studentId = currentStudentId()) {
     else tx.set(ref, write);
     return { ok: true, coins: coins - cost, animals: next };
   });
+  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
+  return result;
 }
 
 /**
@@ -129,7 +131,7 @@ export async function buyAnimal(itemId, price, studentId = currentStudentId()) {
 export async function saveAnimalPositions(positions, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return { animals: [] };
     const animals = animalsFromData(snap.data());
@@ -144,6 +146,8 @@ export async function saveAnimalPositions(positions, studentId = currentStudentI
     tx.update(ref, { roomAnimals: next });
     return { animals: next };
   });
+  invalidateStudentData(studentId); // roomAnimals kan ha ändrats (#274)
+  return result;
 }
 
 /**
@@ -157,7 +161,7 @@ export async function saveAnimalName(animalUid, name, studentId = currentStudent
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const clean = cleanPetName(name);
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return { ok: false, animal: null, animals: [] };
     const animals = animalsFromData(snap.data());
@@ -167,6 +171,8 @@ export async function saveAnimalName(animalUid, name, studentId = currentStudent
     tx.update(ref, { roomAnimals: next });
     return { ok: true, animal: next[i], animals: next };
   });
+  if (result.ok) invalidateStudentData(studentId); // roomAnimals ändrat (#274)
+  return result;
 }
 
 /**
@@ -180,7 +186,7 @@ export async function saveAnimalName(animalUid, name, studentId = currentStudent
 export async function setAnimalStowed(animalUid, stowed, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return { ok: false, animal: null, animals: [] };
     const animals = animalsFromData(snap.data());
@@ -190,4 +196,6 @@ export async function setAnimalStowed(animalUid, stowed, studentId = currentStud
     tx.update(ref, { roomAnimals: next });
     return { ok: true, animal: next[i], animals: next };
   });
+  if (result.ok) invalidateStudentData(studentId); // roomAnimals ändrat (#274)
+  return result;
 }

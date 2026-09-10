@@ -18,7 +18,7 @@ import {
   doc,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, defaultStudentData } from "./data.js";
+import { currentStudentId, defaultStudentData, invalidateStudentData } from "./data.js";
 import { rollMysteryItem, dupCoins } from "./mystery-items.js";
 
 /**
@@ -44,7 +44,7 @@ export async function openMysteryBox(price, legendaryChance = null, studentId = 
   // hur ofta legendary faller (Mega/Epic-boxarna); null = vanliga boxen.
   const item = rollMysteryItem(Math.random, { legendaryChance });
   const ref = doc(db, "studentData", studentId);
-  return runTransaction(db, async (tx) => {
+  const result = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.exists() ? snap.data() : defaultStudentData();
     const coins = data.coins || 0;
@@ -67,4 +67,6 @@ export async function openMysteryBox(price, legendaryChance = null, studentId = 
     else tx.set(ref, { ...defaultStudentData(), ...next });
     return { ok: true, coins: nextCoins, item, duplicate, refund, owned: nextOwned };
   });
+  if (result.ok) invalidateStudentData(studentId); // coins/ägda ändrat (#274)
+  return result;
 }
