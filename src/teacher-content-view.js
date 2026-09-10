@@ -71,14 +71,25 @@ export function buildContentView() {
           på området) anpassas efter dina val, så du tvingas inte ha med alla typer. Standard är
           Quiz; kryssa i fler bara när du behöver dem (t.ex. bildpar).</p>
         <div class="member-grid" id="ex-types">
-          ${EXERCISE_TYPES.map(
-            (t) => `<label class="member-row">
+          ${EXERCISE_TYPES.filter((t) => !t.generated)
+            .map(
+              (t) => `<label class="member-row">
               <input type="checkbox" value="${esc(t.id)}"${t.id === "quiz" ? " checked" : ""} />
               <span class="member-avatar">${esc(t.emoji)}</span>
               <span class="member-name">${esc(t.label)}<br><span class="hint">${esc(t.hint)}</span></span>
             </label>`
-          ).join("")}
+            )
+            .join("")}
         </div>
+      </div>
+
+      <div class="field">
+        <label>🔢 Räknegenerator (matte)</label>
+        <p class="hint">Alternativ till quiz/par: låt området <b>generera</b> räkneuppgifter automatiskt.
+          Välj en tal-typ och kryssa i varianterna – inget innehåll klistras in, och området tänder
+          då <b>räkna-läget</b> (inte Quiz/Para ihop/Memory, som kräver text/par). Ange bara ett
+          <b>namn</b> i JSON-rutan nedan (t.ex. <code>{ "name": "Multiplikationsträning" }</code>).</p>
+        <div id="generator-config"></div>
       </div>
 
       <div class="field">

@@ -17,6 +17,7 @@
 // ============================================================================
 
 import { hasSanningsjaktContent } from "./sanningsjakt-content.js";
+import { hasGeneratorContent } from "./exercise-types.js";
 import { ADVENTURE_THEME_META } from "./adventure/themes/meta.js";
 
 // Metadata för gamemodes: ordning, namn, ikon, färg och vilket innehåll de kräver.
@@ -35,6 +36,11 @@ export const GAMEMODES = [
     sub: "Fånga de sanna påståendena – undvik de falska!", needs: "sanningsjakt" },
   { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
     sub: "Hitta fakta-paren", needs: "pairs" },
+  // Räkna-läget (issue #279/#3): tänds BARA av ett generator-område (area.generator).
+  // Kräver alltså varken quiz eller par – och ett rent generator-område tänder i sin
+  // tur inte quiz/par/läs-lägena. Själva spelet byggs i #3; här pekar bara gaten ut det.
+  { id: "rakna", name: "Räkna", emoji: "🔢", color: "orange",
+    sub: "Räkna ut svaret på genererade tal", needs: "generator" },
 ];
 
 // Frågekälla (questionKind) → innehållsflagga den drar från. Samma mappning som
@@ -119,6 +125,9 @@ export function areaContentFlags(area) {
     readingTexts: Array.isArray(area?.readingTexts) && area.readingTexts.length > 0,
     // Arkad-läget kan härleda påståenden ur par (minst 2) eller quiz.
     sanningsjakt: hasSanningsjaktContent(area),
+    // Räkna-läget (issue #279): tänds av ett giltigt generator-område (topic +
+    // varianter). Egen väg – helt frikopplad från quiz/par ovan.
+    generator: hasGeneratorContent(area),
   };
 }
 
