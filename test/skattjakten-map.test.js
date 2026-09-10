@@ -20,7 +20,6 @@ import {
   CHEST_CANDIDATES,
   COAST,
   POND,
-  RUINS,
   CLIFF_NW,
   CLIFF_MID,
   STREAM_UPPER,
@@ -112,14 +111,14 @@ test("inuti kustlinjen (gräs/sand) är gångbart – man kan gå ända ut till 
   assert.ok(!isBlockedWorld(700, 150), "strax innanför nordkusten = sand/gräs");
 });
 
-test("kollision blockerar damm, ruiner och stora klippor HELT (inga halva hinder, #243)", () => {
+test("kollision blockerar damm och stora klippor HELT (inga halva hinder, #243)", () => {
   // Damm: hela vatten-ellipsen blockeras.
   assert.ok(isBlockedWorld(POND.cx, POND.cy), "dammens mitt blockerad");
   assert.ok(isBlockedWorld(POND.cx + POND.rx * 0.8, POND.cy), "dammens kant blockerad");
-  // Ruiner: hela footprinten.
-  const rc = boxCenter(RUINS);
-  assert.ok(isBlockedWorld(rc.x, rc.y), "ruinernas mitt blockerad");
-  assert.ok(isBlockedWorld(RUINS.x + 5, RUINS.y + 5), "ruinernas hörn blockerat");
+  // Ruinerna togs bort (issue #286): forna footprinten (x921–1241, y60–232) är nu
+  // öppet gräs och GÅNGBART – ingen osynlig vägg kvar (konst = kollision, #243).
+  assert.ok(!isBlockedWorld(1081, 146), "forna ruin-området (mitt) nu gångbart");
+  assert.ok(!isBlockedWorld(926, 65), "forna ruin-området (hörn) nu gångbart");
   // Klippor: båda klustren.
   assert.ok(isBlockedWorld(60, 60), "NV-klippan blockerad");
   const mc = boxCenter(CLIFF_MID);
