@@ -46,7 +46,7 @@
       </aside>
 
       <main id="app" class="container">
-        <div class="spinner">Laddar…</div>
+        <div class="spinner" id="boot-spinner">Laddar…</div>
       </main>
     </div>
 
@@ -55,10 +55,18 @@
          gamla/nya moduler eller cachade 404:or. Faller då app.js-modulgrafen
          faller HELA appen utan att någon app-kod hunnit köra, och eleven ser
          bara "Laddar…" för evigt. Det här klassiska (icke-modul) skriptet kör
-         alltid: app.js sätter window.__PLUGG_BOOTED när routern ritat första
-         sidan – har det inte hänt inom 8 s byts spinnern mot ett vänligt
-         meddelande med en "Försök igen"-knapp. Efter cache-fönstret läker en
-         omladdning sidan av sig själv. -->
+         alltid och agerar efter 8 s bara om BÅDA gäller:
+           1. window.__PLUGG_BOOTED saknas (sätts av NY app.js när routern kör) OCH
+           2. start-spinnern #boot-spinner står KVAR i DOM:en – den försvinner så
+              fort NÅGON app.js-version (även en äldre cachad, som inte känner
+              till flaggan) gjort sin första render. Utan markörkontrollen skulle
+              vakten skriva över en FUNGERANDE app för klienter som fått ny
+              index.html + gammal cachad app.js i just mixfönstret, och den
+              skulle blinka i onödan på långsamma nät där boot tar >8 s.
+         Alltså: vakten triggar ENBART när ingen app-kod alls hunnit rendera
+         (modulgraf-404/krasch före första render) – rotorsaksfallet. Då byts
+         spinnern mot ett vänligt meddelande med en "Försök igen"-knapp; efter
+         cache-fönstret läker en omladdning sidan av sig själv. -->
     <script>
       window.__PLUGG_BOOTED = false;
       (function () {
@@ -66,6 +74,8 @@
         console.log("Pluggportalen build:", build ? build.content : "okänd");
         setTimeout(function () {
           if (window.__PLUGG_BOOTED) return;
+          // Markören borta = någon app.js (gammal som ny) har renderat – tig.
+          if (!document.getElementById("boot-spinner")) return;
           var app = document.getElementById("app");
           if (!app) return;
           app.innerHTML =

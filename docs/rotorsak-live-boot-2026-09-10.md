@@ -71,7 +71,14 @@ faller ⇒ evig "Laddar…".
    filer** i denna deploy ⇒ inget 404-fönster på bootvägen. `ui.js` är helt
    orörd mot det verifierat fungerande revert-läget.
 3. **Bootvakt i `index.html`** (klassiskt icke-modul-skript, kör alltid):
-   sätter `app.js` inte `window.__PLUGG_BOOTED` inom 8 s byts spinnern mot
+   efter 8 s agerar den bara om BÅDE `window.__PLUGG_BOOTED` saknas (sätts av
+   ny `app.js` när routern kör) OCH start-spinnern `#boot-spinner` står kvar i
+   DOM:en. Markören försvinner så fort NÅGON `app.js`-version gjort sin första
+   render – även en äldre cachad `app.js` som inte känner till flaggan. Utan
+   markörkontrollen skulle vakten skriva över en FUNGERANDE app för klienter
+   som får ny `index.html` + gammal cachad `app.js` i mixfönstret, och blinka
+   i onödan på långsamma nät (>8 s boot). Triggar den (= ingen app-kod alls
+   hann rendera: modulgraf-404/krasch före första render) byts spinnern mot
    "Sajten uppdateras just nu 🔧" + "Försök igen"-knapp (reload). Blandnings-
    fönstret självläker när TTL:en gått ut – nu syns det i stället för evig
    spinner. Detta skyddar ÄVEN framtida deployer som måste lägga nya filer i
