@@ -14,7 +14,7 @@ import {
   doc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId, getStudentData } from "./data.js";
+import { currentStudentId, getStudentData, invalidateStudentData } from "./data.js";
 import { normalizeReadingLevel } from "./reading-level.js";
 
 /**
@@ -37,5 +37,6 @@ export async function setReadingLevel(level, studentId = currentStudentId()) {
   const value = normalizeReadingLevel(level);
   const ref = doc(db, "studentData", studentId);
   await setDoc(ref, { readingLevel: value }, { merge: true });
+  invalidateStudentData(studentId); // egen elev: nästa läsning färsk (#274)
   return value;
 }

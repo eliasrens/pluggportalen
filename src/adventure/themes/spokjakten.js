@@ -78,6 +78,33 @@ function ghost() {
   );
 }
 
+/** Rädd spök-min (#276): samma söta spöke men UPPTÄCKT – höjda ögonbryn, liten
+ *  "o"-mun och en svettdroppe. Signalerar tydligt "oj, nu flyr jag!" utan att bli
+ *  läskigt. Scenen växlar hit när spelaren kommer inom upptäckts-radien. */
+function scaredGhost() {
+  return obj(
+    `<ellipse cx="50" cy="88" rx="18" ry="5" fill="${O}" opacity="0.12"/>` +
+    `<circle cx="50" cy="46" r="30" fill="${KIND}" opacity="0.22"/>` +
+    // kropp med vågig fåll (som lugna spöket)
+    `<path d="M26 74 V44 Q26 16 50 16 Q74 16 74 44 V74 ` +
+    `Q68 66 62 74 Q56 66 50 74 Q44 66 38 74 Q32 66 26 74 Z" fill="${SPOKE}" ${LINE}/>` +
+    `<path d="M60 24 Q70 30 68 46" fill="none" stroke="${SPOKE_SKUGGA}" stroke-width="4" stroke-linecap="round" opacity="0.8"/>` +
+    // höjda ögonbryn (förvånad)
+    `<path d="M36 33 Q42 29 47 32" fill="none" stroke="${O}" stroke-width="2.6" stroke-linecap="round"/>` +
+    `<path d="M53 32 Q58 29 64 33" fill="none" stroke="${O}" stroke-width="2.6" stroke-linecap="round"/>` +
+    // stora runda ögon
+    `<circle cx="42" cy="43" r="4.6" fill="${O}"/>` +
+    `<circle cx="58" cy="43" r="4.6" fill="${O}"/>` +
+    `<circle cx="43.6" cy="41.4" r="1.5" fill="#fff"/>` +
+    `<circle cx="59.6" cy="41.4" r="1.5" fill="#fff"/>` +
+    // liten "o"-mun
+    `<circle cx="50" cy="56" r="3.4" fill="none" stroke="${O}" stroke-width="2.8"/>` +
+    // svettdroppe uppe till höger
+    `<path d="M70 34 Q73 40 70 42 Q67 40 70 34 Z" fill="${KIND}" ${LINE}/>`,
+    "1.7em"
+  );
+}
+
 /** Slutmål: ett vänligt, glödande GULDSPÖKE som vinkar – tydligt festligt. */
 function goldGhost() {
   return obj(
@@ -142,8 +169,20 @@ export const spokjaktenTheme = {
   // Auktoritativt kollisions-predikat byggt ur samma geometri som konsten ritas ur.
   collision: buildSpokjaktenCollision(),
 
+  // --- Flyende spöken (issue #276) – OPT-IN, bara Spökjakten -----------------
+  // fleeing:true slår på motorns flee-motor (flee.js). detectFrac = upptäckts-radie
+  // (andel av min(världsmått)); satt större än interactFrac (0.06 default) så spöket
+  // hinner bli rädd och fly innan man fångar det → en mysig, görbar jakt. objectScale
+  // < 1.1 gör spöken MINDRE (fortfarande tydliga/pekvänliga). fleeSpeedFrac hålls
+  // under spelarens speedFrac (0.14 default) så jakten går att vinna.
+  fleeing: true,
+  detectFrac: 0.13,
+  fleeSpeedFrac: 0.1,
+  objectScale: 0.78,
+
   progressIcon: "👻",
   stationArt: () => ghost(),
+  stationScaredArt: () => scaredGhost(),
   goalArt: () => goldGhost(),
 
   texter: {

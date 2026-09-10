@@ -22,6 +22,20 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "./data.js";
 import { normalizeHiddenModes } from "./gamemode-visibility.js";
+import { createTtlCache } from "./class-projection.js";
+
+// Session-cache (#274): klasslistan läses varje gång plugga/världen ritas
+// (getClassForStudent + klass-hiddenModes, färskhets-kritiskt/krav 1). En kort
+// TTL-cache (INLINE här, se class-projection-entries.createTtlCache) gör
+// återbesök omedelbara; lärarens klass-skrivvägar nedan invaliderar explicit och
+// TTL:en fångar ändringar gjorda i en annan session. En enda nyckel ("classes")
+// eftersom getClasses alltid läser hela kollektionen.
+const _classCache = createTtlCache();
+
+/** Töm klass-session-cachen (lärar-skriv, in-/utloggning, test). */
+export function clearClassCache() {
+  _classCache.clear();
+}
 
 // ---------------------------------------------------------------------------
 // Klasser (lärarsidan) – läraren grupperar elever i klasser, t.ex. "6A".
@@ -36,14 +50,16 @@ import { normalizeHiddenModes } from "./gamemode-visibility.js";
 
 /** Lista alla klasser, sorterade efter `order` och sedan namn. */
 export async function getClasses() {
-  const snap = await getDocs(collection(db, "classes"));
-  return snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }))
-    .sort(
-      (a, b) =>
-        (Number(a.order) || 0) - (Number(b.order) || 0) ||
-        String(a.name || "").localeCompare(String(b.name || ""), "sv")
-    );
+  return _classCache.read("classes", async () => {
+    const snap = await getDocs(collection(db, "classes"));
+    return snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort(
+        (a, b) =>
+          (Number(a.order) || 0) - (Number(b.order) || 0) ||
+          String(a.name || "").localeCompare(String(b.name || ""), "sv")
+      );
+  });
 }
 
 /**
@@ -63,6 +79,7 @@ export async function upsertClass(classId, { name, order } = {}) {
     payload.studentIds = [];
   }
   await setDoc(ref, payload, { merge: true });
+  _classCache.invalidate("classes");
   return classId;
 }
 
@@ -80,6 +97,7 @@ export async function deleteClass(classId) {
     batch.set(doc(db, "students", id), { classIds: arrayRemove(classId) }, { merge: true });
   }
   await batch.commit();
+  _classCache.invalidate("classes");
 }
 
 /**
@@ -110,6 +128,7 @@ export async function setClassStudents(classId, studentIds) {
     batch.set(doc(db, "students", id), { classIds: arrayRemove(classId) }, { merge: true });
   }
   await batch.commit();
+  _classCache.invalidate("classes");
   return list;
 }
 
@@ -149,6 +168,7 @@ export async function setClassAssignments(classId, assignments) {
   const list = normalizeAssignments(assignments);
   const ref = doc(db, "classes", classId);
   await setDoc(ref, { assignedAreas: list }, { merge: true });
+  _classCache.invalidate("classes");
   return list;
 }
 
@@ -174,6 +194,7 @@ export async function getClassAssignments(classId) {
 export async function setClassHiddenModes(classId, hiddenModes) {
   const list = normalizeHiddenModes(hiddenModes);
   await setDoc(doc(db, "classes", classId), { hiddenModes: list }, { merge: true });
+  _classCache.invalidate("classes");
   return list;
 }
 
