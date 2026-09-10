@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pluggportalen</title>
     <meta name="description" content="Pluggportalen – en glad studiesida för åk 4." />
+    <!-- Byggstämpel: deploy-workflowet byter ut platshållaren mot commit-SHA:n
+         innan uppladdning till Pages. Loggas av bootvakten nedan så att man i
+         konsolen kan verifiera EXAKT vilken commit live servar (rotorsak #271:
+         Pages-utrullningen är inte atomär och 404/gamla filer kan cachas i upp
+         till ~10 min – utan stämpel går det inte att skilja "deploy ej framme"
+         från "koden är trasig"). Lokalt står platshållaren kvar – det är ok. -->
+    <meta name="pp-build" content="__BUILD_SHA__" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       rel="preconnect"
@@ -43,6 +50,35 @@
       </main>
     </div>
 
+    <!-- Bootvakt (rotorsak #271): GitHub Pages-utrullningen är inte atomär –
+         i upp till ~10 min efter en deploy kan en klient få en blandning av
+         gamla/nya moduler eller cachade 404:or. Faller då app.js-modulgrafen
+         faller HELA appen utan att någon app-kod hunnit köra, och eleven ser
+         bara "Laddar…" för evigt. Det här klassiska (icke-modul) skriptet kör
+         alltid: app.js sätter window.__PLUGG_BOOTED när routern ritat första
+         sidan – har det inte hänt inom 8 s byts spinnern mot ett vänligt
+         meddelande med en "Försök igen"-knapp. Efter cache-fönstret läker en
+         omladdning sidan av sig själv. -->
+    <script>
+      window.__PLUGG_BOOTED = false;
+      (function () {
+        var build = document.querySelector('meta[name="pp-build"]');
+        console.log("Pluggportalen build:", build ? build.content : "okänd");
+        setTimeout(function () {
+          if (window.__PLUGG_BOOTED) return;
+          var app = document.getElementById("app");
+          if (!app) return;
+          app.innerHTML =
+            '<div class="panel center">' +
+            "<h2>Sajten uppdateras just nu 🔧</h2>" +
+            '<p class="hint">Det tar bara någon minut. Prova igen om en liten stund!</p>' +
+            '<button class="btn" id="boot-retry">Försök igen</button>' +
+            "</div>";
+          var btn = document.getElementById("boot-retry");
+          if (btn) btn.addEventListener("click", function () { location.reload(); });
+        }, 8000);
+      })();
+    </script>
     <script type="module" src="./src/app.js"></script>
   </body>
 </html>

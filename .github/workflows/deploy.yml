@@ -31,6 +31,13 @@ jobs:
       - name: Konfigurera Pages
         uses: actions/configure-pages@v5
 
+      # Byggstämpel (rotorsak #271): skriv in commit-SHA:n i index.html så att
+      # bootvakten loggar den i konsolen. Då kan man efter en deploy verifiera
+      # EXAKT vilken commit live servar (Pages-utrullningen är inte atomär och
+      # kan dröja/cachas i ~10 min). Ren sed – inget byggsteg i övrigt.
+      - name: Stämpla byggversion
+        run: sed -i "s/__BUILD_SHA__/${GITHUB_SHA::7}/" index.html
+
       - name: Ladda upp sajten
         uses: actions/upload-pages-artifact@v3
         with:
