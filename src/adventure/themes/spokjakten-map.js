@@ -74,7 +74,7 @@ export const GRAVESTONES = [
 // Ellips-radier kring hela den ritade hällen (~56×68 px), centrerad en aning ovan (x,y).
 export const GRAVE_BLOCK_RX = 30;
 export const GRAVE_BLOCK_RY = 36;
-const GRAVE_BLOCK_DY = -10;
+export const GRAVE_BLOCK_DY = -10;
 
 // --- Staket (punkt-hinder via korta polylinjer): låga trästaket som ramar in
 // gravgångar men lämnar BREDA luckor så de aldrig spärrar en gångväg. Kollisionen
