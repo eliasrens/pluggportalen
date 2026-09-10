@@ -10,8 +10,9 @@
 // världspixlar 1536×1024, och kustlinjen/hindren ritas så de VISUELLT matchar
 // kollisionen – blått hav runt kanten, ön bredast i mitten (grid-rad 4–7),
 // avsmalnande upp/ned, hav i hörnen; klippor (CLIFF_NW/CLIFF_MID), damm (POND),
-// ruiner (RUINS), å med BRO (STREAM_N/STREAM_S + gångbar lucka), läger, brygga
-// + båt vid START_AT och diskreta röda X vid CHEST_CANDIDATES.
+// å med BRO (STREAM_N/STREAM_S + gångbar lucka) samt brygga + båt vid START_AT.
+// Städat hårdare (issue #286): ruiner + läger borttagna, X-brus nertonat till en
+// enda diskret markering, hav/gräs glesat och färre näckrosor → en lugn, ren skattö.
 //
 // Scenen renderas rakt in i .adv-map (scene-scroll.js: mapEl.innerHTML) och
 // skalas till lagret via .adv-map > svg { width/height:100% } (games.css).
@@ -30,7 +31,6 @@ import {
   BRIDGE,
   CLIFF_NW,
   CLIFF_MID,
-  RUINS,
   cliffStones,
   BLOCKING_BUSHES,
   smoothClosedPath,
@@ -59,9 +59,7 @@ const VATTEN = "#5FB8E0"; // damm/å (ljusare sött vatten)
 const VATTEN_LJUS = "#AEE4F2";
 const TALT = "#F49E4C";
 const TALT_MORK = "#EF6F6C";
-const ROD = "#EF6F6C"; // X-markeringar
-const RUIN = "#C9BCA6";
-const RUIN_MORK = "#9C8F79";
+const ROD = "#EF6F6C"; // X-markering
 
 const L2 = `stroke="${O}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"`;
 const L3 = `stroke="${O}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"`;
@@ -89,12 +87,14 @@ function inset(pts, f) {
 
 /** Havsbotten + vågtextur + grund vatten-halo runt ön. */
 function ocean() {
+  // Glesa, subtila vågfläckar (issue #286): större steg + lägre opacitet så havet
+  // läser som en lugn yta istället för ett tätt vågmönster.
   const waves = [];
-  for (let y = 90; y < H; y += 150) {
-    for (let x = 60; x < W; x += 260) {
-      const ox = x + ((y / 150) % 2) * 130;
+  for (let y = 120; y < H; y += 300) {
+    for (let x = 80; x < W; x += 520) {
+      const ox = x + ((y / 300) % 2) * 260;
       waves.push(
-        `<path d="M${n1(ox)} ${y} q22 -12 44 0 t44 0" fill="none" stroke="${HAV_GRUND}" stroke-width="4" opacity="0.35"/>`
+        `<path d="M${n1(ox)} ${y} q22 -12 44 0 t44 0" fill="none" stroke="${HAV_GRUND}" stroke-width="4" opacity="0.22"/>`
       );
     }
   }
@@ -109,16 +109,17 @@ function ocean() {
 /** Landmassan: sandstrand som kant + grönt gräs inåt, med lite texturfläckar. */
 function land() {
   const grass = inset(COAST, 0.9);
-  // Diskreta grästexturfläckar (glesade & mjukare, jfr floorPebbles i Gruvan #256).
+  // Grästextur hårt nertonad (issue #286): färre fläckar + svagare opacitet så
+  // gräsmattan läser som en lugn, jämn yta.
   const patches = [
-    [430, 360, 70], [900, 430, 90], [640, 640, 80], [330, 560, 55],
+    [900, 430, 90], [430, 400, 60],
   ]
-    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.62}" fill="${GRAS_MORK}" opacity="0.15"/>`)
+    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.62}" fill="${GRAS_MORK}" opacity="0.1"/>`)
     .join("");
   const bright = [
-    [700, 420, 120], [900, 620, 90],
+    [700, 480, 120],
   ]
-    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.5}" fill="${GRAS_LJUS}" opacity="0.26"/>`)
+    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.5}" fill="${GRAS_LJUS}" opacity="0.16"/>`)
     .join("");
   return (
     `<path d="${smoothClosed(COAST)}" fill="${SAND}" ${L3}/>` +
@@ -150,7 +151,7 @@ function pond() {
     `<ellipse cx="${cx}" cy="${cy}" rx="${POND.rx}" ry="${POND.ry}" fill="${VATTEN}"/>` +
     `<ellipse cx="${cx - 26}" cy="${cy - 22}" rx="42" ry="24" fill="${VATTEN_LJUS}" opacity="0.6"/>` +
     `<path d="M${cx - 60} ${cy + 10} q60 26 120 0" fill="none" stroke="${VATTEN_LJUS}" stroke-width="5" opacity="0.7"/>` +
-    lilja(cx + 34, cy + 8) + lilja(cx - 40, cy + 30)
+    lilja(cx + 34, cy + 8)
   );
 }
 function lilja(x, y) {
@@ -207,36 +208,6 @@ function cliffs() {
   return `<g>${cliff(CLIFF_NW)}</g>` + `<g>${cliff(CLIFF_MID)}</g>`;
 }
 
-/** Ruiner (RUINS, uppe-höger): brutna stenpelare + fundament. (x,y) = konstens
- *  origo ur map.js; hela footprinten blockeras i kollisionen (issue #243). */
-function ruins() {
-  const x = RUINS.x, y = RUINS.y;
-  const col = (cx, top, w) =>
-    `<rect x="${cx - w / 2}" y="${top}" width="${w}" height="${y + 165 - top}" rx="6" fill="${RUIN}" ${L2}/>` +
-    `<line x1="${cx}" y1="${top + 6}" x2="${cx}" y2="${y + 158}" stroke="${RUIN_MORK}" stroke-width="4" opacity="0.6"/>`;
-  return (
-    `<ellipse cx="${x + 165}" cy="${y + 168}" rx="185" ry="26" fill="${O}" opacity="0.1"/>` +
-    `<rect x="${x + 10}" y="${y + 150}" width="310" height="22" rx="8" fill="${RUIN_MORK}" ${L2}/>` +
-    col(x + 55, y + 40, 46) + col(x + 150, y + 12, 46) + col(x + 250, y + 66, 46) +
-    `<rect x="${x + 120}" y="${y + 4}" width="120" height="20" rx="6" fill="${RUIN}" ${L2}/>` +
-    `<rect x="${x + 240}" y="${y + 110}" width="60" height="30" rx="6" fill="${RUIN}" ${L2}/>`
-  );
-}
-
-/** Läger/tält (~0.2,0.36, vänster) med lägereld. */
-function camp() {
-  const x = 307, y = 369;
-  return (
-    `<ellipse cx="${x}" cy="${y + 60}" rx="120" ry="24" fill="${O}" opacity="0.1"/>` +
-    `<path d="M${x - 78} ${y + 58} L${x} ${y - 66} L${x + 78} ${y + 58} Z" fill="${TALT}" ${L3}/>` +
-    `<path d="M${x} ${y - 66} L${x} ${y + 58} L${x - 78} ${y + 58} Z" fill="${TALT_MORK}" ${L2}/>` +
-    `<path d="M${x - 24} ${y + 58} L${x} ${y + 14} L${x + 24} ${y + 58} Z" fill="${O}" opacity="0.55"/>` +
-    // liten lägereld till höger om tältet
-    `<ellipse cx="${x + 128}" cy="${y + 52}" rx="30" ry="10" fill="${STEN}" opacity="0.7"/>` +
-    `<path d="M${x + 128} ${y + 14} q18 20 0 38 q-18 -18 0 -38 Z" fill="${TALT}" ${L2}/>` +
-    `<path d="M${x + 128} ${y + 26} q9 12 0 24 q-9 -10 0 -24 Z" fill="${GULDish()}"/>`
-  );
-}
 function GULDish() { return "#F7C948"; }
 
 /** Brygga + liten båt vid START_AT (~0.74,0.66, nere-höger, "anländer med båt"). */
@@ -340,15 +311,14 @@ function decor() {
   );
 }
 
-/** Diskret röd X på marken vid skattens kandidatplatser (CHEST_CANDIDATES). */
+/** EN enda diskret röd X på marken (issue #286): de tre streckade cirklarna drog
+ *  för mycket blick. Kvar är ett litet, nedtonat kryss centralt på ön. */
 function xMarks() {
-  const marks = [[1014, 287], [722, 573], [353, 696]];
-  return marks
-    .map(([x, y]) =>
-      `<g opacity="0.85"><circle cx="${x}" cy="${y}" r="30" fill="none" stroke="${ROD}" stroke-width="4" stroke-dasharray="8 8" opacity="0.6"/>` +
-      `<path d="M${x - 18} ${y - 18} L${x + 18} ${y + 18} M${x + 18} ${y - 18} L${x - 18} ${y + 18}" stroke="${ROD}" stroke-width="9" stroke-linecap="round"/></g>`
-    )
-    .join("");
+  const x = 722, y = 573;
+  return (
+    `<path d="M${x - 14} ${y - 14} L${x + 14} ${y + 14} M${x + 14} ${y - 14} L${x - 14} ${y + 14}" ` +
+    `stroke="${ROD}" stroke-width="7" stroke-linecap="round" opacity="0.7"/>`
+  );
 }
 
 // ============================================================================
@@ -362,8 +332,6 @@ export const SKATTJAKTEN_SCEN_SVG =
   pond() +
   streamAndBridge() +
   cliffs() +
-  ruins() +
-  camp() +
   jettyBoat() +
   xMarks() +
   decor() +
