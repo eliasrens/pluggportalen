@@ -105,9 +105,8 @@ export const BUSH_BLOCK_RX = 44;
 export const BUSH_BLOCK_RY = 34;
 const BUSH_BLOCK_DY = -4;
 
-// --- Ruiner (uppe-höger): brutna stenpelare + fundament. (x,y) är konstens origo;
-// hela footprinten blockeras (box ≈ x[921..1241] y[60..232]).
-export const RUINS = { x: 921, y: 60, w: 320, h: 172 };
+// Ruinerna (uppe-höger) togs bort som visuellt brus (issue #286). Området är nu
+// öppet gräs OCH gångbart – ingen kollisionsbox här längre (jfr #243: konst = kollision).
 
 // ============================================================================
 // DELAD KURV-MATTE (issue #243, runda 2): konsten ritar kust/å som en Catmull-Rom-
@@ -210,11 +209,6 @@ function insideEllipse(x, y, cx, cy, rx, ry) {
   return dx * dx + dy * dy <= 1;
 }
 
-/** Innanför en axelriktad box {x,y,w,h}? */
-function insideRect(x, y, r) {
-  return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
-}
-
 /** Kortaste avstånd (px) från punkt till linjesegment a→b. */
 function segDist(px, py, a, b) {
   const vx = b[0] - a[0], vy = b[1] - a[1];
@@ -255,8 +249,6 @@ export function isBlockedWorld(x, y) {
   if (!pointInPolygon(x, y, COAST_SMOOTH)) return true;
   // Damm.
   if (insideEllipse(x, y, POND.cx, POND.cy, POND_BLOCK_RX, POND_BLOCK_RY)) return true;
-  // Ruiner.
-  if (insideRect(x, y, RUINS)) return true;
   // Klippor – per ritat stenblock (box kring valvet: x[cx±r], y[cy−r .. cy+r*0.7]).
   for (let i = 0; i < CLIFF_RECTS.length; i++) {
     const stones = cliffStones(CLIFF_RECTS[i]);
