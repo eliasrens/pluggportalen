@@ -1106,33 +1106,6 @@
   animation: adv-prompt-in 0.16s ease;
 }
 
-/* Kompass-HUD (#261): diskret pil fast i övre HÖGER hörn av spelytan som pekar mot
-   närmsta fråga/slutmålet. Halvtransparent mörk rundad platta med ljus ring + skugga
-   → läsbar mot BÅDE ljus (Skattjakten) och mörk (Gruvan/Spökjakten) bakgrund. Pilen
-   får ALDRIG äta tap på spelytan → pointer-events:none på hela elementet. */
-.adv-compass {
-  position: absolute;
-  top: 10px; right: 12px;
-  z-index: var(--z-scen-ui);
-  width: 40px; height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(28, 30, 46, 0.5);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35), inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
-  color: #fff;
-  pointer-events: none; /* KRITISKT (touch): gå/tryck ska funka "under" pilen */
-  animation: adv-prompt-in 0.16s ease;
-}
-.adv-compass-arrow {
-  display: inline-flex;
-  font-size: 22px;
-  line-height: 0;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
-  transition: transform 0.12s linear; /* mjuk rotation, ingen throttling behövs */
-}
-
 /* Spelaren: elevens avatar (avatar-figure) placerad i procent, centrerad. */
 .adventure-player {
   position: absolute;

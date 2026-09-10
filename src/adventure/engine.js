@@ -31,8 +31,7 @@ import { moveStep } from "./movement.js";
 import { createInput } from "./input.js";
 import { createImageWorld } from "./world.js";
 import { createScrollScene } from "./scene-scroll.js";
-import { createGridScene } from "./grid-scene.js";
-import { nearestTargetAngle } from "./compass.js";
+import { playerAvatarHtml, playHack } from "./hand-tool.js";
 import { awardAdventure } from "./reward.js";
 
 const SPEED = 34; // %/s – lugnt men responsivt promenadtempo på grid-läget
@@ -153,22 +152,6 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
     scene.setPrompt(isCoarsePointer ? text.replace(/Tryck E( \(eller mellanslag\))?/g, "Tryck på skärmen") : text);
   }
 
-  // Kompass-HUD (#261): diskret pil i hörnet mot NÄRMSTA icke-klarade station (eller
-  // slutmålet när goalActive). Ren riktnings-matte i compass.js; här bara wiring +
-  // samma döljnings-villkor som updatePrompt (busy/finished/inget mål/innan started).
-  function updateCompass() {
-    if (!scene.setCompass) return; // scen utan kompass-stöd → hoppa tyst
-    if (busy || finished || !started) return scene.setCompass(null);
-    const { angleRad, hasTarget } = nearestTargetAngle({
-      pos,
-      stations: space.stations,
-      cleared,
-      goalActive,
-      goal: space.goal,
-    });
-    scene.setCompass(hasTarget ? angleRad : null);
-  }
-
   async function tryInteract() {
     if (busy || finished || !started) return;
     const t = currentTarget();
@@ -252,7 +235,6 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
     }
     scene.frame(pos, dt); // mjuk kamera-följning (scroll); no-op i grid-läget
     updatePrompt();
-    updateCompass();
     raf = requestAnimationFrame(tick);
   }
 
@@ -303,5 +285,109 @@ function createGridSpace(theme) {
     margin: MARGIN,
     grid,
     tile,
+  };
+}
+
+// ============================================================================
+// GRID-SCENEN (default) – bygger EXAKT samma DOM/CSS som före #220 och exponerar
+// samma lilla scene-gränssnitt som scroll-scenen så motor-loopen är gemensam.
+// ============================================================================
+function createGridScene({ space, theme, avatarHtml, progressIcon, goal }) {
+  const { grid, tile } = space;
+
+  function tileArtFor(t) {
+    if (theme.tileArt && typeof theme.tileArt[t.type] === "function") return theme.tileArt[t.type](t);
+    return ""; // färg räcker (via CSS-klass) för ett minimalt tema
+  }
+  function renderTiles() {
+    return grid.tiles
+      .map((t) => {
+        const c = cellCenter(t.col, t.row, grid.cols, grid.rows);
+        return (
+          `<div class="adv-tile adv-tile-${t.type}" style="left:${c.x}%;top:${c.y}%;` +
+          `width:${tile.w}%;height:${tile.h}%">${tileArtFor(t)}</div>`
+        );
+      })
+      .join("");
+  }
+  function renderStations() {
+    return space.stations
+      .map((c, i) => {
+        const art = theme.stationArt ? theme.stationArt() : progressIcon;
+        return (
+          `<div class="adv-station" data-station="${i}" style="left:${c.x}%;top:${c.y}%">` +
+          `<span class="adv-station-art">${art}</span></div>`
+        );
+      })
+      .join("");
+  }
+
+  const stage = document.createElement("div");
+  stage.className = "adventure-stage";
+  stage.style.setProperty("--adv-himmel", (theme.stamning && theme.stamning.himmel) || "#bfe3ff");
+  stage.style.setProperty("--adv-mark", (theme.stamning && theme.stamning.mark) || "#8FCB74");
+  stage.innerHTML =
+    `<div class="adv-tiles" aria-hidden="true">${renderTiles()}</div>` +
+    `<div class="adv-stations" id="adv-stations">${renderStations()}</div>` +
+    `<div class="adv-goal" id="adv-goal" hidden></div>` +
+    `<div class="adv-hud">` +
+    `<span class="adv-progress"><span class="adv-progress-icon">${progressIcon}</span> ` +
+    `<b id="adv-count">0</b> / ${goal}</span></div>` +
+    `<div class="adv-prompt" id="adv-prompt" hidden></div>` +
+    `<div class="adventure-player" id="adv-player">${playerAvatarHtml(avatarHtml, theme)}</div>`;
+
+  const playerEl = stage.querySelector("#adv-player");
+  const promptEl = stage.querySelector("#adv-prompt");
+  const countEl = stage.querySelector("#adv-count");
+  const goalEl = stage.querySelector("#adv-goal");
+  const stationsWrap = stage.querySelector("#adv-stations");
+
+  return {
+    stage,
+    begin() {
+      // Avatarens storlek: skala mot rutstorleken så figuren fyller ~en ruta.
+      playerEl.style.fontSize = (theme.avatarScale || Math.max(tile.w, tile.h) * 0.9) + "cqw";
+    },
+    placePlayer(pos, facingLeft) {
+      playerEl.style.left = pos.x + "%";
+      playerEl.style.top = pos.y + "%";
+      playerEl.classList.toggle("vand-vanster", !!facingLeft);
+    },
+    // Touch-styrning (#250): avataren RÖR sig i grid-läget → sikta mot dess faktiska
+    // skärmpunkt (bounding rect-centrum), så "gå mot fingret" pekar rätt.
+    getAimOrigin() {
+      const r = playerEl.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    },
+    setWalking(v) {
+      playerEl.classList.toggle("gar", !!v);
+    },
+    setCount(n) {
+      countEl.textContent = String(n);
+    },
+    setPrompt(text) {
+      if (text == null) {
+        promptEl.hidden = true;
+      } else {
+        promptEl.textContent = text;
+        promptEl.hidden = false;
+      }
+    },
+    playHack() {
+      playHack(playerEl);
+    },
+    markStationCleared(index) {
+      const node = stationsWrap.querySelector(`.adv-station[data-station="${index}"]`);
+      if (node) node.classList.add("cleared");
+    },
+    spawnGoal(pt) {
+      goalEl.style.left = pt.x + "%";
+      goalEl.style.top = pt.y + "%";
+      goalEl.innerHTML = `<span class="adv-goal-art">${theme.goalArt ? theme.goalArt() : "🏆"}</span>`;
+      goalEl.hidden = false;
+    },
+    frame() {
+      /* grid-läget har ingen kamera – världen är hela scenen */
+    },
   };
 }
