@@ -17,6 +17,7 @@
 
 import { createCamera } from "./camera.js";
 import { playerAvatarHtml, playHack } from "./hand-tool.js";
+import { createCompass } from "./compass.js";
 
 export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal }) {
   // OBS: camera vill ha världens mått {w,h} (world.size), inte hela space-objektet.
@@ -66,7 +67,11 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
   promptEl.className = "adv-prompt";
   promptEl.hidden = true;
 
-  stage.append(worldEl, hud, promptEl);
+  // Kompass-HUD (#261): fast overlay UTANFÖR .adv-world (i stage) så den inte
+  // scrollar/skalas med kameran. pointer-events:none via CSS ⇒ äter aldrig tap.
+  const compass = createCompass();
+
+  stage.append(worldEl, hud, promptEl, compass.el);
 
   function renderStations() {
     // stationArt() anropas en gång PER station (vissa teman varierar per anrop,
@@ -120,6 +125,9 @@ export function createScrollScene({ world, theme, avatarHtml, progressIcon, goal
         promptEl.textContent = text;
         promptEl.hidden = false;
       }
+    },
+    setCompass(angleRad) {
+      compass.set(angleRad);
     },
     playHack() {
       playHack(playerEl);
