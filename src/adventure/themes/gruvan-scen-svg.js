@@ -33,9 +33,7 @@ const MINERAL_LJUS = "#DCF5FA";
 const SVAMP = "#E88FA8";
 const SVAMP_LJUS = "#FFC9D6";
 const SVAMP_STAM = "#F1E4D2";
-const TRA = "#8A6242";
-const TRA_LJUS = "#B0805A";
-const TRA_MORK = "#5f4127";
+const TRA_MORK = "#5f4127"; // enda kvarvarande trä-ton (lyktans stolpe)
 
 /** Liten deterministisk PRNG (mulberry32) → stabil, diff-vänlig utfil. */
 function rng(seed) {
@@ -156,19 +154,17 @@ function veins() {
   return VEINS.map((v) => vein(v.x, v.y)).join("");
 }
 
-// --- Gruvöppning till vänster (timrad portal + en aning dagsljus) ------------
+// --- Gruvöppning till vänster (dagsljus – ingen timrad portal längre) ---------
+// Städat #256: den timrade träportalen är borttagen (den läste som störande
+// bjälkar i spelytan). Gruvmynningen markeras nu enbart av mjukt dagsljus från
+// vänster → renare, men fortfarande tydligt var man kom in.
 function entrance() {
   const { x, y, r } = START_ROOM;
   return (
     `<radialGradient id="daylight" cx="0%" cy="50%" r="60%">` +
-    `<stop offset="0%" stop-color="#fbe9c4" stop-opacity="0.55"/>` +
+    `<stop offset="0%" stop-color="#fbe9c4" stop-opacity="0.5"/>` +
     `<stop offset="100%" stop-color="#fbe9c4" stop-opacity="0"/></radialGradient>` +
-    `<rect x="0" y="${y - r}" width="${x + r}" height="${2 * r}" fill="url(#daylight)"/>` +
-    // timrad portal runt öppningen
-    `<rect x="${x - 20}" y="${y - r - 30}" width="26" height="${2 * r + 60}" rx="5" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="3"/>` +
-    `<rect x="${x + r - 30}" y="${y - r - 30}" width="26" height="${2 * r + 60}" rx="5" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="3"/>` +
-    `<rect x="${x - 26}" y="${y - r - 42}" width="${r + 40}" height="30" rx="6" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="3"/>` +
-    `<rect x="${x - 26}" y="${y - r - 42}" width="${r + 40}" height="8" fill="${TRA_LJUS}" opacity="0.5"/>`
+    `<rect x="0" y="${y - r}" width="${x + r}" height="${2 * r}" fill="url(#daylight)"/>`
   );
 }
 
