@@ -25,31 +25,53 @@ import { createStudentAuthAccount } from "./auth.js";
 import {
   createClassProjectionStore,
   projectionEntryFrom,
+  createTtlCache,
 } from "./class-projection.js";
 import { mirrorStudentProjection } from "./projection-sync.js";
 
 // ---------------------------------------------------------------------------
-// Kunskapsinnehåll (ämnen och arbetsområden)
+// Kunskapsinnehåll (ämnen och arbetsområden) – session-cache (#274)
 // ---------------------------------------------------------------------------
+// Plugga-sidan (getSubjects/getAreas) och mode-sidan (getArea) läser samma
+// tunga innehåll om och om vid navigering plugga → mode → tillbaka. En kort
+// TTL-session-cache (INLINE här, se class-projection-entries.createTtlCache)
+// gör återbesök omedelbara utan en ny nätrunda. Lärar-ändringar (nya/ändrade
+// områden, hiddenModes i getArea) når eleven inom en TTL-cykel; lärarens EGNA
+// skrivvägar nedan invaliderar dessutom explicit. Nyckelrymd:
+//   "subjects"                  → getSubjects()
+//   "areas/<subjectId>"         → getAreas(subjectId)
+//   "area/<subjectId>/<areaId>" → getArea(subjectId, areaId)
+const _contentCache = createTtlCache();
+
+/** Töm hela innehålls-session-cachen (in-/utloggning, test). */
+export function clearContentCache() {
+  _contentCache.clear();
+}
 
 /** Lista alla ämnen, sorterade efter `order`. */
 export async function getSubjects() {
-  const snap = await getDocs(query(collection(db, "subjects"), orderBy("order")));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return _contentCache.read("subjects", async () => {
+    const snap = await getDocs(query(collection(db, "subjects"), orderBy("order")));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  });
 }
 
 /** Lista alla arbetsområden i ett ämne, sorterade efter `order`. */
 export async function getAreas(subjectId) {
-  const snap = await getDocs(
-    query(collection(db, "subjects", subjectId, "areas"), orderBy("order"))
-  );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return _contentCache.read(`areas/${subjectId}`, async () => {
+    const snap = await getDocs(
+      query(collection(db, "subjects", subjectId, "areas"), orderBy("order"))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  });
 }
 
 /** Hämta ett enskilt arbetsområde (med texts[], quiz[], pairs[]). */
 export async function getArea(subjectId, areaId) {
-  const snap = await getDoc(doc(db, "subjects", subjectId, "areas", areaId));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  return _contentCache.read(`area/${subjectId}/${areaId}`, async () => {
+    const snap = await getDoc(doc(db, "subjects", subjectId, "areas", areaId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -60,6 +82,7 @@ export async function getArea(subjectId, areaId) {
 export async function upsertSubject(subjectId, subject) {
   const ref = doc(db, "subjects", subjectId);
   await setDoc(ref, subject, { merge: true });
+  _contentCache.invalidate("subjects");
   return subjectId;
 }
 
@@ -74,12 +97,20 @@ export async function saveArea(subjectId, areaId, area) {
   // { id } hör inte hemma inuti dokumentet – det är dokumentets id.
   const { id, ...rest } = area;
   await setDoc(ref, rest);
+  invalidateAreaCaches(subjectId, areaId);
   return areaId;
 }
 
 /** Ta bort ett arbetsområde. */
 export async function deleteArea(subjectId, areaId) {
   await deleteDoc(doc(db, "subjects", subjectId, "areas", areaId));
+  invalidateAreaCaches(subjectId, areaId);
+}
+
+/** Töm innehålls-cachen för ett område + dess ämnes områdeslista (lärar-skriv). */
+function invalidateAreaCaches(subjectId, areaId) {
+  _contentCache.invalidate(`areas/${subjectId}`);
+  _contentCache.invalidate(`area/${subjectId}/${areaId}`);
 }
 
 /** Nästa lediga order-nummer i ett ämne (max befintlig + 1). */

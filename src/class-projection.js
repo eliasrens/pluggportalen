@@ -51,6 +51,7 @@ export {
   missingMemberIds,
   entryToBoende,
   boendeFromMembers,
+  createTtlCache,
 } from "./class-projection-entries.js";
 
 const DEFAULT_TTL_MS = 30_000; // kort session-cache: zooma ut/in läser inte om

@@ -19,6 +19,7 @@ import {
   currentStudentId,
   getStudentData,
   updateStudentProjectionAllClasses,
+  invalidateStudentData,
 } from "./data.js";
 import { mirrorStudentProjection } from "./projection-sync.js";
 import { roomUpgradeCount } from "./shop-items.js";
@@ -40,6 +41,7 @@ export async function saveAvatarItems(items, studentId = currentStudentId()) {
   const ref = doc(db, "studentData", studentId);
   const list = Array.isArray(items) ? [...new Set(items)] : [];
   await updateDoc(ref, { avatarItems: list });
+  invalidateStudentData(studentId);
   // Spegla in i klass-projektionen (#233, aldrig kastande).
   await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
     avatarItems: list,
@@ -65,6 +67,7 @@ export async function saveRoom(room, studentId = currentStudentId()) {
   const updates = {};
   for (const [key, value] of Object.entries(room)) updates[`room.${key}`] = value;
   await updateDoc(ref, updates);
+  invalidateStudentData(studentId);
   // Grundrummets paletteId ÄR husets exteriör-palett (projectionEntryFrom läser
   // room.paletteId), så spegla den in i klass-projektionen när den ändras (#233).
   // Övriga rum-fält (placements, window) rör inte by-översikten – hoppa dem.
@@ -107,6 +110,7 @@ export async function saveGarden(partial, studentId = currentStudentId()) {
   const updates = {};
   for (const [key, value] of Object.entries(partial)) updates[`garden.${key}`] = value;
   await updateDoc(ref, updates);
+  invalidateStudentData(studentId);
   return partial;
 }
 
@@ -190,6 +194,7 @@ export async function saveRoomAt(index, partial, studentId = currentStudentId())
     updates[`extraRooms.${key}.${field}`] = value;
   }
   await updateDoc(ref, updates);
+  invalidateStudentData(studentId);
   return partial;
 }
 
@@ -215,6 +220,7 @@ export async function saveHusSkal(skalId, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
   const ref = doc(db, "studentData", studentId);
   await updateDoc(ref, { husSkalId: skalId });
+  invalidateStudentData(studentId);
   // Spegla in i klass-projektionen (#233, aldrig kastande).
   await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
     husSkalId: skalId || null,
@@ -260,6 +266,7 @@ export async function setHusLast(locked, studentId = currentStudentId()) {
   const ref = doc(db, "studentData", studentId);
   const val = !!locked;
   await updateDoc(ref, { husLast: val });
+  invalidateStudentData(studentId);
   // Spegla in i klass-projektionen (#233): det är detta som gör att låsta hus
   // ritas låsta i by-översikten UTAN en per-elev-läsning. Aldrig kastande.
   await mirrorStudentProjection(updateStudentProjectionAllClasses, studentId, {
@@ -280,6 +287,7 @@ export async function setAvatar(avatarId, studentId = currentStudentId()) {
   const ref = doc(db, "studentData", studentId);
   // avatarChosen markeras true så vi vet att eleven själv gjort ett val.
   await setDoc(ref, { avatarId, avatarChosen: true }, { merge: true });
+  invalidateStudentData(studentId);
   // Håll students-dokumentet i synk också (avatarId finns på båda ställena).
   await updateDoc(doc(db, "students", studentId), { avatarId }).catch(() => {});
   // Spegla grundavataren in i klass-projektionen (#233, aldrig kastande).
