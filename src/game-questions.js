@@ -9,8 +9,21 @@
 // befintliga importvägar (games-quiz.js m.fl.) är oförändrade.
 // ============================================================================
 
-import { el } from "./ui.js";
 import { sound } from "./fx.js";
+
+// Lokal kopia av ui.js:s el() – MEDVETEN 4-raders duplicering (rotorsak #271):
+// (1) ui.js importerar data.js → firebase via https och kan därför inte laddas
+//     i Node-testerna (test/question-card-ghostclick.test.js), och
+// (2) en delad hjälpfil (som #268:s dom.js) blir en NY fil i den boot-kritiska
+//     statiska modulgrafen – under GitHub Pages icke-atomära utrullning kan en
+//     klient då få NY ui.js men 404 på den nya filen → hela modulgrafen faller
+//     → vit sida (incidenten 2026-09-10, se docs/rotorsak-live-boot-2026-09-10.md).
+/** Bygg ett element från en HTML-sträng (första elementet returneras). */
+function el(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
 
 /** Enkel HTML-escape (samma som i game-shared/games-match). */
 function esc(s) {
@@ -77,7 +90,25 @@ export function renderQuestionCard({ q, showPassage = false, progressHtml = "", 
   const optButtons = [...wrap.querySelectorAll(".quiz-opt")];
 
   optButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    // Ghost-click-skydd (#262): på mobil skickar webbläsaren ~300 ms efter
+    // ÖPPNINGS-trycket en SYNTETISK `click` på samma skärmkoordinat. Låg en
+    // svarsknapp under fingret väljs annars ett svar automatiskt innan eleven
+    // hunnit läsa frågan. En sådan ghost-click har INGET föregående
+    // `pointerdown` PÅ knappen (pekhändelsen skedde på stationen/menyn INNAN
+    // kortet ens fanns). Vi armerar knappen vid ett äkta pointerdown och hedrar
+    // bara click om den (a) armerades av ett pointerdown, ELLER (b) är en
+    // tangentbords-aktivering (Enter/mellanslag ⇒ `event.detail === 0` och
+    // inget pointerdown). Övriga klick är ghost-clicks och ignoreras tyst.
+    // pointer events täcker touch + mus + penna på ett ställe.
+    let armed = false;
+    btn.addEventListener("pointerdown", () => {
+      armed = true;
+    });
+
+    btn.addEventListener("click", (event) => {
+      const keyboard = !!event && event.detail === 0;
+      if (!armed && !keyboard) return; // syntetisk ghost-click – ignorera tyst
+      armed = false;
       const chosen = q.options[Number(btn.dataset.idx)];
       optButtons.forEach((b, idx) => {
         b.disabled = true;
