@@ -96,6 +96,12 @@ export function renderQuestionCard({ q, showPassage = false, progressHtml = "", 
       const next = el(`<button class="btn gron">${label}</button>`);
       next.addEventListener("click", () => onNext());
       nextWrap.replaceChildren(next);
+      // Efter svar dyker "Nästa"-knappen upp under feedbacken – på lägre skärmar
+      // hamnade den under vikningen så eleven tvingades scrolla för att gå vidare.
+      // Scrolla in den direkt (minimalt, "nearest" funkar även i äventyrs-modalen)
+      // och fokusera den så Enter/mellanslag går vidare utan mus.
+      next.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+      next.focus?.({ preventScroll: true });
     });
   });
 
