@@ -145,11 +145,22 @@ function genDigitAtPlace(rng, count) {
 function genValueOfDigit(rng, count) {
   const out = [];
   for (let i = 1; i <= count; i++) {
-    let n = randNum(rng, 1000, 9999);
-    // Välj en plats där siffran inte är 0 (så värdet blir meningsfullt).
-    let p = PLACES[1 + Math.floor(rng() * 3)];
-    if (digitAt(n, p.idx) === 0) n += p.place; // knuffa upp siffran från 0
-    const d = digitAt(n, p.idx);
+    // Välj plats (tiotal..tusental) + en icke-noll siffra d (1–9) som står DÄR.
+    const p = PLACES[1 + Math.floor(rng() * 3)];
+    const d = 1 + Math.floor(rng() * 9); // 1..9 → meningsfullt värde (aldrig 0)
+    // Bygg ett 4-siffrigt tal där siffran d förekommer BARA på plats p. Annars
+    // blir frågan tvetydig: samma siffra på flera platser → flera giltiga svar
+    // ("värdet av 2 i 2 724" = 2000 ELLER 20). Övriga platser får därför ≠ d.
+    const dig = [0, 0, 0, 0]; // [ental, tiotal, hundratal, tusental]
+    dig[p.idx] = d;
+    for (const q of PLACES) {
+      if (q.idx === p.idx) continue;
+      const min = q.idx === 3 ? 1 : 0; // tusental ≠ 0 → talet förblir 4-siffrigt
+      let v;
+      do { v = min + Math.floor(rng() * (10 - min)); } while (v === d);
+      dig[q.idx] = v;
+    }
+    const n = dig[0] + dig[1] * 10 + dig[2] * 100 + dig[3] * 1000;
     const correct = d * p.place;
     const { options, answerIndex } = mcq(
       rng,
