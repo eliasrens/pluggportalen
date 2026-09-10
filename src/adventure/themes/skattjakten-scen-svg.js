@@ -109,16 +109,16 @@ function ocean() {
 /** Landmassan: sandstrand som kant + grönt gräs inåt, med lite texturfläckar. */
 function land() {
   const grass = inset(COAST, 0.9);
+  // Diskreta grästexturfläckar (glesade & mjukare, jfr floorPebbles i Gruvan #256).
   const patches = [
-    [430, 360, 70], [900, 430, 90], [640, 640, 80], [1080, 560, 60],
-    [330, 560, 55], [760, 300, 60], [520, 760, 55], [1180, 470, 50],
+    [430, 360, 70], [900, 430, 90], [640, 640, 80], [330, 560, 55],
   ]
-    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.62}" fill="${GRAS_MORK}" opacity="0.22"/>`)
+    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.62}" fill="${GRAS_MORK}" opacity="0.15"/>`)
     .join("");
   const bright = [
-    [700, 420, 120], [500, 520, 90], [900, 620, 90],
+    [700, 420, 120], [900, 620, 90],
   ]
-    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.5}" fill="${GRAS_LJUS}" opacity="0.35"/>`)
+    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.5}" fill="${GRAS_LJUS}" opacity="0.26"/>`)
     .join("");
   return (
     `<path d="${smoothClosed(COAST)}" fill="${SAND}" ${L3}/>` +
@@ -322,14 +322,17 @@ function rock(x, y, s = 1) {
  *  blommor är LÅG/tydligt gångbar markdekor utan kollision; endast de FÅ buskarna
  *  (BLOCKING_BUSHES) ritas solida OCH blockerar. */
 function decor() {
-  const palms = [[150, 470, 1.1], [1300, 470, 1], [430, 830, 0.9], [1060, 780, 0.95], [760, 470, 0.8], [250, 300, 0.85]];
-  const rocks = [[600, 500], [980, 700], [300, 720], [820, 380], [500, 640], [1220, 640]];
-  // Låg, gångbar markdekor där buskarna förr stod (+ lite till).
-  const flowers = [[520, 400], [1000, 400], [1180, 560], [360, 640], [820, 300]];
-  const tufts = [[880, 540], [640, 720], [430, 560], [1060, 470], [720, 760]];
+  // Städat (issue #281, samma anda som Gruvan #256): rejält glesare markdekor så
+  // ön blir lugnare – palmer framförallt runt kanten (öns karaktär), och bara ett
+  // fåtal diskreta stenar/grästuvor/blommor kvar. Blockerande buskar orörda.
+  const palms = [[150, 470, 1.1], [1300, 470, 1], [430, 830, 0.9], [1060, 780, 0.95], [250, 300, 0.85]];
+  const rocks = [[980, 700, 0.8], [300, 720, 0.8], [820, 380, 0.8]];
+  // Låg, gångbar markdekor (gles) där buskarna förr stod.
+  const flowers = [[520, 400], [820, 300]];
+  const tufts = [[880, 540], [430, 560]];
   return (
     palms.map(([x, y, s]) => palm(x, y, s)).join("") +
-    rocks.map(([x, y]) => rock(x, y)).join("") +
+    rocks.map(([x, y, s]) => rock(x, y, s)).join("") +
     tufts.map(([x, y]) => grassTuft(x, y)).join("") +
     flowers.map(([x, y]) => flower(x, y)).join("") +
     // De få RIKTIGA hinder-buskarna (solid + kollision, delad källa map.js).
