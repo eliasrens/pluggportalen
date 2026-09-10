@@ -109,6 +109,14 @@ export function createImageWorld(theme) {
   const speed = num(theme.speedFrac, 0.14) * minDim;
   const margin = avatarSize * 0.4;
 
+  // OPT-IN "flyende spöken" (issue #276). Bara teman som sätter fleeing:true får
+  // beteendet (Spökjakten); Skattjakten/Gruvan lämnar flaggan → allt oförändrat.
+  // detectRadius = upptäckts-radie (calm→fleeing), fleeSpeed = flykt-fart. Båda
+  // som andel av min(världsmått) precis som interact/speed ovan, med lugna defaults.
+  const fleeing = !!theme.fleeing;
+  const detectRadius = num(theme.detectFrac, 0.13) * minDim;
+  const fleeSpeed = num(theme.fleeSpeedFrac, 0.11) * minDim;
+
   return {
     scroll: true,
     size,
@@ -122,10 +130,17 @@ export function createImageWorld(theme) {
     interactRadius,
     speed,
     margin,
+    // OPT-IN flee-parametrar (world-px). fleeing=false ⇒ motorn kör ingen flee alls.
+    fleeing,
+    detectRadius,
+    fleeSpeed,
     // render-hintar för scroll-scenen
     mapImage: theme.mapImage,
     mapSvg: theme.mapSvg,
     viewFraction: num(theme.viewFraction, 1 / 6),
     avatarSize,
+    // Objekt-storlek som andel av avatar-storleken (tune:bar per tema; #276 gör
+    // Spökjaktens spöken mindre). Default 1.1 = oförändrat för övriga teman.
+    objectScale: num(theme.objectScale, 1.1),
   };
 }

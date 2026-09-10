@@ -1244,6 +1244,16 @@
   right: -0.3em; top: -0.3em;
   font-size: 0.6em;
 }
+/* Flyende spöken (#276): rädd/upptäckt spöke – byt lugna pulsen mot en liten
+   nervös darrning. Ren visuell signal; positionen styrs av motorn via left/top. */
+.adv-scroll .adv-station.scared {
+  animation: adv-station-scared 0.5s ease-in-out infinite;
+}
+/* Respawn efter escape: kort fade-in på den nya (off-screen) platsen. Läggs på
+   art-spannet (utan egen animation) så station-pulsen på wrappern inte störs. */
+.adv-scroll .adv-station-art.adv-respawn {
+  animation: adv-respawn-in 0.45s ease;
+}
 .adv-scroll .adv-goal {
   position: absolute;
   inset: auto;
@@ -1282,6 +1292,16 @@
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50% { transform: translate(-50%, -50%) scale(1.12); }
 }
+/* Rädd spöke (#276): liten nervös darrning kring centreringen. */
+@keyframes adv-station-scared {
+  0%, 100% { transform: translate(-50%, -50%) rotate(-4deg); }
+  50% { transform: translate(-50%, -50%) rotate(4deg); }
+}
+/* Respawn-fade (#276): spöket tonar mjukt in på sin nya plats. */
+@keyframes adv-respawn-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 /* Hack: lyft verktyget bakåt och slå ner (svinget) – tydlig "bryter"-rörelse. */
 @keyframes adv-hack-tool {
   0% { transform: rotate(0deg); }
@@ -1311,5 +1331,7 @@
   .adventure-player.adv-hacking .adv-hand-tool,
   .adventure-player.adv-hacking .adv-avatar,
   .adv-station,
+  .adv-scroll .adv-station.scared,
+  .adv-scroll .adv-station-art.adv-respawn,
   .adv-goal .adv-goal-art { animation: none; }
 }

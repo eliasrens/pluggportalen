@@ -33,11 +33,13 @@ import { createImageWorld } from "./world.js";
 import { createScrollScene } from "./scene-scroll.js";
 import { createGridScene } from "./grid-scene.js";
 import { nearestTargetAngle } from "./compass.js";
+import { updateFlee, createFleeStates } from "./flee.js";
 import { awardAdventure } from "./reward.js";
 
 const SPEED = 34; // %/s – lugnt men responsivt promenadtempo på grid-läget
 const MARGIN = 1.5; // % marginal mot scenkanten (grid-läget)
 const GRID_REACH = 1.25; // interaktionsradie i RUTOR (isotropt) för grid-läget
+const FLEE_WINDOW = 3; // sekunder fångstfönster innan ett flyende spöke escapear (#276)
 
 /** HTML-escape för tema-/lärar-text i intro/hud. */
 function esc(s) {
@@ -91,6 +93,11 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
   // --- Speltillstånd --------------------------------------------------------
   const pos = { x: space.start.x, y: space.start.y };
   const cleared = new Set(); // index på klarade stationer
+  // OPT-IN "flyende spöken" (#276): bara aktivt när temat/world.js satt fleeing.
+  // states = per-station flykt-tillstånd (calm/fleeing/timer/count). Motorn muterar
+  // space.stations live i tick() så BÅDE interaktion och kompass följer med automatiskt.
+  const fleeing = !!(space.scroll && space.fleeing) && space.stations.length > 0;
+  const fleeStates = fleeing ? createFleeStates(space.stations.length) : null;
   let mistakes = 0;
   let facingLeft = false;
   let goalActive = false; // slutmålet framme (alla stationer klara)
@@ -228,6 +235,39 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
     });
   }
 
+  // --- Flyende spöken (#276): opt-in, kör bara när fleeing är på ---------------
+  // Uppdaterar den rena flee-state-maskinen (flee.js) mot de LEVANDE positionerna i
+  // space.stations och speglar resultatet till scenen: flytta noden, sätt rädd/lugn
+  // min, och vid escape → respawn (fade + lugn min). Rör aldrig cleared-spöken eller
+  // slutmålet (goalActive stänger av flee helt). Ingen effekt när flaggan saknas.
+  function runFlee(dt) {
+    if (!fleeing || busy || finished || goalActive || !started) return;
+    const { respawned } = updateFlee({
+      stations: space.stations,
+      states: fleeStates,
+      cleared,
+      playerPos: pos,
+      dt,
+      blockedAt: space.blockedAt,
+      detectRadius: space.detectRadius,
+      speed: space.fleeSpeed,
+      fleeWindow: FLEE_WINDOW,
+      viewport: scene.getViewport ? scene.getViewport() : null,
+      worldSize: space.size,
+      rng: Math.random,
+    });
+    const respawnedSet = respawned.length ? new Set(respawned) : null;
+    for (let i = 0; i < space.stations.length; i++) {
+      if (cleared.has(i)) continue;
+      if (respawnedSet && respawnedSet.has(i)) {
+        scene.respawnStation && scene.respawnStation(i, space.stations[i]);
+      } else {
+        scene.moveStation && scene.moveStation(i, space.stations[i]);
+        scene.setStationMood && scene.setStationMood(i, fleeStates[i].status === "fleeing" ? "scared" : "calm");
+      }
+    }
+  }
+
   // --- Loop -----------------------------------------------------------------
   function tick(now) {
     if (finished) return;
@@ -251,6 +291,7 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
       if (step.moving) scene.placePlayer(pos, facingLeft);
     }
     scene.frame(pos, dt); // mjuk kamera-följning (scroll); no-op i grid-läget
+    runFlee(dt); // flyende spöken (#276): no-op när fleeing/busy/goalActive/ej startad
     updatePrompt();
     updateCompass();
     raf = requestAnimationFrame(tick);
