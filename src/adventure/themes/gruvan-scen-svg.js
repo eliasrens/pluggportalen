@@ -8,9 +8,10 @@
 // (gruvan-map.js: CHAMBERS + CORRIDORS), så den upplysta grott-ytan sammanfaller
 // med den gångbara ytan – berget runt om är mörkt och stängt.
 //
-// Lager (bakifrån→fram): mörkt berg → bergtextur → gång-kant (ledge) → varmt
-// grottgolv → upplyst golvmitt → lyktsken → dekor (lyktor, stödbalkar, broar,
-// svampar, mineralådror, småstenar) → gruvöppning med dagsljus till vänster.
+// Lager (bakifrån→fram): mörkt berg → mjuk bergtextur → gång-kant (ledge) →
+// varmt grottgolv → upplyst golvmitt → lyktsken → dekor (lyktor, svampar,
+// mineralådror, diskret småsten) → gruvöppning med dagsljus till vänster.
+// Städat #256: inga trä-stödbalkar/plankbroar längre → renare grottväggar.
 // Dekoren bor BARA här (aldrig i geometrin) → blockerar aldrig (issue: pynt fritt).
 // ============================================================================
 
@@ -32,9 +33,7 @@ const MINERAL_LJUS = "#DCF5FA";
 const SVAMP = "#E88FA8";
 const SVAMP_LJUS = "#FFC9D6";
 const SVAMP_STAM = "#F1E4D2";
-const TRA = "#8A6242";
-const TRA_LJUS = "#B0805A";
-const TRA_MORK = "#5f4127";
+const TRA_MORK = "#5f4127"; // enda kvarvarande trä-ton (lyktans stolpe)
 
 /** Liten deterministisk PRNG (mulberry32) → stabil, diff-vänlig utfil. */
 function rng(seed) {
@@ -48,8 +47,6 @@ function rng(seed) {
   };
 }
 const r2 = (v) => Math.round(v * 100) / 100; // korta decimaler i utfilen
-const midOf = (s) => ({ x: (s.a.x + s.b.x) / 2, y: (s.a.y + s.b.y) / 2 });
-const angOf = (s) => (Math.atan2(s.b.y - s.a.y, s.b.x - s.a.x) * 180) / Math.PI;
 
 // --- Grott-ytan (union av kammare + gångar) som SVG --------------------------
 /** Cirklar (kammare, fill) + kapslar (gångar, stroke) i EN färg och radie-delta.
@@ -67,39 +64,43 @@ function caveShapes(dr, color) {
   return circles + caps;
 }
 
-// --- Bergtextur (spridda block/sprickor) – deterministisk ---------------------
+// --- Bergtextur (mjuka block, diskreta sprickor) – deterministisk -------------
+// Renare grottväggar: mjuka, lågkontrast block ger volym utan att bli "stökigt";
+// bara ett fåtal fina sprickor som antydan – ingen hård kritstrecks-look.
 function rockTexture() {
   const rand = rng(4224);
   let out = "";
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 120; i++) {
     const x = r2(rand() * WORLD.w), y = r2(rand() * WORLD.h);
-    const rr = r2(18 + rand() * 60);
-    const tone = [BERG, BERG_2, BERG_DJUP, BERG_HILITE][Math.floor(rand() * 4)];
-    const op = r2(0.25 + rand() * 0.4);
-    out += `<circle cx="${x}" cy="${y}" r="${rr}" fill="${tone}" opacity="${op}"/>`;
+    const rr = r2(24 + rand() * 66);
+    const tone = [BERG, BERG_2, BERG_HILITE][Math.floor(rand() * 3)];
+    const op = r2(0.16 + rand() * 0.24);
+    out += `<circle cx="${x}" cy="${y}" r="${rr}" fill="${tone}" opacity="${op}" filter="url(#soft)"/>`;
   }
-  // några sprickor
-  for (let i = 0; i < 26; i++) {
+  // ett fåtal diskreta sprickor (antydan, inte hårda streck)
+  for (let i = 0; i < 12; i++) {
     const x = r2(rand() * WORLD.w), y = r2(rand() * WORLD.h);
-    const x2 = r2(x + (rand() - 0.5) * 220), y2 = r2(y + (rand() - 0.5) * 160);
-    out += `<path d="M${x} ${y}L${x2} ${y2}" stroke="${BERG_DJUP}" stroke-width="${r2(2 + rand() * 4)}" stroke-linecap="round" opacity="0.6"/>`;
+    const x2 = r2(x + (rand() - 0.5) * 200), y2 = r2(y + (rand() - 0.5) * 150);
+    out += `<path d="M${x} ${y}L${x2} ${y2}" stroke="${BERG_DJUP}" stroke-width="${r2(1.5 + rand() * 2.5)}" stroke-linecap="round" opacity="0.35"/>`;
   }
   return `<g>${out}</g>`;
 }
 
-// --- Golvdekor: småstenar utspridda på grottgolvet (aldrig blockerande) -------
+// --- Golvdekor: diskret småsten utspridd på grottgolvet (aldrig blockerande) --
+// Liten, dämpad och sparsam → ligger som antydd grus-detalj, konkurrerar aldrig
+// med lyktor/svamp om blicken.
 function floorPebbles() {
   const rand = rng(909);
   let out = "";
   for (const c of CHAMBERS) {
-    const n = Math.round(c.r / 26);
+    const n = Math.round(c.r / 34);
     for (let i = 0; i < n; i++) {
       const ang = rand() * Math.PI * 2;
       const rad = rand() * (c.r - 34);
       const x = r2(c.x + Math.cos(ang) * rad), y = r2(c.y + Math.sin(ang) * rad);
-      const rr = r2(3 + rand() * 8);
+      const rr = r2(2 + rand() * 5);
       const tone = rand() > 0.5 ? GOLV_LJUS : "#4a3629";
-      out += `<circle cx="${x}" cy="${y}" r="${rr}" fill="${tone}" opacity="0.7"/>`;
+      out += `<circle cx="${x}" cy="${y}" r="${rr}" fill="${tone}" opacity="0.5"/>`;
     }
   }
   return `<g>${out}</g>`;
@@ -123,51 +124,6 @@ function lantern(x, y, i) {
     `<rect x="${x - 11} " y="${y - 30}" width="22" height="22" rx="3" fill="${LYKTA_GLOD}" stroke="#4a4450" stroke-width="2.5"/>` +
     `<rect x="${x - 7}" y="${y - 26}" width="14" height="14" rx="2" fill="${LYKTA_LJUS}"/>`
   );
-}
-
-// --- Stödbalkar som ramar in gången (vid varje huvudgångs mitt) --------------
-function beamAt(m, ang, half) {
-  // Rita i lokalt koord (0,0)=gångens mitt, x längs gången → rotera på plats.
-  const post = (sx) =>
-    `<rect x="${sx - 9}" y="${-half - 26}" width="18" height="${2 * half + 40}" rx="4" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="2.5"/>` +
-    `<rect x="${sx - 9}" y="${-half - 26}" width="5" height="${2 * half + 40}" fill="${TRA_LJUS}" opacity="0.5"/>`;
-  const lintel =
-    `<rect x="-34" y="${-half - 34}" width="68" height="18" rx="4" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="2.5"/>`;
-  return `<g transform="translate(${r2(m.x)} ${r2(m.y)}) rotate(${r2(ang + 90)})">${post(-half + 4)}${post(half - 4)}${lintel}</g>`;
-}
-function beams() {
-  // första 8 = huvudgångarna (ryggraden), rama in varannan för att inte överlasta.
-  let out = "";
-  for (let i = 0; i < 8; i++) {
-    if (i % 2 === 1) continue;
-    const s = CORRIDORS[i];
-    out += beamAt(midOf(s), angOf(s), s.r);
-  }
-  return `<g>${out}</g>`;
-}
-
-// --- Träbroar över små sprickor (på ett par gångar) --------------------------
-function bridgeAt(m, ang, half) {
-  const plankW = 2 * half + 24;
-  let planks = "";
-  for (let i = 0; i < 7; i++) {
-    const px = -half - 6 + i * ((plankW) / 7);
-    planks += `<rect x="${r2(px)}" y="-26" width="${r2(plankW / 7 - 4)}" height="52" rx="2" fill="${TRA_LJUS}" stroke="${TRA_MORK}" stroke-width="2"/>`;
-  }
-  return (
-    `<g transform="translate(${r2(m.x)} ${r2(m.y)}) rotate(${r2(ang)})">` +
-    // mörk spricka under bron
-    `<rect x="${-half - 14}" y="-16" width="${plankW + 20}" height="32" rx="10" fill="${BERG_DJUP}" opacity="0.9"/>` +
-    // sidobalkar + plankor (rita vinkelrätt → rotera 90 lokalt)
-    `<g transform="rotate(90)">${planks}` +
-    `<rect x="${-half - 8}" y="-30" width="${plankW + 16}" height="7" rx="3" fill="${TRA}"/>` +
-    `<rect x="${-half - 8}" y="23" width="${plankW + 16}" height="7" rx="3" fill="${TRA}"/></g></g>`
-  );
-}
-function bridges() {
-  return [CORRIDORS[3], CORRIDORS[5]]
-    .map((s) => bridgeAt(midOf(s), angOf(s), s.r))
-    .join("");
 }
 
 // --- Lysande svampklungor -----------------------------------------------------
@@ -198,19 +154,17 @@ function veins() {
   return VEINS.map((v) => vein(v.x, v.y)).join("");
 }
 
-// --- Gruvöppning till vänster (timrad portal + en aning dagsljus) ------------
+// --- Gruvöppning till vänster (dagsljus – ingen timrad portal längre) ---------
+// Städat #256: den timrade träportalen är borttagen (den läste som störande
+// bjälkar i spelytan). Gruvmynningen markeras nu enbart av mjukt dagsljus från
+// vänster → renare, men fortfarande tydligt var man kom in.
 function entrance() {
   const { x, y, r } = START_ROOM;
   return (
     `<radialGradient id="daylight" cx="0%" cy="50%" r="60%">` +
-    `<stop offset="0%" stop-color="#fbe9c4" stop-opacity="0.55"/>` +
+    `<stop offset="0%" stop-color="#fbe9c4" stop-opacity="0.5"/>` +
     `<stop offset="100%" stop-color="#fbe9c4" stop-opacity="0"/></radialGradient>` +
-    `<rect x="0" y="${y - r}" width="${x + r}" height="${2 * r}" fill="url(#daylight)"/>` +
-    // timrad portal runt öppningen
-    `<rect x="${x - 20}" y="${y - r - 30}" width="26" height="${2 * r + 60}" rx="5" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="3"/>` +
-    `<rect x="${x + r - 30}" y="${y - r - 30}" width="26" height="${2 * r + 60}" rx="5" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="3"/>` +
-    `<rect x="${x - 26}" y="${y - r - 42}" width="${r + 40}" height="30" rx="6" fill="${TRA}" stroke="${TRA_MORK}" stroke-width="3"/>` +
-    `<rect x="${x - 26}" y="${y - r - 42}" width="${r + 40}" height="8" fill="${TRA_LJUS}" opacity="0.5"/>`
+    `<rect x="0" y="${y - r}" width="${x + r}" height="${2 * r}" fill="url(#daylight)"/>`
   );
 }
 
@@ -243,8 +197,6 @@ export function buildCaveSvg() {
     // dekor
     veins() +
     LANTERNS.map((l, i) => lantern(l.x, l.y, i)).join("") +
-    beams() +
-    bridges() +
     mushrooms() +
     entrance() +
     // extra glöd i slutrummet (jättekristallen bor där → objektet ritas av motorn)
