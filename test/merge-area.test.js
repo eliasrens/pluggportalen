@@ -145,3 +145,20 @@ test("parseAndMergeArea mergar giltig JSON-sträng", () => {
   assert.equal(res.ok, true, res.errors.join(" | "));
   assert.equal(res.value.quiz.length, 2);
 });
+
+// Issue #279: generator-konfigen hör till området och ska överleva en merge av
+// nytt innehåll (annars tappar ett generator-område sin räknegenerator).
+test("mergeAreaContent behåller area.generator och slår på generator-typen", () => {
+  const existing = {
+    ...baseArea(),
+    exerciseTypes: ["quiz", "generator"],
+    generator: { topic: "addition", variants: ["enkel"] },
+  };
+  const res = mergeAreaContent(existing, {
+    quiz: [{ question: "Ny fråga?", options: ["A", "B"], answerIndex: 0 }],
+  });
+  assert.equal(res.ok, true, res.errors.join(" | "));
+  assert.deepEqual(res.value.generator, { topic: "addition", variants: ["enkel"] });
+  assert.ok(res.value.exerciseTypes.includes("generator"), res.value.exerciseTypes.join(","));
+  assert.ok(res.value.exerciseTypes.includes("quiz"));
+});

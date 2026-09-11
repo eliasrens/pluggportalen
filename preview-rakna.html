@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Räkna-läget</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      body { padding: 16px; }
+      .preview-note { max-width: 640px; margin: 0 auto 12px; }
+      .preview-pick { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <!-- DOM-skalet som ui.js förväntar sig (annars kastar getElementById). -->
+    <button class="hamburger" id="hamburger" hidden></button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <aside class="sidebar" id="sidebar"><div id="sidebar-body"></div></aside>
+    <div class="preview-note panel">
+      <b>Förhandsvisning av Räkna-läget (issue #280)</b> – kör mot mock-data (ingen
+      inloggning). Uppgiften visas som ett A4-kort med en flyktig kladdyta (rita med
+      mus eller finger, penna/sudd/rensa). Skriv slutsvaret och tryck <b>Svara</b>.
+      Belöningen räknas ut lokalt (persistens sker inte utan inloggning).
+      <div class="preview-pick">
+        <button class="btn liten" data-gen="addition">Addition</button>
+        <button class="btn liten" data-gen="multiplikation">Multiplikation</button>
+        <button class="btn liten" data-gen="division-rest">Division (med rest)</button>
+        <button class="btn liten" data-gen="decimaler">Decimaler</button>
+      </div>
+    </div>
+    <main id="app" class="container"></main>
+
+    <script type="module">
+      import { startRakna } from "./src/games-rakna.js";
+
+      // Olika generator-konfigurationer att prova (samma form som area.generator, #279).
+      const GENS = {
+        addition:        { topic: "addition",       variants: ["enkel", "uppstallning"], grade: "ak4" },
+        multiplikation:  { topic: "multiplikation", variants: ["tabeller"],              grade: "ak4" },
+        "division-rest": { topic: "division",        variants: ["rest"],                  grade: "ak4" },
+        decimaler:       { topic: "addition",        variants: ["decimaler"],             grade: "ak4" },
+      };
+
+      function run(key) {
+        const generator = GENS[key] || GENS.addition;
+        startRakna({
+          subj: "matematik",
+          area: "rakna-demo",
+          areaData: { name: "Räkna-demo", generator },
+        });
+      }
+
+      document.querySelectorAll("[data-gen]").forEach((b) =>
+        b.addEventListener("click", () => run(b.dataset.gen))
+      );
+
+      run("addition");
+    </script>
+  </body>
+</html>

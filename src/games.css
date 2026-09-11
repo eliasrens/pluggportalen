@@ -1335,3 +1335,162 @@
   .adv-scroll .adv-station-art.adv-respawn,
   .adv-goal .adv-goal-art { animation: none; }
 }
+
+/* --- Räkna-läget (issue #280): A4-kort + kladdyta + svarsfält --------------- */
+/* Uppgiften visas som ett A4-kort med talet stort över en flyktig rityta
+   (canvas). Kladdytan sparas aldrig – bara i minnet, nollställs mellan
+   uppgifter. Belöning via den vanliga game-shared-loopen. */
+
+.rakna {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.rakna-progress {
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-svag);
+  margin-bottom: 12px;
+}
+
+.rakna-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* A4-kortet: stående pappersyta (√2-proportion) med talet överst. */
+.a4-card {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1 / 1.414;
+  max-height: 62vh;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--skugga-mjuk), 0 0 0 1px #e6eefb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Diskret rutmönster som ett kladdpapper. */
+  background-image:
+    linear-gradient(#eef4fd 1px, transparent 1px),
+    linear-gradient(90deg, #eef4fd 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+.a4-task {
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  font-weight: 800;
+  color: var(--text);
+  padding: 18px 16px 10px;
+  border-bottom: 2px dashed #dbe6f7;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.a4-eq { color: var(--bla); }
+
+.a4-scratch-hint {
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-svag);
+  padding: 6px 10px 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Själva ritytan fyller resten av kortet. touch-action: none → ett finger ritar
+   i stället för att skrolla sidan (samma princip som äventyrsmotorns pekstyrning). */
+.a4-scratch {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.scratch-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tool-btn {
+  border: none;
+  background: #eef4ff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cdddf5;
+}
+.tool-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #cdddf5; }
+.tool-btn.is-active {
+  background: var(--bla);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--bla-mork);
+}
+
+.rakna-answer {
+  margin: 18px auto 0;
+  max-width: 520px;
+}
+
+.rakna-answer-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.rakna-answer-row {
+  display: flex;
+  gap: 10px;
+}
+
+.rakna-input {
+  flex: 1 1 auto;
+  font-family: var(--font);
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 2px solid #d6e2f5;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text);
+  min-width: 0;
+}
+.rakna-input:focus {
+  outline: none;
+  border-color: var(--bla);
+  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.18);
+}
+.rakna-input:read-only { background: #f4f7fc; color: var(--text-svag); }
+
+.rakna-submit { white-space: nowrap; }
+
+.rakna-hint { margin: 8px 2px 0; }
+
+.rakna-feedback {
+  min-height: 1.6em;
+  margin-top: 12px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.rakna-feedback.ratt { color: var(--gron-mork); }
+.rakna-feedback.fel { color: var(--rod); }
+
+@media (max-width: 520px) {
+  .a4-card { max-height: 54vh; }
+  .rakna-answer-row { flex-direction: column; }
+  .rakna-submit { width: 100%; }
+}

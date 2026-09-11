@@ -143,7 +143,7 @@ export function mergeAreaContent(existing, incoming) {
   const exerciseTypes = [
     ...new Set([
       ...normalizeExerciseTypes(existing.exerciseTypes),
-      ...deriveExerciseTypes({ quiz: mergedQuiz, pairs: mergedPairs }),
+      ...deriveExerciseTypes({ quiz: mergedQuiz, pairs: mergedPairs, generator: existing.generator }),
     ]),
   ];
 
@@ -169,6 +169,9 @@ export function mergeAreaContent(existing, incoming) {
     readingTexts: existing.readingTexts,
     // Läsförståelse-förkravet (issue #155) rörs inte heller här – behåll det.
     readingPrereq: existing.readingPrereq,
+    // Generator-konfigen (issue #279) hör till området, inte det inklistrade
+    // innehållet – behåll den orörd så ett generator-område inte tappar den.
+    generator: existing.generator,
   });
   if (!merged.ok) return { ok: false, errors: merged.errors, value: null };
 
