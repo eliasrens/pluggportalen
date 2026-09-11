@@ -28,7 +28,8 @@ import { startSanningsjakt } from "./games-sanningsjakt.js";
 import { THEMES } from "./adventure/themes/index.js";
 
 // Vilket innehåll varje frågekälla i ett äventyrstema kräver (för kort-låset).
-const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
+// "generator" (#296): äventyr på ett generator-område låses upp av generator-underlag.
+const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs", generator: "generator" };
 
 /**
  * Bygg äventyrskorten generiskt ur tema-registret: varje tema med ett `oversikt`-

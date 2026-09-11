@@ -12,8 +12,10 @@ import * as data from "./../data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./../ui.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./../avatars.js";
 import { gameFrame } from "./../game-shared.js";
+import { normalizeGenerator } from "./../exercise-types.js";
 import { startAdventure } from "./engine.js";
 import { makeQuestionAdapter } from "./question-adapter.js";
+import { makeGeneratorAdapter } from "./generator-adapter.js";
 import { THEMES } from "./themes/index.js";
 import { testTheme } from "./themes/test-tema.js";
 
@@ -45,11 +47,24 @@ export async function pageElevAventyr() {
   const body = view.querySelector("#game-body");
   app.replaceChildren(view);
 
-  const questions = makeQuestionAdapter({
-    areaData,
-    kinds: theme.questionKinds,
-    host: document.body,
-  });
+  // Väg frågekällan: ett GENERATOR-område (#279) vars tema stödjer "generator" som
+  // frågekälla får sina utmaningar från matte-generator-adaptern (genererade tal +
+  // svarsfält) i stället för quiz/par (#296). Ett vanligt (quiz/par-)område kör
+  // question-adaptern precis som förr. Generator och quiz/par är åtskilda vägar
+  // (exercise-types.js), så ett generator-område har normalt inga quiz/par ändå.
+  const generator = normalizeGenerator(areaData.generator);
+  const useGenerator = !!generator && (theme.questionKinds || []).includes("generator");
+  const questions = useGenerator
+    ? makeGeneratorAdapter({
+        generator: areaData.generator,
+        host: document.body,
+        studentId: safeStudentId(),
+      })
+    : makeQuestionAdapter({
+        areaData,
+        kinds: theme.questionKinds,
+        host: document.body,
+      });
   if (!questions.hasQuestions()) {
     body.replaceChildren(
       el(`<div class="panel center"><div class="big-emoji">🗺️</div>
@@ -78,5 +93,14 @@ async function safeStudentData() {
     return await data.getStudentData();
   } catch {
     return {};
+  }
+}
+
+/** Elev-id för generator-fröet (deterministisk seed per elev/session). "anon" i preview. */
+function safeStudentId() {
+  try {
+    return data.currentStudentId() || "anon";
+  } catch {
+    return "anon";
   }
 }

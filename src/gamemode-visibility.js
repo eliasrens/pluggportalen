@@ -45,7 +45,9 @@ export const GAMEMODES = [
 
 // Frågekälla (questionKind) → innehållsflagga den drar från. Samma mappning som
 // gamemodes.js (KIND_NEEDS) så kort-låset och synlighetsgaten är exakt lika.
-const ADVENTURE_KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
+// "generator" (#296): ett äventyr kan köras på ett generator-område (genererade tal
+// + svarsfält) → temat är tillgängligt om området har generator-underlag.
+const ADVENTURE_KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs", generator: "generator" };
 
 // Äventyrs-temana som spellägen i synlighetslistan, nyckelade "aventyr:<id>".
 // Härleds GENERISKT ur den lätta metadatan (adventure/themes/meta.js) så nya
