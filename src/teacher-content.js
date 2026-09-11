@@ -7,12 +7,11 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { parseAndValidateArea, slugify } from "./validate.js";
 import { buildAreaList } from "./teacher-content-list.js";
 import { buildContentView } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
-import { areaExerciseTypes } from "./exercise-types.js";
+import { areaExerciseTypes, normalizeExerciseTypes } from "./exercise-types.js";
 import { normalizeGrade, filterSortAreas } from "./grades.js";
 import { createModeVisibility } from "./teacher-mode-visibility.js";
 import {
@@ -40,6 +39,35 @@ export async function pageLarareInnehall(ctx) {
     ctx.app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda ämnen: ${esc(err.message)}</div></div>`)
     );
+    return;
+  }
+
+  // Räknegenerator-UI:t (issue #279) laddas DYNAMISKT här – först när läraren är
+  // på #/larare/innehall – så teacher-generator.js/teacher-area-input.js aldrig
+  // hamnar i den statiska bootgrafen (index.html → app.js → teacher.js →
+  // teacher-content.js). En NY fil i bootgrafen kan 404:a under en icke-atomär
+  // Pages-deploy → vit sida för alla (bevisad rotorsak #271, issue #290). Fångas
+  // här och visas som ett snällt fel INNE i vyn – aldrig vit sida.
+  let createGeneratorControl, createAreaInput;
+  try {
+    ({ createGeneratorControl } = await import("./teacher-generator.js"));
+    ({ createAreaInput } = await import("./teacher-area-input.js"));
+  } catch (err) {
+    console.error("Räknegenerator-modulen kunde inte laddas:", err);
+    const container = el(`<div class="teacher-page"></div>`);
+    container.appendChild(teacherNav(ctx, "innehall"));
+    container.appendChild(
+      teacherHead(ctx, {
+        emoji: "📚",
+        title: "Innehåll",
+        lead: "Innehållssidan kunde inte laddas fullständigt.",
+      })
+    );
+    container.appendChild(
+      el(`<div class="panel"><div class="msg error">Kunde inte ladda innehållsverktygen just nu.
+        Prova att ladda om sidan om en stund.</div></div>`)
+    );
+    ctx.app.replaceChildren(container);
     return;
   }
 
@@ -111,6 +139,17 @@ export async function pageLarareInnehall(ctx) {
   const renderModeVisibility = modeVis.render;
   const getSelectedHiddenModes = modeVis.getHidden;
 
+  // --- Räknegenerator (issue #279) ------------------------------------------
+  // Egen kontroll (topic + varianter) vid sidan av JSON-rutan. Valet lagras som
+  // area.generator och tänder räkna-läget. När läraren ändrar den uppdaterar vi
+  // synliga-lägen-listan direkt (räkna dyker upp/försvinner). areaInput binder
+  // ihop JSON-rutan med generator-/årskurs-kontrollerna (teacher-area-input.js)
+  // och sätts så fort jsonEl finns – onChange läser den via closure.
+  let areaInput;
+  const generatorCtl = createGeneratorControl(view.querySelector("#generator-config"), () =>
+    areaInput?.syncModeVisibility()
+  );
+
   view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
     copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value, getSelectedGrade()), e.currentTarget)
   );
@@ -128,8 +167,11 @@ export async function pageLarareInnehall(ctx) {
   function loadAreaForEdit(a) {
     setSelectedTypes(areaExerciseTypes(a));
     setSelectedGrade(a.grade);
+    generatorCtl.render(a);
     renderModeVisibility(a, true);
-    const { id, exerciseTypes, grade, ...rest } = a;
+    // Övningstyper, årskurs och generator-konfigen hör hemma i egna kontrollerna
+    // (inte i JSON:en) – lyft ut dem så JSON-rutan bara visar innehållet.
+    const { id, exerciseTypes, grade, generator, ...rest } = a;
     jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
     jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
     view.querySelector("#result").innerHTML =
@@ -203,10 +245,16 @@ export async function pageLarareInnehall(ctx) {
     renderAreaList();
   }
 
+  // Väv ihop JSON-rutan med generator-/årskurs-kontrollerna (teacher-area-input.js):
+  // validateCurrent() validerar helheten, syncModeVisibility() håller synliga-lägen-
+  // listan aktuell. Sätts nu när jsonEl finns (generatorCtl.onChange läser via closure).
+  areaInput = createAreaInput({ jsonEl, generatorCtl, getSelectedGrade, modeVis });
+  const { validateCurrent, syncModeVisibility } = areaInput;
+
   // Rita synliga-lägen-listan DIREKT ur redigeringsrutan (issue #207) så den inte
   // är tom tills man klickar Kontrollera. Körs vid inladdning och medan man skriver.
-  modeVis.autoFromJson(jsonEl.value);
-  jsonEl.addEventListener("input", () => modeVis.autoFromJson(jsonEl.value));
+  syncModeVisibility();
+  jsonEl.addEventListener("input", () => syncModeVisibility());
 
   // --- Filuppladdning / exempel / rensa ------------------------------------
   view.querySelector("#file").addEventListener("change", (e) => {
@@ -215,7 +263,7 @@ export async function pageLarareInnehall(ctx) {
     const reader = new FileReader();
     reader.onload = () => {
       jsonEl.value = String(reader.result || "");
-      modeVis.autoFromJson(jsonEl.value);
+      syncModeVisibility();
       view.querySelector("#result").innerHTML =
         `<div class="msg ok">Laddade filen "${esc(file.name)}". Klicka Kontrollera eller Spara.</div>`;
     };
@@ -229,11 +277,12 @@ export async function pageLarareInnehall(ctx) {
 
   view.querySelector("#example").addEventListener("click", () => {
     jsonEl.value = EXAMPLE_JSON;
-    modeVis.autoFromJson(jsonEl.value);
+    syncModeVisibility();
   });
   view.querySelector("#clear").addEventListener("click", () => {
     jsonEl.value = "";
-    modeVis.autoFromJson(jsonEl.value); // → tom-state
+    generatorCtl.render({}); // nollställ även räknegeneratorn
+    syncModeVisibility(); // → tom-state
     editSel.value = "";
     view.querySelector("#result").innerHTML = "";
   });
@@ -249,15 +298,18 @@ export async function pageLarareInnehall(ctx) {
   }
 
   function showValidSummary(value) {
+    const gen = value.generator
+      ? `, räknegenerator: ${esc(value.generator.topic)} (${value.generator.variants.length} varianter)`
+      : "";
     resultEl.innerHTML = `<div class="msg ok">
       ✓ Giltig JSON! <b>${esc(value.name)}</b> (id: <code>${esc(value.id)}</code>) –
-      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par${value.readingTexts.length ? `, ${value.readingTexts.length} nivåtexter` : ""}.
+      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par${value.readingTexts.length ? `, ${value.readingTexts.length} nivåtexter` : ""}${gen}.
       Klicka <b>Spara till databasen</b> för att lägga in den i ämnet.
     </div>`;
   }
 
   view.querySelector("#check").addEventListener("click", () => {
-    const res = parseAndValidateArea(jsonEl.value);
+    const res = validateCurrent();
     if (res.ok) {
       // Uppdatera synliga-lägen-listan efter innehållet, men behåll lärarens val.
       renderModeVisibility(res.value, false);
@@ -270,7 +322,7 @@ export async function pageLarareInnehall(ctx) {
       resultEl.innerHTML = `<div class="msg error">Välj ett ämne först.</div>`;
       return;
     }
-    const res = parseAndValidateArea(jsonEl.value);
+    const res = validateCurrent();
     if (!res.ok) {
       showErrors(res.errors);
       return;
@@ -283,11 +335,18 @@ export async function pageLarareInnehall(ctx) {
       // Synka synliga-lägen-listan mot innehållet som sparas (behåll lärarens
       // i-/urbockningar) innan vi läser av vilka lägen som ska döljas.
       renderModeVisibility(res.value, false);
+      // Övningstyper: lärarens kryssrutor + "generator" när en räknegenerator är
+      // vald (den har en egen kontroll, inte en kryssruta i AI-rutan).
+      const exerciseTypes = normalizeExerciseTypes([
+        ...getSelectedTypes(),
+        ...(res.value.generator ? ["generator"] : []),
+      ]);
       // Lärarens kryssrutor (övningstyper) och årskurs-väljaren är de uttryckliga
-      // valen och vinner över det som ligger i/härleds ur JSON:en.
+      // valen och vinner över det som ligger i/härleds ur JSON:en. res.value bär
+      // redan den validerade generator-konfigen (vävd in i validateCurrent).
       const value = {
         ...res.value,
-        exerciseTypes: getSelectedTypes(),
+        exerciseTypes,
         grade: getSelectedGrade(),
         hiddenModes: getSelectedHiddenModes(res.value),
       };

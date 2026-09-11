@@ -63,21 +63,35 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
     pairs: false,
     readingTexts: false,
     sanningsjakt: true, // härleds ur quiz
+    generator: false,
   });
   assert.deepEqual(areaContentFlags({ pairs: PAIRS }), {
     quiz: false,
     pairs: true,
     readingTexts: false,
     sanningsjakt: true, // ≥2 par
+    generator: false,
   });
   assert.deepEqual(areaContentFlags({}), {
     quiz: false,
     pairs: false,
     readingTexts: false,
     sanningsjakt: false,
+    generator: false,
   });
   // Läsuppdrag (issue #153): nivåtexter ger readingTexts-flaggan.
   assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, true);
+  // Räknegenerator (issue #279): en giltig area.generator ger generator-flaggan
+  // (och INTE quiz/pairs), medan en ogiltig (okänd topic/ingen variant) inte gör det.
+  assert.equal(
+    areaContentFlags({ generator: { topic: "addition", variants: ["enkel"] } }).generator,
+    true
+  );
+  assert.equal(areaContentFlags({ generator: { topic: "addition", variants: [] } }).generator, false);
+  assert.equal(areaContentFlags({ generator: { topic: "bogus", variants: ["enkel"] } }).generator, false);
+  const genFlags = areaContentFlags({ generator: { topic: "addition", variants: ["enkel"] } });
+  assert.equal(genFlags.quiz, false);
+  assert.equal(genFlags.pairs, false);
 });
 
 test("availableGamemodes ger bara lägen med underlag, oavsett hiddenModes", () => {
@@ -205,11 +219,21 @@ test("mergeAreaContent behåller områdets hiddenModes", () => {
 });
 
 // Katalogen ska ha alla lägen (skydd mot att någon råkar tömma den).
-test("GAMEMODES har de sju lägena", () => {
+test("GAMEMODES har de åtta lägena (inkl. räkna)", () => {
   assert.deepEqual(
     GAMEMODES.map((gm) => gm.id),
-    ["lasforstaelse", "lastext", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory"]
+    ["lasforstaelse", "lastext", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory", "rakna"]
   );
+});
+
+// Räkna-läget (issue #279) tänds BARA av ett generator-område, och ett rent
+// generator-område tänder inte quiz/par/läs-lägena (grötskydd).
+test("räkna tänds av generator-område och inget annat läge gör det", () => {
+  const genArea = { generator: { topic: "addition", variants: ["enkel"] } };
+  const ids = availableGamemodes(genArea).map((gm) => gm.id);
+  assert.deepEqual(ids, ["rakna"]);
+  // Ett quiz-område tänder INTE räkna.
+  assert.ok(!availableGamemodes({ quiz: QUIZ }).map((gm) => gm.id).includes("rakna"));
 });
 
 // --- äventyrs-teman i synlighetslistan (issue #214) -------------------------
