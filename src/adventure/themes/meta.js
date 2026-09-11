@@ -21,9 +21,12 @@
 
 /** @typedef {{ id: string, namn: string, emoji: string, needs: string[] }} ThemeMeta */
 
+// needs = temats questionKinds (måste vara IDENTISK med theme.questionKinds, vaktas
+// av test/gamemode-visibility.test.js). "generator" (#296) gör temat spelbart även
+// på ett generator-område (genererade tal + svarsfält i stället för quiz/par).
 /** Lätt metadata för de tre riktiga temana (test-temat exkluderat, jfr index.js). */
 export const ADVENTURE_THEME_META = [
-  { id: "skattjakten", namn: "Skattjakten", emoji: "🗺️", needs: ["quiz", "lasforstaelse", "para"] },
-  { id: "spokjakten", namn: "Spökjakten", emoji: "👻", needs: ["quiz", "lasforstaelse", "para"] },
-  { id: "gruvan", namn: "Gruvan", emoji: "💎", needs: ["quiz", "lasforstaelse", "para"] },
+  { id: "skattjakten", namn: "Skattjakten", emoji: "🗺️", needs: ["quiz", "lasforstaelse", "para", "generator"] },
+  { id: "spokjakten", namn: "Spökjakten", emoji: "👻", needs: ["quiz", "lasforstaelse", "para", "generator"] },
+  { id: "gruvan", namn: "Gruvan", emoji: "💎", needs: ["quiz", "lasforstaelse", "para", "generator"] },
 ];

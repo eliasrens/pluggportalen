@@ -175,7 +175,9 @@ export const skattjaktenTheme = {
     klart: "Du hittade skatten på Skattön! 🏴‍☠️💰",
   },
 
-  questionKinds: ["quiz", "lasforstaelse", "para"],
+  // "generator" (#296): banan funkar även på ett generator-område – stationerna
+  // ställer då genererade räkneuppgifter (tal + svarsfält) i stället för quiz/par.
+  questionKinds: ["quiz", "lasforstaelse", "para", "generator"],
 
   // Kort i områdesöversikten (drivs generiskt av gamemodes.js).
   oversikt: {

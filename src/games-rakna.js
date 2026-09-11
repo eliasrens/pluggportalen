@@ -19,7 +19,9 @@
 // FULL_REWARD_MODES → normalt grind-skydd vid omspel).
 //
 // All icke-DOM-logik (runda-bygge, seed, rättning, svensk taldisplay) bor i den
-// rena, enhetstestade rakna-core.js. Här är bara render + rit-interaktion.
+// rena, enhetstestade rakna-core.js. Själva kladd-KORTET (A4 + canvas + verktyg +
+// FÖRSTORA-knapp, #296) bor i den delade scratchpad.js så det ser och beter sig
+// likadant här som i äventyrens generator-utmaning. Här är bara render + svarsloop.
 // ============================================================================
 
 import { app, el } from "./ui.js";
@@ -27,6 +29,7 @@ import * as data from "./data.js";
 import { sound } from "./fx.js";
 import { gameFrame, showResult, starsFromRatio, esc } from "./game-shared.js";
 import { normalizeGenerator } from "./exercise-types.js";
+import { createScratchCard } from "./scratchpad.js";
 import {
   ROUND_SIZE,
   sessionSeed,
@@ -69,7 +72,7 @@ export function startRakna(ctx) {
 
   let idx = 0;
   let correct = 0; // antal rätt (styr stjärnor)
-  let pad = null; // aktiv kladdyta-styrenhet (destroyas mellan uppgifter)
+  let scratch = null; // aktivt kladdkort (canvas + verktyg + förstora), destroyas mellan uppgifter
   let ended = false;
 
   // Städa upp aktiv rityta om eleven navigerar bort mitt i (annars ligger
@@ -77,14 +80,14 @@ export function startRakna(ctx) {
   // sin egen pad innan nästa ritas.
   function teardown() {
     ended = true;
-    if (pad) { pad.destroy(); pad = null; }
+    if (scratch) { scratch.destroy(); scratch = null; }
     window.removeEventListener("hashchange", teardown);
   }
   window.addEventListener("hashchange", teardown, { once: true });
 
   function renderProblem() {
     if (ended) return;
-    if (pad) { pad.destroy(); pad = null; }
+    if (scratch) { scratch.destroy(); scratch = null; }
     const { problem, answer } = round[idx];
     let answered = false; // en rättning per uppgift (spärr mot dubbelsvar)
 
@@ -92,20 +95,16 @@ export function startRakna(ctx) {
       ? `Svara med kvot och rest, t.ex. <b>3 rest 1</b>.`
       : `Skriv ditt slutsvar. Använd komma för decimaler (t.ex. 3,5).`;
 
+    // Delat kladdkort (A4 + canvas + verktyg + förstora): samma yta som äventyrens
+    // generator-utmaning (#296). Kortet fälls ut till fullskärm via förstora-knappen.
+    scratch = createScratchCard({
+      taskHtml: `${esc(problemDisplay(problem))} <span class="a4-eq">=</span>`,
+      onAction: () => sound.click(),
+    });
+
     const wrap = el(`<div class="rakna">
       <div class="rakna-progress">Uppgift <b>${idx + 1}</b> av ${total}</div>
-      <div class="rakna-stage">
-        <div class="a4-card">
-          <div class="a4-task">${esc(problemDisplay(problem))} <span class="a4-eq">=</span></div>
-          <canvas class="a4-scratch" aria-label="Kladdyta – rita din uträkning för hand"></canvas>
-          <div class="a4-scratch-hint">✏️ Kladda din uträkning här – den sparas inte</div>
-        </div>
-        <div class="scratch-tools" role="toolbar" aria-label="Ritverktyg">
-          <button type="button" class="tool-btn is-active" data-tool="pen" title="Penna">✏️ Penna</button>
-          <button type="button" class="tool-btn" data-tool="eraser" title="Sudd">🧽 Sudd</button>
-          <button type="button" class="tool-btn" data-clear title="Rensa kladdytan">🗑️ Rensa</button>
-        </div>
-      </div>
+      <div class="rakna-stage"></div>
       <form class="rakna-answer" autocomplete="off">
         <label class="rakna-answer-label" for="rakna-svar">Ditt svar</label>
         <div class="rakna-answer-row">
@@ -118,22 +117,8 @@ export function startRakna(ctx) {
         <div class="rakna-feedback" id="rakna-feedback" role="status" aria-live="polite"></div>
       </form>
     </div>`);
+    wrap.querySelector(".rakna-stage").appendChild(scratch.card);
     body.replaceChildren(wrap);
-
-    // Kladdyta
-    pad = attachScratchpad(wrap.querySelector(".a4-scratch"));
-    const toolBtns = wrap.querySelectorAll(".tool-btn[data-tool]");
-    toolBtns.forEach((b) => {
-      b.addEventListener("click", () => {
-        pad.setTool(b.dataset.tool);
-        toolBtns.forEach((x) => x.classList.toggle("is-active", x === b));
-        sound.click();
-      });
-    });
-    wrap.querySelector("[data-clear]").addEventListener("click", () => {
-      pad.clear();
-      sound.click();
-    });
 
     const form = wrap.querySelector(".rakna-answer");
     const input = wrap.querySelector(".rakna-input");
@@ -175,7 +160,7 @@ export function startRakna(ctx) {
   }
 
   function finish() {
-    if (pad) { pad.destroy(); pad = null; }
+    if (scratch) { scratch.destroy(); scratch = null; }
     ended = true;
     window.removeEventListener("hashchange", teardown);
     const stars = starsFromRatio(correct / total);
@@ -196,107 +181,4 @@ export function startRakna(ctx) {
   }
 
   renderProblem();
-}
-
-// --- Kladdyta (canvas) ------------------------------------------------------
-// Flyktig rityta med penna/sudd/rensa. Pointer Events → funkar med BÅDE mus och
-// touch/telefon (touch-action: none i CSS så sidan inte skrollar under ritandet,
-// samma princip som touch-styrningen i äventyrsmotorn, #248/#250). Innehållet
-// lever bara i canvasens pixelbuffert och slängs när uppgiften byts – aldrig sparat.
-
-const PEN_COLOR = "#2a2a35";
-const PEN_WIDTH = 3.2;
-const ERASER_WIDTH = 26;
-
-/**
- * Koppla rit-interaktion på ett <canvas>. Returnerar { setTool, clear, destroy }.
- * Skalar ritbufferten efter elementets faktiska storlek × devicePixelRatio så
- * strecket blir skarpt på mobil/retina.
- */
-function attachScratchpad(canvas) {
-  const ctx = canvas.getContext("2d");
-  let tool = "pen"; // "pen" | "eraser"
-  let drawing = false;
-  let last = null;
-  let activePointer = null;
-
-  // Sätt canvasens pixelupplösning efter dess CSS-box (× dpr) så linjerna blir
-  // skarpa och koordinaterna stämmer. Görs efter layout (rAF) + vid resize.
-  function fit() {
-    const r = canvas.getBoundingClientRect();
-    if (r.width < 2 || r.height < 2) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = Math.round(r.width * dpr);
-    const h = Math.round(r.height * dpr);
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w; // nollställer även bufferten – kladden är ändå flyktig
-      canvas.height = h;
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-  }
-  requestAnimationFrame(fit);
-
-  function pointOf(e) {
-    const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  }
-
-  function stroke(a, b) {
-    ctx.globalCompositeOperation = tool === "eraser" ? "destination-out" : "source-over";
-    ctx.strokeStyle = PEN_COLOR;
-    ctx.lineWidth = tool === "eraser" ? ERASER_WIDTH : PEN_WIDTH;
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.stroke();
-  }
-
-  function onDown(e) {
-    if (activePointer !== null) return;
-    activePointer = e.pointerId;
-    drawing = true;
-    last = pointOf(e);
-    stroke(last, { x: last.x + 0.01, y: last.y + 0.01 }); // en tap ger en prick
-    try { canvas.setPointerCapture(e.pointerId); } catch {}
-    e.preventDefault();
-  }
-  function onMove(e) {
-    if (!drawing || e.pointerId !== activePointer) return;
-    const p = pointOf(e);
-    stroke(last, p);
-    last = p;
-    e.preventDefault();
-  }
-  function onUp(e) {
-    if (e.pointerId !== activePointer) return;
-    drawing = false;
-    last = null;
-    activePointer = null;
-    try { canvas.releasePointerCapture(e.pointerId); } catch {}
-  }
-
-  canvas.addEventListener("pointerdown", onDown);
-  canvas.addEventListener("pointermove", onMove);
-  canvas.addEventListener("pointerup", onUp);
-  canvas.addEventListener("pointercancel", onUp);
-  window.addEventListener("resize", fit);
-
-  return {
-    setTool(t) { tool = t; },
-    clear() {
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.restore();
-    },
-    destroy() {
-      window.removeEventListener("resize", fit);
-      canvas.removeEventListener("pointerdown", onDown);
-      canvas.removeEventListener("pointermove", onMove);
-      canvas.removeEventListener("pointerup", onUp);
-      canvas.removeEventListener("pointercancel", onUp);
-    },
-  };
 }
