@@ -19,6 +19,12 @@ import { startLastext } from "./games-lastext.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 import { startSanningsjakt } from "./games-sanningsjakt.js";
+// OBS: Räkna-läget (games-rakna.js → rakna-core.js) importeras DYNAMISKT i
+// dispatchern nedan, inte statiskt här. Det håller de NYA filerna utanför den
+// boot-kritiska statiska modulgrafen – exakt den försiktighet rotorsaksanalysen
+// av live-bootkraschen 2026-09-10 (#271) slog fast: en ny fil i bootgrafen kan
+// under GitHub Pages icke-atomära utrullning 404:a för en klient och fälla hela
+// sidan. Samma mönster som äventyrsmotorn (await import("./adventure/index.js")).
 import { THEMES } from "./adventure/themes/index.js";
 
 // Vilket innehåll varje frågekälla i ett äventyrstema kräver (för kort-låset).
@@ -206,6 +212,9 @@ export async function pageElevSpela() {
     case "kunskapsjakt": return startKunskapsjakt(ctx);
     case "sanningsjakt": return startSanningsjakt(ctx);
     case "memory": return startMemory(ctx);
+    // Dynamisk import (se noten vid importerna): håller games-rakna.js +
+    // rakna-core.js ur den statiska bootgrafen.
+    case "rakna": return import("./games-rakna.js").then((m) => m.startRakna(ctx));
     default: return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
   }
 }
