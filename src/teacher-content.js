@@ -59,9 +59,7 @@ export async function pageLarareInnehall(ctx) {
     console.error("Kompositören kunde inte laddas:", err);
     const container = el(`<div class="teacher-page"></div>`);
     container.appendChild(teacherNav(ctx, "innehall"));
-    container.appendChild(
-      teacherHead(ctx, { emoji: "📚", title: "Innehåll", lead: "Sidan kunde inte laddas fullständigt." })
-    );
+    container.appendChild(teacherHead(ctx, { emoji: "📚", title: "Innehållsstudion" }));
     container.appendChild(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda innehållsverktygen just nu.
         Prova att ladda om sidan om en stund.</div></div>`)
@@ -166,14 +164,7 @@ export async function pageLarareInnehall(ctx) {
 
   const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "innehall"));
-  container.appendChild(
-    teacherHead(ctx, {
-      emoji: "📚",
-      title: "Innehållsstudion",
-      lead: `Ditt <b>bibliotek</b> med arbetsområden. Klicka på ett kort för att redigera det, eller
-        <b>Skapa nytt område</b> för att lägga in material – guidat eller genom att klistra in.`,
-    })
-  );
+  container.appendChild(teacherHead(ctx, { emoji: "📚", title: "Innehållsstudion" }));
   container.appendChild(lib);
   container.appendChild(composer.element);
   ctx.app.replaceChildren(container);

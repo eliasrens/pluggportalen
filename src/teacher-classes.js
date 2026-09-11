@@ -66,15 +66,7 @@ export async function pageLarareKlasser(ctx) {
 
   const container = el(`<div class="teacher-page"></div>`);
   container.appendChild(teacherNav(ctx, "klasser"));
-  container.appendChild(
-    teacherHead(ctx, {
-      emoji: "🏫",
-      title: "Klasser & elever",
-      lead: `Skapa en klass (t.ex. <b>6A</b>) och dess elevkonton på en gång. På varje klasskort
-        kan du lägga till elever, döpa om, ge 🪙, tilldela <b>områden</b>, välja synliga
-        <b>lägen per område</b> och följa klassens <b>📊 framsteg</b> – allt på ett ställe.`,
-    })
-  );
+  container.appendChild(teacherHead(ctx, { emoji: "🏫", title: "Klasser & elever" }));
 
   const view = el(`<div>
     <div class="panel">
