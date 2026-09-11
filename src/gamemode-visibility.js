@@ -195,3 +195,77 @@ export function isModeHiddenForStudent(area, cls, modeId) {
 export function visibleGamemodesForStudent(area, cls) {
   return availableGamemodes(area).filter((gm) => !isModeHiddenForStudent(area, cls, gm.id));
 }
+
+// ---------------------------------------------------------------------------
+// Per (klass × område) (issue #298): en tredje axel. Utöver per-område (#200)
+// och per-klass-globalt (#208) kan läraren dölja lägen för en klass PÅ ETT
+// visst område. Valet lagras på klassdokumentet i en map nyckelad på områdes-id:
+//
+//   classes/{id}.areaModes = { [areaId]: { hiddenModes: [modeId, ...] } }
+//
+// Bakåtkompatibelt: saknas map:en, saknas områdets nyckel, eller är listan tom
+// → inget döljs på den här axeln, och beteendet faller tillbaka på område ∪ klass
+// exakt som förr. Inget går sönder för befintliga klasser (utan fältet).
+// Områdes-id härleds ur area.id (samma id getArea sätter på dokumentet).
+// ---------------------------------------------------------------------------
+
+/**
+ * De på (klass × område) dolda lägena för ETT områdes-id, normaliserade.
+ * Läser classes/{id}.areaModes[areaId].hiddenModes; tom lista vid allt som
+ * saknas (ingen klass, ingen map, okänt areaId, tom/ogiltig lista).
+ * @param {object|null} cls    klassdokument (kan sakna areaModes / vara null)
+ * @param {string} areaId      arbetsområdets id
+ * @returns {string[]}
+ */
+export function classAreaHiddenModes(cls, areaId) {
+  if (!areaId) return [];
+  const map = cls?.areaModes;
+  // Bara ett rent objekt (inte array/null) räknas som en giltig map.
+  if (!map || typeof map !== "object" || Array.isArray(map)) return [];
+  return normalizeHiddenModes(map[areaId]?.hiddenModes);
+}
+
+/**
+ * EFFEKTIVT dolda lägen för ett (område, klass)-par: unionen av
+ *   (a) area.hiddenModes                              – per område (#200)
+ *   (b) classes/{id}.hiddenModes                      – per klass globalt (#208)
+ *   (c) classes/{id}.areaModes[area.id].hiddenModes   – per klass × område (#298)
+ * Normaliserad, utan dubbletter, i ordningen område → klass → klass×område.
+ * @param {object} area        arbetsområde (kan sakna hiddenModes)
+ * @param {object|null} cls    elevens klass (kan sakna fält / vara null)
+ * @returns {string[]}
+ */
+export function effectiveHiddenModes(area, cls) {
+  return normalizeHiddenModes([
+    ...normalizeHiddenModes(area?.hiddenModes),
+    ...normalizeHiddenModes(cls?.hiddenModes),
+    ...classAreaHiddenModes(cls, area?.id),
+  ]);
+}
+
+/**
+ * Är läget dolt för eleven med ALLA tre axlar invägda (område ∪ klass ∪
+ * klass×område)? Detta är den fullständiga elev-resolutionen (#298).
+ * has-gaten (att området har underlag) hanteras separat av anroparen.
+ * @param {object} area
+ * @param {object|null} cls
+ * @param {string} modeId
+ * @returns {boolean}
+ */
+export function isModeHiddenForClassArea(area, cls, modeId) {
+  return (
+    isModeHiddenForStudent(area, cls, modeId) ||
+    classAreaHiddenModes(cls, area?.id).includes(modeId)
+  );
+}
+
+/**
+ * Vilka lägen eleven ska se på ett visst område, med alla tre axlar invägda:
+ * har underlag OCH inte urbockat på område-, klass- eller klass×område-nivå.
+ * @param {object} area
+ * @param {object|null} cls
+ * @returns {typeof GAMEMODES}
+ */
+export function visibleGamemodesForClassArea(area, cls) {
+  return availableGamemodes(area).filter((gm) => !isModeHiddenForClassArea(area, cls, gm.id));
+}

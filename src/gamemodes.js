@@ -12,7 +12,7 @@
 
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
-import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForStudent } from "./game-shared.js";
+import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea } from "./game-shared.js";
 import { readingPrereqStatus } from "./reading-prereq.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
 import { startLastext } from "./games-lastext.js";
@@ -36,13 +36,14 @@ const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
  * lägga till en rad i THEMES – ingen ändring här. Kortet är låst tills området har
  * innehåll som temats frågekällor kan använda; annars visas stjärnor (mode "aventyr:<id>").
  *
- * Läraren kan dölja ett tema per område (#200) ELLER för hela klassen (#208), precis
- * som övriga lägen: är "aventyr:<id>" dolt (union klass ∪ område) byggs inget kort alls.
+ * Läraren kan dölja ett tema per område (#200), för hela klassen (#208) ELLER för
+ * klassen på just det här området (#298), precis som övriga lägen: är "aventyr:<id>"
+ * dolt (union område ∪ klass ∪ klass×område) byggs inget kort alls.
  */
 function adventureCards(has, areaProgress, areaData, studentClass) {
   return Object.values(THEMES)
     .filter((t) => t && t.oversikt)
-    .filter((t) => !isModeHiddenForStudent(areaData, studentClass, `aventyr:${t.id}`))
+    .filter((t) => !isModeHiddenForClassArea(areaData, studentClass, `aventyr:${t.id}`))
     .map((t) => {
       const kinds = t.questionKinds || ["quiz"];
       const available = kinds.some((k) => has[KIND_NEEDS[k]]);
@@ -106,11 +107,12 @@ export async function pageElevOmrade() {
   const readingPlayable = has.readingTexts || has.quiz;
   const lockOthers = prereq.enabled && !prereq.met && readingPlayable;
 
-  // Läraren kan dölja lägen per område (#200) OCH för hela klassen (#208):
-  // avbockade lägen (på någondera nivå) visas inte alls som kort. Lägen UTAN
-  // underlag visas fortfarande som låsta ("Inget innehåll än"), precis som förr
-  // – det är bara de urbockade (union klass ∪ område) som filtreras bort.
-  const cards = GAMEMODES.filter((gm) => !isModeHiddenForStudent(areaData, studentClass, gm.id)).map((gm) => {
+  // Läraren kan dölja lägen per område (#200), för hela klassen (#208) OCH för
+  // klassen på just detta område (#298): avbockade lägen (på någon av nivåerna)
+  // visas inte alls som kort. Lägen UTAN underlag visas fortfarande som låsta
+  // ("Inget innehåll än"), precis som förr – det är bara de urbockade (union
+  // område ∪ klass ∪ klass×område) som filtreras bort.
+  const cards = GAMEMODES.filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id)).map((gm) => {
     const available = has[gm.needs];
     const stars = areaProgress[gm.id]?.stars || 0;
     // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
@@ -197,9 +199,9 @@ export async function pageElevSpela() {
   }
   if (!areaData) return go("#/elev/plugga");
 
-  // Ett läge som läraren bockat ur (på område- ELLER klass-nivå) ska inte gå att
-  // starta direkt via URL heller.
-  if (isModeHiddenForStudent(areaData, studentClass, mode)) {
+  // Ett läge som läraren bockat ur (på område-, klass- eller klass×område-nivå)
+  // ska inte gå att starta direkt via URL heller.
+  if (isModeHiddenForClassArea(areaData, studentClass, mode)) {
     return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
   }
 
