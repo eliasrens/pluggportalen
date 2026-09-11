@@ -4,8 +4,9 @@
 // Tunn entry som återexporterar lärarsidans routes. Själva implementationen
 // bor i fokuserade moduler så varje fil hålls under fil-cap:
 //   * teacher-shared.js         – lärarspärr, delade hjälpare, toppnav, översikt.
-//   * teacher-class.js          – klassöversikt (#/larare/klass).
-//   * teacher-classes.js        – klasser & elevkonton, enad sida (#/larare/klasser).
+//   * teacher-class.js          – klassens framstegsmatris (renderClassStats,
+//                                 nu en 📊-expander i Klasser & elever, issue #299).
+//   * teacher-classes.js        – klasser, elevkonton & statistik, enad sida (#/larare/klasser).
 //   * teacher-class-accounts.js – kontoskapande/medlemshantering (hjälpmodul).
 //   * teacher-content.js        – innehållsinmatning + AI-promptbyggare (#/larare/innehall).
 //
@@ -13,8 +14,8 @@
 // ============================================================================
 
 export { pageLarare } from "./teacher-shared.js";
-export { pageLarareKlass } from "./teacher-class.js";
-// Klasser & elevkonton (#/larare/klasser) – den enade sidan (gamla #/larare/elever
-// är sammanslagen hit och omdirigeras i app.js).
+// Klasser, elevkonton & statistik (#/larare/klasser) – den enade sidan. Gamla
+// #/larare/elever OCH #/larare/klass (klassöversikt) är sammanslagna hit och
+// omdirigeras i app.js; framstegsmatrisen är en 📊-expander per klasskort.
 export { pageLarareKlasser } from "./teacher-classes.js";
 export { pageLarareInnehall } from "./teacher-content.js";

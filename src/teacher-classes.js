@@ -1,13 +1,15 @@
 // ============================================================================
 // Pluggportalen – lärarsidan: klasser & elevkonton (teacher-classes.js)
 // ----------------------------------------------------------------------------
-// #/larare/klasser: den ENADE lärarsidan för klasser OCH elevkonton (den gamla
-// #/larare/elever är sammanslagen hit och omdirigeras). Klass-centrerat:
+// #/larare/klasser: den ENADE lärar-klassfliken. Gamla #/larare/elever OCH
+// #/larare/klass (klassöversikt/statistik) är sammanslagna hit och omdirigeras
+// (issue #299) – lärarsidan har EN klass-flik i stället för tre. Klass-centrerat,
+// allt per klasskort:
 //   * Skapa en klass + N elevkonton på en gång (auto-genererade användarnamn +
 //     lösenord som visas för läraren att dela ut).
 //   * Per klass: lägg till/ta bort elever, döp om, ge 🪙, ta bort konto,
-//     tilldela arbetsområden.
-// Skiljer sig från #/larare/klass (klassöversikt/framsteg, läs-endast).
+//     tilldela arbetsområden (📌), välja synliga lägen PER OMRÅDE (🎮, #298/#299)
+//     och följa klassens framsteg (📊 – gamla klassöversikten, renderClassStats).
 // Kontoskapandet/medlemshanteringen bor i teacher-class-accounts.js (fil-cap).
 // Data via src/data.js (classes-/students-collection).
 // ============================================================================
@@ -30,7 +32,12 @@ import {
   renderMemberManager,
 } from "./teacher-class-accounts.js";
 import { renderAccountEditor } from "./teacher-login-cards.js";
-import { renderClassModes } from "./teacher-class-modes.js";
+// Per (klass × område) lägessynlighet (#299) ERSÄTTER den klass-globala
+// blankett-varianten (#208, renderClassModes) som kändes rörig – se
+// teacher-class-modes.js. renderClassStats är klassens framstegsmatris (gamla
+// #/larare/klass), nu en 📊-expander här (sammanslagningen av statistik-fliken).
+import { renderClassAreaModes } from "./teacher-class-modes.js";
+import { renderClassStats } from "./teacher-class.js";
 
 export async function pageLarareKlasser(ctx) {
   ctx.renderTopbar();
@@ -62,10 +69,10 @@ export async function pageLarareKlasser(ctx) {
   container.appendChild(
     teacherHead(ctx, {
       emoji: "🏫",
-      title: "Klasser & elevkonton",
-      lead: `Skapa en klass (t.ex. <b>6A</b>) och dess elevkonton på en gång. Du kan lägga
-        till fler elever, döpa om, ge 🪙 och ta bort konton härifrån. Vill du i stället se hur
-        långt eleverna kommit? Gå till <a data-hash="#/larare/klass">Klassöversikt</a>.`,
+      title: "Klasser & elever",
+      lead: `Skapa en klass (t.ex. <b>6A</b>) och dess elevkonton på en gång. På varje klasskort
+        kan du lägga till elever, döpa om, ge 🪙, tilldela <b>områden</b>, välja synliga
+        <b>lägen per område</b> och följa klassens <b>📊 framsteg</b> – allt på ett ställe.`,
     })
   );
 
@@ -133,23 +140,26 @@ export async function pageLarareKlasser(ctx) {
           <button class="btn ghost small" data-act="rename">✏️ Döp om</button>
           <button class="btn ghost small" data-act="toggle">🧑‍🎓 Elever</button>
           <button class="btn ghost small" data-act="areas">📌 Områden</button>
-          <button class="btn ghost small" data-act="modes">🎮 Lägen</button>
+          <button class="btn ghost small" data-act="modes">🎮 Lägen per område</button>
+          <button class="btn ghost small" data-act="stats">📊 Statistik</button>
           <button class="btn ghost small danger" data-act="del">🗑 Ta bort</button>
         </div>
       </div>
       <div class="class-members" hidden></div>
       <div class="class-assign" hidden></div>
       <div class="class-modes" hidden></div>
+      <div class="class-stats" hidden></div>
     </div>`);
 
     const membersEl = card.querySelector(".class-members");
     const assignEl = card.querySelector(".class-assign");
     const modesEl = card.querySelector(".class-modes");
+    const statsEl = card.querySelector(".class-stats");
     const nameEl = card.querySelector(".class-name");
     const countEl = card.querySelector(".class-count");
 
     // Bara en utfällbar sektion öppen i taget (klick på öppen fäller ihop).
-    const panels = [membersEl, assignEl, modesEl];
+    const panels = [membersEl, assignEl, modesEl, statsEl];
     const togglePanel = (target, render) => {
       const show = target.hidden;
       panels.forEach((p) => (p.hidden = true));
@@ -197,9 +207,53 @@ export async function pageLarareKlasser(ctx) {
       togglePanel(assignEl, () => renderAssignments(cls, assignEl))
     );
 
-    // Synliga lägen för klassen (issue #208) ---------------------------------
+    // Synliga lägen PER OMRÅDE för klassen (issue #298/#299) -----------------
+    // Ersätter den gamla klass-globala blanketten (#208) med per (klass × område)-
+    // val. Behöver biblioteket (ämnen + fulla område-dokument) för has-gaten.
     card.querySelector('[data-act="modes"]').addEventListener("click", () =>
-      togglePanel(modesEl, () => renderClassModes(ctx, cls, modesEl))
+      togglePanel(modesEl, async () => {
+        modesEl.replaceChildren(el(`<div class="spinner">Laddar områden…</div>`));
+        let library;
+        try {
+          library = await loadLibrary();
+        } catch (err) {
+          modesEl.replaceChildren(
+            el(`<p class="err-inline">Kunde inte ladda områden: ${esc(err.message)}</p>`)
+          );
+          return;
+        }
+        renderClassAreaModes(ctx, cls, modesEl, library);
+      })
+    );
+
+    // Statistik: klassens framstegsmatris (gamla #/larare/klass, issue #299) --
+    card.querySelector('[data-act="stats"]').addEventListener("click", () =>
+      togglePanel(statsEl, async () => {
+        statsEl.replaceChildren(el(`<div class="spinner">Laddar statistik…</div>`));
+        let library;
+        try {
+          library = await loadLibrary();
+        } catch (err) {
+          statsEl.replaceChildren(
+            el(`<p class="err-inline">Kunde inte ladda ämnen: ${esc(err.message)}</p>`)
+          );
+          return;
+        }
+        // loadLibrary bär redan områdena per ämne – återanvänd dem (ingen ny läsning).
+        const subjects = library.map(({ areas, ...s }) => s);
+        const loadAreas = (subjectId) =>
+          Promise.resolve(library.find((s) => s.id === subjectId)?.areas || []);
+        const classStudents = (Array.isArray(cls.studentIds) ? cls.studentIds : [])
+          .map((id) => state.students.find((s) => s.id === id))
+          .filter(Boolean);
+        const studentById = new Map(state.students.map((s) => [s.id, s]));
+        await renderClassStats(ctx, statsEl, {
+          students: classStudents,
+          subjects,
+          studentById,
+          loadAreas,
+        });
+      })
     );
 
     return card;
