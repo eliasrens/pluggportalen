@@ -7,7 +7,6 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { createAreaInput } from "./teacher-area-input.js";
 import { buildAreaList } from "./teacher-content-list.js";
 import { buildContentView } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
@@ -15,7 +14,6 @@ import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
 import { areaExerciseTypes, normalizeExerciseTypes } from "./exercise-types.js";
 import { normalizeGrade, filterSortAreas } from "./grades.js";
 import { createModeVisibility } from "./teacher-mode-visibility.js";
-import { createGeneratorControl } from "./teacher-generator.js";
 import {
   el,
   esc,
@@ -41,6 +39,35 @@ export async function pageLarareInnehall(ctx) {
     ctx.app.replaceChildren(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda ämnen: ${esc(err.message)}</div></div>`)
     );
+    return;
+  }
+
+  // Räknegenerator-UI:t (issue #279) laddas DYNAMISKT här – först när läraren är
+  // på #/larare/innehall – så teacher-generator.js/teacher-area-input.js aldrig
+  // hamnar i den statiska bootgrafen (index.html → app.js → teacher.js →
+  // teacher-content.js). En NY fil i bootgrafen kan 404:a under en icke-atomär
+  // Pages-deploy → vit sida för alla (bevisad rotorsak #271, issue #290). Fångas
+  // här och visas som ett snällt fel INNE i vyn – aldrig vit sida.
+  let createGeneratorControl, createAreaInput;
+  try {
+    ({ createGeneratorControl } = await import("./teacher-generator.js"));
+    ({ createAreaInput } = await import("./teacher-area-input.js"));
+  } catch (err) {
+    console.error("Räknegenerator-modulen kunde inte laddas:", err);
+    const container = el(`<div class="teacher-page"></div>`);
+    container.appendChild(teacherNav(ctx, "innehall"));
+    container.appendChild(
+      teacherHead(ctx, {
+        emoji: "📚",
+        title: "Innehåll",
+        lead: "Innehållssidan kunde inte laddas fullständigt.",
+      })
+    );
+    container.appendChild(
+      el(`<div class="panel"><div class="msg error">Kunde inte ladda innehållsverktygen just nu.
+        Prova att ladda om sidan om en stund.</div></div>`)
+    );
+    ctx.app.replaceChildren(container);
     return;
   }
 
