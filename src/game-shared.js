@@ -31,10 +31,14 @@ export {
   availableGamemodes,
   visibleGamemodes,
   visibleGamemodesForStudent,
+  visibleGamemodesForClassArea,
   normalizeHiddenModes,
   isModeHidden,
   isModeHiddenForClass,
   isModeHiddenForStudent,
+  classAreaHiddenModes,
+  effectiveHiddenModes,
+  isModeHiddenForClassArea,
 } from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
