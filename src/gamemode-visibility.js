@@ -226,6 +226,28 @@ export function classAreaHiddenModes(cls, areaId) {
 }
 
 /**
+ * Normalisera en HEL areaModes-map till { [areaId]: { hiddenModes: string[] } }.
+ * Skriv-sidans motsvarighet till classAreaHiddenModes (#299): ogiltiga områdes-id
+ * släpps, varje lista normaliseras (trimmad, unik). Tomma listor BEHÅLLS så att
+ * ett tidigare dolt läge kan "av-döljas" via Firestore-merge på just det området
+ * (en medskickad array ersätter den gamla helt). Ren funktion – lever här hos
+ * resolutionen (inte i den firebase-kopplade data-classes.js) så den kan
+ * enhetstestas och delas.
+ * @param {*} map
+ * @returns {Record<string, {hiddenModes: string[]}>}
+ */
+export function normalizeAreaModes(map) {
+  const out = {};
+  if (!map || typeof map !== "object" || Array.isArray(map)) return out;
+  for (const [areaId, entry] of Object.entries(map)) {
+    const id = String(areaId == null ? "" : areaId).trim();
+    if (!id) continue;
+    out[id] = { hiddenModes: normalizeHiddenModes(entry?.hiddenModes) };
+  }
+  return out;
+}
+
+/**
  * EFFEKTIVT dolda lägen för ett (område, klass)-par: unionen av
  *   (a) area.hiddenModes                              – per område (#200)
  *   (b) classes/{id}.hiddenModes                      – per klass globalt (#208)

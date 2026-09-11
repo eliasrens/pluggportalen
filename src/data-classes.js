@@ -21,7 +21,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "./data.js";
-import { normalizeHiddenModes } from "./gamemode-visibility.js";
+import { normalizeHiddenModes, normalizeAreaModes } from "./gamemode-visibility.js";
 import { createTtlCache } from "./class-projection.js";
 
 // Session-cache (#274): klasslistan läses varje gång plugga/världen ritas
@@ -196,6 +196,29 @@ export async function setClassHiddenModes(classId, hiddenModes) {
   await setDoc(doc(db, "classes", classId), { hiddenModes: list }, { merge: true });
   _classCache.invalidate("classes");
   return list;
+}
+
+// ---------------------------------------------------------------------------
+// Synliga lägen per (klass × område) (issue #298/#299): läraren kan dölja
+// spellägen för en klass PÅ ETT visst område. Lagras som
+//   classes/{classId}.areaModes = { [areaId]: { hiddenModes: string[] } }
+// Tom/saknad map = inget dolt på den axeln (bakåtkompatibelt). Semantiken
+// (union område ∪ klass ∪ klass×område) bor i gamemode-visibility.js; här bara
+// persistensen. #298 la resolutionen – #299 lägger skriv-vägen + lärar-UI:t.
+// ---------------------------------------------------------------------------
+
+/**
+ * Sätt de dolda lägena per (klass × område) för en klass. `areaModes` är en map
+ * områdes-id → { hiddenModes: [...] }. Skrivs med merge (deep-merge på map:en)
+ * så bara de medskickade områdenas listor uppdateras – övriga områden rörs inte.
+ * @param {string} classId
+ * @param {Record<string, {hiddenModes: string[]}>} areaModes
+ */
+export async function setClassAreaModes(classId, areaModes) {
+  const map = normalizeAreaModes(areaModes);
+  await setDoc(doc(db, "classes", classId), { areaModes: map }, { merge: true });
+  _classCache.invalidate("classes");
+  return map;
 }
 
 /**

@@ -33,6 +33,7 @@ export {
   visibleGamemodesForStudent,
   visibleGamemodesForClassArea,
   normalizeHiddenModes,
+  normalizeAreaModes,
   isModeHidden,
   isModeHiddenForClass,
   isModeHiddenForStudent,

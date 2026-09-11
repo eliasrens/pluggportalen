@@ -93,9 +93,9 @@ export async function copyText(text, btn) {
 export function teacherNav(ctx, active) {
   const tabs = [
     { hash: "#/larare", key: "hem", label: "🏠 Översikt" },
-    { hash: "#/larare/klass", key: "klass", label: "📊 Klass" },
-    // Klasser & elevkonton (#/larare/klasser) – den enade sidan (elevkonton-sidan
-    // är sammanslagen hit).
+    // Klasser, elevkonton & statistik (#/larare/klasser) – den enade klass-fliken.
+    // Klassöversikten/statistiken (gamla 📊 Klass) är sammanslagen hit som en
+    // expander per klasskort (issue #299), så navet har EN klass-flik.
     { hash: "#/larare/klasser", key: "klasser", label: "🏫 Klasser & elever" },
     { hash: "#/larare/innehall", key: "innehall", label: "📚 Innehåll" },
   ];
@@ -175,19 +175,13 @@ export function pageLarare(ctx) {
   // inbyggda AI-promptbyggaren).
   const cards = [
     {
-      hash: "#/larare/klass",
-      color: "orange",
-      emoji: "📊",
-      title: "Klassöversikt",
-      sub: "Se hur långt varje elev kommit",
-    },
-    {
-      // Klasser & elevkonton (#/larare/klasser) – den enade sidan.
+      // Klasser, elevkonton & statistik (#/larare/klasser) – den enade sidan.
+      // Klassöversikten (gamla 📊 Klass) är sammanslagen hit (issue #299).
       hash: "#/larare/klasser",
       color: "rosa",
       emoji: "🏫",
       title: "Klasser & elever",
-      sub: "Skapa en klass med elevkonton på en gång",
+      sub: "Skapa klasser, elevkonton, lägen per område – och följ framstegen",
     },
     {
       hash: "#/larare/innehall",

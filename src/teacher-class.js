@@ -1,11 +1,17 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: klassöversikt (teacher-class.js)
+// Pluggportalen – lärarsidan: klassens framstegsmatris (teacher-class.js)
 // ----------------------------------------------------------------------------
-// #/larare/klass: läs-endast dashboard där läraren ser hur långt varje elev
-// kommit. En matris med elever (rader) mot arbetsområden (kolumner) för ett
-// valt ämne. Varje cell visar intjänade stjärnor / möjliga stjärnor för
-// området, och en summakolumn visar total progress per elev så man snabbt ser
-// vem som ligger efter/före. Ingen data ändras här.
+// Framstegsstatistiken för EN klass: en matris med elever (rader) mot
+// arbetsområden (kolumner) för ett valt ämne. Varje cell visar intjänade
+// stjärnor / möjliga stjärnor för området, och en summakolumn visar total
+// progress per elev så man snabbt ser vem som ligger efter/före.
+//
+// Tidigare en egen flik/sida (#/larare/klass). Från issue #299 är statistiken
+// SAMMANSLAGEN med Klasser & elever – den renderas som en 📊-expander per
+// klasskort (teacher-classes.js), så lärarsidan har EN klass-flik i stället för
+// två. Matrisen exponeras därför som en återanvändbar renderare, `renderClassStats`,
+// som får klassens elever + ämnen + en loadAreas-hämtare och ritar in matrisen i
+// ett värd-element. Läs-endast; ingen data ändras här.
 //
 // Progress läses per elev via data.getProgress(studentId). Formen är:
 //   progress[areaId][gamemode] = { completed, bestScore, stars, lastPlayed }
@@ -15,22 +21,9 @@
 
 import * as data from "./data.js";
 import { avatarEmoji } from "./avatars.js";
-import {
-  el,
-  esc,
-  isTeacher,
-  teacherNav,
-  teacherHead,
-  emptyState,
-  renderGate,
-} from "./teacher-shared.js";
+import { el, esc, emptyState } from "./teacher-shared.js";
 import { areaMaxStars, areaEarned, progressLevel } from "./teacher-class-stats.js";
 import { openStudentDetail } from "./teacher-class-detail.js";
-
-// localStorage-nyckel: kom ihåg senast valda klassen mellan besök.
-const LAST_CLASS_KEY = "pluggportalen.klassoversikt.klass";
-// Specialvärde i klassväljaren för elever som inte tillhör någon klass.
-const UNASSIGNED = "__none__";
 
 /** Cellens innehåll för en elev × ett område. */
 function cellHtml(earned, maxStars) {
@@ -49,134 +42,38 @@ function cellHtml(earned, maxStars) {
   </td>`;
 }
 
-export async function pageLarareKlass(ctx) {
-  ctx.renderTopbar();
-  if (!isTeacher()) return renderGate(ctx);
-
-  ctx.app.replaceChildren(el(`<div class="spinner">Laddar klassöversikt…</div>`));
-
-  // 1) Ämnen + elever + klasser parallellt.
-  let subjects = [];
-  let students = [];
-  let classes = [];
-  try {
-    [subjects, students, classes] = await Promise.all([
-      data.getSubjects(),
-      data.getStudents(),
-      data.getClasses(),
-    ]);
-  } catch (err) {
-    ctx.app.replaceChildren(
-      el(`<div class="panel"><div class="msg error">Kunde inte ladda översikten: ${esc(err.message)}</div></div>`)
-    );
-    return;
-  }
-
-  students = students
+/**
+ * Rita klassens framstegsmatris in i `host`. Återanvänds av 📊-expandern på ett
+ * klasskort (issue #299). Elevernas progress hämtas EN gång (delas mellan
+ * ämnesbyten) och arbetsområdena cachas per ämne.
+ *
+ * @param {object} ctx  lärar-context (för emptyState-länkar / elev-fördjupning)
+ * @param {HTMLElement} host  värd-element att fylla
+ * @param {{
+ *   students: object[],                 // klassens elever (redan sorterade)
+ *   subjects: object[],                 // ämneslistan
+ *   studentById?: Map,                  // id → elev (för elev-fördjupningen)
+ *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
+ * }} opts
+ */
+export async function renderClassStats(ctx, host, { students, subjects, studentById, loadAreas }) {
+  students = (students || [])
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
+  const byId = studentById || new Map(students.map((s) => [s.id, s]));
 
-  const studentById = new Map(students.map((s) => [s.id, s]));
-
-  // Vilka elever är med i NÅGON klass? (union av alla klassers studentIds).
-  // Elever utanför denna mängd är "klasslösa" och hamnar bara under "Utan klass".
-  const assignedIds = new Set();
-  for (const c of classes) {
-    if (Array.isArray(c.studentIds)) c.studentIds.forEach((id) => assignedIds.add(id));
-  }
-  const unassignedStudents = students.filter((s) => !assignedIds.has(s.id));
-
-  // Klassväljarens val: en post per klass + ev. "Utan klass" om lösa elever finns.
-  const classOptions = classes.map((c) => ({
-    value: c.id,
-    label: c.name || c.id,
-    students: (Array.isArray(c.studentIds) ? c.studentIds : [])
-      .map((id) => studentById.get(id))
-      .filter(Boolean)
-      .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv")),
-  }));
-  if (unassignedStudents.length > 0) {
-    classOptions.push({
-      value: UNASSIGNED,
-      label: `Utan klass (${unassignedStudents.length})`,
-      students: unassignedStudents,
-    });
-  }
-
-  // Vald klass: kom ihåg senaste valet om det fortfarande finns, annars första.
-  let remembered = null;
-  try {
-    remembered = localStorage.getItem(LAST_CLASS_KEY);
-  } catch {
-    /* ignorera – privat läge etc. */
-  }
-  let selectedClass =
-    classOptions.find((o) => o.value === remembered)?.value ||
-    classOptions[0]?.value ||
-    null;
-
-  // Valt ämne: SO först om det finns, annars första.
-  let selectedSubject = subjects.find((s) => s.id === "so")?.id || subjects[0]?.id || null;
-
-  const container = el(`<div class="teacher-page"></div>`);
-  container.appendChild(teacherNav(ctx, "klass"));
-  container.appendChild(
-    teacherHead(ctx, {
-      emoji: "📊",
-      title: "Klassöversikt",
-      lead: `Se hur långt varje elev kommit. Varje cell visar intjänade stjärnor av
-        möjliga för arbetsområdet (max 3 per övning), och <b>Totalt</b> summerar elevens
-        framsteg. <b>Klicka på en elev</b> för fördjupad statistik. Läs-endast – inget ändras här.`,
-    })
-  );
-
-  const view = el(`<div>
-    <div class="panel">
-      <div class="field" id="class-field">
-        <label for="klass-class">Klass</label>
-        <select id="klass-class" class="select"></select>
-      </div>
-      <div class="field" id="subject-field">
-        <label for="klass-subject">Ämne</label>
-        <select id="klass-subject" class="select"></select>
-      </div>
-      <div id="matrix"><div class="spinner">Laddar framsteg…</div></div>
-    </div>
-  </div>`);
-
-  container.appendChild(view);
-  ctx.app.replaceChildren(container);
-
-  const classSel = view.querySelector("#klass-class");
-  const subjectSel = view.querySelector("#klass-subject");
-  const matrixEl = view.querySelector("#matrix");
-
-  // Inga klasser alls → vänligt tomt-tillstånd, ingen matris att scopa.
-  if (classOptions.length === 0) {
-    view.querySelector("#class-field").style.display = "none";
-    view.querySelector("#subject-field").style.display = "none";
-    matrixEl.replaceChildren(
+  if (students.length === 0) {
+    host.replaceChildren(
       emptyState(ctx, {
-        emoji: "🧑‍🏫",
-        title: "Inga klasser än",
-        text: "Skapa en klass i Klasshantering först, så kan du följa dess elever här.",
-        actionLabel: "Till Klasshantering",
-        actionHash: "#/larare/klasser",
+        emoji: "🧑‍🎓",
+        title: "Klassen har inga elever än",
+        text: "Lägg till elever på klasskortet (🧑‍🎓 Elever) så syns deras framsteg här.",
       })
     );
     return;
   }
-
-  classSel.innerHTML = classOptions
-    .map(
-      (o) =>
-        `<option value="${esc(o.value)}" ${o.value === selectedClass ? "selected" : ""}>${esc(o.label)}</option>`
-    )
-    .join("");
-
-  if (subjects.length === 0) {
-    view.querySelector("#subject-field").style.display = "none";
-    matrixEl.replaceChildren(
+  if (!subjects || subjects.length === 0) {
+    host.replaceChildren(
       emptyState(ctx, {
         emoji: "📚",
         title: "Inga ämnen än",
@@ -188,18 +85,31 @@ export async function pageLarareKlass(ctx) {
     return;
   }
 
-  subjectSel.innerHTML = subjects
-    .map((s) => `<option value="${esc(s.id)}" ${s.id === selectedSubject ? "selected" : ""}>${esc(s.name || s.id)}</option>`)
-    .join("");
+  // Valt ämne: SO först om det finns, annars första.
+  let selectedSubject = subjects.find((s) => s.id === "so")?.id || subjects[0]?.id || null;
 
-  // Ladda alla elevers progress EN gång (delas mellan ämnesbyten).
-  matrixEl.replaceChildren(el(`<div class="spinner">Laddar framsteg för ${students.length} elever…</div>`));
+  const view = el(`<div>
+    <div class="field" style="max-width:320px">
+      <label for="stats-subject">Ämne</label>
+      <select id="stats-subject" class="select"></select>
+    </div>
+    <div class="stats-matrix"><div class="spinner">Laddar framsteg…</div></div>
+  </div>`);
+  const subjectSel = view.querySelector("#stats-subject");
+  const matrixEl = view.querySelector(".stats-matrix");
+  subjectSel.innerHTML = subjects
+    .map(
+      (s) =>
+        `<option value="${esc(s.id)}"${s.id === selectedSubject ? " selected" : ""}>${esc(s.name || s.id)}</option>`
+    )
+    .join("");
+  host.replaceChildren(view);
+
+  // Ladda klassens elevers progress EN gång (delas mellan ämnesbyten).
   let progressByStudent;
   try {
     const results = await Promise.all(
-      students.map((s) =>
-        data.getProgress(s.id).catch(() => ({})) // en trasig elev ska inte fälla hela vyn
-      )
+      students.map((s) => data.getProgress(s.id).catch(() => ({})))
     );
     progressByStudent = new Map(students.map((s, i) => [s.id, results[i] || {}]));
   } catch (err) {
@@ -209,27 +119,7 @@ export async function pageLarareKlass(ctx) {
     return;
   }
 
-  // Arbetsområden cachas per ämne så matris-byten och elev-fördjupningen delar
-  // samma läsningar (läraren är läs-endast, så det är säkert att memoisera).
-  const areasCache = new Map();
-  function loadAreas(subjectId) {
-    if (!areasCache.has(subjectId)) {
-      areasCache.set(
-        subjectId,
-        data.getAreas(subjectId).catch(() => [])
-      );
-    }
-    return areasCache.get(subjectId);
-  }
-
-  /** Eleverna som ska visas just nu = den valda klassens (eller "Utan klass"). */
-  function visibleStudents() {
-    return classOptions.find((o) => o.value === selectedClass)?.students || [];
-  }
-
   async function renderMatrix() {
-    const shown = visibleStudents();
-
     matrixEl.replaceChildren(el(`<div class="spinner">Laddar arbetsområden…</div>`));
     let areas = [];
     try {
@@ -237,25 +127,6 @@ export async function pageLarareKlass(ctx) {
     } catch (err) {
       matrixEl.replaceChildren(
         el(`<div class="msg error">Kunde inte ladda arbetsområden: ${esc(err.message)}</div>`)
-      );
-      return;
-    }
-
-    if (shown.length === 0) {
-      matrixEl.replaceChildren(
-        emptyState(ctx, {
-          emoji: "🧑‍🎓",
-          title:
-            selectedClass === UNASSIGNED
-              ? "Inga klasslösa elever"
-              : "Klassen har inga elever än",
-          text:
-            selectedClass === UNASSIGNED
-              ? "Alla elever tillhör en klass."
-              : "Lägg till elever i klassen i Klasshantering så syns deras framsteg här.",
-          actionLabel: "Till Klasshantering",
-          actionHash: "#/larare/klasser",
-        })
       );
       return;
     }
@@ -285,7 +156,7 @@ export async function pageLarareKlass(ctx) {
       )
       .join("");
 
-    const bodyRows = shown
+    const bodyRows = students
       .map((s) => {
         const progress = progressByStudent.get(s.id) || {};
         let earnedTotal = 0;
@@ -337,9 +208,8 @@ export async function pageLarareKlass(ctx) {
       <span class="cx-legend-tip">💡 Klicka på en elev för fördjupad statistik</span>
     </div>`);
 
-    // Klick (eller Enter/mellanslag) på en elevrad → fördjupad per-elev-vy.
     const openRow = (tr) => {
-      const s = studentById.get(tr.dataset.student);
+      const s = byId.get(tr.dataset.student);
       if (s) openStudentDetail(s, progressByStudent.get(s.id) || {}, subjects, loadAreas);
     };
     table.querySelectorAll("tr.cx-row").forEach((tr) => {
@@ -354,16 +224,6 @@ export async function pageLarareKlass(ctx) {
 
     matrixEl.replaceChildren(table, legend);
   }
-
-  classSel.addEventListener("change", () => {
-    selectedClass = classSel.value;
-    try {
-      localStorage.setItem(LAST_CLASS_KEY, selectedClass);
-    } catch {
-      /* ignorera – privat läge etc. */
-    }
-    renderMatrix();
-  });
 
   subjectSel.addEventListener("change", () => {
     selectedSubject = subjectSel.value;

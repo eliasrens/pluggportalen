@@ -15,7 +15,10 @@ import { el, esc } from "./teacher-shared.js";
 /** Bygg den tomma vy-stommen. Returnerar en DOM-nod att wira upp. */
 export function buildContentView() {
   return el(`<div>
-    <div class="panel">
+    <div class="panel content-step content-step-subject">
+      <h2 class="subhead" style="margin-top:0">1 · Välj ämne</h2>
+      <p class="hint">Börja här: välj vilket <b>ämne</b> du vill jobba med. Allt nedanför –
+        områdeslistan och inmatningen – gäller det ämne du väljer. Saknas ämnet? Skapa ett nytt.</p>
       <div class="field">
         <label for="subject">Ämne</label>
         <div class="row-inline">
@@ -24,8 +27,12 @@ export function buildContentView() {
         </div>
       </div>
       <div id="new-subject-form"></div>
+    </div>
 
-      <h2 style="margin-top:22px">Befintliga arbetsområden</h2>
+    <div class="panel">
+      <h2 class="subhead" style="margin-top:0">2 · Områden i ämnet</h2>
+      <p class="hint">Områdena i det valda ämnet. Klicka <b>Ersätt</b> på ett område (eller använd
+        väljaren i steg 3) för att redigera det.</p>
       <div class="row-inline" id="area-controls" style="gap:16px;flex-wrap:wrap;margin-bottom:12px">
         <label class="row-inline" style="gap:6px">Visa årskurs:
           <select id="area-grade-filter" class="select">
@@ -45,9 +52,9 @@ export function buildContentView() {
     </div>
 
     <div class="panel">
-      <h2>Lägg in / ersätt arbetsområde</h2>
-      <p class="hint">Klistra in JSON nedan eller ladda upp en <b>.json</b>-fil. Ett befintligt
-        arbetsområde med samma <b>id</b> ersätts.</p>
+      <h2 class="subhead" style="margin-top:0">3 · Lägg in / ersätt innehåll</h2>
+      <p class="hint">Innehållet sparas i <b>ämnet du valde i steg 1</b>. Klistra in JSON nedan eller
+        ladda upp en <b>.json</b>-fil. Ett befintligt arbetsområde med samma <b>id</b> ersätts.</p>
 
       <div class="field">
         <label for="edit-area-select">✏️ Redigera ett befintligt område</label>

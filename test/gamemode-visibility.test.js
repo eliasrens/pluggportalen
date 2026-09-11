@@ -14,6 +14,7 @@ import {
   ALL_MODES,
   ADVENTURE_MODES,
   normalizeHiddenModes,
+  normalizeAreaModes,
   isModeHidden,
   isModeHiddenForClass,
   isModeHiddenForStudent,
@@ -384,4 +385,34 @@ test("per-område-dolt äventyrstema (klass × område) filtreras bort för elev
   assert.ok(!ids.includes("aventyr:skattjakten"), "dolt per klass×område ska bort");
   assert.ok(ids.includes("aventyr:spokjakten"), "odolt tema kvar");
   assert.equal(isModeHiddenForClassArea(area, cls, "aventyr:skattjakten"), true);
+});
+
+// --- normalizeAreaModes (skriv-sidan, issue #299) --------------------------
+
+test("normalizeAreaModes normaliserar varje områdes lista och släpper tomma id", () => {
+  const out = normalizeAreaModes({
+    a1: { hiddenModes: [" quiz ", "quiz", "", "memory"] },
+    "  ": { hiddenModes: ["para"] }, // tomt/blankt områdes-id släpps
+    a2: { hiddenModes: [] }, // tom lista BEHÅLLS (kan av-dölja via merge)
+  });
+  assert.deepEqual(out, {
+    a1: { hiddenModes: ["quiz", "memory"] },
+    a2: { hiddenModes: [] },
+  });
+});
+
+test("normalizeAreaModes ger tom map för icke-objekt / array / null", () => {
+  assert.deepEqual(normalizeAreaModes(null), {});
+  assert.deepEqual(normalizeAreaModes(undefined), {});
+  assert.deepEqual(normalizeAreaModes([1, 2]), {});
+  assert.deepEqual(normalizeAreaModes("nope"), {});
+});
+
+test("normalizeAreaModes → classAreaHiddenModes round-trip (lärar-spar → elev-gat)", () => {
+  // Det lärar-UI:t skulle spara (urbockade lägen per område) …
+  const saved = normalizeAreaModes({ a1: { hiddenModes: ["quiz", "quiz", " memory "] } });
+  const cls = { areaModes: saved };
+  // … läses av elev-gaten på exakt samma form.
+  assert.deepEqual(classAreaHiddenModes(cls, "a1"), ["quiz", "memory"]);
+  assert.deepEqual(classAreaHiddenModes(cls, "okänt"), []);
 });

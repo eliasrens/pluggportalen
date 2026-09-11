@@ -1,9 +1,14 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: synliga lägen per KLASS (teacher-class-modes.js)
+// Pluggportalen – lärarsidan: per-klass område-konfiguration (teacher-class-modes.js)
 // ----------------------------------------------------------------------------
-// Utbruten del av teacher-classes.js (fil-cap): renderar sektionen "Synliga
-// lägen för klassen" på ett klasskort. Läraren bockar UR spellägen/spel som ska
-// döljas för HELA klassen (issue #208), utöver per-område-valet (#200).
+// Utbruten del av teacher-classes.js (fil-cap): de utfällbara sektionerna på ett
+// klasskort som styr vad klassen jobbar med och ser:
+//   • renderClassAssignments – 📌 Områden: vilka arbetsområden klassen är tilldelad.
+//   • renderClassAreaModes   – 🎮 Lägen per område: synliga lägen per (klass × område).
+//   • renderClassModes       – (issue #208, numera OWIRAD) klass-global lägesblankett.
+//
+// Läraren bockar UR spellägen/spel som ska döljas för HELA klassen (issue #208),
+// utöver per-område-valet (#200). (renderClassModes; se OBS längre ned.)
 //
 // Listan härleds GENERISKT ur ALL_MODES (vanliga lägen + äventyrs-teman), så nya
 // lägen/spel (inkl. äventyrsspelen) dyker upp automatiskt. Klass-nivån gate:as
@@ -14,11 +19,22 @@
 // här filtreras INTE på innehåll (has-gaten) – klass-valet gäller alla klassens
 // områden, och vilka lägen ett enskilt område faktiskt har underlag för avgörs
 // per område. Elev-gaten (gamemode-visibility.js) tar unionen klass ∪ område.
+//
+// OBS (issue #299): den klass-globala blanketten (renderClassModes) upplevdes
+// rörig (två okoordinerade axlar). Lärar-UI:t använder numera i stället
+// renderClassAreaModes nedan – per (klass × område)-val, gate:at på innehåll.
+// renderClassModes behålls (bakåtkompatibel resolution + ev. återanvändning) men
+// wiras inte längre i teacher-classes.js.
 // ============================================================================
 
 import * as data from "./data.js";
-import { ALL_MODES, isModeHiddenForClass } from "./game-shared.js";
-import { el, esc } from "./teacher-shared.js";
+import {
+  ALL_MODES,
+  isModeHiddenForClass,
+  availableGamemodes,
+  classAreaHiddenModes,
+} from "./game-shared.js";
+import { el, esc, emptyState } from "./teacher-shared.js";
 
 /**
  * Rendera och koppla "Synliga lägen för klassen"-sektionen in i `modesEl`.
@@ -79,4 +95,246 @@ export function renderClassModes(ctx, cls, modesEl) {
   });
 
   modesEl.replaceChildren(box);
+}
+
+// ---------------------------------------------------------------------------
+// Per (klass × område) (issue #298/#299): utöver klass-globala valet ovan kan
+// läraren finjustera synliga lägen för klassen PÅ ETT visst område. Sparas i
+// classes/{id}.areaModes[areaId].hiddenModes (data.setClassAreaModes). Till
+// skillnad från klass-nivån ovan gate:as detta PÅ innehåll (availableGamemodes)
+// – bara lägen området faktiskt har underlag för listas per område.
+// ---------------------------------------------------------------------------
+
+/**
+ * Vilka arbetsområden som är RELEVANTA för klassen: har klassen tilldelade
+ * områden (assignedAreas) visas bara de, annars hela biblioteket. Behåller
+ * ämnes-grupperingen från `library` och släpper ämnen utan relevanta områden.
+ * @param {object} cls
+ * @param {Array<{id:string,name?:string,icon?:string,areas:object[]}>} library
+ */
+function relevantAreaGroups(cls, library) {
+  const assigned = Array.isArray(cls.assignedAreas) ? cls.assignedAreas : [];
+  const only =
+    assigned.length > 0
+      ? new Set(assigned.map((a) => `${a.subjectId}/${a.areaId}`))
+      : null;
+  return library
+    .map((subj) => ({
+      subj,
+      areas: subj.areas.filter((a) => !only || only.has(`${subj.id}/${a.id}`)),
+    }))
+    .filter((g) => g.areas.length > 0);
+}
+
+/**
+ * Rendera "Lägen per område"-sektionen: område-rader med läges-kryssrutor, så
+ * läraren per (klass × område) kan bocka i/ur vilka lägen som visas. Default =
+ * områdets tillgängliga lägen minus det som redan är dolt för (klass × område).
+ * @param {object} ctx
+ * @param {object} cls        klassdokumentet (muteras: cls.areaModes vid spar)
+ * @param {HTMLElement} host  värd-element att fylla
+ * @param {Array} library     ämnen med sina fulla område-dokument (data.getAreas)
+ */
+export function renderClassAreaModes(ctx, cls, host, library) {
+  const groups = relevantAreaGroups(cls, library);
+
+  if (groups.length === 0) {
+    host.replaceChildren(
+      emptyState(ctx, {
+        emoji: "📌",
+        title: "Inga områden att finjustera än",
+        text:
+          Array.isArray(cls.assignedAreas) && cls.assignedAreas.length > 0
+            ? "Klassens tilldelade områden saknar spelbart innehåll än."
+            : "Lägg in innehåll (eller tilldela klassen områden) först, så kan du välja lägen per område här.",
+        actionLabel: "Lägg in innehåll",
+        actionHash: "#/larare/innehall",
+      })
+    );
+    return;
+  }
+
+  const groupsHtml = groups
+    .map(({ subj, areas }) => {
+      const rows = areas
+        .map((a) => {
+          const modes = availableGamemodes(a);
+          const hidden = new Set(classAreaHiddenModes(cls, a.id));
+          const body =
+            modes.length === 0
+              ? `<p class="hint" style="margin:2px 0 0">Inga spelbara lägen på området än.</p>`
+              : `<div class="member-grid">${modes
+                  .map(
+                    (gm) => `<label class="member-row">
+                      <input type="checkbox" data-mode="${esc(gm.id)}"${
+                      hidden.has(gm.id) ? "" : " checked"
+                    } />
+                      <span class="member-avatar">${esc(gm.emoji)}</span>
+                      <span class="member-name">${esc(gm.name)}</span>
+                    </label>`
+                  )
+                  .join("")}</div>`;
+          return `<div class="area-modes-row" data-area="${esc(a.id)}" style="margin:10px 0 4px">
+            <div class="assign-subject" style="font-weight:600">${esc(a.coverEmoji || "📖")} ${esc(a.name || a.id)}</div>
+            ${body}
+          </div>`;
+        })
+        .join("");
+      return `<div class="assign-group">
+        <div class="assign-subject">${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)}</div>
+        ${rows}
+      </div>`;
+    })
+    .join("");
+
+  const box = el(`<div>
+    <p class="hint">Finjustera vilka lägen klassen ser <b>per område</b>. Ikryssat = synligt;
+      urbockat döljs för klassen bara på det området. Bara lägen området har innehåll för visas.
+      Detta läggs ovanpå både per-område-valet (Innehåll) och klassens 🎮 Lägen ovan.</p>
+    ${groupsHtml}
+    <div class="row-inline" style="margin-top:12px">
+      <button class="btn gron small" data-act="save-area-modes">💾 Spara lägen per område</button>
+      <button class="btn ghost small" data-act="all-area-modes">Visa alla</button>
+      <span class="area-modes-result"></span>
+    </div>
+  </div>`);
+
+  const resultEl = box.querySelector(".area-modes-result");
+
+  box.querySelector('[data-act="all-area-modes"]').addEventListener("click", () => {
+    box.querySelectorAll('input[type="checkbox"]').forEach((c) => (c.checked = true));
+  });
+
+  box.querySelector('[data-act="save-area-modes"]').addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    // Bygg map:en för ALLA renderade områden (även helt ikryssade → tom lista) så
+    // deep-merge:en även kan AV-dölja ett läge som tidigare var urbockat.
+    const map = {};
+    box.querySelectorAll(".area-modes-row").forEach((row) => {
+      const areaId = row.dataset.area;
+      const hidden = [...row.querySelectorAll('input[type="checkbox"]:not(:checked)')].map(
+        (c) => c.dataset.mode
+      );
+      map[areaId] = { hiddenModes: hidden };
+    });
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = "Sparar…";
+    resultEl.innerHTML = "";
+    try {
+      const saved = await data.setClassAreaModes(cls.id, map);
+      cls.areaModes = { ...(cls.areaModes || {}), ...saved };
+      const hiddenCount = Object.values(saved).reduce((n, v) => n + v.hiddenModes.length, 0);
+      resultEl.innerHTML = hiddenCount
+        ? `<span class="ok-inline">✓ Sparat (${hiddenCount} läge${hiddenCount === 1 ? "" : "n"} dolda per område)</span>`
+        : `<span class="ok-inline">✓ Sparat – klassen ser alla lägen på områdena</span>`;
+    } catch (err) {
+      resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = old;
+    }
+  });
+
+  host.replaceChildren(box);
+}
+
+// ---------------------------------------------------------------------------
+// Tilldelade arbetsområden per klass (📌 Områden): läraren kryssar i vilka
+// arbetsområden klassen jobbar med NU – eleverna ser då bara dem i Plugga
+// (tom = hela biblioteket). Utbruten hit ur teacher-classes.js (fil-cap) och
+// bor tillsammans med lägen-per-område ovan eftersom båda är per-klass område-
+// konfiguration. Persistensen: data.setClassAssignments (classes/{id}.assignedAreas).
+// ---------------------------------------------------------------------------
+
+/**
+ * Rendera "📌 Områden"-sektionen: kryssrutor per (ämne × område) för vilka
+ * arbetsområden klassen är tilldelad. `library` är ämnen med sina område-listor
+ * (redan laddad av anroparen). Tom library → vänligt tomtillstånd.
+ * @param {object} ctx
+ * @param {object} cls        klassdokumentet (muteras: cls.assignedAreas vid spar)
+ * @param {HTMLElement} assignEl  värd-element att fylla
+ * @param {Array<{id:string,name?:string,icon?:string,areas:object[]}>} library
+ */
+export function renderClassAssignments(ctx, cls, assignEl, library) {
+  if (!library || library.length === 0) {
+    assignEl.replaceChildren(
+      emptyState(ctx, {
+        emoji: "📚",
+        title: "Inga arbetsområden än",
+        text: "Lägg in innehåll först, så kan du välja vad klassen ska jobba med.",
+        actionLabel: "Lägg in innehåll",
+        actionHash: "#/larare/innehall",
+      })
+    );
+    return;
+  }
+
+  const assigned = new Set(
+    (Array.isArray(cls.assignedAreas) ? cls.assignedAreas : []).map(
+      (a) => `${a.subjectId}/${a.areaId}`
+    )
+  );
+
+  const groups = library
+    .map((subj) => {
+      const rows = subj.areas
+        .map(
+          (a) => `<label class="member-row">
+            <input type="checkbox" data-subj="${esc(subj.id)}" data-area="${esc(a.id)}"
+              ${assigned.has(`${subj.id}/${a.id}`) ? "checked" : ""} />
+            <span class="member-avatar">${esc(a.coverEmoji || "📖")}</span>
+            <span class="member-name">${esc(a.name || a.id)}</span>
+          </label>`
+        )
+        .join("");
+      return `<div class="assign-group">
+        <div class="assign-subject">${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)}</div>
+        <div class="member-grid">${rows}</div>
+      </div>`;
+    })
+    .join("");
+
+  const box = el(`<div>
+    <p class="hint">Kryssa i de arbetsområden klassen jobbar med <b>nu</b>. Eleverna
+      ser då bara dem i Plugga. Lämnar du allt tomt ser eleverna hela biblioteket.</p>
+    ${groups}
+    <div class="row-inline" style="margin-top:12px">
+      <button class="btn gron small" data-act="save-areas">💾 Spara områden</button>
+      <button class="btn ghost small" data-act="clear-areas">Rensa (visa allt)</button>
+      <span class="assign-result"></span>
+    </div>
+  </div>`);
+
+  const resultEl = box.querySelector(".assign-result");
+
+  box.querySelector('[data-act="clear-areas"]').addEventListener("click", () => {
+    box.querySelectorAll('input[type="checkbox"]').forEach((c) => (c.checked = false));
+  });
+
+  box.querySelector('[data-act="save-areas"]').addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    const picked = [...box.querySelectorAll('input[type="checkbox"]:checked')].map((c) => ({
+      subjectId: c.dataset.subj,
+      areaId: c.dataset.area,
+    }));
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = "Sparar…";
+    resultEl.innerHTML = "";
+    try {
+      await data.setClassAssignments(cls.id, picked);
+      cls.assignedAreas = picked;
+      resultEl.innerHTML = picked.length
+        ? `<span class="ok-inline">✓ Sparat (${picked.length} område${picked.length === 1 ? "" : "n"})</span>`
+        : `<span class="ok-inline">✓ Sparat – eleverna ser allt</span>`;
+    } catch (err) {
+      resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = old;
+    }
+  });
+
+  assignEl.replaceChildren(box);
 }

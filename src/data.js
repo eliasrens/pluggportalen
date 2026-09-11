@@ -457,6 +457,7 @@ export {
   setClassAssignments,
   getClassAssignments,
   setClassHiddenModes,
+  setClassAreaModes,
   getClassForStudent,
 } from "./data-classes.js";
 
