@@ -13,8 +13,13 @@
 // ============================================================================
 
 import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
-import { normalizeExerciseTypes, deriveExerciseTypes, normalizeGenerator } from "./exercise-types.js";
-import { listTopics, listVariants } from "./matte-generator.js";
+import {
+  normalizeExerciseTypes,
+  deriveExerciseTypes,
+  normalizeGenerator,
+  listTopics,
+  listVariants,
+} from "./exercise-types.js";
 import { validateReadingTexts } from "./validate-reading.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { normalizeGrade } from "./grades.js";
@@ -251,7 +256,8 @@ export function validateArea(obj) {
   // Ett generator-område lagrar area.generator = { topic, variants, grade? } och
   // sparar INGET färdigt innehåll (inga quiz/pairs). Valfritt och bakåtkompatibelt
   // (saknas fältet → inget generator-innehåll). Vi ger tydliga fel på svenska när
-  // topic/varianter är okända, mot adapterns publika lista (matte-generator.js).
+  // topic/varianter är okända, mot generator-katalogen (listTopics/listVariants
+  // i exercise-types.js – boot-säker, drar inte in adaptern i bootgrafen, #290).
   let generator = null;
   if (obj.generator !== undefined && obj.generator !== null) {
     const g = obj.generator;

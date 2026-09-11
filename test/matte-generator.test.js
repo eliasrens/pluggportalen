@@ -13,6 +13,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { generateProblem, listTopics, listVariants } from "../src/matte-generator.js";
+import {
+  listTopics as catalogTopics,
+  listVariants as catalogVariants,
+} from "../src/exercise-types.js";
 
 // Runda av som generatorn gör (för decimal-varianter).
 function roundTo(v, digits) {
@@ -143,6 +147,29 @@ test("problem-objektet exponerar INTE answer (ren seam)", () => {
     assert.ok(!('answer' in res.problem), `${topic}: answer läckte in i problem`);
     assert.equal(typeof res.problem.text, 'string');
     assert.ok(res.problem.text.length > 0);
+  }
+});
+
+// --- 4b. Katalogen (exercise-types.js) matchar adaptern (drift-skydd, #290) --
+// Katalogen (topics + varianter) bor i exercise-types.js så den kan ligga i den
+// statiska bootgrafen UTAN att dra in matte-generator-adaptern (boot-säkerhet,
+// #290/#271). Adaptern håller sin egen VARIANTS-tabell (med motor-force/minGrade).
+// Det här testet är single-source-of-truth-vakten: skulle listorna driva isär
+// (någon lägger till en variant på ett ställe men inte det andra) faller det här,
+// INTE tyst i prod. Adaptern (matte-generator.js) importeras bara i testet/den
+// dynamiska räkna-vägen – aldrig i bootgrafen.
+
+test("katalogen (exercise-types.js) matchar adapterns topics exakt", () => {
+  assert.deepEqual(catalogTopics(), listTopics());
+});
+
+test("katalogen (exercise-types.js) matchar adapterns varianter per topic exakt", () => {
+  for (const topic of listTopics()) {
+    assert.deepEqual(
+      catalogVariants(topic),
+      listVariants(topic),
+      `varianter för "${topic}" driftar mellan katalog och adapter`
+    );
   }
 });
 
