@@ -204,8 +204,17 @@ export function renderGate(ctx) {
       );
       if (res.ok) {
         // Landa direkt på "Klasser & elever" (issue #304) i stället för den
-        // borttagna översikts-hubben.
-        ctx.go("#/larare/klasser");
+        // borttagna översikts-hubben. Spärren visas ofta REDAN på
+        // #/larare/klasser (#/larare → redirect → gate), så en bar go() skulle
+        // sätta samma hash → ingen hashchange → routern kör inte → man fastnar
+        // på inloggningsrutan. Tvinga därför en om-routning när hashen redan
+        // matchar (routern lyssnar på window "hashchange", se app.js).
+        const target = "#/larare/klasser";
+        if (window.location.hash === target) {
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        } else {
+          ctx.go(target);
+        }
       } else {
         msg.innerHTML = `<div class="msg error">${esc(res.error)}</div>`;
       }
