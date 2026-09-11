@@ -19,12 +19,21 @@ import { validateArea } from "./validate.js";
 
 /**
  * @param {object} deps
- * @param {HTMLTextAreaElement} deps.jsonEl      redigeringsrutan.
+ * @param {HTMLTextAreaElement} deps.jsonEl      redigeringsrutan (materialet).
  * @param {object} deps.generatorCtl             createGeneratorControl(...)-instansen.
  * @param {() => (string|null)} deps.getSelectedGrade  områdets valda årskurs.
  * @param {object} deps.modeVis                  createModeVisibility(...)-instansen.
+ * @param {() => string} [deps.getName]          namn-fältets värde (issue #303). När
+ *   det är ifyllt vinner det över ett ev. "name" i JSON-rutan, så den guidade vägen
+ *   (och namn-fältet) kan sätta områdesnamnet utan att läraren rör materialet.
  */
-export function createAreaInput({ jsonEl, generatorCtl, getSelectedGrade, modeVis }) {
+export function createAreaInput({ jsonEl, generatorCtl, getSelectedGrade, modeVis, getName }) {
+  // Väv in namn-fältet i ett tolkat objekt (bara plaina objekt, bara när ifyllt).
+  function withName(obj) {
+    if (!getName || !obj || typeof obj !== "object" || Array.isArray(obj)) return obj;
+    const name = String(getName() || "").trim();
+    return name ? { ...obj, name } : obj;
+  }
   /**
    * Bygg objektet som ska valideras/sparas ur JSON-rutan + generator-kontrollen.
    * Tom ruta → {} (namn-kravet fångas av validate). Trasig JSON → vänligt fel.
@@ -56,7 +65,7 @@ export function createAreaInput({ jsonEl, generatorCtl, getSelectedGrade, modeVi
         delete obj.generator;
       }
     }
-    return validateArea(obj);
+    return validateArea(withName(obj));
   }
 
   /**

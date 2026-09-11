@@ -1,19 +1,28 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: innehållsinmatning (teacher-content.js)
+// Pluggportalen – lärarsidan: Innehållsstudion (teacher-content.js)
 // ----------------------------------------------------------------------------
-// #/larare/innehall: ämnesväljare, skapa ämne, klistra in/ladda upp JSON,
-// kontrollera/spara (src/validate.js + src/data.js), lista/ersätt/ta bort
-// arbetsområden.
+// #/larare/innehall, ombyggd (issue #303) från en tät JSON-vägg till en STUDIO:
+//   • BIBLIOTEK (landning): ämnesflikar + kort per arbetsområde (ärlig status),
+//     "Skapa nytt område". Klick på kort → redigera i kompositören. (Denna fil.)
+//   • FOKUSERAD KOMPOSITÖR (overlay): dimmar biblioteket, Esc/klick-utanför
+//     stänger. All wiring bor i teacher-composer.js (metod-växel guidat/material,
+//     räknegenerator, årskurs, AI-prompt, kontrollera/spara, synliga lägen).
+//
+// INGEN funktion är borttagen mot förr – bara omgrupperad. AI-genererat innehåll
+// autosparas ALDRIG: materialrutan är ett redigerbart utkast och Spara sker först
+// efter Kontrollera/granskning.
+//
+// BOOT-SÄKERT: teacher-content.js ligger i den STATISKA bootgrafen (index.html →
+// app.js → teacher.js → hit). teacher-composer.js + dess tunga imports laddas
+// därför DYNAMISKT nedan – en NY fil i den statiska grafen kan 404:a under en
+// icke-atomär deploy → vit sida (bevisad rotorsak #271, jfr #290).
 // ============================================================================
 
 import * as data from "./data.js";
-import { buildAreaList } from "./teacher-content-list.js";
-import { buildContentView } from "./teacher-content-view.js";
+import { buildAreaCards } from "./teacher-content-list.js";
+import { buildLibraryView } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
-import { EXAMPLE_JSON, buildAreaPrompt } from "./prompts.js";
-import { areaExerciseTypes, normalizeExerciseTypes } from "./exercise-types.js";
-import { normalizeGrade, filterSortAreas } from "./grades.js";
-import { createModeVisibility } from "./teacher-mode-visibility.js";
+import { filterSortAreas } from "./grades.js";
 import {
   el,
   esc,
@@ -21,9 +30,7 @@ import {
   teacherNav,
   teacherHead,
   emptyState,
-  wireHashLinks,
   renderGate,
-  copyText,
 } from "./teacher-shared.js";
 
 export async function pageLarareInnehall(ctx) {
@@ -42,26 +49,18 @@ export async function pageLarareInnehall(ctx) {
     return;
   }
 
-  // Räknegenerator-UI:t (issue #279) laddas DYNAMISKT här – först när läraren är
-  // på #/larare/innehall – så teacher-generator.js/teacher-area-input.js aldrig
-  // hamnar i den statiska bootgrafen (index.html → app.js → teacher.js →
-  // teacher-content.js). En NY fil i bootgrafen kan 404:a under en icke-atomär
-  // Pages-deploy → vit sida för alla (bevisad rotorsak #271, issue #290). Fångas
-  // här och visas som ett snällt fel INNE i vyn – aldrig vit sida.
-  let createGeneratorControl, createAreaInput;
+  // Kompositören (och dess tunga imports: teacher-generator.js, teacher-area-input.js)
+  // laddas DYNAMISKT så inget nytt hamnar i den statiska bootgrafen (#271/#290).
+  // Fångas här och visas som ett snällt fel INNE i vyn – aldrig vit sida.
+  let createComposer;
   try {
-    ({ createGeneratorControl } = await import("./teacher-generator.js"));
-    ({ createAreaInput } = await import("./teacher-area-input.js"));
+    ({ createComposer } = await import("./teacher-composer.js"));
   } catch (err) {
-    console.error("Räknegenerator-modulen kunde inte laddas:", err);
+    console.error("Kompositören kunde inte laddas:", err);
     const container = el(`<div class="teacher-page"></div>`);
     container.appendChild(teacherNav(ctx, "innehall"));
     container.appendChild(
-      teacherHead(ctx, {
-        emoji: "📚",
-        title: "Innehåll",
-        lead: "Innehållssidan kunde inte laddas fullständigt.",
-      })
+      teacherHead(ctx, { emoji: "📚", title: "Innehåll", lead: "Sidan kunde inte laddas fullständigt." })
     );
     container.appendChild(
       el(`<div class="panel"><div class="msg error">Kunde inte ladda innehållsverktygen just nu.
@@ -73,293 +72,96 @@ export async function pageLarareInnehall(ctx) {
 
   // Valt ämne: SO först om det finns, annars första.
   let selected = subjects.find((s) => s.id === "so")?.id || subjects[0]?.id || null;
+  let currentAreas = []; // senast hämtade områden i valt ämne.
 
-  const view = buildContentView();
+  const subjectName = () => subjects.find((s) => s.id === selected)?.name || selected || "";
 
-  // --- Ämnesväljare ---------------------------------------------------------
-  const subjectSel = view.querySelector("#subject");
-  function fillSubjectOptions() {
-    subjectSel.innerHTML = subjects
-      .map((s) => `<option value="${esc(s.id)}">${esc(s.icon || "")} ${esc(s.name)} (${esc(s.id)})</option>`)
-      .join("");
-    if (selected) subjectSel.value = selected;
-  }
-  fillSubjectOptions();
+  const lib = buildLibraryView();
+  const subjectTabs = lib.querySelector("#subject-tabs");
+  const areaCardsEl = lib.querySelector("#area-cards");
+  const gradeFilterSel = lib.querySelector("#area-grade-filter");
+  const sortSel = lib.querySelector("#area-sort");
 
-  subjectSel.addEventListener("change", () => {
-    selected = subjectSel.value;
-    refreshAreaList();
+  // Kompositör-overlayen (skapar sin egen DOM, wiras internt).
+  const composer = createComposer({
+    getSubjectId: () => selected,
+    getSubjectName: subjectName,
+    onSaved: refreshAreaList,
   });
 
-  wireHashLinks(ctx, view);
-
-  // --- Nytt ämne ------------------------------------------------------------
-  wireNewSubjectForm({
-    toggleBtn: view.querySelector("#new-subject"),
-    formEl: view.querySelector("#new-subject-form"),
-    subjects,
-    onCreated: (id) => {
-      selected = id;
-      fillSubjectOptions();
-      refreshAreaList();
-    },
-  });
-
-  // --- Övningstyper (kryssrutor) -------------------------------------------
-  // Styr både vad som sparas på området (value.exerciseTypes) och AI-prompten
-  // som knappen kopierar. Se src/exercise-types.js och buildAreaPrompt.
-  const exTypesBox = view.querySelector("#ex-types");
-  const onskemalEl = view.querySelector("#area-onskemal");
-  const gradeSel = view.querySelector("#area-grade");
-
-  function getSelectedTypes() {
-    return [...exTypesBox.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
-  }
-  function setSelectedTypes(types) {
-    const want = new Set(types || []);
-    exTypesBox.querySelectorAll('input[type="checkbox"]').forEach((c) => {
-      c.checked = want.has(c.value);
-    });
-  }
-  // Årskurs: select-värdet "" betyder ospecificerad (null). normalizeGrade gör
-  // läsningen robust mot äldre/okända värden.
-  const getSelectedGrade = () => normalizeGrade(gradeSel.value);
-  const setSelectedGrade = (grade) => {
-    gradeSel.value = normalizeGrade(grade) || "";
-  };
-
-  // --- Synliga lägen (kryssrutor, per område) -------------------------------
-  // UI:t bor i teacher-mode-visibility.js (issue #207). render() ritar utifrån ett
-  // områdes innehåll, getHidden() läser av value.hiddenModes och autoFromJson()
-  // ritar DIREKT ur redigeringsrutan så listan aldrig är tom tills man klickar
-  // Kontrollera. Lägena härleds generiskt ur GAMEMODES – nya lägen dyker upp av
-  // sig själva; ikryssat = synligt, urbockat = dolt (issue #200).
-  const modeBox = view.querySelector("#mode-visibility");
-  const modeVis = createModeVisibility(modeBox);
-  const renderModeVisibility = modeVis.render;
-  const getSelectedHiddenModes = modeVis.getHidden;
-
-  // --- Räknegenerator (issue #279) ------------------------------------------
-  // Egen kontroll (topic + varianter) vid sidan av JSON-rutan. Valet lagras som
-  // area.generator och tänder räkna-läget. När läraren ändrar den uppdaterar vi
-  // synliga-lägen-listan direkt (räkna dyker upp/försvinner). areaInput binder
-  // ihop JSON-rutan med generator-/årskurs-kontrollerna (teacher-area-input.js)
-  // och sätts så fort jsonEl finns – onChange läser den via closure.
-  let areaInput;
-  const generatorCtl = createGeneratorControl(view.querySelector("#generator-config"), () =>
-    areaInput?.syncModeVisibility()
-  );
-
-  view.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
-    copyText(buildAreaPrompt(getSelectedTypes(), onskemalEl.value, getSelectedGrade()), e.currentTarget)
-  );
-
-  // --- Lista befintliga arbetsområden --------------------------------------
-  const areaListEl = view.querySelector("#area-list");
-  const jsonEl = view.querySelector("#json");
-  const editSel = view.querySelector("#edit-area-select");
-  const gradeFilterSel = view.querySelector("#area-grade-filter");
-  const sortSel = view.querySelector("#area-sort");
-  let currentAreas = []; // senast hämtade områden, filtreras/sorteras vid render
-
-  // Ladda ett område i redigeringsrutan. Övningstyper och årskurs hör hemma i
-  // egna kontrollerna (inte i JSON:en), så vi lyfter ut dem och fyller dem där.
-  function loadAreaForEdit(a) {
-    setSelectedTypes(areaExerciseTypes(a));
-    setSelectedGrade(a.grade);
-    generatorCtl.render(a);
-    renderModeVisibility(a, true);
-    // Övningstyper, årskurs och generator-konfigen hör hemma i egna kontrollerna
-    // (inte i JSON:en) – lyft ut dem så JSON-rutan bara visar innehållet.
-    const { id, exerciseTypes, grade, generator, ...rest } = a;
-    jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
-    jsonEl.scrollIntoView({ behavior: "smooth", block: "center" });
-    view.querySelector("#result").innerHTML =
-      `<div class="msg ok">Laddade "${esc(a.name)}" i rutan. Ändra och spara för att ersätta.</div>`;
-  }
-
-  // Väljaren "Redigera ett befintligt område" (issue #207): fylls ur currentAreas
-  // (alla områden i ämnet, oberoende av listans filter) så läraren slipper
-  // hand-klistra JSON. Val → ladda in samma väg som listans "Ersätt".
-  function fillEditAreaOptions() {
-    const opts = ['<option value="">— Välj ett område att redigera —</option>'];
-    for (const a of currentAreas) {
-      opts.push(
-        `<option value="${esc(a.id)}">${esc(a.coverEmoji || "📖")} ${esc(a.name)} (${esc(a.id)})</option>`
-      );
-    }
-    editSel.innerHTML = opts.join("");
-  }
-  editSel.addEventListener("change", () => {
-    const a = currentAreas.find((x) => x.id === editSel.value);
-    if (a) loadAreaForEdit(a);
-  });
-
-  // Rendera listan ur currentAreas enligt filter-/sorteringsvalen (ingen ny
-  // hämtning – körs både efter hämtning och när läraren ändrar filter/sortering).
-  function renderAreaList() {
-    fillEditAreaOptions(); // väljaren speglar alltid alla områden i ämnet
-    if (currentAreas.length === 0) {
-      areaListEl.replaceChildren(
-        emptyState(ctx, {
-          emoji: "🗂️",
-          title: "Inga arbetsområden i ämnet ännu",
-          text: "Klistra in eller ladda upp en JSON nedan för att lägga in det första området.",
-        })
-      );
-      return;
-    }
-    const shown = filterSortAreas(currentAreas, {
-      filter: gradeFilterSel.value,
-      sort: sortSel.value,
-    });
-    if (shown.length === 0) {
-      areaListEl.innerHTML = `<p class="hint">Inga arbetsområden matchar filtret. Ändra "Visa årskurs" ovan.</p>`;
-      return;
-    }
-    areaListEl.replaceChildren(
-      buildAreaList(shown, {
-        ctx,
-        subjectId: selected,
-        onEdit: loadAreaForEdit,
-        onRefresh: refreshAreaList,
+  function renderSubjectTabs() {
+    subjectTabs.replaceChildren(
+      ...subjects.map((s) => {
+        const tab = el(`<button type="button" class="subject-tab ${s.id === selected ? "active" : ""}"
+          role="tab" aria-selected="${s.id === selected}">${esc(s.icon || "📘")} ${esc(s.name)}</button>`);
+        tab.addEventListener("click", () => {
+          if (selected === s.id) return;
+          selected = s.id;
+          renderSubjectTabs();
+          refreshAreaList();
+        });
+        return tab;
       })
     );
   }
 
-  gradeFilterSel.addEventListener("change", renderAreaList);
-  sortSel.addEventListener("change", renderAreaList);
+  function renderAreaCards() {
+    if (currentAreas.length === 0) {
+      areaCardsEl.replaceChildren(
+        emptyState(ctx, {
+          emoji: "🗂️",
+          title: "Inga arbetsområden i ämnet ännu",
+          text: "Klicka <b>Skapa nytt område</b> för att lägga in det första.",
+        })
+      );
+      return;
+    }
+    const shown = filterSortAreas(currentAreas, { filter: gradeFilterSel.value, sort: sortSel.value });
+    if (shown.length === 0) {
+      areaCardsEl.innerHTML = `<p class="hint">Inga arbetsområden matchar filtret. Ändra "Visa årskurs" ovan.</p>`;
+      return;
+    }
+    areaCardsEl.replaceChildren(
+      buildAreaCards(shown, { subjectId: selected, onEdit: composer.openEdit, onRefresh: refreshAreaList })
+    );
+  }
 
   async function refreshAreaList() {
     if (!selected) {
-      areaListEl.innerHTML = `<p class="hint">Inget ämne valt.</p>`;
+      areaCardsEl.innerHTML = `<p class="hint">Inget ämne valt.</p>`;
       return;
     }
-    areaListEl.innerHTML = `<div class="spinner">Laddar…</div>`;
+    areaCardsEl.innerHTML = `<div class="spinner">Laddar…</div>`;
     try {
       currentAreas = await data.getAreas(selected);
     } catch (err) {
-      areaListEl.innerHTML = `<div class="msg error">Kunde inte ladda arbetsområden: ${esc(err.message)}</div>`;
+      areaCardsEl.innerHTML = `<div class="msg error">Kunde inte ladda arbetsområden: ${esc(err.message)}</div>`;
       return;
     }
-    renderAreaList();
+    renderAreaCards();
   }
 
-  // Väv ihop JSON-rutan med generator-/årskurs-kontrollerna (teacher-area-input.js):
-  // validateCurrent() validerar helheten, syncModeVisibility() håller synliga-lägen-
-  // listan aktuell. Sätts nu när jsonEl finns (generatorCtl.onChange läser via closure).
-  areaInput = createAreaInput({ jsonEl, generatorCtl, getSelectedGrade, modeVis });
-  const { validateCurrent, syncModeVisibility } = areaInput;
+  gradeFilterSel.addEventListener("change", renderAreaCards);
+  sortSel.addEventListener("change", renderAreaCards);
+  renderSubjectTabs();
 
-  // Rita synliga-lägen-listan DIREKT ur redigeringsrutan (issue #207) så den inte
-  // är tom tills man klickar Kontrollera. Körs vid inladdning och medan man skriver.
-  syncModeVisibility();
-  jsonEl.addEventListener("input", () => syncModeVisibility());
-
-  // --- Filuppladdning / exempel / rensa ------------------------------------
-  view.querySelector("#file").addEventListener("change", (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      jsonEl.value = String(reader.result || "");
-      syncModeVisibility();
-      view.querySelector("#result").innerHTML =
-        `<div class="msg ok">Laddade filen "${esc(file.name)}". Klicka Kontrollera eller Spara.</div>`;
-    };
-    reader.onerror = () => {
-      view.querySelector("#result").innerHTML =
-        `<div class="msg error">Kunde inte läsa filen.</div>`;
-    };
-    reader.readAsText(file);
-    e.target.value = ""; // så samma fil kan väljas igen
-  });
-
-  view.querySelector("#example").addEventListener("click", () => {
-    jsonEl.value = EXAMPLE_JSON;
-    syncModeVisibility();
-  });
-  view.querySelector("#clear").addEventListener("click", () => {
-    jsonEl.value = "";
-    generatorCtl.render({}); // nollställ även räknegeneratorn
-    syncModeVisibility(); // → tom-state
-    editSel.value = "";
-    view.querySelector("#result").innerHTML = "";
-  });
-
-  // --- Kontrollera / spara --------------------------------------------------
-  const resultEl = view.querySelector("#result");
-
-  function showErrors(errors) {
-    resultEl.innerHTML = `<div class="msg error">
-      <div style="margin-bottom:6px">JSON:en kunde inte sparas. Rätta det här:</div>
-      <ul class="error-list">${errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>
-    </div>`;
-  }
-
-  function showValidSummary(value) {
-    const gen = value.generator
-      ? `, räknegenerator: ${esc(value.generator.topic)} (${value.generator.variants.length} varianter)`
-      : "";
-    resultEl.innerHTML = `<div class="msg ok">
-      ✓ Giltig JSON! <b>${esc(value.name)}</b> (id: <code>${esc(value.id)}</code>) –
-      ${value.texts.length} texter, ${value.quiz.length} frågor, ${value.pairs.length} par${value.readingTexts.length ? `, ${value.readingTexts.length} nivåtexter` : ""}${gen}.
-      Klicka <b>Spara till databasen</b> för att lägga in den i ämnet.
-    </div>`;
-  }
-
-  view.querySelector("#check").addEventListener("click", () => {
-    const res = validateCurrent();
-    if (res.ok) {
-      // Uppdatera synliga-lägen-listan efter innehållet, men behåll lärarens val.
-      renderModeVisibility(res.value, false);
-      showValidSummary(res.value);
-    } else showErrors(res.errors);
-  });
-
-  view.querySelector("#save").addEventListener("click", async () => {
-    if (!selected) {
-      resultEl.innerHTML = `<div class="msg error">Välj ett ämne först.</div>`;
-      return;
-    }
-    const res = validateCurrent();
-    if (!res.ok) {
-      showErrors(res.errors);
-      return;
-    }
-    const saveBtn = view.querySelector("#save");
-    saveBtn.disabled = true;
-    const old = saveBtn.textContent;
-    saveBtn.textContent = "Sparar…";
-    try {
-      // Synka synliga-lägen-listan mot innehållet som sparas (behåll lärarens
-      // i-/urbockningar) innan vi läser av vilka lägen som ska döljas.
-      renderModeVisibility(res.value, false);
-      // Övningstyper: lärarens kryssrutor + "generator" när en räknegenerator är
-      // vald (den har en egen kontroll, inte en kryssruta i AI-rutan).
-      const exerciseTypes = normalizeExerciseTypes([
-        ...getSelectedTypes(),
-        ...(res.value.generator ? ["generator"] : []),
-      ]);
-      // Lärarens kryssrutor (övningstyper) och årskurs-väljaren är de uttryckliga
-      // valen och vinner över det som ligger i/härleds ur JSON:en. res.value bär
-      // redan den validerade generator-konfigen (vävd in i validateCurrent).
-      const value = {
-        ...res.value,
-        exerciseTypes,
-        grade: getSelectedGrade(),
-        hiddenModes: getSelectedHiddenModes(res.value),
-      };
-      await data.saveArea(selected, value.id, value);
-      resultEl.innerHTML = `<div class="msg ok">✓ Sparat! "${esc(value.name)}" finns nu i ämnet
-        ${esc(subjects.find((s) => s.id === selected)?.name || selected)}.</div>`;
+  wireNewSubjectForm({
+    toggleBtn: lib.querySelector("#new-subject"),
+    formEl: lib.querySelector("#new-subject-form"),
+    subjects,
+    onCreated: (id) => {
+      selected = id;
+      renderSubjectTabs();
       refreshAreaList();
-    } catch (err) {
-      resultEl.innerHTML = `<div class="msg error">Kunde inte spara till databasen: ${esc(err.message)}</div>`;
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = old;
+    },
+  });
+
+  lib.querySelector("#create-new").addEventListener("click", () => {
+    if (!selected) {
+      alert("Skapa eller välj ett ämne först.");
+      return;
     }
+    composer.openNew();
   });
 
   const container = el(`<div class="teacher-page"></div>`);
@@ -367,13 +169,13 @@ export async function pageLarareInnehall(ctx) {
   container.appendChild(
     teacherHead(ctx, {
       emoji: "📚",
-      title: "Innehåll",
-      lead: `Välj ämne, klistra in eller ladda upp en arbetsområdes-JSON, kontrollera
-        att den är giltig och spara till databasen. Behöver du en JSON? Kryssa i övningstyper
-        och kopiera en <b>AI-prompt</b> nedan som skapar den åt dig.`,
+      title: "Innehållsstudion",
+      lead: `Ditt <b>bibliotek</b> med arbetsområden. Klicka på ett kort för att redigera det, eller
+        <b>Skapa nytt område</b> för att lägga in material – guidat eller genom att klistra in.`,
     })
   );
-  container.appendChild(view);
+  container.appendChild(lib);
+  container.appendChild(composer.element);
   ctx.app.replaceChildren(container);
   refreshAreaList();
 }
