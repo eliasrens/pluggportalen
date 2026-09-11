@@ -11,6 +11,7 @@
 
 import { rnd } from "./prng.js";
 import { PluginUtils } from "./plugin-utils.js";
+import { CLASSROOM_PLUGINS } from "./plugins-classroom.js";
 
 class BasePlugin {
   constructor() {
@@ -234,9 +235,13 @@ class DivisionPlugin extends BasePlugin {
   }
 }
 
-// Intern registry (portad PluginManager, ingen global).
+// Intern registry (portad PluginManager, ingen global). Fas 1:s fyra räknesätt
+// + fas 2:s (issue #295) resterande klassrummatte-plugins (CLASSROOM_PLUGINS).
 const registry = new Map();
-for (const p of [new AdditionPlugin(), new SubtraktionPlugin(), new MultiplikationPlugin(), new DivisionPlugin()]) {
+for (const p of [
+  new AdditionPlugin(), new SubtraktionPlugin(), new MultiplikationPlugin(), new DivisionPlugin(),
+  ...CLASSROOM_PLUGINS,
+]) {
   registry.set(p.type, p);
 }
 
