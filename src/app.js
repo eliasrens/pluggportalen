@@ -39,7 +39,6 @@ import {
   pageElevProfil,
 } from "./pages-elev.js";
 import {
-  pageLarare,
   pageLarareInnehall,
 } from "./teacher.js";
 // Klasskamratens rum (#/elev/klasskamrat) – läs-endast vy av en annan elevs rum.
@@ -169,7 +168,10 @@ const routes = {
   "/elev/klassfoto": () => go("#/elev/by"),
   // Klasskamratens rum (#/elev/klasskamrat?id=…) – läs-endast vy av annans rum.
   "/elev/klasskamrat": pageElevKlasskamrat,
-  "/larare": () => pageLarare(teacherCtx),
+  // Översikts-hubben är borttagen (issue #304): #/larare omdirigerar till den
+  // enade klass-fliken så gamla länkar/bokmärken inte bryts. Lärarspärren
+  // (renderGate) visas av #/larare/klasser om man inte är inloggad.
+  "/larare": () => go("#/larare/klasser"),
   // Klassöversikt/statistik (gamla #/larare/klass) är sammanslagen med Klasser &
   // elever (issue #299): framstegsmatrisen är nu en 📊-expander per klasskort.
   // Gamla länkar/bokmärken skickas dit (samma mönster som /larare/elever).

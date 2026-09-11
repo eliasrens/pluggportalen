@@ -6,9 +6,10 @@
 //     det gamla hårdkodade lösenordet. Logiken bor i src/auth.js.
 //   * Små DOM-/text-hjälpare (el, esc, copyText, wireHashLinks).
 //   * Gemensam lärar-toppnav (teacherNav) – sticky flikrad.
-//   * Enhetligt sidhuvud (teacherHead) och vänliga tomtillstånd (emptyState)
+//   * Diskret sidtitel (teacherHead) och vänliga tomtillstånd (emptyState)
 //     så alla undersidor känns som en familj.
-//   * Lärarinloggnings-vy (renderGate) + översiktssidan (pageLarare).
+//   * Lärarinloggnings-vy (renderGate). Översikts-hubben (pageLarare) är
+//     borttagen (issue #304) – toppnaven orienterar, hubben dubblerade den.
 //
 // Sidorna anropas från app.js router med ett `ctx` som innehåller de delade
 // hjälparna { app, go, renderTopbar }.
@@ -92,7 +93,8 @@ export async function copyText(text, btn) {
 /** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */
 export function teacherNav(ctx, active) {
   const tabs = [
-    { hash: "#/larare", key: "hem", label: "🏠 Översikt" },
+    // Översikts-hubben (🏠 Översikt / pageLarare) är borttagen (issue #304):
+    // toppnaven gör orienteringsjobbet, hubben dubblerade bara flikarna.
     // Klasser, elevkonton & statistik (#/larare/klasser) – den enade klass-fliken.
     // Klassöversikten/statistiken (gamla 📊 Klass) är sammanslagen hit som en
     // expander per klasskort (issue #299), så navet har EN klass-flik.
@@ -123,23 +125,16 @@ export function teacherNav(ctx, active) {
 }
 
 /**
- * Enhetligt sidhuvud för en lärar-undersida: en brödsmula tillbaka till
- * översikten, en ikon, rubrik och en kort ingress. `lead` får innehålla enkel
- * markup (t.ex. <b> och `data-hash`-länkar) – dessa kopplas till routern.
+ * Diskret sidtitel för en lärar-undersida – bara för orientering. Tidigare var
+ * detta ett helt hjälte-block med brödsmula "← Till översikten", stor ikon och
+ * en förklarande ingress; allt det är bortskalat (issue #304) eftersom
+ * toppnaven (teacherNav) redan markerar var man är och översikts-hubben är
+ * borta. `emoji`/`title` behålls; ev. `lead` ignoreras (bakåtkompatibel signatur).
  */
-export function teacherHead(ctx, { emoji = "📋", title = "", lead = "" } = {}) {
-  const head = el(`<header class="panel teacher-head">
-    <a class="crumb" data-hash="#/larare">← Till översikten</a>
-    <div class="teacher-head-row">
-      <span class="teacher-head-icon">${esc(emoji)}</span>
-      <div class="teacher-head-text">
-        <h1>${esc(title)}</h1>
-        ${lead ? `<p class="teacher-head-lead">${lead}</p>` : ""}
-      </div>
-    </div>
+export function teacherHead(_ctx, { emoji = "📋", title = "" } = {}) {
+  return el(`<header class="teacher-head-slim">
+    <h1 class="teacher-page-title">${esc(emoji)} ${esc(title)}</h1>
   </header>`);
-  wireHashLinks(ctx, head);
-  return head;
 }
 
 /**
@@ -163,66 +158,13 @@ export function emptyState(ctx, { emoji = "✨", title = "", text = "", actionLa
 }
 
 // ============================================================================
-// Lärarspärr + översikt
+// Lärarspärr (gate)
+// ----------------------------------------------------------------------------
+// Översikts-hubben (pageLarare: välkomst-hero + stora genvägskort) är borttagen
+// (issue #304) – den dubblerade toppnaven. Efter inloggning landar man direkt
+// på "Klasser & elever" (#/larare/klasser); route #/larare omdirigerar dit
+// (se app.js) så gamla länkar/bokmärken inte bryts.
 // ============================================================================
-
-export function pageLarare(ctx) {
-  ctx.renderTopbar();
-  if (!isTeacher()) return renderGate(ctx);
-
-  // Genvägar (big-cards). Ordningen speglar en naturlig arbetsgång:
-  // följ upp klassen → bygg upp klasser/elever → fyll på innehåll (med den
-  // inbyggda AI-promptbyggaren).
-  const cards = [
-    {
-      // Klasser, elevkonton & statistik (#/larare/klasser) – den enade sidan.
-      // Klassöversikten (gamla 📊 Klass) är sammanslagen hit (issue #299).
-      hash: "#/larare/klasser",
-      color: "rosa",
-      emoji: "🏫",
-      title: "Klasser & elever",
-      sub: "Skapa klasser, elevkonton, lägen per område – och följ framstegen",
-    },
-    {
-      hash: "#/larare/innehall",
-      color: "bla",
-      emoji: "📚",
-      title: "Innehåll",
-      sub: "Lägg in arbetsområden – bygg AI-prompter direkt här",
-    },
-  ];
-
-  const view = el(`<div class="teacher-page">
-    <a class="back-link" id="back">← Till startsidan</a>
-    <header class="panel teacher-hero">
-      <span class="teacher-hero-icon">👩‍🏫</span>
-      <div class="teacher-hero-text">
-        <h1>Lärarsida</h1>
-        <p class="teacher-hero-lead">Välkommen! Här bygger du upp klasser och innehåll
-          (med AI-prompter direkt på innehållssidan) och följer hur eleverna kommer framåt.</p>
-      </div>
-    </header>
-    <div class="card-grid teacher-cards">
-      ${cards
-        .map(
-          (c) => `<button class="big-card ${c.color}" data-hash="${c.hash}">
-            <span class="emoji">${c.emoji}</span>
-            <span class="title">${esc(c.title)}</span>
-            <span class="sub">${esc(c.sub)}</span>
-          </button>`
-        )
-        .join("")}
-    </div>
-    <p class="hint teacher-seed-hint">
-      💾 Vill du fylla databasen med färdig exempeldata? Använd
-      <a href="./seed/seed.html">seed-sidan</a>.
-    </p>
-  </div>`);
-
-  view.querySelector("#back").addEventListener("click", () => ctx.go("#/"));
-  wireHashLinks(ctx, view);
-  ctx.app.replaceChildren(view);
-}
 
 export function renderGate(ctx) {
   const view = el(`<div class="teacher-page">
@@ -261,7 +203,18 @@ export function renderGate(ctx) {
         view.querySelector("#p").value
       );
       if (res.ok) {
-        pageLarare(ctx);
+        // Landa direkt på "Klasser & elever" (issue #304) i stället för den
+        // borttagna översikts-hubben. Spärren visas ofta REDAN på
+        // #/larare/klasser (#/larare → redirect → gate), så en bar go() skulle
+        // sätta samma hash → ingen hashchange → routern kör inte → man fastnar
+        // på inloggningsrutan. Tvinga därför en om-routning när hashen redan
+        // matchar (routern lyssnar på window "hashchange", se app.js).
+        const target = "#/larare/klasser";
+        if (window.location.hash === target) {
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        } else {
+          ctx.go(target);
+        }
       } else {
         msg.innerHTML = `<div class="msg error">${esc(res.error)}</div>`;
       }

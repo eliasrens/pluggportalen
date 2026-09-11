@@ -798,7 +798,6 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 
 /* Länkar i lärarvyer (data-hash-navigering) ska se ut som länkar. */
 .teacher-page .hint a,
-.teacher-head-lead a,
 .empty-state-text a {
   color: var(--bla-mork);
   font-weight: 700;
@@ -888,91 +887,20 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   .tnav.logout { margin-left: 4px; }
 }
 
-/* --- Översikt: hero + genvägar -------------------------------------------- */
+/* --- Diskret sidtitel på undersidor --------------------------------------- */
+/* Översikts-hubben (hero + genvägskort) och det stora hjälte-sidhuvudet med
+   brödsmula/ingress är borttagna (issue #304) – toppnaven orienterar. Kvar är
+   bara en diskret sidtitel. */
 
-.teacher-hero {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  background: linear-gradient(135deg, #fef0f6 0%, #eef3ff 55%, #fff6ec 100%);
+.teacher-head-slim {
+  margin: 4px 2px 14px;
 }
 
-.teacher-hero-icon {
-  font-size: 3.4rem;
-  line-height: 1;
-  flex-shrink: 0;
-  filter: drop-shadow(0 3px 4px rgba(31, 45, 74, 0.15));
+.teacher-page-title {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--text);
 }
-
-.teacher-hero-text h1 { margin: 0 0 4px; }
-.teacher-hero-lead { margin: 0; color: var(--text-svag); font-size: 1rem; }
-
-.teacher-cards .big-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: 172px;
-  padding: 26px 20px 24px;
-}
-
-.teacher-cards .big-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 22px rgba(31, 45, 74, 0.22);
-}
-
-.teacher-seed-hint {
-  margin-top: 22px;
-  text-align: center;
-}
-
-/* --- Enhetligt sidhuvud på undersidor ------------------------------------- */
-
-.teacher-head {
-  padding: 20px 24px 22px;
-}
-
-.teacher-head .crumb {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 14px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: #eef4ff;
-  color: var(--bla-mork);
-  font-weight: 700;
-  font-size: 0.88rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.12s ease, transform 0.12s ease;
-}
-
-.teacher-head .crumb:hover { background: #dce9ff; transform: translateX(-2px); }
-
-.teacher-head-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.teacher-head-icon {
-  flex-shrink: 0;
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  font-size: 2.4rem;
-  line-height: 1;
-  overflow: hidden;
-  background: linear-gradient(160deg, #eef3ff, #f6ecff);
-  box-shadow: inset 0 0 0 1px rgba(31, 45, 74, 0.05);
-}
-
-.teacher-head-text h1 { margin: 0 0 2px; font-size: 1.7rem; }
-.teacher-head-lead { margin: 0; color: var(--text-svag); font-size: 0.95rem; }
 
 .subhead { font-size: 1.15rem; margin: 0 0 12px; }
 
@@ -1006,19 +934,6 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 
 .gate-panel { max-width: 460px; }
 .gate-icon { font-size: 3.2rem; line-height: 1; display: block; margin-bottom: 4px; }
-
-/* Mobil: stapla hero/sidhuvud så inget känns hoptryckt på smal skärm. */
-@media (max-width: 480px) {
-  .teacher-hero,
-  .teacher-head-row {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-    gap: 10px;
-  }
-  .teacher-head .crumb { margin-bottom: 10px; }
-  .teacher-head-icon { width: 54px; height: 54px; font-size: 2.1rem; }
-}
 
 /* --- Paneler och layout ---------------------------------------------------- */
 
