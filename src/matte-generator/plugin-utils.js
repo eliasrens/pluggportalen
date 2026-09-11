@@ -20,6 +20,19 @@ function pickRandom(arr) {
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 function lcm(a, b) { return (a * b) / gcd(a, b); }
 
+// Seedbar blandning (Fisher–Yates ur rnd()). Klassrummatte blandade med
+// `arr.sort(() => Math.random() - 0.5)` – icke-seedbart OCH partiskt. Vid porten
+// (issue #295) byts alla sådana anrop mot shuffle() så samma frö ger samma
+// ordning. Returnerar en NY array (muterar inte indata).
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 const GRADE_CONFIG = {
   1: { addMax: 20,   subMax: 20,   multTables: [2],                          divTables: [],                          fractions: false,      geometry: 'basic',         decimals: false, clockMinuteStep: 30 },
   2: { addMax: 100,  subMax: 100,  multTables: [2,3,4,5],                    divTables: [2,3,4,5],                   fractions: false,      geometry: 'basic',         decimals: false, clockMinuteStep: 15 },
@@ -198,7 +211,7 @@ function genUppstallning(subtype, c, opts) {
 }
 
 export const PluginUtils = {
-  randInt, pickRandom, gcd, lcm,
+  randInt, pickRandom, shuffle, gcd, lcm,
   GRADE_CONFIG, cfg,
   hasCarry, hasBorrow,
   genNoCarryAdd, genNoCarrySub,
