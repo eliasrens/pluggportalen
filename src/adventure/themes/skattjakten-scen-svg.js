@@ -11,8 +11,11 @@
 // kollisionen – blått hav runt kanten, ön bredast i mitten (grid-rad 4–7),
 // avsmalnande upp/ned, hav i hörnen; klippor (CLIFF_NW/CLIFF_MID), damm (POND),
 // å med BRO (STREAM_N/STREAM_S + gångbar lucka) samt brygga + båt vid START_AT.
-// Städat hårdare (issue #286): ruiner + läger borttagna, X-brus nertonat till en
-// enda diskret markering, hav/gräs glesat och färre näckrosor → en lugn, ren skattö.
+// Städat hårdare (issue #286): ruiner + läger borttagna, hav glesat.
+// Runda 3 (issue #289): stigen och X-markeringen HELT borta, palmerna (såg solida
+// ut men var gångbara = visuellt ohederligt) ersatta av LÅG, tydligt gångbar
+// grönska i flera typer, och lugnet byggs av mjuka gräs-nyanser i marken i
+// stället för utspridda objekt.
 //
 // Scenen renderas rakt in i .adv-map (scene-scroll.js: mapEl.innerHTML) och
 // skalas till lagret via .adv-map > svg { width/height:100% } (games.css).
@@ -59,7 +62,6 @@ const VATTEN = "#5FB8E0"; // damm/å (ljusare sött vatten)
 const VATTEN_LJUS = "#AEE4F2";
 const TALT = "#F49E4C";
 const TALT_MORK = "#EF6F6C";
-const ROD = "#EF6F6C"; // X-markering
 
 const L2 = `stroke="${O}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"`;
 const L3 = `stroke="${O}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"`;
@@ -106,40 +108,33 @@ function ocean() {
   );
 }
 
-/** Landmassan: sandstrand som kant + grönt gräs inåt, med lite texturfläckar. */
+/** Landmassan: sandstrand som kant + grönt gräs inåt, med mjuka gräs-nyanser.
+ *  Lugnet byggs av subtila färgfläckar i marken (issue #289) – liv utan brus –
+ *  i stället för utspridda distinkta objekt. Allt är ren mark, ingen kollision. */
 function land() {
   const grass = inset(COAST, 0.9);
-  // Grästextur hårt nertonad (issue #286): färre fläckar + svagare opacitet så
-  // gräsmattan läser som en lugn, jämn yta.
-  const patches = [
-    [900, 430, 90], [430, 400, 60],
+  // Mjuka nyansfläckar: oregelbundet utspridda ellipser i mörkare/ljusare grönt
+  // med LÅG opacitet – ger ängen liv på håll utan att någon enskild fläck syns
+  // som ett "objekt". Mörka och ljusa zoner omlott, varierade storlekar.
+  const dark = [
+    [420, 380, 120, 0.09], [900, 430, 100, 0.09], [640, 700, 130, 0.08],
+    [260, 560, 90, 0.08], [1120, 590, 95, 0.08], [530, 190, 80, 0.07],
+    [980, 250, 110, 0.08], [790, 555, 70, 0.07],
   ]
-    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.62}" fill="${GRAS_MORK}" opacity="0.1"/>`)
+    .map(([x, y, r, o]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${n1(r * 0.55)}" fill="${GRAS_MORK}" opacity="${o}"/>`)
     .join("");
   const bright = [
-    [700, 480, 120],
+    [700, 480, 140, 0.12], [340, 300, 90, 0.1], [1240, 480, 100, 0.1],
+    [500, 620, 85, 0.09], [860, 330, 95, 0.09], [720, 210, 75, 0.08],
+    [420, 760, 90, 0.09],
   ]
-    .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.5}" fill="${GRAS_LJUS}" opacity="0.16"/>`)
+    .map(([x, y, r, o]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${n1(r * 0.5)}" fill="${GRAS_LJUS}" opacity="${o}"/>`)
     .join("");
   return (
     `<path d="${smoothClosed(COAST)}" fill="${SAND}" ${L3}/>` +
     `<path d="${smoothClosed(inset(COAST, 0.955))}" fill="${SAND_MORK}" opacity="0.5" stroke="none"/>` +
     `<path d="${smoothClosed(grass)}" fill="${GRAS}" ${L2}/>` +
-    bright + patches
-  );
-}
-
-/** Slingrande sandstig som binder ihop spawn-platserna (blockerar inte). */
-function trail() {
-  const pts = [
-    [1120, 690], [960, 660], [760, 600], [620, 560], [470, 512],
-    [372, 420], [320, 340], [430, 285], [610, 292], [770, 315], [960, 320],
-  ];
-  const d = smoothOpen(pts);
-  return (
-    `<path d="${d}" fill="none" stroke="${SAND_MORK}" stroke-width="42" stroke-linecap="round" opacity="0.9"/>` +
-    `<path d="${d}" fill="none" stroke="${SAND}" stroke-width="30" stroke-linecap="round"/>` +
-    `<path d="${d}" fill="none" stroke="${SAND_MORK}" stroke-width="30" stroke-linecap="round" stroke-dasharray="2 34" opacity="0.6"/>`
+    bright + dark
   );
 }
 
@@ -233,18 +228,6 @@ function planks2(x, y, w, h) {
   return s;
 }
 
-/** Palm (dekor, blockerar inte). */
-function palm(x, y, s = 1) {
-  const t = (d) => `<path d="${d}" fill="none" stroke="${TRA_MORK}" stroke-width="${16 * s}" stroke-linecap="round"/>`;
-  const leaf = (dx, dy) =>
-    `<path d="M${x} ${y - 108 * s} q${dx} ${dy} ${dx * 1.5} ${dy + 22 * s}" fill="none" stroke="${GRAS_MORK}" stroke-width="${13 * s}" stroke-linecap="round"/>`;
-  return (
-    `<ellipse cx="${x}" cy="${y + 6}" rx="${34 * s}" ry="${9 * s}" fill="${O}" opacity="0.1"/>` +
-    t(`M${x} ${y} Q${x - 12 * s} ${y - 60 * s} ${x + 6 * s} ${y - 108 * s}`) +
-    leaf(-70 * s, -8 * s) + leaf(-40 * s, 30 * s) + leaf(70 * s, -8 * s) + leaf(40 * s, 30 * s) + leaf(0, -40 * s) +
-    `<circle cx="${x + 6 * s}" cy="${y - 108 * s}" r="${10 * s}" fill="${TRA}"/>`
-  );
-}
 /** Buske som RIKTIGT hinder (blockerar) – ritas rejäl/solid med bär så den tydligt
  *  läser som ett hinder, inte som gångbar markdekor. Placeras vid BLOCKING_BUSHES
  *  och kollisionen täcker hela kronan (issue #243 r2). */
@@ -262,12 +245,34 @@ function bush(x, y, s = 1) {
   );
 }
 /** Grästuvor (låg, platt markdekor) – ser TYDLIGT gångbar ut, ingen kollision. */
-function grassTuft(x, y) {
+function grassTuft(x, y, s = 1) {
   const blade = (dx, h) =>
-    `<path d="M${x + dx} ${y + 6} q${-dx * 0.4} ${-h * 0.6} ${dx * 0.5} ${-h}" fill="none" stroke="${GRAS_MORK}" stroke-width="4" stroke-linecap="round" opacity="0.85"/>`;
+    `<path d="M${x + dx * s} ${y + 6 * s} q${n1(-dx * 0.4 * s)} ${n1(-h * 0.6 * s)} ${n1(dx * 0.5 * s)} ${n1(-h * s)}" fill="none" stroke="${GRAS_MORK}" stroke-width="${n1(4 * s)}" stroke-linecap="round" opacity="0.85"/>`;
   return (
-    `<ellipse cx="${x}" cy="${y + 8}" rx="26" ry="6" fill="${GRAS_MORK}" opacity="0.18"/>` +
+    `<ellipse cx="${x}" cy="${y + 8 * s}" rx="${26 * s}" ry="${6 * s}" fill="${GRAS_MORK}" opacity="0.18"/>` +
     blade(-12, 22) + blade(-4, 30) + blade(4, 26) + blade(12, 20) + blade(0, 34)
+  );
+}
+/** Låg marktäckande buskplätt (issue #289): PLATT liten grönskekudde utan mörk
+ *  kontur – smälter in i gräset och läser tydligt som gångbar mark (till skillnad
+ *  från de solida hinder-buskarna med kontur + bär). Ingen kollision. */
+function groundShrub(x, y, s = 1) {
+  return (
+    `<ellipse cx="${x - 14 * s}" cy="${y + 2 * s}" rx="${20 * s}" ry="${10 * s}" fill="${GRAS_MORK}" opacity="0.5"/>` +
+    `<ellipse cx="${x + 14 * s}" cy="${y + 3 * s}" rx="${18 * s}" ry="${9 * s}" fill="${GRAS_MORK}" opacity="0.45"/>` +
+    `<ellipse cx="${x}" cy="${y - 3 * s}" rx="${22 * s}" ry="${11 * s}" fill="${GRAS_LJUS}" opacity="0.75"/>` +
+    `<ellipse cx="${x - 6 * s}" cy="${y - 5 * s}" rx="${10 * s}" ry="${5 * s}" fill="#B9E8AC" opacity="0.7"/>` +
+    `<circle cx="${x + 9 * s}" cy="${y - 2 * s}" r="${2.5 * s}" fill="${GRAS_MORK}" opacity="0.5"/>` +
+    `<circle cx="${x - 13 * s}" cy="${y + 1 * s}" r="${2.5 * s}" fill="${GRAS_MORK}" opacity="0.45"/>`
+  );
+}
+/** Litet lågt blad-skott (ormbunksaktigt) – låg gångbar markdekor, ingen kollision. */
+function sprout(x, y, s = 1) {
+  const leaf = (dx, h) =>
+    `<path d="M${x} ${y + 4 * s} q${n1(dx * 0.7)} ${n1(-h * 0.7)} ${dx} ${-h}" fill="none" stroke="${GRAS_MORK}" stroke-width="${n1(4 * s)}" stroke-linecap="round" opacity="0.55"/>`;
+  return (
+    `<ellipse cx="${x}" cy="${y + 7 * s}" rx="${18 * s}" ry="${5 * s}" fill="${GRAS_MORK}" opacity="0.15"/>` +
+    leaf(-16 * s, 18 * s) + leaf(16 * s, 18 * s) + leaf(-6 * s, 26 * s) + leaf(7 * s, 24 * s)
   );
 }
 /** Blomma (låg markdekor) – gångbar, ingen kollision. */
@@ -289,50 +294,43 @@ function rock(x, y, s = 1) {
   );
 }
 
-/** Utspridd dekor. Visuellt ÄRLIG (issue #243 r2): palmer, stenar, grästuvor och
- *  blommor är LÅG/tydligt gångbar markdekor utan kollision; endast de FÅ buskarna
- *  (BLOCKING_BUSHES) ritas solida OCH blockerar. */
+/** Utspridd dekor. Visuellt ÄRLIG (issue #243 r2 + #289): ALL låg grönska
+ *  (tuvor, marktäckare, skott, blommor) och stenarna är gångbar markdekor utan
+ *  kollision – låg och platt så den aldrig läser som hinder; endast de FÅ
+ *  buskarna (BLOCKING_BUSHES) ritas solida med kontur+bär OCH blockerar. */
 function decor() {
-  // Städat (issue #281, samma anda som Gruvan #256): rejält glesare markdekor så
-  // ön blir lugnare – palmer framförallt runt kanten (öns karaktär), och bara ett
-  // fåtal diskreta stenar/grästuvor/blommor kvar. Blockerande buskar orörda.
-  const palms = [[150, 470, 1.1], [1300, 470, 1], [430, 830, 0.9], [1060, 780, 0.95], [250, 300, 0.85]];
+  // Runda 3 (issue #289): palmerna borta (solida-ut-men-gångbara = ohederligt).
+  // I stället varierad LÅG grönska i flera typer – tuvor, marktäckande plättar,
+  // små bladskott, någon blomma – glest utspridda så ön känns levande men lugn.
+  // Fritt från damm/å/bro/klippor/hinder-buskar/brygga. Blockerande buskar orörda.
   const rocks = [[980, 700, 0.8], [300, 720, 0.8], [820, 380, 0.8]];
-  // Låg, gångbar markdekor (gles) där buskarna förr stod.
-  const flowers = [[520, 400], [820, 300]];
-  const tufts = [[880, 540], [430, 560]];
+  const shrubs = [[190, 500, 1], [1270, 540, 1.1], [700, 790, 1], [450, 320, 0.85], [960, 300, 0.9]];
+  const tufts = [[880, 540, 1], [430, 560, 1], [270, 620, 0.85], [760, 240, 0.9], [1010, 430, 0.85], [660, 610, 0.9]];
+  const sprouts = [[340, 420, 1], [620, 480, 0.9], [1230, 420, 1], [820, 640, 0.9]];
+  const flowers = [[520, 400], [820, 300], [240, 380]];
   return (
-    palms.map(([x, y, s]) => palm(x, y, s)).join("") +
     rocks.map(([x, y, s]) => rock(x, y, s)).join("") +
-    tufts.map(([x, y]) => grassTuft(x, y)).join("") +
+    shrubs.map(([x, y, s]) => groundShrub(x, y, s)).join("") +
+    tufts.map(([x, y, s]) => grassTuft(x, y, s)).join("") +
+    sprouts.map(([x, y, s]) => sprout(x, y, s)).join("") +
     flowers.map(([x, y]) => flower(x, y)).join("") +
     // De få RIKTIGA hinder-buskarna (solid + kollision, delad källa map.js).
     BLOCKING_BUSHES.map((b) => bush(b.x, b.y, 1)).join("")
   );
 }
 
-/** EN enda diskret röd X på marken (issue #286): de tre streckade cirklarna drog
- *  för mycket blick. Kvar är ett litet, nedtonat kryss centralt på ön. */
-function xMarks() {
-  const x = 722, y = 573;
-  return (
-    `<path d="M${x - 14} ${y - 14} L${x + 14} ${y + 14} M${x + 14} ${y - 14} L${x - 14} ${y + 14}" ` +
-    `stroke="${ROD}" stroke-width="7" stroke-linecap="round" opacity="0.7"/>`
-  );
-}
-
 // ============================================================================
 // Hela ö-scenen som en inline-SVG-sträng (bakifrån och fram).
+// Stigen (trail) och X-markeringen är HELT borttagna (issue #289) – kistan visar
+// ändå målet när kartan är hel, och lugnet kommer ur gräs-nyanserna i land().
 // ============================================================================
 export const SKATTJAKTEN_SCEN_SVG =
   `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
   ocean() +
   land() +
-  trail() +
   pond() +
   streamAndBridge() +
   cliffs() +
   jettyBoat() +
-  xMarks() +
   decor() +
   `</svg>`;
