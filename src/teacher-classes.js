@@ -36,7 +36,7 @@ import { renderAccountEditor } from "./teacher-login-cards.js";
 // blankett-varianten (#208, renderClassModes) som kändes rörig – se
 // teacher-class-modes.js. renderClassStats är klassens framstegsmatris (gamla
 // #/larare/klass), nu en 📊-expander här (sammanslagningen av statistik-fliken).
-import { renderClassAreaModes } from "./teacher-class-modes.js";
+import { renderClassAreaModes, renderClassAssignments } from "./teacher-class-modes.js";
 import { renderClassStats } from "./teacher-class.js";
 
 export async function pageLarareKlasser(ctx) {
@@ -203,8 +203,21 @@ export async function pageLarareKlasser(ctx) {
     );
 
     // Områden (visa/dölj tilldelning) ----------------------------------------
+    // Behöver biblioteket (ämnen + områden) – laddas vid öppning och skickas in.
     card.querySelector('[data-act="areas"]').addEventListener("click", () =>
-      togglePanel(assignEl, () => renderAssignments(cls, assignEl))
+      togglePanel(assignEl, async () => {
+        assignEl.replaceChildren(el(`<div class="spinner">Laddar arbetsområden…</div>`));
+        let library;
+        try {
+          library = await loadLibrary();
+        } catch (err) {
+          assignEl.replaceChildren(
+            el(`<p class="err-inline">Kunde inte ladda arbetsområden: ${esc(err.message)}</p>`)
+          );
+          return;
+        }
+        renderClassAssignments(ctx, cls, assignEl, library);
+      })
     );
 
     // Synliga lägen PER OMRÅDE för klassen (issue #298/#299) -----------------
@@ -257,103 +270,6 @@ export async function pageLarareKlasser(ctx) {
     );
 
     return card;
-  }
-
-  // --- Kryssrute-lista: vilka arbetsområden är AKTIVA för klassen ------------
-  async function renderAssignments(cls, assignEl) {
-    assignEl.replaceChildren(el(`<div class="spinner">Laddar arbetsområden…</div>`));
-
-    // Ämnen + områden. Hämta bara en gång och cacha på funktionen.
-    let library;
-    try {
-      library = await loadLibrary();
-    } catch (err) {
-      assignEl.replaceChildren(
-        el(`<p class="err-inline">Kunde inte ladda arbetsområden: ${esc(err.message)}</p>`)
-      );
-      return;
-    }
-
-    if (library.length === 0) {
-      assignEl.replaceChildren(
-        emptyState(ctx, {
-          emoji: "📚",
-          title: "Inga arbetsområden än",
-          text: "Lägg in innehåll först, så kan du välja vad klassen ska jobba med.",
-          actionLabel: "Lägg in innehåll",
-          actionHash: "#/larare/innehall",
-        })
-      );
-      return;
-    }
-
-    const assigned = new Set(
-      (Array.isArray(cls.assignedAreas) ? cls.assignedAreas : []).map(
-        (a) => `${a.subjectId}/${a.areaId}`
-      )
-    );
-
-    const groups = library
-      .map((subj) => {
-        const rows = subj.areas
-          .map(
-            (a) => `<label class="member-row">
-              <input type="checkbox" data-subj="${esc(subj.id)}" data-area="${esc(a.id)}"
-                ${assigned.has(`${subj.id}/${a.id}`) ? "checked" : ""} />
-              <span class="member-avatar">${esc(a.coverEmoji || "📖")}</span>
-              <span class="member-name">${esc(a.name || a.id)}</span>
-            </label>`
-          )
-          .join("");
-        return `<div class="assign-group">
-          <div class="assign-subject">${esc(subj.icon || "📚")} ${esc(subj.name || subj.id)}</div>
-          <div class="member-grid">${rows}</div>
-        </div>`;
-      })
-      .join("");
-
-    const box = el(`<div>
-      <p class="hint">Kryssa i de arbetsområden klassen jobbar med <b>nu</b>. Eleverna
-        ser då bara dem i Plugga. Lämnar du allt tomt ser eleverna hela biblioteket.</p>
-      ${groups}
-      <div class="row-inline" style="margin-top:12px">
-        <button class="btn gron small" data-act="save-areas">💾 Spara områden</button>
-        <button class="btn ghost small" data-act="clear-areas">Rensa (visa allt)</button>
-        <span class="assign-result"></span>
-      </div>
-    </div>`);
-
-    const resultEl = box.querySelector(".assign-result");
-
-    box.querySelector('[data-act="clear-areas"]').addEventListener("click", () => {
-      box.querySelectorAll('input[type="checkbox"]').forEach((c) => (c.checked = false));
-    });
-
-    box.querySelector('[data-act="save-areas"]').addEventListener("click", async (e) => {
-      const btn = e.currentTarget;
-      const picked = [...box.querySelectorAll('input[type="checkbox"]:checked')].map((c) => ({
-        subjectId: c.dataset.subj,
-        areaId: c.dataset.area,
-      }));
-      btn.disabled = true;
-      const old = btn.textContent;
-      btn.textContent = "Sparar…";
-      resultEl.innerHTML = "";
-      try {
-        await data.setClassAssignments(cls.id, picked);
-        cls.assignedAreas = picked;
-        resultEl.innerHTML = picked.length
-          ? `<span class="ok-inline">✓ Sparat (${picked.length} område${picked.length === 1 ? "" : "n"})</span>`
-          : `<span class="ok-inline">✓ Sparat – eleverna ser allt</span>`;
-      } catch (err) {
-        resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = old;
-      }
-    });
-
-    assignEl.replaceChildren(box);
   }
 
   // Ämnen + deras områden, hämtas en gång och cachas (delas av alla klasskort).
