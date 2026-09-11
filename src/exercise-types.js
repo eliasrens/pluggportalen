@@ -25,7 +25,6 @@
 // quiz[]/pairs[]-antagandena rörs inte; ett generator-område har inga sådana.
 // ============================================================================
 
-import { listTopics, listVariants } from "./matte-generator.js";
 import { normalizeGrade } from "./grades.js";
 
 /** De valbara övningstyperna, i visnings-/kanonisk ordning. */
@@ -92,11 +91,45 @@ export function deriveExerciseTypes(area) {
 }
 
 // ---------------------------------------------------------------------------
+//  Generator-katalog (issue #290)
+// ---------------------------------------------------------------------------
+// KATALOGEN – vilka topics och varianter matte-generator-adaptern (#278) erbjuder –
+// bor HÄR, inte i matte-generator.js. Skälet är boot-säkerhet: den här filen ligger
+// i den STATISKA bootgrafen (app.js → … → exercise-types.js) och laddas av ALLA
+// användare vid boot. Om vi importerade matte-generator.js statiskt härifrån (som
+// tidigare) drogs hela adaptern + dess plugin-lager in i bootgrafen – exakt
+// #271-mönstret (en ny fil som 404:ar under en icke-atomär Pages-deploy → vit sida
+// för alla). Katalogen är BARA namn/ordning (ingen generatorlogik), så den kan bo i
+// bootgrafen utan att dra in adaptern. Den TUNGA vägen (generateProblem) laddas i
+// stället dynamiskt via rakna-core.js.
+//
+// SINGLE SOURCE OF TRUTH: adaptern (matte-generator.js) håller sin egen VARIANTS-
+// tabell (med motor-force/minGrade). Att katalogen här och adapterns tabell är
+// IDENTISKA (samma topics, samma varianter, samma ordning) asserteras av
+// test/matte-generator.test.js ("katalogen matchar adaptern") så de aldrig driftar isär.
+const GENERATOR_CATALOG = {
+  addition: ["enkel", "uppstallning", "flersteg", "decimaler"],
+  subtraktion: ["enkel", "uppstallning", "decimaler"],
+  multiplikation: ["tabeller", "tiopotens", "stora-tal", "dubbelt", "bild", "decimaler"],
+  division: ["tabeller", "rest", "tiopotens", "stora-tal", "halften", "decimaler"],
+};
+
+/** Alla topics som fas 1 stödjer, i visningsordning. */
+export function listTopics() {
+  return Object.keys(GENERATOR_CATALOG);
+}
+
+/** Variantnamnen för ett topic (tom array för okänt topic). */
+export function listVariants(topic) {
+  return [...(GENERATOR_CATALOG[topic] || [])];
+}
+
+// ---------------------------------------------------------------------------
 //  Generator-innehåll (issue #279)
 // ---------------------------------------------------------------------------
 // Ett generator-område lagrar area.generator = { topic, variants, grade? }.
-// topic + varianter valideras mot matte-generator-adapterns publika gränssnitt
-// (#278) så bara kända värden sparas. Inget färdigt innehåll (quiz/pairs) finns.
+// topic + varianter valideras mot katalogen ovan (listTopics/listVariants) så bara
+// kända värden sparas. Inget färdigt innehåll (quiz/pairs) finns.
 
 /**
  * Rensa/validera en generator-konfiguration mot adapterns topics/varianter.

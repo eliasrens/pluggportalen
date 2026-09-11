@@ -4,19 +4,20 @@
 // Issue #279. En liten fabrik (samma mönster som teacher-mode-visibility.js) som
 // stänger om en DOM-behållare (#generator-config) och sköter val av EN
 // räknegenerator för ett arbetsområde:
-//   • en topic-väljare (matte-generator-adapterns listTopics(), #278)
+//   • en topic-väljare (generator-katalogens listTopics(), #278/#290)
 //   • kryssrutor för varianterna som ingår (listVariants(topic))
 //
 // Valet lagras på området som area.generator = { topic, variants, grade? }.
-// Varianter är INNEHÅLL (vilka slags tal), inte spellägen. Kontrollen använder
-// BARA adapterns publika gränssnitt – aldrig plugin-lagret direkt.
+// Varianter är INNEHÅLL (vilka slags tal), inte spellägen. Kontrollen läser BARA
+// katalogen (listTopics/listVariants) från exercise-types.js – aldrig adaptern
+// eller plugin-lagret direkt. (Boot-säkert: den här filen laddas ändå dynamiskt,
+// #290, men importerar heller inte matte-generator.js.)
 //
 //   render(area)        – fyll väljaren/kryssrutorna ur ett områdes generator.
 //   getGenerator(grade) – läs av valet → { topic, variants, grade? } eller null.
 // ============================================================================
 
-import { listTopics, listVariants } from "./matte-generator.js";
-import { normalizeGenerator } from "./exercise-types.js";
+import { listTopics, listVariants, normalizeGenerator } from "./exercise-types.js";
 import { esc } from "./teacher-shared.js";
 
 // Första valet: inget generator-innehåll (området är ett vanligt quiz/par-område).
