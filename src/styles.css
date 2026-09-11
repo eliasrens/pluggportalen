@@ -798,7 +798,6 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 
 /* Länkar i lärarvyer (data-hash-navigering) ska se ut som länkar. */
 .teacher-page .hint a,
-.teacher-head-lead a,
 .empty-state-text a {
   color: var(--bla-mork);
   font-weight: 700;
@@ -888,91 +887,20 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   .tnav.logout { margin-left: 4px; }
 }
 
-/* --- Översikt: hero + genvägar -------------------------------------------- */
+/* --- Diskret sidtitel på undersidor --------------------------------------- */
+/* Översikts-hubben (hero + genvägskort) och det stora hjälte-sidhuvudet med
+   brödsmula/ingress är borttagna (issue #304) – toppnaven orienterar. Kvar är
+   bara en diskret sidtitel. */
 
-.teacher-hero {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  background: linear-gradient(135deg, #fef0f6 0%, #eef3ff 55%, #fff6ec 100%);
+.teacher-head-slim {
+  margin: 4px 2px 14px;
 }
 
-.teacher-hero-icon {
-  font-size: 3.4rem;
-  line-height: 1;
-  flex-shrink: 0;
-  filter: drop-shadow(0 3px 4px rgba(31, 45, 74, 0.15));
+.teacher-page-title {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--text);
 }
-
-.teacher-hero-text h1 { margin: 0 0 4px; }
-.teacher-hero-lead { margin: 0; color: var(--text-svag); font-size: 1rem; }
-
-.teacher-cards .big-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: 172px;
-  padding: 26px 20px 24px;
-}
-
-.teacher-cards .big-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 22px rgba(31, 45, 74, 0.22);
-}
-
-.teacher-seed-hint {
-  margin-top: 22px;
-  text-align: center;
-}
-
-/* --- Enhetligt sidhuvud på undersidor ------------------------------------- */
-
-.teacher-head {
-  padding: 20px 24px 22px;
-}
-
-.teacher-head .crumb {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 14px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: #eef4ff;
-  color: var(--bla-mork);
-  font-weight: 700;
-  font-size: 0.88rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.12s ease, transform 0.12s ease;
-}
-
-.teacher-head .crumb:hover { background: #dce9ff; transform: translateX(-2px); }
-
-.teacher-head-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.teacher-head-icon {
-  flex-shrink: 0;
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  font-size: 2.4rem;
-  line-height: 1;
-  overflow: hidden;
-  background: linear-gradient(160deg, #eef3ff, #f6ecff);
-  box-shadow: inset 0 0 0 1px rgba(31, 45, 74, 0.05);
-}
-
-.teacher-head-text h1 { margin: 0 0 2px; font-size: 1.7rem; }
-.teacher-head-lead { margin: 0; color: var(--text-svag); font-size: 0.95rem; }
 
 .subhead { font-size: 1.15rem; margin: 0 0 12px; }
 
@@ -1006,19 +934,6 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 
 .gate-panel { max-width: 460px; }
 .gate-icon { font-size: 3.2rem; line-height: 1; display: block; margin-bottom: 4px; }
-
-/* Mobil: stapla hero/sidhuvud så inget känns hoptryckt på smal skärm. */
-@media (max-width: 480px) {
-  .teacher-hero,
-  .teacher-head-row {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-    gap: 10px;
-  }
-  .teacher-head .crumb { margin-bottom: 10px; }
-  .teacher-head-icon { width: 54px; height: 54px; font-size: 2.1rem; }
-}
 
 /* --- Paneler och layout ---------------------------------------------------- */
 
@@ -4271,3 +4186,197 @@ body.varld-lage .container {
 .mb-name { margin: 12px 0 4px; font-size: 1.3rem; font-weight: 800; color: var(--bla-mork); }
 .mb-got { margin: 0 0 16px; color: var(--text-svag); font-size: 0.92rem; }
 .mb-ok { min-width: 130px; }
+
+/* ==========================================================================
+   Innehållsstudion (lärarsidan #/larare/innehall) – issue #303
+   Bibliotek (kort + ämnesflikar) + fokuserad kompositör (overlay). Lugn ton,
+   teal-accent (per godkänd mockup). Återanvänder appens paneler/knappar/fält.
+   ========================================================================== */
+.studio {
+  --teal: #0e9c92;
+  --teal-mork: #0a7c74;
+  --teal-ljus: #e6f6f4;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Verktygsrad: ämnesflikar + åtgärder */
+.studio-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+}
+.studio-subject-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.subject-tab {
+  border: 2px solid #e2ecfb;
+  background: #fbfdff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.subject-tab:hover { border-color: var(--teal); }
+.subject-tab.active {
+  background: var(--teal-ljus);
+  border-color: var(--teal);
+  color: var(--teal-mork);
+}
+.studio-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.studio-lib-controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0 4px;
+  color: var(--text-svag);
+}
+
+/* Biblioteks-korten */
+.area-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.area-card-wrap { display: flex; flex-direction: column; gap: 8px; }
+.area-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid #e2ecfb;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--skugga-mjuk);
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.area-card:hover { transform: translateY(-2px); border-color: var(--teal); }
+.area-card:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.area-card-top { display: flex; align-items: flex-start; gap: 12px; }
+.area-card-emoji { font-size: 2rem; line-height: 1; }
+.area-card-meta { flex: 1; min-width: 0; }
+.area-card-name { font-weight: 800; font-size: 1.08rem; color: var(--text); }
+.area-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.area-card .type-badge { background: var(--teal-ljus); color: var(--teal-mork); }
+.area-card-count { color: var(--text-svag); font-size: 0.9rem; font-weight: 600; }
+.area-card-actions { flex-wrap: wrap; gap: 6px; }
+/* Åtgärdsknapparna ska inte "öppna kortet" – de stoppar klicket i JS. */
+.area-card-actions .btn { pointer-events: auto; }
+
+/* ---- Fokuserad kompositör (overlay) ------------------------------------- */
+body.composer-open { overflow: hidden; }
+.studio-composer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(20, 30, 50, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 14px;
+  overflow-y: auto;
+  animation: cx-fade 0.14s ease;
+}
+.studio-composer {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 760px;
+  padding: 22px 24px 26px;
+  box-shadow: 0 18px 50px rgba(20, 30, 50, 0.28);
+  margin: auto 0;
+}
+.composer-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-right: 32px;
+}
+.composer-icon { font-size: 2rem; }
+.composer-title { margin: 0; font-size: 1.4rem; color: var(--text); }
+.composer-sub { margin: 2px 0 0; color: var(--text-svag); font-size: 0.9rem; }
+.composer-basics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Metod-växeln (guidat / material) – jämbördiga flikar */
+.method-switch {
+  display: flex;
+  gap: 6px;
+  background: #f0f4fb;
+  border-radius: 12px;
+  padding: 4px;
+  margin: 16px 0;
+}
+.method-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-svag);
+  padding: 10px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.method-tab.active {
+  background: #fff;
+  color: var(--teal-mork);
+  box-shadow: 0 2px 6px rgba(20, 30, 50, 0.12);
+}
+
+/* Innehållstyp-växeln inne i "guidat" */
+.ctype-switch { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.ctype-tab {
+  border: 2px solid #e2ecfb;
+  background: #fbfdff;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ctype-tab.active { background: var(--teal-ljus); border-color: var(--teal); color: var(--teal-mork); }
+
+.composer-callout {
+  background: var(--teal-ljus);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+.composer-callout .hint { color: var(--teal-mork); }
+
+.composer-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.composer-result { margin-top: 12px; }
+.composer-result:empty { margin-top: 0; }
+
+@media (max-width: 560px) {
+  .composer-basics { grid-template-columns: 1fr; }
+  .studio-toolbar { align-items: stretch; }
+  .studio-composer { padding: 18px 16px 22px; }
+}

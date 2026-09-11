@@ -1,104 +1,133 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: lista befintliga arbetsområden (teacher-content-list.js)
+// Pluggportalen – lärarsidan: bibliotekskort för arbetsområden (teacher-content-list.js)
 // ----------------------------------------------------------------------------
-// Renderar en rad per arbetsområde med knapparna Granska / Lägg till / Ersätt /
-// Ta bort, samt visar årskurs-etiketten (issue #145). Utbrutet ur
-// teacher-content.js för att hålla den filen under radtaket; anropas därifrån
-// med redan filtrerade/sorterade områden och ett par handler-callbacks.
+// Innehållsstudions BIBLIOTEK (issue #303): ett KORT per arbetsområde i det valda
+// ämnet. Kortet visar ärlig status – namn, typ (quiz/par/generator med ikon),
+// årskurs och en riktig mängd-indikator (antal frågor/par eller "genererat ·
+// oändligt"). Klick på kortet öppnar området i kompositören (onEdit); en fotrad
+// bevarar alla gamla funktioner: Granska (#66), Lägg till (#40), Nivåtexter (#152)
+// och Ta bort. Utbrutet ur teacher-content.js för att hålla den under radtaket;
+// anropas med redan filtrerade/sorterade områden.
 // ============================================================================
 
 import * as data from "./data.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
 import { buildReviewPanel } from "./teacher-content-review.js";
 import { buildReadingEditor } from "./teacher-reading.js";
+import { areaExerciseTypes, hasGeneratorContent, EXERCISE_TYPES } from "./exercise-types.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
 import { el, esc } from "./teacher-shared.js";
 
+const TYPE_BY_ID = new Map(EXERCISE_TYPES.map((t) => [t.id, t]));
+
+/** Korta typ-etiketter för kortet (ikon + kort ord), i kanonisk ordning. */
+const TYPE_SHORT = {
+  quiz: "Quiz",
+  pairs: "Para ihop",
+  bildpar: "Bildpar",
+  generator: "Räkna",
+};
+
+/** Bygg typ-badges ur områdets övningstyper (ärlig status – vad området FAKTISKT har). */
+function typeBadges(a) {
+  return areaExerciseTypes(a)
+    .map((id) => {
+      const t = TYPE_BY_ID.get(id);
+      const emoji = t ? t.emoji : "•";
+      return `<span class="badge type-badge">${esc(emoji)} ${esc(TYPE_SHORT[id] || id)}</span>`;
+    })
+    .join("");
+}
+
+/** Ärlig mängd-indikator: generator → oändligt, annars faktiska antal. */
+function quantityText(a) {
+  if (hasGeneratorContent(a)) {
+    const variants = a.generator?.variants?.length || 0;
+    return `🔢 genererat · oändligt${variants ? ` (${variants} varianter)` : ""}`;
+  }
+  const parts = [];
+  if (a.quiz?.length) parts.push(`${a.quiz.length} frågor`);
+  if (a.pairs?.length) parts.push(`${a.pairs.length} par`);
+  if (a.texts?.length) parts.push(`${a.texts.length} texter`);
+  if (a.readingTexts?.length) parts.push(`${a.readingTexts.length} nivåtexter`);
+  return parts.length ? parts.join(" · ") : "Tomt – inget innehåll ännu";
+}
+
 /**
- * Bygg en DOM-nod med en rad per arbetsområde.
+ * Bygg en DOM-nod med ett kort per arbetsområde.
  * @param {object[]} areas – redan filtrerade/sorterade områden att visa.
  * @param {object} opts
- * @param {object} opts.ctx        – sidkontext (router m.m.), vidare till delformulär.
  * @param {string} opts.subjectId  – valt ämne (för spara/ta bort).
- * @param {(area:object)=>void} opts.onEdit    – ladda området i redigeringsrutan.
- * @param {()=>void} opts.onRefresh – ladda om listan efter ändring (merge/ta bort).
+ * @param {(area:object)=>void} opts.onEdit – öppna området i kompositören.
+ * @param {()=>void} opts.onRefresh – ladda om listan efter ändring.
  * @returns {HTMLElement}
  */
-export function buildAreaList(areas, { ctx, subjectId, onEdit, onRefresh }) {
-  const list = el(`<div class="area-rows"></div>`);
+export function buildAreaCards(areas, { subjectId, onEdit, onRefresh }) {
+  const grid = el(`<div class="area-cards-grid"></div>`);
   for (const a of areas) {
-    const wrap = el(`<div class="area-row-wrap"></div>`);
     const grade = normalizeGrade(a.grade);
-    // Årskurs-etikett: bara utskriven när den är satt (ospecificerad döljs för att
-    // inte klottra raderna). Etiketten kommer från en fast lista → säker att skriva
-    // in, men esc() ändå för konsekvens.
     const gradeBadge = grade ? `<span class="badge grade-badge">${esc(gradeLabel(grade))}</span>` : "";
-    const row = el(`<div class="area-row">
-      <div class="area-info">
-        <span class="area-emoji">${esc(a.coverEmoji || "📖")}</span>
-        <div>
-          <div class="area-name">${esc(a.name)} <span class="badge">${esc(a.id)}</span>${gradeBadge}</div>
-          <div class="hint">${(a.texts?.length || 0)} texter · ${(a.quiz?.length || 0)} frågor · ${(a.pairs?.length || 0)} par${a.readingTexts?.length ? ` · ${a.readingTexts.length} nivåtexter` : ""}</div>
+    const wrap = el(`<div class="area-card-wrap"></div>`);
+    const card = el(`<div class="area-card" tabindex="0" role="button"
+        aria-label="Redigera ${esc(a.name)}">
+      <div class="area-card-top">
+        <span class="area-card-emoji">${esc(a.coverEmoji || "📖")}</span>
+        <div class="area-card-meta">
+          <div class="area-card-name">${esc(a.name)}</div>
+          <div class="area-card-badges">${typeBadges(a)}${gradeBadge}</div>
         </div>
       </div>
-      <div class="row-actions">
+      <div class="area-card-count">${esc(quantityText(a))}</div>
+      <div class="row-actions area-card-actions">
         <button class="btn ghost small" data-act="review">👁️ Granska</button>
         <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
         <button class="btn ghost small" data-act="reading">📖 Nivåtexter</button>
-        <button class="btn ghost small" data-act="edit">Ersätt</button>
-        <button class="btn ghost small danger" data-act="del">Ta bort</button>
+        <button class="btn ghost small danger" data-act="del">🗑️ Ta bort</button>
       </div>
     </div>`);
 
-    // Inline-slot för read-only "granska"-vy (issue #66) – öppnas under raden.
+    // Klick/Enter på kortet (men inte på en åtgärdsknapp) öppnar kompositören.
+    const openEdit = (e) => {
+      if (e.target.closest("[data-act]")) return;
+      onEdit(a);
+    };
+    card.addEventListener("click", openEdit);
+    card.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !e.target.closest("[data-act]")) {
+        e.preventDefault();
+        onEdit(a);
+      }
+    });
+
+    // Utfällbara slots under kortet (behåller alla gamla funktioner).
     const reviewSlot = el(`<div class="area-review" hidden></div>`);
-    const reviewBtn = row.querySelector('[data-act="review"]');
-    reviewBtn.addEventListener("click", () => {
-      if (!reviewSlot.hidden) {
-        reviewSlot.hidden = true;
-        reviewSlot.innerHTML = "";
-        reviewBtn.classList.remove("active");
-        return;
-      }
-      reviewSlot.replaceChildren(buildReviewPanel(a));
-      reviewSlot.hidden = false;
-      reviewBtn.classList.add("active");
-      reviewSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-
-    // Inline-slot för "lägg till nytt innehåll" (issue #40) – öppnas under raden.
     const mergeSlot = el(`<div class="area-merge" hidden></div>`);
-    row.querySelector('[data-act="add"]').addEventListener("click", () => {
-      if (!mergeSlot.hidden) {
-        mergeSlot.hidden = true;
-        mergeSlot.innerHTML = "";
-        return;
-      }
-      mergeSlot.replaceChildren(
-        buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh })
-      );
-      mergeSlot.hidden = false;
-      mergeSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-
-    // Inline-slot för läsförståelse-editorn (3 nivåer, issue #152) – under raden.
     const readingSlot = el(`<div class="area-reading" hidden></div>`);
-    row.querySelector('[data-act="reading"]').addEventListener("click", () => {
-      if (!readingSlot.hidden) {
-        readingSlot.hidden = true;
-        readingSlot.innerHTML = "";
+
+    const toggleSlot = (slot, build, btn) => {
+      if (!slot.hidden) {
+        slot.hidden = true;
+        slot.innerHTML = "";
+        btn?.classList.remove("active");
         return;
       }
-      readingSlot.replaceChildren(
-        buildReadingEditor(a, readingSlot, { subjectId, onSaved: onRefresh })
-      );
-      readingSlot.hidden = false;
-      readingSlot.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
+      slot.replaceChildren(build());
+      slot.hidden = false;
+      btn?.classList.add("active");
+      slot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
 
-    row.querySelector('[data-act="edit"]').addEventListener("click", () => onEdit(a));
-
-    row.querySelector('[data-act="del"]').addEventListener("click", async () => {
+    const reviewBtn = card.querySelector('[data-act="review"]');
+    reviewBtn.addEventListener("click", () =>
+      toggleSlot(reviewSlot, () => buildReviewPanel(a), reviewBtn)
+    );
+    card.querySelector('[data-act="add"]').addEventListener("click", () =>
+      toggleSlot(mergeSlot, () => buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh }))
+    );
+    card.querySelector('[data-act="reading"]').addEventListener("click", () =>
+      toggleSlot(readingSlot, () => buildReadingEditor(a, readingSlot, { subjectId, onSaved: onRefresh }))
+    );
+    card.querySelector('[data-act="del"]').addEventListener("click", async () => {
       if (!confirm(`Ta bort arbetsområdet "${a.name}"? Detta går inte att ångra.`)) return;
       try {
         await data.deleteArea(subjectId, a.id);
@@ -108,11 +137,11 @@ export function buildAreaList(areas, { ctx, subjectId, onEdit, onRefresh }) {
       }
     });
 
-    wrap.appendChild(row);
+    wrap.appendChild(card);
     wrap.appendChild(reviewSlot);
     wrap.appendChild(mergeSlot);
     wrap.appendChild(readingSlot);
-    list.appendChild(wrap);
+    grid.appendChild(wrap);
   }
-  return list;
+  return grid;
 }

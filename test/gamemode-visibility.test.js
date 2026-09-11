@@ -14,9 +14,14 @@ import {
   ALL_MODES,
   ADVENTURE_MODES,
   normalizeHiddenModes,
+  normalizeAreaModes,
   isModeHidden,
   isModeHiddenForClass,
   isModeHiddenForStudent,
+  classAreaHiddenModes,
+  effectiveHiddenModes,
+  isModeHiddenForClassArea,
+  visibleGamemodesForClassArea,
   areaContentFlags,
   availableGamemodes,
   visibleGamemodes,
@@ -275,4 +280,139 @@ test("ADVENTURE_THEME_META är i synk med THEMES (id/namn/emoji/needs)", () => {
     assert.equal(m.emoji, theme.progressIcon, `emoji/progressIcon skiljer för ${m.id}`);
     assert.deepEqual(m.needs, theme.questionKinds, `needs/questionKinds skiljer för ${m.id}`);
   }
+});
+
+// --- per-(klass × område) resolution (issue #298) ---------------------------
+// Datamodell: classes/{id}.areaModes = { [areaId]: { hiddenModes: [modeId,...] } }.
+// EFFEKTIVT dolt = union av area.hiddenModes ∪ cls.hiddenModes ∪
+// cls.areaModes[areaId].hiddenModes. areaId härleds ur area.id.
+
+test("classAreaHiddenModes läser rätt områdes-post och normaliserar", () => {
+  const cls = {
+    areaModes: {
+      a1: { hiddenModes: [" quiz ", "memory", "quiz", ""] },
+      a2: { hiddenModes: ["para"] },
+    },
+  };
+  assert.deepEqual(classAreaHiddenModes(cls, "a1"), ["quiz", "memory"]);
+  assert.deepEqual(classAreaHiddenModes(cls, "a2"), ["para"]);
+});
+
+test("classAreaHiddenModes faller tillbaka på [] vid saknad map/areaId/klass", () => {
+  assert.deepEqual(classAreaHiddenModes(null, "a1"), []);          // ingen klass
+  assert.deepEqual(classAreaHiddenModes({}, "a1"), []);            // ingen map
+  assert.deepEqual(classAreaHiddenModes({ areaModes: {} }, "a1"), []); // ingen post
+  assert.deepEqual(classAreaHiddenModes({ areaModes: { a1: {} } }, "a1"), []); // ingen lista
+  assert.deepEqual(classAreaHiddenModes({ areaModes: { a1: { hiddenModes: ["quiz"] } } }, null), []); // ingen areaId
+  assert.deepEqual(classAreaHiddenModes({ areaModes: { a1: { hiddenModes: ["quiz"] } } }, "a2"), []); // annat område
+});
+
+test("effectiveHiddenModes = union område ∪ klass ∪ klass×område (utan dubbletter)", () => {
+  const area = { id: "a1", quiz: QUIZ, hiddenModes: ["quiz"] };
+  const cls = {
+    hiddenModes: ["memory"],
+    areaModes: { a1: { hiddenModes: ["para", "quiz"] } }, // "quiz" dubbel med området
+  };
+  assert.deepEqual(effectiveHiddenModes(area, cls), ["quiz", "memory", "para"]);
+});
+
+test("effectiveHiddenModes faller tillbaka på område∪klass utan per-område-map", () => {
+  const area = { id: "a1", hiddenModes: ["quiz"] };
+  const cls = { hiddenModes: ["memory"] };            // ingen areaModes
+  assert.deepEqual(effectiveHiddenModes(area, cls), ["quiz", "memory"]);
+  // Tom klass / inget dolt någonstans → tom mängd.
+  assert.deepEqual(effectiveHiddenModes({ id: "a1" }, null), []);
+  assert.deepEqual(effectiveHiddenModes({ id: "a1" }, {}), []);
+});
+
+test("effectiveHiddenModes ignorerar per-område-posten när area saknar id", () => {
+  const area = { hiddenModes: ["quiz"] };             // inget id → ingen map-nyckel
+  const cls = { hiddenModes: ["memory"], areaModes: { a1: { hiddenModes: ["para"] } } };
+  assert.deepEqual(effectiveHiddenModes(area, cls), ["quiz", "memory"]); // "para" faller bort
+});
+
+test("isModeHiddenForClassArea döljer via var och en av de tre nivåerna", () => {
+  const area = { id: "a1", quiz: QUIZ, hiddenModes: ["quiz"] };
+  const cls = {
+    hiddenModes: ["memory"],
+    areaModes: { a1: { hiddenModes: ["para"] }, a2: { hiddenModes: ["kunskapsjakt"] } },
+  };
+  assert.equal(isModeHiddenForClassArea(area, cls, "quiz"), true);           // område
+  assert.equal(isModeHiddenForClassArea(area, cls, "memory"), true);         // klass globalt
+  assert.equal(isModeHiddenForClassArea(area, cls, "para"), true);           // klass × område a1
+  assert.equal(isModeHiddenForClassArea(area, cls, "kunskapsjakt"), false);  // gäller bara a2, inte a1
+  assert.equal(isModeHiddenForClassArea(area, cls, "lastext"), false);       // odolt
+});
+
+test("isModeHiddenForClassArea är bakåtkompatibel (= område∪klass) utan map", () => {
+  const area = { id: "a1", quiz: QUIZ, hiddenModes: ["quiz"] };
+  const cls = { hiddenModes: ["memory"] };
+  // Samma svar som gamla isModeHiddenForStudent när ingen per-område-map finns.
+  for (const m of ["quiz", "memory", "para"]) {
+    assert.equal(
+      isModeHiddenForClassArea(area, cls, m),
+      isModeHiddenForStudent(area, cls, m),
+      `mode ${m} ska matcha gamla union-beteendet`
+    );
+  }
+});
+
+test("visibleGamemodesForClassArea filtrerar bort per-område-dolt men behåller has-gaten", () => {
+  const area = { id: "a1", quiz: QUIZ, pairs: PAIRS };
+  const cls = { areaModes: { a1: { hiddenModes: ["quiz", "memory"] } } };
+  const ids = visibleGamemodesForClassArea(area, cls).map((gm) => gm.id);
+  assert.ok(!ids.includes("quiz"), "quiz dolt per klass×område");
+  assert.ok(!ids.includes("memory"), "memory dolt per klass×område");
+  assert.ok(ids.includes("para"), "para har underlag och är odolt → kvar");
+  assert.ok(ids.includes("kunskapsjakt"), "kunskapsjakt (quiz-underlag) odolt → kvar");
+  // Lägen utan underlag kommer aldrig med (has-gaten), oavsett dolt-status.
+  assert.ok(!ids.includes("rakna"), "inget generator-underlag → aldrig med");
+});
+
+test("visibleGamemodesForClassArea utan map/klass = visibleGamemodesForStudent", () => {
+  const area = { id: "a1", quiz: QUIZ, pairs: PAIRS, hiddenModes: ["quiz"] };
+  const cls = { hiddenModes: ["memory"] };
+  assert.deepEqual(
+    visibleGamemodesForClassArea(area, cls).map((gm) => gm.id),
+    visibleGamemodesForStudent(area, cls).map((gm) => gm.id)
+  );
+});
+
+test("per-område-dolt äventyrstema (klass × område) filtreras bort för eleven", () => {
+  const area = { id: "a1", quiz: QUIZ };
+  const cls = { areaModes: { a1: { hiddenModes: ["aventyr:skattjakten"] } } };
+  const ids = visibleGamemodesForClassArea(area, cls).map((gm) => gm.id);
+  assert.ok(!ids.includes("aventyr:skattjakten"), "dolt per klass×område ska bort");
+  assert.ok(ids.includes("aventyr:spokjakten"), "odolt tema kvar");
+  assert.equal(isModeHiddenForClassArea(area, cls, "aventyr:skattjakten"), true);
+});
+
+// --- normalizeAreaModes (skriv-sidan, issue #299) --------------------------
+
+test("normalizeAreaModes normaliserar varje områdes lista och släpper tomma id", () => {
+  const out = normalizeAreaModes({
+    a1: { hiddenModes: [" quiz ", "quiz", "", "memory"] },
+    "  ": { hiddenModes: ["para"] }, // tomt/blankt områdes-id släpps
+    a2: { hiddenModes: [] }, // tom lista BEHÅLLS (kan av-dölja via merge)
+  });
+  assert.deepEqual(out, {
+    a1: { hiddenModes: ["quiz", "memory"] },
+    a2: { hiddenModes: [] },
+  });
+});
+
+test("normalizeAreaModes ger tom map för icke-objekt / array / null", () => {
+  assert.deepEqual(normalizeAreaModes(null), {});
+  assert.deepEqual(normalizeAreaModes(undefined), {});
+  assert.deepEqual(normalizeAreaModes([1, 2]), {});
+  assert.deepEqual(normalizeAreaModes("nope"), {});
+});
+
+test("normalizeAreaModes → classAreaHiddenModes round-trip (lärar-spar → elev-gat)", () => {
+  // Det lärar-UI:t skulle spara (urbockade lägen per område) …
+  const saved = normalizeAreaModes({ a1: { hiddenModes: ["quiz", "quiz", " memory "] } });
+  const cls = { areaModes: saved };
+  // … läses av elev-gaten på exakt samma form.
+  assert.deepEqual(classAreaHiddenModes(cls, "a1"), ["quiz", "memory"]);
+  assert.deepEqual(classAreaHiddenModes(cls, "okänt"), []);
 });

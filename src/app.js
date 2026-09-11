@@ -39,11 +39,8 @@ import {
   pageElevProfil,
 } from "./pages-elev.js";
 import {
-  pageLarare,
   pageLarareInnehall,
 } from "./teacher.js";
-// Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
-import { pageLarareKlass } from "./teacher.js";
 // Klasskamratens rum (#/elev/klasskamrat) – läs-endast vy av en annan elevs rum.
 import { pageElevKlasskamrat } from "./pages-klasskamrat.js";
 // Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
@@ -171,11 +168,17 @@ const routes = {
   "/elev/klassfoto": () => go("#/elev/by"),
   // Klasskamratens rum (#/elev/klasskamrat?id=…) – läs-endast vy av annans rum.
   "/elev/klasskamrat": pageElevKlasskamrat,
-  "/larare": () => pageLarare(teacherCtx),
-  // Klassöversikt (#/larare/klass) – additivt tillägg (håll separat för enkel rebase).
-  "/larare/klass": () => pageLarareKlass(teacherCtx),
-  // Klasser & elevkonton (#/larare/klasser) – den ENADE lärarsidan (skapa klass +
-  // elevkonton, medlemshantering). Gamla #/larare/elever är sammanslagen hit.
+  // Översikts-hubben är borttagen (issue #304): #/larare omdirigerar till den
+  // enade klass-fliken så gamla länkar/bokmärken inte bryts. Lärarspärren
+  // (renderGate) visas av #/larare/klasser om man inte är inloggad.
+  "/larare": () => go("#/larare/klasser"),
+  // Klassöversikt/statistik (gamla #/larare/klass) är sammanslagen med Klasser &
+  // elever (issue #299): framstegsmatrisen är nu en 📊-expander per klasskort.
+  // Gamla länkar/bokmärken skickas dit (samma mönster som /larare/elever).
+  "/larare/klass": () => go("#/larare/klasser"),
+  // Klasser, elevkonton & statistik (#/larare/klasser) – den ENADE lärarsidan
+  // (skapa klass + elevkonton, medlemshantering, per-område-lägen, statistik).
+  // Gamla #/larare/elever OCH #/larare/klass är sammanslagna hit.
   "/larare/klasser": () => pageLarareKlasser(teacherCtx),
   "/larare/innehall": () => pageLarareInnehall(teacherCtx),
   // AI-prompt-sidan är sammanslagen med innehållssidan (issue #62): den
