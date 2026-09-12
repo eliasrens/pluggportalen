@@ -39,19 +39,19 @@ const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs" };
  * Läraren kan dölja ett tema per område (#200), för hela klassen (#208) ELLER för
  * klassen på just det här området (#298), precis som övriga lägen: är "aventyr:<id>"
  * dolt (union område ∪ klass ∪ klass×område) byggs inget kort alls.
+ *
+ * Ett tema vars frågekällor saknar underlag på området renderas INTE alls i
+ * elevvyn (#311) – tidigare visades det som ett låst "Inget innehåll än"-kort.
  */
 function adventureCards(has, areaProgress, areaData, studentClass) {
   return Object.values(THEMES)
     .filter((t) => t && t.oversikt)
+    .filter((t) => (t.questionKinds || ["quiz"]).some((k) => has[KIND_NEEDS[k]]))
     .filter((t) => !isModeHiddenForClassArea(areaData, studentClass, `aventyr:${t.id}`))
     .map((t) => {
-      const kinds = t.questionKinds || ["quiz"];
-      const available = kinds.some((k) => has[KIND_NEEDS[k]]);
       const stars = areaProgress[`aventyr:${t.id}`]?.stars || 0;
-      const starsHtml = available
-        ? `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`
-        : `<span class="card-lock">Inget innehåll än</span>`;
-      return `<button class="big-card ${t.oversikt.color || "orange"} adv-card" data-tema="${t.id}" ${available ? "" : "disabled"}>
+      const starsHtml = `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
+      return `<button class="big-card ${t.oversikt.color || "orange"} adv-card" data-tema="${t.id}">
       <span class="emoji">${t.progressIcon || "🗺️"}</span>
       <span class="title">Äventyr: ${t.namn}</span>
       <span class="sub">${t.oversikt.sub || "Ett äventyr på området"}</span>
@@ -109,32 +109,32 @@ export async function pageElevOmrade() {
 
   // Läraren kan dölja lägen per område (#200), för hela klassen (#208) OCH för
   // klassen på just detta område (#298): avbockade lägen (på någon av nivåerna)
-  // visas inte alls som kort. Lägen UTAN underlag visas fortfarande som låsta
-  // ("Inget innehåll än"), precis som förr – det är bara de urbockade (union
-  // område ∪ klass ∪ klass×område) som filtreras bort.
-  const cards = GAMEMODES.filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id)).map((gm) => {
-    const available = has[gm.needs];
-    const stars = areaProgress[gm.id]?.stars || 0;
-    // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
-    // (både gamla "lasforstaelse" och nya "lastext"/Läsuppdrag).
-    const locked =
-      lockOthers && gm.id !== "lasforstaelse" && gm.id !== "lastext" && available;
-    let statusHtml;
-    if (locked) {
-      statusHtml = `<span class="card-lock">🔒 Gör läsförståelsen först</span>`;
-    } else if (available) {
-      statusHtml = `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
-    } else {
-      statusHtml = `<span class="card-lock">Inget innehåll än</span>`;
-    }
-    const disabled = !available || locked;
-    return `<button class="big-card ${gm.color} gm-card${locked ? " locked" : ""}" data-mode="${gm.id}" ${disabled ? "disabled" : ""}>
+  // visas inte alls som kort. Lägen UTAN underlag renderas INTE heller i elevvyn
+  // (#311): tidigare visades de som låsta "Inget innehåll än"-kort, men ett rent
+  // generator-område fick då gråa quiz/läs/para/memory-kort trots att det bara
+  // har räkne-innehåll. Nu visas exakt de lägen området faktiskt har underlag för
+  // OCH som är synliga för elevens klass×område – samma gate som #308
+  // (availableGamemodes + effektiv synlighet). Ett läge som HAR underlag men är
+  // låst av läsförståelse-förkravet (#155) visas fortfarande som ett låst kort.
+  const cards = GAMEMODES
+    .filter((gm) => has[gm.needs])
+    .filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id))
+    .map((gm) => {
+      const stars = areaProgress[gm.id]?.stars || 0;
+      // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
+      // (både gamla "lasforstaelse" och nya "lastext"/Läsuppdrag).
+      const locked =
+        lockOthers && gm.id !== "lasforstaelse" && gm.id !== "lastext";
+      const statusHtml = locked
+        ? `<span class="card-lock">🔒 Gör läsförståelsen först</span>`
+        : `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
+      return `<button class="big-card ${gm.color} gm-card${locked ? " locked" : ""}" data-mode="${gm.id}" ${locked ? "disabled" : ""}>
       <span class="emoji">${gm.emoji}</span>
       <span class="title">${gm.name}</span>
       <span class="sub">${gm.sub}</span>
       ${statusHtml}
     </button>`;
-  }).join("");
+    }).join("");
 
   const advCards = adventureCards(has, areaProgress, areaData, studentClass);
 

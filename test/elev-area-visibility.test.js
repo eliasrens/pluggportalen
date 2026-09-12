@@ -67,3 +67,46 @@ test("generator-området kan INTE bli tomt av quiz/par-synlighetsval", () => {
   };
   assert.equal(visibleForStudent(area, cls), true);
 });
+
+// ---------------------------------------------------------------------------
+// Issue #311: elevvyn (gamemodes.js) ska INTE längre rendera "Inget innehåll
+// än"-kort. Korten byggs ur exakt samma gate som #308 – de vanliga lägena är
+// GAMEMODES ∩ visibleGamemodesForClassArea. Här verifieras att den mängden
+// innehåller precis de lägen området faktiskt har underlag för (inga tomma).
+// ---------------------------------------------------------------------------
+
+// De vanliga (icke-äventyrs-)lägena eleven ser som kort – samma filter som
+// gm-korten i pageElevOmrade: har underlag OCH inte urbockat.
+const plainModes = (area, cls = null) =>
+  visibleGamemodesForClassArea(area, cls)
+    .map((m) => m.id)
+    .filter((id) => !id.startsWith("aventyr:"));
+
+test("#311 generator-område visar BARA räkna – inga tomma quiz/läs/para/memory", () => {
+  const area = { id: "gen", name: "Räkna", generator: { topic: "addition", variants: ["enkel"] } };
+  const modes = plainModes(area);
+  assert.deepEqual(modes, ["rakna"], "endast räkna-läget ska renderas");
+  for (const empty of ["quiz", "lasforstaelse", "lastext", "para", "memory", "kunskapsjakt", "sanningsjakt"]) {
+    assert.ok(!modes.includes(empty), `${empty} har inget underlag och ska INTE renderas`);
+  }
+});
+
+test("#311 quiz-område visar quiz-lägena men INTE räkna/para/memory", () => {
+  const area = { id: "q3", name: "Quiz", quiz: [{ q: "?", correct: 0, options: ["a", "b"] }] };
+  const modes = plainModes(area);
+  assert.ok(modes.includes("quiz"), "quiz ska renderas");
+  assert.ok(modes.includes("lasforstaelse"), "läsförståelse (quiz-underlag) ska renderas");
+  assert.ok(modes.includes("kunskapsjakt"), "kunskapsjakt (quiz-underlag) ska renderas");
+  assert.ok(!modes.includes("rakna"), "räkna ska INTE renderas utan generator");
+  assert.ok(!modes.includes("para"), "para ska INTE renderas utan par");
+  assert.ok(!modes.includes("memory"), "memory ska INTE renderas utan par");
+});
+
+test("#311 par-område visar Para ihop/Memory men INTE quiz/räkna", () => {
+  const area = { id: "p3", name: "Par", pairs: [{ left: "a", right: "b" }, { left: "c", right: "d" }] };
+  const modes = plainModes(area);
+  assert.ok(modes.includes("para"), "para ska renderas");
+  assert.ok(modes.includes("memory"), "memory ska renderas");
+  assert.ok(!modes.includes("quiz"), "quiz ska INTE renderas utan quiz-underlag");
+  assert.ok(!modes.includes("rakna"), "räkna ska INTE renderas utan generator");
+});
