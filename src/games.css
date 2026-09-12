@@ -1281,6 +1281,37 @@
 .adv-q-modal { max-width: 560px; }
 .adv-q-body .quiz-wrap { margin-top: 4px; }
 
+/* Generator-utmaningsmodalen (#296): A4-kladdkort + svarsfält i en modal. Kortet
+   återanvänder .a4-card men hålls kompakt så modalen ryms; förstora fäller ut det
+   till fullskärm (.scratch-fs) precis som i räkna-läget. */
+.adv-gen-modal { max-width: 520px; }
+.adv-gen-body { display: flex; flex-direction: column; }
+.adv-gen-stage { display: flex; justify-content: center; }
+/* Kortet i modalen är kompakt: släpp A4-tvånget och styr höjden direkt så ritytan
+   (surface, flex 1) alltid får plats även på låga skärmar – förstora ger sedan mer
+   utrymme. Talet och verktygen hålls nedtonade så de inte äter ritytan. */
+.adv-gen-stage .a4-card {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: auto;
+  height: min(52vh, 360px);
+  max-height: none;
+  margin: 0;
+}
+.adv-gen-stage .a4-task {
+  font-size: clamp(1.3rem, 4.5vw, 1.9rem);
+  padding: 10px 12px 8px;
+}
+.adv-gen-stage .scratch-surface { min-height: 96px; }
+.adv-gen-stage .scratch-tools { padding: 6px 8px; }
+.adv-gen-stage .tool-btn { font-size: 0.85rem; padding: 6px 10px; box-shadow: 0 2px 0 #cdddf5; }
+.adv-gen-answer { margin-top: 14px; }
+
+/* När kladdytan är utfälld till fullskärm (.scratch-fs) gäller inte modalens
+   kompakta höjd längre – kortet fyller skärmen (se .scratch-fs). Talet får då
+   växa igen för läsbarhet. */
+.adv-gen-stage .a4-card.scratch-fs .a4-task { font-size: clamp(1.8rem, 6vw, 2.8rem); }
+
 .adv-intro { max-width: 560px; margin: 0 auto; }
 
 @keyframes adv-bob {
@@ -1402,6 +1433,16 @@
   background: rgba(255, 255, 255, 0.7);
 }
 
+/* Ritytan bor i .scratch-surface (flex 1 → fyller kortet). Verktygsraden ligger som
+   en egen rad EFTER ytan i kortet, så den följer med till fullskärm utan att skymma
+   talet eller ritningen. */
+.scratch-surface {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
 /* Själva ritytan fyller resten av kortet. touch-action: none → ett finger ritar
    i stället för att skrolla sidan (samma princip som äventyrsmotorns pekstyrning). */
 .a4-scratch {
@@ -1415,12 +1456,45 @@
   user-select: none;
 }
 
+/* Verktygsraden: en egen rad längst ner i kortet, centrerad, på en svagt tonad
+   platta så knapparna syns mot kladdmönstret. Fälls ut med kortet till fullskärm. */
 .scratch-tools {
+  flex: 0 0 auto;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.82);
+  border-top: 1px solid #e6eefb;
 }
+
+/* Förstora-knappen: liten avvikande accent så den sticker ut från penna/sudd. */
+.scratch-enlarge {
+  background: #eafaf1;
+  box-shadow: 0 3px 0 #b7e6cd;
+}
+.scratch-enlarge[aria-pressed="true"] {
+  background: var(--gron, #34b07a);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--gron-mork, #268a5c);
+}
+
+/* Fullskärms-kladdyta (#296 del B): kortet fäller ut över hela ytan för mer
+   ritutrymme. position:fixed → täcker allt; verktygen ligger kvar inuti kortet. */
+.scratch-fs {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1200;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+body.scratch-fs-lock { overflow: hidden; }
 
 .tool-btn {
   border: none;

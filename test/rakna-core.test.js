@@ -19,6 +19,7 @@ import {
   checkAnswer,
   isSameProblem,
   buildRound,
+  createProblemSource,
 } from "../src/rakna-core.js";
 
 // --- seed -------------------------------------------------------------------
@@ -118,6 +119,51 @@ test("buildRound stödjer division inkl. rest-varianten", () => {
   assert.equal(round.length, 5);
   for (const item of round) {
     // rest-uppgifter bär hasRemainder; facit-rättning på svarssträngen stämmer.
+    const guess = expectedAnswerText(item.problem, item.answer);
+    assert.equal(checkAnswer(item.problem, item.answer, guess), true);
+  }
+});
+
+// --- createProblemSource (äventyrens oändliga ström, #296) -------------------
+
+test("createProblemSource ger giltiga uppgifter med korrekt facit", () => {
+  const src = createProblemSource(GEN, sessionSeed("e", 1));
+  for (let i = 0; i < 25; i++) {
+    const item = src.next();
+    assert.ok(item && item.problem && typeof item.answer === "number");
+    assert.ok(problemDisplay(item.problem).length > 0);
+    assert.equal(checkAnswer(item.problem, item.answer, String(item.answer)), true);
+  }
+});
+
+test("createProblemSource är deterministisk per seed (reproducerbar session)", () => {
+  const seed = sessionSeed("elev1", 42);
+  // Två OBEROENDE strömmar med samma seed ger identiska följder.
+  const s1 = createProblemSource(GEN, seed);
+  const s2 = createProblemSource(GEN, seed);
+  const seq1 = Array.from({ length: 20 }, () => s1.next().problem.text);
+  const seq2 = Array.from({ length: 20 }, () => s2.next().problem.text);
+  assert.deepEqual(seq1, seq2);
+  // Annan seed → (mycket sannolikt) annan följd.
+  const s3 = createProblemSource(GEN, sessionSeed("elev2", 42));
+  const seq3 = Array.from({ length: 20 }, () => s3.next().problem.text);
+  assert.notDeepEqual(seq1, seq3);
+});
+
+test("createProblemSource fortsätter oändligt över batch-gränsen (mer än ROUND_SIZE)", () => {
+  const src = createProblemSource(GEN, sessionSeed("e", 7));
+  const n = ROUND_SIZE * 3 + 2; // tvinga fram flera batchar
+  const items = Array.from({ length: n }, () => src.next());
+  assert.equal(items.length, n);
+  for (const item of items) {
+    assert.ok(item && item.problem && typeof item.answer === "number");
+  }
+});
+
+test("createProblemSource stödjer division/rest-varianten (facit inkl. rest)", () => {
+  const src = createProblemSource({ topic: "division", variants: ["rest"], grade: "ak4" }, 999);
+  for (let i = 0; i < 12; i++) {
+    const item = src.next();
     const guess = expectedAnswerText(item.problem, item.answer);
     assert.equal(checkAnswer(item.problem, item.answer, guess), true);
   }

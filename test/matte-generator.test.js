@@ -62,9 +62,13 @@ function verifyAnswer(res) {
   return { ok: expected === res.answer, expected };
 }
 
-// --- 1. Facit stämmer för varje topic + variant, över många frön -----------
+// De fyra fas 1-räknesätten (verifyAnswer nedan räknar OM just deras facit).
+// Fas 2:s topics har egen, oberoende facit-verifiering i matte-generator-fas2.test.js.
+const ARITHMETIC = ['addition', 'subtraktion', 'multiplikation', 'division'];
 
-for (const topic of listTopics()) {
+// --- 1. Facit stämmer för varje fas 1-topic + variant, över många frön ------
+
+for (const topic of ARITHMETIC) {
   for (const variant of listVariants(topic)) {
     test(`facit stämmer: ${topic}/${variant}`, () => {
       for (let seed = 0; seed < 200; seed++) {
@@ -118,14 +122,30 @@ test("olika frön ger olika uppgifter", () => {
 
 // --- 4. Gränssnittets form -------------------------------------------------
 
-test("listTopics ger de fyra fas 1-topics", () => {
-  assert.deepEqual(listTopics(), ['addition', 'subtraktion', 'multiplikation', 'division']);
+test("listTopics inleds med de fyra fas 1-topics", () => {
+  assert.deepEqual(listTopics().slice(0, 4), ['addition', 'subtraktion', 'multiplikation', 'division']);
 });
 
-test("listVariants ger varianter per topic, tom för okänt", () => {
+test("listTopics surfar bara spelbara topics (inte visuella)", () => {
+  const t = listTopics();
+  // Spelbara fas 2-topics finns med:
+  for (const topic of ['tallinje', 'procent', 'ekvationer', 'matt-langd']) {
+    assert.ok(t.includes(topic), `${topic} borde surfas`);
+  }
+  // Visuella/icke-numeriska surfas INTE i räkna-läget:
+  for (const topic of ['klocka', 'geometri', 'koordinatsystem', 'statistik', 'talsorter', 'brak', 'symmetri', 'monster', 'sannolikhet']) {
+    assert.ok(!t.includes(topic), `${topic} ska INTE surfas`);
+  }
+});
+
+test("listVariants ger spelbara varianter per topic, tom för okänt/icke-spelbart", () => {
   assert.ok(listVariants('addition').includes('uppstallning'));
   assert.ok(listVariants('division').includes('rest'));
   assert.deepEqual(listVariants('finns-inte'), []);
+  assert.deepEqual(listVariants('klocka'), []); // icke-spelbart topic surfar inga varianter
+  // Icke-spelbara varianter av spelbara topics filtreras bort:
+  assert.ok(!listVariants('talfoljd').includes('regel'));
+  assert.ok(!listVariants('procent').includes('baklanges'));
 });
 
 test("okänt topic kastar fel", () => {

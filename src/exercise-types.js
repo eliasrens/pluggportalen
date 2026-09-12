@@ -107,11 +107,31 @@ export function deriveExerciseTypes(area) {
 // tabell (med motor-force/minGrade). Att katalogen här och adapterns tabell är
 // IDENTISKA (samma topics, samma varianter, samma ordning) asserteras av
 // test/matte-generator.test.js ("katalogen matchar adaptern") så de aldrig driftar isär.
+// FAS 2 (issue #295): katalogen surfar bara de SPELBARA topics/varianter (de vars
+// uppgift är självbärande + har ett otvetydigt numeriskt svar som räkna-läget
+// rättar). Adaptern porterar ÄVEN visuella/icke-numeriska topics (klocka, geometri,
+// koordinatsystem, statistik, sannolikhet, symmetri, mönster, bråk, talsorter) men
+// de exponeras INTE här förrän de fått egen rendering/svarswidget. Ordning + innehåll
+// asserteras mot adapterns listTopics()/listVariants() i test/matte-generator.test.js.
 const GENERATOR_CATALOG = {
   addition: ["enkel", "uppstallning", "flersteg", "decimaler"],
   subtraktion: ["enkel", "uppstallning", "decimaler"],
   multiplikation: ["tabeller", "tiopotens", "stora-tal", "dubbelt", "bild", "decimaler"],
   division: ["tabeller", "rest", "tiopotens", "stora-tal", "halften", "decimaler"],
+  tallinje: ["enkel"],
+  talfoljd: ["nasta", "saknas"],
+  "negativa-tal": ["temperatur", "rakna"],
+  romerska: ["till-tal"],
+  procent: ["av-heltal"],
+  avrundning: ["tiotal", "hundratal"],
+  prioritet: ["utan-parentes", "med-parentes"],
+  "oppna-utsaga": ["addition", "subtraktion", "multiplikation", "division"],
+  ekvationer: ["enstegs", "tvastegs", "geometri"],
+  "matt-langd": ["omvandla"],
+  "matt-vikt": ["omvandla"],
+  "matt-tid": ["omvandla"],
+  "matt-area": ["omvandla"],
+  "matt-volym": ["omvandla", "addition", "subtraktion", "oppen"],
 };
 
 /** Alla topics som fas 1 stödjer, i visningsordning. */

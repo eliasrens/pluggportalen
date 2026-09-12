@@ -154,3 +154,35 @@ export function buildRound(generator, baseSeed, count = ROUND_SIZE) {
   }
   return round;
 }
+
+/**
+ * En DETERMINISTISK, i praktiken oändlig ström av genererade uppgifter för ett
+ * generator-område. Räkna-läget (games-rakna.js) drar en fast runda (buildRound
+ * ovan), men äventyren (adventure/generator-adapter.js, #296) vet inte i förväg hur
+ * många uppgifter som behövs – ett äventyr frågar EN uppgift per station plus
+ * omförsök vid fel svar. Strömmen ger därför next() på begäran. Internt byggs
+ * uppgifter i batchar via buildRound (så exakt samma seed-/variant-/no-repeat-logik
+ * återanvänds), och nya batch-frön härleds ur baseSeed + batch-index så samma
+ * (elev, session) alltid ger samma följd – reproducerbart men nytt varje ny session.
+ *
+ * @param {{topic:string, variants:string[], grade?:string}} generator – normaliserad area.generator
+ * @param {number} baseSeed – från sessionSeed()
+ * @param {number} [batchSize=ROUND_SIZE]
+ * @returns {{ next: () => {problem:object, answer:number, variant:string} }}
+ */
+export function createProblemSource(generator, baseSeed, batchSize = ROUND_SIZE) {
+  let batch = [];
+  let cursor = 0;
+  let batchIndex = 0;
+  return {
+    next() {
+      if (cursor >= batch.length) {
+        const seed = hashSeed(`batch|${baseSeed >>> 0}|${batchIndex}`);
+        batch = buildRound(generator, seed, batchSize);
+        batchIndex++;
+        cursor = 0;
+      }
+      return batch[cursor++];
+    },
+  };
+}

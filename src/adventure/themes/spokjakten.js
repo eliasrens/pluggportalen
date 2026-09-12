@@ -196,7 +196,9 @@ export const spokjaktenTheme = {
     klart: "Du fångade alla spöken i månskenet! 👻🌙",
   },
 
-  questionKinds: ["quiz", "lasforstaelse", "para"],
+  // "generator" (#296): banan funkar även på ett generator-område – stationerna
+  // ställer då genererade räkneuppgifter (tal + svarsfält) i stället för quiz/par.
+  questionKinds: ["quiz", "lasforstaelse", "para", "generator"],
 
   // Kort i områdesöversikten (drivs generiskt av gamemodes.js via detta fält).
   oversikt: {

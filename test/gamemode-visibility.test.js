@@ -231,12 +231,17 @@ test("GAMEMODES har de åtta lägena (inkl. räkna)", () => {
   );
 });
 
-// Räkna-läget (issue #279) tänds BARA av ett generator-område, och ett rent
-// generator-område tänder inte quiz/par/läs-lägena (grötskydd).
-test("räkna tänds av generator-område och inget annat läge gör det", () => {
+// Räkna-läget (issue #279) tänds av ett generator-område. Ett rent generator-område
+// tänder INTE quiz/par/läs-lägena (grötskydd) – men FRÅN #296 tänder det även
+// äventyrs-temana, som kan köras med genererade tal (deras questionKinds har "generator").
+test("generator-område tänder räkna + äventyren, men inget quiz/par-läge", () => {
   const genArea = { generator: { topic: "addition", variants: ["enkel"] } };
   const ids = availableGamemodes(genArea).map((gm) => gm.id);
-  assert.deepEqual(ids, ["rakna"]);
+  assert.deepEqual(ids, ["rakna", "aventyr:skattjakten", "aventyr:spokjakten", "aventyr:gruvan"]);
+  // Inga quiz/par-beroende lägen tänds av ett rent generator-område.
+  for (const forbjudet of ["quiz", "lasforstaelse", "para", "memory", "kunskapsjakt", "sanningsjakt"]) {
+    assert.ok(!ids.includes(forbjudet), `${forbjudet} ska inte tändas av generator-område`);
+  }
   // Ett quiz-område tänder INTE räkna.
   assert.ok(!availableGamemodes({ quiz: QUIZ }).map((gm) => gm.id).includes("rakna"));
 });
