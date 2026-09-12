@@ -24,6 +24,23 @@ import { el, esc } from "./teacher-shared.js";
 const gradeOptions = () =>
   GRADES.map((g) => `<option value="${esc(g.id)}">${esc(g.label)}</option>`).join("");
 
+// Curerat rutnät av skol-relevanta emojis för områdets omslags-symbol (issue #307).
+// Bara ett snabbval – läraren kan skriva in vilken emoji som helst i fältet bredvid.
+export const COVER_EMOJI_CHOICES = [
+  "📖", "📚", "✏️", "📝", "🔢", "➗", "🧮", "📐",
+  "🔬", "🧪", "🌍", "🗺️", "🏛️", "⚔️", "🛶", "📜",
+  "⏳", "🎨", "🎵", "🎭", "⚽", "🏃", "🌱", "🌳",
+  "🐛", "🦋", "🦕", "🐬", "🌊", "☀️", "🌙", "🔭",
+  "🌋", "💡", "🧩", "❓", "🔤", "🗣️", "💬", "🧠",
+];
+
+const coverEmojiButtons = () =>
+  COVER_EMOJI_CHOICES.map(
+    (e) =>
+      `<button type="button" class="emoji-choice" data-emoji="${esc(e)}"
+        role="option" aria-label="Välj ${esc(e)}">${esc(e)}</button>`
+  ).join("");
+
 /**
  * BIBLIOTEK – landningsvyn. Ämnesflikarna (#subject-tabs) och korten (#area-cards)
  * fylls från teacher-content.js. Filter/sortering ligger kvar (issue #145).
@@ -90,6 +107,21 @@ export function buildComposerView() {
           <p class="hint">Styr AI-prompten (språk och svårighetsgrad) och gör att du kan
             sortera/filtrera biblioteket per årskurs. Lämna <b>Ospecificerad</b> om området passar
             flera årskurser.</p>
+        </div>
+        <div class="field composer-emoji-field">
+          <label for="area-emoji">Symbol (emoji)</label>
+          <p class="hint">Visas på bibliotekskortet och elevernas områdeskort. Klicka en emoji
+            nedan eller skriv in en egen. Lämna tomt för standard 📖.</p>
+          <div class="emoji-picker">
+            <div class="emoji-grid" id="area-emoji-grid" role="listbox" aria-label="Välj symbol för området">
+              ${coverEmojiButtons()}
+            </div>
+            <div class="row-inline emoji-custom">
+              <span class="emoji-preview" id="area-emoji-preview" aria-hidden="true">📖</span>
+              <input id="area-emoji" class="emoji-input" maxlength="8"
+                placeholder="Egen emoji, t.ex. 🛶" aria-label="Egen emoji" />
+            </div>
+          </div>
         </div>
       </div>
 
