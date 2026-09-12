@@ -1496,6 +1496,24 @@
 }
 body.scratch-fs-lock { overflow: hidden; }
 
+/* #312: I fullskärm flyttas svarsrutan (svarsfält + feedback + nästa-knapp) IN i
+   det utfällda kortet som en egen rad längst ner – in-flow, inte flytande overlay,
+   så den aldrig överlappar talet eller ritverktygen (jfr #296-lärdomen). Frågan
+   syns redan i kortets rubrik (.a4-task); förstora ger bara mer ritutrymme, aldrig
+   en dold uppgift. Ritytan (.scratch-surface, flex 1) krymper för att ge plats. */
+.scratch-fs .scratch-fs-answer {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 2px dashed #dbe6f7;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
 .tool-btn {
   border: none;
   background: #eef4ff;
