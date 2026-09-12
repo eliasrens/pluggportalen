@@ -8,6 +8,10 @@ import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
 import { coinIcon } from "./icons.js";
+// Synlighetsgaten (browser-fri, re-exporteras via game-shared.js precis som i
+// gamemodes.js – redan i bootgrafen) avgör om ett område har SPELBART innehåll
+// för just den här eleven (issue #308).
+import { visibleGamemodesForClassArea } from "./game-shared.js";
 
 // --- Inloggning -------------------------------------------------------------
 
@@ -160,6 +164,7 @@ export async function pageElevPlugga() {
   await renderTopbar();
 
   let subjects;
+  let studentClass = null; // elevens klass – för tilldelning OCH lägessynlighet.
   let assigned = null; // Set av "subjectId/areaId" om klassen har tilldelning, annars null.
   try {
     // Elevens klass (för att ev. filtrera på tilldelade områden) parallellt med ämnen.
@@ -168,6 +173,7 @@ export async function pageElevPlugga() {
       data.getClassForStudent().catch(() => null),
     ]);
     subjects = subj;
+    studentClass = cls;
     const list = cls && Array.isArray(cls.assignedAreas) ? cls.assignedAreas : [];
     if (list.length > 0) {
       assigned = new Set(list.map((a) => `${a.subjectId}/${a.areaId}`));
@@ -185,6 +191,14 @@ export async function pageElevPlugga() {
     for (const a of areas) {
       // Har klassen en tilldelning? Visa då BARA de tilldelade områdena.
       if (assigned && !assigned.has(`${subj.id}/${a.id}`)) continue;
+      // Dölj områden som saknar SPELBART innehåll för den här eleven (#308): finns
+      // inget synligt läge med underlag visas ingen "inget innehåll än"-platshållare
+      // – området listas inte alls. Samma resolution som områdesöversikten
+      // (visibleGamemodesForClassArea): underlag ur areaContentFlags (quiz/pairs/
+      // readingTexts + generator-området, som ALDRIG räknas som tomt) minus lägen
+      // läraren bockat ur för område/klass/klass×område. Enbart elevvyn – lärarvyn
+      // (teacher.js) listar fortfarande tomma områden så de kan fyllas på.
+      if (visibleGamemodesForClassArea(a, studentClass).length === 0) continue;
       areaCards.push(`<button class="big-card orange area-card" data-subj="${subj.id}" data-area="${a.id}">
         <span class="emoji">${a.coverEmoji || "📖"}</span>
         <span class="title">${a.name}</span>

@@ -36,6 +36,9 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
   const composer = buildComposerView();
 
   const nameEl = composer.querySelector("#area-name");
+  const emojiEl = composer.querySelector("#area-emoji");
+  const emojiGrid = composer.querySelector("#area-emoji-grid");
+  const emojiPreview = composer.querySelector("#area-emoji-preview");
   const gradeSel = composer.querySelector("#area-grade");
   const exTypesBox = composer.querySelector("#ex-types");
   const onskemalEl = composer.querySelector("#area-onskemal");
@@ -52,6 +55,26 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
   };
   const getSelectedGrade = () => normalizeGrade(gradeSel.value);
   const setSelectedGrade = (grade) => (gradeSel.value = normalizeGrade(grade) || "");
+
+  // --- Emoji-väljare (issue #307) -------------------------------------------
+  // Text-fältet #area-emoji är sanningskällan; rutnätet skriver in i det. Tomt
+  // fält → coverEmoji utelämnas och validate defaultar till 📖.
+  const getCoverEmoji = () => emojiEl.value.trim();
+  function refreshEmojiPicker() {
+    const cur = getCoverEmoji();
+    emojiPreview.textContent = cur || "📖";
+    emojiGrid.querySelectorAll(".emoji-choice").forEach((b) =>
+      b.classList.toggle("active", b.dataset.emoji === cur)
+    );
+  }
+  const setCoverEmoji = (emoji) => {
+    emojiEl.value = (emoji || "").trim();
+    refreshEmojiPicker();
+  };
+  emojiGrid.querySelectorAll(".emoji-choice").forEach((b) =>
+    b.addEventListener("click", () => setCoverEmoji(b.dataset.emoji))
+  );
+  emojiEl.addEventListener("input", refreshEmojiPicker);
 
   // Synliga lägen (per område) – oförändrad fabrik (issue #200/#207).
   const modeVis = createModeVisibility(composer.querySelector("#mode-visibility"));
@@ -72,6 +95,7 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
     getSelectedGrade,
     modeVis,
     getName: () => nameEl.value,
+    getCoverEmoji,
   });
   const { validateCurrent, syncModeVisibility } = areaInput;
 
@@ -205,6 +229,7 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
   // --- Öppna / stänga --------------------------------------------------------
   function resetComposer() {
     nameEl.value = "";
+    setCoverEmoji("");
     setSelectedTypes(["quiz"]);
     setSelectedGrade(null);
     onskemalEl.value = "";
@@ -218,11 +243,13 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
 
   function fillComposerFromArea(a) {
     nameEl.value = a.name || "";
+    setCoverEmoji(a.coverEmoji || "");
     setSelectedTypes(areaExerciseTypes(a));
     setSelectedGrade(a.grade);
     onskemalEl.value = "";
     generatorCtl.render(a);
-    const { id, exerciseTypes, grade, generator, name, ...rest } = a;
+    // coverEmoji hanteras av emoji-väljaren (som name/grade), så håll det ute ur JSON-rutan.
+    const { id, exerciseTypes, grade, generator, name, coverEmoji, ...rest } = a;
     jsonEl.value = JSON.stringify({ id, ...rest }, null, 2);
     resultEl.innerHTML = "";
     if (hasGeneratorContent(a)) {
