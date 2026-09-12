@@ -22,6 +22,10 @@
 // ============================================================================
 
 import { el } from "./ui.js";
+// wireEnlarge bor i en egen, import-fri modul så förstora-logiken kan enhetstestas
+// utan ui.js/firebase-kedjan (#312). Importeras för lokalt bruk i createScratchCard
+// OCH re-exporteras (nedan) så befintliga importvägar fortsätter fungera oförändrat.
+import { wireEnlarge } from "./scratch-enlarge.js";
 
 const PEN_COLOR = "#2a2a35";
 const PEN_WIDTH = 3.2;
@@ -142,54 +146,9 @@ export function attachScratchpad(canvas) {
   };
 }
 
-/**
- * Koppla FÖRSTORA-knappen: fäller ut `target` (kladdkortet) till fullskärm och in
- * igen. I fullskärm är kortet position:fixed över hela ytan (CSS .scratch-fs), så
- * verktygsknapparna som ligger INUTI kortet följer med och går att nå. Ritbufferten
- * skalas om (bevarad ritning) efter varje toggle.
- * @param {object} o
- * @param {HTMLElement} o.button   knappen (📈 Förstora/Förminska)
- * @param {HTMLElement} o.target   elementet som blir fullskärm (kladdkortet)
- * @param {{resize:()=>void}} o.pad  scratchpad-styrenheten (för resize)
- * @param {boolean} [o.handleEscape=true]  lyssna på Escape för att fälla in (av i
- *   modalen, där modalen själv äger Escape).
- * @returns {{isFull:()=>boolean, exit:()=>void, destroy:()=>void}}
- */
-export function wireEnlarge({ button, target, pad, handleEscape = true }) {
-  let full = false;
-
-  function apply() {
-    target.classList.toggle("scratch-fs", full);
-    document.body.classList.toggle("scratch-fs-lock", full);
-    button.setAttribute("aria-pressed", full ? "true" : "false");
-    button.innerHTML = full ? "🔎 Förminska" : "🔍 Förstora";
-    button.title = full ? "Fäll in kladdytan" : "Förstora kladdytan";
-    // Låt layouten sätta sig innan bufferten skalas om (behåller ritningen).
-    if (pad && pad.resize) pad.resize();
-  }
-  function toggle() { full = !full; apply(); }
-  function onKey(e) {
-    if (e.key === "Escape" && full) {
-      full = false;
-      apply();
-      e.preventDefault();
-      e.stopImmediatePropagation(); // konsumera Escape så inget annat stänger
-    }
-  }
-
-  button.addEventListener("click", toggle);
-  if (handleEscape) document.addEventListener("keydown", onKey, true);
-
-  return {
-    isFull: () => full,
-    exit() { if (full) { full = false; apply(); } },
-    destroy() {
-      button.removeEventListener("click", toggle);
-      if (handleEscape) document.removeEventListener("keydown", onKey, true);
-      document.body.classList.remove("scratch-fs-lock");
-    },
-  };
-}
+// Re-export så äldre importvägar (import { wireEnlarge } from "./scratchpad.js")
+// fortsätter fungera trots att implementationen flyttat till scratch-enlarge.js.
+export { wireEnlarge };
 
 /**
  * Bygg ett komplett kladd-KORT: en A4-yta med en task-rubrik överst, själva ritytan

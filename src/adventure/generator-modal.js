@@ -101,6 +101,11 @@ export function openGeneratorModal({ item, title = "Räkneuppgift", emoji = "�
     const submitBtn = overlay.querySelector(".rakna-submit");
     const feedback = overlay.querySelector("#adv-gen-feedback");
 
+    // Uppgiften (fråga + svarsfält) får INTE försvinna när kladdytan förstoras
+    // (#312): svarsrutan följer med in i det utfällda kortet. Frågan syns redan i
+    // kortets rubrik, så förstora ger mer ritutrymme utan att dölja uppgiften.
+    scratch.enlarge.setAnswer(form);
+
     function close(result) {
       if (done) return;
       done = true;
