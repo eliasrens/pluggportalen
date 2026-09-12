@@ -1391,16 +1391,6 @@
   gap: 12px;
 }
 
-/* Kompakt standardhöjd i räkna-läget (#314): släpp A4-tvånget och styr höjden
-   direkt så kladdytan inte dominerar skärmen – uppgiften (rubriken) + svarsfältet
-   under kortet syns bekvämt utan scroll. Förstora-knappen (#312) fäller ut kortet
-   till fullskärm (.scratch-fs) för den som vill ha mer rityta. */
-.rakna-stage .a4-card {
-  aspect-ratio: auto;
-  height: min(42vh, 380px);
-  max-height: none;
-}
-
 /* A4-kortet: stående pappersyta (√2-proportion) med talet överst. */
 .a4-card {
   width: 100%;
@@ -1560,10 +1550,18 @@ body.scratch-fs-lock { overflow: hidden; }
 .rakna-answer-row {
   display: flex;
   gap: 10px;
+  /* Svarsfältet + knappen ligger vänsterställda, inte utspända över hela raden
+     (#314 – smalare skrivyta). */
+  justify-content: flex-start;
+  align-items: center;
 }
 
+/* Kompakt/smal skrivyta (#314): svaret är kort (ett tal, ev. "3 rest 1"), så
+   fältet behöver inte spänna över hela nedre raden. En rimlig max-width håller
+   det litet och vänsterställt intill Svara-knappen. Kladdytans höjd är orörd. */
 .rakna-input {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  width: min(220px, 100%);
   font-family: var(--font);
   font-size: 1.3rem;
   font-weight: 700;
