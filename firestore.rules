@@ -109,6 +109,35 @@ service cloud.firestore {
          exists(/databases/$(database)/documents/classes/$(classId)) &&
          request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds);
     }
+    // ------------------------------------------------------------------------
+    // UTKAST (#316, SEKUNDÄRT – EJ aktiverat): begränsa en elev till att skriva
+    // BARA sin EGEN members.{uid}-post. Firestore-idiomet .diff().affectedKeys()
+    // .hasOnly([...]) kan uttrycka precis det för UPDATE (nyckeln i members-mappen
+    // som rörs måste vara den egna uid:n):
+    //
+    //   allow update: if isTeacher() ||
+    //     (signedIn() &&
+    //      request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds &&
+    //      request.resource.data.members.diff(resource.data.members)
+    //        .affectedKeys().hasOnly([request.auth.uid]));
+    //   allow create: if isTeacher() ||
+    //     (signedIn() &&
+    //      request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds &&
+    //      request.resource.data.members.keys().hasOnly([request.auth.uid]));
+    //
+    // TRADEOFF som MÅSTE vägas in innan aktivering:
+    //  • Self-publish (#240) skriver bara elevens EGEN entry → fungerar fortsatt.
+    //  • Men den MEDLEMS-DRIVNA self-heal:en (ensureClassProjection) skriver
+    //    KLASSKAMRATERS saknade entries i EGNA klassen – det NEKAS av utkastet.
+    //    Då kan bara läraren eller admin/backfill-projection-names.mjs (#316)
+    //    skapa saknade poster; en tom klass fylls inte längre av första eleven
+    //    som rör sig i byn. #316:s garanti (varje skrivning bär namn) + backfillen
+    //    minskar behovet, men detta ÄR en beteendeändring – aktivera medvetet.
+    //  • firestore.rules träder i kraft FÖRST vid separat deploy:
+    //      firebase deploy --only firestore:rules
+    //    Ändra alltså aldrig detta i tysthet – koden ovan (aktiv regel) står kvar
+    //    tills en människa medvetet byter och deployar.
+    // ------------------------------------------------------------------------
 
     // (Borttaget #114) Kollektionerna `looks` (utseende-projektion) och
     // `classStats` (denormaliserat stjärn-aggregat, #113) behövs inte längre:
