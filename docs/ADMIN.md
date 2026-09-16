@@ -128,6 +128,19 @@ node seed/seed-party-pairs.mjs  # torrkörning; --write för att spara
 node seed/audit-areas.mjs       # read-only granskning
 ```
 
+**Engångs-backfill av klass-projektionens namn (#316).** En gammal partiell
+skriv-väg kunde skapa `classProjections/{klass}.members[uid]`-poster UTAN `namn`,
+så kartan/byn ritade en trasig platshållare (bekräftat i live: klass 4D, 10/22
+poster). Klienten läker detta framåt, men befintliga glapp-poster fylls med:
+
+```bash
+node admin/backfill-projection-names.mjs           # TORRKÖRNING (visar plan)
+node admin/backfill-projection-names.mjs --commit  # fyller saknat namn
+```
+
+Idempotent (bara namnlösa poster rörs, källa = `students/{uid}.namn`), säkert att
+köra om. Kör helst mot emulatorn först (§5). Kräver ingen regel-deploy.
+
 `seed/seed.html` (webbläsar-seedern) är **avstängd** – den kan inte skriva mot
 stängda regler eller skapa Auth-konton.
 

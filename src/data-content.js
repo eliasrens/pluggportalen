@@ -21,7 +21,7 @@ import {
   orderBy,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData } from "./data.js";
-import { createStudentAuthAccount } from "./auth.js";
+import { createStudentAuthAccount, getSession } from "./auth.js";
 import {
   createClassProjectionStore,
   projectionEntryFrom,
@@ -300,6 +300,16 @@ const _projectionStore = createClassProjectionStore({
   getDocs,
   setDoc,
   updateDoc,
+  // Känd identitet utan Firestore-läsning: sessionens egen elev. Låter
+  // projektions-skrivningar ALLTID bära namn (#316) – het-vägarna (award/rum/
+  // avatar/self-publish) skriver den inloggade elevens EGEN entry, och läraren
+  // skickar redan namn explicit i sin patch (då rörs inte detta).
+  identityFor: (studentId) => {
+    const s = getSession();
+    return s && s.studentId === studentId
+      ? { namn: s.namn || "", username: s.username || "" }
+      : {};
+  },
 });
 
 /** Läs en klass-projektion via EXAKT 1 getDoc (session-cachad). #231 */

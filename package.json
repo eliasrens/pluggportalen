@@ -13,6 +13,7 @@
     "emulators": "firebase emulators:start --only auth,firestore",
     "migrate:passwords": "node admin/migrate-passwords.mjs",
     "backfill:class-ids": "node admin/backfill-class-ids.mjs",
+    "backfill:projection-names": "node admin/backfill-projection-names.mjs",
     "set-teacher": "node admin/set-teacher-claim.mjs"
   },
   "engines": {

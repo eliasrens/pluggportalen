@@ -124,6 +124,74 @@ export function fallbackEntryFrom(student = {}, locked = false) {
   };
 }
 
+/**
+ * REN hjälpare (#316): berika en skriv-patch så den ALLTID bär `namn` (och gärna
+ * `username`). En partiell skrivning (award/self-publish/rum) skickar bara de
+ * fält som ändrats – utan namn skapas en namnlös members-entry som kartan ritar
+ * som en trasig platshållare. Här fyller vi i namn/username från en känd källa
+ * (sessionens egna namn eller students/{id}) OM patchen saknar dem. Ett redan
+ * satt (truthy) namn i patchen rörs aldrig, så lärarens explicita namn vinner.
+ * @param {object} patch  fälten som ska skrivas
+ * @param {object} [name] { namn?, username? } känd namnkälla
+ * @returns {object} en KOPIA av patch med namn/username ifyllt när det saknades
+ */
+export function withEntryName(patch = {}, name = {}) {
+  const p = patch && typeof patch === "object" ? patch : {};
+  const n = name && typeof name === "object" ? name : {};
+  const out = { ...p };
+  if (!out.namn && n.namn) out.namn = n.namn;
+  if (!out.username && n.username) out.username = n.username;
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Rena predikat (Firebase-fria) som skriv-/läs-store:n i class-projection.js
+// använder. De bor här hos den övriga rena shaping-logiken så store-filen hålls
+// under filtaket och predikaten kan enhetstestas isolerat.
+// ---------------------------------------------------------------------------
+
+/** Är felet en NEKAD läsning (permission-denied)? En nekad studentData-läsning
+ *  betyder att kamraten LÅST sitt hus (husLast → firestore.rules nekar). */
+export function isPermissionDenied(err) {
+  return (
+    err?.code === "permission-denied" ||
+    /Missing or insufficient permissions/i.test(err?.message || "")
+  );
+}
+
+/** Är felet "dokumentet finns inte" (updateDoc mot ett saknat dokument)? */
+export function isNotFound(err) {
+  return err?.code === "not-found" || /No document to update/i.test(err?.message || "");
+}
+
+/** Djupjämför två avatarItems-listor (ordningskänsligt, elementen är strängar). */
+export function sameAvatarItems(a, b) {
+  const xa = Array.isArray(a) ? a : [];
+  const xb = Array.isArray(b) ? b : [];
+  if (xa.length !== xb.length) return false;
+  for (let i = 0; i < xa.length; i++) {
+    if (JSON.stringify(xa[i]) !== JSON.stringify(xb[i])) return false;
+  }
+  return true;
+}
+
+/**
+ * Skiljer sig det FÄRSKA egna utseendet (ur studentData) från det som redan står
+ * i projektionens self-entry? Jämför exakt de fält by-/grannby-vyn ritar plus
+ * husLast (lås-flaggan). Lika → ingen self-publish-skrivning behövs.
+ */
+export function appearanceChanged(fresh, base) {
+  const f = fresh || {};
+  const b = base || {};
+  return (
+    (f.avatarId || null) !== (b.avatarId || null) ||
+    (f.paletteId || null) !== (b.paletteId || null) ||
+    (f.husSkalId || null) !== (b.husSkalId || null) ||
+    !!f.husLast !== !!b.husLast ||
+    !sameAvatarItems(f.avatarItems, b.avatarItems)
+  );
+}
+
 /** Vilka av `memberIds` saknar en entry i projektionen? (för self-heal) */
 export function missingMemberIds(members = {}, memberIds = []) {
   const have = members && typeof members === "object" ? members : {};
@@ -154,6 +222,20 @@ export function entryToBoende(id, entry = {}) {
     stars: Math.max(0, Number(e.stars) || 0),
     locked: !!e.husLast,
   };
+}
+
+/**
+ * REN hjälpare: vilka boende-poster saknar ett visningsbart namn? En glapp-post
+ * (skriven av en gammal partiell väg som utelämnade `namn`, #316) har varken
+ * `namn` eller `username` och skulle annars falla tillbaka på rå-uid:t i vyn (en
+ * trasig platshållare). Returnerar deras id:n så läsaren kan hämta namnet ur
+ * students/{id} som DEFENSIV fallback. `username` räknas som visningsbart namn –
+ * bara en post helt utan bådadera behöver läkas.
+ */
+export function boendeMissingNameIds(boende = []) {
+  return (Array.isArray(boende) ? boende : [])
+    .filter((b) => b && b.id && !b.namn && !b.username)
+    .map((b) => b.id);
 }
 
 /**

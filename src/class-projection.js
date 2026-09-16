@@ -40,7 +40,12 @@ import {
   projectionEntryFrom,
   fallbackEntryFrom,
   boendeFromMembers,
+  boendeMissingNameIds,
+  withEntryName,
   missingMemberIds,
+  isPermissionDenied,
+  isNotFound,
+  appearanceChanged,
 } from "./class-projection-entries.js";
 
 // De rena entry/boende-hjälparna bor i class-projection-entries.js men re-
@@ -51,52 +56,16 @@ export {
   missingMemberIds,
   entryToBoende,
   boendeFromMembers,
+  boendeMissingNameIds,
+  withEntryName,
+  isPermissionDenied,
+  isNotFound,
+  sameAvatarItems,
+  appearanceChanged,
   createTtlCache,
 } from "./class-projection-entries.js";
 
 const DEFAULT_TTL_MS = 30_000; // kort session-cache: zooma ut/in läser inte om
-
-/** Är felet en NEKAD läsning (permission-denied)? En nekad studentData-läsning
- *  betyder att kamraten LÅST sitt hus (husLast → firestore.rules nekar). */
-function isPermissionDenied(err) {
-  return (
-    err?.code === "permission-denied" ||
-    /Missing or insufficient permissions/i.test(err?.message || "")
-  );
-}
-
-/** Är felet "dokumentet finns inte" (updateDoc mot ett saknat dokument)? */
-function isNotFound(err) {
-  return err?.code === "not-found" || /No document to update/i.test(err?.message || "");
-}
-
-/** Djupjämför två avatarItems-listor (ordningskänsligt, elementen är strängar). */
-function sameAvatarItems(a, b) {
-  const xa = Array.isArray(a) ? a : [];
-  const xb = Array.isArray(b) ? b : [];
-  if (xa.length !== xb.length) return false;
-  for (let i = 0; i < xa.length; i++) {
-    if (JSON.stringify(xa[i]) !== JSON.stringify(xb[i])) return false;
-  }
-  return true;
-}
-
-/**
- * Skiljer sig det FÄRSKA egna utseendet (ur studentData) från det som redan står
- * i projektionens self-entry? Jämför exakt de fält by-/grannby-vyn ritar plus
- * husLast (lås-flaggan). Lika → ingen self-publish-skrivning behövs.
- */
-function appearanceChanged(fresh, base) {
-  const f = fresh || {};
-  const b = base || {};
-  return (
-    (f.avatarId || null) !== (b.avatarId || null) ||
-    (f.paletteId || null) !== (b.paletteId || null) ||
-    (f.husSkalId || null) !== (b.husSkalId || null) ||
-    !!f.husLast !== !!b.husLast ||
-    !sameAvatarItems(f.avatarItems, b.avatarItems)
-  );
-}
 
 /**
  * Skapa en klass-projektions-store kring en injicerad Firestore-adapter.
@@ -111,11 +80,17 @@ function appearanceChanged(fresh, base) {
  * @param {function} adapter.updateDoc   (ref, fieldPathMap) → Promise
  * @param {function} [adapter.now]       () → ms (injicerbar klocka för cache-TTL i test)
  * @param {number}   [adapter.ttlMs]     session-cachens TTL (default 30 s)
+ * @param {function} [adapter.identityFor] (studentId) → { namn?, username? } – den
+ *   KÄNDA identiteten för en elev (utan en Firestore-läsning), normalt sessionens
+ *   egen elev. Används för att GARANTERA att varje projektions-skrivning bär namn
+ *   (#316) även när patchen (award/rum/avatar/self-publish) inte gör det. Default:
+ *   tom (då faller vi tillbaka på patchens ev. namn och den defensiva läsningen).
  */
 export function createClassProjectionStore(adapter) {
   const { db, doc, collection, getDoc, getDocs, setDoc, updateDoc } = adapter;
   const now = adapter.now || (() => Date.now());
   const ttlMs = Number.isFinite(adapter.ttlMs) ? adapter.ttlMs : DEFAULT_TTL_MS;
+  const identityFor = typeof adapter.identityFor === "function" ? adapter.identityFor : () => ({});
 
   // Modul-/store-lokal session-cache: Map<classId, {value, ts}>.
   const cache = new Map();
@@ -221,6 +196,34 @@ export function createClassProjectionStore(adapter) {
   }
 
   /**
+   * DEFENSIV LÄSNING (#316): en glapp-post i projektionen som saknar `namn` (och
+   * `username`) skulle rita en trasig platshållare (rå-uid) i byn. Läs students/{id}
+   * för PRECIS de posterna och fyll i namnet – normalfallet (alla poster har namn)
+   * läser INGET, så O(1)-budgeten består. Best-effort: en misslyckad läsning
+   * lämnar posten oförändrad (bättre uid än en fälld vy). Muterar boende-posterna
+   * (färska objekt ur entryToBoende) och returnerar samma array.
+   */
+  async function fillMissingNames(boende) {
+    const missing = boendeMissingNameIds(boende);
+    if (missing.length === 0) return boende;
+    const byId = new Map(boende.map((b) => [b.id, b]));
+    await Promise.all(
+      missing.map(async (id) => {
+        try {
+          const ss = await getDoc(doc(db, "students", id));
+          const s = ss && ss.exists && ss.exists() ? ss.data() : {};
+          const b = byId.get(id);
+          if (b && s && s.namn) b.namn = s.namn;
+          if (b && s && !b.username && s.username) b.username = s.username;
+        } catch {
+          /* best-effort: behåll posten som den är */
+        }
+      })
+    );
+    return boende;
+  }
+
+  /**
    * By-/grannby-översikt för EN klass: säkerställ projektionen (self-heal EN gång
    * om den saknas/är ofullständig) och returnera den boende-array som mountByScen
    * + aggregateKlassStats ritar. Kostar EXAKT 1 getDoc när projektionen finns –
@@ -231,7 +234,7 @@ export function createClassProjectionStore(adapter) {
    */
   async function getClassOverview(classId, memberIds = []) {
     const { members } = await ensureClassProjection(classId, memberIds);
-    return boendeFromMembers(members, memberIds);
+    return fillMissingNames(boendeFromMembers(members, memberIds));
   }
 
   /**
@@ -300,6 +303,10 @@ export function createClassProjectionStore(adapter) {
     //   • BEST-EFFORT & icke-blockerande: översiktens returvärde är oförändrat
     //     oavsett skriv-utfall; fel sväljs (jfr #231 self-heal, commit b7022c3).
     if (myClassIds.length > 0 && appearanceChanged(freshSelf, selfBase)) {
+      // Bär ALLTID med namn/username (#316): den här self-publish-vägen kunde
+      // tidigare skapa/uppdatera en entry med bara utseende – utan namn – om
+      // eleven ännu inte hade en fullständig entry. namn tas ur den färska
+      // self-entryn (projektionens namn eller meNamn-fallback).
       const patch = {
         avatarId: freshSelf.avatarId,
         avatarItems: freshSelf.avatarItems,
@@ -307,6 +314,11 @@ export function createClassProjectionStore(adapter) {
         husSkalId: freshSelf.husSkalId,
         husLast: freshSelf.husLast,
       };
+      // Sätt namn/username bara när vi faktiskt känner dem (skriv aldrig över ett
+      // riktigt namn med ""); saknas de här fyller updateStudentProjection dem
+      // ur den kända identiteten (identityFor).
+      if (freshSelf.namn) patch.namn = freshSelf.namn;
+      if (freshSelf.username) patch.username = freshSelf.username;
       for (const cid of myClassIds) {
         Promise.resolve()
           .then(() => updateStudentProjection(cid, meId, patch))
@@ -314,7 +326,7 @@ export function createClassProjectionStore(adapter) {
       }
     }
 
-    return boendeFromMembers(merged, classmateIds(meId, classes));
+    return fillMissingNames(boendeFromMembers(merged, classmateIds(meId, classes)));
   }
 
   /**
@@ -328,12 +340,20 @@ export function createClassProjectionStore(adapter) {
    */
   async function updateStudentProjection(classId, studentId, patch = {}) {
     if (!classId || !studentId) return;
-    const fields = patch && typeof patch === "object" ? patch : {};
+    const raw = patch && typeof patch === "object" ? patch : {};
+    // Tom patch = no-op (som förr): vi lägger ALDRIG till namn på en skrivning som
+    // annars inte hade skett (då hade en ren läs-väg börjat skriva).
+    if (Object.keys(raw).length === 0) return;
+    // GARANTERA NAMN I VARJE SKRIVNING (#316): en partiell patch (award/rum/
+    // avatar/self-publish) får aldrig skapa – eller lämna – en members-entry utan
+    // `namn`. Bär patchen inte redan namn, fyll ur den kända identiteten (normalt
+    // sessionens egen elev, som är den som skriver dessa het-vägar). Läraren
+    // (upsertStudent) skickar redan namn explicit → withEntryName rör det inte då.
+    const fields = withEntryName(raw, identityFor(studentId));
     const paths = {};
     for (const [key, value] of Object.entries(fields)) {
       paths[`members.${studentId}.${key}`] = value;
     }
-    if (Object.keys(paths).length === 0) return;
     const ref = projRef(classId);
     try {
       await updateDoc(ref, paths);
