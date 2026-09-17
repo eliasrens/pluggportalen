@@ -132,6 +132,13 @@ const GENERATOR_CATALOG = {
   "matt-tid": ["omvandla"],
   "matt-area": ["omvandla"],
   "matt-volym": ["omvandla", "addition", "subtraktion", "oppen"],
+  // #321: visuella ämnen upplåsta – speglar adapterns surfade varianter (de vars
+  // svar matchar topicens answerType OCH har SVG-rendering i matte-visuals.js).
+  // Ordning + innehåll asserteras mot adaptern i test/matte-generator.test.js.
+  sannolikhet: ["brakform"],
+  statistik: ["las-av", "flest", "minst", "skillnad", "medelvarde", "typvarde", "median"],
+  koordinatsystem: ["forsta-kvadrant", "alla-kvadranter"],
+  klocka: ["las-av", "senare"],
 };
 
 /** Alla topics som fas 1 stödjer, i visningsordning. */
@@ -142,6 +149,71 @@ export function listTopics() {
 /** Variantnamnen för ett topic (tom array för okänt topic). */
 export function listVariants(topic) {
   return [...(GENERATOR_CATALOG[topic] || [])];
+}
+
+// ---------------------------------------------------------------------------
+//  Generator-inställningar: bildstöd & talstorlek (issue #322)
+// ---------------------------------------------------------------------------
+// Två enkla, ADAPTER-FRIA styrfält som läraren sätter vid områdesskapandet och som
+// sparas på area.generator jämte topic/variants/grade. De bor HÄR (i den statiska
+// bootgrafen) som ren katalogdata – ingen generatorlogik, ingen matte-generator-
+// import – exakt som topics/varianter ovan (#290). Den TUNGA vägen (bildstöds-SVG,
+// talstorlek→settings) läses bara dynamiskt i räkna-/generator-vägen.
+
+// Topics där bildstöd (array-/gruppmodellen i matte-bildstod.js, #319) är relevant.
+// I dag bara de numeriska rutnäts-topicsen multiplikation & division – övriga topics
+// ritar inget stöd, så väljaren visas inte för dem. Håll i synk med
+// isBildstodEligible i src/matte-bildstod.js (type multiplikation|division).
+const BILDSTOD_TOPICS = new Set(["multiplikation", "division"]);
+
+/** Är bildstöd (prick-array/grupp) meningsfullt för det här topicet? */
+export function topicSupportsBildstod(topic) {
+  return BILDSTOD_TOPICS.has(String(topic || "").trim());
+}
+
+/** Bildstöd är PÅ som standard där det är relevant (en avlastning, inte en distraktion). */
+export const BILDSTOD_DEFAULT = true;
+
+// Talstorlek – en enkel svårighets-/talintervallväljare. Mappas till generatorns
+// grade (som styr talintervall/tabeller/decimaler i pluginlagret), så vi återanvänder
+// den beprövade grade-axeln i stället för att uppfinna en egen min/max-axel per plugin.
+// "mellan" = projektets default-årskurs (åk 4). Ordningen är visningsordningen.
+export const TALSTORLEK_OPTIONS = [
+  { id: "liten", label: "Liten (mindre tal)", grade: 2 },
+  { id: "mellan", label: "Mellan (lagom)", grade: 4 },
+  { id: "stor", label: "Stor (större tal)", grade: 6 },
+];
+const TALSTORLEK_BY_ID = new Map(TALSTORLEK_OPTIONS.map((o) => [o.id, o]));
+
+/** Giltiga talstorlek-id, i visningsordning. */
+export function listTalstorlekar() {
+  return TALSTORLEK_OPTIONS.map((o) => o.id);
+}
+
+/**
+ * Årskursen (1–6) som en talstorlek motsvarar, eller null för okänt/osatt värde.
+ * Genererings-vägen (rakna-core.js) använder den som settings.grade så talen får rätt
+ * storlek – oberoende av områdets ev. årskurs-metadata.
+ * @param {*} talstorlek
+ * @returns {number|null}
+ */
+export function talstorlekToGrade(talstorlek) {
+  const opt = TALSTORLEK_BY_ID.get(String(talstorlek || "").trim());
+  return opt ? opt.grade : null;
+}
+
+/**
+ * Är bildstöd påslaget för en (normaliserad) generator-konfig? Bildstöd är PÅ som
+ * standard (BILDSTOD_DEFAULT) för topics som stödjer det och stängs bara av när
+ * area.generator.bildstod uttryckligen är false. Topics utan bildstöds-stöd → alltid
+ * false. Renderingsvägen (räkna-läget, issue #320) frågar den här EN gång innan den
+ * ritar något stöd, så på/av-valet respekteras på ett ställe.
+ * @param {object} generator – normaliserad area.generator
+ * @returns {boolean}
+ */
+export function generatorBildstodEnabled(generator) {
+  if (!topicSupportsBildstod(generator?.topic)) return false;
+  return generator?.bildstod !== false; // saknas fältet → BILDSTOD_DEFAULT (på)
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +245,19 @@ export function normalizeGenerator(raw) {
   // Årskurs är valfri styrning (jfr grades.js) – tas bara med när den är satt.
   const grade = normalizeGrade(raw.grade);
   if (grade) out.grade = grade;
+
+  // Bildstöd (issue #322): bara meningsfullt – och därför bara sparat – för topics
+  // där det kan ritas. Explicit boolean vinner; saknas fältet gäller BILDSTOD_DEFAULT
+  // nedströms (renderingen). Så äldre generator-områden utan fältet fortsätter fungera.
+  if (topicSupportsBildstod(topic) && typeof raw.bildstod === "boolean") {
+    out.bildstod = raw.bildstod;
+  }
+
+  // Talstorlek (issue #322): valfri svårighets-/talstorleksväljare. Behåll bara ett
+  // känt id; okänt/osatt → utelämnas (då styr ev. årskurs, annars adapterns default).
+  const talstorlek = String(raw.talstorlek || "").trim();
+  if (TALSTORLEK_BY_ID.has(talstorlek)) out.talstorlek = talstorlek;
+
   return out;
 }
 

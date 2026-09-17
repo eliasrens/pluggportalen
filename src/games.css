@@ -1418,6 +1418,81 @@
 
 .a4-eq { color: var(--bla); }
 
+/* Bildstöd för de visuella ämnena i räkna (#321): urtavla/kulpåse/stapeldiagram/
+   rutnät ritas överst i A4-kortet, med frågetexten i lagom storlek under (den
+   stora .a4-task-fonten passar bara korta "a op b ="-tal). */
+.rakna-visual {
+  max-width: 300px;
+  margin: 4px auto 10px;
+}
+/* Direkt-SVG = degraderat läge (rit-lagret kunde inte laddas, #325); wrappat
+   läge sizas via .rakna-visual .bildstod-draw nedan. */
+.rakna-visual > svg { display: block; width: 100%; height: auto; }
+/* Wrappat: rit-lagret fyller bredden, höjd ur bildförhållandet (aspect-ratio). */
+.rakna-visual .bildstod-draw { width: 100%; margin: 0 auto; }
+.rakna-question {
+  font-size: clamp(1.05rem, 3.2vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+/* I förstorat läge får bildstödet mer plats. */
+.a4-card.scratch-fs .rakna-visual { max-width: 360px; }
+
+/* Bildstöd (#320): array-/rutnätsstödet (ren SVG från matte-bildstod.js) ligger
+   som en egen rad INNE i kortet, direkt under talet, så det följer med när kortet
+   fälls ut till fullskärm. Egen intrinsisk storlek ur SVG:ns viewBox (CSS width/
+   height:auto vinner över dess width="100%"-attribut), höjd-kapad så stora rutnät
+   krymper men små inte blåses upp. Centrerad, med samma streckade avdelare som
+   talet ovanför. Tas bort helt (hidden) när uppgiften saknar bildstöd. */
+.rakna-bildstod {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-bottom: 2px dashed #dbe6f7;
+}
+/* Direkt-SVG = degraderat läge (utan rit-lager); wrappat sizas nedan. */
+.rakna-bildstod > svg.bildstod {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: clamp(64px, 18vh, 170px);
+}
+/* I fullskärm får bildstödet inte äta ritutrymmet – håll det lite lägre. */
+.scratch-fs .rakna-bildstod > svg.bildstod { max-height: clamp(56px, 14vh, 150px); }
+
+/* Rit-lager ovanpå bildstödet (#325): en wrapper där bildstöds-SVG:n är
+   bakgrundslager och en transparent canvas ligger ovanpå i EXAKT samma box, så
+   pennstrecken hamnar i linje med bilden (visare mitt på urtavlan, prickar i
+   array-rutorna) och skalar likformigt med när kortet fälls ut. Boxen får en
+   DEFINITIV storlek ur bildstödets bildförhållande (aspect-ratio sätts inline ur
+   viewBox i bildstod-draw.js) – en axel styrs per kontext (bredd i .rakna-visual,
+   höjd i det flex-centrerade .rakna-bildstod), den andra följer förhållandet. Både
+   SVG och canvas är absoluta och fyller wrappern (100 %) → delar alltid exakt
+   samma box, oberoende av SVG:ns bräckliga inneboende px-storlek. */
+.bildstod-draw { position: relative; display: block; max-width: 100%; }
+.bildstod-draw > svg,
+.bildstod-draw > .bildstod-draw-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.bildstod-draw > svg { display: block; }
+.bildstod-draw-canvas {
+  cursor: crosshair;
+  touch-action: none;         /* ett finger ritar i stället för att skrolla (som .a4-scratch) */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Höjden på array-/rutnätsstödet i räkna (flex-centrerat); bredden följer
+   bildförhållandet. Definitiv höjd behövs så flex-itemet inte kollapsar. */
+.rakna-bildstod .bildstod-draw { height: clamp(72px, 17vh, 160px); }
+.scratch-fs .rakna-bildstod .bildstod-draw { height: clamp(64px, 13vh, 140px); }
+
 .a4-scratch-hint {
   flex: 0 0 auto;
   text-align: center;

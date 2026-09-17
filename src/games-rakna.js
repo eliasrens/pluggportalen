@@ -29,7 +29,7 @@ import * as data from "./data.js";
 import { sound } from "./fx.js";
 import { gameFrame, showResult, starsFromRatio, esc } from "./game-shared.js";
 import { normalizeGenerator } from "./exercise-types.js";
-import { createScratchCard } from "./scratchpad.js";
+import { createScratchCard, attachScratchpad } from "./scratchpad.js";
 import {
   ROUND_SIZE,
   sessionSeed,
@@ -38,6 +38,53 @@ import {
   expectedAnswerText,
   checkAnswer,
 } from "./rakna-core.js";
+
+// --- Bildstöd (issue #320) --------------------------------------------------
+// Renderingsmodulen (matte-bildstod.js, #319) laddas BARA via denna DYNAMISKA
+// import – aldrig statiskt – så den hålls UTANFÖR den statiska bootgrafen från
+// app.js (jfr #271/#290, verifieras av test/matte-bildstod.test.js). Resultatet
+// cachas: undefined = ej försökt, null = importen föll (degradera snällt och
+// visa uppgiften utan bild), annars modulen. En misslyckad import stänger av
+// bildstödet för resten av sessionen utan att spamma nya försök.
+let bildstodMod; // undefined | null | { renderBildstod, ... }
+async function loadBildstod() {
+  if (bildstodMod === undefined) {
+    try { bildstodMod = await import("./matte-bildstod.js"); }
+    catch { bildstodMod = null; }
+  }
+  return bildstodMod;
+}
+
+// --- Rit-lager ovanpå bildstödet (issue #325) -------------------------------
+// bildstod-draw.js (rit-lagret, ren/import-fri) laddas BARA via denna DYNAMISKA
+// import – aldrig statiskt – så den hålls UTANFÖR den statiska bootgrafen (jfr
+// #271/#290/#319). Cache: undefined = ej försökt, null = föll (degradera: visa
+// bildstödet utan rit-lager), annars modulen.
+let drawMod; // undefined | null | { attachDrawLayer, wrapDrawable }
+async function loadDrawLayer() {
+  if (drawMod === undefined) {
+    try { drawMod = await import("./bildstod-draw.js"); }
+    catch { drawMod = null; }
+  }
+  return drawMod;
+}
+
+// Montera ett bildstöds-SVG i `host` med ett transparent rit-lager ovanpå (#325):
+// eleven kan rita direkt på bilden, och lagret registreras som en extra rityta i
+// kortet (samma penna/sudd/Rensa, skalar med i fullskärm). Faller lagret bort
+// (import misslyckas) visas bildstödet ändå, utan rit-lager. `ctx.alive()` är
+// stale-skyddet: montera bara om det här kortet fortfarande är aktivt.
+async function mountDrawable(svg, host, ctx) {
+  const dm = await loadDrawLayer();
+  if (!ctx.alive()) return;
+  if (dm && typeof dm.attachDrawLayer === "function") {
+    const layer = dm.attachDrawLayer(svg, { document, attach: attachScratchpad });
+    host.replaceChildren(layer.wrapper);
+    ctx.scratch.addPad(layer.pad); // ärver verktyg + rivs/skalas med kortet
+  } else {
+    host.replaceChildren(svg); // degradera snällt: bildstöd utan rit-lager
+  }
+}
 
 // --- Spelet -----------------------------------------------------------------
 
@@ -48,6 +95,12 @@ import {
 export function startRakna(ctx) {
   const { subj, area, areaData } = ctx;
   const generator = normalizeGenerator(areaData?.generator);
+
+  // Lärar-inställning för bildstödet: läses från den RÅA områdes-konfigen (den
+  // normaliserade generatorn bär inte fältet) och är PÅ som standard. Lärar-UI:t
+  // som sätter `generator.bildstod=false` är en egen issue; tills dess visas
+  // bildstödet för alla behöriga uppgifter. Bara ett uttryckligt false stänger av.
+  const bildstodOn = areaData?.generator?.bildstod !== false;
 
   const view = gameFrame({ subj, area, title: "Räkna", emoji: "🔢" });
   const body = view.querySelector("#game-body");
@@ -94,16 +147,65 @@ export function startRakna(ctx) {
     const { problem, answer } = round[idx];
     let answered = false; // en rättning per uppgift (spärr mot dubbelsvar)
 
+    // Svarstyp styr både hjälptexten och rättningen (rakna-core.js checkAnswer).
+    // De visuella ämnena (#321) har icke-numeriskt svar OCH ett bildstöd (urtavla/
+    // kulpåse/stapeldiagram/rutnät) som ritas överst i kortet i stället för "= ".
+    const answerType = problem.answerType || "numeric";
+    const isVisual = answerType !== "numeric";
+
     const hint = problem.hasRemainder
       ? `Svara med kvot och rest, t.ex. <b>3 rest 1</b>.`
-      : `Skriv ditt slutsvar. Använd komma för decimaler (t.ex. 3,5).`;
+      : answerType === "fraction"
+        ? `Svara i bråkform, t.ex. <b>1/2</b>.`
+        : answerType === "coord"
+          ? `Svara med koordinater, t.ex. <b>(3, 4)</b>.`
+          : answerType === "time"
+            ? `Svara med klockslag, t.ex. <b>07:30</b>.`
+            : answerType === "text"
+              ? `Skriv ditt svar – ett ord eller en siffra.`
+              : `Skriv ditt slutsvar. Använd komma för decimaler (t.ex. 3,5).`;
 
     // Delat kladdkort (A4 + canvas + verktyg + förstora): samma yta som äventyrens
     // generator-utmaning (#296). Kortet fälls ut till fullskärm via förstora-knappen.
+    // Visuella ämnen: bildstödet ritas i en slot överst (fylls av dynamisk import
+    // nedan), sedan frågetexten; numeriska ämnen behåller "a op b =".
+    const taskHtml = isVisual
+      ? `<div class="rakna-visual" data-visual-slot></div>` +
+        `<div class="rakna-question">${esc(problemDisplay(problem))}</div>`
+      : `${esc(problemDisplay(problem))} <span class="a4-eq">=</span>`;
     scratch = createScratchCard({
-      taskHtml: `${esc(problemDisplay(problem))} <span class="a4-eq">=</span>`,
+      taskHtml,
       onAction: () => sound.click(),
     });
+
+    // Bildstöd (#320): array-/rutnätsstöd för behöriga numeriska uppgifter, INNE i
+    // kortet (direkt under talet) så det följer med när kortet fälls ut till
+    // fullskärm (#312-mönstret: allt som ska synas i fullskärm måste ligga IN i
+    // kortet, inte som syskon). Värden fylls i asynkront efter dynamisk import;
+    // en tom, dold platta reserveras nu så layouten inte hoppar. Behörigheten
+    // avgör renderingsmodulen själv (isBildstodEligible) – vi visar bara om den
+    // ger ett element tillbaka.
+    if (bildstodOn) {
+      const bildHost = el(`<div class="rakna-bildstod" hidden></div>`);
+      scratch.card.querySelector(".a4-task").after(bildHost);
+      const myCard = scratch.card;
+      // Stale-skydd: eleven kan ha bytt uppgift (nytt kort) eller navigerat bort
+      // medan importen laddade. Rendera bara om det här kortet fortfarande är aktivt.
+      const alive = () => !ended && !!scratch && scratch.card === myCard;
+      loadBildstod().then(async (mod) => {
+        if (!alive()) return;
+        if (!mod || typeof mod.renderBildstod !== "function") return;
+        let svg = null;
+        try { svg = mod.renderBildstod(problem, { document }); } catch { svg = null; }
+        if (!svg) return; // inte behörig / fel → visa uppgiften utan bild
+        // Rit-lager ovanpå array-/rutnätsstödet (#325): eleven kan pricka i rutorna.
+        await mountDrawable(svg, bildHost, { alive, scratch });
+        if (!alive()) return;
+        bildHost.hidden = false;
+        // Kortet har nu en rad till – låt kladdytans buffert skala om efter layouten.
+        if (scratch && scratch.pad && scratch.pad.resize) scratch.pad.resize();
+      });
+    }
 
     const wrap = el(`<div class="rakna">
       <div class="rakna-progress">Uppgift <b>${idx + 1}</b> av ${total}</div>
@@ -122,6 +224,29 @@ export function startRakna(ctx) {
     </div>`);
     wrap.querySelector(".rakna-stage").appendChild(scratch.card);
     body.replaceChildren(wrap);
+
+    // Bildstöd för de visuella ämnena (#321). DYNAMISK import: matte-visuals.js
+    // (och dess matte-svg.js/matte-bildstod.js) hålls UTANFÖR den statiska
+    // bootgrafen (jfr #271/#290/#319). Frågan funkar även om importen fallerar –
+    // då visas bara texten.
+    if (isVisual) {
+      const myCard = scratch.card;
+      const alive = () => !ended && !!scratch && scratch.card === myCard;
+      import("./matte-visuals.js")
+        .then(async (m) => {
+          if (!alive()) return;
+          const slot = wrap.querySelector("[data-visual-slot]");
+          if (!slot) return;
+          // Begär ett riktigt SVG-element (opts.document) så rit-lagret (#325) kan
+          // läggas ovanpå det – eleven ritar direkt på urtavlan/rutnätet.
+          let svg = null;
+          try { svg = m.renderTopicVisual(problem, { document }); } catch { svg = null; }
+          if (!svg) return; // inget visuellt stöd passar → bara frågetexten
+          await mountDrawable(svg, slot, { alive, scratch });
+          if (alive() && scratch && scratch.pad && scratch.pad.resize) scratch.pad.resize();
+        })
+        .catch(() => { /* utan bild funkar frågan ändå */ });
+    }
 
     const form = wrap.querySelector(".rakna-answer");
     const input = wrap.querySelector(".rakna-input");

@@ -8,8 +8,12 @@
     <link rel="stylesheet" href="./src/games.css" />
     <style>
       body { padding: 16px; }
-      .preview-note { max-width: 640px; margin: 0 auto 12px; }
+      .preview-note { max-width: 720px; margin: 0 auto 12px; }
       .preview-pick { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+      .preview-pick .grp { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+      .preview-pick .grp b { font-size: 12px; color: #555; margin-right: 2px; }
+      .preview-toggle { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 10px; font-weight: 600; }
+      .preview-sep { flex-basis: 100%; height: 0; }
     </style>
   </head>
   <body>
@@ -18,15 +22,32 @@
     <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
     <aside class="sidebar" id="sidebar"><div id="sidebar-body"></div></aside>
     <div class="preview-note panel">
-      <b>Förhandsvisning av Räkna-läget (issue #280)</b> – kör mot mock-data (ingen
-      inloggning). Uppgiften visas som ett A4-kort med en flyktig kladdyta (rita med
-      mus eller finger, penna/sudd/rensa). Skriv slutsvaret och tryck <b>Svara</b>.
-      Belöningen räknas ut lokalt (persistens sker inte utan inloggning).
+      <b>Förhandsvisning av Räkna-läget – bildstöd fas 3 (issue #323)</b> – kör mot
+      mock-data (ingen inloggning). Uppgiften visas som ett A4-kort med en flyktig
+      kladdyta (rita med mus eller finger). Skriv slutsvaret och tryck <b>Svara</b>.
+      <ul style="margin:8px 0 0; padding-left:18px; font-size:13px;">
+        <li><b>Bild-multiplikation</b> och <b>Division (med rest)</b> visar array-/rutnätsstöd
+          (prickar) inne i kortet – följer med när kortet förstoras.</li>
+        <li><b>Klocka / Sannolikhet / Statistik / Koordinatsystem</b> är upplåsta visuella
+          ämnen: SVG-stöd (urtavla, kulpåse, stapeldiagram, rutnät) renderas ovanför frågan.</li>
+        <li>Slå <b>Bildstöd av</b> för att se att inget array-stöd ritas (numeriska ämnen).</li>
+      </ul>
+      <div class="preview-toggle">
+        <label><input type="checkbox" id="bildstod-toggle" checked /> Bildstöd på</label>
+      </div>
       <div class="preview-pick">
-        <button class="btn liten" data-gen="addition">Addition</button>
-        <button class="btn liten" data-gen="multiplikation">Multiplikation</button>
-        <button class="btn liten" data-gen="division-rest">Division (med rest)</button>
-        <button class="btn liten" data-gen="decimaler">Decimaler</button>
+        <div class="grp"><b>Numeriskt:</b>
+          <button class="btn liten" data-gen="addition">Addition</button>
+          <button class="btn liten" data-gen="mult-bild">Mult (bild)</button>
+          <button class="btn liten" data-gen="division-rest">Division (rest)</button>
+        </div>
+        <div class="preview-sep"></div>
+        <div class="grp"><b>Visuella ämnen:</b>
+          <button class="btn liten" data-gen="klocka">Klocka</button>
+          <button class="btn liten" data-gen="sannolikhet">Sannolikhet</button>
+          <button class="btn liten" data-gen="statistik">Statistik</button>
+          <button class="btn liten" data-gen="koordinatsystem">Koordinatsystem</button>
+        </div>
       </div>
     </div>
     <main id="app" class="container"></main>
@@ -34,16 +55,26 @@
     <script type="module">
       import { startRakna } from "./src/games-rakna.js";
 
-      // Olika generator-konfigurationer att prova (samma form som area.generator, #279).
+      // Generator-konfigurationer i samma form som area.generator (#279/#322):
+      // { topic, variants, grade?, bildstod?, talstorlek? }.
       const GENS = {
-        addition:        { topic: "addition",       variants: ["enkel", "uppstallning"], grade: "ak4" },
-        multiplikation:  { topic: "multiplikation", variants: ["tabeller"],              grade: "ak4" },
-        "division-rest": { topic: "division",        variants: ["rest"],                  grade: "ak4" },
-        decimaler:       { topic: "addition",        variants: ["decimaler"],             grade: "ak4" },
+        addition:        { topic: "addition",        variants: ["enkel", "uppstallning"] },
+        "mult-bild":     { topic: "multiplikation",  variants: ["bild"] },
+        "division-rest": { topic: "division",        variants: ["rest"] },
+        klocka:          { topic: "klocka",          variants: ["las-av", "senare"] },
+        sannolikhet:     { topic: "sannolikhet",     variants: ["brakform"] },
+        statistik:       { topic: "statistik",       variants: ["las-av", "flest", "skillnad"] },
+        koordinatsystem: { topic: "koordinatsystem", variants: ["forsta-kvadrant", "alla-kvadranter"] },
       };
 
+      const bildstodToggle = document.getElementById("bildstod-toggle");
+      let current = "mult-bild";
+
       function run(key) {
-        const generator = GENS[key] || GENS.addition;
+        current = key || current;
+        // bildstöd-flaggan gäller de numeriska array-ämnena; visuella ämnen
+        // renderar sitt eget stöd oavsett (renderTopicVisual).
+        const generator = { ...(GENS[current] || GENS.addition), bildstod: bildstodToggle.checked };
         startRakna({
           subj: "matematik",
           area: "rakna-demo",
@@ -54,8 +85,9 @@
       document.querySelectorAll("[data-gen]").forEach((b) =>
         b.addEventListener("click", () => run(b.dataset.gen))
       );
+      bildstodToggle.addEventListener("change", () => run());
 
-      run("addition");
+      run("mult-bild");
     </script>
   </body>
 </html>

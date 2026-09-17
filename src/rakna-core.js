@@ -17,6 +17,7 @@
 // ============================================================================
 
 import { generateProblem } from "./matte-generator.js";
+import { talstorlekToGrade } from "./exercise-types.js";
 import { gradeNr } from "./grades.js";
 
 // Antal uppgifter i en runda. Matchar övriga grind-lägens känsla (quiz kör 10);
@@ -85,18 +86,37 @@ export function expectedAnswerText(problem, answer) {
 }
 
 /**
- * Rätta elevens råa slutsvar mot generatorns facit.
- *  • Vanliga tal: numerisk jämförelse, tål både "1,5" och "1.5" och kringliggande
- *    blanksteg. Liten epsilon för decimaltal (facit är redan avrundat i adaptern).
- *  • "rest"-varianten (hasRemainder): kräver BÅDE kvot och rest. Plockar ut de
- *    två första heltalen ur svaret, så "3 rest 1", "3 r 1" och "3, 1" alla går.
+ * Rätta elevens råa slutsvar mot generatorns facit. Väljer rättningsstrategi ur
+ * problem.answerType (adaptern sätter det, default 'numeric'):
+ *  • 'numeric' – numerisk jämförelse (tål "1,5"/"1.5" + blanksteg, epsilon för
+ *    decimaler) och "rest"-varianten (kräver BÅDE kvot och rest).
+ *  • 'fraction' (#321) – bråk/heltal, VÄRDES-lika: "3/6", "1/2" och "0,5" godtas
+ *    alla mot facit "1/2".
+ *  • 'coord' (#321) – två heltal ur svaret, t.ex. "(3, 4)", "3,4" → (3,4).
+ *  • 'time' (#321) – klockslag mod 12 h: "07:30", "7:30", "7.30", "0730".
+ *  • 'text' (#321) – normaliserad textjämförelse (etikett), med numerisk fallback
+ *    så siffersvar (statistik) tål komma/punkt.
  * @param {object} problem – adapterns problem-objekt
- * @param {number} answer  – adapterns facit (kvoten för rest-varianten)
- * @param {string} raw     – elevens inmatade text
+ * @param {number|string} answer – adapterns facit
+ * @param {string} raw – elevens inmatade text
  * @returns {boolean}
  */
 export function checkAnswer(problem, answer, raw) {
-  const s = String(raw == null ? "" : raw).trim().toLowerCase();
+  const s = String(raw == null ? "" : raw).trim();
+  if (!s) return false;
+
+  switch (problem?.answerType) {
+    case "fraction": return checkFraction(answer, s);
+    case "coord":    return checkCoord(answer, s);
+    case "time":     return checkTime(answer, s);
+    case "text":     return checkText(answer, s);
+    default:         return checkNumeric(problem, answer, s);
+  }
+}
+
+/** Numeriskt facit (+ rest-varianten). Oförändrad logik från #280. */
+function checkNumeric(problem, answer, raw) {
+  const s = String(raw).trim().toLowerCase();
   if (!s) return false;
 
   if (problem?.hasRemainder) {
@@ -108,6 +128,72 @@ export function checkAnswer(problem, answer, raw) {
   const val = Number(s.replace(/\s+/g, "").replace(",", "."));
   if (!Number.isFinite(val)) return false;
   return Math.abs(val - answer) < 1e-6;
+}
+
+/** Parsa "a/b", heltal eller decimaltal (komma/punkt) → [täljare, nämnare]. */
+function parseFrac(str) {
+  const s = String(str).trim().replace(",", ".");
+  const m = s.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+  if (m) return [Number(m[1]), Number(m[2])];
+  const n = Number(s);
+  return Number.isFinite(n) ? [n, 1] : null;
+}
+
+/** Bråk-facit: värdes-lika (korsmultiplikation), så "3/6" == "1/2" == "0,5". */
+function checkFraction(answer, raw) {
+  const a = parseFrac(answer), b = parseFrac(raw);
+  if (!a || !b || a[1] === 0 || b[1] === 0) return false;
+  return Math.abs(a[0] * b[1] - b[0] * a[1]) < 1e-9;
+}
+
+/** Alla signerade heltal ur en sträng. */
+function intsIn(str) {
+  const m = String(str).match(/-?\d+/g);
+  return m ? m.map(Number) : [];
+}
+
+/** Koordinat-facit: samma första två heltal, "(3, 4)"/"3,4"/"3 4". */
+function checkCoord(answer, raw) {
+  const a = intsIn(answer), b = intsIn(raw);
+  if (a.length < 2 || b.length < 2) return false;
+  return a[0] === b[0] && a[1] === b[1];
+}
+
+/** Klockslag → [timme mod 12, minut] eller null. Tål ":" "." " " och "HHMM". */
+function parseTime(str) {
+  const s = String(str).trim();
+  const m = s.replace(/[.\s]+/g, ":").match(/^(\d{1,2}):(\d{1,2})$/);
+  if (m) {
+    const mm = Number(m[2]);
+    if (mm >= 60) return null;
+    return [Number(m[1]) % 12, mm];
+  }
+  const digits = s.replace(/\D/g, "");
+  if (digits.length === 3 || digits.length === 4) {
+    const h = Number(digits.slice(0, digits.length - 2));
+    const mm = Number(digits.slice(-2));
+    if (mm < 60) return [h % 12, mm];
+  }
+  return null;
+}
+
+/** Tid-facit: samma klockslag mod 12 h (facit är alltid "HH:MM" i 12-timmars). */
+function checkTime(answer, raw) {
+  const a = parseTime(answer), b = parseTime(raw);
+  if (!a || !b) return false;
+  return a[0] === b[0] && a[1] === b[1];
+}
+
+/** Text-facit: normaliserad jämförelse (etikett), med numerisk fallback. */
+function checkText(answer, raw) {
+  const na = normText(answer), nb = normText(raw);
+  if (na === nb) return true;
+  const va = Number(na.replace(",", ".")), vb = Number(nb.replace(",", "."));
+  return Number.isFinite(va) && Number.isFinite(vb) && Math.abs(va - vb) < 1e-6;
+}
+
+function normText(str) {
+  return String(str == null ? "" : str).trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 /** Är två genererade uppgifter i praktiken samma (samma synliga text)? */
@@ -132,7 +218,9 @@ export function buildRound(generator, baseSeed, count = ROUND_SIZE) {
   const variants = Array.isArray(generator?.variants) && generator.variants.length
     ? generator.variants
     : [undefined]; // adaptern faller tillbaka till första varianten
-  const grade = gradeNr(generator?.grade) || undefined;
+  // Talstorlek (issue #322) styr talens storlek via generatorns grade-axel och vinner
+  // över områdets ev. årskurs-metadata. Osatt → årskursen, annars adapterns default.
+  const grade = talstorlekToGrade(generator?.talstorlek) || gradeNr(generator?.grade) || undefined;
 
   const round = [];
   let seedCursor = baseSeed >>> 0;

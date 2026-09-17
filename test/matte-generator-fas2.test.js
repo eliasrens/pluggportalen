@@ -346,14 +346,32 @@ test("olika frön ger variation för fas 2-topics", () => {
 });
 
 // --- 4. answerType stämmer med svarets form ---------------------------------
+// #321 låste upp visuella ämnen: spelbart ⟺ numeriskt gäller INTE längre. Ett
+// spelbart topic har en answerType i den tillåtna mängden, och svarets FORM ska
+// matcha den (numeric→number, övriga→icke-tom sträng på rätt form).
+const PLAYABLE_ANSWER_TYPES = new Set(['numeric', 'fraction', 'coord', 'time', 'text']);
 
-test("spelbara topics ger numeriskt svar; answerType satt på problemet", () => {
+/** Stämmer svarets form med topicens answerType? */
+function answerFormOk(answerType, answer) {
+  switch (answerType) {
+    case 'numeric': return typeof answer === 'number' && Number.isFinite(answer);
+    case 'fraction': return typeof answer === 'string' && /^-?\d+(\/\d+)?$/.test(answer.trim());
+    case 'coord': return typeof answer === 'string' && /^\(-?\d+,\s*-?\d+\)$/.test(answer.trim());
+    case 'time': return typeof answer === 'string' && /^\d{1,2}:\d{2}$/.test(answer.trim());
+    case 'text': return typeof answer === 'string' && answer.trim().length > 0;
+    default: return false;
+  }
+}
+
+test("spelbara topics: answerType tillåten + svarets form matchar (#321)", () => {
   for (const topic of listTopics()) {
+    const at = topicAnswerType(topic);
+    assert.ok(PLAYABLE_ANSWER_TYPES.has(at), `${topic}: otillåten answerType ${at}`);
     for (const variant of listVariants(topic)) {
       const res = generateProblem(topic, { variant }, 3);
-      assert.equal(res.problem.answerType, 'numeric', `${topic}/${variant} borde vara numeric`);
-      assert.equal(typeof res.answer, 'number');
-      assert.ok(Number.isFinite(res.answer));
+      assert.equal(res.problem.answerType, at, `${topic}/${variant}: answerType på problemet ska vara ${at}`);
+      assert.ok(answerFormOk(at, res.answer),
+        `${topic}/${variant}: svarets form matchar inte ${at}: ${JSON.stringify(res.answer)}`);
       assert.ok(!('answer' in res.problem), `${topic}: answer läckte in i problem`);
       assert.equal(typeof res.problem.text, 'string');
       assert.ok(res.problem.text.length > 0);
@@ -361,12 +379,13 @@ test("spelbara topics ger numeriskt svar; answerType satt på problemet", () => 
   }
 });
 
-test("icke-spelbara topics är korrekt markerade (answerType != numeric ELLER ej surfade)", () => {
+test("surfat ⟹ spelbart, och answerType är alltid en tillåten typ", () => {
   const surfaced = new Set(listTopics());
   for (const topic of FAS2_TOPICS) {
     if (surfaced.has(topic)) {
       assert.ok(isTopicPlayable(topic), `${topic} surfas men är ej markerat spelbart`);
-      assert.equal(topicAnswerType(topic), 'numeric');
+      assert.ok(PLAYABLE_ANSWER_TYPES.has(topicAnswerType(topic)),
+        `${topic}: spelbart men otillåten answerType`);
     } else {
       assert.ok(!isTopicPlayable(topic), `${topic} surfas ej men markerat spelbart`);
     }
