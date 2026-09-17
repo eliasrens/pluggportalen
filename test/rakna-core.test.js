@@ -124,6 +124,31 @@ test("buildRound stödjer division inkl. rest-varianten", () => {
   }
 });
 
+// --- talstorlek styr talens storlek (issue #322) ----------------------------
+
+test("buildRound: talstorlek styr hur stora talen blir (liten < stor)", () => {
+  // Störst operand i en addition-runda för en given talstorlek.
+  function maxOperand(talstorlek) {
+    const gen = { topic: "addition", variants: ["enkel"], talstorlek };
+    const round = buildRound(gen, sessionSeed("e", 3), 16);
+    return Math.max(...round.map((r) => Math.max(r.problem.a, r.problem.b)));
+  }
+  const liten = maxOperand("liten"); // grade 2 → talintervall upp till ~100
+  const stor = maxOperand("stor");   // grade 6 → talintervall upp till ~1000
+  assert.ok(liten <= 100, `liten gav operand ${liten} (>100)`);
+  assert.ok(stor > liten, `stor (${stor}) borde ge större tal än liten (${liten})`);
+});
+
+test("buildRound: okänd/utelämnad talstorlek faller tillbaka på årskurs (bakåtkompatibelt)", () => {
+  // Utan talstorlek styr grade som förr – samma följd som tidigare kontrakt.
+  const gen = { topic: "addition", variants: ["enkel"], grade: "ak4" };
+  const round = buildRound(gen, sessionSeed("e", 1), 4);
+  assert.equal(round.length, 4);
+  for (const item of round) {
+    assert.equal(checkAnswer(item.problem, item.answer, String(item.answer)), true);
+  }
+});
+
 // --- createProblemSource (äventyrens oändliga ström, #296) -------------------
 
 test("createProblemSource ger giltiga uppgifter med korrekt facit", () => {

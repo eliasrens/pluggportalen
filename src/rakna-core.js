@@ -17,6 +17,7 @@
 // ============================================================================
 
 import { generateProblem } from "./matte-generator.js";
+import { talstorlekToGrade } from "./exercise-types.js";
 import { gradeNr } from "./grades.js";
 
 // Antal uppgifter i en runda. Matchar övriga grind-lägens känsla (quiz kör 10);
@@ -132,7 +133,9 @@ export function buildRound(generator, baseSeed, count = ROUND_SIZE) {
   const variants = Array.isArray(generator?.variants) && generator.variants.length
     ? generator.variants
     : [undefined]; // adaptern faller tillbaka till första varianten
-  const grade = gradeNr(generator?.grade) || undefined;
+  // Talstorlek (issue #322) styr talens storlek via generatorns grade-axel och vinner
+  // över områdets ev. årskurs-metadata. Osatt → årskursen, annars adapterns default.
+  const grade = talstorlekToGrade(generator?.talstorlek) || gradeNr(generator?.grade) || undefined;
 
   const round = [];
   let seedCursor = baseSeed >>> 0;
