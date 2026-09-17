@@ -39,6 +39,22 @@ import {
   checkAnswer,
 } from "./rakna-core.js";
 
+// --- Bildstöd (issue #320) --------------------------------------------------
+// Renderingsmodulen (matte-bildstod.js, #319) laddas BARA via denna DYNAMISKA
+// import – aldrig statiskt – så den hålls UTANFÖR den statiska bootgrafen från
+// app.js (jfr #271/#290, verifieras av test/matte-bildstod.test.js). Resultatet
+// cachas: undefined = ej försökt, null = importen föll (degradera snällt och
+// visa uppgiften utan bild), annars modulen. En misslyckad import stänger av
+// bildstödet för resten av sessionen utan att spamma nya försök.
+let bildstodMod; // undefined | null | { renderBildstod, ... }
+async function loadBildstod() {
+  if (bildstodMod === undefined) {
+    try { bildstodMod = await import("./matte-bildstod.js"); }
+    catch { bildstodMod = null; }
+  }
+  return bildstodMod;
+}
+
 // --- Spelet -----------------------------------------------------------------
 
 /**
@@ -48,6 +64,12 @@ import {
 export function startRakna(ctx) {
   const { subj, area, areaData } = ctx;
   const generator = normalizeGenerator(areaData?.generator);
+
+  // Lärar-inställning för bildstödet: läses från den RÅA områdes-konfigen (den
+  // normaliserade generatorn bär inte fältet) och är PÅ som standard. Lärar-UI:t
+  // som sätter `generator.bildstod=false` är en egen issue; tills dess visas
+  // bildstödet för alla behöriga uppgifter. Bara ett uttryckligt false stänger av.
+  const bildstodOn = areaData?.generator?.bildstod !== false;
 
   const view = gameFrame({ subj, area, title: "Räkna", emoji: "🔢" });
   const body = view.querySelector("#game-body");
@@ -124,6 +146,32 @@ export function startRakna(ctx) {
       taskHtml,
       onAction: () => sound.click(),
     });
+
+    // Bildstöd (#320): array-/rutnätsstöd för behöriga numeriska uppgifter, INNE i
+    // kortet (direkt under talet) så det följer med när kortet fälls ut till
+    // fullskärm (#312-mönstret: allt som ska synas i fullskärm måste ligga IN i
+    // kortet, inte som syskon). Värden fylls i asynkront efter dynamisk import;
+    // en tom, dold platta reserveras nu så layouten inte hoppar. Behörigheten
+    // avgör renderingsmodulen själv (isBildstodEligible) – vi visar bara om den
+    // ger ett element tillbaka.
+    if (bildstodOn) {
+      const bildHost = el(`<div class="rakna-bildstod" hidden></div>`);
+      scratch.card.querySelector(".a4-task").after(bildHost);
+      const myCard = scratch.card;
+      loadBildstod().then((mod) => {
+        // Stale-skydd: eleven kan ha bytt uppgift (nytt kort) eller navigerat bort
+        // medan importen laddade. Rendera bara om det här kortet fortfarande är aktivt.
+        if (ended || !scratch || scratch.card !== myCard) return;
+        if (!mod || typeof mod.renderBildstod !== "function") return;
+        let svg = null;
+        try { svg = mod.renderBildstod(problem, { document }); } catch { svg = null; }
+        if (!svg) return; // inte behörig / fel → visa uppgiften utan bild
+        bildHost.appendChild(svg);
+        bildHost.hidden = false;
+        // Kortet har nu en rad till – låt kladdytans buffert skala om efter layouten.
+        if (scratch && scratch.pad && scratch.pad.resize) scratch.pad.resize();
+      });
+    }
 
     const wrap = el(`<div class="rakna">
       <div class="rakna-progress">Uppgift <b>${idx + 1}</b> av ${total}</div>

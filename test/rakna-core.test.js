@@ -124,6 +124,31 @@ test("buildRound stödjer division inkl. rest-varianten", () => {
   }
 });
 
+// --- talstorlek styr talens storlek (issue #322) ----------------------------
+
+test("buildRound: talstorlek styr hur stora talen blir (liten < stor)", () => {
+  // Störst operand i en addition-runda för en given talstorlek.
+  function maxOperand(talstorlek) {
+    const gen = { topic: "addition", variants: ["enkel"], talstorlek };
+    const round = buildRound(gen, sessionSeed("e", 3), 16);
+    return Math.max(...round.map((r) => Math.max(r.problem.a, r.problem.b)));
+  }
+  const liten = maxOperand("liten"); // grade 2 → talintervall upp till ~100
+  const stor = maxOperand("stor");   // grade 6 → talintervall upp till ~1000
+  assert.ok(liten <= 100, `liten gav operand ${liten} (>100)`);
+  assert.ok(stor > liten, `stor (${stor}) borde ge större tal än liten (${liten})`);
+});
+
+test("buildRound: okänd/utelämnad talstorlek faller tillbaka på årskurs (bakåtkompatibelt)", () => {
+  // Utan talstorlek styr grade som förr – samma följd som tidigare kontrakt.
+  const gen = { topic: "addition", variants: ["enkel"], grade: "ak4" };
+  const round = buildRound(gen, sessionSeed("e", 1), 4);
+  assert.equal(round.length, 4);
+  for (const item of round) {
+    assert.equal(checkAnswer(item.problem, item.answer, String(item.answer)), true);
+  }
+});
+
 // --- createProblemSource (äventyrens oändliga ström, #296) -------------------
 
 test("createProblemSource ger giltiga uppgifter med korrekt facit", () => {
@@ -168,3 +193,74 @@ test("createProblemSource stödjer division/rest-varianten (facit inkl. rest)", 
     assert.equal(checkAnswer(item.problem, item.answer, guess), true);
   }
 });
+
+// --- #321: rättning per answerType (fraction/coord/time/text) ---------------
+// checkAnswer väljer strategi ur problem.answerType. Här testas varje strategi
+// isolerat (godtagna varianter + avvisade fel) och sedan mot generatorns FACIT.
+
+import { generateProblem, listVariants } from "../src/matte-generator.js";
+
+test("checkAnswer/fraction: värdes-lika bråk godtas, fel avvisas", () => {
+  const p = { answerType: "fraction" };
+  for (const g of ["1/2", "3/6", "2/4", "0,5", "0.5", " 1/2 "]) {
+    assert.equal(checkAnswer(p, "1/2", g), true, `borde godta ${g}`);
+  }
+  for (const g of ["1/3", "2/3", "", "abc"]) {
+    assert.equal(checkAnswer(p, "1/2", g), false, `borde avvisa ${g}`);
+  }
+});
+
+test("checkAnswer/coord: samma punkt oavsett format, fel avvisas", () => {
+  const p = { answerType: "coord" };
+  for (const g of ["(3, 4)", "(3,4)", "3, 4", "3 4"]) {
+    assert.equal(checkAnswer(p, "(3, 4)", g), true, `borde godta ${g}`);
+  }
+  for (const g of ["(4, 3)", "3", "", "(3, 5)"]) {
+    assert.equal(checkAnswer(p, "(3, 4)", g), false, `borde avvisa ${g}`);
+  }
+  // negativa koordinater (alla kvadranter)
+  assert.equal(checkAnswer(p, "(-2, 5)", "-2,5"), true);
+});
+
+test("checkAnswer/time: klockslag mod 12 h, olika separatorer", () => {
+  const p = { answerType: "time" };
+  for (const g of ["07:30", "7:30", "7.30", "0730", "19:30"]) {
+    assert.equal(checkAnswer(p, "07:30", g), true, `borde godta ${g}`);
+  }
+  for (const g of ["07:31", "08:30", "", "7:60"]) {
+    assert.equal(checkAnswer(p, "07:30", g), false, `borde avvisa ${g}`);
+  }
+});
+
+test("checkAnswer/text: etikett normaliseras + numerisk fallback", () => {
+  const p = { answerType: "text" };
+  assert.equal(checkAnswer(p, "Fotboll", "fotboll"), true);
+  assert.equal(checkAnswer(p, "Fotboll", "  Fotboll  "), true);
+  assert.equal(checkAnswer(p, "8.5", "8,5"), true);   // siffersvar tål komma
+  assert.equal(checkAnswer(p, "7", "7"), true);
+  assert.equal(checkAnswer(p, "Katter", "Hundar"), false);
+  assert.equal(checkAnswer(p, "8.5", "9"), false);
+});
+
+test("checkAnswer/numeric: oförändrad (default + rest-varianten)", () => {
+  assert.equal(checkAnswer({ answerType: "numeric" }, 12, "12"), true);
+  assert.equal(checkAnswer({}, 3.5, "3,5"), true);     // default = numeric
+  assert.equal(checkAnswer({ hasRemainder: true, remainder: 1 }, 3, "3 rest 1"), true);
+  assert.equal(checkAnswer({ answerType: "fraction" }, "1/2", "17"), false);
+});
+
+// Integrationsfacit: eleven skriver EXAKT generatorns facit → alltid rätt, för
+// alla surfade varianter av de fyra visuella ämnena, över många frön.
+for (const topic of ["klocka", "sannolikhet", "statistik", "koordinatsystem"]) {
+  for (const variant of listVariants(topic)) {
+    test(`checkAnswer godtar generatorns facit: ${topic}/${variant}`, () => {
+      for (let s = 0; s < 40; s++) {
+        const { problem, answer } = generateProblem(topic, { variant }, s);
+        assert.equal(
+          checkAnswer(problem, answer, String(answer)), true,
+          `facit avvisades ${topic}/${variant} seed ${s}: answer=${JSON.stringify(answer)}`
+        );
+      }
+    });
+  }
+}

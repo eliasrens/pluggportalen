@@ -1434,6 +1434,30 @@
 /* I förstorat läge får bildstödet mer plats. */
 .a4-card.scratch-fs .rakna-visual { max-width: 360px; }
 
+/* Bildstöd (#320): array-/rutnätsstödet (ren SVG från matte-bildstod.js) ligger
+   som en egen rad INNE i kortet, direkt under talet, så det följer med när kortet
+   fälls ut till fullskärm. Egen intrinsisk storlek ur SVG:ns viewBox (CSS width/
+   height:auto vinner över dess width="100%"-attribut), höjd-kapad så stora rutnät
+   krymper men små inte blåses upp. Centrerad, med samma streckade avdelare som
+   talet ovanför. Tas bort helt (hidden) när uppgiften saknar bildstöd. */
+.rakna-bildstod {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-bottom: 2px dashed #dbe6f7;
+}
+.rakna-bildstod svg.bildstod {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: clamp(64px, 18vh, 170px);
+}
+/* I fullskärm får bildstödet inte äta ritutrymmet – håll det lite lägre. */
+.scratch-fs .rakna-bildstod svg.bildstod { max-height: clamp(56px, 14vh, 150px); }
+
 .a4-scratch-hint {
   flex: 0 0 auto;
   text-align: center;

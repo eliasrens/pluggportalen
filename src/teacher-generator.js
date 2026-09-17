@@ -1,23 +1,33 @@
 // ============================================================================
 // Pluggportalen – lärarsidan: räknegenerator-kontroll (teacher-generator.js)
 // ----------------------------------------------------------------------------
-// Issue #279. En liten fabrik (samma mönster som teacher-mode-visibility.js) som
-// stänger om en DOM-behållare (#generator-config) och sköter val av EN
+// Issue #279 / #322. En liten fabrik (samma mönster som teacher-mode-visibility.js)
+// som stänger om en DOM-behållare (#generator-config) och sköter val av EN
 // räknegenerator för ett arbetsområde:
 //   • en topic-väljare (generator-katalogens listTopics(), #278/#290)
 //   • kryssrutor för varianterna som ingår (listVariants(topic))
+//   • en enkel INSTÄLLNINGS-panel (issue #322): talstorlek (svårighet) och – för
+//     topics där det är relevant – bildstöd på/av.
 //
-// Valet lagras på området som area.generator = { topic, variants, grade? }.
+// Valet lagras på området som area.generator =
+//   { topic, variants, grade?, talstorlek?, bildstod? }.
 // Varianter är INNEHÅLL (vilka slags tal), inte spellägen. Kontrollen läser BARA
-// katalogen (listTopics/listVariants) från exercise-types.js – aldrig adaptern
-// eller plugin-lagret direkt. (Boot-säkert: den här filen laddas ändå dynamiskt,
-// #290, men importerar heller inte matte-generator.js.)
+// katalogen (listTopics/listVariants/talstorlek/bildstöd-relevans) från
+// exercise-types.js – aldrig adaptern eller plugin-lagret direkt. (Boot-säkert: den
+// här filen laddas ändå dynamiskt, #290, men importerar heller inte matte-generator.js.)
 //
-//   render(area)        – fyll väljaren/kryssrutorna ur ett områdes generator.
-//   getGenerator(grade) – läs av valet → { topic, variants, grade? } eller null.
+//   render(area)        – fyll väljaren/kryssrutorna/inställningarna ur ett områdes generator.
+//   getGenerator(grade) – läs av valet → { topic, variants, grade?, talstorlek?, bildstod? } | null.
 // ============================================================================
 
-import { listTopics, listVariants, normalizeGenerator } from "./exercise-types.js";
+import {
+  listTopics,
+  listVariants,
+  normalizeGenerator,
+  TALSTORLEK_OPTIONS,
+  topicSupportsBildstod,
+  BILDSTOD_DEFAULT,
+} from "./exercise-types.js";
 import { esc } from "./teacher-shared.js";
 
 // Första valet: inget generator-innehåll (området är ett vanligt quiz/par-område).
@@ -60,11 +70,28 @@ export function createGeneratorControl(box, onChange = () => {}) {
       <p class="hint">Kryssa i vilka slags tal området ska öva – minst en. Varianter är
         <b>innehåll</b> (vilka tal), inte spellägen.</p>
       <div class="member-grid" id="gen-variants"></div>
+    </div>
+    <div class="field" id="gen-settings-field" hidden style="margin:8px 0 0">
+      <label for="gen-talstorlek">Talstorlek</label>
+      <p class="hint">Hur stora tal som genereras. <b>Standard</b> följer områdets årskurs.</p>
+      <select id="gen-talstorlek" class="select">
+        <option value="">— Standard (följ årskurs) —</option>
+        ${TALSTORLEK_OPTIONS.map((o) => `<option value="${esc(o.id)}">${esc(o.label)}</option>`).join("")}
+      </select>
+      <label class="member-row" id="gen-bildstod-row" hidden style="margin-top:8px">
+        <input type="checkbox" id="gen-bildstod" />
+        <span class="member-avatar">🖼️</span>
+        <span class="member-name">Visa bildstöd (prickar/grupper som stöd för uträkningen)</span>
+      </label>
     </div>`;
 
   const topicSel = box.querySelector("#gen-topic");
   const variantsField = box.querySelector("#gen-variants-field");
   const variantsBox = box.querySelector("#gen-variants");
+  const settingsField = box.querySelector("#gen-settings-field");
+  const talstorlekSel = box.querySelector("#gen-talstorlek");
+  const bildstodRow = box.querySelector("#gen-bildstod-row");
+  const bildstodChk = box.querySelector("#gen-bildstod");
 
   // Rita variant-kryssrutorna för ett topic. `checkedSet` avgör vilka som är
   // ikryssade; är den null bockas ALLA i (rimlig standard när man just valt topic).
@@ -88,12 +115,34 @@ export function createGeneratorControl(box, onChange = () => {}) {
       .join("");
   }
 
+  // Visa/uppdatera inställnings-panelen (talstorlek + ev. bildstöd) för ett topic.
+  // `gen` (normaliserad) fyller i sparade värden; är den null gäller rimliga defaults
+  // (standard-talstorlek + bildstöd PÅ där det är relevant).
+  function renderSettings(topic, gen) {
+    if (!topic) {
+      settingsField.hidden = true;
+      return;
+    }
+    settingsField.hidden = false;
+    talstorlekSel.value = gen && gen.talstorlek ? gen.talstorlek : "";
+    // Bildstöd bara för topics där det kan ritas (multiplikation/division, #319).
+    const showBildstod = topicSupportsBildstod(topic);
+    bildstodRow.hidden = !showBildstod;
+    if (showBildstod) {
+      bildstodChk.checked =
+        gen && typeof gen.bildstod === "boolean" ? gen.bildstod : BILDSTOD_DEFAULT;
+    }
+  }
+
   topicSel.addEventListener("change", () => {
-    // Nytt topic → rita om varianterna (alla ikryssade som standard).
+    // Nytt topic → rita om varianterna (alla ikryssade som standard) + återställ
+    // inställningarna till topicets defaults.
     renderVariants(topicSel.value, null);
+    renderSettings(topicSel.value, null);
     onChange();
   });
   variantsBox.addEventListener("change", () => onChange());
+  settingsField.addEventListener("change", () => onChange());
 
   /**
    * Fyll kontrollen ur ett områdes sparade generator-config (bakåtkompatibelt:
@@ -105,10 +154,12 @@ export function createGeneratorControl(box, onChange = () => {}) {
     if (!gen) {
       topicSel.value = NONE_VALUE;
       renderVariants("", null);
+      renderSettings("", null);
       return;
     }
     topicSel.value = gen.topic;
     renderVariants(gen.topic, new Set(gen.variants));
+    renderSettings(gen.topic, gen);
   }
 
   /**
@@ -121,9 +172,12 @@ export function createGeneratorControl(box, onChange = () => {}) {
     const topic = topicSel.value;
     if (!topic) return null;
     const variants = [...variantsBox.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
-    // normalizeGenerator gör sista rensningen (kända varianter, ≥1) och lägger
-    // bara till grade när den är satt.
-    return normalizeGenerator({ topic, variants, grade });
+    // Inställningar (issue #322): talstorlek (tom → utelämnas) och bildstöd (bara
+    // för relevanta topics). normalizeGenerator gör sista rensningen (kända varianter,
+    // ≥1; känd talstorlek; bildstöd bara där det stöds) och lägger bara till grade när satt.
+    const raw = { topic, variants, grade, talstorlek: talstorlekSel.value };
+    if (topicSupportsBildstod(topic)) raw.bildstod = bildstodChk.checked;
+    return normalizeGenerator(raw);
   }
 
   return { render, getGenerator };
