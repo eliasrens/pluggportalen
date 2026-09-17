@@ -29,7 +29,7 @@ import * as data from "./data.js";
 import { sound } from "./fx.js";
 import { gameFrame, showResult, starsFromRatio, esc } from "./game-shared.js";
 import { normalizeGenerator } from "./exercise-types.js";
-import { createScratchCard } from "./scratchpad.js";
+import { createScratchCard, attachScratchpad } from "./scratchpad.js";
 import {
   ROUND_SIZE,
   sessionSeed,
@@ -53,6 +53,37 @@ async function loadBildstod() {
     catch { bildstodMod = null; }
   }
   return bildstodMod;
+}
+
+// --- Rit-lager ovanpå bildstödet (issue #325) -------------------------------
+// bildstod-draw.js (rit-lagret, ren/import-fri) laddas BARA via denna DYNAMISKA
+// import – aldrig statiskt – så den hålls UTANFÖR den statiska bootgrafen (jfr
+// #271/#290/#319). Cache: undefined = ej försökt, null = föll (degradera: visa
+// bildstödet utan rit-lager), annars modulen.
+let drawMod; // undefined | null | { attachDrawLayer, wrapDrawable }
+async function loadDrawLayer() {
+  if (drawMod === undefined) {
+    try { drawMod = await import("./bildstod-draw.js"); }
+    catch { drawMod = null; }
+  }
+  return drawMod;
+}
+
+// Montera ett bildstöds-SVG i `host` med ett transparent rit-lager ovanpå (#325):
+// eleven kan rita direkt på bilden, och lagret registreras som en extra rityta i
+// kortet (samma penna/sudd/Rensa, skalar med i fullskärm). Faller lagret bort
+// (import misslyckas) visas bildstödet ändå, utan rit-lager. `ctx.alive()` är
+// stale-skyddet: montera bara om det här kortet fortfarande är aktivt.
+async function mountDrawable(svg, host, ctx) {
+  const dm = await loadDrawLayer();
+  if (!ctx.alive()) return;
+  if (dm && typeof dm.attachDrawLayer === "function") {
+    const layer = dm.attachDrawLayer(svg, { document, attach: attachScratchpad });
+    host.replaceChildren(layer.wrapper);
+    ctx.scratch.addPad(layer.pad); // ärver verktyg + rivs/skalas med kortet
+  } else {
+    host.replaceChildren(svg); // degradera snällt: bildstöd utan rit-lager
+  }
 }
 
 // --- Spelet -----------------------------------------------------------------
@@ -158,15 +189,18 @@ export function startRakna(ctx) {
       const bildHost = el(`<div class="rakna-bildstod" hidden></div>`);
       scratch.card.querySelector(".a4-task").after(bildHost);
       const myCard = scratch.card;
-      loadBildstod().then((mod) => {
-        // Stale-skydd: eleven kan ha bytt uppgift (nytt kort) eller navigerat bort
-        // medan importen laddade. Rendera bara om det här kortet fortfarande är aktivt.
-        if (ended || !scratch || scratch.card !== myCard) return;
+      // Stale-skydd: eleven kan ha bytt uppgift (nytt kort) eller navigerat bort
+      // medan importen laddade. Rendera bara om det här kortet fortfarande är aktivt.
+      const alive = () => !ended && !!scratch && scratch.card === myCard;
+      loadBildstod().then(async (mod) => {
+        if (!alive()) return;
         if (!mod || typeof mod.renderBildstod !== "function") return;
         let svg = null;
         try { svg = mod.renderBildstod(problem, { document }); } catch { svg = null; }
         if (!svg) return; // inte behörig / fel → visa uppgiften utan bild
-        bildHost.appendChild(svg);
+        // Rit-lager ovanpå array-/rutnätsstödet (#325): eleven kan pricka i rutorna.
+        await mountDrawable(svg, bildHost, { alive, scratch });
+        if (!alive()) return;
         bildHost.hidden = false;
         // Kortet har nu en rad till – låt kladdytans buffert skala om efter layouten.
         if (scratch && scratch.pad && scratch.pad.resize) scratch.pad.resize();
@@ -196,13 +230,20 @@ export function startRakna(ctx) {
     // bootgrafen (jfr #271/#290/#319). Frågan funkar även om importen fallerar –
     // då visas bara texten.
     if (isVisual) {
+      const myCard = scratch.card;
+      const alive = () => !ended && !!scratch && scratch.card === myCard;
       import("./matte-visuals.js")
-        .then((m) => {
-          if (ended) return;
+        .then(async (m) => {
+          if (!alive()) return;
           const slot = wrap.querySelector("[data-visual-slot]");
           if (!slot) return;
-          const svg = m.renderTopicVisual(problem);
-          if (svg) slot.innerHTML = svg;
+          // Begär ett riktigt SVG-element (opts.document) så rit-lagret (#325) kan
+          // läggas ovanpå det – eleven ritar direkt på urtavlan/rutnätet.
+          let svg = null;
+          try { svg = m.renderTopicVisual(problem, { document }); } catch { svg = null; }
+          if (!svg) return; // inget visuellt stöd passar → bara frågetexten
+          await mountDrawable(svg, slot, { alive, scratch });
+          if (alive() && scratch && scratch.pad && scratch.pad.resize) scratch.pad.resize();
         })
         .catch(() => { /* utan bild funkar frågan ändå */ });
     }
