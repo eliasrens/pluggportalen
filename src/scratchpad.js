@@ -161,7 +161,7 @@ export { wireEnlarge };
  * @param {string} [o.hint]     liten hjälptext under ritytan
  * @param {boolean} [o.handleEscape=true]  vidarebefordras till wireEnlarge
  * @param {()=>void} [o.onAction]  valfri callback vid knapptryck (t.ex. ljud)
- * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, enlarge:object, destroy:()=>void}}
+ * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
  */
 export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape = true, onAction } = {}) {
   // Verktygsraden ligger som en egen rad LÄNGST NER i kortet (in-flow, inte
@@ -184,23 +184,34 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
   const canvas = card.querySelector(".a4-scratch");
   const pad = attachScratchpad(canvas);
 
+  // Alla ritytor i kortet: huvud-kladdytan + ev. rit-lager ovanpå bildstödet
+  // (#325), som registreras i efterhand med addPad() när bildstödet laddats. Samma
+  // verktyg (penna/sudd), Rensa och storleksändring gäller ALLA så eleven ritar
+  // med ett och samma verktyg över hela kortet och allt skalar ihop i fullskärm.
+  const pads = [pad];
+  let currentTool = "pen"; // så ett rit-lager som registreras SENARE ärver rätt verktyg
+
   const toolBtns = card.querySelectorAll(".tool-btn[data-tool]");
   toolBtns.forEach((b) => {
     b.addEventListener("click", () => {
-      pad.setTool(b.dataset.tool);
+      currentTool = b.dataset.tool;
+      pads.forEach((p) => p.setTool && p.setTool(currentTool));
       toolBtns.forEach((x) => x.classList.toggle("is-active", x === b));
       onAction && onAction();
     });
   });
   card.querySelector("[data-clear]").addEventListener("click", () => {
-    pad.clear();
+    pads.forEach((p) => p.clear && p.clear());
     onAction && onAction();
   });
 
+  // Förstora-logiken (#312) resize:ar kladdytan efter varje lägesbyte så ritningen
+  // bevaras skalad. Ge den en KOMPOSIT som resize:ar samtliga ritytor, så
+  // bildstöds-lagret skalar i takt med huvudytan när kortet fälls ut/in (#325).
   const enlarge = wireEnlarge({
     button: card.querySelector("[data-enlarge]"),
     target: card,
-    pad,
+    pad: { resize() { pads.forEach((p) => p.resize && p.resize()); } },
     handleEscape,
   });
 
@@ -209,9 +220,18 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     canvas,
     pad,
     enlarge,
+    /**
+     * Registrera en extra rityta (t.ex. rit-lagret ovanpå bildstödet, #325) så den
+     * följer verktygsval/Rensa/förstora och rivs med kortet. Ärver nuvarande verktyg.
+     */
+    addPad(extra) {
+      if (!extra || pads.includes(extra)) return;
+      if (extra.setTool) extra.setTool(currentTool);
+      pads.push(extra);
+    },
     destroy() {
       enlarge.destroy();
-      pad.destroy();
+      pads.forEach((p) => p.destroy && p.destroy());
     },
   };
 }
