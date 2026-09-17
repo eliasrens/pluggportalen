@@ -132,6 +132,13 @@ const GENERATOR_CATALOG = {
   "matt-tid": ["omvandla"],
   "matt-area": ["omvandla"],
   "matt-volym": ["omvandla", "addition", "subtraktion", "oppen"],
+  // #321: visuella ämnen upplåsta – speglar adapterns surfade varianter (de vars
+  // svar matchar topicens answerType OCH har SVG-rendering i matte-visuals.js).
+  // Ordning + innehåll asserteras mot adaptern i test/matte-generator.test.js.
+  sannolikhet: ["brakform"],
+  statistik: ["las-av", "flest", "minst", "skillnad", "medelvarde", "typvarde", "median"],
+  koordinatsystem: ["forsta-kvadrant", "alla-kvadranter"],
+  klocka: ["las-av", "senare"],
 };
 
 /** Alla topics som fas 1 stödjer, i visningsordning. */

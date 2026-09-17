@@ -112,11 +112,15 @@ test("determinism gäller även med extra settings (grade, addSubVaxling)", () =
 
 test("olika frön ger olika uppgifter", () => {
   for (const topic of listTopics()) {
-    const texts = new Set();
+    const sigs = new Set();
     for (let seed = 0; seed < 30; seed++) {
-      texts.add(generateProblem(topic, {}, seed).problem.text);
+      // Signaturen = HELA uppgiften (problem + svar), inte bara texten: de
+      // visuella ämnena (#321) har konstant frågetext ("Vad är klockan?") men
+      // urtavlan/punkterna varierar, så texten ensam underskattar variationen.
+      const r = generateProblem(topic, {}, seed);
+      sigs.add(`${JSON.stringify(r.problem)}|${JSON.stringify(r.answer)}`);
     }
-    assert.ok(texts.size > 1, `${topic}: förväntade variation över frön, fick ${texts.size}`);
+    assert.ok(sigs.size > 1, `${topic}: förväntade variation över frön, fick ${sigs.size}`);
   }
 });
 
@@ -126,14 +130,18 @@ test("listTopics inleds med de fyra fas 1-topics", () => {
   assert.deepEqual(listTopics().slice(0, 4), ['addition', 'subtraktion', 'multiplikation', 'division']);
 });
 
-test("listTopics surfar bara spelbara topics (inte visuella)", () => {
+test("listTopics surfar spelbara topics inkl. de visuella ämnena (#321)", () => {
   const t = listTopics();
   // Spelbara fas 2-topics finns med:
   for (const topic of ['tallinje', 'procent', 'ekvationer', 'matt-langd']) {
     assert.ok(t.includes(topic), `${topic} borde surfas`);
   }
-  // Visuella/icke-numeriska surfas INTE i räkna-läget:
-  for (const topic of ['klocka', 'geometri', 'koordinatsystem', 'statistik', 'talsorter', 'brak', 'symmetri', 'monster', 'sannolikhet']) {
+  // #321: de fyra visuella ämnena är nu upplåsta (rendering + svarsrättning):
+  for (const topic of ['klocka', 'koordinatsystem', 'statistik', 'sannolikhet']) {
+    assert.ok(t.includes(topic), `${topic} borde surfas efter #321`);
+  }
+  // Fortfarande icke-spelbara (saknar rendering/svarswidget):
+  for (const topic of ['geometri', 'talsorter', 'brak', 'symmetri', 'monster']) {
     assert.ok(!t.includes(topic), `${topic} ska INTE surfas`);
   }
 });
@@ -142,10 +150,14 @@ test("listVariants ger spelbara varianter per topic, tom för okänt/icke-spelba
   assert.ok(listVariants('addition').includes('uppstallning'));
   assert.ok(listVariants('division').includes('rest'));
   assert.deepEqual(listVariants('finns-inte'), []);
-  assert.deepEqual(listVariants('klocka'), []); // icke-spelbart topic surfar inga varianter
+  assert.deepEqual(listVariants('geometri'), []); // icke-spelbart topic surfar inga varianter
   // Icke-spelbara varianter av spelbara topics filtreras bort:
   assert.ok(!listVariants('talfoljd').includes('regel'));
   assert.ok(!listVariants('procent').includes('baklanges'));
+  // #321: de visuella ämnena surfar bara varianter vars svar matchar answerType:
+  assert.deepEqual(listVariants('klocka'), ['las-av', 'senare']); // ej 'skillnad' (fri text)
+  assert.deepEqual(listVariants('sannolikhet'), ['brakform']);    // ej 'ord'/'jamfor'
+  assert.ok(!listVariants('sannolikhet').includes('ord'));
 });
 
 test("okänt topic kastar fel", () => {
