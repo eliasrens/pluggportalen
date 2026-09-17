@@ -1418,6 +1418,22 @@
 
 .a4-eq { color: var(--bla); }
 
+/* Bildstöd för de visuella ämnena i räkna (#321): urtavla/kulpåse/stapeldiagram/
+   rutnät ritas överst i A4-kortet, med frågetexten i lagom storlek under (den
+   stora .a4-task-fonten passar bara korta "a op b ="-tal). */
+.rakna-visual {
+  max-width: 300px;
+  margin: 4px auto 10px;
+}
+.rakna-visual svg { display: block; width: 100%; height: auto; }
+.rakna-question {
+  font-size: clamp(1.05rem, 3.2vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+/* I förstorat läge får bildstödet mer plats. */
+.a4-card.scratch-fs .rakna-visual { max-width: 360px; }
+
 .a4-scratch-hint {
   flex: 0 0 auto;
   text-align: center;

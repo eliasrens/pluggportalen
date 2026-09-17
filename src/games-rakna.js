@@ -94,14 +94,34 @@ export function startRakna(ctx) {
     const { problem, answer } = round[idx];
     let answered = false; // en rättning per uppgift (spärr mot dubbelsvar)
 
+    // Svarstyp styr både hjälptexten och rättningen (rakna-core.js checkAnswer).
+    // De visuella ämnena (#321) har icke-numeriskt svar OCH ett bildstöd (urtavla/
+    // kulpåse/stapeldiagram/rutnät) som ritas överst i kortet i stället för "= ".
+    const answerType = problem.answerType || "numeric";
+    const isVisual = answerType !== "numeric";
+
     const hint = problem.hasRemainder
       ? `Svara med kvot och rest, t.ex. <b>3 rest 1</b>.`
-      : `Skriv ditt slutsvar. Använd komma för decimaler (t.ex. 3,5).`;
+      : answerType === "fraction"
+        ? `Svara i bråkform, t.ex. <b>1/2</b>.`
+        : answerType === "coord"
+          ? `Svara med koordinater, t.ex. <b>(3, 4)</b>.`
+          : answerType === "time"
+            ? `Svara med klockslag, t.ex. <b>07:30</b>.`
+            : answerType === "text"
+              ? `Skriv ditt svar – ett ord eller en siffra.`
+              : `Skriv ditt slutsvar. Använd komma för decimaler (t.ex. 3,5).`;
 
     // Delat kladdkort (A4 + canvas + verktyg + förstora): samma yta som äventyrens
     // generator-utmaning (#296). Kortet fälls ut till fullskärm via förstora-knappen.
+    // Visuella ämnen: bildstödet ritas i en slot överst (fylls av dynamisk import
+    // nedan), sedan frågetexten; numeriska ämnen behåller "a op b =".
+    const taskHtml = isVisual
+      ? `<div class="rakna-visual" data-visual-slot></div>` +
+        `<div class="rakna-question">${esc(problemDisplay(problem))}</div>`
+      : `${esc(problemDisplay(problem))} <span class="a4-eq">=</span>`;
     scratch = createScratchCard({
-      taskHtml: `${esc(problemDisplay(problem))} <span class="a4-eq">=</span>`,
+      taskHtml,
       onAction: () => sound.click(),
     });
 
@@ -122,6 +142,22 @@ export function startRakna(ctx) {
     </div>`);
     wrap.querySelector(".rakna-stage").appendChild(scratch.card);
     body.replaceChildren(wrap);
+
+    // Bildstöd för de visuella ämnena (#321). DYNAMISK import: matte-visuals.js
+    // (och dess matte-svg.js/matte-bildstod.js) hålls UTANFÖR den statiska
+    // bootgrafen (jfr #271/#290/#319). Frågan funkar även om importen fallerar –
+    // då visas bara texten.
+    if (isVisual) {
+      import("./matte-visuals.js")
+        .then((m) => {
+          if (ended) return;
+          const slot = wrap.querySelector("[data-visual-slot]");
+          if (!slot) return;
+          const svg = m.renderTopicVisual(problem);
+          if (svg) slot.innerHTML = svg;
+        })
+        .catch(() => { /* utan bild funkar frågan ändå */ });
+    }
 
     const form = wrap.querySelector(".rakna-answer");
     const input = wrap.querySelector(".rakna-input");

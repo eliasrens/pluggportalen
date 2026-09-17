@@ -112,11 +112,15 @@ test("determinism gäller även med extra settings (grade, addSubVaxling)", () =
 
 test("olika frön ger olika uppgifter", () => {
   for (const topic of listTopics()) {
-    const texts = new Set();
+    const sigs = new Set();
     for (let seed = 0; seed < 30; seed++) {
-      texts.add(generateProblem(topic, {}, seed).problem.text);
+      // Signaturen = HELA uppgiften (problem + svar), inte bara texten: de
+      // visuella ämnena (#321) har konstant frågetext ("Vad är klockan?") men
+      // urtavlan/punkterna varierar, så texten ensam underskattar variationen.
+      const r = generateProblem(topic, {}, seed);
+      sigs.add(`${JSON.stringify(r.problem)}|${JSON.stringify(r.answer)}`);
     }
-    assert.ok(texts.size > 1, `${topic}: förväntade variation över frön, fick ${texts.size}`);
+    assert.ok(sigs.size > 1, `${topic}: förväntade variation över frön, fick ${sigs.size}`);
   }
 });
 

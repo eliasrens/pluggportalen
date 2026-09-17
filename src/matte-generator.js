@@ -193,13 +193,15 @@ const VARIANTS = {
 // ---------------------------------------------------------------------------
 //  SVARSTYPER & SPELBARHET (issue #295-kravet)
 // ---------------------------------------------------------------------------
-// Varje topic har en answerType. Räkna-läget (#280) rättar NUMERISKA svar; därför
-// surfar bara topics vars uppgift är självbärande (frågan syns i texten) OCH ger
-// ett otvetydigt numeriskt svar (playable:true). Övriga porteras & enhetstestas men
-// exponeras inte i räkna än – de behöver visuell rendering (klocka=urtavla,
-// koordinatsystem=rutnät, geometri=figur, statistik=diagram, sannolikhet=kulpåse,
-// symmetri/mönster=figur) eller egen svarswidget (bråk=bråkform, talsorter=markerad
-// siffra). Dokumenterat val enligt issue-alternativ (b).
+// Varje topic har en answerType. Räkna-läget rättar svar per answerType
+// (rakna-core.js checkAnswer): 'numeric' (#280), samt 'fraction'/'coord'/'time'/
+// 'text' (#321). Ett topic surfas (playable:true) när det är självbärande – frågan
+// är avläsbar ur text + visuellt stöd – OCH har en fungerande svarsrättning.
+//   • #280: de fyra räknesätten + numeriska fas 2-topics.
+//   • #321: klocka (urtavla+time), sannolikhet (kulpåse+fraction),
+//     statistik (stapeldiagram+text), koordinatsystem (rutnät+coord).
+// Kvar som icke-spelbara: geometri/symmetri/mönster (figur), bråk (egen widget),
+// talsorter (markerad siffra) – de får rendering/svarswidget i följd-issues.
 const TOPIC_META = {
   addition:        { answerType: 'numeric', playable: true },
   subtraktion:     { answerType: 'numeric', playable: true },
@@ -220,10 +222,14 @@ const TOPIC_META = {
   'matt-tid':      { answerType: 'numeric', playable: true },
   'matt-area':     { answerType: 'numeric', playable: true },
   'matt-volym':    { answerType: 'numeric', playable: true },
-  sannolikhet:     { answerType: 'fraction', playable: false },
-  statistik:       { answerType: 'text',     playable: false },
-  koordinatsystem: { answerType: 'coord',    playable: false },
-  klocka:          { answerType: 'time',     playable: false },
+  // #321: fyra visuella ämnen upplåsta – de har nu egen SVG-rendering
+  // (matte-bildstod.js: kulpåse/stapeldiagram/rutnät/urtavla) OCH egen
+  // svarsrättning per answerType (rakna-core.js). answerType styr både
+  // svarsfältets format och rättningen.
+  sannolikhet:     { answerType: 'fraction', playable: true },
+  statistik:       { answerType: 'text',     playable: true },
+  koordinatsystem: { answerType: 'coord',    playable: true },
+  klocka:          { answerType: 'time',     playable: true },
   geometri:        { answerType: 'text',     playable: false },
   symmetri:        { answerType: 'text',     playable: false },
   monster:         { answerType: 'text',     playable: false },
@@ -239,6 +245,12 @@ const NON_PLAYABLE_VARIANTS = {
   romerska:       new Set(['till-romerska']),  // svar = romersk sträng
   procent:        new Set(['omvandla', 'del-i-procent', 'baklanges']), // bråk/%/kr-svar
   avrundning:     new Set(['uppskatta']),      // uppskattning = diskutabel exakthet
+  // #321: de visuella ämnena surfar bara varianterna vars svar matchar topicens
+  // answerType OCH har visuellt stöd. Övriga porteras men exponeras inte:
+  sannolikhet:    new Set(['ord', 'jamfor']),  // ord/jämför = fri text/etikett (ej bråk)
+  klocka:         new Set(['skillnad']),       // tidsskillnad = fri text-varaktighet (ej klockslag)
+  // statistik: alla surfas (stapeldiagram + text-svar, siffra eller etikett).
+  // koordinatsystem: båda surfas (rutnät + coord-svar).
 };
 
 const DEFAULT_GRADE = 4; // åk 4 – projektets målgrupp.
