@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>Bildstöd-demo #319</title>
+<style>body{font:15px system-ui;margin:24px;background:#f6f7fb;color:#222}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+h1{font-size:18px}.q{font-weight:600;margin-bottom:8px}.bildstod{max-height:200px}</style>
+<h1>Bildstöds-renderaren (issue #319) — array/rutnätsmodell</h1>
+<p>Multiplikation = tät array · Division = rows grupper om cols (gruppramar) · ineligible → inget.</p>
+<div class="grid" id="g"></div>
+<script type="module">
+import { renderBildstod } from './src/matte-bildstod.js';
+const cases = [
+  {type:'multiplikation',operator:'·',a:3,b:4,answer:12,rows:3,cols:4,label:'3 · 4 = 12'},
+  {type:'multiplikation',operator:'·',a:5,b:6,answer:30,rows:5,cols:6,label:'5 · 6 = 30'},
+  {type:'multiplikation',operator:'·',a:2,b:7,answer:14,rows:2,cols:7,label:'2 · 7 = 14'},
+  {type:'division',operator:'division',a:12,b:3,answer:4,bildstodEligible:true,rows:3,cols:4,label:'12 ÷ 3 = 4'},
+  {type:'division',operator:'division',a:20,b:5,answer:4,bildstodEligible:true,rows:5,cols:4,label:'20 ÷ 5 = 4'},
+  {type:'division',operator:'division',a:900,b:100,answer:9,bildstodEligible:false,rows:100,cols:9,label:'900 ÷ 100 (bildstodEligible:false → inget)'},
+];
+const g = document.getElementById('g');
+for (const c of cases){
+  const d = document.createElement('div'); d.className='card';
+  const svg = renderBildstod(c);
+  d.innerHTML = `<div class="q">${c.label}</div>` + (svg || '<em style="color:#999">— inget bildstöd —</em>');
+  g.appendChild(d);
+}
+</script>
