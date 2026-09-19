@@ -327,6 +327,10 @@ export {
   setClassHiddenModes,
   setClassAreaModes,
   getClassForStudent,
+  getClassProjects,
+  getClassProject,
+  startClassProject,
+  donateToClassProject,
 } from "./data-classes.js";
 
 export { getReadingLevel, setReadingLevel } from "./data-reading-level.js";

@@ -16,13 +16,19 @@ import {
   getDocs,
   setDoc,
   writeBatch,
+  runTransaction,
   arrayUnion,
   arrayRemove,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { currentStudentId } from "./data.js";
+import { currentStudentId, invalidateStudentData } from "./data.js";
 import { normalizeHiddenModes, normalizeAreaModes } from "./gamemode-visibility.js";
 import { createTtlCache } from "./class-projection.js";
+import {
+  normalizeClassProject,
+  normalizeClassProjects,
+  applyProjectDonation,
+} from "./class-projection-entries.js";
 
 // Session-cache (#274): klasslistan läses varje gång plugga/världen ritas
 // (getClassForStudent + klass-hiddenModes, färskhets-kritiskt/krav 1). En kort
@@ -240,3 +246,106 @@ export async function getClassForStudent(studentId = currentStudentId()) {
 // aggregateKlassStats som klassen själv använder), sedan cross-class-läsning av
 // studentData öppnades. Ingen denormaliserad spegling behövs – den blev bara en
 // tom skylt tills varje elev loggat in efter en regel-deploy.
+
+// ---------------------------------------------------------------------------
+// Gemensamma klassprojekt (#331) – classProjects/{classId}.
+// ----------------------------------------------------------------------------
+// Klassen donerar tillsammans coins till byns gemensamma ytor (stadshus,
+// skola, park på bykartan). Samma doc-mönster som classProjections (#231):
+// ETT dokument per klass, O(1) läsningar, med en `projects`-map keyad på
+// byggnads-id. Se docs/DATAMODELL.md. Ren shaping/övergångslogik bor
+// Firebase-fritt i class-projection-entries.js (enhetstestad).
+//
+// SCAFFOLD (framtidssäkring): ingen UI anropar detta ännu – nästa epic
+// (village-building-rendering + doneringsknapp) bygger ovanpå. OBS:
+// firestore.rules-regeln för classProjects måste DEPLOYAS separat
+// (`firebase deploy --only firestore:rules`) innan funktionen är live.
+// ---------------------------------------------------------------------------
+
+/**
+ * Hämta klassens alla projekt: map byggnads-id → normaliserat projekt
+ * ({ goalAmount, collected, contributions, createdAt }). Saknas dokumentet →
+ * tom map (bakåtkompatibelt – inga projekt startade ännu).
+ */
+export async function getClassProjects(classId) {
+  const snap = await getDoc(doc(db, "classProjects", classId));
+  return normalizeClassProjects(snap.exists() ? snap.data() : null);
+}
+
+/**
+ * Hämta ETT projekt (eller null om det inte startats).
+ * @param {string} classId
+ * @param {string} buildingId byns byggnad, t.ex. "stadshus" | "skola" | "park"
+ */
+export async function getClassProject(classId, buildingId) {
+  const projects = await getClassProjects(classId);
+  return projects[buildingId] || null;
+}
+
+/**
+ * Starta (eller uppdatera målet för) ett klassprojekt. Skriver bara det egna
+ * projektets fält med dot-path så parallella donationer till ANDRA byggnader
+ * aldrig skrivs över. Vem som får starta (lärare eller klass) avgörs i nästa
+ * epics UI – reglerna tillåter klassmedlem + lärare.
+ * @param {string} classId
+ * @param {string} buildingId
+ * @param {number} goalAmount målbelopp i coins (positivt heltal)
+ */
+export async function startClassProject(classId, buildingId, goalAmount) {
+  const goal = Math.round(Number(goalAmount));
+  if (!classId || !buildingId || !Number.isFinite(goal) || goal <= 0) {
+    return { ok: false, error: "ogiltigt projekt" };
+  }
+  const ref = doc(db, "classProjects", classId);
+  const project = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const existing = normalizeClassProjects(snap.exists() ? snap.data() : null)[buildingId];
+    const next = normalizeClassProject({
+      ...(existing || {}),
+      goalAmount: goal,
+      createdAt: existing?.createdAt ?? Date.now(),
+    });
+    tx.set(ref, { projects: { [buildingId]: next } }, { merge: true });
+    return next;
+  });
+  return { ok: true, project };
+}
+
+/**
+ * Donera coins från den inloggade eleven till ett klassprojekt. EN transaktion
+ * (samma mönster som buyItem): läser elevens studentData + klassens
+ * classProjects-doc, kontrollerar täckning och att projektet finns/inte är
+ * fullt (applyProjectDonation), drar coins och ökar collected +
+ * contributions.{studentId} atomiskt. Ingen täckning/ogiltigt → ok:false utan
+ * skrivning – inga negativa saldon, inga coins in i ett stängt projekt.
+ * @param {string} classId
+ * @param {string} buildingId
+ * @param {number} amount coins att donera (positivt heltal)
+ * @returns {Promise<{ok:boolean, coins?:number, project?:object, error?:string}>}
+ */
+export async function donateToClassProject(
+  classId,
+  buildingId,
+  amount,
+  studentId = currentStudentId()
+) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  if (!classId || !buildingId) return { ok: false, error: "ogiltigt projekt" };
+  const projRef = doc(db, "classProjects", classId);
+  const dataRef = doc(db, "studentData", studentId);
+  const result = await runTransaction(db, async (tx) => {
+    const [projSnap, dataSnap] = [await tx.get(projRef), await tx.get(dataRef)];
+    const project = normalizeClassProjects(projSnap.exists() ? projSnap.data() : null)[buildingId];
+    if (!project) return { ok: false, error: "projektet finns inte" };
+    const res = applyProjectDonation(project, studentId, amount);
+    if (!res.ok) return res;
+    const coins = Number(dataSnap.exists() ? dataSnap.data().coins : 0) || 0;
+    const n = Math.round(Number(amount));
+    if (coins < n) return { ok: false, error: "inte tillräckligt med coins" };
+    tx.update(dataRef, { coins: coins - n });
+    tx.set(projRef, { projects: { [buildingId]: res.project } }, { merge: true });
+    return { ok: true, coins: coins - n, project: res.project };
+  });
+  if (result.ok) invalidateStudentData(studentId); // saldot ändrat → färsk läsning (#274)
+  return result;
+}

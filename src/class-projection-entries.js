@@ -254,3 +254,92 @@ export function boendeFromMembers(members = {}, orderIds = []) {
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Gemensamma klassprojekt (#331) – REN shaping för classProjects/{classId}.
+// ---------------------------------------------------------------------------
+// Klassen sparar gemensamt ihop coins till byns gemensamma ytor (stadshus,
+// skola, park på bykartan). Samma doc-mönster som classProjections: ETT
+// förberäknat dokument per klass, en map (`projects`) keyad på byggnads-id.
+// Firestore-skrivningarna bor i data-classes.js (donateToClassProject m.fl.);
+// här bara de Firebase-fria hjälparna så de kan enhetstestas utan emulator
+// (test/class-projects.test.js). De bor i den här REDAN-existerande boot-
+// graf-filen av samma skäl som createTtlCache ovan: en NY fil i den boot-
+// kritiska modulgrafen ger ett 404-fönster vid Pages-deploy (#271).
+// ---------------------------------------------------------------------------
+
+/**
+ * REN hjälpare: normalisera ETT projekt (en post i projects-mappen) till en
+ * komplett, giltig form. Tål null/skräp: belopp klamras till heltal ≥ 0 och
+ * contributions rensas från icke-positiva poster.
+ * @param {object} [raw] rå projekt-data ur Firestore
+ * @returns {{goalAmount:number, collected:number, contributions:Record<string,number>, createdAt:number|null}}
+ */
+export function normalizeClassProject(raw = {}) {
+  const r = raw && typeof raw === "object" ? raw : {};
+  const amount = (v) => Math.max(0, Math.round(Number(v) || 0));
+  const contributions = {};
+  if (r.contributions && typeof r.contributions === "object") {
+    for (const [id, v] of Object.entries(r.contributions)) {
+      const n = amount(v);
+      if (id && n > 0) contributions[id] = n;
+    }
+  }
+  return {
+    goalAmount: amount(r.goalAmount),
+    collected: amount(r.collected),
+    contributions,
+    createdAt: Number.isFinite(Number(r.createdAt)) && r.createdAt != null ? Number(r.createdAt) : null,
+  };
+}
+
+/**
+ * REN hjälpare: normalisera hela projects-mappen ur ett classProjects-dokument
+ * (byggnads-id → projekt). Saknas/skräp → tom map (bakåtkompatibelt).
+ */
+export function normalizeClassProjects(raw = {}) {
+  const m = raw && typeof raw === "object" && raw.projects && typeof raw.projects === "object"
+    ? raw.projects
+    : {};
+  const out = {};
+  for (const [buildingId, p] of Object.entries(m)) {
+    if (buildingId) out[buildingId] = normalizeClassProject(p);
+  }
+  return out;
+}
+
+/** Är projektet fullfinansierat? (härlett – ingen status-flagga att hålla i synk) */
+export function isProjectFunded(project) {
+  const p = normalizeClassProject(project);
+  return p.goalAmount > 0 && p.collected >= p.goalAmount;
+}
+
+/**
+ * REN övergång: applicera en donation på ett projekt. Beloppet måste vara ett
+ * positivt heltal; ett redan fullfinansierat projekt tar inte emot mer (inga
+ * coins ska kunna försvinna i ett stängt projekt). Klamrar ALDRIG donationen
+ * mot målet automatiskt – anroparen (UI:t i nästa epic) visar hur mycket som
+ * saknas; här nekas bara överdonation så saldon aldrig slösas.
+ * @param {object} project  projektet (normaliseras)
+ * @param {string} studentId donatorns id
+ * @param {number} amount    antal coins (positivt heltal)
+ * @returns {{ok:boolean, project:object, error?:string}}
+ */
+export function applyProjectDonation(project, studentId, amount) {
+  const p = normalizeClassProject(project);
+  const n = Math.round(Number(amount));
+  if (!studentId) return { ok: false, project: p, error: "ingen elev" };
+  if (!Number.isFinite(n) || n <= 0) return { ok: false, project: p, error: "ogiltigt belopp" };
+  if (isProjectFunded(p)) return { ok: false, project: p, error: "redan fullfinansierat" };
+  if (p.goalAmount > 0 && p.collected + n > p.goalAmount) {
+    return { ok: false, project: p, error: "mer än vad som saknas" };
+  }
+  return {
+    ok: true,
+    project: {
+      ...p,
+      collected: p.collected + n,
+      contributions: { ...p.contributions, [studentId]: (p.contributions[studentId] || 0) + n },
+    },
+  };
+}

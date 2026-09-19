@@ -15,6 +15,15 @@ service cloud.firestore {
     // Eleven själv = den inloggades uid == dokumentets id (uid sattes = det
     // gamla doc-id:t vid migreringen, se admin/migrate-passwords.mjs).
     function isSelf(id)  { return signedIn() && request.auth.uid == id; }
+    // Klassmedlem = autentiserad elev som finns i classes/{classId}.studentIds.
+    // Används av de klassmedlem-skrivbara doc:en classProjections (#231/#232)
+    // och classProjects (#331). exists-guarden gör att en påhittad klass aldrig
+    // blir skrivbar.
+    function isClassMember(classId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/classes/$(classId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds;
+    }
 
     // (#114) De klass-scopade hjälparna (classIdsOf/sharesClass/isClassMember)
     // är borttagna: students/studentData-läsning är numera öppen för alla
@@ -104,10 +113,28 @@ service cloud.firestore {
     // Coins/progress/lösenord finns inte här. Lärare får också skriva (backfill).
     match /classProjections/{classId} {
       allow read:  if signedIn();
-      allow write: if isTeacher() ||
-        (signedIn() &&
-         exists(/databases/$(database)/documents/classes/$(classId)) &&
-         request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds);
+      allow write: if isTeacher() || isClassMember(classId);
+    }
+
+    // Gemensamma klassprojekt (#331): klassen donerar tillsammans coins till
+    // byns gemensamma ytor (stadshus/skola/park). ETT dokument per klass med en
+    // `projects`-map (byggnads-id → { goalAmount, collected, contributions }),
+    // se docs/DATAMODELL.md. SPEGLAR classProjections-posturen ovan: läsning
+    // öppen för alla inloggade (samma relaxade läshållning som #114 – datat är
+    // klass-gemensamt och okänsligt), skrivning för klassMEDLEM (donationer går
+    // i en klient-transaktion i data-classes.js som samtidigt drar elevens
+    // coins – coins-avdraget skyddas redan av studentData-regeln ovan) eller
+    // lärare. Samma medvetna val som classProjections: vi diffar inte fram att
+    // bara den egna contributions-posten rörs – medlemskaps-checken räcker för
+    // klass-gemensam, okänslig data.
+    //
+    // ⚠️ DEPLOY KRÄVS: regeln träder i kraft FÖRST vid
+    //   firebase deploy --only firestore:rules
+    // (separat från Pages-deployen) – innan dess ger classProjects-skrivningar
+    // "Missing or insufficient permissions" i prod.
+    match /classProjects/{classId} {
+      allow read:  if signedIn();
+      allow write: if isTeacher() || isClassMember(classId);
     }
     // ------------------------------------------------------------------------
     // UTKAST (#316, SEKUNDÄRT – EJ aktiverat): begränsa en elev till att skriva
