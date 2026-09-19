@@ -30,9 +30,18 @@ import {
   renameFarmAnimalIn,
   withFarmAnimalPositions,
   moodForTrivsel,
+  trivselNow,
+  sammaDygn,
+  feedFarmAnimalIn,
+  giftReadyIn,
+  claimGiftIn,
   FARM_MAX_GROWTH_STAGE,
   FARM_MAX_GARDEN_TIER,
   FARM_ANIMAL_DEFAULT_TRIVSEL,
+  DYGN_MS,
+  FEED_TRIVSEL,
+  TRIVSEL_DECAY_PER_DYGN,
+  FARM_GIFT_COINS,
 } from "../src/farm-core.js";
 
 test("farmFromData: dokument utan farm får giltig default (bakåtkompat)", () => {
@@ -209,7 +218,7 @@ test("addFarmAnimalIn: nytt djur med trivsel-default; unika uid krävs", () => {
   assert.equal(r1.ok, true);
   assert.deepEqual(r1.animal, {
     uid: "animal_horse#a1", id: "animal_horse", name: null, pos: null,
-    trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null,
+    trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null, lastGiftAt: null,
   });
   // Nytt djur har ingen placerings-post → bor i rummet (default).
   assert.equal(placementFor(r1.farm, "animal_horse#a1"), "room");
@@ -232,8 +241,8 @@ test("farmFromData: animals normaliseras (trasiga poster bort, fält klamras)", 
     },
   });
   assert.deepEqual(farm.animals, [
-    { uid: "animal_pig#p1", id: "animal_pig", name: "Nasse", pos: { x: 40, y: 80 }, trivsel: 100, lastFedAt: 1234 },
-    { uid: "animal_cow#k1", id: "animal_cow", name: null, pos: null, trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null },
+    { uid: "animal_pig#p1", id: "animal_pig", name: "Nasse", pos: { x: 40, y: 80 }, trivsel: 100, lastFedAt: 1234, lastGiftAt: null },
+    { uid: "animal_cow#k1", id: "animal_cow", name: null, pos: null, trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null, lastGiftAt: null },
   ]);
 });
 
@@ -273,4 +282,85 @@ test("moodForTrivsel: glad/nöjd/less med klamrande trösklar", () => {
   assert.equal(moodForTrivsel(29), "less");
   assert.equal(moodForTrivsel(0), "less");
   assert.equal(moodForTrivsel("skräp"), moodForTrivsel(FARM_ANIMAL_DEFAULT_TRIVSEL)); // ogiltigt → default
+});
+
+// --- Matning, trivsel & daglig gåva (issue #332) ------------------------------
+
+// Fast "nu" mitt på dagen (lokal tid) så kalenderdags-gaten inte råkar korsa
+// midnatt i testet: 2026-09-15 12:00 lokal.
+const NU = new Date(2026, 8, 15, 12, 0, 0).getTime();
+
+/** Gård med en häst (uid h1) och givet skörde-förråd. */
+function gardMedHast(inventoryHarvest, hast = {}) {
+  const { farm } = addFarmAnimalIn(defaultFarm(), "h1", "animal_horse");
+  farm.animals[0] = { ...farm.animals[0], ...hast };
+  return { ...farm, inventoryHarvest };
+}
+
+test("sammaDygn: kalenderdag (lokal tid), null → false", () => {
+  assert.equal(sammaDygn(NU, NU - 3 * 60 * 60 * 1000), true); // samma dag, 09:00
+  assert.equal(sammaDygn(NU, NU - DYGN_MS), false); // igår
+  assert.equal(sammaDygn(NU, NU - 13 * 60 * 60 * 1000), false); // igår kväll (23:00)
+  assert.equal(sammaDygn(null, NU), false);
+  assert.equal(sammaDygn(NU, undefined), false);
+});
+
+test("trivselNow: −10 per helt dygn sedan lastFedAt, golv 0, ingen decay omatad", () => {
+  assert.equal(trivselNow({ trivsel: 80, lastFedAt: null }, NU), 80); // aldrig matad
+  assert.equal(trivselNow({ trivsel: 80, lastFedAt: NU - DYGN_MS + 1 }, NU), 80); // < 1 dygn
+  assert.equal(trivselNow({ trivsel: 80, lastFedAt: NU - DYGN_MS }, NU), 80 - TRIVSEL_DECAY_PER_DYGN);
+  assert.equal(trivselNow({ trivsel: 80, lastFedAt: NU - 3.5 * DYGN_MS }, NU), 50); // 3 hela dygn
+  assert.equal(trivselNow({ trivsel: 30, lastFedAt: NU - 99 * DYGN_MS }, NU), 0); // golv 0
+});
+
+test("feedFarmAnimalIn: rätt gröda +25 (klamrat 100), förrådet −1, lastFedAt sätts", () => {
+  const farm = gardMedHast({ crop_carrot: 2 });
+  const r = feedFarmAnimalIn(farm, "h1", "crop_carrot", NU);
+  assert.equal(r.ok, true);
+  assert.equal(r.gavTrivsel, true);
+  assert.equal(r.animal.trivsel, 100); // 80 + 25 klamrat till 100
+  assert.equal(r.animal.lastFedAt, NU);
+  assert.deepEqual(r.farm.inventoryHarvest, { crop_carrot: 1 });
+  assert.equal(farm.animals[0].lastFedAt, null); // indata muteras aldrig
+});
+
+test("feedFarmAnimalIn: bara FÖRSTA matningen per kalenderdag ger trivsel", () => {
+  const farm = gardMedHast({ crop_carrot: 3 }, { trivsel: 40, lastFedAt: NU - DYGN_MS });
+  // Igår matad → dagens första: decay −10 materialiseras, sedan +25.
+  const r1 = feedFarmAnimalIn(farm, "h1", "crop_carrot", NU);
+  assert.equal(r1.gavTrivsel, true);
+  assert.equal(r1.animal.trivsel, 40 - TRIVSEL_DECAY_PER_DYGN + FEED_TRIVSEL);
+  // Andra matningen samma dag: förbrukar gröda (hjärtan i UI) men ingen trivsel.
+  const r2 = feedFarmAnimalIn(r1.farm, "h1", "crop_carrot", NU + 60000);
+  assert.equal(r2.ok, true);
+  assert.equal(r2.gavTrivsel, false);
+  assert.equal(r2.animal.trivsel, r1.animal.trivsel);
+  assert.deepEqual(r2.farm.inventoryHarvest, { crop_carrot: 1 });
+});
+
+test("feedFarmAnimalIn: fel gröda / tomt förråd / okänt djur → ok:false utan ändring", () => {
+  const farm = gardMedHast({ crop_clover: 1 });
+  const fel = feedFarmAnimalIn(farm, "h1", "crop_clover", NU); // häst vill ha morot
+  assert.equal(fel.ok, false);
+  assert.equal(fel.error, "fel gröda");
+  assert.deepEqual(fel.farm.inventoryHarvest, { crop_clover: 1 }); // inget förbrukat
+  assert.equal(feedFarmAnimalIn(gardMedHast({}), "h1", "crop_carrot", NU).ok, false);
+  assert.equal(feedFarmAnimalIn(farm, "okänd#x", "crop_carrot", NU).ok, false);
+});
+
+test("giftReadyIn/claimGiftIn: gåva vid trivsel ≥ 60, en gång per kalenderdag", () => {
+  const farm = gardMedHast({}, { trivsel: 70, lastFedAt: NU });
+  assert.equal(giftReadyIn(farm.animals[0], NU), true);
+  const r = claimGiftIn(farm, "h1", NU);
+  assert.equal(r.ok, true);
+  assert.equal(r.coins, FARM_GIFT_COINS);
+  assert.equal(r.animal.lastGiftAt, NU);
+  // Redan hämtad idag → ok:false; i morgon är den redo igen (om trivseln räcker).
+  assert.equal(claimGiftIn(r.farm, "h1", NU + 60000).ok, false);
+  assert.equal(giftReadyIn(r.farm.animals[0], NU + DYGN_MS), true);
+  // Låg trivsel (decay under 60) → ingen gåva, aldrig ett "fel".
+  const less = gardMedHast({}, { trivsel: 65, lastFedAt: NU - DYGN_MS });
+  assert.equal(giftReadyIn(less.animals[0], NU), false); // 65 − 10 = 55 < 60
+  assert.equal(claimGiftIn(less, "h1", NU).ok, false);
+  assert.equal(claimGiftIn(farm, "okänd#x", NU).ok, false);
 });

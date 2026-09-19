@@ -145,6 +145,7 @@ export function farmFromData(data) {
           : null,
         trivsel: clampTrivsel(a.trivsel),
         lastFedAt: Number.isFinite(a.lastFedAt) ? a.lastFedAt : null,
+        lastGiftAt: Number.isFinite(a.lastGiftAt) ? a.lastGiftAt : null,
       })),
   };
 }
@@ -311,7 +312,7 @@ export function addFarmAnimalIn(farm, uid, artId) {
   if (typeof uid !== "string" || !uid) return { ok: false, farm, error: "ogiltigt djur-id" };
   if (typeof artId !== "string" || !artId) return { ok: false, farm, error: "ogiltig art" };
   if (farm.animals.some((a) => a.uid === uid)) return { ok: false, farm, error: "djuret finns redan" };
-  const animal = { uid, id: artId, name: null, pos: null, trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null };
+  const animal = { uid, id: artId, name: null, pos: null, trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null, lastGiftAt: null };
   return { ok: true, farm: { ...farm, animals: [...farm.animals, animal] }, animal };
 }
 
@@ -334,6 +335,83 @@ export function renameFarmAnimalIn(farm, uid, name) {
  * saveAnimalPositions i data-animals.js). Alltid ok – inga fel-vägar.
  * @returns {{ok: boolean, farm: object, changed: boolean}}
  */
+// --- Matning, trivsel & daglig gåva (issue #332) ------------------------------
+// Rätt gröda +25 trivsel (bara FÖRSTA matningen per kalenderdag), decay −10 per
+// helt dygn sedan lastFedAt – beräknas VID LÄSNING (som stageForFeeds, ingen
+// bakgrundsprocess), golv 0. Låg trivsel betyder BARA ingen gåva – aldrig skuld.
+
+export const DYGN_MS = 24 * 60 * 60 * 1000;
+export const FEED_TRIVSEL = 25; // +trivsel för dagens första rätta matning
+export const TRIVSEL_DECAY_PER_DYGN = 10; // −trivsel per helt dygn utan mat
+export const GIFT_MIN_TRIVSEL = 60; // gåvo-gräns (= "glad"-tröskeln)
+export const FARM_GIFT_COINS = 8; // daglig gåva = mynt (konsekvent, i 5–10-spannet)
+
+/** Vilken gröda varje bondgårdsdjur helst äter (id:n ur shop-items/CROPS). */
+export const FODER_FOR = {
+  animal_horse: "crop_carrot",
+  animal_cow: "crop_clover",
+  animal_pig: "crop_clover",
+};
+
+/** Föll a och b på samma kalenderdag (lokal tid)? null/ogiltigt → false. */
+export function sammaDygn(a, b) {
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return false;
+  const da = new Date(a), db = new Date(b);
+  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+}
+
+/**
+ * Djurets EFFEKTIVA trivsel just nu: sparad trivsel −10 per helt dygn sedan
+ * senaste matningen, golv 0. Aldrig matad (lastFedAt null) → ingen decay.
+ * @returns {number} 0–100
+ */
+export function trivselNow(animal, now = Date.now()) {
+  const t = clampTrivsel(animal && animal.trivsel);
+  if (!animal || !Number.isFinite(animal.lastFedAt)) return t;
+  const dygn = Math.floor(Math.max(0, now - animal.lastFedAt) / DYGN_MS);
+  return Math.max(0, t - dygn * TRIVSEL_DECAY_PER_DYGN);
+}
+
+/**
+ * Mata ett bondgårdsdjur med en gröda ur skörde-förrådet. Kräver RÄTT gröda
+ * (FODER_FOR – fel gröda → ok:false utan att förbruka; UI:t förklarar snällt)
+ * och minst 1 i förrådet. Decayn materialiseras först (trivselNow), sedan +25
+ * om detta är dagens första matning; extra matningar samma dag förbrukar grödan
+ * och ger hjärtan i UI:t men ingen trivsel (gavTrivsel:false). lastFedAt sätts
+ * alltid → decay-klockan nollas. @returns {{ok, farm, animal?, gavTrivsel?, error?}}
+ */
+export function feedFarmAnimalIn(farm, uid, cropId, now = Date.now()) {
+  const a = farm.animals.find((x) => x.uid === uid);
+  if (!a) return { ok: false, farm, error: "okänt djur" };
+  if (FODER_FOR[a.id] !== cropId) return { ok: false, farm, error: "fel gröda" };
+  const inv = adjustInventoryIn(farm, cropId, -1);
+  if (!inv.ok) return { ok: false, farm, error: "för lite i förrådet" };
+  const gavTrivsel = !sammaDygn(a.lastFedAt, now);
+  const trivsel = Math.min(100, trivselNow(a, now) + (gavTrivsel ? FEED_TRIVSEL : 0));
+  const fed = { ...a, trivsel, lastFedAt: now };
+  const animals = inv.farm.animals.map((x) => (x.uid === uid ? fed : x));
+  return { ok: true, farm: { ...inv.farm, animals }, animal: fed, gavTrivsel };
+}
+
+/** Kan djurets dagliga gåva hämtas nu? (trivsel ≥ 60 och inte hämtad idag) */
+export function giftReadyIn(animal, now = Date.now()) {
+  return trivselNow(animal, now) >= GIFT_MIN_TRIVSEL && !sammaDygn(animal && animal.lastGiftAt, now);
+}
+
+/**
+ * Hämta djurets dagliga gåva: sätter lastGiftAt och rapporterar mynten (coins =
+ * FARM_GIFT_COINS). Själva myntökningen gör data-farm.js i SAMMA transaktion
+ * (atomiskt). Ej redo → ok:false. @returns {{ok, farm, animal?, coins?, error?}}
+ */
+export function claimGiftIn(farm, uid, now = Date.now()) {
+  const a = farm.animals.find((x) => x.uid === uid);
+  if (!a) return { ok: false, farm, error: "okänt djur" };
+  if (!giftReadyIn(a, now)) return { ok: false, farm, error: "ingen gåva att hämta" };
+  const gifted = { ...a, lastGiftAt: now };
+  const animals = farm.animals.map((x) => (x.uid === uid ? gifted : x));
+  return { ok: true, farm: { ...farm, animals }, animal: gifted, coins: FARM_GIFT_COINS };
+}
+
 export function withFarmAnimalPositions(farm, positions) {
   let changed = false;
   const animals = farm.animals.map((a) => {

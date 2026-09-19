@@ -24,7 +24,7 @@
 // ============================================================================
 
 import { getFarm } from "./data-farm.js";
-import { placementFor, moodForTrivsel } from "./farm-core.js";
+import { placementFor, moodForTrivsel, trivselNow, giftReadyIn } from "./farm-core.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { farmMoodSvg } from "./art-pets.js";
@@ -89,10 +89,13 @@ export function mountGardDjur({ gardLager, laggardLager }) {
     if (!item) return el("<span></span>");
     const size = itemSize(a.art);
     const namn = a.name || item.name;
+    // Mood ur EFFEKTIV trivsel (decay vid läsning, #332); 🎁-badge när dagens
+    // gåva väntar. Klick på djuret öppnar foder-panelen (varld-foder.js).
     return el(`<div class="room-item room-pet gard-djur" data-pet-id="${a.id}"
-      style="left:${a.pos.x}%;top:${a.pos.y}%" title="${namn}">
+      style="left:${a.pos.x}%;top:${a.pos.y}%" title="Mata ${namn}" role="button" tabindex="0">
       <span class="ri-emoji" style="width:calc(${size.w} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)));height:calc(${size.h} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)))">${itemSvg(a.art) || item.emoji}</span>
-      <span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(a.trivsel))}</span>
+      <span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(trivselNow(a)))}</span>
+      ${giftReadyIn(a) ? '<span class="fdjur-gava" title="En gåva väntar!">🎁</span>' : ""}
       <span class="rp-namn">${namn}</span>
     </div>`);
   }
@@ -130,6 +133,8 @@ export function mountGardDjur({ gardLager, laggardLager }) {
         art: a.id,
         name: a.name,
         trivsel: a.trivsel,
+        lastFedAt: a.lastFedAt, //   trivselNow/giftReadyIn (#332) läser dessa
+        lastGiftAt: a.lastGiftAt, // direkt på runtime-objektet
         pos: gamla.get(a.uid) ||
           (z ? { x: rand(z.l + 6, z.r - 6), y: rand(z.t + 2, z.b - 4) } : { x: 50, y: 75 }),
         hatchedAt: true, // pet-format så promenad-AI:n kan driva djuret

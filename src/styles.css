@@ -3038,8 +3038,10 @@ body.varld-lage .container {
   --fdjur-koeff: 2.0;
   --fdjur-cap: 30px;
 }
-.gard-djur-lager .gard-djur { cursor: default; }
-.gard-djur-lager .gard-djur .rp-namn { cursor: default; }
+/* Klick på djuret öppnar foder-panelen (#332) – lagret är pointer-events:none,
+   så själva djur-noderna måste slå på pekar-händelser igen. */
+.gard-djur-lager .gard-djur { cursor: pointer; pointer-events: auto; }
+.gard-djur-lager .gard-djur .rp-namn { cursor: pointer; }
 
 /* Mood-minen (glad/nöjd/less ur trivseln, #330): liten bricka uppe till höger
    på djur-noden – i rummet OCH i hagen/ladan (samma markup i båda). */
@@ -3052,6 +3054,47 @@ body.varld-lage .container {
   pointer-events: none;
 }
 .room-pet .fdjur-mood svg { display: block; width: 100%; height: 100%; }
+
+/* --- Matning & daglig gåva (#332) ------------------------------------------ */
+/* 🎁-badgen: dagens gåva väntar (trivsel ≥ 60, inte hämtad idag) – uppe till
+   vänster (mood-minen bor till höger), med ett litet uppmärksamhets-gupp. */
+.room-pet .fdjur-gava {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.5rem;
+  font-size: 0.85rem;
+  pointer-events: none;
+  animation: fdjur-gava-gupp 1.6s ease-in-out infinite;
+}
+@keyframes fdjur-gava-gupp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px) scale(1.08); }
+}
+
+/* Hjärt-puffen vid matning: samma stigande/tonande bana som klapp-hjärtana
+   (pet-rygg-fx-keyframes), tre stycken med inline-fördröjning/spridning. */
+.foder-hjarta {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 1.1s ease-out both;
+}
+
+/* Foder-sektionen (gårds-panelen + rummets namn-panel): trivsel-rad med
+   mood-min i radhöjd; gröd-knapparna återbrukar .room-tray/.tray-item,
+   favoritgrödan får en mjuk markering. */
+.foder-trivsel-rad { display: flex; align-items: center; gap: 0.4rem; margin: 0.3rem 0 0.2rem; }
+.foder-mood { width: 1.2rem; height: 1.2rem; flex: none; }
+.foder-mood svg { display: block; width: 100%; height: 100%; }
+.foder-tray .tray-item.foder-fav { outline: 2px solid var(--gron, #2e7d32); border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .room-pet .fdjur-gava,
+  .foder-hjarta { animation: none; }
+}
 
 /* Laggårdens dörr – klick går in i interiören (samma känsla som #husgrupp). */
 #laggard-dorr {

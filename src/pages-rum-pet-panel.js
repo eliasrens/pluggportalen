@@ -107,6 +107,9 @@ function creaturePanel(pet, opts) {
     ${next
       ? `<p class="hint pet-mat-tips">🍎 Mata ${namn} genom att köpa <b>Mysterymat</b> i shoppen och lägga ut den på golvet med <b>🍎 Mysterymat</b> – då går ${namn} dit och äter!</p>`
       : ""}
+    ${opts.onFeedBerry
+      ? `<button class="btn liten" id="ge-bar" type="button" title="Ett magiskt bär räknas som en matning – precis som Mysterymat">🫐 Ge ett magiskt bär (${opts.berryCount} i förrådet)</button>`
+      : ""}
     ${visaNamnfalt ? "" : '<button class="btn liten ghost" id="byt-namn">✏️ Byt namn</button>'}
     ${opts.onStow ? '<button class="btn liten ghost" id="stuva-djur" type="button" title="Lägg djuret i Mina djur">📦 Stuva undan</button>' : ""}
   </div>`);
@@ -130,6 +133,19 @@ function creaturePanel(pet, opts) {
   // "Stuva undan": flytta djuret till Mina djur (rummet sköter data + omritning).
   const stuvaBtn = view.querySelector("#stuva-djur");
   if (stuvaBtn) stuvaBtn.addEventListener("click", () => opts.onStow());
+  // "Ge ett magiskt bär" (#332): rummet äger flödet (feedPetBerry + hjärtan +
+  // omritning); knappen låses under anropet så bären inte dubbelklickas iväg.
+  const barBtn = view.querySelector("#ge-bar");
+  if (barBtn) {
+    barBtn.addEventListener("click", async () => {
+      barBtn.disabled = true;
+      try {
+        await opts.onFeedBerry();
+      } finally {
+        barBtn.disabled = false;
+      }
+    });
+  }
 
   return view;
 }

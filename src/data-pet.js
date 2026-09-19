@@ -37,6 +37,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, invalidateStudentData } from "./data.js";
 import { randomSpeciesId, getSpecies } from "./art-pets-creatures.js";
+import { farmFromData, adjustInventoryIn } from "./farm-core.js";
 
 // Shop-id:n (måste matcha shop-items.js). Äpplet (APPLE_ITEM_ID) bor i
 // äppel-ekonomin (data-pet-mat.js) tillsammans med köp/utläggning.
@@ -301,6 +302,46 @@ export async function eatApple(petId, appleId, studentId = currentStudentId()) {
         pet: fed,
         pets: next,
         floorApples: nextApples,
+        stageUp: fed.stage > (pet.stage || 1),
+      },
+    };
+  });
+}
+
+// Skördad gröda som mysterydjuren äter (#332): id ur shop-items/CROPS.
+export const BERRY_CROP_ID = "crop_berries";
+
+/**
+ * Ge ett mysterydjur ett MAGISKT BÄR ur gårdens skörde-förråd (#332): drar 1
+ * crop_berries ur farm.inventoryHarvest och ökar feedCount/steget PRECIS som
+ * eatApple – bär och äpplen räknas mot samma tillväxt (10/20 matningar); samma
+ * updatePets-transaktion, äppelflödet orört. Inga bär/okläckt djur → ok:false.
+ * @returns {Promise<{ok: boolean, pet: object|null, pets: object[], berriesLeft: number, stageUp: boolean}>}
+ */
+export async function feedPetBerry(petId, studentId = currentStudentId()) {
+  return updatePets(studentId, (pets, data) => {
+    const farm = farmFromData(data);
+    const inv = adjustInventoryIn(farm, BERRY_CROP_ID, -1);
+    const i = pets.findIndex((p) => p.id === petId);
+    const pet = i === -1 ? null : pets[i];
+    const left = () => farm.inventoryHarvest[BERRY_CROP_ID] || 0;
+    if (!inv.ok || !pet || !pet.hatchedAt) {
+      return { result: { ok: false, pet, pets, berriesLeft: left(), stageUp: false } };
+    }
+    const feedCount = (pet.feedCount || 0) + 1;
+    const fed = { ...pet, feedCount, stage: stageForFeeds(feedCount), lastFedAt: Date.now() };
+    const next = [...pets];
+    next[i] = fed;
+    return {
+      write: true,
+      pets: next,
+      // Dot-path: bara förrådet rörs i farm-objektet (samma mönster som data-farm).
+      extra: { "farm.inventoryHarvest": inv.farm.inventoryHarvest },
+      result: {
+        ok: true,
+        pet: fed,
+        pets: next,
+        berriesLeft: inv.farm.inventoryHarvest[BERRY_CROP_ID] || 0,
         stageUp: fed.stage > (pet.stage || 1),
       },
     };
