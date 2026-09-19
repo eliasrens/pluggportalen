@@ -42,6 +42,8 @@ import {
   addFarmAnimalIn,
   renameFarmAnimalIn,
   withFarmAnimalPositions,
+  feedFarmAnimalIn,
+  claimGiftIn,
   FARM_MAX_BARN_LEVEL,
   FARM_MAX_GARDEN_TIER,
   FARM_MAX_GROWTH_STAGE,
@@ -261,6 +263,42 @@ export function saveFarmAnimalPositions(positions, studentId = currentStudentId(
 export function saveFarmAnimalName(uid, name, studentId = currentStudentId()) {
   return updateFarm(studentId, ["animals"], (farm) =>
     renameFarmAnimalIn(farm, uid, cleanFarmAnimalName(name)));
+}
+
+/**
+ * Mata ett bondgårdsdjur med en gröda ur skörde-förrådet (#332): förbrukar
+ * grödan och uppdaterar trivsel/lastFedAt i EN transaktion (ren logik i
+ * feedFarmAnimalIn – +25 bara för dagens första rätta matning, fel gröda →
+ * ok:false utan att något förbrukas).
+ * @returns {Promise<{ok: boolean, farm: object, animal?: object, gavTrivsel?: boolean, error?: string}>}
+ */
+export function feedFarmAnimal(uid, cropId, studentId = currentStudentId()) {
+  return updateFarm(studentId, ["animals", "inventoryHarvest"], (farm) =>
+    feedFarmAnimalIn(farm, uid, cropId));
+}
+
+/**
+ * Hämta djurets dagliga gåva (#332): sätter lastGiftAt OCH ökar coins i SAMMA
+ * transaktion (gåvan kan aldrig hämtas utan mynt eller tvärtom – därför inte
+ * via data.addCoins, som vore en andra transaktion). Ej redo → ok:false.
+ * @returns {Promise<{ok: boolean, farm: object, coins?: number, coinsTotal?: number, error?: string}>}
+ */
+export async function claimFarmAnimalGift(uid, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const result = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const farm = farmFromData(data);
+    const res = claimGiftIn(farm, uid);
+    if (!res.ok) return res;
+    const coinsTotal = (data.coins || 0) + res.coins;
+    if (snap.exists()) tx.update(ref, { coins: coinsTotal, "farm.animals": res.farm.animals });
+    else tx.set(ref, { ...defaultStudentData(), coins: res.coins, farm: res.farm });
+    return { ...res, coinsTotal };
+  });
+  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
+  return result;
 }
 
 /**

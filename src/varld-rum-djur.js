@@ -18,7 +18,7 @@
 
 import * as animalData from "./data-animals.js";
 import { setAnimalPlacement, saveFarmAnimalPositions, saveFarmAnimalName } from "./data-farm.js";
-import { farmFromData, placementFor, moodForTrivsel } from "./farm-core.js";
+import { farmFromData, placementFor, moodForTrivsel, trivselNow, giftReadyIn } from "./farm-core.js";
 import { el } from "./ui.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -60,7 +60,9 @@ export function mountRumDjur({ sd }) {
     name: a.name,
     location: placementFor(farm, a.uid),
     farmAnimal: true,
-    trivsel: a.trivsel, // 0–100; mood-minen härleds (matningen kommer i #332)
+    trivsel: a.trivsel, //     0–100 (sparad; effektiv trivsel via trivselNow)
+    lastFedAt: a.lastFedAt, //  matnings-loopen #332: decay + dagsgate
+    lastGiftAt: a.lastGiftAt, // … och gåvo-gaten (🎁-badgen)
     stowed: false,
     hatchedAt: true,
   }));
@@ -117,9 +119,11 @@ export function mountRumDjur({ sd }) {
     if (!item) return el("<span></span>");
     const size = itemSize(a.art);
     const namn = displayName(a);
-    // Bondgårdsdjur bär en liten mood-min (glad/nöjd/less ur trivseln, #330).
+    // Bondgårdsdjur bär en liten mood-min (glad/nöjd/less ur EFFEKTIV trivsel –
+    // decay vid läsning, #332) + 🎁-badge när dagens gåva väntar (hämtas i
+    // matnings-sektionen i djurets namn-panel, varld-foder.js).
     const mood = a.farmAnimal
-      ? `<span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(a.trivsel))}</span>`
+      ? `<span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(trivselNow(a)))}</span>${giftReadyIn(a) ? '<span class="fdjur-gava" title="En gåva väntar!">🎁</span>' : ""}`
       : "";
     // Namn-etiketten är en lättviktig döpnings-affordans (klick → inline-namnfält),
     // precis som mystery-djuren. ✏️-pennan visas BARA innan djuret fått ett eget

@@ -30,6 +30,7 @@ import { createKamera } from "./varld-kamera.js";
 import { gardScen, laggardScen } from "./art-gard.js";
 import { mountOdling } from "./varld-odling.js";
 import { mountGardDjur } from "./gard-djur.js";
+import { mountFoder } from "./varld-foder.js";
 
 /**
  * Skapa gårds-grenen.
@@ -53,6 +54,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   let byggd = false;
   let odling = null; // odlingsbädden (#329) – monteras när scenen byggts
   let gardDjur = null; // bondgårdsdjuren (#330) – monteras vid första besöket
+  let foder = null; // foder-panelen (#332) – klick på djur i hagen/ladan
 
   // Scenerna ritas först vid första gårds-besöket (lat – ingen kostnad för
   // elever som aldrig går ut på baksidan).
@@ -62,6 +64,10 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     gardLager.innerHTML = gardScen();
     laggardLager.innerHTML = laggardScen();
     odling = mountOdling({ stage, gardLager });
+    // Foder-panelen (#332): klick på ett djur i hagen/ladan → mata/hämta gåva.
+    // Mood-min + 🎁-badge uppdateras in-place av panelen själv (ingen refresh –
+    // en omritning skulle nollställa djurens pågående promenad-animationer).
+    foder = mountFoder({ stage, gardLager, laggardLager });
   }
 
   function ensureKamera() {
@@ -76,6 +82,8 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
       onNiva: (nivaId) => {
         // Frö-panelen (#329) hör bara hemma på gård-nivån.
         if (nivaId !== "gard" && odling) odling.stang();
+        // Foder-panelen (#332) stängs vid varje nivåbyte (djuret lämnas kvar).
+        if (foder) foder.stang();
         onNiva(nivaId);
       },
     }));

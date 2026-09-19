@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – matning & foder-brygga (#332)</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #332: hela matnings-loopen mot en LOKAL
+         farm-attrapp (ingen inloggning/Firestore) – samma rena logik
+         (farm-core.js) och samma markup/CSS-klasser som gårds-panelen
+         (varld-foder.js). "Nästa dag"-knappen spolar klockan för att visa
+         decay, dagsgaten och den dagliga gåvan. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .wrap { padding: 12px 20px 40px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+      #stage {
+        position: relative; width: min(96vw, 720px); aspect-ratio: 8 / 5;
+        border-radius: 18px; overflow: hidden; box-shadow: 0 8px 24px rgba(59, 51, 80, 0.18);
+        container-type: inline-size; --fdjur-koeff: 2.0; --fdjur-cap: 30px;
+      }
+      #stage svg.scen { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #stage .room-pet { position: absolute; transform: translate(-50%, -50%); }
+      #stage .room-pet .ri-emoji { display: block; }
+      #stage .room-pet .rp-namn {
+        display: block; text-align: center; font-size: 0.7rem; background: rgba(255,255,255,0.85);
+        border-radius: 8px; padding: 0 6px; margin-top: 2px;
+      }
+      .panelbox { background: #fff; border: 3px solid #ffe0b3; border-radius: 16px; padding: 14px 16px; width: min(94vw, 380px); }
+      .panelbox h3 { margin: 0 0 6px; }
+      .verktyg { margin: 10px 20px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .verktyg .btn, .panelbox .btn { cursor: pointer; }
+      #logg { font-size: 0.85rem; margin: 8px 20px; min-height: 1.2em; color: #1e8e4e; }
+      .room-tray { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .tray-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px; border: 2px solid #eee; border-radius: 10px; background: #fffdf7; cursor: pointer; }
+      .tray-emoji { font-size: 1.4rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Matning &amp; foder-brygga (#332) 🥕🐴</h1>
+      <p>Klicka på ett djur i hagen → foder-panelen. Rätt gröda ger +25 trivsel (första
+        matningen per dag), fel gröda ger en snäll hint, trivsel ≥ 60 ger en daglig 🎁-gåva.
+        Allt här körs mot en lokal attrapp med exakt samma logik (farm-core.js) och
+        samma markup/CSS som i appen. Knappen <b>Nästa dag</b> visar decay/dagsgaten.</p>
+    </header>
+    <div class="verktyg">
+      <button class="btn liten" id="nasta-dag">🌙 Nästa dag (+1 dygn)</button>
+      <span id="klocka"></span>
+      <span>💰 Mynt: <b id="mynt">0</b></span>
+    </div>
+    <p id="logg"></p>
+    <div class="wrap">
+      <div id="stage"></div>
+      <div class="panelbox" id="panel" hidden>
+        <h3 id="foder-titel"></h3>
+        <div id="foder-kropp"></div>
+      </div>
+    </div>
+    <script type="module">
+      import { gardScen } from "./src/art-gard.js";
+      import { getItem } from "./src/shop-items.js";
+      import { itemSvg, itemSize } from "./src/art-items.js";
+      import { farmMoodSvg } from "./src/art-pets.js";
+      import { CROPS } from "./src/art-garden.js";
+      import {
+        defaultFarm, addFarmAnimalIn, feedFarmAnimalIn, claimGiftIn,
+        trivselNow, giftReadyIn, moodForTrivsel, FODER_FOR,
+        FEED_TRIVSEL, FARM_GIFT_COINS, DYGN_MS,
+      } from "./src/farm-core.js";
+
+      const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+      const logg = (msg) => { document.getElementById("logg").textContent = msg; };
+
+      // --- Lokal attrapp: en gård med tre djur + skörde-förråd -----------------
+      let farm = defaultFarm();
+      for (const [uid, art] of [["h1", "animal_horse"], ["k1", "animal_cow"], ["g1", "animal_pig"]]) {
+        farm = addFarmAnimalIn(farm, uid, art).farm;
+      }
+      farm.inventoryHarvest = { crop_carrot: 3, crop_clover: 4, crop_berries: 2 };
+      let coins = 0;
+      let nu = Date.now();
+      let dag = 0;
+      const POS = { h1: { x: 38, y: 78 }, k1: { x: 52, y: 84 }, g1: { x: 63, y: 79 } };
+
+      const stage = document.getElementById("stage");
+      const scen = el(`<div class="scen-holder"></div>`);
+      stage.insertAdjacentHTML("beforeend", gardScen().replace("<svg", '<svg class="scen"'));
+
+      function djurNode(a) {
+        const item = getItem(a.id);
+        const size = itemSize(a.id);
+        const namn = a.name || item.name;
+        return el(`<div class="room-item room-pet gard-djur" data-pet-id="${a.uid}"
+          style="left:${POS[a.uid].x}%;top:${POS[a.uid].y}%" title="Mata ${namn}" role="button" tabindex="0">
+          <span class="ri-emoji" style="width:calc(${size.w} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)));height:calc(${size.h} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)))">${itemSvg(a.id) || item.emoji}</span>
+          <span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(trivselNow(a, nu)))}</span>
+          ${giftReadyIn(a, nu) ? '<span class="fdjur-gava" title="En gåva väntar!">🎁</span>' : ""}
+          <span class="rp-namn">${namn}</span>
+        </div>`);
+      }
+
+      function ritaDjur() {
+        for (const n of stage.querySelectorAll(".gard-djur")) n.remove();
+        for (const a of farm.animals) stage.appendChild(djurNode(a));
+      }
+
+      function hjartFx(uid) {
+        const node = stage.querySelector(`.gard-djur[data-pet-id="${uid}"]`);
+        if (!node) return;
+        for (let i = 0; i < 3; i++) {
+          const fx = el(`<span class="foder-hjarta" style="animation-delay:${i * 0.22}s;margin-left:${(i - 1) * 12}px">💚</span>`);
+          node.appendChild(fx);
+          setTimeout(() => fx.remove(), 1600 + i * 220);
+        }
+      }
+
+      // --- Foder-panelen (samma innehåll som varld-foder.js, mot attrappen) ----
+      const panel = document.getElementById("panel");
+      let valdUid = null;
+
+      function ritaPanel() {
+        const a = farm.animals.find((x) => x.uid === valdUid);
+        if (!a) { panel.hidden = true; return; }
+        const item = getItem(a.id);
+        const namn = a.name || item.name;
+        const trivsel = trivselNow(a, nu);
+        const favId = FODER_FOR[a.id];
+        const fav = CROPS[favId];
+        const redo = giftReadyIn(a, nu);
+        const forrad = Object.entries(farm.inventoryHarvest).filter(([id]) => CROPS[id]);
+        document.getElementById("foder-titel").textContent = `Mata ${namn} 🧺`;
+        const gava = redo
+          ? `<button class="btn liten gron" id="foder-gava">🎁 Hämta dagens gåva (+${FARM_GIFT_COINS} mynt)</button>`
+          : trivsel >= 60
+            ? `<p class="hint">🎁 Dagens gåva är hämtad – ${namn} har säkert en ny i morgon!</p>`
+            : `<p class="hint">💚 Mata ${namn} med ${fav.name.toLowerCase()} ${fav.emoji} så blir det snart gåvor!</p>`;
+        const knappar = forrad.map(([id, n]) => {
+          const meta = CROPS[id];
+          const arFav = id === favId;
+          return `<button class="tray-item${arFav ? " foder-fav" : ""}" data-mata="${id}">
+            <span class="tray-emoji">${meta.emoji}</span>
+            <span class="tray-namn">${meta.name} ×${n}${arFav ? " ⭐" : ""}</span>
+          </button>`;
+        }).join("");
+        document.getElementById("foder-kropp").replaceChildren(el(`<div>
+          <p class="foder-trivsel-rad"><span class="foder-mood">${farmMoodSvg(moodForTrivsel(trivsel))}</span>
+            Trivsel: <b>${trivsel}</b> av 100</p>
+          <div class="pet-matbar"><div class="pet-matbar-fyll" style="width:${trivsel}%"></div></div>
+          <p class="hint">${namn} älskar ${fav.name.toLowerCase()} ${fav.emoji} – en om dagen håller humöret på topp!</p>
+          <div id="foder-gava-rad">${gava}</div>
+          ${forrad.length ? `<div class="room-tray foder-tray">${knappar}</div>` : `<p class="hint">Förrådet är tomt – så och skörda grödor i odlingsbädden! 🌱</p>`}
+        </div>`));
+        panel.hidden = false;
+
+        document.getElementById("foder-gava")?.addEventListener("click", () => {
+          const res = claimGiftIn(farm, valdUid, nu);
+          if (!res.ok) return logg("Gåvan gick inte att hämta just nu.");
+          farm = res.farm;
+          coins += res.coins;
+          document.getElementById("mynt").textContent = coins;
+          logg(`🎁 ${namn} ger dig en gåva: +${res.coins} mynt! 💰`);
+          ritaDjur(); ritaPanel();
+        });
+        for (const btn of document.querySelectorAll("[data-mata]")) {
+          btn.addEventListener("click", () => {
+            const cropId = btn.dataset.mata;
+            const res = feedFarmAnimalIn(farm, valdUid, cropId, nu);
+            if (res.ok) {
+              farm = res.farm;
+              logg(res.gavTrivsel
+                ? `${namn} mumsar ${CROPS[cropId].name.toLowerCase()} ${CROPS[cropId].emoji} +${FEED_TRIVSEL} trivsel! 💚`
+                : `${namn} mumsar glatt! 💚 (Ny trivsel i morgon – magen är nöjd för idag.)`);
+              ritaDjur(); ritaPanel(); hjartFx(valdUid);
+            } else if (res.error === "fel gröda") {
+              logg(`${namn} nosar lite… men vill helst ha ${fav.name.toLowerCase()} ${fav.emoji}!`);
+            } else {
+              logg("Förrådet räcker inte – skörda mer på gården! 🌱");
+            }
+          });
+        }
+      }
+
+      stage.addEventListener("click", (e) => {
+        const nod = e.target.closest(".gard-djur");
+        if (!nod) return;
+        valdUid = nod.dataset.petId;
+        ritaPanel();
+      });
+
+      document.getElementById("nasta-dag").addEventListener("click", () => {
+        nu += DYGN_MS;
+        dag += 1;
+        document.getElementById("klocka").textContent = `📅 Dag +${dag}`;
+        logg("En ny dag på gården! ☀️ (decay −10 om ingen mat igår, gåvan laddas om)");
+        ritaDjur();
+        if (!panel.hidden) ritaPanel();
+      });
+
+      ritaDjur();
+      logg("Klicka på hästen, kon eller grisen i hagen! 🐴🐮🐷");
+    </script>
+  </body>
+</html>
