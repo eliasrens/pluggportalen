@@ -9,6 +9,9 @@
 //
 //   by-nivå (klassbyn):  skylt "Andra byar"  → zoomar ut till skolan (#/elev/skolan)
 //   (Ingen "Min by"-skylt – tillbaka till egna byn sker genom att klicka på den.)
+//   hus-nivå (framsidan): skylt "Till gården" (nere till HÖGER, .hoger) →
+//   baksidan/gården (#/elev/gard, issue #328). Tillbaka därifrån sker via
+//   ut-knappen ("Tillbaka till huset"), så gården behöver ingen egen skylt.
 //
 // Skyltarna är overlay-UI (i .varld-ui), inte scen-element, så de återanvänds
 // aldrig av grannby-vyn (som ritar med samma mountByScen). visa() styr vilken
@@ -23,8 +26,8 @@ import { navSkyltSvg } from "./art-hus-ute.js";
  * + tangentbord (Enter/Space) till `onClick`. role=button + aria-label gör den
  * lika tillgänglig som gårdskyltens #klasskylt.
  */
-function byggSkylt({ id, rad1, rad2 = "", aria, onClick }) {
-  const skyltEl = el(`<div class="varld-navskylt" id="${id}" role="button" tabindex="0"
+function byggSkylt({ id, rad1, rad2 = "", aria, onClick, klass = "" }) {
+  const skyltEl = el(`<div class="varld-navskylt${klass ? ` ${klass}` : ""}" id="${id}" role="button" tabindex="0"
     aria-label="${aria}" hidden>${navSkyltSvg({ rad1, rad2 })}</div>`);
   skyltEl.addEventListener("click", onClick);
   skyltEl.addEventListener("keydown", (e) => {
@@ -42,24 +45,37 @@ function byggSkylt({ id, rad1, rad2 = "", aria, onClick }) {
  * @param {object} o
  * @param {HTMLElement} o.ui           overlay-lagret skyltarna läggs i (.varld-ui)
  * @param {() => void} o.onAndraByar   klick på "Andra byar" (by-nivån)
+ * @param {() => void} o.onTillGarden  klick på "Till gården" (hus-nivån)
  * @returns {{ visa(nivaId:string, flerByar:boolean):void }}
  *   `visa` visar rätt skylt för nivån (och "Andra byar" bara om det finns fler
  *   klasser att titta på) och döljer alla på övriga nivåer.
  */
-export function mountNavSkyltar({ ui, onAndraByar }) {
+export function mountNavSkyltar({ ui, onAndraByar, onTillGarden }) {
   const bySkylt = byggSkylt({
     id: "by-skylt",
     rad1: "Andra byar",
     aria: "Andra byar. Zooma ut och se andra klassers byar",
     onClick: onAndraByar,
   });
-  ui.append(bySkylt);
+  // "Till gården" på framsidan (issue #328): nere till HÖGER (.hoger) så den
+  // inte krockar med gårdskylten/grusgången som redan bor i vänstra hörnet.
+  const gardSkylt = byggSkylt({
+    id: "gard-skylt",
+    rad1: "Till gården",
+    rad2: "– baksidan ➔ –",
+    aria: "Till gården. Gå runt huset till baksidan och gården",
+    onClick: onTillGarden,
+    klass: "hoger",
+  });
+  ui.append(bySkylt, gardSkylt);
 
   return {
     visa(nivaId, flerByar) {
       // "Andra byar" bara på klassbyn och bara om det finns fler än egna klassen.
       // (Ingen "Min by"-skylt – man klickar på sin egen by för att komma tillbaka.)
       bySkylt.hidden = !(nivaId === "by" && flerByar);
+      // "Till gården" bara på det egna husets framsida.
+      gardSkylt.hidden = nivaId !== "hus";
     },
   };
 }
