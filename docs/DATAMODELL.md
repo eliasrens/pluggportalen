@@ -207,6 +207,7 @@ Exempel (`students/elev1`):
 | `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
+| `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
 
 ### `studentData.pets[]` – kläckbara husdjuren
 
@@ -254,6 +255,41 @@ hungrigt (icke-fullvuxet) djur når fram i promenad-AI:ns **seek-läge**
 (`src/rum-promenad.js`) tar `eatApple(petId, appleId)` bort äpplet och ökar
 djurets `feedCount`. Äpplet är en `mat`-kategori-vara i `src/shop-items.js`
 (`consumable: true`) och hamnar därför aldrig i `ownedItems`.
+
+### `studentData.farm` – gården
+
+Gård-expansionens tillstånd (epic trädgård/gård, grundlagd i #327). All ren
+tillståndslogik (validering, tillväxt, skörd, placeringar) ligger browser-fritt
+i [`src/farm-core.js`](../src/farm-core.js) (enhetstestad, `test/farm-core.test.js`);
+Firestore-skrivningarna (transaktioner + dot-path-updates) i systermodulen
+[`src/data-farm.js`](../src/data-farm.js), re-exporterad via `data.js`.
+
+| Fält               | Typ    | Beskrivning                                                       |
+| ------------------ | ------ | ----------------------------------------------------------------- |
+| `barnLevel`        | number | Laggårdens nivå (**1–3**). Sparat fält – se designbeslutet nedan  |
+| `gardenTier`       | number | Odlingsbäddens nivå (**1–3**). Styr antal odlings-slots: `FARM_SLOTS_PER_TIER` (4/6/8, justerbar tabell i `farm-core.js`) |
+| `gardenSlots`      | array  | Planterade grödor: `{ slotIndex, cropId, growthStage, plantedAt }`. `slotIndex` 0-baserat `< slotCountForTier(gardenTier)`; `growthStage` **0–3** (0 = nysådd, 3 = `FARM_MAX_GROWTH_STAGE` = färdigvuxen → skördbar); `plantedAt` ms (`Date.now()`). Tomma slots har ingen post |
+| `inventoryHarvest` | map    | Skörde-förrådet: `{ [cropId]: antal }` (t.ex. `{ "crop_carrot": 3 }`). Alltid ≥ 1 – noll-poster städas bort vid skrivning |
+| `placedAnimals`    | array  | Djur placerade **utanför rummet**: `{ petId, location: "paddock"\|"barn" }`. `petId` = djurets instans-id (`pets[].id` eller `roomAnimals[].uid`). `"room"` är default-hemmet och **sparas aldrig** som post – ett djur utan post bor i rummet, precis som före gården (bakåtkompatibelt) |
+
+**Designbeslut – nivåer som fält, inte härledda:** rummen härleder antal rum ur
+ägda shop-saker (`roomUpgradeCount` i `src/shop-items.js`); för gården sparas
+`barnLevel`/`gardenTier` i stället som **egna fält** (enligt spec). Skälen:
+uppgraderingarna är sekventiella nivåer på **en** byggnad (inte separata saker
+man äger), och kommande odlings-/uppgraderings-issues kan då höja nivån i samma
+transaktion som coins dras utan att blanda in shop-katalogen.
+**Uppgraderings-issuen ska följa samma modell**: dra coins + `setBarnLevel`/
+`setGardenTier` (nivån får aldrig sänkas – planterade slots ska aldrig hamna
+utanför bädden), ingen `roomUpgrade`-liknande shop-post för gården.
+
+Flöde (allt i transaktioner, `src/data-farm.js`): `plantCrop(slotIndex, cropId)`
+sår i en tom slot (stage 0); `advanceCropGrowth(slotIndex)` stegar tillväxten
+(klamras vid 3 – vem/vad som driver tillväxten bestäms i odlings-issuen);
+`harvestCrop(slotIndex)` tömmer en **färdigvuxen** slot och lägger grödan i
+`inventoryHarvest`; `adjustHarvestInventory(cropId, delta)` förbrukar/justerar
+förrådet (aldrig under 0); `setAnimalPlacement(petId, location)` flyttar ett
+djur mellan rum/hage/laggård. Säkerhetsregler: `farm` ligger i `studentData`
+som redan är self-writable – **inga regeländringar behövs**.
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
@@ -398,6 +434,15 @@ Exempel (`classes/6a`):
 - `eatApple(petId, appleId)` → `{ ok, pet, pets, floorApples, stageUp }` – djur äter äpple, `feedCount++`
 - `setPetName(petId, name)` / `savePetPositions({ [petId]: { x, y } })`
 - Hjälpare: `hatchTimeFor(pet, hasLamp)`, `isHungry(pet)`, `isFullGrown(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`, `cleanPetName(s)`
+
+**Gården** – Firestore-delen i systermodulen [`src/data-farm.js`](../src/data-farm.js), ren kärna i [`src/farm-core.js`](../src/farm-core.js) (se `studentData.farm` ovan)
+- `getFarm()` → komplett `farm`-objekt (gamla dokument utan fältet → default)
+- `plantCrop(slotIndex, cropId)` / `advanceCropGrowth(slotIndex, steps?)` /
+  `harvestCrop(slotIndex)` → `{ ok, farm, ... }` – så/väx/skörda (transaktioner)
+- `adjustHarvestInventory(cropId, delta)` → `{ ok, farm, count }` – förbruka/justera skörd
+- `setAnimalPlacement(petId, "room"|"paddock"|"barn")` – flytta ett djur
+- `setBarnLevel(n)` / `setGardenTier(n)` – rå nivå-skrivning (köpet bor i uppgraderings-issuen; nivån kan aldrig sänkas)
+- Rena hjälpare/konstanter (re-exporterade via `data.js`): `farmFromData(sd)`, `slotCountForTier(tier)`, `cropInSlot(farm, i)`, `placementFor(farm, petId)`, `FARM_MAX_GROWTH_STAGE` m.fl.
 
 **Statistik (profil)**
 - `getStats()` → `{ coins, playedExercises, completed, stars, areas }`
