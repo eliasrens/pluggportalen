@@ -16,6 +16,8 @@
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
 //   #/elev/rum        husvärlden, inne-nivån (rummet; husdjuren bor här) – pages-varld.js
+//   #/elev/gard       husvärlden, baksidan/gården bakom huset (#328) – pages-varld.js
+//   #/elev/laggard    husvärlden, inne i laggården på gården (#328) – pages-varld.js
 //   #/elev/husdjur    (borttagen sida – omdirigerar till #/elev/rum)
 //   #/elev/profil     profil: avatar, namn, coins, statistik
 //   #/elev/klassfoto  (borttagen sida – omdirigerar till #/elev/by, klassbyn)
@@ -149,6 +151,11 @@ const routes = {
   "/elev/by": () => pageElevVarld("by"),
   "/elev/hus": () => pageElevVarld("hus"),
   "/elev/rum": () => pageElevVarld("rum"),
+  // Gårds-grenen (#328): baksidan/gården bakom huset + laggårdens interiör –
+  // samma scen, nya zoomnivåer (själva gren-modulen laddas dynamiskt först
+  // vid besök, så bootgrafen växer inte – se pages-varld.js/varld-gard.js).
+  "/elev/gard": () => pageElevVarld("gard"),
+  "/elev/laggard": () => pageElevVarld("laggard"),
   // Kompis-hus-nivån (#/elev/kompis?id=…): zooma in till en kamrats hus-
   // exteriör (läs-vy) innan man går in i deras rum – samma scen, ny zoomnivå.
   "/elev/kompis": () => pageElevVarld("kompis"),
@@ -203,7 +210,7 @@ function router() {
     "varld-lage",
     path === "/elev/by" || path === "/elev/hus" || path === "/elev/rum" ||
     path === "/elev/kompis" || path === "/elev/skolan" || path === "/elev/grannby" ||
-    path === "/elev/grannhus"
+    path === "/elev/grannhus" || path === "/elev/gard" || path === "/elev/laggard"
   );
   const handler = routes[path] || pageNotFound;
   handler();

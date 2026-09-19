@@ -25,6 +25,9 @@
 //   varld-by.js       by-layoutens matte (tomter, vägar, radmått)
 //   varld-by-scen.js  byns rendering (minihus + avatar per klasskamrat)
 //   varld-kompis.js   kompis-hus-nivån (läs-vy av en kamrats hus-exteriör)
+//   varld-gard.js     gårds-grenen: baksidan/gården + laggårdens interiör
+//                     (#328; laddas DYNAMISKT först vid gårds-besök – ligger
+//                     medvetet utanför den statiska bootgrafen, incident #271)
 //
 // Scenens kontroller (Måla om, Möbler, Kläder, husdjurspanelen, ut-knappen)
 // ligger som overlays I spelvyn; sidomenyn till vänster är orörd.
@@ -136,11 +139,23 @@ export async function pageElevVarld(startNiva) {
       <!-- Grannby-HUS-lagret: en ANNAN klass elevs hus-exteriör (läs-vy, #114).
            Samma sorts ute-lager som kompis-lagret, fast över klassgränser. -->
       <div class="varld-lager varld-ute varld-kompis varld-grannbyhus varld-dold" id="grannbyhus-lager"></div>
+      <!-- Gårds-grenen (#328): baksidan/gården + laggårdens interiör. Tomma
+           tills första gårds-besöket (varld-gard.js ritar dem lat och laddas
+           själv dynamiskt) – huvudkameran rör dem aldrig. -->
+      <div class="varld-lager varld-ute varld-gard varld-dold" id="gard-lager"></div>
+      <div class="varld-lager varld-ute varld-laggard varld-dold" id="laggard-lager"></div>
       <div class="varld-lager room-stage varld-rum" id="rum-lager"></div>
 
       <div class="varld-ui">
         <div class="varld-ui-topp">
           <button class="varld-knapp" id="ut-btn"></button>
+          <!-- Rummets "Gå ut" är ett VAL (#328): framsidan eller gården.
+               Menyn ankras uppe till vänster under ut-knappen (styles.css
+               .varld-ut-meny) och togglas av ut-knappen bara på rum-nivån. -->
+          <div class="varld-ut-meny" id="ut-meny" role="menu" aria-label="Gå ut" hidden>
+            <button class="varld-knapp" role="menuitem" id="ut-framsida">🏡 <span>Gå till framsidan</span></button>
+            <button class="varld-knapp" role="menuitem" id="ut-gard">🌾 <span>Gå till gården</span></button>
+          </div>
           <!-- "Andra byar" (by→skolan) och "Min by" (skolan→byn) är inte längre
                knappar utan trä-SKYLTAR nere i vänstra hörnet – samma skylt-
                komponent som gårdskylten (mountNavSkyltar, varld-navskylt.js). -->
@@ -229,16 +244,20 @@ export async function pageElevVarld(startNiva) {
   const uteLager = view.querySelector("#ute-lager");
   const kompisLager = view.querySelector("#kompis-lager");
   const grannbyhusLager = view.querySelector("#grannbyhus-lager");
+  const gardLager = view.querySelector("#gard-lager");
+  const laggardLager = view.querySelector("#laggard-lager");
   const rumLager = view.querySelector("#rum-lager");
   const titel = view.querySelector("#titel");
   const utBtn = view.querySelector("#ut-btn");
+  const utMeny = view.querySelector("#ut-meny");
 
-  // Nav-skyltarna nere i vänstra hörnet (ersätter "Andra byar"/"Min by"-knapparna):
-  // "Andra byar" (by → skolan) och "Min by" (skolan → egna byn). Samma skylt-
-  // komponent + klick-som-zoom som gårdskylten; updateUi styr vilken som syns.
+  // Nav-skyltarna i hörnen (samma skylt-komponent + klick-som-zoom som
+  // gårdskylten; updateUi styr vilken som syns): "Andra byar" (by → skolan)
+  // nere till vänster och "Till gården" (hus → baksidan, #328) nere till höger.
   const navSkyltar = mountNavSkyltar({
     ui: view.querySelector(".varld-ui"),
     onAndraByar: () => go("#/elev/skolan"),
+    onTillGarden: () => go("#/elev/gard"),
   });
 
   // Klassbyns stjärn-toggle (uppe till höger): fälls ut/in med ✨-knappen och
@@ -495,6 +514,29 @@ export async function pageElevVarld(startNiva) {
     }
   });
 
+  // --- Gårds-grenen (#328): baksidan/gården + laggårdens interiör -----------
+  // varld-gard.js (+ art-gard.js) laddas DYNAMISKT först vid första gårds-
+  // besöket – de får ALDRIG in i den statiska bootgrafen (incident #271).
+  // `gardVy` sätts när modulen laddats, så nivå-/utknapps-logiken kan läsa
+  // grenens läge synkront därefter (innan dess är grenen garanterat inaktiv).
+  let gardVy = null;
+  let gardLaddning = null;
+  function laddaGardVy() {
+    gardLaddning ??= import("./varld-gard.js")
+      .then((mod) => (gardVy = mod.createGardVy({
+        stage, uteLager, gardLager, laggardLager,
+        // Kommer man från rummet reser huvudkameran först rum → hus, sedan
+        // tar gårds-kameran vid (en sammanhängande resa ut och runt huset).
+        ensureHus: () => kamera.gaTill("hus"),
+        onNiva: (id) => updateUi(id),
+      })))
+      .catch((err) => {
+        gardLaddning = null; // låt nästa försök ladda igen
+        throw err;
+      });
+    return gardLaddning;
+  }
+
   // --- Overlay-UI per nivå --------------------------------------------------
   // Rumskontrollern (varld-rum.js) sätts nedan; exitMat() avslutar mat-läget så
   // panel-/menystängning kan nollställa det (mat & paneler ömsesidigt uteslutande).
@@ -505,9 +547,16 @@ export async function pageElevVarld(startNiva) {
     for (const b of view.querySelectorAll("[data-panel]")) b.classList.remove("aktiv");
   }
 
+  // Rummets "Gå ut"-val (framsidan/gården, #328): stäng menyn + aria-state.
+  function stangUtMeny() {
+    utMeny.hidden = true;
+    utBtn.setAttribute("aria-expanded", "false");
+  }
+
   function updateUi(nivaId) {
     stage.dataset.niva = nivaId;
     stangPaneler();
+    stangUtMeny(); // nivåbyte lämnar aldrig "Gå ut"-valet hängande
     rumCtl?.exitMat(); // byte av nivå (t.ex. ut ur rummet) lämnar inget mat-läge kvar
     visaKlassStats(); // klass-skylten syns bara på by-nivån
     utBtn.style.display = "";
@@ -564,10 +613,28 @@ export async function pageElevVarld(startNiva) {
       utBtn.innerHTML = "← <span>Till byn</span>";
       utBtn.title = "Tillbaka till klassbyn";
       titel.textContent = `${possessiv(namn)} hus 🏠`;
+    } else if (nivaId === "gard") {
+      // Baksidan/gården (#328): tomt navigerbart skal än så länge.
+      utBtn.innerHTML = "⬅ <span>Tillbaka till huset</span>";
+      utBtn.title = "Tillbaka till framsidan av huset";
+      titel.textContent = "Gården 🌾";
+    } else if (nivaId === "laggard") {
+      utBtn.innerHTML = "⬅ <span>Ut till gården</span>";
+      utBtn.title = "Ut till gården";
+      titel.textContent = "Inne i laggården 🐄";
     } else {
       utBtn.innerHTML = "🚪 <span>Gå ut</span>";
-      utBtn.title = "Gå ut ur huset";
+      utBtn.title = "Gå ut ur huset – till framsidan eller gården";
       titel.textContent = "Mitt rum 🛏️";
+    }
+    // "Gå ut" i rummet är en VALMENY (#328) – markera det för hjälpmedel.
+    if (nivaId === "rum") {
+      utBtn.setAttribute("aria-haspopup", "true");
+      utBtn.setAttribute("aria-controls", "ut-meny");
+    } else {
+      utBtn.removeAttribute("aria-haspopup");
+      utBtn.removeAttribute("aria-controls");
+      utBtn.removeAttribute("aria-expanded");
     }
   }
   updateUi(kamera.aktivId);
@@ -612,6 +679,28 @@ export async function pageElevVarld(startNiva) {
         grannbyVy.nollstall();
       }
 
+      // Gårds-grenen (#328): in i gården/laggården = ladda grenen (dynamiskt)
+      // och låt dess kamera resa dit (från rummet via hus-nivån, se ensureHus).
+      if (nivaId === "gard" || nivaId === "laggard") {
+        try {
+          const vy = await laddaGardVy();
+          return vy.visa(nivaId);
+        } catch (err) {
+          flash("Kunde inte öppna gården: " + err.message, true);
+          return;
+        }
+      }
+      // Lämnar vi gårds-grenen? Till huset = mjuk utzoomning med grenens
+      // kamera; hopp någon annanstans (by/rum/skola…) nollställs hårt först
+      // (huvudkameran står kvar på "hus" så länge grenen är aktiv).
+      if (gardVy && gardVy.aktivId !== "hus") {
+        if (nivaId === "hus") {
+          gardVy.tillbaka();
+          return;
+        }
+        gardVy.nollstall();
+      }
+
       if (nivaId === "skola" && kamera.aktivId !== "skola") {
         try {
           await laddaSkola();
@@ -647,7 +736,25 @@ export async function pageElevVarld(startNiva) {
     if (n === "grannby") return go("#/elev/skolan");
     if (n === "skola") return go("#/elev/by");
     if (n === "kompishus") return go("#/elev/by");
+    if (n === "gard") return go("#/elev/hus");
+    if (n === "laggard") return go("#/elev/gard");
+    if (n === "by") return go("#/elev/hus");
+    // Rummet: "Gå ut" öppnar VALET framsidan/gården (#328) i stället för att
+    // gå direkt – menyn togglas så ett andra klick stänger den igen.
+    const oppna = utMeny.hidden;
+    stangUtMeny();
+    if (oppna) {
+      utMeny.hidden = false;
+      utBtn.setAttribute("aria-expanded", "true");
+    }
+  });
+  view.querySelector("#ut-framsida").addEventListener("click", () => {
+    stangUtMeny();
     go("#/elev/hus");
+  });
+  view.querySelector("#ut-gard").addEventListener("click", () => {
+    stangUtMeny();
+    go("#/elev/gard");
   });
   // "Andra byar"/"Min by" är nu skyltar (mountNavSkyltar) – klicken kopplas där.
 
@@ -745,12 +852,22 @@ export async function pageElevVarld(startNiva) {
       stangMeny(true);
       verktygTrigger.focus();
     }
+    // Samma Escape-beteende för rummets "Gå ut"-val (#328).
+    if (e.key === "Escape" && !utMeny.hidden) {
+      stangUtMeny();
+      utBtn.focus();
+    }
   });
   // Scenen fyller vyn; scopa klick-utanför hit så listenern städas bort med
   // vyn (inget kvarlämnat document-lyssnare vid route-byten).
   view.addEventListener("pointerdown", (e) => {
-    if (verktygMeny.hidden) return;
-    if (!e.target.closest(".varld-verktyg")) stangMeny(true);
+    if (!verktygMeny.hidden && !e.target.closest(".varld-verktyg")) stangMeny(true);
+    // "Gå ut"-valet: klick utanför stänger. Ut-knappen själv undantas – dess
+    // klick-toggle sköter öppna/stäng (annars stänger pointerdown + klicket
+    // öppnar igen, och menyn gick aldrig att stänga via knappen).
+    if (!utMeny.hidden && !e.target.closest("#ut-meny") && !e.target.closest("#ut-btn")) {
+      stangUtMeny();
+    }
   });
 
   // --- Gå in i huset: klick på husgruppen → route-byte (kameran zoomar) -----
@@ -913,6 +1030,13 @@ export async function pageElevVarld(startNiva) {
 
   // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
   if (startNiva === "kompis") kompisVy.visa(kompisId);
+  // Djuplänk till gården/laggården (#328): huvudkameran startar på "hus"
+  // (startId-fallbacken) och gårds-grenen zoomar in när modulen laddats.
+  if (startNiva === "gard" || startNiva === "laggard") {
+    laddaGardVy()
+      .then((vy) => vy.visa(startNiva))
+      .catch((err) => flash("Kunde inte öppna gården: " + err.message, true));
+  }
   // Djuplänk till en grannby: zooma in till klassens by när scenen står i DOM:en.
   if (startNiva === "grannby") grannbyVy.visa(grannbyId);
   // Djuplänk till ett grannby-hus: zooma in till elevens exteriör (läs-vy).
