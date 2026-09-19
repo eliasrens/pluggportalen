@@ -268,8 +268,8 @@ Firestore-skrivningarna (transaktioner + dot-path-updates) i systermodulen
 
 | Fält               | Typ    | Beskrivning                                                       |
 | ------------------ | ------ | ----------------------------------------------------------------- |
-| `barnLevel`        | number | Laggårdens nivå (**1–3**). Sparat fält – se designbeslutet nedan  |
-| `gardenTier`       | number | Odlingsbäddens nivå (**1–3**). Styr antal odlings-slots: `FARM_SLOTS_PER_TIER` (4/6/8, justerbar tabell i `farm-core.js`) |
+| `barnLevel`        | number | Laggårdens nivå (**1–3**). Sparat fält – se designbeslutet nedan. Styr antal djurplatser i ladan: `FARM_BARN_PLACES_PER_LEVEL` (2/4/8, `farm-core.js`) och laggårdens fasad/interiör (`art-gard.js`) |
+| `gardenTier`       | number | Odlingsbäddens nivå (**1–3**). Styr antal odlings-slots: `FARM_SLOTS_PER_TIER` (2/4/8 per #333, tabell i `farm-core.js`) och bäddens utseende (enkel bädd → dubbel låda → växthus) |
 | `gardenSlots`      | array  | Planterade grödor: `{ slotIndex, cropId, growthStage, plantedAt }`. `slotIndex` 0-baserat `< slotCountForTier(gardenTier)`; `growthStage` **0–3** (0 = nysådd, 3 = `FARM_MAX_GROWTH_STAGE` = färdigvuxen → skördbar); `plantedAt` ms (`Date.now()`). Tomma slots har ingen post |
 | `inventoryHarvest` | map    | Skörde-förrådet: `{ [cropId]: antal }` (t.ex. `{ "crop_carrot": 3 }`). Alltid ≥ 1 – noll-poster städas bort vid skrivning |
 | `placedAnimals`    | array  | Djur placerade **utanför rummet**: `{ petId, location: "paddock"\|"barn" }`. `petId` = djurets instans-id (`pets[].id` eller `roomAnimals[].uid`). `"room"` är default-hemmet och **sparas aldrig** som post – ett djur utan post bor i rummet, precis som före gården (bakåtkompatibelt) |
@@ -280,9 +280,14 @@ Firestore-skrivningarna (transaktioner + dot-path-updates) i systermodulen
 uppgraderingarna är sekventiella nivåer på **en** byggnad (inte separata saker
 man äger), och kommande odlings-/uppgraderings-issues kan då höja nivån i samma
 transaktion som coins dras utan att blanda in shop-katalogen.
-**Uppgraderings-issuen ska följa samma modell**: dra coins + `setBarnLevel`/
-`setGardenTier` (nivån får aldrig sänkas – planterade slots ska aldrig hamna
-utanför bädden), ingen `roomUpgrade`-liknande shop-post för gården.
+**Uppgraderings-issuen (#333) följer modellen så här**: uppgraderingarna finns
+som shop-KORT (`farmUpgrade`/`upgradeLevel` i `shop-items.js` – rent köp-UI),
+men köpet går via `buyFarmUpgrade` (`data-farm.js`) som drar coins **och** höjer
+`farm.gardenTier`/`farm.barnLevel` i EN transaktion; **inget skrivs i
+`ownedItems`** – shoppen härleder "Köpt"/låst ur nivå-fältet. Nivåerna köps i
+ordning (bara `nuvarande + 1` accepteras) och kan aldrig sänkas – planterade
+slots hamnar aldrig utanför bädden, och `setPlacementIn` stoppar fler djur i
+ladan än `barnPlaceCountForLevel(barnLevel)` tillåter.
 
 Flöde (allt i transaktioner, `src/data-farm.js`): `plantCrop(slotIndex, cropId)`
 sår i en tom slot (stage 0); `advanceCropGrowth(slotIndex)` stegar tillväxten

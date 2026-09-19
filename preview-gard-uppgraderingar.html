@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – gårdens uppgraderingar (#333)</title>
+    <style>
+      /* Fristående testyta för issue #333: gård-scenen + laggårds-interiören i
+         alla nivå-kombinationer (odlingsbädd tier 1–3, laggård nivå 1–3), ritade
+         direkt ur art-gard.js – ingen inloggning/Firestore behövs. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .wrap { padding: 12px 20px 40px; display: flex; flex-wrap: wrap; gap: 20px; }
+      figure { margin: 0; }
+      figcaption { font-weight: 700; margin-bottom: 6px; }
+      .scen {
+        width: min(94vw, 560px); aspect-ratio: 8 / 5; border-radius: 14px;
+        overflow: hidden; box-shadow: 0 6px 18px rgba(59, 51, 80, 0.18);
+      }
+      .scen svg { width: 100%; height: 100%; display: block; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Gårdens uppgraderingar (#333)</h1>
+      <p>
+        Odlingsbädden (tier 1 Enkel bädd · 2 slots → tier 2 Dubbel låda · 4 →
+        tier 3 Växthus · 8) och laggården (nivå 1 Litet skjul · 2 platser →
+        nivå 2 Röd trälada · 4 → nivå 3 Stor herrgårdslaggård · 8, med
+        nivå-badge på fasaden). Interiören visar spiltor/foderhoar per nivå.
+      </p>
+    </header>
+    <div class="wrap" id="ut"></div>
+    <script type="module">
+      import { gardScen, laggardScen } from "./src/art-gard.js";
+      const ut = document.getElementById("ut");
+      const fig = (rubrik, svg) => {
+        const f = document.createElement("figure");
+        f.innerHTML = `<figcaption>${rubrik}</figcaption><div class="scen">${svg}</div>`;
+        ut.appendChild(f);
+      };
+      for (let n = 1; n <= 3; n++) {
+        fig(`Gården – odlingsbädd tier ${n} + laggård nivå ${n}`, gardScen({ gardenTier: n, barnLevel: n }));
+      }
+      for (let n = 1; n <= 3; n++) {
+        fig(`Inne i laggården – nivå ${n}`, laggardScen(n));
+      }
+    </script>
+  </body>
+</html>

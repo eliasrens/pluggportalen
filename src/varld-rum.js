@@ -464,7 +464,12 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
     })),
     onPlace: (id, location) => {
-      djur.setLocation(id, location);
+      // Ladan kan vara full (#333: nivå-tak på laggårds-platserna) – då ändras
+      // inget och eleven pekas mot uppgraderingen i shoppen.
+      if (!djur.setLocation(id, location)) {
+        flash("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
+        return;
+      }
       if (selectedPetId === id) selectedPetId = null;
       renderStage();
       renderPets();

@@ -46,7 +46,7 @@ import {
   FARM_MAX_GARDEN_TIER,
   FARM_MAX_GROWTH_STAGE,
 } from "./farm-core.js";
-import { isFarmAnimalItem } from "./shop-items.js";
+import { isFarmAnimalItem, getItem } from "./shop-items.js";
 
 /**
  * Hela gårds-tillståndet för inloggad (eller angiven) elev, alltid ett
@@ -261,6 +261,42 @@ export function saveFarmAnimalPositions(positions, studentId = currentStudentId(
 export function saveFarmAnimalName(uid, name, studentId = currentStudentId()) {
   return updateFarm(studentId, ["animals"], (farm) =>
     renameFarmAnimalIn(farm, uid, cleanFarmAnimalName(name)));
+}
+
+/**
+ * Köp en gårds-uppgradering (#333): odlingsbädd (odling-2/3) eller laggård
+ * (lada-2/3) ur shop-katalogen (farmUpgrade + upgradeLevel, shop-items.js).
+ * Drar coins och höjer farm.gardenTier/farm.barnLevel i EN transaktion – exakt
+ * modellen DATAMODELL.md föreskriver: nivån är ett SPARAT FÄLT, köpet skriver
+ * ALDRIG i ownedItems (shoppen härleder "Köpt" ur nivå-fältet i stället).
+ * Uppgraderingarna köps i ordning: bara nivån ETT steg över den nuvarande kan
+ * köpas (nivån kan därmed aldrig sänkas eller hoppa – planterade slots hamnar
+ * aldrig utanför bädden, placerade djur aldrig utanför ladan).
+ * @returns {Promise<{ok: boolean, coins: number, farm: object, error?: string}>}
+ */
+export async function buyFarmUpgrade(itemId, price, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const item = getItem(itemId);
+  if (!item || !item.farmUpgrade) throw new Error("Inte en gårds-uppgradering: " + itemId);
+  const field = item.farmUpgrade === "garden" ? "gardenTier" : "barnLevel";
+  const cost = Math.max(0, Math.round(price || 0));
+  const ref = doc(db, "studentData", studentId);
+  const result = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const coins = data.coins || 0;
+    const farm = farmFromData(data);
+    if (item.upgradeLevel !== farm[field] + 1) {
+      return { ok: false, coins, farm, error: "fel nivå" };
+    }
+    if (coins < cost) return { ok: false, coins, farm, error: "för få coins" };
+    const nyFarm = { ...farm, [field]: item.upgradeLevel };
+    if (snap.exists()) tx.update(ref, { coins: coins - cost, ["farm." + field]: item.upgradeLevel });
+    else tx.set(ref, { ...defaultStudentData(), coins: 0, farm: nyFarm });
+    return { ok: true, coins: coins - cost, farm: nyFarm };
+  });
+  if (result.ok) invalidateStudentData(studentId); // coins/nivå ändrad (#274)
+  return result;
 }
 
 /**
