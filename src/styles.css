@@ -3012,6 +3012,21 @@ body.varld-lage .container {
 }
 #laggard-dorr:hover, #laggard-dorr:focus-visible { transform: scale(1.04); }
 
+/* Odlingsbäddens slots (#329) – klickbara grödor/tomrutor i gårds-scenen.
+   OBS: transform bär POSITIONEN (translate i scen-koordinater), så hover får
+   inte skriva över den – lyft i stället grödan en aning via translate-tillägg. */
+.odling-slot { cursor: pointer; outline: none; }
+.odling-slot:hover > *:not(rect), .odling-slot:focus-visible > *:not(rect) { transform: translateY(-2px); }
+/* Skördeklar gröda pulserar mjukt så den syns på håll. */
+.odling-klar { animation: odling-klar-puls 1.6s ease-in-out infinite; }
+@keyframes odling-klar-puls {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.82; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .odling-klar { animation: none; }
+}
+
 /* Rummets "Gå ut"-val (#328): liten popover-meny under ut-knappen, uppe till
    VÄNSTER – samma panel-känsla som verktygs-rullgardinen (.varld-verktyg-meny). */
 .varld-ut-meny {

@@ -181,6 +181,17 @@ export const SHOP_ITEMS = [
   { id: "parkering", name: "Parkeringsruta", emoji: "🅿️", category: "tradgard", price: 110, flat: true },
   // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
   { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
+
+  // --- Fröer (#329): sås i odlingsbädden på GÅRDEN, inte placerbara saker -----
+  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId / inventory-
+  // Harvest-nyckeln – håll dem STABILA, Firestore). Kategorin tradgard är multi
+  // → varje köp ökar ownedCounts[id] (antal frön); sådden i gårdens odlingsbädd
+  // drar av 1 (plantSeed, data-farm.js). Filtreras bort ur trädgårds-placerings-
+  // lådan via isSeedItem (varld-tradgard.js). Skörden blir mat till gårdens djur:
+  // morot → kanin/häst, klöver → ko/får/gris, magiska bär → mysterydjur.
+  { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
+  { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
+  { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
 ];
 
 // --- Mysteryboxarna (köp & öppna → slumpad kosmetik ur viktad pool) ---------
@@ -277,6 +288,17 @@ export function isAnimalItem(id) {
 export function isGardenItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "tradgard");
+}
+
+/**
+ * Är saken ett FRÖ (#329)? Fröer bor i tradgard-kategorin (multi → antal i
+ * ownedCounts) men placeras ALDRIG som trädgårdssaker – de sås i gårdens
+ * odlingsbädd (varld-odling.js) och förbrukas där. varld-tradgard.js filtrerar
+ * bort dem ur placerings-lådan med !isSeedItem(id).
+ */
+export function isSeedItem(id) {
+  const it = getItem(id);
+  return !!(it && it.seed);
 }
 
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */

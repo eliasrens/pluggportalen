@@ -29,16 +29,19 @@ import {
   getStudentData,
   defaultStudentData,
   invalidateStudentData,
+  ownedCount,
 } from "./data.js";
 import {
   farmFromData,
   plantCropIn,
   advanceGrowthIn,
+  advanceAllGrowthIn,
   harvestFrom,
   adjustInventoryIn,
   setPlacementIn,
   FARM_MAX_BARN_LEVEL,
   FARM_MAX_GARDEN_TIER,
+  FARM_MAX_GROWTH_STAGE,
 } from "./farm-core.js";
 
 /**
@@ -90,11 +93,74 @@ export function plantCrop(slotIndex, cropId, studentId = currentStudentId()) {
 }
 
 /**
+ * Så ett KÖPT frö (#329): som plantCrop men förbrukar samtidigt ett frö ur
+ * elevens shop-innehav. Fröer är multi-saker i shoppen (kategori tradgard,
+ * seed:true) så antalet bor i studentData.ownedCounts[cropId] – köpet sker via
+ * vanliga buyItem, sådden drar av 1 här, i SAMMA transaktion som sloten fylls
+ * (inga frön kan försvinna utan att en gröda faktiskt såtts, och tvärtom).
+ * Inga frön kvar → ok:false utan ändring.
+ * @returns {Promise<{ok: boolean, farm: object, error?: string}>}
+ */
+export async function plantSeed(slotIndex, cropId, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const result = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : null;
+    const farm = farmFromData(data);
+    const seeds = ownedCount(data, cropId);
+    if (seeds <= 0) return { ok: false, farm, error: "inga frön kvar" };
+    const res = plantCropIn(farm, slotIndex, cropId);
+    if (!res.ok) return res;
+    // Dot-path-skrivning: bara sloten + fröräknaren rörs. ownedCount faller
+    // tillbaka på ownedItems för äldre köp utan counts-post – skrivningen här
+    // sätter alltid en explicit counts-post, som har företräde vid läsning.
+    tx.update(ref, {
+      "farm.gardenSlots": res.farm.gardenSlots,
+      ["ownedCounts." + cropId]: seeds - 1,
+    });
+    return res;
+  });
+  if (result.ok) invalidateStudentData(studentId);
+  return result;
+}
+
+/**
  * Avancera en grödas tillväxtsteg (default +1, klamras till färdigvuxen).
  * @returns {Promise<{ok: boolean, farm: object, error?: string}>}
  */
 export function advanceCropGrowth(slotIndex, steps = 1, studentId = currentStudentId()) {
   return updateFarm(studentId, ["gardenSlots"], (farm) => advanceGrowthIn(farm, slotIndex, steps));
+}
+
+/**
+ * Låt ALLA växande grödor växa ett steg (#329: tillväxt via plugguppgifter).
+ * Färdigvuxna grödor rörs inte. Skriver bara om något faktiskt växte.
+ * @returns {Promise<{ok: boolean, farm: object, grew?: number}>}
+ */
+export function advanceAllCropsGrowth(steps = 1, studentId = currentStudentId()) {
+  return updateFarm(studentId, ["gardenSlots"], (farm) => {
+    const res = advanceAllGrowthIn(farm, steps);
+    // grew 0 → "ok:false" bara för att hoppa över skrivningen (inget fel).
+    return res.grew > 0 ? res : { ...res, ok: false };
+  });
+}
+
+/**
+ * Kroken som awardExercise (game-shared.js) anropar när en övning klarats:
+ * växande grödor växer ett steg. Snabb-vägen läser den SESSION-CACHADE
+ * studentDatan först och gör INGENTING (ingen transaktion, ingen extra läsning)
+ * för elever utan växande grödor – dvs. för alla som inte odlar just nu.
+ * Fel propagieras (anroparen kör i icke-kastande try {}).
+ * @returns {Promise<number>} antal grödor som växte
+ */
+export async function growCropsFromExercise(studentId = currentStudentId()) {
+  if (!studentId) return 0;
+  const farm = farmFromData(await getStudentData(studentId));
+  const growing = farm.gardenSlots.some((s) => s.growthStage < FARM_MAX_GROWTH_STAGE);
+  if (!growing) return 0;
+  const res = await advanceAllCropsGrowth(1, studentId);
+  return res && res.grew ? res.grew : 0;
 }
 
 /**

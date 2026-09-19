@@ -55,10 +55,32 @@ function odlingsbadd() {
     <rect x="82" y="532" width="246" height="16" rx="8" fill="${WOOD}" ${LINE}/>
     <rect x="76" y="430" width="16" height="118" rx="7" fill="${WOOD_DARK}" ${LINE}/>
     <rect x="318" y="430" width="16" height="118" rx="7" fill="${WOOD_DARK}" ${LINE}/>
-    <!-- Ett par späda skott som antyder vad zonen ska bli -->
-    <path d="M150 466 Q146 452 154 446 M150 466 Q156 454 150 448" fill="none" stroke="#6FC66F" stroke-width="4" stroke-linecap="round"/>
-    <path d="M250 514 Q246 500 254 494 M250 514 Q256 502 250 496" fill="none" stroke="#6FC66F" stroke-width="4" stroke-linecap="round"/>
-  </g>`;
+  </g>
+  <!-- Grödorna (#329): varld-odling.js ritar elevens odlings-slots här -
+       aria-hidden får därför INTE ligga på den här gruppen. -->
+  <g id="odling-slots"></g>`;
+}
+
+/**
+ * Mittpunkter (scen-koordinater) för odlingsbäddens slots – används av
+ * varld-odling.js för att placera grödor & klickytor i bädden. Upp till 4
+ * slots ryms på en rad; fler (odlingsbädds-nivå 2–3) läggs i två rader.
+ * @param {number} count antal slots (slotCountForTier)
+ * @returns {Array<{x:number, y:number}>}
+ */
+export function odlingSlotPos(count) {
+  const pos = [];
+  const perRad = count <= 4 ? count : Math.ceil(count / 2);
+  const rader = count <= 4 ? 1 : 2;
+  for (let i = 0; i < count; i++) {
+    const rad = Math.floor(i / perRad);
+    const kol = i % perRad;
+    // Bäddens inre yta: x ≈ 100–310, jordrader vid y 468/492/516.
+    const x = 205 + (kol - (perRad - 1) / 2) * (200 / Math.max(1, perRad - 1) || 0);
+    const y = rader === 1 ? 505 : rad === 0 ? 486 : 524;
+    pos.push({ x: Math.round(x), y });
+  }
+  return pos;
 }
 
 // --- Zon 2: hagen/inhägnaden (mitten) ---------------------------------------

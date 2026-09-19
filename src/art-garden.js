@@ -127,6 +127,155 @@ export const GARDEN = {
   },
 };
 
+// ============================================================================
+// Grödor i gårdens odlingsbädd (#329) – frö-påsar (shop) + växt-steg (bädden)
+// ============================================================================
+// Grödans id = shop-sakens id (crop_*). Fröpåsarna nedan spridas in i GARDEN
+// så itemSvg(id) ger shop-miniatyren; själva växten i bädden ritas per
+// tillväxtsteg av cropStageArt(cropId, stage) med MARKEN i origo (0,0) och
+// växten uppåt i minus-y – varld-odling.js placerar den med translate i
+// gårds-scenens koordinater. Steg (farm-core.js): 0 sådd, 1 grodd, 2 växer,
+// 3 = FARM_MAX_GROWTH_STAGE = skördeklar (glittrar).
+
+const JORD = "#7A5A40";
+const MOROT = "#F2933E";
+const BAR = "#8B7BE8";
+
+// Liten jordhög vid origo – grunden i steg 0/1.
+const jordhog = () =>
+  `<path d="M-16 0 Q0 -10 16 0 Z" fill="${JORD}" ${THIN}/>`;
+
+// Ett litet ✨-glitter vid (x, y) – markerar skördeklar gröda.
+const glitter = (x, y, s = 1) =>
+  `<path d="M${x} ${y - 6 * s} L${x + 1.6 * s} ${y - 1.6 * s} L${x + 6 * s} ${y} L${x + 1.6 * s} ${y + 1.6 * s} L${x} ${y + 6 * s} L${x - 1.6 * s} ${y + 1.6 * s} L${x - 6 * s} ${y} L${x - 1.6 * s} ${y - 1.6 * s} Z" fill="#F7C948" ${THIN}/>`;
+
+// Morotsblast: n blad ur (0,0) uppåt, skala s.
+function blast(n, s) {
+  const dx = [-8, 0, 8, -4, 4];
+  let out = "";
+  for (let i = 0; i < n; i++) {
+    const x = dx[i % dx.length] * s;
+    out += `<path d="M0 0 Q${x} ${-14 * s} ${x * 1.6} ${-22 * s}" fill="none" stroke="${LOV_MORK}" stroke-width="${3.5 * s}" stroke-linecap="round"/>`;
+  }
+  return out;
+}
+
+// Ett klöverblad (tre småblad) med mitten i (x, y), skala s.
+function kloverblad(x, y, s, farg = LOV) {
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <circle cx="0" cy="-5" r="5" fill="${farg}" ${THIN}/>
+    <circle cx="-4.6" cy="2.6" r="5" fill="${farg}" ${THIN}/>
+    <circle cx="4.6" cy="2.6" r="5" fill="${farg}" ${THIN}/></g>`;
+}
+
+// Delade tidiga steg: 0 = sådd (jordhög + frön), 1 = grodd (två hjärtblad).
+function saddArt() {
+  return jordhog() +
+    `<circle cx="-5" cy="-4" r="1.8" fill="#5C4433"/>` +
+    `<circle cx="4" cy="-5" r="1.8" fill="#5C4433"/>` +
+    `<circle cx="0" cy="-2.5" r="1.8" fill="#5C4433"/>`;
+}
+function groddArt() {
+  return jordhog() +
+    `<path d="M0 -4 L0 -14" fill="none" stroke="${LOV_MORK}" stroke-width="3" stroke-linecap="round"/>` +
+    `<path d="M0 -14 Q-7 -18 -8 -24 Q-1 -24 0 -14 Q1 -24 8 -24 Q7 -18 0 -14 Z" fill="${LOV}" ${THIN}/>`;
+}
+
+/**
+ * Grödorna som kan sås i odlingsbädden: id → { name, emoji, mat (vilka djur
+ * skörden är tänkt för – visas som hint i odlings-panelen) }. Id:na är samma
+ * som shop-sakerna ovan/nedan och lagras i Firestore – håll dem STABILA.
+ */
+export const CROPS = {
+  crop_carrot: { name: "Morot", emoji: "🥕", mat: "kaniner och hästar" },
+  crop_clover: { name: "Klöver", emoji: "☘️", mat: "kor, får och grisar" },
+  crop_berries: { name: "Magiska bär", emoji: "🫐", mat: "mysterydjur" },
+};
+
+// Sena steg (2 växer / 3 skördeklar) per gröda.
+const CROP_STAGE_ART = {
+  crop_carrot: [
+    () => saddArt(),
+    () => groddArt(),
+    () => jordhog() + blast(3, 0.8),
+    () =>
+      jordhog() +
+      `<path d="M-7 -2 Q0 24 0 26 Q0 24 7 -2 Z" fill="${MOROT}" ${THIN}/>` +
+      `<path d="M-4 6 L3 6 M-3 13 L2 13" stroke="#C96F23" stroke-width="1.8" stroke-linecap="round"/>` +
+      blast(5, 1.1) + glitter(14, -20, 0.9),
+  ],
+  crop_clover: [
+    () => saddArt(),
+    () => groddArt(),
+    () =>
+      jordhog() +
+      `<path d="M-8 -3 L-10 -14 M0 -4 L0 -18 M8 -3 L10 -12" fill="none" stroke="${LOV_MORK}" stroke-width="2.6" stroke-linecap="round"/>` +
+      kloverblad(-10, -18, 0.7) + kloverblad(0, -23, 0.85) + kloverblad(10, -16, 0.65),
+    () =>
+      jordhog() +
+      `<path d="M-11 -3 L-14 -20 M0 -4 L0 -26 M11 -3 L14 -18" fill="none" stroke="${LOV_MORK}" stroke-width="3" stroke-linecap="round"/>` +
+      kloverblad(-14, -25, 0.95) + kloverblad(0, -32, 1.15) + kloverblad(14, -23, 0.9) +
+      `<circle cx="0" cy="-40" r="4.5" fill="#F890B7" ${THIN}/>` + glitter(-19, -34, 0.8),
+  ],
+  crop_berries: [
+    () => saddArt(),
+    () => groddArt(),
+    () =>
+      jordhog() +
+      `<circle cx="0" cy="-18" r="12" fill="${LOV_MORK}" ${THIN}/>` +
+      `<circle cx="-4" cy="-20" r="2.6" fill="${BAR}" ${THIN}/>` +
+      `<circle cx="5" cy="-15" r="2.6" fill="${BAR}" ${THIN}/>`,
+    () =>
+      jordhog() +
+      `<circle cx="-9" cy="-14" r="10" fill="${LOV_MORK}" ${THIN}/>` +
+      `<circle cx="9" cy="-15" r="10" fill="${LOV_MORK}" ${THIN}/>` +
+      `<circle cx="0" cy="-24" r="12" fill="${LOV}" ${THIN}/>` +
+      `<circle cx="-9" cy="-16" r="3.4" fill="${BAR}" ${THIN}/>` +
+      `<circle cx="9" cy="-17" r="3.4" fill="${BAR}" ${THIN}/>` +
+      `<circle cx="0" cy="-27" r="3.4" fill="${BAR}" ${THIN}/>` +
+      `<circle cx="-3" cy="-19" r="2.6" fill="#B9AFF5" ${THIN}/>` +
+      glitter(16, -28, 0.9) + glitter(-17, -32, 0.7),
+  ],
+};
+
+/**
+ * SVG-snutt för en gröda vid ett tillväxtsteg, ritad med marken i origo och
+ * växten uppåt (minus-y, ryms inom ca ±20 × −45). Okänd gröda/steg → "".
+ * @param {string} cropId  t.ex. "crop_carrot"
+ * @param {number} stage   0–3 (FARM_MAX_GROWTH_STAGE)
+ */
+export function cropStageArt(cropId, stage) {
+  const steg = CROP_STAGE_ART[cropId];
+  const fn = steg && steg[Math.min(steg.length - 1, Math.max(0, Math.round(stage) || 0))];
+  return fn ? fn() : "";
+}
+
+// Fröpåse till shoppen: stående papperspåse med grödans bild + frö-prickar.
+function froPase(motiv) {
+  return (
+    shadow(32, 76, 22) +
+    `<path d="M12 10 Q32 4 52 10 L54 68 Q32 74 10 68 Z" fill="#FFF3DC" ${LINE}/>` +
+    `<path d="M12 10 Q32 4 52 10 L51 22 Q32 27 13 22 Z" fill="${LOV}" ${LINE}/>` +
+    `<g transform="translate(32 56)">${motiv}</g>` +
+    `<circle cx="20" cy="62" r="1.8" fill="#5C4433"/>` +
+    `<circle cx="44" cy="60" r="1.8" fill="#5C4433"/>`
+  );
+}
+
+// Shop-miniatyrer för fröerna (spridas in i ITEMS via art-items.js precis som
+// övriga GARDEN-poster). De placeras aldrig i trädgården (isSeedItem-filter) –
+// posterna här används bara som katalog-bild.
+GARDEN.crop_carrot = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
+  `<path d="M-5 -14 Q0 12 0 14 Q0 12 5 -14 Z" fill="${MOROT}" ${THIN}/>` + blast(3, 0.7)
+) };
+GARDEN.crop_clover = { viewBox: "0 0 64 84", w: 2.6, art: froPase(kloverblad(0, -8, 1.5)) };
+GARDEN.crop_berries = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
+  `<circle cx="0" cy="-8" r="11" fill="${LOV_MORK}" ${THIN}/>` +
+  `<circle cx="-4" cy="-10" r="3" fill="${BAR}" ${THIN}/>` +
+  `<circle cx="5" cy="-5" r="3" fill="${BAR}" ${THIN}/>` +
+  `<circle cx="2" cy="-13" r="2.4" fill="#B9AFF5" ${THIN}/>`
+) };
+
 // En liten glad blomma på en stjälk vid (x, markY) – används i rabatten.
 function blommaVid(x, markY, farg) {
   const top = markY - 20;
