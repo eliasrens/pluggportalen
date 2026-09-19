@@ -17,9 +17,12 @@
 // ============================================================================
 
 import * as animalData from "./data-animals.js";
+import { setAnimalPlacement, saveFarmAnimalPositions, saveFarmAnimalName } from "./data-farm.js";
+import { farmFromData, placementFor, moodForTrivsel } from "./farm-core.js";
 import { el } from "./ui.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
+import { farmMoodSvg } from "./art-pets.js";
 
 /**
  * Montera de vanliga djuren för rumsscenen.
@@ -45,6 +48,23 @@ export function mountRumDjur({ sd }) {
     hatchedAt: true,
   }));
 
+  // Bondgårdsdjuren (#330) bor i farm.animals + farm.placedAnimals (data-farm)
+  // – helt skilda från roomAnimals ovan. `location` styr var djuret vistas:
+  // "room" promenerar här bland de andra, "paddock"/"barn" ritas av gårds-
+  // grenen (gard-djur.js). Placeringen väljs i "Mina djur" (farmList/setLocation).
+  const farm = farmFromData(sd);
+  const farmAnimals = farm.animals.map((a) => ({
+    id: a.uid,
+    art: a.id,
+    pos: a.pos || { x: 30 + Math.round(Math.random() * 40), y: 70 + Math.round(Math.random() * 15) },
+    name: a.name,
+    location: placementFor(farm, a.uid),
+    farmAnimal: true,
+    trivsel: a.trivsel, // 0–100; mood-minen härleds (matningen kommer i #332)
+    stowed: false,
+    hatchedAt: true,
+  }));
+
   /** Visningsnamn: elevens eget namn om satt, annars artnamnet. */
   function displayName(a) {
     const item = getItem(a.art);
@@ -52,12 +72,24 @@ export function mountRumDjur({ sd }) {
   }
 
   // Spara positioner (debounce vid drag – samma mönster som scheduleSavePets).
+  // Vanliga djur → roomAnimals (data-animals), bondgårdsdjur → farm.animals
+  // (data-farm) – två skilda skrivningar eftersom datamodellerna är åtskilda.
+  // De SEKVENSERAS (inte parallellt): båda transaktionerna rör samma studentData-
+  // dokument, och samtidiga commits ger onödiga precondition-retries i konsolen.
   let saveTimer = null;
   function savePositions() {
-    if (animals.length === 0) return;
-    const positions = {};
-    for (const a of animals) positions[a.id] = { x: a.pos.x, y: a.pos.y };
-    animalData.saveAnimalPositions(positions).catch(() => {});
+    let forst = Promise.resolve();
+    if (animals.length > 0) {
+      const positions = {};
+      for (const a of animals) positions[a.id] = { x: a.pos.x, y: a.pos.y };
+      forst = animalData.saveAnimalPositions(positions).catch(() => {});
+    }
+    const inRoom = farmAnimals.filter((a) => a.location === "room");
+    if (inRoom.length > 0) {
+      const positions = {};
+      for (const a of inRoom) positions[a.id] = { x: a.pos.x, y: a.pos.y };
+      forst.then(() => saveFarmAnimalPositions(positions)).catch(() => {});
+    }
   }
   function scheduleSave() {
     clearTimeout(saveTimer);
@@ -85,6 +117,10 @@ export function mountRumDjur({ sd }) {
     if (!item) return el("<span></span>");
     const size = itemSize(a.art);
     const namn = displayName(a);
+    // Bondgårdsdjur bär en liten mood-min (glad/nöjd/less ur trivseln, #330).
+    const mood = a.farmAnimal
+      ? `<span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(a.trivsel))}</span>`
+      : "";
     // Namn-etiketten är en lättviktig döpnings-affordans (klick → inline-namnfält),
     // precis som mystery-djuren. ✏️-pennan visas BARA innan djuret fått ett eget
     // namn; ett namngivet djur får en penn-lös men klickbar etikett (rp-namn-tap)
@@ -92,7 +128,7 @@ export function mountRumDjur({ sd }) {
     // på djuret självt – det ger bara en klappa-effekt (petPat).
     return el(`<div class="room-item room-pet room-djur${selected ? " selected" : ""}"
       data-pet-id="${a.id}" style="left:${a.pos.x}%;top:${a.pos.y}%" title="${namn}">
-      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(a.art) || item.emoji}</span>
+      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(a.art) || item.emoji}</span>${mood}
       <span class="rp-namn ${a.name ? "rp-namn-tap" : "rp-namn-edit"}" data-rename="${a.id}" title="${a.name ? "Öppna namn-vyn" : "Döp mig ✏️"}">${namn}</span>
     </div>`);
   }
@@ -102,6 +138,13 @@ export function mountRumDjur({ sd }) {
    * ritas om direkt. Returnerar transaktionsresultatet ({ ok, animal, animals }).
    */
   async function saveName(id, name) {
+    // Bondgårdsdjur döps i farm.animals (data-farm), övriga i roomAnimals.
+    const fa = farmAnimals.find((x) => x.id === id);
+    if (fa) {
+      const res = await saveFarmAnimalName(id, name);
+      if (res.ok) fa.name = res.animal ? res.animal.name : null;
+      return res;
+    }
     const res = await animalData.saveAnimalName(id, name);
     if (res.ok) {
       const a = animals.find((x) => x.id === id);
@@ -121,17 +164,34 @@ export function mountRumDjur({ sd }) {
     animalData.setAnimalStowed(id, stowed).catch(() => {});
   }
 
+  /**
+   * Flytta ett bondgårdsdjur: "room" | "paddock" | "barn". Uppdaterar in-memory
+   * direkt (rummet kan ritas om utan väntan) och sparar i bakgrunden
+   * (farm.placedAnimals via setAnimalPlacement). Gårds-grenen läser placeringen
+   * färskt vid varje besök, så hagen/ladan ser flytten nästa gång man går dit.
+   */
+  function setLocation(id, location) {
+    const a = farmAnimals.find((x) => x.id === id);
+    if (!a) return;
+    a.location = location;
+    setAnimalPlacement(id, location).catch(() => {});
+  }
+
   return {
-    // list() = djur som är I RUMMET (promenerar/ritas); stowedList() = de
+    // list() = djur som är I RUMMET (promenerar/ritas): icke-undanstuvade
+    // vanliga djur + bondgårdsdjur placerade i rummet. stowedList() = de
     // undanstuvade (visas i "Mina djur"). byId() hittar oavsett – rummet ritar
     // ändå bara de icke-undanstuvade, så drag/klick träffar aldrig ett stuvat.
-    list: () => animals.filter((a) => !a.stowed),
+    list: () => [...animals.filter((a) => !a.stowed), ...farmAnimals.filter((a) => a.location === "room")],
     stowedList: () => animals.filter((a) => a.stowed),
-    byId: (id) => animals.find((a) => a.id === id),
+    // Bondgårdsdjuren (alla, oavsett plats) – för placerings-väljaren i Mina djur.
+    farmList: () => farmAnimals,
+    byId: (id) => animals.find((a) => a.id === id) || farmAnimals.find((a) => a.id === id),
     displayName,
     stageNode,
     saveName,
     setStowed,
+    setLocation,
     scheduleSave,
     saveWalkPositions,
   };

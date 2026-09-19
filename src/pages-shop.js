@@ -12,7 +12,8 @@ import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
 import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
-import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isMultiItem, isMysteryBox } from "./shop-items.js";
+import { buyFarmAnimal } from "./data-farm.js";
+import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isMultiItem, isMysteryBox } from "./shop-items.js";
 import { runMysteryBox } from "./pages-shop-mystery.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
@@ -39,6 +40,8 @@ export async function pageElevShop() {
     // Vanliga djur bor i roomAnimals (inte ownedItems) – flera exemplar per art
     // tillåts, så vi räknar antal per art.
     animalCounts: countAnimalsByArt(animalsFromData(sd)),
+    // Bondgårdsdjur (#330) bor i farm.animals – också flera exemplar per art.
+    farmAnimalCounts: countFarmAnimalsByArt(data.farmFromData(sd).animals),
   };
 
   const view = el(`<div>
@@ -145,7 +148,7 @@ export async function pageElevShop() {
       return;
     }
 
-    const rebuyable = isConsumable(id) || isMultiItem(id) || isAnimalItem(id);
+    const rebuyable = isConsumable(id) || isMultiItem(id) || isAnimalItem(id) || isFarmAnimalItem(id);
     if (!rebuyable && state.owned.has(id)) return;
 
     btn.disabled = true;
@@ -162,11 +165,13 @@ export async function pageElevShop() {
       else if (item.id === LAMP_ITEM_ID) res = await buyHeatLamp(item.price);
       else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
       else if (isAnimalItem(item.id)) res = await buyAnimal(item.id, item.price);
+      else if (isFarmAnimalItem(item.id)) res = await buyFarmAnimal(item.id, item.price);
       else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
       if (res.counts) state.ownedCounts = { ...res.counts };
       if (res.animals) state.animalCounts = countAnimalsByArt(res.animals);
+      if (res.farm) state.farmAnimalCounts = countFarmAnimalsByArt(res.farm.animals);
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
       renderKatalog();
       if (res.ok) {
@@ -179,6 +184,8 @@ export async function pageElevShop() {
           flash(`Du köpte ett äpple! 🍎 Du har nu ${state.appleCount} st – lägg ut dem i Mitt rum så äter husdjuren.`);
         } else if (isAnimalItem(item.id)) {
           flash(`Du köpte ${item.name}! ${item.emoji} Den promenerar nu omkring i Mitt rum.`);
+        } else if (isFarmAnimalItem(item.id)) {
+          flash(`Du köpte ${item.name}! ${item.emoji} Den bor i Mitt rum – välj rum, hage eller lada under 🐾 Mina djur.`);
         } else if (item.roomUpgrade) {
           flash(`Du köpte ${item.name}! 🚪 Ett nytt rum finns nu i ditt hus – gå in och byt rum via dörren eller rumslistan.`);
         } else if (item.category === "hus") {
@@ -235,6 +242,11 @@ function countAnimalsByArt(animals) {
   return counts;
 }
 
+/** Antal bondgårdsdjur per art ur farm.animals (#330) – samma form som ovan. */
+function countFarmAnimalsByArt(animals) {
+  return countAnimalsByArt(animals);
+}
+
 /** Hur många exemplar eleven äger av en multi-sak (möbler/dekor) i shop-state. */
 function multiCount(id, state) {
   const counts = state.ownedCounts || {};
@@ -247,10 +259,11 @@ function shopCardHtml(it, state) {
   const consumable = isConsumable(it.id);
   const multi = isMultiItem(it.id); // möbler/dekor – flera exemplar tillåts
   const animal = isAnimalItem(it.id); // vanliga djur – flera exemplar tillåts
+  const farmAnimal = isFarmAnimalItem(it.id); // bondgårdsdjur (#330) – också flera
   const box = isMysteryBox(it.id); // mysteryboxen – öppnas hur många gånger som helst
   // Dessa kan alltid köpas igen (blockeras aldrig som "Köpt"); övriga single-
   // saker (kläder/hus/…) blockeras när de redan ägs.
-  const rebuyable = consumable || multi || animal || box;
+  const rebuyable = consumable || multi || animal || farmAnimal || box;
   const owned = !rebuyable && state.owned.has(it.id);
   const affordable = state.coins >= it.price;
   // Priset sitter numera PÅ köp-knappen (eget chip) i stället för på en egen rad.
@@ -274,6 +287,7 @@ function shopCardHtml(it, state) {
   let have = 0;
   if (consumable) have = state.appleCount;
   else if (animal) have = state.animalCounts[it.id] || 0;
+  else if (farmAnimal) have = state.farmAnimalCounts[it.id] || 0;
   else if (multi) have = multiCount(it.id, state);
   const antal = rebuyable && !box ? `<div class="shop-antal">Du har: ${have} st</div>` : "";
   return `<div class="shop-card${owned ? " is-owned" : ""}">

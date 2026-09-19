@@ -15,8 +15,20 @@
 //     gardenTier: 1,         // odlingsbäddens nivå (1–3) – SPARAT FÄLT
 //     gardenSlots: [],       // [{ slotIndex, cropId, growthStage, plantedAt }]
 //     inventoryHarvest: {},  // { [cropId]: antal } skördad gröda
-//     placedAnimals: []      // [{ petId, location: "room"|"paddock"|"barn" }]
-//   }
+//     placedAnimals: [],     // [{ petId, location: "room"|"paddock"|"barn" }]
+//     animals: []            // [{ uid, id, name, pos, trivsel, lastFedAt }]
+//   }                        //   BONDGÅRDSDJUREN (#330): id = shop-sakens id
+//                            //   ("animal_horse" …) = arten, uid = unik instans
+//                            //   (flera av samma art tillåts), name = elevens
+//                            //   namn eller null, pos = { x, y } i procent av
+//                            //   scenen eller null (slumpas då). trivsel (0–100,
+//                            //   default 80) + lastFedAt (ms eller null) är
+//                            //   DATAGRUNDEN för matnings-loopen (#332) – ingen
+//                            //   matning/decay här, bara fält + mood-uttrycket
+//                            //   (moodForTrivsel). Placeringen (rum/hage/lada)
+//                            //   bor i placedAnimals (petId = uid) – hålls HELT
+//                            //   isär från roomAnimals (data-animals.js) och
+//                            //   pets (data-pet.js).
 //
 // Alla muterande funktioner är RENA: de tar ett farm-objekt och returnerar
 // `{ ok, farm }` med ett NYTT farm-objekt (indata muteras aldrig) – vid
@@ -50,6 +62,7 @@ export function defaultFarm() {
     gardenSlots: [],
     inventoryHarvest: {},
     placedAnimals: [],
+    animals: [],
   };
 }
 
@@ -79,6 +92,7 @@ export function farmFromData(data) {
   const slots = Array.isArray(raw.gardenSlots) ? raw.gardenSlots : def.gardenSlots;
   const inv = raw.inventoryHarvest && typeof raw.inventoryHarvest === "object" ? raw.inventoryHarvest : def.inventoryHarvest;
   const placed = Array.isArray(raw.placedAnimals) ? raw.placedAnimals : def.placedAnimals;
+  const animals = Array.isArray(raw.animals) ? raw.animals : def.animals;
   return {
     barnLevel: clampLevel(raw.barnLevel ?? def.barnLevel, FARM_MAX_BARN_LEVEL),
     gardenTier: clampLevel(raw.gardenTier ?? def.gardenTier, FARM_MAX_GARDEN_TIER),
@@ -105,6 +119,18 @@ export function farmFromData(data) {
     placedAnimals: placed
       .filter((p) => p && typeof p.petId === "string" && p.petId && FARM_LOCATIONS.includes(p.location))
       .map((p) => ({ petId: p.petId, location: p.location })),
+    animals: animals
+      .filter((a) => a && typeof a.uid === "string" && a.uid && typeof a.id === "string" && a.id)
+      .map((a) => ({
+        uid: a.uid,
+        id: a.id,
+        name: typeof a.name === "string" && a.name ? a.name : null,
+        pos: a.pos && Number.isFinite(a.pos.x) && Number.isFinite(a.pos.y)
+          ? { x: a.pos.x, y: a.pos.y }
+          : null,
+        trivsel: clampTrivsel(a.trivsel),
+        lastFedAt: Number.isFinite(a.lastFedAt) ? a.lastFedAt : null,
+      })),
   };
 }
 
@@ -222,4 +248,75 @@ export function setPlacementIn(farm, petId, location) {
 export function placementFor(farm, petId) {
   const p = (farm.placedAnimals || []).find((x) => x.petId === petId);
   return p ? p.location : "room";
+}
+
+// --- Bondgårdsdjuren (farm.animals, issue #330) ------------------------------
+
+/** Trivsel-default för ett nytt bondgårdsdjur (0–100). */
+export const FARM_ANIMAL_DEFAULT_TRIVSEL = 80;
+
+/** Klamra en trivsel till heltal i [0, 100]; ogiltig → default (80). */
+function clampTrivsel(v) {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : FARM_ANIMAL_DEFAULT_TRIVSEL;
+}
+
+/**
+ * Mood-uttryck ur trivsel-nivån (styr min-visningen på djuret): "glad" (hög),
+ * "nojd" (mellan) eller "less" (låg). Trösklarna är designval – matnings-
+ * loopen (#332) sänker/höjer trivseln, den här härledningen är hela uttrycket.
+ * @param {number} trivsel 0–100
+ * @returns {"glad"|"nojd"|"less"}
+ */
+export function moodForTrivsel(trivsel) {
+  const t = clampTrivsel(trivsel);
+  if (t >= 60) return "glad";
+  if (t >= 30) return "nojd";
+  return "less";
+}
+
+/**
+ * Lägg till ett nytt bondgårdsdjur (häst/ko/gris). uid måste vara unikt bland
+ * djuren; art-id valideras av köpet (data-farm.js) mot shop-katalogen – kärnan
+ * kräver bara icke-tomma strängar. Placeringen sätts INTE här (nytt djur bor i
+ * rummet = ingen placedAnimals-post, precis som setPlacementIn:s default).
+ * trivsel/lastFedAt startar på 80/null – datagrund för matnings-loopen (#332).
+ * @returns {{ok: boolean, farm: object, animal?: object, error?: string}}
+ */
+export function addFarmAnimalIn(farm, uid, artId) {
+  if (typeof uid !== "string" || !uid) return { ok: false, farm, error: "ogiltigt djur-id" };
+  if (typeof artId !== "string" || !artId) return { ok: false, farm, error: "ogiltig art" };
+  if (farm.animals.some((a) => a.uid === uid)) return { ok: false, farm, error: "djuret finns redan" };
+  const animal = { uid, id: artId, name: null, pos: null, trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null };
+  return { ok: true, farm: { ...farm, animals: [...farm.animals, animal] }, animal };
+}
+
+/**
+ * Döp (eller döp om) ett bondgårdsdjur. Namnet ska redan vara sanerat av
+ * anroparen (cleanPetName i data-farm.js); tom sträng/null nollställer namnet.
+ * @returns {{ok: boolean, farm: object, animal?: object, error?: string}}
+ */
+export function renameFarmAnimalIn(farm, uid, name) {
+  const i = farm.animals.findIndex((a) => a.uid === uid);
+  if (i === -1) return { ok: false, farm, error: "okänt djur" };
+  const clean = typeof name === "string" && name ? name : null;
+  const animals = farm.animals.map((a) => (a.uid === uid ? { ...a, name: clean } : a));
+  return { ok: true, farm: { ...farm, animals }, animal: animals[i] };
+}
+
+/**
+ * Skriv in nya positioner för bondgårdsdjuren: { [uid]: { x, y } } i procent.
+ * Okända uid och ogiltiga positioner ignoreras (samma anda som
+ * saveAnimalPositions i data-animals.js). Alltid ok – inga fel-vägar.
+ * @returns {{ok: boolean, farm: object, changed: boolean}}
+ */
+export function withFarmAnimalPositions(farm, positions) {
+  let changed = false;
+  const animals = farm.animals.map((a) => {
+    const pos = positions && positions[a.uid];
+    if (!pos || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return a;
+    changed = true;
+    return { ...a, pos: { x: pos.x, y: pos.y } };
+  });
+  return { ok: true, farm: changed ? { ...farm, animals } : farm, changed };
 }

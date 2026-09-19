@@ -355,6 +355,9 @@ export {
   setAnimalPlacement,
   setBarnLevel,
   setGardenTier,
+  buyFarmAnimal,
+  saveFarmAnimalPositions,
+  saveFarmAnimalName,
 } from "./data-farm.js";
 
 // Gårdens rena kärna (browser-fri, node-testbar) – re-exporteras för

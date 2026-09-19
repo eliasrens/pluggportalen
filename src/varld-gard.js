@@ -29,6 +29,7 @@ import { go } from "./ui.js";
 import { createKamera } from "./varld-kamera.js";
 import { gardScen, laggardScen } from "./art-gard.js";
 import { mountOdling } from "./varld-odling.js";
+import { mountGardDjur } from "./gard-djur.js";
 
 /**
  * Skapa gårds-grenen.
@@ -51,6 +52,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   let kamera = null;
   let byggd = false;
   let odling = null; // odlingsbädden (#329) – monteras när scenen byggts
+  let gardDjur = null; // bondgårdsdjuren (#330) – monteras vid första besöket
 
   // Scenerna ritas först vid första gårds-besöket (lat – ingen kostnad för
   // elever som aldrig går ut på baksidan).
@@ -90,6 +92,10 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     // ha vuxit av plugguppgifter sedan sist). Fire-and-forget: kameran ska inte
     // vänta på Firestore.
     if (nivaId === "gard" && odling) odling.visa();
+    // Bondgårdsdjuren (#330): läs placeringarna färskt och rita/animera djuren
+    // i hagen & ladan. Blockerar inte kamerazoomen (fire-and-forget); ett
+    // nätverksfel lämnar bara scenen tom (nästa besök försöker igen).
+    (gardDjur ??= mountGardDjur({ gardLager, laggardLager })).refresh().catch(() => {});
     await ensureHus();
     const forsta = !kamera;
     const cam = ensureKamera();

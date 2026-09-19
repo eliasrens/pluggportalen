@@ -99,6 +99,10 @@ function hage() {
     <!-- Lite gräs-tuvor inne i hagen -->
     <path d="M430 540 q4 -14 8 0 M442 540 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
     <path d="M540 536 q4 -14 8 0 M552 536 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Osynlig promenad-zon: bondgårdsdjurens (#330) rörelseyta INNANFÖR
+         gärdsgården. gard-djur.js mäter rektangeln i procent av lagret
+         (getBoundingClientRect) så zonen följer scenen oavsett skärmformat. -->
+    <rect id="hage-zon" x="378" y="478" width="228" height="64" fill="none" stroke="none" pointer-events="none"/>
   </g>`;
 }
 
@@ -215,6 +219,10 @@ export function laggardScen() {
     ${spilta(600)}
     ${foderho(260)}
     ${foderho(710)}
+    <!-- Osynlig promenad-zon: djurens (#330) rörelseyta på ladugårdsgolvet,
+         nedanför foderhoarna så djuren inte "kliver upp" i dem. Mäts av
+         gard-djur.js precis som #hage-zon. -->
+    <rect id="lada-zon" x="170" y="500" width="640" height="72" fill="none" stroke="none" pointer-events="none"/>
     <!-- En höbal i hörnet som detalj -->
     <g>${shadow(80, 522, 60)}
       <rect x="28" y="446" width="110" height="70" rx="12" fill="#E3C86B" ${LINE}/>
