@@ -356,6 +356,7 @@ export {
   setBarnLevel,
   setGardenTier,
   buyFarmAnimal,
+  buyFarmUpgrade,
   saveFarmAnimalPositions,
   saveFarmAnimalName,
 } from "./data-farm.js";
@@ -366,6 +367,7 @@ export {
   defaultFarm,
   farmFromData,
   slotCountForTier,
+  barnPlaceCountForLevel,
   cropInSlot,
   placementFor,
   FARM_MAX_BARN_LEVEL,

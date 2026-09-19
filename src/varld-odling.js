@@ -112,10 +112,16 @@ export function mountOdling({ stage, gardLager }) {
     const ankare = gardLager.querySelector("#odling-slots");
     if (!ankare || !farm) return;
     const antal = slotCountForTier(farm.gardenTier);
-    const pos = odlingSlotPos(antal);
+    // Legacy-skydd (#333 krympte tier 1 från 4 → 2 slots): en gröda som redan
+    // står i en slot UTANFÖR dagens bädd ritas ändå (och kan skördas), men nya
+    // frön kan bara sås i dagens slots – tomma rutor utanför bädden hoppas över.
+    const maxPlanterad = farm.gardenSlots.reduce((m, s) => Math.max(m, s.slotIndex), -1);
+    const ritAntal = Math.max(antal, maxPlanterad + 1);
+    const pos = odlingSlotPos(ritAntal);
     let markup = "";
-    for (let i = 0; i < antal; i++) {
+    for (let i = 0; i < ritAntal; i++) {
       const slot = cropInSlot(farm, i);
+      if (!slot && i >= antal) continue;
       const meta = slot && CROPS[slot.cropId];
       const klar = slot && slot.growthStage >= FARM_MAX_GROWTH_STAGE;
       const namn = meta ? meta.name : "gröda";

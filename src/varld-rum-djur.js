@@ -18,7 +18,7 @@
 
 import * as animalData from "./data-animals.js";
 import { setAnimalPlacement, saveFarmAnimalPositions, saveFarmAnimalName } from "./data-farm.js";
-import { farmFromData, placementFor, moodForTrivsel } from "./farm-core.js";
+import { farmFromData, placementFor, moodForTrivsel, barnPlaceCountForLevel } from "./farm-core.js";
 import { el } from "./ui.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -169,12 +169,21 @@ export function mountRumDjur({ sd }) {
    * direkt (rummet kan ritas om utan väntan) och sparar i bakgrunden
    * (farm.placedAnimals via setAnimalPlacement). Gårds-grenen läser placeringen
    * färskt vid varje besök, så hagen/ladan ser flytten nästa gång man går dit.
+   * Laggården har ett nivå-tak (#333: barnPlaceCountForLevel) – är ladan full
+   * returneras false UTAN ändring (samma spärr finns i kärnans setPlacementIn),
+   * så anroparen kan visa "ladan är full".
+   * @returns {boolean} gick flytten?
    */
   function setLocation(id, location) {
     const a = farmAnimals.find((x) => x.id === id);
-    if (!a) return;
+    if (!a) return false;
+    if (location === "barn" && a.location !== "barn") {
+      const inne = farmAnimals.filter((x) => x.location === "barn").length;
+      if (inne >= barnPlaceCountForLevel(farm.barnLevel)) return false;
+    }
     a.location = location;
     setAnimalPlacement(id, location).catch(() => {});
+    return true;
   }
 
   return {

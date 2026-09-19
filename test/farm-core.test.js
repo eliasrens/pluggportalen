@@ -25,6 +25,7 @@ import {
   placementFor,
   cropInSlot,
   slotCountForTier,
+  barnPlaceCountForLevel,
   addFarmAnimalIn,
   renameFarmAnimalIn,
   withFarmAnimalPositions,
@@ -122,7 +123,8 @@ test("advanceAllGrowthIn: alla växande grödor stegar, färdiga rörs inte (#32
 });
 
 test("harvestFrom: bara färdigvuxen gröda; sloten töms och förrådet ökar", () => {
-  let { farm } = plantCropIn(defaultFarm(), 2, "crop_carrot", 1);
+  // Slot 2 kräver uppgraderad bädd (tier 1 har bara 2 slots sedan #333).
+  let { farm } = plantCropIn({ ...defaultFarm(), gardenTier: 2 }, 2, "crop_carrot", 1);
   // För tidigt.
   assert.equal(harvestFrom(farm, 2).ok, false);
   farm = advanceGrowthIn(farm, 2, FARM_MAX_GROWTH_STAGE).farm;
@@ -164,11 +166,40 @@ test("setPlacementIn: upsert per djur; room = default och sparas inte", () => {
   assert.equal(setPlacementIn(r1.farm, "", "barn").ok, false);
 });
 
-test("slotCountForTier: växer med nivån och tål skräp", () => {
-  const c1 = slotCountForTier(1);
-  const cMax = slotCountForTier(FARM_MAX_GARDEN_TIER);
-  assert.ok(c1 > 0 && cMax > c1);
-  assert.equal(slotCountForTier("skräp"), c1);
+test("slotCountForTier: 2/4/8 per nivå (#333) och tål skräp", () => {
+  assert.equal(slotCountForTier(1), 2);
+  assert.equal(slotCountForTier(2), 4);
+  assert.equal(slotCountForTier(FARM_MAX_GARDEN_TIER), 8);
+  assert.equal(slotCountForTier("skräp"), slotCountForTier(1));
+});
+
+// --- Uppgraderingarna (#333): laggårdens platser + nivå-tak ------------------
+
+test("barnPlaceCountForLevel: 2/4/8 per nivå och tål skräp", () => {
+  assert.equal(barnPlaceCountForLevel(1), 2);
+  assert.equal(barnPlaceCountForLevel(2), 4);
+  assert.equal(barnPlaceCountForLevel(3), 8);
+  assert.equal(barnPlaceCountForLevel("skräp"), 2);
+  assert.equal(barnPlaceCountForLevel(99), 8); // klamras till taket
+});
+
+test("setPlacementIn: ladan har nivå-tak – full lada vägrar nya djur (#333)", () => {
+  // Nivå 1 = 2 platser: två djur in, det tredje stoppas.
+  let farm = defaultFarm();
+  farm = setPlacementIn(farm, "ko#1", "barn").farm;
+  farm = setPlacementIn(farm, "ko#2", "barn").farm;
+  const full = setPlacementIn(farm, "ko#3", "barn");
+  assert.equal(full.ok, false);
+  assert.equal(full.error, "ladan är full");
+  assert.deepEqual(full.farm.placedAnimals.length, 2); // oförändrat
+  // Ett djur som REDAN står i ladan får "flyttas" dit igen (no-op, inte fullt).
+  assert.equal(setPlacementIn(farm, "ko#2", "barn").ok, true);
+  // Hagen har inget tak.
+  assert.equal(setPlacementIn(farm, "ko#3", "paddock").ok, true);
+  // Uppgraderad laggård (nivå 2 = 4 platser) släpper in det tredje djuret.
+  const stor = setPlacementIn({ ...farm, barnLevel: 2 }, "ko#3", "barn");
+  assert.equal(stor.ok, true);
+  assert.equal(stor.farm.placedAnimals.length, 3);
 });
 
 // --- Bondgårdsdjuren (farm.animals, issue #330) ------------------------------

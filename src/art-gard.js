@@ -21,6 +21,7 @@
 // ============================================================================
 
 import { O, LINE, THIN, limb } from "./art-style.js";
+import { barnPlaceCountForLevel } from "./farm-core.js";
 
 // Samma trä-färger som stilguiden/art-hus-ute.js (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -37,24 +38,46 @@ function molnArt(x, y, s) {
 }
 
 // --- Zon 1: odlingsbädden (vänster) -----------------------------------------
-// En träramad bädd med jordrader – tom placeholder tills odlings-logiken kommer.
-function odlingsbadd() {
-  const rader = [468, 492, 516]
+// Utseendet styrs av odlingsbäddens nivå (farm.gardenTier, #333):
+//   1  Enkel odlingsbädd – bar jordplätt med enkel kant
+//   2  Dubbel odlingslåda – träramad låda med mittdelare (två lådor)
+//   3  Växthus – dubbellådan under ett glasat växthus-skelett
+// Grödorna (#odling-slots) ritas EFTER gruppen → de hamnar ovanpå glaset.
+function odlingsbadd(tier = 1) {
+  const rader = (tier === 1 ? [478, 508] : [468, 492, 516])
     .map(
       (y) =>
         `<path d="M112 ${y} Q205 ${y - 10} 298 ${y}" fill="none" stroke="#5C4433" stroke-width="7" stroke-linecap="round" opacity="0.55"/>`
     )
     .join("");
-  return `<g aria-hidden="true">
-    ${shadow(205, 552, 130)}
+  const jord = `${shadow(205, 552, 130)}
     <rect x="88" y="438" width="234" height="102" rx="12" fill="#7A5A40" ${LINE}/>
     <rect x="100" y="450" width="210" height="78" rx="8" fill="#8F6A4B" stroke="none"/>
-    ${rader}
-    <!-- Träram (sarg) ovanpå jorden så bädden läser som en riktig odlingslåda -->
-    <rect x="82" y="430" width="246" height="18" rx="8" fill="${WOOD}" ${LINE}/>
+    ${rader}`;
+  // Nivå 1: bara jordplätten med en låg, enkel kant runt om.
+  let ram = `<rect x="84" y="434" width="242" height="110" rx="12" fill="none" stroke="${WOOD}" stroke-width="7" opacity="0.9"/>`;
+  if (tier >= 2) {
+    // Nivå 2+: full träram (sarg) + mittdelare → läser som en DUBBEL låda.
+    ram = `<rect x="82" y="430" width="246" height="18" rx="8" fill="${WOOD}" ${LINE}/>
     <rect x="82" y="532" width="246" height="16" rx="8" fill="${WOOD}" ${LINE}/>
     <rect x="76" y="430" width="16" height="118" rx="7" fill="${WOOD_DARK}" ${LINE}/>
     <rect x="318" y="430" width="16" height="118" rx="7" fill="${WOOD_DARK}" ${LINE}/>
+    <rect x="198" y="434" width="14" height="110" rx="6" fill="${WOOD}" ${THIN} opacity="0.95"/>`;
+  }
+  // Nivå 3: glasat växthus-skelett ÖVER lådan. Glaset är nästan genomskinligt
+  // (grödorna ritas dessutom ovanpå hela gruppen) – gavelram i ljust trä.
+  const vaxthus = tier >= 3
+    ? `<path d="M64 436 L64 372 L205 322 L346 372 L346 436" fill="#9AD3F0" opacity="0.22" stroke="none"/>
+    <path d="M64 436 L64 372 L205 322 L346 372 L346 436" fill="none" stroke="${WOOD_LIGHT}" stroke-width="9" stroke-linejoin="round"/>
+    <path d="M64 436 L64 372 L205 322 L346 372 L346 436" fill="none" stroke="${O}" stroke-width="2.5" stroke-linejoin="round" opacity="0.35"/>
+    <path d="M134 347 L134 436 M205 322 L205 430 M276 347 L276 436" stroke="${WOOD_LIGHT}" stroke-width="6" stroke-linecap="round"/>
+    <path d="M64 400 L346 400" stroke="${WOOD_LIGHT}" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="205" cy="316" r="7" fill="${WOOD_LIGHT}" ${THIN}/>`
+    : "";
+  return `<g aria-hidden="true">
+    ${jord}
+    ${ram}
+    ${vaxthus}
   </g>
   <!-- Grödorna (#329): varld-odling.js ritar elevens odlings-slots här -
        aria-hidden får därför INTE ligga på den här gruppen. -->
@@ -107,25 +130,16 @@ function hage() {
 }
 
 // --- Zon 3: laggårds-byggnaden (höger) --------------------------------------
-// Röd ladugård med vita knutar och en stor dubbeldörr. Dörr-gruppen
-// (#laggard-dorr) görs klickbar (→ interiören) av varld-gard.js; själva
-// klick-/tangentbords-riggen sätts där, här bara role/tabindex/aria.
-function laggard() {
-  return `<g aria-hidden="false">
-    ${shadow(790, 552, 165)}
-    <!-- Fasad -->
-    <rect x="656" y="330" width="268" height="218" rx="10" fill="#C4574A" ${LINE}/>
-    <!-- Tak -->
-    <path d="M636 340 L700 240 L880 240 L944 340 Z" fill="${WOOD_DARK}" ${LINE}/>
-    <rect x="690" y="228" width="200" height="24" rx="10" fill="#C4574A" ${LINE}/>
-    <!-- Vita knutar -->
-    <rect x="656" y="336" width="16" height="212" rx="6" fill="#FFF3DC" ${THIN}/>
-    <rect x="908" y="336" width="16" height="212" rx="6" fill="#FFF3DC" ${THIN}/>
-    <!-- Litet runt höloftsfönster -->
-    <circle cx="790" cy="292" r="20" fill="#FFF3DC" ${LINE}/>
-    <path d="M790 276 L790 308 M774 292 L806 292" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>
-    <!-- Dubbeldörren med kryss-beslag: klick → in i laggården -->
-    <g id="laggard-dorr" role="button" tabindex="0" aria-label="Gå in i laggården">
+// Fasaden styrs av laggårdens nivå (farm.barnLevel, #333):
+//   1  Litet skjul – trärött snedtaks-skjul
+//   2  Röd trälada – klassisk röd ladugård med vita knutar
+//   3  Stor herrgårdslaggård – bredare, högre, med takkupol och två fönster
+// Alla nivåer har samma dubbeldörr (#laggard-dorr) på samma plats, så kamerans
+// dörr-fokus (varld-gard.js) och klick-riggen fungerar oförändrat – plus en
+// nivå-badge uppe på fasaden. Dörr-gruppens klick-/tangentbords-rigg sätts i
+// varld-gard.js; här bara role/tabindex/aria.
+function laggard(level = 1) {
+  const dorr = `<g id="laggard-dorr" role="button" tabindex="0" aria-label="Gå in i laggården">
       <rect x="724" y="398" width="132" height="150" rx="8" fill="#FFF3DC" ${LINE}/>
       <rect x="734" y="408" width="54" height="140" rx="4" fill="${WOOD}" ${LINE}/>
       <rect x="792" y="408" width="54" height="140" rx="4" fill="${WOOD}" ${LINE}/>
@@ -133,19 +147,81 @@ function laggard() {
       <path d="M794 412 L844 544 M844 412 L794 544" stroke="${WOOD_DARK}" stroke-width="5" stroke-linecap="round"/>
       <circle cx="782" cy="478" r="5" fill="${O}" ${THIN}/>
       <circle cx="798" cy="478" r="5" fill="${O}" ${THIN}/>
-    </g>
-    <!-- Ett litet fönster till vänster om dörren -->
+    </g>`;
+  // Nivå-badgen: liten träskylt med nivåsiffran, så uppgraderingen syns direkt.
+  const badge = (x, y) => `<g aria-hidden="true">
+      <circle cx="${x}" cy="${y}" r="19" fill="#FFF3DC" ${LINE}/>
+      <text x="${x}" y="${y + 8}" text-anchor="middle" font-size="24" font-weight="800"
+        fill="${O}" style="font-family:inherit">${level}</text>
+    </g>`;
+  if (level <= 1) {
+    // Litet skjul: trä-färgad fasad med enkelt snedtak och en liten lykta.
+    return `<g aria-hidden="false">
+    ${shadow(786, 552, 140)}
+    <rect x="668" y="386" width="236" height="162" rx="10" fill="${WOOD}" ${LINE}/>
+    <path d="M668 402 L904 402 M668 448 L716 448 M864 448 L904 448" stroke="${WOOD_DARK}" stroke-width="4" opacity="0.4"/>
+    <path d="M648 398 L688 316 L906 330 L922 398 Z" fill="${WOOD_DARK}" ${LINE}/>
     <rect x="676" y="420" width="40" height="46" rx="6" fill="#9AD3F0" ${LINE}/>
     <path d="M696 424 L696 462 M680 443 L712 443" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+    ${dorr}
+    ${badge(700, 352)}
+  </g>`;
+  }
+  if (level === 2) {
+    // Röd trälada (ursprungsfasaden från #328).
+    return `<g aria-hidden="false">
+    ${shadow(790, 552, 165)}
+    <rect x="656" y="330" width="268" height="218" rx="10" fill="#C4574A" ${LINE}/>
+    <path d="M636 340 L700 240 L880 240 L944 340 Z" fill="${WOOD_DARK}" ${LINE}/>
+    <rect x="690" y="228" width="200" height="24" rx="10" fill="#C4574A" ${LINE}/>
+    <rect x="656" y="336" width="16" height="212" rx="6" fill="#FFF3DC" ${THIN}/>
+    <rect x="908" y="336" width="16" height="212" rx="6" fill="#FFF3DC" ${THIN}/>
+    <circle cx="790" cy="292" r="20" fill="#FFF3DC" ${LINE}/>
+    <path d="M790 276 L790 308 M774 292 L806 292" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>
+    ${dorr}
+    <rect x="676" y="420" width="40" height="46" rx="6" fill="#9AD3F0" ${LINE}/>
+    <path d="M696 424 L696 462 M680 443 L712 443" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+    ${badge(880, 292)}
+  </g>`;
+  }
+  // Nivå 3: stor herrgårdslaggård – bredare och högre, kupol med vindflöjel,
+  // dubbla höloftsfönster och vita knutar hela vägen.
+  return `<g aria-hidden="false">
+    ${shadow(786, 554, 185)}
+    <rect x="624" y="300" width="326" height="248" rx="10" fill="#C4574A" ${LINE}/>
+    <path d="M604 312 L676 212 L898 212 L946 312 Z" fill="${WOOD_DARK}" ${LINE}/>
+    <rect x="664" y="200" width="246" height="24" rx="10" fill="#C4574A" ${LINE}/>
+    <!-- Takkupol med vindflöjel -->
+    <rect x="758" y="158" width="64" height="48" rx="8" fill="#FFF3DC" ${LINE}/>
+    <path d="M750 162 L790 132 L830 162 Z" fill="${WOOD_DARK}" ${LINE}/>
+    <path d="M790 132 L790 104 M778 112 L804 112" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="790" cy="184" r="9" fill="#9AD3F0" ${THIN}/>
+    <!-- Vita knutar -->
+    <rect x="624" y="306" width="16" height="242" rx="6" fill="#FFF3DC" ${THIN}/>
+    <rect x="934" y="306" width="16" height="242" rx="6" fill="#FFF3DC" ${THIN}/>
+    <!-- Dubbla runda höloftsfönster -->
+    <circle cx="712" cy="262" r="19" fill="#FFF3DC" ${LINE}/>
+    <path d="M712 247 L712 277 M697 262 L727 262" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="868" cy="262" r="19" fill="#FFF3DC" ${LINE}/>
+    <path d="M868 247 L868 277 M853 262 L883 262" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>
+    ${dorr}
+    <!-- Fönster på båda sidor om dörren -->
+    <rect x="656" y="416" width="44" height="50" rx="6" fill="#9AD3F0" ${LINE}/>
+    <path d="M678 420 L678 462 M660 441 L696 441" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+    <rect x="878" y="416" width="44" height="50" rx="6" fill="#9AD3F0" ${LINE}/>
+    <path d="M900 420 L900 462 M882 441 L918 441" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+    ${badge(790, 330)}
   </g>`;
 }
 
 /**
  * Hela gårds-scenen ("Baksida & Gården") som SVG-sträng: himmel i övre halvan,
- * gräs i nedre, tre placeholder-zoner (odlingsbädd/hage/laggård). Samma
- * viewBox/stil som husScen så kamerazoomen känns som samma värld.
+ * gräs i nedre, tre zoner (odlingsbädd/hage/laggård). Samma viewBox/stil som
+ * husScen så kamerazoomen känns som samma värld. Odlingsbäddens och laggårdens
+ * utseende styrs av elevens nivåer (#333) – varld-gard.js skickar in dem.
+ * @param {{gardenTier?: number, barnLevel?: number}} [nivaer]
  */
-export function gardScen() {
+export function gardScen({ gardenTier = 1, barnLevel = 1 } = {}) {
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Gården på baksidan av huset"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="gard-himmel" x1="0" y1="0" x2="0" y2="1">
@@ -165,36 +241,54 @@ export function gardScen() {
       <circle cx="32" cy="324" r="24" fill="#6FC66F" ${LINE}/>
       <circle cx="90" cy="322" r="26" fill="#6FC66F" ${LINE}/></g>
 
-    ${odlingsbadd()}
+    ${odlingsbadd(gardenTier)}
     ${hage()}
-    ${laggard()}
+    ${laggard(barnLevel)}
   </svg>`;
 }
 
 // --- Interiören: inne i laggården -------------------------------------------
 
 /** Ett bås (spilta): väggpanel-avdelare med överliggare. x = vänsterkant. */
-function spilta(x) {
+function spilta(x, arm = 220) {
   return `${limb(`M${x} 470 L${x} 250`, WOOD_DARK, 10)}
     <rect x="${x - 6}" y="250" width="12" height="150" rx="5" fill="${WOOD}" ${LINE}/>
-    ${limb(`M${x} 322 L${x + 220} 322`, WOOD, 8)}`;
+    ${limb(`M${x} 322 L${x + arm} 322`, WOOD, 8)}`;
 }
 
-/** En foderho framför ett bås, centrerad på cx vid golvlinjen. */
-function foderho(cx) {
-  return `${shadow(cx, 512, 74)}
-    <path d="M${cx - 70} 452 L${cx + 70} 452 L${cx + 54} 500 L${cx - 54} 500 Z" fill="${WOOD}" ${LINE}/>
-    <path d="M${cx - 56} 460 L${cx + 56} 460 L${cx + 46} 492 L${cx - 46} 492 Z" fill="${WOOD_DARK}" stroke="none"/>
+/** En foderho framför ett bås, centrerad på cx vid golvlinjen. s = skala i
+ * bredd (fler spiltor per nivå → smalare hoar så alla ryms på golvet). */
+function foderho(cx, s = 1) {
+  return `${shadow(cx, 512, 74 * s)}
+    <path d="M${cx - 70 * s} 452 L${cx + 70 * s} 452 L${cx + 54 * s} 500 L${cx - 54 * s} 500 Z" fill="${WOOD}" ${LINE}/>
+    <path d="M${cx - 56 * s} 460 L${cx + 56 * s} 460 L${cx + 46 * s} 492 L${cx - 46 * s} 492 Z" fill="${WOOD_DARK}" stroke="none"/>
     <!-- Lite hö i hoarna så rummet inte känns kalt -->
-    <path d="M${cx - 44} 462 Q${cx} 446 ${cx + 44} 462" fill="none" stroke="#E3C86B" stroke-width="6" stroke-linecap="round"/>`;
+    <path d="M${cx - 44 * s} 462 Q${cx} 446 ${cx + 44 * s} 462" fill="none" stroke="#E3C86B" stroke-width="6" stroke-linecap="round"/>`;
 }
 
 /**
- * Laggårdens interiör som SVG-sträng: träpanelväggar, tre spiltor/bås och
- * foderhoar – ett tomt skal (djuren kommer i senare issues). Samma viewBox-
- * princip som rummet: väggar/golv övertecknade utanför viewBoxen.
+ * Spiltraden i interiören: en foderho per djurplats (barnPlaceCountForLevel,
+ * #333) med spilt-avdelare mellan – nivå 1 ger 2 platser, nivå 3 hela 8, så
+ * hoarna skalas ner ju fler de är för att alla ska rymmas längs golvet.
  */
-export function laggardScen() {
+function spiltRad(platser) {
+  const s = platser <= 2 ? 1 : platser <= 4 ? 0.72 : 0.45;
+  const steg = 960 / platser;
+  let ut = "";
+  for (let i = 1; i < platser; i++) ut += spilta(Math.round(i * steg), Math.min(220, steg - 40));
+  for (let i = 0; i < platser; i++) ut += foderho(Math.round(steg / 2 + i * steg), s);
+  return ut;
+}
+
+/**
+ * Laggårdens interiör som SVG-sträng: träpanelväggar samt spiltor/bås med
+ * foderhoar – antalet styrs av laggårdens nivå (farm.barnLevel, #333; 2/4/8
+ * platser). Samma viewBox-princip som rummet: väggar/golv övertecknade utanför
+ * viewBoxen. Djuren i ladan ritas ovanpå av gard-djur.js.
+ * @param {number} [barnLevel] laggårdens nivå (1–3)
+ */
+export function laggardScen(barnLevel = 1) {
+  const platser = barnPlaceCountForLevel(barnLevel);
   // Liggande panelbrädor på bakväggen (streck i väggfärgens mörkare ton).
   const panel = [96, 168, 240, 312, 384]
     .map((y) => `<path d="M-2400 ${y} L3360 ${y}" stroke="${WOOD_DARK}" stroke-width="4" opacity="0.35"/>`)
@@ -214,19 +308,16 @@ export function laggardScen() {
     <path d="M482 146 L482 226 M436 186 L528 186" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
     <rect x="422" y="228" width="120" height="12" rx="6" fill="${WOOD_LIGHT}" ${THIN}/>
 
-    <!-- Tre bås (spiltor) med varsin foderho – tomma placeholders för djuren -->
-    ${spilta(150)}
-    ${spilta(600)}
-    ${foderho(260)}
-    ${foderho(710)}
+    <!-- Bås (spiltor) med varsin foderho – en per djurplats i nivån -->
+    ${spiltRad(platser)}
     <!-- Osynlig promenad-zon: djurens (#330) rörelseyta på ladugårdsgolvet,
          nedanför foderhoarna så djuren inte "kliver upp" i dem. Mäts av
          gard-djur.js precis som #hage-zon. -->
     <rect id="lada-zon" x="170" y="500" width="640" height="72" fill="none" stroke="none" pointer-events="none"/>
-    <!-- En höbal i hörnet som detalj -->
-    <g>${shadow(80, 522, 60)}
+    <!-- En höbal i hörnet som detalj (bara när spiltorna inte når ända ut) -->
+    ${platser <= 2 ? `<g>${shadow(80, 522, 60)}
       <rect x="28" y="446" width="110" height="70" rx="12" fill="#E3C86B" ${LINE}/>
       <path d="M36 470 L130 470 M36 492 L130 492" stroke="#B99A3B" stroke-width="4" stroke-linecap="round"/>
-      ${limb("M28 480 L138 480", WOOD_DARK, 5)}</g>
+      ${limb("M28 480 L138 480", WOOD_DARK, 5)}</g>` : ""}
   </svg>`;
 }

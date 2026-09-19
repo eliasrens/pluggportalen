@@ -199,6 +199,19 @@ export const SHOP_ITEMS = [
   { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
   { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
   { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
+
+  // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
+  // OBS nivåmodellen (DATAMODELL.md/#331): nivån bor i FÄLTEN farm.gardenTier/
+  // farm.barnLevel – ALDRIG härledd ur ownedItems (till skillnad från rummens
+  // roomUpgradeCount). Korten här är alltså bara köp-UI:t: köpet går via
+  // buyFarmUpgrade (data-farm.js) som drar coins + höjer fältet i EN transaktion
+  // och skriver INGET i ownedItems. `farmUpgrade` pekar ut fältet ("garden" |
+  // "barn"), `upgradeLevel` nivån köpet ger; de köps i ordning (nivå 2 före 3 –
+  // shoppen låser nästa tills föregående ägs). Nivå 1 är start och säljs inte.
+  { id: "odling-2", name: "Dubbel odlingslåda", emoji: "🪴", category: "tradgard", price: 150, farmUpgrade: "garden", upgradeLevel: 2 },
+  { id: "odling-3", name: "Växthus", emoji: "🏡", category: "tradgard", price: 350, farmUpgrade: "garden", upgradeLevel: 3 },
+  { id: "lada-2", name: "Röd trälada", emoji: "🛖", category: "tradgard", price: 450, farmUpgrade: "barn", upgradeLevel: 2 },
+  { id: "lada-3", name: "Stor herrgårdslaggård", emoji: "🏛️", category: "tradgard", price: 800, farmUpgrade: "barn", upgradeLevel: 3 },
 ];
 
 // --- Mysteryboxarna (köp & öppna → slumpad kosmetik ur viktad pool) ---------
@@ -319,6 +332,18 @@ export function isSeedItem(id) {
   return !!(it && it.seed);
 }
 
+/**
+ * Är saken en GÅRDS-UPPGRADERING (#333)? Odlingsbädden/laggården säljs som
+ * shop-kort men nivån bor i farm.gardenTier/farm.barnLevel (data-farm.js) –
+ * köpet går via buyFarmUpgrade och hamnar ALDRIG i ownedItems/ownedCounts.
+ * De placeras heller aldrig (trädgårds-lådan läser bara ownedItems → de dyker
+ * aldrig upp där), och de är inte multi-saker trots tradgard-kategorin.
+ */
+export function isFarmUpgradeItem(id) {
+  const it = getItem(id);
+  return !!(it && it.farmUpgrade);
+}
+
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
 export function isConsumable(id) {
   const it = getItem(id);
@@ -341,7 +366,7 @@ const MULTI_CATEGORIES = new Set(["mobler", "dekor", "tradgard"]);
  */
 export function isMultiItem(id) {
   const it = getItem(id);
-  return !!(it && MULTI_CATEGORIES.has(it.category) && !it.mysteryOnly);
+  return !!(it && MULTI_CATEGORIES.has(it.category) && !it.mysteryOnly && !it.farmUpgrade);
 }
 
 /** Är saken själva mysteryboxen (köp & öppna → slumpad kosmetik)? */

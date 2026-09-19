@@ -40,10 +40,25 @@ export const FARM_MAX_BARN_LEVEL = 3;
 export const FARM_MAX_GARDEN_TIER = 1 + 2; // = 3, hålls i par med barn-taket
 
 /**
- * Antal odlings-slots per odlingsbädds-nivå (gardenTier 1–3). Odlings-issuen
- * får gärna justera siffrorna – logiken här läser bara tabellen.
+ * Antal odlings-slots per odlingsbädds-nivå (gardenTier 1–3). Siffrorna är
+ * uppgraderings-issuens (#333) spec: Enkel bädd 2 → Dubbel låda 4 → Växthus 8.
  */
-export const FARM_SLOTS_PER_TIER = { 1: 4, 2: 6, 3: 8 };
+export const FARM_SLOTS_PER_TIER = { 1: 2, 2: 4, 3: 8 };
+
+/**
+ * Antal djurplatser (spiltor) i laggården per nivå (barnLevel 1–3, #333):
+ * Litet skjul 2 → Röd trälada 4 → Stor herrgårdslaggård 8. Taket gäller bara
+ * platsen "barn" – rummet och hagen har inga nivå-tak.
+ */
+export const FARM_BARN_PLACES_PER_LEVEL = { 1: 2, 2: 4, 3: 8 };
+
+/** Antal djurplatser i elevens laggård (utifrån barnLevel). */
+export function barnPlaceCountForLevel(barnLevel) {
+  return (
+    FARM_BARN_PLACES_PER_LEVEL[clampLevel(barnLevel, FARM_MAX_BARN_LEVEL)] ||
+    FARM_BARN_PLACES_PER_LEVEL[1]
+  );
+}
 
 /**
  * Tillväxtsteg för en gröda: 0 = nysådd, 1 = grodd, 2 = växer,
@@ -239,6 +254,15 @@ export function adjustInventoryIn(farm, cropId, delta) {
 export function setPlacementIn(farm, petId, location) {
   if (typeof petId !== "string" || !petId) return { ok: false, farm, error: "ogiltigt djur-id" };
   if (!FARM_LOCATIONS.includes(location)) return { ok: false, farm, error: "ogiltig plats" };
+  // Laggården har ett nivå-tak (#333): fler djur än barnLevel:ns spiltor får
+  // inte bo i ladan. Djurets EGEN eventuella barn-post räknas inte (en flytt
+  // barn → barn är en no-op, inte "fullt"). Rummet/hagen har inga tak.
+  if (location === "barn") {
+    const inne = farm.placedAnimals.filter((p) => p.location === "barn" && p.petId !== petId).length;
+    if (inne >= barnPlaceCountForLevel(farm.barnLevel)) {
+      return { ok: false, farm, error: "ladan är full" };
+    }
+  }
   const rest = farm.placedAnimals.filter((p) => p.petId !== petId);
   const placedAnimals = location === "room" ? rest : [...rest, { petId, location }];
   return { ok: true, farm: { ...farm, placedAnimals } };

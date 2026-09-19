@@ -30,6 +30,7 @@ import { createKamera } from "./varld-kamera.js";
 import { gardScen, laggardScen } from "./art-gard.js";
 import { mountOdling } from "./varld-odling.js";
 import { mountGardDjur } from "./gard-djur.js";
+import { getFarm } from "./data-farm.js";
 
 /**
  * Skapa gårds-grenen.
@@ -50,18 +51,24 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   // "in i" huset (dörren/fasadmitten) på väg till baksidan.
   const husGardNiva = { id: "hus", el: uteLager, fokus: { x: 50, y: 46 }, zoom: 5 };
   let kamera = null;
-  let byggd = false;
+  let byggd = null; // "gardenTier:barnLevel" som scenerna senast ritades för
   let odling = null; // odlingsbädden (#329) – monteras när scenen byggts
   let gardDjur = null; // bondgårdsdjuren (#330) – monteras vid första besöket
 
   // Scenerna ritas först vid första gårds-besöket (lat – ingen kostnad för
-  // elever som aldrig går ut på baksidan).
-  function bygg() {
-    if (byggd) return;
-    byggd = true;
-    gardLager.innerHTML = gardScen();
-    laggardLager.innerHTML = laggardScen();
-    odling = mountOdling({ stage, gardLager });
+  // elever som aldrig går ut på baksidan) och ritas OM när elevens nivåer
+  // (#333: odlingsbädd/laggård) ändrats sedan sist – så en köpt uppgradering
+  // syns direkt. getFarm läser den session-cachade studentDatan (invalideras
+  // av köpet), så det här väntar i praktiken aldrig på nätet; ett nätverksfel
+  // faller tillbaka på nivå 1-scenerna (nästa besök försöker igen).
+  async function bygg() {
+    const farm = await getFarm().catch(() => null);
+    const nyckel = farm ? farm.gardenTier + ":" + farm.barnLevel : "1:1";
+    if (byggd === nyckel) return;
+    byggd = nyckel;
+    gardLager.innerHTML = gardScen(farm ? { gardenTier: farm.gardenTier, barnLevel: farm.barnLevel } : {});
+    laggardLager.innerHTML = laggardScen(farm ? farm.barnLevel : 1);
+    odling ??= mountOdling({ stage, gardLager });
   }
 
   function ensureKamera() {
@@ -87,7 +94,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
    */
   async function visa(nivaId) {
     if (nivaId !== "gard" && nivaId !== "laggard") return;
-    bygg();
+    await bygg();
     // Rita odlingsbädden med färskt tillstånd vid varje gårds-besök (grödor kan
     // ha vuxit av plugguppgifter sedan sist). Fire-and-forget: kameran ska inte
     // vänta på Firestore.

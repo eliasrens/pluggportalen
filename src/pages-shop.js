@@ -12,8 +12,8 @@ import { buyEgg, buyHeatLamp, EGG_ITEM_ID, LAMP_ITEM_ID } from "./data-pet.js";
 import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
-import { buyFarmAnimal } from "./data-farm.js";
-import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isMultiItem, isMysteryBox } from "./shop-items.js";
+import { buyFarmAnimal, buyFarmUpgrade } from "./data-farm.js";
+import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isFarmUpgradeItem, isMultiItem, isMysteryBox } from "./shop-items.js";
 import { runMysteryBox } from "./pages-shop-mystery.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
@@ -42,6 +42,9 @@ export async function pageElevShop() {
     animalCounts: countAnimalsByArt(animalsFromData(sd)),
     // Bondgårdsdjur (#330) bor i farm.animals – också flera exemplar per art.
     farmAnimalCounts: countFarmAnimalsByArt(data.farmFromData(sd).animals),
+    // Gårds-uppgraderingarnas nivåer (#333): SPARADE FÄLT i farm (aldrig
+    // ownedItems) – korten härleder "Köpt"/"🔒 nästa nivå" härifrån.
+    farmLevels: farmLevelsFrom(data.farmFromData(sd)),
   };
 
   const view = el(`<div>
@@ -166,12 +169,18 @@ export async function pageElevShop() {
       else if (item.id === APPLE_ITEM_ID) res = await buyApple(item.price);
       else if (isAnimalItem(item.id)) res = await buyAnimal(item.id, item.price);
       else if (isFarmAnimalItem(item.id)) res = await buyFarmAnimal(item.id, item.price);
+      // Gårds-uppgraderingar (#333): coins + nivå-fältet i EN transaktion
+      // (buyFarmUpgrade, data-farm.js) – aldrig ownedItems.
+      else if (isFarmUpgradeItem(item.id)) res = await buyFarmUpgrade(item.id, item.price);
       else res = await data.buyItem(item.id, item.price);
       state.coins = res.coins;
       if (res.owned) state.owned = new Set(res.owned);
       if (res.counts) state.ownedCounts = { ...res.counts };
       if (res.animals) state.animalCounts = countAnimalsByArt(res.animals);
-      if (res.farm) state.farmAnimalCounts = countFarmAnimalsByArt(res.farm.animals);
+      if (res.farm) {
+        state.farmAnimalCounts = countFarmAnimalsByArt(res.farm.animals);
+        state.farmLevels = farmLevelsFrom(res.farm);
+      }
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
       renderKatalog();
       if (res.ok) {
@@ -186,6 +195,10 @@ export async function pageElevShop() {
           flash(`Du köpte ${item.name}! ${item.emoji} Den promenerar nu omkring i Mitt rum.`);
         } else if (isFarmAnimalItem(item.id)) {
           flash(`Du köpte ${item.name}! ${item.emoji} Den bor i Mitt rum – välj rum, hage eller lada under 🐾 Mina djur.`);
+        } else if (item.farmUpgrade === "garden") {
+          flash(`Du köpte ${item.name}! ${item.emoji} Odlingsbädden på gården är nu större – så fler grödor där.`);
+        } else if (item.farmUpgrade === "barn") {
+          flash(`Du köpte ${item.name}! ${item.emoji} Laggården är uppgraderad – fler djur får plats i ladan.`);
         } else if (item.roomUpgrade) {
           flash(`Du köpte ${item.name}! 🚪 Ett nytt rum finns nu i ditt hus – gå in och byt rum via dörren eller rumslistan.`);
         } else if (item.category === "hus") {
@@ -247,6 +260,11 @@ function countFarmAnimalsByArt(animals) {
   return countAnimalsByArt(animals);
 }
 
+/** Gårds-nivåerna ur ett farm-objekt (#333): { garden, barn }. */
+function farmLevelsFrom(farm) {
+  return { garden: farm.gardenTier, barn: farm.barnLevel };
+}
+
 /** Hur många exemplar eleven äger av en multi-sak (möbler/dekor) i shop-state. */
 function multiCount(id, state) {
   const counts = state.ownedCounts || {};
@@ -264,13 +282,22 @@ function shopCardHtml(it, state) {
   // Dessa kan alltid köpas igen (blockeras aldrig som "Köpt"); övriga single-
   // saker (kläder/hus/…) blockeras när de redan ägs.
   const rebuyable = consumable || multi || animal || farmAnimal || box;
-  const owned = !rebuyable && state.owned.has(it.id);
+  // Gårds-uppgraderingar (#333): "Köpt"/låst härleds ur NIVÅ-FÄLTET (farm.
+  // gardenTier/barnLevel via state.farmLevels), aldrig ur ownedItems – och
+  // nästa nivå är låst tills den föregående är köpt (de köps i ordning).
+  const upLevel = it.farmUpgrade
+    ? (it.farmUpgrade === "garden" ? state.farmLevels.garden : state.farmLevels.barn)
+    : 0;
+  const upLocked = !!it.farmUpgrade && it.upgradeLevel > upLevel + 1;
+  const owned = (!rebuyable && state.owned.has(it.id)) || (!!it.farmUpgrade && upLevel >= it.upgradeLevel);
   const affordable = state.coins >= it.price;
   // Priset sitter numera PÅ köp-knappen (eget chip) i stället för på en egen rad.
   const pris = `<span class="buy-pris">${coinIcon(15)} ${it.price}</span>`;
   let btn;
   if (it.comingSoon) {
     btn = `<button class="buy-btn nej" disabled title="Snart kläcks nya vänner här!">🔒 Kommer snart</button>`;
+  } else if (upLocked) {
+    btn = `<button class="buy-btn nej" disabled title="Köp föregående uppgradering först">🔒 ${pris}</button>`;
   } else if (owned) {
     btn = `<button class="buy-btn kopt" disabled>✓ Köpt</button>`;
   } else if (!affordable) {
