@@ -9,26 +9,17 @@
 // Firestore-wiringen (transaktioner, cache-invalidering) bor i systermodulen
 // data-farm.js som anropar de här funktionerna inne i sina transaktioner.
 //
-// Datamodell (studentData.farm) – se docs/DATAMODELL.md:
+// Datamodell (studentData.farm) – FULLT dokumenterad i docs/DATAMODELL.md:
 //   farm: {
 //     barnLevel: 1,          // laggårdens nivå (1–3) – SPARAT FÄLT (se DATAMODELL)
 //     gardenTier: 1,         // odlingsbäddens nivå (1–3) – SPARAT FÄLT
 //     gardenSlots: [],       // [{ slotIndex, cropId, growthStage, plantedAt }]
 //     inventoryHarvest: {},  // { [cropId]: antal } skördad gröda
 //     placedAnimals: [],     // [{ petId, location: "room"|"paddock"|"barn" }]
-//     animals: []            // [{ uid, id, name, pos, trivsel, lastFedAt }]
-//   }                        //   BONDGÅRDSDJUREN (#330): id = shop-sakens id
-//                            //   ("animal_horse" …) = arten, uid = unik instans
-//                            //   (flera av samma art tillåts), name = elevens
-//                            //   namn eller null, pos = { x, y } i procent av
-//                            //   scenen eller null (slumpas då). trivsel (0–100,
-//                            //   default 80) + lastFedAt (ms eller null) är
-//                            //   DATAGRUNDEN för matnings-loopen (#332) – ingen
-//                            //   matning/decay här, bara fält + mood-uttrycket
-//                            //   (moodForTrivsel). Placeringen (rum/hage/lada)
-//                            //   bor i placedAnimals (petId = uid) – hålls HELT
-//                            //   isär från roomAnimals (data-animals.js) och
-//                            //   pets (data-pet.js).
+//     animals: []            // BONDGÅRDSDJUREN (#330/#332): { uid (unik instans),
+//   }                        //   id (arten, shop-id), name, pos, trivsel (0–100,
+//                            //   default 80), lastFedAt, lastGiftAt } – hålls HELT
+//                            //   isär från roomAnimals/pets; placering i placedAnimals.
 //
 // Alla muterande funktioner är RENA: de tar ett farm-objekt och returnerar
 // `{ ok, farm }` med ett NYTT farm-objekt (indata muteras aldrig) – vid
@@ -39,31 +30,19 @@
 export const FARM_MAX_BARN_LEVEL = 3;
 export const FARM_MAX_GARDEN_TIER = 1 + 2; // = 3, hålls i par med barn-taket
 
-/**
- * Antal odlings-slots per odlingsbädds-nivå (gardenTier 1–3). Siffrorna är
- * uppgraderings-issuens (#333) spec: Enkel bädd 2 → Dubbel låda 4 → Växthus 8.
- */
+// Odlings-slots per bädds-nivå (#333): Enkel bädd 2 → Dubbel låda 4 → Växthus 8.
 export const FARM_SLOTS_PER_TIER = { 1: 2, 2: 4, 3: 8 };
 
-/**
- * Antal djurplatser (spiltor) i laggården per nivå (barnLevel 1–3, #333):
- * Litet skjul 2 → Röd trälada 4 → Stor herrgårdslaggård 8. Taket gäller bara
- * platsen "barn" – rummet och hagen har inga nivå-tak.
- */
+// Djurplatser (spiltor) i laggården per nivå (#333): Litet skjul 2 → Röd trälada
+// 4 → Herrgårdslaggård 8. Taket gäller BARA "barn" – rum/hage har inga tak.
 export const FARM_BARN_PLACES_PER_LEVEL = { 1: 2, 2: 4, 3: 8 };
 
 /** Antal djurplatser i elevens laggård (utifrån barnLevel). */
 export function barnPlaceCountForLevel(barnLevel) {
-  return (
-    FARM_BARN_PLACES_PER_LEVEL[clampLevel(barnLevel, FARM_MAX_BARN_LEVEL)] ||
-    FARM_BARN_PLACES_PER_LEVEL[1]
-  );
+  return FARM_BARN_PLACES_PER_LEVEL[clampLevel(barnLevel, FARM_MAX_BARN_LEVEL)] || FARM_BARN_PLACES_PER_LEVEL[1];
 }
 
-/**
- * Tillväxtsteg för en gröda: 0 = nysådd, 1 = grodd, 2 = växer,
- * FARM_MAX_GROWTH_STAGE (3) = färdigvuxen → kan skördas.
- */
+// Tillväxtsteg: 0 = nysådd, 1 = grodd, 2 = växer, 3 = färdigvuxen → skördbar.
 export const FARM_MAX_GROWTH_STAGE = 3;
 
 /** Giltiga platser ett djur kan placeras på (rummet är default-hemmet). */
@@ -93,13 +72,10 @@ export function slotCountForTier(gardenTier) {
 }
 
 /**
- * Normaliserar `studentData.farm` ur ett (ev. gammalt) studentData-objekt till
- * ett komplett, giltigt farm-objekt. BAKÅTKOMPATIBEL default-merge: dokument
- * utan `farm` (alla befintliga elever) får defaultFarm(); delvisa/trasiga fält
- * ersätts fält för fält utan att röra resten av dokumentet. Returnerar alltid
- * ett NYTT objekt (fritt att mutera för anroparen).
- * @param {object|null|undefined} data helt studentData-objekt (eller null)
- * @returns {object} giltigt farm-objekt
+ * Normaliserar `studentData.farm` till ett komplett giltigt farm-objekt.
+ * BAKÅTKOMPATIBEL default-merge: dokument utan `farm` får defaultFarm(),
+ * delvisa/trasiga fält ersätts fält för fält. Returnerar alltid ett NYTT objekt.
+ * @param {object|null|undefined} data @returns {object} giltigt farm-objekt
  */
 export function farmFromData(data) {
   const raw = (data && typeof data.farm === "object" && data.farm) || {};
@@ -156,12 +132,8 @@ export function cropInSlot(farm, slotIndex) {
 }
 
 /**
- * Så en gröda i en tom slot. Slot-index måste rymmas i elevens odlingsbädd
- * (slotCountForTier) och vara ledigt.
- * @param {object} farm    normaliserat farm-objekt (farmFromData)
- * @param {number} slotIndex
- * @param {string} cropId  grödans id (t.ex. "crop_carrot")
- * @param {number} [now]   ms-tidsstämpel (injicerbar för test)
+ * Så en gröda (cropId) i en tom slot. Slot-index måste rymmas i elevens
+ * odlingsbädd (slotCountForTier) och vara ledigt. `now` injicerbar för test.
  * @returns {{ok: boolean, farm: object, error?: string}}
  */
 export function plantCropIn(farm, slotIndex, cropId, now = Date.now()) {
