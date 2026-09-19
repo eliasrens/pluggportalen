@@ -37,9 +37,13 @@ import {
   harvestFrom,
   adjustInventoryIn,
   setPlacementIn,
+  addFarmAnimalIn,
+  renameFarmAnimalIn,
+  withFarmAnimalPositions,
   FARM_MAX_BARN_LEVEL,
   FARM_MAX_GARDEN_TIER,
 } from "./farm-core.js";
+import { isFarmAnimalItem } from "./shop-items.js";
 
 /**
  * Hela gårds-tillståndet för inloggad (eller angiven) elev, alltid ett
@@ -123,6 +127,74 @@ export function adjustHarvestInventory(cropId, delta, studentId = currentStudent
  */
 export function setAnimalPlacement(petId, location, studentId = currentStudentId()) {
   return updateFarm(studentId, ["placedAnimals"], (farm) => setPlacementIn(farm, petId, location));
+}
+
+// --- Bondgårdsdjuren (farm.animals, issue #330) ------------------------------
+
+/** Nytt unikt instans-id för ett bondgårdsdjur ("<art>#<slump>"). */
+function newFarmAnimalUid(artId) {
+  return artId + "#" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/**
+ * Samma namn-sanering som husdjuren (cleanPetName i data-pet.js) – dubblerad
+ * MEDVETET: data.js re-exporterar den här modulen och data-pet.js importerar
+ * data.js, så en import härifrån till data-pet.js skulle sluta en modulcykel.
+ */
+function cleanFarmAnimalName(name) {
+  const s = String(name || "").replace(/[<>&"'`]/g, "").trim().slice(0, 16); // = NAME_MAX_LEN
+  return s || null;
+}
+
+/**
+ * Köp ett bondgårdsdjur (häst/ko/gris): drar coins och lägger djuret i
+ * farm.animals – nya djur bor i RUMMET tills eleven väljer hage/lada i "Mina
+ * djur" (setAnimalPlacement). Flera exemplar av samma art tillåts (varje köp =
+ * nytt uid). Allt i EN transaktion – samma mönster som buyAnimal i data-animals.
+ * @returns {Promise<{ok: boolean, coins: number, farm: object, animal?: object}>}
+ */
+export async function buyFarmAnimal(itemId, price, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  if (!isFarmAnimalItem(itemId)) throw new Error("Inte ett bondgårdsdjur: " + itemId);
+  const cost = Math.max(0, Math.round(price || 0));
+  const ref = doc(db, "studentData", studentId);
+  const result = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const coins = data.coins || 0;
+    const farm = farmFromData(data);
+    if (coins < cost) return { ok: false, coins, farm };
+    const res = addFarmAnimalIn(farm, newFarmAnimalUid(itemId), itemId);
+    if (!res.ok) return { ok: false, coins, farm };
+    if (snap.exists()) tx.update(ref, { coins: coins - cost, "farm.animals": res.farm.animals });
+    else tx.set(ref, { ...defaultStudentData(), coins: 0, farm: res.farm });
+    return { ok: true, coins: coins - cost, farm: res.farm, animal: res.animal };
+  });
+  if (result.ok) invalidateStudentData(studentId); // coins/djur ändrat (#274)
+  return result;
+}
+
+/**
+ * Spara bondgårdsdjurens positioner: { [uid]: { x, y } } (procent av scenen).
+ * Okända uid/ogiltiga positioner ignoreras; ingen ändring → ingen skrivning.
+ * @returns {Promise<{ok: boolean, farm: object}>}
+ */
+export function saveFarmAnimalPositions(positions, studentId = currentStudentId()) {
+  return updateFarm(studentId, ["animals"], (farm) => {
+    const res = withFarmAnimalPositions(farm, positions);
+    // Oförändrat → rapportera ok utan skrivning (updateFarm skriver bara vid ok).
+    return res.changed ? res : { ok: false, farm, error: "inget att spara" };
+  });
+}
+
+/**
+ * Döp (eller döp om) ett bondgårdsdjur. Namnet saneras som husdjurens
+ * (cleanFarmAnimalName ovan); tomt namn nollställer.
+ * @returns {Promise<{ok: boolean, farm: object, animal?: object, error?: string}>}
+ */
+export function saveFarmAnimalName(uid, name, studentId = currentStudentId()) {
+  return updateFarm(studentId, ["animals"], (farm) =>
+    renameFarmAnimalIn(farm, uid, cleanFarmAnimalName(name)));
 }
 
 /**

@@ -51,10 +51,15 @@ function pickIdle(now) {
  * @param {() => object[]} [o.getApples]  äpplen på golvet ([{id,x,y}], procent)
  * @param {(pet: object, apple: object) => void} [o.onEat]  djuret nådde ett äpple
  * @param {() => void} [o.onSettled]  kallas när ett djur stannar (för ev. sparning)
+ * @param {(st: {halfW:number, halfH:number}) => {minX:number, maxX:number,
+ *   minY:number, maxY:number}} [o.zoneFor]  zonen (i procent av scenen) djurets
+ *   CENTRUM får röra sig i. Default = rummets golvzon (petWalkZone). Gårdens
+ *   hage/lada (#330, gard-djur.js) skickar in egna uppmätta zoner här – resten
+ *   av AI:n (mål, hinder, mjuk fart, flock-avstånd) återbrukas orörd.
  * @returns {() => void} stoppfunktion (loopen stoppar även sig själv när
  *   scenen försvinner ur DOM:en, samma mönster som äggens nedräkningstimer)
  */
-export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat, onSettled }) {
+export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat, onSettled, zoneFor }) {
   // Respektera reduced motion: inga promenader alls (designfacit).
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return () => {};
@@ -153,9 +158,9 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
     return st.node;
   }
 
-  /** Golvzonen djuret får röra sig i (samma clamp som drag & drop). */
+  /** Zonen djuret får röra sig i: rummets golv (default) eller injicerad zon. */
   function walkZone(st) {
-    return petWalkZone(st.halfW, st.halfH);
+    return zoneFor ? zoneFor(st) : petWalkZone(st.halfW, st.halfH);
   }
 
   // --- Välj nytt promenadmål ------------------------------------------------

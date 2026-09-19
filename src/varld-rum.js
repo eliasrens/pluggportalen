@@ -265,7 +265,9 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
           if (res.ok) { renderStage(); renderPets(); }
           return res;
         },
-        onStow: () => setStowed("animal", animal.id, true),
+        // Bondgårdsdjur stuvas inte undan – de FLYTTAS (rum/hage/lada) via
+        // platsvalet i Mina djur (#330). Stuva-knappen gäller bara vanliga djur.
+        onStow: animal.farmAnimal ? null : () => setStowed("animal", animal.id, true),
       }));
       return;
     }
@@ -454,6 +456,23 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       })),
     ],
     onReturn: (kind, id) => setStowed(kind, id, false),
+    // Bondgårdsdjuren (#330): listas alltid i Mina djur med platsval. Ett byte
+    // uppdaterar datan (farm.placedAnimals) + rummet direkt; hagen/ladan ritas
+    // av gårds-grenen vid nästa besök (den läser placeringen färskt).
+    listFarm: () => djur.farmList().map((a) => ({
+      id: a.id, name: djur.displayName(a), location: a.location,
+      artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
+    })),
+    onPlace: (id, location) => {
+      djur.setLocation(id, location);
+      if (selectedPetId === id) selectedPetId = null;
+      renderStage();
+      renderPets();
+      djurTrayCtl?.render();
+      flash(location === "room" ? "Djuret bor nu i ditt rum! 🛏️"
+        : location === "paddock" ? "Djuret går nu ute i hagen! 🌾"
+        : "Djuret bor nu i ladan! 🏠");
+    },
   });
 
   // Matningen (äpplen på golvet) lever i sin egen modul: äger floorApples +

@@ -24,8 +24,13 @@ import {
   placementFor,
   cropInSlot,
   slotCountForTier,
+  addFarmAnimalIn,
+  renameFarmAnimalIn,
+  withFarmAnimalPositions,
+  moodForTrivsel,
   FARM_MAX_GROWTH_STAGE,
   FARM_MAX_GARDEN_TIER,
+  FARM_ANIMAL_DEFAULT_TRIVSEL,
 } from "../src/farm-core.js";
 
 test("farmFromData: dokument utan farm får giltig default (bakåtkompat)", () => {
@@ -143,4 +148,77 @@ test("slotCountForTier: växer med nivån och tål skräp", () => {
   const cMax = slotCountForTier(FARM_MAX_GARDEN_TIER);
   assert.ok(c1 > 0 && cMax > c1);
   assert.equal(slotCountForTier("skräp"), c1);
+});
+
+// --- Bondgårdsdjuren (farm.animals, issue #330) ------------------------------
+
+test("addFarmAnimalIn: nytt djur med trivsel-default; unika uid krävs", () => {
+  const r1 = addFarmAnimalIn(defaultFarm(), "animal_horse#a1", "animal_horse");
+  assert.equal(r1.ok, true);
+  assert.deepEqual(r1.animal, {
+    uid: "animal_horse#a1", id: "animal_horse", name: null, pos: null,
+    trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null,
+  });
+  // Nytt djur har ingen placerings-post → bor i rummet (default).
+  assert.equal(placementFor(r1.farm, "animal_horse#a1"), "room");
+  // Dubblett-uid, tomt uid och tom art vägras utan ändring.
+  assert.equal(addFarmAnimalIn(r1.farm, "animal_horse#a1", "animal_horse").ok, false);
+  assert.equal(addFarmAnimalIn(r1.farm, "", "animal_cow").ok, false);
+  assert.equal(addFarmAnimalIn(r1.farm, "animal_cow#c1", "").ok, false);
+});
+
+test("farmFromData: animals normaliseras (trasiga poster bort, fält klamras)", () => {
+  const farm = farmFromData({
+    farm: {
+      animals: [
+        { uid: "animal_pig#p1", id: "animal_pig", name: "Nasse", pos: { x: 40, y: 80 }, trivsel: 999, lastFedAt: 1234 },
+        { uid: "animal_cow#k1", id: "animal_cow" }, // gammal/partiell post → defaults
+        { uid: "", id: "animal_cow" }, // tomt uid → bort
+        { id: "animal_cow" }, // saknar uid → bort
+        null,
+      ],
+    },
+  });
+  assert.deepEqual(farm.animals, [
+    { uid: "animal_pig#p1", id: "animal_pig", name: "Nasse", pos: { x: 40, y: 80 }, trivsel: 100, lastFedAt: 1234 },
+    { uid: "animal_cow#k1", id: "animal_cow", name: null, pos: null, trivsel: FARM_ANIMAL_DEFAULT_TRIVSEL, lastFedAt: null },
+  ]);
+});
+
+test("renameFarmAnimalIn: döper/nollställer; okänt djur vägras", () => {
+  const { farm } = addFarmAnimalIn(defaultFarm(), "animal_cow#k1", "animal_cow");
+  const r1 = renameFarmAnimalIn(farm, "animal_cow#k1", "Rosa");
+  assert.equal(r1.ok, true);
+  assert.equal(r1.animal.name, "Rosa");
+  assert.equal(r1.animal.trivsel, FARM_ANIMAL_DEFAULT_TRIVSEL); // övriga fält orörda
+  const r2 = renameFarmAnimalIn(r1.farm, "animal_cow#k1", null);
+  assert.equal(r2.animal.name, null);
+  assert.equal(renameFarmAnimalIn(farm, "okänd#x", "Namn").ok, false);
+});
+
+test("withFarmAnimalPositions: skriver giltiga uid, ignorerar resten", () => {
+  let { farm } = addFarmAnimalIn(defaultFarm(), "animal_pig#p1", "animal_pig");
+  ({ farm } = addFarmAnimalIn(farm, "animal_pig#p2", "animal_pig"));
+  const r = withFarmAnimalPositions(farm, {
+    "animal_pig#p1": { x: 33, y: 78 },
+    "animal_pig#p2": { x: "nej", y: 70 }, // ogiltig → ignoreras
+    "okänd#x": { x: 1, y: 2 }, // okänt uid → ignoreras
+  });
+  assert.equal(r.changed, true);
+  assert.deepEqual(r.farm.animals[0].pos, { x: 33, y: 78 });
+  assert.equal(r.farm.animals[1].pos, null);
+  // Inga giltiga positioner → changed:false och samma farm-objekt tillbaka.
+  const r2 = withFarmAnimalPositions(farm, { "okänd#x": { x: 1, y: 2 } });
+  assert.equal(r2.changed, false);
+  assert.equal(r2.farm, farm);
+});
+
+test("moodForTrivsel: glad/nöjd/less med klamrande trösklar", () => {
+  assert.equal(moodForTrivsel(100), "glad");
+  assert.equal(moodForTrivsel(60), "glad");
+  assert.equal(moodForTrivsel(59), "nojd");
+  assert.equal(moodForTrivsel(30), "nojd");
+  assert.equal(moodForTrivsel(29), "less");
+  assert.equal(moodForTrivsel(0), "less");
+  assert.equal(moodForTrivsel("skräp"), moodForTrivsel(FARM_ANIMAL_DEFAULT_TRIVSEL)); // ogiltigt → default
 });

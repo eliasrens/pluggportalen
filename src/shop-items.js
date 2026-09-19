@@ -129,6 +129,13 @@ export const SHOP_ITEMS = [
   { id: "hamster", name: "Hamster", emoji: "🐹", category: "husdjur", price: 90 },
   { id: "igelkott", name: "Igelkott", emoji: "🦔", category: "husdjur", price: 120 },
   { id: "skoldpadda", name: "Sköldpadda", emoji: "🐢", category: "husdjur", price: 140 },
+  // Bondgårdsdjur (issue #330, epic Trädgård/Gård): egna LEVANDE djur som bor i
+  // farm.animals (data-farm.js) – INTE roomAnimals – och kan placeras i rummet,
+  // ute i hagen eller inne i laggården via "Mina djur" (farm.placedAnimals).
+  // `farmAnimal: true` skiljer dem från de vanliga djuren (isFarmAnimalItem).
+  { id: "animal_horse", name: "Häst", emoji: "🐴", category: "husdjur", price: 250, farmAnimal: true },
+  { id: "animal_cow", name: "Ko", emoji: "🐮", category: "husdjur", price: 200, farmAnimal: true },
+  { id: "animal_pig", name: "Gris", emoji: "🐷", category: "husdjur", price: 180, farmAnimal: true },
 
   // --- Mat (konsumerbar – läggs på golvet, äts av husdjuren) ----------------
   // Äpplet köps i valfritt ANTAL (ökar studentData.appleCount, hamnar aldrig i
@@ -265,7 +272,18 @@ export function isHouseItem(id) {
  */
 export function isAnimalItem(id) {
   const it = getItem(id);
-  return !!(it && it.category === "husdjur" && id !== "mystery-egg" && id !== "varmelampa");
+  return !!(it && it.category === "husdjur" && !it.farmAnimal && id !== "mystery-egg" && id !== "varmelampa");
+}
+
+/**
+ * Är saken ett BONDGÅRDSDJUR (häst/ko/gris)? De köps i shoppen som de vanliga
+ * djuren men bor i gårdens datamodell (farm.animals, data-farm.js) och kan
+ * placeras i rummet, hagen eller laggården ("Mina djur", farm.placedAnimals).
+ * Hålls helt isär från roomAnimals (isAnimalItem) och mystery-pets.
+ */
+export function isFarmAnimalItem(id) {
+  const it = getItem(id);
+  return !!(it && it.farmAnimal);
 }
 
 /**
