@@ -17,33 +17,20 @@
 // Kräver Java (Firestore-emulatorn är en JVM-process) – se docs/ADMIN.md.
 // ============================================================================
 
-import { readFileSync } from "node:fs";
 import { after, before, beforeEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
-import {
-  initializeTestEnvironment,
-  assertFails,
-  assertSucceeds,
-} from "@firebase/rules-unit-testing";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { createRulesEnv } from "./helpers/rules-env.js";
 
-const PROJECT_ID = "pluggportalen-rules-test";
+// De klassmedlem-skrivbara dokumenten (classProjections #231, classProjects
+// #331) testas i test/firestore-rules-class-docs.test.js (utbrutet, filtaket).
+// Emulator-riggen + kontexterna (unauth/elev/teacher) delas via
+// test/helpers/rules-env.js.
 
-let testEnv;
+let testEnv, unauth, elev, teacher;
 
 before(async () => {
-  testEnv = await initializeTestEnvironment({
-    projectId: PROJECT_ID,
-    firestore: {
-      rules: readFileSync(new URL("../firestore.rules", import.meta.url), "utf8"),
-    },
-  });
+  ({ testEnv, unauth, elev, teacher } = await createRulesEnv("pluggportalen-rules-test"));
 });
 
 after(async () => {
@@ -75,19 +62,6 @@ beforeEach(async () => {
     await setDoc(doc(db, "classes", "6a"), { name: "6A", studentIds: ["elev1"] });
   });
 });
-
-// --- Kontexter -------------------------------------------------------------
-// Obehörig = ingen Auth. Elev = uid == doc-id, ingen teacher-claim.
-// Lärare = valfri uid med custom claim teacher:true.
-function unauth() {
-  return testEnv.unauthenticatedContext().firestore();
-}
-function elev(uid) {
-  return testEnv.authenticatedContext(uid).firestore();
-}
-function teacher() {
-  return testEnv.authenticatedContext("larare1", { teacher: true }).firestore();
-}
 
 describe("Obehörig (ej inloggad) blockeras helt", () => {
   it("kan INTE läsa students (ingen lösenords-/kontolista läcker)", async () => {
@@ -276,84 +250,6 @@ describe("Borttagna collections (looks/classStats, #114) nekas helt", () => {
     await assertFails(getDoc(doc(elev("elev1"), "looks", "elev2")));
     await assertFails(setDoc(doc(elev("elev1"), "looks", "elev1"), { namn: "x" }));
     await assertFails(setDoc(doc(teacher(), "looks", "elev1"), { namn: "x" }));
-  });
-});
-
-describe("Klass-projektion (#231/#232): läs öppet, skriv för klassmedlem", () => {
-  // Seed: classes/6a har studentIds ["elev1"] (från yttre beforeEach). elev1 är
-  // alltså MEDLEM i 6a, elev2 är det INTE. Projektionen bär bara kosmetisk
-  // översikts-data; läsning är öppen för inloggade (speglar #114), skrivning
-  // kräver klassmedlemskap (eller lärare).
-  beforeEach(async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      const db = ctx.firestore();
-      await setDoc(doc(db, "classProjections", "6a"), {
-        members: { elev1: { namn: "Astrid", stars: 2 } },
-      });
-    });
-  });
-
-  it("inloggad elev FÅR läsa en klass-projektion (även icke-medlem, kosmetiskt)", async () => {
-    await assertSucceeds(getDoc(doc(elev("elev1"), "classProjections", "6a")));
-    await assertSucceeds(getDoc(doc(elev("elev2"), "classProjections", "6a")));
-  });
-
-  it("obehörig (ej inloggad) får INTE läsa eller skriva projektionen", async () => {
-    await assertFails(getDoc(doc(unauth(), "classProjections", "6a")));
-    await assertFails(
-      setDoc(doc(unauth(), "classProjections", "6a"), { members: {} })
-    );
-  });
-
-  it("klassmedlem (elev1 ∈ 6a) FÅR uppdatera sin entry via fält-path", async () => {
-    await assertSucceeds(
-      updateDoc(doc(elev("elev1"), "classProjections", "6a"), {
-        "members.elev1.stars": 5,
-      })
-    );
-  });
-
-  it("klassmedlem FÅR skapa projektionen om den saknas (setDoc merge, self-heal)", async () => {
-    // classes/6b finns inte → använd en klass elev1 är medlem i men utan projektion.
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      const db = ctx.firestore();
-      await setDoc(doc(db, "classes", "6c"), { name: "6C", studentIds: ["elev1"] });
-    });
-    await assertSucceeds(
-      setDoc(
-        doc(elev("elev1"), "classProjections", "6c"),
-        { members: { elev1: { namn: "Astrid" } } },
-        { merge: true }
-      )
-    );
-  });
-
-  it("NON-medlem (elev2 ∉ 6a) får INTE skriva projektionen", async () => {
-    await assertFails(
-      updateDoc(doc(elev("elev2"), "classProjections", "6a"), {
-        "members.elev2.stars": 9,
-      })
-    );
-    await assertFails(
-      setDoc(doc(elev("elev2"), "classProjections", "6a"), { members: {} })
-    );
-  });
-
-  it("skrivning nekas om klass-dokumentet inte finns (exists-guard)", async () => {
-    await assertFails(
-      setDoc(doc(elev("elev1"), "classProjections", "saknad-klass"), { members: {} })
-    );
-  });
-
-  it("läraren får läsa och skriva alla klass-projektioner (backfill)", async () => {
-    await assertSucceeds(getDoc(doc(teacher(), "classProjections", "6a")));
-    await assertSucceeds(
-      setDoc(
-        doc(teacher(), "classProjections", "6a"),
-        { members: { elev1: { stars: 3 } } },
-        { merge: true }
-      )
-    );
   });
 });
 

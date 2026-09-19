@@ -17,6 +17,8 @@ subjects/{subjectId}/areas/{areaId}      ← arbetsområde (t.ex. "vikingatiden"
 students/{studentId}                     ← elevkonto (inloggning)
 studentData/{studentId}                  ← elevens speldata (coins, framsteg, ...)
 classes/{classId}                        ← klass (lärarens gruppering, t.ex. "6A")
+classProjections/{classId}               ← förberäknad by-översikt per klass (O(1) läsningar)
+classProjects/{classId}                  ← gemensamma klassprojekt (donationer till byns ytor)
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -354,6 +356,64 @@ Exempel (`classes/6a`):
 
 ---
 
+## `classProjects/{classId}` – gemensamma klassprojekt (#331)
+
+Klassen donerar **tillsammans** pluggcoins till byns gemensamma ytor
+(stadshus, skola, park på bykartan). Samma dokument-mönster som
+`classProjections` (#231): **ett förberäknat dokument per klass** – hela
+klassens insamlingsläge läses i en enda `getDoc` (O(1), aldrig ett dokument
+per elev; jfr Firestore-kvot-incidenten 2026-09-09).
+
+> **Status: framtidssäkring.** Endast schema + regler + data-scaffold finns
+> (#331). Bybyggnads-rendering och doneringsknapp i UI byggs i nästa epic –
+> ingen UI-kod anropar detta ännu.
+
+| Fält       | Typ | Beskrivning |
+| ---------- | --- | ----------- |
+| `projects` | map | Keyad på **byggnads-id** (t.ex. `"stadshus"`, `"skola"`, `"park"`) → ett projekt-objekt (nedan). Saknat dokument/fält = inga projekt startade (bakåtkompatibelt). |
+
+Varje projekt (`projects.{buildingId}`):
+
+| Fält            | Typ    | Beskrivning |
+| --------------- | ------ | ----------- |
+| `goalAmount`    | number | Målbelopp i coins (positivt heltal). |
+| `collected`     | number | Insamlat hittills. Projektet är **fullfinansierat** när `collected ≥ goalAmount` (härlett via `isProjectFunded` – ingen status-flagga att hålla i synk). |
+| `contributions` | map    | `{ [studentId]: antal }` – per-elev-bidrag (ackumulerande). |
+| `createdAt`     | number \| null | När projektet startades (ms, `Date.now()`). |
+
+Exempel (`classProjects/6a`):
+
+```json
+{
+  "projects": {
+    "stadshus": {
+      "goalAmount": 500, "collected": 90,
+      "contributions": { "elev1": 40, "elev2": 50 },
+      "createdAt": 1758200000000
+    }
+  }
+}
+```
+
+**Skrivmodell:** en donation går i **en transaktion**
+(`donateToClassProject` i [`src/data-classes.js`](../src/data-classes.js)):
+läser elevens `studentData` + klassens `classProjects`-dokument, kontrollerar
+täckning och att projektet inte är fullt, drar coins och ökar `collected` +
+`contributions.{studentId}` atomiskt. Överdonation nekas (inga coins in i ett
+stängt/fullt projekt). Ren normalisering/övergångslogik ligger Firebase-fritt
+i [`src/class-projection-entries.js`](../src/class-projection-entries.js)
+(`normalizeClassProject(s)`, `applyProjectDonation`, `isProjectFunded` –
+enhetstestade i `test/class-projects.test.js`).
+
+**Säkerhetsregler:** speglar `classProjections` – läsning för alla inloggade,
+skrivning för **klassmedlem** (`request.auth.uid ∈ classes/{classId}.studentIds`)
+eller lärare (`isClassMember` i `firestore.rules`; regeltester i
+`test/firestore-rules-class-docs.test.js`).
+**⚠️ Reglerna är live först efter `firebase deploy --only firestore:rules`**
+(separat från Pages-deployen).
+
+---
+
 ## Datamodulens API (`src/data.js`)
 
 Övriga delar återanvänder dessa funktioner:
@@ -469,6 +529,16 @@ Exempel (`classes/6a`):
 - `getClassForStudent(studentId?)` → klassdokumentet eleven tillhör (eller `null`),
   hittas via klassernas `studentIds`. Används av elevens Plugga-vy för att
   filtrera på `assignedAreas`.
+
+**Gemensamma klassprojekt (#331, scaffold – ingen UI ännu)** – se
+`classProjects/{classId}` ovan; Firestore-delen i `src/data-classes.js`
+- `getClassProjects(classId)` → map byggnads-id → normaliserat projekt (tom map om inga).
+- `getClassProject(classId, buildingId)` → projektet eller `null`.
+- `startClassProject(classId, buildingId, goalAmount)` → `{ ok, project }` – startar
+  (eller justerar målet för) ett projekt; skriver bara det egna projektets fält.
+- `donateToClassProject(classId, buildingId, amount)` → `{ ok, coins, project }` –
+  transaktion som drar elevens coins och ökar `collected` + `contributions.{studentId}`;
+  ingen täckning/fullt projekt/överdonation → `ok:false` utan skrivning.
 
 De flesta funktioner använder den inloggade eleven automatiskt, men tar ett
 valfritt sista `studentId`-argument.
