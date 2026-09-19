@@ -23,7 +23,7 @@
 // ============================================================================
 
 import { el, clamp } from "./ui.js";
-import { getItem, isGardenItem, isFlatItem, itemIdFromKey } from "./shop-items.js";
+import { getItem, isGardenItem, isFlatItem, isSeedItem, itemIdFromKey } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import * as data from "./data.js";
 
@@ -46,7 +46,9 @@ const SPREAD = [
  */
 export function mountTradgard({ uteLager, tray, trayHint, sd }) {
   // Ägda trädgårdssaker (id:n). ownedCounts/ownedItems via samma ownedCount.
-  const owned = (sd.ownedItems || []).filter((id) => isGardenItem(id) && getItem(id));
+  // Fröer (isSeedItem, #329) är tradgard-kategori men sås i gårdens odlingsbädd
+  // – de ska aldrig dyka upp som placerbara trädgårdssaker här.
+  const owned = (sd.ownedItems || []).filter((id) => isGardenItem(id) && !isSeedItem(id) && getItem(id));
 
   // Placeringarna (levande arbetskopia). Rensa bort ej-ägda/okända saker och
   // klampa in gamla lägen – samma defensiva filter som rummets filterPlacements.

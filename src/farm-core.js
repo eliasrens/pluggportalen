@@ -149,6 +149,26 @@ export function advanceGrowthIn(farm, slotIndex, steps = 1) {
 }
 
 /**
+ * Avancera ALLA växande grödor ett (eller flera) steg – körs när eleven klarat
+ * en plugguppgift (#329: tillväxt via uppgifter, inte tid). Färdigvuxna grödor
+ * rörs inte (klamring per slot, som advanceGrowthIn). `grew` = antal grödor som
+ * faktiskt växte; 0 (tom bädd/allt färdigt) är ok:true med oförändrat farm, så
+ * anroparen kan hoppa över skrivningen.
+ * @returns {{ok: boolean, farm: object, grew: number}}
+ */
+export function advanceAllGrowthIn(farm, steps = 1) {
+  const inc = Math.max(0, Math.round(Number(steps) || 0));
+  let grew = 0;
+  const gardenSlots = (farm.gardenSlots || []).map((s) => {
+    if (inc === 0 || s.growthStage >= FARM_MAX_GROWTH_STAGE) return s;
+    grew++;
+    return { ...s, growthStage: Math.min(FARM_MAX_GROWTH_STAGE, s.growthStage + inc) };
+  });
+  if (grew === 0) return { ok: true, farm, grew };
+  return { ok: true, farm: { ...farm, gardenSlots }, grew };
+}
+
+/**
  * Skörda en FÄRDIGVUXEN gröda: sloten töms och grödan flyttas till
  * inventoryHarvest (+1). Ej färdig gröda → ok:false (skörda inte i förtid).
  * @returns {{ok: boolean, farm: object, cropId?: string, error?: string}}

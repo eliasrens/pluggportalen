@@ -28,6 +28,7 @@
 import { go } from "./ui.js";
 import { createKamera } from "./varld-kamera.js";
 import { gardScen, laggardScen } from "./art-gard.js";
+import { mountOdling } from "./varld-odling.js";
 
 /**
  * Skapa gårds-grenen.
@@ -49,6 +50,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   const husGardNiva = { id: "hus", el: uteLager, fokus: { x: 50, y: 46 }, zoom: 5 };
   let kamera = null;
   let byggd = false;
+  let odling = null; // odlingsbädden (#329) – monteras när scenen byggts
 
   // Scenerna ritas först vid första gårds-besöket (lat – ingen kostnad för
   // elever som aldrig går ut på baksidan).
@@ -57,6 +59,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     byggd = true;
     gardLager.innerHTML = gardScen();
     laggardLager.innerHTML = laggardScen();
+    odling = mountOdling({ stage, gardLager });
   }
 
   function ensureKamera() {
@@ -68,7 +71,11 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
         { id: "laggard", el: laggardLager, fokus: { x: 50, y: 50 }, zoom: 5 },
       ],
       startId: "hus",
-      onNiva,
+      onNiva: (nivaId) => {
+        // Frö-panelen (#329) hör bara hemma på gård-nivån.
+        if (nivaId !== "gard" && odling) odling.stang();
+        onNiva(nivaId);
+      },
     }));
   }
 
@@ -79,6 +86,10 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   async function visa(nivaId) {
     if (nivaId !== "gard" && nivaId !== "laggard") return;
     bygg();
+    // Rita odlingsbädden med färskt tillstånd vid varje gårds-besök (grödor kan
+    // ha vuxit av plugguppgifter sedan sist). Fire-and-forget: kameran ska inte
+    // vänta på Firestore.
+    if (nivaId === "gard" && odling) odling.visa();
     await ensureHus();
     const forsta = !kamera;
     const cam = ensureKamera();

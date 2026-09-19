@@ -18,6 +18,7 @@ import {
   farmFromData,
   plantCropIn,
   advanceGrowthIn,
+  advanceAllGrowthIn,
   harvestFrom,
   adjustInventoryIn,
   setPlacementIn,
@@ -93,6 +94,26 @@ test("advanceGrowthIn: stegar och klamras till färdigvuxen", () => {
   assert.equal(cropInSlot(r2.farm, 0).growthStage, FARM_MAX_GROWTH_STAGE);
   // Tom slot → fel.
   assert.equal(advanceGrowthIn(farm, 1).ok, false);
+});
+
+test("advanceAllGrowthIn: alla växande grödor stegar, färdiga rörs inte (#329)", () => {
+  let farm = plantCropIn(defaultFarm(), 0, "crop_carrot", 1).farm;
+  farm = plantCropIn(farm, 1, "crop_clover", 1).farm;
+  // Gröda 0 görs färdig i förväg – den ska INTE räknas som växande.
+  farm = advanceGrowthIn(farm, 0, FARM_MAX_GROWTH_STAGE).farm;
+  const r = advanceAllGrowthIn(farm);
+  assert.equal(r.ok, true);
+  assert.equal(r.grew, 1); // bara klövern växte
+  assert.equal(cropInSlot(r.farm, 0).growthStage, FARM_MAX_GROWTH_STAGE);
+  assert.equal(cropInSlot(r.farm, 1).growthStage, 1);
+  // Indata muteras aldrig.
+  assert.equal(cropInSlot(farm, 1).growthStage, 0);
+  // Tom bädd / allt färdigt → ok med grew 0 och samma farm-objekt (ingen skrivning).
+  const done = advanceAllGrowthIn(advanceAllGrowthIn(r.farm, 99).farm);
+  assert.equal(done.grew, 0);
+  const tom = advanceAllGrowthIn(defaultFarm());
+  assert.equal(tom.ok, true);
+  assert.equal(tom.grew, 0);
 });
 
 test("harvestFrom: bara färdigvuxen gröda; sloten töms och förrådet ökar", () => {
