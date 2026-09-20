@@ -151,8 +151,13 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
         // tror att djurets fötter når längre ner än de gör och släpper upp
         // centrum (och därmed fötterna) på väggen. (regression #63)
         const art = st.node.querySelector(".ri-emoji") || st.node;
-        st.halfW = sr.width ? ((art.offsetWidth / sr.width) * 100) / 2 : 3;
-        st.halfH = sr.height ? ((art.offsetHeight / sr.height) * 100) / 2 : 5;
+        // Mät artens rect RELATIVT scen-recten – båda inkluderar ev. kamera-
+        // transform (gårdens zoomnivåer, #335) så kvoten är transform-invariant.
+        // offsetWidth/Height är OTRANSFORMERADE layout-px och blåser upp
+        // halfW/halfH när lagret mäts nedskalat (hage/lada) → mål i himlen.
+        const ar = art.getBoundingClientRect();
+        st.halfW = sr.width && ar.width ? ((ar.width / sr.width) * 100) / 2 : 3;
+        st.halfH = sr.height && ar.height ? ((ar.height / sr.height) * 100) / 2 : 5;
       }
     }
     return st.node;
