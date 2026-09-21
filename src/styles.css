@@ -4577,3 +4577,112 @@ body.composer-open { overflow: hidden; }
   .studio-toolbar { align-items: stretch; }
   .studio-composer { padding: 18px 16px 22px; }
 }
+
+/* ==========================================================================
+   Porten – elev-inloggningen (issue #338)
+   ==========================================================================
+   Grind-scenen (art-port.js, dynamiskt laddad) ramar in login-kortet: SVG:n
+   ligger som fullstor bakgrund i .port-scen (samma överteckning + overflow-
+   knep som .varld-ute) och kortet centreras framför den stängda grinden.
+   Fallback (art-modulen kunde inte laddas): kortet i en vanlig .panel. */
+
+.port-sida {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.port-scen {
+  position: relative;
+  width: 100%;
+  /* Samma höjdlogik som spelscenen (.varld-stage): fyll innehållsytan men
+     aldrig mindre än att login-kortet ryms. */
+  height: clamp(520px, calc(100vh - 170px), 780px);
+  height: clamp(520px, calc(100dvh - 170px), 780px);
+  border-radius: var(--radie);
+  overflow: hidden;
+  box-shadow: var(--skugga-mjuk);
+  background: #bde3f5;
+  margin-bottom: 8px;
+  /* Gör scenen till en size-container så login-kortet kan positioneras i
+     cqw/cqh – dvs. relativt SVG-scenens skala (se .port-login nedan). */
+  container-type: size;
+}
+
+/* Scenen tecknar himmel/gräs/staket långt utanför viewBoxen – overflow:visible
+   låter det fylla letterbox-ytan, .port-scen klipper mot den rundade ramen. */
+.port-scen > svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Login-kortet framför den stängda grinden, i portens öppning strax under
+   skylten. Toppformeln: SVG:n ritas med preserveAspectRatio "meet" och
+   viewBox 960×600, så skalan = min(bredd/960, höjd/600) och viewBox-mitten
+   (y=300) ligger i containermitten. Skyltens nederkant (y=238 i art-port.js)
+   hamnar då 62·skala px över mitten = min(6.46cqw, 10.33cqh). min()-yttret
+   flyttar UPP kortet på låga/smala skärmar så det alltid ryms i scenen. */
+.port-login {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 22%; /* fallback för motorer utan container-query-enheter */
+  top: min(calc(50cqh - min(6.46cqw, 10.33cqh) + 10px), calc(100cqh - 420px));
+  width: min(340px, calc(100% - 32px));
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 18px 22px 12px;
+}
+
+/* Kompaktare formulär än standard-.field så kortet ryms i portöppningen. */
+.port-login h1 { font-size: 1.45rem; margin-bottom: 4px; }
+.port-login .field { margin-bottom: 12px; }
+.port-login .field label { font-size: 0.98rem; margin-bottom: 4px; }
+.port-login .field input { font-size: 1.1rem; padding: 10px 14px; }
+.port-login .check { margin-bottom: 12px; }
+.port-login .btn.stor { width: 100%; }
+.port-login .hint { margin: 0; }
+
+/* Fallback-panelen när grind-scenen inte kunde laddas. */
+.port-fallback { max-width: 480px; }
+.port-fallback .port-login {
+  position: static;
+  transform: none;
+  width: auto;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Diskret direktlänk till lärarens egen inloggning (#/larare). */
+.port-larare-rad {
+  text-align: right;
+  margin: 0 4px 20px;
+}
+.port-larare-lank {
+  color: var(--text-svag);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.port-larare-lank:hover { color: var(--bla-mork); text-decoration: underline; }
+
+/* Grindhalvorna är separata animerbara element (förberedelse för öppnings-
+   animationen i #339): var sitt gångjärn i ytterkanten mot stolpen.
+   transform-box:fill-box gör transform-origin lokal till respektive halva,
+   så en framtida animation bara behöver sätta t.ex. transform: scaleX(0.05)
+   eller en rotation per halva. */
+.port-halva {
+  transform-box: fill-box;
+}
+#port-halva-vanster { transform-origin: left center; }
+#port-halva-hoger { transform-origin: right center; }
+
+/* Liten skärm: låt kortet andas och scenen ta mindre höjd. */
+@media (max-width: 560px) {
+  .port-scen { height: clamp(500px, calc(100dvh - 130px), 660px); }
+  .port-login { padding: 18px 16px 14px; }
+}
