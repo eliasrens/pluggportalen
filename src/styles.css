@@ -146,6 +146,11 @@ body.med-sidomeny .sidebar {
 .sidebar .brand .logo {
   font-size: 1.7rem;
 }
+/* Loggan är en mini-port i inline-SVG (index.html, #338) – 1em följer
+   font-storleken ovan; block-läget tar bort baslinje-glappet. */
+.sidebar .brand .logo svg {
+  display: block;
+}
 
 .sidebar-body {
   display: flex;
@@ -4581,35 +4586,26 @@ body.composer-open { overflow: hidden; }
 /* ==========================================================================
    Porten – elev-inloggningen (issue #338)
    ==========================================================================
-   Grind-scenen (art-port.js, dynamiskt laddad) ramar in login-kortet: SVG:n
-   ligger som fullstor bakgrund i .port-scen (samma överteckning + overflow-
-   knep som .varld-ute) och kortet centreras framför den stängda grinden.
-   Fallback (art-modulen kunde inte laddas): kortet i en vanlig .panel. */
-
-.port-sida {
-  max-width: 1100px;
-  margin: 0 auto;
-}
+   Grind-scenen (art-port.js, dynamiskt laddad) är sidans framdörr och fyller
+   HELA viewporten kant till kant (lead-beslut: färgad helskärm – ingen
+   centrerad ruta, ingen rundad ram). SVG:n ritas med "meet" och tecknar
+   himmel/gräs/staket långt utanför viewBoxen (samma övertecknings-knep som
+   .varld-ute), så alla kanter fylls oavsett skärmformat. Den kompakta
+   login-skylten centreras ovanpå, i portens öppning. Fallback (art-modulen
+   kunde inte laddas): skylten i en vanlig .panel. */
 
 .port-scen {
-  position: relative;
-  width: 100%;
-  /* Samma höjdlogik som spelscenen (.varld-stage): fyll innehållsytan men
-     aldrig mindre än att login-kortet ryms. */
-  height: clamp(520px, calc(100vh - 170px), 780px);
-  height: clamp(520px, calc(100dvh - 170px), 780px);
-  border-radius: var(--radie);
+  position: fixed;
+  inset: 0;
+  /* Över sidans statiska chrome (header) men under toast/modal. */
+  z-index: var(--z-scen-ui);
   overflow: hidden;
-  box-shadow: var(--skugga-mjuk);
   background: #bde3f5;
-  margin-bottom: 8px;
-  /* Gör scenen till en size-container så login-kortet kan positioneras i
-     cqw/cqh – dvs. relativt SVG-scenens skala (se .port-login nedan). */
+  /* size-container: login-skylten positioneras i cqw/cqh, dvs. relativt
+     SVG-scenens meet-skala (se .port-login nedan). */
   container-type: size;
 }
 
-/* Scenen tecknar himmel/gräs/staket långt utanför viewBoxen – overflow:visible
-   låter det fylla letterbox-ytan, .port-scen klipper mot den rundade ramen. */
 .port-scen > svg {
   position: absolute;
   inset: 0;
@@ -4619,56 +4615,112 @@ body.composer-open { overflow: hidden; }
   overflow: visible;
 }
 
-/* Login-kortet framför den stängda grinden, i portens öppning strax under
-   skylten. Toppformeln: SVG:n ritas med preserveAspectRatio "meet" och
-   viewBox 960×600, så skalan = min(bredd/960, höjd/600) och viewBox-mitten
-   (y=300) ligger i containermitten. Skyltens nederkant (y=238 i art-port.js)
-   hamnar då 62·skala px över mitten = min(6.46cqw, 10.33cqh). min()-yttret
-   flyttar UPP kortet på låga/smala skärmar så det alltid ryms i scenen. */
+/* Login-skylten: kompakt panel i portens öppning strax under skylten, i
+   scenens platta trä-stil (kräm + konturlinje) så den hör ihop med grinden.
+   Toppformeln: SVG:n ritas med preserveAspectRatio "meet" och viewBox
+   960×600, så skalan = min(bredd/960, höjd/600) och viewBox-mitten (y=300)
+   ligger i containermitten. Skyltens nederkant (y=238 i art-port.js) hamnar
+   då 62·skala px över mitten = min(6.46cqw, 10.33cqh). Yttre min() lyfter
+   panelen på låga skärmar så den alltid ryms; max() stoppar den vid kanten. */
 .port-login {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 22%; /* fallback för motorer utan container-query-enheter */
-  top: min(calc(50cqh - min(6.46cqw, 10.33cqh) + 10px), calc(100cqh - 420px));
-  width: min(340px, calc(100% - 32px));
-  background: var(--panel);
-  border-radius: var(--radie);
-  box-shadow: var(--skugga-mjuk);
-  padding: 18px 22px 12px;
+  top: 30%; /* fallback för motorer utan container-query-enheter */
+  top: max(8px, min(calc(50cqh - min(6.46cqw, 10.33cqh) + 10px), calc(100cqh - 310px)));
+  width: min(300px, calc(100% - 32px));
+  background: #FFF3DC; /* kräm ur stilguiden (art-style.js) */
+  border: 3px solid #3B3350; /* konturfärgen */
+  border-radius: 14px;
+  box-shadow: var(--skugga);
+  padding: 12px 14px 10px;
 }
 
-/* Kompaktare formulär än standard-.field så kortet ryms i portöppningen. */
-.port-login h1 { font-size: 1.45rem; margin-bottom: 4px; }
-.port-login .field { margin-bottom: 12px; }
-.port-login .field label { font-size: 0.98rem; margin-bottom: 4px; }
-.port-login .field input { font-size: 1.1rem; padding: 10px 14px; }
-.port-login .check { margin-bottom: 12px; }
-.port-login .btn.stor { width: 100%; }
-.port-login .hint { margin: 0; }
+.port-login-titel {
+  font-size: 1.15rem;
+  margin: 0 0 8px;
+  text-align: center;
+}
 
-/* Fallback-panelen när grind-scenen inte kunde laddas. */
-.port-fallback { max-width: 480px; }
+/* Fälten är etikett-lösa (placeholder + aria-label) för att hålla skylten
+   liten – trä-bruna kanter i stället för standardblått. */
+.port-login form > input {
+  width: 100%;
+  font-family: var(--font);
+  font-size: 1.05rem;
+  padding: 10px 12px;
+  border: 2.5px solid #B0805A;
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 8px;
+}
+.port-login form > input:focus {
+  outline: none;
+  border-color: var(--bla);
+}
+.port-login .check {
+  margin: 2px 0 10px;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+.port-login .check input {
+  width: 18px;
+  height: 18px;
+}
+.port-login .btn.stor {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+}
+.port-login .msg {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.port-login-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+}
+
+/* Fallback-panelen när grind-scenen inte kunde laddas: vanlig panel-stil. */
+.port-fallback {
+  max-width: 420px;
+  margin-top: 24px;
+}
 .port-fallback .port-login {
   position: static;
   transform: none;
   width: auto;
   padding: 0;
+  border: none;
+  background: none;
   box-shadow: none;
 }
 
-/* Diskret direktlänk till lärarens egen inloggning (#/larare). */
+/* Diskret direktlänk till lärarens egen inloggning (#/larare). I scenen
+   ligger den nere i högra hörnet; i fallback-vyn som vanlig rad under. */
 .port-larare-rad {
   text-align: right;
   margin: 0 4px 20px;
 }
+.port-scen .port-larare-rad {
+  position: absolute;
+  right: 16px;
+  bottom: 10px;
+  margin: 0;
+}
 .port-larare-lank {
-  color: var(--text-svag);
+  color: #3B3350;
+  opacity: 0.7;
   font-weight: 700;
   font-size: 0.9rem;
   text-decoration: none;
 }
-.port-larare-lank:hover { color: var(--bla-mork); text-decoration: underline; }
+.port-larare-lank:hover {
+  opacity: 1;
+  color: var(--bla-mork);
+  text-decoration: underline;
+}
 
 /* Grindhalvorna är separata animerbara element (förberedelse för öppnings-
    animationen i #339): var sitt gångjärn i ytterkanten mot stolpen.
@@ -4684,15 +4736,16 @@ body.composer-open { overflow: hidden; }
 /* --------------------------------------------------------------------------
    Inloggnings-övergången (issue #339): porten öppnas + zoom in i världen.
    port-overgang.js flyttar scenens <svg> till det här fixerade overlayt
-   (exakt över scenens gamla ruta) och sätter sedan .port-oppnad (grindhalvorna
-   svänger upp) och .port-zoom (kameran dyker in genom öppningen och tonar ut,
-   medan världen redan ritas under). Duration/easing på zoomen = världskamerans
-   (.varld-lager, 0.9s = KAMERA_MS) så det känns som samma kamera. */
+   (exakt över scenens gamla ruta – numera hela viewporten, se .port-scen)
+   och sätter sedan .port-oppnad (grindhalvorna svänger upp) och .port-zoom
+   (kameran dyker in genom öppningen och tonar ut, medan världen redan ritas
+   under). Duration/easing på zoomen = världskamerans (.varld-lager, 0.9s =
+   KAMERA_MS) så det känns som samma kamera. Ingen border-radius: porten är
+   helskärm utan ram (lead-beslut #338), så overlayt ska vara det med. */
 .port-overgang {
   position: fixed;
   z-index: 3000; /* över allt annat – men pointer-events:none stör aldrig */
   overflow: hidden;
-  border-radius: var(--radie);
   background: #bde3f5;
   pointer-events: none;
 }
@@ -4727,10 +4780,4 @@ body.composer-open { overflow: hidden; }
    overlayt ändå skulle finnas (inställningen ändras mitt i) göms det helt. */
 @media (prefers-reduced-motion: reduce) {
   .port-overgang { display: none !important; }
-}
-
-/* Liten skärm: låt kortet andas och scenen ta mindre höjd. */
-@media (max-width: 560px) {
-  .port-scen { height: clamp(500px, calc(100dvh - 130px), 660px); }
-  .port-login { padding: 18px 16px 14px; }
 }

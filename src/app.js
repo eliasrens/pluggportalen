@@ -185,7 +185,9 @@ function router() {
   const raw = (window.location.hash || "#/").slice(1) || "/";
   const path = raw.split("?")[0] || "/";
   // Husvärlden får en bredare innehållsyta (större spelcanvas) – sidomenyn
-  // påverkas inte (den ligger utanför .container).
+  // påverkas inte (den ligger utanför .container). Porten (#/ och #/elev)
+  // behöver INTE klassen: dess scen är position:fixed och fyller hela
+  // viewporten kant till kant (lead-beslut i #338).
   document.body.classList.toggle(
     "varld-lage",
     path === "/elev/by" || path === "/elev/hus" || path === "/elev/rum" ||
