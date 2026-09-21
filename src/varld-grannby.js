@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – grannby-nivån (läs-vy av en ANNAN klass by)
+// Pluggporten – grannby-nivån (läs-vy av en ANNAN klass by)
 // ----------------------------------------------------------------------------
 // Klick på en annan klass i skolan (varld-omrade.js) ZOOMAR IN till DERAS by –
 // numera renderad EXAKT som den egna klassbyn (#114): varje elevs RIKTIGA hus

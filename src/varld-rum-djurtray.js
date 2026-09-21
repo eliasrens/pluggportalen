@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – "Mina djur"-panelen (undanstuvade djur, bredvid Lådan)
+// Pluggporten – "Mina djur"-panelen (undanstuvade djur, bredvid Lådan)
 // ----------------------------------------------------------------------------
 // Systermodul till varld-rum.js (som varld-rum-wear.js/varld-rum-mat.js): äger
 // "Mina djur"-lådan – elevens UNDANSTUVADE djur (både vanliga roomAnimals och

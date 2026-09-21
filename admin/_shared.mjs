@@ -1,5 +1,5 @@
 // ============================================================================
-// Delad init för Pluggportalens LOKALA Admin-skript (kör på utvecklarens dator).
+// Delad init för Pluggportens LOKALA Admin-skript (kör på utvecklarens dator).
 // ----------------------------------------------------------------------------
 // Admin SDK kringgår firestore.rules legitimt (det är server-nyckeln, inte
 // webb-nyckeln). Autentiseras med ett SERVICE-ACCOUNT, INTE med den publika

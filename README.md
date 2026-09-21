@@ -1,4 +1,4 @@
-# Pluggportalen 📚
+# Pluggporten 📚
 
 En glad, barnvänlig studiesida för åk 4. Eleverna övar SO genom spel, samlar
 **pluggcoins** och pyntar sitt eget rum. Läraren lägger in innehåll.

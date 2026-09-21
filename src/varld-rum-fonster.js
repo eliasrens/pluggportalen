@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – fönstret i rummet (flyttbart/raderbart VÄGG-objekt)
+// Pluggporten – fönstret i rummet (flyttbart/raderbart VÄGG-objekt)
 // ----------------------------------------------------------------------------
 // Systermodul till varld-rum.js (som varld-rum-wear/mat/djur): äger fönstrets
 // tillstånd för ETT rum. Fönstret är ingen shop-sak – läget sparas separat som

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – vanliga djur (köpbara, promenerande djur med FAST storlek)
+// Pluggporten – vanliga djur (köpbara, promenerande djur med FAST storlek)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js (samma mönster som data-pet.js): allt som
 // rör studentData.roomAnimals – de VANLIGA djuren från shoppen (hund, katt,

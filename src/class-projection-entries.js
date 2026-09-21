@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klass-projektionens ENTRY-form (ren shaping, ingen Firebase)
+// Pluggporten – klass-projektionens ENTRY-form (ren shaping, ingen Firebase)
 // ----------------------------------------------------------------------------
 // De rena hjälparna som formar data mellan tre representationer:
 //   students/{id} + studentData/{id}   →  members-entry (projectionEntryFrom)

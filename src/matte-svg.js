@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – SVG-primitiver för mattegeneratorns bildstöd (issue #321)
+// Pluggporten – SVG-primitiver för mattegeneratorns bildstöd (issue #321)
 // ----------------------------------------------------------------------------
 // Ett litet, REN & IMPORT-FRITT byggblock som matte-bildstod.js (array/rutnät)
 // och matte-visuals.js (klocka/kulpåse/diagram/koordinat) delar. Ett virtuellt

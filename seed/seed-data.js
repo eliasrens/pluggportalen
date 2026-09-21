@@ -1,5 +1,5 @@
 // ============================================================================
-// Seed-data för Pluggportalen (exempelinnehåll).
+// Seed-data för Pluggporten (exempelinnehåll).
 // Enda källan för exempeldata – används av seed/seed.html för att fylla
 // Firestore. Kör om sidan när du vill återställa exempeldatan.
 // ============================================================================

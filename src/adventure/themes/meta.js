@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/meta.js
+// Pluggporten – äventyrsmotorn: themes/meta.js
 // ----------------------------------------------------------------------------
 // LÄTT metadata om äventyrsteman: bara id/namn/emoji/needs – INGEN grafik, INGEN
 // DOM/avatar. Skild från det tunga produktionsregistret (index.js, som drar in

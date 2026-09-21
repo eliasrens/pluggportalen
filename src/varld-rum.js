@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rummets innehåll i husvärlden ("rum"-nivåns lager)
+// Pluggporten – rummets innehåll i husvärlden ("rum"-nivåns lager)
 // ----------------------------------------------------------------------------
 // Monterar hela inne-vyn i ett givet scen-lager: bakdrop, placerade saker,
 // husdjuren (ägg/varelser, matning, klick-på-rygg), drag & drop och

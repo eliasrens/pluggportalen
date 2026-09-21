@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pluggportalen</title>
-    <meta name="description" content="Pluggportalen – en glad studiesida för åk 4." />
+    <title>Pluggporten</title>
+    <meta name="description" content="Pluggporten – en glad studiesida för åk 4." />
     <!-- Byggstämpel: deploy-workflowet byter ut platshållaren mot commit-SHA:n
          innan uppladdning till Pages. Loggas av bootvakten nedan så att man i
          konsolen kan verifiera EXAKT vilken commit live servar (rotorsak #271:
@@ -40,7 +40,7 @@
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
         <button class="brand" id="brand" title="Till startsidan">
-          <span class="logo">📚</span> <span class="brand-text">Pluggportalen</span>
+          <span class="logo">📚</span> <span class="brand-text">Pluggporten</span>
         </button>
         <div id="sidebar-body" class="sidebar-body"></div>
       </aside>
@@ -71,7 +71,7 @@
       window.__PLUGG_BOOTED = false;
       (function () {
         var build = document.querySelector('meta[name="pp-build"]');
-        console.log("Pluggportalen build:", build ? build.content : "okänd");
+        console.log("Pluggporten build:", build ? build.content : "okänd");
         setTimeout(function () {
           if (window.__PLUGG_BOOTED) return;
           // Markören borta = någon app.js (gammal som ny) har renderat – tig.

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – bondgårdsdjuren i hagen & laggården (issue #330)
+// Pluggporten – bondgårdsdjuren i hagen & laggården (issue #330)
 // ----------------------------------------------------------------------------
 // Ritar och animerar bondgårdsdjuren (farm.animals, data-farm.js) på gårds-
 // grenens två nivåer: djur placerade i "paddock" går omkring i hagen

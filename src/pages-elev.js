@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – elevsidor
+// Pluggporten – elevsidor
 // Inloggning, avatarval, startsida, plugga (områdesval), shop/rum-platshållare
 // och profil. Router och gemensam layout finns i app.js / ui.js.
 // ============================================================================

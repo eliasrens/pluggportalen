@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – mysterybox: item-pool, sällsynthet & viktad lottning
+// Pluggporten – mysterybox: item-pool, sällsynthet & viktad lottning
 // ----------------------------------------------------------------------------
 // Mysteryboxen är en NY KÄLLA till KOSMETIK – inget parallellt system. Varje
 // mystery-item är en vanlig kosmetisk sak som återanvänder befintliga slots:

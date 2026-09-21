@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gårds-scenerna: baksidan/gården + laggårdens interiör (SVG)
+// Pluggporten – gårds-scenerna: baksidan/gården + laggårdens interiör (SVG)
 // ----------------------------------------------------------------------------
 // Ritar de TVÅ nya nivåerna bakom huset (issue #328) i samma stil och samma
 // koordinatsystem som ute-scenen (art-hus-ute.js): viewBox 960×600, kontur O

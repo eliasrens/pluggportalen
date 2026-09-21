@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – game-questions.js
+// Pluggporten – game-questions.js
 // Frågemotorn som Quiz och Läsförståelse delar: en enskild fråge-rendering
 // (renderQuestionCard) + hel-rundan med repetition (runQuestions). Utbruten ur
 // game-shared.js dels för att hålla den under radgränsen, dels för att den

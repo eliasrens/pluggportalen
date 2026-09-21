@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – per-elev läsnivå, Firestore (data-reading-level.js)
+// Pluggporten – per-elev läsnivå, Firestore (data-reading-level.js)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js (som ligger vid filtaket, precis som
 // data-xp.js): allt Firestore som rör studentData.readingLevel (#154). Ren

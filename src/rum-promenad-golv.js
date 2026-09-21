@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – ren golv-geometri för husdjurens promenad-AI (rum-promenad.js)
+// Pluggporten – ren golv-geometri för husdjurens promenad-AI (rum-promenad.js)
 // ----------------------------------------------------------------------------
 // Bara matematik, ingen DOM och inga Firebase-beroenden, så golv-clampen kan
 // regressionstestas fristående (test/rum-promenad-golv.test.js) och återanvändas

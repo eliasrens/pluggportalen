@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – mysterybox-köp/öppning (data-mystery.js)
+// Pluggporten – mysterybox-köp/öppning (data-mystery.js)
 // ----------------------------------------------------------------------------
 // Systermodul till data.js (samma mönster som data-pet.js/data-room.js): den
 // enda Firestore-skrivningen som mysteryboxen behöver. openMysteryBox() drar

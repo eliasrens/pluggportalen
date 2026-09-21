@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gamemodes.js
+// Pluggporten – gamemodes.js
 // Pluggdelens två sidor:
 //   • pageElevOmrade – översikt för ett arbetsområde: välj gamemode, se
 //     stjärnor per övning (framsteg ur Firestore).

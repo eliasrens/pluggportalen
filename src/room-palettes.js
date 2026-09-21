@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – färgpaletter för hus & väggar (Husdjur & Hem 2.0)
+// Pluggporten – färgpaletter för hus & väggar (Husdjur & Hem 2.0)
 // ----------------------------------------------------------------------------
 // Delad datamodell för hus-vyn (pages-hus.js) och rummets väggfärg: eleven
 // väljer en PALETT (inga fria färgval) som sparas som `room.paletteId` i

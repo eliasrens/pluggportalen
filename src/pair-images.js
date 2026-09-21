@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – pair-images.js
+// Pluggporten – pair-images.js
 // ----------------------------------------------------------------------------
 // Inbyggt BILDPAKET för fakta-paren. Ett par kan valfritt ha en bild på term-
 // och/eller definition-sidan (fälten termImage / defImage i datamodellen), och

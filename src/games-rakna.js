@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – games-rakna.js (issue #280)
+// Pluggporten – games-rakna.js (issue #280)
 // ----------------------------------------------------------------------------
 // Räkna-läget: generatorns naturliga hem. Uppgiften visas som ett A4-KORT –
 // talet stort överst – med en STOR KLADDYTA (<canvas>) där eleven ritar sin

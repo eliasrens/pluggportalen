@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädselkonst: ANSIKTE-slotens plagg
+// Pluggporten – klädselkonst: ANSIKTE-slotens plagg
 // ----------------------------------------------------------------------------
 // Del av WEARABLES-registret (se art-wearables.js). Ansiktssaker använder
 // par "xMidYMid" och ankras som standard på ÖGONLINJEN (y≈34 i ankargriddet,

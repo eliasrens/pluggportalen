@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/gruvan-scen-svg.js  (issue #224)
+// Pluggporten – äventyrsmotorn: themes/gruvan-scen-svg.js  (issue #224)
 // ----------------------------------------------------------------------------
 // GENERATOR för Gruvans egentecknade bakgrunds-SVG (den stora grott-bilden i
 // motorns scroll-läge). REN sträng-produktion – ingen DOM, ingen Firebase – så

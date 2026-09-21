@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: redigerbar kontoförhandsvisning + inloggningskort
+// Pluggporten – lärarsidan: redigerbar kontoförhandsvisning + inloggningskort
 // ----------------------------------------------------------------------------
 // Utbruten hjälpmodul (håller teacher-class-accounts.js under fil-cap). Två delar:
 //
@@ -246,7 +246,7 @@ export function printLoginCards(className, created) {
   const cards = created
     .map(
       (c) => `<div class="login-card">
-        <div class="lc-app">📚 Pluggportalen</div>
+        <div class="lc-app">📚 Pluggporten</div>
         <div class="lc-name">${esc(c.namn || c.username)}</div>
         <div class="lc-field"><span class="lc-label">Användarnamn</span>
           <span class="lc-value">${esc(c.username)}</span></div>

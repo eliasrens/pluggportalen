@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – games-match.js
+// Pluggporten – games-match.js
 // De kort-/matchningsbaserade gamemoderna, båda byggda på fakta-paren:
 //   • Para ihop – matcha begrepp ↔ förklaring (rätt par låser, fel skakar)
 //   • Memory    – vänd två kort och hitta paren (bonus-gamemode)

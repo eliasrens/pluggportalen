@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – Visuella renderare per ämne för mattegeneratorn (issue #321)
+// Pluggporten – Visuella renderare per ämne för mattegeneratorn (issue #321)
 // ----------------------------------------------------------------------------
 // Klocka=urtavla, sannolikhet=kulpåse, statistik=stapeldiagram,
 // koordinatsystem=rutnät. Samma rena mönster som renderBildstod (array/rutnät i

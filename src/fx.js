@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – effekter (fx.js)
+// Pluggporten – effekter (fx.js)
 // Glada belöningseffekter som gamemodes delar: konfetti och enkla ljudeffekter.
 // Inga externa assets: konfetti är små DOM-element, ljud görs med Web Audio.
 // Ljudet går att stänga av (mute), och valet sparas i localStorage.

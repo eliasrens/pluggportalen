@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – konst för mysteryboxarna (inline SVG-ikoner)
+// Pluggporten – konst för mysteryboxarna (inline SVG-ikoner)
 // ----------------------------------------------------------------------------
 // Egen ikon per box-nivå (#186): vanlig / Mega / Epic. Slås in i ITEMS-registret
 // i art-items.js så shop-kortet ritar rätt SVG via itemSvg(box.id) i stället för

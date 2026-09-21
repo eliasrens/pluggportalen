@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan (teacher.js)
+// Pluggporten – lärarsidan (teacher.js)
 // ----------------------------------------------------------------------------
 // Tunn entry som återexporterar lärarsidans routes. Själva implementationen
 // bor i fokuserade moduler så varje fil hålls under fil-cap:

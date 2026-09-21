@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – sanningsjakt-content.js
+// Pluggporten – sanningsjakt-content.js
 // Innehållshärledning för arkad-läget "Fånga sanningar" (games-sanningsjakt.js).
 // Browser-fritt och rent → enhetstestbart. Bygger balanserade (~50/50) sant/
 // falskt-påståenden ur områdets fakta-par, med quiz som fallback, och matar ut

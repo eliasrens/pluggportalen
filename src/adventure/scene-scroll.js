@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: scene-scroll.js  (issue #220)
+// Pluggporten – äventyrsmotorn: scene-scroll.js  (issue #220)
 // ----------------------------------------------------------------------------
 // DOM-scenen för OPT-IN scroll/bild-karta-läget. Bygger de separerade lagren och
 // kör kameran (camera.js) medan motorn (engine.js) äger spel-logiken. Motorn

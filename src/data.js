@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – datamodul (data.js)
+// Pluggporten – datamodul (data.js)
 // ----------------------------------------------------------------------------
 // Detta är det gemensamma API:et som ALLA delar av sajten återanvänder:
 // gamemodes (quiz/läsförståelse/para ihop), shoppen, elevrummet och lärarsidan.

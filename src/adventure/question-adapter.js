@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: question-adapter.js
+// Pluggporten – äventyrsmotorn: question-adapter.js
 // ----------------------------------------------------------------------------
 // Ett TUNT lager mellan spelvärlden och de befintliga frågekällorna. Gör om
 // områdets innehåll (quiz, läsförståelse och fakta-par) till ETT enhetligt

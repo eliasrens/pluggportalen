@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: Innehållsstudion (teacher-content.js)
+// Pluggporten – lärarsidan: Innehållsstudion (teacher-content.js)
 // ----------------------------------------------------------------------------
 // #/larare/innehall, ombyggd (issue #303) från en tät JSON-vägg till en STUDIO:
 //   • BIBLIOTEK (landning): ämnesflikar + kort per arbetsområde (ärlig status),

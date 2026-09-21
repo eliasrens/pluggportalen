@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gårdens rena tillståndslogik (farm-core.js)
+// Pluggporten – gårdens rena tillståndslogik (farm-core.js)
 // ----------------------------------------------------------------------------
 // BROWSER-FRI kärna för gård-expansionen (epic trädgård/gård): alla rena
 // tillståndsövergångar på `studentData.farm`-objektet bor här, HELT utan

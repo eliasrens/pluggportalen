@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gården (data-farm.js)
+// Pluggporten – gården (data-farm.js)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js (samma mönster som data-animals.js/
 // data-pet.js, re-exporteras via data.js): allt som rör `studentData.farm` –

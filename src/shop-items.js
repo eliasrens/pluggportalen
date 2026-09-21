@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – shop-katalog
+// Pluggporten – shop-katalog
 // ----------------------------------------------------------------------------
 // Alla köpbara saker i shoppen. Ritas som emoji – inga externa assets krävs.
 // Id:na sparas i Firestore (studentData.ownedItems, room.placements,

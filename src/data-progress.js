@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – framsteg & statistik (data-progress.js)
+// Pluggporten – framsteg & statistik (data-progress.js)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js (samma mönster som data-xp.js/data-room.js,
 // re-exporteras via data.js): allt som rör studentData.progress och

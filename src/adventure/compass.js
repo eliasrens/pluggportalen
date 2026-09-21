@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: compass.js  (issue #261)
+// Pluggporten – äventyrsmotorn: compass.js  (issue #261)
 // ----------------------------------------------------------------------------
 // En diskret HUD-kompass som pekar mot NÄRMSTA icke-avklarade frågeobjekt (och,
 // när alla klarats och slutmålet aktiverats, mot slutmålet i stället). Delas av

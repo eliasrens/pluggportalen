@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/gruvan.js  (issue #224)
+// Pluggporten – äventyrsmotorn: themes/gruvan.js  (issue #224)
 // ----------------------------------------------------------------------------
 // TEMA (ren data + inline-SVG-objekt) ovanpå den tema-agnostiska motorn
 // (engine.js). INGEN spellogik här: rörelse/kollision, frågor, progress, belöning

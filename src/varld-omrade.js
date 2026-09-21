@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – områdesnivån (skolan: alla klassers byar, YTTERST i kameran)
+// Pluggporten – områdesnivån (skolan: alla klassers byar, YTTERST i kameran)
 // ----------------------------------------------------------------------------
 // En zoomnivå OVANFÖR klassbyn (varld-by.js): zoomar man ut ur den egna byn
 // hamnar man i "skolan" – en översikt där VARJE klass syns som en liten egen by

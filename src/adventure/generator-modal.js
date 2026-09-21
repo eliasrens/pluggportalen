@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: generator-modal.js  (issue #296 del A)
+// Pluggporten – äventyrsmotorn: generator-modal.js  (issue #296 del A)
 // ----------------------------------------------------------------------------
 // UTMANINGSMODALEN för äventyr som körs på ett GENERATOR-område (#279): i stället
 // för en flervalsfråga (question-modal.js) visas en GENERERAD räkneuppgift på ett

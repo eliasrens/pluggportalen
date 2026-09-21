@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: läsnivå per elev (teacher-student-level.js)
+// Pluggporten – lärarsidan: läsnivå per elev (teacher-student-level.js)
 // ----------------------------------------------------------------------------
 // Issue #154: läraren sätter en LÄSNIVÅ (1–3) per elev, så Läsuppdrag-läget
 // (games-lastext.js) kan servera texterna på elevens nivå (svagare läsare →

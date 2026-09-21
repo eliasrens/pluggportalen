@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – app.js
+// Pluggporten – app.js
 // Hash-router och de gemensamma sidorna (start + lärare). Elevsidorna ligger i
 // pages-elev.js, lärarsidorna i teacher.js och delade UI-hjälpare i ui.js.
 // Avatarer i avatars.js.
@@ -69,7 +69,7 @@ function pageHome() {
   app.replaceChildren(
     el(`<div>
       <div class="panel center">
-        <h1>Välkommen till Pluggportalen! 📚</h1>
+        <h1>Välkommen till Pluggporten! 📚</h1>
         <p class="hint">Öva SO på ett roligt sätt – samla pluggcoins och pynta ditt eget rum.</p>
       </div>
       <div class="card-grid">

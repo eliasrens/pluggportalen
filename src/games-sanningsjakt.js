@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – games-sanningsjakt.js
+// Pluggporten – games-sanningsjakt.js
 // Arkad-läget "Fånga sanningar": avataren står längst ner (med sina vanliga armar),
 // rör sig i sidled (piltangenter/A-D + touch/drag) och fångar fallande påståenden
 // med sig själv (huvud/överkropp). SANT = poäng, FALSKT = −1 liv (3 liv);

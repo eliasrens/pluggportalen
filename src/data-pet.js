@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – husdjursdata (mystery eggs: kläckbara husdjur i rummet)
+// Pluggporten – husdjursdata (mystery eggs: kläckbara husdjur i rummet)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js: allt som rör studentData.pets (LISTA av
 // husdjur – eleven kan ha flera ägg/djur samtidigt). Husdjuren bor i Mitt rum.
