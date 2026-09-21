@@ -31,26 +31,24 @@ export async function pageElevLogin() {
   renderTopbar();
 
   // Login-kortet: byggs (och riggas) EN gång och placeras sedan antingen
-  // framför grinden eller i fallback-panelen.
+  // framför grinden eller i fallback-panelen. KOMPAKT skylt-panel i portens
+  // öppning (lead-feedback): inga synliga fältetiketter (placeholder +
+  // aria-label i stället) så porten syns runt omkring formuläret.
   const card = el(`<div class="port-login">
-    <h1 class="center">Logga in 🎒</h1>
+    <h1 class="port-login-titel">Logga in 🎒</h1>
     <div id="msg"></div>
     <form id="form">
-      <div class="field">
-        <label for="u">Användarnamn</label>
-        <input id="u" name="u" autocomplete="username" autocapitalize="none" placeholder="t.ex. elev1" />
-      </div>
-      <div class="field">
-        <label for="p">Lösenord</label>
-        <input id="p" name="p" type="password" autocomplete="current-password" placeholder="Ditt lösenord" />
-      </div>
+      <input id="u" name="u" autocomplete="username" autocapitalize="none"
+        placeholder="Användarnamn" aria-label="Användarnamn" />
+      <input id="p" name="p" type="password" autocomplete="current-password"
+        placeholder="Lösenord" aria-label="Lösenord" />
       <label class="check" for="remember">
         <input type="checkbox" id="remember" name="remember" checked />
-        <span>Kom ihåg mig på den här datorn</span>
+        <span>Kom ihåg mig</span>
       </label>
       <button class="btn stor gron" type="submit" id="submit">Logga in</button>
     </form>
-    <p class="hint center" style="margin-top:12px">
+    <p class="hint center port-login-hint">
       Testkonto: <b>elev1</b> / <b>123123</b>
     </p>
   </div>`);
