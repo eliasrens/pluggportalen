@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: elevkonton PER KLASS (teacher-class-accounts.js)
+// Pluggporten – lärarsidan: elevkonton PER KLASS (teacher-class-accounts.js)
 // ----------------------------------------------------------------------------
 // Utbruten hjälpmodul till teacher-classes.js (håller huvudfilen under fil-cap).
 // Klass-centrerat kontoskapande: läraren anger ett ANTAL elever och får N konton

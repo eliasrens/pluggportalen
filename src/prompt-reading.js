@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – AI-prompt för läsförståelse i 3 nivåer (prompt-reading.js)
+// Pluggporten – AI-prompt för läsförståelse i 3 nivåer (prompt-reading.js)
 // ----------------------------------------------------------------------------
 // Läsförståelse 2.0 (issue #152): läraren genererar EN läs-text där samma tema
 // finns i tre språkliga svårighetsnivåer. AI:n svarar med JSON i exakt det format

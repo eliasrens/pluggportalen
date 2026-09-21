@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – fristående läsförståelse-texter om talsorter (åk4)
+// Pluggporten – fristående läsförståelse-texter om talsorter (åk4)
 // ----------------------------------------------------------------------------
 // Statiskt textinnehåll (title + body) enligt datamodellens texts[] (se
 // src/validate.js). Skilt från den programmatiska frågegeneratorn

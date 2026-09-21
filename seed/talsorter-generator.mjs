@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – programmatisk generator för talsorter-uppgifter
+// Pluggporten – programmatisk generator för talsorter-uppgifter
 // ----------------------------------------------------------------------------
 // Producerar ~200 innehållsobjekt (quiz, pairs, texts) om talsorter och
 // platsvärde för åk4 – med KORREKTA facit räknade i kod (inte handskrivna).

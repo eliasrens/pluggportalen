@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – sprite-riggade husdjur (bild-assets i 6 delar)
+// Pluggporten – sprite-riggade husdjur (bild-assets i 6 delar)
 // ----------------------------------------------------------------------------
 // Parallell render-väg till de procedurella SVG-arterna i art-pets-creatures.js:
 // vissa arter levereras som PNG-delar (huvud, kropp, 2 armar, 2 fötter) per

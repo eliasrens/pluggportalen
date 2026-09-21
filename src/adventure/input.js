@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: input.js
+// Pluggporten – äventyrsmotorn: input.js
 // ----------------------------------------------------------------------------
 // Abstraherar STYRNING till en RIKTNINGSVEKTOR som motorn läser i sin rAF-loop,
 // plus en "interagera"-signal. Två inmatningssätt bakom exakt samma dir()/onInteract:

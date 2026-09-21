@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – trädgårds- & utomhussaker (inline SVG-uppslagning)
+// Pluggporten – trädgårds- & utomhussaker (inline SVG-uppslagning)
 // ----------------------------------------------------------------------------
 // Konsten för shopens NYA kategori "Trädgård & utomhus" (issue #132): saker
 // eleven köper och placerar UTOMHUS runt sitt hus i ute-vyn (art-hus-ute.js /

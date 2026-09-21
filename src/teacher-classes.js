@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: klasser & elevkonton (teacher-classes.js)
+// Pluggporten – lärarsidan: klasser & elevkonton (teacher-classes.js)
 // ----------------------------------------------------------------------------
 // #/larare/klasser: den ENADE lärar-klassfliken. Gamla #/larare/elever OCH
 // #/larare/klass (klassöversikt/statistik) är sammanslagna hit och omdirigeras

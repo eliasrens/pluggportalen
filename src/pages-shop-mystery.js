@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – mysterybox: köp/öppna-flöde med reveal-animation
+// Pluggporten – mysterybox: köp/öppna-flöde med reveal-animation
 // ----------------------------------------------------------------------------
 // UI-lagret ovanpå openMysteryBox() (data-mystery.js). Visar en liten
 // öppnings-animation (boxen skakar → öppnas) och ett tydligt reveal-kort med

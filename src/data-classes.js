@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klasser + klass-aggregat (Firestore)
+// Pluggporten – klasser + klass-aggregat (Firestore)
 // ----------------------------------------------------------------------------
 // Utbruten del av datamodulen: lärarens klassgruppering (classes/{classId}),
 // tilldelade arbetsområden per klass och det gemensamma klass-aggregatet

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: question-modal.js
+// Pluggporten – äventyrsmotorn: question-modal.js
 // ----------------------------------------------------------------------------
 // Frågemodalen som dyker upp OVANPÅ spelvärlden vid en station. Följer
 // designsystemet: .cx-modal-overlay > .cx-modal på --z-modal (se styles.css),

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – games-quiz.js
+// Pluggporten – games-quiz.js
 // De frågebaserade gamemoderna:
 //   • Quiz          – flervalsfrågor med direkt feedback, resultat i slutet
 //   • Läsförståelse – varje fråga har en egen KORT text (passage) som visas

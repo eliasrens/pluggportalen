@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – odlingsbädden på gården: så, väx via plugguppgifter, skörda
+// Pluggporten – odlingsbädden på gården: så, väx via plugguppgifter, skörda
 // ----------------------------------------------------------------------------
 // Issue #329: gör odlingsbädd-zonen i gårds-scenen (art-gard.js) levande.
 // Fröer köps i shoppen (crop_* i shop-items.js, antal i ownedCounts), sås här i

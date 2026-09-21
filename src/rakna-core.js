@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – Räkna-läget: ren kärna (rakna-core.js, issue #280)
+// Pluggporten – Räkna-läget: ren kärna (rakna-core.js, issue #280)
 // ----------------------------------------------------------------------------
 // All logik i Räkna-läget som INTE rör DOM/canvas ligger här, så den kan
 // enhetstestas i Node (som gamemode-visibility.js, exercise-types.js m.fl.):

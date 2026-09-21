@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – karaktärskatalog + API
+// Pluggporten – karaktärskatalog + API
 // ----------------------------------------------------------------------------
 // Kopplar ihop ritfunktionerna (art-characters-art.js, som följer stilguiden
 // och ankargriddet i art-style.js) med svenska namn och ev. evolution till den

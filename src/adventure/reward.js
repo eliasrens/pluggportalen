@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: reward.js
+// Pluggporten – äventyrsmotorn: reward.js
 // ----------------------------------------------------------------------------
 // Banans slutbelöning går via den vanliga showResult()/awardExercise()-vägen
 // (game-shared.js) så äventyret syns i statistiken och grind-skyddet fungerar

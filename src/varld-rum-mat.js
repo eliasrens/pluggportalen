@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – matning via Mysterymat på golvet (Mitt rum)
+// Pluggporten – matning via Mysterymat på golvet (Mitt rum)
 // ----------------------------------------------------------------------------
 // Systermodul till varld-rum.js (som varld-rum-wear.js): äger Mysterymat-
 // matningen.

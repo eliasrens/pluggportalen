@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: "granska" innehållet i ett befintligt område
+// Pluggporten – lärarsidan: "granska" innehållet i ett befintligt område
 // (teacher-content-review.js, issue #66)
 // ----------------------------------------------------------------------------
 // Read-only utfällbar vy som öppnas under en områdesrad i #/larare/innehall.

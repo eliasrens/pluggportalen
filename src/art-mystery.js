@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – konst för mystery-items (inline SVG)
+// Pluggporten – konst för mystery-items (inline SVG)
 // ----------------------------------------------------------------------------
 // Egen-ritade SVG-assets för sakerna i mysteryboxen (mystery-items.js). Följer
 // stilguiden i art-style.js (kontur #3B3350, mjuka former, glad palett). Konsten

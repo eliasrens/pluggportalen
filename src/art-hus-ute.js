@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – ute-scenen: elevens hus utifrån (illustrerad SVG)
+// Pluggporten – ute-scenen: elevens hus utifrån (illustrerad SVG)
 // ----------------------------------------------------------------------------
 // Ritar hus-vyn (viewBox 960×600) som husvärldens "hus"-nivå använder
 // (pages-varld.js). Utseendet följer design/DESIGNBESLUT-husdjur-hem-2.0.md:

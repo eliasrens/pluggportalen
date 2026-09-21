@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädselkonst: HALS-slotens plagg
+// Pluggporten – klädselkonst: HALS-slotens plagg
 // ----------------------------------------------------------------------------
 // Del av WEARABLES-registret (se art-wearables.js). Halssaker använder
 // par "xMidYMin" så de hänger från halslinjen. Följ stilguiden i art-style.js.

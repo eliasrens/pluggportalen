@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gårds-grenen: Baksida/Gården + Inne i Laggården (issue #328)
+// Pluggporten – gårds-grenen: Baksida/Gården + Inne i Laggården (issue #328)
 // ----------------------------------------------------------------------------
 // Två nya zoomnivåer BAKOM huset: "gard" (baksidan med odlingsbädd, hage och
 // laggårds-byggnaden) och "laggard" (laggårdens interiör). Båda är tomma,

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – validering av läsförståelse-texter i 3 nivåer (validate-reading.js)
+// Pluggporten – validering av läsförståelse-texter i 3 nivåer (validate-reading.js)
 // ----------------------------------------------------------------------------
 // Läsförståelse 2.0 (issue #152): ett arbetsområde kan ha en lista "readingTexts"
 // – läs-texter där SAMMA tema finns i tre språkliga svårighetsnivåer (1 lättast,

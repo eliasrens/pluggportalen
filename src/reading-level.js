@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – per-elev läsnivå (reading-level.js)
+// Pluggporten – per-elev läsnivå (reading-level.js)
 // ----------------------------------------------------------------------------
 // Issue #154: läraren sätter en LÄSNIVÅ (1–3) per elev, och Läsuppdrag-läget
 // (games-lastext.js, #153) serverar sedan texterna på ELEVENS tilldelade nivå

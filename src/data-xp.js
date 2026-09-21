@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – XP/nivå-data (data-xp.js)
+// Pluggporten – XP/nivå-data (data-xp.js)
 // ----------------------------------------------------------------------------
 // Additiv systermodul till data.js (som redan ligger nära filtaket, precis som
 // data-pet.js): allt Firestore som rör studentData.xp. Importera direkt härifrån

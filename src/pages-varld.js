@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – husvärlden (#/elev/by, #/elev/hus & #/elev/rum) – EN scen
+// Pluggporten – husvärlden (#/elev/by, #/elev/hus & #/elev/rum) – EN scen
 // ----------------------------------------------------------------------------
 // Klassbyn (alla elevers hus), hus-vyn (huset utifrån, med elevens avatar
 // framför) och Mitt rum är EN gemensam scen med tre zoomnivåer: "by" (ytterst),

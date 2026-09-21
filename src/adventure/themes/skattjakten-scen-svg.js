@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/skattjakten-scen-svg.js  (issue #238)
+// Pluggporten – äventyrsmotorn: themes/skattjakten-scen-svg.js  (issue #238)
 // ----------------------------------------------------------------------------
 // EGENRITAD (handbyggd) inline-SVG-värld för Skattjakten – ersätter den gamla
 // rasterbilden (skattjakten-karta.jpg). Referensbilden var ENDAST inspiration;

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/spokjakten.js  (issue #252)
+// Pluggporten – äventyrsmotorn: themes/spokjakten.js  (issue #252)
 // ----------------------------------------------------------------------------
 // TEMA (ren data + inline-SVG) ovanpå den tema-agnostiska motorn (engine.js).
 // INGEN spellogik här: rörelse/kollision, frågor, progress, belöning (1–3★,

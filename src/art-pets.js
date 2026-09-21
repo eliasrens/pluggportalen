@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – husdjurskonst (inline SVG för shopens "husdjur"-saker)
+// Pluggporten – husdjurskonst (inline SVG för shopens "husdjur"-saker)
 // ----------------------------------------------------------------------------
 // Följer stilguiden i art-style.js och återanvänder de delade byggdelarna
 // (eye/eyes/cheeks/nose/head/öron m.m.) så husdjuren hamnar på samma

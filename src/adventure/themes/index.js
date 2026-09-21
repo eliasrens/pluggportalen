@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/index.js
+// Pluggporten – äventyrsmotorn: themes/index.js
 // ----------------------------------------------------------------------------
 // PRODUKTIONSREGISTER för äventyrsteman: de TRE riktiga temana som visas för
 // elever – som kort i områdesöversikten (gamemodes.js) och som val via

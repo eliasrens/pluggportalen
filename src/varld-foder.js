@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – mata bondgårdsdjuren med skörden (issue #332)
+// Pluggporten – mata bondgårdsdjuren med skörden (issue #332)
 // ----------------------------------------------------------------------------
 // UI:t för foder-bryggan odling → djur: eleven ger skördad gröda ur
 // farm.inventoryHarvest till ett bondgårdsdjur. Ett klick på djuret i hagen/

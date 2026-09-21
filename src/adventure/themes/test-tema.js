@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/test-tema.js
+// Pluggporten – äventyrsmotorn: themes/test-tema.js
 // ----------------------------------------------------------------------------
 // Ett MINIMALT test-tema som bevisar att motorn (engine.js) är tema-agnostisk:
 // ren data + en handfull strängar, ingen motorkod. Används för att verifiera hela

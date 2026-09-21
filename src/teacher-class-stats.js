@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: delade stjärn-/områdeshjälpare (teacher-class-stats.js)
+// Pluggporten – lärarsidan: delade stjärn-/områdeshjälpare (teacher-class-stats.js)
 // ----------------------------------------------------------------------------
 // Rena hjälpfunktioner för att härleda stjärnstatistik ur en elevs progress.
 // Delas mellan klassmatrisen (teacher-class.js) och per-elev-fördjupningen

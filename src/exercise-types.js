@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – övningstyper per arbetsområde (exercise-types.js)
+// Pluggporten – övningstyper per arbetsområde (exercise-types.js)
 // ----------------------------------------------------------------------------
 // Läraren väljer vilka typer av övningar ett arbetsområde ska ha. Valet sparas
 // på området (fältet "exerciseTypes") och styr dessutom AI-prompten som skapar

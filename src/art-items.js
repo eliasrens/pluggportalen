@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rums-saker & kategori-ikoner (inline SVG-uppslagning)
+// Pluggporten – rums-saker & kategori-ikoner (inline SVG-uppslagning)
 // ----------------------------------------------------------------------------
 // Samlar konsten för shopens rum-placerbara saker (möbler/husdjur/dekor) från
 // de tre konst-modulerna och exponerar två hjälpare:

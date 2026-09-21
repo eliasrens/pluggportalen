@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – validering av arbetsområdes-JSON (validate.js)
+// Pluggporten – validering av arbetsområdes-JSON (validate.js)
 // ----------------------------------------------------------------------------
 // Läraren klistrar in / laddar upp en JSON för ett arbetsområde. Här kontrollerar
 // vi att den passar datamodellen (se docs/DATAMODELL.md) och ger TYDLIGA

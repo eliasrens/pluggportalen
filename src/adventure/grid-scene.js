@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: grid-scene.js
+// Pluggporten – äventyrsmotorn: grid-scene.js
 // ----------------------------------------------------------------------------
 // DOM-scenen för DEFAULT grid-läget (liten ASCII-ruta i PROCENT-koordinater).
 // Bygger EXAKT samma DOM/CSS som förr och exponerar samma lilla scene-gränssnitt

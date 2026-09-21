@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gemensamma UI-hjälpare
+// Pluggporten – gemensamma UI-hjälpare
 // Delas av app.js (router) och sidmodulerna: DOM-referenser, navigering,
 // en liten mall-hjälpare och den bestående sidomenyn (renderTopbar) med
 // karaktärspanel, navlänkar, coins och utloggning.

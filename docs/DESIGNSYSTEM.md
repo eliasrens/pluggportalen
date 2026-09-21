@@ -1,4 +1,4 @@
-# Designsystem – Pluggportalen
+# Designsystem – Pluggporten
 
 Ett litet, avsiktligt minimalt designsystem. Syftet är att **centralisera de
 delar som historiskt gett överlapp-buggar** (staplingsordning + dolda element)

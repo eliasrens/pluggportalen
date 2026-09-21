@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: kryssrutor för synliga lägen (teacher-mode-visibility.js)
+// Pluggporten – lärarsidan: kryssrutor för synliga lägen (teacher-mode-visibility.js)
 // ----------------------------------------------------------------------------
 // Utbrutet ur teacher-content.js (issue #207) för att hålla den filen under
 // radtaket och samla synlighets-UI:t på ett ställe. En liten fabrik som stänger

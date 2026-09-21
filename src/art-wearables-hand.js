@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädselkonst: HAND-slotens plagg
+// Pluggporten – klädselkonst: HAND-slotens plagg
 // ----------------------------------------------------------------------------
 // Del av WEARABLES-registret (se art-wearables.js). Handsaker använder
 // par "xMidYMax" och hålls i figurens hand. Följ stilguiden i art-style.js.

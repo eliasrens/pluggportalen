@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – by-layout (klassbyn, den yttre zoomnivån)
+// Pluggporten – by-layout (klassbyn, den yttre zoomnivån)
 // ----------------------------------------------------------------------------
 // Klassbyn (varld-by-scen.js) visar ALLA elevers hus i en utzoomad by-nivå ovanpå
 // husvärldens kamera (varld-kamera.js). För att byn ska kännas som en riktig

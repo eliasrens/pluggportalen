@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: flee.js  (issue #276)
+// Pluggporten – äventyrsmotorn: flee.js  (issue #276)
 // ----------------------------------------------------------------------------
 // REN, DOM-fri och Firebase-fri flykt-logik för "flyende spöken" (Spökjakten).
 // En liten state-maskin PER frågeobjekt (spöke) + kollisions-medveten flykt-

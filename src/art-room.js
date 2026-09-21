@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rummets bakgrund (vägg, panel, plankgolv & fönster med moln)
+// Pluggporten – rummets bakgrund (vägg, panel, plankgolv & fönster med moln)
 // ----------------------------------------------------------------------------
 // Följer designfacit i design/DESIGNBESLUT-husdjur-hem-2.0.md:
 //   vägg #FFE9CC + panelband #FBD9A6, golv #C9996B med plankor #B0805A

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – nav-skyltar i husvärlden (by-/skol-nivån)
+// Pluggporten – nav-skyltar i husvärlden (by-/skol-nivån)
 // ----------------------------------------------------------------------------
 // Ersätter de gamla nav-knapparna ("Andra byar" på klassbyn, "Min by" i skolan)
 // med små trä-SKYLTAR nere i vänstra hörnet – EXAKT samma skylt-komponent och

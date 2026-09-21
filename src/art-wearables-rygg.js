@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädselkonst: RYGG-slotens plagg (manteln)
+// Pluggporten – klädselkonst: RYGG-slotens plagg (manteln)
 // ----------------------------------------------------------------------------
 // Del av WEARABLES-registret (se art-wearables.js). Rygg-saker ritas BAKOM
 // figuren (lägre i DOM än af-base, se avatarMarkup i avatars.js) och hänger

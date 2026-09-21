@@ -1,4 +1,4 @@
-# Datamodell – Pluggportalen (Firestore)
+# Datamodell – Pluggporten (Firestore)
 
 Detta dokument beskriver Firestore-databasen. **Övriga delar av projektet
 (gamemodes, shop, elevrum, lärarsida) bygger på den här modellen** – ändra med

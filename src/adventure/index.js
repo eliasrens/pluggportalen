@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: index.js  (pageElevAventyr)
+// Pluggporten – äventyrsmotorn: index.js  (pageElevAventyr)
 // ----------------------------------------------------------------------------
 // Route-ingången för äventyrsläget (#/elev/aventyr?subj=&area=&tema=). Laddar
 // områdesinnehållet + elevens avatar (med köpt klädsel), bygger frågeadaptern för

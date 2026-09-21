@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – question-rotation.js
+// Pluggporten – question-rotation.js
 // Roterande frågeurval för Quiz + Läsförståelse: varje ny session serverar ett
 // urval OSEDDA frågor ur områdets pool, så eleven inte får samma frågor gång på
 // gång. När hela poolen körts igenom (ett helt "varv") nollställs spårningen och

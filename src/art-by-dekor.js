@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – stämningsdekor till klassbyn (by-nivån)
+// Pluggporten – stämningsdekor till klassbyn (by-nivån)
 // ----------------------------------------------------------------------------
 // Ritar dekoren som byDekor() (varld-by.js) placerar ut:
 //
