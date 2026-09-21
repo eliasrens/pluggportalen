@@ -4681,6 +4681,54 @@ body.composer-open { overflow: hidden; }
 #port-halva-vanster { transform-origin: left center; }
 #port-halva-hoger { transform-origin: right center; }
 
+/* --------------------------------------------------------------------------
+   Inloggnings-övergången (issue #339): porten öppnas + zoom in i världen.
+   port-overgang.js flyttar scenens <svg> till det här fixerade overlayt
+   (exakt över scenens gamla ruta) och sätter sedan .port-oppnad (grindhalvorna
+   svänger upp) och .port-zoom (kameran dyker in genom öppningen och tonar ut,
+   medan världen redan ritas under). Duration/easing på zoomen = världskamerans
+   (.varld-lager, 0.9s = KAMERA_MS) så det känns som samma kamera. */
+.port-overgang {
+  position: fixed;
+  z-index: 3000; /* över allt annat – men pointer-events:none stör aldrig */
+  overflow: hidden;
+  border-radius: var(--radie);
+  background: #bde3f5;
+  pointer-events: none;
+}
+.port-overgang > svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible; /* samma överteckning som i .port-scen */
+  transition:
+    transform 0.9s cubic-bezier(0.55, 0, 0.2, 1),
+    opacity 0.4s ease 0.6s;
+  will-change: transform, opacity;
+}
+.port-overgang.port-zoom > svg {
+  transform: scale(6.5);
+  opacity: 0;
+}
+/* Grindhalvorna svänger upp mot sina gångjärn (ytterkanterna, origin ovan).
+   Transitionen scopas till overlayt så halvorna aldrig animerar på login-
+   sidan i vila. Utan perspektiv läses scaleX-kollapsen som att halvorna
+   svänger ifrån betraktaren – rätt känsla till låg kostnad. */
+.port-overgang .port-halva {
+  transition: transform 0.5s cubic-bezier(0.6, 0.05, 0.55, 0.4);
+}
+.port-overgang.port-oppnad #port-halva-vanster,
+.port-overgang.port-oppnad #port-halva-hoger {
+  transform: scaleX(0.07);
+}
+/* Reduced motion: port-overgang.js startar aldrig övergången då – men om
+   overlayt ändå skulle finnas (inställningen ändras mitt i) göms det helt. */
+@media (prefers-reduced-motion: reduce) {
+  .port-overgang { display: none !important; }
+}
+
 /* Liten skärm: låt kortet andas och scenen ta mindre höjd. */
 @media (max-width: 560px) {
   .port-scen { height: clamp(500px, calc(100dvh - 130px), 660px); }
