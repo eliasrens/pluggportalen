@@ -28,6 +28,7 @@ import { placementFor, moodForTrivsel, trivselNow, giftReadyIn } from "./farm-co
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { farmMoodSvg } from "./art-pets.js";
+import { farmSideSvg, farmSideSize } from "./art-pets-side.js";
 import { el } from "./ui.js";
 import { startPetPromenad } from "./rum-promenad.js";
 
@@ -87,13 +88,16 @@ export function mountGardDjur({ gardLager, laggardLager }) {
   function djurNode(a) {
     const item = getItem(a.art);
     if (!item) return el("<span></span>");
-    const size = itemSize(a.art);
     const namn = a.name || item.name;
+    // Ute på gården ritas häst/ko/gris i SIDOPROFIL (#336, art-pets-side.js);
+    // rummet/"Mina djur" behåller framifrån-figuren. Fallback = framifrån.
+    const sideSvg = farmSideSvg(a.art, namn);
+    const size = (sideSvg && farmSideSize(a.art)) || itemSize(a.art);
     // Mood ur EFFEKTIV trivsel (decay vid läsning, #332); 🎁-badge när dagens
     // gåva väntar. Klick på djuret öppnar foder-panelen (varld-foder.js).
     return el(`<div class="room-item room-pet gard-djur" data-pet-id="${a.id}"
       style="left:${a.pos.x}%;top:${a.pos.y}%" title="Mata ${namn}" role="button" tabindex="0">
-      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)));height:calc(${size.h} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)))">${itemSvg(a.art) || item.emoji}</span>
+      <span class="ri-emoji" style="width:calc(${size.w} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)));height:calc(${size.h} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)))">${sideSvg || itemSvg(a.art) || item.emoji}</span>
       <span class="fdjur-mood" aria-hidden="true">${farmMoodSvg(moodForTrivsel(trivselNow(a)))}</span>
       ${giftReadyIn(a) ? '<span class="fdjur-gava" title="En gåva väntar!">🎁</span>' : ""}
       <span class="rp-namn">${namn}</span>

@@ -3035,8 +3035,10 @@ body.varld-lage .container {
   inset: 0;
   pointer-events: none;
   container-type: inline-size;
-  --fdjur-koeff: 2.0;
-  --fdjur-cap: 30px;
+  /* #336: rejält större djur i hagen/ladan (+~55 %) så sidoprofilerna läses
+     på håll – rummets djurstorlek (itemSize) påverkas INTE av de här. */
+  --fdjur-koeff: 3.1;
+  --fdjur-cap: 47px;
 }
 /* Klick på djuret öppnar foder-panelen (#332) – lagret är pointer-events:none,
    så själva djur-noderna måste slå på pekar-händelser igen. */

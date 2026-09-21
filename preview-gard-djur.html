@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – bondgårdsdjur i sidovy (#336)</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #336: häst/ko/gris i SIDOPROFIL
+         (art-pets-side.js, används i hagen/laggården) bredvid den befintliga
+         framifrån-chibin (art-pets.js, används i rummet). Ingen inloggning. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .rad { display: flex; flex-wrap: wrap; gap: 20px; padding: 12px 20px 8px; }
+      .cell {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        background: linear-gradient(#eaf5ff 30%, #cfe8b8 30%);
+        border: 1px solid #d8cbb5; border-radius: 14px; padding: 14px 18px 10px;
+      }
+      .cell .figur { display: flex; align-items: flex-end; gap: 14px; height: 190px; }
+      .cell svg { display: block; }
+      .cell .sida svg { width: 210px; }
+      .cell .fram svg { width: 120px; }
+      .cell .spegel svg { transform: scaleX(-1); }
+      .cell b { font-size: 0.95rem; }
+      .cell span.txt { font-size: 0.75rem; opacity: 0.75; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Bondgårdsdjur i sidovy (#336)</h1>
+      <p>Vänster: nya SIDOPROFILEN (hagen/laggården, även speglad som promenad-CSS:en gör).
+         Höger: befintliga framifrån-chibin (rummet – oförändrad).</p>
+    </header>
+    <div class="rad" id="rad"></div>
+    <script type="module">
+      import { farmSideSvg } from "./src/art-pets-side.js";
+      import { itemSvg } from "./src/art-items.js";
+      const djur = [["animal_horse", "Häst"], ["animal_cow", "Ko"], ["animal_pig", "Gris"]];
+      document.getElementById("rad").innerHTML = djur.map(([id, namn]) => `
+        <div class="cell">
+          <div class="figur">
+            <span class="sida">${farmSideSvg(id, namn)}</span>
+            <span class="sida spegel">${farmSideSvg(id, namn)}</span>
+            <span class="fram">${itemSvg(id)}</span>
+          </div>
+          <b>${namn}</b><span class="txt">sida · sida speglad · rummet (framifrån)</span>
+        </div>`).join("");
+    </script>
+  </body>
+</html>
