@@ -119,9 +119,11 @@ export async function pageElevLogin() {
 
   let view;
   if (scenSvg) {
+    // Scenen är position:fixed och fyller HELA viewporten (lead-beslut #338:
+    // färgad helskärm, ingen centrerad ruta) – skylten och lärarlänken ligger
+    // därför INUTI scenen (absolut positionerade i styles.css).
     view = el(`<div class="port-sida">
-      <div class="port-scen">${scenSvg}</div>
-      ${larareRad}
+      <div class="port-scen">${scenSvg}${larareRad}</div>
     </div>`);
     view.querySelector(".port-scen").appendChild(card);
   } else {

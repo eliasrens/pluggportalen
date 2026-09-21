@@ -146,6 +146,11 @@ body.med-sidomeny .sidebar {
 .sidebar .brand .logo {
   font-size: 1.7rem;
 }
+/* Loggan är en mini-port i inline-SVG (index.html, #338) – 1em följer
+   font-storleken ovan; block-läget tar bort baslinje-glappet. */
+.sidebar .brand .logo svg {
+  display: block;
+}
 
 .sidebar-body {
   display: flex;
