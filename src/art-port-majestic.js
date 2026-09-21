@@ -61,8 +61,12 @@ function fagel(x, y, s = 1) {
 // --- Pelare med sockel, kapitäl, krönklot och vimpel -------------------------
 // Mjuk skuggning = en halvtransparent kontur-lila remsa längs skuggsidan
 // (fortfarande platt stil, ingen gradient på formerna).
-function pelare(cx, vimpelFarg, vimpelDir) {
+function pelare(cx, vimpelFarg, vimpelDir, vimpelFas) {
+  // Vimpeln svajar milt kring sitt fäste vid stången (.portb-vimpel, se
+  // <style>-blocket i portScenMajestic – EGNA portb-klasser, rör aldrig
+  // .port-halva/#339). transform-box:fill-box → origin i flaggans stångkant.
   const flag = `M${cx} 58 L${cx + 64 * vimpelDir} 71 L${cx} 84 Z`;
+  const origin = vimpelDir === 1 ? "left" : "right";
   return `<g>
     <!-- sockel i två steg -->
     <rect x="${cx - 52}" y="466" width="104" height="48" rx="8" fill="${STEN}" ${LINE}/>
@@ -78,7 +82,9 @@ function pelare(cx, vimpelFarg, vimpelDir) {
     <!-- krönklot i guld + vimpel -->
     <circle cx="${cx}" cy="98" r="13" fill="${GULD}" ${LINE}/>
     ${limb(`M${cx} 88 L${cx} 56`, WOOD_DARK, 5)}
-    <path d="${flag}" fill="${vimpelFarg}" ${LINE}/>
+    <g class="portb-vimpel" style="transform-origin:${origin} center${vimpelFas ? `;animation-duration:4.6s;animation-delay:-1.7s` : ""}">
+      <path d="${flag}" fill="${vimpelFarg}" ${LINE}/>
+    </g>
   </g>`;
 }
 
@@ -109,9 +115,14 @@ function valvbage() {
 function skylt() {
   const lank = (x, y) =>
     `<circle cx="${x}" cy="${y}" r="4" fill="none" ${THIN}/>`;
+  // Kedjornas fästen: guldnitar PÅ bågbandet (undersidan ligger på y≈121 vid
+  // x≈400/560); översta länken börjar i niten så kedjan sitter fast utan
+  // glapp, nedersta går omlott med skyltens överkant (y=170).
   return `<g>
-    ${lank(400, 136)}${lank(402, 148)}${lank(405, 160)}${lank(408, 171)}
-    ${lank(560, 136)}${lank(558, 148)}${lank(555, 160)}${lank(552, 171)}
+    <circle cx="399" cy="114" r="6" fill="${GULD}" ${THIN}/>
+    <circle cx="561" cy="114" r="6" fill="${GULD}" ${THIN}/>
+    ${lank(399, 124)}${lank(401, 136)}${lank(403, 148)}${lank(405, 160)}${lank(408, 171)}
+    ${lank(561, 124)}${lank(559, 136)}${lank(557, 148)}${lank(555, 160)}${lank(552, 171)}
     <rect x="328" y="170" width="304" height="68" rx="12" fill="${WOOD_DARK}" ${LINE}/>
     <rect x="338" y="179" width="284" height="50" rx="8" fill="${WOOD_LIGHT}" stroke="none"/>
     <circle cx="346" cy="187" r="3" fill="${GULD}" ${THIN}/>
@@ -216,6 +227,24 @@ export function portScenMajestic() {
       <stop offset="0" stop-color="#8FBEEA"/><stop offset="0.55" stop-color="#CDE6F6"/>
       <stop offset="1" stop-color="#FCE8CC"/>
     </linearGradient></defs>
+    <!-- Vimpel-svaj: EGNA portb-klasser (aldrig .port-halva – #339:s
+         grindhalvor styrs oförändrat från styles.css). Stilen bor i SVG:n så
+         den följer med scenen överallt (även fristående previews). Höger
+         vimpel fasas via inline animation-duration/-delay. -->
+    <style>
+      .portb-vimpel {
+        transform-box: fill-box;
+        animation: portb-vimpel-svaj 4s ease-in-out infinite;
+      }
+      @keyframes portb-vimpel-svaj {
+        0%, 100% { transform: rotate(0deg); }
+        30% { transform: rotate(3.5deg); }
+        65% { transform: rotate(-2.5deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .portb-vimpel { animation: none; }
+      }
+    </style>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#portb-himmel)"/>
 
     <!-- Gryningssol med mjuk gloria -->
@@ -259,8 +288,8 @@ export function portScenMajestic() {
     ${smidesHalva("port-halva-hoger", 483, 730, false)}
 
     <!-- Pelare + valvbåge + hängande skylt -->
-    ${pelare(195, "#F890B7", 1)}
-    ${pelare(765, GULD, -1)}
+    ${pelare(195, "#F890B7", 1, false)}
+    ${pelare(765, GULD, -1, true)}
     ${valvbage()}
     ${skylt()}
 
