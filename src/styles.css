@@ -4636,12 +4636,6 @@ body.composer-open { overflow: hidden; }
   padding: 12px 14px 10px;
 }
 
-.port-login-titel {
-  font-size: 1.15rem;
-  margin: 0 0 8px;
-  text-align: center;
-}
-
 /* Fälten är etikett-lösa (placeholder + aria-label) för att hålla skylten
    liten – trä-bruna kanter i stället för standardblått. */
 .port-login form > input {
@@ -4677,11 +4671,6 @@ body.composer-open { overflow: hidden; }
   margin-bottom: 8px;
   font-size: 0.9rem;
 }
-.port-login-hint {
-  margin: 8px 0 0;
-  font-size: 0.8rem;
-}
-
 /* Fallback-panelen när grind-scenen inte kunde laddas: vanlig panel-stil. */
 .port-fallback {
   max-width: 420px;
