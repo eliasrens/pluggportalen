@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – vanliga djur i rummet (promenerande, FAST storlek)
+// Pluggporten – vanliga djur i rummet (promenerande, FAST storlek)
 // ----------------------------------------------------------------------------
 // Systermodul till varld-rum.js (som varld-rum-wear.js/varld-rum-mat.js): äger
 // de VANLIGA djuren från shoppen (hund, katt, kanin … – studentData.roomAnimals

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – autentisering (auth.js)
+// Pluggporten – autentisering (auth.js)
 // ----------------------------------------------------------------------------
 // Äkta Firebase Auth ligger BAKOM samma enkla UX som förut: eleven loggar in
 // med användarnamn + lösenord, läraren låser upp lärarläget med sitt konto.

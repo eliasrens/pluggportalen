@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – AI-prompter (prompts.js)
+// Pluggporten – AI-prompter (prompts.js)
 // ----------------------------------------------------------------------------
 // Läraren bygger en prompt på innehållssidan (#/larare/innehall): hen kryssar i
 // vilka övningstyper området ska ha och får en prompt som är anpassad efter just

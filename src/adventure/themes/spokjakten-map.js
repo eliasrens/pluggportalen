@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/spokjakten-map.js  (issue #251)
+// Pluggporten – äventyrsmotorn: themes/spokjakten-map.js  (issue #251)
 // ----------------------------------------------------------------------------
 // REN DATA + REN MATTE för Spökjaktens natt-värld i motorns scroll-läge (world.js).
 // DOM-fri och Firebase-fri → enhetstestbar (test/spokjakten-map.test.js).

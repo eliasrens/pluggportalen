@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: räknegenerator-kontroll (teacher-generator.js)
+// Pluggporten – lärarsidan: räknegenerator-kontroll (teacher-generator.js)
 // ----------------------------------------------------------------------------
 // Issue #279 / #322. En liten fabrik (samma mönster som teacher-mode-visibility.js)
 // som stänger om en DOM-behållare (#generator-config) och sköter val av EN

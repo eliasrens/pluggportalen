@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – Bildstöds-renderingsmodul för mattegeneratorn (issue #319)
+// Pluggporten – Bildstöds-renderingsmodul för mattegeneratorn (issue #319)
 // ----------------------------------------------------------------------------
 // Gör VISUELLT bildstöd (array-/gruppmodell) av ett problem-objekt från
 // mattegeneratorn. Klassrummattes original hette buildBildstod men var rå DOM

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – karaktärskonst: RITFUNKTIONERNA (inline SVG, helkropp)
+// Pluggporten – karaktärskonst: RITFUNKTIONERNA (inline SVG, helkropp)
 // ----------------------------------------------------------------------------
 // Bara konsten bor här. Alla figurer följer stilguiden och ankargriddet i
 // art-style.js: viewBox "0 0 100 120", huvud (50,36) r≈22, ögon y=34, hals

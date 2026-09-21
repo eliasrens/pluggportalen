@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: nivå- och frågeredigerarna för läsförståelse
+// Pluggporten – lärarsidan: nivå- och frågeredigerarna för läsförståelse
 // (teacher-reading-level.js)
 // ----------------------------------------------------------------------------
 // Utbrutet ur teacher-reading.js för att hålla den under radtaket: de rena

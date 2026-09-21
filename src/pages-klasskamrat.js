@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – Klasskamratens rum (#/elev/klasskamrat?id=<studentId>)
+// Pluggporten – Klasskamratens rum (#/elev/klasskamrat?id=<studentId>)
 // ----------------------------------------------------------------------------
 // En LÄS-ENDAST vy av en annan elevs rum: deras utplacerade saker + figur. Ingen
 // redigering – ingen drag/drop, ingen låda, ingen 🗑️. Öppnas genom att klicka

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – pick-group.js
+// Pluggporten – pick-group.js
 // ----------------------------------------------------------------------------
 // Ömsesidigt uteslutande par via ett valfritt "group"-fält. Par som delar samma
 // "group" ska aldrig dyka upp samtidigt i en och samma spelomgång (Para ihop /

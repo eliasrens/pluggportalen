@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – kladdytans FÖRSTORA-logik (scratch-enlarge.js, issue #312)
+// Pluggporten – kladdytans FÖRSTORA-logik (scratch-enlarge.js, issue #312)
 // ----------------------------------------------------------------------------
 // Bruten ur scratchpad.js så den kan enhetstestas fristående: den här filen har
 // INGA importer (bara ren DOM-manipulation) och kan därför köras direkt av

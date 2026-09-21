@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – årskurs på arbetsområden (grades.js)
+// Pluggporten – årskurs på arbetsområden (grades.js)
 // ----------------------------------------------------------------------------
 // Ett arbetsområde kan få en årskurs (åk 1–9). Fältet är VALFRITT och bakåt-
 // kompatibelt: saknas det (äldre områden) räknas området som "ospecificerad"

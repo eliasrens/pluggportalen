@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lägg till nytt innehåll i ett befintligt område (merge-area.js)
+// Pluggporten – lägg till nytt innehåll i ett befintligt område (merge-area.js)
 // ----------------------------------------------------------------------------
 // Issue #40: i stället för att klistra in/ersätta hela arbetsområdes-JSON:en kan
 // läraren klistra in BARA det nya innehållet (fler texts/quiz/pairs). Här mergas

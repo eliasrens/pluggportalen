@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – läsförståelse-frågor om talsorter (åk4)
+// Pluggporten – läsförståelse-frågor om talsorter (åk4)
 // ----------------------------------------------------------------------------
 // Handskrivna flervalsfrågor MED egen källtext ("passage"). Varje fråga bär en
 // kort passage hämtad ur faktatexterna (seed/talsorter-texts.mjs) och testar

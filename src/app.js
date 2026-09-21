@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – app.js
+// Pluggporten – app.js
 // Hash-router och de gemensamma sidorna (start + lärare). Elevsidorna ligger i
 // pages-elev.js, lärarsidorna i teacher.js och delade UI-hjälpare i ui.js.
 // Avatarer i avatars.js.

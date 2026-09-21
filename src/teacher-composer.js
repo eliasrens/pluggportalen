@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: den fokuserade kompositören (teacher-composer.js)
+// Pluggporten – lärarsidan: den fokuserade kompositören (teacher-composer.js)
 // ----------------------------------------------------------------------------
 // Issue #303. Kompositören är overlay-läget där ett arbetsområde skapas/redigeras.
 // All wiring bor här (utbruten ur teacher-content.js för att hålla båda under

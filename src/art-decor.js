@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – dekorkonst (inline SVG för shopens "dekor"-saker)
+// Pluggporten – dekorkonst (inline SVG för shopens "dekor"-saker)
 // ----------------------------------------------------------------------------
 // Följer stilguiden i art-style.js OCH designfacit i
 // design/DESIGNBESLUT-husdjur-hem-2.0.md: kontur #3B3350 (stroke 3 / tunt 2.2),

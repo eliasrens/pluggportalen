@@ -4,7 +4,7 @@
 > är ett beslutsunderlag som ska granskas och godkännas av användaren *innan*
 > motorn byggs. Allt nedan bygger på en läsning av den befintliga kodbasen
 > (filnamn/funktioner citeras konkret) så att förslagen är förankrade i hur
-> Pluggportalen faktiskt fungerar i dag – inte i en idealbild.
+> Pluggporten faktiskt fungerar i dag – inte i en idealbild.
 >
 > Relaterat: issue #192. Epic: `epic/ventyrsspel-system-gemensam-spelmotor`.
 
@@ -53,7 +53,7 @@ gemensam** (motorn). Nya teman ska kunna läggas till med en ren data-/config-fi
 
 ---
 
-## 2. Nulägesanalys (så fungerar Pluggportalen i dag)
+## 2. Nulägesanalys (så fungerar Pluggporten i dag)
 
 ### 2.1 Teknisk grund – ingen byggpipeline
 * `index.html` laddar **en** modul: `<script type="module" src="./src/app.js">`.

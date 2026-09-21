@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: klassens framstegsmatris (teacher-class.js)
+// Pluggporten – lärarsidan: klassens framstegsmatris (teacher-class.js)
 // ----------------------------------------------------------------------------
 // Framstegsstatistiken för EN klass: en matris med elever (rader) mot
 // arbetsområden (kolumner) för ett valt ämne. Varje cell visar intjänade

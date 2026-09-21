@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – game-shared.js
+// Pluggporten – game-shared.js
 // Gemensamt verktyg för alla gamemodes: metadata, små hjälpare, belöning
 // (grind-skydd), övningsram, resultat-/firande-skärm och frågemotorn som
 // Quiz och Läsförståelse delar. Själva spelen ligger i games-*.js.

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – LEGENDARY husskal (exklusiva mysterybox-drops)
+// Pluggporten – LEGENDARY husskal (exklusiva mysterybox-drops)
 // ----------------------------------------------------------------------------
 // Riktigt flashiga husskal som BARA kan VINNAS ur mysteryboxarna (Mega/Epic) –
 // de finns INTE i shoppens "hus"-kategori, så en legendary-vinst känns speciell.

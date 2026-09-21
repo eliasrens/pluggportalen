@@ -56,5 +56,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Pluggportalen körs på http://localhost:${PORT}`);
+  console.log(`Pluggporten körs på http://localhost:${PORT}`);
 });

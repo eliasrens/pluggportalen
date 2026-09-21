@@ -1,5 +1,5 @@
 // ============================================================================
-// Kommandorads-seeder (Node, Admin SDK) för Pluggportalen.
+// Kommandorads-seeder (Node, Admin SDK) för Pluggporten.
 //
 //   node seed/seed.mjs
 //

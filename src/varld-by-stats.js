@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klassbyns gemensamma statistik-skylt (varld-by-stats.js)
+// Pluggporten – klassbyns gemensamma statistik-skylt (varld-by-stats.js)
 // ----------------------------------------------------------------------------
 // Ren rendering av den lilla "byskylten" som visas överst i klassbyn (#/elev/by)
 // och stoltserar med klassens GEMENSAMMA, BARA POSITIVA framsteg: en gemensam

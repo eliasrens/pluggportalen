@@ -1,8 +1,8 @@
 // ============================================================================
-// Pluggportalen – porten: elev-inloggningens grind-scen (issue #338)
+// Pluggporten – porten: elev-inloggningens grind-scen (issue #338)
 // ----------------------------------------------------------------------------
 // Ritar "framdörren" till spelvärlden: en trägrind mellan två stolpar med
-// skylten Pluggportalen, himmel/gräs i samma stil som ute-scenen
+// skylten Pluggporten, himmel/gräs i samma stil som ute-scenen
 // (art-hus-ute.js) och staket som fortsätter utanför viewBoxen så letterbox-
 // ytan fylls (samma övertecknings-knep som husScen; scenens svg får
 // overflow:visible i styles.css .port-scen).
@@ -111,7 +111,7 @@ function stolpe(cx) {
   </g>`;
 }
 
-/** Skylten "Pluggportalen" som hänger i tvärbalken mellan stolparna.
+/** Skylten "Pluggporten" som hänger i tvärbalken mellan stolparna.
     OBS: skyltens NEDERKANT (y=238) styr var login-kortet börjar –
     .port-login-toppformeln i styles.css utgår från just den linjen. */
 function skylt() {
@@ -126,7 +126,7 @@ function skylt() {
     <circle cx="608" cy="222" r="2.6" fill="${WOOD_DARK}"/>
     <text x="480" y="217" font-size="28" fill="${O}" font-weight="800" text-anchor="middle"
       font-family="'Baloo 2','Nunito',system-ui,sans-serif"
-      textLength="240" lengthAdjust="spacingAndGlyphs">Pluggportalen</text>
+      textLength="240" lengthAdjust="spacingAndGlyphs">Pluggporten</text>
   </g>`;
 }
 
@@ -144,7 +144,7 @@ export function portScen() {
     )
     .join("");
 
-  return `<svg viewBox="0 0 960 600" role="img" aria-label="Porten till Pluggportalen"
+  return `<svg viewBox="0 0 960 600" role="img" aria-label="Porten till Pluggporten"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="port-himmel" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#9AD3F0"/><stop offset="1" stop-color="#E8F6FD"/>

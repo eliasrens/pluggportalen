@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/scroll-demo.js  (issue #220)
+// Pluggporten – äventyrsmotorn: themes/scroll-demo.js  (issue #220)
 // ----------------------------------------------------------------------------
 // DEV-/PREVIEW-tema som bevisar det OPT-IN scrollande bild-karta-läget: ren data
 // (som alla teman) men med theme.mapImage + världskoordinater i stället för en

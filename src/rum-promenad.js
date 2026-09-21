@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – promenad-AI för husdjuren i Mitt rum
+// Pluggporten – promenad-AI för husdjuren i Mitt rum
 // ----------------------------------------------------------------------------
 // Låter husdjuren (kläckta mystery-djur OCH de vanliga djuren från shoppen –
 // se varld-rum-djur.js) promenera lugnt omkring på golvet i rumsscenen

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – Shoppen
+// Pluggporten – Shoppen
 // ----------------------------------------------------------------------------
 // Eleven köper saker för pluggcoins. Kläder sätts på avataren (i Mitt rum eller
 // profilen), möbler/husdjur/dekor placeras i rummet. Köp går via datamodulens

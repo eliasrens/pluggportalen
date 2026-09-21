@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klass-projektion (data-lagret för by-/grannby-översikten)
+// Pluggporten – klass-projektion (data-lagret för by-/grannby-översikten)
 // ----------------------------------------------------------------------------
 // DESIGNVAL: ETT DOKUMENT PER KLASS = O(1) FIRESTORE-LÄSNINGAR PER KLASS.
 //

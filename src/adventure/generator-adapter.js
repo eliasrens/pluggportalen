@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: generator-adapter.js  (issue #296 del A)
+// Pluggporten – äventyrsmotorn: generator-adapter.js  (issue #296 del A)
 // ----------------------------------------------------------------------------
 // Frågeadaptern för äventyr som körs på ett GENERATOR-område (exercise-type
 // "generator", #279). Speglar exakt samma lilla API som question-adapter.js

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – LYXIGA köpbara husskal (skepp, fotboll, skyskrapa, glasvilla)
+// Pluggporten – LYXIGA köpbara husskal (skepp, fotboll, skyskrapa, glasvilla)
 // ----------------------------------------------------------------------------
 // Egen-tecknade SVG-exteriörer för de dyra husskalen (1000+ coins) i shoppens
 // hus-kategori (shop-items.js). Följer EXAKT samma koordinatsystem/anslutnings-

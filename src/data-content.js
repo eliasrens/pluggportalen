@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – kunskapsinnehåll + elevkonton (Firestore)
+// Pluggporten – kunskapsinnehåll + elevkonton (Firestore)
 // ----------------------------------------------------------------------------
 // Utbruten del av datamodulen: ämnen/arbetsområden (läs + lärarens skrivning)
 // och elevkontohantering. Ingen sessionslogik här – den bor i data.js, som

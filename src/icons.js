@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – små återanvändbara inline-SVG-ikoner
+// Pluggporten – små återanvändbara inline-SVG-ikoner
 // Just nu: pluggcoin-myntet (variant B "Blixt") som ersätter emojin 🪙 överallt
 // coins visas. Varje instans får ett unikt gradient-id så flera mynt på samma
 // sida inte krockar.

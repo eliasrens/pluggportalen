@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: vy-mallar för Innehållsstudion (teacher-content-view.js)
+// Pluggporten – lärarsidan: vy-mallar för Innehållsstudion (teacher-content-view.js)
 // ----------------------------------------------------------------------------
 // Innehållssidan (#/larare/innehall) är ombyggd (issue #303) till en STUDIO med
 // två lägen:

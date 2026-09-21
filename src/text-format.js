@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – text-format.js
+// Pluggporten – text-format.js
 // ----------------------------------------------------------------------------
 // Små, rena textformat-hjälpare (ingen DOM, inga beroenden) så de kan delas
 // av både elev- och lärarvyerna och testas isolerat med `node --test`.

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/gruvan-map.js  (issue #224)
+// Pluggporten – äventyrsmotorn: themes/gruvan-map.js  (issue #224)
 // ----------------------------------------------------------------------------
 // REN DATA + REN MATTE för Gruvans egna Diablo-lika grotta i motorns scroll/
 // bild-karta-läge (world.js). DOM-fri och Firebase-fri → enhetstestbar

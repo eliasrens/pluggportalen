@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – elevsidor
+// Pluggporten – elevsidor
 // Inloggning, avatarval, startsida, plugga (områdesval), shop/rum-platshållare
 // och profil. Router och gemensam layout finns i app.js / ui.js.
 // ============================================================================
@@ -70,6 +70,19 @@ export async function pageElevLogin() {
         // Första gången (ingen avatar vald) → låt eleven välja sin figur.
         // Annars: landa direkt i hus-scenen (ingen mellanliggande hem-sida).
         const chosen = await data.hasChosenAvatar().catch(() => true);
+        // Porten öppnas + zoom in i världen (#339). Ren dekor som ALDRIG får
+        // blockera inloggningen: modulen förladdades vid sidrenderingen, och
+        // startaPortOvergang lyfter scenen till ett självstädande overlay –
+        // navigeringen nedan sker direkt oavsett om övergången kunde starta
+        // (reduced motion / fallback-panel / fel → false, samma go()).
+        // Förstagångs-eleven går till avatarvalet UTAN animation – porten
+        // "kliver man in genom" först när man landar i världen.
+        if (chosen && overgangP) {
+          try {
+            const mod = await overgangP;
+            mod?.startaPortOvergang(card.closest(".port-scen"));
+          } catch {}
+        }
         go(chosen ? "#/elev/hus" : "#/elev/avatar");
       } else {
         msg.innerHTML = `<div class="msg error">${res.error}</div>`;
@@ -90,6 +103,13 @@ export async function pageElevLogin() {
   } catch (err) {
     console.error("Porten kunde inte laddas – visar enkel inloggning:", err);
   }
+
+  // Övergångs-modulen (#339) förladdas i bakgrunden medan eleven skriver sitt
+  // lösenord, så inloggningsklicket aldrig väntar på ett modul-fetch. Dynamisk
+  // import (bootgrafen växer inte, #271) + catch → null = ingen animation.
+  const overgangP = scenSvg
+    ? import("./port-overgang.js").catch(() => null)
+    : null;
 
   // Diskret direktlänk till lärarens egen inloggningssida (vanlig hash-länk –
   // routern lyssnar på hashchange, ingen extra rigg behövs).

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – bondgårdsdjurens SIDOPROFILER för hagen & laggården (#336)
+// Pluggporten – bondgårdsdjurens SIDOPROFILER för hagen & laggården (#336)
 // ----------------------------------------------------------------------------
 // Häst/ko/gris i tydlig SIDOVY (lång kropp, fyra ben, hals + huvud, svans) så
 // silhuetten direkt läses som rätt djur ute på gården. RUMMET och "Mina djur"

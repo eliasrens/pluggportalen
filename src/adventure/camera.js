@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: camera.js  (issue #220)
+// Pluggporten – äventyrsmotorn: camera.js  (issue #220)
 // ----------------------------------------------------------------------------
 // OPT-IN scroll-kamera för bild-karta-teman. DOM-fri och Firebase-fri matte +
 // en liten stateful följare → enhetstestbar (test/adventure-camera.test.js), i

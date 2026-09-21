@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – delad kladdyta (scratchpad.js, issue #296)
+// Pluggporten – delad kladdyta (scratchpad.js, issue #296)
 // ----------------------------------------------------------------------------
 // Den FLYKTIGA ritytan (canvas) med penna/sudd/rensa + en FÖRSTORA-knapp som
 // fäller ut kortet till fullskärm för mer ritutrymme. Delas nu av två ställen:

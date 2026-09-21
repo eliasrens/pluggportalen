@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: "Nytt ämne"-formuläret (teacher-subject-form.js)
+// Pluggporten – lärarsidan: "Nytt ämne"-formuläret (teacher-subject-form.js)
 // ----------------------------------------------------------------------------
 // Det utfällbara formuläret bakom "➕ Nytt ämne" på #/larare/innehall: fyll i
 // id/namn/ikon/beskrivning och skapa ett nytt ämne (subjects/{id}). Utbrutet ur

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – husdjurspanelen under rumsscenen (Mitt rum)
+// Pluggporten – husdjurspanelen under rumsscenen (Mitt rum)
 // ----------------------------------------------------------------------------
 // Systermodul till pages-rum-pets.js (som äger djurens scen-noder + klick-lek):
 // den PANEL som ritas under scenen för det valda djuret. Ägg → nedräkning,

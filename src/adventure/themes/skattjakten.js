@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/skattjakten.js  (issue #221)
+// Pluggporten – äventyrsmotorn: themes/skattjakten.js  (issue #221)
 // ----------------------------------------------------------------------------
 // TEMA (ren data + inline-SVG-strängar) ovanpå den tema-agnostiska motorn
 // (engine.js). INGEN spellogik här: rörelse/kollision, frågor, progress, belöning

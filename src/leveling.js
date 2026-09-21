@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – erfarenhets-/nivåsystem (leveling.js)
+// Pluggporten – erfarenhets-/nivåsystem (leveling.js)
 // ----------------------------------------------------------------------------
 // Ren logik (inga Firestore-anrop): hur mycket XP en övning ger, hur XP räknas
 // om till NIVÅ, och hjälpare för att härleda XP ur befintlig progress

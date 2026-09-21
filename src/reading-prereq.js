@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – obligatoriska läsförståelse-förkrav (reading-prereq.js)
+// Pluggporten – obligatoriska läsförståelse-förkrav (reading-prereq.js)
 // (issue #155)
 // ----------------------------------------------------------------------------
 // En lärare kan bestämma att eleven MÅSTE klara läsförståelse i ett arbetsområde

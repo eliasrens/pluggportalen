@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – trädgården: köpbara utomhussaker runt huset (issue #132)
+// Pluggporten – trädgården: köpbara utomhussaker runt huset (issue #132)
 // ----------------------------------------------------------------------------
 // Monterar ett placerings-lager OVANPÅ ute-scenen (art-hus-ute.js, #ute-lager i
 // pages-varld.js) där eleven ställer ut träd, buskar, blomrabatter, en

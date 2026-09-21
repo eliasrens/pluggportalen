@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: "lägg till nytt innehåll" i ett befintligt område
+// Pluggporten – lärarsidan: "lägg till nytt innehåll" i ett befintligt område
 // (teacher-content-merge.js, issue #40)
 // ----------------------------------------------------------------------------
 // Inline-formuläret som öppnas under en områdesrad i #/larare/innehall. Läraren

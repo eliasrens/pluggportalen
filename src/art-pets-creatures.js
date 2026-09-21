@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – kläckbara varelser (mystery egg-husdjuren)
+// Pluggporten – kläckbara varelser (mystery egg-husdjuren)
 // ----------------------------------------------------------------------------
 // Tabellstyrd SVG-generator: varje art är EN rad i SPECIES (namn + färger +
 // features), och creatureArt() bygger ihop figuren av återanvändbara delar.
