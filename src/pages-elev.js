@@ -35,7 +35,6 @@ export async function pageElevLogin() {
   // öppning (lead-feedback): inga synliga fältetiketter (placeholder +
   // aria-label i stället) så porten syns runt omkring formuläret.
   const card = el(`<div class="port-login">
-    <h1 class="port-login-titel">Logga in 🎒</h1>
     <div id="msg"></div>
     <form id="form">
       <input id="u" name="u" autocomplete="username" autocapitalize="none"
@@ -48,9 +47,6 @@ export async function pageElevLogin() {
       </label>
       <button class="btn stor gron" type="submit" id="submit">Logga in</button>
     </form>
-    <p class="hint center port-login-hint">
-      Testkonto: <b>elev1</b> / <b>123123</b>
-    </p>
   </div>`);
 
   const msg = card.querySelector("#msg");

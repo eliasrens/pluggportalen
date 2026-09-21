@@ -24,7 +24,7 @@ import { O, LINE, THIN, limb } from "./art-style.js";
 const WOOD = "#B0805A";
 const WOOD_DARK = "#8A6242";
 const WOOD_LIGHT = "#E0B98C";
-const METALL = "#46557A"; // gångjärn/lyktor (marin ur paletten)
+const METALL = "#46557A"; // gångjärn (marin ur paletten)
 
 const shadow = (cx, cy, rx) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}" fill="${O}" opacity="0.09"/>`;
@@ -99,15 +99,11 @@ function staket(fromX, toX) {
   </g>`;
 }
 
-/** Hög portal-stolpe med lykta ovanför tvärbalken. */
+/** Hög portal-stolpe (ren trästolpe, utan lykta – issue #340). */
 function stolpe(cx) {
   return `<g>
     <rect x="${cx - 30}" y="140" width="60" height="372" rx="10" fill="${WOOD}" ${LINE}/>
     <rect x="${cx - 20}" y="152" width="14" height="348" rx="7" fill="${WOOD_LIGHT}" stroke="none"/>
-    <rect x="${cx - 13}" y="80" width="26" height="42" rx="8" fill="${METALL}" ${LINE}/>
-    <circle cx="${cx}" cy="101" r="13" fill="#FDE9A8" opacity="0.55"/>
-    <circle cx="${cx}" cy="101" r="7.5" fill="#F7C948" ${THIN}/>
-    <rect x="${cx - 16}" y="72" width="32" height="10" rx="5" fill="${METALL}" ${THIN}/>
   </g>`;
 }
 
