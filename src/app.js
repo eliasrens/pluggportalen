@@ -5,8 +5,8 @@
 // Avatarer i avatars.js.
 //
 // Sidor / routes:
-//   #/                startsida (välj lärare eller elev)
-//   #/elev            elev-inloggning
+//   #/                porten: elev-inloggningen (sidans framdörr, issue #338)
+//   #/elev            samma port (gamla länkar/bokmärken fortsätter fungera)
 //   #/elev/avatar     välj grundavatar (första gången + byta senare)
 //   #/elev/hem        (borttagen sida – omdirigerar till #/elev/hus)
 //   #/elev/plugga     välj arbetsområde att öva på
@@ -63,32 +63,11 @@ import { pageElevOmrade, pageElevSpela } from "./gamemodes.js";
 export { AVATARS, avatarEmoji } from "./avatars.js";
 
 // --- Gemensamma sidor -------------------------------------------------------
-
-function pageHome() {
-  renderTopbar();
-  app.replaceChildren(
-    el(`<div>
-      <div class="panel center">
-        <h1>Välkommen till Pluggporten! 📚</h1>
-        <p class="hint">Öva SO på ett roligt sätt – samla pluggcoins och pynta ditt eget rum.</p>
-      </div>
-      <div class="card-grid">
-        <button class="big-card gron" id="to-elev">
-          <span class="emoji">🎒</span>
-          <span class="title">Jag är elev</span>
-          <span class="sub">Logga in och börja plugga</span>
-        </button>
-        <button class="big-card bla" id="to-larare">
-          <span class="emoji">👩‍🏫</span>
-          <span class="title">Jag är lärare</span>
-          <span class="sub">Se innehåll och elever</span>
-        </button>
-      </div>
-    </div>`)
-  );
-  app.querySelector("#to-elev").addEventListener("click", () => go("#/elev"));
-  app.querySelector("#to-larare").addEventListener("click", () => go("#/larare"));
-}
+// Den gamla startsidan ("Jag är elev"/"Jag är lärare") är borttagen (issue
+// #338): porten (elev-inloggningen) ÄR sidans framdörr och #/ ritar den
+// direkt. Lärare når sin egen inloggning via direktlänken #/larare (eller den
+// diskreta "Lärare →"-länken på porten) – lärarspärren renderGate är kvar
+// oförändrad på #/larare/klasser.
 
 // Delad kontext som lärarsidorna (teacher.js) får: app-ytan, navigering och
 // topbar-renderaren. Håller lärarmodulen fri från globala beroenden.
@@ -133,7 +112,8 @@ async function pageElevAventyr() {
 // --- Router -----------------------------------------------------------------
 
 const routes = {
-  "/": pageHome,
+  // Porten (elev-inloggningen) är framdörren – både #/ och gamla #/elev.
+  "/": pageElevLogin,
   "/elev": pageElevLogin,
   "/elev/avatar": pageElevAvatar,
   // Hem-hjälten är slopad: eleven landar direkt i hus-scenen. Gamla länkar/
