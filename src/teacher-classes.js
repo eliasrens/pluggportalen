@@ -19,6 +19,7 @@ import { slugify } from "./validate.js";
 import {
   el,
   esc,
+  icon,
   isTeacher,
   teacherNav,
   teacherHead,
@@ -64,13 +65,13 @@ export async function pageLarareKlasser(ctx) {
   // så alla klasskort ser samma lista utan omladdning.
   const state = { students };
 
-  const container = el(`<div class="teacher-page"></div>`);
+  const container = el(`<div class="teacher-page teacher-dark"></div>`);
   container.appendChild(teacherNav(ctx, "klasser"));
-  container.appendChild(teacherHead(ctx, { emoji: "🏫", title: "Klasser & elever" }));
+  container.appendChild(teacherHead(ctx, { icon: "users", title: "Klasser & elever" }));
 
   const view = el(`<div>
     <div class="panel">
-      <h2 class="subhead">➕ Skapa en ny klass</h2>
+      <h2 class="subhead">${icon("plus", 20)}<span>Skapa en ny klass</span></h2>
       <p class="hint">Ange klassnamn och antal elever. Vi skapar klassen och elevkontona på en
         gång – med auto-genererade användarnamn och lösenord som du får dela ut. (Sätt 0 elever
         om du bara vill skapa en tom klass.)</p>
@@ -78,7 +79,7 @@ export async function pageLarareKlasser(ctx) {
         <input id="new-name" class="cell" placeholder="Ny klass, t.ex. 6A" autocomplete="off" />
         <input id="new-count" class="cell" type="number" min="0" max="40" step="1" value="0"
           aria-label="Antal elever" />
-        <button class="btn gron" type="submit">➕ Skapa klass</button>
+        <button class="btn gron" type="submit">${icon("plus")}<span>Skapa klass</span></button>
       </form>
       <div id="new-msg"></div>
     </div>
@@ -98,7 +99,7 @@ export async function pageLarareKlasser(ctx) {
       const panel = el(`<div class="panel"></div>`);
       panel.appendChild(
         emptyState(ctx, {
-          emoji: "🏫",
+          icon: "users",
           title: "Inga klasser än",
           text: "Skapa din första klass i rutan ovan – t.ex. <b>6A</b> – så dyker den upp här.",
         })
@@ -124,17 +125,17 @@ export async function pageLarareKlasser(ctx) {
     const card = el(`<div class="panel class-card" data-id="${esc(cls.id)}">
       <div class="class-head">
         <div class="class-title">
-          <span class="class-emoji">🏫</span>
+          <span class="class-emoji" aria-hidden="true">${icon("school", 22)}</span>
           <span class="class-name">${esc(cls.name || cls.id)}</span>
           <span class="class-count">${count} elev${count === 1 ? "" : "er"}</span>
         </div>
         <div class="row-inline">
-          <button class="btn ghost small" data-act="rename">✏️ Döp om</button>
-          <button class="btn ghost small" data-act="toggle">🧑‍🎓 Elever</button>
-          <button class="btn ghost small" data-act="areas">📌 Områden</button>
-          <button class="btn ghost small" data-act="modes">🎮 Lägen per område</button>
-          <button class="btn ghost small" data-act="stats">📊 Statistik</button>
-          <button class="btn ghost small danger" data-act="del">🗑 Ta bort</button>
+          <button class="btn ghost small" data-act="rename">${icon("pencil", 16)}<span>Döp om</span></button>
+          <button class="btn ghost small" data-act="toggle">${icon("grad", 16)}<span>Elever</span></button>
+          <button class="btn ghost small" data-act="areas">${icon("pin", 16)}<span>Områden</span></button>
+          <button class="btn ghost small" data-act="modes">${icon("sliders", 16)}<span>Lägen per område</span></button>
+          <button class="btn ghost small" data-act="stats">${icon("chart", 16)}<span>Statistik</span></button>
+          <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort</span></button>
         </div>
       </div>
       <div class="class-members" hidden></div>

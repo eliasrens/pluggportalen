@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lärardashboard + toppnav – mörk reskin (issue #363)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+  </head>
+  <body>
+    <!-- Samma app-skelett som index.html så .container-layouten stämmer. -->
+    <div class="layout">
+      <main id="app" class="container"></main>
+    </div>
+
+    <script type="module">
+      // Rendera lärarsidans CHROME med de RIKTIGA delade byggstenarna
+      // (teacherNav/teacherHead/emptyState/icon) + samma markup som
+      // teacher-classes.js producerar. Ingen Firebase-inloggning behövs –
+      // vi visar bara utseendet (dashboard + toppnav) i mörkt tema.
+      import {
+        icon,
+        teacherNav,
+        teacherHead,
+        emptyState,
+        el,
+      } from "/src/teacher-shared.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: () => {}, renderTopbar: () => {} };
+
+      // Ett klasskort – identisk markup som teacher-classes.js classCard().
+      function classCard(name, count) {
+        return el(`<div class="panel class-card">
+          <div class="class-head">
+            <div class="class-title">
+              <span class="class-emoji" aria-hidden="true">${icon("school", 22)}</span>
+              <span class="class-name">${name}</span>
+              <span class="class-count">${count} elev${count === 1 ? "" : "er"}</span>
+            </div>
+            <div class="row-inline">
+              <button class="btn ghost small">${icon("pencil", 16)}<span>Döp om</span></button>
+              <button class="btn ghost small">${icon("grad", 16)}<span>Elever</span></button>
+              <button class="btn ghost small">${icon("pin", 16)}<span>Områden</span></button>
+              <button class="btn ghost small">${icon("sliders", 16)}<span>Lägen per område</span></button>
+              <button class="btn ghost small">${icon("chart", 16)}<span>Statistik</span></button>
+              <button class="btn ghost small danger">${icon("trash", 16)}<span>Ta bort</span></button>
+            </div>
+          </div>
+        </div>`);
+      }
+
+      const container = el(`<div class="teacher-page teacher-dark"></div>`);
+      container.appendChild(teacherNav(ctx, "klasser"));
+      container.appendChild(teacherHead(ctx, { icon: "users", title: "Klasser & elever" }));
+
+      const view = el(`<div>
+        <div class="panel">
+          <h2 class="subhead">${icon("plus", 20)}<span>Skapa en ny klass</span></h2>
+          <p class="hint">Ange klassnamn och antal elever. Vi skapar klassen och elevkontona på en
+            gång – med auto-genererade användarnamn och lösenord som du får dela ut. (Sätt 0 elever
+            om du bara vill skapa en tom klass.)</p>
+          <form class="row-inline new-class" onsubmit="return false">
+            <input id="new-name" class="cell" placeholder="Ny klass, t.ex. 6A" />
+            <input id="new-count" class="cell" type="number" min="0" max="40" value="0" aria-label="Antal elever" />
+            <button class="btn gron" type="submit">${icon("plus")}<span>Skapa klass</span></button>
+          </form>
+        </div>
+        <div id="classes"></div>
+      </div>`);
+      container.appendChild(view);
+      app.replaceChildren(container);
+
+      const classesEl = view.querySelector("#classes");
+      classesEl.appendChild(classCard("6A", 24));
+      classesEl.appendChild(classCard("5B", 19));
+
+      // Extra sektion som visar tomtillståndet i samma tema.
+      const emptyPanel = el(`<div class="panel"></div>`);
+      emptyPanel.appendChild(
+        emptyState(ctx, {
+          icon: "users",
+          title: "Inga klasser än",
+          text: "Skapa din första klass i rutan ovan – t.ex. <b>6A</b> – så dyker den upp här.",
+        })
+      );
+      classesEl.appendChild(emptyPanel);
+    </script>
+  </body>
+</html>
