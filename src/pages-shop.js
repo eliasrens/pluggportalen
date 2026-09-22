@@ -13,11 +13,43 @@ import { buyApple, APPLE_ITEM_ID } from "./data-pet-mat.js";
 import { app, el, go, loading, renderTopbar, pageError, flash } from "./ui.js";
 import { buyAnimal, animalsFromData } from "./data-animals.js";
 import { buyFarmAnimal, buyFarmUpgrade } from "./data-farm.js";
-import { CATEGORIES, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isFarmUpgradeItem, isMultiItem, isMysteryBox } from "./shop-items.js";
+import { CATEGORIES, SHOP_ITEMS, getItem, itemsInCategory, isConsumable, isAnimalItem, isFarmAnimalItem, isFarmUpgradeItem, isGardenItem, isMultiItem, isMysteryBox, isSeedItem } from "./shop-items.js";
 import { runMysteryBox } from "./pages-shop-mystery.js";
 import { wearableSvg } from "./art-wearables.js";
 import { itemSvg, categorySvg } from "./art-items.js";
 import { coinIcon } from "./icons.js";
+
+// --- "🌾 Baksidan"-fliken (#358) --------------------------------------------
+// Ren UI-GRUPPERING i shoppen: samlar allt gård/trädgård/baksida-relaterat i en
+// egen flik med underrubriker. Items behåller sina category-fält (köp/placering/
+// predikaten beror på dem) – flik-tillhörighet avgörs av flaggorna/predikaten
+// nedan. Sektionerna är disjunkta: varje sak matchar exakt en. Trädgårds- och
+// mat-flikarna töms av flytten och försvinner då automatiskt ur flikraden
+// (flikar utan varor visas inte).
+const BAKSIDAN_TAB = {
+  id: "baksidan", name: "Baksidan", emoji: "🌾",
+  hint: "Allt till gården och trädgården bakom ditt hus – frön, djur, mat, pynt och uppgraderingar.",
+};
+const BAKSIDAN_SEKTIONER = [
+  { rubrik: "🌱 Odling", match: (it) => isSeedItem(it.id) },
+  { rubrik: "🐴 Bondgårdsdjur", match: (it) => isFarmAnimalItem(it.id) },
+  // Mysterymaten (äpplet) är djurmat som läggs ut åt husdjuren → hör hemma här.
+  { rubrik: "🍎 Djurmat & foder", match: (it) => isConsumable(it.id) },
+  { rubrik: "🌳 Trädgård & pynt", match: (it) => isGardenItem(it.id) && !isSeedItem(it.id) && !isFarmUpgradeItem(it.id) },
+  { rubrik: "⬆️ Uppgraderingar", match: (it) => isFarmUpgradeItem(it.id) },
+  // Lada-skins (#353) har category "hus" men väljs på gården (🛖 Ny lada).
+  { rubrik: "🛖 Lada-typer", match: (it) => !!it.barnSkin },
+];
+
+/** Hör saken hemma i Baksidan-fliken (och ska bort ur sin vanliga flik)? */
+function isBaksidanItem(it) {
+  return BAKSIDAN_SEKTIONER.some((s) => s.match(it));
+}
+
+/** Varorna i en vanlig kategoriflik: Baksidan-sakerna är lyfta UR den. */
+function itemsInTab(catId) {
+  return itemsInCategory(catId).filter((it) => !isBaksidanItem(it));
+}
 
 export async function pageElevShop() {
   if (!data.isLoggedIn()) return go("#/elev");
@@ -55,7 +87,12 @@ export async function pageElevShop() {
 
   // Bara kategorier som faktiskt har köpbara varor blir flikar. CATEGORIES-
   // ordningen bevaras, så mysteryboxen (sist i listan) hamnar sist i flikraden.
-  const tabCats = CATEGORIES.filter((cat) => itemsInCategory(cat.id).length > 0);
+  // Baksidan-fliken (#358) tar den tömda trädgårds-flikens plats.
+  const tabCats = [];
+  for (const cat of CATEGORIES) {
+    if (cat.id === "tradgard") tabCats.push(BAKSIDAN_TAB);
+    if (itemsInTab(cat.id).length > 0) tabCats.push(cat);
+  }
 
   // Aktiv flik minns i localStorage (tåligt om storage saknas/är blockerad).
   // Default: första kategorin med varor.
@@ -86,9 +123,23 @@ export async function pageElevShop() {
       })
       .join("");
 
-    const cards = itemsInCategory(cat.id)
-      .map((it) => shopCardHtml(it, state))
-      .join("");
+    // Baksidan (#358) renderas som underrubriker med kort under – alla
+    // sektioner synliga i samma scrollande flik. Övriga flikar är en enda grid.
+    let varor;
+    if (cat.id === BAKSIDAN_TAB.id) {
+      varor = BAKSIDAN_SEKTIONER
+        .map((s) => {
+          const items = SHOP_ITEMS.filter((it) => !it.mysteryOnly && s.match(it));
+          if (items.length === 0) return "";
+          const cards = items.map((it) => shopCardHtml(it, state)).join("");
+          return `<h3 class="shop-underrubrik">${s.rubrik}</h3>
+            <div class="shop-grid">${cards}</div>`;
+        })
+        .join("");
+    } else {
+      const cards = itemsInTab(cat.id).map((it) => shopCardHtml(it, state)).join("");
+      varor = `<div class="shop-grid">${cards}</div>`;
+    }
     const hint = cat.hint ? `<p class="hint shop-cat-hint">${cat.hint}</p>` : "";
 
     katalog.replaceChildren(
@@ -96,7 +147,7 @@ export async function pageElevShop() {
         <div class="shop-tabs" role="tablist">${tabs}</div>
         <section class="shop-cat" role="tabpanel">
           ${hint}
-          <div class="shop-grid">${cards}</div>
+          ${varor}
         </section>
       </div>`)
     );
@@ -236,6 +287,8 @@ function readSavedCat(tabCats) {
   try {
     const id = localStorage.getItem(ACTIVE_CAT_KEY);
     if (id && tabCats.some((c) => c.id === id)) return id;
+    // Sparade flikar vars varor flyttat in i Baksidan (#358) → landa där.
+    if (id === "tradgard" || id === "mat") return "baksidan";
   } catch (_) {
     // storage saknas/blockerad (privat läge m.m.) – strunta i det.
   }

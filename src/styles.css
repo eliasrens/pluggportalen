@@ -1408,6 +1408,16 @@ code {
   gap: 14px;
 }
 
+/* Baksidan-flikens underrubriker (#358): sektioner i samma scrollande flik. */
+.shop-underrubrik {
+  margin: 22px 0 10px;
+  font-size: 1.1rem;
+}
+
+.shop-underrubrik:first-of-type {
+  margin-top: 4px;
+}
+
 .shop-card {
   background: var(--panel);
   border-radius: var(--radie);
