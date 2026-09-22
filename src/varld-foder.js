@@ -196,7 +196,7 @@ export function foderInnehall(uid, { onChanged } = {}) {
  * @param {HTMLElement} o.gardLager     gårds-lagret (hagen)
  * @param {HTMLElement} o.laggardLager  laggårds-lagret (ladan)
  * @param {() => void} [o.onChanged]    efter matning/gåva (t.ex. rita om djuren)
- * @returns {{ stang: () => void }}
+ * @returns {{ stang: () => void, oppna: (uid: string, namn: string) => void }}
  */
 export function mountFoder({ stage, gardLager, laggardLager, onChanged }) {
   const panel = el(`<div class="varld-panel" id="panel-foder" hidden>
@@ -240,5 +240,7 @@ export function mountFoder({ stage, gardLager, laggardLager, onChanged }) {
     });
   }
 
-  return { stang };
+  // oppna exponeras även till laggårdens Verktyg-panel (#359): "🧺 Mata"-
+  // knappen där öppnar samma panel som ett klick på djuret i ladan.
+  return { stang, oppna };
 }

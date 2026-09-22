@@ -38,14 +38,14 @@
         <b>Öppna en box</b> för att se lottnings- och reveal-animationen (körs lokalt, ingen inloggning). Dubbletter
         ger coins i den riktiga appen – här visas alltid vinsten.</p>
     </header>
+    <div class="open-row" id="boxar"></div>
     <div class="open-row">
-      <button id="oppna">🎁 Öppna en box</button>
       <span class="tally" id="tally"></span>
     </div>
     <div id="rot"></div>
 
     <script type="module">
-      import { MYSTERY_ITEMS, RARITIES, RARITY_ORDER, rarityInfo, rollMysteryItem, itemsOfRarity } from "./src/mystery-items.js";
+      import { MYSTERY_BOXES, MYSTERY_ITEMS, RARITIES, RARITY_ORDER, rarityInfo, rollMysteryItem, itemsOfRarity } from "./src/mystery-items.js";
       import { confetti } from "./src/fx.js";
       import { wearableSvg } from "./src/art-wearables.js";
       import { itemSvg } from "./src/art-items.js";
@@ -133,7 +133,17 @@
         </svg>`;
       }
 
-      document.getElementById("oppna").addEventListener("click", () => reveal(rollMysteryItem()));
+      // En öppna-knapp per box-nivå (#348: Mini först = billigast), med boxens
+      // egen SVG-ikon (art-mystery-box.js) och dess legendaryChance i lottningen.
+      const boxRow = document.getElementById("boxar");
+      for (const box of MYSTERY_BOXES) {
+        const btn = document.createElement("button");
+        btn.style.marginRight = "10px";
+        btn.innerHTML = `<span style="display:inline-block;width:26px;height:26px;vertical-align:-7px;margin-right:6px">${itemSvg(box.id) || box.emoji}</span>${box.name} · ${box.price} 🪙` +
+          (box.legendaryChance != null ? ` · ${(box.legendaryChance * 100).toLocaleString("sv-SE")} % leg.` : "");
+        btn.addEventListener("click", () => reveal(rollMysteryItem(Math.random, { legendaryChance: box.legendaryChance })));
+        boxRow.appendChild(btn);
+      }
       showTally();
     </script>
   </body>

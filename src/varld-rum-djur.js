@@ -17,12 +17,13 @@
 // ============================================================================
 
 import * as animalData from "./data-animals.js";
-import { setAnimalPlacement, saveFarmAnimalPositions, saveFarmAnimalName } from "./data-farm.js";
+import { getFarm, setAnimalPlacement, saveFarmAnimalPositions, saveFarmAnimalName } from "./data-farm.js";
 import { farmFromData, placementFor, moodForTrivsel, barnPlaceCountForLevel, trivselNow, giftReadyIn } from "./farm-core.js";
-import { el } from "./ui.js";
+import { el, flash } from "./ui.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { farmMoodSvg } from "./art-pets.js";
+import { CROPS } from "./art-garden.js";
 
 /**
  * Montera de vanliga djuren för rumsscenen.
@@ -176,7 +177,9 @@ export function mountRumDjur({ sd }) {
    * Laggården har ett nivå-tak (#333: barnPlaceCountForLevel) – är ladan full
    * returneras false UTAN ändring (samma spärr finns i kärnans setPlacementIn),
    * så anroparen kan visa "ladan är full".
-   * @returns {boolean} gick flytten?
+   * @returns {false|Promise} false = ladan full (inget ändrat); annars spar-
+   *   löftet (truthy – kan awaitas av den som vill rita först när skrivningen
+   *   landat och cachen invaliderats, t.ex. laggårdens Verktyg #359).
    */
   function setLocation(id, location) {
     const a = farmAnimals.find((x) => x.id === id);
@@ -186,8 +189,7 @@ export function mountRumDjur({ sd }) {
       if (inne >= barnPlaceCountForLevel(farm.barnLevel)) return false;
     }
     a.location = location;
-    setAnimalPlacement(id, location).catch(() => {});
-    return true;
+    return setAnimalPlacement(id, location).catch(() => {});
   }
 
   return {
@@ -199,6 +201,8 @@ export function mountRumDjur({ sd }) {
     stowedList: () => animals.filter((a) => a.stowed),
     // Bondgårdsdjuren (alla, oavsett plats) – för placerings-väljaren i Mina djur.
     farmList: () => farmAnimals,
+    // Laggårdens spiltor (#333-taket) – för "X av Y platser" i Verktyg (#359).
+    barnCap: () => barnPlaceCountForLevel(farm.barnLevel),
     byId: (id) => animals.find((a) => a.id === id) || farmAnimals.find((a) => a.id === id),
     displayName,
     stageNode,
@@ -208,4 +212,69 @@ export function mountRumDjur({ sd }) {
     scheduleSave,
     saveWalkPositions,
   };
+}
+
+// ============================================================================
+// Mata ett VANLIGT djur (#349): ren klient-FX – hjärtan, ingen tillväxt,
+// ingen Firestore-skrivning. Grödan förbrukas INTE (till skillnad från
+// bondgårdsdjurens trivsel-loop i varld-foder.js, som är orörd).
+// ============================================================================
+
+// Transient per-session-cooldown per djur (uid → senaste matning, ms). Bor på
+// modulnivå så den överlever ommonteringar av rummet – nollas först vid
+// omladdning av sidan. Hindrar hjärt-spam utan någon datalagring.
+const MAT_PAUS_MS = 8000;
+const senastMatad = new Map();
+
+/**
+ * Mat-sektionen i ett vanligt djurs namn-panel: skörde-förrådets grödor som
+ * knappar – ett klick ger hjärtan på djurets scen-nod (via `hjarta`, t.ex.
+ * petPat) och en glad flash. ALLA grödor funkar (inget rätt-mat-krav), inget
+ * förbrukas och djuret växer aldrig. Tomt förråd → snäll odla-hint.
+ *
+ * @param {object} a  djuret ur mountRumDjur (id = instans-uid)
+ * @param {object} o
+ * @param {string} o.namn             visningsnamnet (djur.displayName(a))
+ * @param {(id: string) => void} o.hjarta  hjärt-FX på djurets nod (petPat)
+ * @returns {HTMLElement}
+ */
+export function djurMatSektion(a, { namn, hjarta }) {
+  const rot = el(`<div class="foder-sektion"><p class="hint">Hämtar matkorgen… 🧺</p></div>`);
+
+  getFarm().then((farm) => {
+    const forrad = Object.entries(farm.inventoryHarvest || {}).filter(([id, n]) => CROPS[id] && n > 0);
+    if (forrad.length === 0) {
+      rot.replaceChildren(el(`<p class="hint">Skörda grödor i odlingsbädden på gården, så kan du bjuda ${namn} på något gott! 🌱</p>`));
+      return;
+    }
+    const knappar = forrad.map(([id, n]) => {
+      const meta = CROPS[id];
+      return `<button class="tray-item" data-godis="${id}" title="Bjud ${namn} på ${meta.name.toLowerCase()}">
+        <span class="tray-emoji">${meta.emoji}</span>
+        <span class="tray-namn">${meta.name} ×${n}</span>
+      </button>`;
+    }).join("");
+    rot.replaceChildren(el(`<div>
+      <p class="hint">Bjud ${namn} på något gott ur förrådet – allt smakar! 💚</p>
+      <div class="room-tray foder-tray">${knappar}</div>
+    </div>`));
+
+    rot.querySelector(".foder-tray").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-godis]");
+      if (!btn) return;
+      const kvar = MAT_PAUS_MS - (Date.now() - (senastMatad.get(a.id) || 0));
+      if (kvar > 0) {
+        flash(`${namn} tuggar fortfarande – vänta en liten stund! 😋`);
+        return;
+      }
+      senastMatad.set(a.id, Date.now());
+      const meta = CROPS[btn.dataset.godis];
+      hjarta(a.id);
+      flash(`${namn} mumsar glatt på ${meta ? meta.name.toLowerCase() : "godsakerna"}! ${meta ? meta.emoji : ""} 💚`);
+    });
+  }).catch(() => {
+    rot.replaceChildren(el(`<p class="hint">Kunde inte hämta förrådet just nu.</p>`));
+  });
+
+  return rot;
 }

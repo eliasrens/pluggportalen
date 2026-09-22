@@ -32,6 +32,8 @@ import { mountOdling } from "./varld-odling.js";
 import { mountGardDjur } from "./gard-djur.js";
 import { getFarm } from "./data-farm.js";
 import { mountFoder } from "./varld-foder.js";
+import { mountLadaSkin } from "./varld-lada-skin.js";
+import { mountLadaVerktyg } from "./varld-lada-verktyg.js";
 
 /**
  * Skapa gårds-grenen.
@@ -44,18 +46,26 @@ import { mountFoder } from "./varld-foder.js";
  * @param {() => Promise<void>} o.ensureHus  ta huvudkameran till "hus" om den
  *        står någon annanstans (t.ex. rummet) innan grenen zoomar vidare.
  * @param {(nivaId:string) => void} o.onNiva  körs när gårds-kameran bytt nivå.
+ * @param {() => object|null} [o.tradgard]  getter till trädgårds-kontrollern
+ *        (mountTradgard, #356): gardRita() ritar gårds-sakerna efter varje
+ *        scen-ombyggnad, gardVisa(nivaId) togglar "🧰 Verktyg"-knappen.
+ * @param {() => object|null} [o.rum]  getter till rums-kontrollern (rumCtl i
+ *        pages-varld.js): laggårdens Verktyg (#359) placerar bondgårdsdjuren
+ *        via rummets mekanik (listFarmDjur/placeraFarmDjur/farmBarnCap).
  * @returns {{visa:(nivaId:string)=>Promise<void>, tillbaka:()=>boolean,
  *   nollstall:()=>void, aktivId:string}}
  */
-export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureHus, onNiva }) {
+export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureHus, onNiva, tradgard, rum }) {
   // Samma uteLager som huvudkamerans hus-nivå men EGET fokus: kameran dyker
   // "in i" huset (dörren/fasadmitten) på väg till baksidan.
   const husGardNiva = { id: "hus", el: uteLager, fokus: { x: 50, y: 46 }, zoom: 5 };
   let kamera = null;
-  let byggd = null; // "gardenTier:barnLevel" som scenerna senast ritades för
+  let byggd = null; // "gardenTier:barnLevel:barnSkin" som scenerna senast ritades för
   let odling = null; // odlingsbädden (#329) – monteras när scenen byggts
   let gardDjur = null; // bondgårdsdjuren (#330) – monteras vid första besöket
   let foder = null; // foder-panelen (#332) – klick på djur i hagen/ladan
+  let ladaSkin = null; // lada-skin-väljaren "🛖 Ny lada" (#353)
+  let ladaVerktyg = null; // laggårdens "🧰 Verktyg" (#359) – välj/mata djur i ladan
 
   // Scenerna ritas först vid första gårds-besöket (lat – ingen kostnad för
   // elever som aldrig går ut på baksidan) och ritas OM när elevens nivåer
@@ -65,18 +75,42 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   // faller tillbaka på nivå 1-scenerna (nästa besök försöker igen).
   async function bygg() {
     const farm = await getFarm().catch(() => null);
-    const nyckel = farm ? farm.gardenTier + ":" + farm.barnLevel : "1:1";
+    const nyckel = farm ? farm.gardenTier + ":" + farm.barnLevel + ":" + (farm.barnSkin || "") : "1:1:";
     if (byggd === nyckel) return;
     byggd = nyckel;
-    gardLager.innerHTML = gardScen(farm ? { gardenTier: farm.gardenTier, barnLevel: farm.barnLevel } : {});
-    laggardLager.innerHTML = laggardScen(farm ? farm.barnLevel : 1);
+    gardLager.innerHTML = gardScen(
+      farm ? { gardenTier: farm.gardenTier, barnLevel: farm.barnLevel, barnSkin: farm.barnSkin } : {});
+    laggardLager.innerHTML = laggardScen(farm ? farm.barnLevel : 1, farm ? farm.barnSkin : null);
     odling ??= mountOdling({ stage, gardLager });
+    // Lada-skin-väljaren (#353): "🛖 Ny lada" på gårds-nivåerna. Ett sparat byte
+    // ritar om BÅDA scenerna (bygg – nyckeln har ändrats) och ritar sedan om
+    // odling/djur ovanpå de färska lagren (innerHTML rensade deras overlays;
+    // gardDjur.refresh återskapar sitt lager via ensureOverlay, som vid #333).
+    ladaSkin ??= mountLadaSkin({
+      stage,
+      onChanged: async () => {
+        await bygg();
+        if (odling) odling.visa();
+        gardDjur?.refresh().catch(() => {});
+        tradgard?.()?.gardRita(); // innerHTML rensade även trädgårds-lagret (#356)
+      },
+    });
     // Foder-panelen (#332): klick på ett djur i hagen/ladan → mata/hämta gåva.
     // Mood-min + 🎁-badge uppdateras in-place av panelen själv (ingen refresh –
     // en omritning skulle nollställa djurens pågående promenad-animationer).
     // ??= som odling: bygg() kan köras om vid nivåbyte (#333) och panelen
     // lyssnar via delegering på lagren, så EN montering räcker.
     foder ??= mountFoder({ stage, gardLager, laggardLager });
+    // Laggårdens Verktyg (#359): välj vilka djur som bor i ladan + mata dem –
+    // placeringen går via RUMMETS kontroller (rum-gettern, samma mekanik som
+    // Mina djur inkl. #333-taket); "🧺 Mata" öppnar foder-panelen ovan. När en
+    // flytt SPARATS ritas hagen/ladan om (gard-djur läser placeringen färskt).
+    ladaVerktyg ??= mountLadaVerktyg({
+      stage,
+      rum,
+      oppnaFoder: (uid, namn) => foder?.oppna(uid, namn),
+      onPlaced: () => gardDjur?.refresh().catch(() => {}),
+    });
   }
 
   function ensureKamera() {
@@ -93,6 +127,12 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
         if (nivaId !== "gard" && odling) odling.stang();
         // Foder-panelen (#332) stängs vid varje nivåbyte (djuret lämnas kvar).
         if (foder) foder.stang();
+        // "🛖 Ny lada"-knappen (#353) syns bara på gård-/laggård-nivåerna.
+        ladaSkin?.visa(nivaId);
+        // Laggårdens "🧰 Verktyg" (#359) syns bara inne i laggården.
+        ladaVerktyg?.visa(nivaId);
+        // "🧰 Verktyg"-knappen (#356) syns bara på gård-nivån.
+        tradgard?.()?.gardVisa(nivaId);
         onNiva(nivaId);
       },
     }));
@@ -109,6 +149,9 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     // ha vuxit av plugguppgifter sedan sist). Fire-and-forget: kameran ska inte
     // vänta på Firestore.
     if (nivaId === "gard" && odling) odling.visa();
+    // Trädgårds-sakerna på gården (#356): säkra lagret (bygg kan ha skrivit om
+    // scenens innerHTML) och rita placeringarna innan kameran zoomar in.
+    tradgard?.()?.gardRita();
     // Bondgårdsdjuren (#330): läs placeringarna färskt och rita/animera djuren
     // i hagen & ladan. Blockerar inte kamerazoomen (fire-and-forget); ett
     // nätverksfel lämnar bara scenen tom (nästa besök försöker igen).

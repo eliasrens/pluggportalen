@@ -111,9 +111,13 @@ test("rollMysteryItem returnerar alltid ett item ur poolen", () => {
   }
 });
 
-test("MYSTERY_BOXES: tre nivåer 500/1000/2000, stigande legendary-chans", () => {
-  assert.equal(MYSTERY_BOXES.length, 3);
-  const [vanlig, mega, epic] = MYSTERY_BOXES;
+test("MYSTERY_BOXES: fyra nivåer 250/500/1000/2000, stigande legendary-chans", () => {
+  assert.equal(MYSTERY_BOXES.length, 4);
+  const [mini, vanlig, mega, epic] = MYSTERY_BOXES;
+  // Mini-boxen (#348): billigast, låg legendary-chans ~0,5 %.
+  assert.equal(mini.id, "mysterybox-mini");
+  assert.equal(mini.price, 250);
+  assert.equal(mini.legendaryChance, 0.005);
   // Vanliga boxen är oförändrad: id/pris + basviktning (legendaryChance null).
   assert.equal(vanlig.id, MYSTERY_BOX_ID);
   assert.equal(vanlig.price, MYSTERY_BOX_PRICE);
@@ -126,7 +130,18 @@ test("MYSTERY_BOXES: tre nivåer 500/1000/2000, stigande legendary-chans", () =>
   assert.ok(mega.legendaryChance > 0.05 && mega.legendaryChance < 0.2, `mega ${mega.legendaryChance}`);
   assert.ok(epic.legendaryChance >= 0.85, `epic ${epic.legendaryChance}`);
   // Priserna i stigande ordning (visas billigast → dyrast sist i shoppen).
-  assert.ok(vanlig.price < mega.price && mega.price < epic.price);
+  assert.ok(mini.price < vanlig.price && vanlig.price < mega.price && mega.price < epic.price);
+});
+
+test("rollMysteryItem: mini-boxens legendaryChance 0.005 ger ~0,5 % legendary", () => {
+  // rng < 0.005 → legendary; annars viktas vanlig/ovanlig/sällsynt inbördes.
+  assert.equal(rollMysteryItem(seqRng([0.004, 0]), { legendaryChance: 0.005 }).rarity, "legendary");
+  assert.notEqual(rollMysteryItem(seqRng([0.006, 0, 0]), { legendaryChance: 0.005 }).rarity, "legendary");
+  let leg = 0;
+  const N = 40000;
+  for (let k = 0; k < N; k++) if (rollMysteryItem(Math.random, { legendaryChance: 0.005 }).rarity === "legendary") leg++;
+  const share = leg / N;
+  assert.ok(share > 0.001 && share < 0.012, `mini legendary-andel ${share}`);
 });
 
 test("rollMysteryItem: legendaryChance parametrerar legendary-oddsen", () => {
