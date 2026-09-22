@@ -145,7 +145,7 @@ export function teacherNav(ctx, active) {
     <div class="teacher-nav-inner">
       <span class="teacher-nav-brand" aria-hidden="true">
         <span class="teacher-nav-logo">${icon("school", 20)}</span>
-        <span class="teacher-nav-wordmark">Lärarrum</span>
+        <span class="teacher-nav-wordmark">Lärarsida</span>
       </span>
       <span class="teacher-nav-tabs">
       ${tabs
