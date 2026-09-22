@@ -177,7 +177,9 @@ export function mountRumDjur({ sd }) {
    * Laggården har ett nivå-tak (#333: barnPlaceCountForLevel) – är ladan full
    * returneras false UTAN ändring (samma spärr finns i kärnans setPlacementIn),
    * så anroparen kan visa "ladan är full".
-   * @returns {boolean} gick flytten?
+   * @returns {false|Promise} false = ladan full (inget ändrat); annars spar-
+   *   löftet (truthy – kan awaitas av den som vill rita först när skrivningen
+   *   landat och cachen invaliderats, t.ex. laggårdens Verktyg #359).
    */
   function setLocation(id, location) {
     const a = farmAnimals.find((x) => x.id === id);
@@ -187,8 +189,7 @@ export function mountRumDjur({ sd }) {
       if (inne >= barnPlaceCountForLevel(farm.barnLevel)) return false;
     }
     a.location = location;
-    setAnimalPlacement(id, location).catch(() => {});
-    return true;
+    return setAnimalPlacement(id, location).catch(() => {});
   }
 
   return {
@@ -200,6 +201,8 @@ export function mountRumDjur({ sd }) {
     stowedList: () => animals.filter((a) => a.stowed),
     // Bondgårdsdjuren (alla, oavsett plats) – för placerings-väljaren i Mina djur.
     farmList: () => farmAnimals,
+    // Laggårdens spiltor (#333-taket) – för "X av Y platser" i Verktyg (#359).
+    barnCap: () => barnPlaceCountForLevel(farm.barnLevel),
     byId: (id) => animals.find((a) => a.id === id) || farmAnimals.find((a) => a.id === id),
     displayName,
     stageNode,

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – laggårdens Verktyg (#359)</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #359: den RIKTIGA Verktyg-modulen
+         (varld-lada-verktyg.js) monterad mot en LOKAL rums-attrapp (ingen
+         inloggning/Firestore) – samma kontrakt som rummets kontroller
+         (listFarmDjur/placeraFarmDjur/farmBarnCap i varld-rum.js) inklusive
+         lad-taket (#333). "🧺 Mata" loggas i stället för att öppna
+         foder-panelen (#332, den har egen preview: preview-foder.html). */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .verktygsrad { margin: 10px 20px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      #logg { font-size: 0.9rem; margin: 8px 20px; min-height: 1.2em; color: #1e8e4e; font-weight: 700; }
+      #logg.fel { color: #c0392b; }
+      /* Minimal spegling av .varld-stage-geometrin (styles.css positionerar
+         .varld-ui/.varld-panel absolut mot scenen). */
+      #stage {
+        position: relative; margin: 12px 20px 40px; width: min(96vw, 900px);
+        aspect-ratio: 8 / 5; border-radius: 18px; overflow: hidden;
+        box-shadow: 0 8px 24px rgba(59, 51, 80, 0.18);
+        container-type: inline-size; --fdjur-koeff: 3.1; --fdjur-cap: 47px;
+      }
+      #laggard-lager { position: absolute; inset: 0; }
+      #laggard-lager > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .varld-ui { position: absolute; inset: 0; pointer-events: none; }
+      .varld-ui .varld-ui-topp, .varld-ui .varld-panel, .varld-ui .varld-knapp { pointer-events: auto; }
+      .gard-djur-lager { position: absolute; inset: 0; pointer-events: none; }
+      .gard-djur-lager .gard-djur { position: absolute; transform: translate(-50%, -50%); }
+      .gard-djur-lager .ri-emoji { display: block; }
+      .gard-djur-lager .rp-namn {
+        display: block; text-align: center; font-size: 0.75rem; background: rgba(255,255,255,0.85);
+        border-radius: 8px; padding: 0 6px; margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🧰 Laggårdens Verktyg (#359)</h1>
+      <p>
+        Riktiga <code>mountLadaVerktyg</code> mot en lokal attrapp av rummets
+        kontroller: välj var djuren bor (lad-taket ger "Ladan är full") och
+        tryck 🧺 Mata på ett djur i ladan. Byt laggårds-nivå för att se
+        taket 2/4/8 och scenen växa.
+      </p>
+    </header>
+    <div class="verktygsrad">
+      <label>Laggårds-nivå:
+        <select id="niva-val">
+          <option value="1" selected>1 – Litet skjul (2 platser)</option>
+          <option value="2">2 – Röd trälada (4 platser)</option>
+          <option value="3">3 – Herrgårdslaggård (8 platser)</option>
+        </select>
+      </label>
+    </div>
+    <p id="logg"></p>
+    <div id="stage" class="varld-stage" data-niva="laggard">
+      <div id="laggard-lager"></div>
+      <div class="varld-ui"><div class="varld-ui-topp"></div></div>
+    </div>
+    <script type="module">
+      import { laggardScen } from "./src/art-gard.js";
+      import { mountLadaVerktyg } from "./src/varld-lada-verktyg.js";
+      import { barnPlaceCountForLevel } from "./src/farm-core.js";
+      import { getItem } from "./src/shop-items.js";
+      import { itemSvg, itemSize } from "./src/art-items.js";
+      import { farmSideSvg, farmSideSize } from "./src/art-pets-side.js";
+
+      const stage = document.getElementById("stage");
+      const lager = document.getElementById("laggard-lager");
+      const logg = document.getElementById("logg");
+      let barnLevel = 1;
+
+      // Rums-attrappen: samma kontrakt som rumCtl (varld-rum.js #359) – en
+      // in-memory-djurlista + placeraFarmDjur med #333-taket (spar-"löftet"
+      // är omedelbart uppfyllt: ingen Firestore här).
+      const djur = [
+        { id: "animal_horse#p1", art: "animal_horse", name: "Blixten", location: "barn" },
+        { id: "animal_cow#p2", art: "animal_cow", name: "Rosa", location: "room" },
+        { id: "animal_pig#p3", art: "animal_pig", name: null, location: "paddock" },
+        { id: "animal_horse#p4", art: "animal_horse", name: "Stjärna", location: "room" },
+      ];
+      const namn = (d) => d.name || (getItem(d.art)?.name ?? "Djuret");
+      const rumAttrapp = {
+        listFarmDjur: () => djur.map((d) => ({
+          id: d.id, name: namn(d), location: d.location,
+          artHtml: itemSvg(d.art) || (getItem(d.art)?.emoji ?? "🐾"),
+        })),
+        farmBarnCap: () => barnPlaceCountForLevel(barnLevel),
+        placeraFarmDjur(id, location) {
+          const d = djur.find((x) => x.id === id);
+          if (!d) return false;
+          if (location === "barn" && d.location !== "barn") {
+            const inne = djur.filter((x) => x.location === "barn").length;
+            if (inne >= barnPlaceCountForLevel(barnLevel)) {
+              saga("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
+              return false;
+            }
+          }
+          d.location = location;
+          saga(location === "room" ? `${namn(d)} bor nu i rummet! 🛏️`
+            : location === "paddock" ? `${namn(d)} går nu ute i hagen! 🌾`
+            : `${namn(d)} bor nu i ladan! 🏠`);
+          return Promise.resolve({ ok: true });
+        },
+      };
+
+      function saga(text, fel = false) {
+        logg.textContent = text;
+        logg.classList.toggle("fel", !!fel);
+      }
+
+      // Scen + statiska djur-noder (gard-djur.js:s nod-mönster, utan promenad).
+      function rita() {
+        lager.innerHTML = laggardScen(barnLevel, null);
+        const overlay = document.createElement("div");
+        overlay.className = "gard-djur-lager";
+        const inne = djur.filter((d) => d.location === "barn");
+        inne.forEach((d, i) => {
+          const side = farmSideSvg(d.art, namn(d));
+          const size = (side && farmSideSize(d.art)) || itemSize(d.art);
+          const nod = document.createElement("div");
+          nod.className = "room-item room-pet gard-djur";
+          nod.style.left = (25 + (i * 50) / Math.max(1, inne.length - 1 || 1)) + "%";
+          nod.style.top = "72%";
+          nod.innerHTML = `<span class="ri-emoji" style="width:calc(${size.w} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)));height:calc(${size.h} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)))">${side || itemSvg(d.art) || "🐾"}</span><span class="rp-namn">${namn(d)}</span>`;
+          overlay.appendChild(nod);
+        });
+        lager.appendChild(overlay);
+      }
+
+      const verktyg = mountLadaVerktyg({
+        stage,
+        rum: () => rumAttrapp,
+        oppnaFoder: (uid, n) => saga(`🧺 Foder-panelen (#332) öppnas för ${n} (${uid}) – se preview-foder.html.`),
+        onPlaced: () => rita(),
+      });
+      verktyg.visa("laggard");
+
+      document.getElementById("niva-val").addEventListener("change", (e) => {
+        barnLevel = Number(e.target.value);
+        rita();
+        saga(`Laggårds-nivå ${barnLevel} – ${barnPlaceCountForLevel(barnLevel)} platser.`);
+      });
+
+      rita();
+    </script>
+  </body>
+</html>

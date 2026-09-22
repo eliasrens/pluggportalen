@@ -33,6 +33,7 @@ import { mountGardDjur } from "./gard-djur.js";
 import { getFarm } from "./data-farm.js";
 import { mountFoder } from "./varld-foder.js";
 import { mountLadaSkin } from "./varld-lada-skin.js";
+import { mountLadaVerktyg } from "./varld-lada-verktyg.js";
 
 /**
  * Skapa gårds-grenen.
@@ -48,10 +49,13 @@ import { mountLadaSkin } from "./varld-lada-skin.js";
  * @param {() => object|null} [o.tradgard]  getter till trädgårds-kontrollern
  *        (mountTradgard, #356): gardRita() ritar gårds-sakerna efter varje
  *        scen-ombyggnad, gardVisa(nivaId) togglar "🧰 Verktyg"-knappen.
+ * @param {() => object|null} [o.rum]  getter till rums-kontrollern (rumCtl i
+ *        pages-varld.js): laggårdens Verktyg (#359) placerar bondgårdsdjuren
+ *        via rummets mekanik (listFarmDjur/placeraFarmDjur/farmBarnCap).
  * @returns {{visa:(nivaId:string)=>Promise<void>, tillbaka:()=>boolean,
  *   nollstall:()=>void, aktivId:string}}
  */
-export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureHus, onNiva, tradgard }) {
+export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureHus, onNiva, tradgard, rum }) {
   // Samma uteLager som huvudkamerans hus-nivå men EGET fokus: kameran dyker
   // "in i" huset (dörren/fasadmitten) på väg till baksidan.
   const husGardNiva = { id: "hus", el: uteLager, fokus: { x: 50, y: 46 }, zoom: 5 };
@@ -61,6 +65,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   let gardDjur = null; // bondgårdsdjuren (#330) – monteras vid första besöket
   let foder = null; // foder-panelen (#332) – klick på djur i hagen/ladan
   let ladaSkin = null; // lada-skin-väljaren "🛖 Ny lada" (#353)
+  let ladaVerktyg = null; // laggårdens "🧰 Verktyg" (#359) – välj/mata djur i ladan
 
   // Scenerna ritas först vid första gårds-besöket (lat – ingen kostnad för
   // elever som aldrig går ut på baksidan) och ritas OM när elevens nivåer
@@ -96,6 +101,16 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     // ??= som odling: bygg() kan köras om vid nivåbyte (#333) och panelen
     // lyssnar via delegering på lagren, så EN montering räcker.
     foder ??= mountFoder({ stage, gardLager, laggardLager });
+    // Laggårdens Verktyg (#359): välj vilka djur som bor i ladan + mata dem –
+    // placeringen går via RUMMETS kontroller (rum-gettern, samma mekanik som
+    // Mina djur inkl. #333-taket); "🧺 Mata" öppnar foder-panelen ovan. När en
+    // flytt SPARATS ritas hagen/ladan om (gard-djur läser placeringen färskt).
+    ladaVerktyg ??= mountLadaVerktyg({
+      stage,
+      rum,
+      oppnaFoder: (uid, namn) => foder?.oppna(uid, namn),
+      onPlaced: () => gardDjur?.refresh().catch(() => {}),
+    });
   }
 
   function ensureKamera() {
@@ -114,6 +129,8 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
         if (foder) foder.stang();
         // "🛖 Ny lada"-knappen (#353) syns bara på gård-/laggård-nivåerna.
         ladaSkin?.visa(nivaId);
+        // Laggårdens "🧰 Verktyg" (#359) syns bara inne i laggården.
+        ladaVerktyg?.visa(nivaId);
         // "🧰 Verktyg"-knappen (#356) syns bara på gård-nivån.
         tradgard?.()?.gardVisa(nivaId);
         onNiva(nivaId);
