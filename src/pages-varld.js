@@ -536,6 +536,10 @@ export async function pageElevVarld(startNiva) {
         // scen-ombyggnad + togglar "🧰 Verktyg"-knappen per nivå. Getter –
         // kontrollern monteras längre ner i bygget (mountTradgard).
         tradgard: () => tradgardCtl,
+        // Rums-kontrollern (#359): laggårdens Verktyg placerar bondgårds-
+        // djuren via rummets mekanik (samma minne som Mina djur). Getter –
+        // rumCtl monteras längre ner i bygget (mountRumScen).
+        rum: () => rumCtl,
       })))
       .catch((err) => {
         gardLaddning = null; // låt nästa försök ladda igen

@@ -512,26 +512,43 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // Bondgårdsdjuren (#330): listas alltid i Mina djur med platsval. Ett byte
     // uppdaterar datan (farm.placedAnimals) + rummet direkt; hagen/ladan ritas
     // av gårds-grenen vid nästa besök (den läser placeringen färskt).
-    listFarm: () => djur.farmList().map((a) => ({
+    listFarm: listFarmDjur,
+    onPlace: placeraFarmDjur,
+  });
+
+  /** Bondgårdsdjuren som placerings-rader ({ id, name, location, artHtml }) –
+   * delas av Mina djur (ovan) och laggårdens Verktyg-panel (#359). */
+  function listFarmDjur() {
+    return djur.farmList().map((a) => ({
       id: a.id, name: djur.displayName(a), location: a.location,
       artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
-    })),
-    onPlace: (id, location) => {
-      // Ladan kan vara full (#333: nivå-tak på laggårds-platserna) – då ändras
-      // inget och eleven pekas mot uppgraderingen i shoppen.
-      if (!djur.setLocation(id, location)) {
-        flash("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
-        return;
-      }
-      if (selectedPetId === id) selectedPetId = null;
-      renderStage();
-      renderPets();
-      djurTrayCtl?.render();
-      flash(location === "room" ? "Djuret bor nu i ditt rum! 🛏️"
-        : location === "paddock" ? "Djuret går nu ute i hagen! 🌾"
-        : "Djuret bor nu i ladan! 🏠");
-    },
-  });
+    }));
+  }
+
+  /**
+   * Flytta ett bondgårdsdjur (rum/hage/lada): uppdaterar rummet + Mina djur
+   * direkt och sparar i bakgrunden. Delas av Mina djur och laggårdens
+   * Verktyg (#359, via rum-gettern i pages-varld.js).
+   * @returns {false|Promise} false = ladan full (inget ändrat); annars spar-
+   *   löftet, så anroparen kan rita om gårds-scenen när skrivningen landat.
+   */
+  function placeraFarmDjur(id, location) {
+    // Ladan kan vara full (#333: nivå-tak på laggårds-platserna) – då ändras
+    // inget och eleven pekas mot uppgraderingen i shoppen.
+    const sparat = djur.setLocation(id, location);
+    if (!sparat) {
+      flash("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
+      return false;
+    }
+    if (selectedPetId === id) selectedPetId = null;
+    renderStage();
+    renderPets();
+    djurTrayCtl?.render();
+    flash(location === "room" ? "Djuret bor nu i ditt rum! 🛏️"
+      : location === "paddock" ? "Djuret går nu ute i hagen! 🌾"
+      : "Djuret bor nu i ladan! 🏠");
+    return sparat;
+  }
 
   // Matningen (äpplen på golvet) lever i sin egen modul: äger floorApples +
   // "Lägg mat"-knappen och ger promenad-AI:n apples()/onEat. renderStage() läser
@@ -842,5 +859,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       data.saveRoomAt(currentRoom, { paletteId: id }).catch(() => {});
     },
     exitMat: mat.exitPlacing,
+    // Laggårdens Verktyg (#359): läs/flytta bondgårdsdjuren via rummets
+    // placerings-mekanik – samma minne som Mina djur, så rummet och lådan
+    // ritas om direkt när ett djur flyttas från laggårds-panelen.
+    listFarmDjur,
+    placeraFarmDjur,
+    farmBarnCap: () => djur.barnCap(),
   };
 }
