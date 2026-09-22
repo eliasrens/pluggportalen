@@ -13,9 +13,8 @@
 //   dekor    – dekor & pynt som placeras i rummet
 //   mat      – KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren
 //
-// Mat (`mat`) är en förbrukningsvara: den ligger INTE i ownedItems (en-gång-per-
-// sak), utan köp ökar ett ANTAL (studentData.appleCount) man kan köpa flera av.
-// Sätt `consumable: true` (se isConsumable); buyApple()/placeApple()/eatApple() i data-pet.js.
+// Mat (`mat`) är förbrukningsvara: ligger INTE i ownedItems, köp ökar ett ANTAL
+// (studentData.appleCount). `consumable:true` (isConsumable); buy/place/eatApple i data-pet.js.
 //
 // Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/hand/
 // rygg). En sak per slot samtidigt; `rygg` ritas BAKOM figuren (mantel) – se
@@ -177,25 +176,28 @@ export const SHOP_ITEMS = [
   { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
 
   // --- Trädgård & utomhus (placeras UTE runt huset i ute-vyn, issue #132) ----
-  // Egen kategori i MULTI_CATEGORIES nedan → man får äga/placera FLERA exemplar
-  // (flera träd, flera blomrabatter …). Placeringen sparas i studentData.garden
-  // (data-room.js), skild från rummets möbler. `flat:true`-saker (rabatt,
-  // parkering) ritas platt mot marken, UNDER övriga trädgårdssaker.
+  // Multi-kategori (MULTI_CATEGORIES nedan) → man får äga/placera FLERA exemplar.
+  // Placeringen sparas i studentData.garden (data-room.js), skild från rummets
+  // möbler. `flat:true` (rabatt/parkering/damm) ritas platt mot marken, UNDERST.
   { id: "buske", name: "Buske", emoji: "🌿", category: "tradgard", price: 25 },
   { id: "blomrabatt", name: "Blomrabatt", emoji: "🌷", category: "tradgard", price: 35, flat: true },
   { id: "trad", name: "Träd", emoji: "🌳", category: "tradgard", price: 60 },
   { id: "cykel", name: "Cykel", emoji: "🚲", category: "tradgard", price: 300 },
   { id: "parkering", name: "Parkeringsruta", emoji: "🅿️", category: "tradgard", price: 110, flat: true },
+  // Mer till trädgården (#351).
+  { id: "damm", name: "Anddamm", emoji: "🦆", category: "tradgard", price: 90, flat: true },
+  { id: "gunga", name: "Gungställning", emoji: "🛝", category: "tradgard", price: 150 },
+  { id: "fontan", name: "Fontän", emoji: "⛲", category: "tradgard", price: 260 },
   // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
   { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
+  { id: "sportbil", name: "Sportbil", emoji: "🏎️", category: "tradgard", price: 1500 },
+  { id: "monstertruck", name: "Monstertruck", emoji: "🛻", category: "tradgard", price: 2000 },
 
   // --- Fröer (#329): sås i odlingsbädden på GÅRDEN, inte placerbara saker -----
-  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId / inventory-
-  // Harvest-nyckeln – håll dem STABILA, Firestore). Kategorin tradgard är multi
-  // → varje köp ökar ownedCounts[id] (antal frön); sådden i gårdens odlingsbädd
-  // drar av 1 (plantSeed, data-farm.js). Filtreras bort ur trädgårds-placerings-
-  // lådan via isSeedItem (varld-tradgard.js). Skörden blir mat till gårdens djur:
-  // morot → kanin/häst, klöver → ko/får/gris, magiska bär → mysterydjur.
+  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId/inventoryHarvest
+  // – håll dem STABILA, Firestore). tradgard är multi → köp ökar ownedCounts[id];
+  // sådden drar av 1 (plantSeed, data-farm.js). Filtreras ur placerings-lådan via
+  // isSeedItem. Skörd = djurmat: morot→kanin/häst, klöver→ko/får/gris, bär→mystery.
   { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
   { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
   { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
@@ -205,12 +207,11 @@ export const SHOP_ITEMS = [
 
   // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
   // OBS nivåmodellen (DATAMODELL.md/#331): nivån bor i FÄLTEN farm.gardenTier/
-  // farm.barnLevel – ALDRIG härledd ur ownedItems (till skillnad från rummens
-  // roomUpgradeCount). Korten här är alltså bara köp-UI:t: köpet går via
-  // buyFarmUpgrade (data-farm.js) som drar coins + höjer fältet i EN transaktion
-  // och skriver INGET i ownedItems. `farmUpgrade` pekar ut fältet ("garden" |
-  // "barn"), `upgradeLevel` nivån köpet ger; de köps i ordning (nivå 2 före 3 –
-  // shoppen låser nästa tills föregående ägs). Nivå 1 är start och säljs inte.
+  // farm.barnLevel – ALDRIG härledd ur ownedItems (jfr roomUpgradeCount). Korten
+  // är bara köp-UI:t: buyFarmUpgrade (data-farm.js) drar coins + höjer fältet i
+  // EN transaktion, skriver INGET i ownedItems. `farmUpgrade` = fältet ("garden"|
+  // "barn"), `upgradeLevel` = nivån; köps i ordning (2 före 3 – shoppen låser
+  // nästa tills föregående ägs). Nivå 1 är start och säljs inte.
   { id: "odling-2", name: "Dubbel odlingslåda", emoji: "🪴", category: "tradgard", price: 150, farmUpgrade: "garden", upgradeLevel: 2 },
   { id: "odling-3", name: "Växthus", emoji: "🏡", category: "tradgard", price: 350, farmUpgrade: "garden", upgradeLevel: 3 },
   { id: "lada-2", name: "Röd trälada", emoji: "🛖", category: "tradgard", price: 450, farmUpgrade: "barn", upgradeLevel: 2 },
