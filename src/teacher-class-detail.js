@@ -103,7 +103,7 @@ export async function openStudentDetail(student, progress, subjects, loadAreas) 
   const name = student.namn || student.username || student.id;
 
   // Overlay + kort. Skapas direkt med en spinner så klicket känns responsivt.
-  const overlay = el(`<div class="cx-modal-overlay" role="dialog" aria-modal="true" aria-label="Statistik för ${esc(name)}">
+  const overlay = el(`<div class="cx-modal-overlay teacher-dark" role="dialog" aria-modal="true" aria-label="Statistik för ${esc(name)}">
     <div class="cx-modal">
       <button class="cx-modal-close" aria-label="Stäng">✕</button>
       <div class="cx-modal-head">

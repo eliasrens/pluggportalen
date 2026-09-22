@@ -18,7 +18,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { el, esc } from "./teacher-shared.js";
+import { el, esc, icon } from "./teacher-shared.js";
 import {
   buildAccountPlan,
   createAccountsFromEntries,
@@ -48,13 +48,13 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
 
   const box = el(`<div class="acct-editor">
     <div class="acct-editor-head">
-      <h3 class="subhead sm">📝 Kontrollera och ändra inloggningsuppgifter (${plan.length})</h3>
+      <h3 class="subhead sm">${icon("pencil", 18)}<span>Kontrollera och ändra inloggningsuppgifter (${plan.length})</span></h3>
       <p class="hint">Uppgifterna är ifyllda med förslag – ändra fritt eller klicka
-        🎲 för nya. När det ser bra ut skapar du kontona. Lösenorden går bara att
+        på slumpa-knappen för nya. När det ser bra ut skapar du kontona. Lösenorden går bara att
         se nu, så anteckna eller skriv ut dem efteråt.</p>
     </div>
     <div class="row-inline acct-editor-tools">
-      <button type="button" class="btn ghost small ae-gen-all">🎲 Generera alla</button>
+      <button type="button" class="btn ghost small ae-gen-all">${icon("shuffle", 16)}<span>Generera alla</span></button>
     </div>
     <div class="table-scroll"><table class="tbl acct-tbl">
       <thead><tr>
@@ -63,7 +63,7 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
       <tbody></tbody>
     </table></div>
     <div class="row-inline acct-editor-actions">
-      <button type="button" class="btn gron ae-create">✅ Skapa ${plan.length} konto${plan.length === 1 ? "" : "n"}</button>
+      <button type="button" class="btn gron ae-create">${icon("check", 16)}<span>Skapa ${plan.length} konto${plan.length === 1 ? "" : "n"}</span></button>
       <button type="button" class="btn ghost ae-cancel">Avbryt</button>
       <span class="ae-flash" aria-live="polite"></span>
     </div>
@@ -78,7 +78,7 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
       <td><input class="cell ae-namn" value="${esc(entry.namn)}" placeholder="Elevens namn" /></td>
       <td><input class="cell ae-user" value="${esc(entry.username)}" spellcheck="false" autocapitalize="off" /></td>
       <td><input class="cell ae-pass" value="${esc(entry.password)}" spellcheck="false" autocapitalize="off" /></td>
-      <td><button type="button" class="btn ghost small ae-gen" title="Nytt förslag för raden">🎲</button></td>
+      <td><button type="button" class="btn ghost small ae-gen" title="Nytt förslag för raden">${icon("shuffle", 16)}</button></td>
     </tr>`);
     const errTr = el(`<tr class="ae-err-row" hidden><td colspan="4"><span class="ae-err"></span></td></tr>`);
     const r = {
@@ -257,12 +257,12 @@ export function printLoginCards(className, created) {
     )
     .join("");
 
-  const overlay = el(`<div class="login-cards-overlay" role="dialog" aria-label="Inloggningskort">
+  const overlay = el(`<div class="login-cards-overlay teacher-dark" role="dialog" aria-label="Inloggningskort">
     <div class="lc-toolbar">
-      <h2 class="lc-title">🖨️ Inloggningskort – ${esc(className)} (${created.length})</h2>
+      <h2 class="lc-title">${icon("printer", 20)}<span>Inloggningskort – ${esc(className)} (${created.length})</span></h2>
       <div class="row-inline">
-        <button type="button" class="btn gron small lc-print">🖨️ Skriv ut</button>
-        <button type="button" class="btn ghost small lc-close">✖ Stäng</button>
+        <button type="button" class="btn gron small lc-print">${icon("printer", 16)}<span>Skriv ut</span></button>
+        <button type="button" class="btn ghost small lc-close">${icon("x", 16)}<span>Stäng</span></button>
       </div>
     </div>
     <p class="lc-hint">Ett kort per elev – skriv ut och klipp isär längs de streckade kanterna.

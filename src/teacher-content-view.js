@@ -19,7 +19,7 @@
 import { EXERCISE_TYPES } from "./exercise-types.js";
 import { GRADES } from "./grades.js";
 import { listPairImageKeys } from "./pair-images.js";
-import { el, esc } from "./teacher-shared.js";
+import { el, esc, icon } from "./teacher-shared.js";
 
 const gradeOptions = () =>
   GRADES.map((g) => `<option value="${esc(g.id)}">${esc(g.label)}</option>`).join("");
@@ -50,8 +50,8 @@ export function buildLibraryView() {
     <div class="studio-toolbar panel">
       <div class="studio-subject-tabs" id="subject-tabs" role="tablist" aria-label="Ämnen"></div>
       <div class="studio-toolbar-actions">
-        <button class="btn ghost" id="new-subject">➕ Nytt ämne</button>
-        <button class="btn gron" id="create-new">✏️ Skapa nytt område</button>
+        <button class="btn ghost" id="new-subject">${icon("plus")}<span>Nytt ämne</span></button>
+        <button class="btn gron" id="create-new">${icon("pencil")}<span>Skapa nytt område</span></button>
       </div>
     </div>
     <div id="new-subject-form"></div>
@@ -86,7 +86,7 @@ export function buildComposerView() {
     <div class="studio-composer" role="dialog" aria-modal="true" aria-labelledby="composer-title">
       <button class="cx-modal-close" id="composer-close" aria-label="Stäng kompositören">✕</button>
       <header class="composer-head">
-        <span class="composer-icon" id="composer-icon">✏️</span>
+        <span class="composer-icon" id="composer-icon">${icon("pencil", 26)}</span>
         <div>
           <h2 id="composer-title" class="composer-title">Nytt arbetsområde</h2>
           <p class="composer-sub" id="composer-sub"></p>
@@ -126,12 +126,8 @@ export function buildComposerView() {
       </div>
 
       <div class="method-switch" role="tablist" aria-label="Sätt att lägga in material">
-        <button type="button" class="method-tab active" data-method="guidat" role="tab" aria-selected="true">
-          ✨ Skapa guidat
-        </button>
-        <button type="button" class="method-tab" data-method="material" role="tab" aria-selected="false">
-          📋 Klistra in / ladda upp material
-        </button>
+        <button type="button" class="method-tab active" data-method="guidat" role="tab" aria-selected="true">${icon("sparkle")} Skapa guidat</button>
+        <button type="button" class="method-tab" data-method="material" role="tab" aria-selected="false">${icon("copy")} Klistra in / ladda upp material</button>
       </div>
 
       <!-- ===== METOD: Skapa guidat ============================================ -->
@@ -178,7 +174,7 @@ export function buildComposerView() {
               ändra utkastet innan du sparar (inget sparas automatiskt).</p>
           </div>
           <div class="row-inline" style="margin-top:10px">
-            <button class="btn ghost" id="copy-area-prompt">📋 Kopiera AI-prompt för valda typer</button>
+            <button class="btn ghost" id="copy-area-prompt">${icon("copy")}<span>Kopiera AI-prompt för valda typer</span></button>
           </div>
 
           <p class="hint" style="margin-top:12px">🖼️ <b>Bildpar:</b> ett par kan visa en färdig bild i
@@ -204,8 +200,7 @@ export function buildComposerView() {
           behöver inte tänka på formatet – klicka <b>Kontrollera</b> så säger vi till om något ser
           konstigt ut.</p>
         <div class="row-inline" style="margin-bottom:10px">
-          <label class="btn ghost file-btn">
-            📂 Ladda upp fil
+          <label class="btn ghost file-btn">${icon("upload")} Ladda upp fil
             <input type="file" id="file" accept=".json,application/json" hidden />
           </label>
           <button class="btn ghost" id="example">Infoga exempel</button>

@@ -87,6 +87,25 @@ const ICONS = {
     '<path d="M4 13l2.1-7A2 2 0 0 1 8 4.5h8a2 2 0 0 1 1.9 1.5L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13h5l1.1 2h3.8l1.1-2h5"/>',
   logout:
     '<path d="M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"/><path d="M18 15l3-3-3-3"/><path d="M21 12H9"/>',
+  eye:
+    '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/>',
+  save:
+    '<path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M8 4v5h7V4"/><path d="M8 14h8v6H8z"/>',
+  copy:
+    '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  printer:
+    '<path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M7 16h10v4H7z"/><circle cx="17" cy="12" r="0.8"/>',
+  link:
+    '<path d="M9.5 14.5 14.5 9.5"/><path d="M8 12H6.5a3.5 3.5 0 0 1 0-7H10"/><path d="M16 12h1.5a3.5 3.5 0 0 1 0 7H14"/>',
+  shuffle:
+    '<path d="M4 7h3l10 10h3"/><path d="M4 17h3L17 7h3"/><path d="M18 4l3 3-3 3"/><path d="M18 14l3 3-3 3"/>',
+  minus: '<path d="M5 12h14"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  check: '<path d="M5 12.5 10 17.5 19 6.5"/>',
+  sparkle:
+    '<path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z"/><path d="M18.5 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>',
+  upload:
+    '<path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
 };
 
 /**
@@ -101,11 +120,11 @@ export function icon(name, size = 18) {
 
 export async function copyText(text, btn) {
   const done = () => {
-    const old = btn.textContent;
+    const old = btn.innerHTML;
     btn.textContent = "✓ Kopierat!";
     btn.classList.add("copied");
     setTimeout(() => {
-      btn.textContent = old;
+      btn.innerHTML = old;
       btn.classList.remove("copied");
     }, 1600);
   };
