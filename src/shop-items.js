@@ -15,13 +15,11 @@
 //
 // Mat (`mat`) är en förbrukningsvara: den ligger INTE i ownedItems (en-gång-per-
 // sak), utan köp ökar ett ANTAL (studentData.appleCount) man kan köpa flera av.
-// Sätt `consumable: true` på sådana saker (se isConsumable). Hanteras via
-// buyApple()/placeApple()/eatApple() i data-pet.js.
+// Sätt `consumable: true` (se isConsumable); buyApple()/placeApple()/eatApple() i data-pet.js.
 //
-// Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/
-// hand/rygg). Bara en sak per slot kan bäras samtidigt. `rygg` ritas BAKOM
-// figuren (mantel) – se avatarMarkup i avatars.js. Övriga kategorier placeras
-// i rummet.
+// Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/hand/
+// rygg). En sak per slot samtidigt; `rygg` ritas BAKOM figuren (mantel) – se
+// avatarMarkup i avatars.js. Övriga kategorier placeras i rummet.
 //
 // Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
@@ -92,9 +90,8 @@ export const SHOP_ITEMS = [
   { id: "bokhylla", name: "Bokhylla", emoji: "📚", category: "mobler", price: 100 },
   { id: "dator", name: "Dator", emoji: "🖥️", category: "mobler", price: 200 },
   { id: "tv", name: "TV", emoji: "📺", category: "mobler", price: 180 },
-  // `flat: true` = platt golvsak (matta) som alltid ritas UNDERST i rummet, så
-  // möbler, dekor och husdjur hamnar ovanpå oavsett placeringsordning. Sätt
-  // flaggan på fler mattliknande saker vid behov.
+  // `flat: true` = platt golvsak (matta) som alltid ritas UNDERST i rummet så
+  // möbler/dekor/husdjur hamnar ovanpå; sätt flaggan på fler mattliknande saker.
   { id: "matta", name: "Mysmatta", emoji: "🟦", category: "mobler", price: 40, flat: true },
   // fler möbler
   { id: "sittpuff", name: "Sittpuff", emoji: "🛋️", category: "mobler", price: 45 },
@@ -157,10 +154,9 @@ export const SHOP_ITEMS = [
   { id: "vaggklocka", name: "Väggklocka", emoji: "🕰️", category: "dekor", price: 60 },
 
   // --- Hus (byter husets EXTERIÖR/skal – rummet inuti är oförändrat) ---------
-  // Köp lägger skal-id:t i ownedItems (som vanliga saker). Man väljer sedan
-  // aktivt skal i husvärldens "🏠 Nytt hus"-panel (sparas i studentData.
-  // husSkalId). Stugan är default/gratis och säljs INTE här. Item-id === skal-id
-  // i HUS_SKAL-registret (art-hus-ute.js) – håll dem i synk.
+  // Köp lägger skal-id:t i ownedItems; aktivt skal väljs i husvärldens "🏠 Nytt
+  // hus"-panel (studentData.husSkalId). Stugan är default/gratis och säljs INTE
+  // här. Item-id === skal-id i HUS_SKAL-registret (art-hus-ute.js) – håll i synk.
   { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
   { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
   // Lyxiga husskal (egen-tecknade, art-hus-lyx.js) – dyra spar-belöningar (1000+).
@@ -168,10 +164,14 @@ export const SHOP_ITEMS = [
   { id: "fotboll", name: "Fotbollshus", emoji: "⚽", category: "hus", price: 1200, skalId: "fotboll" },
   { id: "skyskrapa", name: "Skyskrapa", emoji: "🏢", category: "hus", price: 1500, skalId: "skyskrapa" },
   { id: "glasvilla", name: "Glasvilla", emoji: "🏙️", category: "hus", price: 2000, skalId: "glasvilla" },
+  // Fler lyxskal (#350, elevönskemål) – samma register/flöde som ovan.
+  { id: "cirkustalt", name: "Cirkustält", emoji: "🎪", category: "hus", price: 1100, skalId: "cirkustalt" },
+  { id: "raket", name: "Rymdraket", emoji: "🚀", category: "hus", price: 1300, skalId: "raket" },
+  { id: "godishus", name: "Godishus", emoji: "🍭", category: "hus", price: 1600, skalId: "godishus" },
+  { id: "vulkan", name: "Vulkanhus", emoji: "🌋", category: "hus", price: 2500, skalId: "vulkan" },
   // Rums-uppgraderingar: varje köp låser upp ETT extra rum i huset (dörr inne +
-  // rumslista i husvärlden). roomUpgrade:true → köpet räknas av getRoomCount()
-  // som +1 rum. De köps i ordning (billigast först) men funktionellt ger var och
-  // en exakt +1 rum – ordningen styr bara pris/namn. Se data-room.js.
+  // rumslista i husvärlden). roomUpgrade:true → räknas av getRoomCount() som +1
+  // rum; de köps i pris-ordning men ger var och en exakt +1 rum. Se data-room.js.
   { id: "rum-2", name: "Extra rum", emoji: "🚪", category: "hus", price: 250, roomUpgrade: true },
   { id: "rum-3", name: "Tredje rummet", emoji: "🚪", category: "hus", price: 500, roomUpgrade: true },
   { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
