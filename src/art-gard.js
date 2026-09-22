@@ -108,18 +108,13 @@ export function odlingSlotPos(count) {
 }
 
 // --- Zon 2: hagen/inhägnaden (mitten) ---------------------------------------
-// Enkel trägärdsgård (stolpar + två slanor) – tom hage i väntan på djuren.
+// Hagens mark: skugga, gräs-tuvor och den osynliga placerings-zonen. Själva
+// gärdsgården ritas BARA som framkant (hageForgrund, issue #345) ovanpå djuren –
+// det bakre staketet togs bort (Elias-feedback): det dubblerade främre lagret i
+// samma träfärg utan att tillföra något visuellt.
 function hage() {
-  const stolpar = [372, 452, 532, 612]
-    .map((x) => `${limb(`M${x} 548 L${x} 448`, WOOD_DARK, 9)}`)
-    .join("");
   return `<g aria-hidden="true">
     ${shadow(492, 556, 150)}
-    ${stolpar}
-    ${limb("M364 472 L620 472", WOOD, 7)}
-    ${limb("M364 516 L620 516", WOOD, 7)}
-    <!-- Grindögla på sista stolpen som liten detalj -->
-    <circle cx="612" cy="472" r="7" fill="none" stroke="${WOOD_DARK}" stroke-width="4"/>
     <!-- Lite gräs-tuvor inne i hagen -->
     <path d="M430 540 q4 -14 8 0 M442 540 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
     <path d="M540 536 q4 -14 8 0 M552 536 q4 -10 8 0" fill="none" stroke="#6FA85B" stroke-width="3.5" stroke-linecap="round"/>
