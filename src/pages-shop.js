@@ -21,18 +21,18 @@ import { coinIcon } from "./icons.js";
 // Ren UI-GRUPPERING: samlar allt gård/trädgård-relaterat i en egen flik. Items
 // behåller sina category-fält (köp/placering beror på dem); flik-tillhörigheten
 // avgörs av predikaten nedan. Sektionerna är disjunkta (varje sak matchar exakt
-// en); tömda trädgårds-/mat-flikar försvinner ur flikraden (tomma visas ej).
+// en); den tömda trädgårds-fliken försvinner ur flikraden (tomma visas ej).
+// OBS: mysterymaten (äpplet, category "mat") ligger INTE här – den är mat till
+// mysterydjuren INOMHUS och har en egen topp-flik "Djurmat" i shoppen.
 const BAKSIDAN_TAB = {
   id: "baksidan", name: "Baksidan", emoji: "🌾",
-  hint: "Allt till gården och trädgården bakom ditt hus – frön, djur, mat, pynt och uppgraderingar.",
+  hint: "Allt till gården och trädgården bakom ditt hus – frön, djur, pynt och uppgraderingar.",
 };
 // id:t är stabilt (för att minnas vald sub-flik i localStorage, #364); rubrik
 // visas som sub-flik-etikett. Ordning/match orörda (#358-grupperingen).
 const BAKSIDAN_SEKTIONER = [
   { id: "odling", rubrik: "🌱 Odling", match: (it) => isSeedItem(it.id) },
   { id: "bondgardsdjur", rubrik: "🐴 Bondgårdsdjur", match: (it) => isFarmAnimalItem(it.id) },
-  // Mysterymaten (äpplet) är djurmat som läggs ut åt husdjuren → hör hemma här.
-  { id: "foder", rubrik: "🍎 Djurmat & foder", match: (it) => isConsumable(it.id) },
   { id: "tradgard", rubrik: "🌳 Trädgård & pynt", match: (it) => isGardenItem(it.id) && !isSeedItem(it.id) && !isFarmUpgradeItem(it.id) },
   { id: "uppgraderingar", rubrik: "⬆️ Uppgraderingar", match: (it) => isFarmUpgradeItem(it.id) },
   // Lada-skins (#353) har category "hus" men väljs på gården (🛖 Ny lada).
@@ -314,7 +314,7 @@ function writeLS(key, val) {
 function readSavedCat(tabCats) {
   const id = readLS(ACTIVE_CAT_KEY);
   if (id && tabCats.some((c) => c.id === id)) return id;
-  if (id === "tradgard" || id === "mat") return "baksidan"; // #358-flytt → Baksidan
+  if (id === "tradgard") return "baksidan"; // #358: trädgårds-varorna bor i Baksidan
   return null;
 }
 
