@@ -199,6 +199,9 @@ export const SHOP_ITEMS = [
   { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
   { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
   { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
+  // Godis-grödor (#349): ALLA husdjur blir glada av dem; ingen är FODER_FOR-favorit.
+  { id: "crop_pumpkin", name: "Pumpafrön", emoji: "🎃", category: "tradgard", price: 45, seed: true },
+  { id: "crop_lettuce", name: "Salladsfrön", emoji: "🥬", category: "tradgard", price: 20, seed: true },
 
   // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
   // OBS nivåmodellen (DATAMODELL.md/#331): nivån bor i FÄLTEN farm.gardenTier/

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – mata vanliga djur + nya grödor (#349)</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #349: mata ett VANLIGT djur → hjärtan
+         (ren FX, ingen tillväxt, inget förbrukas) + de två nya godis-grödorna
+         (pumpa & sallad) i alla växt-steg. Lokal attrapp utan inloggning –
+         samma markup/CSS-klasser och samma cooldown-idé som i appen
+         (varld-rum-djur.js djurMatSektion; den riktiga koden är dessutom
+         rök-testad headless mot appen med elev1). */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 70ch; }
+      .wrap { padding: 12px 20px 40px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+      #stage { position: relative; width: min(96vw, 520px); aspect-ratio: 8 / 5; border-radius: 18px;
+        background: linear-gradient(#fffdf7 60%, #f3e3c8 60%); box-shadow: 0 8px 24px rgba(59, 51, 80, 0.18); }
+      #stage .room-pet { position: absolute; transform: translate(-50%, -50%); }
+      #stage .room-pet .ri-emoji { display: block; }
+      #stage .room-pet .rp-namn { display: block; text-align: center; font-size: 0.75rem;
+        background: rgba(255,255,255,0.85); border-radius: 8px; padding: 0 6px; margin-top: 2px; }
+      .panelbox { background: #fff; border: 3px solid #ffe0b3; border-radius: 16px; padding: 14px 16px; width: min(94vw, 380px); }
+      .panelbox h3 { margin: 0 0 6px; }
+      #logg { font-size: 0.9rem; margin: 8px 20px; min-height: 1.2em; color: #1e8e4e; }
+      .room-tray { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .tray-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px;
+        border: 2px solid #eee; border-radius: 10px; background: #fffdf7; cursor: pointer; }
+      .tray-emoji { font-size: 1.4rem; }
+      .grodor { padding: 0 20px 40px; }
+      .grodor h2 { font-size: 1.1rem; margin: 0 0 8px; }
+      .grod-rad { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 18px; }
+      .grod-steg { text-align: center; font-size: 0.75rem; }
+      .grod-steg svg { display: block; width: 72px; height: 92px; background: #fffdf7; border: 2px solid #eee; border-radius: 10px; }
+      .pase svg { width: 64px; height: 84px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Mata vanliga djur → glada (#349) 🐶💚 + pumpa &amp; sallad 🎃🥬</h1>
+      <p>Klicka på en godsak i panelen → hjärtan poppar på hunden (ren FX: ingen tillväxt,
+        inget förbrukas, inget sparas). Klicka snabbt igen → en snäll cooldown-hint stoppar
+        hjärt-spam. Nedanför: de två nya godis-grödorna i shopens fröpåse + alla växt-steg.</p>
+    </header>
+    <p id="logg">Bjud Joel på något gott! 👇</p>
+    <div class="wrap">
+      <div id="stage"></div>
+      <div class="panelbox">
+        <h3>Joel 🐶</h3>
+        <div id="mat-kropp"></div>
+      </div>
+    </div>
+    <div class="grodor" id="grodor"><h2>Nya godis-grödor (alla husdjur blir glada!)</h2></div>
+    <script type="module">
+      import { getItem } from "./src/shop-items.js";
+      import { itemSvg, itemSize } from "./src/art-items.js";
+      import { CROPS, cropStageArt } from "./src/art-garden.js";
+
+      const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+      const logg = (msg) => { document.getElementById("logg").textContent = msg; };
+
+      // --- Hunden i "rummet" (samma nod-markup som varld-rum-djur.js) ---------
+      const stage = document.getElementById("stage");
+      const size = itemSize("hund");
+      stage.appendChild(el(`<div class="room-item room-pet room-djur" data-pet-id="hund"
+        style="left:50%;top:62%" title="Joel">
+        <span class="ri-emoji" style="width:calc(${size.w} * 28px);height:calc(${size.h} * 28px)">${itemSvg("hund") || "🐶"}</span>
+        <span class="rp-namn">Joel</span>
+      </div>`));
+
+      // Samma FX som appen använder (petPat): studs + 💖.
+      function hjarta() {
+        const node = stage.querySelector('.room-pet');
+        if (node.classList.contains("pet-klapp")) return;
+        node.classList.add("pet-klapp");
+        const fx = el('<span class="pet-klapp-fx">💖</span>');
+        node.appendChild(fx);
+        setTimeout(() => { node.classList.remove("pet-klapp"); fx.remove(); }, 900);
+      }
+
+      // --- Mat-sektionen: samma markup + cooldown-idé som djurMatSektion ------
+      const MAT_PAUS_MS = 8000;
+      let senastMatad = 0;
+      const forrad = { crop_carrot: 2, crop_pumpkin: 1, crop_lettuce: 3 };
+      const knappar = Object.entries(forrad).map(([id, n]) => {
+        const meta = CROPS[id];
+        return `<button class="tray-item" data-godis="${id}" title="Bjud Joel på ${meta.name.toLowerCase()}">
+          <span class="tray-emoji">${meta.emoji}</span>
+          <span class="tray-namn">${meta.name} ×${n}</span>
+        </button>`;
+      }).join("");
+      document.getElementById("mat-kropp").replaceChildren(el(`<div>
+        <p class="hint">Bjud Joel på något gott ur förrådet – allt smakar! 💚</p>
+        <div class="room-tray foder-tray">${knappar}</div>
+      </div>`));
+      document.querySelector(".foder-tray").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-godis]");
+        if (!btn) return;
+        if (Date.now() - senastMatad < MAT_PAUS_MS) {
+          logg("Joel tuggar fortfarande – vänta en liten stund! 😋");
+          return;
+        }
+        senastMatad = Date.now();
+        const meta = CROPS[btn.dataset.godis];
+        hjarta();
+        logg(`Joel mumsar glatt på ${meta.name.toLowerCase()}! ${meta.emoji} 💚 (växer inte, inget förbrukas)`);
+      });
+
+      // --- De nya grödorna: fröpåse + växt-steg 0–3 ----------------------------
+      const grodor = document.getElementById("grodor");
+      for (const id of ["crop_pumpkin", "crop_lettuce"]) {
+        const meta = CROPS[id];
+        const item = getItem(id);
+        const rad = el(`<div class="grod-rad">
+          <div class="grod-steg pase">${itemSvg(id)}<br>${item.name} (${item.price} 🪙)</div>
+        </div>`);
+        for (let steg = 0; steg <= 3; steg++) {
+          rad.appendChild(el(`<div class="grod-steg">
+            <svg viewBox="-24 -50 48 60">${cropStageArt(id, steg)}</svg>
+            Steg ${steg}${steg === 3 ? " ✨" : ""}</div>`));
+        }
+        rad.appendChild(el(`<div class="grod-steg" style="align-self:center">${meta.emoji} ${meta.name} – mat till ${meta.mat}</div>`));
+        grodor.appendChild(rad);
+      }
+    </script>
+  </body>
+</html>
