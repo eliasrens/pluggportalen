@@ -14,7 +14,7 @@ import * as petData from "./data-pet.js";
 import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, isGardenItem, itemIdFromKey } from "./shop-items.js";
 import { getPalette } from "./room-palettes.js";
-import { mountRumDjur } from "./varld-rum-djur.js";
+import { mountRumDjur, djurMatSektion } from "./varld-rum-djur.js";
 import { farmFromData } from "./farm-core.js";
 import { itemSvg, itemSize } from "./art-items.js";
 import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb, setPetMood } from "./pages-rum-pets.js";
@@ -287,6 +287,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
             }),
           }));
         }).catch(() => {});
+      } else {
+        // Vanliga djur matas också (#349) – men som REN FX: hjärtan (petPat),
+        // ingen tillväxt, inget förbrukas, ingen skrivning. Cooldown per session
+        // i varld-rum-djur.js hindrar hjärt-spam.
+        panelNod.appendChild(djurMatSektion(animal, { namn: djur.displayName(animal), hjarta: petPat }));
       }
       return;
     }

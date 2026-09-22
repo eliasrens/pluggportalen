@@ -140,6 +140,8 @@ export const GARDEN = {
 const JORD = "#7A5A40";
 const MOROT = "#F2933E";
 const BAR = "#8B7BE8";
+const PUMPA = "#F0A24B";
+const SALLAD = "#8FD46A";
 
 // Liten jordhög vid origo – grunden i steg 0/1.
 const jordhog = () =>
@@ -190,6 +192,11 @@ export const CROPS = {
   crop_carrot: { name: "Morot", emoji: "🥕", mat: "kaniner och hästar" },
   crop_clover: { name: "Klöver", emoji: "☘️", mat: "kor, får och grisar" },
   crop_berries: { name: "Magiska bär", emoji: "🫐", mat: "mysterydjur" },
+  // Fler sorters djurmat (#349): godis-grödor som ALLA husdjur blir glada av
+  // (mata i rummet → hjärtan). Inget bondgårdsdjur har dem som favorit
+  // (FODER_FOR), så trivsel-loopen påverkas inte.
+  crop_pumpkin: { name: "Pumpa", emoji: "🎃", mat: "alla husdjur" },
+  crop_lettuce: { name: "Sallad", emoji: "🥬", mat: "alla husdjur" },
 };
 
 // Sena steg (2 växer / 3 skördeklar) per gröda.
@@ -236,6 +243,38 @@ const CROP_STAGE_ART = {
       `<circle cx="-3" cy="-19" r="2.6" fill="#B9AFF5" ${THIN}/>` +
       glitter(16, -28, 0.9) + glitter(-17, -32, 0.7),
   ],
+  crop_pumpkin: [
+    () => saddArt(),
+    () => groddArt(),
+    () =>
+      jordhog() +
+      `<path d="M0 -3 Q-9 -8 -15 -6" fill="none" stroke="${LOV_MORK}" stroke-width="2.4" stroke-linecap="round"/>` +
+      `<ellipse cx="10" cy="-8" rx="7" ry="6" fill="${SALLAD}" ${THIN}/>` +
+      `<ellipse cx="-2" cy="-8" rx="9" ry="7" fill="${LOV}" ${THIN}/>`,
+    () =>
+      jordhog() +
+      `<path d="M-13 -2 Q-19 -12 -10 -18" fill="none" stroke="${LOV_MORK}" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<ellipse cx="0" cy="-12" rx="15" ry="11.5" fill="${PUMPA}" ${THIN}/>` +
+      `<path d="M-6 -22 Q-8 -12 -6 -2 M6 -22 Q8 -12 6 -2" fill="none" stroke="#D07E2A" stroke-width="1.8" stroke-linecap="round"/>` +
+      `<path d="M0 -23 L0 -28" fill="none" stroke="${LOV_MORK}" stroke-width="3" stroke-linecap="round"/>` +
+      glitter(18, -26, 0.9),
+  ],
+  crop_lettuce: [
+    () => saddArt(),
+    () => groddArt(),
+    () =>
+      jordhog() +
+      `<path d="M-7 -2 Q-10 -14 -4 -17 Q-4 -7 -1 -2 Z" fill="${SALLAD}" ${THIN}/>` +
+      `<path d="M7 -2 Q10 -14 4 -17 Q4 -7 1 -2 Z" fill="${SALLAD}" ${THIN}/>` +
+      `<path d="M0 -2 Q-3 -18 0 -21 Q3 -18 0 -2 Z" fill="${LOV}" ${THIN}/>`,
+    () =>
+      jordhog() +
+      `<circle cx="-8" cy="-9" r="8.5" fill="${SALLAD}" ${THIN}/>` +
+      `<circle cx="8" cy="-9" r="8.5" fill="${SALLAD}" ${THIN}/>` +
+      `<circle cx="0" cy="-15" r="9.5" fill="${LOV}" ${THIN}/>` +
+      `<path d="M-5 -16 Q0 -20 5 -16" fill="none" ${THIN}/>` +
+      glitter(16, -24, 0.85),
+  ],
 };
 
 /**
@@ -274,6 +313,16 @@ GARDEN.crop_berries = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
   `<circle cx="-4" cy="-10" r="3" fill="${BAR}" ${THIN}/>` +
   `<circle cx="5" cy="-5" r="3" fill="${BAR}" ${THIN}/>` +
   `<circle cx="2" cy="-13" r="2.4" fill="#B9AFF5" ${THIN}/>`
+) };
+GARDEN.crop_pumpkin = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
+  `<ellipse cx="0" cy="-7" rx="11" ry="8.5" fill="${PUMPA}" ${THIN}/>` +
+  `<path d="M-4 -14 Q-5 -7 -4 0 M4 -14 Q5 -7 4 0" fill="none" stroke="#D07E2A" stroke-width="1.6" stroke-linecap="round"/>` +
+  `<path d="M0 -15 L0 -19" fill="none" stroke="${LOV_MORK}" stroke-width="2.6" stroke-linecap="round"/>`
+) };
+GARDEN.crop_lettuce = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
+  `<circle cx="-5" cy="-5" r="6.5" fill="${SALLAD}" ${THIN}/>` +
+  `<circle cx="5" cy="-5" r="6.5" fill="${SALLAD}" ${THIN}/>` +
+  `<circle cx="0" cy="-10" r="7" fill="${LOV}" ${THIN}/>`
 ) };
 
 // En liten glad blomma på en stjälk vid (x, markY) – används i rabatten.
