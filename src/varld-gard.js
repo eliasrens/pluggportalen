@@ -45,10 +45,13 @@ import { mountLadaSkin } from "./varld-lada-skin.js";
  * @param {() => Promise<void>} o.ensureHus  ta huvudkameran till "hus" om den
  *        står någon annanstans (t.ex. rummet) innan grenen zoomar vidare.
  * @param {(nivaId:string) => void} o.onNiva  körs när gårds-kameran bytt nivå.
+ * @param {() => object|null} [o.tradgard]  getter till trädgårds-kontrollern
+ *        (mountTradgard, #356): gardRita() ritar gårds-sakerna efter varje
+ *        scen-ombyggnad, gardVisa(nivaId) togglar "🧰 Verktyg"-knappen.
  * @returns {{visa:(nivaId:string)=>Promise<void>, tillbaka:()=>boolean,
  *   nollstall:()=>void, aktivId:string}}
  */
-export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureHus, onNiva }) {
+export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureHus, onNiva, tradgard }) {
   // Samma uteLager som huvudkamerans hus-nivå men EGET fokus: kameran dyker
   // "in i" huset (dörren/fasadmitten) på väg till baksidan.
   const husGardNiva = { id: "hus", el: uteLager, fokus: { x: 50, y: 46 }, zoom: 5 };
@@ -84,6 +87,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
         await bygg();
         if (odling) odling.visa();
         gardDjur?.refresh().catch(() => {});
+        tradgard?.()?.gardRita(); // innerHTML rensade även trädgårds-lagret (#356)
       },
     });
     // Foder-panelen (#332): klick på ett djur i hagen/ladan → mata/hämta gåva.
@@ -110,6 +114,8 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
         if (foder) foder.stang();
         // "🛖 Ny lada"-knappen (#353) syns bara på gård-/laggård-nivåerna.
         ladaSkin?.visa(nivaId);
+        // "🧰 Verktyg"-knappen (#356) syns bara på gård-nivån.
+        tradgard?.()?.gardVisa(nivaId);
         onNiva(nivaId);
       },
     }));
@@ -126,6 +132,9 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     // ha vuxit av plugguppgifter sedan sist). Fire-and-forget: kameran ska inte
     // vänta på Firestore.
     if (nivaId === "gard" && odling) odling.visa();
+    // Trädgårds-sakerna på gården (#356): säkra lagret (bygg kan ha skrivit om
+    // scenens innerHTML) och rita placeringarna innan kameran zoomar in.
+    tradgard?.()?.gardRita();
     // Bondgårdsdjuren (#330): läs placeringarna färskt och rita/animera djuren
     // i hagen & ladan. Blockerar inte kamerazoomen (fire-and-forget); ett
     // nätverksfel lämnar bara scenen tom (nästa besök försöker igen).
