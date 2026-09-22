@@ -962,6 +962,16 @@ body:has(.teacher-dark) {
 body:has(.teacher-dark) .container {
   max-width: 1000px;
 }
+/* Route-baserad mörk bakgrund (sätts av app.js router). Kvarstår mellan flik-
+   byten – till skillnad från :has(.teacher-dark) som slutar matcha när vyn byts
+   ut och gör att elevsidans ljusa gradient blänker till vitt. Elevsidan (utan
+   klassen) behåller sin ljusa bakgrund. */
+body.larare-lage {
+  background: #0b0f14;
+}
+body.larare-lage .container {
+  max-width: 1000px;
+}
 
 .teacher-dark {
   /* Scopade tokens – enda accenten är elevsidans varumärkesgröna (röd tråd). */
