@@ -126,21 +126,28 @@ function hage() {
 }
 
 /**
- * Hagens FRAMKANT som egen SVG (issue #345): den främre slanan + stolp-
- * stumparna under den, i exakt samma koordinater som hage() ritar dem.
- * gard-djur.js lägger den i ett eget lager OVANPÅ djur-overlayn, så djurens
- * ben döljs bakom främre slanan → djuren ser ut att stå INNANFÖR gärdsgården
- * (bakre staketet ligger kvar i scenen bakom dem). Utan djur är lagret
- * pixel-identiskt med scenens staket (limb ritar samma streck en gång till).
+ * Hagens FRAMKANT som egen SVG (issue #345 + #371): den främre gärdsgården som
+ * eget lager OVANPÅ djur-overlayn, så djurens ben döljs bakom slanorna → djuren
+ * ser ut att stå INNANFÖR hagen (bakre staketet togs bort, #345).
+ *
+ * #371 – nedre gräns: den enda övre slanan (y516) räckte inte, djurens hovar
+ * hängde ner FÖRBI den och såg ut att sväva ovanpå en pinne. Nu förlängs de
+ * främre stolparna hela vägen ner till marken (y552) och en NEDRE slana (y540)
+ * lägger sig som en heltäckande ockluder tvärs över framkanten – den döljer
+ * hovarna för alla tre bondgårdsdjuren (häst/ko/gris, olika höga) medan kroppen
+ * och de övre benen syns fint mellan slanorna. Samma träfärg och enkla look.
+ * Djurets namnskylt flyttas ovanför huvudet (styles.css .gard-djur .rp-namn) så
+ * den aldrig hamnar bakom det här lagret.
  */
 export function hageForgrund() {
   const stumpar = [372, 452, 532, 612]
-    .map((x) => `${limb(`M${x} 548 L${x} 506`, WOOD_DARK, 9)}`)
+    .map((x) => `${limb(`M${x} 552 L${x} 506`, WOOD_DARK, 9)}`)
     .join("");
   return `<svg viewBox="0 0 960 600" aria-hidden="true"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     ${stumpar}
     ${limb("M364 516 L620 516", WOOD, 7)}
+    ${limb("M364 540 L620 540", WOOD, 10)}
   </svg>`;
 }
 

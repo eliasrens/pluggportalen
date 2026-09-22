@@ -3721,6 +3721,19 @@ body.varld-lage .container {
    så klick på djuren (foder-panelen, #332) går rakt igenom. */
 .gard-forgrund { position: absolute; inset: 0; pointer-events: none; }
 .gard-djur-lager .gard-djur .rp-namn { cursor: pointer; }
+/* #371: i HAGEN (.har-forgrund – lagret som har ett staket ovanpå djuren) sitter
+   djurets namnskylt OVANFÖR huvudet, absolut placerad ur nodens flöde. Under
+   fötterna hamnar den annars nere vid gärdsgårds-lagret (.gard-forgrund ligger
+   ovanpå djuren) och döljs delvis bakom en slana/stolpe. Ovanför huvudet är den
+   fri från staketet → alltid HELT synlig. Ladan (utan forgrund) och rummets
+   .room-pet .rp-namn är oförändrade. */
+.gard-djur-lager.har-forgrund .gard-djur .rp-namn {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin: 0 0 3px;
+}
 
 /* Mood-minen (glad/nöjd/less ur trivseln, #330): liten bricka uppe till höger
    på djur-noden – i rummet OCH i hagen/ladan (samma markup i båda). */
