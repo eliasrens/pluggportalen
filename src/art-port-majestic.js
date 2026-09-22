@@ -52,10 +52,20 @@ function blomma(x, y, farg) {
   return `<circle cx="${x}" cy="${y}" r="7" fill="${farg}" ${THIN}/>`;
 }
 
-/** Liten fågel i skyn (två mjuka vingbågar). */
-function fagel(x, y, s = 1) {
-  return `<path d="M${x} ${y} q${7 * s} ${-7 * s} ${14 * s} 0 q${7 * s} ${-7 * s} ${14 * s} 0"
-    fill="none" ${THIN}/>`;
+/** Liten fågel i skyn (två mjuka vingbågar). Glider långsamt över himlen
+    (yttre .portb-fagel = drift som molnen) med mild upp/ner-gungning (inre
+    .portb-fagel-bob). Ritas i origo; drift-animationens negativa delay
+    (= andelen av banan -160→1180px) lägger startläget vid gamla fasta x.
+    transform-ATTRIBUTET är reduced-motion-fallbacken: CSS-animationens
+    transform vinner när den kör, annars gäller stilla-läget x (#361). */
+function fagel(x, y, s, driftTid, driftDelay, bobDelay) {
+  return `<g class="portb-fagel" transform="translate(${x} 0)"
+      style="animation-duration:${driftTid}s;animation-delay:${driftDelay}s">
+    <g class="portb-fagel-bob" style="animation-delay:${bobDelay}s">
+      <path d="M0 ${y} q${7 * s} ${-7 * s} ${14 * s} 0 q${7 * s} ${-7 * s} ${14 * s} 0"
+        fill="none" ${THIN}/>
+    </g>
+  </g>`;
 }
 
 // --- Pelare med sockel, kapitäl, krönklot och vimpel -------------------------
@@ -118,9 +128,14 @@ function skylt() {
   // Kedjornas fästen: guldnitar PÅ bågbandet (undersidan ligger på y≈121 vid
   // x≈400/560); översta länken börjar i niten så kedjan sitter fast utan
   // glapp, nedersta går omlott med skyltens överkant (y=170).
+  // Nitarna sitter fast PÅ bågen och står stilla; hela upphängningen
+  // (kedjelänkar + skylt + text) dinglar TILLSAMMANS kring fästlinjen uppe
+  // (.portb-skylt, transform-origin top center = där kedjorna möter bågen)
+  // så kedjorna följer skylten utan att lossna (#357-fixet bevarat, #361).
   return `<g>
     <circle cx="399" cy="114" r="6" fill="${GULD}" ${THIN}/>
     <circle cx="561" cy="114" r="6" fill="${GULD}" ${THIN}/>
+    <g class="portb-skylt">
     ${lank(399, 124)}${lank(401, 136)}${lank(403, 148)}${lank(405, 160)}${lank(408, 171)}
     ${lank(561, 124)}${lank(559, 136)}${lank(557, 148)}${lank(555, 160)}${lank(552, 171)}
     <rect x="328" y="170" width="304" height="68" rx="12" fill="${WOOD_DARK}" ${LINE}/>
@@ -131,6 +146,7 @@ function skylt() {
     <circle cx="614" cy="221" r="3" fill="${GULD}" ${THIN}/>
     <text x="480" y="214" font-size="28" fill="${O}" font-weight="800" text-anchor="middle"
       font-family="'Baloo 2','Nunito',system-ui,sans-serif">Pluggporten</text>
+    </g>
   </g>`;
 }
 
@@ -252,8 +268,40 @@ export function portScenMajestic() {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
+      /* Skylten dinglar lätt: HELA upphängningen (kedjelänkar + bräda +
+         text) svänger som EN enhet kring fästlinjen uppe vid bågen.
+         fill-box + origin "center top" ≈ (480, 119) = strax under nitarna,
+         så kedjorna sitter kvar i fästena (#361). */
+      .portb-skylt {
+        transform-box: fill-box;
+        transform-origin: center top;
+        animation: portb-skylt-dingla 5.5s ease-in-out infinite;
+      }
+      @keyframes portb-skylt-dingla {
+        0%, 100% { transform: rotate(0deg); }
+        28% { transform: rotate(1.6deg); }
+        62% { transform: rotate(-1.3deg); }
+      }
+      /* Fåglarna glider långsamt över himlen (samma bana som molnens
+         hus-driva) och gungar milt upp/ner. Duration/delay sätts inline
+         per fågel. */
+      .portb-fagel {
+        animation: portb-fagel-glid 55s linear infinite;
+      }
+      @keyframes portb-fagel-glid {
+        from { transform: translateX(-160px); }
+        to { transform: translateX(1180px); }
+      }
+      .portb-fagel-bob {
+        animation: portb-fagel-gunga 3.2s ease-in-out infinite;
+      }
+      @keyframes portb-fagel-gunga {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
       @media (prefers-reduced-motion: reduce) {
-        .portb-vimpel, .portb-sol { animation: none; }
+        .portb-vimpel, .portb-sol, .portb-skylt,
+        .portb-fagel, .portb-fagel-bob { animation: none; }
       }
     </style>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#portb-himmel)"/>
@@ -266,7 +314,7 @@ export function portScenMajestic() {
     <g class="hus-moln" style="--t:64s">${moln(0, 60, 1.25)}</g>
     <g class="hus-moln" style="--t:47s;animation-delay:-16s">${moln(0, 156, 0.9)}</g>
     <g class="hus-moln" style="--t:78s;animation-delay:-42s">${moln(0, 30, 0.6)}</g>
-    ${fagel(292, 108)}${fagel(636, 76, 0.75)}
+    ${fagel(292, 108, 1, 55, -18.5, 0)}${fagel(636, 76, 0.75, 42, -25, -1.4)}
 
     <!-- Mjuka kullar i fjärran ger scenen djup -->
     <path d="M-2400 468 Q-200 380 560 452 Q1100 400 3360 462 L3360 700 L-2400 700 Z" fill="#C9F0DC" ${LINE}/>
