@@ -940,6 +940,365 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 .gate-panel { max-width: 460px; }
 .gate-icon { font-size: 3.2rem; line-height: 1; display: block; margin-bottom: 4px; }
 
+/* ==========================================================================
+   Lärarsidan – moget MÖRKT designspråk (issue #363, epic #362)
+   --------------------------------------------------------------------------
+   ALL styling här är scopad under lärar-roten `.teacher-dark` (som sätts på
+   lärarsidans yttersta container, .teacher-page.teacher-dark). Inget läcker
+   till elevvyerna – elevsidan använder aldrig .teacher-dark. Detta är FÖRSTA
+   biten (dashboard + toppnav + gate) och sätter designspråket som resten av
+   lärarvyerna ärver genom att lägga till .teacher-dark på sin rot.
+
+   Delade komponentklasser (.panel, .btn, .field, .msg, tabeller …) omdefinieras
+   BARA inuti `.teacher-dark …` – deras globala (ljusa) definitioner på elev-
+   sidan är orörda.
+   ========================================================================== */
+
+/* Mörk arbetsyta bakom hela lärarsidan (bara när en .teacher-dark finns i DOM).
+   Ger den lugna "arbetsyta"-känslan i stället för elevsidans ljusa gradient. */
+body:has(.teacher-dark) {
+  background: #0b0f14;
+}
+body:has(.teacher-dark) .container {
+  max-width: 1000px;
+}
+
+.teacher-dark {
+  /* Scopade tokens – enda accenten är elevsidans varumärkesgröna (röd tråd). */
+  --t-bg: #0f1419;
+  --t-surface: #161d26;
+  --t-surface-2: #1b232e;
+  --t-raised: #202a36;
+  --t-border: rgba(255, 255, 255, 0.09);
+  --t-border-strong: rgba(255, 255, 255, 0.16);
+  --t-text: #e7edf3;
+  --t-muted: #93a2b3;
+  --t-accent: #2ec16e;
+  --t-accent-strong: #27ae60;
+  --t-accent-soft: rgba(46, 193, 110, 0.14);
+  --t-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+  color: var(--t-text);
+}
+
+/* Linje-ikoner ärver textfärg och sitter snyggt på baslinjen. */
+.teacher-dark .t-icon,
+.tnav .t-icon,
+.teacher-page-ic .t-icon {
+  display: inline-block;
+  vertical-align: -0.16em;
+  flex: none;
+}
+
+/* --- Toppnav -------------------------------------------------------------- */
+.teacher-dark .teacher-nav {
+  margin: -24px -20px 26px;
+  padding: 14px 22px;
+  background: rgba(14, 19, 25, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--t-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.teacher-dark .teacher-nav-inner {
+  gap: 6px;
+}
+
+.teacher-dark .teacher-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-right: 10px;
+  color: var(--t-text);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.teacher-dark .teacher-nav-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: var(--t-accent);
+  background: var(--t-accent-soft);
+  border: 1px solid rgba(46, 193, 110, 0.28);
+}
+.teacher-dark .teacher-nav-wordmark {
+  font-size: 1.02rem;
+}
+.teacher-dark .teacher-nav-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.teacher-dark .tnav {
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--t-muted);
+  font-weight: 600;
+  font-size: 0.96rem;
+  box-shadow: none;
+  border: 1px solid transparent;
+  transition: color 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+.teacher-dark .tnav:hover {
+  transform: none;
+  color: var(--t-text);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--t-border);
+  box-shadow: none;
+}
+.teacher-dark .tnav.active {
+  color: #eafff2;
+  background: var(--t-accent-soft);
+  border-color: rgba(46, 193, 110, 0.4);
+  box-shadow: none;
+}
+.teacher-dark .tnav.active .tnav-ic {
+  color: var(--t-accent);
+}
+.teacher-dark .tnav.active:hover {
+  transform: none;
+  border-color: rgba(46, 193, 110, 0.55);
+}
+.teacher-dark .tnav.logout {
+  margin-left: auto;
+  background: transparent;
+  color: var(--t-muted);
+  box-shadow: none;
+}
+.teacher-dark .tnav.logout:hover {
+  color: #ff9b9b;
+  background: rgba(235, 87, 87, 0.1);
+  border-color: rgba(235, 87, 87, 0.32);
+}
+
+/* Kompaktare nav på små skärmar: göm ordmärket, låt flikarna scrolla. */
+@media (max-width: 640px) {
+  .teacher-dark .teacher-nav-wordmark { display: none; }
+  .teacher-dark .teacher-nav-tabs { margin-left: 2px; }
+}
+@media (max-width: 460px) {
+  .teacher-dark .tnav .tnav-txt { display: none; }
+  .teacher-dark .tnav { padding: 9px 11px; }
+  .teacher-dark .tnav.logout .tnav-txt { display: none; }
+}
+
+/* --- Sidtitel ------------------------------------------------------------- */
+.teacher-dark .teacher-page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--t-text);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.teacher-dark .teacher-page-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--t-accent);
+  background: var(--t-accent-soft);
+  border: 1px solid rgba(46, 193, 110, 0.24);
+}
+
+/* --- Paneler -------------------------------------------------------------- */
+.teacher-dark .panel {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 16px;
+  box-shadow: var(--t-shadow);
+  padding: 24px;
+}
+.teacher-dark .subpanel {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+}
+.teacher-dark .subhead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--t-text);
+  font-weight: 700;
+}
+.teacher-dark .subhead .t-icon { color: var(--t-accent); }
+.teacher-dark h1,
+.teacher-dark h2,
+.teacher-dark h3 { color: var(--t-text); }
+.teacher-dark .hint { color: var(--t-muted); }
+
+/* Länkar i lärarvyer – accentgrön i stället för elevsidans blå. */
+.teacher-dark .hint a,
+.teacher-dark .empty-state-text a {
+  color: var(--t-accent);
+}
+
+/* --- Formulär ------------------------------------------------------------- */
+.teacher-dark .field label,
+.teacher-dark label {
+  color: var(--t-text);
+}
+.teacher-dark .field input,
+.teacher-dark input[type="text"],
+.teacher-dark input[type="password"],
+.teacher-dark input[type="number"],
+.teacher-dark input[type="search"],
+.teacher-dark input:not([type]),
+.teacher-dark select,
+.teacher-dark textarea,
+.teacher-dark .new-class #new-name,
+.teacher-dark .new-class #new-count,
+.teacher-dark .cell {
+  background: var(--t-surface-2);
+  border: 1.5px solid var(--t-border-strong);
+  border-radius: 10px;
+  color: var(--t-text);
+}
+.teacher-dark .field input::placeholder,
+.teacher-dark input::placeholder,
+.teacher-dark textarea::placeholder {
+  color: #66748a;
+}
+.teacher-dark .field input:focus,
+.teacher-dark input:focus,
+.teacher-dark select:focus,
+.teacher-dark textarea:focus,
+.teacher-dark .new-class #new-name:focus,
+.teacher-dark .new-class #new-count:focus,
+.teacher-dark .cell:focus {
+  outline: none;
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 3px var(--t-accent-soft);
+}
+
+/* --- Meddelanden ---------------------------------------------------------- */
+.teacher-dark .msg.error {
+  background: rgba(235, 87, 87, 0.12);
+  color: #ff9d9d;
+  border: 1px solid rgba(235, 87, 87, 0.35);
+}
+.teacher-dark .msg.ok {
+  background: var(--t-accent-soft);
+  color: #7ee0a6;
+  border: 1px solid rgba(46, 193, 110, 0.35);
+}
+.teacher-dark .err-inline { color: #ff9d9d; }
+
+/* --- Knappar -------------------------------------------------------------- */
+/* Primär = accentgrön (enda accenten). Platt, mogen skugga i st f 3D-kant. */
+.teacher-dark .btn {
+  font-weight: 700;
+  font-size: 1.02rem;
+  border-radius: 11px;
+  padding: 12px 20px;
+  color: #08130c;
+  background: var(--t-accent);
+  box-shadow: 0 2px 10px rgba(46, 193, 110, 0.25);
+}
+.teacher-dark .btn:hover { filter: brightness(1.06); }
+.teacher-dark .btn:active { transform: translateY(1px); box-shadow: 0 1px 5px rgba(46, 193, 110, 0.25); }
+.teacher-dark .btn.gron {
+  background: var(--t-accent);
+  box-shadow: 0 2px 10px rgba(46, 193, 110, 0.25);
+}
+.teacher-dark .btn.stor { border-radius: 12px; }
+
+/* Sekundär "ghost" = diskret upphöjd yta med ljus text (inte blå). */
+.teacher-dark .btn.ghost {
+  background: var(--t-raised);
+  color: var(--t-text);
+  border: 1px solid var(--t-border-strong);
+  box-shadow: none;
+}
+.teacher-dark .btn.ghost:hover {
+  background: #27333f;
+  border-color: rgba(46, 193, 110, 0.4);
+}
+.teacher-dark .btn.small {
+  font-size: 0.9rem;
+  padding: 8px 13px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+.teacher-dark .btn.small .t-icon { color: var(--t-muted); }
+.teacher-dark .btn.small:hover .t-icon { color: var(--t-accent); }
+.teacher-dark .btn.danger {
+  background: rgba(235, 87, 87, 0.12);
+  color: #ff9d9d;
+  border: 1px solid rgba(235, 87, 87, 0.3);
+  box-shadow: none;
+}
+.teacher-dark .btn.danger:hover { background: rgba(235, 87, 87, 0.2); }
+.teacher-dark .btn.danger .t-icon { color: #ff9d9d; }
+.teacher-dark .btn.copied {
+  background: var(--t-accent);
+  color: #08130c;
+  box-shadow: none;
+}
+
+/* --- Klasskort ------------------------------------------------------------ */
+.teacher-dark .class-name { color: var(--t-text); }
+.teacher-dark .class-emoji {
+  display: inline-flex;
+  align-items: center;
+  color: var(--t-accent);
+}
+.teacher-dark .class-count {
+  color: var(--t-muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--t-border);
+}
+.teacher-dark .class-members,
+.teacher-dark .class-assign,
+.teacher-dark .class-modes,
+.teacher-dark .class-stats {
+  border-top: 1px solid var(--t-border);
+}
+
+/* --- Tomtillstånd --------------------------------------------------------- */
+.teacher-dark .empty-state {
+  border: 1.5px dashed var(--t-border-strong);
+  background: var(--t-surface-2);
+}
+.teacher-dark .empty-state-icon { color: var(--t-accent); }
+.teacher-dark .empty-state-title { color: var(--t-text); }
+.teacher-dark .empty-state-text { color: var(--t-muted); }
+
+/* --- Lärarspärr (gate) ---------------------------------------------------- */
+.teacher-dark .back-link { color: var(--t-muted); }
+.teacher-dark .back-link:hover { color: var(--t-text); }
+.teacher-dark .gate-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 6px;
+  border-radius: 16px;
+  color: var(--t-accent);
+  background: var(--t-accent-soft);
+  border: 1px solid rgba(46, 193, 110, 0.28);
+}
+
+/* Generella tabeller i lärar-expanders – håll dem läsbara i mörkt läge.
+   (Djupare komponent-polish per vy hör till respektive följd-issue i epicen.) */
+.teacher-dark table { color: var(--t-text); }
+.teacher-dark th { color: var(--t-muted); }
+.teacher-dark td,
+.teacher-dark th {
+  border-color: var(--t-border) !important;
+}
+
 /* --- Paneler och layout ---------------------------------------------------- */
 
 .panel-head {

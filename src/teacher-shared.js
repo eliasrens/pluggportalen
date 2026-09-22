@@ -57,6 +57,46 @@ export function wireHashLinks(ctx, root) {
   );
 }
 
+// --- Linje-ikoner (lärar-chrome) --------------------------------------------
+// Tunna inline-SVG-stroke-ikoner (currentColor, ~1.7px) som ersätter emojis i
+// lärarsidans chrome (nav, knappar, sektionsrubriker) – issue #363. Ärver färg
+// från texten, så samma ikon fungerar i både mörkt och ljust läge. Rita med
+// icon("namn", storlek). Håll setet litet och delat så designspråket är enhetligt.
+const ICONS = {
+  users:
+    '<path d="M16 19v-1.4a3.4 3.4 0 0 0-3.4-3.4H7.4A3.4 3.4 0 0 0 4 17.6V19"/><circle cx="10" cy="8" r="3.1"/><path d="M16.8 6.8a3.3 3.3 0 0 1 0 6.4"/><path d="M20 19v-1.3a3.3 3.3 0 0 0-2.4-3.2"/>',
+  book:
+    '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H6a2 2 0 0 0-2 2z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5a2 2 0 0 1 2 2z"/>',
+  lock:
+    '<rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15" r="1.1"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  pencil: '<path d="M4 16.4V20h3.6L18.2 9.4l-3.6-3.6L4 16.4z"/><path d="M12.8 7.2l3.6 3.6"/>',
+  grad:
+    '<path d="M12 4 2.5 9 12 14l9.5-5L12 4z"/><path d="M6 11.2v4c0 1 2.7 2.3 6 2.3s6-1.3 6-2.3v-4"/><path d="M21.5 9v4.5"/>',
+  pin:
+    '<path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2.3"/>',
+  sliders:
+    '<path d="M4 8h8M16 8h4M4 16h4M12 16h8"/><circle cx="14" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/>',
+  chart:
+    '<path d="M4 4v16h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-6"/>',
+  trash:
+    '<path d="M4 7h16"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M6.2 7l.8 12.6A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.4L17.8 7"/><path d="M10 11v6M14 11v6"/>',
+  school:
+    '<path d="M3 21h18"/><path d="M5 21V9.5L12 5l7 4.5V21"/><path d="M9.5 21v-4.5h5V21"/>',
+  inbox:
+    '<path d="M4 13l2.1-7A2 2 0 0 1 8 4.5h8a2 2 0 0 1 1.9 1.5L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13h5l1.1 2h3.8l1.1-2h5"/>',
+};
+
+/**
+ * Inline-SVG linje-ikon för lärar-chromet. currentColor + rund stroke.
+ * @param {string} name  Nyckel i ICONS.
+ * @param {number} size  Kant i px (default 18).
+ */
+export function icon(name, size = 18) {
+  const path = ICONS[name] || "";
+  return `<svg class="t-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${path}</svg>`;
+}
+
 export async function copyText(text, btn) {
   const done = () => {
     const old = btn.textContent;
@@ -93,25 +133,35 @@ export async function copyText(text, btn) {
 /** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */
 export function teacherNav(ctx, active) {
   const tabs = [
-    // Översikts-hubben (🏠 Översikt / pageLarare) är borttagen (issue #304):
-    // toppnaven gör orienteringsjobbet, hubben dubblerade bara flikarna.
-    // Klasser, elevkonton & statistik (#/larare/klasser) – den enade klass-fliken.
-    // Klassöversikten/statistiken (gamla 📊 Klass) är sammanslagen hit som en
-    // expander per klasskort (issue #299), så navet har EN klass-flik.
-    { hash: "#/larare/klasser", key: "klasser", label: "🏫 Klasser & elever" },
-    { hash: "#/larare/innehall", key: "innehall", label: "📚 Innehåll" },
+    // Översikts-hubben (pageLarare) är borttagen (issue #304): toppnaven gör
+    // orienteringsjobbet, hubben dubblerade bara flikarna. Klassöversikten/
+    // statistiken (gamla Klass-fliken) är sammanslagen som en expander per
+    // klasskort (issue #299), så navet har EN klass-flik.
+    // Emojis är utbytta mot tunna linje-ikoner i lärar-chromet (issue #363).
+    { hash: "#/larare/klasser", key: "klasser", label: "Klasser & elever", icon: "users" },
+    { hash: "#/larare/innehall", key: "innehall", label: "Innehåll", icon: "book" },
   ];
   const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
     <div class="teacher-nav-inner">
+      <span class="teacher-nav-brand" aria-hidden="true">
+        <span class="teacher-nav-logo">${icon("school", 20)}</span>
+        <span class="teacher-nav-wordmark">Lärarrum</span>
+      </span>
+      <span class="teacher-nav-tabs">
       ${tabs
         .map(
           (t) =>
             `<a class="tnav ${t.key === active ? "active" : ""}" data-hash="${t.hash}"${
               t.key === active ? ' aria-current="page"' : ""
-            }>${t.label}</a>`
+            }><span class="tnav-ic">${icon(t.icon)}</span><span class="tnav-txt">${esc(
+              t.label
+            )}</span></a>`
         )
         .join("")}
-      <a class="tnav logout" data-logout="1">🔒 Lås lärarläge</a>
+      </span>
+      <a class="tnav logout" data-logout="1" title="Lås lärarläge"><span class="tnav-ic">${icon(
+        "lock"
+      )}</span><span class="tnav-txt">Lås lärarläge</span></a>
     </div>
   </nav>`);
   nav.querySelectorAll("[data-hash]").forEach((a) =>
@@ -131,9 +181,16 @@ export function teacherNav(ctx, active) {
  * toppnaven (teacherNav) redan markerar var man är och översikts-hubben är
  * borta. `emoji`/`title` behålls; ev. `lead` ignoreras (bakåtkompatibel signatur).
  */
-export function teacherHead(_ctx, { emoji = "📋", title = "" } = {}) {
+export function teacherHead(_ctx, { emoji = "", title = "", icon: iconName = "" } = {}) {
+  // Chromet är emoji-fritt (issue #363): föredra en linje-ikon. `emoji` behålls
+  // i signaturen för bakåtkompatibilitet men ritas bara om ingen ikon anges.
+  const mark = iconName
+    ? `<span class="teacher-page-ic" aria-hidden="true">${icon(iconName, 22)}</span>`
+    : emoji
+    ? `${esc(emoji)} `
+    : "";
   return el(`<header class="teacher-head-slim">
-    <h1 class="teacher-page-title">${esc(emoji)} ${esc(title)}</h1>
+    <h1 class="teacher-page-title">${mark}<span>${esc(title)}</span></h1>
   </header>`);
 }
 
@@ -142,9 +199,14 @@ export function teacherHead(_ctx, { emoji = "📋", title = "" } = {}) {
  * steg. Används när det inte finns klasser/elever/innehåll ännu, i stället för
  * en tom yta. `text` får innehålla enkel markup.
  */
-export function emptyState(ctx, { emoji = "✨", title = "", text = "", actionLabel = "", actionHash = "" } = {}) {
+export function emptyState(
+  ctx,
+  { emoji = "", title = "", text = "", actionLabel = "", actionHash = "", icon: iconName = "inbox" } = {}
+) {
+  // Linje-ikon i chromet (issue #363); `emoji` kvar för bakåtkompatibilitet.
+  const mark = iconName ? icon(iconName, 34) : esc(emoji);
   const box = el(`<div class="empty-state">
-    <span class="empty-state-icon">${esc(emoji)}</span>
+    <span class="empty-state-icon">${mark}</span>
     <h3 class="empty-state-title">${esc(title)}</h3>
     ${text ? `<p class="empty-state-text">${text}</p>` : ""}
     ${
@@ -167,23 +229,23 @@ export function emptyState(ctx, { emoji = "✨", title = "", text = "", actionLa
 // ============================================================================
 
 export function renderGate(ctx) {
-  const view = el(`<div class="teacher-page">
+  const view = el(`<div class="teacher-page teacher-dark">
     <a class="back-link" id="back">← Tillbaka</a>
     <div class="panel gate-panel center">
-      <span class="gate-icon">🔐</span>
+      <span class="gate-icon" aria-hidden="true">${icon("lock", 30)}</span>
       <h1 class="center">Lärarläge</h1>
       <p class="hint center">Logga in med ditt lärarkonto (användarnamn + lösenord) för att komma vidare.</p>
       <div id="msg"></div>
       <form id="form">
         <div class="field">
           <label for="username">Användarnamn</label>
-          <input id="username" type="text" autocomplete="username" autocapitalize="none" placeholder="teacher26" />
+          <input id="username" type="text" autocomplete="username" autocapitalize="none" placeholder="Användarnamn" />
         </div>
         <div class="field">
           <label for="p">Lösenord</label>
           <input id="p" type="password" autocomplete="current-password" placeholder="Lösenord" />
         </div>
-        <button class="btn stor" type="submit" id="submit">Logga in</button>
+        <button class="btn stor gron" type="submit" id="submit">Logga in</button>
       </form>
     </div>
   </div>`);
