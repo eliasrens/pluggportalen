@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – hagens nedre gräns + namnskylt (#371)</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #371: renderar gårds-scenen (gardScen)
+         med den nya hageForgrund() + bondgårdsdjuren placerade som i produktion
+         (fötterna vid #hage-zons nedre kant). Ingen inloggning/data-lager –
+         nodmarkupen speglar gard-djur.js djurNode() så CSS:en (fdjur-koeff,
+         .gard-djur .rp-namn ovanför huvudet) räknas mot samma layer-bredd. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 14px 20px 2px; }
+      header h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      header p { margin: 0; font-size: 0.85rem; opacity: 0.85; max-width: 90ch; }
+      .scen-rad { display: flex; flex-wrap: wrap; gap: 22px; padding: 14px 20px; }
+      figure { margin: 0; }
+      figcaption { font-size: 0.8rem; margin-top: 6px; text-align: center; opacity: 0.8; }
+      /* En scen = ett .varld-stage/.varld-lager.varld-ute i 960×600 (viewBox 1:1
+         → SVG-koordinater = CSS-px, så #hage-zon linjerar). */
+      .scen {
+        position: relative; width: 480px; height: 300px;
+        border: 1px solid #d8cbb5; border-radius: 12px; overflow: hidden;
+        background: #eaf5ff;
+      }
+      .scen .varld-lager { position: absolute; inset: 0; }
+      .scen .varld-ute svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      /* markera hage-zonen svagt i debug-scenen */
+      .debug #hage-zon { stroke: #e0004d !important; stroke-width: 2 !important; stroke-dasharray: 6 4; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Hagens nedre gräns + namnskylt (#371)</h1>
+      <p>Häst (högst) + gris (kortast) placerade med fötterna vid #hage-zons nedre kant, precis som gard-djur.js.
+         Kontroll: (a) inga ben/hovar sticker ut UNDER hagen, (b) namnskylten (vita pillen) syns HELT ovanför djuret.
+         Höger scen visar hage-zonen streckad + ett djur rakt framför en stolpe.</p>
+    </header>
+    <div class="scen-rad" id="rad"></div>
+
+    <script type="module">
+      import { gardScen, hageForgrund } from "./src/art-gard.js";
+      import { farmSideSvg, farmSideSize } from "./src/art-pets-side.js";
+      import { farmMoodSvg } from "./src/art-pets.js";
+
+      // #hage-zon i viewBox-koordinater (art-gard.js): x378 y478 w228 h64.
+      const ZON = { l: 378, r: 378 + 228, t: 478, b: 478 + 64 };
+      const VB_H = 600;
+
+      // Nod-markup identisk med gard-djur.js djurNode() (klasser + inline-storlek).
+      function djurNode(id, art, namn, xPct) {
+        const size = farmSideSize(art);
+        const svg = farmSideSvg(art, namn);
+        const el = document.createElement("div");
+        el.className = "room-item room-pet gard-djur";
+        el.dataset.petId = id;
+        el.style.left = xPct + "%";
+        el.style.top = "82%"; // justeras av placeraFotter() efter layout
+        el.innerHTML =
+          `<span class="ri-emoji" style="width:calc(${size.w} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)));height:calc(${size.h} * min(var(--fdjur-koeff, 2) * 1cqw, var(--fdjur-cap, 30px)))">${svg}</span>` +
+          `<span class="fdjur-mood" aria-hidden="true">${farmMoodSvg("glad")}</span>` +
+          `<span class="rp-namn">${namn}</span>`;
+        return el;
+      }
+
+      // Placera nodens fötter (emoji-botten) vid zonens nedre kant, precis som
+      // promenad-clampen (maxY = z.b − halfH) gör i produktion.
+      function placeraFotter(overlay, node) {
+        const lr = overlay.getBoundingClientRect();
+        const em = node.querySelector(".ri-emoji").getBoundingClientRect();
+        const halfH_pct = (em.height / lr.height) * 100 / 2;
+        const zonB_pct = (ZON.b / VB_H) * 100;
+        node.style.top = (zonB_pct - halfH_pct) + "%";
+      }
+
+      function byggScen(container, djurLista, debug) {
+        const stage = document.createElement("div");
+        stage.className = "scen" + (debug ? " debug" : "");
+        const scenLager = document.createElement("div");
+        scenLager.className = "varld-lager varld-ute";
+        scenLager.innerHTML = gardScen({});
+        stage.appendChild(scenLager);
+
+        const overlay = document.createElement("div");
+        overlay.className = "gard-djur-lager har-forgrund";
+        const noder = djurLista.map(([id, art, namn, x]) => djurNode(id, art, namn, x));
+        noder.forEach((n) => overlay.appendChild(n));
+        stage.appendChild(overlay);
+
+        const forgrund = document.createElement("div");
+        forgrund.className = "gard-forgrund";
+        forgrund.setAttribute("aria-hidden", "true");
+        forgrund.innerHTML = hageForgrund();
+        stage.appendChild(forgrund);
+
+        container.appendChild(stage);
+        // placera efter att layouten mätts
+        requestAnimationFrame(() => noder.forEach((n) => placeraFotter(overlay, n)));
+        return stage;
+      }
+
+      const rad = document.getElementById("rad");
+      const mk = (djur, cap, debug) => {
+        const fig = document.createElement("figure");
+        byggScen(fig, djur, debug);
+        const c = document.createElement("figcaption");
+        c.textContent = cap;
+        fig.appendChild(c);
+        rad.appendChild(fig);
+      };
+
+      mk([["h1", "animal_horse", "Hästen", 46], ["p1", "animal_pig", "Grisen", 60]],
+         "Häst + gris i hagen");
+      mk([["h2", "animal_horse", "Stjärna", 43], ["c1", "animal_cow", "Majros", 62]],
+         "Häst + ko");
+      mk([["p2", "animal_pig", "Nasse", 55]],
+         "Gris rakt framför en stolpe (zon streckad)", true);
+    </script>
+  </body>
+</html>
