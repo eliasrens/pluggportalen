@@ -25,7 +25,7 @@ export const CATEGORIES = [
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
   { id: "mobler", name: "Möbler & prylar", emoji: "🪑" },
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
-  { id: "mat", name: "Mat", emoji: "🍎" },
+  { id: "mat", name: "Djurmat", emoji: "🍎" },
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
   { id: "hus", name: "Hus", emoji: "🏠" },
   { id: "tradgard", name: "Trädgård & utomhus", emoji: "🌳" },
