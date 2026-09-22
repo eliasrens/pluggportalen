@@ -151,6 +151,13 @@ export const SHOP_ITEMS = [
   { id: "ballonger", name: "Ballongbukett", emoji: "🎈", category: "dekor", price: 22 },
   { id: "kaktus", name: "Kaktus", emoji: "🌵", category: "dekor", price: 30 },
   { id: "vaggklocka", name: "Väggklocka", emoji: "🕰️", category: "dekor", price: 60 },
+  // Mer pynt (#352).
+  { id: "nallebjorn", name: "Nallebjörn", emoji: "🧸", category: "dekor", price: 35 },
+  { id: "lavalampa", name: "Lavalampa", emoji: "🫧", category: "dekor", price: 75 },
+  { id: "discokula", name: "Discokula", emoji: "🪩", category: "dekor", price: 90 },
+  { id: "spegel", name: "Golvspegel", emoji: "🪞", category: "dekor", price: 95 },
+  { id: "pokal", name: "Guldpokal", emoji: "🏆", category: "dekor", price: 110 },
+  { id: "teleskop", name: "Teleskop", emoji: "🔭", category: "dekor", price: 150 },
 
   // --- Hus (byter husets EXTERIÖR/skal – rummet inuti är oförändrat) ---------
   // Köp lägger skal-id:t i ownedItems; aktivt skal väljs i husvärldens "🏠 Nytt
@@ -281,45 +288,37 @@ export function isFlatItem(id) {
   return !!(it && it.flat);
 }
 
-/**
- * Är saken en HUS-sak (kategori "hus")? Det täcker både köpbara husskal som
- * byter husets exteriör (slott/svamphus) och rums-uppgraderingar (rum-2/3/4).
- * Ingen av dem placeras som en vanlig sak i rummet → varld-rum.js filtrerar bort
- * dem ur room.placements med !isHouseItem(id).
- */
+/** Är saken en HUS-sak (kategori "hus")? Täcker både köpbara husskal som byter
+ * husets exteriör (slott/svamphus) och rums-uppgraderingar (rum-2/3/4); ingen
+ * placeras som vanlig sak i rummet → varld-rum.js filtrerar bort dem ur
+ * room.placements med !isHouseItem(id). */
 export function isHouseItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "hus");
 }
 
-/**
- * Är saken ett VANLIGT djur (hund/katt/kanin …)? De köps i shoppen och blir
+/** Är saken ett VANLIGT djur (hund/katt/kanin …)? Köps i shoppen och blir
  * LEVANDE, promenerande djur i rummet (studentData.roomAnimals via
  * data-animals.js) – inte statiska möbler i room.placements. Ägget och
- * värmelampan hör till mystery-systemet (data-pet.js) och räknas inte hit.
- */
+ * värmelampan hör till mystery-systemet (data-pet.js) och räknas inte hit. */
 export function isAnimalItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "husdjur" && !it.farmAnimal && id !== "mystery-egg" && id !== "varmelampa");
 }
 
-/**
- * Är saken ett BONDGÅRDSDJUR (häst/ko/gris)? De köps i shoppen som de vanliga
+/** Är saken ett BONDGÅRDSDJUR (häst/ko/gris)? Köps i shoppen som de vanliga
  * djuren men bor i gårdens datamodell (farm.animals, data-farm.js) och kan
  * placeras i rummet, hagen eller laggården ("Mina djur", farm.placedAnimals).
- * Hålls helt isär från roomAnimals (isAnimalItem) och mystery-pets.
- */
+ * Hålls helt isär från roomAnimals (isAnimalItem) och mystery-pets. */
 export function isFarmAnimalItem(id) {
   const it = getItem(id);
   return !!(it && it.farmAnimal);
 }
 
-/**
- * Är saken en TRÄDGÅRDS-/utomhussak (kategori "tradgard")? De köps i shoppen och
+/** Är saken en TRÄDGÅRDS-/utomhussak (kategori "tradgard")? Köps i shoppen och
  * placeras UTOMHUS runt huset i ute-vyn (studentData.garden via data-room.js) –
  * inte som möbler i rummet. varld-rum.js filtrerar bort dem ur rums-lådan och
- * room.placements med !isGardenItem(id), och varld-tradgard.js äger dem i stället.
- */
+ * room.placements med !isGardenItem(id); varld-tradgard.js äger dem i stället. */
 export function isGardenItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "tradgard");
