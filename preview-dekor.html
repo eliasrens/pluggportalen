@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – dekor & pynt</title>
+    <style>
+      /* Fristående testyta för issue #352: all dekor-konst (DECOR, art-decor.js)
+         renderad via samma itemSvg/itemSize som rummet använder. Ingen
+         inloggning behövs – sidan läser bara katalogen. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 60ch; }
+      .wrap { padding: 12px 20px 40px; }
+      h2 { font-size: 1.05rem; margin: 26px 0 4px; }
+      .strip { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 12px; }
+      .cell {
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+        gap: 6px; width: 128px; padding: 12px 8px 10px;
+        background: #fff; border: 3px solid #ffe0b3; border-radius: 16px;
+      }
+      .cell.ny { border-color: #6FC66F; box-shadow: 0 0 0 3px rgba(111, 198, 111, 0.25); }
+      .cell .bild { display: flex; align-items: flex-end; justify-content: center; height: 100px; }
+      .cell small { font-size: 0.8rem; opacity: 0.85; text-align: center; }
+      .cell .pris { font-size: 0.75rem; opacity: 0.7; }
+      /* Väggfärgad yta – samma känsla som rummet, för kontrastkoll. */
+      .strip.vagg .cell { background: #cfe8f5; border-color: #a9cfe2; }
+      .badge { display: inline-block; background: #6FC66F; color: #fff; border-radius: 8px; font-size: 0.65rem; padding: 1px 6px; vertical-align: 2px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – dekor &amp; pynt 🧸🪩</h1>
+      <p>
+        Alla dekor-saker i shoppen, ritade med exakt samma <code>itemSvg</code>/<code>itemSize</code>
+        som rummet använder (1 rem ≈ 24 px här). Gröna kort = nya i issue #352.
+        Nedre raden visas mot väggfärgad bakgrund för kontrastkoll.
+      </p>
+    </header>
+    <div class="wrap">
+      <h2>Dekor-katalogen (vit bakgrund)</h2>
+      <div class="strip" id="strip-vit"></div>
+      <h2>Nya sakerna mot väggfärg</h2>
+      <div class="strip vagg" id="strip-vagg"></div>
+    </div>
+    <script type="module">
+      import { itemSvg, itemSize } from "./src/art-items.js";
+      import { itemsInCategory } from "./src/shop-items.js";
+
+      const NYA = new Set(["nallebjorn", "lavalampa", "discokula", "spegel", "pokal", "teleskop"]);
+      const REM = 24; // px per rem i förhandsvisningen
+
+      function cell(item) {
+        const el = document.createElement("div");
+        el.className = "cell" + (NYA.has(item.id) ? " ny" : "");
+        const { w, h } = itemSize(item.id);
+        el.innerHTML =
+          `<div class="bild" style="width:${(w * REM).toFixed(0)}px;height:${Math.min(100, h * REM).toFixed(0)}px">` +
+          `${itemSvg(item.id) || `<span style="font-size:3rem">${item.emoji}</span>`}</div>` +
+          `<small>${item.emoji} ${item.name}${NYA.has(item.id) ? ' <span class="badge">NY</span>' : ""}</small>` +
+          `<span class="pris">${item.price} 🪙 · ${w}×${h} rem</span>`;
+        return el;
+      }
+
+      const dekor = itemsInCategory("dekor");
+      const vit = document.getElementById("strip-vit");
+      const vagg = document.getElementById("strip-vagg");
+      for (const it of dekor) vit.appendChild(cell(it));
+      for (const it of dekor.filter((i) => NYA.has(i.id))) vagg.appendChild(cell(it));
+    </script>
+  </body>
+</html>
