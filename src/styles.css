@@ -1299,6 +1299,243 @@ body:has(.teacher-dark) .container {
   border-color: var(--t-border) !important;
 }
 
+/* ==========================================================================
+   Lärarsidan – MÖRK design utrullad till ALLA lärarvyer (issue #367, epic #362)
+   --------------------------------------------------------------------------
+   #363 satte designspråket (tokens/bas-komponenter under `.teacher-dark`) men
+   bara på dashboard + toppnav + klasslistan. Här rullas det ut till resten:
+   Innehållsstudion (bibliotek + kompositör + läs/AI-editorer), klass-vyerna
+   (områdesval, lägen, statistik-tabell + elevmodal) och login-korten.
+
+   ALLT nedan är scopat under `.teacher-dark …` → elevsidan är orörd. Vyer som
+   låg på <body> (elev-modalen, login-korten) har fått `.teacher-dark` PÅ sin
+   egen overlay i JS, så samma scope når dem. Vi ÅTERANVÄNDER #363:s tokens
+   (--t-surface/-2, --t-raised, --t-border, --t-text, --t-muted, --t-accent…).
+   ========================================================================== */
+
+/* --- KONTRAST-BUGG (prio 1): Områden-valet + alla ljusa "kort"-ytor -------
+   Områdesval (renderClassAssignments) ritar .member-row-kryssrutor med vit
+   bakgrund och .assign-subject-rubriker – på den mörka sidan blev de vita öar
+   där texten drunknade. Gör dem till mörka upphöjda ytor med ljus text. */
+.teacher-dark .member-row,
+.teacher-dark .member-manage-row,
+.teacher-dark .area-row,
+.teacher-dark .acct-editor {
+  background: var(--t-surface-2);
+  border-color: var(--t-border-strong);
+  color: var(--t-text);
+}
+.teacher-dark .member-row:hover {
+  border-color: var(--t-accent);
+}
+.teacher-dark .member-name,
+.teacher-dark .assign-subject { color: var(--t-text); }
+.teacher-dark .member-row input,
+.teacher-dark .rt-prereq-toggle input,
+.teacher-dark input[type="checkbox"],
+.teacher-dark input[type="radio"] { accent-color: var(--t-accent); }
+
+/* --- Bibliotekskort (Innehållsstudion) ----------------------------------- */
+.teacher-dark .studio-lib-controls { color: var(--t-muted); }
+.teacher-dark .area-card {
+  background: var(--t-raised);
+  border: 1px solid var(--t-border-strong);
+  box-shadow: var(--t-shadow);
+}
+.teacher-dark .area-card:hover { border-color: var(--t-accent); }
+.teacher-dark .area-card:focus-visible { outline-color: var(--t-accent); }
+.teacher-dark .area-card-name { color: var(--t-text); }
+.teacher-dark .area-card-count { color: var(--t-muted); }
+
+/* Badges (typ/årskurs) – diskreta accent-chips i stället för ljusa öar. */
+.teacher-dark .badge,
+.teacher-dark .area-card .type-badge {
+  background: var(--t-accent-soft);
+  color: #a9ecc6;
+}
+.teacher-dark .grade-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--t-muted);
+}
+
+/* Ämnesflikar. */
+.teacher-dark .subject-tab {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+  color: var(--t-muted);
+}
+.teacher-dark .subject-tab:hover { border-color: var(--t-accent); color: var(--t-text); }
+.teacher-dark .subject-tab.active {
+  background: var(--t-accent-soft);
+  border-color: rgba(46, 193, 110, 0.4);
+  color: #eafff2;
+}
+
+/* --- Fokuserad kompositör (overlay) -------------------------------------- */
+.teacher-dark .studio-composer {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.teacher-dark .composer-title { color: var(--t-text); }
+.teacher-dark .composer-sub { color: var(--t-muted); }
+.teacher-dark .composer-icon { color: var(--t-accent); }
+
+/* Metod-växeln (guidat / material). */
+.teacher-dark .method-switch { background: var(--t-surface-2); }
+.teacher-dark .method-tab { color: var(--t-muted); }
+.teacher-dark .method-tab.active {
+  background: var(--t-raised);
+  color: #eafff2;
+  box-shadow: none;
+}
+/* Innehållstyp-flikar. */
+.teacher-dark .ctype-tab {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+  color: var(--t-text);
+}
+.teacher-dark .ctype-tab.active {
+  background: var(--t-accent-soft);
+  border-color: rgba(46, 193, 110, 0.4);
+  color: #eafff2;
+}
+
+/* Emoji-väljaren (områdets symbol – emojin är INNEHÅLL, bara chromet mörknar). */
+.teacher-dark .emoji-choice {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+}
+.teacher-dark .emoji-choice:hover { border-color: var(--t-accent); }
+.teacher-dark .emoji-choice.active {
+  background: var(--t-accent-soft);
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 1px var(--t-accent);
+}
+.teacher-dark .emoji-preview { background: var(--t-surface-2); }
+
+.teacher-dark .composer-callout { background: var(--t-accent-soft); }
+.teacher-dark .composer-callout .hint { color: #a9ecc6; }
+
+/* --- Läs/AI-editorer & granska-vy ---------------------------------------- */
+.teacher-dark .rv-passage,
+.teacher-dark .rt-ai { background: var(--t-surface-2); }
+.teacher-dark .rv-expl { background: rgba(242, 201, 76, 0.12); }
+.teacher-dark .rv-imgflag { background: rgba(255, 255, 255, 0.08); }
+.teacher-dark .rv-arrow { color: var(--t-accent); }
+.teacher-dark .rv-opt.correct { color: #7ee0a6; }
+.teacher-dark .rt-prereq {
+  background: rgba(242, 201, 76, 0.12);
+  border-color: rgba(242, 201, 76, 0.4);
+}
+.teacher-dark .rt-card {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+}
+.teacher-dark .rt-q { border-color: var(--t-border-strong); }
+.teacher-dark .rt-tab.active { box-shadow: inset 0 0 0 2px var(--t-accent); }
+.teacher-dark .rv-level,
+.teacher-dark .area-reading,
+.teacher-dark .area-merge,
+.teacher-dark .area-review { border-left-color: rgba(46, 193, 110, 0.4); }
+.teacher-dark .btn.small.active { box-shadow: inset 0 0 0 2px var(--t-accent); }
+
+/* --- Statustext, kod, felrutor ------------------------------------------- */
+.teacher-dark .ok-inline,
+.teacher-dark .gc-ok,
+.teacher-dark .rl-flash .gc-ok,
+.teacher-dark .rl-bulk-flash .gc-ok { color: #7ee0a6; }
+.teacher-dark .err-inline,
+.teacher-dark .gc-err,
+.teacher-dark .ae-err,
+.teacher-dark .rl-flash .gc-err,
+.teacher-dark .rl-bulk-flash .gc-err { color: #ff9d9d; }
+.teacher-dark .rl-cell-label,
+.teacher-dark .mm-main .mm-username,
+.teacher-dark .lc-hint { color: var(--t-muted); }
+.teacher-dark code { background: rgba(255, 255, 255, 0.08); color: #a9ecc6; }
+
+/* --- Kontoskapande / medlemshanterare ------------------------------------ */
+.teacher-dark .mm-add { border-color: var(--t-border-strong); }
+.teacher-dark .mm-add[open] > summary { border-bottom-color: var(--t-border); }
+.teacher-dark .cred-panel {
+  background: rgba(242, 201, 76, 0.1);
+  border-color: rgba(242, 201, 76, 0.4);
+}
+.teacher-dark .tbl th { color: var(--t-muted); border-bottom-color: var(--t-border); }
+.teacher-dark .tbl .cell {
+  background: var(--t-surface-2);
+  border: 1.5px solid var(--t-border-strong);
+  color: var(--t-text);
+}
+.teacher-dark .tbl .cell:focus { border-color: var(--t-accent); }
+.teacher-dark .acct-tbl .ae-invalid .cell { border-color: #ff9d9d; }
+
+/* --- Statistik-tabell (klass) -------------------------------------------- */
+.teacher-dark .class-tbl .cx-corner,
+.teacher-dark .class-tbl .cx-name { background: var(--t-surface); }
+.teacher-dark .class-tbl .cx-corner { background: var(--t-surface-2); }
+.teacher-dark .class-tbl tbody tr:nth-child(even) td,
+.teacher-dark .class-tbl tbody tr:nth-child(even) .cx-name { background: rgba(255, 255, 255, 0.03); }
+.teacher-dark .class-tbl .cx-head-name,
+.teacher-dark .class-tbl .cx-slash,
+.teacher-dark .class-tbl .cx-empty,
+.teacher-dark .class-tbl .cx-total-stars { color: var(--t-muted); }
+.teacher-dark .class-tbl .cx { border-left-color: var(--t-border); }
+.teacher-dark .class-tbl .cx-stars,
+.teacher-dark .class-tbl .cx-total-pct { color: var(--t-text); }
+.teacher-dark .class-tbl .cx-bar,
+.teacher-dark .class-tbl .cx-total { border-left-color: var(--t-border); }
+.teacher-dark .class-tbl .cx-bar { background: rgba(255, 255, 255, 0.1); }
+/* Nivåfärger som halvgenomskinliga toner så de läser mot mörk botten. */
+.teacher-dark .class-tbl .cx.hog { background: rgba(46, 193, 110, 0.16); }
+.teacher-dark .class-tbl .cx.mellan { background: rgba(242, 153, 74, 0.16); }
+.teacher-dark .class-tbl .cx.lag { background: rgba(235, 87, 87, 0.16); }
+.teacher-dark .class-tbl .cx-total.hog { color: #7ee0a6; }
+.teacher-dark .class-tbl .cx-total.mellan { color: #f2b06a; }
+.teacher-dark .class-tbl .cx-total.lag { color: #ff9d9d; }
+.teacher-dark .class-tbl .cx-total.tom { color: var(--t-muted); }
+.teacher-dark .class-tbl tr.cx-row:hover td,
+.teacher-dark .class-tbl tr.cx-row:hover .cx-name,
+.teacher-dark .class-tbl tr.cx-row:focus-visible td,
+.teacher-dark .class-tbl tr.cx-row:focus-visible .cx-name { background: var(--t-accent-soft); }
+.teacher-dark .class-tbl .cx-row-more { color: var(--t-accent); }
+.teacher-dark .cx-legend { color: var(--t-muted); }
+.teacher-dark .cx-legend-tip { color: var(--t-accent); }
+.teacher-dark .cx-dot.tom { background: rgba(255, 255, 255, 0.12); }
+
+/* --- Elev-modal (per-elev-fördjupning) ----------------------------------- */
+.teacher-dark .cx-modal {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.teacher-dark .cx-modal-close { background: var(--t-raised); color: var(--t-muted); }
+.teacher-dark .cx-modal-close:hover { background: #27333f; color: var(--t-text); }
+.teacher-dark .cx-modal-sub,
+.teacher-dark .cx-stat-of,
+.teacher-dark .cx-stat-lbl,
+.teacher-dark .cx-chip-lbl,
+.teacher-dark .cx-subject-block h4 { color: var(--t-muted); }
+.teacher-dark .cx-stat { background: var(--t-surface-2); }
+.teacher-dark .cx-stat-num { color: var(--t-text); }
+.teacher-dark .cx-area-stars,
+.teacher-dark .cx-mode-val { color: var(--t-text); }
+.teacher-dark .cx-area-row { border-top-color: var(--t-border); }
+.teacher-dark .cx-area-bar,
+.teacher-dark .cx-detail-total-bar { background: rgba(255, 255, 255, 0.1); }
+.teacher-dark .cx-mode { background: var(--t-surface-2); }
+.teacher-dark .cx-mode.tom .cx-mode-val { color: var(--t-muted); }
+.teacher-dark .cx-chip.weak { background: rgba(235, 87, 87, 0.16); color: #ff9d9d; }
+.teacher-dark .cx-chip.not { background: rgba(255, 255, 255, 0.06); color: var(--t-muted); }
+
+/* --- Login-korten (utskriftsvänliga) -------------------------------------
+   Overlayen + verktygsraden mörknar; SJÄLVA korten hålls vita med mörk text –
+   de är fysiska utdelningskort som ska skrivas ut på papper (print-vänligt),
+   inte en "ljus ö" i UI:t. @media print nedan är oförändrad. */
+.teacher-dark.login-cards-overlay { background: var(--t-bg); }
+.teacher-dark .lc-title { color: var(--t-text); }
+
 /* --- Paneler och layout ---------------------------------------------------- */
 
 .panel-head {

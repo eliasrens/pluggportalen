@@ -199,7 +199,7 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
     if (!res.ok) return showErrors(res.errors);
     const saveBtn = composer.querySelector("#save");
     saveBtn.disabled = true;
-    const old = saveBtn.textContent;
+    const old = saveBtn.innerHTML;
     saveBtn.textContent = "Sparar…";
     try {
       renderModeVisibility(res.value, false);
@@ -222,7 +222,7 @@ export function createComposer({ getSubjectId, getSubjectName, onSaved }) {
       resultEl.innerHTML = `<div class="msg error">Kunde inte spara till databasen: ${esc(err.message)}</div>`;
     } finally {
       saveBtn.disabled = false;
-      saveBtn.textContent = old;
+      saveBtn.innerHTML = old;
     }
   });
 

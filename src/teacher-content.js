@@ -57,7 +57,7 @@ export async function pageLarareInnehall(ctx) {
     ({ createComposer } = await import("./teacher-composer.js"));
   } catch (err) {
     console.error("Kompositören kunde inte laddas:", err);
-    const container = el(`<div class="teacher-page"></div>`);
+    const container = el(`<div class="teacher-page teacher-dark"></div>`);
     container.appendChild(teacherNav(ctx, "innehall"));
     container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
     container.appendChild(
@@ -162,7 +162,7 @@ export async function pageLarareInnehall(ctx) {
     composer.openNew();
   });
 
-  const container = el(`<div class="teacher-page"></div>`);
+  const container = el(`<div class="teacher-page teacher-dark"></div>`);
   container.appendChild(teacherNav(ctx, "innehall"));
   container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
   container.appendChild(lib);

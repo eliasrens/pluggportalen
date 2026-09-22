@@ -9,7 +9,7 @@
 // All inmatning skrivs in säkert via .value (aldrig rå HTML).
 // ============================================================================
 
-import { el, esc } from "./teacher-shared.js";
+import { el, esc, icon } from "./teacher-shared.js";
 
 /** En tom kryssfråga (4 alternativ, första som rätt). */
 export function blankQuestion() {
@@ -20,7 +20,7 @@ export function blankQuestion() {
 export function questionEditor(q, qi, onRemove) {
   const box = el(`<div class="rt-q"></div>`);
   const head = el(`<div class="rt-q-head"><span class="badge">Fråga ${qi + 1}</span></div>`);
-  const delQ = el(`<button type="button" class="btn ghost small danger">🗑️ Ta bort</button>`);
+  const delQ = el(`<button type="button" class="btn ghost small danger">${icon("trash", 16)}<span>Ta bort</span></button>`);
   delQ.addEventListener("click", () => onRemove(qi));
   head.appendChild(delQ);
 
@@ -40,7 +40,7 @@ export function questionEditor(q, qi, onRemove) {
       const inp = el(`<input type="text" class="rt-input" placeholder="Svarsalternativ ${oi + 1}" />`);
       inp.value = o;
       inp.addEventListener("input", () => (q.options[oi] = inp.value));
-      const del = el(`<button type="button" class="btn ghost small danger" title="Ta bort alternativet">✕</button>`);
+      const del = el(`<button type="button" class="btn ghost small danger" title="Ta bort alternativet">${icon("x", 15)}</button>`);
       del.addEventListener("click", () => {
         if (q.options.length <= 2) return;
         q.options.splice(oi, 1);
@@ -53,7 +53,7 @@ export function questionEditor(q, qi, onRemove) {
   }
   renderOpts();
 
-  const addOpt = el(`<button type="button" class="btn ghost small">➕ Alternativ</button>`);
+  const addOpt = el(`<button type="button" class="btn ghost small">${icon("plus", 16)}<span>Alternativ</span></button>`);
   addOpt.addEventListener("click", () => {
     if (q.options.length < 6) {
       q.options.push("");
@@ -104,7 +104,7 @@ export function levelPane(t) {
   }
   renderQs();
 
-  const addQ = el(`<button type="button" class="btn ghost small">➕ Lägg till fråga</button>`);
+  const addQ = el(`<button type="button" class="btn ghost small">${icon("plus", 16)}<span>Lägg till fråga</span></button>`);
   addQ.addEventListener("click", () => {
     L.questions.push(blankQuestion());
     renderQs();
