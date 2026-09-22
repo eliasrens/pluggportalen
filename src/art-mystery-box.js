@@ -1,11 +1,11 @@
 // ============================================================================
 // Pluggporten – konst för mysteryboxarna (inline SVG-ikoner)
 // ----------------------------------------------------------------------------
-// Egen ikon per box-nivå (#186): vanlig / Mega / Epic. Slås in i ITEMS-registret
+// Egen ikon per box-nivå (#186, Mini #348): Mini / vanlig / Mega / Epic. Slås in i ITEMS-registret
 // i art-items.js så shop-kortet ritar rätt SVG via itemSvg(box.id) i stället för
 // emoji-fallbacken. Id:na MÅSTE matcha MYSTERY_BOXES i mystery-items.js.
 // Följer stilguiden i art-style.js (kontur #3B3350, mjuka former, glad palett).
-// Alla tre delar samma grundform (present med rosett) men skiljs åt på färg +
+// Boxarna delar samma grundform (present med rosett) men skiljs åt på färg +
 // en liten "rang-bricka" så nivåerna känns igen på håll. viewBox 0 0 100 100.
 // ============================================================================
 
@@ -40,6 +40,20 @@ function giftBase({ body, lid, band, knot }) {
 
 /** id → { viewBox, art } – spreadas in i ITEMS (art-items.js). */
 export const MYSTERY_BOX_ART = {
+  // Mini box (#348): enklare/billigare känsla – ljusblå present i kartongton,
+  // mindre kropp än de andra så den känns "mini" på håll.
+  "mysterybox-mini": {
+    viewBox: "0 0 100 100",
+    art:
+      `<rect x="26" y="52" width="48" height="36" rx="7" fill="#7FC7E8" ${LINE}/>` +
+      `<rect x="21" y="42" width="58" height="15" rx="5" fill="#A9DBF2" ${LINE}/>` +
+      `<rect x="45" y="42" width="10" height="46" fill="#F7C948" ${THIN}/>` +
+      `<path d="M50 42 Q38 27 32 36 Q29 42 50 44 Q71 42 68 36 Q62 27 50 42 Z" ` +
+      `fill="#F7C948" ${LINE}/>` +
+      `<circle cx="50" cy="40" r="4" fill="#FDE9A8" ${THIN}/>` +
+      `<text x="50" y="78" font-size="16" text-anchor="middle" fill="#fff" ` +
+      `font-weight="800" font-family="system-ui" stroke="${O}" stroke-width="0.6">?</text>`,
+  },
   // Vanlig box: klassisk röd present med gult band och "?".
   mysterybox: {
     viewBox: "0 0 100 100",
