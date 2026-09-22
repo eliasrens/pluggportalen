@@ -3749,6 +3749,14 @@ body.varld-lage .container {
   cursor: crosshair;
 }
 
+/* I mat-läget går utlagd mat att PLOCKA UPP (#347): bara då får matbitarna
+   pekhändelser (annars pointer-events: none, se .room-apple nedan) och en
+   egen pekare så det syns att de är klickbara. */
+.room-stage.mat-placering .room-apple {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
 .room-apple {
   position: absolute;
   transform: translate(-50%, -50%);

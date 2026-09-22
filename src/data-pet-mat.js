@@ -8,8 +8,9 @@
 //   studentData.floorApples[]  äpplen som ligger på golvet, { id, x, y }
 //                              (x/y i procent av rumsscenen, golvzonen)
 // Köp (buyApple) ökar appleCount; lägg ut (placeApple) flyttar ett från
-// appleCount → floorApples. När ett djur äter upp ett äpple sköts det av
-// eatApple i data-pet.js (djurets feedCount ökar med 1).
+// appleCount → floorApples; plocka upp (pickUpApple, #347) flyttar tillbaka
+// ett från floorApples → appleCount. När ett djur äter upp ett äpple sköts
+// det av eatApple i data-pet.js (djurets feedCount ökar med 1).
 // Allt som rör coins går i runTransaction (samma mönster som buyItem).
 // ============================================================================
 
@@ -80,6 +81,34 @@ export async function placeApple(x, y, studentId = currentStudentId(), presetId 
     if (snap.exists()) tx.update(ref, { appleCount: count - 1, floorApples: nextApples });
     else tx.set(ref, { appleCount: count - 1, floorApples: nextApples });
     return { ok: true, appleCount: count - 1, floorApples: nextApples, apple };
+  });
+  if (result.ok) invalidateStudentData(studentId); // appleCount/floorApples ändrat (#274)
+  return result;
+}
+
+/**
+ * Plocka upp ETT äpple från golvet (#347): tar bort det ur floorApples[] och
+ * lägger tillbaka det i förrådet (appleCount + 1) – placeApple i omvänd
+ * riktning, allt i EN transaktion. Misslyckas (ok: false) om äpplet inte
+ * längre finns på servern (t.ex. redan uppätet av ett djur) – då ändras inget.
+ * @returns {Promise<{ok: boolean, appleCount: number, floorApples: object[]}>}
+ */
+export async function pickUpApple(appleId, studentId = currentStudentId()) {
+  if (!studentId) throw new Error("Ingen elev inloggad.");
+  const ref = doc(db, "studentData", studentId);
+  const result = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const count = data.appleCount || 0;
+    const apples = floorApplesFromData(data);
+    if (!apples.some((a) => a.id === appleId)) {
+      return { ok: false, appleCount: count, floorApples: apples };
+    }
+    const nextApples = apples.filter((a) => a.id !== appleId);
+    const next = { appleCount: count + 1, floorApples: nextApples };
+    if (snap.exists()) tx.update(ref, next);
+    else tx.set(ref, next);
+    return { ok: true, appleCount: next.appleCount, floorApples: nextApples };
   });
   if (result.ok) invalidateStudentData(studentId); // appleCount/floorApples ändrat (#274)
   return result;
