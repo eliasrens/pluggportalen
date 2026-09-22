@@ -28,7 +28,7 @@ export const MYSTERY_BOX_ID = "mysterybox";
 export const MYSTERY_BOX_PRICE = 500;
 
 /**
- * BOX-NIVÅER (#186). Samma item-pool (MYSTERY_ITEMS) för alla tre, men olika
+ * BOX-NIVÅER (#186, Mini #348). Samma item-pool (MYSTERY_ITEMS) för alla, men olika
  * pris och olika LEGENDARY-CHANS (per-box-parameter i stället för hårdkodad).
  * `legendaryChance` skickas ända ner till rollMysteryItem():
  *   * null  → basviktning (alla nivåer viktade tillsammans, ~2 % legendary) –
@@ -39,6 +39,7 @@ export const MYSTERY_BOX_PRICE = 500;
  * id:na stabila. `art` = itemSvg-id för egen box-ikon (art-mystery-box.js).
  */
 export const MYSTERY_BOXES = [
+  { id: "mysterybox-mini", name: "Mini-mysterybox", price: 250, emoji: "🎁", legendaryChance: 0.005 },
   { id: MYSTERY_BOX_ID, name: "Mysterybox", price: MYSTERY_BOX_PRICE, emoji: "🎁", legendaryChance: null },
   { id: "mysterybox-mega", name: "Mega-mysterybox", price: 1000, emoji: "🎁", legendaryChance: 0.11 },
   { id: "mysterybox-epic", name: "Epic-mysterybox", price: 2000, emoji: "🎁", legendaryChance: 0.9 },
