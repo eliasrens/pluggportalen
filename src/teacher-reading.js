@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: redigera läsförståelse-texter i 3 nivåer
+// Pluggporten – lärarsidan: redigera läsförståelse-texter i 3 nivåer
 // (teacher-reading.js, issue #152)
 // ----------------------------------------------------------------------------
 // Inline-editorn som öppnas under en områdesrad i #/larare/innehall. Läraren kan

@@ -1,4 +1,4 @@
-// Firebase-initiering för Pluggportalen.
+// Firebase-initiering för Pluggporten.
 // Webbappens config är publik (så är alla Firebase-webbnycklar) – skyddet ligger
 // i Firestore-säkerhetsreglerna (se firestore.rules) + Firebase Auth, inte i att
 // gömma nyckeln.

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – skriv-sidan av klass-projektionen (#233)
+// Pluggporten – skriv-sidan av klass-projektionen (#233)
 // ----------------------------------------------------------------------------
 // Håller `classProjections/{classId}` FÄRSK genom att spegla elevens egna fält
 // in i projektionen NÄR de ändras (award + avatar/palett/hus-skal/lås/namn), i

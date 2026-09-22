@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – Matte­generator-adapter (issue #278)
+// Pluggporten – Matte­generator-adapter (issue #278)
 // ----------------------------------------------------------------------------
 // ARKITEKTUR-SÖMMEN mot klassrummattes räkne-generatorer. Hela epicen
 // (mattegenerator med magma-stuk) hänger på att detta gränssnitt är rent:

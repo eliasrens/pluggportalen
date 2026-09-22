@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – games-lastext.js
+// Pluggporten – games-lastext.js
 // Läsuppdrag (issue #153): ett HELT SEPARAT läsförståelse-läge ovanpå innehålls-
 // modellen från #152 (readingTexts, 3 nivåer). Det gamla "lasforstaelse"-läget
 // (kort passage per fråga, games-quiz.js) är oförändrat – båda syns för eleven.

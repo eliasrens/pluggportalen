@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rum & avatar-utseende (data-room.js)
+// Pluggporten – rum & avatar-utseende (data-room.js)
 // ----------------------------------------------------------------------------
 // Systermodul till data.js (som ligger nära filtaket, samma mönster som
 // data-xp.js/data-pet.js): allt Firestore som rör hur eleven SER UT och hur

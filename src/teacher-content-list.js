@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: bibliotekskort för arbetsområden (teacher-content-list.js)
+// Pluggporten – lärarsidan: bibliotekskort för arbetsområden (teacher-content-list.js)
 // ----------------------------------------------------------------------------
 // Innehållsstudions BIBLIOTEK (issue #303): ett KORT per arbetsområde i det valda
 // ämnet. Kortet visar ärlig status – namn, typ (quiz/par/generator med ikon),

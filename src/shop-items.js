@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – shop-katalog
+// Pluggporten – shop-katalog
 // ----------------------------------------------------------------------------
 // Alla köpbara saker i shoppen. Ritas som emoji – inga externa assets krävs.
 // Id:na sparas i Firestore (studentData.ownedItems, room.placements,
@@ -129,6 +129,13 @@ export const SHOP_ITEMS = [
   { id: "hamster", name: "Hamster", emoji: "🐹", category: "husdjur", price: 90 },
   { id: "igelkott", name: "Igelkott", emoji: "🦔", category: "husdjur", price: 120 },
   { id: "skoldpadda", name: "Sköldpadda", emoji: "🐢", category: "husdjur", price: 140 },
+  // Bondgårdsdjur (issue #330, epic Trädgård/Gård): egna LEVANDE djur som bor i
+  // farm.animals (data-farm.js) – INTE roomAnimals – och kan placeras i rummet,
+  // ute i hagen eller inne i laggården via "Mina djur" (farm.placedAnimals).
+  // `farmAnimal: true` skiljer dem från de vanliga djuren (isFarmAnimalItem).
+  { id: "animal_horse", name: "Häst", emoji: "🐴", category: "husdjur", price: 250, farmAnimal: true },
+  { id: "animal_cow", name: "Ko", emoji: "🐮", category: "husdjur", price: 200, farmAnimal: true },
+  { id: "animal_pig", name: "Gris", emoji: "🐷", category: "husdjur", price: 180, farmAnimal: true },
 
   // --- Mat (konsumerbar – läggs på golvet, äts av husdjuren) ----------------
   // Äpplet köps i valfritt ANTAL (ökar studentData.appleCount, hamnar aldrig i
@@ -181,6 +188,30 @@ export const SHOP_ITEMS = [
   { id: "parkering", name: "Parkeringsruta", emoji: "🅿️", category: "tradgard", price: 110, flat: true },
   // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
   { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
+
+  // --- Fröer (#329): sås i odlingsbädden på GÅRDEN, inte placerbara saker -----
+  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId / inventory-
+  // Harvest-nyckeln – håll dem STABILA, Firestore). Kategorin tradgard är multi
+  // → varje köp ökar ownedCounts[id] (antal frön); sådden i gårdens odlingsbädd
+  // drar av 1 (plantSeed, data-farm.js). Filtreras bort ur trädgårds-placerings-
+  // lådan via isSeedItem (varld-tradgard.js). Skörden blir mat till gårdens djur:
+  // morot → kanin/häst, klöver → ko/får/gris, magiska bär → mysterydjur.
+  { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
+  { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
+  { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
+
+  // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
+  // OBS nivåmodellen (DATAMODELL.md/#331): nivån bor i FÄLTEN farm.gardenTier/
+  // farm.barnLevel – ALDRIG härledd ur ownedItems (till skillnad från rummens
+  // roomUpgradeCount). Korten här är alltså bara köp-UI:t: köpet går via
+  // buyFarmUpgrade (data-farm.js) som drar coins + höjer fältet i EN transaktion
+  // och skriver INGET i ownedItems. `farmUpgrade` pekar ut fältet ("garden" |
+  // "barn"), `upgradeLevel` nivån köpet ger; de köps i ordning (nivå 2 före 3 –
+  // shoppen låser nästa tills föregående ägs). Nivå 1 är start och säljs inte.
+  { id: "odling-2", name: "Dubbel odlingslåda", emoji: "🪴", category: "tradgard", price: 150, farmUpgrade: "garden", upgradeLevel: 2 },
+  { id: "odling-3", name: "Växthus", emoji: "🏡", category: "tradgard", price: 350, farmUpgrade: "garden", upgradeLevel: 3 },
+  { id: "lada-2", name: "Röd trälada", emoji: "🛖", category: "tradgard", price: 450, farmUpgrade: "barn", upgradeLevel: 2 },
+  { id: "lada-3", name: "Stor herrgårdslaggård", emoji: "🏛️", category: "tradgard", price: 800, farmUpgrade: "barn", upgradeLevel: 3 },
 ];
 
 // --- Mysteryboxarna (köp & öppna → slumpad kosmetik ur viktad pool) ---------
@@ -265,7 +296,18 @@ export function isHouseItem(id) {
  */
 export function isAnimalItem(id) {
   const it = getItem(id);
-  return !!(it && it.category === "husdjur" && id !== "mystery-egg" && id !== "varmelampa");
+  return !!(it && it.category === "husdjur" && !it.farmAnimal && id !== "mystery-egg" && id !== "varmelampa");
+}
+
+/**
+ * Är saken ett BONDGÅRDSDJUR (häst/ko/gris)? De köps i shoppen som de vanliga
+ * djuren men bor i gårdens datamodell (farm.animals, data-farm.js) och kan
+ * placeras i rummet, hagen eller laggården ("Mina djur", farm.placedAnimals).
+ * Hålls helt isär från roomAnimals (isAnimalItem) och mystery-pets.
+ */
+export function isFarmAnimalItem(id) {
+  const it = getItem(id);
+  return !!(it && it.farmAnimal);
 }
 
 /**
@@ -277,6 +319,29 @@ export function isAnimalItem(id) {
 export function isGardenItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "tradgard");
+}
+
+/**
+ * Är saken ett FRÖ (#329)? Fröer bor i tradgard-kategorin (multi → antal i
+ * ownedCounts) men placeras ALDRIG som trädgårdssaker – de sås i gårdens
+ * odlingsbädd (varld-odling.js) och förbrukas där. varld-tradgard.js filtrerar
+ * bort dem ur placerings-lådan med !isSeedItem(id).
+ */
+export function isSeedItem(id) {
+  const it = getItem(id);
+  return !!(it && it.seed);
+}
+
+/**
+ * Är saken en GÅRDS-UPPGRADERING (#333)? Odlingsbädden/laggården säljs som
+ * shop-kort men nivån bor i farm.gardenTier/farm.barnLevel (data-farm.js) –
+ * köpet går via buyFarmUpgrade och hamnar ALDRIG i ownedItems/ownedCounts.
+ * De placeras heller aldrig (trädgårds-lådan läser bara ownedItems → de dyker
+ * aldrig upp där), och de är inte multi-saker trots tradgard-kategorin.
+ */
+export function isFarmUpgradeItem(id) {
+  const it = getItem(id);
+  return !!(it && it.farmUpgrade);
 }
 
 /** Är saken en förbrukningsvara (mat) som köps i antal, inte ägs en gång? */
@@ -301,7 +366,7 @@ const MULTI_CATEGORIES = new Set(["mobler", "dekor", "tradgard"]);
  */
 export function isMultiItem(id) {
   const it = getItem(id);
-  return !!(it && MULTI_CATEGORIES.has(it.category) && !it.mysteryOnly);
+  return !!(it && MULTI_CATEGORIES.has(it.category) && !it.mysteryOnly && !it.farmUpgrade);
 }
 
 /** Är saken själva mysteryboxen (köp & öppna → slumpad kosmetik)? */

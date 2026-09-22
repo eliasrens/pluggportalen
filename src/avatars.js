@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – avatarer
+// Pluggporten – avatarer
 // ----------------------------------------------------------------------------
 // Knyter ihop karaktärskonsten (art-characters.js) och klädselkonsten
 // (art-wearables.js) till den publika avatar-API:n. Id:na sparas i Firestore

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – games-jakt.js
+// Pluggporten – games-jakt.js
 // Kunskapsjakt: snabba frågor på tid med combo-multiplikator. Rätt svar i rad
 // höjer multiplikatorn (upp till ×5) och ger mer poäng; fel nollställer combon.
 // Energisk design, poängräknare, ljudeffekter med mute-knapp. Coins i slutet

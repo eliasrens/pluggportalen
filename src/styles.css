@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Pluggportalen – gemensam design
+   Pluggporten – gemensam design
    Barnvänlig (åk 4): stora knappar, tydlig typografi, glada färger.
    ========================================================================== */
 
@@ -145,6 +145,11 @@ body.med-sidomeny .sidebar {
 
 .sidebar .brand .logo {
   font-size: 1.7rem;
+}
+/* Loggan är en mini-port i inline-SVG (index.html, #338) – 1em följer
+   font-storleken ovan; block-läget tar bort baslinje-glappet. */
+.sidebar .brand .logo svg {
+  display: block;
 }
 
 .sidebar-body {
@@ -1957,6 +1962,28 @@ code {
   vertical-align: middle;
 }
 
+/* Bondgårdsdjurens placerings-rader i "Mina djur" (#330): konst + namn + tre
+   platsval (Rummet/Hagen/Ladan). Aktivt val är ifylld knapp (disabled), övriga
+   ghost. Raden spänner hela lådans bredd (bryter flex-flödet av tray-kort). */
+.djurtray-farm-hint { flex-basis: 100%; margin: 6px 0 0; }
+.djurtray-farm-rad {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #eef4ff;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  padding: 8px 14px;
+}
+.djurtray-farm-rad .tray-emoji svg { width: 2.2rem; height: 2.2rem; display: block; }
+.djurtray-farm-val {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .wear-item .wear-state {
   font-size: 0.75rem;
   font-weight: 800;
@@ -2991,6 +3018,149 @@ body.varld-lage .container {
 .varld-navskylt:hover, .varld-navskylt:focus-visible { transform: scale(1.05) rotate(-1.2deg); }
 .varld-navskylt:active { transform: scale(0.98) rotate(-1.2deg); }
 .varld-navskylt .navskylt-svg { display: block; width: 100%; height: auto; }
+/* "Till gården"-skylten (hus-nivån, #328) speglas till HÖGRA hörnet så den
+   inte krockar med gårdskylten/grusgången som redan bor nere till vänster. */
+.varld-navskylt.hoger { left: auto; right: 12px; }
+
+/* --- Gårds-grenen (#328): baksidan/gården + laggårdens interiör ------------
+   Båda lagren delar .varld-ute:s svg-regel (fullstor + overflow:visible så de
+   övertecknade himlarna/väggarna fyller letterbox-ytan). Bakgrundsfärgerna
+   matchar scenernas gräs/trä så inget blått blinkar fram under kamerazoomen. */
+.varld-gard { background: #a8da8f; }
+.varld-laggard { background: #b0805a; }
+
+/* --- Bondgårdsdjuren (#330): häst/ko/gris i hagen & laggården ---------------
+   Overlay-lager ovanpå scen-SVG:n (samma mönster som .tradgard-lager):
+   pointer-events:none så klick (t.ex. laggårdsdörren) går vidare till scenen;
+   container-type → djurens cqw-storlek mäts mot lagrets bredd. Noderna delar
+   .room-item/.room-pet-klasserna så promenad-CSS:en (gång-guppet + spegling)
+   följer med gratis; storleken sätts inline mot --fdjur-koeff/--fdjur-cap. */
+.gard-djur-lager {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  container-type: inline-size;
+  /* #336: rejält större djur i hagen/ladan (+~55 %) så sidoprofilerna läses
+     på håll – rummets djurstorlek (itemSize) påverkas INTE av de här. */
+  --fdjur-koeff: 3.1;
+  --fdjur-cap: 47px;
+}
+/* Klick på djuret öppnar foder-panelen (#332) – lagret är pointer-events:none,
+   så själva djur-noderna måste slå på pekar-händelser igen. */
+.gard-djur-lager .gard-djur { cursor: pointer; pointer-events: auto; }
+.gard-djur-lager .gard-djur .rp-namn { cursor: pointer; }
+
+/* Mood-minen (glad/nöjd/less ur trivseln, #330): liten bricka uppe till höger
+   på djur-noden – i rummet OCH i hagen/ladan (samma markup i båda). */
+.room-pet .fdjur-mood {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.5rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  pointer-events: none;
+}
+.room-pet .fdjur-mood svg { display: block; width: 100%; height: 100%; }
+
+/* --- Matning & daglig gåva (#332) ------------------------------------------ */
+/* 🎁-badgen: dagens gåva väntar (trivsel ≥ 60, inte hämtad idag) – uppe till
+   vänster (mood-minen bor till höger), med ett litet uppmärksamhets-gupp. */
+.room-pet .fdjur-gava {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.5rem;
+  font-size: 0.85rem;
+  pointer-events: none;
+  animation: fdjur-gava-gupp 1.6s ease-in-out infinite;
+}
+@keyframes fdjur-gava-gupp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px) scale(1.08); }
+}
+
+/* Hjärt-puffen vid matning: samma stigande/tonande bana som klapp-hjärtana
+   (pet-rygg-fx-keyframes), tre stycken med inline-fördröjning/spridning. */
+.foder-hjarta {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 1.1s ease-out both;
+}
+
+/* Foder-sektionen (gårds-panelen + rummets namn-panel): trivsel-rad med
+   mood-min i radhöjd; gröd-knapparna återbrukar .room-tray/.tray-item,
+   favoritgrödan får en mjuk markering. */
+.foder-trivsel-rad { display: flex; align-items: center; gap: 0.4rem; margin: 0.3rem 0 0.2rem; }
+.foder-mood { width: 1.2rem; height: 1.2rem; flex: none; }
+.foder-mood svg { display: block; width: 100%; height: 100%; }
+.foder-tray .tray-item.foder-fav { outline: 2px solid var(--gron, #2e7d32); border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .room-pet .fdjur-gava,
+  .foder-hjarta { animation: none; }
+}
+
+/* Laggårdens dörr – klick går in i interiören (samma känsla som #husgrupp). */
+#laggard-dorr {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  transition: transform 0.25s;
+  outline: none;
+}
+#laggard-dorr:hover, #laggard-dorr:focus-visible { transform: scale(1.04); }
+
+/* Odlingsbäddens slots (#329) – klickbara grödor/tomrutor i gårds-scenen.
+   OBS: transform bär POSITIONEN (translate i scen-koordinater), så hover får
+   inte skriva över den – lyft i stället grödan en aning via translate-tillägg. */
+.odling-slot { cursor: pointer; outline: none; }
+.odling-slot:hover > *:not(rect), .odling-slot:focus-visible > *:not(rect) { transform: translateY(-2px); }
+/* Skördeklar gröda pulserar mjukt så den syns på håll. */
+.odling-klar { animation: odling-klar-puls 1.6s ease-in-out infinite; }
+@keyframes odling-klar-puls {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.82; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .odling-klar { animation: none; }
+}
+
+/* Rummets "Gå ut"-val (#328): liten popover-meny under ut-knappen, uppe till
+   VÄNSTER – samma panel-känsla som verktygs-rullgardinen (.varld-verktyg-meny). */
+.varld-ut-meny {
+  pointer-events: auto;
+  position: absolute;
+  top: 58px;
+  left: 12px;
+  z-index: var(--z-meny);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  max-width: min(250px, 80vw);
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 2.5px solid #3b3350;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
+  animation: verktyg-meny-in 0.12s ease;
+}
+.varld-ut-meny .varld-knapp {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  border-color: transparent;
+  border-radius: 12px;
+  box-shadow: none;
+  background: transparent;
+}
+.varld-ut-meny .varld-knapp:hover { transform: none; background: #f3eefe; }
+.varld-ut-meny .varld-knapp:active { transform: translateY(1px); box-shadow: none; }
+/* Etiketterna ska ALLTID synas i menyn (även på mobil där de annars göms). */
+.varld-ut-meny .varld-knapp span { display: inline; }
 
 /* --- Klassbyn (by-nivån): hus längs en slingrande väg med dekor ------------ */
 .varld-by { background: #a8da8f; }
@@ -3557,7 +3727,7 @@ body.varld-lage .container {
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
-  .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
+  .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, #laggard-dorr, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
 }
 
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
@@ -4411,4 +4581,192 @@ body.composer-open { overflow: hidden; }
   .composer-basics { grid-template-columns: 1fr; }
   .studio-toolbar { align-items: stretch; }
   .studio-composer { padding: 18px 16px 22px; }
+}
+
+/* ==========================================================================
+   Porten – elev-inloggningen (issue #338)
+   ==========================================================================
+   Grind-scenen (art-port.js, dynamiskt laddad) är sidans framdörr och fyller
+   HELA viewporten kant till kant (lead-beslut: färgad helskärm – ingen
+   centrerad ruta, ingen rundad ram). SVG:n ritas med "meet" och tecknar
+   himmel/gräs/staket långt utanför viewBoxen (samma övertecknings-knep som
+   .varld-ute), så alla kanter fylls oavsett skärmformat. Den kompakta
+   login-skylten centreras ovanpå, i portens öppning. Fallback (art-modulen
+   kunde inte laddas): skylten i en vanlig .panel. */
+
+.port-scen {
+  position: fixed;
+  inset: 0;
+  /* Över sidans statiska chrome (header) men under toast/modal. */
+  z-index: var(--z-scen-ui);
+  overflow: hidden;
+  background: #bde3f5;
+  /* size-container: login-skylten positioneras i cqw/cqh, dvs. relativt
+     SVG-scenens meet-skala (se .port-login nedan). */
+  container-type: size;
+}
+
+.port-scen > svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Login-skylten: kompakt panel i portens öppning strax under skylten, i
+   scenens platta trä-stil (kräm + konturlinje) så den hör ihop med grinden.
+   Toppformeln: SVG:n ritas med preserveAspectRatio "meet" och viewBox
+   960×600, så skalan = min(bredd/960, höjd/600) och viewBox-mitten (y=300)
+   ligger i containermitten. Skyltens nederkant (y=238 i art-port.js) hamnar
+   då 62·skala px över mitten = min(6.46cqw, 10.33cqh). Yttre min() lyfter
+   panelen på låga skärmar så den alltid ryms; max() stoppar den vid kanten. */
+.port-login {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 30%; /* fallback för motorer utan container-query-enheter */
+  top: max(8px, min(calc(50cqh - min(6.46cqw, 10.33cqh) + 10px), calc(100cqh - 310px)));
+  width: min(300px, calc(100% - 32px));
+  background: #FFF3DC; /* kräm ur stilguiden (art-style.js) */
+  border: 3px solid #3B3350; /* konturfärgen */
+  border-radius: 14px;
+  box-shadow: var(--skugga);
+  padding: 12px 14px 10px;
+}
+
+/* Fälten är etikett-lösa (placeholder + aria-label) för att hålla skylten
+   liten – trä-bruna kanter i stället för standardblått. */
+.port-login form > input {
+  width: 100%;
+  font-family: var(--font);
+  font-size: 1.05rem;
+  padding: 10px 12px;
+  border: 2.5px solid #B0805A;
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 8px;
+}
+.port-login form > input:focus {
+  outline: none;
+  border-color: var(--bla);
+}
+.port-login .check {
+  margin: 2px 0 10px;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+.port-login .check input {
+  width: 18px;
+  height: 18px;
+}
+.port-login .btn.stor {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+}
+.port-login .msg {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+/* Fallback-panelen när grind-scenen inte kunde laddas: vanlig panel-stil. */
+.port-fallback {
+  max-width: 420px;
+  margin-top: 24px;
+}
+.port-fallback .port-login {
+  position: static;
+  transform: none;
+  width: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+/* Diskret direktlänk till lärarens egen inloggning (#/larare). I scenen
+   ligger den nere i högra hörnet; i fallback-vyn som vanlig rad under. */
+.port-larare-rad {
+  text-align: right;
+  margin: 0 4px 20px;
+}
+.port-scen .port-larare-rad {
+  position: absolute;
+  right: 16px;
+  bottom: 10px;
+  margin: 0;
+}
+.port-larare-lank {
+  color: #3B3350;
+  opacity: 0.7;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.port-larare-lank:hover {
+  opacity: 1;
+  color: var(--bla-mork);
+  text-decoration: underline;
+}
+
+/* Grindhalvorna är separata animerbara element (förberedelse för öppnings-
+   animationen i #339): var sitt gångjärn i ytterkanten mot stolpen.
+   transform-box:fill-box gör transform-origin lokal till respektive halva,
+   så en framtida animation bara behöver sätta t.ex. transform: scaleX(0.05)
+   eller en rotation per halva. */
+.port-halva {
+  transform-box: fill-box;
+}
+#port-halva-vanster { transform-origin: left center; }
+#port-halva-hoger { transform-origin: right center; }
+
+/* --------------------------------------------------------------------------
+   Inloggnings-övergången (issue #339): porten öppnas + zoom in i världen.
+   port-overgang.js flyttar scenens <svg> till det här fixerade overlayt
+   (exakt över scenens gamla ruta – numera hela viewporten, se .port-scen)
+   och sätter sedan .port-oppnad (grindhalvorna svänger upp) och .port-zoom
+   (kameran dyker in genom öppningen och tonar ut, medan världen redan ritas
+   under). Duration/easing på zoomen = världskamerans (.varld-lager, 0.9s =
+   KAMERA_MS) så det känns som samma kamera. Ingen border-radius: porten är
+   helskärm utan ram (lead-beslut #338), så overlayt ska vara det med. */
+.port-overgang {
+  position: fixed;
+  z-index: 3000; /* över allt annat – men pointer-events:none stör aldrig */
+  overflow: hidden;
+  background: #bde3f5;
+  pointer-events: none;
+}
+.port-overgang > svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible; /* samma överteckning som i .port-scen */
+  transition:
+    transform 0.9s cubic-bezier(0.55, 0, 0.2, 1),
+    opacity 0.4s ease 0.6s;
+  will-change: transform, opacity;
+}
+.port-overgang.port-zoom > svg {
+  transform: scale(6.5);
+  opacity: 0;
+}
+/* Grindhalvorna svänger upp mot sina gångjärn (ytterkanterna, origin ovan).
+   Transitionen scopas till overlayt så halvorna aldrig animerar på login-
+   sidan i vila. Utan perspektiv läses scaleX-kollapsen som att halvorna
+   svänger ifrån betraktaren – rätt känsla till låg kostnad. */
+.port-overgang .port-halva {
+  transition: transform 0.5s cubic-bezier(0.6, 0.05, 0.55, 0.4);
+}
+.port-overgang.port-oppnad #port-halva-vanster,
+.port-overgang.port-oppnad #port-halva-hoger {
+  transform: scaleX(0.07);
+}
+/* Reduced motion: port-overgang.js startar aldrig övergången då – men om
+   overlayt ändå skulle finnas (inställningen ändras mitt i) göms det helt. */
+@media (prefers-reduced-motion: reduce) {
+  .port-overgang { display: none !important; }
 }

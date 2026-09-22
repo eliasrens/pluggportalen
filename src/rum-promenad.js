@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – promenad-AI för husdjuren i Mitt rum
+// Pluggporten – promenad-AI för husdjuren i Mitt rum
 // ----------------------------------------------------------------------------
 // Låter husdjuren (kläckta mystery-djur OCH de vanliga djuren från shoppen –
 // se varld-rum-djur.js) promenera lugnt omkring på golvet i rumsscenen
@@ -51,10 +51,15 @@ function pickIdle(now) {
  * @param {() => object[]} [o.getApples]  äpplen på golvet ([{id,x,y}], procent)
  * @param {(pet: object, apple: object) => void} [o.onEat]  djuret nådde ett äpple
  * @param {() => void} [o.onSettled]  kallas när ett djur stannar (för ev. sparning)
+ * @param {(st: {halfW:number, halfH:number}) => {minX:number, maxX:number,
+ *   minY:number, maxY:number}} [o.zoneFor]  zonen (i procent av scenen) djurets
+ *   CENTRUM får röra sig i. Default = rummets golvzon (petWalkZone). Gårdens
+ *   hage/lada (#330, gard-djur.js) skickar in egna uppmätta zoner här – resten
+ *   av AI:n (mål, hinder, mjuk fart, flock-avstånd) återbrukas orörd.
  * @returns {() => void} stoppfunktion (loopen stoppar även sig själv när
  *   scenen försvinner ur DOM:en, samma mönster som äggens nedräkningstimer)
  */
-export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat, onSettled }) {
+export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat, onSettled, zoneFor }) {
   // Respektera reduced motion: inga promenader alls (designfacit).
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return () => {};
@@ -146,16 +151,21 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
         // tror att djurets fötter når längre ner än de gör och släpper upp
         // centrum (och därmed fötterna) på väggen. (regression #63)
         const art = st.node.querySelector(".ri-emoji") || st.node;
-        st.halfW = sr.width ? ((art.offsetWidth / sr.width) * 100) / 2 : 3;
-        st.halfH = sr.height ? ((art.offsetHeight / sr.height) * 100) / 2 : 5;
+        // Mät artens rect RELATIVT scen-recten – båda inkluderar ev. kamera-
+        // transform (gårdens zoomnivåer, #335) så kvoten är transform-invariant.
+        // offsetWidth/Height är OTRANSFORMERADE layout-px och blåser upp
+        // halfW/halfH när lagret mäts nedskalat (hage/lada) → mål i himlen.
+        const ar = art.getBoundingClientRect();
+        st.halfW = sr.width && ar.width ? ((ar.width / sr.width) * 100) / 2 : 3;
+        st.halfH = sr.height && ar.height ? ((ar.height / sr.height) * 100) / 2 : 5;
       }
     }
     return st.node;
   }
 
-  /** Golvzonen djuret får röra sig i (samma clamp som drag & drop). */
+  /** Zonen djuret får röra sig i: rummets golv (default) eller injicerad zon. */
   function walkZone(st) {
-    return petWalkZone(st.halfW, st.halfH);
+    return zoneFor ? zoneFor(st) : petWalkZone(st.halfW, st.halfH);
   }
 
   // --- Välj nytt promenadmål ------------------------------------------------

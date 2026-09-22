@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: per-elev-fördjupning (teacher-class-detail.js)
+// Pluggporten – lärarsidan: per-elev-fördjupning (teacher-class-detail.js)
 // ----------------------------------------------------------------------------
 // Öppnas när läraren klickar på en elevrad i klassöversikten. Visar mer än
 // stjärnmatrisen:

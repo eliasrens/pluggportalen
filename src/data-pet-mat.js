@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äppel-ekonomin (Mysterymat: köp & lägg ut på golvet)
+// Pluggporten – äppel-ekonomin (Mysterymat: köp & lägg ut på golvet)
 // ----------------------------------------------------------------------------
 // Systermodul till data-pet.js: den KÖP-/UTLÄGGNINGS-del av matningen som inte
 // rör pets[] och därför kan bo för sig (data-pet.js äger djurens tillväxt, dvs.

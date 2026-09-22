@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädlådan i rummet (varld-rum-wear.js)
+// Pluggporten – klädlådan i rummet (varld-rum-wear.js)
 // ----------------------------------------------------------------------------
 // Utbruten systermodul till varld-rum.js: allt som rör elevens PÅKLÄDNAD i
 // rumsvyn – klädlådans rendering, sätt-på/ta-av (en sak per slot) och

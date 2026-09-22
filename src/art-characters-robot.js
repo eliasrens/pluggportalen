@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – ROBOTENS evolutionskonst (Pokémon-stil, inline SVG)
+// Pluggporten – ROBOTENS evolutionskonst (Pokémon-stil, inline SVG)
 // ----------------------------------------------------------------------------
 // Roboten utvecklas i 3 steg när eleven pluggar:
 //   Steg 1: Robot      (grundfiguren – samma som tidigare)

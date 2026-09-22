@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – husdjuren i Mitt rum
+// Pluggporten – husdjuren i Mitt rum
 // ----------------------------------------------------------------------------
 // Husdjursdelen av rumssidan (pages-rum.js): ritar ägg/varelser som flyttbara
 // objekt i rumsscenen (petStageNode/petReadonlyNode/petArtThumb) och äger

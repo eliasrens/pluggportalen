@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädselkonst: HATT-slotens plagg
+// Pluggporten – klädselkonst: HATT-slotens plagg
 // ----------------------------------------------------------------------------
 // Del av WEARABLES-registret (se art-wearables.js). Alla hattar använder
 // par "xMidYMax" så de sjunker ner mot hjässan. Följ stilguiden i art-style.js.

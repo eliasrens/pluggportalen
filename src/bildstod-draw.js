@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rit-lager ovanpå bildstödet (bildstod-draw.js, issue #325)
+// Pluggporten – rit-lager ovanpå bildstödet (bildstod-draw.js, issue #325)
 // ----------------------------------------------------------------------------
 // Lägger en TRANSPARENT rit-canvas som ett LAGER ÖVER ett bildstöds-SVG (array/
 // rutnät från matte-bildstod.js resp. klocka/kulpåse/diagram/koordinat från

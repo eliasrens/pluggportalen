@@ -1,4 +1,4 @@
-# Datamodell – Pluggportalen (Firestore)
+# Datamodell – Pluggporten (Firestore)
 
 Detta dokument beskriver Firestore-databasen. **Övriga delar av projektet
 (gamemodes, shop, elevrum, lärarsida) bygger på den här modellen** – ändra med
@@ -17,6 +17,8 @@ subjects/{subjectId}/areas/{areaId}      ← arbetsområde (t.ex. "vikingatiden"
 students/{studentId}                     ← elevkonto (inloggning)
 studentData/{studentId}                  ← elevens speldata (coins, framsteg, ...)
 classes/{classId}                        ← klass (lärarens gruppering, t.ex. "6A")
+classProjections/{classId}               ← förberäknad by-översikt per klass (O(1) läsningar)
+classProjects/{classId}                  ← gemensamma klassprojekt (donationer till byns ytor)
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -207,6 +209,7 @@ Exempel (`students/elev1`):
 | `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
+| `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
 
 ### `studentData.pets[]` – kläckbara husdjuren
 
@@ -254,6 +257,47 @@ hungrigt (icke-fullvuxet) djur når fram i promenad-AI:ns **seek-läge**
 (`src/rum-promenad.js`) tar `eatApple(petId, appleId)` bort äpplet och ökar
 djurets `feedCount`. Äpplet är en `mat`-kategori-vara i `src/shop-items.js`
 (`consumable: true`) och hamnar därför aldrig i `ownedItems`.
+
+### `studentData.farm` – gården
+
+Gård-expansionens tillstånd (epic trädgård/gård, grundlagd i #327). All ren
+tillståndslogik (validering, tillväxt, skörd, placeringar) ligger browser-fritt
+i [`src/farm-core.js`](../src/farm-core.js) (enhetstestad, `test/farm-core.test.js`);
+Firestore-skrivningarna (transaktioner + dot-path-updates) i systermodulen
+[`src/data-farm.js`](../src/data-farm.js), re-exporterad via `data.js`.
+
+| Fält               | Typ    | Beskrivning                                                       |
+| ------------------ | ------ | ----------------------------------------------------------------- |
+| `barnLevel`        | number | Laggårdens nivå (**1–3**). Sparat fält – se designbeslutet nedan. Styr antal djurplatser i ladan: `FARM_BARN_PLACES_PER_LEVEL` (2/4/8, `farm-core.js`) och laggårdens fasad/interiör (`art-gard.js`) |
+| `gardenTier`       | number | Odlingsbäddens nivå (**1–3**). Styr antal odlings-slots: `FARM_SLOTS_PER_TIER` (2/4/8 per #333, tabell i `farm-core.js`) och bäddens utseende (enkel bädd → dubbel låda → växthus) |
+| `gardenSlots`      | array  | Planterade grödor: `{ slotIndex, cropId, growthStage, plantedAt }`. `slotIndex` 0-baserat `< slotCountForTier(gardenTier)`; `growthStage` **0–3** (0 = nysådd, 3 = `FARM_MAX_GROWTH_STAGE` = färdigvuxen → skördbar); `plantedAt` ms (`Date.now()`). Tomma slots har ingen post |
+| `inventoryHarvest` | map    | Skörde-förrådet: `{ [cropId]: antal }` (t.ex. `{ "crop_carrot": 3 }`). Alltid ≥ 1 – noll-poster städas bort vid skrivning |
+| `placedAnimals`    | array  | Djur placerade **utanför rummet**: `{ petId, location: "paddock"\|"barn" }`. `petId` = djurets instans-id (`pets[].id` eller `roomAnimals[].uid`). `"room"` är default-hemmet och **sparas aldrig** som post – ett djur utan post bor i rummet, precis som före gården (bakåtkompatibelt) |
+| `animals`          | array  | **Bondgårdsdjuren** (häst/ko/gris, #330): `{ uid, id, name, pos, trivsel, lastFedAt, lastGiftAt }`. `id` = arten (shop-id `animal_horse` …), `uid` = unik instans. `trivsel` **0–100** (default 80); **effektiv** trivsel beräknas vid läsning (`trivselNow`: −10/helt dygn sedan `lastFedAt`, golv 0). Matning (#332): rätt gröda (`FODER_FOR`) ur `inventoryHarvest` ger **+25 trivsel dagens första matning** (`feedFarmAnimal`); `trivsel ≥ 60` → daglig gåva (+`FARM_GIFT_COINS` mynt, `claimFarmAnimalGift`, gate:ad per kalenderdag via `lastGiftAt`) |
+
+**Designbeslut – nivåer som fält, inte härledda:** rummen härleder antal rum ur
+ägda shop-saker (`roomUpgradeCount` i `src/shop-items.js`); för gården sparas
+`barnLevel`/`gardenTier` i stället som **egna fält** (enligt spec). Skälen:
+uppgraderingarna är sekventiella nivåer på **en** byggnad (inte separata saker
+man äger), och kommande odlings-/uppgraderings-issues kan då höja nivån i samma
+transaktion som coins dras utan att blanda in shop-katalogen.
+**Uppgraderings-issuen (#333) följer modellen så här**: uppgraderingarna finns
+som shop-KORT (`farmUpgrade`/`upgradeLevel` i `shop-items.js` – rent köp-UI),
+men köpet går via `buyFarmUpgrade` (`data-farm.js`) som drar coins **och** höjer
+`farm.gardenTier`/`farm.barnLevel` i EN transaktion; **inget skrivs i
+`ownedItems`** – shoppen härleder "Köpt"/låst ur nivå-fältet. Nivåerna köps i
+ordning (bara `nuvarande + 1` accepteras) och kan aldrig sänkas – planterade
+slots hamnar aldrig utanför bädden, och `setPlacementIn` stoppar fler djur i
+ladan än `barnPlaceCountForLevel(barnLevel)` tillåter.
+
+Flöde (allt i transaktioner, `src/data-farm.js`): `plantCrop(slotIndex, cropId)`
+sår i en tom slot (stage 0); `advanceCropGrowth(slotIndex)` stegar tillväxten
+(klamras vid 3 – vem/vad som driver tillväxten bestäms i odlings-issuen);
+`harvestCrop(slotIndex)` tömmer en **färdigvuxen** slot och lägger grödan i
+`inventoryHarvest`; `adjustHarvestInventory(cropId, delta)` förbrukar/justerar
+förrådet (aldrig under 0); `setAnimalPlacement(petId, location)` flyttar ett
+djur mellan rum/hage/laggård. Säkerhetsregler: `farm` ligger i `studentData`
+som redan är self-writable – **inga regeländringar behövs**.
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
@@ -315,6 +359,64 @@ Exempel (`classes/6a`):
 > **OBS – två liknande begrepp i lärar-UI:t:** `#/larare/klasser` (HANTERA
 > klasser – den här collectionen) skiljer sig från `#/larare/klass`
 > (klassöversikt/framsteg, som är läs-endast och inte använder `classes`).
+
+---
+
+## `classProjects/{classId}` – gemensamma klassprojekt (#331)
+
+Klassen donerar **tillsammans** pluggcoins till byns gemensamma ytor
+(stadshus, skola, park på bykartan). Samma dokument-mönster som
+`classProjections` (#231): **ett förberäknat dokument per klass** – hela
+klassens insamlingsläge läses i en enda `getDoc` (O(1), aldrig ett dokument
+per elev; jfr Firestore-kvot-incidenten 2026-09-09).
+
+> **Status: framtidssäkring.** Endast schema + regler + data-scaffold finns
+> (#331). Bybyggnads-rendering och doneringsknapp i UI byggs i nästa epic –
+> ingen UI-kod anropar detta ännu.
+
+| Fält       | Typ | Beskrivning |
+| ---------- | --- | ----------- |
+| `projects` | map | Keyad på **byggnads-id** (t.ex. `"stadshus"`, `"skola"`, `"park"`) → ett projekt-objekt (nedan). Saknat dokument/fält = inga projekt startade (bakåtkompatibelt). |
+
+Varje projekt (`projects.{buildingId}`):
+
+| Fält            | Typ    | Beskrivning |
+| --------------- | ------ | ----------- |
+| `goalAmount`    | number | Målbelopp i coins (positivt heltal). |
+| `collected`     | number | Insamlat hittills. Projektet är **fullfinansierat** när `collected ≥ goalAmount` (härlett via `isProjectFunded` – ingen status-flagga att hålla i synk). |
+| `contributions` | map    | `{ [studentId]: antal }` – per-elev-bidrag (ackumulerande). |
+| `createdAt`     | number \| null | När projektet startades (ms, `Date.now()`). |
+
+Exempel (`classProjects/6a`):
+
+```json
+{
+  "projects": {
+    "stadshus": {
+      "goalAmount": 500, "collected": 90,
+      "contributions": { "elev1": 40, "elev2": 50 },
+      "createdAt": 1758200000000
+    }
+  }
+}
+```
+
+**Skrivmodell:** en donation går i **en transaktion**
+(`donateToClassProject` i [`src/data-classes.js`](../src/data-classes.js)):
+läser elevens `studentData` + klassens `classProjects`-dokument, kontrollerar
+täckning och att projektet inte är fullt, drar coins och ökar `collected` +
+`contributions.{studentId}` atomiskt. Överdonation nekas (inga coins in i ett
+stängt/fullt projekt). Ren normalisering/övergångslogik ligger Firebase-fritt
+i [`src/class-projection-entries.js`](../src/class-projection-entries.js)
+(`normalizeClassProject(s)`, `applyProjectDonation`, `isProjectFunded` –
+enhetstestade i `test/class-projects.test.js`).
+
+**Säkerhetsregler:** speglar `classProjections` – läsning för alla inloggade,
+skrivning för **klassmedlem** (`request.auth.uid ∈ classes/{classId}.studentIds`)
+eller lärare (`isClassMember` i `firestore.rules`; regeltester i
+`test/firestore-rules-class-docs.test.js`).
+**⚠️ Reglerna är live först efter `firebase deploy --only firestore:rules`**
+(separat från Pages-deployen).
 
 ---
 
@@ -399,6 +501,15 @@ Exempel (`classes/6a`):
 - `setPetName(petId, name)` / `savePetPositions({ [petId]: { x, y } })`
 - Hjälpare: `hatchTimeFor(pet, hasLamp)`, `isHungry(pet)`, `isFullGrown(pet)`, `stageForFeeds(n)`, `feedsToNextStage(n)`, `cleanPetName(s)`
 
+**Gården** – Firestore-delen i systermodulen [`src/data-farm.js`](../src/data-farm.js), ren kärna i [`src/farm-core.js`](../src/farm-core.js) (se `studentData.farm` ovan)
+- `getFarm()` → komplett `farm`-objekt (gamla dokument utan fältet → default)
+- `plantCrop(slotIndex, cropId)` / `advanceCropGrowth(slotIndex, steps?)` /
+  `harvestCrop(slotIndex)` → `{ ok, farm, ... }` – så/väx/skörda (transaktioner)
+- `adjustHarvestInventory(cropId, delta)` → `{ ok, farm, count }` – förbruka/justera skörd
+- `setAnimalPlacement(petId, "room"|"paddock"|"barn")` – flytta ett djur
+- `setBarnLevel(n)` / `setGardenTier(n)` – rå nivå-skrivning (köpet bor i uppgraderings-issuen; nivån kan aldrig sänkas)
+- Rena hjälpare/konstanter (re-exporterade via `data.js`): `farmFromData(sd)`, `slotCountForTier(tier)`, `cropInSlot(farm, i)`, `placementFor(farm, petId)`, `FARM_MAX_GROWTH_STAGE` m.fl.
+
 **Statistik (profil)**
 - `getStats()` → `{ coins, playedExercises, completed, stars, areas }`
 
@@ -424,6 +535,16 @@ Exempel (`classes/6a`):
 - `getClassForStudent(studentId?)` → klassdokumentet eleven tillhör (eller `null`),
   hittas via klassernas `studentIds`. Används av elevens Plugga-vy för att
   filtrera på `assignedAreas`.
+
+**Gemensamma klassprojekt (#331, scaffold – ingen UI ännu)** – se
+`classProjects/{classId}` ovan; Firestore-delen i `src/data-classes.js`
+- `getClassProjects(classId)` → map byggnads-id → normaliserat projekt (tom map om inga).
+- `getClassProject(classId, buildingId)` → projektet eller `null`.
+- `startClassProject(classId, buildingId, goalAmount)` → `{ ok, project }` – startar
+  (eller justerar målet för) ett projekt; skriver bara det egna projektets fält.
+- `donateToClassProject(classId, buildingId, amount)` → `{ ok, coins, project }` –
+  transaktion som drar elevens coins och ökar `collected` + `contributions.{studentId}`;
+  ingen täckning/fullt projekt/överdonation → `ok:false` utan skrivning.
 
 De flesta funktioner använder den inloggade eleven automatiskt, men tar ett
 valfritt sista `studentId`-argument.

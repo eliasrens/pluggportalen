@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: delat (teacher-shared.js)
+// Pluggporten – lärarsidan: delat (teacher-shared.js)
 // ----------------------------------------------------------------------------
 // Delade byggstenar för lärarsidans undersidor:
 //   * Lärarinloggning via Firebase Auth (custom claim teacher:true). Ersätter

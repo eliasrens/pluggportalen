@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – byggstenar för AI-prompterna (prompt-parts.js)
+// Pluggporten – byggstenar för AI-prompterna (prompt-parts.js)
 // ----------------------------------------------------------------------------
 // De återanvändbara textfragmenten (schema, skalningsregler, regler, exempel,
 // material-block) som src/prompts.js sätter ihop till färdiga prompter. Bruten

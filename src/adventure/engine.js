@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: engine.js  (startAdventure)
+// Pluggporten – äventyrsmotorn: engine.js  (startAdventure)
 // ----------------------------------------------------------------------------
 // Den TEMA-AGNOSTISKA motorn: sätter ihop en VÄRLD (koordinater/kollision) och en
 // SCEN (DOM/rendering) med rörelse (movement.js), tangentstyrning (input.js) och

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>Förhandsvisning – port-inloggning: Variant A vs B (#342)</title>
+    <style>
+      /* Fristående jämförelse-sida för issue #342: nuvarande grind (Variant A,
+         art-port.js) bredvid den nya majestätiska portalen (Variant B,
+         art-port-majestic.js). INGEN inloggning – login-skylten är en statisk
+         attrapp så kompositionen kan bedömas. Egen CSS (inte styles.css):
+         .port-scen där är position:fixed helskärm och passar inte sida vid sida. */
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: "Baloo 2", "Nunito", system-ui, sans-serif; background: #fdf6ec; color: #3b3350; }
+      header { padding: 16px 20px 6px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 78ch; }
+      .knappar { display: flex; gap: 8px; padding: 10px 20px 0; }
+      .knappar button {
+        font: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+        padding: 8px 16px; border-radius: 12px; border: 2.5px solid #3b3350;
+        background: #fff; color: #3b3350;
+      }
+      .knappar button[aria-pressed="true"] { background: #f7c948; }
+      .rad { display: flex; flex-wrap: wrap; gap: 20px; padding: 14px 20px 24px; align-items: flex-start; }
+      .variant { flex: 1 1 440px; min-width: 320px; }
+      body.visa-a .variant.b, body.visa-b .variant.a { display: none; }
+      body.visa-a .variant, body.visa-b .variant { flex-basis: 100%; }
+      .variant h2 { margin: 0 0 6px; font-size: 1.05rem; }
+      .variant h2 small { font-weight: 600; opacity: 0.7; }
+
+      /* Scen-ramen härmar .port-scen: fast 960:600-yta, "meet"-skalad SVG med
+         överteckning (overflow hidden klipper den vid ramen). */
+      .scen {
+        position: relative; aspect-ratio: 960 / 600; overflow: hidden;
+        border: 3px solid #3b3350; border-radius: 14px; background: #bde3f5;
+        container-type: inline-size;
+      }
+      .scen svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+
+      /* Login-attrappen: samma proportioner som .port-login på en ~960 px bred
+         skärm (300/960 ≈ 31 %), toppad strax under skyltens nederkant
+         (y=238/600 ≈ 39,7 %). Bara utseende – inga riktiga fält. */
+      .mock-login {
+        position: absolute; left: 50%; transform: translateX(-50%);
+        top: calc(39.7% + 1.2%);
+        width: 31%; background: #fff3dc; border: 2px solid #3b3350;
+        border-radius: 10px; padding: 3% 1.6% 1.4%;
+        display: flex; flex-direction: column; gap: 5px; font-size: clamp(6px, 1.5cqw, 12px);
+      }
+      .mock-login .falt {
+        border: 1.5px solid #b0805a; border-radius: 7px; background: #fff;
+        padding: 6% 8%; color: #a08c70;
+      }
+      .mock-login .kom-ihag { display: flex; align-items: center; gap: 5px; font-size: 0.85em; }
+      .mock-login .kom-ihag i { width: 0.9em; height: 0.9em; border: 1.5px solid #3b3350; border-radius: 3px; background: #6fc66f; font-style: normal; }
+      .mock-login .knapp {
+        background: #6fc66f; border: 1.5px solid #3b3350; border-radius: 8px;
+        color: #fff; font-weight: 800; text-align: center; padding: 6% 0;
+      }
+      .not { font-size: 0.8rem; opacity: 0.75; margin-top: 6px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Port-inloggningen: Variant A vs Variant B (#342)</h1>
+      <p>Vänster: <b>A – nuvarande trägrind</b> (art-port.js, orörd, den som är live).
+         Höger: <b>B – majestätisk portal</b> (art-port-majestic.js): hög valvbåge på
+         stenpelare med kapitäl/sockel, smidesgrind med guldspetsar, vimplar,
+         gryningshimmel och stentrappa. Login-skylten är en attrapp – ingen inloggning här.</p>
+    </header>
+    <div class="knappar" role="group" aria-label="Visningsläge">
+      <button id="btn-bada" aria-pressed="true">Sida vid sida</button>
+      <button id="btn-a" aria-pressed="false">Bara A (stor)</button>
+      <button id="btn-b" aria-pressed="false">Bara B (stor)</button>
+    </div>
+    <div class="rad">
+      <div class="variant a">
+        <h2>Variant A <small>– nuvarande (live)</small></h2>
+        <div class="scen" id="scen-a"></div>
+      </div>
+      <div class="variant b">
+        <h2>Variant B <small>– majestätisk (förslag)</small></h2>
+        <div class="scen" id="scen-b"></div>
+      </div>
+    </div>
+    <p class="not" style="padding: 0 20px 24px; margin: 0;">
+      Båda ritas i samma 960×600-vy som live-inloggningen; på riktiga skärmar fyller
+      scenen hela fönstret (himmel/mark fortsätter utanför ramen). B behåller A:s hela
+      kontrakt: animerbara grindhalvor med gångjärn i ytterkant (#339), skyltens
+      nederkant på samma linje och bred öppning runt login-skylten.
+    </p>
+    <script type="module">
+      import { portScen } from "./src/art-port.js";
+      import { portScenMajestic } from "./src/art-port-majestic.js";
+
+      const mock = `<div class="mock-login" aria-hidden="true">
+        <span class="falt">Användarnamn</span>
+        <span class="falt">Lösenord</span>
+        <span class="kom-ihag"><i></i>Kom ihåg mig</span>
+        <span class="knapp">Logga in</span>
+      </div>`;
+
+      // Unika DOM-id:n per variant (grindhalvornas id:n och himmel-gradienten
+      // ligger annars dubblerade när båda scenerna visas på samma sida).
+      const unika = (svg, prefix) =>
+        svg
+          .replaceAll('id="port-halva-', `id="${prefix}-halva-`)
+          .replaceAll('id="port-himmel"', `id="${prefix}-himmel"`)
+          .replaceAll("url(#port-himmel)", `url(#${prefix}-himmel)`);
+
+      document.getElementById("scen-a").innerHTML = unika(portScen(), "pa") + mock;
+      document.getElementById("scen-b").innerHTML = unika(portScenMajestic(), "pb") + mock;
+
+      const satt = (klass, knapp) => {
+        document.body.className = klass;
+        for (const b of document.querySelectorAll(".knappar button"))
+          b.setAttribute("aria-pressed", String(b === knapp));
+      };
+      document.getElementById("btn-bada").onclick = (e) => satt("", e.currentTarget);
+      document.getElementById("btn-a").onclick = (e) => satt("visa-a", e.currentTarget);
+      document.getElementById("btn-b").onclick = (e) => satt("visa-b", e.currentTarget);
+    </script>
+  </body>
+</html>

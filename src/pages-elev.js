@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – elevsidor
+// Pluggporten – elevsidor
 // Inloggning, avatarval, startsida, plugga (områdesval), shop/rum-platshållare
 // och profil. Router och gemensam layout finns i app.js / ui.js.
 // ============================================================================
@@ -8,62 +8,79 @@ import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { app, el, go, loading, renderTopbar } from "./ui.js";
 import { coinIcon } from "./icons.js";
+// isTeacher re-exporteras inte via data.js – auth.js ligger redan i bootgrafen.
+import { isTeacher } from "./auth.js";
 // Synlighetsgaten (browser-fri, re-exporteras via game-shared.js precis som i
 // gamemodes.js – redan i bootgrafen) avgör om ett område har SPELBART innehåll
 // för just den här eleven (issue #308).
 import { visibleGamemodesForClassArea } from "./game-shared.js";
 
-// --- Inloggning -------------------------------------------------------------
+// --- Inloggning: porten (issue #338) -----------------------------------------
+// Elevernas inloggning är sidans "framdörr": en trägrind i spelvärldens stil
+// som ramar in login-kortet. Live-porten är den MAJESTÄTISKA Variant B
+// (art-port-majestic.js, valdes i #344) – Variant A (art-port.js) lämnas kvar
+// oanvänd i repot så vi enkelt kan byta tillbaka. Grind-SVG:n laddas DYNAMISKT
+// så bootgrafen inte växer (#271) – misslyckas laddningen visas kortet i en
+// vanlig panel i stället (inloggningen fungerar alltid). Lärarens inloggning
+// bor på sin egen route (#/larare → lärarspärren), skild från porten.
 
-export function pageElevLogin() {
-  renderTopbar();
-  // Redan inloggad? Gå direkt in i hus-scenen.
+export async function pageElevLogin() {
+  // Redan inloggad? Gå direkt in i hus-scenen (lärare till lärarsidan) INNAN
+  // topbaren ritas om: renderTopbar() på #/ gömmer sidomenyn, och den levande
+  // hus-scenens visaNiva-genväg ritar aldrig om den → menyn blev kvar gömd.
   if (data.isLoggedIn()) return go("#/elev/hus");
+  if (isTeacher()) return go("#/larare/klasser");
+  renderTopbar();
 
-  const view = el(`<div>
-    <a class="back-link" id="back">← Tillbaka</a>
-    <div class="panel">
-      <h1 class="center">Logga in 🎒</h1>
-      <div id="msg"></div>
-      <form id="form">
-        <div class="field">
-          <label for="u">Användarnamn</label>
-          <input id="u" name="u" autocomplete="username" autocapitalize="none" placeholder="t.ex. elev1" />
-        </div>
-        <div class="field">
-          <label for="p">Lösenord</label>
-          <input id="p" name="p" type="password" autocomplete="current-password" placeholder="Ditt lösenord" />
-        </div>
-        <label class="check" for="remember">
-          <input type="checkbox" id="remember" name="remember" checked />
-          <span>Kom ihåg mig på den här datorn</span>
-        </label>
-        <button class="btn stor gron" type="submit" id="submit">Logga in</button>
-      </form>
-      <p class="hint center" style="margin-top:16px">
-        Testkonto: <b>elev1</b> / <b>123123</b>
-      </p>
-    </div>
+  // Login-kortet: byggs (och riggas) EN gång och placeras sedan antingen
+  // framför grinden eller i fallback-panelen. KOMPAKT skylt-panel i portens
+  // öppning (lead-feedback): inga synliga fältetiketter (placeholder +
+  // aria-label i stället) så porten syns runt omkring formuläret.
+  const card = el(`<div class="port-login">
+    <div id="msg"></div>
+    <form id="form">
+      <input id="u" name="u" autocomplete="username" autocapitalize="none"
+        placeholder="Användarnamn" aria-label="Användarnamn" />
+      <input id="p" name="p" type="password" autocomplete="current-password"
+        placeholder="Lösenord" aria-label="Lösenord" />
+      <label class="check" for="remember">
+        <input type="checkbox" id="remember" name="remember" checked />
+        <span>Kom ihåg mig</span>
+      </label>
+      <button class="btn stor gron" type="submit" id="submit">Logga in</button>
+    </form>
   </div>`);
 
-  const msg = view.querySelector("#msg");
-  view.querySelector("#back").addEventListener("click", () => go("#/"));
-  view.querySelector("#form").addEventListener("submit", async (e) => {
+  const msg = card.querySelector("#msg");
+  card.querySelector("#form").addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.innerHTML = "";
-    const btn = view.querySelector("#submit");
+    const btn = card.querySelector("#submit");
     btn.disabled = true;
     btn.textContent = "Loggar in…";
     try {
       const res = await data.login(
-        view.querySelector("#u").value,
-        view.querySelector("#p").value,
-        view.querySelector("#remember").checked
+        card.querySelector("#u").value,
+        card.querySelector("#p").value,
+        card.querySelector("#remember").checked
       );
       if (res.ok) {
         // Första gången (ingen avatar vald) → låt eleven välja sin figur.
         // Annars: landa direkt i hus-scenen (ingen mellanliggande hem-sida).
         const chosen = await data.hasChosenAvatar().catch(() => true);
+        // Porten öppnas + zoom in i världen (#339). Ren dekor som ALDRIG får
+        // blockera inloggningen: modulen förladdades vid sidrenderingen, och
+        // startaPortOvergang lyfter scenen till ett självstädande overlay –
+        // navigeringen nedan sker direkt oavsett om övergången kunde starta
+        // (reduced motion / fallback-panel / fel → false, samma go()).
+        // Förstagångs-eleven går till avatarvalet UTAN animation – porten
+        // "kliver man in genom" först när man landar i världen.
+        if (chosen && overgangP) {
+          try {
+            const mod = await overgangP;
+            mod?.startaPortOvergang(card.closest(".port-scen"));
+          } catch {}
+        }
         go(chosen ? "#/elev/hus" : "#/elev/avatar");
       } else {
         msg.innerHTML = `<div class="msg error">${res.error}</div>`;
@@ -76,6 +93,44 @@ export function pageElevLogin() {
     }
   });
 
+  // Grind-scenen: dynamisk import med snäll fallback (se kommentaren ovan).
+  let scenSvg = "";
+  try {
+    const mod = await import("./art-port-majestic.js");
+    scenSvg = mod.portScenMajestic();
+  } catch (err) {
+    console.error("Porten kunde inte laddas – visar enkel inloggning:", err);
+  }
+
+  // Övergångs-modulen (#339) förladdas i bakgrunden medan eleven skriver sitt
+  // lösenord, så inloggningsklicket aldrig väntar på ett modul-fetch. Dynamisk
+  // import (bootgrafen växer inte, #271) + catch → null = ingen animation.
+  const overgangP = scenSvg
+    ? import("./port-overgang.js").catch(() => null)
+    : null;
+
+  // Diskret direktlänk till lärarens egen inloggningssida (vanlig hash-länk –
+  // routern lyssnar på hashchange, ingen extra rigg behövs).
+  const larareRad = `<p class="port-larare-rad">
+    <a class="port-larare-lank" href="#/larare">Lärare →</a>
+  </p>`;
+
+  let view;
+  if (scenSvg) {
+    // Scenen är position:fixed och fyller HELA viewporten (lead-beslut #338:
+    // färgad helskärm, ingen centrerad ruta) – skylten och lärarlänken ligger
+    // därför INUTI scenen (absolut positionerade i styles.css).
+    view = el(`<div class="port-sida">
+      <div class="port-scen">${scenSvg}${larareRad}</div>
+    </div>`);
+    view.querySelector(".port-scen").appendChild(card);
+  } else {
+    view = el(`<div>
+      <div class="panel port-fallback"></div>
+      ${larareRad}
+    </div>`);
+    view.querySelector(".port-fallback").appendChild(card);
+  }
   app.replaceChildren(view);
 }
 

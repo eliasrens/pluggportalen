@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klädselkonst (inline SVG för shopens "klader"-saker)
+// Pluggporten – klädselkonst (inline SVG för shopens "klader"-saker)
 // ----------------------------------------------------------------------------
 // Följer stilguiden i art-style.js (samma kontur, palett och mjuka former).
 // Varje sak ritas TAJT i sin egen viewBox; positioneringen på figuren görs av

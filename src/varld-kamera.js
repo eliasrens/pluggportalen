@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – världskameran (zoom-nivåer för den spelifierade husvärlden)
+// Pluggporten – världskameran (zoom-nivåer för den spelifierade husvärlden)
 // ----------------------------------------------------------------------------
 // En liten, återanvändbar "kamera" som zoomar mellan lager i en scen utan
 // sidladdning. Varje NIVÅ är ett fullstort lager (position:absolute; inset:0)

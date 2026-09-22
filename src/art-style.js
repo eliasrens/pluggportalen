@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – VISUELL STILGUIDE + delade SVG-byggdelar
+// Pluggporten – VISUELL STILGUIDE + delade SVG-byggdelar
 // ----------------------------------------------------------------------------
 // Detta är den gemensamma stilguiden för ALL handritad SVG-konst i portalen:
 // karaktärer (art-characters.js), klädsel (art-wearables.js) och kommande

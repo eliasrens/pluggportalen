@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: grid.js
+// Pluggporten – äventyrsmotorn: grid.js
 // ----------------------------------------------------------------------------
 // Tolkar en tema-karta (rader av tecken, en ASCII-grid) till tiles och räknar om
 // grid-koordinater till PROCENT av scenen – exakt samma procent-konvention som

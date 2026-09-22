@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rums-växlaren (dörrar inne + rumslista) för flerrums-huset
+// Pluggporten – rums-växlaren (dörrar inne + rumslista) för flerrums-huset
 // ----------------------------------------------------------------------------
 // Systermodul till varld-rum.js (som varld-rum-wear/mat/fonster): äger UI:t för
 // att BYTA rum i ett uppgraderat hus (issue #34). Två sätt att navigera, exakt

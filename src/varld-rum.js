@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – rummets innehåll i husvärlden ("rum"-nivåns lager)
+// Pluggporten – rummets innehåll i husvärlden ("rum"-nivåns lager)
 // ----------------------------------------------------------------------------
 // Monterar hela inne-vyn i ett givet scen-lager: bakdrop, placerade saker,
 // husdjuren (ägg/varelser, matning, klick-på-rygg), drag & drop och
@@ -15,8 +15,9 @@ import { el, flash, clamp } from "./ui.js";
 import { getItem, isWearable, isFlatItem, isAnimalItem, isHouseItem, isGardenItem, itemIdFromKey } from "./shop-items.js";
 import { getPalette } from "./room-palettes.js";
 import { mountRumDjur } from "./varld-rum-djur.js";
+import { farmFromData } from "./farm-core.js";
 import { itemSvg, itemSize } from "./art-items.js";
-import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb } from "./pages-rum-pets.js";
+import { petStageNode, petBellyFlop, petPat, isPetBusy, petDisplayName, petArtThumb, setPetMood } from "./pages-rum-pets.js";
 import { renderPetPanel, animalNamePanel } from "./pages-rum-pet-panel.js";
 import { startPetPromenad } from "./rum-promenad.js";
 import { confetti } from "./fx.js";
@@ -68,6 +69,9 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // walkers() = allt som promenerar (mystery-djur + vanliga djur): de delar
   // promenad-AI, drag-pipeline och selectedPetId men bor i skilda datamodeller.
   const djur = mountRumDjur({ sd });
+  // Magiska bär i gårdens skörde-förråd (#332) – lokal räknare för panelens
+  // bär-knapp, uppdateras ur varje feedPetBerry-svar (servern är sanningen).
+  let barKvar = farmFromData(sd).inventoryHarvest[petData.BERRY_CROP_ID] || 0;
   // Bara djur som är I RUMMET promenerar/ritas; undanstuvade (stowed) mystery-
   // djur hålls utanför precis som de vanliga djuren (djur.list() filtrerar dem).
   const roomPets = () => pets.filter((p) => !p.stowed);
@@ -256,7 +260,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // Vanliga djur (fast storlek): lättviktig namn-vy (bara inline-namnfältet).
     const animal = !pet && djur.byId(selectedPetId);
     if (animal) {
-      petPanel.replaceChildren(animalNamePanel({
+      const panelNod = animalNamePanel({
         displayName: djur.displayName(animal),
         currentName: animal.name || "",
         autoFocus: openRename === animal.id,
@@ -265,8 +269,25 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
           if (res.ok) { renderStage(); renderPets(); }
           return res;
         },
-        onStow: () => setStowed("animal", animal.id, true),
-      }));
+        // Bondgårdsdjur stuvas inte undan – de FLYTTAS (rum/hage/lada) via
+        // platsvalet i Mina djur (#330). Stuva-knappen gäller bara vanliga djur.
+        onStow: animal.farmAnimal ? null : () => setStowed("animal", animal.id, true),
+      });
+      petPanel.replaceChildren(panelNod);
+      // Bondgårdsdjur i rummet matas här (#332): samma foder-sektion som gårds-
+      // panelen, dynamiskt laddad (varld-foder.js hålls utanför bootgrafen).
+      // Sektionen uppdaterar mood/🎁 på scen-noden själv; spegla nya fält
+      // in-memory så nästa renderStage ritar samma humör.
+      if (animal.farmAnimal) {
+        import("./varld-foder.js").then(({ foderInnehall }) => {
+          if (!panelNod.isConnected) return; // panelen hann stängas
+          panelNod.appendChild(foderInnehall(animal.id, {
+            onChanged: (fresh) => Object.assign(animal, {
+              trivsel: fresh.trivsel, lastFedAt: fresh.lastFedAt, lastGiftAt: fresh.lastGiftAt,
+            }),
+          }));
+        }).catch(() => {});
+      }
       return;
     }
     renderPetPanel(petPanel, pet, {
@@ -274,6 +295,35 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       justHatched: !!pet && pet.id === justHatchedId,
       startRename: openRename === selectedPetId,
       onStow: pet && pet.hatchedAt ? () => setStowed("pet", pet.id, true) : null,
+      // Magiska bär från gårdens skörd (#332): matar mystery-djuret direkt ur
+      // förrådet – feedCount/steg räknas precis som äppelmatningen (som är orörd).
+      berryCount: barKvar,
+      onFeedBerry: pet && pet.hatchedAt && petData.isMysteryPet(pet) && !petData.isFullGrown(pet) && barKvar > 0
+        ? async () => {
+            const res = await petData.feedPetBerry(pet.id);
+            if (!res.ok) {
+              barKvar = res.berriesLeft;
+              flash("Bären är slut – odla fler magiska bär på gården! 🫐", true);
+              renderPets();
+              return;
+            }
+            barKvar = res.berriesLeft;
+            petPat(pet.id); // hjärtan poppar 💚
+            setPetMood(res.pet, "ater", 1500);
+            const idx = pets.findIndex((p) => p.id === res.pet.id);
+            if (idx !== -1) {
+              pets[idx] = { ...res.pet, pos: pets[idx].pos, stowed: pets[idx].stowed };
+            }
+            if (res.stageUp) {
+              confetti();
+              flash(`${petDisplayName(res.pet)} växte till steg ${res.pet.stage}! 🎉`);
+              renderStage(); // djuret VÄXTE (ny storlek)
+            }
+            renderPets(); // ny feedCount/bär-räknare i panelen
+            const grown = idx !== -1 ? pets[idx] : res.pet;
+            setTimeout(() => setPetMood(grown, "glad", 2200), 1500);
+          }
+        : null,
       onUpdate(nextPets, petId) {
         // Behåll rummets aktuella positioner – serverns pos kan vara äldre än
         // dit promenad-AI:n hunnit gå (positioner sparas glest).
@@ -454,6 +504,28 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
       })),
     ],
     onReturn: (kind, id) => setStowed(kind, id, false),
+    // Bondgårdsdjuren (#330): listas alltid i Mina djur med platsval. Ett byte
+    // uppdaterar datan (farm.placedAnimals) + rummet direkt; hagen/ladan ritas
+    // av gårds-grenen vid nästa besök (den läser placeringen färskt).
+    listFarm: () => djur.farmList().map((a) => ({
+      id: a.id, name: djur.displayName(a), location: a.location,
+      artHtml: itemSvg(a.art) || (getItem(a.art)?.emoji ?? "🐾"),
+    })),
+    onPlace: (id, location) => {
+      // Ladan kan vara full (#333: nivå-tak på laggårds-platserna) – då ändras
+      // inget och eleven pekas mot uppgraderingen i shoppen.
+      if (!djur.setLocation(id, location)) {
+        flash("Ladan är full! Uppgradera laggården i shoppen så får fler djur plats. 🏠", true);
+        return;
+      }
+      if (selectedPetId === id) selectedPetId = null;
+      renderStage();
+      renderPets();
+      djurTrayCtl?.render();
+      flash(location === "room" ? "Djuret bor nu i ditt rum! 🛏️"
+        : location === "paddock" ? "Djuret går nu ute i hagen! 🌾"
+        : "Djuret bor nu i ladan! 🏠");
+    },
   });
 
   // Matningen (äpplen på golvet) lever i sin egen modul: äger floorApples +

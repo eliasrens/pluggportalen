@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: world.js  (issue #220)
+// Pluggporten – äventyrsmotorn: world.js  (issue #220)
 // ----------------------------------------------------------------------------
 // OPT-IN "bild-karta"-värld: modellen bakom scroll-läget. DOM-fri och Firebase-fri
 // → enhetstestbar (test/adventure-world.test.js), precis som grid.js. Där grid.js

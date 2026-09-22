@@ -84,7 +84,7 @@ faller ⇒ evig "Laddar…".
    spinner. Detta skyddar ÄVEN framtida deployer som måste lägga nya filer i
    bootgrafen.
 4. **Byggstämpel:** deploy-workflowet sed:ar in commit-SHA:n i
-   `<meta name="pp-build">`; bootvakten loggar `Pluggportalen build: <sha>` i
+   `<meta name="pp-build">`; bootvakten loggar `Pluggporten build: <sha>` i
    konsolen. Nu kan "deploy ej framme" skiljas från "koden är trasig".
 
 ## Verifieringsprotokoll efter deploy till Pages (för leaden)
@@ -94,7 +94,7 @@ faller ⇒ evig "Laddar…".
    visar `success` för rätt SHA (kolla statuses – `updating_pages` kan fastna;
    spamma INTE `gh run rerun`).
 2. Öppna live i privat fönster (eller hård-refresh), läs konsolen:
-   `Pluggportalen build: <sha>` ska matcha den mergade commiten. Matchar den
+   `Pluggporten build: <sha>` ska matcha den mergade commiten. Matchar den
    inte → deployen/cachen är inte framme än, vänta 10 min och försök igen –
    **revert:a inte på symptom inom 10-minutersfönstret.**
 3. Först när build-stämpeln matchar: bedöm boot/funktion.

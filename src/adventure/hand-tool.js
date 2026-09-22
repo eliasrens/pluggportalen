@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: hand-tool.js  (issue #225)
+// Pluggporten – äventyrsmotorn: hand-tool.js  (issue #225)
 // ----------------------------------------------------------------------------
 // ÅTERANVÄNDBART "tema-verktyg i handen". Ett tema kan ange ett verktyg (t.ex.
 // Gruvans pickhacka) som ritas i elevens avatar-hand som ett EXTRA lager ovanpå

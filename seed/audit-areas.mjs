@@ -1,5 +1,5 @@
 // ============================================================================
-// Read-only innehållsgranskning (Node, Admin SDK) för Pluggportalen.
+// Read-only innehållsgranskning (Node, Admin SDK) för Pluggporten.
 //
 //   node seed/audit-areas.mjs
 //

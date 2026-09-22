@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/skattjakten-map.js  (issue #221, #243)
+// Pluggporten – äventyrsmotorn: themes/skattjakten-map.js  (issue #221, #243)
 // ----------------------------------------------------------------------------
 // REN DATA + REN MATTE för Skattjaktens ö-karta i motorns scroll-läge (world.js).
 // DOM-fri och Firebase-fri → enhetstestbar (test/skattjakten-map.test.js).

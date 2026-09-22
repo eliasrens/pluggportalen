@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – kompis-hus-nivån (läs-vy av en KLASSKAMRATS hus-exteriör)
+// Pluggporten – kompis-hus-nivån (läs-vy av en KLASSKAMRATS hus-exteriör)
 // ----------------------------------------------------------------------------
 // Klick på en kamrats tomt i klassbyn ska först ZOOMA IN till deras hus utifrån
 // (samma sorts vy som man ser sitt EGET hus i) – inte hoppa direkt in i rummet.

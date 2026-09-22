@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – husdjurskonst (inline SVG för shopens "husdjur"-saker)
+// Pluggporten – husdjurskonst (inline SVG för shopens "husdjur"-saker)
 // ----------------------------------------------------------------------------
 // Följer stilguiden i art-style.js och återanvänder de delade byggdelarna
 // (eye/eyes/cheeks/nose/head/öron m.m.) så husdjuren hamnar på samma
@@ -208,6 +208,105 @@ function heatLamp() {
   );
 }
 
+// --- Bondgårdsdjuren (issue #330): häst/ko/gris i samma chibi-stil -----------
+// Samma ankargrid som övriga husdjur (huvud 50,36 r22, sittande kropp) så de
+// hamnar i samma värld i rummet, hagen och laggården. `w` gör dem STÖRRE än
+// smådjuren (samma skala som avataren ute på gården).
+
+function horsePet() {
+  const fur = "#C08A5A", belly = "#EFD9BC", mane = "#7A5238";
+  return (
+    limb("M66 80 Q80 82 80 66", mane, 6) + // svans
+    sitBody(fur, belly) +
+    pointyEar(-1, fur, "#E8C6A6") + pointyEar(1, fur, "#E8C6A6") +
+    // Man: lugg mellan öronen + kam ner längs huvudets högra sida.
+    `<path d="M40 15 Q50 8 60 15 Q56 20 50 19 Q44 20 40 15 Z" fill="${mane}" ${LINE}/>` +
+    head(fur) +
+    `<path d="M64 17 Q74 26 71 42 Q66 40 63 34 Q66 26 60 20 Z" fill="${mane}" stroke="none"/>` +
+    eyes() +
+    // Lång mule med två borrhål-nosar och ett litet leende.
+    `<ellipse cx="50" cy="47" rx="12" ry="8.5" fill="${belly}" ${THIN}/>` +
+    `<ellipse cx="45" cy="46" rx="1.9" ry="2.6" fill="#8A6242" stroke="none"/>` +
+    `<ellipse cx="55" cy="46" rx="1.9" ry="2.6" fill="#8A6242" stroke="none"/>` +
+    smile(51.5, 5) +
+    cheeks(43)
+  );
+}
+
+function cowPet() {
+  const fur = "#F5EFE3", belly = "#FFF8EC", patch = "#8B7BAA", mule = "#F5C1CB";
+  return (
+    sitBody(fur, belly) +
+    // Fläckar på kroppen (ritas ovanpå sittkroppen, under huvudet).
+    `<path d="M32 68 Q30 80 40 80 Q46 76 42 68 Q37 64 32 68 Z" fill="${patch}" stroke="none"/>` +
+    roundEarSoft(-1, fur, mule) + roundEarSoft(1, fur, mule) +
+    // Små horn ovanför öronen.
+    `<path d="M35 14 Q32 8 37 6 Q40 10 39 15 Z" fill="#EAD9A8" ${THIN}/>` +
+    `<path d="M65 14 Q68 8 63 6 Q60 10 61 15 Z" fill="#EAD9A8" ${THIN}/>` +
+    head(fur) +
+    `<path d="M60 18 Q72 20 71 32 Q63 34 58 28 Q57 21 60 18 Z" fill="${patch}" stroke="none"/>` +
+    eyes() +
+    // Rosa mule med två nosborrar.
+    `<ellipse cx="50" cy="47" rx="11.5" ry="7.5" fill="${mule}" ${THIN}/>` +
+    `<ellipse cx="45.5" cy="47" rx="1.8" ry="2.4" fill="#D98A9C" stroke="none"/>` +
+    `<ellipse cx="54.5" cy="47" rx="1.8" ry="2.4" fill="#D98A9C" stroke="none"/>` +
+    cheeks(41)
+  );
+}
+
+function pigPet() {
+  const fur = "#F2A9B8", belly = "#FBD6DC", inner = "#E88A9C";
+  return (
+    // Knorr-svans.
+    `<path d="M68 76 Q78 74 76 68 Q74 64 70 67" fill="none" stroke="${fur}" stroke-width="5" stroke-linecap="round"/>` +
+    `<path d="M68 76 Q78 74 76 68 Q74 64 70 67" fill="none" ${THIN}/>` +
+    sitBody(fur, belly) +
+    // Trekantiga öron som viker ner lite (grisig siluett).
+    `<path d="M31 22 Q27 8 41 12 Q40 20 36 24 Z" fill="${fur}" ${LINE}/>` +
+    `<path d="M69 22 Q73 8 59 12 Q60 20 64 24 Z" fill="${fur}" ${LINE}/>` +
+    head(fur) +
+    eyes() +
+    // Stort tryne med två nosborrar.
+    `<ellipse cx="50" cy="43" rx="9.5" ry="7" fill="${inner}" ${LINE}/>` +
+    `<ellipse cx="46.5" cy="43" rx="1.8" ry="2.6" fill="#B95F72" stroke="none"/>` +
+    `<ellipse cx="53.5" cy="43" rx="1.8" ry="2.6" fill="#B95F72" stroke="none"/>` +
+    smile(52, 5.5) +
+    cheeks(45)
+  );
+}
+
+/**
+ * Mood-min för ett bondgårdsdjur (#330): liten rund bricka med ansiktsuttryck
+ * som härleds ur trivseln (moodForTrivsel i farm-core.js). Ritas som badge
+ * OVANPÅ djur-noden (rummet OCH hagen/ladan) så själva art-SVG:n kan förbli
+ * statisk. Matnings-loopen (#332) ändrar trivseln – uttrycket följer med här.
+ * @param {"glad"|"nojd"|"less"} mood
+ * @returns {string} fristående <svg>
+ */
+export function farmMoodSvg(mood) {
+  const mun =
+    mood === "glad" ? `<path d="M11 15.5 Q16 20.5 21 15.5" fill="none" ${THIN}/>` :
+    mood === "less" ? `<path d="M11 19 Q16 14.5 21 19" fill="none" ${THIN}/>` :
+    `<path d="M11.5 17 L20.5 17" fill="none" ${THIN}/>`;
+  const namn = mood === "glad" ? "Gladt djur" : mood === "less" ? "Lesset djur" : "Nöjt djur";
+  return (
+    `<svg viewBox="0 0 32 32" role="img" aria-label="${namn}" ` +
+    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">` +
+    `<circle cx="16" cy="16" r="13.5" fill="#FFD66B" ${THIN}/>` +
+    eye(11, 12, 2.2) + eye(21, 12, 2.2) + mun +
+    `</svg>`
+  );
+}
+
+/** Mjukt hängande runt öra för kon (lägre än roundEar i art-style). */
+function roundEarSoft(dir, fur, inner) {
+  const x = 50 + dir * 21;
+  return (
+    `<ellipse cx="${x}" cy="20" rx="8.5" ry="6" fill="${fur}" ${LINE} transform="rotate(${dir * 18} ${x} 20)"/>` +
+    `<ellipse cx="${x}" cy="20" rx="4.2" ry="2.8" fill="${inner}" stroke="none" transform="rotate(${dir * 18} ${x} 20)"/>`
+  );
+}
+
 /** id → { viewBox, art } */
 export const PETS = {
   hund: { viewBox: "0 0 100 100", art: dogPet() },
@@ -217,6 +316,10 @@ export const PETS = {
   papegoja: { viewBox: "0 0 84 100", art: parrotPet() },
   dinosaurie: { viewBox: "0 0 100 92", art: dinoPet() },
   hamster: { viewBox: "0 0 100 100", art: hamsterPet() },
+  // Bondgårdsdjuren (#330) – större `w` = samma skala som avataren på gården.
+  animal_horse: { viewBox: "0 0 100 100", art: horsePet(), w: 5.0 },
+  animal_cow: { viewBox: "0 0 100 100", art: cowPet(), w: 4.6 },
+  animal_pig: { viewBox: "0 0 100 100", art: pigPet(), w: 3.9 },
   igelkott: { viewBox: "0 0 100 100", art: hedgehogPet() },
   skoldpadda: { viewBox: "0 0 100 76", art: turtlePet() },
   // Kläckbara husdjuret (varelserna själva ligger i art-pets-creatures.js).

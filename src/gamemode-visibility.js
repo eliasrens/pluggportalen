@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – gamemode-katalog + synliga lägen per område (gamemode-visibility.js)
+// Pluggporten – gamemode-katalog + synliga lägen per område (gamemode-visibility.js)
 // ----------------------------------------------------------------------------
 // Här bor GAMEMODES (metadata för elevens spellägen) samt logiken för vilka
 // lägen som ska visas för ett arbetsområde. Läraren kan bocka i/ur vilka lägen

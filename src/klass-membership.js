@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klass-medlemskap (ren logik, ingen Firestore)
+// Pluggporten – klass-medlemskap (ren logik, ingen Firestore)
 // ----------------------------------------------------------------------------
 // Klassbyn (#/elev/by) ska visa ALLA klasskamraternas hus, inte bara elevens
 // eget. Vilka elever byn ska försöka läsa härleds ur klass-dokumentens publika

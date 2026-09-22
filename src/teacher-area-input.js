@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: samla ihop områdes-inmatningen (teacher-area-input.js)
+// Pluggporten – lärarsidan: samla ihop områdes-inmatningen (teacher-area-input.js)
 // ----------------------------------------------------------------------------
 // Innehållssidan matar in ett arbetsområde från FLERA ställen: JSON-rutan
 // (texter/quiz/par) plus fristående kontroller vid sidan om – årskurs och (issue

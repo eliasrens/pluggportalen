@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – game-shared.js
+// Pluggporten – game-shared.js
 // Gemensamt verktyg för alla gamemodes: metadata, små hjälpare, belöning
 // (grind-skydd), övningsram, resultat-/firande-skärm och frågemotorn som
 // Quiz och Läsförståelse delar. Själva spelen ligger i games-*.js.
@@ -265,6 +265,16 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
         awardProjectionPatch(sd)
       );
     }
+  } catch {}
+  // Gården (#329): varje avklarad övning låter växande grödor i odlingsbädden
+  // växa ett steg (tillväxt via plugguppgifter, inte tid). Samma kontrakt som
+  // projektions-speglingen ovan: ALDRIG kastande – ett gårds-fel får inte störa
+  // belöningsflödet. Dynamisk import så data-farm.js hålls utanför den statiska
+  // bootgrafen härifrån (#271); elever utan växande grödor kortsluts inne i
+  // growCropsFromExercise utan extra Firestore-trafik.
+  try {
+    const { growCropsFromExercise } = await import("./data-farm.js");
+    await growCropsFromExercise();
   } catch {}
   return { coins, xp, totalXp, firstTime, reduced, pct };
 }

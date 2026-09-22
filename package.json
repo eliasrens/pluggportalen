@@ -8,7 +8,7 @@
     "start": "node server.mjs",
     "dev": "node server.mjs",
     "seed": "node seed/seed.mjs",
-    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore-rules.test.js\"",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore-rules.test.js test/firestore-rules-class-docs.test.js\"",
     "test:e2e": "firebase emulators:exec --only auth,firestore \"node test/e2e-auth.test.mjs\"",
     "emulators": "firebase emulators:start --only auth,firestore",
     "migrate:passwords": "node admin/migrate-passwords.mjs",

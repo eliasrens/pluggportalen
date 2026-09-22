@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – lärarsidan: per-klass område-konfiguration (teacher-class-modes.js)
+// Pluggporten – lärarsidan: per-klass område-konfiguration (teacher-class-modes.js)
 // ----------------------------------------------------------------------------
 // Utbruten del av teacher-classes.js (fil-cap): de utfällbara sektionerna på ett
 // klasskort som styr vad klassen jobbar med och ser:

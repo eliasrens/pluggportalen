@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: themes/spokjakten-scen-svg.js  (issue #252)
+// Pluggporten – äventyrsmotorn: themes/spokjakten-scen-svg.js  (issue #252)
 // ----------------------------------------------------------------------------
 // EGENRITAD (handbyggd) inline-SVG-värld för Spökjakten – motorns scroll-läge.
 // SPEGLAR Skattjakten (skattjakten-scen-svg.js): en komplett inline-SVG-STRÄNG

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – äventyrsmotorn: movement.js
+// Pluggporten – äventyrsmotorn: movement.js
 // ----------------------------------------------------------------------------
 // Ren rörelse- och kollisionsmatte för den spelarstyrda avataren. DOM-fri och
 // Firebase-fri → enhetstestbar (se test/adventure-movement.test.js), i samma anda

@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggportalen – klassbyn (by-nivån i husvärldens kamera)
+// Pluggporten – klassbyn (by-nivån i husvärldens kamera)
 // ----------------------------------------------------------------------------
 // Ritar innehållet i by-lagret: en gräsby med vägar (layout-matten ligger i
 // varld-by.js) och ETT minihus per elev i klassen, med elevens egen palett och
