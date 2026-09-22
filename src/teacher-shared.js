@@ -177,7 +177,7 @@ export function renderGate(ctx) {
       <form id="form">
         <div class="field">
           <label for="username">Användarnamn</label>
-          <input id="username" type="text" autocomplete="username" autocapitalize="none" placeholder="teacher26" />
+          <input id="username" type="text" autocomplete="username" autocapitalize="none" placeholder="Användarnamn" />
         </div>
         <div class="field">
           <label for="p">Lösenord</label>
