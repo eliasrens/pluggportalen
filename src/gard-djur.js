@@ -110,7 +110,11 @@ export function mountGardDjur({ gardLager, laggardLager }) {
 
   function ensureOverlay(p) {
     if (!p.overlay || !p.overlay.isConnected) {
-      p.overlay = el(`<div class="gard-djur-lager"></div>`);
+      // .har-forgrund (#371) BARA på hagen (som har ett staket-lager ovanpå):
+      // där flyttas djurets namnskylt ovanför huvudet (styles.css) så den inte
+      // hamnar bakom gärdsgården. Ladan saknar forgrund → namnskylten oförändrad.
+      const kls = p.forgrundSvg ? "gard-djur-lager har-forgrund" : "gard-djur-lager";
+      p.overlay = el(`<div class="${kls}"></div>`);
       p.lager.appendChild(p.overlay);
     }
     // Staket-framkanten (#345) EFTER djur-overlayn i DOM → ritas ovanpå djuren.
