@@ -85,6 +85,8 @@ const ICONS = {
     '<path d="M3 21h18"/><path d="M5 21V9.5L12 5l7 4.5V21"/><path d="M9.5 21v-4.5h5V21"/>',
   inbox:
     '<path d="M4 13l2.1-7A2 2 0 0 1 8 4.5h8a2 2 0 0 1 1.9 1.5L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13h5l1.1 2h3.8l1.1-2h5"/>',
+  logout:
+    '<path d="M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"/><path d="M18 15l3-3-3-3"/><path d="M21 12H9"/>',
 };
 
 /**
@@ -159,9 +161,9 @@ export function teacherNav(ctx, active) {
         )
         .join("")}
       </span>
-      <a class="tnav logout" data-logout="1" title="Lås lärarläge"><span class="tnav-ic">${icon(
-        "lock"
-      )}</span><span class="tnav-txt">Lås lärarläge</span></a>
+      <a class="tnav logout" data-logout="1" title="Logga ut"><span class="tnav-ic">${icon(
+        "logout"
+      )}</span><span class="tnav-txt">Logga ut</span></a>
     </div>
   </nav>`);
   nav.querySelectorAll("[data-hash]").forEach((a) =>
