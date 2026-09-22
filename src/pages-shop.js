@@ -201,6 +201,9 @@ export async function pageElevShop() {
           flash(`Du köpte ${item.name}! ${item.emoji} Laggården är uppgraderad – fler djur får plats i ladan.`);
         } else if (item.roomUpgrade) {
           flash(`Du köpte ${item.name}! 🚪 Ett nytt rum finns nu i ditt hus – gå in och byt rum via dörren eller rumslistan.`);
+        } else if (item.barnSkin) {
+          // Lada-skins (#353): väljs på gården (🛖 Ny lada), inte i 🏠 Nytt hus.
+          flash(`Du köpte ${item.name}! ${item.emoji} Byt till den via 🛖 Ny lada på gården bakom ditt hus.`);
         } else if (item.category === "hus") {
           flash(`Du köpte ${item.name}! ${item.emoji} Byt till det via 🏠 Nytt hus i din husvärld.`);
         } else if (item.seed) {

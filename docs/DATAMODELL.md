@@ -268,7 +268,8 @@ Firestore-skrivningarna (transaktioner + dot-path-updates) i systermodulen
 
 | Fält               | Typ    | Beskrivning                                                       |
 | ------------------ | ------ | ----------------------------------------------------------------- |
-| `barnLevel`        | number | Laggårdens nivå (**1–3**). Sparat fält – se designbeslutet nedan. Styr antal djurplatser i ladan: `FARM_BARN_PLACES_PER_LEVEL` (2/4/8, `farm-core.js`) och laggårdens fasad/interiör (`art-gard.js`) |
+| `barnLevel`        | number | Laggårdens nivå (**1–3**). Sparat fält – se designbeslutet nedan. Styr antal djurplatser i ladan: `FARM_BARN_PLACES_PER_LEVEL` (2/4/8, `farm-core.js`) och – utan valt skin – laggårdens fasad/interiör (`art-gard.js`) |
+| `barnSkin`         | string \| null | Laggårdens **utseende** (#353), skilt från nivån: id i `LADA_SKINS`-registret (`art-lada-skins.js`) = shop-id (kategori `hus`, `barnSkin:true`, köps till `ownedItems` som husskalen). `null` (default) = klassiska nivå-fasaden. Rent kosmetiskt – kapaciteten styrs alltid av `barnLevel`. Väljs i gårds-vyns "🛖 Ny lada" (`varld-lada-skin.js`) via `setBarnSkin` (`data-farm.js`); okänt id faller tillbaka på nivå-fasaden vid rendering |
 | `gardenTier`       | number | Odlingsbäddens nivå (**1–3**). Styr antal odlings-slots: `FARM_SLOTS_PER_TIER` (2/4/8 per #333, tabell i `farm-core.js`) och bäddens utseende (enkel bädd → dubbel låda → växthus) |
 | `gardenSlots`      | array  | Planterade grödor: `{ slotIndex, cropId, growthStage, plantedAt }`. `slotIndex` 0-baserat `< slotCountForTier(gardenTier)`; `growthStage` **0–3** (0 = nysådd, 3 = `FARM_MAX_GROWTH_STAGE` = färdigvuxen → skördbar); `plantedAt` ms (`Date.now()`). Tomma slots har ingen post |
 | `inventoryHarvest` | map    | Skörde-förrådet: `{ [cropId]: antal }` (t.ex. `{ "crop_carrot": 3 }`). Alltid ≥ 1 – noll-poster städas bort vid skrivning |
