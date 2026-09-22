@@ -16,7 +16,7 @@ import { buildReviewPanel } from "./teacher-content-review.js";
 import { buildReadingEditor } from "./teacher-reading.js";
 import { areaExerciseTypes, hasGeneratorContent, EXERCISE_TYPES } from "./exercise-types.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
-import { el, esc } from "./teacher-shared.js";
+import { el, esc, icon } from "./teacher-shared.js";
 
 const TYPE_BY_ID = new Map(EXERCISE_TYPES.map((t) => [t.id, t]));
 
@@ -79,10 +79,10 @@ export function buildAreaCards(areas, { subjectId, onEdit, onRefresh }) {
       </div>
       <div class="area-card-count">${esc(quantityText(a))}</div>
       <div class="row-actions area-card-actions">
-        <button class="btn ghost small" data-act="review">👁️ Granska</button>
-        <button class="btn ghost small gron" data-act="add">➕ Lägg till</button>
-        <button class="btn ghost small" data-act="reading">📖 Nivåtexter</button>
-        <button class="btn ghost small danger" data-act="del">🗑️ Ta bort</button>
+        <button class="btn ghost small" data-act="review">${icon("eye", 16)}<span>Granska</span></button>
+        <button class="btn ghost small gron" data-act="add">${icon("plus", 16)}<span>Lägg till</span></button>
+        <button class="btn ghost small" data-act="reading">${icon("book", 16)}<span>Nivåtexter</span></button>
+        <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort</span></button>
       </div>
     </div>`);
 

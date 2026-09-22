@@ -34,7 +34,7 @@ import {
   availableGamemodes,
   classAreaHiddenModes,
 } from "./game-shared.js";
-import { el, esc, emptyState } from "./teacher-shared.js";
+import { el, esc, emptyState, icon } from "./teacher-shared.js";
 
 /**
  * Rendera och koppla "Synliga lägen för klassen"-sektionen in i `modesEl`.
@@ -58,7 +58,7 @@ export function renderClassModes(ctx, cls, modesEl) {
       (per-område-valet i Innehåll gäller fortfarande ovanpå detta).</p>
     <div class="member-grid">${rows}</div>
     <div class="row-inline" style="margin-top:12px">
-      <button class="btn gron small" data-act="save-modes">💾 Spara lägen</button>
+      <button class="btn gron small" data-act="save-modes">${icon("save", 16)}<span>Spara lägen</span></button>
       <button class="btn ghost small" data-act="all-modes">Visa alla</button>
       <span class="modes-result"></span>
     </div>
@@ -77,7 +77,7 @@ export function renderClassModes(ctx, cls, modesEl) {
       (c) => c.dataset.mode
     );
     btn.disabled = true;
-    const old = btn.textContent;
+    const old = btn.innerHTML;
     btn.textContent = "Sparar…";
     resultEl.innerHTML = "";
     try {
@@ -90,7 +90,7 @@ export function renderClassModes(ctx, cls, modesEl) {
       resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
     } finally {
       btn.disabled = false;
-      btn.textContent = old;
+      btn.innerHTML = old;
     }
   });
 
@@ -193,7 +193,7 @@ export function renderClassAreaModes(ctx, cls, host, library) {
       Detta läggs ovanpå både per-område-valet (Innehåll) och klassens 🎮 Lägen ovan.</p>
     ${groupsHtml}
     <div class="row-inline" style="margin-top:12px">
-      <button class="btn gron small" data-act="save-area-modes">💾 Spara lägen per område</button>
+      <button class="btn gron small" data-act="save-area-modes">${icon("save", 16)}<span>Spara lägen per område</span></button>
       <button class="btn ghost small" data-act="all-area-modes">Visa alla</button>
       <span class="area-modes-result"></span>
     </div>
@@ -218,7 +218,7 @@ export function renderClassAreaModes(ctx, cls, host, library) {
       map[areaId] = { hiddenModes: hidden };
     });
     btn.disabled = true;
-    const old = btn.textContent;
+    const old = btn.innerHTML;
     btn.textContent = "Sparar…";
     resultEl.innerHTML = "";
     try {
@@ -232,7 +232,7 @@ export function renderClassAreaModes(ctx, cls, host, library) {
       resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
     } finally {
       btn.disabled = false;
-      btn.textContent = old;
+      btn.innerHTML = old;
     }
   });
 
@@ -300,7 +300,7 @@ export function renderClassAssignments(ctx, cls, assignEl, library) {
       ser då bara dem i Plugga. Lämnar du allt tomt ser eleverna hela biblioteket.</p>
     ${groups}
     <div class="row-inline" style="margin-top:12px">
-      <button class="btn gron small" data-act="save-areas">💾 Spara områden</button>
+      <button class="btn gron small" data-act="save-areas">${icon("save", 16)}<span>Spara områden</span></button>
       <button class="btn ghost small" data-act="clear-areas">Rensa (visa allt)</button>
       <span class="assign-result"></span>
     </div>
@@ -319,7 +319,7 @@ export function renderClassAssignments(ctx, cls, assignEl, library) {
       areaId: c.dataset.area,
     }));
     btn.disabled = true;
-    const old = btn.textContent;
+    const old = btn.innerHTML;
     btn.textContent = "Sparar…";
     resultEl.innerHTML = "";
     try {
@@ -332,7 +332,7 @@ export function renderClassAssignments(ctx, cls, assignEl, library) {
       resultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
     } finally {
       btn.disabled = false;
-      btn.textContent = old;
+      btn.innerHTML = old;
     }
   });
 

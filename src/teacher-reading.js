@@ -18,7 +18,7 @@ import { validateArea } from "./validate.js";
 import { READING_LEVELS } from "./validate-reading.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { buildReadingPrompt } from "./prompts.js";
-import { el, esc, copyText } from "./teacher-shared.js";
+import { el, esc, copyText, icon } from "./teacher-shared.js";
 import { blankQuestion, levelPane } from "./teacher-reading-level.js";
 
 // --- Editor-state (djupkopior så området inte muteras förrän man sparar) ------
@@ -113,14 +113,14 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
       <label class="rt-lbl hint" for="rt-onskemal">🤖 Skapa med AI (valfritt)</label>
       <input id="rt-onskemal" class="rt-input" placeholder="Tema/önskemål – t.ex. 'Vikingarnas resor'. Lämna tomt för att bifoga egen text/PDF." />
       <div class="row-inline" style="margin-top:8px">
-        <button type="button" class="btn ghost small" data-act="rt-prompt">📋 Kopiera AI-prompt (3 nivåer)</button>
+        <button type="button" class="btn ghost small" data-act="rt-prompt">${icon("copy", 16)}<span>Kopiera AI-prompt (3 nivåer)</span></button>
       </div>
       <label class="rt-lbl hint" style="margin-top:10px" for="rt-json">Klistra in AI:ns JSON och lägg till:</label>
       <textarea id="rt-json" class="rt-input" rows="3" spellcheck="false"
         placeholder='{ "title": "…", "levels": { "1": { "body": "…", "questions": [ … ] }, "2": {…}, "3": {…} } }'></textarea>
       <div class="row-inline" style="margin-top:8px">
-        <button type="button" class="btn ghost small" data-act="rt-import">➕ Lägg till från JSON</button>
-        <button type="button" class="btn ghost small" data-act="rt-blank">➕ Ny tom läs-text</button>
+        <button type="button" class="btn ghost small" data-act="rt-import">${icon("plus", 16)}<span>Lägg till från JSON</span></button>
+        <button type="button" class="btn ghost small" data-act="rt-blank">${icon("plus", 16)}<span>Ny tom läs-text</span></button>
       </div>
     </div>
 
@@ -128,7 +128,7 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
 
     <div class="rt-msg" style="margin-top:10px"></div>
     <div class="row-inline" style="margin-top:12px">
-      <button type="button" class="btn gron" data-act="rt-save">💾 Spara läs-texterna</button>
+      <button type="button" class="btn gron" data-act="rt-save">${icon("save", 16)}<span>Spara läs-texterna</span></button>
       <button type="button" class="btn ghost" data-act="rt-close">Stäng</button>
     </div>
   </div>`);
@@ -191,7 +191,7 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
     const titleIn = el(`<input type="text" class="rt-input rt-title" placeholder="Tema/rubrik, t.ex. 'Vikingarnas resor'" />`);
     titleIn.value = t.title;
     titleIn.addEventListener("input", () => (t.title = titleIn.value));
-    const delT = el(`<button type="button" class="btn ghost small danger" title="Ta bort hela läs-texten">🗑️</button>`);
+    const delT = el(`<button type="button" class="btn ghost small danger" title="Ta bort hela läs-texten">${icon("trash", 16)}</button>`);
     delT.addEventListener("click", () => {
       if (!confirm(`Ta bort läs-texten "${t.title || "(utan titel)"}"? Alla tre nivåerna försvinner.`)) return;
       state.texts.splice(ti, 1);
@@ -258,7 +258,7 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
   root.querySelector('[data-act="rt-save"]').addEventListener("click", async (e) => {
     const btn = e.currentTarget;
     btn.disabled = true;
-    const old = btn.textContent;
+    const old = btn.innerHTML;
     btn.textContent = "Sparar…";
     try {
       const fresh = (await data.getArea(subjectId, area.id)) || area;
@@ -284,7 +284,7 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
       msgEl.innerHTML = `<div class="msg error">Kunde inte spara till databasen: ${esc(err.message)}</div>`;
     } finally {
       btn.disabled = false;
-      btn.textContent = old;
+      btn.innerHTML = old;
     }
   });
 
