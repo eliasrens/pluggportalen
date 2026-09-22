@@ -354,6 +354,22 @@ export function setBarnLevel(level, studentId = currentStudentId()) {
 }
 
 /**
+ * Välj laggårdens UTSEENDE (#353): ett skin-id ur shop-katalogen (barnSkin-
+ * saker, köps till ownedItems precis som husskalen) eller null = den klassiska
+ * nivå-fasaden. Rent kosmetiskt – kapacitet/spiltor styrs fortfarande av
+ * farm.barnLevel (#333). Okänt id → ok:false utan ändring (samma anda som
+ * saveHusSkal: ägandet upprätthålls av väljar-UI:t, som bara visar ägda skins).
+ * @returns {Promise<{ok: boolean, farm: object, error?: string}>}
+ */
+export function setBarnSkin(skinId, studentId = currentStudentId()) {
+  return updateFarm(studentId, ["barnSkin"], (farm) => {
+    const id = skinId || null;
+    if (id && !(getItem(id) || {}).barnSkin) return { ok: false, farm, error: "okänt skin" };
+    return { ok: true, farm: { ...farm, barnSkin: id } };
+  });
+}
+
+/**
  * Sätt odlingsbäddens nivå (1–3). Samma kontrakt som setBarnLevel: köpet bor i
  * uppgraderings-issuen, nivån får aldrig sänkas (planterade slots ska aldrig
  * hamna utanför bädden).

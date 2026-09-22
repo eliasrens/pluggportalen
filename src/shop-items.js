@@ -6,19 +6,15 @@
 // avatarItems), så håll dem STABILA. Lägg gärna till nya saker, men byt inte
 // id på befintliga.
 //
-// Kategorier:
-//   klader   – kläder & accessoarer som sätts på avataren (har en `slot`)
-//   mobler   – möbler & prylar som placeras i rummet
-//   husdjur  – husdjur som placeras i rummet
-//   dekor    – dekor & pynt som placeras i rummet
-//   mat      – KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren
+// Kategorier: klader – kläder/accessoarer på avataren (har `slot`); mobler –
+// möbler i rummet; husdjur – husdjur i rummet; dekor – pynt i rummet; mat –
+// KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren.
 //
 // Mat (`mat`) är förbrukningsvara: ligger INTE i ownedItems, köp ökar ett ANTAL
 // (studentData.appleCount). `consumable:true` (isConsumable); buy/place/eatApple i data-pet.js.
-//
-// Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/hand/
-// rygg). En sak per slot samtidigt; `rygg` ritas BAKOM figuren (mantel) – se
-// avatarMarkup i avatars.js. Övriga kategorier placeras i rummet.
+// Kläder (`klader`) bärs på avataren, en sak per `slot` (hatt/ansikte/hals/hand/
+// rygg – rygg ritas BAKOM figuren, se avatarMarkup i avatars.js); övriga
+// kategorier placeras i rummet.
 //
 // Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
@@ -33,8 +29,7 @@ export const CATEGORIES = [
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
   { id: "hus", name: "Hus", emoji: "🏠" },
   { id: "tradgard", name: "Trädgård & utomhus", emoji: "🌳" },
-  // Mysteryboxen visas SIST i shoppen (längst ner), efter alla vanliga
-  // kategorier – CATEGORIES-ordningen styr renderingen i pages-shop.js.
+  // Mysteryboxen visas SIST i shoppen – CATEGORIES-ordningen styr renderingen.
   { id: "mystery", name: "Mysterybox", emoji: "🎁",
     hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga, sällsynta och (mycket sällsynt) legendariska finns – legendarys kan vara fordon eller hus! Mega- och Epic-boxen ger legendary mycket oftare. Dubbletter blir coins." },
 ];
@@ -175,6 +170,12 @@ export const SHOP_ITEMS = [
   { id: "raket", name: "Rymdraket", emoji: "🚀", category: "hus", price: 1300, skalId: "raket" },
   { id: "godishus", name: "Godishus", emoji: "🍭", category: "hus", price: 1600, skalId: "godishus" },
   { id: "vulkan", name: "Vulkanhus", emoji: "🌋", category: "hus", price: 2500, skalId: "vulkan" },
+  // Lada-SKINS (#353): byter LAGGÅRDENS utseende – samma flöde som husskalen
+  // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin). Rent kosmetiskt:
+  // nivån (#333) styr kapaciteten. Id:n = registret i art-lada-skins.js.
+  { id: "lada-bla", name: "Blå sjölada", emoji: "🌊", category: "hus", price: 350, barnSkin: true },
+  { id: "lada-godis", name: "Godislada", emoji: "🍬", category: "hus", price: 700, barnSkin: true },
+  { id: "lada-rymd", name: "Rymdlada", emoji: "🛸", category: "hus", price: 1200, barnSkin: true },
   // Rums-uppgraderingar: varje köp låser upp ETT extra rum i huset (dörr inne +
   // rumslista i husvärlden). roomUpgrade:true → räknas av getRoomCount() som +1
   // rum; de köps i pris-ordning men ger var och en exakt +1 rum. Se data-room.js.
@@ -201,10 +202,9 @@ export const SHOP_ITEMS = [
   { id: "monstertruck", name: "Monstertruck", emoji: "🛻", category: "tradgard", price: 2000 },
 
   // --- Fröer (#329): sås i odlingsbädden på GÅRDEN, inte placerbara saker -----
-  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId/inventoryHarvest
-  // – håll dem STABILA, Firestore). tradgard är multi → köp ökar ownedCounts[id];
-  // sådden drar av 1 (plantSeed, data-farm.js). Filtreras ur placerings-lådan via
-  // isSeedItem. Skörd = djurmat: morot→kanin/häst, klöver→ko/får/gris, bär→mystery.
+  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId/inventoryHarvest,
+  // STABILA). tradgard är multi → köp ökar ownedCounts[id]; sådden drar av 1 (plantSeed).
+  // Ur placerings-lådan via isSeedItem. Skörd = djurmat: morot→kanin/häst, klöver→ko/får/gris, bär→mystery.
   { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
   { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
   { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
