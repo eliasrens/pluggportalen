@@ -24,10 +24,12 @@
     />
     <link rel="stylesheet" href="./src/styles.css" />
     <link rel="stylesheet" href="./src/games.css" />
-    <!-- Favicon: mini-porten (samma grind-motiv som loggan/inloggningen, #338). -->
+    <!-- Favicon: mini av MAJESTÄTISKA porten (samma motiv som loggan och
+         inloggningsscenen art-port-majestic.js, #360): stenpelare + valvbåge
+         med guldkrön + smidesgrind med guldspetsar. -->
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='5' y='10' width='11' height='50' rx='5' fill='%23B0805A' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='48' y='10' width='11' height='50' rx='5' fill='%23B0805A' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='1' y='5' width='62' height='11' rx='5.5' fill='%238A6242' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='19' y='31' width='8' height='29' rx='4' fill='%23B0805A' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='28' y='26' width='8' height='34' rx='4' fill='%23B0805A' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='37' y='31' width='8' height='29' rx='4' fill='%23B0805A' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='17' y='44' width='30' height='7' rx='3.5' fill='%23E0B98C' stroke='%233B3350' stroke-width='2.5'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M1 24 Q32 -6 63 24 L53 24 Q32 6 11 24 Z' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='9' r='5' fill='%23F7C948' stroke='%233B3350' stroke-width='2.5'/%3E%3Crect x='1' y='19' width='16' height='9' rx='3.5' fill='%23DCE7F2' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='47' y='19' width='16' height='9' rx='3.5' fill='%23DCE7F2' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='3' y='26' width='12' height='34' rx='4' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='49' y='26' width='12' height='34' rx='4' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3'/%3E%3Cpath d='M23 40 L23 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M32 34 L32 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M41 40 L41 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M23 31 L27.5 36 L23 41 L18.5 36 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Cpath d='M32 25 L36.5 30 L32 35 L27.5 30 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Cpath d='M41 31 L45.5 36 L41 41 L36.5 36 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Crect x='16' y='46' width='32' height='6' rx='3' fill='%235A6C96' stroke='%233B3350' stroke-width='2.5'/%3E%3C/svg%3E"
     />
   </head>
   <body>
@@ -41,16 +43,24 @@
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
         <button class="brand" id="brand" title="Till startsidan">
-          <!-- Loggan: mini-porten – samma grind-motiv som inloggningsscenen
-               (art-port.js, #338) och faviconen, i sidans platta stil. -->
+          <!-- Loggan: mini av MAJESTÄTISKA porten – samma motiv som
+               inloggningsscenen (art-port-majestic.js, #360) och faviconen:
+               stenpelare + valvbåge med guldkrön + smidesgrind med
+               guldspetsar, i sidans platta stil. -->
           <span class="logo" aria-hidden="true"><svg viewBox="0 0 64 64" width="1em" height="1em" focusable="false">
-            <rect x="5" y="10" width="11" height="50" rx="5" fill="#B0805A" stroke="#3B3350" stroke-width="3"/>
-            <rect x="48" y="10" width="11" height="50" rx="5" fill="#B0805A" stroke="#3B3350" stroke-width="3"/>
-            <rect x="1" y="5" width="62" height="11" rx="5.5" fill="#8A6242" stroke="#3B3350" stroke-width="3"/>
-            <rect x="19" y="31" width="8" height="29" rx="4" fill="#B0805A" stroke="#3B3350" stroke-width="3"/>
-            <rect x="28" y="26" width="8" height="34" rx="4" fill="#B0805A" stroke="#3B3350" stroke-width="3"/>
-            <rect x="37" y="31" width="8" height="29" rx="4" fill="#B0805A" stroke="#3B3350" stroke-width="3"/>
-            <rect x="17" y="44" width="30" height="7" rx="3.5" fill="#E0B98C" stroke="#3B3350" stroke-width="2.5"/>
+            <path d="M1 24 Q32 -6 63 24 L53 24 Q32 6 11 24 Z" fill="#A9C2DE" stroke="#3B3350" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="32" cy="9" r="5" fill="#F7C948" stroke="#3B3350" stroke-width="2.5"/>
+            <rect x="1" y="19" width="16" height="9" rx="3.5" fill="#DCE7F2" stroke="#3B3350" stroke-width="3"/>
+            <rect x="47" y="19" width="16" height="9" rx="3.5" fill="#DCE7F2" stroke="#3B3350" stroke-width="3"/>
+            <rect x="3" y="26" width="12" height="34" rx="4" fill="#A9C2DE" stroke="#3B3350" stroke-width="3"/>
+            <rect x="49" y="26" width="12" height="34" rx="4" fill="#A9C2DE" stroke="#3B3350" stroke-width="3"/>
+            <path d="M23 40 L23 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M32 34 L32 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M41 40 L41 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M23 31 L27.5 36 L23 41 L18.5 36 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <path d="M32 25 L36.5 30 L32 35 L27.5 30 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <path d="M41 31 L45.5 36 L41 41 L36.5 36 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <rect x="16" y="46" width="32" height="6" rx="3" fill="#5A6C96" stroke="#3B3350" stroke-width="2.5"/>
           </svg></span> <span class="brand-text">Pluggporten</span>
         </button>
         <div id="sidebar-body" class="sidebar-body"></div>
