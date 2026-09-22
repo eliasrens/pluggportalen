@@ -130,8 +130,7 @@ function skylt() {
     <circle cx="346" cy="221" r="3" fill="${GULD}" ${THIN}/>
     <circle cx="614" cy="221" r="3" fill="${GULD}" ${THIN}/>
     <text x="480" y="214" font-size="28" fill="${O}" font-weight="800" text-anchor="middle"
-      font-family="'Baloo 2','Nunito',system-ui,sans-serif"
-      textLength="248" lengthAdjust="spacingAndGlyphs">Pluggporten</text>
+      font-family="'Baloo 2','Nunito',system-ui,sans-serif">Pluggporten</text>
   </g>`;
 }
 
@@ -241,15 +240,27 @@ export function portScenMajestic() {
         30% { transform: rotate(3.5deg); }
         65% { transform: rotate(-2.5deg); }
       }
+      /* Solstrålarna roterar kring BOLLENS mitt (110,106) – den delade
+         .hus-solstralar i styles.css har origin 110px 86px (hus-scenens sol)
+         vilket här fick strålarna att kretsa UTANFÖR bollen (#357). */
+      .portb-sol {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: portb-sol-snurra 70s linear infinite;
+      }
+      @keyframes portb-sol-snurra {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
       @media (prefers-reduced-motion: reduce) {
-        .portb-vimpel { animation: none; }
+        .portb-vimpel, .portb-sol { animation: none; }
       }
     </style>
     <rect x="-2400" y="-1500" width="5760" height="3600" fill="url(#portb-himmel)"/>
 
     <!-- Gryningssol med mjuk gloria -->
     <circle cx="110" cy="106" r="52" fill="${GULD}" opacity="0.25" stroke="none"/>
-    <g class="hus-solstralar">${sol}</g>
+    <g class="portb-sol">${sol}</g>
     <circle cx="110" cy="106" r="36" fill="${GULD}" ${LINE}/>
 
     <g class="hus-moln" style="--t:64s">${moln(0, 60, 1.25)}</g>
