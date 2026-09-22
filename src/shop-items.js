@@ -6,22 +6,15 @@
 // avatarItems), så håll dem STABILA. Lägg gärna till nya saker, men byt inte
 // id på befintliga.
 //
-// Kategorier:
-//   klader   – kläder & accessoarer som sätts på avataren (har en `slot`)
-//   mobler   – möbler & prylar som placeras i rummet
-//   husdjur  – husdjur som placeras i rummet
-//   dekor    – dekor & pynt som placeras i rummet
-//   mat      – KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren
+// Kategorier: klader – kläder/accessoarer på avataren (har `slot`); mobler –
+// möbler i rummet; husdjur – husdjur i rummet; dekor – pynt i rummet; mat –
+// KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren.
 //
-// Mat (`mat`) är en förbrukningsvara: den ligger INTE i ownedItems (en-gång-per-
-// sak), utan köp ökar ett ANTAL (studentData.appleCount) man kan köpa flera av.
-// Sätt `consumable: true` på sådana saker (se isConsumable). Hanteras via
-// buyApple()/placeApple()/eatApple() i data-pet.js.
-//
-// Kläder (`klader`) bärs på avataren och har en `slot` (hatt/ansikte/hals/
-// hand/rygg). Bara en sak per slot kan bäras samtidigt. `rygg` ritas BAKOM
-// figuren (mantel) – se avatarMarkup i avatars.js. Övriga kategorier placeras
-// i rummet.
+// Mat (`mat`) är förbrukningsvara: ligger INTE i ownedItems, köp ökar ett ANTAL
+// (studentData.appleCount). `consumable:true` (isConsumable); buy/place/eatApple i data-pet.js.
+// Kläder (`klader`) bärs på avataren, en sak per `slot` (hatt/ansikte/hals/hand/
+// rygg – rygg ritas BAKOM figuren, se avatarMarkup i avatars.js); övriga
+// kategorier placeras i rummet.
 //
 // Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
@@ -32,12 +25,11 @@ export const CATEGORIES = [
   { id: "klader", name: "Kläder & accessoarer", emoji: "🎩" },
   { id: "mobler", name: "Möbler & prylar", emoji: "🪑" },
   { id: "husdjur", name: "Husdjur", emoji: "🐾" },
-  { id: "mat", name: "Mat", emoji: "🍎" },
+  { id: "mat", name: "Djurmat", emoji: "🍎" },
   { id: "dekor", name: "Dekor & pynt", emoji: "🖼️" },
   { id: "hus", name: "Hus", emoji: "🏠" },
   { id: "tradgard", name: "Trädgård & utomhus", emoji: "🌳" },
-  // Mysteryboxen visas SIST i shoppen (längst ner), efter alla vanliga
-  // kategorier – CATEGORIES-ordningen styr renderingen i pages-shop.js.
+  // Mysteryboxen visas SIST i shoppen – CATEGORIES-ordningen styr renderingen.
   { id: "mystery", name: "Mysterybox", emoji: "🎁",
     hint: "Köp en box och öppna den – du får en slumpad kosmetisk sak! Vanliga, ovanliga, sällsynta och (mycket sällsynt) legendariska finns – legendarys kan vara fordon eller hus! Mega- och Epic-boxen ger legendary mycket oftare. Dubbletter blir coins." },
 ];
@@ -92,9 +84,8 @@ export const SHOP_ITEMS = [
   { id: "bokhylla", name: "Bokhylla", emoji: "📚", category: "mobler", price: 100 },
   { id: "dator", name: "Dator", emoji: "🖥️", category: "mobler", price: 200 },
   { id: "tv", name: "TV", emoji: "📺", category: "mobler", price: 180 },
-  // `flat: true` = platt golvsak (matta) som alltid ritas UNDERST i rummet, så
-  // möbler, dekor och husdjur hamnar ovanpå oavsett placeringsordning. Sätt
-  // flaggan på fler mattliknande saker vid behov.
+  // `flat: true` = platt golvsak (matta) som alltid ritas UNDERST i rummet så
+  // möbler/dekor/husdjur hamnar ovanpå; sätt flaggan på fler mattliknande saker.
   { id: "matta", name: "Mysmatta", emoji: "🟦", category: "mobler", price: 40, flat: true },
   // fler möbler
   { id: "sittpuff", name: "Sittpuff", emoji: "🛋️", category: "mobler", price: 45 },
@@ -155,12 +146,18 @@ export const SHOP_ITEMS = [
   { id: "ballonger", name: "Ballongbukett", emoji: "🎈", category: "dekor", price: 22 },
   { id: "kaktus", name: "Kaktus", emoji: "🌵", category: "dekor", price: 30 },
   { id: "vaggklocka", name: "Väggklocka", emoji: "🕰️", category: "dekor", price: 60 },
+  // Mer pynt (#352).
+  { id: "nallebjorn", name: "Nallebjörn", emoji: "🧸", category: "dekor", price: 35 },
+  { id: "lavalampa", name: "Lavalampa", emoji: "🫧", category: "dekor", price: 75 },
+  { id: "discokula", name: "Discokula", emoji: "🪩", category: "dekor", price: 90 },
+  { id: "spegel", name: "Golvspegel", emoji: "🪞", category: "dekor", price: 95 },
+  { id: "pokal", name: "Guldpokal", emoji: "🏆", category: "dekor", price: 110 },
+  { id: "teleskop", name: "Teleskop", emoji: "🔭", category: "dekor", price: 150 },
 
   // --- Hus (byter husets EXTERIÖR/skal – rummet inuti är oförändrat) ---------
-  // Köp lägger skal-id:t i ownedItems (som vanliga saker). Man väljer sedan
-  // aktivt skal i husvärldens "🏠 Nytt hus"-panel (sparas i studentData.
-  // husSkalId). Stugan är default/gratis och säljs INTE här. Item-id === skal-id
-  // i HUS_SKAL-registret (art-hus-ute.js) – håll dem i synk.
+  // Köp lägger skal-id:t i ownedItems; aktivt skal väljs i husvärldens "🏠 Nytt
+  // hus"-panel (studentData.husSkalId). Stugan är default/gratis och säljs INTE
+  // här. Item-id === skal-id i HUS_SKAL-registret (art-hus-ute.js) – håll i synk.
   { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
   { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
   // Lyxiga husskal (egen-tecknade, art-hus-lyx.js) – dyra spar-belöningar (1000+).
@@ -168,46 +165,60 @@ export const SHOP_ITEMS = [
   { id: "fotboll", name: "Fotbollshus", emoji: "⚽", category: "hus", price: 1200, skalId: "fotboll" },
   { id: "skyskrapa", name: "Skyskrapa", emoji: "🏢", category: "hus", price: 1500, skalId: "skyskrapa" },
   { id: "glasvilla", name: "Glasvilla", emoji: "🏙️", category: "hus", price: 2000, skalId: "glasvilla" },
+  // Fler lyxskal (#350, elevönskemål) – samma register/flöde som ovan.
+  { id: "cirkustalt", name: "Cirkustält", emoji: "🎪", category: "hus", price: 1100, skalId: "cirkustalt" },
+  { id: "raket", name: "Rymdraket", emoji: "🚀", category: "hus", price: 1300, skalId: "raket" },
+  { id: "godishus", name: "Godishus", emoji: "🍭", category: "hus", price: 1600, skalId: "godishus" },
+  { id: "vulkan", name: "Vulkanhus", emoji: "🌋", category: "hus", price: 2500, skalId: "vulkan" },
+  // Lada-SKINS (#353): byter LAGGÅRDENS utseende – samma flöde som husskalen
+  // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin). Rent kosmetiskt:
+  // nivån (#333) styr kapaciteten. Id:n = registret i art-lada-skins.js.
+  { id: "lada-bla", name: "Blå sjölada", emoji: "🌊", category: "hus", price: 350, barnSkin: true },
+  { id: "lada-godis", name: "Godislada", emoji: "🍬", category: "hus", price: 700, barnSkin: true },
+  { id: "lada-rymd", name: "Rymdlada", emoji: "🛸", category: "hus", price: 1200, barnSkin: true },
   // Rums-uppgraderingar: varje köp låser upp ETT extra rum i huset (dörr inne +
-  // rumslista i husvärlden). roomUpgrade:true → köpet räknas av getRoomCount()
-  // som +1 rum. De köps i ordning (billigast först) men funktionellt ger var och
-  // en exakt +1 rum – ordningen styr bara pris/namn. Se data-room.js.
+  // rumslista i husvärlden). roomUpgrade:true → räknas av getRoomCount() som +1
+  // rum; de köps i pris-ordning men ger var och en exakt +1 rum. Se data-room.js.
   { id: "rum-2", name: "Extra rum", emoji: "🚪", category: "hus", price: 250, roomUpgrade: true },
   { id: "rum-3", name: "Tredje rummet", emoji: "🚪", category: "hus", price: 500, roomUpgrade: true },
   { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
 
   // --- Trädgård & utomhus (placeras UTE runt huset i ute-vyn, issue #132) ----
-  // Egen kategori i MULTI_CATEGORIES nedan → man får äga/placera FLERA exemplar
-  // (flera träd, flera blomrabatter …). Placeringen sparas i studentData.garden
-  // (data-room.js), skild från rummets möbler. `flat:true`-saker (rabatt,
-  // parkering) ritas platt mot marken, UNDER övriga trädgårdssaker.
+  // Multi-kategori (MULTI_CATEGORIES nedan) → man får äga/placera FLERA exemplar.
+  // Placeringen sparas i studentData.garden (data-room.js), skild från rummets
+  // möbler. `flat:true` (rabatt/parkering/damm) ritas platt mot marken, UNDERST.
   { id: "buske", name: "Buske", emoji: "🌿", category: "tradgard", price: 25 },
   { id: "blomrabatt", name: "Blomrabatt", emoji: "🌷", category: "tradgard", price: 35, flat: true },
   { id: "trad", name: "Träd", emoji: "🌳", category: "tradgard", price: 60 },
   { id: "cykel", name: "Cykel", emoji: "🚲", category: "tradgard", price: 300 },
   { id: "parkering", name: "Parkeringsruta", emoji: "🅿️", category: "tradgard", price: 110, flat: true },
+  // Mer till trädgården (#351).
+  { id: "damm", name: "Anddamm", emoji: "🦆", category: "tradgard", price: 90, flat: true },
+  { id: "gunga", name: "Gungställning", emoji: "🛝", category: "tradgard", price: 150 },
+  { id: "fontan", name: "Fontän", emoji: "⛲", category: "tradgard", price: 260 },
   // Fordon är avsiktligt dyra spar-belöningar (perfekt quiz ≈ 50 coins).
   { id: "bil", name: "Bil", emoji: "🚗", category: "tradgard", price: 900 },
+  { id: "sportbil", name: "Sportbil", emoji: "🏎️", category: "tradgard", price: 1500 },
+  { id: "monstertruck", name: "Monstertruck", emoji: "🛻", category: "tradgard", price: 2000 },
 
   // --- Fröer (#329): sås i odlingsbädden på GÅRDEN, inte placerbara saker -----
-  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId / inventory-
-  // Harvest-nyckeln – håll dem STABILA, Firestore). Kategorin tradgard är multi
-  // → varje köp ökar ownedCounts[id] (antal frön); sådden i gårdens odlingsbädd
-  // drar av 1 (plantSeed, data-farm.js). Filtreras bort ur trädgårds-placerings-
-  // lådan via isSeedItem (varld-tradgard.js). Skörden blir mat till gårdens djur:
-  // morot → kanin/häst, klöver → ko/får/gris, magiska bär → mysterydjur.
+  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId/inventoryHarvest,
+  // STABILA). tradgard är multi → köp ökar ownedCounts[id]; sådden drar av 1 (plantSeed).
+  // Ur placerings-lådan via isSeedItem. Skörd = djurmat: morot→kanin/häst, klöver→ko/får/gris, bär→mystery.
   { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
   { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
   { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
+  // Godis-grödor (#349): ALLA husdjur blir glada av dem; ingen är FODER_FOR-favorit.
+  { id: "crop_pumpkin", name: "Pumpafrön", emoji: "🎃", category: "tradgard", price: 45, seed: true },
+  { id: "crop_lettuce", name: "Salladsfrön", emoji: "🥬", category: "tradgard", price: 20, seed: true },
 
   // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
   // OBS nivåmodellen (DATAMODELL.md/#331): nivån bor i FÄLTEN farm.gardenTier/
-  // farm.barnLevel – ALDRIG härledd ur ownedItems (till skillnad från rummens
-  // roomUpgradeCount). Korten här är alltså bara köp-UI:t: köpet går via
-  // buyFarmUpgrade (data-farm.js) som drar coins + höjer fältet i EN transaktion
-  // och skriver INGET i ownedItems. `farmUpgrade` pekar ut fältet ("garden" |
-  // "barn"), `upgradeLevel` nivån köpet ger; de köps i ordning (nivå 2 före 3 –
-  // shoppen låser nästa tills föregående ägs). Nivå 1 är start och säljs inte.
+  // farm.barnLevel – ALDRIG härledd ur ownedItems (jfr roomUpgradeCount). Korten
+  // är bara köp-UI:t: buyFarmUpgrade (data-farm.js) drar coins + höjer fältet i
+  // EN transaktion, skriver INGET i ownedItems. `farmUpgrade` = fältet ("garden"|
+  // "barn"), `upgradeLevel` = nivån; köps i ordning (2 före 3 – shoppen låser
+  // nästa tills föregående ägs). Nivå 1 är start och säljs inte.
   { id: "odling-2", name: "Dubbel odlingslåda", emoji: "🪴", category: "tradgard", price: 150, farmUpgrade: "garden", upgradeLevel: 2 },
   { id: "odling-3", name: "Växthus", emoji: "🏡", category: "tradgard", price: 350, farmUpgrade: "garden", upgradeLevel: 3 },
   { id: "lada-2", name: "Röd trälada", emoji: "🛖", category: "tradgard", price: 450, farmUpgrade: "barn", upgradeLevel: 2 },
@@ -277,45 +288,37 @@ export function isFlatItem(id) {
   return !!(it && it.flat);
 }
 
-/**
- * Är saken en HUS-sak (kategori "hus")? Det täcker både köpbara husskal som
- * byter husets exteriör (slott/svamphus) och rums-uppgraderingar (rum-2/3/4).
- * Ingen av dem placeras som en vanlig sak i rummet → varld-rum.js filtrerar bort
- * dem ur room.placements med !isHouseItem(id).
- */
+/** Är saken en HUS-sak (kategori "hus")? Täcker både köpbara husskal som byter
+ * husets exteriör (slott/svamphus) och rums-uppgraderingar (rum-2/3/4); ingen
+ * placeras som vanlig sak i rummet → varld-rum.js filtrerar bort dem ur
+ * room.placements med !isHouseItem(id). */
 export function isHouseItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "hus");
 }
 
-/**
- * Är saken ett VANLIGT djur (hund/katt/kanin …)? De köps i shoppen och blir
+/** Är saken ett VANLIGT djur (hund/katt/kanin …)? Köps i shoppen och blir
  * LEVANDE, promenerande djur i rummet (studentData.roomAnimals via
  * data-animals.js) – inte statiska möbler i room.placements. Ägget och
- * värmelampan hör till mystery-systemet (data-pet.js) och räknas inte hit.
- */
+ * värmelampan hör till mystery-systemet (data-pet.js) och räknas inte hit. */
 export function isAnimalItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "husdjur" && !it.farmAnimal && id !== "mystery-egg" && id !== "varmelampa");
 }
 
-/**
- * Är saken ett BONDGÅRDSDJUR (häst/ko/gris)? De köps i shoppen som de vanliga
+/** Är saken ett BONDGÅRDSDJUR (häst/ko/gris)? Köps i shoppen som de vanliga
  * djuren men bor i gårdens datamodell (farm.animals, data-farm.js) och kan
  * placeras i rummet, hagen eller laggården ("Mina djur", farm.placedAnimals).
- * Hålls helt isär från roomAnimals (isAnimalItem) och mystery-pets.
- */
+ * Hålls helt isär från roomAnimals (isAnimalItem) och mystery-pets. */
 export function isFarmAnimalItem(id) {
   const it = getItem(id);
   return !!(it && it.farmAnimal);
 }
 
-/**
- * Är saken en TRÄDGÅRDS-/utomhussak (kategori "tradgard")? De köps i shoppen och
+/** Är saken en TRÄDGÅRDS-/utomhussak (kategori "tradgard")? Köps i shoppen och
  * placeras UTOMHUS runt huset i ute-vyn (studentData.garden via data-room.js) –
  * inte som möbler i rummet. varld-rum.js filtrerar bort dem ur rums-lådan och
- * room.placements med !isGardenItem(id), och varld-tradgard.js äger dem i stället.
- */
+ * room.placements med !isGardenItem(id); varld-tradgard.js äger dem i stället. */
 export function isGardenItem(id) {
   const it = getItem(id);
   return !!(it && it.category === "tradgard");

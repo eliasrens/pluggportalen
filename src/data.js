@@ -354,6 +354,7 @@ export {
   adjustHarvestInventory,
   setAnimalPlacement,
   setBarnLevel,
+  setBarnSkin,
   setGardenTier,
   buyFarmAnimal,
   buyFarmUpgrade,

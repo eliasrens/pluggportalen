@@ -1,18 +1,14 @@
 // ============================================================================
 // Pluggporten – trädgårds- & utomhussaker (inline SVG-uppslagning)
 // ----------------------------------------------------------------------------
-// Konsten för shopens NYA kategori "Trädgård & utomhus" (issue #132): saker
-// eleven köper och placerar UTOMHUS runt sitt hus i ute-vyn (art-hus-ute.js /
-// varld-tradgard.js). Samma dataschema som rums-sakerna i art-decor.js/
-// art-furniture.js:  id → { viewBox, w (rem), art, flat? }.  `flat:true` =
-// markplacerad sak (grusruta, rabatt) som ritas UNDER övriga trädgårdssaker,
-// precis som mattor i rummet. GARDEN spridas in i ITEMS i art-items.js så
-// itemSvg(id) fungerar både för shop-miniatyren och scen-renderingen.
-//
-// Konsten följer stilguiden (art-style.js): kontur O (#3B3350) via LINE/THIN,
-// samma trä-/grönska-palett som ute-scenen. Håll id:na STABILA – de lagras i
-// studentData.garden.placements + ownedItems (Firestore). `emoji` i shop-items.js
-// finns kvar som ofarlig fallback.
+// Konsten för shop-kategorin "Trädgård & utomhus" (#132): saker eleven köper och
+// placerar UTOMHUS runt huset (art-hus-ute.js/varld-tradgard.js). Samma schema
+// som art-decor/art-furniture: id → { viewBox, w (rem), art, flat? }; flat:true
+// = markplacerad sak (rabatt/parkering/damm) som ritas UNDER övriga, som rummets
+// mattor. GARDEN spridas in i ITEMS (art-items.js) → itemSvg(id) funkar för både
+// shop-miniatyr och scen. Stilguide art-style.js (kontur O via LINE/THIN), samma
+// trä-/grönska-palett som ute-scenen. Håll id:na STABILA – de lagras i
+// studentData.garden.placements + ownedItems (Firestore); `emoji` = fallback.
 // ============================================================================
 
 import { O, LINE, THIN, limb } from "./art-style.js";
@@ -25,6 +21,11 @@ const WOOD_DARK = "#8A6242";
 
 const shadow = (cx, cy, rx) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}" fill="${O}" opacity="0.12"/>`;
+
+// Fordonshjul: däck + fälg – delas av bilarna (#351). Cykelns ekerhjul är egna.
+const hjul = (cx, cy, r) =>
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${O}" ${LINE}/>` +
+  `<circle cx="${cx}" cy="${cy}" r="${(r * 0.42).toFixed(1)}" fill="#C7C2CE" ${THIN}/>`;
 
 /**
  * id → { viewBox, w (rem, ute-scenens bas-bredd), art, flat? }.
@@ -125,6 +126,54 @@ export const GARDEN = {
       `<path d="M44 40 L60 40" fill="none" stroke="${WOOD_DARK}" stroke-width="6" stroke-linecap="round"/>` +
       limb("M70 66 L70 54", O, 4),
   },
+
+  // --- Mer till trädgården (#351): fontän, gungställning & anddamm ---------
+  fontan: { viewBox: "0 0 110 108", w: 4.6, art:
+    shadow(55, 102, 40) +
+    `<path d="M10 82 Q55 72 100 82 L95 99 Q55 91 15 99 Z" fill="#B9B4C2" ${LINE}/>` +
+    `<path d="M26 82 Q55 76 84 82 L82 90 Q55 85 28 90 Z" fill="#8ED4F2" ${THIN}/>` +
+    limb("M55 80 L55 54", "#8F8A99", 8) +
+    `<path d="M38 52 Q55 46 72 52 L67 61 Q55 57 43 61 Z" fill="#B9B4C2" ${LINE}/>` +
+    `<path d="M55 50 L55 26 M55 48 Q40 26 34 44 M55 48 Q70 26 76 44" fill="none" stroke="#8ED4F2" stroke-width="4" stroke-linecap="round"/>` +
+    `<circle cx="55" cy="20" r="3.4" fill="#C9EEFB" ${THIN}/><circle cx="31" cy="38" r="2.6" fill="#C9EEFB" ${THIN}/><circle cx="79" cy="38" r="2.6" fill="#C9EEFB" ${THIN}/>`,
+  },
+  gunga: { viewBox: "0 0 140 110", w: 6.0, art:
+    shadow(70, 104, 56) +
+    limb("M10 104 L26 16", WOOD, 6) + limb("M42 104 L26 16", WOOD, 6) +
+    limb("M98 104 L114 16", WOOD, 6) + limb("M130 104 L114 16", WOOD, 6) +
+    limb("M20 14 L120 14", WOOD_DARK, 6) +
+    `<path d="M60 18 L60 74 M84 18 L84 74" fill="none" stroke="${WOOD_DARK}" stroke-width="3"/>` +
+    `<rect x="52" y="72" width="40" height="9" rx="4" fill="#EF6F6C" ${LINE}/>`,
+  },
+  damm: { viewBox: "0 0 130 70", w: 5.8, flat: true, art:
+    `<path d="M14 38 Q16 16 48 14 Q84 12 106 22 Q124 30 116 48 Q106 62 64 62 Q22 62 14 38 Z" fill="#7FC7E8" ${LINE}/>` +
+    `<path d="M28 30 Q38 25 48 30 M78 48 Q88 43 98 48" fill="none" stroke="#C9EEFB" stroke-width="3" stroke-linecap="round"/>` +
+    `<ellipse cx="98" cy="30" rx="9" ry="4.5" fill="${LOV}" ${THIN}/>` +
+    `<ellipse cx="46" cy="44" rx="11" ry="7" fill="#F7C948" ${LINE}/>` +
+    `<circle cx="56" cy="33" r="5.5" fill="#F7C948" ${LINE}/>` +
+    `<path d="M61 32 L68 34 L61 36 Z" fill="#F2933E" ${THIN}/>` +
+    `<circle cx="57.5" cy="31.5" r="1.2" fill="${O}"/>`,
+  },
+
+  // --- Coola bilar (#351, sidovy som "bil"): sportbil & monstertruck -------
+  sportbil: { viewBox: "0 0 160 84", w: 6.8, art:
+    shadow(80, 78, 62) +
+    limb("M20 46 L18 34", O, 4) +
+    `<path d="M6 32 L32 36" fill="none" stroke="${O}" stroke-width="6" stroke-linecap="round"/>` +
+    `<path d="M10 62 L10 52 Q10 44 22 42 L48 38 Q70 22 96 24 L120 28 Q142 32 150 46 Q154 50 154 56 L154 62 Z" fill="#F7C948" ${LINE}/>` +
+    `<path d="M62 36 L78 27 L92 28 L96 38 Z" fill="#C9EEFB" ${THIN}/>` +
+    `<path d="M52 46 L118 46" fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round"/>` +
+    `<rect x="142" y="46" width="10" height="5" rx="2.5" fill="#FFE9CC" stroke="none"/>` +
+    hjul(42, 64, 14) + hjul(124, 64, 14),
+  },
+  monstertruck: { viewBox: "0 0 150 110", w: 6.6, art:
+    shadow(75, 104, 58) +
+    `<path d="M16 56 L16 36 Q16 30 24 30 L66 30 L66 14 Q66 8 74 8 L98 8 Q106 8 110 16 L118 32 L126 34 Q134 36 134 44 L134 56 Z" fill="#B892E0" ${LINE}/>` +
+    `<path d="M72 28 L72 14 L96 14 Q100 14 102 18 L108 28 Z" fill="#C9EEFB" ${THIN}/>` +
+    `<path d="M24 40 Q34 34 44 40 Q54 46 62 40" fill="none" stroke="#F7C948" stroke-width="4" stroke-linecap="round"/>` +
+    limb("M40 56 L40 72", O, 5) + limb("M112 56 L112 72", O, 5) +
+    hjul(40, 82, 22) + hjul(112, 82, 22),
+  },
 };
 
 // ============================================================================
@@ -140,6 +189,8 @@ export const GARDEN = {
 const JORD = "#7A5A40";
 const MOROT = "#F2933E";
 const BAR = "#8B7BE8";
+const PUMPA = "#F0A24B";
+const SALLAD = "#8FD46A";
 
 // Liten jordhög vid origo – grunden i steg 0/1.
 const jordhog = () =>
@@ -190,6 +241,11 @@ export const CROPS = {
   crop_carrot: { name: "Morot", emoji: "🥕", mat: "kaniner och hästar" },
   crop_clover: { name: "Klöver", emoji: "☘️", mat: "kor, får och grisar" },
   crop_berries: { name: "Magiska bär", emoji: "🫐", mat: "mysterydjur" },
+  // Fler sorters djurmat (#349): godis-grödor som ALLA husdjur blir glada av
+  // (mata i rummet → hjärtan). Inget bondgårdsdjur har dem som favorit
+  // (FODER_FOR), så trivsel-loopen påverkas inte.
+  crop_pumpkin: { name: "Pumpa", emoji: "🎃", mat: "alla husdjur" },
+  crop_lettuce: { name: "Sallad", emoji: "🥬", mat: "alla husdjur" },
 };
 
 // Sena steg (2 växer / 3 skördeklar) per gröda.
@@ -236,6 +292,38 @@ const CROP_STAGE_ART = {
       `<circle cx="-3" cy="-19" r="2.6" fill="#B9AFF5" ${THIN}/>` +
       glitter(16, -28, 0.9) + glitter(-17, -32, 0.7),
   ],
+  crop_pumpkin: [
+    () => saddArt(),
+    () => groddArt(),
+    () =>
+      jordhog() +
+      `<path d="M0 -3 Q-9 -8 -15 -6" fill="none" stroke="${LOV_MORK}" stroke-width="2.4" stroke-linecap="round"/>` +
+      `<ellipse cx="10" cy="-8" rx="7" ry="6" fill="${SALLAD}" ${THIN}/>` +
+      `<ellipse cx="-2" cy="-8" rx="9" ry="7" fill="${LOV}" ${THIN}/>`,
+    () =>
+      jordhog() +
+      `<path d="M-13 -2 Q-19 -12 -10 -18" fill="none" stroke="${LOV_MORK}" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<ellipse cx="0" cy="-12" rx="15" ry="11.5" fill="${PUMPA}" ${THIN}/>` +
+      `<path d="M-6 -22 Q-8 -12 -6 -2 M6 -22 Q8 -12 6 -2" fill="none" stroke="#D07E2A" stroke-width="1.8" stroke-linecap="round"/>` +
+      `<path d="M0 -23 L0 -28" fill="none" stroke="${LOV_MORK}" stroke-width="3" stroke-linecap="round"/>` +
+      glitter(18, -26, 0.9),
+  ],
+  crop_lettuce: [
+    () => saddArt(),
+    () => groddArt(),
+    () =>
+      jordhog() +
+      `<path d="M-7 -2 Q-10 -14 -4 -17 Q-4 -7 -1 -2 Z" fill="${SALLAD}" ${THIN}/>` +
+      `<path d="M7 -2 Q10 -14 4 -17 Q4 -7 1 -2 Z" fill="${SALLAD}" ${THIN}/>` +
+      `<path d="M0 -2 Q-3 -18 0 -21 Q3 -18 0 -2 Z" fill="${LOV}" ${THIN}/>`,
+    () =>
+      jordhog() +
+      `<circle cx="-8" cy="-9" r="8.5" fill="${SALLAD}" ${THIN}/>` +
+      `<circle cx="8" cy="-9" r="8.5" fill="${SALLAD}" ${THIN}/>` +
+      `<circle cx="0" cy="-15" r="9.5" fill="${LOV}" ${THIN}/>` +
+      `<path d="M-5 -16 Q0 -20 5 -16" fill="none" ${THIN}/>` +
+      glitter(16, -24, 0.85),
+  ],
 };
 
 /**
@@ -274,6 +362,16 @@ GARDEN.crop_berries = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
   `<circle cx="-4" cy="-10" r="3" fill="${BAR}" ${THIN}/>` +
   `<circle cx="5" cy="-5" r="3" fill="${BAR}" ${THIN}/>` +
   `<circle cx="2" cy="-13" r="2.4" fill="#B9AFF5" ${THIN}/>`
+) };
+GARDEN.crop_pumpkin = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
+  `<ellipse cx="0" cy="-7" rx="11" ry="8.5" fill="${PUMPA}" ${THIN}/>` +
+  `<path d="M-4 -14 Q-5 -7 -4 0 M4 -14 Q5 -7 4 0" fill="none" stroke="#D07E2A" stroke-width="1.6" stroke-linecap="round"/>` +
+  `<path d="M0 -15 L0 -19" fill="none" stroke="${LOV_MORK}" stroke-width="2.6" stroke-linecap="round"/>`
+) };
+GARDEN.crop_lettuce = { viewBox: "0 0 64 84", w: 2.6, art: froPase(
+  `<circle cx="-5" cy="-5" r="6.5" fill="${SALLAD}" ${THIN}/>` +
+  `<circle cx="5" cy="-5" r="6.5" fill="${SALLAD}" ${THIN}/>` +
+  `<circle cx="0" cy="-10" r="7" fill="${LOV}" ${THIN}/>`
 ) };
 
 // En liten glad blomma på en stjälk vid (x, markY) – används i rabatten.

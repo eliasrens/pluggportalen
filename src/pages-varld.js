@@ -521,6 +521,9 @@ export async function pageElevVarld(startNiva) {
   // grenens läge synkront därefter (innan dess är grenen garanterat inaktiv).
   let gardVy = null;
   let gardLaddning = null;
+  // Trädgårds-kontrollern (mountTradgard) – sätts längre ner i bygget; gårds-
+  // grenen läser den via tradgard-gettern nedan (därav let-deklaration här).
+  let tradgardCtl = null;
   function laddaGardVy() {
     gardLaddning ??= import("./varld-gard.js")
       .then((mod) => (gardVy = mod.createGardVy({
@@ -529,6 +532,14 @@ export async function pageElevVarld(startNiva) {
         // tar gårds-kameran vid (en sammanhängande resa ut och runt huset).
         ensureHus: () => kamera.gaTill("hus"),
         onNiva: (id) => updateUi(id),
+        // Trädgårds-motorn (#356): grenen ritar gårds-sakerna efter varje
+        // scen-ombyggnad + togglar "🧰 Verktyg"-knappen per nivå. Getter –
+        // kontrollern monteras längre ner i bygget (mountTradgard).
+        tradgard: () => tradgardCtl,
+        // Rums-kontrollern (#359): laggårdens Verktyg placerar bondgårds-
+        // djuren via rummets mekanik (samma minne som Mina djur). Getter –
+        // rumCtl monteras längre ner i bygget (mountRumScen).
+        rum: () => rumCtl,
       })))
       .catch((err) => {
         gardLaddning = null; // låt nästa försök ladda igen
@@ -964,12 +975,16 @@ export async function pageElevVarld(startNiva) {
   // Lagret läggs OVANPÅ husScen-SVG:n i #ute-lager (pointer-events:none, så
   // husklick fortsätter fungera). Lådan bor i "🌳 Trädgård"-panelen (bara-hus
   // → syns bara på hus-nivån). Renderas direkt så redan utplacerade saker syns
-  // vid inladdning, oavsett om panelen öppnas.
-  mountTradgard({
+  // vid inladdning, oavsett om panelen öppnas. Samma motor driver gårdens
+  // "🧰 Verktyg"-låda (#356): knappen/panelen monteras här (i .varld-ui) men
+  // visas bara på gård-nivån, och gårds-lagret ritas av gårds-grenen (tradgard-
+  // gettern i laddaGardVy) – placeringar där bär `scen: "gard"`.
+  tradgardCtl = mountTradgard({
     uteLager,
     tray: view.querySelector("#tradgardtray"),
     trayHint: view.querySelector("#tradgard-hint"),
     sd,
+    gard: { stage, lager: gardLager },
   });
 
   // --- Rummet: hela inne-vyn monteras i sitt lager (varld-rum.js) -----------

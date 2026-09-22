@@ -195,4 +195,105 @@ export const DECOR = {
       `<path d="M28 28 L37 32" fill="none" stroke="${O}" stroke-width="2.6" stroke-linecap="round"/>` +
       `<circle cx="28" cy="28" r="2.4" fill="#EF6F6C"/>`,
   },
+  // --- Mer pynt (#352) -------------------------------------------------------
+  // Nallebjörn: sittande med maglapp, öronprickar, rosett & tassdynor.
+  nallebjorn: {
+    viewBox: "0 0 64 70",
+    w: 3.4,
+    art:
+      shadow(32, 66, 22) +
+      `<circle cx="17" cy="12" r="7" fill="#C9996B" ${LINE}/>` +
+      `<circle cx="47" cy="12" r="7" fill="#C9996B" ${LINE}/>` +
+      `<circle cx="17" cy="12" r="3.2" fill="#F2DDC2" stroke="none"/>` +
+      `<circle cx="47" cy="12" r="3.2" fill="#F2DDC2" stroke="none"/>` +
+      `<ellipse cx="13" cy="49" rx="6.5" ry="10" fill="#C9996B" ${LINE}/>` +
+      `<ellipse cx="51" cy="49" rx="6.5" ry="10" fill="#C9996B" ${LINE}/>` +
+      `<ellipse cx="32" cy="49" rx="16" ry="15" fill="#C9996B" ${LINE}/>` +
+      `<ellipse cx="32" cy="52" rx="9" ry="8.5" fill="#F2DDC2" ${THIN}/>` +
+      `<ellipse cx="20" cy="63" rx="7" ry="4.8" fill="#C9996B" ${LINE}/>` +
+      `<ellipse cx="44" cy="63" rx="7" ry="4.8" fill="#C9996B" ${LINE}/>` +
+      `<circle cx="20" cy="63" r="2.6" fill="#F2DDC2" stroke="none"/>` +
+      `<circle cx="44" cy="63" r="2.6" fill="#F2DDC2" stroke="none"/>` +
+      `<circle cx="32" cy="20" r="14" fill="#C9996B" ${LINE}/>` +
+      `<ellipse cx="32" cy="25" rx="7" ry="5.5" fill="#F2DDC2" ${THIN}/>` +
+      `<path d="M29.4 23 L34.6 23 L32 26 Z" fill="${O}" stroke="none"/>` +
+      `<circle cx="26" cy="17" r="1.8" fill="${O}"/>` +
+      `<circle cx="38" cy="17" r="1.8" fill="${O}"/>` +
+      `<path d="M27 34 L32 36.5 L37 34 L36 39 L28 39 Z" fill="#EF6F6C" ${THIN}/>`,
+  },
+  // Lavalampa: gyllene vätska med rosa lava-bubblor, metallfot & topp.
+  lavalampa: {
+    viewBox: "0 0 44 78",
+    w: 2.4,
+    art:
+      shadow(22, 74, 14) +
+      `<path d="M14 62 Q10 30 18 10 L26 10 Q34 30 30 62 Z" fill="#FDE9A8" ${LINE}/>` +
+      `<ellipse cx="22" cy="53" rx="7" ry="5.8" fill="#F890B7" stroke="none"/>` +
+      `<circle cx="20" cy="39" r="4.2" fill="#F890B7" stroke="none"/>` +
+      `<circle cx="25" cy="27" r="3" fill="#F890B7" stroke="none"/>` +
+      `<circle cx="21.5" cy="17" r="2" fill="#F890B7" stroke="none"/>` +
+      `<path d="M17 18 Q14.5 35 16.5 50" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity="0.6"/>` +
+      `<path d="M18 10 L26 10 L24.5 3.5 L19.5 3.5 Z" fill="${WOOD_DARK}" ${LINE}/>` +
+      `<path d="M14 62 L30 62 L33 73 L11 73 Z" fill="${WOOD_DARK}" ${LINE}/>` +
+      `<path d="M16 66 Q22 68 28 66" fill="none" stroke="#B0805A" stroke-width="2.2" stroke-linecap="round"/>`,
+  },
+  // Discokula: hängande spegelboll med fasettnät, glittertärningar & gnistor.
+  discokula: {
+    viewBox: "0 0 56 64",
+    w: 3.0,
+    art:
+      `<path d="M28 2 L28 11" fill="none" ${THIN}/>` +
+      `<rect x="24" y="10" width="8" height="5" rx="2" fill="${WOOD_DARK}" ${LINE}/>` +
+      `<circle cx="28" cy="37" r="21" fill="#C9EEFB" ${LINE}/>` +
+      `<path d="M8.5 31 H47.5 M7.5 43 H48.5 M12.5 52 H43.5" fill="none" stroke="#8FD0EA" stroke-width="1.8"/>` +
+      `<path d="M28 16 V58 M17 19 Q13 37 17 55 M39 19 Q43 37 39 55" fill="none" stroke="#8FD0EA" stroke-width="1.8"/>` +
+      `<path d="M21 25 h5 v5 h-5 Z M33 33 h5 v5 h-5 Z M18 45 h5 v5 h-5 Z M31 46 h4 v4 h-4 Z" fill="#fff" opacity="0.85" stroke="none"/>` +
+      `<path d="M13 24 Q17 18 23 17" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="0.8"/>` +
+      `<path d="M4 22 L4 28 M1 25 L7 25" fill="none" stroke="#F7C948" stroke-width="2.2" stroke-linecap="round"/>` +
+      `<path d="M51 47 L51 53 M48 50 L54 50" fill="none" stroke="#F890B7" stroke-width="2.2" stroke-linecap="round"/>`,
+  },
+  // Golvspegel: oval träram på ben, blank glasyta & krönknopp.
+  spegel: {
+    viewBox: "0 0 52 84",
+    w: 2.9,
+    art:
+      shadow(26, 80, 18) +
+      `<path d="M15 79 L21 67 M37 79 L31 67" fill="none" ${LINE}/>` +
+      `<circle cx="26" cy="5.5" r="2.6" fill="${WOOD_DARK}" stroke="none"/>` +
+      `<ellipse cx="26" cy="39" rx="20" ry="32" fill="${WOOD}" ${LINE}/>` +
+      `<ellipse cx="26" cy="39" rx="14.5" ry="26.5" fill="#C9EEFB" ${THIN}/>` +
+      `<path d="M18 21 Q14 33 17 47" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>` +
+      `<path d="M23 15 Q27 13.5 30 16" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity="0.7"/>`,
+  },
+  // Guldpokal: bägare med öron-handtag, stjärna, träsockel & namnplatta.
+  pokal: {
+    viewBox: "0 0 56 66",
+    w: 3.0,
+    art:
+      shadow(28, 62, 18) +
+      `<path d="M13 12 Q4 14 7 21 Q9 27 16 29" fill="none" stroke="#F2A93B" stroke-width="4" stroke-linecap="round"/>` +
+      `<path d="M43 12 Q52 14 49 21 Q47 27 40 29" fill="none" stroke="#F2A93B" stroke-width="4" stroke-linecap="round"/>` +
+      `<rect x="14" y="52" width="28" height="9" rx="3" fill="${WOOD}" ${LINE}/>` +
+      `<path d="M24 44 L32 44 L33 53 L23 53 Z" fill="#F2A93B" ${LINE}/>` +
+      `<path d="M13 8 L43 8 L41 26 Q39 38 28 38 Q17 38 15 26 Z" fill="#F7C948" ${LINE}/>` +
+      `<path d="${star(28, 21, 6.5, 2.8)}" fill="#FFF3DC" ${THIN}/>` +
+      `<path d="M18 12 Q17 20 20 27" fill="none" stroke="#FDE9A8" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<rect x="20" y="55" width="16" height="3.4" rx="1.7" fill="#FFF3DC" stroke="none"/>`,
+  },
+  // Teleskop: tub på trästativ som siktar mot en stjärna.
+  teleskop: {
+    viewBox: "0 0 72 66",
+    w: 4.0,
+    art:
+      shadow(34, 62, 24) +
+      limb("M34 36 L18 60", WOOD_DARK, 3.4) +
+      limb("M34 36 L50 60", WOOD_DARK, 3.4) +
+      limb("M34 36 L34 60", WOOD, 3.4) +
+      limb("M14 50 L54 20", "#7FC7E8", 11) +
+      limb("M11 52.3 L15 49.2", WOOD_DARK, 6) +
+      `<path d="M45 23.2 L50 29.8" fill="none" stroke="#F7C948" stroke-width="4" stroke-linecap="round"/>` +
+      `<path d="M53 12 Q56 17 54.5 21" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>` +
+      `<path d="${star(64, 8, 5.2, 2.3)}" fill="#F7C948" ${THIN}/>` +
+      `<path d="M56 34 L56 39 M53.5 36.5 L58.5 36.5" fill="none" stroke="#FDE9A8" stroke-width="2" stroke-linecap="round"/>`,
+  },
 };

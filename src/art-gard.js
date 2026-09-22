@@ -22,6 +22,7 @@
 
 import { O, LINE, THIN, limb } from "./art-style.js";
 import { barnPlaceCountForLevel } from "./farm-core.js";
+import { LADA_SKINS } from "./art-lada-skins.js";
 
 // Samma trä-färger som stilguiden/art-hus-ute.js (färgas aldrig om av paletten).
 const WOOD = "#B0805A";
@@ -149,15 +150,16 @@ export function hageForgrund() {
 }
 
 // --- Zon 3: laggårds-byggnaden (höger) --------------------------------------
-// Fasaden styrs av laggårdens nivå (farm.barnLevel, #333):
+// Fasaden: SKIN (#353, farm.barnSkin → LADA_SKINS) väljer fasad-FAMILJ; utan
+// skin styrs den av laggårdens nivå (farm.barnLevel, #333):
 //   1  Litet skjul – trärött snedtaks-skjul
 //   2  Röd trälada – klassisk röd ladugård med vita knutar
 //   3  Stor herrgårdslaggård – bredare, högre, med takkupol och två fönster
-// Alla nivåer har samma dubbeldörr (#laggard-dorr) på samma plats, så kamerans
+// Alla fasader har samma dubbeldörr (#laggard-dorr) på samma plats, så kamerans
 // dörr-fokus (varld-gard.js) och klick-riggen fungerar oförändrat – plus en
-// nivå-badge uppe på fasaden. Dörr-gruppens klick-/tangentbords-rigg sätts i
-// varld-gard.js; här bara role/tabindex/aria.
-function laggard(level = 1) {
+// nivå-badge uppe på fasaden (kapaciteten syns oavsett skin). Dörr-gruppens
+// klick-/tangentbords-rigg sätts i varld-gard.js; här bara role/tabindex/aria.
+function laggard(level = 1, skin = null) {
   const dorr = `<g id="laggard-dorr" role="button" tabindex="0" aria-label="Gå in i laggården">
       <rect x="724" y="398" width="132" height="150" rx="8" fill="#FFF3DC" ${LINE}/>
       <rect x="734" y="408" width="54" height="140" rx="4" fill="${WOOD}" ${LINE}/>
@@ -173,6 +175,9 @@ function laggard(level = 1) {
       <text x="${x}" y="${y + 8}" text-anchor="middle" font-size="24" font-weight="800"
         fill="${O}" style="font-family:inherit">${level}</text>
     </g>`;
+  // Skin-fasad (#353): okänt/inget skin → de klassiska nivå-fasaderna nedan.
+  const s = skin && LADA_SKINS[skin];
+  if (s) return s.fasad({ level, dorr, badge, shadow });
   if (level <= 1) {
     // Litet skjul: trä-färgad fasad med enkelt snedtak och en liten lykta.
     return `<g aria-hidden="false">
@@ -237,10 +242,11 @@ function laggard(level = 1) {
  * Hela gårds-scenen ("Baksida & Gården") som SVG-sträng: himmel i övre halvan,
  * gräs i nedre, tre zoner (odlingsbädd/hage/laggård). Samma viewBox/stil som
  * husScen så kamerazoomen känns som samma värld. Odlingsbäddens och laggårdens
- * utseende styrs av elevens nivåer (#333) – varld-gard.js skickar in dem.
- * @param {{gardenTier?: number, barnLevel?: number}} [nivaer]
+ * utseende styrs av elevens nivåer (#333) + valt lada-skin (#353) –
+ * varld-gard.js skickar in dem.
+ * @param {{gardenTier?: number, barnLevel?: number, barnSkin?: string|null}} [nivaer]
  */
-export function gardScen({ gardenTier = 1, barnLevel = 1 } = {}) {
+export function gardScen({ gardenTier = 1, barnLevel = 1, barnSkin = null } = {}) {
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Gården på baksidan av huset"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="gard-himmel" x1="0" y1="0" x2="0" y2="1">
@@ -262,8 +268,17 @@ export function gardScen({ gardenTier = 1, barnLevel = 1 } = {}) {
 
     ${odlingsbadd(gardenTier)}
     ${hage()}
-    ${laggard(barnLevel)}
+    ${laggard(barnLevel, barnSkin)}
   </svg>`;
+}
+
+/**
+ * Laggårds-fasaden tätt beskuren som egen SVG – förhandsvisning i lada-skin-
+ * väljaren (#353, varld-lada-skin.js). skin null = klassiska nivå-fasaden.
+ */
+export function ladaPreview(skin = null, level = 1) {
+  return `<svg viewBox="596 88 368 500" aria-hidden="true" focusable="false"
+      preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">${laggard(level, skin)}</svg>`;
 }
 
 // --- Interiören: inne i laggården -------------------------------------------
@@ -302,25 +317,31 @@ function spiltRad(platser) {
 /**
  * Laggårdens interiör som SVG-sträng: träpanelväggar samt spiltor/bås med
  * foderhoar – antalet styrs av laggårdens nivå (farm.barnLevel, #333; 2/4/8
- * platser). Samma viewBox-princip som rummet: väggar/golv övertecknade utanför
- * viewBoxen. Djuren i ladan ritas ovanpå av gard-djur.js.
+ * platser). Ett valt lada-skin (#353) TONAR vägg/panel/golv (LADA_SKINS[].inne)
+ * så insidan matchar fasaden – spiltor/foderhoar förblir trä (möbler, inte
+ * väggar) och layouten/zonerna är identiska oavsett skin. Samma viewBox-princip
+ * som rummet: väggar/golv övertecknade utanför viewBoxen. Djuren i ladan ritas
+ * ovanpå av gard-djur.js.
  * @param {number} [barnLevel] laggårdens nivå (1–3)
+ * @param {string|null} [barnSkin] valt lada-skin (farm.barnSkin) eller null
  */
-export function laggardScen(barnLevel = 1) {
+export function laggardScen(barnLevel = 1, barnSkin = null) {
   const platser = barnPlaceCountForLevel(barnLevel);
+  const ton = (barnSkin && LADA_SKINS[barnSkin] && LADA_SKINS[barnSkin].inne) || {};
+  const vagg = ton.vagg || WOOD, morkt = ton.morkt || WOOD_DARK, golv = ton.golv || "#D9B98C";
   // Liggande panelbrädor på bakväggen (streck i väggfärgens mörkare ton).
   const panel = [96, 168, 240, 312, 384]
-    .map((y) => `<path d="M-2400 ${y} L3360 ${y}" stroke="${WOOD_DARK}" stroke-width="4" opacity="0.35"/>`)
+    .map((y) => `<path d="M-2400 ${y} L3360 ${y}" stroke="${morkt}" stroke-width="4" opacity="0.35"/>`)
     .join("");
   return `<svg viewBox="0 0 960 600" role="img" aria-label="Inne i laggården"
       preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-    <!-- Bakvägg i träpanel + halmgolv, båda övertecknade utanför viewBoxen -->
-    <rect x="-2400" y="-1500" width="5760" height="3600" fill="${WOOD}"/>
+    <!-- Bakvägg i panel + golv, båda övertecknade utanför viewBoxen -->
+    <rect x="-2400" y="-1500" width="5760" height="3600" fill="${vagg}"/>
     ${panel}
-    <rect x="-2400" y="430" width="5760" height="1700" fill="#D9B98C"/>
+    <rect x="-2400" y="430" width="5760" height="1700" fill="${golv}"/>
     <path d="M-2400 430 L3360 430" stroke="${O}" stroke-width="6"/>
     <!-- Takbjälke -->
-    <rect x="-2400" y="52" width="5760" height="26" fill="${WOOD_DARK}" ${LINE}/>
+    <rect x="-2400" y="52" width="5760" height="26" fill="${morkt}" ${LINE}/>
 
     <!-- Fönster på bakväggen: dagsljus in i laggården -->
     <rect x="430" y="140" width="104" height="92" rx="10" fill="#9AD3F0" ${LINE}/>

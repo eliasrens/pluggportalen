@@ -12,6 +12,7 @@
 // Datamodell (studentData.farm) – FULLT dokumenterad i docs/DATAMODELL.md:
 //   farm: {
 //     barnLevel: 1,          // laggårdens nivå (1–3) – SPARAT FÄLT (se DATAMODELL)
+//     barnSkin: null,        // laggårdens UTSEENDE (#353): skin-id (shop) | null = nivå-fasaden
 //     gardenTier: 1,         // odlingsbäddens nivå (1–3) – SPARAT FÄLT
 //     gardenSlots: [],       // [{ slotIndex, cropId, growthStage, plantedAt }]
 //     inventoryHarvest: {},  // { [cropId]: antal } skördad gröda
@@ -52,6 +53,7 @@ export const FARM_LOCATIONS = ["room", "paddock", "barn"];
 export function defaultFarm() {
   return {
     barnLevel: 1,
+    barnSkin: null,
     gardenTier: 1,
     gardenSlots: [],
     inventoryHarvest: {},
@@ -86,6 +88,7 @@ export function farmFromData(data) {
   const animals = Array.isArray(raw.animals) ? raw.animals : def.animals;
   return {
     barnLevel: clampLevel(raw.barnLevel ?? def.barnLevel, FARM_MAX_BARN_LEVEL),
+    barnSkin: typeof raw.barnSkin === "string" && raw.barnSkin ? raw.barnSkin : null,
     gardenTier: clampLevel(raw.gardenTier ?? def.gardenTier, FARM_MAX_GARDEN_TIER),
     gardenSlots: slots
       .filter(

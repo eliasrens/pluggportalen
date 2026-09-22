@@ -364,3 +364,29 @@ test("giftReadyIn/claimGiftIn: gåva vid trivsel ≥ 60, en gång per kalenderda
   assert.equal(claimGiftIn(less, "h1", NU).ok, false);
   assert.equal(claimGiftIn(farm, "okänd#x", NU).ok, false);
 });
+
+// --- Lada-skins (#353): barnSkin – utseende skilt från nivå -------------------
+
+test("farmFromData: barnSkin normaliseras (sträng behålls, allt annat → null)", () => {
+  assert.equal(farmFromData(null).barnSkin, null);
+  assert.equal(farmFromData({ farm: {} }).barnSkin, null);
+  assert.equal(farmFromData({ farm: { barnSkin: "lada-bla" } }).barnSkin, "lada-bla");
+  // Okända id:n behålls som data (renderingen faller tillbaka på nivå-fasaden),
+  // ogiltiga typer/tomma strängar → null.
+  assert.equal(farmFromData({ farm: { barnSkin: "framtida-skin" } }).barnSkin, "framtida-skin");
+  for (const bad of ["", 7, {}, [], true]) {
+    assert.equal(farmFromData({ farm: { barnSkin: bad } }).barnSkin, null);
+  }
+});
+
+test("barnSkin är rent kosmetiskt: kapacitet/placering styrs bara av barnLevel", () => {
+  const farm = { ...defaultFarm(), barnLevel: 1, barnSkin: "lada-rymd" };
+  // Nivå 1 = 2 platser i ladan oavsett skin.
+  assert.equal(barnPlaceCountForLevel(farm.barnLevel), 2);
+  const a = setPlacementIn(farm, "hund#1", "barn");
+  const b = setPlacementIn(a.farm, "katt#1", "barn");
+  const c = setPlacementIn(b.farm, "kanin#1", "barn");
+  assert.equal(c.ok, false);
+  assert.equal(c.error, "ladan är full");
+  assert.equal(b.farm.barnSkin, "lada-rymd"); // skinnet följer med oförändrat
+});
