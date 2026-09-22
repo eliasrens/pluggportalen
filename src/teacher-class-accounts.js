@@ -15,7 +15,7 @@
 
 import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
-import { el, esc, copyText } from "./teacher-shared.js";
+import { el, esc, copyText, icon } from "./teacher-shared.js";
 import { renderAccountEditor, printLoginCards } from "./teacher-login-cards.js";
 import { mountMemberLevels } from "./teacher-student-level.js";
 
@@ -116,8 +116,8 @@ export function credentialsPanel(className, created) {
       <tbody>${rows}</tbody>
     </table></div>
     <div class="row-inline" style="margin-top:10px">
-      <button class="btn gron small cred-copy">📋 Kopiera alla</button>
-      <button class="btn small cred-print">🖨️ Skriv ut inloggningskort</button>
+      <button class="btn gron small cred-copy">${icon("copy", 16)}<span>Kopiera alla</span></button>
+      <button class="btn small cred-print">${icon("printer", 16)}<span>Skriv ut inloggningskort</span></button>
     </div>
   </div>`);
   box.querySelector(".cred-copy").addEventListener("click", (e) => copyText(text, e.currentTarget));
@@ -192,7 +192,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
         ${avatarSelectHtml(s.avatarId || "fox")}
         <input class="cell mm-namn" value="${esc(s.namn || "")}" placeholder="Elevens namn" />
         <input class="cell mm-username" value="${esc(s.username || "")}" disabled title="Användarnamn kan inte ändras" />
-        <button class="btn ghost small mm-save" title="Spara namn/avatar">💾</button>
+        <button class="btn ghost small mm-save" title="Spara namn/avatar">${icon("save", 16)}</button>
         <span class="mm-save-flash" aria-live="polite"></span>
       </div>
       <div class="mm-level"><span class="rl-slot"></span></div>
@@ -206,8 +206,8 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
         <div class="gc-flash" aria-live="polite"></div>
       </div>
       <div class="mm-actions">
-        <button class="btn ghost small" data-act="unlink">➖ Ta ur klassen</button>
-        <button class="btn ghost small danger" data-act="del">🗑 Ta bort konto</button>
+        <button class="btn ghost small" data-act="unlink">${icon("minus", 16)}<span>Ta ur klassen</span></button>
+        <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort konto</span></button>
       </div>
     </div>`);
 
@@ -274,24 +274,24 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
     const prefix = usernamePrefix(cls.name || cls.id);
 
     const wrap = el(`<div class="member-manage">
-      <h3 class="subhead sm">🧑‍🎓 Elever i klassen (${members.length})</h3>
+      <h3 class="subhead sm">${icon("grad", 18)}<span>Elever i klassen (${members.length})</span></h3>
       <div class="mm-level-bulk"></div>
       <div class="mm-list"></div>
       <details class="mm-add">
-        <summary>➕ Skapa nya elevkonton i klassen</summary>
+        <summary>${icon("plus", 16)} Skapa nya elevkonton i klassen</summary>
         <div class="mm-add-body">
           <p class="hint">Ange hur många nya elever du vill lägga till. Konton skapas med
             auto-genererade användarnamn (<b>${esc(prefix)}NN</b>) och lösenord.</p>
           <div class="row-inline">
             <input class="cell mm-count" type="number" min="1" max="40" step="1" value="5" aria-label="Antal nya elever" />
-            <button class="btn gron small mm-create">➕ Förbered konton</button>
+            <button class="btn gron small mm-create">${icon("plus", 16)}<span>Förbered konton</span></button>
             <span class="mm-create-flash" aria-live="polite"></span>
           </div>
           <div class="mm-editor"></div>
         </div>
       </details>
       <details class="mm-add">
-        <summary>🔗 Lägg till befintliga elever</summary>
+        <summary>${icon("link", 16)} Lägg till befintliga elever</summary>
         <div class="mm-add-body mm-existing"></div>
       </details>
     </div>`);
@@ -366,7 +366,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
       const box = el(`<div>
         <div class="member-grid">${rows}</div>
         <div class="row-inline" style="margin-top:10px">
-          <button class="btn gron small mm-link">🔗 Lägg till valda</button>
+          <button class="btn gron small mm-link">${icon("link", 16)}<span>Lägg till valda</span></button>
           <span class="mm-link-flash" aria-live="polite"></span>
         </div>
       </div>`);

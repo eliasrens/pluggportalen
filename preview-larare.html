@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lärarsidan – mörk design utrullad (issue #367)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      /* Fristående testyta för issue #367: renderar ALLA reskinnade lärarvyer
+         med de RIKTIGA byggstenarna + mock-data – ingen inloggning/Firestore
+         behövs. Varje sektion får en egen .teacher-page.teacher-dark-rot så
+         scopet stämmer exakt med hur routern monterar vyerna. */
+      body { background: #0b0f14; }
+      .pv-sec { max-width: 1000px; margin: 0 auto; padding: 8px 20px 34px; }
+      .pv-label {
+        color: #7ee0a6; font: 700 0.8rem/1 "Baloo 2", system-ui, sans-serif;
+        letter-spacing: 0.08em; text-transform: uppercase;
+        margin: 30px auto 6px; max-width: 1000px; padding: 0 20px;
+      }
+      /* Kompositör-overlayen dockas in i flödet så den syns utan att täcka allt. */
+      .pv-inline-overlay .studio-composer-overlay {
+        position: static; background: transparent; padding: 0; overflow: visible;
+      }
+      .pv-launch { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 auto; max-width: 1000px; padding: 0 20px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout"><main class="container" id="root"></main></div>
+
+    <script type="module">
+      import {
+        icon, teacherNav, teacherHead, el,
+      } from "/src/teacher-shared.js";
+      import { buildLibraryView, buildComposerView } from "/src/teacher-content-view.js";
+      import { buildAreaCards } from "/src/teacher-content-list.js";
+      import { renderClassAssignments, renderClassAreaModes } from "/src/teacher-class-modes.js";
+      import { renderClassStats } from "/src/teacher-class.js";
+      import { renderAccountEditor, printLoginCards } from "/src/teacher-login-cards.js";
+      import { credentialsPanel } from "/src/teacher-class-accounts.js";
+      import { buildReadingEditor } from "/src/teacher-reading.js";
+
+      const root = document.getElementById("root");
+      const ctx = { app: root, go: () => {}, renderTopbar: () => {}, refresh: () => {} };
+
+      const label = (t) => { const d = el(`<div class="pv-label">${t}</div>`); root.appendChild(d); };
+      // En scopad lärar-rot med toppnav + titel, precis som en riktig vy.
+      function page(active, iconName, title) {
+        const wrap = el(`<div class="teacher-page teacher-dark pv-sec"></div>`);
+        wrap.appendChild(teacherNav(ctx, active));
+        wrap.appendChild(teacherHead(ctx, { icon: iconName, title }));
+        root.appendChild(wrap);
+        return wrap;
+      }
+
+      // ---- Mock-innehåll -----------------------------------------------------
+      const mkQuiz = (n) => Array.from({ length: n }, (_, i) => ({
+        q: `Fråga ${i + 1}?`, options: ["A", "B", "C"], answer: 0,
+      }));
+      const mkPairs = (n) => Array.from({ length: n }, (_, i) => ({ term: `Term ${i}`, definition: `Def ${i}` }));
+
+      const areasSO = [
+        { id: "vikingar", name: "Vikingatiden", coverEmoji: "⚔️", grade: "ak4", quiz: mkQuiz(12), pairs: mkPairs(8) },
+        { id: "val", name: "Demokrati & val", coverEmoji: "🗳️", grade: "ak5", quiz: mkQuiz(10) },
+        { id: "kartan", name: "Kartan & världsdelar", coverEmoji: "🗺️", quiz: mkQuiz(6), pairs: mkPairs(6) },
+        { id: "rakna", name: "Multiplikationsträning", coverEmoji: "🔢", grade: "ak4",
+          generator: { topic: "multiplikation", variants: ["liten", "stor"] } },
+      ];
+      const library = [
+        { id: "so", name: "SO", icon: "🌍", areas: areasSO },
+        { id: "ma", name: "Matematik", icon: "🔢", areas: [
+          { id: "brak", name: "Bråk", coverEmoji: "➗", quiz: mkQuiz(8) },
+        ] },
+      ];
+
+      const students = [
+        { id: "s1", namn: "Alva Berg", username: "6a-alva", avatarId: "flicka1",
+          progress: { vikingar: { quiz: { stars: 3, completed: true }, memory: { stars: 2, completed: true } }, val: { quiz: { stars: 1 } } } },
+        { id: "s2", namn: "Bruno Ek", username: "6a-bruno", avatarId: "pojke1",
+          progress: { vikingar: { quiz: { stars: 2, completed: true } }, kartan: { quiz: { stars: 3, completed: true }, memory: { stars: 3, completed: true } } } },
+        { id: "s3", namn: "Cora Dahl", username: "6a-cora", avatarId: "flicka2", progress: {} },
+      ];
+      const subjectsMeta = [{ id: "so", name: "SO", icon: "🌍" }];
+
+      // ======================================================================
+      // 1) INNEHÅLLSSTUDIO – bibliotek (kort + badges + åtgärds-knappar)
+      // ======================================================================
+      label("1 · Innehåll – bibliotek (kort, badges, åtgärder)");
+      {
+        const wrap = page("innehall", "book", "Innehållsstudion");
+        const lib = buildLibraryView();
+        wrap.appendChild(lib);
+        // Rendera ämnesflikar för hand (samma markup som teacher-content.js).
+        const tabs = lib.querySelector("#subject-tabs");
+        tabs.append(
+          el(`<button class="subject-tab active" role="tab">🌍 SO</button>`),
+          el(`<button class="subject-tab" role="tab">🔢 Matematik</button>`),
+        );
+        lib.querySelector("#area-cards").replaceChildren(
+          buildAreaCards(areasSO, { subjectId: "so", onEdit: () => {}, onRefresh: () => {} })
+        );
+      }
+
+      // ======================================================================
+      // 2) INNEHÅLLSSTUDIO – fokuserad kompositör (overlay, inline)
+      // ======================================================================
+      label("2 · Innehåll – kompositör (overlay)");
+      {
+        const wrap = page("innehall", "book", "Innehållsstudion");
+        const holder = el(`<div class="pv-inline-overlay"></div>`);
+        const comp = buildComposerView();
+        comp.hidden = false;
+        holder.appendChild(comp);
+        wrap.appendChild(holder);
+      }
+
+      // ======================================================================
+      // 3) KLASS – "Områden"-valet (KONTRAST-BUGGEN som skulle fixas)
+      // ======================================================================
+      label("3 · Klass – Områden-val (namnen MÅSTE synas)");
+      {
+        const wrap = page("klasser", "users", "Klasser & elever");
+        const card = el(`<div class="panel class-card"><div class="class-assign"></div></div>`);
+        wrap.appendChild(card);
+        const cls = { id: "6a", name: "6A", assignedAreas: [{ subjectId: "so", areaId: "vikingar" }] };
+        renderClassAssignments(ctx, cls, card.querySelector(".class-assign"), library);
+      }
+
+      // ======================================================================
+      // 4) KLASS – Lägen per område
+      // ======================================================================
+      label("4 · Klass – Lägen per område");
+      {
+        const wrap = page("klasser", "users", "Klasser & elever");
+        const card = el(`<div class="panel class-card"><div class="class-modes"></div></div>`);
+        wrap.appendChild(card);
+        const cls = { id: "6a", name: "6A", hiddenModes: [], areaModes: {} };
+        renderClassAreaModes(ctx, cls, card.querySelector(".class-modes"), library);
+      }
+
+      // ======================================================================
+      // 5) KLASS – Statistik-matris (+ klick öppnar elev-modal)
+      // ======================================================================
+      label("5 · Klass – Statistik (klicka en rad → elev-modal)");
+      {
+        const wrap = page("klasser", "users", "Klasser & elever");
+        const host = el(`<div class="panel class-card"><div class="class-stats"></div></div>`);
+        wrap.appendChild(host);
+        await renderClassStats(ctx, host.querySelector(".class-stats"), {
+          students, subjects: subjectsMeta,
+          studentById: new Map(students.map((s) => [s.id, s])),
+          loadAreas: async () => areasSO,
+        });
+      }
+
+      // ======================================================================
+      // 6) KLASS – Kontoskapande + genererade uppgifter (kort-chrome)
+      // ======================================================================
+      label("6 · Klass – kontoskapande + inloggningsuppgifter");
+      {
+        const wrap = page("klasser", "users", "Klasser & elever");
+        const host = el(`<div class="panel class-card"></div>`);
+        wrap.appendChild(host);
+        renderAccountEditor(host, {
+          count: 3, prefix: "6a", className: "6A", taken: new Set(),
+          onCreated: () => {}, onCancel: () => {},
+        });
+        host.appendChild(credentialsPanel("6A", [
+          { username: "6a-alva", password: "sten472", namn: "Alva Berg" },
+          { username: "6a-bruno", password: "boll819", namn: "Bruno Ek" },
+        ]));
+      }
+
+      // ======================================================================
+      // 7) INNEHÅLL – läs/AI-editor (nivåtexter)
+      // ======================================================================
+      label("7 · Innehåll – nivåtexts-editor (läsförståelse)");
+      {
+        const wrap = page("innehall", "book", "Innehållsstudion");
+        const host = el(`<div class="panel class-card"></div>`);
+        wrap.appendChild(host);
+        try {
+          const ed = buildReadingEditor(
+            { id: "vikingar", name: "Vikingatiden", readingTexts: [] },
+            host,
+            { subjectId: "so", onSaved: () => {} }
+          );
+          host.appendChild(ed);
+        } catch (e) {
+          host.appendChild(el(`<p class="hint">(läs-editorn kräver mer kontext – hoppas i preview: ${e.message})</p>`));
+        }
+      }
+
+      // ======================================================================
+      // 8) Launchers – login-korts-overlay (fyller skärmen som i appen)
+      // ======================================================================
+      label("8 · Login-kort (utskriftsvy) – öppna overlay");
+      {
+        const bar = el(`<div class="pv-launch teacher-dark"></div>`);
+        const btn = el(`<button class="btn gron">${icon("printer")}<span>Öppna inloggningskort</span></button>`);
+        btn.addEventListener("click", () => printLoginCards("6A", [
+          { username: "6a-alva", password: "sten472", namn: "Alva Berg" },
+          { username: "6a-bruno", password: "boll819", namn: "Bruno Ek" },
+          { username: "6a-cora", password: "moln305", namn: "Cora Dahl" },
+        ]));
+        bar.appendChild(btn);
+        root.appendChild(bar);
+      }
+    </script>
+  </body>
+</html>
