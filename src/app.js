@@ -194,6 +194,14 @@ function router() {
     path === "/elev/kompis" || path === "/elev/skolan" || path === "/elev/grannby" ||
     path === "/elev/grannhus" || path === "/elev/gard" || path === "/elev/laggard"
   );
+  // Lärar-routes: håll body-bakgrunden mörk under HELA vistelsen – även i glappet
+  // mellan flik-byten, då den gamla .teacher-dark-vyn tas bort en kort stund och
+  // body:has(.teacher-dark) slutar matcha (→ annars blänker elevsidans ljusa
+  // gradient till vitt). Elevsidan saknar klassen och behåller sin ljusa bakgrund.
+  document.body.classList.toggle(
+    "larare-lage",
+    path === "/larare" || path.startsWith("/larare/")
+  );
   const handler = routes[path] || pageNotFound;
   handler();
 }
