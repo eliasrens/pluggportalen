@@ -14,7 +14,7 @@
 // kan bara vinnas ur boxen. DJUREN (ägg/kläckning) rörs INTE av det här.
 //
 // LEGENDARY-nivån (#140) kan innehålla saker som redan finns i shoppen: FORDON
-// ("bil"/"cykel" ur trädgårds-katalogen). Dessa markeras `existingShopItem:true`
+// ("bil"/"cykel"/"sportbil" ur trädgårds-katalogen). De markeras `existingShopItem:true`
 // så shop-items.js INTE dubblerar dem i katalogen – de finns redan där som
 // köpbara saker, men kan nu även VINNAS ur boxen. HUS-legendarys är mystery-
 // husskal (art-mystery.js). Håll id:na STABILA – de sparas i Firestore.
@@ -104,6 +104,7 @@ export const MYSTERY_ITEMS = [
   // FORDON (återanvänder shop-id:n → existingShopItem, injiceras ej på nytt).
   { id: "bil", name: "Bil", category: "tradgard", rarity: "legendary", emoji: "🚗", existingShopItem: true },
   { id: "cykel", name: "Cykel", category: "tradgard", rarity: "legendary", emoji: "🚲", existingShopItem: true },
+  { id: "sportbil", name: "Sportbil", category: "tradgard", rarity: "legendary", emoji: "🏎️", existingShopItem: true },
   // HUS (mystery-husskal).
   { id: "myst-kristallhus", name: "Kristallhus", category: "hus", skalId: "myst-kristallhus", rarity: "legendary", emoji: "🏯" },
   { id: "myst-molnslott", name: "Molnslott", category: "hus", skalId: "myst-molnslott", rarity: "legendary", emoji: "☁️" },
