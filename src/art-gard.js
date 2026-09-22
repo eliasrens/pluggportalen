@@ -129,6 +129,25 @@ function hage() {
   </g>`;
 }
 
+/**
+ * Hagens FRAMKANT som egen SVG (issue #345): den främre slanan + stolp-
+ * stumparna under den, i exakt samma koordinater som hage() ritar dem.
+ * gard-djur.js lägger den i ett eget lager OVANPÅ djur-overlayn, så djurens
+ * ben döljs bakom främre slanan → djuren ser ut att stå INNANFÖR gärdsgården
+ * (bakre staketet ligger kvar i scenen bakom dem). Utan djur är lagret
+ * pixel-identiskt med scenens staket (limb ritar samma streck en gång till).
+ */
+export function hageForgrund() {
+  const stumpar = [372, 452, 532, 612]
+    .map((x) => `${limb(`M${x} 548 L${x} 506`, WOOD_DARK, 9)}`)
+    .join("");
+  return `<svg viewBox="0 0 960 600" aria-hidden="true"
+      preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    ${stumpar}
+    ${limb("M364 516 L620 516", WOOD, 7)}
+  </svg>`;
+}
+
 // --- Zon 3: laggårds-byggnaden (höger) --------------------------------------
 // Fasaden styrs av laggårdens nivå (farm.barnLevel, #333):
 //   1  Litet skjul – trärött snedtaks-skjul

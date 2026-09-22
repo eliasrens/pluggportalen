@@ -24,6 +24,7 @@
 // ============================================================================
 
 import { getFarm } from "./data-farm.js";
+import { hageForgrund } from "./art-gard.js";
 import { placementFor, moodForTrivsel, trivselNow, giftReadyIn } from "./farm-core.js";
 import { getItem } from "./shop-items.js";
 import { itemSvg, itemSize } from "./art-items.js";
@@ -47,8 +48,11 @@ export function mountGardDjur({ gardLager, laggardLager }) {
   // En "plats" per nivå: eget overlay-lager (ovanpå scen-SVG:n, samma mönster
   // som trädgårdens .tradgard-lager), egen djurlista och egen promenad-loop.
   const platser = {
-    paddock: { lager: gardLager, zonId: "hage-zon", overlay: null, djur: [], zon: null, startad: false },
-    barn: { lager: laggardLager, zonId: "lada-zon", overlay: null, djur: [], zon: null, startad: false },
+    // forgrund (#345): staketets FRAMKANT ritas i ett eget lager ovanpå djuren
+    // så de ser ut att stå INNANFÖR hagen. Ladan behöver inget – där står
+    // djuren på golvet FRAMFÖR bås/foderhoar, vilket är rätt perspektiv.
+    paddock: { lager: gardLager, zonId: "hage-zon", overlay: null, forgrund: null, forgrundSvg: hageForgrund, djur: [], zon: null, startad: false },
+    barn: { lager: laggardLager, zonId: "lada-zon", overlay: null, forgrund: null, forgrundSvg: null, djur: [], zon: null, startad: false },
   };
 
   /** Zon-rektangeln i procent av lagret (mäts ur scen-SVG:ns osynliga rect). */
@@ -105,9 +109,16 @@ export function mountGardDjur({ gardLager, laggardLager }) {
   }
 
   function ensureOverlay(p) {
-    if (p.overlay && p.overlay.isConnected) return;
-    p.overlay = el(`<div class="gard-djur-lager"></div>`);
-    p.lager.appendChild(p.overlay);
+    if (!p.overlay || !p.overlay.isConnected) {
+      p.overlay = el(`<div class="gard-djur-lager"></div>`);
+      p.lager.appendChild(p.overlay);
+    }
+    // Staket-framkanten (#345) EFTER djur-overlayn i DOM → ritas ovanpå djuren.
+    // Lagret är pointer-events:none (styles.css) så klick på djuren når fram.
+    if (p.forgrundSvg && (!p.forgrund || !p.forgrund.isConnected)) {
+      p.forgrund = el(`<div class="gard-forgrund" aria-hidden="true">${p.forgrundSvg()}</div>`);
+      p.lager.appendChild(p.forgrund);
+    }
   }
 
   function startaPromenad(p) {

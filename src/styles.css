@@ -3048,6 +3048,12 @@ body.varld-lage .container {
 /* Klick på djuret öppnar foder-panelen (#332) – lagret är pointer-events:none,
    så själva djur-noderna måste slå på pekar-händelser igen. */
 .gard-djur-lager .gard-djur { cursor: pointer; pointer-events: auto; }
+/* Hagens staket-FRAMKANT (#345): eget lager EFTER djur-lagret i DOM → främre
+   slanan ritas ovanpå djuren, så de ser ut att stå INNANFÖR gärdsgården.
+   SVG:n delar viewBox/preserveAspectRatio med scen-SVG:n och fyller lagret
+   (.varld-ute svg-regeln) → koordinaterna linjerar exakt. pointer-events:none
+   så klick på djuren (foder-panelen, #332) går rakt igenom. */
+.gard-forgrund { position: absolute; inset: 0; pointer-events: none; }
 .gard-djur-lager .gard-djur .rp-namn { cursor: pointer; }
 
 /* Mood-minen (glad/nöjd/less ur trivseln, #330): liten bricka uppe till höger
