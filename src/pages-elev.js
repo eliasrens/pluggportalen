@@ -17,7 +17,9 @@ import { visibleGamemodesForClassArea } from "./game-shared.js";
 
 // --- Inloggning: porten (issue #338) -----------------------------------------
 // Elevernas inloggning är sidans "framdörr": en trägrind i spelvärldens stil
-// som ramar in login-kortet. Själva grind-SVG:n (art-port.js) laddas DYNAMISKT
+// som ramar in login-kortet. Live-porten är den MAJESTÄTISKA Variant B
+// (art-port-majestic.js, valdes i #344) – Variant A (art-port.js) lämnas kvar
+// oanvänd i repot så vi enkelt kan byta tillbaka. Grind-SVG:n laddas DYNAMISKT
 // så bootgrafen inte växer (#271) – misslyckas laddningen visas kortet i en
 // vanlig panel i stället (inloggningen fungerar alltid). Lärarens inloggning
 // bor på sin egen route (#/larare → lärarspärren), skild från porten.
@@ -94,8 +96,8 @@ export async function pageElevLogin() {
   // Grind-scenen: dynamisk import med snäll fallback (se kommentaren ovan).
   let scenSvg = "";
   try {
-    const mod = await import("./art-port.js");
-    scenSvg = mod.portScen();
+    const mod = await import("./art-port-majestic.js");
+    scenSvg = mod.portScenMajestic();
   } catch (err) {
     console.error("Porten kunde inte laddas – visar enkel inloggning:", err);
   }
