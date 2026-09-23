@@ -29,6 +29,7 @@ import { O, LINE, THIN, limb } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 import { NATUR_HUS_SKAL } from "./art-hus-natur.js";
+import { RETRO_HUS_SKAL } from "./art-hus-retro.js";
 import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
@@ -174,6 +175,8 @@ const HUS_SKAL = {
   ...LYX_HUS_SKAL,
   // Klassiska & natur-husskal (skeppsvrak/trädkoja/akvariehus/…, köpbara #383).
   ...NATUR_HUS_SKAL,
+  // Stil & retro-husskal (bibliotekstorn/detektiv/disco/cyberpunk/…, köpbara #384).
+  ...RETRO_HUS_SKAL,
   // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
   ...MYSTERY_HUS_SKAL,
   // Legendary husskal (exklusiva Mega/Epic-box-drops, ej köpbara i shoppen).
