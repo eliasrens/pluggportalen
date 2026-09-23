@@ -138,39 +138,41 @@ export function byVagarSvg(layout) {
   const f = (n) => Number(n.toFixed(2));
 
   // Mittlinjen: vågiga radsträckor (samplade var 3:e %-enhet) + U-svängar.
-  // Vägens TVÅ ändar löper UT ur skärmen: första raden kommer in uppifrån (över
-  // övre kanten) och sista raden fortsätter ner förbi nedre kanten – i stället
-  // för att ta slut mitt i den avslöjade gräsytan (kant-i-kant, #373). Med-/
-  // utfarterna ritas långt utanför viewBoxen (0–100) och kläms av staget.
+  // Seriens TVÅ öppna ändar (första radens start, sista radens slut) fortsätter
+  // RAKT UT horisontellt genom sidokanten – i nivå med sin radsträcka, ingen
+  // rundning/klättring/loop, aldrig upp i himlen – så det ser ut som vägen
+  // fortsätter bortom skärmen i sidled. Utfarterna dras långt förbi kanten (UT)
+  // så de lämnar skärmen även när scen-boxen är smalare än det full-bleed:ade
+  // staget (#373). Mellanradernas side-U-svängar är oförändrade.
+  const UT = 60;
   const delar = [];
   for (let rad = 0; rad < rader; rad++) {
     const ltr = rad % 2 === 0; // vänster→höger på jämna rader
     const forsta = rad === 0;
     const sista = rad === rader - 1;
-    // Första radens infart och sista radens utfart flyttas in på skärmen (8/92)
-    // så de kan dyka ner från toppen resp. fortsätta ut i botten; mellanrader
-    // behåller sina sido-U-svängar (±4/96).
-    const xIn = forsta ? (ltr ? 8 : 92) : ltr ? 4 : 96;
-    const xUt = sista ? (ltr ? 92 : 8) : ltr ? 96 : 4;
+    // Radens synliga start/slut (U-sväng-punkter, ±4/96); de öppna ändarna får en
+    // rak horisontell utlöpare separat nedan.
+    const vFrom = ltr ? (forsta ? -4 : 4) : forsta ? 104 : 96;
+    const vTo = ltr ? (sista ? 104 : 96) : sista ? -4 : 4;
     const steg = ltr ? 3 : -3;
 
     if (forsta) {
-      // Rundad infart: dyker ner från ovanför övre kanten till vägens start.
-      const y0 = vagY(0, xIn);
-      delar.push(`M${f(xIn)} -34 C${f(xIn)} -6 ${f(xIn)} ${f(y0 - 20)} ${f(xIn)} ${f(y0)}`);
+      // Rak horisontell öppen ände ut genom sidokanten, i nivå med första sträckan.
+      const y = vagY(0, vFrom);
+      delar.push(`M${f(ltr ? -UT : 100 + UT)} ${f(y)} L${f(vFrom)} ${f(y)}`);
     }
-    for (let x = xIn; ltr ? x < xUt : x > xUt; x += steg) {
+    for (let x = vFrom; ltr ? x < vTo : x > vTo; x += steg) {
       delar.push(`L${f(x)} ${f(vagY(rad, x))}`);
     }
-    delar.push(`L${f(xUt)} ${f(vagY(rad, xUt))}`);
+    delar.push(`L${f(vTo)} ${f(vagY(rad, vTo))}`);
     if (sista) {
-      // Rundad utfart: fortsätter ner förbi nedre kanten ("går nånstans").
-      const yE = vagY(rad, xUt);
-      delar.push(`C${f(xUt)} ${f(yE + 20)} ${f(xUt)} 112 ${f(xUt)} 134`);
+      // Rak horisontell öppen ände ut genom sidokanten, i nivå med sista sträckan.
+      const y = vagY(rad, vTo);
+      delar.push(`L${f(ltr ? 100 + UT : -UT)} ${f(y)}`);
     } else {
       // Synlig U-sväng i kanten ner till nästa rads väg (växlar sida).
-      const bukt = ltr ? xUt + 9 : xUt - 9;
-      delar.push(`C${f(bukt)} ${f(vagY(rad, xUt))} ${f(bukt)} ${f(vagY(rad + 1, xUt))} ${f(xUt)} ${f(vagY(rad + 1, xUt))}`);
+      const bukt = ltr ? vTo + 9 : vTo - 9;
+      delar.push(`C${f(bukt)} ${f(vagY(rad, vTo))} ${f(bukt)} ${f(vagY(rad + 1, vTo))} ${f(vTo)} ${f(vagY(rad + 1, vTo))}`);
     }
   }
   const d = delar.join(" ");
