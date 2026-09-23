@@ -180,6 +180,12 @@ export const SHOP_ITEMS = [
   { id: "fruktpalats", name: "Fruktpalats", emoji: "🍍", category: "hus", price: 10000, skalId: "fruktpalats" },
   { id: "arkadhall", name: "Arkadhall", emoji: "🕹️", category: "hus", price: 11000, skalId: "arkadhall" },
   { id: "hajktalt", name: "Hajk-tält (Glamping)", emoji: "⛺", category: "hus", price: 12000, skalId: "hajktalt" },
+  // Legendariska husskal (#386, egen-tecknade art-hus-legend-shop.js) – 13 000–15 000.
+  { id: "kristallgrotta", name: "Magisk Kristallgrotta", emoji: "💎", category: "hus", price: 13000, skalId: "kristallgrotta" },
+  { id: "drakgrotta", name: "Drakgrotta", emoji: "🐲", category: "hus", price: 14000, skalId: "drakgrotta" },
+  { id: "manbas", name: "Månbas", emoji: "🌘", category: "hus", price: 14500, skalId: "manbas" },
+  { id: "kandisvilla", name: "Kändisvilla (Hollywood-stil)", emoji: "🌟", category: "hus", price: 14800, skalId: "kandisvilla" },
+  { id: "maktpyramid", name: "Den Gyllene Svävande Maktpyramiden", emoji: "🔺", category: "hus", price: 15000, skalId: "maktpyramid" },
   // Lada-SKINS (#353): byter LAGGÅRDENS utseende – samma flöde som husskalen
   // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin). Rent kosmetiskt:
   // nivån (#333) styr kapaciteten. Id:n = registret i art-lada-skins.js.
