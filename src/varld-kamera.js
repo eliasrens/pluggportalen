@@ -183,36 +183,23 @@ export function createKamera({ nivaer, startId, onNiva }) {
     aktiv = mal;
     const token = ++resa;
     markeraZoom(nivaer[mal].el.parentElement);
-    // Var mållagret helt gömt (visibility)? Avslöja det FÖRST – i SLUTLÄGET
-    // scale(1) men med opacity 0 (inget syns) – och ge webbläsaren en frame
-    // att måla+rastrera HELA lagret INNAN kameran börjar röra sig (#374).
-    // Två vinster:
-    //   1. Ett kallt/nybyggt lager (klassbyn: ~25 hus-SVG:er + emoji-
-    //      avatarer) kostar annars en style/paint-spik som äter upp
-    //      övergångens första frames.
-    //   2. Rastreringen sker vid scale(1) – lagrets skarpa viloläge, där
-    //      ALLA tiles är synliga. Lagren har will-change: transform, så
-    //      kompositorn behåller rastern och GPU-skalar texturen under själva
-    //      rörelsen i stället för att rastrera nya tiles i uppskalat läge
-    //      mitt i zoomen (det som gav kvarvarande frame-tapp på svag CPU).
-    //      Priset: en lätt, ÖVERGÅENDE oskärpa medan lagret visas
-    //      uppförstorat under intoningen – skarpt igen i slutläget.
-    // Klassbytet/stil-hoppen här animerar inget (varld-utan-anim). I gömd
-    // flik hoppas väntan över (rAF tickar inte där; ingen ser animationen).
+    // Var mållagret helt gömt (visibility)? Avslöja det FÖRST, i sitt redan
+    // satta STARTLÄGE (opacity 0 – inget syns), och ge webbläsaren en frame
+    // att måla lagret INNAN kameran börjar röra sig (#374). Ett kallt/nybyggt
+    // lager (klassbyn: ~25 hus-SVG:er + emoji-avatarer) kostar annars en
+    // style/paint-spik som äter upp övergångens första frames.
+    // OBS – mätt och förkastat: att i stället för-visa lagret i SLUTLÄGET
+    // scale(1) ("rastrera skarpt en gång, GPU-skala sedan") hjälper INTE –
+    // modern Chromium om-rastrerar will-change-lager vid skalbyte ändå, och
+    // den gamla scale(1)-rastern hann dessutom SYNAS suddigt i zoomstartens
+    // första frames. Avslöja därför alltid i startläget, aldrig med ett
+    // skal-hopp. I gömd flik tas hela resan som direkthopp (gaTill ovan).
     const malEl = nivaer[mal].el;
     if (malEl.classList.contains("varld-dold") && !document.hidden) {
-      const startTransform = malEl.style.transform;
-      malEl.classList.add("varld-utan-anim");
       malEl.classList.remove("varld-dold");
-      malEl.style.transform = "scale(1)";
       await new Promise((res) =>
         requestAnimationFrame(() => requestAnimationFrame(res))
       );
-      // Tillbaka till övergångens startläge INNAN animationen släpps på –
-      // layout-flushen ser till att återhoppet inte animeras.
-      malEl.style.transform = startTransform;
-      void malEl.offsetWidth;
-      malEl.classList.remove("varld-utan-anim");
       if (token !== resa) return; // en nyare resa tog över under väntan
     }
     apply(aktiv, origoNiva);
