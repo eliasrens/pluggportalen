@@ -3595,6 +3595,14 @@ body.varld-lage .container {
 .varld-lager.varld-dold { visibility: hidden; }
 .varld-lager.varld-utan-anim { transition: none !important; }
 
+/* Pågående korszoom (#374): kameran sätter klassen .varld-zoomar på scenen
+   under övergången och pausar då scenens ambient-animationer via Web
+   Animations API (markeraZoom i varld-kamera.js). MEDVETET ingen CSS-regel
+   här: en `.varld-zoomar *`-regel ser billig ut men tvingar en style-recalc
+   av hela scenträdet vid varje övergångsstart (150–200 ms long task på strypt
+   CPU). Klassen finns bara som signal – promenad-AI:n (rum-promenad.js) sover
+   på den under zoomen. */
+
 /* Ute-scenen ritas med preserveAspectRatio="xMidYMid meet" så att hus + avatar
    + all natur ALLTID får plats (inget beskärs på korta/breda eller smala/höga
    skärmar). overflow:visible låter den övertecknade himlen/gräset (ritade långt

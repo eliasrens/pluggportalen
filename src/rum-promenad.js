@@ -300,10 +300,25 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
     st.until = now + 250;
   }
 
+  // Sov när scenen inte syns (#374): loopen skriver left/top varje frame, vilket
+  // layoutar om hela världsscenen – även när rummet/hagen är ett gömt lager
+  // (.varld-dold i by/hus-läge) eller mitt i en kamerazoom (.varld-zoomar,
+  // varld-kamera.js). Då står djuren hellre stilla en stund än stjäl frames av
+  // kamerans övergång. Rena klasskoller (closest) – checkVisibility/computed
+  // style tvingar fram en synkron layout varje frame och blev själv jank.
+  function vilande() {
+    return !!stage.closest(".varld-zoomar, .varld-dold");
+  }
+
   // --- Huvudloopen ----------------------------------------------------------
   function tick(now) {
     if (stopped) return;
     if (!stage.isConnected) return stop(); // sidan lämnad – städa upp
+    if (vilande()) {
+      last = now; // ingen dt-skuld byggs upp medan vi sover
+      raf = requestAnimationFrame(tick);
+      return;
+    }
     const dt = Math.min((now - last) / 1000, 0.1); // flik i bakgrunden → inga skutt
     last = now;
     refreshObstacles(now);
