@@ -334,7 +334,8 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
     <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
 
     <path d="M-2400 470 L-480 480 Q240 380 520 470 Q760 380 1440 460 L3360 470 L3360 2100 L-2400 2100 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-2400 520 L-480 520 Q300 470 620 525 Q820 500 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
+    <!-- Front-gräset: kullen består men plattas ut subtilt (~y500) under husets fotavtryck (x≈330–650) så den raka husbotten (y≈510) alltid sitter i gräset – inget hus "flyger". -->
+    <path d="M-2400 520 L-480 520 Q160 470 420 498 Q540 506 660 500 Q900 496 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
 
     <g>${limb("M800 500 L800 430", WOOD, 14)}
       <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
@@ -347,7 +348,10 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
       ${husSkalMarkup(skalId)}
     </g>
 
-    <path d="M390 512 Q380 560 340 600 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
+    <!-- Gången (trapets, vidgas nedåt): sidorna FORTSÄTTER under viewBoxen ner i
+         den övertecknade nederkanten (gräs ritas till y=2100) så vägen når hela
+         vägen ner oavsett hur mycket extra gräs kant-i-kant avslöjar (#373). -->
+    <path d="M390 512 Q380 560 340 600 L-520 2100 L1330 2100 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
     ${skyltHtml}
     <ellipse cx="395" cy="545" rx="12" ry="5" fill="#D8C4A4" stroke="none"/>
     <ellipse cx="410" cy="575" rx="14" ry="6" fill="#D8C4A4" stroke="none"/>

@@ -48,14 +48,18 @@ export function mountByScen({ lager, meId, students }) {
   // procentkoordinaterna (samma som kamerans fokus och tomternas left/top)
   // mappar 1:1 mot lagret. Några stora ljusa gräsfläckar ger marken liv utan
   // att kosta något (platta ellipser, inga filter).
+  // Gräs + himmelsrand ÖVERtecknas långt bortom viewBoxen (0–100) så de fyller
+  // hela det full-bleed:ade staget sömlöst på desktop (svg overflow:visible i
+  // styles.css .by-mark). Husen, vägen och dekoren behåller sina 0–100-koordinater
+  // → oförändrad storlek/placering (#373), bara marken breder ut sig runt om.
   const mark = `<svg class="by-mark" viewBox="0 0 100 100" preserveAspectRatio="none"
       aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-    <rect x="-2" y="-2" width="104" height="104" fill="#A8DA8F"/>
+    <rect x="-60" y="-60" width="220" height="240" fill="#A8DA8F"/>
     <ellipse cx="22" cy="34" rx="20" ry="9" fill="#B4E19B" opacity="0.55"/>
     <ellipse cx="74" cy="62" rx="24" ry="10" fill="#B4E19B" opacity="0.5"/>
     <ellipse cx="40" cy="88" rx="18" ry="7" fill="#9ED584" opacity="0.5"/>
-    <rect x="-2" y="-2" width="104" height="8" fill="#9AD3F0"/>
-    <path d="M-2 6 Q25 4 50 6 Q75 8 102 5.5 L102 9 L-2 9 Z" fill="#8FCB74"/>
+    <rect x="-60" y="-60" width="220" height="66" fill="#9AD3F0"/>
+    <path d="M-60 6 Q25 4 50 6 Q75 8 160 5.5 L160 9 L-60 9 Z" fill="#8FCB74"/>
     ${byVagarSvg(layout)}
     ${dekorMarkSvg(dekor)}
   </svg>`;

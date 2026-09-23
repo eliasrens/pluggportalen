@@ -117,7 +117,9 @@ body {
   max-height: 100vh;
   overflow-y: auto;
   padding: 20px 18px 24px;
-  background: linear-gradient(180deg, #ffffff 0%, #f2f7ff 100%);
+  /* Mjuk himmelsgradient som knyter menyn till scenens himmel (issue #373) så
+     den fasta navigationen känns som en del av världen. */
+  background: linear-gradient(180deg, #e9f4ff 0%, #dcebff 55%, #eef6ff 100%);
   border-radius: 22px;
   box-shadow: 0 10px 28px rgba(31, 45, 74, 0.14);
   z-index: var(--z-sidomeny);
@@ -305,52 +307,57 @@ body.med-sidomeny .sidebar {
   margin: 8px 10px;
 }
 
-/* --- Fot: stjärnor ovanför (coins + logga ut) --- */
+/* --- Fot: enhetlig valuta-rad (stjärnor + mynt) ovanför logga ut --- */
 .sido-fot {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding-top: 8px;
 }
 
-/* Liten stjärnrad direkt ovanför mynt-raden. */
-.sido-stjarnor {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: #3a5bbf;
-}
-
-.sido-fot-rad {
+/* Valuta-raden: stjärn- och mynt-badgen sida vid sida, samma pill-behandling
+   (issue #373). Wrappar snyggt om siffrorna blir långa på den smala menyn. */
+.sido-valuta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.sido-fot .coins {
+.sido-fot .coins,
+.sido-fot .stars {
   font-size: 1.05rem;
 }
 
-/* --- Coins-chip (delas av sidomeny, hjälte och shop) + myntikon --- */
-.coins {
+/* --- Valuta-chips: mynt (guld) + stjärnor (sky), enhetlig pill-form ---------
+   Coins-chip delas av sidomeny, hjälte och shop. Stjärn-chip är samma form/
+   storlek men med en mjuk himmelston så den gyllene stjärnan poppar (som mot
+   himlen på grind-bågen) och de två valutorna hålls isär (issue #373). */
+.coins,
+.stars {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: linear-gradient(160deg, #f9dd7e, #f2c94c);
-  color: #7a5c00;
   font-weight: 800;
   padding: 7px 14px 7px 10px;
   border-radius: 999px;
+}
+
+.coins {
+  background: linear-gradient(160deg, #f9dd7e, #f2c94c);
+  color: #7a5c00;
   box-shadow: 0 3px 0 #d9ac1f;
 }
 
-.coin-svg {
+.stars {
+  background: linear-gradient(160deg, #eaf3ff, #cfe4ff);
+  color: #2f5aa8;
+  box-shadow: 0 3px 0 #a9c9ef;
+}
+
+.coin-svg,
+.star-svg {
   flex-shrink: 0;
   vertical-align: middle;
 }
@@ -3573,7 +3580,10 @@ body.varld-lage .container {
   width: 100%;
   /* Höjden fyller innehållsytan minus header/marginaler. 100dvh (inte 100vh)
      räknar bort mobilens dynamiska webbläsar-chrome, så scenen inte hamnar
-     under adressfältet. vh-raden är en fallback för mycket gamla motorer. */
+     under adressfältet. vh-raden är en fallback för mycket gamla motorer.
+     OBS: på DESKTOP (>700px) blir scenen kant-i-kant (se @media längre ner) men
+     scen-BOXEN (.varld-lager) hålls kvar i den här storleken så objekten aldrig
+     zoomas – bara mer övertecknad himmel/mark visas runt om (issue #373). */
   height: clamp(420px, calc(100vh - 150px), 900px);
   height: clamp(420px, calc(100dvh - 150px), 900px);
   border-radius: var(--radie);
@@ -3584,6 +3594,64 @@ body.varld-lage .container {
   /* Avatarens storlek i scen-koordinater (px i ute-SVG:ns viewBox). En
      framtida by-nivå sätter ett mindre värde på sina hus-kopior. */
   --varld-avatar-font: 120px;
+}
+
+/* KANT-I-KANT IMMERSIV VÄRLD på DESKTOP (issue #373, > 700px) ----------------
+   Scenen fyller HELA ytan till höger om sidomenyn – ingen läsbar maxbredd, ingen
+   lavendel-marginal, ingen kortram. VIKTIGT: objekten (hus/avatar/UFO/sol/
+   minihus/djur) behåller EXAKT sin gamla storlek. Det löser vi genom att hålla
+   scen-lagren (.varld-lager) kvar i den GAMLA scen-boxens mått, centrerade i det
+   nu full-bleed:ade staget. Ute-scenernas övertecknade himmel/gräs (svg
+   overflow:visible) svämmar då ut BORTOM lagret och fyller den extra ytan → man
+   ser MER himmel/mark runt om i stället för förstorade objekt. Kameran (inline
+   transform på lagren) är opåverkad. Rummet undantas (kaklet/väggen ska fylla
+   ut kant-i-kant och möblerna är redan cap:ade i storlek → ingen zoom där).
+   Brytpunkten är 820px = exakt där sidomenyn fortfarande är FAST (över 820) i
+   stället för off-canvas. Under 820px (off-canvas-meny + hamburger = "mobil"/
+   surfplatta) rörs scenen INTE – den ser ut precis som förr, och den fasta
+   hamburgern krockar aldrig med scenens topp-kontroller. */
+@media (min-width: 821px) {
+  body.varld-lage .container {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .varld-stage {
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  /* Scen-boxen = gamla scen-måtten, centrerad i staget (margin:auto + inset:0).
+     Ute-svg:n fyller lagret (100 %) → objekten får sin gamla skala; översikts-
+     overlays (gårdsdjur, odling, minihus) sitter kvar i % av samma box → allt
+     linjerar exakt som förr. Rummet (.room-stage) undantas och fyller staget. */
+  .varld-lager:not(.room-stage) {
+    inset: 0;
+    width: min(calc(100% - 40px), 1400px);
+    height: clamp(420px, calc(100dvh - 150px), 900px);
+    margin: auto;
+  }
+
+  /* By-/skol-scenerna ritar marken med preserveAspectRatio="none" (fyller BARA
+     scen-boxen, ingen överteckning). För att slippa en synlig söm (grön yta OVAN
+     scenens himmelsrand) förankras deras box i TOPPEN: himmelsranden hamnar då
+     högst upp och den extra ytan under/vid sidorna fylls av samma gräsgröna som
+     staget-botten. Ute-nivåerna (hus/gård…) fylls i stället av svg:ns
+     övertecknade natur och förblir vertikalt centrerade. */
+  .varld-lager.varld-by,
+  .varld-lager.varld-skola {
+    margin-top: 0;
+    margin-bottom: auto;
+  }
+  .varld-stage[data-niva="by"],
+  .varld-stage[data-niva="skola"],
+  .varld-stage[data-niva="grannby"] {
+    background: #a8da8f;
+  }
 }
 
 .varld-lager {
@@ -3865,12 +3933,17 @@ body.varld-lage .container {
   display: block;
 }
 
-.by-mark {
+.by-mark,
+.omrade-mark {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
+  /* Låter gräs/himmel/väg som ritas UTANFÖR viewBoxen (0–100) svämma ut och fylla
+     det full-bleed:ade staget sömlöst på desktop (#373). Staget klipper (overflow
+     hidden) mot skärmkanten. På mobil ligger allt ändå inom scen-boxen. */
+  overflow: visible;
 }
 
 /* En tomt = ett minihus + elevens avatar (husMini) med namnskylt under.
@@ -4108,13 +4181,7 @@ body.varld-lage .container {
 
 /* --- Skol-nivån (områdesöversikt): en klass-by per klass ------------------- */
 .varld-skola { background: #a8da8f; }
-.omrade-mark {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+/* .omrade-mark delar layout + overflow:visible med .by-mark (definierat ovan). */
 
 /* En klass-by-enhet: generisk by-silhuett + en namnskylt. left/top/width/height
    sätts inline av varld-omrade.js (procent av lagret – samma koordinater som
@@ -4360,6 +4427,9 @@ body.varld-lage .container {
 }
 
 @media (max-width: 700px) {
+  /* Mobil är AVSIKTLIGT oförändrad mot originalet (issue #373): kant-i-kant-
+     tilläggen gäller bara desktop (>700px). Scenen behåller sin gamla höjd så
+     inget blir större eller luftigare än förr. */
   .varld-stage {
     height: clamp(380px, calc(100vh - 120px), 700px);
     height: clamp(380px, calc(100dvh - 120px), 700px);
