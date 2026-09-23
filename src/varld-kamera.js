@@ -37,6 +37,48 @@ export const KAMERA_MS = 900;
 const reduceMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Under en pågående korszoom pausas alla ambient-animationer i scenen (#374):
+// moln, solstrålar, rök, djurens andning m.m. animerar transform på SVG-BARN,
+// som Chromium inte kan driva på kompositorn – varje frame målas då hela det
+// uppskalade lagret om, vilket är det som hackar. Pausen görs via Web
+// Animations API (pause/play på just de KÖRANDE CSS-animationerna) i stället
+// för en CSS-regel på scenen: en `.varld-zoomar *`-regel tvingade fram en
+// style-recalc av HELA scenträdet vid varje övergångsstart – på strypt CPU en
+// long task på 150–200 ms, dvs. nytt hack. CSSTransitions hoppas över – det
+// är kamerans egen övergång (och t.ex. stats-staplarnas breddar).
+// Klassen `varld-zoomar` sätts ändå (utan CSS-regler) som billig signal till
+// promenad-AI:n (rum-promenad.js), som sover under övergången. Delas via
+// WeakMap så flera kameror på samma scen (kompis/grannby/gård) inte släcker
+// varandras pågående övergång.
+const zoomState = new WeakMap();
+function markeraZoom(stageEl) {
+  if (!stageEl) return;
+  let st = zoomState.get(stageEl);
+  if (!st) zoomState.set(stageEl, (st = { timer: 0, pausade: [] }));
+  stageEl.classList.add("varld-zoomar");
+  if (!st.pausade.length && document.getAnimations) {
+    for (const a of document.getAnimations()) {
+      try {
+        if (typeof CSSTransition !== "undefined" && a instanceof CSSTransition) continue;
+        const mal = a.effect?.target;
+        if (mal && stageEl.contains(mal) && a.playState === "running") {
+          a.pause();
+          st.pausade.push(a);
+        }
+      } catch { /* borttagen nod e.d. – hoppa över */ }
+    }
+  }
+  clearTimeout(st.timer);
+  st.timer = setTimeout(() => {
+    stageEl.classList.remove("varld-zoomar");
+    // Släpp på ambient-animationerna igen – de fortsätter där de stod.
+    for (const a of st.pausade) {
+      try { a.play(); } catch { /* borttagen nod – ofarligt */ }
+    }
+    st.pausade.length = 0;
+  }, KAMERA_MS + 60);
+}
+
 /**
  * Skapa kameran.
  * @param {object} o
@@ -130,6 +172,7 @@ export function createKamera({ nivaer, startId, onNiva }) {
     }
     const origoNiva = Math.min(mal, aktiv);
     aktiv = mal;
+    markeraZoom(nivaer[mal].el.parentElement);
     apply(aktiv, origoNiva);
     return new Promise((res) =>
       setTimeout(() => {
