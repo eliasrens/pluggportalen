@@ -117,7 +117,9 @@ body {
   max-height: 100vh;
   overflow-y: auto;
   padding: 20px 18px 24px;
-  background: linear-gradient(180deg, #ffffff 0%, #f2f7ff 100%);
+  /* Mjuk himmelsgradient som knyter menyn till scenens himmel (issue #373) så
+     den fasta navigationen känns som en del av världen. */
+  background: linear-gradient(180deg, #e9f4ff 0%, #dcebff 55%, #eef6ff 100%);
   border-radius: 22px;
   box-shadow: 0 10px 28px rgba(31, 45, 74, 0.14);
   z-index: var(--z-sidomeny);
@@ -305,52 +307,57 @@ body.med-sidomeny .sidebar {
   margin: 8px 10px;
 }
 
-/* --- Fot: stjärnor ovanför (coins + logga ut) --- */
+/* --- Fot: enhetlig valuta-rad (stjärnor + mynt) ovanför logga ut --- */
 .sido-fot {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding-top: 8px;
 }
 
-/* Liten stjärnrad direkt ovanför mynt-raden. */
-.sido-stjarnor {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: #3a5bbf;
-}
-
-.sido-fot-rad {
+/* Valuta-raden: stjärn- och mynt-badgen sida vid sida, samma pill-behandling
+   (issue #373). Wrappar snyggt om siffrorna blir långa på den smala menyn. */
+.sido-valuta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.sido-fot .coins {
+.sido-fot .coins,
+.sido-fot .stars {
   font-size: 1.05rem;
 }
 
-/* --- Coins-chip (delas av sidomeny, hjälte och shop) + myntikon --- */
-.coins {
+/* --- Valuta-chips: mynt (guld) + stjärnor (sky), enhetlig pill-form ---------
+   Coins-chip delas av sidomeny, hjälte och shop. Stjärn-chip är samma form/
+   storlek men med en mjuk himmelston så den gyllene stjärnan poppar (som mot
+   himlen på grind-bågen) och de två valutorna hålls isär (issue #373). */
+.coins,
+.stars {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: linear-gradient(160deg, #f9dd7e, #f2c94c);
-  color: #7a5c00;
   font-weight: 800;
   padding: 7px 14px 7px 10px;
   border-radius: 999px;
+}
+
+.coins {
+  background: linear-gradient(160deg, #f9dd7e, #f2c94c);
+  color: #7a5c00;
   box-shadow: 0 3px 0 #d9ac1f;
 }
 
-.coin-svg {
+.stars {
+  background: linear-gradient(160deg, #eaf3ff, #cfe4ff);
+  color: #2f5aa8;
+  box-shadow: 0 3px 0 #a9c9ef;
+}
+
+.coin-svg,
+.star-svg {
   flex-shrink: 0;
   vertical-align: middle;
 }
@@ -3564,23 +3571,26 @@ code {
    origin mot fönstret) ligger här. Sidomenyn påverkas inte – bara #app-ytan
    breddas i världsläget (body.varld-lage sätts av routern). */
 
+/* KANT-I-KANT IMMERSIV VÄRLD (issue #373): i världsläget fyller scenen HELA ytan
+   till höger om sidomenyn – ingen läsbar maxbredd, ingen lavendel-marginal, ingen
+   kortram. Text-/listsidor (shoppen m.m.) är opåverkade – de saknar .varld-lage
+   och behåller .container:s centrerade maxbredd. */
 body.varld-lage .container {
-  max-width: 1440px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 .varld-stage {
   position: relative;
   width: 100%;
-  /* Höjden fyller innehållsytan minus header/marginaler. 100dvh (inte 100vh)
-     räknar bort mobilens dynamiska webbläsar-chrome, så scenen inte hamnar
-     under adressfältet. vh-raden är en fallback för mycket gamla motorer. */
-  height: clamp(420px, calc(100vh - 150px), 900px);
-  height: clamp(420px, calc(100dvh - 150px), 900px);
-  border-radius: var(--radie);
+  /* Fyller hela innehållsytans höjd kant-i-kant. 100dvh (inte 100vh) räknar bort
+     mobilens dynamiska webbläsar-chrome, så scenen inte hamnar under adressfältet.
+     vh-raden är en fallback för mycket gamla motorer. */
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-  box-shadow: var(--skugga-mjuk);
   background: #bde3f5;
-  margin-bottom: 16px;
   /* Avatarens storlek i scen-koordinater (px i ute-SVG:ns viewBox). En
      framtida by-nivå sätter ett mindre värde på sina hus-kopior. */
   --varld-avatar-font: 120px;
@@ -4360,9 +4370,13 @@ body.varld-lage .container {
 }
 
 @media (max-width: 700px) {
+  /* Kant-i-kant även på mobil (#373): scenen fyller hela viewporthöjden. Med
+     off-canvas-menyn tar scenen dessutom hela bredden. Objekten behåller sin
+     storlek (ute-SVG:n är breddstyrd) – den extra höjden visar bara MER
+     himmel/mark, precis som avsikten. */
   .varld-stage {
-    height: clamp(380px, calc(100vh - 120px), 700px);
-    height: clamp(380px, calc(100dvh - 120px), 700px);
+    height: 100vh;
+    height: 100dvh;
   }
   /* RUMMET på mobil: scenen delas med ute-vyn, som fyller hela höjden (bra –
      rör vi inte). Men rummet ritar vägg + golv som FYLLER scenen, så på den
@@ -4378,13 +4392,17 @@ body.varld-lage .container {
      höjd-clampen och 116 % av viewport-bredden, så vi aldrig blir högre än
      tillgängligt utrymme på korta skärmar. Desktop/laptop (> 700px) oförändrat. */
   .varld-stage[data-niva="rum"] {
-    height: min(clamp(380px, calc(100vh - 120px), 700px), 116vw);
-    height: min(clamp(380px, calc(100dvh - 120px), 700px), 116vw);
+    height: min(100vh, 116vw);
+    height: min(100dvh, 116vw);
   }
   .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
   .varld-knapp { padding: 6px 11px; }  /* tightare så alla ikoner ryms på raden */
   .varld-titel { font-size: 0.95rem; }
+  /* Scenens topp-kontroller (Gå ut / Verktyg / titel) skjuts ner så de går fria
+     från den fasta hamburgerknappen (top:12 + 48px) uppe till vänster – scenens
+     himmel går fortfarande kant-i-kant bakom knappen (#373). */
   .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */
+  body.med-sidomeny .varld-ui-topp { padding-left: 56px; }
   .varld-panel { width: 100%; }        /* panelerna fyller bredden på mobil */
 
   /* Rums-sakernas storlek behöver INTE längre en egen mobil-skala: --rum-enhet
