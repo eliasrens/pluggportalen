@@ -731,6 +731,17 @@ export async function pageElevVarld(startNiva) {
     },
   };
 
+  // Förvärm klassbyn i idle-tid (#374): första klasskylt-klicket byggde annars
+  // hela by-scenen (~25 hus-SVG:er, efter Firestore-hämtningen) synkront i
+  // klick-ögonblicket – en lång task precis när zoom-ut skulle börja röra sig.
+  // Förbyggd (dold) blir övergången bara "avslöja + zooma" (kameran målar
+  // dessutom lagret en frame före start, se gaTill). Läskostnaden är samma
+  // ≤2 dok som ett riktigt by-besök (#231-projektionen) – den tas bara
+  // tidigare. Fel sväljs tyst: laddaBy nollställer sig själv och nästa
+  // riktiga by-besök försöker igen (och visar då sitt felmeddelande).
+  const vidIdle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1500));
+  vidIdle(() => { laddaBy().catch(() => {}); }, { timeout: 4000 });
+
   // Ut-knappen (kontextberoende, se updateUi):
   //   grannbyhus → tillbaka till grannbyns översikt (samma klass)
   //   grannby   → tillbaka till skolan
