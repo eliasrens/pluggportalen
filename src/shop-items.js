@@ -1,14 +1,13 @@
 // ============================================================================
 // Pluggporten – shop-katalog
 // ----------------------------------------------------------------------------
-// Alla köpbara saker i shoppen (emoji-rendering – inga externa assets). Id:na
-// sparas i Firestore (studentData.ownedItems, room.placements, avatarItems) →
-// håll STABILA; lägg gärna till nya, byt aldrig id på befintliga.
-// Kategorier: klader (bärs på avataren, en per `slot` hatt/ansikte/hals/hand/
-// rygg – rygg ritas BAKOM figuren, avatarMarkup i avatars.js); mobler/husdjur/
-// dekor placeras i rummet; mat = KONSUMERBAR (`consumable`, INTE ownedItems, köp
-// ökar studentData.appleCount; buy/place/eatApple i data-pet.js). Priser är
-// medvetet spridda (billigt → dyrt) för långsiktig motivation.
+// Alla köpbara saker i shoppen (emoji-rendering, inga externa assets). Id:na
+// sparas i Firestore (ownedItems, room.placements, avatarItems) → håll STABILA;
+// lägg gärna till nya, byt aldrig id på befintliga. Kategorier: klader (bärs på
+// avataren, en per `slot` hatt/ansikte/hals/hand/rygg – rygg ritas BAKOM
+// figuren, avatars.js); mobler/husdjur/dekor placeras i rummet; mat =
+// KONSUMERBAR (`consumable`, INTE ownedItems, köp ökar appleCount; data-pet.js).
+// Priser medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
 
 import { MYSTERY_ITEMS, MYSTERY_BOXES } from "./mystery-items.js";
@@ -147,9 +146,8 @@ export const SHOP_ITEMS = [
   { id: "teleskop", name: "Teleskop", emoji: "🔭", category: "dekor", price: 150 },
 
   // --- Hus (byter husets EXTERIÖR/skal – rummet inuti oförändrat) ------------
-  // Köp lägger skal-id:t i ownedItems; aktivt skal väljs i "🏠 Nytt hus"
-  // (studentData.husSkalId). Stugan = default/gratis, säljs ej. Item-id ===
-  // skal-id i HUS_SKAL-registret (art-hus-ute.js) – håll i synk.
+  // Köp → skal-id i ownedItems; aktivt skal väljs i "🏠 Nytt hus" (husSkalId).
+  // Stugan = default/gratis, säljs ej. Item-id === skal-id i HUS_SKAL (art-hus-ute.js).
   { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
   { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
   // Lyxiga husskal (egen-tecknade, art-hus-lyx.js) – dyra spar-belöningar (1000+).
@@ -187,14 +185,12 @@ export const SHOP_ITEMS = [
   { id: "kandisvilla", name: "Kändisvilla (Hollywood-stil)", emoji: "🌟", category: "hus", price: 14800, skalId: "kandisvilla" },
   { id: "maktpyramid", name: "Den Gyllene Svävande Maktpyramiden", emoji: "🔺", category: "hus", price: 15000, skalId: "maktpyramid" },
   // Lada-SKINS (#353): byter LAGGÅRDENS utseende – samma flöde som husskalen
-  // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin). Rent kosmetiskt:
-  // nivån (#333) styr kapaciteten. Id:n = registret i art-lada-skins.js.
+  // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin, kosmetiskt; art-lada-skins.js).
   { id: "lada-bla", name: "Blå sjölada", emoji: "🌊", category: "hus", price: 350, barnSkin: true },
   { id: "lada-godis", name: "Godislada", emoji: "🍬", category: "hus", price: 700, barnSkin: true },
   { id: "lada-rymd", name: "Rymdlada", emoji: "🛸", category: "hus", price: 1200, barnSkin: true },
-  // Rums-uppgraderingar: varje köp låser upp ETT extra rum i huset (dörr inne +
-  // rumslista i husvärlden). roomUpgrade:true → räknas av getRoomCount() som +1
-  // rum; de köps i pris-ordning men ger var och en exakt +1 rum. Se data-room.js.
+  // Rums-uppgraderingar: varje köp låser upp ETT extra rum (dörr inne + rumslista).
+  // roomUpgrade:true → getRoomCount() ger +1 rum styck, köps i pris-ordning (data-room.js).
   { id: "rum-2", name: "Extra rum", emoji: "🚪", category: "hus", price: 250, roomUpgrade: true },
   { id: "rum-3", name: "Tredje rummet", emoji: "🚪", category: "hus", price: 500, roomUpgrade: true },
   { id: "rum-4", name: "Fjärde rummet", emoji: "🚪", category: "hus", price: 800, roomUpgrade: true },
@@ -243,9 +239,8 @@ export const SHOP_ITEMS = [
 // olika legendary-chans (legendaryChance styr lottningen, se mystery-items.js).
 // Boxarna köps hur många gånger som helst (aldrig "ägd"); öppnandet sker via
 // openMysteryBox() (data-mystery.js) och reveal-flödet i pages-shop-mystery.js.
-// De läggs SIST i SHOP_ITEMS + kategorin "mystery" är sist i CATEGORIES → de
-// hamnar längst ner i shoppen, i pris-ordning. `mysteryBox:true` gör att
-// pages-shop.js kör öppna-flödet i stället för ett vanligt köp.
+// De läggs SIST i SHOP_ITEMS + kategorin "mystery" sist i CATEGORIES → hamnar
+// längst ner i shoppen. `mysteryBox:true` → pages-shop.js kör öppna-flödet.
 for (const box of MYSTERY_BOXES) {
   SHOP_ITEMS.push({
     id: box.id, name: box.name, emoji: box.emoji, category: "mystery",
