@@ -170,6 +170,12 @@ export const SHOP_ITEMS = [
   { id: "raket", name: "Rymdraket", emoji: "🚀", category: "hus", price: 1300, skalId: "raket" },
   { id: "godishus", name: "Godishus", emoji: "🍭", category: "hus", price: 1600, skalId: "godishus" },
   { id: "vulkan", name: "Vulkanhus", emoji: "🌋", category: "hus", price: 2500, skalId: "vulkan" },
+  // Klassiska & natur-husskal (#383, egen-tecknade art-hus-natur.js) – 4 000–6 000.
+  { id: "skeppsvrak", name: "Piratkopia (Skeppsvrak)", emoji: "🏴‍☠️", category: "hus", price: 4000, skalId: "skeppsvrak" },
+  { id: "tradkoja", name: "Trädkoja", emoji: "🌳", category: "hus", price: 4500, skalId: "tradkoja" },
+  { id: "akvariehus", name: "Akvariehus", emoji: "🐠", category: "hus", price: 5000, skalId: "akvariehus" },
+  { id: "snoglobshus", name: "Snöglobs-hus", emoji: "❄️", category: "hus", price: 5500, skalId: "snoglobshus" },
+  { id: "djungeltempel", name: "Djungeltempel", emoji: "🛕", category: "hus", price: 6000, skalId: "djungeltempel" },
   // Lada-SKINS (#353): byter LAGGÅRDENS utseende – samma flöde som husskalen
   // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin). Rent kosmetiskt:
   // nivån (#333) styr kapaciteten. Id:n = registret i art-lada-skins.js.
