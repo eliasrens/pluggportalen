@@ -347,7 +347,10 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
       ${husSkalMarkup(skalId)}
     </g>
 
-    <path d="M390 512 Q380 560 340 600 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
+    <!-- Gången (trapets, vidgas nedåt): sidorna FORTSÄTTER under viewBoxen ner i
+         den övertecknade nederkanten (gräs ritas till y=2100) så vägen når hela
+         vägen ner oavsett hur mycket extra gräs kant-i-kant avslöjar (#373). -->
+    <path d="M390 512 Q380 560 340 600 L-520 2100 L1330 2100 L470 600 Q430 556 420 512 Z" fill="#EAD9C0" ${LINE}/>
     ${skyltHtml}
     <ellipse cx="395" cy="545" rx="12" ry="5" fill="#D8C4A4" stroke="none"/>
     <ellipse cx="410" cy="575" rx="14" ry="6" fill="#D8C4A4" stroke="none"/>
