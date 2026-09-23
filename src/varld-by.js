@@ -23,8 +23,13 @@
 // (en tomt per elev) – layout, väg och dekor räknas alltid om från antalet.
 // ============================================================================
 
-/** Rimlig kamerazoom by → hus (huset fyller ~1/5 av byn → zoom ≈ 5). */
-export const BY_ZOOM = 5;
+/** Kamerazoom by → hus. Sänkt 5 → 3.5 (#374 runda 4, Elias-godkänt byte):
+ * mindre skalspann = färre raster-skaltrösklar för kompositorn under
+ * korszoomen = märkbart färre droppade frames på svag CPU (4x-strypt:
+ * 13→7 droppade första zoomen, 3–4→0–1 efterföljande), mot priset att
+ * resan känns lite mindre "djupt" inzoomad. Byns VILO-vy påverkas inte
+ * (husens storlek styrs av layouten, inte av zoomen). */
+export const BY_ZOOM = 3.5;
 
 /**
  * Välj bra byLayout-parametrar för ett givet antal hus. Dimensionerad för
