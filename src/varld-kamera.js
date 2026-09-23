@@ -145,10 +145,17 @@ export function createKamera({ nivaer, startId, onNiva }) {
     }, reduceMotion() ? 30 : KAMERA_MS + 60);
   }
 
+  // Löpnummer per påbörjad resa/hopp: gaTill väntar numera en frame före
+  // animationsstart (se nedan), och en nyare resa som hinner börja under
+  // väntan ska vinna – den gamla släpper då greppet i stället för att skriva
+  // över med sitt inaktuella läge.
+  let resa = 0;
+
   /** Hoppa direkt (utan animation) till en nivå. */
   function hoppaTill(id) {
     const mal = nivaer.findIndex((n) => n.id === id);
     if (mal === -1) return;
+    resa++;
     for (const n of nivaer) n.el.classList.add("varld-utan-anim");
     aktiv = mal;
     apply(aktiv);
@@ -163,23 +170,36 @@ export function createKamera({ nivaer, startId, onNiva }) {
    * ett steg (t.ex. djuplänk by → rum) tas direkt utan animation.
    * @returns {Promise<void>} löser när övergången är klar.
    */
-  function gaTill(id) {
+  async function gaTill(id) {
     const mal = nivaer.findIndex((n) => n.id === id);
-    if (mal === -1 || mal === aktiv) return Promise.resolve();
+    if (mal === -1 || mal === aktiv) return;
     if (Math.abs(mal - aktiv) > 1 || reduceMotion()) {
       hoppaTill(id);
-      return Promise.resolve();
+      return;
     }
     const origoNiva = Math.min(mal, aktiv);
     aktiv = mal;
+    const token = ++resa;
     markeraZoom(nivaer[mal].el.parentElement);
+    // Var mållagret helt gömt (visibility)? Avslöja det FÖRST, i sitt redan
+    // satta startläge (opacity 0 – inget syns), och ge webbläsaren en frame
+    // att måla+rastrera lagret INNAN kameran börjar röra sig (#374). Ett
+    // kallt/nybyggt lager (t.ex. klassbyn: ~25 hus-SVG:er) kostar annars en
+    // style/paint-spik som äter upp övergångens första frames – korszoomen
+    // startar då med ett synligt hack. Klassbytet i sig animerar inget
+    // (transition-listan är bara transform/opacity). I gömd flik hoppas
+    // väntan över (rAF tickar inte där; ingen ser ändå animationen).
+    const malEl = nivaer[mal].el;
+    if (malEl.classList.contains("varld-dold") && !document.hidden) {
+      malEl.classList.remove("varld-dold");
+      await new Promise((res) =>
+        requestAnimationFrame(() => requestAnimationFrame(res))
+      );
+      if (token !== resa) return; // en nyare resa tog över under väntan
+    }
     apply(aktiv, origoNiva);
-    return new Promise((res) =>
-      setTimeout(() => {
-        onNiva?.(id);
-        res();
-      }, KAMERA_MS)
-    );
+    await new Promise((res) => setTimeout(res, KAMERA_MS));
+    if (token === resa) onNiva?.(id);
   }
 
   apply(aktiv);
