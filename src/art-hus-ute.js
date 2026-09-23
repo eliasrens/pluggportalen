@@ -31,6 +31,7 @@ import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 import { NATUR_HUS_SKAL } from "./art-hus-natur.js";
 import { RETRO_HUS_SKAL } from "./art-hus-retro.js";
 import { NOJE_HUS_SKAL } from "./art-hus-noje.js";
+import { LEGEND_SHOP_HUS_SKAL } from "./art-hus-legend-shop.js";
 import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
@@ -180,6 +181,8 @@ const HUS_SKAL = {
   ...RETRO_HUS_SKAL,
   // Maskiner & nöje-husskal (tidstorn/gamer/fruktpalats/arkadhall/…, köpbara #385).
   ...NOJE_HUS_SKAL,
+  // Legendariska köpbara husskal (kristallgrotta/drakgrotta/månbas/…, köpbara #386, 13k–15k).
+  ...LEGEND_SHOP_HUS_SKAL,
   // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
   ...MYSTERY_HUS_SKAL,
   // Legendary husskal (exklusiva Mega/Epic-box-drops, ej köpbara i shoppen).
