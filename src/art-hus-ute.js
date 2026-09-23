@@ -25,7 +25,7 @@
 // igenom överallt.
 // ============================================================================
 
-import { O, LINE, THIN, limb } from "./art-style.js";
+import { O, LINE, THIN, limb, husBas } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
@@ -179,7 +179,8 @@ const HUS_SKAL = {
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
 export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
-  return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
+  // husBas() = mjuk gräskulle som grundar husbotten mot marken (inget "flygande" hus) för ALLA skal.
+  return husBas() + (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
 }
 
 /** Känt husskal-id? (annars faller allt tillbaka på default-stugan) */

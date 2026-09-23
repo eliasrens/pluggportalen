@@ -154,6 +154,22 @@ export function shadow(cx, cy, rx) {
   return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}" fill="${O}" opacity="0.09"/>`;
 }
 
+/**
+ * Mjuk gräs-/jordkulle-bas under ett hus. Husskalen ritas med rak botten (y≈510)
+ * men marklinjen är en böjd kulle, så på sluttande mark glipar husets nederhörn
+ * mot marken → huset "flyger". Denna dome fyller alltid glipan: strokelös (ingen
+ * hård platta) och i gräsets front-ton (#8FCB74) så den är sömlös mot markbandet
+ * i närbilden och läser som en grundad kulle i by-vyn. Ritas FÖRST i husSkalMarkup
+ * (bakom huset), så husfasaden täcker domens topp och bara de mjuka gräs-sidorna
+ * syns. cx = husets mittlinje (default 480 = delat koordinatsystem för alla skal).
+ */
+export function husBas(cx = 480) {
+  return (
+    `<path d="M${cx - 212} 556 Q${cx - 180} 498 ${cx} 496 Q${cx + 180} 498 ${cx + 212} 556 Z" fill="#8FCB74"/>` +
+    `<path d="M${cx - 150} 508 Q${cx - 70} 500 ${cx} 500 Q${cx + 70} 500 ${cx + 150} 508 Q${cx} 504 ${cx - 150} 508 Z" fill="#B4E19B" opacity="0.55"/>`
+  );
+}
+
 /** Liten dekorstjärna (fylld, utan kontur). */
 export function stjarna(x, y, s, c) {
   return (
