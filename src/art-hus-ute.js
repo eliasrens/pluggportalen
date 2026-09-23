@@ -25,7 +25,7 @@
 // igenom överallt.
 // ============================================================================
 
-import { O, LINE, THIN, limb, husBas } from "./art-style.js";
+import { O, LINE, THIN, limb } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
 import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
@@ -179,8 +179,7 @@ const HUS_SKAL = {
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
 export function husSkalMarkup(skalId = DEFAULT_HUS_SKAL) {
-  // husBas() = mjuk gräskulle som grundar husbotten mot marken (inget "flygande" hus) för ALLA skal.
-  return husBas() + (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
+  return (HUS_SKAL[skalId] || HUS_SKAL[DEFAULT_HUS_SKAL]).markup();
 }
 
 /** Känt husskal-id? (annars faller allt tillbaka på default-stugan) */
@@ -335,7 +334,8 @@ export function husScen(avatarHtml, { skalId = DEFAULT_HUS_SKAL, skylt = null } 
     <g class="hus-moln" style="--t:75s;animation-delay:-40s">${molnArt(0, 40, 0.7)}</g>
 
     <path d="M-2400 470 L-480 480 Q240 380 520 470 Q760 380 1440 460 L3360 470 L3360 2100 L-2400 2100 Z" fill="#A8DA8F" ${LINE}/>
-    <path d="M-2400 520 L-480 520 Q300 470 620 525 Q820 500 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
+    <!-- Front-gräset: kullen består men plattas ut subtilt (~y500) under husets fotavtryck (x≈330–650) så den raka husbotten (y≈510) alltid sitter i gräset – inget hus "flyger". -->
+    <path d="M-2400 520 L-480 520 Q160 470 420 498 Q540 506 660 500 Q900 496 1440 520 L3360 520 L3360 2100 L-2400 2100 Z" fill="#8FCB74" ${LINE}/>
 
     <g>${limb("M800 500 L800 430", WOOD, 14)}
       <circle cx="800" cy="392" r="52" fill="#6FC66F" ${LINE}/>
