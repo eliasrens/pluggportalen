@@ -3571,29 +3571,87 @@ code {
    origin mot fönstret) ligger här. Sidomenyn påverkas inte – bara #app-ytan
    breddas i världsläget (body.varld-lage sätts av routern). */
 
-/* KANT-I-KANT IMMERSIV VÄRLD (issue #373): i världsläget fyller scenen HELA ytan
-   till höger om sidomenyn – ingen läsbar maxbredd, ingen lavendel-marginal, ingen
-   kortram. Text-/listsidor (shoppen m.m.) är opåverkade – de saknar .varld-lage
-   och behåller .container:s centrerade maxbredd. */
 body.varld-lage .container {
-  max-width: none;
-  margin: 0;
-  padding: 0;
+  max-width: 1440px;
 }
 
 .varld-stage {
   position: relative;
   width: 100%;
-  /* Fyller hela innehållsytans höjd kant-i-kant. 100dvh (inte 100vh) räknar bort
-     mobilens dynamiska webbläsar-chrome, så scenen inte hamnar under adressfältet.
-     vh-raden är en fallback för mycket gamla motorer. */
-  height: 100vh;
-  height: 100dvh;
+  /* Höjden fyller innehållsytan minus header/marginaler. 100dvh (inte 100vh)
+     räknar bort mobilens dynamiska webbläsar-chrome, så scenen inte hamnar
+     under adressfältet. vh-raden är en fallback för mycket gamla motorer.
+     OBS: på DESKTOP (>700px) blir scenen kant-i-kant (se @media längre ner) men
+     scen-BOXEN (.varld-lager) hålls kvar i den här storleken så objekten aldrig
+     zoomas – bara mer övertecknad himmel/mark visas runt om (issue #373). */
+  height: clamp(420px, calc(100vh - 150px), 900px);
+  height: clamp(420px, calc(100dvh - 150px), 900px);
+  border-radius: var(--radie);
   overflow: hidden;
+  box-shadow: var(--skugga-mjuk);
   background: #bde3f5;
+  margin-bottom: 16px;
   /* Avatarens storlek i scen-koordinater (px i ute-SVG:ns viewBox). En
      framtida by-nivå sätter ett mindre värde på sina hus-kopior. */
   --varld-avatar-font: 120px;
+}
+
+/* KANT-I-KANT IMMERSIV VÄRLD på DESKTOP (issue #373, > 700px) ----------------
+   Scenen fyller HELA ytan till höger om sidomenyn – ingen läsbar maxbredd, ingen
+   lavendel-marginal, ingen kortram. VIKTIGT: objekten (hus/avatar/UFO/sol/
+   minihus/djur) behåller EXAKT sin gamla storlek. Det löser vi genom att hålla
+   scen-lagren (.varld-lager) kvar i den GAMLA scen-boxens mått, centrerade i det
+   nu full-bleed:ade staget. Ute-scenernas övertecknade himmel/gräs (svg
+   overflow:visible) svämmar då ut BORTOM lagret och fyller den extra ytan → man
+   ser MER himmel/mark runt om i stället för förstorade objekt. Kameran (inline
+   transform på lagren) är opåverkad. Rummet undantas (kaklet/väggen ska fylla
+   ut kant-i-kant och möblerna är redan cap:ade i storlek → ingen zoom där).
+   Brytpunkten är 820px = exakt där sidomenyn fortfarande är FAST (över 820) i
+   stället för off-canvas. Under 820px (off-canvas-meny + hamburger = "mobil"/
+   surfplatta) rörs scenen INTE – den ser ut precis som förr, och den fasta
+   hamburgern krockar aldrig med scenens topp-kontroller. */
+@media (min-width: 821px) {
+  body.varld-lage .container {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .varld-stage {
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  /* Scen-boxen = gamla scen-måtten, centrerad i staget (margin:auto + inset:0).
+     Ute-svg:n fyller lagret (100 %) → objekten får sin gamla skala; översikts-
+     overlays (gårdsdjur, odling, minihus) sitter kvar i % av samma box → allt
+     linjerar exakt som förr. Rummet (.room-stage) undantas och fyller staget. */
+  .varld-lager:not(.room-stage) {
+    inset: 0;
+    width: min(calc(100% - 40px), 1400px);
+    height: clamp(420px, calc(100dvh - 150px), 900px);
+    margin: auto;
+  }
+
+  /* By-/skol-scenerna ritar marken med preserveAspectRatio="none" (fyller BARA
+     scen-boxen, ingen överteckning). För att slippa en synlig söm (grön yta OVAN
+     scenens himmelsrand) förankras deras box i TOPPEN: himmelsranden hamnar då
+     högst upp och den extra ytan under/vid sidorna fylls av samma gräsgröna som
+     staget-botten. Ute-nivåerna (hus/gård…) fylls i stället av svg:ns
+     övertecknade natur och förblir vertikalt centrerade. */
+  .varld-lager.varld-by,
+  .varld-lager.varld-skola {
+    margin-top: 0;
+    margin-bottom: auto;
+  }
+  .varld-stage[data-niva="by"],
+  .varld-stage[data-niva="skola"],
+  .varld-stage[data-niva="grannby"] {
+    background: #a8da8f;
+  }
 }
 
 .varld-lager {
@@ -4370,13 +4428,12 @@ body.varld-lage .container {
 }
 
 @media (max-width: 700px) {
-  /* Kant-i-kant även på mobil (#373): scenen fyller hela viewporthöjden. Med
-     off-canvas-menyn tar scenen dessutom hela bredden. Objekten behåller sin
-     storlek (ute-SVG:n är breddstyrd) – den extra höjden visar bara MER
-     himmel/mark, precis som avsikten. */
+  /* Mobil är AVSIKTLIGT oförändrad mot originalet (issue #373): kant-i-kant-
+     tilläggen gäller bara desktop (>700px). Scenen behåller sin gamla höjd så
+     inget blir större eller luftigare än förr. */
   .varld-stage {
-    height: 100vh;
-    height: 100dvh;
+    height: clamp(380px, calc(100vh - 120px), 700px);
+    height: clamp(380px, calc(100dvh - 120px), 700px);
   }
   /* RUMMET på mobil: scenen delas med ute-vyn, som fyller hela höjden (bra –
      rör vi inte). Men rummet ritar vägg + golv som FYLLER scenen, så på den
@@ -4392,17 +4449,13 @@ body.varld-lage .container {
      höjd-clampen och 116 % av viewport-bredden, så vi aldrig blir högre än
      tillgängligt utrymme på korta skärmar. Desktop/laptop (> 700px) oförändrat. */
   .varld-stage[data-niva="rum"] {
-    height: min(100vh, 116vw);
-    height: min(100dvh, 116vw);
+    height: min(clamp(380px, calc(100vh - 120px), 700px), 116vw);
+    height: min(clamp(380px, calc(100dvh - 120px), 700px), 116vw);
   }
   .varld-knapp span { display: none; } /* bara ikoner på små skärmar */
   .varld-knapp { padding: 6px 11px; }  /* tightare så alla ikoner ryms på raden */
   .varld-titel { font-size: 0.95rem; }
-  /* Scenens topp-kontroller (Gå ut / Verktyg / titel) skjuts ner så de går fria
-     från den fasta hamburgerknappen (top:12 + 48px) uppe till vänster – scenens
-     himmel går fortfarande kant-i-kant bakom knappen (#373). */
   .varld-ui { padding: 8px; }          /* mer plats åt scenen/knappraden */
-  body.med-sidomeny .varld-ui-topp { padding-left: 56px; }
   .varld-panel { width: 100%; }        /* panelerna fyller bredden på mobil */
 
   /* Rums-sakernas storlek behöver INTE längre en egen mobil-skala: --rum-enhet
