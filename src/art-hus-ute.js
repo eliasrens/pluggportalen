@@ -1,33 +1,29 @@
 // ============================================================================
 // Pluggporten – ute-scenen: elevens hus utifrån (illustrerad SVG)
 // ----------------------------------------------------------------------------
-// Ritar hus-vyn (viewBox 960×600) som husvärldens "hus"-nivå använder
-// (pages-varld.js). Utseendet följer design/DESIGNBESLUT-husdjur-hem-2.0.md:
-//  - kontur #3B3350 (art-style.js), fönster 150×130 vid (440,330)
-//  - husfasad/tak/vägg färgas via CSS-variablerna --hus-house/--hus-roof/
-//    --hus-wall/--hus-wall2 (elevens palett) – golv & natur påverkas inte.
-// preserveAspectRatio="xMidYMid meet" ser till att HELA viewBoxen (hus + avatar
-// + all natur) ALLTID ryms – inget beskärs på korta/breda eller smala/höga
-// skärmar. Himmel/gräs är övertecknade långt utanför viewBoxen och scenens
-// svg får overflow:visible (styles.css .varld-ute svg), så letterbox-ytan
-// fylls av naturen i stället för tomma kanter; .varld-stage klipper mot ramen.
-// Elevens avatar ritas framför huset via foreignObject – den
-// lever i scenens koordinatsystem och följer därmed alla kamerazoomar
-// perfekt; storleken styrs av CSS-variabeln --varld-avatar-font (px i
-// scen-koordinater).
+// Ritar hus-vyn (viewBox 960×600, pages-varld.js) enligt design/DESIGNBESLUT-
+// husdjur-hem-2.0.md: kontur #3B3350 (art-style.js), fönster 150×130 vid
+// (440,330), fasad/tak/vägg färgas via --hus-house/--hus-roof/--hus-wall/
+// --hus-wall2 (elevens palett). preserveAspectRatio "xMidYMid meet" ryms HELA
+// viewBoxen på alla skärmar; himmel/gräs är övertecknade utanför den + svg får
+// overflow:visible (.varld-ute svg) så letterbox-ytan fylls av natur, .varld-
+// stage klipper mot ramen. Avataren ritas framför huset via foreignObject i
+// scen-koordinater (följer alla zoomar; storlek: --varld-avatar-font).
 //
-// HUSSKAL: själva huset ritas av ett utbytbart "skal" ur HUS_SKAL-registret
-// (husSkalMarkup). "stuga" är default/gratis; övriga (slott, svamphus, …) köps
-// i shoppen ("Köp nytt hus") och väljs via husvärldens "🏠 Nytt hus"-panel –
-// aktivt val sparas i studentData.husSkalId. Bytet rör bara EXTERIÖREN; rummet/
-// interiören påverkas inte. Både ute-scenen och by-vyns minihus (husMini,
-// klassbyn i varld-by-scen.js) ritar via registret, så ett nytt skal slår
+// HUSSKAL: huset ritas av ett utbytbart "skal" ur HUS_SKAL-registret
+// (husSkalMarkup). "stuga" = default/gratis; övriga köps i shoppen och väljs i
+// "🏠 Nytt hus" (studentData.husSkalId). Bytet rör bara EXTERIÖREN. Både ute-
+// scenen och by-vyns minihus (husMini) ritar via registret → nytt skal slår
 // igenom överallt.
 // ============================================================================
 
 import { O, LINE, THIN, limb } from "./art-style.js";
 import { MYSTERY_HUS_SKAL } from "./art-mystery.js";
 import { LYX_HUS_SKAL } from "./art-hus-lyx.js";
+import { NATUR_HUS_SKAL } from "./art-hus-natur.js";
+import { RETRO_HUS_SKAL } from "./art-hus-retro.js";
+import { NOJE_HUS_SKAL } from "./art-hus-noje.js";
+import { LEGEND_SHOP_HUS_SKAL } from "./art-hus-legend-shop.js";
 import { LEGENDARY_HUS_SKAL } from "./art-hus-legendary.js";
 
 // Trä-färger ur stilguiden (färgas aldrig om av paletten).
@@ -165,16 +161,15 @@ function svampMarkup() {
       <path d="M548 384 L548 424 M528 404 L568 404" stroke="${O}" stroke-width="4"/>`;
 }
 
+// stuga = default/gratis; övriga skal spreadas in ur syskonregister. Köpbara:
+// LYX (skepp/fotboll/…, 1000+), NATUR (#383), RETRO (#384), NOJE (#385),
+// LEGEND_SHOP (#386, 13k–15k). Box-drops: MYSTERY (väljbara) + LEGENDARY (Mega/Epic).
 const HUS_SKAL = {
   stuga: { namn: "Stuga", emoji: "🏡", markup: stugaMarkup },
   slott: { namn: "Slott", emoji: "🏰", markup: slottMarkup },
   svamphus: { namn: "Svamphus", emoji: "🍄", markup: svampMarkup },
-  // Lyxiga köpbara husskal (skepp/fotboll/skyskrapa/glasvilla, 1000+ coins).
-  ...LYX_HUS_SKAL,
-  // Mystery-husskal (vinns ur mysteryboxen) – väljs i "🏠 Nytt hus" som övriga.
-  ...MYSTERY_HUS_SKAL,
-  // Legendary husskal (exklusiva Mega/Epic-box-drops, ej köpbara i shoppen).
-  ...LEGENDARY_HUS_SKAL,
+  ...LYX_HUS_SKAL, ...NATUR_HUS_SKAL, ...RETRO_HUS_SKAL, ...NOJE_HUS_SKAL,
+  ...LEGEND_SHOP_HUS_SKAL, ...MYSTERY_HUS_SKAL, ...LEGENDARY_HUS_SKAL,
 };
 
 /** Exteriör-markup för ett husskal, med säkert fallback till stugan. */
