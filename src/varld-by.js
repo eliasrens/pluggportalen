@@ -138,20 +138,41 @@ export function byVagarSvg(layout) {
   const f = (n) => Number(n.toFixed(2));
 
   // Mittlinjen: vågiga radsträckor (samplade var 3:e %-enhet) + U-svängar.
+  // Seriens TVÅ öppna ändar (första radens start, sista radens slut) fortsätter
+  // RAKT UT horisontellt genom sidokanten – i nivå med sin radsträcka, ingen
+  // rundning/klättring/loop, aldrig upp i himlen – så det ser ut som vägen
+  // fortsätter bortom skärmen i sidled. Utfarterna dras långt förbi kanten (UT)
+  // så de lämnar skärmen även när scen-boxen är smalare än det full-bleed:ade
+  // staget (#373). Mellanradernas side-U-svängar är oförändrade.
+  const UT = 60;
   const delar = [];
   for (let rad = 0; rad < rader; rad++) {
     const ltr = rad % 2 === 0; // vänster→höger på jämna rader
-    const xIn = rad === 0 ? (ltr ? -4 : 104) : ltr ? 4 : 96;
-    const xUt = rad === rader - 1 ? (ltr ? 104 : -4) : ltr ? 96 : 4;
+    const forsta = rad === 0;
+    const sista = rad === rader - 1;
+    // Radens synliga start/slut (U-sväng-punkter, ±4/96); de öppna ändarna får en
+    // rak horisontell utlöpare separat nedan.
+    const vFrom = ltr ? (forsta ? -4 : 4) : forsta ? 104 : 96;
+    const vTo = ltr ? (sista ? 104 : 96) : sista ? -4 : 4;
     const steg = ltr ? 3 : -3;
-    for (let x = xIn; ltr ? x < xUt : x > xUt; x += steg) {
-      delar.push(`${rad === 0 && x === xIn ? "M" : "L"}${f(x)} ${f(vagY(rad, x))}`);
+
+    if (forsta) {
+      // Rak horisontell öppen ände ut genom sidokanten, i nivå med första sträckan.
+      const y = vagY(0, vFrom);
+      delar.push(`M${f(ltr ? -UT : 100 + UT)} ${f(y)} L${f(vFrom)} ${f(y)}`);
     }
-    delar.push(`L${f(xUt)} ${f(vagY(rad, xUt))}`);
-    if (rad < rader - 1) {
+    for (let x = vFrom; ltr ? x < vTo : x > vTo; x += steg) {
+      delar.push(`L${f(x)} ${f(vagY(rad, x))}`);
+    }
+    delar.push(`L${f(vTo)} ${f(vagY(rad, vTo))}`);
+    if (sista) {
+      // Rak horisontell öppen ände ut genom sidokanten, i nivå med sista sträckan.
+      const y = vagY(rad, vTo);
+      delar.push(`L${f(ltr ? 100 + UT : -UT)} ${f(y)}`);
+    } else {
       // Synlig U-sväng i kanten ner till nästa rads väg (växlar sida).
-      const bukt = ltr ? xUt + 9 : xUt - 9;
-      delar.push(`C${f(bukt)} ${f(vagY(rad, xUt))} ${f(bukt)} ${f(vagY(rad + 1, xUt))} ${f(xUt)} ${f(vagY(rad + 1, xUt))}`);
+      const bukt = ltr ? vTo + 9 : vTo - 9;
+      delar.push(`C${f(bukt)} ${f(vagY(rad, vTo))} ${f(bukt)} ${f(vagY(rad + 1, vTo))} ${f(vTo)} ${f(vagY(rad + 1, vTo))}`);
     }
   }
   const d = delar.join(" ");

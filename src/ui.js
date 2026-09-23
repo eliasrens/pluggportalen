@@ -7,7 +7,7 @@
 
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { coinIcon } from "./icons.js";
+import { coinIcon, starIcon } from "./icons.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -166,11 +166,11 @@ export async function renderTopbar() {
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">
-      <span class="sido-stjarnor" title="Dina stjärnor">⭐ ${stjarnor} stjärnor</span>
-      <div class="sido-fot-rad">
+      <div class="sido-valuta">
+        <span class="stars" title="Dina stjärnor">${starIcon(22)} ${stjarnor}</span>
         <span class="coins" title="Dina pluggcoins">${coinIcon(22)} ${coins}</span>
-        <button class="btn ghost liten" id="logout-btn">Logga ut</button>
       </div>
+      <button class="btn ghost liten" id="logout-btn">Logga ut</button>
     </div>
   </div>`);
 
