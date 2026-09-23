@@ -3933,12 +3933,17 @@ body.varld-lage .container {
   display: block;
 }
 
-.by-mark {
+.by-mark,
+.omrade-mark {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
+  /* Låter gräs/himmel/väg som ritas UTANFÖR viewBoxen (0–100) svämma ut och fylla
+     det full-bleed:ade staget sömlöst på desktop (#373). Staget klipper (overflow
+     hidden) mot skärmkanten. På mobil ligger allt ändå inom scen-boxen. */
+  overflow: visible;
 }
 
 /* En tomt = ett minihus + elevens avatar (husMini) med namnskylt under.
@@ -4176,13 +4181,7 @@ body.varld-lage .container {
 
 /* --- Skol-nivån (områdesöversikt): en klass-by per klass ------------------- */
 .varld-skola { background: #a8da8f; }
-.omrade-mark {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+/* .omrade-mark delar layout + overflow:visible med .by-mark (definierat ovan). */
 
 /* En klass-by-enhet: generisk by-silhuett + en namnskylt. left/top/width/height
    sätts inline av varld-omrade.js (procent av lagret – samma koordinater som
