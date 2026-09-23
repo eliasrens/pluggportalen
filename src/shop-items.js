@@ -1,22 +1,14 @@
 // ============================================================================
 // Pluggporten – shop-katalog
 // ----------------------------------------------------------------------------
-// Alla köpbara saker i shoppen. Ritas som emoji – inga externa assets krävs.
-// Id:na sparas i Firestore (studentData.ownedItems, room.placements,
-// avatarItems), så håll dem STABILA. Lägg gärna till nya saker, men byt inte
-// id på befintliga.
-//
-// Kategorier: klader – kläder/accessoarer på avataren (har `slot`); mobler –
-// möbler i rummet; husdjur – husdjur i rummet; dekor – pynt i rummet; mat –
-// KONSUMERBAR mat (äpplen) som läggs på golvet & äts av djuren.
-//
-// Mat (`mat`) är förbrukningsvara: ligger INTE i ownedItems, köp ökar ett ANTAL
-// (studentData.appleCount). `consumable:true` (isConsumable); buy/place/eatApple i data-pet.js.
-// Kläder (`klader`) bärs på avataren, en sak per `slot` (hatt/ansikte/hals/hand/
-// rygg – rygg ritas BAKOM figuren, se avatarMarkup i avatars.js); övriga
-// kategorier placeras i rummet.
-//
-// Priser är medvetet spridda (billigt → dyrt) för långsiktig motivation.
+// Alla köpbara saker i shoppen (emoji-rendering – inga externa assets). Id:na
+// sparas i Firestore (studentData.ownedItems, room.placements, avatarItems) →
+// håll STABILA; lägg gärna till nya, byt aldrig id på befintliga.
+// Kategorier: klader (bärs på avataren, en per `slot` hatt/ansikte/hals/hand/
+// rygg – rygg ritas BAKOM figuren, avatarMarkup i avatars.js); mobler/husdjur/
+// dekor placeras i rummet; mat = KONSUMERBAR (`consumable`, INTE ownedItems, köp
+// ökar studentData.appleCount; buy/place/eatApple i data-pet.js). Priser är
+// medvetet spridda (billigt → dyrt) för långsiktig motivation.
 // ============================================================================
 
 import { MYSTERY_ITEMS, MYSTERY_BOXES } from "./mystery-items.js";
@@ -154,10 +146,10 @@ export const SHOP_ITEMS = [
   { id: "pokal", name: "Guldpokal", emoji: "🏆", category: "dekor", price: 110 },
   { id: "teleskop", name: "Teleskop", emoji: "🔭", category: "dekor", price: 150 },
 
-  // --- Hus (byter husets EXTERIÖR/skal – rummet inuti är oförändrat) ---------
-  // Köp lägger skal-id:t i ownedItems; aktivt skal väljs i husvärldens "🏠 Nytt
-  // hus"-panel (studentData.husSkalId). Stugan är default/gratis och säljs INTE
-  // här. Item-id === skal-id i HUS_SKAL-registret (art-hus-ute.js) – håll i synk.
+  // --- Hus (byter husets EXTERIÖR/skal – rummet inuti oförändrat) ------------
+  // Köp lägger skal-id:t i ownedItems; aktivt skal väljs i "🏠 Nytt hus"
+  // (studentData.husSkalId). Stugan = default/gratis, säljs ej. Item-id ===
+  // skal-id i HUS_SKAL-registret (art-hus-ute.js) – håll i synk.
   { id: "slott", name: "Slott", emoji: "🏰", category: "hus", price: 400, skalId: "slott" },
   { id: "svamphus", name: "Svamphus", emoji: "🍄", category: "hus", price: 300, skalId: "svamphus" },
   // Lyxiga husskal (egen-tecknade, art-hus-lyx.js) – dyra spar-belöningar (1000+).
@@ -182,6 +174,12 @@ export const SHOP_ITEMS = [
   { id: "discolokal", name: "Discolokal", emoji: "🪩", category: "hus", price: 7500, skalId: "discolokal" },
   { id: "cyberpunk", name: "Cyberpunk-residens", emoji: "🌆", category: "hus", price: 8000, skalId: "cyberpunk" },
   { id: "trojanskhast", name: "Trojansk häst", emoji: "🐴", category: "hus", price: 8500, skalId: "trojanskhast" },
+  // Maskiner & nöje-husskal (#385, egen-tecknade art-hus-noje.js) – 9 000–12 000.
+  { id: "tidstorn", name: "Tidstorn (Steampunk)", emoji: "⚙️", category: "hus", price: 9000, skalId: "tidstorn" },
+  { id: "gamerhalan", name: "Gamer-hålan", emoji: "🎮", category: "hus", price: 9500, skalId: "gamerhalan" },
+  { id: "fruktpalats", name: "Fruktpalats", emoji: "🍍", category: "hus", price: 10000, skalId: "fruktpalats" },
+  { id: "arkadhall", name: "Arkadhall", emoji: "🕹️", category: "hus", price: 11000, skalId: "arkadhall" },
+  { id: "hajktalt", name: "Hajk-tält (Glamping)", emoji: "⛺", category: "hus", price: 12000, skalId: "hajktalt" },
   // Lada-SKINS (#353): byter LAGGÅRDENS utseende – samma flöde som husskalen
   // (köp → ownedItems; val i 🛖 Ny lada → farm.barnSkin). Rent kosmetiskt:
   // nivån (#333) styr kapaciteten. Id:n = registret i art-lada-skins.js.
@@ -214,9 +212,8 @@ export const SHOP_ITEMS = [
   { id: "monstertruck", name: "Monstertruck", emoji: "🛻", category: "tradgard", price: 2000 },
 
   // --- Fröer (#329): sås i odlingsbädden på GÅRDEN, inte placerbara saker -----
-  // `seed:true` + id = grödans crop-id (farm.gardenSlots[].cropId/inventoryHarvest,
-  // STABILA). tradgard är multi → köp ökar ownedCounts[id]; sådden drar av 1 (plantSeed).
-  // Ur placerings-lådan via isSeedItem. Skörd = djurmat: morot→kanin/häst, klöver→ko/får/gris, bär→mystery.
+  // `seed:true` + id = grödans crop-id (STABILA). tradgard-multi → köp ökar
+  // ownedCounts[id]; sådden (plantSeed) drar av 1, döljs ur lådan via isSeedItem.
   { id: "crop_carrot", name: "Morotsfrön", emoji: "🥕", category: "tradgard", price: 25, seed: true },
   { id: "crop_clover", name: "Klöverfrön", emoji: "☘️", category: "tradgard", price: 35, seed: true },
   { id: "crop_berries", name: "Magiska bärfrön", emoji: "🫐", category: "tradgard", price: 80, seed: true },
@@ -225,12 +222,10 @@ export const SHOP_ITEMS = [
   { id: "crop_lettuce", name: "Salladsfrön", emoji: "🥬", category: "tradgard", price: 20, seed: true },
 
   // --- Gårds-uppgraderingar (#333): odlingsbädd + laggård – myntsänkorna ------
-  // OBS nivåmodellen (DATAMODELL.md/#331): nivån bor i FÄLTEN farm.gardenTier/
-  // farm.barnLevel – ALDRIG härledd ur ownedItems (jfr roomUpgradeCount). Korten
-  // är bara köp-UI:t: buyFarmUpgrade (data-farm.js) drar coins + höjer fältet i
-  // EN transaktion, skriver INGET i ownedItems. `farmUpgrade` = fältet ("garden"|
-  // "barn"), `upgradeLevel` = nivån; köps i ordning (2 före 3 – shoppen låser
-  // nästa tills föregående ägs). Nivå 1 är start och säljs inte.
+  // Nivån bor i FÄLTEN farm.gardenTier/farm.barnLevel – ALDRIG härledd ur
+  // ownedItems (#331). buyFarmUpgrade (data-farm.js) drar coins + höjer fältet i
+  // EN transaktion (inget i ownedItems). `farmUpgrade`=fältet ("garden"|"barn"),
+  // `upgradeLevel`=nivån; köps i ordning (2 före 3). Nivå 1 = start, säljs ej.
   { id: "odling-2", name: "Dubbel odlingslåda", emoji: "🪴", category: "tradgard", price: 150, farmUpgrade: "garden", upgradeLevel: 2 },
   { id: "odling-3", name: "Växthus", emoji: "🏡", category: "tradgard", price: 350, farmUpgrade: "garden", upgradeLevel: 3 },
   { id: "lada-2", name: "Röd trälada", emoji: "🛖", category: "tradgard", price: 450, farmUpgrade: "barn", upgradeLevel: 2 },
@@ -252,13 +247,10 @@ for (const box of MYSTERY_BOXES) {
   });
 }
 
-// Mystery-vinsterna slås in i katalogen så getItem()/isWearable()/isHouseItem()
-// m.fl. resolvar dem överallt (garderob, husskal-väljare, rums-låda). De är
-// mysteryOnly → filtreras bort ur den vanliga shoppens katalog (itemsInCategory)
-// och kan bara vinnas ur boxen. price:0 (de köps aldrig direkt).
-// `existingShopItem` (legendary-fordon: bil/cykel) finns REDAN i katalogen som
-// köpbara saker → hoppas över här så de inte dubbleras (de kan ändå vinnas ur
-// boxen; deras vanliga shop-post står kvar orörd).
+// Mystery-vinsterna slås in i katalogen så getItem()/isWearable() m.fl. resolvar
+// dem överallt. De är mysteryOnly → filtreras bort ur vanliga shoppen
+// (itemsInCategory), vinns bara ur boxen, price:0. `existingShopItem`
+// (legendary-fordon bil/cykel) finns REDAN i katalogen → hoppas över (ej dubbel).
 for (const it of MYSTERY_ITEMS) {
   if (it.existingShopItem) continue;
   SHOP_ITEMS.push({ price: 0, ...it, mysteryOnly: true });
@@ -300,9 +292,8 @@ export function isFlatItem(id) {
   return !!(it && it.flat);
 }
 
-/** Är saken en HUS-sak (kategori "hus")? Täcker både köpbara husskal som byter
- * husets exteriör (slott/svamphus) och rums-uppgraderingar (rum-2/3/4); ingen
- * placeras som vanlig sak i rummet → varld-rum.js filtrerar bort dem ur
+/** Är saken en HUS-sak (kategori "hus")? Täcker husskal (slott/svamphus …) och
+ * rums-uppgraderingar (rum-2/3/4); varld-rum.js filtrerar bort dem ur
  * room.placements med !isHouseItem(id). */
 export function isHouseItem(id) {
   const it = getItem(id);
@@ -366,11 +357,9 @@ export function isConsumable(id) {
 }
 
 /**
- * Kategorier där man får äga/placera FLERA exemplar av samma sak (t.ex. flera
- * soffor eller krukväxter). Antalet ägda per id räknas i studentData.ownedCounts
- * (se data.js: buyItem/ownedCount) i stället för den binära ownedItems-listan.
- * De VANLIGA djuren (husdjur, isAnimalItem) får också ägas i flera exemplar men
- * bor i studentData.roomAnimals (data-animals.js) – inte här.
+ * Kategorier där man får äga/placera FLERA exemplar (t.ex. flera soffor).
+ * Antalet per id räknas i studentData.ownedCounts (data.js) i stället för binära
+ * ownedItems. VANLIGA djur (isAnimalItem) får också flera men bor i roomAnimals.
  */
 const MULTI_CATEGORIES = new Set(["mobler", "dekor", "tradgard"]);
 
@@ -391,10 +380,9 @@ export function isMysteryBox(id) {
 }
 
 /**
- * En placerings-NYCKEL i room.placements är antingen ett rent sak-id ("soffa" –
- * äldre data / första exemplaret) eller "<id>#<n>" ("soffa#2" – extra exemplar
- * av samma sak). Här plockas sak-id:t ur en nyckel. Sak-id:n innehåller aldrig
- * "#", så separatorn är säker. Nya nycklar skapas i varld-rum.js.
+ * En placerings-NYCKEL i room.placements är ett rent sak-id ("soffa") eller
+ * "<id>#<n>" ("soffa#2" – extra exemplar). Här plockas sak-id:t ur nyckeln;
+ * sak-id:n innehåller aldrig "#", så separatorn är säker (nycklar: varld-rum.js).
  */
 export function itemIdFromKey(key) {
   const s = String(key || "");
