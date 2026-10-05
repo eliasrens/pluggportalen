@@ -1619,7 +1619,7 @@
 /* Åtgärderna: skjuts till höger, tunn ram, ingen fyllning. */
 .tool-action { border: 1px solid #dfe6f1; background: #fff; }
 .tool-action:hover { background: #f6f8fc; }
-.scratch-tools > .tool-action:first-of-type { margin-left: auto; }
+.scratch-tools > .tool-seg { margin-right: auto; } /* (knappsatsknappen är dold i kortläget → inte :first-of-type) */
 .tool-btn[data-clear]:hover { color: var(--rod); border-color: #f3c9c9; }
 /* I det vanliga kortet (och modalen) anpassas raden efter SIN EGEN bredd: först
    tappar åtgärderna sin text, sedan ritverktygen – ikonerna bär alltid namnet via
@@ -1662,7 +1662,8 @@ body.scratch-fs-lock { overflow: hidden; }
 .a4-card.scratch-fs {
   display: grid;
   /* Kolumn 1 = verktygens bredd, kolumn 2 = resten (svarsrutan). */
-  grid-template-columns: auto minmax(0, 1fr);
+  /* Kolumn 3 = knappsatsen bredvid ritytan (#392, 0 bred när den är stängd). */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
 }
 .scratch-fs > .a4-task { grid-area: 1 / 1 / 2 / -1; font-size: clamp(1.4rem, 4vw, 2.2rem); padding: 6px 12px 4px; }
@@ -1671,7 +1672,7 @@ body.scratch-fs-lock { overflow: hidden; }
    "papperslinjer", så rubrik/verktyg/svar läses som en sammanhållen ram. */
 .scratch-fs > .a4-task,
 .scratch-fs > .rakna-bildstod { border-bottom: 1px solid #e6eefb; background: #fff; }
-.scratch-fs > .scratch-surface { grid-area: 3 / 1 / 4 / -1; }
+.scratch-fs > .scratch-surface { grid-area: 3 / 1 / 4 / 3; }
 .scratch-fs > .a4-scratch-hint { display: none; }
 .scratch-fs > .scratch-tools {
   grid-area: 4 / 1 / 5 / 2;
@@ -1679,7 +1680,7 @@ body.scratch-fs-lock { overflow: hidden; }
   padding: 6px 10px;
 }
 .scratch-fs .scratch-fs-answer {
-  grid-area: 4 / 2 / 5 / 3;
+  grid-area: 4 / 2 / 5 / -1;
   width: 100%;
   max-width: none;
   margin: 0;
@@ -1746,7 +1747,7 @@ body.scratch-fs-lock { overflow: hidden; }
   gap: 0.3em;
 }
 .a4-card.scratch-fs:has(> .rakna-bildstod:not([hidden])) > .rakna-bildstod {
-  grid-area: 1 / 2 / 2 / 3;
+  grid-area: 1 / 2 / 2 / -1;
   border-left: 1px solid #e6eefb;
 }
 /* Visuella ämnen på breda skärmar: bilden bredvid frågetexten i rubriken. */
@@ -1789,6 +1790,166 @@ body.scratch-fs-lock { overflow: hidden; }
   .scratch-fs .scratch-fs-answer .rakna-answer-row { flex: 1 1 100%; min-width: 0; }
 }
 
+
+/* ---------------------------------------------------------------------------
+   Knappsats + uppställning (#392, scratch-keypad.js / scratch-uppstallning.js).
+   Knappsatsen finns bara i helskärm: dockad i en egen grid-kolumn BREDVID ritytan
+   (desktop) resp. en egen rad LÄNGST NER (mobil ≤759px) – alltid in-flow, aldrig
+   ovanpå ritytan/svaret. Samma lugna, platta stil som verktygsraden. */
+.a4-card:not(.scratch-fs) .scratch-keypad-btn,
+.a4-card:not(.scratch-fs) > .scratch-keypad { display: none; }
+/* Arket fryst medan knappsatsen är öppen (scratchpad.js freezeSheet): canvas och
+   lagren behåller sin storlek, ytan klipper det panelen tar. */
+.scratch-surface.is-frozen { overflow: hidden; }
+.scratch-surface.is-frozen > .a4-scratch { flex: 0 0 auto; }
+.scratch-keypad-btn.is-active { color: var(--bla); border-color: #b9d3f7; background: #eef5fe; }
+.scratch-fs > .scratch-keypad {
+  grid-area: 3 / 3 / 4 / 4;
+  display: grid;
+  grid-template-columns: repeat(4, 60px);
+  grid-auto-rows: 48px;
+  grid-template-areas:
+    "k7 k8 k9 div"
+    "k4 k5 k6 times"
+    "k1 k2 k3 minus"
+    "comma k0 back plus"
+    "eq upp upp done";
+  gap: 6px;
+  align-content: start;
+  padding: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  background: #fff;
+  border-left: 1px solid #e6eefb;
+}
+.kp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 6px;
+  border: 1px solid #dfe6f1;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background-color 0.12s;
+}
+@media (hover: hover) { .kp-btn:hover { background: #f6f8fc; } } /* inget "fastnat" hover efter tryck på touch */
+.kp-btn:active { background: #eef2f8; }
+.kp-btn:focus-visible { outline: 2px solid var(--bla); outline-offset: 1px; }
+.kp-btn svg { width: 20px; height: 20px; flex: 0 0 auto; }
+.kp-op { background: #f3f6fb; color: var(--bla); }
+.kp-act { color: #5b6b82; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+.kp-done { color: var(--bla); border-color: #b9d3f7; background: #eef5fe; font-size: 0.95rem; }
+.kp-k0 { grid-area: k0; } .kp-k1 { grid-area: k1; } .kp-k2 { grid-area: k2; }
+.kp-k3 { grid-area: k3; } .kp-k4 { grid-area: k4; } .kp-k5 { grid-area: k5; }
+.kp-k6 { grid-area: k6; } .kp-k7 { grid-area: k7; } .kp-k8 { grid-area: k8; }
+.kp-k9 { grid-area: k9; } .kp-plus { grid-area: plus; } .kp-minus { grid-area: minus; }
+.kp-times { grid-area: times; } .kp-div { grid-area: div; } .kp-eq { grid-area: eq; }
+.kp-comma { grid-area: comma; } .kp-back { grid-area: back; } .kp-upp { grid-area: upp; }
+.kp-done { grid-area: done; }
+/* Mobil: knappsatsen som bottenpanel (egen sista rad), 3 breda rader så ritytan
+   behåller höjden. 7 kolumner à ~49px på en 390px-skärm (≥40px tryckyta). */
+@media (max-width: 759px) {
+  .scratch-fs > .scratch-surface { grid-area: 3 / 1 / 4 / -1; }
+  .scratch-fs > .scratch-keypad {
+    grid-area: 6 / 1 / 7 / -1;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-auto-rows: 44px;
+    grid-template-areas:
+      "k1 k2 k3 k4 k5 plus minus"
+      "k6 k7 k8 k9 k0 times div"
+      "comma eq back upp upp upp done";
+    gap: 5px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-left: 0;
+    border-top: 1px solid #e6eefb;
+    overflow: visible;
+  }
+  /* Svarsrutan står inte längre längst ner – knappsatsen tar safe-area-luften. */
+  .a4-card.kp-open .scratch-fs-answer { padding-bottom: 6px; }
+}
+
+/* Uppställningsmallen: placerad i procent på ytan (följer förstora/förminska).
+   Rutstorleken styrs av --uppst-cell: kompakt i kortet, 40px i helskärm. */
+.scratch-uppst-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+/* Genomskinlig mall: canvasen ligger UNDER mallagret, så både mallen och rutorna
+   saknar fyllning – pennstreck dragna över mallen syns. I rit-lägena släpps
+   pekaren igenom (som lapparna); bara i Text-läget (.is-text) tar mallen tryck. */
+.uppst {
+  --uppst-cell: 30px;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 6px 6px;
+  background: transparent;
+  border: 1px solid #dfe6f1;
+  border-radius: 10px;
+  pointer-events: none;
+}
+.scratch-uppst-layer.is-text .uppst { pointer-events: auto; }
+.scratch-fs .uppst { --uppst-cell: 40px; }
+.uppst-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--uppst-cols, 6), var(--uppst-cell));
+  grid-template-rows: calc(var(--uppst-cell) * 0.7) var(--uppst-cell) var(--uppst-cell) 2px var(--uppst-cell);
+  gap: 3px;
+}
+.uppst-cell {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #c3cfe2;
+  border-radius: 6px;
+  background: transparent;
+  color: #2a2a35; /* samma som pennan */
+  text-align: center;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: max(16px, calc(var(--uppst-cell) * 0.55)); /* ≥16px → iOS zoomar inte */
+  line-height: 1;
+  caret-color: var(--bla);
+}
+.uppst-cell:focus { outline: none; border-color: var(--bla); background: rgba(47, 128, 237, 0.06); box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.2); }
+.uppst-mem { font-size: 16px; color: #5b6b82; border-style: dashed; }
+.uppst-op { color: var(--bla); }
+.uppst-line { grid-column: 1 / -1; background: #2a2a35; border-radius: 1px; }
+/* Huvudet: "+ kolumn" och × (ta bort) – bara synliga/klickbara i Text-läget. */
+.uppst-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.scratch-uppst-layer:not(.is-text) .uppst-head { visibility: hidden; }
+.uppst-add,
+.uppst-close {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px dashed #b9c6da;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #5b6b82;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.uppst-close { width: 24px; padding: 0; border-style: solid; border-color: #dfe6f1; font-size: 1rem; }
+@media (hover: hover) {
+  .uppst-add:hover { color: var(--bla); border-color: var(--bla); }
+  .uppst-close:hover { color: var(--rod); border-color: #f3c9c9; }
+}
 
 .rakna-answer {
   margin: 18px auto 0;

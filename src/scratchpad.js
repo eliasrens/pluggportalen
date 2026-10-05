@@ -28,6 +28,9 @@ import { el } from "./ui.js";
 import { wireEnlarge } from "./scratch-enlarge.js";
 // Text-verktyget (#392): ett skrivlager ovanpå canvasen, import-fritt som ovan.
 import { attachTextLayer } from "./scratch-text.js";
+// Knappsats + uppställningsmall (#392): också import-fria syskonmoduler.
+import { attachUppstallning } from "./scratch-uppstallning.js";
+import { attachKeypad } from "./scratch-keypad.js";
 
 const PEN_COLOR = "#2a2a35";
 const PEN_WIDTH = 3.2;
@@ -41,6 +44,7 @@ const ICONS = {
   pen: svg(`<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>`),
   eraser: svg(`<path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>`),
   text: svg(`<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>`),
+  keypad: svg(`<rect x="3" y="3" width="18" height="18" rx="3"/><path stroke-width="2.6" d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>`),
   clear: svg(`<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>`),
 };
 
@@ -93,6 +97,13 @@ export function attachScratchpad(canvas) {
     ctx.lineJoin = "round";
   }
   requestAnimationFrame(fit);
+  // Skyddsnät: ändras canvasens box av NÅGON anledning (layout, bildstöd som laddas,
+  // paneler) kalibreras bufferten om – annars hamnar strecken förskjutna mot pekaren.
+  let ro = null;
+  if (typeof ResizeObserver === "function") {
+    ro = new ResizeObserver(() => requestAnimationFrame(fit));
+    ro.observe(canvas);
+  }
 
   function pointOf(e) {
     const r = canvas.getBoundingClientRect();
@@ -152,6 +163,7 @@ export function attachScratchpad(canvas) {
     },
     destroy() {
       window.removeEventListener("resize", fit);
+      if (ro) ro.disconnect();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
@@ -166,8 +178,8 @@ export { wireEnlarge };
 
 /**
  * Bygg ett komplett kladd-KORT: en A4-yta med en task-rubrik överst, själva ritytan
- * och en verktygsrad (penna/sudd/text som segmenterad kontroll + rensa/förstora)
- * inuti kortet. Kortet är
+ * och en verktygsrad (penna/sudd/text som segmenterad kontroll + knappsats/rensa/
+ * förstora) inuti kortet. Knappsatsen (#392) visas bara i helskärm. Kortet är
  * det som fälls ut till fullskärm, så verktygen följer med. Delas av räkna-läget och
  * äventyrens generator-modal så kladdytan ser och beter sig likadant på båda ställena.
  *
@@ -176,7 +188,7 @@ export { wireEnlarge };
  * @param {string} [o.hint]     liten hjälptext under ritytan
  * @param {boolean} [o.handleEscape=true]  vidarebefordras till wireEnlarge
  * @param {()=>void} [o.onAction]  valfri callback vid knapptryck (t.ex. ljud)
- * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, text:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
+ * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, text:object, uppst:object, keypad:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
  */
 export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape = true, onAction } = {}) {
   // Verktygsraden ligger som en egen rad LÄNGST NER i kortet (in-flow, inte
@@ -194,6 +206,7 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
         <button type="button" class="tool-btn" data-tool="eraser" aria-label="Sudd" aria-pressed="false" title="Sudd">${ICONS.eraser}<span class="tool-label">Sudd</span></button>
         <button type="button" class="tool-btn" data-tool="text" aria-label="Text" aria-pressed="false" title="Skriv text – tryck på ytan där du vill skriva">${ICONS.text}<span class="tool-label">Text</span></button>
       </div>
+      <button type="button" class="tool-btn tool-action scratch-keypad-btn" data-keypad aria-pressed="false" aria-label="Knappsats" title="Knappsats – skriv siffror och räknetecken">${ICONS.keypad}<span class="tool-label">Knappsats</span></button>
       <button type="button" class="tool-btn tool-action" data-clear title="Rensa kladdytan" aria-label="Rensa">${ICONS.clear}<span class="tool-label">Rensa</span></button>
       <button type="button" class="tool-btn tool-action scratch-enlarge" data-enlarge aria-pressed="false"></button>
     </div>
@@ -207,22 +220,68 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
   // verktyg (penna/sudd), Rensa och storleksändring gäller ALLA så eleven ritar
   // med ett och samma verktyg över hela kortet och allt skalar ihop i fullskärm.
   // Text-lagret (#392) har samma pad-gränssnitt → följer verktyg/Rensa/destroy.
-  const text = attachTextLayer(card.querySelector(".scratch-surface"));
-  const pads = [pad, text];
+  const surface = card.querySelector(".scratch-surface");
+  const text = attachTextLayer(surface);
+  // Uppställningsmallen (#392) läggs ovanpå text-lagret. Båda släpper igenom
+  // pekaren i rit-lägena → man ritar rakt över lappar och mall.
+  const uppst = attachUppstallning(surface);
+  const pads = [pad, text, uppst];
   let currentTool = "pen"; // så ett rit-lager som registreras SENARE ärver rätt verktyg
 
   const toolBtns = card.querySelectorAll(".tool-btn[data-tool]");
-  toolBtns.forEach((b) => {
-    b.addEventListener("click", () => {
-      currentTool = b.dataset.tool;
-      pads.forEach((p) => p.setTool && p.setTool(currentTool));
-      toolBtns.forEach((x) => {
-        x.classList.toggle("is-active", x === b);
-        x.setAttribute("aria-pressed", x === b ? "true" : "false");
-      });
-      onAction && onAction();
+  // Byt verktyg för ALLA lager + uppdatera segment-knapparna (klick och knappsats).
+  function selectTool(t) {
+    currentTool = t;
+    pads.forEach((p) => p.setTool && p.setTool(currentTool));
+    toolBtns.forEach((x) => {
+      const on = x.dataset.tool === t;
+      x.classList.toggle("is-active", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
     });
+  }
+  toolBtns.forEach((b) => {
+    b.addEventListener("click", () => { selectTool(b.dataset.tool); onAction && onAction(); });
   });
+
+  // Knappsatsen (#392): öppnas den byts verktyget till Text, så ett tryck på ytan
+  // ger en lapp att skriva i. Den skriver i senast valda lapp/ruta/svarsruta;
+  // saknas mål läggs en ny lapp på första lediga plats (aldrig oombedd i svaret).
+  const sheet = [canvas, text.layer, uppst.layer];
+  function freezeSheet(on) {
+    const r = on ? surface.getBoundingClientRect() : null;
+    surface.classList.toggle("is-frozen", on);
+    sheet.forEach((elm) => {
+      elm.style.width = on ? `${r.width}px` : "";
+      elm.style.height = on ? `${r.height}px` : "";
+    });
+    if (!on) pads.forEach((p) => p.resize && p.resize());
+  }
+
+  const keypadBtn = card.querySelector("[data-keypad]");
+  const keypad = attachKeypad({
+    card,
+    button: keypadBtn,
+    // Panelen tar plats från ritytan. Frys ARKET (canvas + lapp-/mall-lagren) i
+    // sin nuvarande storlek medan den är öppen: panelen täcker då bara arkets kant
+    // (ytan klipper), i stället för att trycka ihop det – inga förvrängda/förskjutna
+    // streck och lappar. Stängs panelen släpps arket och följer ytan igen.
+    onBeforeToggle: (open) => { if (open) freezeSheet(true); },
+    onToggle: (open) => {
+      if (!open) freezeSheet(false);
+      pads.forEach((p) => p.setKeypad && p.setKeypad(open));
+      if (open) selectTool("text");
+    },
+    onUppstallning: () => {
+      uppst.create(text.notes().map((n) => n.getBoundingClientRect())); // inte över lappar
+      onAction && onAction();
+    },
+    onNoTarget: () => {
+      const tpl = uppst.template();
+      return text.addFreeNote(tpl ? [tpl.getBoundingClientRect()] : []);
+    },
+  });
+  keypadBtn.addEventListener("click", () => onAction && onAction());
+  pads.push(keypad); // får förstora-växlingarna (resize) → stängs när kortet fälls in
   card.querySelector("[data-clear]").addEventListener("click", () => {
     pads.forEach((p) => p.clear && p.clear());
     onAction && onAction();
@@ -237,12 +296,18 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     pad: { resize() { pads.forEach((p) => p.resize && p.resize()); } },
     handleEscape,
   });
+  // Knappsatsen behöver svarsformuläret (ett av dess skrivmål) – det registreras i
+  // efterhand via enlarge.setAnswer(), så haka på samma anrop.
+  const setAnswer = enlarge.setAnswer;
+  enlarge.setAnswer = (form) => { setAnswer(form); keypad.setAnswer(form); };
 
   return {
     card,
     canvas,
     pad,
     text,
+    uppst,
+    keypad,
     enlarge,
     /**
      * Registrera en extra rityta (t.ex. rit-lagret ovanpå bildstödet, #325) så den
