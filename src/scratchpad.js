@@ -26,12 +26,25 @@ import { el } from "./ui.js";
 // utan ui.js/firebase-kedjan (#312). Importeras för lokalt bruk i createScratchCard
 // OCH re-exporteras (nedan) så befintliga importvägar fortsätter fungera oförändrat.
 import { wireEnlarge } from "./scratch-enlarge.js";
+// Text-verktyget (#392): ett skrivlager ovanpå canvasen, import-fritt som ovan.
+import { attachTextLayer } from "./scratch-text.js";
 
 const PEN_COLOR = "#2a2a35";
 const PEN_WIDTH = 3.2;
 const ERASER_WIDTH = 26;
 
-const DEFAULT_HINT = "✏️ Kladda din uträkning här – den sparas inte";
+// Verktygsikoner (#392): enkla linje-SVG:er (currentColor) i stället för emoji, så
+// raden ser lika ren ut på alla enheter och följer knappens färg (aktiv = blå).
+const svg = (d) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICONS = {
+  pen: svg(`<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>`),
+  eraser: svg(`<path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>`),
+  text: svg(`<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>`),
+  clear: svg(`<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>`),
+};
+
+const DEFAULT_HINT = "Rita eller skriv uträkningen här – den sparas inte";
 
 /**
  * Koppla rit-interaktion på ett <canvas>. Returnerar { setTool, clear, resize, destroy }.
@@ -41,7 +54,7 @@ const DEFAULT_HINT = "✏️ Kladda din uträkning här – den sparas inte";
  */
 export function attachScratchpad(canvas) {
   const ctx = canvas.getContext("2d");
-  let tool = "pen"; // "pen" | "eraser"
+  let tool = "pen"; // "pen" | "eraser" | "text" (text sköts av scratch-text.js, #392)
   let drawing = false;
   let last = null;
   let activePointer = null;
@@ -98,6 +111,7 @@ export function attachScratchpad(canvas) {
 
   function onDown(e) {
     if (activePointer !== null) return;
+    if (tool !== "pen" && tool !== "eraser") return; // t.ex. Text-läget ritar inte
     activePointer = e.pointerId;
     drawing = true;
     last = pointOf(e);
@@ -152,7 +166,8 @@ export { wireEnlarge };
 
 /**
  * Bygg ett komplett kladd-KORT: en A4-yta med en task-rubrik överst, själva ritytan
- * och en flytande verktygsrad (penna/sudd/rensa + förstora) inuti kortet. Kortet är
+ * och en verktygsrad (penna/sudd/text som segmenterad kontroll + rensa/förstora)
+ * inuti kortet. Kortet är
  * det som fälls ut till fullskärm, så verktygen följer med. Delas av räkna-läget och
  * äventyrens generator-modal så kladdytan ser och beter sig likadant på båda ställena.
  *
@@ -161,7 +176,7 @@ export { wireEnlarge };
  * @param {string} [o.hint]     liten hjälptext under ritytan
  * @param {boolean} [o.handleEscape=true]  vidarebefordras till wireEnlarge
  * @param {()=>void} [o.onAction]  valfri callback vid knapptryck (t.ex. ljud)
- * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
+ * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, text:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
  */
 export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape = true, onAction } = {}) {
   // Verktygsraden ligger som en egen rad LÄNGST NER i kortet (in-flow, inte
@@ -174,10 +189,13 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     </div>
     <div class="a4-scratch-hint">${hint}</div>
     <div class="scratch-tools" role="toolbar" aria-label="Ritverktyg">
-      <button type="button" class="tool-btn is-active" data-tool="pen" title="Penna">✏️ Penna</button>
-      <button type="button" class="tool-btn" data-tool="eraser" title="Sudd">🧽 Sudd</button>
-      <button type="button" class="tool-btn" data-clear title="Rensa kladdytan">🗑️ Rensa</button>
-      <button type="button" class="tool-btn scratch-enlarge" data-enlarge aria-pressed="false" title="Förstora kladdytan">🔍 Förstora</button>
+      <div class="tool-seg" role="group" aria-label="Verktyg">
+        <button type="button" class="tool-btn is-active" data-tool="pen" aria-label="Penna" aria-pressed="true" title="Penna">${ICONS.pen}<span class="tool-label">Penna</span></button>
+        <button type="button" class="tool-btn" data-tool="eraser" aria-label="Sudd" aria-pressed="false" title="Sudd">${ICONS.eraser}<span class="tool-label">Sudd</span></button>
+        <button type="button" class="tool-btn" data-tool="text" aria-label="Text" aria-pressed="false" title="Skriv text – tryck på ytan där du vill skriva">${ICONS.text}<span class="tool-label">Text</span></button>
+      </div>
+      <button type="button" class="tool-btn tool-action" data-clear title="Rensa kladdytan" aria-label="Rensa">${ICONS.clear}<span class="tool-label">Rensa</span></button>
+      <button type="button" class="tool-btn tool-action scratch-enlarge" data-enlarge aria-pressed="false"></button>
     </div>
   </div>`);
 
@@ -188,7 +206,9 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
   // (#325), som registreras i efterhand med addPad() när bildstödet laddats. Samma
   // verktyg (penna/sudd), Rensa och storleksändring gäller ALLA så eleven ritar
   // med ett och samma verktyg över hela kortet och allt skalar ihop i fullskärm.
-  const pads = [pad];
+  // Text-lagret (#392) har samma pad-gränssnitt → följer verktyg/Rensa/destroy.
+  const text = attachTextLayer(card.querySelector(".scratch-surface"));
+  const pads = [pad, text];
   let currentTool = "pen"; // så ett rit-lager som registreras SENARE ärver rätt verktyg
 
   const toolBtns = card.querySelectorAll(".tool-btn[data-tool]");
@@ -196,7 +216,10 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     b.addEventListener("click", () => {
       currentTool = b.dataset.tool;
       pads.forEach((p) => p.setTool && p.setTool(currentTool));
-      toolBtns.forEach((x) => x.classList.toggle("is-active", x === b));
+      toolBtns.forEach((x) => {
+        x.classList.toggle("is-active", x === b);
+        x.setAttribute("aria-pressed", x === b ? "true" : "false");
+      });
       onAction && onAction();
     });
   });
@@ -219,6 +242,7 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     card,
     canvas,
     pad,
+    text,
     enlarge,
     /**
      * Registrera en extra rityta (t.ex. rit-lagret ovanpå bildstödet, #325) så den

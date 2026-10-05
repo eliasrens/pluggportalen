@@ -1,0 +1,148 @@
+// ============================================================================
+// Pluggporten – kladdytans TEXT-verktyg (scratch-text.js, issue #392)
+// ----------------------------------------------------------------------------
+// Ett text-lager OVANPÅ rit-canvasen: i Text-läget trycker eleven var som helst
+// på ytan → en liten skrivlapp (<input>) dyker upp där och får fokus, så både
+// fysiskt tangentbord och mobilens skärmtangentbord funkar (fokus sätts direkt i
+// click-hanteraren = användargest, annars öppnar iOS inget tangentbord).
+//
+// Lapparna placeras i PROCENT av ytan (left/top), så de följer med automatiskt
+// när kortet förstoras/förminskas – exakt som ritningen, som skalas om till nya
+// ytan (scratchpad.js fit()). Ingen JS behövs vid resize. Sudd över en lapp tar
+// bort den, Rensa tar bort alla, tomma lappar städas bort när de tappar fokus.
+//
+// HELT FLYKTIGT som ritningen: lapparna finns bara i DOM:en, sparas ALDRIG (noll
+// DB-kostnad) och rivs med kortet.
+//
+// Samma gränssnitt som en rit-pad ({setTool, clear, resize, destroy}) så
+// createScratchCard kan lägga lagret i sin pads-lista: verktygsval, Rensa och
+// destroy når det utan specialfall.
+//
+// BOOT-SÄKERHET: import-fri, laddas bara via scratchpad.js som i sin tur bara nås
+// dynamiskt (games-rakna.js / adventure/generator-modal.js). Får ALDRIG statiskt
+// importeras av en bootfil (jfr #271/#290).
+// ============================================================================
+
+const ERASE_RADIUS = 13; // ≈ halva suddets bredd i scratchpad.js (ERASER_WIDTH 26)
+
+/**
+ * Koppla ett text-lager på `surface` (ritytans behållare, position:relative).
+ * @param {HTMLElement} surface
+ * @param {{document?:Document}} [opts]
+ * @returns {{layer:HTMLElement, setTool:(t:string)=>void, clear:()=>void, resize:()=>void, destroy:()=>void, notes:()=>HTMLElement[]}}
+ */
+export function attachTextLayer(surface, opts = {}) {
+  // Globala document först: kortet byggs ofta ur en <template> (ui.js el()), vars
+  // ownerDocument är ett inert dokument utan fönster (getComputedStyle saknas).
+  const doc = opts.document || (typeof document !== "undefined" ? document : surface.ownerDocument);
+  const layer = doc.createElement("div");
+  layer.className = "scratch-text-layer";
+  surface.appendChild(layer);
+
+  let tool = "pen";
+  let erasing = false;
+  let measureCtx = null;
+
+  const notes = () => [...layer.querySelectorAll(".scratch-note")];
+
+  // Bredd efter innehållet (field-sizing:content finns inte överallt): mät texten
+  // i lappens egen font. Fallback i ch om canvas-mätning inte finns.
+  function autosize(note) {
+    const txt = note.value || note.placeholder || "";
+    let w = 0;
+    try {
+      measureCtx = measureCtx || doc.createElement("canvas").getContext("2d");
+      const cs = doc.defaultView.getComputedStyle(note);
+      measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      w = measureCtx.measureText(txt).width;
+    } catch { w = 0; }
+    note.style.width = w > 0 ? `${Math.ceil(w) + 18}px` : `${Math.max(2, txt.length) + 1}ch`;
+  }
+
+  function removeNote(note) {
+    if (note.parentNode) note.parentNode.removeChild(note);
+  }
+
+  function addNote(fx, fy) {
+    const note = doc.createElement("input");
+    note.type = "text";
+    note.className = "scratch-note";
+    note.setAttribute("autocomplete", "off");
+    note.setAttribute("autocorrect", "off");
+    note.setAttribute("autocapitalize", "off");
+    note.setAttribute("spellcheck", "false");
+    note.setAttribute("enterkeyhint", "done");
+    note.setAttribute("aria-label", "Text på kladdytan");
+    note.placeholder = "…";
+    note.style.left = `${(fx * 100).toFixed(2)}%`;
+    note.style.top = `${(fy * 100).toFixed(2)}%`;
+    // Aldrig utanför ytans högerkant – blir texten längre skrollar den i lappen.
+    note.style.maxWidth = `calc(${((1 - fx) * 100).toFixed(2)}% - 4px)`;
+    note.addEventListener("input", () => autosize(note));
+    note.addEventListener("keydown", (e) => {
+      // Enter avslutar lappen (och får aldrig skicka svarsformuläret).
+      if (e.key === "Enter") { e.preventDefault(); note.blur(); }
+    });
+    note.addEventListener("blur", () => { if (!note.value.trim()) removeNote(note); });
+    layer.appendChild(note);
+    autosize(note);
+    return note;
+  }
+
+  // Text-läget: tryck på en tom del av ytan → ny lapp där. Tryck på en befintlig
+  // lapp → vanligt fokus (redigera). click täcker både mus och touch-tap.
+  function onClick(e) {
+    if (tool !== "text" || e.target !== layer) return;
+    const r = layer.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return;
+    const fx = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 0.94);
+    const fy = Math.min(Math.max((e.clientY - r.top) / r.height, 0.04), 0.96);
+    const note = addNote(fx, fy);
+    try { note.focus({ preventScroll: true }); } catch { note.focus(); }
+  }
+
+  // Sudd: rit-canvasen fångar pekaren, så händelserna bubblar hit till ytan.
+  // Tar bort lappar som suddet passerar över.
+  function eraseAt(e) {
+    for (const note of notes()) {
+      const r = note.getBoundingClientRect();
+      const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+      const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+      if (dx * dx + dy * dy <= ERASE_RADIUS * ERASE_RADIUS) removeNote(note);
+    }
+  }
+  function onDown(e) {
+    if (tool !== "eraser") return;
+    erasing = true;
+    eraseAt(e);
+  }
+  function onMove(e) { if (erasing && tool === "eraser") eraseAt(e); }
+  function onUp() { erasing = false; }
+
+  layer.addEventListener("click", onClick);
+  surface.addEventListener("pointerdown", onDown);
+  surface.addEventListener("pointermove", onMove);
+  surface.addEventListener("pointerup", onUp);
+  surface.addEventListener("pointercancel", onUp);
+
+  return {
+    layer,
+    notes,
+    setTool(t) {
+      tool = t;
+      erasing = false;
+      layer.classList.toggle("is-text", t === "text");
+      // Lämnar man Text-läget mitt i en lapp: avsluta den (tom → bort).
+      if (t !== "text" && layer.contains(doc.activeElement)) doc.activeElement.blur();
+    },
+    clear() { notes().forEach(removeNote); },
+    resize() {}, // procent-placering → följer ytan av sig själv
+    destroy() {
+      layer.removeEventListener("click", onClick);
+      surface.removeEventListener("pointerdown", onDown);
+      surface.removeEventListener("pointermove", onMove);
+      surface.removeEventListener("pointerup", onUp);
+      surface.removeEventListener("pointercancel", onUp);
+    },
+  };
+}
