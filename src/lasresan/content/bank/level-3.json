@@ -1,0 +1,578 @@
+[
+  {
+    "id": "lr-n3-nya-eleven",
+    "title": "Den nya eleven",
+    "level": 3,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "På måndagen stod en ny flicka vid dörren till klassrummet. Hon hette Samira och hade flyttat till Sverige bara några månader tidigare. Hon kunde lite svenska, men hon pratade tyst och tittade mest ner i bänken.\n\nPå rasten stod Samira ensam vid klätterställningen. Ella såg henne och tvekade. Vad skulle hon säga? Till slut gick hon fram och frågade: ”Vill du se biblioteket?”\n\nSamira nickade försiktigt.\n\nElla visade hyllorna med serier, sagor och faktaböcker. Plötsligt stannade Samira och pekade på en bok med en häst på omslaget. Hennes ögon lyste upp.\n\n”Häst!” sa hon. ”Jag ... rida. Förut.”\n\n”Rider du?” frågade Ella förvånat. ”Jag också! Varje torsdag.”\n\nDe satte sig på golvet och bläddrade i boken. Samira kunde namnen på hästraser som Ella aldrig hade hört talas om. Ella lärde Samira de svenska orden för sadel och grimma.\n\nNär klockan ringde in gick de tillbaka tillsammans. Den här gången tittade Samira inte ner i marken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var stod Samira på rasten?",
+        "options": [
+          "Vid gungorna",
+          "Vid fotbollsplanen",
+          "Vid klätterställningen",
+          "Vid dörren till klassrummet"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fanns på omslaget till boken som Samira pekade på?",
+        "options": [
+          "En hund",
+          "Ett slott",
+          "En sadel",
+          "En häst"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ella ”tvekade” när hon såg Samira. Vad betyder det?",
+        "options": [
+          "Hon blev arg och gick därifrån",
+          "Hon var osäker och väntade lite",
+          "Hon sprang fram på en gång",
+          "Hon låtsades att hon inte såg"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att Samiras ögon ”lyste upp”?",
+        "options": [
+          "Hon fick solen i ögonen",
+          "Hon blev trött och sömnig",
+          "Hon blev rädd för bilden",
+          "Hon blev glad och intresserad"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tittade Samira mest ner i bänken den första dagen?",
+        "options": [
+          "Hon letade efter något hon tappat",
+          "Hon kände sig osäker i den nya klassen",
+          "Hon tyckte inte om sin nya bänk",
+          "Hon läste en bok i smyg"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sa Samira bara några korta ord om att rida?",
+        "options": [
+          "Hon kunde ännu inte så mycket svenska",
+          "Hon ville inte prata om hästar",
+          "Hon var arg på Ella",
+          "Hon hade glömt hur man rider"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten främst om?",
+        "options": [
+          "Hur man lånar böcker i skolans bibliotek",
+          "Hur man lär sig att rida på en häst",
+          "Varför Samira flyttade till Sverige",
+          "Hur ett gemensamt intresse gör två barn till vänner"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-skolfotot",
+    "title": "Skolfotot",
+    "level": 3,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det var dag för skolfotografering, och alla i 4B hade fina kläder på sig. Hugo hade till och med kammat håret, vilket nästan aldrig hände.\n\nFotografen hette Bertil och hade en stor kamera på ett stativ. ”Nu ska alla sitta helt stilla och le”, sa han. ”Den som rör sig förstör bilden.”\n\nKlassen ställde upp sig i tre rader på trappan. Hugo hamnade längst fram i mitten och log så brett han kunde.\n\n”Ett, två ...” började Bertil.\n\nDå hördes ett surrande. En geting cirklade runt Hugos huvud och landade mitt på hans näsa. Hugo blev stel som en pinne. Han vågade inte röra en enda muskel, men ögonen blev stora som tefat.\n\n”Tre!” sa Bertil och tryckte.\n\nGetingen flög iväg. Hugo andades ut, och hela klassen började skratta.\n\nTvå veckor senare kom bilderna. Alla satt fint och log, men längst fram satt Hugo med en geting på näsan och en min som om han sett ett spöke.\n\nFröken tittade länge på bilden. ”Det här är nog den bästa klassbild vi någonsin har haft”, sa hon.\n\nHugo höll med.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ställde klassen upp sig för fotot?",
+        "options": [
+          "På trappan",
+          "På skolgården",
+          "I gymnastiksalen",
+          "I klassrummet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var landade getingen?",
+        "options": [
+          "I Hugos hår",
+          "På Hugos näsa",
+          "På kameran",
+          "På Bertils hand"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hugo blev ”stel som en pinne”. Vad betyder det?",
+        "options": [
+          "Han rörde sig inte alls",
+          "Han var lång och smal",
+          "Han fick ont i ryggen",
+          "Han började darra"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hugos ögon blev ”stora som tefat”. Hur såg han ut?",
+        "options": [
+          "Trött och sömnig",
+          "Arg och irriterad",
+          "Mycket rädd och förvånad",
+          "Glad och nöjd"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför viftade Hugo inte bort getingen?",
+        "options": [
+          "Han ville inte bli stucken eller förstöra bilden",
+          "Han tyckte att getingen var söt",
+          "Han märkte inte att den satt där",
+          "Bertil sa åt honom att låta den sitta"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar det att Hugo hade kammat håret?",
+        "options": [
+          "Att han hade sovit länge den morgonen",
+          "Att han just hade varit hos frisören",
+          "Att han ville se extra fin ut på bilden",
+          "Att fröken hade bestämt det"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför tyckte fröken att det var den bästa klassbilden?",
+        "options": [
+          "Alla satt helt stilla och log fint",
+          "Den blev rolig och annorlunda tack vare getingen",
+          "Bertil hade en ny och stor kamera",
+          "Hugo hade kammat håret för en gångs skull"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-kanoten",
+    "title": "Paddeln som flöt iväg",
+    "level": 3,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Tindra och hennes kusin Viggo hade fått låna morbror Jonas kanot. De fick paddla runt den lilla ön mitt i sjön, men inte längre. Båda hade flytvästar på sig.\n\nDet var varmt och stilla. Viggo lade sin paddel på kanten för att ta av sig tröjan. Just då körde en motorbåt förbi en bit bort. Vågorna fick kanoten att gunga, och paddeln halkade ner i vattnet.\n\n”Paddeln!” skrek Viggo. Den låg redan flera meter bort och flöt sakta mot vassen.\n\n”Lugn”, sa Tindra, fast hjärtat bultade. ”Vi har en kvar.”\n\nMen det var svårt att styra med bara en paddel. Kanoten snurrade runt när Tindra paddlade på samma sida hela tiden. Då fick hon en idé. ”Du pekar åt vilket håll vi ska. Jag paddlar två tag på varje sida.”\n\nViggo pekade, och Tindra bytte sida om och om igen. Långsamt kom de närmare. Till slut kunde Viggo luta sig ut och fiska upp paddeln ur vassen.\n\nNär de kom tillbaka till bryggan frågade morbror Jonas hur det hade gått.\n\n”Bra”, sa Tindra och blinkade åt Viggo. ”Vi tränade lite samarbete.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt fick Tindra och Viggo paddla?",
+        "options": [
+          "Över hela sjön och tillbaka",
+          "Bara fram och tillbaka vid bryggan",
+          "Bort till vassen och tillbaka",
+          "Runt ön, men inte längre"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför halkade paddeln ner i vattnet?",
+        "options": [
+          "Viggo tappade den när han paddlade",
+          "Tindra råkade knuffa till den",
+          "En stark vind blåste ner den",
+          "Vågor från en motorbåt fick kanoten att gunga"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Tindras hjärta ”bultade”. Hur kände hon sig?",
+        "options": [
+          "Trött och sömnig",
+          "Arg på Viggo",
+          "Orolig och spänd",
+          "Lugn och glad"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Paddeln flöt mot ”vassen”. Vad är vass?",
+        "options": [
+          "Ett djupt ställe i sjön",
+          "En liten brygga av trä",
+          "Stenar som sticker upp ur vattnet",
+          "Höga strån som växer i vattnet"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa Tindra ”Lugn” fast hon själv var orolig?",
+        "options": [
+          "Hon visste att paddeln skulle flyta tillbaka",
+          "Hon tyckte att det var spännande",
+          "Hon ville att Viggo inte skulle bli ännu räddare",
+          "Hon hade inte sett att paddeln försvann"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blinkade Tindra åt Viggo i slutet?",
+        "options": [
+          "Hon hade fått något i ögat",
+          "De hade ett litet äventyr som bara de visste om",
+          "Hon ville att han skulle berätta allt",
+          "Hon var sur för att han tappade paddeln"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur löste de problemet med paddeln?",
+        "options": [
+          "De ropade på morbror Jonas om hjälp",
+          "De hjälptes åt och Tindra bytte sida när hon paddlade",
+          "Motorbåten drog dem fram till paddeln",
+          "Viggo hoppade i och simmade efter den"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-flyta-sjunka",
+    "title": "Varför flyter ett jätteskepp?",
+    "level": 3,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Kasta en liten sten i en sjö, så sjunker den direkt. Men ett lastfartyg av stål, som väger mer än tusen elefanter, ligger och guppar på vågorna. Hur kan det komma sig?\n\nSvaret handlar om vatten som trycks undan. När något läggs i vatten knuffar det undan vatten för att få plats. Vattnet trycker då tillbaka uppåt. Den kraften kallas lyftkraft.\n\nEn sten är liten men tung för sin storlek. Den trycker bara undan lite vatten, och lyftkraften räcker inte för att hålla den uppe.\n\nEtt fartyg är byggt på ett annat sätt. Skrovet är som en enorm skål, och inuti finns mycket luft. Därför tar fartyget stor plats i vattnet och trycker undan väldigt mycket vatten. Lyftkraften blir så stor att den bär hela fartyget.\n\nDu kan testa själv. Gör en kula av modellera och lägg den i en balja med vatten. Den sjunker. Forma sedan samma lera till en liten båt med höga kanter. Nu flyter den, fast den väger lika mycket.\n\nOm ett fartyg får ett hål i skrovet rinner vatten in och tar luftens plats. Då kan till och med ett jätteskepp sjunka.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas kraften när vattnet trycker uppåt?",
+        "options": [
+          "Lyftkraft",
+          "Tyngdkraft",
+          "Dragkraft",
+          "Muskelkraft"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad finns det mycket av inuti fartygets skrov?",
+        "options": [
+          "Vatten",
+          "Sand",
+          "Sten",
+          "Luft"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Fartyget ”guppar” på vågorna. Vad betyder det?",
+        "options": [
+          "Det sjunker sakta mot botten",
+          "Det åker fort framåt",
+          "Det ligger helt stilla",
+          "Det rör sig lätt upp och ner"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett fartygs ”skrov”?",
+        "options": [
+          "Fartygets stora motor",
+          "Platsen där kaptenen styr",
+          "Fartygets yttre skal som ligger i vattnet",
+          "Lasten som fartyget fraktar"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför flyter lerbåten men inte lerkulan?",
+        "options": [
+          "Båten väger mindre än kulan",
+          "Kulan har mer luft i sig",
+          "Båten trycker undan mer vatten",
+          "Vattnet blir varmare runt båten"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad skulle troligen hända om man fyllde lerbåten med vatten?",
+        "options": [
+          "Den skulle flyta högre",
+          "Den skulle bli lättare",
+          "Den skulle flyta precis som förut",
+          "Den skulle sjunka"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är textens syfte?",
+        "options": [
+          "Att berätta om en resa med ett lastfartyg",
+          "Att lära ut hur man bygger fartyg av stål",
+          "Att förklara varför tunga fartyg kan flyta",
+          "Att varna för att kasta sten i sjöar"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-oknar",
+    "title": "Öknar är inte bara sand",
+    "level": 3,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Om du ska rita en öken ritar du kanske gula sanddyner och en brännande sol. Men många öknar ser inte ut så.\n\nEn öken är ett område där det faller väldigt lite regn eller snö, mindre än 25 centimeter på ett helt år. Det är alltså torkan som gör en plats till öken, inte värmen.\n\nSahara i norra Afrika är världens största varma öken. Där finns sanddyner, men större delen är faktiskt täckt av sten och grus. På dagen kan det bli över 40 grader varmt. På natten kan det bli nästan lika kallt som i ett kylskåp, eftersom det inte finns några moln som håller kvar värmen.\n\nGobiöknen i Asien är en kall öken. Där är vintrarna iskalla, och ibland ligger snö över sanden.\n\nDen allra största öknen ligger längst ner på jordklotet: Antarktis. Den är täckt av tjock is, men där faller nästan ingen nederbörd. Isen har byggts upp av lite snö i taget under väldigt lång tid.\n\nDjur och växter i öknar är experter på att klara sig med lite vatten. Kaktusar sparar vatten i sin tjocka stam, och vissa ökenråttor dricker nästan aldrig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör att en plats räknas som öken?",
+        "options": [
+          "Att det blir varmare än 40 grader",
+          "Att det faller väldigt lite regn eller snö",
+          "Att marken är täckt av sand",
+          "Att nästan inga djur kan leva där"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken är världens största öken?",
+        "options": [
+          "Antarktis",
+          "Sahara",
+          "Gobiöknen",
+          "Arktis"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför blir det kallt i Sahara på natten?",
+        "options": [
+          "Kalla vindar blåser in från havet",
+          "Sanden blir blöt när solen gått ner",
+          "Det finns inga moln som håller kvar värmen",
+          "Stenarna och gruset suger åt sig kylan"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ”nederbörd”?",
+        "options": [
+          "Kyla som kommer på natten",
+          "Regn eller snö som faller",
+          "Is som smälter i solen",
+          "Vind som blåser omkring sand"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Djur och växter i öknen är ”experter” på att klara sig med lite vatten. Vad menas?",
+        "options": [
+          "De har lärt sig det av människor",
+          "De försöker men lyckas sällan",
+          "De har nyss börjat klara det",
+          "De är mycket bra på det"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför räknas Antarktis som en öken, fast det finns massor av is där?",
+        "options": [
+          "Under isen finns det sand",
+          "Det faller nästan ingen ny snö eller regn",
+          "Det är varmt där på sommaren",
+          "Det bor nästan inga människor där"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "En plats får plötsligt mycket regn varje år. Vad händer då, enligt texten?",
+        "options": [
+          "Den blir en kall öken i stället",
+          "Den räknas inte längre som öken",
+          "Den blir en varm öken i stället",
+          "Den blir täckt av sanddyner"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten främst visa?",
+        "options": [
+          "Att öknar kan se mycket olika ut",
+          "Att Sahara är den farligaste platsen på jorden",
+          "Att alla öknar är varma på dagen",
+          "Att kaktusar är de enda växterna i öknar"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-vikingaskepp",
+    "title": "Vikingarnas snabba skepp",
+    "level": 3,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För mer än tusen år sedan seglade vikingarna från Skandinavien ut över haven. Många tror att de bara var krigare som plundrade, men de flesta resor handlade om något annat: handel.\n\nVikingarnas skepp hade både segel och åror. Skrovet var smalt och grunt. Därför kunde skeppen segla på öppet hav men också ta sig långt upp i floder där vattnet var lågt. Om en flod tog slut kunde besättningen dra skeppet över land till nästa vattendrag.\n\nFrån Sverige reste många österut, längs floder genom det som i dag är Ryssland och Ukraina. Några kom ända till Konstantinopel, nuvarande Istanbul. Där köpte de silke, kryddor och silver. I utbyte sålde de pälsar, honung och bärnsten.\n\nArkeologer har hittat tusentals arabiska silvermynt i svensk jord. De visar hur långt vikingarnas handel nådde.\n\nPlundring hände också. Vissa vikingar anföll kloster och byar, särskilt i England och Irland. Därför fick vikingarna rykte om sig att vara farliga. Men för de flesta var skeppet framför allt ett sätt att resa och handla.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad sålde vikingarna i Konstantinopel?",
+        "options": [
+          "Pälsar, honung och bärnsten",
+          "Silke, kryddor och silver",
+          "Skepp, segel och åror",
+          "Arabiska silvermynt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad heter Konstantinopel i dag?",
+        "options": [
+          "Kiev",
+          "Istanbul",
+          "Moskva",
+          "Aten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att skrovet var ”grunt”?",
+        "options": [
+          "Det gick inte särskilt djupt ner i vattnet",
+          "Det var mycket tungt att bära",
+          "Det var byggt av hårt trä",
+          "Det var mycket bredare än andra skrov"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vikingarna sålde pälsar ”i utbyte”. Vad betyder det?",
+        "options": [
+          "Som betalning för det de köpte",
+          "I hemlighet för andra",
+          "Under resan hem igen",
+          "Som en present utan betalning"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur hamnade arabiska silvermynt i svensk jord?",
+        "options": [
+          "Araber byggde städer i Sverige",
+          "Mynten tillverkades i Sverige",
+          "Vikingar fick dem genom handel och tog med dem hem",
+          "Mynten spolades i land från havet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kunde vikingarna ta sig ända till Konstantinopel med skepp?",
+        "options": [
+          "Skeppen klarade både låga floder och färder över land",
+          "Det fanns en kanal hela vägen dit",
+          "Skeppen var större än alla andra skepp",
+          "De seglade bara på öppet hav"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill texten främst visa om vikingarna?",
+        "options": [
+          "Att de var farligare än många tror",
+          "Att de bara reste till England och Irland",
+          "Att de oftare handlade än plundrade",
+          "Att de byggde de största skeppen i världen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
