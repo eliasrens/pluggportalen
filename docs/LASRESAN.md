@@ -84,16 +84,52 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
 | `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js`, `oknen.js`, `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
-| `ui-map.js`, `ui-reader.js` | **Stubbar** med kontrakt, byggs i #400 och #401 |
-| `page-lasresan.js` | Route-skal: karta → text → completeText → karta |
+| `ui-map.js` | Kartvyn (#400) |
+| `ui-reader.js` | Läsvyn (#401): text + en fråga i taget, låsta svar, ✅/❌ |
+| `reader-logic.js` | Läsvyns rena logik: stabil blandning av alternativen, pågående svar i localStorage |
+| `ui-summary.js` | Sammanfattning efter en text + "Min läsning" (aldrig nivån) |
+| `lasresan.css` | Stilar för läsvy/sammanfattning/Min läsning, laddas LAT av page-lasresan |
+| `page-lasresan.js` | Route-skal: karta → text → completeText → sammanfattning → karta, `?vy=min` = Min läsning |
 | `../data-lasresan.js` | Firestore-brygga: `getLasresa`, `startText`, `completeText`, `listAttempts`, `getClassLasresa` |
 
 **Bootgrafen:** inget under `src/lasresan/` och inte `data-lasresan.js`
-importeras statiskt från `app.js`. Routen läggs till i #401 med dynamisk import:
+importeras statiskt från `app.js`. Routen `#/elev/lasresan` (#401) laddar
+`page-lasresan.js` med dynamisk `import()` via `pageElevLasresan()` i `app.js`
+(samma mönster och samma snälla felvy som äventyret). `lasresan.css` läggs in
+som `<link>` av sidan själv, så `index.html` är orörd.
+`test/lasresan-reader.test.js` gör en BFS över de statiska importerna från
+`app.js` och faller om en Läsresan-modul hamnar i bootgrafen.
 
-```js
-"/elev/lasresan": async () => (await import("./lasresan/page-lasresan.js")).pageLasresan(),
-```
+### Läsvyn och slutför-flödet (#401, beslut)
+- **Nav:** "📖 Läsresan" i `NAV_LANKAR` (`ui.js`) direkt efter Plugga. Plugga är orörd.
+  `body.lasresan-lage` ger en bredare innehållsyta (1180 px).
+- **Layout:** bred skärm = text och fråga sida vid sida, båda `sticky`, och
+  texten har en egen scrollruta. Under 860 px ligger texten överst i en fäst
+  scrollruta (42 vh) med frågan under, så texten syns alltid.
+- **Frågor:** en i taget, 4 stora knappar (A–D). Alternativen blandas
+  **stabilt per fråga** (`displayOrder("textId/qid")`), så rätt svars position i
+  innehållet blir ingen ledtråd och ordningen är densamma efter en omladdning.
+  Vyn skickar alltid originalindex. Klick → alla knappar låses → ✅ Rätt! / ❌ Fel
+  → nästa fråga automatiskt efter 1,1 s (fel: 1,6 s).
+- **Rätt svar avslöjas inte vid fel** (spec §7 säger bara ✅/❌). Det kan läggas
+  till i `ui-reader.js` om lärarna vill.
+- **Påbörjad text:** svaren sparas efter varje klick i
+  `localStorage["pp:lasresan:pagaende:<elevId>"]`. Lämnar eleven texten (← Kartan,
+  omladdning) återupptas samma text på samma fråga med de låsta svaren, så det
+  går inte att ladda om och svara om. Rensas när `completeText` lyckats. Om
+  sparandet misslyckas finns alla svar kvar, och nästa försök slutför direkt.
+- **Slutför:** `completeText` (försök + tillstånd + dold nivå i en transaktion,
+  coins via `addCoins`) → sidomenyns saldo ritas om → sammanfattning ("Superbra
+  läst!", "✅ 5 av 6 rätt", "+15") → "Gå vidare" → kartan med
+  `animateFromStep = walk.fromStep`. Rubrikerna är alltid positiva, och nivån eller
+  en nivåändring nämns aldrig.
+- **Världsbyte:** sammanfattningen visar "🏆 Skogen är klar! Nu väntar Öknen.".
+  Kartan ritar sedan den **gamla** världen på sista steget (animation 19→20),
+  och verktygsraden får knappen "Vidare till Öknen →" som ritar den nya världen.
+  Kartan får också de valfria fälten `walk` och `worldCompleted` (utöver kontraktet).
+- **Min läsning:** `#/elev/lasresan?vy=min` (knappen "📊 Min läsning" ovanför
+  kartan). Fem rutor ur `summarize(lasresa)`: texter, frågor, rätt, % rätt och
+  pluggcoins. Ingen nivå och inga jämförelser.
 
 ### Nivålogik (spec §10)
 - `correct*100 >= 70*total` → **hög**: highStreak+1, lowStreak=0. Vid 3 → nivå +1 (tak 7).
