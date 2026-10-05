@@ -77,10 +77,18 @@ export function createLoader(opts = {}) {
     }
     const res = validateBank(texts);
     for (const e of res.errors) warn("hoppar över text:", e);
-    return res.validTexts.filter((t) => {
+    const valid = res.validTexts.filter((t) => {
       if (t.level !== level) warn(`${t.id}: nivå ${t.level} ligger i fil för nivå ${level} – hoppas över`);
       return t.level === level;
     });
+    // En listad nivå som inte gav någon giltig text (fil saknas/404/trasig) →
+    // dev-seedens texter för nivån (om några), så nivån inte står tom.
+    if (valid.length === 0 && files.length > 0) {
+      const fallback = seedLevel(level);
+      if (fallback.length > 0) warn(`nivå ${level} gav inga texter ur banken – använder dev-seed för nivån`);
+      return fallback;
+    }
+    return valid;
   }
 
   /** Alla giltiga texter på en nivå (cachat). */
@@ -101,7 +109,9 @@ export function createLoader(opts = {}) {
     if (!m || forcedSeed) return validateBank(seed).validTexts;
     const levels = Object.keys(m.levels).map(Number).filter(Number.isInteger).sort((a, b) => a - b);
     const all = (await Promise.all(levels.map(loadLevel))).flat();
-    if (all.length === 0) {
+    const seedIds = new Set(seed.map((t) => t && t.id));
+    if (all.every((t) => seedIds.has(t.id))) {
+      // Ingen enda text kom ur banken (bara per-nivå-fallback eller inget alls).
       warn("innehållsbanken gav inga giltiga texter – använder dev-seed");
       forcedSeed = true;
       levelCache.clear();

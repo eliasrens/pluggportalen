@@ -111,6 +111,21 @@ test("loader: bank via manifest, lat per nivå, flera filer, trasig text hoppas 
   assert.equal(fetch.calls.filter((c) => c === "manifest.json").length, 1, "manifestet cachas");
 });
 
+test("loader: listad nivåfil saknas (404) → varning, dev-seed för just den nivån", async () => {
+  const n3 = { ...clone(DEV_SEED[1]), id: "lr-n3-ur-banken" };
+  const warnings = [];
+  const fetch = fakeFetch({
+    "manifest.json": { version: 1, levels: { 1: ["level-1.json"], 2: ["level-2.json"], 3: ["level-3.json"] } },
+    "level-3.json": [n3],
+  });
+  const L = createLoader({ fetch, baseUrl: "http://x/bank/", warn: (...a) => warnings.push(a.join(" ")) });
+  assert.deepEqual((await L.loadLevel(1)).map((t) => t.id), ["lr-n1-katten-i-regnet"]); // seed
+  assert.deepEqual(await L.loadLevel(2), []); // seed saknar nivå 2 → tom, pickern tar närmaste nivå
+  assert.deepEqual((await L.loadBank()).map((t) => t.id), ["lr-n1-katten-i-regnet", "lr-n3-ur-banken"]);
+  assert.equal(await L.source(), "bank");
+  assert.ok(warnings.some((w) => w.includes("level-1.json")));
+});
+
 test("loader: bank utan giltiga texter → dev-seed", async () => {
   const fetch = fakeFetch({
     "manifest.json": { version: 1, levels: { 1: ["level-1.json"] } },
