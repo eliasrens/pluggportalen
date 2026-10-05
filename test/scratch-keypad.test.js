@@ -237,7 +237,7 @@ test("Uppställning lägger en TOM mall i procent; finns den redan fokuseras den
   assert.ok(cells[2][0].classList.contains("uppst-op"), "räknesättsruta i tal 2:s rad");
   assert.ok(cells[0][1].classList.contains("uppst-mem"));
   assert.ok(cells.flat().filter(Boolean).every((c) => c.value === ""), "förifylls aldrig");
-  assert.equal(doc.activeElement, cells[1][1]);
+  assert.equal(doc.activeElement, cells[1][5], "start i tal 1:s entalsruta");
   keypad.press("uppst");
   assert.equal(uppst.layer.children.length, 1, "ingen dubblett");
 });
@@ -260,17 +260,36 @@ test("ny mall krockar inte med lappar: flyttas ned under dem", () => {
   assert.equal(uppst.template().style.left, "39.50%"); // (150 + 8) / 400
 });
 
-test("knappsatsen fyller rutorna: en siffra per ruta, talrad hoppar åt höger", () => {
+test("talrad skrivs från entalen: siffrorna skjuts in från höger (högerställt)", () => {
   const { uppst, keypad, press, doc } = setup();
   keypad.setOpen(true);
-  press("uppst", "3", "4", "7");
+  press("uppst");
   const row = uppst.cells()[1];
-  assert.deepEqual(row.slice(1, 4).map((c) => c.value), ["3", "4", "7"]);
-  assert.equal(doc.activeElement, row[4]);
-  row[2].focus(); // markeras → nästa siffra ersätter
+  assert.equal(doc.activeElement, row[5], "start i entalsrutan");
+  press("3", "4", "7");
+  assert.deepEqual(row.slice(1).map((c) => c.value), ["", "", "3", "4", "7"]);
+  assert.equal(doc.activeElement, row[5], "markören stannar i entalen");
+  row[3].focus(); // rättning mitt i talet: markeras → nästa siffra ersätter
   press("9");
-  assert.equal(row[2].value, "9");
-  assert.equal(doc.activeElement, row[3]);
+  assert.equal(row[3].value, "9");
+  assert.equal(doc.activeElement, row[4]);
+});
+
+test("talet växer förbi mallen → en kolumn läggs till automatiskt", () => {
+  const { uppst, keypad, press, doc } = setup();
+  keypad.setOpen(true);
+  press("uppst", "1", "2", "3", "4", "5", "6");
+  const row = uppst.cells()[1];
+  assert.equal(row.filter(Boolean).length, 6);
+  assert.deepEqual(row.slice(1).map((c) => c.value), ["1", "2", "3", "4", "5", "6"]);
+  assert.equal(doc.activeElement, row[6], "fortfarande i entalen");
+});
+
+test("radera i entalen tar sista siffran och skjuter tillbaka åt höger", () => {
+  const { uppst, keypad, press } = setup();
+  keypad.setOpen(true);
+  press("uppst", "5", "6", "7", "back");
+  assert.deepEqual(uppst.cells()[1].slice(1).map((c) => c.value), ["", "", "", "5", "6"]);
 });
 
 test("svarsraden hoppar åt vänster (ental först); = avvisas utan att sudda siffran", () => {
@@ -296,9 +315,10 @@ test("räknesätt i en sifferruta → räknesättsrutan; från tal 1 vidare till
   press("uppst", "3", "4", "7", "+");
   const c = uppst.cells();
   assert.equal(c[2][0].value, "+");
-  assert.deepEqual(c[1].slice(1, 4).map((x) => x.value), ["3", "4", "7"], "talet orört");
-  assert.equal(doc.activeElement, c[2][1], "första tomma rutan i tal 2");
+  assert.deepEqual(c[1].slice(3).map((x) => x.value), ["3", "4", "7"], "talet orört");
+  assert.equal(doc.activeElement, c[2][5], "tal 2 börjar under entalen");
   press("1", "5");
+  assert.deepEqual(c[2].slice(4).map((x) => x.value), ["1", "5"], "ental under ental");
   c[3][5].focus(); // i svarsraden: räknesättet byts, markören stannar
   press("×");
   assert.equal(c[2][0].value, "×");
@@ -313,7 +333,20 @@ test("decimalkomma är tillåtet i sifferrutorna (egen kolumn)", () => {
   const { uppst, keypad, press } = setup();
   keypad.setOpen(true);
   press("uppst", "3", ",", "5");
-  assert.deepEqual(uppst.cells()[1].slice(1, 4).map((x) => x.value), ["3", ",", "5"]);
+  assert.deepEqual(uppst.cells()[1].slice(3).map((x) => x.value), ["3", ",", "5"]);
+});
+
+test("tal 1 skrivet från vänster högerställs när räknesättet väljs", () => {
+  const { uppst, keypad, press, doc } = setup();
+  keypad.setOpen(true);
+  press("uppst");
+  const c = uppst.cells();
+  c[1][1].focus(); // eleven trycker själv längst till vänster
+  press("4", "5", "+");
+  assert.deepEqual(c[1].slice(1).map((x) => x.value), ["", "", "", "4", "5"]);
+  assert.equal(doc.activeElement, c[2][5]);
+  press("6");
+  assert.equal(c[2][5].value, "6", "6:an under 5:an");
 });
 
 test("räknesättsrutan: tangentbordets * - / blir × − ÷, siffror avvisas", () => {
@@ -330,8 +363,10 @@ test("räknesättsrutan: tangentbordets * - / blir × − ÷, siffror avvisas", 
 test("radera i tom ruta går bakåt och tömmer; Enter skickar aldrig formuläret", () => {
   const { uppst, keypad, press, doc } = setup();
   keypad.setOpen(true);
-  press("uppst", "5", "6");
+  press("uppst");
   const row = uppst.cells()[1];
+  row[1].focus(); // mitt i raden: vanligt hopp åt höger
+  press("5", "6");
   assert.equal(doc.activeElement, row[3]);
   press("back"); // tom → tillbaka till 6:an och töm den
   assert.equal(row[2].value, "");

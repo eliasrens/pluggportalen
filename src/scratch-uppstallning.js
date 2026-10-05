@@ -10,15 +10,21 @@
 // räknesättet) lägger till en kolumn till VÄNSTER (talen växer åt vänster). En
 // siffra – eller decimalkomma, som tar en egen kolumn – per ruta.
 //
-// Räknesätt (+ − × ÷, från knappsatsen eller tangentbordet) i en sifferruta
-// hamnar i mallens räknesättsruta. Står man i tal 1 går markören vidare till
-// första tomma rutan i tal 2 (man har skrivit "347 +" och fortsätter med nästa
-// tal); annars stannar den där man var (t.ex. i svarsraden).
+// TALEN STÄLLS UNDER ENTALEN AUTOMATISKT (Elias): talraderna skrivs som på en
+// miniräknare. Markören startar i ENTALSRUTAN (längst till höger); står man där
+// och den redan har en siffra skjuts radens siffror ett steg åt vänster och den
+// nya hamnar i entalen ("347" = 3,4,7 → 3|4|7 högerställt). Räcker inte raden
+// läggs en kolumn till. Radera i entalsrutan tar sista siffran och skjuter
+// tillbaka åt höger. Så hamnar ental under ental, tiotal under tiotal …
 //
-// Markören hoppar automatiskt efter varje siffra. Riktning per rad:
-//   • talraderna → åt HÖGER: man skriver ett tal som man läser det ("347" = 3,4,7).
-//   • minnes- och svarsraden ← åt VÄNSTER: uppställningen räknas från entalen och
-//     uppåt (ental, tiotal, hundratal …), så nästa svarssiffra hamnar till vänster.
+// Räknesätt (+ − × ÷, från knappsatsen eller tangentbordet) i en sifferruta
+// hamnar i mallens räknesättsruta. Står man i tal 1 högerställs tal 1 (om eleven
+// själv tryckt i en ruta längre vänster) och markören går till tal 2:s
+// entalsruta; annars stannar den där man var (t.ex. i svarsraden).
+//
+// Trycker man själv i en ruta mitt i en talrad skriver man i just den (rättning)
+// och markören hoppar åt höger. Minnes- och svarsraden hoppar ← åt VÄNSTER:
+// uppställningen räknas från entalen och uppåt (ental, tiotal, hundratal …).
 // Backsteg i en tom ruta går ett steg bakåt (mot skrivriktningen) och tömmer den
 // rutan; piltangenterna flyttar fritt i rutnätet (fysiskt tangentbord).
 //
@@ -95,6 +101,9 @@ export function attachUppstallning(surface, opts = {}) {
     return cell;
   }
 
+  const isNumRow = (r) => r === ROW_A || r === ROW_B;
+  const ones = (r) => at(r, cols); // entalsrutan = sista kolumnen
+  const rowVals = (r) => cells[r].map((c) => (c && !c.dataset.op ? c.value : ""));
   const posOf = (cell) => [Number(cell.dataset.r), Number(cell.dataset.c)];
   const at = (r, c) => (cells[r] && cells[r][c]) || null;
 
@@ -140,6 +149,15 @@ export function attachUppstallning(surface, opts = {}) {
       }
       if (op) { e.preventDefault(); setOperator(op, r); return; }
       if (!DIGIT_RE.test(e.key)) { e.preventDefault(); return; }
+      // Entalsrutan i en talrad har redan en siffra → skjut in från höger.
+      if (isNumRow(r) && cell === ones(r) && cell.value) { e.preventDefault(); pushDigit(r, e.key); return; }
+    }
+    if (e.key === "Backspace" && isNumRow(r) && cell === ones(r) && cell.value) {
+      // Radera i entalen: sista siffran bort, resten skjuts tillbaka åt höger.
+      e.preventDefault();
+      const v = rowVals(r);
+      for (let k = cols; k >= 1; k--) at(r, k).value = k > 1 ? v[k - 1] : "";
+      return;
     }
     if (e.key === "Backspace" && !cell.value) {
       // Tom ruta: ett steg bakåt (mot skrivriktningen) och töm den.
@@ -158,14 +176,37 @@ export function attachUppstallning(surface, opts = {}) {
     if (target) { e.preventDefault(); focusCell(target); }
   }
 
+  // Ny siffra i en talrad vars entalsruta redan är ifylld: allt ett steg åt vänster
+  // (ny kolumn om raden är full), den nya siffran i entalen. Full mall → ignoreras.
+  function pushDigit(r, ch) {
+    if (rowVals(r)[1]) {
+      if (cols >= MAX_COLS) return;
+      addColumn(); // flyttar allt ett steg åt höger och behåller fokus i entalen
+    }
+    const v = rowVals(r);
+    for (let k = 1; k < cols; k++) at(r, k).value = v[k + 1];
+    ones(r).value = ch;
+    focusCell(ones(r));
+  }
+
+  // Högerställ en talrad (sista siffran i entalen) – om eleven började längre vänster.
+  function alignRight(r) {
+    const v = rowVals(r);
+    let last = 0;
+    for (let k = 1; k <= cols; k++) if (v[k]) last = k;
+    const shift = cols - last;
+    if (!last || !shift) return;
+    for (let k = cols; k >= 1; k--) at(r, k).value = k - shift >= 1 ? v[k - shift] : "";
+  }
+
   // Räknesätt skrivet i en sifferruta → till räknesättsrutan (se filhuvudet).
   function setOperator(op, fromRow) {
     const opCell = at(ROW_B, 0);
     if (!opCell) return;
     opCell.value = op;
     if (fromRow !== ROW_A) return;
-    const next = cells[ROW_B].find((c) => c && !c.dataset.op && !c.value);
-    if (next) focusCell(next);
+    alignRight(ROW_A);
+    focusCell(ones(ROW_B)); // tal 2 börjar under entalen
   }
 
   // Bygg rutnätet från `values` (bevarar innehåll när en kolumn läggs till).
@@ -223,7 +264,7 @@ export function attachUppstallning(surface, opts = {}) {
   }
 
   /**
-   * Lägg en TOM mall (finns den redan: fokusera den). Returnerar tal 1:s första ruta.
+   * Lägg en TOM mall (finns den redan: fokusera den). Returnerar tal 1:s entalsruta.
    * `obstacles` (klientrektanglar, t.ex. lappar): krockar mallen med någon flyttas
    * den ned under dem.
    */
@@ -250,8 +291,8 @@ export function attachUppstallning(surface, opts = {}) {
       build(null);
       avoid(obstacles);
     }
-    // Start i tal 1:s första ruta: eleven börjar med att skriva upp talet.
-    const first = at(ROW_A, 1);
+    // Start i tal 1:s ENTALSRUTA: siffrorna skjuts in från höger (se filhuvudet).
+    const first = ones(ROW_A);
     focusCell(first);
     return first;
   }
