@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Synliga byar per klass – förhandsvisning (issue #391)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <!-- Bara data.js stubbas (klasserna i minnet). Lärar-kontrollen
+         (teacher-class-villages.js), filtret (visibleVillageClasses) och
+         områdesscenen (mountOmradeScen) är de RIKTIGA modulerna. -->
+    <script type="importmap">
+      { "imports": { "/src/data.js": "/preview/by-stubs/data.js" } }
+    </script>
+    <style>
+      body { background: #0b0f14; }
+      .pv-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px;
+        max-width: 1300px; margin: 0 auto; padding: 16px 20px 40px; }
+      @media (max-width: 900px) { .pv-wrap { grid-template-columns: 1fr; } }
+      .pv-h { color: #7ee0a6; font: 700 0.8rem/1 "Baloo 2", system-ui, sans-serif;
+        letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 10px; }
+      .pv-intro { max-width: 1300px; margin: 0 auto; padding: 18px 20px 0; color: #cfd8e3;
+        font: 500 0.95rem/1.5 system-ui, sans-serif; }
+      .pv-intro b { color: #fff; }
+      .pv-pick { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+      .pv-pick button { border-radius: 999px; padding: 4px 12px; border: 1px solid #39465a;
+        background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui, sans-serif; }
+      .pv-pick button[aria-pressed="true"] { background: #2f8f5b; border-color: #2f8f5b; color: #fff; }
+      .pv-elev { border-radius: 16px; overflow: hidden; background: #fff; }
+      .pv-elev .pv-pick { padding: 10px 12px 0; margin: 0; background: #f5f2ea; }
+      .pv-elev .pv-pick button { background: #fff; color: #3b3350; border-color: #cfc6b4; }
+      .pv-elev .pv-pick button[aria-pressed="true"] { background: #7c5cd6; border-color: #7c5cd6; color: #fff; }
+      .pv-scen { position: relative; aspect-ratio: 4 / 3; overflow: hidden; }
+      /* Riktiga staget ger lagret en fast scen-box (#373); här fyller det ramen. */
+      .pv-scen > .varld-lager { inset: 0; width: 100% !important; height: 100% !important;
+        margin: 0 !important; transform: none !important; }
+      .pv-status { padding: 8px 12px; background: #f5f2ea; color: #3b3350; font: 600 0.85rem system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-intro">
+      <b>Issue #391 – lärarstyrd by-synlighet.</b> Vänster: lärarens nya kontroll
+      <i>Synliga byar</i> på klasskortet (välj klass). Höger: elevens områdesvy
+      ("Andra byar") för en elev i vald klass. Bocka ur en by + <b>Spara byar</b> →
+      byn försvinner direkt för elever i den klassen. Egna klassen syns alltid;
+      allt ikryssat = alla byar (default).
+    </div>
+    <div class="pv-wrap">
+      <section class="teacher-page teacher-dark">
+        <div class="pv-h">Lärarsidan · klasskort → Synliga byar</div>
+        <div class="pv-pick" id="pv-larare-klass"></div>
+        <div class="panel class-card"><div class="class-villages" id="pv-larare"></div></div>
+      </section>
+      <section>
+        <div class="pv-h">Elevens områdesvy (skolan)</div>
+        <div class="pv-elev">
+          <div class="pv-pick" id="pv-elev-klass"></div>
+          <div class="pv-status" id="pv-status"></div>
+          <div class="pv-scen"><div class="varld-lager varld-skola" id="pv-skola"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      import * as data from "/src/data.js";
+      import { renderClassVillages } from "/src/teacher-class-villages.js";
+      import { mountOmradeScen, visibleVillageClasses } from "/src/varld-omrade.js";
+
+      const ctx = { app: document.body, go: () => {}, renderTopbar: () => {}, refresh: () => {} };
+      const classes = await data.getClasses();
+      let lararKlass = classes[0].id;
+      let elevKlass = classes[0].id;
+
+      function knappar(host, valt, onPick, etikett) {
+        host.replaceChildren(
+          ...classes.map((c) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.textContent = etikett(c);
+            b.setAttribute("aria-pressed", String(c.id === valt));
+            b.addEventListener("click", () => onPick(c.id));
+            return b;
+          })
+        );
+      }
+
+      function ritaLarare() {
+        knappar(document.getElementById("pv-larare-klass"), lararKlass, (id) => {
+          lararKlass = id;
+          ritaLarare();
+        }, (c) => c.name);
+        const cls = classes.find((c) => c.id === lararKlass);
+        renderClassVillages(ctx, cls, document.getElementById("pv-larare"), classes);
+      }
+
+      function ritaElev() {
+        knappar(document.getElementById("pv-elev-klass"), elevKlass, (id) => {
+          elevKlass = id;
+          ritaElev();
+        }, (c) => `Elev i ${c.name}`);
+        const klass = classes.find((c) => c.id === elevKlass);
+        const meId = klass.studentIds[0];
+        // Exakt det pages-varld.js gör: filtrera INNAN rendering.
+        const synliga = visibleVillageClasses(classes, meId);
+        mountOmradeScen({ lager: document.getElementById("pv-skola"), meClassId: klass.id, classes: synliga });
+        const dolda = classes.length - synliga.length;
+        document.getElementById("pv-status").textContent =
+          `Inloggad som ${meId} (${klass.name}) · ser ${synliga.length} av ${classes.length} byar` +
+          (dolda ? ` · ${dolda} dold${dolda === 1 ? "" : "a"} av läraren` : " · inget dolt (default)");
+      }
+
+      window.addEventListener("pv-classes-changed", ritaElev);
+      ritaLarare();
+      ritaElev();
+    </script>
+  </body>
+</html>

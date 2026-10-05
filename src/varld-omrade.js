@@ -20,6 +20,12 @@
 // kopplas av pages-varld.js via .omrade-by[data-id].
 // ============================================================================
 
+// LÄRARSTYRD SYNLIGHET (#391): läraren kan dölja andra klassers byar för sin
+// klass (classes/{id}.hiddenVillages). pages-varld.js filtrerar klasslistan med
+// visibleVillageClasses INNAN den når mountOmradeScen/grannby-vyn – egna klassen
+// syns alltid, och en djuplänk till en dold by faller tillbaka till skolan.
+export { visibleVillageClasses } from "./gamemode-visibility.js";
+
 /** Kamerazoom skola → by (en klass-by fyller ~1/5 av skolan → zoom ≈ 5). */
 export const OMRADE_ZOOM = 5;
 

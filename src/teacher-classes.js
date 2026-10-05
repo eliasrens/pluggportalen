@@ -8,8 +8,9 @@
 //   * Skapa en klass + N elevkonton på en gång (auto-genererade användarnamn +
 //     lösenord som visas för läraren att dela ut).
 //   * Per klass: lägg till/ta bort elever, döp om, ge 🪙, ta bort konto,
-//     tilldela arbetsområden (📌), välja synliga lägen PER OMRÅDE (🎮, #298/#299)
-//     och följa klassens framsteg (📊 – gamla klassöversikten, renderClassStats).
+//     tilldela arbetsområden (📌), välja synliga lägen PER OMRÅDE (🎮, #298/#299),
+//     vilka andra klassers byar klassen ser (🏘️, #391) och följa klassens
+//     framsteg (📊 – gamla klassöversikten, renderClassStats).
 // Kontoskapandet/medlemshanteringen bor i teacher-class-accounts.js (fil-cap).
 // Data via src/data.js (classes-/students-collection).
 // ============================================================================
@@ -134,6 +135,7 @@ export async function pageLarareKlasser(ctx) {
           <button class="btn ghost small" data-act="toggle">${icon("grad", 16)}<span>Elever</span></button>
           <button class="btn ghost small" data-act="areas">${icon("pin", 16)}<span>Områden</span></button>
           <button class="btn ghost small" data-act="modes">${icon("sliders", 16)}<span>Lägen per område</span></button>
+          <button class="btn ghost small" data-act="villages">${icon("eye", 16)}<span>Synliga byar</span></button>
           <button class="btn ghost small" data-act="stats">${icon("chart", 16)}<span>Statistik</span></button>
           <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort</span></button>
         </div>
@@ -141,18 +143,20 @@ export async function pageLarareKlasser(ctx) {
       <div class="class-members" hidden></div>
       <div class="class-assign" hidden></div>
       <div class="class-modes" hidden></div>
+      <div class="class-villages" hidden></div>
       <div class="class-stats" hidden></div>
     </div>`);
 
     const membersEl = card.querySelector(".class-members");
     const assignEl = card.querySelector(".class-assign");
     const modesEl = card.querySelector(".class-modes");
+    const villagesEl = card.querySelector(".class-villages");
     const statsEl = card.querySelector(".class-stats");
     const nameEl = card.querySelector(".class-name");
     const countEl = card.querySelector(".class-count");
 
     // Bara en utfällbar sektion öppen i taget (klick på öppen fäller ihop).
-    const panels = [membersEl, assignEl, modesEl, statsEl];
+    const panels = [membersEl, assignEl, modesEl, villagesEl, statsEl];
     const togglePanel = (target, render) => {
       const show = target.hidden;
       panels.forEach((p) => (p.hidden = true));
@@ -229,6 +233,22 @@ export async function pageLarareKlasser(ctx) {
           return;
         }
         renderClassAreaModes(ctx, cls, modesEl, library);
+      })
+    );
+
+    // Synliga byar (#391): vilka ANDRA klassers byar klassen ser i områdesvyn.
+    // Modulen laddas dynamiskt – ingen ny fil i den statiska bootgrafen (#271).
+    card.querySelector('[data-act="villages"]').addEventListener("click", () =>
+      togglePanel(villagesEl, async () => {
+        villagesEl.replaceChildren(el(`<div class="spinner">Laddar byar…</div>`));
+        try {
+          const { renderClassVillages } = await import("./teacher-class-villages.js");
+          renderClassVillages(ctx, cls, villagesEl, classes);
+        } catch (err) {
+          villagesEl.replaceChildren(
+            el(`<p class="err-inline">Kunde inte ladda byar: ${esc(err.message)}</p>`)
+          );
+        }
       })
     );
 
