@@ -106,6 +106,8 @@ export function flash(text, isError = false) {
 const NAV_LANKAR = [
   { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil" },
+  // Läsresan (#398): egen huvudmodul, fristående från Plugga.
+  { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil" },
 ];
 

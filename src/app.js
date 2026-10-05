@@ -12,6 +12,7 @@
 //   #/elev/plugga     välj arbetsområde att öva på
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
+//   #/elev/lasresan   Läsresan: adaptiv läsförståelse på en spelkarta (#398) – laddas DYNAMISKT
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -109,6 +110,29 @@ async function pageElevAventyr() {
   }
 }
 
+// Läsresan (#/elev/lasresan): samma mönster som äventyret – dynamisk import och
+// ett snällt fel INNE i vyn om modulgrafen inte går att ladda.
+async function pageElevLasresan() {
+  loading();
+  try {
+    const mod = await import("./lasresan/page-lasresan.js");
+    return await mod.pageLasresan();
+  } catch (err) {
+    console.error("Läsresan kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(
+      el(`<div class="panel center">
+        <div class="big-emoji">📖</div>
+        <h2>Läsresan kunde inte laddas</h2>
+        <p class="hint">Något gick fel. Prova igen om en stund.</p>
+        <button class="btn" id="lr-tillbaka">Tillbaka till att plugga</button>
+      </div>`)
+    );
+    const back = app.querySelector("#lr-tillbaka");
+    if (back) back.addEventListener("click", () => go("#/elev/plugga"));
+  }
+}
+
 // --- Router -----------------------------------------------------------------
 
 const routes = {
@@ -125,6 +149,9 @@ const routes = {
   // Äventyrsläget: gemensam spelmotor, tema väljs via ?tema= (default testbanan).
   "/elev/aventyr": pageElevAventyr,
   "/elev/shop": pageElevShop,
+  // Läsresan (#398/#401): egen huvudmodul bredvid Plugga. DYNAMISK import (som
+  // äventyret, #267/#271) så att Läsresans moduler aldrig hamnar i bootgrafen.
+  "/elev/lasresan": pageElevLasresan,
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
@@ -194,6 +221,8 @@ function router() {
     path === "/elev/kompis" || path === "/elev/skolan" || path === "/elev/grannby" ||
     path === "/elev/grannhus" || path === "/elev/gard" || path === "/elev/laggard"
   );
+  // Läsresan får en bredare innehållsyta (text och frågor sida vid sida).
+  document.body.classList.toggle("lasresan-lage", path === "/elev/lasresan");
   // Lärar-routes: håll body-bakgrunden mörk under HELA vistelsen – även i glappet
   // mellan flik-byten, då den gamla .teacher-dark-vyn tas bort en kort stund och
   // body:has(.teacher-dark) slutar matcha (→ annars blänker elevsidans ljusa
