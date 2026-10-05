@@ -1,0 +1,255 @@
+// ============================================================================
+// Pluggporten – kladdytans UPPSTÄLLNING (scratch-uppstallning.js, issue #392)
+// ----------------------------------------------------------------------------
+// En TOM rutmall för uppställning (lodrät räkning) som läggs på ritytan från
+// knappsatsens "Uppställning"-knapp. Eleven ställer SJÄLV upp talen – mallen
+// förifylls aldrig med uppgiftens tal (Elias beslut). Rader uppifrån:
+//   • minnessiffror (små rutor)   • tal 1   • räknesätt + tal 2
+//   • ett streck                  • svar
+// 5 kolumner från start; "+"-knappen lägger till en kolumn till VÄNSTER (talen
+// växer åt vänster i en uppställning). En siffra per ruta.
+//
+// Markören hoppar automatiskt efter varje siffra. Riktning per rad:
+//   • talraderna → åt HÖGER: man skriver ett tal som man läser det ("347" = 3,4,7).
+//   • minnes- och svarsraden ← åt VÄNSTER: uppställningen räknas från entalen och
+//     uppåt (ental, tiotal, hundratal …), så nästa svarssiffra hamnar till vänster.
+// Backsteg i en tom ruta går ett steg bakåt (mot skrivriktningen) och tömmer den
+// rutan; piltangenterna flyttar fritt i rutnätet (fysiskt tangentbord).
+//
+// Mallen placeras i PROCENT av ytan (som textlapparna i scratch-text.js) så den
+// följer med vid förstora/förminska. Sudd över mallen och Rensa tar bort den.
+// HELT FLYKTIG: finns bara i DOM:en, sparas ALDRIG.
+//
+// Samma pad-gränssnitt ({setTool, clear, resize, destroy} + setKeypad) så
+// createScratchCard når lagret via sin pads-lista.
+//
+// BOOT-SÄKERHET: import-fri, laddas bara via scratchpad.js som i sin tur bara nås
+// dynamiskt (games-rakna.js / adventure/generator-modal.js). Får ALDRIG statiskt
+// importeras av en bootfil (jfr #271/#290).
+// ============================================================================
+
+const ERASE_RADIUS = 13; // ≈ halva suddets bredd (scratchpad.js ERASER_WIDTH 26)
+const START_COLS = 5;
+const MAX_COLS = 9;
+const ROW_MEM = 0, ROW_A = 1, ROW_B = 2, ROW_SUM = 3;
+// Skrivriktning per rad: +1 = åt höger, -1 = åt vänster (se kommentaren ovan).
+const DIR = [-1, 1, 1, -1];
+const ROW_NAMES = ["Minnessiffra", "Tal 1", "Tal 2", "Svar"];
+const DIGIT_RE = /[0-9,]/;
+// Räknesätten – fysiskt tangentbord ger -, *, x, /, : → skrivs som riktiga tecken.
+const OP_MAP = { "+": "+", "-": "−", "−": "−", "*": "×", "x": "×", "X": "×", "×": "×", "/": "÷", ":": "÷", "÷": "÷" };
+
+/**
+ * Koppla uppställnings-lagret på `surface` (ritytans behållare, position:relative).
+ * @param {HTMLElement} surface
+ * @param {{document?:Document}} [opts]
+ */
+export function attachUppstallning(surface, opts = {}) {
+  // Globala document först: kort byggda ur ui.js el() har ett inert ownerDocument.
+  const doc = opts.document || (typeof document !== "undefined" ? document : surface.ownerDocument);
+  const layer = doc.createElement("div");
+  layer.className = "scratch-uppst-layer";
+  surface.appendChild(layer);
+
+  let tool = "pen";
+  let erasing = false;
+  let keypadOpen = false;
+  let box = null; // mallens rot-element (null = ingen mall)
+  let gridEl = null;
+  let addBtn = null;
+  let cols = START_COLS;
+  let cells = []; // cells[rad][kolumn] – kolumn 0 = räknesättets kolumn (bara rad B)
+
+  const allCells = () => cells.flat().filter(Boolean);
+
+  function applyInputMode(cell) {
+    // Knappsatsen öppen → inget skärmtangentbord; annars sifferbordet (räknesätts-
+    // rutan får vanligt bord, där finns + − osv.).
+    cell.setAttribute("inputmode", keypadOpen ? "none" : cell.dataset.op ? "text" : "numeric");
+  }
+
+  function makeCell(r, c) {
+    const cell = doc.createElement("input");
+    cell.type = "text";
+    cell.className = r === ROW_MEM ? "uppst-cell uppst-mem" : c === 0 ? "uppst-cell uppst-op" : "uppst-cell";
+    cell.dataset.r = String(r);
+    cell.dataset.c = String(c);
+    if (c === 0) cell.dataset.op = "1";
+    cell.setAttribute("autocomplete", "off");
+    cell.setAttribute("autocorrect", "off");
+    cell.setAttribute("autocapitalize", "off");
+    cell.setAttribute("spellcheck", "false");
+    cell.setAttribute("enterkeyhint", "next");
+    cell.setAttribute("aria-label", c === 0 ? "Räknesätt" : `${ROW_NAMES[r]}, kolumn ${c}`);
+    cell.style.gridRow = String(r === ROW_SUM ? r + 2 : r + 1); // +1 rad för strecket
+    cell.style.gridColumn = String(c + 1);
+    applyInputMode(cell);
+    cell.addEventListener("focus", () => onFocus(cell));
+    cell.addEventListener("input", () => onInput(cell));
+    cell.addEventListener("keydown", (e) => onKey(e, cell));
+    return cell;
+  }
+
+  const posOf = (cell) => [Number(cell.dataset.r), Number(cell.dataset.c)];
+  const at = (r, c) => (cells[r] && cells[r][c]) || null;
+
+  function focusCell(cell) {
+    if (!cell) return;
+    try { cell.focus({ preventScroll: true }); } catch { cell.focus(); }
+  }
+
+  function onFocus(cell) {
+    // Markera innehållet → nästa siffra ERSÄTTER den gamla (en siffra per ruta).
+    try { cell.select(); } catch {}
+  }
+
+  function onInput(cell) {
+    const v = String(cell.value || "");
+    // Det nyss skrivna tecknet sitter strax före markören; annars sista giltiga.
+    const pos = typeof cell.selectionStart === "number" ? cell.selectionStart : v.length;
+    const valid = (ch) => (cell.dataset.op ? OP_MAP[ch] : DIGIT_RE.test(ch) ? ch : "");
+    let ch = valid(v.charAt(pos - 1) || "");
+    if (!ch) for (let i = v.length - 1; i >= 0 && !ch; i--) ch = valid(v.charAt(i));
+    cell.value = ch || "";
+    if (!ch || cell.dataset.op) return;
+    const [r, c] = posOf(cell);
+    const next = at(r, c + DIR[r]);
+    if (next && !next.dataset.op) focusCell(next);
+  }
+
+  function onKey(e, cell) {
+    const [r, c] = posOf(cell);
+    if (e.key === "Enter") { e.preventDefault(); return; } // skickar ALDRIG svarsformuläret
+    if (e.key === "Backspace" && !cell.value) {
+      // Tom ruta: ett steg bakåt (mot skrivriktningen) och töm den.
+      const prev = at(r, c - DIR[r]);
+      if (prev && !prev.dataset.op) { e.preventDefault(); prev.value = ""; focusCell(prev); }
+      return;
+    }
+    const moves = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
+    const m = moves[e.key];
+    if (!m) return;
+    const [dr, dc] = m;
+    let nr = r + dr;
+    // Upp/ner hoppar över rader som saknar ruta i kolumnen (räknesättets kolumn).
+    while (dr && nr >= ROW_MEM && nr <= ROW_SUM && !at(nr, c + dc)) nr += dr;
+    const target = at(nr, c + dc);
+    if (target) { e.preventDefault(); focusCell(target); }
+  }
+
+  // Bygg rutnätet från `values` (bevarar innehåll när en kolumn läggs till).
+  function build(values) {
+    const grid = gridEl;
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+    grid.style.setProperty("--uppst-cols", String(cols + 1));
+    cells = [];
+    for (let r = ROW_MEM; r <= ROW_SUM; r++) {
+      cells[r] = [];
+      for (let c = 0; c <= cols; c++) {
+        if (c === 0 && r !== ROW_B) { cells[r][c] = null; continue; }
+        const cell = makeCell(r, c);
+        cell.value = (values && values[r] && values[r][c]) || "";
+        cells[r][c] = cell;
+        grid.appendChild(cell);
+      }
+    }
+    const line = doc.createElement("div");
+    line.className = "uppst-line";
+    line.style.gridRow = String(ROW_SUM + 1);
+    grid.appendChild(line);
+  }
+
+  function addColumn() {
+    if (!box || cols >= MAX_COLS) return;
+    const active = doc.activeElement;
+    const focusPos = active && allCells().includes(active) ? posOf(active) : null;
+    // Ny kolumn till VÄNSTER: befintliga värden flyttas ett steg åt höger.
+    const values = cells.map((row) => {
+      const out = [];
+      row.forEach((cell, c) => { if (cell) out[c === 0 ? 0 : c + 1] = cell.value; });
+      return out;
+    });
+    cols++;
+    build(values);
+    if (focusPos) focusCell(at(focusPos[0], focusPos[1] + (focusPos[1] > 0 ? 1 : 0)));
+    if (cols >= MAX_COLS) addBtn.hidden = true;
+  }
+
+  // Knappar i mallen tar inte fokus från rutan man skriver i (som knappsatsen).
+  const keepFocus = (e) => e.preventDefault();
+
+  /** Lägg en TOM mall (finns den redan: fokusera den). Returnerar tal 1:s första ruta. */
+  function create() {
+    if (!box) {
+      cols = START_COLS;
+      box = doc.createElement("div");
+      box.className = "uppst";
+      box.setAttribute("role", "group");
+      box.setAttribute("aria-label", "Uppställning");
+      box.style.left = "4%";
+      box.style.top = "6%";
+      const add = (addBtn = doc.createElement("button"));
+      add.type = "button";
+      add.className = "uppst-add";
+      add.textContent = "+";
+      add.title = "Lägg till en kolumn";
+      add.setAttribute("aria-label", "Lägg till en kolumn");
+      add.addEventListener("pointerdown", keepFocus);
+      add.addEventListener("mousedown", keepFocus);
+      add.addEventListener("click", addColumn);
+      gridEl = doc.createElement("div");
+      gridEl.className = "uppst-grid";
+      box.appendChild(add);
+      box.appendChild(gridEl);
+      layer.appendChild(box);
+      build(null);
+    }
+    // Start i tal 1:s första ruta: eleven börjar med att skriva upp talet.
+    const first = at(ROW_A, 1);
+    focusCell(first);
+    return first;
+  }
+
+  function remove() {
+    if (box && box.parentNode) box.parentNode.removeChild(box);
+    box = null;
+    cells = [];
+  }
+
+  // Sudd: rit-canvasen fångar pekaren, händelserna bubblar till ytan (som i
+  // scratch-text.js). Passerar suddet över mallen tas den bort.
+  function eraseAt(e) {
+    if (!box) return;
+    const r = box.getBoundingClientRect();
+    const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+    const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+    if (dx * dx + dy * dy <= ERASE_RADIUS * ERASE_RADIUS) remove();
+  }
+  function onDown(e) { if (tool === "eraser") { erasing = true; eraseAt(e); } }
+  function onMove(e) { if (erasing && tool === "eraser") eraseAt(e); }
+  function onUp() { erasing = false; }
+
+  surface.addEventListener("pointerdown", onDown);
+  surface.addEventListener("pointermove", onMove);
+  surface.addEventListener("pointerup", onUp);
+  surface.addEventListener("pointercancel", onUp);
+
+  return {
+    layer,
+    create,
+    /** Mallens rot (eller null) – för test/inspektion. */
+    template: () => box,
+    cells: () => cells,
+    setTool(t) { tool = t; erasing = false; },
+    /** Knappsatsen öppnas/stängs: växla skärmtangentbordet av/på för rutorna. */
+    setKeypad(open) { keypadOpen = !!open; allCells().forEach(applyInputMode); },
+    clear: remove,
+    resize() {}, // procent-placering → följer ytan av sig själv
+    destroy() {
+      surface.removeEventListener("pointerdown", onDown);
+      surface.removeEventListener("pointermove", onMove);
+      surface.removeEventListener("pointerup", onUp);
+      surface.removeEventListener("pointercancel", onUp);
+    },
+  };
+}

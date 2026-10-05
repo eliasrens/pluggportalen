@@ -127,6 +127,7 @@ export function startRakna(ctx) {
   let correct = 0; // antal rätt (styr stjärnor)
   let scratch = null; // aktivt kladdkort (canvas + verktyg + förstora), destroyas mellan uppgifter
   let keepEnlarged = false; // behåll förstora-läget mellan uppgifter (#312) – eleven slipper fälla ut varje gång
+  let keepKeypad = false; // likaså en öppen knappsats (#392)
   let ended = false;
 
   // Städa upp aktiv rityta om eleven navigerar bort mitt i (annars ligger
@@ -143,7 +144,12 @@ export function startRakna(ctx) {
     if (ended) return;
     // Kom ihåg om eleven valt förstorat innan vi river förra kortet, så nästa
     // uppgift startar i samma läge (#312 – slipp fälla ut ritytan varje gång).
-    if (scratch) { keepEnlarged = scratch.enlarge.isFull(); scratch.destroy(); scratch = null; }
+    if (scratch) {
+      keepEnlarged = scratch.enlarge.isFull();
+      keepKeypad = scratch.keypad.isOpen();
+      scratch.destroy();
+      scratch = null;
+    }
     const { problem, answer } = round[idx];
     let answered = false; // en rättning per uppgift (spärr mot dubbelsvar)
 
@@ -257,6 +263,7 @@ export function startRakna(ctx) {
     // aldrig döljs. Registrera den och återställ ev. bevarat förstora-läge.
     scratch.enlarge.setAnswer(form);
     if (keepEnlarged) scratch.enlarge.setFull(true);
+    if (keepKeypad) scratch.keypad.setOpen(true); // efter setFull – knappsatsen finns bara i helskärm
 
     input.focus();
 

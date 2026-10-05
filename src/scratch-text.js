@@ -41,6 +41,7 @@ export function attachTextLayer(surface, opts = {}) {
 
   let tool = "pen";
   let erasing = false;
+  let keypadOpen = false; // knappsatsen (scratch-keypad.js) öppen → inget skärmtangentbord
   let measureCtx = null;
 
   const notes = () => [...layer.querySelectorAll(".scratch-note")];
@@ -73,6 +74,7 @@ export function attachTextLayer(surface, opts = {}) {
     note.setAttribute("spellcheck", "false");
     note.setAttribute("enterkeyhint", "done");
     note.setAttribute("aria-label", "Text på kladdytan");
+    if (keypadOpen) note.setAttribute("inputmode", "none");
     note.placeholder = "…";
     note.style.left = `${(fx * 100).toFixed(2)}%`;
     note.style.top = `${(fy * 100).toFixed(2)}%`;
@@ -134,6 +136,11 @@ export function attachTextLayer(surface, opts = {}) {
       layer.classList.toggle("is-text", t === "text");
       // Lämnar man Text-läget mitt i en lapp: avsluta den (tom → bort).
       if (t !== "text" && layer.contains(doc.activeElement)) doc.activeElement.blur();
+    },
+    /** Knappsatsen öppnas/stängs: lapparna visar inget skärmtangentbord medan den är öppen. */
+    setKeypad(open) {
+      keypadOpen = !!open;
+      notes().forEach((n) => (keypadOpen ? n.setAttribute("inputmode", "none") : n.removeAttribute("inputmode")));
     },
     clear() { notes().forEach(removeNote); },
     resize() {}, // procent-placering → följer ytan av sig själv
