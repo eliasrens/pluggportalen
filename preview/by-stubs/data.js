@@ -29,3 +29,16 @@ export async function getClassHiddenVillages(classId) {
   const cls = classes.find((c) => c.id === classId);
   return normalizeHiddenVillages(cls?.hiddenVillages);
 }
+
+export async function setVillageHiddenForAll(villageId, hidden, classIds) {
+  await new Promise((r) => setTimeout(r, 250));
+  const others = [...new Set(classIds || [])].filter((id) => id && id !== villageId);
+  for (const id of others) {
+    const cls = classes.find((c) => c.id === id);
+    if (!cls) continue;
+    const list = normalizeHiddenVillages(cls.hiddenVillages).filter((v) => v !== villageId);
+    cls.hiddenVillages = hidden ? [...list, villageId] : list;
+  }
+  window.dispatchEvent(new CustomEvent("pv-classes-changed"));
+  return others;
+}

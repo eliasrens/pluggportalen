@@ -11,6 +11,11 @@
 // – samma fält som elevens områdesvy redan visar (#37). Den egna klassen listas
 // inte: den syns alltid för sina elever.
 //
+// GENVÄG "dölj för alla": under listan kan läraren dölja (eller visa) DEN HÄR
+// klassens egen by för alla andra klasser på en gång (t.ex. en specgrupp) –
+// data.setVillageHiddenForAll skriver hiddenVillages på varje annan klass i en
+// batch. Samma fält som kryssrutorna, bara sett från den dolda byns håll.
+//
 // Laddas DYNAMISKT från teacher-classes.js (vid klick på "Synliga byar") så att filen
 // aldrig hamnar i den statiska bootgrafen (incident #271).
 // ============================================================================
@@ -18,6 +23,12 @@
 import * as data from "./data.js";
 import { normalizeHiddenVillages } from "./gamemode-visibility.js";
 import { el, esc, emptyState, icon } from "./teacher-shared.js";
+import { possessiv } from "./text-format.js";
+
+/** Genitiv för klassnamn: förkortningar/siffror får kolon ("4A:s"), annars "Specgrupps". */
+function klassGenitiv(namn) {
+  return /[0-9A-ZÅÄÖ]$/.test(String(namn).trim()) ? `${namn}:s` : possessiv(namn);
+}
 
 /**
  * Rendera "🏘️ Synliga byar"-sektionen för klassen `cls` in i `host`.
@@ -63,6 +74,15 @@ export function renderClassVillages(ctx, cls, host, classes) {
       <button class="btn ghost small" data-act="all-villages">Visa alla</button>
       <span class="villages-result"></span>
     </div>
+    <div class="villages-own" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">
+      <p class="hint" style="margin:0 0 8px"><b>${esc(klassGenitiv(cls.name || cls.id))} egen by</b> –
+        <span class="villages-own-status"></span></p>
+      <div class="row-inline">
+        <button class="btn ghost small" data-act="hide-own-all">${icon("lock", 16)}<span>Dölj för alla andra klasser</span></button>
+        <button class="btn ghost small" data-act="show-own-all">${icon("eye", 16)}<span>Visa för alla</span></button>
+        <span class="villages-own-result"></span>
+      </div>
+    </div>
   </div>`);
 
   const resultEl = box.querySelector(".villages-result");
@@ -94,6 +114,42 @@ export function renderClassVillages(ctx, cls, host, classes) {
       btn.innerHTML = old;
     }
   });
+
+  // --- Genväg: den här klassens by, dold/synlig för ALLA andra klasser -------
+  const ownStatusEl = box.querySelector(".villages-own-status");
+  const ownResultEl = box.querySelector(".villages-own-result");
+  const visarStatus = () => {
+    const dolda = others.filter((c) => normalizeHiddenVillages(c.hiddenVillages).includes(cls.id));
+    ownStatusEl.textContent =
+      dolda.length === 0
+        ? `syns för alla ${others.length} andra klasser.`
+        : dolda.length === others.length
+          ? `dold för alla andra klasser.`
+          : `dold för ${dolda.length} av ${others.length} andra klasser (${dolda.map((c) => c.name || c.id).join(", ")}).`;
+  };
+  visarStatus();
+
+  const ownAll = (hide) => async (e) => {
+    const btns = box.querySelectorAll(".villages-own button");
+    btns.forEach((b) => (b.disabled = true));
+    ownResultEl.innerHTML = "";
+    try {
+      await data.setVillageHiddenForAll(cls.id, hide, others.map((c) => c.id));
+      // Spegla skrivningen lokalt så övriga klasskorts paneler stämmer direkt.
+      for (const c of others) {
+        const list = normalizeHiddenVillages(c.hiddenVillages).filter((id) => id !== cls.id);
+        c.hiddenVillages = hide ? [...list, cls.id] : list;
+      }
+      visarStatus();
+      ownResultEl.innerHTML = `<span class="ok-inline">✓ Sparat</span>`;
+    } catch (err) {
+      ownResultEl.innerHTML = `<span class="err-inline">Kunde inte spara: ${esc(err.message)}</span>`;
+    } finally {
+      btns.forEach((b) => (b.disabled = false));
+    }
+  };
+  box.querySelector('[data-act="hide-own-all"]').addEventListener("click", ownAll(true));
+  box.querySelector('[data-act="show-own-all"]').addEventListener("click", ownAll(false));
 
   host.replaceChildren(box);
 }

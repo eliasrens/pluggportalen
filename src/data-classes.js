@@ -258,6 +258,21 @@ export async function getClassHiddenVillages(classId) {
 }
 
 /**
+ * Genväg: dölj (hidden=true) eller visa klassen `villageId`:s by för ALLA andra
+ * klasser i `classIds` på en gång. EN batch med arrayUnion/arrayRemove, så varje
+ * klass övriga dolda byar rörs inte. Returnerar de klass-id som skrevs.
+ */
+export async function setVillageHiddenForAll(villageId, hidden, classIds) {
+  const others = [...new Set(classIds || [])].filter((id) => id && id !== villageId);
+  const op = hidden ? arrayUnion(villageId) : arrayRemove(villageId);
+  const batch = writeBatch(db);
+  for (const id of others) batch.set(doc(db, "classes", id), { hiddenVillages: op }, { merge: true });
+  await batch.commit();
+  _classCache.invalidate("classes");
+  return others;
+}
+
+/**
  * Hitta elevens klass utifrån klassernas studentIds. Om eleven finns i flera
  * klasser returneras den första (efter getClasses ordning). Null om ingen.
  * @param {string} studentId

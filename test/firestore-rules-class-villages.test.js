@@ -11,7 +11,16 @@
 import { after, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  arrayRemove,
+  arrayUnion,
+  deleteDoc,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
 import { createRulesEnv } from "./helpers/rules-env.js";
 
 let testEnv, unauth, elev, teacher;
@@ -72,6 +81,26 @@ describe("By-synlighet (#391): hiddenVillages läsbart för eleven, skrivbart f�
     await assertFails(
       setDoc(doc(teacher(), "classes", "6a"), { hiddenVillages: lang }, { merge: true })
     );
+  });
+
+  it("genvägen 'dölj för alla': lärarens batch med arrayUnion/arrayRemove tillåts", async () => {
+    const db = teacher();
+    const hide = writeBatch(db);
+    hide.set(doc(db, "classes", "6a"), { hiddenVillages: arrayUnion("sp") }, { merge: true });
+    hide.set(doc(db, "classes", "6b"), { hiddenVillages: arrayUnion("sp") }, { merge: true });
+    await assertSucceeds(hide.commit());
+    const snap = await getDoc(doc(db, "classes", "6b"));
+    assert.deepEqual(snap.data().hiddenVillages, ["sp"]);
+    const show = writeBatch(db);
+    show.set(doc(db, "classes", "6a"), { hiddenVillages: arrayRemove("sp") }, { merge: true });
+    await assertSucceeds(show.commit());
+  });
+
+  it("genvägen nekas för elev (även en elev i den dolda klassen)", async () => {
+    const db = elev("elev2");
+    const b = writeBatch(db);
+    b.set(doc(db, "classes", "6a"), { hiddenVillages: arrayRemove("sp") }, { merge: true });
+    await assertFails(b.commit());
   });
 
   it("bakåtkompatibelt: lärarens vanliga klass-skrivningar utan fältet funkar som förut", async () => {
