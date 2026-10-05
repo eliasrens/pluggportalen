@@ -83,9 +83,9 @@
         "id": "q7",
         "question": "Vad handlar texten främst om?",
         "options": [
-          "Hur man lånar böcker i skolans bibliotek",
+          "Hur man lånar och lämnar tillbaka böcker i biblioteket",
           "Hur man lär sig att rida på en häst",
-          "Varför Samira flyttade till Sverige",
+          "Varför Samira och hennes familj flyttade till Sverige",
           "Hur ett gemensamt intresse gör två barn till vänner"
         ],
         "answerIndex": 3,
@@ -141,10 +141,10 @@
         "id": "q4",
         "question": "Hugos ögon blev ”stora som tefat”. Hur såg han ut?",
         "options": [
-          "Trött och sömnig",
-          "Arg och irriterad",
+          "Trött och lite sömnig",
+          "Arg och mycket irriterad",
           "Mycket rädd och förvånad",
-          "Glad och nöjd"
+          "Glad och mycket nöjd"
         ],
         "answerIndex": 2,
         "category": "ordforstaelse"
@@ -153,10 +153,10 @@
         "id": "q5",
         "question": "Varför viftade Hugo inte bort getingen?",
         "options": [
-          "Han ville inte bli stucken eller förstöra bilden",
+          "Han ville inte bli stucken eller förstöra fotot",
           "Han tyckte att getingen var söt",
-          "Han märkte inte att den satt där",
-          "Bertil sa åt honom att låta den sitta"
+          "Han märkte inte att den satt där på näsan",
+          "Fotografen Bertil sa åt honom att låta den sitta"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
@@ -211,10 +211,10 @@
         "id": "q2",
         "question": "Varför halkade paddeln ner i vattnet?",
         "options": [
-          "Viggo tappade den när han paddlade",
-          "Tindra råkade knuffa till den",
-          "En stark vind blåste ner den",
-          "Vågor från en motorbåt fick kanoten att gunga"
+          "Viggo tappade den medan han paddlade fort",
+          "Tindra råkade knuffa till den med armbågen",
+          "En plötslig vindby blåste ner den i sjön",
+          "En motorbåts vågor fick kanoten att gunga"
         ],
         "answerIndex": 3,
         "category": "fakta"
@@ -260,7 +260,7 @@
         "question": "Varför blinkade Tindra åt Viggo i slutet?",
         "options": [
           "Hon hade fått något i ögat",
-          "De hade ett litet äventyr som bara de visste om",
+          "De delade ett hemligt litet äventyr",
           "Hon ville att han skulle berätta allt",
           "Hon var sur för att han tappade paddeln"
         ],
@@ -271,10 +271,10 @@
         "id": "q7",
         "question": "Hur löste de problemet med paddeln?",
         "options": [
-          "De ropade på morbror Jonas om hjälp",
-          "De hjälptes åt och Tindra bytte sida när hon paddlade",
-          "Motorbåten drog dem fram till paddeln",
-          "Viggo hoppade i och simmade efter den"
+          "De ropade på morbror Jonas och väntade på hjälp",
+          "Viggo pekade och Tindra paddlade på båda sidor",
+          "Motorbåten kom tillbaka och drog dem till paddeln",
+          "Viggo hoppade i vattnet och simmade efter den"
         ],
         "answerIndex": 1,
         "category": "helhet_slutsats"
@@ -329,10 +329,10 @@
         "id": "q4",
         "question": "Vad är ett fartygs ”skrov”?",
         "options": [
-          "Fartygets stora motor",
-          "Platsen där kaptenen styr",
+          "Den stora motorn längst bak i fartyget",
+          "Platsen högst upp där kaptenen styr",
           "Fartygets yttre skal som ligger i vattnet",
-          "Lasten som fartyget fraktar"
+          "Lasten som fartyget fraktar över havet"
         ],
         "answerIndex": 2,
         "category": "ordforstaelse"
@@ -387,9 +387,9 @@
         "id": "q1",
         "question": "Vad gör att en plats räknas som öken?",
         "options": [
-          "Att det blir varmare än 40 grader",
+          "Att det blir varmare än 40 grader på dagen",
           "Att det faller väldigt lite regn eller snö",
-          "Att marken är täckt av sand",
+          "Att marken till största delen är täckt av sand",
           "Att nästan inga djur kan leva där"
         ],
         "answerIndex": 1,
@@ -447,9 +447,9 @@
         "id": "q6",
         "question": "Varför räknas Antarktis som en öken, fast det finns massor av is där?",
         "options": [
-          "Under isen finns det sand",
-          "Det faller nästan ingen ny snö eller regn",
-          "Det är varmt där på sommaren",
+          "Under isen finns det sand och sten",
+          "Det faller nästan ingen snö eller regn",
+          "Det blir ganska varmt där på sommaren",
           "Det bor nästan inga människor där"
         ],
         "answerIndex": 1,
@@ -518,7 +518,7 @@
         "question": "Vad betyder det att skrovet var ”grunt”?",
         "options": [
           "Det gick inte särskilt djupt ner i vattnet",
-          "Det var mycket tungt att bära",
+          "Det var mycket tungt att bära över land",
           "Det var byggt av hårt trä",
           "Det var mycket bredare än andra skrov"
         ],
@@ -541,10 +541,10 @@
         "id": "q5",
         "question": "Hur hamnade arabiska silvermynt i svensk jord?",
         "options": [
-          "Araber byggde städer i Sverige",
+          "Araber kom hit och byggde städer i Sverige",
           "Mynten tillverkades i Sverige",
-          "Vikingar fick dem genom handel och tog med dem hem",
-          "Mynten spolades i land från havet"
+          "Vikingar tog hem dem från sina handelsresor",
+          "Mynten spolades i land från havet efter en storm"
         ],
         "answerIndex": 2,
         "category": "mellan_raderna"
@@ -553,9 +553,9 @@
         "id": "q6",
         "question": "Varför kunde vikingarna ta sig ända till Konstantinopel med skepp?",
         "options": [
-          "Skeppen klarade både låga floder och färder över land",
-          "Det fanns en kanal hela vägen dit",
-          "Skeppen var större än alla andra skepp",
+          "Skeppen klarade grunda floder och kunde dras över land",
+          "Det fanns en grävd kanal hela vägen från Sverige",
+          "Skeppen var mycket större än andra skepp på den tiden",
           "De seglade bara på öppet hav"
         ],
         "answerIndex": 0,

@@ -71,7 +71,7 @@
         "id": "q6",
         "question": "Vad menar Felicia när hon svarar ”Inte för Vide” i slutet?",
         "options": [
-          "Att Vide hade varit mycket modigare än hon själv hade trott",
+          "Att Vide inte ens hade märkt att strömmen gick",
           "Att Vide sov genom hela strömavbrottet",
           "Att hon själv var rädd men skyddade Vide från rädslan",
           "Att hon inte förstår varför pappa frågar"
@@ -192,7 +192,7 @@
           "Att morfar bara låtsades att han inte visste, för att vara snäll mot Jonatan",
           "Att Jonatan inte var säker på om de faktiskt hade fått något",
           "Att morfar inte hörde vad Jonatan sa",
-          "Att morfar troligen redan hade glömt att han fångat abborren"
+          "Att morfar kanske verkligen hade glömt att han fångat abborren"
         ],
         "answerIndex": 3,
         "category": "mellan_raderna"
@@ -387,7 +387,7 @@
       },
       {
         "id": "q6",
-        "question": "Tilde har sovit sex timmar per natt i flera veckor och har börjat bråka mycket med sina kompisar. Vad skulle texten säga om det?",
+        "question": "Moa har sovit sex timmar per natt i flera veckor och har börjat bråka mycket med sina kompisar. Vad skulle texten säga om det?",
         "options": [
           "Sömnbristen kan göra det svårare att hantera känslor",
           "Bråken beror nog på att hon drömmer mycket och sover oroligt",

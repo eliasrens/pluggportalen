@@ -60,7 +60,7 @@
         "question": "Varför frågar herr Lindqvist om Iduns mamma har skickat henne?",
         "options": [
           "Han misstänker att Idun bara för fram mammans sida i bråket",
-          "Han tycker att Idun är för ung för att gå till grannar ensam",
+          "Han tycker att Idun är för ung för att gå dit ensam",
           "Han vill veta om mamman tänker betala arboristen",
           "Han vill att mamman ska komma själv och be om ursäkt"
         ],
@@ -98,7 +98,7 @@
           "Att eken nu tappar fler löv än den gjorde förut",
           "Att konflikten har blivit ett samarbete, även om gränsen finns kvar",
           "Att de vuxna fortfarande inte pratar med varandra",
-          "Att Idun har fått i uppgift att städa i grannens trädgård varje höst"
+          "Att Idun måste städa i grannens trädgård varje höst"
         ],
         "answerIndex": 1,
         "category": "helhet_slutsats"
@@ -129,7 +129,7 @@
         "id": "q1",
         "question": "Hur visste Arvid vem som hade lagt ut bilden?",
         "options": [
-          "Han kände igen kontot utan namn som ett gammalt konto som Melvin hade",
+          "Han kände igen kontot utan namn som Melvins gamla konto",
           "Annika hade berättat för honom vem det var som hade gjort det",
           "Han hade sett Melvin skicka bilden under idrottslektionen",
           "Melvin hade visat honom bilden och frågat om han skulle lägga ut den"
@@ -195,7 +195,7 @@
           "Att varken säga något till Melvin eller till Annika"
         ],
         "answerIndex": 2,
-        "category": "ordforstaelse"
+        "category": "mellan_raderna"
       },
       {
         "id": "q7",
@@ -214,7 +214,7 @@
         "question": "Vilken konflikt inom Arvid handlar berättelsen främst om?",
         "options": [
           "Lojalitet mot en vän mot att göra rätt mot den som blivit sårad",
-          "Viljan att vara populär i klassen mot viljan att lyckas i skolan",
+          "Viljan att vara populär mot viljan att lyckas i skolan",
           "Lusten att skämta mot kravet att alltid vara allvarlig",
           "Rädslan för läraren mot rädslan för vad Melvins pappa ska göra"
         ],
@@ -271,12 +271,12 @@
         "id": "q3",
         "question": "Vad kan man förstå om Vera utifrån listan med tjugotre punkter?",
         "options": [
-          "Hon vill ha kontroll och att allt ska bli exakt rätt",
-          "Hon vill egentligen imponera mer på gästerna än på sin mamma",
           "Hon tycker inte om att baka men gör det ändå för mammas skull",
+          "Hon vill egentligen imponera mer på gästerna än på sin mamma",
+          "Hon vill ha kontroll och att allt ska bli exakt rätt",
           "Hon har svårt att komma ihåg saker om hon inte skriver ner dem"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -319,7 +319,7 @@
         "id": "q7",
         "question": "Varför är det viktigt för berättelsen att mamma hade hittat listan redan i tisdags?",
         "options": [
-          "Det visar att Teo i hemlighet hade avslöjat hela planen för mamma",
+          "Det visar att Teo i hemlighet hade avslöjat planen",
           "Planen var redan avslöjad, men kaoset blev en äkta överraskning",
           "Det visar att mamma egentligen inte alls ville ha något kalas",
           "Det förklarar varför mamma med flit kom hem tidigare än planerat"
@@ -343,12 +343,12 @@
         "id": "q9",
         "question": "Vilket budskap passar bäst till berättelsen?",
         "options": [
-          "Den som planerar tillräckligt noga lyckas alltid till slut",
-          "Man ska aldrig försöka planera en överraskning",
           "Det som gör ett minne fint är inte att allt blir perfekt",
+          "Man ska aldrig försöka planera en överraskning",
+          "Den som planerar tillräckligt noga lyckas alltid till slut",
           "Hemliga planer måste gömmas bättre än under madrassen"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -365,7 +365,7 @@
         "id": "q1",
         "question": "Hur kom de tre arterna i texten till Sverige?",
         "options": [
-          "Minken för pälsfarmar, lupinen med jord från andra länder och snigeln som ett sällskapsdjur",
+          "Minken för pälsfarmar, lupinen med jord från andra länder och snigeln som husdjur",
           "Minken för pälsfarmar, lupinen som trädgårdsväxt och snigeln troligen med jord och plantor",
           "Alla tre släpptes ut med avsikt, eftersom de var vackra eller nyttiga",
           "Minken simmade hit från Finland, lupinen spreds med fåglar och snigeln kom med båtar"
@@ -402,7 +402,7 @@
         "question": "Varför kan lupinen leda till att insekter försvinner?",
         "options": [
           "Insekterna blir förgiftade när de äter av lupinens blommor",
-          "Lupinen tar all näring ur jorden så att inga andra blommor kan växa",
+          "Lupinen tar all näring ur jorden så att inget annat växer",
           "Den gör jorden så näringsrik att insekternas blommor trängs undan",
           "Lupinen blommar så tidigt att insekterna inte hinner vakna på våren"
         ],
@@ -509,7 +509,7 @@
         "options": [
           "Läkemedlet verkar bara om man först tar ett placebopiller",
           "Många blir friska ändå, så man vet inte om det var läkemedlet",
-          "Det är förbjudet att ge nya läkemedel till människor som är sjuka",
+          "Det är förbjudet att ge nya läkemedel till sjuka",
           "De sjuka märker inte själva om de har blivit friskare eller inte"
         ],
         "answerIndex": 1,
@@ -664,7 +664,7 @@
           "Ett problem som löser sig av sig självt efter en tid",
           "En negativ följd som leder till mer av det som orsakade den",
           "Något som upprepas på samma sätt varje år",
-          "När människor flyttar fram och tillbaka mellan stad och land"
+          "När folk flyttar fram och tillbaka mellan stad och land"
         ],
         "answerIndex": 1,
         "category": "ordforstaelse"
