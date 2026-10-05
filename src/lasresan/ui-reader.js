@@ -1,58 +1,147 @@
 // ============================================================================
-// Läsresan – läsvyn (src/lasresan/ui-reader.js)  ·  STUB (issue #399)
+// Läsresan – läsvyn (src/lasresan/ui-reader.js)  ·  issue #401, spec §7
 // ----------------------------------------------------------------------------
-// KONTRAKT (byggs ut på riktigt i issue #401 – behåll signaturen):
+// KONTRAKT (docs/LASRESAN.md §4 – behåll signaturen):
 //
 //   renderReader(container, {
-//     text,     // ReadingText enligt Innehållskontraktet (docs/LASRESAN.md)
-//     onDone,   // (result) => void, anropas EN gång när sista frågan besvarats
+//     text,            // ReadingText enligt Innehållskontraktet
+//     onDone,          // ({ answers }) => void, anropas EN gång efter sista frågan
+//     initialAnswers,  // valfri: redan låsta svar (påbörjad text återupptas)
+//     onAnswer,        // valfri: (answers) => void efter varje låst svar
 //   }) → { destroy() }
 //
-//   result = { answers: [{ qid, chosen }] }
-//     chosen = index i textens ORIGINALordning av `options` (0–3), även om vyn
-//     blandar visningsordningen. Rättning, procent, pengar och nivå räknas av
-//     kärnan (data-lasresan.completeText) – vyn skickar bara valen.
+//   answers = [{ qid, chosen }], chosen = index i textens ORIGINALordning av
+//   `options`. Vyn blandar visningsordningen stabilt per fråga (reader-logic.js).
+//   Rättning, procent, pengar och nivå räknas av kärnan, inte här.
 //
-// Spec §7: texten står kvar hela tiden, EN fråga i taget, 4 alternativ, svaret
-// låses direkt, ✅/❌ visas, sedan nästa fråga. Visa ALDRIG nivån.
-// Stubben ritar texten och alla frågor som enkla knappar i följd.
+// Spec §7: texten står kvar hela tiden (bred skärm: text och fråga sida vid
+// sida, smal skärm: texten i en egen scrollruta ovanför frågan). EN fråga i
+// taget, 4 stora knappar, svaret låses direkt, ✅ Rätt / ❌ Fel, sedan nästa
+// fråga automatiskt. Nivån visas ALDRIG. Stilarna ligger i lasresan.css.
 // ============================================================================
 
-const esc = (s) =>
-  String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+import { displayOrder, validAnswers } from "./reader-logic.js";
 
-export function renderReader(container, { text, onDone } = {}) {
-  const answers = [];
-  let i = 0;
-  const paras = String(text.body || "").split(/\n\n+/).map((p) => `<p>${esc(p)}</p>`).join("");
+/** Hur länge ✅/❌ syns innan nästa fråga (ms). Fel får lite längre tid. */
+export const FEEDBACK_MS_RIGHT = 1100;
+export const FEEDBACK_MS_WRONG = 1600;
+
+const esc = (s) =>
+  String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+const LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+function paragraphs(body) {
+  return String(body || "")
+    .split(/\n\s*\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${esc(p)}</p>`)
+    .join("");
+}
+
+export function renderReader(container, { text, onDone, initialAnswers, onAnswer } = {}) {
+  const questions = (text && Array.isArray(text.questions)) ? text.questions : [];
+  const answers = validAnswers(text, initialAnswers);
+  let i = answers.length;
+  let timer = null;
+  let done = false;
+  let destroyed = false;
+
   container.innerHTML = `
-    <div class="panel lasresan-reader-stub">
-      <h2>${esc(text.title)}</h2>
-      <div class="lasresan-text">${paras}</div>
-      <div class="lasresan-question" data-lr-q></div>
+    <div class="lr-reader">
+      <article class="lr-text" tabindex="0" aria-label="Texten att läsa">
+        <h2 class="lr-titel">${esc(text.title)}</h2>
+        <div class="lr-brodtext">${paragraphs(text.body)}</div>
+      </article>
+      <section class="lr-fragor" aria-label="Frågor">
+        <ol class="lr-prickar" aria-hidden="true">
+          ${questions.map(() => `<li class="lr-prick"></li>`).join("")}
+        </ol>
+        <div class="lr-fraga" data-lr-fraga></div>
+      </section>
     </div>`;
-  const host = container.querySelector("[data-lr-q]");
-  function show() {
-    const q = text.questions[i];
-    host.innerHTML = `<p><strong>${esc(q.question)}</strong></p>` +
-      q.options.map((o, k) => `<button class="btn" type="button" data-k="${k}">${esc(o)}</button>`).join(" ");
+  const root = container.querySelector(".lr-reader");
+  const qHost = container.querySelector("[data-lr-fraga]");
+  const dots = [...container.querySelectorAll(".lr-prick")];
+
+  function paintDots() {
+    dots.forEach((d, k) => {
+      const a = answers[k];
+      const right = a && a.chosen === questions[k].answerIndex;
+      d.className = "lr-prick" + (a ? (right ? " ratt" : " fel") : k === i ? " nu" : "");
+    });
   }
+
+  function finish() {
+    if (done || destroyed) return;
+    done = true;
+    root.classList.add("klar");
+    if (onDone) onDone({ answers: answers.map((a) => ({ ...a })) });
+  }
+
+  function show() {
+    paintDots();
+    if (i >= questions.length) return finish();
+    const q = questions[i];
+    const order = displayOrder(`${text.id}/${q.id}`, q.options.length);
+    qHost.innerHTML = `
+      <p class="lr-fraga-nr">Fråga ${i + 1} av ${questions.length}</p>
+      <p class="lr-fraga-text">${esc(q.question)}</p>
+      <div class="lr-alternativ">
+        ${order
+          .map((k, pos) => `<button class="quiz-opt lr-alt" type="button" data-k="${k}">
+              <span class="lr-bokstav" aria-hidden="true">${LETTERS[pos]}</span>
+              <span class="lr-alt-text">${esc(q.options[k])}</span>
+            </button>`)
+          .join("")}
+      </div>
+      <div class="lr-feedback" role="status" aria-live="polite"></div>`;
+    qHost.classList.remove("lr-in");
+    void qHost.offsetWidth; // starta om in-animationen
+    qHost.classList.add("lr-in");
+  }
+
   function onClick(e) {
     const b = e.target.closest("button[data-k]");
-    if (!b || host.dataset.locked) return;
-    host.dataset.locked = "1";
-    const q = text.questions[i];
+    if (!b || qHost.dataset.locked || done || i >= questions.length) return;
+    // Lås direkt: inget kan ändras efter första klicket.
+    qHost.dataset.locked = "1";
+    qHost.querySelectorAll("button[data-k]").forEach((btn) => (btn.disabled = true));
+    const q = questions[i];
     const chosen = Number(b.dataset.k);
+    const right = chosen === q.answerIndex;
     answers.push({ qid: q.id, chosen });
-    b.insertAdjacentText("beforeend", chosen === q.answerIndex ? " ✅" : " ❌");
-    setTimeout(() => {
-      delete host.dataset.locked;
+    b.classList.add(right ? "chosen-correct" : "chosen-wrong");
+    const fb = qHost.querySelector(".lr-feedback");
+    fb.className = `lr-feedback ${right ? "ratt" : "fel"}`;
+    fb.textContent = right ? "✅ Rätt!" : "❌ Fel";
+    paintDots();
+    if (onAnswer) {
+      try { onAnswer(answers.map((a) => ({ ...a }))); } catch (err) { console.warn("[Läsresan] onAnswer", err); }
+    }
+    timer = setTimeout(() => {
+      timer = null;
+      delete qHost.dataset.locked;
       i += 1;
-      if (i < text.questions.length) show();
-      else if (onDone) onDone({ answers });
-    }, 600);
+      show();
+    }, right ? FEEDBACK_MS_RIGHT : FEEDBACK_MS_WRONG);
   }
-  host.addEventListener("click", onClick);
-  show();
-  return { destroy: () => host.removeEventListener("click", onClick) };
+
+  qHost.addEventListener("click", onClick);
+  if (i >= questions.length) {
+    // Alla svar fanns redan (t.ex. sparandet misslyckades förra gången).
+    paintDots();
+    queueMicrotask(finish);
+  } else {
+    show();
+  }
+
+  return {
+    destroy() {
+      destroyed = true;
+      if (timer) clearTimeout(timer);
+      qHost.removeEventListener("click", onClick);
+    },
+  };
 }

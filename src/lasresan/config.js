@@ -68,3 +68,12 @@ export const LEVEL_WORD_RANGES = {
  */
 export const ANSWER_SKEW_MAX_SHARE = 0.4;
 export const ANSWER_SKEW_MIN_QUESTIONS = 12;
+
+/**
+ * Längdledtråd: varna om rätt svar är det UNIKT längsta alternativet (strikt
+ * längre i tecken efter trim än alla andra) i mer än LENGTH_CUE_MAX_SHARE eller
+ * mindre än LENGTH_CUE_MIN_SHARE av flervalsfrågorna på en nivå (slump ≈ 25 %).
+ * Samma minsta urval som positionskontrollen (ANSWER_SKEW_MIN_QUESTIONS).
+ */
+export const LENGTH_CUE_MAX_SHARE = 0.45;
+export const LENGTH_CUE_MIN_SHARE = 0.1;
