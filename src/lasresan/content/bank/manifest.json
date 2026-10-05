@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "levels": {
+    "1": ["level-1.json"],
+    "2": ["level-2.json"],
+    "3": ["level-3.json"],
+    "4": ["level-4.json"],
+    "5": ["level-5.json"],
+    "6": ["level-6.json"],
+    "7": ["level-7.json"]
+  }
+}
