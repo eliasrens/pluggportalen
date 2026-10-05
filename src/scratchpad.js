@@ -26,12 +26,14 @@ import { el } from "./ui.js";
 // utan ui.js/firebase-kedjan (#312). Importeras för lokalt bruk i createScratchCard
 // OCH re-exporteras (nedan) så befintliga importvägar fortsätter fungera oförändrat.
 import { wireEnlarge } from "./scratch-enlarge.js";
+// Text-verktyget (#392): ett skrivlager ovanpå canvasen, import-fritt som ovan.
+import { attachTextLayer } from "./scratch-text.js";
 
 const PEN_COLOR = "#2a2a35";
 const PEN_WIDTH = 3.2;
 const ERASER_WIDTH = 26;
 
-const DEFAULT_HINT = "✏️ Kladda din uträkning här – den sparas inte";
+const DEFAULT_HINT = "✏️ Rita eller skriv uträkningen här – sparas inte";
 
 /**
  * Koppla rit-interaktion på ett <canvas>. Returnerar { setTool, clear, resize, destroy }.
@@ -41,7 +43,7 @@ const DEFAULT_HINT = "✏️ Kladda din uträkning här – den sparas inte";
  */
 export function attachScratchpad(canvas) {
   const ctx = canvas.getContext("2d");
-  let tool = "pen"; // "pen" | "eraser"
+  let tool = "pen"; // "pen" | "eraser" | "text" (text sköts av scratch-text.js, #392)
   let drawing = false;
   let last = null;
   let activePointer = null;
@@ -98,6 +100,7 @@ export function attachScratchpad(canvas) {
 
   function onDown(e) {
     if (activePointer !== null) return;
+    if (tool !== "pen" && tool !== "eraser") return; // t.ex. Text-läget ritar inte
     activePointer = e.pointerId;
     drawing = true;
     last = pointOf(e);
@@ -152,7 +155,7 @@ export { wireEnlarge };
 
 /**
  * Bygg ett komplett kladd-KORT: en A4-yta med en task-rubrik överst, själva ritytan
- * och en flytande verktygsrad (penna/sudd/rensa + förstora) inuti kortet. Kortet är
+ * och en flytande verktygsrad (penna/sudd/text/rensa + förstora) inuti kortet. Kortet är
  * det som fälls ut till fullskärm, så verktygen följer med. Delas av räkna-läget och
  * äventyrens generator-modal så kladdytan ser och beter sig likadant på båda ställena.
  *
@@ -161,7 +164,7 @@ export { wireEnlarge };
  * @param {string} [o.hint]     liten hjälptext under ritytan
  * @param {boolean} [o.handleEscape=true]  vidarebefordras till wireEnlarge
  * @param {()=>void} [o.onAction]  valfri callback vid knapptryck (t.ex. ljud)
- * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
+ * @returns {{card:HTMLElement, canvas:HTMLElement, pad:object, text:object, enlarge:object, addPad:(p:object)=>object, destroy:()=>void}}
  */
 export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape = true, onAction } = {}) {
   // Verktygsraden ligger som en egen rad LÄNGST NER i kortet (in-flow, inte
@@ -174,9 +177,10 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     </div>
     <div class="a4-scratch-hint">${hint}</div>
     <div class="scratch-tools" role="toolbar" aria-label="Ritverktyg">
-      <button type="button" class="tool-btn is-active" data-tool="pen" title="Penna">✏️ Penna</button>
-      <button type="button" class="tool-btn" data-tool="eraser" title="Sudd">🧽 Sudd</button>
-      <button type="button" class="tool-btn" data-clear title="Rensa kladdytan">🗑️ Rensa</button>
+      <button type="button" class="tool-btn is-active" data-tool="pen" title="Penna" aria-label="Penna">✏️<span class="tool-label"> Penna</span></button>
+      <button type="button" class="tool-btn" data-tool="eraser" title="Sudd" aria-label="Sudd">🧽<span class="tool-label"> Sudd</span></button>
+      <button type="button" class="tool-btn" data-tool="text" title="Skriv text – tryck på ytan där du vill skriva" aria-label="Text">🔤<span class="tool-label"> Text</span></button>
+      <button type="button" class="tool-btn" data-clear title="Rensa kladdytan" aria-label="Rensa">🗑️<span class="tool-label"> Rensa</span></button>
       <button type="button" class="tool-btn scratch-enlarge" data-enlarge aria-pressed="false" title="Förstora kladdytan">🔍 Förstora</button>
     </div>
   </div>`);
@@ -188,7 +192,9 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
   // (#325), som registreras i efterhand med addPad() när bildstödet laddats. Samma
   // verktyg (penna/sudd), Rensa och storleksändring gäller ALLA så eleven ritar
   // med ett och samma verktyg över hela kortet och allt skalar ihop i fullskärm.
-  const pads = [pad];
+  // Text-lagret (#392) har samma pad-gränssnitt → följer verktyg/Rensa/destroy.
+  const text = attachTextLayer(card.querySelector(".scratch-surface"));
+  const pads = [pad, text];
   let currentTool = "pen"; // så ett rit-lager som registreras SENARE ärver rätt verktyg
 
   const toolBtns = card.querySelectorAll(".tool-btn[data-tool]");
@@ -219,6 +225,7 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
     card,
     canvas,
     pad,
+    text,
     enlarge,
     /**
      * Registrera en extra rityta (t.ex. rit-lagret ovanpå bildstödet, #325) så den
