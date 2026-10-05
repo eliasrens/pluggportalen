@@ -54,12 +54,13 @@ const isWritable = (t) => !!t && t.tagName === "INPUT" && WRITABLE.some((c) => t
  * @param {object} o
  * @param {HTMLElement} o.card     kladdkortet (panelen läggs sist i det)
  * @param {HTMLElement} o.button   verktygsradens Knappsats-knapp
+ * @param {(open:boolean)=>void} [o.onBeforeToggle]  strax FÖRE layouten ändras (t.ex. frys ritarket)
  * @param {(open:boolean)=>void} [o.onToggle]  panelen öppnas/stängs (t.ex. lagrens inputmode)
  * @param {()=>void} [o.onUppstallning]        "Uppställning" tryckt
  * @param {()=>HTMLInputElement|null} [o.onNoTarget]  skapa ett mål (ny lapp) när inget finns
  * @param {Document} [o.document]
  */
-export function attachKeypad({ card, button, onToggle, onUppstallning, onNoTarget, document: d } = {}) {
+export function attachKeypad({ card, button, onBeforeToggle, onToggle, onUppstallning, onNoTarget, document: d } = {}) {
   const doc = d || (typeof document !== "undefined" ? document : card.ownerDocument);
   let open = false;
   let last = null; // senast fokuserade skrivbara mål
@@ -169,6 +170,7 @@ export function attachKeypad({ card, button, onToggle, onUppstallning, onNoTarge
   function setOpen(v) {
     const want = !!v && isFull();
     if (want === open) return;
+    if (onBeforeToggle) onBeforeToggle(want); // innan panelen tar plats i griden
     open = want;
     panel.hidden = !open;
     card.classList.toggle("kp-open", open);

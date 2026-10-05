@@ -1798,6 +1798,10 @@ body.scratch-fs-lock { overflow: hidden; }
    ovanpå ritytan/svaret. Samma lugna, platta stil som verktygsraden. */
 .a4-card:not(.scratch-fs) .scratch-keypad-btn,
 .a4-card:not(.scratch-fs) > .scratch-keypad { display: none; }
+/* Arket fryst medan knappsatsen är öppen (scratchpad.js freezeSheet): canvas och
+   lagren behåller sin storlek, ytan klipper det panelen tar. */
+.scratch-surface.is-frozen { overflow: hidden; }
+.scratch-surface.is-frozen > .a4-scratch { flex: 0 0 auto; }
 .scratch-keypad-btn.is-active { color: var(--bla); border-color: #b9d3f7; background: #eef5fe; }
 .scratch-fs > .scratch-keypad {
   grid-area: 3 / 3 / 4 / 4;

@@ -97,6 +97,13 @@ export function attachScratchpad(canvas) {
     ctx.lineJoin = "round";
   }
   requestAnimationFrame(fit);
+  // Skyddsnät: ändras canvasens box av NÅGON anledning (layout, bildstöd som laddas,
+  // paneler) kalibreras bufferten om – annars hamnar strecken förskjutna mot pekaren.
+  let ro = null;
+  if (typeof ResizeObserver === "function") {
+    ro = new ResizeObserver(() => requestAnimationFrame(fit));
+    ro.observe(canvas);
+  }
 
   function pointOf(e) {
     const r = canvas.getBoundingClientRect();
@@ -156,6 +163,7 @@ export function attachScratchpad(canvas) {
     },
     destroy() {
       window.removeEventListener("resize", fit);
+      if (ro) ro.disconnect();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
@@ -238,11 +246,28 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
   // Knappsatsen (#392): öppnas den byts verktyget till Text, så ett tryck på ytan
   // ger en lapp att skriva i. Den skriver i senast valda lapp/ruta/svarsruta;
   // saknas mål läggs en ny lapp på första lediga plats (aldrig oombedd i svaret).
+  const sheet = [canvas, text.layer, uppst.layer];
+  function freezeSheet(on) {
+    const r = on ? surface.getBoundingClientRect() : null;
+    surface.classList.toggle("is-frozen", on);
+    sheet.forEach((elm) => {
+      elm.style.width = on ? `${r.width}px` : "";
+      elm.style.height = on ? `${r.height}px` : "";
+    });
+    if (!on) pads.forEach((p) => p.resize && p.resize());
+  }
+
   const keypadBtn = card.querySelector("[data-keypad]");
   const keypad = attachKeypad({
     card,
     button: keypadBtn,
+    // Panelen tar plats från ritytan. Frys ARKET (canvas + lapp-/mall-lagren) i
+    // sin nuvarande storlek medan den är öppen: panelen täcker då bara arkets kant
+    // (ytan klipper), i stället för att trycka ihop det – inga förvrängda/förskjutna
+    // streck och lappar. Stängs panelen släpps arket och följer ytan igen.
+    onBeforeToggle: (open) => { if (open) freezeSheet(true); },
     onToggle: (open) => {
+      if (!open) freezeSheet(false);
       pads.forEach((p) => p.setKeypad && p.setKeypad(open));
       if (open) selectTool("text");
     },
