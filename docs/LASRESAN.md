@@ -82,9 +82,9 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `stats.js` | Aggregering: `summarize`, `categoryBreakdown`, `aggregateAttempts`, `classRows`, `sortRows` |
 | `rewards.js` | `coinsFor(correct)`, `award(correct)` → `data.addCoins` (lat import) |
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
-| `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js`, `oknen.js`, `layout.js` |
+| `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
-| `ui-map.js` | Kartvyn (#400) |
+| `ui-map.js` | Kartvyn (#400): världs-agnostisk renderare + `ui-map-stil.js` (CSS, injiceras – rör inte styles.css) |
 | `ui-reader.js` | Läsvyn (#401): text + en fråga i taget, låsta svar, ✅/❌ |
 | `reader-logic.js` | Läsvyns rena logik: stabil blandning av alternativen, pågående svar i localStorage |
 | `ui-summary.js` | Sammanfattning efter en text + "Min läsning" (aldrig nivån) |
@@ -229,6 +229,19 @@ renderJourneyMap(container, { world, progress, avatar, animateFromStep, onStartN
   världen först.
 - Stegstatus: steg ≤ `stepInWorld` = klara, `stepInWorld+1` = nästa (klickbart),
   resten = kommande (synliga, låsta). `stepInWorld === steps` = världen klar.
+- **Valfria extrafält** (skickas av sidan i #401, okända fält tåls): `walk` =
+  `{worldId, fromStep, toStep}` och `worldCompleted` (bool). Vid världsbyte ritar
+  sidan först den GAMLA världen med `stepInWorld = steps` och `animateFromStep =
+  walk.fromStep`; kartan går avataren fram till flaggan och firar
+  ("🎉 … är klar!" + "nästa värld öppnas"). Sidans egen "Vidare →"-knapp och
+  verktygsrad ligger OVANFÖR kartans container – kartan ritar inget utanför sin
+  container.
+- Firandet visas bara i samband med en gång/`worldCompleted`, inte varje gång en
+  redan klar värld ritas om. `prefers-reduced-motion` ⇒ hopp i stället för gång
+  och ingen puls/konfetti. Kartans CSS injiceras av `ui-map-stil.js` (prefix
+  `lr-`), inget i styles.css.
+- Världsväljaren (pills uppe till vänster i kartan) visar alla världar i
+  registret: klara (✓, klickbara att titta på), aktiv, låsta (🔒, ej klickbara).
 
 ### Läsvyn: `ui-reader.js`
 ```js
@@ -318,12 +331,44 @@ Question   = { id, question, options: [4 strängar], answerIndex (0-3), category
 - **Ny text:** lägg den i rätt `content/bank/level-N*.json` (eller en ny fil i
   manifestet). `id` = `lr-n{nivå}-{slug}`, stabilt för alltid (seenTextIds bygger
   på det). Ingen kodändring.
-- **Ny värld:** skapa `worlds/<id>.js` enligt schemat i `worlds/index.js` (id,
-  name, theme, steps, order, unlockAfter, scene, start, stepPositions[steps],
-  decorations), lägg till den i `WORLDS` och rita scenen i kartvyn.
-  `test/lasresan-journey.test.js` kör `validateWorld` på alla världar.
+- **Ny värld:** se avsnittet "Så skapar du en ny värld" nedan.
 - **Ny frågekategori:** lägg till nyckeln i `CATEGORIES` + `CATEGORY_LABELS`
   (`config.js`). Statistiken behåller redan okända kategorier.
 - **Ändrade nivågränser/belöning:** bara `config.js`.
 - **Ny frågetyp (t.ex. inte flerval):** utöka Question med ett `type`-fält,
   validatorn per typ och `scoreAnswers` (progress.js). Läsvyn renderar per typ.
+
+---
+
+## 7. Så skapar du en ny värld (Rymden, Djungeln, Spökslottet …)
+
+Kartrenderaren (`ui-map.js`) innehåller INGET världsspecifikt – en ny värld är
+en config-fil + en scen-fil + en rad i registret. Mall: `worlds/oknen.js` +
+`worlds/oknen-scen.js`.
+
+1. **Config: `worlds/<id>.js`** – ren data enligt schemat i `worlds/index.js`:
+   - `id` (stabilt för alltid – sparas i `studentData.lasresa.worldId`), `name`,
+     `theme`, `steps` (normalt `DEFAULT_STEPS_PER_WORLD` = 20), `order` (nästa
+     lediga tal), `unlockAfter` (id:t på världen före, t.ex. `"oknen"`).
+   - `scene: { width: 1600, height: 1000, background, render: <scenFn> }`.
+   - `palette: { stepDone, stepNext, stepLocked, path, pathEdge }` – färgerna
+     kartvyn använder för generiska element (stegmarkörer).
+   - `start: {x,y}` (där avataren står före steg 1) och `stepPositions` –
+     EXAKT `steps` st handplacerade `{x,y}` längs en slingrande stig. Håll
+     ~120 px mellanrum så klickytorna (r≈46) inte överlappar.
+   - `decorations: [{type, x, y, s?}, …]` – ren data; typnamnen ägs av
+     världens egen scen-fil. Egna extranycklar (t.ex. Skogens `vatten`,
+     Öknens `oas`, `mal`) är tillåtna och läses bara av scen-filen.
+2. **Scen: `worlds/<id>-scen.js`** – exportera `<id>Scen(world) → SVG-sträng`
+   (scenens INRE markup i världspixlar; stegmarkörer/avatar ritas ovanpå av
+   kartvyn). Rita i portalens platta stil (`art-style.js`: kontur `O`, mjuka
+   former, glad palett) och använd `routePoints`/`smoothOpenPath` ur
+   `worlds/stig.js` för stigen – gånganimationen följer EXAKT samma kurva.
+   Håll filen under ~400 rader (dela annars upp den).
+3. **Registret:** importera världen i `worlds/index.js` och lägg den i
+   `WORLDS`. Klart – kartan, världsväljaren, upplåsningen, firandet och
+   `normalizeProgress` hanterar den automatiskt.
+4. **Verifiera:** `node --test test/lasresan-*.test.js` kör `validateWorld`
+   på alla världar i registret; titta sedan i `preview-lasresan-karta.html`.
+
+Visa ALDRIG nivån på kartan, och håll UI-texten minimal (spec §21).
