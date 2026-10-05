@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixi-PoC #397 – SVG→textur-pyramid + worker-kamera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { background: #0b0f14; color: #cfd8e3; font: 500 0.92rem/1.45 system-ui, sans-serif; }
+      .w { max-width: 1900px; margin: 0 auto; padding: 14px 16px 40px; }
+      h1 { font: 800 1.1rem "Baloo 2", system-ui; color: #7ee0a6; margin: 0 0 6px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+      .kol { display: flex; flex-direction: column; gap: 6px; }
+      .etikett { font: 700 0.75rem system-ui; letter-spacing: 0.06em; text-transform: uppercase; color: #9fb3c8; }
+      /* Scen: lagerboxen är SMALARE än staget (som #373 på desktop) så PoC:n
+         visar att fångstytan = staget och att övertecknad natur följer med. */
+      .poc-stage { position: relative; width: 640px; height: 400px; overflow: hidden; border-radius: 10px; background: #bde3f5;
+        --varld-avatar-font: 120px; --hus-house: #F4D6A0; --hus-roof: #C0504D; --hus-wall: #FFF3DC; --hus-wall2: #F2E2C4; }
+      .poc-stage > .varld-lager { inset: 0 60px; transition: transform 0.9s cubic-bezier(0.55, 0, 0.2, 1); }
+      .poc-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .knappar button { border-radius: 999px; padding: 6px 14px; border: 1px solid #39465a; background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui; margin: 0 6px 6px 0; }
+      pre { background: #141b24; padding: 10px; border-radius: 8px; max-width: 1300px; white-space: pre-wrap; }
+      .crop { width: 640px; height: 400px; border-radius: 10px; background: #fff; }
+    </style>
+  </head>
+  <body>
+    <div class="w">
+      <h1>PoC #397 – underlag till docs/pixi-arkitektur-396.md (ej produktionskod)</h1>
+      <p>Vänster: riktiga ute-scenen (husScen + avatar med keps &amp; halsduk) i DOM. Mitten: samma lager speglat till SVG utan
+        foreignObject → textur-pyramid → Pixi v8 i en <b>Worker</b> (OffscreenCanvas). Höger: zoom 3.5 kring fönstret –
+        DOM <code>scale(3.5)</code> mot pyramid-nivån (båda rastervägarna).</p>
+      <div class="knappar">
+        <button id="b-spegla">1. Spegla + bygg pyramid</button>
+        <button id="b-dom">2. Zooma DOM (CSS) 1→3.5</button>
+        <button id="b-pixi">3. Zooma Pixi 1→3.5</button>
+        <button id="b-pixi-lt">4. Zooma Pixi + 400 ms long task på main</button>
+      </div>
+      <div class="rad">
+        <div class="kol"><span class="etikett">DOM (sanningen)</span><div class="poc-stage" id="dom-stage"><div class="varld-lager varld-ute" id="dom-lager"></div></div></div>
+        <div class="kol"><span class="etikett">Pixi-worker</span><div class="poc-stage" id="pixi-stage"><canvas id="pixi-canvas"></canvas></div></div>
+      </div>
+      <div class="rad" style="margin-top:12px">
+        <div class="kol"><span class="etikett">DOM scale(3.5) kring fönstret</span><div class="poc-stage" id="ref-stage"><div class="varld-lager varld-ute" id="ref-lager"></div></div></div>
+        <div class="kol"><span class="etikett">pyramid-nivå 3.5 · käll-rektangel</span><canvas class="crop" id="crop-kalla"></canvas></div>
+        <div class="kol"><span class="etikett">pyramid-nivå 3.5 · beskuren viewBox</span><canvas class="crop" id="crop-viewbox"></canvas></div>
+      </div>
+      <pre id="logg">Laddar…</pre>
+    </div>
+    <script type="module">
+      import { husScen } from "./src/art-hus-ute.js";
+      import { avatarMarkup } from "./src/avatars.js";
+      import { speglaLager, avkoda, rastrera, pyramidRegion } from "./preview/pixi-poc-397/spegel.js";
+
+      const scen = husScen(avatarMarkup("fox", ["keps", "halsduk"]), { skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" } });
+      document.getElementById("dom-lager").innerHTML = scen;
+      document.getElementById("ref-lager").innerHTML = scen;
+      const logg = (o) => { window.__poc = { ...(window.__poc || {}), ...o }; document.getElementById("logg").textContent = JSON.stringify(window.__poc, null, 2); };
+      const dpr = window.devicePixelRatio || 1;
+      const domStage = document.getElementById("dom-stage");
+      const domLager = document.getElementById("dom-lager");
+      const fokusFor = (lager) => ({ x: lager.offsetWidth * 0.485, y: lager.offsetHeight * 0.52 }); // husets fönster (kamerans fokus)
+      const ZOOM = 3.5;
+
+      // Referens: DOM-kopian i vila i scale(3.5) kring fönstret.
+      const ref = document.getElementById("ref-lager");
+      ref.style.transformOrigin = "48.5% 52%";
+      ref.style.transform = `scale(${ZOOM})`;
+
+      // Worker + OffscreenCanvas.
+      const canvas = document.getElementById("pixi-canvas");
+      canvas.width = 640 * dpr; canvas.height = 400 * dpr;
+      const off = canvas.transferControlToOffscreen();
+      const worker = new Worker(new URL("./preview/pixi-poc-397/worker.js", location.href), { type: "module" });
+      const svar = (typ) => new Promise((res) => { const f = ({ data }) => { if (data.typ === typ) { worker.removeEventListener("message", f); res(data); } }; worker.addEventListener("message", f); });
+      worker.postMessage({ typ: "init", canvas: off, w: 640, h: 400, dpr }, [off]);
+      worker.addEventListener("error", (e) => logg({ workerFel: e.message || String(e) }));
+      svar("redo").then((r) => logg({ worker: r }));
+      worker.addEventListener("message", ({ data }) => { if (data.typ === "fel") logg({ workerFel: data.fel }); });
+
+      let spegel = null;
+      document.getElementById("b-spegla").onclick = async () => {
+        await document.fonts.ready;
+        spegel = await speglaLager(domLager, domStage);
+        const t0 = performance.now();
+        const img = await avkoda(spegel);
+        const avkodaMs = performance.now() - t0;
+        const F = fokusFor(domLager);
+        // Pyramid: nivåer i steg om ×1.5 upp till ZOOM, varje nivå = stagets storlek × dpr.
+        const zoomer = [1, 1.5, 2.25, ZOOM];
+        const nivaer = [];
+        const tider = [];
+        let taint = false;
+        for (const z of zoomer) {
+          const reg = pyramidRegion(spegel, F, z);
+          const r = await rastrera(spegel, img, reg, Math.round(640 * dpr), Math.round(400 * dpr));
+          taint ||= r.taint;
+          tider.push(+r.ms.toFixed(1));
+          nivaer.push({ bmp: r.bmp, ...reg });
+        }
+        worker.postMessage({ typ: "nivaer", nivaer }, nivaer.map((n) => n.bmp));
+        // Jämförelse vid 3.5: båda rastervägarna.
+        for (const vag of ["kalla", "viewbox"]) {
+          const c = document.getElementById(`crop-${vag}`);
+          c.width = 640 * dpr; c.height = 400 * dpr;
+          const r = await rastrera(spegel, img, pyramidRegion(spegel, F, ZOOM), c.width, c.height, vag);
+          c.getContext("2d").drawImage(r.bmp, 0, 0);
+          logg({ [`rastrera_${vag}_ms`]: +r.ms.toFixed(1) });
+        }
+        logg({ speglaMs: +spegel.ms.toFixed(1), svgKB: Math.round(spegel.svg.length / 1024), avkodaMs: +avkodaMs.toFixed(1), nivaMs: tider, taint, fangst: { ox: spegel.ox, oy: spegel.oy, w: spegel.w, h: spegel.h }, dpr });
+      };
+
+      const zoomaPixi = async (longTask) => {
+        const F = fokusFor(domLager);
+        worker.postMessage({ typ: "zooma", fokus: F, ox: spegel.ox, oy: spegel.oy, fran: 1, till: ZOOM, ms: 900 });
+        if (longTask) { setTimeout(() => { const t = performance.now(); while (performance.now() - t < 400); }, 200); }
+        const r = await svar("klar");
+        const f = r.frames.slice(1);
+        logg({ [`pixiZoom${longTask ? "_longtask" : ""}`]: { frames: f.length, maxDt: Math.max(...f), over25ms: f.filter((d) => d > 25).length } });
+        setTimeout(() => worker.postMessage({ typ: "zooma", fokus: F, ox: spegel.ox, oy: spegel.oy, fran: 1, till: 1, ms: 1 }), 600);
+      };
+      document.getElementById("b-pixi").onclick = () => zoomaPixi(false);
+      document.getElementById("b-pixi-lt").onclick = () => zoomaPixi(true);
+      document.getElementById("b-dom").onclick = () => {
+        domLager.style.transformOrigin = "48.5% 52%";
+        domLager.style.transform = `scale(${ZOOM})`;
+        setTimeout(() => { domLager.style.transition = "none"; domLager.style.transform = ""; void domLager.offsetWidth; domLager.style.transition = ""; }, 1500);
+      };
+      logg({ status: "redo – klicka 1 först" });
+    </script>
+  </body>
