@@ -86,9 +86,24 @@ service cloud.firestore {
 
     // Klasser: alla inloggade läser (eleven behöver sin tilldelning);
     // bara lärare skriver.
+    //
+    // BY-SYNLIGHET (#391): fältet `hiddenVillages` (lista med klass-id som DÖLJS
+    // i den här klassens områdesvy) bor på klass-dokumentet. Läsning: som övriga
+    // klass-fält (alla inloggade → klassens elever kan filtrera skolan).
+    // Skrivning: bara lärare, och fältet måste vara en lista (max 200 id) om det
+    // skickas med. Saknat fält = allt synligt (bakåtkompatibelt). Det finns ingen
+    // ägar-modell per klass i datat – "lärare" = teacher-claimen, som för resten
+    // av klass-dokumentet. Delete har ingen request.resource → egen gren.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validHiddenVillages() {
+      return !('hiddenVillages' in request.resource.data) ||
+        (request.resource.data.hiddenVillages is list &&
+         request.resource.data.hiddenVillages.size() <= 200);
+    }
     match /classes/{classId} {
       allow read:  if signedIn();
-      allow write: if isTeacher();
+      allow create, update: if isTeacher() && validHiddenVillages();
+      allow delete: if isTeacher();
     }
 
     // Klass-projektion (#231/#232): ETT förberäknat dokument per klass som

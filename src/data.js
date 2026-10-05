@@ -326,6 +326,8 @@ export {
   getClassAssignments,
   setClassHiddenModes,
   setClassAreaModes,
+  setClassHiddenVillages,
+  getClassHiddenVillages,
   getClassForStudent,
   getClassProjects,
   getClassProject,

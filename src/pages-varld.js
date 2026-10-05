@@ -45,7 +45,7 @@ import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { mountByScen } from "./varld-by-scen.js";
 import { createKompisVy } from "./varld-kompis.js";
-import { OMRADE_ZOOM, mountOmradeScen } from "./varld-omrade.js";
+import { OMRADE_ZOOM, mountOmradeScen, visibleVillageClasses } from "./varld-omrade.js";
 import { createGrannbyVy } from "./varld-grannby.js";
 import { mountNavSkyltar } from "./varld-navskylt.js";
 import { aggregateKlassStats } from "./leveling.js";
@@ -105,9 +105,13 @@ export async function pageElevVarld(startNiva) {
     return pageError("Kunde inte ladda ditt hem", err);
   }
   const meClassId = klass?.id || null;
+  // Byarna eleven får se i skolan (#391): lärarens hiddenVillages på elevens
+  // klass filtreras bort, egna klassen syns alltid. allClasses behålls ofiltrerad
+  // för egna byns projektion (getOwnVillageOverview).
+  const synligaKlasser = visibleVillageClasses(allClasses, meId);
   // "Andra byar"-knappen (zooma ut till skolan) syns bara om det finns MER än
   // den egna klassen att titta på.
-  const flerByar = allClasses.length > 1;
+  const flerByar = synligaKlasser.length > 1;
 
   const pal = getPalette(paletteIdFromStudentData(sd));
   const avatarId = sd.avatarId || DEFAULT_AVATAR;
@@ -431,13 +435,13 @@ export async function pageElevVarld(startNiva) {
   function laddaSkola() {
     skolaLaddning ??= (async () => {
       const { fokus, fokusById } = mountOmradeScen({
-        lager: skolaLager, meClassId, classes: allClasses,
+        lager: skolaLager, meClassId, classes: synligaKlasser,
       });
       skolaNiva.fokus = fokus; // kameran läser fokus vid varje övergång
       // Skol-översikten läser INGEN elev-/aggregat-data (#114-perf: bara lätta
       // silhuetter ur klass-dokumenten). De riktiga husen + klassens stjärnor
       // hämtas först vid inzoomning till en specifik grannby (laddaGrannbyData).
-      return { classes: allClasses, fokusById };
+      return { classes: synligaKlasser, fokusById };
     })().catch((err) => {
       skolaLaddning = null; // låt nästa försök bygga om
       throw err;

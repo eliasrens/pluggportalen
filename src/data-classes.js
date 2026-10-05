@@ -22,7 +22,11 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, invalidateStudentData } from "./data.js";
-import { normalizeHiddenModes, normalizeAreaModes } from "./gamemode-visibility.js";
+import {
+  normalizeHiddenModes,
+  normalizeAreaModes,
+  normalizeHiddenVillages,
+} from "./gamemode-visibility.js";
 import { createTtlCache } from "./class-projection.js";
 import {
   normalizeClassProject,
@@ -225,6 +229,32 @@ export async function setClassAreaModes(classId, areaModes) {
   await setDoc(doc(db, "classes", classId), { areaModes: map }, { merge: true });
   _classCache.invalidate("classes");
   return map;
+}
+
+// ---------------------------------------------------------------------------
+// By-synlighet per klass (issue #391): läraren väljer vilka ANDRA klassers byar
+// klassen ser i områdesvyn. classes/{classId}.hiddenVillages = string[] (klass-
+// id att DÖLJA). Tom/saknad = alla byar synliga (bakåtkompatibelt). Filtreringen
+// (egna klassen alltid synlig) bor i gamemode-visibility.visibleVillageClasses.
+// ---------------------------------------------------------------------------
+
+/**
+ * Sätt vilka andra klassers byar som döljs för klassen (ersätter hela listan).
+ * Klassens eget id rensas bort – den egna byn kan aldrig döljas.
+ * @param {string} classId
+ * @param {string[]} hiddenVillages klass-id att dölja (normaliseras)
+ */
+export async function setClassHiddenVillages(classId, hiddenVillages) {
+  const list = normalizeHiddenVillages(hiddenVillages).filter((id) => id !== classId);
+  await setDoc(doc(db, "classes", classId), { hiddenVillages: list }, { merge: true });
+  _classCache.invalidate("classes");
+  return list;
+}
+
+/** Hämta klassens dolda byar ([] om inga/klassen saknas). */
+export async function getClassHiddenVillages(classId) {
+  const snap = await getDoc(doc(db, "classes", classId));
+  return snap.exists() ? normalizeHiddenVillages(snap.data().hiddenVillages) : [];
 }
 
 /**

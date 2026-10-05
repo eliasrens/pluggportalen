@@ -293,3 +293,35 @@ export function isModeHiddenForClassArea(area, cls, modeId) {
 export function visibleGamemodesForClassArea(area, cls) {
   return availableGamemodes(area).filter((gm) => !isModeHiddenForClassArea(area, cls, gm.id));
 }
+
+// ---------------------------------------------------------------------------
+// By-synlighet per klass (issue #391): läraren kan dölja ANDRA klassers byar i
+// klassens områdesvy (skolan). Lagras som classes/{id}.hiddenVillages =
+// string[] (klass-id som DÖLJS för DENNA klass). Tom/saknad lista = alla byar
+// synliga (bakåtkompatibelt). Bor här bredvid lägessynligheten eftersom modulen
+// är ren (Node-testbar) och redan ligger i bootgrafen (ingen ny bootfil, #271).
+// ---------------------------------------------------------------------------
+
+/** Normalisera hiddenVillages till en ren lista klass-id (samma regler som lägen). */
+export function normalizeHiddenVillages(v) {
+  return normalizeHiddenModes(v);
+}
+
+/**
+ * Vilka klassers byar eleven ska se i områdesvyn. Elevens EGNA klasser (där
+ * meId finns i studentIds) syns ALLTID; övriga döljs om någon av elevens klasser
+ * har dem i hiddenVillages (union – en elev i flera klasser får den striktaste
+ * vyn). Läser bara klass-dokumentens publika fält (#37). Ordningen behålls.
+ * @param {Array<{id:string, studentIds?:string[], hiddenVillages?:string[]}>} classes
+ * @param {string|null} meId
+ * @returns {Array} filtrerad klasslista
+ */
+export function visibleVillageClasses(classes, meId) {
+  const lista = Array.isArray(classes) ? classes : [];
+  const egna = lista.filter(
+    (c) => meId && Array.isArray(c.studentIds) && c.studentIds.includes(meId)
+  );
+  const egnaIds = new Set(egna.map((c) => c.id));
+  const dolda = new Set(egna.flatMap((c) => normalizeHiddenVillages(c.hiddenVillages)));
+  return lista.filter((c) => egnaIds.has(c.id) || !dolda.has(c.id));
+}
