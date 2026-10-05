@@ -21,7 +21,7 @@
 
 import * as data from "./data.js";
 import { avatarEmoji } from "./avatars.js";
-import { el, esc, emptyState } from "./teacher-shared.js";
+import { el, esc, emptyState, icon } from "./teacher-shared.js";
 import { areaMaxStars, areaEarned, progressLevel } from "./teacher-class-stats.js";
 import { openStudentDetail } from "./teacher-class-detail.js";
 
@@ -56,7 +56,48 @@ function cellHtml(earned, maxStars) {
  *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
  * }} opts
  */
-export async function renderClassStats(ctx, host, { students, subjects, studentById, loadAreas }) {
+export async function renderClassStats(ctx, host, opts) {
+  // Två flikar (issue #402): ämnenas stjärnmatris och Läsresan. Läsresans
+  // moduler laddas DYNAMISKT vid första klick – aldrig i bootgrafen (#271).
+  const view = el(`<div class="stats-tabs-wrap">
+    <div class="stats-tabs" role="tablist" aria-label="Statistik">
+      <button type="button" class="stats-tab" role="tab" data-tab="amnen">${icon("chart", 16)}<span>Ämnen</span></button>
+      <button type="button" class="stats-tab" role="tab" data-tab="lasresan">${icon("book", 16)}<span>Läsresan</span></button>
+    </div>
+    <div class="stats-pane" data-pane="amnen"></div>
+    <div class="stats-pane" data-pane="lasresan" hidden></div>
+  </div>`);
+  host.replaceChildren(view);
+  const rendered = new Set();
+  const show = (tab) => {
+    lastStatsTab = tab;
+    view.querySelectorAll(".stats-tab").forEach((b) => {
+      const on = b.dataset.tab === tab;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    view.querySelectorAll(".stats-pane").forEach((p) => (p.hidden = p.dataset.pane !== tab));
+    if (rendered.has(tab)) return;
+    rendered.add(tab);
+    const pane = view.querySelector(`[data-pane="${tab}"]`);
+    if (tab === "amnen") return renderSubjectStats(ctx, pane, opts);
+    pane.replaceChildren(el(`<div class="spinner">Laddar Läsresan…</div>`));
+    return import("./teacher-lasresan.js")
+      .then((m) => m.renderClassLasresan(ctx, pane, { students: opts.students }))
+      .catch((err) => {
+        rendered.delete(tab);
+        pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda Läsresan: ${esc(err.message)}</div>`));
+      });
+  };
+  view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
+  await show(lastStatsTab);
+}
+
+// Senast valda statistikflik (delas mellan klasskort under sessionen).
+let lastStatsTab = "amnen";
+
+/** Ämnesfliken: klassens stjärnmatris (elever × arbetsområden). */
+async function renderSubjectStats(ctx, host, { students, subjects, studentById, loadAreas }) {
   students = (students || [])
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));

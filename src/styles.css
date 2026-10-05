@@ -1546,6 +1546,175 @@ body.larare-lage .container {
 .teacher-dark .cx-chip.weak { background: rgba(235, 87, 87, 0.16); color: #ff9d9d; }
 .teacher-dark .cx-chip.not { background: rgba(255, 255, 255, 0.06); color: var(--t-muted); }
 
+/* --- Statistik-flikar + Läsresan-lärarvy (issue #402) ----------------------
+   Klasskortets Statistik-panel har flikarna Ämnen | Läsresan. Läsresans tabell
+   (teacher-lasresan.js) och elevdetalj (teacher-lasresan-elev.js) använder
+   prefixet lrt- (lr- hör till elevens lasresan.css). */
+.teacher-dark .stats-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 4px 0 14px;
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+}
+.teacher-dark .stats-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.teacher-dark .stats-tab:hover { color: var(--t-text); background: rgba(255, 255, 255, 0.05); }
+.teacher-dark .stats-tab.active { background: var(--t-accent-soft); color: var(--t-accent); }
+.teacher-dark .stats-tab:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+
+.teacher-dark .lrt-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-bottom: 8px;
+}
+.teacher-dark .lrt-title { margin: 0; }
+.teacher-dark .lrt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: var(--t-muted);
+  font-size: 0.88rem;
+}
+.teacher-dark .lrt-summary b { color: var(--t-text); }
+
+.teacher-dark .lrt-tbl { min-width: 720px; }
+.teacher-dark .lrt-tbl th,
+.teacher-dark .lrt-tbl td { padding: 8px 8px; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .lrt-tbl td,
+.teacher-dark .lrt-tbl .lrt-name { font-size: 0.95rem; }
+.teacher-dark .lrt-num { text-align: right; font-variant-numeric: tabular-nums; }
+.teacher-dark .lrt-th { padding: 4px 2px; white-space: nowrap; }
+.teacher-dark .lrt-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.teacher-dark .lrt-th.lrt-num .lrt-sort { justify-content: flex-end; }
+.teacher-dark .lrt-sort:hover { color: var(--t-text); background: rgba(255, 255, 255, 0.05); }
+.teacher-dark .lrt-sort:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; }
+.teacher-dark .lrt-th.active .lrt-sort { color: var(--t-accent); }
+.teacher-dark .lrt-arrow { font-size: 0.7rem; opacity: 0.55; }
+.teacher-dark .lrt-th.active .lrt-arrow { opacity: 1; }
+
+.teacher-dark .lrt-row { cursor: pointer; }
+.teacher-dark .lrt-row:nth-child(even) th,
+.teacher-dark .lrt-row:nth-child(even) td { background: rgba(255, 255, 255, 0.025); }
+.teacher-dark .lrt-row:hover th,
+.teacher-dark .lrt-row:hover td,
+.teacher-dark .lrt-row:focus-visible th,
+.teacher-dark .lrt-row:focus-visible td { background: var(--t-accent-soft); }
+.teacher-dark .lrt-row:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; }
+.teacher-dark .lrt-tbl .lrt-name { font-weight: 600; color: var(--t-text); white-space: nowrap; text-align: left; }
+.teacher-dark .lrt-name .cx-avatar { margin-right: 6px; }
+.teacher-dark .lrt-badge {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--t-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.teacher-dark .lrt-not-started td { color: var(--t-muted); }
+.teacher-dark .lrt-dash { color: var(--t-muted); }
+.teacher-dark .lrt-of { color: var(--t-muted); font-weight: 500; font-size: 0.85em; }
+.teacher-dark .lrt-pct { font-weight: 700; }
+.teacher-dark .lrt-pct.hog { color: #7ee0a6; }
+.teacher-dark .lrt-pct.mellan { color: #f2b06a; }
+.teacher-dark .lrt-pct.lag { color: #ff9d9d; }
+.teacher-dark .lrt-lvl {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: rgba(86, 156, 255, 0.16);
+  color: #a9cbff;
+  font-weight: 700;
+}
+.teacher-dark .lrt-lvl.start { background: rgba(255, 255, 255, 0.06); color: var(--t-muted); }
+.teacher-dark .lrt-world { white-space: nowrap; }
+.teacher-dark .lrt-legend { margin-top: 10px; flex-wrap: wrap; }
+
+/* Elevdetalj (modal) */
+.teacher-dark .lrt-stat-grid .cx-stat-num { font-size: 1.35rem; }
+.teacher-dark .lrt-stat-world .cx-stat-num { font-size: 1.1rem; }
+.teacher-dark .lrt-stat-level { background: rgba(86, 156, 255, 0.12); }
+.teacher-dark .lrt-stat-level .cx-stat-num { color: #a9cbff; }
+.teacher-dark .lrt-stat-grid .lrt-pct.hog .cx-stat-num { color: #7ee0a6; }
+.teacher-dark .lrt-stat-grid .lrt-pct.mellan .cx-stat-num { color: #f2b06a; }
+.teacher-dark .lrt-stat-grid .lrt-pct.lag .cx-stat-num { color: #ff9d9d; }
+.teacher-dark .lrt-pips { display: flex; justify-content: center; gap: 3px; margin-top: 6px; }
+.teacher-dark .lrt-pip { width: 9px; height: 9px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); }
+.teacher-dark .lrt-pip.on { background: #6aa8ff; }
+.teacher-dark .lrt-hidden-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: var(--t-muted);
+  font-size: 0.8rem;
+}
+.teacher-dark .lrt-cats { display: grid; gap: 12px; }
+.teacher-dark .lrt-cat-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 0.92rem;
+}
+.teacher-dark .lrt-cat-name { color: var(--t-text); font-weight: 600; }
+.teacher-dark .lrt-cat-val b { color: var(--t-text); }
+.teacher-dark .lrt-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.teacher-dark .lrt-bar > span { display: block; height: 100%; border-radius: 999px; }
+.teacher-dark .lrt-cat.hog .lrt-bar > span { background: #2ec16e; }
+.teacher-dark .lrt-cat.mellan .lrt-bar > span { background: #f2994a; }
+.teacher-dark .lrt-cat.lag .lrt-bar > span { background: #eb5757; }
+.teacher-dark .lrt-cat.hog .lrt-cat-val b { color: #7ee0a6; }
+.teacher-dark .lrt-cat.mellan .lrt-cat-val b { color: #f2b06a; }
+.teacher-dark .lrt-cat.lag .lrt-cat-val b { color: #ff9d9d; }
+.teacher-dark .lrt-att-tbl { min-width: 480px; }
+.teacher-dark .lrt-att-tbl th,
+.teacher-dark .lrt-att-tbl td { padding: 7px 8px; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .lrt-att-tbl td { font-size: 0.9rem; }
+.teacher-dark .lrt-att-title { color: var(--t-text); font-weight: 600; }
+.teacher-dark .lrt-date { white-space: nowrap; color: var(--t-muted); }
+.teacher-dark .lrt-empty { margin: 4px 0; }
+
 /* --- Login-korten (utskriftsvänliga) -------------------------------------
    Overlayen + verktygsraden mörknar; SJÄLVA korten hålls vita med mörk text –
    de är fysiska utdelningskort som ska skrivas ut på papper (print-vänligt),
