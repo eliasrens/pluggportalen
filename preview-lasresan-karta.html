@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Läsresan: kartvyn</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { padding: 16px; }
+      .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
+      .sim button { margin: 2px; }
+      .hintrad { font-size: 13px; color: #666; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <b>Läsresan – kartvyn (issue #400)</b>. Stubbad progress utan inloggning/Firestore.
+        <div class="sim">
+          <button data-s="skog0">Skogen · steg 0 (ny elev)</button>
+          <button data-s="skog7">Skogen · steg 7</button>
+          <button data-s="skog67">Skogen · gå 6→7</button>
+          <button data-s="skogklar">Skogen · 19→20 (värld klar 🎉)</button>
+          <button data-s="oken3">Öknen · steg 3 (Skogen klar)</button>
+          <button data-s="oken020">Öknen · gå 0→1</button>
+        </div>
+        <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
+          Världsväljaren uppe till vänster visar klara/låsta världar.</div>
+      </div>
+      <div id="karta"></div>
+      <div class="panel hintrad" id="logg">Händelser syns här.</div>
+    </div>
+
+    <script type="module">
+      import { renderJourneyMap } from "./src/lasresan/ui-map.js";
+      import { getWorld } from "./src/lasresan/worlds/index.js";
+
+      const host = document.getElementById("karta");
+      const logg = document.getElementById("logg");
+      const avatar = { avatarId: "fox", avatarItems: [] };
+      let view = null;
+
+      function visa(worldId, stepInWorld, completedWorlds, animateFromStep = null, worldCompleted = false) {
+        if (view) view.destroy();
+        view = renderJourneyMap(host, {
+          world: getWorld(worldId),
+          progress: { worldId, stepInWorld, completedWorlds },
+          avatar,
+          animateFromStep,
+          worldCompleted,
+          onStartNext: () => { logg.textContent = `onStartNext! (${worldId}, steg ${stepInWorld + 1} startas)`; },
+        });
+        logg.textContent = `Visar ${worldId}, steg ${stepInWorld}` +
+          (animateFromStep != null ? `, gång från steg ${animateFromStep}` : "");
+      }
+
+      const scenarier = {
+        skog0: () => visa("skogen", 0, []),
+        skog7: () => visa("skogen", 7, []),
+        skog67: () => visa("skogen", 7, [], 6),
+        skogklar: () => visa("skogen", 20, ["skogen"], 19, true),
+        oken3: () => visa("oknen", 3, ["skogen"]),
+        oken020: () => visa("oknen", 1, ["skogen"], 0),
+      };
+      for (const b of document.querySelectorAll("[data-s]")) {
+        b.addEventListener("click", () => scenarier[b.dataset.s]());
+      }
+      scenarier.skog0();
+    </script>
+  </body>
+</html>
