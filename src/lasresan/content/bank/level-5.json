@@ -1,0 +1,638 @@
+[
+  {
+    "id": "lr-n5-stromavbrottet",
+    "title": "När ljuset försvann",
+    "level": 5,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Felicia hade tjatat i flera månader innan mamma och pappa till slut gick med på att hon skulle få vara barnvakt åt Vide en hel kväll. Hon var tolv, och lillebror hade precis fyllt sex. ”Vi är bara hos Lindbergs på andra sidan stan”, sa mamma och pekade på lappen med telefonnumret på kylskåpet. ”Ring om det händer något.”\n\nDe första timmarna gick som smort. Felicia värmde makaroner, läste två kapitel ur Vides favoritbok och lät honom vinna i memory, fast han nog anade att hon fuskade till hans fördel.\n\nStrax efter åtta blev det plötsligt kolsvart. Kylskåpet tystnade, och genom fönstret såg Felicia att varenda lägenhet i kvarteret hade slocknat.\n\n”Fe-li-cia!” Vides röst lät tunn i mörkret.\n\nHjärtat bultade i bröstet på henne. Helst ville hon ringa mamma på en gång, men mobilen hade bara några procent batteri kvar, och hon visste att hon kanske skulle behöva den senare. Hon tog ett djupt andetag och gjorde rösten så stadig hon kunde.\n\n”Det är bara strömmen. Nu har vi ett äventyr.”\n\nMed mobilens ficklampa letade hon fram värmeljusen i kökslådan och ställde dem på ett fat, långt från gardinerna. Sedan byggde de en koja av soffkuddar och filtar. Vide fick hålla i ficklampan och bestämma vilka skuggdjur som skulle uppträda på väggen.\n\nNär lamporna tändes igen efter en dryg timme hade han redan somnat i kojan.\n\nMamma och pappa kom hem strax före elva. Pappa tittade förvånat på de utbrunna ljusen och den halvt nedrasade kojan.\n\n”Var det inte läskigt?” frågade han.\n\nFelicia ryckte på axlarna. ”Inte för Vide.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur förstod Felicia att det inte bara var deras lägenhet som blivit strömlös?",
+        "options": [
+          "Grannarna knackade på och berättade att hela huset var mörkt",
+          "Det var mörkt i alla lägenheter utanför",
+          "Mamma ringde och sa att det var strömavbrott",
+          "Hon hörde att kylskåpet hos grannen tystnade"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför ringde Felicia inte till mamma direkt när strömmen gick?",
+        "options": [
+          "Mamma hade sagt att hon bara fick ringa om något farligt hände",
+          "Hon hittade inte lappen med telefonnumret",
+          "Vide bad henne att inte störa föräldrarna",
+          "Hon ville spara på mobilens batteri"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att de första timmarna ”gick som smort”?",
+        "options": [
+          "Att timmarna gick mycket fortare än hon hade trott",
+          "Att de åt mycket god mat",
+          "Att allt fungerade bra",
+          "Att det blev lite stökigt i köket"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kände sig Felicia egentligen när det blev mörkt?",
+        "options": [
+          "Hon var rädd men försökte dölja det för Vide",
+          "Hon var lugn eftersom hon varit med om strömavbrott förut",
+          "Hon var arg på föräldrarna för att de hade gått",
+          "Hon tyckte att det var spännande från första stund"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa Felicia ”Nu har vi ett äventyr”?",
+        "options": [
+          "För att göra mörkret mindre läskigt för Vide",
+          "För att hon länge hade längtat efter att bygga en koja",
+          "För att få Vide att gå och lägga sig",
+          "För att hon inte förstod vad som hade hänt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar Felicia när hon svarar ”Inte för Vide” i slutet?",
+        "options": [
+          "Att Vide inte ens hade märkt att strömmen gick",
+          "Att Vide sov genom hela strömavbrottet",
+          "Att hon själv var rädd men skyddade Vide från rädslan",
+          "Att hon inte förstår varför pappa frågar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför berättar texten i början att Felicia ”hade tjatat i flera månader”?",
+        "options": [
+          "Det förklarar varför föräldrarna egentligen inte ville gå bort den kvällen",
+          "Det visar att Vide inte ville ha någon barnvakt",
+          "Det förklarar varför mobilen hade så lite batteri",
+          "Det visar hur viktigt det var för henne att klara ansvaret"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen framför allt om?",
+        "options": [
+          "Att det är bättre att lösa problem själv än att be vuxna om hjälp",
+          "Att ta ansvar och vara lugn för någon annans skull, fast man själv är orolig",
+          "Att ett strömavbrott kan vara farligt om man inte har värmeljus hemma",
+          "Att småsyskon ofta blir rädda när föräldrarna inte är hemma"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-morfars-minne",
+    "title": "Morfars sjö",
+    "level": 5,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Det hade börjat med småsaker. Morfar ställde mjölken i skafferiet i stället för i kylen, och en gång frågade han Jonatan tre gånger samma eftermiddag hur det gick i skolan.\n\n”Jag har ju redan sagt det!” suckade Jonatan till slut, högre än han hade tänkt sig.\n\nMorfar blev tyst och tittade ner i sin kaffekopp. Senare i bilen förklarade mamma att morfar hade fått en sjukdom som gjorde minnet sämre, och att det troligen skulle bli värre med tiden. Jonatan svarade inte. Han kände sig både ledsen och irriterad, och för det sista skämdes han.\n\nNågra veckor senare föreslog mamma att Jonatan och morfar skulle åka och fiska vid sjön där morfar hade vuxit upp. Jonatan gick motvilligt med på det.\n\nVid bryggan hände något oväntat. Morfar, som ibland inte mindes vilken veckodag det var, knöt en perfekt fiskeknut på några sekunder. Han visste precis var gäddorna brukade stå i vassen och berättade om sommaren 1962, då han och hans bror hade fångat en gädda som var nästan lika lång som ekan.\n\n”Hur kan du minnas det, men inte vad jag sa i morse?” frågade Jonatan. Den här gången lät han inte arg.\n\nMorfar log snett. ”De gamla minnena har bott här länge. De nya hittar inte riktigt hem.”\n\nPå eftermiddagen drog morfar upp en abborre och skrattade som ett barn.\n\nPå vägen tillbaka bar Jonatan både spöna och håven. När morfar frågade om de hade fått något i dag, svarade Jonatan lugnt: ”En abborre. Du drog upp den själv.”\n\nMorfar nickade nöjt, som om han hörde det för första gången. Kanske gjorde han det också.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad fick Jonatan veta av mamma i bilen?",
+        "options": [
+          "Att morfar blev sårad när Jonatan höjde rösten",
+          "Att morfar har en sjukdom som gör att han glömmer allt mer",
+          "Att morfar bara var trött efter en lång vecka",
+          "Att morfar snart skulle flytta tillbaka till sjön"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför blev morfar tyst och tittade ner i kaffekoppen?",
+        "options": [
+          "Han tänkte på sjön där han hade vuxit upp",
+          "Han hade inte hört vad Jonatan sa",
+          "Han blev ledsen av hur Jonatan svarade honom",
+          "Han var irriterad på Jonatan"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Varför skämdes Jonatan?",
+        "options": [
+          "Han hade glömt att svara när morfar frågade om skolan",
+          "Han tyckte att det var fel att bli irriterad på en sjuk morfar",
+          "Mamma hade skällt på honom i bilen för att han hade varit otrevlig mot morfar",
+          "Han hade börjat gråta inför morfar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att Jonatan ”motvilligt” gick med på fisketuren?",
+        "options": [
+          "Att han sa ja med stor förväntan",
+          "Att han sa ja utan att riktigt förstå vart de skulle åka",
+          "Att han sa ja fast han inte ville",
+          "Att han sa ja efter att ha tänkt länge"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad visar det som händer vid bryggan om morfar?",
+        "options": [
+          "Att han fortfarande minns mycket, särskilt från länge sedan",
+          "Att han egentligen inte alls är sjuk utan bara har varit väldigt trött",
+          "Att han bara minns saker som har med fiske att göra",
+          "Att hans minne har blivit bättre sedan han var hos läkaren"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar morfar med att de nya minnena ”inte riktigt hittar hem”?",
+        "options": [
+          "Att det är svårt för honom att minnas sådant som nyss hänt",
+          "Att han har svårt att hitta vägen hem från sjön när det blir mörkt",
+          "Att han inte vill tänka på sådant som har hänt nyligen",
+          "Att nya händelser inte är lika viktiga som gamla"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med den sista meningen: ”Kanske gjorde han det också”?",
+        "options": [
+          "Att morfar bara låtsades att han inte visste, för att vara snäll mot Jonatan",
+          "Att Jonatan inte var säker på om de faktiskt hade fått något",
+          "Att morfar inte hörde vad Jonatan sa",
+          "Att morfar kanske verkligen hade glömt att han fångat abborren"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Hur har Jonatan förändrats i slutet av berättelsen?",
+        "options": [
+          "Han har förstått att morfar snart kommer att bli frisk igen",
+          "Han har lärt sig att fiska bättre än morfar",
+          "Han har slutat bry sig om vad morfar frågar",
+          "Han möter morfars glömska med tålamod"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-dimman",
+    "title": "Dimman på fjället",
+    "level": 5,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Det var tredje dagen på fjällvandringen, och Aisha hade äntligen slutat räkna skavsåren. Hon gick tillsammans med sin kusin Simon och moster Karin längs en led som slingrade sig upp mot ett pass mellan två toppar.\n\nFörsta kvällen hade moster Karin pekat på en liten hög med stenar vid stigen. ”Det där är ett röse”, hade hon förklarat. ”Rösena visar var leden går. Ser du nästa röse kan du inte gå vilse.”\n\nVid lunch satt de på en sten och åt knäckebröd när moster Karin plötsligt tittade upp. Ett grått täcke vällde fram över bergskammen.\n\n”Vi måste vidare innan det där når hit”, sa hon och reste sig så hastigt att hon halkade på en blöt sten. Hon bet ihop och sa att det inte var någon fara, men hon haltade.\n\nDimman var snabbare än de. Efter en kvart såg Aisha knappt sin egen hand när hon sträckte ut armen. Alla ljud blev dämpade, som om någon hade lagt bomull över hela fjället. Simon tog några steg åt det håll där han trodde att stigen fortsatte.\n\n”Vänta!” ropade Aisha.\n\nMoster Karin kunde bara gå långsamt, och någon måste leda. Aisha bestämde att de skulle gå som ett tåg. Hon gick först och stannade vid varje röse tills hon kunde skymta nästa. Simon gick sist och höll i mosterns ryggsäck. Ibland dröjde det flera minuter innan det grå avslöjade en ny stenhög, och varje gång fick Aisha kämpa mot lusten att bara gissa.\n\nEfter två timmar kände hon plötsligt doften av rök. Ur dimman dök fjällstugan upp, med ljus i fönstren.\n\nMoster Karin satte sig tungt på trappan och betraktade Aisha länge.\n\n”I morgon”, sa hon, ”får du bära kartan.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är ett röse till för?",
+        "options": [
+          "Att visa var leden går",
+          "Att visa var det finns vatten att dricka",
+          "Att ge vandrare skydd mot vinden",
+          "Att visa hur högt upp på fjället man är"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder det att dimman ”vällde fram” över bergskammen?",
+        "options": [
+          "Att den sakta började lösas upp",
+          "Att den låg stilla över topparna",
+          "Att den gjorde luften varmare",
+          "Att den kom snabbt och i stora mängder"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ropade Aisha ”Vänta!” till Simon?",
+        "options": [
+          "Hon ville själv gå först för att visa att hon var modigast",
+          "Hon hade hört ett konstigt ljud i dimman bakom sig",
+          "Hon var rädd att han skulle gå vilse om han gissade",
+          "Hon behövde stanna och vila sina skavsår"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför var det Aisha som ledde gruppen och inte moster Karin?",
+        "options": [
+          "Moster Karin hade glömt hur man ska följa rösena",
+          "Aisha hade bättre syn än de andra två",
+          "Moster Karin hade skadat foten och gick långsamt",
+          "Simon och moster Karin vågade inte gå först i dimman"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder det att Aisha kunde ”skymta” nästa röse?",
+        "options": [
+          "Att hon såg det tydligt",
+          "Att hon kunde räkna stenarna i det",
+          "Att hon kunde gömma sig bakom det",
+          "Att hon kunde se det, men bara otydligt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var det svårt för Aisha att låta bli att gissa?",
+        "options": [
+          "Väntan var lång och osäker, fast den var det säkraste",
+          "Hon var säker på att hon skulle hitta vägen även utan rösena",
+          "Moster Karin sa åt henne att skynda på",
+          "Simon klagade hela tiden på att hon gick för fort"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar moster Karin när hon säger att Aisha får bära kartan i morgon?",
+        "options": [
+          "Att hon är besviken på att de inte använde kartan i dimman",
+          "Att hon litar på Aisha och vill ge henne mer ansvar",
+          "Att hennes egen ryggsäck har blivit för tung att bära",
+          "Att Aisha behöver öva mer på att läsa karta"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket påstående stämmer bäst med berättelsens budskap?",
+        "options": [
+          "Man ska aldrig vandra på fjället utan en vuxen",
+          "När något blir farligt kan tålamod vara viktigare än snabbhet",
+          "Den som är starkast i gruppen bör alltid gå först",
+          "Det är klokast att stanna och vänta på att någon annan kommer och hjälper en"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-somnen",
+    "title": "Hjärnans nattskift",
+    "level": 5,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Ungefär en tredjedel av livet sover vi. Länge trodde många att sömnen främst var ett sätt för kroppen att vila, ungefär som när man stänger av en maskin. I dag vet forskarna att hjärnan är långt ifrån avstängd på natten. Snarare går den över till ett annat arbetsläge.\n\nEn av sömnens viktigaste uppgifter är att sortera minnen. Under dagen tar hjärnan emot enorma mängder intryck: ansikten, ljud, glosor, en ny finta på fotbollsplanen. Allt kan inte sparas. Medan vi sover spelar hjärnan upp delar av dagen igen, förstärker det som verkar viktigt och låter mycket av resten blekna bort. Därför kan något som kändes omöjligt att lära sig på kvällen plötsligt sitta bättre morgonen därpå.\n\nHjärnan städar också. När nervcellerna arbetar bildas avfallsämnen. Under djupsömnen ökar flödet av vätska mellan cellerna, och mer av avfallet kan sköljas bort än när vi är vakna. Det kan vara en av anledningarna till att man känner sig dimmig i huvudet efter en natt med för lite sömn.\n\nDen som sover för lite under en längre tid påverkas på flera sätt. Det blir svårare att koncentrera sig och att komma ihåg saker. Många blir lättare irriterade och får svårare att hantera sina känslor. Även kroppen påverkas: den som ständigt är trött blir oftare sjuk, eftersom immunförsvaret inte fungerar lika bra.\n\nBarn i mellanstadieåldern behöver oftast mellan nio och tolv timmars sömn per natt. Ändå får många mindre än så, bland annat för att skärmar håller dem vakna långt efter att de borde ha somnat. Sömn är alltså ingen förlorad tid, utan en förutsättning för att resten av dygnet ska fungera.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken gammal uppfattning om sömn vill texten ändra på?",
+        "options": [
+          "Att barn behöver mer sömn än vad vuxna gör",
+          "Att skärmar gör det svårare att somna",
+          "Att det är skadligt att sova för länge",
+          "Att hjärnan stängs av och vilar när vi sover"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer med dagens intryck medan vi sover?",
+        "options": [
+          "Allt sparas så att inget går förlorat",
+          "Hjärnan raderar allt som hände under dagen",
+          "Det viktiga förstärks och mycket annat glöms bort",
+          "Bara det vi har lärt oss i skolan sparas"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kan en glosa sitta bättre på morgonen än den gjorde kvällen innan?",
+        "options": [
+          "Man är piggare och hinner läsa glosan fler gånger",
+          "Hjärnan har sköljt bort gamla glosor så att det blir plats",
+          "Hjärnan har förstärkt minnet av den under natten",
+          "Det är lättare att minnas saker när det är ljust ute"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att minnen får ”blekna bort”?",
+        "options": [
+          "Att de blir allt tydligare",
+          "Att de långsamt försvinner",
+          "Att de flyttas till en annan del av hjärnan",
+          "Att de blir sorgligare med tiden"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är det som ”städas bort” i hjärnan under djupsömnen?",
+        "options": [
+          "Avfallsämnen som bildas när nervcellerna arbetar",
+          "Vätska som samlats mellan cellerna",
+          "Gamla nervceller som har slutat fungera",
+          "Bilder och ljud från nattens drömmar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Moa har sovit sex timmar per natt i flera veckor och har börjat bråka mycket med sina kompisar. Vad skulle texten säga om det?",
+        "options": [
+          "Sömnbristen kan göra det svårare att hantera känslor",
+          "Bråken beror nog på att hon drömmer mycket och sover oroligt",
+          "Sex timmar räcker, så bråken måste bero på något annat",
+          "Hon har troligen ätit för lite för att orka vara snäll"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför nämner texten skärmar?",
+        "options": [
+          "För att visa att skärmar skadar minnet direkt",
+          "För att visa att skärmar hjälper hjärnan att sortera intryck",
+          "För att barn som använder skärmar behöver mer sömn än andra",
+          "För att ge ett exempel på varför många barn sover för lite"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att sömn är ”en förutsättning för att resten av dygnet ska fungera”?",
+        "options": [
+          "Att man bör sova en stund mitt på dagen också",
+          "Att vi fungerar sämre när vi är vakna om vi sovit för lite",
+          "Att den som sover mycket inte behöver plugga lika mycket",
+          "Att sömnen är det enda som spelar roll för hur hela dagen blir"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-kiruna",
+    "title": "Staden som flyttar",
+    "level": 5,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Långt uppe i Norrbotten ligger Kiruna, en stad som håller på att flytta. Det låter nästan som en saga, men det är ett av de största stadsbyggnadsprojekten i Sveriges historia.\n\nAnledningen finns djupt nere i berget. Kiruna byggdes runt en av världens största järnmalmsgruvor, och det är gruvan som har gett staden både arbete och liv i över hundra år. Malmen ligger som en lutande skiva i berget, och ju djupare man bryter, desto närmare kommer brytningen stadens gamla delar. I dag sker arbetet mer än en kilometer under marken.\n\nNär stora mängder berg tas bort börjar marken ovanför att röra på sig. Först märks det knappt, men med tiden uppstår sprickor och sättningar. För att ingen ska skadas har man beslutat att flytta stadens centrum några kilometer österut, till mark som inte påverkas av gruvan.\n\nVissa byggnader har lyfts upp och körts till sina nya platser på enorma vagnar. Den mest kända är Kiruna kyrka, en stor träkyrka som sommaren 2025 rullades ungefär fem kilometer genom staden medan tusentals människor tittade på. Andra hus har rivits och ersatts av nya.\n\nFör invånarna handlar flytten om mycket mer än byggnader. Många har minnen knutna till gator, skolor och hus som snart inte finns kvar. En del tycker att det är spännande att få en modern stad, medan andra sörjer det som försvinner. Samtidigt vet de flesta att Kiruna knappast skulle finnas utan gruvan.\n\nKiruna visar hur tätt människor och naturresurser kan vara sammanflätade. Det som en gång byggde upp staden är också det som nu tvingar den att flytta.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var bryts järnmalmen i Kiruna i dag?",
+        "options": [
+          "Mer än en kilometer under marken",
+          "I en öppen grop mitt i den gamla staden",
+          "Ungefär fem kilometer öster om staden",
+          "Precis under de gamla husens källare"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är den främsta orsaken till att Kirunas centrum flyttas?",
+        "options": [
+          "Staden behövde mer plats för alla nya bostäder",
+          "De gamla husen och kyrkan hade blivit för slitna",
+          "Gruvan gör att marken under staden rör sig",
+          "Gruvan ska flytta till ett nytt berg längre österut"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kommer brytningen närmare stadens gamla delar ju djupare man gräver?",
+        "options": [
+          "Berget under staden är mjukare och lättare att bryta",
+          "Gruvarbetarna vill ha nära till sina egna bostäder",
+          "Malmen längre bort från staden har tagit slut",
+          "Malmen lutar in under staden"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en ”sättning” i marken?",
+        "options": [
+          "Att marken höjer sig en bit",
+          "Att marken sjunker ihop en bit",
+          "En grund att bygga hus på",
+          "Ett skyddande lager av sten"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tycker en del invånare att flytten är sorglig?",
+        "options": [
+          "De måste byta jobb när staden flyttar",
+          "De tycker att den nya staden ligger alldeles för nära gruvan",
+          "De förlorar platser som är fyllda av minnen",
+          "De får aldrig mer se den gamla kyrkan"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skriver texten att de flesta ändå vet att Kiruna ”knappast skulle finnas utan gruvan”?",
+        "options": [
+          "För att visa att invånarna förstår varför flytten behövs",
+          "För att visa att invånarna egentligen hellre vill att gruvan stängs",
+          "För att förklara varför man valde att flytta kyrkan",
+          "För att visa att gruvan snart kommer att läggas ner"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med att människor och naturresurser är ”sammanflätade” i Kiruna?",
+        "options": [
+          "Att invånarna själva äger gruvan tillsammans med staten",
+          "Att livet i staden är tätt knutet till gruvan",
+          "Att husen i staden är byggda av järn från gruvan",
+          "Att gruvan och staden ligger långt ifrån varandra"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken motsägelse lyfter textens sista mening fram?",
+        "options": [
+          "Staden är både mycket gammal och väldigt modern",
+          "Kyrkan är både stor och lätt att flytta",
+          "Invånarna vill både ha en ny stad och ett nytt jobb",
+          "Gruvan har både skapat staden och tvingar den nu att flytta"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-flyttfaglar",
+    "title": "Resan som ingen har visat dem",
+    "level": 5,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Varje höst lämnar miljontals fåglar Sverige. Svalor, gökar och tranor ger sig av söderut, och många av dem flyger ända till Afrika. På våren kommer de tillbaka, ofta till precis samma trakt som de lämnade. Hur är det möjligt?\n\nFörst kan man fråga sig varför de flyttar över huvud taget. Det handlar sällan om kylan i sig, utan om maten. Många flyttfåglar äter insekter, och under vintern finns det nästan inga flygande insekter här. Att stanna skulle innebära att svälta. Men varför bor de då inte i Afrika året runt? Svaret är att den nordiska sommaren erbjuder något värdefullt: långa, ljusa dagar och gott om föda, perfekt för att föda upp ungar. Resan är farlig och tröttsam, men fördelarna väger tyngre.\n\nFör att hitta rätt använder fåglarna flera olika ledtrådar. På dagen orienterar de sig efter solens läge. De som flyger på natten kan använda stjärnhimlen. Försök har visat att unga fåglar lär sig vilken punkt på himlen som stjärnorna tycks snurra runt, och sedan använder den som riktmärke.\n\nDessutom kan många fåglar känna av jordens magnetfält, ungefär som om de hade en inbyggd kompass. Exakt hur det går till är forskarna fortfarande inte helt överens om. När fåglarna närmar sig målet känner de igen landmärken som kuster, floder och bergskedjor.\n\nMest förbryllande är kanske gökungen. Den kläcks i ett bo som tillhör ett helt annat fågelpar, och när hösten kommer har dess riktiga föräldrar redan flugit söderut. Ändå hittar den på egen hand till Afrika.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är huvudskälet till att många flyttfåglar lämnar Sverige på hösten?",
+        "options": [
+          "Det finns för lite mat här på vintern",
+          "Deras kroppar klarar inte av den kalla vintern",
+          "De måste hinna föda upp sina ungar i Afrika",
+          "De följer efter tranorna som visar vägen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför stannar fåglarna inte i Afrika året runt?",
+        "options": [
+          "Det blir alldeles för varmt för dem i Afrika på sommaren",
+          "Det finns inga insekter i Afrika på sommaren",
+          "De har inte lärt sig att bygga bon i Afrika",
+          "Sommaren i norr är bättre för att få upp ungar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att fördelarna ”väger tyngre”?",
+        "options": [
+          "Att fåglarna blir tyngre av all mat de äter",
+          "Att fördelarna är viktigare än nackdelarna",
+          "Att resan blir svårare när fåglarna har ungar",
+          "Att fördelarna och nackdelarna är lika stora"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kan fåglar som flyger på natten hålla rätt riktning?",
+        "options": [
+          "De följer ljuset från månen",
+          "De flyger mot ljusen från de stora städerna längs vägen",
+          "De följer solens läge på himlen",
+          "En fast punkt på stjärnhimlen visar riktningen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menar texten med att fåglarna har en ”inbyggd kompass”?",
+        "options": [
+          "Att forskare fäst kompasser på dem",
+          "Att de minns hur kusterna ser ut",
+          "Att de kan känna av jordens magnetfält",
+          "Att de ser stjärnor även på dagen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det en fördel för fåglarna att ha flera olika sätt att hitta?",
+        "options": [
+          "Jordens magnetfält försvinner helt under de mörka vintermånaderna",
+          "Unga fåglar kan bara använda landmärken",
+          "Olika ledtrådar fungerar i olika lägen, som dag och natt",
+          "Stjärnorna syns bara när fåglarna är nära målet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är gökungen extra förbryllande?",
+        "options": [
+          "Den flyger kortare än andra flyttfåglar",
+          "Den kan inte ha lärt sig vägen av föräldrarna",
+          "Den följer med fågelparet som födde upp den",
+          "Den flyttar först när vintern kommer"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten främst visa?",
+        "options": [
+          "Att flyttfåglar hittar med hjälp av flera olika ledtrådar",
+          "Att forskarna nu vet exakt hur fåglarna hittar hela vägen till Afrika",
+          "Att resan till Afrika är för farlig för de flesta flyttfåglar",
+          "Att svenska flyttfåglar egentligen hör hemma i Afrika"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]

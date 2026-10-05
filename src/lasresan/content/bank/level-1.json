@@ -1,0 +1,494 @@
+[
+  {
+    "id": "lr-n1-tanden",
+    "title": "Tanden som försvann",
+    "level": 1,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Noah sitter vid bordet och äter frukost. Han äter yoghurt med flingor.\n\nPlötsligt känner han något hårt i munnen. Det är en tand! Den har lossnat.\n\n”Mamma, titta!” ropar Noah. Han öppnar munnen för att visa. Men tanden är borta.\n\nNoah letar under bordet. Mamma letar på golvet. Lillasyster Tyra tittar under stolen. Ingen hittar tanden.\n\nNoah blir ledsen. Han vill ju lägga tanden under kudden i kväll.\n\nDå rör han runt med skeden i skålen. Där ligger något litet och vitt. Det är tanden! Den låg i yoghurten hela tiden.\n\nNoah skrattar. Mamma tvättar tanden och lägger den i en liten ask.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad äter Noah till frukost?",
+        "options": [
+          "Yoghurt med flingor",
+          "Gröt med sylt",
+          "Smörgås med ost",
+          "Pannkakor med bär"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Noahs tand har lossnat. Vad betyder det?",
+        "options": [
+          "Tanden har blivit smutsig",
+          "Tanden gör mycket ont",
+          "Tanden sitter inte fast längre",
+          "Tanden har blivit större"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vem tittar under stolen?",
+        "options": [
+          "Mamma",
+          "Tyra",
+          "Noah",
+          "Pappa"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför blir Noah ledsen?",
+        "options": [
+          "Det gör ont i munnen",
+          "Yoghurten är slut",
+          "Tyra har tagit hans sked",
+          "Han kan inte hitta tanden"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q5",
+        "question": "Var hittar Noah tanden?",
+        "options": [
+          "Under bordet",
+          "I yoghurten",
+          "På golvet",
+          "I sin ficka"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gör mamma med tanden till sist?",
+        "options": [
+          "Slänger den i soporna",
+          "Ger den till Tyra",
+          "Lägger den i en liten ask",
+          "Lägger den under kudden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-olika-skor",
+    "title": "Pappas skor",
+    "level": 1,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det är måndag morgon. Pappa har bråttom till jobbet. Han dricker sitt kaffe snabbt och tar på sig jackan.\n\n”Hej då, Alva!” säger pappa.\n\nAlva vinkar. Då ser hon pappas fötter. På ena foten har han en svart sko. På andra foten har han en brun sko!\n\n”Pappa, vänta!” ropar Alva. ”Titta på dina skor!”\n\nPappa tittar ner. Först blir han helt tyst. Sedan börjar han skratta.\n\n”Oj då! Jag hade visst för bråttom”, säger han.\n\nHan byter till två svarta skor. Sedan springer han till bussen. Alva står i fönstret och skrattar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När händer det här?",
+        "options": [
+          "På kvällen",
+          "På morgonen",
+          "Mitt i natten",
+          "Vid lunch"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad dricker pappa?",
+        "options": [
+          "Kaffe",
+          "Te",
+          "Mjölk",
+          "Saft"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Pappa har bråttom. Vad betyder det?",
+        "options": [
+          "Han är mycket trött",
+          "Han måste skynda sig",
+          "Han är arg på Alva",
+          "Han har ont i magen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vilka skor har pappa på sig när Alva tittar på hans fötter?",
+        "options": [
+          "En svart och en brun",
+          "Två bruna skor",
+          "En vit och en svart",
+          "Två svarta skor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör pappa när han ser sina skor?",
+        "options": [
+          "Han blir arg",
+          "Han skrattar",
+          "Han börjar gråta",
+          "Han går ändå"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tog pappa på sig olika skor?",
+        "options": [
+          "Han ville vara rolig",
+          "Alva hade gömt hans skor",
+          "Han tyckte att det var fint",
+          "Han hade för bråttom"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-taltet",
+    "title": "Ett ljud i natten",
+    "level": 1,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Ebba ska sova i tält i trädgården. Hon har med sig en sovsäck, en ficklampa och sitt gosedjur. Det är en hare.\n\nDet blir kväll och himlen blir mörk. Ebba kryper ner i sovsäcken.\n\nPlötsligt hör hon ett ljud. Prassel, prassel. Något rör sig i gräset utanför tältet.\n\nEbba håller andan. Hjärtat slår fort. Vad kan det vara?\n\nHon tar ficklampan och öppnar tältet lite, lite. Hon lyser ut i gräset.\n\nDär står en liten igelkott! Den har en svart nos och massor av taggar. Den nosar på Ebbas skor.\n\nEbba ler. Nu är hon inte rädd längre. Igelkotten tassar iväg in under en buske. Snart sover Ebba gott.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ska Ebba sova?",
+        "options": [
+          "I sin säng",
+          "Hos sin mormor",
+          "I ett tält i trädgården",
+          "I en stuga i skogen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket gosedjur har Ebba med sig?",
+        "options": [
+          "En björn",
+          "En hare",
+          "En katt",
+          "En hund"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ebba håller andan. Vad betyder det?",
+        "options": [
+          "Hon andas mycket fort och högt",
+          "Hon håller hårt i tältet",
+          "Hon somnar direkt i sovsäcken",
+          "Hon slutar andas en liten stund"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad nosar igelkotten på?",
+        "options": [
+          "Ebbas skor",
+          "Ficklampan",
+          "Sovsäcken",
+          "Gosedjuret"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är Ebba inte rädd längre?",
+        "options": [
+          "Mamma kom ut till tältet",
+          "Det var bara en igelkott",
+          "Det blev ljust ute",
+          "Ljudet slutade av sig självt"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q6",
+        "question": "Vart går igelkotten?",
+        "options": [
+          "In i tältet",
+          "Upp på trappan",
+          "In under en buske",
+          "Bort till grinden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-ekorren",
+    "title": "Ekorrens gömmor",
+    "level": 1,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Ekorren är ett litet djur med en lång och yvig svans. Den bor i skogen och i parker. Den är mycket bra på att klättra i träd.\n\nPå hösten har ekorren mycket att göra. Den samlar nötter, ekollon och frön från kottar. Den gräver ner maten i marken eller gömmer den i hål i träden.\n\nEkorren gömmer mat på många olika ställen. Det blir som ett skafferi som ligger utspritt i skogen.\n\nNär vintern kommer finns det lite mat. Då letar ekorren fram sina gömmor. Men den hittar inte alla. Några nötter blir kvar i marken. På våren kan de börja växa och bli nya träd.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur ser ekorrens svans ut?",
+        "options": [
+          "Kort och rak",
+          "Tunn och kal",
+          "Randig och kort",
+          "Lång och yvig"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "När samlar ekorren mest mat?",
+        "options": [
+          "På sommaren",
+          "På våren",
+          "Mitt i vintern",
+          "På hösten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var gömmer ekorren maten?",
+        "options": [
+          "I marken och i hål i träden",
+          "I ett bo av lera",
+          "Under stenar i bäcken",
+          "Inne i husen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett skafferi?",
+        "options": [
+          "Ett hål där man sover",
+          "Ett slags träd",
+          "En plats där man sparar mat",
+          "En väg genom skogen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför samlar ekorren mat på hösten?",
+        "options": [
+          "På vintern finns det lite mat",
+          "Den vill plantera nya träd",
+          "Nötterna smakar bäst då",
+          "Andra djur vill ha nötterna"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan hända med nötterna som blir kvar i marken?",
+        "options": [
+          "De blir till kottar",
+          "De blir till stenar",
+          "De flyter bort",
+          "De kan bli nya träd"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-manen",
+    "title": "Månen byter form",
+    "level": 1,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Titta upp på himlen en klar kväll. Ibland ser månen ut som en rund boll. Ibland ser den ut som en smal banan. Och ibland syns den inte alls.\n\nMånen lyser inte själv. Det är solen som lyser på den. Vi ser bara den del av månen som solen lyser på.\n\nMånen åker runt jorden hela tiden. Därför ser vi olika mycket av den ljusa delen olika kvällar. Det tar ungefär en månad för månen att åka ett varv runt jorden.\n\nNär hela månen är ljus kallar vi den fullmåne. Då är den rund som en tallrik.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur kan månen se ut ibland?",
+        "options": [
+          "Som en fyrkant",
+          "Som ett hjärta",
+          "Som en smal banan",
+          "Som en stor stjärna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför lyser månen?",
+        "options": [
+          "Den lyser av sig själv",
+          "Den har små lampor",
+          "Stjärnorna lyser på den",
+          "Solen lyser på den"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad åker månen runt?",
+        "options": [
+          "Stjärnorna",
+          "Jorden",
+          "Molnen",
+          "En annan måne"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur lång tid tar det för månen att åka ett varv?",
+        "options": [
+          "Ungefär en månad",
+          "Ungefär en dag",
+          "Ungefär en vecka",
+          "Ungefär ett år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är en fullmåne?",
+        "options": [
+          "När månen inte syns alls",
+          "När hela månen är ljus",
+          "När månen ser ut som en banan",
+          "När månen är mycket nära"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ser månen olika ut olika kvällar?",
+        "options": [
+          "Vi ser olika mycket av den ljusa delen",
+          "Månen krymper och växer igen",
+          "Molnen målar på månen",
+          "Det kommer en ny måne varje kväll"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-snoflingor",
+    "title": "Små stjärnor av is",
+    "level": 1,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Snö kommer från molnen. Högt uppe i molnen är det mycket kallt. Där fryser små droppar av vatten till is.\n\nIsen växer och blir till en snöflinga. Snöflingan blir tyngre och tyngre. Till slut faller den ner mot marken.\n\nTitta på en snöflinga med ett förstoringsglas. Då ser du att den har sex uddar. Den ser ut som en liten stjärna.\n\nNästan alla snöflingor har sex uddar. Men ingen snöflinga är exakt lik någon annan. Varje snöflinga är unik.\n\nNär många snöflingor faller blir marken vit. Då kan man åka pulka och bygga snögubbar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var kommer snön ifrån?",
+        "options": [
+          "Från havet",
+          "Från bergen",
+          "Från träden",
+          "Från molnen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många uddar har en snöflinga oftast?",
+        "options": [
+          "Fyra",
+          "Fem",
+          "Sex",
+          "Åtta"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad kan man använda för att se uddarna?",
+        "options": [
+          "En ficklampa",
+          "En spegel",
+          "Ett förstoringsglas",
+          "Ett par solglasögon"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad liknar en snöflinga?",
+        "options": [
+          "En liten stjärna",
+          "En liten boll",
+          "En fjäder",
+          "Ett litet hjärta"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varje snöflinga är unik. Vad betyder det?",
+        "options": [
+          "Den är större än alla andra",
+          "Den är kallare än vanlig is",
+          "Den smälter fort",
+          "Ingen annan är exakt likadan"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför faller snöflingan ner till marken?",
+        "options": [
+          "Molnet går sönder",
+          "Solen knuffar ner den",
+          "Den blir för tung",
+          "Fåglar slår till den"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
