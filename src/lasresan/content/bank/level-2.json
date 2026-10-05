@@ -71,9 +71,9 @@
         "id": "q6",
         "question": "Lucas suckar. Vad gör han då?",
         "options": [
-          "Skrattar högt för att han är glad",
+          "Skrattar högt för att han är jätteglad",
           "Ropar på fröken för att han är arg",
-          "Hoppar upp för att han är förvånad",
+          "Hoppar upp för att han är mycket förvånad",
           "Andas ut tungt för att han är lite besviken"
         ],
         "answerIndex": 3,
@@ -354,9 +354,9 @@
         "question": "Vad händer om kedjan går av?",
         "options": [
           "Bakhjulet snurrar inte när du trampar",
-          "Du kan inte svänga längre",
-          "Bromsarna slutar fungera",
-          "Framhjulet låser sig"
+          "Du kan inte svänga med styret längre",
+          "Bromsarna slutar fungera helt",
+          "Framhjulet låser sig och stannar"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
@@ -475,7 +475,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "historia",
-    "body": "I dag ställer vi mjölk och ost i kylskåpet. Men för hundra år sedan hade nästan ingen kylskåp. Hur gjorde man då för att maten inte skulle bli dålig?\n\nMånga hade en jordkällare. Det är ett litet rum som är byggt ner i marken. Där är det svalt hela året. I jordkällaren förvarade man potatis, morötter och äpplen.\n\nPå vintern sågade man stora block av is ur sjöarna. Isen lades i ett ishus och täcktes med sågspån. Då kunde isen hålla sig ända till sommaren. Den användes för att kyla mjölk och fisk.\n\nKött saltade man. Salt gör att maten håller länge. Bröd torkades så att det blev hårt. Det kallas knäckebröd, och det äter vi fortfarande i dag.",
+    "body": "I dag ställer vi mjölk och ost i kylskåpet. Men för hundra år sedan hade nästan ingen kylskåp. Hur gjorde man då för att maten inte skulle bli dålig?\n\nMånga hade en jordkällare. Det är ett litet rum som är byggt ner i marken. Där är det svalt hela året. I jordkällaren förvarade man potatis, morötter och äpplen.\n\nPå vintern sågade man stora block av is ur sjöarna. Isen lades i ett ishus och täcktes med sågspån. Då kunde isen hålla sig ända till sommaren. Den användes för att kyla mjölk och fisk.\n\nKött saltade man. Salt gör att maten håller länge. Bröd bakades tunt och torkades så att det blev hårt. Det kallas knäckebröd, och det äter vi fortfarande i dag.",
     "questions": [
       {
         "id": "q1",
@@ -530,9 +530,9 @@
         "question": "Varför täckte man isen med sågspån?",
         "options": [
           "Så att isen skulle bli vit",
-          "Så att isen skulle lukta gott",
+          "Så att isen skulle få en god lukt",
           "Så att isen inte skulle smälta så fort",
-          "Så att ingen skulle hitta isen"
+          "Så att ingen skulle kunna hitta isen"
         ],
         "answerIndex": 2,
         "category": "mellan_raderna"

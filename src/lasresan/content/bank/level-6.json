@@ -36,7 +36,7 @@
         "question": "Varför tror Liv att Kevin vill köpa läsplattor?",
         "options": [
           "Hon tror att rektorn har bett honom att föreslå läsplattor",
-          "Hon tror att han helst vill slippa vara ute och frysa på rasterna",
+          "Hon tror att han vill slippa frysa ute på rasterna",
           "Hon misstänker att han främst tänker på vad han själv tycker om",
           "Hon misstänker att biblioteket har lovat honom något i gengäld"
         ],
@@ -47,12 +47,12 @@
         "id": "q4",
         "question": "Kevin tycker att Liv ”gjorde det enkelt för sig”. Vad menar han?",
         "options": [
-          "Att hon valde det mest uppenbara utan att tänka längre",
+          "Att hon lät de andra i elevrådet bestämma åt henne",
           "Att hon bara ville bli klar med mötet så snabbt som möjligt",
           "Att hon valde det förslag som kostade minst pengar",
-          "Att hon lät de andra i elevrådet bestämma åt henne"
+          "Att hon valde det mest uppenbara utan att tänka längre"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -83,12 +83,12 @@
         "id": "q7",
         "question": "Vad menar Liv med ”Det blev bättre”?",
         "options": [
-          "Att hon till slut fick igenom precis det hon ville från början",
+          "Att ett förslag byggt på andras behov var bättre än deras egna",
           "Att det var skönt att den långa diskussionen äntligen var över",
           "Att Kevins förslag ändå var bättre än hennes eget",
-          "Att ett förslag byggt på andras behov var bättre än deras egna"
+          "Att hon till slut fick igenom precis det hon ville från början"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -130,7 +130,7 @@
         "question": "Varför säger Malte ”Men han hade nyckel”?",
         "options": [
           "Han vill att de ska försöka låna nyckeln av mannen",
-          "Han är rädd att mannen ska låsa in dem i det gamla huset",
+          "Han är rädd att mannen ska låsa in dem i huset",
           "Han menar att en tjuv knappast skulle ha en egen nyckel",
           "Han vill visa Saga att han har sett mer än hon har gjort"
         ],
@@ -217,7 +217,7 @@
     "level": 6,
     "textType": "story",
     "topic": "sport",
-    "body": "Det var fem minuter kvar av finalen i distriktscupen, och Nellys innebandylag låg under med 3–4. I båset satt Tilde och Omar, som bara hade fått spela ett kort byte var under hela matchen. Tränaren hade blivit sjuk samma morgon, så det var Nelly som kapten som skötte bytena.\n\nFöre säsongen hade laget bestämt en regel tillsammans: alla skulle få spela i varje match, oavsett hur det gick. Nelly hade själv röstat för den. Det hade varit lätt att tycka så i september, när matcherna inte betydde så mycket.\n\nNu såg hon på resultattavlan. Om hon lät de snabbaste spelarna stå kvar på planen hade de en chans att kvittera. Om hon skickade in Tilde och Omar var chansen mindre. Tilde var ny i laget och tappade ofta bollen när hon blev stressad.\n\n”Spela med de bästa nu!” ropade en förälder bakom sargen. ”Det är ju final!”\n\nDet kliade i Nellys fingrar att lyssna. Men hon såg också Tildes ansikte. Tilde hade suttit på bänken nästan hela matchen med hjälmen i knät och följt de andra med blicken.\n\nNelly tänkte på varför hon själv en gång hade börjat spela. Det var inte för pokalernas skull. Det var för att hon som åttaåring hade fått vara med i en match trots att hon knappt kunde hålla klubban rätt.\n\n”Tilde, Omar, ni går in”, sa hon.\n\nDet blev ingen kvittering. Laget förlorade med 3–5. Efteråt var flera i laget tysta och sura, och någon muttrade att de kunde ha vunnit.\n\nMen i omklädningsrummet kom Tilde fram till Nelly. ”Jag trodde inte att jag skulle få spela när det verkligen gällde”, sa hon. ”Tack.”\n\nVeckan efter kom Tilde till varje träning, och hon stannade kvar en kvart efteråt för att öva passningar. Nelly tänkte att det kanske inte syntes på någon resultattavla, men att något ändå hade vunnits.",
+    "body": "Det var fem minuter kvar av finalen i distriktscupen, och Nellys innebandylag låg under med 3–4. I båset satt Tilde och Omar, som ännu inte hade fått spela en enda minut av matchen. Tränaren hade blivit sjuk samma morgon, så det var Nelly som kapten som skötte bytena.\n\nFöre säsongen hade laget bestämt en regel tillsammans: alla skulle få spela i varje match, oavsett hur det gick. Nelly hade själv röstat för den. Det hade varit lätt att tycka så i september, när matcherna inte betydde så mycket.\n\nNu såg hon på resultattavlan. Om hon lät de snabbaste spelarna stå kvar på planen hade de en chans att kvittera. Om hon skickade in Tilde och Omar var chansen mindre. Tilde var ny i laget och tappade ofta bollen när hon blev stressad.\n\n”Spela med de bästa nu!” ropade en förälder bakom sargen. ”Det är ju final!”\n\nDet kliade i Nellys fingrar att lyssna. Men hon såg också Tildes ansikte. Tilde hade suttit på bänken hela matchen med hjälmen i knät och följt de andra med blicken.\n\nNelly tänkte på varför hon själv en gång hade börjat spela. Det var inte för pokalernas skull. Det var för att hon som åttaåring hade fått vara med i en match trots att hon knappt kunde hålla klubban rätt.\n\n”Tilde, Omar, ni går in”, sa hon.\n\nDet blev ingen kvittering. Laget förlorade med 3–5. Efteråt var flera i laget tysta och sura, och någon muttrade att de kunde ha vunnit.\n\nMen i omklädningsrummet kom Tilde fram till Nelly. ”Jag trodde inte att jag skulle få spela när det verkligen gällde”, sa hon. ”Tack.”\n\nVeckan efter kom Tilde till varje träning, och hon stannade kvar en kvart efteråt för att öva passningar. Nelly tänkte att det kanske inte syntes på någon resultattavla, men att något ändå hade vunnits.",
     "questions": [
       {
         "id": "q1",
@@ -296,7 +296,7 @@
         "question": "Vilka två saker står mot varandra i Nellys val?",
         "options": [
           "Pokalen och att bli omtyckt av föräldrarna",
-          "Tränarens order och det som föräldrarna vill att hon ska göra",
+          "Tränarens order och det som föräldrarna vill",
           "Nellys egen speltid och den speltid som Omar har fått",
           "Lagets chans att vinna och det som laget har lovat varandra"
         ],
@@ -331,7 +331,7 @@
         "options": [
           "Han kom på hur man gör bläck som fastnar på papper",
           "Metoden var snabb och passade för de europeiska bokstäverna",
-          "Han använde bokstäver av trä i stället för bokstäver av metall",
+          "Han använde bokstäver av trä i stället för metall",
           "Han var den första i världen som kom på hur man trycker text"
         ],
         "answerIndex": 1,
@@ -365,7 +365,7 @@
         "id": "q4",
         "question": "Varför fick fler människor anledning att lära sig läsa?",
         "options": [
-          "Kyrkan började kräva att alla skulle kunna läsa bibeln själva",
+          "Kyrkan började kräva att alla skulle läsa bibeln",
           "Kungarna betalade folk för att de skulle lära sig läsa",
           "Gutenberg startade skolor för vanliga människor i Mainz",
           "Böckerna blev fler och billigare, så det fanns mer att läsa"
@@ -510,7 +510,7 @@
           "Det är förbjudet att använda AI om inte en vuxen tittar på samtidigt",
           "Programmet kan ha lärt sig fel, och det är svårt att se hur det tänkte",
           "AI är sämre än människor på i stort sett alla uppgifter som finns",
-          "Datorer som använder AI går ofta sönder och måste då lagas av människor"
+          "Datorer med AI går ofta sönder och måste lagas av människor"
         ],
         "answerIndex": 1,
         "category": "helhet_slutsats"
@@ -589,7 +589,7 @@
         "id": "q5",
         "question": "Vad har frågorna i fjärde stycket gemensamt?",
         "options": [
-          "De handlar om hur raketerna ska byggas för att klara resan",
+          "De handlar om hur raketerna ska byggas",
           "De handlar om människor och rätt och fel, inte om teknik",
           "De handlar om hur man ska hitta vatten på Mars",
           "De har redan fått tydliga svar av forskarna"
@@ -603,7 +603,7 @@
         "options": [
           "För att visa att vi kan förstöra något viktigt innan vi har hittat det",
           "För att förklara varför luften på Mars är så tunn och kall",
-          "För att varna för att det kan vara farligt att möta okända varelser där",
+          "För att varna för farliga okända varelser på Mars",
           "För att bevisa att det en gång har bott människor på Mars"
         ],
         "answerIndex": 0,

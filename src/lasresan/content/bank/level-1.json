@@ -50,7 +50,7 @@
           "Det gör ont i munnen",
           "Yoghurten är slut",
           "Tyra har tagit hans sked",
-          "Han vill lägga tanden under kudden"
+          "Han kan inte hitta tanden"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
@@ -199,9 +199,9 @@
         "id": "q3",
         "question": "Ebba håller andan. Vad betyder det?",
         "options": [
-          "Hon andas mycket fort",
-          "Hon håller i tältet",
-          "Hon somnar direkt",
+          "Hon andas mycket fort och högt",
+          "Hon håller hårt i tältet",
+          "Hon somnar direkt i sovsäcken",
           "Hon slutar andas en liten stund"
         ],
         "answerIndex": 3,
@@ -224,7 +224,7 @@
         "question": "Varför är Ebba inte rädd längre?",
         "options": [
           "Mamma kom ut till tältet",
-          "Ljudet kom från en liten igelkott",
+          "Det var bara en igelkott",
           "Det blev ljust ute",
           "Ljudet slutade av sig självt"
         ],
@@ -469,8 +469,8 @@
         "id": "q5",
         "question": "Varje snöflinga är unik. Vad betyder det?",
         "options": [
-          "Den är mycket stor",
-          "Den är mycket kall",
+          "Den är större än alla andra",
+          "Den är kallare än vanlig is",
           "Den smälter fort",
           "Ingen annan är exakt likadan"
         ],

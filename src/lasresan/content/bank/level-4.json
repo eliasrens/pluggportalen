@@ -166,8 +166,8 @@
         "question": "Varför trodde Selma att Gunnel hade skrivit lappen?",
         "options": [
           "Gunnels namn stod skrivet på själva lappen",
-          "Lappen slutade med G och Gunnels namn stod överst på lånekortet",
-          "Bibliotekarien hade sagt att det var hon",
+          "Lappen slutade med G, och Gunnel stod på lånekortet",
+          "Bibliotekarien Yvonne hade sagt att det var hon",
           "Gunnel var den som senast hade lånat boken"
         ],
         "answerIndex": 1,
@@ -177,9 +177,9 @@
         "id": "q6",
         "question": "Vad betydde ”3-12-7” på lappen?",
         "options": [
-          "Hur många fåglar av tre sorter de hade räknat",
-          "Ett datum då de skulle ses igen",
-          "Var boken stod på hyllorna",
+          "Antal fåglar av tre olika sorter",
+          "Ett datum då de två skulle ses igen",
+          "Var boken stod på hyllorna i biblioteket",
           "En kod till ett lås i skolköket"
         ],
         "answerIndex": 0,
@@ -201,8 +201,8 @@
         "id": "q8",
         "question": "Vad är troligast att Selma och Adam gör sedan?",
         "options": [
-          "Lägger tillbaka lappen i boken",
-          "Letar efter en ny hemlig lapp",
+          "Lägger tillbaka lappen i fågelboken igen",
+          "Letar efter en ny hemlig lapp i boken",
           "Lämnar fågelboken till Gunnel",
           "Räknar fåglarna vid eken när det blir vår"
         ],
@@ -224,9 +224,9 @@
         "question": "Var skulle kontroll fyra ligga?",
         "options": [
           "Vid en stor sten strax efter en bäck",
-          "Vid en spång över ett dike",
-          "Uppe på toppen av en sluttning",
-          "I en glänta med blåbärsris"
+          "Vid en smal spång över ett dike",
+          "Uppe på toppen av en brant sluttning",
+          "I en liten glänta full av blåbärsris"
         ],
         "answerIndex": 0,
         "category": "fakta"
@@ -235,10 +235,10 @@
         "id": "q2",
         "question": "Vad gjorde Elin med kartan när hon hade stannat?",
         "options": [
-          "Vände den upp och ner",
-          "Vred den så att norrpilen pekade som kompassnålen",
-          "Lade den på stenen och ritade på den",
-          "Visade den för en annan löpare"
+          "Vände den upp och ner för att se bättre",
+          "Vred den tills norrpilen följde kompassnålen",
+          "Lade den på stenen och ritade en ny väg",
+          "Visade den för en annan löpare som sprang förbi"
         ],
         "answerIndex": 1,
         "category": "fakta"
@@ -247,9 +247,9 @@
         "id": "q3",
         "question": "Hur förstod Elin att hon hade hoppat över fel vatten?",
         "options": [
-          "Det rann åt motsatt håll mot bäcken på kartan",
-          "Det fanns ingen spång över det",
-          "Ronny hade varnat henne för diket",
+          "Vattnet rann åt fel håll jämfört med kartan",
+          "Det fanns ingen spång över vattnet där",
+          "Ronny hade varnat henne för just det diket",
           "Det var för smalt för att vara en bäck"
         ],
         "answerIndex": 0,
@@ -285,7 +285,7 @@
         "options": [
           "Man ska vila en minut vid varje kontroll",
           "Man springer snabbare om man är utvilad",
-          "Det lönar sig att stanna och tänka i stället för att springa fel",
+          "Det lönar sig att stanna och tänka efter",
           "Man får tio minuter extra om man stannar"
         ],
         "answerIndex": 2,
@@ -295,9 +295,9 @@
         "id": "q7",
         "question": "Varför log Elin fast hon bara kom tolva?",
         "options": [
-          "Hon hade slagit sitt eget rekord",
+          "Hon hade slagit sitt eget rekord på banan",
           "Hon trodde att hon hade vunnit",
-          "Hon var stolt över att hon hade löst problemet själv",
+          "Hon var stolt över att ha löst problemet",
           "Hon var glad att loppet äntligen var slut"
         ],
         "answerIndex": 2,
@@ -353,9 +353,9 @@
         "id": "q3",
         "question": "Vad menas med ”tyngdlöshet” i texten?",
         "options": [
-          "Att allt väger mer än på jorden",
+          "Att allt väger mycket mer än på jorden",
           "Att det saknas luft att andas",
-          "Att man blir lättare av att träna",
+          "Att man blir lättare av att träna mycket",
           "Att allt svävar i stället för att falla nedåt"
         ],
         "answerIndex": 3,
@@ -368,7 +368,7 @@
           "Som att man har fått näsblod",
           "Som att näsan är kall och stel",
           "Som att man nyser hela tiden",
-          "Som att näsan är stoppad, som vid en förkylning"
+          "Som att näsan är igenstoppad"
         ],
         "answerIndex": 3,
         "category": "ordforstaelse"
@@ -413,10 +413,10 @@
         "id": "q8",
         "question": "Vilken mening sammanfattar texten bäst?",
         "options": [
-          "Det är farligt att resa till rymden",
-          "Astronauterna tränar mer än de arbetar",
-          "Tyngdlösheten påverkar nästan allt i astronauternas vardag",
-          "Rymdstationen är världens snabbaste fordon"
+          "Det är alldeles för farligt att resa till rymden",
+          "Astronauterna tränar mer än de arbetar ombord",
+          "Tyngdlösheten påverkar astronauternas hela vardag",
+          "Rymdstationen är det snabbaste fordon som finns"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
@@ -473,7 +473,7 @@
         "options": [
           "Ungefär en sekund",
           "Några få sekunder",
-          "Mycket kortare tid än en sekund",
+          "Långt under en sekund",
           "Exakt en halv sekund"
         ],
         "answerIndex": 2,
@@ -483,10 +483,10 @@
         "id": "q5",
         "question": "Vad betyder ordet ”mast” i den här texten?",
         "options": [
-          "Ett högt torn som tar emot och skickar signaler",
+          "Ett torn som tar emot och skickar signaler",
           "En stång som håller upp ett segel",
-          "En kabel som ligger på havsbotten",
-          "En liten dator inuti mobilen"
+          "En lång kabel som ligger på havsbotten",
+          "En liten dator som sitter inuti mobilen"
         ],
         "answerIndex": 0,
         "category": "ordforstaelse"
@@ -628,7 +628,7 @@
           "Bin äter samma sorts mat som människor",
           "Honung är den viktigaste maten vi får från bin",
           "Bin landar ofta på matbord på sommaren",
-          "Utan bin skulle vi få mycket mindre frukt, bär och grönsaker"
+          "Utan bin skulle det finnas mindre frukt och bär"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
