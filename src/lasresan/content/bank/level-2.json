@@ -1,0 +1,566 @@
+[
+  {
+    "id": "lr-n2-klassens-fisk",
+    "title": "Klassfisken får ett namn",
+    "level": 2,
+    "textType": "story",
+    "topic": "skola",
+    "body": "En måndag står det ett nytt akvarium längst bak i klassrummet. I vattnet simmar en liten orange fisk med långa, fladdriga fenor.\n\n”Det här är vår klassfisk”, säger fröken Lena. ”Den behöver ett namn. På fredag röstar vi.”\n\nHela veckan kommer klassen med förslag. Lucas vill att fisken ska heta Blixten, eftersom den simmar så snabbt. Andra vill ha Nemo eller Guldis. Elsa skriver Gurkan på tavlan, bara på skoj. Alla skrattar.\n\nPå fredagen lägger alla en lapp i en burk. Fröken räknar lapparna högt. Blixten får sex röster och Nemo får fem. Men Gurkan får tolv!\n\nFörst suckar Lucas. Sedan tittar han på fisken som susar runt i akvariet.\n\n”Hej, Gurkan”, säger han och ler. ”Du är nog världens snabbaste gurka.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var står akvariet?",
+        "options": [
+          "Längst bak i klassrummet",
+          "Vid fönstret i matsalen",
+          "Bredvid tavlan",
+          "Ute i korridoren"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför vill Lucas att fisken ska heta Blixten?",
+        "options": [
+          "Den har gula ränder",
+          "Den simmar så snabbt",
+          "Den kom en dag med åska",
+          "Hans hund heter så"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem skriver Gurkan på tavlan?",
+        "options": [
+          "Lucas",
+          "Fröken Lena",
+          "Elsa",
+          "Ingen i klassen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur många röster får Blixten?",
+        "options": [
+          "Fem",
+          "Tolv",
+          "Två",
+          "Sex"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför fick Gurkan flest röster, tror du?",
+        "options": [
+          "Fisken är grön som en gurka",
+          "Många tyckte att namnet var roligt",
+          "Fröken bestämde att det skulle bli så",
+          "Elsa röstade många gånger"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Lucas suckar. Vad gör han då?",
+        "options": [
+          "Skrattar högt för att han är glad",
+          "Ropar på fröken för att han är arg",
+          "Hoppar upp för att han är förvånad",
+          "Andas ut tungt för att han är lite besviken"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Hur känner Lucas sig i slutet?",
+        "options": [
+          "Han tycker att namnet är okej ändå",
+          "Han är fortfarande sur",
+          "Han vill ha en egen fisk",
+          "Han tycker att fisken är tråkig"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-jordgubbarna",
+    "title": "Vem tar jordgubbarna?",
+    "level": 2,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Wilma hälsar på hos farmor på landet. Bakom huset har farmor ett jordgubbsland. Jordgubbarna har precis blivit röda och söta.\n\nEn morgon ser farmor bekymrad ut. ”Någon har ätit av mina jordgubbar”, säger hon. ”Flera har små hål, och några är helt borta.”\n\nWilma bestämmer sig för att bli detektiv. Hon tar med sig ett anteckningsblock ut i landet. I den mjuka jorden hittar hon små, smala spår. Tre tår pekar framåt och en pekar bakåt.\n\n”Det är ingen katt”, tänker Wilma. ”Katter har runda tassar.”\n\nNästa morgon gömmer hon sig bakom vinbärsbusken. Hon sitter helt tyst och väntar. Då landar en svart fågel med gul näbb mitt i landet. Den hackar i en jordgubbe.\n\n”En koltrast!” viskar Wilma.\n\nFarmor skrattar när hon får höra det. Sedan lägger hon ett nät över jordgubbarna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var har farmor sitt jordgubbsland?",
+        "options": [
+          "Framför ladan",
+          "Nere vid sjön",
+          "Bakom huset",
+          "Hos grannen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Farmor ser bekymrad ut. Vad betyder bekymrad?",
+        "options": [
+          "Glad",
+          "Trött",
+          "Hungrig",
+          "Orolig"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vad tar Wilma med sig ut i landet?",
+        "options": [
+          "En kamera",
+          "En korg",
+          "Ett anteckningsblock",
+          "En ficklampa"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kan Wilma veta att det inte är en katt?",
+        "options": [
+          "Hon har aldrig sett en katt där",
+          "Spåren ser inte ut som runda tassar",
+          "Farmor säger att hon inte har katt",
+          "Katter tycker inte om bär"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Var gömmer sig Wilma?",
+        "options": [
+          "Under trappan",
+          "Inne i ladan",
+          "Bakom ett stort träd",
+          "Bakom vinbärsbusken"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Hur ser fågeln ut?",
+        "options": [
+          "Svart med gul näbb",
+          "Brun med rött bröst",
+          "Vit med svart huvud",
+          "Blå med gul mage"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför lägger farmor ett nät över jordgubbarna?",
+        "options": [
+          "Så att de ska växa fortare",
+          "Så att Wilma inte ska plocka dem",
+          "Så att koltrasten inte kommer åt dem",
+          "Så att de inte ska bli blöta"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-simhoppet",
+    "title": "Hoppet från pallen",
+    "level": 2,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Varje torsdag har Yusufs klass simlektion i badhuset. Yusuf tycker om att simma. Men han har aldrig hoppat i vattnet. Han går alltid ner för stegen i stället.\n\nI dag säger simläraren Petra: ”Nu får alla som vill prova att hoppa från startpallen.”\n\nYusuf ställer sig sist i kön. Hans ben känns som spagetti. En efter en hoppar kompisarna. Plask, plask! Alla kommer upp och skrattar.\n\nTill slut är det Yusufs tur. Han klättrar upp på pallen. Vattnet ser långt bort ut.\n\n”Du klarar det”, säger Petra lugnt. ”Jag står här bredvid.”\n\nYusuf tar ett djupt andetag. Han blundar och hoppar. Det blir kallt och bubbligt runt honom. Sedan är han uppe igen.\n\n”Jag gjorde det!” ropar han. Han simmar direkt bort till kön igen för att hoppa en gång till.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag har klassen simlektion?",
+        "options": [
+          "Måndag",
+          "Torsdag",
+          "Fredag",
+          "Tisdag"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur brukar Yusuf komma ner i vattnet?",
+        "options": [
+          "Han går ner för stegen",
+          "Han hoppar från kanten",
+          "Han åker i en rutschkana",
+          "Han dyker från pallen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Yusufs ben känns som spagetti. Vad betyder det?",
+        "options": [
+          "Benen känns långa och smala",
+          "Benen känns svaga och darriga",
+          "Benen känns varma",
+          "Benen känns starka"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför ställer sig Yusuf sist i kön?",
+        "options": [
+          "Han kom för sent till lektionen",
+          "Petra säger att han ska stå där",
+          "Han har ont i foten",
+          "Han är nervös och vill vänta"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad säger Petra till Yusuf på pallen?",
+        "options": [
+          "Skynda dig nu",
+          "Hoppa lite högre",
+          "Du klarar det",
+          "Det är bara lek"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gör Yusuf med ögonen när han hoppar?",
+        "options": [
+          "Han blundar",
+          "Han tittar på Petra",
+          "Han tittar ner i vattnet",
+          "Han tittar på kompisarna"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Hur märks det att Yusuf tyckte om hoppet?",
+        "options": [
+          "Han går direkt till duschen",
+          "Han vill hoppa en gång till",
+          "Han säger att vattnet var kallt",
+          "Han simmar till stegen"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-cykeln",
+    "title": "Så rullar cykeln",
+    "level": 2,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "En cykel har ingen motor. Ändå kan den rulla riktigt fort. Hur går det till?\n\nNär du cyklar trampar du på pedalerna. Pedalerna sitter fast i ett kugghjul. Runt kugghjulet går en kedja. Kedjan går bakåt till ett mindre kugghjul vid bakhjulet. När du trampar drar kedjan runt bakhjulet, och då rullar cykeln framåt.\n\nFramhjulet trampar du inte på. Det rullar bara med. Med styret vrider du framhjulet åt det håll du vill åka.\n\nNär du vill stanna använder du bromsarna. Då trycker små bromsklossar mot fälgen, alltså kanten på hjulet. Hjulet snurrar långsammare och cykeln stannar.\n\nKedjan behöver lite olja ibland. Annars kan den börja gnissla och rosta.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör du för att cykeln ska rulla framåt?",
+        "options": [
+          "Vrider på styret",
+          "Trycker på bromsen",
+          "Pumpar däcken",
+          "Trampar på pedalerna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket hjul drar kedjan runt?",
+        "options": [
+          "Framhjulet",
+          "Båda hjulen",
+          "Bakhjulet",
+          "Inget av hjulen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad använder du styret till?",
+        "options": [
+          "Att stanna",
+          "Att tuta",
+          "Att trampa",
+          "Att svänga"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är fälgen?",
+        "options": [
+          "En del av kedjan",
+          "Kanten på hjulet",
+          "Sadeln på cykeln",
+          "Ett av kugghjulen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör bromsklossarna?",
+        "options": [
+          "Får kedjan att snurra runt",
+          "Får framhjulet att svänga",
+          "Får hjulet att snurra långsammare",
+          "Får pedalerna att sitta fast"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad händer om kedjan går av?",
+        "options": [
+          "Bakhjulet snurrar inte när du trampar",
+          "Du kan inte svänga längre",
+          "Bromsarna slutar fungera",
+          "Framhjulet låser sig"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man lär sig cykla",
+          "Hur en cykel fungerar",
+          "Vem som byggde den första cykeln",
+          "Hur man lagar ett punkterat däck"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-pingvinen",
+    "title": "Pappan som håller ägget varmt",
+    "level": 2,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Kejsarpingvinen är världens största pingvin. Den lever på Antarktis, där det är kallare än någon annanstans på jorden.\n\nNär vintern börjar lägger pingvinmamman ett enda ägg. Sedan ger hon ägget till pappan och vandrar iväg till havet för att äta. Hon är borta i ungefär två månader.\n\nUnder tiden står pappan på isen med ägget ovanpå sina fötter. Han täcker det med ett varmt veck av hud på magen. Ägget får aldrig röra den kalla isen.\n\nPappan äter ingenting under hela den tiden. För att hålla värmen står pappapingvinerna tätt ihop i en stor klump. De turas om att stå längst in, där det är varmast.\n\nNär ungen har kläckts kommer mamman tillbaka. Hon har med sig mat i magen till den lilla ungen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var lever kejsarpingvinen?",
+        "options": [
+          "På Antarktis",
+          "I Afrika",
+          "På Grönland",
+          "I norra Sverige"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många ägg lägger pingvinmamman?",
+        "options": [
+          "Två",
+          "Ett",
+          "Tre",
+          "Fyra"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var har pappan ägget?",
+        "options": [
+          "I ett bo av stenar",
+          "Nere i snön",
+          "Under sin vinge",
+          "Ovanpå sina fötter"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför får ägget aldrig röra isen?",
+        "options": [
+          "Ägget skulle rulla iväg",
+          "Ungen inne i ägget skulle frysa",
+          "Isen kan spricka",
+          "Andra pingviner skulle ta det"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Pingvinerna turas om att stå längst in. Vad betyder turas om?",
+        "options": [
+          "Byter av varandra",
+          "Slåss om platsen",
+          "Står alltid still",
+          "Går därifrån"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad äter pappan medan mamman är borta?",
+        "options": [
+          "Fisk",
+          "Små kräftdjur",
+          "Mat som mamman lämnat",
+          "Ingenting"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är pappans viktigaste uppgift under vintern?",
+        "options": [
+          "Att hålla ägget varmt",
+          "Att hämta mat i havet",
+          "Att bygga ett bo",
+          "Att lära ungen simma"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-utan-kylskap",
+    "title": "När ingen hade kylskåp",
+    "level": 2,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "I dag ställer vi mjölk och ost i kylskåpet. Men för hundra år sedan hade nästan ingen kylskåp. Hur gjorde man då för att maten inte skulle bli dålig?\n\nMånga hade en jordkällare. Det är ett litet rum som är byggt ner i marken. Där är det svalt hela året. I jordkällaren förvarade man potatis, morötter och äpplen.\n\nPå vintern sågade man stora block av is ur sjöarna. Isen lades i ett ishus och täcktes med sågspån. Då kunde isen hålla sig ända till sommaren. Den användes för att kyla mjölk och fisk.\n\nKött saltade man. Salt gör att maten håller länge. Bröd torkades så att det blev hårt. Det kallas knäckebröd, och det äter vi fortfarande i dag.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är en jordkällare?",
+        "options": [
+          "Ett stort kylskåp av trä",
+          "Ett hus byggt av is",
+          "En grop vid sjön",
+          "Ett litet rum byggt ner i marken"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad förvarade man i jordkällaren?",
+        "options": [
+          "Potatis, morötter och äpplen",
+          "Mjölk, glass och grädde",
+          "Is, snö och sågspån",
+          "Bröd, kakor och bullar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "När sågade man is ur sjöarna?",
+        "options": [
+          "På sommaren",
+          "På hösten",
+          "På vintern",
+          "På våren"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "I jordkällaren är det svalt. Vad betyder svalt?",
+        "options": [
+          "Mycket varmt",
+          "Lite kallt",
+          "Helt mörkt",
+          "Blött och fuktigt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför täckte man isen med sågspån?",
+        "options": [
+          "Så att isen skulle bli vit",
+          "Så att isen skulle lukta gott",
+          "Så att isen inte skulle smälta så fort",
+          "Så att ingen skulle hitta isen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gjorde man med kött för att det skulle hålla länge?",
+        "options": [
+          "Lade det i frysen",
+          "Grävde ner det i snön",
+          "Saltade det",
+          "Kokade det i sjövatten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man förr fick maten att hålla",
+          "Hur ett kylskåp fungerar",
+          "Hur man bygger ett ishus",
+          "Vad barn åt till frukost förr"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
