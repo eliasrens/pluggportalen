@@ -53,7 +53,7 @@ test("nextSort: samma kolumn växlar, numerisk börjar fallande, namn stigande",
   assert.deepEqual(nextSort({ key: "namn", dir: "asc" }, "namn"), { key: "namn", dir: "desc" });
   assert.deepEqual(nextSort({ key: "namn", dir: "asc" }, "pct"), { key: "pct", dir: "desc" });
   assert.deepEqual(nextSort({ key: "pct", dir: "desc" }, "namn"), { key: "namn", dir: "asc" });
-  assert.deepEqual(TABLE_COLUMNS.map((c) => c.label), ["Elev", "Texter", "Frågor", "Rätt", "Fel", "Rätt %", "Läsnivå", "Värld", "Steg"]);
+  assert.deepEqual(TABLE_COLUMNS.map((c) => c.label), ["Elev", "Texter", "Frågor", "Rätt", "Fel", "Rätt %", "Läsresan-nivå", "Värld", "Steg"]);
 });
 
 test("pctLevel: gränser och saknat värde", () => {
