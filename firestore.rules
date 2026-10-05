@@ -82,6 +82,18 @@ service cloud.firestore {
     match /studentData/{studentId} {
       allow read:  if isTeacher() || isSelf(studentId) || (signedIn() && resource.data.get('husLast', false) != true);
       allow write: if isTeacher() || isSelf(studentId);
+
+      // Läsresan (#399): ett försök per färdig text, se docs/LASRESAN.md.
+      // Samma ägarmodell som studentData-skrivningen: eleven själv eller
+      // läraren – men STRIKTARE läsning (inga klasskamrater), eftersom försöken
+      // bär resultat per fråga. Läsresans tillstånd (studentData.lasresa) bor i
+      // föräldradokumentet och styrs av regeln ovan.
+      // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från
+      // Pages). Innan dess nekas skrivningen och data-lasresan.js sparar
+      // försöket i studentData.lasresaAttemptsFallback i stället.
+      match /lasresaAttempts/{attemptId} {
+        allow read, write: if isTeacher() || isSelf(studentId);
+      }
     }
 
     // Klasser: alla inloggade läser (eleven behöver sin tilldelning);
