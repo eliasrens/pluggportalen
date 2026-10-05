@@ -35,6 +35,14 @@
  *   registreras i efterhand med setAnswer() (den skapas ofta efter kortet).
  * @returns {{isFull:()=>boolean, setFull:(v:boolean)=>void, setAnswer:(el:HTMLElement)=>void, exit:()=>void, destroy:()=>void}}
  */
+// Ikoner för knappen (#392): linje-SVG (currentColor) – "fäll ut"-hörn resp.
+// "fäll in"-hörn, samma stil som övriga verktyg i scratchpad.js. Etiketten ligger i
+// .tool-label så den kan döljas på smala skärmar (aria-label bär namnet då).
+const ICON_EXPAND =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+const ICON_COLLAPSE =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>';
+
 export function wireEnlarge({ button, target, pad, handleEscape = true, answer = null }) {
   let full = false;
   let answerEl = null;
@@ -56,15 +64,21 @@ export function wireEnlarge({ button, target, pad, handleEscape = true, answer =
     }
   }
 
+  function renderButton() {
+    const label = full ? "Förminska" : "Förstora";
+    button.setAttribute("aria-pressed", full ? "true" : "false");
+    button.setAttribute("aria-label", label);
+    button.innerHTML = `${full ? ICON_COLLAPSE : ICON_EXPAND}<span class="tool-label">${label}</span>`;
+    button.title = full ? "Fäll in kladdytan" : "Förstora kladdytan";
+  }
+
   function apply() {
     target.classList.toggle("scratch-fs", full);
     document.body.classList.toggle("scratch-fs-lock", full);
     // Svarsrutan (fråga syns i kortets rubrik) får ALDRIG döljas av den utfällda
     // kladdytan (#312): i fullskärm flyttas den in i kortet som en egen rad längst ner.
     placeAnswer();
-    button.setAttribute("aria-pressed", full ? "true" : "false");
-    button.innerHTML = full ? "🔎 Förminska" : "🔍 Förstora";
-    button.title = full ? "Fäll in kladdytan" : "Förstora kladdytan";
+    renderButton();
     // Låt layouten sätta sig innan bufferten skalas om (behåller ritningen).
     if (pad && pad.resize) pad.resize();
   }
@@ -78,6 +92,7 @@ export function wireEnlarge({ button, target, pad, handleEscape = true, answer =
     }
   }
 
+  renderButton();
   button.addEventListener("click", toggle);
   if (handleEscape) document.addEventListener("keydown", onKey, true);
 
