@@ -49,7 +49,7 @@ function statsGridHtml(row) {
   return `<div class="cx-stat-grid lrt-stat-grid">
     ${stat(
       `${row.level}<span class="cx-stat-of">/${LEVEL_MAX}</span>${levelPips(row.level)}`,
-      s ? "dold läsnivå" : "startnivå (ej börjat)",
+      s ? "dold Läsresan-nivå" : "startnivå (ej börjat)",
       "lrt-stat-level"
     )}
     ${stat(s ? row.texts : dash, "lästa texter")}
@@ -137,7 +137,7 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts }) {
       </div>
       <div class="cx-modal-body">
         ${statsGridHtml(row)}
-        <p class="lrt-hidden-note">${icon("eye", 14)} Läsnivån är dold för eleven – den styr bara vilka texter som väljs.</p>
+        <p class="lrt-hidden-note">${icon("eye", 14)} Läsresan-nivån är dold för eleven – den styr bara vilka texter som väljs.</p>
         <div class="cx-detail-sec">
           <h3>Per frågetyp</h3>
           ${categoryHtml(lasresa && lasresa.catStats)}

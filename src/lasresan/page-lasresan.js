@@ -108,7 +108,17 @@ export async function pageLasresan() {
   function swap(next) {
     if (view) view.destroy();
     view = next;
+    requestAnimationFrame(fitHeight);
   }
+
+  // F3 (#413): textrutan får inte gå under kanten vid sidstart. Mät hur långt
+  // ner läsvyn börjar (topbar + verktygsrad) och låt CSS dra av det.
+  function fitHeight() {
+    if (!host.isConnected) return window.removeEventListener("resize", fitHeight);
+    const top = vy.getBoundingClientRect().top + window.scrollY;
+    host.style.setProperty("--lr-ovan", `${Math.round(top) + 24}px`);
+  }
+  window.addEventListener("resize", fitHeight);
 
   /** Verktygsraden ovanför vyn: [{ label, cls, onClick }]. Tom lista = dold. */
   function toolbar(buttons = []) {

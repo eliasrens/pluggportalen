@@ -51,8 +51,10 @@ body.lasresan-lage .container {
 }
 
 .lr-text {
-  max-height: calc(100vh - 48px);
-  max-height: calc(100dvh - 48px);
+  /* --lr-ovan = läsvyns avstånd från sidtoppen (topbar + verktygsrad), sätts
+     av page-lasresan.js så att rutan ryms utan att sidan skrollar (#413 F3). */
+  max-height: calc(100vh - var(--lr-ovan, 48px));
+  max-height: calc(100dvh - var(--lr-ovan, 48px));
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 26px 30px 30px;

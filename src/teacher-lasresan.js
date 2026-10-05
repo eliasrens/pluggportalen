@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Fliken "Läsresan" i klasskortets Statistik-panel (teacher-class.js, issue
 // #402, spec §18). EN tabell med hela klassen:
-//   Elev | Texter | Frågor | Rätt | Fel | Rätt % | Läsnivå | Värld | Steg
+//   Elev | Texter | Frågor | Rätt | Fel | Rätt % | Läsresan-nivå | Värld | Steg
 // Sorterbar på varje kolumnrubrik. Klick på en rad → elevdetaljen
 // (teacher-lasresan-elev.js).
 //
@@ -36,7 +36,7 @@ const numCell = (row, v) => (row.started ? String(v) : dash);
 function rowHtml(r, student) {
   const name = student ? student.namn || student.username || r.studentId : r.namn;
   const pctCls = pctLevel(r.pct);
-  const lvlTitle = r.started ? `Dold läsnivå ${r.level} av ${LEVEL_MAX}` : "Har inte börjat – räknas som startnivå 3";
+  const lvlTitle = r.started ? `Dold Läsresan-nivå ${r.level} av ${LEVEL_MAX}` : "Har inte börjat – räknas som startnivå 3";
   return `<tr class="lrt-row${r.started ? "" : " lrt-not-started"}" data-student="${esc(r.studentId)}" tabindex="0"
       role="button" title="Klicka för Läsresan-statistik om ${esc(name)}">
     <th class="lrt-name" scope="row">
@@ -139,7 +139,7 @@ export async function renderClassLasresan(ctx, host, { students, loadClass, load
       <span class="cx-legend-item"><span class="cx-dot hog"></span>Minst 67 % rätt</span>
       <span class="cx-legend-item"><span class="cx-dot mellan"></span>34–66 %</span>
       <span class="cx-legend-item"><span class="cx-dot lag"></span>Under 34 %</span>
-      <span class="cx-legend-item">Läsnivå 1–${LEVEL_MAX} är dold för eleven</span>
+      <span class="cx-legend-item">Läsresan-nivå 1–${LEVEL_MAX} är dold för eleven</span>
       <span class="cx-legend-tip">Klicka på en elev för detaljer</span>
     </div>
   </div>`);

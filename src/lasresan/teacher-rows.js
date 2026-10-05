@@ -22,7 +22,7 @@ export const TABLE_COLUMNS = [
   { key: "correct", label: "Rätt", num: true },
   { key: "incorrect", label: "Fel", num: true },
   { key: "pct", label: "Rätt %", num: true },
-  { key: "level", label: "Läsnivå", num: true },
+  { key: "level", label: "Läsresan-nivå", num: true },
   { key: "journey", label: "Värld", num: true },
   { key: "stepInWorld", label: "Steg", num: true },
 ];
