@@ -268,6 +268,35 @@ onDone({ answers: [{ qid, chosen }] })
 - Elevdetalj: `summarize(lasresa, {includeLevel:true})`,
   `categoryBreakdown(lasresa.catStats)` och `aggregateAttempts(await listAttempts(id))`.
 
+### Lärarvyn (#402, beslut)
+- **Plats:** klasskortets *Statistik*-panel har två flikar, **Ämnen** (den
+  gamla stjärnmatrisen) och **Läsresan** (`teacher-class.js`). Läsresan-fliken
+  laddar `src/teacher-lasresan.js` med dynamisk `import()` vid första klick, så
+  inget av Läsresan hamnar i bootgrafen. Ingen egen sida.
+- **Tabell** (`teacher-lasresan.js`): Elev | Texter | Frågor | Rätt | Fel |
+  Rätt % | Läsnivå | Värld | Steg. Alla kolumner går att sortera. Lika värden
+  sorteras på namn, och en saknad procent hamnar alltid sist. Ren logik ligger
+  i `src/lasresan/teacher-rows.js` (`teacherClassRows`, `sortTeacherRows`,
+  `nextSort`, `pctLevel`) och testas i `test/lasresan-teacher.test.js`.
+- **Ej börjat** (`lasresa` saknas): texter/frågor/rätt/fel/% visas som "–",
+  märkt *ej börjat*. Nivå, värld och steg visas och sorteras som startvärdena
+  3 / Skogen / 0. Den som har startat en text men inte avslutat någon räknas
+  som börjad, men rätt % blir "–" eftersom det inte finns några svar.
+- **"Värld"-sortering** går på resans läge (`world.order * 1000 + steg`).
+  Öknen steg 2 räknas alltså som längre fram än Skogen steg 18.
+- **Kvot:** tabellen läser bara `studentData.lasresa` via `getClassLasresa`, ett
+  dokument per elev en gång. Försöken läses först i elevdetaljen
+  (`teacher-lasresan-elev.js`, `listAttempts(id, 10)`), och bara för elever som
+  har börjat. Läsfel visas i modalen och kraschar inget.
+- **Per frågetyp** beräknas ur `lasresa.catStats` (alla texter), inte ur de 10
+  senaste försöken. En kategori utan frågor visas som "inga frågor än", och
+  helt utan data visas ett tomt läge.
+- **CSS** ligger i `styles.css` under `.teacher-dark` med prefixet `lrt-`
+  (`lr-` tillhör elevens `lasresan.css`).
+- **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
+  blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
+  namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.
+
 ---
 
 ## 5. Innehåll
