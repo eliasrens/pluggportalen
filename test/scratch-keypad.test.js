@@ -1,11 +1,13 @@
 // ============================================================================
 // Enhetstest för kladdytans KNAPPSATS + UPPSTÄLLNING (issue #392)
-//   • Knappsatsen öppnas/stängs bara i helskärm, skriver i SENAST tryckta mål
-//     (lapp/uppställningsruta/svarsruta, annars svarsrutan) och räknar ALDRIG.
+//   • Knappsatsen öppnas/stängs bara i helskärm, byter till Text-verktyget,
+//     skriver i SENAST tryckta mål (lapp/uppställningsruta/svarsruta – svarsrutan
+//     bara efter elevens eget tryck), annars i en NY lapp på ytan. Räknar ALDRIG.
 //   • Medan den är öppen visas inget skärmtangentbord (inputmode="none"),
 //     återställs när den stängs.
-//   • Uppställningen är en TOM mall: en siffra per ruta, auto-hopp (talrader →,
-//     svar/minne ←), ny kolumn till vänster, Sudd/Rensa tar bort den.
+//   • Uppställningen är en TOM mall: en siffra/komma per ruta, auto-hopp
+//     (talrader →, svar/minne ←), räknesätt → räknesättsrutan, ny kolumn till
+//     vänster. Suddet rör den inte (man ritar över den); Rensa/× tar bort den.
 //   • Boot-säkerhet: båda modulerna ligger UTANFÖR den statiska bootgrafen.
 //
 // Modulerna är import-fria → körs mot en minimal fejk-DOM (test/helpers/fake-dom.js).
@@ -35,12 +37,16 @@ function setup({ full = true } = {}) {
   text.layer.rect = { left: 0, top: 0, right: 400, bottom: 200, width: 400, height: 200 };
   const uppst = attachUppstallning(surface, { document: doc });
   const pads = [text, uppst];
+  let tool = "pen";
+  const selectTool = (t) => { tool = t; pads.forEach((p) => p.setTool(t)); };
+  // Samma koppling som createScratchCard (scratchpad.js).
   const keypad = attachKeypad({
     card,
     button,
     document: doc,
-    onToggle: (open) => pads.forEach((p) => p.setKeypad(open)),
+    onToggle: (open) => { pads.forEach((p) => p.setKeypad(open)); if (open) selectTool("text"); },
     onUppstallning: () => uppst.create(),
+    onNoTarget: () => text.addFreeNote(uppst.template() ? [uppst.template().getBoundingClientRect()] : []),
   });
   const form = doc.createElement("form");
   const answer = form.appendChild(doc.createElement("input"));
@@ -48,18 +54,23 @@ function setup({ full = true } = {}) {
   answer.setAttribute("inputmode", "text");
   keypad.setAnswer(form);
   const press = (...keys) => keys.forEach((k) => keypad.press(k));
-  return { doc, card, surface, button, text, uppst, keypad, form, answer, press };
+  // Eleven trycker själv i svarsrutan (pointerdown → mål, sedan fokus).
+  const tapAnswer = () => { answer.dispatch("pointerdown"); answer.focus(); };
+  return { doc, card, surface, button, text, uppst, keypad, form, answer, press, tapAnswer, getTool: () => tool, selectTool };
 }
 
 // --- Knappsatsen --------------------------------------------------------------
-test("knappen växlar panelen (aria-pressed), bara i helskärm", () => {
-  const { card, button, keypad } = setup();
+test("knappen växlar panelen (aria-pressed), bara i helskärm, och byter till Text", () => {
+  const { card, button, keypad, text, uppst, getTool } = setup();
   assert.equal(keypad.panel.hidden, true);
   button.click();
   assert.equal(keypad.isOpen(), true);
   assert.equal(keypad.panel.hidden, false);
   assert.equal(button.getAttribute("aria-pressed"), "true");
   assert.ok(card.classList.contains("kp-open"));
+  assert.equal(getTool(), "text", "öppnad knappsats → Text-verktyget");
+  assert.ok(text.layer.classList.contains("is-text"));
+  assert.ok(uppst.layer.classList.contains("is-text"));
   keypad.press("done"); // "Klar" stänger
   assert.equal(keypad.isOpen(), false);
   assert.equal(button.getAttribute("aria-pressed"), "false");
@@ -83,17 +94,32 @@ test("knapptryck tar aldrig fokus: pointerdown/mousedown preventDefault", () => 
   assert.ok(button.dispatch("pointerdown").defaultPrevented, "inte heller Knappsats-knappen");
 });
 
-test("räknar ALDRIG: tecknen skrivs bara in (svarsrutan som standardmål)", () => {
-  const { keypad, answer, press, doc } = setup();
+test("räknar ALDRIG; utan mål skrivs det i en NY lapp på ytan, inte i svaret", () => {
+  const { keypad, text, answer, press, doc } = setup();
+  answer.focus(); // räkna-läget autofokuserar svarsrutan – det gör den INTE till mål
   keypad.setOpen(true);
   press("1", "2", "+", "3", "=");
-  assert.equal(answer.value, "12+3=");
-  assert.equal(doc.activeElement, answer, "inget mål → svarsrutan får fokus");
+  const notes = text.notes();
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].value, "12+3=");
+  assert.equal(notes[0].getAttribute("inputmode"), "none");
+  assert.equal(doc.activeElement, notes[0]);
+  assert.equal(answer.value, "");
+  press("back");
+  assert.equal(notes[0].value, "12+3");
 });
 
-test("svarsrutan: − blir bindestreck, komma och radera vid markören", () => {
-  const { keypad, answer, press } = setup();
+test("utan mål skapar radera ingen lapp", () => {
+  const { keypad, text, press } = setup();
   keypad.setOpen(true);
+  press("back");
+  assert.equal(text.notes().length, 0);
+});
+
+test("svarsrutan (efter elevens tryck): − blir bindestreck, komma och radera vid markören", () => {
+  const { keypad, answer, press, tapAnswer } = setup();
+  keypad.setOpen(true);
+  tapAnswer();
   press("−", "3", ",", "5");
   assert.equal(answer.value, "-3,5");
   answer.selectionStart = answer.selectionEnd = 2; // efter "3"
@@ -104,7 +130,7 @@ test("svarsrutan: − blir bindestreck, komma och radera vid markören", () => {
 });
 
 test("skriver där man senast tryckte: lapp, sedan svarsruta", () => {
-  const { keypad, text, answer, press } = setup();
+  const { keypad, text, answer, press, tapAnswer } = setup();
   keypad.setOpen(true);
   text.setTool("text");
   text.layer.dispatch("click", { clientX: 100, clientY: 100 });
@@ -112,29 +138,42 @@ test("skriver där man senast tryckte: lapp, sedan svarsruta", () => {
   press("4", "×", "6");
   assert.equal(note.value, "4×6");
   assert.equal(answer.value, "");
-  answer.focus(); // eleven trycker i svarsrutan
+  tapAnswer(); // eleven trycker i svarsrutan
   press("2", "4");
   assert.equal(answer.value, "24");
   assert.equal(note.value, "4×6");
 });
 
-test("försvunnet mål (tom lapp städad, ruta suddad) → tillbaka till svarsrutan", () => {
+test("försvunnet mål (tom lapp städad) → ny lapp, inte svarsrutan", () => {
   const { keypad, text, answer, press } = setup();
   keypad.setOpen(true);
-  text.setTool("text");
   text.layer.dispatch("click", { clientX: 100, clientY: 100 });
   text.notes()[0].blur(); // tom → bort
   press("9");
-  assert.equal(answer.value, "9");
+  assert.equal(answer.value, "");
+  assert.deepEqual(text.notes().map((n) => n.value), ["9"]);
 });
 
 test("rättad svarsruta (readOnly) tar inte emot tecken", () => {
-  const { keypad, answer, press } = setup();
+  const { keypad, answer, press, tapAnswer } = setup();
   keypad.setOpen(true);
+  tapAnswer();
   answer.readOnly = true;
   assert.equal(keypad.target(), null);
   press("5");
   assert.equal(answer.value, "");
+});
+
+test("Penna/Sudd medan öppen: panelen förblir öppen, knappsatsen skriver i senaste lappen", () => {
+  const { keypad, text, press, selectTool } = setup();
+  keypad.setOpen(true);
+  text.layer.dispatch("click", { clientX: 100, clientY: 100 });
+  press("4");
+  selectTool("pen");
+  assert.equal(keypad.isOpen(), true);
+  assert.ok(!text.layer.classList.contains("is-text"), "ytan ritar igen");
+  press("2");
+  assert.deepEqual(text.notes().map((n) => n.value), ["42"]);
 });
 
 test("inget skärmtangentbord medan panelen är öppen – återställs efteråt", () => {
@@ -143,6 +182,7 @@ test("inget skärmtangentbord medan panelen är öppen – återställs efteråt
   text.layer.dispatch("click", { clientX: 100, clientY: 100 });
   const [note] = text.notes();
   note.value = "1";
+  note.blur();
   keypad.setOpen(true);
   press("uppst");
   const cell = uppst.cells()[1][1];
@@ -202,6 +242,24 @@ test("Uppställning lägger en TOM mall i procent; finns den redan fokuseras den
   assert.equal(uppst.layer.children.length, 1, "ingen dubblett");
 });
 
+test("ny mall krockar inte med lappar: flyttas ned under dem", () => {
+  const { uppst } = setup(); // text-lagret 400×200; uppst-lagrets rect sätts här
+  uppst.layer.rect = { left: 0, top: 0, right: 400, bottom: 200, width: 400, height: 200 };
+  const realCreate = uppst.create;
+  // Mallens egen rect i fejk-DOM:en är 0×0 → ge den en storlek vid skapandet.
+  uppst.layer.appendChild = function (c) {
+    c.rect = { left: 16, top: 12, right: 216, bottom: 112 };
+    return Object.getPrototypeOf(this).appendChild.call(this, c);
+  };
+  realCreate([{ left: 4, top: 0, right: 60, bottom: 30 }]);
+  assert.equal(uppst.template().style.top, "19.00%"); // (30 + 8) / 200
+  uppst.clear();
+  // Ryms inte under lappen (ytan 200 hög, mallen 100) → till höger om den.
+  realCreate([{ left: 4, top: 20, right: 150, bottom: 120 }]);
+  assert.equal(uppst.template().style.top, "6%");
+  assert.equal(uppst.template().style.left, "39.50%"); // (150 + 8) / 400
+});
+
 test("knappsatsen fyller rutorna: en siffra per ruta, talrad hoppar åt höger", () => {
   const { uppst, keypad, press, doc } = setup();
   keypad.setOpen(true);
@@ -215,18 +273,47 @@ test("knappsatsen fyller rutorna: en siffra per ruta, talrad hoppar åt höger",
   assert.equal(doc.activeElement, row[3]);
 });
 
-test("svarsraden hoppar åt vänster (ental först); = och räknesätt avvisas i sifferrutor", () => {
+test("svarsraden hoppar åt vänster (ental först); = avvisas utan att sudda siffran", () => {
   const { uppst, keypad, press, doc } = setup();
   keypad.setOpen(true);
   press("uppst");
   const sum = uppst.cells()[3];
   sum[5].focus();
-  press("=", "×");
+  press("=");
   assert.equal(sum[5].value, "");
   press("2", "1");
   assert.equal(sum[5].value, "2");
   assert.equal(sum[4].value, "1");
   assert.equal(doc.activeElement, sum[3]);
+  sum[4].focus(); // markerad "1"
+  press("=");
+  assert.equal(sum[4].value, "1", "ogiltigt tecken ersätter inte siffran");
+});
+
+test("räknesätt i en sifferruta → räknesättsrutan; från tal 1 vidare till tal 2", () => {
+  const { uppst, keypad, press, doc } = setup();
+  keypad.setOpen(true);
+  press("uppst", "3", "4", "7", "+");
+  const c = uppst.cells();
+  assert.equal(c[2][0].value, "+");
+  assert.deepEqual(c[1].slice(1, 4).map((x) => x.value), ["3", "4", "7"], "talet orört");
+  assert.equal(doc.activeElement, c[2][1], "första tomma rutan i tal 2");
+  press("1", "5");
+  c[3][5].focus(); // i svarsraden: räknesättet byts, markören stannar
+  press("×");
+  assert.equal(c[2][0].value, "×");
+  assert.equal(doc.activeElement, c[3][5]);
+  assert.equal(c[3][5].value, "");
+  // Fysiskt tangentbord: "-" i en sifferruta blir − i räknesättsrutan.
+  assert.ok(c[3][5].dispatch("keydown", { key: "-" }).defaultPrevented);
+  assert.equal(c[2][0].value, "−");
+});
+
+test("decimalkomma är tillåtet i sifferrutorna (egen kolumn)", () => {
+  const { uppst, keypad, press } = setup();
+  keypad.setOpen(true);
+  press("uppst", "3", ",", "5");
+  assert.deepEqual(uppst.cells()[1].slice(1, 4).map((x) => x.value), ["3", ",", "5"]);
 });
 
 test("räknesättsrutan: tangentbordets * - / blir × − ÷, siffror avvisas", () => {
@@ -274,7 +361,9 @@ test("+ kolumn lägger till till VÄNSTER och behåller innehållet (max 9)", ()
   let c = uppst.cells();
   c[1][5].value = "8";
   c[2][0].value = "+";
-  const add = uppst.template().children.find((x) => x.classList.contains("uppst-add"));
+  const add = uppst.template().querySelector(".uppst-add");
+  assert.equal(add.textContent, "+ kolumn", "chip, inte ett ensamt plus bredvid talet");
+  assert.equal(add.getAttribute("aria-label"), "Lägg till en kolumn");
   add.click();
   c = uppst.cells();
   assert.equal(c[1].filter(Boolean).length, 6);
@@ -286,24 +375,24 @@ test("+ kolumn lägger till till VÄNSTER och behåller innehållet (max 9)", ()
   assert.equal(add.hidden, true);
 });
 
-test("Sudd över mallen och Rensa tar bort den (flyktig)", () => {
+test("man ritar över mallen: Sudd tar inte bort den; Rensa och × gör det", () => {
   const { uppst, surface } = setup();
   uppst.create();
   uppst.template().rect = { left: 10, top: 10, right: 200, bottom: 150 };
-  uppst.setTool("eraser");
-  surface.dispatch("pointermove", { clientX: 100, clientY: 100 }); // ej nedtryckt
-  assert.ok(uppst.template());
-  surface.dispatch("pointerdown", { clientX: 300, clientY: 300 });
-  surface.dispatch("pointermove", { clientX: 205, clientY: 100 }); // inom suddradien
-  assert.equal(uppst.template(), null);
-  assert.equal(uppst.layer.children.length, 0);
-  surface.dispatch("pointerup", {});
   uppst.setTool("pen");
+  assert.ok(!uppst.layer.classList.contains("is-text"), "rit-läge: pekaren släpps igenom (CSS)");
+  uppst.setTool("eraser");
+  surface.dispatch("pointerdown", { clientX: 100, clientY: 100 });
+  surface.dispatch("pointermove", { clientX: 120, clientY: 100 });
+  surface.dispatch("pointerup", {});
+  assert.ok(uppst.template(), "suddet suddar bara bläck");
+  uppst.setTool("text");
+  assert.ok(uppst.layer.classList.contains("is-text"));
+  uppst.template().querySelector(".uppst-close").click();
+  assert.equal(uppst.template(), null);
   uppst.create();
   uppst.clear();
   assert.equal(uppst.layer.children.length, 0);
-  uppst.destroy();
-  assert.equal((surface._ls.pointerdown || []).filter(Boolean).length, 1, "bara text-lagrets lyssnare kvar");
 });
 
 // --- Boot-säkerhet --------------------------------------------------------------

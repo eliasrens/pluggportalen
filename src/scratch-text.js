@@ -8,8 +8,10 @@
 //
 // Lapparna placeras i PROCENT av ytan (left/top), så de följer med automatiskt
 // när kortet förstoras/förminskas – exakt som ritningen, som skalas om till nya
-// ytan (scratchpad.js fit()). Ingen JS behövs vid resize. Sudd över en lapp tar
-// bort den, Rensa tar bort alla, tomma lappar städas bort när de tappar fokus.
+// ytan (scratchpad.js fit()). Ingen JS behövs vid resize. Suddet suddar bara
+// bläck (canvasen), inte lappar; Rensa tar bort alla, tomma lappar städas bort
+// när de tappar fokus. addFreeNote() lägger en lapp på första lediga plats uppe
+// till vänster (knappsatsen, scratch-keypad.js, när den saknar skrivmål).
 //
 // HELT FLYKTIGT som ritningen: lapparna finns bara i DOM:en, sparas ALDRIG (noll
 // DB-kostnad) och rivs med kortet.
@@ -23,7 +25,10 @@
 // importeras av en bootfil (jfr #271/#290).
 // ============================================================================
 
-const ERASE_RADIUS = 13; // ≈ halva suddets bredd i scratchpad.js (ERASER_WIDTH 26)
+// Platsen en ny "ledig" lapp reserverar (px) när den letar efter en fri yta.
+const FREE_W = 110;
+const FREE_H = 44;
+const FREE_PAD = 12;
 
 /**
  * Koppla ett text-lager på `surface` (ritytans behållare, position:relative).
@@ -40,7 +45,6 @@ export function attachTextLayer(surface, opts = {}) {
   surface.appendChild(layer);
 
   let tool = "pen";
-  let erasing = false;
   let keypadOpen = false; // knappsatsen (scratch-keypad.js) öppen → inget skärmtangentbord
   let measureCtx = null;
 
@@ -103,36 +107,40 @@ export function attachTextLayer(surface, opts = {}) {
     try { note.focus({ preventScroll: true }); } catch { note.focus(); }
   }
 
-  // Sudd: rit-canvasen fångar pekaren, så händelserna bubblar hit till ytan.
-  // Tar bort lappar som suddet passerar över.
-  function eraseAt(e) {
-    for (const note of notes()) {
-      const r = note.getBoundingClientRect();
-      const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
-      const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
-      if (dx * dx + dy * dy <= ERASE_RADIUS * ERASE_RADIUS) removeNote(note);
+  const overlaps = (a, b) =>
+    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+  /**
+   * Ny fokuserad lapp på första LEDIGA plats uppifrån vänster: krockar inte med
+   * befintliga lappar eller `obstacles` (t.ex. uppställningsmallen, klientkoord.).
+   * Hittas ingen ledig plats hamnar den överst till vänster ändå.
+   */
+  function addFreeNote(obstacles = []) {
+    const r = layer.getBoundingClientRect();
+    const taken = [...notes().map((n) => n.getBoundingClientRect()), ...obstacles].filter(Boolean);
+    let spot = null;
+    for (let y = FREE_PAD; !spot && y + FREE_H <= r.height; y += FREE_H) {
+      for (let x = FREE_PAD; x + FREE_W <= r.width; x += FREE_W / 2) {
+        const box = { left: r.left + x, top: r.top + y, right: r.left + x + FREE_W, bottom: r.top + y + FREE_H };
+        if (!taken.some((t) => overlaps(box, t))) { spot = { x, y }; break; }
+      }
     }
+    const w = r.width || 1, h = r.height || 1;
+    const fx = spot ? spot.x / w : 0.04;
+    const fy = spot ? (spot.y + FREE_H / 2) / h : 0.08;
+    const note = addNote(Math.min(fx, 0.94), Math.min(Math.max(fy, 0.04), 0.96));
+    try { note.focus({ preventScroll: true }); } catch { note.focus(); }
+    return note;
   }
-  function onDown(e) {
-    if (tool !== "eraser") return;
-    erasing = true;
-    eraseAt(e);
-  }
-  function onMove(e) { if (erasing && tool === "eraser") eraseAt(e); }
-  function onUp() { erasing = false; }
 
   layer.addEventListener("click", onClick);
-  surface.addEventListener("pointerdown", onDown);
-  surface.addEventListener("pointermove", onMove);
-  surface.addEventListener("pointerup", onUp);
-  surface.addEventListener("pointercancel", onUp);
 
   return {
     layer,
     notes,
+    addFreeNote,
     setTool(t) {
       tool = t;
-      erasing = false;
       layer.classList.toggle("is-text", t === "text");
       // Lämnar man Text-läget mitt i en lapp: avsluta den (tom → bort).
       if (t !== "text" && layer.contains(doc.activeElement)) doc.activeElement.blur();
@@ -146,10 +154,6 @@ export function attachTextLayer(surface, opts = {}) {
     resize() {}, // procent-placering → följer ytan av sig själv
     destroy() {
       layer.removeEventListener("click", onClick);
-      surface.removeEventListener("pointerdown", onDown);
-      surface.removeEventListener("pointermove", onMove);
-      surface.removeEventListener("pointerup", onUp);
-      surface.removeEventListener("pointercancel", onUp);
     },
   };
 }

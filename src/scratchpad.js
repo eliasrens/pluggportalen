@@ -214,33 +214,49 @@ export function createScratchCard({ taskHtml, hint = DEFAULT_HINT, handleEscape 
   // Text-lagret (#392) har samma pad-gränssnitt → följer verktyg/Rensa/destroy.
   const surface = card.querySelector(".scratch-surface");
   const text = attachTextLayer(surface);
-  // Uppställningsmallen (#392) läggs ovanpå text-lagret; knappsatsen skriver i
-  // senast tryckta lapp/ruta/svarsruta och växlar lagrens skärmtangentbord.
+  // Uppställningsmallen (#392) läggs ovanpå text-lagret. Båda släpper igenom
+  // pekaren i rit-lägena → man ritar rakt över lappar och mall.
   const uppst = attachUppstallning(surface);
   const pads = [pad, text, uppst];
+  let currentTool = "pen"; // så ett rit-lager som registreras SENARE ärver rätt verktyg
+
+  const toolBtns = card.querySelectorAll(".tool-btn[data-tool]");
+  // Byt verktyg för ALLA lager + uppdatera segment-knapparna (klick och knappsats).
+  function selectTool(t) {
+    currentTool = t;
+    pads.forEach((p) => p.setTool && p.setTool(currentTool));
+    toolBtns.forEach((x) => {
+      const on = x.dataset.tool === t;
+      x.classList.toggle("is-active", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  toolBtns.forEach((b) => {
+    b.addEventListener("click", () => { selectTool(b.dataset.tool); onAction && onAction(); });
+  });
+
+  // Knappsatsen (#392): öppnas den byts verktyget till Text, så ett tryck på ytan
+  // ger en lapp att skriva i. Den skriver i senast valda lapp/ruta/svarsruta;
+  // saknas mål läggs en ny lapp på första lediga plats (aldrig oombedd i svaret).
   const keypadBtn = card.querySelector("[data-keypad]");
   const keypad = attachKeypad({
     card,
     button: keypadBtn,
-    onToggle: (open) => pads.forEach((p) => p.setKeypad && p.setKeypad(open)),
-    onUppstallning: () => { uppst.create(); onAction && onAction(); },
+    onToggle: (open) => {
+      pads.forEach((p) => p.setKeypad && p.setKeypad(open));
+      if (open) selectTool("text");
+    },
+    onUppstallning: () => {
+      uppst.create(text.notes().map((n) => n.getBoundingClientRect())); // inte över lappar
+      onAction && onAction();
+    },
+    onNoTarget: () => {
+      const tpl = uppst.template();
+      return text.addFreeNote(tpl ? [tpl.getBoundingClientRect()] : []);
+    },
   });
   keypadBtn.addEventListener("click", () => onAction && onAction());
   pads.push(keypad); // får förstora-växlingarna (resize) → stängs när kortet fälls in
-  let currentTool = "pen"; // så ett rit-lager som registreras SENARE ärver rätt verktyg
-
-  const toolBtns = card.querySelectorAll(".tool-btn[data-tool]");
-  toolBtns.forEach((b) => {
-    b.addEventListener("click", () => {
-      currentTool = b.dataset.tool;
-      pads.forEach((p) => p.setTool && p.setTool(currentTool));
-      toolBtns.forEach((x) => {
-        x.classList.toggle("is-active", x === b);
-        x.setAttribute("aria-pressed", x === b ? "true" : "false");
-      });
-      onAction && onAction();
-    });
-  });
   card.querySelector("[data-clear]").addEventListener("click", () => {
     pads.forEach((p) => p.clear && p.clear());
     onAction && onAction();

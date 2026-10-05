@@ -3,7 +3,8 @@
 //   • Text-läget: ett tryck på ytan skapar en lapp på trycket (i PROCENT, så den
 //     följer ytan vid förstora/förminska) och ger den fokus.
 //   • Rit-lägena skapar inga lappar; tomma lappar städas bort vid blur.
-//   • Sudd över en lapp tar bort den, Rensa tar bort alla.
+//   • Suddet suddar bara bläck (lappar ligger kvar), Rensa tar bort alla.
+//   • addFreeNote lägger en lapp på första lediga plats (knappsatsens fallback).
 //   • Boot-säkerhet: modulen ligger UTANFÖR den statiska bootgrafen från app.js.
 //
 // scratch-text.js är import-fri just för att kunna köras mot en minimal fejk-DOM
@@ -139,7 +140,7 @@ test("Enter avslutar lappen (och preventDefault så svarsformuläret inte skicka
   assert.equal(doc.activeElement, null);
 });
 
-test("Sudd tar bort lappar det passerar, Rensa tar bort alla", () => {
+test("Sudd suddar bara bläck – lappar ligger kvar; Rensa tar bort alla", () => {
   const { surface, t } = setup();
   t.setTool("text");
   t.layer.dispatch("click", { clientX: 200, clientY: 100 });
@@ -147,16 +148,32 @@ test("Sudd tar bort lappar det passerar, Rensa tar bort alla", () => {
   const [a, b] = t.notes();
   a.value = "1"; b.value = "2";
   a.rect = { left: 200, top: 90, right: 240, bottom: 110 };
-  b.rect = { left: 400, top: 190, right: 440, bottom: 210 };
   t.setTool("eraser");
-  surface.dispatch("pointermove", { clientX: 150, clientY: 100 }); // ej nedtryckt → inget
-  assert.equal(t.notes().length, 2);
-  surface.dispatch("pointerdown", { clientX: 150, clientY: 100 });
-  surface.dispatch("pointermove", { clientX: 195, clientY: 100 }); // inom suddradien från a
+  surface.dispatch("pointerdown", { clientX: 210, clientY: 100 }); // rakt över a
+  surface.dispatch("pointermove", { clientX: 230, clientY: 100 });
   surface.dispatch("pointerup", {});
-  assert.deepEqual(t.notes(), [b]);
+  assert.deepEqual(t.notes(), [a, b], "suddet tar inte bort lappar (#392 runda 2)");
   t.clear();
   assert.equal(t.notes().length, 0);
+});
+
+test("addFreeNote: första lediga plats uppe till vänster, krockar inte", () => {
+  const { doc, t } = setup(); // ytan: left 100, top 50, 400×200
+  const n1 = t.addFreeNote();
+  assert.equal(doc.activeElement, n1, "den nya lappen får fokus");
+  assert.equal(n1.style.left, "3.00%"); // 12px / 400
+  assert.equal(n1.style.top, "17.00%"); // (12 + 22)px / 200
+  n1.rect = { left: 112, top: 62, right: 222, bottom: 106 };
+  const tpl = { left: 160, top: 50, right: 300, bottom: 250 }; // t.ex. uppställningsmallen
+  const n2 = t.addFreeNote([tpl]);
+  assert.equal(n2.style.left, "58.00%", "första raden, till höger om mallen (232px)");
+  assert.equal(n2.style.top, "17.00%");
+  const x = parseFloat(n2.style.left) / 100 * 400 + 100;
+  const y = parseFloat(n2.style.top) / 100 * 200 + 50;
+  const box = { left: x, right: x + 110, top: y - 22, bottom: y + 22 };
+  for (const r of [n1.rect, tpl]) {
+    assert.ok(box.right <= r.left || box.left >= r.right || box.bottom <= r.top || box.top >= r.bottom, "ingen krock");
+  }
 });
 
 test("destroy kopplar bort lyssnarna", () => {

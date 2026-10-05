@@ -6,10 +6,13 @@
 //
 // Knappsatsen skriver där eleven SENAST tryckte: i den aktiva textlappen
 // (scratch-text.js), uppställningsrutan (scratch-uppstallning.js) eller svarsrutan
-// (.rakna-input). Ett och samma "senaste skrivbara mål" spåras via focusin på
-// kortet och på svarsformuläret. Finns inget (eller har målet försvunnit, t.ex.
-// en tom lapp som städats bort) går tecknen till SVARSRUTAN: det är dit allt
-// räknande till slut ska, och den finns alltid i helskärm.
+// (.rakna-input). Lappar/rutor blir mål via focusin; svarsrutan BARA när eleven
+// själv tryckt/skrivit i den (räkna-läget autofokuserar den, det räknas inte).
+// Finns inget mål (eller har det försvunnit, t.ex. en tom lapp som städats bort)
+// frågas onNoTarget() – kladdkortet lägger då en ny lapp på ytan, så knappsatsen
+// skriver på rutnätet och aldrig oombedd i svaret.
+// Före varje tecken skickas ett keydown till målet, så det kan styra tecknet
+// självt (uppställningen: räknesätt → räknesättsrutan, ogiltigt tecken → bort).
 //
 // Knapptryck tar ALDRIG fokus från målet (preventDefault på pointerdown/mousedown)
 // och tecknet infogas vid markören med setRangeText + ett input-event, så målets
@@ -53,9 +56,10 @@ const isWritable = (t) => !!t && t.tagName === "INPUT" && WRITABLE.some((c) => t
  * @param {HTMLElement} o.button   verktygsradens Knappsats-knapp
  * @param {(open:boolean)=>void} [o.onToggle]  panelen öppnas/stängs (t.ex. lagrens inputmode)
  * @param {()=>void} [o.onUppstallning]        "Uppställning" tryckt
+ * @param {()=>HTMLInputElement|null} [o.onNoTarget]  skapa ett mål (ny lapp) när inget finns
  * @param {Document} [o.document]
  */
-export function attachKeypad({ card, button, onToggle, onUppstallning, document: d } = {}) {
+export function attachKeypad({ card, button, onToggle, onUppstallning, onNoTarget, document: d } = {}) {
   const doc = d || (typeof document !== "undefined" ? document : card.ownerDocument);
   let open = false;
   let last = null; // senast fokuserade skrivbara mål
@@ -92,14 +96,17 @@ export function attachKeypad({ card, button, onToggle, onUppstallning, document:
   const inScope = (t) => card.contains(t) || (!!answerForm && answerForm.contains(t));
   const usable = (t) => isWritable(t) && inScope(t) && !t.readOnly && !t.disabled;
 
-  /** Målet för nästa tecken: senaste skrivbara fältet, annars svarsrutan. */
-  function target() {
-    if (usable(last)) return last;
-    const a = answerInput();
-    return usable(a) ? a : null;
-  }
+  /** Målet för nästa tecken: senast valda lapp/ruta/svarsruta (eller null). */
+  const target = () => (usable(last) ? last : null);
 
-  function onFocusIn(e) { if (isWritable(e.target)) last = e.target; }
+  // Lappar och rutor blir mål när de får fokus; svarsrutan bara på elevens eget
+  // tryck/tangent (onAnswerUse), inte när räkna-läget autofokuserar den.
+  function onFocusIn(e) {
+    if (isWritable(e.target) && !e.target.classList.contains("rakna-input")) last = e.target;
+  }
+  function onAnswerUse(e) {
+    if (isWritable(e.target) && e.target.classList.contains("rakna-input")) last = e.target;
+  }
 
   function fire(t, type, init) {
     const C = type === "keydown" && typeof KeyboardEvent === "function" ? KeyboardEvent : Event;
@@ -121,7 +128,8 @@ export function attachKeypad({ card, button, onToggle, onUppstallning, document:
   function press(key) {
     if (key === "done") { setOpen(false); return; }
     if (key === "uppst") { if (onUppstallning) onUppstallning(); return; }
-    const t = target();
+    let t = target();
+    if (!t && key !== "back" && onNoTarget) t = onNoTarget(); // t.ex. ny lapp på ytan
     if (!t) return;
     if (doc.activeElement !== t) {
       try { t.focus({ preventScroll: true }); } catch { t.focus(); }
@@ -138,6 +146,7 @@ export function attachKeypad({ card, button, onToggle, onUppstallning, document:
     }
     // Svarsrutan rättas som tal → vanligt bindestreck (Number("−5") är NaN).
     const ch = key === "−" && t.classList.contains("rakna-input") ? "-" : key;
+    if (fire(t, "keydown", { key: ch }).defaultPrevented) return; // målet tog hand om det
     replaceRange(t, ch, s, e);
   }
 
@@ -186,11 +195,13 @@ export function attachKeypad({ card, button, onToggle, onUppstallning, document:
       if (answerForm === form) return;
       if (answerForm) {
         answerKeyboardOff(false); // den gamla rutan får tillbaka sitt tangentbord
-        answerForm.removeEventListener("focusin", onFocusIn);
+        answerForm.removeEventListener("pointerdown", onAnswerUse);
+        answerForm.removeEventListener("keydown", onAnswerUse);
       }
       answerForm = form || null;
       if (answerForm) {
-        answerForm.addEventListener("focusin", onFocusIn);
+        answerForm.addEventListener("pointerdown", onAnswerUse);
+        answerForm.addEventListener("keydown", onAnswerUse);
         if (open) answerKeyboardOff(true);
       }
     },
@@ -204,7 +215,10 @@ export function attachKeypad({ card, button, onToggle, onUppstallning, document:
       button.removeEventListener("mousedown", keepFocus);
       button.removeEventListener("click", toggle);
       card.removeEventListener("focusin", onFocusIn);
-      if (answerForm) answerForm.removeEventListener("focusin", onFocusIn);
+      if (answerForm) {
+        answerForm.removeEventListener("pointerdown", onAnswerUse);
+        answerForm.removeEventListener("keydown", onAnswerUse);
+      }
     },
   };
 }
