@@ -1,0 +1,638 @@
+[
+  {
+    "id": "lr-n6-elevradet",
+    "title": "Pengarna i elevrådet",
+    "level": 6,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Elevrådet på Björkåsskolan hade fått 8 000 kronor att använda hur de ville. Pengarna kom från skolans julmarknad, och rektorn hade bara ställt ett villkor: beslutet skulle gynna så många elever som möjligt.\n\nLiv var säker på sin sak redan innan mötet började. Hon ville köpa bänkar och ett regntak till skolgården. ”Varje rast står hälften av oss och fryser vid väggen för att det inte finns någonstans att sitta”, sa hon. ”Det här skulle alla märka varje dag.”\n\nKevin skakade på huvudet. Han ville köpa läsplattor till biblioteket. ”Bänkar är tråkigt. Ingen kommer att minnas att vi köpte bänkar. Med plattorna kan man läsa böcker som biblioteket aldrig har råd att köpa in.”\n\nDiskussionen blev snabbt het. Liv tyckte att Kevin bara tänkte på sig själv, eftersom alla visste att han slukade fantasyböcker. Kevin tyckte att Liv gjorde det enkelt för sig genom att välja det mest självklara.\n\nTill slut räckte Jasmin i femman upp handen. Hon sa nästan aldrig något på mötena. ”Ni pratar som om bara ett av förslagen kan vara bra”, sa hon. ”Men vi vet ju inte ens vad de andra eleverna vill.”\n\nDet blev tyst. Ingen av dem hade frågat någon.\n\nVeckan efter gick elevrådet runt i alla klasser med en enkät. Svaren överraskade både Liv och Kevin. Många önskade sig mycket riktigt sittplatser ute, men nästan lika många skrev att biblioteket hade för få böcker för de yngsta eleverna. Och de behövde inga läsplattor, utan vanliga bilderböcker.\n\nPå nästa möte lade Liv och Kevin fram ett gemensamt förslag: två bänkar under ett enkelt tak, och resten av pengarna till böcker som de yngre eleverna själva fick vara med och välja.\n\n”Det blev ju varken ditt eller mitt förslag”, sa Kevin efteråt.\n\nLiv ryckte på axlarna. ”Nej. Det blev bättre.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad föreslog Liv och Kevin till slut att resten av pengarna skulle användas till?",
+        "options": [
+          "Läsplattor med bilderböcker till de yngsta eleverna",
+          "Böcker som de yngre eleverna själva fick välja",
+          "Fler bänkar och ett större tak på skolgården",
+          "Fantasyböcker som biblioteket inte hade råd med"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Rektorn hade ställt ett ”villkor”. Vad betyder det i texten?",
+        "options": [
+          "Ett förslag som elevrådet kunde välja bort om de ville",
+          "En gräns för hur många elever som får vara med på mötet",
+          "Något som måste gälla för att elevrådet ska få bestämma",
+          "En belöning till eleverna för arbetet med julmarknaden"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför tror Liv att Kevin vill köpa läsplattor?",
+        "options": [
+          "Hon tror att rektorn har bett honom att föreslå läsplattor",
+          "Hon tror att han helst vill slippa vara ute och frysa på rasterna",
+          "Hon misstänker att han främst tänker på vad han själv tycker om",
+          "Hon misstänker att biblioteket har lovat honom något i gengäld"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Kevin tycker att Liv ”gjorde det enkelt för sig”. Vad menar han?",
+        "options": [
+          "Att hon valde det mest uppenbara utan att tänka längre",
+          "Att hon bara ville bli klar med mötet så snabbt som möjligt",
+          "Att hon valde det förslag som kostade minst pengar",
+          "Att hon lät de andra i elevrådet bestämma åt henne"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blev det tyst efter att Jasmin hade pratat?",
+        "options": [
+          "De insåg att de inte visste vad eleverna faktiskt ville ha",
+          "De förstod att Jasmin hade ett eget, tredje förslag",
+          "De blev irriterade över att hon avbröt deras viktiga diskussion",
+          "De var rädda att rektorn skulle bli besviken på hela elevrådet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur hänger enkäten ihop med rektorns villkor?",
+        "options": [
+          "Enkäten visade att rektorns villkor var orättvist mot Kevins förslag",
+          "Enkäten bevisade att Kevins förslag gynnade flest elever",
+          "Enkäten gjorde att pengarna räckte till fler saker än de hade planerat",
+          "Enkäten visade vad som faktiskt skulle gynna flest elever"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar Liv med ”Det blev bättre”?",
+        "options": [
+          "Att hon till slut fick igenom precis det hon ville från början",
+          "Att det var skönt att den långa diskussionen äntligen var över",
+          "Att Kevins förslag ändå var bättre än hennes eget",
+          "Att ett förslag byggt på andras behov var bättre än deras egna"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket påstående sammanfattar berättelsens budskap bäst?",
+        "options": [
+          "Den som argumenterar bäst brukar också ha det bästa förslaget",
+          "Det är klokast att välja det förslag som alla märker varje dag",
+          "Ett elevråd bör alltid göra precis som rektorn säger åt dem att göra",
+          "Att lyssna på fler kan ge en bättre lösning än att vinna grälet"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-stationshuset",
+    "title": "Ljuset i stationshuset",
+    "level": 6,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Det gamla stationshuset vid spåret hade stått tomt så länge Malte kunde minnas. Fönstren var grå av damm, och dörren var låst med en rostig kedja. Ändå lyste det där inne. Tre kvällar i rad hade Malte sett ett gult sken bakom de smutsiga rutorna.\n\n”Det är säkert någon som har brutit sig in”, sa Saga när han berättade det. ”Eller tjuvar som gömmer saker där.”\n\nMalte var inte lika säker, men tanken var spännande. På fredagskvällen satt de bakom en buske med varsin ficklampa och Sagas mobil redo att filma.\n\nKlockan halv åtta kom en äldre man gående längs spåret. Han bar en stor kartong och såg sig om flera gånger innan han låste upp kedjan.\n\n”Såg du? Han kollade att ingen såg honom”, viskade Saga. ”Det är något skumt.”\n\n”Men han hade nyckel”, sa Malte tyst.\n\nDe smög fram till fönstret. Genom en ren fläck i dammet såg de ett långt bord som täckte nästan hela väntsalen. På bordet fanns ett landskap i miniatyr: berg av papper och lim, små träd, en sjö av glas och ett tåg som långsamt rullade genom en tunnel. Mannen satt böjd över en liten station och målade taket med en pensel som inte var tjockare än ett grässtrå.\n\nSaga sänkte mobilen. ”Han bygger ju … stationen. Den här stationen.”\n\nPlötsligt tittade mannen upp, rakt mot dem. Malte ville springa, men mannen bara vinkade och öppnade dörren.\n\n”Ni är de första som kikar in”, sa han. ”Jag heter Gunnar. Min pappa arbetade här när tågen fortfarande stannade. Kommunen lånar ut huset till mig så länge ingen annan vill ha det.”\n\nHan lät Malte styra tåget och visade hur växlarna fungerade. Saga var tyst länge.\n\n”Vi trodde att du var en tjuv”, erkände hon till slut.\n\nGunnar skrattade. ”Det är lätt att tro det värsta om någon man inte känner. Jag såg mig om för att ingen skulle se kartongen. I den ligger nämligen en överraskning till mitt barnbarn.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför får Gunnar använda stationshuset?",
+        "options": [
+          "Kommunen lånar ut det så länge ingen annan vill ha det",
+          "Han hyr det av tågbolaget för att bygga sin järnväg",
+          "Han arbetar fortfarande kvar på stationen",
+          "Hans pappa köpte huset när tågen slutade stanna"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför säger Malte ”Men han hade nyckel”?",
+        "options": [
+          "Han vill att de ska försöka låna nyckeln av mannen",
+          "Han är rädd att mannen ska låsa in dem i det gamla huset",
+          "Han menar att en tjuv knappast skulle ha en egen nyckel",
+          "Han vill visa Saga att han har sett mer än hon har gjort"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att landskapet var byggt ”i miniatyr”?",
+        "options": [
+          "Det var byggt av gamla saker från stationen",
+          "Det var byggt för att se gammalt ut",
+          "Det var byggt för att kunna flyttas",
+          "Det var byggt i mycket liten skala"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför sänker Saga mobilen?",
+        "options": [
+          "Hon vill hellre filma tåget när det kommer ut ur tunneln",
+          "Hon förstår att det inte finns något brott att filma",
+          "Hon ser att mannen har upptäckt dem genom fönstret",
+          "Hon märker att batteriet håller på att ta slut"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur skiljer sig Malte och Saga åt i början av berättelsen?",
+        "options": [
+          "Saga vill gå hem, medan Malte vill stanna kvar",
+          "Saga vet mer om stationens historia än Malte",
+          "Saga drar snabbt slutsatser, medan Malte är mer tveksam",
+          "Malte tror att det spökar, medan Saga tror att det är tjuvar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Gunnar säger att det är ”lätt att tro det värsta om någon”. Vad menar han?",
+        "options": [
+          "Att man gärna antar att någon har dåliga avsikter",
+          "Att man inte borde lita på främlingar",
+          "Att det värsta ofta händer när man minst anar det",
+          "Att det är lätt att vara elak mot den man inte känner"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Gunnars förklaring om kartongen visar något viktigt i berättelsen. Vad?",
+        "options": [
+          "Att Gunnar egentligen inte ville att någon skulle hälsa på",
+          "Att samma beteende kan ha en helt oskyldig förklaring",
+          "Att Gunnars barnbarn också bygger modelljärnvägar",
+          "Att Malte hade sett fel de tidigare kvällarna"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen främst om?",
+        "options": [
+          "Hur man bygger en egen modelljärnväg",
+          "Varför gamla stationer slutar användas",
+          "Hur förutfattade meningar kan leda en fel",
+          "Hur två barn lyckas avslöja en tjuv på bar gärning"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-finalen",
+    "title": "Kaptenens val",
+    "level": 6,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Det var fem minuter kvar av finalen i distriktscupen, och Nellys innebandylag låg under med 3–4. I båset satt Tilde och Omar, som bara hade fått spela ett kort byte var under hela matchen. Tränaren hade blivit sjuk samma morgon, så det var Nelly som kapten som skötte bytena.\n\nFöre säsongen hade laget bestämt en regel tillsammans: alla skulle få spela i varje match, oavsett hur det gick. Nelly hade själv röstat för den. Det hade varit lätt att tycka så i september, när matcherna inte betydde så mycket.\n\nNu såg hon på resultattavlan. Om hon lät de snabbaste spelarna stå kvar på planen hade de en chans att kvittera. Om hon skickade in Tilde och Omar var chansen mindre. Tilde var ny i laget och tappade ofta bollen när hon blev stressad.\n\n”Spela med de bästa nu!” ropade en förälder bakom sargen. ”Det är ju final!”\n\nDet kliade i Nellys fingrar att lyssna. Men hon såg också Tildes ansikte. Tilde hade suttit på bänken nästan hela matchen med hjälmen i knät och följt de andra med blicken.\n\nNelly tänkte på varför hon själv en gång hade börjat spela. Det var inte för pokalernas skull. Det var för att hon som åttaåring hade fått vara med i en match trots att hon knappt kunde hålla klubban rätt.\n\n”Tilde, Omar, ni går in”, sa hon.\n\nDet blev ingen kvittering. Laget förlorade med 3–5. Efteråt var flera i laget tysta och sura, och någon muttrade att de kunde ha vunnit.\n\nMen i omklädningsrummet kom Tilde fram till Nelly. ”Jag trodde inte att jag skulle få spela när det verkligen gällde”, sa hon. ”Tack.”\n\nVeckan efter kom Tilde till varje träning, och hon stannade kvar en kvart efteråt för att öva passningar. Nelly tänkte att det kanske inte syntes på någon resultattavla, men att något ändå hade vunnits.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem skötte bytena i finalen, och varför?",
+        "options": [
+          "En förälder, eftersom tränaren hade blivit sjuk",
+          "Nelly, eftersom tränaren hade blivit sjuk",
+          "Nelly, eftersom laget hade röstat fram henne till tränare",
+          "Tränaren, men Nelly fick bestämma de sista minuterna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad menas med att det ”hade varit lätt att tycka så i september”?",
+        "options": [
+          "Laget var mycket bättre i början av säsongen än i finalen",
+          "Det är lätt att följa en regel när inget står på spel",
+          "Regeln var egentligen bara tänkt att gälla under hösten",
+          "Nelly hade inte riktigt förstått vad regeln betydde i september"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ”kvittera” i texten?",
+        "options": [
+          "Göra mål så att laget tar ledningen",
+          "Byta ut en trött spelare mot en annan",
+          "Göra mål så att det blir lika",
+          "Skriva under på att matchen är spelad"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "”Det kliade i Nellys fingrar att lyssna.” Vad betyder det?",
+        "options": [
+          "Hon var frestad att göra som föräldern sa",
+          "Hon ville inte höra vad föräldern ropade",
+          "Hon var nervös och höll hårt i klubban",
+          "Hon blev arg på föräldern som stod bakom sargen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tänker Nelly på när hon själv var åtta år?",
+        "options": [
+          "Hon minns att hennes lag också förlorade en viktig final den gången",
+          "Hon saknar tiden då innebandy kändes lättare och roligare",
+          "Hon minns hur mycket det betydde att få chansen fast hon inte var bäst",
+          "Hon vill påminna sig själv om att hon alltid har varit lagets bästa spelare"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar det att Tilde stannar kvar och övar efter träningarna?",
+        "options": [
+          "Att hon fortfarande är arg över att laget förlorade finalen",
+          "Att förtroendet i finalen har gjort henne mer motiverad",
+          "Att tränaren har krävt att hon ska träna extra",
+          "Att hon vill ta över som kapten efter Nelly"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilka två saker står mot varandra i Nellys val?",
+        "options": [
+          "Pokalen och att bli omtyckt av föräldrarna",
+          "Tränarens order och det som föräldrarna vill att hon ska göra",
+          "Nellys egen speltid och den speltid som Omar har fått",
+          "Lagets chans att vinna och det som laget har lovat varandra"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar Nelly med att ”något ändå hade vunnits”?",
+        "options": [
+          "Att laget egentligen borde ha vunnit matchen med flera mål",
+          "Att laget säkert kommer att vinna nästa final",
+          "Att Nelly till slut vann diskussionen med föräldern bakom sargen",
+          "Att Tilde kände sig behövd, och det betydde mer än resultatet"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-tryckpressen",
+    "title": "Tryckpressen som förändrade världen",
+    "level": 6,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För sexhundra år sedan var en bok något mycket ovanligt. Varje exemplar måste skrivas av för hand, ofta av munkar i kloster. Att kopiera en enda bibel kunde ta mer än ett år. Böckerna var därför så dyra att bara kyrkan, kungar och mycket rika familjer hade råd med dem. De flesta människor kunde inte heller läsa – och varför skulle de lära sig det, när det nästan inte fanns något att läsa?\n\nRunt år 1450 byggde guldsmeden Johannes Gutenberg i den tyska staden Mainz en tryckpress som skulle förändra detta. Hans viktigaste idé var lösa typer: små bokstäver av metall som kunde sättas ihop till ord och rader, färgas med bläck och pressas mot papper. När en sida var klar kunde bokstäverna plockas isär och användas igen till nästa sida. Att trycka text var inte en ny idé – i Kina och Korea hade man tryckt långt tidigare – men Gutenbergs metod var snabb och passade bra för de europeiska bokstäverna.\n\nPlötsligt kunde hundratals likadana exemplar tillverkas på den tid det förut tog att skriva ett enda. Inom femtio år fanns tryckerier i över tvåhundra europeiska städer, och miljontals böcker hade tryckts. Priserna sjönk, och fler människor fick anledning att lära sig läsa.\n\nFörändringen handlade inte bara om antalet böcker. När samma text fanns i många exakt likadana exemplar kunde forskare i olika länder läsa samma uppgifter och bygga vidare på varandras upptäckter. Nya tankar kunde spridas snabbt, även tankar som makthavarna inte gillade. Kyrkan och kungarna förlorade en del av sin kontroll över vad folk fick veta.\n\nAlla var inte glada. En del var oroliga för att lögner och dåliga idéer skulle spridas lika snabbt som sanningen. Liknande farhågor hörs i dag om internet. Kanske visar det att varje ny teknik som gör det lättare att dela kunskap också gör det lättare att dela sådant som inte är sant.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var nytt med Gutenbergs sätt att trycka, enligt texten?",
+        "options": [
+          "Han kom på hur man gör bläck som fastnar på papper",
+          "Metoden var snabb och passade för de europeiska bokstäverna",
+          "Han använde bokstäver av trä i stället för bokstäver av metall",
+          "Han var den första i världen som kom på hur man trycker text"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad menas med ”lösa typer”?",
+        "options": [
+          "Bläck som går att tvätta bort från papperet",
+          "Böcker som man kan låna med sig hem från ett kloster",
+          "Bokstäver av metall som kan flyttas och återanvändas",
+          "Lösa boksidor som inte är inbundna och sitter ihop"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Texten betonar att de tryckta exemplaren var exakt likadana. Vilket problem med handskrivna böcker kan man förstå att det löste?",
+        "options": [
+          "Avskrifterna kunde innehålla fel och skilja sig åt",
+          "Handskrivna böcker fick bara läsas inne i klostren",
+          "Handskrivna böcker kunde inte innehålla några bilder",
+          "Handskrivna böcker hade alltför små och svårlästa bokstäver"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför fick fler människor anledning att lära sig läsa?",
+        "options": [
+          "Kyrkan började kräva att alla skulle kunna läsa bibeln själva",
+          "Kungarna betalade folk för att de skulle lära sig läsa",
+          "Gutenberg startade skolor för vanliga människor i Mainz",
+          "Böckerna blev fler och billigare, så det fanns mer att läsa"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ställer texten frågan ”varför skulle de lära sig det, när det nästan inte fanns något att läsa?”",
+        "options": [
+          "För att visa att människor förr inte var intresserade av kunskap",
+          "För att visa att munkarna inte ville att någon annan skulle kunna läsa",
+          "För att visa att läskunnighet och tillgång till böcker hängde ihop",
+          "För att förklara varför böckerna var så dyra att tillverka"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q6",
+        "question": "Varför förlorade kyrkan och kungarna en del av sin kontroll?",
+        "options": [
+          "Gutenberg tryckte mest böcker som kritiserade kyrkan och kungarna",
+          "Det blev svårare att styra vilka tankar som spreds",
+          "Folk slutade gå i kyrkan när de kunde läsa själva",
+          "Tryckerierna tog över de pengar som kyrkan tidigare hade haft"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”farhågor”?",
+        "options": [
+          "Förhoppningar om att något ska bli bättre",
+          "Förbud mot att använda något nytt",
+          "Oro för att något dåligt ska hända",
+          "Gamla berättelser som har förts vidare"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför jämför texten med internet i slutet?",
+        "options": [
+          "För att visa att ny teknik ofta för med sig både möjligheter och risker",
+          "För att förklara hur internet en gång uppfanns och spreds",
+          "För att visa att tryckta böcker inte längre behövs i dag när vi har internet",
+          "För att visa att internet är mycket farligare än tryckta böcker"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-larande-datorer",
+    "title": "När datorn lär sig av exempel",
+    "level": 6,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Om du vill att en dator ska räkna ut 25 gånger 4 räcker det att ge den en tydlig regel. Men hur skulle du skriva en regel för att känna igen en katt på en bild? Katter kan vara svarta, randiga eller fläckiga. De kan ligga hoprullade eller mitt i ett hopp, och de kan synas framifrån, bakifrån eller bara till hälften. Det är nästan omöjligt att skriva ner alla regler som skulle behövas.\n\nDärför bygger många moderna program på en annan idé. I stället för regler får datorn exempel. Man visar den tusentals, ibland miljontals, bilder där det står vad bilden föreställer. Programmet letar själv efter mönster: former, färger och kanter som ofta hör ihop med ordet katt. Efter tillräckligt många exempel kan det känna igen katter på bilder som det aldrig har sett. Det kallas maskininlärning och är en del av det som brukar kallas AI, artificiell intelligens.\n\nTekniken används redan på många ställen. Den kan hjälpa läkare att hitta tecken på sjukdom i röntgenbilder, översätta texter mellan språk och föreslå vilken film du kanske vill se härnäst.\n\nMen eftersom datorn lär sig av exemplen, lär den sig också deras brister. Om ett program har tränats på bilder där vargar nästan alltid står i snö, kan det börja tro att snön är det som gör en varg till en varg. Då kan det kalla en hund som leker i snön för varg. Om exemplen mest kommer från en viss grupp människor kan programmet fungera sämre för andra. Datorn märker inte det själv, eftersom den inte förstår vad den tittar på så som en människa gör.\n\nEtt annat problem är att det ofta är svårt att förklara varför programmet svarade som det gjorde. Mönstren det har hittat kan vara så många och invecklade att inte ens de som byggde programmet kan följa varje steg.\n\nDärför säger många experter att AI är ett kraftfullt verktyg, men att människor fortfarande behöver granska svaren. En dator som lär sig av exempel är beroende av hur bra exemplen är.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket av följande nämns i texten som något tekniken redan används till?",
+        "options": [
+          "Att hitta tecken på sjukdom i röntgenbilder",
+          "Att rätta elevernas prov och sätta betyg i skolan",
+          "Att köra bussar och bilar utan förare",
+          "Att förutsäga vädret flera veckor framåt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför börjar texten med att jämföra 25 gånger 4 med att känna igen en katt?",
+        "options": [
+          "För att visa en uppgift där regler räcker och en där de inte gör det",
+          "För att visa att alla uppgifter går att lösa bara reglerna är tillräckligt tydliga",
+          "För att förklara hur maskininlärning räknar ut svaren på uppgifter",
+          "För att visa att datorer egentligen är ganska dåliga på matematik"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ”mönster” i texten?",
+        "options": [
+          "Färgglada figurer som upprepas på tyg",
+          "Drag som ofta återkommer tillsammans",
+          "Bilder som programmet har sparat",
+          "Regler som en människa har skrivit in"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad hade programmet i exemplet med vargarna egentligen lärt sig?",
+        "options": [
+          "Att vargar bara finns ute på vintern",
+          "Att känna igen snö snarare än vargar",
+          "Att skilja hundar från vargar på pälsens färg",
+          "Att hundar och vargar är samma sorts djur"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan ett program fungera sämre för vissa grupper av människor?",
+        "options": [
+          "Programmet har fått regler om att behandla olika grupper olika",
+          "Vissa grupper använder datorer och program på fel sätt",
+          "Programmet har tränats alldeles för länge på samma bilder om och om igen",
+          "Gruppen fanns med i för få av de exempel som programmet tränades på"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder ”invecklade”?",
+        "options": [
+          "Felaktiga och opålitliga",
+          "Gamla och omoderna",
+          "Krångliga och svårföljda",
+          "Gömda och hemliga"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför behöver människor granska svaren från AI, enligt texten?",
+        "options": [
+          "Det är förbjudet att använda AI om inte en vuxen tittar på samtidigt",
+          "Programmet kan ha lärt sig fel, och det är svårt att se hur det tänkte",
+          "AI är sämre än människor på i stort sett alla uppgifter som finns",
+          "Datorer som använder AI går ofta sönder och måste då lagas av människor"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket påstående sammanfattar texten bäst?",
+        "options": [
+          "AI är så riskabelt att det inte borde användas till något alls i samhället",
+          "Maskininlärning fungerar bara när datorn ska känna igen djur på bilder",
+          "Datorer som lär sig själva behöver inte längre någon hjälp från människor",
+          "Lärande datorer är till nytta, men bara så bra som sina exempel"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-mars",
+    "title": "Kan människor bo på Mars?",
+    "level": 6,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "En del forskare och företag drömmer om att människor en dag ska bo på Mars. Planeten är vår granne i rymden, och ett dygn där är bara ungefär 40 minuter längre än ett dygn på jorden. Det finns is under marken och vid polerna, och is går att smälta till vatten. Av alla planeter är Mars den som påminner mest om jorden. Ändå är det långt ifrån enkelt att flytta dit.\n\nDet första problemet är resan. Med dagens raketer tar den mellan sex och nio månader, och det går bara att starta ungefär vartannat år, när jorden och Mars står rätt i förhållande till varandra. Den som blir sjuk eller behöver nya reservdelar kan alltså inte räkna med hjälp hemifrån på länge.\n\nVäl framme väntar en miljö som är farlig för människokroppen. Luften är mycket tunn och består nästan bara av koldioxid, så ingen kan andas där. Medeltemperaturen ligger runt minus 60 grader. Mars saknar dessutom ett skyddande magnetfält som jordens, och därför når mer strålning från rymden ända ner till marken. Människor skulle troligen behöva bo i täta hus, kanske delvis under jord, och bära rymddräkt varje gång de gick ut.\n\nDet finns också frågor som inte handlar om teknik. Hur skulle det kännas att leva i trånga utrymmen med samma få personer år efter år? Vem ska bestämma över ett samhälle på en annan planet? Och är det rätt att förändra en planet där det kanske finns spår av liv som vi ännu inte har hittat?\n\nDe som vill till Mars menar att resan skulle lära oss mycket om både rymden och jorden, och att människor alltid har velat utforska nya platser. Kritiker svarar att pengarna kunde göra större nytta om de användes för att lösa problem här hemma.\n\nKanske är frågan alltså inte bara om vi kan bo på Mars, utan om vi borde. Och svaret på den frågan är inte ett tekniskt svar. Det är ett val.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka två saker gör Mars lik jorden, enligt texten?",
+        "options": [
+          "Planeten har ett magnetfält, och dygnet är nästan lika långt",
+          "Luften går att andas, och det finns stora mängder is vid polerna",
+          "Det finns floder, och temperaturen liknar den på jorden",
+          "Dygnet är nästan lika långt, och där finns is som blir vatten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför är det ett problem att man bara kan starta resan ungefär vartannat år?",
+        "options": [
+          "Hjälp och förnödenheter kan inte skickas när de behövs",
+          "Raketerna hinner gå sönder medan de står och väntar på jorden",
+          "Det blir för dyrt att bygga så många raketer på samma gång",
+          "De som ska resa hinner bli för gamla under väntan"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Varför skulle människor kanske bo delvis under jord?",
+        "options": [
+          "Marken kan skydda mot strålningen som når ytan",
+          "Det är för trångt för att bygga hus uppe på ytan",
+          "Under marken finns det luft som människor kan andas",
+          "Rymddräkterna fungerar inte uppe på ytan"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ”kritiker” i texten?",
+        "options": [
+          "Forskare som bygger raketer och planerar resor till Mars",
+          "Personer som redan har rest till rymden",
+          "Personer som skriver recensioner av filmer",
+          "Personer som är tveksamma till eller emot idén"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad har frågorna i fjärde stycket gemensamt?",
+        "options": [
+          "De handlar om hur raketerna ska byggas för att klara resan",
+          "De handlar om människor och rätt och fel, inte om teknik",
+          "De handlar om hur man ska hitta vatten på Mars",
+          "De har redan fått tydliga svar av forskarna"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q6",
+        "question": "Varför nämner texten att det ”kanske finns spår av liv” på Mars?",
+        "options": [
+          "För att visa att vi kan förstöra något viktigt innan vi har hittat det",
+          "För att förklara varför luften på Mars är så tunn och kall",
+          "För att varna för att det kan vara farligt att möta okända varelser där",
+          "För att bevisa att det en gång har bott människor på Mars"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar texten med att svaret ”inte är ett tekniskt svar” utan ”ett val”?",
+        "options": [
+          "Den teknik som behövs kommer aldrig att kunna byggas",
+          "Forskarna har redan bestämt att människor ska flytta dit om några år",
+          "Även om det går måste vi avgöra om det är värt det och rätt",
+          "Den som har mest pengar är den som till slut får bestämma"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Hur är texten uppbyggd?",
+        "options": [
+          "Den visar steg för steg att det är omöjligt att bo på Mars",
+          "Den försöker övertyga läsaren om att flytta till Mars",
+          "Den berättar om en resa till Mars som redan har gjorts",
+          "Den väger skäl för och emot och lämnar frågan öppen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
