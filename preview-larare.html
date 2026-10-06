@@ -22,10 +22,11 @@
         letter-spacing: 0.08em; text-transform: uppercase;
         margin: 30px auto 6px; max-width: 1000px; padding: 0 20px;
       }
-      /* Kompositör-overlayen dockas in i flödet så den syns utan att täcka allt. */
+      /* Wizard-overlayen dockas in i flödet så den syns utan att täcka allt. */
       .pv-inline-overlay .studio-composer-overlay {
         position: static; background: transparent; padding: 0; overflow: visible;
       }
+      .pv-inline-overlay .wz-dialog { max-height: 720px; }
       .pv-launch { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 auto; max-width: 1000px; padding: 0 20px; }
     </style>
   </head>
@@ -36,7 +37,7 @@
       import {
         icon, teacherNav, teacherHead, el,
       } from "/src/teacher-shared.js";
-      import { buildLibraryView, buildComposerView } from "/src/teacher-content-view.js";
+      import { buildLibraryView } from "/src/teacher-content-view.js";
       import { buildAreaTable } from "/src/teacher-content-list.js";
       import { filterSortAreas } from "/src/grades.js";
       import { renderClassAssignments, renderClassAreaModes } from "/src/teacher-class-modes.js";
@@ -70,7 +71,7 @@
         { id: "kartan", name: "Kartan & världsdelar", coverEmoji: "🗺️", quiz: mkQuiz(6), pairs: mkPairs(6) },
         { id: "ostersjon", name: "Östersjön", coverEmoji: "🌊", grade: "ak6", quiz: mkQuiz(5), texts: [{ title: "T", body: "x" }] },
         { id: "rakna", name: "Multiplikationsträning", coverEmoji: "🔢", grade: "ak4",
-          generator: { topic: "multiplikation", variants: ["liten", "stor"] } },
+          generator: { topic: "multiplikation", variants: ["tabeller", "dubbelt"] } },
       ];
       const library = [
         { id: "so", name: "SO", icon: "🌍", areas: areasSO },
@@ -117,16 +118,36 @@
       }
 
       // ======================================================================
-      // 2) INNEHÅLLSSTUDIO – fokuserad kompositör (overlay, inline)
+      // 2) INNEHÅLLSSTUDIO – "Skapa nytt område"-wizarden (#442, 4 steg)
       // ======================================================================
-      label("2 · Innehåll – kompositör (overlay)");
+      // Laddas dynamiskt precis som i appen (teacher-content.js, #271). Inline-
+      // exemplaret visar steg 1; knapparna öppnar den riktiga modalen (nytt /
+      // redigera ett quiz-område / redigera ett generator-område). Spara går inte
+      // i previewn (inget ämne → "Välj ett ämne först.").
+      label("2 · Innehåll – skapa/redigera-wizard (4 steg)");
       {
         const wrap = page("innehall", "book", "Innehållsstudion");
+        const { createAreaWizard } = await import("/src/teacher-wizard.js");
+        const deps = { getSubjectId: () => null, getSubjectName: () => "SO", onSaved: () => {} };
+        const inline = createAreaWizard(deps);
         const holder = el(`<div class="pv-inline-overlay"></div>`);
-        const comp = buildComposerView();
-        comp.hidden = false;
-        holder.appendChild(comp);
+        holder.appendChild(inline.element);
         wrap.appendChild(holder);
+        inline.openNew();
+        inline.close = () => {}; // inline-exemplaret ska aldrig stängas
+        document.body.classList.remove("composer-open"); // previewn ska gå att scrolla
+        const modal = createAreaWizard(deps);
+        wrap.appendChild(modal.element);
+        const bar = el(`<div class="pv-launch" style="padding:0;margin-top:12px"></div>`);
+        const launch = (text, fn) => {
+          const b = el(`<button class="btn ghost">${text}</button>`);
+          b.addEventListener("click", fn);
+          bar.appendChild(b);
+        };
+        launch("Öppna: nytt område", () => modal.openNew());
+        launch("Öppna: redigera Vikingatiden", () => modal.openEdit(areasSO[0]));
+        launch("Öppna: redigera Multiplikationsträning", () => modal.openEdit(areasSO[4]));
+        wrap.appendChild(bar);
       }
 
       // ======================================================================

@@ -33,9 +33,14 @@ export const WIZARD_STEPS = [
   { nr: 4, title: "Synlighet & spara" },
 ];
 
-/** Nytt område – samma utgångsläge som resetComposer (Quiz förvalt). */
+/**
+ * Nytt område – som resetComposer, men INGET kort förvalt: i steg 2 väljer läraren
+ * aktivt (ett förvalt Quiz-kort avmarkeras annars av första klicket). Inget val
+ * fungerar som förut med alla kryssrutor urbockade: prompten ger quiz + par och
+ * exerciseTypes härleds ur innehållet (areaExerciseTypes).
+ */
 export function blankState() {
-  return { name: "", grade: null, emoji: "", types: ["quiz"], onskemal: "" };
+  return { name: "", grade: null, emoji: "", types: [], onskemal: "" };
 }
 
 /**

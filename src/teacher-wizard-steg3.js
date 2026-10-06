@@ -94,6 +94,7 @@ export function createStep3(wz) {
   const bildparHint = root.querySelector("#wz-bildpar");
   const genBox = root.querySelector("#wz-generator");
   const genHint = root.querySelector(".wz-material-gen");
+  const materialBox = root.querySelector(".wz-material");
 
   // Räknegenerator-kontrollen (oförändrad fabrik); ändring → synliga lägen följer.
   const generatorCtl = createGeneratorControl(root.querySelector("#generator-config"), () => wz.sync());
@@ -147,6 +148,10 @@ export function createStep3(wz) {
     bildparHint.hidden = !ai.includes("bildpar");
     genBox.hidden = !gen;
     genHint.hidden = !(gen && ai.length === 0);
+    // Rent räkneområde: generatorn först. Generator + quiz/par (D-3): prompten och
+    // materialrutan först, generatorn under – AI-flödet ska inte tryckas ner.
+    if (ai.length === 0) materialBox.before(genBox);
+    else materialBox.after(genBox);
   }
 
   /** Fyll materialrutan + generatorn (vid öppning). */
