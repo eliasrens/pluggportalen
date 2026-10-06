@@ -3,7 +3,8 @@
 // ----------------------------------------------------------------------------
 // Appen är den riktiga (router, pages-varld, kamera, Pixi-motor) mot stubbat
 // Firebase. Panelen (nere i mitten, fällbar) visar och styr:
-//   • Pixi-flaggor (normal / av = CSS / debug-HUD / frys) – sätts och laddar om;
+//   • Pixi-flaggor (normal / av = CSS / debug-HUD / frys / tvinga = långa
+//     testtimeouts + skulleMissat) – sätts och laddar om;
 //   • "Jämför": i frys-läget visar canvasen (Pixi:s vilo-bild) i stället för DOM;
 //   • status: niva, pixiSpel, senaste övergången, profilen, stub-läsningar;
 //   • spegel-nyckeln för #ute-lager (ändras vid palett/husskal/kläder/trädgård);
@@ -30,6 +31,10 @@ const REGISTER = { lyx: LYX_HUS_SKAL, natur: NATUR_HUS_SKAL, retro: RETRO_HUS_SK
 const registerFor = (id) => Object.entries(REGISTER).find(([, r]) => id in r)?.[0] || "ute";
 
 const stage = () => document.querySelector("#varld-stage");
+const sel = (v) => (Array.isArray(v) ? v.join(",") : v || "");
+// Som motorn speglar texturen efter F4b (varld-motor-textur.js texturProfil):
+// bara `sprites` utelämnas, `objekt` ritas i vila-läge. ambient bakas in.
+const texturProfil = { ...profil, ambient: sel(profil.sprites), neutraliseraObjekt: sel(profil.objekt) };
 const flagga = (n) => { try { return localStorage.getItem(`pp:pixi:${n}`) === "1"; } catch { return false; } };
 
 /** Allt klick-testet läser per steg. */
@@ -55,7 +60,7 @@ export function status() {
 export async function nyckel(sel = "#ute-lager") {
   const l = document.querySelector(sel);
   if (!l || !stage()) return null;
-  const sp = await speglaLager(l, stage(), profil);
+  const sp = await speglaLager(l, stage(), texturProfil);
   return { nyckel: sp.nyckel, kB: Math.round(sp.svg.length / 1024), fo: (sp.svg.match(/<foreignObject/g) || []).length,
     // kronans tagg-path (art-wearables-hatt.js)
     krona: sp.svg.includes("L17 21 L28 4"), ms: Math.round(sp.ms), ambient: sp.ambient.length };
@@ -95,7 +100,7 @@ export async function skalVarv() {
     for (const { id, namn } of listHusSkal()) {
       lager.innerHTML = husScen(avatarMarkup("fox", ["krona"]), { skalId: id, skylt: { rad1: "Klass 4B" } });
       await new Promise((r) => requestAnimationFrame(r));
-      const sp = await speglaLager(lager, lada, profil);
+      const sp = await speglaLager(lager, lada, texturProfil);
       const r = await rastra(sp.svg, sp.w, sp.h);
       rader.push({ id, namn, register: registerFor(id), ms: Math.round(sp.ms), kB: Math.round(sp.svg.length / 1024),
         fo: (sp.svg.match(/<foreignObject/gi) || []).length, extern: /href="(https?:|\/\/)/.test(sp.svg),
@@ -138,15 +143,15 @@ function montera() {
   p.id = "pv-panel";
   p.innerHTML = `<button type="button" id="pv-fall" aria-expanded="true">S1 · hus ▾</button>
     <div id="pv-kropp">
-      <div class="pv-rad">${["normal", "av", "debug", "frys"].map((f) => `<button type="button" data-flagga="${f}">${f}</button>`).join("")}</div>
+      <div class="pv-rad">${["normal", "av", "debug", "frys", "tvinga"].map((f) => `<button type="button" data-flagga="${f}">${f}</button>`).join("")}</div>
       <div class="pv-rad"><button type="button" id="pv-jamfor" aria-pressed="false">Jämför: DOM</button>
         <button type="button" id="pv-nyckel">Nyckel</button><button type="button" id="pv-skal">Alla husskal</button></div>
       <pre id="pv-status"></pre>
     </div>`;
   document.body.appendChild(p);
-  for (const f of ["normal", "av", "debug", "frys"]) {
+  for (const f of ["normal", "av", "debug", "frys", "tvinga"]) {
     const b = p.querySelector(`[data-flagga="${f}"]`);
-    b.setAttribute("aria-pressed", String(f === "normal" ? !["av", "debug", "frys"].some(flagga) : flagga(f)));
+    b.setAttribute("aria-pressed", String(f === "normal" ? !["av", "debug", "frys", "tvinga"].some(flagga) : flagga(f)));
     b.addEventListener("click", () => satFlagga(f));
   }
   p.querySelector("#pv-fall").addEventListener("click", (e) => {
@@ -175,7 +180,7 @@ function montera() {
       `niva      ${s.niva}   profil ${s.profil}`,
       `pixiSpel  ${s.pixiSpel}${s.spelar ? `  (${s.spelar})` : ""}`,
       sen ? `senaste   ${sen.yttre}→${sen.inre} ${sen.riktning} ${sen.vag}${sen.orsak ? `:${sen.orsak}` : ""}` : "senaste   –",
-      sen?.vag === "pixi" ? `          förb ${sen.forberedMs} ms · max dt ${sen.maxDt ?? "–"} · omsp ${(sen.omspeglade || []).join(",") || "–"}${sen.inaktuella?.length ? ` · INAKTUELL ${sen.inaktuella}` : ""}` : "",
+      sen?.vag === "pixi" ? `          förb ${sen.forberedMs} ms · max dt ${sen.maxDt ?? "–"} · omsp ${(sen.omspeglade || []).join(",") || "–"}${sen.inaktuella?.length ? ` · INAKTUELL ${sen.inaktuella}` : ""}${sen.skulleMissat ? " · ⚠ skulle missat i prod" : ""}` : "",
       `nyckel    ${senasteNyckel}`,
       `firestore läs ${s.firestore.las} · skriv ${s.firestore.skriv}`,
     ].filter(Boolean).join("\n");

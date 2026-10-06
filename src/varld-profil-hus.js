@@ -24,14 +24,18 @@
 //
 // Ambient (levande, CSS-animerade): molnen driver, solstrålarna roterar och
 // skorstensröken puffar. De ligger BAKOM annat innehåll (solstrålar bakom
-// solen, moln bakom gräskullen, rök bakom/ovanför taket) – därför bakas de in
+// solen, moln bakom husens silhuetter, rök under takkant/torn) – därför bakas de in
 // FRUSNA i basen i rätt z-ordning (WAAPI-paus vid handoff, F4b-semantiken),
 // inte som sprites ovanpå. MutationObservern ignorerar dem.
 //
-// Objekt (fokus-överlägg): husgruppen och klasskylten har hover/focus-
-// transform (scale + rotate, styles.css) – den nod man pekar på när man
-// klickar står förstorad i handoff-ögonblicket. Trädgårdssakerna har
-// `.selected`-ram + 🗑️ när de är valda.
+// Objekt (fokus-överlägg): TOMT med flit. Husgruppen och klasskylten har
+// hover/focus-transform (scale + rotate), men efter F4b (#428) ritas ett
+// hovrat `objekt` som sprite OVANPÅ hela basen – och i hus-scenen ligger
+// avataren (FO), gången och trädgårdssakerna FRAMFÖR huset/skylten. Ett
+// hovrat-hus-överlägg täckte därför halva avataren de första bildrutorna i T3
+// (verifierat i preview-pixi-hus.html). Hus-lagret speglas ändå om vid VARJE
+// handoff (ambient körs alltid), så hover-skalan bakas in i basen i rätt
+// z-ordning i stället. Trädgårdssakerna saknar hover-stil (bara .selected).
 //
 // Laddas bara via import() (varld-motor-textur.js laddaProfil) – aldrig i
 // bootgrafen. Format: §2.4 i docs/pixi-arkitektur-396.md.
@@ -47,13 +51,7 @@ export default {
   // takkant/torn i stuga och tidstorn. Som sprites ovanpå skulle de bryta
   // z-ordningen; molnraden bakom taket kräver omspegling ändå.
   sprites: [],
-  objekt: [
-    "#husgrupp",
-    "#kompis-husgrupp",
-    "#grannbyhus-husgrupp",
-    "#klasskylt",
-    ".garden-item",
-  ],
+  objekt: [],
   // Ingenting i hus-lagret är tillfälligt UI: menyer, paneler och nav-skyltar
   // ("Till gården") ligger i .varld-ui ovanpå scenen och speglas aldrig.
   ignorera: [],

@@ -7,7 +7,6 @@ import profil from "../src/varld-profil-hus.js";
 import { husScen, listHusSkal } from "../src/art-hus-ute.js";
 
 const klass = (sel) => sel.match(/^\.([\w-]+)$/)?.[1];
-const id = (sel) => sel.match(/^#([\w-]+)$/)?.[1];
 const harKlass = (markup, k) => new RegExp(`class="(?:[^"]* )?${k}(?: [^"]*)?"`).test(markup);
 
 test("formatet följer §2.4 (id, fångst stage, inga sprites)", () => {
@@ -24,12 +23,11 @@ test("ambient = moln, solstrålar och rök – och de finns i husScen", () => {
   assert.ok(harKlass(ute, "hus-rok"), "stugan har skorstensrök");
 });
 
-test("objekt-id:n finns i ute-scenen; kompis-/grannbyhus-varianterna följer prefix-mönstret", () => {
+test("inga objekt-överlägg: hover bakas in i den omspeglade basen (avataren ligger framför huset)", () => {
+  assert.deepEqual(profil.objekt, []);
+  // Förutsättningen för beslutet: avataren (FO) ritas EFTER husgruppen i husScen.
   const ute = husScen("", { skylt: { rad1: "4B" } });
-  assert.ok(ute.includes('id="husgrupp"') && ute.includes('id="klasskylt"'));
-  const ids = profil.objekt.map(id).filter(Boolean);
-  for (const p of ["kompis", "grannbyhus"]) assert.ok(ids.includes(`${p}-husgrupp`), p);
-  assert.ok(profil.objekt.includes(".garden-item"));
+  assert.ok(ute.indexOf('id="husgrupp"') < ute.indexOf('id="ute-avatar"'));
 });
 
 test("varje husskal ur alla register ritar #husgrupp och rör inte ambient-klasserna", () => {
