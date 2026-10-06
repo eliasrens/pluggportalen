@@ -6,7 +6,7 @@
 
 import * as data from "./data.js";
 import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
-import { app, el, go, loading, renderTopbar } from "./ui.js";
+import { app, el, go, loading, renderTopbar, getLockGate, escHtml } from "./ui.js";
 import { coinIcon } from "./icons.js";
 // isTeacher re-exporteras inte via data.js – auth.js ligger redan i bootgrafen.
 import { isTeacher } from "./auth.js";
@@ -221,12 +221,15 @@ export async function pageElevPlugga() {
   let subjects;
   let studentClass = null; // elevens klass – för tilldelning OCH lägessynlighet.
   let assigned = null; // Set av "subjectId/areaId" om klassen har tilldelning, annars null.
+  let las = null; // fokusläget (#436): aktivt klass-lås → bara målområdet listas
   try {
     // Elevens klass (för att ev. filtrera på tilldelade områden) parallellt med ämnen.
-    const [subj, cls] = await Promise.all([
+    const [subj, cls, gate] = await Promise.all([
       data.getSubjects(),
       data.getClassForStudent().catch(() => null),
+      getLockGate(),
     ]);
+    las = gate;
     subjects = subj;
     studentClass = cls;
     const list = cls && Array.isArray(cls.assignedAreas) ? cls.assignedAreas : [];
@@ -244,8 +247,11 @@ export async function pageElevPlugga() {
   for (const subj of subjects) {
     const areas = await data.getAreas(subj.id);
     for (const a of areas) {
-      // Har klassen en tilldelning? Visa då BARA de tilldelade områdena.
-      if (assigned && !assigned.has(`${subj.id}/${a.id}`)) continue;
+      // Fokusläge (#436)? Visa BARA låsets mål. Annars: har klassen en
+      // tilldelning? Visa då BARA de tilldelade områdena.
+      if (las) {
+        if (!las.allowsArea(subj.id, a.id)) continue;
+      } else if (assigned && !assigned.has(`${subj.id}/${a.id}`)) continue;
       // Dölj områden som saknar SPELBART innehåll för den här eleven (#308): finns
       // inget synligt läge med underlag visas ingen "inget innehåll än"-platshållare
       // – området listas inte alls. Samma resolution som områdesöversikten
@@ -264,8 +270,10 @@ export async function pageElevPlugga() {
 
   const view = el(`<div>
     <div class="panel center">
-      <h1>${assigned ? "Det här jobbar vi med nu 📌" : "Plugga ✏️"}</h1>
-      <p class="hint">${assigned
+      <h1>${las ? "Fokus just nu 🎯" : assigned ? "Det här jobbar vi med nu 📌" : "Plugga ✏️"}</h1>
+      <p class="hint">${las
+        ? `Din lärare har låst klassen till <b>${escHtml(las.label)}</b> till ${las.klockslag}. Sen är allt öppet igen!`
+        : assigned
         ? "Din lärare har valt ut det här åt klassen. Välj ett område och börja öva!"
         : "Välj ett arbetsområde och börja öva!"}</p>
     </div>

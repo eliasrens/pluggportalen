@@ -122,9 +122,39 @@ service cloud.firestore {
         (request.resource.data.hiddenModules is list &&
          request.resource.data.hiddenModules.size() <= 20);
     }
+    // FOKUSLÄGE / KLASS-LÅS (#436): fältet `lock` = { mal: { typ, id?, namn? },
+    // till: <epoch-ms>, doljOvrigt: bool }. Läsbart för alla inloggade (elevens
+    // klient tillämpar låset), skrivbart bara av lärare. Ett NYTT/ändrat lås
+    // valideras mot SERVERNS klocka: `till` ligger framåt och högst 24 h bort,
+    // så ingen klient (med fel klocka) kan spara ett evigt lås. Ett oförändrat
+    // (ev. redan utgånget) lås stoppar inte andra klass-skrivningar. Borttaget
+    // fält = olåst (bakåtkompatibelt). mal.typ är en utbyggbar enum.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validLockShape(l) {
+      return l is map &&
+        l.keys().hasAll(['mal', 'till', 'doljOvrigt']) &&
+        l.keys().hasOnly(['mal', 'till', 'doljOvrigt']) &&
+        l.mal is map &&
+        l.mal.keys().hasOnly(['typ', 'id', 'namn']) &&
+        l.mal.typ in ['omrade', 'lasresan'] &&
+        (l.mal.typ != 'omrade' || (l.mal.get('id', null) is string &&
+                                   l.mal.id.size() > 2 && l.mal.id.size() <= 200)) &&
+        (!('id' in l.mal) || (l.mal.id is string && l.mal.id.size() <= 200)) &&
+        (!('namn' in l.mal) || (l.mal.namn is string && l.mal.namn.size() <= 100)) &&
+        l.till is int &&
+        l.till > request.time.toMillis() &&
+        l.till <= request.time.toMillis() + 24 * 60 * 60 * 1000 &&
+        l.doljOvrigt is bool;
+    }
+    function validLock() {
+      return !('lock' in request.resource.data) ||
+        (resource != null && request.resource.data.lock == resource.data.get('lock', null)) ||
+        validLockShape(request.resource.data.lock);
+    }
     match /classes/{classId} {
       allow read:  if signedIn();
-      allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules();
+      allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules() &&
+                               validLock();
       allow delete: if isTeacher();
     }
 

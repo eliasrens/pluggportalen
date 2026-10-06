@@ -137,6 +137,7 @@ export async function pageLarareKlasser(ctx) {
           <button class="btn ghost small" data-act="modes">${icon("sliders", 16)}<span>Lägen per område</span></button>
           <button class="btn ghost small" data-act="villages">${icon("eye", 16)}<span>Synliga byar</span></button>
           <button class="btn ghost small" data-act="modules">${icon("book", 16)}<span>Synliga moduler</span></button>
+          <button class="btn ghost small" data-act="lock">${icon("lock", 16)}<span>Fokusläge</span></button>
           <button class="btn ghost small" data-act="stats">${icon("chart", 16)}<span>Statistik</span></button>
           <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort</span></button>
         </div>
@@ -146,6 +147,7 @@ export async function pageLarareKlasser(ctx) {
       <div class="class-modes" hidden></div>
       <div class="class-villages" hidden></div>
       <div class="class-modules" hidden></div>
+      <div class="class-lock" hidden></div>
       <div class="class-stats" hidden></div>
     </div>`);
 
@@ -154,12 +156,13 @@ export async function pageLarareKlasser(ctx) {
     const modesEl = card.querySelector(".class-modes");
     const villagesEl = card.querySelector(".class-villages");
     const modulesEl = card.querySelector(".class-modules");
+    const lockEl = card.querySelector(".class-lock");
     const statsEl = card.querySelector(".class-stats");
     const nameEl = card.querySelector(".class-name");
     const countEl = card.querySelector(".class-count");
 
     // Bara en utfällbar sektion öppen i taget (klick på öppen fäller ihop).
-    const panels = [membersEl, assignEl, modesEl, villagesEl, modulesEl, statsEl];
+    const panels = [membersEl, assignEl, modesEl, villagesEl, modulesEl, lockEl, statsEl];
     const togglePanel = (target, render) => {
       const show = target.hidden;
       panels.forEach((p) => (p.hidden = true));
@@ -240,7 +243,8 @@ export async function pageLarareKlasser(ctx) {
     );
 
     // Synliga byar (#391: vilka ANDRA klassers byar klassen ser i områdesvyn) och
-    // synliga moduler (#412: vilka sidomeny-moduler klassen ser). Panel-modulerna
+    // synliga moduler (#412: vilka sidomeny-moduler klassen ser) och fokusläget
+    // (#436: lås klassen till ETT område/Läsresan till ett klockslag). Panel-modulerna
     // laddas dynamiskt – ingen ny fil i den statiska bootgrafen (#271).
     const lazyPanel = (act, host, what, render) =>
       card.querySelector(`[data-act="${act}"]`).addEventListener("click", () =>
@@ -260,6 +264,9 @@ export async function pageLarareKlasser(ctx) {
     );
     lazyPanel("modules", modulesEl, "moduler", async () =>
       (await import("./teacher-class-modules.js")).renderClassModules(ctx, cls, modulesEl)
+    );
+    lazyPanel("lock", lockEl, "fokusläge", async () =>
+      (await import("./teacher-class-lock.js")).renderClassLock(ctx, cls, lockEl, await loadLibrary())
     );
 
     // Statistik: klassens framstegsmatris (gamla #/larare/klass, issue #299) --

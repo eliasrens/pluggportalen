@@ -204,6 +204,38 @@ body.med-sidomeny .sidebar {
   text-decoration: underline;
 }
 
+/* --- Fokusläget (#436): skylt ovanför navlänkarna när klassen är låst --- */
+.sido-fokus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fff4d6 0%, #ffe6a8 100%);
+  border: 2px solid #f2c14e;
+  color: #5a3d00;
+  text-decoration: none;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.sido-fokus-ikon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.sido-fokus-text small {
+  display: block;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.sido-fokus:focus-visible {
+  outline: 3px solid var(--bla);
+  outline-offset: 2px;
+}
+
 /* --- Navlänkar: tre lägen (vila / hover / aktiv) + ikon-studs --- */
 .sido-nav {
   display: flex;
