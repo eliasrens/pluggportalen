@@ -13,17 +13,22 @@
 // lagerSyns i varld-render-anim.js): ingen nivå visas nedskalad i vila.
 //
 // Invalidering: MutationObserver per lager (debounce 300 ms) + stagets
-// style (paletten). Mutationer inuti profilens ambient-noder och kamerans egna
-// skrivningar på lagret (transform/opacity/origo, varld-dold/inert) ignoreras.
+// style (paletten). Mutationer inuti profilens ambient- och sprite-noder,
+// speglingens vila-kloner och kamerans egna skrivningar på lagret
+// (transform/opacity/origo, varld-dold/inert) ignoreras.
+// Profil-semantiken (#428, varld-profil-standard.js): ambient BAKAS IN i basen
+// (texturspeglingen utelämnar bara `sprites`); sprites + hovrade objekt ritas
+// som egna speglaNod-behållare ovanpå basen (varld-motor-overlagg.js).
 // Ingen Firestore: allt läses ur DOM:en som redan står där.
 // Laddas bara via import() (varld-motor.js) – aldrig i bootgrafen.
 // ============================================================================
 
-import { speglaLager, speglaNod } from "./varld-spegel.js";
+import { speglaLager } from "./varld-spegel.js";
 import { elementRam, kedjaLinjar } from "./varld-spegel-html.js";
 import { avkodaSpegel, byggPyramid, texturCache, konfiguration } from "./varld-textur.js";
 import standard from "./varld-profil-standard.js";
 import { inbaddadFontCss } from "./varld-spegel-font.js";
+import { KLON_ATTR } from "./varld-spegel-neutral.js";
 
 const DEBOUNCE_MS = 300;
 const KAMERA_STIL = /^(transform|transform-origin|opacity)$/;
@@ -52,6 +57,39 @@ export function profilFor(el) {
   return p && !(p instanceof Promise) ? p : standard;
 }
 const sel = (v) => (Array.isArray(v) ? v.join(",") : v || "");
+const union = (...v) => v.map(sel).filter(Boolean).join(",");
+
+/** Registrera en profil i förväg (previews/test; scenerna använder filerna). */
+export function registreraProfil(namn, profil) {
+  profiler.set(namn, { ...standard, ...profil });
+}
+
+/**
+ * Profilen som TEXTURSPEGLINGEN använder: ambient bakas in (utelämnas inte),
+ * bara `sprites` utelämnas, hovrade/fokuserade `objekt` ritas i vila-läge.
+ */
+const texturProfil = (p) => ({ ...p, ambient: sel(p.sprites), neutraliseraObjekt: sel(p.objekt) });
+
+/** Är animationen "ambient" (inte en transition och inte lagrets egen)? */
+const arAmbient = (a, el) => !(globalThis.CSSTransition && a instanceof CSSTransition) && a.effect?.target !== el;
+
+/**
+ * Har lagret levande ambient UTANFÖR profilens sprites? Då står basen i en ny
+ * pose och måste speglas om vid handoff (sprites speglas ändå varje gång).
+ * @param {HTMLElement} el
+ * @param {Animation[]} [anims]  t.ex. vilans pausade; annars de som spelar nu
+ */
+export function levandeBas(el, anims) {
+  const spr = sel(profilFor(el).sprites);
+  let lista = anims;
+  if (!lista) {
+    try { lista = el.getAnimations({ subtree: true }).filter((a) => a.playState === "running"); } catch { return false; }
+  }
+  return lista.some((a) => {
+    const t = a.effect?.target;
+    return t && el.contains(t) && arAmbient(a, el) && !(spr && t.closest(spr));
+  });
+}
 
 // ---- Spaning: lagrens version (smutsig = version ändrad) --------------------
 
@@ -78,11 +116,13 @@ export function spana(stage, onSmutsig) {
   const lager = [...stage.querySelectorAll(":scope > .varld-lager")];
   for (const el of lager) {
     laddaProfil(el);
-    const mo = new MutationObserver((poster) => {
-      const amb = sel(profilFor(el).ambient);
+    const hantera = (poster) => {
+      const amb = union(profilFor(el).ambient, profilFor(el).sprites);
       for (const p of poster) {
         if (p.target === el && p.type === "attributes") {
           if (p.attributeName !== "style" || baraKamerastil(el, p.oldValue)) continue;
+        } else if (p.type === "childList" && [...p.addedNodes, ...p.removedNodes].every((n) => n.nodeType === 1 && n.hasAttribute(KLON_ATTR))) {
+          continue; // speglingens vila-kloner (varld-spegel-neutral.js)
         } else {
           const t = p.target.nodeType === 1 ? p.target : p.target.parentElement;
           if (amb && t?.closest(amb)) continue;
@@ -90,7 +130,9 @@ export function spana(stage, onSmutsig) {
         smutsa(el, onSmutsig);
         return;
       }
-    });
+    };
+    const mo = new MutationObserver(hantera);
+    mo.hantera = hantera;
     mo.observe(el, { subtree: true, childList: true, attributes: true, characterData: true, attributeOldValue: true });
     observatorer.push(mo);
   }
@@ -98,6 +140,18 @@ export function spana(stage, onSmutsig) {
   moStage.observe(stage, { attributes: true, attributeFilter: ["style"] });
   observatorer.push(moStage);
 }
+/**
+ * Bokför väntande mutationer NU (annars levereras de först i nästa mikrotask):
+ * en scen som just förrenderat ett lager och direkt ber om förvärmning ska få
+ * en pyramid med lagrets nya version – inte en som genast är "smutsig".
+ */
+function spolaSmuts() {
+  for (const mo of observatorer) {
+    const poster = mo.takeRecords();
+    if (poster.length) mo.hantera?.(poster);
+  }
+}
+
 export function slutaSpana() {
   for (const mo of observatorer) mo.disconnect();
   observatorer = [];
@@ -161,11 +215,15 @@ let pidNr = 0;
  * @param {object} r  roll()
  * Ersätts en färdig pyramid behålls den som `reserv` tills den nya är klar:
  * hinner omspeglingen inte inom VANTA_MAX_MS kan rörelsen spelas på reserven.
- * @param {{yta:object, prio:"idle"|"nu", omspegla?:boolean, tak?:number}} o
+ * @param {{yta:object, prio:"idle"|"nu", omspegla?:boolean, tak?:number, kalla?:string}} o
  *   tak = bygg inte om en pyramid som är yngre än så här (ms), oavsett version
- * @returns {object} post: { pid, ids:[{id,z}], minSatt:Promise, reserv, ... }
+ *   kalla = vem som byggde den ("idle" | "mal" | "handoff"; logg/debug)
+ * Blir speglingen IDENTISK med reservens (samma innehålls-hash, t.ex. en scen
+ * som skrev om samma markup) återanvänds reserven: post.alias pekar på den.
+ * @returns {object} post: { pid, ids:[{id,z}], minSatt:Promise, reserv, alias, ... }
  */
-export function sakra(r, { yta, prio, omspegla = false, tak = 0 }) {
+export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio === "idle" ? "idle" : "handoff" }) {
+  spolaSmuts();
   const v = version(r.el);
   const gammal = poster.get(r.nyckel);
   const anvandbar = gammal && !gammal.slappt && !gammal.fel;
@@ -177,17 +235,29 @@ export function sakra(r, { yta, prio, omspegla = false, tak = 0 }) {
   const reserv = anvandbar && gammal.minKlar ? gammal : gammal?.reserv && !gammal.reserv.slappt ? gammal.reserv : null;
   if (gammal && gammal !== reserv) slapp(gammal);
   const post = {
-    pid: `p${++pidNr}`, nyckel: r.nyckel, el: r.el, version: v, prio, yta, skapad: performance.now(), reserv, lan: 0,
-    ids: [], skickade: new Set(), jobb: null, minKlar: false, slappt: false, fel: null, ms: {},
+    pid: `p${++pidNr}`, nyckel: r.nyckel, el: r.el, version: v, prio, kalla, yta, skapad: performance.now(), reserv, lan: 0,
+    ids: [], skickade: new Set(), jobb: null, minKlar: false, slappt: false, fel: null, ms: {}, spegelNyckel: null, alias: null,
   };
   poster.set(r.nyckel, post);
   const t0 = performance.now();
-  const spegelP = speglaLager(r.el, r.fangstStage, profilFor(r.el)); // synkron genomgång NU
+  const spegelP = speglaLager(r.el, r.fangstStage, texturProfil(profilFor(r.el))); // synkron genomgång NU
   post.ms.speglaSynk = performance.now() - t0;
   post.minSatt = (async () => {
     const spegel = await spegelP;
     post.ms.spegla = spegel.ms;
     if (post.slappt) throw new Error("släppt");
+    post.spegelNyckel = spegel.nyckel;
+    const g = post.reserv;
+    if (g && !g.slappt && g.spegelNyckel === spegel.nyckel && poster.get(post.nyckel) === post) {
+      // Samma bild som reserven → behåll den (ingen avkodning/rastrering).
+      post.reserv = null;
+      post.alias = g;
+      g.version = post.version;
+      g.reserv = null;
+      poster.set(post.nyckel, g);
+      post.slappt = true; // inget allokerat; anroparen använder post.alias
+      return g;
+    }
     const a = await avkodaSpegel(spegel);
     post.ms.avkoda = a.ms;
     if (post.slappt) throw new Error("släppt");
@@ -249,6 +319,14 @@ function slappPost(post) {
   if (poster.get(post.nyckel) === post) poster.delete(post.nyckel);
 }
 
+/** Den aktuella posten för en roll-nyckel (eller undefined). */
+export const postFor = (nyckel) => poster.get(nyckel);
+
+/** Släpp en post om ingen rörelse lånar den (målförvärmning som avbryts). */
+export function slappOmLedig(post) {
+  if (post && !post.lan && !post.slappt) slapp(post);
+}
+
 /** Släpp alla pyramider (resize, ny scen). */
 export function rensaAllt() {
   for (const p of [...poster.values()]) slapp(p);
@@ -256,61 +334,6 @@ export function rensaAllt() {
 
 /** Översikt för debug/test (__ppPixi.motor.poster()). */
 export const postLista = () => [...poster.values()].map((p) => ({
-  pid: p.pid, lager: p.el.id, nyckel: p.nyckel, prio: p.prio, minKlar: p.minKlar, reserv: p.reserv?.pid || null,
+  pid: p.pid, lager: p.el.id, nyckel: p.nyckel, prio: p.prio, kalla: p.kalla, minKlar: p.minKlar, reserv: p.reserv?.pid || null,
   nivaer: p.ids.map((i) => i.z), skickade: p.skickade.size, ms: p.ms,
 }));
-
-// ---- Fokus-överlägg (hovrad/fokuserad nod i profilens objekt) ---------------
-
-let ovlNr = 0;
-
-async function avkodaSvg(svg) {
-  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-  try {
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    return img;
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-/**
- * Spegla lagrets hovrade/fokuserade objekt (synkront NU) och lägg dem som egna
- * behållare i workern, rastrerade för största skalan `maxSkala`.
- * @returns {{ids:string[], klart:Promise<void>}}
- */
-export function overlagg(el, maxSkala, yta) {
-  const s = sel(profilFor(el).objekt);
-  if (!s) return { ids: [], klart: Promise.resolve() };
-  let noder = [];
-  try {
-    noder = [...el.querySelectorAll(s)].filter((n) => n.matches(":hover") || n.matches(":focus-visible"));
-  } catch { /* ogiltig selektor i en profil */ }
-  noder = noder.filter((n) => !noder.some((m) => m !== n && n.contains(m))).slice(0, 2);
-  const ids = [];
-  const jobb = noder.map((nod) => {
-    const id = `ovl${++ovlNr}`;
-    ids.push(id);
-    return speglaNod(nod, el).then(async (ns) => {
-      const img = await avkodaSvg(ns.svg);
-      const m = DOMMatrix.fromMatrix(ns.matrix).translate(ns.rect.x, ns.rect.y);
-      const hörn = [[0, 0], [ns.rect.w, 0], [0, ns.rect.h], [ns.rect.w, ns.rect.h]].map(([x, y]) => m.transformPoint(new DOMPoint(x, y)));
-      const bx = Math.min(...hörn.map((p) => p.x)), by = Math.min(...hörn.map((p) => p.y));
-      const bw = Math.max(...hörn.map((p) => p.x)) - bx, bh = Math.max(...hörn.map((p) => p.y)) - by;
-      const k = konfiguration();
-      const skala = Math.min(maxSkala * k.dpr, k.budget.tegel / Math.max(bw, bh, 1));
-      const W = Math.max(1, Math.ceil(bw * skala)), H = Math.max(1, Math.ceil(bh * skala));
-      const duk = new OffscreenCanvas(W, H);
-      const ctx = duk.getContext("2d");
-      ctx.setTransform(skala, 0, 0, skala, -bx * skala, -by * skala);
-      ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f);
-      ctx.globalAlpha = ns.opacity;
-      ctx.drawImage(img, 0, 0, ns.rect.w, ns.rect.h);
-      const tegel = { bmp: duk.transferToImageBitmap(), x: bx, y: by, w: W / skala, h: H / skala };
-      await yta.satLager(id, { nivaer: [{ z: 1e3, region: { x: bx, y: by, w: tegel.w, h: tegel.h }, tegel: [tegel], bytes: W * H * 4 }] });
-    });
-  });
-  return { ids, klart: Promise.all(jobb).then(() => {}) };
-}

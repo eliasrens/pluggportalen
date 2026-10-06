@@ -23,9 +23,13 @@
 //  7. XML-kommentarer rensas; CSS-transform/opacity (hover-scale, tomternas
 //     translate(-50%,-50%), "Du!"-brickans rotate) bakas in.
 //  8. Profilens `ambient` utelämnas (returneras i `ambient`), `ignorera` ritas inte.
+//     (Motorn skickar scen-profilens `sprites` här – se varld-profil-standard.js.)
+//  9. `neutraliseraObjekt` (selektor): hovrade/fokuserade objekt ritas i vila-
+//     läge, utan :hover/:focus-visible (varld-spegel-neutral.js, #428).
 // Utdata innehåller ALDRIG foreignObject eller extern URL → ingen canvas-taint.
 //
-// Läser bara DOM/layout (ändrar ingenting) och gör hela genomgången SYNKRONT,
+// Läser bara DOM/layout (enda undantaget: regel 9:s vila-kloner, borttagna i
+// samma task) och gör hela genomgången SYNKRONT,
 // så ögonblicksbilden är konsistent. Bara bilder/font väntas in efteråt.
 // Laddas enbart via import() – aldrig i den statiska bootgrafen (#271).
 // ============================================================================
@@ -34,6 +38,7 @@ import { esc, matrisAttr, kedjaLinjar, elementRam, dekoration, filterPrimitiver,
 import { textSvg } from "./varld-spegel-text.js";
 import { forfaderKlipp } from "./varld-spegel-klipp.js";
 import { slutfor, hash } from "./varld-spegel-ut.js";
+import { neutraliseraObjekt } from "./varld-spegel-neutral.js";
 
 export { granska, hash } from "./varld-spegel-ut.js";
 
@@ -102,6 +107,7 @@ function barn(el, cs, ram, ktx) {
 /** Ett element (relativt föräldraramen `ram`) → SVG-markup. */
 function element(el, cs, ram, ktx) {
   if (ktx.ign && el.matches(ktx.ign)) return "";
+  if (ktx.hoppa?.has(el)) return ""; // ritas av sin vila-klon (regel 9)
   if (ktx.amb && el.matches(ktx.amb)) { ktx.ambient.push(el); return ""; }
   if (cs.display === "none" || cs.opacity === "0") return "";
   if (cs.display === "contents") return barn(el, cs, ram, ktx);
@@ -187,7 +193,7 @@ const escT = (v) => v.replace(/[&<>]/g, (c) => (c === "&" ? "&amp;" : c === "<" 
 function nodStrang(o, ktx, sp, rot) {
   let cs = null, extra = "", fid = null;
   if (!rot) {
-    if (sp.ign.has(o)) return "";
+    if (sp.ign.has(o) || ktx.hoppa?.has(o)) return "";
     if (sp.amb.has(o)) { ktx.ambient.push(o); return ""; }
     if (o.localName === "foreignObject") return foInnehall(o, ktx);
     // CSS-styrda noder (klass/id): baka in transform/opacitet/visibility/filter
@@ -273,7 +279,8 @@ function lagerRam(lagerEl) {
  * Spegla ett lager I VILA till EN fristående SVG-sträng i lagrets px.
  * @param {HTMLElement} lagerEl  .varld-lager-elementet
  * @param {HTMLElement} stageEl  staget (fångstytan när profil.fangst = "stage")
- * @param {{ambient?:string|string[], ignorera?:string|string[], fangst?:"stage"|"lager"}} [profil]
+ * @param {{ambient?:string|string[], ignorera?:string|string[], fangst?:"stage"|"lager",
+ *   neutraliseraObjekt?:string|string[]}} [profil]
  * @returns {Promise<{svg:string,w:number,h:number,ox:number,oy:number,nyckel:string,ambient:Element[],ms:number}>}
  *   ox/oy/w/h = fångstytan i lagrets px (kan vara negativ, #373); ambient =
  *   utelämnade levande noder; ms = kostnad (synkron genomgång + väntan).
@@ -281,6 +288,8 @@ function lagerRam(lagerEl) {
 export async function speglaLager(lagerEl, stageEl, profil = {}) {
   const t0 = performance.now();
   const ktx = nyKtx(profil, lagerEl);
+  const neutral = neutraliseraObjekt(lagerEl, sel(profil?.neutraliseraObjekt));
+  ktx.hoppa = neutral?.hoppa;
   const r = lagerRam(lagerEl);
   const inv = r.M.inverse();
   let ox = 0, oy = 0, w = r.w, h = r.h;
@@ -291,7 +300,8 @@ export async function speglaLager(lagerEl, stageEl, profil = {}) {
     ox = Math.min(a.x, b.x); oy = Math.min(a.y, b.y);
     w = Math.abs(b.x - a.x); h = Math.abs(b.y - a.y);
   }
-  const kropp = boxInnehall(lagerEl, r.cs, r, ktx);
+  let kropp;
+  try { kropp = boxInnehall(lagerEl, r.cs, r, ktx); } finally { neutral?.stad(); }
   const synkMs = performance.now() - t0;
   const svg = await slutfor(kropp, ktx, `width="${f(w)}" height="${f(h)}" viewBox="${f(ox)} ${f(oy)} ${f(w)} ${f(h)}"`);
   return { svg, w, h, ox, oy, nyckel: hash(svg), ambient: ktx.ambient, ms: performance.now() - t0, synkMs };
