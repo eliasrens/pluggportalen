@@ -5,16 +5,16 @@
 //   • BIBLIOTEK (landning): ämnesflikar + sorterbar tabell per arbetsområde
 //     (ärlig status, #441), "Skapa nytt område". Klick på rad → redigera i
 //     kompositören. Sorteringsstate ({key, dir}) bor här. (Denna fil.)
-//   • FOKUSERAD KOMPOSITÖR (overlay): dimmar biblioteket, Esc/klick-utanför
-//     stänger. All wiring bor i teacher-composer.js (metod-växel guidat/material,
-//     räknegenerator, årskurs, AI-prompt, kontrollera/spara, synliga lägen).
+//   • SKAPA/REDIGERA-WIZARD (modal, issue #442): 4 steg – grundinställningar,
+//     innehåll & AI-önskemål, AI-verkstaden, synlighet & spara. All wiring bor i
+//     teacher-wizard.js (+ ett modul per steg). Osparat → varning vid stäng.
 //
 // INGEN funktion är borttagen mot förr – bara omgrupperad. AI-genererat innehåll
 // autosparas ALDRIG: materialrutan är ett redigerbart utkast och Spara sker först
 // efter Kontrollera/granskning.
 //
 // BOOT-SÄKERT: teacher-content.js ligger i den STATISKA bootgrafen (index.html →
-// app.js → teacher.js → hit). teacher-composer.js + dess tunga imports laddas
+// app.js → teacher.js → hit). teacher-wizard.js + dess tunga imports laddas
 // därför DYNAMISKT nedan – en NY fil i den statiska grafen kan 404:a under en
 // icke-atomär deploy → vit sida (bevisad rotorsak #271, jfr #290).
 // ============================================================================
@@ -50,14 +50,14 @@ export async function pageLarareInnehall(ctx) {
     return;
   }
 
-  // Kompositören (och dess tunga imports: teacher-generator.js, teacher-area-input.js)
+  // Wizarden (och dess tunga imports: teacher-generator.js, teacher-area-input.js)
   // laddas DYNAMISKT så inget nytt hamnar i den statiska bootgrafen (#271/#290).
   // Fångas här och visas som ett snällt fel INNE i vyn – aldrig vit sida.
-  let createComposer;
+  let createAreaWizard;
   try {
-    ({ createComposer } = await import("./teacher-composer.js"));
+    ({ createAreaWizard } = await import("./teacher-wizard.js"));
   } catch (err) {
-    console.error("Kompositören kunde inte laddas:", err);
+    console.error("Wizarden kunde inte laddas:", err);
     const container = el(`<div class="teacher-page teacher-dark"></div>`);
     container.appendChild(teacherNav(ctx, "innehall"));
     container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
@@ -87,8 +87,8 @@ export async function pageLarareInnehall(ctx) {
     renderAreaCards();
   };
 
-  // Kompositör-overlayen (skapar sin egen DOM, wiras internt).
-  const composer = createComposer({
+  // Skapa/redigera-wizarden (skapar sin egen DOM, wiras internt).
+  const wizard = createAreaWizard({
     getSubjectId: () => selected,
     getSubjectName: subjectName,
     onSaved: refreshAreaList,
@@ -133,7 +133,7 @@ export async function pageLarareInnehall(ctx) {
     areaCardsEl.replaceChildren(
       buildAreaTable(shown, {
         subjectId: selected,
-        onEdit: composer.openEdit,
+        onEdit: wizard.openEdit,
         onRefresh: refreshAreaList,
         sort,
         onSort,
@@ -175,14 +175,14 @@ export async function pageLarareInnehall(ctx) {
       alert("Skapa eller välj ett ämne först.");
       return;
     }
-    composer.openNew();
+    wizard.openNew();
   });
 
   const container = el(`<div class="teacher-page teacher-dark"></div>`);
   container.appendChild(teacherNav(ctx, "innehall"));
   container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
   container.appendChild(lib);
-  container.appendChild(composer.element);
+  container.appendChild(wizard.element);
   ctx.app.replaceChildren(container);
   refreshAreaList();
 }
