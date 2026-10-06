@@ -37,7 +37,7 @@
       import {
         icon, teacherNav, teacherHead, el,
       } from "/src/teacher-shared.js";
-      import { buildLibraryView } from "/src/teacher-content-view.js";
+      import { buildLibraryView, buildSubjectTab } from "/src/teacher-content-view.js";
       import { buildAreaTable } from "/src/teacher-content-list.js";
       import { filterSortAreas } from "/src/grades.js";
       import { renderClassAssignments, renderClassAreaModes } from "/src/teacher-class-modes.js";
@@ -54,7 +54,8 @@
       function page(active, iconName, title) {
         const wrap = el(`<div class="teacher-page teacher-dark pv-sec"></div>`);
         wrap.appendChild(teacherNav(ctx, active));
-        wrap.appendChild(teacherHead(ctx, { icon: iconName, title }));
+        // Innehållsstudion har sitt sidhuvud inne i kortet (#453) → ingen titel.
+        if (title) wrap.appendChild(teacherHead(ctx, { icon: iconName, title }));
         root.appendChild(wrap);
         return wrap;
       }
@@ -94,15 +95,12 @@
       // ======================================================================
       label("1 · Innehåll – bibliotek (tabell, badges, åtgärder)");
       {
-        const wrap = page("innehall", "book", "Innehållsstudion");
+        const wrap = page("innehall");
         const lib = buildLibraryView();
         wrap.appendChild(lib);
         // Rendera ämnesflikar för hand (samma markup som teacher-content.js).
         const tabs = lib.querySelector("#subject-tabs");
-        tabs.append(
-          el(`<button class="subject-tab active" role="tab">🌍 SO</button>`),
-          el(`<button class="subject-tab" role="tab">🔢 Matematik</button>`),
-        );
+        tabs.append(buildSubjectTab(library[0], true), buildSubjectTab(library[1], false));
         // Samma sorteringsstate som teacher-content.js: klick = asc, igen = desc.
         let sort = { key: "order", dir: "asc" };
         const draw = () => lib.querySelector("#area-cards").replaceChildren(
