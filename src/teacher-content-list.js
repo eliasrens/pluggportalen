@@ -1,13 +1,14 @@
 // ============================================================================
-// Pluggporten – lärarsidan: bibliotekskort för arbetsområden (teacher-content-list.js)
+// Pluggporten – lärarsidan: innehållstabell för arbetsområden (teacher-content-list.js)
 // ----------------------------------------------------------------------------
-// Innehållsstudions BIBLIOTEK (issue #303): ett KORT per arbetsområde i det valda
-// ämnet. Kortet visar ärlig status – namn, typ (quiz/par/generator med ikon),
-// årskurs och en riktig mängd-indikator (antal frågor/par eller "genererat ·
-// oändligt"). Klick på kortet öppnar området i kompositören (onEdit); en fotrad
-// bevarar alla gamla funktioner: Granska (#66), Lägg till (#40), Nivåtexter (#152)
-// och Ta bort. Utbrutet ur teacher-content.js för att hålla den under radtaket;
-// anropas med redan filtrerade/sorterade områden.
+// Innehållsstudions BIBLIOTEK som en kompakt, sorterbar datatabell (issue #441,
+// tidigare kort från #303). En rad per arbetsområde i valt ämne: Område · Årskurs ·
+// Innehåll · Omfattning · Åtgärder. Klick/Enter på raden (eller ✏️) öppnar området
+// i kompositören (onEdit); ikonknapparna bevarar alla gamla funktioner: Granska
+// (#66), Lägg till (#40), Nivåtexter (#152) och Ta bort (med confirm). Utfällningar
+// visas i en full-bredds-rad direkt under raden. Rubrikerna Område/Årskurs är
+// klickbara (aria-sort + ▲/▼); själva sorteringen sker i grades.filterSortAreas
+// och sorteringsstate ägs av teacher-content.js – hit kommer redan sorterade områden.
 // ============================================================================
 
 import * as data from "./data.js";
@@ -53,81 +54,142 @@ function quantityText(a) {
   return parts.length ? parts.join(" · ") : "Tomt – inget innehåll ännu";
 }
 
+/** Innehålls-piller för läs-material som inte är egna övningstyper. */
+function textBadges(a) {
+  let out = "";
+  if (a.texts?.length) out += `<span class="badge type-badge">📄 Lästexter</span>`;
+  if (a.readingTexts?.length) out += `<span class="badge type-badge">📖 Nivåtexter</span>`;
+  return out;
+}
+
+/** Sorterbara kolumner: nyckel → rubrik. */
+const SORT_COLS = [
+  { key: "name", label: "Område" },
+  { key: "grade", label: "Årskurs" },
+];
+
+function sortHeader({ key, label }, sort) {
+  const active = sort?.key === key;
+  const dir = active ? sort.dir : null;
+  const ariaSort = dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none";
+  const arrow = dir === "asc" ? "▲" : dir === "desc" ? "▼" : "↕";
+  return `<th scope="col" aria-sort="${ariaSort}" class="${active ? "sorted" : ""}">
+    <button type="button" class="th-sort" data-sort="${key}"
+      title="Sortera på ${esc(label.toLowerCase())}">${esc(label)}<span class="sort-ind" aria-hidden="true">${arrow}</span></button>
+  </th>`;
+}
+
+/** Liten ikonknapp med tooltip + aria-label. */
+const actBtn = (act, ic, label, extra = "") =>
+  `<button type="button" class="btn ghost small icon-btn ${extra}" data-act="${act}"
+    title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 16)}</button>`;
+
 /**
- * Bygg en DOM-nod med ett kort per arbetsområde.
+ * Bygg den sorterbara innehållstabellen.
  * @param {object[]} areas – redan filtrerade/sorterade områden att visa.
  * @param {object} opts
  * @param {string} opts.subjectId  – valt ämne (för spara/ta bort).
  * @param {(area:object)=>void} opts.onEdit – öppna området i kompositören.
  * @param {()=>void} opts.onRefresh – ladda om listan efter ändring.
+ * @param {{key:string,dir:string}} [opts.sort] – aktiv sortering ("order" = ingen).
+ * @param {(key:string)=>void} [opts.onSort] – rubrikklick på en sorterbar kolumn.
  * @returns {HTMLElement}
  */
-export function buildAreaCards(areas, { subjectId, onEdit, onRefresh }) {
-  const grid = el(`<div class="area-cards-grid"></div>`);
+export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSort }) {
+  const wrap = el(`<div class="table-scroll area-table-scroll">
+    <table class="area-tbl">
+      <thead><tr>
+        ${sortHeader(SORT_COLS[0], sort)}
+        ${sortHeader(SORT_COLS[1], sort)}
+        <th scope="col">Innehåll</th>
+        <th scope="col">Omfattning</th>
+        <th scope="col" class="area-tbl-actions-h">Åtgärder</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>`);
+  wrap.querySelectorAll("[data-sort]").forEach((b) =>
+    b.addEventListener("click", () => onSort?.(b.dataset.sort))
+  );
+  const tbody = wrap.querySelector("tbody");
+
   for (const a of areas) {
     const grade = normalizeGrade(a.grade);
-    const gradeBadge = grade ? `<span class="badge grade-badge">${esc(gradeLabel(grade))}</span>` : "";
-    const wrap = el(`<div class="area-card-wrap"></div>`);
-    const card = el(`<div class="area-card" tabindex="0" role="button"
+    const row = el(`<table><tbody><tr class="area-tbl-row" tabindex="0"
         aria-label="Redigera ${esc(a.name)}">
-      <div class="area-card-top">
-        <span class="area-card-emoji">${esc(a.coverEmoji || "📖")}</span>
-        <div class="area-card-meta">
-          <div class="area-card-name">${esc(a.name)}</div>
-          <div class="area-card-badges">${typeBadges(a)}${gradeBadge}</div>
-        </div>
-      </div>
-      <div class="area-card-count">${esc(quantityText(a))}</div>
-      <div class="row-actions area-card-actions">
-        <button class="btn ghost small" data-act="review">${icon("eye", 16)}<span>Granska</span></button>
-        <button class="btn ghost small gron" data-act="add">${icon("plus", 16)}<span>Lägg till</span></button>
-        <button class="btn ghost small" data-act="reading">${icon("book", 16)}<span>Nivåtexter</span></button>
-        <button class="btn ghost small danger" data-act="del">${icon("trash", 16)}<span>Ta bort</span></button>
-      </div>
-    </div>`);
+      <td class="area-tbl-name"><span class="area-tbl-emoji" aria-hidden="true">${esc(a.coverEmoji || "📖")}</span><span>${esc(a.name)}</span></td>
+      <td class="area-tbl-grade">${grade ? esc(gradeLabel(grade)) : "–"}</td>
+      <td><div class="area-tbl-badges">${typeBadges(a)}${textBadges(a)}</div></td>
+      <td class="area-tbl-count">${esc(quantityText(a))}</td>
+      <td><div class="area-tbl-actions">
+        ${actBtn("edit", "pencil", `Redigera ${a.name}`)}
+        ${actBtn("review", "eye", "Granska")}
+        ${actBtn("add", "plus", "Lägg till innehåll", "gron")}
+        ${actBtn("reading", "book", "Nivåtexter")}
+        ${actBtn("del", "trash", "Ta bort", "danger")}
+      </div></td>
+    </tr></tbody></table>`).querySelector("tr");
 
-    // Klick/Enter på kortet (men inte på en åtgärdsknapp) öppnar kompositören.
-    const openEdit = (e) => {
+    // Klick/Enter på raden (men inte på en åtgärdsknapp) öppnar kompositören.
+    row.addEventListener("click", (e) => {
       if (e.target.closest("[data-act]")) return;
       onEdit(a);
-    };
-    card.addEventListener("click", openEdit);
-    card.addEventListener("keydown", (e) => {
-      if ((e.key === "Enter" || e.key === " ") && !e.target.closest("[data-act]")) {
+    });
+    row.addEventListener("keydown", (e) => {
+      if (e.target !== row) return;
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         onEdit(a);
       }
     });
 
-    // Utfällbara slots under kortet (behåller alla gamla funktioner).
+    // Utfällbara slots i en full-bredds-rad under raden (behåller alla gamla funktioner).
+    const expandRow = el(`<table><tbody><tr class="area-expand-row" hidden>
+      <td colspan="5"></td></tr></tbody></table>`).querySelector("tr");
     const reviewSlot = el(`<div class="area-review" hidden></div>`);
     const mergeSlot = el(`<div class="area-merge" hidden></div>`);
     const readingSlot = el(`<div class="area-reading" hidden></div>`);
+    expandRow.firstElementChild.append(reviewSlot, mergeSlot, readingSlot);
+    const btn = (act) => row.querySelector(`[data-act="${act}"]`);
+    const slotBtns = new Map([[reviewSlot, btn("review")], [mergeSlot, btn("add")], [readingSlot, btn("reading")]]);
 
-    const toggleSlot = (slot, build, btn) => {
+    // Utfällningsraden + knapparnas aktiv-läge följer slottarnas hidden – även när
+    // formulärens egna "Stäng"-knappar (merge/nivåtexter) döljer sin slot.
+    const syncExpand = () => {
+      for (const [slot, b] of slotBtns) {
+        b.classList.toggle("active", !slot.hidden);
+        b.setAttribute("aria-expanded", String(!slot.hidden));
+      }
+      expandRow.hidden = reviewSlot.hidden && mergeSlot.hidden && readingSlot.hidden;
+    };
+    const obs = new MutationObserver(syncExpand);
+    for (const slot of slotBtns.keys()) obs.observe(slot, { attributes: true, attributeFilter: ["hidden"] });
+    syncExpand();
+
+    const toggleSlot = (slot, build) => {
       if (!slot.hidden) {
         slot.hidden = true;
         slot.innerHTML = "";
-        btn?.classList.remove("active");
+        syncExpand();
         return;
       }
       slot.replaceChildren(build());
       slot.hidden = false;
-      btn?.classList.add("active");
+      syncExpand();
       slot.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
 
-    const reviewBtn = card.querySelector('[data-act="review"]');
-    reviewBtn.addEventListener("click", () =>
-      toggleSlot(reviewSlot, () => buildReviewPanel(a), reviewBtn)
+    btn("edit").addEventListener("click", () => onEdit(a));
+    btn("review").addEventListener("click", () =>
+      toggleSlot(reviewSlot, () => buildReviewPanel(a))
     );
-    card.querySelector('[data-act="add"]').addEventListener("click", () =>
+    btn("add").addEventListener("click", () =>
       toggleSlot(mergeSlot, () => buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh }))
     );
-    card.querySelector('[data-act="reading"]').addEventListener("click", () =>
+    btn("reading").addEventListener("click", () =>
       toggleSlot(readingSlot, () => buildReadingEditor(a, readingSlot, { subjectId, onSaved: onRefresh }))
     );
-    card.querySelector('[data-act="del"]').addEventListener("click", async () => {
+    btn("del").addEventListener("click", async () => {
       if (!confirm(`Ta bort arbetsområdet "${a.name}"? Detta går inte att ångra.`)) return;
       try {
         await data.deleteArea(subjectId, a.id);
@@ -137,11 +199,7 @@ export function buildAreaCards(areas, { subjectId, onEdit, onRefresh }) {
       }
     });
 
-    wrap.appendChild(card);
-    wrap.appendChild(reviewSlot);
-    wrap.appendChild(mergeSlot);
-    wrap.appendChild(readingSlot);
-    grid.appendChild(wrap);
+    tbody.append(row, expandRow);
   }
-  return grid;
+  return wrap;
 }

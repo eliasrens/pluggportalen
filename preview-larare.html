@@ -37,7 +37,8 @@
         icon, teacherNav, teacherHead, el,
       } from "/src/teacher-shared.js";
       import { buildLibraryView, buildComposerView } from "/src/teacher-content-view.js";
-      import { buildAreaCards } from "/src/teacher-content-list.js";
+      import { buildAreaTable } from "/src/teacher-content-list.js";
+      import { filterSortAreas } from "/src/grades.js";
       import { renderClassAssignments, renderClassAreaModes } from "/src/teacher-class-modes.js";
       import { renderClassStats } from "/src/teacher-class.js";
       import { renderAccountEditor, printLoginCards } from "/src/teacher-login-cards.js";
@@ -67,6 +68,7 @@
         { id: "vikingar", name: "Vikingatiden", coverEmoji: "⚔️", grade: "ak4", quiz: mkQuiz(12), pairs: mkPairs(8) },
         { id: "val", name: "Demokrati & val", coverEmoji: "🗳️", grade: "ak5", quiz: mkQuiz(10) },
         { id: "kartan", name: "Kartan & världsdelar", coverEmoji: "🗺️", quiz: mkQuiz(6), pairs: mkPairs(6) },
+        { id: "ostersjon", name: "Östersjön", coverEmoji: "🌊", grade: "ak6", quiz: mkQuiz(5), texts: [{ title: "T", body: "x" }] },
         { id: "rakna", name: "Multiplikationsträning", coverEmoji: "🔢", grade: "ak4",
           generator: { topic: "multiplikation", variants: ["liten", "stor"] } },
       ];
@@ -87,9 +89,9 @@
       const subjectsMeta = [{ id: "so", name: "SO", icon: "🌍" }];
 
       // ======================================================================
-      // 1) INNEHÅLLSSTUDIO – bibliotek (kort + badges + åtgärds-knappar)
+      // 1) INNEHÅLLSSTUDIO – bibliotek (sorterbar tabell + badges + åtgärder)
       // ======================================================================
-      label("1 · Innehåll – bibliotek (kort, badges, åtgärder)");
+      label("1 · Innehåll – bibliotek (tabell, badges, åtgärder)");
       {
         const wrap = page("innehall", "book", "Innehållsstudion");
         const lib = buildLibraryView();
@@ -100,9 +102,18 @@
           el(`<button class="subject-tab active" role="tab">🌍 SO</button>`),
           el(`<button class="subject-tab" role="tab">🔢 Matematik</button>`),
         );
-        lib.querySelector("#area-cards").replaceChildren(
-          buildAreaCards(areasSO, { subjectId: "so", onEdit: () => {}, onRefresh: () => {} })
+        // Samma sorteringsstate som teacher-content.js: klick = asc, igen = desc.
+        let sort = { key: "order", dir: "asc" };
+        const draw = () => lib.querySelector("#area-cards").replaceChildren(
+          buildAreaTable(filterSortAreas(areasSO, { sort: sort.key, dir: sort.dir }), {
+            subjectId: "so", onEdit: (a) => console.log("onEdit", a.id), onRefresh: () => {}, sort,
+            onSort: (key) => {
+              sort = sort.key === key ? { key, dir: sort.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" };
+              draw();
+            },
+          })
         );
+        draw();
       }
 
       // ======================================================================

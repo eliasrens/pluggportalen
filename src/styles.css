@@ -1444,21 +1444,12 @@ body.larare-lage .container {
 .teacher-dark input[type="checkbox"],
 .teacher-dark input[type="radio"] { accent-color: var(--t-accent); }
 
-/* --- Bibliotekskort (Innehållsstudion) ----------------------------------- */
+/* --- Bibliotek (Innehållsstudion) – tabellen har sitt block vid #441 nedan -- */
 .teacher-dark .studio-lib-controls { color: var(--t-muted); }
-.teacher-dark .area-card {
-  background: var(--t-raised);
-  border: 1px solid var(--t-border-strong);
-  box-shadow: var(--t-shadow);
-}
-.teacher-dark .area-card:hover { border-color: var(--t-accent); }
-.teacher-dark .area-card:focus-visible { outline-color: var(--t-accent); }
-.teacher-dark .area-card-name { color: var(--t-text); }
-.teacher-dark .area-card-count { color: var(--t-muted); }
 
 /* Badges (typ/årskurs) – diskreta accent-chips i stället för ljusa öar. */
 .teacher-dark .badge,
-.teacher-dark .area-card .type-badge {
+.teacher-dark .type-badge {
   background: var(--t-accent-soft);
   color: #a9ecc6;
 }
@@ -5438,7 +5429,8 @@ body.varld-lage .container {
   color: var(--text-svag);
 }
 
-/* Biblioteks-korten */
+/* Biblioteks-korten (lärartabellen ersatte dem i #441; .area-card används
+   fortfarande av elevsidans områdesknappar i pages-elev.js – rör ej) */
 .area-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -5469,6 +5461,57 @@ body.varld-lage .container {
 .area-card-actions { flex-wrap: wrap; gap: 6px; }
 /* Åtgärdsknapparna ska inte "öppna kortet" – de stoppar klicket i JS. */
 .area-card-actions .btn { pointer-events: auto; }
+
+/* Innehållstabellen (issue #441) – kompakt, sorterbar; scrollar horisontellt
+   på smal skärm i stället för att spräcka sidan. */
+.area-table-scroll { border-radius: 14px; }
+.area-tbl { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 0.95rem; }
+.area-tbl th {
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-svag);
+  padding: 8px 10px;
+  border-bottom: 2px solid #e2ecfb;
+  white-space: nowrap;
+}
+.area-tbl td { padding: 8px 10px; vertical-align: middle; border-bottom: 1px solid #edf2fa; }
+.area-tbl .th-sort {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+}
+.area-tbl .th-sort:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.area-tbl .sort-ind { font-size: 0.75rem; opacity: 0.45; }
+.area-tbl th.sorted .sort-ind { opacity: 1; }
+.area-tbl-row { cursor: pointer; }
+.area-tbl-row:hover td { background: rgba(0, 0, 0, 0.03); }
+.area-tbl-row:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.area-tbl-name { font-weight: 700; white-space: nowrap; }
+.area-tbl-emoji { font-size: 1.25rem; margin-right: 8px; vertical-align: -2px; }
+.area-tbl-grade { white-space: nowrap; }
+.area-tbl-count { color: var(--text-svag); font-size: 0.88rem; }
+.area-tbl-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.area-tbl-badges .type-badge { background: var(--teal-ljus); color: var(--teal-mork); font-size: 0.78rem; }
+.area-tbl-actions-h { text-align: right !important; }
+.area-tbl-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: nowrap; }
+.area-tbl .icon-btn { padding: 6px; min-width: 0; line-height: 0; }
+.area-expand-row > td { padding: 4px 10px 14px; }
+.teacher-dark .area-tbl th { color: var(--t-muted); border-bottom-color: var(--t-border-strong); }
+.teacher-dark .area-tbl th.sorted { color: var(--t-text); }
+.teacher-dark .area-tbl .th-sort:focus-visible,
+.teacher-dark .area-tbl-row:focus-visible { outline-color: var(--t-accent); }
+.teacher-dark .area-tbl td { border-bottom-color: var(--t-border); }
+.teacher-dark .area-tbl-row:hover td { background: var(--t-surface-2); }
+.teacher-dark .area-tbl-name { color: var(--t-text); }
+.teacher-dark .area-tbl-count { color: var(--t-muted); }
+.teacher-dark .area-tbl-badges .type-badge { background: var(--t-accent-soft); color: #a9ecc6; }
+.teacher-dark .area-expand-row > td { background: var(--t-surface); }
 
 /* ---- Fokuserad kompositör (overlay) ------------------------------------- */
 body.composer-open { overflow: hidden; }

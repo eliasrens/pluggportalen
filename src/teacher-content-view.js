@@ -3,8 +3,9 @@
 // ----------------------------------------------------------------------------
 // Innehållssidan (#/larare/innehall) är ombyggd (issue #303) till en STUDIO med
 // två lägen:
-//   1) BIBLIOTEK (landningsvyn)  – buildLibraryView(): ämnesflikar + kort per
-//      arbetsområde + "Skapa nytt område". Korten byggs i teacher-content-list.js.
+//   1) BIBLIOTEK (landningsvyn)  – buildLibraryView(): ämnesflikar + sorterbar
+//      tabell med arbetsområden + "Skapa nytt område". Tabellen byggs i
+//      teacher-content-list.js (issue #441).
 //   2) FOKUSERAD KOMPOSITÖR      – buildComposerView(): en overlay som dimmar
 //      biblioteket och öppnas vid skapa/redigera. Metod-växel mellan "Skapa
 //      guidat" och "Klistra in / ladda upp material" – båda mynnar i samma
@@ -42,8 +43,9 @@ const coverEmojiButtons = () =>
   ).join("");
 
 /**
- * BIBLIOTEK – landningsvyn. Ämnesflikarna (#subject-tabs) och korten (#area-cards)
- * fylls från teacher-content.js. Filter/sortering ligger kvar (issue #145).
+ * BIBLIOTEK – landningsvyn. Ämnesflikarna (#subject-tabs) och tabellen (#area-cards)
+ * fylls från teacher-content.js. Årskursfiltret ligger kvar (issue #145); sortering
+ * sker via tabellens klickbara rubriker (issue #441).
  */
 export function buildLibraryView() {
   return el(`<div class="studio">
@@ -61,12 +63,6 @@ export function buildLibraryView() {
           <option value="">Alla</option>
           <option value="ospecificerad">Ospecificerad</option>
           ${gradeOptions()}
-        </select>
-      </label>
-      <label class="row-inline" style="gap:6px">Sortera:
-        <select id="area-sort" class="select">
-          <option value="order">Ordning</option>
-          <option value="grade">Årskurs</option>
         </select>
       </label>
     </div>

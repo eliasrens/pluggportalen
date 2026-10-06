@@ -73,28 +73,43 @@ export function gradeSortKey(grade) {
 }
 
 /**
- * Filtrera och sortera arbetsområden per årskurs för lärarvyns lista (issue #145).
- * Ren funktion – returnerar en ny lista och rör inte indata.
+ * Filtrera och sortera arbetsområden per årskurs för lärarvyns lista (issue #145,
+ * klickbara tabellrubriker #441). Ren funktion – returnerar en ny lista och rör
+ * inte indata.
+ *   • "order" (default) – områdets egen ordning, oförändrad.
+ *   • "grade" – numeriskt åk 1 → 9; ospecificerad hamnar SIST i båda riktningar.
+ *   • "name"  – alfabetiskt med svensk kollation (å/ä/ö efter z).
+ * Lika nycklar faller tillbaka på `order` (stabilt, alltid stigande).
  * @param {object[]} areas
  * @param {object} opts
  * @param {string} opts.filter – "" (alla), "ospecificerad", eller "ak1".."ak9".
- * @param {string} opts.sort   – "order" (områdets ordning) eller "grade" (årskurs).
+ * @param {string} opts.sort   – "order", "grade" eller "name".
+ * @param {string} [opts.dir]  – "asc" (default) eller "desc".
  * @returns {object[]}
  */
-export function filterSortAreas(areas, { filter, sort } = {}) {
+export function filterSortAreas(areas, { filter, sort, dir = "asc" } = {}) {
   let out = Array.isArray(areas) ? areas.slice() : [];
   if (filter === "ospecificerad") {
     out = out.filter((a) => normalizeGrade(a.grade) === null);
   } else if (filter) {
     out = out.filter((a) => normalizeGrade(a.grade) === filter);
   }
+  const sign = dir === "desc" ? -1 : 1;
+  const byOrder = (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0);
   if (sort === "grade") {
-    // Stabil sekundär sortering på order så områden inom samma årskurs behåller
-    // sin inbördes ordning.
+    out.sort((a, b) => {
+      const ka = gradeSortKey(a.grade);
+      const kb = gradeSortKey(b.grade);
+      if (ka === kb) return byOrder(a, b);
+      if (ka === Infinity) return 1;
+      if (kb === Infinity) return -1;
+      return sign * (ka - kb);
+    });
+  } else if (sort === "name") {
     out.sort(
       (a, b) =>
-        gradeSortKey(a.grade) - gradeSortKey(b.grade) ||
-        (Number(a.order) || 0) - (Number(b.order) || 0)
+        sign * String(a.name || "").localeCompare(String(b.name || ""), "sv", { sensitivity: "base" }) ||
+        byOrder(a, b)
     );
   }
   return out;
