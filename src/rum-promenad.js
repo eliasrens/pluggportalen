@@ -306,6 +306,12 @@ export function startPetPromenad({ stage, getPets, isPetPaused, getApples, onEat
     if (!stage.isConnected) return stop(); // sidan lämnad – städa upp
     const dt = Math.min((now - last) / 1000, 0.1); // flik i bakgrunden → inga skutt
     last = now;
+    // Pixi spelar kamerans rörelse (#396): lagret vilar → djuren står still
+    // (closest, inte checkVisibility – den tvingar fram layout varje frame).
+    if (stage.closest(".varld-pixi-vilar")) {
+      raf = requestAnimationFrame(tick);
+      return;
+    }
     refreshObstacles(now);
 
     const appleList = apples();

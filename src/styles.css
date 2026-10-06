@@ -3663,6 +3663,26 @@ body.varld-lage .container {
 .varld-lager.varld-dold { visibility: hidden; }
 .varld-lager.varld-utan-anim { transition: none !important; }
 
+/* Pixi-rörelse (#396) ----------------------------------------------------------
+   Under kamerans rörelse ritar en Pixi-worker världen på .varld-pixi (FÖRST i
+   staget = under lagren, genomskinlig, aldrig klickbar). DOM-lagren göms då
+   kompositor-billigt (.varld-pixi-spelar på staget) och vilar
+   (.varld-pixi-vilar: inga egna transitions, så kamerans apply() till
+   slutläget och återvisningen aldrig animeras). Se src/varld-motor.js. */
+.varld-pixi {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.varld-pixi-spelar .varld-lager {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.varld-lager.varld-pixi-vilar { transition: none !important; }
+
 /* Ute-scenen ritas med preserveAspectRatio="xMidYMid meet" så att hus + avatar
    + all natur ALLTID får plats (inget beskärs på korta/breda eller smala/höga
    skärmar). overflow:visible låter den övertecknade himlen/gräset (ritade långt

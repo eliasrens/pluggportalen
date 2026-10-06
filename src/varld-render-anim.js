@@ -172,7 +172,11 @@ export function lagerMatris(l) {
   return { s, tx: s * l.box.x + (1 - s) * o.x, ty: s * l.box.y + (1 - s) * o.y };
 }
 
-/** Ska lagret ritas alls i detta tillstånd? */
+/**
+ * Ska lagret ritas alls i detta tillstånd? `zFran` (valfritt, #418) = en
+ * pyramidnivå som bara ritas när lagret står i minst den skalan – då visas
+ * ingen nivå nedskalad (mipmap-suddig) i vila, och förstoringen blir ≤ steg.
+ */
 export function lagerSyns(l) {
-  return l.synlig && l.opacity > 0.001;
+  return l.synlig && l.opacity > 0.001 && !(l.zFran > 0 && (l.scale ?? 1) < l.zFran * 0.999);
 }
