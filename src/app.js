@@ -33,7 +33,8 @@
 // server-omskrivning (alla "sidor" ligger i index.html).
 // ============================================================================
 
-import { app, el, go, renderTopbar, loading } from "./ui.js";
+import { app, el, go, renderTopbar, loading, flash, getHiddenModules } from "./ui.js";
+import { moduleForRoute } from "./gamemode-visibility.js";
 import { whenAuthReady } from "./auth.js";
 import {
   pageElevLogin,
@@ -203,6 +204,10 @@ const routes = {
   "/larare/elever": () => go("#/larare/klasser"),
 };
 
+// Löpnummer per navigering: modul-grinden (#412) väntar asynkront på klasslistan
+// och får inte rita en gammal route om eleven hunnit navigera vidare.
+let routeSeq = 0;
+
 function router() {
   // Signalera till bootvakten i index.html att modulgrafen laddats och routern
   // kör – annars visar den sitt "Sajten uppdateras just nu"-läge efter 8 s
@@ -232,7 +237,18 @@ function router() {
     path === "/larare" || path.startsWith("/larare/")
   );
   const handler = routes[path] || pageNotFound;
-  handler();
+  // Modul-grinden (#412): rutter som hör till en modul som elevens klass döljer
+  // (classes/{id}.hiddenModules) nås inte ens via direktlänk – eleven skickas
+  // hem. replace() så bakåtknappen inte studsar tillbaka in i grinden.
+  const seq = ++routeSeq;
+  const modul = moduleForRoute(path);
+  if (!modul) return handler();
+  getHiddenModules().then((dolda) => {
+    if (seq !== routeSeq) return; // eleven hann navigera vidare
+    if (!dolda.includes(modul)) return handler();
+    flash("Den delen är stängd för din klass just nu.");
+    window.location.replace("#/elev/hus");
+  });
 }
 
 document.getElementById("brand").addEventListener("click", () => go("#/"));

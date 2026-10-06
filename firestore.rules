@@ -112,9 +112,19 @@ service cloud.firestore {
         (request.resource.data.hiddenVillages is list &&
          request.resource.data.hiddenVillages.size() <= 200);
     }
+    // MODUL-SYNLIGHET (#412): fältet `hiddenModules` (modul-id som DÖLJS i
+    // klassens elevmeny + rutter, t.ex. "lasresan", "plugga") speglar regeln
+    // ovan: läsbart för alla inloggade (eleven filtrerar sin sidomeny), skrivbart
+    // bara av lärare och då som lista (max 20 id). Saknat fält = allt synligt.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validHiddenModules() {
+      return !('hiddenModules' in request.resource.data) ||
+        (request.resource.data.hiddenModules is list &&
+         request.resource.data.hiddenModules.size() <= 20);
+    }
     match /classes/{classId} {
       allow read:  if signedIn();
-      allow create, update: if isTeacher() && validHiddenVillages();
+      allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules();
       allow delete: if isTeacher();
     }
 
