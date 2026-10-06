@@ -233,4 +233,5 @@ bara `sattPose` skriver, och bara på bas-ambienten (hus 7, rum 2). Djurens `ps-
   moln som sprites (överlägg i frusen pose).
 - **Hovrat hus inbakat i en handoff-reserv.** Efter T3 in blir handoffens omspegling (huset i hover-skala) reserv
   för nästa T3 ut. Idle-förvärmningen bygger inte om den, eftersom den är yngre än `tak` 4000. Huset (och röken
-  vid skorstenen) blir då ~6 px större i canvas än i DOM vid slutet. Husprofilen har `objekt: []` med flit (S1).
+  vid skorstenen) blir då ~6 px större i canvas än i DOM vid slutet (sannolikt hover-skalan; med en idle-reserv
+  var skillnaden 0,14 %). Husprofilen har `objekt: []` med flit (S1).
