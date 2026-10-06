@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixi-gården – stub-preview (#423)</title>
+    <meta name="description" content="Pluggporten – en glad studiesida för åk 4." />
+    <!-- Byggstämpel: deploy-workflowet byter ut platshållaren mot commit-SHA:n
+         innan uppladdning till Pages. Loggas av bootvakten nedan så att man i
+         konsolen kan verifiera EXAKT vilken commit live servar (rotorsak #271:
+         Pages-utrullningen är inte atomär och 404/gamla filer kan cachas i upp
+         till ~10 min – utan stämpel går det inte att skilja "deploy ej framme"
+         från "koden är trasig"). Lokalt står platshållaren kvar – det är ok. -->
+    <!-- #423 STUB-PREVIEW: hela appen (riktiga moduler) mot en fejk-Firebase i
+         minnet (preview/pixi-gard/) – inga läsningar/skrivningar når Firestore.
+         Seed: mogna grödor, djur i hagen och ladan, ägda lada-skins. Startar på
+         #/elev/hus. Flaggor: ?pixi=av|debug|frys|normal. -->
+    <script type="importmap">
+      { "imports": {
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js": "./preview/pixi-gard/fb-app.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js": "./preview/pixi-gard/fb-auth.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "./preview/pixi-gard/fb-firestore.js"
+      } }
+    </script>
+    <script>if (!location.hash) location.hash = "#/elev/hus";</script>
+    <meta name="pp-build" content="__BUILD_SHA__" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <!-- Favicon: mini av MAJESTÄTISKA porten (samma motiv som loggan och
+         inloggningsscenen art-port-majestic.js, #360): stenpelare + valvbåge
+         med guldkrön + smidesgrind med guldspetsar. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M1 24 Q32 -6 63 24 L53 24 Q32 6 11 24 Z' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='9' r='5' fill='%23F7C948' stroke='%233B3350' stroke-width='2.5'/%3E%3Crect x='1' y='19' width='16' height='9' rx='3.5' fill='%23DCE7F2' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='47' y='19' width='16' height='9' rx='3.5' fill='%23DCE7F2' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='3' y='26' width='12' height='34' rx='4' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='49' y='26' width='12' height='34' rx='4' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3'/%3E%3Cpath d='M23 40 L23 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M32 34 L32 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M41 40 L41 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M23 31 L27.5 36 L23 41 L18.5 36 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Cpath d='M32 25 L36.5 30 L32 35 L27.5 30 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Cpath d='M41 31 L45.5 36 L41 41 L36.5 36 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Crect x='16' y='46' width='32' height='6' rx='3' fill='%235A6C96' stroke='%233B3350' stroke-width='2.5'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <!-- Hamburgerknapp (bara synlig på små skärmar) – öppnar sidomenyn. -->
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <!-- Mörk overlay bakom off-canvas-menyn på mobil. -->
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <button class="brand" id="brand" title="Till startsidan">
+          <!-- Loggan: mini av MAJESTÄTISKA porten – samma motiv som
+               inloggningsscenen (art-port-majestic.js, #360) och faviconen:
+               stenpelare + valvbåge med guldkrön + smidesgrind med
+               guldspetsar, i sidans platta stil. -->
+          <span class="logo" aria-hidden="true"><svg viewBox="0 0 64 64" width="1em" height="1em" focusable="false">
+            <path d="M1 24 Q32 -6 63 24 L53 24 Q32 6 11 24 Z" fill="#A9C2DE" stroke="#3B3350" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="32" cy="9" r="5" fill="#F7C948" stroke="#3B3350" stroke-width="2.5"/>
+            <rect x="1" y="19" width="16" height="9" rx="3.5" fill="#DCE7F2" stroke="#3B3350" stroke-width="3"/>
+            <rect x="47" y="19" width="16" height="9" rx="3.5" fill="#DCE7F2" stroke="#3B3350" stroke-width="3"/>
+            <rect x="3" y="26" width="12" height="34" rx="4" fill="#A9C2DE" stroke="#3B3350" stroke-width="3"/>
+            <rect x="49" y="26" width="12" height="34" rx="4" fill="#A9C2DE" stroke="#3B3350" stroke-width="3"/>
+            <path d="M23 40 L23 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M32 34 L32 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M41 40 L41 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M23 31 L27.5 36 L23 41 L18.5 36 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <path d="M32 25 L36.5 30 L32 35 L27.5 30 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <path d="M41 31 L45.5 36 L41 41 L36.5 36 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <rect x="16" y="46" width="32" height="6" rx="3" fill="#5A6C96" stroke="#3B3350" stroke-width="2.5"/>
+          </svg></span> <span class="brand-text">Pluggporten</span>
+        </button>
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
+
+      <main id="app" class="container">
+        <div class="spinner" id="boot-spinner">Laddar…</div>
+      </main>
+    </div>
+
+    <!-- Bootvakt (rotorsak #271): GitHub Pages-utrullningen är inte atomär –
+         i upp till ~10 min efter en deploy kan en klient få en blandning av
+         gamla/nya moduler eller cachade 404:or. Faller då app.js-modulgrafen
+         faller HELA appen utan att någon app-kod hunnit köra, och eleven ser
+         bara "Laddar…" för evigt. Det här klassiska (icke-modul) skriptet kör
+         alltid och agerar efter 8 s bara om BÅDA gäller:
+           1. window.__PLUGG_BOOTED saknas (sätts av NY app.js när routern kör) OCH
+           2. start-spinnern #boot-spinner står KVAR i DOM:en – den försvinner så
+              fort NÅGON app.js-version (även en äldre cachad, som inte känner
+              till flaggan) gjort sin första render. Utan markörkontrollen skulle
+              vakten skriva över en FUNGERANDE app för klienter som fått ny
+              index.html + gammal cachad app.js i just mixfönstret, och den
+              skulle blinka i onödan på långsamma nät där boot tar >8 s.
+         Alltså: vakten triggar ENBART när ingen app-kod alls hunnit rendera
+         (modulgraf-404/krasch före första render) – rotorsaksfallet. Då byts
+         spinnern mot ett vänligt meddelande med en "Försök igen"-knapp; efter
+         cache-fönstret läker en omladdning sidan av sig själv. -->
+    <script>
+      window.__PLUGG_BOOTED = false;
+      (function () {
+        var build = document.querySelector('meta[name="pp-build"]');
+        console.log("Pluggporten build:", build ? build.content : "okänd");
+        setTimeout(function () {
+          if (window.__PLUGG_BOOTED) return;
+          // Markören borta = någon app.js (gammal som ny) har renderat – tig.
+          if (!document.getElementById("boot-spinner")) return;
+          var app = document.getElementById("app");
+          if (!app) return;
+          app.innerHTML =
+            '<div class="panel center">' +
+            "<h2>Sajten uppdateras just nu 🔧</h2>" +
+            '<p class="hint">Det tar bara någon minut. Prova igen om en liten stund!</p>' +
+            '<button class="btn" id="boot-retry">Försök igen</button>' +
+            "</div>";
+          var btn = document.getElementById("boot-retry");
+          if (btn) btn.addEventListener("click", function () { location.reload(); });
+        }, 8000);
+      })();
+    </script>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
