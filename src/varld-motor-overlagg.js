@@ -5,13 +5,15 @@
 // Utbruten ur varld-motor-textur.js (400-raderstaket). Speglas SYNKRONT vid
 // handoff (frusen pose), rastreras på main (OffscreenCanvas) och skickas till
 // workern som en nivå med z=1000 (ritas alltid). Ritordning = ids-ordningen:
-// sprites i DOM-ordning, sedan fokus-överläggen.
+// sprites i DOM-ordning, sedan fokus-överläggen, sist lagrets emoji som
+// text-sprites när emoji-reserven är på (G1 #425, varld-emoji.js).
 // Laddas bara via import() – aldrig i bootgrafen.
 // ============================================================================
 
 import { speglaNod } from "./varld-spegel.js";
 import { konfiguration } from "./varld-textur.js";
 import { profilFor } from "./varld-motor-textur.js";
+import { doljEmoji, emojiOverlagg } from "./varld-emoji.js";
 
 const sel = (v) => (Array.isArray(v) ? v.join(",") : v || "");
 
@@ -54,7 +56,7 @@ export function overlagg(el, maxSkala, yta) {
     const id = `ovl${++ovlNr}`;
     ids.push(id);
     return speglaNod(nod, el, { bildZoom: maxSkala }).then(async (ns) => {
-      const img = await avkodaSvg(ns.svg);
+      const img = await avkodaSvg(doljEmoji({ svg: ns.svg, nyckel: "" }).svg);
       const m = DOMMatrix.fromMatrix(ns.matrix).translate(ns.rect.x, ns.rect.y);
       const hörn = [[0, 0], [ns.rect.w, 0], [0, ns.rect.h], [ns.rect.w, ns.rect.h]].map(([x, y]) => m.transformPoint(new DOMPoint(x, y)));
       const bx = Math.min(...hörn.map((p) => p.x)), by = Math.min(...hörn.map((p) => p.y));
@@ -72,5 +74,6 @@ export function overlagg(el, maxSkala, yta) {
       await yta.satLager(id, { nivaer: [{ z: 1e3, region: { x: bx, y: by, w: tegel.w, h: tegel.h }, tegel: [tegel], bytes: W * H * 4 }] });
     });
   });
-  return { ids, klart: Promise.all(jobb).then(() => {}), sprites: sprites.length };
+  const em = emojiOverlagg(el, maxSkala, yta, sel(p.ignorera));
+  return { ids: [...ids, ...em.ids], klart: Promise.all([...jobb, em.klart]).then(() => {}), sprites: sprites.length };
 }

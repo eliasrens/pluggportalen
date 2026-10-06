@@ -19,8 +19,10 @@
 //   {typ:"rensa", yta}
 //   {typ:"slapp", yta, lagerId}
 //   {typ:"debug", yta, op:"forlora"|"aterstall"}   (test: WEBGL_lose_context)
-//   {typ:"stats", yta, nr}                 → {typ:"stats", yta, nr, texturer, bitmaps}  (#417)
+//   {typ:"stats", yta, nr}                 → {typ:"stats", yta, nr, texturer, bitmaps, bytes,
+//                                             lager, gl, forlorad, gpu, maxTex}  (#417, G1 #425)
 //   ut spontant: {typ:"kontext", yta, lage:"forlorad"|"aterstalld"}
+//                ("aterstalld" först när alla texturer laddats upp igen – G1 #425)
 // ============================================================================
 
 import { interpolera, lagerMatris, lagerSyns, KAMERA_TOTAL_MS } from "./varld-render-anim.js";
@@ -28,6 +30,7 @@ import { tidslinjeState } from "./varld-render-tidslinje.js"; // #424: anim.tids
 
 let PIXI = null;
 let maxTex = 0;
+let gpu = ""; // UNMASKED_RENDERER_WEBGL (G1: enhetsklass + HUD + mätprotokoll)
 /** @type {Map<number, Yta>} */
 const ytor = new Map();
 
@@ -57,7 +60,7 @@ async function hantera(m) {
     case "rensa": return ytor.get(m.yta)?.rensa();
     case "slapp": return ytor.get(m.yta)?.slapp(m.lagerId);
     case "debug": return ytor.get(m.yta)?.debug(m.op);
-    case "stats": return posta({ typ: "stats", yta: m.yta, nr: m.nr, ...(ytor.get(m.yta)?.stats() || { texturer: 0, bitmaps: 0 }) });
+    case "stats": return posta({ typ: "stats", yta: m.yta, nr: m.nr, gpu, maxTex, ...(ytor.get(m.yta)?.stats() || { texturer: 0, bitmaps: 0, bytes: 0 }) });
   }
 }
 
@@ -69,6 +72,8 @@ async function initKarna({ pixiUrl }) {
     const gl = prov.getContext("webgl2") || prov.getContext("webgl");
     if (!gl) return posta({ typ: "fel", orsak: "ingen-webgl" });
     maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE) | 0;
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    gpu = String((info && gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) || "");
     gl.getExtension("WEBGL_lose_context")?.loseContext(); // släpp prov-kontexten direkt
   } catch (err) {
     return posta({ typ: "fel", orsak: "ingen-webgl", fel: String(err) });
@@ -80,7 +85,7 @@ async function initKarna({ pixiUrl }) {
     PIXI = null;
     return posta({ typ: "fel", orsak: "pixi-laddning", fel: String(err?.message || err) });
   }
-  posta({ typ: "redo", maxTex });
+  posta({ typ: "redo", maxTex, gpu });
 }
 
 async function initYta({ yta: id, canvas, w, h, dpr }) {
@@ -115,14 +120,21 @@ class Yta {
       posta({ typ: "kontext", yta: this.id, lage: "forlorad" });
     });
     this.canvas.addEventListener("webglcontextrestored", () => {
-      this.forlorad = false;
-      posta({ typ: "kontext", yta: this.id, lage: "aterstalld" });
+      // Pixi:s egen lyssnare (registrerad efter vår) bygger om GL-tillståndet
+      // först → ladda upp texturerna i nästa uppgift (G1 #425).
+      setTimeout(() => this.aterladda(), 0);
     });
     this.renderer = new PIXI.WebGLRenderer();
     await this.renderer.init({
       canvas: this.canvas, width: w, height: h, resolution: dpr,
       backgroundAlpha: 0, antialias: false, autoDensity: false,
       preserveDrawingBuffer: false, powerPreference: "high-performance",
+      // G1 #425: Pixi v8:s GC laddar ur texturer som inte ritats på 60 s – då
+      // laddas en förvärmd pyramid upp MITT i rörelsen. Motorn äger livscykeln
+      // (LRU + slappLager), så inget får laddas ur för att det vilat. GC:n får
+      // ändå gå (var 30 s): den städar bort förstörda texturers null-platser i
+      // Pixi:s interna hashar, som annars växer hela sessionen (gcActive:false).
+      gcMaxUnusedTime: Number.MAX_SAFE_INTEGER,
     });
     this.rot = new PIXI.Container();
     // getExtension() ger null på en redan förlorad kontext → hämta i förväg.
@@ -256,14 +268,42 @@ class Yta {
     this.renderer.render(this.rot);
   }
 
-  /** Texturbokföring: levande texturer (sprites) och ostängda bitmaps (close() → width 0). */
+  /**
+   * Efter restore: ladda upp alla lagers texturer igen (några per uppgift, så
+   * att workern inte blockeras) och säg "aterstalld" först därefter – nästa
+   * rörelse ska inte betala uppladdningen i sina första frames (G1 #425).
+   */
+  async aterladda() {
+    this.forlorad = false;
+    const kallor = [];
+    for (const l of this.lager.values()) for (const s of l.cont.children) if (s.texture?.source) kallor.push(s.texture.source);
+    for (let i = 0; i < kallor.length; i++) {
+      if (this.forlorad) return; // förlorad igen – nästa restore tar det
+      try { this.renderer.texture.initSource(kallor[i]); } catch { /* laddas lat vid ritning */ }
+      if (i % 4 === 3) await new Promise((r) => setTimeout(r, 0));
+    }
+    if (!this.forlorad) posta({ typ: "kontext", yta: this.id, lage: "aterstalld" });
+  }
+
+  /**
+   * Texturbokföring: levande texturer (sprites), ostängda bitmaps (close() →
+   * width 0), deras GPU-bytes inkl. mip (×4/3, samma formel som LRU:n), antal
+   * lager-behållare och Pixi:s egna GL-texturer (det som faktiskt ligger på GPU:n).
+   */
   stats() {
-    let texturer = 0, bitmaps = 0;
+    let texturer = 0, bitmaps = 0, bytes = 0;
     for (const l of this.lager.values()) {
       texturer += l.cont.children.length;
-      for (const b of l.bmps) if (b.width > 0) bitmaps++;
+      for (const b of l.bmps) {
+        if (!(b.width > 0)) continue;
+        bitmaps++;
+        bytes += Math.ceil((b.width * b.height * 16) / 3);
+      }
     }
-    return { texturer, bitmaps };
+    let gl = -1;
+    // Levande GL-texturer (förstörda står kvar som null tills GC:n kompakterar).
+    try { gl = this.renderer.texture.managedTextures.filter(Boolean).length; } catch { /* intern Pixi-API */ }
+    return { texturer, bitmaps, bytes, lager: this.lager.size, gl, forlorad: this.forlorad };
   }
 
   debug(op) {

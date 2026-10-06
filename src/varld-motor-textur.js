@@ -29,6 +29,7 @@ import { avkodaSpegel, byggPyramid, texturCache, konfiguration } from "./varld-t
 import standard from "./varld-profil-standard.js";
 import { inbaddadFontCss } from "./varld-spegel-font.js";
 import { KLON_ATTR } from "./varld-spegel-neutral.js";
+import { doljEmoji } from "./varld-emoji.js";
 
 const DEBOUNCE_MS = 300;
 const KAMERA_STIL = /^(transform|transform-origin|opacity)$/;
@@ -243,7 +244,7 @@ export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio ==
   const spegelP = speglaLager(r.el, r.fangstStage, texturProfil(profilFor(r.el))); // synkron genomgång NU
   post.ms.speglaSynk = performance.now() - t0;
   post.minSatt = (async () => {
-    const spegel = await spegelP;
+    const spegel = doljEmoji(await spegelP); // G1: emoji-reserven ritar dem som text-sprites
     post.ms.spegla = spegel.ms;
     if (post.slappt) throw new Error("släppt");
     post.spegelNyckel = spegel.nyckel;
