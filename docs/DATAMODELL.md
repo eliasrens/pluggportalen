@@ -471,9 +471,19 @@ Spec: [spec-mattematchen-live.md](spec-mattematchen-live.md). Två produkter med
 | Unikt försöks-id per visad fråga | `src/mult/attempt-id.js` |
 | Live gameMode-registry + inbyggda lägen | `src/live/game-modes.js`, `src/live/modes/` |
 | Svar → exakt batch som reglerna godtar | `src/tavling/answer-writes.js` |
+| MM elevlogik: period-läge, Topp 25, Klasskamp, egen statistik (ren) | `src/tavling/mm-core.js` |
+| MM elevsida `#/elev/mattematchen` (#458) – dynamisk, menylänk bara under aktiv period | `src/tavling/page-mattematchen.js`, `mm-watch.js`, `mm-data.js`, `mm-panels.js` |
 
 Demo: `preview-mult-snabb.html`. Tester: `test/mult-generator.test.js`,
-`test/live-game-modes.test.js`, `test/firestore-rules-mattematchen-live.test.js`.
+`test/live-game-modes.test.js`, `test/firestore-rules-mattematchen-live.test.js`,
+`test/mm-core.test.js`, `test/firestore-rules-mattematchen-elev.test.js`.
+Elevsidan mot emulatorn: `admin/qa-mattematchen-seed.mjs` + `admin/qa-emulator-proxy.mjs`.
+
+**Elevens synlighet (#458):** `mm-watch.js` håller EN onSnapshot-fråga
+`mathCompetitions where participatingClassIds array-contains-any [elevens klasser]`
+(enkelfälts-index) + timer till nästa `startAt`/`endAt` → menylänken 🧮 visas/döljs
+automatiskt. Frågan returnerar även klassens gamla (avslutade) tävlingar – få per
+klass, filtreras i klienten (ett `endAt`-filter skulle kräva sammansatt index).
 
 ```
 mathCompetitions/{cid}                               ← MathCompetition (lärare)

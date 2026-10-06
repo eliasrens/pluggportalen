@@ -13,6 +13,7 @@
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
 //   #/elev/lasresan   Läsresan: adaptiv läsförståelse på en spelkarta (#398) – laddas DYNAMISKT
+//   #/elev/mattematchen  Mattematchen: multiplikationstävling (#458) – bara under aktiv period, DYNAMISK
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -134,6 +135,28 @@ async function pageElevLasresan() {
   }
 }
 
+// Mattematchen (#/elev/mattematchen, #458): samma mönster – dynamisk import, och
+// sidan själv skickar hem eleven om ingen aktiv period finns för klassen.
+async function pageElevMattematchen() {
+  loading();
+  try {
+    const mod = await import("./tavling/page-mattematchen.js");
+    return await mod.pageMattematchen();
+  } catch (err) {
+    console.error("Mattematchen kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(
+      el(`<div class="panel center">
+        <div class="big-emoji">🧮</div>
+        <h2>Mattematchen kunde inte laddas</h2>
+        <p class="hint">Något gick fel. Prova igen om en stund.</p>
+        <button class="btn" id="mm-tillbaka">Till Hem</button>
+      </div>`)
+    );
+    app.querySelector("#mm-tillbaka")?.addEventListener("click", () => go("#/elev/hus"));
+  }
+}
+
 // --- Router -----------------------------------------------------------------
 
 const routes = {
@@ -153,6 +176,8 @@ const routes = {
   // Läsresan (#398/#401): egen huvudmodul bredvid Plugga. DYNAMISK import (som
   // äventyret, #267/#271) så att Läsresans moduler aldrig hamnar i bootgrafen.
   "/elev/lasresan": pageElevLasresan,
+  // Mattematchen (#458): syns i menyn bara under en aktiv period (ui.getMattematch).
+  "/elev/mattematchen": pageElevMattematchen,
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
@@ -266,6 +291,8 @@ function router() {
   );
   // Läsresan får en bredare innehållsyta (text och frågor sida vid sida).
   document.body.classList.toggle("lasresan-lage", path === "/elev/lasresan");
+  // Mattematchen: en skärm utan scroll (fråga, svar, knappar) – se mattematchen.css.
+  document.body.classList.toggle("mm-lage", path === "/elev/mattematchen");
   // Lärar-routes: håll body-bakgrunden mörk under HELA vistelsen – även i glappet
   // mellan flik-byten, då den gamla .teacher-dark-vyn tas bort en kort stund och
   // body:has(.teacher-dark) slutar matcha (→ annars blänker elevsidans ljusa
