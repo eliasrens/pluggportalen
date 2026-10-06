@@ -10,6 +10,9 @@
 /* Bredare innehållsyta i Läsresan (app.js sätter body.lasresan-lage). */
 body.lasresan-lage .container {
   max-width: 1180px;
+  /* Kartvyn räknar med ~24px luft under sig (--lr-ovan) – den vanliga 60px-
+     botten skulle annars ge en onödig sid-scroll på kort skärm (#429). */
+  padding-bottom: 20px;
 }
 
 .lasresan {
@@ -29,6 +32,13 @@ body.lasresan-lage .container {
 }
 .lr-verktyg .lr-nasta-varld {
   margin-right: auto;
+}
+/* Kartvyn kan bli smalare än innehållsytan på kort skärm (ui-map-stil.js,
+   #429) – håll verktygsraden lika bred så knapparna linjerar med kartan. */
+.lasresan:has(.lr-karta) .lr-verktyg {
+  width: 100%;
+  max-width: max(360px, calc((100dvh - var(--lr-ovan, 24px)) * 1.6));
+  margin-inline: auto;
 }
 
 /* --- Läsvyn: text + fråga --------------------------------------------------

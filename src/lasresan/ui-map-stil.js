@@ -11,6 +11,12 @@ const CSS = `
 .lr-karta { position: relative; border-radius: 18px; overflow: hidden;
   box-shadow: 0 6px 24px rgba(59, 51, 80, 0.18); line-height: 0; }
 .lr-karta svg.lr-scen { display: block; width: 100%; height: auto; }
+/* Kort skärm (#429): hela kartan ska synas utan vertikal scroll. Bredden
+   kapas så att höjden (bredd / --lr-ar) ryms under --lr-ovan (avståndet från
+   sidtoppen, satt av page-lasresan.js). Golv 360px så den aldrig blir pytte. */
+.lr-karta { margin-inline: auto;
+  max-width: max(360px, calc((100vh - var(--lr-ovan, 24px)) * var(--lr-ar, 1.6)));
+  max-width: max(360px, calc((100dvh - var(--lr-ovan, 24px)) * var(--lr-ar, 1.6))); }
 
 /* --- Världsväljare (pills inne i kartans övre vänstra hörn) --------------- */
 .lr-varldar { position: absolute; top: 10px; left: 10px; z-index: 3;

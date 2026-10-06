@@ -112,7 +112,7 @@ export function renderJourneyMap(container, opts = {}) {
     // Avataren står bara i världen vyn fick in (där eleven ÄR just nu).
     const medAvatar = v.id === world.id && avatar;
     container.innerHTML =
-      `<div class="lr-karta" data-varld="${v.id}">` +
+      `<div class="lr-karta" data-varld="${v.id}" style="--lr-ar:${(v.scene.width / v.scene.height).toFixed(4)}">` +
       `<svg class="lr-scen" viewBox="0 0 ${v.scene.width} ${v.scene.height}" role="img" aria-label="${v.name}">` +
       scen + stegen + (medAvatar ? avatarGroup(avatar) : "") +
       `</svg>` +
