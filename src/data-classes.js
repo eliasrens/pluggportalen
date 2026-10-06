@@ -26,6 +26,7 @@ import {
   normalizeHiddenModes,
   normalizeAreaModes,
   normalizeHiddenVillages,
+  normalizeHiddenModules,
 } from "./gamemode-visibility.js";
 import { createTtlCache } from "./class-projection.js";
 import {
@@ -34,12 +35,9 @@ import {
   applyProjectDonation,
 } from "./class-projection-entries.js";
 
-// Session-cache (#274): klasslistan läses varje gång plugga/världen ritas
-// (getClassForStudent + klass-hiddenModes, färskhets-kritiskt/krav 1). En kort
-// TTL-cache (INLINE här, se class-projection-entries.createTtlCache) gör
-// återbesök omedelbara; lärarens klass-skrivvägar nedan invaliderar explicit och
-// TTL:en fångar ändringar gjorda i en annan session. En enda nyckel ("classes")
-// eftersom getClasses alltid läser hela kollektionen.
+// Session-cache (#274): klasslistan läses varje gång plugga/världen/sidomenyn
+// ritas. Kort TTL-cache (createTtlCache); lärarens skrivvägar nedan invaliderar
+// explicit, TTL:en fångar ändringar från andra sessioner. En nyckel ("classes").
 const _classCache = createTtlCache();
 
 /** Töm klass-session-cachen (lärar-skriv, in-/utloggning, test). */
@@ -195,12 +193,7 @@ export async function getClassAssignments(classId) {
 // med områdets hiddenModes) bor i gamemode-visibility.js; här bara persistensen.
 // ---------------------------------------------------------------------------
 
-/**
- * Sätt vilka spellägen som ska döljas för klassen (ersätter hela listan).
- * Tom lista = inget dolt på klass-nivå (eleverna ser allt områdena tillåter).
- * @param {string} classId
- * @param {string[]} hiddenModes mode-id att dölja (normaliseras)
- */
+/** Sätt klassens dolda spellägen (ersätter hela listan; tom = inget dolt på klass-nivå). */
 export async function setClassHiddenModes(classId, hiddenModes) {
   const list = normalizeHiddenModes(hiddenModes);
   await setDoc(doc(db, "classes", classId), { hiddenModes: list }, { merge: true });
@@ -238,12 +231,8 @@ export async function setClassAreaModes(classId, areaModes) {
 // (egna klassen alltid synlig) bor i gamemode-visibility.visibleVillageClasses.
 // ---------------------------------------------------------------------------
 
-/**
- * Sätt vilka andra klassers byar som döljs för klassen (ersätter hela listan).
- * Klassens eget id rensas bort – den egna byn kan aldrig döljas.
- * @param {string} classId
- * @param {string[]} hiddenVillages klass-id att dölja (normaliseras)
- */
+/** Sätt vilka andra klassers byar som döljs för klassen (ersätter hela listan).
+ *  Klassens eget id rensas bort – den egna byn kan aldrig döljas. */
 export async function setClassHiddenVillages(classId, hiddenVillages) {
   const list = normalizeHiddenVillages(hiddenVillages).filter((id) => id !== classId);
   await setDoc(doc(db, "classes", classId), { hiddenVillages: list }, { merge: true });
@@ -272,9 +261,28 @@ export async function setVillageHiddenForAll(villageId, hidden, classIds) {
   return others;
 }
 
+// ---------------------------------------------------------------------------
+// Modul-synlighet per klass (issue #412): classes/{classId}.hiddenModules =
+// string[] (modul-id som DÖLJS i elevens sidomeny + rutter). Tom/saknad = allt
+// synligt. Registret + elev-filtret bor i gamemode-visibility.js.
+// ---------------------------------------------------------------------------
+
+/** Sätt klassens dolda moduler (ersätter hela listan; okända id rensas bort). */
+export async function setClassHiddenModules(classId, hiddenModules) {
+  const list = normalizeHiddenModules(hiddenModules);
+  await setDoc(doc(db, "classes", classId), { hiddenModules: list }, { merge: true });
+  _classCache.invalidate("classes");
+  return list;
+}
+
+/** Hämta klassens dolda moduler ([] om inga/klassen saknas). */
+export async function getClassHiddenModules(classId) {
+  const snap = await getDoc(doc(db, "classes", classId));
+  return snap.exists() ? normalizeHiddenModules(snap.data().hiddenModules) : [];
+}
+
 /**
- * Hitta elevens klass utifrån klassernas studentIds. Om eleven finns i flera
- * klasser returneras den första (efter getClasses ordning). Null om ingen.
+ * Hitta elevens klass (första i getClasses ordning om flera). Null om ingen.
  * @param {string} studentId
  * @returns {Promise<object|null>} klassdokumentet ({ id, name, studentIds, assignedAreas, ... })
  */
@@ -286,11 +294,7 @@ export async function getClassForStudent(studentId = currentStudentId()) {
   );
 }
 
-// Klass-aggregatet (classStats/{classId}) från #113 är BORTTAGET (#114): en
-// grannklass stjärnor räknas numera fram LIVE ur klassens studentData (samma
-// aggregateKlassStats som klassen själv använder), sedan cross-class-läsning av
-// studentData öppnades. Ingen denormaliserad spegling behövs – den blev bara en
-// tom skylt tills varje elev loggat in efter en regel-deploy.
+// (Klass-aggregatet classStats från #113 är borttaget, #114 – räknas live.)
 
 // ---------------------------------------------------------------------------
 // Gemensamma klassprojekt (#331) – classProjects/{classId}.

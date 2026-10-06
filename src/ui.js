@@ -8,6 +8,7 @@
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { coinIcon, starIcon } from "./icons.js";
+import { hiddenModulesForStudent } from "./gamemode-visibility.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -99,16 +100,32 @@ export function flash(text, isError = false) {
   }, 2600);
 }
 
+/**
+ * Modulerna som lärarens klass-val döljer för den inloggade eleven (#412).
+ * Läser den TTL-cachade klasslistan (ingen extra runda vid sidbyte). Fel →
+ * [] (öppet, bakåtkompatibelt): en trasig läsning ska aldrig låsa ute eleven.
+ */
+export async function getHiddenModules() {
+  const meId = data.currentStudentId();
+  if (!meId) return [];
+  try {
+    return hiddenModulesForStudent(await data.getClasses(), meId);
+  } catch {
+    return [];
+  }
+}
+
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
 // `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
 // (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
 // numera i spelvärlden via klasskylten vid gården (#/elev/by, klassbyn).
+// `modul` = id i TOGGLABLE_MODULES (#412): länken döljs om klassen döljer modulen.
 const NAV_LANKAR = [
   { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
-  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil" },
+  { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil", modul: "plugga" },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
-  { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil" },
-  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil" },
+  { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil", modul: "lasresan" },
+  { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil", modul: "shop" },
 ];
 
 /**
@@ -139,6 +156,7 @@ export async function renderTopbar() {
   let avatarId = DEFAULT_AVATAR;
   let avatarItems = [];
   let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
+  const doldaP = getHiddenModules(); // parallellt med elevdatat nedan
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -147,9 +165,11 @@ export async function renderTopbar() {
     stjarnor = (await data.getStats()).stars || 0;
   } catch {}
 
-  const navHtml = NAV_LANKAR.map((l, i) => {
+  const dolda = new Set(await doldaP);
+  const lankar = NAV_LANKAR.filter((l) => !l.modul || !dolda.has(l.modul));
+  const navHtml = lankar.map((l, i) => {
     // Avdelare när gruppen byts (om en framtida länk får en egen grupp).
-    const nyGrupp = i > 0 && l.grupp !== NAV_LANKAR[i - 1].grupp;
+    const nyGrupp = i > 0 && l.grupp !== lankar[i - 1].grupp;
     const avdelare = nyGrupp ? `<hr class="sido-nav-avdelare" aria-hidden="true" />` : "";
     return `${avdelare}<a class="sido-nav-lank${l.hash.slice(1) === path ? " aktiv" : ""}" href="${l.hash}">
         <span class="sido-nav-ikon" aria-hidden="true">${l.ikon}</span>
