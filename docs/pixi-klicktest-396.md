@@ -182,3 +182,55 @@ laggården, by → Andra byar → en grannby → ett hus.
 
 Det Elias avgör: är övergångarna mjuka på riktig GPU (HUD:en ska mest visa ~16–17 ms), syns något hopp vid start
 eller slut (särskilt moln vid hus ↔ rum, se rest 2), och ska reservgränsen vara 120 ms.
+
+## 8. F5 (#431): reservens ambient-pose på DOM:en
+
+**Ändring.** `sakra()` sparar lagrets bas-ambient-pose i samma task som speglingen: `currentTime` per animation,
+utan sprites och utan lagrets egen animation (`varld-motor-pose.js`, `post.pose`). Spelas ett lager på reserven
+sätter `forb.sattPose()` de av vilan pausade animationerna till den posen. Det sker i samma task som
+`.varld-pixi-spelar` läggs på, så tillbakaspolningen syns aldrig. Vilan släpps med `play()` och ambienten fortsätter
+från reservens pose. Vid färsk spegel eller alias görs ingenting. Loggen och `senaste` får
+`pose: {<lager>: {satta, borta, nya, alderMs}}` (borta/nya = animationer som försvunnit eller tillkommit sedan
+speglingen; de lämnas orörda).
+
+**Mätmetod (desk, stub-preview, `?pixi=frys,debug`).** Reserven tvingades fram genom att `HTMLImageElement.decode`
+fördröjdes 400 ms för stora bilder (bara nya speglingar påverkas, reserven är redan avkodad). En sid-instrumentering
+läste molnens `translateX` (lagrets egna enheter) vid vilans `pause()` (DOM före), när `.varld-pixi-spelar` läggs på
+(= canvasens pose) och när den tas bort (DOM efter). Klick med riktig mus (T3: huset, Gå ut → framsidan) och
+fokus + Enter (T2: klasskylten, "Ditt hus" i byn).
+
+| # | Resa | Väg | pose | Slut-hopp (DOM efter − canvas) |
+|---|---|---|---|---|
+| 1 | T3 in hus→rum | reserv hus+rum | hus 7/7, rum 2/2 | 0 |
+| 2 | T3 ut | reserv hus+rum | 7/7, 2/2 | 0 |
+| 3 | T3 in | reserv hus+rum | 7/7, 2/2 | 0 |
+| 4 | T3 ut | färsk hus, reserv rum | rum 2/2 | 0 |
+| 5 | T3 in | färsk hus, reserv rum | rum 2/2 | 0 |
+| 6 | T3 ut | färsk hus, reserv rum | rum 2/2 | 0 |
+| 7–10 | T3 in/ut ×2 | reserv hus+rum | 7/7, 2/2 | 0 |
+| 11 | T2 ut hus→by | färsk (`klart` 196 ms) | – | 0 |
+| 12 | T2 in by→hus | reserv hus | 7/7 | 0 |
+| 13 | T2 ut | reserv hus | 7/7 | 0 |
+| 14 | T2 in | reserv hus | 7/7 | 0 |
+| 15 | T2 ut | färsk (`klart` 75 ms) | – | 0 |
+| 16 | T2 in | färsk (`klart` 108 ms) | – | 0 |
+
+**Pixel (canvas i vila mot DOM, `jamfor`).** DOM:ens animationer frystes i exakt den pose de hade när DOM:en
+visades igen. Molnens förskjutning togs som bästa horisontella förskjutning (±60 px) inom molnets ruta:
+- hus (T2 in, reserv): alla moln och all rök **0 px**, hela scenen 0,14 % > 40 (mot 1,66 % och ~30 px i §5),
+- rum (T3 in, reserv): synligt moln **0 px**,
+- hus (T3 ut, reserv) och rum-preview med djur: molnen 0 px. Rest, se nedan.
+
+`pp:pixi:av`: `css:av`, 0 skrivningar till `currentTime`, 0 pyramider. Spårning av alla `currentTime`-skrivningar:
+bara `sattPose` skriver, och bara på bas-ambienten (hus 7, rum 2). Djurens `ps-*`/`pet-*` (sprites) rörs aldrig.
+
+**Kvar (utanför F5):**
+- **Start-hoppet finns kvar.** Vid start visar DOM:en posen vid klicket och canvasen reservens pose. Hoppet är
+  molnens drift sedan reserven speglades (~24 enheter/s för husmolnen), alltså obegränsat med elevens väntetid (11–42 s i
+  testet gav 90–1280 enheter, med varv). Det syns på lagret som är synligt vid start: hus vid T3 in och T2 ut. Det
+  går inte att ta bort genom att sätta DOM-posen, eftersom canvasen inte kan visa en annan pose än den inbakade.
+  Förslag: förnya ytterrollens reserv vid hover/fokus på målet (`tak` 4000 gäller redan där), eller rita husets
+  moln som sprites (överlägg i frusen pose).
+- **Hovrat hus inbakat i en handoff-reserv.** Efter T3 in blir handoffens omspegling (huset i hover-skala) reserv
+  för nästa T3 ut. Idle-förvärmningen bygger inte om den, eftersom den är yngre än `tak` 4000. Huset (och röken
+  vid skorstenen) blir då ~6 px större i canvas än i DOM vid slutet. Husprofilen har `objekt: []` med flit (S1).
