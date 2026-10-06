@@ -2,8 +2,9 @@
 // Pluggporten – lärarsidan: Innehållsstudion (teacher-content.js)
 // ----------------------------------------------------------------------------
 // #/larare/innehall, ombyggd (issue #303) från en tät JSON-vägg till en STUDIO:
-//   • BIBLIOTEK (landning): ämnesflikar + kort per arbetsområde (ärlig status),
-//     "Skapa nytt område". Klick på kort → redigera i kompositören. (Denna fil.)
+//   • BIBLIOTEK (landning): ämnesflikar + sorterbar tabell per arbetsområde
+//     (ärlig status, #441), "Skapa nytt område". Klick på rad → redigera i
+//     kompositören. Sorteringsstate ({key, dir}) bor här. (Denna fil.)
 //   • FOKUSERAD KOMPOSITÖR (overlay): dimmar biblioteket, Esc/klick-utanför
 //     stänger. All wiring bor i teacher-composer.js (metod-växel guidat/material,
 //     räknegenerator, årskurs, AI-prompt, kontrollera/spara, synliga lägen).
@@ -19,7 +20,7 @@
 // ============================================================================
 
 import * as data from "./data.js";
-import { buildAreaCards } from "./teacher-content-list.js";
+import { buildAreaTable } from "./teacher-content-list.js";
 import { buildLibraryView } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { filterSortAreas } from "./grades.js";
@@ -78,7 +79,13 @@ export async function pageLarareInnehall(ctx) {
   const subjectTabs = lib.querySelector("#subject-tabs");
   const areaCardsEl = lib.querySelector("#area-cards");
   const gradeFilterSel = lib.querySelector("#area-grade-filter");
-  const sortSel = lib.querySelector("#area-sort");
+  // Tabellens sortering: "order" (områdets ordning) tills en rubrik klickas;
+  // samma rubrik igen vänder riktningen.
+  let sort = { key: "order", dir: "asc" };
+  const onSort = (key) => {
+    sort = sort.key === key ? { key, dir: sort.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" };
+    renderAreaCards();
+  };
 
   // Kompositör-overlayen (skapar sin egen DOM, wiras internt).
   const composer = createComposer({
@@ -114,13 +121,23 @@ export async function pageLarareInnehall(ctx) {
       );
       return;
     }
-    const shown = filterSortAreas(currentAreas, { filter: gradeFilterSel.value, sort: sortSel.value });
+    const shown = filterSortAreas(currentAreas, {
+      filter: gradeFilterSel.value,
+      sort: sort.key,
+      dir: sort.dir,
+    });
     if (shown.length === 0) {
       areaCardsEl.innerHTML = `<p class="hint">Inga arbetsområden matchar filtret. Ändra "Visa årskurs" ovan.</p>`;
       return;
     }
     areaCardsEl.replaceChildren(
-      buildAreaCards(shown, { subjectId: selected, onEdit: composer.openEdit, onRefresh: refreshAreaList })
+      buildAreaTable(shown, {
+        subjectId: selected,
+        onEdit: composer.openEdit,
+        onRefresh: refreshAreaList,
+        sort,
+        onSort,
+      })
     );
   }
 
@@ -140,7 +157,6 @@ export async function pageLarareInnehall(ctx) {
   }
 
   gradeFilterSel.addEventListener("change", renderAreaCards);
-  sortSel.addEventListener("change", renderAreaCards);
   renderSubjectTabs();
 
   wireNewSubjectForm({
