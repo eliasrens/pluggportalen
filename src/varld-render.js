@@ -374,6 +374,12 @@ class Yta {
     this._r._post({ typ: "rensa", yta: this.id });
   }
 
+  /** Workerns texturbokföring för ytan (#417; G1:s HUD). @returns {Promise<{texturer:number, bitmaps:number}>} */
+  async stats() {
+    const { texturer, bitmaps } = await this._r._fraga("stats", { yta: this.id });
+    return { texturer, bitmaps };
+  }
+
   /** Släpp lagrets texturer i workern (destroy + bitmap.close()). */
   slappLager(lagerId) {
     this._r._post({ typ: "slapp", yta: this.id, lagerId });

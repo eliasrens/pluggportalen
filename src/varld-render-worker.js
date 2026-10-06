@@ -19,6 +19,7 @@
 //   {typ:"rensa", yta}
 //   {typ:"slapp", yta, lagerId}
 //   {typ:"debug", yta, op:"forlora"|"aterstall"}   (test: WEBGL_lose_context)
+//   {typ:"stats", yta, nr}                 → {typ:"stats", yta, nr, texturer, bitmaps}  (#417)
 //   ut spontant: {typ:"kontext", yta, lage:"forlorad"|"aterstalld"}
 // ============================================================================
 
@@ -55,6 +56,7 @@ async function hantera(m) {
     case "rensa": return ytor.get(m.yta)?.rensa();
     case "slapp": return ytor.get(m.yta)?.slapp(m.lagerId);
     case "debug": return ytor.get(m.yta)?.debug(m.op);
+    case "stats": return posta({ typ: "stats", yta: m.yta, nr: m.nr, ...(ytor.get(m.yta)?.stats() || { texturer: 0, bitmaps: 0 }) });
   }
 }
 
@@ -248,6 +250,16 @@ class Yta {
     // och rendera: tom scen + backgroundAlpha 0 → genomskinlig canvas.
     for (const p of this.lager.values()) p.cont.visible = false;
     this.renderer.render(this.rot);
+  }
+
+  /** Texturbokföring: levande texturer (sprites) och ostängda bitmaps (close() → width 0). */
+  stats() {
+    let texturer = 0, bitmaps = 0;
+    for (const l of this.lager.values()) {
+      texturer += l.cont.children.length;
+      for (const b of l.bmps) if (b.width > 0) bitmaps++;
+    }
+    return { texturer, bitmaps };
   }
 
   debug(op) {
