@@ -5463,22 +5463,23 @@ body.varld-lage .container {
 .area-card-actions .btn { pointer-events: auto; }
 
 /* Innehållstabellen (issue #441) – kompakt, sorterbar; scrollar horisontellt
-   på smal skärm i stället för att spräcka sidan. */
-.area-table-scroll { border-radius: 14px; }
-.area-tbl { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 0.95rem; }
-.area-tbl th {
+   på smal skärm i stället för att spräcka sidan. Bara lärarsidan (.teacher-dark). */
+.teacher-dark .area-table-scroll { border-radius: 14px; }
+.teacher-dark .area-tbl { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 0.95rem; }
+.teacher-dark .area-tbl th {
   text-align: left;
   font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--text-svag);
+  color: var(--t-muted);
   padding: 8px 10px;
-  border-bottom: 2px solid #e2ecfb;
+  border-bottom: 2px solid var(--t-border-strong);
   white-space: nowrap;
 }
-.area-tbl td { padding: 8px 10px; vertical-align: middle; border-bottom: 1px solid #edf2fa; }
-.area-tbl .th-sort {
+.teacher-dark .area-tbl th.sorted { color: var(--t-text); }
+.teacher-dark .area-tbl td { padding: 8px 10px; vertical-align: middle; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .area-tbl .th-sort {
   all: unset;
   cursor: pointer;
   display: inline-flex;
@@ -5486,32 +5487,22 @@ body.varld-lage .container {
   gap: 6px;
   border-radius: 6px;
 }
-.area-tbl .th-sort:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
-.area-tbl .sort-ind { font-size: 0.75rem; opacity: 0.45; }
-.area-tbl th.sorted .sort-ind { opacity: 1; }
-.area-tbl-row { cursor: pointer; }
-.area-tbl-row:hover td { background: rgba(0, 0, 0, 0.03); }
-.area-tbl-row:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
-.area-tbl-name { font-weight: 700; white-space: nowrap; }
-.area-tbl-emoji { font-size: 1.25rem; margin-right: 8px; vertical-align: -2px; }
-.area-tbl-grade { white-space: nowrap; }
-.area-tbl-count { color: var(--text-svag); font-size: 0.88rem; }
-.area-tbl-badges { display: flex; gap: 4px; flex-wrap: wrap; }
-.area-tbl-badges .type-badge { background: var(--teal-ljus); color: var(--teal-mork); font-size: 0.78rem; }
-.area-tbl-actions-h { text-align: right !important; }
-.area-tbl-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: nowrap; }
-.area-tbl .icon-btn { padding: 6px; min-width: 0; line-height: 0; }
-.area-expand-row > td { padding: 4px 10px 14px; }
-.teacher-dark .area-tbl th { color: var(--t-muted); border-bottom-color: var(--t-border-strong); }
-.teacher-dark .area-tbl th.sorted { color: var(--t-text); }
-.teacher-dark .area-tbl .th-sort:focus-visible,
-.teacher-dark .area-tbl-row:focus-visible { outline-color: var(--t-accent); }
-.teacher-dark .area-tbl td { border-bottom-color: var(--t-border); }
+.teacher-dark .area-tbl .th-sort:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .area-tbl .sort-ind { font-size: 0.75rem; opacity: 0.45; }
+.teacher-dark .area-tbl th.sorted .sort-ind { opacity: 1; }
+.teacher-dark .area-tbl-row { cursor: pointer; }
 .teacher-dark .area-tbl-row:hover td { background: var(--t-surface-2); }
-.teacher-dark .area-tbl-name { color: var(--t-text); }
-.teacher-dark .area-tbl-count { color: var(--t-muted); }
-.teacher-dark .area-tbl-badges .type-badge { background: var(--t-accent-soft); color: #a9ecc6; }
-.teacher-dark .area-expand-row > td { background: var(--t-surface); }
+.teacher-dark .area-tbl-row:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; }
+.teacher-dark .area-tbl-name { font-weight: 700; white-space: nowrap; color: var(--t-text); }
+.teacher-dark .area-tbl-emoji { font-size: 1.25rem; margin-right: 8px; vertical-align: -2px; }
+.teacher-dark .area-tbl-grade { white-space: nowrap; }
+.teacher-dark .area-tbl-count { color: var(--t-muted); font-size: 0.88rem; }
+.teacher-dark .area-tbl-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.teacher-dark .area-tbl-badges .type-badge { background: var(--t-accent-soft); color: #a9ecc6; font-size: 0.78rem; }
+.teacher-dark .area-tbl th.area-tbl-actions-h { text-align: right; }
+.teacher-dark .area-tbl-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: nowrap; }
+.teacher-dark .area-tbl .icon-btn { padding: 6px; min-width: 0; line-height: 0; }
+.teacher-dark .area-expand-row > td { padding: 4px 10px 14px; background: var(--t-surface); }
 
 /* ---- Fokuserad kompositör (overlay) ------------------------------------- */
 body.composer-open { overflow: hidden; }
