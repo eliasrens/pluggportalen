@@ -8,8 +8,8 @@
 //     i maxBytes (anpassaBudget) – annars förvärmer motorn mer än LRU:n rymmer.
 //   • enhetsklass med workerns GPU-sträng (mjukvaru-GL → "svag").
 //   • pp:pixi:maxtex=N: kör som om GPU:n hade MAX_TEXTURE_SIZE N (test).
-//   • 30 s-städning (§6): pyramider som inte rörts sedan senaste landningen
-//     (= inte grannövergångar till nivån man står på) och är äldre än 30 s släpps.
+//   • 30 s-städning (§6): pyramider för lager som varken är det aktiva eller
+//     dess granne i någon kamera, och som inte använts på 30 s, släpps.
 //   • context restore: förvärm igen när workern laddat upp texturerna.
 //   • emoji: detektera färg-emoji i SVG-bild (varld-emoji.js); slår reserven
 //     på byggs pyramiderna om (glyferna ska vara osynliga i SVG:n).
@@ -30,8 +30,6 @@ const MB = 1048576;
 const TICK_MS = 2000;
 const STADA_VAR = 5; // var 5:e tick = 10 s
 export const STADA_MS = 30000;
-/** Marginal före landningen: förvärmningens tak-väg (4 s) rör inte posten. */
-const LANDNING_MARGINAL_MS = 5000;
 const FLAGGOR = ["av", "tvinga", "debug", "frys", "klass", "maxtex", "emoji"];
 
 const lasStr = (namn) => {
@@ -92,7 +90,7 @@ export function vakta(r, yta) {
   try {
     if (vakt?.r === r && vakt.yta === yta) return;
     if (vakt) clearInterval(vakt.timer);
-    const v = (vakt = { r, yta, dodForra: r.dod, tick: 0, landad: performance.now(), gpu: "", mo: null, moStage: null });
+    const v = (vakt = { r, yta, dodForra: r.dod, tick: 0, gpu: "", mo: null, moStage: null });
     const tvingad = parseInt(lasStr("maxtex"), 10);
     if (tvingad > 0 && tvingad < r.maxTex) r.maxTex = tvingad;
     sattAnpassning((b) => {
@@ -125,30 +123,44 @@ function tick(v) {
   if (pixiFlaggor().debug && st?.isConnected) visaHud(null, v.yta).catch(() => {});
 }
 
-/** Landningar (data-niva) och varje övergångs väg (data-pixi-spel) på scenen. */
+/** Varje övergångs väg (data-pixi-spel) på scenen – räknas bara med debug. */
 function bevakaScen(v, st) {
   v.mo?.disconnect();
   v.moStage = st;
   v.mo = new MutationObserver((poster) => {
-    for (const p of poster) {
-      if (p.attributeName === "data-niva") v.landad = performance.now();
-      else if (p.attributeName === "data-pixi-spel" && pixiFlaggor().debug) raknaVag(st.dataset.pixiSpel);
-    }
+    if (pixiFlaggor().debug) poster.forEach(() => raknaVag(st.dataset.pixiSpel));
   });
-  v.mo.observe(st, { attributes: true, attributeFilter: ["data-niva", "data-pixi-spel"] });
+  v.mo.observe(st, { attributes: true, attributeFilter: ["data-pixi-spel"] });
+}
+
+/** Det aktiva lagret och dess grannar i alla kameror (element-id). */
+export function behallLager(aktiv, kameraLager) {
+  const behall = new Set([aktiv]);
+  for (const ids of kameraLager) {
+    const k = ids.indexOf(aktiv);
+    if (k < 0) continue;
+    if (k > 0) behall.add(ids[k - 1]);
+    if (k < ids.length - 1) behall.add(ids[k + 1]);
+  }
+  return behall;
 }
 
 /**
- * 30 s-städningen: släpp pyramider som inte rörts sedan (landning − 5 s) och
- * är äldre än STADA_MS. Förvärmningen rör grannövergångarnas pyramider vid
- * varje landning, så det som blir kvar är gamla resvägar. Aldrig under rörelse.
+ * 30 s-städningen: släpp pyramider vars lager varken är det aktiva eller dess
+ * kameragranne och som inte använts på STADA_MS – gamla resvägar som annars
+ * ligger kvar tills LRU:n behöver platsen. Aldrig under rörelse.
  * @returns {string[]} släppta pid:ar
  */
 function stada(nu = performance.now()) {
-  if (!vakt || motorInfo()?.spelar) return [];
+  const m = motorInfo();
+  const st = scen();
+  if (!vakt || !m?.kameraLager || m.spelar || !st) return [];
+  const aktiv = [...st.querySelectorAll(":scope > .varld-lager")].find((l) => !l.inert && !l.classList.contains("varld-dold"));
+  if (!aktiv) return [];
+  const behall = behallLager(aktiv.id, m.kameraLager());
+  const lagerFor = new Map(postLista().map((p) => [p.pid, p.lager]));
   const lru = texturCache();
-  const grans = vakt.landad - LANDNING_MARGINAL_MS;
-  const ut = lru.gamla(STADA_MS, nu).filter((pid) => nu - lru.alder(pid, nu) < grans);
+  const ut = lru.gamla(STADA_MS, nu).filter((pid) => lagerFor.has(pid) && !behall.has(lagerFor.get(pid)));
   for (const pid of ut) lru.slapp(pid);
   if (ut.length && pixiFlaggor().debug) console.info("[pp:pixi] 30 s-städning släppte", ut);
   return ut;
