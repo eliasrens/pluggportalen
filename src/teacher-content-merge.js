@@ -6,11 +6,15 @@
 // klistrar in BARA det nya innehållet (fler texts/quiz/pairs); det mergas in via
 // parseAndMergeArea (src/merge-area.js) så befintligt behålls och dubbletter
 // hoppas över. UI-delen är utbruten hit för att hålla teacher-content.js liten.
+// Issue #453: överst en "Kopiera AI-prompt för mer innehåll"-knapp (+ valfritt
+// önskemål) som bygger prompten med buildMorePrompt (prompts.js) – områdets typer,
+// årskurs och befintliga frågor/par att undvika. Merge-logiken är orörd.
 // ============================================================================
 
 import * as data from "./data.js";
 import { parseAndMergeArea } from "./merge-area.js";
-import { el, esc } from "./teacher-shared.js";
+import { buildMorePrompt } from "./prompts.js";
+import { el, esc, icon, copyText } from "./teacher-shared.js";
 
 const MERGE_EXAMPLE = JSON.stringify(
   {
@@ -45,7 +49,19 @@ function mergeSummaryHtml(res) {
  * @returns {HTMLElement}
  */
 export function buildMergeForm(area, slot, { subjectId, onSaved }) {
-  const f = el(`<div class="subpanel">
+  const f = el(`<div class="subpanel merge-panel">
+    <div class="merge-ai">
+      <div class="merge-ai-row">
+        <label class="merge-wish">
+          <span>Eget önskemål (valfritt)</span>
+          <input type="text" data-act="m-wish" autocomplete="off"
+            placeholder="t.ex. fler svåra frågor om handel" />
+        </label>
+        <button type="button" class="btn gron merge-copy" data-act="m-copy">${icon("copy")}<span>Kopiera AI-prompt för mer innehåll</span></button>
+      </div>
+      <p class="merge-instr">Klistra in prompten i Claude, och klistra sedan in svaret nedan.
+        Det läggs till utan dubbletter.</p>
+    </div>
     <p class="hint">Klistra in <b>bara det nya</b> innehållet att lägga till i
       "${esc(area.name)}" – t.ex. fler <code>quiz</code>-frågor eller <code>pairs</code>.
       Befintligt innehåll behålls och dubbletter hoppas över – du behöver alltså
@@ -73,6 +89,10 @@ export function buildMergeForm(area, slot, { subjectId, onSaved }) {
       <ul class="error-list">${errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>
     </div>`;
   };
+
+  f.querySelector('[data-act="m-copy"]').addEventListener("click", (e) =>
+    copyText(buildMorePrompt(area, f.querySelector('[data-act="m-wish"]').value), e.currentTarget)
+  );
 
   f.querySelector('[data-act="m-example"]').addEventListener("click", () => {
     ta.value = MERGE_EXAMPLE;

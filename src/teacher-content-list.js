@@ -79,9 +79,9 @@ function sortHeader({ key, label }, sort) {
   </th>`;
 }
 
-/** Liten ikonknapp med tooltip + aria-label. */
+/** Ren ikonknapp (utan boxad bakgrund, #453) med tooltip + aria-label. */
 const actBtn = (act, ic, label, extra = "") =>
-  `<button type="button" class="btn ghost small icon-btn ${extra}" data-act="${act}"
+  `<button type="button" class="area-act ${extra}" data-act="${act}"
     title="${esc(label)}" aria-label="${esc(label)}">${icon(ic, 16)}</button>`;
 
 /**
@@ -124,7 +124,7 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
       <td><div class="area-tbl-actions">
         ${actBtn("edit", "pencil", `Redigera ${a.name}`)}
         ${actBtn("review", "eye", "Granska")}
-        ${actBtn("add", "plus", "Lägg till innehåll", "gron")}
+        ${actBtn("add", "plus", "Lägg till innehåll")}
         ${actBtn("reading", "book", "Nivåtexter")}
         ${actBtn("del", "trash", "Ta bort", "danger")}
       </div></td>

@@ -2,8 +2,8 @@
 // Pluggporten – lärarsidan: Innehållsstudion (teacher-content.js)
 // ----------------------------------------------------------------------------
 // #/larare/innehall, ombyggd (issue #303) från en tät JSON-vägg till en STUDIO:
-//   • BIBLIOTEK (landning): ämnesflikar + sorterbar tabell per arbetsområde
-//     (ärlig status, #441), "Skapa nytt område". Klick på rad → redigera i
+//   • BIBLIOTEK (landning): ETT studiokort (#453) med sidhuvud, ämnesflikar,
+//     verktygsrad och sorterbar tabell per arbetsområde (ärlig status, #441). Klick på rad → redigera i
 //     kompositören. Sorteringsstate ({key, dir}) bor här. (Denna fil.)
 //   • SKAPA/REDIGERA-WIZARD (modal, issue #442): 4 steg – grundinställningar,
 //     innehåll & AI-önskemål, AI-verkstaden, synlighet & spara. All wiring bor i
@@ -21,7 +21,7 @@
 
 import * as data from "./data.js";
 import { buildAreaTable } from "./teacher-content-list.js";
-import { buildLibraryView } from "./teacher-content-view.js";
+import { buildLibraryView, buildSubjectTab } from "./teacher-content-view.js";
 import { wireNewSubjectForm } from "./teacher-subject-form.js";
 import { filterSortAreas } from "./grades.js";
 import {
@@ -97,8 +97,7 @@ export async function pageLarareInnehall(ctx) {
   function renderSubjectTabs() {
     subjectTabs.replaceChildren(
       ...subjects.map((s) => {
-        const tab = el(`<button type="button" class="subject-tab ${s.id === selected ? "active" : ""}"
-          role="tab" aria-selected="${s.id === selected}">${esc(s.icon || "📘")} ${esc(s.name)}</button>`);
+        const tab = buildSubjectTab(s, s.id === selected);
         tab.addEventListener("click", () => {
           if (selected === s.id) return;
           selected = s.id;
@@ -180,7 +179,7 @@ export async function pageLarareInnehall(ctx) {
 
   const container = el(`<div class="teacher-page teacher-dark"></div>`);
   container.appendChild(teacherNav(ctx, "innehall"));
-  container.appendChild(teacherHead(ctx, { icon: "book", title: "Innehållsstudion" }));
+  // Sidhuvudet (ikon + titel + undertitel) ligger INNE i studiokortet (#453).
   container.appendChild(lib);
   container.appendChild(wizard.element);
   ctx.app.replaceChildren(container);
