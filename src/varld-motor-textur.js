@@ -168,6 +168,28 @@ export function slutaSpana() {
 // ---- Geometri -----------------------------------------------------------------
 
 /**
+ * Nolla stagets EGEN scroll (F7 #433). `.varld-stage` är overflow:hidden men
+ * ändå en scroll-container: fokus på ett delvis klippt element (Tab till
+ * klasskylten när scenen är lägre än lagret) eller scrollIntoView scrollar den.
+ * Lagren OCH canvasen (absolut i staget) flyttas då med −scroll, medan boxen
+ * mäts mot stagets ruta → lagret ritades dubbelt förskjutet och samma roll fick
+ * en ny nyckel. Dokumentets scroll påverkar inget (allt mäts i viewport-px i
+ * samma ögonblick). @returns {boolean} fanns det scroll att nolla
+ */
+export function nollaScroll(stage) {
+  if (!stage || (!stage.scrollTop && !stage.scrollLeft)) return false;
+  stage.scrollTop = 0;
+  stage.scrollLeft = 0;
+  return true;
+}
+
+/** Stagets ruta för geometrin – alltid med stagets egen scroll nollad (F7 #433). */
+export function stageRam(stage) {
+  nollaScroll(stage);
+  return stage.getBoundingClientRect();
+}
+
+/**
  * Lagrets OTRANSFORMERADE box i stage-px + matrisen box-px → viewport (med
  * kamerans aktuella scale kring transform-origin).
  */

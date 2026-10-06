@@ -103,8 +103,10 @@ export function skapaAvsikt(ctx) {
     const byggda = [];
     let synkMs = 0;
     // Bara roller i lagrets AKTUELLA geometri (en äldre roll-nyckel med annan box
-    // ligger kvar i LRU:n tills den trängs undan – den spelas aldrig mer).
-    const sr = stage.getBoundingClientRect();
+    // ligger kvar i LRU:n tills den trängs undan – den spelas aldrig mer). Scroll
+    // ger inte längre någon sådan (F7 #433: stageRam), men en lagerbox kan ändras
+    // utan att stagets mått gör det (layout-/klassbyte utan resize) → vakten kvar.
+    const sr = TX.stageRam(stage);
     const { box } = TX.lagerGeo(aktiv, sr);
     const aktuell = (r) => Math.abs(r.vy.x + box.x) < 0.5 && Math.abs(r.vy.y + box.y) < 0.5 && Math.abs(r.vy.w - sr.width) < 0.5 && Math.abs(r.vy.h - sr.height) < 0.5;
     for (const n of TX.neutralaPoster(aktiv)) {

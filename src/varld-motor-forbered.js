@@ -65,7 +65,7 @@ export function vantaTexturer(klart, spelbart, deadline, reservTill = deadline) 
  */
 export async function forbered(spec, slapp, deadline, { stage, yta, reservTill = deadline }) {
   const t0 = performance.now();
-  const sr = stage.getBoundingClientRect();
+  const sr = TX.stageRam(stage);
   const Y = spec.yttre, I = spec.inre;
   const gY = TX.lagerGeo(Y.el, sr), gI = TX.lagerGeo(I.el, sr);
   if (!gY.box.w || !gY.box.h || !gI.box.w || !gI.box.h) return { orsak: "ingen-box" };
