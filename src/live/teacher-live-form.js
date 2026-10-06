@@ -29,7 +29,7 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
         <span>${esc(c.name || c.id)} <small>(${(c.studentIds || []).length})</small></span></label>`).join("") ||
         `<p class="hint">Inga klasser ännu – skapa klasser under Klasser &amp; elever.</p>`}</div>
     </div>
-    <div class="live-divisors" hidden>
+    <div class="field live-divisors" hidden>
       <label>Nämnare per klass <small class="hint">(antal elever idag – poäng = rätt / nämnare)</small></label>
       <div class="live-divisor-rows"></div>
     </div>

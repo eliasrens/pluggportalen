@@ -22,7 +22,7 @@ export function mountProjector(ctx, sid, { cleanups, uid }) {
     <div class="live-proj-bar">
       <a class="back-link" data-back>← Live</a>
       <span class="live-proj-mode"></span>
-      <button class="btn small ghost" data-fs>⛶ Fullskärm</button>
+      <button class="btn small ghost" data-fs>Fullskärm</button>
     </div>
     <h1 class="live-proj-title">…</h1>
     <div class="live-proj-body"><div class="spinner">Ansluter till matchen…</div></div>
