@@ -240,13 +240,13 @@ export function skapaForvarmare(ctx) {
   }
 
   /** Båda rollerna för övergången Y → I (tomma lager hoppas över). */
-  function byggPar(Y, I, sr, yta, prio) {
+  function byggPar(Y, I, sr, yta, prio, kalla) {
     const roller = [[Y, TX.lagerGeo(Y.el, sr), 1, Y.zoom], [I, TX.lagerGeo(I.el, sr), 1 / Y.zoom, 1]];
     for (const [niva, g, zMin, zMax] of roller) {
       if (!niva.el.childElementCount || !g.box.w || !g.box.h) continue;
       // Lager med levande ambient (utanför sprites) speglas om vid handoff
       // ändå; förvärmningen är bara reserven → högst var 4:e sekund.
-      TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio, tak: TX.levandeBas(niva.el) ? 4000 : 0 });
+      TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio, ...(kalla ? { kalla } : {}), tak: TX.levandeBas(niva.el) ? 4000 : 0 });
     }
   }
 
@@ -260,7 +260,7 @@ export function skapaForvarmare(ctx) {
     const stage = ctx.stage(), yta = ctx.yta();
     if (!stage || !yta || !ctx.ledig() || !Y?.el?.isConnected || !I?.el?.isConnected) return false;
     if (!Y.el.childElementCount || !(Y.zoom > 0)) return false;
-    byggPar(Y, I, stage.getBoundingClientRect(), yta, "nu");
+    byggPar(Y, I, stage.getBoundingClientRect(), yta, "nu", "mal");
     return true;
   }
 

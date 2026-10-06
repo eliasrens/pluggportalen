@@ -27,6 +27,7 @@ import {
 import {
   currentStudentId,
   getStudentData,
+  getCachedStudentData,
   defaultStudentData,
   invalidateStudentData,
   ownedCount,
@@ -49,6 +50,12 @@ import {
   FARM_MAX_GROWTH_STAGE,
 } from "./farm-core.js";
 import { isFarmAnimalItem, getItem } from "./shop-items.js";
+
+/** Gårds-tillståndet ur FÄRSK cache, annars null – läser aldrig (Pixi #426). */
+export function getCachedFarm(studentId = currentStudentId()) {
+  const data = getCachedStudentData(studentId);
+  return data === undefined ? null : farmFromData(data);
+}
 
 /**
  * Hela gårds-tillståndet för inloggad (eller angiven) elev, alltid ett

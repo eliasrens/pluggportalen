@@ -111,6 +111,11 @@ export function invalidateStudentData(studentId = currentStudentId()) {
   if (studentId) _studentDataCache.invalidate(studentId);
 }
 
+/** Färsk CACHAD studentData eller undefined – läser aldrig (Pixi-förvärmning #426). */
+export function getCachedStudentData(studentId = currentStudentId()) {
+  return studentId ? _studentDataCache.getFresh(studentId) : undefined;
+}
+
 /** Töm hela studentData-cachen (in-/utloggning, test). */
 export function clearStudentDataCache() {
   _studentDataCache.clear();

@@ -30,7 +30,7 @@ import { createKamera } from "./varld-kamera.js";
 import { gardScen, laggardScen } from "./art-gard.js";
 import { mountOdling } from "./varld-odling.js";
 import { mountGardDjur } from "./gard-djur.js";
-import { getFarm } from "./data-farm.js";
+import { getFarm, getCachedFarm } from "./data-farm.js";
 import { mountFoder } from "./varld-foder.js";
 import { mountLadaSkin } from "./varld-lada-skin.js";
 import { mountLadaVerktyg } from "./varld-lada-verktyg.js";
@@ -201,18 +201,22 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
 
   /**
    * Pixi-rörelsen (#396, I1 #426): förbered första gårdsbesöket vid hover/
-   * fokus på "Till gården" – rita scenerna (bygg: session-cachad studentData,
-   * samma läsning som besöket) och skapa kameran (registreras hos motorn), så
-   * att hus → gård kan förvärmas. Djur/odling ritas först vid besöket (de
-   * läser färskt). Gör inget utan aktiv motor (pp:pixi:av = exakt dagens).
+   * fokus på "Till gården". Ytterrollen (huset kring gård-fokus) behöver ingen
+   * data och förvärms alltid. Gårds-scenen ritas (+ kameran skapas, så motorn
+   * känner nivåerna) BARA om studentData ligger färsk i sessions-cachen –
+   * hovern får aldrig orsaka en Firestore-läsning (varje skrivning ogiltig-
+   * förklarar cachen). Djur/odling ritas först vid besöket (de läser färskt).
+   * Utan aktiv motor (pp:pixi:av): inget.
    */
   async function forvarm() {
     if (!pixiAktiv() || stage.dataset.niva !== "hus") return false;
-    await bygg();
-    if (stage.dataset.niva !== "hus") return false;
-    tradgard?.()?.gardRita();
-    ensureKamera();
-    const gard = kamera && { el: gardLager, fokus: dorrFokus, zoom: 5 };
+    if (getCachedFarm()) {
+      await bygg();
+      if (stage.dataset.niva !== "hus") return false;
+      tradgard?.()?.gardRita();
+      ensureKamera();
+    }
+    const gard = { el: gardLager, fokus: dorrFokus, zoom: 5 };
     return !!window.__ppPixi?.motor?.forvarmOvergang?.(husGardNiva, gard);
   }
 
