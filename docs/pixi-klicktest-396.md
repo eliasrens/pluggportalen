@@ -321,8 +321,56 @@ målförvärmningen orörd, byn utan levande bas-ambient → ingen avsikts-spegl
 **Kvar (utanför F6):**
 - **Scrollat dokument förskjuter canvasen.** I ett fönster lägre än sidan (437 px) scrollade dokumentet 64 px. Då fick
   samma roll två nycklar (`vy.y` 89 resp. −75, alltså 164 px isär) och canvasen ritade husets lager ~164 px för högt
-  vid start (n7). Det tyder på att `lagerGeo` eller `roll` påverkas av scroll eller av ett mellanläge i kameran.
-  Avsikten hoppar nu över roller vars geometri inte är aktuell. Själva felet är inte utrett.
+  vid start (n7). Utrett och åtgärdat i F7, se §10: det var stagets EGEN scroll, inte dokumentets.
 - **Ambient vid reserv efter 250 ms.** Restfelet = driften sedan hover/fokus (r2: 854 ms ⇒ moln ≤ 18 px). Exakt 0
   även där kräver sandwich (ambient-skivor i rätt z-ordning, ~2× GPU) eller att ambienten pausas medan målet är
   hovrat. Det sista är en synlig beteendeändring och kräver Elias OK.
+
+## 10. F7 (#433): scroll – stagets egen scroll, inte dokumentets
+
+**Rotorsak.** `.varld-stage` är `overflow:hidden`, men det är ändå en scroll-container. Den kan scrollas av
+`scrollIntoView` och av fokus på ett delvis klippt element. Riktigt exempel: 1000×360 (desktop, scenen 360 px men
+scen-boxen min 420 px), där Tab till klasskylten ger `stage.scrollTop = 10`. Lagren och canvasen (`position:absolute`
+i staget) flyttas då båda med −scroll. Lagrets box mättes mot stagets ruta (`getBoundingClientRect`), så boxen fick
+också −scroll. Canvasen ritade alltså lagret dubbelt förskjutet, och rollnyckeln (`vy`) ändrades med scrollen.
+F6:s nycklar (`vy.y` −75 → 89) motsvarar exakt en stage-scroll på 164 px. **Dokumentets scroll påverkar ingenting:** lager, stage
+och canvas mäts i viewport-px i samma ögonblick, och samma nyckel ges före och efter dokument-scroll (mätt).
+
+**Åtgärd** (bara motor-filerna, ingen CSS):
+- `TX.stageRam(stage)` (`varld-motor-textur.js`) nollar stagets egen scroll och ger sedan stagets ruta. Den används för
+  all geometri: handoff (`forbered`), mål-, idle- och övergångsförvärmning (`varld-motor-mal.js`) och avsikten.
+- Scroll-vakt i `koppla()` (`varld-motor-mal.js`): staget nollas så fort det scrollats, när Pixi kan spela. Scroll-
+  händelsen kommer före paint, så den scrollade bilden syns aldrig. Fokus-ringen på ett delvis klippt element (kanten
+  på klasskylten i ett 360 px högt fönster) förblir då klippt, precis som innan fokus.
+- `pp:pixi:av` och reduced-motion (CSS-vägen): orörda. Staget kan scrollas som idag (mätt: `scrollTop` 30 kvar, `css:av`).
+- F6:s skydd i avsikten (bara roller i lagrets aktuella geometri) ligger kvar: scroll ger inte längre några inaktuella
+  roller, men en lagerbox kan ändras utan att stagets mått gör det (layout-/klassbyte utan resize).
+
+**Mätmetod.** Desk (SwiftShader), `preview-pixi-hus.html?pixi=frys,debug` med stub. En init-script-harness höll
+workerns `spela`-meddelande vid START: canvasen visar då `fran` och DOM:en är gömd. Skärmdump av DOM före klicket,
+av canvasen vid START, och av DOM respektive canvas (`jamfor`) efter SLUT. Diff = bästa förskjutning (±6–14 px) i
+rutor runt hus/skylt (START) och hela scenen utom HUD (SLUT), samt andel pixlar > 40. Kvarvarande ≤ 2 % är kantbrus,
+molndrift mellan skärmdump och klick, och `.varld-ui` (rubrik/knappar byts vid navigeringen och speglas inte).
+Varje klick/tangent verifierades med `evaluate_script` (hash, `pixiSpel`, `senaste`).
+
+| # | Viewport | Scroll | Resa / input | Väg, väntan | START | SLUT |
+|---|---|---|---|---|---|---|
+| f1 | 1000×360 | **före fixen**: Tab → stage 10 px | T2 ut, Enter | pixi, klart | **dy −10 px** | **dy −10 px** |
+| f2 | 1000×360 | Tab → stage 10 px, vakten nollar | T2 ut, Enter (`1:f`) | pixi, klart | 0 px (hus 0,14 %) | 0 px (1,4 %) |
+| f3 | 1366×600 | stage 64 px (före fixen, idle-nyckel `vy.y` −75 → −11) | T2 ut, klick | pixi, klart | – | **dy −64 px** |
+| f4 | 1366×600 | stage 64 px + `scrollIntoView`, vakten nollar; nycklar identiska | T3 in, Enter (`0:f`) | pixi, klart | 0 px (0,8 %) | 0 px (1,1 %) |
+| f5 | 1366×600 | som f4 | T2 ut, Enter | pixi, klart | 0 px (0,5 %) | 0 px (1,4 %) |
+| f6 | 1366×600 | som f4 | T7 in, hover → klick | pixi, klart (mål) | 0 px (0,1 %) | 0 px (0,1 %) |
+| f7 | 390×700 | dokument 28 px; nycklar identiska | T2 ut, klick | pixi, klart | 0 px (0,7 %) | 0 px (1,2 %) |
+| f8 | 390×700 | dokument 28 → 0 px **mitt i rörelsen** + stage 40 px (nollad) | T7 in, klick | pixi, klart | 0 px (0,4 %) | 0 px (0,3 %) |
+| f9 | 390×700 (`preview-pixi-by`) | dokument 28 px + stage 40 px (nollad) | T4 in, hover → klick | pixi, klart, målets pyramid återanvänd | – | – |
+
+Dokumentet går bara att scrolla på smal skärm (≤ 820 px, staget är `clamp(…)` högt). På desktop är staget `100dvh`,
+så där scrollas bara staget själv. **Scroll under pågående rörelse** (f8): canvasen ligger i staget och flyttar med
+dokumentet precis som DOM-lagren. Rörelsen och slutbilden påverkas inte, och CSS-vägen beter sig likadant.
+
+**Hittat på vägen (utanför F7, ej åtgärdat):** på mobil (≤ 700 px) krymper staget när `data-niva="rum"` sätts
+(`styles.css`, rum-regeln: 580 → 452 px vid 390×700). T3 in spelas klart via Pixi, men vid landningen ger
+ResizeObserver `avbryt()` + `rensaAllt()`, så loggen (`senaste`) tappas och alla pyramider byggs om i idle efter
+landningen. Samma sak med och utan scroll.
+

@@ -186,6 +186,12 @@ export function interpolera(fran: LagerState[], till: LagerState[], tMs: number)
 // NivaGeo = { id, box:{x,y,w,h} (stage-px), fokus:{x,y} (% av egen box), zoom }
 ```
 
+**Stage-px = oscrollat stage (F7 #433).** `.varld-stage` är `overflow:hidden` men ändå en scroll-container: fokus på
+ett delvis klippt element eller `scrollIntoView` kan scrolla den. Lagren och canvasen (absolut i staget) flyttas då med
+−scroll. All geometri mäts därför via `TX.stageRam(stage)`, som nollar stagets egen scroll först, och en scroll-vakt
+i `koppla()` nollar den direkt (scroll-händelsen kommer före paint) när Pixi kan spela. `pp:pixi:av`/reduced-motion
+rör den inte. Dokumentets scroll påverkar ingenting: allt mäts i viewport-px i samma ögonblick.
+
 Worker-protokoll (meddelanden): `init{canvas,w,h,dpr}` → `redo{maxTex}` | `fel{…}`;
 `satLager{yta,lagerId,scen}`; `vila{yta,state}` → `visar{yta}` (efter workerns rAF-commit);
 `spela{yta,anim}` → `klar{yta,frames}`; `rensa{yta}`; `slapp{yta,lagerId}`; `kontext{forlorad|aterstalld}`.
