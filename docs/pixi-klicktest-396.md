@@ -374,3 +374,65 @@ dokumentet precis som DOM-lagren. Rörelsen och slutbilden påverkas inte, och C
 ResizeObserver `avbryt()` + `rensaAllt()`, så loggen (`senaste`) tappas och alla pyramider byggs om i idle efter
 landningen. Samma sak med och utan scroll.
 
+
+## 11. F8 (#434): mobil – stagets höjd byts vid rum-landningen
+
+**Vad som händer.** På mobil (≤ 700 px) har rummet en egen stage-höjd (`styles.css`, rum-regeln: 390×700 → 580/452 px,
+360×640 → 520/418 px). Höjden byts när kameran landar: `onNiva` → `updateUi` → `stage[data-niva]`, KAMERA_MS efter
+`tillampaDom`. Rörelsen spelar alltså alltid i startnivåns geometri, och höjden byts vid slutet, aldrig mitt i eller vid
+start. CSS-vägen gör exakt samma sak: DOM-lagren fyller staget, som behåller sin höjd tills landningen. Workern har då
+1–2 frames kvar. Före fixen syntes canvasen (gammal bild) uttöjd till den nya höjden i ~2 frames (mätt: `data-niva=hus`
+vid 1259 ms, ResizeObserver först vid 1297 ms). Sedan körde ResizeObserver `avbryt()` + `rensaAllt()`, så loggen tappades
+och alla pyramider byggdes om.
+
+**Val: känn igen nivåns resize, invalidera ingenting (variant av (a) + (b)).**
+- *Klassning* (`varld-motor-resize.js`, `klassa()`): en stage-resize med samma viewport (`innerWidth/innerHeight`) och
+  dpr som förra mätningen, där `data-niva` har bytts (eller inom 1 s efter bytet), är `niva`. Allt annat är `akta`.
+  Rotation och fönsterstorlek ändrar alltid viewporten. Kombinationen nivåbyte + fönsterändring räknas som äkta.
+- *Ingen förmätning av målnivån.* Att mäta målnivåns höjd före rörelsen hade krävt att `data-niva` växlas och lagret
+  layoutas om i klicket. Den förväntade resizen känns igen på nivåbytet i stället, och slutläget är ändå DOM:en.
+- *(b) gratis:* rollnyckeln kodar redan lagrets box, stagets vy och dpr. Därför kastas inget vid `niva`: rummets
+  452-roller byggs i idle efter landningen, och husets 580-roller ligger kvar till nästa gång staget är 580. En
+  pyramid kan aldrig spelas i fel geometri, eftersom nyckeln då inte matchar. LRU:n tar minnet.
+- *Landning före paint:* `data-niva`-mutationen (mikrotask direkt efter `updateUi`) mäter staget. Har storleken bytts
+  under en rörelse som spelar, tas `.varld-pixi-spelar` bort och canvasen göms i samma task. Den första målade framen
+  med ny höjd är alltså DOM:en i slutläget, samma bild som CSS-vägen. `avsluta()` loggar som vanligt med
+  `landad: {till, ms}`. Förbereds rörelsen fortfarande (mätt i den gamla storleken) avbryts den som idag.
+- `pp:pixi:av`: ingen yta, och motorn rör ingenting (mätt: `css:av`, ingen resize-post, 0 pyramider).
+
+**Mätmetod.** Desk (SwiftShader), `preview-pixi-rum.html?pixi=tvinga,frys` (riktiga appen med minnes-Firestore), i
+viewport 390×700 och 360×640 (`emulate`). All input var riktig: `Enter` på `#husgrupp` för T3 in, och `Enter` → `Tab` →
+`Enter` i "Gå ut"-menyn (respektive klick på 🚪 och menyvalet) för T3 ut. Varje steg verifierades med
+`evaluate_script` (hash, `data-niva`, `pixiSpel`, `senaste`, `resize`). Harnessen (`.f8tmp/`, ej incheckad) höll
+workerns `spela` vid START: canvasen visar då `fran` och DOM:en är gömd. Den jämfördes med en DOM-skärmdump före
+klicket. Vid SLUT fördröjdes `onNiva` (25 s), så att canvasens sista frame kunde jämföras med DOM:en i samma geometri
+(`jamfor`). Idle spärrades under slut-skärmdumpen, för en idle-förvärmning (texturuppladdning) får workern att committa
+en tom buffer. Diff = bästa förskjutning ±6 px, andel pixlar > 40. Allt som återstår är husdjurens promenad, ✏️-etiketter
+(hover/fokus före klicket), moln/rök och kantbrus i speglingen.
+
+| # | Viewport | Resa | Väg | START (scen · hus/dörr) | SLUT (scen · hus/dörr) | Landning |
+|---|---|---|---|---|---|---|
+| a1 | 390×700 | T3 ut (klick) | pixi, klart | 0 px (4,1 % husdjur) · dörr 0 px | – (idle tömde canvasen, se c1) | `niva`, ingen `rensaAllt` |
+| b1 | 390×700 | T3 in (Enter) | pixi, klart | 0 px (0,2 %) · hus 0 px (0,4 %) | – (`onNiva` hann före, se d1) | `niva`, stats 30 → 30 tex |
+| c1 | 390×700 | T3 ut (Enter) | pixi, klart | 0 px (4,9 %) · dörr 0 px | 0 px (0,7 %) · hus 0 px (0,4 %) | `niva`, ingen `rensaAllt` |
+| d1 | 390×700 | T3 in (Enter) | pixi, klart | 0 px (0,3 %) · hus 0 px (1,0 %) | 0 px (4,3 %, moln i fönstret) · dörr 0 px | `niva`, stats 30 → 30 tex |
+| e1 | 360×640 | T3 ut (Enter) | pixi, klart | 0 px (7,2 % husdjur) · dörr 0 px | 0 px (2,1 %) · hus 0 px (5,0 % moln/rök) | `niva`, ingen `rensaAllt` |
+| f1 | 360×640 | T3 in (Enter) | pixi, klart | 0 px (0,4 %) · hus 0 px (1,1 %) | 0 px (6,9 % husdjur) · dörr 0 px | `niva`, stats 24 → 24 tex |
+
+**Utan hållning (frame-sond, rAF).** T3 ut och T3 in på båda viewporterna: den första framen med ny höjd har
+`.varld-pixi-spelar` borta och canvasen gömd (`[1215 ms, 520 px, -, spelar, hus, hidden]`, 360×640). Workern blir klar
+~25 ms senare och loggen behålls (`landad: {till:"305x520@1", ms:1093}`). `Yta.stats()` 24 tex / 11,3 MB före = efter.
+520-rollen `p9` (idle, byggd i huset) överlevde rum-landningen (f1) och återanvändes vid nästa hus-landning. Före fixen fanns en frame med uttöjd canvas, `senaste = null`, och
+alla poster var nybyggda.
+
+**Slutbild Pixi = CSS** (360×640, T3 in, `pp:pixi:av` som referens, efter landningen): dörren 0 %, övre väggen 0,9 %,
+0 px förskjutning. Det som återstår är husdjurens och molnens slumpade positioner.
+
+**Äkta resize mitt i en rörelse** (T3 in hållen vid START, `emulate` 360×640 → 640×360): `typ:"akta"`, `rensaAllt:true`,
+rörelsen avbruten (`.varld-pixi-spelar` borta, DOM i slutläget), texturer 30 → 12 (idle-förvärmt i den nya storleken).
+Samma beteende som idag.
+
+**Kvar / utanför F8.** Höjdbytet syns fortfarande som ett hopp vid landningen, i båda vägarna, eftersom det är appens CSS.
+Pixi skulle kunna dölja det genom att spegla det synliga slutlagret i målnivåns geometri. Det kräver dock `data-niva`-
+växling vid spegling, och zoomens centrum skulle avvika från CSS-vägens under rörelsen. Det är en synlig
+beteendeändring och kräver Elias OK.
