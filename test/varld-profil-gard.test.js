@@ -44,13 +44,15 @@ test("varld-gard.js importerar inget ur Pixi-vägen (en 404 där får inte fäll
   assert.ok(!/import\(["']\.\/varld-(render|motor)/.test(kod));
 });
 
-test("profilen 'gard' följer §2.4-formatet", () => {
+test("profilen 'gard' följer §2.4-formatet (F4b-semantik)", () => {
   assert.equal(profil.id, "gard");
   assert.equal(profil.fangst, "stage");
   assert.deepEqual([...profil.ambient].sort(), [".fdjur-gava", ".gard-djur", ".odling-klar"]);
-  for (const s of ["#laggard-dorr", ".odling-slot"]) assert.ok(profil.objekt.includes(s), `objekt har ${s}`);
+  // Bara ladans djur som sprites: hagens djur ligger UNDER staketets framkant.
+  assert.deepEqual(profil.sprites, ["#laggard-lager .gard-djur"]);
+  assert.deepEqual([...profil.objekt].sort(), ["#laggard-dorr", ".odling-slot"]);
   assert.ok([].concat(profil.ignorera).includes(".foder-hjarta"));
-  assert.match(profil.malSelektor, /^#laggard-dorr\[data-fokus-x\]$/);
+  assert.equal(profil.malSelektor, "#laggard-dorr[data-fokus-x]");
 });
 
 test("dörrens data-fokus är exakt gårdskamerans T8-fokus", () => {
@@ -60,4 +62,5 @@ test("dörrens data-fokus är exakt gårdskamerans T8-fokus", () => {
   assert.match(kod, /\{ id: "gard", el: gardLager, fokus: dorrFokus, zoom: 5 \}/);
   assert.match(kod, /setAttribute\("data-fokus-x", dorrFokus\.x\)/);
   assert.match(kod, /setAttribute\("data-fokus-y", dorrFokus\.y\)/);
+  assert.match(kod, /setAttribute\("data-fokus-lager", laggardLager\.id\)/);
 });

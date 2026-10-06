@@ -97,11 +97,12 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     gardLager.innerHTML = gardScen(
       farm ? { gardenTier: farm.gardenTier, barnLevel: farm.barnLevel, barnSkin: farm.barnSkin } : {});
     laggardLager.innerHTML = laggardScen(farm ? farm.barnLevel : 1, farm ? farm.barnSkin : null);
-    // Pixi-rörelsen (#396/#423): dörren bär kamerans T8-fokus så att motorn kan
-    // förvärma gård→laggård vid hover/fokus (profilens malSelektor).
+    // Pixi-rörelsen (#396/#423): dörren bär kamerans T8-fokus + innerlagret så
+    // att motorn kan förvärma gård→laggård vid hover/fokus (profilens malSelektor).
     const dorr = gardLager.querySelector("#laggard-dorr");
     dorr?.setAttribute("data-fokus-x", dorrFokus.x);
     dorr?.setAttribute("data-fokus-y", dorrFokus.y);
+    dorr?.setAttribute("data-fokus-lager", laggardLager.id);
     odling ??= mountOdling({ stage, gardLager });
     // Lada-skin-väljaren (#353): "🛖 Ny lada" på gårds-nivåerna. Ett sparat byte
     // ritar om BÅDA scenerna (bygg – nyckeln har ändrats) och ritar sedan om
