@@ -33,6 +33,8 @@
 //  3. AVSIKT (F6 #432, varld-motor-avsikt.js): hover/fokus på något klickbart
 //     i staget → det aktiva lagrets roller speglas om i aktuellt tillstånd och
 //     med färsk ambient-pose (reserven för klicket strax efter).
+//  All geometri mäts mot TX.stageRam (stagets egen scroll nollad, F7 #433), och
+//  koppla() håller staget oscrollat → samma roll = samma nyckel, oavsett scroll.
 //
 // Ingen Firestore: allt läses ur DOM:en som redan står där.
 // Laddas bara via import() (varld-motor.js) – aldrig i bootgrafen.
@@ -40,6 +42,7 @@
 
 import * as TX from "./varld-motor-textur.js";
 import { konfiguration } from "./varld-textur.js";
+import { pixiFlaggor, pixiMojlig } from "./varld-render.js";
 import { skapaAvsikt, aktivtLager } from "./varld-motor-avsikt.js";
 
 const DWELL_MS = 60;
@@ -147,7 +150,7 @@ export function skapaForvarmare(ctx) {
     m.zoom = tal(m.el.dataset.fokusZoom) || nivaFor(m.lager)?.zoom || tal(TX.profilFor(m.lager).zoom);
     if (!m.zoom) { notera(m, "ingen-zoom"); return; }
     m.startad = true;
-    const sr = ctx.stage().getBoundingClientRect();
+    const sr = TX.stageRam(ctx.stage());
     const g = TX.lagerGeo(m.lager, sr);
     if (!g.box.w || !g.box.h) { notera(m, "ingen-box"); return; }
     sakraEgen(m, "Y", TX.roll(m.lager, g, m.fokus, 1, m.zoom, sr));
@@ -158,7 +161,7 @@ export function skapaForvarmare(ctx) {
   function byggInre(m) {
     const el = m.inre;
     if (!el?.isConnected || !el.childElementCount) return;
-    const sr = ctx.stage().getBoundingClientRect();
+    const sr = TX.stageRam(ctx.stage());
     const g = TX.lagerGeo(el, sr);
     if (!g.box.w || !g.box.h) return;
     sakraEgen(m, "I", TX.roll(el, g, m.fokus, 1 / m.zoom, 1, sr));
@@ -240,7 +243,7 @@ export function skapaForvarmare(ctx) {
       if (k >= 0 && k < nivaer.length - 1) par.push([nivaer[k], nivaer[k + 1]]);
     }
     const maxPar = konfiguration().budget.maxPar - (mal?.startad ? 1 : 0);
-    const sr = stage.getBoundingClientRect();
+    const sr = TX.stageRam(stage);
     const sedda = new Set();
     for (const [Y, I] of par) {
       const nyckel = `${Y.el.id}>${I.el.id}>${Y.fokus.x},${Y.fokus.y}`;
@@ -276,7 +279,7 @@ export function skapaForvarmare(ctx) {
     const stage = ctx.stage(), yta = ctx.yta();
     if (!stage || !yta || !ctx.ledig() || !Y?.el?.isConnected || !I?.el?.isConnected) return false;
     if (!Y.el.childElementCount || !(Y.zoom > 0)) return false;
-    byggPar(Y, I, stage.getBoundingClientRect(), yta, "nu", "mal");
+    byggPar(Y, I, TX.stageRam(stage), yta, "nu", "mal");
     return true;
   }
 
@@ -293,6 +296,13 @@ export function skapaForvarmare(ctx) {
     stage.addEventListener("focusin", nar, o);
     stage.addEventListener("pointerout", lamna, o);
     stage.addEventListener("focusout", lamna, o);
+    // F7 #433: staget får aldrig stå scrollat (fokus på ett klippt element,
+    // scrollIntoView) när Pixi kan spela – se TX.nollaScroll. Scroll-händelsen
+    // kommer före paint, så den scrollade bilden syns aldrig. pp:pixi:av och
+    // reduced-motion (CSS-vägen) = dagens beteende.
+    const vakt = () => !pixiFlaggor().av && pixiMojlig();
+    stage.addEventListener("scroll", () => { if (vakt()) TX.nollaScroll(stage); }, { signal: lyssnare.signal, passive: true });
+    if (vakt()) TX.nollaScroll(stage);
   }
 
   function slappa() {
