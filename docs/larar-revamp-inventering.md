@@ -33,209 +33,209 @@
 
 | ID | Funktion | Vad den gör | Fil → funktion | Ny plats | QA |
 |---|---|---|---|---|---|
-| R-01 | `#/larare` | Redirect → `#/larare/klasser` (översiktshubben borttagen #304) | app.js `routes["/larare"]` | OFÖR | ☐ |
-| R-02 | `#/larare/klass` | Redirect → `#/larare/klasser` (gamla statistikfliken, #299) | app.js | OFÖR | ☐ |
-| R-03 | `#/larare/elever` | Redirect → `#/larare/klasser` | app.js | OFÖR | ☐ |
-| R-04 | `#/larare/prompter` | Redirect → `#/larare/innehall` (#62) | app.js | OFÖR | ☐ |
-| R-05 | `#/larare/klasser` | Klasser, elevkonton & statistik (enad sida) | app.js → `pageLarareKlasser(teacherCtx)` (teacher-classes.js) | `SKAL` + Master-Detail. 🆕 valfri query `?klass=<id>&sektion=<key>` (se §2.4) | ☐ |
-| R-06 | `#/larare/innehall` | Innehållsstudion | app.js → `pageLarareInnehall(teacherCtx)` (teacher-content.js) | `SKAL` + `TAB` | ☐ |
-| R-07 | `body.larare-lage` | Router håller mörk body-bakgrund under hela lärarvistelsen (inget vitt blänk vid flikbyte) | app.js `router()` | OFÖR | ☐ |
-| R-08 | Ingen elev-sidomeny på lärarsidor | `renderTopbar()` fäller ihop elevmenyn utanför `/elev/` | ui.js `renderTopbar` | OFÖR | ☐ |
-| R-09 | Lärarspärr – formulär | Användarnamn + lösenord + "Logga in" (Firebase Auth, claim `teacher:true`), "Loggar in…", felruta | teacher-shared.js `renderGate` → auth.js `signInTeacher` | OFÖR | ☐ |
-| R-10 | Lärarspärr – "← Tillbaka" | Till porten `#/` | `renderGate` | OFÖR | ☐ |
-| R-11 | Efter inloggning | Landar på `#/larare/klasser`; om hashen redan matchar dispatchas en syntetisk `hashchange` | `renderGate` | OFÖR (⚠️ se risk X-09 om `?klass=`) | ☐ |
-| R-12 | Behörighetskoll per sida | `isTeacher()` → annars `renderGate` | `pageLarareKlasser`, `pageLarareInnehall` | OFÖR (måste finnas kvar i de nya sid-skalen) | ☐ |
+| R-01 | `#/larare` | Redirect → `#/larare/klasser` (översiktshubben borttagen #304) | app.js `routes["/larare"]` | OFÖR | ✅ → `#/larare/klasser` (+ senast valda klass) |
+| R-02 | `#/larare/klass` | Redirect → `#/larare/klasser` (gamla statistikfliken, #299) | app.js | OFÖR | ✅ → `#/larare/klasser` |
+| R-03 | `#/larare/elever` | Redirect → `#/larare/klasser` | app.js | OFÖR | ✅ → `#/larare/klasser` |
+| R-04 | `#/larare/prompter` | Redirect → `#/larare/innehall` (#62) | app.js | OFÖR | ✅ → `#/larare/innehall` |
+| R-05 | `#/larare/klasser` | Klasser, elevkonton & statistik (enad sida) | app.js → `pageLarareKlasser(teacherCtx)` (teacher-classes.js) | `SKAL` + Master-Detail. 🆕 valfri query `?klass=<id>&sektion=<key>` (se §2.4) | ✅ Master-Detail. Djuplänk `?klass=4a&sektion=fokus` återställer klass+sektion; okänd `?klass=` → senast valda (sessionStorage), okänd sektion → Elever |
+| R-06 | `#/larare/innehall` | Innehållsstudion | app.js → `pageLarareInnehall(teacherCtx)` (teacher-content.js) | `SKAL` + `TAB` | ✅ Skal + tabell |
+| R-07 | `body.larare-lage` | Router håller mörk body-bakgrund under hela lärarvistelsen (inget vitt blänk vid flikbyte) | app.js `router()` | OFÖR | ✅ `body.larare-lage` satt på båda flikarna och i spärren |
+| R-08 | Ingen elev-sidomeny på lärarsidor | `renderTopbar()` fäller ihop elevmenyn utanför `/elev/` | ui.js `renderTopbar` | OFÖR | ✅ `#sidebar` är `display:none` på lärarsidor |
+| R-09 | Lärarspärr – formulär | Användarnamn + lösenord + "Logga in" (Firebase Auth, claim `teacher:true`), "Loggar in…", felruta | teacher-shared.js `renderGate` → auth.js `signInTeacher` | OFÖR | ✅ Fel lösen → "Fel användarnamn eller lösenord. Försök igen."; rätt lösen → in |
+| R-10 | Lärarspärr – "← Tillbaka" | Till porten `#/` | `renderGate` | OFÖR | ✅ "← Tillbaka" visas i spärren (inte klickad) |
+| R-11 | Efter inloggning | Landar på `#/larare/klasser`; om hashen redan matchar dispatchas en syntetisk `hashchange` | `renderGate` | OFÖR (⚠️ se risk X-09 om `?klass=`) | ✅ Landar på `#/larare/klasser`. X-09 som förväntat: sektionen i URL:en tappas efter inloggning via spärren, klassen minns (sessionStorage) |
+| R-12 | Behörighetskoll per sida | `isTeacher()` → annars `renderGate` | `pageLarareKlasser`, `pageLarareInnehall` | OFÖR (måste finnas kvar i de nya sid-skalen) | ✅ Spärren visas för utloggad (även efter omladdning) på båda sidorna |
 
 ### 1.2 Lärarskalet (`teacher-shared.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion | Ny plats | QA |
 |---|---|---|---|---|---|
-| N-01 | Varumärke "Lärarsida" + skol-ikon | Vänster i toppnaven | `teacherNav` | `SKAL` | ☐ |
-| N-02 | Flik "Klasser & elever" | `go("#/larare/klasser")` | `teacherNav` (hårdkodad `tabs`-array) | `SKAL` – rad i flik-registryn | ☐ |
-| N-03 | Flik "Innehåll" | `go("#/larare/innehall")` | `teacherNav` | `SKAL` – rad i flik-registryn | ☐ |
-| N-04 | Aktiv flik | `.active` + `aria-current="page"` | `teacherNav(ctx, active)` | `SKAL` | ☐ |
-| N-05 | "Logga ut" | `setTeacher(false)` → `signOutCurrent()`, sedan `go("#/")` | `teacherNav` | `SKAL` (fast, utanför registryn) | ☐ |
-| N-06 | Sidtitel | "Klasser & elever" / "Innehållsstudion" med linje-ikon | `teacherHead` | `SKAL` (kan tas från registry-radens `label`/`icon`) | ☐ |
-| N-07 | Tomtillstånd | Ikon + rubrik + text + ev. knapp med `data-hash` | `emptyState` | OFÖR (återanvänds överallt) | ☐ |
-| N-08 | Linje-ikoner | `icon(name, size)` – 26 ikoner, currentColor | `icon` / `ICONS` | OFÖR (lägg till ikoner vid behov) | ☐ |
-| N-09 | Kopiera till urklipp | `copyText(text, btn)` → "✓ Kopierat!" 1,6 s, fallback `execCommand` | `copyText` | OFÖR | ☐ |
-| N-10 | Interna länkar | `wireHashLinks` kopplar `[data-hash]` till `ctx.go` | `wireHashLinks` | OFÖR | ☐ |
+| N-01 | Varumärke "Lärarsida" + skol-ikon | Vänster i toppnaven | `teacherNav` | `SKAL` | ✅ |
+| N-02 | Flik "Klasser & elever" | `go("#/larare/klasser")` | `teacherNav` (hårdkodad `tabs`-array) | `SKAL` – rad i flik-registryn | ✅ |
+| N-03 | Flik "Innehåll" | `go("#/larare/innehall")` | `teacherNav` | `SKAL` – rad i flik-registryn | ✅ |
+| N-04 | Aktiv flik | `.active` + `aria-current="page"` | `teacherNav(ctx, active)` | `SKAL` | ✅ `.active` + `aria-current="page"` på rätt flik |
+| N-05 | "Logga ut" | `setTeacher(false)` → `signOutCurrent()`, sedan `go("#/")` | `teacherNav` | `SKAL` (fast, utanför registryn) | ✅ Loggar ut → `#/` (porten) |
+| N-06 | Sidtitel | "Klasser & elever" / "Innehållsstudion" med linje-ikon | `teacherHead` | `SKAL` (kan tas från registry-radens `label`/`icon`) | ✅ "Klasser & elever" / "Innehållsstudion" med ikon |
+| N-07 | Tomtillstånd | Ikon + rubrik + text + ev. knapp med `data-hash` | `emptyState` | OFÖR (återanvänds överallt) | ✅ T.ex. tomt ämne ("Inga arbetsområden i ämnet ännu") och Läsresan-tomt |
+| N-08 | Linje-ikoner | `icon(name, size)` – 26 ikoner, currentColor | `icon` / `ICONS` | OFÖR (lägg till ikoner vid behov) | ✅ Linje-ikoner OK. (Emojis visas som rutor i headless-Chrome – saknad font i testmiljön, inte appen) |
+| N-09 | Kopiera till urklipp | `copyText(text, btn)` → "✓ Kopierat!" 1,6 s, fallback `execCommand` | `copyText` | OFÖR | ✅ "✓ Kopierat!" (Kopiera alla, AI-prompt i wizard och nivåtexter) |
+| N-10 | Interna länkar | `wireHashLinks` kopplar `[data-hash]` till `ctx.go` | `wireHashLinks` | OFÖR | ⚪ Ej körd – kräver tomt bibliotek (O-04/L-05-knappen). Koden är oförändrad |
 
 ### 1.3 Klasser – sidnivå & skapa klass (`teacher-classes.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| K-01 | Initial laddning | Spinner "Laddar klasser…", `getClasses()` + `getStudents()` parallellt, felruta vid fel; elever sorteras på namn (sv) | `pageLarareKlasser` | Sid-skal/store (#440) | ☐ |
-| K-02 | "Skapa en ny klass" – klassnamn | Textfält | `#new-name` | `M` → knapp "+ Skapa en ny klass" som öppnar formuläret i detaljytan (eller modal) | ☐ |
-| K-03 | Antal elever | number 0–40, default 0 | `#new-count` | samma som K-02 | ☐ |
-| K-04 | "Skapa klass" | id = `slugify(namn)` (fallback `klass-<ts>`), dubblettkoll på id, `order` = max+1 → `data.upsertClass(id,{name,order})` | `#new-form submit` | samma som K-02; 🆕 nya klassen väljs automatiskt i `M` | ☐ |
-| K-05 | Valideringsfel | "Skriv ett namn…", "Det finns redan en klass som heter…", "Kunde inte skapa klassen…" | `#new-msg` | samma som K-02 | ☐ |
-| K-06 | 0 elever | "✓ Klassen skapades. Klicka **Elever**…" | `#new-form submit` | samma; texten pekar på `D:Elever` | ☐ |
-| K-07 | N elever → kontoeditor | `renderAccountEditor` med `usernamePrefix(namn)` och alla befintliga användarnamn som upptagna | `#new-form submit` → teacher-login-cards.js | `D:Elever` för nya klassen (se A-xx) | ☐ |
-| K-08 | Konton skapade | push till `state.students`, `data.setClassStudents(id, ids)` (fel → "klasskopplingen misslyckades"), rita om, credentials-panel | `onCreated` | `D:Elever` + credentials (C-xx) | ☐ |
-| K-09 | Tomtillstånd | "Inga klasser än" | `renderClasses` | `M` (tom lista + uppmaning) och tom `D` | ☐ |
-| K-10 | Klassordning | Sorterat på `order`, sedan namn (sv) | `renderClasses` | `M` | ☐ |
-| K-11 | Klassrad: namn + antal elever | `.class-name` + `.class-count` ("N elever") | `classCard` | `M` (namn + antal) och `D-huvud` | ☐ |
-| K-12 | Döp om | `prompt()` → `data.upsertClass(id,{name})`, uppdaterar namnet på kortet, `alert` vid fel | `classCard [data-act=rename]` | `D-huvud`; 🆕 namnet i `M` uppdateras också | ☐ |
-| K-13 | Ta bort klass | `confirm` ("Elevkontona finns kvar…") → `data.deleteClass(id)` → rita om | `classCard [data-act=del]` | `D-huvud` (danger); 🆕 efter borttag väljs nästa klass i `M` | ☐ |
-| K-14 | En panel åt gången | Klick öppnar en sektion och stänger övriga; klick på öppen fäller ihop | `togglePanel` | Ersätts av sektionsflikar i `D` (alltid exakt en sektion synlig) | ☐ |
-| K-15 | Biblioteks-cache | `loadLibrary()`: `getSubjects()` + `getAreas()` per ämne, ämnen utan områden bort; cachas för sidan, delas av Områden/Lägen/Fokus/Statistik | `loadLibrary` | Store (#440) – en gång per sidbesök, delad av alla klasser | ☐ |
-| K-16 | Laddningsfel i panel | "Kunde inte ladda arbetsområden/områden/byar/moduler/fokusläge/ämnen: …" | `lazyPanel` + Områden/Lägen/Statistik-hanterare | Sektions-värden i `D` (samma felmönster) | ☐ |
-| K-17 | Lazy-laddade paneler | Byar, Moduler, Fokusläge laddas via dynamisk `import()` (bootgraf-skydd #271) | `lazyPanel` | `D` – sektions-registryn har `load: () => import(...)` | ☐ |
+| K-01 | Initial laddning | Spinner "Laddar klasser…", `getClasses()` + `getStudents()` parallellt, felruta vid fel; elever sorteras på namn (sv) | `pageLarareKlasser` | Sid-skal/store (#440) | ✅ Spinner "Laddar klasser…", sedan Master-Detail |
+| K-02 | "Skapa en ny klass" – klassnamn | Textfält | `#new-name` | `M` → knapp "+ Skapa en ny klass" som öppnar formuläret i detaljytan (eller modal) | ✅ "+ Skapa en ny klass" → detaljytans ny-läge (D-4) |
+| K-03 | Antal elever | number 0–40, default 0 | `#new-count` | samma som K-02 | ✅ Default 0 |
+| K-04 | "Skapa klass" | id = `slugify(namn)` (fallback `klass-<ts>`), dubblettkoll på id, `order` = max+1 → `data.upsertClass(id,{name,order})` | `#new-form submit` | samma som K-02; 🆕 nya klassen väljs automatiskt i `M` | ✅ id = slug (`5e`, `4a`, `qa-tom`), `order` = max+1; 🆕 nya klassen väljs automatiskt |
+| K-05 | Valideringsfel | "Skriv ett namn…", "Det finns redan en klass som heter…", "Kunde inte skapa klassen…" | `#new-msg` | samma som K-02 | ✅ "Skriv ett namn…" och "Det finns redan en klass som heter "5E"". (Skrivfel-grenen inte provocerad) |
+| K-06 | 0 elever | "✓ Klassen skapades. Klicka **Elever**…" | `#new-form submit` | samma; texten pekar på `D:Elever` | ✅ Flash "✓ Klassen "5E" skapades. Lägg till elever nedan." + Elever-sektionen |
+| K-07 | N elever → kontoeditor | `renderAccountEditor` med `usernamePrefix(namn)` och alla befintliga användarnamn som upptagna | `#new-form submit` → teacher-login-cards.js | `D:Elever` för nya klassen (se A-xx) | ✅ Kontoeditor med `4a01`/`4a02` och prefix-förslag |
+| K-08 | Konton skapade | push till `state.students`, `data.setClassStudents(id, ids)` (fel → "klasskopplingen misslyckades"), rita om, credentials-panel | `onCreated` | `D:Elever` + credentials (C-xx) | ✅ Konton → `setClassStudents` → landar på Elever med lösenordspanel. (Felgrenen "klasskopplingen misslyckades" inte provocerad) |
+| K-09 | Tomtillstånd | "Inga klasser än" | `renderClasses` | `M` (tom lista + uppmaning) och tom `D` | ✅ "Inga klasser än" i master + skapa-läge i detaljen. Nit: URL:en behåller `?klass=<borttagen>` (ofarligt) |
+| K-10 | Klassordning | Sorterat på `order`, sedan namn (sv) | `renderClasses` | `M` | ✅ Sorterat på `order` |
+| K-11 | Klassrad: namn + antal elever | `.class-name` + `.class-count` ("N elever") | `classCard` | `M` (namn + antal) och `D-huvud` | ✅ Namn + antal i master och i detaljhuvudet |
+| K-12 | Döp om | `prompt()` → `data.upsertClass(id,{name})`, uppdaterar namnet på kortet, `alert` vid fel | `classCard [data-act=rename]` | `D-huvud`; 🆕 namnet i `M` uppdateras också | ✅ prompt → namnet uppdateras i huvudet OCH i master (🆕) |
+| K-13 | Ta bort klass | `confirm` ("Elevkontona finns kvar…") → `data.deleteClass(id)` → rita om | `classCard [data-act=del]` | `D-huvud` (danger); 🆕 efter borttag väljs nästa klass i `M` | ✅ confirm → nästa klass väljs (5E→4A), sista → föregående (4A→QA-klass) |
+| K-14 | En panel åt gången | Klick öppnar en sektion och stänger övriga; klick på öppen fäller ihop | `togglePanel` | Ersätts av sektionsflikar i `D` (alltid exakt en sektion synlig) | ✅ Sektionsflikar, alltid exakt en sektion; vald sektion behålls vid klassbyte |
+| K-15 | Biblioteks-cache | `loadLibrary()`: `getSubjects()` + `getAreas()` per ämne, ämnen utan områden bort; cachas för sidan, delas av Områden/Lägen/Fokus/Statistik | `loadLibrary` | Store (#440) – en gång per sidbesök, delad av alla klasser | ✅ Biblioteket delas: klassbyte gör 0 läsningar av `classes`/`students`/bibliotek (räknat i stubben `__ppStub`) |
+| K-16 | Laddningsfel i panel | "Kunde inte ladda arbetsområden/områden/byar/moduler/fokusläge/ämnen: …" | `lazyPanel` + Områden/Lägen/Statistik-hanterare | Sektions-värden i `D` (samma felmönster) | ⚪ Laddningsfel inte provocerat (koden `withLoading` granskad) |
+| K-17 | Lazy-laddade paneler | Byar, Moduler, Fokusläge laddas via dynamisk `import()` (bootgraf-skydd #271) | `lazyPanel` | `D` – sektions-registryn har `load: () => import(...)` | ✅ Synlighet (moduler+byar), Fokusläge och Läsresan laddas med `import()` |
 
 ### 1.4 Klass → Elever (medlemshanteraren, `teacher-class-accounts.js` `renderMemberManager`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| E-01 | Rubrik "Elever i klassen (N)" | Medlemmar sorterade på namn | `draw` | `D:Elever` | ☐ |
-| E-02 | Avatar-väljare per elev | `<select>` med alla `AVATARS` | `memberRow` / `avatarSelectHtml` | `D:Elever` | ☐ |
-| E-03 | Namn per elev | Redigerbart fält | `memberRow .mm-namn` | `D:Elever` | ☐ |
-| E-04 | Användarnamn | Visas, `disabled` ("kan inte ändras") | `memberRow .mm-username` | `D:Elever` | ☐ |
-| E-05 | Spara namn/avatar | 💾 → `data.upsertStudent(id,{namn,avatarId})`, "✓ Sparat"/"Namn saknas"/fel | `memberRow .mm-save` | `D:Elever` | ☐ |
-| E-06 | Läsnivå per elev | `<select>` nivå 1–3, autosparar `data.setReadingLevel(level,id)`, "✓ Nivå N"; batch-laddas via `getReadingLevel` | teacher-student-level.js `mountMemberLevels` | `D:Elever` | ☐ |
-| E-07 | Läsnivå – "Sätt för alla (N)" | Sätter vald nivå för alla medlemmar parallellt, speglar i varje väljare, "Sparade x/N…" vid delfel | `mountMemberLevels` (bulk) | `D:Elever` | ☐ |
-| E-08 | Ge 🪙 – belopp | number ≥1, default 10 | `memberRow .gc-amount` | `D:Elever` | ☐ |
-| E-09 | Ge 🪙 – snabbval +10 / +50 | Sätter beloppet | `wireGiveCoins .gc-quick` | `D:Elever` | ☐ |
-| E-10 | "Ge 🪙" | `data.addCoins(n,id)` → `data.getCoins(id)` → "✓ X fick N 🪙 – nytt saldo: M 🪙"; fel/"Skriv ett antal" | `wireGiveCoins .gc-give` | `D:Elever` | ☐ |
-| E-11 | Ta ur klassen | `data.setClassStudents(cls.id, utan elev)`, räknare + lista ritas om | `memberRow [data-act=unlink]` | `D:Elever`; 🆕 antalet i `M` uppdateras | ☐ |
-| E-12 | Ta bort konto | `confirm` ("…speldata… går inte att ångra") → `data.deleteStudent(id)` + `setClassStudents` | `memberRow [data-act=del]` | `D:Elever`; 🆕 antalet i `M` uppdateras | ☐ |
-| E-13 | Tomt | "Inga elever i klassen än – skapa konton nedan." | `draw` | `D:Elever` | ☐ |
-| E-14 | "Skapa nya elevkonton i klassen" | `<details>`: antal 1–40 (default 5), prefix-hint `<prefix>NN`, "Förbered konton" (fel "Ange ett antal") | `draw .mm-create` | `D:Elever` | ☐ |
-| E-15 | → kontoeditor → skapade | `renderAccountEditor` → `setClassStudents([...gamla, ...nya])` → credentials-panel ovanför listan | `draw` `onCreated` | `D:Elever` (⚠️ risk X-08) | ☐ |
-| E-16 | "Lägg till befintliga elever" | `<details>`: kryssrutor för elever som inte är medlemmar + "Lägg till valda" → `setClassStudents`; "Kryssa i minst en elev"; "Alla elevkonton finns redan i den här klassen." | `draw .mm-link` | `D:Elever` | ☐ |
-| E-17 | Live-räknare | Klasskortets "N elever" uppdateras vid varje ändring | `updateCount` / `countEl` | `M` + `D-huvud` | ☐ |
+| E-01 | Rubrik "Elever i klassen (N)" | Medlemmar sorterade på namn | `draw` | `D:Elever` | ✅ "Elever i klassen (N)" |
+| E-02 | Avatar-väljare per elev | `<select>` med alla `AVATARS` | `memberRow` / `avatarSelectHtml` | `D:Elever` | ✅ Avatar sparas (katt) |
+| E-03 | Namn per elev | Redigerbart fält | `memberRow .mm-namn` | `D:Elever` | ✅ |
+| E-04 | Användarnamn | Visas, `disabled` ("kan inte ändras") | `memberRow .mm-username` | `D:Elever` | ✅ disabled + title "Användarnamn kan inte ändras" |
+| E-05 | Spara namn/avatar | 💾 → `data.upsertStudent(id,{namn,avatarId})`, "✓ Sparat"/"Namn saknas"/fel | `memberRow .mm-save` | `D:Elever` | ✅ "✓ Sparat" |
+| E-06 | Läsnivå per elev | `<select>` nivå 1–3, autosparar `data.setReadingLevel(level,id)`, "✓ Nivå N"; batch-laddas via `getReadingLevel` | teacher-student-level.js `mountMemberLevels` | `D:Elever` | ✅ Autosparar "✓ Nivå 3" |
+| E-07 | Läsnivå – "Sätt för alla (N)" | Sätter vald nivå för alla medlemmar parallellt, speglar i varje väljare, "Sparade x/N…" vid delfel | `mountMemberLevels` (bulk) | `D:Elever` | ✅ "✓ Satte nivå 1 för 2 elever." + varje väljare speglas |
+| E-08 | Ge 🪙 – belopp | number ≥1, default 10 | `memberRow .gc-amount` | `D:Elever` | ✅ Default 10 |
+| E-09 | Ge 🪙 – snabbval +10 / +50 | Sätter beloppet | `wireGiveCoins .gc-quick` | `D:Elever` | ✅ +10/+50 |
+| E-10 | "Ge 🪙" | `data.addCoins(n,id)` → `data.getCoins(id)` → "✓ X fick N 🪙 – nytt saldo: M 🪙"; fel/"Skriv ett antal" | `wireGiveCoins .gc-give` | `D:Elever` | ✅ "✓ Testa Testsson fick 10 🪙 – nytt saldo: 60 🪙", tomt fält → "Skriv ett antal". ⚠️ Förekommande sedan tidigare: samtidigt med en nivå-sparning visades "nytt saldo: 0" fast DB hade 50 (cache-race i data.js, inte epicen) |
+| E-11 | Ta ur klassen | `data.setClassStudents(cls.id, utan elev)`, räknare + lista ritas om | `memberRow [data-act=unlink]` | `D:Elever`; 🆕 antalet i `M` uppdateras | ✅ 🆕 Antalet i master + huvud uppdateras direkt |
+| E-12 | Ta bort konto | `confirm` ("…speldata… går inte att ångra") → `data.deleteStudent(id)` + `setClassStudents` | `memberRow [data-act=del]` | `D:Elever`; 🆕 antalet i `M` uppdateras | ✅ confirm → borttagen, antal uppdateras. ⚠️ Förekommande sedan tidigare: ett zombie-dokument `students/{id}` = `{classIds:[]}` blir kvar, och Auth-kontot finns kvar (se P2) |
+| E-13 | Tomt | "Inga elever i klassen än – skapa konton nedan." | `draw` | `D:Elever` | ✅ "Inga elever i klassen än – skapa konton nedan." |
+| E-14 | "Skapa nya elevkonton i klassen" | `<details>`: antal 1–40 (default 5), prefix-hint `<prefix>NN`, "Förbered konton" (fel "Ange ett antal") | `draw .mm-create` | `D:Elever` | ✅ Default 5, hint `4aNN`, "Förbered konton" |
+| E-15 | → kontoeditor → skapade | `renderAccountEditor` → `setClassStudents([...gamla, ...nya])` → credentials-panel ovanför listan | `draw` `onCreated` | `D:Elever` (⚠️ risk X-08) | ✅ Lösenordspanelen ovanför listan. X-08: panelen ligger kvar vid klassbyte tills "Stäng – jag har sparat lösenorden" |
+| E-16 | "Lägg till befintliga elever" | `<details>`: kryssrutor för elever som inte är medlemmar + "Lägg till valda" → `setClassStudents`; "Kryssa i minst en elev"; "Alla elevkonton finns redan i den här klassen." | `draw .mm-link` | `D:Elever` | ✅ "Kryssa i minst en elev." + lägger till vald elev |
+| E-17 | Live-räknare | Klasskortets "N elever" uppdateras vid varje ändring | `updateCount` / `countEl` | `M` + `D-huvud` | ✅ Master + detaljhuvud |
 
 ### 1.5 Kontoeditor, credentials-panel och inloggningskort (`teacher-login-cards.js`, `teacher-class-accounts.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| A-01 | Redigerbar kontotabell | Namn / användarnamn / lösenord förifyllt (`buildAccountPlan`: `<prefix>NN` + ord+3 siffror) | `renderAccountEditor` | OFÖR (monteras i `D:Elever` resp. skapa-klass-flödet) | ☐ |
-| A-02 | 🔀 per rad | Nytt förslag för raden; namnet följer med om läraren inte rört det | `regenRow` | OFÖR | ☐ |
-| A-03 | "Generera alla" | Nya förslag för alla rader | `.ae-gen-all` | OFÖR | ☐ |
-| A-04 | Validering | Format `^[a-z0-9._-]{3,}$`, dubbletter i listan, lösen ≥6, `data.usernameTaken` (async); felrad under raden | `validate` | OFÖR | ☐ |
-| A-05 | "Skapa N konton" | `createAccountsFromEntries` → `data.upsertStudent(null,…)` (sekundär Firebase-app), progress "Skapar konton… i/N", vid delfel behålls skapade (`err.created`) | `.ae-create` | OFÖR | ☐ |
-| A-06 | "Avbryt" | Stänger editorn | `.ae-cancel` | OFÖR | ☐ |
-| C-01 | Credentials-panel | "⚠️ N konton skapade – kopiera/skriv ner lösenorden **nu**", tabell namn/användarnamn/lösenord | `credentialsPanel` | `D:Elever` (och efter skapa klass) | ☐ |
-| C-02 | "Kopiera alla" | Text `Klass X – inloggning…` + en rad per elev → `copyText` | `credentialsPanel .cred-copy` | OFÖR | ☐ |
-| C-03 | "Skriv ut inloggningskort" | Overlay (`.login-cards-overlay.teacher-dark`) med ett kort per elev; "Skriv ut" = `window.print()`, "Stäng", Esc; `@media print` | `printLoginCards` | OFÖR | ☐ |
+| A-01 | Redigerbar kontotabell | Namn / användarnamn / lösenord förifyllt (`buildAccountPlan`: `<prefix>NN` + ord+3 siffror) | `renderAccountEditor` | OFÖR (monteras i `D:Elever` resp. skapa-klass-flödet) | ✅ |
+| A-02 | 🔀 per rad | Nytt förslag för raden; namnet följer med om läraren inte rört det | `regenRow` | OFÖR | ✅ 🔀 nytt förslag för raden |
+| A-03 | "Generera alla" | Nya förslag för alla rader | `.ae-gen-all` | OFÖR | ✅ "Generera alla" |
+| A-04 | Validering | Format `^[a-z0-9._-]{3,}$`, dubbletter i listan, lösen ≥6, `data.usernameTaken` (async); felrad under raden | `validate` | OFÖR | ✅ Formatfel visas. ⚠️ Förekommande sedan tidigare: `usernameTaken` missar användarnamn vars konto bara finns kvar i Auth → fel först vid Skapa (P2/P3) |
+| A-05 | "Skapa N konton" | `createAccountsFromEntries` → `data.upsertStudent(null,…)` (sekundär Firebase-app), progress "Skapar konton… i/N", vid delfel behålls skapade (`err.created`) | `.ae-create` | OFÖR | ✅ Skapar, progress, landar med lösenordspanel |
+| A-06 | "Avbryt" | Stänger editorn | `.ae-cancel` | OFÖR | ✅ Avbryt stänger editorn |
+| C-01 | Credentials-panel | "⚠️ N konton skapade – kopiera/skriv ner lösenorden **nu**", tabell namn/användarnamn/lösenord | `credentialsPanel` | `D:Elever` (och efter skapa klass) | ✅ "⚠️ N konton skapade…" + tabell |
+| C-02 | "Kopiera alla" | Text `Klass X – inloggning…` + en rad per elev → `copyText` | `credentialsPanel .cred-copy` | OFÖR | ✅ "✓ Kopierat!" |
+| C-03 | "Skriv ut inloggningskort" | Overlay (`.login-cards-overlay.teacher-dark`) med ett kort per elev; "Skriv ut" = `window.print()`, "Stäng", Esc; `@media print` | `printLoginCards` | OFÖR | ✅ Overlay `.login-cards-overlay.teacher-dark`, ett kort per elev, Esc stänger. (Skriv ut = `window.print` inte klickad i headless) |
 
 ### 1.6 Klass → Områden & Lägen per område (`teacher-class-modes.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| O-01 | 📌 Områden – kryssrutor | Per ämne × område, förifyllt ur `cls.assignedAreas` | `renderClassAssignments` | `D:Områden` | ☐ |
-| O-02 | "Spara områden" | `data.setClassAssignments(id, picked)` → "✓ Sparat (N områden)" / "eleverna ser allt" | `renderClassAssignments` | `D:Områden` | ☐ |
-| O-03 | "Rensa (visa allt)" | Avbockar alla (spara krävs) | `renderClassAssignments` | `D:Områden` | ☐ |
-| O-04 | Tomt bibliotek | emptyState "Inga arbetsområden än" + knapp → `#/larare/innehall` | `renderClassAssignments` | `D:Områden` | ☐ |
-| L-01 | 🎮 Lägen per område | Relevanta områden (tilldelade, annars alla), per område kryssrutor för `availableGamemodes(area)`; förifyllt ur `classAreaHiddenModes` | `renderClassAreaModes` | `D:Lägen` | ☐ |
-| L-02 | Område utan lägen | "Inga spelbara lägen på området än." | `renderClassAreaModes` | `D:Lägen` | ☐ |
-| L-03 | "Spara lägen per område" | Bygger map för ALLA renderade områden → `data.setClassAreaModes(id, map)` (deep-merge) → "✓ Sparat (N lägen dolda…)" | `renderClassAreaModes` | `D:Lägen` | ☐ |
-| L-04 | "Visa alla" | Bockar i alla | `renderClassAreaModes` | `D:Lägen` | ☐ |
-| L-05 | Tomtillstånd | "Inga områden att finjustera än" + "Lägg in innehåll" | `renderClassAreaModes` | `D:Lägen` | ☐ |
-| L-06 | (Owirad) klass-global lägesblankett #208 | `renderClassModes` + `data.setClassHiddenModes` – **inte synlig i UI idag**, exporten behålls för bakåtkompatibel resolution | `renderClassModes` | OFÖR – får **inte** raderas, ska **inte** wiras | ☐ |
+| O-01 | 📌 Områden – kryssrutor | Per ämne × område, förifyllt ur `cls.assignedAreas` | `renderClassAssignments` | `D:Områden` | ✅ Kryssrutor per ämne × område; isolerat per klass (4A ≠ 5E) |
+| O-02 | "Spara områden" | `data.setClassAssignments(id, picked)` → "✓ Sparat (N områden)" / "eleverna ser allt" | `renderClassAssignments` | `D:Områden` | ✅ "✓ Sparat (1 område)" |
+| O-03 | "Rensa (visa allt)" | Avbockar alla (spara krävs) | `renderClassAssignments` | `D:Områden` | ✅ Rensa avbockar allt |
+| O-04 | Tomt bibliotek | emptyState "Inga arbetsområden än" + knapp → `#/larare/innehall` | `renderClassAssignments` | `D:Områden` | ⚪ Ej körd (biblioteket har områden). Kod oförändrad |
+| L-01 | 🎮 Lägen per område | Relevanta områden (tilldelade, annars alla), per område kryssrutor för `availableGamemodes(area)`; förifyllt ur `classAreaHiddenModes` | `renderClassAreaModes` | `D:Lägen` | ✅ Per område × läge. Nit (fanns före epicen): hinttexten hänvisar till "klassens 🎮 Lägen ovan", som inte finns i UI:t |
+| L-02 | Område utan lägen | "Inga spelbara lägen på området än." | `renderClassAreaModes` | `D:Lägen` | ⚪ Inget område utan lägen i testdata |
+| L-03 | "Spara lägen per område" | Bygger map för ALLA renderade områden → `data.setClassAreaModes(id, map)` (deep-merge) → "✓ Sparat (N lägen dolda…)" | `renderClassAreaModes` | `D:Lägen` | ✅ "✓ Sparat (1 läge dolda per område)" |
+| L-04 | "Visa alla" | Bockar i alla | `renderClassAreaModes` | `D:Lägen` | ✅ Visa alla |
+| L-05 | Tomtillstånd | "Inga områden att finjustera än" + "Lägg in innehåll" | `renderClassAreaModes` | `D:Lägen` | ⚪ Ej körd (kräver tomt bibliotek) |
+| L-06 | (Owirad) klass-global lägesblankett #208 | `renderClassModes` + `data.setClassHiddenModes` – **inte synlig i UI idag**, exporten behålls för bakåtkompatibel resolution | `renderClassModes` | OFÖR – får **inte** raderas, ska **inte** wiras | ✅ `renderClassModes` exporteras fortfarande och är inte wirad |
 
 ### 1.7 Klass → Synliga byar & Synliga moduler
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| B-01 | 🏘️ Byar – kryssrutor | Varje ANNAN klass (namn, ev. by-namn, "N hus"), ikryssat = synligt | teacher-class-villages.js `renderClassVillages` (dyn.) | `D:Synlighet` (block "Byar") | ☐ |
-| B-02 | "Spara byar" | `data.setClassHiddenVillages(id, urbockade)` | `renderClassVillages` | `D:Synlighet` | ☐ |
-| B-03 | "Visa alla" | Bockar i alla | `renderClassVillages` | `D:Synlighet` | ☐ |
-| B-04 | Egen by – status | "syns för alla N andra klasser" / "dold för alla" / "dold för x av N (namn…)" | `visarStatus` | `D:Synlighet` | ☐ |
-| B-05 | "Dölj för alla andra klasser" / "Visa för alla" | `data.setVillageHiddenForAll(cls.id, hide, övrigaIds)` + speglar `hiddenVillages` lokalt i övriga klasser | `ownAll` | `D:Synlighet` (⚠️ kräver att övriga klassers objekt är samma instanser i store – se §2.4) | ☐ |
-| B-06 | Tomt | "Inga andra byar än" | `renderClassVillages` | `D:Synlighet` | ☐ |
-| MO-01 | Moduler (#412) – kryssrutor | Plugga, Läsresan, Shoppen (`TOGGLABLE_MODULES`), ikryssat = synligt | teacher-class-modules.js `renderClassModules` (dyn.) | `D:Synlighet` (block "Moduler") | ☐ |
-| MO-02 | "Spara moduler" | `data.setClassHiddenModules(id, urbockade)` → "✓ Sparat – dolt för klassen: …" | `renderClassModules` | `D:Synlighet` | ☐ |
-| MO-03 | "Visa alla" | Bockar i alla | `renderClassModules` | `D:Synlighet` | ☐ |
+| B-01 | 🏘️ Byar – kryssrutor | Varje ANNAN klass (namn, ev. by-namn, "N hus"), ikryssat = synligt | teacher-class-villages.js `renderClassVillages` (dyn.) | `D:Synlighet` (block "Byar") | ✅ |
+| B-02 | "Spara byar" | `data.setClassHiddenVillages(id, urbockade)` | `renderClassVillages` | `D:Synlighet` | ✅ "✓ Sparat (1 by dold)" / "✓ Sparat – klassen ser alla byar" |
+| B-03 | "Visa alla" | Bockar i alla | `renderClassVillages` | `D:Synlighet` | ✅ |
+| B-04 | Egen by – status | "syns för alla N andra klasser" / "dold för alla" / "dold för x av N (namn…)" | `visarStatus` | `D:Synlighet` | ✅ "syns för alla 2 andra klasser" / "dold för alla andra klasser" |
+| B-05 | "Dölj för alla andra klasser" / "Visa för alla" | `data.setVillageHiddenForAll(cls.id, hide, övrigaIds)` + speglar `hiddenVillages` lokalt i övriga klasser | `ownAll` | `D:Synlighet` (⚠️ kräver att övriga klassers objekt är samma instanser i store – se §2.4) | ✅ Dölj för alla → 5E:s lista visar 4A urbockad direkt, utan omladdning (X-06 samma instanser). Visa för alla återställer |
+| B-06 | Tomt | "Inga andra byar än" | `renderClassVillages` | `D:Synlighet` | ✅ "Inga andra byar än" |
+| MO-01 | Moduler (#412) – kryssrutor | Plugga, Läsresan, Shoppen (`TOGGLABLE_MODULES`), ikryssat = synligt | teacher-class-modules.js `renderClassModules` (dyn.) | `D:Synlighet` (block "Moduler") | ✅ Plugga, Läsresan, Shoppen |
+| MO-02 | "Spara moduler" | `data.setClassHiddenModules(id, urbockade)` → "✓ Sparat – dolt för klassen: …" | `renderClassModules` | `D:Synlighet` | ✅ "✓ Sparat – dolt för klassen: Shoppen" |
+| MO-03 | "Visa alla" | Bockar i alla | `renderClassModules` | `D:Synlighet` | ✅ |
 
 ### 1.8 Klass → Fokusläge / klass-lås (#436, `teacher-class-lock.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| F-01 | Serverklocka | `syncServerClock()` innan panelen ritas | `renderClassLock` (dyn.) | `D:Fokus` | ☐ |
-| F-02 | Mål | `<select>`: klassens områden (tilldelade/alla, med spelbart innehåll) grupperade per ämne + "📖 Läsresan" | `malOmraden` | `D:Fokus` | ☐ |
-| F-03 | "Till klockan" | `type=time`, default nu+45 min avrundat till 5 | `klockslagOm` | `D:Fokus` | ☐ |
-| F-04 | Snabbval +15/+30/+45/+60 min | Sätter klockslaget | `[data-snabb]` | `D:Fokus` | ☐ |
-| F-05 | "Dölj allt annat" | Checkbox – döljer även shop/hus/gård/rum | `.lock-dolj` | `D:Fokus` | ☐ |
-| F-06 | "Lås klassen" / "Uppdatera låset" | Validerar klockslag + mål → `buildLock` → `setClassLock(id, lock)` → "✓ Låst – eleverna ser bara X till HH:MM" | `saveBtn` | `D:Fokus` | ☐ |
-| F-07 | "Lås upp nu" | `clearClassLock(id)`, syns bara när låst | `clearBtn` | `D:Fokus` | ☐ |
-| F-08 | Live-status | 🔒 Låst till X fram till HH:MM – Y kvar (tickar 1 s, stoppar när rutan lämnar DOM) | `ritaStatus` + `setInterval` | `D:Fokus` | ☐ |
-| F-09 | Förifyllning | Aktivt lås fyller mål/klockslag/dölj | `activeLock` | `D:Fokus` | ☐ |
+| F-01 | Serverklocka | `syncServerClock()` innan panelen ritas | `renderClassLock` (dyn.) | `D:Fokus` | ✅ Serverklockan fungerar (lås/status stämmer) |
+| F-02 | Mål | `<select>`: klassens områden (tilldelade/alla, med spelbart innehåll) grupperade per ämne + "📖 Läsresan" | `malOmraden` | `D:Fokus` | ✅ Bara klassens tilldelade områden + 📖 Läsresan (4A: Vikingatiden; utan tilldelning: alla) |
+| F-03 | "Till klockan" | `type=time`, default nu+45 min avrundat till 5 | `klockslagOm` | `D:Fokus` | ✅ Default nu + ~45 min, avrundat |
+| F-04 | Snabbval +15/+30/+45/+60 min | Sätter klockslaget | `[data-snabb]` | `D:Fokus` | ✅ +30 → klockslaget ändras |
+| F-05 | "Dölj allt annat" | Checkbox – döljer även shop/hus/gård/rum | `.lock-dolj` | `D:Fokus` | ✅ `doljOvrigt:true` sparas; eleven ser bara målet |
+| F-06 | "Lås klassen" / "Uppdatera låset" | Validerar klockslag + mål → `buildLock` → `setClassLock(id, lock)` → "✓ Låst – eleverna ser bara X till HH:MM" | `saveBtn` | `D:Fokus` | ✅ "✓ Låst – eleverna ser bara X till HH:MM"; elev1 begränsas live (meny + direktlänkar → målet). ⚠️ Se P1 (fanns före epicen) |
+| F-07 | "Lås upp nu" | `clearClassLock(id)`, syns bara när låst | `clearBtn` | `D:Fokus` | ✅ "Lås upp nu" → "✓ Upplåst…", knappen döljs |
+| F-08 | Live-status | 🔒 Låst till X fram till HH:MM – Y kvar (tickar 1 s, stoppar när rutan lämnar DOM) | `ritaStatus` + `setInterval` | `D:Fokus` | ✅ "🔒 Låst till … – 30 min kvar". ❌ Mindre fel (F1): 🔒 i master tänds/släcks först inom ≤15 s efter Lås/Lås upp |
+| F-09 | Förifyllning | Aktivt lås fyller mål/klockslag/dölj | `activeLock` | `D:Fokus` | ✅ Efter klassbyte fram och tillbaka är mål/klockslag förifyllda |
 
 ### 1.9 Klass → Statistik 📊 (`teacher-class.js`, `teacher-class-detail.js`, `teacher-lasresan*.js`, `lasresan/teacher-rows.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| S-01 | Flikar "Ämnen" / "Läsresan" | Senaste flik minns under sessionen (`lastStatsTab`); Läsresan laddas dynamiskt vid första klick | `renderClassStats` | `D:Statistik` (OFÖR inuti) | ☐ |
-| S-02 | Ämnesväljare | SO först, annars första ämnet | `renderSubjectStats` | `D:Statistik` | ☐ |
-| S-03 | Framstegsmatris | Elev × område: "x/max ★" + stapel, "ej börjat", "–" (inga övningar); progress via `data.getProgress` en gång per elev | `renderSubjectStats` / `cellHtml` | `D:Statistik` | ☐ |
-| S-04 | Totalt-kolumn | % + "x/max ★" per elev | `renderMatrix` | `D:Statistik` | ☐ |
-| S-05 | Legend | Ligger bra till / På gång / Precis börjat / Ej börjat + tips | `renderMatrix` | `D:Statistik` | ☐ |
-| S-06 | Klick/Enter/Space på elevrad | Öppnar elevdetaljen | `openRow` | `D:Statistik` | ☐ |
-| S-07 | Elevdetalj (modal) | Nyckeltal (spelade, avklarade, stjärnor/max, senast aktiv), total-stapel, "Behöver hjälp här 🎯" (svaga + ej påbörjade), per ämne/område + lägesbrickor; stäng ✕/Esc/backdrop | teacher-class-detail.js `openStudentDetail` | OFÖR (modal över `D`) | ☐ |
-| S-08 | Tomtillstånd | Inga elever / inga ämnen / ämne utan områden (länk till innehåll) | `renderSubjectStats` | `D:Statistik` | ☐ |
-| S-09 | Läsresan-tabell | Summering (börjat x av N, lästa texter, % rätt) + 9 sorterbara kolumner (Elev, Texter, Frågor, Rätt, Fel, Rätt %, Läsresan-nivå, Värld, Steg; `aria-sort`, ▲▼↕, sortering minns `lastSort`), "ej börjat"-badge; data `getClassLasresa(ids)` | teacher-lasresan.js `renderClassLasresan` + teacher-rows.js | `D:Statistik` → flik Läsresan (OFÖR; kan bli egen sektion via registryn, se §3.3) | ☐ |
-| S-10 | Läsresan-elevdetalj (modal) | Dold nivå 1–7 med pips, nyckeltal, per frågetyp-staplar, senaste 10 texter (`listAttempts`, laddas först här) | teacher-lasresan-elev.js `openLasresanDetail` | OFÖR | ☐ |
-| S-11 | Läsresan-legend + tomtillstånd | "Klassen har inga elever än" | `renderClassLasresan` | OFÖR | ☐ |
+| S-01 | Flikar "Ämnen" / "Läsresan" | Senaste flik minns under sessionen (`lastStatsTab`); Läsresan laddas dynamiskt vid första klick | `renderClassStats` | `D:Statistik` (OFÖR inuti) | ✅ Ämnen/Läsresan; vald flik minns vid klassbyte |
+| S-02 | Ämnesväljare | SO först, annars första ämnet | `renderSubjectStats` | `D:Statistik` | ✅ SO först |
+| S-03 | Framstegsmatris | Elev × område: "x/max ★" + stapel, "ej börjat", "–" (inga övningar); progress via `data.getProgress` en gång per elev | `renderSubjectStats` / `cellHtml` | `D:Statistik` | ✅ Matris; elev1:s spelade Testområde syns som "3/9 ★" |
+| S-04 | Totalt-kolumn | % + "x/max ★" per elev | `renderMatrix` | `D:Statistik` | ✅ |
+| S-05 | Legend | Ligger bra till / På gång / Precis börjat / Ej börjat + tips | `renderMatrix` | `D:Statistik` | ✅ |
+| S-06 | Klick/Enter/Space på elevrad | Öppnar elevdetaljen | `openRow` | `D:Statistik` | ✅ Klick öppnar detaljen (Enter/Space inte testat) |
+| S-07 | Elevdetalj (modal) | Nyckeltal (spelade, avklarade, stjärnor/max, senast aktiv), total-stapel, "Behöver hjälp här 🎯" (svaga + ej påbörjade), per ämne/område + lägesbrickor; stäng ✕/Esc/backdrop | teacher-class-detail.js `openStudentDetail` | OFÖR (modal över `D`) | ✅ Modal med nyckeltal, "Behöver hjälp här", per område; Esc stänger |
+| S-08 | Tomtillstånd | Inga elever / inga ämnen / ämne utan områden (länk till innehåll) | `renderSubjectStats` | `D:Statistik` | ✅ "Klassen har inga elever än". Nit (copy): texten säger "Lägg till elever på **klasskortet**" – klasskort finns inte längre (F2) |
+| S-09 | Läsresan-tabell | Summering (börjat x av N, lästa texter, % rätt) + 9 sorterbara kolumner (Elev, Texter, Frågor, Rätt, Fel, Rätt %, Läsresan-nivå, Värld, Steg; `aria-sort`, ▲▼↕, sortering minns `lastSort`), "ej börjat"-badge; data `getClassLasresa(ids)` | teacher-lasresan.js `renderClassLasresan` + teacher-rows.js | `D:Statistik` → flik Läsresan (OFÖR; kan bli egen sektion via registryn, se §3.3) | ✅ "8 av 10 elever har börjat · 50 lästa texter", 9 kolumner, sortering Rätt % ▼ med `aria-sort`; sorteringen minns över klassbyte |
+| S-10 | Läsresan-elevdetalj (modal) | Dold nivå 1–7 med pips, nyckeltal, per frågetyp-staplar, senaste 10 texter (`listAttempts`, laddas först här) | teacher-lasresan-elev.js `openLasresanDetail` | OFÖR | ✅ Öken Ella: dold nivå 5/7, nyckeltal, per frågetyp |
+| S-11 | Läsresan-legend + tomtillstånd | "Klassen har inga elever än" | `renderClassLasresan` | OFÖR | ✅ Tomläget "Klassen har inga elever än" (5E) |
 
 ### 1.10 Innehåll – biblioteket (`teacher-content.js`, `-view.js`, `-list.js`, `teacher-subject-form.js`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| I-01 | Initial laddning | "Laddar ämnen…", `getSubjects()`, felruta | `pageLarareInnehall` | OFÖR | ☐ |
-| I-02 | Dynamisk laddning av skapa/redigera-flödet | `import("./teacher-composer.js")`; vid fel snäll ruta "Kunde inte ladda innehållsverktygen" | `pageLarareInnehall` | OFÖR mönster (laddar wizarden i #442) | ☐ |
-| I-03 | Ämnesflikar | En flik per ämne (ikon + namn), SO förvald; byte → `refreshAreaList` (`getAreas`) | `renderSubjectTabs` | `TAB`-verktygsrad (OFÖR) | ☐ |
-| I-04 | "Nytt ämne" | Togglar formulär: Id (auto-slug från namn tills rört), Namn, Ikon, Beskrivning, "Skapa ämne" (fel: tomt, dubblett-id) → `data.upsertSubject` → nya ämnet väljs | teacher-subject-form.js `wireNewSubjectForm` | `TAB`-verktygsrad (OFÖR) | ☐ |
-| I-05 | "Skapa nytt område" | `alert` om inget ämne, annars öppna skapa-flödet | `#create-new` → `composer.openNew` | `TAB`-verktygsrad → öppnar `WZ1` | ☐ |
-| I-06 | "Visa årskurs"-filter | Alla / Ospecificerad / Åk 1–9 | `#area-grade-filter` → `filterSortAreas` (grades.js) | `TAB` (behålls som filter) | ☐ |
-| I-07 | "Sortera"-dropdown | Ordning / Årskurs (ospecificerad sist, stabil på `order`) | `#area-sort` → `filterSortAreas` | **Ersätts** av klickbara rubriker i `TAB` (Område sv-alfabetiskt, Årskurs numeriskt, ▲/▼). Default-ordningen (`order`) gäller tills man klickar | ☐ |
-| I-08 | Tomtillstånd | "Inga arbetsområden i ämnet ännu" / "Inga arbetsområden matchar filtret" | `renderAreaCards` | `TAB` | ☐ |
-| I-09 | Område – emoji + namn | | `buildAreaCards` | `TAB` kolumn Område | ☐ |
-| I-10 | Typ-badges | `areaExerciseTypes(a)`: ❓ Quiz, 🧩 Para ihop, 🖼️ Bildpar, 🔢 Räkna | `typeBadges` | `TAB` kolumn Innehåll (🆕 + "Nivåtexter"-badge när `readingTexts` finns) | ☐ |
-| I-11 | Årskurs-badge | `gradeLabel(grade)` | `buildAreaCards` | `TAB` kolumn Årskurs ("–" om ospecificerad) | ☐ |
-| I-12 | Omfattning | "N frågor · N par · N texter · N nivåtexter" eller "🔢 genererat · oändligt (N varianter)" eller "Tomt" | `quantityText` | `TAB` kolumn Omfattning | ☐ |
-| I-13 | Klick/Enter/Space på kortet = **Redigera** | Öppnar området i kompositören (fylld med områdets data) | `openEdit` → `composer.openEdit(a)` | `TAB`: klick på rad/namn **och** explicit ✏️-knapp → wizard i redigeringsläge (se W-21, beslut D-2) | ☐ |
-| I-14 | "Granska" | Fäller ut read-only granskning under kortet (knappen markeras aktiv) | `buildReviewPanel` (teacher-content-review.js) | `TAB` åtgärd 👁 → utfällbar rad under tabellraden | ☐ |
-| I-15 | Granska – innehåll | Quiz med ✅ rätt svar, 📖 källtext (`passage`), 💡 förklaring; begreppspar ↔ inkl. 🖼️ bildnycklar; texter; läsförståelse 3 nivåer; 🔒 förkravsnotis | `renderQuiz/Pairs/Texts/ReadingTexts` | OFÖR | ☐ |
-| I-16 | "Lägg till" (merge #40) | Fäller ut formulär: "📂 Ladda upp .json", "Visa exempel", textarea, "Kontrollera" (`parseAndMergeArea` → "Detta lägger till X… N dubbletter"), "Lägg till i området" (färskt `getArea` → merge → `saveArea` → lista laddas om), "Stäng" | teacher-content-merge.js `buildMergeForm` | `TAB` åtgärd ➕ → utfällbar rad. **Delar inte formulär med skapa-flödet** – rörs inte av wizarden | ☐ |
-| I-17 | "Nivåtexter" (#152/#155) | Fäller ut läsförståelse-editorn (se I-18–I-25) | teacher-reading.js `buildReadingEditor` | `TAB` åtgärd 📖 → utfällbar rad (OFÖR inuti) | ☐ |
-| I-18 | Nivåtexter – förkrav | "🔒 Obligatoriskt förkrav" on/off + "Antal läsförståelser som måste klaras" (klammas 1…antal texter) | `buildReadingEditor` | OFÖR | ☐ |
-| I-19 | Nivåtexter – AI | Önskemål-fält + "Kopiera AI-prompt (3 nivåer)" (`buildReadingPrompt`) | `buildReadingEditor` | OFÖR | ☐ |
-| I-20 | Nivåtexter – import | Klistra in JSON + "Lägg till från JSON" (ensam text, lista eller `{readingTexts}`) | `buildReadingEditor` | OFÖR | ☐ |
-| I-21 | Nivåtexter – "Ny tom läs-text" | | `blankText` | OFÖR | ☐ |
-| I-22 | Per läs-text | Titel, 🗑 ta bort (confirm), nivåflikar 1–3 | `textCard` | OFÖR | ☐ |
-| I-23 | Per nivå | Brödtext + kryssfrågor (frågetext, alternativ med radio för rätt svar, ✕ alternativ (min 2), "+ Alternativ" (max 6), förklaring, ta bort fråga, "Lägg till fråga") | teacher-reading-level.js `levelPane`/`questionEditor` | OFÖR | ☐ |
-| I-24 | "Spara läs-texterna" | Färskt `getArea` → `validateArea({...readingTexts, readingPrereq})` → `saveArea` → lista laddas om; fel-lista | `buildReadingEditor` | OFÖR | ☐ |
-| I-25 | "Stäng" | Fäller ihop | `buildReadingEditor` | OFÖR | ☐ |
-| I-26 | "Ta bort" område | `confirm` ("går inte att ångra") → `data.deleteArea` → lista laddas om | `buildAreaCards [data-act=del]` | `TAB` åtgärd 🗑 (samma confirm) | ☐ |
-| I-27 | Utfällning scrollar in | `scrollIntoView({block:"nearest"})` | `toggleSlot` | `TAB` | ☐ |
+| I-01 | Initial laddning | "Laddar ämnen…", `getSubjects()`, felruta | `pageLarareInnehall` | OFÖR | ✅ |
+| I-02 | Dynamisk laddning av skapa/redigera-flödet | `import("./teacher-composer.js")`; vid fel snäll ruta "Kunde inte ladda innehållsverktygen" | `pageLarareInnehall` | OFÖR mönster (laddar wizarden i #442) | ⚪ Felgrenen inte provocerad; wizarden laddas dynamiskt |
+| I-03 | Ämnesflikar | En flik per ämne (ikon + namn), SO förvald; byte → `refreshAreaList` (`getAreas`) | `renderSubjectTabs` | `TAB`-verktygsrad (OFÖR) | ✅ SO förvald, byte laddar områden |
+| I-04 | "Nytt ämne" | Togglar formulär: Id (auto-slug från namn tills rört), Namn, Ikon, Beskrivning, "Skapa ämne" (fel: tomt, dubblett-id) → `data.upsertSubject` → nya ämnet väljs | teacher-subject-form.js `wireNewSubjectForm` | `TAB`-verktygsrad (OFÖR) | ✅ Auto-slug `qa-amne-o`, nya ämnet väljs + tomläge |
+| I-05 | "Skapa nytt område" | `alert` om inget ämne, annars öppna skapa-flödet | `#create-new` → `composer.openNew` | `TAB`-verktygsrad → öppnar `WZ1` | ⚪ Kan inte provoceras när ämnen finns (koden oförändrad) |
+| I-06 | "Visa årskurs"-filter | Alla / Ospecificerad / Åk 1–9 | `#area-grade-filter` → `filterSortAreas` (grades.js) | `TAB` (behålls som filter) | ✅ Alla / Ospecificerad / Åk 3 / Åk 9 (tomt → "Inga arbetsområden matchar filtret"); kombineras med sortering |
+| I-07 | "Sortera"-dropdown | Ordning / Årskurs (ospecificerad sist, stabil på `order`) | `#area-sort` → `filterSortAreas` | **Ersätts** av klickbara rubriker i `TAB` (Område sv-alfabetiskt, Årskurs numeriskt, ▲/▼). Default-ordningen (`order`) gäller tills man klickar | ✅ Dropdownen borta; rubrikerna Område/Årskurs sorterar ▲/▼ (se T2) |
+| I-08 | Tomtillstånd | "Inga arbetsområden i ämnet ännu" / "Inga arbetsområden matchar filtret" | `renderAreaCards` | `TAB` | ✅ Båda texterna |
+| I-09 | Område – emoji + namn | | `buildAreaCards` | `TAB` kolumn Område | ✅ |
+| I-10 | Typ-badges | `areaExerciseTypes(a)`: ❓ Quiz, 🧩 Para ihop, 🖼️ Bildpar, 🔢 Räkna | `typeBadges` | `TAB` kolumn Innehåll (🆕 + "Nivåtexter"-badge när `readingTexts` finns) | ✅ ❓ Quiz, 🧩 Para ihop, 🔢 Räkna + 🆕 📖 Nivåtexter / 📄 Lästexter |
+| I-11 | Årskurs-badge | `gradeLabel(grade)` | `buildAreaCards` | `TAB` kolumn Årskurs ("–" om ospecificerad) | ✅ "Årskurs N" / "–" |
+| I-12 | Omfattning | "N frågor · N par · N texter · N nivåtexter" eller "🔢 genererat · oändligt (N varianter)" eller "Tomt" | `quantityText` | `TAB` kolumn Omfattning | ✅ "6 frågor · 1 nivåtexter", "🔢 genererat · oändligt (4 varianter)" |
+| I-13 | Klick/Enter/Space på kortet = **Redigera** | Öppnar området i kompositören (fylld med områdets data) | `openEdit` → `composer.openEdit(a)` | `TAB`: klick på rad/namn **och** explicit ✏️-knapp → wizard i redigeringsläge (se W-21, beslut D-2) | ✅ Klick på rad, Enter på rad och ✏️ → wizard "Redigera: X" |
+| I-14 | "Granska" | Fäller ut read-only granskning under kortet (knappen markeras aktiv) | `buildReviewPanel` (teacher-content-review.js) | `TAB` åtgärd 👁 → utfällbar rad under tabellraden | ✅ Utfällning under raden, `aria-expanded`, stäng igen |
+| I-15 | Granska – innehåll | Quiz med ✅ rätt svar, 📖 källtext (`passage`), 💡 förklaring; begreppspar ↔ inkl. 🖼️ bildnycklar; texter; läsförståelse 3 nivåer; 🔒 förkravsnotis | `renderQuiz/Pairs/Texts/ReadingTexts` | OFÖR | ✅ ✅ rätt svar, 📖 källtext, 💡 förklaring |
+| I-16 | "Lägg till" (merge #40) | Fäller ut formulär: "📂 Ladda upp .json", "Visa exempel", textarea, "Kontrollera" (`parseAndMergeArea` → "Detta lägger till X… N dubbletter"), "Lägg till i området" (färskt `getArea` → merge → `saveArea` → lista laddas om), "Stäng" | teacher-content-merge.js `buildMergeForm` | `TAB` åtgärd ➕ → utfällbar rad. **Delar inte formulär med skapa-flödet** – rörs inte av wizarden | ✅ Kontrollera "lägger till 1 fråga … 1 dubblett hoppades över" → Lägg till → "6 frågor" |
+| I-17 | "Nivåtexter" (#152/#155) | Fäller ut läsförståelse-editorn (se I-18–I-25) | teacher-reading.js `buildReadingEditor` | `TAB` åtgärd 📖 → utfällbar rad (OFÖR inuti) | ✅ |
+| I-18 | Nivåtexter – förkrav | "🔒 Obligatoriskt förkrav" on/off + "Antal läsförståelser som måste klaras" (klammas 1…antal texter) | `buildReadingEditor` | OFÖR | ✅ Förkravs-reglaget visas (inte växlat) |
+| I-19 | Nivåtexter – AI | Önskemål-fält + "Kopiera AI-prompt (3 nivåer)" (`buildReadingPrompt`) | `buildReadingEditor` | OFÖR | ✅ AI-prompt kopierad (5 535 tecken) |
+| I-20 | Nivåtexter – import | Klistra in JSON + "Lägg till från JSON" (ensam text, lista eller `{readingTexts}`) | `buildReadingEditor` | OFÖR | ✅ JSON-import lägger till läs-text |
+| I-21 | Nivåtexter – "Ny tom läs-text" | | `blankText` | OFÖR | ✅ |
+| I-22 | Per läs-text | Titel, 🗑 ta bort (confirm), nivåflikar 1–3 | `textCard` | OFÖR | ✅ 🗑 "Ta bort hela läs-texten" (confirm) |
+| I-23 | Per nivå | Brödtext + kryssfrågor (frågetext, alternativ med radio för rätt svar, ✕ alternativ (min 2), "+ Alternativ" (max 6), förklaring, ta bort fråga, "Lägg till fråga") | teacher-reading-level.js `levelPane`/`questionEditor` | OFÖR | ✅ Nivåflikar, frågor, alternativ visas (inte djupredigerat) |
+| I-24 | "Spara läs-texterna" | Färskt `getArea` → `validateArea({...readingTexts, readingPrereq})` → `saveArea` → lista laddas om; fel-lista | `buildReadingEditor` | OFÖR | ✅ Felrad för tom text; giltig text sparas → raden får "📖 Nivåtexter" |
+| I-25 | "Stäng" | Fäller ihop | `buildReadingEditor` | OFÖR | ⚪ "Stäng" inte klickad (utfällningen stängs via ikonknappen) |
+| I-26 | "Ta bort" område | `confirm` ("går inte att ångra") → `data.deleteArea` → lista laddas om | `buildAreaCards [data-act=del]` | `TAB` åtgärd 🗑 (samma confirm) | ✅ confirm → "Bin" borttagen |
+| I-27 | Utfällning scrollar in | `scrollIntoView({block:"nearest"})` | `toggleSlot` | `TAB` | ✅ Utfällningen syns direkt under raden |
 
 ### 1.11 Innehåll – skapa/redigera område (kompositören, `teacher-composer.js` + `teacher-content-view.js` `buildComposerView`)
 
 | ID | Funktion | Vad den gör | Fil → funktion → data | Ny plats | QA |
 |---|---|---|---|---|---|
-| W-01 | Overlay öppna/stäng | ✕, backdrop-mousedown, Esc; `body.composer-open` | `open`/`close` | `WZ-motor`. 🆕 varning vid stäng med osparad data | ☐ |
-| W-02 | Rubrik | "Nytt arbetsområde" / "Redigera: X" + "I ämnet **X**" | `open` | `WZ-motor` | ☐ |
-| W-03 | Namn på området | Fokus vid öppning; vinner över `name` i JSON | `#area-name` → `createAreaInput.getName` | `WZ1` | ☐ |
-| W-04 | Årskurs | Ospecificerad + Åk 1–9; styr AI-prompten och sparas som `grade` | `#area-grade` | `WZ1` | ☐ |
-| W-05 | Emojiväljare | Rutnät med 40 emojis (`COVER_EMOJI_CHOICES`), aktiv markering, egen emoji (max 8), förhandsvisning; tomt → 📖; vinner över `coverEmoji` i JSON | `refreshEmojiPicker`/`setCoverEmoji` | `WZ1` | ☐ |
-| W-06 | Metod-växel "Skapa guidat" / "Klistra in / ladda upp material" | | `setMethod` | **Upplöses**: guidat = `WZ2`+`WZ3`(prompt), material = `WZ3`(inklistring). Båda vägarna finns i `WZ3` | ☐ |
-| W-07 | Innehållstyp-växel Quiz & läsförståelse / Para ihop / Räkna (generator) | Quiz/Par lägger till typen, Räkna rensar typerna | `setCtype` | `WZ2` stora kort | ☐ |
-| W-08 | Övningstyper-kryssrutor | quiz (default), pairs, bildpar (`EXERCISE_TYPES` utan `generated`) | `#ex-types` | `WZ2` stora kort (Quiz · Para ihop · Bildpar · Räkna). Kortens val = `exerciseTypes` | ☐ |
-| W-09 | "✍️ Eget önskemål till AI:n" | Vävs in i prompten | `#area-onskemal` | `WZ2` | ☐ |
-| W-10 | "Så gör du"-instruktion | | vy-mall | `WZ3` (kortare: "Klistra in prompten i Claude. Klistra sedan in AI:ns svar nedan.") | ☐ |
-| W-11 | "Kopiera AI-prompt för valda typer" | `buildAreaPrompt(types, önskemål, grade)` → `copyText` | `#copy-area-prompt` | `WZ3` stor knapp (samma anrop) | ☐ |
-| W-12 | Bildpar-hjälp | Lista över bildnycklar (`listPairImageKeys`) för `termImage`/`defImage` | vy-mall | `WZ3` (när Bildpar valt) | ☐ |
-| W-13 | Räknegenerator | Tal-typ (Ingen + `listTopics`), varianter (alla förvalda, minst en), Talstorlek (Standard + `TALSTORLEK_OPTIONS`), Bildstöd (bara där `topicSupportsBildstod`); ändring → synliga lägen uppdateras | teacher-generator.js `createGeneratorControl` | `WZ3` (visas när kortet Räkna är valt; ersätter prompt-ytan för rena generator-områden) | ☐ |
-| W-14 | "Ladda upp fil" (.json) | Läser in i textrutan + "Laddade filen X" | `#file` | `WZ3` | ☐ |
-| W-15 | "Infoga exempel" | `EXAMPLE_JSON` | `#example` | `WZ3` | ☐ |
-| W-16 | "Rensa" | Tömmer rutan + resultat | `#clear` | `WZ3` | ☐ |
-| W-17 | Material-textruta | Input → synliga lägen följer live | `#json` | `WZ3` stor textyta | ☐ |
-| W-18 | "👁️ Synliga lägen för eleverna" | Kryssrutor ur `availableGamemodes` (JSON + generator), behåller lärarens bockar, nya lägen synliga som standard; urbockade → `hiddenModes` | teacher-mode-visibility.js `createModeVisibility` + teacher-area-input.js `syncModeVisibility` | `WZ4` | ☐ |
-| W-19 | "Kontrollera" | `validateCurrent()`: JSON-parsefel med tips, generator + namn + emoji invävda, `validateArea` → fel-lista **eller** "✓ Ser bra ut! Det här skapas: …" | teacher-area-input.js `createAreaInput` | `WZ3` (knapp + resultat). `WZ4` visar sammanfattningen igen | ☐ |
-| W-20 | "Spara" | Kräver ämne, validerar, `exerciseTypes` = valda + `generator` om satt, `grade`, `hiddenModes` → `data.saveArea(subjectId, id, value)` → "✓ Sparat!" → listan laddas om → stäng | `#save` | `WZ4` stor grön Spara (identisk value-sammansättning) → tillbaka till `TAB` | ☐ |
-| W-21 | Redigera befintligt område | Fyller namn/emoji/typer/årskurs/generator; JSON-rutan = området utan `exerciseTypes/grade/generator/name/coverEmoji`; generator-område öppnar guidat/Räkna, annars material-läget; synliga lägen ur sparade `hiddenModes` | `fillComposerFromArea` | Wizard i redigeringsläge (förifyllt state, startsteg enligt beslut D-2) | ☐ |
-| W-22 | Inget autosparas | AI-utkast sparas bara via Spara efter granskning | princip | OFÖR | ☐ |
+| W-01 | Overlay öppna/stäng | ✕, backdrop-mousedown, Esc; `body.composer-open` | `open`/`close` | `WZ-motor`. 🆕 varning vid stäng med osparad data | ✅ ✕/Esc/backdrop; 🆕 varning vid osparat ("Fortsätt redigera"/"Stäng utan att spara"), Esc i varningen = fortsätt; ingen varning när inget ändrats eller efter Spara (X-13) |
+| W-02 | Rubrik | "Nytt arbetsområde" / "Redigera: X" + "I ämnet **X**" | `open` | `WZ-motor` | ✅ "Nytt arbetsområde"/"Redigera: X" + "I ämnet SO" |
+| W-03 | Namn på området | Fokus vid öppning; vinner över `name` i JSON | `#area-name` → `createAreaInput.getName` | `WZ1` | ✅ Fokus i namnfältet vid öppning |
+| W-04 | Årskurs | Ospecificerad + Åk 1–9; styr AI-prompten och sparas som `grade` | `#area-grade` | `WZ1` | ✅ Sparas som `grade: "ak4"`, styr prompten ("årskurs 4") |
+| W-05 | Emojiväljare | Rutnät med 40 emojis (`COVER_EMOJI_CHOICES`), aktiv markering, egen emoji (max 8), förhandsvisning; tomt → 📖; vinner över `coverEmoji` i JSON | `refreshEmojiPicker`/`setCoverEmoji` | `WZ1` | ✅ 40 emojis, aktiv markering, egen emoji (maxlength 8) |
+| W-06 | Metod-växel "Skapa guidat" / "Klistra in / ladda upp material" | | `setMethod` | **Upplöses**: guidat = `WZ2`+`WZ3`(prompt), material = `WZ3`(inklistring). Båda vägarna finns i `WZ3` | ✅ Upplöst i steg 2 + 3 |
+| W-07 | Innehållstyp-växel Quiz & läsförståelse / Para ihop / Räkna (generator) | Quiz/Par lägger till typen, Räkna rensar typerna | `setCtype` | `WZ2` stora kort | ✅ Stora kort med `aria-pressed` |
+| W-08 | Övningstyper-kryssrutor | quiz (default), pairs, bildpar (`EXERCISE_TYPES` utan `generated`) | `#ex-types` | `WZ2` stora kort (Quiz · Para ihop · Bildpar · Räkna). Kortens val = `exerciseTypes` | ✅ Sparat `exerciseTypes: ["quiz"]` resp. `["quiz","generator"]` (D-3) |
+| W-09 | "✍️ Eget önskemål till AI:n" | Vävs in i prompten | `#area-onskemal` | `WZ2` | ✅ Önskemålet finns i prompten |
+| W-10 | "Så gör du"-instruktion | | vy-mall | `WZ3` (kortare: "Klistra in prompten i Claude. Klistra sedan in AI:ns svar nedan.") | ✅ Kort instruktion i steg 3 |
+| W-11 | "Kopiera AI-prompt för valda typer" | `buildAreaPrompt(types, önskemål, grade)` → `copyText` | `#copy-area-prompt` | `WZ3` stor knapp (samma anrop) | ✅ Prompten är tecken för tecken identisk med `buildAreaPrompt(["quiz"], önskemål, "ak4")` |
+| W-12 | Bildpar-hjälp | Lista över bildnycklar (`listPairImageKeys`) för `termImage`/`defImage` | vy-mall | `WZ3` (när Bildpar valt) | ✅ Bildnycklar visas när Bildpar valts |
+| W-13 | Räknegenerator | Tal-typ (Ingen + `listTopics`), varianter (alla förvalda, minst en), Talstorlek (Standard + `TALSTORLEK_OPTIONS`), Bildstöd (bara där `topicSupportsBildstod`); ändring → synliga lägen uppdateras | teacher-generator.js `createGeneratorControl` | `WZ3` (visas när kortet Räkna är valt; ersätter prompt-ytan för rena generator-områden) | ✅ Tal-typ, 4 varianter, Talstorlek, Bildstöd; Räkna-läget dyker upp i steg 4. Nit (fanns före epicen): etiketterna "Talfoljd", "Matt-langd", "Oppna-utsaga" saknar å/ä/ö |
+| W-14 | "Ladda upp fil" (.json) | Läser in i textrutan + "Laddade filen X" | `#file` | `WZ3` | ✅ "Laddade filen "qa.json". Klicka Kontrollera." |
+| W-15 | "Infoga exempel" | `EXAMPLE_JSON` | `#example` | `WZ3` | ✅ |
+| W-16 | "Rensa" | Tömmer rutan + resultat | `#clear` | `WZ3` | ✅ |
+| W-17 | Material-textruta | Input → synliga lägen följer live | `#json` | `WZ3` stor textyta | ✅ Lägena i steg 4 följer materialet/generatorn |
+| W-18 | "👁️ Synliga lägen för eleverna" | Kryssrutor ur `availableGamemodes` (JSON + generator), behåller lärarens bockar, nya lägen synliga som standard; urbockade → `hiddenModes` | teacher-mode-visibility.js `createModeVisibility` + teacher-area-input.js `syncModeVisibility` | `WZ4` | ✅ Urbockad Kunskapsjakt → `hiddenModes:["kunskapsjakt"]`; eleven ser inte läget |
+| W-19 | "Kontrollera" | `validateCurrent()`: JSON-parsefel med tips, generator + namn + emoji invävda, `validateArea` → fel-lista **eller** "✓ Ser bra ut! Det här skapas: …" | teacher-area-input.js `createAreaInput` | `WZ3` (knapp + resultat). `WZ4` visar sammanfattningen igen | ✅ JSON-fel med tips, `validateArea`-fellista, "✓ Ser bra ut! Det här skapas: …" |
+| W-20 | "Spara" | Kräver ämne, validerar, `exerciseTypes` = valda + `generator` om satt, `grade`, `hiddenModes` → `data.saveArea(subjectId, id, value)` → "✓ Sparat!" → listan laddas om → stäng | `#save` | `WZ4` stor grön Spara (identisk value-sammansättning) → tillbaka till `TAB` | ✅ Sparat värde verifierat i Firestore (`grade`, `coverEmoji`, `exerciseTypes`, `hiddenModes`); tabellen laddas om; wizarden stängs |
+| W-21 | Redigera befintligt område | Fyller namn/emoji/typer/årskurs/generator; JSON-rutan = området utan `exerciseTypes/grade/generator/name/coverEmoji`; generator-område öppnar guidat/Räkna, annars material-läget; synliga lägen ur sparade `hiddenModes` | `fillComposerFromArea` | Wizard i redigeringsläge (förifyllt state, startsteg enligt beslut D-2) | ✅ Förifyllt; startar på steg 3; generator-område visar generatorn med vald tal-typ (D-2) |
+| W-22 | Inget autosparas | AI-utkast sparas bara via Spara efter granskning | princip | OFÖR | ✅ "Stäng utan att spara" efter namnändring → inget sparat |
 
 **Summa: 153 rader** (R 12 · N 10 · K 17 · E 17 · A/C 9 · O/L 10 · B/MO 9 · F 9 · S 11 · I 27 · W 22).
 Inga andra lärarvyer finns: `#/larare/klass`, `/elever`, `/prompter` är bara redirects, och Läsresans lärarvy finns bara som S-09/S-10.
@@ -494,3 +494,77 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 | X-14 | `L-06 renderClassModes` ser död ut men är medvetet behållen | Får inte städas bort i #440 |
 | X-15 | Testdata: `elev1` är inte medlem i någon klass i prod; skapade testklasser/konton ligger i prod-Firestore | QA (#443) städar testklasser/-konton/-områden efteråt |
 | X-16 | Datamodell/regler | Inga ändringar behövs: alla flöden använder befintliga `data.*`-funktioner (listade per rad ovan). `firestore.rules` rörs inte |
+
+---
+
+## 5. QA-resultat (#443, 2026-10-06)
+
+**Gren:** `epic/l-rarsidan-ux-revamp-klass-master-detail-986811` @ `cad40b7` · **Testare:** Tester-agent (Claude).
+**Ingen produktionsdata lästes eller skrevs.** All E2E kördes mot Firebase-emulatorerna. Klasser, konton och områden som skapades i testet finns bara där, så det finns inget att städa i prod.
+
+### 5.1 Miljö och metod
+
+- **Riktiga appen mot emulatorerna** (Auth + Firestore, Java 21). `seed/seed.mjs` + `admin/qa-lasresan-seed.mjs` ger läraren `qalarare` och `elev1` (båda `lilla123`) och QA-klass 4A med 10 elever och Läsresan-data. En proxy med samma origin byter `src/firebase-config.js` mot emulatorkoppling (receptet från #436). Proxyn kopplar dessutom `auth.js`:s sekundära app (kontoskapande) till emulatorn, annars skulle `createStudentAuthAccount` gå mot prod.
+- Klickflödena kördes i headless-Chrome: riktiga klick och skrivningar, plus DOM-skript för att mäta. Sparade värden kontrollerades direkt i emulatorn med Admin SDK.
+- Kompletterande körning i stubben `preview-larare-klasser.html` (minnes-Firestore med läsräknare `__ppStub`) för att räkna läsningar vid klassbyte.
+- `node --test test/*.test.js`: **742/748**. De 6 felen är regeltesterna, som kräver `emulators:exec` (samma som på main).
+- **Bootgraf (BFS från `src/app.js`):** 133 → **110** filer. **Ingen ny fil** i den statiska grafen. 23 lärarfiler har flyttats ut ur den (laddas med `import()` via `lazyPage`/`TEACHER_TABS`).
+- **Fil-taket:** alla JS-filer som epicen ändrat är ≤ 379 rader. `data-classes.js` är orörd (400).
+- **Emojis som rutor i skärmdumparna = testmiljön, inte en regression:** maskinen har ingen emoji-font (`fc-list | grep -i emoji` = 0). Tecknen finns i DOM:en (`textContent`: flikarna U+1F30D 🌍 / U+1F522 🔢, områdena U+1F98B 🦋 / U+1F6F6 🛶, badges U+2753 ❓ / U+1F4D6 📖). I samma browser mäter canvas 🌍 till exakt samma bredd som ett garanterat saknat tecken (U+10FFFD, 19,20 px), alltså finns ingen glyf. Elevsidans figurval (`pages-elev.js`, orörd sedan main) visar också "Välj din figur! □" i samma browser.
+- **Konsol:** 0 fel och 0 varningar under hela lärar- och elevflödet. En Chrome-"issue" (ett formulärfält saknar id/name, a11y). Preview-sidorna (`preview-larare*.html`, `-by-synlighet`, `-modul-synlighet`, `-lasresan-larare`) laddar utan JS-fel.
+
+### 5.2 Acceptanstester
+
+| # | Test | Resultat | Bevis |
+|---|---|---|---|
+| 1 | Klassöverblicken: klick 4A → bara 4A; klick 5E → byter direkt | **PASS** | Byte på ~60 ms, 0 `hashchange`, samma `.cls-page`-DOM, ingen ny navigation. URL:en uppdateras med `replaceState` (`?klass=5e&sektion=…`). Exakt en detaljrubrik och en `aria-current`. Inställningarna är isolerade: Områden ikryssat i 4A men tomt i 5E. Stubben räknar **0 läsningar** av `classes`/`students`/bibliotek per byte (bara Elever läser `studentData` för läsnivåerna, enligt §2.2). ![](qa-larar-revamp/t1-5e-vald-1366.png) |
+| 2 | Innehållstabellen: Årskurs ▲/▼, Område å/ä/ö | **PASS** | Årskurs ▲: apor(1) · Ängar(3) · Bin(3) · Zoo(5) · Öknar(6) · – · –. ▼: 6 · 5 · 3 · 3 · 1 · – · –. Ospecificerad hamnar sist i båda riktningarna, lika årskurs ordnas på `order`. Område ▲: apor · Bin · Vikingatiden · Zoo · Åkrar · Ängar · Öknar, och ▼ omvänt. `aria-sort` och ▲/▼/↕ uppdateras. Alla åtgärdsikoner (✏️ 👁 ➕ 📖 🗑) fungerar, se I-13–I-27. ![](qa-larar-revamp/t2-tabell-1366.jpeg) |
+| 3 | Wizard: "Testområde" → Quiz → backa → namnet kvar → fram → Quiz kvar | **PASS** | Namn, årskurs, emoji (🦋) och önskemål ligger kvar. Quiz-kortet har `aria-pressed=true` efter fram och tillbaka. Hela flödet: prompt (identisk med `buildAreaPrompt`) → material → Kontrollera → Synlighet (Kunskapsjakt urbockad) → Spara → raden "🦋 Testområde · Årskurs 4 · ❓ Quiz · 5 frågor". Firestore: `{grade:"ak4", coverEmoji:"🦋", exerciseTypes:["quiz"], hiddenModes:["kunskapsjakt"]}`. **elev1 spelade området:** Kunskapsjakt dold, Läsförståelse + Läsuppdrag synliga, 6/6 rätt ★★★ +34 🪙, och lärarens Statistik visar 3/9 ★. ![](qa-larar-revamp/t3-wizard-steg2-quiz-kvar.jpeg) ![](qa-larar-revamp/t3-wizard-steg4.jpeg) ![](qa-larar-revamp/t3-elev1-spelat-testomrade.jpeg) |
+
+Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas som `exerciseTypes:["quiz","generator"]`. Redigering öppnar steg 3 med generatorn synlig (topic kvar) och båda korten valda. **X-08** – lösenordspanelen överlever klassbyte tills "Stäng". **#151** – på ett område med `quiz[].passage` och `readingTexts` visar elevsidan både Läsförståelse och Läsuppdrag.
+
+### 5.3 Elevsidan
+
+| Kontroll | Resultat |
+|---|---|
+| elev1 loggar in, väljer figur, spelar Testområde (quiz) till slut | **PASS** |
+| Läsresan: kartan, "Spela steg 1" öppnar en text | **PASS** |
+| Klass-lås: lärare låser QA-klass → Testområde (dölj allt annat) | **PASS live**: inom några sekunder visar elev1:s meny bara "🎯 Fokus: Testområde" + Plugga. `#/elev/shop`, `/lasresan`, `/hus`, andra områden och direktlänken `spela?…vikingatiden` skickas alla till målet. **Undantag P1** nedan (fanns före epicen) |
+| Modul-synlighet (Shoppen dold för 4A) | Sparas korrekt (MO-02). elev1 är inte med i 4A, så elevsidan kontrollerades inte för just den här klassen |
+
+### 5.4 Skärmar
+
+| Bredd | Resultat |
+|---|---|
+| 1366×768 | **PASS** – master 210 px + detalj; alla 6 sektionsflikar får plats; tabellen utan horisontell scroll |
+| 1920×1080 | **PASS** – lärarroten 1240 px centrerad ![](qa-larar-revamp/desktop-1920-statistik.jpeg) |
+| 400 px | **PASS** – master blir `<select>` ("+ Skapa en ny klass" sist), ingen horisontell sidscroll, sektionsflikarna scrollar i sidled, wizarden ryms (14–386 px). Nit F4: tabellens Åtgärder-kolumn ligger utanför vyn (tabellen scrollar i sin container, radklick redigerar) ![](qa-larar-revamp/mobil-400-klasser.jpeg) ![](qa-larar-revamp/mobil-400-innehall.jpeg) |
+
+### 5.5 Fynd
+
+**I epicen (till Lead):**
+
+| ID | Allvar | Fynd | Repro |
+|---|---|---|---|
+| F1 | Låg | 🔒 i master tänds/släcks först inom ≤15 s efter "Lås klassen"/"Lås upp nu". Fokus-sektionen anropar inte `store.notify()`, så bara masterns 15 s-tick ritar om | Klasser → välj klass → Fokusläge → Lås klassen → titta på masterraden: ingen 🔒 förrän upp till 15 s senare |
+| F2 | Kosmetisk | Copy som hänvisar till den gamla layouten: Statistik-tomläget "Lägg till elever på **klasskortet** (🧑‍🎓 Elever)" (teacher-class.js), och Lägen-hinten "…och klassens 🎮 Lägen ovan" (teacher-class-modes.js, sektionen finns inte) | Tom klass → Statistik, resp. Lägen per område |
+| F3 | Nit | När sista klassen tas bort står `?klass=<borttaget id>` kvar i URL:en (`persist` hoppas över i skapa-läget). Ofarligt – `pickInitial` faller tillbaka | Ta bort alla klasser |
+| F4 | Nit | 400 px: innehållstabellens Åtgärder-kolumn hamnar utanför skärmen | Innehåll i 400 px |
+
+**Fanns före epicen (kod oförändrad sedan main `8c83cf4`, ska inte blockera epicen, men bör bli egna issues):**
+
+| ID | Allvar | Fynd | Repro |
+|---|---|---|---|
+| P1 | **Medel–hög** | **Fokusläget ignoreras vid ny inloggning i samma flik.** `class-lock-watch.js` behåller `watch` (nyckel `meId`) över utloggning. Loggar samma elev in igen utan omladdning svarar `lockForMe` med det gamla `current` (null), och klassens snapshot-lyssnare levererar inte längre. Låset gäller först efter omladdning. Live-ändringar medan eleven är inloggad fungerar | **Verifierat på main 8c83cf4:** elev1 loggar in → loggar ut → låset sätts (lärare eller admin) → elev1 loggar in i samma flik → hela menyn syns, direktlänkar öppnas. Omladdning → låst. Relevant för delade Chromebooks |
+| P2 | Medel | "Ta bort konto" lämnar ett zombie-dokument `students/{id} = {classIds:[]}` (`setClassStudents` skriver tillbaka `classIds` på den borttagna eleven), och Auth-kontot finns kvar. Kontoeditorns förslag (`<prefix>NN`) kan då föreslå det "lediga" användarnamnet, och `usernameTaken` fångar det inte → "Användarnamnet "4a02" är redan taget" först vid Skapa | Skapa 4a01+4a02 → Ta bort konto 4a02 → Skapa 1 konto i klassen |
+| P3 | Låg | Kontoeditorn: efter ett fel där 0 konton skapades förblir "Skapa"/"Avbryt" disabled (`teacher-login-cards.js` `return` utan att återaktivera). Läraren måste klicka "Förbered konton" igen | Följ P2 |
+| P4 | Låg | "Ge 🪙" kan visa fel nytt saldo ("0" fast DB har 50) om en annan `getStudentData` (t.ex. en nivå-sparning) är i luften samtidigt (cache-race) | Ge coins + "Sätt för alla" direkt efter varandra |
+| P5 | Kosmetisk | Generatorns tal-typer visas som id utan å/ä/ö: "Talfoljd", "Negativa-tal", "Oppna-utsaga", "Matt-langd" | Wizard → Räkna → steg 3 |
+
+### 5.6 Inte verifierat (ingen prod) – checklista för Elias
+
+1. Logga in som lärare på live efter merge: Klasser (byt mellan två riktiga klasser), Innehåll (sortera, öppna ett område i wizarden och **stäng utan att spara**).
+2. Utskrift av inloggningskort (`window.print` öppnas inte i headless) och kopiera till urklipp på en riktig Chromebook.
+3. Emojis/typsnitt (headless saknar emoji-font, så de visas som rutor i testbilderna).
+4. Boot direkt efter Pages-deployen: lärarflikarna laddas nu med `import()`. Vid en ofullständig utrullning ska "Kunde inte ladda lärarsidan – ladda om" visas, inte en vit sida.
+5. ⚪-raderna ovan (N-10, K-16, O-04, L-02, L-05, I-02, I-05, I-25) är felgrenar eller tomlägen som inte gick att provocera med testdatan. Koden för dem är oförändrad eller granskad.
