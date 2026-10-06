@@ -27,7 +27,12 @@
 //     maxPar minus ett pågående mål (på "svag", maxPar 1, väntar idle helt).
 //     Ett tomt innerlager (grannbyn innan klicket laddat den) hindrar inte
 //     ytterrollen; innerrollen byggs när lagret fylls (MutationObserver →
-//     ny förvärmning) eller vid handoff.
+//     ny förvärmning) eller vid handoff. Idle speglar NEUTRALT (profilens
+//     `neutralisera` i vila-läge, F6 #432) och släpper tillstånds-poster som
+//     inte längre gäller.
+//  3. AVSIKT (F6 #432, varld-motor-avsikt.js): hover/fokus på något klickbart
+//     i staget → det aktiva lagrets roller speglas om i aktuellt tillstånd och
+//     med färsk ambient-pose (reserven för klicket strax efter).
 //
 // Ingen Firestore: allt läses ur DOM:en som redan står där.
 // Laddas bara via import() (varld-motor.js) – aldrig i bootgrafen.
@@ -35,6 +40,7 @@
 
 import * as TX from "./varld-motor-textur.js";
 import { konfiguration } from "./varld-textur.js";
+import { skapaAvsikt, aktivtLager } from "./varld-motor-avsikt.js";
 
 const DWELL_MS = 60;
 const sel = (v) => (Array.isArray(v) ? v.join(",") : v || "");
@@ -53,6 +59,10 @@ export function skapaForvarmare(ctx) {
   let malNr = 0;
   let senasteMal = null;
   let lyssnare = null;
+  const avsikt = skapaAvsikt({
+    stage: ctx.stage, yta: ctx.yta, ledig: ctx.ledig, logga: ctx.logga,
+    agd: (post) => !!mal?.poster.some((p) => p.egen && p.post === post),
+  });
 
   // ---- Nivåer --------------------------------------------------------------------
 
@@ -103,6 +113,7 @@ export function skapaForvarmare(ctx) {
   }
 
   function nar(e) {
+    avsikt.nar(e);
     if (!ctx.ledig()) return;
     const m = malFor(e.target);
     if (m) borja(m, e.type === "focusin" || e.pointerType !== "mouse");
@@ -122,6 +133,7 @@ export function skapaForvarmare(ctx) {
   }
 
   function lamna(e) {
+    avsikt.lamna(e);
     if (!mal) return;
     const till = e.relatedTarget;
     if (till && mal.el.contains(till)) return; // rör sig inom målet
@@ -156,7 +168,7 @@ export function skapaForvarmare(ctx) {
   function sakraEgen(m, roll, r) {
     const yta = ctx.yta();
     if (!yta) return;
-    const fore = TX.postFor(r.nyckel);
+    const fore = TX.postFor(TX.nyckelFor(r));
     const post = TX.sakra(r, { yta, prio: "nu", kalla: "mal" });
     if (m.poster.some((p) => p.post === post)) return; // samma lager förvärmt igen
     const egen = post !== fore; // (blir den ett alias för `fore` släpps inget av den)
@@ -216,7 +228,9 @@ export function skapaForvarmare(ctx) {
   function forvarm() {
     const stage = ctx.stage(), yta = ctx.yta();
     if (!stage || !yta || !ctx.ledig()) return;
-    const aktiv = [...stage.querySelectorAll(":scope > .varld-lager")].find((l) => !l.inert && !l.classList.contains("varld-dold"));
+    const lager = [...stage.querySelectorAll(":scope > .varld-lager")];
+    for (const l of lager) TX.rensaTillstand(l, TX.tillstandNu(l)); // F6: hover-speglar som inte längre gäller
+    const aktiv = aktivtLager(stage);
     if (!aktiv) return;
     const par = [];
     for (const nivaer of ctx.kameror) {
@@ -237,6 +251,7 @@ export function skapaForvarmare(ctx) {
       sedda.add(nyckel);
       byggPar(Y, I, sr, yta, "idle");
     }
+    avsikt.efterIdle();
   }
 
   /** Båda rollerna för övergången Y → I (tomma lager hoppas över). */
@@ -246,7 +261,8 @@ export function skapaForvarmare(ctx) {
       if (!niva.el.childElementCount || !g.box.w || !g.box.h) continue;
       // Lager med levande ambient (utanför sprites) speglas om vid handoff
       // ändå; förvärmningen är bara reserven → högst var 4:e sekund.
-      TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio, ...(kalla ? { kalla } : {}), tak: TX.levandeBas(niva.el) ? 4000 : 0 });
+      // Idle = neutral (hover/fokus i vila-läge); mål/avsikt = aktuellt tillstånd.
+      TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio, ...(kalla ? { kalla } : {}), tak: TX.levandeBas(niva.el) ? 4000 : 0, neutral: prio === "idle" });
     }
   }
 
@@ -280,6 +296,7 @@ export function skapaForvarmare(ctx) {
   }
 
   function slappa() {
+    avsikt.avbryt();
     lyssnare?.abort();
     lyssnare = null;
     avbryt("ny-scen");
@@ -287,7 +304,8 @@ export function skapaForvarmare(ctx) {
 
   return {
     koppla, slappa, forvarm, forvarmLager, forvarmMal, forvarmOvergang, overlat,
-    avbryt: () => avbryt("avbruten"),
+    avbryt: () => { avsikt.avbryt(); avbryt("avbruten"); },
+    get avsikt() { return avsikt.senaste; },
     get mal() { return mal ? { id: mal.id, lager: mal.lager.id, fokus: mal.fokus, startad: mal.startad } : null; },
     get senasteMal() { return senasteMal; },
   };

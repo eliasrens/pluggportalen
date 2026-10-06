@@ -235,3 +235,94 @@ bara `sattPose` skriver, och bara på bas-ambienten (hus 7, rum 2). Djurens `ps-
   för nästa T3 ut. Idle-förvärmningen bygger inte om den, eftersom den är yngre än `tak` 4000. Huset (och röken
   vid skorstenen) blir då ~6 px större i canvas än i DOM vid slutet (sannolikt hover-skalan; med en idle-reserv
   var skillnaden 0,14 %). Husprofilen har `objekt: []` med flit (S1).
+
+## 9. F6 (#432): noll pop vid START – tillstånd i nyckeln, avsikts-spegling, färskt startlager
+
+**Vald väg.** Förslagen a) och b), plus en regel för startlagret. Sandwich-vägen valdes bort: husets ambient ligger på
+tre z-nivåer (solstrålar under solen, moln bakom silhuetterna, röken *inuti* husskalet under takkant/torn). Det kräver
+minst fyra statiska skivor per roll, alltså ~2× GPU och en intervall-spegling i `varld-spegel*.js`.
+- **Tillstånd i nyckeln** (`varld-motor-tillstand.js`). Pyramidnyckeln = roll + `#<signatur>` för hovrade/fokuserade
+  noder bland profilens nya `neutralisera` (hus: `[id$="husgrupp"]`, `[id$="klasskylt"]`). `i:h` = hover, `i:f` =
+  `:focus-visible`, `~` = en transition pågår eller är pausad. Neutralt ger samma nyckel som tidigare. Idle speglar
+  neutralt, med `neutralisera` i vila-läge via F4b:s kloner. En reserv kan därför bara spelas i samma tillstånd som
+  DOM:en visar. Tillstånds-poster som inte längre gäller släpps när pekaren lämnar och i idle.
+- **Avsikt** (`varld-motor-avsikt.js`). Hover/fokus på något klickbart i staget, också `.varld-ui` ("Gå ut",
+  "Till gården"), speglar om det aktiva lagrets förvärmda roller. Det sker efter att hover-transitionen landat, i
+  aktuellt tillstånd och med aktuell ambient-pose (prio "nu", en spegling per task). Bara roller i lagrets aktuella
+  geometri förnyas.
+- **Startlagret färskt** (`varld-motor-forbered.js`). Lagret som syns före klicket (ytter vid "in", inner vid "ut")
+  spelas på reserv först vid `VANTA_MAX_MS` (250 ms), inte vid `RESERV_MAX_MS` (120). Det dolda lagret får fortfarande
+  reserv efter 120 ms, och F5 synkar dess pose. Väntan pollas, så rörelsen startar så fort startlagret är färskt.
+  En pågående spegling (t.ex. avsiktens) får bli reserv om ingen klar finns.
+
+**Mätmetod.** Desk med SwiftShader, `preview-pixi-hus.html` med stub. En sid-harness höll handoffen vid START (efter
+`visaVila`: DOM synlig i klickets frusna pose, canvasen under) och vid SLUT (efter `spela`). Vid varje hållning togs
+skärmdumpar av DOM och av canvas (`.varld-pixi-spelar` växlad). Två mått:
+- **Ambient (exakt):** för varje moln, solstrålar och rök i startlagret, största förflyttningen av nodens hörn (getBBox
+  × getScreenCTM i startens kameraskala) mellan klickets pose och canvasens pose.
+- **Skärmdump:** bästa förskjutning (±6 px) för hus och skylt och andel > 40 i rutan. 0 = ingen förskjutning; kvarvarande
+  andel ≤ 0,5 % är kantbrus i SwiftShader. Molnrutornas skärmdumpsmått är brusiga (tunna vita kanter, rökpuffar i rutan),
+  så där gäller det exakta måttet.
+
+Resorna kördes med riktig mus (hover → klick) och med tangentbord (Tab → Enter, `:focus-visible`), och pekaren stod
+still 0,5, 3 eller 10 s utanför målet före hover/fokus. Klick verifierades efter varje resa med `evaluate_script`
+(hash, `senaste`).
+
+**Normalläge** (ingen fördröjning, alla startlager färska):
+
+| # | Resa | Input / still | hover→klick | Väntan | Tillstånd [Y, I] | START ambient (moln/sol/rök) | START hus · skylt | SLUT hus · skylt · moln |
+|---|---|---|---|---|---|---|---|---|
+| n1 | T3 in | mus / 0,5 s | 1489 ms | klart 109 | `0:h`, – | 0 / 0 / 0 px | 0 · 0 px | rum-moln 0 |
+| n2 | T3 ut | mus ("Gå ut" → menyval) / 3 s | – | klart 82 | – | rum-moln 0 | – | 0 · 0 · 0 px |
+| n3 | T3 in | mus / 3 s | 306 ms | klart 91 | `0:h`, – | 0 / 0 / 0 | 0 · 0 | rum-moln 0 |
+| n4 | T3 ut | Enter / 10 s | – | klart 98 | – | rum-moln 0 | – | se ¹ |
+| n5 | T3 in | Enter / 10 s | 3159 ms | klart 99 | `0:f`, – | 0 / 0 / 0 | 0 · 0 | rum-moln 0 |
+| n6 | T3 ut | Enter, pekaren över husets slutplats | – | klart 94 | – | rum-moln 0 | – | se ¹ |
+| n7 | T2 ut | mus på skylten / 3 s | 9 s | klart 148 | –, `1:h` | 0 / 0 / 0 | ² | ² |
+| n8 | T2 in | mus på tomten / 0,5 s | – | klart 88 | – | by (rök = sprites) 0 | – | 0 · 0 · 0, rök 0 |
+| n9 | T2 ut | Enter / 10 s | 5598 ms | klart 64 | –, `1:f` | 0 / 0 / 0 | 0 · 0 | by 0 |
+| n10 | T3 in | mus / 10 s | 989 ms | klart 119 | `0:h`, – | 0 / 0 / 0 | 0 · 0 | rum-moln 0 |
+
+¹ Med pekaren över husets slutplats visade slut-skärmdumpen huset i hover-skala. Det var ett harness-fel: skärmdumpen
+togs ~200 ms efter bytet. En rAF-sond i verkligt flöde utan hållning visar `:hover = false` under hela rörelsen
+(`.varld-pixi-spelar` har `pointer-events:none`). Vid bytet är `#husgrupp` `matrix(1,0,0,1,0,0)`, alltså samma neutrala
+bild som canvasen. Chrome lägger på hovern ~200 ms senare, och den tonar in via husets egen transition (0,25 s). Det
+är inget hopp. I harnessen spärras nu pekaren under slut-skärmdumpen.
+² n7 kördes med dokumentet scrollat (64 px) för att nå skylten i ett 437 px högt fönster. Då ritade canvasen lagret
+förskjutet (se "Kvar"), så skärmdumparna är ogiltiga. Den exakta ambient-posen var 0. n8–n10 kördes i 900×700 utan scroll.
+
+**Reservläge** (handoff-speglingens avkodning fördröjd 400 ms, så att reserven tvingas fram):
+
+| # | Resa | Input | Väntan | Spelat | START | SLUT |
+|---|---|---|---|---|---|---|
+| r1 | T2 in | mus / 3 s | reserv 116 ms (startlagret byn färskt) | hus-reserv 36 s, F5-pose 7/7 | 0 px | hus 0 · skylt 0 · rök 0 |
+| r2 | T2 ut | Enter / 3 s | deadline 252 ms | hus-reserv `1:f`, 854 ms (= fokus→Enter) | skylt **0 px** (tillståndet stämmer); moln 10,8–17,6 px, sol 5,5 px, rök 48–125 px | 0 |
+| b1 | T3 ut (före startlager-regeln) | mus / 3 s | reserv 117 ms | rum-reserv (avsikt) 1679 ms | rum-moln 11,1 / 8,1 px | 0 |
+
+**Slutsats.** När startlagrets omspegling hinner inom 250 ms (alla normalresor: 64–148 ms) är START och SLUT 0 px för
+hus, skylt, moln, rök och solstrålar, med och utan hover, med mus och med Enter. Missar omspeglingen 250 ms (bara
+med tvingad fördröjning här) spelas reserven. Tillståndet (hover-/fokus-skala) är då alltid rätt, men ambienten
+hoppar så mycket som den hunnit driva sedan hover/fokus: moln ~13–20 px/s, rök mer. Före F6 var reserven 11–42 s
+gammal. ≤ 1 px för ambient i det fallet kräver sandwich eller frusen ambient; se "Kvar".
+
+**Kostnad.** Hover på huset (desk, 596×550, dpr 1):
+- En förvärmd roll: 5,1 ms synkront på main + 6,8 ms asynkron spegling, klar efter 40 ms. GPU 17,2 → 31,5 MB
+  (+14,3 MB) under hovern, tillbaka till 17,2 MB när pekaren lämnar.
+- Två roller (byn laddad): 5,7 ms synkront, klar efter 72 ms, +17,1 MB (33,9 → 51,0 MB), tillbaka efter.
+- Idle: oförändrat antal speglingar, plus en `querySelectorAll`/`matches` per lager (< 0,1 ms).
+- Handoff: väntan kan bli upp till 250 ms i stället för 120 ms, men bara när startlagrets omspegling tar 120–250 ms.
+
+`pp:pixi:av`: `css:av`, 0 pyramider och ingen avsikts-spegling vid hover. Reduced-motion: oförändrat (direkthopp i
+kameran). Ingen Firestore: avsikten läser bara DOM. Klicktest även i `preview-pixi-rum.html` (T3 ut: startlagret
+rummet färskt efter 123 ms, husets reserv bara för det dolda lagret; T3 in `0:h`), `preview-pixi-by.html` (T4:
+målförvärmningen orörd, byn utan levande bas-ambient → ingen avsikts-spegling) och T7 i hus-previewn (avsikt på
+"Till gården", färsk på 104 ms).
+
+**Kvar (utanför F6):**
+- **Scrollat dokument förskjuter canvasen.** I ett fönster lägre än sidan (437 px) scrollade dokumentet 64 px. Då fick
+  samma roll två nycklar (`vy.y` 89 resp. −75, alltså 164 px isär) och canvasen ritade husets lager ~164 px för högt
+  vid start (n7). Det tyder på att `lagerGeo` eller `roll` påverkas av scroll eller av ett mellanläge i kameran.
+  Avsikten hoppar nu över roller vars geometri inte är aktuell. Själva felet är inte utrett.
+- **Ambient vid reserv efter 250 ms.** Restfelet = driften sedan hover/fokus (r2: 854 ms ⇒ moln ≤ 18 px). Exakt 0
+  även där kräver sandwich (ambient-skivor i rätt z-ordning, ~2× GPU) eller att ambienten pausas medan målet är
+  hovrat. Det sista är en synlig beteendeändring och kräver Elias OK.

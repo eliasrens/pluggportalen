@@ -2,8 +2,10 @@
 // Pluggporten – rörelse-motorns förberedelse (steg 1–2 i handoffen, #396)
 // ----------------------------------------------------------------------------
 // Utbruten ur varld-motor.js (F4b #428, 400-raderstaket). Säkrar båda lagrens
-// pyramider för övergångsrollerna (återanvänder förvärmda – idle eller mål –
-// när roll-nyckel + version stämmer), speglar om basen när lagret har levande
+// pyramider för övergångsrollerna (återanvänder förvärmda – idle, mål eller
+// avsikt – när roll-nyckel + hover-/fokus-tillstånd (F6 #432) + version
+// stämmer; en reserv spelas alltså bara i samma tillstånd som DOM:en visar
+// vid klicket), speglar om basen när lagret har levande
 // ambient utanför profilens sprites, lägger sprites + hovrat objekt som
 // överlägg i frusen pose och bygger animationens fran/till-tillstånd.
 // Laddas bara via import() (varld-motor.js) – aldrig i bootgrafen.
@@ -23,12 +25,17 @@ const tills = (t) => vanta(Math.max(0, t - performance.now()));
  * väntan ren fördröjning för eleven – reserven har rätt innehåll, ambienten
  * står bara i förvärmningens pose. Kall övergång (inget spelbart) väntar
  * fortfarande till `deadline` (VANTA_MAX_MS 250), sedan CSS.
+ * F6 #432: gäller bara lagret som är DOLT vid start. Lagret som SYNS vid start
+ * (ytterlagret vid "in", innerlagret vid "ut") spelas på reserv först vid
+ * `deadline` – reservens ambient (och hover-skala) skulle annars hoppa i
+ * bytet DOM → canvas. Färsk spegling inom 250 ms → 0 px vid start.
  */
 export const RESERV_MAX_MS = 120;
+const POLL_MS = 10;
 
 /**
  * Vänta på texturerna: tills `klart` löser, eller `deadline` passeras, eller
- * – om `spelbart()` är sant vid `reservTill` – redan då.
+ * – så snart `spelbart()` är sant från och med `reservTill` – redan då.
  * @param {Promise<unknown>} klart  alla nya pyramider/överlägg klara
  * @param {() => boolean} spelbart  har båda lagren en ny bild eller reserv?
  * @param {number} deadline   performance.now()-tid för kall övergång
@@ -36,8 +43,14 @@ export const RESERV_MAX_MS = 120;
  * @returns {Promise<"klart"|"reserv"|"deadline">}
  */
 export function vantaTexturer(klart, spelbart, deadline, reservTill = deadline) {
-  const reserv = tills(Math.min(reservTill, deadline))
-    .then(() => (spelbart() ? "reserv" : tills(deadline).then(() => "deadline")));
+  const reserv = (async () => {
+    await tills(Math.min(reservTill, deadline));
+    while (performance.now() < deadline) {
+      if (spelbart()) return "reserv";
+      await vanta(POLL_MS);
+    }
+    return "deadline";
+  })();
   return Promise.race([klart.then(() => "klart", () => "klart"), tills(deadline).then(() => "deadline"), reserv]);
 }
 
@@ -75,7 +88,10 @@ export async function forbered(spec, slapp, deadline, { stage, yta, reservTill =
   // omspeglingen billig nog). Saknas båda → CSS-vägen.
   const ny = (p) => p.alias || p; // identisk bild → reserven återanvänd
   const valj = (p) => (ny(p).minKlar && !ny(p).slappt ? ny(p) : p.reserv?.minKlar && !p.reserv.slappt ? p.reserv : null);
-  const vantan = await vantaTexturer(klart, () => !!(valj(pY) && valj(pI)), deadline, reservTill);
+  // Startlagret (synligt före klicket) bara färskt före deadline (F6 #432).
+  const pStart = spec.riktning === "in" ? pY : pI;
+  const farsk = (p) => ny(p).minKlar && !ny(p).slappt;
+  const vantan = await vantaTexturer(klart, () => !!(valj(pY) && valj(pI)) && farsk(pStart), deadline, reservTill);
   const aY = valj(pY), aI = valj(pI);
   if (!aY || !aI) {
     slappOvl();
@@ -100,6 +116,9 @@ export async function forbered(spec, slapp, deadline, { stage, yta, reservTill =
     // Vem byggde pyramiderna som spelades, och fanns de redan före klicket?
     kallor: [aY.kalla, aI.kalla], ateranvanda: [aY.skapad < t0 && Y.id, aI.skapad < t0 && I.id].filter(Boolean),
     pyramider: [pY.ms, pI.ms], vantan, vantaMs: Math.round(performance.now() - t0),
+    // F6 #432: hover-/fokus-tillståndet (nyckeln) och hur gammal en spelad reserv var.
+    ...(pY.tillstand || pI.tillstand ? { tillstand: [pY.tillstand, pI.tillstand] } : {}),
+    ...(inaktuella.length ? { reservAlderMs: [aY, aI].map((a, j) => (a !== ny(j ? pI : pY) ? Math.round(t0 - a.skapad) : 0)) } : {}),
   };
   return {
     fran: bred(fran), till: bred(till), info,

@@ -29,6 +29,12 @@
 //               scale(1.06)). I BASEN ritas samma nod alltid i vila-läge (utan
 //               :hover/:focus-visible, varld-spegel-neutral.js) – annars slutar
 //               en senare övergång med hover-skalan kvar på canvasen.
+//   neutralisera (valfri, F6 #432) Noder vars hover/fokus BAKAS IN i basen vid
+//               handoff (inte överlägg – t.ex. huset, där ett överlägg skulle
+//               täcka avataren). Idle-förvärmningen speglar dem i vila-läge
+//               (neutral reserv); i övrigt hamnar pyramiden under nyckeln
+//               roll + tillstånd och spelas bara när samma tillstånd råder
+//               (varld-motor-tillstand.js, varld-motor-avsikt.js).
 //   ignorera    Ritas aldrig (bubblor, paneler).
 //   malSelektor Dynamiska klickmål (t.ex. ".by-tomt[data-fokus-x]"). Vid
 //               pointerenter/focusin på ett mål förvärmer motorn (prio "nu")
@@ -51,6 +57,7 @@ export default {
   // Allt klickbart i scenerna är role=button/tabindex (husgrupp, klasskylt,
   // by-tomter, skyltar) – det är dem hover/fokus skalar upp.
   objekt: '[role="button"], button, a[href], [tabindex]:not([tabindex="-1"])',
+  neutralisera: null,
   ignorera: [],
   malSelektor: null,
   fangst: "stage",

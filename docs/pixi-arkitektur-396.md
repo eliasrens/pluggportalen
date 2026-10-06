@@ -361,6 +361,8 @@ export default {
   id: "by",
   ambient: [".hus-moln", ".hus-solstralar", ".hus-rok"],   // levande noder: egna sprites, pose vid handoff
   objekt: ".by-tomt",                                       // kandidater för fokus-överlägg (hover/focus)
+  neutralisera: null,                                       // F6 #432: hover/fokus BAKAS IN (hus: husgrupp, skylt);
+                                                            // idle speglar dem i vila-läge, nyckeln bär tillståndet
   ignorera: ".by-last-bubbla",                              // ritas aldrig
   malSelektor: ".by-tomt[data-fokus-x]",                    // förvärm fokus-pyramid vid pointerenter/focusin
   fangst: "stage",                                          // "stage" (övertecknat) | "lager"
