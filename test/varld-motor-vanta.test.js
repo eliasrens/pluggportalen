@@ -56,3 +56,10 @@ test("ett avvisat klart-löfte räknas som klart (valj() avgör sedan reserv/CSS
   const { res } = await mat((t0) => vantaTexturer(Promise.reject(new Error("x")), () => false, t0 + 250, t0 + 120));
   assert.equal(res, "klart");
 });
+
+test("F6: spelbart blir sant EFTER reservgränsen (startlagret färskt) → spelar då, inte vid deadline", async () => {
+  const t = performance.now() + 170;
+  const { res, ms } = await mat((t0) => vantaTexturer(aldrig, () => performance.now() >= t, t0 + 250, t0 + 120));
+  assert.equal(res, "reserv");
+  assert.ok(ms >= 165 && ms < 240, `${ms} ms`);
+});

@@ -243,7 +243,9 @@ export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio ==
     texturCache().rör(gammal.pid);
     return gammal;
   }
-  const reserv = anvandbar && gammal.minKlar ? gammal : gammal?.reserv && !gammal.reserv.slappt ? gammal.reserv : null;
+  // Saknas en klar reserv får en PÅGÅENDE spegling bli reserv (F6 #432: avsiktens,
+  // startad vid hover) – blir den klar före omspeglingen kan rörelsen spelas på den.
+  const reserv = anvandbar && gammal.minKlar ? gammal : gammal?.reserv && !gammal.reserv.slappt ? gammal.reserv : anvandbar ? gammal : null;
   if (gammal && gammal !== reserv) slapp(gammal);
   const post = {
     pid: `p${++pidNr}`, nyckel, roll: r, tillstand: nyckel.slice(r.nyckel.length + 1), el: r.el, version: v, prio, kalla, yta, skapad: performance.now(), reserv, lan: 0,

@@ -25,12 +25,17 @@ const tills = (t) => vanta(Math.max(0, t - performance.now()));
  * väntan ren fördröjning för eleven – reserven har rätt innehåll, ambienten
  * står bara i förvärmningens pose. Kall övergång (inget spelbart) väntar
  * fortfarande till `deadline` (VANTA_MAX_MS 250), sedan CSS.
+ * F6 #432: gäller bara lagret som är DOLT vid start. Lagret som SYNS vid start
+ * (ytterlagret vid "in", innerlagret vid "ut") spelas på reserv först vid
+ * `deadline` – reservens ambient (och hover-skala) skulle annars hoppa i
+ * bytet DOM → canvas. Färsk spegling inom 250 ms → 0 px vid start.
  */
 export const RESERV_MAX_MS = 120;
+const POLL_MS = 10;
 
 /**
  * Vänta på texturerna: tills `klart` löser, eller `deadline` passeras, eller
- * – om `spelbart()` är sant vid `reservTill` – redan då.
+ * – så snart `spelbart()` är sant från och med `reservTill` – redan då.
  * @param {Promise<unknown>} klart  alla nya pyramider/överlägg klara
  * @param {() => boolean} spelbart  har båda lagren en ny bild eller reserv?
  * @param {number} deadline   performance.now()-tid för kall övergång
@@ -38,8 +43,14 @@ export const RESERV_MAX_MS = 120;
  * @returns {Promise<"klart"|"reserv"|"deadline">}
  */
 export function vantaTexturer(klart, spelbart, deadline, reservTill = deadline) {
-  const reserv = tills(Math.min(reservTill, deadline))
-    .then(() => (spelbart() ? "reserv" : tills(deadline).then(() => "deadline")));
+  const reserv = (async () => {
+    await tills(Math.min(reservTill, deadline));
+    while (performance.now() < deadline) {
+      if (spelbart()) return "reserv";
+      await vanta(POLL_MS);
+    }
+    return "deadline";
+  })();
   return Promise.race([klart.then(() => "klart", () => "klart"), tills(deadline).then(() => "deadline"), reserv]);
 }
 
@@ -77,7 +88,10 @@ export async function forbered(spec, slapp, deadline, { stage, yta, reservTill =
   // omspeglingen billig nog). Saknas båda → CSS-vägen.
   const ny = (p) => p.alias || p; // identisk bild → reserven återanvänd
   const valj = (p) => (ny(p).minKlar && !ny(p).slappt ? ny(p) : p.reserv?.minKlar && !p.reserv.slappt ? p.reserv : null);
-  const vantan = await vantaTexturer(klart, () => !!(valj(pY) && valj(pI)), deadline, reservTill);
+  // Startlagret (synligt före klicket) bara färskt före deadline (F6 #432).
+  const pStart = spec.riktning === "in" ? pY : pI;
+  const farsk = (p) => ny(p).minKlar && !ny(p).slappt;
+  const vantan = await vantaTexturer(klart, () => !!(valj(pY) && valj(pI)) && farsk(pStart), deadline, reservTill);
   const aY = valj(pY), aI = valj(pI);
   if (!aY || !aI) {
     slappOvl();
