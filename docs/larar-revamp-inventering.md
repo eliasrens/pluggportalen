@@ -584,6 +584,16 @@ Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas s
 
 **Notera:** gamla Granska visade alla svarsalternativ och förklaringen direkt. Nu visar listraden fråga och rätt svar, och resten syns i Redigera-formuläret. `buildReviewPanel` finns kvar och används för nivåtexterna i underraden.
 
+**Polish 4 (#455): flikar + scroll i områdets underrad.** Sektionerna som låg staplade är nu flikar: **Quiz & läsförståelse (n) · Para ihop (n) · Lästexter (n) · Nivåtexter (n)**, understrukna i ämnesflikarnas stil med antal-badge. Flikmotorn ligger i nya `teacher-area-items-tabs.js`, som bara importeras av `teacher-area-items.js` (laddas med `import()`), så bootgrafen är oförändrad och BFS-testet grönt. Sparlogiken från #454 är orörd. Ingen ändring i datamodell, `data-*.js`, `validate*.js`, prompter eller `firestore.rules`. Verifierat i `preview-larare-klasser.html` vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **759/759**. Inga konsolfel.
+
+| # | Ändring | Resultat | Bevis |
+|---|---|---|---|
+| 1 | **Flikar** enligt ARIA-mönstret (`tablist`/`tab`/`tabpanel`, `aria-selected`, `aria-controls`, rullande tabindex, ←/→/Home/End). Bara flikar för typer området har (`areaExerciseTypes`) eller har innehåll i (`tabsFor`, ren och testad i `teacher-area-items-ops.test.js`). Quiz-fliken är EN flik för quiz och läsförståelse (#151), behåller Källtext-taggen och visar raden "Frågor med källtext används även i Läsförståelse." när området har passage-frågor. Saknas lästexter finns "+ Lästext" sist i flikraden (ersätter den fristående "Lägg till text"-knappen från #454) | **PASS**. Piltangenter byter och fokuserar flik | ![](qa-larar-revamp/polish4-flikar-scroll-1366.jpeg) |
+| 2 | **Förvald flik** (`pickTab`): den första med innehåll. Senast vald flik minns per område under sidbesöket (`itemState.tab`) och står kvar efter sparning och omritning | **PASS**. Redigerat par → sparat → fliken Para ihop står kvar med notisen "Paret sparades." | – |
+| 3 | **Scroll**: varje flik har listan i en egen scrollyta (`max-height: min(60vh, 520px)`, mobil `min(55vh, 420px)`). "+ Lägg till …" ligger under scrollytan och syns alltid. Öppnat formulär och ta bort-bekräftelse scrollas in med `scrollIntoView({block:"nearest"})` | **PASS**. 13 frågor: scrollytan 461 px av 891 px, knappen syns | ![](qa-larar-revamp/polish4-flikar-scroll-1366.jpeg) |
+| 4 | **Nivåtexter**: den befintliga `buildReadingEditor` (samma anrop som förr) är inbäddad i fliken. Fliken visas när området har `texts`, `readingTexts` eller förkrav. 📖-knappen i raden öppnar underraden på fliken Nivåtexter (och tvingar fram fliken även i områden utan nivåtexter), och ett andra klick fäller ihop. Editorns "Stäng" fäller ihop underraden. Den separata nivåtext-utfällningen och den read-only Granska-vyn av nivåtexter är borttagna, eftersom editorn visar samma sak | **PASS** | ![](qa-larar-revamp/polish4-nivatexter-1366.jpeg) |
+| 5 | **Mobil (≤640 px)**: flikraden scrollar i sidled och vald flik hålls synlig. Sidan scrollar inte horisontellt (`scrollWidth` 385 ≤ 400) | **PASS** | ![](qa-larar-revamp/polish4-flikar-400.jpeg) |
+
 ### 5.6 Inte verifierat (ingen prod) – checklista för Elias
 
 1. Logga in som lärare på live efter merge: Klasser (byt mellan två riktiga klasser), Innehåll (sortera, öppna ett område i wizarden och **stäng utan att spara**).

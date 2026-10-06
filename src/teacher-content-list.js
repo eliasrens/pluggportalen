@@ -7,16 +7,16 @@
 // ut områdets UNDERRADER (#454, teacher-area-items.js – laddas med import() vid
 // första utfällning, #271): redigera/lägg till/ta bort enskilda frågor, par och
 // texter. ✏️ öppnar wizarden (onEdit); övriga ikonknappar bevarar alla gamla
-// funktioner: Lägg till (#40), Nivåtexter (#152) och Ta bort (med confirm).
+// funktioner: Lägg till (#40), Nivåtexter (#152; öppnar underraden på fliken
+// Nivåtexter, #455) och Ta bort (med confirm).
 // Utfällningar visas i en full-bredds-rad direkt under raden; vilka områden som
-// är utfällda minns i opts.itemState så de står kvar när listan laddas om. Rubrikerna Område/Årskurs är
+// är utfällda (och vald flik, #455) minns i opts.itemState så de står kvar när listan laddas om. Rubrikerna Område/Årskurs är
 // klickbara (aria-sort + ▲/▼); själva sorteringen sker i grades.filterSortAreas
 // och sorteringsstate ägs av teacher-content.js – hit kommer redan sorterade områden.
 // ============================================================================
 
 import * as data from "./data.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
-import { buildReadingEditor } from "./teacher-reading.js";
 import { areaExerciseTypes, hasGeneratorContent, EXERCISE_TYPES } from "./exercise-types.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
 import { el, esc, icon } from "./teacher-shared.js";
@@ -97,13 +97,14 @@ const actBtn = (act, ic, label, extra = "") =>
  * @param {()=>void} opts.onRefresh – ladda om listan efter ändring.
  * @param {{key:string,dir:string}} [opts.sort] – aktiv sortering ("order" = ingen).
  * @param {(key:string)=>void} [opts.onSort] – rubrikklick på en sorterbar kolumn.
- * @param {{open:Set<string>, notice:Map<string,string>}} [opts.itemState] – utfällda
- *   områden + engångs-notis efter sparning (ägs av teacher-content.js, överlever omladdning).
+ * @param {{open:Set<string>, notice:Map<string,string>, tab?:Map<string,string>}} [opts.itemState] – utfällda
+ *   områden + engångs-notis efter sparning + senast vald flik per område (#455) (ägs av teacher-content.js, överlever omladdning).
  * @param {()=>void} [opts.onItemsSaved] – tyst omladdning efter sparad underrad (#454).
  * @returns {HTMLElement}
  */
 export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSort, itemState, onItemsSaved }) {
   const state = itemState || { open: new Set(), notice: new Map() };
+  state.tab ??= new Map();
   const wrap = el(`<div class="table-scroll area-table-scroll">
     <table class="area-tbl">
       <thead><tr>
@@ -144,10 +145,10 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
       <td colspan="5"></td></tr></tbody></table>`).querySelector("tr");
     const itemsSlot = el(`<div class="area-items" hidden></div>`);
     const mergeSlot = el(`<div class="area-merge" hidden></div>`);
-    const readingSlot = el(`<div class="area-reading" hidden></div>`);
-    expandRow.firstElementChild.append(itemsSlot, mergeSlot, readingSlot);
+    expandRow.firstElementChild.append(itemsSlot, mergeSlot);
     const btn = (act) => row.querySelector(`[data-act="${act}"]`);
-    const slotBtns = new Map([[itemsSlot, btn("review")], [mergeSlot, btn("add")], [readingSlot, btn("reading")]]);
+    const slotBtns = new Map([[itemsSlot, btn("review")], [mergeSlot, btn("add")]]);
+    let panel = null; // underradens panel när den är byggd (selectTab för 📖).
 
     // Utfällningsraden + knapparnas aktiv-läge följer slottarnas hidden – även när
     // formulärens egna "Stäng"-knappar (merge/nivåtexter) döljer sin slot.
@@ -156,9 +157,13 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         b.classList.toggle("active", !slot.hidden);
         b.setAttribute("aria-expanded", String(!slot.hidden));
       }
+      // 📖 är aktiv när underraden visar fliken Nivåtexter (#455).
+      const onReading = !itemsSlot.hidden && state.tab.get(key) === "reading";
+      btn("reading").classList.toggle("active", onReading);
+      btn("reading").setAttribute("aria-expanded", String(onReading));
       row.setAttribute("aria-expanded", String(!itemsSlot.hidden));
       row.classList.toggle("expanded", !itemsSlot.hidden);
-      expandRow.hidden = itemsSlot.hidden && mergeSlot.hidden && readingSlot.hidden;
+      expandRow.hidden = itemsSlot.hidden && mergeSlot.hidden;
     };
     const obs = new MutationObserver(syncExpand);
     for (const slot of slotBtns.keys()) obs.observe(slot, { attributes: true, attributeFilter: ["hidden"] });
@@ -191,9 +196,15 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         }
         const notice = state.notice.get(key);
         state.notice.delete(key);
-        const panel = itemsMod.buildItemsPanel(a, {
+        panel = itemsMod.buildItemsPanel(a, {
           subjectId,
           notice,
+          tab: state.tab.get(key),
+          onTabChange: (id) => {
+            state.tab.set(key, id);
+            syncExpand();
+          },
+          onClose: () => !itemsSlot.hidden && toggleItems(),
           onSaved: (msg) => {
             state.notice.set(key, msg);
             (onItemsSaved || onRefresh)();
@@ -202,7 +213,8 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         itemsSlot.replaceChildren(panel);
         // Efter sparning: fokus till underraden (tabellen byggdes om och sätts in
         // i DOM:en först efter buildAreaTable – därav nästa frame).
-        if (notice) requestAnimationFrame(() => panel.isConnected && panel.focus({ preventScroll: true }));
+        const built = panel;
+        if (notice) requestAnimationFrame(() => built.isConnected && built.focus({ preventScroll: true }));
       } catch (err) {
         console.error("Underraderna kunde inte laddas:", err);
         itemsSlot.innerHTML = `<div class="msg error">Kunde inte ladda innehållet just nu. Prova att ladda om sidan.</div>`;
@@ -211,6 +223,7 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
     const toggleItems = () => {
       if (!itemsSlot.hidden) {
         state.open.delete(key);
+        panel = null;
         itemsSlot.hidden = true;
         itemsSlot.replaceChildren();
         syncExpand();
@@ -237,9 +250,18 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
     btn("add").addEventListener("click", () =>
       toggleSlot(mergeSlot, () => buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh }))
     );
-    btn("reading").addEventListener("click", () =>
-      toggleSlot(readingSlot, () => buildReadingEditor(a, readingSlot, { subjectId, onSaved: onRefresh }))
-    );
+    // 📖 Nivåtexter (#152) bor nu i underradens flik (#455): öppna den fliken,
+    // eller fäll ihop om den redan visas.
+    btn("reading").addEventListener("click", () => {
+      if (!itemsSlot.hidden && state.tab.get(key) === "reading") return toggleItems();
+      state.tab.set(key, "reading");
+      if (!itemsSlot.hidden && panel) {
+        panel.selectTab("reading");
+        itemsSlot.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+        return;
+      }
+      toggleItems();
+    });
     btn("del").addEventListener("click", async () => {
       if (!confirm(`Ta bort arbetsområdet "${a.name}"? Detta går inte att ångra.`)) return;
       try {

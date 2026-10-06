@@ -83,8 +83,9 @@ export async function pageLarareInnehall(ctx) {
   // Tabellens sortering: "order" (områdets ordning) tills en rubrik klickas;
   // samma rubrik igen vänder riktningen.
   let sort = { key: "order", dir: "asc" };
-  // Utfällda underrader (#454) + engångsnotis efter sparning – överlever omladdning.
-  const itemState = { open: new Set(), notice: new Map() };
+  // Utfällda underrader (#454) + engångsnotis efter sparning + vald flik per
+  // område (#455) – överlever omladdning under sidbesöket.
+  const itemState = { open: new Set(), notice: new Map(), tab: new Map() };
   const onSort = (key) => {
     sort = sort.key === key ? { key, dir: sort.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" };
     renderAreaCards();
