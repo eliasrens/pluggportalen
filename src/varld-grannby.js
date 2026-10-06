@@ -73,6 +73,7 @@ export function createGrannbyVy({
   let klassNu = null;        // den klass grannbyn just nu visar
   let elevNu = null;         // den elev grannbyhus-nivån just nu visar
   let byggd = null;          // memo: { klassId, students, fokusById, stats }
+  let husRitad = null;       // elev-id vars exteriör står i grannbyhus-lagret
 
   function ensureKamera() {
     return (kamera ??= createKamera({
@@ -187,15 +188,9 @@ export function createGrannbyVy({
     if (elev.locked) return go(`#/elev/grannby?id=${encodeURIComponent(klass.id)}`);
     elevNu = elev;
 
-    // Rita elevens exteriör (samma väg som kompis-hus-nivån) och färga lagret med
-    // DERAS palett. Egen id-prefix så grannbyhus-lagret aldrig delar element-id:n
-    // med kompis-lagret.
-    grannbyhusLager.innerHTML = kompisHusHtml(elev, "grannbyhus");
-    const kp = getPalette(elev.paletteId);
-    grannbyhusLager.style.setProperty("--hus-house", kp.house);
-    grannbyhusLager.style.setProperty("--hus-roof", kp.roof);
-    grannbyhusLager.style.setProperty("--hus-wall", kp.wall);
-    grannbyhusLager.style.setProperty("--hus-wall2", kp.wall2);
+    // Rita elevens exteriör – utom när hover redan förrenderat EXAKT den eleven
+    // (Pixi-vägen): då står samma DOM redan där och texturen förblir giltig.
+    if (husRitad !== elev.id || !pixiPa()) ritaHus(elev);
 
     // grannby-fokus = elevens tomt → mjuk zoom just dit (grannby→grannbyhus).
     grannbyNiva.fokus = byggnad.fokusById[elev.id] || grannbyNiva.fokus;
@@ -211,6 +206,62 @@ export function createGrannbyVy({
     } else {
       cam.gaTill("grannbyhus");
     }
+  }
+
+  // Rita elevens exteriör (samma väg som kompis-hus-nivån) och färga lagret med
+  // DERAS palett. Egen id-prefix så grannbyhus-lagret aldrig delar element-id:n
+  // med kompis-lagret.
+  function ritaHus(elev) {
+    grannbyhusLager.innerHTML = kompisHusHtml(elev, "grannbyhus");
+    const kp = getPalette(elev.paletteId);
+    grannbyhusLager.style.setProperty("--hus-house", kp.house);
+    grannbyhusLager.style.setProperty("--hus-roof", kp.roof);
+    grannbyhusLager.style.setProperty("--hus-wall", kp.wall);
+    grannbyhusLager.style.setProperty("--hus-wall2", kp.wall2);
+    husRitad = elev.id;
+  }
+
+  // --- Pixi-förvärmning vid hover/fokus (#396, S3 #421) ----------------------
+  // Rörelse-motorn (varld-motor.js, laddas dynamiskt – ingen import här) bygger
+  // texturerna ur DOM:en som REDAN står i lagren. Pekar eleven på ett mål gör vi
+  // därför DOM:en redo innan klicket – aldrig någon data-hämtning:
+  //   skolan  → grannklassens plats blir grannby-kamerans fokus (T5), ur
+  //             .omrade-by[data-fokus-x/y] (= fokusById, samma tal)
+  //   grannby → elevens exteriör ritas i det DOLDA grannbyhus-lagret + tomten
+  //             blir fokus (T6). Eleven finns redan i `byggd` (laddaGrannbyData,
+  //             1 projektion/klass) → ingen ny Firestore-läsning.
+  // Låsta/egna/okända elever förrenderas aldrig (samma regler som visaHus).
+  // #391: målen är bara de byar/tomter som redan ritats ur den filtrerade
+  // klasslistan – en dold by kan inte pekas på. pp:pixi:av → inget av detta.
+  function pixiPa() {
+    try {
+      const p = window.__ppPixi;
+      return !!p?.motor && !p.dod && !p.flaggor?.().av;
+    } catch {
+      return false;
+    }
+  }
+
+  function forvarmMal(e) {
+    if (!pixiPa()) return;
+    const niva = stage.dataset.niva;
+    if (niva === "skola") {
+      const by = e.target.closest?.(".omrade-by[data-fokus-x]");
+      if (!by || by.dataset.me || !skolaLager.contains(by)) return;
+      const x = parseFloat(by.dataset.fokusX), y = parseFloat(by.dataset.fokusY);
+      if (Number.isFinite(x) && Number.isFinite(y)) skolaGrannbyNiva.fokus = { x, y };
+    } else if (niva === "grannby") {
+      const tomt = e.target.closest?.(".by-tomt");
+      if (!tomt || !grannbyLager.contains(tomt) || !byggd || byggd.klassId !== klassNu?.id) return;
+      const elev = byggd.students.find((s) => s.id === tomt.dataset.id);
+      if (!elev || elev.id === meId || elev.locked) return;
+      grannbyNiva.fokus = byggd.fokusById[elev.id] || grannbyNiva.fokus;
+      if (husRitad !== elev.id) ritaHus(elev);
+    }
+  }
+  for (const typ of ["pointerover", "focusin"]) {
+    skolaLager.addEventListener(typ, forvarmMal);
+    grannbyLager.addEventListener(typ, forvarmMal);
   }
 
   // Klick/knappar på elevens hus → in i deras rum (läs-vy, cross-class). Klass-id
