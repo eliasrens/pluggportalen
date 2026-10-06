@@ -190,7 +190,8 @@ export function renderClassAreaModes(ctx, cls, host, library) {
   const box = el(`<div>
     <p class="hint">Finjustera vilka lägen klassen ser <b>per område</b>. Ikryssat = synligt;
       urbockat döljs för klassen bara på det området. Bara lägen området har innehåll för visas.
-      Detta läggs ovanpå både per-område-valet (Innehåll) och klassens 🎮 Lägen ovan.</p>
+      Detta läggs ovanpå områdets egen synlighet (steget Synlighet när du redigerar
+      området under Innehåll), som gäller alla klasser.</p>
     ${groupsHtml}
     <div class="row-inline" style="margin-top:12px">
       <button class="btn gron small" data-act="save-area-modes">${icon("save", 16)}<span>Spara lägen per område</span></button>

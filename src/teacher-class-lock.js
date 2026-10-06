@@ -60,8 +60,10 @@ function klockslagOm(min) {
  * @param {object} cls        klassdokumentet (muteras: cls.lock vid spar)
  * @param {HTMLElement} host  värd-element att fylla
  * @param {Array} library     ämnen med sina område-dokument (loadLibrary)
+ * @param {{onChange?:Function}} [opts] onChange anropas efter sparat lås/upplåsning
+ *   (klassvyn ritar om masterns 🔒 direkt, #449 F1)
  */
-export async function renderClassLock(ctx, cls, host, library) {
+export async function renderClassLock(ctx, cls, host, library, { onChange } = {}) {
   await syncServerClock().catch(() => 0);
   const omraden = malOmraden(cls, library);
 
@@ -182,6 +184,7 @@ export async function renderClassLock(ctx, cls, host, library) {
         return;
       }
       cls.lock = await setClassLock(cls.id, lock);
+      onChange?.();
       visa(`<span class="ok-inline">✓ Låst – eleverna ser bara ${esc(lockLabel(lock))} till ${formatKlockslag(till)}</span>`);
     })
   );
@@ -190,6 +193,7 @@ export async function renderClassLock(ctx, cls, host, library) {
     upptagen(clearBtn, "Låser upp…", async () => {
       await clearClassLock(cls.id);
       delete cls.lock;
+      onChange?.();
       visa(`<span class="ok-inline">✓ Upplåst – klassen ser alla sina områden igen</span>`);
     })
   );

@@ -135,3 +135,44 @@ test("filterSortAreas rör inte indata-listan", () => {
   filterSortAreas(areas, { filter: "", sort: "grade" });
   assert.deepEqual(areas, copy);
 });
+
+// --- klickbara tabellrubriker (#441) ---------------------------------------
+
+const named = [
+  { id: "o", name: "Östersjön", order: 1, grade: "ak5" },
+  { id: "a", name: "Antiken", order: 2, grade: null },
+  { id: "z", name: "Zoologi", order: 3, grade: "ak2" },
+  { id: "aa", name: "Ålands hav", order: 4, grade: "ak9" },
+  { id: "ae", name: "Ädelstenar", order: 5, grade: "ak5" },
+  { id: "b", name: "bergarter", order: 6, grade: null },
+];
+
+test("filterSortAreas: namn sorteras svenskt (å, ä, ö efter z), skiftlägesokänsligt", () => {
+  assert.deepEqual(
+    filterSortAreas(named, { sort: "name", dir: "asc" }).map((a) => a.id),
+    ["a", "b", "z", "aa", "ae", "o"]
+  );
+  assert.deepEqual(
+    filterSortAreas(named, { sort: "name", dir: "desc" }).map((a) => a.id),
+    ["o", "ae", "aa", "z", "b", "a"]
+  );
+});
+
+test("filterSortAreas: årskurs stigande/fallande, ospecificerad sist i båda", () => {
+  assert.deepEqual(
+    filterSortAreas(named, { sort: "grade", dir: "asc" }).map((a) => a.id),
+    ["z", "o", "ae", "aa", "a", "b"]
+  );
+  assert.deepEqual(
+    filterSortAreas(named, { sort: "grade", dir: "desc" }).map((a) => a.id),
+    ["aa", "o", "ae", "z", "a", "b"]
+  );
+});
+
+test("filterSortAreas: order (default) lämnar ordningen orörd; dir saknas = asc", () => {
+  assert.deepEqual(filterSortAreas(named, {}).map((a) => a.id), named.map((a) => a.id));
+  assert.deepEqual(
+    filterSortAreas(named, { sort: "name" }).map((a) => a.id),
+    filterSortAreas(named, { sort: "name", dir: "asc" }).map((a) => a.id)
+  );
+});
