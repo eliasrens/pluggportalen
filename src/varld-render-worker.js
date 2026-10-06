@@ -130,8 +130,10 @@ class Yta {
       preserveDrawingBuffer: false, powerPreference: "high-performance",
       // G1 #425: Pixi v8:s GC laddar ur texturer som inte ritats på 60 s – då
       // laddas en förvärmd pyramid upp MITT i rörelsen. Motorn äger livscykeln
-      // (LRU + slappLager), så GC:n stängs av.
-      gcActive: false,
+      // (LRU + slappLager), så inget får laddas ur för att det vilat. GC:n får
+      // ändå gå (var 30 s): den städar bort förstörda texturers null-platser i
+      // Pixi:s interna hashar, som annars växer hela sessionen (gcActive:false).
+      gcMaxUnusedTime: Number.MAX_SAFE_INTEGER,
     });
     this.rot = new PIXI.Container();
     // getExtension() ger null på en redan förlorad kontext → hämta i förväg.
@@ -295,7 +297,8 @@ class Yta {
       }
     }
     let gl = -1;
-    try { gl = this.renderer.texture.managedTextures.length; } catch { /* intern Pixi-API */ }
+    // Levande GL-texturer (förstörda står kvar som null tills GC:n kompakterar).
+    try { gl = this.renderer.texture.managedTextures.filter(Boolean).length; } catch { /* intern Pixi-API */ }
     return { texturer, bitmaps, bytes, lager: this.lager.size, gl, forlorad: this.forlorad };
   }
 
