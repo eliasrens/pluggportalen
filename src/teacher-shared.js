@@ -151,17 +151,61 @@ export async function copyText(text, btn) {
 
 // --- Gemensam navigation & sidhuvud ----------------------------------------
 
+/**
+ * Lazy route-handler för en lärarflik: laddar sidmodulen med import() och visar
+ * ett snällt fel om modulen inte kan hämtas (t.ex. mitt i en Pages-utrullning,
+ * #271) i stället för en evig spinner.
+ */
+function lazyPage(load, fn) {
+  return async (ctx) => {
+    let mod;
+    try {
+      mod = await load();
+    } catch (err) {
+      ctx.renderTopbar();
+      ctx.app.replaceChildren(
+        el(`<div class="teacher-page teacher-dark"><div class="panel"><div class="msg error">
+          Kunde inte ladda lärarsidan – ladda om sidan om en stund. (${esc(err.message)})</div></div></div>`)
+      );
+      return;
+    }
+    return mod[fn](ctx);
+  };
+}
+
+/**
+ * Lärarskalets flik-registry (#440, Del 6). EN rad per lärarmodul:
+ *   key   – id för aktiv-markering (teacherNav(ctx, key))
+ *   hash  – route; app.js registrerar `page` på den
+ *   label – fliktext, title – sidtitel (teacherHead), icon – linje-ikon (ICONS)
+ *   page  – route-handler (ctx) => …; moduler laddas med import() så en ny flik
+ *           aldrig lägger en ny fil i den statiska bootgrafen (#271).
+ * En ny modul (t.ex. Läsresan) = en rad här + en sidfunktion i sin egen fil.
+ * Översikts-hubben (#304) och Klass-fliken (#299) är borta; emojis är utbytta
+ * mot linje-ikoner (#363). Logga ut ligger fast utanför registryn.
+ */
+export const TEACHER_TABS = [
+  {
+    key: "klasser",
+    hash: "#/larare/klasser",
+    label: "Klasser & elever",
+    title: "Klasser & elever",
+    icon: "users",
+    page: lazyPage(() => import("./teacher-classes.js"), "pageLarareKlasser"),
+  },
+  {
+    key: "innehall",
+    hash: "#/larare/innehall",
+    label: "Innehåll",
+    title: "Innehållsstudion",
+    icon: "book",
+    page: lazyPage(() => import("./teacher-content.js"), "pageLarareInnehall"),
+  },
+];
+
 /** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */
 export function teacherNav(ctx, active) {
-  const tabs = [
-    // Översikts-hubben (pageLarare) är borttagen (issue #304): toppnaven gör
-    // orienteringsjobbet, hubben dubblerade bara flikarna. Klassöversikten/
-    // statistiken (gamla Klass-fliken) är sammanslagen som en expander per
-    // klasskort (issue #299), så navet har EN klass-flik.
-    // Emojis är utbytta mot tunna linje-ikoner i lärar-chromet (issue #363).
-    { hash: "#/larare/klasser", key: "klasser", label: "Klasser & elever", icon: "users" },
-    { hash: "#/larare/innehall", key: "innehall", label: "Innehåll", icon: "book" },
-  ];
+  const tabs = TEACHER_TABS;
   const nav = el(`<nav class="teacher-nav" aria-label="Lärarnavigation">
     <div class="teacher-nav-inner">
       <span class="teacher-nav-brand" aria-hidden="true">
@@ -201,8 +245,12 @@ export function teacherNav(ctx, active) {
  * en förklarande ingress; allt det är bortskalat (issue #304) eftersom
  * toppnaven (teacherNav) redan markerar var man är och översikts-hubben är
  * borta. `emoji`/`title` behålls; ev. `lead` ignoreras (bakåtkompatibel signatur).
+ * Eller en flik-nyckel ur TEACHER_TABS, t.ex. teacherHead(ctx, "klasser").
  */
-export function teacherHead(_ctx, { emoji = "", title = "", icon: iconName = "" } = {}) {
+export function teacherHead(_ctx, opts = {}) {
+  // #440: en flik-nyckel (sträng) hämtar titel + ikon ur TEACHER_TABS.
+  if (typeof opts === "string") opts = TEACHER_TABS.find((t) => t.key === opts) || {};
+  const { emoji = "", title = "", icon: iconName = "" } = opts;
   // Chromet är emoji-fritt (issue #363): föredra en linje-ikon. `emoji` behålls
   // i signaturen för bakåtkompatibilitet men ritas bara om ingen ikon anges.
   const mark = iconName

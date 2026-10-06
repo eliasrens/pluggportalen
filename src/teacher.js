@@ -11,6 +11,9 @@
 //   * teacher-content.js        – innehållsinmatning + AI-promptbyggare (#/larare/innehall).
 //
 // Sidorna anropas från app.js router med ett `ctx` = { app, go, renderTopbar }.
+// Sedan #440 registrerar app.js lärar-routes ur flik-registryn TEACHER_TABS
+// (teacher-shared.js), som laddar sidmodulerna med import(); den här barrel-
+// filen behålls för bakåtkompatibla importörer (previews/verktyg).
 // ============================================================================
 
 // Klasser, elevkonton & statistik (#/larare/klasser) – den enade sidan. Gamla
