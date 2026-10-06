@@ -95,6 +95,8 @@ const F = skapaForvarmare({
   logga: (m) => loggaMal(m),
 });
 
+globalThis.document?.addEventListener("visibilitychange", () => { if (document.hidden && spel) { avbryt(); markera("css:dold-flik"); } }); // gömd flik: workerns rAF pausar → direkthopp
+
 // ---- Installation ------------------------------------------------------------
 
 /**
