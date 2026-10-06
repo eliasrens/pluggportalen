@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Port → hem i Pixi (#424)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Stubbad "värld" som byggs under overlayt (som hus-scenen i appen). */
+      .pp-varld { position: fixed; inset: 0; background: linear-gradient(#bde3f5 0 62%, #8fcb74 62%); display: grid; place-items: center; }
+      .pp-varld b { font: 800 2rem "Baloo 2", system-ui; color: #3b3350; background: #fff3dc; border: 3px solid #3b3350; border-radius: 14px; padding: 10px 18px; }
+      .pp-panel { position: fixed; right: 10px; top: 10px; z-index: 4000; width: 290px; font: 600 12px/1.4 system-ui; color: #e8eef6;
+        background: rgba(20, 24, 40, 0.88); border-radius: 10px; padding: 10px; pointer-events: auto; }
+      .pp-panel button { font: 600 12px system-ui; margin: 3px 3px 0 0; padding: 5px 9px; border-radius: 999px; border: 1px solid #56657e; background: #1c2433; color: #e8eef6; cursor: pointer; }
+      .pp-panel pre { white-space: pre-wrap; margin: 6px 0 0; font-size: 11px; max-height: 40vh; overflow: auto; }
+      .pp-panel [data-vag^="pixi"] { color: #7ee0a6; }
+      .pp-panel [data-vag^="css"] { color: #f2b56b; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div class="pp-panel" id="panel">
+      <b>Port → hem (#424)</b> – Pixi-läge: <span id="lage">…</span><br />
+      Senaste väg: <span id="vag" data-vag="">–</span>
+      <div>
+        <button id="b-logga-in">Logga in (stub)</button>
+        <button id="b-snabb">Ny login + direkt inloggning</button>
+        <button id="b-ny">Ny login-sida</button>
+      </div>
+      <div>
+        Flagga:
+        <button data-flagga="normal">normal</button><button data-flagga="tvinga">tvinga</button><button data-flagga="av">av</button><button data-flagga="debug">debug</button>
+      </div>
+      <pre id="logg"></pre>
+    </div>
+    <script type="module">
+      // Stub-preview: samma login-scen som pages-elev.js (art-port-majestic + kort),
+      // samma idle-förladdning och samma startaPortOvergang som appen. "Logga in"
+      // gör det som submit-hanteraren gör vid lyckad inloggning: övergången
+      // startas och världen ritas DIREKT under (ingen Firebase).
+      import { portScenMajestic } from "./src/art-port-majestic.js";
+      const app = document.getElementById("app");
+      const logg = document.getElementById("logg");
+      const $ = (id) => document.getElementById(id);
+      let overgangP = null;
+      const vagar = [];
+
+      function loginSida({ forladda = true } = {}) {
+        app.innerHTML = `<div class="port-sida"><div class="port-scen">${portScenMajestic()}
+          <div class="port-login"><form id="form"><input placeholder="Användarnamn" value="elev1" />
+          <input type="password" placeholder="Lösenord" value="lilla123" />
+          <button class="btn stor gron" type="submit">Logga in</button></form></div></div></div>`;
+        overgangP = import("./src/port-overgang.js").catch(() => null);
+        app.querySelector("#form").addEventListener("submit", (e) => { e.preventDefault(); loggaIn(400); });
+        if (forladda) {
+          const scen = app.querySelector(".port-scen");
+          const f = () => overgangP.then((m) => m?.forladdaPortPixi?.(scen));
+          window.requestIdleCallback ? requestIdleCallback(f, { timeout: 3000 }) : setTimeout(f, 500);
+        }
+      }
+
+      /** Som pages-elev.js: (vänta på "servern") → startaPortOvergang → go(). */
+      async function loggaIn(serverMs = 0) {
+        const scen = app.querySelector(".port-scen");
+        if (!scen) return;
+        if (serverMs) await new Promise((r) => setTimeout(r, serverMs));
+        const mod = await overgangP;
+        const t0 = performance.now();
+        const startad = mod?.startaPortOvergang(scen);
+        const ov = document.querySelector(".port-overgang");
+        const vag = ov?.dataset.pixiSpel || (startad ? "?" : "ingen");
+        vagar.unshift({ vag, t: Math.round(t0) });
+        $("vag").textContent = vag;
+        $("vag").dataset.vag = vag;
+        // Världen byggs på main-tråden samtidigt (+ en lång uppgift, som byn).
+        app.innerHTML = `<div class="pp-varld"><b>Hus-scenen</b></div>`;
+        const slut = performance.now() + 250;
+        while (performance.now() < slut) { /* long task */ }
+        const borta = () => {
+          if (document.querySelector(".port-overgang")) return requestAnimationFrame(borta);
+          vagar[0].overlayBortaMs = Math.round(performance.now() - t0);
+        };
+        requestAnimationFrame(borta);
+      }
+
+      $("b-logga-in").onclick = () => loggaIn(0);
+      $("b-ny").onclick = () => loginSida();
+      $("b-snabb").onclick = () => { loginSida(); loggaIn(0); };
+      for (const b of document.querySelectorAll("[data-flagga]")) {
+        b.onclick = () => { const u = new URL(location.href); u.searchParams.set("pixi", b.dataset.flagga); location.href = u.href; };
+      }
+      setInterval(() => {
+        const p = window.__ppPixi?.port;
+        $("lage").textContent = p ? `${p.lage}${p.orsak ? ` (${p.orsak})` : ""}` : "ej laddad";
+        logg.textContent = JSON.stringify({ bygg: p?.bygg, senaste: p?.senaste, vagar: vagar.slice(0, 4) }, null, 1);
+      }, 250);
+      window.__ppPort = { loginSida, loggaIn, vagar };
+      loginSida();
+    </script>
+  </body>
+</html>

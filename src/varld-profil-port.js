@@ -39,7 +39,10 @@ import { avkodaSpegel, byggPyramid, stallIn, konfiguration, texturCache, koa } f
 import { urlFlaggor } from "./varld-motor-hud.js";
 import { PORT_TIDER, PORT_SPEL_MS, portOrigo, portTidslinje, synligTill } from "./varld-port-anim.js";
 
-const BAK_AMB = [".portb-sol", ".hus-moln", ".portb-fagel-bob", ".port-halva"];
+// Sprites ritas ovanpå sitt baslager i DOM-ordning. Solkärnan ligger OVANPÅ
+// de roterande strålarna i SVG:n → den blir en egen (stillastående) sprite,
+// annars skulle strålarna ritas över den.
+const BAK_AMB = [".portb-sol", ".portb-sol + circle", ".hus-moln", ".portb-fagel-bob", ".port-halva"];
 const FRAM_AMB = [".portb-vimpel", ".portb-skylt"];
 const HALVOR = { "port-halva-vanster": "left", "port-halva-hoger": "right" };
 /** Workerns första frame efter postMessage ≈ en frame → tonens start förskjuts lika mycket. */
@@ -69,7 +72,16 @@ let st = null; // förvärmd port: { scen, svg, matt, origo, nivaer, sprites, or
 let spel = null; // { fade, t0 }
 let uppdatering = 0;
 
-const info = { lage: "ej-startad", orsak: null, senaste: null, bygg: null };
+const info = {
+  lage: "ej-startad", orsak: null, senaste: null, bygg: null,
+  /** Debug/test: rita vila-bilden med poserna NU och visa canvasen över DOM:en (false = göm). */
+  async jamfor(visa = true) {
+    if (!canvas || spel) return false;
+    if (visa && st?.redo) await yta.visaVila(tidslinjeState(tidslinje(st), 0));
+    canvas.style.zIndex = visa ? "3500" : "-1";
+    return !!visa;
+  },
+};
 try { if (window.__ppPixi) window.__ppPixi.port = info; } catch { /* ingen window */ }
 const debug = (...a) => { if (pixiFlaggor().debug) console.info("[pp:pixi:port]", ...a); };
 
@@ -82,7 +94,9 @@ const debug = (...a) => { if (pixiFlaggor().debug) console.info("[pp:pixi:port]"
 export async function forvarmPort(scen) {
   try {
     urlFlaggor();
-    if (!scen?.isConnected || !pixiMojlig()) return satt("av", window.__ppPixi?.orsak || "ej-mojlig");
+    if (!scen?.isConnected) return satt("av", "ingen-scen"); // sidan lämnad (t.ex. redan inloggad)
+    if (pixiFlaggor().av) return satt("av", "flagga-av");
+    if (!pixiMojlig()) return satt("av", "ej-mojlig");
     if (st && st.scen === scen && !st.slappt) return;
     const r = await ensureRenderare();
     if (!r) return satt("av", window.__ppPixi?.orsak || "ingen-renderare");
@@ -144,7 +158,10 @@ async function bygg(scen) {
   // Speglingarna görs SYNKRONT nu (konsistent ögonblicksbild), resten strömmas.
   const bakP = speglaLager(svg, null, BAK);
   const framP = speglaLager(svg, null, FRAM);
-  const framZ = synligTill(unionRekt([...svg.querySelectorAll(":scope > #port-halva-hoger ~ *")], svg), s.origo, vy, PORT_TIDER.zoom);
+  // FRAM behövs bara så djupt som någon av dess delar syns (per element –
+  // unionen av pelarna täcker hela öppningen fast ingen del gör det).
+  const framZ = Math.max(1, ...[...svg.querySelectorAll(":scope > #port-halva-hoger ~ *")]
+    .map((e) => synligTill(skarmRekt(e, svg), s.origo, vy, PORT_TIDER.zoom)));
   const noder = [...svg.querySelectorAll([...BAK_AMB, ...FRAM_AMB].join(","))];
   const spriteP = noder.map((nod, i) => spegelSprite(s, nod, `port-s${i}`, vy));
   const [bak, fram, sprites] = await Promise.all([
@@ -167,18 +184,11 @@ async function bygg(scen) {
   lyssna(s);
 }
 
-/** Unionen av elementens skärmrutor i scenens px. */
-function unionRekt(els, svg) {
-  const r0 = svg.getBoundingClientRect();
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const e of els) {
-    const b = e.getBoundingClientRect();
-    if (!b.width && !b.height) continue;
-    x0 = Math.min(x0, b.left); y0 = Math.min(y0, b.top); x1 = Math.max(x1, b.right); y1 = Math.max(y1, b.bottom);
-  }
-  if (x0 === Infinity) return { x: 0, y: 0, w: 0, h: 0 };
+/** Elementets skärmruta i scenens px (+ marginal för konturer). */
+function skarmRekt(e, svg) {
+  const r0 = svg.getBoundingClientRect(), b = e.getBoundingClientRect();
   const pad = 8;
-  return { x: x0 - r0.left - pad, y: y0 - r0.top - pad, w: x1 - x0 + 2 * pad, h: y1 - y0 + 2 * pad };
+  return { x: b.left - r0.left - pad, y: b.top - r0.top - pad, w: b.width + 2 * pad, h: b.height + 2 * pad };
 }
 
 /** En spegels pyramid kring portöppningen → en behållare per nivå i workern. */
@@ -216,8 +226,7 @@ async function spegelSprite(s, nod, id, vy) {
     const bb = nod.getBBox();
     gangjarn = { x: halva === "left" ? bb.x : bb.x + bb.width, y: bb.y + bb.height / 2 };
   }
-  const r0 = s.svg.getBoundingClientRect(), b = nod.getBoundingClientRect();
-  const zVis = synligTill({ x: b.left - r0.left, y: b.top - r0.top, w: b.width, h: b.height }, s.origo, vy, PORT_TIDER.zoom);
+  const zVis = synligTill(skarmRekt(nod, s.svg), s.origo, vy, PORT_TIDER.zoom);
   const m = bas(s, nod);
   const k0 = konfiguration();
   const { w, h, x, y } = ns.rect;
