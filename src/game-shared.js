@@ -205,9 +205,11 @@ function grindMultiplier(prevPlays) {
  * höjs varje gång en övning slutförs. UNDANTAG: FULL_REWARD_MODES (quiz +
  * läsförståelse) ger full pott varje gång eftersom varje omspel är en ny slumpad
  * session. XP-potten (basXP + stjärnor × perStar) definieras i leveling.js.
+ * `catStats` (#445, valfri) = sessionens rätt/totalt per frågekategori; sparas
+ * additivt i progress (saveProgress) och påverkar INTE coins/XP/stjärnor.
  * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number}>}
  */
-export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {
+export async function awardExercise(area, mode, { stars, bestScore, baseCoins, catStats }) {
   let firstTime = true;
   let prevPlays = 0; // antal tidigare avklarade körningar (n i trappan)
   try {
@@ -247,6 +249,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
       stars,
       bestScore,
       plays: prevPlays + 1,
+      ...(catStats && Object.keys(catStats).length > 0 ? { cat: catStats } : {}),
     });
   } catch {}
   // Håll klass-projektionen färsk (#233): spegla elevens nya totaler in i alla
@@ -286,10 +289,11 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  * @param {boolean} [opts.noStars]  turbaserade lägen (t.ex. Memory) har inga
  *   stjärnor: dölj stjärnraden och ersätt med neutral uppmuntran. Övriga lägen
  *   (para-ihop/quiz m.fl.) skickar inte flaggan och är helt oförändrade.
+ * @param {object} [opts.catStats]  rätt/totalt per frågekategori (#445), se awardExercise.
  */
-export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false }) {
+export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false, catStats }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
+  const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)

@@ -195,7 +195,7 @@ globalThis.document = {
 
 // Importeras EFTER att document finns (game-questions.js rör dock inte document
 // vid laddning – el() kallas först vid render – men vi är på den säkra sidan).
-const { renderQuestionCard } = await import("../src/game-questions.js");
+const { renderQuestionCard, runQuestions } = await import("../src/game-questions.js");
 
 // --- Hjälpare ---------------------------------------------------------------
 
@@ -271,4 +271,38 @@ test("efter ett äkta svar armeras inte knappen om av ghost-click (dubbelklick-s
   // En fördröjd ghost-click efteråt ska inte köra onAnswer igen.
   c.opts[0].fire("click", { detail: 1 });
   assert.strictEqual(c.getAnswer(), first, "onAnswer körs inte om av ghost-click");
+});
+
+// --- Frågekategorier i runQuestions (#445) ------------------------------------
+// runQuestions räknar rätt/totalt per kategori på varje unik frågas FÖRSTA svar
+// och skickar det som tredje argument till onFinish. Stjärn-underlaget
+// (correct/total per unik fråga, repetition inom rundan) ska vara oförändrat.
+
+test("runQuestions: cat räknar första svaret per unik fråga; correct/total oförändrade", () => {
+  const questions = [
+    { question: "Q-begrepp", options: ["fel", "rätt"], answerIndex: 1, category: "begrepp" },
+    { question: "Q-fakta", options: ["rätt", "fel"], answerIndex: 0, category: "Fakta" },
+    { question: "Q-utan", options: ["rätt", "fel"], answerIndex: 0 },
+    { question: "Q-okand", options: ["rätt", "fel"], answerIndex: 0, category: "hittepa" },
+  ];
+  const body = new El("div");
+  let result = null;
+  runQuestions({ body, questions, onFinish: (correct, total, cat) => (result = { correct, total, cat }) });
+  const seen = {};
+  for (let guard = 0; !result && guard < 20; guard++) {
+    const wrap = body.children[0];
+    const qText = wrap.querySelector(".quiz-question")._text;
+    seen[qText] = (seen[qText] || 0) + 1;
+    // Q-begrepp besvaras FEL första gången (köas om) och rätt vid återkomsten.
+    const pick = qText === "Q-begrepp" && seen[qText] === 1 ? "fel" : "rätt";
+    const opt = wrap.querySelectorAll(".quiz-opt").find((b) => b._text === pick);
+    opt.fire("pointerdown");
+    opt.fire("click", { detail: 1 });
+    wrap.querySelector("#nextwrap").children[0].fire("click");
+  }
+  assert.ok(result, "rundan avslutades");
+  assert.equal(seen["Q-begrepp"], 2, "felsvarad fråga kom tillbaka");
+  assert.equal(result.total, 4);
+  assert.equal(result.correct, 4, "rätt vid återkomst räknas fortfarande för stjärnorna");
+  assert.deepEqual(result.cat, { begrepp: { r: 0, t: 1 }, fakta: { r: 1, t: 1 } });
 });
