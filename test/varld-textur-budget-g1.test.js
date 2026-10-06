@@ -123,3 +123,16 @@ test("TexturLRU: alder/gamla för 30 s-städningen (låsta räknas aldrig)", () 
   assert.equal(lru.alder("b"), Infinity);
   assert.deepEqual(lru.nycklar(), ["c"]);
 });
+
+test("30 s-städningen behåller aktiva lagret + dess kameragrannar", async () => {
+  const { behallLager } = await import("../src/varld-motor-hud.js");
+  const kameror = [
+    ["skola-lager", "by-lager", "ute-lager", "rum-lager"],
+    ["ute-lager", "gard-lager", "laggard-lager"],
+    ["by-lager", "kompis-lager"],
+  ];
+  assert.deepEqual([...behallLager("rum-lager", kameror)].sort(), ["rum-lager", "ute-lager"]);
+  assert.deepEqual([...behallLager("ute-lager", kameror)].sort(), ["by-lager", "gard-lager", "rum-lager", "ute-lager"]);
+  assert.deepEqual([...behallLager("by-lager", kameror)].sort(), ["by-lager", "kompis-lager", "skola-lager", "ute-lager"]);
+  assert.deepEqual([...behallLager("okand", kameror)], ["okand"]);
+});

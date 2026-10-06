@@ -378,6 +378,7 @@ const info = {
   get spelar() { return spel ? spel.fas : null; },
   poster: TX.postLista,
   kameror: () => [...kameror].map((n) => n.map((x) => x.id)),
+  kameraLager: () => [...kameror].map((n) => n.map((x) => x.el?.id)), // G1: 30 s-städningens grannar
   /** pp:pixi:frys-jämförelse: göm DOM-lagren (canvasen syns) / visa dem igen. */
   jamfor(visaCanvas) {
     for (const l of allaLager()) l.classList.toggle("varld-pixi-vilar", !!visaCanvas);
