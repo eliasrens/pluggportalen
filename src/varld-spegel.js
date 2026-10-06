@@ -23,9 +23,13 @@
 //  7. XML-kommentarer rensas; CSS-transform/opacity (hover-scale, tomternas
 //     translate(-50%,-50%), "Du!"-brickans rotate) bakas in.
 //  8. Profilens `ambient` utelämnas (returneras i `ambient`), `ignorera` ritas inte.
+//     (Motorn skickar scen-profilens `sprites` här – se varld-profil-standard.js.)
+//  9. `neutraliseraObjekt` (selektor): hovrade/fokuserade objekt ritas i vila-
+//     läge, utan :hover/:focus-visible (varld-spegel-neutral.js, #428).
 // Utdata innehåller ALDRIG foreignObject eller extern URL → ingen canvas-taint.
 //
-// Läser bara DOM/layout (ändrar ingenting) och gör hela genomgången SYNKRONT,
+// Läser bara DOM/layout (enda undantaget: regel 9:s vila-kloner, borttagna i
+// samma task) och gör hela genomgången SYNKRONT,
 // så ögonblicksbilden är konsistent. Bara bilder/font väntas in efteråt.
 // Laddas enbart via import() – aldrig i den statiska bootgrafen (#271).
 // ============================================================================
@@ -34,6 +38,7 @@ import { esc, matrisAttr, kedjaLinjar, elementRam, dekoration, filterPrimitiver,
 import { textSvg } from "./varld-spegel-text.js";
 import { forfaderKlipp } from "./varld-spegel-klipp.js";
 import { slutfor, hash } from "./varld-spegel-ut.js";
+import { neutraliseraObjekt } from "./varld-spegel-neutral.js";
 
 export { granska, hash } from "./varld-spegel-ut.js";
 
@@ -44,9 +49,18 @@ const px = (v) => parseFloat(v) || 0;
 
 /** Profilens selektorlista (sträng eller array) → en selektor ("" = ingen). */
 const sel = (v) => (Array.isArray(v) ? v.join(",") : v || "");
+/** Standard för bildZoom: kamerans största zoom (hus→rum = 6). */
+const BILD_ZOOM = 6;
 
-/** Kontext för EN spegling: defs (deterministiska id:n), bilder, ambient. */
-function nyKtx(profil, lagerEl) {
+/** Linjär skala (√|det|) för en matris – element-px → viewport-px. */
+const linSkala = (m) => Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
+
+/**
+ * Kontext för EN spegling: defs (deterministiska id:n), bilder, ambient.
+ * bildZoom = största skala lagret visas förstorat i (pyramidens zMax); <img>
+ * bäddas in i visad storlek × dpr × bildZoom i stället för full PNG (#422).
+ */
+function nyKtx(profil, lagerEl, lagerL) {
   const defs = new Map();
   const bilder = [];
   return {
@@ -57,6 +71,8 @@ function nyKtx(profil, lagerEl) {
     // då ärver alla barn "hidden" fast de syns i vila. Ignorera visibility då.
     ignVis: !!lagerEl && getComputedStyle(lagerEl).visibility === "hidden",
     bilder,
+    lagerSkala: lagerL ? linSkala(lagerL) : 1,
+    bildPx: Math.min(window.devicePixelRatio || 1, 2) * (profil?.bildZoom ?? BILD_ZOOM),
     def(nyckel, bygg) {
       let d = defs.get(nyckel);
       if (!d) { d = { id: `pps${defs.size}` }; d.markup = bygg(d.id); defs.set(nyckel, d); }
@@ -67,7 +83,7 @@ function nyKtx(profil, lagerEl) {
       const p = filterPrimitiver(css);
       return p ? this.def(`f:${css}`, (id) => `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">${p}</filter>`) : null;
     },
-    bild(url) { bilder.push(url); return `__pps_bild_${bilder.length - 1}__`; },
+    bild(url, bredd, img) { bilder.push({ url, bredd, img }); return `__pps_bild_${bilder.length - 1}__`; },
   };
 }
 
@@ -102,6 +118,7 @@ function barn(el, cs, ram, ktx) {
 /** Ett element (relativt föräldraramen `ram`) → SVG-markup. */
 function element(el, cs, ram, ktx) {
   if (ktx.ign && el.matches(ktx.ign)) return "";
+  if (ktx.hoppa?.has(el)) return ""; // ritas av sin vila-klon (regel 9)
   if (ktx.amb && el.matches(ktx.amb)) { ktx.ambient.push(el); return ""; }
   if (cs.display === "none" || cs.opacity === "0") return "";
   if (cs.display === "contents") return barn(el, cs, ram, ktx);
@@ -129,7 +146,7 @@ function boxInnehall(el, cs, r, ktx) {
   const d = synlig ? dekoration(cs, w, h, ktx) : { under: "", over: "" };
   let inne;
   if (el instanceof SVGSVGElement) inne = svgInnehall(el, cs, w, h, ktx);
-  else if (el.localName === "img") inne = synlig ? bild(el, cs, w, h, ktx) : "";
+  else if (el.localName === "img") inne = synlig ? bild(el, cs, w, h, ktx, r.L) : "";
   else if (el.localName === "canvas") inne = synlig ? canvasBild(el, cs, w, h) : "";
   else {
     inne = barn(el, cs, ram, ktx);
@@ -150,11 +167,12 @@ const innehallsBox = (cs, w, h) => {
 };
 const PAR = { fill: "none", contain: "xMidYMid meet", cover: "xMidYMid slice", "scale-down": "xMidYMid meet" };
 
-/** <img> → <image> med data-URL (löses efter genomgången). */
-function bild(el, cs, w, h, ktx) {
+/** <img> → <image> med data-URL (löses efter genomgången), nedskalad till visad storlek. */
+function bild(el, cs, w, h, ktx, L) {
   if (!el.complete || !el.naturalWidth) return "";
   const b = innehallsBox(cs, w, h);
-  return `<image href="${ktx.bild(el.currentSrc || el.src)}" x="${f(b.x)}" y="${f(b.y)}" width="${f(b.w)}" height="${f(b.h)}" preserveAspectRatio="${PAR[cs.objectFit] || "none"}"/>`;
+  const bredd = Math.ceil(b.w * (linSkala(L) / ktx.lagerSkala) * ktx.bildPx);
+  return `<image href="${ktx.bild(el.currentSrc || el.src, bredd, el)}" x="${f(b.x)}" y="${f(b.y)}" width="${f(b.w)}" height="${f(b.h)}" preserveAspectRatio="${PAR[cs.objectFit] || "none"}"/>`;
 }
 
 function canvasBild(el, cs, w, h) {
@@ -187,7 +205,7 @@ const escT = (v) => v.replace(/[&<>]/g, (c) => (c === "&" ? "&amp;" : c === "<" 
 function nodStrang(o, ktx, sp, rot) {
   let cs = null, extra = "", fid = null;
   if (!rot) {
-    if (sp.ign.has(o)) return "";
+    if (sp.ign.has(o) || ktx.hoppa?.has(o)) return "";
     if (sp.amb.has(o)) { ktx.ambient.push(o); return ""; }
     if (o.localName === "foreignObject") return foInnehall(o, ktx);
     // CSS-styrda noder (klass/id): baka in transform/opacitet/visibility/filter
@@ -273,15 +291,18 @@ function lagerRam(lagerEl) {
  * Spegla ett lager I VILA till EN fristående SVG-sträng i lagrets px.
  * @param {HTMLElement} lagerEl  .varld-lager-elementet
  * @param {HTMLElement} stageEl  staget (fångstytan när profil.fangst = "stage")
- * @param {{ambient?:string|string[], ignorera?:string|string[], fangst?:"stage"|"lager"}} [profil]
+ * @param {{ambient?:string|string[], ignorera?:string|string[], fangst?:"stage"|"lager",
+ *   neutraliseraObjekt?:string|string[]}} [profil]
  * @returns {Promise<{svg:string,w:number,h:number,ox:number,oy:number,nyckel:string,ambient:Element[],ms:number}>}
  *   ox/oy/w/h = fångstytan i lagrets px (kan vara negativ, #373); ambient =
  *   utelämnade levande noder; ms = kostnad (synkron genomgång + väntan).
  */
 export async function speglaLager(lagerEl, stageEl, profil = {}) {
   const t0 = performance.now();
-  const ktx = nyKtx(profil, lagerEl);
+  const neutral = neutraliseraObjekt(lagerEl, sel(profil?.neutraliseraObjekt));
   const r = lagerRam(lagerEl);
+  const ktx = nyKtx(profil, lagerEl, r.L);
+  ktx.hoppa = neutral?.hoppa;
   const inv = r.M.inverse();
   let ox = 0, oy = 0, w = r.w, h = r.h;
   if (profil?.fangst !== "lager" && stageEl) {
@@ -291,7 +312,8 @@ export async function speglaLager(lagerEl, stageEl, profil = {}) {
     ox = Math.min(a.x, b.x); oy = Math.min(a.y, b.y);
     w = Math.abs(b.x - a.x); h = Math.abs(b.y - a.y);
   }
-  const kropp = boxInnehall(lagerEl, r.cs, r, ktx);
+  let kropp;
+  try { kropp = boxInnehall(lagerEl, r.cs, r, ktx); } finally { neutral?.stad(); }
   const synkMs = performance.now() - t0;
   const svg = await slutfor(kropp, ktx, `width="${f(w)}" height="${f(h)}" viewBox="${f(ox)} ${f(oy)} ${f(w)} ${f(h)}"`);
   return { svg, w, h, ox, oy, nyckel: hash(svg), ambient: ktx.ambient, ms: performance.now() - t0, synkMs };
@@ -305,10 +327,12 @@ export async function speglaLager(lagerEl, stageEl, profil = {}) {
  *   matrix – lokala koordinater → lagrets px (inkl. nodens aktuella transform)
  *   opacity– effektiv opacitet (nod × förfäder upp till lagret)
  * Rita alltså spriten med matrix·translate(rect.x, rect.y), storlek rect.w×rect.h.
+ * @param {{bildZoom?:number}} [opt]  största skala spriten ritas i (<img>-upplösning)
  */
-export async function speglaNod(nod, lagerEl) {
-  const ktx = nyKtx({}, lagerEl);
-  const lagerInv = lagerRam(lagerEl).M.inverse();
+export async function speglaNod(nod, lagerEl, opt = {}) {
+  const lr = lagerRam(lagerEl);
+  const ktx = nyKtx(opt, lagerEl, lr.L);
+  const lagerInv = lr.M.inverse();
   let opacity = 1;
   for (let e = nod; e && e !== lagerEl; e = e.parentElement) opacity *= +getComputedStyle(e).opacity;
   let kropp, rect, matrix, nodInv;

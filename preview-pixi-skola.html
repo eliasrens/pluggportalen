@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixi – skola, grannby, grannbyhus (issue #421)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <!-- Hela appen (src/app.js + pages-varld.js + kamerorna + Pixi-motorn) är den
+         RIKTIGA koden. Bara data/auth/husdjur stubbas: 5 klasser (preview/by-stubs),
+         inloggad som "alva" i 4A. Dolda byar (#391): ?dold=spec (eller spec,5a).
+         Flaggor som i appen: ?pixi=av|debug|frys|normal. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/data.js": "/preview/pixi-skola/data.js",
+          "/src/auth.js": "/preview/pixi-skola/auth.js",
+          "/src/data-pet.js": "/preview/pixi-skola/data-pet.js"
+        }
+      }
+    </script>
+    <style>
+      .pv-skola { position: fixed; right: 10px; bottom: 10px; z-index: 5000; max-width: 300px;
+        background: rgba(20, 24, 32, 0.92); color: #e6edf5; border-radius: 12px; padding: 8px 10px;
+        font: 500 12px/1.4 system-ui, sans-serif; box-shadow: 0 4px 18px rgba(0,0,0,.3); }
+      .pv-skola summary { cursor: pointer; font-weight: 700; color: #7ee0a6; }
+      .pv-skola a { color: #9fd0ff; margin-right: 8px; }
+      .pv-skola code { color: #ffd479; }
+    </style>
+  </head>
+  <body>
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <button class="brand" id="brand" title="Till startsidan"><span class="brand-text">Pluggporten</span></button>
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
+      <main id="app" class="container">
+        <div class="spinner" id="boot-spinner">Laddar…</div>
+      </main>
+    </div>
+
+    <details class="pv-skola" id="pv-skola">
+      <summary>#421 preview · <span id="pv-status">…</span></summary>
+      <div>
+        Scenario:
+        <a href="?#/elev/by">alla byar</a>
+        <a href="?dold=spec#/elev/by">Specgrupp dold</a>
+        <a href="?dold=spec,5a#/elev/by">Spec + 5A dolda</a>
+      </div>
+      <div>
+        Pixi:
+        <a href="?pixi=normal#/elev/by">normal</a>
+        <a href="?pixi=av#/elev/by">av</a>
+        <a href="?pixi=debug#/elev/by">debug</a>
+      </div>
+      <div>Djuplänk: <a href="#/elev/grannby?id=spec">grannby=spec</a> <a href="#/elev/grannby?id=4b">grannby=4b</a></div>
+      <div>Konsol: <code>__pvSkola.sok("Specgrupp")</code>, <code>__pvSkola.senasteSpegel("skola")</code>, <code>__pvSkola.lasningar</code></div>
+    </details>
+
+    <script type="module">
+      // Pixi-flaggor via URL (samma som appens ?pixi=…, men satta INNAN appen startar).
+      const q = new URLSearchParams(location.search);
+      const pixi = q.get("pixi");
+      try {
+        if (pixi) for (const f of ["av", "debug", "frys", "tvinga"]) localStorage.removeItem(`pp:pixi:${f}`);
+        if (pixi && pixi !== "normal") localStorage.setItem(`pp:pixi:${pixi}`, "1");
+      } catch { /* privat läge */ }
+
+      // ---- #391-bevis: fånga VARJE SVG som blir en textur ----------------------
+      // Speglingen avkodas via Blob-URL (varld-textur.js avkodaSpegel + motorns
+      // fokus-överlägg) → här sparas varje image/svg+xml-blob som skapas, även
+      // idle-/reservpyramiderna. __pvSkola.sok(term) söker i dem (data:-URL:er,
+      // t.ex. den inbäddade fonten, rensas först så base64 inte ger falska träffar).
+      const fangade = [];
+      const orig = URL.createObjectURL.bind(URL);
+      URL.createObjectURL = (obj) => {
+        if (obj instanceof Blob && /svg/.test(obj.type)) fangade.push(obj);
+        return orig(obj);
+      };
+      const utanData = (s) => s.replace(/data:[^"')\s]+/g, "");
+
+      const scen = await import("/preview/pixi-skola/scenario.js");
+      const stage = () => document.querySelector("#varld-stage");
+      window.__pvSkola = {
+        get lasningar() { return scen.lasningar.slice(); },
+        dolda: scen.DOLDA,
+        get texturSvgAntal() { return fangade.length; },
+        /** Antal fångade textur-SVG:er som innehåller varje term. */
+        async sok(...termer) {
+          const texter = (await Promise.all(fangade.map((b) => b.text()))).map(utanData);
+          return Object.fromEntries(termer.map((t) => [t, texter.filter((x) => x.includes(t)).length]));
+        },
+        /** Spegla NU alla lager med profilen `namn` (samma speglaLager som motorn). */
+        async senasteSpegel(namn) {
+          const [{ speglaLager }, profil] = await Promise.all([
+            import("/src/varld-spegel.js"),
+            import(`/src/varld-profil-${namn}.js`).then((m) => m.default).catch(() => ({})),
+          ]);
+          const lager = [...stage().querySelectorAll(`:scope > .varld-lager[data-spegel-profil="${namn}"]`)];
+          const sp = await Promise.all(lager.map((l) => speglaLager(l, stage(), profil)));
+          return { lager: lager.map((l) => l.id), svg: sp.map((s) => utanData(s.svg)).join("\n") };
+        },
+        /** Kort läge för klick-testet. */
+        lage() {
+          const s = stage();
+          return {
+            niva: s?.dataset.niva, pixiSpel: s?.dataset.pixiSpel, hash: location.hash,
+            omradeByar: s ? s.querySelectorAll("#skola-lager .omrade-by").length : 0,
+            andraByar: !!document.querySelector("#by-skylt:not([hidden])"),
+            lasningar: scen.lasningar.length, texturSvg: fangade.length,
+            senaste: window.__ppPixi?.motor?.senaste || null,
+          };
+        },
+      };
+      const status = document.getElementById("pv-status");
+      setInterval(() => {
+        const l = window.__pvSkola.lage();
+        status.textContent = `${l.niva || "–"} · ${l.pixiSpel || "–"} · läsn ${l.lasningar}`;
+      }, 400);
+
+      if (!location.hash || location.hash === "#/") location.hash = "#/elev/by";
+      await import("/src/app.js");
+    </script>
+  </body>
+</html>

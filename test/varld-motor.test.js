@@ -7,6 +7,8 @@
 //   • Alla kameror registreras – även de som skapats före setRorelseMotor.
 //   • lagerSyns respekterar pyramidnivåns zFran.
 //   • Boot-säkerhet: inga motor-/vila-/profil-filer i den statiska bootgrafen.
+//   • F4b (#428): omspegling bara för levande ambient UTANFÖR sprites; målens
+//     scen-API (forvarmMal/forvarmLager) säger nej utan mål/fokus; profilformatet.
 // ============================================================================
 
 import { test, mock } from "node:test";
@@ -145,11 +147,71 @@ test("motor/vila/profil ligger UTANFÖR den statiska bootgrafen (133 filer)", ()
     }
   }
   assert.equal(seen.size, 133);
-  for (const f of ["varld-motor.js", "varld-motor-textur.js", "varld-motor-hud.js", "varld-vila.js", "varld-profil-standard.js"]) {
+  for (const f of ["varld-motor.js", "varld-motor-textur.js", "varld-motor-hud.js", "varld-vila.js", "varld-profil-standard.js",
+    "varld-motor-mal.js", "varld-motor-forbered.js", "varld-motor-overlagg.js", "varld-spegel-neutral.js"]) {
     assert.ok(!seen.has(f), `${f} får inte vara statiskt nåbar`);
   }
   const kamera = readFileSync(resolve(SRC, "varld-kamera.js"), "utf8");
   assert.ok(!/^\s*import\s/m.test(kamera), "varld-kamera.js har ingen import");
   const pv = readFileSync(resolve(SRC, "pages-varld.js"), "utf8");
   assert.match(pv, /import\("\.\/varld-motor\.js"\)/);
+});
+
+// --- F4b (#428) ---------------------------------------------------------------------
+const TX = await import("../src/varld-motor-textur.js");
+const { skapaForvarmare } = await import("../src/varld-motor-mal.js");
+const standard = (await import("../src/varld-profil-standard.js")).default;
+
+/** Minimal nod: closest() mot en liten selektor-"matchare" (klassnamn). */
+function nod(klass, forfader = null) {
+  return {
+    klass, forfader,
+    closest(sel) {
+      for (let n = this; n; n = n.forfader) if (sel.split(",").some((s) => s.trim() === `.${n.klass}`)) return n;
+      return null;
+    },
+  };
+}
+function lagerMed(profilNamn, anims) {
+  const l = nod("lager");
+  l.dataset = { spegelProfil: profilNamn };
+  l.contains = (t) => { for (let n = t; n; n = n.forfader) if (n === l) return true; return false; };
+  l.getAnimations = () => anims(l);
+  return l;
+}
+
+test("levandeBas: bara levande animationer UTANFÖR profilens sprites kräver omspegling", async () => {
+  TX.registreraProfil("t428", { sprites: [".hus-rok"], ambient: [".hus-moln"] });
+  await TX.laddaProfil({ dataset: { spegelProfil: "t428" } });
+  const spelar = (target) => ({ playState: "running", effect: { target } });
+  const baraRok = lagerMed("t428", (l) => [spelar(nod("hus-rok", nod("tomt", l)))]);
+  assert.equal(TX.levandeBas(baraRok), false, "röken är sprite → förvärmd bas gäller");
+  const moln = lagerMed("t428", (l) => [spelar(nod("hus-rok", l)), spelar(nod("hus-moln", l))]);
+  assert.equal(TX.levandeBas(moln), true, "ambient (moln) bakas in → omspegling");
+  const egen = lagerMed("t428", (l) => [spelar(l)]);
+  assert.equal(TX.levandeBas(egen), false, "lagrets egen animation räknas inte");
+  // Vilans pausade animationer (alla lager) → bara de i DETTA lager räknas.
+  const annat = nod("hus-moln", nod("annat-lager"));
+  assert.equal(TX.levandeBas(baraRok, [spelar(annat)]), false);
+});
+
+test("profilformatet: standardprofilen har sprites + malSelektor, ambient tom", () => {
+  assert.deepEqual(standard.ambient, []);
+  assert.deepEqual(standard.sprites, []);
+  assert.equal(standard.malSelektor, null);
+  assert.ok(standard.objekt);
+});
+
+test("målförvärmaren: forvarmMal/forvarmLager säger nej utan mål, fokus eller ledig motor", () => {
+  const stage = {};
+  const lager = { parentElement: stage, contains: () => true };
+  const el = (ds) => ({ dataset: ds, closest: (s) => (s === ".varld-lager" ? lager : null) });
+  let ledig = true;
+  const F = skapaForvarmare({ stage: () => stage, yta: () => null, kameror: new Set(), ledig: () => ledig, logga() {} });
+  assert.equal(F.forvarmLager(lager), false, "inget aktivt mål → inget byggs");
+  assert.equal(F.forvarmMal(el({})), false, "utan data-fokus-x/y");
+  ledig = false;
+  assert.equal(F.forvarmMal(el({ fokusX: "30", fokusY: "40" })), false, "under rörelse");
+  assert.equal(F.forvarmMal(null), false);
+  assert.equal(F.mal, null);
 });

@@ -19,24 +19,55 @@
 //  6. klar → ta bort .varld-pixi-spelar (DOM syns i slutläget, canvasen under
 //     visar samma bild); vila släpps 2 frames senare; 2 rAF + 100 ms → rensa().
 // Spår: stage.dataset.pixiSpel = "pixi" | "css:<orsak>".
-// Förvärmning: i idle efter landning (stage[data-niva] ändras) byggs
-// pyramiderna för nivåns grannövergångar (max budget.maxPar). Lager med levande
-// ambient speglas om vid handoff; hinner det inte inom VANTA_MAX_MS spelas
-// rörelsen på den förvärmda pyramiden (spåras som `inaktuella` i loggen/HUD).
+// Förvärmning (varld-motor-mal.js): idle-grannövergångar efter landning +
+// dynamiska MÅL (profil.malSelektor, data-fokus-x/y) vid pointerenter/focusin,
+// som går före idle. Lager med levande ambient (utanför profilens sprites)
+// speglas om vid handoff; hinner det inte inom VANTA_MAX_MS spelas rörelsen på
+// den förvärmda pyramiden (spåras som `inaktuella` i loggen/HUD).
+// Profil-semantiken (ambient/sprites/objekt): se varld-profil-standard.js.
+//
+// API FÖR SCENERNA (export + window.__ppPixi.motor.<krok>; laddas lat → anropa
+// som `window.__ppPixi?.motor?.forvarmMal?.(el)`; motorn ändrar ingen data):
+//   forvarmMal(el) → boolean   REKOMMENDERAT vid pointerenter/focusin på ett
+//     klickmål. el bär data-fokus-x/y (% av sitt .varld-lager = kamerans fokus
+//     vid klicket) och ev. data-fokus-lager="<id>" (innerlagret) och
+//     data-fokus-zoom (annars en registrerad nivås zoom för lagret – målets
+//     egen kamera behöver inte finnas än). Bygger ytterrollens pyramid direkt
+//     (prio "nu", före idle). Pekaren/fokus lämnar el, eller forvarmMal(null)
+//     → avbryts, egna texturer släpps. Utan kroken gör motorns egen lyssnare
+//     samma sak för element som matchar profil.malSelektor (60 ms dwell för mus).
+//   forvarmLager(lagerEl) → boolean
+//     Anropa när lagret som ett klick på det AKTUELLA målet zoomar in till är
+//     förrenderat (dolt). Motorn bygger dess innerpyramid för målets fokus.
+//     false = inget mål är aktivt (pekaren har lämnat; inget byggs). Motorn
+//     spolar väntande mutationer först, så lagret får sin nya version direkt.
+//     Alternativ: data-fokus-lager="<lager-id>" på målet (statiskt innerlager).
+//   Skriv INTE om lagret med identisk markup vid klicket – det smutsar lagret
+//   (sakra() känner igen identisk bild via hash och återanvänder den, men
+//   betalar ändå speglingen).
+//
+// FLAGGOR: pp:pixi:tvinga (eller ?pixi=tvinga) förlänger väntan på texturer
+// och vilo-bilden till TVINGA_MS (belastad desk/SwiftShader kan bevisa
+// Pixi-vägen); utan flaggan gäller 250/500 ms. Loggen/HUD:en får
+// `skulleMissat: {vanta, vila}` (ms) när en körning hade missat
+// produktionsgränsen.
 // Debug/test: window.__ppPixi.motor (+ HUD med pp:pixi:debug).
 // ============================================================================
 
 import { ensureRenderare, pixiMojlig, pixiFlaggor, noteraCssVag } from "./varld-render.js";
-import { lagerState } from "./varld-render-anim.js";
-import { stallIn, texturCache, konfiguration } from "./varld-textur.js";
+import { stallIn, texturCache } from "./varld-textur.js";
 import { setRorelseMotor, KAMERA_MS } from "./varld-kamera.js";
-import { vila, harAmbient } from "./varld-vila.js";
+import { vila } from "./varld-vila.js";
 import * as TX from "./varld-motor-textur.js";
+import { skapaForvarmare } from "./varld-motor-mal.js";
+import { forbered } from "./varld-motor-forbered.js";
 import { urlFlaggor, statistik, visaHud, vakta } from "./varld-motor-hud.js";
 
 /** Längsta väntan på texturer innan CSS-vägen tar över (§2.3f.1). */
 export const VANTA_MAX_MS = 250;
 const VILA_TIMEOUT_MS = 500;
+const TVINGA_MS = 3000; // pp:pixi:tvinga: belastad desk
+const grans = (ms) => (pixiFlaggor().tvinga ? Math.max(ms, TVINGA_MS) : ms);
 const SPELAR = "varld-pixi-spelar";
 
 let stage = null;
@@ -56,6 +87,13 @@ const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
 const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(fn, 200));
 const markera = (v) => { if (stage) stage.dataset.pixiSpel = v; };
 const allaLager = () => (stage ? [...stage.querySelectorAll(":scope > .varld-lager")] : []);
+const F = skapaForvarmare({
+  stage: () => stage,
+  yta: () => yta,
+  kameror,
+  ledig: () => !!stage?.isConnected && !!yta && !renderare?.dod && !spel && !slappSnart && !document.hidden && !pixiFlaggor().av,
+  logga: (m) => loggaMal(m),
+});
 
 // ---- Installation ------------------------------------------------------------
 
@@ -93,6 +131,7 @@ function bytScen(stageEl) {
   ro?.disconnect();
   moNiva?.disconnect();
   stage = stageEl;
+  F.koppla(stage);
   for (const n of [...kameror]) if (!stage.contains(n[0]?.el)) kameror.delete(n);
   TX.spana(stage, schemaForvarm);
   ro = new ResizeObserver(() => kollaMatt());
@@ -133,6 +172,7 @@ function kollaMatt() {
   if (nyckel === ytMatt || !m.w || !m.h) return;
   ytMatt = nyckel;
   avbryt();
+  F.avbryt();
   yta.resize(m.w, m.h, m.dpr);
   stallIn({ maxTex: renderare?.maxTex });
   TX.rensaAllt(); // alla pyramider ogiltiga
@@ -193,23 +233,25 @@ function spela(spec, tillampaDom) {
 
 async function spelaHandoff(spec, tillampaDom) {
   avbryt();
+  const malet = F.overlat(); // målets förvärmda pyramider används nu
   const nr = ++spelNr;
   const t0 = performance.now();
   const slapp = vila(allaLager());
   spel = { nr, fas: "forbered", slapp, tillampaDom, forb: null };
-  const post = { riktning: spec.riktning, yttre: spec.yttre.id, inre: spec.inre.id, t: Math.round(t0) };
+  const post = { riktning: spec.riktning, yttre: spec.yttre.id, inre: spec.inre.id, t: Math.round(t0), ...(malet ? { mal: malet.id } : {}) };
+  const missat = {};
   const css = (orsak) => {
     slapp();
     spel = null;
     markera(`css:${orsak}`);
     noteraCssVag(orsak);
     tillampaDom();
-    logga({ ...post, vag: "css", orsak, forberedMs: Math.round(performance.now() - t0) });
+    logga({ ...post, vag: "css", orsak, forberedMs: Math.round(performance.now() - t0), ...skulleMissat(missat) });
     return vanta(KAMERA_MS);
   };
   let forb;
   try {
-    forb = await forbered(spec, slapp, t0 + VANTA_MAX_MS);
+    forb = await forbered(spec, slapp, t0 + grans(VANTA_MAX_MS), { stage, yta });
   } catch (err) {
     if (pixiFlaggor().debug) console.warn("[pp:pixi] förberedelse:", err);
     forb = { orsak: "textur-fel" };
@@ -217,7 +259,10 @@ async function spelaHandoff(spec, tillampaDom) {
   if (nr !== spelNr) { forb.slappa?.(); return; } // ersatt – avbryt() har redan städat
   if (forb.orsak) return css(forb.orsak);
   spel.forb = forb;
-  const visar = await Promise.race([yta.visaVila(forb.fran).then(() => "ok", () => "worker-fel"), vanta(VILA_TIMEOUT_MS).then(() => "vila-timeout")]);
+  const tV = performance.now();
+  if (tV - t0 > VANTA_MAX_MS) missat.vanta = Math.round(tV - t0);
+  const visar = await Promise.race([yta.visaVila(forb.fran).then(() => "ok", () => "worker-fel"), vanta(grans(VILA_TIMEOUT_MS)).then(() => "vila-timeout")]);
+  if (performance.now() - tV > VILA_TIMEOUT_MS) missat.vila = Math.round(performance.now() - tV);
   if (nr === spelNr && visar !== "ok") { forb.slappa(); return css(visar); }
   if (nr !== spelNr) return;
   // 4. Bytet: DOM osynlig (canvasen visar samma bild), DOM till slutläget, spela.
@@ -227,61 +272,10 @@ async function spelaHandoff(spec, tillampaDom) {
   tillampaDom();
   const forberedMs = Math.round(performance.now() - t0);
   yta.spela({ fran: forb.fran, till: forb.till }).then(
-    (res) => avsluta(nr, { ...post, vag: "pixi", forberedMs, ...forb.info, ...statistik(res.frames), avbruten: !!res.avbruten }),
+    (res) => avsluta(nr, { ...post, vag: "pixi", forberedMs, ...forb.info, ...skulleMissat(missat), ...statistik(res.frames), avbruten: !!res.avbruten }),
     () => avsluta(nr, { ...post, vag: "pixi", forberedMs, fel: true }),
   );
   return vanta(KAMERA_MS);
-}
-
-/** 1–2 i handoffen: säkra pyramider (+ överlägg) och bygg animationens tillstånd. */
-async function forbered(spec, slapp, deadline) {
-  const sr = stage.getBoundingClientRect();
-  const Y = spec.yttre, I = spec.inre;
-  const gY = TX.lagerGeo(Y.el, sr), gI = TX.lagerGeo(I.el, sr);
-  if (!gY.box.w || !gY.box.h || !gI.box.w || !gI.box.h) return { orsak: "ingen-box" };
-  const Z = Y.zoom;
-  const rY = TX.roll(Y.el, gY, Y.fokus, 1, Z, sr);
-  const rI = TX.roll(I.el, gI, Y.fokus, 1 / Z, 1, sr);
-  // Synkront: speglingar och överlägg medan DOM:en är frusen.
-  const omY = slapp.ambient(Y.el), omI = slapp.ambient(I.el);
-  const pY = TX.sakra(rY, { yta, prio: "nu", omspegla: omY });
-  const pI = TX.sakra(rI, { yta, prio: "nu", omspegla: omI });
-  const oY = TX.overlagg(Y.el, Z, yta, omY), oI = TX.overlagg(I.el, 1, yta, omI); // omspeglat: bara emoji-reserven (G1)
-  const ovl = [...oY.ids, ...oI.ids];
-  const slappOvl = () => ovl.forEach((id) => yta.slappLager(id));
-  const klart = Promise.all([pY.minSatt, pI.minSatt, oY.klart.catch(() => {}), oI.klart.catch(() => {})]);
-  await Promise.race([klart.catch(() => {}), vanta(Math.max(0, deadline - performance.now()))]);
-  // Hann en omspegling inte i tid: spela på den förvärmda pyramiden (reserven)
-  // – rätt innehåll, men ambienten i förvärmningens pose (S-profilerna gör
-  // omspeglingen billig nog). Saknas båda → CSS-vägen.
-  const valj = (p) => (p.minKlar ? p : p.reserv?.minKlar && !p.reserv.slappt ? p.reserv : null);
-  const aY = valj(pY), aI = valj(pI);
-  if (!aY || !aI) {
-    slappOvl();
-    return { orsak: "vanta" };
-  }
-  const lamna = [TX.lana(aY), TX.lana(aI)];
-  const inaktuella = [aY !== pY && Y.id, aI !== pI && I.id].filter(Boolean);
-  const geo = [
-    { id: "Y", box: gY.box, fokus: Y.fokus, zoom: Z },
-    { id: "I", box: gI.box, fokus: I.fokus, zoom: I.zoom },
-  ];
-  const inAt = spec.riktning === "in";
-  const fran = inAt ? lagerState(geo, 0, 0) : lagerState(geo, 1, 1);
-  const till = inAt ? lagerState(geo, 1, 0) : lagerState(geo, 0, 0);
-  // Varje pyramidnivå/överlägg är en egen behållare med lagrets transform.
-  const bred = (states) => states.flatMap((l, j) => [
-    ...(j ? aI : aY).ids.map(({ id, z }) => ({ ...l, id, zFran: z })),
-    ...(j ? oI : oY).ids.map((id) => ({ ...l, id })),
-  ]);
-  return {
-    fran: bred(fran), till: bred(till),
-    info: { omspeglade: [omY && Y.id, omI && I.id].filter(Boolean), inaktuella, overlagg: ovl.length, pyramider: [pY.ms, pI.ms] },
-    slappa() {
-      slappOvl();
-      lamna.forEach((f) => f());
-    },
-  };
 }
 
 /** 6. Rörelsen klar: DOM tillbaka, vila släpps, canvasen töms. */
@@ -336,34 +330,28 @@ function schemaForvarm() {
   });
 }
 
-/** Bygg pyramiderna för den aktiva nivåns grannövergångar (max maxPar). */
+/** Idle-grannövergångarna (efter ett pågående mål) – se varld-motor-mal.js. */
 function forvarm() {
   if (!yta && stage?.isConnected && pixiMojlig()) { installeraMotor(stage); return; }
-  if (!stage?.isConnected || !yta || renderare?.dod || spel || slappSnart || document.hidden || pixiFlaggor().av) return;
-  const aktiv = allaLager().find((l) => !l.inert && !l.classList.contains("varld-dold"));
-  if (!aktiv) return;
-  const par = [];
-  for (const nivaer of kameror) {
-    if (!stage.contains(nivaer[0]?.el)) { kameror.delete(nivaer); continue; }
-    const k = nivaer.findIndex((n) => n.el === aktiv);
-    if (k > 0) par.push([nivaer[k - 1], nivaer[k]]);
-    if (k >= 0 && k < nivaer.length - 1) par.push([nivaer[k], nivaer[k + 1]]);
+  F.forvarm();
+}
+
+/**
+ * Scen-API (S2/S3): målets innerlager är förrenderat → förvärm dess pyramid
+ * för det aktuella målets fokus. Se överst i filen. @returns {boolean}
+ */
+export function forvarmLager(lagerEl) {
+  try { return F.forvarmLager(lagerEl); } catch (err) {
+    if (pixiFlaggor().debug) console.warn("[pp:pixi] forvarmLager:", err);
+    return false;
   }
-  const sr = stage.getBoundingClientRect();
-  const sedda = new Set();
-  for (const [Y, I] of par) {
-    const nyckel = `${Y.el.id}>${I.el.id}`;
-    // Tomt lager (byn innan laddaBy) → inget att förvärma. Ingen data hämtas här.
-    if (sedda.has(nyckel) || !Y.el.childElementCount || !I.el.childElementCount) continue;
-    if (sedda.size >= konfiguration().budget.maxPar) break;
-    sedda.add(nyckel);
-    const roller = [[Y, TX.lagerGeo(Y.el, sr), 1, Y.zoom], [I, TX.lagerGeo(I.el, sr), 1 / Y.zoom, 1]];
-    for (const [niva, g, zMin, zMax] of roller) {
-      if (!g.box.w || !g.box.h) continue;
-      // Lager med levande ambient speglas om vid handoff ändå; förvärmningen är
-      // bara reserven om omspeglingen inte hinner → högst var 4:e sekund.
-      TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio: "idle", tak: harAmbient(niva.el) ? 4000 : 0 });
-    }
+}
+
+/** Scen-API (S2/S3): förvärm målet `el` (data-fokus-x/y). Se överst i filen. @returns {boolean} */
+export function forvarmMal(el) {
+  try { return F.forvarmMal(el); } catch (err) {
+    if (pixiFlaggor().debug) console.warn("[pp:pixi] forvarmMal:", err);
+    return false;
   }
 }
 
@@ -373,9 +361,17 @@ function logga(post) {
   senaste = { ...post, cacheMB: +(texturCache().summa() / 1048576).toFixed(1) };
   if (pixiFlaggor().debug) {
     console.info("[pp:pixi] övergång", senaste);
-    visaHud(senaste, yta).catch(() => {});
+    visaHud({ ...senaste, malForvarm: F.senasteMal }, yta).catch(() => {});
   }
 }
+
+function loggaMal(m) {
+  if (!pixiFlaggor().debug) return;
+  console.info("[pp:pixi] målförvärmning", m);
+  visaHud({ ...senaste, malForvarm: m }, yta).catch(() => {});
+}
+
+const skulleMissat = (m) => (m.vanta || m.vila ? { skulleMissat: true, missatMs: { ...m } } : {});
 
 const info = {
   get senaste() { return senaste; },
@@ -388,5 +384,12 @@ const info = {
     stage?.classList.toggle(SPELAR, !!visaCanvas);
   },
   forvarm: () => forvarm(),
+  forvarmLager,
+  forvarmMal,
+  /** Workerns texturbokföring (läckkoll: tillbaka till baslinjen efter ett avbrutet mål). */
+  stats: () => yta?.stats() ?? Promise.resolve(null),
+  /** Pågående målförvärmning (eller null) och den senaste (status, poster, ms). */
+  get mal() { return F.mal; },
+  get senasteMal() { return F.senasteMal; },
 };
 try { if (window.__ppPixi) window.__ppPixi.motor = info; } catch { /* ingen window */ }

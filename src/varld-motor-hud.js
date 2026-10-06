@@ -158,7 +158,7 @@ function stada(nu = performance.now()) {
 
 let matt = null;
 function nollstall() {
-  matt = { n: 0, vag: {}, forberedMs: [], omspegling: [], frames: 0, tappade: 0, avbrutna: 0, skulleMissat: 0 };
+  matt = { n: 0, vag: {}, forberedMs: [], omspegling: [], frames: 0, tappade: 0, avbrutna: 0, skulleMissat: 0, missatVanta: [], missatVila: [], reserv: 0 };
 }
 nollstall();
 
@@ -174,7 +174,12 @@ function noteraPost(post) {
   for (const p of post.pyramider || []) if (p?.minimum != null) matt.omspegling.push(Math.round(p.minimum));
   if (post.n) { matt.frames += post.n; matt.tappade += post.tappade || 0; }
   if (post.avbruten) matt.avbrutna++;
-  if (post.skulleMissat) matt.skulleMissat++;
+  if (post.skulleMissat) {
+    matt.skulleMissat++;
+    if (post.missatMs?.vanta) matt.missatVanta.push(post.missatMs.vanta);
+    if (post.missatMs?.vila) matt.missatVila.push(post.missatMs.vila);
+  }
+  if (post.inaktuella?.length) matt.reserv++;
 }
 
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : null; };
@@ -216,9 +221,16 @@ const rad = (k, v) => `<div><b style="opacity:.7">${k}</b> ${v}</div>`;
 const mb = (b) => (b / MB).toFixed(1);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => `&#${c.charCodeAt(0)};`);
 
-/** Rita/uppdatera HUD:en. post = motorns logg för en ny övergång (null = bara live-siffror). */
+/**
+ * Rita/uppdatera HUD:en. post = motorns logg (en övergång, ev. + malForvarm
+ * från målförvärmningen – samma post igen, räknas bara en gång per t);
+ * null = bara live-siffror (vaktens tick).
+ */
 export async function visaHud(post, yta) {
-  if (post) { sistaPost = post; noteraPost(post); }
+  if (post) {
+    if (post.vag && post.t !== sistaPost?.t) noteraPost(post);
+    sistaPost = post;
+  }
   if (!hud) {
     hud = document.createElement("div");
     hud.id = "pp-pixi-hud";
@@ -243,16 +255,21 @@ export async function visaHud(post, yta) {
         return `<rect x="${x.toFixed(1)}" y="${(40 - h).toFixed(1)}" width="2" height="${h.toFixed(1)}" fill="${dt > 25 ? "#f77" : "#9e9"}"/>`;
       }).join("") + "</svg>"
     : "";
-  const vag = p ? (p.vag === "pixi" ? "🟢 pixi" : `🟠 css:${p.orsak}`) : "";
+  const vag = p?.vag === "pixi" ? "🟢 pixi" : p?.vag ? `🟠 css:${p.orsak}` : "–";
+  const mal = p?.malForvarm;
   const fordelning = Object.entries(m.vag).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · ");
   const over = s.lru.summa > s.budget.maxBytes;
   hud.innerHTML =
-    (p ? rad("övergång", `${esc(p.yttre)}${p.riktning === "in" ? " → " : " ← "}${esc(p.inre)}  ${vag}`) : "") +
-    (p ? rad("handoff", `${p.forberedMs ?? "–"} ms${p.omspeglade?.length ? ` (omspeglat: ${esc(p.omspeglade.join(", "))})` : ""}`) : "") +
+    (p?.vag ? rad("övergång", `${esc(p.yttre)}${p.riktning === "in" ? " → " : " ← "}${esc(p.inre)}  ${vag}`) : "") +
+    (p?.ateranvanda?.length ? rad("återanvänt", `${esc(p.ateranvanda.join(", "))} (${esc((p.kallor || []).join("/"))})`) : "") +
+    (p?.skulleMissat ? rad("⚠ prod", `skulle missat: ${Object.entries(p.missatMs || {}).map(([k, v]) => `${k} ${v} ms`).join(", ")}`) : "") +
+    (mal ? rad("mål", `#${mal.id} ${esc(mal.lager)}${mal.inre ? `→${esc(mal.inre)}` : ""} ${mal.status} · ${mal.ms} ms · ${mal.poster.map((x) => `${x.roll}${x.minKlar ? "✓" : "…"}`).join(" ")}`) : "") +
+    (p?.vag ? rad("handoff", `${p.forberedMs ?? "–"} ms${p.omspeglade?.length ? ` (omspeglat: ${esc(p.omspeglade.join(", "))})` : ""}`) : "") +
     (p?.inaktuella?.length ? rad("reserv", `förvärmd pyramid för ${esc(p.inaktuella.join(", "))}`) : "") +
     (frames.length ? rad("frame-dt", `snitt ${p.medelDt} · max ${p.maxDt} · tappade ${p.tappade}/${p.n}${p.avbruten ? " · AVBRUTEN" : ""}`) : "") +
     graf +
     (m.n ? rad("vägar", `${m.n} st, pixi ${Math.round((m.andelPixi || 0) * 100)} %: ${esc(fordelning)}`) : "") +
+    (m.skulleMissat ? rad("skulle missat", `${m.skulleMissat}/${m.n} (vänta ${m.missatVanta.length ? `median ${median(m.missatVanta)} ms` : "–"} · vila ${m.missatVila.length ? `median ${median(m.missatVila)} ms` : "–"})`) : "") +
     (m.forberedMs.length ? rad("handoff ms", `median ${m.forberedMedian} · max ${m.forberedMax}${m.omspegling.length ? ` · pyramid min ${m.omspeglingMedian}/${m.omspeglingMax}` : ""}`) : "") +
     rad("budget", `<span style="color:${over ? "#f77" : "#9e9"}">${mb(s.lru.summa)}/${mb(s.budget.maxBytes)} MB</span> · ${s.lru.poster} pyr · ${s.klass} · maxPar ${s.budget.maxPar} · dpr ${s.dpr}`) +
     (w ? rad("worker", `${w.texturer} tex · ${w.bitmaps} bmp · ${mb(w.bytes || 0)} MB · GL ${w.gl} · ${w.lager} lager`) : rad("worker", "–")) +

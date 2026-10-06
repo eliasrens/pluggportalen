@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rummet i Pixi – förhandsvisning (#422)</title>
+    <meta name="description" content="Pluggporten – en glad studiesida för åk 4." />
+    <!-- Byggstämpel: deploy-workflowet byter ut platshållaren mot commit-SHA:n
+         innan uppladdning till Pages. Loggas av bootvakten nedan så att man i
+         konsolen kan verifiera EXAKT vilken commit live servar (rotorsak #271:
+         Pages-utrullningen är inte atomär och 404/gamla filer kan cachas i upp
+         till ~10 min – utan stämpel går det inte att skilja "deploy ej framme"
+         från "koden är trasig"). Lokalt står platshållaren kvar – det är ok. -->
+    <meta name="pp-build" content="__BUILD_SHA__" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <!-- Favicon: mini av MAJESTÄTISKA porten (samma motiv som loggan och
+         inloggningsscenen art-port-majestic.js, #360): stenpelare + valvbåge
+         med guldkrön + smidesgrind med guldspetsar. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M1 24 Q32 -6 63 24 L53 24 Q32 6 11 24 Z' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='9' r='5' fill='%23F7C948' stroke='%233B3350' stroke-width='2.5'/%3E%3Crect x='1' y='19' width='16' height='9' rx='3.5' fill='%23DCE7F2' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='47' y='19' width='16' height='9' rx='3.5' fill='%23DCE7F2' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='3' y='26' width='12' height='34' rx='4' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3'/%3E%3Crect x='49' y='26' width='12' height='34' rx='4' fill='%23A9C2DE' stroke='%233B3350' stroke-width='3'/%3E%3Cpath d='M23 40 L23 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M32 34 L32 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M41 40 L41 58' stroke='%2346557A' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M23 31 L27.5 36 L23 41 L18.5 36 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Cpath d='M32 25 L36.5 30 L32 35 L27.5 30 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Cpath d='M41 31 L45.5 36 L41 41 L36.5 36 Z' fill='%23F7C948' stroke='%233B3350' stroke-width='2'/%3E%3Crect x='16' y='46' width='32' height='6' rx='3' fill='%235A6C96' stroke='%233B3350' stroke-width='2.5'/%3E%3C/svg%3E"
+    />
+    <!-- PREVIEW #422 (epic #396): den RIKTIGA appen (src/app.js) med Firebase-
+         SDK:t utbytt mot en Firestore/Auth i MINNET (preview/pixi-rum/). Eleven
+         elev1 är inloggad direkt och startar i rummet: möbler, Rum 2 (mint),
+         3 mystery-djur i olika steg, 2 vanliga djur, 5 Mysterymat.
+         Flaggor: ?pixi=debug|frys|av|normal. Räknare: window.__fakeFs.stat. -->
+    <script type="importmap">
+      { "imports": {
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js": "./preview/pixi-rum/fb-app.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js": "./preview/pixi-rum/fb-auth.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "./preview/pixi-rum/fb-firestore.js"
+      } }
+    </script>
+    <script>
+      // Synkron session-spegel (auth.js) + start i rummet.
+      try { localStorage.setItem("pluggportalen.session", JSON.stringify({ studentId: "elev1", namn: "Elev Ett", username: "elev1" })); } catch {}
+      if (!location.hash) location.hash = "#/elev/rum";
+    </script>
+    <style>
+      .pv-pixi { position: fixed; right: 8px; bottom: 8px; z-index: 5000; background: rgba(20, 24, 33, 0.88);
+        color: #cfe; font: 600 11px/1.35 ui-monospace, monospace; padding: 6px 9px; border-radius: 8px;
+        pointer-events: none; white-space: pre; }
+    </style>
+  </head>
+  <body>
+    <!-- Hamburgerknapp (bara synlig på små skärmar) – öppnar sidomenyn. -->
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <!-- Mörk overlay bakom off-canvas-menyn på mobil. -->
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <button class="brand" id="brand" title="Till startsidan">
+          <!-- Loggan: mini av MAJESTÄTISKA porten – samma motiv som
+               inloggningsscenen (art-port-majestic.js, #360) och faviconen:
+               stenpelare + valvbåge med guldkrön + smidesgrind med
+               guldspetsar, i sidans platta stil. -->
+          <span class="logo" aria-hidden="true"><svg viewBox="0 0 64 64" width="1em" height="1em" focusable="false">
+            <path d="M1 24 Q32 -6 63 24 L53 24 Q32 6 11 24 Z" fill="#A9C2DE" stroke="#3B3350" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="32" cy="9" r="5" fill="#F7C948" stroke="#3B3350" stroke-width="2.5"/>
+            <rect x="1" y="19" width="16" height="9" rx="3.5" fill="#DCE7F2" stroke="#3B3350" stroke-width="3"/>
+            <rect x="47" y="19" width="16" height="9" rx="3.5" fill="#DCE7F2" stroke="#3B3350" stroke-width="3"/>
+            <rect x="3" y="26" width="12" height="34" rx="4" fill="#A9C2DE" stroke="#3B3350" stroke-width="3"/>
+            <rect x="49" y="26" width="12" height="34" rx="4" fill="#A9C2DE" stroke="#3B3350" stroke-width="3"/>
+            <path d="M23 40 L23 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M32 34 L32 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M41 40 L41 58" stroke="#46557A" stroke-width="5" stroke-linecap="round"/>
+            <path d="M23 31 L27.5 36 L23 41 L18.5 36 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <path d="M32 25 L36.5 30 L32 35 L27.5 30 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <path d="M41 31 L45.5 36 L41 41 L36.5 36 Z" fill="#F7C948" stroke="#3B3350" stroke-width="2"/>
+            <rect x="16" y="46" width="32" height="6" rx="3" fill="#5A6C96" stroke="#3B3350" stroke-width="2.5"/>
+          </svg></span> <span class="brand-text">Pluggporten</span>
+        </button>
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
+
+      <main id="app" class="container">
+        <div class="spinner" id="boot-spinner">Laddar…</div>
+      </main>
+    </div>
+
+    <!-- Bootvakt (rotorsak #271): GitHub Pages-utrullningen är inte atomär –
+         i upp till ~10 min efter en deploy kan en klient få en blandning av
+         gamla/nya moduler eller cachade 404:or. Faller då app.js-modulgrafen
+         faller HELA appen utan att någon app-kod hunnit köra, och eleven ser
+         bara "Laddar…" för evigt. Det här klassiska (icke-modul) skriptet kör
+         alltid och agerar efter 8 s bara om BÅDA gäller:
+           1. window.__PLUGG_BOOTED saknas (sätts av NY app.js när routern kör) OCH
+           2. start-spinnern #boot-spinner står KVAR i DOM:en – den försvinner så
+              fort NÅGON app.js-version (även en äldre cachad, som inte känner
+              till flaggan) gjort sin första render. Utan markörkontrollen skulle
+              vakten skriva över en FUNGERANDE app för klienter som fått ny
+              index.html + gammal cachad app.js i just mixfönstret, och den
+              skulle blinka i onödan på långsamma nät där boot tar >8 s.
+         Alltså: vakten triggar ENBART när ingen app-kod alls hunnit rendera
+         (modulgraf-404/krasch före första render) – rotorsaksfallet. Då byts
+         spinnern mot ett vänligt meddelande med en "Försök igen"-knapp; efter
+         cache-fönstret läker en omladdning sidan av sig själv. -->
+    <script>
+      window.__PLUGG_BOOTED = false;
+      (function () {
+        var build = document.querySelector('meta[name="pp-build"]');
+        console.log("Pluggporten build:", build ? build.content : "okänd");
+        setTimeout(function () {
+          if (window.__PLUGG_BOOTED) return;
+          // Markören borta = någon app.js (gammal som ny) har renderat – tig.
+          if (!document.getElementById("boot-spinner")) return;
+          var app = document.getElementById("app");
+          if (!app) return;
+          app.innerHTML =
+            '<div class="panel center">' +
+            "<h2>Sajten uppdateras just nu 🔧</h2>" +
+            '<p class="hint">Det tar bara någon minut. Prova igen om en liten stund!</p>' +
+            '<button class="btn" id="boot-retry">Försök igen</button>' +
+            "</div>";
+          var btn = document.getElementById("boot-retry");
+          if (btn) btn.addEventListener("click", function () { location.reload(); });
+        }, 8000);
+      })();
+    </script>
+    <script type="module" src="./src/app.js"></script>
+    <div class="pv-pixi" id="pv-pixi" aria-hidden="true"></div>
+    <script>
+      // Klicktest-hjälp (evaluate_script): __s4.pos() = rummets left/top per
+      // sak/djur, __s4.lage() = nivå, Pixi-spår, motorns senaste logg, WAAPI-läge.
+      window.__s4 = {
+        pos() {
+          const o = {};
+          for (const n of document.querySelectorAll("#rum-lager .room-item")) o[n.dataset.id || n.dataset.petId] = n.style.left + "," + n.style.top;
+          return o;
+        },
+        lage() {
+          const st = document.getElementById("varld-stage");
+          const anims = document.getElementById("rum-lager")?.getAnimations({ subtree: true }) || [];
+          const ej = anims.filter((a) => a.playState !== "running" && a.playState !== "finished");
+          return {
+            niva: st?.dataset.niva, pixiSpel: st?.dataset.pixiSpel, spelar: window.__ppPixi?.motor?.spelar ?? null,
+            senaste: window.__ppPixi?.motor?.senaste ?? null, anims: anims.length, allaRunning: !ej.length,
+            ejRunning: ej.map((a) => a.playState + ":" + (a.animationName || "")),
+            vilar: !!document.querySelector(".varld-pixi-vilar"), spelarKlass: !!st?.classList.contains("varld-pixi-spelar"),
+            fs: { reads: window.__fakeFs?.stat.reads, writes: window.__fakeFs?.stat.writes },
+          };
+        },
+        // Provare för EN övergång (starta före klicket, läs med resultat()):
+        // fångar fryspunkten (.varld-pixi-vilar på/av) – djurens left/top och
+        // en andnings-animations currentTime precis före, under och efter.
+        prov() {
+          clearInterval(this._t);
+          const st = document.getElementById("varld-stage");
+          const djur = () => [...document.querySelectorAll("#rum-lager .room-pet")];
+          const bild = () => Object.fromEntries(djur().map((n) => [n.dataset.petId, n.style.left + "," + n.style.top]));
+          const anim = () => { const a = document.querySelector("#rum-lager .room-pet .ps-kropp")?.getAnimations()[0]; return a ? { ct: Math.round(a.currentTime), ps: a.playState } : null; };
+          const r = (this._r = { start: { niva: st.dataset.niva, spel: st.dataset.pixiSpel }, rader: [], t0: performance.now() });
+          let forra = "", vilaBild = null, slut = 0;
+          this._t = setInterval(() => {
+            const t = Math.round(performance.now() - r.t0);
+            const vilar = !!document.querySelector(".varld-pixi-vilar");
+            const nyckel = [st.dataset.niva, st.dataset.pixiSpel, st.classList.contains("varld-pixi-spelar"), vilar].join("|");
+            if (vilar && !vilaBild) vilaBild = bild();
+            if (vilar && vilaBild) { const nu = bild(); for (const k in nu) if (nu[k] !== vilaBild[k]) (r.rorUnderVila ||= []).push(k + "@" + t); }
+            if (nyckel !== forra) { r.rader.push({ t, nyckel, anim: anim(), djur: bild() }); forra = nyckel; if (!vilar && vilaBild) slut = t; }
+            if ((slut && t - slut > 1200) || t > 120000) { r.efter = { anim: anim(), djur: bild(), t }; clearInterval(this._t); }
+          }, 16);
+          return true;
+        },
+        resultat() { return this._r; },
+      };
+      // Liten statusrad: nivå + senaste rörelsens väg (pixi | css:<orsak>).
+      setInterval(() => {
+        const st = document.getElementById("varld-stage");
+        const m = window.__ppPixi?.motor?.senaste;
+        const fs = window.__fakeFs?.stat;
+        document.getElementById("pv-pixi").textContent =
+          `nivå ${st?.dataset.niva || "–"} · spel ${st?.dataset.pixiSpel || "–"}` +
+          (m ? `\nsenaste ${m.riktning} ${m.yttre}>${m.inre} ${m.vag}${m.orsak ? ":" + m.orsak : ""} förb ${m.forberedMs} ms` : "") +
+          (fs ? `\nfirestore läs ${fs.reads} · skriv ${fs.writes}` : "");
+      }, 300);
+    </script>
+  </body>
+</html>

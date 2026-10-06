@@ -149,6 +149,8 @@ export function mountOmradeScen({ lager, meClassId, classes }) {
     <path d="M-60 8 Q25 6 50 8 Q75 10 160 7.5 L160 11 L-60 11 Z" fill="#8FCB74"/>
   </svg>`;
 
+  // data-fokus-x/y (#396) = EXAKT kamerans fokus för byn (samma tal som
+  // fokusById nedan, oavrundat) – Pixi-rörelsen förvärmer zoomen dit vid hover.
   const byar = lista
     .map((c, i) => {
       const p = layout.platser[i];
@@ -164,6 +166,7 @@ export function mountOmradeScen({ lager, meClassId, classes }) {
         : `Klass ${namn}${by ? `, ${by}` : ""}, ${antal} hus – titta på deras by`;
       return `<div class="omrade-by${me ? " du" : ""}" role="button" tabindex="0"
         data-id="${esc(c.id)}"${me ? ` data-me="1"` : ""} aria-label="${aria}"
+        data-fokus-x="${p.x}" data-fokus-y="${p.y}"
         style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%;width:${layout.cellW.toFixed(2)}%;height:${layout.cellH.toFixed(2)}%">
         <div class="omrade-by-hus">${byMiniSvg(antal, hue)}</div>
         <span class="omrade-by-namn">${etikett} <b>${antal} 🏠</b></span>
