@@ -224,39 +224,54 @@ export function createGrannbyVy({
   // --- Pixi-förvärmning vid hover/fokus (#396, S3 #421) ----------------------
   // Rörelse-motorn (varld-motor.js, laddas dynamiskt – ingen import här) bygger
   // texturerna ur DOM:en som REDAN står i lagren. Pekar eleven på ett mål gör vi
-  // därför DOM:en redo innan klicket – aldrig någon data-hämtning:
+  // därför DOM:en redo innan klicket – aldrig någon data-hämtning – och anropar
+  // motorns krokar (laddas lat → valfria, se toppen av varld-motor.js): FÖRST
+  // forvarmMal(målet) (ytterlagrets pyramid mot målets data-fokus-x/y), sedan
+  // forvarmLager(innerlagret) när det står rätt ritat (dolt):
   //   skolan  → grannklassens plats blir grannby-kamerans fokus (T5), ur
-  //             .omrade-by[data-fokus-x/y] (= fokusById, samma tal)
+  //             .omrade-by[data-fokus-x/y] (= fokusById, samma tal). Innerlagret
+  //             (grannbyn) bara om DEN klassen redan står ritad – annars byggs
+  //             den först när klicket hämtat datan, som idag.
   //   grannby → elevens exteriör ritas i det DOLDA grannbyhus-lagret + tomten
   //             blir fokus (T6). Eleven finns redan i `byggd` (laddaGrannbyData,
   //             1 projektion/klass) → ingen ny Firestore-läsning.
   // Låsta/egna/okända elever förrenderas aldrig (samma regler som visaHus).
   // #391: målen är bara de byar/tomter som redan ritats ur den filtrerade
   // klasslistan – en dold by kan inte pekas på. pp:pixi:av → inget av detta.
-  function pixiPa() {
+  function pixiMotor() {
     try {
       const p = window.__ppPixi;
-      return !!p?.motor && !p.dod && !p.flaggor?.().av;
+      return p?.motor && !p.dod && !p.flaggor?.().av ? p.motor : null;
     } catch {
-      return false;
+      return null;
     }
   }
+  const pixiPa = () => !!pixiMotor();
+  const krok = (namn, arg) => {
+    try { pixiMotor()?.[namn]?.(arg); } catch { /* motorn är valfri */ }
+  };
 
   function forvarmMal(e) {
     if (!pixiPa()) return;
     const niva = stage.dataset.niva;
     if (niva === "skola") {
       const by = e.target.closest?.(".omrade-by[data-fokus-x]");
-      if (!by || by.dataset.me || !skolaLager.contains(by)) return;
+      if (!by || !skolaLager.contains(by) || by.contains(e.relatedTarget)) return;
+      krok("forvarmMal", by); // egna byn: T1 (huvudkameran), annars T5
+      if (by.dataset.me) return;
       const x = parseFloat(by.dataset.fokusX), y = parseFloat(by.dataset.fokusY);
       if (Number.isFinite(x) && Number.isFinite(y)) skolaGrannbyNiva.fokus = { x, y };
+      if (byggd?.klassId === by.dataset.id && grannbyLager.childElementCount) krok("forvarmLager", grannbyLager);
     } else if (niva === "grannby") {
       const tomt = e.target.closest?.(".by-tomt");
-      if (!tomt || !grannbyLager.contains(tomt) || !byggd || byggd.klassId !== klassNu?.id) return;
+      if (!tomt || !grannbyLager.contains(tomt) || tomt.contains(e.relatedTarget)) return;
+      if (!byggd || byggd.klassId !== klassNu?.id) return;
       const elev = byggd.students.find((s) => s.id === tomt.dataset.id);
       if (!elev || elev.id === meId || elev.locked) return;
+      krok("forvarmMal", tomt);
       grannbyNiva.fokus = byggd.fokusById[elev.id] || grannbyNiva.fokus;
-      if (husRitad !== elev.id) ritaHus(elev);
+      if (husRitad !== elev.id) ritaHus(elev); // identisk markup skrivs aldrig om
+      krok("forvarmLager", grannbyhusLager);
     }
   }
   for (const typ of ["pointerover", "focusin"]) {
