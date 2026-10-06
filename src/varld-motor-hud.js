@@ -44,7 +44,8 @@ export async function visaHud(post, yta) {
     const s = await yta?.stats();
     if (s) worker = `${s.texturer} texturer · ${s.bitmaps} bitmaps`;
   } catch { /* renderaren död */ }
-  const vag = post.vag === "pixi" ? "🟢 pixi" : `🟠 css:${post.orsak}`;
+  const vag = post.vag === "pixi" ? "🟢 pixi" : post.vag ? `🟠 css:${post.orsak}` : "–";
+  const m = post.malForvarm;
   const frames = post.frames || [];
   const max = Math.max(50, ...frames);
   const graf = frames.length
@@ -57,7 +58,10 @@ export async function visaHud(post, yta) {
       }).join("") + "</svg>"
     : "";
   hud.innerHTML =
-    rad("övergång", `${post.yttre}${post.riktning === "in" ? " → " : " ← "}${post.inre}  ${vag}`) +
+    (post.vag ? rad("övergång", `${post.yttre}${post.riktning === "in" ? " → " : " ← "}${post.inre}  ${vag}`) : "") +
+    (post.ateranvanda?.length ? rad("återanvänt", `${post.ateranvanda.join(", ")} (${(post.kallor || []).join("/")})`) : "") +
+    (post.skulleMissat ? rad("⚠ prod", `skulle missat: ${Object.entries(post.missatMs || {}).map(([k, v]) => `${k} ${v} ms`).join(", ")}`) : "") +
+    (m ? rad("mål", `#${m.id} ${m.lager}${m.inre ? `→${m.inre}` : ""} ${m.status} · ${m.ms} ms · ${m.poster.map((p) => `${p.roll}${p.minKlar ? "✓" : "…"}`).join(" ")}`) : "") +
     rad("handoff", `${post.forberedMs ?? "–"} ms${post.omspeglade?.length ? ` (omspeglat: ${post.omspeglade.join(", ")})` : ""}`) +
     (post.inaktuella?.length ? rad("reserv", `förvärmd pyramid för ${post.inaktuella.join(", ")} (omspeglingen hann inte)`) : "") +
     (frames.length
