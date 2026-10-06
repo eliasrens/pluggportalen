@@ -19,7 +19,7 @@
 
 import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { createRulesEnv } from "./helpers/rules-env.js";
 
 // De klassmedlem-skrivbara dokumenten (classProjections #231, classProjects
@@ -133,6 +133,22 @@ describe("Elev når bara sitt eget", () => {
   it("kan INTE skriva en annan elevs studentData", async () => {
     await assertFails(
       setDoc(doc(elev("elev1"), "studentData", "elev2"), { coins: 0 })
+    );
+  });
+  // #445: per-kategori-räkningen (progress[area][mode].cat) skrivs med samma
+  // updateDoc-form som saveProgress – tillåtet på egen data, nekat på andras.
+  it("kan spara progress med kategori-räkning (cat) på sin egen studentData (#445)", async () => {
+    await assertSucceeds(
+      updateDoc(doc(elev("elev1"), "studentData", "elev1"), {
+        "progress.vikingatiden.quiz": { completed: true, stars: 2, cat: { fakta: { r: 3, t: 4 } } },
+      })
+    );
+  });
+  it("kan INTE skriva kategori-räkning i en annan elevs progress (#445)", async () => {
+    await assertFails(
+      updateDoc(doc(elev("elev1"), "studentData", "elev2"), {
+        "progress.vikingatiden.quiz.cat": { fakta: { r: 99, t: 99 } },
+      })
     );
   });
   it("kan INTE radera en annan elevs studentData", async () => {

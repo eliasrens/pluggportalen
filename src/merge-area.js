@@ -57,7 +57,7 @@ function makeNextId(existingItems, prefix) {
  * @param {object} incoming  det nya innehållet – ett objekt med "texts", "quiz"
  *                           och/eller "pairs" (får gärna vara ett helt område –
  *                           bara innehållslistorna används).
- * @returns {{ ok:boolean, errors:string[], value:object|null,
+ * @returns {{ ok:boolean, errors:string[], warnings?:string[], value:object|null,
  *             added?:{texts:number,quiz:number,pairs:number},
  *             skipped?:{texts:number,quiz:number,pairs:number} }}
  */
@@ -178,6 +178,9 @@ export function mergeAreaContent(existing, incoming) {
   return {
     ok: true,
     errors: [],
+    // Icke-blockerande anmärkningar på det NYA innehållet (t.ex. okänd
+    // frågekategori, #445) – numreringen avser det inklistrade innehållet.
+    warnings: probe.warnings || [],
     value: merged.value,
     added: { texts: addedTexts.length, quiz: addedQuiz.length, pairs: addedPairs.length },
     skipped,

@@ -19,6 +19,8 @@ import {
   normalizeGenerator,
   listTopics,
   listVariants,
+  normalizeQuestionCategory,
+  QUESTION_CATEGORY_KEYS,
 } from "./exercise-types.js";
 import { validateReadingTexts } from "./validate-reading.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
@@ -38,6 +40,20 @@ export function slugify(str) {
     .slice(0, 60);
 }
 
+/**
+ * Frivilligt "category"-fält (epic #444/#445): känd nyckel → returneras; okänt
+ * värde → VARNING (stoppar inte sparningen) och fältet utelämnas.
+ */
+function readCategory(raw, where, warnings) {
+  if (raw === undefined || raw === null || raw === "") return null;
+  const key = normalizeQuestionCategory(raw);
+  if (!key) {
+    const valid = QUESTION_CATEGORY_KEYS.map((k) => `"${k}"`).join(", ");
+    warnings.push(`${where}: okänd kategori "${String(raw)}" ignoreras. Giltiga: ${valid}.`);
+  }
+  return key;
+}
+
 function isNonEmptyString(v) {
   return typeof v === "string" && v.trim().length > 0;
 }
@@ -52,10 +68,12 @@ function validImageKeys() {
 /**
  * Validera och normalisera ett arbetsområde.
  * @param {*} obj Redan JSON-parsat objekt (inte en sträng).
- * @returns {{ ok: boolean, errors: string[], value: object|null }}
+ * @returns {{ ok: boolean, errors: string[], warnings: string[], value: object|null }}
+ *   `warnings` = icke-blockerande anmärkningar (t.ex. okänd frågekategori).
  */
 export function validateArea(obj) {
   const errors = [];
+  const warnings = [];
 
   if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
     return {
@@ -172,6 +190,8 @@ export function validateArea(obj) {
         // frågan i läsförståelse-läget. Tas bara med när den finns; obligatoriskheten
         // (för läsförståelse) kontrolleras samlat nedan.
         if (isNonEmptyString(q.passage)) built.passage = q.passage.trim();
+        const category = readCategory(q.category, `Fråga ${nr}`, warnings);
+        if (category) built.category = category;
         quiz.push(built);
       });
 
@@ -241,6 +261,8 @@ export function validateArea(obj) {
         // plockar högst ett par per group). Tas bara med när den finns
         // (bakåtkompatibelt, precis som termImage/defImage).
         if (isNonEmptyString(p.group)) built.group = p.group.trim();
+        const category = readCategory(p.category, `Par ${nr}`, warnings);
+        if (category) built.category = category;
         pairs.push(built);
       });
     }
@@ -308,7 +330,7 @@ export function validateArea(obj) {
   }
 
   if (errors.length > 0) {
-    return { ok: false, errors, value: null };
+    return { ok: false, errors, warnings, value: null };
   }
 
   // --- Övningstyper ---------------------------------------------------------
@@ -345,7 +367,7 @@ export function validateArea(obj) {
   // Generator-fältet (issue #279) tas bara med när det är giltigt satt, så vanliga
   // (quiz/par-)områden inte får ett tomt generator-fält.
   if (generator) value.generator = generator;
-  return { ok: true, errors: [], value };
+  return { ok: true, errors: [], warnings, value };
 }
 
 /**

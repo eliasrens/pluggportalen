@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plugga-kategorier</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/games.css" />
+    <style>
+      body { padding: 16px; }
+      .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 360px; }
+      @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+      .preview-bar { max-width: 1100px; margin: 0 auto 16px; padding: 12px 16px; background: #eef4ff; border: 2px solid #cfe0ff; border-radius: 14px; }
+      .preview-bar h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      .preview-bar p { margin: 0; color: #35507a; }
+      .menu { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+      .stats { background: #fff; border-radius: 14px; padding: 14px; box-shadow: var(--skugga-mjuk); font-size: 0.95rem; }
+      .stats h2 { margin: 0 0 8px; font-size: 1.1rem; }
+      .cat-row { display: grid; grid-template-columns: 1.6em 1fr auto; gap: 6px; align-items: center; margin: 6px 0; }
+      .bar { grid-column: 2 / 4; height: 8px; background: #eef2f7; border-radius: 6px; overflow: hidden; }
+      .bar > i { display: block; height: 100%; }
+      .muted { color: var(--text-svag); }
+      table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+      td, th { text-align: left; padding: 3px 4px; border-bottom: 1px solid #eef2f7; }
+      pre { background: #f6f8fb; padding: 8px; border-radius: 8px; font-size: 0.75rem; overflow: auto; max-height: 260px; }
+    </style>
+    <!-- Firebase-/router-beroenden → lätta stubbar. Spelkoden (games-quiz.js,
+         games-jakt.js, game-questions.js, game-shared.js) och data-progress.js
+         (saveProgress) körs OFÖRÄNDRADE mot en minnes-Firestore. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/kategori-stubs/ui.js",
+          "/src/data.js": "/preview/kategori-stubs/data.js",
+          "/src/fx.js": "/preview/kategori-stubs/fx.js",
+          "/src/data-xp.js": "/preview/kategori-stubs/data-xp.js",
+          "/src/firebase-config.js": "/preview/kategori-stubs/firebase-config.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "/preview/kategori-stubs/firestore.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>📊 Plugga – rätt per kategori (issue #445)</h1>
+      <p>Spela Quiz eller Kunskapsjakt. Frågorna är taggade Begrepp/Fakta/Analys (två saknar kategori).
+        Panelen till höger läser det sparade progress-objektet med <code>summarizeStudent</code>.
+        Startdata: ett gammalt Para ihop-resultat utan kategorier (fallback per spelläge).
+        <span id="preview-note"></span></p>
+    </div>
+    <div class="wrap">
+      <div>
+        <div class="menu">
+          <button class="btn gron" id="play-quiz">❓ Spela Quiz</button>
+          <button class="btn" id="play-jakt">⚡ Spela Kunskapsjakt</button>
+        </div>
+        <div id="app"></div>
+      </div>
+      <aside class="stats" id="stats"></aside>
+    </div>
+
+    <script type="module">
+      import { MEM } from "/preview/kategori-stubs/firestore.js";
+      import { validateArea } from "/src/validate.js";
+      import { startQuiz } from "/src/games-quiz.js";
+      import { startKunskapsjakt } from "/src/games-jakt.js";
+      import { summarizeStudent } from "/src/plugga-stats.js";
+
+      // Gammal data (före #445): klarad Para ihop utan cat.
+      MEM.progress = { vikingatiden: { para: { completed: true, stars: 2, bestScore: 9, lastPlayed: { seconds: 1700000000 } } } };
+
+      // Innehållet går genom den riktiga valideringen (category normaliseras).
+      const { value: areaData, warnings } = validateArea({
+        name: "Vikingatiden",
+        quiz: [
+          { question: "Vad betyder ordet <b>runsten</b>?", options: ["En sten med inristad skrift", "En vass yxa", "Ett handelsskepp", "En gud"], answerIndex: 0, category: "begrepp" },
+          { question: "Vad är en <b>knarr</b>?", options: ["En hjälm", "Ett handelsskepp", "En bondgård", "En sång"], answerIndex: 1, category: "Begreppsförståelse" },
+          { question: "Ungefär när började vikingatiden?", options: ["År 300", "År 1500", "År 800", "År 1900"], answerIndex: 2, category: "fakta" },
+          { question: "Vad hette vikingarnas skrivtecken?", options: ["Hieroglyfer", "Bokstäver", "Siffror", "Runor"], answerIndex: 3, category: "fakta" },
+          { question: "Varför byggde vikingarna smala, grunda skepp?", options: ["För att de var billiga", "För att kunna segla uppför floder", "För att de var vackra", "För att de var tunga"], answerIndex: 1, category: "analys" },
+          { question: "Varför blev handel viktig för vikingarna?", options: ["De kunde byta till sig sådant som inte fanns hemma", "De gillade att resa", "De hade inga djur", "Kungen bestämde det"], answerIndex: 0, category: "analys" },
+          { question: "Vilken gud hade en hammare?", options: ["Oden", "Tor", "Frej", "Loke"], answerIndex: 1 },
+          { question: "Vad åt vikingarna mest?", options: ["Pizza", "Gröt och fisk", "Ris", "Pommes"], answerIndex: 1, category: "okänd-kategori" },
+        ],
+      });
+      console.log("[preview] valideringsvarningar", warnings);
+
+      const ctx = { subj: "so", area: "vikingatiden", areaData };
+      const app = document.getElementById("app");
+      const showMenu = () => app.replaceChildren(Object.assign(document.createElement("p"), { className: "hint", textContent: "Välj ett spelläge ovan. Svara gärna fel ibland – första svaret per fråga räknas i Quiz." }));
+      document.getElementById("play-quiz").onclick = () => startQuiz(ctx);
+      document.getElementById("play-jakt").onclick = () => startKunskapsjakt(ctx);
+      window.addEventListener("preview-restart", showMenu);
+      showMenu();
+
+      const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+      function render() {
+        const s = summarizeStudent(MEM.progress);
+        const cats = s.perCategory.map((c) => `
+          <div class="cat-row"><span>${c.icon}</span><b>${esc(c.label)}</b>
+            <span>${c.t ? `${c.r}/${c.t} · ${c.pct} %` : '<span class="muted">inga svar</span>'}</span>
+            <div class="bar"><i style="width:${c.pct || 0}%;background:${c.hex}"></i></div></div>`).join("");
+        const modes = s.perMode.map((m) => `<tr><td>${esc(m.mode)}</td><td>${m.stars}/${m.maxStars} ★</td><td>${m.pct == null ? '<span class="muted">–</span>' : m.pct + " %"}</td></tr>`).join("");
+        document.getElementById("stats").innerHTML = `
+          <h2>Elevens statistik</h2>
+          <p>Genomförda: <b>${s.completed}</b> · Stjärnor: <b>${s.stars}/${s.maxStars}</b> · Rätt: <b>${s.pct == null ? "–" : s.pct + " %"}</b>
+            <br><span class="muted">Senast: ${s.lastPlayed ? s.lastPlayed.toLocaleString("sv-SE") : "–"}</span></p>
+          ${s.hasCategoryData ? "" : '<p class="muted">Ingen kategoridata än – fallback per spelläge nedan.</p>'}
+          ${cats}
+          <table><tr><th>Spelläge</th><th>Stjärnor</th><th>Rätt</th></tr>${modes}</table>
+          <details><summary>Rå progress (Firestore-form)</summary><pre>${esc(JSON.stringify(MEM.progress, null, 2))}</pre></details>`;
+      }
+      render();
+      setInterval(render, 700);
+    </script>
+  </body>
+</html>

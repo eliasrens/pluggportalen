@@ -24,6 +24,7 @@
 import { shuffle, plainQuizPool, hasPassage } from "../game-shared.js";
 import { pickOnePerGroup } from "../pick-group.js";
 import { openQuestionModal } from "./question-modal.js";
+import { tallyCategory } from "../exercise-types.js";
 
 /** Enkel HTML-escape för lärar-inmatad text i genererade par-frågor. */
 function esc(s) {
@@ -44,6 +45,7 @@ function normalizeQuiz(q, showPassage) {
     question: q.question,
     explanation: q.explanation || "",
     passage: q.passage,
+    category: q.category, // frågekategori (#445), räknas i askNext
     // Bygg option-objekt (text + correct) men BEHÅLL källordningen; modalen/
     // renderQuestionCard blandar inte om – vi blandar en gång vid bygget nedan.
     options: (q.options || []).map((text, i) => ({ text, correct: i === q.answerIndex })),
@@ -70,6 +72,7 @@ function normalizePair(pair, allPairs) {
     question: `Vilken förklaring hör ihop med <b>${esc(pair.term)}</b>?`,
     explanation: "",
     passage: undefined,
+    category: pair.category, // parets frågekategori (#445), om satt
     options,
   };
 }
@@ -119,6 +122,7 @@ function buildPool(areaData, kinds) {
 export function makeQuestionAdapter({ areaData, kinds = ["quiz", "lasforstaelse", "para"], host } = {}) {
   const pool = buildPool(areaData, kinds);
   let queue = shuffle(pool); // aktuell omgång, no-repeat tills tom
+  const catStats = {}; // rätt/totalt per frågekategori (#445), varje besvarad fråga
 
   function refillIfEmpty() {
     if (queue.length === 0) queue = shuffle(pool); // ny omgång
@@ -130,6 +134,10 @@ export function makeQuestionAdapter({ areaData, kinds = ["quiz", "lasforstaelse"
     },
     remaining() {
       return queue.length;
+    },
+    /** Rätt/totalt per frågekategori hittills i banan (kopia), för progress. */
+    categoryStats() {
+      return JSON.parse(JSON.stringify(catStats));
     },
     reset() {
       queue = shuffle(pool);
@@ -152,6 +160,7 @@ export function makeQuestionAdapter({ areaData, kinds = ["quiz", "lasforstaelse"
         emoji,
         host,
       });
+      if (res && !res.cancelled) tallyCategory(catStats, q.category, !!res.correct);
       return { ...res, kind: q.kind };
     },
   };

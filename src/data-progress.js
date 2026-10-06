@@ -15,6 +15,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, getStudentData, invalidateStudentData } from "./data.js";
+import { mergeCategoryCounts } from "./exercise-types.js";
 
 // --- Framsteg ---------------------------------------------------------------
 
@@ -28,7 +29,10 @@ export async function getProgress(studentId = currentStudentId()) {
  * Spara framsteg för ett arbetsområde + gamemode.
  * @param {string} areaId   arbetsområdets id
  * @param {string} gamemode t.ex. "quiz" | "lasforstaelse" | "para"
- * @param {object} result   { completed?, bestScore?, stars?, ... }
+ * @param {object} result   { completed?, bestScore?, stars?, cat?, ... }
+ *   `cat` (#445) = sessionens räkning per frågekategori { [kategori]: { r, t } };
+ *   den ADDERAS till det sparade (aldrig ersätter). Saknas den behålls ev.
+ *   sparad `cat` orörd (via ...existing nedan).
  */
 export async function saveProgress(areaId, gamemode, result, studentId = currentStudentId()) {
   if (!studentId) throw new Error("Ingen elev inloggad.");
@@ -42,6 +46,11 @@ export async function saveProgress(areaId, gamemode, result, studentId = current
   }
   if (typeof existing.stars === "number" && typeof payload.stars === "number") {
     payload.stars = Math.max(existing.stars, payload.stars);
+  }
+  if ("cat" in payload) {
+    const cat = mergeCategoryCounts(existing.cat, payload.cat);
+    if (Object.keys(cat).length > 0) payload.cat = cat;
+    else delete payload.cat;
   }
   await updateDoc(ref, { [key]: { ...existing, ...payload } });
   invalidateStudentData(studentId);
