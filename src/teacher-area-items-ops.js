@@ -215,3 +215,31 @@ export function lastItemWarning(area, kind) {
   const w = KIND_WORDS[kind];
   return `Området har då ${w.none} kvar – eleverna ser inte ${w.mode}.`;
 }
+
+// --- Flikar i underraden (#455) ---------------------------------------------
+
+/** Flikarnas ordning. "reading" = nivåtexter (readingTexts, #152) i 📖-editorn. */
+export const ITEM_TABS = ["quiz", "pairs", "texts", "reading"];
+
+/**
+ * Vilka flikar underraden visar, i fast ordning, med antal:
+ *   quiz/pairs/texts – samma regel som sectionsFor (typ ELLER innehåll),
+ *   reading – när området har texts, readingTexts eller läsförståelse-förkrav.
+ * `extra` tvingar fram flikar (📖-knappen → "reading", "+ Lästext" → "texts",
+ * senast vald flik efter omritning) även när regeln annars döljer dem.
+ * @returns {{id:string, count:number}[]}
+ */
+export function tabsFor(area, extra = []) {
+  const shown = new Set(sectionsFor(area));
+  const readingCount = Array.isArray(area?.readingTexts) ? area.readingTexts.length : 0;
+  if (itemCounts(area).texts || readingCount || area?.readingPrereq) shown.add("reading");
+  for (const id of extra) if (ITEM_TABS.includes(id)) shown.add(id);
+  const counts = { ...itemCounts(area), reading: readingCount };
+  return ITEM_TABS.filter((id) => shown.has(id)).map((id) => ({ id, count: counts[id] }));
+}
+
+/** Förvald flik: den ihågkomna om den visas, annars första med innehåll, annars första. */
+export function pickTab(tabs, remembered) {
+  if (remembered && tabs.some((t) => t.id === remembered)) return remembered;
+  return (tabs.find((t) => t.count > 0) || tabs[0] || { id: null }).id;
+}

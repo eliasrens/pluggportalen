@@ -18,6 +18,8 @@ import {
   locateItem,
   nextItemId,
   normalizeItemFields,
+  tabsFor,
+  pickTab,
 } from "../src/teacher-area-items-ops.js";
 
 const q = (n, extra = {}) => ({
@@ -69,6 +71,48 @@ test("itemCounts och sektioner följer typer och innehåll", () => {
   assert.deepEqual(sectionsFor({ exerciseTypes: ["pairs"] }), ["pairs"]);
   assert.deepEqual(sectionsFor({ generator: { topic: "addition", variants: ["enkel"] } }), []);
   assert.deepEqual(itemCounts({}), { quiz: 0, pairs: 0, texts: 0 });
+});
+
+// --- Flikar (#455) ----------------------------------------------------------
+const ids = (tabs) => tabs.map((t) => t.id);
+
+test("tabsFor: flikar bara för typer/innehåll, med antal, i fast ordning", () => {
+  assert.deepEqual(tabsFor(area()), [
+    { id: "quiz", count: 3 },
+    { id: "pairs", count: 2 },
+    { id: "texts", count: 1 },
+    { id: "reading", count: 1 },
+  ]);
+  // Bara quiz → ingen Para ihop/Lästexter/Nivåtexter.
+  assert.deepEqual(ids(tabsFor({ exerciseTypes: ["quiz"], quiz: [q(1)] })), ["quiz"]);
+  // Typ utan innehåll → fliken visas med 0 (så man kan lägga till).
+  assert.deepEqual(tabsFor({ exerciseTypes: ["bildpar"] }), [{ id: "pairs", count: 0 }]);
+  // Nivåtexter: texts ELLER readingTexts ELLER förkrav.
+  assert.deepEqual(ids(tabsFor({ quiz: [q(1)], texts: [{ title: "a", body: "b" }] })), ["quiz", "texts", "reading"]);
+  assert.deepEqual(tabsFor({ readingTexts: [{}, {}] }), [{ id: "reading", count: 2 }]);
+  assert.deepEqual(ids(tabsFor({ readingPrereq: { required: 1 } })), ["reading"]);
+  // Räkna-område utan annat innehåll → inga flikar.
+  assert.deepEqual(tabsFor({ generator: { topic: "addition", variants: ["enkel"] } }), []);
+  // extra tvingar fram (📖 → reading, "+ Lästext" → texts) men i fast ordning.
+  assert.deepEqual(ids(tabsFor({ exerciseTypes: ["quiz"], quiz: [q(1)] }, ["reading", "texts", "bogus"])), [
+    "quiz",
+    "texts",
+    "reading",
+  ]);
+});
+
+test("pickTab: ihågkommen flik om den visas, annars första med innehåll", () => {
+  const tabs = [
+    { id: "quiz", count: 0 },
+    { id: "pairs", count: 4 },
+    { id: "reading", count: 0 },
+  ];
+  assert.equal(pickTab(tabs), "pairs");
+  assert.equal(pickTab(tabs, "reading"), "reading");
+  assert.equal(pickTab(tabs, "texts"), "pairs", "ihågkommen flik som inte visas ignoreras");
+  assert.equal(pickTab([{ id: "quiz", count: 0 }, { id: "pairs", count: 0 }]), "quiz");
+  assert.equal(pickTab([]), null);
+  assert.equal(pickTab(tabsFor(area())), "quiz");
 });
 
 test("addItem lägger till sist med unikt id och rör inget annat", () => {

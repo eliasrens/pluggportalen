@@ -3,11 +3,12 @@
 // issue #454)
 // ----------------------------------------------------------------------------
 // Klick på en rad i Innehållsstudions tabell (eller ögat) fäller ut den här
-// panelen: områdets innehåll grupperat i Quizfrågor (n) · Par (n) · Lästexter (n)
-// som kompakta listrader med ✏️ Redigera och 🗑 Ta bort, plus "+ Lägg till …".
+// panelen: områdets innehåll i FLIKAR (#455, flikmotorn i teacher-area-items-tabs.js)
+// Quiz & läsförståelse (n) · Para ihop (n) · Lästexter (n) · Nivåtexter (n) –
+// kompakta listrader med ✏️ Redigera och 🗑 Ta bort i en egen scrollyta per flik,
+// "+ Lägg till …" alltid synlig under den. Nivåtexter = den befintliga 📖-editorn
+// (teacher-reading.js) inbäddad; 📖-knappen i raden öppnar underraden på den fliken.
 // Generatorområden (Räkna) får en kort rad om räknegeneratorn (ändras via pennan).
-// Nivåtexter (readingTexts) och läsförståelse-förkravet visas read-only som förr
-// i Granska – de redigeras i sin befintliga 📖-editor.
 //
 // SPARNING (saveArea = full överskrivning): hämta FÄRSK kopia med data.getArea,
 // applicera ENBART ändringen (teacher-area-items-ops.js → validateArea som grind)
@@ -20,19 +21,31 @@
 import * as data from "./data.js";
 import {
   applyItemOp,
-  sectionsFor,
   hasPassageMode,
   isGeneratorArea,
   lastItemWarning,
+  tabsFor,
+  pickTab,
+  ITEM_TABS,
 } from "./teacher-area-items-ops.js";
 import { buildQuizForm, buildPairForm, buildTextForm } from "./teacher-area-items-forms.js";
-import { buildReviewPanel } from "./teacher-content-review.js";
+import { createTabs } from "./teacher-area-items-tabs.js";
+import { buildReadingEditor } from "./teacher-reading.js";
 import { el, esc, icon } from "./teacher-shared.js";
 
 const SECTION = {
   quiz: { title: "Quizfrågor", one: "frågan", add: "Lägg till fråga", ic: "📝" },
   pairs: { title: "Par", one: "paret", add: "Lägg till par", ic: "🔗" },
   texts: { title: "Lästexter", one: "texten", add: "Lägg till text", ic: "📄" },
+};
+
+/** Flikarna i underraden (#455). Quiz-fliken rymmer även läsförståelse-frågorna
+ *  (samma quiz[] med passage, #151) – därför EN flik, inte två. */
+const TAB = {
+  quiz: { label: "Quiz & läsförståelse", ic: "📝" },
+  pairs: { label: "Para ihop", ic: "🔗" },
+  texts: { label: "Lästexter", ic: "📄" },
+  reading: { label: "Nivåtexter", ic: "📖" },
 };
 
 const SAVED = {
@@ -71,10 +84,13 @@ function itemHtml(kind, it) {
 /**
  * Bygg underraden för ett område.
  * @param {object} area  området som listan visar (från getAreas).
- * @param {{ subjectId:string, notice?:string, onSaved:(notice:string)=>void }} deps
- * @returns {HTMLElement}
+ * @param {{ subjectId:string, notice?:string, onSaved:(notice:string)=>void,
+ *   tab?:string, onTabChange?:(id:string)=>void, onClose?:()=>void }} deps
+ *   tab = senast vald flik (förvalet, tvingas fram), onTabChange = minns den,
+ *   onClose = Nivåtext-editorns "Stäng" fäller ihop underraden.
+ * @returns {HTMLElement & { selectTab:(id:string,opts?:{focus?:boolean})=>HTMLElement|null }}
  */
-export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
+export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabChange, onClose }) {
   const panel = el(`<div class="ai-panel" role="region" tabindex="-1" aria-label="Innehåll i ${esc(area.name)}"></div>`);
   if (notice) {
     const n = el(`<div class="msg ok ai-notice" role="status">${icon("check", 15)} ${esc(notice)}</div>`);
@@ -103,6 +119,9 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
       return { ok: false, errors: [`Kunde inte spara till databasen: ${err.message}`] };
     }
   }
+
+  /** Scrolla ett öppnat formulär in i synfältet INNE i flikens scrollyta. */
+  const reveal = (node) => requestAnimationFrame(() => node.isConnected && node.scrollIntoView({ block: "nearest" }));
 
   const ref = (it, index) => ({ index, id: it?.id, snapshot: it });
   const formFor = (kind, item, o) =>
@@ -154,6 +173,7 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
       view.hidden = true;
       slot.hidden = false;
       li.classList.add("editing");
+      reveal(slot);
     });
 
     li.querySelector('[data-ai="del"]').addEventListener("click", () => {
@@ -190,21 +210,27 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
       slot.replaceChildren(box);
       slot.hidden = false;
       li.classList.add("confirming");
-      no.focus();
+      no.focus({ preventScroll: true });
+      reveal(slot);
     });
     return li;
   }
 
+  /** Flikpanel för en lista: (notisrad) · egen scrollyta med listan + formulär ·
+   *  "+ Lägg till …" UTANFÖR scrollytan så den alltid syns (#455). */
   function buildSection(kind) {
     const s = SECTION[kind];
     const list = Array.isArray(area[kind]) ? area[kind] : [];
     const sec = el(`<section class="ai-section ai-section-${kind}">
-      <h4 class="ai-h"><span aria-hidden="true">${s.ic}</span> ${esc(s.title)}
-        <span class="ai-count">${list.length}</span></h4>
-      <ol class="ai-list"></ol>
-      <div class="ai-add-slot" hidden></div>
-      <button type="button" class="ai-add">${icon("plus", 14)}<span>${esc(s.add)}</span></button>
+      <div class="ai-scroll" tabindex="0" role="group" aria-label="${esc(s.title)}">
+        <ol class="ai-list"></ol>
+        <div class="ai-add-slot" hidden></div>
+      </div>
+      <button type="button" class="ai-add" aria-expanded="false">${icon("plus", 14)}<span>${esc(s.add)}</span></button>
     </section>`);
+    if (kind === "quiz" && hasPassageMode(area)) {
+      sec.prepend(el(`<p class="ai-tabnote">📖 Frågor med källtext används även i Läsförståelse.</p>`));
+    }
     const ol = sec.querySelector(".ai-list");
     list.forEach((it, i) => ol.append(buildRow(kind, it, i, list)));
     if (!list.length) ol.replaceWith(el(`<p class="ai-empty">Inga ${esc(s.title.toLowerCase())} ännu.</p>`));
@@ -214,9 +240,14 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
     const closeAdd = () => {
       addSlot.hidden = true;
       addSlot.replaceChildren();
-      addBtn.hidden = false;
+      addBtn.setAttribute("aria-expanded", "false");
     };
-    addBtn.addEventListener("click", () => {
+    sec.openAdd = () => {
+      if (!addSlot.hidden) {
+        reveal(addSlot);
+        addSlot.querySelector("input, textarea, select")?.focus({ preventScroll: true });
+        return;
+      }
       setActive(closeAdd);
       const cancel = () => {
         closeAdd();
@@ -225,9 +256,23 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
       const submit = (fields) => commit({ type: "add", kind, fields });
       addSlot.replaceChildren(formFor(kind, null, formOpts(kind, null, submit, cancel)));
       addSlot.hidden = false;
-      addBtn.hidden = true;
-    });
+      addBtn.setAttribute("aria-expanded", "true");
+      reveal(addSlot);
+    };
+    addBtn.addEventListener("click", sec.openAdd);
     return sec;
+  }
+
+  /** Nivåtexter: den BEFINTLIGA 📖-editorn (#152) inbäddad i fliken. Dess
+   *  "Stäng" döljer värden → hela underraden fälls ihop (onClose). */
+  function buildReading() {
+    const host = el(`<div class="ai-scroll ai-reading-host" tabindex="0" role="group" aria-label="Nivåtexter"></div>`);
+    host.append(buildReadingEditor(area, host, { subjectId, onSaved: () => onSaved("Nivåtexterna sparades.") }));
+    new MutationObserver(() => host.hidden && onClose?.()).observe(host, {
+      attributes: true,
+      attributeFilter: ["hidden"],
+    });
+    return host;
   }
 
   // --- Räknegenerator: kort rad, ändras via pennan (wizarden) ----------------
@@ -240,28 +285,41 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
       <span class="ai-hint">Ändras via pennan (Redigera).</span></div>`));
   }
 
-  const kinds = sectionsFor(area);
-  for (const kind of kinds) panel.append(buildSection(kind));
+  // --- Flikar (#455): Quiz & läsförståelse · Para ihop · Lästexter · Nivåtexter --
+  const tabDef = (t) => ({ ...TAB[t.id], id: t.id, count: t.count });
+  const tabList = tabsFor(area, tab ? [tab] : []);
+  const tabs = createTabs({
+    ariaLabel: `Innehåll i ${area.name}`,
+    tabs: tabList.map(tabDef),
+    order: ITEM_TABS,
+    active: pickTab(tabList, tab),
+    render: (id) => (id === "reading" ? buildReading() : buildSection(id)),
+    onChange: (id) => onTabChange?.(id),
+  });
 
-  // Lästexter är ingen övningstyp – saknas de visas bara en "lägg till"-knapp.
-  if (!kinds.includes("texts") && !isGeneratorArea(area)) {
-    const sec = buildSection("texts");
-    sec.classList.add("ai-section-collapsed");
-    sec.querySelector(".ai-h").remove();
-    sec.querySelector(".ai-empty")?.remove();
-    panel.append(sec);
+  /** Visa (och vid behov lägg till) en flik – används av 📖 och "+ Lästext". */
+  function selectTab(id, { focus = false } = {}) {
+    if (!tabs.has(id)) tabs.add(tabDef(tabsFor(area, [id]).find((t) => t.id === id)));
+    const p = tabs.select(id, { focus });
+    onTabChange?.(id);
+    return p;
   }
 
-  // Nivåtexter + läsförståelse-förkrav: read-only som i Granska (#152/#155).
-  if (area.readingTexts?.length || area.readingPrereq) {
-    const rv = buildReviewPanel({ readingTexts: area.readingTexts, readingPrereq: area.readingPrereq });
-    rv.classList.add("ai-reading-review");
-    rv.querySelectorAll("p.hint:not(.rv-prereq)").forEach((p) => p.remove());
-    panel.append(rv);
+  // Lästexter är ingen övningstyp – saknas de finns "+ Lästext" sist i flikraden.
+  if (!tabs.has("texts") && !isGeneratorArea(area)) {
+    const addText = el(`<button type="button" class="ai-tab-add">${icon("plus", 13)}<span>Lästext</span></button>`);
+    addText.title = "Lägg till lästext";
+    addText.addEventListener("click", () => {
+      addText.remove();
+      selectTab("texts", { focus: true }).querySelector(".ai-section")?.openAdd();
+    });
+    tabs.row.append(addText);
   }
 
-  if (!panel.querySelector(".ai-section, .ai-generator")) {
+  if (tabList.length || tabs.row.querySelector(".ai-tab-add")) panel.append(tabs.root);
+  if (!tabList.length && !isGeneratorArea(area)) {
     panel.append(el(`<p class="hint">Området har inget innehåll ännu. Klicka pennan för att välja övningstyper.</p>`));
   }
+  panel.selectTab = selectTab;
   return panel;
 }

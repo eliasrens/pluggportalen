@@ -6520,17 +6520,6 @@ body:has(.teacher-dark) .container {
 }
 .teacher-dark .ai-generator .t-icon { color: var(--t-accent); }
 .teacher-dark .ai-section { display: flex; flex-direction: column; gap: 8px; }
-.teacher-dark .ai-h {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--t-muted);
-}
 .teacher-dark .ai-count {
   min-width: 22px;
   padding: 1px 8px;
@@ -6604,7 +6593,75 @@ body:has(.teacher-dark) .container {
   border: 1px solid rgba(46, 193, 110, 0.4);
   border-radius: 10px;
 }
-.teacher-dark .ai-reading-review { padding: 12px 14px; background: var(--t-surface); }
+
+/* ---- Flikar + scroll i underraden (issue #455) ---------------------------
+   Understruken flikrad som ämnesflikarna (#453) med antal-badge; varje flik har
+   sin lista i en egen scrollyta, "+ Lägg till …" ligger under den (alltid synlig). */
+.teacher-dark .ai-tabs { display: flex; flex-direction: column; gap: 12px; }
+.teacher-dark .ai-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 4px 18px;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .ai-tablist { display: flex; flex-wrap: wrap; gap: 0 22px; min-width: 0; }
+.teacher-dark .ai-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: -1px;
+  padding: 8px 2px 9px;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.teacher-dark .ai-tab:hover { color: var(--t-text); }
+.teacher-dark .ai-tab.active { color: var(--t-accent); border-bottom-color: var(--t-accent); }
+.teacher-dark .ai-tab.active .ai-count { background: rgba(46, 193, 110, 0.16); color: var(--t-accent); }
+.teacher-dark .ai-tab:focus-visible,
+.teacher-dark .ai-tab-add:focus-visible,
+.teacher-dark .ai-scroll:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; border-radius: 4px; }
+.teacher-dark .ai-tab-add {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 5px 0;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px dashed var(--t-border-strong);
+  border-radius: 999px;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.teacher-dark .ai-tab-add:hover { color: var(--t-accent); border-color: var(--t-accent); }
+.teacher-dark .ai-tabpanel:focus-visible { outline: none; }
+.teacher-dark .ai-tabnote { margin: 0; color: var(--t-muted); font-size: 0.88rem; }
+.teacher-dark .ai-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--t-border-strong) transparent;
+}
+.teacher-dark .ai-scroll > .ai-list { flex: none; }
+.teacher-dark .ai-reading-host { padding-right: 4px; }
+.teacher-dark .ai-reading-host > .rt-editor { margin: 0; }
 
 /* Inline-formulär (fråga/par/text) */
 .teacher-dark .ai-form { display: flex; flex-direction: column; gap: 12px; }
@@ -6665,4 +6722,8 @@ body:has(.teacher-dark) .container {
   .teacher-dark .ai-form-2col { grid-template-columns: 1fr; }
   .teacher-dark .ai-form-actions .btn { flex: 1 1 auto; justify-content: center; }
   .teacher-dark .ai-add { align-self: stretch; justify-content: center; }
+  /* Flikraden scrollar i sidled i stället för att bryta; lägre scrollyta. */
+  .teacher-dark .ai-tabs-row { overflow-x: auto; scrollbar-width: none; }
+  .teacher-dark .ai-tablist { flex-wrap: nowrap; gap: 0 18px; }
+  .teacher-dark .ai-scroll { max-height: min(55vh, 420px); }
 }
