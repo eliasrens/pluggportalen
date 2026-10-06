@@ -102,8 +102,13 @@ export function skapaAvsikt(ctx) {
     const v = TX.version(aktiv);
     const byggda = [];
     let synkMs = 0;
+    // Bara roller i lagrets AKTUELLA geometri (en äldre roll-nyckel med annan box
+    // ligger kvar i LRU:n tills den trängs undan – den spelas aldrig mer).
+    const sr = stage.getBoundingClientRect();
+    const { box } = TX.lagerGeo(aktiv, sr);
+    const aktuell = (r) => Math.abs(r.vy.x + box.x) < 0.5 && Math.abs(r.vy.y + box.y) < 0.5 && Math.abs(r.vy.w - sr.width) < 0.5 && Math.abs(r.vy.h - sr.height) < 0.5;
     for (const n of TX.neutralaPoster(aktiv)) {
-      if (mitt !== nr || !ctx.ledig() || ctx.agd(n)) continue;
+      if (mitt !== nr || !ctx.ledig() || ctx.agd(n) || !aktuell(n.roll)) continue;
       if (!levande && !nu) continue; // neutral bild utan levande ambient = redan exakt
       const finns = TX.postFor(TX.nyckelFor(n.roll));
       if (finns && finns.version === v && (!levande || performance.now() - finns.skapad < FARSK_MS)) continue;

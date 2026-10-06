@@ -39,3 +39,10 @@ test("varje husskal ur alla register ritar #husgrupp och rör inte ambient-klass
     assert.ok(harKlass(m, "hus-moln") && harKlass(m, "hus-solstralar"), skalId);
   }
 });
+
+test("F6 #432: neutralisera = husgruppen + klasskylten (även kompis-/grannbyhusets prefix)", () => {
+  const sel = profil.neutralisera.join(",");
+  const slutar = (id) => profil.neutralisera.some((s) => id.endsWith(s.match(/\$="(.+)"/)[1]));
+  for (const id of ["husgrupp", "kompis-husgrupp", "grannbyhus-husgrupp", "klasskylt"]) assert.ok(slutar(id), id);
+  assert.ok(!/garden|tradgard/.test(sel), "trädgårdssakerna saknar hover-stil");
+});
