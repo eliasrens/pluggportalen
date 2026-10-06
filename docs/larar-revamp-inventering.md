@@ -510,6 +510,7 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 - `node --test test/*.test.js`: **742/748**. De 6 felen är regeltesterna, som kräver `emulators:exec` (samma som på main).
 - **Bootgraf (BFS från `src/app.js`):** 133 → **110** filer. **Ingen ny fil** i den statiska grafen. 23 lärarfiler har flyttats ut ur den (laddas med `import()` via `lazyPage`/`TEACHER_TABS`).
 - **Fil-taket:** alla JS-filer som epicen ändrat är ≤ 379 rader. `data-classes.js` är orörd (400).
+- **Emojis som rutor i skärmdumparna = testmiljön, inte en regression:** maskinen har ingen emoji-font (`fc-list | grep -i emoji` = 0). Tecknen finns i DOM:en (`textContent`: flikarna U+1F30D 🌍 / U+1F522 🔢, områdena U+1F98B 🦋 / U+1F6F6 🛶, badges U+2753 ❓ / U+1F4D6 📖). I samma browser mäter canvas 🌍 till exakt samma bredd som ett garanterat saknat tecken (U+10FFFD, 19,20 px), alltså finns ingen glyf. Elevsidans figurval (`pages-elev.js`, orörd sedan main) visar också "Välj din figur! □" i samma browser.
 - **Konsol:** 0 fel och 0 varningar under hela lärar- och elevflödet. En Chrome-"issue" (ett formulärfält saknar id/name, a11y). Preview-sidorna (`preview-larare*.html`, `-by-synlighet`, `-modul-synlighet`, `-lasresan-larare`) laddar utan JS-fel.
 
 ### 5.2 Acceptanstester
