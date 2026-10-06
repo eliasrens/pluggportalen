@@ -15,7 +15,9 @@
 //   eller worker-krasch; "kontext aterstalld" väcker den igen).
 //
 // Flaggor (localStorage, alltid i try/catch):
-//   pp:pixi:av     A/B – allt CSS, exakt dagens beteende
+//   pp:pixi:pa     OPT-IN: Pixi-vägen är AV som standard (Elias 2026-10-06);
+//                  utan pa = allt CSS, exakt dagens beteende (som pp:pixi:av)
+//   pp:pixi:av     A/B – allt CSS, exakt dagens beteende (vinner över pa)
 //   pp:pixi:tvinga ignorera budget/heuristik (läses av motorn) + försök igen
 //                  direkt efter ett init-fel i stället för att vänta OMFORSOK_MS
 //   pp:pixi:debug  logga varje spelad rörelse (frame-dt) i konsolen
@@ -67,7 +69,8 @@ const lasFlagga = (namn) => {
 
 /** Alla pp:pixi:*-flaggor (läses om varje gång – kan ändras i konsolen). */
 export function pixiFlaggor() {
-  return { av: lasFlagga("av"), tvinga: lasFlagga("tvinga"), debug: lasFlagga("debug"), frys: lasFlagga("frys") };
+  const pa = lasFlagga("pa");
+  return { pa, av: lasFlagga("av") || !pa, tvinga: lasFlagga("tvinga"), debug: lasFlagga("debug"), frys: lasFlagga("frys") };
 }
 
 let modulWorkerOk = null;
@@ -89,6 +92,7 @@ function stodjerModulWorker() {
 /** Varför Pixi-vägen inte går (synkront), eller null om den kan provas. */
 function hinder() {
   if (lasFlagga("av")) return "flagga-av";
+  if (!lasFlagga("pa")) return "ej-paslagen"; // opt-in (pp:pixi:pa)
   try {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return "reduced-motion";
   } catch { /* ignoreras */ }

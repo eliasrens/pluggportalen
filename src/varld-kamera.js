@@ -37,6 +37,24 @@ export const KAMERA_MS = 900;
 const reduceMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/**
+ * Pixi-rörelsen (#396) är OPT-IN: på bara med pp:pixi:pa i localStorage (eller
+ * ?pixi=pa i URL:en, som sparas dit; ?pixi=normal tar bort den) och aldrig med
+ * pp:pixi:av. Utan → exakt dagens CSS/DOM-väg och inga Pixi-moduler laddas.
+ * Läses av pages-varld.js (motorn) och port-overgang.js (porten). Kastar aldrig.
+ */
+export function pixiPaslagen() {
+  try {
+    const q = (new URLSearchParams(location.search).get("pixi") || "").split(",");
+    if (q.includes("normal")) localStorage.removeItem("pp:pixi:pa");
+    else if (q.includes("pa")) localStorage.setItem("pp:pixi:pa", "1");
+    const flagga = (n) => { const v = localStorage.getItem(`pp:pixi:${n}`); return v != null && v !== "0" && v !== "false"; };
+    return flagga("pa") && !flagga("av");
+  } catch {
+    return false;
+  }
+}
+
 // Pixi-rörelsen (#396): en INJICERBAR motor (varld-motor.js, laddas dynamiskt
 // i idle – därför en setter och ingen import, bootgrafen är oförändrad). Utan
 // motor, eller när motorn säger nej (pp:pixi:av, ingen WebGL, texturer inte

@@ -41,7 +41,7 @@ import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { husScen, husSkalMarkup, renderHusSkalPicker, navSkyltSvg } from "./art-hus-ute.js";
 import { mountRumScen } from "./varld-rum.js";
 import { mountTradgard } from "./varld-tradgard.js";
-import { createKamera } from "./varld-kamera.js";
+import { createKamera, pixiPaslagen } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { mountByScen } from "./varld-by-scen.js";
 import { createKompisVy } from "./varld-kompis.js";
@@ -135,7 +135,7 @@ export async function pageElevVarld(startNiva) {
   const view = el(`<div class="varld-sida">
     <div class="varld-stage" id="varld-stage"
       style="--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
-      <canvas class="varld-pixi" aria-hidden="true"></canvas>
+      ${pixiPaslagen() ? `<canvas class="varld-pixi" aria-hidden="true"></canvas>` : ""}
       <div class="varld-lager varld-skola" id="skola-lager" data-spegel-profil="skola"></div>
       <div class="varld-lager varld-skola varld-grannby varld-dold" id="grannby-lager" data-spegel-profil="by"></div>
       <div class="varld-lager varld-by" id="by-lager" data-spegel-profil="by"></div>
@@ -1056,8 +1056,9 @@ export async function pageElevVarld(startNiva) {
   }
 
   app.replaceChildren(view);
-  // Pixi-rörelsen (#396): motorn laddas dynamiskt i idle (aldrig i bootgrafen).
-  (window.requestIdleCallback || setTimeout)(() => import("./varld-motor.js").then((m) => m.installeraMotor(stage)).catch(() => {}));
+  // Pixi-rörelsen (#396): OPT-IN (pp:pixi:pa) – annars laddas motorn aldrig och
+  // allt är dagens CSS/DOM-väg. Dynamiskt i idle (aldrig i bootgrafen).
+  if (pixiPaslagen()) (window.requestIdleCallback || setTimeout)(() => import("./varld-motor.js").then((m) => m.installeraMotor(stage)).catch(() => {}));
 
   // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
   if (startNiva === "kompis") kompisVy.visa(kompisId);

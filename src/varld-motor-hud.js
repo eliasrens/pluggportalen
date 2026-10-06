@@ -30,7 +30,7 @@ const MB = 1048576;
 const TICK_MS = 2000;
 const STADA_VAR = 5; // var 5:e tick = 10 s
 export const STADA_MS = 30000;
-const FLAGGOR = ["av", "tvinga", "debug", "frys", "klass", "maxtex", "emoji"];
+const FLAGGOR = ["pa", "av", "tvinga", "debug", "frys", "klass", "maxtex", "emoji"];
 
 const lasStr = (namn) => {
   try { return localStorage.getItem(`pp:pixi:${namn}`); } catch { return null; }
@@ -41,7 +41,7 @@ const skriv = (namn, v) => {
 
 /**
  * ?pixi=… sätter flaggor (kommaseparerat, för preview utan konsol):
- * debug|frys|av|tvinga, klass-svag|klass-normal, maxtex-4096, emoji-text|emoji-svg|emoji-auto,
+ * pa (opt-in: Pixi på)|debug|frys|av|tvinga, klass-svag|klass-normal, maxtex-4096, emoji-text|emoji-svg|emoji-auto,
  * normal = ta bort alla.
  */
 export function urlFlaggor() {
@@ -50,7 +50,7 @@ export function urlFlaggor() {
   for (const d of q.split(",")) {
     let m;
     if (d === "normal") FLAGGOR.forEach((f) => skriv(f, null));
-    else if (/^(av|tvinga|debug|frys)$/.test(d)) skriv(d, "1");
+    else if (/^(pa|av|tvinga|debug|frys)$/.test(d)) skriv(d, "1");
     else if ((m = /^klass-(svag|normal)$/.exec(d))) skriv("klass", m[1]);
     else if ((m = /^maxtex-(\d{3,5})$/.exec(d))) skriv("maxtex", m[1]);
     else if ((m = /^emoji-(text|svg|auto)$/.exec(d))) skriv("emoji", m[1] === "auto" ? null : m[1]);

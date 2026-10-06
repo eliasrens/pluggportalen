@@ -163,10 +163,14 @@ sidomenyn. Det är appens beteende för en elev utan klass och inte Pixi (T1 in 
 
 ## 7. Slutpreview för Elias
 
+> **Pixi är AV som standard** (§9). Previewn och produktionen visar dagens CSS-övergångar tills Pixi slås på
+> med `?pixi=pa` (sparas i webbläsaren). Elevernas sida påverkas alltså inte av mergen.
+
 Previewn kör **riktiga appen** från den här grenen (epic-innehållet + I1) mot den riktiga databasen. Logga in som
 vanligt (t.ex. elev1). Klicka runt som en elev men undvik att köpa saker, eftersom det skrivs på riktigt.
 
-**Slå på mät-HUD:en:** lägg till `?pixi=debug` före `#` i adressen (t.ex. `…/?pixi=debug#/elev/hus`) och ladda om.
+**Slå på Pixi + mät-HUD:en:** lägg till `?pixi=pa,debug` före `#` i adressen (t.ex. `…/?pixi=pa,debug#/elev/hus`)
+och ladda om.
 Flaggan sparas i webbläsaren tills du tar bort den. En ruta nere till vänster (efter första övergången) visar:
 - raden `övergång`: 🟢 pixi eller 🟠 css:<orsak>,
 - raden `frame-dt` + grafen: workerns bildtider (snitt, max, tappade > 25 ms; 16,7 ms = 60 fps),
@@ -174,7 +178,7 @@ Flaggan sparas i webbläsaren tills du tar bort den. En ruta nere till vänster 
 - texturcachen och budgeten (G1, se `docs/pixi-gpu-budget-396.md`).
 
 **Jämför mot dagens CSS-övergång:** `?pixi=av` (ladda om) → samma klick, nu exakt som på main. Tillbaka till
-Pixi: `?pixi=normal`. Bra resor att jämföra: hus ↔ by (klasskylten), hus ↔ rum (dörren), hus → gården →
+Pixi: `?pixi=normal,pa`. Allt av igen (standardläget): `?pixi=normal`. Bra resor att jämföra: hus ↔ by (klasskylten), hus ↔ rum (dörren), hus → gården →
 laggården, by → Andra byar → en grannby → ett hus.
 
 **Pixel-jämförelse (valfritt):** `?pixi=frys` håller Pixis sista bild kvar under DOM:en. Konsolen:
@@ -436,3 +440,27 @@ Samma beteende som idag.
 Pixi skulle kunna dölja det genom att spegla det synliga slutlagret i målnivåns geometri. Det kräver dock `data-niva`-
 växling vid spegling, och zoomens centrum skulle avvika från CSS-vägens under rörelsen. Det är en synlig
 beteendeändring och kräver Elias OK.
+
+## 9. Pixi AV som standard (opt-in `pp:pixi:pa`, Elias beslut 2026-10-06)
+
+Inför mergen till main vändes grinden: **utan flagga är allt dagens CSS/DOM-väg**, och Pixi kräver uttrycklig opt-in.
+
+| Var | Ändring |
+|---|---|
+| `src/varld-kamera.js` (statisk, ingen ny import) | `pixiPaslagen()`: sant bara med `pp:pixi:pa` och utan `pp:pixi:av`. `?pixi=pa` sparar opt-in, `?pixi=normal` tar bort den. Kastar aldrig |
+| `src/pages-varld.js` | Motorn (`import("./varld-motor.js")`) laddas bara om `pixiPaslagen()`. `<canvas class="varld-pixi">` renderas bara då (motorn skapar den annars själv) |
+| `src/port-overgang.js` | `forladdaPortPixi` gör inget utan opt-in (ingen förladdning på login-sidan). Overlayn märks `css:av` |
+| `src/varld-render.js` | Central grind: `pixiFlaggor().av = av || !pa`, `hinder()` = `"ej-paslagen"`. Även en modul som laddats på annat sätt säger nej |
+| `src/varld-motor-hud.js` | `?pixi=pa` i URL-flaggorna (`pa` med i `normal`-städningen) |
+| `test/varld-pixi-optin.test.js` (ny) | Standard av, `pa` på, `av` vinner, 0/false = av, URL sparar/tar bort, trasig localStorage = av, laddningsställena grindade |
+
+**Verifierat i desk-browsern (riktiga appen, elev1):**
+
+| Läge | Login-sidan | Inloggning (T10) | Världen (4 resor rum/hus/by/hus) |
+|---|---|---|---|
+| Färsk webbläsare, **ingen flagga** | inga Pixi-filer, ingen `__ppPixi` | overlay `css:av`, 1405 ms | `data-pixi-spel` sätts aldrig, CSS-transition 0.9 s/0.55 s, **ingen canvas**, 0 Pixi-filer efter 8 s idle |
+| `?pixi=pa` | renderaren förladdad (`vag: pixi`) | overlay `pixi`, 1413 ms | 4/4 `pixi`, canvas finns, `pp:pixi:pa=1` sparad |
+| `?pixi=normal` | – | – | flaggan borta, `pixiSpel` null, ingen canvas, 0 Pixi-filer |
+
+BFS 133. `node --test`: 834/841. De 7 som faller är emulator-/regeltesterna, som kräver Firestore-emulatorn.
+

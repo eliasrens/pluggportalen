@@ -8,6 +8,10 @@ på spik-grenen), lärdomarna från #374/#381 och en avgränsad PoC (`preview-pi
 > **Läs först (det viktigaste på en rad):** Pixi ritar världen **under kamerans rörelse**, i en **Web Worker**
 > (OffscreenCanvas). I vila är DOM:en exakt som idag — det är den eleven klickar på, den som har
 > tillgänglighet, paneler och Firestore. Så blir övergångarna mjuka utan att något annat ändras.
+>
+> **AV som standard (Elias beslut 2026-10-06):** Pixi-vägen är **opt-in** med `pp:pixi:pa` (localStorage)
+> eller `?pixi=pa` (sparas). Utan flaggan laddas inga Pixi-moduler, ingen canvas renderas och alla övergångar
+> är dagens CSS/DOM-väg, exakt som på main. `?pixi=normal` tar bort opt-in, och `pp:pixi:av` vinner över `pa`.
 
 ---
 
@@ -211,7 +215,9 @@ spelar i den gamla storleken landar redan i `data-niva`-mutationen, före paint 
 inte klar inom `VANTA_MAX_MS` → **dagens CSS-övergång**. Ingen main-thread-Pixi-variant byggs
 (mindre testyta, och de som saknar worker-WebGL får dagens beteende).
 
-Flaggor (localStorage, try/catch): `pp:pixi:av` (A/B, allt CSS), `pp:pixi:tvinga` (ignorera
+Flaggor (localStorage, try/catch): `pp:pixi:pa` (**opt-in, krävs för Pixi-vägen**; utan den
+är allt CSS och motorn/port-Pixi laddas aldrig: `pixiPaslagen()` i `varld-kamera.js`, `pixiFlaggor().av`
+i `varld-render.js`), `pp:pixi:av` (A/B, allt CSS, vinner över `pa`), `pp:pixi:tvinga` (ignorera
 budget/heuristik), `pp:pixi:debug` (HUD med workerns frame-dt per övergång + texturbudget),
 `pp:pixi:frys` (håll canvasen synlig i vila efter en övergång → jämför Pixi mot DOM med skärmdump).
 

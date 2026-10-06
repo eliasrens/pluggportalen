@@ -40,7 +40,7 @@
 // Samma totala zoomtid som världskameran – övergången ska kännas som samma
 // kamera som sedan flyger by ↔ hus ↔ rum. (varld-kamera.js ligger redan i
 // bootgrafen via pages-varld.js, så importen drar inte in något nytt.)
-import { KAMERA_MS } from "./varld-kamera.js";
+import { KAMERA_MS, pixiPaslagen } from "./varld-kamera.js";
 
 /** Grindhalvornas öppningstid (ms) – matchar .port-overgang .port-halva i
     styles.css. Zoomen startar strax innan halvorna är helt öppna. */
@@ -64,7 +64,7 @@ let pixiPort = null;
  */
 export function forladdaPortPixi(scenEl) {
   try {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!pixiPaslagen() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   } catch {}
   import("./varld-profil-port.js")
     .then((m) => {
@@ -107,7 +107,7 @@ export function startaPortOvergang(scenEl) {
 
     // Pixi-vägen (#424): workern spelar på sin egen canvas ovanpå overlayt.
     // Port-SVG:n står kvar i scenen (navigeringen tar bort den).
-    let orsak = "ej-laddad";
+    let orsak = pixiPaslagen() ? "ej-laddad" : "av"; // opt-in (pp:pixi:pa)
     if (pixiPort) {
       try {
         const svar = pixiPort.spelaPort(scenEl);
