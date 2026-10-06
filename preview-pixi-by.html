@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixi-byn – 25-husby + kompishus (issue #420)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <!-- Hela husvärlden (pages-varld.js) är den RIKTIGA koden; bara data-lagret
+         och Firebase är stubbade (preview/pixi-by/): en klass med 25 elever
+         (2 låsta hus) i minnet, inga nätverksanrop. Varje "läsning" räknas i
+         window.__pvLasningar – hover på en tomt ska inte öka den. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/data.js": "/preview/pixi-by/data.js",
+          "/src/data-pet.js": "/preview/pixi-by/data-pet.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js": "/preview/pixi-by/firebase-app.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js": "/preview/pixi-by/firebase-auth.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "/preview/pixi-by/firebase-firestore.js"
+        }
+      }
+    </script>
+    <style>
+      .pv-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5000; display: flex; flex-wrap: wrap;
+        gap: 6px 14px; align-items: center; padding: 6px 12px; background: #0b0f14ee; color: #cfd8e3;
+        font: 600 12px/1.4 ui-monospace, monospace; }
+      .pv-bar b { color: #7ee0a6; }
+      .pv-bar a { color: #9ecbff; }
+      .pv-bar .pv-flaggor a[aria-current="true"] { color: #fff; text-decoration: none; background: #2f8f5b;
+        border-radius: 4px; padding: 0 4px; }
+      .pv-klasskamrat { padding: 40px 24px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <button class="hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false" aria-controls="sidebar" hidden>
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Sidomeny">
+        <div id="sidebar-body" class="sidebar-body"></div>
+      </aside>
+      <main id="app" class="container"><div class="spinner">Laddar…</div></main>
+    </div>
+
+    <div class="pv-bar" aria-live="off">
+      <span>#420 Pixi-byn</span>
+      <span>spel: <b id="pv-spel">–</b></span>
+      <span>nivå: <b id="pv-niva">–</b></span>
+      <span>fokus: <b id="pv-fokus">–</b></span>
+      <span>läsningar: <b id="pv-las">0</b></span>
+      <span class="pv-flaggor">flagga:
+        <a href="?pixi=normal#/elev/by" data-f="normal">normal</a>
+        <a href="?pixi=debug#/elev/by" data-f="debug">debug (HUD)</a>
+        <a href="?pixi=frys#/elev/by" data-f="frys">frys</a>
+        <a href="?pixi=av#/elev/by" data-f="av">av (CSS)</a>
+      </span>
+    </div>
+
+    <script>
+      // ?pixi=<flagga> ska betyda EXAKT den flaggan i previewn: motorn
+      // (varld-motor-hud.js) lägger bara till, så rensa de andra först.
+      try {
+        const vald = new URLSearchParams(location.search).get("pixi");
+        if (vald) for (const k of ["av", "debug", "frys", "tvinga"]) if (k !== vald) localStorage.removeItem(`pp:pixi:${k}`);
+      } catch {}
+    </script>
+    <script type="module">
+      import { pageElevVarld } from "/src/pages-varld.js";
+      import { app } from "/src/ui.js";
+
+      const routes = {
+        "/elev/by": () => pageElevVarld("by"),
+        "/elev/hus": () => pageElevVarld("hus"),
+        "/elev/rum": () => pageElevVarld("rum"),
+        "/elev/gard": () => pageElevVarld("gard"),
+        "/elev/laggard": () => pageElevVarld("laggard"),
+        "/elev/kompis": () => pageElevVarld("kompis"),
+        "/elev/skolan": () => pageElevVarld("skola"),
+        "/elev/grannby": () => pageElevVarld("grannby"),
+        "/elev/grannhus": () => pageElevVarld("grannhus"),
+        // Kamratens rum är ett sidbyte (ingen kamera) – platshållare här.
+        "/elev/klasskamrat": () => {
+          app.innerHTML = `<div class="panel pv-klasskamrat"><h2>Kamratens rum (sidbyte, utanför #396)</h2>
+            <p><a class="btn" href="#/elev/by">Tillbaka till byn</a></p></div>`;
+        },
+      };
+      function route() {
+        const path = (location.hash || "").slice(1).split("?")[0];
+        const r = routes[path];
+        if (!r) return void (location.hash = "#/elev/by");
+        r();
+      }
+      window.addEventListener("hashchange", route);
+      route();
+
+      // Statusraden: det klicktestet läser per steg.
+      const $ = (id) => document.getElementById(id);
+      setInterval(() => {
+        let flaggor = [];
+        try { flaggor = ["av", "debug", "frys", "tvinga"].filter((k) => localStorage.getItem(`pp:pixi:${k}`)); } catch {}
+        if (!flaggor.length) flaggor = ["normal"];
+        for (const a of document.querySelectorAll(".pv-flaggor a")) {
+          a.setAttribute("aria-current", String(flaggor.includes(a.dataset.f)));
+        }
+        const st = document.getElementById("varld-stage");
+        $("pv-spel").textContent = st?.dataset.pixiSpel || "–";
+        $("pv-niva").textContent = st?.dataset.niva || "–";
+        const a = document.activeElement;
+        $("pv-fokus").textContent = a ? `${a.localName}${a.id ? "#" + a.id : ""}${a.dataset?.id ? `[${a.dataset.id}]` : ""}` : "–";
+        $("pv-las").textContent = String(window.__pvLasningar?.total ?? 0);
+      }, 200);
+    </script>
+  </body>
+</html>
