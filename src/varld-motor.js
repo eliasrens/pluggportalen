@@ -62,6 +62,7 @@ import * as TX from "./varld-motor-textur.js";
 import { skapaForvarmare } from "./varld-motor-mal.js";
 import { forbered, RESERV_MAX_MS } from "./varld-motor-forbered.js";
 import { urlFlaggor, statistik, visaHud, vakta } from "./varld-motor-hud.js";
+import { skapaResizeVakt } from "./varld-motor-resize.js";
 
 /** Längsta väntan på texturer innan CSS-vägen tar över (§2.3f.1). */
 export const VANTA_MAX_MS = 250;
@@ -74,11 +75,8 @@ let stage = null;
 let canvas = null; // EN canvas för appens livstid (transferControlToOffscreen går bara en gång)
 let yta = null;
 let renderare = null;
-let ro = null;
-let moNiva = null;
-let ytMatt = "";
 const kameror = new Set();
-let spel = null; // { nr, fas:"forbered"|"spelar", slapp, tillampaDom, forb }
+let spel = null; // { nr, fas:"forbered"|"spelar", slapp, tillampaDom, forb, t0, matt (stage-nyckel), landad? (F8) }
 let spelNr = 0;
 let slappSnart = null; // vilan från förra rörelsen, släpps 2 frames efter återvisningen
 let senaste = null;
@@ -94,6 +92,8 @@ const F = skapaForvarmare({
   ledig: () => !!stage?.isConnected && !!yta && !renderare?.dod && !spel && !slappSnart && !document.hidden && !pixiFlaggor().av,
   logga: (m) => loggaMal(m),
 });
+// F8 #434: nivåns egen stage-höjd (mobil: rum) ≠ äkta resize – se varld-motor-resize.js.
+const R = skapaResizeVakt({ stage: () => stage, yta: () => yta, spel: () => spel, landa, resize: efterResize, schemaForvarm, logga: (p) => pixiFlaggor().debug && console.info("[pp:pixi] resize", p) });
 
 globalThis.document?.addEventListener("visibilitychange", () => { if (document.hidden && spel) { avbryt(); markera("css:dold-flik"); } }); // gömd flik: workerns rAF pausar → direkthopp
 
@@ -130,23 +130,12 @@ function bytScen(stageEl) {
   avbryt();
   TX.slutaSpana();
   TX.rensaAllt();
-  ro?.disconnect();
-  moNiva?.disconnect();
   stage = stageEl;
   F.koppla(stage);
   for (const n of [...kameror]) if (!stage.contains(n[0]?.el)) kameror.delete(n);
   TX.spana(stage, schemaForvarm);
-  ro = new ResizeObserver(() => kollaMatt());
-  ro.observe(stage);
-  // Landning på en nivå (updateUi i alla kameror sätter data-niva) → förvärm.
-  moNiva = new MutationObserver(schemaForvarm);
-  moNiva.observe(stage, { attributes: true, attributeFilter: ["data-niva"] });
+  R.koppla(stage); // ResizeObserver + landning på en nivå (data-niva) → förvärm
 }
-
-const matt = () => {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  return { w: stage.clientWidth, h: stage.clientHeight, dpr };
-};
 
 function kopplaCanvas() {
   if (!stage || !renderare) return;
@@ -156,29 +145,36 @@ function kopplaCanvas() {
     canvas.className = "varld-pixi";
     canvas.setAttribute("aria-hidden", "true");
     if (!plats) stage.prepend(canvas);
-    const m = matt();
+    const m = R.matt();
     yta = renderare.skapaYta(canvas, m);
-    ytMatt = `${m.w}x${m.h}@${m.dpr}`;
+    R.skapad(m);
     vakta(renderare, yta); // G1 #425: budget efter scenstorlek, 30 s-städning, restore, emoji, HUD
   } else if (canvas.parentElement !== stage) {
     if (plats) plats.replaceWith(canvas);
     else stage.prepend(canvas);
   }
-  kollaMatt();
+  R.kolla();
 }
 
-function kollaMatt() {
-  if (!stage || !yta) return;
-  const m = matt();
-  const nyckel = `${m.w}x${m.h}@${m.dpr}`;
-  if (nyckel === ytMatt || !m.w || !m.h) return;
-  ytMatt = nyckel;
-  avbryt();
+/** Ny stage-storlek: äkta (viewport/dpr) → avbryt + ALLA pyramider ogiltiga; nivåns egen → bara ytan. */
+function efterResize(m, akta) {
+  if (akta) avbryt();
   F.avbryt();
   yta.resize(m.w, m.h, m.dpr);
   stallIn({ maxTex: renderare?.maxTex });
-  TX.rensaAllt(); // alla pyramider ogiltiga
+  if (akta) TX.rensaAllt();
   schemaForvarm();
+}
+
+/** F8 #434: nivåns resize under en rörelse mätt i annan storlek. Spelar → DOM:en (slutläget) visas NU, canvasen göms; förbereds → avbryt. */
+function landa(nyckel) {
+  const s = spel;
+  if (!s || s.matt === nyckel) return s ? "samma" : null;
+  if (s.fas === "forbered") { avbryt(); return "avbruten"; }
+  if (!s.landad) s.landad = { till: nyckel, ms: Math.round(performance.now() - s.t0) };
+  stage.classList.remove(SPELAR);
+  canvas.style.visibility = "hidden"; // tillbaka i avbryt() (nästa rörelse) och jamfor()
+  return "landad";
 }
 
 // ---- RorelseMotor (gränssnittet mot varld-kamera.js) -------------------------
@@ -239,7 +235,7 @@ async function spelaHandoff(spec, tillampaDom) {
   const nr = ++spelNr;
   const t0 = performance.now();
   const slapp = vila(allaLager());
-  spel = { nr, fas: "forbered", slapp, tillampaDom, forb: null };
+  spel = { nr, fas: "forbered", slapp, tillampaDom, forb: null, t0, matt: R.nyckelNu() };
   const post = { riktning: spec.riktning, yttre: spec.yttre.id, inre: spec.inre.id, t: Math.round(t0), ...(malet ? { mal: malet.id } : {}) };
   const missat = {};
   const css = (orsak) => {
@@ -286,7 +282,7 @@ function avsluta(nr, logg) {
   const s = spel;
   spel = null;
   stage.classList.remove(SPELAR);
-  logga(logg);
+  logga(s.landad ? { ...logg, landad: s.landad } : logg);
   // Vilan (transition:none) ligger kvar tills återvisningen är stilberäknad –
   // annars tonar lagren in med .varld-lager-transitionen.
   const minSlapp = () => {
@@ -307,6 +303,7 @@ function avsluta(nr, logg) {
 /** Avbryt pågående/förberedd rörelse (ny gaTill, hoppaTill, resize, död). */
 function avbryt() {
   slappSnart?.();
+  if (canvas) canvas.style.visibility = "";
   const s = spel;
   if (!s) return;
   spel = null;
@@ -384,6 +381,7 @@ const info = {
   /** pp:pixi:frys-jämförelse: göm DOM-lagren (canvasen syns) / visa dem igen. */
   jamfor(visaCanvas) {
     for (const l of allaLager()) l.classList.toggle("varld-pixi-vilar", !!visaCanvas);
+    if (canvas) canvas.style.visibility = "";
     stage?.classList.toggle(SPELAR, !!visaCanvas);
   },
   forvarm: () => forvarm(),
@@ -392,6 +390,7 @@ const info = {
   forvarmOvergang: (Y, I) => { try { return F.forvarmOvergang(Y, I); } catch { return false; } },
   /** Workerns texturbokföring (läckkoll: tillbaka till baslinjen efter ett avbrutet mål). */
   stats: () => yta?.stats() ?? Promise.resolve(null),
+  get resize() { return R.logg; }, // F8 #434: { typ:"niva"|"akta", fran, till, niva, spel, rensaAllt, t }
   /** Pågående målförvärmning (eller null) och den senaste (status, poster, ms). */
   get mal() { return F.mal; },
   get senasteMal() { return F.senasteMal; },
