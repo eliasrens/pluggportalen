@@ -360,6 +360,7 @@ flera klasser utan extra kopplingsdata).
 | `createdAt`     | timestamp             | När klassen skapades (`serverTimestamp`)      |
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
+| `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
 
 **Assignment**: `{ subjectId, areaId }` – pekar på ett `subjects/{subjectId}/areas/{areaId}`.
 
@@ -368,6 +369,19 @@ flera klasser utan extra kopplingsdata).
 klassen **bara** de områdena; är listan tom eller saknas (eller tillhör eleven
 ingen klass) ser eleverna **hela** biblioteket (bakåtkompatibelt – aldrig en tom
 sida).
+
+**ClassLock** (#436, fokusläge): `{ mal: { typ, id?, namn? }, till, doljOvrigt }`.
+`mal.typ` är en utbyggbar enum (`"omrade"` | `"lasresan"`); för `"omrade"` är
+`id` = `"<subjectId>/<areaId>"` och `namn` områdets visningsnamn. `till` = sluttid
+i epoch-ms (klockslaget läraren valde). Under låset når eleverna bara målet –
+övriga Plugga-områden och Läsresan (resp. Plugga om målet är Läsresan) är
+spärrade även via direktlänk. `doljOvrigt: true` döljer **allt** utom målet
+(hus/värld, shop, profil). Saknat fält eller `till` passerad = inget lås. Elevens
+klient bevakar klass-dokumentet live (onSnapshot) och jämför `till` mot en
+server-korrigerad klocka, så "Lås upp nu" och klockslaget slår igenom utan
+omladdning. Reglerna kräver att ett nytt/ändrat lås har `till` framåt och högst
+24 h bort (mot `request.time`). Logik: `src/class-lock.js`, persistens:
+`src/data-class-lock.js`, lärar-UI: `src/teacher-class-lock.js`.
 
 Exempel (`classes/6a`):
 

@@ -56,6 +56,13 @@ export function getParams() {
   return out;
 }
 
+/** Escapa text för HTML (t.ex. lärarens områdesnamn i sidomenyn/flash). */
+export function escHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  );
+}
+
 /** Bygg ett element från en HTML-sträng (första elementet returneras). */
 export function el(html) {
   const t = document.createElement("template");
@@ -115,6 +122,46 @@ export async function getHiddenModules() {
   }
 }
 
+// --- Fokusläget / klass-låset (#436) -----------------------------------------
+// Lås-logiken + bevakaren (onSnapshot på elevens klass-dokument) laddas
+// DYNAMISKT – aldrig i den statiska bootgrafen (#271). Fel → null (öppet):
+// ett trasigt lås ska aldrig låsa ute eleven från hela sidan.
+let lasModP = null;
+const lasLyssnare = new Set();
+
+/**
+ * Elevens aktiva lås som grind-vy ({ home, label, klockslag, allows(path,q),
+ * isTarget(path,q), allowsArea(subj,area) }) eller null. Efter första anropet
+ * svarar den ur minnet (ingen nätverksrunda per sidbyte).
+ */
+export async function getLockGate() {
+  const meId = data.currentStudentId();
+  try {
+    if (!meId) {
+      if (lasModP) (await lasModP).stopLockWatch();
+      return null;
+    }
+    lasModP ||= import("./class-lock-watch.js").then((mod) => {
+      mod.onLockChange((next, prev) => {
+        const gate = mod.gateFor(next);
+        lasLyssnare.forEach((fn) => fn(gate, prev));
+      });
+      return mod;
+    });
+    const mod = await lasModP;
+    return mod.gateFor(await mod.lockForMe(meId));
+  } catch (err) {
+    console.warn("Fokusläget kunde inte läsas – allt öppet:", err);
+    lasModP = null;
+    return null;
+  }
+}
+
+/** Lyssna på lås-byten (lärare låser/låser upp, klockslaget passerar). */
+export function onLockChange(fn) {
+  lasLyssnare.add(fn);
+}
+
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
 // `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
 // (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
@@ -157,6 +204,7 @@ export async function renderTopbar() {
   let avatarItems = [];
   let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   const doldaP = getHiddenModules(); // parallellt med elevdatat nedan
+  const lasP = getLockGate();
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -166,7 +214,22 @@ export async function renderTopbar() {
   } catch {}
 
   const dolda = new Set(await doldaP);
-  const lankar = NAV_LANKAR.filter((l) => !l.modul || !dolda.has(l.modul));
+  const las = await lasP;
+  // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
+  // modul annars är dold), resten bara om låset och modul-valet tillåter.
+  const lankar = NAV_LANKAR.filter((l) => {
+    const synlig = !l.modul || !dolda.has(l.modul);
+    if (!las) return synlig;
+    const p = l.hash.slice(1);
+    return las.allows(p) && (las.isTarget(p) || synlig);
+  });
+  const fokusHtml = las
+    ? `<a class="sido-fokus" href="${las.home}" title="Din lärare har låst klassen hit">
+        <span class="sido-fokus-ikon" aria-hidden="true">🎯</span>
+        <span class="sido-fokus-text">Fokus: <b>${escHtml(las.label)}</b>
+          <small>till ${las.klockslag}</small></span>
+      </a>`
+    : "";
   const navHtml = lankar.map((l, i) => {
     // Avdelare när gruppen byts (om en framtida länk får en egen grupp).
     const nyGrupp = i > 0 && l.grupp !== lankar[i - 1].grupp;
@@ -185,6 +248,7 @@ export async function renderTopbar() {
       <a class="sido-namn" href="#/elev/profil" title="Min profil">${session.namn || "Elev"}</a>
     </div>
 
+    ${fokusHtml}
     <nav class="sido-nav" aria-label="Huvudmeny">${navHtml}</nav>
 
     <div class="sido-fot">

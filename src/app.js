@@ -33,7 +33,9 @@
 // server-omskrivning (alla "sidor" ligger i index.html).
 // ============================================================================
 
-import { app, el, go, renderTopbar, loading, flash, getHiddenModules } from "./ui.js";
+import {
+  app, el, go, renderTopbar, loading, flash, getHiddenModules, getLockGate, onLockChange, escHtml,
+} from "./ui.js";
 import { moduleForRoute } from "./gamemode-visibility.js";
 import { whenAuthReady } from "./auth.js";
 import {
@@ -204,9 +206,48 @@ const routes = {
   "/larare/elever": () => go("#/larare/klasser"),
 };
 
-// Löpnummer per navigering: modul-grinden (#412) väntar asynkront på klasslistan
+// Löpnummer per navigering: grinden (#412/#436) väntar asynkront på klasslistan
 // och får inte rita en gammal route om eleven hunnit navigera vidare.
 let routeSeq = 0;
+
+/** Aktuell route ur hashen: { path, query } (query = URLSearchParams). */
+function aktuellRutt() {
+  const raw = (window.location.hash || "#/").slice(1) || "/";
+  const [path, q] = raw.split("?");
+  return { path: path || "/", query: new URLSearchParams(q || "") };
+}
+
+/**
+ * Elev-grinden: vart ska eleven skickas i stället för `path`? null = får öppnas.
+ *  - Fokusläget (#436, lärarens klass-lås) styr när det är aktivt: målet nås
+ *    alltid (även om modulen är dold), resten bara om låset OCH modul-valet
+ *    tillåter – annars till låsets mål (som alltid är öppet → ingen loop).
+ *  - Annars modul-grinden (#412): dold modul (classes/{id}.hiddenModules) → hem.
+ */
+function sparrMal(path, query, las, dolda) {
+  const modul = moduleForRoute(path);
+  const modulOk = !modul || !dolda.includes(modul);
+  if (las) {
+    return las.allows(path, query) && (las.isTarget(path, query) || modulOk) ? null : las.home;
+  }
+  return modulOk ? null : "#/elev/hus";
+}
+
+// Lärarens lås/upplåsning eller ett passerat klockslag (#436): rita om menyn och
+// grinda om den route eleven står på – UTAN att ladda om sidan. Ett pågående
+// spel i målområdet lämnas orört; bara Plugga-listan (vars innehåll beror på
+// låset) ritas om, och en route som nu är spärrad byts mot låsets mål.
+onLockChange(async (las, prev) => {
+  const { path, query } = aktuellRutt();
+  if (!path.startsWith("/elev/") || path === "/elev/avatar") return;
+  if (las && !prev) flash(`🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} till ${las.klockslag}.`);
+  else if (las) flash(`🎯 Fokusläget ändrades: ${escHtml(las.label)} till ${las.klockslag}.`);
+  else flash("Fokusläget är slut – nu är allt öppet igen! 🎉");
+  renderTopbar();
+  const dit = sparrMal(path, query, las, await getHiddenModules());
+  if (dit) window.location.replace(dit);
+  else if (path === "/elev/plugga") router();
+});
 
 function router() {
   // Signalera till bootvakten i index.html att modulgrafen laddats och routern
@@ -237,17 +278,20 @@ function router() {
     path === "/larare" || path.startsWith("/larare/")
   );
   const handler = routes[path] || pageNotFound;
-  // Modul-grinden (#412): rutter som hör till en modul som elevens klass döljer
-  // (classes/{id}.hiddenModules) nås inte ens via direktlänk – eleven skickas
-  // hem. replace() så bakåtknappen inte studsar tillbaka in i grinden.
+  // Elev-grinden (sparrMal): dolda moduler (#412) och fokusläget (#436) nås inte
+  // ens via direktlänk. replace() så bakåtknappen inte studsar in i grinden.
+  // Låset svarar ur minnet efter första anropet, så husvärldens zoom väntar inte.
   const seq = ++routeSeq;
+  if (!path.startsWith("/elev/") || path === "/elev/avatar") return handler();
   const modul = moduleForRoute(path);
-  if (!modul) return handler();
-  getHiddenModules().then((dolda) => {
+  Promise.all([getLockGate(), modul ? getHiddenModules() : []]).then(([las, dolda]) => {
     if (seq !== routeSeq) return; // eleven hann navigera vidare
-    if (!dolda.includes(modul)) return handler();
-    flash("Den delen är stängd för din klass just nu.");
-    window.location.replace("#/elev/hus");
+    const dit = sparrMal(path, aktuellRutt().query, las, dolda);
+    if (!dit) return handler();
+    flash(las
+      ? `🎯 Fokusläge: din klass jobbar med ${escHtml(las.label)} just nu.`
+      : "Den delen är stängd för din klass just nu.");
+    window.location.replace(dit);
   });
 }
 
