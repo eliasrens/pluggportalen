@@ -13,6 +13,7 @@
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
 //   #/elev/lasresan   Läsresan: adaptiv läsförståelse på en spelkarta (#398) – laddas DYNAMISKT
+//   #/elev/live       Live: lobby → 3-2-1 → realtidsmatch (#460) – laddas DYNAMISKT
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -26,6 +27,7 @@
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
 //   #/larare/klasser  klasser & elevkonton (skapa klass + konton, medlemshantering)
+//   #/larare/live     Live: skapa session, aktiva sessioner, historik; ?id= = projektorvy (#460)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON) + AI-promptbyggare
 //   #/larare/elever   (sammanslagen med #/larare/klasser – omdirigerar dit)
 //
@@ -134,6 +136,25 @@ async function pageElevLasresan() {
   }
 }
 
+// Live (#/elev/live, #460): samma mönster – dynamisk import, snällt fel i vyn.
+async function pageElevLive() {
+  loading();
+  try {
+    const mod = await import("./live/page-elev-live.js");
+    return await mod.pageElevLive();
+  } catch (err) {
+    console.error("Live kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(
+      el(`<div class="panel center">
+        <div class="big-emoji">⚡</div>
+        <h2>Live kunde inte laddas</h2>
+        <p class="hint">Något gick fel. Prova att ladda om sidan.</p>
+      </div>`)
+    );
+  }
+}
+
 // --- Router -----------------------------------------------------------------
 
 const routes = {
@@ -153,6 +174,8 @@ const routes = {
   // Läsresan (#398/#401): egen huvudmodul bredvid Plugga. DYNAMISK import (som
   // äventyret, #267/#271) så att Läsresans moduler aldrig hamnar i bootgrafen.
   "/elev/lasresan": pageElevLasresan,
+  // Live (#460): realtidsmatch klass mot klass – syns bara när klassen är inbjuden.
+  "/elev/live": pageElevLive,
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.

@@ -162,6 +162,36 @@ export function onLockChange(fn) {
   lasLyssnare.add(fn);
 }
 
+// --- Live (#460) ---------------------------------------------------------------
+// Live syns i menyn bara när elevens klass har en lobby/pågående match.
+// Bevakaren (onSnapshot) laddas DYNAMISKT (#271); fel → dold, aldrig krasch.
+let liveModP = null;
+
+/** Finns en Live-lobby/match för elevens klass just nu? */
+export async function getLiveVisible() {
+  const meId = data.currentStudentId();
+  try {
+    if (!meId) {
+      if (liveModP) (await liveModP).stopLiveWatch();
+      return false;
+    }
+    liveModP ||= import("./live/live-watch.js").then((mod) => {
+      mod.onLiveVisibleChange((on) => {
+        const path = (window.location.hash || "#/").slice(1).split("?")[0];
+        if (!path.startsWith("/elev/")) return;
+        if (on && path !== "/elev/live") flash("⚡ En Live-match väntar på din klass – öppna <b>Live</b> i menyn!");
+        renderTopbar();
+      });
+      return mod;
+    });
+    return await (await liveModP).liveVisibleFor(meId);
+  } catch (err) {
+    console.warn("Live-synligheten kunde inte läsas:", err);
+    liveModP = null;
+    return false;
+  }
+}
+
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
 // `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
 // (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
@@ -173,6 +203,8 @@ const NAV_LANKAR = [
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
   { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil", modul: "lasresan" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil", modul: "shop" },
+  // Live (#460): bara när klassen har en lobby/pågående match (getLiveVisible).
+  { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "profil", villkor: "live" },
 ];
 
 /**
@@ -205,6 +237,7 @@ export async function renderTopbar() {
   let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   const doldaP = getHiddenModules(); // parallellt med elevdatat nedan
   const lasP = getLockGate();
+  const liveP = getLiveVisible();
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -215,9 +248,11 @@ export async function renderTopbar() {
 
   const dolda = new Set(await doldaP);
   const las = await lasP;
+  const live = (await liveP) || path === "/elev/live";
   // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
   // modul annars är dold), resten bara om låset och modul-valet tillåter.
   const lankar = NAV_LANKAR.filter((l) => {
+    if (l.villkor === "live" && !live) return false;
     const synlig = !l.modul || !dolda.has(l.modul);
     if (!las) return synlig;
     const p = l.hash.slice(1);

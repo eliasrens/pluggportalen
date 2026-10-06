@@ -54,6 +54,7 @@ function cellHtml(earned, maxStars) {
  *   subjects: object[],                 // ämneslistan
  *   studentById?: Map,                  // id → elev (för elev-fördjupningen)
  *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
+ *   classId?: string                    // klassen – ger fliken Live (#460)
  * }} opts
  */
 export async function renderClassStats(ctx, host, opts) {
@@ -63,9 +64,11 @@ export async function renderClassStats(ctx, host, opts) {
     <div class="stats-tabs" role="tablist" aria-label="Statistik">
       <button type="button" class="stats-tab" role="tab" data-tab="amnen">${icon("chart", 16)}<span>Ämnen</span></button>
       <button type="button" class="stats-tab" role="tab" data-tab="lasresan">${icon("book", 16)}<span>Läsresan</span></button>
+      ${opts.classId ? `<button type="button" class="stats-tab" role="tab" data-tab="live">${icon("bolt", 16)}<span>Live</span></button>` : ""}
     </div>
     <div class="stats-pane" data-pane="amnen"></div>
     <div class="stats-pane" data-pane="lasresan" hidden></div>
+    <div class="stats-pane" data-pane="live" hidden></div>
   </div>`);
   host.replaceChildren(view);
   const rendered = new Set();
@@ -81,6 +84,15 @@ export async function renderClassStats(ctx, host, opts) {
     rendered.add(tab);
     const pane = view.querySelector(`[data-pane="${tab}"]`);
     if (tab === "amnen") return renderSubjectStats(ctx, pane, opts);
+    // Live (#460): klassens Live-matcher + elevernas summa – dynamisk import.
+    if (tab === "live") {
+      return import("./live/teacher-live-history.js")
+        .then((m) => m.renderClassLiveStats(ctx, pane, { classId: opts.classId, students: opts.students }))
+        .catch((err) => {
+          rendered.delete(tab);
+          pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda Live: ${esc(err.message)}</div>`));
+        });
+    }
     pane.replaceChildren(el(`<div class="spinner">Laddar Läsresan…</div>`));
     return import("./teacher-lasresan.js")
       .then((m) => m.renderClassLasresan(ctx, pane, { students: opts.students }))
@@ -90,7 +102,7 @@ export async function renderClassStats(ctx, host, opts) {
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
-  await show(lastStatsTab);
+  await show(lastStatsTab === "live" && !opts.classId ? "amnen" : lastStatsTab);
 }
 
 // Senast valda statistikflik (delas mellan klasskort under sessionen).
