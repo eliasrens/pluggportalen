@@ -96,8 +96,12 @@ export const CLASS_SECTIONS = [
     icon: "lock",
     what: "fokusläge",
     // F-01–F-09 (#436). Statusens setInterval stannar själv när rutan lämnar DOM:en.
+    // onChange → notify: masterns 🔒 följer direkt (#449 F1); samma klass/sektion
+    // ritar bara om huvudet, Fokus-rutan står kvar.
     render: async (ctx, cls, host, store) =>
-      (await import("./teacher-class-lock.js")).renderClassLock(ctx, cls, host, await store.loadLibrary()),
+      (await import("./teacher-class-lock.js")).renderClassLock(ctx, cls, host, await store.loadLibrary(), {
+        onChange: () => store.notify(),
+      }),
   },
   {
     key: "statistik",

@@ -77,7 +77,7 @@
 | K-10 | Klassordning | Sorterat på `order`, sedan namn (sv) | `renderClasses` | `M` | ✅ Sorterat på `order` |
 | K-11 | Klassrad: namn + antal elever | `.class-name` + `.class-count` ("N elever") | `classCard` | `M` (namn + antal) och `D-huvud` | ✅ Namn + antal i master och i detaljhuvudet |
 | K-12 | Döp om | `prompt()` → `data.upsertClass(id,{name})`, uppdaterar namnet på kortet, `alert` vid fel | `classCard [data-act=rename]` | `D-huvud`; 🆕 namnet i `M` uppdateras också | ✅ prompt → namnet uppdateras i huvudet OCH i master (🆕) |
-| K-13 | Ta bort klass | `confirm` ("Elevkontona finns kvar…") → `data.deleteClass(id)` → rita om | `classCard [data-act=del]` | `D-huvud` (danger); 🆕 efter borttag väljs nästa klass i `M` | ✅ confirm → nästa klass väljs (5E→4A), sista → föregående (4A→QA-klass) |
+| K-13 | Ta bort klass | `confirm` ("Elevkontona finns kvar…") → `data.deleteClass(id)` → rita om | `classCard [data-act=del]` | `D-huvud` (danger); 🆕 efter borttag väljs nästa klass i `M` | ✅ confirm → nästa klass väljs (5E→4A), sista → föregående (4A→QA-klass). ✅ #449 F3: när sista klassen tas bort blir URL:en `#/larare/klasser` (replaceState, 0 hashchange) och `pp:larare:klass` rensas |
 | K-14 | En panel åt gången | Klick öppnar en sektion och stänger övriga; klick på öppen fäller ihop | `togglePanel` | Ersätts av sektionsflikar i `D` (alltid exakt en sektion synlig) | ✅ Sektionsflikar, alltid exakt en sektion; vald sektion behålls vid klassbyte |
 | K-15 | Biblioteks-cache | `loadLibrary()`: `getSubjects()` + `getAreas()` per ämne, ämnen utan områden bort; cachas för sidan, delas av Områden/Lägen/Fokus/Statistik | `loadLibrary` | Store (#440) – en gång per sidbesök, delad av alla klasser | ✅ Biblioteket delas: klassbyte gör 0 läsningar av `classes`/`students`/bibliotek (räknat i stubben `__ppStub`) |
 | K-16 | Laddningsfel i panel | "Kunde inte ladda arbetsområden/områden/byar/moduler/fokusläge/ämnen: …" | `lazyPanel` + Områden/Lägen/Statistik-hanterare | Sektions-värden i `D` (samma felmönster) | ⚪ Laddningsfel inte provocerat (koden `withLoading` granskad) |
@@ -127,7 +127,7 @@
 | O-02 | "Spara områden" | `data.setClassAssignments(id, picked)` → "✓ Sparat (N områden)" / "eleverna ser allt" | `renderClassAssignments` | `D:Områden` | ✅ "✓ Sparat (1 område)" |
 | O-03 | "Rensa (visa allt)" | Avbockar alla (spara krävs) | `renderClassAssignments` | `D:Områden` | ✅ Rensa avbockar allt |
 | O-04 | Tomt bibliotek | emptyState "Inga arbetsområden än" + knapp → `#/larare/innehall` | `renderClassAssignments` | `D:Områden` | ⚪ Ej körd (biblioteket har områden). Kod oförändrad |
-| L-01 | 🎮 Lägen per område | Relevanta områden (tilldelade, annars alla), per område kryssrutor för `availableGamemodes(area)`; förifyllt ur `classAreaHiddenModes` | `renderClassAreaModes` | `D:Lägen` | ✅ Per område × läge. Nit (fanns före epicen): hinttexten hänvisar till "klassens 🎮 Lägen ovan", som inte finns i UI:t |
+| L-01 | 🎮 Lägen per område | Relevanta områden (tilldelade, annars alla), per område kryssrutor för `availableGamemodes(area)`; förifyllt ur `classAreaHiddenModes` | `renderClassAreaModes` | `D:Lägen` | ✅ Per område × läge. ~~Nit: hinttexten hänvisade till "klassens 🎮 Lägen ovan"~~ ✅ #449 F2: hinten pekar nu på steget Synlighet under Innehåll |
 | L-02 | Område utan lägen | "Inga spelbara lägen på området än." | `renderClassAreaModes` | `D:Lägen` | ⚪ Inget område utan lägen i testdata |
 | L-03 | "Spara lägen per område" | Bygger map för ALLA renderade områden → `data.setClassAreaModes(id, map)` (deep-merge) → "✓ Sparat (N lägen dolda…)" | `renderClassAreaModes` | `D:Lägen` | ✅ "✓ Sparat (1 läge dolda per område)" |
 | L-04 | "Visa alla" | Bockar i alla | `renderClassAreaModes` | `D:Lägen` | ✅ Visa alla |
@@ -159,7 +159,7 @@
 | F-05 | "Dölj allt annat" | Checkbox – döljer även shop/hus/gård/rum | `.lock-dolj` | `D:Fokus` | ✅ `doljOvrigt:true` sparas; eleven ser bara målet |
 | F-06 | "Lås klassen" / "Uppdatera låset" | Validerar klockslag + mål → `buildLock` → `setClassLock(id, lock)` → "✓ Låst – eleverna ser bara X till HH:MM" | `saveBtn` | `D:Fokus` | ✅ "✓ Låst – eleverna ser bara X till HH:MM"; elev1 begränsas live (meny + direktlänkar → målet). ⚠️ Se P1 (fanns före epicen) |
 | F-07 | "Lås upp nu" | `clearClassLock(id)`, syns bara när låst | `clearBtn` | `D:Fokus` | ✅ "Lås upp nu" → "✓ Upplåst…", knappen döljs |
-| F-08 | Live-status | 🔒 Låst till X fram till HH:MM – Y kvar (tickar 1 s, stoppar när rutan lämnar DOM) | `ritaStatus` + `setInterval` | `D:Fokus` | ✅ "🔒 Låst till … – 30 min kvar". ❌ Mindre fel (F1): 🔒 i master tänds/släcks först inom ≤15 s efter Lås/Lås upp |
+| F-08 | Live-status | 🔒 Låst till X fram till HH:MM – Y kvar (tickar 1 s, stoppar när rutan lämnar DOM) | `ritaStatus` + `setInterval` | `D:Fokus` | ✅ "🔒 Låst till … – 30 min kvar". ✅ #449 F1: 🔒 i master tänds/släcks direkt (~0,1 s) efter Lås/Lås upp via `onChange → store.notify()`; Fokus-rutan och ✓-meddelandet står kvar. 15 s-ticken finns kvar för lås som löper ut |
 | F-09 | Förifyllning | Aktivt lås fyller mål/klockslag/dölj | `activeLock` | `D:Fokus` | ✅ Efter klassbyte fram och tillbaka är mål/klockslag förifyllda |
 
 ### 1.9 Klass → Statistik 📊 (`teacher-class.js`, `teacher-class-detail.js`, `teacher-lasresan*.js`, `lasresan/teacher-rows.js`)
@@ -173,7 +173,7 @@
 | S-05 | Legend | Ligger bra till / På gång / Precis börjat / Ej börjat + tips | `renderMatrix` | `D:Statistik` | ✅ |
 | S-06 | Klick/Enter/Space på elevrad | Öppnar elevdetaljen | `openRow` | `D:Statistik` | ✅ Klick öppnar detaljen (Enter/Space inte testat) |
 | S-07 | Elevdetalj (modal) | Nyckeltal (spelade, avklarade, stjärnor/max, senast aktiv), total-stapel, "Behöver hjälp här 🎯" (svaga + ej påbörjade), per ämne/område + lägesbrickor; stäng ✕/Esc/backdrop | teacher-class-detail.js `openStudentDetail` | OFÖR (modal över `D`) | ✅ Modal med nyckeltal, "Behöver hjälp här", per område; Esc stänger |
-| S-08 | Tomtillstånd | Inga elever / inga ämnen / ämne utan områden (länk till innehåll) | `renderSubjectStats` | `D:Statistik` | ✅ "Klassen har inga elever än". Nit (copy): texten säger "Lägg till elever på **klasskortet**" – klasskort finns inte längre (F2) |
+| S-08 | Tomtillstånd | Inga elever / inga ämnen / ämne utan områden (länk till innehåll) | `renderSubjectStats` | `D:Statistik` | ✅ "Klassen har inga elever än". ✅ #449 F2: texten säger nu "Lägg till elever under fliken Elever" |
 | S-09 | Läsresan-tabell | Summering (börjat x av N, lästa texter, % rätt) + 9 sorterbara kolumner (Elev, Texter, Frågor, Rätt, Fel, Rätt %, Läsresan-nivå, Värld, Steg; `aria-sort`, ▲▼↕, sortering minns `lastSort`), "ej börjat"-badge; data `getClassLasresa(ids)` | teacher-lasresan.js `renderClassLasresan` + teacher-rows.js | `D:Statistik` → flik Läsresan (OFÖR; kan bli egen sektion via registryn, se §3.3) | ✅ "8 av 10 elever har börjat · 50 lästa texter", 9 kolumner, sortering Rätt % ▼ med `aria-sort`; sorteringen minns över klassbyte |
 | S-10 | Läsresan-elevdetalj (modal) | Dold nivå 1–7 med pips, nyckeltal, per frågetyp-staplar, senaste 10 texter (`listAttempts`, laddas först här) | teacher-lasresan-elev.js `openLasresanDetail` | OFÖR | ✅ Öken Ella: dold nivå 5/7, nyckeltal, per frågetyp |
 | S-11 | Läsresan-legend + tomtillstånd | "Klassen har inga elever än" | `renderClassLasresan` | OFÖR | ✅ Tomläget "Klassen har inga elever än" (5E) |
@@ -538,9 +538,11 @@ Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas s
 |---|---|
 | 1366×768 | **PASS** – master 210 px + detalj; alla 6 sektionsflikar får plats; tabellen utan horisontell scroll |
 | 1920×1080 | **PASS** – lärarroten 1240 px centrerad ![](qa-larar-revamp/desktop-1920-statistik.jpeg) |
-| 400 px | **PASS** – master blir `<select>` ("+ Skapa en ny klass" sist), ingen horisontell sidscroll, sektionsflikarna scrollar i sidled, wizarden ryms (14–386 px). Nit F4: tabellens Åtgärder-kolumn ligger utanför vyn (tabellen scrollar i sin container, radklick redigerar) ![](qa-larar-revamp/mobil-400-klasser.jpeg) ![](qa-larar-revamp/mobil-400-innehall.jpeg) |
+| 400 px | **PASS** – master blir `<select>` ("+ Skapa en ny klass" sist), ingen horisontell sidscroll, sektionsflikarna scrollar i sidled, wizarden ryms (14–386 px). ~~Nit F4: tabellens Åtgärder-kolumn låg utanför vyn~~ ✅ #449: under 640 px blir varje rad ett tvåkolumns-kort (namn | årskurs, innehåll, omfattning | åtgärder); åtgärderna ryms (189–355 px), ingen scroll i tabellen eller sidan ![](qa-larar-revamp/mobil-400-klasser.jpeg) ![](qa-larar-revamp/mobil-400-innehall.jpeg) |
 
 ### 5.5 Fynd
+
+**F1–F4 åtgärdade (commit 9dcc9e3, #449).** Verifierat i `preview-larare-klasser.html` (F1–F3) och vid 400 px (F4); 742/742 tester gröna, inga konsolfel.
 
 **I epicen (till Lead):**
 

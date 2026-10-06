@@ -39,6 +39,7 @@ function readSaved() {
 function persist(id, section) {
   try {
     if (id) sessionStorage.setItem(SELECTED_KEY, id);
+    else sessionStorage.removeItem(SELECTED_KEY);
   } catch {}
   const hash = classesHash(id, section);
   // Bara om vi fortfarande står på klassvyn (läraren kan ha hunnit byta flik).
@@ -96,6 +97,8 @@ export async function mountClassesPage(ctx) {
     master.update();
     detail.update();
     if (!store.creating) persist(store.selectedId, store.section);
+    // Sista klassen borttagen → ren #/larare/klasser, inget gammalt ?klass= (#449 F3).
+    else if (!store.classes.length) persist(null);
   });
 
   ctx.app.replaceChildren(container);
