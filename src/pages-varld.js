@@ -135,20 +135,21 @@ export async function pageElevVarld(startNiva) {
   const view = el(`<div class="varld-sida">
     <div class="varld-stage" id="varld-stage"
       style="--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
-      <div class="varld-lager varld-skola" id="skola-lager"></div>
-      <div class="varld-lager varld-skola varld-grannby varld-dold" id="grannby-lager"></div>
-      <div class="varld-lager varld-by" id="by-lager"></div>
-      <div class="varld-lager varld-ute" id="ute-lager">${husScen(avatarMarkup(avatarId, sd.avatarItems || []), { skalId: sd.husSkalId, skylt })}</div>
-      <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager"></div>
+      <canvas class="varld-pixi" aria-hidden="true"></canvas>
+      <div class="varld-lager varld-skola" id="skola-lager" data-spegel-profil="skola"></div>
+      <div class="varld-lager varld-skola varld-grannby varld-dold" id="grannby-lager" data-spegel-profil="by"></div>
+      <div class="varld-lager varld-by" id="by-lager" data-spegel-profil="by"></div>
+      <div class="varld-lager varld-ute" id="ute-lager" data-spegel-profil="hus">${husScen(avatarMarkup(avatarId, sd.avatarItems || []), { skalId: sd.husSkalId, skylt })}</div>
+      <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager" data-spegel-profil="hus"></div>
       <!-- Grannby-HUS-lagret: en ANNAN klass elevs hus-exteriör (läs-vy, #114).
            Samma sorts ute-lager som kompis-lagret, fast över klassgränser. -->
-      <div class="varld-lager varld-ute varld-kompis varld-grannbyhus varld-dold" id="grannbyhus-lager"></div>
+      <div class="varld-lager varld-ute varld-kompis varld-grannbyhus varld-dold" id="grannbyhus-lager" data-spegel-profil="hus"></div>
       <!-- Gårds-grenen (#328): baksidan/gården + laggårdens interiör. Tomma
            tills första gårds-besöket (varld-gard.js ritar dem lat och laddas
            själv dynamiskt) – huvudkameran rör dem aldrig. -->
-      <div class="varld-lager varld-ute varld-gard varld-dold" id="gard-lager"></div>
-      <div class="varld-lager varld-ute varld-laggard varld-dold" id="laggard-lager"></div>
-      <div class="varld-lager room-stage varld-rum" id="rum-lager"></div>
+      <div class="varld-lager varld-ute varld-gard varld-dold" id="gard-lager" data-spegel-profil="gard"></div>
+      <div class="varld-lager varld-ute varld-laggard varld-dold" id="laggard-lager" data-spegel-profil="gard"></div>
+      <div class="varld-lager room-stage varld-rum" id="rum-lager" data-spegel-profil="rum"></div>
 
       <div class="varld-ui">
         <div class="varld-ui-topp">
@@ -1046,6 +1047,8 @@ export async function pageElevVarld(startNiva) {
   }
 
   app.replaceChildren(view);
+  // Pixi-rörelsen (#396): motorn laddas dynamiskt i idle (aldrig i bootgrafen).
+  (window.requestIdleCallback || setTimeout)(() => import("./varld-motor.js").then((m) => m.installeraMotor(stage)).catch(() => {}));
 
   // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
   if (startNiva === "kompis") kompisVy.visa(kompisId);

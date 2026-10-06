@@ -37,6 +37,19 @@ export const KAMERA_MS = 900;
 const reduceMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Pixi-rörelsen (#396): en INJICERBAR motor (varld-motor.js, laddas dynamiskt
+// i idle – därför en setter och ingen import, bootgrafen är oförändrad). Utan
+// motor, eller när motorn säger nej (pp:pixi:av, ingen WebGL, texturer inte
+// klara …), körs exakt dagens CSS-väg nedan.
+let motor = null;
+const kameror = []; // de senast skapade kamerornas nivåer (registreras retroaktivt)
+
+/** Koppla in (eller ur, null) rörelse-motorn. Registrerar redan skapade kameror. */
+export function setRorelseMotor(m) {
+  motor = m;
+  for (const nivaer of kameror) motor?.registrera(nivaer);
+}
+
 /**
  * Skapa kameran.
  * @param {object} o
@@ -107,6 +120,7 @@ export function createKamera({ nivaer, startId, onNiva }) {
   function hoppaTill(id) {
     const mal = nivaer.findIndex((n) => n.id === id);
     if (mal === -1) return;
+    motor?.avbryt?.();
     for (const n of nivaer) n.el.classList.add("varld-utan-anim");
     aktiv = mal;
     apply(aktiv);
@@ -129,7 +143,16 @@ export function createKamera({ nivaer, startId, onNiva }) {
       return Promise.resolve();
     }
     const origoNiva = Math.min(mal, aktiv);
+    const riktning = mal > aktiv ? "in" : "ut";
     aktiv = mal;
+    const spec = motor && {
+      yttre: nivaer[origoNiva], inre: nivaer[origoNiva + 1], riktning,
+      stage: nivaer[0].el.parentElement,
+    };
+    if (spec && motor.kanSpela(spec)) {
+      return motor.spela(spec, () => apply(mal, origoNiva)).then(() => onNiva?.(id));
+    }
+    motor?.avbryt?.();
     apply(aktiv, origoNiva);
     return new Promise((res) =>
       setTimeout(() => {
@@ -138,6 +161,10 @@ export function createKamera({ nivaer, startId, onNiva }) {
       }, KAMERA_MS)
     );
   }
+
+  kameror.push(nivaer);
+  if (kameror.length > 8) kameror.shift();
+  motor?.registrera(nivaer);
 
   apply(aktiv);
   // Startläget ska inte animeras in.
