@@ -17,7 +17,7 @@ const SVGNS = "http://www.w3.org/2000/svg";
 const bildCache = new Map();
 /** Nedskalade bredder avrundas UPPÅT till en √2-trappa (16, 23, 32, 45, 64 …) →
  *  cache-träffar trots djurens andning/gupp (några % skala) och få varianter. */
-const trappsteg = (px) => Math.ceil(2 ** (Math.ceil(Math.log2(Math.max(px, 16)) * 2) / 2));
+export const trappsteg = (px) => Math.ceil(2 ** (Math.ceil(Math.log2(Math.max(px, 16)) * 2) / 2));
 
 const lasData = (blob) => new Promise((ok, fel) => {
   const fr = new FileReader();
@@ -42,30 +42,35 @@ function dataUrl(url) {
 
 /**
  * Bilden som data-URL i (högst) `bredd` px bredd (#422): spritedjurens PNG-delar
- * visas i ~20–40 px men bäddades in i full upplösning → 4,6 MB rum-spegel som
- * tog 500–860 ms att avkoda. Nu ~0,3 MB / ~50 ms. Skalas aldrig upp; cache per
- * URL + trappsteg. SYNKRON canvas (drawImage + toDataURL, ~2–3 ms/bild):
- * createImageBitmap med resizeQuality "high" tog 20–280 ms per bild i desk.
+ * (300–900 px, 150–700 kB) visas i ~20–45 px men bäddades in i full upplösning
+ * → 4,6 MB rum-spegel, ~200 ms (varm) – 1,3 s (kall) att avkoda. Nedskalat:
+ * ~0,3 MB, ~30 ms. Avkodningen av originalet sker UTANFÖR main-tråden
+ * (createImageBitmap(blob)); drawImage direkt från <img> avkodade synkront på
+ * main (60–200 ms per bild i desk), och resizeQuality "high" i
+ * createImageBitmap var långsammare. Skalas aldrig upp; cache per URL + trappsteg.
  * @param {{url:string, bredd?:number, img?:HTMLImageElement}} b
  */
 export function bildData({ url, bredd, img }) {
   const nw = img?.naturalWidth || 0, nh = img?.naturalHeight || 0;
   const w = bredd ? trappsteg(bredd) : 0;
-  if (!w || !nw || !nh || w >= nw || typeof document === "undefined") return dataUrl(url);
+  if (!w || !nw || !nh || w >= nw || url.startsWith("data:") || typeof createImageBitmap === "undefined") return dataUrl(url);
   const nyckel = `${url}|${w}`;
   let p = bildCache.get(nyckel);
   if (!p) {
-    try {
-      const duk = document.createElement("canvas");
-      duk.width = w;
-      duk.height = Math.max(1, Math.round((w * nh) / nw));
-      const ctx = duk.getContext("2d");
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(img, 0, 0, duk.width, duk.height);
-      p = Promise.resolve(duk.toDataURL("image/png"));
-    } catch {
-      return dataUrl(url); // t.ex. korsdomän-bild (tainted) → full upplösning som förr
-    }
+    p = fetch(url)
+      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
+      .then((blob) => createImageBitmap(blob))
+      .then((bmp) => {
+        const duk = document.createElement("canvas");
+        duk.width = w;
+        duk.height = Math.max(1, Math.round((w * nh) / nw));
+        const ctx = duk.getContext("2d");
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(bmp, 0, 0, duk.width, duk.height);
+        bmp.close();
+        return duk.toDataURL("image/png");
+      })
+      .catch(() => { bildCache.delete(nyckel); return dataUrl(url); });
     bildCache.set(nyckel, p);
   }
   return p;
