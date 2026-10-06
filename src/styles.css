@@ -380,6 +380,66 @@ body.med-sidomeny .sidebar {
   }
 }
 
+/* --- Kort skärm (skol-laptop, issue #429) ----------------------------------
+   Sidomenyn ska rymmas UTAN egen scroll. Luftiga måtten ovan behövs ~575px;
+   på kortare fönster tightas spacing i två steg. Höga skärmar är orörda. */
+@media (max-height: 800px) {
+  .sidebar {
+    gap: 12px;
+    padding: 14px 14px 16px;
+  }
+  .sidebar .brand {
+    font-size: 1.2rem;
+    padding: 2px 6px;
+  }
+  .sidebar-body,
+  .sido-inner {
+    gap: 12px;
+  }
+  .sido-karaktar {
+    gap: 4px;
+    padding: 10px 12px;
+  }
+  .sido-figur {
+    font-size: 2.8rem;
+  }
+  .sido-nav {
+    gap: 4px;
+  }
+  .sido-nav-lank {
+    padding: 9px 14px;
+  }
+  .sido-nav-lank.aktiv .sido-nav-ikon {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+  .sido-fot {
+    gap: 8px;
+    padding-top: 4px;
+  }
+}
+
+/* Riktigt kort fönster: karaktären läggs i en rad (figur bredvid namnet) och
+   navlänkarna blir lägre – allt ryms ned till ~430px fönsterhöjd. */
+@media (max-height: 600px) {
+  .sido-karaktar {
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 12px;
+  }
+  .sido-figur {
+    font-size: 2.2rem;
+  }
+  .sido-nav-lank {
+    padding: 7px 14px;
+  }
+  .sido-fot .coins,
+  .sido-fot .stars {
+    padding-block: 5px;
+  }
+}
+
 /* --- Hamburger + overlay (mobil) --- */
 .hamburger {
   display: none;
