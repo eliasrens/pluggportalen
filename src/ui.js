@@ -162,16 +162,44 @@ export function onLockChange(fn) {
   lasLyssnare.add(fn);
 }
 
+// --- Mattematchen (#458) -------------------------------------------------------
+// Menylänken syns BARA när en aktiv period finns där elevens klass deltar.
+// Bevakaren (onSnapshot + timer till start/slut) laddas DYNAMISKT (#271) och
+// ritar om menyn själv när perioden börjar/slutar. Fel → null (dold).
+let mmModP = null;
+
+/** Elevens aktiva Mattematch ({ competition, classId }) eller null. */
+export async function getMattematch() {
+  const meId = data.currentStudentId();
+  try {
+    if (!meId) {
+      if (mmModP) (await mmModP).stopMattematchWatch();
+      return null;
+    }
+    mmModP ||= import("./tavling/mm-watch.js").then((mod) => {
+      mod.onMattematchChange(() => renderTopbar());
+      return mod;
+    });
+    return await (await mmModP).mattematchForMe(meId);
+  } catch (err) {
+    console.warn("Mattematchen kunde inte läsas – dold:", err);
+    mmModP = null;
+    return null;
+  }
+}
+
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
 // `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
 // (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
 // numera i spelvärlden via klasskylten vid gården (#/elev/by, klassbyn).
 // `modul` = id i TOGGLABLE_MODULES (#412): länken döljs om klassen döljer modulen.
+// `kravMM` (#458): länken syns bara under en aktiv Mattematch för elevens klass.
 const NAV_LANKAR = [
   { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil", modul: "plugga" },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
   { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil", modul: "lasresan" },
+  { hash: "#/elev/mattematchen", ikon: "🧮", label: "Mattematchen", grupp: "profil", kravMM: true },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil", modul: "shop" },
 ];
 
@@ -205,6 +233,7 @@ export async function renderTopbar() {
   let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   const doldaP = getHiddenModules(); // parallellt med elevdatat nedan
   const lasP = getLockGate();
+  const mmP = getMattematch();
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -215,9 +244,11 @@ export async function renderTopbar() {
 
   const dolda = new Set(await doldaP);
   const las = await lasP;
+  const mm = await mmP;
   // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
   // modul annars är dold), resten bara om låset och modul-valet tillåter.
   const lankar = NAV_LANKAR.filter((l) => {
+    if (l.kravMM && !mm) return false;
     const synlig = !l.modul || !dolda.has(l.modul);
     if (!las) return synlig;
     const p = l.hash.slice(1);
