@@ -442,6 +442,17 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 | D-4 | Skapa klass: modal eller detaljytans "ny"-läge? | Detaljytans "ny"-läge (ingen overlay ovanpå master) |
 | D-5 | Ta bort `teacher-composer.js`/`buildComposerView` i #442 eller senare? | I #442, tillsammans med preview-uppdateringen |
 
+**Lead-beslut (epic #438, 2026-10-06) – bindande för #440–#443:**
+
+- **D-1:** 6 sektioner (Moduler + Byar staplade i "Synlighet"). Läsresan stannar som underflik i Statistik (X-07).
+- **D-2:** Samma wizard för redigera, förifylld, alla steg klickbara. Startsteg 3 för material-områden; generator-områden startar på steg 3 med generatorn synlig.
+- **D-3:** Räkna (generator) är ett eget kort i steg 2. Kombinationen generator + quiz i samma område ska fortsatt fungera.
+- **D-4:** Skapa klass = detaljytans "ny"-läge (ingen overlay).
+- **D-5:** `teacher-composer.js` + `buildComposerView` tas bort i #442, och `preview-larare.html` uppdateras i samma commit.
+- **X-03 (bredd):** Bara #440 ändrar lärarrotens maxbredd. #441 ärver den och rör inte bredden.
+- **X-08 (lösen):** Store sparar senaste `created`-credentials per klass under sessionen och visar panelen igen tills läraren stänger den. Ingen `confirm()`.
+- **styles.css (4.1):** #440 lägger sitt block **sist** i filen. #441 lägger sitt block **direkt efter befintliga innehålls-/biblioteksregler** (inte sist), så att parallella grenar inte krockar på samma rad. #442 lägger sitt block sist (efter #440).
+
 ---
 
 ## 4. Risker och beroenden
