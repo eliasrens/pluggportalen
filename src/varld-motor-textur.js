@@ -31,6 +31,7 @@ import { inbaddadFontCss } from "./varld-spegel-font.js";
 import { KLON_ATTR } from "./varld-spegel-neutral.js";
 import { doljEmoji } from "./varld-emoji.js";
 import { basAmbient, fangaPose } from "./varld-motor-pose.js";
+import { tillstand, tillstandsNyckel, klarAttSpegla as transitionerKlara } from "./varld-motor-tillstand.js";
 
 const DEBOUNCE_MS = 300;
 const KAMERA_STIL = /^(transform|transform-origin|opacity)$/;
@@ -68,9 +69,19 @@ export function registreraProfil(namn, profil) {
 
 /**
  * Profilen som TEXTURSPEGLINGEN använder: ambient bakas in (utelämnas inte),
- * bara `sprites` utelämnas, hovrade/fokuserade `objekt` ritas i vila-läge.
+ * bara `sprites` utelämnas, hovrade/fokuserade `objekt` ritas i vila-läge –
+ * och `neutralisera` också när pyramiden ska vara neutral (F6 #432).
  */
-const texturProfil = (p) => ({ ...p, ambient: sel(p.sprites), neutraliseraObjekt: sel(p.objekt) });
+const texturProfil = (p, neutral) => ({ ...p, ambient: sel(p.sprites), neutraliseraObjekt: neutral ? union(p.objekt, p.neutralisera) : sel(p.objekt) });
+
+/** Lagrets hover-/fokus-tillstånd NU bland profilens `neutralisera` ("" = neutralt). */
+export const tillstandNu = (el) => tillstand(el, sel(profilFor(el).neutralisera));
+
+/** Löser när lagrets hover-/fokus-transitioner (bland `neutralisera`) landat. */
+export const klarAttSpegla = (el, maxMs) => transitionerKlara(el, sel(profilFor(el).neutralisera), maxMs);
+
+/** Postens nyckel: rollens + tillståndet (neutral = idle-förvärmning, alltid ""). */
+export const nyckelFor = (r, neutral = false) => tillstandsNyckel(r.nyckel, neutral ? "" : tillstandNu(r.el));
 
 /**
  * Har lagret levande ambient UTANFÖR profilens sprites? Då står basen i en ny
@@ -211,17 +222,21 @@ let pidNr = 0;
  * @param {object} r  roll()
  * Ersätts en färdig pyramid behålls den som `reserv` tills den nya är klar:
  * hinner omspeglingen inte inom VANTA_MAX_MS kan rörelsen spelas på reserven.
- * @param {{yta:object, prio:"idle"|"nu", omspegla?:boolean, tak?:number, kalla?:string}} o
+ * @param {{yta:object, prio:"idle"|"nu", omspegla?:boolean, tak?:number, kalla?:string, neutral?:boolean}} o
  *   tak = bygg inte om en pyramid som är yngre än så här (ms), oavsett version
- *   kalla = vem som byggde den ("idle" | "mal" | "handoff"; logg/debug)
+ *   kalla = vem som byggde den ("idle" | "mal" | "handoff" | "avsikt"; logg/debug)
+ *   neutral = spegla med profilens `neutralisera` i vila-läge (idle). Annars
+ *   bakas det aktuella hover-/fokus-tillståndet in, och posten hamnar under
+ *   nyckeln roll + tillstånd (F6 #432): den spelas bara när samma tillstånd råder.
  * Blir speglingen IDENTISK med reservens (samma innehålls-hash, t.ex. en scen
  * som skrev om samma markup) återanvänds reserven: post.alias pekar på den.
  * @returns {object} post: { pid, ids:[{id,z}], minSatt:Promise, reserv, alias, pose, ... }
  */
-export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio === "idle" ? "idle" : "handoff" }) {
+export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio === "idle" ? "idle" : "handoff", neutral = false }) {
   spolaSmuts();
   const v = version(r.el);
-  const gammal = poster.get(r.nyckel);
+  const nyckel = nyckelFor(r, neutral);
+  const gammal = poster.get(nyckel);
   const anvandbar = gammal && !gammal.slappt && !gammal.fel;
   if (anvandbar && tak && performance.now() - gammal.skapad < tak) return gammal;
   if (anvandbar && gammal.version === v && !omspegla && (gammal.minKlar || gammal.prio === "nu" || prio === "idle")) {
@@ -231,14 +246,14 @@ export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio ==
   const reserv = anvandbar && gammal.minKlar ? gammal : gammal?.reserv && !gammal.reserv.slappt ? gammal.reserv : null;
   if (gammal && gammal !== reserv) slapp(gammal);
   const post = {
-    pid: `p${++pidNr}`, nyckel: r.nyckel, el: r.el, version: v, prio, kalla, yta, skapad: performance.now(), reserv, lan: 0,
+    pid: `p${++pidNr}`, nyckel, roll: r, tillstand: nyckel.slice(r.nyckel.length + 1), el: r.el, version: v, prio, kalla, yta, skapad: performance.now(), reserv, lan: 0,
     ids: [], skickade: new Set(), jobb: null, minKlar: false, slappt: false, fel: null, ms: {}, spegelNyckel: null, alias: null,
     // F5 #431: ambientens pose i speglingen (samma task) – sätts på DOM:en om posten spelas som reserv.
     pose: fangaPose(r.el, sel(profilFor(r.el).sprites)),
   };
-  poster.set(r.nyckel, post);
+  poster.set(nyckel, post);
   const t0 = performance.now();
-  const spegelP = speglaLager(r.el, r.fangstStage, texturProfil(profilFor(r.el))); // synkron genomgång NU
+  const spegelP = speglaLager(r.el, r.fangstStage, texturProfil(profilFor(r.el), !post.tillstand)); // synkron genomgång NU
   post.ms.speglaSynk = performance.now() - t0;
   post.minSatt = (async () => {
     const spegel = doljEmoji(await spegelP); // G1: emoji-reserven ritar dem som text-sprites
@@ -320,6 +335,24 @@ function slappPost(post) {
 /** Den aktuella posten för en roll-nyckel (eller undefined). */
 export const postFor = (nyckel) => poster.get(nyckel);
 
+/**
+ * F6 #432: lagrets NEUTRALA poster (en per roll – de idle-förvärmda), för att
+ * spegla om just de rollerna i aktuellt tillstånd och med färsk ambient-pose.
+ */
+export const neutralaPoster = (el) => [...poster.values()].filter((p) => p.el === el && !p.tillstand && !p.slappt && p.roll);
+
+/**
+ * F6 #432: släpp lagrets tillstånds-poster (hover/fokus inbakat) som inte
+ * längre matchar `nu` och som ingen rörelse lånar. @returns {number} släppta
+ */
+export function rensaTillstand(el, nu) {
+  let n = 0;
+  for (const p of [...poster.values()]) {
+    if (p.el === el && p.tillstand && p.tillstand !== nu && !p.lan) { slapp(p); n++; }
+  }
+  return n;
+}
+
 /** Släpp en post om ingen rörelse lånar den (målförvärmning som avbryts). */
 export function slappOmLedig(post) {
   if (post && !post.lan && !post.slappt) slapp(post);
@@ -332,6 +365,6 @@ export function rensaAllt() {
 
 /** Översikt för debug/test (__ppPixi.motor.poster()). */
 export const postLista = () => [...poster.values()].map((p) => ({
-  pid: p.pid, lager: p.el.id, nyckel: p.nyckel, prio: p.prio, kalla: p.kalla, minKlar: p.minKlar, reserv: p.reserv?.pid || null,
+  pid: p.pid, lager: p.el.id, nyckel: p.nyckel, tillstand: p.tillstand, prio: p.prio, kalla: p.kalla, minKlar: p.minKlar, reserv: p.reserv?.pid || null,
   nivaer: p.ids.map((i) => i.z), skickade: p.skickade.size, ms: p.ms,
 }));

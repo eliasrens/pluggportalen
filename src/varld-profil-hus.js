@@ -37,6 +37,11 @@
 // handoff (ambient körs alltid), så hover-skalan bakas in i basen i rätt
 // z-ordning i stället. Trädgårdssakerna saknar hover-stil (bara .selected).
 //
+// Neutralisera (F6 #432): samma noder. Idle-förvärmningen speglar dem i vila-
+// läge (neutral reserv); hover/fokus på dem ger en egen spegel under nyckeln
+// roll + tillstånd (varld-motor-tillstand.js), så en reserv med huset i
+// hover-skala spelas aldrig när DOM:en visar huset ohovrat – och tvärtom.
+//
 // Laddas bara via import() (varld-motor-textur.js laddaProfil) – aldrig i
 // bootgrafen. Format: §2.4 i docs/pixi-arkitektur-396.md.
 // ============================================================================
@@ -52,6 +57,8 @@ export default {
   // z-ordningen; molnraden bakom taket kräver omspegling ändå.
   sprites: [],
   objekt: [],
+  // Husgruppen och klasskylten (även kompis-/grannbyhusets, prefixade id:n).
+  neutralisera: ['[id$="husgrupp"]', '[id$="klasskylt"]'],
   // Ingenting i hus-lagret är tillfälligt UI: menyer, paneler och nav-skyltar
   // ("Till gården") ligger i .varld-ui ovanpå scenen och speglas aldrig.
   ignorera: [],

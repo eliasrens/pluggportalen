@@ -2,8 +2,10 @@
 // Pluggporten – rörelse-motorns förberedelse (steg 1–2 i handoffen, #396)
 // ----------------------------------------------------------------------------
 // Utbruten ur varld-motor.js (F4b #428, 400-raderstaket). Säkrar båda lagrens
-// pyramider för övergångsrollerna (återanvänder förvärmda – idle eller mål –
-// när roll-nyckel + version stämmer), speglar om basen när lagret har levande
+// pyramider för övergångsrollerna (återanvänder förvärmda – idle, mål eller
+// avsikt – när roll-nyckel + hover-/fokus-tillstånd (F6 #432) + version
+// stämmer; en reserv spelas alltså bara i samma tillstånd som DOM:en visar
+// vid klicket), speglar om basen när lagret har levande
 // ambient utanför profilens sprites, lägger sprites + hovrat objekt som
 // överlägg i frusen pose och bygger animationens fran/till-tillstånd.
 // Laddas bara via import() (varld-motor.js) – aldrig i bootgrafen.
@@ -100,6 +102,9 @@ export async function forbered(spec, slapp, deadline, { stage, yta, reservTill =
     // Vem byggde pyramiderna som spelades, och fanns de redan före klicket?
     kallor: [aY.kalla, aI.kalla], ateranvanda: [aY.skapad < t0 && Y.id, aI.skapad < t0 && I.id].filter(Boolean),
     pyramider: [pY.ms, pI.ms], vantan, vantaMs: Math.round(performance.now() - t0),
+    // F6 #432: hover-/fokus-tillståndet (nyckeln) och hur gammal en spelad reserv var.
+    ...(pY.tillstand || pI.tillstand ? { tillstand: [pY.tillstand, pI.tillstand] } : {}),
+    ...(inaktuella.length ? { reservAlderMs: [aY, aI].map((a, j) => (a !== ny(j ? pI : pY) ? Math.round(t0 - a.skapad) : 0)) } : {}),
   };
   return {
     fran: bred(fran), till: bred(till), info,
