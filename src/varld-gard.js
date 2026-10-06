@@ -199,6 +199,23 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     }
   }
 
+  /**
+   * Pixi-rörelsen (#396, I1 #426): förbered första gårdsbesöket vid hover/
+   * fokus på "Till gården" – rita scenerna (bygg: session-cachad studentData,
+   * samma läsning som besöket) och skapa kameran (registreras hos motorn), så
+   * att hus → gård kan förvärmas. Djur/odling ritas först vid besöket (de
+   * läser färskt). Gör inget utan aktiv motor (pp:pixi:av = exakt dagens).
+   */
+  async function forvarm() {
+    if (!pixiAktiv() || stage.dataset.niva !== "hus") return false;
+    await bygg();
+    if (stage.dataset.niva !== "hus") return false;
+    tradgard?.()?.gardRita();
+    ensureKamera();
+    const gard = kamera && { el: gardLager, fokus: dorrFokus, zoom: 5 };
+    return !!window.__ppPixi?.motor?.forvarmOvergang?.(husGardNiva, gard);
+  }
+
   /** Zooma UT ett steg mot huset (laggard → gard → hus). @returns hanterat? */
   function tillbaka() {
     if (!kamera || kamera.aktivId === "hus") return false;
@@ -228,6 +245,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
 
   return {
     visa,
+    forvarm,
     tillbaka,
     nollstall,
     get aktivId() {

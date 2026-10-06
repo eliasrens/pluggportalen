@@ -7,7 +7,7 @@
 //
 // Handoff (bindande, §2.3f i docs/pixi-arkitektur-396.md):
 //  1. Pyramiderna för båda lagren måste ha nivå 1 + grovaste nivån i workern.
-//     Annars väntar vi högst VANTA_MAX_MS (strömning, prio "nu"), sedan CSS.
+//     Annars väntar vi högst VANTA_MAX_MS (strömning), sedan CSS – 120 ms om reserv finns.
 //  2. vila() fryser ambient (WAAPI) + promenaden. Lager med levande ambient
 //     speglas om NU (frusen pose inbakad); hovrad/fokuserad nod i profilens
 //     `objekt` blir ett fokus-överlägg (speglaNod) ovanpå en förvärmd pyramid.
@@ -60,7 +60,7 @@ import { setRorelseMotor, KAMERA_MS } from "./varld-kamera.js";
 import { vila } from "./varld-vila.js";
 import * as TX from "./varld-motor-textur.js";
 import { skapaForvarmare } from "./varld-motor-mal.js";
-import { forbered } from "./varld-motor-forbered.js";
+import { forbered, RESERV_MAX_MS } from "./varld-motor-forbered.js";
 import { urlFlaggor, statistik, visaHud, vakta } from "./varld-motor-hud.js";
 
 /** Längsta väntan på texturer innan CSS-vägen tar över (§2.3f.1). */
@@ -251,7 +251,7 @@ async function spelaHandoff(spec, tillampaDom) {
   };
   let forb;
   try {
-    forb = await forbered(spec, slapp, t0 + grans(VANTA_MAX_MS), { stage, yta });
+    forb = await forbered(spec, slapp, t0 + grans(VANTA_MAX_MS), { stage, yta, reservTill: t0 + grans(RESERV_MAX_MS) });
   } catch (err) {
     if (pixiFlaggor().debug) console.warn("[pp:pixi] förberedelse:", err);
     forb = { orsak: "textur-fel" };
@@ -387,6 +387,7 @@ const info = {
   forvarm: () => forvarm(),
   forvarmLager,
   forvarmMal,
+  forvarmOvergang: (Y, I) => { try { return F.forvarmOvergang(Y, I); } catch { return false; } },
   /** Workerns texturbokföring (läckkoll: tillbaka till baslinjen efter ett avbrutet mål). */
   stats: () => yta?.stats() ?? Promise.resolve(null),
   /** Pågående målförvärmning (eller null) och den senaste (status, poster, ms). */

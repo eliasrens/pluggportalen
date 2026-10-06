@@ -235,14 +235,33 @@ export function skapaForvarmare(ctx) {
       if (sedda.has(nyckel) || !Y.el.childElementCount) continue;
       if (sedda.size >= maxPar) break;
       sedda.add(nyckel);
-      const roller = [[Y, TX.lagerGeo(Y.el, sr), 1, Y.zoom], [I, TX.lagerGeo(I.el, sr), 1 / Y.zoom, 1]];
-      for (const [niva, g, zMin, zMax] of roller) {
-        if (!niva.el.childElementCount || !g.box.w || !g.box.h) continue;
-        // Lager med levande ambient (utanför sprites) speglas om vid handoff
-        // ändå; förvärmningen är bara reserven → högst var 4:e sekund.
-        TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio: "idle", tak: TX.levandeBas(niva.el) ? 4000 : 0 });
-      }
+      byggPar(Y, I, sr, yta, "idle");
     }
+  }
+
+  /** Båda rollerna för övergången Y → I (tomma lager hoppas över). */
+  function byggPar(Y, I, sr, yta, prio) {
+    const roller = [[Y, TX.lagerGeo(Y.el, sr), 1, Y.zoom], [I, TX.lagerGeo(I.el, sr), 1 / Y.zoom, 1]];
+    for (const [niva, g, zMin, zMax] of roller) {
+      if (!niva.el.childElementCount || !g.box.w || !g.box.h) continue;
+      // Lager med levande ambient (utanför sprites) speglas om vid handoff
+      // ändå; förvärmningen är bara reserven → högst var 4:e sekund.
+      TX.sakra(TX.roll(niva.el, g, Y.fokus, zMin, zMax, sr), { yta, prio, tak: TX.levandeBas(niva.el) ? 4000 : 0 });
+    }
+  }
+
+  /**
+   * Scen-API (I1 #426): förvärma EN känd övergång direkt (prio "nu"), t.ex.
+   * hus → gård vid hover på "Till gården"-skylten (den ligger i .varld-ui,
+   * inte i ett lager, så målmekanismen gäller inte). Y/I = registrerade
+   * nivåer {el, fokus, zoom}. @returns {boolean} byggs
+   */
+  function forvarmOvergang(Y, I) {
+    const stage = ctx.stage(), yta = ctx.yta();
+    if (!stage || !yta || !ctx.ledig() || !Y?.el?.isConnected || !I?.el?.isConnected) return false;
+    if (!Y.el.childElementCount || !(Y.zoom > 0)) return false;
+    byggPar(Y, I, stage.getBoundingClientRect(), yta, "nu");
+    return true;
   }
 
   // ---- Livscykel ----------------------------------------------------------------
@@ -267,7 +286,7 @@ export function skapaForvarmare(ctx) {
   }
 
   return {
-    koppla, slappa, forvarm, forvarmLager, forvarmMal, overlat,
+    koppla, slappa, forvarm, forvarmLager, forvarmMal, forvarmOvergang, overlat,
     avbryt: () => avbryt("avbruten"),
     get mal() { return mal ? { id: mal.id, lager: mal.lager.id, fokus: mal.fokus, startad: mal.startad } : null; },
     get senasteMal() { return senasteMal; },
