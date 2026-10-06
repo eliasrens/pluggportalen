@@ -14,16 +14,42 @@ import * as TX from "./varld-motor-textur.js";
 import { overlagg } from "./varld-motor-overlagg.js";
 
 const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
+const tills = (t) => vanta(Math.max(0, t - performance.now()));
+
+/**
+ * Längsta väntan när varje lager redan HAR något spelbart (ny bild eller
+ * förvärmd reserv) och bara omspeglingen saknas (I1 #426, G1 §6.6.1). Då är
+ * väntan ren fördröjning för eleven – reserven har rätt innehåll, ambienten
+ * står bara i förvärmningens pose. Kall övergång (inget spelbart) väntar
+ * fortfarande till `deadline` (VANTA_MAX_MS 250), sedan CSS.
+ */
+export const RESERV_MAX_MS = 120;
+
+/**
+ * Vänta på texturerna: tills `klart` löser, eller `deadline` passeras, eller
+ * – om `spelbart()` är sant vid `reservTill` – redan då.
+ * @param {Promise<unknown>} klart  alla nya pyramider/överlägg klara
+ * @param {() => boolean} spelbart  har båda lagren en ny bild eller reserv?
+ * @param {number} deadline   performance.now()-tid för kall övergång
+ * @param {number} reservTill performance.now()-tid när reserven räcker
+ * @returns {Promise<"klart"|"reserv"|"deadline">}
+ */
+export function vantaTexturer(klart, spelbart, deadline, reservTill = deadline) {
+  const reserv = tills(Math.min(reservTill, deadline))
+    .then(() => (spelbart() ? "reserv" : tills(deadline).then(() => "deadline")));
+  return Promise.race([klart.then(() => "klart", () => "klart"), tills(deadline).then(() => "deadline"), reserv]);
+}
 
 /**
  * 1–2 i handoffen: säkra pyramider (+ överlägg) och bygg animationens tillstånd.
  * @param {{yttre:object, inre:object, riktning:"in"|"ut"}} spec
  * @param {ReturnType<import("./varld-vila.js").vila>} slapp  vilan (pausade animationer)
  * @param {number} deadline  performance.now()-tid då vi slutar vänta på texturer
- * @param {{stage:HTMLElement, yta:object}} o
+ * @param {{stage:HTMLElement, yta:object, reservTill?:number}} o  reservTill:
+ *   performance.now()-tid då en färdig reserv räcker (se RESERV_MAX_MS)
  * @returns {Promise<{orsak:string} | {fran:object[], till:object[], info:object, slappa:() => void}>}
  */
-export async function forbered(spec, slapp, deadline, { stage, yta }) {
+export async function forbered(spec, slapp, deadline, { stage, yta, reservTill = deadline }) {
   const t0 = performance.now();
   const sr = stage.getBoundingClientRect();
   const Y = spec.yttre, I = spec.inre;
@@ -43,12 +69,12 @@ export async function forbered(spec, slapp, deadline, { stage, yta }) {
   const ovl = [...oY.ids, ...oI.ids];
   const slappOvl = () => ovl.forEach((id) => yta.slappLager(id));
   const klart = Promise.all([pY.minSatt, pI.minSatt, oY.klart.catch(() => {}), oI.klart.catch(() => {})]);
-  await Promise.race([klart.catch(() => {}), vanta(Math.max(0, deadline - performance.now()))]);
   // Hann en omspegling inte i tid: spela på den förvärmda pyramiden (reserven)
   // – rätt innehåll, men ambienten i förvärmningens pose (S-profilerna gör
   // omspeglingen billig nog). Saknas båda → CSS-vägen.
   const ny = (p) => p.alias || p; // identisk bild → reserven återanvänd
   const valj = (p) => (ny(p).minKlar && !ny(p).slappt ? ny(p) : p.reserv?.minKlar && !p.reserv.slappt ? p.reserv : null);
+  const vantan = await vantaTexturer(klart, () => !!(valj(pY) && valj(pI)), deadline, reservTill);
   const aY = valj(pY), aI = valj(pI);
   if (!aY || !aI) {
     slappOvl();
@@ -74,7 +100,7 @@ export async function forbered(spec, slapp, deadline, { stage, yta }) {
       omspeglade: [omY && Y.id, omI && I.id].filter(Boolean), inaktuella, overlagg: ovl.length, sprites: oY.sprites + oI.sprites,
       // Vem byggde pyramiderna som spelades, och fanns de redan före klicket?
       kallor: [aY.kalla, aI.kalla], ateranvanda: [aY.skapad < t0 && Y.id, aI.skapad < t0 && I.id].filter(Boolean),
-      pyramider: [pY.ms, pI.ms],
+      pyramider: [pY.ms, pI.ms], vantan, vantaMs: Math.round(performance.now() - t0),
     },
     slappa() {
       slappOvl();

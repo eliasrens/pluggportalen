@@ -265,6 +265,15 @@ export async function pageElevVarld(startNiva) {
     onTillGarden: () => go("#/elev/gard"),
   });
 
+  // Pixi-rörelsen (#396, I1 #426): första gårdsbesöket kan bara förvärmas när
+  // gårds-grenen finns → ladda den vid hover/fokus på "Till gården" (ingen ny
+  // läsning). Utan motor / pp:pixi:av: exakt dagens (laddas vid klicket).
+  const gardForvarm = () => {
+    const p = window.__ppPixi;
+    if (p?.motor && !p.dod && !p.flaggor?.().av) laddaGardVy().then((vy) => vy.forvarm()).catch(() => {});
+  };
+  for (const ev of ["pointerenter", "focusin"]) view.querySelector("#gard-skylt")?.addEventListener(ev, gardForvarm);
+
   // Klassbyns stjärn-toggle (uppe till höger): fälls ut/in med ✨-knappen och
   // fylls när byn laddats (lat). Presentationslogiken bor i varld-by-stats.js.
   const klassStats = mountKlassStatsToggle({

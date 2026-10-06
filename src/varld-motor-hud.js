@@ -276,7 +276,7 @@ export async function visaHud(post, yta) {
     (p?.ateranvanda?.length ? rad("återanvänt", `${esc(p.ateranvanda.join(", "))} (${esc((p.kallor || []).join("/"))})`) : "") +
     (p?.skulleMissat ? rad("⚠ prod", `skulle missat: ${Object.entries(p.missatMs || {}).map(([k, v]) => `${k} ${v} ms`).join(", ")}`) : "") +
     (mal ? rad("mål", `#${mal.id} ${esc(mal.lager)}${mal.inre ? `→${esc(mal.inre)}` : ""} ${mal.status} · ${mal.ms} ms · ${mal.poster.map((x) => `${x.roll}${x.minKlar ? "✓" : "…"}`).join(" ")}`) : "") +
-    (p?.vag ? rad("handoff", `${p.forberedMs ?? "–"} ms${p.omspeglade?.length ? ` (omspeglat: ${esc(p.omspeglade.join(", "))})` : ""}`) : "") +
+    (p?.vag ? rad("handoff", `${p.forberedMs ?? "–"} ms${p.vantan ? ` · väntan ${p.vantan} ${p.vantaMs} ms` : ""}${p.omspeglade?.length ? ` (omspeglat: ${esc(p.omspeglade.join(", "))})` : ""}`) : "") +
     (p?.inaktuella?.length ? rad("reserv", `förvärmd pyramid för ${esc(p.inaktuella.join(", "))}`) : "") +
     (frames.length ? rad("frame-dt", `snitt ${p.medelDt} · max ${p.maxDt} · tappade ${p.tappade}/${p.n}${p.avbruten ? " · AVBRUTEN" : ""}`) : "") +
     graf +
