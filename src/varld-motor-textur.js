@@ -30,6 +30,7 @@ import standard from "./varld-profil-standard.js";
 import { inbaddadFontCss } from "./varld-spegel-font.js";
 import { KLON_ATTR } from "./varld-spegel-neutral.js";
 import { doljEmoji } from "./varld-emoji.js";
+import { basAmbient, fangaPose } from "./varld-motor-pose.js";
 
 const DEBOUNCE_MS = 300;
 const KAMERA_STIL = /^(transform|transform-origin|opacity)$/;
@@ -71,9 +72,6 @@ export function registreraProfil(namn, profil) {
  */
 const texturProfil = (p) => ({ ...p, ambient: sel(p.sprites), neutraliseraObjekt: sel(p.objekt) });
 
-/** Är animationen "ambient" (inte en transition och inte lagrets egen)? */
-const arAmbient = (a, el) => !(globalThis.CSSTransition && a instanceof CSSTransition) && a.effect?.target !== el;
-
 /**
  * Har lagret levande ambient UTANFÖR profilens sprites? Då står basen i en ny
  * pose och måste speglas om vid handoff (sprites speglas ändå varje gång).
@@ -86,10 +84,7 @@ export function levandeBas(el, anims) {
   if (!lista) {
     try { lista = el.getAnimations({ subtree: true }).filter((a) => a.playState === "running"); } catch { return false; }
   }
-  return lista.some((a) => {
-    const t = a.effect?.target;
-    return t && el.contains(t) && arAmbient(a, el) && !(spr && t.closest(spr));
-  });
+  return basAmbient(el, lista, spr).length > 0;
 }
 
 // ---- Spaning: lagrens version (smutsig = version ändrad) --------------------
@@ -221,7 +216,7 @@ let pidNr = 0;
  *   kalla = vem som byggde den ("idle" | "mal" | "handoff"; logg/debug)
  * Blir speglingen IDENTISK med reservens (samma innehålls-hash, t.ex. en scen
  * som skrev om samma markup) återanvänds reserven: post.alias pekar på den.
- * @returns {object} post: { pid, ids:[{id,z}], minSatt:Promise, reserv, alias, ... }
+ * @returns {object} post: { pid, ids:[{id,z}], minSatt:Promise, reserv, alias, pose, ... }
  */
 export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio === "idle" ? "idle" : "handoff" }) {
   spolaSmuts();
@@ -238,6 +233,8 @@ export function sakra(r, { yta, prio, omspegla = false, tak = 0, kalla = prio ==
   const post = {
     pid: `p${++pidNr}`, nyckel: r.nyckel, el: r.el, version: v, prio, kalla, yta, skapad: performance.now(), reserv, lan: 0,
     ids: [], skickade: new Set(), jobb: null, minKlar: false, slappt: false, fel: null, ms: {}, spegelNyckel: null, alias: null,
+    // F5 #431: ambientens pose i speglingen (samma task) – sätts på DOM:en om posten spelas som reserv.
+    pose: fangaPose(r.el, sel(profilFor(r.el).sprites)),
   };
   poster.set(r.nyckel, post);
   const t0 = performance.now();
