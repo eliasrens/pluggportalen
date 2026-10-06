@@ -53,7 +53,7 @@ export function overlagg(el, maxSkala, yta) {
   const jobb = noder.map((nod) => {
     const id = `ovl${++ovlNr}`;
     ids.push(id);
-    return speglaNod(nod, el).then(async (ns) => {
+    return speglaNod(nod, el, { bildZoom: maxSkala }).then(async (ns) => {
       const img = await avkodaSvg(ns.svg);
       const m = DOMMatrix.fromMatrix(ns.matrix).translate(ns.rect.x, ns.rect.y);
       const hörn = [[0, 0], [ns.rect.w, 0], [0, ns.rect.h], [ns.rect.w, ns.rect.h]].map(([x, y]) => m.transformPoint(new DOMPoint(x, y)));

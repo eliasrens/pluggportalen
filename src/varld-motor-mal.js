@@ -158,6 +158,7 @@ export function skapaForvarmare(ctx) {
     if (!yta) return;
     const fore = TX.postFor(r.nyckel);
     const post = TX.sakra(r, { yta, prio: "nu", kalla: "mal" });
+    if (m.poster.some((p) => p.post === post)) return; // samma lager förvärmt igen
     const egen = post !== fore; // (blir den ett alias för `fore` släpps inget av den)
     m.poster.push({ post, egen, roll, lager: r.el.id });
     post.minSatt.then(
