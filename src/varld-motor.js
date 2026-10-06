@@ -268,7 +268,7 @@ async function spelaHandoff(spec, tillampaDom) {
   if (nr === spelNr && visar !== "ok") { forb.slappa(); return css(visar); }
   if (nr !== spelNr) return;
   // 4. Bytet: DOM osynlig (canvasen visar samma bild), DOM till slutläget, spela.
-  stage.classList.add(SPELAR);
+  forb.sattPose(); stage.classList.add(SPELAR); // F5 #431: reservens ambient-pose, samma task
   markera("pixi");
   spel.fas = "spelar";
   tillampaDom();

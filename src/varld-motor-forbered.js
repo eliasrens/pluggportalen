@@ -12,6 +12,7 @@
 import { lagerState } from "./varld-render-anim.js";
 import * as TX from "./varld-motor-textur.js";
 import { overlagg } from "./varld-motor-overlagg.js";
+import { sattPose } from "./varld-motor-pose.js";
 
 const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
 const tills = (t) => vanta(Math.max(0, t - performance.now()));
@@ -47,7 +48,7 @@ export function vantaTexturer(klart, spelbart, deadline, reservTill = deadline) 
  * @param {number} deadline  performance.now()-tid då vi slutar vänta på texturer
  * @param {{stage:HTMLElement, yta:object, reservTill?:number}} o  reservTill:
  *   performance.now()-tid då en färdig reserv räcker (se RESERV_MAX_MS)
- * @returns {Promise<{orsak:string} | {fran:object[], till:object[], info:object, slappa:() => void}>}
+ * @returns {Promise<{orsak:string} | {fran:object[], till:object[], info:object, sattPose:() => void, slappa:() => void}>}
  */
 export async function forbered(spec, slapp, deadline, { stage, yta, reservTill = deadline }) {
   const t0 = performance.now();
@@ -94,13 +95,26 @@ export async function forbered(spec, slapp, deadline, { stage, yta, reservTill =
     ...(j ? aI : aY).ids.map(({ id, z }) => ({ ...l, id, zFran: z })),
     ...(j ? oI : oY).ids.map((id) => ({ ...l, id })),
   ]);
+  const info = {
+    omspeglade: [omY && Y.id, omI && I.id].filter(Boolean), inaktuella, overlagg: ovl.length, sprites: oY.sprites + oI.sprites,
+    // Vem byggde pyramiderna som spelades, och fanns de redan före klicket?
+    kallor: [aY.kalla, aI.kalla], ateranvanda: [aY.skapad < t0 && Y.id, aI.skapad < t0 && I.id].filter(Boolean),
+    pyramider: [pY.ms, pI.ms], vantan, vantaMs: Math.round(performance.now() - t0),
+  };
   return {
-    fran: bred(fran), till: bred(till),
-    info: {
-      omspeglade: [omY && Y.id, omI && I.id].filter(Boolean), inaktuella, overlagg: ovl.length, sprites: oY.sprites + oI.sprites,
-      // Vem byggde pyramiderna som spelades, och fanns de redan före klicket?
-      kallor: [aY.kalla, aI.kalla], ateranvanda: [aY.skapad < t0 && Y.id, aI.skapad < t0 && I.id].filter(Boolean),
-      pyramider: [pY.ms, pI.ms], vantan, vantaMs: Math.round(performance.now() - t0),
+    fran: bred(fran), till: bred(till), info,
+    /**
+     * F5 #431: lager som spelas på reserven får DOM-ambienten satt till
+     * reservens pose. Anropas i SAMMA task som DOM:en göms (.varld-pixi-spelar)
+     * – canvas och DOM visar då samma pose när de byts vid slutet. Färsk
+     * spegel (eller identisk bild, alias) → inget görs. info.pose: per lager.
+     */
+    sattPose() {
+      const pose = {};
+      for (const [a, p, L] of [[aY, pY, Y], [aI, pI, I]]) {
+        if (a !== ny(p)) pose[L.id] = sattPose(L.el, a.pose, slapp.pausade);
+      }
+      if (Object.keys(pose).length) info.pose = pose;
     },
     slappa() {
       slappOvl();
