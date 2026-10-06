@@ -1,0 +1,267 @@
+// ============================================================================
+// Pluggporten – lärarsidan: utfällda underrader per område (teacher-area-items.js,
+// issue #454)
+// ----------------------------------------------------------------------------
+// Klick på en rad i Innehållsstudions tabell (eller ögat) fäller ut den här
+// panelen: områdets innehåll grupperat i Quizfrågor (n) · Par (n) · Lästexter (n)
+// som kompakta listrader med ✏️ Redigera och 🗑 Ta bort, plus "+ Lägg till …".
+// Generatorområden (Räkna) får en kort rad om räknegeneratorn (ändras via pennan).
+// Nivåtexter (readingTexts) och läsförståelse-förkravet visas read-only som förr
+// i Granska – de redigeras i sin befintliga 📖-editor.
+//
+// SPARNING (saveArea = full överskrivning): hämta FÄRSK kopia med data.getArea,
+// applicera ENBART ändringen (teacher-area-items-ops.js → validateArea som grind)
+// och skriv hela dokumentet. Därefter onSaved(notice) → tabellen laddas om tyst
+// och fäller ut samma områden igen. Ta bort bekräftas INNE i sidan (två steg).
+//
+// BOOT-SÄKERT (#271): laddas BARA via import() från teacher-content-list.js.
+// ============================================================================
+
+import * as data from "./data.js";
+import {
+  applyItemOp,
+  sectionsFor,
+  hasPassageMode,
+  isGeneratorArea,
+  lastItemWarning,
+} from "./teacher-area-items-ops.js";
+import { buildQuizForm, buildPairForm, buildTextForm } from "./teacher-area-items-forms.js";
+import { buildReviewPanel } from "./teacher-content-review.js";
+import { el, esc, icon } from "./teacher-shared.js";
+
+const SECTION = {
+  quiz: { title: "Quizfrågor", one: "frågan", add: "Lägg till fråga", ic: "📝" },
+  pairs: { title: "Par", one: "paret", add: "Lägg till par", ic: "🔗" },
+  texts: { title: "Lästexter", one: "texten", add: "Lägg till text", ic: "📄" },
+};
+
+const SAVED = {
+  add: { quiz: "Frågan lades till.", pairs: "Paret lades till.", texts: "Texten lades till." },
+  update: { quiz: "Frågan sparades.", pairs: "Paret sparades.", texts: "Texten sparades." },
+  remove: { quiz: "Frågan togs bort.", pairs: "Paret togs bort.", texts: "Texten togs bort." },
+};
+
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const clip = (s, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+const imgTag = (key) => `<span class="ai-tag">${icon("eye", 12)} bild: ${esc(key)}</span>`;
+
+/** Kompakt innehåll i en listrad per typ. */
+function itemHtml(kind, it) {
+  if (kind === "quiz") {
+    const right = (it.options || [])[it.answerIndex];
+    return `<div class="ai-text">${esc(it.question || "")}</div>
+      <div class="ai-sub">
+        <span class="ai-answer">${icon("check", 13)} ${esc(right == null ? "–" : String(right))}</span>
+        ${it.passage ? `<span class="ai-tag">📖 Källtext</span>` : ""}
+      </div>`;
+  }
+  if (kind === "pairs") {
+    const side = (txt, img) => `${img ? imgTag(img) : ""}${txt ? `<span>${esc(txt)}</span>` : ""}`;
+    return `<div class="ai-text ai-pair">
+        <span class="ai-term">${side(it.term, it.termImage)}</span>
+        <span class="ai-arrow" aria-label="hör ihop med">↔</span>
+        <span class="ai-def">${side(it.definition, it.defImage)}</span>
+      </div>
+      ${it.group ? `<div class="ai-sub"><span class="ai-tag">grupp: ${esc(it.group)}</span></div>` : ""}`;
+  }
+  return `<div class="ai-text">${esc(it.title || "")}</div>
+    <div class="ai-sub ai-excerpt">${esc(clip(String(it.body || it.passage || "")))}</div>`;
+}
+
+/**
+ * Bygg underraden för ett område.
+ * @param {object} area  området som listan visar (från getAreas).
+ * @param {{ subjectId:string, notice?:string, onSaved:(notice:string)=>void }} deps
+ * @returns {HTMLElement}
+ */
+export function buildItemsPanel(area, { subjectId, notice, onSaved }) {
+  const panel = el(`<div class="ai-panel" role="region" tabindex="-1" aria-label="Innehåll i ${esc(area.name)}"></div>`);
+  if (notice) {
+    const n = el(`<div class="msg ok ai-notice" role="status">${icon("check", 15)} ${esc(notice)}</div>`);
+    panel.append(n);
+    setTimeout(() => n.remove(), 4000);
+  }
+
+  // Ett formulär (eller en bekräftelse) åt gången: öppna ny → stäng föregående.
+  let closeActive = null;
+  const setActive = (close) => {
+    if (closeActive && closeActive !== close) closeActive();
+    closeActive = close;
+  };
+
+  /** Färsk kopia → ENBART ändringen → validateArea → spara hela dokumentet. */
+  async function commit(op) {
+    try {
+      const fresh = await data.getArea(subjectId, area.id);
+      if (!fresh) return { ok: false, errors: ["Området finns inte längre. Ladda om sidan."] };
+      const res = applyItemOp(fresh, op);
+      if (!res.ok) return res;
+      await data.saveArea(subjectId, area.id, res.area);
+      onSaved(SAVED[op.type][op.kind]);
+      return { ok: true, errors: [] };
+    } catch (err) {
+      return { ok: false, errors: [`Kunde inte spara till databasen: ${err.message}`] };
+    }
+  }
+
+  const ref = (it, index) => ({ index, id: it?.id, snapshot: it });
+  const formFor = (kind, item, o) =>
+    kind === "quiz" ? buildQuizForm(item, o) : kind === "pairs" ? buildPairForm(item, o) : buildTextForm(item, o);
+
+  /** Gemensamma form-optioner. passage: obligatorisk om frågan har en, eller
+   *  (ny fråga) om ALLA frågor i området är läsförståelse-frågor. */
+  function formOpts(kind, item, onSubmit, onCancel) {
+    const quiz = Array.isArray(area.quiz) ? area.quiz : [];
+    const passageMode = hasPassageMode(area);
+    const passageRequired = item
+      ? Boolean(String(item.passage || "").trim())
+      : passageMode && quiz.every((q) => String(q?.passage || "").trim());
+    return { passageMode, passageRequired, onSubmit, onCancel };
+  }
+
+  function buildRow(kind, it, index, list) {
+    const s = SECTION[kind];
+    const li = el(`<li class="ai-item">
+      <div class="ai-view">
+        <span class="ai-nr">${index + 1}</span>
+        <div class="ai-main">${itemHtml(kind, it)}</div>
+        <div class="ai-acts">
+          <button type="button" class="area-act" data-ai="edit" title="Redigera"
+            aria-label="Redigera ${s.one} ${index + 1}">${icon("pencil", 15)}</button>
+          <button type="button" class="area-act danger" data-ai="del" title="Ta bort"
+            aria-label="Ta bort ${s.one} ${index + 1}">${icon("trash", 15)}</button>
+        </div>
+      </div>
+      <div class="ai-slot" hidden></div>
+    </li>`);
+    const view = li.querySelector(".ai-view");
+    const slot = li.querySelector(".ai-slot");
+    const close = () => {
+      slot.hidden = true;
+      slot.replaceChildren();
+      view.hidden = false;
+      li.classList.remove("editing", "confirming");
+    };
+
+    li.querySelector('[data-ai="edit"]').addEventListener("click", () => {
+      setActive(close);
+      const cancel = () => {
+        close();
+        li.querySelector('[data-ai="edit"]').focus();
+      };
+      const submit = (fields) => commit({ type: "update", kind, ref: ref(it, index), fields });
+      slot.replaceChildren(formFor(kind, it, formOpts(kind, it, submit, cancel)));
+      view.hidden = true;
+      slot.hidden = false;
+      li.classList.add("editing");
+    });
+
+    li.querySelector('[data-ai="del"]').addEventListener("click", () => {
+      setActive(close);
+      const warn = lastItemWarning({ [kind]: list }, kind);
+      const box = el(`<div class="ai-confirm" role="alertdialog" aria-label="Bekräfta borttagning">
+        <span class="ai-confirm-q">${esc(cap(`ta bort ${s.one}?`))}</span>
+        ${warn ? `<span class="ai-warn">${esc(warn)}</span>` : ""}
+        <div class="ai-confirm-acts">
+          <button type="button" class="btn small ai-confirm-yes">${icon("trash", 14)}<span>Ta bort</span></button>
+          <button type="button" class="btn ghost small ai-confirm-no">Ångra</button>
+        </div>
+        <div class="ai-form-errors" role="alert"></div>
+      </div>`);
+      const no = box.querySelector(".ai-confirm-no");
+      const yes = box.querySelector(".ai-confirm-yes");
+      no.addEventListener("click", () => {
+        close();
+        li.querySelector('[data-ai="del"]').focus();
+      });
+      yes.addEventListener("click", async () => {
+        yes.disabled = true;
+        const res = await commit({ type: "remove", kind, ref: ref(it, index) });
+        if (!res.ok && box.isConnected) {
+          yes.disabled = false;
+          box.querySelector(".ai-form-errors").innerHTML = `<div class="msg error"><ul class="error-list">${res.errors
+            .map((e) => `<li>${esc(e)}</li>`)
+            .join("")}</ul></div>`;
+        }
+      });
+      box.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") no.click();
+      });
+      slot.replaceChildren(box);
+      slot.hidden = false;
+      li.classList.add("confirming");
+      no.focus();
+    });
+    return li;
+  }
+
+  function buildSection(kind) {
+    const s = SECTION[kind];
+    const list = Array.isArray(area[kind]) ? area[kind] : [];
+    const sec = el(`<section class="ai-section ai-section-${kind}">
+      <h4 class="ai-h"><span aria-hidden="true">${s.ic}</span> ${esc(s.title)}
+        <span class="ai-count">${list.length}</span></h4>
+      <ol class="ai-list"></ol>
+      <div class="ai-add-slot" hidden></div>
+      <button type="button" class="ai-add">${icon("plus", 14)}<span>${esc(s.add)}</span></button>
+    </section>`);
+    const ol = sec.querySelector(".ai-list");
+    list.forEach((it, i) => ol.append(buildRow(kind, it, i, list)));
+    if (!list.length) ol.replaceWith(el(`<p class="ai-empty">Inga ${esc(s.title.toLowerCase())} ännu.</p>`));
+
+    const addBtn = sec.querySelector(".ai-add");
+    const addSlot = sec.querySelector(".ai-add-slot");
+    const closeAdd = () => {
+      addSlot.hidden = true;
+      addSlot.replaceChildren();
+      addBtn.hidden = false;
+    };
+    addBtn.addEventListener("click", () => {
+      setActive(closeAdd);
+      const cancel = () => {
+        closeAdd();
+        addBtn.focus();
+      };
+      const submit = (fields) => commit({ type: "add", kind, fields });
+      addSlot.replaceChildren(formFor(kind, null, formOpts(kind, null, submit, cancel)));
+      addSlot.hidden = false;
+      addBtn.hidden = true;
+    });
+    return sec;
+  }
+
+  // --- Räknegenerator: kort rad, ändras via pennan (wizarden) ----------------
+  if (isGeneratorArea(area)) {
+    const g = area.generator;
+    const topic = String(g.topic || "");
+    const variants = Array.isArray(g.variants) ? g.variants.length : 0;
+    panel.append(el(`<div class="ai-generator">${icon("sliders", 16)}
+      <span><b>Räknegenerator:</b> ${esc(cap(topic.replace(/-/g, " ")))}${variants ? ` · ${variants} variant${variants > 1 ? "er" : ""}` : ""}</span>
+      <span class="ai-hint">Ändras via pennan (Redigera).</span></div>`));
+  }
+
+  const kinds = sectionsFor(area);
+  for (const kind of kinds) panel.append(buildSection(kind));
+
+  // Lästexter är ingen övningstyp – saknas de visas bara en "lägg till"-knapp.
+  if (!kinds.includes("texts") && !isGeneratorArea(area)) {
+    const sec = buildSection("texts");
+    sec.classList.add("ai-section-collapsed");
+    sec.querySelector(".ai-h").remove();
+    sec.querySelector(".ai-empty")?.remove();
+    panel.append(sec);
+  }
+
+  // Nivåtexter + läsförståelse-förkrav: read-only som i Granska (#152/#155).
+  if (area.readingTexts?.length || area.readingPrereq) {
+    const rv = buildReviewPanel({ readingTexts: area.readingTexts, readingPrereq: area.readingPrereq });
+    rv.classList.add("ai-reading-review");
+    rv.querySelectorAll("p.hint:not(.rv-prereq)").forEach((p) => p.remove());
+    panel.append(rv);
+  }
+
+  if (!panel.querySelector(".ai-section, .ai-generator")) {
+    panel.append(el(`<p class="hint">Området har inget innehåll ännu. Klicka pennan för att välja övningstyper.</p>`));
+  }
+  return panel;
+}
