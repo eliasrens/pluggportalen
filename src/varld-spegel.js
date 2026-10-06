@@ -44,9 +44,18 @@ const px = (v) => parseFloat(v) || 0;
 
 /** Profilens selektorlista (sträng eller array) → en selektor ("" = ingen). */
 const sel = (v) => (Array.isArray(v) ? v.join(",") : v || "");
+/** Standard för bildZoom: kamerans största zoom (hus→rum = 6). */
+const BILD_ZOOM = 6;
 
-/** Kontext för EN spegling: defs (deterministiska id:n), bilder, ambient. */
-function nyKtx(profil, lagerEl) {
+/** Linjär skala (√|det|) för en matris – element-px → viewport-px. */
+const linSkala = (m) => Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
+
+/**
+ * Kontext för EN spegling: defs (deterministiska id:n), bilder, ambient.
+ * bildZoom = största skala lagret visas förstorat i (pyramidens zMax); <img>
+ * bäddas in i visad storlek × dpr × bildZoom i stället för full PNG (#422).
+ */
+function nyKtx(profil, lagerEl, lagerL) {
   const defs = new Map();
   const bilder = [];
   return {
@@ -57,6 +66,8 @@ function nyKtx(profil, lagerEl) {
     // då ärver alla barn "hidden" fast de syns i vila. Ignorera visibility då.
     ignVis: !!lagerEl && getComputedStyle(lagerEl).visibility === "hidden",
     bilder,
+    lagerSkala: lagerL ? linSkala(lagerL) : 1,
+    bildPx: Math.min(window.devicePixelRatio || 1, 2) * (profil?.bildZoom ?? BILD_ZOOM),
     def(nyckel, bygg) {
       let d = defs.get(nyckel);
       if (!d) { d = { id: `pps${defs.size}` }; d.markup = bygg(d.id); defs.set(nyckel, d); }
@@ -67,7 +78,7 @@ function nyKtx(profil, lagerEl) {
       const p = filterPrimitiver(css);
       return p ? this.def(`f:${css}`, (id) => `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">${p}</filter>`) : null;
     },
-    bild(url) { bilder.push(url); return `__pps_bild_${bilder.length - 1}__`; },
+    bild(url, bredd, img) { bilder.push({ url, bredd, img }); return `__pps_bild_${bilder.length - 1}__`; },
   };
 }
 
@@ -129,7 +140,7 @@ function boxInnehall(el, cs, r, ktx) {
   const d = synlig ? dekoration(cs, w, h, ktx) : { under: "", over: "" };
   let inne;
   if (el instanceof SVGSVGElement) inne = svgInnehall(el, cs, w, h, ktx);
-  else if (el.localName === "img") inne = synlig ? bild(el, cs, w, h, ktx) : "";
+  else if (el.localName === "img") inne = synlig ? bild(el, cs, w, h, ktx, r.L) : "";
   else if (el.localName === "canvas") inne = synlig ? canvasBild(el, cs, w, h) : "";
   else {
     inne = barn(el, cs, ram, ktx);
@@ -150,11 +161,12 @@ const innehallsBox = (cs, w, h) => {
 };
 const PAR = { fill: "none", contain: "xMidYMid meet", cover: "xMidYMid slice", "scale-down": "xMidYMid meet" };
 
-/** <img> → <image> med data-URL (löses efter genomgången). */
-function bild(el, cs, w, h, ktx) {
+/** <img> → <image> med data-URL (löses efter genomgången), nedskalad till visad storlek. */
+function bild(el, cs, w, h, ktx, L) {
   if (!el.complete || !el.naturalWidth) return "";
   const b = innehallsBox(cs, w, h);
-  return `<image href="${ktx.bild(el.currentSrc || el.src)}" x="${f(b.x)}" y="${f(b.y)}" width="${f(b.w)}" height="${f(b.h)}" preserveAspectRatio="${PAR[cs.objectFit] || "none"}"/>`;
+  const bredd = Math.ceil(b.w * (linSkala(L) / ktx.lagerSkala) * ktx.bildPx);
+  return `<image href="${ktx.bild(el.currentSrc || el.src, bredd, el)}" x="${f(b.x)}" y="${f(b.y)}" width="${f(b.w)}" height="${f(b.h)}" preserveAspectRatio="${PAR[cs.objectFit] || "none"}"/>`;
 }
 
 function canvasBild(el, cs, w, h) {
@@ -280,8 +292,8 @@ function lagerRam(lagerEl) {
  */
 export async function speglaLager(lagerEl, stageEl, profil = {}) {
   const t0 = performance.now();
-  const ktx = nyKtx(profil, lagerEl);
   const r = lagerRam(lagerEl);
+  const ktx = nyKtx(profil, lagerEl, r.L);
   const inv = r.M.inverse();
   let ox = 0, oy = 0, w = r.w, h = r.h;
   if (profil?.fangst !== "lager" && stageEl) {
@@ -305,10 +317,12 @@ export async function speglaLager(lagerEl, stageEl, profil = {}) {
  *   matrix – lokala koordinater → lagrets px (inkl. nodens aktuella transform)
  *   opacity– effektiv opacitet (nod × förfäder upp till lagret)
  * Rita alltså spriten med matrix·translate(rect.x, rect.y), storlek rect.w×rect.h.
+ * @param {{bildZoom?:number}} [opt]  största skala spriten ritas i (<img>-upplösning)
  */
-export async function speglaNod(nod, lagerEl) {
-  const ktx = nyKtx({}, lagerEl);
-  const lagerInv = lagerRam(lagerEl).M.inverse();
+export async function speglaNod(nod, lagerEl, opt = {}) {
+  const lr = lagerRam(lagerEl);
+  const ktx = nyKtx(opt, lagerEl, lr.L);
+  const lagerInv = lr.M.inverse();
   let opacity = 1;
   for (let e = nod; e && e !== lagerEl; e = e.parentElement) opacity *= +getComputedStyle(e).opacity;
   let kropp, rect, matrix, nodInv;
