@@ -199,7 +199,12 @@ Pixi laddas i workern från **`vendor/pixi-8.22.0/webworker.min.mjs`** (868 kB, 
 Ingen fil i bootgrafen och bara workern läser den. En 404 under Pages-deployfönstret ger `fel`, och då används CSS-vägen.
 
 **Livscykel/resize/DPR/context-loss:** en yta per scen (stage-canvas) och en för port-overlayt.
-`ResizeObserver` på staget → `resize` + alla pyramider ogiltigförklaras. Ombyggnad sker lat.
+`ResizeObserver` på staget → `resize`. **Äkta resize** (viewport eller dpr ändrad: rotation, fönster, zoom) →
+avbryt + alla pyramider ogiltigförklaras; ombyggnad sker lat. **Nivåns egen höjd** (F8 #434, mobil: rummet
+580 → 452 px när `data-niva="rum"` sätts vid landningen; samma viewport + dpr) → bara ytan byter storlek, inga
+pyramider kastas (rollnyckeln kodar box, vy och dpr, så varje pyramid spelas bara i sin geometri). En rörelse som
+spelar i den gamla storleken landar redan i `data-niva`-mutationen, före paint (DOM:en står i slutläget). Se
+`varld-motor-resize.js`.
 `webglcontextlost` i workern → `kontext{forlorad}` → `Renderare.dod = true` → CSS-väg tills
 `restored`. Pixi laddar då upp `ImageSource`-resurserna (ImageBitmap) igen. Fallback-stege:
 `pp:pixi:av` → reduced-motion → saknad OffscreenCanvas/module-worker/WebGL → worker-fel → textur
@@ -288,7 +293,8 @@ export class TexturLRU { lagg(nyckel, bytes, slapp); rör(nyckel); summa(): numb
   fokus blir *exakt* kamerans. Grovaste nivåerna först. Finare nivåer kan strömmas in mitt i rörelsen
   (bezier-kurvan står nästan still de första ~300 ms).
 - **Invalidering:** `MutationObserver` per lager (utom inuti ambient-noder) + staget `style`
-  (palett) → lagret markeras smutsigt → ny spegling i idle (debounce 300 ms). Resize → allt ogiltigt.
+  (palett) → lagret markeras smutsigt → ny spegling i idle (debounce 300 ms). Äkta resize → allt ogiltigt;
+  nivåns egen stage-höjd (F8) → inget (nya roller får nya nycklar).
 - **Eviction/destroy:** LRU på "senast använd övergång". Vid eviction: `slapp` i workern
   (`texture.destroy(true)`) + `bitmap.close()`.
 
