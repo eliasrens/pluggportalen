@@ -132,6 +132,16 @@ export async function pageElevLogin() {
     view.querySelector(".port-fallback").appendChild(card);
   }
   app.replaceChildren(view);
+
+  // Pixi-vägen för port-övergången (#424): förvärm renderaren + portens
+  // texturer när sidan är i vila. Bara import()/idle – inloggningen ovan
+  // väntar aldrig på den (inte redo → dagens CSS-övergång).
+  if (overgangP) {
+    const scen = view.querySelector(".port-scen");
+    const forladda = () => overgangP.then((m) => m?.forladdaPortPixi?.(scen)).catch(() => {});
+    if (window.requestIdleCallback) requestIdleCallback(forladda, { timeout: 3000 });
+    else setTimeout(forladda, 500);
+  }
 }
 
 // --- Avatarval (första gången + byta senare) --------------------------------

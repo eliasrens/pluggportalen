@@ -24,6 +24,7 @@
 // ============================================================================
 
 import { interpolera, lagerMatris, lagerSyns, KAMERA_TOTAL_MS } from "./varld-render-anim.js";
+import { tidslinjeState } from "./varld-render-tidslinje.js"; // #424: anim.tidslinje (port → hem)
 
 let PIXI = null;
 let maxTex = 0;
@@ -179,9 +180,12 @@ class Yta {
       const syns = lagerSyns(l);
       p.cont.visible = syns;
       if (!syns) continue;
-      const m = lagerMatris(l);
-      p.cont.scale.set(m.s);
-      p.cont.position.set(m.tx, m.ty);
+      if (l.matris) p.cont.setFromMatrix(new PIXI.Matrix(...l.matris)); // #424: tidslinje
+      else {
+        const m = lagerMatris(l);
+        p.cont.scale.set(m.s);
+        p.cont.position.set(m.tx, m.ty);
+      }
       p.cont.alpha = l.opacity;
     }
     for (const [id, p] of this.lager) if (!sedda.has(id)) p.cont.visible = false;
@@ -235,7 +239,7 @@ class Yta {
       else frames.push(+(nu - forra).toFixed(2));
       forra = nu;
       const t = Math.min(ms, nu - t0);
-      this.stall(interpolera(anim.fran, anim.till, t));
+      this.stall(anim.tidslinje ? tidslinjeState(anim.tidslinje, t) : interpolera(anim.fran, anim.till, t));
       this.rita();
       if (t < ms) raf(steg);
       else avsluta(false);
