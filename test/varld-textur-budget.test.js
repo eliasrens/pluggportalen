@@ -56,8 +56,8 @@ test("enhetsKlass för representativa navigator-värden", () => {
   assert.equal(enhetsKlass({ deviceMemory: 0.5, hardwareConcurrency: 16 }, 16384), "svag");
 });
 
-test("budget(klass) = §6-startvärden, okänd → svag, kopia", () => {
-  assert.deepEqual(budget("svag"), { maxBytes: 72 * MB, dprTak: 1, steg: 1.5, tegel: 2048, under1Upplosning: 0.5, maxPar: 1 });
+test("budget(klass) = §6-värden (G1-kalibrerade), okänd → svag, kopia", () => {
+  assert.deepEqual(budget("svag"), { maxBytes: 112 * MB, dprTak: 1, steg: 1.5, tegel: 2048, under1Upplosning: 0.5, maxPar: 2 }); // G1 #425-kalibrerad
   assert.deepEqual(budget("normal"), { maxBytes: 256 * MB, dprTak: 1.5, steg: 1.5, tegel: 2048, under1Upplosning: 1, maxPar: 3 });
   assert.deepEqual(budget("okänd"), budget("svag"));
   const b = budget("normal");

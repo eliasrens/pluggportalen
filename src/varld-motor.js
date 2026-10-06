@@ -32,7 +32,7 @@ import { stallIn, texturCache, konfiguration } from "./varld-textur.js";
 import { setRorelseMotor, KAMERA_MS } from "./varld-kamera.js";
 import { vila, harAmbient } from "./varld-vila.js";
 import * as TX from "./varld-motor-textur.js";
-import { urlFlaggor, statistik, visaHud } from "./varld-motor-hud.js";
+import { urlFlaggor, statistik, visaHud, vakta } from "./varld-motor-hud.js";
 
 /** Längsta väntan på texturer innan CSS-vägen tar över (§2.3f.1). */
 export const VANTA_MAX_MS = 250;
@@ -118,6 +118,7 @@ function kopplaCanvas() {
     const m = matt();
     yta = renderare.skapaYta(canvas, m);
     ytMatt = `${m.w}x${m.h}@${m.dpr}`;
+    vakta(renderare, yta); // G1 #425: budget efter scenstorlek, 30 s-städning, restore, emoji, HUD
   } else if (canvas.parentElement !== stage) {
     if (plats) plats.replaceWith(canvas);
     else stage.prepend(canvas);
@@ -245,8 +246,7 @@ async function forbered(spec, slapp, deadline) {
   const omY = slapp.ambient(Y.el), omI = slapp.ambient(I.el);
   const pY = TX.sakra(rY, { yta, prio: "nu", omspegla: omY });
   const pI = TX.sakra(rI, { yta, prio: "nu", omspegla: omI });
-  const oY = omY ? { ids: [], klart: Promise.resolve() } : TX.overlagg(Y.el, Z, yta);
-  const oI = omI ? { ids: [], klart: Promise.resolve() } : TX.overlagg(I.el, 1, yta);
+  const oY = TX.overlagg(Y.el, Z, yta, omY), oI = TX.overlagg(I.el, 1, yta, omI); // omspeglat: bara emoji-reserven (G1)
   const ovl = [...oY.ids, ...oI.ids];
   const slappOvl = () => ovl.forEach((id) => yta.slappLager(id));
   const klart = Promise.all([pY.minSatt, pI.minSatt, oY.klart.catch(() => {}), oI.klart.catch(() => {})]);

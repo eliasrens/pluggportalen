@@ -24,6 +24,7 @@ import { elementRam, kedjaLinjar } from "./varld-spegel-html.js";
 import { avkodaSpegel, byggPyramid, texturCache, konfiguration } from "./varld-textur.js";
 import standard from "./varld-profil-standard.js";
 import { inbaddadFontCss } from "./varld-spegel-font.js";
+import { doljEmoji, emojiOverlagg } from "./varld-emoji.js";
 
 const DEBOUNCE_MS = 300;
 const KAMERA_STIL = /^(transform|transform-origin|opacity)$/;
@@ -185,7 +186,7 @@ export function sakra(r, { yta, prio, omspegla = false, tak = 0 }) {
   const spegelP = speglaLager(r.el, r.fangstStage, profilFor(r.el)); // synkron genomgång NU
   post.ms.speglaSynk = performance.now() - t0;
   post.minSatt = (async () => {
-    const spegel = await spegelP;
+    const spegel = doljEmoji(await spegelP); // G1: emoji-reserven ritar dem som text-sprites
     post.ms.spegla = spegel.ms;
     if (post.slappt) throw new Error("släppt");
     const a = await avkodaSpegel(spegel);
@@ -278,10 +279,18 @@ async function avkodaSvg(svg) {
 
 /**
  * Spegla lagrets hovrade/fokuserade objekt (synkront NU) och lägg dem som egna
- * behållare i workern, rastrerade för största skalan `maxSkala`.
+ * behållare i workern, rastrerade för största skalan `maxSkala`. Plus lagrets
+ * emoji som text-sprites när emoji-reserven är på (G1 #425, varld-emoji.js).
+ * @param {boolean} [utanObjekt]  lagret är omspeglat (hover redan inbakad) → bara emoji
  * @returns {{ids:string[], klart:Promise<void>}}
  */
-export function overlagg(el, maxSkala, yta) {
+export function overlagg(el, maxSkala, yta, utanObjekt = false) {
+  const em = emojiOverlagg(el, maxSkala, yta, sel(profilFor(el).ignorera));
+  const o = utanObjekt ? { ids: [], klart: Promise.resolve() } : objektOverlagg(el, maxSkala, yta);
+  return { ids: [...o.ids, ...em.ids], klart: Promise.all([o.klart, em.klart]).then(() => {}) };
+}
+
+function objektOverlagg(el, maxSkala, yta) {
   const s = sel(profilFor(el).objekt);
   if (!s) return { ids: [], klart: Promise.resolve() };
   let noder = [];
