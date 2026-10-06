@@ -17,6 +17,14 @@
 // (de göms via [data-niva="kompishus"] i styles.css). Huset görs klickbart →
 // deras rum. prefers-reduced-motion ärvs från kameran (instant i stället för
 // zoom).
+//
+// FÖRRENDERING (Pixi-rörelsen #396, S2 #420): när pekaren dröjer på – eller
+// tangentbordsfokus landar på – en kamrats tomt ritas kamratens exteriör redan
+// i det DOLDA kompis-lagret, kameran skapas (registreras hos rörelse-motorn)
+// och fokus pekas mot just den tomten. Motorn hinner då bygga T4:s pyramider
+// innan klicket. Datan är den som laddaBy() redan hämtat (ensureBy() är då
+// en cachad promise) – ingen ny Firestore-läsning. Utan Pixi är det ofarligt:
+// visa() ritar samma markup ändå, nu bara lite tidigare.
 // ============================================================================
 
 import { go, flash } from "./ui.js";
@@ -26,6 +34,9 @@ import { husScen } from "./art-hus-ute.js";
 import { createKamera } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { possessiv } from "./text-format.js";
+
+/** Så länge pekaren ska dröja på en kamrats tomt innan exteriören förrenderas. */
+const FORRENDER_MS = 60; // = motorns DWELL_MS (varld-motor-mal.js)
 
 /** Minimal escape för elevnamn som skrivs in i aria-attribut. */
 function escAttr(s) {
@@ -93,6 +104,23 @@ export function createKompisVy({ stage, byLager, kompisLager, byNiva, meId, ensu
     }));
   }
 
+  // Rita kamratens exteriör i kompis-lagret och färga lagret med DERAS palett
+  // (överskuggar scenens egna --hus-*), och peka kamerafokus mot deras tomt.
+  // Idempotent: samma kamrat → ingen DOM-skrivning (en skrivning smutsar
+  // lagret i Pixi-motorn och tvingar fram en ny spegling vid klick).
+  let ritadId = null;
+  function ritaKompis(friend, by) {
+    byKompisNiva.fokus = by.fokusById[friend.id] || byNiva.fokus;
+    if (ritadId === friend.id && kompisLager.childElementCount) return;
+    ritadId = friend.id;
+    kompisLager.innerHTML = kompisHusHtml(friend);
+    const kp = getPalette(friend.paletteId);
+    kompisLager.style.setProperty("--hus-house", kp.house);
+    kompisLager.style.setProperty("--hus-roof", kp.roof);
+    kompisLager.style.setProperty("--hus-wall", kp.wall);
+    kompisLager.style.setProperty("--hus-wall2", kp.wall2);
+  }
+
   // Zooma in till en kamrats hus-exteriör. Kräver att byn är byggd (fokus +
   // kompisdata). Egen tomt/okänt id → snäll fallback.
   async function visa(id) {
@@ -109,17 +137,9 @@ export function createKompisVy({ stage, byLager, kompisLager, byNiva, meId, ensu
     if (friend.id === meId) return go("#/elev/hus"); // egen tomt → eget hus
     kompisNu = friend;
 
-    // Rita kamratens exteriör och färga lagret med DERAS palett (överskuggar
-    // scenens egna --hus-*). Namnet visas i titeln av anroparens onNiva.
-    kompisLager.innerHTML = kompisHusHtml(friend);
-    const kp = getPalette(friend.paletteId);
-    kompisLager.style.setProperty("--hus-house", kp.house);
-    kompisLager.style.setProperty("--hus-roof", kp.roof);
-    kompisLager.style.setProperty("--hus-wall", kp.wall);
-    kompisLager.style.setProperty("--hus-wall2", kp.wall2);
-
-    // Kamerafokus = kamratens tomt → mjuk zoom just dit.
-    byKompisNiva.fokus = by.fokusById[friend.id] || byNiva.fokus;
+    // Rita kamratens exteriör (no-op om hover redan förrenderat just hen –
+    // då står den förvärmda pyramiden kvar orörd) + fokus mot deras tomt.
+    ritaKompis(friend, by);
 
     const forsta = !kamera;
     const cam = ensureKamera();
@@ -162,6 +182,45 @@ export function createKompisVy({ stage, byLager, kompisLager, byNiva, meId, ensu
       hus.click();
     }
   });
+
+  // Förrendering vid hover/fokus på en kamrats tomt (se toppen av filen).
+  // Pekaren får dröja FORRENDER_MS så att en mus som sveper över 25 hus inte
+  // ritar om lagret 25 gånger; tangentbordsfokus förrenderar direkt.
+  let forTimer = null;
+  function forrendera(tomt) {
+    clearTimeout(forTimer);
+    forTimer = null;
+    const id = tomt?.dataset.id;
+    // Bara i byn (kameran står still på by-nivån), bara olåsta kamrattomter,
+    // och bara när byn redan är byggd (tomten finns → laddaBy har resolvat →
+    // ensureBy() är den cachade promisen, ingen läsning).
+    if (!id || tomt.dataset.me || tomt.dataset.locked) return;
+    if (stage.dataset.niva !== "by" || !tomt.isConnected || !byLager.contains(tomt)) return;
+    // Motorns krokar (varld-motor.js, laddas lat → valfria): FÖRST målet
+    // (byns ytterpyramid mot tomtens data-fokus-x/y), sedan – när exteriören
+    // står i det dolda lagret – innerlagret för just det målet.
+    const motor = () => window.__ppPixi?.motor;
+    try { motor()?.forvarmMal?.(tomt); } catch { /* motorn är valfri */ }
+    ensureBy().then((by) => {
+      if (stage.dataset.niva !== "by" || (kamera && kamera.aktivId !== "by")) return;
+      const friend = by.students.find((s) => s.id === id);
+      if (!friend || friend.id === meId) return;
+      ritaKompis(friend, by);
+      ensureKamera(); // registrerar kompis-kameran hos rörelse-motorn
+      try { motor()?.forvarmLager?.(kompisLager); } catch { /* motorn är valfri */ }
+    }, () => {});
+  }
+  byLager.addEventListener("pointerover", (e) => {
+    const tomt = e.target.closest?.(".by-tomt");
+    if (!tomt || tomt.contains(e.relatedTarget)) return; // rörelse inom samma tomt
+    clearTimeout(forTimer);
+    forTimer = setTimeout(() => forrendera(tomt), FORRENDER_MS);
+  });
+  byLager.addEventListener("pointerout", (e) => {
+    const tomt = e.target.closest?.(".by-tomt");
+    if (tomt && !tomt.contains(e.relatedTarget)) clearTimeout(forTimer);
+  });
+  byLager.addEventListener("focusin", (e) => forrendera(e.target.closest?.(".by-tomt")));
 
   return {
     visa,
