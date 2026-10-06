@@ -135,6 +135,50 @@
     <script type="module" src="./src/app.js"></script>
     <div class="pv-pixi" id="pv-pixi" aria-hidden="true"></div>
     <script>
+      // Klicktest-hjälp (evaluate_script): __s4.pos() = rummets left/top per
+      // sak/djur, __s4.lage() = nivå, Pixi-spår, motorns senaste logg, WAAPI-läge.
+      window.__s4 = {
+        pos() {
+          const o = {};
+          for (const n of document.querySelectorAll("#rum-lager .room-item")) o[n.dataset.id || n.dataset.petId] = n.style.left + "," + n.style.top;
+          return o;
+        },
+        lage() {
+          const st = document.getElementById("varld-stage");
+          const anims = document.getElementById("rum-lager")?.getAnimations({ subtree: true }) || [];
+          const ej = anims.filter((a) => a.playState !== "running" && a.playState !== "finished");
+          return {
+            niva: st?.dataset.niva, pixiSpel: st?.dataset.pixiSpel, spelar: window.__ppPixi?.motor?.spelar ?? null,
+            senaste: window.__ppPixi?.motor?.senaste ?? null, anims: anims.length, allaRunning: !ej.length,
+            ejRunning: ej.map((a) => a.playState + ":" + (a.animationName || "")),
+            vilar: !!document.querySelector(".varld-pixi-vilar"), spelarKlass: !!st?.classList.contains("varld-pixi-spelar"),
+            fs: { reads: window.__fakeFs?.stat.reads, writes: window.__fakeFs?.stat.writes },
+          };
+        },
+        // Provare för EN övergång (starta före klicket, läs med resultat()):
+        // fångar fryspunkten (.varld-pixi-vilar på/av) – djurens left/top och
+        // en andnings-animations currentTime precis före, under och efter.
+        prov() {
+          clearInterval(this._t);
+          const st = document.getElementById("varld-stage");
+          const djur = () => [...document.querySelectorAll("#rum-lager .room-pet")];
+          const bild = () => Object.fromEntries(djur().map((n) => [n.dataset.petId, n.style.left + "," + n.style.top]));
+          const anim = () => { const a = document.querySelector("#rum-lager .room-pet .ps-kropp")?.getAnimations()[0]; return a ? { ct: Math.round(a.currentTime), ps: a.playState } : null; };
+          const r = (this._r = { start: { niva: st.dataset.niva, spel: st.dataset.pixiSpel }, rader: [], t0: performance.now() });
+          let forra = "", vilaBild = null, slut = 0;
+          this._t = setInterval(() => {
+            const t = Math.round(performance.now() - r.t0);
+            const vilar = !!document.querySelector(".varld-pixi-vilar");
+            const nyckel = [st.dataset.niva, st.dataset.pixiSpel, st.classList.contains("varld-pixi-spelar"), vilar].join("|");
+            if (vilar && !vilaBild) vilaBild = bild();
+            if (vilar && vilaBild) { const nu = bild(); for (const k in nu) if (nu[k] !== vilaBild[k]) (r.rorUnderVila ||= []).push(k + "@" + t); }
+            if (nyckel !== forra) { r.rader.push({ t, nyckel, anim: anim(), djur: bild() }); forra = nyckel; if (!vilar && vilaBild) slut = t; }
+            if ((slut && t - slut > 1200) || t > 120000) { r.efter = { anim: anim(), djur: bild(), t }; clearInterval(this._t); }
+          }, 16);
+          return true;
+        },
+        resultat() { return this._r; },
+      };
       // Liten statusrad: nivå + senaste rörelsens väg (pixi | css:<orsak>).
       setInterval(() => {
         const st = document.getElementById("varld-stage");
