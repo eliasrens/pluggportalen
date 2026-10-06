@@ -19,6 +19,7 @@ studentData/{studentId}                  ← elevens speldata (coins, framsteg, 
 classes/{classId}                        ← klass (lärarens gruppering, t.ex. "6A")
 classProjections/{classId}               ← förberäknad by-översikt per klass (O(1) läsningar)
 classProjects/{classId}                  ← gemensamma klassprojekt (donationer till byns ytor)
+studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök per färdig text (#399)
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -210,6 +211,27 @@ Exempel (`students/elev1`):
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
+| `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt }`. `level` (1–7) är Läsresans **dolda** nivå – helt skild från `readingLevel` (1–3). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, nivå 3) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
+| `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
+
+### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
+
+Ett dokument per **färdig** text (skrivs i samma transaktion som `studentData.lasresa`
+av `completeText` i `src/data-lasresan.js`):
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `textId`, `title`, `textType`, `textLevel` | string/number | Vilken text (id enligt innehållskontraktet, t.ex. `lr-n3-bollen-som-forsvann`) |
+| `studentId` | string | Eleven |
+| `startedAt`, `completedAt` | number | ms sedan epoch |
+| `totalQuestions`, `correct`, `incorrect`, `percentage` | number | Resultat |
+| `earnedMoney` | number | Pluggcoins för texten (3/rätt, lagda på `coins` via `addCoins`) |
+| `perQuestion` | array | `[{ qid, category, chosen, correct }]` |
+| `perCategory` | map | `{ kategori: { q, correct } }` |
+
+Regel: läs/skriv för eleven själv eller lärare (striktare läsning än `studentData`).
+⚠️ Kräver `firebase deploy --only firestore:rules`. Innan dess faller skrivningen
+tillbaka till `studentData.lasresaAttemptsFallback`.
 
 ### `studentData.pets[]` – kläckbara husdjuren
 

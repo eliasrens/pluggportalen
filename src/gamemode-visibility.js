@@ -325,3 +325,43 @@ export function visibleVillageClasses(classes, meId) {
   const dolda = new Set(egna.flatMap((c) => normalizeHiddenVillages(c.hiddenVillages)));
   return lista.filter((c) => egnaIds.has(c.id) || !dolda.has(c.id));
 }
+
+// ---------------------------------------------------------------------------
+// Modul-synlighet per klass (issue #412): läraren kryssar vilka TOP-NIVÅ-moduler
+// (sidomenyns sektioner) klassens elever ser. Lagras som classes/{id}.
+// hiddenModules = string[] (modul-id som DÖLJS). Tom/saknad = allt synligt.
+// `routes` = elev-routerna modulen äger; en dold modul nås inte ens via direktlänk.
+// Hem (huset) är elevens startsida och går därför inte att dölja.
+// ---------------------------------------------------------------------------
+
+/** Registret över moduler läraren kan dölja (ordning = visningsordning). */
+export const TOGGLABLE_MODULES = [
+  { id: "plugga", label: "Plugga",
+    routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
+  { id: "lasresan", label: "Läsresan", routes: ["/elev/lasresan"] },
+  { id: "shop", label: "Shoppen", routes: ["/elev/shop"] },
+];
+
+/** Normalisera hiddenModules: bara kända modul-id, samma regler som lägen. */
+export function normalizeHiddenModules(v) {
+  const kanda = new Set(TOGGLABLE_MODULES.map((m) => m.id));
+  return normalizeHiddenModes(v).filter((id) => kanda.has(id));
+}
+
+/** Modul-id som äger elev-routen `path` (utan query), annars null. */
+export function moduleForRoute(path) {
+  return TOGGLABLE_MODULES.find((m) => m.routes.includes(path))?.id || null;
+}
+
+/**
+ * Modulerna som är dolda för eleven: union över ALLA elevens klasser (en elev i
+ * flera klasser får den striktaste vyn – samma regel som visibleVillageClasses).
+ * @param {Array<{studentIds?:string[], hiddenModules?:string[]}>} classes
+ * @param {string|null} meId
+ * @returns {string[]}
+ */
+export function hiddenModulesForStudent(classes, meId) {
+  if (!meId || !Array.isArray(classes)) return [];
+  const egna = classes.filter((c) => Array.isArray(c.studentIds) && c.studentIds.includes(meId));
+  return [...new Set(egna.flatMap((c) => normalizeHiddenModules(c.hiddenModules)))];
+}

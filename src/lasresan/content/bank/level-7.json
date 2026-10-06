@@ -1,0 +1,710 @@
+[
+  {
+    "id": "lr-n7-eken",
+    "title": "Eken på tomtgränsen",
+    "level": 7,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Eken stod precis på gränsen mellan Iduns trädgård och familjen Lindqvists. Ingen visste exakt hur gammal den var, men morfar brukade säga att den hade varit stor redan när han var liten. Om somrarna gav den skugga åt båda trädgårdarna, och om hösten släppte den så många löv att det tog en hel helg att kratta upp dem.\n\nDet var hösten då Idun fyllde tolv som grannarna slutade hälsa på varandra.\n\nDet började med ett brev. Herr Lindqvist ville fälla eken. Rötterna hade börjat lyfta plattorna på hans uppfart, och en stor gren hängde rakt över barnbarnens sandlåda. ”Om den grenen rasar en blåsig dag vill jag inte ens tänka på vad som kan hända”, skrev han. Han hade redan fått en offert från en firma som fäller träd.\n\nIduns mamma blev upprörd. Hon hade vuxit upp i huset och kunde inte föreställa sig trädgården utan eken. Hon hade dessutom läst att gamla ekar hör till de viktigaste träden för insekter, fåglar och svampar, och att det tar flera hundra år innan ett nytt träd blir lika värdefullt. ”Man kan inte bara såga ner något som har stått här längre än någon av oss”, sa hon vid middagen.\n\nIdun höll med mamma, åtminstone i början. Men en eftermiddag när hon hämtade en boll som hade studsat över staketet fick hon syn på grannens uppfart. Plattorna stack upp som sneda tänder, och vid kanten av en av dem låg ett gammalt plåster i gruset. Över sandlådan hängde grenen, tung och grå, med en lång torr spricka på undersidan.\n\nDen kvällen kunde Idun inte somna. Hon hade alltid tänkt på grannen som den sura gubben som klagade på löven. Nu förstod hon att han kanske inte var sur, utan rädd.\n\nDagen därpå gick hon över till Lindqvists med ett förslag. Tänk om man kunde ta bort bara den skadade grenen? Hon hade läst att det finns arborister, trädexperter som kan bedöma om ett träd är farligt och beskära det så att det mår bättre.\n\nHerr Lindqvist tittade länge på henne. ”Har din mamma skickat dig?”\n\n”Nej”, sa Idun. ”Jag tror bara att ni båda har rätt, fast om olika saker.”\n\nDet tog tre veckor och två långa samtal vid staketet innan grannarna kom överens. En arborist undersökte eken och kom fram till att trädet var friskt, men att grenen över sandlådan måste bort. Uppfarten fick nya plattor, lagda så att rötterna fick plats under.\n\nEken står kvar än i dag, lite mindre än förut. Varje höst krattar Idun och herr Lindqvists barnbarn löven tillsammans, från var sin sida av staketet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka två skäl gav herr Lindqvist i sitt brev för att fälla eken?",
+        "options": [
+          "Grenen hade redan skadat ett barnbarn, och trädet var för gammalt",
+          "Löven var jobbiga att kratta, och trädet skuggade hela hans trädgård",
+          "Rötterna förstörde hans uppfart, och en gren hängde över sandlådan",
+          "Trädet var sjukt, och rötterna hade nått in i hans källare"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Herr Lindqvist hade fått en ”offert” från en firma. Vad är det, att döma av sammanhanget?",
+        "options": [
+          "Ett tillstånd att få fälla trädet",
+          "En varning om att trädet är farligt",
+          "En räkning för ett arbete som redan är gjort",
+          "Ett erbjudande om vad arbetet skulle kosta"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ändrar Idun uppfattning när hon ser grannens uppfart och grenen?",
+        "options": [
+          "Hon ser själv att grannens oro har verkliga skäl",
+          "Hon blir rädd att bollen ska ha gått sönder i gruset",
+          "Hon inser att mamma har överdrivit hur gammal eken är",
+          "Hon upptäcker att eken är sjuk och snart kommer att dö"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad menar Idun med att grannen ”kanske inte var sur, utan rädd”?",
+        "options": [
+          "Att han var rädd att trädet skulle växa sig ännu större",
+          "Att hans klagomål kom ur oro för att någon skulle skadas",
+          "Att han var rädd för Iduns mamma och därför skrev ett brev",
+          "Att han bara låtsades vara arg för att få som han ville"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför frågar herr Lindqvist om Iduns mamma har skickat henne?",
+        "options": [
+          "Han misstänker att Idun bara för fram mammans sida i bråket",
+          "Han tycker att Idun är för ung för att gå dit ensam",
+          "Han vill veta om mamman tänker betala arboristen",
+          "Han vill att mamman ska komma själv och be om ursäkt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder ”beskära” i texten?",
+        "options": [
+          "Fälla hela trädet och plantera ett nytt i stället",
+          "Ge trädet näring så att det växer",
+          "Såga eller klippa bort vissa delar av ett träd",
+          "Flytta trädet till en bättre plats"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "På vilket sätt hade både mamma och herr Lindqvist rätt?",
+        "options": [
+          "Rötterna var farliga, men grenen över sandlådan var frisk",
+          "Eken var sjuk, men den var ändå vacker att titta på",
+          "Löven var ett problem för båda, men skuggan var skön på sommaren",
+          "Eken var värd att bevara, men grenen var en verklig fara"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar slutet, där barnen krattar löv tillsammans från var sin sida av staketet?",
+        "options": [
+          "Att eken nu tappar fler löv än den gjorde förut",
+          "Att konflikten har blivit ett samarbete, även om gränsen finns kvar",
+          "Att de vuxna fortfarande inte pratar med varandra",
+          "Att Idun måste städa i grannens trädgård varje höst"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vilket påstående passar bäst som berättelsens budskap?",
+        "options": [
+          "Gamla träd ska alltid bevaras, oavsett vad det kostar",
+          "Den som har bott längst på en plats bör få bestämma över den",
+          "Att förstå den andras skäl kan leda till en bättre lösning",
+          "Det är bäst att barn håller sig utanför de vuxnas bråk"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-bilden-i-chatten",
+    "title": "Bilden i chatten",
+    "level": 7,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Bilden dök upp i klassens gruppchatt en torsdagskväll strax efter nio. Det var ett foto på Linnea från idrottslektionen, taget i exakt den sekund då hon föll baklänges över bocken. Någon hade ritat dit gröna grodben och skrivit ”Grodan Linnea hoppar igen” under. Avsändaren var ett konto utan namn och utan profilbild. Inom tio minuter hade bilden fått tjugo skrattande smileys.\n\nArvid skrattade inte, för han visste precis vem som låg bakom. På lunchen samma dag hade Melvin, hans bästa kompis sedan förskolan, visat honom bilden i mobilen. ”Ska jag lägga ut den?” hade han frågat och flinat. Arvid hade ryckt på axlarna och fnissat lite, mest för att inte verka tråkig. Han hade aldrig trott att Melvin skulle göra det på riktigt.\n\nNu låg han i sängen och såg kommentarerna bli fler. Några var bara fåniga, men andra var elaka på riktigt. Linnea själv skrev ingenting. Hennes namn syntes bland dem som hade läst meddelandet, men det kom inget svar.\n\nDagen därpå var Linnea inte i skolan. Läraren Annika berättade att en förälder hade hört av sig om bilden. ”Jag tänker inte tvinga någon att berätta något”, sa hon. ”Men fundera på en sak. Den som skickade bilden är inte den enda som bestämmer hur det här slutar.”\n\nPå rasten satte sig Melvin bredvid Arvid som vanligt. ”Det var ju bara ett skämt”, sa han lågt, utan att titta upp. ”Alla skrattade.”\n\n”Inte alla”, sa Arvid.\n\nMelvin svarade inte. Arvid förstod att han var rädd. Om det kom fram skulle han få gå till rektorn, och hans pappa skulle bli rasande.\n\nArvid grubblade hela eftermiddagen. Om han berättade för Annika skulle Melvin kanske aldrig förlåta honom. Om han teg skulle Linnea fortsätta tro att hela klassen tyckte att hon var löjlig. Och han kunde inte glömma att han själv hade fnissat på lunchen.\n\nTill slut valde han en tredje väg. Efter skolan gick han hem till Melvin. ”Jag tänker inte gå bakom din rygg”, sa han. ”Men om du inte tar bort bilden och ber Linnea om förlåtelse till i morgon, så går jag till Annika. Och jag följer med dig, om du vill.”\n\nMelvin stirrade på honom länge. Sedan tog han fram mobilen.\n\nKvällen efter var bilden borta. I chatten stod i stället ett kort meddelande från Melvins vanliga konto: ”Det var jag som la ut bilden. Det var dumt. Förlåt, Linnea.”\n\nArvid läste det tre gånger. Han visste inte om de fortfarande var bästa vänner. Men för första gången sedan torsdagen kunde han somna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur visste Arvid vem som hade lagt ut bilden?",
+        "options": [
+          "Han kände igen kontot utan namn som Melvins gamla konto",
+          "Annika hade berättat för honom vem det var som hade gjort det",
+          "Han hade sett Melvin skicka bilden under idrottslektionen",
+          "Melvin hade visat honom bilden och frågat om han skulle lägga ut den"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad kan man förstå av att Linnea läste meddelandet men inte svarade?",
+        "options": [
+          "Hon tyckte att skämtet var roligt men ville inte visa det för någon",
+          "Hon blev troligen sårad och visste inte hur hon skulle bemöta det",
+          "Hon visste redan vem som hade skickat bilden",
+          "Hon hade inte förstått att bilden föreställde henne"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad menar Annika med att den som skickade bilden ”inte är den enda som bestämmer hur det här slutar”?",
+        "options": [
+          "Att de andra i klassen också kan påverka vad som händer härnäst",
+          "Att det är rektorn och inte läraren som bestämmer vilket straff som blir",
+          "Att Linnea själv måste bestämma om hon ska komma tillbaka",
+          "Att bilden kommer att finnas kvar på internet för alltid"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad menar Arvid när han svarar ”Inte alla”?",
+        "options": [
+          "Att några inte tyckte att bilden var rolig, till exempel han själv",
+          "Att det fanns några i klassen som inte ens hade hunnit se bilden i chatten",
+          "Att Melvin borde ha väntat lite längre med att lägga ut bilden",
+          "Att Annika inte hade skrattat när hon såg bilden"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan Arvid inte släppa att han själv fnissade på lunchen?",
+        "options": [
+          "Han är rädd att Linnea såg honom fnissa",
+          "Han tycker egentligen fortfarande att bilden var rolig",
+          "Han tror att Annika redan vet om det",
+          "Han känner att han också har en del i det som hände"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är den ”tredje väg” som Arvid väljer?",
+        "options": [
+          "Att berätta för Annika utan att Melvin får veta det",
+          "Att be Linnea att själv ta reda på vem som gjorde det",
+          "Att ge Melvin chansen att själv ta ansvar först",
+          "Att varken säga något till Melvin eller till Annika"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför lägger Arvid till ”Och jag följer med dig, om du vill”?",
+        "options": [
+          "Han vågar inte själv gå till Annika utan att ha sällskap",
+          "Han vill vara säker på att Melvin verkligen får ett straff av rektorn",
+          "Han vill visa att han är kvar som vän, även om han ställer krav",
+          "Han vill slippa prata med Linnea på egen hand"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken konflikt inom Arvid handlar berättelsen främst om?",
+        "options": [
+          "Lojalitet mot en vän mot att göra rätt mot den som blivit sårad",
+          "Viljan att vara populär mot viljan att lyckas i skolan",
+          "Lusten att skämta mot kravet att alltid vara allvarlig",
+          "Rädslan för läraren mot rädslan för vad Melvins pappa ska göra"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Varför kan Arvid somna i slutet, trots att han inte vet om de fortfarande är vänner?",
+        "options": [
+          "Han har fått veta att Linnea har förlåtit både honom och Melvin",
+          "Han har gjort det han tyckte var rätt, även om det kostade",
+          "Han har bestämt sig för att byta till en annan klass",
+          "Han vet att Melvin har fått ett hårt straff av rektorn och sin pappa"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-overraskningen",
+    "title": "Den perfekta överraskningen",
+    "level": 7,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Vera hade planerat i tre veckor. Mamma skulle fylla fyrtio på lördagen, och hon förtjänade, enligt Vera, ”den bästa överraskningen i världshistorien”. I ett anteckningsblock som Vera gömde under madrassen fanns en lista med tjugotre punkter: gästerna skulle smyga in klockan sex, lillebror Teo skulle hålla mamma borta på en promenad, tårtan skulle vara en hemgjord prinsesstårta, och när mamma öppnade dörren skulle alla ropa ”Grattis!” medan Vera spelade mammas favoritlåt på gitarr.\n\nIngenting gick som det stod i blocket.\n\nKlockan fyra sprack marsipanen åt alla håll när Vera försökte lägga den över tårtan. Resultatet såg mer ut som en punkterad grön ballong än en prinsesstårta. Klockan halv sex ringde Teo och viskade att mamma hade snubblat i en grop och vrickat foten, och att de var på väg hem – nu. Och klockan fem i sex, när bara hälften av gästerna hade kommit, slog någon på vattenkokaren samtidigt som den nya ljusslingan. Det small till i proppskåpet, och hela huset blev mörkt.\n\nDet var så mamma hittade dem: en hall full av halvt gömda gäster som famlade i mörkret, en tårta som lutade, och Vera mitt i alltihop med gitarren och tårar i ögonen.\n\n”Förlåt”, snyftade Vera. ”Allt blev fel. Det skulle vara perfekt.”\n\nMamma tittade på henne. Sedan började hon skratta, inte elakt, utan så att hon fick hålla sig i dörrkarmen för att inte stödja på den onda foten.\n\n”Vet du vad”, sa hon när hon hade hämtat andan. ”När jag fyllde tio ordnade min mamma en överraskningsfest åt mig. Hunden åt upp halva tårtan innan gästerna kom, och min morbror satte sig på presenterna. Det är fortfarande det bästa kalas jag har varit på.”\n\nNågon hittade ficklampor. En granne hjälpte Teo att få igång strömmen igen. Gästerna åt den sneda tårtan med fingrarna, eftersom ingen hittade gafflarna i mörkret, och Vera spelade mammas favoritlåt i skenet från tre mobiler. Hon tog fel på två ackord. Ingen brydde sig.\n\nLångt senare, när alla hade gått, satt Vera och mamma kvar vid köksbordet med fötterna på varsin stol.\n\n”Jag hade skrivit en lista med tjugotre punkter”, erkände Vera.\n\n”Jag vet”, sa mamma. ”Jag hittade den när jag bytte lakan i tisdags.”\n\nVera stirrade på henne. ”Så du visste? Om allt?”\n\n”Om allt som stod på listan”, sa mamma och log. ”Men det var ju inget av det som hände.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka saker gick fel innan mamma kom hem?",
+        "options": [
+          "Tårtan föll i golvet, Teo glömde sin uppgift och gitarren gick sönder",
+          "Gästerna kom för tidigt, ljusen tog slut och hunden åt upp halva tårtan",
+          "Vera tappade listan, vattenkokaren gick sönder och mamma blev arg",
+          "Marsipanen sprack, mamma kom hem tidigare än planerat och strömmen gick"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder det att gästerna ”famlade i mörkret”?",
+        "options": [
+          "De trevade sig osäkert fram i mörkret",
+          "De skrattade åt hur dåligt allt hade gått",
+          "De gömde sig alldeles tysta i mörkret",
+          "De letade efter tårtan och gafflarna"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vad kan man förstå om Vera utifrån listan med tjugotre punkter?",
+        "options": [
+          "Hon tycker inte om att baka men gör det ändå för mammas skull",
+          "Hon vill egentligen imponera mer på gästerna än på sin mamma",
+          "Hon vill ha kontroll och att allt ska bli exakt rätt",
+          "Hon har svårt att komma ihåg saker om hon inte skriver ner dem"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför berättar mamma om sin egen tioårsfest?",
+        "options": [
+          "Hon vill visa att ett kalas kan bli minnesvärt för att saker går fel",
+          "Hon vill förklara varför hon aldrig har tyckt om överraskningar",
+          "Hon vill visa att hennes egen mamma var sämre på att planera än Vera",
+          "Hon vill att Vera ska ordna ett nytt kalas en annan dag"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder det att mamma ”hade hämtat andan”?",
+        "options": [
+          "Hon hade gått ut för att få frisk luft",
+          "Hon hade blivit andfådd av att gå på den onda foten hela vägen",
+          "Hon hade hunnit lugna sig efter att ha skrattat så mycket",
+          "Hon hade hämtat något att dricka i köket"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför brydde sig ingen om att Vera tog fel på två ackord?",
+        "options": [
+          "Gästerna var för upptagna med att leta efter gafflar i mörkret",
+          "Stämningen var så varm att det inte spelade någon roll",
+          "Vera spelade så tyst att bara mamma kunde höra henne",
+          "Ingen kunde höra felen eftersom det var mörkt i rummet"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är det viktigt för berättelsen att mamma hade hittat listan redan i tisdags?",
+        "options": [
+          "Det visar att Teo i hemlighet hade avslöjat planen",
+          "Planen var redan avslöjad, men kaoset blev en äkta överraskning",
+          "Det visar att mamma egentligen inte alls ville ha något kalas",
+          "Det förklarar varför mamma med flit kom hem tidigare än planerat"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad har mammas tioårsfest och Veras fest för mamma gemensamt?",
+        "options": [
+          "Båda förstördes av ett husdjur som åt av tårtan",
+          "Båda blev inställda och fick göras om senare",
+          "Båda ordnades av en mamma åt sitt barn",
+          "Båda gick fel men blev ändå uppskattade minnen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vilket budskap passar bäst till berättelsen?",
+        "options": [
+          "Det som gör ett minne fint är inte att allt blir perfekt",
+          "Man ska aldrig försöka planera en överraskning",
+          "Den som planerar tillräckligt noga lyckas alltid till slut",
+          "Hemliga planer måste gömmas bättre än under madrassen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-invasiva-arter",
+    "title": "När en art hamnar på fel plats",
+    "level": 7,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "I varje naturområde har växter och djur levt tillsammans i tusentals år. De har anpassat sig till varandra: rovdjur jagar sina byten, växter konkurrerar om ljus och näring, och sjukdomar och parasiter håller vissa arter i schack. Det skapar en balans som ingen har planerat, men som ändå fungerar.\n\nMänniskor flyttar dock på arter, ibland med avsikt och ibland av misstag. De flesta arter som hamnar i ett nytt land klarar sig inte, eller lever vidare utan att ställa till med något. Några få gör däremot något oväntat: de sprider sig snabbt och tränger undan dem som redan fanns där. Sådana arter kallas invasiva.\n\nMinken är ett exempel. Den fördes till Sverige från Nordamerika på 1920-talet för att födas upp i pälsfarmar. En del djur rymde eller släpptes ut, och snart levde vilda minkar längs sjöar och kuster i stora delar av landet. Minken jagar skickligt både på land och i vatten, och fåglar som häckar på små öar i skärgården hade aldrig behövt skydda sig mot ett sådant rovdjur. På vissa öar försvann nästan alla häckande fåglar.\n\nLupinen kom hit som en vacker trädgårdsväxt. I dag lyser den blå och rosa längs många vägkanter. Det låter kanske harmlöst, men lupinen gör jorden mer näringsrik. Då trivs den själv och andra kraftiga växter bättre, medan många små ängsblommor som behöver mager jord trängs undan. Med blommorna försvinner insekter som är beroende av just dem.\n\nSpansk skogssnigel, som ofta kallas mördarsnigel, kom troligen hit med jord och plantor från andra delar av Europa. Den förökar sig snabbt, äter nästan alla sorters växter och har få naturliga fiender här, eftersom de flesta djur inte vill äta den.\n\nDet som förenar exemplen är att arten inte är farlig i sig. I sitt ursprungliga hem hålls den tillbaka av andra arter och av förhållanden som den har levt med länge. Problemet uppstår när den flyttas till en plats där de begränsningarna saknas.\n\nAtt få bort en invasiv art som väl har spridit sig är svårt, dyrt och ibland omöjligt. Därför menar många forskare att det viktigaste är att hindra nya arter från att spridas från början, till exempel genom att inte slänga trädgårdsavfall i naturen och genom att aldrig släppa ut husdjur eller akvariefiskar i det fria.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur kom de tre arterna i texten till Sverige?",
+        "options": [
+          "Minken för pälsfarmar, lupinen med jord från andra länder och snigeln som husdjur",
+          "Minken för pälsfarmar, lupinen som trädgårdsväxt och snigeln troligen med jord och plantor",
+          "Alla tre släpptes ut med avsikt, eftersom de var vackra eller nyttiga",
+          "Minken simmade hit från Finland, lupinen spreds med fåglar och snigeln kom med båtar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder det att något håller en art ”i schack”?",
+        "options": [
+          "Det hindrar arten från att bli för många",
+          "Det lär arten att leva med andra arter",
+          "Det tävlar med arten om maten",
+          "Det skyddar arten mot rovdjur och sjukdomar"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför blev minken särskilt farlig för fåglarna i skärgården?",
+        "options": [
+          "Fåglarna smittades av sjukdomar som minkarna bar med sig från farmarna",
+          "Öarna var för små för att både minkar och fåglar skulle få plats",
+          "Minken åt upp all fisk som fåglarna på öarna levde av",
+          "Fåglarna där hade aldrig behövt skydda sig mot ett sådant rovdjur"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kan lupinen leda till att insekter försvinner?",
+        "options": [
+          "Insekterna blir förgiftade när de äter av lupinens blommor",
+          "Lupinen tar all näring ur jorden så att inget annat växer",
+          "Den gör jorden så näringsrik att insekternas blommor trängs undan",
+          "Lupinen blommar så tidigt att insekterna inte hinner vakna på våren"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder ”harmlöst” i texten?",
+        "options": [
+          "Onödigt",
+          "Ofarligt",
+          "Ovanligt",
+          "Vackert"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför har den spanska skogssnigeln så lätt att sprida sig i Sverige?",
+        "options": [
+          "Den kan simma över sjöar och vattendrag",
+          "Den tål kyla bättre än alla svenska sniglar",
+          "Den förökar sig snabbt och har få fiender",
+          "Den gömmer sig i jorden så att ingen hittar den"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar texten med att arten ”inte är farlig i sig”?",
+        "options": [
+          "Arterna är ofarliga och borde lämnas i fred av människor",
+          "Arten hålls tillbaka i sitt hem, men inte på den nya platsen",
+          "Det är bara människorna som egentligen är farliga för naturen",
+          "Arterna blir farliga först när de har levt länge på en plats"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför menar forskarna att det är viktigast att hindra spridning från början?",
+        "options": [
+          "Det är mycket svårare att bli av med en art än att stoppa den i tid",
+          "Invasiva arter försvinner oftast av sig själva efter några år",
+          "Det är förbjudet att döda djur och växter som lever i naturen",
+          "Det finns redan tillräckligt många som arbetar med att bekämpa arterna"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vilket påstående sammanfattar texten bäst?",
+        "options": [
+          "Naturen hittar alltid tillbaka till sin balans av sig själv till slut",
+          "Mink, lupiner och sniglar borde utrotas i hela världen",
+          "Alla arter som kommer hit från andra länder skadar den svenska naturen",
+          "En flyttad art kan rubba balansen när det som höll den tillbaka saknas"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-vetenskaplig-metod",
+    "title": "Hur vet vi att något fungerar?",
+    "level": 7,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Tänk dig att du har huvudvärk. Du dricker ett glas vatten, och en halvtimme senare är huvudvärken borta. Var det vattnet som hjälpte? Det är frestande att tro det. Men huvudvärken kanske hade gått över ändå. Kanske hjälpte det att du satte dig ner en stund, eller att du slutade titta på en skärm. Att två saker händer efter varandra betyder inte att den ena har orsakat den andra.\n\nJust den svårigheten är anledningen till att forskare har utvecklat noggranna metoder för att ta reda på vad som stämmer. Ett av de viktigaste verktygen är jämförelsen.\n\nOm forskare vill veta om ett nytt läkemedel fungerar räcker det inte att ge det till sjuka människor och se om de blir friska. Många blir nämligen friska av sig själva. I stället delar man in deltagarna i två grupper som slumpas fram, så att grupperna blir så lika som möjligt. Den ena gruppen får läkemedlet. Den andra, kontrollgruppen, får det inte. Om det går bättre för dem som fick läkemedlet än för kontrollgruppen har man ett starkare skäl att tro att det var läkemedlet som gjorde skillnaden.\n\nMen det finns en komplikation. Människor kan faktiskt må bättre bara av att tro att de får behandling. Det kallas placeboeffekten. Därför får kontrollgruppen ofta ett piller som ser exakt likadant ut som läkemedlet men som inte innehåller något verksamt ämne. Deltagarna vet inte vilken grupp de tillhör. Ofta vet inte ens de som delar ut pillren det, eftersom de annars skulle kunna avslöja något genom sitt sätt att prata eller bete sig. Först om läkemedelsgruppen blir mer hjälpt än placebogruppen vet man att det är ämnet i pillret, och inte förväntningarna, som verkar.\n\nEtt enda försök räcker sällan. Andra forskare måste kunna göra om undersökningen och få liknande resultat. Om ett resultat bara dyker upp en gång kan det ha varit en slump eller ett misstag.\n\nDet här tar tid och kan kännas omständligt. Men metoden bygger i grunden på något enkelt: att inte lita på sin första känsla, utan att fråga sig ”hur skulle det se ut om jag hade fel?”. Den frågan är användbar långt utanför laboratoriet, till exempel nästa gång någon påstår att en viss dryck gör dig smartare.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför börjar texten med exemplet om huvudvärk och vatten?",
+        "options": [
+          "För att visa att det som händer efter något inte alltid beror på det",
+          "För att visa att det oftast är skärmar som orsakar huvudvärk",
+          "För att ge ett gott råd om vad man kan göra när man har huvudvärk",
+          "För att bevisa att vatten egentligen inte alls hjälper mot huvudvärk"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder det att grupperna ”slumpas fram”?",
+        "options": [
+          "Forskarna väljer de sjukaste till läkemedelsgruppen",
+          "Slumpen avgör vem som hamnar i vilken grupp",
+          "Deltagarna får själva välja vilken grupp de vill vara i",
+          "Grupperna får olika mycket av läkemedlet"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför räcker det inte att ge läkemedlet till sjuka och se om de blir friska?",
+        "options": [
+          "Läkemedlet verkar bara om man först tar ett placebopiller",
+          "Många blir friska ändå, så man vet inte om det var läkemedlet",
+          "Det är förbjudet att ge nya läkemedel till sjuka",
+          "De sjuka märker inte själva om de har blivit friskare eller inte"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför får kontrollgruppen ett piller utan verksamt ämne i stället för inget alls?",
+        "options": [
+          "Så att båda grupperna har samma förväntningar",
+          "Så att forskarna kan spara på det riktiga läkemedlet",
+          "Så att deltagarna i kontrollgruppen inte ska bli besvikna",
+          "Så att placeboeffekten försvinner helt i båda grupperna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ska inte heller de som delar ut pillren veta vem som får vad?",
+        "options": [
+          "De skulle kunna ta av det riktiga läkemedlet själva",
+          "De skulle annars ge mer piller till kontrollgruppen",
+          "De skulle kunna blanda ihop pillren med varandra av misstag",
+          "De kunde omedvetet påverka deltagarnas förväntningar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det viktigt att andra forskare kan göra om undersökningen?",
+        "options": [
+          "Den första forskaren kan ha valt fel deltagare till grupperna",
+          "Ett resultat som återkommer beror troligen inte på slump",
+          "Varje forskare får bara testa ett och samma läkemedel en gång",
+          "Det är bara andra forskare som får publicera resultaten"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”omständligt” i texten?",
+        "options": [
+          "Farligt och riskabelt",
+          "Orättvist och ojämlikt",
+          "Krångligt och tidsödande",
+          "Onödigt och helt meningslöst"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad innebär det att fråga sig ”hur skulle det se ut om jag hade fel?”",
+        "options": [
+          "Att man ska ändra åsikt så fort någon säger emot en",
+          "Att man ska undvika att påstå något alls",
+          "Att man aldrig ska lita på det som forskare säger",
+          "Att man medvetet prövar sin egen uppfattning"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Någon påstår att en viss dryck gör dig smartare. Vad skulle enligt texten vara det bästa sättet att pröva det?",
+        "options": [
+          "Läsa noga vad företaget som säljer drycken skriver om den på flaskan",
+          "Fråga så många som möjligt som har druckit den om de känner sig smartare",
+          "Jämföra med en grupp som ovetande får en likadan dryck utan verksamt ämne",
+          "Dricka den själv varje dag i en vecka och se hur man känner sig"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-staderna",
+    "title": "Varför flyttar allt fler till städerna?",
+    "level": 7,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "I början av 1900-talet bodde de flesta svenskar på landsbygden. De arbetade på gårdar, i skogen eller på små bruk, och det var vanligt att barnen tog över föräldrarnas arbete. I dag bor nästan nio av tio svenskar i tätorter, och de största städerna fortsätter att växa. Samma förändring pågår i stora delar av världen. Runt år 2007 bodde för första gången i historien fler människor i städer än på landsbygden. Utvecklingen kallas urbanisering.\n\nOrsakerna är flera. När jordbruket fick traktorer och andra maskiner behövdes inte lika många människor för att odla maten. Samtidigt växte industrier, kontor, sjukhus och universitet fram i städerna, och där fanns jobben. Många unga flyttar för att utbilda sig, och när de väl har sin utbildning finns de arbeten som passar den oftast i staden. Dessutom drar städer till sig människor helt enkelt för att där redan bor många: det ger underlag för fler butiker, kaféer och föreningar, och fler chanser att träffa någon som delar ens intressen.\n\nMen när många flyttar åt samma håll uppstår problem i båda ändar. I städerna blir det trångt. Bostäderna räcker inte till, priserna stiger, och trafiken och luftföroreningarna ökar. Den som vill flytta in kan få vänta i flera år på en lägenhet.\n\nPå landsbygden blir problemet det motsatta. När invånarna blir färre och äldre får kommunen in mindre skattepengar, samtidigt som det kostar lika mycket att hålla vägar öppna och skolor igång. Butiker, bensinmackar och vårdcentraler kan få för få kunder och tvingas stänga. Och när servicen försvinner blir det ännu svårare att locka nya invånare, vilket gör att fler flyttar. Det kan bli en ond cirkel.\n\nÄndå är bilden inte svartvit. En del städer bygger nu tätare och planterar mer grönska för att bli trevligare att bo i. Många har upptäckt att de kan arbeta på distans via internet och samtidigt bo nära skog och sjö. Vissa mindre orter växer igen tack vare turism eller nya företag.\n\nUrbanisering är alltså inte något som bara händer av sig självt. Den beror på många människors val, och de valen påverkas i sin tur av beslut om var samhället bygger skolor, vägar, bredband och arbetsplatser.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hände runt år 2007, enligt texten?",
+        "options": [
+          "Nio av tio svenskar bodde i tätorter för första gången",
+          "Fler svenskar flyttade till landsbygden än till städerna",
+          "Fler människor i världen bodde i städer än på landsbygden",
+          "De största svenska städerna slutade för första gången att växa"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur hänger maskinerna i jordbruket ihop med urbaniseringen?",
+        "options": [
+          "När färre behövdes för att odla maten fick många söka arbete i städerna",
+          "Maskinerna gjorde maten så dyr att folk inte längre hade råd att bo på landet",
+          "Bönderna flyttade in till städerna för att sälja maskiner",
+          "Maskinerna gjorde det för bullrigt att bo kvar på landet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad menas med att problem uppstår ”i båda ändar”?",
+        "options": [
+          "Både Sverige och resten av världen får för många städer",
+          "Problemen kommer både i början och i slutet av en flytt",
+          "Både växande städer och krympande orter får problem",
+          "Både unga och gamla får svårare att hitta en bostad"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kan städer locka människor ”helt enkelt för att där redan bor många”?",
+        "options": [
+          "Människor tycker oftast inte om att bo ensamma i ett eget hus",
+          "Det är lättare att få en lägenhet på en plats där det bor många",
+          "Det blir billigare att bo på en plats där många andra redan bor",
+          "Många invånare ger mer utbud och fler att dela intressen med"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blir ekonomin svårare för en landsbygdskommun när folk flyttar därifrån?",
+        "options": [
+          "Kommunen måste betala flyttkostnaderna för dem som flyttar",
+          "Kommunen måste bygga nya bostäder åt dem som är kvar",
+          "Priserna på bostäderna i kommunen stiger snabbt",
+          "Kostnaderna är desamma, men färre betalar skatt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är en ”ond cirkel”, så som uttrycket används i texten?",
+        "options": [
+          "Ett problem som löser sig av sig självt efter en tid",
+          "En negativ följd som leder till mer av det som orsakade den",
+          "Något som upprepas på samma sätt varje år",
+          "När folk flyttar fram och tillbaka mellan stad och land"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Hur kan möjligheten att arbeta på distans påverka urbaniseringen?",
+        "options": [
+          "Den gör det lättare att bo kvar på landsbygden",
+          "Den gör att städerna växer ännu snabbare än tidigare",
+          "Den gör att färre behöver flytta för att utbilda sig",
+          "Den gör att jordbruket behöver ännu färre människor"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför skriver texten att bilden ”inte är svartvit”?",
+        "options": [
+          "Alla problem med urbaniseringen har nu till slut blivit lösta",
+          "Det är egentligen bättre att bo i stan än på landet",
+          "Texten har hittills bara beskrivit städernas nackdelar",
+          "Det finns också lösningar och orter som går emot utvecklingen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vilken slutsats drar texten i sista stycket?",
+        "options": [
+          "Det är bara företagen som bestämmer var människor bor",
+          "Människors val styr, men valen påverkas av var samhället satsar",
+          "Alla borde flytta tillbaka till landsbygden så fort som möjligt",
+          "Urbanisering är som en naturlag som ingen människa kan påverka"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]

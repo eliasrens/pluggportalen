@@ -334,6 +334,8 @@ export {
   setClassHiddenVillages,
   getClassHiddenVillages,
   setVillageHiddenForAll,
+  setClassHiddenModules,
+  getClassHiddenModules,
   getClassForStudent,
   getClassProjects,
   getClassProject,
