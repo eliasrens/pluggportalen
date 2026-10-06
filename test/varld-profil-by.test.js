@@ -21,7 +21,7 @@ test("profil by: format och selektorer", () => {
   assert.equal(profil.id, "by");
   assert.equal(profil.objekt, ".by-tomt");
   assert.equal(profil.ignorera, ".by-last-bubbla");
-  assert.equal(profil.malSelektor, ".by-tomt[data-fokus-x]");
+  assert.equal(profil.malSelektor, ".by-tomt[data-fokus-x]:not(.last)");
   assert.equal(profil.fangst, "stage");
   assert.ok(Array.isArray(profil.ambient));
   assert.deepEqual(profil.sprites, [".hus-rok"]);

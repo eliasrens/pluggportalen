@@ -36,7 +36,7 @@ import { BY_ZOOM } from "./varld-by.js";
 import { possessiv } from "./text-format.js";
 
 /** Så länge pekaren ska dröja på en kamrats tomt innan exteriören förrenderas. */
-const FORRENDER_MS = 120;
+const FORRENDER_MS = 60; // = motorns DWELL_MS (varld-motor-mal.js)
 
 /** Minimal escape för elevnamn som skrivs in i aria-attribut. */
 function escAttr(s) {
@@ -196,15 +196,18 @@ export function createKompisVy({ stage, byLager, kompisLager, byNiva, meId, ensu
     // ensureBy() är den cachade promisen, ingen läsning).
     if (!id || tomt.dataset.me || tomt.dataset.locked) return;
     if (stage.dataset.niva !== "by" || !tomt.isConnected || !byLager.contains(tomt)) return;
+    // Motorns krokar (varld-motor.js, laddas lat → valfria): FÖRST målet
+    // (byns ytterpyramid mot tomtens data-fokus-x/y), sedan – när exteriören
+    // står i det dolda lagret – innerlagret för just det målet.
+    const motor = () => window.__ppPixi?.motor;
+    try { motor()?.forvarmMal?.(tomt); } catch { /* motorn är valfri */ }
     ensureBy().then((by) => {
       if (stage.dataset.niva !== "by" || (kamera && kamera.aktivId !== "by")) return;
       const friend = by.students.find((s) => s.id === id);
       if (!friend || friend.id === meId) return;
       ritaKompis(friend, by);
       ensureKamera(); // registrerar kompis-kameran hos rörelse-motorn
-      try {
-        window.__ppPixi?.motor?.forvarmLager?.(kompisLager); // F4b:s krok, om den finns
-      } catch { /* motorn är valfri */ }
+      try { motor()?.forvarmLager?.(kompisLager); } catch { /* motorn är valfri */ }
     }, () => {});
   }
   byLager.addEventListener("pointerover", (e) => {
