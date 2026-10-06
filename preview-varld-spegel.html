@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spegling #416 – DOM-lager → SVG utan foreignObject</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { background: #0b0f14; color: #cfd8e3; font: 500 0.92rem/1.45 system-ui, sans-serif; }
+      .w { max-width: 1400px; margin: 0 auto; padding: 14px 10px 40px; }
+      h1 { font: 800 1.1rem "Baloo 2", system-ui; color: #7ee0a6; margin: 0 0 6px; }
+      h2 { font: 800 0.95rem "Baloo 2", system-ui; color: #9fd8ff; margin: 18px 0 4px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+      .kol { display: flex; flex-direction: column; gap: 6px; }
+      .rad { position: relative; }
+      .etikett { font: 700 0.75rem system-ui; letter-spacing: 0.06em; text-transform: uppercase; color: #9fb3c8; }
+      /* Staget i fast storlek; lagren som i appen (ute-lagren SMALARE än staget,
+         #373 → fångstytan blir negativ och den övertecknade naturen följer med). */
+      .vs .varld-stage { width: 640px; height: 400px; margin: 0; border-radius: 10px; flex: none; }
+      .vs .varld-stage > .varld-lager { transition: none; }
+      .vs .varld-stage > .varld-lager:not(.room-stage) { inset: 0 50px; width: auto; height: auto; margin: 0; }
+      .vs .varld-stage > .varld-lager.varld-by, .vs .varld-stage > .varld-lager.varld-skola { inset: 0; }
+      .vs .varld-stage > .varld-lager.room-stage { inset: 0; height: auto; }
+      .spegel { width: 640px; height: 400px; border-radius: 10px; background: repeating-conic-gradient(#1b2430 0 25%, #141b24 0 50%) 0 0 / 20px 20px; }
+      .blink .spegel { position: absolute; left: 0; top: var(--blink-top, 24px); pointer-events: none; animation: vs-blink 1.2s steps(1) infinite; }
+      @keyframes vs-blink { 50% { opacity: 0; } }
+      .lupp .kol > div, .lupp canvas { width: 320px; height: 200px; border-radius: 8px; overflow: hidden; position: relative; }
+      .lupp .kol > div > .varld-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; margin: 0; }
+      .stat { font: 600 0.8rem ui-monospace, monospace; color: #9fb3c8; min-height: 1.2em; }
+      .stat b { color: #7ee0a6; }
+      .stat .fel { color: #ff8a80; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+      .knappar button, .knappar select { border-radius: 999px; padding: 6px 14px; border: 1px solid #39465a; background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui; }
+      .knappar button:hover { border-color: #7ee0a6; }
+      pre { background: #141b24; padding: 10px; border-radius: 8px; white-space: pre-wrap; font-size: 0.78rem; max-height: 320px; overflow: auto; }
+    </style>
+  </head>
+  <body>
+    <div class="w vs" id="rot">
+      <h1>Spegling (#416, F2 i epic #396): DOM-lager → SVG utan foreignObject</h1>
+      <p>Vänster: riktiga scenerna i DOM. Höger: samma lager speglat med <code>speglaLager</code> (bas, utan ambient) +
+        ambient-noderna via <code>speglaNod</code>, rastrerat på en canvas i samma storlek. OBS: sprites läggs ovanpå basen –
+        ett ambient-objekt som ligger BAKOM annat (solstrålarna bakom solen) hamnar då framför; avkryssat bakas ambient in i basen (exakt). "Blink" lägger bilden över DOM:en
+        och växlar – inget ska hoppa. Animationer fryses (WAAPI) under speglingen som i handoffen.</p>
+      <div class="knappar">
+        <button id="b-spegla">Spegla alla</button>
+        <label>Palett <select id="palett"></select></label>
+        <label>Klädsel <select id="kladsel"></select></label>
+        <label>Husskal <select id="husskal"></select></label>
+        <button id="b-blink">Blink: av</button>
+        <label><input type="checkbox" id="frys" checked /> frys animationer</label>
+        <label title="Av = ambient bakas in i basen (exakt z-ordning). På = ambient som egna speglaNod-sprites ovanpå basen."><input type="checkbox" id="sprites" checked /> ambient som sprites</label>
+      </div>
+      <div id="scener"></div>
+      <pre id="logg">Laddar…</pre>
+    </div>
+    <script type="module">
+      import { husScen, listHusSkal, DEFAULT_HUS_SKAL } from "./src/art-hus-ute.js";
+      import { avatarMarkup, AVATARS } from "./src/avatars.js";
+      import { mountByScen } from "./src/varld-by-scen.js";
+      import { mountOmradeScen } from "./src/varld-omrade.js";
+      import { gardScen } from "./src/art-gard.js";
+      import { roomBackdropHtml, windowItemHtml } from "./src/art-room.js";
+      import { itemSvg, itemSize } from "./src/art-items.js";
+      import { spriteRigHtml } from "./src/art-pet-sprites.js";
+      import { creatureSvg } from "./src/art-pets-creatures.js";
+      import { ROOM_PALETTES, getPalette } from "./src/room-palettes.js";
+
+      const $ = (id) => document.getElementById(id);
+      const dpr = window.devicePixelRatio || 1;
+      const KLADSEL = {
+        "krona + mantel + mustasch + halsduk + ballong": ["krona", "cape", "mustasch", "halsduk", "ballong"],
+        "keps + glasögon": ["keps", "glasogon"],
+        "trollkarlshatt + monokel + gitarr": ["trollkarlshatt", "monokel", "gitarr"],
+        "inga kläder": [],
+      };
+      const st = { palett: "persika", kladsel: Object.keys(KLADSEL)[0], skal: DEFAULT_HUS_SKAL, forra: {} };
+      for (const [id, p] of Object.entries(ROOM_PALETTES)) $("palett").add(new Option(p.namn, id));
+      for (const k of Object.keys(KLADSEL)) $("kladsel").add(new Option(k, k));
+      for (const s of listHusSkal()) $("husskal").add(new Option(`${s.emoji || ""} ${s.namn}`, s.id));
+
+      // Profiler: stand-ins för scen-itemens varld-profil-*.js (S1–S5, §2.4).
+      const PROFIL = {
+        hus: { ambient: [".hus-moln", ".hus-solstralar", ".hus-rok"], fangst: "stage" },
+        by: { ambient: [".hus-rok"], ignorera: ".by-last-bubbla", fangst: "stage" },
+        skola: { fangst: "stage" },
+        rum: { ambient: [".room-pet", ".room-apple", ".rum-moln"], fangst: "lager" },
+        gard: { ambient: [".hus-moln"], fangst: "stage" },
+      };
+      const SCENER = [
+        { id: "hus", namn: "Hus/ute (husScen + avatar i FO + skylt)", klass: "varld-ute" },
+        { id: "by", namn: "By – 25 hus (mountByScen)", klass: "varld-by" },
+        { id: "skola", namn: "Skola/område (mountOmradeScen)", klass: "varld-skola" },
+        { id: "rum", namn: "Rum (möbler + PNG-spritedjur + vanligt djur + äpplen)", klass: "room-stage varld-rum" },
+        { id: "gard", namn: "Gård (gardScen)", klass: "varld-ute varld-gard" },
+      ];
+      $("scener").innerHTML = SCENER.map((s) => `
+        <h2>${s.namn}</h2>
+        <div class="rad">
+          <div class="kol"><span class="etikett">DOM</span>
+            <div class="varld-stage" id="stage-${s.id}"><div class="varld-lager ${s.klass}" id="lager-${s.id}"></div></div></div>
+          <div class="kol" id="kol-${s.id}"><span class="etikett">Speglad bild (canvas)</span><canvas class="spegel" id="spegel-${s.id}"></canvas></div>
+        </div>
+        <div class="rad lupp" id="lupp-${s.id}"></div>
+        <div class="stat" id="stat-${s.id}"></div>`).join("");
+
+      const palettVars = (el, id) => {
+        const p = getPalette(id);
+        el.style.setProperty("--hus-house", p.house); el.style.setProperty("--hus-roof", p.roof);
+        el.style.setProperty("--hus-wall", p.wall); el.style.setProperty("--hus-wall2", p.wall2);
+        el.style.setProperty("--rum-wall", p.wall); el.style.setProperty("--rum-wall2", p.wall2);
+      };
+
+      // 25 stub-elever: blandade avatarer, kläder, paletter och husskal; två låsta, ett långt namn.
+      const AV = Object.keys(AVATARS), PAL = Object.keys(ROOM_PALETTES), SKAL = listHusSkal().map((s) => s.id);
+      const KL = [["keps"], ["krona", "cape"], ["glasogon", "halsduk"], [], ["mustasch", "partyhatt"], ["ballong"], ["cowboyhatt", "slips"]];
+      const NAMN = ["Alva", "Bruno", "Cora", "Dante", "Ebba", "Frans", "Gun", "Hugo", "Ines", "Jack", "Kim", "Lova", "Malte",
+        "Nora", "Olle", "Pia", "Rut", "Sam", "Tea", "Ulf", "Vera", "Wille", "Maximiliana Vanderbilt-Ekström", "Zeb", "Åke"];
+      const elever = () => NAMN.map((namn, i) => i === 7
+        ? { id: "me", namn: "Hugo", avatarId: "fox", avatarItems: KLADSEL[st.kladsel], paletteId: st.palett, husSkalId: st.skal }
+        : { id: `e${i}`, namn, avatarId: AV[(i * 7) % AV.length], avatarItems: KL[i % KL.length], paletteId: PAL[(i * 5) % PAL.length],
+            husSkalId: SKAL[(i * 3) % SKAL.length], locked: i === 3 || i === 16 });
+
+      const KLASSER = [
+        { id: "4a", name: "4A", by: "Björkby", order: 1, studentIds: Array(6).fill(0) },
+        { id: "4b", name: "4B", by: "Ekdal", order: 2, studentIds: Array(4).fill(0) },
+        { id: "5a", name: "5A", order: 3, studentIds: Array(5).fill(0) },
+        { id: "spec", name: "Specgrupp med ett väldigt långt namn", by: "Lugna hörnet", order: 4, studentIds: Array(2).fill(0) },
+        { id: "6a", name: "6A", by: "Sjöstad", order: 5, studentIds: Array(7).fill(0) },
+      ];
+
+      function rumHtml() {
+        const sak = (id, x, y) => {
+          const s = itemSize(id);
+          const m = (n) => `calc(${n} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))`;
+          return `<div class="room-item" data-id="${id}" style="left:${x}%;top:${y}%"><span class="ri-emoji" style="width:${m(s.w)};height:${m(s.h)}">${itemSvg(id)}</span></div>`;
+        };
+        return roomBackdropHtml() + windowItemHtml({ x: 50, y: 30 }) + sak("sang", 22, 72) + sak("lampa", 82, 60) + sak("matta", 50, 86) + sak("bokhylla", 10, 52)
+          + `<div class="room-item room-pet pet-vuxen-2 selected" data-pet-id="p1" style="left:62%;top:72%"><span class="ri-emoji">${spriteRigHtml("butterfly", 2, "glad")}</span><span class="rp-namn rp-namn-tap">Fjärlis med långt namn</span></div>`
+          + `<div class="room-item room-pet pet-vuxen-1" data-pet-id="p2" style="left:38%;top:74%"><span class="ri-emoji">${creatureSvg("blomp", "glad")}</span><span class="rp-namn">Blomp</span></div>`
+          + `<span class="room-apple" style="left:44%;top:88%">🍎</span><span class="room-apple" style="left:70%;top:90%">🍎</span>`;
+      }
+
+      function rendera() {
+        const av = avatarMarkup("fox", KLADSEL[st.kladsel]);
+        palettVars($("stage-hus"), st.palett);
+        $("lager-hus").innerHTML = husScen(av, { skalId: st.skal, skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" } });
+        mountByScen({ lager: $("lager-by"), meId: "me", students: elever() });
+        mountOmradeScen({ lager: $("lager-skola"), meClassId: "4b", classes: KLASSER });
+        palettVars($("lager-rum"), st.palett);
+        $("lager-rum").innerHTML = rumHtml();
+        $("lager-gard").innerHTML = gardScen({ gardenTier: 2, barnLevel: 2 });
+      }
+
+      /** Avkoda en spegel-SVG; skala > 1 ritar om VEKTORN i högre upplösning (skarp lupp). */
+      const bildAv = (svg, skala = 1) => new Promise((ok, fel) => {
+        if (skala !== 1) svg = svg.replace(/ width="([\d.]+)" height="([\d.]+)"/, (_, w, h) => ` width="${w * skala}" height="${h * skala}"`);
+        const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); ok(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); fel(new Error("SVG kunde inte avkodas")); };
+        img.src = url;
+      });
+
+      let spegelMod = null;
+      async function speglaScen(s) {
+        const { speglaLager, speglaNod, granska } = (spegelMod ||= await import("./src/varld-spegel.js"));
+        const stage = $(`stage-${s.id}`), lager = $(`lager-${s.id}`);
+        const frys = $("frys").checked;
+        const anim = frys ? lager.getAnimations({ subtree: true }) : [];
+        anim.forEach((a) => a.pause());
+        try {
+          const profil = $("sprites").checked ? PROFIL[s.id] : { ...PROFIL[s.id], ambient: [] };
+          const sp = await speglaLager(lager, stage, profil);
+          const noder = await Promise.all(sp.ambient.map((n) => speglaNod(n, lager)));
+          const c = $(`spegel-${s.id}`);
+          c.width = Math.round(sp.w * dpr); c.height = Math.round(sp.h * dpr);
+          c.style.width = `${sp.w}px`; c.style.height = `${sp.h}px`;
+          // Canvasen är genomskinlig i appen – stagets bakgrund syns igenom (§2.3g).
+          c.style.background = getComputedStyle(stage).backgroundColor;
+          const k = c.getContext("2d");
+          k.setTransform(dpr, 0, 0, dpr, 0, 0);
+          k.clearRect(0, 0, sp.w, sp.h);
+          k.drawImage(await bildAv(sp.svg), 0, 0, sp.w, sp.h);
+          // Ambient-sprites ovanpå: lager-px → canvas = translate(-ox,-oy) · matrix · translate(rect).
+          for (const n of noder) {
+            const m = n.matrix;
+            k.setTransform(new DOMMatrix([dpr, 0, 0, dpr, 0, 0]).translate(-sp.ox, -sp.oy).multiply(m).translate(n.rect.x, n.rect.y));
+            k.globalAlpha = n.opacity;
+            k.drawImage(await bildAv(n.svg), 0, 0, n.rect.w, n.rect.h);
+          }
+          k.globalAlpha = 1;
+          await lupp(s, sp, noder);
+          let taint = false;
+          try { k.getImageData(0, 0, 1, 1); } catch { taint = true; }
+          const g = granska(sp.svg + noder.map((n) => n.svg).join(""));
+          const forra = st.forra[s.id];
+          const r = { scen: s.id, ms: +sp.ms.toFixed(1), synkMs: +sp.synkMs.toFixed(1), kB: Math.round(sp.svg.length / 1024), taint, fo: g.fo,
+            externa: g.externa, nyckel: sp.nyckel, nyckelAndrad: forra ? forra !== sp.nyckel : null, ambient: noder.length,
+            fangst: { ox: +sp.ox.toFixed(1), oy: +sp.oy.toFixed(1), w: +sp.w.toFixed(1), h: +sp.h.toFixed(1) } };
+          st.forra[s.id] = sp.nyckel;
+          $(`stat-${s.id}`).innerHTML = `ms <b>${r.ms}</b> (synkront ${r.synkMs}) · ${r.kB} kB · taint <b class="${taint ? "fel" : ""}">${taint}</b> · fo <b>${r.fo}</b> · externa <b>${r.externa}</b> · ambient ${r.ambient} · nyckel <b>${r.nyckel}</b>${r.nyckelAndrad == null ? "" : r.nyckelAndrad ? " (ÄNDRAD)" : " (oförändrad)"}`;
+          return r;
+        } catch (e) {
+          $(`stat-${s.id}`).innerHTML = `<span class="fel">FEL: ${e.message}</span>`;
+          return { scen: s.id, fel: String(e.message || e) };
+        } finally {
+          anim.forEach((a) => a.play());
+        }
+      }
+
+      // ×4-lupp kring en intressant punkt per scen: DOM-klon i scale(4) mot spegeln omrastrerad ×4.
+      const LUPP = { hus: "#ute-avatar", by: ".by-tomt.du", skola: ".omrade-by.du", rum: ".room-pet", gard: "#laggard-dorr, svg" };
+      const Z = 4;
+      async function lupp(s, sp, noder) {
+        const stage = $(`stage-${s.id}`), sr = stage.getBoundingClientRect();
+        const mal = stage.querySelector(s.id === "by" ? ".by-tomt.last" : LUPP[s.id]) || stage;
+        const mr = mal.getBoundingClientRect();
+        const lista = [{ namn: "fokus", x: mr.left + mr.width / 2 - sr.left, y: mr.top + mr.height / 2 - sr.top }];
+        if (s.id === "by") { const du = stage.querySelector(".by-tomt.du").getBoundingClientRect(); lista.push({ namn: "du", x: du.left + du.width / 2 - sr.left, y: du.top + du.height / 3 - sr.top }); }
+        const ut = [];
+        for (const p of lista) {
+          const x0 = Math.max(0, Math.min(sp.w - 80, p.x - 40)), y0 = Math.max(0, Math.min(sp.h - 50, p.y - 25));
+          const klon = stage.cloneNode(true);
+          klon.removeAttribute("id");
+          klon.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+          klon.style.transform = `scale(${Z}) translate(${-x0}px, ${-y0}px)`;
+          const c = document.createElement("canvas");
+          c.width = 320 * dpr; c.height = 200 * dpr;
+          c.style.background = getComputedStyle(stage).backgroundColor;
+          const k = c.getContext("2d");
+          const bas = await bildAv(sp.svg, Z);
+          k.drawImage(bas, x0 * Z, y0 * Z, 80 * Z, 50 * Z, 0, 0, c.width, c.height);
+          for (const n of noder) {
+            k.setTransform(new DOMMatrix([dpr * Z, 0, 0, dpr * Z, 0, 0]).translate(-x0 - sp.ox, -y0 - sp.oy).multiply(n.matrix).translate(n.rect.x, n.rect.y));
+            k.globalAlpha = n.opacity;
+            k.drawImage(await bildAv(n.svg, Z), 0, 0, n.rect.w, n.rect.h);
+          }
+          k.setTransform(1, 0, 0, 1, 0, 0); k.globalAlpha = 1;
+          const d = document.createElement("div"); d.appendChild(klon);
+          const kolD = document.createElement("div"); kolD.className = "kol";
+          kolD.innerHTML = `<span class="etikett">DOM ×${Z} (${p.namn})</span>`; kolD.appendChild(d);
+          const kolS = document.createElement("div"); kolS.className = "kol";
+          kolS.innerHTML = `<span class="etikett">Spegel ×${Z} (${p.namn})</span>`; kolS.appendChild(c);
+          ut.push(kolD, kolS);
+        }
+        $(`lupp-${s.id}`).replaceChildren(...ut);
+      }
+
+      async function speglaAlla() {
+        $("b-spegla").disabled = true;
+        await document.fonts.ready;
+        const res = [];
+        for (const s of SCENER) res.push(await speglaScen(s));
+        window.__spegel = { resultat: res, tid: new Date().toISOString(), palett: st.palett, kladsel: st.kladsel, skal: st.skal };
+        $("logg").textContent = JSON.stringify(window.__spegel, null, 2);
+        console.log("[spegel-preview]", res);
+        $("b-spegla").disabled = false;
+        return res;
+      }
+      window.__speglaAlla = speglaAlla;
+
+      $("b-spegla").onclick = speglaAlla;
+      $("palett").onchange = (e) => { st.palett = e.target.value; rendera(); $("logg").textContent = `palett → ${st.palett}; klicka "Spegla alla"`; };
+      $("kladsel").onchange = (e) => { st.kladsel = e.target.value; rendera(); $("logg").textContent = `klädsel → ${st.kladsel}; klicka "Spegla alla"`; };
+      $("husskal").onchange = (e) => { st.skal = e.target.value; rendera(); $("logg").textContent = `husskal → ${st.skal}; klicka "Spegla alla"`; };
+      $("b-blink").onclick = () => {
+        const pa = $("rot").classList.toggle("blink");
+        for (const s of SCENER) $(`spegel-${s.id}`).style.setProperty("--blink-top", `${$(`stage-${s.id}`).offsetTop}px`);
+        $("b-blink").textContent = `Blink: ${pa ? "på" : "av"}`;
+      };
+      rendera();
+      $("logg").textContent = 'Redo – klicka "Spegla alla".';
+    </script>
+  </body>
+</html>
