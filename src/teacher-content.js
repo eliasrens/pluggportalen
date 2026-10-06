@@ -3,8 +3,9 @@
 // ----------------------------------------------------------------------------
 // #/larare/innehall, ombyggd (issue #303) från en tät JSON-vägg till en STUDIO:
 //   • BIBLIOTEK (landning): ETT studiokort (#453) med sidhuvud, ämnesflikar,
-//     verktygsrad och sorterbar tabell per arbetsområde (ärlig status, #441). Klick på rad → redigera i
-//     kompositören. Sorteringsstate ({key, dir}) bor här. (Denna fil.)
+//     verktygsrad och sorterbar tabell per arbetsområde (ärlig status, #441).
+//     Klick på rad → utfällda underrader (#454) där frågor/par/texter
+//     redigeras; pennan → wizarden. Sorteringsstate ({key, dir}) bor här.
 //   • SKAPA/REDIGERA-WIZARD (modal, issue #442): 4 steg – grundinställningar,
 //     innehåll & AI-önskemål, AI-verkstaden, synlighet & spara. All wiring bor i
 //     teacher-wizard.js (+ ett modul per steg). Osparat → varning vid stäng.
@@ -82,6 +83,8 @@ export async function pageLarareInnehall(ctx) {
   // Tabellens sortering: "order" (områdets ordning) tills en rubrik klickas;
   // samma rubrik igen vänder riktningen.
   let sort = { key: "order", dir: "asc" };
+  // Utfällda underrader (#454) + engångsnotis efter sparning – överlever omladdning.
+  const itemState = { open: new Set(), notice: new Map() };
   const onSort = (key) => {
     sort = sort.key === key ? { key, dir: sort.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" };
     renderAreaCards();
@@ -136,16 +139,20 @@ export async function pageLarareInnehall(ctx) {
         onRefresh: refreshAreaList,
         sort,
         onSort,
+        itemState,
+        onItemsSaved: () => refreshAreaList({ quiet: true }),
       })
     );
   }
 
-  async function refreshAreaList() {
+  // quiet: ingen spinner (efter sparad underrad, #454) – tabellen byts ut på
+  // plats så sidan inte hoppar och utfällda underrader står kvar.
+  async function refreshAreaList({ quiet = false } = {}) {
     if (!selected) {
       areaCardsEl.innerHTML = `<p class="hint">Inget ämne valt.</p>`;
       return;
     }
-    areaCardsEl.innerHTML = `<div class="spinner">Laddar…</div>`;
+    if (!quiet) areaCardsEl.innerHTML = `<div class="spinner">Laddar…</div>`;
     try {
       currentAreas = await data.getAreas(selected);
     } catch (err) {

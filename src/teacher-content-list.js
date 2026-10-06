@@ -3,21 +3,25 @@
 // ----------------------------------------------------------------------------
 // Innehållsstudions BIBLIOTEK som en kompakt, sorterbar datatabell (issue #441,
 // tidigare kort från #303). En rad per arbetsområde i valt ämne: Område · Årskurs ·
-// Innehåll · Omfattning · Åtgärder. Klick/Enter på raden (eller ✏️) öppnar området
-// i kompositören (onEdit); ikonknapparna bevarar alla gamla funktioner: Granska
-// (#66), Lägg till (#40), Nivåtexter (#152) och Ta bort (med confirm). Utfällningar
-// visas i en full-bredds-rad direkt under raden. Rubrikerna Område/Årskurs är
+// Innehåll · Omfattning · Åtgärder. Klick/Enter/Space på raden (eller ögat) fäller
+// ut områdets UNDERRADER (#454, teacher-area-items.js – laddas med import() vid
+// första utfällning, #271): redigera/lägg till/ta bort enskilda frågor, par och
+// texter. ✏️ öppnar wizarden (onEdit); övriga ikonknappar bevarar alla gamla
+// funktioner: Lägg till (#40), Nivåtexter (#152) och Ta bort (med confirm).
+// Utfällningar visas i en full-bredds-rad direkt under raden; vilka områden som
+// är utfällda minns i opts.itemState så de står kvar när listan laddas om. Rubrikerna Område/Årskurs är
 // klickbara (aria-sort + ▲/▼); själva sorteringen sker i grades.filterSortAreas
 // och sorteringsstate ägs av teacher-content.js – hit kommer redan sorterade områden.
 // ============================================================================
 
 import * as data from "./data.js";
 import { buildMergeForm } from "./teacher-content-merge.js";
-import { buildReviewPanel } from "./teacher-content-review.js";
 import { buildReadingEditor } from "./teacher-reading.js";
 import { areaExerciseTypes, hasGeneratorContent, EXERCISE_TYPES } from "./exercise-types.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
 import { el, esc, icon } from "./teacher-shared.js";
+
+let itemsMod = null; // teacher-area-items.js efter första import() (#454/#271).
 
 const TYPE_BY_ID = new Map(EXERCISE_TYPES.map((t) => [t.id, t]));
 
@@ -93,9 +97,13 @@ const actBtn = (act, ic, label, extra = "") =>
  * @param {()=>void} opts.onRefresh – ladda om listan efter ändring.
  * @param {{key:string,dir:string}} [opts.sort] – aktiv sortering ("order" = ingen).
  * @param {(key:string)=>void} [opts.onSort] – rubrikklick på en sorterbar kolumn.
+ * @param {{open:Set<string>, notice:Map<string,string>}} [opts.itemState] – utfällda
+ *   områden + engångs-notis efter sparning (ägs av teacher-content.js, överlever omladdning).
+ * @param {()=>void} [opts.onItemsSaved] – tyst omladdning efter sparad underrad (#454).
  * @returns {HTMLElement}
  */
-export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSort }) {
+export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSort, itemState, onItemsSaved }) {
+  const state = itemState || { open: new Set(), notice: new Map() };
   const wrap = el(`<div class="table-scroll area-table-scroll">
     <table class="area-tbl">
       <thead><tr>
@@ -115,43 +123,31 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
 
   for (const a of areas) {
     const grade = normalizeGrade(a.grade);
+    const key = `${subjectId}/${a.id}`;
     const row = el(`<table><tbody><tr class="area-tbl-row" tabindex="0"
-        aria-label="Redigera ${esc(a.name)}">
+        aria-expanded="false" aria-label="Visa innehållet i ${esc(a.name)}">
       <td class="area-tbl-name"><span class="area-tbl-emoji" aria-hidden="true">${esc(a.coverEmoji || "📖")}</span><span>${esc(a.name)}</span></td>
       <td class="area-tbl-grade">${grade ? esc(gradeLabel(grade)) : "–"}</td>
       <td><div class="area-tbl-badges">${typeBadges(a)}${textBadges(a)}</div></td>
       <td class="area-tbl-count">${esc(quantityText(a))}</td>
       <td><div class="area-tbl-actions">
         ${actBtn("edit", "pencil", `Redigera ${a.name}`)}
-        ${actBtn("review", "eye", "Granska")}
+        ${actBtn("review", "eye", "Granska innehållet")}
         ${actBtn("add", "plus", "Lägg till innehåll")}
         ${actBtn("reading", "book", "Nivåtexter")}
         ${actBtn("del", "trash", "Ta bort", "danger")}
       </div></td>
     </tr></tbody></table>`).querySelector("tr");
 
-    // Klick/Enter på raden (men inte på en åtgärdsknapp) öppnar kompositören.
-    row.addEventListener("click", (e) => {
-      if (e.target.closest("[data-act]")) return;
-      onEdit(a);
-    });
-    row.addEventListener("keydown", (e) => {
-      if (e.target !== row) return;
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onEdit(a);
-      }
-    });
-
     // Utfällbara slots i en full-bredds-rad under raden (behåller alla gamla funktioner).
     const expandRow = el(`<table><tbody><tr class="area-expand-row" hidden>
       <td colspan="5"></td></tr></tbody></table>`).querySelector("tr");
-    const reviewSlot = el(`<div class="area-review" hidden></div>`);
+    const itemsSlot = el(`<div class="area-items" hidden></div>`);
     const mergeSlot = el(`<div class="area-merge" hidden></div>`);
     const readingSlot = el(`<div class="area-reading" hidden></div>`);
-    expandRow.firstElementChild.append(reviewSlot, mergeSlot, readingSlot);
+    expandRow.firstElementChild.append(itemsSlot, mergeSlot, readingSlot);
     const btn = (act) => row.querySelector(`[data-act="${act}"]`);
-    const slotBtns = new Map([[reviewSlot, btn("review")], [mergeSlot, btn("add")], [readingSlot, btn("reading")]]);
+    const slotBtns = new Map([[itemsSlot, btn("review")], [mergeSlot, btn("add")], [readingSlot, btn("reading")]]);
 
     // Utfällningsraden + knapparnas aktiv-läge följer slottarnas hidden – även när
     // formulärens egna "Stäng"-knappar (merge/nivåtexter) döljer sin slot.
@@ -160,7 +156,9 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         b.classList.toggle("active", !slot.hidden);
         b.setAttribute("aria-expanded", String(!slot.hidden));
       }
-      expandRow.hidden = reviewSlot.hidden && mergeSlot.hidden && readingSlot.hidden;
+      row.setAttribute("aria-expanded", String(!itemsSlot.hidden));
+      row.classList.toggle("expanded", !itemsSlot.hidden);
+      expandRow.hidden = itemsSlot.hidden && mergeSlot.hidden && readingSlot.hidden;
     };
     const obs = new MutationObserver(syncExpand);
     for (const slot of slotBtns.keys()) obs.observe(slot, { attributes: true, attributeFilter: ["hidden"] });
@@ -179,10 +177,63 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
       slot.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
 
+    // Underraderna (#454): UI:t laddas med import() vid första utfällning (#271).
+    // Redan laddad modul → byggs synkront (ingen spinner-blink vid tyst omladdning).
+    const openItems = async () => {
+      state.open.add(key);
+      itemsSlot.hidden = false;
+      syncExpand();
+      try {
+        if (!itemsMod) {
+          itemsSlot.replaceChildren(el(`<div class="spinner">Laddar innehåll…</div>`));
+          itemsMod = await import("./teacher-area-items.js");
+          if (itemsSlot.hidden) return;
+        }
+        const notice = state.notice.get(key);
+        state.notice.delete(key);
+        const panel = itemsMod.buildItemsPanel(a, {
+          subjectId,
+          notice,
+          onSaved: (msg) => {
+            state.notice.set(key, msg);
+            (onItemsSaved || onRefresh)();
+          },
+        });
+        itemsSlot.replaceChildren(panel);
+        // Efter sparning: fokus till underraden (tabellen byggdes om och sätts in
+        // i DOM:en först efter buildAreaTable – därav nästa frame).
+        if (notice) requestAnimationFrame(() => panel.isConnected && panel.focus({ preventScroll: true }));
+      } catch (err) {
+        console.error("Underraderna kunde inte laddas:", err);
+        itemsSlot.innerHTML = `<div class="msg error">Kunde inte ladda innehållet just nu. Prova att ladda om sidan.</div>`;
+      }
+    };
+    const toggleItems = () => {
+      if (!itemsSlot.hidden) {
+        state.open.delete(key);
+        itemsSlot.hidden = true;
+        itemsSlot.replaceChildren();
+        syncExpand();
+        return;
+      }
+      openItems().then(() => itemsSlot.scrollIntoView?.({ behavior: "smooth", block: "nearest" }));
+    };
+
+    // Klick/Enter/Space på raden (men inte på en åtgärdsknapp) fäller ut/ihop underraden.
+    row.addEventListener("click", (e) => {
+      if (e.target.closest("[data-act]")) return;
+      toggleItems();
+    });
+    row.addEventListener("keydown", (e) => {
+      if (e.target !== row) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleItems();
+      }
+    });
+
     btn("edit").addEventListener("click", () => onEdit(a));
-    btn("review").addEventListener("click", () =>
-      toggleSlot(reviewSlot, () => buildReviewPanel(a))
-    );
+    btn("review").addEventListener("click", toggleItems);
     btn("add").addEventListener("click", () =>
       toggleSlot(mergeSlot, () => buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh }))
     );
@@ -200,6 +251,7 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
     });
 
     tbody.append(row, expandRow);
+    if (state.open.has(key)) openItems();
   }
   return wrap;
 }
