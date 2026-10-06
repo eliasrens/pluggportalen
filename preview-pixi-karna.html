@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixi-kärnan #415 – worker, transport, fallback</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { background: #0b0f14; color: #cfd8e3; font: 500 0.92rem/1.45 system-ui, sans-serif; }
+      .w { max-width: 1400px; margin: 0 auto; padding: 14px 16px 40px; }
+      h1 { font: 800 1.1rem "Baloo 2", system-ui; color: #7ee0a6; margin: 0 0 6px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+      .kol { display: flex; flex-direction: column; gap: 6px; }
+      .etikett { font: 700 0.75rem system-ui; letter-spacing: 0.06em; text-transform: uppercase; color: #9fb3c8; }
+      /* Scen: hus-lagrets box är SMALARE än staget (som #373 på desktop),
+         rum-lagret fyller hela staget (avvikande box) – precis som i appen. */
+      .kp-stage { position: relative; width: 640px; height: 400px; overflow: hidden; border-radius: 10px; background: #bde3f5;
+        --varld-avatar-font: 120px; --hus-house: #F4D6A0; --hus-roof: #C0504D; --hus-wall: #FFF3DC; --hus-wall2: #F2E2C4; }
+      /* Överstyr desktop-boxen (.varld-lager:not(.room-stage) i styles.css). */
+      .kp-stage > .varld-lager.kp-hus, .kp-stage > .varld-lager.kp-rum { width: auto; height: auto; margin: 0; }
+      .kp-stage > .varld-lager.kp-hus { inset: 0 60px; }
+      .kp-stage > .varld-lager.kp-rum svg { display: block; width: 100%; height: 100%; }
+      .kp-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .knappar button { border-radius: 999px; padding: 6px 14px; border: 1px solid #39465a; background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui; margin: 0 6px 6px 0; }
+      .knappar button:hover { border-color: #7ee0a6; }
+      #status { font-weight: 700; }
+      #status[data-vag="pixi"] { color: #7ee0a6; }
+      #status[data-vag="css"] { color: #f2b56b; }
+      pre { background: #141b24; padding: 10px; border-radius: 8px; max-width: 1300px; white-space: pre-wrap; font-size: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <div class="w">
+      <h1>Pixi-kärnan (#415, F1 i epic #396): worker + transport + fallback</h1>
+      <p>Vänster: riktiga DOM-kameran (<code>createKamera</code> ur varld-kamera.js, CSS-övergång). Höger: samma korszoom
+        hus → rum (zoom 5) spelad av Pixi v8 i en <b>Worker</b> på en OffscreenCanvas, med kamera-matten ur
+        <code>varld-render-anim.js</code>. Hus-lagret är speglat till SVG (PoC #397) och rastrerat till en pyramid
+        (z 1 → 5, ×1.5-steg). "Spela" växlar in/ut. Väg: <span id="status">startar…</span></p>
+      <div class="knappar">
+        <button id="b-spela">Spela</button>
+        <button id="b-spela-lt">Spela + 400 ms long task</button>
+        <button id="b-rensa">Rensa canvas</button>
+        <button id="b-doda">Döda kontext</button>
+        <button id="b-aterstall">Återställ kontext</button>
+      </div>
+      <div class="rad">
+        <div class="kol"><span class="etikett">DOM (CSS-kameran)</span>
+          <div class="kp-stage" id="dom-stage">
+            <div class="varld-lager varld-ute kp-hus" id="dom-hus"></div>
+            <div class="varld-lager kp-rum" id="dom-rum"></div>
+          </div>
+        </div>
+        <div class="kol"><span class="etikett">Pixi-worker</span>
+          <div class="kp-stage" id="pixi-stage"><canvas id="pixi-canvas"></canvas></div>
+        </div>
+      </div>
+      <pre id="logg">Laddar…</pre>
+    </div>
+    <script type="module" src="./preview/pixi-karna/karna.js"></script>
+  </body>
+</html>
