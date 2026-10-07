@@ -59,7 +59,8 @@ async function donationer() {
     await col.doc(`qa-d${i}`).set({ uid, itemId, amount, at: ts(min) });
   }
   await db.doc("classCenters/qa-kc/fund/flygel").set({
-    targetPrice: 6000, fundedAmount: 1850, isUnlocked: false, unlockedAt: null, lastDonationId: "qa-d12",
+    // Inget unlockedAt (inte ens null) – reglerna kräver att fältet saknas innan köpt (#492).
+    targetPrice: 6000, fundedAmount: 1850, isUnlocked: false, lastDonationId: "qa-d12",
   });
   console.log(`✓ qa-kc: ${DONATIONER.length} donationer, flygel 1850/6000`);
 }
