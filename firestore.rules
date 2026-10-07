@@ -239,6 +239,308 @@ service cloud.firestore {
     // och räknar hus + stjärnor LIVE, precis som klassen själv gör. Utan reader
     // eller writer faller båda på "neka allt"-regeln nedan.
 
+    // ------------------------------------------------------------------
+    // MATTEMATCHEN + LIVE (#457) – se docs/DATAMODELL.md "Mattematchen & Live"
+    // och skrivplanen i src/tavling/answer-writes.js.
+    //
+    // Ingen backend finns, så "servervalidering" = de här reglerna:
+    //  • Ett svar = ETT svarsdokument …/answers/{attemptId} som bara får
+    //    SKAPAS (aldrig ändras) → dubbel-ENTER/retry med samma id räknas aldrig
+    //    två gånger.
+    //  • Facit räknas om här (correctAnswer == a·b, isCorrect == (answer ==
+    //    a·b)) och `at` måste vara serverns tid (serverTimestamp).
+    //  • Räknare (elevstatistik, topplista, klassräknare, Live-spelare) får bara
+    //    ändras i SAMMA batch som ett nytt svarsdokument: `lastAttemptId` pekar
+    //    på svaret, svaret får inte ha funnits före batchen (!exists) men måste
+    //    finnas efter (existsAfter), och varje räknare ökar med exakt +1 enligt
+    //    svaret. Svarsdokumentet kräver i sin tur att räknarna uppdaterades i
+    //    samma batch (getAfter) → ingen räknare utan svar, inget svar utan
+    //    räknare. Klassräknaren är shardad: svaret väljer `shard`, och bara
+    //    räknar-dokumentet `{classId}_{shard}` får röras.
+    //  • Tid: svar nekas utanför tävlingsperioden / efter Live-matchens slut
+    //    mot `request.time` (serverns klocka), oavsett klientens klocka.
+    // Kvarvarande begränsning (ärligt): eleven VÄLJER själv vilken fråga hen
+    // svarar på (reglerna kan inte se vilken fråga klienten visade) och
+    // takten begränsas inte – en elev som skriptar kan samla poäng på 0×0.
+    // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från
+    // Pages). Ingenting här är deployat.
+    // ------------------------------------------------------------------
+    function validAttemptId(id) { return id.matches('^[A-Za-z0-9_-]{8,64}$'); }
+    function prevInt(k) { return resource == null ? 0 : resource.data.get(k, 0); }
+    function newInt(k) { return request.resource.data.get(k, 0); }
+    function bumped(k, by) { return newInt(k) == prevInt(k) + by; }
+    // Bara dessa nycklar får finnas (create) resp. ändras (update).
+    function changedOnly(keys) {
+      return (resource == null && request.resource.data.keys().hasOnly(keys)) ||
+        (resource != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys));
+    }
+    function studentName(uid) {
+      return get(/databases/$(database)/documents/students/$(uid)).data.get('namn', '');
+    }
+    // Multiplikation 0–10: facit räknas om på servern.
+    function multAnswerOk(d) {
+      return d.keys().hasOnly(['uid', 'classId', 'mode', 'factorA', 'factorB', 'answer',
+                               'correctAnswer', 'isCorrect', 'shard', 'at']) &&
+        d.keys().hasAll(['uid', 'classId', 'mode', 'factorA', 'factorB', 'answer',
+                         'correctAnswer', 'isCorrect', 'shard', 'at']) &&
+        d.mode == 'multiplication_0_10' &&
+        d.factorA is int && d.factorA >= 0 && d.factorA <= 10 &&
+        d.factorB is int && d.factorB >= 0 && d.factorB <= 10 &&
+        d.answer is int && d.answer >= 0 && d.answer <= 9999 &&
+        d.correctAnswer == d.factorA * d.factorB &&
+        d.isCorrect == (d.answer == d.correctAnswer);
+    }
+    // Live: svarsfälten valideras PER gameMode. Ett nytt mode kräver en gren
+    // här (annars nekas dess svar) – medvetet: inget mode räknas oprövat.
+    function liveModeAnswerOk(d) {
+      return d.mode == 'multiplication_0_10' && multAnswerOk(d);
+    }
+    // Gemensam kärna för svarsdokumentet (MM och Live).
+    function answerCoreOk(d, attemptId, shards) {
+      return signedIn() && d.uid == request.auth.uid && validAttemptId(attemptId) &&
+        isClassMember(d.classId) && d.at == request.time &&
+        d.shard is int && d.shard >= 0 && d.shard < shards;
+    }
+    // Klassräknare-shard `{classId}_{shard}`: +1 bara för ett NYTT, rätt svar
+    // från eleven själv i samma batch, och bara på svarets egen shard.
+    function counterBump(ap, counterId) {
+      let d = request.resource.data;
+      let a = getAfter(ap).data;
+      return signedIn() && !exists(ap) && existsAfter(ap) &&
+        a.uid == request.auth.uid && a.isCorrect == true &&
+        counterId == a.classId + '_' + string(a.shard) &&
+        d.classId == a.classId && d.shard == a.shard && d.lastAt == request.time &&
+        changedOnly(['classId', 'shard', 'correct', 'lastAttemptId', 'lastAt']) &&
+        bumped('correct', 1);
+    }
+    function validCounterId(id) { return id.matches('^[A-Za-z0-9_-]{1,80}_[0-9]{1,2}$'); }
+
+    // ---------------- Mattematchen: långvarig tävling ----------------
+    function validCompetition() {
+      let d = request.resource.data;
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 80 &&
+        d.participatingClassIds is list && d.participatingClassIds.size() >= 1 &&
+        d.participatingClassIds.size() <= 50 &&
+        d.startAt is timestamp && d.endAt is timestamp && d.endAt > d.startAt &&
+        d.status in ['active', 'stopped', 'finished'] &&
+        d.counterShards is int && d.counterShards >= 1 && d.counterShards <= 50;
+    }
+    match /mathCompetitions/{cid} {
+      function mmPath(sub, id) {
+        return /databases/$(database)/documents/mathCompetitions/$(cid)/$(sub)/$(id);
+      }
+      function comp() { return get(/databases/$(database)/documents/mathCompetitions/$(cid)).data; }
+      function mmAnswerCreate(attemptId) {
+        let d = request.resource.data;
+        let c = comp();
+        return answerCoreOk(d, attemptId, c.counterShards) && multAnswerOk(d) &&
+          c.status == 'active' && request.time >= c.startAt && request.time < c.endAt &&
+          d.classId in c.participatingClassIds &&
+          getAfter(mmPath('studentStats', d.uid)).data.lastAttemptId == attemptId &&
+          (d.isCorrect == false ||
+            (getAfter(mmPath('scores', d.uid)).data.lastAttemptId == attemptId &&
+             getAfter(mmPath('classCounters', d.classId + '_' + string(d.shard))).data.lastAttemptId == attemptId));
+      }
+      // Privat elevstatistik: totalt + per tabell (c{t} = rätt, w{t} = fel).
+      function mmStatsBump(uid) {
+        let d = request.resource.data;
+        let ap = mmPath('answers', d.lastAttemptId);
+        let a = getAfter(ap).data;
+        let ok = a.isCorrect == true;
+        let tA = (ok ? 'c' : 'w') + string(a.factorA);
+        let tB = (ok ? 'c' : 'w') + string(a.factorB);
+        return isSelf(uid) && d.lastAttemptId is string && !exists(ap) && existsAfter(ap) &&
+          a.uid == uid && d.uid == uid && d.classId == a.classId && d.lastAt == request.time &&
+          changedOnly(['uid', 'classId', 'correct', 'incorrect', 'lastAttemptId', 'lastAt', tA, tB]) &&
+          bumped('correct', ok ? 1 : 0) && bumped('incorrect', ok ? 0 : 1) &&
+          bumped(tA, 1) && bumped(tB, 1);
+      }
+      // Publik topplistepost (bara namn/klass/antal rätt): +1 per rätt svar.
+      function mmScoreBump(uid) {
+        let d = request.resource.data;
+        let ap = mmPath('answers', d.lastAttemptId);
+        let a = getAfter(ap).data;
+        return isSelf(uid) && d.lastAttemptId is string && !exists(ap) && existsAfter(ap) &&
+          a.uid == uid && a.isCorrect == true &&
+          d.uid == uid && d.classId == a.classId && d.lastAt == request.time &&
+          ((resource != null && d.name == resource.data.name) || d.name == studentName(uid)) &&
+          changedOnly(['uid', 'classId', 'name', 'correct', 'lastAttemptId', 'lastAt']) &&
+          bumped('correct', 1);
+      }
+
+      allow read: if signedIn();
+      allow create, update: if isTeacher() && validCompetition();
+      allow delete: if isTeacher();
+
+      match /answers/{attemptId} {
+        allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow create: if mmAnswerCreate(attemptId);
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+      match /studentStats/{uid} {
+        allow read: if isTeacher() || isSelf(uid);
+        allow create, update: if mmStatsBump(uid);
+        allow delete: if isTeacher();
+      }
+      // Topp 25: elever får läsa enstaka poster och LISTA högst 25 åt gången.
+      match /scores/{uid} {
+        allow get: if signedIn();
+        allow list: if isTeacher() || (signedIn() && request.query.limit <= 25);
+        allow create, update: if mmScoreBump(uid);
+        allow delete: if isTeacher();
+      }
+      // Klasskamp: summan av klassens shards / klassens elevantal.
+      match /classCounters/{counterId} {
+        allow read: if signedIn();
+        allow create, update: if validCounterId(counterId) &&
+          counterBump(mmPath('answers', request.resource.data.lastAttemptId), counterId);
+        allow delete: if isTeacher();
+      }
+    }
+
+    // ---------------- Live: realtidsmatch klass mot klass ----------------
+    function validLiveSessionShape() {
+      let d = request.resource.data;
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 80 &&
+        d.gameMode is string && d.gameMode.size() <= 40 &&
+        d.participatingClassIds is list && d.participatingClassIds.size() >= 1 &&
+        d.participatingClassIds.size() <= 8 &&
+        d.classDivisors is map &&
+        d.durationSeconds is int && d.durationSeconds >= 30 && d.durationSeconds <= 3600 &&
+        d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
+        d.counterShards is int && d.counterShards >= 1 && d.counterShards <= 50 &&
+        d.status in ['lobby', 'live', 'finished'];
+    }
+    function liveSessionCreateOk() {
+      let d = request.resource.data;
+      return validLiveSessionShape() && d.status == 'lobby' &&
+        d.createdBy == request.auth.uid && d.createdAt == request.time &&
+        !('startedAt' in d) && !('endsAt' in d);
+    }
+    // STARTA: startedAt = serverns tid (serverTimestamp). endsAt skrivs i ett
+    // andra steg och MÅSTE vara startedAt + nedräkning + matchlängd. Svars-
+    // reglerna räknar ändå slutet ur startedAt, så endsAt är bara bekvämlighet.
+    function liveSessionUpdateOk() {
+      let o = resource.data;
+      let n = request.resource.data;
+      let starting = o.status == 'lobby' && n.status == 'live';
+      return validLiveSessionShape() &&
+        (n.status == o.status || starting ||
+          (o.status == 'lobby' && n.status == 'finished') ||
+          (o.status == 'live' && n.status == 'finished')) &&
+        ((starting && n.startedAt == request.time) ||
+          (!starting && n.get('startedAt', null) == o.get('startedAt', null))) &&
+        (o.status == 'lobby' ||
+          (n.gameMode == o.gameMode && n.participatingClassIds == o.participatingClassIds &&
+           n.durationSeconds == o.durationSeconds && n.countdownSeconds == o.countdownSeconds &&
+           n.counterShards == o.counterShards)) &&
+        (!('endsAt' in n) || n.endsAt == o.get('endsAt', null) ||
+          ('startedAt' in n && n.endsAt == n.startedAt +
+            duration.value(n.countdownSeconds + n.durationSeconds, 's')));
+    }
+    // Matchslut vid 00:00 (#460): VILKEN inloggad klient som helst (elev,
+    // projektor) får markera live → finished – men bara efter det officiella
+    // slutet (startedAt + nedräkning + längd mot request.time), och bara
+    // status + finishedAt (= serverns tid) ändras. Ingen kan avsluta i förtid
+    // eller röra poäng/klasser/tider den vägen.
+    function liveAutoFinishOk() {
+      let o = resource.data;
+      let n = request.resource.data;
+      return signedIn() && o.status == 'live' && n.status == 'finished' &&
+        n.diff(o).affectedKeys().hasOnly(['status', 'finishedAt']) &&
+        n.finishedAt == request.time &&
+        request.time >= o.startedAt + duration.value(o.countdownSeconds + o.durationSeconds, 's');
+    }
+    match /liveSessions/{sid} {
+      function livePath(sub, id) {
+        return /databases/$(database)/documents/liveSessions/$(sid)/$(sub)/$(id);
+      }
+      function session() { return get(/databases/$(database)/documents/liveSessions/$(sid)).data; }
+      function liveAnswerCreate(attemptId) {
+        let d = request.resource.data;
+        let s = session();
+        let t0 = s.startedAt + duration.value(s.countdownSeconds, 's');
+        return answerCoreOk(d, attemptId, s.counterShards) &&
+          d.mode == s.gameMode && liveModeAnswerOk(d) &&
+          s.status == 'live' && request.time >= t0 &&
+          request.time < t0 + duration.value(s.durationSeconds, 's') &&
+          d.classId in s.participatingClassIds &&
+          getAfter(livePath('players', d.uid)).data.lastAttemptId == attemptId &&
+          (d.isCorrect == false ||
+            getAfter(livePath('counters', d.classId + '_' + string(d.shard))).data.lastAttemptId == attemptId);
+      }
+      // "Gå med": spelardokumentet = närvaro/"redo" i lobbyn (och sen anslutning).
+      function liveJoin(uid) {
+        let d = request.resource.data;
+        let s = session();
+        return isSelf(uid) && s.status in ['lobby', 'live'] &&
+          d.keys().hasOnly(['uid', 'classId', 'name', 'joinedAt', 'lastSeenAt', 'correct', 'incorrect']) &&
+          d.uid == uid && d.classId in s.participatingClassIds && isClassMember(d.classId) &&
+          d.name == studentName(uid) &&
+          d.joinedAt == request.time && d.lastSeenAt == request.time &&
+          d.correct == 0 && d.incorrect == 0;
+      }
+      function liveHeartbeat(uid) {
+        return isSelf(uid) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeenAt']) &&
+          request.resource.data.lastSeenAt == request.time;
+      }
+      function livePlayerBump(uid) {
+        let d = request.resource.data;
+        let ap = livePath('answers', d.lastAttemptId);
+        let a = getAfter(ap).data;
+        let ok = a.isCorrect == true;
+        return isSelf(uid) && d.lastAttemptId is string && !exists(ap) && existsAfter(ap) &&
+          a.uid == uid && a.classId == resource.data.classId && d.lastAt == request.time &&
+          d.diff(resource.data).affectedKeys().hasOnly(['correct', 'incorrect', 'lastAttemptId', 'lastAt', 'lastSeenAt']) &&
+          bumped('correct', ok ? 1 : 0) && bumped('incorrect', ok ? 0 : 1);
+      }
+
+      // Alla inloggade läser sessionen (eleven ser lobby/status); ALLA lärare
+      // skapar/styr ALLA sessioner (projektorn i vilket klassrum som helst).
+      allow read: if signedIn();
+      allow create: if isTeacher() && liveSessionCreateOk();
+      allow update: if (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
+      allow delete: if isTeacher();
+
+      match /answers/{attemptId} {
+        allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow create: if liveAnswerCreate(attemptId);
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+      match /players/{uid} {
+        allow read: if isTeacher() || isSelf(uid);
+        allow create: if liveJoin(uid);
+        allow update: if liveHeartbeat(uid) || livePlayerBump(uid);
+        allow delete: if isTeacher();
+      }
+      // Shardade klassräknare – läses av projektorvyerna (lärare).
+      match /counters/{counterId} {
+        allow read: if isTeacher();
+        allow create, update: if validCounterId(counterId) &&
+          counterBump(livePath('answers', request.resource.data.lastAttemptId), counterId);
+        allow delete: if isTeacher();
+      }
+    }
+
+    // Live-klockan (#460, src/live/live-clock.js): varje inloggad skriver sitt
+    // EGET dokument med bara { t: serverTimestamp() } och läser tillbaka det →
+    // klientens avvikelse mot serverns klocka (3-2-1 och tid kvar i synk).
+    match /liveClock/{uid} {
+      allow read: if isSelf(uid);
+      allow create, update: if isSelf(uid) &&
+        request.resource.data.keys().hasOnly(['t']) && request.resource.data.t == request.time;
+    }
+
+    // Gemensam träningsstatistik: collectionGroup('answers') where uid == X
+    // ger elevens multiplikationssvar från BÅDE Mattematchen och Live
+    // (tävlingspoängen hålls ändå separata). Bara egna svar / lärare.
+    match /{path=**}/answers/{attemptId} {
+      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
     // Allt annat nekas.
     match /{document=**} {
       allow read, write: if false;

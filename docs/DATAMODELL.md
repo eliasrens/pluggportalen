@@ -20,6 +20,9 @@ classes/{classId}                        ← klass (lärarens gruppering, t.ex. 
 classProjections/{classId}               ← förberäknad by-översikt per klass (O(1) läsningar)
 classProjects/{classId}                  ← gemensamma klassprojekt (donationer till byns ytor)
 studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök per färdig text (#399)
+mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
+liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
+liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -454,6 +457,254 @@ eller lärare (`isClassMember` i `firestore.rules`; regeltester i
 `test/firestore-rules-class-docs.test.js`).
 **⚠️ Reglerna är live först efter `firebase deploy --only firestore:rules`**
 (separat från Pages-deployen).
+
+---
+
+## Mattematchen & Live (#456/#457)
+
+Spec: [spec-mattematchen-live.md](spec-mattematchen-live.md). Två produkter med
+**separata tävlingsresultat** som delar samma multiplikationsmotor:
+
+| Lager | Modul |
+| ----- | ----- |
+| Frågegenerator 0–10 (shuffle-bag, ingen direkt upprepning/spegel) | `src/mult/generator.js` |
+| Snabb svarskomponent (ENTER-flöde, autofokus, rätt/fel) | `src/mult/fast-answer.js` + `.css` |
+| Unikt försöks-id per visad fråga | `src/mult/attempt-id.js` |
+| Live gameMode-registry + inbyggda lägen | `src/live/game-modes.js`, `src/live/modes/` |
+| Svar → exakt batch som reglerna godtar | `src/tavling/answer-writes.js` |
+| MM elevlogik: period-läge, Topp 25, Klasskamp, egen statistik (ren) | `src/tavling/mm-core.js` |
+| MM elevsida `#/elev/mattematchen` (#458) – dynamisk, menylänk bara under aktiv period | `src/tavling/page-mattematchen.js`, `mm-watch.js`, `mm-data.js`, `mm-panels.js` |
+| MM lärarflik `#/larare/mattematchen` (#459) – skapa/styr/följ/historik/nollställ, `?id=` = detaljvy | `src/tavling/teacher-mattematchen.js`, `teacher-mm-detail.js`, `teacher-mm-form.js`, `teacher-mm-results.js` |
+| MM lärarlogik (ren): formulär, kontroller per läge, historik-`result`, klasstabell | `src/tavling/mm-teacher-core.js` |
+| MM lärarens Firestore-lager (skriv + nollställ + klass-statistik + träningstotal) | `src/tavling/mm-teacher-data.js` |
+| Statistik → Mattematchen (klass × period → tabell → elevdetalj per tabell 0–10) | `src/tavling/teacher-mm-stats.js` (+ `mm-larare.css`) |
+
+Demo: `preview-mult-snabb.html`. Tester: `test/mult-generator.test.js`,
+`test/live-game-modes.test.js`, `test/firestore-rules-mattematchen-live.test.js`,
+`test/mm-core.test.js`, `test/firestore-rules-mattematchen-elev.test.js`,
+`test/mm-teacher-core.test.js`, `test/firestore-rules-mattematchen-larare.test.js`.
+Elevsidan mot emulatorn: `admin/qa-mattematchen-seed.mjs` + `admin/qa-emulator-proxy.mjs`;
+lärarsidan: kör därefter `admin/qa-mattematchen-larare-seed.mjs` (qalarare / lilla123).
+
+**Lärarsidan (#459):** "Avsluta" (och första öppningen av en tävling vars tid
+tagit slut av sig själv, `archiveIfEnded`) skriver `status: "finished"` +
+`result` = `{ savedAt, winner, winnerClass, top, classes, students
+[{uid,name,classId,correct,incorrect}], totals, tables[0–10] }` (≤ 2000 elever).
+Underdokumenten ligger kvar → elevdetaljen per tabell går att öppna i efterhand.
+Klasstabellen läser `studentStats where documentId() in [klassens elever]` (30 per
+fråga). "Totalt i multiplikation" = två `count()` på `collectionGroup("answers")`
+(uid, uid+isCorrect) – **kräver index-deploy** (`firestore.indexes.json`:
+collection-group-fält `answers.uid` + sammansatt `uid,isCorrect`); utan index
+visar elevdetaljen bara "inte tillgänglig".
+
+**Elevens synlighet (#458):** `mm-watch.js` håller EN onSnapshot-fråga
+`mathCompetitions where participatingClassIds array-contains-any [elevens klasser]`
+(enkelfälts-index) + timer till nästa `startAt`/`endAt` → menylänken 🧮 visas/döljs
+automatiskt. Frågan returnerar även klassens gamla (avslutade) tävlingar – få per
+klass, filtreras i klienten (ett `endAt`-filter skulle kräva sammansatt index).
+
+```
+mathCompetitions/{cid}                               ← MathCompetition (lärare)
+mathCompetitions/{cid}/answers/{attemptId}           ← ett svar (create-only)
+mathCompetitions/{cid}/studentStats/{uid}            ← PRIVAT elevstatistik (cache)
+mathCompetitions/{cid}/scores/{uid}                  ← PUBLIK topplistepost (Topp 25)
+mathCompetitions/{cid}/classCounters/{classId}_{n}   ← shardad klassräknare (Klasskamp)
+liveSessions/{sid}                                   ← LiveSession (lärare)
+liveSessions/{sid}/answers/{attemptId}               ← ett Live-svar (create-only)
+liveSessions/{sid}/players/{uid}                     ← närvaro/"redo" + elevens matchresultat
+liveSessions/{sid}/counters/{classId}_{n}            ← shardad klassräknare (projektorn)
+```
+
+### Grundprincip: poäng uppstår bara ur verifierade svarsdokument
+
+Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar blir
+**en writeBatch** (planeras av `src/tavling/answer-writes.js`):
+
+| | MM rätt | MM fel | Live rätt | Live fel |
+|-|-|-|-|-|
+| `answers/{attemptId}` (create) | ✓ | ✓ | ✓ | ✓ |
+| `studentStats/{uid}` / `players/{uid}` (+1 rätt/fel) | ✓ | ✓ | ✓ | ✓ |
+| `scores/{uid}` (+1) | ✓ | – | – | – |
+| klassräknare `{classId}_{shard}` (+1) | ✓ | – | ✓ | – |
+
+- **Dubbla svar:** `attemptId` skapas när frågan visas och är dokument-id. Svaret
+  får bara skapas, aldrig uppdateras → dubbel-ENTER/retry/offline-kö räknas aldrig två gånger.
+- **Facit på servern:** reglerna kräver `correctAnswer == factorA·factorB`,
+  `isCorrect == (answer == correctAnswer)`, faktorer 0–10, `at == request.time`.
+- **Räknare bara +1 i samma batch:** varje räknar-dok bär `lastAttemptId`; reglerna
+  kräver att det svaret INTE fanns före batchen (`exists`) men finns efter
+  (`existsAfter`), är elevens eget, och att räknaren ökat exakt +1 enligt svaret.
+  Svaret kräver omvänt (`getAfter`) att räknarna uppdaterats i samma batch.
+  Klassräknaren måste vara svarets egen shard (`{classId}_{answer.shard}`) → ett
+  svar kan inte öka två shards.
+- **Tid:** svar nekas utanför `[startAt, endAt)` (MM) resp. efter
+  `startedAt + countdownSeconds + durationSeconds` (Live) mot `request.time`.
+- **Klass:** `classId` måste vara deltagande och eleven finnas i `classes/{classId}.studentIds`.
+- **Namn** i `scores`/`players` måste vara `students/{uid}.namn` (ingen påhittad text på projektorn).
+- **Separata system:** MM-poäng (`mathCompetitions/…`) och Live-poäng
+  (`liveSessions/…`) kan aldrig korsas – varje räknare valideras mot ett svar
+  i SIN egen tävling.
+
+**Kvarvarande begränsningar (ärligt):**
+1. Eleven väljer själv vilken fråga hen svarar på – reglerna kan inte se vilken
+   fråga klienten visade. En elev som skriptar kan samla poäng på `0×0`.
+2. Ingen takt-begränsning (en minsta tid mellan svar skulle tappa riktiga svar
+   när offline-kön töms). Skriptade "orimliga" takter syns i statistiken.
+3. Lärare (teacher-claim) styr tävlingar/sessioner och får RADERA (nollställa) svar och räknare – men inte skriva poäng direkt.
+
+**⚠️ DEPLOY KRÄVS:** `firebase deploy --only firestore:rules` – inget är deployat
+(inkl. #460:s matchslut-regel och `liveClock`).
+Index: Topp 25 (`scores` orderBy `correct` desc) och Live-listan
+(`liveSessions` where `participatingClassIds` array-contains) klarar sig med
+automatiska enkelfälts-index; kombineras `status`-filter krävs ett sammansatt index.
+
+### `mathCompetitions/{cid}` – MathCompetition
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `name` | string ≤ 80 | "Mattematchen oktober 2026" |
+| `participatingClassIds` | array\<string\> (1–50) | deltagande klasser |
+| `startAt` / `endAt` | timestamp | period; `endAt > startAt` |
+| `status` | `"active"` \| `"stopped"` \| `"finished"` | lärarens styrning (se nedan) |
+| `counterShards` | int 1–50 | antal klassräknar-shards (förslag 5) |
+| `createdBy` / `createdAt` | string / timestamp | |
+| `result` | map (valfri) | historik-ögonblicksbild vid avslut: vinnare, klassresultat, elevresultat |
+
+**Visad status** (beräknas, lagras inte): `kommande` = `active` och nu < `startAt`;
+`aktiv` = `active` och `startAt` ≤ nu < `endAt`; `pausad` = `stopped`;
+`avslutad` = `finished` eller nu ≥ `endAt`. Svar godtas bara i läget *aktiv*.
+"Starta nu" = sätt `startAt` till nu; "Avsluta" = `status: "finished"` (+ ev. `endAt` = nu).
+**Nollställning** (med tydlig bekräftelse) = läraren raderar `answers`,
+`studentStats`, `scores`, `classCounters` under tävlingen. Avslutade tävlingar
+ligger kvar = **historik** (`result` + alla underdokument).
+
+### `mathCompetitions/{cid}/answers/{attemptId}` – MathAnswer (även Live-svar)
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `uid` | string | eleven (== `request.auth.uid`) |
+| `classId` | string | klassen svaret räknas till |
+| `mode` | string | `"multiplication_0_10"` |
+| `factorA` / `factorB` | int 0–10 | frågan (statistik per tabell = båda faktorerna) |
+| `answer` | int 0–9999 | elevens svar |
+| `correctAnswer` | int | `factorA·factorB` |
+| `isCorrect` | bool | `answer == correctAnswer` |
+| `shard` | int | vilken klassräknar-shard (0..counterShards-1) |
+| `at` | timestamp | `serverTimestamp()` |
+
+Läsning: eleven själv + lärare. **Gemensam träningsstatistik** (MM + Live
+tillsammans) = `collectionGroup("answers").where("uid","==",uid)` – inga extra
+skrivningar, tävlingspoängen förblir separata.
+
+### `mathCompetitions/{cid}/studentStats/{uid}` – CompetitionStudentStats (privat)
+
+`{ uid, classId, correct, incorrect, c0…c10, w0…w10, lastAttemptId, lastAt }` –
+`c{t}`/`w{t}` = rätt/fel i `t`:ans tabell (7×8 räknas i både 7:an och 8:an,
+7×7 en gång). Totalt = `correct + incorrect`; procent räknas i klienten.
+Läses av eleven själv (📊) och lärare (klassöversikt/elevdetalj). Saknade fält = 0.
+
+### `mathCompetitions/{cid}/scores/{uid}` – topplistepost (publik)
+
+`{ uid, classId, name, correct, lastAttemptId, lastAt }` – bara det Topp 25
+behöver. Elever får läsa enstaka poster och **lista högst 25** (`limit(25)`),
+läraren allt. Skapas vid elevens första rätta svar.
+
+### `mathCompetitions/{cid}/classCounters/{classId}_{shard}` – Klasskamp
+
+`{ classId, shard, correct, lastAttemptId, lastAt }`. Klassens rätt = summan av
+klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
+(1 decimal). Läsbar för alla inloggade.
+
+### `liveSessions/{sid}` – LiveSession
+
+| Fält | Typ | Beskrivning |
+| ---- | --- | ----------- |
+| `name` | string ≤ 80 | "4B mot 5E" |
+| `classNames` | map `{ classId: string }` | klassnamnen denormaliserade vid skapandet (#460) – elev/projektor slipper läsa `classes` |
+| `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
+| `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
+| `participatingClassIds` | array\<string\> (1–8) | klasserna |
+| `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal, får ändras även under matchen) |
+| `durationSeconds` | int 30–3600 | matchlängd (UI: 300–1800 i 5-min-steg; kortare för QA) |
+| `countdownSeconds` | int 0–10 | 3–2–1–KÖR innan svar godtas (förslag 4) |
+| `counterShards` | int 1–50 | klassräknar-shards (förslag 10) |
+| `status` | `"lobby"` → `"live"` → `"finished"` | aldrig bakåt; `lobby` → `finished` = avbruten |
+| `createdBy` / `createdAt` | string / timestamp (`serverTimestamp`) | |
+| `startedAt` | timestamp | sätts vid STARTA, MÅSTE vara `serverTimestamp()`; oföränderlig därefter |
+| `endsAt` | timestamp | skrivs direkt efter start och MÅSTE vara `startedAt + countdownSeconds + durationSeconds` |
+| `finishedAt` | timestamp | när matchen markerades klar |
+| `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw" }` |
+
+- Bara lärare skapar/ändrar, och **alla lärare** får styra alla sessioner.
+  `gameMode`, klasser, längd, nedräkning och shards låses när matchen startat.
+- Alla inloggade läser sessionen (eleven hittar sin lobby med
+  `where("participatingClassIds","array-contains",klassId)` + onSnapshot).
+- **Timer:** alla klienter räknar `endsAt` (eller `startedAt + …`) mot sin
+  server-korrigerade klocka – aldrig en lokal lärartimer. Reglerna räknar slutet
+  ur `startedAt`, så ett saknat `endsAt` stoppar aldrig matchen.
+- Vyval på projektorn (Raketrace/Statistik/Dragkamp) är **lokalt** och lagras inte här.
+- Avslutade sessioner ligger kvar = **Live-historik**.
+- **Matchslut (#460):** vid 00:00 får VILKEN inloggad klient som helst markera
+  `live → finished` (bara `status` + `finishedAt = serverTimestamp()`), och reglerna
+  kräver `request.time ≥ startedAt + countdownSeconds + durationSeconds`. Läraren
+  kan dessutom avsluta i förtid / avbryta en lobby.
+- **`result`** skrivs EN gång (transaktion) av en lärarklient (projektorn, eller
+  historikvyn om ingen projektor var öppen) ~2,5 s efter slut:
+  `{ perClass: { classId: { correct, divisor, score, players } }, winner: classId|"draw", totalCorrect, players, computedAt }`.
+
+### Live-kärnan i klienten (#460)
+
+| Lager | Modul |
+| ----- | ----- |
+| Ren logik: faser (lobby/countdown/live/ended/finished), 3-2-1, tid kvar, poäng, vinnare, topplista | `src/live/live-core.js` |
+| Server-korrigerad klocka (liveClock-rundtur + färska serverstämplar) | `src/live/live-clock.js` |
+| Firestore-lagret (skapa/starta/avsluta, prenumerationer, gå med, svar) | `src/live/live-data.js` |
+| **Realtids-datalagret för projektorvyer** – `subscribeLiveSession(sid, cb)` | `src/live/live-feed.js` |
+| Elevens meny-synlighet (onSnapshot på status lobby\|live) | `src/live/live-watch.js` |
+| Elevsidan `#/elev/live` | `src/live/page-elev-live.js` |
+| Lärarfliken `#/larare/live` (skapa, aktiva, historik), projektorvyn `?id=` (#461: lobby, Raketrace, Statistik, Dragkamp, vinnare) | `src/live/teacher-live*.js`, `src/live/projector.js` + `src/live/proj-*.js` |
+| Statistik → Live per klass | `renderClassLiveStats` i `src/live/teacher-live-history.js` |
+
+Start = transaktion `lobby → live` med `startedAt = serverTimestamp()`, sedan
+`endsAt = new Timestamp(startedAt.seconds + nedräkning + längd, startedAt.nanoseconds)`.
+Elev-/lärarlistorna frågar `where("status","in",["lobby","live"])` (enkelfälts-index,
+filtreras på klass i klienten); historik `where("status","==","finished")`.
+QA mot emulatorn: `admin/qa-live-seed.mjs` + `admin/qa-emulator-proxy.mjs`.
+
+### `liveClock/{uid}` – klocksynk (#460)
+
+`{ t: serverTimestamp() }` – den inloggade skriver bara sitt eget dokument och läser
+tillbaka det → klientens avvikelse mot serverns klocka (fel ≤ halva rundturen).
+
+### `liveSessions/{sid}/players/{uid}` – närvaro + elevens matchresultat
+
+`{ uid, classId, name, joinedAt, lastSeenAt, correct, incorrect, lastAttemptId?, lastAt? }`.
+"Gå med" skapar dokumentet (lobby eller pågående match = sen anslutning) med
+`correct/incorrect = 0`, server-tid och elevens riktiga namn. "Redo per klass"
+på projektorn = antal spelare per `classId` (ev. filtrerat på färsk `lastSeenAt`;
+eleven får uppdatera **bara** `lastSeenAt` som puls). Finns dokumentet redan
+(omladdning) ska klienten INTE skapa om det. Läses av lärare + eleven själv.
+
+### `liveSessions/{sid}/answers/{attemptId}` – LiveAnswer
+
+Samma form som MathAnswer; `mode` måste vara sessionens `gameMode`, och
+fälten valideras PER mode i reglerna (`liveModeAnswerOk`). Godtas bara när
+`status == "live"` och `startedAt + countdown ≤ request.time < startedAt + countdown + duration`.
+
+### `liveSessions/{sid}/counters/{classId}_{shard}` – shardad Live-klassräknare
+
+Som `classCounters` ovan. Firestore klarar ~1 skrivning/s per dokument; 40–60
+elever kan ge 20–30 rätt/s per klass → 10 shards ≈ 2–3 skrivningar/s/dok med
+`increment()`. Projektorn lyssnar (`onSnapshot`) på `counters` och summerar per
+klass; **matchpoäng = rätt / `classDivisors[classId]`**. Läses bara av lärare.
+
+### gameMode-interfacet (Live)
+
+Se API-kommentaren i `src/live/game-modes.js`: `id`, `displayName`, `icon`,
+`inputMode`, `pointsPerCorrect`, `createSource()`, `checkAnswer()`,
+`answerRecord()`, `statKeys()`, `statCategories`. Nytt läge = ny fil i
+`src/live/modes/` + en rad i `src/live/modes/index.js` + en gren i
+`liveModeAnswerOk` i `firestore.rules` (annars nekas lägets svar).
 
 ---
 

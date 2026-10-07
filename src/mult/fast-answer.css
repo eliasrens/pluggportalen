@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Snabb svarskomponent (#457) – src/mult/fast-answer.js
+   Fråga + svarsfält + feedbackrad i EN kolumn som skalar med viewporten
+   (clamp på vh/vw) → ryms utan scroll på Chromebook 1366×768 och på mobil
+   (svarsfältet ≥ 16 px så iOS inte zoomar). Värden bestämmer bredd/plats.
+   Feedbackraden har fast höjd så ingenting hoppar när texten byts.
+   ========================================================================== */
+
+.fa-root {
+  --fa-ok: var(--gron, #27ae60);
+  --fa-fel: var(--rod, #eb5757);
+  --fa-text: var(--text, #22314a);
+  width: 100%;
+  font-family: var(--font, system-ui, sans-serif);
+  color: var(--fa-text);
+}
+
+.fa-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 2.2vh, 22px);
+  margin: 0;
+}
+
+.fa-question {
+  font-size: clamp(44px, min(14vh, 13vw), 132px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+  min-height: 1.05em;
+}
+
+.fa-input {
+  width: min(3.6ch, 70vw);
+  box-sizing: content-box;
+  padding: 0.12em 0.4em;
+  font: inherit;
+  font-size: clamp(34px, min(10vh, 10vw), 92px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--fa-text);
+  background: #fff;
+  border: 4px solid var(--bla, #2f80ed);
+  border-radius: 18px;
+  outline: none;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.1);
+  caret-color: var(--bla, #2f80ed);
+}
+.fa-input:focus { border-color: var(--bla-mork, #1b5fc0); box-shadow: 0 0 0 5px rgba(47, 128, 237, 0.25), 0 6px 0 rgba(0, 0, 0, 0.1); }
+.fa-input:disabled { opacity: 0.45; border-style: dashed; }
+
+.fa-feedback {
+  height: 1.3em;
+  font-size: clamp(22px, min(5.5vh, 6vw), 46px);
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+.fa-feedback.ok { color: var(--fa-ok); }
+.fa-feedback.fel { color: var(--fa-fel); }
+.fa-feedback.fa-pop { animation: fa-pop 160ms ease-out; }
+
+.fa-off .fa-question {
+  font-size: clamp(28px, 6vh, 56px);
+  color: var(--text-svag, #64748b);
+}
+
+@keyframes fa-pop {
+  from { transform: scale(0.85); opacity: 0.4; }
+  to { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fa-feedback.fa-pop { animation: none; }
+}
