@@ -5,11 +5,23 @@
    ========================================================================== */
 
 /* --- Elev ------------------------------------------------------------------ */
+/* Ingen scroll (Chromebook 1366×768): app.js sätter body.live-lage. Innehålls-
+   ytan blir exakt en viewport hög (padding inräknad via border-box, så mobilens
+   72px-topp och skrivbordets 24px följer med utan hårdkodning) och vyn fyller
+   resten med flex. */
+body.live-lage .container {
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+}
 .live-elev {
   display: flex;
   flex-direction: column;
   gap: 2vh;
-  min-height: calc(100vh - 80px);
+  flex: 1 1 auto;
 }
 .live-elev-head {
   display: flex;

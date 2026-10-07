@@ -7,7 +7,8 @@
 //
 //   1. Seed: lärare (claim teacher:true), elev1 + elev2 med Auth-konton, data.
 //   2. Elev1 loggar in med användarnamn→e-post + lösenord (oförändrad UX).
-//   3. Elev1 läser BARA sin egen data; en annan elevs data nekas.
+//   3. Elev1 läser sin egen data och (byn, #114) klasskamraters – men inte en
+//      husLast-låst elevs studentData.
 //   4. Elev1:s försök att direktskriva elev2:s studentData NEKAS.
 //   5. Läraren loggar in, skapar en elev och ger coins – tillåts.
 //   6. Utloggad (obehörig) kan inte läsa students eller skriva studentData.
@@ -88,10 +89,12 @@ test("seed: skapa lärare, elever och data i emulatorn", async () => {
   await adminDb.doc("students/elev2").set({ namn: "Björn", username: "elev2", avatarId: "owl" });
   await adminDb.doc("studentData/elev1").set({ coins: 300, progress: {} });
   await adminDb.doc("studentData/elev2").set({ coins: 50, progress: {} });
+  // Låst hus (#33): andra elever nekas läsning på servern.
+  await adminDb.doc("studentData/elev4").set({ coins: 10, progress: {}, husLast: true });
   await adminDb.doc("subjects/so").set({ name: "SO", order: 1 });
 });
 
-test("elev1 loggar in (användarnamn→e-post) och ser BARA sin egen data", async () => {
+test("elev1 loggar in (användarnamn→e-post), läser olåst data men INTE husLast-låst", async () => {
   const cred = await signInWithEmailAndPassword(clientAuth, usernameToEmail("elev1"), ELEV1_PW);
   assert.equal(cred.user.uid, "elev1", "uid ska vara det gamla doc-id:t");
 
@@ -106,16 +109,18 @@ test("elev1 loggar in (användarnamn→e-post) och ser BARA sin egen data", asyn
   const subj = await getDoc(doc(clientDb, "subjects", "so"));
   assert.ok(subj.exists());
 
-  // En annan elevs data ska NEKAS.
+  // Byn/grannbyn/kompisrummet (#114): inloggade LÄSER andras olåsta data
+  // (avsiktlig regel `signedIn() && husLast != true`) – skrivning nekas i nästa test.
+  const other = await getDoc(doc(clientDb, "studentData", "elev2"));
+  assert.ok(other.exists(), "elev1 ska kunna läsa elev2:s olåsta studentData (byn)");
+  const otherStudent = await getDoc(doc(clientDb, "students", "elev2"));
+  assert.ok(otherStudent.exists(), "elev1 ska kunna läsa elev2:s students-dokument");
+
+  // Husläs (#33): låst studentData NEKAS för andra elever, på servern.
   await assert.rejects(
-    () => getDoc(doc(clientDb, "studentData", "elev2")),
+    () => getDoc(doc(clientDb, "studentData", "elev4")),
     /permission-denied|PERMISSION_DENIED|Missing or insufficient/i,
-    "elev1 ska INTE kunna läsa elev2:s studentData"
-  );
-  await assert.rejects(
-    () => getDoc(doc(clientDb, "students", "elev2")),
-    /permission-denied|PERMISSION_DENIED|Missing or insufficient/i,
-    "elev1 ska INTE kunna läsa elev2:s students-dokument"
+    "elev1 ska INTE kunna läsa en husLast-låst elevs studentData"
   );
 });
 

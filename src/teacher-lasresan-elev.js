@@ -155,6 +155,7 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts }) {
   const close = () => {
     overlay.remove();
     document.removeEventListener("keydown", onKey);
+    window.removeEventListener("hashchange", close);
   };
   const onKey = (e) => {
     if (e.key === "Escape") close();
@@ -164,6 +165,8 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts }) {
     if (e.target === overlay) close();
   });
   document.addEventListener("keydown", onKey);
+  // Modalen ligger i body – stäng den vid ruttbyte (Tillbaka/hash-byte, #463).
+  window.addEventListener("hashchange", close);
   document.body.appendChild(overlay);
   overlay.querySelector(".cx-modal-close").focus();
 

@@ -316,6 +316,8 @@ function router() {
   document.body.classList.toggle("lasresan-lage", path === "/elev/lasresan");
   // Mattematchen: en skärm utan scroll (fråga, svar, knappar) – se mattematchen.css.
   document.body.classList.toggle("mm-lage", path === "/elev/mattematchen");
+  // Live: samma krav (ingen scroll) – live.css låter .container fylla viewporten.
+  document.body.classList.toggle("live-lage", path === "/elev/live");
   // Lärar-routes: håll body-bakgrunden mörk under HELA vistelsen – även i glappet
   // mellan flik-byten, då den gamla .teacher-dark-vyn tas bort en kort stund och
   // body:has(.teacher-dark) slutar matcha (→ annars blänker elevsidans ljusa
