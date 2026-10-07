@@ -781,6 +781,14 @@ sak som att jämföra EXP/elev, men mätaren kan visa hela klassens tal
 läggs elever till kan nivån i teorin sjunka. Vill epic 1 C/D undvika det kan
 ett golv `classCenters/{classId}.hogstaNiva` lagras (visa `max(härledd, golv)`).
 
+**Så lägger du till en nivå (11, 12 …).** `NIVAER` i `src/klasscenter/kc-niva.js`
+är enda sanningskällan (`KLASSCENTER_NIVAER` i `art-klasscenter.js` härleds ur
+den). Det krävs bara (1) en ny post sist i `NIVAER` och (2) en ny rit-funktion
+i art-modulen (MARKUP). Trösklarna räknas med formeln per index och förlängs
+automatiskt; nivaFor/mätare/"Maxnivå"/preview-knappar följer listans längd.
+`test/art-klasscenter.test.js` failar om en nivå saknar rit-funktion.
+firestore.rules har ingen nivågräns – nivån härleds i klienten.
+
 ### `classCenters/{classId}/expShards/{0..4}` – Klass-EXP (epic 1)
 
 | Fält | Typ | Beskrivning |

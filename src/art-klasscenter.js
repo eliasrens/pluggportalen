@@ -1,5 +1,5 @@
 // ============================================================================
-// Pluggporten – Klasscentret: kodritad byggnad i 10 nivåer (#478, epic #476)
+// Pluggporten – Klasscentret: kodritad byggnad, en nivå per post i kc-niva.js NIVAER (#478, epic #476)
 // ----------------------------------------------------------------------------
 // Index-modul: klasscenterSvg(niva, opts) + KLASSCENTER_NIVAER + mått.
 // Själva konsten ligger i art-klasscenter-tidig.js (1–4), -mitt.js (5–7) och
@@ -13,6 +13,7 @@ import { G, CX } from "./art-klasscenter-delar.js";
 import { KLASSCENTER_TIDIG } from "./art-klasscenter-tidig.js";
 import { KLASSCENTER_MITT } from "./art-klasscenter-mitt.js";
 import { KLASSCENTER_SEN } from "./art-klasscenter-sen.js";
+import { NIVAER } from "./klasscenter/kc-niva.js";
 
 /**
  * Gemensamt fotavtryck för ALLA nivåer – så by-vyn kan skala utan per-nivå-mått.
@@ -41,23 +42,17 @@ export const KLASSCENTER_MATT = Object.freeze({
   skalaMotMinihus: 2.5,
 });
 
-/** De 10 nivåerna i ordning (niva 1..10). */
-export const KLASSCENTER_NIVAER = Object.freeze([
-  { niva: 1, namn: "Lägereld", emoji: "🔥" },
-  { niva: 2, namn: "Tält", emoji: "⛺" },
-  { niva: 3, namn: "Träkoja", emoji: "🛖" },
-  { niva: 4, namn: "Timmerstuga", emoji: "🏡" },
-  { niva: 5, namn: "Byhus", emoji: "🏠" },
-  { niva: 6, namn: "Rådhus", emoji: "🏛️" },
-  { niva: 7, namn: "Borg", emoji: "🛡️" },
-  { niva: 8, namn: "Slott", emoji: "🏰" },
-  { niva: 9, namn: "Högkvarter", emoji: "🏢" },
-  { niva: 10, namn: "Kristallpalats", emoji: "💎" },
-]);
+/**
+ * Nivåerna i ordning – härleds ur kc-niva.js NIVAER (EN sanningskälla, ren
+ * logik utan beroenden). Ny nivå = ny post där + ny rit-funktion i MARKUP.
+ */
+export const KLASSCENTER_NIVAER = Object.freeze(
+  NIVAER.map(({ niva, namn, emoji }) => Object.freeze({ niva, namn, emoji }))
+);
 
 const MARKUP = { ...KLASSCENTER_TIDIG, ...KLASSCENTER_MITT, ...KLASSCENTER_SEN };
 
-/** Klampa godtycklig nivå till heltal 1..10 (okänt/NaN → 1). */
+/** Klampa godtycklig nivå till heltal 1..antal nivåer (okänt/NaN → 1). */
 export function klampaNiva(niva) {
   const n = Math.round(Number(niva));
   if (!Number.isFinite(n)) return 1;
@@ -71,7 +66,7 @@ export function klasscenterMarkup(niva, opts = {}) {
 
 /**
  * Klasscentrets byggnad som fristående SVG-sträng.
- * @param {number} niva 1..10 (clampas; okänt → 1)
+ * @param {number} niva 1..antal nivåer (clampas; okänt → 1)
  * @param {object} [opts]
  * @param {boolean} [opts.animera=true] false → inga ambient-klasser alls
  *   (rök/fana/glitter). Ambienten är ren CSS (styles.css "Klasscentret

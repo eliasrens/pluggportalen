@@ -2,18 +2,18 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  NIVAER, MAX_NIVA, TROSKLAR_PER_ELEV, troskelFor, nivaFor, progressTillNasta, matarText,
+  NIVAER, MAX_NIVA, TROSKLAR_PER_ELEV, TILLVAXT, troskelFor, nivaFor, progressTillNasta, matarText, skapaNivatrappa,
 } from "../src/klasscenter/kc-niva.js";
 
 describe("nivåerna", () => {
-  it("10 nivåer i specens ordning, unika id:n", () => {
-    assert.equal(MAX_NIVA, 10);
+  it("nivåerna i ordning 1..MAX_NIVA, unika id:n", () => {
+    assert.equal(MAX_NIVA, NIVAER.length);
     assert.deepEqual(NIVAER.map((n) => n.namn), [
       "Lägereld", "Tält", "Träkoja", "Timmerstuga", "Stenbyhus",
       "Rådhus", "Borg", "Slott", "Högkvarter", "Kristallpalats",
     ]);
-    assert.deepEqual(NIVAER.map((n) => n.niva), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    assert.equal(new Set(NIVAER.map((n) => n.id)).size, 10);
+    assert.deepEqual(NIVAER.map((n) => n.niva), NIVAER.map((_, i) => i + 1));
+    assert.equal(new Set(NIVAER.map((n) => n.id)).size, MAX_NIVA);
   });
 });
 
@@ -61,7 +61,7 @@ describe("trösklarna", () => {
     }
     assert.equal(nivaFor(-50, 20), 1);
     assert.equal(nivaFor("skräp", 20), 1);
-    assert.equal(nivaFor(1e9, 20), 10);
+    assert.equal(nivaFor(1e9, 20), MAX_NIVA);
   });
 });
 
@@ -111,11 +111,35 @@ describe("progress-mätaren", () => {
 
   it("högsta nivån: inget mål, tusental med hårt mellanslag", () => {
     const p = progressTillNasta(20_000, 30);
-    assert.equal(p.niva, 10);
+    assert.equal(p.niva, MAX_NIVA);
     assert.equal(p.max, true);
     assert.equal(p.mal, null);
     assert.equal(p.kvar, 0);
     assert.equal(matarText(p), "20 000 övningar – högsta nivån nådd!");
     assert.equal(matarText(progressTillNasta(1200, 30)), "1 200 / 1 650 övningar till Nivå 5");
+  });
+});
+
+describe("framtida nivåer (11, 12 …)", () => {
+  const ELVA = [...NIVAER, { niva: 11, id: "test11", namn: "Testtorn", emoji: "🗼", beskrivning: "test" }];
+  const t = skapaNivatrappa(ELVA);
+
+  it("en 11:e post förlänger trösklarna med samma formel, de 10 första oförändrade", () => {
+    assert.equal(t.MAX_NIVA, 11);
+    assert.deepEqual(t.TROSKLAR_PER_ELEV.slice(0, 10), [...TROSKLAR_PER_ELEV]);
+    const steg10 = TROSKLAR_PER_ELEV[9] - TROSKLAR_PER_ELEV[8];
+    const steg11 = t.TROSKLAR_PER_ELEV[10] - TROSKLAR_PER_ELEV[9];
+    assert.ok(Math.abs(steg11 / steg10 - TILLVAXT) < 0.05);
+  });
+
+  it("nivaFor och progress når nivå 11; nivå 10 är då inte max", () => {
+    const p10 = t.progressTillNasta(t.troskelFor(10, 20), 20);
+    assert.equal(p10.niva, 10);
+    assert.equal(p10.max, false);
+    assert.equal(p10.nastaNamn, "Testtorn");
+    assert.equal(matarText(p10), `${t.troskelFor(10, 20)} / ${t.troskelFor(11, 20)} övningar till Nivå 11`.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0"));
+    assert.equal(t.nivaFor(t.troskelFor(11, 20), 20), 11);
+    assert.equal(t.nivaFor(1e9, 20), 11);
+    assert.equal(t.progressTillNasta(1e9, 20).max, true);
   });
 });
