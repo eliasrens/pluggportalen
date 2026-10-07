@@ -5,6 +5,7 @@
 //
 //   Klass qa-kc  "QA-klass 4A"  – 14 elever (kc01 … kc14), klass-EXP → Nivå 3
 //   Klass qa-kc2 "QA-klass 4B"  –  5 elever (kd01 … kd05), klass-EXP → Nivå 7
+//   Klass qa-kc3 "QA-klass 4C"  – 28 elever (ke01 … ke28), klass-EXP → Nivå 3 (#481)
 //
 // Logga in som kc01 → egna byn (centret först, 14 hus); "Andra byar" → 4B
 // visar DERAS center (Nivå 7, view-only). `exp <klass> <antal>` sätter en
@@ -34,6 +35,8 @@ const PALETTER = ["persika", "mint", "himmel", "rosa", "sol", "lavendel", "koral
 const KLASSER = [
   { id: "qa-kc", name: "QA-klass 4A", prefix: "kc", antal: 14, exp: 230, order: 1 },
   { id: "qa-kc2", name: "QA-klass 4B", prefix: "kd", antal: 5, exp: 500, order: 2 },
+  // #481: 28-elevsklass för normaliseringskollen (samma EXP/elev som 4A → samma nivå).
+  { id: "qa-kc3", name: "QA-klass 4C", prefix: "ke", antal: 28, exp: 460, order: 3 },
 ];
 
 async function ensureUser(uid, email) {
