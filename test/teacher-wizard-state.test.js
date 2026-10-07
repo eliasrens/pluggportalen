@@ -78,7 +78,7 @@ test("buildSaveValue = kompositörens Spara-sammansättning", () => {
 
 test("summaryParts", () => {
   assert.deepEqual(summaryParts({ quiz: [1, 2], pairs: [], texts: [1], readingTexts: [], generator: gen }), {
-    generator: { topic: "multiplikation", variants: 2 },
+    generator: { topics: "Multiplikation", variants: 2, count: 1 },
     bits: ["2 frågor", "1 texter"],
   });
 });

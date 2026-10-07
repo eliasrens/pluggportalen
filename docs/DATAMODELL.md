@@ -64,6 +64,7 @@ läsning för klienten).
 | `pairs`       | array\<Pair\>  | Fakta-par (begrepp ↔ förklaring)         |
 | `readingTexts` | array\<ReadingText\> | Läsförståelse-texter i 3 nivåer (se nedan) |
 | `exerciseTypes` | string[]     | Valda övningstyper (se nedan)            |
+| `generator`   | object \| saknas | Räknegenerator – ett eller flera räknesätt (se nedan) |
 
 **exerciseTypes**: läraren kryssar i vilka övningstyper området ska ha i
 "Fix område"-formuläret (`src/teacher-content.js`). Giltiga id (se
@@ -72,6 +73,31 @@ Kunskapsjakt), `"pairs"` (Para ihop, Memory) och `"bildpar"` (fakta-par med bild
 Valet styr AI-prompten (`buildAreaPrompt`) så att bara passande innehåll efterfrågas
 (t.ex. inga bildpar om `"bildpar"` inte kryssats). Saknas fältet (äldre områden)
 härleds typerna ur innehållet vid validering, så dokumentet får alltid fältet.
+
+**generator** (räknegeneratorn, #279/#322, flera räknesätt #470): ett generator-område
+sparar inget färdigt innehåll utan *vilka* uppgifter som ska genereras:
+
+```js
+generator: {
+  topics: [                                    // minst ett räknesätt, varje topic högst en gång
+    { topic: "addition", variants: ["enkel"] },
+    { topic: "multiplikation", variants: ["tabeller", "dubbelt"],
+      talstorlek: "liten",                     // valfri: "liten" | "mellan" | "stor"
+      bildstod: false },                       // valfri, bara multiplikation/division (default på)
+  ],
+  grade: "ak3",                                // valfri, områdets årskurs
+}
+```
+
+Topics/varianter valideras mot katalogen i `src/exercise-types.js`
+(`listTopics`/`listVariants`); `normalizeGenerator` rensar, `src/validate-generator.js`
+ger felmeddelandena. Räkna-läget och äventyren blandar de valda räknesätten
+**balanserat** (deterministisk shuffle-bag, `createTopicBag` i `src/rakna-core.js`:
+alla förekommer lika ofta, aldrig samma två i rad), sedan slumpas variant som förut;
+rättning/answerType/bildstöd följer varje uppgifts faktiska topic.
+**Bakåtkompatibelt:** det gamla formatet `{ topic, variants, talstorlek?, bildstod?, grade? }`
+läses som en lista med ett räknesätt (ger exakt samma uppgifter som förut) – ingen
+migrering; nästa sparning skriver det nya formatet.
 
 **grade**: valfri årskurs på området (`"ak1"`–`"ak9"`), satt i innehålls-
 formuläret (`src/teacher-content.js`). Fältet är **valfritt och bakåtkompatibelt**:

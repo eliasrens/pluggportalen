@@ -3,7 +3,8 @@
 // ----------------------------------------------------------------------------
 // All logik i Räkna-läget som INTE rör DOM/canvas ligger här, så den kan
 // enhetstestas i Node (som gamemode-visibility.js, exercise-types.js m.fl.):
-//   • byggandet av en runda uppgifter ur ett områdes generator-konfig, via
+//   • byggandet av en runda uppgifter ur ett områdes generator-konfig (ett eller
+//     flera räknesätt, blandade balanserat via en shuffle-bag, #470), via
 //     matte-generator-adaptern (#278), med en DETERMINISTISK seed per
 //     elev/session och ett upprepningsskydd (isSameProblem),
 //   • formatering av uppgiftstexten för A4-kortet (svensk decimalkomma), och
@@ -203,28 +204,81 @@ export function isSameProblem(a, b) {
 }
 
 /**
+ * Räknesätten (topic-poster) i en generator-konfig. Tål både det normaliserade
+ * formatet { topics: [...] } (#470) och det gamla enkel-topic-objektet
+ * { topic, variants, talstorlek?, bildstod? } (#279/#322), som blir en lista med ett.
+ * @param {object} generator
+ * @returns {object[]}
+ */
+export function generatorTopics(generator) {
+  if (Array.isArray(generator?.topics) && generator.topics.length) return generator.topics;
+  return generator ? [generator] : [];
+}
+
+/**
+ * Balanserad, DETERMINISTISK topic-väljare (shuffle-bag, #470). Varje "påse"
+ * innehåller varje valt räknesätt exakt en gång i seedad slumpordning; när den
+ * tömts fylls en ny. Så förekommer alla räknesätt lika ofta (skillnad ≤ 1 vid
+ * varje tidpunkt) och samma räknesätt kommer aldrig två gånger i rad – även över
+ * påsgränsen (då byter första och andra plats). Ett enda räknesätt → alltid det
+ * (och drar inget ur fröströmmen, så gamla områden ger exakt samma uppgifter).
+ * @param {object[]} topics – topic-poster (generatorTopics)
+ * @param {number} seed
+ * @returns {{ next: () => object }}
+ */
+export function createTopicBag(topics, seed) {
+  const list = Array.isArray(topics) && topics.length ? topics : [{}];
+  let bag = [];
+  let refill = 0;
+  let last = null;
+  return {
+    next() {
+      if (list.length === 1) return list[0];
+      if (bag.length === 0) {
+        bag = list.slice();
+        for (let i = bag.length - 1; i > 0; i--) {
+          const j = hashSeed(`bag|${seed >>> 0}|${refill}|${i}`) % (i + 1);
+          [bag[i], bag[j]] = [bag[j], bag[i]];
+        }
+        refill++;
+        if (bag[0] === last) [bag[0], bag[1]] = [bag[1], bag[0]];
+      }
+      last = bag.shift();
+      return last;
+    },
+  };
+}
+
+/**
  * Bygg en runda uppgifter ur ett områdes generator-konfig. Deterministiskt ur
- * `baseSeed`: variantvalet OCH varje uppgifts frö härleds ur baseSeed + index,
- * så samma (elev, session) ger samma runda. Upprepningsskydd: hittar en
- * genererad uppgift som är lika den förra provar vi nästa frö (några försök),
- * annars behåller vi den (hellre en dubblett än en oändlig loop).
+ * `baseSeed`: topic-valet (shuffle-bag bland de valda räknesätten, #470),
+ * variantvalet OCH varje uppgifts frö härleds ur baseSeed + index, så samma
+ * (elev, session) ger samma runda. Upprepningsskydd: hittar en genererad uppgift
+ * som är lika den förra provar vi nästa frö (några försök), annars behåller vi den
+ * (hellre en dubblett än en oändlig loop). Varje uppgift bär sitt `topic`, så
+ * rättning/answerType/bildstöd följer uppgiftens faktiska räknesätt.
  *
- * @param {{topic:string, variants:string[], grade?:string}} generator – normaliserad area.generator
+ * @param {object} generator – normaliserad area.generator ({ topics, grade? }) eller gammalt format
  * @param {number} baseSeed – från sessionSeed()
  * @param {number} [count=ROUND_SIZE]
- * @returns {Array<{problem:object, answer:number, variant:string}>}
+ * @param {{next:()=>object}} [bag] – topic-väljare (createProblemSource delar en över batcharna)
+ * @returns {Array<{problem:object, answer:number, variant:string, topic:string}>}
  */
-export function buildRound(generator, baseSeed, count = ROUND_SIZE) {
-  const variants = Array.isArray(generator?.variants) && generator.variants.length
-    ? generator.variants
-    : [undefined]; // adaptern faller tillbaka till första varianten
-  // Talstorlek (issue #322) styr talens storlek via generatorns grade-axel och vinner
-  // över områdets ev. årskurs-metadata. Osatt → årskursen, annars adapterns default.
-  const grade = talstorlekToGrade(generator?.talstorlek) || gradeNr(generator?.grade) || undefined;
+export function buildRound(generator, baseSeed, count = ROUND_SIZE, bag = null) {
+  const picker = bag || createTopicBag(generatorTopics(generator), baseSeed);
 
   const round = [];
   let seedCursor = baseSeed >>> 0;
   for (let i = 0; i < count; i++) {
+    const entry = picker.next();
+    const variants = Array.isArray(entry?.variants) && entry.variants.length
+      ? entry.variants
+      : [undefined]; // adaptern faller tillbaka till första varianten
+    // Talstorlek (issue #322, per räknesätt #470) styr talens storlek via generatorns
+    // grade-axel och vinner över områdets ev. årskurs-metadata. Osatt → årskursen,
+    // annars adapterns default.
+    const grade = talstorlekToGrade(entry?.talstorlek) ||
+      gradeNr(generator?.grade ?? entry?.grade) || undefined;
     let picked = null;
     // Upp till 5 försök att undvika en direkt upprepning av föregående uppgift.
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -233,8 +287,8 @@ export function buildRound(generator, baseSeed, count = ROUND_SIZE) {
       const settings = {};
       if (variant) settings.variant = variant;
       if (grade) settings.grade = grade;
-      const gen = generateProblem(generator.topic, settings, s);
-      picked = gen;
+      const gen = generateProblem(entry.topic, settings, s);
+      picked = { ...gen, topic: entry.topic };
       if (!isSameProblem({ problem: gen.problem }, round[round.length - 1])) break;
     }
     round.push(picked);
@@ -253,12 +307,15 @@ export function buildRound(generator, baseSeed, count = ROUND_SIZE) {
  * återanvänds), och nya batch-frön härleds ur baseSeed + batch-index så samma
  * (elev, session) alltid ger samma följd – reproducerbart men nytt varje ny session.
  *
- * @param {{topic:string, variants:string[], grade?:string}} generator – normaliserad area.generator
+ * @param {object} generator – normaliserad area.generator ({ topics, grade? }) eller gammalt format
  * @param {number} baseSeed – från sessionSeed()
  * @param {number} [batchSize=ROUND_SIZE]
  * @returns {{ next: () => {problem:object, answer:number, variant:string} }}
  */
 export function createProblemSource(generator, baseSeed, batchSize = ROUND_SIZE) {
+  // EN topic-påse för hela strömmen (#470): balansen och "aldrig samma räknesätt
+  // två gånger i rad" håller även över batch-gränserna.
+  const bag = createTopicBag(generatorTopics(generator), hashSeed(`topics|${baseSeed >>> 0}`));
   let batch = [];
   let cursor = 0;
   let batchIndex = 0;
@@ -266,7 +323,7 @@ export function createProblemSource(generator, baseSeed, batchSize = ROUND_SIZE)
     next() {
       if (cursor >= batch.length) {
         const seed = hashSeed(`batch|${baseSeed >>> 0}|${batchIndex}`);
-        batch = buildRound(generator, seed, batchSize);
+        batch = buildRound(generator, seed, batchSize, bag);
         batchIndex++;
         cursor = 0;
       }

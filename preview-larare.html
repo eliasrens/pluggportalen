@@ -73,6 +73,13 @@
         { id: "ostersjon", name: "Östersjön", coverEmoji: "🌊", grade: "ak6", quiz: mkQuiz(5), texts: [{ title: "T", body: "x" }] },
         { id: "rakna", name: "Multiplikationsträning", coverEmoji: "🔢", grade: "ak4",
           generator: { topic: "multiplikation", variants: ["tabeller", "dubbelt"] } },
+        // #470: flera räknesätt i ett område (nya formatet).
+        { id: "blandat", name: "Blandad räkning", coverEmoji: "🧮", grade: "ak3",
+          generator: { topics: [
+            { topic: "addition", variants: ["enkel", "uppstallning"] },
+            { topic: "subtraktion", variants: ["enkel"], talstorlek: "liten" },
+            { topic: "multiplikation", variants: ["tabeller"], bildstod: false },
+          ] } },
       ];
       const library = [
         { id: "so", name: "SO", icon: "🌍", areas: areasSO },
@@ -144,7 +151,8 @@
         };
         launch("Öppna: nytt område", () => modal.openNew());
         launch("Öppna: redigera Vikingatiden", () => modal.openEdit(areasSO[0]));
-        launch("Öppna: redigera Multiplikationsträning", () => modal.openEdit(areasSO[4]));
+        launch("Öppna: redigera Multiplikationsträning (gammalt format)", () => modal.openEdit(areasSO[4]));
+        launch("Öppna: redigera Blandad räkning (3 räknesätt, #470)", () => modal.openEdit(areasSO[5]));
         wrap.appendChild(bar);
       }
 
