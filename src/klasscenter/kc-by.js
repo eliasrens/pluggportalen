@@ -1,5 +1,5 @@
 // ============================================================================
-// Klasscentret i byn (#480, epic #476): byggnad + mätare + placeholder-klick.
+// Klasscentret i byn (#480, epic #476): byggnad + mätare + klick → rummet.
 // ----------------------------------------------------------------------------
 // Laddas ALLTID DYNAMISKT från varld-by-scen.js (import("./klasscenter/kc-by.js"))
 // när byn har en klass – aldrig i den statiska bootgrafen (#271). Rutan
@@ -12,9 +12,9 @@
 //   2. Mätaren ovanför: "Nivå 3 · Träkoja" + stapel + "50 / 200 övningar till
 //      Nivå 4" (högsta nivån: "Maxnivå"). Dold tills hovring/tangentbordsfokus (#484,
 //      ren CSS-opacity) men uppdateras live ändå; aria-label bär samma text.
-//   3. Klick/Enter → liten pratbubbla "Klasscentret – Nivå 3 Träkoja ·
-//      inredning kommer snart" (rummet byggs i epic 2). Pekskärm (hover: none)
-//      saknar hovring → bubblan får även mätarraden (#484).
+//   3. Klick/Enter → klassens rum, "City Hall" (#490): klasscenter/kc-rum-vy.js
+//      laddas DYNAMISKT och zoomar in i hallen. Mätarraden följer med under
+//      rummets titel (pekskärm saknar hovringsmätaren, #484). Grannby = gäst.
 //
 // Byggnaden ritas UTAN ambient-animation (animera:false): CSS-animationer på
 // SVG-barn är inte kompositerbara och kostar under kamerazoomen (#374).
@@ -52,21 +52,6 @@ export function matarMarkup(p) {
     <span class="kc-matare-bar"><i style="width:${pct}%"></i></span>
     <span class="kc-matare-text">${matarRad(p)}</span>
   </div>`;
-}
-
-/**
- * Placeholder-texten vid klick (rummet kommer i epic 2). medMatare (pekskärm,
- * #484): mätarraden läggs in eftersom hovringsmätaren inte går att nå där.
- */
-export function placeholderText(p, { visaOnly = false, klassNamn = "", medMatare = false } = {}) {
-  const vem = visaOnly && klassNamn ? `Klasscentret i ${klassNamn}` : "Klasscentret";
-  const matare = medMatare && matarRad(p) ? ` · ${matarRad(p)}` : "";
-  return `${vem} – Nivå ${p.niva} ${p.namn}${matare} · inredning kommer snart`;
-}
-
-/** Ingen hovring (iPad/Chromebook-touch) → mätaren visas i bubblan i stället. */
-function utanHovring() {
-  return typeof matchMedia === "function" && matchMedia("(hover: none)").matches;
 }
 
 /** Tillgänglig etikett för rutan. */
@@ -117,7 +102,8 @@ function standardKalla(visaOnly) {
  * Fyll en .by-klasscenter-ruta. Returnerar en stad-funktion (avregistrerar).
  * Ritas om i samma ruta → tidigare prenumeration stängs först.
  * @param {HTMLElement} slot
- * @param {{classId:string, visaOnly?:boolean, klassNamn?:string, kalla?:Function}} o
+ * @param {{classId:string, visaOnly?:boolean, klassNamn?:string, kalla?:Function,
+ *   rumDeps?:object}} o  rumDeps = rummets beroenden (preview, se kc-rum-session.js)
  */
 export function mountKlasscenterIBy(slot, o = {}) {
   if (!slot || !o.classId) return () => {};
@@ -179,7 +165,16 @@ export function mountKlasscenterIBy(slot, o = {}) {
     // Bara på by-/grannby-nivån (lagret ligger kvar under andra nivåer).
     const niva = slot.closest(".varld-stage")?.dataset.niva;
     if (niva && niva !== "by" && niva !== "grannby") return;
-    visaBubbla(slot, placeholderText(p || progressTillNasta(0, 1), { ...opts, medMatare: utanHovring() }));
+    const prog = p || progressTillNasta(0, 1);
+    import("./kc-rum-vy.js")
+      .then((m) => m.oppnaKcRum({
+        slot, classId: o.classId, ...opts, niva: prog.niva, nivaNamn: prog.namn,
+        matare: matarRad(prog), deps: o.rumDeps,
+      }))
+      .catch((err) => {
+        console.warn("[klasscenter] rummet kunde inte laddas", err);
+        visaBubbla(slot, "Klasscentret gick inte att öppna just nu – försök igen om en stund.");
+      });
   };
   slot.addEventListener("click", oppna);
   slot.addEventListener("keydown", (e) => {

@@ -661,6 +661,9 @@ export async function pageElevVarld(startNiva) {
   liveScen = {
     stage,
     async visaNiva(nivaId, id) {
+      // Klasscentrets rum (#490) är ett eget lager ovanpå byn: stäng det hårt
+      // innan någon kamera rör by-lagret (no-op när det inte är öppet).
+      stage.dispatchEvent(new Event("kc-rum-stang"));
       // Kompis-hus-nivån: zooma in till den klickade kamratens exteriör.
       if (nivaId === "kompis") return kompisVy.visa(id);
       // Grannby-nivån: zooma in till en annan klass by-översikt (grannbyVy.visa

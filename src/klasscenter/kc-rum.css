@@ -1,0 +1,117 @@
+/* ============================================================================
+   Klasscentrets rum – "City Hall" (#490). Laddas DYNAMISKT av kc-rum-vy.js
+   (ingen ny fil i bootgrafen, #271). Lagret är en vanlig .varld-lager
+   .room-stage (cqw-skalning, drag-CSS för .room-item ärvs från styles.css);
+   UI:t (.kc-rum-ui) är en egen .varld-ui som bara syns på nivån "kcrum".
+   ============================================================================ */
+
+/* Husvärldens egen overlay göms medan rummet är öppet – och tvärtom. */
+.varld-stage[data-niva="kcrum"] > .varld-ui:not(.kc-rum-ui) { display: none; }
+.varld-stage:not([data-niva="kcrum"]) > .kc-rum-ui { display: none; }
+
+.kc-rum-lager { background: #d6a06a; }
+.kc-hall-bg svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Läsläge (gäst/bockad elev): sakerna går att hovra men inte dra. */
+.kc-rum-lager.inredning-las .room-item { cursor: default; }
+
+.kc-rum-lager .room-empty {
+  top: 34%;
+  width: auto;
+  max-width: 80%;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2.5px solid #3b3350;
+  color: #3b3350;
+}
+
+.kc-rum-titel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.25;
+}
+.kc-rum-titel small {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #5b5470;
+}
+.kc-rum-titel small:empty { display: none; }
+
+.kc-rum-verktyg {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.kc-spara:disabled {
+  opacity: 0.55;
+  cursor: default;
+  transform: none;
+}
+.kc-spara.kc-osparat {
+  background: #ffe58f;
+  border-color: #b07a00;
+}
+
+.kc-rum-status {
+  pointer-events: auto;
+  align-self: center;
+  margin-top: 8px;
+  max-width: min(640px, 100%);
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2.5px solid #3b3350;
+  border-radius: 18px;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.18);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #3b3350;
+  text-align: center;
+}
+.kc-lank {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 800;
+  color: var(--lila, #7c5cd6);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.kc-historik {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kc-historik-rad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 12px;
+  background: #f6f3fb;
+}
+.kc-historik-rad.aktuell { background: #efe7ff; outline: 2px solid var(--lila, #7c5cd6); }
+.kc-historik-info { display: flex; flex-direction: column; }
+.kc-historik-info span { font-size: 0.85rem; color: #5b5470; }
+.kc-historik-nu { font-weight: 800; font-size: 0.85rem; color: var(--lila, #7c5cd6); padding-right: 6px; }
+.kc-historik-btn { padding: 4px 12px; font-size: 13px; }
+
+@media (max-width: 700px) {
+  .kc-rum-verktyg .varld-knapp span { display: none; }
+  .kc-rum-status { font-size: 0.82rem; }
+}
