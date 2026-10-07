@@ -16,9 +16,10 @@ och du kan klicka hur mycket du vill. QA-resultat: [QA-RAPPORT-mattematchen-live
   ```
   Om du kör seeden igen återställs allt: lösenord, tävlingar och Live-matcher. De som är inloggade loggas då ut.
 
-**Flera personer samtidigt:** använd ett vanligt fönster, ett inkognitofönster och en annan webbläsare,
-**inte** flera flikar i samma fönster. Två flikar i samma profil delar inloggning, och en ny flik kan logga ut den
-gamla (fynd F2 i rapporten). Lärare loggar in **per flik**, vilket är så det fungerar redan i dag.
+**Flera personer samtidigt:** en webbläsarprofil har bara EN inloggad elev åt gången. Två flikar som
+**samma** elev förblir båda inloggade (F2 är fixat i #464). Om sessionen ändå tappas visas inloggningen med
+"Du har loggats ut". För **olika** elever använder du ett vanligt fönster, ett inkognitofönster och en annan webbläsare.
+Lärare loggar in **per flik**, vilket är så det fungerar redan i dag.
 
 ## 2. Inloggningar (lösenord för alla: `lilla123`)
 
@@ -87,6 +88,7 @@ Du behöver fyra fönster eller webbläsare: **A** rasmus, **B** elias, **C** `b
 ## 6. Bra att veta
 
 - Live-poäng ger **inte** Mattematchen-poäng och inga coins.
-- Live-elevvyn får en scrollbar på 4 px på 1366×768 (fynd F1). Den rättas i en fix-issue.
+- QA-fynden är fixade. #463: F1 (Live-elevvyn utan scroll på 1366×768), F3 (lärarmodaler stängs vid Tillbaka),
+  F4 (Statistik → Live räknar ut resultatet ur räknarna) och F7 (e2e-auth-testet). #464: F2 (flera flikar).
 - Ingenting här är deployat. Regler och index kräver `firebase deploy --only firestore:rules,firestore:indexes`
   först när epic:en går till main.
