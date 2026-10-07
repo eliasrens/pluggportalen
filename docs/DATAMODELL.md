@@ -842,26 +842,74 @@ En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevanta
 Läses av alla inloggade (gästläge). Skrivs av lärare (pokaler: lärarens klient
 när MM/Live avslutas – en elevklient kan inte bevisa vinsten i reglerna).
 
-### Crowdfunding (epic 2/3, FÖRSLAG)
+### Crowdfunding (epic 2, #486)
 
-- Katalogen (namn, `targetPrice` 2 000–10 000, konst) ligger i **kod**
-  (ny dynamisk fil, t.ex. `src/klasscenter/kc-shop-items.js` – `shop-items.js`
-  är 400/400 rader och i bootgrafen).
-- `classCenters/{classId}/fund/{itemId}` = `{ targetPrice, fundedAmount,
-  isUnlocked, unlockedAt?, lastDonationId }`. Läses av alla inloggade
-  (realtid "150 / 5000"). Elevskrivning bara i SAMMA batch som en ny
-  donationspost: `fundedAmount` ökar exakt `donation.amount`, aldrig över
-  `targetPrice`, `isUnlocked == (fundedAmount == targetPrice)`, inga
-  ändringar när `isUnlocked`. Klienten cappar beloppet till det som saknas
-  (inget går förlorat).
-- `classCenters/{classId}/donations/{donationId}` = `{ uid, itemId, amount,
-  at }`, create-only, `uid == auth.uid`, klassmedlem. **Läses bara av lärare**
-  (anonymt för klassen – BESLUT). Samma batch drar `studentData.coins`.
-  Obs: `studentData` är klient-skrivbart (`isSelf`) redan i dag, så reglerna
-  kan garantera att insamlat = summan av donationer, inte att eleven "hade"
-  mynten. Återanvänd INTE `classProjects` (#331): dess `contributions.{uid}`
-  är läsbart för alla inloggade.
-- **Klassens möbellåda** härleds: alla `fund`-dokument med `isUnlocked`.
+**Katalogen** ligger i kod: `src/klasscenter/kc-shop-items.js` (dynamisk –
+`shop-items.js` är 400/400 rader och i bootgrafen). Åtta föremål `{ id, namn,
+emoji, targetPrice, zon, storlek, art }`: klassfana 2000, troféhylla 2500,
+lounge 3000, akvarium 4000, guldstaty 5000, flygel 6000, fontän 8000,
+kristallkrona 10000. `zon` = `"golv"` | `"vagg"` (upphängt), `storlek` =
+`{ w, h }` i procent av scenen, `art` = rit-nyckel (konsten: sub-issue B).
+⚠️ `firestore.rules` (`kcPris`) har en kopia av id → pris; nytt föremål =
+rad i båda + rules-deploy (`test/kc-fund-plan.test.js` failar om de glider isär).
+Ändra aldrig priset på ett befintligt id (fund-dokumentet låser priset).
+
+#### `classCenters/{classId}/fund/{itemId}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `targetPrice` | int | = katalogpriset, låst från första donationen |
+| `fundedAmount` | int | insamlat, 0 < … ≤ `targetPrice` |
+| `isUnlocked` | bool | `fundedAmount == targetPrice` (köpt) |
+| `unlockedAt` | timestamp | serverns tid när målet nåddes (bara när köpt) |
+| `lastDonationId` | string | donationsposten som skrevs i samma transaktion |
+
+Läses av alla inloggade (realtid "150 / 5000"). Dokumentet skapas vid första
+donationen – saknat dokument = 0 insamlat (`normaliseraFunds`).
+
+#### `classCenters/{classId}/donations/{autoId}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `uid` | string | donerande elev (= `auth.uid`) |
+| `itemId` | string | föremålet |
+| `amount` | int ≥ 1 | det faktiskt dragna (cappade) beloppet |
+| `at` | timestamp | serverns tid |
+
+Create-only (ingen ändring/radering, inte ens lärare → insamlat == summan
+av posterna). **Läses bara av lärare** – för klassen är donationerna anonyma
+(BESLUT, bara totalsumman syns). Återanvänd INTE `classProjects` (#331): dess
+`contributions.{uid}` är läsbart för alla inloggade.
+
+**Donationen** (`korDonation` i `src/klasscenter/kc-fund-plan.js`, via
+`donate(classId, itemId, amount)` i den dynamiska `kc-fund-data.js`) = EN
+transaktion: läs `fund` + `studentData.coins` → `planDonation` cappar beloppet
+till min(begärt, det som saknas, saldot) (heltal ≥ 1; överskottet dras aldrig)
+→ skriv `studentData.coins − n`, ny donationspost, `fund` (absoluta värden).
+Samtidiga donationer: transaktionen körs om med färska värden; reglerna kan
+svara `permission-denied` i stället för en vanlig krock (emulatorn gör det),
+så `korDonation` försöker upp till 4 gånger. Fel: `redan-kopt`,
+`for-lite-mynt`, `ogiltigt-belopp`, `okant-foremal`, `nekad`.
+
+**Regler (firestore.rules "KLASSCENTRET")**: `fund` skrivs bara av
+klassmedlem och bara ihop med en NY donationspost (`lastDonationId` byts,
+`!exists` före + `getAfter` efter): `fundedAmount` ökar exakt postens
+`amount`, aldrig över `targetPrice` (== `kcPris`, oförändrat),
+`isUnlocked == (fundedAmount == targetPrice)`, `unlockedAt == request.time`
+när köpt, och ingenting alls när `isUnlocked` redan är sant. Donationsposten:
+egen uid, klassmedlem, `amount` heltal ≥ 1, `at == request.time`, fundens
+`lastDonationId` pekar på posten och samma skrivning sänker
+`studentData/{uid}.coins` med exakt `amount` (≥ 0 kvar). Annan klass/icke-
+medlem nekas (`isClassMember`).
+**Kvarvarande begränsning:** `studentData.coins` är klient-skrivbart
+(`isSelf`, utan fältvalidering) → reglerna garanterar *insamlat == summan av
+donationerna* och att saldot sjunker lika mycket i samma skrivning, inte att
+eleven "förtjänat" mynten.
+
+**Klassens möbellåda** härleds: `unlockedItems(funds)` = katalogföremålen vars
+`fund` har `isUnlocked` (inget eget dokument).
+⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan donationer
+fungerar live.
 
 ### Gemensam layout + historik (epic 2, FÖRSLAG)
 

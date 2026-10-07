@@ -621,6 +621,74 @@ service cloud.firestore {
         allow create, update: if kcMemberAward(uid) || kcMemberCounts(uid);
         allow delete: if isTeacher();
       }
+
+      // ----------------------------------------------------------------
+      // Crowdfunding (#486, epic #475). Skrivplan: src/klasscenter/
+      // kc-fund-plan.js (korDonation = EN transaktion med tre skrivningar):
+      //   studentData/{uid}.coins − n, donations/{nytt id} {uid,itemId,amount,at},
+      //   fund/{itemId} {targetPrice, fundedAmount, isUnlocked, unlockedAt?,
+      //   lastDonationId}.
+      //  • fund: läses av alla inloggade. Klassmedlem skriver bara ihop med
+      //    en NY donationspost (lastDonationId, existsAfter men ej exists):
+      //    fundedAmount ökar exakt donationens amount, aldrig över
+      //    targetPrice (= katalogpriset kcPris, låst), isUnlocked ==
+      //    (fundedAmount == targetPrice), inget alls när redan isUnlocked.
+      //  • donations: create-only, egen uid, klassmedlem, heltal ≥ 1, och
+      //    samma transaktion pekar fund på posten + drar exakt amount från
+      //    elevens coins (≥ 0 kvar). Läses BARA av lärare (anonymt i klassen).
+      // Kvarvarande begränsning (ärligt): studentData är klient-skrivbart
+      // (isSelf) → reglerna garanterar insamlat == summan av donationerna och
+      // att saldot sjunker lika mycket i samma skrivning, inte att eleven
+      // "förtjänat" mynten.
+      // ⚠️ Katalogen kcPris = kopia av src/klasscenter/kc-shop-items.js
+      // (test/kc-fund-plan.test.js jämför). Nytt föremål = rules-deploy.
+      // ----------------------------------------------------------------
+      function kcPris(itemId) {
+        return {
+          'klassfana': 2000, 'trofehylla': 2500, 'lounge': 3000, 'akvarium': 4000,
+          'guldstaty': 5000, 'flygel': 6000, 'fontan': 8000, 'kristallkrona': 10000
+        }.get(itemId, 0);
+      }
+      function kcFundWrite(itemId) {
+        let d = request.resource.data;
+        let don = getAfter(kcPath('donations', d.lastDonationId)).data;
+        return isClassMember(classId) && kcPris(itemId) > 0 &&
+          (resource == null || resource.data.isUnlocked != true) &&
+          changedOnly(['targetPrice', 'fundedAmount', 'isUnlocked', 'unlockedAt', 'lastDonationId']) &&
+          d.targetPrice == kcPris(itemId) &&
+          (resource == null || d.targetPrice == resource.data.targetPrice) &&
+          d.fundedAmount is int && d.fundedAmount <= d.targetPrice &&
+          d.isUnlocked == (d.fundedAmount == d.targetPrice) &&
+          ((d.isUnlocked && d.unlockedAt == request.time) || (!d.isUnlocked && !('unlockedAt' in d))) &&
+          d.lastDonationId is string &&
+          (resource == null || d.lastDonationId != resource.data.lastDonationId) &&
+          !exists(kcPath('donations', d.lastDonationId)) &&
+          don.uid == request.auth.uid && don.itemId == itemId &&
+          don.amount == d.fundedAmount - prevInt('fundedAmount');
+      }
+      function kcCoinsPaid(n) {
+        let p = /databases/$(database)/documents/studentData/$(request.auth.uid);
+        let efter = getAfter(p).data.get('coins', 0);
+        return efter == get(p).data.get('coins', 0) - n && efter >= 0;
+      }
+      function kcDonationCreate(donationId) {
+        let d = request.resource.data;
+        return isClassMember(classId) &&
+          d.keys().hasOnly(['uid', 'itemId', 'amount', 'at']) &&
+          d.uid == request.auth.uid && d.itemId is string && kcPris(d.itemId) > 0 &&
+          d.amount is int && d.amount >= 1 && d.at == request.time &&
+          getAfter(kcPath('fund', d.itemId)).data.lastDonationId == donationId &&
+          kcCoinsPaid(d.amount);
+      }
+
+      match /fund/{itemId} {
+        allow read: if signedIn();
+        allow create, update: if kcFundWrite(itemId);
+      }
+      match /donations/{donationId} {
+        allow read: if isTeacher();
+        allow create: if kcDonationCreate(donationId);
+      }
     }
 
     // Allt annat nekas.
