@@ -1,0 +1,28 @@
+{
+  "name": "Rymden QA",
+  "description": "QA-område för kategoristatistik (#448).",
+  "coverEmoji": "🪐",
+  "texts": [
+    { "id": "t1", "title": "Solsystemet", "body": "Solsystemet består av solen och åtta planeter. Jorden är den tredje planeten från solen. Jupiter är störst." }
+  ],
+  "quiz": [
+    { "id": "q1", "question": "Hur många planeter finns i solsystemet?", "options": ["Åtta", "Sex", "Tio", "Tolv"], "answerIndex": 0, "explanation": "Det finns åtta planeter.", "passage": "Solsystemet består av solen och åtta planeter som går runt den.", "category": "fakta" },
+    { "id": "q2", "question": "Vilken planet är störst?", "options": ["Jupiter", "Mars", "Venus", "Merkurius"], "answerIndex": 0, "explanation": "Jupiter är störst.", "passage": "Jupiter är den största planeten i solsystemet. Den består mest av gas.", "category": "fakta" },
+    { "id": "q3", "question": "Vilken planet i ordningen från solen är jorden?", "options": ["Tredje", "Första", "Femte", "Åttonde"], "answerIndex": 0, "explanation": "Jorden är tredje planeten.", "passage": "Jorden är den tredje planeten från solen. Före den kommer Merkurius och Venus.", "category": "fakta" },
+    { "id": "q4", "question": "Vad heter jordens måne?", "options": ["Månen", "Titan", "Europa", "Fobos"], "answerIndex": 0, "explanation": "Jordens enda måne kallas Månen.", "passage": "Jorden har en enda naturlig måne. Den kallas helt enkelt Månen.", "category": "fakta" },
+    { "id": "q5", "question": "Vad betyder ordet omloppsbana?", "options": ["Vägen en himlakropp går runt en annan", "En raket", "Ett stjärntecken", "En sorts sten"], "answerIndex": 0, "explanation": "Omloppsbanan är vägen runt.", "passage": "En planet rör sig runt solen i en omloppsbana. Banan är vägen den följer runt solen.", "category": "begrepp" },
+    { "id": "q6", "question": "Vad är en asteroid?", "options": ["En liten stenkropp i rymden", "En stor stjärna", "Ett moln av gas", "En planet med ringar"], "answerIndex": 0, "explanation": "Asteroider är små stenkroppar.", "passage": "Mellan Mars och Jupiter finns många asteroider. Det är små stenkroppar som går runt solen.", "category": "begrepp" },
+    { "id": "q7", "question": "Vad betyder ljusår?", "options": ["Hur långt ljuset färdas på ett år", "Ett år med mycket sol", "Ljusets ålder", "Ett lampmärke"], "answerIndex": 0, "explanation": "Ljusår är en längd.", "passage": "Avstånd i rymden är enormt stora. Därför mäter man i ljusår, alltså hur långt ljuset hinner på ett år.", "category": "Begreppsförståelse" },
+    { "id": "q8", "question": "Varför är det varmare på Venus än på Merkurius fast Merkurius är närmare solen?", "options": ["Venus tjocka atmosfär håller kvar värmen", "Venus är större", "Venus har fler månar", "Merkurius snurrar fortare"], "answerIndex": 0, "explanation": "Atmosfären fungerar som ett täcke.", "passage": "Venus har en mycket tjock atmosfär av koldioxid. Den håller kvar värmen som ett täcke, så Venus blir varmare än Merkurius.", "category": "analys" },
+    { "id": "q9", "question": "Varför har vi dag och natt?", "options": ["Jorden snurrar runt sin egen axel", "Solen slocknar", "Månen skymmer solen", "Jorden går runt månen"], "answerIndex": 0, "explanation": "Jordens rotation ger dag och natt.", "passage": "Jorden snurrar runt sin egen axel en gång per dygn. Den sida som vetter mot solen har dag.", "category": "analys" },
+    { "id": "q10", "question": "Vad skulle hända om jorden låg mycket närmare solen?", "options": ["Det skulle bli för varmt för liv", "Det skulle bli kallare", "Inget alls", "Månen skulle försvinna"], "answerIndex": 0, "explanation": "Närmare solen = varmare.", "passage": "Jorden ligger på precis lagom avstånd från solen. Låg den mycket närmare skulle haven koka bort och det bli för varmt för liv.", "category": "Analys/resonemang" }
+  ],
+  "pairs": [
+    { "id": "p1", "term": "Jupiter", "definition": "Största planeten", "category": "fakta" },
+    { "id": "p2", "term": "Omloppsbana", "definition": "Vägen runt en himlakropp", "category": "begrepp" },
+    { "id": "p3", "term": "Asteroid", "definition": "Liten stenkropp i rymden", "category": "begrepp" },
+    { "id": "p4", "term": "Månen", "definition": "Jordens enda måne", "category": "fakta" },
+    { "id": "p5", "term": "Ljusår", "definition": "Hur långt ljuset går på ett år", "category": "minne" },
+    { "id": "p6", "term": "Solen", "definition": "Stjärnan i mitten av solsystemet" }
+  ]
+}
