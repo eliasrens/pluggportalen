@@ -108,7 +108,7 @@ async function renderSubjectStats(ctx, host, { students, subjects, studentById, 
       emptyState(ctx, {
         emoji: "🧑‍🎓",
         title: "Klassen har inga elever än",
-        text: "Lägg till elever på klasskortet (🧑‍🎓 Elever) så syns deras framsteg här.",
+        text: "Lägg till elever under fliken Elever så syns deras framsteg här.",
       })
     );
     return;

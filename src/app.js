@@ -44,13 +44,11 @@ import {
   pageElevPlugga,
   pageElevProfil,
 } from "./pages-elev.js";
-import {
-  pageLarareInnehall,
-} from "./teacher.js";
+// Lärarsidans flikar (#440): routes registreras ur flik-registryn TEACHER_TABS;
+// sidmodulerna laddas med import() (utanför den statiska bootgrafen, #271).
+import { TEACHER_TABS } from "./teacher-shared.js";
 // Klasskamratens rum (#/elev/klasskamrat) – läs-endast vy av en annan elevs rum.
 import { pageElevKlasskamrat } from "./pages-klasskamrat.js";
-// Klasshantering (#/larare/klasser) – additivt tillägg (håll separat för enkel rebase).
-import { pageLarareKlasser } from "./teacher.js";
 import { pageElevShop } from "./pages-shop.js";
 // Husvärlden (#/elev/hus + #/elev/rum) – EN stateful spelscen med kamerazoom
 // mellan ute (huset) och inne (rummet), utan sidladdning – pages-varld.js.
@@ -193,11 +191,8 @@ const routes = {
   // elever (issue #299): framstegsmatrisen är nu en 📊-expander per klasskort.
   // Gamla länkar/bokmärken skickas dit (samma mönster som /larare/elever).
   "/larare/klass": () => go("#/larare/klasser"),
-  // Klasser, elevkonton & statistik (#/larare/klasser) – den ENADE lärarsidan
-  // (skapa klass + elevkonton, medlemshantering, per-område-lägen, statistik).
-  // Gamla #/larare/elever OCH #/larare/klass är sammanslagna hit.
-  "/larare/klasser": () => pageLarareKlasser(teacherCtx),
-  "/larare/innehall": () => pageLarareInnehall(teacherCtx),
+  // #/larare/klasser (klass-master-detail) och #/larare/innehall registreras
+  // ur TEACHER_TABS nedanför routes-objektet (#440).
   // AI-prompt-sidan är sammanslagen med innehållssidan (issue #62): den
   // dynamiska promptbyggaren bor nu där. Gamla länkar/bokmärken skickas dit.
   "/larare/prompter": () => go("#/larare/innehall"),
@@ -205,6 +200,8 @@ const routes = {
   // länkar/bokmärken skickas dit (samma mönster som /larare/prompter).
   "/larare/elever": () => go("#/larare/klasser"),
 };
+// Lärarflikarna ur registryn (#440): en ny lärarmodul = en rad i TEACHER_TABS.
+for (const tab of TEACHER_TABS) routes[tab.hash.slice(1)] = () => tab.page(teacherCtx);
 
 // Löpnummer per navigering: grinden (#412/#436) väntar asynkront på klasslistan
 // och får inte rita en gammal route om eleven hunnit navigera vidare.

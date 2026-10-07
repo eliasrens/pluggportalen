@@ -3,22 +3,17 @@
 // ----------------------------------------------------------------------------
 // Innehållssidan (#/larare/innehall) är ombyggd (issue #303) till en STUDIO med
 // två lägen:
-//   1) BIBLIOTEK (landningsvyn)  – buildLibraryView(): ämnesflikar + kort per
-//      arbetsområde + "Skapa nytt område". Korten byggs i teacher-content-list.js.
-//   2) FOKUSERAD KOMPOSITÖR      – buildComposerView(): en overlay som dimmar
-//      biblioteket och öppnas vid skapa/redigera. Metod-växel mellan "Skapa
-//      guidat" och "Klistra in / ladda upp material" – båda mynnar i samma
-//      validering (src/validate.js) + "Det här skapas"-sammanfattning + Spara.
+//   1) BIBLIOTEK (landningsvyn)  – buildLibraryView(): ämnesflikar + sorterbar
+//      tabell med arbetsområden + "Skapa nytt område". Tabellen byggs i
+//      teacher-content-list.js (issue #441).
+//   2) SKAPA/REDIGERA – 4-stegs wizarden (issue #442) bygger sin egen DOM i
+//      teacher-wizard.js + teacher-wizard-steg1–4.js (laddas dynamiskt). Härifrån
+//      lånar den bara COVER_EMOJI_CHOICES (emojiväljarens snabbval).
 //
-// Rena mall-funktioner utan sidoeffekter – ALL wiring (händelser, data, öppna/
-// stänga overlay) sker i teacher-content.js. INGEN funktion från gamla sidan är
-// borttagen: övningstyper, räknegenerator, årskurs, AI-prompt, klistra in/ladda
-// upp/exempel/kontrollera/spara och synliga lägen finns kvar – bara omgrupperade.
+// Rena mall-funktioner utan sidoeffekter – ALL wiring sker i teacher-content.js.
 // ============================================================================
 
-import { EXERCISE_TYPES } from "./exercise-types.js";
 import { GRADES } from "./grades.js";
-import { listPairImageKeys } from "./pair-images.js";
 import { el, esc, icon } from "./teacher-shared.js";
 
 const gradeOptions = () =>
@@ -34,196 +29,68 @@ export const COVER_EMOJI_CHOICES = [
   "🌋", "💡", "🧩", "❓", "🔤", "🗣️", "💬", "🧠",
 ];
 
-const coverEmojiButtons = () =>
-  COVER_EMOJI_CHOICES.map(
-    (e) =>
-      `<button type="button" class="emoji-choice" data-emoji="${esc(e)}"
-        role="option" aria-label="Välj ${esc(e)}">${esc(e)}</button>`
-  ).join("");
+// Ämnesflikarnas färgprick (issue #453): härleds deterministiskt ur ämnet – ingen
+// ny datamodell. Kända ämnen får en fast färg (SO grön, Matematik blå …), övriga
+// en färg ur paletten via en enkel hash av id:t, så samma ämne alltid får samma.
+const SUBJECT_DOT_PALETTE = ["#2ec16e", "#4c9bff", "#f2a93b", "#b37dff", "#ff7a8a", "#2fc6c6", "#f06f3c"];
+const SUBJECT_DOT_KNOWN = {
+  so: 0, sv: 2, svenska: 2, no: 5, en: 3, engelska: 3,
+  ma: 1, matte: 1, matematik: 1,
+};
 
-/**
- * BIBLIOTEK – landningsvyn. Ämnesflikarna (#subject-tabs) och korten (#area-cards)
- * fylls från teacher-content.js. Filter/sortering ligger kvar (issue #145).
- */
-export function buildLibraryView() {
-  return el(`<div class="studio">
-    <div class="studio-toolbar panel">
-      <div class="studio-subject-tabs" id="subject-tabs" role="tablist" aria-label="Ämnen"></div>
-      <div class="studio-toolbar-actions">
-        <button class="btn ghost" id="new-subject">${icon("plus")}<span>Nytt ämne</span></button>
-        <button class="btn gron" id="create-new">${icon("pencil")}<span>Skapa nytt område</span></button>
-      </div>
-    </div>
-    <div id="new-subject-form"></div>
-    <div class="studio-lib-controls">
-      <label class="row-inline" style="gap:6px">Visa årskurs:
-        <select id="area-grade-filter" class="select">
-          <option value="">Alla</option>
-          <option value="ospecificerad">Ospecificerad</option>
-          ${gradeOptions()}
-        </select>
-      </label>
-      <label class="row-inline" style="gap:6px">Sortera:
-        <select id="area-sort" class="select">
-          <option value="order">Ordning</option>
-          <option value="grade">Årskurs</option>
-        </select>
-      </label>
-    </div>
-    <div id="area-cards"><div class="spinner">Laddar…</div></div>
-  </div>`);
+/** Färg för ett ämnes prick i flikraden. */
+export function subjectColor(subject) {
+  const id = String(subject?.id || "").toLowerCase();
+  const name = String(subject?.name || "").toLowerCase();
+  const known = SUBJECT_DOT_KNOWN[id] ?? SUBJECT_DOT_KNOWN[name];
+  if (known !== undefined) return SUBJECT_DOT_PALETTE[known];
+  let h = 0;
+  for (const ch of id || name) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+  return SUBJECT_DOT_PALETTE[h % SUBJECT_DOT_PALETTE.length];
+}
+
+/** En ämnesflik (understruken flikrad): färgprick + namn. Wiras i teacher-content.js. */
+export function buildSubjectTab(subject, active) {
+  return el(`<button type="button" class="subject-tab ${active ? "active" : ""}" role="tab"
+    aria-selected="${active}"><span class="subject-dot" style="background:${subjectColor(subject)}"
+    aria-hidden="true"></span><span>${esc(subject.name || subject.id)}</span></button>`);
 }
 
 /**
- * FOKUSERAD KOMPOSITÖR – en overlay (dölj/visa via hidden i teacher-content.js).
- * Backdrop-klick och stäng-knappen stänger; wiras i teacher-content.js.
- * Alla input-id:n är oförändrade mot förr (#json, #file, #example, #clear,
- * #ex-types, #generator-config, #area-grade, #area-onskemal, #copy-area-prompt,
- * #mode-visibility, #check, #save, #result) så wiringen kan återanvändas rakt av.
+ * BIBLIOTEK – landningsvyn, allt i ETT kort (issue #453, Elias koncept): sidhuvud
+ * (ikonruta + titel + undertitel), ämnesflikar som understruken flikrad med
+ * "+ Nytt ämne" sist, verktygsrad (Visa årskurs till vänster, "+ Skapa nytt
+ * område" till höger) och tabellen i en egen inramad behållare. Ämnesflikarna
+ * (#subject-tabs) och tabellen (#area-cards) fylls från teacher-content.js.
+ * Årskursfiltret ligger kvar (issue #145); sortering sker via tabellens
+ * klickbara rubriker (issue #441).
  */
-export function buildComposerView() {
-  return el(`<div class="studio-composer-overlay" id="composer-overlay" hidden>
-    <div class="studio-composer" role="dialog" aria-modal="true" aria-labelledby="composer-title">
-      <button class="cx-modal-close" id="composer-close" aria-label="Stäng kompositören">✕</button>
-      <header class="composer-head">
-        <span class="composer-icon" id="composer-icon">${icon("pencil", 26)}</span>
-        <div>
-          <h2 id="composer-title" class="composer-title">Nytt arbetsområde</h2>
-          <p class="composer-sub" id="composer-sub"></p>
+export function buildLibraryView() {
+  return el(`<div class="studio">
+    <section class="studio-card" aria-labelledby="studio-title">
+      <header class="studio-head">
+        <span class="teacher-page-ic" aria-hidden="true">${icon("book", 22)}</span>
+        <div class="studio-head-txt">
+          <h1 class="studio-title" id="studio-title">Innehållsstudion</h1>
+          <p class="studio-sub">Hantera ämnen, arbetsområden och uppgifter för dina klasser</p>
         </div>
       </header>
-
-      <div class="composer-basics">
-        <div class="field">
-          <label for="area-name">Namn på området</label>
-          <input id="area-name" placeholder="T.ex. Vikingatiden eller Multiplikationsträning" />
-        </div>
-        <div class="field">
-          <label for="area-grade">Årskurs (valfritt)</label>
-          <select id="area-grade" class="select">
-            <option value="">Ospecificerad</option>
+      <div class="studio-tabs-row">
+        <div class="studio-subject-tabs" id="subject-tabs" role="tablist" aria-label="Ämnen"></div>
+        <button type="button" class="studio-new-subject" id="new-subject">${icon("plus", 14)}<span>Nytt ämne</span></button>
+      </div>
+      <div id="new-subject-form"></div>
+      <div class="studio-lib-controls">
+        <label class="studio-grade-filter">Visa årskurs:
+          <select id="area-grade-filter" class="select">
+            <option value="">Alla</option>
+            <option value="ospecificerad">Ospecificerad</option>
             ${gradeOptions()}
           </select>
-          <p class="hint">Styr AI-prompten (språk och svårighetsgrad) och gör att du kan
-            sortera/filtrera biblioteket per årskurs. Lämna <b>Ospecificerad</b> om området passar
-            flera årskurser.</p>
-        </div>
-        <div class="field composer-emoji-field">
-          <label for="area-emoji">Symbol (emoji)</label>
-          <p class="hint">Visas på bibliotekskortet och elevernas områdeskort. Klicka en emoji
-            nedan eller skriv in en egen. Lämna tomt för standard 📖.</p>
-          <div class="emoji-picker">
-            <div class="emoji-grid" id="area-emoji-grid" role="listbox" aria-label="Välj symbol för området">
-              ${coverEmojiButtons()}
-            </div>
-            <div class="row-inline emoji-custom">
-              <span class="emoji-preview" id="area-emoji-preview" aria-hidden="true">📖</span>
-              <input id="area-emoji" class="emoji-input" maxlength="8"
-                placeholder="Egen emoji, t.ex. 🛶" aria-label="Egen emoji" />
-            </div>
-          </div>
-        </div>
+        </label>
+        <button type="button" class="btn gron" id="create-new">${icon("plus")}<span>Skapa nytt område</span></button>
       </div>
-
-      <div class="method-switch" role="tablist" aria-label="Sätt att lägga in material">
-        <button type="button" class="method-tab active" data-method="guidat" role="tab" aria-selected="true">${icon("sparkle")} Skapa guidat</button>
-        <button type="button" class="method-tab" data-method="material" role="tab" aria-selected="false">${icon("copy")} Klistra in / ladda upp material</button>
-      </div>
-
-      <!-- ===== METOD: Skapa guidat ============================================ -->
-      <div class="composer-method" data-method="guidat">
-        <p class="hint">Välj vad området ska innehålla, så anpassar sig formuläret. Du behöver inte
-          tänka på något format – vi sätter ihop materialet åt dig.</p>
-
-        <div class="ctype-switch" id="ctype-switch" role="tablist" aria-label="Innehållstyp">
-          <button type="button" class="ctype-tab active" data-ctype="quiz">❓ Quiz &amp; läsförståelse</button>
-          <button type="button" class="ctype-tab" data-ctype="pairs">🧩 Para ihop</button>
-          <button type="button" class="ctype-tab" data-ctype="generator">🔢 Räkna (generator)</button>
-        </div>
-
-        <!-- Färdigt material (quiz / para ihop): övningstyper + AI-hjälp -->
-        <div class="ctype-pane" data-ctype-pane="text">
-          <div class="field">
-            <label>Övningstyper på området</label>
-            <p class="hint">Bara de <b>ikryssade</b> typerna kommer med. Standard är Quiz; kryssa i
-              fler bara när du behöver dem (t.ex. bildpar).</p>
-            <div class="member-grid" id="ex-types">
-              ${EXERCISE_TYPES.filter((t) => !t.generated)
-                .map(
-                  (t) => `<label class="member-row">
-                  <input type="checkbox" value="${esc(t.id)}"${t.id === "quiz" ? " checked" : ""} />
-                  <span class="member-avatar">${esc(t.emoji)}</span>
-                  <span class="member-name">${esc(t.label)}<br><span class="hint">${esc(t.hint)}</span></span>
-                </label>`
-                )
-                .join("")}
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="area-onskemal">✍️ Eget önskemål till AI:n (valfritt)</label>
-            <input id="area-onskemal" placeholder="T.ex. ämne, tema eller omfattning – vävs in i prompten" />
-            <p class="hint">Har du ingen PDF/text? Beskriv ämne, årskurs och ev. omfattning här, så
-              vävs det in i prompten i stället för platshållaren för bifogat material.</p>
-          </div>
-
-          <div class="composer-callout">
-            <p class="hint" style="margin:0">🤖 <b>Så gör du:</b> kopiera prompten nedan och klistra in
-              den i valfri AI (ChatGPT, Claude, Gemini …) tillsammans med din PDF/lektionstext. Klistra
-              sedan in AI:ns svar under <b>Klistra in / ladda upp material</b> – du får granska och
-              ändra utkastet innan du sparar (inget sparas automatiskt).</p>
-          </div>
-          <div class="row-inline" style="margin-top:10px">
-            <button class="btn ghost" id="copy-area-prompt">${icon("copy")}<span>Kopiera AI-prompt för valda typer</span></button>
-          </div>
-
-          <p class="hint" style="margin-top:12px">🖼️ <b>Bildpar:</b> ett par kan visa en färdig bild i
-            stället för text – sätt <code>termImage</code>/<code>defImage</code> till en bildnyckel:
-            ${listPairImageKeys().map((k) => `<code>${esc(k.key)}</code> (${esc(k.name)})`).join(", ")}.</p>
-        </div>
-
-        <!-- Räknegenerator (matte) -->
-        <div class="ctype-pane" data-ctype-pane="generator" hidden>
-          <div class="field">
-            <label>🔢 Räknegenerator</label>
-            <p class="hint">Låt området <b>generera</b> räkneuppgifter automatiskt – välj en tal-typ
-              och kryssa i varianterna. Inget material behöver klistras in; området tänder
-              <b>räkna-läget</b>. Ge bara området ett namn ovan.</p>
-            <div id="generator-config"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== METOD: Klistra in / ladda upp material ========================= -->
-      <div class="composer-method" data-method="material" hidden>
-        <p class="hint">Den snabba vägen: klistra in färdigt material (eller ladda upp en fil). Du
-          behöver inte tänka på formatet – klicka <b>Kontrollera</b> så säger vi till om något ser
-          konstigt ut.</p>
-        <div class="row-inline" style="margin-bottom:10px">
-          <label class="btn ghost file-btn">${icon("upload")} Ladda upp fil
-            <input type="file" id="file" accept=".json,application/json" hidden />
-          </label>
-          <button class="btn ghost" id="example">Infoga exempel</button>
-          <button class="btn ghost" id="clear">Rensa</button>
-        </div>
-        <textarea id="json" class="json-input" spellcheck="false"
-          placeholder='Klistra in material här, t.ex. { "name": "Vikingatiden", "quiz": [ ... ] }'></textarea>
-      </div>
-
-      <!-- ===== Delat: synliga lägen + kontrollera/spara ======================= -->
-      <div class="field" style="margin-top:8px">
-        <label>👁️ Synliga lägen för eleverna</label>
-        <p class="hint">Bocka i vilka spellägen som ska visas för det här arbetsområdet. Bara lägen
-          området har innehåll för kan väljas.</p>
-        <div class="member-grid" id="mode-visibility"></div>
-      </div>
-
-      <div id="result" class="composer-result"></div>
-
-      <div class="composer-actions">
-        <button class="btn ghost" id="check">Kontrollera</button>
-        <button class="btn gron" id="save">Spara</button>
-      </div>
-    </div>
+      <div id="area-cards"><div class="spinner">Laddar…</div></div>
+    </section>
   </div>`);
 }

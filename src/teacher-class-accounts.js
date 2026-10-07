@@ -15,8 +15,11 @@
 
 import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
-import { el, esc, copyText, icon } from "./teacher-shared.js";
-import { renderAccountEditor, printLoginCards } from "./teacher-login-cards.js";
+import { el, esc, icon } from "./teacher-shared.js";
+import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
+// credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
+// behålls här för befintliga importörer (preview-larare.html).
+export { credentialsPanel };
 import { mountMemberLevels } from "./teacher-student-level.js";
 
 // --- Genererade inloggningsuppgifter ----------------------------------------
@@ -92,39 +95,6 @@ export async function createAccountsFromEntries(entries, onProgress) {
   return created;
 }
 
-/**
- * Panel som visar nyss skapade inloggningsuppgifter med en "Kopiera alla"-knapp.
- * Lösenorden går inte att läsa igen.
- */
-export function credentialsPanel(className, created) {
-  const rows = created
-    .map(
-      (c) => `<tr><td>${esc(c.namn)}</td>
-        <td class="cred-user">${esc(c.username)}</td>
-        <td class="cred-pass">${esc(c.password)}</td></tr>`
-    )
-    .join("");
-  const text =
-    `Klass ${className} – inloggning (elevsidan)\n` +
-    created.map((c) => `${c.username}\tlösenord: ${c.password}`).join("\n");
-
-  const box = el(`<div class="cred-panel">
-    <div class="cred-warn">⚠️ ${created.length} konto${created.length === 1 ? "" : "n"} skapade.
-      Kopiera eller skriv ner lösenorden <b>nu</b> – de går inte att se igen. (Namnen kan du ändra senare.)</div>
-    <div class="table-scroll"><table class="tbl cred-tbl">
-      <thead><tr><th>Namn</th><th>Användarnamn</th><th>Lösenord</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-    <div class="row-inline" style="margin-top:10px">
-      <button class="btn gron small cred-copy">${icon("copy", 16)}<span>Kopiera alla</span></button>
-      <button class="btn small cred-print">${icon("printer", 16)}<span>Skriv ut inloggningskort</span></button>
-    </div>
-  </div>`);
-  box.querySelector(".cred-copy").addEventListener("click", (e) => copyText(text, e.currentTarget));
-  box.querySelector(".cred-print").addEventListener("click", () => printLoginCards(className, created));
-  return box;
-}
-
 // --- Små byggstenar för medlemsraden ----------------------------------------
 
 function wireGiveCoins(row, student) {
@@ -176,14 +146,23 @@ function countLabel(n) {
  * Rendera medlemshanteraren för EN klass in i `membersEl`. Muterar de delade
  * `state.students` / `cls.studentIds` och ritar om sig själv vid ändringar samt
  * uppdaterar `countEl`. `state` = { students } (delad referens från sidan).
+ * #440: `onChange()` anropas när antalet ändras (master-listans räknare) och
+ * `creds` = { initial, save(created), clear() } håller nyss skapade lösenord
+ * kvar över klassbyten tills läraren stänger panelen (X-08). Båda valfria.
  */
-export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
+export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onChange, creds }) {
   const students = state.students;
   // Persistent yta för nyss skapade inloggningsuppgifter – överlever omritningar.
   const credsHost = el(`<div class="mm-creds"></div>`);
+  const showCreds = (created) =>
+    credsHost.replaceChildren(
+      credentialsPanel(cls.name || cls.id, created, creds && (() => (creds.clear(), credsHost.replaceChildren())))
+    );
+  if (creds?.initial) showCreds(creds.initial);
 
   function updateCount() {
     if (countEl) countEl.textContent = countLabel((cls.studentIds || []).length);
+    if (onChange) onChange();
   }
 
   function memberRow(s) {
@@ -342,7 +321,8 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl }) {
           } catch (err) {
             createFlash.innerHTML = `<span class="gc-err">Kontona skapades men klasskopplingen misslyckades: ${esc(err.message)}</span>`;
           }
-          credsHost.replaceChildren(credentialsPanel(cls.name || cls.id, created));
+          if (creds) creds.save(created);
+          showCreds(created);
           updateCount();
           draw();
         },
