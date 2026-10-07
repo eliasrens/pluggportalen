@@ -16,7 +16,7 @@ import { normalizeGrade } from "./grades.js";
 import { listPairImageKeys } from "./pair-images.js";
 import { createGeneratorControl } from "./teacher-generator.js";
 import { aiTypes, summaryParts, wantsGenerator } from "./teacher-wizard-state.js";
-import { el, esc, icon, copyText } from "./teacher-shared.js";
+import { el, esc, icon, copyText, warningsHtml } from "./teacher-shared.js";
 
 /** Rita valideringsfel (kompositörens showErrors). */
 export function renderErrors(box, errors) {
@@ -26,8 +26,11 @@ export function renderErrors(box, errors) {
   </div>`;
 }
 
-/** Rita "✓ Ser bra ut! Det här skapas: …" (kompositörens showValidSummary). */
-export function renderSummary(box, value, tail) {
+/**
+ * Rita "✓ Ser bra ut! Det här skapas: …" (kompositörens showValidSummary) +
+ * ev. varningar (okänd kategori m.m., #467) i en gul ruta under – blockerar inte.
+ */
+export function renderSummary(box, value, tail, warnings = []) {
   const { generator, bits } = summaryParts(value);
   const parts = [
     ...(generator
@@ -38,7 +41,7 @@ export function renderSummary(box, value, tail) {
   box.innerHTML = `<div class="msg ok">
     ✓ <b>Ser bra ut!</b> Det här skapas: <b>${esc(value.name)}</b>${parts.length ? " – " + parts.join(", ") : ""}.
     ${tail}
-  </div>`;
+  </div>${warningsHtml(warnings)}`;
 }
 
 /**
@@ -134,7 +137,7 @@ export function createStep3(wz) {
     const res = wz.areaInput.validateCurrent();
     if (res.ok) {
       wz.modeVis.render(res.value, false);
-      renderSummary(resultEl, res.value, "Gå vidare med <b>Nästa</b> för att välja synlighet och spara.");
+      renderSummary(resultEl, res.value, "Gå vidare med <b>Nästa</b> för att välja synlighet och spara.", res.warnings);
     } else renderErrors(resultEl, res.errors);
   });
 

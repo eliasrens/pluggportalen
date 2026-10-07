@@ -82,10 +82,14 @@ test("gammal data utan kategorier → pct null, inga kategoridata, stjärnor kva
   assert.equal(c.lastMs, null);
 });
 
-test("möjliga stjärnor understiger aldrig intjänade (t.ex. äventyrslägen utanför matrisens tak)", () => {
-  const [a] = rowsFor(["vikingar"], 3);
-  assert.equal(a.possibleStars, 4);
-  assert.equal(a.possibleStarPct, 100);
+test("möjliga stjärnor = samma nämnare för alla rader (inget max(…, intjänat)-hack, #467)", () => {
+  const rows = rowsFor(["vikingar"], 9);
+  assert.deepEqual(rows.map((r) => r.possibleStars), [9, 9, 9]);
+  // Med isStarMode räknas intjänat bara över stjärn-lägena (se stjarn-lagen.test.js).
+  const only = pluggaTeacherRows(
+    summarizeClass(ENTRIES, { areaIds: ["vikingar"], isStarMode: (_a, m) => m === "quiz" }).rows, 3);
+  assert.equal(only[0].stars, 3);
+  assert.equal(only[0].possibleStarPct, 100);
 });
 
 test("sortering: null sist åt båda hållen, lika värden på namn", () => {

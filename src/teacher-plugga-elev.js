@@ -8,7 +8,7 @@
 //     med rådata (r/t) – svagaste kategorin markeras "Behöver stöd", starkaste
 //     "Starkast", och en rad överst säger var stödet behövs
 //   * per spelläge: stjärnor (uppdelade ★★☆), klarad, omgångar och rätt-% där
-//     läget har kategoriserade frågor
+//     läget har kategoriserade frågor (Memory: "spelad N gånger", inga stjärnor)
 //   * fallback för områden utan kategorier: per spelläge + diskret notis
 // Allt ur raden som summarizeClass (plugga-stats.js) redan räknat – inga nya
 // läsningar. Samma modal-skal (.cx-modal) och mörka tema som Läsresan-detaljen
@@ -22,6 +22,13 @@ import { MAX_STARS_PER_MODE } from "./plugga-stats.js";
 import { lastActiveText, pctLevel, weakStrong } from "./plugga-teacher-rows.js";
 
 const dash = `<span class="lrt-dash">–</span>`;
+
+// Var kategorierna kommer ifrån (#467 F5). Par-kategorier räknas bara när
+// äventyren gör frågor av paren – Para ihop/Memory/Fånga sanningar räknar inga
+// kategorier (medvetet bortvalt i #445).
+export const CATEGORY_SOURCES =
+  "Kategorierna räknas i Quiz, Läsförståelse, Kunskapsjakt och äventyren (där även paren blir frågor). " +
+  "Para ihop, Memory och Fånga sanningar räknar inga kategorier.";
 
 /** Nyckeltalskort (samma som Läsresan-detaljen). */
 const stat = (num, lbl, extra = "") =>
@@ -103,9 +110,17 @@ export function modesHtml(row) {
     .map((m) => {
       const meta = modeMeta(m.mode);
       const single = m.played === 1;
+      // Lägen utan stjärnor (Memory, eller dolda för klassen) har maxStars 0
+      // (areaStarModes, #467) → ingen stjärnrad, bara hur ofta det spelats.
+      const starsCell =
+        m.maxStars === 0
+          ? `<span class="lrt-of" title="Ger inga stjärnor">spelad ${m.plays} ${m.plays === 1 ? "gång" : "gånger"}</span>`
+          : single
+            ? starRow(m.stars, MAX_STARS_PER_MODE)
+            : `${m.stars}<span class="lrt-of">/${m.maxStars}</span> ★`;
       return `<tr>
         <td class="lrt-att-title">${meta.emoji} ${esc(meta.name)}</td>
-        <td class="lrt-num">${single ? starRow(m.stars, MAX_STARS_PER_MODE) : `${m.stars}<span class="lrt-of">/${m.maxStars}</span> ★`}</td>
+        <td class="lrt-num">${starsCell}</td>
         <td class="lrt-num">${m.completed}<span class="lrt-of">/${m.played}</span></td>
         <td class="lrt-num">${m.plays}</td>
         <td class="lrt-num lrt-pct ${pctLevel(m.pct)}" title="${m.answered ? `${m.correct}/${m.answered} rätt` : "inga kategoriserade frågor"}">${
@@ -148,6 +163,7 @@ export function openPluggaDetail(student, { row, scope }) {
         <div class="cx-detail-sec">
           <h3>Per kategori</h3>
           ${categoryHtml(row, name)}
+          <p class="hint pp-cat-src">${CATEGORY_SOURCES}</p>
         </div>
         <div class="cx-detail-sec">
           <h3>Per spelläge</h3>

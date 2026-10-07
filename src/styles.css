@@ -712,6 +712,13 @@ body.med-sidomeny .sidebar {
   border: 2px solid #b6ebc9;
 }
 
+/* Icke-blockerande anmärkning (t.ex. okänd frågekategori, #467). */
+.msg.warn {
+  background: #fff6db;
+  color: #7a5a00;
+  border: 2px solid #f5dd92;
+}
+
 .hint {
   color: var(--text-svag);
   font-size: 0.95rem;
@@ -1301,6 +1308,11 @@ body.larare-lage .container {
   color: #7ee0a6;
   border: 1px solid rgba(46, 193, 110, 0.35);
 }
+.teacher-dark .msg.warn {
+  background: rgba(242, 201, 76, 0.12);
+  color: #f5d77a;
+  border: 1px solid rgba(242, 201, 76, 0.35);
+}
 .teacher-dark .err-inline { color: #ff9d9d; }
 
 /* --- Knappar -------------------------------------------------------------- */
@@ -1836,6 +1848,7 @@ body.larare-lage .container {
   font-size: 0.86rem;
 }
 .teacher-dark .pp-note .t-icon { flex: none; margin-top: 2px; }
+.teacher-dark .pp-cat-src { margin: 10px 0 0; font-size: 0.85rem; }
 .teacher-dark .pp-callout {
   margin: 0 0 12px;
   padding: 8px 12px;

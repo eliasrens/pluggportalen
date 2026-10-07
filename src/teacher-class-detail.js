@@ -42,10 +42,12 @@ function fullDate(date) {
  * Härled en elevs fördjupade statistik ur progress + alla ämnens områden.
  * @param {object} progress  progress[areaId][gamemode] = {...}
  * @param {Array<{subject:object, areas:object[]}>} subjectsAreas
+ * @param {object|null} [cls]  klassen – dolda lägen räknas inte (areaStarModes, #467)
  */
-function computeStudentDetail(progress, subjectsAreas) {
+function computeStudentDetail(progress, subjectsAreas, cls) {
   const base = data.statsFromProgress(progress); // played, completed, stars, areas, lastPlayed
   let maxStars = 0;
+  let stars = 0; // intjänat över SAMMA stjärn-lägen som maxStars (#467)
   const subjectBlocks = [];
   const weak = []; // påbörjade men låg stjärnandel
   const notStarted = []; // har övningar men eleven har inte börjat
@@ -53,11 +55,12 @@ function computeStudentDetail(progress, subjectsAreas) {
   for (const { subject, areas } of subjectsAreas) {
     const areaRows = [];
     for (const area of areas) {
-      const modes = areaModes(area);
+      const modes = areaModes(area, cls);
       if (modes.length === 0) continue; // område utan övningar – hoppa över
       const areaMax = modes.length * MAX_STARS_PER_MODE;
       maxStars += areaMax;
-      const earned = areaEarned(progress, area.id);
+      const earned = areaEarned(progress, area.id, modes.map((gm) => gm.id));
+      stars += earned.stars;
       const ratio = areaMax > 0 ? earned.stars / areaMax : 0;
       const modeRows = modes.map((gm) => ({
         gm,
@@ -71,12 +74,12 @@ function computeStudentDetail(progress, subjectsAreas) {
     if (areaRows.length > 0) subjectBlocks.push({ subject, areaRows });
   }
 
-  const ratio = maxStars > 0 ? base.stars / maxStars : 0;
+  const ratio = maxStars > 0 ? stars / maxStars : 0;
   weak.sort((a, b) => a.ratio - b.ratio); // svagast först
   return {
     played: base.playedExercises,
     completed: base.completed,
-    stars: base.stars,
+    stars,
     maxStars,
     ratio,
     areasStarted: base.areas,
@@ -98,8 +101,9 @@ function starsLabel(stars, max) {
  * @param {object} progress  elevens redan inlästa progress
  * @param {object[]} subjects  alla ämnen ({ id, name })
  * @param {(subjectId:string)=>Promise<object[]>} loadAreas  cachad områdesladdare
+ * @param {object|null} [cls]  klassen (för vilka lägen som ger stjärnor)
  */
-export async function openStudentDetail(student, progress, subjects, loadAreas) {
+export async function openStudentDetail(student, progress, subjects, loadAreas, cls = null) {
   const name = student.namn || student.username || student.id;
 
   // Overlay + kort. Skapas direkt med en spinner så klicket känns responsivt.
@@ -148,7 +152,7 @@ export async function openStudentDetail(student, progress, subjects, loadAreas) 
     return;
   }
 
-  const d = computeStudentDetail(progress, subjectsAreas);
+  const d = computeStudentDetail(progress, subjectsAreas, cls);
   bodyEl.replaceChildren(renderStudentDetail(d));
 }
 

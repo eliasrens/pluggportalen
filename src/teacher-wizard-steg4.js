@@ -46,7 +46,7 @@ export function createStep4(wz, { getSubjectId, getSubjectName }) {
     const res = wz.areaInput.validateCurrent();
     if (res.ok) {
       modeVis.render(res.value, false);
-      renderSummary(resultEl, res.value, "Klicka <b>Spara</b> för att lägga in det i ämnet.");
+      renderSummary(resultEl, res.value, "Klicka <b>Spara</b> för att lägga in det i ämnet.", res.warnings);
     } else showErrors(res.errors);
   }
 

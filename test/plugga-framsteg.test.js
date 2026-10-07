@@ -190,3 +190,42 @@ test("plugga-framsteg.js ligger INTE i bootgrafen (bara dynamisk import)", () =>
   assert.equal(graph.has(join(SRC, "plugga-framsteg.js")), false);
   assert.equal(graph.has(join(SRC, "plugga-stats.js")), false);
 });
+
+// --- #467: F3 (resultatkortet) + F4 (listfogning) ------------------------------
+import { joinSv, hadFirstTryMisses } from "../src/plugga-framsteg.js";
+
+test("joinSv: svensk listfogning för 1, 2 och 3 element", () => {
+  assert.equal(joinSv([]), "");
+  assert.equal(joinSv(["A"]), "A");
+  assert.equal(joinSv(["A", "B"]), "A och B");
+  assert.equal(joinSv(["A", "B", "C"]), "A, B och C");
+});
+
+test("F4: tre förbättrade kategorier blir 'A, B och C'", () => {
+  const prevAreaProgress = { quiz: { cat: { begrepp: { r: 0, t: 3 }, fakta: { r: 0, t: 3 }, analys: { r: 0, t: 3 } } } };
+  const h = resultFeedbackHtml({ catStats: { begrepp: { r: 3, t: 3 }, fakta: { r: 3, t: 3 }, analys: { r: 3, t: 3 } }, prevAreaProgress });
+  assert.match(h, /Begrepp<\/b>, 📌 <b>Fakta<\/b> och 🧠 <b>Analys/);
+  assert.doesNotMatch(h, /<\/b> och [^<]*<b>[^<]*<\/b> och/);
+});
+
+test("F3: quiz med ★★★ men missar → 'första försöket' + 'Alla rätt till slut'", () => {
+  const catStats = { begrepp: { r: 3, t: 3 }, analys: { r: 0, t: 3 } };
+  const h = resultFeedbackHtml({ catStats, mode: "quiz", stars: 3 });
+  assert.match(h, /Rätt på första försöket/);
+  assert.match(h, /Alla rätt till slut/);
+  assert.equal(hadFirstTryMisses(catStats, "quiz"), true);
+  // Allt rätt direkt → ingen "till slut"-rad.
+  const clean = resultFeedbackHtml({ catStats: { fakta: { r: 3, t: 3 } }, mode: "quiz", stars: 3 });
+  assert.doesNotMatch(clean, /till slut/);
+  // Kunskapsjakt/äventyr: frågorna kommer inte tillbaka → räknat på alla svar.
+  const jakt = resultFeedbackHtml({ catStats, mode: "kunskapsjakt", stars: 3 });
+  assert.match(jakt, /Räknat på alla dina svar/);
+  assert.doesNotMatch(jakt, /till slut/);
+  assert.equal(hadFirstTryMisses(catStats, "aventyr:gruvan"), false);
+});
+
+test("F3: hälsningen säger inte 'Du är en stjärna' när första svaren hade missar", () => {
+  const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "src", "game-shared.js"), "utf8");
+  assert.match(src, /cheer\(stars, retried\)/);
+  assert.match(src, /hadFirstTryMisses\(catStats, mode\)/);
+});

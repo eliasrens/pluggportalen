@@ -2104,6 +2104,7 @@ body.scratch-fs-lock { overflow: hidden; }
 
 .pf-resultat { max-width: 520px; margin: 0 auto 18px; }
 .pf-resultat h3 { margin: 0 0 4px; }
+.pf-resultat-sub { margin: 0 0 8px; font-size: 0.85rem; font-weight: 700; opacity: 0.7; }
 
 @media (max-width: 480px) {
   .pf-kat { grid-template-columns: 1.8rem minmax(0, 1fr) auto; padding: 8px 10px; gap: 2px 8px; }
