@@ -56,24 +56,27 @@ function cellHtml(earned, maxStars) {
  *   subjects: object[],                 // ämneslistan
  *   studentById?: Map,                  // id → elev (för elev-fördjupningen)
  *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
+ *   classId?: string                    // klassen – ger flikarna Mattematchen (#459) och Live (#460)
  * }} opts
  */
 export async function renderClassStats(ctx, host, opts) {
-  // Underflikar ur STATS_TABS (#402 Läsresan, #446 Per område). Elevernas
+  // Underflikar ur STATS_TABS (#402 Läsresan, #446 Per område, #459 Mattematchen,
+  // #460 Live). `when` döljer flikar som kräver t.ex. classId. Elevernas
   // progress läses EN gång och delas mellan flikarna (kvot-regeln #114).
   let progressPromise = null;
   const loadProgress = () => (progressPromise ||= loadClassProgress(opts.students));
   const tabOpts = { ...opts, loadProgress };
+  const tabs = STATS_TABS.filter((t) => !t.when || t.when(opts));
   const view = el(`<div class="stats-tabs-wrap">
-    <div class="stats-tabs" role="tablist" aria-label="Statistik">${STATS_TABS.map(
+    <div class="stats-tabs" role="tablist" aria-label="Statistik">${tabs.map(
       (t) => `<button type="button" class="stats-tab" role="tab" data-tab="${t.key}">${icon(t.icon, 16)}<span>${esc(t.label)}</span></button>`
     ).join("")}</div>
-    ${STATS_TABS.map((t) => `<div class="stats-pane" data-pane="${t.key}" hidden></div>`).join("")}
+    ${tabs.map((t) => `<div class="stats-pane" data-pane="${t.key}" hidden></div>`).join("")}
   </div>`);
   host.replaceChildren(view);
   const rendered = new Set();
   const show = (key) => {
-    const tab = STATS_TABS.find((t) => t.key === key) || STATS_TABS[0];
+    const tab = tabs.find((t) => t.key === key) || tabs[0];
     lastStatsTab = tab.key;
     view.querySelectorAll(".stats-tab").forEach((b) => {
       const on = b.dataset.tab === tab.key;
@@ -94,7 +97,7 @@ export async function renderClassStats(ctx, host, opts) {
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
-  await show(lastStatsTab);
+  await show((lastStatsTab === "live" || lastStatsTab === "mattematchen") && !opts.classId ? "amnen" : lastStatsTab);
 }
 
 /** Elev-id → progress för klassens elever (en läsning per elev; fel → {}). */
@@ -117,6 +120,20 @@ const STATS_TABS = [
     key: "lasresan", label: "Läsresan", icon: "book", what: "Läsresan", lazy: true,
     render: async (ctx, pane, o) =>
       (await import("./teacher-lasresan.js")).renderClassLasresan(ctx, pane, { students: o.students }),
+  },
+  {
+    key: "mattematchen", label: "Mattematchen", icon: "trophy", what: "Mattematchen", lazy: true,
+    when: (o) => !!o.classId,
+    // #459: välj period → klassens tabell.
+    render: async (ctx, pane, o) =>
+      (await import("./tavling/teacher-mm-stats.js")).renderClassMattematchen(ctx, pane, { classId: o.classId, students: o.students }),
+  },
+  {
+    key: "live", label: "Live", icon: "bolt", what: "Live", lazy: true,
+    when: (o) => !!o.classId,
+    // #460: klassens Live-matcher + elevernas summa.
+    render: async (ctx, pane, o) =>
+      (await import("./live/teacher-live-history.js")).renderClassLiveStats(ctx, pane, { classId: o.classId, students: o.students }),
   },
 ];
 

@@ -13,6 +13,8 @@
 //   #/elev/omrade     översikt för ett område: välj gamemode (?subj=&area=)
 //   #/elev/spela      spela en gamemode (?subj=&area=&mode=)
 //   #/elev/lasresan   Läsresan: adaptiv läsförståelse på en spelkarta (#398) – laddas DYNAMISKT
+//   #/elev/mattematchen  Mattematchen: multiplikationstävling (#458) – bara under aktiv period, DYNAMISK
+//   #/elev/live       Live: lobby → 3-2-1 → realtidsmatch (#460) – laddas DYNAMISKT
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -26,6 +28,7 @@
 //   #/larare          lärarsida (översikt)
 //   #/larare/klass    klassöversikt (elevers framsteg, läs-endast)
 //   #/larare/klasser  klasser & elevkonton (skapa klass + konton, medlemshantering)
+//   #/larare/live     Live: skapa session, aktiva sessioner, historik; ?id= = projektorvy (#460)
 //   #/larare/innehall innehållsinmatning (arbetsområdes-JSON) + AI-promptbyggare
 //   #/larare/elever   (sammanslagen med #/larare/klasser – omdirigerar dit)
 //
@@ -37,7 +40,7 @@ import {
   app, el, go, renderTopbar, loading, flash, getHiddenModules, getLockGate, onLockChange, escHtml,
 } from "./ui.js";
 import { moduleForRoute } from "./gamemode-visibility.js";
-import { whenAuthReady } from "./auth.js";
+import { whenAuthReady, onSessionLost, takeSessionLostNotice } from "./auth.js";
 import {
   pageElevLogin,
   pageElevAvatar,
@@ -134,6 +137,47 @@ async function pageElevLasresan() {
   }
 }
 
+// Mattematchen (#/elev/mattematchen, #458): samma mönster – dynamisk import, och
+// sidan själv skickar hem eleven om ingen aktiv period finns för klassen.
+async function pageElevMattematchen() {
+  loading();
+  try {
+    const mod = await import("./tavling/page-mattematchen.js");
+    return await mod.pageMattematchen();
+  } catch (err) {
+    console.error("Mattematchen kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(
+      el(`<div class="panel center">
+        <div class="big-emoji">🧮</div>
+        <h2>Mattematchen kunde inte laddas</h2>
+        <p class="hint">Något gick fel. Prova igen om en stund.</p>
+        <button class="btn" id="mm-tillbaka">Till Hem</button>
+      </div>`)
+    );
+    app.querySelector("#mm-tillbaka")?.addEventListener("click", () => go("#/elev/hus"));
+  }
+}
+
+// Live (#/elev/live, #460): samma mönster – dynamisk import, snällt fel i vyn.
+async function pageElevLive() {
+  loading();
+  try {
+    const mod = await import("./live/page-elev-live.js");
+    return await mod.pageElevLive();
+  } catch (err) {
+    console.error("Live kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(
+      el(`<div class="panel center">
+        <div class="big-emoji">⚡</div>
+        <h2>Live kunde inte laddas</h2>
+        <p class="hint">Något gick fel. Prova att ladda om sidan.</p>
+      </div>`)
+    );
+  }
+}
+
 // --- Router -----------------------------------------------------------------
 
 const routes = {
@@ -153,6 +197,10 @@ const routes = {
   // Läsresan (#398/#401): egen huvudmodul bredvid Plugga. DYNAMISK import (som
   // äventyret, #267/#271) så att Läsresans moduler aldrig hamnar i bootgrafen.
   "/elev/lasresan": pageElevLasresan,
+  // Mattematchen (#458): syns i menyn bara under en aktiv period (ui.getMattematch).
+  "/elev/mattematchen": pageElevMattematchen,
+  // Live (#460): realtidsmatch klass mot klass – syns bara när klassen är inbjuden.
+  "/elev/live": pageElevLive,
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
@@ -246,6 +294,19 @@ onLockChange(async (las, prev) => {
   else if (path === "/elev/plugga") router();
 });
 
+// Tappad session (#464): Auth blev null medan en elev- eller lärarsida var
+// öppen (utan att man tryckte Logga ut). Byt till inloggningen – sidornas
+// onLeaveRoute-städning stänger lyssnarna – och spärrsidan visar "Du har
+// loggats ut" i stället för en tyst trasig sida med permission-denied.
+onSessionLost(() => {
+  const { path } = aktuellRutt();
+  const larare = path === "/larare" || path.startsWith("/larare/");
+  if (!larare && !path.startsWith("/elev/")) return void takeSessionLostNotice();
+  const dit = larare ? "#/larare/klasser" : "#/";
+  if ((window.location.hash || "#/") === dit) router();
+  else window.location.replace(dit);
+});
+
 function router() {
   // Signalera till bootvakten i index.html att modulgrafen laddats och routern
   // kör – annars visar den sitt "Sajten uppdateras just nu"-läge efter 8 s
@@ -266,6 +327,10 @@ function router() {
   );
   // Läsresan får en bredare innehållsyta (text och frågor sida vid sida).
   document.body.classList.toggle("lasresan-lage", path === "/elev/lasresan");
+  // Mattematchen: en skärm utan scroll (fråga, svar, knappar) – se mattematchen.css.
+  document.body.classList.toggle("mm-lage", path === "/elev/mattematchen");
+  // Live: samma krav (ingen scroll) – live.css låter .container fylla viewporten.
+  document.body.classList.toggle("live-lage", path === "/elev/live");
   // Lärar-routes: håll body-bakgrunden mörk under HELA vistelsen – även i glappet
   // mellan flik-byten, då den gamla .teacher-dark-vyn tas bort en kort stund och
   // body:has(.teacher-dark) slutar matcha (→ annars blänker elevsidans ljusa

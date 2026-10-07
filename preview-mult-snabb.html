@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – snabb multiplikation (#457)</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/mult/fast-answer.css" />
+    <style>
+      /* Hela sidan = en viewport, ingen scroll (Chromebook 1366×768). */
+      html, body { height: 100%; margin: 0; overflow: hidden; }
+      body { display: flex; flex-direction: column; background: var(--ljus); }
+      .pv-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 14px;
+        font-size: 13px; background: #fff; box-shadow: var(--skugga-mjuk); }
+      .pv-bar b { color: var(--bla-mork); }
+      .pv-bar label { display: inline-flex; gap: 4px; align-items: center; }
+      .pv-stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 2vh 4vw; }
+      .pv-card { width: min(720px, 100%); background: #fff; border-radius: var(--radie); box-shadow: var(--skugga-mjuk);
+        padding: clamp(14px, 4vh, 40px) 16px; }
+      .pv-foot { display: flex; gap: 16px; justify-content: space-between; padding: 6px 14px; font-size: 12px;
+        color: var(--text-svag); background: #fff; }
+      .pv-log { font-family: ui-monospace, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-bar">
+      <b>Snabb svarskomponent – Mattematchen/Live (#457)</b>
+      <span>Skriv svaret → ENTER. Ingen mus behövs. Klicka gärna bredvid – fokus kommer tillbaka.</span>
+      <label><input type="checkbox" id="pv-lat" /> Simulera 1,5 s nätverkslatens</label>
+      <label><input type="checkbox" id="pv-lobby" /> Lobby (väntar på start)</label>
+    </div>
+    <div class="pv-stage"><div class="pv-card" id="pv-root"></div></div>
+    <div class="pv-foot">
+      <span id="pv-counts">0 rätt · 0 fel</span>
+      <span class="pv-log" id="pv-log">Registrerade försök visas här (unikt id per fråga).</span>
+      <span id="pv-dupes">Dubbletter: 0</span>
+    </div>
+
+    <script type="module">
+      import { mountFastAnswer } from "./src/mult/fast-answer.js";
+      import { requireGameMode } from "./src/live/modes/index.js";
+
+      const mode = requireGameMode("multiplication_0_10");
+      const seen = new Set();
+      let dupes = 0;
+      const $ = (id) => document.getElementById(id);
+
+      // Låtsas-"server": registrerar försök per attemptId, precis som reglerna
+      // (create-only på …/answers/{attemptId}) – en dubblett skulle synas här.
+      async function fakeServer(attempt) {
+        if ($("pv-lat").checked) await new Promise((r) => setTimeout(r, 1500));
+        if (seen.has(attempt.attemptId)) { dupes++; $("pv-dupes").textContent = `Dubbletter: ${dupes}`; return; }
+        seen.add(attempt.attemptId);
+        const rec = mode.answerRecord(attempt.question, attempt.result);
+        $("pv-log").textContent = `#${attempt.seq} ${attempt.attemptId} · ${rec.factorA}×${rec.factorB}=${rec.answer} ` +
+          `${attempt.result.correct ? "✅" : "❌"} · tabeller ${mode.statKeys(attempt.question).join(",")}`;
+      }
+
+      const fa = mountFastAnswer($("pv-root"), {
+        source: mode.createSource(),
+        check: mode.checkAnswer,
+        inputMode: mode.inputMode,
+        onAnswer: (a) => {
+          const c = fa.counts;
+          $("pv-counts").textContent = `${c.correct} rätt · ${c.wrong} fel · ${a.seq} skickade`;
+          return fakeServer(a);
+        },
+      });
+      $("pv-lobby").addEventListener("change", (e) => fa.setEnabled(!e.target.checked, "Väntar på start…"));
+      window.__fa = fa; // för automatiska tester i webbläsaren
+    </script>
+  </body>
+</html>
