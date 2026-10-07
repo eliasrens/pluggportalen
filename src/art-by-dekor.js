@@ -1,7 +1,7 @@
 // ============================================================================
 // Pluggporten – stämningsdekor till klassbyn (by-nivån)
 // ----------------------------------------------------------------------------
-// Ritar dekoren som byDekor() (varld-by.js) placerar ut:
+// Placerar (byDekor) och ritar stämningsdekoren i byns layout (varld-by.js):
 //
 //  UPPSTÅENDE dekor (träd, gran, buske, lyktstolpe) ritas som EGNA små SVG:er
 //  i absolut-positionerade element (.by-dekor i varld-by-scen.js), precis som
@@ -134,4 +134,131 @@ export function dekorMarkSvg({ damm, platta }) {
   }
 
   return delar.join("");
+}
+
+/**
+ * Placera stämningsdekor i byn: träd/granar/buskar/lyktstolpar (uppstående,
+ * ritas som egna element av by-scenen) + platt markdekor (damm, blomrabatter,
+ * grästuvor – ritas direkt i markens SVG). Allt är deterministiskt (samma by →
+ * samma dekor) och kollisionstestat mot tomter, vägsträckor och U-svängar,
+ * så det funkar för få som många hus utan att något hamnar i vägen.
+ * (Bor här i stället för i varld-by.js för 400-radersgränsen, #483.)
+ *
+ * @returns {{
+ *   uppst: Array<{typ:"trad"|"gran"|"buske"|"lykta", x:number, y:number, s:number}>,
+ *   platta: Array<{typ:"blommor"|"tuva", x:number, y:number, s:number}>,
+ *   damm: {x:number, y:number, rx:number, ry:number} | null,
+ * }}
+ *   `x,y` är dekorens markpunkt (bottenmitt) i %, `s` en skalfaktor som följer
+ *   husens storlek (mindre by-celler → mindre dekor).
+ */
+export function byDekor(layout) {
+  const { tomter, cellW, radHojd, vagHojd, rader, vagY, klasscenter: kc } = layout;
+  const s = Math.max(0.55, Math.min(1, radHojd / 26));
+  const placerade = []; // markpunkter som tagit plats: {x, y, rx}
+
+  // Är en dekor med MARKPUNKT (x,y), halvbredd rx och höjd h (uppåt från
+  // marken) fri? Husen är bottentunga i sina tomtboxar, så en dekor vars
+  // markpunkt ligger klart OVANFÖR husets mitt får stå "bakom" huset (kronan
+  // tittar upp över taket – målarordningen via z-index gör resten). Blockerat
+  // är: att stå PÅ ett hus, PÅ vägen/U-svängarna, eller ovanpå annan dekor.
+  const fri = (x, y, rx, h) => {
+    if (x < 2 || x > 98 || y > 96.5 || y - h < 2.5) return false;
+    for (const t of tomter) {
+      if (
+        Math.abs(x - t.x) < cellW * 0.42 + rx * 0.6 &&
+        y > t.y - radHojd * 0.35 &&
+        y - h < t.y + radHojd * 0.5
+      )
+        return false;
+    }
+    // Klasscentret (#480): hela rutan + luften för mätaren ovanför är fredad –
+    // ingen dekor varken ovanpå eller med krona in i byggnaden.
+    if (kc && Math.abs(x - kc.x) < kc.bredd * 0.5 + rx * 0.6 && y > kc.topp - 6 && y - h < kc.botten) {
+      return false;
+    }
+    for (let rad = 0; rad < rader; rad++) {
+      if (Math.abs(y - vagY(rad, x)) < vagHojd * 0.5 + 1.2) return false;
+    }
+    for (let rad = 0; rad < rader - 1; rad++) {
+      // U-svängens kantzon mellan rad och rad+1 (höger på jämna rader).
+      const hoger = rad % 2 === 0;
+      const kantX = hoger ? 96 : 4;
+      if (
+        y > vagY(rad, kantX) - 1.5 &&
+        y < vagY(rad + 1, kantX) + vagHojd * 0.5 + 1.5 &&
+        (hoger ? x > 91 - rx : x < 9 + rx)
+      )
+        return false;
+    }
+    for (const p of placerade) {
+      if (Math.abs(x - p.x) < (p.rx + rx) * 0.8 + 1 && Math.abs(y - p.y) < 3.5) return false;
+    }
+    return true;
+  };
+  const ta = (x, y, rx) => placerade.push({ x, y, rx });
+
+  // --- Damm: en liten spegeldamm nedanför sista vägsträckan om det får plats.
+  let damm = null;
+  {
+    const rx = 8.5 * s + 1.5;
+    const ry = 3.4 * s + 0.6;
+    for (const x of [78, 22, 60, 38]) {
+      const y = vagY(rader - 1, x) + vagHojd * 0.5 + ry + 2.4;
+      if (fri(x, y + ry, rx + 1, ry * 2 + 1)) {
+        damm = { x, y, rx, ry };
+        ta(x, y + ry, rx + 1);
+        break;
+      }
+    }
+  }
+
+  const uppst = [];
+
+  // --- Lyktstolpar: vid vägkanten i gluggen mellan två grannhus (husen fyller
+  // inte hela sin cell, så mittemellan är visuellt fritt). Max 4, glesare i
+  // stora byar. Ingen fri()-koll mot hus här – gluggen ÄR mellan husen.
+  let lyktor = 0;
+  for (let rad = 0; rad < rader && lyktor < 4; rad++) {
+    if (rader > 2 && rad % 2 === 1) continue;
+    const iRad = tomter.filter((t) => t.rad === rad);
+    if (!iRad.length) continue;
+    let x;
+    if (iRad.length > 1) {
+      const k = (rad * 2) % (iRad.length - 1);
+      x = (iRad[k].x + iRad[k + 1].x) / 2;
+    } else {
+      x = Math.min(94, iRad[0].x + cellW * 0.8);
+    }
+    // Gluggen mellan vänster- och höger-huset är Klasscentret – ingen lykta där.
+    if (kc && rad === kc.rad && Math.abs(x - kc.x) < kc.bredd / 2 + 2) continue;
+    const lyktY = vagY(rad, x) - vagHojd * 0.42;
+    uppst.push({ typ: "lykta", x, y: lyktY, s });
+    ta(x, lyktY, 2.3 * s);
+    lyktor++;
+  }
+
+  // --- Träd, granar, buskar + platt dekor: deterministisk gyllene-snittspridning
+  // över hela lagret, filtrerad genom fri(). Mängden följer byns storlek.
+  const platta = [];
+  const typer = ["trad", "buske", "tuva", "gran", "blommor", "buske", "trad", "blommor"];
+  // Halvbredd + höjd (i %, före s) för kollisionstestet – matchar DEKOR_MATT
+  // ovan (platta typer har små fasta mått).
+  const matt = { trad: [4.5, 15], gran: [4, 16], buske: [4, 5.6], blommor: [2, 1.6], tuva: [1.6, 2.2] };
+  const maxUppst = Math.min(12, 4 + Math.ceil(tomter.length * 0.6)) + lyktor;
+  const maxPlatta = Math.min(8, 3 + Math.ceil(tomter.length * 0.4));
+  for (let i = 0; i < 70 && (uppst.length < maxUppst || platta.length < maxPlatta); i++) {
+    const typ = typer[i % typer.length];
+    const star = typ === "trad" || typ === "gran" || typ === "buske";
+    if (star ? uppst.length >= maxUppst : platta.length >= maxPlatta) continue;
+    const x = 2 + ((i * 61.8 + 13) % 96);
+    const y = 10 + ((i * 35.1 + 29) % 86);
+    const rx = matt[typ][0] * (star ? s : 1);
+    const h = matt[typ][1] * (star ? s : 1);
+    if (!fri(x, y, rx, h)) continue;
+    ta(x, y, rx);
+    (star ? uppst : platta).push({ typ, x, y, s });
+  }
+
+  return { uppst, platta, damm };
 }

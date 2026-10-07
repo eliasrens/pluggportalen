@@ -4089,6 +4089,11 @@ body.varld-lage .container {
 /* "Till gården"-skylten (hus-nivån, #328) speglas till HÖGRA hörnet så den
    inte krockar med gårdskylten/grusgången som redan bor nere till vänster. */
 .varld-navskylt.hoger { left: auto; right: 12px; }
+/* "Andra byar" (#483): by-layouten håller hörnet fritt från hus (BY_SKYLT i
+   varld-by.js = 22 % × 22 % nere till vänster). Skylten kapas så den alltid
+   ryms där: bredd ≤ 22 % − 12 px, och höjden (0,65 × bredd) + 12 px ≤ 22 % av
+   den lägsta scenhöjden 420 px → bredd ≤ 124 px. */
+#by-skylt { width: min(clamp(96px, 16vw, 124px), calc(22% - 12px)); }
 
 /* --- Gårds-grenen (#328): baksidan/gården + laggårdens interiör ------------
    Båda lagren delar .varld-ute:s svg-regel (fullstor + overflow:visible så de

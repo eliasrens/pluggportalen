@@ -9,7 +9,8 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { byParams, byLayout, byDekor, klasscenterSpan, klasscenterRad0 } from "../src/varld-by.js";
+import { byParams, byLayout, BY_SKYLT, klasscenterSpan, klasscenterRad0 } from "../src/varld-by.js";
+import { byDekor } from "../src/art-by-dekor.js";
 import { matarRad, matarMarkup, placeholderText } from "../src/klasscenter/kc-by.js";
 import { progressTillNasta, troskelFor } from "../src/klasscenter/kc-niva.js";
 
@@ -82,16 +83,52 @@ describe("byLayout med Klasscentret", () => {
     });
   }
 
-  it("raderna under fylls som vanligt: husPerRad per rad, ofull sista rad", () => {
-    for (const n of [5, 14, 28, 40]) {
+  it("raderna under fylls i ordning: högst husPerRad per rad, alla elever med", () => {
+    for (const n of [5, 14, 23, 28, 40]) {
       const p = byParams(n, { klasscenter: true });
       const l = byLayout(p);
       assert.ok(p.husPerRad >= 2 * 2 + p.kcSpan, "översta raden ryms");
-      assert.equal(l.rader, 1 + Math.ceil((n - 4) / p.husPerRad));
+      let summa = l.tomter.filter((t) => t.rad === 0).length;
       for (let rad = 1; rad < l.rader; rad++) {
         const iRad = l.tomter.filter((t) => t.rad === rad).length;
-        assert.equal(iRad, rad < l.rader - 1 ? p.husPerRad : n - 4 - (l.rader - 2) * p.husPerRad);
+        assert.ok(iRad >= 1 && iRad <= p.husPerRad, `rad ${rad}: ${iRad}`);
+        summa += iRad;
       }
+      assert.equal(summa, n);
+    }
+  });
+
+  it('"Andra byar"-skylten (#483): ingen tomt och inte centret i skyltens hörn, 0–40 elever', () => {
+    const skylt = BY_SKYLT;
+    assert.ok(skylt.v <= 0 && skylt.u >= 100, "skylten sitter nere i vänstra hörnet");
+    for (let n = 0; n <= 40; n++) {
+      const p = byParams(n, { klasscenter: true });
+      const l = byLayout(p);
+      assert.equal(l.tomter.length, n, `${n}: alla elever kvar`);
+      l.tomter.forEach((t, i) => {
+        assert.equal(overlapp(tomtRuta(t, l), skylt), false, `${n} elever: tomt ${i} under skylten`);
+        const r = tomtRuta(t, l);
+        assert.ok(r.v >= 0 && r.h <= 100 && r.o >= 0 && r.u <= 100, `${n}: tomt ${i} utanför lagret`);
+      });
+      assert.equal(overlapp(kcRuta(l.klasscenter), skylt), false, `${n} elever: centret under skylten`);
+      // Mätaren svävar ovanför centret – rutan från lagrets topp ner till centret.
+      const c = l.klasscenter;
+      assert.equal(overlapp({ v: c.x - c.bredd / 2, h: c.x + c.bredd / 2, o: 0, u: c.botten }, skylt), false);
+      for (let i = 0; i < l.tomter.length; i++) {
+        for (let j = i + 1; j < l.tomter.length; j++) {
+          assert.equal(overlapp(tomtRuta(l.tomter[i], l), tomtRuta(l.tomter[j], l)), false, `${n}: ${i}/${j}`);
+        }
+      }
+    }
+  });
+
+  it("skylt-reservationen krymper husen bara när den måste", () => {
+    for (let n = 0; n <= 40; n++) {
+      const med = byParams(n, { klasscenter: true });
+      const utan = byParams(n, { klasscenter: true, skylt: false });
+      assert.ok(med.radHojd <= utan.radHojd + EPS);
+      const krock = byLayout(utan).tomter.some((t) => overlapp(tomtRuta(t, byLayout(utan)), BY_SKYLT));
+      if (!krock) assert.equal(med.radHojd, utan.radHojd, `${n}: oförändrad storlek utan krock`);
     }
   });
 
