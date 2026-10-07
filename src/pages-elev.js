@@ -9,7 +9,7 @@ import { AVATARS, avatarSvg, avatarName, avatarMarkup, DEFAULT_AVATAR } from "./
 import { app, el, go, loading, renderTopbar, getLockGate, escHtml } from "./ui.js";
 import { coinIcon } from "./icons.js";
 // isTeacher re-exporteras inte via data.js – auth.js ligger redan i bootgrafen.
-import { isTeacher } from "./auth.js";
+import { isTeacher, takeSessionLostNotice } from "./auth.js";
 // Synlighetsgaten (browser-fri, re-exporteras via game-shared.js precis som i
 // gamemodes.js – redan i bootgrafen) avgör om ett område har SPELBART innehåll
 // för just den här eleven (issue #308).
@@ -52,6 +52,10 @@ export async function pageElevLogin() {
   </div>`);
 
   const msg = card.querySelector("#msg");
+  // Sessionen tappades medan eleven var inne (#464, t.ex. utloggad i en annan flik).
+  if (takeSessionLostNotice()) {
+    msg.innerHTML = `<div class="msg error">Du har loggats ut. Logga in igen.</div>`;
+  }
   card.querySelector("#form").addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.innerHTML = "";

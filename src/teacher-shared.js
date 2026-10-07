@@ -15,7 +15,7 @@
 // hjälparna { app, go, renderTopbar }.
 // ============================================================================
 
-import { isTeacher, signInTeacher, signOutCurrent } from "./auth.js";
+import { isTeacher, signInTeacher, signOutCurrent, takeSessionLostNotice } from "./auth.js";
 
 // --- Lärarläge --------------------------------------------------------------
 // isTeacher() läser custom claim (teacher:true) ur den inloggade Auth-användaren
@@ -342,6 +342,7 @@ export function renderGate(ctx) {
   </div>`);
 
   const msg = view.querySelector("#msg");
+  if (takeSessionLostNotice()) msg.innerHTML = `<div class="msg error">Du har loggats ut. Logga in igen.</div>`;
   view.querySelector("#back").addEventListener("click", () => ctx.go("#/"));
   view.querySelector("#form").addEventListener("submit", async (e) => {
     e.preventDefault();
