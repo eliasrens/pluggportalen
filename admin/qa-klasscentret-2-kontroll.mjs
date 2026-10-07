@@ -23,7 +23,7 @@ import admin from "firebase-admin";
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import {
-  collection, connectFirestoreEmulator, doc, getDoc, getDocs, getFirestore, increment,
+  collection, connectFirestoreEmulator, doc, getDoc, getDocFromServer, getDocs, getFirestore, increment,
   runTransaction, serverTimestamp, setDoc, updateDoc, writeBatch,
 } from "firebase/firestore";
 import { korDonation } from "../src/klasscenter/kc-fund-plan.js";
@@ -41,7 +41,7 @@ const KS = "qa-ks";
 const adminApp = admin.initializeApp({ projectId: PROJECT });
 const adb = admin.firestore(adminApp);
 const aauth = admin.auth(adminApp);
-const sdk = { runTransaction, doc, collection, serverTimestamp };
+const sdk = { runTransaction, doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp };
 
 async function som(uid, email = `${uid}@elev.pluggportalen.local`) {
   const app = initializeApp({ projectId: PROJECT, apiKey: "qa" }, `${uid}-${Math.random()}`);
@@ -65,7 +65,7 @@ async function utfall(fn) {
 
 async function samtidighet(antal = 10, perElev = 3) {
   const nAktiva = Number(antal), nPer = Number(perElev);
-  const elever = Array.from({ length: 10 }, (_, i) => `ks${String(i + 3).padStart(2, "0")}`);
+  const elever = Array.from({ length: Math.max(10, nAktiva) }, (_, i) => `ks${String(i + 3).padStart(2, "0")}`);
   for (const uid of elever) {
     try { await aauth.getUser(uid); await aauth.updateUser(uid, { email: `${uid}@elev.pluggportalen.local`, password: PW }); } catch (e) {
       if (e.code !== "auth/user-not-found") throw e;
@@ -84,7 +84,7 @@ async function samtidighet(antal = 10, perElev = 3) {
     const t0 = Date.now();
     const res = await Promise.all(dbs.flatMap((db, i) => Array.from({ length: nPer }, () =>
       korDonation(sdk, db, { classId: KS, uid: elever[i], itemId, amount: belopp })
-        .catch((e) => ({ ok: false, kod: e.code || String(e) })))));
+        .catch((e) => ({ ok: false, kod: `${e.code || e}${e.krock === false ? " (verkligt nekad)" : e.krock ? " (försöken slut)" : ""}` })))));
     const ms = Date.now() - t0;
     const fund = (await adb.doc(`classCenters/${KS}/fund/${itemId}`).get()).data();
     const poster = (await adb.collection(`classCenters/${KS}/donations`).where("itemId", "==", itemId).get()).docs.map((d) => d.data());
