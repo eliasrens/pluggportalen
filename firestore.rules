@@ -643,12 +643,13 @@ service cloud.firestore {
       // ⚠️ Katalogen kcPris = kopia av src/klasscenter/kc-shop-items.js
       // (test/kc-fund-plan.test.js jämför). Nytt föremål = rules-deploy.
       // ----------------------------------------------------------------
-      function kcPris(itemId) {
+      function kcKatalog() {
         return {
           'klassfana': 2000, 'trofehylla': 2500, 'lounge': 3000, 'akvarium': 4000,
           'guldstaty': 5000, 'flygel': 6000, 'fontan': 8000, 'kristallkrona': 10000
-        }.get(itemId, 0);
+        };
       }
+      function kcPris(itemId) { return kcKatalog().get(itemId, 0); }
       function kcFundWrite(itemId) {
         let d = request.resource.data;
         let don = getAfter(kcPath('donations', d.lastDonationId)).data;
@@ -688,6 +689,85 @@ service cloud.firestore {
       match /donations/{donationId} {
         allow read: if isTeacher();
         allow create: if kcDonationCreate(donationId);
+      }
+
+      // ----------------------------------------------------------------
+      // Gemensam layout + historik (#489, epic #475). Skrivplan: src/
+      // klasscenter/kc-layout-plan.js (korSparning/korAterstallning = EN
+      // transaktion med två set utan merge):
+      //   layout/current {placedItems, version, updatedBy, updatedAt}
+      //   layoutHistory/{version % 10} {placedItems, savedBy, savedAt, version}
+      //  • Läses av alla inloggade (gästläge, spec §7).
+      //  • Skrivs av lärare, eller klassmedlem som INTE står i klassprofilens
+      //    inredningSparr. current: version == gammal + 1 (create: 1) och
+      //    historikslot version % 10 skrivs i SAMMA batch med samma
+      //    placedItems/version (getAfter). En historikslot skrivs aldrig
+      //    ensam (kräver att current får just den versionen nu).
+      //  • placedItems: bara katalog-id:n som nycklar (kcKatalog), högst 40
+      //    poster, varje post exakt {x, y, z}: x/y tal 0–100, z heltal 0–999.
+      //    Att föremålet är UPPLÅST kontrolleras i klienten (kan inte loopa
+      //    över fund här) – ett ej köpt föremål i layouten ger bara en möbel
+      //    för mycket i rummet, inga mynt eller EXP.
+      //  • inredningSparr (klassprofilen classCenters/{classId}): bara lärare,
+      //    och bara det fältet (lista ≤ 200 uid:n).
+      // ⚠️ Ny post i kcKatalog = ny kcPos-rad i kcPlaced (test/kc-layout-
+      // plan.test.js kontrollerar).
+      // ----------------------------------------------------------------
+      function kcSparrad() {
+        let p = /databases/$(database)/documents/classCenters/$(classId);
+        return exists(p) && request.auth.uid in get(p).data.get('inredningSparr', []);
+      }
+      function kcKanInreda() { return isTeacher() || (isClassMember(classId) && !kcSparrad()); }
+      function kcPos(pi, id) {
+        return !(id in pi) || (pi[id] is map && pi[id].keys().hasOnly(['x', 'y', 'z']) &&
+          pi[id].keys().hasAll(['x', 'y', 'z']) &&
+          pi[id].x is number && pi[id].x >= 0 && pi[id].x <= 100 &&
+          pi[id].y is number && pi[id].y >= 0 && pi[id].y <= 100 &&
+          pi[id].z is int && pi[id].z >= 0 && pi[id].z <= 999);
+      }
+      function kcPlaced(pi) {
+        return pi is map && pi.size() <= 40 && pi.keys().hasOnly(kcKatalog().keys()) &&
+          kcPos(pi, 'klassfana') && kcPos(pi, 'trofehylla') && kcPos(pi, 'lounge') &&
+          kcPos(pi, 'akvarium') && kcPos(pi, 'guldstaty') && kcPos(pi, 'flygel') &&
+          kcPos(pi, 'fontan') && kcPos(pi, 'kristallkrona');
+      }
+      function kcLayoutCurrent() {
+        let d = request.resource.data;
+        let h = getAfter(kcPath('layoutHistory', string(d.version % 10))).data;
+        return kcKanInreda() &&
+          d.keys().hasOnly(['placedItems', 'version', 'updatedBy', 'updatedAt']) &&
+          kcPlaced(d.placedItems) &&
+          d.version is int && d.version == prevInt('version') + 1 &&
+          d.updatedBy == request.auth.uid && d.updatedAt == request.time &&
+          h.version == d.version && h.savedAt == request.time &&
+          h.savedBy == request.auth.uid && h.placedItems == d.placedItems;
+      }
+      function kcLayoutHistory(slot) {
+        let d = request.resource.data;
+        let cur = getAfter(kcPath('layout', 'current')).data;
+        return kcKanInreda() && slot in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] &&
+          d.keys().hasOnly(['placedItems', 'savedBy', 'savedAt', 'version']) &&
+          d.version is int && string(d.version % 10) == slot &&
+          d.savedBy == request.auth.uid && d.savedAt == request.time &&
+          cur.version == d.version && cur.updatedAt == request.time &&
+          cur.placedItems == d.placedItems;
+      }
+
+      // Klassprofilen (trophies kommer i epic 3, hogstaNiva valfritt).
+      allow read: if signedIn();
+      allow create, update: if isTeacher() && changedOnly(['inredningSparr']) &&
+        request.resource.data.inredningSparr is list &&
+        request.resource.data.inredningSparr.size() <= 200;
+
+      match /layout/{docId} {
+        allow read: if signedIn();
+        allow create, update: if docId == 'current' && kcLayoutCurrent();
+        allow delete: if isTeacher();
+      }
+      match /layoutHistory/{slot} {
+        allow read: if signedIn();
+        allow create, update: if kcLayoutHistory(slot);
+        allow delete: if isTeacher();
       }
     }
 

@@ -766,8 +766,8 @@ ClassCenterLayout) är anpassad så här:
 | "3 första gångerna"-räknare | `expMembers/{uid}.counts` (per elev och klass) | **1 (klar, #477)** |
 | `trophies[]` | `classCenters/{classId}.trophies` | 3 |
 | ClassCenterShopItems | katalog i kod + `fund/{itemId}` + `donations/{id}` | 2/3 |
-| ClassCenterLayout | `layout/current` + `layoutHistory/{0..9}` | 2 |
-| lärarens "får ej inreda" | `classCenters/{classId}.inredningSparr` | 2 |
+| ClassCenterLayout | `layout/current` + `layoutHistory/{0..9}` | **2 (klar, #489)** |
+| lärarens "får ej inreda" | `classCenters/{classId}.inredningSparr` | **2 (klar, #489)** |
 
 ### Normalisering och nivåer (epic 1, `src/klasscenter/kc-niva.js`)
 
@@ -831,16 +831,19 @@ var 20:e rätt = 1; Räkna 10 rätt = 1 (rest sparas i `counts`); Live/klass-
 utmaningar = lärarbonus `klassBonusFor(kalla, elevantal)` (t.ex. Live 3/elev).
 En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevantal).
 
-### `classCenters/{classId}` – klassprofil (epic 2–4, FÖRSLAG)
+### `classCenters/{classId}` – klassprofil (epic 2–4)
 
 | Fält | Typ | Epic | Beskrivning |
 | --- | --- | --- | --- |
 | `trophies` | array | 3 | `[{ id, typ, titel, text, at, kallaId }]` – `id` = källans id (tävling/session) → idempotent; `typ` t.ex. `"mm-vinst"`, `"live-vinst"`, `"live-klar"` |
-| `inredningSparr` | array | 2 | uid:n som läraren bockat ur – får titta/donera men inte spara layout |
+| `inredningSparr` | array | **2 (klar, #489)** | uid:n som läraren bockat ur – får titta/donera men inte spara layout (≤ 200, `setInredningSparr`) |
 | `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
 
 Läses av alla inloggade (gästläge). Skrivs av lärare (pokaler: lärarens klient
 när MM/Live avslutas – en elevklient kan inte bevisa vinsten i reglerna).
+**Regler i dag (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200)
+– epic 3 lägger till `trophies`/`hogstaNiva` i `changedOnly`-listan. Elever kan
+inte skriva dokumentet alls (inte ens ta bort sig själva ur spärren).
 
 ### Crowdfunding (epic 2, #486)
 
@@ -917,16 +920,72 @@ per enhet) – inga andras uid läses. QA: `admin/qa-klasscentrum-shop.mjs`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan donationer
 fungerar live.
 
-### Gemensam layout + historik (epic 2, FÖRSLAG)
+### Gemensam layout + historik (epic 2, #489)
 
-- `classCenters/{classId}/layout/current` = `{ placedItems: { "<itemId>":
-  { x, y, z } }, version, updatedBy, updatedAt }` – x/y i procent av scenen
-  (samma som `studentData.room.placements`), `z` heltal (rummet sparar i dag
-  inget z). Skrivs av klassmedlem som inte står i `inredningSparr`, eller lärare.
-- `classCenters/{classId}/layoutHistory/{0..9}` = `{ placedItems, savedBy,
-  savedAt }` – ringbuffert: varje "Spara" skriver `current` (version + 1) och
-  slot `version % 10` i samma batch → alltid de ~10 senaste, utan raderingar.
-  "Återställ" = kopiera en slot till `current`.
+Ren logik + skrivplan: `src/klasscenter/kc-layout-plan.js`; Firestore (bara
+dynamiskt): `src/klasscenter/kc-layout-data.js` – `subscribeLayout`,
+`getLayout`, `saveLayout`, `listHistory`, `restoreLayout`, `kanInreda`,
+`getInredningSparr`, `setInredningSparr`.
+
+#### `classCenters/{classId}/layout/current`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `placedItems` | map | `{ "<itemId>": { x, y, z } }` – x/y tal 0–100 (procent av scenen, som `studentData.room.placements`), `z` heltal 0–999 (ritordning, högre = framför). Högst 40 poster. |
+| `version` | int | 1, 2, 3 … (+1 per sparning; saknat dokument = version 0) |
+| `updatedBy` | string | den som sparade (= `auth.uid`, elev eller lärare) |
+| `updatedAt` | timestamp | serverns tid |
+
+#### `classCenters/{classId}/layoutHistory/{0..9}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `placedItems` | map | samma layout som `current` fick i den sparningen |
+| `version` | int | versionen; dokument-id = `version % 10` |
+| `savedBy` | string | den som sparade |
+| `savedAt` | timestamp | serverns tid |
+
+**Ringbuffert:** varje "Spara" = EN transaktion (`korSparning`) som läser
+`current` och skriver `current` (version + 1) och slot `version % 10` – alltid
+de 10 senaste, inga raderingar (version 11 skriver över slot 1, version 20
+slot 0). **"Återställ"** (`restoreLayout(classId, slot)`) läser sloten i
+samma transaktion och skriver den som en NY version → återställningen hamnar
+själv i historiken och kan ångras. Föremål som inte finns i möbellådan tas
+bort vid återställning. Båda skrivningarna är `set` UTAN merge – annars
+slår Firestore ihop den nästlade `placedItems`-kartan med den gamla.
+
+**Samtidighet (BESLUT: senaste vinner, med historik):** sparar två samtidigt
+körs den ena transaktionen om med färska värden (även när reglerna svarar
+`permission-denied` i stället för en vanlig krock – upp till 4 försök) → två
+hela versioner i följd, båda i historiken, den senaste syns. Aldrig en
+blandad layout (hela kartan ersätts, reglerna kräver version = gammal + 1).
+Vill rum-UI:t (sub-issue E) hellre varna skickas `{ forvantadVersion }` (den
+version som visades) → `kod: "krock"` ("Någon annan sparade nyss – laddar
+om rummet.") och ingenting skrivs.
+
+**Möbellådan:** klienten (`validatePlacedItems`) godtar bara nycklar som finns
+i `unlockedItems(getFunds(classId))`; okänd/ej upplåst/fel form → Fel med
+`kod` (`okant-foremal`, `ej-i-ladan`, `ogiltig-position`, `for-manga`,
+`ogiltig-form`), positionen klamras. `"<itemId>#<n>"` (extra exemplar, som
+rummet) stöds i planmodulen, men crowdfunding ger ett exemplar per föremål
+och reglerna godtar bara katalog-id:n – flera exemplar kräver regeländring.
+
+**Regler (firestore.rules "KLASSCENTRET" → layout):** läses av alla inloggade
+(gästläge §7). Skrivs av lärare (`isTeacher`, som övriga lärarregler – det
+finns ingen lärare↔klass-koppling i dag), eller klassmedlem
+(`isClassMember`) som inte står i `inredningSparr`. `current`: bara de fyra
+fälten, `version == gammal + 1` (create: 1), `updatedBy == auth.uid`,
+`updatedAt == request.time`, och `getAfter(layoutHistory/{version % 10})` har
+samma `version`/`placedItems`/skribent/tid. Historikslot: id ∈ 0..9 ==
+`version % 10`, och `getAfter(current)` har just den versionen skriven nu
+(`updatedAt == request.time`) → en slot kan aldrig skrivas ensam.
+`placedItems`: nycklar ⊆ `kcKatalog` (samma karta som `kcPris`), ≤ 40, varje
+post exakt `{x, y, z}` med intervallen ovan (en `kcPos`-rad per föremål –
+`test/kc-layout-plan.test.js` failar om någon saknas). Att föremålet är
+*upplåst* kollas bara i klienten (reglerna kan inte loopa över `fund`) – en
+fuskande elev kan som mest ställa en ej köpt möbel i rummet. Radera = lärare.
+Tester: `test/kc-layout-plan.test.js`, `test/firestore-rules-klasscenter-layout.test.js`.
+⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (layout + klassprofilen).
 
 ---
 

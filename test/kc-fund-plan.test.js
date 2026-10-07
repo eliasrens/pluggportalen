@@ -45,10 +45,11 @@ describe("katalogen", () => {
     assert.throws(() => { KC_SHOP_ITEMS[0].targetPrice = 1; });
   });
 
-  it("firestore.rules kcPris är exakt katalogen (id → pris)", () => {
+  it("firestore.rules kcKatalog (kcPris) är exakt katalogen (id → pris)", () => {
     const rules = readFileSync(join(ROOT, "firestore.rules"), "utf8");
-    const block = rules.match(/function kcPris\(itemId\)\s*\{\s*return\s*\{([\s\S]*?)\}\.get/);
-    assert.ok(block, "kcPris finns i firestore.rules");
+    const block = rules.match(/function kcKatalog\(\)\s*\{\s*return\s*\{([\s\S]*?)\};/);
+    assert.ok(block, "kcKatalog finns i firestore.rules");
+    assert.match(rules, /function kcPris\(itemId\)\s*\{\s*return kcKatalog\(\)\.get\(itemId, 0\);/);
     const iRules = Object.fromEntries([...block[1].matchAll(/'([a-z0-9-]+)':\s*(\d+)/g)].map((m) => [m[1], Number(m[2])]));
     assert.deepEqual(iRules, Object.fromEntries(KC_SHOP_ITEMS.map((i) => [i.id, i.targetPrice])));
   });
