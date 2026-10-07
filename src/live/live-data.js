@@ -119,13 +119,23 @@ export async function autoFinish(sid) {
   }
 }
 
-/** Historikens ögonblicksbild – skrivs en gång (av en lärarklient). */
+/**
+ * Historikens ögonblicksbild – skrivs en gång (av en lärarklient). Den klient
+ * vars transaktion skrev result delar också ut Klasscentrets Live-bonusar
+ * (#479, dynamiskt, aldrig kastande) → exakt en gång per session.
+ */
 export async function writeResultIfMissing(sid, result) {
+  let skrev = false;
   await runTransaction(db, async (tx) => {
+    skrev = false;
     const snap = await tx.get(sessRef(sid));
     if (!snap.exists() || snap.data().result || snap.data().status !== "finished") return;
     tx.update(sessRef(sid), { result: { ...result, computedAt: serverTimestamp() } });
+    skrev = true;
   });
+  if (skrev) {
+    import("../klasscenter/kc-koppling.js").then((m) => m.liveKlassBonus(result)).catch(() => {});
+  }
 }
 
 function newestFirst(list) {

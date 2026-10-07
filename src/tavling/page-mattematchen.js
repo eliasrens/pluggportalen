@@ -95,6 +95,9 @@ export async function pageMattematchen() {
   const $ = (s) => vy.querySelector(s);
 
   let poang = start ? start.correct : 0;
+  // Server-bekräftade rätt (Klass-EXP #479: var 20:e = 1). Okänd start → ingen
+  // klass-EXP den här gången (hellre det än fel 20-gränser).
+  let bekraftade = start ? start.correct : null;
   let osparade = 0;
   let oppenPanel = null;
   const visaPoang = () => { $(".mm-poang-tal").textContent = String(poang); };
@@ -115,7 +118,13 @@ export async function pageMattematchen() {
       }
       $(".mm-s-ratt").textContent = fa.counts.correct;
       $(".mm-s-fel").textContent = fa.counts.wrong;
-      return submitAnswer({ competition, classId, uid, name, attempt }).catch((err) => {
+      return submitAnswer({ competition, classId, uid, name, attempt }).then(() => {
+        if (!attempt.result.correct || bekraftade == null) return;
+        const rattFore = bekraftade++;
+        import("../klasscenter/kc-koppling.js")
+          .then((m) => m.klassExpEfterOvning({ modul: "mattematchen", resultat: { rattFore, rattEfter: bekraftade } }))
+          .catch(() => {});
+      }, (err) => {
         osparade++;
         if (attempt.result.correct && poang) { poang--; visaPoang(); }
         const v = $(".mm-varning");

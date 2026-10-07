@@ -53,6 +53,7 @@ export async function startQuiz(ctx) {
         baseCoins,
         bestScore: correct,
         catStats,
+        classResult: { ratt: correct, totalt: total },
         replay: () => startQuiz(ctx),
       });
     },
@@ -118,6 +119,7 @@ export async function startLasforstaelse(ctx) {
         baseCoins,
         bestScore: correct,
         catStats,
+        classResult: { ratt: correct, totalt: total },
         replay: () => startLasforstaelse(ctx),
       });
     },
