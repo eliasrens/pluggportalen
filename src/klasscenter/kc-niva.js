@@ -17,12 +17,15 @@
 //   Antagande: en genomsnittlig elev ger ~8 klass-EXP/vecka (2–3 pluggpass à
 //   ~3 räknande omgångar: quiz-omgång ≥ 50 %, Läsresan-text, 10 rätt i Räkna,
 //   första Memory-gångerna …) × ~36 läsårsveckor ≈ 290 per elev och år.
-//   Stegkostnaden växer med faktorn R = 1,35 per nivå från S1 = 6,8 per elev:
-//     steg:     7   9  12  17  23  30  41  56  75   (per elev)
-//     kumulativt: 0, 7, 16, 28, 45, 68, 98, 139, 195, 270
-//   Med 8/vecka: Nivå 2 efter ~1 vecka (snabb första belöning), Nivå 5 ~v. 6,
-//   Nivå 7 ~v. 12, Nivå 9 ~v. 24 och Nivå 10 (270/elev) först ~v. 34 – alltså
-//   i slutet av läsåret. En klass i halva takten (4/vecka) når Nivå 8–9.
+//   Stegkostnaden växer med faktorn R = 1,5 per nivå från S1 = 6,8 per elev
+//   (brantare trappa, beslut Elias 2026-10-07 – första steget oförändrat):
+//     steg:     7  10  15  23  35  51  78 116 174   (per elev)
+//     kumulativt: 0, 7, 17, 32, 55, 90, 141, 219, 335, 509
+//   Med 8/vecka: Nivå 2 efter ~1 vecka (snabb första belöning), Nivå 5 ~v. 7,
+//   Nivå 7 ~v. 18 och Nivå 8 ~v. 28. Nivå 10 (509/elev) kräver ~64 veckor i
+//   den takten – hela läsåret och mer, medvetet svårt. Aktiva klasser (som
+//   pluggar mycket mer än snittet) når toppen under läsåret; mindre aktiva
+//   stannar runt Nivå 7–8.
 //
 // API
 //   NIVAER                              → [{ niva, id, namn, beskrivning }] (10 st)
@@ -51,9 +54,9 @@ export const MAX_NIVA = NIVAER.length;
 
 /** Första stegets kostnad per elev och tillväxtfaktorn per nivå (se huvudet). */
 export const STEG1_PER_ELEV = 6.8;
-export const TILLVAXT = 1.35;
+export const TILLVAXT = 1.5;
 
-/** Kumulativa trösklar per elev: [0, 7, 16, 28, 45, 68, 98, 139, 195, 270]. */
+/** Kumulativa trösklar per elev: [0, 7, 17, 32, 55, 90, 141, 219, 335, 509]. */
 export const TROSKLAR_PER_ELEV = Object.freeze(
   NIVAER.map((_, i) => Math.round((STEG1_PER_ELEV * (TILLVAXT ** i - 1)) / (TILLVAXT - 1)))
 );

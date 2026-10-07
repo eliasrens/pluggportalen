@@ -25,34 +25,36 @@ describe("trösklarna", () => {
     }
   });
 
-  it("stegen växer exponentiellt (varje steg ~1,35× förra, sista ≥ 8× första)", () => {
+  it("stegen växer exponentiellt (varje steg ~1,5× förra, sista ≥ 20× första)", () => {
     const steg = TROSKLAR_PER_ELEV.slice(1).map((t, i) => t - TROSKLAR_PER_ELEV[i]);
     for (let i = 1; i < steg.length; i++) {
       const kvot = steg[i] / steg[i - 1];
-      assert.ok(kvot > 1.2 && kvot < 1.5, `steg ${i}: kvot ${kvot}`);
+      assert.ok(kvot > 1.35 && kvot < 1.7, `steg ${i}: kvot ${kvot}`);
     }
-    assert.ok(steg.at(-1) >= 8 * steg[0]);
+    assert.ok(steg.at(-1) >= 20 * steg[0]);
   });
 
-  it("räcker ett läsår: 8 övningar/elev/vecka → Nivå 2 efter vecka 1, Nivå 10 först efter vecka 30", () => {
+  it("brant trappa: 8 övningar/elev/vecka → Nivå 2 efter vecka 1, Nivå 7–8 under läsåret, Nivå 10 först efter läsåret", () => {
     const elever = 25;
     const veckaFor = (niva) => {
       for (let v = 1; v <= 60; v++) if (nivaFor(8 * v * elever, elever) >= niva) return v;
       return Infinity;
     };
     assert.equal(veckaFor(2), 1);
-    assert.ok(veckaFor(10) > 30 && veckaFor(10) <= 36, `nivå 10 vecka ${veckaFor(10)}`);
+    assert.ok(veckaFor(8) <= 36, `nivå 8 vecka ${veckaFor(8)}`);
+    assert.ok(veckaFor(10) > 36, `nivå 10 vecka ${veckaFor(10)}`);
   });
 
   it("nivå 10 nås inte trivialt: halva takten (4/vecka) ett helt läsår räcker inte", () => {
     assert.ok(nivaFor(4 * 36 * 20, 20) < 10);
+    assert.deepEqual([...TROSKLAR_PER_ELEV], [0, 7, 17, 32, 55, 90, 141, 219, 335, 509]);
     assert.equal(nivaFor(troskelFor(10, 20) - 1, 20), 9);
     assert.equal(nivaFor(troskelFor(10, 20), 20), 10);
   });
 
   it("nivåFor är monoton i EXP och klamrar skräp", () => {
     let forra = 1;
-    for (let exp = 0; exp <= 300 * 24; exp += 7) {
+    for (let exp = 0; exp <= 600 * 24; exp += 7) {
       const n = nivaFor(exp, 24);
       assert.ok(n >= forra);
       forra = n;
@@ -65,7 +67,7 @@ describe("trösklarna", () => {
 
 describe("normalisering per elev", () => {
   it("14 och 28 elever i samma takt per elev har samma nivå och samma andel", () => {
-    for (const perElev of [0, 3, 7, 20, 50, 100, 150, 200, 269, 270, 400]) {
+    for (const perElev of [0, 3, 7, 20, 50, 100, 150, 200, 269, 270, 400, 508, 509, 700]) {
       const a = progressTillNasta(perElev * 14, 14);
       const b = progressTillNasta(perElev * 28, 28);
       assert.equal(a.niva, b.niva, `${perElev}/elev`);
@@ -99,16 +101,16 @@ describe("progress-mätaren", () => {
     const p = progressTillNasta(175, 25);
     assert.equal(p.niva, 2);
     assert.equal(p.andel, 0);
-    assert.equal(matarText(p), "175 / 400 övningar till Nivå 3");
+    assert.equal(matarText(p), "175 / 425 övningar till Nivå 3");
   });
 
   it("andel inom nivån för stapeln", () => {
-    const p = progressTillNasta(175 + 225 / 2, 25);
+    const p = progressTillNasta(175 + 250 / 2, 25);
     assert.ok(Math.abs(p.andel - 0.5) < 0.01);
   });
 
   it("högsta nivån: inget mål, tusental med hårt mellanslag", () => {
-    const p = progressTillNasta(10_000, 30);
+    const p = progressTillNasta(20_000, 30);
     assert.equal(p.niva, 10);
     assert.equal(p.max, true);
     assert.equal(p.mal, null);
