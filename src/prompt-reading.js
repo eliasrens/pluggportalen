@@ -9,7 +9,11 @@
 //
 // Fragmenten hålls här; prompts.js re-exporterar buildReadingPrompt så lärar-UI:t
 // har en enda import-yta.
+// Issue #471: finns redan nivåtexter i området skickas de med (titel + alla nivåer
+// med frågor och svar) så AI:n väljer ett NYTT tema i stället för att upprepa.
 // ============================================================================
+
+import { EXISTING_MAX_CHARS, existingContentBlock } from "./prompt-existing.js";
 
 // Exempel-JSON: en komplett läs-text i tre nivåer (visas som mall i lärar-UI:t
 // och stoppas in i prompten så AI:ns svar passerar valideringen direkt).
@@ -75,9 +79,12 @@ const READING_REGLER = `Viktiga regler:
  * Bygg AI-prompten som skapar EN läs-text i tre nivåer.
  * @param {string} [onskemal] – valfritt fritext-önskemål (tema/omfattning). Utan
  *   önskemål används en platshållare för bifogat material (PDF/lektionstext).
+ * @param {object[]} [existing] – områdets befintliga nivåtexter (readingTexts);
+ *   skickas med i ett BEFINTLIGT INNEHÅLL-block så AI:n inte upprepar dem.
+ * @param {number} [maxChars] – tak för befintligt-blocket (för tester).
  * @returns {string} färdig prompt att kopiera.
  */
-export function buildReadingPrompt(onskemal) {
+export function buildReadingPrompt(onskemal, existing = [], maxChars = EXISTING_MAX_CHARS) {
   const text = (onskemal || "").trim();
   const material = text
     ? `Lärarens önskemål (inget material bifogas – utgå från beskrivningen nedan):
@@ -99,5 +106,21 @@ ${READING_REGLER}
 Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
 ${READING_EXAMPLE_JSON}
 
-${material}`;
+${material}${befintligtBlock(existing, maxChars)}`;
+}
+
+/** Block med befintliga nivåtexter + instruktion att inte upprepa (tom sträng om inga). */
+function befintligtBlock(existing, maxChars) {
+  const block = existingContentBlock(
+    { readingTexts: existing },
+    ["readingTexts"],
+    "de här nivåtexterna finns redan i området (samma JSON-format; \"answerIndex\" pekar ut rätt svar):",
+    maxChars
+  );
+  if (!block) return "";
+  return `
+
+VIKTIGT – området har redan nivåtexter. Skapa en NY läs-text som inte upprepar dem: anger önskemålet ovan inget tema, välj en del av ämnet som inte redan täcks nedan. Upprepa inte samma fakta och skriv inga nära varianter av befintliga texter eller frågor. Håll samma stil och svårighetsnivåer som de befintliga. Svara bara med den NYA läs-texten.
+
+${block}`;
 }

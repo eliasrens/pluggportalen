@@ -8,7 +8,7 @@
 // hoppas över. UI-delen är utbruten hit för att hålla teacher-content.js liten.
 // Issue #453: överst en "Kopiera AI-prompt för mer innehåll"-knapp (+ valfritt
 // önskemål) som bygger prompten med buildMorePrompt (prompts.js) – områdets typer,
-// årskurs och befintliga frågor/par att undvika. Merge-logiken är orörd.
+// årskurs och HELA det befintliga innehållet (#471). Merge-logiken är orörd.
 // ============================================================================
 
 import * as data from "./data.js";
