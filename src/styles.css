@@ -4421,13 +4421,22 @@ body.varld-lage .container {
 @keyframes kc-nyniva { 0% { transform: scale(0.85); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
 /* Mätaren: diskret pill ovanför byggnaden (samma stil som .by-namn). Klick går
-   igenom till byggnaden. */
+   igenom till byggnaden. Dold tills hovring/tangentbordsfokus (#484) – bara
+   opacity/transform (kompositerbart, ingen layout, #374). Hovringen gäller bara
+   enheter som KAN hovra: pekskärmar får "fastnad" :hover efter tryck, där tar
+   bubblan över (kc-by.js medMatare). */
 .kc-matare-plats {
   position: absolute;
   bottom: calc(100% + 4px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 6px);
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.by-klasscenter:focus-visible .kc-matare-plats { opacity: 1; transform: translate(-50%, 0); }
+@media (hover: hover) {
+  .by-klasscenter:hover .kc-matare-plats { opacity: 1; transform: translate(-50%, 0); }
 }
 .kc-matare {
   display: grid;
@@ -4480,11 +4489,10 @@ body.varld-lage .container {
 }
 .kc-bubbla.show { opacity: 1; transform: translate(-50%, 0); }
 /* Bubblan ersätter mätaren medan den visas (samma plats ovanför byggnaden). */
-.kc-matare-plats { transition: opacity 0.2s ease; }
-.kc-bubbla-oppen .kc-matare-plats { opacity: 0; }
+.by-klasscenter.kc-bubbla-oppen .kc-matare-plats { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .kc-bubbla, .by-klasscenter > svg { transition-duration: 0.01s; }
+  .kc-bubbla, .kc-matare-plats, .by-klasscenter > svg { transition-duration: 0.01s; }
   .by-klasscenter.kc-nyniva > svg { animation: none; }
 }
 

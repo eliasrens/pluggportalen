@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { byParams, byLayout, BY_SKYLT, klasscenterSpan, klasscenterRad0 } from "../src/varld-by.js";
 import { byDekor } from "../src/art-by-dekor.js";
-import { matarRad, matarMarkup, placeholderText } from "../src/klasscenter/kc-by.js";
+import { matarRad, matarMarkup, placeholderText, ariaText } from "../src/klasscenter/kc-by.js";
 import { progressTillNasta, troskelFor } from "../src/klasscenter/kc-niva.js";
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src");
@@ -170,6 +170,18 @@ describe("mätaren", () => {
     const p = progressTillNasta(troskelFor(3, 10), 10);
     assert.equal(placeholderText(p), "Klasscentret – Nivå 3 Träkoja · inredning kommer snart");
     assert.match(placeholderText(p, { visaOnly: true, klassNamn: "6B" }), /^Klasscentret i 6B – Nivå 3/);
+  });
+  it("pekskärm: bubblan bär mätarraden (ingen hovring, #484)", () => {
+    const p = progressTillNasta(troskelFor(3, 10), 10);
+    assert.equal(
+      placeholderText(p, { medMatare: true }),
+      `Klasscentret – Nivå 3 Träkoja · ${matarRad(p)} · inredning kommer snart`
+    );
+  });
+  it("aria-label har nivå + mätartext även när mätaren är dold (#484)", () => {
+    const p = progressTillNasta(50, 14);
+    assert.equal(ariaText(p), `Klasscentret, Nivå ${p.niva} ${p.namn}. ${matarRad(p)}`);
+    assert.match(ariaText(p, { visaOnly: true, klassNamn: "6B" }), new RegExp(`^Klasscentret i 6B, .*${matarRad(p)}$`));
   });
 });
 
