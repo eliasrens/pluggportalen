@@ -23,7 +23,8 @@
       // Issue #446: klassdetaljens Statistik-sektion med STUBBAD progress – ingen
       // inloggning. Kör den RIKTIGA renderClassStats (teacher-class.js), som
       // laddar underfliken "Per område" (teacher-plugga.js) med import().
-      // ?tom=1 → klass utan elever.
+      // ?tom=1 → klass utan elever. ?klass=1 → skickar classId (visar även
+      // Mattematchen/Live-flikarna, som då läser riktiga Firestore).
       import { el, icon, teacherNav, teacherHead } from "/src/teacher-shared.js";
       import { renderClassStats } from "/src/teacher-class.js";
 
@@ -92,6 +93,7 @@
         subjects: library.map(({ areas, ...s }) => s),
         studentById: new Map(students.map((s) => [s.id, s])),
         loadAreas: (id) => Promise.resolve(library.find((s) => s.id === id)?.areas || []),
+        classId: new URLSearchParams(location.search).has("klass") ? "preview-6a" : undefined,
       });
     </script>
   </body>

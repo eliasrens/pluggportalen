@@ -29,7 +29,7 @@ import {
   signOut,
   onAuthStateChanged,
   setPersistence,
-  browserLocalPersistence,
+  indexedDBLocalPersistence,
   browserSessionPersistence,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -128,12 +128,38 @@ export function whenAuthReady() {
   return authReady;
 }
 
+// Tappad session (#464): Auth blev null UTAN att appen själv loggade ut (t.ex.
+// utgången/återkallad token eller en annan flik som loggade ut). Appen visar då
+// inloggningen med ett meddelande i stället för en tyst trasig sida.
+const sessionLostListeners = [];
+let sessionLostNotice = false;
+/** Registrera fn({ teacher }) som körs när sessionen tappas utan utloggning. */
+export function onSessionLost(fn) {
+  sessionLostListeners.push(fn);
+}
+/** Ska inloggningen visa "Du har loggats ut"? Läses (och nollas) av spärrsidan. */
+export function takeSessionLostNotice() {
+  const v = sessionLostNotice;
+  sessionLostNotice = false;
+  return v;
+}
+
 onAuthStateChanged(auth, async (user) => {
   try {
     if (!user) {
+      // signOutCurrent nollar spegeln FÖRE signOut → avsiktlig utloggning ger
+      // ingen signal här. Vid uppstart (före authReady) finns inget att tappa.
+      const tappad = readySettled && (cachedSession || teacherClaim)
+        ? { teacher: teacherClaim } : null;
       teacherClaim = false;
       cachedSession = null;
       clearMirror();
+      if (tappad) {
+        sessionLostNotice = true;
+        for (const fn of sessionLostListeners) {
+          try { fn(tappad); } catch {}
+        }
+      }
       return;
     }
     // Läs custom claims (teacher) ur ID-token.
@@ -142,6 +168,8 @@ onAuthStateChanged(auth, async (user) => {
       const tok = await user.getIdTokenResult();
       isTeach = tok.claims.teacher === true;
     } catch {}
+    // Utloggad/bytt under väntan? Skriv då ingen inaktuell spegel (#464).
+    if (auth.currentUser?.uid !== user.uid) return;
     teacherClaim = isTeach;
 
     if (isTeach) {
@@ -160,6 +188,7 @@ onAuthStateChanged(auth, async (user) => {
             username = snap.data().username || "";
           }
         } catch {}
+        if (auth.currentUser?.uid !== user.uid) return;
         cachedSession = { studentId: user.uid, namn, username };
         // Persistensen (kom-ihåg) styrs av Firebase Auth; spegeln lägger vi i
         // localStorage för snabb synkron uppslag (rensas ändå av rekoncilieringen
@@ -207,9 +236,12 @@ export async function signInStudent(username, password, remember = false) {
     return { ok: false, error: "Fyll i både användarnamn och lösenord." };
   }
   try {
+    // Kom-ihåg = IndexedDB (SDK:ts standard), INTE browserLocalPersistence
+    // (#464): varje ny flik flyttar en localStorage-användare till IndexedDB och
+    // raderar localStorage-nyckeln → storage-eventet loggade ut första fliken.
     await setPersistence(
       auth,
-      remember ? browserLocalPersistence : browserSessionPersistence
+      remember ? indexedDBLocalPersistence : browserSessionPersistence
     );
     const cred = await signInWithEmailAndPassword(
       auth,
@@ -260,8 +292,11 @@ export async function signInTeacher(username, password) {
     );
     const tok = await cred.user.getIdTokenResult(true);
     if (tok.claims.teacher !== true) {
-      await signOut(auth).catch(() => {});
+      // Avsiktlig utloggning: nolla spegeln först (annars "tappad session").
       teacherClaim = false;
+      cachedSession = null;
+      clearMirror();
+      await signOut(auth).catch(() => {});
       return {
         ok: false,
         error: "Det här kontot är inte ett lärarkonto.",

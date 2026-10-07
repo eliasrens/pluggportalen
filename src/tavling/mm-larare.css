@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Mattematchen – lärarsidan (#459). Laddas dynamiskt (ensureMmTeacherCss).
+   Prefix mmt- (mm- hör till elevens mattematchen.css). Följer .teacher-dark-
+   tokens; tabeller/modal lånar Läsresans .lrt-* / .cx-modal ur styles.css.
+   ========================================================================== */
+
+.teacher-dark .mmt-oversikt-topp { justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.teacher-dark .mmt-oversikt-topp .hint { max-width: 640px; margin: 0; }
+.teacher-dark .mmt-sektion { margin-top: 26px; }
+.teacher-dark .mmt-sektion > .subhead { margin-bottom: 10px; }
+
+/* Tävlingskort i översikten */
+.teacher-dark .mmt-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.teacher-dark .mmt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--t-text);
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 14px;
+  cursor: pointer;
+}
+.teacher-dark .mmt-card:hover { border-color: var(--t-border-strong); background: var(--t-surface-2); }
+.teacher-dark .mmt-card:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .mmt-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.teacher-dark .mmt-card-meta { color: var(--t-muted); font-size: 0.86rem; }
+.teacher-dark .mmt-card-res { font-size: 0.88rem; color: var(--t-text); }
+
+/* Statusbricka */
+.teacher-dark .mmt-chip {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--t-muted);
+}
+.teacher-dark .mmt-chip-aktiv { background: var(--t-accent-soft); color: #7ee0a6; }
+.teacher-dark .mmt-chip-kommande { background: rgba(86, 156, 255, 0.16); color: #a9cbff; }
+.teacher-dark .mmt-chip-pausad { background: rgba(242, 153, 74, 0.16); color: #f2b06a; }
+
+/* Formulär */
+.teacher-dark .mmt-form { margin-top: 14px; max-width: 760px; }
+.teacher-dark .mmt-klasser { border: 0; padding: 0; margin: 6px 0 12px; }
+.teacher-dark .mmt-klasser legend { font-weight: 600; margin-bottom: 8px; }
+.teacher-dark .mmt-klass-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.teacher-dark .mmt-klass {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background: var(--t-surface-2);
+  cursor: pointer;
+}
+.teacher-dark .mmt-klass:has(input:checked) { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.teacher-dark .mmt-klass small { margin-left: auto; color: var(--t-muted); }
+.teacher-dark .mmt-klass-snabb { margin-top: 8px; gap: 6px; }
+.teacher-dark .mmt-tider { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.teacher-dark .mmt-form .row-inline { gap: 8px; }
+
+/* Detaljvy */
+.teacher-dark .mmt-tillbaka { display: inline-block; margin-bottom: 10px; cursor: pointer; }
+.teacher-dark .mmt-huvud-rad { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.teacher-dark .mmt-huvud-rad h2 { margin: 0; }
+.teacher-dark .mmt-meta { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; color: var(--t-muted); }
+.teacher-dark .mmt-kontroller { margin-top: 14px; gap: 8px; flex-wrap: wrap; }
+.teacher-dark .mmt-flash { min-height: 1.4em; margin-top: 8px; }
+
+/* Följ / historik: två kolumner */
+.teacher-dark .mmt-follow-topp { justify-content: flex-end; gap: 10px; margin-bottom: 8px; }
+.teacher-dark .mmt-follow-topp .hint { margin: 0; }
+.teacher-dark .mmt-tva { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.teacher-dark .mmt-kort {
+  padding: 14px 16px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 14px;
+}
+.teacher-dark .mmt-kort h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; font-size: 1rem; }
+.teacher-dark .mmt-kort h3 .hint { margin: 0 0 0 4px; font-weight: 400; font-size: 0.8rem; }
+.teacher-dark .mmt-lista { list-style: none; margin: 0; padding: 0; max-height: 520px; overflow: auto; }
+.teacher-dark .mmt-rad {
+  display: grid;
+  grid-template-columns: 2.4em 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .mmt-rad:last-child { border-bottom: 0; }
+.teacher-dark .mmt-pall { background: rgba(46, 193, 110, 0.06); }
+.teacher-dark .mmt-plats { text-align: center; color: var(--t-muted); font-variant-numeric: tabular-nums; }
+.teacher-dark .mmt-namn { display: flex; flex-direction: column; min-width: 0; }
+.teacher-dark .mmt-namn small { color: var(--t-muted); font-size: 0.78rem; }
+.teacher-dark .mmt-tal { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+
+.teacher-dark .mmt-vinnare { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.teacher-dark .mmt-vinnare-kort {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+  border-radius: 14px;
+}
+.teacher-dark .mmt-vinnare-kort > div { display: flex; flex-direction: column; gap: 2px; }
+.teacher-dark .mmt-vinnare-kort small { color: var(--t-muted); }
+.teacher-dark .mmt-vinnare-kort b { font-size: 1.1rem; }
+.teacher-dark .mmt-vinnare-kort .hint { margin: 0; font-size: 0.82rem; }
+.teacher-dark .mmt-v-ikon { font-size: 1.8rem; }
+.teacher-dark .mmt-alla-tabeller { margin-top: 14px; }
+.teacher-dark .mmt-alla-tabeller summary { cursor: pointer; font-weight: 600; }
+
+/* Elevresultat + Statistik → Mattematchen */
+.teacher-dark .mmt-period { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--t-muted); }
+.teacher-dark .mmt-period .select { max-width: 100%; }
+.teacher-dark .mmt-class .lrt-intro { flex-wrap: wrap; }
+.teacher-dark .mmt-tbl { min-width: 560px; }
+
+/* Elevdetalj: per tabell */
+.teacher-dark .mmt-stat-grid { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+.teacher-dark .mmt-tabeller { width: 100%; }
+.teacher-dark .mmt-tabeller th,
+.teacher-dark .mmt-tabeller td { padding: 5px 8px; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .mmt-tabeller tbody th { text-align: left; font-weight: 600; white-space: nowrap; }
+.teacher-dark .mmt-bar-col { width: 34%; }
+.teacher-dark .mmt-bar-col .lrt-bar { display: block; }
+.teacher-dark .mmt-tab-row.hog .lrt-bar > span { background: #2ec16e; }
+.teacher-dark .mmt-tab-row.mellan .lrt-bar > span { background: #f2994a; }
+.teacher-dark .mmt-tab-row.lag .lrt-bar > span { background: #eb5757; }
+.teacher-dark .mmt-tab-row.tom td { color: var(--t-muted); }
+.teacher-dark .mmt-not { margin: 8px 0 0; font-size: 0.8rem; }
+.teacher-dark .mmt-traning h3 .hint { font-weight: 400; font-size: 0.8rem; margin-left: 6px; }
+
+/* Nollställ */
+.teacher-dark .mmt-farlig { margin-top: 30px; border-color: rgba(235, 87, 87, 0.35); }
+.teacher-dark .mmt-farlig h3 { color: #ff9d9d; }
+.teacher-dark .mmt-farlig .field { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+.teacher-dark .mmt-farlig .row-inline { gap: 10px; margin-top: 8px; }
