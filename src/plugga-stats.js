@@ -96,13 +96,15 @@ function emptyAcc() {
   return { played: 0, completed: 0, stars: 0, maxStars: 0, plays: 0, lastPlayed: null, cat: {} };
 }
 
-function addNode(acc, node) {
+// `starry` = noden är ett stjärn-läge (#467). Memory/dolda lägen ger varken
+// intjänade eller möjliga stjärnor, men räknas som spelade.
+function addNode(acc, node, starry = true) {
   acc.played += 1;
   if (node.completed) acc.completed += 1;
-  if (typeof node.stars === "number" && node.stars > 0) {
+  if (starry && typeof node.stars === "number" && node.stars > 0) {
     acc.stars += Math.min(MAX_STARS_PER_MODE, node.stars);
   }
-  acc.maxStars += MAX_STARS_PER_MODE;
+  if (starry) acc.maxStars += MAX_STARS_PER_MODE;
   // Äldre noder saknar plays men är klarade → minst en körning (jfr awardExercise).
   acc.plays += typeof node.plays === "number" ? node.plays : node.completed ? 1 : 0;
   acc.lastPlayed = later(acc.lastPlayed, toDate(node.lastPlayed));
@@ -143,12 +145,12 @@ function finish(acc) {
   };
 }
 
-/** Per spelläge: Map mode → ackumulator. */
-function accByMode(nodes) {
+/** Per spelläge: Map mode → ackumulator. isStarMode(areaId, mode) → räknas stjärnorna? */
+function accByMode(nodes, isStarMode) {
   const byMode = new Map();
-  for (const { mode, node } of nodes) {
+  for (const { areaId, mode, node } of nodes) {
     if (!byMode.has(mode)) byMode.set(mode, emptyAcc());
-    addNode(byMode.get(mode), node);
+    addNode(byMode.get(mode), node, isStarMode ? isStarMode(areaId, mode) : true);
   }
   return byMode;
 }
@@ -162,7 +164,9 @@ function perModeList(byMode) {
 /**
  * Sammanställ EN elevs Plugga-progress.
  * @param {object} progress  studentData.progress
- * @param {{areaIds?: string[]}} [opts]  begränsa till vissa områden
+ * @param {{areaIds?: string[], isStarMode?: (areaId:string, mode:string)=>boolean}} [opts]
+ *   areaIds = begränsa till vissa områden; isStarMode = bara dessa lägen ger
+ *   stjärnor (starScope i teacher-class-stats.js, #467). Utelämnat = alla.
  * @returns {{played:number, completed:number, stars:number, maxStars:number,
  *   starPct:(number|null), plays:number, lastPlayed:(Date|null), answered:number,
  *   correct:number, pct:(number|null), hasCategoryData:boolean,
@@ -170,9 +174,9 @@ function perModeList(byMode) {
  *   maxStars = genomförda övningar × 3 (för områdets MÖJLIGA stjärnor, se
  *   areaMaxStars i teacher-class-stats.js som kräver områdesinnehållet).
  */
-export function summarizeStudent(progress, { areaIds } = {}) {
+export function summarizeStudent(progress, { areaIds, isStarMode } = {}) {
   const nodes = exerciseNodes(progress, areaIds);
-  return summaryFrom(nodes, accByMode(nodes));
+  return summaryFrom(nodes, accByMode(nodes, isStarMode));
 }
 
 function summaryFrom(nodes, byMode) {
@@ -189,19 +193,19 @@ function summaryFrom(nodes, byMode) {
  * Sammanställ en KLASS. entries = [{ studentId, namn, progress }].
  * Elever utan progress räknas med (nollor) men inte som aktiva.
  * @param {Array<{studentId:string, namn?:string, progress?:object}>} entries
- * @param {{areaIds?: string[]}} [opts]
+ * @param {{areaIds?: string[], isStarMode?: Function}} [opts]  se summarizeStudent
  * @returns {{rows:Array, students:number, activeStudents:number,
  *   totals:object, perCategory:Array, perMode:Array}}
  *   rows = summarizeStudent per elev (+ studentId, namn, active).
  *   totals = hela klassens summor (samma fält som summarizeStudent, utan perMode).
  */
-export function summarizeClass(entries, { areaIds } = {}) {
+export function summarizeClass(entries, { areaIds, isStarMode } = {}) {
   const list = Array.isArray(entries) ? entries : [];
   const total = emptyAcc();
   const classByMode = new Map();
   const rows = list.map(({ studentId, namn, progress }) => {
     const nodes = exerciseNodes(progress, areaIds);
-    const byMode = accByMode(nodes);
+    const byMode = accByMode(nodes, isStarMode);
     for (const [mode, acc] of byMode) {
       if (!classByMode.has(mode)) classByMode.set(mode, emptyAcc());
       mergeAcc(classByMode.get(mode), acc);

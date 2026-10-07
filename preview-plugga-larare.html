@@ -23,7 +23,7 @@
       // Issue #446: klassdetaljens Statistik-sektion med STUBBAD progress – ingen
       // inloggning. Kör den RIKTIGA renderClassStats (teacher-class.js), som
       // laddar underfliken "Per område" (teacher-plugga.js) med import().
-      // ?tom=1 → klass utan elever. ?klass=1 → skickar classId (visar även
+      // ?tom=1 → klass utan elever. ?dolt=1 → Gruvan dold för klassen (#467). ?klass=1 → skickar classId (visar även
       // Mattematchen/Live-flikarna, som då läser riktiga Firestore).
       import { el, icon, teacherNav, teacherHead } from "/src/teacher-shared.js";
       import { renderClassStats } from "/src/teacher-class.js";
@@ -60,6 +60,9 @@
         s6: { vikingar: { quiz: n(2, true, 2, 4, { begrepp: [3, 8], fakta: [9, 10], analys: [6, 8] }) } },
         s7: { vikingar: { quiz: n(1, true, 1, 6, { begrepp: [5, 6], fakta: [4, 8], analys: [2, 7] }), "aventyr:gruvan": n(3, true, 1, 6, { fakta: [5, 6] }) } },
         s8: { rymden: { quiz: n(3, true, 2, 2), kunskapsjakt: n(2, true, 1, 2) } },
+        // #467 QA-fallet (F2): 3★ i ALLA lägen inkl. äventyr + Memory → samma 24/24 överallt.
+        s9: { vikingar: Object.fromEntries(["quiz", "lasforstaelse", "kunskapsjakt", "para", "sanningsjakt", "memory",
+          "aventyr:skattjakten", "aventyr:spokjakten", "aventyr:gruvan"].map((m) => [m, n(m === "memory" ? 0 : 3, true, 2, 0, m === "quiz" ? { fakta: [4, 4] } : null)])) },
       };
       const students = [
         { id: "s1", namn: "Örjan Lind", username: "orjan.6a", avatarId: "lion" },
@@ -70,6 +73,7 @@
         { id: "s6", namn: "Elsa <b>Åberg</b>", username: "elsa.6a", avatarId: "cat" }, // escaping-test
         { id: "s7", namn: "Filip Sund", username: "filip.6a", avatarId: "panda" },
         { id: "s8", namn: "Greta Vik", username: "greta.6a", avatarId: "koala" },
+        { id: "s9", namn: "Hugo Allt", username: "hugo.6a", avatarId: "fox" },
       ];
 
       const container = el(`<div class="teacher-page teacher-dark"></div>`);
@@ -94,6 +98,10 @@
         studentById: new Map(students.map((s) => [s.id, s])),
         loadAreas: (id) => Promise.resolve(library.find((s) => s.id === id)?.areas || []),
         classId: new URLSearchParams(location.search).has("klass") ? "preview-6a" : undefined,
+        // ?dolt=1 → klassen döljer Gruvan på Vikingatiden (#467: nämnaren följer synligheten).
+        cls: new URLSearchParams(location.search).has("dolt")
+          ? { id: "preview-6a", areaModes: { vikingar: { hiddenModes: ["aventyr:gruvan"] } } }
+          : null,
       });
     </script>
   </body>

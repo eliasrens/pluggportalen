@@ -34,8 +34,9 @@ export const GAMEMODES = [
     sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
   { id: "sanningsjakt", name: "Fånga sanningar", emoji: "🙌", color: "orange",
     sub: "Fånga de sanna påståendena – undvik de falska!", needs: "sanningsjakt" },
+  // noStars: Memory är turbaserat och ger aldrig stjärnor (#467, areaStarModes).
   { id: "memory", name: "Memory", emoji: "🃏", color: "lila",
-    sub: "Hitta fakta-paren", needs: "pairs" },
+    sub: "Hitta fakta-paren", needs: "pairs", noStars: true },
   // Räkna-läget (issue #279/#3): tänds BARA av ett generator-område (area.generator).
   // Kräver alltså varken quiz eller par – och ett rent generator-område tänder i sin
   // tur inte quiz/par/läs-lägena. Själva spelet byggs i #3; här pekar bara gaten ut det.
@@ -292,6 +293,20 @@ export function isModeHiddenForClassArea(area, cls, modeId) {
  */
 export function visibleGamemodesForClassArea(area, cls) {
   return availableGamemodes(area).filter((gm) => !isModeHiddenForClassArea(area, cls, gm.id));
+}
+
+/**
+ * EN definition av ett områdes STJÄRN-lägen (#467): lägen med underlag (inkl.
+ * äventyrs-teman), utan noStars-lägen (Memory), som inte är dolda för klassen
+ * (område ∪ klass ∪ klass×område; cls null → bara områdets eget val). Elevpanelen,
+ * Ämnen-matrisen, Per område och djupdykningen räknar både intjänat och möjligt
+ * (antal × 3) över just dessa lägen – så intjänat kan aldrig överstiga möjligt.
+ * @param {object} area
+ * @param {object|null} [cls]
+ * @returns {typeof ALL_MODES}
+ */
+export function areaStarModes(area, cls = null) {
+  return visibleGamemodesForClassArea(area, cls).filter((gm) => !gm.noStars);
 }
 
 // ---------------------------------------------------------------------------

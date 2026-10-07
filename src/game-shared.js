@@ -40,6 +40,7 @@ export {
   classAreaHiddenModes,
   effectiveHiddenModes,
   isModeHiddenForClassArea,
+  areaStarModes,
 } from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
@@ -137,8 +138,12 @@ export function starRow(stars, max = 3) {
   return s;
 }
 
-/** Uppmuntrande slutmening – aldrig skamsen, även vid få rätt. */
-export function cheer(stars) {
+/**
+ * Uppmuntrande slutmening – aldrig skamsen, även vid få rätt. `retried` = fel på
+ * något första svar men allt rätt till slut (#467 F3) → inget "kunde allt".
+ */
+export function cheer(stars, retried = false) {
+  if (stars >= 3 && retried) return "Starkt kämpat – du fick alla rätt till slut! 🌟";
   if (stars >= 3) return "Fantastiskt jobbat! Du är en stjärna! 🌟";
   if (stars >= 2) return "Bra kämpat! Du kan det här! 💪";
   return "Bra att du övar – du blir bättre för varje gång! 🚀";
@@ -301,8 +306,11 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
   const { coins, xp, totalXp, reduced, pct, prevAreaProgress } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
   let feedback = "";
+  let retried = false;
   try {
-    feedback = (await feedbackMod)?.resultFeedbackHtml({ catStats, prevAreaProgress, noStars }) || "";
+    const fb = await feedbackMod;
+    feedback = fb?.resultFeedbackHtml({ catStats, prevAreaProgress, noStars, mode, stars }) || "";
+    retried = !!fb?.hadFirstTryMisses(catStats, mode);
   } catch {}
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
@@ -319,7 +327,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
     ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
-    <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars)}</p>
+    <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars, retried)}</p>
     ${feedback}
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>

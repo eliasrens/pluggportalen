@@ -13,7 +13,7 @@
 
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
-import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea } from "./game-shared.js";
+import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea, areaStarModes } from "./game-shared.js";
 import { readingPrereqStatus } from "./reading-prereq.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
 import { startLastext } from "./games-lastext.js";
@@ -150,15 +150,13 @@ export async function pageElevOmrade() {
   const themes = visibleThemes(has, areaData, studentClass);
   const advCards = adventureCards(themes, areaProgress);
 
-  // Framstegspanelen: stjärnor av möjliga på sidans kort (Memory ger inga
-  // stjärnor) + rätt per kategori. Ett fel i panelen får aldrig fälla sidan.
+  // Framstegspanelen: stjärnor av möjliga + rätt per kategori. Stjärn-lägena är
+  // EN gemensam definition (areaStarModes, #467) – samma som lärarvyerna, så
+  // eleven och läraren ser samma nämnare. Ett fel i panelen får aldrig fälla sidan.
   let framsteg = "";
   try {
     const mod = await framstegMod;
-    const starModes = [
-      ...visibleModes.filter((gm) => gm.id !== "memory").map((gm) => gm.id),
-      ...themes.map((t) => `aventyr:${t.id}`),
-    ];
+    const starModes = areaStarModes(areaData, studentClass).map((gm) => gm.id);
     framsteg = mod ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
   } catch {}
 

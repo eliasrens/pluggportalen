@@ -120,6 +120,23 @@ function categoryRowHtml(c, countText) {
 }
 
 const rattText = (c) => (c.t ? `${c.r} av ${c.t} rätt` : "Spela för att se");
+
+/** Svensk listfogning: ["A"] → "A", ["A","B"] → "A och B", ["A","B","C"] → "A, B och C". */
+export function joinSv(items) {
+  const list = (items || []).filter((x) => x != null && x !== "");
+  if (list.length <= 1) return list[0] ?? "";
+  return `${list.slice(0, -1).join(", ")} och ${list[list.length - 1]}`;
+}
+
+// Lägen där en felbesvarad fråga kommer tillbaka (runQuestions): stjärnorna och
+// "x av y rätt" räknar rätt TILL SLUT, kategorierna det FÖRSTA svaret. Övriga
+// lägen (Kunskapsjakt, äventyr) räknar kategorierna på alla svar.
+const RETRY_MODES = new Set(["quiz", "lasforstaelse"]);
+
+/** Fel på något FÖRSTA svar i ett läge där frågorna kommer tillbaka? (#467 F3) */
+export function hadFirstTryMisses(catStats, mode) {
+  return RETRY_MODES.has(mode) && categoryBreakdown(catStats).some((c) => c.t > c.r);
+}
 const name = (c) => `${c.icon} <b>${esc(c.short)}</b>`;
 
 /**
@@ -185,8 +202,11 @@ export function areaProgressHtml({ areaId, areaData, progress, starModes = [] })
  * @param {object} [o.catStats]          sessionens { [kat]: {r,t} }
  * @param {object} [o.prevAreaProgress]  progress[areaId] FÖRE spelet
  * @param {boolean} [o.noStars]          lägen utan stjärnor (Memory) → ingen hjälp
+ * @param {string} [o.mode]              spelläget – quiz/läsförståelse räknar första
+ *   svaret per fråga, övriga alla svar (rubriken säger vilket, #467 F3)
+ * @param {number} [o.stars]             sessionens stjärnor (för ★★★-men-missar-raden)
  */
-export function resultFeedbackHtml({ catStats, prevAreaProgress, noStars = false } = {}) {
+export function resultFeedbackHtml({ catStats, prevAreaProgress, noStars = false, mode = "", stars = 0 } = {}) {
   const help = noStars ? "" : starHelpHtml();
   const session = categoryBreakdown(catStats).filter((c) => c.t > 0);
   if (session.length === 0) return help ? `<div class="pf-resultat pf-resultat-tom">${help}</div>` : "";
@@ -198,8 +218,13 @@ export function resultFeedbackHtml({ catStats, prevAreaProgress, noStars = false
   const allRight = session.every((c) => c.r === c.t);
 
   const lines = [];
+  // Stjärnorna räknar rätt TILL SLUT (frågan kommer tillbaka), kategorierna det
+  // första svaret – säg det rakt ut så kortet inte säger emot sig självt (#467 F3).
+  if (stars >= 3 && hadFirstTryMisses(catStats, mode)) {
+    lines.push("🌟 Alla rätt till slut! Här ser du hur det gick första gången du svarade.");
+  }
   if (better.length) {
-    lines.push(`📈 Du blev bättre på ${better.map(name).join(" och ")} sedan förra gången!`);
+    lines.push(`📈 Du blev bättre på ${joinSv(better.map(name))} sedan förra gången!`);
   } else if (allRight) {
     lines.push("🌟 Allt rätt – du kan det här!");
   } else if (best) {
@@ -213,6 +238,7 @@ export function resultFeedbackHtml({ catStats, prevAreaProgress, noStars = false
 
   return `<div class="pf-resultat">
     <h3>Så gick det</h3>
+    <p class="pf-resultat-sub">${RETRY_MODES.has(mode) ? "Rätt på första försöket" : "Räknat på alla dina svar"}</p>
     <ul class="pf-kat-lista">${session.map((c) => categoryRowHtml(c, rattText(c))).join("")}</ul>
     <ul class="pf-tips">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
     ${help}

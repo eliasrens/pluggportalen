@@ -14,7 +14,7 @@
 import * as data from "./data.js";
 import { parseAndMergeArea } from "./merge-area.js";
 import { buildMorePrompt } from "./prompts.js";
-import { el, esc, icon, copyText } from "./teacher-shared.js";
+import { el, esc, icon, copyText, warningsHtml } from "./teacher-shared.js";
 
 const MERGE_EXAMPLE = JSON.stringify(
   {
@@ -121,7 +121,7 @@ export function buildMergeForm(area, slot, { subjectId, onSaved }) {
     }
     const { addTxt, skipTxt } = mergeSummaryHtml(res);
     mResult.innerHTML = `<div class="msg ok">✓ Ser bra ut! Detta lägger till ${addTxt} i
-      "${esc(area.name)}".${skipTxt} Klicka <b>Lägg till i området</b> för att spara.</div>`;
+      "${esc(area.name)}".${skipTxt} Klicka <b>Lägg till i området</b> för att spara.</div>${warningsHtml(res.warnings)}`;
   });
 
   f.querySelector('[data-act="m-save"]').addEventListener("click", async () => {
@@ -142,7 +142,7 @@ export function buildMergeForm(area, slot, { subjectId, onSaved }) {
       if (nAdded === 0) {
         mResult.innerHTML = `<div class="msg ok">Inget nytt lades till – ${addTxt.replace(/<\/?b>/g, "")} fanns redan.${skipTxt}</div>`;
       } else {
-        mResult.innerHTML = `<div class="msg ok">✓ La till ${addTxt} i "${esc(area.name)}".${skipTxt}</div>`;
+        mResult.innerHTML = `<div class="msg ok">✓ La till ${addTxt} i "${esc(area.name)}".${skipTxt}</div>${warningsHtml(res.warnings)}`;
         ta.value = "";
       }
       // Uppdatera listans räknare. Byggs om helt, så slotten stängs automatiskt.

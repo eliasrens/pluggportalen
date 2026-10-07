@@ -27,14 +27,15 @@ const pctOf = (a, b) => (b > 0 ? Math.round((100 * a) / b) : null);
 
 /**
  * Tabellrader ur summarizeClass(...).rows. `maxStars` = urvalets möjliga
- * stjärnor (areaMaxStars summerat över valda områden) – summarizeClass känner
- * bara elevens SPELADE lägen, inte områdets innehåll.
+ * stjärnor (starScope över valda områden) – summarizeClass känner bara elevens
+ * SPELADE lägen, inte områdets innehåll. Samma nämnare för alla rader; med
+ * summarizeClass({ isStarMode }) kan intjänat aldrig överstiga den (#467).
  * @param {Array} summaryRows
  * @param {number} maxStars
  */
 export function pluggaTeacherRows(summaryRows, maxStars) {
   return (summaryRows || []).map((r) => {
-    const max = Math.max(maxStars || 0, r.stars);
+    const max = maxStars || 0;
     return {
       ...r,
       possibleStars: max,

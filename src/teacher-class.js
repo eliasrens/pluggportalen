@@ -18,13 +18,13 @@
 // delad mellan underflikarna i STATS_TABS (#446). Formen är:
 //   progress[areaId][gamemode] = { completed, bestScore, stars, lastPlayed }
 // (se data.js). Max 3 stjärnor per gamemode. Ett områdes möjliga stjärnor =
-// antal tillgängliga gamemodes (utifrån quiz/pairs-innehåll) × 3.
+// områdets stjärn-lägen (areaStarModes, #467 – samma som elevpanelen) × 3.
 // ============================================================================
 
 import * as data from "./data.js";
 import { avatarEmoji } from "./avatars.js";
 import { el, esc, emptyState, icon } from "./teacher-shared.js";
-import { areaMaxStars, areaEarned, progressLevel } from "./teacher-class-stats.js";
+import { MAX_STARS_PER_MODE, areaModes, areaEarned, progressLevel } from "./teacher-class-stats.js";
 import { openStudentDetail } from "./teacher-class-detail.js";
 
 /** Cellens innehåll för en elev × ett område. */
@@ -141,7 +141,7 @@ const STATS_TABS = [
 let lastStatsTab = "amnen";
 
 /** Ämnesfliken: klassens stjärnmatris (elever × arbetsområden). */
-async function renderSubjectStats(ctx, host, { students, subjects, studentById, loadAreas, loadProgress }) {
+async function renderSubjectStats(ctx, host, { students, subjects, studentById, loadAreas, loadProgress, cls }) {
   students = (students || [])
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
@@ -225,7 +225,10 @@ async function renderSubjectStats(ctx, host, { students, subjects, studentById, 
       return;
     }
 
-    const areaMax = areas.map((a) => areaMaxStars(a));
+    // Stjärn-lägena per område (areaStarModes, #467): samma lägen för möjligt
+    // OCH intjänat, med klassens dolda lägen invägda → aldrig över 100 %.
+    const areaStar = areas.map((a) => areaModes(a, cls).map((m) => m.id));
+    const areaMax = areaStar.map((ids) => ids.length * MAX_STARS_PER_MODE);
     const subjectMaxStars = areaMax.reduce((sum, m) => sum + m, 0);
 
     const headCols = areas
@@ -244,7 +247,7 @@ async function renderSubjectStats(ctx, host, { students, subjects, studentById, 
         let earnedTotal = 0;
         const cells = areas
           .map((a, i) => {
-            const earned = areaEarned(progress, a.id);
+            const earned = areaEarned(progress, a.id, areaStar[i]);
             earnedTotal += earned.stars;
             return cellHtml(earned, areaMax[i]);
           })
@@ -292,7 +295,7 @@ async function renderSubjectStats(ctx, host, { students, subjects, studentById, 
 
     const openRow = (tr) => {
       const s = byId.get(tr.dataset.student);
-      if (s) openStudentDetail(s, progressByStudent.get(s.id) || {}, subjects, loadAreas);
+      if (s) openStudentDetail(s, progressByStudent.get(s.id) || {}, subjects, loadAreas, cls);
     };
     table.querySelectorAll("tr.cx-row").forEach((tr) => {
       tr.addEventListener("click", () => openRow(tr));

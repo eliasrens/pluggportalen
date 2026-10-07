@@ -9,8 +9,9 @@
 // på en rad → djupdykningen per kategori (teacher-plugga-elev.js).
 //
 // All statistik kommer ur läs-API:t summarizeClass (plugga-stats.js, #445).
-// Möjliga stjärnor = areaMaxStars per område – samma tal som framstegsmatrisen
-// (fliken Ämnen), så flikarna aldrig säger emot varandra.
+// Stjärnor: starScope (teacher-class-stats.js) – områdenas stjärn-lägen
+// (areaStarModes, #467) med klassens dolda lägen invägda. Intjänat och möjligt
+// räknas över SAMMA lägen som elevpanelen och fliken Ämnen → aldrig över 100 %.
 //
 // KVOT (#114): progress läses EN gång per elev via `loadProgress` (delas med
 // matrisen i teacher-class.js); ämnes-/områdesbyten läser inget nytt.
@@ -19,7 +20,7 @@
 
 import { avatarEmoji } from "./avatars.js";
 import { el, esc, emptyState, icon } from "./teacher-shared.js";
-import { areaMaxStars } from "./teacher-class-stats.js";
+import { starScope } from "./teacher-class-stats.js";
 import { summarizeClass } from "./plugga-stats.js";
 import { QUESTION_CATEGORIES } from "./question-categories.js";
 import {
@@ -130,9 +131,10 @@ function summaryHtml(sum) {
  *   subjects: object[],                                  // ämnen ({ id, name })
  *   loadAreas: (subjectId:string) => Promise<object[]>,  // områden per ämne (cachad)
  *   loadProgress: () => Promise<Map<string, object>>,    // elev-id → progress (EN läsning)
+ *   cls?: object,                                        // klassdokumentet (dolda lägen)
  * }} opts
  */
-export async function renderClassPlugga(ctx, host, { students, subjects, loadAreas, loadProgress }) {
+export async function renderClassPlugga(ctx, host, { students, subjects, loadAreas, loadProgress, cls = null }) {
   const list = (students || [])
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
@@ -207,8 +209,8 @@ export async function renderClassPlugga(ctx, host, { students, subjects, loadAre
 
   function renderScope() {
     const chosen = lastArea ? areas.filter((a) => a.id === lastArea) : areas;
-    const maxStars = chosen.reduce((s, a) => s + areaMaxStars(a), 0);
-    const sum = summarizeClass(entries, { areaIds: chosen.map((a) => a.id) });
+    const { maxStars, isStarMode } = starScope(chosen, cls);
+    const sum = summarizeClass(entries, { areaIds: chosen.map((a) => a.id), isStarMode });
     rows = pluggaTeacherRows(sum.rows, maxStars);
     const subjectName = subjects.find((s) => s.id === subjectId)?.name || subjectId;
     scope = {
