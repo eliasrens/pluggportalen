@@ -10,7 +10,7 @@
 // Raderna är TUNNA adaptrar runt de befintliga renderarna, som anropas
 // OFÖRÄNDRADE (samma data-anrop, samma sparning). `what` används i laddnings-
 // och felraden ("Laddar byar…", "Kunde inte ladda byar: …", K-16).
-// Byar/Moduler/Fokusläge/Läsresan laddas fortsatt med import() (#271).
+// Byar/Moduler/Fokusläge/Läsresan/Klasscentret laddas med import() (#271).
 // Lead-beslut D-1: 6 sektioner – Moduler + Byar staplade i "Synlighet",
 // Läsresan stannar som underflik i Statistik (X-07).
 // ============================================================================
@@ -102,6 +102,15 @@ export const CLASS_SECTIONS = [
       (await import("./teacher-class-lock.js")).renderClassLock(ctx, cls, host, await store.loadLibrary(), {
         onChange: () => store.notify(),
       }),
+  },
+  {
+    key: "klasscenter",
+    label: "Klasscentret",
+    icon: "school",
+    what: "Klasscentret",
+    // #491: vem får inreda, insamlingen (med donatorer) och rummets historik.
+    render: async (ctx, cls, host, store) =>
+      (await import("./teacher-class-klasscenter.js")).renderClassKlasscenter(ctx, cls, host, store.state.students),
   },
   {
     key: "statistik",
