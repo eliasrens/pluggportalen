@@ -662,7 +662,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | **Realtids-datalagret för projektorvyer** – `subscribeLiveSession(sid, cb)` | `src/live/live-feed.js` |
 | Elevens meny-synlighet (onSnapshot på status lobby\|live) | `src/live/live-watch.js` |
 | Elevsidan `#/elev/live` | `src/live/page-elev-live.js` |
-| Lärarfliken `#/larare/live` (skapa, aktiva, historik), projektor-placeholder `?id=` | `src/live/teacher-live*.js`, `src/live/projector-placeholder.js` |
+| Lärarfliken `#/larare/live` (skapa, aktiva, historik), projektorvyn `?id=` (#461: lobby, Raketrace, Statistik, Dragkamp, vinnare) | `src/live/teacher-live*.js`, `src/live/projector.js` + `src/live/proj-*.js` |
 | Statistik → Live per klass | `renderClassLiveStats` i `src/live/teacher-live-history.js` |
 
 Start = transaktion `lobby → live` med `startedAt = serverTimestamp()`, sedan

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 //   #/larare/live              skapa match + Aktiva Live-sessioner (ALLA lärares,
 //                              realtid) + historik
-//   #/larare/live?id=<sid>     projektorvyn (funktionell placeholder tills #461)
+//   #/larare/live?id=<sid>     projektorvyn (projector.js, #461)
 //   #/larare/live?historik=<sid>  en avslutad matchs resultat + elevresultat
 // Sessionerna lever i Firestore – vilken lärare som helst kan öppna/starta
 // vilken session som helst, och en omladdning hittar tillbaka till samma läge.
@@ -39,7 +39,7 @@ export async function pageLarareLive(ctx) {
 
   const params = getParams();
   if (params.id) {
-    const { mountProjector } = await import("./projector-placeholder.js");
+    const { mountProjector } = await import("./projector.js");
     return mountProjector(ctx, params.id, { cleanups, uid });
   }
 
