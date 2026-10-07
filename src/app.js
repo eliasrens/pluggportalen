@@ -40,7 +40,7 @@ import {
   app, el, go, renderTopbar, loading, flash, getHiddenModules, getLockGate, onLockChange, escHtml,
 } from "./ui.js";
 import { moduleForRoute } from "./gamemode-visibility.js";
-import { whenAuthReady } from "./auth.js";
+import { whenAuthReady, onSessionLost, takeSessionLostNotice } from "./auth.js";
 import {
   pageElevLogin,
   pageElevAvatar,
@@ -292,6 +292,19 @@ onLockChange(async (las, prev) => {
   const dit = sparrMal(path, query, las, await getHiddenModules());
   if (dit) window.location.replace(dit);
   else if (path === "/elev/plugga") router();
+});
+
+// Tappad session (#464): Auth blev null medan en elev- eller lärarsida var
+// öppen (utan att man tryckte Logga ut). Byt till inloggningen – sidornas
+// onLeaveRoute-städning stänger lyssnarna – och spärrsidan visar "Du har
+// loggats ut" i stället för en tyst trasig sida med permission-denied.
+onSessionLost(() => {
+  const { path } = aktuellRutt();
+  const larare = path === "/larare" || path.startsWith("/larare/");
+  if (!larare && !path.startsWith("/elev/")) return void takeSessionLostNotice();
+  const dit = larare ? "#/larare/klasser" : "#/";
+  if ((window.location.hash || "#/") === dit) router();
+  else window.location.replace(dit);
 });
 
 function router() {
