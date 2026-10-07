@@ -27,7 +27,7 @@
 //   Layout/Plan/Fel/HistorikPost: se kc-layout-plan.js
 // ============================================================================
 
-import { db } from "../firebase-config.js";
+import { auth, db } from "../firebase-config.js";
 import {
   collection, doc, getDoc, getDocs, onSnapshot, runTransaction, serverTimestamp, setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -47,6 +47,11 @@ const sdk = { runTransaction, doc, serverTimestamp };
 
 function currentRef(classId) {
   return doc(db, "classCenters", classId, "layout", "current");
+}
+
+// Elevens uid – eller lärarens Auth-uid (läraren har ingen elevsession, #491).
+function minUid() {
+  return currentStudentId() || auth.currentUser?.uid || null;
 }
 
 function profilRef(classId) {
@@ -80,7 +85,7 @@ function nekad(vad, classId, err) {
 export async function saveLayout(classId, placedItems, { forvantadVersion } = {}) {
   try {
     return await korSparning(sdk, db, {
-      classId, uid: currentStudentId(), placedItems, lada: await lada(classId), forvantadVersion,
+      classId, uid: minUid(), placedItems, lada: await lada(classId), forvantadVersion,
     });
   } catch (err) {
     return nekad("layout", classId, err);
@@ -97,7 +102,7 @@ export async function listHistory(classId) {
 export async function restoreLayout(classId, slot, { forvantadVersion } = {}) {
   try {
     return await korAterstallning(sdk, db, {
-      classId, uid: currentStudentId(), slot, lada: await lada(classId), forvantadVersion,
+      classId, uid: minUid(), slot, lada: await lada(classId), forvantadVersion,
     });
   } catch (err) {
     return nekad("återställning", classId, err);
