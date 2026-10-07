@@ -10,8 +10,9 @@
 // Modulen är ren rendering: klick-hantering (eget hus → zooma in, kamratens
 // hus → deras rum i läsläge) kopplas av pages-varld.js via .by-tomt[data-id].
 //
-// Klasscentret (#480, epic #476): med `klasscenter` tar byns hjärta de första
-// 2–3 platserna i slingan (varld-by.js) och ritas i en egen .by-klasscenter-
+// Klasscentret (#480, epic #476): med `klasscenter` står byns hjärta i mitten
+// av översta raden, 2–3 tomter brett med upp till 2 hus på var sida
+// (varld-by.js), och ritas i en vanlig .by-klasscenter-
 // ruta (INTE .by-tomt, så hus-klicken i pages-varld/grannbyn rör den inte).
 // Byggnad, mätare och klick fylls av klasscenter/kc-by.js som laddas
 // DYNAMISKT – den och art-klasscenter*.js hålls utanför bootgrafen (#271).
