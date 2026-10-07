@@ -155,7 +155,7 @@ export function listVariants(topic) {
 //  Generator-inställningar: bildstöd & talstorlek (issue #322)
 // ---------------------------------------------------------------------------
 // Två enkla, ADAPTER-FRIA styrfält som läraren sätter vid områdesskapandet och som
-// sparas på area.generator jämte topic/variants/grade. De bor HÄR (i den statiska
+// sparas PER räknesätt i area.generator.topics[] (#470). De bor HÄR (i den statiska
 // bootgrafen) som ren katalogdata – ingen generatorlogik, ingen matte-generator-
 // import – exakt som topics/varianter ovan (#290). Den TUNGA vägen (bildstöds-SVG,
 // talstorlek→settings) läses bara dynamiskt i räkna-/generator-vägen.
@@ -203,12 +203,13 @@ export function talstorlekToGrade(talstorlek) {
 }
 
 /**
- * Är bildstöd påslaget för en (normaliserad) generator-konfig? Bildstöd är PÅ som
+ * Är bildstöd påslaget för ETT (normaliserat) räknesätt ur area.generator.topics
+ * (eller ett gammalt enkel-topic-objekt)? Bildstöd är PÅ som
  * standard (BILDSTOD_DEFAULT) för topics som stödjer det och stängs bara av när
  * area.generator.bildstod uttryckligen är false. Topics utan bildstöds-stöd → alltid
  * false. Renderingsvägen (räkna-läget, issue #320) frågar den här EN gång innan den
  * ritar något stöd, så på/av-valet respekteras på ett ställe.
- * @param {object} generator – normaliserad area.generator
+ * @param {object} generator – ett räknesätt { topic, bildstod? }
  * @returns {boolean}
  */
 export function generatorBildstodEnabled(generator) {
@@ -217,19 +218,22 @@ export function generatorBildstodEnabled(generator) {
 }
 
 // ---------------------------------------------------------------------------
-//  Generator-innehåll (issue #279)
+//  Generator-innehåll (issue #279, flera räknesätt #470)
 // ---------------------------------------------------------------------------
-// Ett generator-område lagrar area.generator = { topic, variants, grade? }.
+// Ett generator-område lagrar
+//   area.generator = { topics: [{ topic, variants, talstorlek?, bildstod? }, …], grade? }
+// – ett eller flera räknesätt (topics) som blandas i räkna-läget/äventyren. Varje
 // topic + varianter valideras mot katalogen ovan (listTopics/listVariants) så bara
 // kända värden sparas. Inget färdigt innehåll (quiz/pairs) finns.
+// BAKÅTKOMPATIBELT: det gamla formatet { topic, variants, talstorlek?, bildstod?,
+// grade? } (#279/#322) läses som en lista med ETT räknesätt – ingen migrering.
 
 /**
- * Rensa/validera en generator-konfiguration mot adapterns topics/varianter.
- * @param {*} raw – { topic, variants, grade? }
- * @returns {{topic:string, variants:string[], grade?:string}|null}
+ * Rensa/validera ETT räknesätt { topic, variants, talstorlek?, bildstod? }.
+ * @returns {{topic:string, variants:string[], talstorlek?:string, bildstod?:boolean}|null}
  *   null om topic är okänt eller ingen giltig variant är vald.
  */
-export function normalizeGenerator(raw) {
+export function normalizeGeneratorTopic(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const topic = String(raw.topic || "").trim();
   if (!listTopics().includes(topic)) return null;
@@ -242,22 +246,38 @@ export function normalizeGenerator(raw) {
   if (variants.length === 0) return null; // minst en variant krävs
 
   const out = { topic, variants };
-  // Årskurs är valfri styrning (jfr grades.js) – tas bara med när den är satt.
-  const grade = normalizeGrade(raw.grade);
-  if (grade) out.grade = grade;
-
   // Bildstöd (issue #322): bara meningsfullt – och därför bara sparat – för topics
   // där det kan ritas. Explicit boolean vinner; saknas fältet gäller BILDSTOD_DEFAULT
   // nedströms (renderingen). Så äldre generator-områden utan fältet fortsätter fungera.
   if (topicSupportsBildstod(topic) && typeof raw.bildstod === "boolean") {
     out.bildstod = raw.bildstod;
   }
-
   // Talstorlek (issue #322): valfri svårighets-/talstorleksväljare. Behåll bara ett
   // känt id; okänt/osatt → utelämnas (då styr ev. årskurs, annars adapterns default).
   const talstorlek = String(raw.talstorlek || "").trim();
   if (TALSTORLEK_BY_ID.has(talstorlek)) out.talstorlek = talstorlek;
+  return out;
+}
 
+/**
+ * Rensa/validera en generator-konfiguration (nytt ELLER gammalt format).
+ * Ogiltiga räknesätt och dubbletter (samma topic) släpps tyst; första vinner.
+ * @param {*} raw – { topics: [...], grade? } | gammalt { topic, variants, … }
+ * @returns {{topics:object[], grade?:string}|null} null om inget giltigt räknesätt finns.
+ */
+export function normalizeGenerator(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const list = Array.isArray(raw.topics) && raw.topics.length ? raw.topics : [raw];
+  const seen = new Set();
+  const topics = list
+    .map(normalizeGeneratorTopic)
+    .filter((t) => t && !seen.has(t.topic) && (seen.add(t.topic), true));
+  if (topics.length === 0) return null;
+
+  const out = { topics };
+  // Årskurs är valfri styrning (jfr grades.js) – tas bara med när den är satt.
+  const grade = normalizeGrade(raw.grade);
+  if (grade) out.grade = grade;
   return out;
 }
 

@@ -16,13 +16,11 @@ import { isKnownPairImage, listPairImageKeys } from "./pair-images.js";
 import {
   normalizeExerciseTypes,
   deriveExerciseTypes,
-  normalizeGenerator,
-  listTopics,
-  listVariants,
   normalizeQuestionCategory,
   QUESTION_CATEGORY_KEYS,
 } from "./exercise-types.js";
 import { validateReadingTexts } from "./validate-reading.js";
+import { validateGenerator } from "./validate-generator.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { normalizeGrade } from "./grades.js";
 import { normalizeHiddenModes } from "./gamemode-visibility.js";
@@ -274,47 +272,11 @@ export function validateArea(obj) {
   // → tom lista). Regeln bor i src/validate-reading.js.
   const readingTexts = validateReadingTexts(obj.readingTexts, errors, slugify);
 
-  // --- generator (issue #279) -----------------------------------------------
-  // Ett generator-område lagrar area.generator = { topic, variants, grade? } och
-  // sparar INGET färdigt innehåll (inga quiz/pairs). Valfritt och bakåtkompatibelt
-  // (saknas fältet → inget generator-innehåll). Vi ger tydliga fel på svenska när
-  // topic/varianter är okända, mot generator-katalogen (listTopics/listVariants
-  // i exercise-types.js – boot-säker, drar inte in adaptern i bootgrafen, #290).
-  let generator = null;
-  if (obj.generator !== undefined && obj.generator !== null) {
-    const g = obj.generator;
-    if (typeof g !== "object" || Array.isArray(g)) {
-      errors.push('Fältet "generator" måste vara ett objekt, t.ex. { "topic": "addition", "variants": ["enkel"] }.');
-    } else {
-      const topics = listTopics();
-      const topic = String(g.topic || "").trim();
-      if (!topic) {
-        errors.push(`Generator: "topic" saknas. Välj en tal-typ: ${topics.map((t) => `"${t}"`).join(", ")}.`);
-      } else if (!topics.includes(topic)) {
-        errors.push(`Generator: okänt "topic" "${topic}". Giltiga: ${topics.map((t) => `"${t}"`).join(", ")}.`);
-      } else {
-        const valid = listVariants(topic);
-        const chosen = Array.isArray(g.variants)
-          ? g.variants.map((v) => String(v || "").trim()).filter((v) => v.length > 0)
-          : [];
-        if (!Array.isArray(g.variants)) {
-          errors.push('Generator: "variants" måste vara en lista med variantnamn, t.ex. ["enkel", "uppstallning"].');
-        } else if (chosen.length === 0) {
-          errors.push(`Generator: kryssa i minst en variant för "${topic}". Giltiga: ${valid.map((v) => `"${v}"`).join(", ")}.`);
-        } else {
-          const unknown = chosen.filter((v) => !valid.includes(v));
-          if (unknown.length > 0) {
-            errors.push(
-              `Generator: okänd(a) variant(er) ${unknown.map((v) => `"${v}"`).join(", ")} för "${topic}". Giltiga: ${valid.map((v) => `"${v}"`).join(", ")}.`
-            );
-          }
-        }
-      }
-    }
-    // Normaliserad, sparklar variant (null om något ovan var fel – då finns redan
-    // ett tydligt felmeddelande i errors, så området ändå inte sparas).
-    generator = normalizeGenerator(g);
-  }
+  // --- generator (issue #279, flera räknesätt #470) -------------------------
+  // area.generator = { topics: [{ topic, variants, … }], grade? } (eller gammalt
+  // { topic, variants }) – valfritt och bakåtkompatibelt. Regeln bor i
+  // src/validate-generator.js (tydliga fel mot generator-katalogen).
+  const generator = validateGenerator(obj.generator, errors);
 
   // --- Minst något innehåll -------------------------------------------------
   if (

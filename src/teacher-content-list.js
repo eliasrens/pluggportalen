@@ -20,6 +20,7 @@ import { buildMergeForm } from "./teacher-content-merge.js";
 import { areaExerciseTypes, hasGeneratorContent, EXERCISE_TYPES } from "./exercise-types.js";
 import { normalizeGrade, gradeLabel } from "./grades.js";
 import { el, esc, icon } from "./teacher-shared.js";
+import { generatorSummary } from "./teacher-generator-labels.js";
 
 let itemsMod = null; // teacher-area-items.js efter första import() (#454/#271).
 
@@ -47,8 +48,8 @@ function typeBadges(a) {
 /** Ärlig mängd-indikator: generator → oändligt, annars faktiska antal. */
 function quantityText(a) {
   if (hasGeneratorContent(a)) {
-    const variants = a.generator?.variants?.length || 0;
-    return `🔢 genererat · oändligt${variants ? ` (${variants} varianter)` : ""}`;
+    const g = generatorSummary(a.generator);
+    return `🔢 ${g.topics} · genererat · oändligt (${g.variants} varianter)`;
   }
   const parts = [];
   if (a.quiz?.length) parts.push(`${a.quiz.length} frågor`);

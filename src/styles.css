@@ -6540,6 +6540,27 @@ body:has(.teacher-dark) .container {
   padding: 14px 16px;
   margin: 14px 0;
 }
+/* Räknegeneratorn (#470): kompakta kryss-chips för räknesätt + ett block per
+   ikryssat räknesätt med varianter och inställningar. */
+.gen-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gen-chips .gen-chip { padding: 5px 10px; gap: 6px; border-radius: 999px; }
+.gen-chips .gen-chip input { width: 16px; height: 16px; }
+.gen-chips .gen-chip .member-name { font-weight: 600; font-size: 0.92rem; }
+.gen-chip:has(input:checked) { border-color: var(--gron); }
+.teacher-dark .gen-chip:has(input:checked) { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.gen-blocks { display: grid; gap: 10px; margin-top: 10px; }
+.gen-block {
+  border: 1px solid var(--t-border-strong, #e6eefa);
+  border-radius: 12px;
+  padding: 8px 12px 10px;
+  margin: 0;
+  min-width: 0;
+}
+.gen-block legend { font-weight: 700; padding: 0 6px; }
+.gen-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 8px; }
+.gen-inline { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem; }
+.gen-inline .select { width: auto; padding: 5px 8px; }
+.gen-warn { margin: 6px 0 0; font-size: 0.88rem; color: #e8a33d; }
 .teacher-dark .wz-material-head {
   display: flex;
   flex-wrap: wrap;

@@ -10,8 +10,9 @@
 //
 // Slutsvaret skrivs i ett fält och rättas mot generatorns facit. Uppgifterna
 // byggs via matte-generator-adaptern (#278) för områdets generator-konfig (#279):
-// area.generator = { topic, variants, grade? }. En hel runda dras DETERMINISTISKT
-// ur ett per-session-frö (adapterns kontrakt), med upprepningsskydd.
+// area.generator = { topics: [{ topic, variants, … }], grade? }. En hel runda dras
+// DETERMINISTISKT ur ett per-session-frö (adapterns kontrakt), med upprepningsskydd;
+// flera valda räknesätt blandas balanserat (shuffle-bag i rakna-core.js, #470).
 //
 // BELÖNING: rätt slutsvar ger coins/XP via den BEFINTLIGA game-shared-loopen
 // (showResult → awardExercise), exakt som övriga grind-lägen. Ingen egen
@@ -96,11 +97,11 @@ export function startRakna(ctx) {
   const { subj, area, areaData } = ctx;
   const generator = normalizeGenerator(areaData?.generator);
 
-  // Lärar-inställning för bildstödet: läses från den RÅA områdes-konfigen (den
-  // normaliserade generatorn bär inte fältet) och är PÅ som standard. Lärar-UI:t
-  // som sätter `generator.bildstod=false` är en egen issue; tills dess visas
-  // bildstödet för alla behöriga uppgifter. Bara ett uttryckligt false stänger av.
-  const bildstodOn = areaData?.generator?.bildstod !== false;
+  // Lärar-inställning för bildstödet – PER räknesätt (#470): uppgiften följer sitt
+  // faktiska topic. PÅ som standard; bara ett uttryckligt false stänger av.
+  // Behörigheten (vilka uppgifter som kan få bild) avgör renderBildstod själv.
+  const bildstodOn = (topic) =>
+    (generator?.topics || []).find((t) => t.topic === topic)?.bildstod !== false;
 
   const view = gameFrame({ subj, area, title: "Räkna", emoji: "🔢" });
   const body = view.querySelector("#game-body");
@@ -150,7 +151,7 @@ export function startRakna(ctx) {
       scratch.destroy();
       scratch = null;
     }
-    const { problem, answer } = round[idx];
+    const { problem, answer, topic } = round[idx];
     let answered = false; // en rättning per uppgift (spärr mot dubbelsvar)
 
     // Svarstyp styr både hjälptexten och rättningen (rakna-core.js checkAnswer).
@@ -191,7 +192,7 @@ export function startRakna(ctx) {
     // en tom, dold platta reserveras nu så layouten inte hoppar. Behörigheten
     // avgör renderingsmodulen själv (isBildstodEligible) – vi visar bara om den
     // ger ett element tillbaka.
-    if (bildstodOn) {
+    if (bildstodOn(topic)) {
       const bildHost = el(`<div class="rakna-bildstod" hidden></div>`);
       scratch.card.querySelector(".a4-task").after(bildHost);
       const myCard = scratch.card;

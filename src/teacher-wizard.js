@@ -125,6 +125,15 @@ export function createAreaWizard({ getSubjectId, getSubjectName, onSaved }) {
     getName: () => wz.state.name,
     getCoverEmoji: () => wz.state.emoji,
   });
+  // Kortet Räkna valt (#470) → minst ett räknesätt med minst en variant krävs;
+  // annars skulle området tyst sparas utan räknegenerator.
+  const validateBase = wz.areaInput.validateCurrent;
+  wz.areaInput.validateCurrent = () => {
+    const res = validateBase();
+    if (!wantsGenerator(wz.state) || s3.generatorCtl.getGenerator(null)) return res;
+    const msg = "Räknegenerator: kryssa i minst ett räknesätt med minst en variant (eller välj bort kortet Räkna i steg 2).";
+    return { ...res, ok: false, errors: [...(res.errors || []), msg] };
+  };
 
   // Allt läraren skriver/väljer i wizarden gör den "smutsig" (varning vid stäng).
   body.addEventListener("input", wz.markDirty);

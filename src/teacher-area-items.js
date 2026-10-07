@@ -32,6 +32,7 @@ import { buildQuizForm, buildPairForm, buildTextForm } from "./teacher-area-item
 import { createTabs } from "./teacher-area-items-tabs.js";
 import { buildReadingEditor } from "./teacher-reading.js";
 import { el, esc, icon } from "./teacher-shared.js";
+import { generatorSummary } from "./teacher-generator-labels.js";
 
 const SECTION = {
   quiz: { title: "Quizfrågor", one: "frågan", add: "Lägg till fråga", ic: "📝" },
@@ -277,11 +278,10 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
 
   // --- Räknegenerator: kort rad, ändras via pennan (wizarden) ----------------
   if (isGeneratorArea(area)) {
-    const g = area.generator;
-    const topic = String(g.topic || "");
-    const variants = Array.isArray(g.variants) ? g.variants.length : 0;
+    const g = generatorSummary(area.generator);
+    const variants = g.variants;
     panel.append(el(`<div class="ai-generator">${icon("sliders", 16)}
-      <span><b>Räknegenerator:</b> ${esc(cap(topic.replace(/-/g, " ")))}${variants ? ` · ${variants} variant${variants > 1 ? "er" : ""}` : ""}</span>
+      <span><b>Räknegenerator:</b> ${esc(g.topics)}${variants ? ` · ${variants} variant${variants > 1 ? "er" : ""}` : ""}</span>
       <span class="ai-hint">Ändras via pennan (Redigera).</span></div>`));
   }
 
