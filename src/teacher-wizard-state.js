@@ -21,6 +21,7 @@ import {
   normalizeExerciseTypes,
 } from "./exercise-types.js";
 import { normalizeGrade } from "./grades.js";
+import { generatorSummary } from "./teacher-generator-labels.js";
 
 /** Id för typerna som AI:n författar (allt utom de genererade, dvs. "generator"). */
 const AI_TYPE_IDS = new Set(EXERCISE_TYPES.filter((t) => !t.generated).map((t) => t.id));
@@ -128,7 +129,8 @@ export function buildSaveValue(validated, state, hiddenModes) {
  * Kort sammanfattning av ett validerat område ("12 frågor, 8 par") – samma
  * delar som kompositörens "Det här skapas".
  * @param {object} value
- * @returns {{generator:{topic:string, variants:number}|null, bits:string[]}}
+ * @returns {{generator:{topics:string, variants:number, count:number}|null, bits:string[]}}
+ *   generator.topics = räknesättens visningsnamn ("Addition + Subtraktion", #470).
  */
 export function summaryParts(value) {
   const bits = [];
@@ -136,8 +138,6 @@ export function summaryParts(value) {
   if (value.pairs?.length) bits.push(`${value.pairs.length} par`);
   if (value.texts?.length) bits.push(`${value.texts.length} texter`);
   if (value.readingTexts?.length) bits.push(`${value.readingTexts.length} nivåtexter`);
-  const generator = value.generator
-    ? { topic: value.generator.topic, variants: value.generator.variants.length }
-    : null;
+  const generator = generatorSummary(value.generator);
   return { generator, bits };
 }

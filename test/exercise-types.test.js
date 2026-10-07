@@ -61,17 +61,15 @@ test("normalizeGenerator rensar mot adapterns topics/varianter", () => {
   // Giltig topic + varianter → normaliserat objekt.
   assert.deepEqual(
     normalizeGenerator({ topic: "addition", variants: ["enkel", "uppstallning", "enkel"] }),
-    { topic: "addition", variants: ["enkel", "uppstallning"] } // dubblett rensad
+    { topics: [{ topic: "addition", variants: ["enkel", "uppstallning"] }] } // dubblett rensad
   );
   // Okänd variant filtreras bort; kvar finns minst en → ok.
   assert.deepEqual(normalizeGenerator({ topic: "addition", variants: ["enkel", "bogus"] }), {
-    topic: "addition",
-    variants: ["enkel"],
+    topics: [{ topic: "addition", variants: ["enkel"] }],
   });
   // Årskurs vävs in när satt (normaliserad), utelämnas annars.
   assert.deepEqual(normalizeGenerator({ topic: "addition", variants: ["enkel"], grade: 3 }), {
-    topic: "addition",
-    variants: ["enkel"],
+    topics: [{ topic: "addition", variants: ["enkel"] }],
     grade: "ak3",
   });
 });
@@ -87,16 +85,19 @@ test("normalizeGenerator ger null för okänt topic, ingen variant eller skräp"
 
 // --- generator-inställningar: talstorlek & bildstöd (issue #322) -------------
 
+// Gammalt enkel-topic-format → normaliserat → det (enda) räknesättet.
+const one = (raw) => normalizeGenerator(raw).topics[0];
+
 test("talstorlek: bara kända id behålls, mappas till en grade", () => {
   assert.deepEqual(listTalstorlekar(), ["liten", "mellan", "stor"]);
   // Känt id sparas oförändrat på configen.
   assert.equal(
-    normalizeGenerator({ topic: "addition", variants: ["enkel"], talstorlek: "stor" }).talstorlek,
+    one({ topic: "addition", variants: ["enkel"], talstorlek: "stor" }).talstorlek,
     "stor"
   );
   // Okänt/tomt talstorlek utelämnas (bakåtkompatibelt → styrs av årskurs/adapterns default).
-  assert.equal("talstorlek" in normalizeGenerator({ topic: "addition", variants: ["enkel"], talstorlek: "bogus" }), false);
-  assert.equal("talstorlek" in normalizeGenerator({ topic: "addition", variants: ["enkel"] }), false);
+  assert.equal("talstorlek" in one({ topic: "addition", variants: ["enkel"], talstorlek: "bogus" }), false);
+  assert.equal("talstorlek" in one({ topic: "addition", variants: ["enkel"] }), false);
   // Varje option pekar på en giltig grade (1–6) och listan matchar mappningen.
   for (const o of TALSTORLEK_OPTIONS) {
     assert.equal(talstorlekToGrade(o.id), o.grade);
@@ -116,26 +117,26 @@ test("bildstöd: relevant bara för multiplikation/division; sparas bara där, d
 
   // Explicit på/av sparas som boolean på ett bildstöds-topic.
   assert.equal(
-    normalizeGenerator({ topic: "multiplikation", variants: ["tabeller"], bildstod: false }).bildstod,
+    one({ topic: "multiplikation", variants: ["tabeller"], bildstod: false }).bildstod,
     false
   );
   assert.equal(
-    normalizeGenerator({ topic: "multiplikation", variants: ["tabeller"], bildstod: true }).bildstod,
+    one({ topic: "multiplikation", variants: ["tabeller"], bildstod: true }).bildstod,
     true
   );
   // Saknas fältet helt → utelämnas (tolkas som på via BILDSTOD_DEFAULT nedströms).
   assert.equal(
-    "bildstod" in normalizeGenerator({ topic: "multiplikation", variants: ["tabeller"] }),
+    "bildstod" in one({ topic: "multiplikation", variants: ["tabeller"] }),
     false
   );
   // Icke-boolean skräp ignoreras (ingen bildstod sparas).
   assert.equal(
-    "bildstod" in normalizeGenerator({ topic: "multiplikation", variants: ["tabeller"], bildstod: "ja" }),
+    "bildstod" in one({ topic: "multiplikation", variants: ["tabeller"], bildstod: "ja" }),
     false
   );
   // Ett icke-bildstöds-topic får ALDRIG ett bildstod-fält, även om det skickas in.
   assert.equal(
-    "bildstod" in normalizeGenerator({ topic: "addition", variants: ["enkel"], bildstod: false }),
+    "bildstod" in one({ topic: "addition", variants: ["enkel"], bildstod: false }),
     false
   );
 });
@@ -193,8 +194,7 @@ test("validateArea godtar ett rent generator-område (inget quiz/pairs)", () => 
   });
   assert.equal(res.ok, true, res.errors.join(" | "));
   assert.deepEqual(res.value.generator, {
-    topic: "multiplikation",
-    variants: ["tabeller", "dubbelt"],
+    topics: [{ topic: "multiplikation", variants: ["tabeller", "dubbelt"] }],
     grade: "ak3",
   });
   // Härledd övningstyp = generator; inga quiz/pairs finns.
@@ -210,10 +210,7 @@ test("validateArea sparar talstorlek & bildstöd på generator-området (issue #
   });
   assert.equal(res.ok, true, res.errors.join(" | "));
   assert.deepEqual(res.value.generator, {
-    topic: "multiplikation",
-    variants: ["tabeller"],
-    talstorlek: "stor",
-    bildstod: false,
+    topics: [{ topic: "multiplikation", variants: ["tabeller"], talstorlek: "stor", bildstod: false }],
   });
 });
 
@@ -223,8 +220,7 @@ test("validateArea godtar generator-område utan de nya fälten (bakåtkompatibe
     generator: { topic: "addition", variants: ["enkel"] },
   });
   assert.equal(res.ok, true, res.errors.join(" | "));
-  assert.equal("talstorlek" in res.value.generator, false);
-  assert.equal("bildstod" in res.value.generator, false);
+  assert.deepEqual(res.value.generator, { topics: [{ topic: "addition", variants: ["enkel"] }] });
 });
 
 test("validateArea ger tydligt fel för okänt topic / ingen variant", () => {

@@ -34,7 +34,7 @@ export function renderSummary(box, value, tail, warnings = []) {
   const { generator, bits } = summaryParts(value);
   const parts = [
     ...(generator
-      ? [`räknegenerator: <b>${esc(generator.topic)}</b> (${generator.variants} varianter · oändligt antal uppgifter)`]
+      ? [`räknegenerator: <b>${esc(generator.topics)}</b> (${generator.variants} varianter${generator.count > 1 ? " · blandas" : ""} · oändligt antal uppgifter)`]
       : []),
     ...bits,
   ];
@@ -64,8 +64,8 @@ export function createStep3(wz) {
 
     <div class="wz-generator" id="wz-generator" hidden>
       <label class="wz-sub">🔢 Räknegenerator</label>
-      <p class="hint">Låt området <b>generera</b> räkneuppgifter automatiskt – välj tal-typ och
-        varianter. Inget material behöver klistras in; området tänder <b>räkna-läget</b>.</p>
+      <p class="hint">Låt området <b>generera</b> räkneuppgifter automatiskt – välj ett eller flera
+        räknesätt och deras varianter. Inget material behöver klistras in; området tänder <b>räkna-läget</b>.</p>
       <div id="generator-config"></div>
     </div>
 

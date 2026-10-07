@@ -31,6 +31,7 @@ import {
   materialBlock,
   areaExample,
 } from "./prompt-parts.js";
+import { EXISTING_MAX_CHARS, existingContentBlock, generatorContext } from "./prompt-existing.js";
 
 // Exempel-JSON som innehållssidan visar som mall ("Visa exempel-JSON").
 export const EXAMPLE_JSON = EXAMPLE;
@@ -114,29 +115,26 @@ ${areaExample({ wantQuiz, wantPairs, wantImages })}
 ${materialBlock(onskemal)}`;
 }
 
-// Max antal befintliga frågor/par som listas i "mer innehåll"-prompten (#453) –
-// räcker för att AI:n ska undvika dubbletter utan att prompten sväller.
-export const MORE_PROMPT_MAX_LINES = 40;
-
-/** En rad i undvik-listan: en rad, trimmad och avkortad. */
-const avoidLine = (s) => {
-  const t = String(s || "").replace(/\s+/g, " ").trim();
-  return t.length > 140 ? `${t.slice(0, 137)}…` : t;
-};
+// Tak för "BEFINTLIGT INNEHÅLL"-blocket i tecken (#471, ersätter #453:s 40-radstak).
+export const MORE_PROMPT_MAX_CHARS = EXISTING_MAX_CHARS;
 
 /**
  * "Lägg till"-panelens prompt (issue #453): MER innehåll till ett BEFINTLIGT
  * område. Bygger på buildAreaPrompt OFÖRÄNDRAD (områdets typer + årskurs) och
- * lägger till ett tillägg som ber AI:n att bara svara med det nya och undvika
- * befintliga frågor/par (högst MORE_PROMPT_MAX_LINES rader listas). Har området
- * läsförståelse-frågor (quiz[].passage) ombeds AI:n göra fler av samma slag.
- * Räknegeneratorn är inget AI-innehåll och skickas inte med som typ.
+ * lägger till ett tillägg som ber AI:n att bara svara med det nya. Issue #471:
+ * HELA det befintliga innehållet (texter, quiz med alternativ/svar/kategori/
+ * passage, par, nivåtexter) skickas med som JSON så AI:n ser allt och inte
+ * upprepar det; bara extrema områden kortas (EXISTING_MAX_CHARS, med notering).
+ * Har området läsförståelse-frågor (quiz[].passage) ombeds AI:n göra fler av
+ * samma slag. Räknegeneratorn är inget AI-innehåll och skickas inte med som typ –
+ * men dess räknesätt (#470) nämns som kontext.
  *
  * @param {object} area – områdesdokumentet ({ name, grade, exerciseTypes, quiz, pairs, … }).
  * @param {string} [onskemal] – lärarens valfria önskemål, t.ex. "fler svåra frågor om handel".
+ * @param {number} [maxChars] – tak för befintligt-blocket (för tester).
  * @returns {string}
  */
-export function buildMorePrompt(area, onskemal) {
+export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS) {
   const name = String(area?.name || "arbetsområdet").trim();
   const types = areaExerciseTypes(area).filter((t) => t !== "generator");
   const extra = String(onskemal || "").trim();
@@ -146,38 +144,36 @@ export function buildMorePrompt(area, onskemal) {
     area?.grade ?? null
   );
 
-  const quiz = (Array.isArray(area?.quiz) ? area.quiz : []).map((q) => avoidLine(q?.question)).filter(Boolean);
-  const pairs = (Array.isArray(area?.pairs) ? area.pairs : [])
-    .map((p) => avoidLine(p?.term || p?.definition))
-    .filter(Boolean);
-  // Dela taket rättvist: quiz får plats för minst hälften om båda finns.
-  const max = MORE_PROMPT_MAX_LINES;
-  const nPairs = Math.min(pairs.length, Math.max(max - quiz.length, Math.floor(max / 2)));
-  const nQuiz = Math.min(quiz.length, max - nPairs);
-  const lista = (rubrik, rows, n) =>
-    rows.length
-      ? `${rubrik}\n${rows.slice(0, n).map((r) => `- ${r}`).join("\n")}${
-          rows.length > n ? `\n(… och ${rows.length - n} till som inte listas)` : ""
-        }`
-      : "";
-  const undvik = [lista("Befintliga quizfrågor:", quiz, nQuiz), lista("Befintliga par (begrepp):", pairs, nPairs)]
-    .filter(Boolean)
-    .join("\n\n");
+  const befintligt = existingContentBlock(
+    area,
+    ["texts", "quiz", "pairs", "readingTexts"],
+    `allt detta finns redan i "${name}" (samma JSON-format som ovan; "answerIndex" pekar ut rätt svar):`,
+    maxChars
+  );
   const harPassage = (area?.quiz || []).some((q) => q && String(q.passage || "").trim());
+  const harNivatexter = Array.isArray(area?.readingTexts) && area.readingTexts.length > 0;
+  const generator = generatorContext(area);
 
   const krav = [
     `- Svara med samma JSON-format som ovan, men ta BARA med det NYA innehållet (nya "texts", "quiz" och/eller "pairs"). Behåll "name": "${name}".`,
-    "- Upprepa INTE det som redan finns i området, och skriv inga nära varianter av det.",
+    befintligt && "- Läs igenom det befintliga innehållet nedan och bygg vidare i samma stil, ton och svårighetsnivå.",
+    "- Upprepa INTE det som redan finns i området, och skriv inga nära varianter av det (samma fråga med andra ord, samma begrepp, samma faktapåstående).",
     "- Hitta inte på nya övningstyper – skapa bara innehåll för de typer som anges ovan.",
-  ];
+  ].filter(Boolean);
   if (harPassage) {
     krav.push(
       `- Området används för läsförståelse: varje ny quizfråga MÅSTE ha en egen "passage" (3–5 meningar) precis som de befintliga frågorna – gör fler frågor av samma slag.`
     );
   }
+  if (harNivatexter) {
+    krav.push(
+      `- "readingTexts" (nivåtexter i 3 nivåer) visas bara som bakgrund så du vet vad eleverna redan läst – svara INTE med "readingTexts".`
+    );
+  }
+  if (generator) krav.push(`- ${generator}`);
 
   return `${bas}
 
 VIKTIGT – detta gäller MER innehåll till ett BEFINTLIGT arbetsområde ("${name}"), inte ett nytt område.
-${krav.join("\n")}${undvik ? `\n\nUndvik dessa – de finns redan:\n${undvik}` : ""}`;
+${krav.join("\n")}${befintligt ? `\n\n${befintligt}` : ""}`;
 }

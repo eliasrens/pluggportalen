@@ -158,7 +158,8 @@ test("mergeAreaContent behåller area.generator och slår på generator-typen", 
     quiz: [{ question: "Ny fråga?", options: ["A", "B"], answerIndex: 0 }],
   });
   assert.equal(res.ok, true, res.errors.join(" | "));
-  assert.deepEqual(res.value.generator, { topic: "addition", variants: ["enkel"] });
+  // Gammalt enkel-topic-format läses och sparas i det nya formatet (#470).
+  assert.deepEqual(res.value.generator, { topics: [{ topic: "addition", variants: ["enkel"] }] });
   assert.ok(res.value.exerciseTypes.includes("generator"), res.value.exerciseTypes.join(","));
   assert.ok(res.value.exerciseTypes.includes("quiz"));
 });
