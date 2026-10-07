@@ -36,7 +36,7 @@ export function classFightHtml(rows) {
   if (!rows?.length) return `<p class="hint">Inga klasser.</p>`;
   return `<ol class="mmt-lista">${rows.map((r) => `
     <li class="mmt-rad${r.rank === 1 && r.correct > 0 ? " mmt-pall" : ""}">
-      <span class="mmt-plats">${plats(r.rank)}</span>
+      <span class="mmt-plats">${r.correct > 0 ? plats(r.rank) : "–"}</span>
       <span class="mmt-namn">${esc(r.name)}<small>${r.correct} rätt / ${r.students} elever</small></span>
       <b class="mmt-tal">${formatScore(r.score)}</b>
     </li>`).join("")}</ol>`;

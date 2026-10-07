@@ -473,11 +473,28 @@ Spec: [spec-mattematchen-live.md](spec-mattematchen-live.md). Två produkter med
 | Svar → exakt batch som reglerna godtar | `src/tavling/answer-writes.js` |
 | MM elevlogik: period-läge, Topp 25, Klasskamp, egen statistik (ren) | `src/tavling/mm-core.js` |
 | MM elevsida `#/elev/mattematchen` (#458) – dynamisk, menylänk bara under aktiv period | `src/tavling/page-mattematchen.js`, `mm-watch.js`, `mm-data.js`, `mm-panels.js` |
+| MM lärarflik `#/larare/mattematchen` (#459) – skapa/styr/följ/historik/nollställ, `?id=` = detaljvy | `src/tavling/teacher-mattematchen.js`, `teacher-mm-detail.js`, `teacher-mm-form.js`, `teacher-mm-results.js` |
+| MM lärarlogik (ren): formulär, kontroller per läge, historik-`result`, klasstabell | `src/tavling/mm-teacher-core.js` |
+| MM lärarens Firestore-lager (skriv + nollställ + klass-statistik + träningstotal) | `src/tavling/mm-teacher-data.js` |
+| Statistik → Mattematchen (klass × period → tabell → elevdetalj per tabell 0–10) | `src/tavling/teacher-mm-stats.js` (+ `mm-larare.css`) |
 
 Demo: `preview-mult-snabb.html`. Tester: `test/mult-generator.test.js`,
 `test/live-game-modes.test.js`, `test/firestore-rules-mattematchen-live.test.js`,
-`test/mm-core.test.js`, `test/firestore-rules-mattematchen-elev.test.js`.
-Elevsidan mot emulatorn: `admin/qa-mattematchen-seed.mjs` + `admin/qa-emulator-proxy.mjs`.
+`test/mm-core.test.js`, `test/firestore-rules-mattematchen-elev.test.js`,
+`test/mm-teacher-core.test.js`, `test/firestore-rules-mattematchen-larare.test.js`.
+Elevsidan mot emulatorn: `admin/qa-mattematchen-seed.mjs` + `admin/qa-emulator-proxy.mjs`;
+lärarsidan: kör därefter `admin/qa-mattematchen-larare-seed.mjs` (qalarare / lilla123).
+
+**Lärarsidan (#459):** "Avsluta" (och första öppningen av en tävling vars tid
+tagit slut av sig själv, `archiveIfEnded`) skriver `status: "finished"` +
+`result` = `{ savedAt, winner, winnerClass, top, classes, students
+[{uid,name,classId,correct,incorrect}], totals, tables[0–10] }` (≤ 2000 elever).
+Underdokumenten ligger kvar → elevdetaljen per tabell går att öppna i efterhand.
+Klasstabellen läser `studentStats where documentId() in [klassens elever]` (30 per
+fråga). "Totalt i multiplikation" = två `count()` på `collectionGroup("answers")`
+(uid, uid+isCorrect) – **kräver index-deploy** (`firestore.indexes.json`:
+collection-group-fält `answers.uid` + sammansatt `uid,isCorrect`); utan index
+visar elevdetaljen bara "inte tillgänglig".
 
 **Elevens synlighet (#458):** `mm-watch.js` håller EN onSnapshot-fråga
 `mathCompetitions where participatingClassIds array-contains-any [elevens klasser]`

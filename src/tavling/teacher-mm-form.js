@@ -71,8 +71,10 @@ export function renderCompetitionForm(host, { classes, competition, api, onSaved
   const felEl = form.querySelector(".mmt-fel");
   const v = (id) => form.querySelector(id).value;
 
+  let saving = false; // dubbel-Enter/klick får inte skapa två tävlingar
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    if (saving) return;
     const res = validateCompetition({
       name: v("#mmt-namn"),
       classIds: boxes().filter((x) => x.checked).map((x) => x.value),
@@ -87,6 +89,7 @@ export function renderCompetitionForm(host, { classes, competition, api, onSaved
     felEl.innerHTML = "";
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
+    saving = true;
     try {
       const payload = { ...res.fields, startMs: localMs(v("#mmt-sd"), v("#mmt-st")), endMs: localMs(v("#mmt-ed"), v("#mmt-et")) };
       const cid = editing
@@ -97,6 +100,7 @@ export function renderCompetitionForm(host, { classes, competition, api, onSaved
       felEl.innerHTML = `<div class="msg error">Kunde inte spara: ${esc(err.message)}</div>`;
     } finally {
       btn.disabled = false;
+      saving = false;
     }
   });
 
