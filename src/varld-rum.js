@@ -27,6 +27,8 @@ import { mountWearTray } from "./varld-rum-wear.js";
 import { mountRumMat } from "./varld-rum-mat.js";
 import { mountRumDjurTray } from "./varld-rum-djurtray.js";
 import { mountRumVaxlare } from "./varld-rum-vaxlare.js";
+// Inrednings-kärnan (drag/klamring/ritning) delas med Klasscentrets rum (#490).
+import { kopplaRumDrag, ordnaNycklar, nastaPlats, nyPlaceringsNyckel, rumSakHtml } from "./rum-promenad-golv.js";
 
 /** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
 function isFloorItem(id) {
@@ -145,30 +147,6 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   let fonster = roomModels[currentRoom].fonster;
   // Husdjur/mat syns bara i grundrummet; extra rum är möbler + väggfärg + fönster.
   const showPets = () => currentRoom === 0;
-
-  // Utspritt startläge för en NY sak från lådan: golvsaker sprids i sidled längs
-  // golvet, väggdekor längs väggen. Vi cyklar genom ett utspritt x-mönster
-  // (mitten först, sedan ut mot kanterna) utifrån hur många saker som redan står
-  // i samma zon, och radar i höjdled när ett varv är fullt. Så staplas aldrig
-  // flera nyplacerade saker på exakt samma punkt ("klump mot mitten").
-  const SPREAD_X = [50, 30, 70, 20, 80, 40, 60, 15, 85];
-  function nextSpot(floor) {
-    const n = Object.keys(placements).filter((pid) => isFloorItem(itemIdFromKey(pid)) === floor).length;
-    const x = SPREAD_X[n % SPREAD_X.length];
-    const row = Math.floor(n / SPREAD_X.length);
-    const y = floor ? 78 - (row % 2) * 8 : 32 + (row % 2) * 12;
-    return { x, y };
-  }
-
-  // Skapa en unik placerings-nyckel för ett NYTT exemplar av en sak i det aktiva
-  // rummet. Första exemplaret får det rena sak-id:t (bakåtkompatibelt med gammal
-  // data och enrums-hus), extra exemplar får "<id>#<n>".
-  function makePlacementKey(id) {
-    if (!(id in placements)) return id;
-    let n = 2;
-    while (`${id}#${n}` in placements) n++;
-    return `${id}#${n}`;
-  }
 
   // Vanliga djur hör INTE hemma i lådan/placements längre – de promenerar.
   // Husskal (köpta hus) hör INTE hemma i lådan – de väljs separat i "Nytt hus"-
@@ -384,27 +362,17 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     if (winNode) stage.appendChild(winNode);
     // Rita platta golvsaker (mattor) FÖRST så vanliga möbler, dekor och husdjur
     // alltid staplas ovanpå dem – oavsett i vilken ordning de placerats/flyttats.
-    // Nycklar (kan vara "<id>#<n>" för extra exemplar); sortera platta golvsaker
-    // (mattor) först så möbler/dekor/husdjur alltid staplas ovanpå dem.
-    const orderedKeys = Object.keys(placements).sort(
-      (a, b) => (isFlatItem(itemIdFromKey(a)) ? 0 : 1) - (isFlatItem(itemIdFromKey(b)) ? 0 : 1)
-    );
-    for (const key of orderedKeys) {
+    // Nycklar kan vara "<id>#<n>" för extra exemplar.
+    for (const key of ordnaNycklar(placements, (k) => (isFlatItem(itemIdFromKey(k)) ? 0 : 1))) {
       const id = itemIdFromKey(key);
       const item = getItem(id);
       if (!item) continue;
       const pos = placements[key];
       const size = itemSize(id);
-      // Bredd/höjd skalas med scenBREDDEN (1cqw = 1 % av scen), cap:ad per enhet,
-      // se .varld-lager.room-stage i styles.css → saken upptar samma andel av
-      // scenen vid varje bredd (ingen ihopklumpning). cqw skrivs DIREKT här (inte
-      // via en egen var) – annars resolvas den mot fel container i Chromium. calc
-      // → faktiskt layoutmått, så drag-clampen (offsetWidth/Height) följer med.
-      stage.appendChild(el(`<div class="room-item${selectedId === key ? " selected" : ""}"
-        data-id="${key}" style="left:${pos.x}%;top:${pos.y}%" title="${item.name}">
-        <span class="ri-emoji" style="width:calc(${size.w} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)));height:calc(${size.h} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))">${itemSvg(id) || item.emoji}</span>
-        <button class="ri-remove" data-remove="${key}" title="Plocka bort">🗑️</button>
-      </div>`));
+      stage.appendChild(el(rumSakHtml({
+        key, x: pos.x, y: pos.y, titel: item.name, art: itemSvg(id) || item.emoji,
+        w: size.w, h: size.h, vald: selectedId === key,
+      })));
     }
     // Husdjur/mat hör bara till grundrummet (rum 0) – extra rum ritar bara
     // möbler/dekor. Äpplen på golvet ritas UNDER husdjuren (så djuret syns
@@ -642,7 +610,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // punkt väljs ur ett utspritt mönster utifrån hur många som redan står i
     // samma zon; positionen är fortfarande procent så den kan dras/sparas fritt.
     // En unik nyckel gör att flera exemplar av samma möbel/dekor kan samsas.
-    placements[makePlacementKey(id)] = nextSpot(isFloorItem(id));
+    placements[nyPlaceringsNyckel(placements, id)] =
+      nastaPlats(placements, isFloorItem(id), (k) => isFloorItem(itemIdFromKey(k)));
     selectedId = null; // ny sak placeras utan ram – markeras först vid klick
     renderStage();
     renderTray();
@@ -681,105 +650,55 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     scheduleSaveRoom();
   });
 
-  // --- Dra-och-släpp i rummet (pointer events, procentbaserat) -------------
+  // --- Dra-och-släpp i rummet (delad kärna, rum-promenad-golv.js) ----------
   // Samma pipeline för saker och husdjur: data-id = sak, data-pet-id = husdjur.
-  let drag = null;
-  stage.addEventListener("pointerdown", (e) => {
-    const node = e.target.closest(".room-item");
-    if (!node) {
-      // Klick på tom yta i rummet → avmarkera direkt (ram + 🗑️/panel försvinner).
+  const dragCtl = kopplaRumDrag(stage, {
+    // Möbler, husdjur-saker OCH levande husdjur hör hemma i golvzonen; fönstret
+    // är ett väggobjekt (egen väggzon-clamp); övrig väggdekor får hela väggen.
+    // data-id är en placerings-nyckel ("<id>#<n>" för extra exemplar) → härled id.
+    zon: (node) => (node.dataset.id === WINDOW_ID ? "fonster"
+      : node.dataset.petId || isFloorItem(itemIdFromKey(node.dataset.id)) ? "golv" : "vagg"),
+    // Klick på tom yta i rummet → avmarkera direkt (ram + 🗑️/panel försvinner).
+    tomYta: () => {
       if (selectedId !== null || selectedPetId !== null) {
         selectedId = null;
         selectedPetId = null;
         renderStage();
         renderPets();
       }
-      return;
-    }
-    // Låt 🗑️ (borttagning) och ✏️ (namn-etikett/döpning) hanteras som klick –
-    // starta ingen drag-rörelse på dem.
-    if (e.target.closest("[data-remove]") || e.target.closest("[data-rename]")) return;
-    const rect = stage.getBoundingClientRect();
-    drag = {
-      id: node.dataset.id || null,
-      petId: node.dataset.petId || null,
-      node, rect, moved: false, startX: e.clientX, startY: e.clientY,
-      // Halva sakens bredd/höjd i procent av scenen → hela saken hålls
-      // innanför rummet (saker är centrerade med translate(-50%,-50%)).
-      halfW: ((node.offsetWidth / rect.width) * 100) / 2,
-      halfH: ((node.offsetHeight / rect.height) * 100) / 2,
-      // Möbler, husdjur-saker OCH levande husdjur hör hemma i golvzonen.
-      // data-id är en placerings-nyckel ("<id>#<n>" för extra exemplar) → härled id.
-      floor: !!node.dataset.petId || isFloorItem(itemIdFromKey(node.dataset.id)),
-      // Fönstret är ett väggobjekt → egen väggzon-clamp (inte golv-clampen).
-      win: node.dataset.id === WINDOW_ID,
-    };
-    node.setPointerCapture(e.pointerId);
-    node.classList.add("dragging");
+    },
+    flytt: (drag, x, y) => {
+      if (drag.petId) {
+        const pet = walkers().find((p) => p.id === drag.petId);
+        if (pet) pet.pos = { x, y };
+      } else if (drag.zon === "fonster") {
+        fonster.setPos(x, y);
+      } else {
+        placements[drag.id] = { x, y };
+      }
+    },
+    slapp: (drag) => {
+      if (drag.moved) {
+        if (drag.petId) (djur.byId(drag.petId) ? djur.scheduleSave() : scheduleSavePets());
+        else if (drag.zon === "fonster") fonster.scheduleSave();
+        else scheduleSaveRoom();
+      } else if (drag.petId) {
+        // Klick på ett djur → KLAPPA det (ingen inforuta): mystery-djur lägger sig
+        // på rygg och sprattlar (petBellyFlop), vanliga fast-storleks-djur gör ett
+        // gulligt glädjeskutt med hjärtan (petPat). Namn-/matnings-vyn öppnas i
+        // stället via ✏️-affordansen på namn-etiketten under djuret.
+        const pet = pets.find((p) => p.id === drag.petId);
+        if (pet && pet.hatchedAt) petBellyFlop(pet);
+        else if (djur.byId(drag.petId)) petPat(drag.petId);
+      } else {
+        // Ingen förflyttning = klick → markera/avmarkera (visar 🗑️).
+        selectedId = selectedId === drag.id ? null : drag.id;
+        selectedPetId = null;
+        renderStage();
+        renderPets();
+      }
+    },
   });
-
-  stage.addEventListener("pointermove", (e) => {
-    if (!drag) return;
-    if (Math.abs(e.clientX - drag.startX) > 3 || Math.abs(e.clientY - drag.startY) > 3) {
-      drag.moved = true;
-    }
-    // MÖBLER ENDAST INOMHUS: hela saken clampas innanför scenkanterna, och
-    // golvsaker (möbler/husdjur) måste dessutom stå nere i golvzonen.
-    const x = clamp(
-      ((e.clientX - drag.rect.left) / drag.rect.width) * 100,
-      drag.halfW, 100 - drag.halfW
-    );
-    // Väggobjekt (fönstret) hålls i väggzonen ovanför golvlinjen; golvsaker
-    // hålls nere i golvzonen; övrig väggdekor får hela väggen.
-    let minY = drag.halfH;
-    let maxY = 100 - drag.halfH;
-    if (drag.win) {
-      maxY = FLOOR_TOP; // fönstrets centrum korsar aldrig golvlinjen
-    } else if (drag.floor) {
-      minY = Math.max(drag.halfH, FLOOR_TOP + 4 - drag.halfH);
-    }
-    const y = clamp(
-      ((e.clientY - drag.rect.top) / drag.rect.height) * 100,
-      minY, maxY
-    );
-    if (drag.petId) {
-      const pet = walkers().find((p) => p.id === drag.petId);
-      if (pet) pet.pos = { x, y };
-    } else if (drag.win) {
-      fonster.setPos(x, y);
-    } else {
-      placements[drag.id] = { x, y };
-    }
-    drag.node.style.left = x + "%";
-    drag.node.style.top = y + "%";
-  });
-
-  function endDrag() {
-    if (!drag) return;
-    drag.node.classList.remove("dragging");
-    if (drag.moved) {
-      if (drag.petId) (djur.byId(drag.petId) ? djur.scheduleSave() : scheduleSavePets());
-      else if (drag.win) fonster.scheduleSave();
-      else scheduleSaveRoom();
-    } else if (drag.petId) {
-      // Klick på ett djur → KLAPPA det (ingen inforuta): mystery-djur lägger sig
-      // på rygg och sprattlar (petBellyFlop), vanliga fast-storleks-djur gör ett
-      // gulligt glädjeskutt med hjärtan (petPat). Namn-/matnings-vyn öppnas i
-      // stället via ✏️-affordansen på namn-etiketten under djuret.
-      const pet = pets.find((p) => p.id === drag.petId);
-      if (pet && pet.hatchedAt) petBellyFlop(pet);
-      else if (djur.byId(drag.petId)) petPat(drag.petId);
-    } else {
-      // Ingen förflyttning = klick → markera/avmarkera (visar 🗑️).
-      selectedId = selectedId === drag.id ? null : drag.id;
-      selectedPetId = null;
-      renderStage();
-      renderPets();
-    }
-    drag = null;
-  }
-  stage.addEventListener("pointerup", endDrag);
-  stage.addEventListener("pointercancel", endDrag);
 
   // Promenad-AI: kläckta husdjur går själva omkring på golvet mellan möblerna
   // (rum-promenad.js). Finns äpplen på golvet styr hungriga djur dit och äter
@@ -792,7 +711,7 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // Djuren promenerar bara i grundrummet – i extra rum ritas de inte, så
     // getPets ger tom lista där (AI:n har då inget att flytta).
     getPets: () => (showPets() ? walkers() : []),
-    isPetPaused: (pet) => pet.id === selectedPetId || !!(drag && drag.petId === pet.id) || isPetBusy(pet.id),
+    isPetPaused: (pet) => pet.id === selectedPetId || dragCtl.pagar()?.petId === pet.id || isPetBusy(pet.id),
     getApples: () => (showPets() ? mat.apples() : []),
     onEat: mat.onEat,
     onSettled: () => {

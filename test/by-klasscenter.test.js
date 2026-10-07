@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { byParams, byLayout, BY_SKYLT, klasscenterSpan, klasscenterRad0 } from "../src/varld-by.js";
 import { byDekor } from "../src/art-by-dekor.js";
-import { matarRad, matarMarkup, placeholderText, ariaText } from "../src/klasscenter/kc-by.js";
+import { matarRad, matarMarkup, ariaText } from "../src/klasscenter/kc-by.js";
 import { MAX_NIVA, progressTillNasta, troskelFor } from "../src/klasscenter/kc-niva.js";
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src");
@@ -166,18 +166,6 @@ describe("mätaren", () => {
     assert.equal(matarRad(p), "Maxnivå");
     assert.match(matarMarkup(p), /width:100%/);
   });
-  it("placeholder-texten vid klick", () => {
-    const p = progressTillNasta(troskelFor(3, 10), 10);
-    assert.equal(placeholderText(p), "Klasscentret – Nivå 3 Träkoja · inredning kommer snart");
-    assert.match(placeholderText(p, { visaOnly: true, klassNamn: "6B" }), /^Klasscentret i 6B – Nivå 3/);
-  });
-  it("pekskärm: bubblan bär mätarraden (ingen hovring, #484)", () => {
-    const p = progressTillNasta(troskelFor(3, 10), 10);
-    assert.equal(
-      placeholderText(p, { medMatare: true }),
-      `Klasscentret – Nivå 3 Träkoja · ${matarRad(p)} · inredning kommer snart`
-    );
-  });
   it("aria-label har nivå + mätartext även när mätaren är dold (#484)", () => {
     const p = progressTillNasta(50, 14);
     assert.equal(ariaText(p), `Klasscentret, Nivå ${p.niva} ${p.namn}. ${matarRad(p)}`);
@@ -218,6 +206,9 @@ it("bootgrafen: by-scenen statisk, Klasscentret bara dynamiskt (#271)", () => {
     "klasscenter/kc-by.js", "klasscenter/kc-niva.js", "klasscenter/kc-exp-data.js",
     "art-klasscenter.js", "art-klasscenter-tidig.js", "art-klasscenter-mitt.js",
     "art-klasscenter-sen.js", "art-klasscenter-delar.js",
+    // Rummet (#490): bara via import() vid klick på centret.
+    "rum-inredning.js", "art-klasscenter-hall.js", "klasscenter/kc-rum-vy.js",
+    "klasscenter/kc-rum-session.js", "klasscenter/kc-rum-tillstand.js", "klasscenter/kc-rum-historik.js",
   ]) {
     assert.equal(g.has(join(SRC, f)), false, `${f} får inte ligga i bootgrafen`);
   }
