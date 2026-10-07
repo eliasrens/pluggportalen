@@ -6544,7 +6544,7 @@ body:has(.teacher-dark) .container {
    ikryssat räknesätt med varianter och inställningar. */
 .gen-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .gen-chips .gen-chip { padding: 5px 10px; gap: 6px; border-radius: 999px; }
-.gen-chips .gen-chip input { width: 16px; height: 16px; }
+.gen-chips .gen-chip input { width: 16px; height: 16px; margin: 0; }
 .gen-chips .gen-chip .member-name { font-weight: 600; font-size: 0.92rem; }
 .gen-chip:has(input:checked) { border-color: var(--gron); }
 .teacher-dark .gen-chip:has(input:checked) { border-color: var(--t-accent); background: var(--t-accent-soft); }
