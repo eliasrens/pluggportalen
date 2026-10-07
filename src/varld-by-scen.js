@@ -18,8 +18,8 @@
 // DYNAMISKT – den och art-klasscenter*.js hålls utanför bootgrafen (#271).
 // ============================================================================
 
-import { byLayout, byParams, byVagarSvg, byDekor, BY_ZOOM } from "./varld-by.js";
-import { DEKOR_ART, DEKOR_MATT, dekorMarkSvg } from "./art-by-dekor.js";
+import { byLayout, byParams, byVagarSvg, BY_ZOOM } from "./varld-by.js";
+import { DEKOR_ART, DEKOR_MATT, dekorMarkSvg, byDekor } from "./art-by-dekor.js";
 import { husMini, DEFAULT_HUS_SKAL } from "./art-hus-ute.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { getPalette } from "./room-palettes.js";
