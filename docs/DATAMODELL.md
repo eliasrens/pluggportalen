@@ -908,6 +908,12 @@ eleven "förtjänat" mynten.
 
 **Klassens möbellåda** härleds: `unlockedItems(funds)` = katalogföremålen vars
 `fund` har `isUnlocked` (inget eget dokument).
+
+**Shoppens flik "🏛️ Klasscentrum"** (#488): `pages-shop.js` har bara fliken +
+`import("./klasscenter/kc-shop-vy.js")`; vyn (+ `kc-shop-kort.js`, `kc-shop-vy.css`)
+prenumererar med `subscribeFunds` och stänger den vid flik-/sidbyte. "Du har
+bidragit med X" räknas lokalt i `localStorage` (`pp:kc:bidrag:<uid>:<classId>`,
+per enhet) – inga andras uid läses. QA: `admin/qa-klasscentrum-shop.mjs`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan donationer
 fungerar live.
 
