@@ -207,13 +207,15 @@ function grindMultiplier(prevPlays) {
  * session. XP-potten (basXP + stjärnor × perStar) definieras i leveling.js.
  * `catStats` (#445, valfri) = sessionens rätt/totalt per frågekategori; sparas
  * additivt i progress (saveProgress) och påverkar INTE coins/XP/stjärnor.
- * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number}>}
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number, prevAreaProgress:(object|null)}>}
  */
 export async function awardExercise(area, mode, { stars, bestScore, baseCoins, catStats }) {
   let firstTime = true;
   let prevPlays = 0; // antal tidigare avklarade körningar (n i trappan)
+  let prevAreaProgress = null; // progress[area] FÖRE spelet (#447: "du blev bättre på …")
   try {
     const progress = await data.getProgress();
+    prevAreaProgress = progress?.[area] || null;
     const node = progress?.[area]?.[mode];
     firstTime = !node?.completed;
     // Bakåtkompatibel räknare: saknas plays → 0. Har en äldre elev redan klarat
@@ -279,7 +281,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
     const { growCropsFromExercise } = await import("./data-farm.js");
     await growCropsFromExercise();
   } catch {}
-  return { coins, xp, totalXp, firstTime, reduced, pct };
+  return { coins, xp, totalXp, firstTime, reduced, pct, prevAreaProgress };
 }
 
 /**
@@ -293,8 +295,15 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
  */
 export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false, catStats }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats });
+  // "Så gick det" per kategori + stjärnhjälpen (#447): NY fil → dynamisk import
+  // (#271), hämtas parallellt med sparningen. Saknas den visas kortet som förr.
+  const feedbackMod = import("./plugga-framsteg.js").catch(() => null);
+  const { coins, xp, totalXp, reduced, pct, prevAreaProgress } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
+  let feedback = "";
+  try {
+    feedback = (await feedbackMod)?.resultFeedbackHtml({ catStats, prevAreaProgress, noStars }) || "";
+  } catch {}
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
   const after = xpIntoLevel(totalXp);
@@ -311,6 +320,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
     ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
     <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars)}</p>
+    ${feedback}
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
       <button class="btn ghost" id="more">Till området</button>
