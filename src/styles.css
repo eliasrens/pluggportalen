@@ -4814,8 +4814,27 @@ body.varld-lage .container {
   100% { opacity: 0; transform: translate(14px, -46px) scale(1.5); }
 }
 
+/* Klasscentret ambient (#478, art-klasscenter*.js): eld som fladdrar, fana som
+   vajar, glitter, svävande kristaller, antennljus. Bara transform/opacity på
+   ett fåtal grupper (kompositerbart, pausas av zoom-pausen precis som .hus-rok);
+   röken återanvänder .hus-rok. Av med prefers-reduced-motion nedan. */
+.kc-flamma, .kc-fana, .kc-glitter { transform-box: fill-box; }
+.kc-flamma { transform-origin: 50% 100%; animation: kc-fladdra 0.9s ease-in-out infinite alternate; }
+@keyframes kc-fladdra { from { transform: scale(1, 1); } to { transform: scale(0.94, 1.08); } }
+.kc-fana { transform-origin: 0 50%; animation: kc-vaja 2.2s ease-in-out infinite alternate; }
+@keyframes kc-vaja { from { transform: skewY(-5deg); } to { transform: skewY(4deg) scaleX(0.92); } }
+.kc-glitter { transform-origin: 50% 50%; animation: kc-glittra 2.6s ease-in-out infinite; }
+.kc-glitter.d2, .kc-svava.d2 { animation-delay: -0.9s; }
+.kc-glitter.d3 { animation-delay: -1.7s; }
+@keyframes kc-glittra { 0%, 100% { opacity: 0.25; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1); } }
+.kc-svava { animation: kc-svava 3.6s ease-in-out infinite alternate; }
+@keyframes kc-svava { to { transform: translateY(-16px); } }
+.kc-blink { animation: kc-blinka 1.6s steps(2, jump-none) infinite; }
+@keyframes kc-blinka { from { opacity: 1; } to { opacity: 0.25; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .hus-moln, .hus-solstralar, .hus-rok { animation: none; }
+  .hus-moln, .hus-solstralar, .hus-rok,
+  .kc-flamma, .kc-fana, .kc-glitter, .kc-svava, .kc-blink { animation: none; }
   .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, #laggard-dorr, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
 }
 
