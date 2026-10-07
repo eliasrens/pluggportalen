@@ -2,14 +2,16 @@
 // Enhetstest för "Kopiera AI-prompt för mer innehåll" (issue #453):
 //   • buildMorePrompt bygger på buildAreaPrompt oförändrad (områdets typer + årskurs)
 //   • tillägget ber om BARA nytt innehåll och listar befintliga frågor/par att undvika
-//   • taket på ca 40 listade rader, läsförståelse-passager och inga nya typ-id.
+//   • läsförståelse-passager och inga nya typ-id.
+// Issue #471 (HELA befintliga innehållet som JSON, tak i tecken) testas i
+// test/prompts-existing.test.js.
 // Körs med Node:s inbyggda testkörare:  node --test
 // ============================================================================
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildAreaPrompt, buildMorePrompt, MORE_PROMPT_MAX_LINES } from "../src/prompts.js";
+import { buildAreaPrompt, buildMorePrompt } from "../src/prompts.js";
 
 const area = (extra = {}) => ({
   id: "handel",
@@ -47,19 +49,9 @@ test("buildMorePrompt ber om bara nytt innehåll och listar befintliga frågor o
   const p = buildMorePrompt(area());
   assert.match(p, /MER innehåll till ett BEFINTLIGT arbetsområde/);
   assert.match(p, /BARA med det NYA innehållet/);
-  assert.match(p, /- Vad sålde hansan\?/);
-  assert.match(p, /- Vilken stad var viktig\?/);
-  assert.match(p, /- Kogg/);
-});
-
-test("buildMorePrompt listar högst MORE_PROMPT_MAX_LINES befintliga rader", () => {
-  const quiz = Array.from({ length: 60 }, (_, i) => ({ question: `Fråga nummer ${i}?`, options: ["a", "b"], answerIndex: 0 }));
-  const pairs = Array.from({ length: 30 }, (_, i) => ({ term: `Begrepp ${i}`, definition: "x" }));
-  const p = buildMorePrompt(area({ quiz, pairs }));
-  const listed = p.split("\n").filter((l) => /^- (Fråga nummer|Begrepp) \d+/.test(l));
-  assert.equal(listed.length, MORE_PROMPT_MAX_LINES);
-  assert.ok(listed.some((l) => l.startsWith("- Begrepp")), "både frågor och par ska få plats");
-  assert.match(p, /och \d+ till som inte listas/);
+  assert.match(p, /"question":"Vad sålde hansan\?"/);
+  assert.match(p, /"question":"Vilken stad var viktig\?"/);
+  assert.match(p, /"term":"Kogg"/);
 });
 
 test("buildMorePrompt ber om passage när området har läsförståelse-frågor", () => {
@@ -79,6 +71,6 @@ test("buildMorePrompt hittar inte på typer: rent quiz-område ber inte om par",
 test("buildMorePrompt skickar inte räknegeneratorn som typ och tål ett tomt område", () => {
   const gen = buildMorePrompt({ name: "Gångertabell", exerciseTypes: ["generator"] });
   assert.ok(gen.startsWith(buildAreaPrompt([], 'Mer innehåll till det befintliga arbetsområdet "Gångertabell"', null)));
-  assert.doesNotMatch(gen, /Undvik dessa/);
+  assert.doesNotMatch(gen, /BEFINTLIGT INNEHÅLL/);
   assert.doesNotThrow(() => buildMorePrompt({}));
 });

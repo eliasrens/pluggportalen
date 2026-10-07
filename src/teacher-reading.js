@@ -3,7 +3,8 @@
 // (teacher-reading.js, issue #152)
 // ----------------------------------------------------------------------------
 // Inline-editorn som öppnas under en områdesrad i #/larare/innehall. Läraren kan
-//   • kopiera en AI-prompt som skapar en läs-text i tre svårighetsnivåer,
+//   • kopiera en AI-prompt som skapar en läs-text i tre svårighetsnivåer
+//     (befintliga – även osparade – texter skickas med så AI:n inte upprepar, #471),
 //   • klistra in AI:ns JSON och lägga till den,
 //   • se/redigera VARJE nivå för sig (egen brödtext + egna kryssfrågor),
 //   • lägga till/ta bort texter, frågor och svarsalternativ.
@@ -218,7 +219,7 @@ export function buildReadingEditor(area, slot, { subjectId, onSaved }) {
 
   // --- AI-prompt / import / lägg till ---------------------------------------
   root.querySelector('[data-act="rt-prompt"]').addEventListener("click", (e) =>
-    copyText(buildReadingPrompt(onskemal.value), e.currentTarget)
+    copyText(buildReadingPrompt(onskemal.value, toSaveForm(state.texts)), e.currentTarget)
   );
 
   root.querySelector('[data-act="rt-blank"]').addEventListener("click", () => {
