@@ -116,6 +116,6 @@ describe("progress-mätaren", () => {
     assert.equal(p.mal, null);
     assert.equal(p.kvar, 0);
     assert.equal(matarText(p), "20 000 övningar – högsta nivån nådd!");
-    assert.equal(matarText(progressTillNasta(1200, 30)), "1 200 / 1 350 övningar till Nivå 5");
+    assert.equal(matarText(progressTillNasta(1200, 30)), "1 200 / 1 650 övningar till Nivå 5");
   });
 });
