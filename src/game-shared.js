@@ -40,6 +40,7 @@ export {
   classAreaHiddenModes,
   effectiveHiddenModes,
   isModeHiddenForClassArea,
+  areaStarModes,
 } from "./gamemode-visibility.js";
 
 // ---------------------------------------------------------------------------
@@ -137,8 +138,12 @@ export function starRow(stars, max = 3) {
   return s;
 }
 
-/** Uppmuntrande slutmening – aldrig skamsen, även vid få rätt. */
-export function cheer(stars) {
+/**
+ * Uppmuntrande slutmening – aldrig skamsen, även vid få rätt. `retried` = fel på
+ * något första svar men allt rätt till slut (#467 F3) → inget "kunde allt".
+ */
+export function cheer(stars, retried = false) {
+  if (stars >= 3 && retried) return "Starkt kämpat – du fick alla rätt till slut! 🌟";
   if (stars >= 3) return "Fantastiskt jobbat! Du är en stjärna! 🌟";
   if (stars >= 2) return "Bra kämpat! Du kan det här! 💪";
   return "Bra att du övar – du blir bättre för varje gång! 🚀";
@@ -205,13 +210,17 @@ function grindMultiplier(prevPlays) {
  * höjs varje gång en övning slutförs. UNDANTAG: FULL_REWARD_MODES (quiz +
  * läsförståelse) ger full pott varje gång eftersom varje omspel är en ny slumpad
  * session. XP-potten (basXP + stjärnor × perStar) definieras i leveling.js.
- * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number}>}
+ * `catStats` (#445, valfri) = sessionens rätt/totalt per frågekategori; sparas
+ * additivt i progress (saveProgress) och påverkar INTE coins/XP/stjärnor.
+ * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number, prevAreaProgress:(object|null)}>}
  */
-export async function awardExercise(area, mode, { stars, bestScore, baseCoins }) {
+export async function awardExercise(area, mode, { stars, bestScore, baseCoins, catStats }) {
   let firstTime = true;
   let prevPlays = 0; // antal tidigare avklarade körningar (n i trappan)
+  let prevAreaProgress = null; // progress[area] FÖRE spelet (#447: "du blev bättre på …")
   try {
     const progress = await data.getProgress();
+    prevAreaProgress = progress?.[area] || null;
     const node = progress?.[area]?.[mode];
     firstTime = !node?.completed;
     // Bakåtkompatibel räknare: saknas plays → 0. Har en äldre elev redan klarat
@@ -247,6 +256,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
       stars,
       bestScore,
       plays: prevPlays + 1,
+      ...(catStats && Object.keys(catStats).length > 0 ? { cat: catStats } : {}),
     });
   } catch {}
   // Håll klass-projektionen färsk (#233): spegla elevens nya totaler in i alla
@@ -276,7 +286,7 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
     const { growCropsFromExercise } = await import("./data-farm.js");
     await growCropsFromExercise();
   } catch {}
-  return { coins, xp, totalXp, firstTime, reduced, pct };
+  return { coins, xp, totalXp, firstTime, reduced, pct, prevAreaProgress };
 }
 
 /**
@@ -286,11 +296,22 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins })
  * @param {boolean} [opts.noStars]  turbaserade lägen (t.ex. Memory) har inga
  *   stjärnor: dölj stjärnraden och ersätt med neutral uppmuntran. Övriga lägen
  *   (para-ihop/quiz m.fl.) skickar inte flaggan och är helt oförändrade.
+ * @param {object} [opts.catStats]  rätt/totalt per frågekategori (#445), se awardExercise.
  */
-export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false }) {
+export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false, catStats }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
-  const { coins, xp, totalXp, reduced, pct } = await awardExercise(area, mode, { stars, bestScore, baseCoins });
+  // "Så gick det" per kategori + stjärnhjälpen (#447): NY fil → dynamisk import
+  // (#271), hämtas parallellt med sparningen. Saknas den visas kortet som förr.
+  const feedbackMod = import("./plugga-framsteg.js").catch(() => null);
+  const { coins, xp, totalXp, reduced, pct, prevAreaProgress } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
+  let feedback = "";
+  let retried = false;
+  try {
+    const fb = await feedbackMod;
+    feedback = fb?.resultFeedbackHtml({ catStats, prevAreaProgress, noStars, mode, stars }) || "";
+    retried = !!fb?.hadFirstTryMisses(catStats, mode);
+  } catch {}
 
   // Levlade eleven upp av den här övningen? (jämför nivå före/efter XP-potten)
   const after = xpIntoLevel(totalXp);
@@ -306,7 +327,8 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
     ${reduced ? `<p class="hint">Du har spelat den här övningen förut, så du får färre coins och XP den här gången (${pct} % av full pott).</p>` : ""}
-    <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars)}</p>
+    <p class="cheer">${noStars ? "Alla par hittade – vilket minne du har! 🧠" : cheer(stars, retried)}</p>
+    ${feedback}
     <div class="result-actions">
       <button class="btn gron" id="again">Spela igen</button>
       <button class="btn ghost" id="more">Till området</button>

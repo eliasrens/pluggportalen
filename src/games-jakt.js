@@ -9,6 +9,7 @@
 import { app, el } from "./ui.js";
 import { sound } from "./fx.js";
 import { gameFrame, muteButton, showResult, shuffle, plainQuizPool } from "./game-shared.js";
+import { tallyCategory } from "./exercise-types.js";
 
 const ROUND_SECONDS = 40;
 
@@ -49,6 +50,9 @@ function runRound(ctx, body) {
   let queue = shuffle(pool);
   let qi = 0;
   let ended = false;
+  // Rätt/totalt per frågekategori (#445). Poolen loopas, så VARJE svar räknas.
+  const catStats = {};
+  let currentCategory = null;
 
   const arena = el(`<div class="jakt-arena">
     <div class="jakt-stats">
@@ -92,6 +96,7 @@ function runRound(ctx, body) {
       qi = 0;
     }
     const q = queue[qi++];
+    currentCategory = q.category;
     const opts = shuffle(q.options.map((text, i) => ({ text, correct: i === q.answerIndex })));
     qEl.textContent = q.question;
     optsEl.innerHTML = opts
@@ -111,6 +116,7 @@ function runRound(ctx, body) {
   function answer(btn) {
     if (ended) return;
     const isCorrect = btn.dataset.correct === "true";
+    tallyCategory(catStats, currentCategory, isCorrect);
     if (isCorrect) {
       combo++;
       bestCombo = Math.max(bestCombo, combo);
@@ -171,6 +177,7 @@ function runRound(ctx, body) {
       scoreLine: `${score} poäng · ${correct} rätt · bästa combo ×${Math.min(5, Math.max(1, bestCombo))}`,
       baseCoins,
       bestScore: score,
+      catStats,
       replay: () => startKunskapsjakt(ctx),
     });
   }

@@ -2012,3 +2012,104 @@ body.scratch-fs-lock { overflow: hidden; }
   .rakna-answer-row { flex-direction: column; }
   .rakna-submit { width: 100%; }
 }
+
+/* --- Framsteg per kategori + stjärnhjälp (#447) ------------------------------
+   plugga-framsteg.js: "Ditt framsteg" på områdets sida (.pf-panel) och
+   "Så gick det" på resultatskärmen (.pf-resultat). --kat = kategorins färg. */
+
+.pf-panel { margin-top: 18px; }
+.pf-topp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+.pf-topp h2 { margin: 0; }
+.pf-stj-tal { font-size: 1.15rem; font-weight: 700; color: #7a5c00; }
+.pf-stj-tal b { font-size: 1.5rem; }
+.pf-stj-bar,
+.pf-kat-bar {
+  display: block;
+  height: 12px;
+  background: #eef2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.pf-stj-bar { margin: 8px 0 4px; }
+.pf-stj-bar > i,
+.pf-kat-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+.pf-stj-bar > i { background: linear-gradient(90deg, #f2c94c, #ffb347); }
+.pf-kat-bar > i { background: var(--kat, var(--bla)); }
+.pf-text { margin: 10px 0 6px; color: var(--text-svag); font-weight: 600; }
+
+.pf-kat-lista { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 10px; }
+.pf-kat {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "ikon namn niva"
+    "ikon bar  tal";
+  align-items: center;
+  gap: 2px 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f7f9fc;
+  border-left: 6px solid var(--kat, var(--bla));
+  text-align: left;
+}
+.pf-kat-ikon { grid-area: ikon; font-size: 1.6rem; line-height: 1; text-align: center; }
+.pf-kat-namn { grid-area: namn; display: flex; flex-direction: column; line-height: 1.15; }
+.pf-kat-namn b { font-size: 1.1rem; }
+.pf-kat-namn small { color: var(--text-svag); font-weight: 600; }
+.pf-kat-niva { grid-area: niva; font-weight: 700; font-size: 0.95rem; white-space: nowrap; }
+.pf-kat-bar { grid-area: bar; }
+.pf-kat-tal { grid-area: tal; font-weight: 700; color: var(--text-svag); font-size: 0.9rem; white-space: nowrap; }
+.pf-kat-ny .pf-kat-niva { color: var(--text-svag); }
+
+.pf-tips { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 6px; }
+.pf-tips li {
+  background: #fff8e1;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.pf-hjalp {
+  margin-top: 12px;
+  background: #eef4ff;
+  border-radius: 14px;
+  padding: 8px 14px;
+  text-align: left;
+}
+.pf-hjalp summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #3a5bbf;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  list-style-position: inside;
+}
+.pf-hjalp summary::-webkit-details-marker { margin-right: 6px; }
+.pf-hjalp-body p { margin: 6px 0 4px; }
+.pf-hjalp-lista { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.pf-hjalp-stj { color: #f2c94c; letter-spacing: 2px; font-size: 1.2rem; margin-right: 6px; }
+
+.pf-resultat { max-width: 520px; margin: 0 auto 18px; }
+.pf-resultat h3 { margin: 0 0 4px; }
+.pf-resultat-sub { margin: 0 0 8px; font-size: 0.85rem; font-weight: 700; opacity: 0.7; }
+
+@media (max-width: 480px) {
+  .pf-kat { grid-template-columns: 1.8rem minmax(0, 1fr) auto; padding: 8px 10px; gap: 2px 8px; }
+  .pf-kat-niva { font-size: 0.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-stj-bar > i, .pf-kat-bar > i { transition: none; }
+}

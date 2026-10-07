@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { sound } from "./fx.js";
+import { normalizeQuestionCategory, tallyCategory } from "./exercise-types.js";
 
 // Lokal kopia av ui.js:s el() – MEDVETEN 4-raders duplicering (rotorsak #271):
 // (1) ui.js importerar data.js → firebase via https och kan därför inte laddas
@@ -144,7 +145,7 @@ export function renderQuestionCard({ q, showPassage = false, progressHtml = "", 
  * en fråga man svarar FEL på köas upp igen ett par frågor senare (med omblandade
  * svarsalternativ) tills den besvaras rätt, dock högst MAX_RETURNS gånger.
  *
- * Anropar onFinish(correct, total) när kön är tom. Både correct och total räknas
+ * Anropar onFinish(correct, total, cat) när kön är tom. Både correct och total räknas
  * per UNIK fråga – repetitioner dubbelräknas alltså inte, så stjärnor/coins blir
  * rätt. total = antal unika frågor; correct = antal unika frågor eleven till slut
  * svarade rätt på.
@@ -161,13 +162,19 @@ export function renderQuestionCard({ q, showPassage = false, progressHtml = "", 
  * visas korrekt även när en felsvarad fråga återkommer. Saknar frågan passage
  * visas inget extra block (aldrig hela texten på en gång) – se startLasforstaelse.
  * Quiz-läget skickar inte flaggan och är därför helt oförändrat.
+ *
+ * cat (#445) = { [kategori]: { r, t } } – varje unik fråga MED känd kategori
+ * räknas EN gång, på sitt FÖRSTA svar (r om det var rätt). Repetitioner räknas
+ * inte, så rätt-% speglar vad eleven kunde direkt. Frågor utan kategori räknas inte.
  */
 export function runQuestions({ body, questions, onFinish, reviewButton, showPassage }) {
   // Bygg ett frågeobjekt per unik fråga (med stabilt id för unik-räkningen).
   const built = shuffle(questions).map((q, id) => {
     const opts = q.options.map((text, i) => ({ text, correct: i === q.answerIndex }));
-    return { id, question: q.question, explanation: q.explanation, passage: q.passage, options: shuffle(opts), returns: 0 };
+    return { id, question: q.question, explanation: q.explanation, passage: q.passage, options: shuffle(opts), returns: 0,
+      category: normalizeQuestionCategory(q.category), counted: false };
   });
+  const cat = {}; // rätt/totalt per kategori (första svaret per unik fråga)
 
   const totalUnique = built.length;
   const resolved = new Set(); // id:n på frågor som till slut besvarats rätt
@@ -192,6 +199,10 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
       progressHtml,
       reviewButton,
       onAnswer: (correct) => {
+        if (!q.counted) {
+          q.counted = true;
+          tallyCategory(cat, q.category, correct);
+        }
         if (correct) {
           resolved.add(q.id); // unik fråga klar (räknas bara en gång)
         } else if (q.returns < MAX_RETURNS) {
@@ -207,7 +218,7 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
       },
       onNext: () => {
         pos++;
-        if (pos >= queue.length) onFinish(resolved.size, totalUnique);
+        if (pos >= queue.length) onFinish(resolved.size, totalUnique, cat);
         else renderQ();
       },
     });

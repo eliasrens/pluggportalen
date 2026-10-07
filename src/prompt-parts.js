@@ -9,12 +9,25 @@
 // ============================================================================
 
 import { listPairImageKeys } from "./pair-images.js";
+import { QUESTION_CATEGORY_KEYS } from "./exercise-types.js";
 
 // Punktlista över de inbyggda bildnycklarna (partisymbol-paketet), så att
 // schemat/exemplen alltid matchar pair-images.js utan manuell synk.
 const BILDNYCKLAR = listPairImageKeys()
   .map((x) => `    * "${x.key}" – ${x.name}`)
   .join("\n");
+
+// Frågekategorier (#445/#466): nycklarna hämtas ur QUESTION_CATEGORY_KEYS så att
+// prompten och valideringen aldrig glider isär; här finns bara AI-förklaringen.
+const KATEGORI_FORKLARING = {
+  begrepp: "Begreppsförståelse – vad ett ord/begrepp betyder",
+  fakta: "Fakta – vem, vad, var, när",
+  analys: "Analys/resonemang – orsaker, följder och samband (varför?)",
+};
+const KATEGORI_NYCKLAR = QUESTION_CATEGORY_KEYS.map((k) => `"${k}"`).join(", ");
+const KATEGORI_LISTA = QUESTION_CATEGORY_KEYS.map(
+  (k) => `        · "${k}" = ${KATEGORI_FORKLARING[k] || k}`
+).join("\n");
 
 // Schemabeskrivning som stoppas in i prompterna.
 export const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
@@ -26,7 +39,7 @@ export const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
 - "texts": lista med faktatexter. Varje text: { "id": string, "title": string, "body": string }
 - "quiz": lista med flervalsfrågor. Varje fråga:
     { "id": string, "question": string, "options": [string, ...],
-      "answerIndex": number, "explanation": string, "passage": string }
+      "answerIndex": number, "explanation": string, "passage": string, "category": string }
     * "options" ska ha exakt 4 alternativ (minst 2), alla olika och rimliga.
       Undvik svarsalternativ som "alla ovanstående" eller "vet ej".
     * "answerIndex" är 0-baserat index i "options" för det RÄTTA svaret
@@ -43,13 +56,19 @@ export const SCHEMA = `Objektet (ETT arbetsområde) har fälten:
       finns i just denna frågas passage. (Endast för ett rent quiz utan läsförståelse
       får "passage" utelämnas – men alla prompter här skapar quiz som även används
       som läsförståelse, så ta alltid med passage.)
+    * "category" anger vad frågan testar – EXAKT en av nycklarna ${KATEGORI_NYCKLAR}:
+${KATEGORI_LISTA}
+      OBLIGATORISK på varje fråga. Skriv nyckeln exakt (gemener). Sprid kategorierna
+      rimligt – inte bara faktafrågor; ta med begreppsfrågor och analysfrågor (varför?).
 - "pairs": lista med fakta-par (begrepp ↔ förklaring). Varje par:
     { "id": string, "term": string, "definition": string,
-      "termImage": string, "defImage": string, "group": string }
+      "termImage": string, "defImage": string, "group": string, "category": string }
     * "term" är begreppet, "definition" förklaringen. Vanliga par har bara dessa två.
     * "group" är VALFRI. Par med samma "group" visas aldrig samtidigt i en och samma
       spelomgång (Para ihop/Memory plockar högst ett par per group) – använd den för att
       undvika att två varianter av samma sak dyker upp tillsammans. Utelämna den annars.
+    * "category" anger vad paret testar, samma nycklar som för quiz (${KATEGORI_NYCKLAR}).
+      Ett begrepp ↔ förklaring är normalt "begrepp"; ett faktapar (t.ex. årtal) "fakta".
     * "termImage"/"defImage" är VALFRIA och används för BILDPAR: i stället för (eller
       utöver) text visas en färdig bild på term- respektive definition-sidan. Fältet
       anges som en NYCKEL in i det inbyggda bildpaketet – ladda inte upp egna bilder.
@@ -82,13 +101,14 @@ export const EXAMPLE = `{
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
       "answerIndex": 0,
       "explanation": "Vikingatiden räknas från cirka år 800 till 1050.",
-      "passage": "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var alltså mycket längre sedan än när dina far- och morföräldrar levde."
+      "passage": "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var alltså mycket längre sedan än när dina far- och morföräldrar levde.",
+      "category": "fakta"
     }
   ],
   "pairs": [
-    { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" },
-    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" },
-    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna" }
+    { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig", "category": "fakta" },
+    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp", "category": "begrepp" },
+    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna", "category": "fakta" }
   ]
 }`;
 
@@ -153,7 +173,8 @@ export const REGLER = `Viktiga regler:
 - Varje fråga ska gå att svara på fristående – hänvisa inte till andra frågor eller till text som
   inte visas. I läsförståelse betyder det att frågan besvaras utifrån frågans egna "passage".
 - Håll texter lagom korta: "passage" 3–5 meningar, "explanation" 1–2 meningar, alternativ korta.
-- Skriv INTE ledtrådar i själva frågan om vilket alternativ som är rätt.`;
+- Skriv INTE ledtrådar i själva frågan om vilket alternativ som är rätt.
+- Ge varje quizfråga och varje par ett "category" (${KATEGORI_NYCKLAR}) och sprid kategorierna rimligt.`;
 
 /**
  * Slut-blocket i en prompt: antingen platshållaren för bifogad PDF/text
@@ -189,18 +210,19 @@ export function areaExample({ wantQuiz, wantPairs, wantImages }) {
       "options": ["År 800–1050", "År 1500–1700", "År 0–200", "Idag"],
       "answerIndex": 0,
       "explanation": "Vikingatiden räknas från cirka år 800 till 1050.",
-      "passage": "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var alltså mycket längre sedan än när dina far- och morföräldrar levde."
+      "passage": "Vikingarna levde i Norden för mer än tusen år sedan. Tiden då de levde kallas för vikingatiden. Vikingatiden brukar räknas från ungefär år 800 till år 1050. Det var alltså mycket längre sedan än när dina far- och morföräldrar levde.",
+      "category": "fakta"
     }
   ]`
     : `  "quiz": []`;
   let pairs = `  "pairs": []`;
   if (wantPairs) {
     const lines = [
-      `    { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig" }`,
-      `    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp" }`,
+      `    { "id": "p1", "term": "Oden", "definition": "Gudarnas kung, gud för visdom och krig", "category": "fakta" }`,
+      `    { "id": "p2", "term": "Långskepp", "definition": "Vikingarnas långa, smala segelskepp", "category": "begrepp" }`,
     ];
     if (wantImages) {
-      lines.push(`    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna" }`);
+      lines.push(`    { "id": "p3", "term": "", "termImage": "partier/s", "definition": "Socialdemokraterna", "category": "fakta" }`);
     }
     pairs = `  "pairs": [\n${lines.join(",\n")}\n  ]`;
   }

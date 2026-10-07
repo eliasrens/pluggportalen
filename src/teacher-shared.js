@@ -45,6 +45,18 @@ export function esc(s) {
 }
 
 /**
+ * Icke-blockerande anmärkningar från validateArea/mergeAreaContent (t.ex. okänd
+ * frågekategori, #445/#467) som en gul ruta. Tom lista → "". Spara går ändå.
+ */
+export function warningsHtml(warnings) {
+  if (!Array.isArray(warnings) || warnings.length === 0) return "";
+  return `<div class="msg warn" role="status">
+    <div style="margin-bottom:6px">⚠️ Bra att veta (du kan ändå spara):</div>
+    <ul class="error-list">${warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
+  </div>`;
+}
+
+/**
  * Koppla interna navigeringslänkar/-knappar (`data-hash`) i ett element till
  * routern. Delas av alla lärarvyer så länkar mellan vyer beter sig likadant.
  */

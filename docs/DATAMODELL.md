@@ -83,7 +83,7 @@ grad och exempel anpassas till årskursen – en styrning läraren kan sätta, i
 
 **Text**: `{ id, title, body }`
 
-**Quiz**: `{ id, question, options: string[], answerIndex, explanation, passage? }`
+**Quiz**: `{ id, question, options: string[], answerIndex, explanation, passage?, category? }`
 – `answerIndex` är index (0-baserat) i `options` för rätt svar.
 – `passage` är källtexten (3–5 meningar) som just den frågan bygger på. I
   läsförståelse-läget visas passagen i ett lugnt block ovanför frågan och byts per
@@ -92,6 +92,13 @@ grad och exempel anpassas till årskursen – en styrning läraren kan sätta, i
   har `passage` – och då kräver valideringen (`validate.js`) `passage` på *varje*
   fråga, så ingen fråga kan visas utan sin källtext. Ett rent quiz (ingen fråga har
   `passage`) påverkas inte. Övriga gamemodes ignorerar fältet.
+– `category` (valfri, epic #444/#445) taggar vad frågan tränar: `"begrepp"`
+  (Begreppsförståelse), `"fakta"` (Fakta) eller `"analys"` (Analys/resonemang).
+  Nycklarna bor i `QUESTION_CATEGORY_KEYS` (`src/exercise-types.js`, bootgraf-säker),
+  etiketter/ikoner/färger i `src/question-categories.js`. Valideringen normaliserar
+  (versaler/etikett-stavning) och ger en **varning** (`res.warnings`, stoppar inte
+  sparningen) för okända värden – fältet utelämnas då. Samma valfria fält finns på
+  **Pair** (används när äventyren gör flervalsfrågor av par).
 
 **ReadingText** (läsförståelse 2.0, issue #152): `{ id, title, levels }` – en läs-text
 där **samma tema** finns i **tre språkliga svårighetsnivåer**.
@@ -325,8 +332,17 @@ förrådet (aldrig under 0); `setAnimalPlacement(petId, location)` flyttar ett
 djur mellan rum/hage/laggård. Säkerhetsregler: `farm` ligger i `studentData`
 som redan är self-writable – **inga regeländringar behövs**.
 
-`progress`-resultat per gamemode: `{ completed, bestScore, stars, lastPlayed }`.
+`progress`-resultat per gamemode: `{ completed, bestScore, stars, plays, lastPlayed, cat? }`.
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
+
+`cat` (valfri, #445) = rätt/totalt per frågekategori, **ackumulerat** över alla
+körningar: `{ "fakta": { "r": 7, "t": 9 }, "begrepp": { "r": 2, "t": 3 } }`. Skrivs av
+`saveProgress` (adderar sessionens räkning till den sparade) när en övning slutförs i
+Quiz, Läsförståelse, Kunskapsjakt eller ett äventyr. Quiz/Läsförståelse räknar varje
+unik fråga en gång (första svaret), Kunskapsjakt och äventyr varje svar. Frågor utan
+kategori räknas inte. Saknas fältet (gammal data) gäller stjärnor per läge som
+fallback. Läs-API: `summarizeStudent` / `summarizeClass` i `src/plugga-stats.js`.
+Påverkar inte stjärnor, coins eller XP. Inga regeländringar (`studentData` är self-writable).
 
 Exempel (`studentData/elev1`):
 

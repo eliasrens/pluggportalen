@@ -280,3 +280,85 @@ export function areaExerciseTypes(area) {
   const stored = normalizeExerciseTypes(area?.exerciseTypes);
   return stored.length > 0 ? stored : deriveExerciseTypes(area);
 }
+
+// ---------------------------------------------------------------------------
+// Frågekategorier (epic #444 / issue #445)
+// ---------------------------------------------------------------------------
+// Ett frivilligt `category`-fält på quizfrågor (och par) taggar VAD frågan
+// tränar, så Plugga kan visa rätt-% per kategori. Bara NYCKLARNA bor här –
+// samma mönster som GENERATOR_CATALOG (#290): den här filen ligger i den
+// statiska bootgrafen (via validate.js/gamemode-visibility.js), så validering
+// och spel-registrering kan nå katalogen utan att en NY fil hamnar i bootgrafen
+// (#271). Etiketter, ikoner, färger och läs-statistiken bor i
+// src/question-categories.js (utanför bootgrafen; drift-vakt i testet).
+//
+// Räkningen lagras additivt per (område × läge) som
+//   progress[areaId][gamemode].cat = { [kategori]: { r, t } }   (r = rätt, t = totalt)
+// Frågor utan (känd) kategori räknas inte per kategori.
+
+/** Giltiga kategorinycklar, i visningsordning. Nyckeln sparas i datat. */
+export const QUESTION_CATEGORY_KEYS = ["begrepp", "fakta", "analys"];
+
+// Vanliga stavningar/etiketter (AI eller lärare) → nyckel. Jämförs i gemener.
+const QUESTION_CATEGORY_ALIASES = {
+  begreppsförståelse: "begrepp",
+  begreppsforstaelse: "begrepp",
+  "analys/resonemang": "analys",
+  resonemang: "analys",
+};
+
+/**
+ * Tolka ett råvärde till en giltig kategorinyckel, eller null (saknas/okänd).
+ * Tål versaler, blanksteg och etikett-stavningar ("Begreppsförståelse").
+ * @param {*} raw
+ * @returns {string|null}
+ */
+export function normalizeQuestionCategory(raw) {
+  if (typeof raw !== "string") return null;
+  const k = raw.trim().toLowerCase();
+  if (QUESTION_CATEGORY_KEYS.includes(k)) return k;
+  return QUESTION_CATEGORY_ALIASES[k] || null;
+}
+
+/** Icke-negativt heltal (allt annat → 0). */
+function countOf(v) {
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
+}
+
+/**
+ * Räkna ett svar i en kategori-map (muterar och returnerar `cat`). Frågor utan
+ * känd kategori lämnar mappen orörd.
+ * @param {object} cat  { [kategori]: { r, t } }
+ * @param {*} category  frågans category-fält
+ * @param {boolean} correct
+ */
+export function tallyCategory(cat, category, correct) {
+  const key = normalizeQuestionCategory(category);
+  if (!key) return cat;
+  const cur = cat[key] || { r: 0, t: 0 };
+  cat[key] = { r: cur.r + (correct ? 1 : 0), t: cur.t + 1 };
+  return cat;
+}
+
+/**
+ * Slå ihop två kategori-maps (t.ex. sparad progress + en ny session) till en NY
+ * map. Bara kända nycklar, bara heltal ≥ 0, och r ≤ t – så trasig/okänd data
+ * aldrig sprids vidare till Firestore.
+ * @returns {object} { [kategori]: { r, t } } (tom om inget att räkna)
+ */
+export function mergeCategoryCounts(a, b) {
+  const out = {};
+  for (const src of [a, b]) {
+    if (!src || typeof src !== "object") continue;
+    for (const [raw, v] of Object.entries(src)) {
+      const key = normalizeQuestionCategory(raw);
+      if (!key || !v || typeof v !== "object") continue;
+      const t = countOf(v.t);
+      const r = Math.min(countOf(v.r), t);
+      if (t === 0) continue;
+      const cur = out[key] || { r: 0, t: 0 };
+      out[key] = { r: cur.r + r, t: cur.t + t };
+    }
+  }
+  return out;
+}

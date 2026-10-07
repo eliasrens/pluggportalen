@@ -231,6 +231,8 @@ export function startAdventure({ mount, theme, questions, player, subj, area, on
       area,
       theme,
       result,
+      // Rätt/totalt per frågekategori (#445); generator-adaptern saknar den.
+      catStats: questions.categoryStats ? questions.categoryStats() : null,
       replay: () => (onReplay ? onReplay() : null),
     });
   }

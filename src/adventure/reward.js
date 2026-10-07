@@ -33,8 +33,9 @@ export function starsFromMistakes(mistakes) {
  * @param {object} o.theme          tema-config (för mode-id + namn)
  * @param {object} o.result         { stationsCleared, mistakes, elapsedMs, goal }
  * @param {() => void} o.replay     starta om banan
+ * @param {object} [o.catStats]     rätt/totalt per frågekategori (#445)
  */
-export function awardAdventure({ container, subj, area, theme, result, replay }) {
+export function awardAdventure({ container, subj, area, theme, result, replay, catStats }) {
   const goal = result.goal || result.stationsCleared || 1;
   const mistakes = result.mistakes || 0;
   const stars = starsFromMistakes(mistakes);
@@ -58,6 +59,7 @@ export function awardAdventure({ container, subj, area, theme, result, replay })
     scoreLine,
     baseCoins,
     bestScore: goal,
+    catStats,
     replay,
   });
 }

@@ -712,6 +712,13 @@ body.med-sidomeny .sidebar {
   border: 2px solid #b6ebc9;
 }
 
+/* Icke-blockerande anmärkning (t.ex. okänd frågekategori, #467). */
+.msg.warn {
+  background: #fff6db;
+  color: #7a5a00;
+  border: 2px solid #f5dd92;
+}
+
 .hint {
   color: var(--text-svag);
   font-size: 0.95rem;
@@ -1301,6 +1308,11 @@ body.larare-lage .container {
   color: #7ee0a6;
   border: 1px solid rgba(46, 193, 110, 0.35);
 }
+.teacher-dark .msg.warn {
+  background: rgba(242, 201, 76, 0.12);
+  color: #f5d77a;
+  border: 1px solid rgba(242, 201, 76, 0.35);
+}
 .teacher-dark .err-inline { color: #ff9d9d; }
 
 /* --- Knappar -------------------------------------------------------------- */
@@ -1785,6 +1797,88 @@ body.larare-lage .container {
 .teacher-dark .lrt-att-title { color: var(--t-text); font-weight: 600; }
 .teacher-dark .lrt-date { white-space: nowrap; color: var(--t-muted); }
 .teacher-dark .lrt-empty { margin: 4px 0; }
+
+/* --- Statistik → Per område (issue #446) ---------------------------------
+   Klasstabell per ämne/område (teacher-plugga.js) + djupdykning per kategori
+   (teacher-plugga-elev.js). Bygger på lrt-klasserna ovan; prefix pp-. */
+.teacher-dark .pp-pickers { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px; }
+.teacher-dark .pp-pickers .field { flex: 1 1 220px; max-width: 320px; margin-bottom: 8px; }
+.teacher-dark .pp-teacher .lrt-summary { margin: 4px 0 10px; }
+.teacher-dark .pp-sum-cat { white-space: nowrap; }
+.teacher-dark .pp-sum-cat.hog b { color: #7ee0a6; }
+.teacher-dark .pp-sum-cat.mellan b { color: #f2b06a; }
+.teacher-dark .pp-sum-cat.lag b { color: #ff9d9d; }
+.teacher-dark .pp-tbl { min-width: 680px; }
+.teacher-dark .pp-stars { white-space: nowrap; }
+.teacher-dark .pp-cats-head { text-align: center; white-space: nowrap; }
+.teacher-dark .pp-cats-lbl {
+  display: block;
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.teacher-dark .pp-cats-cell { text-align: center; }
+.teacher-dark .pp-minibars { display: inline-flex; align-items: flex-end; gap: 5px; height: 24px; vertical-align: middle; }
+.teacher-dark .pp-minibars.head { height: auto; }
+.teacher-dark .pp-minibars.none { align-items: center; }
+.teacher-dark .pp-minibar,
+.teacher-dark .pp-minibar-head { width: 14px; text-align: center; font-size: 0.72rem; line-height: 1; }
+.teacher-dark .pp-minibar {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.teacher-dark .pp-minibar > span { display: block; width: 100%; border-radius: 3px 3px 0 0; }
+.teacher-dark .pp-minibar.hog > span { background: #2ec16e; }
+.teacher-dark .pp-minibar.mellan > span { background: #f2994a; }
+.teacher-dark .pp-minibar.lag > span { background: #eb5757; }
+.teacher-dark .pp-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--t-muted);
+  font-size: 0.86rem;
+}
+.teacher-dark .pp-note .t-icon { flex: none; margin-top: 2px; }
+.teacher-dark .pp-cat-src { margin: 10px 0 0; font-size: 0.85rem; }
+.teacher-dark .pp-callout {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid #eb5757;
+  background: rgba(235, 87, 87, 0.1);
+  color: var(--t-text);
+  font-size: 0.92rem;
+}
+.teacher-dark .pp-callout.mellan { border-left-color: #f2994a; background: rgba(242, 153, 74, 0.1); }
+.teacher-dark .pp-callout.hog { border-left-color: #2ec16e; background: rgba(46, 193, 110, 0.1); }
+.teacher-dark .pp-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+.teacher-dark .pp-badge.weak { background: rgba(235, 87, 87, 0.18); color: #ff9d9d; }
+.teacher-dark .pp-badge.strong { background: rgba(46, 193, 110, 0.16); color: #7ee0a6; }
+.teacher-dark .lrt-cat.pp-weakest {
+  margin: -6px;
+  padding: 6px;
+  border-radius: 10px;
+  outline: 1px dashed rgba(235, 87, 87, 0.45);
+}
+.teacher-dark .pp-starrow { color: #f2c94c; letter-spacing: 1px; white-space: nowrap; }
+.teacher-dark .pp-starrow .off { color: rgba(255, 255, 255, 0.15); }
 
 /* --- Login-korten (utskriftsvänliga) -------------------------------------
    Overlayen + verktygsraden mörknar; SJÄLVA korten hålls vita med mörk text –

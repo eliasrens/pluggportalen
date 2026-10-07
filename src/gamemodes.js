@@ -2,7 +2,8 @@
 // Pluggporten – gamemodes.js
 // Pluggdelens två sidor:
 //   • pageElevOmrade – översikt för ett arbetsområde: välj gamemode, se
-//     stjärnor per övning (framsteg ur Firestore).
+//     stjärnor per övning + "Ditt framsteg" per kategori (#447, framsteg ur
+//     Firestore; panelen byggs i plugga-framsteg.js, dynamiskt importerad).
 //   • pageElevSpela  – startar rätt gamemode utifrån ?mode=.
 //
 // Själva spelen ligger i games-quiz.js, games-match.js och games-jakt.js, och
@@ -12,7 +13,7 @@
 
 import * as data from "./data.js";
 import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
-import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea } from "./game-shared.js";
+import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea, areaStarModes } from "./game-shared.js";
 import { readingPrereqStatus } from "./reading-prereq.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
 import { startLastext } from "./games-lastext.js";
@@ -44,11 +45,15 @@ const KIND_NEEDS = { quiz: "quiz", lasforstaelse: "quiz", para: "pairs", generat
  * Ett tema vars frågekällor saknar underlag på området renderas INTE alls i
  * elevvyn (#311) – tidigare visades det som ett låst "Inget innehåll än"-kort.
  */
-function adventureCards(has, areaProgress, areaData, studentClass) {
+function visibleThemes(has, areaData, studentClass) {
   return Object.values(THEMES)
     .filter((t) => t && t.oversikt)
     .filter((t) => (t.questionKinds || ["quiz"]).some((k) => has[KIND_NEEDS[k]]))
-    .filter((t) => !isModeHiddenForClassArea(areaData, studentClass, `aventyr:${t.id}`))
+    .filter((t) => !isModeHiddenForClassArea(areaData, studentClass, `aventyr:${t.id}`));
+}
+
+function adventureCards(themes, areaProgress) {
+  return themes
     .map((t) => {
       const stars = areaProgress[`aventyr:${t.id}`]?.stars || 0;
       const starsHtml = `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
@@ -73,6 +78,10 @@ export async function pageElevOmrade() {
 
   const { subj, area } = getParams();
   if (!subj || !area) return go("#/elev/plugga");
+
+  // "Ditt framsteg" per kategori (#447): NY fil → dynamisk import (#271),
+  // parallellt med datan. Misslyckas den visas sidan som förr, utan panelen.
+  const framstegMod = import("./plugga-framsteg.js").catch(() => null);
 
   let areaData, progress, studentClass;
   try {
@@ -117,9 +126,10 @@ export async function pageElevOmrade() {
   // OCH som är synliga för elevens klass×område – samma gate som #308
   // (availableGamemodes + effektiv synlighet). Ett läge som HAR underlag men är
   // låst av läsförståelse-förkravet (#155) visas fortfarande som ett låst kort.
-  const cards = GAMEMODES
+  const visibleModes = GAMEMODES
     .filter((gm) => has[gm.needs])
-    .filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id))
+    .filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id));
+  const cards = visibleModes
     .map((gm) => {
       const stars = areaProgress[gm.id]?.stars || 0;
       // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
@@ -137,7 +147,18 @@ export async function pageElevOmrade() {
     </button>`;
     }).join("");
 
-  const advCards = adventureCards(has, areaProgress, areaData, studentClass);
+  const themes = visibleThemes(has, areaData, studentClass);
+  const advCards = adventureCards(themes, areaProgress);
+
+  // Framstegspanelen: stjärnor av möjliga + rätt per kategori. Stjärn-lägena är
+  // EN gemensam definition (areaStarModes, #467) – samma som lärarvyerna, så
+  // eleven och läraren ser samma nämnare. Ett fel i panelen får aldrig fälla sidan.
+  let framsteg = "";
+  try {
+    const mod = await framstegMod;
+    const starModes = areaStarModes(areaData, studentClass).map((gm) => gm.id);
+    framsteg = mod ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
+  } catch {}
 
   // Tydlig hint ovanför korten när förkravet ännu inte är uppfyllt.
   const prereqBanner = lockOthers
@@ -154,6 +175,7 @@ export async function pageElevOmrade() {
     </div>
     ${prereqBanner}
     <div class="card-grid">${cards}${advCards}</div>
+    ${framsteg}
   </div>`);
 
   view.querySelectorAll(".gm-card").forEach((btn) => {

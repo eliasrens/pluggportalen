@@ -39,7 +39,7 @@ export async function startQuiz(ctx) {
   runQuestions({
     body,
     questions,
-    onFinish: (correct, total) => {
+    onFinish: (correct, total, catStats) => {
       const stars = starsFromRatio(correct / total);
       // Coins ~halverade jämfört med förr: dels via 20→10 frågor (correct*2 halveras),
       // dels genom en trimmad FAST del (5→3, allt-rätt-bonus 5→2). En perfekt
@@ -52,6 +52,7 @@ export async function startQuiz(ctx) {
         scoreLine: `Du hade ${correct} av ${total} rätt.`,
         baseCoins,
         bestScore: correct,
+        catStats,
         replay: () => startQuiz(ctx),
       });
     },
@@ -103,7 +104,7 @@ export async function startLasforstaelse(ctx) {
     body: quizArea,
     questions,
     showPassage: true,
-    onFinish: (correct, total) => {
+    onFinish: (correct, total, catStats) => {
       const stars = starsFromRatio(correct / total);
       // Coins ~halverade (samma princip som quiz): 20→10 frågor + trimmad fast del
       // (6→3, allt-rätt-bonus 4→2). Perfekt 10-frågors-runda ger 2*(3+20+2)=50.
@@ -116,6 +117,7 @@ export async function startLasforstaelse(ctx) {
         scoreLine: `Du hade ${correct} av ${total} rätt.`,
         baseCoins,
         bestScore: correct,
+        catStats,
         replay: () => startLasforstaelse(ctx),
       });
     },
