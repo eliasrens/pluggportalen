@@ -318,6 +318,7 @@ export function startRakna(ctx) {
       scoreLine: `Du räknade rätt på ${correct} av ${total}.`,
       baseCoins,
       bestScore: correct,
+      classResult: { ratt: correct },
       replay: () => startRakna(ctx),
     });
   }
