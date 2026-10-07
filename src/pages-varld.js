@@ -346,7 +346,9 @@ export async function pageElevVarld(startNiva) {
         if (b.id === meId) return 1;
         return String(a.namn || "").localeCompare(String(b.namn || ""), "sv");
       });
-      const { fokus, fokusById } = mountByScen({ lager: byLager, meId, students: boende });
+      const { fokus, fokusById } = mountByScen({
+        lager: byLager, meId, students: boende, klasscenter: meClassId ? { classId: meClassId } : null,
+      });
       byNiva.fokus = fokus; // kameran läser fokus vid varje övergång
       // Gemensam klasstatistik: summera allas positiva bidrag (XP → klass-nivå,
       // klarade övningar, stjärnor) och fyll stjärn-toggeln + skylten. Bara

@@ -9,6 +9,12 @@
 //
 // Modulen är ren rendering: klick-hantering (eget hus → zooma in, kamratens
 // hus → deras rum i läsläge) kopplas av pages-varld.js via .by-tomt[data-id].
+//
+// Klasscentret (#480, epic #476): med `klasscenter` tar byns hjärta de första
+// 2–3 platserna i slingan (varld-by.js) och ritas i en egen .by-klasscenter-
+// ruta (INTE .by-tomt, så hus-klicken i pages-varld/grannbyn rör den inte).
+// Byggnad, mätare och klick fylls av klasscenter/kc-by.js som laddas
+// DYNAMISKT – den och art-klasscenter*.js hålls utanför bootgrafen (#271).
 // ============================================================================
 
 import { byLayout, byParams, byVagarSvg, byDekor, BY_ZOOM } from "./varld-by.js";
@@ -34,13 +40,19 @@ function esc(s) {
  * @param {Array<{id:string, namn?:string, username?:string, avatarId?:string,
  *   avatarItems?:string[], paletteId?:string, husSkalId?:string}>} o.students
  *   eleverna som ska bo i byn, i visningsordning (tomt 0 = första).
+ * @param {{classId:string, visaOnly?:boolean, klassNamn?:string,
+ *   kalla?:Function}|null} [o.klasscenter]  rita klassens Klasscenter först i
+ *   slingan (null/utelämnad = ingen klass → ingen plats reserveras). visaOnly =
+ *   grannby (en annan klass). kalla = EXP-källa (preview), se kc-by.js.
  * @returns {{fokus:{x:number,y:number}, zoom:number,
- *   fokusById:Record<string,{x:number,y:number}>}}
+ *   fokusById:Record<string,{x:number,y:number}>,
+ *   klasscenterFokus:{x:number,y:number}|null}}
  *   kamerafokus (den egna tomtens mitt) + zoom för by-nivån, samt en karta
  *   id → tomtfokus för VARJE elev (kompis-hus-nivån zoomar mot en kamrats tomt).
  */
-export function mountByScen({ lager, meId, students }) {
-  const layout = byLayout(byParams(students.length));
+export function mountByScen({ lager, meId, students, klasscenter = null }) {
+  const kc = klasscenter && klasscenter.classId ? klasscenter : null;
+  const layout = byLayout(byParams(students.length, { klasscenter: !!kc }));
   const dekor = byDekor(layout);
 
   // Marken: himmelsrand + gräs + den slingrande vägen + platt markdekor (damm,
@@ -105,7 +117,23 @@ export function mountByScen({ lager, meId, students }) {
     })
     .join("");
 
-  lager.innerHTML = mark + dekorHtml + tomter;
+  // Klasscentrets ruta: botten på radens marklinje (samma som husen), z-index
+  // efter botten som tomterna. Tom tills kc-by.js fyllt den.
+  const c = kc && layout.klasscenter;
+  const kcHtml = c
+    ? `<div class="by-klasscenter" role="button" tabindex="0" aria-label="Klasscentret"
+        data-class-id="${esc(kc.classId)}"${kc.visaOnly ? ` data-visa-only="1"` : ""}
+        style="left:${c.x.toFixed(2)}%;top:${c.topp.toFixed(2)}%;width:${c.bredd.toFixed(2)}%;height:${c.hojd.toFixed(2)}%;z-index:${Math.round(c.botten * 10)}"></div>`
+    : "";
+
+  lager.innerHTML = mark + dekorHtml + kcHtml + tomter;
+
+  if (c) {
+    const slot = lager.querySelector(".by-klasscenter");
+    import("./klasscenter/kc-by.js")
+      .then((m) => m.mountKlasscenterIBy(slot, kc))
+      .catch((err) => console.warn("[klasscenter] kunde inte laddas", err));
+  }
 
   // Kamerafokus per elev-id (den egna tomten OCH alla kamraters) – används
   // av by↔hus (egen) och kompis-hus-nivån (en klickad kamrats tomt).
@@ -117,5 +145,7 @@ export function mountByScen({ lager, meId, students }) {
 
   const minIndex = students.findIndex((s) => s.id === meId);
   const minTomt = layout.tomter[minIndex] || layout.tomter[0];
-  return { fokus: layout.fokusFor(minTomt), zoom: BY_ZOOM, fokusById };
+  // Utan elever (bara Klasscentret) fokuserar kameran på centret.
+  const fokus = minTomt ? layout.fokusFor(minTomt) : c ? { x: c.x, y: c.y } : { x: 50, y: 50 };
+  return { fokus, zoom: BY_ZOOM, fokusById, klasscenterFokus: c ? { x: c.x, y: c.y } : null };
 }
