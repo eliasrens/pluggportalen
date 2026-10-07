@@ -119,7 +119,7 @@
         const b = document.createElement("button");
         b.textContent = n.niva;
         b.title = n.namn;
-        b.onclick = () => { exp = troskelFor(n.niva, Math.max(1, antal)) + (n.niva === 10 ? 0 : 3); expEl.value = exp; skicka(); };
+        b.onclick = () => { exp = troskelFor(n.niva, Math.max(1, antal)) + (n.niva === NIVAER.length ? 0 : 3); expEl.value = exp; skicka(); };
         nivWrap.appendChild(b);
       }
       expEl.addEventListener("input", () => { exp = Number(expEl.value); skicka(); });

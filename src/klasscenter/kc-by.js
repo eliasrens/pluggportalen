@@ -10,7 +10,7 @@
 //      rätt nivå-SVG ur art-klasscenter.js. Byggnaden byts automatiskt när
 //      tröskeln nås (nästa snapshot ritar om).
 //   2. Mätaren ovanför: "Nivå 3 · Träkoja" + stapel + "50 / 200 övningar till
-//      Nivå 4" (nivå 10: "Maxnivå"). Dold tills hovring/tangentbordsfokus (#484,
+//      Nivå 4" (högsta nivån: "Maxnivå"). Dold tills hovring/tangentbordsfokus (#484,
 //      ren CSS-opacity) men uppdateras live ändå; aria-label bär samma text.
 //   3. Klick/Enter → liten pratbubbla "Klasscentret – Nivå 3 Träkoja ·
 //      inredning kommer snart" (rummet byggs i epic 2). Pekskärm (hover: none)

@@ -772,13 +772,22 @@ ClassCenterLayout) är anpassad så här:
 ### Normalisering och nivåer (epic 1, `src/klasscenter/kc-niva.js`)
 
 Nivå *n* kräver `ceil(TROSKLAR_PER_ELEV[n-1] × antalElever)` klass-EXP, där
-`TROSKLAR_PER_ELEV = [0, 7, 16, 28, 45, 68, 98, 139, 195, 270]` (exponentiellt,
-steg × 1,35; motivering i filhuvudet: ~8 övningar/elev/vecka × 36 veckor ≈
-Nivå 10 i slutet av läsåret). Trösklarna skalas alltså med elevantalet – samma
+`TROSKLAR_PER_ELEV = [0, 7, 17, 32, 55, 90, 141, 219, 335, 509]` (exponentiellt,
+steg × 1,5, beslut 2026-10-07; motivering i filhuvudet: Nivå 10 ≈ 509
+övningar/elev, med ~8/vecka hela läsåret och mer – aktiva klasser når toppen,
+mindre aktiva stannar runt Nivå 7–8). Trösklarna skalas alltså med elevantalet – samma
 sak som att jämföra EXP/elev, men mätaren kan visa hela klassens tal
 ("50 / 175 övningar till Nivå 2"). Nivån härleds alltid ur NUVARANDE elevantal:
 läggs elever till kan nivån i teorin sjunka. Vill epic 1 C/D undvika det kan
 ett golv `classCenters/{classId}.hogstaNiva` lagras (visa `max(härledd, golv)`).
+
+**Så lägger du till en nivå (11, 12 …).** `NIVAER` i `src/klasscenter/kc-niva.js`
+är enda sanningskällan (`KLASSCENTER_NIVAER` i `art-klasscenter.js` härleds ur
+den). Det krävs bara (1) en ny post sist i `NIVAER` och (2) en ny rit-funktion
+i art-modulen (MARKUP). Trösklarna räknas med formeln per index och förlängs
+automatiskt; nivaFor/mätare/"Maxnivå"/preview-knappar följer listans längd.
+`test/art-klasscenter.test.js` failar om en nivå saknar rit-funktion.
+firestore.rules har ingen nivågräns – nivån härleds i klienten.
 
 ### `classCenters/{classId}/expShards/{0..4}` – Klass-EXP (epic 1)
 

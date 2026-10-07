@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { byParams, byLayout, BY_SKYLT, klasscenterSpan, klasscenterRad0 } from "../src/varld-by.js";
 import { byDekor } from "../src/art-by-dekor.js";
 import { matarRad, matarMarkup, placeholderText, ariaText } from "../src/klasscenter/kc-by.js";
-import { progressTillNasta, troskelFor } from "../src/klasscenter/kc-niva.js";
+import { MAX_NIVA, progressTillNasta, troskelFor } from "../src/klasscenter/kc-niva.js";
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src");
 const STORLEKAR = [0, 1, 2, 3, 4, 5, 14, 23, 28, 40];
@@ -160,9 +160,9 @@ describe("mätaren", () => {
     assert.match(m, new RegExp(`Nivå ${p.niva} · ${p.namn}`));
     assert.match(m, /style="width:\d+%"/);
   });
-  it("nivå 10 visar Maxnivå och full stapel", () => {
-    const p = progressTillNasta(troskelFor(10, 5) + 3, 5);
-    assert.equal(p.niva, 10);
+  it("högsta nivån visar Maxnivå och full stapel", () => {
+    const p = progressTillNasta(troskelFor(MAX_NIVA, 5) + 3, 5);
+    assert.equal(p.niva, MAX_NIVA);
     assert.equal(matarRad(p), "Maxnivå");
     assert.match(matarMarkup(p), /width:100%/);
   });
