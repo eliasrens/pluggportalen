@@ -114,6 +114,9 @@ export async function renderClassLiveStats(ctx, host, { classId, students = [] }
     return;
   }
   const playersBySession = await Promise.all(sessions.map((s) => getPlayers(s.id).catch(() => [])));
+  // Avslutad match utan sparat result (ingen projektor vid slutet, ingen har
+  // öppnat historiken): räkna ur räknarna, som historikvyn gör (#463).
+  const results = await Promise.all(sessions.map((s, i) => ensureResult(s, playersBySession[i]).catch(() => null)));
   const perStudent = new Map(students.map((st) => [st.id, { name: st.namn || st.name || st.id, matches: 0, c: 0, w: 0 }]));
   const matchRows = [];
   for (let i = 0; i < sessions.length; i++) {
@@ -126,8 +129,9 @@ export async function renderClassLiveStats(ctx, host, { classId, students = [] }
       row.w += p.incorrect || 0;
       perStudent.set(p.uid, row);
     }
-    const r = s.result?.perClass?.[classId];
-    const outcome = !s.result ? "–" : s.result.winner === "draw" ? "Oavgjort" : s.result.winner === classId ? "🏆 Vinst" : "Förlust";
+    const res = results[i];
+    const r = res?.perClass?.[classId];
+    const outcome = !res ? "–" : res.winner === "draw" ? "Oavgjort" : res.winner === classId ? "🏆 Vinst" : "Förlust";
     matchRows.push(`<tr><th scope="row"><a class="live-link" data-sid="${esc(s.id)}">${esc(s.name)}</a></th><td>${fmtDate(s.startedAt)}</td>
       <td class="num">${r ? r.correct : "–"}</td><td class="num">${r ? r.divisor : "–"}</td><td class="num">${r ? formatScore(r.score) : "–"}</td>
       <td>${outcome}</td><td class="num">${mine.length}</td></tr>`);

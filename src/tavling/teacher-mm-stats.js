@@ -187,11 +187,14 @@ export function openMmStudentDetail(student, row, { competition, loadTraining } 
   const close = () => {
     overlay.remove();
     document.removeEventListener("keydown", onKey);
+    window.removeEventListener("hashchange", close);
   };
   const onKey = (e) => e.key === "Escape" && close();
   overlay.querySelector(".cx-modal-close").addEventListener("click", close);
   overlay.addEventListener("click", (e) => e.target === overlay && close());
   document.addEventListener("keydown", onKey);
+  // Modalen ligger i body – stäng den vid ruttbyte (Tillbaka/hash-byte, #463).
+  window.addEventListener("hashchange", close);
   document.body.appendChild(overlay);
   overlay.querySelector(".cx-modal-close").focus();
 

@@ -120,6 +120,7 @@ export async function openStudentDetail(student, progress, subjects, loadAreas) 
   const close = () => {
     overlay.remove();
     document.removeEventListener("keydown", onKey);
+    window.removeEventListener("hashchange", close);
   };
   const onKey = (e) => {
     if (e.key === "Escape") close();
@@ -129,6 +130,8 @@ export async function openStudentDetail(student, progress, subjects, loadAreas) 
     if (e.target === overlay) close();
   });
   document.addEventListener("keydown", onKey);
+  // Modalen ligger i body – stäng den vid ruttbyte (Tillbaka/hash-byte, #463).
+  window.addEventListener("hashchange", close);
   document.body.appendChild(overlay);
 
   const bodyEl = overlay.querySelector(".cx-modal-body");
