@@ -439,6 +439,19 @@ service cloud.firestore {
           ('startedAt' in n && n.endsAt == n.startedAt +
             duration.value(n.countdownSeconds + n.durationSeconds, 's')));
     }
+    // Matchslut vid 00:00 (#460): VILKEN inloggad klient som helst (elev,
+    // projektor) får markera live → finished – men bara efter det officiella
+    // slutet (startedAt + nedräkning + längd mot request.time), och bara
+    // status + finishedAt (= serverns tid) ändras. Ingen kan avsluta i förtid
+    // eller röra poäng/klasser/tider den vägen.
+    function liveAutoFinishOk() {
+      let o = resource.data;
+      let n = request.resource.data;
+      return signedIn() && o.status == 'live' && n.status == 'finished' &&
+        n.diff(o).affectedKeys().hasOnly(['status', 'finishedAt']) &&
+        n.finishedAt == request.time &&
+        request.time >= o.startedAt + duration.value(o.countdownSeconds + o.durationSeconds, 's');
+    }
     match /liveSessions/{sid} {
       function livePath(sub, id) {
         return /databases/$(database)/documents/liveSessions/$(sid)/$(sub)/$(id);
@@ -488,7 +501,7 @@ service cloud.firestore {
       // skapar/styr ALLA sessioner (projektorn i vilket klassrum som helst).
       allow read: if signedIn();
       allow create: if isTeacher() && liveSessionCreateOk();
-      allow update: if isTeacher() && liveSessionUpdateOk();
+      allow update: if (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
       allow delete: if isTeacher();
 
       match /answers/{attemptId} {
@@ -510,6 +523,15 @@ service cloud.firestore {
           counterBump(livePath('answers', request.resource.data.lastAttemptId), counterId);
         allow delete: if isTeacher();
       }
+    }
+
+    // Live-klockan (#460, src/live/live-clock.js): varje inloggad skriver sitt
+    // EGET dokument med bara { t: serverTimestamp() } och läser tillbaka det →
+    // klientens avvikelse mot serverns klocka (3-2-1 och tid kvar i synk).
+    match /liveClock/{uid} {
+      allow read: if isSelf(uid);
+      allow create, update: if isSelf(uid) &&
+        request.resource.data.keys().hasOnly(['t']) && request.resource.data.t == request.time;
     }
 
     // Gemensam träningsstatistik: collectionGroup('answers') where uid == X

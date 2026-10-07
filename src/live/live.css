@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Live (#460) – elevens matchvy, lärarens Live-flik och den FUNKTIONELLA
+   projektorvyn (placeholder; #461 gör de grafiska vyerna). Laddas bara när
+   en Live-vy visas (live-css.js).
+   ========================================================================== */
+
+/* --- Elev ------------------------------------------------------------------ */
+.live-elev {
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  min-height: calc(100vh - 80px);
+}
+.live-elev-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.live-elev-badge {
+  background: var(--rod);
+  color: #fff;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 2px 12px;
+  letter-spacing: 0.08em;
+}
+.live-elev-title {
+  margin: 0;
+  font-size: clamp(26px, 5vh, 46px);
+  letter-spacing: 0.04em;
+}
+.live-elev-me {
+  font-weight: 700;
+  color: var(--text-svag);
+  min-width: 5ch;
+}
+.live-elev-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: clamp(14px, 4vh, 40px) 16px;
+  text-align: center;
+}
+.live-elev-stage > [hidden] { display: none !important; }
+.live-elev-lobby, .live-elev-play, .live-elev-end { width: min(720px, 100%); }
+.live-elev-wait {
+  font-size: clamp(24px, 5vh, 40px);
+  font-weight: 800;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+.live-elev-count {
+  font-size: clamp(90px, 30vh, 260px);
+  font-weight: 900;
+  color: var(--bla);
+  line-height: 1;
+}
+.live-elev-count.pop, .live-proj-count { animation: live-pop 0.9s ease-out; }
+.live-elev-result {
+  list-style: none;
+  padding: 0;
+  font-size: 1.3rem;
+}
+.live-elev-result li.mig { color: var(--bla-mork); }
+.live-elev-mine { font-size: 1.4rem; }
+.live-elev-list { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+.live-elev-pick small { display: block; font-weight: 500; opacity: 0.8; }
+
+@keyframes live-pulse { 50% { opacity: 0.55; } }
+@keyframes live-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  30% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* --- Lärare: Live-fliken ---------------------------------------------------- */
+.live-teacher-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) { .live-teacher-grid { grid-template-columns: 1fr; } }
+.live-col-side { display: flex; flex-direction: column; gap: 20px; }
+.teacher-dark .live-h2 { margin: 0 0 14px; font-size: 1.25rem; }
+.live-modes, .live-classes, .live-durations { display: flex; flex-wrap: wrap; gap: 8px; }
+.live-chip { position: relative; display: inline-flex; cursor: pointer; }
+.live-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.live-chip span {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--t-border-strong, #ccd);
+  background: var(--t-raised, #fff);
+}
+.live-chip input:checked + span {
+  background: var(--t-accent-soft, #e8f8ef);
+  border-color: var(--t-accent, #27ae60);
+  color: var(--t-text, inherit);
+  font-weight: 700;
+}
+.live-chip input:focus-visible + span { outline: 2px solid var(--t-accent, #27ae60); }
+.live-chip input:disabled + span { opacity: 0.4; cursor: not-allowed; }
+.live-divisors { margin: 4px 0 14px; }
+.live-divisors[hidden] { display: none; }
+.live-divisor-rows { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.live-divisor { display: inline-flex; gap: 8px; align-items: center; }
+.live-divisor input, .live-proj-div input {
+  width: 5.5ch;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--t-border-strong, #ccd);
+  background: var(--t-surface-2, #fff);
+  color: inherit;
+  font: inherit;
+}
+.live-active-ul, .live-history-ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.live-active-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--t-surface-2, #f5f7fa);
+}
+.live-status { font-size: 0.85rem; padding: 2px 8px; border-radius: 999px; margin-left: 6px; }
+.live-status.lobby { background: rgba(242, 201, 76, 0.18); color: #f2c94c; }
+.live-status.live { background: rgba(235, 87, 87, 0.18); color: #ff9d9d; }
+.live-status.ended { background: rgba(255, 255, 255, 0.08); }
+.live-history-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--t-border, #dde);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.live-history-item:hover { border-color: var(--t-accent, #27ae60); }
+.live-table { width: 100%; border-collapse: collapse; margin: 8px 0 18px; }
+.live-table th, .live-table td { padding: 7px 10px; border-bottom: 1px solid var(--t-border, #e3e8ef); text-align: left; }
+.live-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.live-table tr.live-win th { color: var(--t-accent, #27ae60); }
+.live-history-winner { font-size: 1.3rem; font-weight: 800; }
+.live-link { cursor: pointer; text-decoration: underline; }
+
+/* --- Projektor (funktionell placeholder) ------------------------------------ */
+.live-proj { min-height: 100vh; display: flex; flex-direction: column; gap: 2vh; text-align: center; }
+.live-proj:fullscreen { padding: 3vh 3vw; background: var(--t-bg, #0f1419); overflow: auto; }
+.live-proj-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; }
+.live-proj-mode { color: var(--t-muted, #93a2b3); font-weight: 700; letter-spacing: 0.04em; }
+.live-proj-title { font-size: clamp(36px, 8vh, 90px); margin: 0; letter-spacing: 0.06em; }
+.live-proj-classes { display: flex; justify-content: center; gap: 4vw; flex-wrap: wrap; }
+.live-proj-class {
+  min-width: 220px;
+  padding: 2vh 2vw;
+  border-radius: 18px;
+  background: var(--t-surface-2, #1b232e);
+  border: 2px solid transparent;
+}
+.live-proj-class.leder { border-color: var(--t-accent, #2ec16e); }
+.live-proj-cname { font-size: clamp(26px, 5vh, 52px); font-weight: 900; }
+.live-proj-big { font-size: clamp(48px, 12vh, 140px); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.live-proj-div { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; color: var(--t-muted, #93a2b3); }
+.live-proj-len { font-size: 1.4rem; color: var(--t-muted, #93a2b3); }
+.live-proj-actions { display: flex; justify-content: center; gap: 14px; align-items: center; flex-wrap: wrap; }
+.teacher-dark .live-proj-start { width: auto; font-size: clamp(22px, 4vh, 36px); padding: 18px 46px; }
+.live-proj-count { font-size: clamp(120px, 40vh, 380px); font-weight: 900; color: var(--t-accent, #2ec16e); line-height: 1; }
+.live-proj-clock { font-size: clamp(60px, 16vh, 180px); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+.live-proj-top { max-width: 520px; margin: 0 auto; text-align: left; }
+.live-proj-top ol { font-size: 1.15rem; }
+.live-proj-winner h2 { font-size: clamp(40px, 10vh, 110px); margin: 2vh 0; }
+.live-proj-winner p { font-size: 1.5rem; }

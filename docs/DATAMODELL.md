@@ -22,6 +22,7 @@ classProjects/{classId}                  ← gemensamma klassprojekt (donationer
 studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök per färdig text (#399)
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
+liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -534,7 +535,8 @@ Ingen backend finns – `firestore.rules` är servervalideringen. Varje svar bli
    när offline-kön töms). Skriptade "orimliga" takter syns i statistiken.
 3. Lärare (teacher-claim) styr tävlingar/sessioner och får RADERA (nollställa) svar och räknare – men inte skriva poäng direkt.
 
-**⚠️ DEPLOY KRÄVS:** `firebase deploy --only firestore:rules` – inget är deployat.
+**⚠️ DEPLOY KRÄVS:** `firebase deploy --only firestore:rules` – inget är deployat
+(inkl. #460:s matchslut-regel och `liveClock`).
 Index: Topp 25 (`scores` orderBy `correct` desc) och Live-listan
 (`liveSessions` where `participatingClassIds` array-contains) klarar sig med
 automatiska enkelfälts-index; kombineras `status`-filter krävs ett sammansatt index.
@@ -601,6 +603,8 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | Fält | Typ | Beskrivning |
 | ---- | --- | ----------- |
 | `name` | string ≤ 80 | "4B mot 5E" |
+| `classNames` | map `{ classId: string }` | klassnamnen denormaliserade vid skapandet (#460) – elev/projektor slipper läsa `classes` |
+| `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `participatingClassIds` | array\<string\> (1–8) | klasserna |
 | `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal, får ändras även under matchen) |
@@ -623,6 +627,37 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
   ur `startedAt`, så ett saknat `endsAt` stoppar aldrig matchen.
 - Vyval på projektorn (Raketrace/Statistik/Dragkamp) är **lokalt** och lagras inte här.
 - Avslutade sessioner ligger kvar = **Live-historik**.
+- **Matchslut (#460):** vid 00:00 får VILKEN inloggad klient som helst markera
+  `live → finished` (bara `status` + `finishedAt = serverTimestamp()`), och reglerna
+  kräver `request.time ≥ startedAt + countdownSeconds + durationSeconds`. Läraren
+  kan dessutom avsluta i förtid / avbryta en lobby.
+- **`result`** skrivs EN gång (transaktion) av en lärarklient (projektorn, eller
+  historikvyn om ingen projektor var öppen) ~2,5 s efter slut:
+  `{ perClass: { classId: { correct, divisor, score, players } }, winner: classId|"draw", totalCorrect, players, computedAt }`.
+
+### Live-kärnan i klienten (#460)
+
+| Lager | Modul |
+| ----- | ----- |
+| Ren logik: faser (lobby/countdown/live/ended/finished), 3-2-1, tid kvar, poäng, vinnare, topplista | `src/live/live-core.js` |
+| Server-korrigerad klocka (liveClock-rundtur + färska serverstämplar) | `src/live/live-clock.js` |
+| Firestore-lagret (skapa/starta/avsluta, prenumerationer, gå med, svar) | `src/live/live-data.js` |
+| **Realtids-datalagret för projektorvyer** – `subscribeLiveSession(sid, cb)` | `src/live/live-feed.js` |
+| Elevens meny-synlighet (onSnapshot på status lobby\|live) | `src/live/live-watch.js` |
+| Elevsidan `#/elev/live` | `src/live/page-elev-live.js` |
+| Lärarfliken `#/larare/live` (skapa, aktiva, historik), projektor-placeholder `?id=` | `src/live/teacher-live*.js`, `src/live/projector-placeholder.js` |
+| Statistik → Live per klass | `renderClassLiveStats` i `src/live/teacher-live-history.js` |
+
+Start = transaktion `lobby → live` med `startedAt = serverTimestamp()`, sedan
+`endsAt = new Timestamp(startedAt.seconds + nedräkning + längd, startedAt.nanoseconds)`.
+Elev-/lärarlistorna frågar `where("status","in",["lobby","live"])` (enkelfälts-index,
+filtreras på klass i klienten); historik `where("status","==","finished")`.
+QA mot emulatorn: `admin/qa-live-seed.mjs` + `admin/qa-emulator-proxy.mjs`.
+
+### `liveClock/{uid}` – klocksynk (#460)
+
+`{ t: serverTimestamp() }` – den inloggade skriver bara sitt eget dokument och läser
+tillbaka det → klientens avvikelse mot serverns klocka (fel ≤ halva rundturen).
 
 ### `liveSessions/{sid}/players/{uid}` – närvaro + elevens matchresultat
 

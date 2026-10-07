@@ -100,6 +100,7 @@ const ICONS = {
   shuffle:
     '<path d="M4 7h3l10 10h3"/><path d="M4 17h3L17 7h3"/><path d="M18 4l3 3-3 3"/><path d="M18 14l3 3-3 3"/>',
   minus: '<path d="M5 12h14"/>',
+  bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3z"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
   check: '<path d="M5 12.5 10 17.5 19 6.5"/>',
   sparkle:
@@ -200,6 +201,15 @@ export const TEACHER_TABS = [
     title: "Innehållsstudion",
     icon: "book",
     page: lazyPage(() => import("./teacher-content.js"), "pageLarareInnehall"),
+  },
+  {
+    // Live (#460): realtidsmatch klass mot klass. ?id=<sid> = projektorvyn.
+    key: "live",
+    hash: "#/larare/live",
+    label: "Live",
+    title: "Live",
+    icon: "bolt",
+    page: lazyPage(() => import("./live/teacher-live.js"), "pageLarareLive"),
   },
 ];
 
