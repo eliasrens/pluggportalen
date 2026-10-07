@@ -9,12 +9,12 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { byParams, byLayout, byDekor, klasscenterSpan } from "../src/varld-by.js";
+import { byParams, byLayout, byDekor, klasscenterSpan, klasscenterRad0 } from "../src/varld-by.js";
 import { matarRad, matarMarkup, placeholderText } from "../src/klasscenter/kc-by.js";
 import { progressTillNasta, troskelFor } from "../src/klasscenter/kc-niva.js";
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src");
-const STORLEKAR = [0, 1, 5, 14, 23, 28, 40];
+const STORLEKAR = [0, 1, 2, 3, 4, 5, 14, 23, 28, 40];
 const EPS = 1e-6;
 
 const tomtRuta = (t, l) => ({
@@ -25,19 +25,33 @@ const overlapp = (a, b) => a.v < b.h - EPS && b.v < a.h - EPS && a.o < b.u - EPS
 
 describe("byLayout med Klasscentret", () => {
   for (const n of STORLEKAR) {
-    it(`${n} elever: en tomt per elev, centret först, inga överlapp`, () => {
+    it(`${n} elever: en tomt per elev, centret mitt i översta raden, inga överlapp`, () => {
       const l = byLayout(byParams(n, { klasscenter: true }));
       const c = l.klasscenter;
       assert.equal(l.tomter.length, n, "antal elevtomter == antal elever");
       assert.ok(c, "centret finns");
       assert.equal(c.span, klasscenterSpan(n));
       assert.ok(c.span >= 2 && c.span <= 3);
-      assert.equal(c.rad, 0, "centret ligger i första raden");
+      assert.equal(c.rad, 0, "centret ligger i översta raden");
+      assert.equal(c.x, 50, "centret i mitten");
       assert.ok(Math.abs(c.bredd - c.span * l.cellW) < EPS, "tar span tomtbredder");
       assert.ok(c.hojd > l.radHojd, "högre än ett hus");
 
-      // Först i slingan: rad 0 går vänster→höger, alla rad-0-hus till höger.
-      for (const t of l.tomter.filter((t) => t.rad === 0)) assert.ok(t.x > c.x);
+      // Översta raden: hus, hus, CENTRET, hus, hus (färre → jämnt, udda till vänster).
+      const rad0 = l.tomter.filter((t) => t.rad === 0);
+      const vanster = rad0.filter((t) => t.x < c.x).length;
+      const hoger = rad0.filter((t) => t.x > c.x).length;
+      assert.equal(rad0.length, Math.min(4, n));
+      if (n >= 4) assert.deepEqual([vanster, hoger], [2, 2]);
+      else assert.deepEqual([vanster, hoger], [Math.ceil(n / 2), Math.floor(n / 2)]);
+      assert.deepEqual(klasscenterRad0(n), { vanster, hoger, sida: vanster });
+      // Slingans ordning: tomterna i översta raden först, vänster→höger, sedan raderna under.
+      l.tomter.slice(0, rad0.length).forEach((t, i) => assert.equal(t.rad, 0, `tomt ${i} i översta raden`));
+      for (let i = 1; i < rad0.length; i++) assert.ok(l.tomter[i].x > l.tomter[i - 1].x);
+      for (const t of l.tomter.slice(rad0.length)) assert.ok(t.rad >= 1);
+      // Husen står tätt intill centret (en halv tomt från kanten).
+      if (vanster) assert.ok(Math.abs(c.x - c.bredd / 2 - l.cellW / 2 - Math.max(...rad0.filter((t) => t.x < c.x).map((t) => t.x))) < EPS);
+      if (hoger) assert.ok(Math.abs(c.x + c.bredd / 2 + l.cellW / 2 - Math.min(...rad0.filter((t) => t.x > c.x).map((t) => t.x))) < EPS);
 
       const kc = kcRuta(c);
       l.tomter.forEach((t, i) => {
@@ -51,8 +65,10 @@ describe("byLayout med Klasscentret", () => {
       });
       assert.ok(kc.v >= 0 && kc.h <= 100 && kc.o >= 6 && kc.u <= 100, "centret inom lagret, under himlen");
 
-      // Centrets botten = radens marklinje (samma slinger som vägen vid x).
+      // Vägen passerar FRAMFÖR centret: centrets botten = radens marklinje, strax
+      // ovanför vägens mittlinje vid x (samma slinger).
       assert.ok(Math.abs(c.botten - (l.vagY(0, c.x) - l.radHojd * 0.05)) < 1e-6);
+      assert.ok(l.vagY(0, c.x) > c.botten);
 
       // Ingen uppstående dekor med markpunkt i centrets ruta (eller luften ovanför).
       const d = byDekor(l);
@@ -66,12 +82,17 @@ describe("byLayout med Klasscentret", () => {
     });
   }
 
-  it("platserna räknas: elevhus + centrets platser fyller raderna i ordning", () => {
-    const p = byParams(28, { klasscenter: true });
-    const l = byLayout(p);
-    const rad0 = l.tomter.filter((t) => t.rad === 0).length;
-    assert.equal(rad0, p.husPerRad - p.kcSpan);
-    assert.equal(l.rader, Math.ceil((28 + p.kcSpan) / p.husPerRad));
+  it("raderna under fylls som vanligt: husPerRad per rad, ofull sista rad", () => {
+    for (const n of [5, 14, 28, 40]) {
+      const p = byParams(n, { klasscenter: true });
+      const l = byLayout(p);
+      assert.ok(p.husPerRad >= 2 * 2 + p.kcSpan, "översta raden ryms");
+      assert.equal(l.rader, 1 + Math.ceil((n - 4) / p.husPerRad));
+      for (let rad = 1; rad < l.rader; rad++) {
+        const iRad = l.tomter.filter((t) => t.rad === rad).length;
+        assert.equal(iRad, rad < l.rader - 1 ? p.husPerRad : n - 4 - (l.rader - 2) * p.husPerRad);
+      }
+    }
   });
 
   it("utan klasscenter är byParams/byLayout oförändrade", () => {
