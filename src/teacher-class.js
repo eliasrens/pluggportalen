@@ -54,11 +54,11 @@ function cellHtml(earned, maxStars) {
  *   subjects: object[],                 // ämneslistan
  *   studentById?: Map,                  // id → elev (för elev-fördjupningen)
  *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
- *   classId?: string                    // klassen – ger fliken Mattematchen (#459)
+ *   classId?: string                    // klassen – ger flikarna Mattematchen (#459) och Live (#460)
  * }} opts
  */
 export async function renderClassStats(ctx, host, opts) {
-  // Flikar (issue #402): ämnenas stjärnmatris och Läsresan (+ Mattematchen #459
+  // Flikar (issue #402): ämnenas stjärnmatris och Läsresan (+ Mattematchen #459 och Live #460
   // när klassen är känd). Läsresans
   // moduler laddas DYNAMISKT vid första klick – aldrig i bootgrafen (#271).
   const view = el(`<div class="stats-tabs-wrap">
@@ -66,10 +66,12 @@ export async function renderClassStats(ctx, host, opts) {
       <button type="button" class="stats-tab" role="tab" data-tab="amnen">${icon("chart", 16)}<span>Ämnen</span></button>
       <button type="button" class="stats-tab" role="tab" data-tab="lasresan">${icon("book", 16)}<span>Läsresan</span></button>
       ${opts.classId ? `<button type="button" class="stats-tab" role="tab" data-tab="mattematchen">${icon("trophy", 16)}<span>Mattematchen</span></button>` : ""}
+      ${opts.classId ? `<button type="button" class="stats-tab" role="tab" data-tab="live">${icon("bolt", 16)}<span>Live</span></button>` : ""}
     </div>
     <div class="stats-pane" data-pane="amnen"></div>
     <div class="stats-pane" data-pane="lasresan" hidden></div>
     <div class="stats-pane" data-pane="mattematchen" hidden></div>
+    <div class="stats-pane" data-pane="live" hidden></div>
   </div>`);
   host.replaceChildren(view);
   const rendered = new Set();
@@ -94,6 +96,15 @@ export async function renderClassStats(ctx, host, opts) {
           pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda Mattematchen: ${esc(err.message)}</div>`));
         });
     }
+    // Live (#460): klassens Live-matcher + elevernas summa – dynamisk import.
+    if (tab === "live") {
+      return import("./live/teacher-live-history.js")
+        .then((m) => m.renderClassLiveStats(ctx, pane, { classId: opts.classId, students: opts.students }))
+        .catch((err) => {
+          rendered.delete(tab);
+          pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda Live: ${esc(err.message)}</div>`));
+        });
+    }
     pane.replaceChildren(el(`<div class="spinner">Laddar Läsresan…</div>`));
     return import("./teacher-lasresan.js")
       .then((m) => m.renderClassLasresan(ctx, pane, { students: opts.students }))
@@ -103,7 +114,7 @@ export async function renderClassStats(ctx, host, opts) {
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
-  await show(lastStatsTab === "mattematchen" && !opts.classId ? "amnen" : lastStatsTab);
+  await show((lastStatsTab === "live" || lastStatsTab === "mattematchen") && !opts.classId ? "amnen" : lastStatsTab);
 }
 
 // Senast valda statistikflik (delas mellan klasskort under sessionen).
