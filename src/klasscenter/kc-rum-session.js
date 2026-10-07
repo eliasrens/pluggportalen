@@ -192,13 +192,14 @@ export function startaKcRumSession(o, { lager, q }) {
     });
   }
 
-  async function aterstall(slot) {
+  async function aterstall(slot, historikVersion) {
     if (!kan) return;
     if (t.osparat && !confirm("Återställningen ersätter dina osparade ändringar. Fortsätta?")) return;
-    const res = await deps.restoreLayout(classId, slot);
+    const res = await deps.restoreLayout(classId, slot, { historikVersion });
     if (!levande) return;
     if (!res.ok) {
       flash(res.error || "Det gick inte att återställa.", true);
+      if (res.kod === "historik-andrad") visaHistorik();
       return;
     }
     t.aterstallt(res);
@@ -222,7 +223,7 @@ export function startaKcRumSession(o, { lager, q }) {
       return status();
     }
     const btn = e.target.closest("[data-slot]");
-    if (btn) aterstall(Number(btn.dataset.slot));
+    if (btn) aterstall(Number(btn.dataset.slot), Number(btn.dataset.version));
   };
   ui.addEventListener("click", vidKlick);
 

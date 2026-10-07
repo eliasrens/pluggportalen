@@ -18,8 +18,10 @@
 //       → Promise<Plan | Fel>  (aldrig kastande; Fel.kod "nekad" om
 //         reglerna/nätet sa nej, "krock" om forvantadVersion var inaktuell)
 //   listHistory(classId)                 → Promise<HistorikPost[]> (nyast först)
-//   restoreLayout(classId, slot, { forvantadVersion? }?)
-//       → Promise<Plan & { aterstalldFran } | Fel>  (blir en NY version)
+//   restoreLayout(classId, slot, { historikVersion?, forvantadVersion? }?)
+//       → Promise<Plan & { aterstalldFran } | Fel>  (blir en NY version;
+//         historikVersion = versionen listan visade → Fel.kod
+//         "historik-andrad" om ringbufferten skrivit över slotten)
 //   kanInreda(classId, uid?)             → Promise<bool> (lärare, eller
 //       klassmedlem som inte står i inredningSparr)
 //   getInredningSparr(classId)           → Promise<string[]>
@@ -72,9 +74,16 @@ async function lada(classId) {
   return unlockedItems(await getFunds(classId));
 }
 
+// err.krock (kc-omforsok.js): false = reglerna sa nej på riktigt (spärrad
+// eller inte klassmedlem), true = för många samtidiga sparningar.
 function nekad(vad, classId, err) {
   console.warn(`[klasscenter] ${vad} nekad`, classId, err?.code || err);
-  return { ok: false, kod: "nekad", error: "Det gick inte att spara rummet. Försök igen." };
+  const error = err?.krock === false
+    ? "Du får inte inreda klassens rum just nu."
+    : err?.krock === true
+      ? "Många sparar rummet just nu – vänta en liten stund och försök igen."
+      : "Det gick inte att spara rummet. Försök igen.";
+  return { ok: false, kod: "nekad", error };
 }
 
 /**
@@ -99,10 +108,10 @@ export async function listHistory(classId) {
 }
 
 /** "Återställ": kopierar slot → current som en NY version (kan ångras). */
-export async function restoreLayout(classId, slot, { forvantadVersion } = {}) {
+export async function restoreLayout(classId, slot, { historikVersion, forvantadVersion } = {}) {
   try {
     return await korAterstallning(sdk, db, {
-      classId, uid: minUid(), slot, lada: await lada(classId), forvantadVersion,
+      classId, uid: minUid(), slot, historikVersion, lada: await lada(classId), forvantadVersion,
     });
   } catch (err) {
     return nekad("återställning", classId, err);

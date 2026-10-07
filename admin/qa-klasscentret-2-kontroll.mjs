@@ -4,7 +4,7 @@
 // Kör först: qa-klasscenter-by-seed → qa-klasscenter-rum-seed →
 // qa-klasscenter-larare-seed → qa-klasscentrum-shop seed. Lösenord lilla123.
 //
-//   samtidighet [elever=10] [perElev=3]
+//   samtidighet [elever=10] [perElev=3]   (elever 1–28; #493: 28 1 = en hel klass)
 //                 klass qa-ks får ks03…ks12 (1 000 mynt); 10 elever × 3
 //                 samtidiga donationer à 300 till troféhyllan (2 500) och
 //                 10 × 3 à 100 till akvariet (4 000). Kontroll: insamlat ==
@@ -41,7 +41,7 @@ const KS = "qa-ks";
 const adminApp = admin.initializeApp({ projectId: PROJECT });
 const adb = admin.firestore(adminApp);
 const aauth = admin.auth(adminApp);
-const sdk = { runTransaction, doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp };
+const sdk = { runTransaction, doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp }; // fund: batch, layout: transaktion
 
 async function som(uid, email = `${uid}@elev.pluggportalen.local`) {
   const app = initializeApp({ projectId: PROJECT, apiKey: "qa" }, `${uid}-${Math.random()}`);

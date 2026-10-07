@@ -208,6 +208,20 @@ describe("Layout: återställ", () => {
     await assertSucceeds(korAterstallning(sdk, teacher(), { classId: "6a", uid: "larare1", slot: 1 }));
     assert.equal((await las("classCenters", "6a", "layout", "current")).version, 3);
   });
+  it("bockad elev nekas direkt (krock=false) även med alla omförsök (#493)", async () => {
+    await spara(elev("elev1"), "elev1");
+    await assert.rejects(korAterstallning(sdk, elev("elev3"), { classId: "6a", uid: "elev3", slot: 1 }),
+      (e) => e.code === "permission-denied" && e.krock === false);
+  });
+  it("O1: inaktuell lista (slotten överskriven av ringbufferten) → historik-andrad (#493)", async () => {
+    await spara(elev("elev1"), "elev1"); // v1 i slot 1 = STATY
+    for (let i = 2; i <= 11; i++) await spara(elev("elev4"), "elev4", {}); // v11 skriver över slot 1
+    const r = await korAterstallning(sdk, elev("elev1"), { classId: "6a", uid: "elev1", slot: 1, historikVersion: 1, lada });
+    assert.equal(r.kod, "historik-andrad");
+    assert.equal((await las("classCenters", "6a", "layout", "current")).version, 11);
+    const ok = await assertSucceeds(korAterstallning(sdk, elev("elev1"), { classId: "6a", uid: "elev1", slot: 1, historikVersion: 11, lada }));
+    assert.equal(ok.version, 12);
+  });
 });
 
 describe("Layout: läsning + samtidighet", () => {

@@ -186,6 +186,44 @@ describe("korSparning + korAterstallning (fake-SDK)", () => {
     sdk.runTransaction = async () => { throw Object.assign(new Error("x"), { code: "unavailable" }); };
     await assert.rejects(korSparning(sdk, null, { classId: "6a", uid: "u", placedItems: {} }));
   });
+
+  it("nekad med oförändrad version (spärrad elev) → slutar direkt, krock=false (#493)", async () => {
+    const { sdk } = fakeSdk({ "classCenters/6a/layout/current": { version: 4, placedItems: {} } });
+    const riktig = sdk.runTransaction;
+    let commits = 0;
+    sdk.runTransaction = async (db, fn) => {
+      const r = await riktig(db, async (tx) => fn({ ...tx, set: () => {} }));
+      if (r && r.ok) { commits++; throw Object.assign(new Error("nej"), { code: "permission-denied" }); }
+      return r;
+    };
+    await assert.rejects(korSparning(sdk, null, { classId: "6a", uid: "u", placedItems: {} }),
+      (e) => e.code === "permission-denied" && e.krock === false);
+    assert.equal(commits, 1);
+  });
+
+  it("O1: Återställ med inaktuell lista (slotten överskriven) → historik-andrad, inget skrivs (#493)", async () => {
+    const { sdk, state, sets } = fakeSdk();
+    for (let i = 1; i <= 3; i++) {
+      await korSparning(sdk, null, { classId: "6a", uid: "elev1", placedItems: { guldstaty: { x: i, y: i, z: 0 } } });
+    }
+    // listan visade version 2 i slot 2 …
+    const visad = { slot: 2, version: 2 };
+    // … men 10 sparningar till hann skriva över slotten med version 12.
+    for (let i = 4; i <= 13; i++) {
+      await korSparning(sdk, null, { classId: "6a", uid: "elev2", placedItems: {} });
+    }
+    assert.equal(state["classCenters/6a/layoutHistory/2"].version, 12);
+    const fore = sets.length;
+    const r = await korAterstallning(sdk, null, { classId: "6a", uid: "larare1", slot: visad.slot, historikVersion: visad.version });
+    assert.equal(r.kod, "historik-andrad");
+    assert.match(r.error, /Historiken har ändrats/);
+    assert.equal(sets.length, fore);
+    assert.equal(state["classCenters/6a/layout/current"].version, 13);
+    // rätt version i slotten → går igenom
+    const ok = await korAterstallning(sdk, null, { classId: "6a", uid: "larare1", slot: 2, historikVersion: 12 });
+    assert.equal(ok.ok, true);
+    assert.equal(ok.aterstalldFran, 12);
+  });
 });
 
 describe("planRestore + normalisering", () => {
@@ -228,7 +266,7 @@ it("firestore.rules: kcPlaced har en kcPos-rad per katalogföremål", () => {
 
 it("bootgrafen: layout-modulerna bara dynamiskt (#271)", () => {
   const g = staticBootGraph();
-  for (const f of ["kc-layout-plan.js", "kc-layout-data.js"]) {
+  for (const f of ["kc-layout-plan.js", "kc-layout-data.js", "kc-omforsok.js"]) {
     assert.equal(g.has(join(SRC, "klasscenter", f)), false, `${f} får inte ligga i bootgrafen`);
   }
   assert.ok(g.size > 50, "BFS hittade bootgrafen");

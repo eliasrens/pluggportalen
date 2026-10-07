@@ -164,7 +164,7 @@ async function ritaHistorikBlock(box, cls, namnFor, api) {
     if (!confirm(`Återställ rummet till sparningen från ${nar}? Den nuvarande layouten finns kvar i historiken.`)) return;
     btn.disabled = true;
     res.innerHTML = "Återställer…";
-    const r = await api.restoreLayout(cls.id, Number(btn.dataset.kcAterstall));
+    const r = await api.restoreLayout(cls.id, Number(btn.dataset.kcAterstall), { historikVersion: Number(btn.dataset.kcVersion) });
     res.innerHTML = r.ok ? ok(`Återställt – rummet ser ut som ${nar} igen.`) : fel(r.error || "Det gick inte att återställa.");
     await rita();
   });

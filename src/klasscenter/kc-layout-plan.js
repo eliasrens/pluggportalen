@@ -46,27 +46,31 @@
 //   planRestore(historySlot, { lada? })       → { ok:true, placedItems, version } | Fel
 //   planSaveWrites({ classId, plan, fv })     → Write[] (2) ; Write = { path, data }
 //   korSparning(sdk, db, { classId, uid, placedItems, lada?, forvantadVersion?, forsok? })
-//   korAterstallning(sdk, db, { classId, uid, slot, lada?, forvantadVersion?, forsok? })
+//   korAterstallning(sdk, db, { classId, uid, slot, historikVersion?, lada?, forvantadVersion?, forsok? })
 //       → Promise<Plan & { aterstalldFran? } | Fel>  sdk = { runTransaction, doc,
-//         serverTimestamp }; kastar om reglerna nekar efter `forsok` försök
+//         serverTimestamp }; samtidiga sparningar körs om (kc-omforsok.js).
+//         Kastar om reglerna nekar: err.krock = false = verkligt nekad,
+//         true = försöken tog slut
 //   kanInredaFor({ uid, arLarare, studentIds, inredningSparr }) → bool
 //
 //   Layout = { placedItems, version, updatedBy, updatedAt }
 //   Plan = { ok:true, version, slot, placedItems, uid }
 //   Fel  = { ok:false, kod, error, nyckel? }  kod: "ogiltig-form" |
 //          "for-manga" | "okant-foremal" | "ej-i-ladan" | "ogiltig-position" |
-//          "ingen-anvandare" | "krock" | "tom-slot" | "ogiltig-slot"
+//          "ingen-anvandare" | "krock" | "tom-slot" | "ogiltig-slot" |
+//          "historik-andrad" (slotten innehåller inte längre historikVersion)
 // ============================================================================
 
 import { kcShopItem } from "./kc-shop-items.js";
+import { medKrockOmforsok, sammaSomNekat, SAMMA_LAGE } from "./kc-omforsok.js";
 
 export const KC_HISTORIK = 10;
 /** Max antal placerade föremål (även reglernas storleksgräns). */
 export const KC_LAYOUT_MAX = 40;
 export const KC_Z_MIN = 0;
 export const KC_Z_MAX = 999;
-/** Försök när en samtidig sparning krockar (se korSparning). */
-export const KROCK_FORSOK = 4;
+/** Försök när en samtidig sparning krockar (se kc-omforsok.js). */
+export const KROCK_FORSOK = 8;
 
 const NYCKEL = /^([a-z0-9-]{1,40})(?:#([0-9]{1,3}))?$/;
 
@@ -247,48 +251,43 @@ export function kanInredaFor({ uid, arLarare = false, studentIds = [], inredning
 
 /**
  * Spara placedItems som nästa version: EN transaktion (läs current → skriv
- * current + historikslot). Krockar med en samtidig sparning körs om.
+ * current + historikslot). Krockar med en samtidig sparning körs om
+ * (kc-omforsok.js); oförändrad version + nekad = verkligt nekad (spärrad).
  */
-export function korSparning(sdk, db, { classId, uid, placedItems, lada, forvantadVersion, forsok } = {}) {
-  return medOmforsok(forsok, () => transaktion(sdk, db, classId, (current) =>
-    planSave({ current, placedItems, uid, lada, forvantadVersion })));
+export function korSparning(sdk, db, { classId, uid, placedItems, lada, forvantadVersion, forsok = KROCK_FORSOK } = {}) {
+  return medKrockOmforsok((ctx) => transaktion(sdk, db, classId, ctx, (current) =>
+    planSave({ current, placedItems, uid, lada, forvantadVersion })), { forsok });
 }
 
 /**
  * Återställ historikslot `slot`: läses i SAMMA transaktion och skrivs som en
- * NY version (hamnar själv i historiken → kan ångras).
+ * NY version (hamnar själv i historiken → kan ångras). historikVersion =
+ * versionen som listan visade för slotten: har ringbufferten skrivit över
+ * slotten sedan dess → kod "historik-andrad" och ingenting skrivs (#493).
  */
-export function korAterstallning(sdk, db, { classId, uid, slot, lada, forvantadVersion, forsok } = {}) {
+export function korAterstallning(sdk, db, { classId, uid, slot, historikVersion, lada, forvantadVersion, forsok = KROCK_FORSOK } = {}) {
   const s = Number(slot);
   if (!Number.isInteger(s) || s < 0 || s >= KC_HISTORIK) return Promise.resolve(fel("ogiltig-slot", "Den sparningen finns inte."));
-  return medOmforsok(forsok, () => transaktion(sdk, db, classId, (current, tx) =>
+  return medKrockOmforsok((ctx) => transaktion(sdk, db, classId, ctx, (current, tx) =>
     tx.get(sdk.doc(db, "classCenters", classId, "layoutHistory", String(s))).then((snap) => {
-      const r = planRestore(snap.exists() ? snap.data() : null, { lada });
+      const data = snap.exists() ? snap.data() : null;
+      if (historikVersion !== undefined && historikVersion !== null && heltal(data && data.version) !== heltal(historikVersion)) {
+        return fel("historik-andrad", "Historiken har ändrats – listan laddas om.");
+      }
+      const r = planRestore(data, { lada });
       if (!r.ok) return r;
       const plan = planSave({ current, placedItems: r.placedItems, uid, forvantadVersion });
       return plan.ok ? { ...plan, aterstalldFran: r.version } : plan;
-    })));
+    })), { forsok });
 }
 
-async function medOmforsok(forsok = KROCK_FORSOK, kor) {
-  for (let varv = 1; ; varv++) {
-    try {
-      return await kor();
-    } catch (err) {
-      // En samtidig sparning hann före: reglerna (räknade mot den nyare
-      // versionen) kan svara permission-denied i stället för en vanlig
-      // transaktionskrock (emulatorn gör det) → kör om med färska värden.
-      if (err?.code !== "permission-denied" || varv >= forsok) throw err;
-      await new Promise((r) => setTimeout(r, 40 + Math.random() * 160 * varv));
-    }
-  }
-}
-
-function transaktion(sdk, db, classId, planera) {
+function transaktion(sdk, db, classId, ctx, planera) {
   const curRef = sdk.doc(db, "classCenters", classId, "layout", "current");
   return sdk.runTransaction(db, async (tx) => {
     const snap = await tx.get(curRef);
-    const plan = await planera(snap.exists() ? snap.data() : null, tx);
+    const current = snap.exists() ? snap.data() : null;
+    if (sammaSomNekat(ctx, heltal(current && current.version))) return SAMMA_LAGE;
+    const plan = await planera(current, tx);
     if (!plan.ok) return plan;
     const fv = { serverTimestamp: sdk.serverTimestamp };
     for (const w of planSaveWrites({ classId, plan, fv })) tx.set(sdk.doc(db, ...w.path), w.data);
