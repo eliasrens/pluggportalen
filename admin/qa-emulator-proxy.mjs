@@ -1,5 +1,5 @@
 // ============================================================================
-// QA-server mot Firebase-EMULATORERNA via SAMMA origin (#460, Live-QA).
+// QA-proxy mot Firebase-EMULATORERNA via SAMMA origin (#458 + #460).
 // ----------------------------------------------------------------------------
 // Som qa-emulator-server.mjs, men webbläsaren pratar aldrig direkt med
 // 127.0.0.1:8080/9099 – allt går via den här servern:

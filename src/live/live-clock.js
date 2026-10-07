@@ -12,6 +12,11 @@
 //      (startedAt, lastAt …): stämpeln S kan inte ligga efter mottagandet R →
 //      offset ≥ S − R. Höjer offset om mätningen låg för lågt.
 //
+// Varför inte bara data-class-lock.js serverNow() (som Mattematchen/fokusläget
+// använder)? Den har sekund-upplösning och nollar avvikelser < 5 s – en elev-
+// dator som går 3 s före skulle visa KÖR! 3 s för tidigt och få sina första svar
+// nekade (reglerna räknar mot request.time). 3-2-1 kräver ~0,1–0,3 s precision.
+//
 // API
 //   serverNow()            → ms (klientens tid + offset)
 //   syncLiveClock(uid?)    → Promise<offset>; körs en gång per sida (cachad)

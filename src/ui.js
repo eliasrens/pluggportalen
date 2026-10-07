@@ -162,6 +162,32 @@ export function onLockChange(fn) {
   lasLyssnare.add(fn);
 }
 
+// --- Mattematchen (#458) -------------------------------------------------------
+// Menylänken syns BARA när en aktiv period finns där elevens klass deltar.
+// Bevakaren (onSnapshot + timer till start/slut) laddas DYNAMISKT (#271) och
+// ritar om menyn själv när perioden börjar/slutar. Fel → null (dold).
+let mmModP = null;
+
+/** Elevens aktiva Mattematch ({ competition, classId }) eller null. */
+export async function getMattematch() {
+  const meId = data.currentStudentId();
+  try {
+    if (!meId) {
+      if (mmModP) (await mmModP).stopMattematchWatch();
+      return null;
+    }
+    mmModP ||= import("./tavling/mm-watch.js").then((mod) => {
+      mod.onMattematchChange(() => renderTopbar());
+      return mod;
+    });
+    return await (await mmModP).mattematchForMe(meId);
+  } catch (err) {
+    console.warn("Mattematchen kunde inte läsas – dold:", err);
+    mmModP = null;
+    return null;
+  }
+}
+
 // --- Live (#460) ---------------------------------------------------------------
 // Live syns i menyn bara när elevens klass har en lobby/pågående match.
 // Bevakaren (onSnapshot) laddas DYNAMISKT (#271); fel → dold, aldrig krasch.
@@ -192,18 +218,30 @@ export async function getLiveVisible() {
   }
 }
 
+// Villkorade menylänkar (#458/#460): `villkor` i NAV_LANKAR = nyckel här. Länken
+// syns bara när villkoret (en dynamiskt laddad bevakare som själv ritar om
+// menyn vid ändring) svarar sant – eller när eleven redan står på sidan.
+// Nästa villkorade modul = en rad här + `villkor` på sin länk.
+const NAV_VILLKOR = {
+  mattematchen: async () => !!(await getMattematch()),
+  live: getLiveVisible,
+};
+
 // Elevens huvuddestinationer i sidomenyn (ordning = visningsordning).
 // `grupp` avskiljer profil-relaterade val från ev. framtida destinationer
 // (grupp-byte ritar en avdelare). "Min klass" är borta ur navet – klassen nås
 // numera i spelvärlden via klasskylten vid gården (#/elev/by, klassbyn).
 // `modul` = id i TOGGLABLE_MODULES (#412): länken döljs om klassen döljer modulen.
+// `villkor` (#458/#460): länken syns bara när NAV_VILLKOR[villkor] svarar sant.
 const NAV_LANKAR = [
   { hash: "#/elev/hus", ikon: "🏠", label: "Hem", grupp: "profil" },
   { hash: "#/elev/plugga", ikon: "📚", label: "Plugga", grupp: "profil", modul: "plugga" },
   // Läsresan (#398): egen huvudmodul, fristående från Plugga.
   { hash: "#/elev/lasresan", ikon: "📖", label: "Läsresan", grupp: "profil", modul: "lasresan" },
+  // Mattematchen (#458): bara under en aktiv period för elevens klass.
+  { hash: "#/elev/mattematchen", ikon: "🧮", label: "Mattematchen", grupp: "profil", villkor: "mattematchen" },
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil", modul: "shop" },
-  // Live (#460): bara när klassen har en lobby/pågående match (getLiveVisible).
+  // Live (#460): bara när klassen har en lobby/pågående match.
   { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "profil", villkor: "live" },
 ];
 
@@ -237,7 +275,10 @@ export async function renderTopbar() {
   let stjarnor = 0; // insamlade stjärnor – visas i sidomenyns fot ovanför mynten
   const doldaP = getHiddenModules(); // parallellt med elevdatat nedan
   const lasP = getLockGate();
-  const liveP = getLiveVisible();
+  // Alla villkor (NAV_VILLKOR) parallellt; ett fel döljer bara den länken.
+  const villkorP = Promise.all(
+    Object.entries(NAV_VILLKOR).map(async ([k, fn]) => [k, await fn().catch(() => false)])
+  );
   try {
     const sd = await data.getStudentData();
     coins = sd.coins || 0;
@@ -248,11 +289,11 @@ export async function renderTopbar() {
 
   const dolda = new Set(await doldaP);
   const las = await lasP;
-  const live = (await liveP) || path === "/elev/live";
+  const villkor = Object.fromEntries(await villkorP);
   // Fokusläget (#436) styr när det är aktivt: målet syns alltid (även om dess
   // modul annars är dold), resten bara om låset och modul-valet tillåter.
   const lankar = NAV_LANKAR.filter((l) => {
-    if (l.villkor === "live" && !live) return false;
+    if (l.villkor && !villkor[l.villkor] && l.hash.slice(1) !== path) return false;
     const synlig = !l.modul || !dolda.has(l.modul);
     if (!las) return synlig;
     const p = l.hash.slice(1);
