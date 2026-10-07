@@ -108,3 +108,33 @@ export function gnistra(cx, cy, r, fill = "#FFFFFF") {
   const k = r * 0.28;
   return `<path d="M${cx} ${cy - r} Q${cx + k} ${cy - k} ${cx + r} ${cy} Q${cx + k} ${cy + k} ${cx} ${cy + r} Q${cx - k} ${cy + k} ${cx - r} ${cy} Q${cx - k} ${cy - k} ${cx} ${cy - r} Z" fill="${fill}" ${THIN}/>`;
 }
+
+// --- Klasscentrum-föremålen (#487, art-klasscenter-inredning*.js) -----------
+// Exklusivare material än vanliga rumsmöbler: tvåtonat guld med glans,
+// marmor med ådring, sammet. Fortfarande platt – inga gradienter/defs.
+export const GULD_MORK = "#D9A22E";
+export const GULD_LJUS = "#FDE9A8";
+export const MARMOR = "#F1ECF4";
+export const MARMOR_SKUGGA = "#D9D0E0";
+export const MARMOR_ADER = "#B9AFC4";
+export const SAMMET = "#6A4FB5";
+export const SAMMET_MORK = "#523C93";
+export const SAMMET_LJUS = "#8E76D6";
+export const VATTEN = "#7FC7E8";
+export const VATTEN_LJUS = "#C9EEFB";
+
+/** Vit glansstrimma (blankt guld/glas/lack) längs path d. */
+export function glans(d, w = 2.4, op = 0.75) {
+  return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
+}
+
+/** Femuddig stjärna MED kontur (stjarna() i art-style.js är konturlös). */
+export function stjarnaKontur(cx, cy, r, fill = GULD, stroke = THIN) {
+  const p = [];
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rr = i % 2 ? r * 0.45 : r;
+    p.push(`${(cx + rr * Math.cos(a)).toFixed(1)} ${(cy + rr * Math.sin(a)).toFixed(1)}`);
+  }
+  return `<path d="M${p.join(" L")} Z" fill="${fill}" ${stroke}/>`;
+}

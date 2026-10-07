@@ -4935,10 +4935,29 @@ body.varld-lage .container {
 @keyframes kc-svava { to { transform: translateY(-16px); } }
 .kc-blink { animation: kc-blinka 1.6s steps(2, jump-none) infinite; }
 @keyframes kc-blinka { from { opacity: 1; } to { opacity: 0.25; } }
+/* Klasscentrum-föremålen (#487, art-klasscenter-inredning*.js): gungande krona/
+   tofsar, fontänstråle + kaskader, fiskar och bubblor. Samma regel: EN grupp
+   per rörelse, bara transform/opacity. */
+.kc-pendel, .kc-vatten, .kc-fisk { transform-box: fill-box; }
+.kc-pendel { transform-origin: 50% 0; animation: kc-pendla 3.2s ease-in-out infinite alternate; }
+.kc-pendel.d2 { animation-delay: -1.6s; }
+@keyframes kc-pendla { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+.kc-vatten { transform-origin: 50% 100%; animation: kc-sprut 1.3s ease-in-out infinite alternate; }
+@keyframes kc-sprut { to { transform: scale(0.96, 0.9); } }
+.kc-kaskad { animation: kc-skimra 1.8s ease-in-out infinite alternate; }
+@keyframes kc-skimra { from { opacity: 1; } to { opacity: 0.72; } }
+.kc-fisk { animation: kc-simma 4.2s ease-in-out infinite alternate; }
+.kc-fisk.d2 { animation-duration: 5.4s; animation-delay: -2s; }
+.kc-fisk.d3 { animation-duration: 3.6s; animation-delay: -1s; }
+@keyframes kc-simma { from { transform: translate(-10px, 2px); } to { transform: translate(10px, -3px); } }
+.kc-bubbla { animation: kc-bubbla 2.8s ease-in infinite; }
+.kc-bubbla.d2 { animation-delay: -1.4s; }
+@keyframes kc-bubbla { 0% { transform: translateY(8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-26px); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok,
-  .kc-flamma, .kc-fana, .kc-glitter, .kc-svava, .kc-blink { animation: none; }
+  .kc-flamma, .kc-fana, .kc-glitter, .kc-svava, .kc-blink,
+  .kc-pendel, .kc-vatten, .kc-kaskad, .kc-fisk, .kc-bubbla { animation: none; }
   .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, #laggard-dorr, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
 }
 
