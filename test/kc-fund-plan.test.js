@@ -131,28 +131,52 @@ describe("planDonationWrites", () => {
 });
 
 describe("korDonation (falskt SDK)", () => {
-  function fakeSdk(state) {
+  // Batch-SDK: läser state, set med increment → relativa värden. avvisa(n)
+  // låter commit nr n nekas (krock) och kan mutera state (någon hann före).
+  function fakeSdk(state, { avvisa = () => null } = {}) {
     const sets = [];
+    let commits = 0;
+    const inc = (n) => ({ inc: n });
     return {
       sets,
       sdk: {
         doc: (...a) => (a.length === 1 ? { id: "auto1" } : { path: a.slice(1).join("/") }),
         collection: () => ({}),
         serverTimestamp: () => "TS",
-        runTransaction: async (_db, fn) => fn({
-          get: async (ref) => ({ exists: () => ref.path in state, data: () => state[ref.path] }),
-          set: (ref, data) => sets.push([ref.path, data]),
-        }),
+        increment: inc,
+        getDocFromServer: async (ref) => ({ exists: () => ref.path in state, data: () => state[ref.path] }),
+        writeBatch: () => {
+          const ops = [];
+          return {
+            set: (ref, data) => ops.push([ref.path, data]),
+            commit: async () => {
+              const err = avvisa(++commits);
+              if (err) throw err;
+              for (const [path, data] of ops) {
+                const ny = { ...(state[path] || {}) };
+                for (const [k, v] of Object.entries(data)) ny[k] = v && typeof v === "object" && "inc" in v ? (ny[k] || 0) + v.inc : v;
+                state[path] = ny;
+                sets.push([path, data]);
+              }
+            },
+          };
+        },
       },
     };
   }
-  it("läser fund + saldo och skriver tre dokument med auto-id", async () => {
-    const { sdk, sets } = fakeSdk({ "studentData/elev1": { coins: 40 } });
+  const nej = () => Object.assign(new Error("nej"), { code: "permission-denied" });
+
+  it("läser fund + saldo och skriver tre dokument med auto-id, relativt (increment)", async () => {
+    const state = { "studentData/elev1": { coins: 40 } };
+    const { sdk, sets } = fakeSdk(state);
     const r = await korDonation(sdk, null, { classId: "6a", uid: "elev1", itemId: "guldstaty", amount: 100 });
     assert.equal(r.ok, true);
     assert.equal(r.amount, 40);
     assert.equal(r.donationId, "auto1");
     assert.deepEqual(sets.map((s) => s[0]), ["studentData/elev1", "classCenters/6a/donations/auto1", "classCenters/6a/fund/guldstaty"]);
+    assert.deepEqual(sets[0][1], { coins: { inc: -40 } });
+    assert.deepEqual(sets[2][1].fundedAmount, { inc: 40 });
+    assert.equal(state["studentData/elev1"].coins, 0);
   });
   it("fel skriver ingenting", async () => {
     const { sdk, sets } = fakeSdk({
@@ -163,6 +187,44 @@ describe("korDonation (falskt SDK)", () => {
     assert.equal(r.kod, "redan-kopt");
     assert.equal(sets.length, 0);
     assert.equal((await korDonation(sdk, null, { classId: "6a", uid: "elev1", itemId: "nej", amount: 1 })).kod, "okant-foremal");
+  });
+  it("krock: läser om och cappar om (målet nästan nått av någon annan) – samma donationId", async () => {
+    const state = { "studentData/elev1": { coins: 900 }, "classCenters/6a/fund/guldstaty": { targetPrice: 5000, fundedAmount: 4000, lastDonationId: "a" } };
+    const { sdk, sets } = fakeSdk(state, {
+      avvisa: (n) => {
+        if (n > 1) return null;
+        state["classCenters/6a/fund/guldstaty"] = { targetPrice: 5000, fundedAmount: 4950, lastDonationId: "b" };
+        return nej();
+      },
+    });
+    const r = await korDonation(sdk, null, { classId: "6a", uid: "elev1", itemId: "guldstaty", amount: 300 });
+    assert.equal(r.ok, true);
+    assert.equal(r.amount, 50);
+    assert.equal(r.isUnlocked, true);
+    assert.equal(r.donationId, "auto1");
+    assert.equal(state["studentData/elev1"].coins, 850);
+    assert.equal(sets.length, 3);
+  });
+  it("krock och målet nått under tiden → redan-kopt, inga mynt dras", async () => {
+    const state = { "studentData/elev1": { coins: 900 }, "classCenters/6a/fund/guldstaty": { targetPrice: 5000, fundedAmount: 4000, lastDonationId: "a" } };
+    const { sdk, sets } = fakeSdk(state, {
+      avvisa: () => {
+        state["classCenters/6a/fund/guldstaty"] = { targetPrice: 5000, fundedAmount: 5000, isUnlocked: true, lastDonationId: "b" };
+        return nej();
+      },
+    });
+    const r = await korDonation(sdk, null, { classId: "6a", uid: "elev1", itemId: "guldstaty", amount: 300 });
+    assert.equal(r.kod, "redan-kopt");
+    assert.match(r.error, /Inga mynt drogs/);
+    assert.equal(sets.length, 0);
+    assert.equal(state["studentData/elev1"].coins, 900);
+  });
+  it("nekad utan att något ändrats (ej klassmedlem) → slutar efter 2 försök, krock=false", async () => {
+    let n = 0;
+    const { sdk } = fakeSdk({ "studentData/elev1": { coins: 900 } }, { avvisa: () => (++n, nej()) });
+    await assert.rejects(korDonation(sdk, null, { classId: "6a", uid: "elev1", itemId: "guldstaty", amount: 10 }),
+      (e) => e.code === "permission-denied" && e.krock === false);
+    assert.equal(n, 1); // andra försöket läser samma läge → skickar inte ens
   });
 });
 

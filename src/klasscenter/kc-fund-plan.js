@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Ingen Firebase-import (samma mönster som kc-exp-skriv.js): beskriver EXAKT
 // vilka dokument en donation skriver för att firestore.rules ("KLASSCENTRET",
-// fund/donations) ska godta den. Transaktionen (korDonation) tar SDK:t som
+// fund/donations) ska godta den. Skrivningen (korDonation) tar SDK:t som
 // argument → kc-fund-data.js kör den med gstatic-SDK:t i webbläsaren och
 // regeltesterna (test/firestore-rules-klasscenter-fund.test.js) med npm-SDK:t
 // mot emulatorn. Kontraktet kan inte glida isär.
@@ -12,7 +12,7 @@
 //   classCenters/{classId}/fund/{itemId}
 //       { targetPrice, fundedAmount, isUnlocked, unlockedAt?, lastDonationId }
 //   classCenters/{classId}/donations/{autoId}   { uid, itemId, amount, at }
-//   studentData/{uid}.coins                      − amount (samma transaktion)
+//   studentData/{uid}.coins                      − amount (samma batch)
 //
 // Cappning: beloppet blir min(begärt, det som saknas, elevens saldo) – det
 // som inte behövs dras aldrig, så inget går förlorat.
@@ -24,16 +24,20 @@
 //     Fel  = { ok:false, kod, error }  kod: "okant-foremal" | "redan-kopt" |
 //            "ogiltigt-belopp" | "for-lite-mynt"
 //   planDonationWrites({ classId, uid, itemId, plan, donationId, coinsFore, fv })
-//       → Write[] (3 st) ; Write = { path, data, merge }
+//       → Write[] (3 st) ; Write = { path, data, merge }  fv = { serverTimestamp,
+//         increment? } (increment → relativa coins/fundedAmount)
 //   korDonation(sdk, db, { classId, uid, itemId, amount, donationId?, forsok? })
-//       → Promise<Plan & { donationId } | Fel>   sdk = { runTransaction, doc,
-//         collection, serverTimestamp }; kastar om reglerna nekar (efter
-//         KROCK_FORSOK försök – en samtidig donation kan ge permission-denied)
+//       → Promise<Plan & { donationId } | Fel>   sdk = { doc, collection,
+//         getDocFromServer (el. getDoc), writeBatch, increment,
+//         serverTimestamp }; samtidiga donationer körs om
+//         (kc-omforsok.js). Kastar om reglerna nekar: err.krock = false =
+//         verkligt nekad (läget oförändrat), true = försöken tog slut
 //   normaliseraFunds(docs)  → { [itemId]: Fund } för HELA katalogen
 //   unlockedItems(funds)    → katalogföremål med isUnlocked (möbellådan)
 // ============================================================================
 
 import { KC_SHOP_ITEMS, kcShopItem } from "./kc-shop-items.js";
+import { medKrockOmforsok, sammaSomNekat, SAMMA_LAGE } from "./kc-omforsok.js";
 
 function fel(kod, error) {
   return { ok: false, kod, error };
@@ -77,19 +81,26 @@ export function planDonation({ fund = null, item, amount, coins } = {}) {
 
 /**
  * De tre skrivningarna för en planerad donation. coinsFore = elevens saldo
- * EXAKT som det lästes (reglerna kräver nytt saldo == gammalt − amount).
- * fv = { serverTimestamp }.
+ * som det lästes. fv = { serverTimestamp, increment? }: med increment blir
+ * saldo/insamlat relativa (−n / +n) och räknas mot det AKTUELLA läget när
+ * skrivningen landar (så skriver korDonation); utan blir de absoluta
+ * (coinsFore − n / fundedAmount) – handbyggda skrivningar i testerna.
  */
 export function planDonationWrites({ classId, uid, itemId, plan, donationId, coinsFore, fv }) {
+  const rel = typeof fv.increment === "function";
   const fund = {
     targetPrice: plan.targetPrice,
-    fundedAmount: plan.fundedAmount,
+    fundedAmount: rel ? fv.increment(plan.amount) : plan.fundedAmount,
     isUnlocked: plan.isUnlocked,
     lastDonationId: donationId,
   };
   if (plan.isUnlocked) fund.unlockedAt = fv.serverTimestamp();
   return [
-    { path: ["studentData", uid], data: { coins: (Number(coinsFore) || 0) - plan.amount }, merge: true },
+    {
+      path: ["studentData", uid],
+      data: { coins: rel ? fv.increment(-plan.amount) : (Number(coinsFore) || 0) - plan.amount },
+      merge: true,
+    },
     {
       path: ["classCenters", classId, "donations", donationId],
       data: { uid, itemId, amount: plan.amount, at: fv.serverTimestamp() },
@@ -100,47 +111,53 @@ export function planDonationWrites({ classId, uid, itemId, plan, donationId, coi
 }
 
 /**
- * EN transaktion: läs fund + elevens saldo → planera → dra mynt, skapa
- * donationspost, öka fund. Vid samtidiga donationer kör SDK:t om callbacken
- * med färska värden (cappningen räknas om varje försök).
+ * Läs fund + elevens saldo FRÅN SERVERN → planera → EN atomär batch: dra
+ * mynt (−n), skapa donationspost, öka fund (+n). Ingen transaktion med lås:
+ * med 28 givare samma sekund köade transaktionerna på fund-dokumentets lås
+ * (1–2 s per försök i emulatorn) och gav upp. Relativa värden gör att
+ * reglerna räknar mot det aktuella läget – samtidiga givare under målet går
+ * alla igenom direkt. Hade någon hunnit före så att vår cappning/isUnlocked
+ * inte längre stämmer nekar reglerna och kc-omforsok.js läser om och
+ * cappar om (målet nått → "redan-kopt", inget dras).
+ *
+ * Samma donationId genom alla försök MED FLIT: ett nekat försök skrev
+ * ingenting, och skulle ett "misslyckat" commit ändå ha landat (nätfel)
+ * nekar reglerna (!exists) en dubblett i stället för att dra mynt två gånger.
  */
 export async function korDonation(sdk, db, { classId, uid, itemId, amount, donationId, forsok = KROCK_FORSOK } = {}) {
   const item = kcShopItem(itemId);
   if (!classId || !uid) return fel("ogiltigt-belopp", "Ingen klass eller elev.");
   if (!item) return fel("okant-foremal", "Föremålet finns inte.");
   const id = donationId || sdk.doc(sdk.collection(db, "classCenters", classId, "donations")).id;
-  for (let varv = 1; ; varv++) {
-    try {
-      return await transaktion(sdk, db, { classId, uid, itemId, amount, item, id });
-    } catch (err) {
-      // En samtidig donation hann före: reglerna (räknade mot den nyare
-      // fund-versionen) svarar permission-denied i stället för en vanlig
-      // transaktionskrock → kör om med färska värden några gånger.
-      if (err?.code !== "permission-denied" || varv >= forsok) throw err;
-      await new Promise((r) => setTimeout(r, 40 + Math.random() * 160 * varv));
-    }
-  }
+  return medKrockOmforsok((ctx, varv) => skrivDonation(sdk, db, { classId, uid, itemId, amount, item, id, ctx, varv }), { forsok });
 }
 
-/** Antal försök när en samtidig donation krockar (se korDonation). */
-export const KROCK_FORSOK = 4;
+/** Antal försök när samtidiga donationer krockar (se kc-omforsok.js). */
+export const KROCK_FORSOK = 10;
 
-function transaktion(sdk, db, { classId, uid, itemId, amount, item, id }) {
-  const fundRef = sdk.doc(db, "classCenters", classId, "fund", itemId);
-  const dataRef = sdk.doc(db, "studentData", uid);
-  return sdk.runTransaction(db, async (tx) => {
-    const fundSnap = await tx.get(fundRef);
-    const dataSnap = await tx.get(dataRef);
-    const fund = fundSnap.exists() ? fundSnap.data() : null;
-    const coinsFore = Number(dataSnap.exists() ? dataSnap.data().coins : 0) || 0;
-    const plan = planDonation({ fund, item, amount, coins: coinsFore });
-    if (!plan.ok) return plan;
-    const fv = { serverTimestamp: sdk.serverTimestamp };
-    for (const w of planDonationWrites({ classId, uid, itemId, plan, donationId: id, coinsFore, fv })) {
-      tx.set(sdk.doc(db, ...w.path), w.data, w.merge ? { merge: true } : {});
-    }
-    return { ...plan, donationId: id };
-  });
+async function skrivDonation(sdk, db, { classId, uid, itemId, amount, item, id, ctx, varv }) {
+  const las = sdk.getDocFromServer || sdk.getDoc;
+  const [fundSnap, dataSnap] = await Promise.all([
+    las(sdk.doc(db, "classCenters", classId, "fund", itemId)),
+    las(sdk.doc(db, "studentData", uid)),
+  ]);
+  const fund = fundSnap.exists() ? fundSnap.data() : null;
+  const coinsFore = Number(dataSnap.exists() ? dataSnap.data().coins : 0) || 0;
+  if (sammaSomNekat(ctx, `${fund?.lastDonationId ?? "-"}|${fund?.fundedAmount ?? 0}|${coinsFore}`)) return SAMMA_LAGE;
+  const plan = planDonation({ fund, item, amount, coins: coinsFore });
+  if (!plan.ok) {
+    // Någon annan fyllde målet medan vi försökte igen → inget dras.
+    return plan.kod === "redan-kopt" && varv > 1
+      ? fel("redan-kopt", "Klassen hann samla ihop allt – föremålet är köpt. Inga mynt drogs.")
+      : plan;
+  }
+  const fv = { serverTimestamp: sdk.serverTimestamp, increment: sdk.increment };
+  const batch = sdk.writeBatch(db);
+  for (const w of planDonationWrites({ classId, uid, itemId, plan, donationId: id, coinsFore, fv })) {
+    batch.set(sdk.doc(db, ...w.path), w.data, w.merge ? { merge: true } : {});
+  }
+  await batch.commit();
+  return { ...plan, donationId: id };
 }
 
 /**

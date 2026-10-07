@@ -8,7 +8,9 @@
 //     ändrat pris, påhittat föremål, återanvänd donationspost, annan klass,
 //     annans uid och donation utan myntavdrag nekas,
 //   • donations läses bara av lärare, fund av alla inloggade,
-//   • två samtidiga transaktioner ger rätt summa (och cappas vid målet).
+//   • två samtidiga transaktioner ger rätt summa (och cappas vid målet),
+//   • 12 samtidiga givare går ALLA igenom (#493), även förbi målet: summan
+//     exakt, aldrig över, ingen förlorar mynt; icke-medlem nekas direkt.
 // Körs av `npm run test:rules` (kräver emulatorn).
 // ============================================================================
 
@@ -16,14 +18,14 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import {
-  doc, getDoc, getDocs, setDoc, collection, writeBatch, runTransaction, serverTimestamp,
+  doc, getDoc, getDocFromServer, getDocs, setDoc, collection, writeBatch, increment, serverTimestamp,
 } from "firebase/firestore";
 import { createRulesEnv } from "./helpers/rules-env.js";
 import { korDonation, planDonation, planDonationWrites } from "../src/klasscenter/kc-fund-plan.js";
 import { kcShopItem } from "../src/klasscenter/kc-shop-items.js";
 
 let testEnv, unauth, elev, teacher;
-const sdk = { runTransaction, doc, collection, serverTimestamp };
+const sdk = { doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp };
 const fv = { serverTimestamp };
 const staty = kcShopItem("guldstaty");
 
@@ -161,7 +163,7 @@ describe("Crowdfunding: nekas", () => {
   });
 
   it("annan klass (icke-medlem) och påhittad klass nekas – klient och regler", async () => {
-    await assertFails(donera("elev2", 100));
+    await assert.rejects(donera("elev2", 100), (e) => e.code === "permission-denied" && e.krock === false);
     await assertFails(commit(elev("elev2"), plan({ uid: "elev2" })));
     await assertFails(commit(elev("elev1"), plan({ classId: "finnsinte" })));
     await assertFails(commit(unauth(), plan()));
@@ -202,5 +204,42 @@ describe("Crowdfunding: samtidighet", () => {
     const c1 = (await las("studentData", "elev1")).coins;
     const c3 = (await las("studentData", "elev3")).coins;
     assert.equal(2000 - c1 - c3, 200); // inget gick förlorat
+  });
+
+  // #493 (QA F1): 5–10 samtidiga gav permission-denied efter 4 försök.
+  const MANGA = Array.from({ length: 12 }, (_, i) => `m${String(i + 1).padStart(2, "0")}`);
+  async function mangaElever() {
+    await seed(async (db) => {
+      await setDoc(doc(db, "classes", "6a"), { name: "6A", studentIds: ["elev1", "elev3", ...MANGA] });
+      for (const uid of MANGA) await setDoc(doc(db, "studentData", uid), { coins: 1000 });
+    });
+  }
+  async function dragnaMynt() {
+    let s = 0;
+    for (const uid of MANGA) s += 1000 - (await las("studentData", uid)).coins;
+    return s;
+  }
+
+  it("12 samtidiga donationer går alla igenom och summan stämmer exakt", async () => {
+    await mangaElever();
+    const res = await Promise.all(MANGA.map((uid) => donera(uid, 100)));
+    assert.deepEqual(res.filter((r) => !r.ok), []);
+    const f = await las("classCenters", "6a", "fund", "guldstaty");
+    assert.equal(f.fundedAmount, 1200);
+    assert.equal(await dragnaMynt(), 1200);
+  });
+
+  it("12 samtidiga förbi målet: exakt målet, resten 'redan-kopt' utan avdrag, ingen nekas", async () => {
+    await mangaElever();
+    await fundLage(4000);
+    const res = await Promise.all(MANGA.map((uid) => donera(uid, 150)));
+    assert.deepEqual(res.filter((r) => !r.ok && r.kod !== "redan-kopt"), []);
+    const f = await las("classCenters", "6a", "fund", "guldstaty");
+    assert.equal(f.fundedAmount, 5000);
+    assert.equal(f.isUnlocked, true);
+    const okSumma = res.filter((r) => r.ok).reduce((s, r) => s + r.amount, 0);
+    assert.equal(okSumma, 1000);
+    assert.equal(await dragnaMynt(), 1000); // ingen förlorade mynt
+    assert.equal(res.filter((r) => r.isUnlocked).length, 1);
   });
 });

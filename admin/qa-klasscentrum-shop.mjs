@@ -18,7 +18,8 @@ import admin from "firebase-admin";
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import {
-  collection, connectFirestoreEmulator, doc, getFirestore, onSnapshot, runTransaction, serverTimestamp,
+  collection, connectFirestoreEmulator, doc, getDocFromServer, getFirestore, increment, onSnapshot,
+  serverTimestamp, writeBatch,
 } from "firebase/firestore";
 import { korDonation, normaliseraFunds } from "../src/klasscenter/kc-fund-plan.js";
 
@@ -71,7 +72,7 @@ async function somElev(uid) {
 
 async function donera(uid, itemId, n) {
   const db = await somElev(uid);
-  const sdk = { runTransaction, doc, collection, serverTimestamp };
+  const sdk = { doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp };
   const res = await korDonation(sdk, db, { classId: KLASS, uid, itemId, amount: Number(n) });
   console.log(JSON.stringify(res));
 }

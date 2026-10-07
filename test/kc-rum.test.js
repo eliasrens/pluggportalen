@@ -143,6 +143,7 @@ describe("historiken", () => {
     const post = { slot: 4, version: 14, savedBy: "e1", savedAt: new Date(2026, 9, 7, 9, 5), placedItems: { a: {}, b: {} } };
     const r = historikRadHtml(post, { nu });
     assert.match(r, /data-slot="4"/);
+    assert.match(r, /data-version="14"/); // O1 (#493): Återställ skickar versionen som visades
     assert.match(r, /2 saker/);
     assert.doesNotMatch(r, /·/);
     assert.match(historikRadHtml(post, { nu, vem: "Alva" }), /2 saker · Alva/);

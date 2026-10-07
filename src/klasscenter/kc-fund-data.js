@@ -11,7 +11,8 @@
 //
 // API
 //   donate(classId, itemId, amount)   → Promise<Plan & { donationId } | Fel>
-//       (aldrig kastande; Fel.kod "nekad" om reglerna/nätet sa nej)
+//       (aldrig kastande; Fel.kod "nekad" om reglerna/nätet sa nej –
+//       samtidiga givare körs om automatiskt, se kc-omforsok.js)
 //   getFunds(classId)                 → Promise<{ [itemId]: Fund }>
 //   subscribeFunds(classId, cb, onErr?) → unsubscribe; cb({ [itemId]: Fund })
 //   listDonations(classId)            → Promise<Donation[]> (lärare; nyast först)
@@ -22,14 +23,14 @@
 
 import { db } from "../firebase-config.js";
 import {
-  collection, doc, getDocs, onSnapshot, runTransaction, serverTimestamp,
+  collection, doc, getDocFromServer, getDocs, increment, onSnapshot, serverTimestamp, writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId, invalidateStudentData } from "../data.js";
 import { korDonation, normaliseraFunds, unlockedItems } from "./kc-fund-plan.js";
 
 export { unlockedItems };
 
-const sdk = { runTransaction, doc, collection, serverTimestamp };
+const sdk = { doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp };
 
 function fundCol(classId) {
   return collection(db, "classCenters", classId, "fund");
@@ -37,7 +38,7 @@ function fundCol(classId) {
 
 /**
  * Elevens donation till ett föremål. Beloppet cappas till det som saknas och
- * till saldot (resultatets `amount`/`cappat`). EN transaktion: mynt dras,
+ * till saldot (resultatets `amount`/`cappat`). EN batch: mynt dras,
  * donationspost skapas och fund ökar – eller ingenting.
  */
 export async function donate(classId, itemId, amount) {
@@ -48,8 +49,16 @@ export async function donate(classId, itemId, amount) {
     return res;
   } catch (err) {
     console.warn("[klasscenter] donation nekad", classId, itemId, err?.code || err);
-    return { ok: false, kod: "nekad", error: "Donationen gick inte igenom. Försök igen." };
+    return { ok: false, kod: "nekad", error: nekadText(err) };
   }
+}
+
+// err.krock (kc-omforsok.js): false = reglerna sa nej på riktigt, true =
+// för många samtidiga givare även efter alla omförsök.
+function nekadText(err) {
+  if (err?.krock === false) return "Donationen nekades – du kan bara skänka till din egen klass.";
+  if (err?.krock === true) return "Många skänker just nu – vänta en liten stund och försök igen.";
+  return "Donationen gick inte igenom. Försök igen.";
 }
 
 /** Alla föremåls insamling för klassen (hela katalogen, saknat = 0). */

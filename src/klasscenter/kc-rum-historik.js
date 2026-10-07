@@ -49,7 +49,7 @@ export function historikRadHtml(post, { aktuell = false, vem = "", nu } = {}) {
       <span>${saker}${vem ? ` · ${esc(vem)}` : ""}</span></span>
     ${aktuell
       ? `<span class="kc-historik-nu">Visas nu</span>`
-      : `<button type="button" class="varld-knapp kc-historik-btn" data-slot="${post.slot}">↩ <span>Återställ</span></button>`}
+      : `<button type="button" class="varld-knapp kc-historik-btn" data-slot="${post.slot}" data-version="${post.version}">↩ <span>Återställ</span></button>`}
   </li>`;
 }
 

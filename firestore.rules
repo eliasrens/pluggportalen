@@ -624,7 +624,8 @@ service cloud.firestore {
 
       // ----------------------------------------------------------------
       // Crowdfunding (#486, epic #475). Skrivplan: src/klasscenter/
-      // kc-fund-plan.js (korDonation = EN transaktion med tre skrivningar):
+      // kc-fund-plan.js (korDonation = EN batch med tre skrivningar, coins och
+      // fundedAmount som increment → räknas mot aktuellt läge, #493):
       //   studentData/{uid}.coins − n, donations/{nytt id} {uid,itemId,amount,at},
       //   fund/{itemId} {targetPrice, fundedAmount, isUnlocked, unlockedAt?,
       //   lastDonationId}.

@@ -11,14 +11,14 @@ Skärmdumpar: `docs/qa-klasscentret-2/`.
 |---|----------|----------|
 | 1 | Boot + bootgraf | ✅ BFS från `src/app.js` = **110 filer, identisk med epic 1 (`b70d84a`)**, inga `klasscenter/*`; kall boot 118 anrop alla 200, inloggad 134 alla 200, `kc-*` laddas först vid behov; 0 konsolfel |
 | 2 | Shop "Klasscentrum" + crowdfunding | ✅ 8 föremål 2 000–10 000 med konst; A donerar 100 → "100 / 5 000"; B (annan session) ser det i realtid och tvärtom; cappning mot saldo och mot det som saknas; 100 % → "Köpt", inga fler donationer, i möbellådan |
-| 3 | Samtidighet | ✅ summan stämmer **exakt** och aldrig över mål · ⚠️ **F1** många samtidiga donationer nekas (eleven får "Försök igen") |
+| 3 | Samtidighet | ✅ summan stämmer **exakt** och aldrig över mål · ✅ **F1 åtgärdat i #493**: 28 samtidiga → 0 nekade |
 | 4 | Anonymt | ✅ elev kan inte läsa `donations` (regel) och UI visar bara totalsumman + "du har bidragit"; läraren ser vem som donerat |
 | 5 | Rummet | ✅ klick i byn öppnar rummet; möbellåda → placera → dra → Spara; annan elev och gäst ser samma layout; två samtidiga sparningar → två versioner, ingen sammanslagning; Historik/Återställ (elev och lärare) |
 | 6 | Behörighet | ✅ lärare bockar ur → inga verktyg, drag gör inget, regeln nekar spara/återställa, donation fungerar; annan klass: inga verktyg + regeln nekar |
 | 7 | Regression | ✅ Mitt rum (placera, dra, autospar, omladdning, extra rum), vanliga shoppen (Pall + Extra rum), byn + mätaren (live Nivå 6 → 7) |
 | 8 | Testsviten + 400-raderskap | ✅ **1065/1065** enhet + **181/181** regler + **5/5** e2e-auth; inga nya filer > 400 (se O3) |
 
-**Buggar: 1 i appen (F1, medel – bör bedömas innan live).** F2 var ett fel i testdatan och är rättat.
+**Buggar: 1 i appen (F1, medel) – åtgärdat i #493.** F2 var ett fel i testdatan och är rättat. O1 är också åtgärdat i #493.
 
 ## Miljö och recept
 
@@ -65,7 +65,27 @@ Lärarvyn (08) visar efteråt: fana "Ebbe 1 800 · Alva 200", guldstaty "Alva 2 
 
 Dragna mynt = summan av alla poster (3 500 = 3 500) – nekade donationer drar ingenting.
 
-### F1 (medel): samtidiga donationer nekas ofta – eleven får "Försök igen"
+### F1 (medel): samtidiga donationer nekas ofta – eleven får "Försök igen" – ✅ Åtgärdat i #493
+
+> **Åtgärdat i #493.** Orsaken låg inte i ett återanvänt `donationId` eller en läsning utanför transaktionen. Emulatorn räknar reglerna mot det **senast sparade** `fund` när commit kommer, inte mot det transaktionen läste. Om en klasskamrat hann före stämmer inte "ökar exakt `amount`" längre, och svaret blir `permission-denied` (som SDK:t inte försöker igen). Dessutom köade transaktionerna på `fund`-dokumentets lås, 1–2 s per försök. Med 28 givare hann bara ~17 igenom på 12 försök.
+>
+> **Ny lösning:** `korDonation` läser `fund` och saldot från servern och skriver sedan **en atomär batch** utan lås. `coins` blir `increment(−n)` och `fundedAmount` `increment(+n)`, så reglerna räknar mot det aktuella läget och samtidiga givare under målet går alla igenom direkt. Reglerna är oförändrade och garanterar fortfarande exakt summa, aldrig över målet och att saldot inte går under 0. Om någon hann fylla målet nekar reglerna, och då läser `kc-omforsok.js` om, cappar om och försöker igen: upp till 10 gånger, med exponentiell backoff och jitter. Är målet nått blir svaret "redan köpt" utan att några mynt dras. Om ett nekat försök följs av ett försök som läser **exakt samma läge** är det ett verkligt nej (t.ex. inte klassmedlem). Då slutar den direkt, och eleven får "du kan bara skänka till din egen klass" i stället för "försök igen". Layouten använder samma omförsök (8 försök, transaktionen behålls eftersom version + 1 kräver det).
+>
+> **Mätvärden efter #493** (samma skript, emulatorn):
+>
+> | Körning | Lyckade | Nekade | Tid | Kontroller |
+> |---------|---------|--------|-----|------------|
+> | 5 × 1 | 5 + 5 | 0 | 0,2–0,7 s | ✅ |
+> | 10 × 1 akvarium | 10 | **0** | 0,2 s | ✅ |
+> | 10 × 1 troféhylla (förbi målet) | 9 (1 cappad) | 1 `redan-kopt` (inget dras) | 0,7 s | ✅ köpt, exakt 2 500 |
+> | **28 × 1 akvarium** | **28** | **0** | 0,4 s | ✅ |
+> | 28 × 1 troféhylla (förbi målet) | 9 (1 cappad) | 19 `redan-kopt` (inget dras) | 7–10 s | ✅ köpt, exakt 2 500 |
+> | 10 × 3 akvarium | 30 | 0 | 0,3 s | ✅ |
+> | 10 × 3 troféhylla | 9 | 9 `redan-kopt`, 12 `for-lite-mynt` | 7 s | ✅ |
+>
+> 0 `permission-denied` i alla körningar, och dragna mynt = summan av posterna i alla. Det som fortfarande är långsamt är när många tävlar om de sista mynten till ett mål. I emulatorn tar ett **nekat** commit 1–6 s (ett godkänt tar ~0,1 s), så "Köpt"-svaret kan dröja några sekunder för dem som kom för sent. I riktiga Firestore bör ett nekat commit gå snabbare, men det kan inte verifieras utan deploy. Automatiskt test: `test/firestore-rules-klasscenter-fund.test.js` ("12 samtidiga …", två fall) och `test/kc-omforsok.test.js`.
+
+**Ursprunglig rapport (#492):**
 
 - **Repro:** `node admin/qa-klasscentret-2-kontroll.mjs samtidighet 5 1` (5 elever donerar samma sekund) → ungefär 1 av 5 nekas. Med 10 samtidiga nekas ungefär hälften. I appen syns det som toasten "Donationen gick inte igenom. Försök igen." (`kc-shop-vy.js:246`).
 - **Orsak:** `korDonation` (`src/klasscenter/kc-fund-plan.js:107`) försöker högst `KROCK_FORSOK = 4` gånger med 40–200 ms × varv backoff. Emulatorn svarar `permission-denied` (reglerna räknas mot en nyare `fund`) i stället för en vanlig transaktionskrock. När många skriver samtidigt räcker fyra försök inte.
@@ -125,11 +145,12 @@ Klass `qa-kc` (kc01 "Noah", kc02 m.fl.).
 - Enhetstester (86 filer, utan regler/e2e): **1065/1065**.
 - Regeltester (13 filer, alla listade i `npm run test:rules`), mot emulatorn: **181/181**.
 - e2e-auth (`test/e2e-auth.test.mjs`, Auth- och Firestore-emulatorn): **5/5**.
+- **Efter #493:** enhet **1075/1075** (87 filer, ny `test/kc-omforsok.test.js`), regler **185/185** (+4: 12 samtidiga ×2, icke-medlem/spärrad slutar direkt, O1), e2e-auth **5/5**. Bootgrafen oförändrad (den nya `kc-omforsok.js` importeras bara av de dynamiska `kc-fund-plan.js`/`kc-layout-plan.js`). En körning hade ett slumpfel i `adventure-flee.test.js` ("pickRespawn …"), som inte har med detta att göra. Testet var grönt 5/5 vid omkörning.
 - **Ingen ny fil > 400 rader.** Största nya är `kc-layout-plan.js` (297); `pages-shop.js` 398.
 
 ## Observationer (inte buggar)
 
-- **O1 Lärarens historiklista uppdateras inte live.** Återställ pekar på en *slot* (`version % 10`). Om listan är gammal och ringbufferten hunnit skriva över slotten (≥ 10 nya sparningar sedan listan ritades) återställs en annan version än den läraren klickade på. Låg risk. Kan lösas med `forvantadVersion` eller genom att slotten kontrolleras mot den version som visades.
+- **O1 – ✅ Åtgärdat i #493.** Återställ skickar nu med versionen som listan visade (`historikVersion`, både elevens rum och lärarsidan). Innehåller slotten en annan version nekas återställningen ("Historiken har ändrats – listan laddas om."), ingenting skrivs och listan ritas om. Test: `test/kc-layout-plan.test.js` + `test/firestore-rules-klasscenter-layout.test.js` ("O1: …"). Ursprungligt fynd: **Lärarens historiklista uppdateras inte live.** Återställ pekar på en *slot* (`version % 10`). Om listan är gammal och ringbufferten hunnit skriva över slotten (≥ 10 nya sparningar sedan listan ritades) återställs en annan version än den läraren klickade på. Låg risk. Kan lösas med `forvantadVersion` eller genom att slotten kontrolleras mot den version som visades.
 - **O2** Rummets status "✓ Sparat!" står kvar när en annan elev sparar och rummet byts live. Kosmetiskt.
 - **O3 Gamla filer > 400**: `pages-varld.js` växte 1 065 → 1 068 och `styles.css` 6 967 → 6 986 (båda var redan långt över 400). `varld-rum.js` krympte 869 → 788. Inga nya överträdelser.
 - **O4** En gång syntes en kvarhängande `confirm` ("Återställ rummet …") i fliken efter att läraren loggat ut. Det gick inte att återskapa: två nya försök gav exakt en bekräftelse per klick. Troligen en artefakt av testverktygets dialoghantering.

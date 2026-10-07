@@ -865,7 +865,7 @@ rad i båda + rules-deploy (`test/kc-fund-plan.test.js` failar om de glider isä
 | `fundedAmount` | int | insamlat, 0 < … ≤ `targetPrice` |
 | `isUnlocked` | bool | `fundedAmount == targetPrice` (köpt) |
 | `unlockedAt` | timestamp | serverns tid när målet nåddes (bara när köpt) |
-| `lastDonationId` | string | donationsposten som skrevs i samma transaktion |
+| `lastDonationId` | string | donationsposten som skrevs i samma batch |
 
 Läses av alla inloggade (realtid "150 / 5000"). Dokumentet skapas vid första
 donationen – saknat dokument = 0 insamlat (`normaliseraFunds`).
@@ -885,14 +885,20 @@ av posterna). **Läses bara av lärare** – för klassen är donationerna anony
 `contributions.{uid}` är läsbart för alla inloggade.
 
 **Donationen** (`korDonation` i `src/klasscenter/kc-fund-plan.js`, via
-`donate(classId, itemId, amount)` i den dynamiska `kc-fund-data.js`) = EN
-transaktion: läs `fund` + `studentData.coins` → `planDonation` cappar beloppet
+`donate(classId, itemId, amount)` i den dynamiska `kc-fund-data.js`): läs
+`fund` + `studentData.coins` från servern → `planDonation` cappar beloppet
 till min(begärt, det som saknas, saldot) (heltal ≥ 1; överskottet dras aldrig)
-→ skriv `studentData.coins − n`, ny donationspost, `fund` (absoluta värden).
-Samtidiga donationer: transaktionen körs om med färska värden; reglerna kan
-svara `permission-denied` i stället för en vanlig krock (emulatorn gör det),
-så `korDonation` försöker upp till 4 gånger. Fel: `redan-kopt`,
-`for-lite-mynt`, `ogiltigt-belopp`, `okant-foremal`, `nekad`.
+→ EN atomär batch: `coins` = `increment(−n)`, ny donationspost, `fund` med
+`fundedAmount` = `increment(+n)` (#493). Ingen transaktion: med en hel klass
+samma sekund köade transaktionerna på `fund`-låset och gav upp. Relativa
+värden räknas av reglerna mot det AKTUELLA läget → samtidiga givare under
+målet går alla igenom direkt. Hann någon före så att cappningen/`isUnlocked`
+inte längre stämmer nekar reglerna (`permission-denied`), och
+`kc-omforsok.js` läser om och cappar om (upp till 10 försök, exponentiell
+backoff med jitter; målet nått → `redan-kopt`, inget dras). Nekas ett
+försök och nästa läser exakt samma läge är det ett verkligt nej (t.ex. ej
+klassmedlem) → slutar direkt. Fel: `redan-kopt`, `for-lite-mynt`,
+`ogiltigt-belopp`, `okant-foremal`, `nekad`.
 
 **Regler (firestore.rules "KLASSCENTRET")**: `fund` skrivs bara av
 klassmedlem och bara ihop med en NY donationspost (`lastDonationId` byts,
@@ -948,15 +954,19 @@ dynamiskt): `src/klasscenter/kc-layout-data.js` – `subscribeLayout`,
 **Ringbuffert:** varje "Spara" = EN transaktion (`korSparning`) som läser
 `current` och skriver `current` (version + 1) och slot `version % 10` – alltid
 de 10 senaste, inga raderingar (version 11 skriver över slot 1, version 20
-slot 0). **"Återställ"** (`restoreLayout(classId, slot)`) läser sloten i
-samma transaktion och skriver den som en NY version → återställningen hamnar
+slot 0). **"Återställ"** (`restoreLayout(classId, slot, { historikVersion })`)
+läser sloten i samma transaktion och skriver den som en NY version
+(`historikVersion` = versionen som listan visade; har ringbufferten skrivit
+över sloten sedan dess → `historik-andrad`, inget skrivs, listan laddas om –
+#493) → återställningen hamnar
 själv i historiken och kan ångras. Föremål som inte finns i möbellådan tas
 bort vid återställning. Båda skrivningarna är `set` UTAN merge – annars
 slår Firestore ihop den nästlade `placedItems`-kartan med den gamla.
 
 **Samtidighet (BESLUT: senaste vinner, med historik):** sparar två samtidigt
 körs den ena transaktionen om med färska värden (även när reglerna svarar
-`permission-denied` i stället för en vanlig krock – upp till 4 försök) → två
+`permission-denied` i stället för en vanlig krock – upp till 8 försök via
+`kc-omforsok.js`; oförändrad version + nekad = verkligt nej, slutar direkt) → två
 hela versioner i följd, båda i historiken, den senaste syns. Aldrig en
 blandad layout (hela kartan ersätts, reglerna kräver version = gammal + 1).
 Vill rum-UI:t (sub-issue E) hellre varna skickas `{ forvantadVersion }` (den
