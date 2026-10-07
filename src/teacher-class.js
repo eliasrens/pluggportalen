@@ -1,8 +1,9 @@
 // ============================================================================
 // Pluggporten – lärarsidan: klassens framstegsmatris (teacher-class.js)
 // ----------------------------------------------------------------------------
-// Framstegsstatistiken för EN klass: en matris med elever (rader) mot
-// arbetsområden (kolumner) för ett valt ämne. Varje cell visar intjänade
+// Framstegsstatistiken för EN klass. Underflikar ur STATS_TABS: Ämnen (matrisen
+// nedan), Per område (#446, teacher-plugga.js) och Läsresan (#402). Matrisen:
+// elever (rader) mot arbetsområden (kolumner) för ett valt ämne. Varje cell visar intjänade
 // stjärnor / möjliga stjärnor för området, och en summakolumn visar total
 // progress per elev så man snabbt ser vem som ligger efter/före.
 //
@@ -13,7 +14,8 @@
 // som får klassens elever + ämnen + en loadAreas-hämtare och ritar in matrisen i
 // ett värd-element. Läs-endast; ingen data ändras här.
 //
-// Progress läses per elev via data.getProgress(studentId). Formen är:
+// Progress läses per elev via data.getProgress(studentId) – EN gång per klass,
+// delad mellan underflikarna i STATS_TABS (#446). Formen är:
 //   progress[areaId][gamemode] = { completed, bestScore, stars, lastPlayed }
 // (se data.js). Max 3 stjärnor per gamemode. Ett områdes möjliga stjärnor =
 // antal tillgängliga gamemodes (utifrån quiz/pairs-innehåll) × 3.
@@ -57,47 +59,72 @@ function cellHtml(earned, maxStars) {
  * }} opts
  */
 export async function renderClassStats(ctx, host, opts) {
-  // Två flikar (issue #402): ämnenas stjärnmatris och Läsresan. Läsresans
-  // moduler laddas DYNAMISKT vid första klick – aldrig i bootgrafen (#271).
+  // Underflikar ur STATS_TABS (#402 Läsresan, #446 Per område). Elevernas
+  // progress läses EN gång och delas mellan flikarna (kvot-regeln #114).
+  let progressPromise = null;
+  const loadProgress = () => (progressPromise ||= loadClassProgress(opts.students));
+  const tabOpts = { ...opts, loadProgress };
   const view = el(`<div class="stats-tabs-wrap">
-    <div class="stats-tabs" role="tablist" aria-label="Statistik">
-      <button type="button" class="stats-tab" role="tab" data-tab="amnen">${icon("chart", 16)}<span>Ämnen</span></button>
-      <button type="button" class="stats-tab" role="tab" data-tab="lasresan">${icon("book", 16)}<span>Läsresan</span></button>
-    </div>
-    <div class="stats-pane" data-pane="amnen"></div>
-    <div class="stats-pane" data-pane="lasresan" hidden></div>
+    <div class="stats-tabs" role="tablist" aria-label="Statistik">${STATS_TABS.map(
+      (t) => `<button type="button" class="stats-tab" role="tab" data-tab="${t.key}">${icon(t.icon, 16)}<span>${esc(t.label)}</span></button>`
+    ).join("")}</div>
+    ${STATS_TABS.map((t) => `<div class="stats-pane" data-pane="${t.key}" hidden></div>`).join("")}
   </div>`);
   host.replaceChildren(view);
   const rendered = new Set();
-  const show = (tab) => {
-    lastStatsTab = tab;
+  const show = (key) => {
+    const tab = STATS_TABS.find((t) => t.key === key) || STATS_TABS[0];
+    lastStatsTab = tab.key;
     view.querySelectorAll(".stats-tab").forEach((b) => {
-      const on = b.dataset.tab === tab;
+      const on = b.dataset.tab === tab.key;
       b.classList.toggle("active", on);
       b.setAttribute("aria-selected", on ? "true" : "false");
     });
-    view.querySelectorAll(".stats-pane").forEach((p) => (p.hidden = p.dataset.pane !== tab));
-    if (rendered.has(tab)) return;
-    rendered.add(tab);
-    const pane = view.querySelector(`[data-pane="${tab}"]`);
-    if (tab === "amnen") return renderSubjectStats(ctx, pane, opts);
-    pane.replaceChildren(el(`<div class="spinner">Laddar Läsresan…</div>`));
-    return import("./teacher-lasresan.js")
-      .then((m) => m.renderClassLasresan(ctx, pane, { students: opts.students }))
+    view.querySelectorAll(".stats-pane").forEach((p) => (p.hidden = p.dataset.pane !== tab.key));
+    if (rendered.has(tab.key)) return;
+    rendered.add(tab.key);
+    const pane = view.querySelector(`[data-pane="${tab.key}"]`);
+    if (!tab.lazy) return tab.render(ctx, pane, tabOpts);
+    pane.replaceChildren(el(`<div class="spinner">Laddar ${esc(tab.what)}…</div>`));
+    return Promise.resolve()
+      .then(() => tab.render(ctx, pane, tabOpts))
       .catch((err) => {
-        rendered.delete(tab);
-        pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda Läsresan: ${esc(err.message)}</div>`));
+        rendered.delete(tab.key);
+        pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda ${esc(tab.what)}: ${esc(err.message)}</div>`));
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
   await show(lastStatsTab);
 }
 
+/** Elev-id → progress för klassens elever (en läsning per elev; fel → {}). */
+async function loadClassProgress(students) {
+  const list = students || [];
+  const results = await Promise.all(list.map((s) => data.getProgress(s.id).catch(() => ({}))));
+  return new Map(list.map((s, i) => [s.id, results[i] || {}]));
+}
+
+// Statistikens underflikar. `lazy` = modulen laddas med import() vid första
+// klick – aldrig i bootgrafen (#271). En ny vy = en rad här.
+const STATS_TABS = [
+  { key: "amnen", label: "Ämnen", icon: "chart", render: (ctx, pane, o) => renderSubjectStats(ctx, pane, o) },
+  {
+    key: "omraden", label: "Per område", icon: "pin", what: "resultat per område", lazy: true,
+    // #446: klasstabell per ämne/område + djupdykning per frågekategori.
+    render: async (ctx, pane, o) => (await import("./teacher-plugga.js")).renderClassPlugga(ctx, pane, o),
+  },
+  {
+    key: "lasresan", label: "Läsresan", icon: "book", what: "Läsresan", lazy: true,
+    render: async (ctx, pane, o) =>
+      (await import("./teacher-lasresan.js")).renderClassLasresan(ctx, pane, { students: o.students }),
+  },
+];
+
 // Senast valda statistikflik (delas mellan klasskort under sessionen).
 let lastStatsTab = "amnen";
 
 /** Ämnesfliken: klassens stjärnmatris (elever × arbetsområden). */
-async function renderSubjectStats(ctx, host, { students, subjects, studentById, loadAreas }) {
+async function renderSubjectStats(ctx, host, { students, subjects, studentById, loadAreas, loadProgress }) {
   students = (students || [])
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
@@ -146,13 +173,10 @@ async function renderSubjectStats(ctx, host, { students, subjects, studentById, 
     .join("");
   host.replaceChildren(view);
 
-  // Ladda klassens elevers progress EN gång (delas mellan ämnesbyten).
+  // Klassens progress (EN läsning per elev, delad med övriga underflikar).
   let progressByStudent;
   try {
-    const results = await Promise.all(
-      students.map((s) => data.getProgress(s.id).catch(() => ({})))
-    );
-    progressByStudent = new Map(students.map((s, i) => [s.id, results[i] || {}]));
+    progressByStudent = await loadProgress();
   } catch (err) {
     matrixEl.replaceChildren(
       el(`<div class="msg error">Kunde inte ladda elevernas framsteg: ${esc(err.message)}</div>`)
