@@ -35,6 +35,21 @@ export function klasscenterSpan(antalHus) {
   return antalHus >= 8 ? 3 : 2;
 }
 
+/** Max elevhus på VARJE sida om Klasscentret i översta raden (Elias 2026-10-07). */
+export const KC_HUS_PER_SIDA = 2;
+
+/**
+ * Översta radens fördelning runt Klasscentret: hus, hus, CENTRET, hus, hus.
+ * Färre än 4 elever fördelas så jämnt det går – udda extra hus till vänster
+ * (1 → ett hus till vänster, 3 → 2 vänster + 1 höger).
+ * @returns {{vanster:number, hoger:number, sida:number}} sida = platser per sida
+ */
+export function klasscenterRad0(antalHus) {
+  const k = Math.min(KC_HUS_PER_SIDA * 2, Math.max(0, antalHus));
+  const vanster = Math.ceil(k / 2);
+  return { vanster, hoger: k - vanster, sida: vanster };
+}
+
 /** Extra höjd ovanför första raden (× radHojd) när byn har ett Klasscenter. */
 const KC_EXTRA = 0.9;
 
@@ -45,10 +60,11 @@ const KC_EXTRA = 0.9;
  * och radhöjd/väghöjd krymper så alla rader ryms i lagret. Små byar centreras
  * vertikalt via toppY i stället för att klänga i överkanten.
  *
- * Med `klasscenter: true` (#480) räknas byn i PLATSER: Klasscentret tar de
- * första klasscenterSpan() platserna i slingan och eleverna fyller resten, så
- * ingen elev försvinner – de skjuts bara fram. Första raden får dessutom extra
- * höjd ovanför (kcExtra) så den högre byggnaden + mätaren ryms under himlen.
+ * Med `klasscenter: true` (#480) står Klasscentret i MITTEN av översta raden
+ * (klasscenterSpan() platser breda) med upp till 2 elevhus på varje sida
+ * (klasscenterRad0); resten av eleverna fyller raderna under som vanligt, så
+ * ingen elev försvinner. husPerRad höjs vid behov så översta raden ryms, och
+ * första raden får extra höjd ovanför (kcExtra) för byggnaden + mätaren.
  *
  * @param {number} antalHus
  * @param {{klasscenter?: boolean}} [o]
@@ -59,8 +75,14 @@ export function byParams(antalHus, { klasscenter = false } = {}) {
   const kcSpan = klasscenter ? klasscenterSpan(Math.max(0, antalHus)) : 0;
   const antal = klasscenter ? Math.max(0, antalHus) : Math.max(1, antalHus);
   const platser = antal + kcSpan;
-  const husPerRad = Math.min(8, Math.max(3, Math.ceil(Math.sqrt(platser * 1.9))));
-  const rader = Math.ceil(platser / husPerRad);
+  let husPerRad = Math.min(8, Math.max(3, Math.ceil(Math.sqrt(platser * 1.9))));
+  let rader = Math.ceil(platser / husPerRad);
+  if (kcSpan) {
+    // Översta raden: sida + centret + sida (max 2 + 3 + 2 = 7 ≤ 8).
+    const { vanster, hoger, sida } = klasscenterRad0(antal);
+    husPerRad = Math.max(husPerRad, sida * 2 + kcSpan);
+    rader = 1 + Math.ceil((antal - vanster - hoger) / husPerRad);
+  }
   // Vertikalt utrymme 8–92 % delas på raderna; stora hus (radHojd) kapas vid
   // 26 % så en enda rad inte blir jättehus, och resten centreras.
   // Klasscentrets extrahöjd (KC_EXTRA × radHojd ≈ 0,72 cell) räknas in i delningen.
@@ -86,7 +108,7 @@ export function byParams(antalHus, { klasscenter = false } = {}) {
  * @param {number} [o.margX]     marginal vänster/höger i % (default 8)
  * @param {number} [o.toppY]     var första radens tomter börjar i % (default 20)
  * @param {number} [o.radHojd]   tomthöjd per rad i % (default 26)
- * @param {number} [o.kcSpan]    Klasscentrets tomtplatser först i slingan (0 = inget)
+ * @param {number} [o.kcSpan]    Klasscentrets bredd i tomtplatser, mitt i översta raden (0 = inget)
  * @param {number} [o.kcExtra]   extra höjd ovanför första raden för centret (i %)
  * @returns {{
  *   tomter: Array<{x:number, y:number, skala:number, rad:number, kol:number}>,
@@ -106,7 +128,7 @@ export function byParams(antalHus, { klasscenter = false } = {}) {
  *   rekommenderade scale-faktorn för hus + avatar på by-nivån (1/BY_ZOOM).
  *   vagY(rad, x) ger vägens mittlinje-y vid x för radens vägsträcka – samma
  *   slingerkurva som tomternas y följer, så väg och dekor kan räknas exakt.
- *   klasscenter (#480): centrets ruta i % – x = mitten av dess platser, botten
+ *   klasscenter (#480): centrets ruta i % – x = 50 (mitt i översta raden), botten
  *   = samma marklinje som radens hus, hojd = radHojd + kcExtra·0,8 (resten av
  *   extrahöjden är luft för mätaren ovanför). tomter innehåller BARA elevhus,
  *   så tomter[i] ↔ elev i gäller fortfarande.
@@ -114,9 +136,14 @@ export function byParams(antalHus, { klasscenter = false } = {}) {
 export function byLayout({
   antalHus = 8, husPerRad = 4, vagHojd = 7, margX = 8, toppY = 20, radHojd = 26, kcSpan = 0, kcExtra = 0,
 } = {}) {
-  // Platser = Klasscentrets platser (först i slingan) + en per elevhus.
-  const platser = Math.max(0, antalHus) + kcSpan;
-  const rader = Math.max(1, Math.ceil(platser / husPerRad));
+  // Med Klasscentret: översta raden = vänster-hus, centret, höger-hus (centrerat);
+  // övriga elever fyller raderna under. Utan: antalHus platser rad för rad.
+  const antal = Math.max(0, antalHus);
+  const rad0 = kcSpan ? klasscenterRad0(antal) : null;
+  const iRad0 = rad0 ? rad0.vanster + rad0.hoger : 0;
+  const rader = kcSpan
+    ? 1 + Math.ceil((antal - iRad0) / husPerRad)
+    : Math.max(1, Math.ceil(antal / husPerRad));
 
   // Slingerkurvan: en mjuk dubbelsinus i y som både husrad och väg följer.
   // Amplituden hålls under halva vägbredds-marginalen mellan raderna så en
@@ -136,27 +163,37 @@ export function byLayout({
   const tomter = [];
   const vagar = [];
   let klasscenter = null;
+  const tomt = (x, rad, kol) => ({ x, y: basY(rad) + sling(x, rad), skala: 1 / BY_ZOOM, rad, kol });
+  if (rad0) {
+    // Översta raden: centret mitt i lagret, husen tätt intill på var sida.
+    // Slingans ordning (vänster→höger) = vänster-husen, centret, höger-husen.
+    const cx = 50;
+    const kant = (cellW * kcSpan) / 2;
+    for (let j = 0; j < rad0.vanster; j++) {
+      tomter.push(tomt(cx - kant - cellW * (rad0.vanster - j - 0.5), 0, j));
+    }
+    for (let j = 0; j < rad0.hoger; j++) {
+      tomter.push(tomt(cx + kant + cellW * (j + 0.5), 0, rad0.vanster + 1 + j));
+    }
+    const botten = basY(0) + sling(cx, 0) + radHojd / 2;
+    const hojd = radHojd + kcExtra * 0.8;
+    klasscenter = {
+      x: cx, y: botten - hojd / 2, bredd: cellW * kcSpan, hojd,
+      topp: botten - hojd, botten, span: kcSpan, rad: 0,
+    };
+  }
   for (let rad = 0; rad < rader; rad++) {
-    const paRad = Math.min(husPerRad, platser - rad * husPerRad);
+    if (rad0 && rad === 0) {
+      vagar.push({ rad, y: basY(rad) + radHojd * 0.55, hojd: vagHojd });
+      continue;
+    }
+    // Index bland de elever som fyller vanliga rader (efter översta raden).
+    const forst = rad0 ? iRad0 + (rad - 1) * husPerRad : rad * husPerRad;
+    const paRad = Math.min(husPerRad, antal - forst);
     for (let kol = 0; kol < paRad; kol++) {
       // Centrera ev. ofull sista rad; y följer vägens slinger vid tomtens x.
       const x = margX + cellW * (kol + 0.5) + (cellW * (husPerRad - paRad)) / 2;
-      const plats = rad * husPerRad + kol;
-      if (plats < kcSpan) {
-        // Klasscentret: platserna 0..kcSpan-1 (alltid i rad 0, husPerRad ≥ 3).
-        // Mittpunkten räknas när sista platsen nås.
-        if (plats === kcSpan - 1) {
-          const cx = x - (cellW * (kcSpan - 1)) / 2;
-          const botten = basY(rad) + sling(cx, rad) + radHojd / 2;
-          const hojd = radHojd + kcExtra * 0.8;
-          klasscenter = {
-            x: cx, y: botten - hojd / 2, bredd: cellW * kcSpan, hojd,
-            topp: botten - hojd, botten, span: kcSpan, rad,
-          };
-        }
-        continue;
-      }
-      tomter.push({ x, y: basY(rad) + sling(x, rad), skala: 1 / BY_ZOOM, rad, kol });
+      tomter.push(tomt(x, rad, kol));
     }
     // Vägsträckans bas-y (utan slinger) – mest för felsökning/kompatibilitet.
     vagar.push({ rad, y: basY(rad) + radHojd * 0.55, hojd: vagHojd });
@@ -343,6 +380,8 @@ export function byDekor(layout) {
     } else {
       x = Math.min(94, iRad[0].x + cellW * 0.8);
     }
+    // Gluggen mellan vänster- och höger-huset är Klasscentret – ingen lykta där.
+    if (kc && rad === kc.rad && Math.abs(x - kc.x) < kc.bredd / 2 + 2) continue;
     const lyktY = vagY(rad, x) - vagHojd * 0.42;
     uppst.push({ typ: "lykta", x, y: lyktY, s });
     ta(x, lyktY, 2.3 * s);
