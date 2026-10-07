@@ -23,6 +23,7 @@ studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök pe
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
+classCenters/{classId}/…                 ← Klasscentret (#476–): Klass-EXP, crowdfunding, layout, pokaler
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -747,6 +748,122 @@ Se API-kommentaren i `src/live/game-modes.js`: `id`, `displayName`, `icon`,
 `answerRecord()`, `statKeys()`, `statCategories`. Nytt läge = ny fil i
 `src/live/modes/` + en rad i `src/live/modes/index.js` + en gren i
 `liveModeAnswerOk` i `firestore.rules` (annars nekas lägets svar).
+
+---
+
+## Klasscentret (#476–, epic 1–4)
+
+Spec: [`docs/spec-klasscentret.md`](spec-klasscentret.md), analys:
+[`docs/klasscentret-analys.md`](klasscentret-analys.md). Allt bor under
+`classCenters/{classId}` – en klass är helt oberoende av andra (100 klasser =
+100 separata träd). Specens §8 (ClassProfile / ClassCenterShopItems /
+ClassCenterLayout) är anpassad så här:
+
+| Spec §8 | Här | Epic |
+| --- | --- | --- |
+| `classTotalExp` | summan av `expShards/{0..4}.exp` (shardad) | **1 (klar, #477)** |
+| `currentCenterLevel` | **härleds** – `nivaFor(classTotalExp, classes/{id}.studentIds.length)`, lagras inte | **1 (klar, #477)** |
+| "3 första gångerna"-räknare | `expMembers/{uid}.counts` (per elev och klass) | **1 (klar, #477)** |
+| `trophies[]` | `classCenters/{classId}.trophies` | 3 |
+| ClassCenterShopItems | katalog i kod + `fund/{itemId}` + `donations/{id}` | 2/3 |
+| ClassCenterLayout | `layout/current` + `layoutHistory/{0..9}` | 2 |
+| lärarens "får ej inreda" | `classCenters/{classId}.inredningSparr` | 2 |
+
+### Normalisering och nivåer (epic 1, `src/klasscenter/kc-niva.js`)
+
+Nivå *n* kräver `ceil(TROSKLAR_PER_ELEV[n-1] × antalElever)` klass-EXP, där
+`TROSKLAR_PER_ELEV = [0, 7, 16, 28, 45, 68, 98, 139, 195, 270]` (exponentiellt,
+steg × 1,35; motivering i filhuvudet: ~8 övningar/elev/vecka × 36 veckor ≈
+Nivå 10 i slutet av läsåret). Trösklarna skalas alltså med elevantalet – samma
+sak som att jämföra EXP/elev, men mätaren kan visa hela klassens tal
+("50 / 175 övningar till Nivå 2"). Nivån härleds alltid ur NUVARANDE elevantal:
+läggs elever till kan nivån i teorin sjunka. Vill epic 1 C/D undvika det kan
+ett golv `classCenters/{classId}.hogstaNiva` lagras (visa `max(härledd, golv)`).
+
+### `classCenters/{classId}/expShards/{0..4}` – Klass-EXP (epic 1)
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `exp` | number | shardens del av klassens EXP (bara uppåt) |
+| `lastUid` | string | senaste skribent (elev-uid eller lärarens uid) |
+| `lastAt` | timestamp | serverns tid för senaste ökningen |
+| `lastKalla` | string ≤ 40 | regelmodul/bonuskälla ("quiz", "live" …) |
+
+Läses av **alla inloggade** (mätaren syns även för gäster). Skrivs bara via
+`increment`: elev (klassmedlem) +1..+3 i samma batch som den egna
+`expMembers`-posten, lärare +1..+1000 (klassbonus). Radera = lärare (nollställ).
+
+### `classCenters/{classId}/expMembers/{uid}` – elevens bidrag (epic 1)
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `uid` | string | elevens uid (= dok-id) |
+| `exp` | number | elevens totala bidrag till klassen |
+| `counts` | map | regelräknare, t.ex. `{"memory\|vikingar": 3, "rakna\|ratt": 7}` |
+| `lastAt` | timestamp | serverns tid för senaste utdelningen (takt-spärr 15 s) |
+| `lastAmount` | number | senaste ökningen (1–3) – måste = shardens ökning |
+| `lastShard` | number | vilken shard senaste ökningen gick till |
+| `lastKalla` | string | senaste regelmodul |
+
+Läses bara av eleven själv och lärare (ingen topplista mellan elever). Elevens
+egna framsteg (`studentData.progress/xp/coins`) rörs **inte** av Klass-EXP.
+
+**Regler (firestore.rules "KLASSCENTRET")**: shard +n kräver att samma batch
+ökar `expMembers/{egen uid}.exp` med `lastAmount == n` och `lastShard ==
+shard` (getAfter), 1 ≤ n ≤ 3, `lastAt == request.time` och minst 15 s sedan
+förra utdelningen. `counts` får sparas separat (utan EXP). Kvarvarande
+begränsning: spelresultaten räknas i klienten (som coins/framsteg i dag), så en
+skriptande elev kan ge ≤ 3 EXP/15 s – spårbart per elev i `expMembers`.
+
+**Regelregistret** (`src/klasscenter/kc-exp-regler.js`): quiz/läsförståelse
+≥ 50 % rätt = 1 varje omgång; para/memory/kunskapsjakt/sanningsjakt/lastext/
+äventyr = 1 de 3 första gångerna per område; Läsresan ≥ 5/7 = 1; Mattematchen
+var 20:e rätt = 1; Räkna 10 rätt = 1 (rest sparas i `counts`); Live/klass-
+utmaningar = lärarbonus `klassBonusFor(kalla, elevantal)` (t.ex. Live 3/elev).
+En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevantal).
+
+### `classCenters/{classId}` – klassprofil (epic 2–4, FÖRSLAG)
+
+| Fält | Typ | Epic | Beskrivning |
+| --- | --- | --- | --- |
+| `trophies` | array | 3 | `[{ id, typ, titel, text, at, kallaId }]` – `id` = källans id (tävling/session) → idempotent; `typ` t.ex. `"mm-vinst"`, `"live-vinst"`, `"live-klar"` |
+| `inredningSparr` | array | 2 | uid:n som läraren bockat ur – får titta/donera men inte spara layout |
+| `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
+
+Läses av alla inloggade (gästläge). Skrivs av lärare (pokaler: lärarens klient
+när MM/Live avslutas – en elevklient kan inte bevisa vinsten i reglerna).
+
+### Crowdfunding (epic 2/3, FÖRSLAG)
+
+- Katalogen (namn, `targetPrice` 2 000–10 000, konst) ligger i **kod**
+  (ny dynamisk fil, t.ex. `src/klasscenter/kc-shop-items.js` – `shop-items.js`
+  är 400/400 rader och i bootgrafen).
+- `classCenters/{classId}/fund/{itemId}` = `{ targetPrice, fundedAmount,
+  isUnlocked, unlockedAt?, lastDonationId }`. Läses av alla inloggade
+  (realtid "150 / 5000"). Elevskrivning bara i SAMMA batch som en ny
+  donationspost: `fundedAmount` ökar exakt `donation.amount`, aldrig över
+  `targetPrice`, `isUnlocked == (fundedAmount == targetPrice)`, inga
+  ändringar när `isUnlocked`. Klienten cappar beloppet till det som saknas
+  (inget går förlorat).
+- `classCenters/{classId}/donations/{donationId}` = `{ uid, itemId, amount,
+  at }`, create-only, `uid == auth.uid`, klassmedlem. **Läses bara av lärare**
+  (anonymt för klassen – BESLUT). Samma batch drar `studentData.coins`.
+  Obs: `studentData` är klient-skrivbart (`isSelf`) redan i dag, så reglerna
+  kan garantera att insamlat = summan av donationer, inte att eleven "hade"
+  mynten. Återanvänd INTE `classProjects` (#331): dess `contributions.{uid}`
+  är läsbart för alla inloggade.
+- **Klassens möbellåda** härleds: alla `fund`-dokument med `isUnlocked`.
+
+### Gemensam layout + historik (epic 2, FÖRSLAG)
+
+- `classCenters/{classId}/layout/current` = `{ placedItems: { "<itemId>":
+  { x, y, z } }, version, updatedBy, updatedAt }` – x/y i procent av scenen
+  (samma som `studentData.room.placements`), `z` heltal (rummet sparar i dag
+  inget z). Skrivs av klassmedlem som inte står i `inredningSparr`, eller lärare.
+- `classCenters/{classId}/layoutHistory/{0..9}` = `{ placedItems, savedBy,
+  savedAt }` – ringbuffert: varje "Spara" skriver `current` (version + 1) och
+  slot `version % 10` i samma batch → alltid de ~10 senaste, utan raderingar.
+  "Återställ" = kopiera en slot till `current`.
 
 ---
 

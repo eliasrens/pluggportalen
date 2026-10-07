@@ -541,6 +541,88 @@ service cloud.firestore {
       allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
     }
 
+    // ------------------------------------------------------------------
+    // KLASSCENTRET – Klass-EXP (#477, epic #476). Se docs/DATAMODELL.md
+    // "Klasscentret" och skrivplanen i src/klasscenter/kc-exp-skriv.js.
+    //
+    //  • expShards/{0..4}: klassens EXP = summan av shardarnas `exp`. Läses av
+    //    alla inloggade (mätaren syns även för gäster). Får BARA öka:
+    //      – elev: klassMEDLEM, +1..+3, och i SAMMA batch som den egna
+    //        expMembers-posten ökar lika mycket och pekar på just den shardn
+    //        (getAfter) → ingen shard-ökning utan spårbar elevpost.
+    //      – lärare: +1..+1000 (klassbonus för Live/klassutmaningar).
+    //    Sänkning, godtycklig set, främmande fält och icke-medlem nekas.
+    //  • expMembers/{uid}: elevens bidrag + regelräknare (counts) + spärr.
+    //    Bara eleven själv (och klassmedlem) skriver; `exp` ökar exakt
+    //    lastAmount, lastAt = serverns tid och minst 15 s efter förra
+    //    utdelningen (takt-spärr mot request.time, oavsett klientklocka).
+    //    counts (t.ex. "memory|<område>": 2) får uppdateras separat utan EXP.
+    //    Läses bara av eleven själv och lärare.
+    // Kvarvarande begränsning (ärligt): spelresultaten (quiz-procent m.m.)
+    // räknas i klienten – reglerna kan inte se vilken omgång som spelades. En
+    // elev som skriptar kan ge högst 3 EXP per 15 s, och varje poäng syns per
+    // elev i expMembers (läraren kan se och nollställa).
+    // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från
+    // Pages). Ingenting här är deployat.
+    // ------------------------------------------------------------------
+    match /classCenters/{classId} {
+      function kcPath(sub, id) {
+        return /databases/$(database)/documents/classCenters/$(classId)/$(sub)/$(id);
+      }
+      function kcKalla(d) { return d.lastKalla is string && d.lastKalla.size() <= 40; }
+      function kcShardOk(shardId) { return shardId in ['0', '1', '2', '3', '4']; }
+      // Ökningen av `exp` i den här skrivningen (create: från 0).
+      function kcDelta() { return newInt('exp') - prevInt('exp'); }
+      function kcShardStudent(shardId) {
+        let d = request.resource.data;
+        let m = getAfter(kcPath('expMembers', request.auth.uid)).data;
+        return isClassMember(classId) && kcShardOk(shardId) &&
+          changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
+          d.exp is int && kcDelta() >= 1 && kcDelta() <= 3 &&
+          d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d) &&
+          m.lastAt == request.time && m.lastAmount == kcDelta() &&
+          string(m.lastShard) == shardId;
+      }
+      function kcShardTeacher(shardId) {
+        let d = request.resource.data;
+        return isTeacher() && kcShardOk(shardId) &&
+          changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
+          d.exp is int && kcDelta() >= 1 && kcDelta() <= 1000 &&
+          d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d);
+      }
+      function kcCountsOk(d) { return !('counts' in d) || (d.counts is map && d.counts.size() <= 300); }
+      function kcMemberAward(uid) {
+        let d = request.resource.data;
+        let n = d.lastAmount;
+        return isSelf(uid) && isClassMember(classId) && d.uid == uid &&
+          changedOnly(['uid', 'exp', 'counts', 'lastAt', 'lastAmount', 'lastShard', 'lastKalla']) &&
+          n is int && n >= 1 && n <= 3 && d.exp is int && bumped('exp', n) &&
+          d.lastAt == request.time &&
+          (resource == null || !('lastAt' in resource.data) ||
+            request.time > resource.data.lastAt + duration.value(15, 's')) &&
+          d.lastShard is int && d.lastShard >= 0 && d.lastShard <= 4 && kcKalla(d) &&
+          kcCountsOk(d) &&
+          getAfter(kcPath('expShards', string(d.lastShard))).data.lastAt == request.time &&
+          getAfter(kcPath('expShards', string(d.lastShard))).data.lastUid == uid;
+      }
+      function kcMemberCounts(uid) {
+        let d = request.resource.data;
+        return isSelf(uid) && isClassMember(classId) && d.uid == uid &&
+          changedOnly(['uid', 'counts']) && d.counts is map && kcCountsOk(d);
+      }
+
+      match /expShards/{shardId} {
+        allow read: if signedIn();
+        allow create, update: if kcShardStudent(shardId) || kcShardTeacher(shardId);
+        allow delete: if isTeacher();
+      }
+      match /expMembers/{uid} {
+        allow read: if isTeacher() || isSelf(uid);
+        allow create, update: if kcMemberAward(uid) || kcMemberCounts(uid);
+        allow delete: if isTeacher();
+      }
+    }
+
     // Allt annat nekas.
     match /{document=**} {
       allow read, write: if false;
