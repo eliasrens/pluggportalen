@@ -100,6 +100,8 @@ const ICONS = {
   shuffle:
     '<path d="M4 7h3l10 10h3"/><path d="M4 17h3L17 7h3"/><path d="M18 4l3 3-3 3"/><path d="M18 14l3 3-3 3"/>',
   minus: '<path d="M5 12h14"/>',
+  trophy:
+    '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4.5M16 6h3a3 3 0 0 1-3 4.5"/><path d="M12 13v4"/><path d="M8.5 20h7l-.8-3H9.3z"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
   check: '<path d="M5 12.5 10 17.5 19 6.5"/>',
   sparkle:
@@ -200,6 +202,16 @@ export const TEACHER_TABS = [
     title: "Innehållsstudion",
     icon: "book",
     page: lazyPage(() => import("./teacher-content.js"), "pageLarareInnehall"),
+  },
+  {
+    // Mattematchen (#459): skapa/styr tävlingsperioder, följ, historik.
+    // ?id=<cid> = en tävlings detaljvy. Live (#460) registreras på raden efter.
+    key: "mattematchen",
+    hash: "#/larare/mattematchen",
+    label: "Mattematchen",
+    title: "Mattematchen",
+    icon: "trophy",
+    page: lazyPage(() => import("./tavling/teacher-mattematchen.js"), "pageLarareMattematchen"),
   },
 ];
 

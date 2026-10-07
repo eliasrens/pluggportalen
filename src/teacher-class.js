@@ -54,18 +54,22 @@ function cellHtml(earned, maxStars) {
  *   subjects: object[],                 // ämneslistan
  *   studentById?: Map,                  // id → elev (för elev-fördjupningen)
  *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
+ *   classId?: string                    // klassen – ger fliken Mattematchen (#459)
  * }} opts
  */
 export async function renderClassStats(ctx, host, opts) {
-  // Två flikar (issue #402): ämnenas stjärnmatris och Läsresan. Läsresans
+  // Flikar (issue #402): ämnenas stjärnmatris och Läsresan (+ Mattematchen #459
+  // när klassen är känd). Läsresans
   // moduler laddas DYNAMISKT vid första klick – aldrig i bootgrafen (#271).
   const view = el(`<div class="stats-tabs-wrap">
     <div class="stats-tabs" role="tablist" aria-label="Statistik">
       <button type="button" class="stats-tab" role="tab" data-tab="amnen">${icon("chart", 16)}<span>Ämnen</span></button>
       <button type="button" class="stats-tab" role="tab" data-tab="lasresan">${icon("book", 16)}<span>Läsresan</span></button>
+      ${opts.classId ? `<button type="button" class="stats-tab" role="tab" data-tab="mattematchen">${icon("trophy", 16)}<span>Mattematchen</span></button>` : ""}
     </div>
     <div class="stats-pane" data-pane="amnen"></div>
     <div class="stats-pane" data-pane="lasresan" hidden></div>
+    <div class="stats-pane" data-pane="mattematchen" hidden></div>
   </div>`);
   host.replaceChildren(view);
   const rendered = new Set();
@@ -81,6 +85,15 @@ export async function renderClassStats(ctx, host, opts) {
     rendered.add(tab);
     const pane = view.querySelector(`[data-pane="${tab}"]`);
     if (tab === "amnen") return renderSubjectStats(ctx, pane, opts);
+    // Mattematchen (#459): välj period → klassens tabell – dynamisk import.
+    if (tab === "mattematchen") {
+      return import("./tavling/teacher-mm-stats.js")
+        .then((m) => m.renderClassMattematchen(ctx, pane, { classId: opts.classId, students: opts.students }))
+        .catch((err) => {
+          rendered.delete(tab);
+          pane.replaceChildren(el(`<div class="msg error">Kunde inte ladda Mattematchen: ${esc(err.message)}</div>`));
+        });
+    }
     pane.replaceChildren(el(`<div class="spinner">Laddar Läsresan…</div>`));
     return import("./teacher-lasresan.js")
       .then((m) => m.renderClassLasresan(ctx, pane, { students: opts.students }))
@@ -90,7 +103,7 @@ export async function renderClassStats(ctx, host, opts) {
       });
   };
   view.querySelectorAll(".stats-tab").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
-  await show(lastStatsTab);
+  await show(lastStatsTab === "mattematchen" && !opts.classId ? "amnen" : lastStatsTab);
 }
 
 // Senast valda statistikflik (delas mellan klasskort under sessionen).
