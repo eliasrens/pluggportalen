@@ -28,6 +28,7 @@ import { createScene, W, H } from "./trollkarl-scen.js";
 import { createDirector, rushFor } from "./trollkarl-regi.js";
 import { createMagicTracker, attackSeed, seededRandom, ATTACK_THRESHOLD } from "./trollkarl-magi.js";
 import { duelData } from "./trollkarl-data.js";
+import { createReactions } from "./trollkarl-reaktioner.js";
 import { pickAttack, getAttack, pickFinale } from "./trollkarl-register.js";
 import "./trollkarl-innehall.js";
 
@@ -180,6 +181,8 @@ export function createTrollkarlView(host, { st, sound }) {
   });
   // §12: full mätare = en ny attack köas – litet "klart!"-pling (aldrig vid omladdning).
   director.on("attack", () => scene.sound("matare-full"));
+  // §10 (#539): småreaktioner på matchläget (ledningsbyte, sista minuten, snabb laddning).
+  const reactions = createReactions({ sides, director, reducedMotion });
 
   function mountWizards(d) {
     const busy = !director.idle() || finaleBegun;
@@ -260,6 +263,7 @@ export function createTrollkarlView(host, { st, sound }) {
       sides[s.side].slot.classList.toggle("tk-near", !!meters[s.classId]?.near && director.idle() && !d.ended);
     }
     for (const e of events) director.attack({ ...e, from: e.classId, to: other(bySide(e.classId)).classId });
+    if (!events.length) reactions.update(d, meters);
     // §13: subtil signal när slutspurten börjar + nedräkningstick sista 10 s.
     if (d.tension && d.tension !== lastTension) scene.sound("spanning");
     lastTension = d.tension;
