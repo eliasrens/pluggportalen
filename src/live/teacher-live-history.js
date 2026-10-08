@@ -35,7 +35,8 @@ function winnerText(s, result) {
 /** result ur sessionen, eller räknat ur räknarna (och sparat) om det saknas. */
 async function ensureResult(s, players) {
   if (s.result) return s.result;
-  const standings = classStandings(s, sumCounters(await getCounters(s.id)));
+  // players → perClass[].players (#499: utan dem blev det 0 → ingen pokal/bonus)
+  const standings = classStandings(s, sumCounters(await getCounters(s.id)), players);
   const result = buildResult(s, standings, players, getGameMode(s.gameMode));
   writeResultIfMissing(s.id, result).catch(() => {});
   return result;

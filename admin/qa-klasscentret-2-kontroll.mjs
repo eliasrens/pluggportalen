@@ -108,6 +108,12 @@ async function regler() {
   const ks01 = await som("ks01");
   const ks99 = await som("ks99");
   const larare = await som("qalarare", "qalarare@larare.pluggportalen.local");
+  // De råa batcharna nedan bygger på en befintlig insamling (efter en ny
+  // `qa-klasscentrum-shop seed` finns ingen – #499): starta den med 100.
+  if (!(await adb.doc(`classCenters/${KS}/fund/guldstaty`).get()).exists) {
+    await adb.doc("studentData/ks01").set({ coins: 500 }, { merge: true });
+    await korDonation(sdk, ks01, { classId: KS, uid: "ks01", itemId: "guldstaty", amount: 100 });
+  }
   await adb.doc("studentData/ks01").set({ coins: 500 }, { merge: true });
   const nekad = (r) => r === "permission-denied";
   kontroll("elev läser donations (egen klass) nekas", nekad(await utfall(() => getDocs(collection(ks01, "classCenters", KS, "donations")))));
