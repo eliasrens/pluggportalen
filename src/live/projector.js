@@ -308,7 +308,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     if (playing && !availableViews().some((v) => v.id === viewId)) viewId = "raket";
     const key = game ? `${viewId}|${s.participatingClassIds.join(",")}` : kind;
     // Lobbyn med två klasser och Trollkarlsduellen vald: förladda vyn (§17).
-    if (kind === "lobby" && viewId === "trollkarl" && st.classes.length === 2) loadTrollkarl().catch(() => {});
+    if (kind === "lobby" && viewId === "trollkarl" && st.classes.length === 2) loadTrollkarl().then((m) => m.preload?.()).catch(() => {});
 
     // Efter slutet i en vy med egen final: vyflikarna kvar (annan vy = vanliga vinnarskärmen).
     $(".lp-views").hidden = !game;

@@ -6,5 +6,8 @@
 // ============================================================================
 
 import "./trollkarl-platshallare-effekter.js";
-// Del C/D: attacker här, t.ex. import "./attacker/grodifix.js";
+// Del C (#538): attacker 1–8. Del D lägger sina moduler (attack 9–15) här.
+import "./attacker/attacker-forvandling.js"; // 1 GRODIFIX! · 2 HÖNUS PANIKUS! · 3 POTATUS TOTALUS!
+import "./attacker/attacker-vader.js"; //       4 REGNUS MAXIMUS! · 8 FJÄDRUS STORMUS!
+import "./attacker/attacker-kladd.js"; //       5 STINKUS MAXIMUS! · 6 BANANUS HALKUS! · 7 SLEMMUS BLÄÄÄUS!
 // Del E:   finaler + ljud här, t.ex. import "./final/energikula.js";

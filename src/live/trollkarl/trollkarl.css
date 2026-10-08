@@ -68,6 +68,9 @@
 .tk-slot.tk-charging::before { opacity: 1; animation: tk-pulsglod .35s ease-in-out infinite alternate; }
 @keyframes tk-pulsglod { from { transform: scale(.9); } to { transform: scale(1.15); } }
 
+/* Del B:s figur (#537): SVG 400 × 560 fyller platsen, fötterna vid nederkanten. */
+.tk-slot > svg.tkf { position: absolute; inset: 0; width: 100%; height: 100%; }
+
 /* --- Platshållarfiguren (byts mot del B:s figur) ----------------------------- */
 .tkw { position: absolute; inset: 0; }
 .tkw-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity .25s; }

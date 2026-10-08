@@ -1,8 +1,8 @@
 // ============================================================================
 // Trollkarlsduellen (#536): VILKEN FIGUR arenan använder – EN rad att byta.
-// Nu: platshållaren. När del B (#537) landat: byt till
-//   export { createWizard } from "./trollkarl-figur.js";
-// (samma API, se trollkarl-platshallare.js / docs/trollkarlsduellen-arkitektur.md).
+// Nu: del B:s riktiga Rasmus & Elias (#537, trollkarl-figur.js).
+// Platshållaren (trollkarl-platshallare.js) har samma createWizard-API och
+// kan sättas tillbaka här vid felsökning (den har ingen preloadWizardFaces).
 // ============================================================================
 
-export { createWizard } from "./trollkarl-platshallare.js";
+export { createWizard, preloadWizardFaces } from "./trollkarl-figur.js";

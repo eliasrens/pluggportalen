@@ -13,6 +13,7 @@
 //   efter) → resultatskärmen direkt.
 //
 // API: createTrollkarlView(host, { st, colors, sound }) → { update(st), destroy() }
+//   preload() – förladdar figurernas ansiktsbilder (lobbyn, §17)
 //   trollkarlDemo.view – demolägets krokar (preview-trollkarlsduellen.html):
 //     { attack(side, attackId?), director, tracker } – påverkar bara bilden.
 // ============================================================================
@@ -20,17 +21,18 @@
 import { ensureLiveCss } from "../live-css.js";
 import { prizeText, toMs } from "../live-core.js";
 import { esc } from "../../teacher-shared.js";
-import { createWizard } from "./trollkarl-figurval.js";
+import { createWizard, preloadWizardFaces } from "./trollkarl-figurval.js";
 import { createArena } from "./trollkarl-arena.js";
 import { createHud } from "./trollkarl-hud.js";
 import { createScene, W, H } from "./trollkarl-scen.js";
-import { createDirector } from "./trollkarl-regi.js";
+import { createDirector, rushFor } from "./trollkarl-regi.js";
 import { createMagicTracker, attackSeed, seededRandom, ATTACK_THRESHOLD } from "./trollkarl-magi.js";
 import { duelData } from "./trollkarl-data.js";
 import { pickAttack, getAttack, pickFinale } from "./trollkarl-register.js";
 import "./trollkarl-innehall.js";
 
 const CSS = "src/live/trollkarl/trollkarl.css";
+const ATTACK_CSS = "src/live/trollkarl/attacker/attacker.css";
 // En final som skulle börja så här långt efter matchslut spelas inte (gammal match).
 const STALE_FINALE_MS = 3 * 60_000;
 const CHARGE_MAX_MS = 1300;
@@ -39,10 +41,18 @@ const FINALE_MAX_MS = 25_000;
 
 export const trollkarlDemo = { view: null };
 
+/** Förladda figurernas ansiktslager (§17) – projektorn anropar i lobbyn. */
+let preloaded = null;
+export function preload() {
+  if (!preloaded) preloaded = Promise.resolve(preloadWizardFaces?.()).catch(() => {});
+  return preloaded;
+}
+
 const race = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(r, ms))]);
 
 export function createTrollkarlView(host, { st, sound }) {
-  ensureLiveCss([CSS]);
+  ensureLiveCss([CSS, ATTACK_CSS]);
+  preload();
   const reducedMotion = !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const root = document.createElement("div");
   root.className = "tk";
@@ -112,17 +122,22 @@ export function createTrollkarlView(host, { st, sound }) {
       if (!def || !from.wizard || !to.wizard) return;
       lastAttack[from.classId] = def.id;
       for (const s of [from, to]) s.wizard.idleEvents(false);
+      // Burst (§11): lång kö = högre tempo och överhoppad uppladdning, inget tappas.
+      const rush = rushFor(director.pending());
       // §7.1: mätaren lyser, staven glöder, kort uppladdningsrörelse – sedan attacken.
       scene.state(from.side, "CHARGING");
       from.slot.classList.add("tk-charging");
       from.wizard.setExpression("happy");
-      scene.sound("uppladdning");
-      await race(from.wizard.play("charge"), CHARGE_MAX_MS);
-      if (signal.aborted) return;
+      if (!rush.skipCharge) {
+        scene.sound("uppladdning");
+        await race(from.wizard.play("charge"), CHARGE_MAX_MS);
+        if (signal.aborted) return;
+      }
       scene.banner(def.name, from.side);
       await race(Promise.resolve(def.run(scene, {
-        from: pub(from), to: pub(to), index: evt.index, seed: evt.seed, rng: seededRandom(evt.seed), signal, attack: def,
-      })), (def.durationMs || 6000) + RUN_PAD_MS);
+        from: pub(from), to: pub(to), index: evt.index, seed: evt.seed, rng: seededRandom(evt.seed),
+        signal, attack: def, speed: rush.speed, wait: (ms) => scene.wait(ms / rush.speed, signal),
+      })), (def.durationMs || 6000) / rush.speed + RUN_PAD_MS);
     },
     async runFinale(o, signal) {
       root.classList.add("tk-finale");
@@ -146,10 +161,11 @@ export function createTrollkarlView(host, { st, sound }) {
       for (const s of Object.values(sides)) {
         s.slot.classList.remove("tk-charging");
         scene.state(s.side, "IDLE");
+        // Attacker byter basuttryck (sad/happy) – tillbaka till neutral efteråt (#538).
+        s.wizard?.setExpression(ended() ? "surprised" : "neutral");
         s.wizard?.reset();
         s.wizard?.setIdle(true);
         s.wizard?.idleEvents(!ended());
-        if (ended()) s.wizard?.setExpression("surprised");
       }
       if (pendingRemount && director.pending() === 0) queueMicrotask(() => lastD && mountWizards(lastD));
     },
