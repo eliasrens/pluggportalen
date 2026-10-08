@@ -211,6 +211,8 @@ it("bootgrafen: by-scenen statisk, Klasscentret bara dynamiskt (#271)", () => {
     "klasscenter/kc-rum-session.js", "klasscenter/kc-rum-tillstand.js", "klasscenter/kc-rum-historik.js",
     // Pokaler (#494): bara via import() från avslutsflödena/rummet.
     "klasscenter/kc-pokal-typer.js", "klasscenter/kc-pokal-data.js",
+    // Pokal-konsten (#496): bara via import() från rummet.
+    "art-klasscenter-pokaler.js", "art-klasscenter-pokaler-figurer.js", "art-klasscenter-pokaler-mobler.js",
   ]) {
     assert.equal(g.has(join(SRC, f)), false, `${f} får inte ligga i bootgrafen`);
   }
