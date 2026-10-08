@@ -115,10 +115,17 @@ describe("kc-rum-tillstand", () => {
 });
 
 describe("statusraden", () => {
-  const bas = { laddad: true, kan: true, visaOnly: false, vantande: false, osparat: false, sparatNyss: false };
-  it("läsläge: gäst respektive bockad elev", () => {
-    assert.match(statusHtml({ ...bas, kan: false, visaOnly: true }), /på besök/);
-    assert.match(statusHtml({ ...bas, kan: false }), /läraren har stängt av inredning/);
+  const bas = { laddad: true, roll: "hemma", vantande: false, osparat: false, sparatNyss: false };
+  it("läsläge: gäst/utloggad respektive bockad elev – rollen avgör, inte vägen in (#501)", () => {
+    assert.match(statusHtml({ ...bas, roll: "gast" }), /på besök/);
+    assert.match(statusHtml({ ...bas, roll: "utloggad" }), /på besök/);
+    assert.match(statusHtml({ ...bas, roll: "sparrad" }), /läraren har stängt av inredning/);
+    assert.equal(statusHtml({ ...bas, roll: "larare" }), "");
+    // Gamla visaOnly-flaggan påverkar inte längre statusraden.
+    assert.equal(statusHtml({ ...bas, visaOnly: true }), "");
+  });
+  it("roll inte avgjord än → Hämtar", () => {
+    assert.match(statusHtml({ ...bas, roll: null }), /Hämtar/);
   });
   it("väntande version erbjuder Visa deras", () => {
     assert.match(statusHtml({ ...bas, vantande: true, osparat: true }), /data-kc="visa-deras"/);

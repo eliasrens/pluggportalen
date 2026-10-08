@@ -69,6 +69,7 @@
 import { kcShopItem } from "./kc-shop-items.js";
 import { pokalIdFranNyckel } from "./kc-pokal-typer.js";
 import { medKrockOmforsok, sammaSomNekat, SAMMA_LAGE } from "./kc-omforsok.js";
+import { kcRoll, rollKanInreda } from "./kc-behorighet.js";
 
 export const KC_HISTORIK = 10;
 /** Max antal flyttade pokaler i layouten (reglernas kcPokalerOk). */
@@ -266,12 +267,9 @@ export function planSaveWrites({ classId, plan, fv }) {
   ];
 }
 
-/** Elevens/lärarens rätt att inreda (samma villkor som firestore.rules). */
-export function kanInredaFor({ uid, arLarare = false, studentIds = [], inredningSparr = [] } = {}) {
-  if (arLarare) return true;
-  if (!uid) return false;
-  return Array.isArray(studentIds) && studentIds.includes(uid) &&
-    !(Array.isArray(inredningSparr) && inredningSparr.includes(uid));
+/** Elevens/lärarens rätt att inreda (samma villkor som firestore.rules; rollen: kc-behorighet.js). */
+export function kanInredaFor(o = {}) {
+  return rollKanInreda(kcRoll(o));
 }
 
 /**

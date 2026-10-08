@@ -178,9 +178,12 @@
 }
 
 /* Statistiktavlan (#498): FAST möbel i bakgrunden (aldrig dragbar) men
-   klickbar – en <button> som öppnar panelen "Klassens statistik". */
+   klickbar – en <button> som öppnar panelen "Klassens statistik".
+   #501 O3: över de placerade sakerna (de har ingen z-index) så en möbel aldrig
+   täcker knappen – men under saken som dras (--z-scen-drag). */
 .kc-statistiktavla {
   position: absolute;
+  z-index: 1;
   transform: translate(-50%, -50%);
   padding: 0;
   border: 0;
