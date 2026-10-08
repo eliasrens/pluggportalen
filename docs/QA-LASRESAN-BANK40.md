@@ -61,6 +61,7 @@ Här delar texterna ett motiv men har olika konflikt, lösning eller vinkel. Ing
 - **Återkommande mysterium med oskyldig förklaring:** N1 `blomman` (vaktmästaren) och N3 `daggen` (dagg, naturvetenskaplig lösning).
 - **Vänskap som förändras:** N6 `nya-kompisen` (en tredje vän) och N7 `glida-isar` (växer isär, ingen tredje person).
 - **Styvfamilj:** N6 `bonusbrodern` (bonusbror som känner sig som gäst) och N7 `ladbilen` (bonuspappa som försöker för mycket).
+- **Språk och tolkning:** N6 `tolken` (Rania tolkar sitt eget utvecklingssamtal och mildrar kritiken) och N7 `oversattningen` (en app översätter svenska idiom ord för ord på ett utbyte). Temat är detsamma, men konflikten och vinkeln är olika.
 - **Pinsamt ögonblick som blir lyckat:** N3 `papegojan`, N4 `talangshowen`, N5 `robotdammsugaren`, N6 `potatisen` och N6 `luciatoget`. Efter D7 och D12 delar inga två samma premiss, men mönstret är vanligt bland roliga situationer. *Råd till framtida texter: välj ett annat slut.*
 - **Faktaämnen som gränsar till varandra:** månen N1 och månlandningen N4; laxen N4, ålen N6 och flyttfåglar N5 (olika arter och vinklar); kometer N3 (nämner stjärnfall) och meteoriten N7; vattnets former N1 och isen på sjön N3; pingvinen N2 och antarktis N7; hackspetten N2 och död ved N6 (där hackspettens bohål är en detalj).
 
@@ -79,6 +80,17 @@ Här delar texterna ett motiv men har olika konflikt, lösning eller vinkel. Ing
 | Stella, Wilda | N2 `fel-kalas`/`glasogonen` ↔ N3 `handslaget` | försvann med D10 |
 
 Kvar finns Inga-Lill (N3, kokerska) och farmor Inga (N6). Det är olika namn, så de får stå. Ortnamn och ”Herr …” räknas inte.
+
+### 2.4 Leadens punkter (meddelande under granskningen)
+
+| punkt | resultat |
+|---|---|
+| 1. Mira (referensnamn) på N1 | åtgärdat: `lr-n1-gungan` Mira → Mila |
+| 2. `niva-6.md` titeln ”Yara tolkar” | rättat till ”Rania tolkar” (JSON var redan rätt; Yara är en biperson i N7 `rullstolsbasket` och förekommer bara där) |
+| 3. nya-kompisen ↔ glida-isar, oversattningen ↔ tolken, ladbilen ↔ bonusbrodern | jämförda i full text: olika konflikt och lösning, får stå (2.2) |
+| 4. faktaämnen 4↔5 och 6↔7 | inga krockar: Vasaskeppet och torvmosse finns bara på N5; elefanter, björndjur, rösträtt, exoplaneter, rymdskrot, kryptering och tidszoner bara på N6 (sökning i alla `level-*.json`) |
+| 5. N1-ämnen (myror, grodor, regnbåge, magneter, Gotland, borgar, hissar) | bara i förbigående på andra nivåer (en giftgroda i Amazonas, hiss som jämförelse, Gotland som svarsalternativ, magnetfält i flyttfåglar och norrsken), aldrig som textens ämne |
+| 6. Kebnekaise och Japan 2011 (N5) | stämmer: sydtoppen har krympt med drygt 20 m sedan 1960-talet och var lägre än nordtoppen första gången 2019; Tōhoku 2011 gav ≈ 15 900 döda och ≈ 2 500 saknade, alltså ”omkring 18 000 omkom eller försvann” |
 
 ## 3. Svårighetstrappan
 
