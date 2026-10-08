@@ -24,7 +24,7 @@
 //         "historik-andrad" om ringbufferten skrivit över slotten)
 //   kanInreda(classId, uid?)             → Promise<bool> (lärare, eller
 //       klassmedlem som inte står i inredningSparr)
-//   getInredningSparr(classId)           → Promise<string[]>
+//   getInredningSparr(classId)           → Promise<string[]> (klassen + lärare)
 //   setInredningSparr(classId, uids)     → Promise<string[]> (bara lärare)
 //   Layout/Plan/Fel/HistorikPost: se kc-layout-plan.js
 // ============================================================================
@@ -130,9 +130,11 @@ export async function kanInreda(classId, uid = currentStudentId()) {
   if (isTeacher()) return true;
   if (!classId || !uid) return false;
   try {
-    const [klass, inredningSparr] = await Promise.all([getDoc(doc(db, "classes", classId)), getInredningSparr(classId)]);
+    const klass = await getDoc(doc(db, "classes", classId));
     const studentIds = klass.exists() ? klass.data().studentIds : [];
-    return kanInredaFor({ uid, studentIds, inredningSparr });
+    // Gäst: klassprofilen (spärrlistan) är bara läsbar för klassen (#500).
+    if (!kanInredaFor({ uid, studentIds })) return false;
+    return kanInredaFor({ uid, studentIds, inredningSparr: await getInredningSparr(classId) });
   } catch (err) {
     console.warn("[klasscenter] kanInreda", classId, err?.code || err);
     return false;

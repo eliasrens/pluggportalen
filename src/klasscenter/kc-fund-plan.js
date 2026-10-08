@@ -13,6 +13,8 @@
 //       { targetPrice, fundedAmount, isUnlocked, unlockedAt?, lastDonationId }
 //   classCenters/{classId}/donations/{autoId}   { uid, itemId, amount, at }
 //   studentData/{uid}.coins                      − amount (samma batch)
+//   studentData/{uid}.kcDonation                 "<classId>/<donationId>"
+//       (reglerna: ett avdrag = en donation, #500)
 //
 // Cappning: beloppet blir min(begärt, det som saknas, elevens saldo) – det
 // som inte behövs dras aldrig, så inget går förlorat.
@@ -98,7 +100,10 @@ export function planDonationWrites({ classId, uid, itemId, plan, donationId, coi
   return [
     {
       path: ["studentData", uid],
-      data: { coins: rel ? fv.increment(-plan.amount) : (Number(coinsFore) || 0) - plan.amount },
+      data: {
+        coins: rel ? fv.increment(-plan.amount) : (Number(coinsFore) || 0) - plan.amount,
+        kcDonation: `${classId}/${donationId}`,
+      },
       merge: true,
     },
     {

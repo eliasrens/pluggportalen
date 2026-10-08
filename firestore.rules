@@ -636,7 +636,9 @@ service cloud.firestore {
       //    (fundedAmount == targetPrice), inget alls när redan isUnlocked.
       //  • donations: create-only, egen uid, klassmedlem, heltal ≥ 1, och
       //    samma transaktion pekar fund på posten + drar exakt amount från
-      //    elevens coins (≥ 0 kvar). Läses BARA av lärare (anonymt i klassen).
+      //    elevens coins (≥ 0 kvar) och sätter studentData.kcDonation =
+      //    "<klass>/<id>" (ett avdrag = en donation, #500). Läses BARA av
+      //    lärare (anonymt i klassen).
       // Kvarvarande begränsning (ärligt): studentData är klient-skrivbart
       // (isSelf) → reglerna garanterar insamlat == summan av donationerna och
       // att saldot sjunker lika mycket i samma skrivning, inte att eleven
@@ -668,10 +670,15 @@ service cloud.firestore {
           don.uid == request.auth.uid && don.itemId == itemId &&
           don.amount == d.fundedAmount - prevInt('fundedAmount');
       }
-      function kcCoinsPaid(n) {
+      // Avdraget knyts till EN donation: studentData.kcDonation ==
+      // "<klass>/<donationId>" i samma skrivning (#500). Utan markören kunde
+      // en batch med flera donationer (olika föremål/klasser) dela på ETT
+      // avdrag – 100 mynt gav 8 × 100 insamlat.
+      function kcCoinsPaid(n, donationId) {
         let p = /databases/$(database)/documents/studentData/$(request.auth.uid);
-        let efter = getAfter(p).data.get('coins', 0);
-        return efter == get(p).data.get('coins', 0) - n && efter >= 0;
+        let efter = getAfter(p).data;
+        return efter.get('coins', 0) == get(p).data.get('coins', 0) - n && efter.get('coins', 0) >= 0 &&
+          efter.get('kcDonation', '') == classId + '/' + donationId;
       }
       function kcDonationCreate(donationId) {
         let d = request.resource.data;
@@ -680,7 +687,7 @@ service cloud.firestore {
           d.uid == request.auth.uid && d.itemId is string && kcPris(d.itemId) > 0 &&
           d.amount is int && d.amount >= 1 && d.at == request.time &&
           getAfter(kcPath('fund', d.itemId)).data.lastDonationId == donationId &&
-          kcCoinsPaid(d.amount);
+          kcCoinsPaid(d.amount, donationId);
       }
 
       match /fund/{itemId} {
@@ -711,7 +718,7 @@ service cloud.firestore {
       //    över fund här) – ett ej köpt föremål i layouten ger bara en möbel
       //    för mycket i rummet, inga mynt eller EXP.
       //  • inredningSparr (klassprofilen classCenters/{classId}): bara lärare,
-      //    och bara det fältet (lista ≤ 200 uid:n).
+      //    och bara det fältet (lista ≤ 200 uid:n). Läses av klassen + lärare.
       // ⚠️ Ny post i kcKatalog = höj taket i kcPlaced (n <= …) + en
       // kcPosOk-rad per index (test/kc-layout-plan.test.js kontrollerar).
       // ----------------------------------------------------------------
@@ -855,7 +862,9 @@ service cloud.firestore {
       }
 
       // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).
-      allow read: if signedIn();
+      // Läses bara av klassen och lärare (#500): spärrlistan säger vilka
+      // elever läraren bockat ur – gästläget behöver den inte.
+      allow read: if isTeacher() || isClassMember(classId);
       allow create, update: if isTeacher() && changedOnly(['inredningSparr']) &&
         request.resource.data.inredningSparr is list &&
         request.resource.data.inredningSparr.size() <= 200;
