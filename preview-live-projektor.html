@@ -25,7 +25,8 @@
       <summary>🧪 Simulering (bara förhandsvisning)</summary>
       <div class="pv-body">
         <span class="pv-note">Allt här är låtsasdata i webbläsaren – ingen Firestore. Vyval, ljud och fullskärm i projektorns
-          egen verktygsrad. Tangent 1/2/3 byter vy.</span>
+          egen verktygsrad. Tangent 1/2/3 byter vy. "📺 Öppna elevskärm" öppnar elevskärmen (#533) som speglar
+          simuleringen härifrån.</span>
         <b>Scenario</b>
         <button data-go="fas=lobby">Lobby 2 klasser</button>
         <button data-go="fas=lobby&klasser=3">Lobby 3 klasser</button>
@@ -65,6 +66,10 @@
         counterShards: 10, status: "lobby", createdBy: "rasmus",
       };
       let players = [];
+      // Elevskärmen (#533): samma sida med #…&skarm=elev – speglar panelens låtsasdata.
+      const elev = location.hash.includes("skarm=elev");
+      const simBus = "BroadcastChannel" in window ? new BroadcastChannel("pv-live-sim") : null;
+      if (elev) document.querySelector(".pv").hidden = true;
       let nameIx = 0;
       function addPlayer(cid) {
         const p = { uid: `p${players.length}`, classId: cid, name: NAMN[nameIx++ % NAMN.length], lastSeenAt: now(), correct: 0, incorrect: 0 };
@@ -116,12 +121,13 @@
       let cb = null;
       let lastKey = "";
       function emit(force) {
+        if (!elev) simBus?.postMessage({ session, players });
         if (!cb) return;
         const st = compute();
-        if (st.phase === "ended" && session.status === "live") {
+        if (!elev && st.phase === "ended" && session.status === "live") {
           setTimeout(() => { if (session.status === "live") { session.status = "finished"; session.finishedAt = now(); emit(true); } }, 900);
         }
-        if (st.phase === "finished" && !session.result && !emit.rt) {
+        if (!elev && st.phase === "finished" && !session.result && !emit.rt) {
           emit.rt = setTimeout(() => { session.result = buildResult(session, compute().classes, players); emit(true); }, 2500);
         }
         const key = JSON.stringify([st.status, st.phase, st.countdown, st.clock, st.classes, st.top, !!st.result, session.classDivisors]);
@@ -130,6 +136,11 @@
         cb(st);
       }
       setInterval(() => emit(false), 250);
+      if (elev && simBus) simBus.onmessage = (e) => {
+        for (const k of Object.keys(session)) delete session[k];
+        Object.assign(session, e.data.session);
+        players = e.data.players;
+      };
 
       const deps = {
         subscribe(sid, fn) { cb = fn; emit(true); return () => { cb = null; }; },
@@ -140,10 +151,10 @@
       };
 
       const ctx = { app: document.getElementById("app"), go: (h) => console.log("navigera till", h) };
-      mountProjector(ctx, "demo", { cleanups: [], uid: "rasmus", deps });
+      mountProjector(ctx, "demo", { cleanups: [], uid: "rasmus", deps, screen: elev });
 
       // --- Simuleringspanelen ---
-      let auto = fas === "live" && q.get("auto") !== "av";
+      let auto = !elev && fas === "live" && q.get("auto") !== "av";
       setInterval(() => {
         if (!auto || phaseAt(session, now()).phase !== "live") return;
         const weights = [1.08, 1, 0.95];

@@ -9,8 +9,10 @@
 // knappen kan be om ett klick ("Klicka för ljud").
 //
 // API
-//   createSound()  → { on, unlocked(), toggle() → on, unlock(),
+//   createSound()  → { on, unlocked(), toggle() → on, unlock(), setOn(on), mute(m),
 //                      tick(n), go(), blip(), lead(), end(), win(), destroy() }
+//   setOn(on)  elevskärmen (#533) följer kontrollpanelens val (sparar inget)
+//   mute(m)    kontrollpanelen tystnar medan en elevskärm spelar ljudet (#533)
 // ============================================================================
 
 const KEY = "pp:live:ljud";
@@ -28,6 +30,7 @@ export function createSound() {
   let ctx = null;
   let master = null;
   let lastBlip = 0;
+  let muted = false;
 
   function ensure() {
     if (!on) return null;
@@ -50,6 +53,7 @@ export function createSound() {
 
   /** En ton: frekvens, start (s från nu), längd, typ, volym. */
   function tone(freq, at = 0, dur = 0.18, type = "sine", vol = 0.35, slideTo = null) {
+    if (muted) return;
     const c = ensure();
     if (!c || c.state !== "running") return;
     const t = c.currentTime + at;
@@ -77,6 +81,13 @@ export function createSound() {
       else ctx?.suspend().catch(() => {});
       return on;
     },
+    setOn(v) {
+      if (on === !!v) return;
+      on = !!v;
+      if (on) ensure();
+      else ctx?.suspend().catch(() => {});
+    },
+    mute(m) { muted = !!m; },
     /** 3 · 2 · 1 */
     tick(n) {
       tone(n === 1 ? 740 : 587, 0, 0.22, "triangle", 0.4);

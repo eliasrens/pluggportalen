@@ -13,9 +13,17 @@
 // officiellt slut = endsAt) mot den server-korrigerade klockan, 10 ggr/s –
 // aldrig en lokal nedräknare.
 //
-// API: mountProjector(ctx, sid, { cleanups, uid, deps? }) → Promise
+// UTVIDGAD SKÄRM (#533): "📺 Öppna elevskärm" (elevskarm-panel.js) öppnar ett
+// eget fönster med screen: true (#/larare/live?id=<sid>&skarm=elev) – samma
+// vyer men INGA kontroller (elevskarm-skarm.js). Det följer kontrollpanelens
+// vyval och ljud via en BroadcastChannel (elevskarm-kanal.js) och hämtar
+// matchen själv ur Firestore. Ljudet spelas där; panelen tystnar så länge en
+// elevskärm är ansluten. Utan elevskärm: exakt som förut (duplicerad skärm).
+//
+// API: mountProjector(ctx, sid, { cleanups, uid, deps?, screen? }) → Promise
 //   deps (för förhandsvisning/test; default = riktiga Firestore-lagret):
 //     { subscribe(sid, cb, opts), now(), start(sid), finish(sid), setDivisor(sid, cid, n) }
+//   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
 // ============================================================================
 
 import { getGameMode } from "./modes/index.js";
@@ -28,6 +36,9 @@ import { createStatsView } from "./proj-stats.js";
 import { createTugView } from "./proj-tug.js";
 import { createWinner } from "./proj-winner.js";
 import { ensureLiveCss } from "./live-css.js";
+import { createScreenLink } from "./elevskarm-kanal.js";
+import { createScreenControl } from "./elevskarm-panel.js";
+import { createScreenChrome } from "./elevskarm-skarm.js";
 
 const VIEW_KEY = "pp:live:vy";
 const VIEWS = [
@@ -53,15 +64,16 @@ function readView() {
   try { return localStorage.getItem(VIEW_KEY) || "raket"; } catch { return "raket"; }
 }
 
-export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
-  ensureLiveCss(["src/live/projector.css", "src/live/projector-views.css"]);
+export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = false }) {
+  ensureLiveCss(["src/live/projector.css", "src/live/projector-views.css", "src/live/elevskarm.css"]);
   const d = deps || await realDeps();
   const root = document.createElement("div");
-  root.className = "lp";
+  root.className = screen ? "lp lp-elevskarm" : "lp";
   root.innerHTML = `
-    <div class="lp-bar">
+    <div class="lp-bar"${screen ? " hidden" : ""}>
       <button class="lp-btn" data-back>← Live</button>
       <div class="lp-brand">⚡ MATTEMATCH LIVE <span data-name></span></div>
+      <div class="lp-es-host"></div>
       <div class="lp-views" role="tablist" hidden>${VIEWS.map((v) => `<button class="lp-btn lp-vbtn" role="tab" data-view="${v.id}">${v.label}</button>`).join("")}</div>
       <button class="lp-btn" data-sound></button>
       <button class="lp-btn" data-fs>⛶ Fullskärm</button>
@@ -96,7 +108,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
     clearTimeout(msgT);
     if (text) msgT = setTimeout(() => { m.hidden = true; }, 8000);
   };
-  const back = () => ctx.go("#/larare/live");
+  const back = screen ? null : () => ctx.go("#/larare/live");
   const actions = {
     start: () => { sound.unlock(); return d.start(sid); },
     cancel: () => d.finish(sid),
@@ -104,7 +116,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
   };
 
   // --- Verktygsraden -------------------------------------------------------
-  $("[data-back]").addEventListener("click", back);
+  if (back) $("[data-back]").addEventListener("click", back);
   $("[data-fs]").addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     else root.requestFullscreen?.().catch(() => say("Webbläsaren tillät inte fullskärm."));
@@ -115,7 +127,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
     root.classList.toggle("lp-fs", fs);
   };
   document.addEventListener("fullscreenchange", onFs);
-  $("[data-sound]").addEventListener("click", () => { sound.toggle(); soundLabel(); });
+  $("[data-sound]").addEventListener("click", () => { sound.toggle(); soundLabel(); es?.publish(); });
   $("[data-end]").addEventListener("click", () => {
     if (confirm("Avsluta matchen NU, före tiden? Resultatet räknas som det står.")) d.finish(sid).catch((e) => say(e.message));
   });
@@ -125,7 +137,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
     const v = VIEWS[Number(e.key) - 1];
     if (v && !$(".lp-views").hidden) pickView(v.id);
   };
-  document.addEventListener("keydown", onKey);
+  if (!screen) document.addEventListener("keydown", onKey);
   // I fullskärm göms raden när musen står still (projektorbilden blir ren).
   let idleT = 0;
   const onMove = () => {
@@ -134,6 +146,32 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
     idleT = setTimeout(() => root.classList.add("lp-idle"), 3500);
   };
   root.addEventListener("pointermove", onMove);
+
+  // --- Elevskärmen (#533) ---------------------------------------------------
+  // Panelen: knapp + status i raden, skickar vyval/ljud. Skärmen: följer dem.
+  let es = null;
+  let link = null;
+  let chrome = null;
+  if (screen) {
+    chrome = createScreenChrome(root, { sound });
+    link = createScreenLink(sid, {
+      audio: () => sound.on && sound.unlocked(),
+      onState: ({ view, sound: on }) => { sound.setOn(on); pickView(view); },
+      onClose: () => window.close(),
+    });
+    onMove();
+  } else {
+    es = createScreenControl($(".lp-es-host"), {
+      sid,
+      say,
+      state: () => ({ view: viewId, sound: sound.on }),
+      // Inga dubbla ljud: tyst här bara när elevskärmen faktiskt kan spela (upplåst).
+      onConnect: ({ connected, audio }) => { sound.mute(connected && audio); if (connected) es?.publish(); },
+    });
+    es.publish();
+  }
+  const onHide = () => link?.destroy();
+  window.addEventListener("pagehide", onHide);
 
   function soundLabel() {
     const t = !sound.on ? "🔇 Ljud av" : sound.unlocked() ? "🔊 Ljud på" : "🔊 Klicka för ljud";
@@ -147,10 +185,16 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
   }
 
   function pickView(id) {
+    // Elevskärmen tar emot vyn även innan matchdatan kommit (st saknas än).
+    if (screen && VIEWS.some((v) => v.id === id) && (!st || availableViews().some((v) => v.id === id))) {
+      viewId = id;
+      return draw();
+    }
     if (!availableViews().some((v) => v.id === id)) return;
     viewId = id;
     try { localStorage.setItem(VIEW_KEY, id); } catch {}
     draw();
+    es?.publish();
   }
 
   // --- Nedräkning + timer (10 ggr/s ur serverstämplarna) -------------------
@@ -235,7 +279,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
     if (current?.key !== key) {
       if (kind === "lobby") {
         const mode = getGameMode(s.gameMode);
-        mountKind(kind, key, () => createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say }));
+        mountKind(kind, key, () => createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen }));
       } else if (kind === "game") {
         const v = VIEWS.find((x) => x.id === viewId);
         mountKind(kind, key, () => v.create(stage, { st, colors }));
@@ -245,8 +289,8 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
         mountKind(kind, key, () => createWinner(stage, { st, colors, onBack: back, celebrate }));
       } else {
         mountKind(kind, key, () => {
-          stage.innerHTML = `<div class="lp-wait">Matchen avbröts innan den startade.<button class="lp-btn" data-back2>← Till Live</button></div>`;
-          stage.querySelector("[data-back2]").addEventListener("click", back);
+          stage.innerHTML = `<div class="lp-wait">Matchen avbröts innan den startade.${back ? `<button class="lp-btn" data-back2>← Till Live</button>` : ""}</div>`;
+          stage.querySelector("[data-back2]")?.addEventListener("click", back);
           return { update() {}, destroy() {} };
         });
       }
@@ -265,6 +309,10 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps }) {
     clearTimeout(idleT);
     clearTimeout(msgT);
     current?.ui?.destroy();
+    es?.destroy();
+    link?.destroy();
+    chrome?.destroy();
+    window.removeEventListener("pagehide", onHide);
     sound.destroy();
     document.removeEventListener("fullscreenchange", onFs);
     document.removeEventListener("keydown", onKey);
