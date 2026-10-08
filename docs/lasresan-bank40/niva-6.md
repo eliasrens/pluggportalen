@@ -35,7 +35,7 @@ Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` (nivå 5 
 | lr-n6-tradgardstomten | story | roliga situationer | Vykorten från tomten | Emil, grannen Evert | Grannens trädgårdstomte ”reser” och skickar vykort; lastbilschaufförsmamman ligger bakom för att muntra upp honom |
 | lr-n6-luciatoget | story | roliga situationer | Lucia i discoläge | Annie, Bianca | Ljuskronan slår om till blinkande discoläge mitt i det högtidliga luciatåget; salen klappar takten |
 | lr-n6-nya-kompisen | story | relationer | Vänskap är ingen tårta | Vilja, Wendela, Kajsa | Svartsjuka när bästa vännen får en ny vän; frågar rakt ut i stället för att skicka elakt meddelande |
-| lr-n6-bonusbrodern | story | relationer | Gästen i rummet bredvid | Love, Matteo, Jörgen | Tyst bonusbror känner sig som gäst; karta i köksskåpet och namnskylt på dörren |
+| lr-n6-bonusbrodern | story | relationer | Gästen i rummet bredvid | Love, Matteo, Torbjörn | Tyst bonusbror känner sig som gäst; karta i köksskåpet och namnskylt på dörren |
 | lr-n6-tolken | story | relationer | Yara tolkar | Rania, läraren Helena | Tolkar sitt eget utvecklingssamtal och mildrar kritiken; pappa förstår mer än hon tror |
 | lr-n6-hundspannet | story | äventyr | Släpp aldrig släden | Märta, guiden Ante | Hundspann i fjällen; en ripa får släden att välta, hon minns regeln och bromsar |
 | lr-n6-vraket | story | äventyr | Spanten i tången | Gabriel, moster Leila | Rädd för djupt vatten, hittar ett okänt vrak när han snorklar; rapporterar i stället för att ta en bit |

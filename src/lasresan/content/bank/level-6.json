@@ -1807,7 +1807,7 @@
     "level": 6,
     "textType": "story",
     "topic": "relationer",
-    "body": "När mamma och Jörgen flyttade ihop fick Love en bonusbror. Matteo var elva år, ett år yngre än Love, och han bodde hos dem varannan vecka. Resten av tiden bodde han hos sin mamma i en annan stad.\n\nLove hade bestämt sig för att vara schysst. Men Matteo gjorde det inte lätt. Han svarade med ett ord när man frågade något. Han satt på sitt rum med dörren stängd och åt middag som om han var på restaurang, artigt och tyst. Han sa ”tack för maten” varje kväll, vilket ingen annan i familjen någonsin gjorde.\n\n”Han tycker nog att vi är töntiga”, sa Love till mamma.\n\nEn lördag skulle Love hämta cykelpumpen i garaget. Där inne satt Matteo på en hink med mobilen i handen. Han torkade snabbt bort något från kinden.\n\n”Jag hittar inte toalettpappret”, sa han, fast det inte alls var vad han höll på med. ”Eller skeden. Eller någonting. Jag vet aldrig var något är här. Jag måste fråga om allt.”\n\nLove stod tyst. Han hade aldrig tänkt på det. Han visste var varje sak i huset fanns utan att tänka efter. Matteo var här så sällan att han inte hann lära sig det innan han åkte igen. Han var inte en tönt. Han var en gäst. Och gäster säger tack för maten.\n\nDen kvällen gjorde Love en karta över köket och satte upp den på insidan av ett skåp. Han ritade pilar till skedarna, till chipsen och till det hemliga facket där mamma gömde chokladen. Sedan gick han till Jörgen och frågade om de kunde göra en skylt till Matteos dörr.\n\nDe sågade ut en träbit i garaget och brände in namnet med en lödkolv. Bokstäverna blev sneda, och E:et blev nästan ett F.\n\nNär Matteo kom tillbaka efter sin vecka hos mamman stod han länge framför dörren. Han sa ingenting. Men på kvällen öppnade han skåpet utan att fråga, tog chips från rätt hylla och satte sig bredvid Love i soffan.\n\nHan sa inte tack för maten den kvällen. Love tolkade det som ett gott tecken.",
+    "body": "När mamma och Torbjörn flyttade ihop fick Love en bonusbror. Matteo var elva år, ett år yngre än Love, och han bodde hos dem varannan vecka. Resten av tiden bodde han hos sin mamma i en annan stad.\n\nLove hade bestämt sig för att vara schysst. Men Matteo gjorde det inte lätt. Han svarade med ett ord när man frågade något. Han satt på sitt rum med dörren stängd och åt middag som om han var på restaurang, artigt och tyst. Han sa ”tack för maten” varje kväll, vilket ingen annan i familjen någonsin gjorde.\n\n”Han tycker nog att vi är töntiga”, sa Love till mamma.\n\nEn lördag skulle Love hämta cykelpumpen i garaget. Där inne satt Matteo på en hink med mobilen i handen. Han torkade snabbt bort något från kinden.\n\n”Jag hittar inte toalettpappret”, sa han, fast det inte alls var vad han höll på med. ”Eller skeden. Eller någonting. Jag vet aldrig var något är här. Jag måste fråga om allt.”\n\nLove stod tyst. Han hade aldrig tänkt på det. Han visste var varje sak i huset fanns utan att tänka efter. Matteo var här så sällan att han inte hann lära sig det innan han åkte igen. Han var inte en tönt. Han var en gäst. Och gäster säger tack för maten.\n\nDen kvällen gjorde Love en karta över köket och satte upp den på insidan av ett skåp. Han ritade pilar till skedarna, till chipsen och till det hemliga facket där mamma gömde chokladen. Sedan gick han till Torbjörn och frågade om de kunde göra en skylt till Matteos dörr.\n\nDe sågade ut en träbit i garaget och brände in namnet med en lödkolv. Bokstäverna blev sneda, och E:et blev nästan ett F.\n\nNär Matteo kom tillbaka efter sin vecka hos mamman stod han länge framför dörren. Han sa ingenting. Men på kvällen öppnade han skåpet utan att fråga, tog chips från rätt hylla och satte sig bredvid Love i soffan.\n\nHan sa inte tack för maten den kvällen. Love tolkade det som ett gott tecken.",
     "questions": [
       {
         "id": "q1",
@@ -1875,7 +1875,7 @@
         "options": [
           "Matteo glömde ofta vilket rum som var hans",
           "Matteo skulle känna att rummet var hans",
-          "Jörgen hade bett om hjälp med en skylt",
+          "Torbjörn hade bett om hjälp med en skylt",
           "Love ville öva på att använda en lödkolv"
         ],
         "answerIndex": 1,
@@ -1900,7 +1900,7 @@
           "Han hade glömt bort hur man gör",
           "Han tyckte inte om maten längre",
           "Han kände sig inte längre som en gäst",
-          "Han var arg på Love och Jörgen den kvällen"
+          "Han var arg på Love och Torbjörn den kvällen"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
