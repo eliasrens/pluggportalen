@@ -248,7 +248,7 @@ Exempel (`students/elev1`):
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
-| `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt }`. `level` (1–7) är Läsresans **dolda** nivå – helt skild från `readingLevel` (1–3). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, nivå 3) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
+| `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt, pendingLevel, levelSetAt, levelSetBy }`. `level` (1–7) är Läsresans **dolda** nivå – helt skild från `readingLevel` (1–3). **Lärarstyrd nivå (#505):** `pendingLevel` (1–7 eller null) = lärarvald nivå som gäller efter elevens påbörjade text; `levelSetAt` (ms) + `levelSetBy: "teacher"` = senaste lärarbyte (brygga `src/data-lasresan-niva.js`). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, klassens `lasresaStartLevel` eller nivå 3) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
 
@@ -410,6 +410,7 @@ flera klasser utan extra kopplingsdata).
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
+| `lasresaStartLevel` | int 1–7           | Läsresans startnivå (#505) för klassens elever som INTE börjat Läsresan (saknar `studentData.lasresa`) och nya elever. Saknas = 3. Påverkar inte elever som är igång. Bara lärare skriver (regeln validerar heltal 1–7; ⚠️ rules-deploy). Se [LASRESAN.md](LASRESAN.md). |
 
 **Assignment**: `{ subjectId, areaId }` – pekar på ett `subjects/{subjectId}/areas/{areaId}`.
 
