@@ -1906,5 +1906,535 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n5-tvillingarna",
+    "title": "Två kalas på samma dag",
+    "level": 5,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Ayla och Esme var tvillingar, men de var inte likadana. Ayla älskade att rita och kunde sitta tyst i flera timmar. Esme pratade i ett och spelade handboll fyra dagar i veckan. Ändå sa alla ”tvillingarna” om dem, som om de vore en enda person.\n\nDe hade alltid haft samma kalas, samma tårta och fått likadana presenter, bara i olika färger. Men i år hade Ayla bestämt sig. Veckan innan de skulle fylla elva sa hon det vid middagen.\n\n”Jag vill ha ett eget kalas.”\n\nDet blev tyst. Pappa la ner gaffeln. Esme stirrade på henne.\n\n”Varför då?” sa Esme till slut. ”Tycker du inte om mina kompisar?”\n\n”Det är inte det”, sa Ayla. ”Men jag vill inte ha hinderbana och korv igen. Jag vill ha ett lugnt kalas där vi målar.”\n\nEsme reste sig och gick in på sitt rum. Hela kvällen var dörren stängd.\n\nAyla låg vaken länge. Hon ville inte göra Esme ledsen. Hon ville bara bli sedd som sig själv.\n\nMitt i natten knackade det på hennes dörr. Esme stod där med sitt täcke om axlarna.\n\n”Jag har tänkt”, viskade hon. ”Jag tycker också att det är tråkigt att alltid få samma presenter som du. Förra året fick vi ju varsin målarlåda. Jag har inte ens öppnat min.”\n\nAyla började fnissa. Snart fnissade Esme också.\n\nDet slutade med två kalas på samma dag. På förmiddagen var det hinderbana och korv i parken för Esmes handbollslag. På eftermiddagen satt Aylas tre bästa vänner vid köksbordet och målade med vattenfärg. Esme kom förbi med leriga knän och gav Ayla en present. Det var en pensel med hennes namn ingraverat i skaftet.\n\n”Den är bara din”, sa Esme.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad tycker Ayla mest om att göra?",
+        "options": [
+          "Att spela handboll",
+          "Att rita och måla",
+          "Att springa hinderbana",
+          "Att baka tårtor"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fick tvillingarna i present förra året?",
+        "options": [
+          "Varsin målarlåda",
+          "Varsin handboll",
+          "Varsin cykel",
+          "Varsin pensel med namn"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför trodde Esme först att Ayla ville ha ett eget kalas?",
+        "options": [
+          "Hon trodde att pappa hade bestämt det åt dem",
+          "Hon trodde att Ayla ville få fler presenter än hon",
+          "Hon trodde att Ayla inte tyckte om hennes kompisar",
+          "Hon trodde att Ayla var avundsjuk på handbollen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att Esme ”pratade i ett”?",
+        "options": [
+          "Hon pratade väldigt tyst och lågt",
+          "Hon pratade bara om en enda sak",
+          "Hon pratade med en person åt gången",
+          "Hon pratade nästan hela tiden"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad var det Ayla egentligen ville?",
+        "options": [
+          "Visa att hon var arg på Esme",
+          "Bli sedd som sig själv",
+          "Bjuda fler kompisar än vanligt",
+          "Slippa dela tårtan med Esme"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför började systrarna fnissa mitt i natten?",
+        "options": [
+          "De förstod att de båda ville samma sak",
+          "Esme såg rolig ut med täcket om sig",
+          "Esme hade sagt något roligt om pappa",
+          "De hörde pappa snarka i rummet bredvid"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att namnet var ”ingraverat” i skaftet?",
+        "options": [
+          "Det var målat med vattenfärg",
+          "Det var broderat med tunn tråd",
+          "Det var inristat i själva skaftet",
+          "Det var skrivet på en liten lapp"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar Esmes present i slutet?",
+        "options": [
+          "Att hon ångrar att hon hade ett eget kalas",
+          "Att hon själv vill börja måla med vattenfärg",
+          "Att hon har glömt vad Ayla önskade sig",
+          "Att hon har förstått att Ayla vill ha något eget"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-tunnelbanan",
+    "title": "Tre stationer för långt",
+    "level": 5,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Zainab hade åkt tunnelbana i Stockholm hundratals gånger, men alltid med någon vuxen. I dag skulle hon för första gången åka ensam, från farmors lägenhet till simhallen där mamma skulle möta henne. Sex stationer på den röda linjen, sedan byte till den blå och två stationer till. Mamma hade skrivit allt på en lapp.\n\nAllt gick bra i fyra stationer. Sedan blev boken hon läste för spännande. När hon tittade upp stod det ett stationsnamn på skylten som hon aldrig hade hört.\n\nHjärtat slog hårt. Hon klev av och tog fram mobilen för att ringa mamma. Skärmen var svart. Batteriet var slut.\n\nZainab stod stilla på perrongen och försökte tänka. Hon mindes vad farmor brukade säga: ”Den som får panik tänker med fötterna. Den som andas tänker med huvudet.”\n\nHon andades. Sedan letade hon upp den stora kartan på väggen. Linjerna var ritade i olika färger, och varje station var en liten prick. Hon hittade stationen där hon stod och följde den röda linjen med fingret. Hon hade åkt tre stationer för långt och passerat bytet till den blå linjen.\n\nHon gick över till andra sidan perrongen, där tågen gick åt motsatt håll, och räknade noga: en, två, tre. Vid bytet följde hon de blå skyltarna nerför en lång rulltrappa.\n\nNär hon kom upp ur tunnelbanan vid simhallen stod mamma där och tittade oroligt på klockan.\n\n”Du är tjugo minuter sen! Jag har ringt dig fem gånger!”\n\nZainab höll upp den svarta mobilen. ”Jag vet. Men jag hittade ändå.”\n\nMamma kramade henne hårt. Sedan tog hon fram en laddare ur handväskan. ”Nästa gång”, sa hon, ”tar du med dig den här.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur skulle Zainab åka till simhallen?",
+        "options": [
+          "Med röda linjen och sedan blå",
+          "Med blå linjen och sedan röd",
+          "Med blå linjen hela vägen",
+          "Med röda linjen och sedan buss"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför märkte hon inte att hon åkte förbi sin station?",
+        "options": [
+          "Hon pratade i mobilen med mamma",
+          "Hon hade somnat på sätet",
+          "Hon läste en spännande bok",
+          "Hon lyssnade på musik i lurarna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en perrong?",
+        "options": [
+          "Den del av vagnen där man sitter",
+          "Luckan där man köper biljetter",
+          "Trappan som leder ner till tåget",
+          "Platsen där man väntar på tåget"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad menar farmor med att den som får panik ”tänker med fötterna”?",
+        "options": [
+          "Man springer fortare än vanligt",
+          "Man gör saker utan att tänka efter",
+          "Man går alltid åt fel håll",
+          "Man behöver vila fötterna en stund"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur många stationer för långt hade Zainab åkt?",
+        "options": [
+          "Två",
+          "Fyra",
+          "Tre",
+          "Sex"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför gick Zainab över till andra sidan perrongen?",
+        "options": [
+          "Där fanns en större och tydligare karta",
+          "Tågen där gick tillbaka åt rätt håll",
+          "Där väntade mamma på henne",
+          "Där kunde hon ladda sin mobil"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför tittade mamma oroligt på klockan?",
+        "options": [
+          "Mamma skulle hinna till ett möte efteråt",
+          "Simhallen skulle stänga om en liten stund",
+          "Mamma trodde att hon själv hade kommit sent",
+          "Zainab var sen och svarade inte i mobilen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar berättelsen om Zainab?",
+        "options": [
+          "Hon kan lösa problem när hon håller sig lugn",
+          "Hon tycker att tunnelbanan är läskig",
+          "Hon glömmer alltid att ladda sin mobil",
+          "Hon är egentligen för liten för att åka ensam"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-seglatsen",
+    "title": "När vinden vände",
+    "level": 5,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Moster Shirin hade seglat sedan hon var liten, och i somras fick Hamid följa med henne på en tvådagarstur i skärgården. Båten hette Tärnan och var bara sex meter lång, med ett stort vitt segel och en liten hytt där två personer nätt och jämnt kunde sova.\n\nFörsta dagen var perfekt. Solen glittrade på vattnet, och Hamid fick styra med rorkulten medan Shirin visade hur man ser vinden på krusningarna i vattnet.\n\nAndra dagen vaknade de av att båten gungade. Himlen i väster var mörkgrå. Shirin lyssnade på väderleksrapporten i radion och såg allvarlig ut.\n\n”Det blåser upp till hård vind i eftermiddag”, sa hon. ”Vi seglar inte hem i dag. Vi letar upp en naturhamn i stället.”\n\nDe gav sig av direkt. Snart fick vågorna vita toppar, och båten lutade så mycket att Hamid fick hålla sig i relingen. Shirin bad honom hålla rorkulten stadigt medan hon revade seglet, alltså gjorde det mindre genom att vika ner en del av det och knyta fast det.\n\n”Ett mindre segel tar mindre vind”, ropade hon genom bruset. ”Då blir båten lättare att styra.”\n\nDet fungerade. Båten slutade luta lika mycket. Efter en timme rundade de en udde och gled in i en vik där vattnet var nästan stilla. Höga klippor skyddade dem från vinden.\n\nDe förtöjde vid en stor sten och åt nudlar i hytten medan vinden ven ovanför klipporna.\n\n”Var du rädd?” frågade Hamid.\n\n”Lite”, sa Shirin. ”Det är bra. Den som aldrig är rädd på havet lyssnar inte på vädret.”\n\nNästa morgon var havet blankt som en spegel. De seglade hem i lugn och ro, och Hamid styrde hela vägen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur märkte de på morgonen att vädret höll på att ändras?",
+        "options": [
+          "Shirin fick ett sms om att det skulle storma",
+          "Det åskade och blixtrade över skärgården",
+          "Det regnade in genom taket på hytten",
+          "Båten gungade och himlen var mörk i väster"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde Shirin med seglet när det blåste?",
+        "options": [
+          "Hon tog ner hela seglet",
+          "Hon lagade ett hål i det",
+          "Hon gjorde det mindre",
+          "Hon satte upp ett större segel"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en naturhamn, så som ordet används i texten?",
+        "options": [
+          "En skyddad vik där båtar kan ligga",
+          "En hamn dit fiskebåtar kommer med fisk",
+          "En stor hamn med bryggor och affärer",
+          "En plats på land där båtar står på vintern"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att havet var ”blankt som en spegel”?",
+        "options": [
+          "Det var täckt av tunn is",
+          "Det var alldeles stilla",
+          "Det var mycket kallt",
+          "Det glittrade av vita vågor"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ville Shirin inte segla hem den andra dagen?",
+        "options": [
+          "Båten hade fått ett läckage",
+          "Det skulle bli för farligt i den hårda vinden",
+          "Hamid var trött och behövde vila",
+          "De hade slut på mat ombord"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blev båten lättare att styra efter att Shirin revat seglet?",
+        "options": [
+          "Båten blev tyngre längst fram",
+          "Hamid hade blivit bättre på att styra",
+          "Vinden hade nästan slutat blåsa",
+          "Seglet tog inte lika mycket vind"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar Shirin med att det är bra att vara lite rädd?",
+        "options": [
+          "Man ska aldrig segla när det blåser",
+          "Det är spännande att vara rädd på havet",
+          "Rädslan gör att man tar vädret på allvar",
+          "Den som är rädd seglar alltid snabbare"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad lär sig Hamid på seglingsturen?",
+        "options": [
+          "Att havet kräver respekt och planering",
+          "Att segling är för farligt för barn",
+          "Att det är bäst att segla ensam",
+          "Att man alltid ska vara hemma före kvällen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-klattervaggen",
+    "title": "Ett grepp i taget",
+    "level": 5,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Klätterhallen luktade gummi och krita. Linus stod längst ner vid den gula leden och tittade uppåt. Väggen var tolv meter hög, och högst upp hängde en liten mässingsklocka som man fick ringa i när man nådde toppen.\n\nDet var tredje gången han var här. Båda gångerna innan hade han klättrat halvvägs och sedan bett att få bli nedfirad.\n\n”Selen sitter som den ska och knuten är dubbelkollad”, sa tränaren Mirja, som stod på golvet och säkrade. Hon höll i repet som gick upp till ett fäste i taket och sedan ner till Linus sele. ”Jag har dig.”\n\nLinus började klättra. De första greppen var stora som handtag. Sedan blev de mindre. Vid sex meter tittade han ner, och då började vänsterbenet skaka så att foten nästan gled av. Klättrare kallar det för symaskinsben.\n\n”Jag vill ner!” ropade han.\n\n”Det får du”, ropade Mirja tillbaka. ”Men gör en sak först. Släpp väggen och sätt dig i selen. Jag lovar att repet håller.”\n\nLinus tvekade länge. Sedan släppte han. Han föll kanske en decimeter innan repet sträcktes och han blev hängande i luften, alldeles stilla. Det kändes som att sitta i en gunga.\n\nHan skrattade till, förvånat.\n\n”Bra”, sa Mirja. ”Nu vet du att repet håller. Titta inte upp mot klockan. Titta bara på nästa grepp.”\n\nLinus satte fötterna mot väggen igen. Ett grepp. Ett till. Han tänkte inte på hur högt det var, bara på var nästa hand skulle sitta. När han till slut sträckte ut armen hängde klockan där, alldeles framför honom.\n\nPling.\n\nDet var ett litet ljud. Men Linus tyckte att det lät vackrare än någon musik han hade hört.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hade hänt de två första gångerna Linus var i klätterhallen?",
+        "options": [
+          "Han föll och slog i knät mot väggen",
+          "Han vågade inte ens börja klättra",
+          "Han klättrade halvvägs och ville sedan ner",
+          "Han nådde toppen men glömde att ringa"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur hög är klätterväggen?",
+        "options": [
+          "Tolv meter",
+          "Tjugo meter",
+          "Sex meter",
+          "Tio meter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ”symaskinsben”, enligt texten?",
+        "options": [
+          "Ett ben som är extra starkt",
+          "Ett ben som skakar",
+          "Ett ben som är täckt av krita",
+          "Ett ben som har fastnat i repet"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför bad Mirja Linus att släppa väggen?",
+        "options": [
+          "Hon tyckte att han borde ge upp för dagen",
+          "Hon ville visa de andra hur man faller",
+          "Hon ville att han skulle komma ner fortare",
+          "Han skulle känna att repet verkligen höll"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder det att bli ”nedfirad”?",
+        "options": [
+          "Att bli firad med tårta",
+          "Att bli sänkt ner i repet",
+          "Att få hjälp att klättra upp",
+          "Att bli lyft upp till toppen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skrattade Linus till när han hängde i repet?",
+        "options": [
+          "Han hade redan kommit ända upp",
+          "Mirja hade sagt något roligt till honom",
+          "Det var mycket mindre läskigt än han hade trott",
+          "Selen kittlade honom runt magen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför skulle Linus inte titta upp mot klockan?",
+        "options": [
+          "Det var förbjudet att titta upp i hallen",
+          "Lamporna i taket skulle blända honom",
+          "Klockan var trasig och fick inte röras",
+          "Avståndet till toppen kunde göra honom rädd igen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad hjälpte Linus mest att nå toppen?",
+        "options": [
+          "Att lita på repet och ta ett grepp i taget",
+          "Att han hade blivit mycket starkare i armarna",
+          "Att han hade fått ett par nya klätterskor",
+          "Att Mirja drog honom uppåt med repet"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-domaren",
+    "title": "Domaren i gul tröja",
+    "level": 5,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Noel var tolv år och hade gått en kurs för unga fotbollsdomare. Nu skulle han döma sin första match: två lag med åttaåringar på den lilla gräsplanen bakom klubbstugan. Han hade en gul tröja, en visselpipa och ett hjärta som bultade som en trumma.\n\nFörsta halvleken gick bra. Barnen sprang i en klump efter bollen, och Noel blåste när bollen gick ut. Föräldrarna längs sidlinjen hejade och drack kaffe.\n\nI andra halvleken blev det jämnt. Det stod 2–2 när en spelare i det blå laget föll i straffområdet. Noel hade sett det tydligt: hon hade snubblat på sina egna fötter. Ingen hade rört henne.\n\nHan blåste inte.\n\n”STRAFF!” vrålade en pappa i blå jacka. ”Är du blind, domaren?”\n\nFler föräldrar började ropa. Noel kände hur kinderna blev varma. Det vore så lätt att blåsa och ge dem det de ville ha. Då skulle de sluta skrika.\n\nMen han hade sett vad som hände. På kursen hade instruktören sagt: ”Du dömer det du ser, inte det andra ropar.”\n\nNoel skakade på huvudet och lät spelet fortsätta. Han hörde muttrandet bakom sig, men han vände sig inte om.\n\nMatchen slutade 2–2. Efteråt kom flickan som hade fallit fram till honom. Hon var röd i ansiktet.\n\n”Jag snubblade”, sa hon tyst. ”Jag sa det till pappa också.”\n\nPappan i blå jacka stod en bit bort och såg generad ut. Efter en stund kom han fram och sträckte fram handen.\n\n”Förlåt”, sa han. ”Det var du som hade rätt.”\n\nNoel skakade hand. Benen var fortfarande lite darriga. Men han hade redan bestämt sig för att döma igen nästa lördag.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka spelade matchen som Noel dömde?",
+        "options": [
+          "Noels eget lag mot ett annat",
+          "Två lag med föräldrar",
+          "Två lag med tolvåringar",
+          "Två lag med åttaåringar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför föll spelaren i straffområdet?",
+        "options": [
+          "En motståndare knuffade henne",
+          "Bollen träffade henne i ansiktet",
+          "Hon snubblade på sina egna fötter",
+          "Hon halkade på det blöta gräset"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ordet ”vrålade”?",
+        "options": [
+          "Ropade mycket högt",
+          "Frågade försiktigt",
+          "Viskade argt",
+          "Muttrade tyst"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför var det frestande för Noel att blåsa straff?",
+        "options": [
+          "Han ville att det blå laget skulle vinna",
+          "Då skulle föräldrarna sluta skrika",
+          "Instruktören hade sagt att han skulle göra så",
+          "Han var inte säker på vad som hade hänt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menade instruktören med ”Du dömer det du ser, inte det andra ropar”?",
+        "options": [
+          "Domaren ska aldrig prata med spelarna",
+          "Domaren ska lyssna mest på publiken",
+          "Domaren ska alltid titta på bollen",
+          "Domaren ska lita på sina egna ögon"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför vände sig Noel inte om när föräldrarna muttrade?",
+        "options": [
+          "Han letade efter bollen på planen",
+          "Han ville inte låta dem påverka honom",
+          "Han var för arg för att titta på dem",
+          "Han hörde inte vad de sa"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför såg pappan i blå jacka generad ut?",
+        "options": [
+          "Han förstod att han hade skrikit i onödan",
+          "Hans dotter hade gjort ett självmål",
+          "Han hade spillt kaffe på hela jackan",
+          "Hans dotters lag hade förlorat matchen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen framför allt om?",
+        "options": [
+          "Att föräldrar inte borde få titta på matcher",
+          "Att det är svårt att lära sig fotbollsregler",
+          "Att stå för det man vet är rätt",
+          "Att domare alltid får skäll efter matchen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
