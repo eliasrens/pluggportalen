@@ -634,5 +634,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n6-debatten",
+    "title": "Fel sida i debatten",
+    "level": 6,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Fröken Kerstin drog lappar ur en burk och läste högt. ”Cornelia, du ska argumentera för att mobiler ska vara förbjudna under hela skoldagen.”\n\nCornelia stönade så att alla hörde det. Hela klassen visste vad hon tyckte. Det var hon som hade samlat namn på en lista förra året, när skolan började samla in mobilerna på lektionerna. Nu skulle hon stå framför alla och säga motsatsen.\n\n”Det är orättvist”, sa hon efter lektionen. ”Jag tror inte på ett enda ord av det jag ska säga.”\n\n”Just därför”, svarade Kerstin. ”Den som bara kan försvara sin egen åsikt vet inte riktigt varför hon har den.”\n\nHemma stirrade Cornelia länge på ett tomt papper. Till slut bestämde hon sig för att ta reda på saker i stället för att gissa. Hon mejlade skolans kurator, som svarade att många elever kände sig stressade av gruppchattar som plingade även på rasterna. Hon frågade sin lillebror Ville i trean vad han tyckte. ”Ingen vill spela fotboll längre”, sa han. ”Alla sitter på bänken och tittar på sina skärmar.”\n\nSamma kväll gjorde hon ett streck på en lapp varje gång hon tog upp sin egen mobil. När hon gick och lade sig fanns det trettiofyra streck.\n\nPå debattdagen började Jack, som hade fått den andra sidan. Han sa att mobilen behövs om något händer och att den kan användas som miniräknare och ordbok. Klassen nickade.\n\nCornelia höll sig lugn. Hon svarade sakligt, utan att höja rösten, med det kuratorn hade skrivit och det Ville hade sagt. Sist läste hon upp sina trettiofyra streck. Det blev alldeles tyst, och sedan skrattade några, eftersom de kände igen sig.\n\nNär omröstningen räknades blev det lika många röster för båda sidor.\n\n”Nå”, sa Kerstin efteråt. ”Vad tycker du nu?”\n\nCornelia tänkte efter. ”Jag tycker fortfarande att ett förbud är fel. Men nu förstår jag varför någon kan tycka tvärtom. Det är inte en dum åsikt.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad tyckte Cornelia om mobiler i skolan innan debatten?",
+        "options": [
+          "Hon ville att de skulle förbjudas helt",
+          "Hon brydde sig inte om frågan alls",
+          "Hon var emot att skolan samlade in dem",
+          "Hon tyckte att lärarna fick bestämma"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Kerstin säger att den som bara kan försvara sin egen åsikt ”inte riktigt vet varför hon har den”. Vad menar hon?",
+        "options": [
+          "Man borde aldrig ändra sin åsikt efter att ha hört en debatt",
+          "Det är läraren som ska välja åsikter åt eleverna",
+          "Egna åsikter brukar oftast vara felaktiga",
+          "Man förstår sin åsikt bättre om man känner motsatsen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad svarade skolans kurator?",
+        "options": [
+          "Att chattar som plingade stressade många",
+          "Att eleverna sov alldeles för lite på nätterna",
+          "Att mobiler ofta stals i omklädningsrummet",
+          "Att föräldrar ville kunna nå sina barn"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför gjorde Cornelia streck varje gång hon tog upp sin mobil?",
+        "options": [
+          "Kerstin hade gett henne det som läxa",
+          "Hon ville se om argumenten gällde henne själv",
+          "Hon ville bevisa att Ville hade fel",
+          "Hon behövde en siffra som Jack kunde använda"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Cornelia svarade ”sakligt”. Vad betyder det?",
+        "options": [
+          "Snabbt och utan att tänka efter",
+          "Lugnt och med fakta",
+          "Tyst så att bara Jack hörde",
+          "Argt men med många exempel"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Cornelia hade ”samlat namn på en lista”. Vad betyder det här?",
+        "options": [
+          "Hon hade skrivit ner vilka som hade egna mobiler",
+          "Hon hade gjort en lista över elever som bröt mot regler",
+          "Hon hade låtit andra skriva under att de höll med",
+          "Hon hade antecknat vilka som ville vara med i debatten"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför skrattade några i klassen när Cornelia läste upp strecken?",
+        "options": [
+          "De kände igen samma vana hos sig själva",
+          "De tyckte att hon hade räknat fel",
+          "De trodde att hon bara skämtade med Jack och klassen",
+          "De ville visa att de höll med Jack"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Hur har Cornelia förändrats i slutet av berättelsen?",
+        "options": [
+          "Hon har bytt åsikt och vill nu förbjuda mobiler",
+          "Hon tycker fortfarande att uppgiften var orättvis",
+          "Hon har slutat bry sig om vad andra tycker",
+          "Hon har kvar sin åsikt men respekterar den andra"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-fragladan",
+    "title": "Lappen i frågelådan",
+    "level": 6,
+    "textType": "story",
+    "topic": "skola",
+    "body": "I början av terminen ställde läraren Jens en låda av kartong på sin kateder. Den hade ett smalt hål i locket. ”Här kan ni lägga frågor som ni inte vill ställa högt”, sa han. ”Ni behöver inte skriva ert namn.”\n\nDe första veckorna handlade lapparna mest om läxor och om varför man måste lära sig bråk. Men en fredag tog Jens upp en lapp och blev stående tyst en stund innan han läste den.\n\n”Jag har ingen att vara med på rasterna. Hur gör man för att få kompisar?”\n\nIngen i klassen sa något. Stina kände hur det hettade i ansiktet, fast lappen inte var hennes. Jens vek ihop den och delade ut tomma papper. ”Svara den som skrev”, sa han. ”Ni behöver inte heller skriva era namn.”\n\nStina skrev att man kan fråga om man får vara med, även om det känns läskigt. Men medan hon skrev tittade hon runt i klassrummet. Vem kunde det vara? Kanske Abdi, som ofta stod vid staketet. Eller Hiba, som alltid läste en bok på rasten.\n\n”Vi borde ta reda på vem det är”, viskade hon till Maryam på vägen hem.\n\nMaryam skakade på huvudet. ”Då blir det ju inte hemligt längre. Och tänk om vi gissar fel och pekar ut någon.”\n\nStina låg vaken länge den kvällen. Till slut förstod hon att Maryam hade rätt. Det viktiga var inte vem som hade skrivit lappen. Det viktiga var att ingen skulle behöva skriva en sådan lapp igen.\n\nPå måndagen frågade hon Abdi om han ville spela kubb. Maryam frågade Hiba. Flera andra i klassen hade tydligen tänkt samma sak, för plötsligt var det ovanligt många som frågade varandra om saker. Jens sa ingenting, men han log när han såg ut genom fönstret.\n\nTvå veckor senare låg det en ny lapp i lådan. Jens läste den högt: ”Tack. Det har blivit bättre nu.”\n\nStina vet fortfarande inte vem som skrev den. Hon har slutat försöka gissa.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför ställde Jens fram lådan?",
+        "options": [
+          "Så att eleverna kunde fråga utan att synas",
+          "Så att eleverna kunde lämna in sina läxor",
+          "Så att eleverna kunde rösta om rasterna",
+          "Så att eleverna kunde skriva brev till rektorn"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför blev Jens stående tyst innan han läste lappen?",
+        "options": [
+          "Han kunde inte läsa handstilen",
+          "Han ville inte att Stina skulle höra",
+          "Han trodde att lappen var ett skämt",
+          "Han förstod att lappen var allvarlig"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Det ”hettade” i Stinas ansikte. Vad betyder det?",
+        "options": [
+          "Hon hade fått feber i skolan",
+          "Hon kände sig varm av obehag",
+          "Hon blev arg på den som skrev",
+          "Hon hade sprungit in från rasten"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad svarade Stina på lappen?",
+        "options": [
+          "Att man ska gå med i en idrottsförening",
+          "Att man ska prata med Jens om saken",
+          "Att man kan fråga om man får vara med",
+          "Att man kan läsa en bok på rasten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ville Maryam inte ta reda på vem som skrev lappen?",
+        "options": [
+          "Hon visste redan vem som hade skrivit den",
+          "Hon tyckte inte att lappen var viktig",
+          "Det kunde såra någon om de pekade ut fel person",
+          "Hon var rädd att Jens skulle bli arg"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Det var ”ovanligt många” som frågade varandra om saker. Vad betyder det?",
+        "options": [
+          "Fler än det brukade vara",
+          "Bara några få i klassen",
+          "Lika många som vanligt",
+          "Nästan ingen i hela klassen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför log Jens när han tittade ut genom fönstret?",
+        "options": [
+          "Han såg att det hade slutat regna på skolgården",
+          "Han såg att eleverna tog hand om varandra",
+          "Han såg att Abdi hade vunnit i kubb",
+          "Han hade kommit på vem som skrev lappen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är berättelsens viktigaste tanke?",
+        "options": [
+          "Att man alltid ska ta reda på hela sanningen till slut",
+          "Att lärare bör läsa elevernas lappar",
+          "Att det är fel att skriva anonyma lappar",
+          "Att hjälpa alla är viktigare än att veta vem"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-planboken",
+    "title": "Plånboken i busskuren",
+    "level": 6,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Det var Jonna som såg den först. En brun plånbok låg under bänken i busskuren, halvt dold av löv. Hon plockade upp den och öppnade den försiktigt.\n\n”Tolvhundra kronor”, viskade Tekla, som tittade över hennes axel. ”I sedlar!”\n\nI ett fack låg ett id-kort. Ingegerd Blom, född 1946. Adressen var bara några kvarter bort. Bakom kortet satt ett gammalt fotografi av en man med glasögon och en hatt.\n\nTekla bet sig i läppen. ”Vi kan lämna in plånboken, men behålla pengarna. Ingen skulle veta. Hon har säkert tappat dem för länge sedan.”\n\nJonna svarade inte direkt. Hon tänkte på sin egen mormor, som alltid betalade med kontanter i affären eftersom hon inte litade på kort.\n\n”Löven var torra”, sa hon till slut. ”Den kan inte ha legat här mer än i dag.”\n\nDe gick dit tillsammans. Det tog lång tid innan dörren öppnades, och en kvinna med rödgråtna ögon tittade ut. När hon såg plånboken tog hon den med båda händerna och satte sig rakt ner på pallen i hallen.\n\n”Jag har letat i hela eftermiddag”, sa hon. ”Pengarna skulle bli en cykel till mitt barnbarn. Men det var fotot jag var mest rädd att förlora. Det är min man, Sture. Det finns inget annat som det.”\n\nHon ville ge dem en hundralapp var som tack. Jonna sa nej, men Ingegerd envisades tills de gick med på en påse kanelbullar i stället.\n\nPå vägen hem var Tekla ovanligt tyst. Vid busskuren stannade hon.\n\n”Om vi hade tagit pengarna hade hon aldrig fått veta det”, sa hon. ”Men vi hade vetat.”\n\nJonna räckte henne den största bullen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad fanns bakom id-kortet i plånboken?",
+        "options": [
+          "Ett kvitto från en cykelaffär",
+          "Ett gammalt foto av en man",
+          "En lapp med ett telefonnummer",
+          "Ett bankkort med en kod"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skulle Ingegerd använda pengarna till?",
+        "options": [
+          "Mat till veckan som kom",
+          "En resa till sin dotter",
+          "En cykel till sitt barnbarn",
+          "Hyran för lägenheten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför påpekade Jonna att löven var torra?",
+        "options": [
+          "Hon ville visa att plånboken var skadad",
+          "Hon ville byta samtalsämne från pengarna",
+          "Hon ville att de skulle gå hem innan regnet kom",
+          "Hon ville visa att ägaren nyss hade tappat den"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför tänkte Jonna på sin mormor?",
+        "options": [
+          "Hon förstod att äldre kan ha mycket kontanter",
+          "Mormor bodde i samma kvarter som Ingegerd",
+          "Mormor hade också tappat sin plånbok",
+          "Mormor hade lärt henne att aldrig ta något"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Ingegerd hade ”rödgråtna” ögon. Vad betyder det?",
+        "options": [
+          "Ögonen var trötta efter sömn",
+          "Ögonen var röda efter gråt",
+          "Ögonen var röda av förkylning",
+          "Ögonen var irriterade av damm"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Ingegerd ”envisades”. Vad betyder det?",
+        "options": [
+          "Hon blev mycket arg",
+          "Hon började gråta igen",
+          "Hon glömde vad de sa",
+          "Hon gav sig inte"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar Tekla med ”Men vi hade vetat”?",
+        "options": [
+          "Att de hade blivit upptäckta av Ingegerd ändå till slut",
+          "Att de hade vetat var de kunde köpa en cykel",
+          "Att de själva hade fått leva med att ha gjort fel",
+          "Att de borde ha berättat för sina föräldrar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar berättelsen om pengar och saker?",
+        "options": [
+          "Vissa saker är värda mer än pengar",
+          "Det är bäst att betala med kort",
+          "Man får alltid en belöning för att vara ärlig",
+          "Kontanter går lätt att tappa bort"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-budgeten",
+    "title": "Lappen på kylskåpet",
+    "level": 6,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Det var en tisdag i oktober som mamma kom hem tidigt från jobbet. Hon satte sig vid köksbordet utan att ta av sig jackan. Fabriken där hon arbetat i elva år skulle läggas ner.\n\nNågra dagar senare satt hela familjen vid bordet med ett stort papper. Mamma skrev upp allt som kostade pengar varje månad: hyran, maten, el, bussen, telefonerna. Sebastians lillasyster Malva ritade hjärtan i kanten. När pappret var klart satte mamma upp det på kylskåpet med en magnet.\n\n”Vi kommer att klara oss”, sa hon. ”Men vi måste vara försiktiga ett tag.”\n\nSebastian läste lappen varje morgon när han tog fram mjölken. Raden för nöjen hade ett streck över sig.\n\nI skolväskan låg ett brev som han inte hade visat någon. Klassen skulle åka till ett nöjesfält i maj, och resan kostade fyrahundra kronor. Han hade redan bestämt sig. Han skulle säga att han inte ville åka, och sedan skulle han vara sjuk den dagen.\n\nMen en kväll när han hade somnat letade mamma efter en matlåda i hans väska. På morgonen låg brevet på köksbordet.\n\n”Varför har du inte sagt något?” frågade hon.\n\nSebastian tittade ner i sin gröt. ”Jag ville inte att du skulle bli ledsen.”\n\nMamma var tyst en stund. Sedan drog hon ut stolen bredvid honom. ”Det är snällt tänkt. Men om du bär på sådant ensam kan jag inte hjälpa dig.”\n\nSamma dag mejlade hon klassläraren. Svaret kom innan lunch: resan betalades av klasskassan, som de hade fyllt på med en loppis i våras. Ingen behövde betala något själv. Lappen om pengarna var bara till för att man skulle kunna anmäla sig.\n\nSebastian kände sig både lättad och lite dum. Han undrade hur många andra i klassen som hade läst samma brev med samma klump i magen.\n\nPå kvällen tog han en penna och skrev en ny rad längst ner på lappen på kylskåpet: Prata med varandra – 0 kronor.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför förlorade mamma sitt jobb?",
+        "options": [
+          "Fabriken skulle läggas ner",
+          "Hon hade blivit sjuk",
+          "Hon hade bytt till ett nytt yrke",
+          "Familjen skulle flytta"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem betalade för klassresan?",
+        "options": [
+          "Skolans rektor",
+          "Föräldraföreningen",
+          "Nöjesfältet",
+          "Klasskassan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Raden för nöjen hade ”ett streck över sig”. Vad betyder det?",
+        "options": [
+          "Mamma hade glömt att räkna med kostnaden för nöjen",
+          "Familjen skulle inte lägga pengar på nöjen just nu",
+          "Malva hade ritat på raden när ingen såg det",
+          "Nöjen var det enda som familjen hade råd med"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför hade Sebastian tänkt vara ”sjuk” den dag klassen skulle åka?",
+        "options": [
+          "Han tyckte att nöjesfält var tråkiga och för barnsliga",
+          "Han var rädd för att åka de stora karusellerna",
+          "Han ville slippa förklara att familjen hade ont om pengar",
+          "Han ville vara hemma och hjälpa Malva med läxorna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför drog mamma ut stolen bredvid Sebastian?",
+        "options": [
+          "Hon behövde sätta sig för att hon var trött",
+          "Hon ville att han skulle äta upp sin gröt",
+          "Hon skulle läsa brevet en gång till",
+          "Hon ville prata, inte skälla"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Sebastian kände sig ”lättad”. Vad betyder det?",
+        "options": [
+          "Att en oro hade släppt",
+          "Att han var mycket trött",
+          "Att han kände sig lurad",
+          "Att han ville gråta"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad tror Sebastian om de andra i klassen?",
+        "options": [
+          "Att alla andra redan visste om klasskassan",
+          "Att fler kan ha oroat sig för pengarna",
+          "Att ingen annan hade läst brevet",
+          "Att de skulle skratta åt honom"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill Sebastian säga med den nya raden på lappen?",
+        "options": [
+          "Att familjen måste spara ännu mer pengar",
+          "Att mamma borde ha frågat honom tidigare",
+          "Att det inte kostar något att dela sin oro",
+          "Att telefonerna kostar för mycket varje månad"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-tva-hem",
+    "title": "Kalendern med två färger",
+    "level": 6,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Alicia bor varannan vecka hos mamma och varannan hos pappa. Lägenheterna ligger bara tio minuter från varandra, men det spelar ingen roll när gympaskorna står i fel hall.\n\nDen här terminen hade det gått fel ovanligt ofta. Biblioteksboken låg hos pappa när den skulle lämnas tillbaka. Flöjten var hos mamma på dagen för musiklektionen. Och när klassen skulle ha simning stod Alicia vid kanten i lånad baddräkt, två storlekar för stor.\n\nDet värsta var inte sakerna. Det värsta var att mamma och pappa inte pratade med varandra om dem. Mamma sa ”Fråga din pappa”, och pappa sa ”Det får du ta med mamma”. Alicia blev en budbärare som sprang mellan två hus med meddelanden som ingen ville skicka själv.\n\nEn kväll när hon låg i sängen fick hon en idé. Hon skapade en gemensam kalender i mobilen och bjöd in båda föräldrarna. Allt som gällde mammas veckor fick blå färg och allt som gällde pappas fick grön. Simning, utflykter och läxor som skulle lämnas in skrev hon upp i god tid, med en påminnelse om vad som skulle packas.\n\nDe första veckorna var det bara Alicia som skrev något. Men en söndag dök det upp en grön rad som hon inte hade skrivit själv: ”Tandläkaren tisdag 14.30 – jag hämtar.” Dagen efter kom en blå: ”Jag köper nya gympaskor att ha hos pappa.”\n\nDet kändes konstigt att se deras ord bredvid varandra. Det var länge sedan de hade skrivit något till varandra som inte var argt.\n\nEn kväll i december plingade mobilen. Mamma hade skrivit en kommentar under pappas senaste rad.\n\n”Tack för att du påminde om luciakläderna.”\n\nDet var bara sju ord. Alicia läste dem tre gånger innan hon släckte lampan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hände när klassen skulle ha simning?",
+        "options": [
+          "Alicia fick stå över och sitta på läktaren",
+          "Pappa fick åka hem och hämta baddräkten",
+          "Alicia fick låna en för stor baddräkt",
+          "Mamma hade glömt att lägga ner handduken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken färg hade sådant som gällde pappas veckor?",
+        "options": [
+          "Blå",
+          "Grön",
+          "Röd",
+          "Gul"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Alicia blev ”en budbärare”. Vad betyder det här?",
+        "options": [
+          "Hon fick bära alla saker mellan husen",
+          "Hon fick ta ansvar för familjens kalender",
+          "Hon fick hjälpa föräldrarna med deras jobb",
+          "Hon fick föra fram meddelanden mellan dem"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad tyckte Alicia var värst med att bo i två hem?",
+        "options": [
+          "Att föräldrarna inte pratade med varandra",
+          "Att det tog tio minuter att gå mellan husen",
+          "Att hon behövde ha två olika rum",
+          "Att hon ofta fick låna kläder i skolan"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skrev Alicia upp vad som skulle packas?",
+        "options": [
+          "Så att hennes lärare kunde se vad hon hade glömt",
+          "Så att hon själv slapp tänka på skolan alls",
+          "Så att föräldrarna kunde förbereda utan att fråga henne",
+          "Så att hon kunde bevisa vems fel det var när något glömdes"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Raderna skrevs upp ”i god tid”. Vad betyder det?",
+        "options": [
+          "Noggrant, med fina bokstäver",
+          "Tidigt, innan de behövdes",
+          "Sent, samma dag som de gällde",
+          "Snabbt, utan att tänka efter"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför läste Alicia mammas kommentar tre gånger?",
+        "options": [
+          "Den visade att föräldrarna blev vänligare",
+          "Den innehöll något viktigt som hon måste komma ihåg",
+          "Hon förstod inte vad mamma menade med luciakläderna",
+          "Hon var orolig att pappa skulle bli arg för den"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Hur man lär sig att aldrig glömma sina saker",
+          "Varför barn inte borde bo i två olika hem",
+          "Hur man gör en kalender i en mobiltelefon",
+          "Hur en enkel idé kan hjälpa en familj"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-kritmarkena",
+    "title": "Tecknen på trottoaren",
+    "level": 6,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "En morgon var Häggatan full av märken. Orange pilar, streck och bokstäver var sprejade på asfalten, ibland mitt framför någons grind. Utanför Fatimas hus stod det ”EL” med stora bokstäver.\n\nRedan på eftermiddagen hade någon skrivit i kvarterets grupp på nätet: ”Tjuvar märker hus de ska bryta sig in i! Lås era dörrar!” Inlägget delades om och om igen. Leons pappa köpte ett extra lås till förrådet samma kväll.\n\nFatima var inte övertygad. ”Varför skulle tjuvar skriva så tydligt att alla ser det?” sa hon. ”Det är ju dumt.”\n\nHon och Leon gick runt i kvarteret och fotograferade varje märke. Hemma lade de ut bilderna på golvet i den ordning de hade tagit dem. Då såg de något som ingen i gruppen hade nämnt. Märkena satt inte bara utanför vissa hus. De följde en lång linje längs hela gatan, över gräsmattor och förbi lyktstolpar, och pilarna pekade alltid åt samma håll.\n\n”Det ser ut som en karta”, sa Leon långsamt.\n\nBredvid många märken stod korta bokstäver: EL, VA, FIB. Fatima letade på nätet tills hon hittade svaret. VA kunde betyda vatten och avlopp, och FIB stod för fiber.\n\nDagen efter kom en vit skåpbil. Två arbetare började gräva vid gatans början. Leon och Fatima gick fram och frågade.\n\n”Vi drar fiber till hela området”, sa den ena. ”Innan vi gräver märker vi ut var det redan ligger kablar och rör under marken. Annars kan grävmaskinen slita av någons el.”\n\nFatima skrev ett inlägg i gruppen med en bild på arbetarna och deras förklaring. Några skrev tack. Men andra svarade att man aldrig kan vara säker och att det var bäst att låsa ändå.\n\nPå kvällen satt Leon och läste alla kommentarer. Ryktet hade spridits på en timme. Sanningen hade tagit två dagar att hitta, och ändå trodde inte alla på den.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad stod det utanför Fatimas hus?",
+        "options": [
+          "EL",
+          "VA",
+          "FIB",
+          "En pil"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför märker arbetarna ut kablar och rör innan de gräver?",
+        "options": [
+          "Så att grannarna vet när de ska gräva",
+          "Så att fibern hamnar på rätt sida av gatan",
+          "Så att grävmaskinen inte förstör dem",
+          "Så att kommunen kan se hur långt de har kommit"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför tvivlade Fatima på inlägget om tjuvarna?",
+        "options": [
+          "Hon hade själv sett arbetarna spreja dem",
+          "Hon tyckte att märkena var för lätta att se",
+          "Hon visste att det inte fanns tjuvar i området",
+          "Hon trodde att barn hade gjort märkena"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad upptäckte Leon och Fatima när de lade ut bilderna på golvet?",
+        "options": [
+          "Att märkena bara fanns vid de dyraste husen",
+          "Att någon hade sprejat sitt namn bland märkena",
+          "Att märkena hade olika färger på olika gator",
+          "Att märkena bildade en linje längs gatan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Fatima var ”inte övertygad”. Vad betyder det?",
+        "options": [
+          "Hon trodde inte riktigt på det",
+          "Hon förstod inte vad som stod",
+          "Hon var rädd för vad som hänt",
+          "Hon ville inte prata om saken"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Inlägget ”delades om och om igen”. Vad betyder det?",
+        "options": [
+          "Många skrev att det var fel",
+          "Många tog bort det igen",
+          "Många skickade det vidare",
+          "Många läste det högt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför köpte Leons pappa ett extra lås?",
+        "options": [
+          "Han hade sett en tjuv i kvarteret",
+          "Arbetarna hade sagt åt honom att göra det",
+          "Det gamla låset hade gått sönder",
+          "Han hade trott på ryktet i gruppen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill berättelsen säga om rykten?",
+        "options": [
+          "Att de oftast visar sig stämma",
+          "Att de sprids snabbare än sanningen",
+          "Att man ska skriva fler inlägg på nätet",
+          "Att man alltid ska låsa sina dörrar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
