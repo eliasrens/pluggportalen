@@ -706,5 +706,595 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n7-debatten",
+    "title": "Fel sida",
+    "level": 7,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Hjördis hade bestämt sig långt innan lottningen. När läraren Gertrud skrev debattfrågan på tavlan – ”Ska mobilerna låsas in under hela skoldagen?” – visste hon precis vad hon tyckte. Självklart inte. Mobilen var hennes kalender, hennes musik och hennes enda säkra sätt att få tag på pappa, som jobbade skift och sällan svarade på något annat än sms.\n\nMen Gertrud hade en regel som hela klassen avskydde: man fick inte välja sida själv. Sidorna lottades. Hjördis drog en lapp ur burken, vecklade upp den och stirrade. JA, stod det. Hon skulle alltså argumentera för precis det hon tyckte var fel.\n\n”Det är orättvist”, sa hon efter lektionen. ”Hur ska jag kunna övertyga någon om något jag inte tror på?”\n\n”Genom att ta reda på varför andra tror på det”, sa Gertrud. ”Du behöver inte byta åsikt. Du behöver bara förstå den andra sidan så väl att du kan förklara den.”\n\nHjördis gick hem på dåligt humör. Ändå började hon, mest av envishet, att leta argument. Hon läste att många har svårare att koncentrera sig när mobilen ligger framme, även om den är avstängd. Det lät överdrivet, tyckte hon, ända tills hon räknade hur många gånger hon själv tittade på skärmen under en enda läxkväll. Det blev tjugotre gånger på en timme.\n\nNästa dag intervjuade hon skolkuratorn. Kuratorn berättade, utan att nämna några namn, om elever som blev uthängda i gruppchattar under rasterna och som inte kunde gå någonstans för att slippa. ”För dem är rasten ingen paus”, sa kuratorn. ”Den är en fortsättning.”\n\nPå bussen hem satt Hjördis tyst. Hon tänkte på sin lillebror Tor, som gick i trean och hade slutat vilja gå ut på rasterna eftersom ”alla bara sitter med sina mobiler”.\n\nDebatten hölls på fredagen. Motståndarlaget leddes av Mattis, som framförde nästan exakt de argument Hjördis själv hade tänkt använda: att man måste kunna nå sina föräldrar, att elever ska lära sig ta ansvar och att mobilen kan vara ett bra verktyg på lektionerna. Hjördis märkte att hon nickade medan han pratade och slutade hastigt.\n\nNär det blev hennes tur talade hon lugnt om koncentrationen, om rasterna och om kuratorns ord. Sedan gjorde hon något som ingen hade väntat sig. Hon medgav att motståndarna hade en poäng när det gällde kontakten med föräldrarna och föreslog att skolan kunde ha en telefon på expeditionen som alla fick låna.\n\nHennes lag vann inte. Juryn tyckte att Mattis lag hade haft fler exempel. Men efteråt kom Gertrud fram till henne.\n\n”Nå”, sa hon. ”Vad tycker du nu?”\n\nHjördis tänkte efter. ”Fortfarande nej, tror jag. Fast inte lika mycket. Och nu förstår jag varför någon kan tycka ja.”\n\nGertrud log. ”Då har du vunnit det som debatten egentligen handlar om.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var ett av skälen till att Hjördis från början ville behålla mobilen under skoldagen?",
+        "options": [
+          "Hon behövde den för att göra allt skolarbete",
+          "Lärarna skickade läxorna till mobilen",
+          "Hon var rädd att den skulle bli stulen",
+          "Det var hennes säkraste sätt att nå pappa"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur fick eleverna veta vilken sida de skulle försvara i debatten?",
+        "options": [
+          "De fick själva välja en sida",
+          "De drog lappar ur en burk",
+          "Läraren delade in dem efter åsikt",
+          "Klassen röstade om varje elev"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför lät Gertrud lotta sidorna i stället för att låta eleverna välja?",
+        "options": [
+          "Hon ville att debatten skulle gå fortare att döma",
+          "Hon ville att alla skulle byta åsikt före fredagen",
+          "Hon ville att de skulle sätta sig in i andras synsätt",
+          "Hon ville att lagen skulle bli lika stora till antalet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför räknade Hjördis hur många gånger hon tittade på mobilen?",
+        "options": [
+          "Hon ville se om det hon läst stämde på henne",
+          "Gertrud hade gett hela klassen det som läxa",
+          "Pappa hade bett henne att använda den mindre",
+          "Hon behövde en siffra att ge motståndarlaget"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Kuratorn säger att rasten för vissa elever är ”en fortsättning”. Vad menar hon?",
+        "options": [
+          "Att eleverna måste fortsätta plugga på rasten",
+          "Att det jobbiga i chattarna fortsätter på rasten",
+          "Att lektionerna fortsätter ute på skolgården",
+          "Att rasterna är alldeles för långa och borde kortas"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Mattis ”framförde” sina argument. Vad betyder det här?",
+        "options": [
+          "Han lade fram dem inför de andra",
+          "Han skrev ner dem i förväg",
+          "Han lånade dem av någon annan",
+          "Han tog tillbaka dem igen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför slutade Hjördis hastigt att nicka medan Mattis pratade?",
+        "options": [
+          "Hon var trött och höll på att somna",
+          "Gertrud hade sagt åt henne att sitta still",
+          "Hon höll med honom men skulle tala emot honom",
+          "Juryn hade börjat titta mycket konstigt på henne"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad var det oväntade i Hjördis tal?",
+        "options": [
+          "Hon bytte sida mitt i talet och höll med Mattis",
+          "Hon läste upp namnen på de utsatta eleverna",
+          "Hon vägrade tala eftersom lotten var orättvis",
+          "Hon gav motståndarna rätt på en punkt"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar Gertrud med att Hjördis har vunnit ”det som debatten egentligen handlar om”?",
+        "options": [
+          "Att få flest röster av juryn och vinna",
+          "Att våga tala inför klassen utan att bli nervös",
+          "Att övertyga sig själv om att byta åsikt helt",
+          "Att förstå varför någon kan tycka annorlunda"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-jubileet",
+    "title": "Hundra år i samma korridor",
+    "level": 7,
+    "textType": "story",
+    "topic": "skola",
+    "body": "När skolan skulle fira hundra år fick varje klass en uppgift till jubileumsutställningen. Sexorna skulle intervjua någon som hade gått i skolan för länge sedan. Elof fick namnet Gunvor Nyberg på en lapp, och en adress till ett radhus två kvarter bort.\n\nHan förberedde sig noga. Han hade läst om skolan förr: lärare som slog med pekpinnar, elever som fick stå i skamvrån och dagar som började med psalmsång. Hans frågor handlade nästan bara om det. Han var säker på att Gunvor skulle berätta om en hemsk tid, och han såg redan framför sig rubriken på sin affisch: ”Tur att det är över.”\n\nGunvor var åttiofyra år och bjöd på kanelbullar som hon påstod var köpta, fast det luktade bakning i hela köket. När Elof frågade om stränga lärare skrattade hon.\n\n”Fröken Ahlgren var sträng, ja. Men hon var också den första som sa till mig att jag var klok.” Hon berättade att hennes föräldrar inte tyckte att flickor behövde läsa vidare. Det var fröken Ahlgren som gick hem till dem en söndag och övertalade dem. ”Utan henne hade jag börjat på fabriken som fjortonåring.”\n\nElof antecknade. Det här passade inte riktigt på hans affisch.\n\nSedan berättade Gunvor om vintrarna, när hon och hennes bror åkte skidor en halvmil till skolan i mörkret, helt ensamma. Hon berättade om skolköket, där alla fick lära sig laga mat på riktig vedspis. Och hon berättade att hon var vänsterhänt men tvingades skriva med höger hand, och att läraren band fast hennes vänstra arm vid stolen när hon glömde.\n\n”Var det inte hemskt?” frågade Elof.\n\n”Jo”, sa Gunvor. ”Det var hemskt. Och det var också roligt att åka skidor till skolan. Båda sakerna är sanna. Det är det svåra med att minnas.”\n\nTill sist frågade hon om hans skola. Elof berättade om lärplattorna, om matsalen med salladsbuffé och om kompisen som fick ett eget rum att vila i när ljudet blev för mycket. Gunvor lyssnade länge.\n\n”Det låter som en bättre skola än min”, sa hon. ”Men jag undrar vad dina barnbarn kommer att tycka om den.”\n\nInnan han gick bad hon honom leta efter något. I gymnastiksalens gamla fönsterkarm, längst upp till vänster, hade hon och en kompis ristat sina initialer 1952. Elof trodde inte att det fanns kvar, men på måndagen klättrade han upp på ribbstolarna. Där, under flera lager vit färg, syntes två bokstäver: G. N.\n\nElof gjorde om sin affisch. Rubriken blev ”Både och”. Under den satte han ett foto av fönsterkarmen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken uppgift fick sexorna inför skolans jubileum?",
+        "options": [
+          "Att skriva en berättelse om hur skolan ser ut om hundra år",
+          "Att leta upp gamla fotografier från skolans första år",
+          "Att intervjua någon som gått i skolan för länge sedan",
+          "Att bjuda in före detta lärare till en stor fest"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad trodde Elof att intervjun skulle visa innan han träffade Gunvor?",
+        "options": [
+          "Att skolan förr hade varit en hemsk plats",
+          "Att skolan förr var bättre än skolan i dag",
+          "Att Gunvor inte skulle minnas särskilt mycket",
+          "Att Gunvor hade varit en mycket stökig elev"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Gunvor påstod att kanelbullarna var köpta. Vad tyder texten på?",
+        "options": [
+          "Att de var gamla och torra",
+          "Att hon hade bakat dem själv",
+          "Att Elof inte tyckte om dem",
+          "Att de var gjorda av hennes bror"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gjorde fröken Ahlgren som förändrade Gunvors liv?",
+        "options": [
+          "Hon övertalade föräldrarna att låta Gunvor fortsätta läsa",
+          "Hon lärde Gunvor att skriva med sin vänstra hand",
+          "Hon gav Gunvor ett jobb på fabriken som fjortonåring",
+          "Hon lät Gunvor slippa åka skidor till skolan under de mörka vintrarna"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skriver texten att det Gunvor berättade ”inte riktigt passade” på Elofs affisch?",
+        "options": [
+          "Hon berättade bara om saker som hände efter skoltiden",
+          "Hennes berättelse var mer blandad än han hade väntat sig",
+          "Han hade glömt att skriva ner det viktigaste hon sa",
+          "Affischen var redan full av bilder och text från förut"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Gunvor och kompisen hade ”ristat” sina initialer. Vad betyder det?",
+        "options": [
+          "Målat dem med vit färg",
+          "Skrivit dem på en lapp",
+          "Skurit in dem i träet",
+          "Sytt in dem i ett tyg"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar Gunvor med att ”båda sakerna är sanna”?",
+        "options": [
+          "Att hon och brodern minns vintrarna på olika sätt",
+          "Att det var hemskt att åka skidor i mörkret",
+          "Att läraren både var sträng och vänsterhänt",
+          "Att samma tid kan rymma både dåliga och fina minnen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill Gunvor få Elof att tänka på när hon undrar vad hans barnbarn ska tycka om hans skola?",
+        "options": [
+          "Att även hans skola kan se annorlunda ut i efterhand",
+          "Att hans barnbarn kommer att gå i samma skola som han",
+          "Att lärplattor snart inte kommer att finnas längre",
+          "Att hon tycker att hans skola är sämre än hennes"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför ändrar Elof rubriken på affischen till ”Både och”?",
+        "options": [
+          "Han vill visa att Gunvor hade två initialer",
+          "Han hann inte skriva klart den första rubriken",
+          "Han har förstått att skolan förr inte var bara dålig",
+          "Läraren tyckte att den gamla rubriken var alldeles för lång"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-laxhjalpen",
+    "title": "Att förklara bråk",
+    "level": 7,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Harald hade aldrig fått under alla rätt på ett matteprov. Därför blev han inte förvånad när läraren Kerstin frågade om han ville bli läxhjälp åt en elev i fyran två eftermiddagar i veckan. Han blev snarare smickrad. Det kunde väl inte vara så svårt att förklara det han redan kunde.\n\nEleven hette Ebrahim. Han var liten för sin ålder, hade en pennvässare formad som en raket och höll på med bråk.\n\n”Vilket är störst”, läste Harald högt ur boken, ”en tredjedel eller en fjärdedel?”\n\n”En fjärdedel”, sa Ebrahim direkt. ”Fyra är ju mer än tre.”\n\nHarald suckade. ”Nej. En tredjedel är större. Det är bara så.”\n\nEbrahim tittade på honom. ”Varför då?”\n\nDet var där det började gå snett. Harald visste svaret, men han märkte att han inte kunde förklara det. Han försökte med att man ”ska titta på nämnaren och tänka tvärtom”, men det lät som en regel man har hittat på för att slippa tänka. Ebrahim nickade artigt och svarade fel på nästa uppgift också.\n\nSamma sak hände när de kom till addition. Harald visste att man måste göra nämnarna lika innan man lägger ihop en halv och en fjärdedel. Han hade gjort det hundratals gånger. Men när Ebrahim frågade varför man inte bara kunde räkna ett plus ett och två plus fyra, så att det blev två sjättedelar, hade Harald inget annat svar än att det blir fel.\n\nDen kvällen satt han länge vid köksbordet. Han hade alltid trott att han förstod matte. Nu undrade han om han bara hade lärt sig vilka knappar man trycker på. Till slut tog han fram en chokladkaka ur skafferiet och började bryta.\n\nNästa gång tog han med sig två likadana pappersark. Det ena vek han i tre delar och det andra i fyra. Han lät Ebrahim klippa ut en bit från varje och lägga dem bredvid varandra.\n\nEbrahim stirrade på bitarna. ”Ju fler delar man delar i, desto mindre blir varje bit”, sa han långsamt. ”Det är som när fler ska dela på samma pizza.”\n\n”Precis”, sa Harald. Han hade inte tänkt på pizzan själv.\n\nSedan lade de en halv och en fjärdedel på samma ark och såg att de tillsammans täckte tre fjärdedelar. Två sjättedelar var mycket mindre än så. Ebrahim skrattade så att raketen ramlade i golvet.\n\nNär terminen var slut frågade Kerstin hur det hade gått. Harald funderade på vad han skulle säga.\n\n”Jag tror att jag har lärt mig mer än han”, svarade han till slut.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur reagerade Harald när Kerstin frågade om han ville bli läxhjälp?",
+        "options": [
+          "Han blev förvånad och ville först inte göra det",
+          "Han kände sig smickrad och trodde att det var lätt",
+          "Han blev orolig för att han inte kunde nog",
+          "Han sa ja eftersom han behövde höja sitt mattebetyg"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför trodde Ebrahim att en fjärdedel var större än en tredjedel?",
+        "options": [
+          "Han hade läst fel i matteboken",
+          "Hans förra lärare hade sagt det",
+          "Han hade jämfört två pizzabitar",
+          "Han tyckte att fyra är mer än tre"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ”började det gå snett” när Ebrahim frågade varför?",
+        "options": [
+          "Harald visste inte vilket svar som var det rätta",
+          "Ebrahim slutade lyssna och började leka med raketen",
+          "Boken hade fel facit och Harald blev osäker",
+          "Harald kunde svaret men inte förklaringen bakom det"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Uttrycket att Ebrahim nickade ”artigt” betyder här att han",
+        "options": [
+          "nickade för att han var mycket glad",
+          "nickade av vänlighet utan att förstå",
+          "nickade för att visa att han var trött",
+          "nickade för att han hade förstått allt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menar Harald när han undrar om han ”bara hade lärt sig vilka knappar man trycker på”?",
+        "options": [
+          "Att han kanske kunnat stegen utan att förstå varför",
+          "Att han hade räknat för mycket med miniräknare",
+          "Att han ville lära sig använda en dator bättre",
+          "Att han inte längre tyckte att matte var särskilt roligt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gjorde Harald och Ebrahim med pappersarken?",
+        "options": [
+          "Ritade pizzor på dem och färglade bitarna",
+          "Skrev upp alla bråk de kunde på en lång lista",
+          "Vek dem i olika många delar och jämförde bitarna",
+          "Vek flygplan och mätte vilket som flög längst"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför sa Harald att han inte hade tänkt på pizzan själv?",
+        "options": [
+          "Harald var hungrig och ville gå och äta pizza",
+          "Ebrahim kom på en jämförelse som Harald inte haft",
+          "Harald tyckte att jämförelsen med pizza var helt fel",
+          "Ebrahim hade lovat att bjuda Harald på pizza"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar papperet när de lägger en halv och en fjärdedel tillsammans?",
+        "options": [
+          "Att en halv och en fjärdedel är lika stora delar",
+          "Att summan blir två sjättedelar precis som Ebrahim trodde",
+          "Att summan blir tre fjärdedelar och inte två sjättedelar",
+          "Att det inte går att lägga ihop bråk med olika nämnare"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Varför säger Harald att han har lärt sig mer än Ebrahim?",
+        "options": [
+          "Han har fått förstå matten på djupet",
+          "Han har fått bättre betyg i fyran",
+          "Han har lärt sig att klippa bättre",
+          "Han har fått träna på att vara sträng"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-allergin",
+    "title": "Kalaset utan nötter",
+    "level": 7,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Det hände en vanlig lördag i mars. Dagnys lillasyster Mimmi tog en bit av en kaka hos en kompis, och efter några minuter började hon klia sig i ansiktet. Läpparna svullnade. När hon fick svårt att andas ringde kompisens mamma 112. Dagny var inte där, men hon hörde berättelsen så många gånger efteråt att hon nästan tyckte att hon mindes den själv.\n\nMimmi hade en svår nötallergi. Ingen hade vetat om det tidigare, eftersom hon aldrig hade ätit nötter. På sjukhuset fick familjen veta att en sådan reaktion kan bli livsfarlig och att Mimmi alltid måste ha en adrenalinpenna med sig, en spruta man trycker mot låret om hon får en ny reaktion.\n\nSedan förändrades allt hemma. Mamma gick igenom skafferiet och slängde det mesta som innehöll nötter. Pappa började läsa varenda innehållsförteckning i affären, och Dagny lärde sig att även orden ”kan innehålla spår av” betydde nej. Hennes favoritchoklad, den med nougat, fick inte längre finnas i huset.\n\nDagny skämdes lite över att hon tyckte att det var orättvist. Det var ju inte hon som hade varit nära att dö. Ändå blev hon irriterad varje gång någon i familjen sa ”tänk på Mimmi”, som om hon aldrig gjorde det.\n\nI juni blev Mimmi bjuden på kalas. Mamma och pappa jobbade båda, så Dagny skulle följa med och ha pennan i sin ryggsäck. Hon hade fått öva på en tränare utan nål tills hon kunde göra rätt utan att tänka.\n\nKalaset var hos en familj som Dagny inte kände. Pappan i huset sa glatt att de hade tänkt på allergin och bara köpt nötfria saker. Barnen lekte i trädgården, och Dagny satt på trappan och kände sig onödig.\n\nSedan bars tårtan ut. Det var en färdigköpt chokladtårta med glasyr, och kartongen låg kvar på köksbänken. Dagny gick in för att hämta ett glas vatten och såg den av en slump. Längst ner, med små bokstäver, stod det: hasselnötskräm.\n\nHon kände hur hela kroppen blev varm. Tänk om hon hade fel. Tänk om pappan blev sur och alla barnen tittade. Det var mycket lättare att säga ingenting.\n\nHon tog kartongen och gick ut. ”Ursäkta”, sa hon och höll fram den. ”Jag tror att det står nötter här.”\n\nPappan läste och blev alldeles blek. ”Jag kollade bara framsidan”, sa han tyst.\n\nMimmi fick glass i stället, och efter en stund hade alla glömt det. Men på vägen hem tog Mimmi sin storasysters hand utan att säga något.\n\nDen kvällen sa pappa ”tänk på Mimmi” när han packade hennes väska till förskolan. Dagny blev inte irriterad den här gången. Hon visste ju att hon gjorde det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför hade ingen i familjen vetat om Mimmis allergi tidigare?",
+        "options": [
+          "Hon hade aldrig varit på kalas förut",
+          "Läkaren hade glömt att berätta det",
+          "Allergin syntes bara på sommaren",
+          "Hon hade aldrig ätit nötter förut"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är en adrenalinpenna enligt texten?",
+        "options": [
+          "En penna man skriver upp allt man äter med",
+          "En tablett man måste ta varje morgon mot allergin",
+          "En spruta man trycker mot låret vid en reaktion",
+          "En lapp där det står vad Mimmi inte tål"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”innehållsförteckning”?",
+        "options": [
+          "En lista över vad en vara innehåller",
+          "En tabell över vad en vara kostar",
+          "En beskrivning av var varan är gjord",
+          "Ett kvitto på det man har handlat"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför skämdes Dagny över att hon tyckte att det var orättvist?",
+        "options": [
+          "Hon hade själv ätit nötter i hemlighet i flera veckor",
+          "Föräldrarna hade sagt att hon inte fick tycka så",
+          "Mimmi hade bett henne om ursäkt för chokladen",
+          "Hennes förlust var liten jämfört med faran för Mimmi"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kände sig Dagny ”onödig” när hon satt på trappan?",
+        "options": [
+          "Barnen ville inte att hon skulle vara med och leka",
+          "Allt verkade redan ordnat och ingen behövde henne",
+          "Hon hade glömt adrenalinpennan hemma i köket",
+          "Hon tyckte att kalaset var tråkigt och för barnsligt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur upptäckte Dagny att tårtan innehöll nötter?",
+        "options": [
+          "Mimmi började klia sig i ansiktet",
+          "Pappan i huset berättade det",
+          "Hon smakade på tårtan först",
+          "Hon läste det finstilta på kartongen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför var det svårt för Dagny att säga något om tårtan?",
+        "options": [
+          "Hon ville själv äta av chokladtårtan",
+          "Hon var rädd att ha fel och göra pappan sur",
+          "Hon kunde inte läsa de små bokstäverna",
+          "Hon hade lovat att inte störa kalaset"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar det att Mimmi tar Dagnys hand på vägen hem?",
+        "options": [
+          "Att hon är tacksam mot sin syster",
+          "Att hon är rädd för att gå vilse",
+          "Att hon är sur över att missa tårtan",
+          "Att hon är trött efter all lek"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför blir Dagny inte irriterad när pappa säger ”tänk på Mimmi” i slutet?",
+        "options": [
+          "Hon har bestämt sig för att aldrig mer äta choklad",
+          "Pappa säger det med en vänligare röst den här gången",
+          "Hon har visat för sig själv att hon redan gör det",
+          "Hon är för trött efter kalaset för att bry sig"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-tidningsrundan",
+    "title": "Klockan halv fem",
+    "level": 7,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Ville hade aldrig riktigt tänkt på varför mamma var så trött. Han visste att hon delade ut tidningar på morgnarna och att hon sov en stund varje eftermiddag. Han visste också att hon brukade somna på läktaren när han spelade fotboll, och att det var pinsamt.\n\nUnder sommarlovet frågade hon om han ville följa med en morgon. Han sa ja mest för att hon såg så förvånad ut när han inte sa nej.\n\nVäckarklockan ringde kvart över fyra. Ute var det ljust men alldeles tyst, en sorts ljus som inte riktigt hörde till någon tid på dygnet. Mamma hade redan kokat kaffe och smort två smörgåsar åt honom. Vid tidningsbilen fick de sina buntar, och Ville förstod direkt att väskan var tyngre än den såg ut.\n\nDe gick gata efter gata. Mamma visste utantill vilka brevlådor som kärvade, vilka grindar som gnisslade och vilken hund som skulle börja skälla bakom vilken dörr. Hon visste att tidningen till nummer fjorton skulle läggas under mattan, eftersom brevinkastet hade gått sönder för två år sedan och ingen hade lagat det.\n\nEfter en timme gjorde Villes axlar ont. Efter två timmar slutade han prata.\n\nVid ett gult hus stod en gammal man i fönstret. Han vinkade, och mamma vinkade tillbaka. ”Det är Åke”, sa hon. ”Han har stått där varje morgon i sju år. Om han inte står där vet jag att jag ska ringa hans dotter.” Ville tittade på henne. Det hade hon aldrig berättat.\n\nPå en annan trappa stod en termos och en lapp: Till tidningsbudet. Tack för att du alltid kommer. Mamma blev röd om kinderna och stoppade lappen i fickan, som om den var något värdefullt.\n\nNär de kom hem var klockan nästan sju. Ville åt frukost med pappa, som just hade vaknat, och märkte att han inte ville berätta något om morgonen. Inte för att det hade varit tråkigt, utan för att det kändes som om han hade sett något som var mammas och inte hans.\n\nDen eftermiddagen spelade de match. I andra halvlek tittade Ville upp mot läktaren. Mamma satt med huvudet lutat mot räcket och sov.\n\nHan blev inte generad. Han blev något annat, något han inte hade ett ord för.\n\nNästa morgon ringde hans egen klocka kvart över fyra. Han smög ner i köket och kokade kaffe innan hon hann upp.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad tyckte Ville i början om att mamma somnade på läktaren?",
+        "options": [
+          "Han tyckte att det var roligt",
+          "Han märkte det aldrig själv",
+          "Han tyckte att det var pinsamt",
+          "Han blev orolig att hon var sjuk"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför sa Ville ja till att följa med på tidningsrundan?",
+        "options": [
+          "Han hade länge velat tjäna egna pengar på sommarlovet",
+          "Han ville inte göra mamma besviken när hon såg förvånad ut",
+          "Pappa hade sagt till honom att han måste följa med",
+          "Han trodde att det skulle bli en kort och ganska lätt promenad"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att en brevlåda ”kärvade”?",
+        "options": [
+          "Den gick trögt att öppna",
+          "Den var målad i en ny färg",
+          "Den satt på fel ställe",
+          "Den var full av reklam"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför lades tidningen till nummer fjorton under mattan?",
+        "options": [
+          "Hunden där brukade riva sönder tidningen",
+          "De som bodde där ville ha den så",
+          "Dörren var alltid låst på morgonen",
+          "Brevinkastet hade varit trasigt i två år"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad visar meningen ”Efter två timmar slutade han prata”?",
+        "options": [
+          "Att Ville hade blivit arg på mamma",
+          "Att Ville var mycket trött av arbetet",
+          "Att mamma hade bett honom vara tyst",
+          "Att Ville hade slut på saker att säga"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad förstår Ville om mamma när hon berättar om Åke?",
+        "options": [
+          "Att hon känner Åke sedan hon var liten flicka",
+          "Att hon tycker att Åke är besvärlig och nyfiken",
+          "Att hon tänker sluta jobba med tidningar snart",
+          "Att hennes arbete är viktigare för människor än han trott"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför stoppade mamma lappen i fickan ”som om den var något värdefullt”?",
+        "options": [
+          "Tacket betydde mycket för henne",
+          "Hon ville visa lappen för chefen",
+          "Hon ville slänga den senare",
+          "Hon trodde att det stod pengar på den"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför ville Ville inte berätta om morgonen för pappa?",
+        "options": [
+          "Morgonen hade varit för tråkig att berätta om",
+          "Han hade lovat mamma att hålla det hemligt",
+          "Det kändes som något som tillhörde mamma",
+          "Pappa brukade aldrig lyssna på vad han sa"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad visar slutet, när Ville kokar kaffe kvart över fyra?",
+        "options": [
+          "Han har fått förståelse och vill hjälpa mamma",
+          "Han vill bli tidningsbud när han blir vuxen",
+          "Han kan inte sova eftersom han är för trött",
+          "Han vill bevisa för pappa att han kan vakna tidigt"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
