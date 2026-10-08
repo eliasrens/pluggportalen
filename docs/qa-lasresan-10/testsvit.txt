@@ -1,0 +1,11 @@
+node --test (FIRESTORE_EMULATOR_HOST=jar :8560):
+# tests 1504
+# pass 1493
+# fail 11
+(de 11 felen = e2e-auth 5 + functions-update-login 6, kräver auth/functions-emulator → körda separat nedan)
+
+e2e-auth via emulators:exec (tom auth-emulator): 5/5
+functions-update-login via emulators:exec + FUNCTIONS_EMULATOR_HOST: 
+# tests 6
+# pass 6
+# fail 0

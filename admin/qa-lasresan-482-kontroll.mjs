@@ -1,7 +1,9 @@
 // ============================================================================
 // Slut-QA för Läsresan epic #482 (#515) – BARA emulatorn.
 // ----------------------------------------------------------------------------
-// Verifierar docs/spec-lasresan-uppdatering.md avsnitt 5 end-to-end. Allt som
+// Verifierar docs/spec-lasresan-uppdatering.md avsnitt 5 end-to-end (förväntningar
+// uppdaterade till skala 1–10 i #525: seedad gammal data läses +3, nivåer via
+// normalizeLasresa/classStartLevelOf, aldrig råfält). Allt som
 // skriver går via klient-SDK:n inloggad som läraren/eleven (reglerna gäller)
 // och med SAMMA rena funktioner som appens brygga (data-lasresan.js,
 // data-lasresan-niva.js): normalizeLasresa, withTeacherLevel, withStartedText,
@@ -32,6 +34,7 @@ import admin from "firebase-admin";
 import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import { normalizeLasresa, buildAttempt } from "../src/lasresan/progress.js";
 import { withTeacherLevel, classStartLevelOf } from "../src/lasresan/level-control.js";
+import { classStartLevelFields } from "../src/lasresan/level-scale.js";
 import { pickText } from "../src/lasresan/picker.js";
 import { validateBank, validateText } from "../src/lasresan/content/validate.js";
 import { coinsFor } from "../src/lasresan/rewards.js";
@@ -52,18 +55,19 @@ const nekad = (r) => r === "permission-denied";
 // --- Sektioner --------------------------------------------------------------------
 
 async function bank() {
-  console.log("\n[p1] bank: ≥ 40 kompletta texter per nivå");
+  console.log("\n[p1] bank: ≥ 30 (nivå 1–3) / ≥ 40 (nivå 4–10) kompletta texter per nivå");
   const r = validateBank(BANK);
   const errs = (r.errors || []).length, warns = (r.warnings || []).length;
   kontroll("validateBank över hela banken", errs === 0 && warns === 0, `${BANK.length} texter, ${errs} fel / ${warns} varningar`);
-  for (let lvl = 1; lvl <= 7; lvl++) {
+  for (let lvl = 1; lvl <= 10; lvl++) {
     const pool = BANK.filter((t) => t.level === lvl);
     const giltiga = pool.filter((t) => validateText(t).errors.length === 0);
     const facit = pool.every((t) => t.questions.every((q) => Number.isInteger(q.answerIndex) && q.answerIndex >= 0 && q.answerIndex < q.options.length && q.options.length === 4));
+    const minst = lvl <= 3 ? 30 : 40; // epic #516: nya nivå 1–3 har 30, gamla 1–7 (nu 4–10) 40
     const valda = new Set();
     for (let i = 0; i < 200; i++) valda.add(pickText(lvl, [], BANK).level);
     kontroll(`nivå ${lvl}: ${giltiga.length}/${pool.length} giltiga, facit inom alternativen, pickText ger nivå ${[...valda]}`,
-      giltiga.length >= 40 && facit && valda.size === 1 && valda.has(lvl));
+      giltiga.length >= minst && facit && valda.size === 1 && valda.has(lvl));
   }
   kontroll("text-id unika", new Set(BANK.map((t) => t.id)).size === BANK.length);
   // Alla rätt → 100 %, alla fel → 0 % (rättningen följer facit).
@@ -79,7 +83,7 @@ async function enskild() {
   const L = await larare();
   kontroll("läraren sätter nivå 6 (ingen påbörjad text) → gäller direkt", (await sattNiva(L.db, "qa-482-enskild", 6)) === "now");
   const L2 = await larare(); // "ladda om" = ny klient
-  const efter = (await getDoc(doc(L2.db, "studentData", "qa-482-enskild"))).data().lasresa;
+  const efter = normalizeLasresa((await getDoc(doc(L2.db, "studentData", "qa-482-enskild"))).data().lasresa);
   kontroll("efter omladdning: nivå 6 kvar, levelSetBy teacher", efter.level === 6 && efter.levelSetBy === "teacher", `level=${efter.level}`);
   const E = await som("qa-482-enskild");
   const n = await nastaText(E.db, "qa-482-enskild");
@@ -98,7 +102,7 @@ async function enskild() {
   const r = await lasKlart(P.db, "qa-pagaende", p1.text, p1.text.questions.length);
   kontroll("efter den: nivå 1, inget väntande, streaks 0 (trots 100 %)",
     r.lasresa.level === 1 && r.lasresa.pendingLevel === null && r.lasresa.highStreak === 0, `level=${r.lasresa.level}`);
-  kontroll("försöket räknades på nivå 4", r.attempt.textLevel === 4);
+  kontroll("försöket räknades på textens nivå 7 (gammal nivå 4-text, #516)", r.attempt.textLevel === 7);
   const p2 = await nastaText(P.db, "qa-pagaende");
   kontroll("NÄSTA text kommer från nivå 1", p2.text.level === 1, p2.text.id);
 }
@@ -119,7 +123,7 @@ async function klass() {
     kontroll(`${id}: nästa text från nivå 1`, n.text.level === 1, n.text.id);
   }
   kontroll("enskild elev kan ändras efteråt (qa-b-bertil → 4)", (await sattNiva(L.db, "qa-b-bertil", 4)) === "pending"
-    && ((await adb.doc("studentData/qa-b-bertil").get()).data().lasresa.pendingLevel === 4),
+    && (normalizeLasresa((await adb.doc("studentData/qa-b-bertil").get()).data().lasresa).pendingLevel === 4),
     "Bertil har en påbörjad text → väntande 4");
   const B = await som("qa-b-bertil");
   const b1 = await nastaText(B.db, "qa-b-bertil");
@@ -135,19 +139,19 @@ async function startniva() {
   await adb.doc("classes/qa-482-kontroll").set({ name: "QA-klass 482 (kontroll)", order: 9, createdAt: 1, studentIds: ["qa-482-ejborjat", "qa-482-igang"] });
   await adb.doc("studentData/qa-482-ny").delete().catch(() => {});
   const L = await larare();
-  await setDoc(doc(L.db, "classes", "qa-482-kontroll"), { lasresaStartLevel: 1 }, { merge: true });
+  await setDoc(doc(L.db, "classes", "qa-482-kontroll"), classStartLevelFields(1), { merge: true });
   const L2 = await larare();
   kontroll("startnivå 1 sparad, kvar efter omladdning",
     classStartLevelOf((await getDoc(doc(L2.db, "classes", "qa-482-kontroll"))).data()) === 1);
 
   const E = await som("qa-482-ejborjat");
   const e1 = await nastaText(E.db, "qa-482-ejborjat");
-  const eSparad = (await adb.doc("studentData/qa-482-ejborjat").get()).data().lasresa.level;
+  const eSparad = normalizeLasresa((await adb.doc("studentData/qa-482-ejborjat").get()).data().lasresa).level;
   kontroll("elev som INTE börjat: första texten från nivå 1, nivå 1 sparad", e1.text.level === 1 && eSparad === 1, e1.text.id);
 
   const I = await som("qa-482-igang");
   const i1 = await nastaText(I.db, "qa-482-igang");
-  kontroll("elev som är IGÅNG påverkas inte (nivå 5)", i1.text.level === 5, i1.text.id);
+  kontroll("elev som är IGÅNG påverkas inte (gammal nivå 5 = 8)", i1.text.level === 8, i1.text.id);
   await lasKlart(I.db, "qa-482-igang", i1.text, 4);
 
   // NY elev läggs till i klassen efter att startnivån satts.
@@ -161,13 +165,13 @@ async function startniva() {
   const ids = (await adb.doc("classes/qa-482-kontroll").get()).data().studentIds;
   await Promise.all(ids.map((id) => sattNiva(L.db, id, 1)));
   const lv = await Promise.all(ids.map(async (id) => {
-    const lr = (await adb.doc(`studentData/${id}`).get()).data().lasresa;
+    const lr = normalizeLasresa((await adb.doc(`studentData/${id}`).get()).data().lasresa);
     return lr.currentTextId ? lr.pendingLevel ?? lr.level : lr.level;
   }));
-  kontroll("exemplet: startnivå 1 + alla till 1 → alla (inkl. Ivar på 5) har nivå 1 (nu/väntande)", lv.every((l) => l === 1), lv.join(","));
+  kontroll("exemplet: startnivå 1 + alla till 1 → alla (inkl. Ivar på 8) har nivå 1 (nu/väntande)", lv.every((l) => l === 1), lv.join(","));
   const i2 = await nastaText(I.db, "qa-482-igang");
   kontroll("Ivars nästa text: nivå 1", i2.text.level === 1, i2.text.id);
-  kontroll("startnivån finns kvar (1)", (await adb.doc("classes/qa-482-kontroll").get()).data().lasresaStartLevel === 1);
+  kontroll("startnivån finns kvar (1)", classStartLevelOf((await adb.doc("classes/qa-482-kontroll").get()).data()) === 1);
 }
 
 async function bevarat() {
@@ -243,8 +247,8 @@ async function behorighet() {
   kontroll("lärare: startnivå 3 tillåts", (await utfall(() => setDoc(doc(L.db, "classes", "qa-klass"), { lasresaStartLevel: 3 }, { merge: true }))) === "ok");
   await updateDoc(doc(L.db, "classes", "qa-klass"), { lasresaStartLevel: deleteField() });
   let kastar = 0;
-  for (const v of [0, 8, 3.5, "abc", null]) { try { withTeacherLevel(normalizeLasresa(null), v); } catch { kastar++; } }
-  kontroll("bryggan vägrar ogiltig elevnivå (0, 8, 3.5, \"abc\", null)", kastar === 5);
+  for (const v of [0, 11, 3.5, "abc", null]) { try { withTeacherLevel(normalizeLasresa(null), v); } catch { kastar++; } }
+  kontroll("bryggan vägrar ogiltig elevnivå (0, 11, 3.5, \"abc\", null)", kastar === 5);
 }
 
 const SEKTIONER = { bank, enskild, klass, startniva, bevarat, progression, behorighet };
