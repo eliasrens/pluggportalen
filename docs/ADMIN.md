@@ -167,6 +167,8 @@ node admin/migrate-passwords.mjs --commit
 ```bash
 npm run test:rules   # regel-tester mot Firestore-emulatorn (bevisar §3.4)
 npm run test:e2e     # auth→regler→data end-to-end mot emulatorerna
+npm --prefix functions install   # en gång (Cloud Functions-beroenden)
+npm run test:functions           # updateStudentLogin mot functions+auth+firestore
 ```
 
 Båda startar/river emulatorerna själva via `firebase emulators:exec`. Kräver
@@ -176,7 +178,36 @@ Båda startar/river emulatorerna själva via `firebase emulators:exec`. Kräver
 
 ## 6. Lösenordsåterställning & radering (per elev)
 
-Klienten kan inte byta/radera **andras** Auth-konton, så det görs lokalt:
+**I lärarsidan (efter deploy av Cloud Functions):** Klasser & elever → klassen →
+**Inloggning** på elevraden. Där ser läraren användarnamn + sparat lösenord
+(`studentCredentials`), kan byta användarnamn och sätta nytt lösenord ("Generera
+enkelt lösenord" = ord + 3 siffror). Bytet görs av Cloud Functionen
+`updateStudentLogin` (europe-west1): Auth-e-post + lösenord, `students.username`,
+klassprojektionerna och det sparade lösenordet – samma sak som gjordes för hand
+för Omar i 4B (omar861 → omar851). **Skriv ut inloggningskort** (överst i
+elevlistan) ger A4-kort, 8 per sida, med namn, användarnamn, lösenord (tom rad
+om okänt) och **pluggporten.se**.
+
+**Deploy (kräver Elias OK, Blaze-planen):**
+
+```bash
+npm --prefix functions install
+firebase deploy --only functions,firestore:rules
+```
+
+Första gången aktiverar CLI:t Cloud Functions-, Cloud Build-, Artifact Registry-
+och Cloud Run-API:erna (godkänn frågan, eller aktivera dem i Google Cloud
+Console). Före deployen visar dialogen "Kunde inte nå inloggningstjänsten" och
+nya konton får inget sparat lösenord (regeln saknas) – kontoskapandet fungerar
+ändå.
+
+**QA mot emulatorerna:** `bash admin/qa-inloggning-preview.sh` startar
+functions+auth+firestore (5533/9533/8533), seedar `admin/qa-inloggning-seed.mjs`
+(qalarare / lilla123, klass 4B, två elever utan sparat lösenord) och kör
+`admin/qa-emulator-proxy.mjs` på 8531 – proxyn routar `POST /updateStudentLogin`
+till Functions-emulatorn.
+
+**Lokalt (Admin SDK)** – klienten kan inte byta/radera **andras** Auth-konton:
 
 ```bash
 node admin/reset-student-password.mjs --id=elev1 --password=<minst6>

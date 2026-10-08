@@ -15,6 +15,7 @@ men re-exporteras av `data.js` – importera fortfarande bara från `data.js`.)
 subjects/{subjectId}                     ← ämne (t.ex. "so")
 subjects/{subjectId}/areas/{areaId}      ← arbetsområde (t.ex. "vikingatiden")
 students/{studentId}                     ← elevkonto (inloggning)
+studentCredentials/{studentId}           ← sparat elevlösenord – BARA lärare läser
 studentData/{studentId}                  ← elevens speldata (coins, framsteg, ...)
 classes/{classId}                        ← klass (lärarens gruppering, t.ex. "6A")
 classProjections/{classId}               ← förberäknad by-översikt per klass (O(1) läsningar)
@@ -220,6 +221,41 @@ Exempel (`students/elev1`):
 ```json
 { "namn": "Astrid", "username": "elev1", "avatarId": "fox", "classIds": ["6a"] }
 ```
+
+---
+
+## `studentCredentials/{studentId}` – sparade elevlösenord (bara lärare)
+
+Firebase Auth lagrar bara en hash, så lärarens klartextlösenord sparas här för
+att läraren ska kunna se det igen ("Inloggning" på elevraden) och skriva ut
+inloggningskort. **Läsbart och skrivbart bara av lärare** (`isTeacher()`); en elev
+kan aldrig läsa något dokument här, inte ens sitt eget (regeltester:
+`test/firestore-rules-student-credentials.test.js`).
+
+| Fält        | Typ       | Beskrivning |
+| ----------- | --------- | ----------- |
+| `username`  | string    | Användarnamnet när lösenordet sparades (gemener) |
+| `password`  | string?   | Klartextlösenord, ≥ 6 tecken. Saknas ⇒ "Lösenord okänt – sätt nytt" |
+| `updatedAt` | timestamp | Senaste skrivning |
+
+Skrivs (1) av lärarklienten när konton skapas (`data.upsertStudent(null, …)`,
+aldrig kastande – före regel-deployen blir lösenordet bara "okänt") och (2) av
+Cloud Functionen `updateStudentLogin` (Admin SDK) när läraren byter användarnamn/
+lösenord. Raderas av `data.deleteStudent`. Konton skapade före funktionen har
+inget dokument.
+
+### Cloud Function `updateStudentLogin` (callable, `europe-west1`)
+
+`functions/index.js` + `functions/login-core.js`. Anrop `{ uid, username?, password? }`
+från lärarsidan (`src/data-student-login.js`). Bara Auth-användare med claim
+`teacher:true`; målet får inte vara ett lärarkonto. Validerar användarnamn
+(trim/gemener, `^[a-z0-9._-]{3,40}$`, unikt i både `students` och Auth) och
+lösenord (6–64 tecken). Skriver i EN Firestore-batch `students/{uid}.username`,
+`classProjections/{klass}.members.{uid}.username` (bara klasser där eleven redan
+har en post) och `studentCredentials/{uid}`, och uppdaterar sedan Auth (e-post
+`username@elev.pluggportalen.local` + lösenord). Fallerar Auth återställs
+Firestore-batchen. Fel: `permission-denied`, `invalid-argument`, `already-exists`,
+`not-found`, `internal` – med svenska meddelanden som visas i dialogen.
 
 ---
 

@@ -9,16 +9,17 @@
 //      förslag. Validerar unika + lediga användarnamn (data.usernameTaken) och
 //      lösenord ≥6 tecken innan kontona skapas.
 //
-//   2) printLoginCards – en utskriftsvänlig vy med ETT kort per elev (namn +
-//      användarnamn + lösenord, INGEN avatar – eleverna har inte valt än). Ren
-//      klient: overlay + @media print (se styles.css) + window.print().
+//   2) credentialsPanel – nyss skapade uppgifter + "Skriv ut inloggningskort"
+//      (printLoginCards bor i teacher-login-print.js, re-exporteras här).
 //
-// Lösenord i klartext går bara att visa JUST vid skapandet (Firebase lagrar bara
-// hash), så både editorn och korten gäller den nyss skapade omgången.
+// Firebase Auth lagrar bara en hash, så lösenordet sparas dessutom i
+// studentCredentials/{uid} (bara lärare läser, se data-content.upsertStudent):
+// läraren ser det igen under "Inloggning" och kan skriva ut kort senare.
 // ============================================================================
 
 import * as data from "./data.js";
 import { el, esc, icon, copyText } from "./teacher-shared.js";
+import { printLoginCards } from "./teacher-login-print.js";
 import {
   buildAccountPlan,
   createAccountsFromEntries,
@@ -26,8 +27,11 @@ import {
   generatePassword,
 } from "./teacher-class-accounts.js";
 
+export { printLoginCards };
+
 // Giltigt användarnamn = e-postens lokala del (username@elev.pluggportalen.local).
-const USERNAME_RE = /^[a-z0-9._-]{3,}$/;
+// Samma regel som Cloud Functionen (functions/login-core.js USERNAME_RE).
+export const USERNAME_RE = /^[a-z0-9._-]{3,40}$/;
 
 /**
  * Rendera en redigerbar tabell för `count` nya elevkonton in i `host`. Fyller
@@ -50,8 +54,8 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
     <div class="acct-editor-head">
       <h3 class="subhead sm">${icon("pencil", 18)}<span>Kontrollera och ändra inloggningsuppgifter (${plan.length})</span></h3>
       <p class="hint">Uppgifterna är ifyllda med förslag – ändra fritt eller klicka
-        på slumpa-knappen för nya. När det ser bra ut skapar du kontona. Lösenorden går bara att
-        se nu, så anteckna eller skriv ut dem efteråt.</p>
+        på slumpa-knappen för nya. När det ser bra ut skapar du kontona. Lösenorden sparas så att
+        du kan se dem igen under <b>Inloggning</b> och skriva ut inloggningskort.</p>
     </div>
     <div class="row-inline acct-editor-tools">
       <button type="button" class="btn ghost small ae-gen-all">${icon("shuffle", 16)}<span>Generera alla</span></button>
@@ -160,7 +164,7 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
       const u = r.userInput.value.trim().toLowerCase();
       const p = r.passInput.value;
       if (!USERNAME_RE.test(u)) {
-        setErr(r, "Användarnamn: minst 3 tecken, endast a–z, 0–9, . _ -");
+        setErr(r, "Användarnamn: 3–40 tecken, endast a–z, 0–9, . _ -");
         ok = false;
         return;
       }
@@ -238,54 +242,6 @@ export function renderAccountEditor(host, { count, prefix, className, taken, onC
 }
 
 /**
- * Öppna en utskriftsvänlig overlay med ETT inloggningskort per elev (namn +
- * användarnamn + lösenord, ingen avatar). @media print döljer app-chrome och
- * ger page-break-inside: avoid per kort. Ren klient, ingen backend.
- */
-export function printLoginCards(className, created) {
-  const cards = created
-    .map(
-      (c) => `<div class="login-card">
-        <div class="lc-app">📚 Pluggporten</div>
-        <div class="lc-name">${esc(c.namn || c.username)}</div>
-        <div class="lc-field"><span class="lc-label">Användarnamn</span>
-          <span class="lc-value">${esc(c.username)}</span></div>
-        <div class="lc-field"><span class="lc-label">Lösenord</span>
-          <span class="lc-value">${esc(c.password)}</span></div>
-        <div class="lc-class">Klass: ${esc(className)}</div>
-      </div>`
-    )
-    .join("");
-
-  const overlay = el(`<div class="login-cards-overlay teacher-dark" role="dialog" aria-label="Inloggningskort">
-    <div class="lc-toolbar">
-      <h2 class="lc-title">${icon("printer", 20)}<span>Inloggningskort – ${esc(className)} (${created.length})</span></h2>
-      <div class="row-inline">
-        <button type="button" class="btn gron small lc-print">${icon("printer", 16)}<span>Skriv ut</span></button>
-        <button type="button" class="btn ghost small lc-close">${icon("x", 16)}<span>Stäng</span></button>
-      </div>
-    </div>
-    <p class="lc-hint">Ett kort per elev – skriv ut och klipp isär längs de streckade kanterna.
-      Lösenorden visas bara här (går inte att se igen efteråt).</p>
-    <div class="login-cards-grid">${cards}</div>
-  </div>`);
-
-  function close() {
-    overlay.remove();
-    document.removeEventListener("keydown", onKey);
-  }
-  function onKey(e) {
-    if (e.key === "Escape") close();
-  }
-
-  overlay.querySelector(".lc-print").addEventListener("click", () => window.print());
-  overlay.querySelector(".lc-close").addEventListener("click", close);
-  document.addEventListener("keydown", onKey);
-  document.body.appendChild(overlay);
-  overlay.scrollTop = 0;
-}
-
-/**
  * Panel som visar nyss skapade inloggningsuppgifter med en "Kopiera alla"-knapp.
  * Lösenorden går inte att läsa igen. Med `onClose` får panelen en Stäng-knapp
  * (#440/X-08: klassvyn visar panelen igen vid klassbyte tills läraren stänger).
@@ -303,8 +259,9 @@ export function credentialsPanel(className, created, onClose) {
     created.map((c) => `${c.username}\tlösenord: ${c.password}`).join("\n");
 
   const box = el(`<div class="cred-panel">
-    <div class="cred-warn">⚠️ ${created.length} konto${created.length === 1 ? "" : "n"} skapade.
-      Kopiera eller skriv ner lösenorden <b>nu</b> – de går inte att se igen. (Namnen kan du ändra senare.)</div>
+    <div class="cred-warn">✓ ${created.length} konto${created.length === 1 ? "" : "n"} skapade.
+      Skriv ut eller kopiera inloggningarna. Lösenorden finns sparade (bara för lärare) under
+      <b>Inloggning</b> hos varje elev – där kan du också byta användarnamn och lösenord.</div>
     <div class="table-scroll"><table class="tbl cred-tbl">
       <thead><tr><th>Namn</th><th>Användarnamn</th><th>Lösenord</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -312,7 +269,7 @@ export function credentialsPanel(className, created, onClose) {
     <div class="row-inline" style="margin-top:10px">
       <button class="btn gron small cred-copy">${icon("copy", 16)}<span>Kopiera alla</span></button>
       <button class="btn small cred-print">${icon("printer", 16)}<span>Skriv ut inloggningskort</span></button>
-      ${onClose ? `<button class="btn ghost small cred-close">${icon("x", 16)}<span>Stäng – jag har sparat lösenorden</span></button>` : ""}
+      ${onClose ? `<button class="btn ghost small cred-close">${icon("x", 16)}<span>Stäng</span></button>` : ""}
     </div>
   </div>`);
   box.querySelector(".cred-copy").addEventListener("click", (e) => copyText(text, e.currentTarget));

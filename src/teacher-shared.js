@@ -82,6 +82,7 @@ const ICONS = {
   lock:
     '<rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15" r="1.1"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M16 7l3 3M14 9l2 2"/>',
   pencil: '<path d="M4 16.4V20h3.6L18.2 9.4l-3.6-3.6L4 16.4z"/><path d="M12.8 7.2l3.6 3.6"/>',
   grad:
     '<path d="M12 4 2.5 9 12 14l9.5-5L12 4z"/><path d="M6 11.2v4c0 1 2.7 2.3 6 2.3s6-1.3 6-2.3v-4"/><path d="M21.5 9v4.5"/>',

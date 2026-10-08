@@ -19,6 +19,7 @@ import {
   query,
   where,
   orderBy,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ensureStudentData } from "./data.js";
 import { createStudentAuthAccount, getSession } from "./auth.js";
@@ -225,10 +226,12 @@ export async function getStudentsWithLooks(ids = null) {
  *  - NY elev (studentId falsy): skapar ett Firebase Auth-konto via en sekundär
  *    app-instans (så lärarens egen session inte kastas ut). Auth-uid:t blir
  *    dokumentets id → students/{uid} + studentData/{uid}. Returnerar uid:t.
+ *    Lösenordet sparas även i studentCredentials/{uid} (bara lärare läser) så
+ *    läraren kan se det igen och skriva ut inloggningskort.
  *  - BEFINTLIG elev (studentId satt): uppdaterar bara namn/avatar på dokumentet.
  *    Användarnamn och lösenord är knutna till Auth-kontot och kan INTE ändras
- *    från klienten (SDK saknar behörighet). Lösenordsåterställning för en elev
- *    kräver admin-vägen – se admin/reset-student-password.mjs.
+ *    från klienten (SDK saknar behörighet) – det går via Cloud Functionen
+ *    updateStudentLogin (src/data-student-login.js, lärarens "Redigera inloggning").
  *
  * @returns {Promise<string>} elevens id (= Auth-uid)
  */
@@ -249,12 +252,16 @@ export async function upsertStudent(studentId, { namn, username, password, avata
   }
   // Ny elev: skapa Auth-kontot först; uid:t blir dokumentets id.
   const uid = await createStudentAuthAccount(username, password);
-  await setDoc(doc(db, "students", uid), {
-    namn,
-    username: String(username).trim().toLowerCase(),
-    avatarId: avatarId || "fox",
-  });
+  const uname = String(username).trim().toLowerCase();
+  await setDoc(doc(db, "students", uid), { namn, username: uname, avatarId: avatarId || "fox" });
   await ensureStudentData(uid, avatarId);
+  // Spara lösenordet för läraren. Aldrig kastande: före regel-deployen nekas
+  // skrivningen, och då ska kontoskapandet ändå lyckas (lösenordet blir "okänt").
+  await setDoc(doc(db, "studentCredentials", uid), {
+    username: uname,
+    password: String(password),
+    updatedAt: serverTimestamp(),
+  }).catch((err) => console.warn("Kunde inte spara elevens lösenord:", err?.message || err));
   return uid;
 }
 
@@ -269,6 +276,7 @@ export async function upsertStudent(studentId, { namn, username, password, avata
 export async function deleteStudent(studentId) {
   await deleteDoc(doc(db, "students", studentId));
   await deleteDoc(doc(db, "studentData", studentId)).catch(() => {});
+  await deleteDoc(doc(db, "studentCredentials", studentId)).catch(() => {});
 }
 
 /**
