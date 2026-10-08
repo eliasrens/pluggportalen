@@ -44,7 +44,7 @@ function pickRandom(list, rng) {
 
 /**
  * Välj nästa text för eleven.
- * @param {number} level elevens dolda nivå (1–7)
+ * @param {number} level elevens dolda nivå (LEVEL_MIN–LEVEL_MAX)
  * @param {string[]} seenTextIds texter eleven redan genomfört
  * @param {object[]|object} bank alla texter (lista) eller { [level]: texter[] }
  * @param {{lastTextId?:string|null, rng?:()=>number}} [opts]

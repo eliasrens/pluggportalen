@@ -1,7 +1,7 @@
 // ============================================================================
 // Läsresan – utvecklings-seed (src/lasresan/content/dev-seed.js)
 // ----------------------------------------------------------------------------
-// Spec:ens fyra REFERENSTEXTER (nivå 1/3/5/7, spec §17) i Innehållskontraktets
+// Spec:ens fyra REFERENSTEXTER (gamla nivå 1/3/5/7 = nya 4/6/8/10, spec §17) i Innehållskontraktets
 // format, kompletterade så att varje text har minst 5 frågor och rätt svars
 // position varierar. Loadern (content/loader.js) faller tillbaka hit när
 // innehållsbanken (content/bank/, ägs av innehållsepicet #404) saknas – så
@@ -15,7 +15,7 @@ export const DEV_SEED = [
   {
     id: "lr-n1-katten-i-regnet",
     title: "Katten i regnet",
-    level: 1,
+    level: 4,
     textType: "story",
     topic: "djur",
     body: [
@@ -69,7 +69,7 @@ export const DEV_SEED = [
   {
     id: "lr-n3-bollen-som-forsvann",
     title: "Bollen som försvann",
-    level: 3,
+    level: 6,
     textType: "story",
     topic: "skola",
     body: [
@@ -127,7 +127,7 @@ export const DEV_SEED = [
   {
     id: "lr-n5-den-tomma-platsen",
     title: "Den tomma platsen",
-    level: 5,
+    level: 8,
     textType: "story",
     topic: "relationer",
     body: [
@@ -192,7 +192,7 @@ export const DEV_SEED = [
   {
     id: "lr-n7-nar-alven-andrar-vag",
     title: "När älven ändrar väg",
-    level: 7,
+    level: 10,
     textType: "fact",
     topic: "natur",
     body: [

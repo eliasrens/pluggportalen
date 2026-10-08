@@ -17,19 +17,19 @@ const run = (state, results) => results.reduce((s, [c, t]) => applyResult(s, { c
 test("config: spec-talen", () => {
   assert.deepEqual(
     [LEVEL_MIN, LEVEL_MAX, START_LEVEL, HIGH_PCT, LOW_PCT, HIGH_STREAK_TO_UP, LOW_STREAK_TO_DOWN, COINS_PER_CORRECT],
-    [1, 7, 3, 70, 50, 3, 2, 3]
+    [1, 10, 4, 70, 50, 3, 2, 3]
   );
 });
 
 test("Test 2 (nivå): 6/8 = 75 % → highStreak 1, ingen nivåändring", () => {
   const s = applyResult(fresh(), { correct: 6, total: 8 });
   assert.equal(percent(6, 8), 75);
-  assert.deepEqual(s, { level: 3, highStreak: 1, lowStreak: 0, changed: false, band: "high" });
+  assert.deepEqual(s, { level: 4, highStreak: 1, lowStreak: 0, changed: false, band: "high" });
 });
 
-test("Test 3: 75 % / 80 % / 71 % i rad → nivå 3 → 4, streaks nollade", () => {
+test("Test 3: 75 % / 80 % / 71 % i rad → nivå 4 → 5, streaks nollade", () => {
   const s = run(fresh(), [[6, 8], [8, 10], [5, 7]]); // 75, 80, 71,4
-  assert.equal(s.level, 4);
+  assert.equal(s.level, 5);
   assert.equal(s.changed, true);
   assert.equal(s.highStreak, 0);
   assert.equal(s.lowStreak, 0);
@@ -39,7 +39,7 @@ test("Test 4: 80 % / 76 % / 65 % → ingen ändring, highStreak nollad", () => {
   const two = run(fresh(), [[8, 10], [19, 25]]); // 80, 76
   assert.equal(two.highStreak, 2);
   const s = applyResult(two, { correct: 13, total: 20 }); // 65
-  assert.equal(s.level, 3);
+  assert.equal(s.level, 4);
   assert.equal(s.changed, false);
   assert.equal(s.highStreak, 0);
   assert.equal(s.lowStreak, 0);
@@ -50,7 +50,7 @@ test("Test 4: 80 % / 76 % / 65 % → ingen ändring, highStreak nollad", () => {
 
 test("Test 5: 43 % / 49 % → nivå −1", () => {
   const s = run(fresh(), [[3, 7], [49, 100]]);
-  assert.equal(s.level, 2);
+  assert.equal(s.level, 3);
   assert.equal(s.changed, true);
   assert.equal(s.lowStreak, 0);
   assert.equal(s.highStreak, 0);
@@ -62,7 +62,7 @@ test("Test 6: exakt 50 % är INTE låg (bryter lowStreak)", () => {
   assert.equal(oneLow.lowStreak, 1);
   const s = applyResult(oneLow, { correct: 4, total: 8 });
   assert.equal(s.lowStreak, 0);
-  assert.equal(s.level, 3);
+  assert.equal(s.level, 4);
 });
 
 test("exakt 70 % ÄR hög – heltalsjämförelse utan flyttalsfel", () => {
@@ -77,14 +77,14 @@ test("exakt 70 % ÄR hög – heltalsjämförelse utan flyttalsfel", () => {
 
 test("hög följd av låg nollar highStreak; låg följd av hög nollar lowStreak", () => {
   const a = run(fresh(), [[8, 8], [8, 8], [0, 8]]);
-  assert.deepEqual([a.level, a.highStreak, a.lowStreak], [3, 0, 1]);
+  assert.deepEqual([a.level, a.highStreak, a.lowStreak], [4, 0, 1]);
   const b = run(fresh(), [[0, 8], [8, 8]]);
-  assert.deepEqual([b.level, b.highStreak, b.lowStreak], [3, 1, 0]);
+  assert.deepEqual([b.level, b.highStreak, b.lowStreak], [4, 1, 0]);
 });
 
-test("tak: nivå 7 + 3 höga → stannar på 7, streak nollas", () => {
-  const s = run({ level: 7, highStreak: 0, lowStreak: 0 }, [[8, 8], [8, 8], [8, 8]]);
-  assert.deepEqual([s.level, s.highStreak, s.lowStreak, s.changed], [7, 0, 0, false]);
+test("tak: nivå 10 + 3 höga → stannar på 10, streak nollas", () => {
+  const s = run({ level: 10, highStreak: 0, lowStreak: 0 }, [[8, 8], [8, 8], [8, 8]]);
+  assert.deepEqual([s.level, s.highStreak, s.lowStreak, s.changed], [10, 0, 0, false]);
 });
 
 test("golv: nivå 1 + 2 låga → stannar på 1, streak nollas", () => {
@@ -92,11 +92,11 @@ test("golv: nivå 1 + 2 låga → stannar på 1, streak nollas", () => {
   assert.deepEqual([s.level, s.highStreak, s.lowStreak, s.changed], [1, 0, 0, false]);
 });
 
-test("normalizeLevel klämmer och har default 3", () => {
-  assert.equal(normalizeLevel(undefined), 3);
+test("normalizeLevel klämmer och har default 4", () => {
+  assert.equal(normalizeLevel(undefined), 4);
   assert.equal(normalizeLevel("5"), 5);
   assert.equal(normalizeLevel(0), 1);
-  assert.equal(normalizeLevel(99), 7);
+  assert.equal(normalizeLevel(99), 10);
 });
 
 test("total 0 påverkar ingenting", () => {

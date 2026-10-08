@@ -14,7 +14,7 @@
 import { LEVEL_MIN, LEVEL_MAX, START_LEVEL } from "./config.js";
 import { classStartLevelOf, parseTeacherLevel } from "./level-control.js";
 
-/** Nivåerna läraren kan välja: [1, 2, …, 7]. */
+/** Nivåerna läraren kan välja: [LEVEL_MIN, …, LEVEL_MAX]. */
 export const LEVELS = Array.from({ length: LEVEL_MAX - LEVEL_MIN + 1 }, (_, i) => LEVEL_MIN + i);
 
 /** Svensk genitiv: "Astrids", men "Elias" / "Max" (slutar på s/x/z). */
