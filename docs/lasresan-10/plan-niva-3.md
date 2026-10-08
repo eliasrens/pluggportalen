@@ -5,10 +5,12 @@ Nivå 3 = grundläggande läsförståelse: 100–140 ord, korta meningar (≈ 6 
 
 **Syskon (nivå 1 och 2):** ta inte dessa faktaämnen, premisser eller namn.
 
+**Krockkontroll mot `plan-niva-2.md` (#522, committad före denna plan):** första versionen delade fjäril, blåbär, gran, skelett, Lajka, ljus förr, leksaker förr, saknad pusselbit och mormors videosamtal samt namnen Deniz, Amina och Felix med nivå 2. Allt detta är utbytt här; nivå 2 behåller sina.
+
 ## Story
 | id | topic | titel | huvudperson(er) | handling |
 |---|---|---|---|---|
-| lr-g3-museet | skola | Vilse bland dinosaurierna | Deniz | Deniz tappar bort klassen på museet, minns regeln och går till informationsdisken |
+| lr-g3-museet | skola | Vilse bland dinosaurierna | Ilias | Ilias tappar bort klassen på museet, minns regeln och går till informationsdisken |
 | lr-g3-klasskaninen | skola | Kaninen på sommarlov | Arvin | Arvin har klassens kanin Smulan hemma på lovet; den rymmer i lägenheten och hittas i tvättkorgen |
 | lr-g3-boken | relationer | Den lånade boken | Layla, Hodan | Layla lånar Hodans bok, lillebror spiller saft på den; Layla berättar sanningen och köper en ny |
 | lr-g3-handslaget | relationer | Det hemliga handslaget | Melina, Aya | Vännernas hemliga handslag; Aya bryter armen, de hittar på ett nytt med armbågar och fötter |
@@ -18,27 +20,27 @@ Nivå 3 = grundläggande läsförståelse: 100–140 ord, korta meningar (≈ 6 
 | lr-g3-langdhoppet | sport | Hoppet över linjen | Linn | Linn trampar över i längdhopp, tränaren lär henne räkna stegen, hon klarar ett giltigt hopp |
 | lr-g3-picknicken | vardag | Picknick i regnet | Tea | Tea och pappa har picknick, regnet kommer, de äter under en bro och matar änder |
 | lr-g3-dammen | äventyr | Dammen i bäcken | Darius | Darius bygger en stendamm i bäcken, ser en liten fisk som inte kommer förbi och öppnar dammen |
-| lr-g3-pusslet | mysterier | Den sista biten | Leah | Leah och farfar lägger pussel, sista biten saknas, den ligger under katten |
+| lr-g3-knackningen | mysterier | Vem knackar på fönstret? | Leah | Det knackar på fönstret varje morgon; det är en talgoxe som hackar på sin egen spegelbild |
 | lr-g3-handsken | mysterier | Handsken som vandrade | Mohammed | En röd vante dyker upp på nya ställen varje morgon; grannens hund bär runt den |
 | lr-g3-visselpipan | äventyr | Visselpipan | Pedro | Pedro kommer bort på bärplockning, stannar vid ett stort träd och blåser i visselpipan |
-| lr-g3-korna | äventyr | Korna på vägen | Amina | Korna har rymt ut på vägen; Amina ringer bonden Ragnar och hjälper till att driva in dem |
-| lr-g3-videosamtalet | roliga situationer | Mormor ringer video | Felix | Felix lär mormor videosamtal; hon visar örat, taket och till sist katten |
+| lr-g3-korna | äventyr | Korna på vägen | Hawa | Korna har rymt ut på vägen; Hawa ringer bonden Ragnar och hjälper till att driva in dem |
+| lr-g3-hatten | roliga situationer | Hatten som flög | Ismail | Pappas nya hatt blåser av på torget och landar i fiskdisken |
 
 ## Fact
 | id | topic | titel | ämne |
 |---|---|---|---|
 | lr-g3-raven | djur | Räven i snön | räven: lya, ungar, hör möss under snön och hoppar |
-| lr-g3-fjarilen | djur | Från larv till fjäril | ägg, larv, puppa, fjäril |
+| lr-g3-gravlingen | djur | Grävlingen i grytet | gryt med många gångar, vaken på natten, äter maskar, vilar mycket på vintern |
 | lr-g3-delfinen | djur | Delfinen andas luft | däggdjur, andas genom hål, visslar, vilar halva hjärnan |
 | lr-g3-snoharen | djur | Haren som byter päls | skogsharen: brun på sommaren, vit på vintern, stora fötter |
-| lr-g3-granen-tallen | natur | Granen och tallen | barrträd: barr, kottar, skillnad mellan gran och tall |
-| lr-g3-blabar | natur | Skogens blå bär | blåbär och lingon: när de mognar, var de växer, allemansrätten |
+| lr-g3-bjorken | natur | Björken med vit bark | vit bark (näver), hängen på våren, sav, små frön |
+| lr-g3-istapparna | natur | Istapparna | solen smälter snö på taket, vattnet droppar och fryser, farliga att gå under |
 | lr-g3-stenarna | natur | Stenarna som blev runda | vågor och is slipar stenar runda på stranden |
-| lr-g3-lajka | rymden | Hunden som åkte till rymden | Lajka 1957, sedan Belka och Strelka som kom tillbaka |
+| lr-g3-rymddrakten | rymden | Rymddräkten | ingen luft, kyla och hetta, syrgas i ryggsäcken, visir mot solen |
 | lr-g3-trafikljuset | teknik | Rött, gult och grönt | trafikljuset: färgerna, givare i vägen, knappen för gående |
 | lr-g3-blixtlaset | teknik | Blixtlåset | tänder som hakar i varandra, löparen, hur det uppfanns |
-| lr-g3-leksaker-forr | historia | Leksaker förr | träleksaker, tygdockor, kulor, hemgjorda leksaker |
-| lr-g3-ljus-forr | historia | När det var mörkt förr | stearinljus, fotogenlampor, sedan elektriskt ljus |
+| lr-g3-tvatt-forr | historia | Tvättdagen förr | tvätta för hand, tvättbräda, bära vatten, skölja i sjön, torka på lina |
+| lr-g3-brevduvan | historia | Brevduvan | duvor som hittar hem bar meddelanden förr, lappen i en hylsa på benet |
 | lr-g3-fjordarna | geografi | Norges fjordar | isen grävde dalar, havet fyllde dem, branta berg, båtar |
-| lr-g3-skelettet | vetenskap | Kroppens skelett | ben, leder, skallen skyddar hjärnan, bebisar har fler ben |
+| lr-g3-jasten | vetenskap | Varför degen växer | jäst är små svampar som äter socker och gör gasbubblor, värme hjälper |
 | lr-g3-svetten | vetenskap | Därför svettas vi | kroppen kyls av svett, drick vatten |
