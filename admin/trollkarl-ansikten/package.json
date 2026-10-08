@@ -1,0 +1,6 @@
+{
+  "name": "trollkarl-ansikten",
+  "private": true,
+  "description": "Friläggningspipeline för Trollkarlsduellens ansiktslager (#537) – körs separat, ingår INTE i appens bootgraf.",
+  "dependencies": { "sharp": "^0.33.0" }
+}
