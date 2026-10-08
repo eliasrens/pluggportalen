@@ -2736,5 +2736,569 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n3-norrsken",
+    "title": "Ljuset som dansar över himlen",
+    "level": 3,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "En klar vinternatt i norra Sverige kan himlen plötsligt börja lysa. Gröna band slingrar sig fram över stjärnorna, ibland med inslag av rött och lila. Det är norrsken.\n\nNorrskenet börjar långt borta, i solen. Solen skickar hela tiden ut små, elektriskt laddade partiklar i rymden. Strömmen av partiklar kallas solvind. Det tar ett par dagar för den att nå jorden.\n\nJorden har ett magnetfält som fungerar som en osynlig sköld. Det leder bort det mesta av solvinden, men nära nordpolen och sydpolen kan partiklarna ta sig in. Där krockar de med gaser högt uppe i luften, mer än tio mil ovanför marken. Gaserna börjar då lysa, ungefär som en lysrörslampa.\n\nSyre lyser oftast grönt, och därför är det mesta norrskenet grönt. Samma sak händer runt sydpolen. Där kallas det sydsken.\n\nBäst chans att se norrsken har du en mörk och molnfri natt långt norrut. Men när solen är extra aktiv kan norrskenet ibland synas ända ner i södra Sverige.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas strömmen av partiklar från solen?",
+        "options": [
+          "Norrsken",
+          "Magnetfält",
+          "Rymdregn",
+          "Solvind"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken gas lyser oftast grönt?",
+        "options": [
+          "Kväve",
+          "Syre",
+          "Väte",
+          "Koldioxid"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Banden ”slingrar sig” över himlen. Vad betyder det?",
+        "options": [
+          "De står helt stilla",
+          "De faller snabbt ner",
+          "De rör sig i mjuka bågar",
+          "De blinkar av och på"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Magnetfältet är som en ”sköld”. Vad menas med det?",
+        "options": [
+          "Det skyddar jorden",
+          "Det lyser upp jorden",
+          "Det värmer jorden",
+          "Det drar jorden mot solen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför syns norrsken mest långt norrut?",
+        "options": [
+          "Det är kallare där",
+          "Solen lyser starkare där",
+          "Partiklarna kommer in nära polerna",
+          "Det finns mer syre där"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan man inte se norrsken en molnig natt?",
+        "options": [
+          "Solvinden fastnar i molnen",
+          "Molnen skymmer himlen",
+          "Molnen gör gaserna mörka",
+          "Norrsken bildas bara när det snöar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förklarar texten?",
+        "options": [
+          "Hur norrsken uppstår",
+          "Hur man fotograferar norrsken",
+          "Varför solen är så varm",
+          "Hur en kompass fungerar"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-kometer",
+    "title": "Snöbollarna från rymden",
+    "level": 3,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Ibland dyker ett märkligt ljus upp på natthimlen, en lysande prick med en lång, svag svans. Förr trodde många att det betydde krig eller olycka. I dag vet vi att det är en komet.\n\nEn komet är som en jättelik och smutsig snöboll. Den består av is, damm och sten och är ofta bara några kilometer stor. De flesta kometer finns långt ute i solsystemet, mycket längre bort än de yttersta planeterna. Där är det så kallt att isen aldrig smälter.\n\nMen ibland kommer en komet in mot solen. Då värms den upp, och isen blir till gas. Gasen och dammet bildar ett moln runt kometen och en lång svans. Svansen pekar alltid bort från solen, eftersom solvinden blåser den bakåt.\n\nEn känd komet är Halleys komet. Den kommer tillbaka ungefär vart 76:e år. Senast den syntes var 1986, och nästa gång blir 2061.\n\nKometer lämnar också damm efter sig. När jorden passerar genom dammet brinner små korn upp i luften. Då ser vi stjärnfall.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad består en komet av?",
+        "options": [
+          "Eld och het gas",
+          "Metall och glas",
+          "Vatten och sand",
+          "Is, damm och sten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år syns Halleys komet nästa gång?",
+        "options": [
+          "1986",
+          "2076",
+          "2046",
+          "2061"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Kometen har en ”svag” svans. Vad betyder det här?",
+        "options": [
+          "Den är lätt att bryta",
+          "Den lyser bara lite",
+          "Den är kort och tjock",
+          "Den rör sig långsamt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ”de yttersta planeterna”?",
+        "options": [
+          "De planeter som ligger längst ut",
+          "Planeterna som är störst",
+          "Planeterna som ligger närmast jorden",
+          "Planeterna som har ringar"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför har en komet ingen svans långt ute i solsystemet?",
+        "options": [
+          "Svansen har gått sönder på vägen",
+          "Solvinden blåser för starkt där",
+          "Isen blir inte till gas i kylan",
+          "Den har tappat allt sitt damm"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför trodde människor förr att kometer betydde olycka?",
+        "options": [
+          "Kometer krockade ofta med jorden",
+          "De visste inte vad kometer var",
+          "Kometerna lyste röda som blod",
+          "Kungen hade bestämt det"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar bäst till texten?",
+        "options": [
+          "Så bygger du ett teleskop",
+          "Planeterna i vårt solsystem",
+          "Snöbollarna som besöker solen",
+          "Varför månen lyser på natten"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-saturnus",
+    "title": "Planeten med ringarna",
+    "level": 3,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Saturnus är den sjätte planeten från solen och den näst största i vårt solsystem. Den är känd för sina ringar.\n\nRingarna ser ut som en enda skiva, men de består av miljarder bitar av is och sten. Vissa bitar är små som sandkorn, andra stora som hus. Alla snurrar runt planeten. Ringarna är mycket breda men samtidigt väldigt tunna.\n\nSaturnus har ingen fast yta att stå på. Planeten består mest av gas och är så lätt för sin storlek att den skulle kunna flyta, om det fanns ett tillräckligt stort hav.\n\nEtt dygn på Saturnus är kort, ungefär tio och en halv timme. Men ett år är långt. Det tar Saturnus nästan trettio av våra år att gå ett varv runt solen.\n\nSaturnus har över hundra månar. Den största heter Titan och är större än vår måne. På Titan finns sjöar, men de är inte fyllda med vatten. De innehåller ett ämne som på jorden är en gas.\n\nDen förste som såg ringarna var Galileo Galilei år 1610. Hans kikare var så enkel att han trodde att planeten hade två klumpar på sidorna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad består Saturnus ringar av?",
+        "options": [
+          "Gas och moln",
+          "Damm från solen",
+          "Små månar av järn",
+          "Bitar av is och sten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur lång tid tar det för Saturnus att gå ett varv runt solen?",
+        "options": [
+          "Nästan trettio år",
+          "Tio och en halv timme",
+          "Precis ett år",
+          "Ungefär hundra år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Saturnus är den ”näst största” planeten. Vad betyder det?",
+        "options": [
+          "Bara en planet är större",
+          "Den är minst av alla",
+          "Den är störst av alla",
+          "Den är lika stor som jorden"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Galileos kikare var ”enkel”. Vad betyder det här?",
+        "options": [
+          "Den var lätt att använda",
+          "Den var billig att köpa",
+          "Den var liten och lätt",
+          "Den kunde inte se så skarpt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan man inte landa och gå på Saturnus?",
+        "options": [
+          "Ringarna är i vägen",
+          "Planeten har ingen fast yta",
+          "Det är alldeles för varmt",
+          "Den snurrar för fort"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför trodde Galileo att Saturnus hade klumpar på sidorna?",
+        "options": [
+          "Han tittade på fel planet",
+          "Saturnus hade större ringar förr",
+          "Han såg ringarna otydligt",
+          "Han hade läst det i en bok"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Vad som gör Saturnus speciell",
+          "Hur Galileo byggde sin kikare",
+          "Hur man reser till månen Titan",
+          "Varför jorden saknar ringar"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-gps",
+    "title": "Hur vet mobilen var du är?",
+    "level": 3,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Hur kan en mobil veta exakt var du står? Svaret finns långt ute i rymden.\n\nRunt jorden kretsar ett trettiotal GPS-satelliter, ungefär två tusen mil över våra huvuden. De är utspridda så att det alltid finns flera av dem ovanför varje plats på jorden.\n\nVarje satellit har en mycket noggrann klocka. Hela tiden skickar den ut radiosignaler som berättar vilken satellit den är och exakt vad klockan är.\n\nMobilen tar emot signalerna. Signalerna färdas med en känd hastighet. Genom att jämföra när en signal skickades och när den kom fram kan mobilen räkna ut hur långt bort satelliten är. När mobilen vet avståndet till minst fyra satelliter kan den räkna ut sin plats på jorden.\n\nDet märkliga är att mobilen bara lyssnar. Den skickar ingenting tillbaka till satelliterna.\n\nGPS fungerar bäst utomhus. Inne i en tunnel eller djupt inne i ett hus kan signalerna inte nå fram. Då kan kartan i mobilen plötsligt tappa bort dig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många GPS-satelliter kretsar runt jorden?",
+        "options": [
+          "Ett par stycken",
+          "Ett trettiotal",
+          "Ett tusental",
+          "Exakt fyra"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var fungerar GPS sämst enligt texten?",
+        "options": [
+          "Ute på en åker",
+          "På en båt till havs",
+          "Uppe på ett berg",
+          "Inne i en tunnel"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Satelliterna ”kretsar” runt jorden. Vad betyder det?",
+        "options": [
+          "De står alldeles stilla",
+          "De faller sakta ner",
+          "De åker runt och runt",
+          "De lyser starkt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Klockan är mycket ”noggrann”. Vad betyder det?",
+        "options": [
+          "Den är väldigt stor",
+          "Den är gammal och fin",
+          "Den visar tiden exakt",
+          "Den går lite för fort"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför behöver satelliterna så noggranna klockor?",
+        "options": [
+          "Avståndet räknas ut med hjälp av tiden",
+          "Astronauterna ombord måste veta vad klockan är",
+          "Satelliterna ska ringa varandra",
+          "Klockan bestämmer när de ska landa"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan man förstå av att mobilen bara lyssnar?",
+        "options": [
+          "Mobilen måste vara utomhus för att höras",
+          "Satelliterna kan inte veta var mobilen är",
+          "Satelliterna styr vart du går",
+          "GPS fungerar bara på natten"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är textens syfte?",
+        "options": [
+          "Att lära ut hur man bygger en satellit",
+          "Att berätta om en resa i rymden",
+          "Att varna för att använda mobilen",
+          "Att förklara hur GPS hittar din plats"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-mikrovagsugnen",
+    "title": "Chokladen som smälte",
+    "level": 3,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "År 1945 arbetade amerikanen Percy Spencer med radarapparater. En dag märkte han att chokladkakan i hans ficka hade smält, fast det inte var varmt i rummet. Han förstod att det var osynliga strålar från apparaten som hade värmt den. Några år senare såldes de första mikrovågsugnarna.\n\nInuti en mikrovågsugn finns en del som skapar mikrovågor. Det är osynliga strålar, släkt med radiovågor. När mikrovågorna träffar maten får de vattnet i den att röra sig fram och tillbaka väldigt fort. Den rörelsen gör att maten blir varm. Därför blir mat med mycket vatten i, som soppa, snabbt varm.\n\nDen runda glasskivan i botten snurrar för att maten ska värmas jämnt. Utan den kan det bli kalla och heta fläckar.\n\nTitta på luckan. Där finns ett metallnät med små hål. Hålen är för små för att mikrovågorna ska slippa ut, men ljuset kommer igenom. Därför kan du se maten utan att strålarna kommer ut.\n\nLägg aldrig in metall, som aluminiumfolie eller en sked, i ugnen. Det kan börja gnistra.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hade hänt med Percy Spencers chokladkaka?",
+        "options": [
+          "Den hade frusit",
+          "Den hade smält",
+          "Den hade försvunnit",
+          "Den hade blivit hård"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför snurrar glasskivan i botten?",
+        "options": [
+          "Så att maten värms jämnt",
+          "Så att maten blandas",
+          "Så att ugnen låter mindre",
+          "Så att luckan inte öppnas"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Mikrovågor är ”osynliga”. Vad betyder det?",
+        "options": [
+          "De går inte att höra",
+          "De är mycket farliga",
+          "De går inte att se",
+          "De är väldigt små"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Det kan börja ”gnistra”. Vad betyder det?",
+        "options": [
+          "Det blir väldigt kallt",
+          "Det börjar lukta illa",
+          "Det börjar pipa högt",
+          "Det blir små blixtar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blir en soppa snabbt varm i mikron?",
+        "options": [
+          "Den ligger i en tallrik av porslin",
+          "Den är redan lite varm",
+          "Den innehåller mycket vatten",
+          "Den snurrar fortare än annan mat"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför har luckan ett nät med små hål?",
+        "options": [
+          "Så att varm luft kan komma ut",
+          "Strålarna stängs inne men man kan se in",
+          "Så att maten inte luktar",
+          "Så att ugnen blir lättare"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är textens syfte?",
+        "options": [
+          "Att förklara hur en mikrovågsugn fungerar",
+          "Att ge recept på mat i mikron",
+          "Att berätta om hela Percy Spencers liv och arbete",
+          "Att varna för choklad i fickan"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-3d-skrivaren",
+    "title": "Skrivaren som bygger saker",
+    "level": 3,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "En vanlig skrivare skriver ut text och bilder på papper. En 3D-skrivare gör något helt annat. Den bygger saker som man kan hålla i handen.\n\nAllt börjar i en dator. Där ritar man en tredimensionell modell av föremålet, till exempel en nyckelring eller ett kugghjul. Datorn delar sedan upp modellen i hundratals tunna lager, som skivor av en limpa.\n\nDe flesta 3D-skrivare använder plast som kommer på en rulle, som en tjock tråd. Tråden matas in i ett munstycke som är så varmt att plasten smälter. Munstycket rör sig fram och tillbaka och lägger ut smält plast precis där datorn säger. Plasten stelnar nästan direkt. När ett lager är klart läggs nästa ovanpå, och så fortsätter det tills föremålet är färdigt.\n\nDet går inte särskilt fort. Ett litet föremål kan ta flera timmar.\n\n3D-skrivare används till mycket. Man kan tillverka reservdelar som inte finns att köpa, modeller av nya uppfinningar och till och med konstgjorda händer till barn. Det finns också jättelika 3D-skrivare som bygger hela hus av betong.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad smälter i de flesta 3D-skrivare?",
+        "options": [
+          "Papper",
+          "Järn",
+          "Glas",
+          "Plast"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad bygger de jättelika 3D-skrivarna?",
+        "options": [
+          "Hela hus",
+          "Bilar",
+          "Flygplan",
+          "Broar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Plasten ”stelnar” nästan direkt. Vad betyder det?",
+        "options": [
+          "Den blir varm",
+          "Den byter färg",
+          "Den blir blöt",
+          "Den blir hård"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett ”munstycke” i texten?",
+        "options": [
+          "En ritning i datorn",
+          "Ett rör där plasten kommer ut",
+          "En rulle med plasttråd",
+          "En sorts leksak av plast"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tar det lång tid att skriva ut något?",
+        "options": [
+          "Plasten måste ligga och svalna i flera dagar",
+          "Datorn ritar väldigt långsamt",
+          "Föremålet byggs ett tunt lager i taget",
+          "Tråden går ofta sönder"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan en 3D-skrivare vara bra när något har gått sönder?",
+        "options": [
+          "Man kan göra delar som inte går att köpa",
+          "Skrivaren lagar saker av sig själv",
+          "Plasten är starkare än allt annat",
+          "Reservdelarna blir alltid gratis"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar bäst till texten?",
+        "options": [
+          "Så skriver du ut ett brev",
+          "Lager på lager blir en sak",
+          "Plast är dåligt för miljön",
+          "Datorns långa historia"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
