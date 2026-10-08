@@ -14,7 +14,10 @@
 //   tavling/page-mattematchen.js  mattematchen { rattFore, rattEfter } per
 //                                 server-bekräftat rätt svar (+1-batchen)
 //   live/live-data.js             writeResultIfMissing → liveKlassBonus(result)
-//                                 (lärarklienten, en gång per session)
+//                                 + pokalerEfterAvslut("live", …) (lärarklienten,
+//                                 en gång per session, EFTER att result skrivits)
+//   tavling/mm-teacher-data.js    finishCompetition / archiveIfEnded →
+//                                 pokalerEfterAvslut("mattematchen", …) (#495)
 //
 // ALDRIG kastande: ett klass-EXP-fel får inte störa elevens belöning.
 //
@@ -23,6 +26,10 @@
 //   klassExpEfterOvning({ modul, resultat?, area? }, { award? }) → Promise<Record<classId, antal>>
 //   liveBonusar(result)               → [{ classId, kalla }]
 //   liveKlassBonus(result, { bonus? }) → Promise<number>  summa utdelad bonus
+//   pokalerEfterAvslut(kalla, kallaId, kallaDoc, { dela? }) → Promise<Resultat[]>
+//       pokalerna källans result ger (kc-pokal-typer pokalerUrKalla) via
+//       kc-pokal-data delaUtPokalerFor. Idempotent (deterministiskt id) –
+//       avsluta två gånger / två lärarflikar → EN pokal. Aldrig kastande.
 // ============================================================================
 
 import { planKlassExp, harRegel, modulFor } from "./kc-exp-regler.js";
@@ -92,4 +99,22 @@ export async function liveKlassBonus(result, { bonus } = {}) {
     }
   }
   return summa;
+}
+
+/**
+ * Klasscentrets pokaler för en avslutad tävling/match (#495). Anropas av
+ * lärarklienten när källans `result` är SKRIVET (reglerna läser källan med
+ * getAfter). kallaDoc = källdokumentet med status "finished" + result.
+ * Ingen pokal att dela ut → kc-pokal-data laddas inte ens.
+ */
+export async function pokalerEfterAvslut(kalla, kallaId, kallaDoc, { dela } = {}) {
+  try {
+    const { pokalerUrKalla } = await import("./kc-pokal-typer.js");
+    if (!pokalerUrKalla(kalla, kallaId, kallaDoc).length) return [];
+    const fn = dela || (await import("./kc-pokal-data.js")).delaUtPokalerFor;
+    return (await fn(kalla, kallaId, kallaDoc)) || [];
+  } catch (err) {
+    console.warn("[klasscenter] pokaler hoppades över", kalla, kallaId, err?.code || err);
+    return [];
+  }
 }

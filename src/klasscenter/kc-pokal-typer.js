@@ -203,15 +203,23 @@ function avslutad(k) {
   return k?.status === "finished" && k.result && typeof k.result === "object";
 }
 
-// Klasskampen: result.winnerClass (mm-teacher-core buildResult – klassen med
-// högst rätt/elev, null om ingen svarat rätt).
+// Klasskampen: result.winnerClass + result.winnerClasses (mm-teacher-core
+// buildResult – klassen/klasserna med högst rätt/elev, tom om ingen svarat
+// rätt). OAVGJORT (#495): delad förstaplats → ALLA delade vinnare får pokalen.
+// Äldre result utan winnerClasses → bara winnerClass.
+export function mmVinnare(k) {
+  if (!avslutad(k)) return [];
+  const delade = Array.isArray(k.result.winnerClasses) ? k.result.winnerClasses : [];
+  return [...new Set([k.result.winnerClass, ...delade])].filter((c) => typeof c === "string" && c);
+}
+
 registreraPokaltyp({
   id: "mm-klasskamp",
   kalla: "mattematchen",
   titel: "Mattematchens mästare",
   text: "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans.",
   art: "pokal-mm",
-  vinnare: (k) => (avslutad(k) && k.result.winnerClass ? [k.result.winnerClass] : []),
+  vinnare: mmVinnare,
 });
 
 function liveSpelare(k, classId) {
@@ -222,7 +230,8 @@ function liveDeltar(k, classId) {
     liveSpelare(k, classId) > 0;
 }
 
-// Live-vinst: result.winner (live-core buildResult; "draw" = ingen vinnare).
+// Live-vinst: TÄVLINGSLÄGEN – result.winner (live-core buildResult; "draw" =
+// ingen vinnare). Ett kooperativt läge (result.cooperative) ger ingen vinst.
 registreraPokaltyp({
   id: "live-vinst",
   kalla: "live",
@@ -230,18 +239,20 @@ registreraPokaltyp({
   text: "Klassen vann Live-matchen! Alla räknade för fullt – och det lönade sig.",
   art: "pokal-live",
   vinnare(k) {
-    const w = avslutad(k) ? k.result.winner : null;
+    const w = avslutad(k) && k.result.cooperative !== true ? k.result.winner : null;
     return w && w !== "draw" && liveDeltar(k, w) ? [w] : [];
   },
 });
 
-// Liveläge avklarat: varje deltagande klass med minst en spelare (samma som
-// klassbonusen "live" i kc-koppling.js liveBonusar).
+// Liveläge avklarat: KOOPERATIVA lägen (GameMode.cooperative, #495) där målet
+// nåddes (result.goalReached) → varje deltagande klass med minst en spelare.
+// I dag finns bara tävlingslägen → delas inte ut förrän ett sådant läge finns.
 registreraPokaltyp({
   id: "live-avklarat",
   kalla: "live",
   titel: "Liveläge avklarat",
   text: "Klassen klarade ett Liveläge tillsammans!",
   art: "pokal-live-klar",
-  vinnare: (k) => (avslutad(k) ? Object.keys(k.result.perClass || {}).filter((c) => liveDeltar(k, c)) : []),
+  vinnare: (k) => (avslutad(k) && k.result.goalReached === true
+    ? Object.keys(k.result.perClass || {}).filter((c) => liveDeltar(k, c)) : []),
 });

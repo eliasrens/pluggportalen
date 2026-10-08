@@ -113,6 +113,19 @@ describe("buildResult (historik)", () => {
     const tom = buildResult({ scores: [], stats: [], counters: [], classes, participatingIds: ["4a"], now: NOW });
     assert.equal(tom.winner, null);
     assert.equal(tom.winnerClass, null);
+    assert.deepEqual(tom.winnerClasses, []);
+    const ingen = buildResult({ scores: [], stats: [], counters: [], classes, participatingIds: [], now: NOW });
+    assert.deepEqual([ingen.winnerClass, ingen.winnerClasses], [null, []]);
+  });
+  it("vinnarklasser: seger = en, delad förstaplats = alla delade (#495 pokaler)", () => {
+    assert.deepEqual(r.winnerClasses, ["4a"]);
+    const lika = buildResult({
+      scores: [], stats: [], classes, participatingIds: ["4a", "4b", "4c"], now: NOW,
+      counters: [{ classId: "4a", correct: 10 }, { classId: "4b", correct: 40 }, { classId: "4c", correct: 0 }],
+    });
+    assert.deepEqual(lika.classes.map((k) => [k.classId, k.score, k.rank]), [["4a", 10, 1], ["4b", 10, 1], ["4c", 0, 3]]);
+    assert.deepEqual(lika.winnerClasses, ["4a", "4b"]);
+    assert.equal(lika.winnerClass, "4a");
   });
 });
 

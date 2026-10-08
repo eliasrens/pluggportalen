@@ -173,6 +173,9 @@ export function buildResult({ scores, stats, counters, classes, participatingIds
     savedAt: now,
     winner: w ? { uid: w.uid, name: w.name, classId: w.classId, correct: w.correct } : null,
     winnerClass: klasser[0] && klasser[0].correct > 0 ? klasser[0].classId : null,
+    // Delad förstaplats (samma poäng/elev) = alla delade vinnare – Klasscentrets
+    // pokal mm-klasskamp (#495) går till var och en (firestore.rules läser fältet).
+    winnerClasses: klasser.filter((k) => k.rank === 1 && k.correct > 0).map((k) => k.classId),
     top,
     classes: klasser.map(({ rank, classId, name, correct: c, students: n, score }) => ({ rank, classId, name, correct: c, students: n, score })),
     students,

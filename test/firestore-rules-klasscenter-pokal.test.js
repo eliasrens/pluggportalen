@@ -10,6 +10,10 @@
 //   • fel vinnare, pågående källa, oavgjort, klass utan spelare, id som inte
 //     matchar typ+källa, främmande fält, fel wonAt/awardedBy nekas,
 //   • pokaler läses av alla inloggade (gästläge), inte utloggade.
+//   • #495: delad förstaplats i MM (winnerClasses) → alla delade vinnare;
+//     live-avklarat bara i kooperativt läge med nått mål, aldrig vinst där;
+//     avslutsflödet (result skrivet av läraren → pokalerUrKalla → utdelning)
+//     två gånger / två flikar ger EN pokal per vinnarklass.
 // Körs av `npm run test:rules` (kräver emulatorn).
 // ============================================================================
 
@@ -53,6 +57,8 @@ const LIVE = {
   classDivisors: { "6a": 1, "6b": 1, "6c": 1 },
   result: { winner: "6b", perClass: { "6a": { players: 3 }, "6b": { players: 2 }, "6c": { players: 0 } } },
 };
+// Kooperativt läge med nått mål (#495) → live-avklarat.
+const KOOP = { ...LIVE, result: { ...LIVE.result, cooperative: true, goalReached: true } };
 
 before(async () => {
   ({ testEnv, unauth, elev, teacher } = await createRulesEnv("pluggportalen-rules-test-kc-pokal"));
@@ -70,6 +76,8 @@ beforeEach(async () => {
     await setDoc(doc(db, "liveSessions", "s1"), LIVE);
     await setDoc(doc(db, "liveSessions", "sDraw"), { ...LIVE, result: { ...LIVE.result, winner: "draw" } });
     await setDoc(doc(db, "liveSessions", "sPagar"), { ...LIVE, status: "live", result: null });
+    await setDoc(doc(db, "liveSessions", "sKoop"), KOOP);
+    await setDoc(doc(db, "liveSessions", "sKoopMiss"), { ...KOOP, result: { ...KOOP.result, goalReached: false } });
   });
 });
 
@@ -85,13 +93,16 @@ describe("Pokaler: lärare delar ut", () => {
     assert.equal(p.awardedBy, "larare1");
     assert.ok(p.wonAt?.toMillis() > 0);
   });
-  it("live-vinst till vinnaren, live-avklarat till klasser med spelare", async () => {
+  it("live-vinst till vinnaren; live-avklarat till klasser med spelare när koop-målet nåtts", async () => {
     await assertSucceeds(dela(teacher(), "6b", "live-vinst", "s1"));
-    await assertSucceeds(dela(teacher(), "6a", "live-avklarat", "s1"));
-    await assertSucceeds(dela(teacher(), "6b", "live-avklarat", "s1"));
+    await assertSucceeds(dela(teacher(), "6a", "live-avklarat", "sKoop"));
+    await assertSucceeds(dela(teacher(), "6b", "live-avklarat", "sKoop"));
   });
   it("alla pokaler pokalerUrKalla föreslår godtas av reglerna", async () => {
-    const lista = [...pokalerUrKalla("live", "s1", LIVE), ...pokalerUrKalla("mattematchen", "mm1", MM)];
+    const lista = [
+      ...pokalerUrKalla("live", "s1", LIVE), ...pokalerUrKalla("live", "sKoop", KOOP),
+      ...pokalerUrKalla("mattematchen", "mm1", MM),
+    ];
     assert.equal(lista.length, 4);
     for (const p of lista) await assertSucceeds(dela(teacher(), p.classId, p.typ, p.kallaId, "larare1", p.detalj));
   });
@@ -146,8 +157,8 @@ describe("Pokaler: nekas", () => {
     await assertFails(dela(teacher(), "6b", "live-avklarat", "sPagar"));
     await assertFails(dela(teacher(), "6b", "live-vinst", "sDraw"));
     await assertFails(dela(teacher(), "6a", "mm-klasskamp", "finnsInte"));
-    await assertFails(dela(teacher(), "6c", "live-avklarat", "s1"));
-    await assertFails(dela(teacher(), "7z", "live-avklarat", "s1"));
+    await assertFails(dela(teacher(), "6c", "live-avklarat", "sKoop"));
+    await assertFails(dela(teacher(), "7z", "live-avklarat", "sKoop"));
   });
   it("typ ur fel källa nekas (live-typ mot en Mattematchen-tävling)", async () => {
     await seed((db) => setDoc(doc(db, "liveSessions", "mm1"), { ...LIVE, status: "lobby", result: null }));
@@ -178,5 +189,80 @@ describe("Pokaler: läsning", () => {
     await assertSucceeds(getDocs(collection(elev("elev1"), "classCenters", "6a", "trophies")));
     await assertSucceeds(getDocs(collection(elev("elev2"), "classCenters", "6a", "trophies")));
     await assertFails(getDocs(collection(unauth(), "classCenters", "6a", "trophies")));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #495: kopplingen till avslutsflödena. Läraren skriver källans result (som
+// mm-teacher-data finishCompetition/archiveIfEnded resp. live-data
+// writeResultIfMissing), sedan delas det pokalerUrKalla föreslår ut med den
+// riktiga transaktionen – samma ordning som kc-pokal-data delaUtPokalerFor.
+// ---------------------------------------------------------------------------
+async function antal(classId) {
+  let n = 0;
+  await seed(async (db) => { n = (await getDocs(collection(db, "classCenters", classId, "trophies"))).size; });
+  return n;
+}
+async function avslutaMm(db, cid, result) {
+  await updateDoc(doc(db, "mathCompetitions", cid), { status: "finished", result });
+  const k = (await getDoc(doc(db, "mathCompetitions", cid))).data();
+  const ut = [];
+  for (const p of pokalerUrKalla("mattematchen", cid, k)) ut.push(await dela(db, p.classId, p.typ, cid, "larare1", p.detalj));
+  return ut;
+}
+
+describe("Pokaler: avslutsflödet (#495)", () => {
+  beforeEach(async () => {
+    await seed((db) => setDoc(doc(db, "mathCompetitions", "mmAvsl"), { ...MM, status: "active", result: null }));
+  });
+  it("avsluta MM-tävling → pokal till vinnaren; avsluta/arkivera igen → fortfarande EN", async () => {
+    const result = { winnerClass: "6b", winnerClasses: ["6b"], classes: [] };
+    const forst = await avslutaMm(teacher(), "mmAvsl", result);
+    assert.deepEqual(forst.map((r) => [r.ok, r.ny]), [[true, true]]);
+    const igen = await avslutaMm(teacher(), "mmAvsl", result);
+    assert.deepEqual(igen.map((r) => [r.ok, r.ny]), [[true, false]]);
+    assert.equal(await antal("6b"), 1);
+    assert.equal(await antal("6a"), 0);
+    const p = await las("classCenters", "6b", "trophies", "mm-klasskamp-mmAvsl");
+    assert.equal(p.detalj, "Mattematchen oktober");
+  });
+  it("två lärarflikar avslutar samtidigt → EN pokal", async () => {
+    const result = { winnerClass: "6a", winnerClasses: ["6a"], classes: [] };
+    await updateDoc(doc(teacher(), "mathCompetitions", "mmAvsl"), { status: "finished", result });
+    const k = (await getDoc(doc(teacher(), "mathCompetitions", "mmAvsl"))).data();
+    const [p] = pokalerUrKalla("mattematchen", "mmAvsl", k);
+    const r = await Promise.all([teacher(), teacher()].map((db) => dela(db, p.classId, p.typ, "mmAvsl")));
+    assert.equal(r.filter((x) => x.ok && x.ny).length, 1);
+    assert.equal(await antal("6a"), 1);
+  });
+  it("delad förstaplats → båda delade vinnarna får pokal; tredje klassen nekas", async () => {
+    const ut = await avslutaMm(teacher(), "mmAvsl", { winnerClass: "6a", winnerClasses: ["6a", "6b"], classes: [] });
+    assert.deepEqual(ut.map((r) => r.ok), [true, true]);
+    assert.equal(await antal("6a"), 1);
+    assert.equal(await antal("6b"), 1);
+    await assertFails(dela(teacher(), "6c", "mm-klasskamp", "mmAvsl"));
+  });
+  it("ingen vann (ingen svarade rätt) → inga pokaler, utdelning nekas", async () => {
+    assert.deepEqual(await avslutaMm(teacher(), "mmAvsl", { winnerClass: null, winnerClasses: [], classes: [] }), []);
+    await assertFails(dela(teacher(), "6a", "mm-klasskamp", "mmAvsl"));
+  });
+  it("pokal före result (fel ordning) nekas – result måste vara skrivet", async () => {
+    await assertFails(dela(teacher(), "6a", "mm-klasskamp", "mmAvsl"));
+  });
+  it("Live: tävlingsläge ger ingen live-avklarat; koop utan nått mål ingen; koop ger ingen vinst", async () => {
+    await assertFails(dela(teacher(), "6a", "live-avklarat", "s1"));
+    await assertFails(dela(teacher(), "6a", "live-avklarat", "sKoopMiss"));
+    await seed((db) => setDoc(doc(db, "liveSessions", "sKoopVinst"), { ...KOOP }));
+    await assertFails(dela(teacher(), "6b", "live-vinst", "sKoopVinst"));
+  });
+  it("Live: result skrivet → vinnaren får live-vinst, två gånger → EN", async () => {
+    await seed((db) => setDoc(doc(db, "liveSessions", "sAvsl"), { ...LIVE, result: null }));
+    await updateDoc(doc(teacher(), "liveSessions", "sAvsl"), { result: LIVE.result });
+    const k = (await getDoc(doc(teacher(), "liveSessions", "sAvsl"))).data();
+    for (let i = 0; i < 2; i++) {
+      for (const p of pokalerUrKalla("live", "sAvsl", k)) await assertSucceeds(dela(teacher(), p.classId, p.typ, "sAvsl"));
+    }
+    assert.equal(await antal("6b"), 1);
+    assert.equal(await antal("6a"), 0);
   });
 });
