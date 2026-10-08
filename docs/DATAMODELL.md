@@ -764,7 +764,7 @@ ClassCenterLayout) är anpassad så här:
 | `classTotalExp` | summan av `expShards/{0..4}.exp` (shardad) | **1 (klar, #477)** |
 | `currentCenterLevel` | **härleds** – `nivaFor(classTotalExp, classes/{id}.studentIds.length)`, lagras inte | **1 (klar, #477)** |
 | "3 första gångerna"-räknare | `expMembers/{uid}.counts` (per elev och klass) | **1 (klar, #477)** |
-| `trophies[]` | `classCenters/{classId}.trophies` | 3 |
+| `trophies[]` | underkollektion `classCenters/{classId}/trophies/{typ}-{kallaId}` | **3 (kärna klar, #494)** |
 | ClassCenterShopItems | katalog i kod + `fund/{itemId}` + `donations/{id}` | 2/3 |
 | ClassCenterLayout | `layout/current` + `layoutHistory/{0..9}` | **2 (klar, #489)** |
 | lärarens "får ej inreda" | `classCenters/{classId}.inredningSparr` | **2 (klar, #489)** |
@@ -835,15 +835,64 @@ En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevanta
 
 | Fält | Typ | Epic | Beskrivning |
 | --- | --- | --- | --- |
-| `trophies` | array | 3 | `[{ id, typ, titel, text, at, kallaId }]` – `id` = källans id (tävling/session) → idempotent; `typ` t.ex. `"mm-vinst"`, `"live-vinst"`, `"live-klar"` |
 | `inredningSparr` | array | **2 (klar, #489)** | uid:n som läraren bockat ur – får titta/donera men inte spara layout (≤ 200, `setInredningSparr`) |
 | `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
 
-Läses av alla inloggade (gästläge). Skrivs av lärare (pokaler: lärarens klient
-när MM/Live avslutas – en elevklient kan inte bevisa vinsten i reglerna).
-**Regler i dag (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200)
-– epic 3 lägger till `trophies`/`hogstaNiva` i `changedOnly`-listan. Elever kan
-inte skriva dokumentet alls (inte ens ta bort sig själva ur spärren).
+Läses av alla inloggade (gästläge). Skrivs bara av lärare.
+**Regler (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200).
+Pokalerna bor INTE här utan i underkollektionen `trophies/` (#494, nedan) –
+profilens `changedOnly`-lista är oförändrad. Elever kan inte skriva dokumentet
+alls (inte ens ta bort sig själva ur spärren).
+
+### Pokaler (epic 3, #494)
+
+Register (rent): `src/klasscenter/kc-pokal-typer.js`; Firestore (bara
+dynamiskt): `src/klasscenter/kc-pokal-data.js` – `delaUtPokal(classId, typ,
+kallaId, detalj?)`, `delaUtPokalerFor(kalla, kallaId, kallaDoc)`,
+`hamtaPokaler(classId)` (EN query), `bevakaPokaler(classId, cb)`,
+`pokalTooltip(pokal)`.
+
+**Typer** (`registreraPokaltyp({ id, kalla, titel, text, art, tooltip?,
+vinnare(kallaDoc), detaljFran? })`):
+
+| `typ` | Källa (`kallaId`) | Delas ut till | Tooltip |
+| --- | --- | --- | --- |
+| `mm-klasskamp` | `mathCompetitions/{cid}` | `result.winnerClass` när `status == "finished"` | "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans." |
+| `live-vinst` | `liveSessions/{sid}` | `result.winner` (inte `"draw"`) med ≥ 1 spelare | "Klassen vann Live-matchen! …" |
+| `live-avklarat` | `liveSessions/{sid}` | varje deltagande klass med `result.perClass[klass].players > 0` | "Klassen klarade ett Liveläge tillsammans!" |
+
+`live-avklarat` = samma villkor som klassbonusen `"live"` (`liveBonusar` i
+`kc-koppling.js`). Vill epic 3 B ha ett skarpare "kooperativt mål" krävs ett
+nytt fält i Live-`result` + regelvillkoret nedan.
+
+#### `classCenters/{classId}/trophies/{typ}-{kallaId}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `typ` | string | pokaltypens id (se tabellen) |
+| `kallaId` | string | källans dokument-id (tävling/session), `[A-Za-z0-9_-]{1,100}` |
+| `titel` | string 1–80 | typens rubrik vid utdelningen ("Mattematchens mästare") |
+| `detalj` | string ≤ 120 (valfri) | källans namn ("Mattematchen oktober 2026") |
+| `wonAt` | timestamp | serverns tid vid utdelningen |
+| `awardedBy` | string | lärarens uid |
+
+**Idempotent:** dokument-id = `"<typ>-<kallaId>"` (t.ex. `mm-klasskamp-<cid>`,
+`live-vinst-<sid>`) → samma vinst ger alltid samma dokument. `delaUtPokal` är
+EN transaktion: finns dokumentet → `ny: false`, inget skrivs; annars create.
+Flera lärarklienter samtidigt (projektor + historikvy) ger en enda pokal.
+
+**Regler (firestore.rules "Pokaler")**: läses av alla inloggade. Create bara
+av lärare (teacher-claim), aldrig update/delete. Fälten exakt enligt tabellen,
+`wonAt == request.time`, `awardedBy == auth.uid`, id == `typ + "-" + kallaId`,
+`typ` i `kcPokalTyper()`, och källan verifieras med `getAfter` (även när
+pokalen skrivs i samma batch som `result`): status `finished` + vinnaren/
+deltagandet enligt tabellen ovan. Elever kan inte skapa/ändra pokaler alls.
+⚠️ Ny typ = `registreraPokaltyp` + typen i `kcPokalTyper()` + en gren i
+`kcPokalVerifierad` (`test/kc-pokal-typer.test.js` failar om de glider isär)
++ rules-deploy. Tester: `test/kc-pokal-typer.test.js`,
+`test/firestore-rules-klasscenter-pokal.test.js`.
+⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan pokaler kan
+delas ut live.
 
 ### Crowdfunding (epic 2, #486)
 
