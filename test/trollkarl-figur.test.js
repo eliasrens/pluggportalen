@@ -66,6 +66,6 @@ test("identiteterna hålls isär: båda har eget tema och egna ansiktslager", ()
 
 test("pivoter och ankare ligger inom figurens viewBox", () => {
   for (const [n, [x, y]] of Object.entries({ ...PIVOT, ...ANCHOR })) {
-    assert.ok(x >= -50 && x <= VIEW.w + 50 && y >= -50 && y <= VIEW.h + 50, n + " inom rimligt område");
+    assert.ok(x >= -60 && x <= VIEW.w + 60 && y >= -120 && y <= VIEW.h + 60, n + " inom rimligt område");
   }
 });

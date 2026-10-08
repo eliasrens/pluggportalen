@@ -26,7 +26,7 @@ export const PIVOT = {
 export const ANCHOR = {
   wandTip: [352, 182],
   head: [200, 150],
-  hat: [200, -45],
+  hat: [200, -90],
   body: [200, 380],
   feet: [200, 540],
 };
@@ -123,7 +123,7 @@ export function collarSvg(t, who) {
 // runtom; Elias: ståtligare, högre och rakare med guldband.
 export function hatSvg(t, who) {
   if (who === "rasmus") {
-    return `<g transform="rotate(-9 200 60)">
+    return `<g transform="translate(200 84) scale(1.3) translate(-200 -84) rotate(-9 200 60)">
       <path d="M124 64 Q146 -20 204 -48 Q218 -54 212 -36 Q202 -6 258 48 Q196 28 124 64Z" fill="${t.hat}"/>
       <path d="M124 64 Q180 36 258 48 Q220 44 186 58 Q150 70 124 64Z" fill="${t.robe2}" opacity=".6"/>
       <circle cx="211" cy="-44" r="9" fill="${t.hatBand}"/>
@@ -133,7 +133,7 @@ export function hatSvg(t, who) {
       ${stars(t, [[176, 2, 1.1], [232, 20, 0.7]])}
     </g>`;
   }
-  return `<g transform="rotate(3 200 60)">
+  return `<g transform="translate(200 84) scale(1.3) translate(-200 -84) rotate(3 200 60)">
     <path d="M126 66 Q158 -26 200 -52 Q242 -26 274 66 Q200 38 126 66Z" fill="${t.hat}"/>
     <path d="M200 -52 q12 12 7 26 l-14 0 q-5 -14 7 -26Z" fill="${t.hatBand}"/>
     <path d="M52 68 Q200 20 348 70 Q354 94 328 96 Q200 48 72 96 Q46 90 52 68Z" fill="${t.hat}"/>
