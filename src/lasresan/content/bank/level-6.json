@@ -3072,5 +3072,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n6-rostratten",
+    "title": "Rätten att välja",
+    "level": 6,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "I dag får alla svenska medborgare som har fyllt arton år rösta i riksdagsvalet. Det låter självklart, men så har det inte alltid varit. För lite mer än hundra år sedan fick de flesta svenskar inte rösta alls.\n\nUnder 1800-talet var det pengarna som bestämde. För att få rösta till riksdagen måste en man tjäna tillräckligt mycket eller äga mark. Fattiga män, och alla kvinnor, stod utanför. Det betydde att en liten del av befolkningen fattade beslut om lagar som gällde alla.\n\nKring sekelskiftet 1900 växte kraven på förändring. Arbetare gick ut i demonstrationer, och nya rörelser bildades över hela landet. År 1909 fick många fler män rösta till riksdagens andra kammare, men fortfarande inga kvinnor.\n\nKvinnorna hade börjat organisera sig. De höll möten, skrev i tidningar och reste runt i landet och höll tal. Under ett år samlade de in namnunderskrifter från hundratusentals kvinnor som krävde rösträtt. Motståndarna menade att kvinnor inte förstod sig på politik och att deras plats var i hemmet. Rösträttskvinnorna svarade att de betalade skatt och följde samma lagar som männen, och att de därför också borde få vara med och bestämma.\n\nTill slut röstade riksdagen ja. År 1921 fick kvinnor för första gången rösta i ett riksdagsval, och samma år valdes de första fem kvinnorna in i riksdagen. Därför brukar 1921 räknas som året då Sverige blev en demokrati.\n\nÄndå var rösträtten inte helt allmän ens då. Den som var tvungen att leva på fattighjälp eller hade gått i konkurs fick fortfarande inte rösta. Den regeln togs bort först 1945. Och åldersgränsen var länge högre än i dag. Arton år blev den först på 1970-talet.\n\nRösträtt är alltså inget som bara har funnits. Den har vuxit fram steg för steg, genom att människor har krävt att få höras.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket år fick kvinnor för första gången rösta i ett riksdagsval?",
+        "options": [
+          "1909",
+          "1945",
+          "1921",
+          "1900"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad krävdes för att en man skulle få rösta under 1800-talet?",
+        "options": [
+          "Att han tjänade tillräckligt eller ägde mark",
+          "Att han hade gått klart skolan med goda betyg",
+          "Att han hade arbetat i riksdagen tidigare",
+          "Att han hade fyllt arton år och bodde i stan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Kring ”sekelskiftet” 1900. Vad betyder det?",
+        "options": [
+          "En stor fest som firades i Sverige",
+          "En lag som ändrades varje år",
+          "En tid med mycket dåligt väder",
+          "Övergången mellan två århundraden"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför samlade kvinnorna in namnunderskrifter?",
+        "options": [
+          "För att kunna skriva en bok om rösträtt",
+          "För att visa hur många som ville ha rösträtt",
+          "För att få en lista över vilka som betalade skatt",
+          "För att välja vilka kvinnor som skulle bli politiker"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vilket argument använde rösträttskvinnorna?",
+        "options": [
+          "Kvinnor förstår politik bättre än vad männen gör",
+          "Det var orättvist att män fick arbeta utanför hemmet",
+          "Riksdagen behövde fler ledamöter för att hinna med",
+          "Den som följer lagarna bör få påverka dem"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Rösträtten var inte helt ”allmän”. Vad betyder det här?",
+        "options": [
+          "Att den inte var hemlig",
+          "Att den inte gällde för alla",
+          "Att den inte var gratis",
+          "Att den inte var viktig"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför räknas 1921 som året då Sverige blev en demokrati?",
+        "options": [
+          "Då fick alla som var arton år rösta för första gången",
+          "Då slutade riksdagen att ha två olika kammare",
+          "Då fick både kvinnor och män rösta i riksdagsvalet",
+          "Då tog man bort regeln om fattighjälp och konkurs"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är textens viktigaste budskap?",
+        "options": [
+          "Rösträtten har vunnits steg för steg",
+          "Rösträtten har alltid funnits i Sverige",
+          "Det var männen som ville ge kvinnor rösträtt",
+          "Det är inte viktigt att rösta i dag"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-vaccinet",
+    "title": "Mjölkerskans hand",
+    "level": 6,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "I flera tusen år var smittkoppor en av de mest fruktade sjukdomarna i världen. Den som smittades fick hög feber och blåsor över hela kroppen. Omkring var tredje sjuk dog, och många av dem som överlevde fick ärr i ansiktet eller blev blinda. Sjukdomen drabbade både fattiga och rika, och barn var särskilt utsatta.\n\nPå 1700-talet visste man att den som en gång hade haft smittkoppor inte kunde få dem igen. Därför försökte en del läkare skydda människor genom att med flit smitta dem med lite vätska från en sjuk persons blåsor. Oftast blev de bara lindrigt sjuka, men ibland dog de, och de kunde också sprida sjukdomen vidare.\n\nDen engelske läkaren Edward Jenner hade hört något märkligt från bönderna där han bodde. Mjölkerskor som hade fått kokoppor, en mild sjukdom som smittade från kornas juver, verkade aldrig få smittkoppor. År 1796 bestämde han sig för att pröva idén. Han tog vätska från en blåsa på handen hos en mjölkerska och förde in den i ett litet sår på armen hos en åttaårig pojke, James Phipps. Pojken fick lite feber men blev snabbt frisk. Några veckor senare utsatte Jenner honom för riktiga smittkoppor. James blev inte sjuk.\n\nI dag skulle ett sådant försök på ett barn aldrig vara tillåtet. Men metoden fungerade, och den spreds snabbt över världen. Ordet vaccin kommer från latinets vacca, som betyder ko. I Sverige blev det obligatoriskt att vaccinera barn mot smittkoppor redan 1816.\n\nUnder 1900-talet samarbetade länder över hela världen för att vaccinera så många som möjligt. År 1980 kunde Världshälsoorganisationen meddela att smittkopporna var utrotade. Det var första gången som människan hade lyckats utrota en sjukdom helt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varifrån kommer ordet vaccin?",
+        "options": [
+          "Från ett latinskt ord för ko",
+          "Från namnet på Jenners by",
+          "Från ett engelskt ord för sår",
+          "Från namnet på pojken"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år meddelades det att smittkopporna var utrotade?",
+        "options": [
+          "1796",
+          "1816",
+          "1900",
+          "1980"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var den äldre metoden att smitta folk med smittkoppor riskabel?",
+        "options": [
+          "Läkarna visste inte vilka som redan var sjuka",
+          "Det fanns för lite vätska för att räcka till alla",
+          "Folk kunde dö och sprida sjukdomen vidare",
+          "Den gav bara skydd mot sjukdomen i några veckor"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför trodde Jenner att kokoppor kunde skydda mot smittkoppor?",
+        "options": [
+          "Kokoppor och smittkoppor gav exakt samma blåsor",
+          "Mjölkerskor med kokoppor slapp smittkoppor",
+          "Korna på gården blev aldrig sjuka i smittkoppor",
+          "Han hade läst om det i en gammal bok"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Sjukdomen var ”fruktad”. Vad betyder det?",
+        "options": [
+          "Den var vanligast på landsbygden",
+          "Människor var mycket rädda för den",
+          "Den smittade via frukt och mat",
+          "Den gick väldigt fort över"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Barn var särskilt ”utsatta”. Vad betyder det här?",
+        "options": [
+          "De löpte större risk",
+          "De fick mer medicin",
+          "De bodde ofta ensamma",
+          "De var mer försiktiga"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför skulle Jenners försök inte vara tillåtet i dag?",
+        "options": [
+          "Han använde vätska från en ko i stället för en människa",
+          "Han hade inte frågat bönderna om lov",
+          "Han var inte utbildad till läkare",
+          "Han utsatte ett barn för en dödlig sjukdom"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför var det så viktigt att smittkopporna utrotades?",
+        "options": [
+          "Det betydde att ingen behövde vaccinera sig mot något mer",
+          "Det gjorde att korna slapp bli sjuka i kokoppor",
+          "Det var första sjukdomen som människan lyckats utrota",
+          "Det visade att Jenners försök på barn var rätt"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-rymdskrot",
+    "title": "Skräpet runt jorden",
+    "level": 6,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Sedan den första satelliten sköts upp 1957 har människor skickat tusentals föremål ut i rymden. Många av dem är kvar där fast de för länge sedan har slutat fungera. Gamla satelliter, utbrända raketdelar, verktyg som astronauter har tappat och små flagor av färg cirkulerar runt jorden. Allt detta kallas rymdskrot.\n\nDet kan låta ofarligt. Rymden är ju stor. Men skrotet ligger inte stilla. Nära jorden rör sig sakerna med en fart på ungefär 28 000 kilometer i timmen, flera gånger snabbare än en gevärskula. I den farten kan en bit som inte är större än en kula göra hål i en satellit, och en liten färgflaga har lämnat märken i fönstren på rymdfärjor.\n\nForskare följer tiotusentals större föremål från jorden med radar och teleskop. Men det finns också många miljoner bitar som är för små för att följa. När något stort är på väg mot den internationella rymdstationen får stationen ibland flytta sig, och astronauterna har flera gånger fått gå in i sina rymdkapslar för säkerhets skull.\n\nEtt särskilt problem är att skrot kan skapa mer skrot. År 2009 krockade två satelliter ovanför Sibirien, och krocken skapade tusentals nya bitar. Redan på 1970-talet varnade en amerikansk forskare för en kedjereaktion: om det blir tillräckligt trångt kan varje krock leda till nya krockar, tills vissa banor runt jorden blir för farliga att använda.\n\nDet mesta skrotet nära jorden faller till slut ner och brinner upp i atmosfären, men det kan ta många år. Därför försöker man nu planera bättre. Nya satelliter ska kunna styras ner när de har tjänat ut, och ingenjörer har provat att fånga skrot med nät och harpuner.\n\nVi behöver satelliterna för väderprognoser, kartor och telefoner. Att hålla ordning i rymden är därför inte bara en fråga för astronauter. Det gäller alla som använder en mobil.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Ungefär hur snabbt rör sig skrotet nära jorden?",
+        "options": [
+          "2 800 kilometer i timmen",
+          "280 kilometer i timmen",
+          "280 000 kilometer i timmen",
+          "28 000 kilometer i timmen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hände år 2009?",
+        "options": [
+          "Två satelliter krockade",
+          "Den första satelliten sköts upp",
+          "Rymdstationen träffades av en kula",
+          "En forskare varnade för skrot"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Satelliterna har ”tjänat ut”. Vad betyder det?",
+        "options": [
+          "De har kostat mycket pengar",
+          "De har fått en ny uppgift",
+          "De har slutat att användas",
+          "De har blivit för små"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kan en så liten sak som en färgflaga vara farlig?",
+        "options": [
+          "Den innehåller giftig färg",
+          "Den rör sig med en enorm fart",
+          "Den är omöjlig att se med radar",
+          "Den kan fastna i motorerna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför går astronauterna ibland in i rymdkapslarna?",
+        "options": [
+          "För att reparera skador på stationens utsida",
+          "För att se skrotet bättre genom fönstren",
+          "För att de ska sova medan stationen flyttas",
+          "För att kunna fly om stationen träffas"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Forskaren varnade för en ”kedjereaktion”. Vad betyder det här?",
+        "options": [
+          "Att en händelse orsakar nästa, om och om igen",
+          "Att satelliterna kopplas ihop med en lång kedja",
+          "Att astronauterna reagerar för långsamt på fara",
+          "Att skrotet faller ner till jorden i en lång rad"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför testar ingenjörer nät och harpuner?",
+        "options": [
+          "För att skydda rymdstationen mot meteorer",
+          "För att fånga in skrot och ta bort det",
+          "För att kunna laga gamla satelliter",
+          "För att fånga in nya satelliter när de skjuts upp"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför gäller rymdskrotet ”alla som använder en mobil”?",
+        "options": [
+          "Mobiler som slängs hamnar till slut ute i rymden",
+          "Mobilerna stör radarn som följer rymdskrotet",
+          "Vardagen beror på satelliter",
+          "Rymdskrot faller oftast ner där människor bor"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-exoplaneter",
+    "title": "Planeter kring andra stjärnor",
+    "level": 6,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Länge var det en öppen fråga om det fanns planeter kring andra stjärnor än solen. Många trodde det, men ingen kunde bevisa det. Stjärnorna är så långt borta och lyser så starkt att en planet bredvid dem drunknar i ljuset, ungefär som en mygga bredvid en strålkastare.\n\nFörst 1995 hittade två schweiziska astronomer en planet kring en stjärna som liknar solen. Planeten var en överraskning. Den var en jätte ungefär som Jupiter, men den låg så nära sin stjärna att ett år där bara varade i fyra dygn. Ingen hade trott att en sådan planet kunde finnas. Upptäckten belönades senare med Nobelpriset.\n\nSedan dess har astronomerna hittat mer än 5 000 planeter kring andra stjärnor. De kallas exoplaneter. Nästan ingen av dem har man sett direkt. I stället letar man efter spår. Ett sätt är att mäta stjärnans ljus mycket noga. När en planet passerar framför stjärnan, sett från jorden, blir stjärnan en liten aning svagare under en stund. Händer samma sak med jämna mellanrum kan man räkna ut hur stor planeten är och hur lång tid ett varv runt stjärnan tar. Ett annat sätt bygger på att planeten drar lite i sin stjärna, så att stjärnan vickar fram och tillbaka.\n\nDen stora frågan är om någon av planeterna kan ha liv. Därför letar forskarna särskilt efter planeter som ligger på lagom avstånd från sin stjärna, där det varken är för varmt eller för kallt för att vatten ska kunna vara flytande. Det området kallas ibland den beboeliga zonen.\n\nNya rymdteleskop kan nu undersöka ljuset som passerar genom luften kring vissa exoplaneter och se vilka ämnen den innehåller. Hittills har ingen hittat några säkra tecken på liv. Men för bara några decennier sedan visste vi inte ens att planeterna fanns.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket år hittade man den första planeten kring en stjärna som liknar solen?",
+        "options": [
+          "1959",
+          "1905",
+          "2005",
+          "1995"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur länge varade ett år på den första planeten?",
+        "options": [
+          "Fyra veckor",
+          "Fyra dygn",
+          "Fyra månader",
+          "Fyra år"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "En planet ”drunknar i ljuset”. Vad menas med det?",
+        "options": [
+          "Stjärnans ljus är så starkt att planeten inte syns",
+          "Planeten är täckt av vatten som speglar ljuset",
+          "Planeten blir för varm för att något ska kunna leva",
+          "Ljuset gör att planeten ändrar färg och storlek"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför var den första planeten en överraskning?",
+        "options": [
+          "Den var mycket mindre än forskarna hade väntat sig",
+          "Den syntes tydligt i ett vanligt teleskop",
+          "Ingen trodde att en jätteplanet kunde ligga så nära",
+          "Den låg i samma solsystem som jorden"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför måste stjärnan bli svagare med jämna mellanrum?",
+        "options": [
+          "Det betyder att stjärnan håller på att slockna",
+          "Det visar att det finns liv på planeten",
+          "Det gör att teleskopet hinner vila emellan",
+          "Det visar att det är en planet som går runt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Stjärnan ”vickar”. Vad betyder det?",
+        "options": [
+          "Den blinkar med olika färger",
+          "Den växer och krymper i storlek",
+          "Den rör sig lite fram och tillbaka",
+          "Den blir plötsligt mycket ljusare"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför letar forskarna efter planeter i den beboeliga zonen?",
+        "options": [
+          "Där kan det finnas flytande vatten",
+          "Där är planeterna lättast att se",
+          "Där finns de största planeterna",
+          "Där lyser stjärnorna svagast"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill den sista meningen säga?",
+        "options": [
+          "Att man snart kommer att hitta liv",
+          "Att forskningen har gått fort",
+          "Att planeterna är svåra att förstå",
+          "Att teleskopen har blivit billigare"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-slussar",
+    "title": "Båtar som går i trappor",
+    "level": 6,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Vatten rinner alltid nedåt. Därför kan en kanal inte bara gå rakt upp för en backe. Om man grävde en sådan kanal skulle vattnet helt enkelt rinna ut i den lägsta änden. Lösningen är en sluss, en sorts hiss för båtar som har använts i flera hundra år.\n\nEn sluss är en lång kammare med tjocka portar i båda ändarna. Vattnet utanför den ena porten ligger högre än vattnet utanför den andra. Så här fungerar det när en båt ska uppåt: båten kör in i kammaren från den låga sidan, och porten bakom den stängs. Sedan öppnar man små luckor i den övre porten. Vatten strömmar in från den höga sidan, och kammaren fylls långsamt. Båten flyter uppåt tills vattnet i kammaren ligger på samma nivå som på andra sidan. Då kan den övre porten öppnas, och båten kör vidare. Ska båten neråt gör man likadant fast tvärtom.\n\nDet smarta är att det inte behövs några pumpar. Det är tyngdkraften som gör jobbet, eftersom vattnet själv vill rinna från den högre nivån till den lägre. Men varje gång en båt slussar går en kammare full av vatten förlorad nedåt. En kanal behöver därför sjöar eller vattendrag på sin högsta del som kan fylla på.\n\nI Sverige är Göta kanal den mest kända. Den byggdes i början av 1800-talet med spadar och muskelkraft, till stor del av soldater, och arbetet tog mer än tjugo år. Kanalen har 58 slussar. På vissa ställen ligger flera slussar direkt efter varandra, så att båtarna klättrar uppför en hel trappa av kammare.\n\nNär Göta kanal blev klar var den tänkt för fraktbåtar med varor. Men snart kom järnvägen, och tågen var snabbare. I dag är det mest turister i fritidsbåtar som slussar sig genom landet en sommardag, i samma takt som för tvåhundra år sedan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många slussar har Göta kanal?",
+        "options": [
+          "18",
+          "85",
+          "58",
+          "28"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör att en sluss fylls med vatten?",
+        "options": [
+          "Stora pumpar",
+          "Tyngdkraften",
+          "Regnet",
+          "Båtarnas motorer"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Båten ”slussar”. Vad betyder det?",
+        "options": [
+          "Den lastar av sina varor",
+          "Den sjunker till botten",
+          "Den stannar för natten",
+          "Den åker genom en sluss"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kan en kanal inte gå rakt uppför en backe?",
+        "options": [
+          "Vattnet skulle rinna ut i den lägsta änden",
+          "Båtarna skulle bli för tunga att få upp",
+          "Marken går inte att gräva i när den lutar",
+          "Kanalen skulle bli alldeles för lång"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför behöver en kanal sjöar på sin högsta del?",
+        "options": [
+          "De fyller på vattnet som går förlorat",
+          "De gör det lättare för båtarna att vända tillbaka",
+          "De gör vattnet i kanalen varmare för turisterna",
+          "De stoppar vattnet från att rinna åt fel håll"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Göta kanal byggdes med ”muskelkraft”. Vad betyder det?",
+        "options": [
+          "Med hjälp av starka hästar",
+          "Med stora ångmaskiner",
+          "Med människors kroppsstyrka",
+          "Med kraft från vattnet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför används Göta kanal mest av turister i dag?",
+        "options": [
+          "Kanalen är för smal för stora båtar",
+          "Tågen tog över frakten av varor",
+          "Det är förbjudet att frakta varor där",
+          "Slussarna fungerar bara på sommaren"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar texten om slussar?",
+        "options": [
+          "Att kanaler är det snabbaste sättet att frakta saker",
+          "Att Göta kanal byggdes för att turister skulle åka",
+          "Att båtar inte kan ta sig uppför utan pumpar",
+          "Att en enkel idé fortfarande fungerar efter lång tid"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-kryptering",
+    "title": "Hemliga meddelanden",
+    "level": 6,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Så länge människor har kunnat skriva har de velat skicka meddelanden som ingen annan kan läsa. Konsten att göra en text oläslig för obehöriga kallas kryptering.\n\nEn av de äldsta kända metoderna sägs Julius Caesar ha använt för drygt två tusen år sedan. Han flyttade varje bokstav tre steg framåt i alfabetet. A blev D, B blev E, och så vidare. Ordet HEJ blir då KHM. Den som visste hur många steg man skulle flytta kunde lätt översätta tillbaka. Antalet steg var nyckeln.\n\nProblemet är att det inte finns så många nycklar att prova. Det finns ju bara lika många steg som det finns bokstäver. Redan på 800-talet beskrev en arabisk lärd ett ännu smartare sätt att knäcka sådana koder. I varje språk är vissa bokstäver vanligare än andra. I svenska är E vanligast. Den som räknar vilken bokstav som förekommer oftast i ett hemligt meddelande kan alltså gissa att det är ett E och därifrån lista ut resten.\n\nKodmakare och kodknäckare har tävlat mot varandra sedan dess. Under andra världskriget knäckte den svenske matematikern Arne Beurling på bara ett par veckor en tysk kodmaskin, med papper och penna. Det gav Sverige viktig information under hela kriget.\n\nI dag krypteras nästan allt som skickas via internet, från meddelanden till betalningar. Datorerna använder mycket stora tal som nycklar, så stora att inte ens de snabbaste datorerna kan prova alla möjligheter. Ett sätt fungerar ungefär som ett hänglås: vem som helst kan få ett öppet lås och trycka ihop det runt ett meddelande, men bara den som har nyckeln kan öppna det igen.\n\nDitt eget lösenord fungerar på liknande sätt. En pinkod med fyra siffror har bara 10 000 möjliga kombinationer, och en dator hinner prova dem alla på ett ögonblick. Varje tecken man lägger till gör antalet möjligheter många gånger större. Ett långt lösenord är därför säkrare än ett kort och krångligt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många steg flyttade Caesar varje bokstav?",
+        "options": [
+          "Två",
+          "Tre",
+          "Fyra",
+          "Fem"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken bokstav är vanligast i svenska, enligt texten?",
+        "options": [
+          "E",
+          "A",
+          "N",
+          "S"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Texten blir oläslig för ”obehöriga”. Vilka är det?",
+        "options": [
+          "De som inte kan läsa alls",
+          "De som skriver texten själva",
+          "De som arbetar med datorer",
+          "De som inte ska få läsa den"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför var Caesars metod lätt att knäcka?",
+        "options": [
+          "Romarna kunde inte alfabetet särskilt bra",
+          "Alla meddelanden innehöll ordet HEJ",
+          "Det finns bara några få nycklar att prova",
+          "Han skrev alltid nyckeln på meddelandet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur hjälper det att veta vilken bokstav som är vanligast?",
+        "options": [
+          "Den vanligaste bokstaven tas alltid bort",
+          "Den vanligaste i koden är troligen ett E",
+          "Den vanligaste bokstaven är alltid nyckeln",
+          "Det visar vilket språk meddelandet är på"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Arne Beurling ”knäckte” en kodmaskin. Vad betyder det?",
+        "options": [
+          "Han slog sönder maskinen med en hammare",
+          "Han byggde en egen maskin som var bättre",
+          "Han lyckades förstå hur koden fungerade",
+          "Han stal maskinen från de tyska soldaterna"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför använder datorer mycket stora tal som nycklar?",
+        "options": [
+          "Stora tal går snabbare att skicka",
+          "Stora tal är lättare att komma ihåg",
+          "Små tal fungerar inte på internet",
+          "Ingen hinner prova alla"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är textens råd om lösenord?",
+        "options": [
+          "Gör dem långa",
+          "Byt dem varje dag",
+          "Använd bara siffror",
+          "Skriv ner dem på en lapp"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
