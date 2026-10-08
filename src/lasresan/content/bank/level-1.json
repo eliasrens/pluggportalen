@@ -1317,7 +1317,7 @@
     "level": 1,
     "textType": "story",
     "topic": "relationer",
-    "body": "På rasten springer Mira och Lisen till gungorna. Det finns bara en gunga kvar. Båda tar tag i den samtidigt.\n\n”Jag var först!” säger Mira.\n\n”Nej, jag!” säger Lisen.\n\nDe drar i gungan och blir sura. Ingen av dem får gunga. Snart ringer det in.\n\nDagen efter springer de till gungan igen. Den här gången stannar Mira.\n\n”Vi kan turas om”, säger hon. ”Du gungar tjugo gånger, sedan jag.”\n\nLisen nickar. Hon räknar högt medan Mira knuffar på. Sedan byter de.\n\nDet blir den roligaste rasten på länge. Nu räknar de alltid tillsammans.",
+    "body": "På rasten springer Mila och Lisen till gungorna. Det finns bara en gunga kvar. Båda tar tag i den samtidigt.\n\n”Jag var först!” säger Mila.\n\n”Nej, jag!” säger Lisen.\n\nDe drar i gungan och blir sura. Ingen av dem får gunga. Snart ringer det in.\n\nDagen efter springer de till gungan igen. Den här gången stannar Mila.\n\n”Vi kan turas om”, säger hon. ”Du gungar tjugo gånger, sedan jag.”\n\nLisen nickar. Hon räknar högt medan Mila knuffar på. Sedan byter de.\n\nDet blir den roligaste rasten på länge. Nu räknar de alltid tillsammans.",
     "questions": [
       {
         "id": "q1",
@@ -1335,7 +1335,7 @@
         "id": "q2",
         "question": "Vad händer på den första rasten?",
         "options": [
-          "Mira får gunga först",
+          "Mila får gunga först",
           "Lisen ramlar av gungan",
           "De gungar tillsammans",
           "Ingen av dem får gunga"
@@ -1345,7 +1345,7 @@
       },
       {
         "id": "q3",
-        "question": "Mira och Lisen blir sura. Hur känner de sig?",
+        "question": "Mila och Lisen blir sura. Hur känner de sig?",
         "options": [
           "Arga",
           "Glada",
@@ -1361,7 +1361,7 @@
         "options": [
           "Lisen",
           "Läraren",
-          "Mira",
+          "Mila",
           "En kompis"
         ],
         "answerIndex": 2,
@@ -1381,7 +1381,7 @@
       },
       {
         "id": "q6",
-        "question": "Vad lär sig Mira och Lisen?",
+        "question": "Vad lär sig Mila och Lisen?",
         "options": [
           "Att man ska springa fortare",
           "Att det är roligare att dela",

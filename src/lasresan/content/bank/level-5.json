@@ -1701,7 +1701,7 @@
     "level": 5,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "När familjen köpte en robotdammsugare fick Smilla bestämma namnet. Hon döpte den till Rulle. Rulle var rund och platt som en tårta, och han åkte omkring på golvet och sög upp smulor medan alla andra gjorde annat. Det fanns bara ett problem: Smilla var den enda i familjen som hade läst bruksanvisningen.\n\nPå lördagen skulle mammas nya chef komma på middag. Mamma hade städat i två dagar och dukat med de fina glasen. Hon var så nervös att hon hade bytt blus tre gånger.\n\nKlockan sju satt alla vid bordet. Då hördes ett glatt pip från hallen: ”Startar städning.” Pappa hade tryckt på måfå på knapparna och råkat ställa in Rulle på att städa varje kväll klockan sju.\n\nRulle körde in i matsalen med katten Pelle sittande på ryggen som en kung på en tron. Efter sig släpade han en av pappas strumpor som hade fastnat i borsten. Han svängde runt chefens stol, knuffade till hennes handväska och stannade under bordet.\n\n”Rengör borsten”, sa Rulle med hög röst. ”Rengör borsten. Rengör borsten.”\n\nMamma blev röd ända upp till öronen. Pappa kröp under bordet för att hitta avstängningsknappen. Pelle hoppade av och satte sig i chefens knä.\n\nDå började chefen skratta. Hon skrattade så att tårarna rann.\n\n”Vår robot körde en gång rakt ut på balkongen och fastnade i en blomlåda”, sa hon. ”Den heter Herr Svensson.”\n\nResten av kvällen pratade de mest om robotar och katter. Mamma hade aldrig sett så glad ut på en middag.\n\nNär gästen hade gått kom mamma in till Smilla. ”Kan du lära mig hur Rulle fungerar?” sa hon.",
+    "body": "När familjen köpte en robotdammsugare fick Smilla bestämma namnet. Hon döpte den till Rulle. Rulle var rund och platt som en tårta, och han åkte omkring på golvet och sög upp smulor medan alla andra gjorde annat. Det fanns bara ett problem: Smilla var den enda i familjen som hade läst bruksanvisningen.\n\nPå lördagen skulle den nya grannen Siv komma på middag för första gången. Mamma hade städat i två dagar och dukat med de fina glasen. Hon var så nervös att hon hade bytt blus tre gånger.\n\nKlockan sju satt alla vid bordet. Då hördes ett glatt pip från hallen: ”Startar städning.” Pappa hade tryckt på måfå på knapparna och råkat ställa in Rulle på att städa varje kväll klockan sju.\n\nRulle körde in i matsalen med katten Pelle sittande på ryggen som en kung på en tron. Efter sig släpade han en av pappas strumpor som hade fastnat i borsten. Han svängde runt Sivs stol, knuffade till hennes handväska och stannade under bordet.\n\n”Rengör borsten”, sa Rulle med hög röst. ”Rengör borsten. Rengör borsten.”\n\nMamma blev röd ända upp till öronen. Pappa kröp under bordet för att hitta avstängningsknappen. Pelle hoppade av och satte sig i Sivs knä.\n\nDå började Siv skratta. Hon skrattade så att tårarna rann.\n\n”Vår robot körde en gång rakt ut på balkongen och fastnade i en blomlåda”, sa hon. ”Den heter Herr Svensson.”\n\nResten av kvällen pratade de mest om robotar och katter. Mamma hade aldrig sett så glad ut på en middag.\n\nNär gästen hade gått kom mamma in till Smilla. ”Kan du lära mig hur Rulle fungerar?” sa hon.",
     "questions": [
       {
         "id": "q1",
@@ -1710,7 +1710,7 @@
           "Katten trampade på startknappen",
           "Smilla startade honom som ett skämt mot mamma",
           "Han var inställd på att städa klockan sju",
-          "Chefen ville se hur han fungerade"
+          "Siv ville se hur han fungerade"
         ],
         "answerIndex": 2,
         "category": "fakta"
@@ -1719,7 +1719,7 @@
         "id": "q2",
         "question": "Vem satt på Rulles rygg när han körde in i matsalen?",
         "options": [
-          "Mammas nya chef",
+          "Den nya grannen",
           "Smillas gosedjur",
           "Ingen alls",
           "Katten Pelle"
@@ -1745,7 +1745,7 @@
         "options": [
           "Att katten var rädd och höll sig fast",
           "Att katten satt stolt och nöjd",
-          "Att katten ville bestämma över chefen",
+          "Att katten ville bestämma över Siv",
           "Att katten hade en liten krona"
         ],
         "answerIndex": 1,
@@ -1765,7 +1765,7 @@
       },
       {
         "id": "q6",
-        "question": "Varför berättade chefen om Herr Svensson?",
+        "question": "Varför berättade Siv om Herr Svensson?",
         "options": [
           "För att hon tyckte att Rulle var farlig",
           "För att hon ville tala om något annat",
@@ -1794,7 +1794,7 @@
           "Robotar hör inte hemma i ett hem med katter",
           "Ett misstag kan göra stämningen bättre",
           "Man ska alltid städa noga före en middag",
-          "Man ska aldrig bjuda hem sin chef"
+          "Man ska aldrig bjuda hem nya grannar"
         ],
         "answerIndex": 1,
         "category": "helhet_slutsats"

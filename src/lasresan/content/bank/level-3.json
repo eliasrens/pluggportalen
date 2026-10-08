@@ -1610,93 +1610,93 @@
     ]
   },
   {
-    "id": "lr-n3-handslaget",
-    "title": "Det hemliga handslaget",
+    "id": "lr-n3-lillebror",
+    "title": "Lillebror härmar",
     "level": 3,
     "textType": "story",
     "topic": "relationer",
-    "body": "Stella och Molly hade varit bästa vänner sedan förskolan. De satt bredvid varandra, gick hem samma väg och hade ett hemligt handslag som ingen annan kunde.\n\nMen i höstas hade Molly börjat spela handboll. Där träffade hon Wilda, och plötsligt pratade Molly bara om Wilda. Wilda kunde skjuta hårdare än alla. Wilda hade en hund som kunde sitta på kommando.\n\nEn dag på rasten kom Molly gående arm i arm med Wilda. Stella kände ett stygn i magen. Hon vände sig om och gick åt andra hållet.\n\nHela eftermiddagen var hon tyst. När Molly frågade vad som hänt svarade hon bara: ”Ingenting.”\n\nPå kvällen pratade Stella med pappa. ”Det känns som att Molly byter ut mig”, sa hon.\n\n”Kan man inte ha mer än en vän?” frågade pappa. ”Du har ju både mig och mamma.”\n\nNästa dag gick Stella fram till dem. ”Vill du lära dig vårt hemliga handslag?” frågade hon Wilda och sneglade på Molly.\n\nMolly sken upp. Snart stod alla tre och skakade hand, klappade och knäppte med fingrarna. Det tog en hel rast att lära Wilda, men ingen av dem tyckte att det var långtråkigt.",
+    "body": "Vidar var elva år och hade en lillebror som hette Stig. Stig var sju och ville göra exakt som Vidar i allt.\n\nOm Vidar tog flingor till frukost ville Stig också ha flingor. Om Vidar drog upp huvan drog Stig upp sin. När Vidar sa ”asså, typ” sa Stig ”asså, typ” med precis samma röst.\n\nEn dag när Vidar hade kompisar hemma stod Stig i dörren och härmade allt de sa. Kompisarna skrattade, men Vidar skämdes.\n\n”Sluta apa efter mig hela tiden!” fräste han.\n\nStig gick därifrån utan att säga något. Resten av veckan åt han gröt i stället för flingor och lät huvan hänga.\n\nVidar borde ha blivit nöjd. I stället kändes det tomt.\n\nPå fredagen hämtade Vidar sin lillebror på fritids. På väggen hängde teckningar med rubriken Min hjälte. Stigs teckning föreställde en kille i huvtröja på en skateboard. Under stod det VIDAR med stora bokstäver.\n\nPå vägen hem stannade Vidar vid skateparken. ”Vill du att jag lär dig stå på brädan?” frågade han.\n\nStig sken upp och drog upp huvan.",
     "questions": [
       {
         "id": "q1",
-        "question": "Var hade Molly träffat Wilda?",
+        "question": "Hur gammal var Stig?",
         "options": [
-          "I skolans matsal",
-          "På förskolan",
-          "På handbollen",
-          "Hos en granne"
+          "Fem år",
+          "Elva år",
+          "Sju år",
+          "Nio år"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad kunde Wildas hund göra?",
+        "question": "Vad åt Stig efter bråket i stället för flingor?",
         "options": [
-          "Sitta på kommando",
-          "Hämta en boll",
-          "Dansa på bakbenen",
-          "Öppna dörrar"
+          "Gröt",
+          "Ägg",
+          "Yoghurt",
+          "Pannkakor"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Stella kände ett ”stygn i magen”. Vad betyder det här?",
+        "question": "Vad betyder det att ”apa efter” någon?",
         "options": [
-          "Hon hade ätit för fort",
-          "Hon blev ledsen och sårad",
-          "Hon var hungrig efter maten",
-          "Hon hade sprungit för mycket"
+          "Att slå någon",
+          "Att härma någon",
+          "Att springa efter någon",
+          "Att göra djurljud åt någon"
         ],
         "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
-        "question": "Stella ”sneglade” på Molly. Vad betyder det?",
+        "question": "Vidar ”fräste”. Hur sa han det?",
         "options": [
-          "Hon stirrade argt länge",
-          "Hon vinkade glatt",
-          "Hon blinkade med båda ögonen",
-          "Hon tittade snabbt åt sidan"
+          "Tyst och snällt",
+          "Glatt och skämtsamt",
+          "Långsamt och lugnt",
+          "Argt och irriterat"
         ],
         "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
-        "question": "Varför svarade Stella ”Ingenting” när Molly frågade?",
+        "question": "Varför slutade Stig ta flingor och dra upp huvan?",
         "options": [
-          "Hon ville inte visa att hon var ledsen",
-          "Det hade inte hänt något alls",
-          "Hon hörde inte riktigt vad Molly frågade om",
-          "Hon var arg på sin pappa"
+          "Han ville inte reta Vidar mer",
+          "Han hade tröttnat på alla flingor",
+          "Mamma hade bestämt det",
+          "Huvan hade gått sönder"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
-        "question": "Vad ville pappa få Stella att förstå?",
+        "question": "Varför kändes det tomt för Vidar?",
         "options": [
-          "Att Molly inte var en bra vän",
-          "Att man kan ha flera vänner samtidigt",
-          "Att hon borde börja spela handboll",
-          "Att hon skulle leka mer med sina föräldrar"
+          "Kompisarna hade gått hem",
+          "Han saknade sin härmande bror",
+          "Han var hungrig efter skolan",
+          "Han hade tappat sin skateboard"
         ],
         "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Hur löser Stella problemet till slut?",
+        "question": "Vad förstod Vidar när han såg teckningen?",
         "options": [
-          "Hon börjar också spela handboll",
-          "Hon skaffar en ny bästa vän",
-          "Hon ber pappa prata med Molly",
-          "Hon delar något fint med Wilda"
+          "Att Stig ritar bra",
+          "Att Stig ville ha en egen bräda",
+          "Att fritids hade en utställning",
+          "Att Stig ser upp till honom"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
@@ -1709,11 +1709,11 @@
     "level": 3,
     "textType": "story",
     "topic": "relationer",
-    "body": "När mamma och Mattias flyttade ihop fick Juli en bonussyster. Lejla var nio år, ett år yngre än Juli, och nu skulle de dela rum.\n\nJuli tyckte inte om det alls. Hon hade alltid haft ett eget rum. Lejla lämnade strumpor på golvet, sjöng när hon borstade tänderna och ville prata när Juli ville sova.\n\nEfter en vecka hängde Juli upp ett gammalt lakan mitt i rummet. ”Det här är min halva”, sa hon. ”Och det där är din.”\n\nLejla sa ingenting. Hon gick bara och lade sig.\n\nSamma natt kom ett åskväder. Det blixtrade och mullrade så att fönstret skallrade. Juli låg vaken och lyssnade. Då hörde hon något bakom lakanet. Lejla grät tyst i sin säng.\n\nJuli låg stilla en stund. Sedan drog hon undan lakanet. ”Är du rädd för åska?”\n\n”Lite”, snyftade Lejla. ”Hemma hos mamma kröp jag alltid ner hos henne när det åskade.”\n\nJuli satte sig på Lejlas säng. Hon tände sin ficklampa och gjorde skuggdjur på väggen, en hare, en hund och en flaxande fågel. Till slut började Lejla fnissa, och snart somnade de båda.\n\nLakanet åkte aldrig upp igen.",
+    "body": "Julis kusin Alba skulle bo hos dem i ett halvår, medan Albas mamma jobbade i Norge. Alba var nio år, och nu skulle de dela rum.\n\nJuli tyckte inte om det alls. Hon hade alltid haft ett eget rum. Alba lämnade strumpor på golvet, sjöng när hon borstade tänderna och ville prata när Juli ville sova.\n\nEfter en vecka hängde Juli upp ett gammalt lakan mitt i rummet. ”Det här är min halva”, sa hon. ”Och det där är din.”\n\nAlba sa ingenting. Hon gick bara och lade sig.\n\nSamma natt kom ett åskväder. Det blixtrade och mullrade så att fönstret skallrade. Juli låg vaken och lyssnade. Då hörde hon något bakom lakanet. Alba grät tyst i sin säng.\n\nJuli låg stilla en stund. Sedan drog hon undan lakanet. ”Är du rädd för åska?”\n\n”Lite”, snyftade Alba. ”Hemma kröp jag alltid ner hos mamma när det åskade.”\n\nJuli satte sig på Albas säng. Hon tände sin ficklampa och gjorde skuggdjur på väggen, en hare, en hund och en flaxande fågel. Till slut började Alba fnissa, och snart somnade de båda.\n\nLakanet åkte aldrig upp igen.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur gammal var Lejla?",
+        "question": "Hur gammal var Alba?",
         "options": [
           "Åtta år",
           "Tio år",
@@ -1749,7 +1749,7 @@
       },
       {
         "id": "q4",
-        "question": "Lejla ”snyftade”. Hur lät hon?",
+        "question": "Alba ”snyftade”. Hur lät hon?",
         "options": [
           "Som någon som skrattar",
           "Som någon som sjunger",
@@ -1765,7 +1765,7 @@
         "options": [
           "Hon ville ha en egen del av rummet",
           "Hon ville stänga ute ljuset från fönstret",
-          "Lejla bad henne att göra det",
+          "Alba bad henne att göra det",
           "Hon skulle bygga en koja att leka i"
         ],
         "answerIndex": 0,
@@ -1773,11 +1773,11 @@
       },
       {
         "id": "q6",
-        "question": "Varför var åskan extra jobbig för Lejla just här?",
+        "question": "Varför var åskan extra jobbig för Alba just här?",
         "options": [
           "Hon hade tappat sitt gosedjur på golvet",
           "Hon kunde inte krypa ner hos sin mamma",
-          "Hon var arg på Mattias",
+          "Hon var arg på Julis mamma",
           "Hon frös under sitt täcke"
         ],
         "answerIndex": 1,
@@ -1789,8 +1789,8 @@
         "options": [
           "Lakanet hade gått sönder i ovädret",
           "Mamma tyckte att det såg fult ut",
-          "Lejla flyttade till ett eget rum",
-          "Systrarna hade kommit varandra närmare"
+          "Alba flyttade till ett eget rum",
+          "Kusinerna hade kommit varandra närmare"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"

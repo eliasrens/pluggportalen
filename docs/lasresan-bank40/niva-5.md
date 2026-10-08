@@ -35,7 +35,7 @@ Nivå 4 (#511) skrevs parallellt. #511 bytte själv ut åtta av sina texter som 
 | lr-n5-hunden-vid-grinden | story | mysterier | Hunden vid grinden | Sam, vaktmästaren Lennart, Gösta, hunden Bamse | Hund väntar vid skolgrinden varje lunch; den förre vaktmästarens hund av gammal vana |
 | lr-n5-fel-vaska | story | roliga situationer | Fel väska | Adrian, Edith Sandell | Förväxlade träningsväskor på bussen; den tuffa fotbollstjejen dansar balett i hemlighet |
 | lr-n5-vinkningen | story | roliga situationer | Tre som vinkade | Meja, Liva | Vinkar till fel person och låtsas vinka till någon bakom; tre främlingar vinkar till varandra |
-| lr-n5-robotdammsugaren | story | roliga situationer | Rulle städar | Smilla, katten Pelle | Robotdammsugaren startar mitt under middagen med chefen; olyckan räddar kvällen |
+| lr-n5-robotdammsugaren | story | roliga situationer | Rulle städar | Smilla, katten Pelle | Robotdammsugaren startar mitt under middagen med den nya grannen Siv (#514: var mammas chef); olyckan räddar kvällen |
 | lr-n5-hasten-som-inte-fanns | story | relationer | Hästen som inte fanns | Hilda, Vanja | Nya kompisen ljuger om en häst för att få vänner; Hilda förlåter men säger ifrån |
 | lr-n5-tvillingarna | story | relationer | Två kalas på samma dag | Ayla, Esme | Tvilling vill ha eget kalas för att bli sedd som sig själv |
 | lr-n5-tunnelbanan | story | äventyr | Tre stationer för långt | Zainab | Första tunnelbaneresan ensam, åker förbi, mobilen död, läser kartan och tar sig rätt |
