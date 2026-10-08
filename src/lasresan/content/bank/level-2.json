@@ -879,7 +879,7 @@
       },
       {
         "id": "q3",
-        "question": "Vad bär Signe själv till flyttbilen?",
+        "question": "Vad bär Signe själv när de flyttar?",
         "options": [
           "Sin kaktus",
           "Sin lampa",
@@ -2612,7 +2612,7 @@
           "Alma klarade det bra",
           "Alma red för långsamt",
           "Pärlan är en dålig häst",
-          "Alma var inte alls rädd"
+          "Alma pratade för mycket"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
