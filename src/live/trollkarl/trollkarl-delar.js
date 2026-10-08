@@ -106,8 +106,8 @@ export function collarSvg(t, who) {
   if (who === "elias") {
     // Slätrakad haka + svart skjorta i urklippet: kragen tuckas tätt under hakan.
     return `<g aria-hidden="true">
-      <path d="M106 304 L115 243 Q200 257 285 243 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
-      <path d="M115 243 Q200 257 285 243 L282 254 Q200 270 118 254Z" fill="#00000026"/>
+      <path d="M106 304 L114 264 Q200 288 286 264 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+      <path d="M114 264 Q200 288 286 264 L283 275 Q200 300 117 275Z" fill="#00000026"/>
     </g>`;
   }
   // Rasmus: skägget flödar ner – kragen får sitta lägre och dippa i mitten.
