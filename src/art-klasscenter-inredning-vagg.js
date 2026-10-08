@@ -14,10 +14,11 @@ import {
   GULD, GULD_MORK, GULD_LJUS, KRAM, FANA, WOOD, WOOD_DARK, GLAS, GLAS_LJUS, STAL,
 } from "./art-klasscenter-delar.js";
 
-const BRONS = "#D98C4A";
-const BRONS_MORK = "#B26E35";
-const STAL_MORK = "#8EA2BC";
-const PLYSCH = "#7A3B5C";
+import { KC_POKALER, kcTrofehyllaMarkup } from "./art-klasscenter-pokaler.js";
+
+// Shoppens bild av Troféhyllan: så här kan klassens hedershylla se ut.
+const TROFE_EXEMPEL = ["pokal-mm", "pokal-lasresan-500", "pokal-larare-stjarna", "pokal-live", "pokal-mm-silver", "pokal-larare-hjarta"]
+  .map((art) => ({ art }));
 
 // Guldfrans: små kulor längs en polyline [[x, y], …].
 function frans(pts, r = 3.2, steg = 7) {
@@ -60,21 +61,6 @@ function tofs(x, y, l = 30) {
 }
 
 // Pokal med fot och handtag, står på (cx, yb); s = skala.
-function pokal(cx, yb, s, c, cMork) {
-  return (
-    `<g transform="translate(${cx} ${yb}) scale(${s})">` +
-    `<rect x="-13" y="-8" width="26" height="8" rx="2" fill="${WOOD_DARK}" ${THIN}/>` +
-    `<path d="M-9 -8 L9 -8 L5 -14 L-5 -14 Z" fill="${cMork}" ${THIN}/>` +
-    `<rect x="-2.6" y="-24" width="5.2" height="11" fill="${c}" ${THIN}/>` +
-    limb("M-13 -39 Q-23 -39 -20 -31 Q-18 -25 -10 -27", c, 2.6) +
-    limb("M13 -39 Q23 -39 20 -31 Q18 -25 10 -27", c, 2.6) +
-    `<path d="M-15 -43 L15 -43 Q15 -23 0 -22 Q-15 -23 -15 -43 Z" fill="${c}" ${THIN}/>` +
-    `<path d="M4 -43 L15 -43 Q15 -27 4 -23 Z" fill="${cMork}" opacity="0.45"/>` +
-    `<ellipse cx="0" cy="-43" rx="15" ry="3.2" fill="${cMork}" ${THIN}/>` +
-    glans("M-10 -38 Q-10 -29 -5 -26", 2) +
-    `</g>`
-  );
-}
 
 export const KC_INREDNING_VAGG = {
   // Klassens fana: sammetsbanér i klassens färg (--kc-fana) med guldkant,
@@ -111,47 +97,13 @@ export const KC_INREDNING_VAGG = {
       `<g${anim(opts, "kc-glitter")}>${gnistra(66, 82, 5)}</g>`,
   },
 
-  // Troféhylla: mahognyskåp med plyschbakgrund och guldlist; stor guldpokal,
-  // silver- och bronspokal, medalj och sköld.
+  // Troféhylla = klassens hedershylla (#528): sex guldkantade, belysta
+  // nischer (konsten: art-klasscenter-pokaler-mobler.js). Shoppen visar den
+  // med exempelpokaler; i rummet ritas klassens egna (kc-rum-pokaler.js).
   "kc-trofehylla": {
-    viewBox: "0 0 200 150",
-    w: 7.5,
-    rita: (opts) =>
-      `<rect x="6" y="10" width="188" height="128" rx="8" fill="${WOOD_DARK}" ${LINE}/>` +
-      `<rect x="16" y="22" width="168" height="104" rx="4" fill="${PLYSCH}" ${THIN}/>` +
-      `<path d="M16 22 L184 22 L184 30 L16 30 Z" fill="${O}" opacity="0.18"/>` +
-      // Krönlist med guldkant och mittmedaljong.
-      `<rect x="1" y="3" width="198" height="14" rx="5" fill="${WOOD}" ${LINE}/>` +
-      `<rect x="9" y="12" width="182" height="3" rx="1.5" fill="${GULD}" stroke="none"/>` +
-      `<ellipse cx="100" cy="6" rx="16" ry="8" fill="${GULD}" ${THIN}/>` +
-      stjarnaKontur(100, 6.5, 5.5, KRAM) +
-      // Övre hyllplan.
-      `<rect x="12" y="70" width="176" height="8" rx="3" fill="${WOOD}" ${THIN}/>` +
-      // Medalj på band (vänster).
-      `<path d="M34 30 L42 48 L50 30 Z" fill="#46557A" ${THIN}/>` +
-      `<path d="M50 30 L42 48 L58 30 Z" fill="#EF6F6C" ${THIN}/>` +
-      `<circle cx="42" cy="54" r="9" fill="${GULD}" ${LINE}/>` +
-      `<circle cx="42" cy="54" r="5.5" fill="none" stroke="${GULD_MORK}" stroke-width="1.8"/>` +
-      // Liten guldpokal (mitt) och silversköld (höger).
-      pokal(100, 70, 0.78, GULD, GULD_MORK) +
-      `<rect x="146" y="62" width="24" height="8" rx="2" fill="${WOOD_DARK}" ${THIN}/>` +
-      `<path d="M144 34 L172 34 L172 46 Q172 58 158 64 Q144 58 144 46 Z" fill="${STAL}" ${LINE}/>` +
-      stjarnaKontur(158, 47, 7, GULD) +
-      glans("M148 38 L148 48", 1.8) +
-      // Nedre hyllan: stora guldpokalen i mitten, silver + brons på sidorna.
-      pokal(48, 124, 0.95, STAL, STAL_MORK) +
-      pokal(152, 124, 0.95, BRONS, BRONS_MORK) +
-      pokal(100, 124, 1.25, GULD, GULD_MORK) +
-      `<rect x="88" y="116" width="24" height="4" rx="1.5" fill="${GULD_LJUS}" stroke="none"/>` +
-      // Sockel med guldlist och mässingsskyltar.
-      `<rect x="3" y="124" width="194" height="16" rx="5" fill="${WOOD}" ${LINE}/>` +
-      `<rect x="11" y="128" width="178" height="2.6" rx="1.3" fill="${GULD}" stroke="none"/>` +
-      `<rect x="36" y="132" width="24" height="5" rx="1.5" fill="${GULD}" ${THIN}/>` +
-      `<rect x="88" y="132" width="24" height="5" rx="1.5" fill="${GULD}" ${THIN}/>` +
-      `<rect x="140" y="132" width="24" height="5" rx="1.5" fill="${GULD}" ${THIN}/>` +
-      `<g${anim(opts, "kc-glitter")}>${gnistra(116, 78, 5.5)}</g>` +
-      `<g${anim(opts, "kc-glitter d2")}>${gnistra(30, 44, 4)}</g>` +
-      `<g${anim(opts, "kc-glitter d3")}>${gnistra(170, 30, 4)}</g>`,
+    viewBox: KC_POKALER["kc-trofehylla"].viewBox,
+    w: KC_POKALER["kc-trofehylla"].w,
+    rita: (opts) => kcTrofehyllaMarkup(TROFE_EXEMPEL, opts),
   },
 
   // Gigantisk kristallkrona: förgylld stomme i två våningar, åtta ljus,

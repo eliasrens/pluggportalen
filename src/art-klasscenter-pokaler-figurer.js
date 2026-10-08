@@ -27,7 +27,7 @@ const GRON = "#7BC67E";
 const ORANGE = "#F49E4C";
 
 // Träsockel med mässingsskylt (två graverade rader). fill = sockelns färg.
-function sockel(fill = WOOD_DARK, list = WOOD) {
+export function sockel(fill = WOOD_DARK, list = WOOD) {
   return (
     shadow(50, 134, 38) +
     `<rect x="18" y="112" width="64" height="22" rx="3" fill="${fill}" ${LINE}/>` +
@@ -38,7 +38,7 @@ function sockel(fill = WOOD_DARK, list = WOOD) {
 }
 
 // Bägarpokal (fot, skaft, handtag, skål) i färgen c / skuggfärgen cm.
-function bagare(c, cm) {
+export function bagare(c, cm) {
   return (
     `<path d="M34 104 L66 104 L58 94 L42 94 Z" fill="${cm}" ${THIN}/>` +
     `<rect x="45" y="74" width="10" height="21" fill="${c}" ${THIN}/>` +
@@ -54,7 +54,7 @@ function bagare(c, cm) {
 }
 
 // Rosett i klassens färg (--kc-fana) runt skaftet.
-function rosett(cx, cy) {
+export function rosett(cx, cy) {
   return (
     `<path d="M${cx - 2} ${cy + 2} L${cx - 9} ${cy + 18} L${cx - 4} ${cy + 15} L${cx - 2} ${cy + 20} L${cx + 2} ${cy + 4} Z" fill="${FANA}" ${THIN}/>` +
     `<path d="M${cx + 2} ${cy + 2} L${cx + 9} ${cy + 18} L${cx + 4} ${cy + 15} L${cx + 2} ${cy + 20} L${cx - 2} ${cy + 4} Z" fill="${FANA}" ${THIN}/>` +

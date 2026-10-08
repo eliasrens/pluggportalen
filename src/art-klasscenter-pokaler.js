@@ -7,8 +7,10 @@
 //   Pokaler   nyckel = pokaltypens `art` (src/klasscenter/kc-pokal-typer.js):
 //             "pokal-mm", "pokal-live", "pokal-live-klar" + reserven "pokal".
 //             Alla delar viewBox POKAL_VB (100 × 140).        → -figurer.js
-//   Möbler    "kc-pokalhylla" (8 platser, KC_POKALHYLLA_PLATSER) och
-//             "kc-statistiktavla" (värdefält KC_STATISTIK_FALT). → -mobler.js
+//             #528: silver/brons, Läsresan-milstolpar, lärarmotiv → -fler.js
+//   Möbler    "kc-pokalhylla" (3 platser, KC_POKALHYLLA_PLATSER),
+//             "kc-trofehylla" (hedershyllan, 6 platser, KC_TROFEHYLLA_PLATSER,
+//             #528) och "kc-statistiktavla" (KC_STATISTIK_FALT). → -mobler.js
 // opts.animera === false → ingen ambient (glitter, raketflamma, tavlans glöd).
 //
 // 🔴 Bootgraf: importera ALDRIG denna modul statiskt från app.js-grafen – den
@@ -16,12 +18,18 @@
 // ============================================================================
 
 import { KC_POKALER_FIGURER, POKAL_VB } from "./art-klasscenter-pokaler-figurer.js";
-import { KC_POKALER_MOBLER, KC_POKALHYLLA_PLATSER, KC_STATISTIK_FALT } from "./art-klasscenter-pokaler-mobler.js";
+import { KC_POKALER_FLER } from "./art-klasscenter-pokaler-fler.js";
+import {
+  KC_POKALER_MOBLER, KC_POKALHYLLA_PLATSER, KC_TROFEHYLLA_PLATSER, KC_STATISTIK_FALT,
+} from "./art-klasscenter-pokaler-mobler.js";
 
-export { POKAL_VB, KC_POKALHYLLA_PLATSER, KC_STATISTIK_FALT };
+export { POKAL_VB, KC_POKALHYLLA_PLATSER, KC_TROFEHYLLA_PLATSER, KC_STATISTIK_FALT };
+
+/** Bara pokalfigurerna (det som får stå i en hyllplats). */
+const FIGURER = { ...KC_POKALER_FIGURER, ...KC_POKALER_FLER };
 
 /** art-nyckel → { viewBox, w, rita(opts) } */
-export const KC_POKALER = Object.freeze({ ...KC_POKALER_FIGURER, ...KC_POKALER_MOBLER });
+export const KC_POKALER = Object.freeze({ ...FIGURER, ...KC_POKALER_MOBLER });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -61,6 +69,30 @@ export function kcPokalStorlek(art) {
   return { w: it.w, h: +((it.w * vh) / vw).toFixed(2) };
 }
 
+// Inre markup: hyllan (mobel = art-nyckel) MED pokaler i platserna, i given ordning.
+function hyllaInre(mobel, platser, pokaler, opts) {
+  return KC_POKALER[mobel].rita(opts) + (pokaler || []).slice(0, platser.length).map((p, i) => {
+    const art = FIGURER[p?.art] ? p.art : "pokal";
+    const { x, y, w, h } = platser[i];
+    const id = p?.id ? ` data-pokal-id="${esc(p.id)}"` : "";
+    const aria = p?.titel ? ` role="img" aria-label="${esc(p.titel)}"` : "";
+    return (
+      `<svg class="kc-pokal-plats" data-art="${art}"${id}${aria} x="${x}" y="${y}" width="${w}" height="${h}" ` +
+      `viewBox="${POKAL_VB}" overflow="visible">${FIGURER[art].rita(opts)}</svg>`
+    );
+  }).join("");
+}
+
+function hyllaMedPokaler(mobel, platser, pokaler, opts) {
+  const hylla = KC_POKALER[mobel];
+  const a11y = opts.aria ? `role="group" aria-label="${esc(opts.aria)}"` : `aria-hidden="true" focusable="false"`;
+  const klass = `kc-pokal-svg${opts.klass ? ` ${esc(opts.klass)}` : ""}`;
+  return (
+    `<svg class="${klass}" data-art="${mobel}" viewBox="${hylla.viewBox}" ${a11y} ` +
+    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${hyllaInre(mobel, platser, pokaler, opts)}</svg>`
+  );
+}
+
 /**
  * Pokalhyllan MED pokaler auto-placerade i platserna (i den ordning de ges,
  * t.ex. normaliseraPokaler() = nyast först). Fler pokaler än platser → de
@@ -71,21 +103,15 @@ export function kcPokalStorlek(art) {
  * @param {object} [opts] som kcPokalSvg; opts.aria = hyllans etikett.
  */
 export function kcPokalhyllaSvg(pokaler = [], opts = {}) {
-  const hylla = KC_POKALER["kc-pokalhylla"];
-  const platser = pokaler.slice(0, KC_POKALHYLLA_PLATSER.length).map((p, i) => {
-    const art = KC_POKALER_FIGURER[p?.art] ? p.art : "pokal";
-    const { x, y, w, h } = KC_POKALHYLLA_PLATSER[i];
-    const id = p?.id ? ` data-pokal-id="${esc(p.id)}"` : "";
-    const aria = p?.titel ? ` role="img" aria-label="${esc(p.titel)}"` : "";
-    return (
-      `<svg class="kc-pokal-plats" data-art="${art}"${id}${aria} x="${x}" y="${y}" width="${w}" height="${h}" ` +
-      `viewBox="${POKAL_VB}" overflow="visible">${KC_POKALER_FIGURER[art].rita(opts)}</svg>`
-    );
-  }).join("");
-  const a11y = opts.aria ? `role="group" aria-label="${esc(opts.aria)}"` : `aria-hidden="true" focusable="false"`;
-  const klass = `kc-pokal-svg${opts.klass ? ` ${esc(opts.klass)}` : ""}`;
-  return (
-    `<svg class="${klass}" data-art="kc-pokalhylla" viewBox="${hylla.viewBox}" ${a11y} ` +
-    `preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${hylla.rita(opts)}${platser}</svg>`
-  );
+  return hyllaMedPokaler("kc-pokalhylla", KC_POKALHYLLA_PLATSER, pokaler, opts);
+}
+
+/** Troféhyllan (hedershyllan, #528) med upp till sex pokaler – som kcPokalhyllaSvg. */
+export function kcTrofehyllaSvg(pokaler = [], opts = {}) {
+  return hyllaMedPokaler("kc-trofehylla", KC_TROFEHYLLA_PLATSER, pokaler, opts);
+}
+
+/** Troféhyllans inre markup (utan <svg>-ram) – shoppens bild med exempelpokaler. */
+export function kcTrofehyllaMarkup(pokaler = [], opts = {}) {
+  return hyllaInre("kc-trofehylla", KC_TROFEHYLLA_PLATSER, pokaler, opts);
 }

@@ -621,11 +621,20 @@ service cloud.firestore {
         let d = request.resource.data;
         let m = getAfter(kcPath('expMembers', request.auth.uid)).data;
         return isClassMember(classId) && kcShardOk(shardId) &&
-          changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
+          changedOnly(['exp', 'lasresan', 'lastUid', 'lastAt', 'lastKalla']) &&
           d.exp is int && kcDelta() >= 1 && kcDelta() <= 3 &&
           d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d) &&
           m.lastAt == request.time && m.lastAmount == kcDelta() &&
-          string(m.lastShard) == shardId;
+          string(m.lastShard) == shardId && kcLasOk(d, m);
+      }
+      // Läsresan-räknaren (#528): `lasresan` = godkända Läsresan-texter. Får
+      // bara öka med 1, och bara i en EXP-utdelning från Läsresan (shard + egen
+      // expMembers-post med lastKalla 'lasresan' i samma skrivning) – samma
+      // takt-spärr (15 s/elev) och spårbarhet som EXP:en. Läraren rör den aldrig.
+      function kcLasOk(d, m) {
+        let delta = newInt('lasresan') - prevInt('lasresan');
+        return newInt('lasresan') is int && (delta == 0 ||
+          (delta == 1 && d.lastKalla == 'lasresan' && m.lastKalla == 'lasresan'));
       }
       function kcShardTeacher(shardId) {
         let d = request.resource.data;
@@ -929,11 +938,12 @@ service cloud.firestore {
       // ----------------------------------------------------------------
       // Pokaler (#494, epic #474). Register + transaktion: src/klasscenter/
       // kc-pokal-typer.js (korPokalUtdelning), SDK-lager kc-pokal-data.js.
-      //   trophies/{typ}-{kallaId} {typ, kallaId, titel, detalj?, wonAt, awardedBy}
+      //   trophies/{typ}-{kallaId} {typ, kallaId, titel, detalj?, motiv?, wonAt, awardedBy}
       //  • Läses av alla inloggade (gästläge, spec §7).
       //  • Skapas BARA av lärare (lärarklienten som avslutar tävlingen/
-      //    matchen), create-only (ingen ändring/radering) → deterministiskt
-      //    id = samma vinst ger aldrig två pokaler.
+      //    matchen, öppnar klassen – Läsresan-milstolpar – eller delar ut en
+      //    egen pokal), create-only (ingen ändring; radering bara av lärarens
+      //    egna pokaler) → deterministiskt id = samma vinst ger aldrig två.
       //  • Verifieras mot källans `result` med getAfter (fungerar även när
       //    pokalen skrivs i samma batch som resultatet): status 'finished' och
       //      mm-klasskamp   mathCompetitions/{kallaId}.result.winnerClass == klassen
@@ -944,15 +954,36 @@ service cloud.firestore {
       //                     (kooperativt läge, #495) och klassen deltog
       //    (live-* kräver dessutom klassen i participatingClassIds och
       //    result.perClass[klassen].players > 0).
+      //      mm-silver/mm-brons (#528)  klassen i result.silverClasses resp.
+      //                     bronzeClasses OCH i participatingClassIds, och
+      //                     minst 3 deltagande klasser
+      //      lasresan-milstolpe (#528)  kallaId = milstolpen (100/250/500/
+      //                     1000) och summan av klassens expShards.lasresan
+      //                     (godkända Läsresan-texter) når den
+      //      larare (#528)  lärarens egen pokal: motiv ur listan; titel/
+      //                     detalj = lärarens text. Bara den typen har motiv
+      //                     och bara den får läraren ta bort.
       // ⚠️ Ny pokaltyp = typen i kcPokalTyper + gren i kcPokalVerifierad +
       // registreraPokaltyp (test/kc-pokal-typer.test.js jämför) + rules-deploy.
       // ----------------------------------------------------------------
-      function kcPokalTyper() { return ['mm-klasskamp', 'live-vinst', 'live-avklarat']; }
+      function kcPokalTyper() { return ['mm-klasskamp', 'mm-silver', 'mm-brons', 'live-vinst', 'live-avklarat', 'lasresan-milstolpe', 'larare']; }
       function kcPokalMm(cid) {
         let c = getAfter(/databases/$(database)/documents/mathCompetitions/$(cid)).data;
         let r = c.get('result', {});
         return c.status == 'finished' &&
           (r.get('winnerClass', null) == classId || classId in r.get('winnerClasses', []));
+      }
+      function kcPokalMmPlats(cid, falt) {
+        let c = getAfter(/databases/$(database)/documents/mathCompetitions/$(cid)).data;
+        return c.status == 'finished' && c.participatingClassIds.size() >= 3 &&
+          classId in c.participatingClassIds && classId in c.get('result', {}).get(falt, []);
+      }
+      function kcLasShard(s) {
+        return exists(kcPath('expShards', s)) ? get(kcPath('expShards', s)).data.get('lasresan', 0) : 0;
+      }
+      function kcPokalLasresan(m) {
+        return m in ['100', '250', '500', '1000'] &&
+          kcLasShard('0') + kcLasShard('1') + kcLasShard('2') + kcLasShard('3') + kcLasShard('4') >= int(m);
       }
       function kcPokalLive(sid, vinst) {
         let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
@@ -965,12 +996,19 @@ service cloud.firestore {
       function kcPokalVerifierad(typ, kallaId) {
         return (typ == 'mm-klasskamp' && kcPokalMm(kallaId)) ||
           (typ == 'live-vinst' && kcPokalLive(kallaId, true)) ||
-          (typ == 'live-avklarat' && kcPokalLive(kallaId, false));
+          (typ == 'live-avklarat' && kcPokalLive(kallaId, false)) ||
+          (typ == 'mm-silver' && kcPokalMmPlats(kallaId, 'silverClasses')) ||
+          (typ == 'mm-brons' && kcPokalMmPlats(kallaId, 'bronzeClasses')) ||
+          (typ == 'lasresan-milstolpe' && kcPokalLasresan(kallaId)) ||
+          typ == 'larare';
+      }
+      function kcPokalMotivOk(d) {
+        return d.typ == 'larare' ? d.get('motiv', '') in ['guld', 'stjarna', 'hjarta', 'medalj'] : !('motiv' in d);
       }
       function kcPokalCreate(trophyId) {
         let d = request.resource.data;
         return isTeacher() &&
-          d.keys().hasOnly(['typ', 'kallaId', 'titel', 'detalj', 'wonAt', 'awardedBy']) &&
+          d.keys().hasOnly(['typ', 'kallaId', 'titel', 'detalj', 'motiv', 'wonAt', 'awardedBy']) &&
           d.keys().hasAll(['typ', 'kallaId', 'titel', 'wonAt', 'awardedBy']) &&
           d.typ in kcPokalTyper() &&
           d.kallaId is string && d.kallaId.matches('[A-Za-z0-9_-]{1,100}') &&
@@ -978,12 +1016,13 @@ service cloud.firestore {
           d.titel is string && d.titel.size() >= 1 && d.titel.size() <= 80 &&
           (!('detalj' in d) || (d.detalj is string && d.detalj.size() <= 120)) &&
           d.wonAt == request.time && d.awardedBy == request.auth.uid &&
-          kcPokalVerifierad(d.typ, d.kallaId);
+          kcPokalMotivOk(d) && kcPokalVerifierad(d.typ, d.kallaId);
       }
 
       match /trophies/{trophyId} {
         allow read: if signedIn();
         allow create: if kcPokalCreate(trophyId);
+        allow delete: if isTeacher() && resource.data.typ == 'larare';
       }
 
       // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).

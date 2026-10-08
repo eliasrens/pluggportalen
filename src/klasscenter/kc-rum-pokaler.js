@@ -17,19 +17,22 @@
 //     satt(pokaler)            klassens pokaler (normaliseraPokaler)
 //     finns() → bool
 //     autoPlacera(lokal) → { nyckel: pos }   till skapaKcRumTillstand
+//                            (räknar också om Troféhyllans pokaler, #528)
+//     trofehyllaArt(animera) → <svg> Troféhyllan med klassens finaste pokaler
 //     sak(id, { auto, animera }) → sak | null (pokal-nyckel men okänd pokal)
 //                                | undefined (inte en pokal-nyckel)
 //     hyllaHtml(animera) → markup (bakgrunden)
 //     dolj()  stad() }
 // ============================================================================
 
-import { kcPokalSvg } from "../art-klasscenter-pokaler.js";
-import { pokalIdFranNyckel, pokalTooltip } from "./kc-pokal-typer.js";
-import { KC_HYLLA, KC_POKAL_STORLEK, placeraPokaler } from "./kc-pokal-placering.js";
+import { kcPokalSvg, kcTrofehyllaSvg } from "../art-klasscenter-pokaler.js";
+import { pokalIdFranNyckel, pokalNyckel, pokalTooltip } from "./kc-pokal-typer.js";
+import { KC_HYLLA, KC_POKAL_STORLEK, hedersPokaler, placeraPokaler } from "./kc-pokal-placering.js";
 
 // Samma enhet som rumSakHtml (rum-promenad-golv.js).
 const ENHET = "min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))";
-const POKAL_SEL = '.room-item[data-id^="pokal-"]';
+// En pokal-sak i rummet, eller en pokal inne i Troféhyllan (#528).
+const POKAL_SEL = '.room-item[data-id^="pokal-"], .kc-pokal-plats[data-pokal-id]';
 const TRYCK_MAX = 6; // px – längre rörelse = en drag, inte ett tryck
 
 function esc(s) {
@@ -50,6 +53,7 @@ export function pokalTipsHtml(pokal) {
 export function skapaKcRumPokaler({ lager, ui, vidResize }) {
   let karta = new Map(); // trophyId → Pokal
   let lista = [];
+  let heders = []; // pokalerna i Troféhyllan (#528), senaste autoPlacera
 
   // Scenens mått (px) + rums-enheten – hyllplatsernas procent beror på dem.
   function matt() {
@@ -75,8 +79,11 @@ export function skapaKcRumPokaler({ lager, ui, vidResize }) {
     visas = null;
   }
 
+  // Rutans nyckel: rum-sakens data-id, eller "pokal-<id>" i Troféhyllan.
+  const nyckelAv = (node) => (node.dataset.pokalId ? pokalNyckel(node.dataset.pokalId) : node.dataset.id);
+
   function visa(node) {
-    const nyckel = node.dataset.id;
+    const nyckel = nyckelAv(node);
     const p = karta.get(pokalIdFranNyckel(nyckel));
     if (!p) return dolj();
     tips.innerHTML = pokalTipsHtml(p);
@@ -98,7 +105,7 @@ export function skapaKcRumPokaler({ lager, ui, vidResize }) {
   const over = (e) => {
     if (e.pointerType !== "mouse" || e.buttons) return;
     const node = e.target.closest(POKAL_SEL);
-    if (node && node.dataset.id !== visas) visa(node);
+    if (node && nyckelAv(node) !== visas) visa(node);
   };
   const ut = (e) => {
     if (e.pointerType !== "mouse" || !visas) return;
@@ -108,8 +115,8 @@ export function skapaKcRumPokaler({ lager, ui, vidResize }) {
   // Capture-fas: körs FÖRE drag-kärnans lyssnare (som ritar om scenen).
   const ned = (e) => {
     const node = e.target.closest(POKAL_SEL);
-    tryck = node && e.pointerType !== "mouse" ? { nyckel: node.dataset.id, node, x: e.clientX, y: e.clientY } : null;
-    if (e.pointerType === "mouse" || !node || node.dataset.id !== visas) dolj();
+    tryck = node && e.pointerType !== "mouse" ? { nyckel: nyckelAv(node), node, x: e.clientX, y: e.clientY } : null;
+    if (e.pointerType === "mouse" || !node || nyckelAv(node) !== visas) dolj();
   };
   const upp = (e) => {
     const tr = tryck;
@@ -145,7 +152,11 @@ export function skapaKcRumPokaler({ lager, ui, vidResize }) {
       if (visas && !karta.has(pokalIdFranNyckel(visas))) dolj();
     },
     finns: () => lista.length > 0,
-    autoPlacera: (lokal) => (lista.length ? placeraPokaler(lista, lokal, matt()) : {}),
+    autoPlacera(lokal) {
+      heders = hedersPokaler(lista, lokal);
+      return lista.length ? placeraPokaler(lista, lokal, matt()) : {};
+    },
+    trofehyllaArt: (animera) => kcTrofehyllaSvg(heders, { animera, aria: "Klassens Troféhylla – hedershyllan" }),
     sak(id, { auto = false, animera = false } = {}) {
       const tid = pokalIdFranNyckel(id);
       if (!tid) return undefined;

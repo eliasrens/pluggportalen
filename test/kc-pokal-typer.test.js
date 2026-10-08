@@ -205,7 +205,7 @@ describe("visning", () => {
 });
 
 describe("firestore.rules i synk med registret", () => {
-  const riktiga = ["mm-klasskamp", "live-vinst", "live-avklarat"];
+  const riktiga = ["mm-klasskamp", "mm-silver", "mm-brons", "live-vinst", "live-avklarat", "lasresan-milstolpe", "larare"];
   it("kcPokalTyper listar exakt registrets inbyggda typer", () => {
     const m = RULES.match(/function kcPokalTyper\(\) \{ return \[([^\]]*)\]; \}/);
     assert.ok(m, "kcPokalTyper saknas i firestore.rules");

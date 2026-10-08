@@ -81,6 +81,27 @@ Radnumren gäller `firestore.rules` i den här grenen.
 | 6c | Utloggad läser och skriver ingenting | `signedIn()` i alla regler | – | GAST "utloggad läser ingenting", "raderar ingenting"; SAK "utloggad skapar varken shard eller elevpost" | ✅ |
 | 7 | Lärare i en annan klass | `isTeacher()` = globalt anspråk | GAST "vilken lärare som helst får inreda, spärra och dela ut verifierad pokal" | GAST "inte heller en lärare får gå förbi verifieringen eller fejka en elev", "en uid som heter som läraren hjälper inte" | ⚠️ förtroendemodell (R1) |
 
+## Fler pokaler (#528)
+
+Regler: `kcPokalMmPlats`, `kcLasShard`/`kcPokalLasresan`, `kcPokalMotivOk`,
+typen `larare` i `kcPokalVerifierad`, `delete` på `trophies` för typ
+`larare`, och `kcLasOk` i `kcShardStudent`. Tester: **POK-528** =
+`firestore-rules-klasscenter-pokal-528.test.js` (20 st).
+
+| # | Krav | Regel | Positivt | Negativt | Status |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Silver/brons bara till rätt placering, bara med ≥ 3 klasser | `kcPokalMmPlats` (getAfter på tävlingen) | POK-528 "avslutsflödet: guld → 6a, silver → 6b, brons → 6c" | "fel placering nekas", "färre än 3 deltagande klasser", "pågående tävling" | ✅ |
+| 2 | Läsresan-räknaren ökar bara med en godkänd Läsresan-text | `kcLasOk` (delta 0/1, lastKalla 'lasresan' på shard + elevpost) | "en godkänd Läsresan-text", "gammal klient utan räknaren" | "annan källa", "+2", "sänkas", "läraren kan inte röra räknaren" | ✅ |
+| 3 | Milstolpe bara när klassens räknare når den, bara kända milstolpar, en gång | `kcPokalLasresan` (summa av 5 shards, saknad shard = 0) + deterministiskt id | "120 → 100-pokalen en gång", "1000" | "inte 250", "99 räcker inte", "150/1 nekas", "elev nekas" | ✅ |
+| 4 | Lärarens pokal bara av lärare, med giltigt motiv; bara den går att ta bort | `kcPokalMotivOk`, `allow delete: isTeacher() && typ == 'larare'` | "lärare delar ut … egen titel och text", "läraren tar bort sin pokal" | "elev och utloggad", "motiv saknat/okänt/på fel typ", "för lång titel/text, fel id", "aldrig en vunnen", "kan inte ändras" | ✅ |
+
+**Kvarvarande begränsning (ärligt):** Läsresan-resultatet (≥ 5/7) räknas i
+klienten, precis som klass-EXP:en – reglerna ser inte vilka svar eleven gav.
+En elev som skriptar kan öka räknaren med högst 1 per 15 s (EXP-spärren), och
+varje ökning är spårbar per elev i `expMembers` (`lastKalla`). Den som vill
+fejka en milstolpe på 100 behöver alltså ≥ 25 minuter skriptande, och
+pokalen delas ändå bara ut av en lärare.
+
 ## Klasskassan (#526)
 
 Regler: `kcKassaSaldo`, `kcKassaIn`, `kcKassaUt`, `kcKassaBetald` i

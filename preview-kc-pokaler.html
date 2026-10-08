@@ -59,27 +59,37 @@
       <h2>Pokalhyllan och statistiktavlan</h2>
       <div class="rad">
         <div class="mobel" id="hylla"></div>
+        <div class="mobel" id="trofe"></div>
         <div class="mobel"><div class="tavla" id="tavla" title="Klicka för klassens statistik"></div></div>
       </div>
     </div>
     <div id="tip"></div>
     <script type="module">
-      import { kcPokalSvg, kcPokalhyllaSvg, kcPokalStorlek, KC_POKALER, KC_STATISTIK_FALT } from "./src/art-klasscenter-pokaler.js";
-      import { listaPokaltyper, pokalTooltip } from "./src/klasscenter/kc-pokal-typer.js";
+      import { kcPokalSvg, kcPokalhyllaSvg, kcTrofehyllaSvg, kcPokalStorlek, KC_POKALER, KC_STATISTIK_FALT } from "./src/art-klasscenter-pokaler.js";
+      import { listaPokaltyper, pokalTooltip, normaliseraPokal, LASRESAN_MILSTOLPAR, LARAR_MOTIV } from "./src/klasscenter/kc-pokal-typer.js";
+      import { hedersPokaler, placeraPokaler } from "./src/klasscenter/kc-pokal-placering.js";
 
       let animera = true;
       const typer = listaPokaltyper();
-      const KORT = [...typer.map((t) => ({ art: t.art, namn: t.titel, text: t.text, meta: t.id })),
+      // #528: Läsresan-milstolparna och lärarmotiven har en bild per variant.
+      const KORT = [...typer.flatMap((t) => t.id === "lasresan-milstolpe"
+          ? LASRESAN_MILSTOLPAR.map((m) => ({ art: `pokal-lasresan-${m}`, namn: t.titelFran(m), text: t.text, meta: `${t.id}-${m}` }))
+          : t.id === "larare"
+            ? LARAR_MOTIV.map((m) => ({ art: m.art, namn: `Lärarens pokal – ${m.namn}`, text: "Egen titel och text från läraren.", meta: `larare (motiv ${m.id})` }))
+            : [{ art: t.art, namn: t.titel, text: t.text, meta: t.id }]),
         { art: "pokal", namn: "Pokal (reserv)", text: "Okänd/framtida pokaltyp.", meta: "reserv" }];
 
       // Påhittade pokaler (som normaliseraPokaler ger: nyast först).
       const DAG = 86400000;
       const DEMO = Array.from({ length: 10 }, (_, i) => {
         const t = typer[i % typer.length];
-        return { id: `${t.id}-demo${i}`, typ: t.id, art: t.art, titel: t.titel, detalj: `Omgång ${10 - i}`, wonAt: Date.now() - i * 7 * DAG };
+        const kallaId = t.id === "lasresan-milstolpe" ? "500" : `demo${i}`;
+        const extra = t.id === "larare" ? { motiv: "hjarta", titel: "Bästa samarbetet i oktober!", detalj: "Ni hjälpte varandra hela veckan." } : {};
+        return normaliseraPokal(`${t.id}-${kallaId}`, { typ: t.id, kallaId, titel: t.titelFran ? t.titelFran(kallaId) : t.titel,
+          detalj: `Omgång ${10 - i}`, wonAt: Date.now() - i * 7 * DAG, ...extra });
       });
       const antal = document.getElementById("antal");
-      antal.innerHTML = [0, 1, 3, 5, 8, 10].map((n) => `<option ${n === 5 ? "selected" : ""}>${n}</option>`).join("");
+      antal.innerHTML = [0, 1, 3, 5, 6, 8, 10].map((n) => `<option ${n === 5 ? "selected" : ""}>${n}</option>`).join("");
 
       function ritaGrid() {
         document.getElementById("grid").innerHTML = KORT.map((k) => `<div class="kort">
@@ -90,8 +100,16 @@
       function ritaHylla() {
         const s = kcPokalStorlek("kc-pokalhylla");
         const el = document.getElementById("hylla");
-        el.innerHTML = kcPokalhyllaSvg(DEMO.slice(0, +antal.value), { animera, aria: "Pokalhylla" });
+        // #528: med Troféhyllan står de 6 finaste där, resten på gratis-hyllan (3).
+        const lista = DEMO.slice(0, +antal.value);
+        const pi = { trofehylla: { x: 60, y: 30, z: 0 } };
+        const heders = hedersPokaler(lista, pi);
+        const auto = Object.keys(placeraPokaler(lista, pi)).map((k) => lista.find((p) => `pokal-${p.id}` === k));
+        el.innerHTML = kcPokalhyllaSvg(auto, { animera, aria: "Pokalhylla (gratis, 3 platser)" });
         Object.assign(el.firstChild.style, { width: `${s.w * 2.2}rem` });
+        const t = document.getElementById("trofe");
+        t.innerHTML = kcTrofehyllaSvg(heders, { animera, aria: "Troféhyllan (hedershyllan, 6 platser)" });
+        Object.assign(t.firstChild.style, { width: `${kcPokalStorlek("kc-trofehylla").w * 2.2}rem` });
       }
       function ritaTavla() {
         const [, , vw, vh] = KC_POKALER["kc-statistiktavla"].viewBox.split(" ").map(Number);
@@ -105,7 +123,7 @@
       function rita() { ritaGrid(); ritaHylla(); ritaTavla(); }
 
       const tip = document.getElementById("tip");
-      document.getElementById("hylla").addEventListener("mousemove", (e) => {
+      for (const id of ["hylla", "trofe"]) document.getElementById(id).addEventListener("mousemove", (e) => {
         const plats = e.target.closest?.("[data-pokal-id]");
         const p = plats && DEMO.find((d) => d.id === plats.dataset.pokalId);
         if (!p) { tip.style.display = "none"; return; }
@@ -113,7 +131,7 @@
         tip.innerHTML = `<b>${t.rubrik}</b>${t.text}<br><small>${t.detalj} · ${t.datum}</small>`;
         Object.assign(tip.style, { display: "block", left: `${e.clientX + 14}px`, top: `${e.clientY + 14}px` });
       });
-      document.getElementById("hylla").addEventListener("mouseleave", () => (tip.style.display = "none"));
+      for (const id of ["hylla", "trofe"]) document.getElementById(id).addEventListener("mouseleave", () => (tip.style.display = "none"));
       document.getElementById("anim").addEventListener("click", (e) => {
         animera = !animera;
         e.target.textContent = animera ? "⏸ Pausa ambient" : "▶ Starta ambient";

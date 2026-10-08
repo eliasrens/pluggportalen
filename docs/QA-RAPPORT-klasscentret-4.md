@@ -128,7 +128,7 @@ Inga buggar i Klasscentret (F-listan är tom).
 ## Frågor till Elias (designfrågor från epic 3 – inte buggar, inget är ändrat)
 
 1. **Statistiktavlans "lösta uppgifter"** räknar bara övningsomgångar (`awardExercise` → `classProjections.members.plays`), inte Läsresan, Mattematchen eller Live. Ska de räknas in? Det kräver en räknare per modul.
-2. **Rummet har både en gratis pokalhylla och shoppens Troféhylla** (2 500 mynt via crowdfunding). Är det dubbelt? Alternativ: ta bort Troféhyllan ur shoppen, eller låt den köpta hyllan ge plats för fler pokaler.
+2. **Rummet har både en gratis pokalhylla och shoppens Troféhylla** (2 500 mynt via crowdfunding). Är det dubbelt? Alternativ: ta bort Troféhyllan ur shoppen, eller låt den köpta hyllan ge plats för fler pokaler. → **Besvarad i #528:** Troféhyllan är nu klassens hedershylla (6 finaste pokalerna automatiskt), gratis-hyllan rymmer 3.
 3. **`live-avklarat`-pokalen ("Liveläge avklarat") delas aldrig ut i dag**, eftersom det inte finns något kooperativt Live-läge. Den finns bara som konstruerad testdata. Ska den vara kvar som förberedelse eller tas bort?
 4. (Ny) **Startnivå för befintliga klasser:** alla klasser startar på 0 Klass-EXP, alltså Nivå 1 Lägereld. Ska klasser som redan pluggat få en startbonus (backfill ur historiska `plays`)? Det kräver ett adminskript som inte finns i dag.
 

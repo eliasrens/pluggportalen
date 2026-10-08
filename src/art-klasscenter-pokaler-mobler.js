@@ -1,6 +1,7 @@
 // ============================================================================
-// Pluggporten – Klasscentrets fasta pokalmöbler: pokalhyllan (där pokalerna
-// auto-placeras) och statistiktavlan (#496, epic #474 Klasscentret 3/4).
+// Pluggporten – Klasscentrets pokalmöbler: pokalhyllan (där pokalerna
+// auto-placeras), statistiktavlan (#496, epic #474 Klasscentret 3/4) och
+// Troféhyllan = hedershyllan (#528, köps i shoppen).
 // ----------------------------------------------------------------------------
 // Register-format: se index-modulen art-klasscenter-pokaler.js. Möblerna ritas
 // TOMMA – pokalerna (hyllan) och siffrorna (tavlan, sub-issue E) läggs ovanpå
@@ -20,25 +21,75 @@ const SKARM_SPAR = "#1F2844";
 const GRON = "#7BC67E";
 
 // --- Pokalhyllan --------------------------------------------------------------
-const HYLLA_PLAN = [104, 196]; // hyllplanens överkant (pokalernas golv)
-const HYLLA_CX = [54, 118, 182, 246];
+// #528: den gratis hyllan rymmer bara TRE pokaler (ett hyllplan) – fler och
+// finare pokaler får plats i Troféhyllan (shoppen) nedan.
+const HYLLA_PLAN = [104]; // hyllplanets överkant (pokalernas golv)
+const HYLLA_CX = [55, 115, 175];
 /** En plats rymmer en pokal i viewBox 100 × 140 (POKAL_VB). */
 const PLATS_W = 56;
 const PLATS_H = 78.4;
 
-/**
- * Pokalplatserna på hyllan i hyllans viewBox: [{ x, y, w, h }], övre raden
- * vänster→höger, sedan nedre. Fyll i ordning (t.ex. nyast först).
- */
-export const KC_POKALHYLLA_PLATSER = Object.freeze(
-  HYLLA_PLAN.flatMap((yb) => HYLLA_CX.map((cx) =>
-    Object.freeze({ x: cx - PLATS_W / 2, y: +(yb - PLATS_H).toFixed(1), w: PLATS_W, h: PLATS_H })))
-);
+function platser(plan, cx) {
+  return Object.freeze(plan.flatMap((yb) => cx.map((x) =>
+    Object.freeze({ x: x - PLATS_W / 2, y: +(yb - PLATS_H).toFixed(1), w: PLATS_W, h: PLATS_H }))));
+}
 
-function hyllplan(y) {
+/**
+ * Pokalplatserna på hyllan i hyllans viewBox: [{ x, y, w, h }], vänster→
+ * höger. Fyll i ordning (t.ex. finast först).
+ */
+export const KC_POKALHYLLA_PLATSER = platser(HYLLA_PLAN, HYLLA_CX);
+
+function hyllplan(y, x = 12, w = 206) {
   return (
-    `<rect x="12" y="${y}" width="276" height="9" rx="3" fill="${WOOD}" ${LINE}/>` +
-    `<rect x="16" y="${y + 2}" width="268" height="2" rx="1" fill="${GULD}" stroke="none"/>`
+    `<rect x="${x}" y="${y}" width="${w}" height="9" rx="3" fill="${WOOD}" ${LINE}/>` +
+    `<rect x="${x + 4}" y="${y + 2}" width="${w - 8}" height="2" rx="1" fill="${GULD}" stroke="none"/>`
+  );
+}
+
+// --- Troféhyllan (#528) -------------------------------------------------------
+// Shoppens Troféhylla (2 500 mynt) = klassens hedershylla: sex platser i
+// guldkantade nischer med belysning. Klassens finaste pokaler ställs dit
+// automatiskt (kc-pokal-placering.js) när den står i rummet.
+const TROFE_PLAN = [118, 214];
+const TROFE_CX = [60, 120, 180];
+/** Troféhyllans sex platser (två plan à tre) i dess viewBox, ovan→ned. */
+export const KC_TROFEHYLLA_PLATSER = platser(TROFE_PLAN, TROFE_CX);
+const PLYSCH = "#7A3B5C";
+const PLYSCH_MORK = "#5E2A46";
+
+function nisch(cx, plan, opts) {
+  const x = cx - 31;
+  const y = plan - 88;
+  return (
+    `<rect x="${x}" y="${y}" width="62" height="88" rx="8" fill="${PLYSCH_MORK}" stroke="${GULD}" stroke-width="2.6"/>` +
+    `<rect x="${x + 4}" y="${y + 4}" width="54" height="80" rx="6" fill="none" stroke="${GULD_MORK}" stroke-width="1" opacity="0.7"/>` +
+    // Ljuskägla från spotlampan i nischens tak (pulserar via .kc-glod).
+    `<g${anim(opts, "kc-glod")}><path d="M${cx - 5} ${y + 6} L${cx - 27} ${plan} L${cx + 27} ${plan} L${cx + 5} ${y + 6} Z" ` +
+    `fill="${GULD_LJUS}" opacity="0.32"/></g>` +
+    `<rect x="${cx - 7}" y="${y + 1}" width="14" height="6" rx="3" fill="${GULD}" ${THIN}/>` +
+    `<ellipse cx="${cx}" cy="${plan - 1}" rx="22" ry="3" fill="${GULD_LJUS}" opacity="0.35"/>`
+  );
+}
+
+function trofehylla(opts) {
+  return (
+    `<rect x="6" y="16" width="228" height="214" rx="9" fill="${WOOD_DARK}" ${LINE}/>` +
+    `<rect x="14" y="26" width="212" height="196" rx="5" fill="${PLYSCH}" ${THIN}/>` +
+    TROFE_PLAN.map((p) => TROFE_CX.map((cx) => nisch(cx, p, opts)).join("")).join("") +
+    TROFE_PLAN.map((p) => hyllplan(p, 10, 220)).join("") +
+    // Krönlist med guldkant och medaljong (stjärna).
+    `<rect x="1" y="6" width="238" height="16" rx="6" fill="${WOOD}" ${LINE}/>` +
+    `<rect x="9" y="16" width="222" height="3" rx="1.5" fill="${GULD}" stroke="none"/>` +
+    `<ellipse cx="120" cy="9" rx="22" ry="9.5" fill="${GULD}" ${THIN}/>` +
+    stjarnaKontur(120, 9.5, 7, KRAM) +
+    // Sockel med mässingsskylt.
+    `<rect x="3" y="224" width="234" height="12" rx="5" fill="${WOOD}" ${LINE}/>` +
+    `<rect x="96" y="226.5" width="48" height="7" rx="2" fill="${GULD}" ${THIN}/>` +
+    `<path d="M104 230 L136 230" stroke="${GULD_MORK}" stroke-width="1.4" stroke-linecap="round"/>` +
+    glans("M10 30 L10 216", 1.6, 0.3) +
+    `<g${anim(opts, "kc-glitter")}>${gnistra(146, 6, 5)}</g>` +
+    `<g${anim(opts, "kc-glitter d3")}>${gnistra(20, 34, 3.6)}</g>`
   );
 }
 
@@ -62,24 +113,30 @@ export const KC_POKALER_MOBLER = {
   // Pokalhylla: väggskåp i mörkt trä med sammetsbakgrund, krönlist med
   // guldstjärna och två hyllplan à fyra platser.
   "kc-pokalhylla": {
-    viewBox: "0 0 300 214",
-    w: 11,
+    viewBox: "0 0 230 124",
+    w: 10,
     rita: (opts) =>
-      `<rect x="8" y="14" width="284" height="194" rx="8" fill="${WOOD_DARK}" ${LINE}/>` +
-      `<rect x="16" y="22" width="268" height="176" rx="4" fill="${SAMMET_MORK}" ${THIN}/>` +
-      `<path d="M16 22 L284 22 L284 32 L16 32 Z" fill="${O}" opacity="0.2"/>` +
-      `<path d="M240 22 L284 22 L284 198 L262 198 Z" fill="${SAMMET}" opacity="0.35"/>` +
+      `<rect x="8" y="14" width="214" height="104" rx="8" fill="${WOOD_DARK}" ${LINE}/>` +
+      `<rect x="16" y="22" width="198" height="86" rx="4" fill="${SAMMET_MORK}" ${THIN}/>` +
+      `<path d="M16 22 L214 22 L214 32 L16 32 Z" fill="${O}" opacity="0.2"/>` +
+      `<path d="M172 22 L214 22 L214 108 L196 108 Z" fill="${SAMMET}" opacity="0.35"/>` +
       // Krönlist med medaljong.
-      `<rect x="2" y="6" width="296" height="16" rx="6" fill="${WOOD}" ${LINE}/>` +
-      `<rect x="10" y="16" width="280" height="3" rx="1.5" fill="${GULD}" stroke="none"/>` +
-      `<ellipse cx="150" cy="9" rx="20" ry="9" fill="${GULD}" ${THIN}/>` +
-      stjarnaKontur(150, 9.5, 6.5, KRAM) +
-      hyllplan(HYLLA_PLAN[0]) +
-      hyllplan(HYLLA_PLAN[1]) +
-      // Konsoler under nedre hyllan.
-      `<path d="M30 205 L30 212 L44 205 Z M270 205 L270 212 L256 205 Z" fill="${WOOD}" ${THIN}/>` +
-      `<g${anim(opts, "kc-glitter")}>${gnistra(172, 8, 5)}</g>` +
+      `<rect x="2" y="6" width="226" height="16" rx="6" fill="${WOOD}" ${LINE}/>` +
+      `<rect x="10" y="16" width="210" height="3" rx="1.5" fill="${GULD}" stroke="none"/>` +
+      `<ellipse cx="115" cy="9" rx="20" ry="9" fill="${GULD}" ${THIN}/>` +
+      stjarnaKontur(115, 9.5, 6.5, KRAM) +
+      hyllplan(HYLLA_PLAN[0], 10, 210) +
+      // Konsoler under hyllan.
+      `<path d="M30 113 L30 120 L44 113 Z M200 113 L200 120 L186 113 Z" fill="${WOOD}" ${THIN}/>` +
+      `<g${anim(opts, "kc-glitter")}>${gnistra(137, 8, 5)}</g>` +
       `<g${anim(opts, "kc-glitter d2")}>${gnistra(30, 40, 3.6)}</g>`,
+  },
+
+  // Troféhylla (#528, shoppen): hedershyllan med sex belysta nischer.
+  "kc-trofehylla": {
+    viewBox: "0 0 240 238",
+    w: 11,
+    rita: trofehylla,
   },
 
   // Statistiktavla: informationsskärm i träram på två ben, guldskylt med

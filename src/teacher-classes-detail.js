@@ -66,6 +66,9 @@ export function createClassDetail(ctx, store) {
 
     head = { nameEl: box.querySelector(".cls-detail-name"), countEl: box.querySelector(".cls-detail-count") };
     updateHead(cls);
+    // Läsresan-milstolpar (#528): bara lärarklienten får dela ut pokalerna →
+    // kollas när klassen öppnas (dynamiskt, max var 5:e minut, aldrig kastande).
+    import("./klasscenter/kc-pokal-data.js").then((m) => m.delaUtLasresanMilstolpar(cls.id), () => {});
 
     const flash = store.flashes.get(cls.id);
     if (flash) {

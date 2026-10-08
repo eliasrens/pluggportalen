@@ -1,0 +1,29 @@
+/* Lärarsidans pokalblock (#528, teacher-class-pokaler.js). Prefix kclp-.
+   Lärarsidans mörka tema (--t-*, styles.css); reservfärgerna = samma värden. */
+.kclp-rubrik { margin: 14px 0 6px; font-size: 1rem; }
+.kclp-lasresan { font-weight: 600; }
+.kclp-form { display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.kclp-motiv-rad { display: flex; flex-wrap: wrap; gap: 8px; }
+.kclp-motiv {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 10px; border: 2px solid var(--t-border-strong, rgba(255, 255, 255, 0.16)); border-radius: 12px;
+  cursor: pointer; font-size: 0.85rem; background: var(--t-raised, #202a36); color: var(--t-text, #e7edf3);
+}
+.kclp-motiv input { position: absolute; opacity: 0; pointer-events: none; }
+.kclp-motiv:has(input:checked) { border-color: var(--t-accent, #2ec16e); background: var(--t-accent-soft, rgba(46, 193, 110, 0.14)); }
+.kclp-motiv:has(input:focus-visible) { outline: 2px solid var(--t-accent, #2ec16e); outline-offset: 2px; }
+.kclp-motiv-bild, .kclp-bild { display: block; width: 44px; height: 62px; flex: none; }
+.kclp-motiv-bild svg, .kclp-bild svg { width: 100%; height: 100%; }
+.kclp-falt { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.kclp-falt input, .kclp-falt textarea {
+  font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 10px;
+  background: var(--t-bg, #0f1419); color: var(--t-text, #e7edf3); border: 1px solid var(--t-border-strong, rgba(255, 255, 255, 0.16));
+}
+.kclp-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.kclp-rad {
+  display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px;
+  background: var(--t-raised, #202a36); border: 1px solid var(--t-border, rgba(255, 255, 255, 0.09));
+}
+.kclp-info { display: flex; flex-direction: column; flex: 1; min-width: 0; color: var(--t-text, #e7edf3); }
+.kclp-info span { font-size: 0.9rem; }
+.kclp-info small { color: var(--t-muted, #93a2b3); }

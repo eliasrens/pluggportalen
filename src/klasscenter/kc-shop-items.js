@@ -16,6 +16,7 @@
 //                (samma enhet som layoutens x/y)
 //   art          rit-nyckel för konsten (sub-issue B, art-modul)
 //   emoji        reservbild tills konsten finns
+//   beskrivning  valfri – vad föremålet GÖR (visas på shopkortet, #528)
 //
 // ⚠️ firestore.rules (KLASSCENTRET, kcPris) har en kopia av id → pris.
 // Nytt föremål = ny post här + samma rad där (+ rules-deploy).
@@ -28,7 +29,11 @@ export const KC_ZONER = Object.freeze(["golv", "vagg"]);
 
 export const KC_SHOP_ITEMS = Object.freeze([
   { id: "klassfana", namn: "Klassens fana", emoji: "🚩", targetPrice: 2000, zon: "vagg", storlek: { w: 10, h: 24 }, art: "kc-klassfana" },
-  { id: "trofehylla", namn: "Troféhylla", emoji: "🏆", targetPrice: 2500, zon: "vagg", storlek: { w: 18, h: 14 }, art: "kc-trofehylla" },
+  {
+    id: "trofehylla", namn: "Troféhylla", emoji: "🏆", targetPrice: 2500, zon: "vagg", storlek: { w: 18, h: 14 }, art: "kc-trofehylla",
+    // #528: hedershyllan – klassens 6 finaste pokaler ställs dit automatiskt.
+    beskrivning: "Klassens hedershylla! Här ställs era 6 finaste pokaler automatiskt – med guldkant och belysning. Den vanliga pokalhyllan rymmer bara 3.",
+  },
   { id: "lounge", namn: "Stor lounge-soffa", emoji: "🛋️", targetPrice: 3000, zon: "golv", storlek: { w: 26, h: 16 }, art: "kc-lounge" },
   { id: "akvarium", namn: "Akvarium", emoji: "🐠", targetPrice: 4000, zon: "golv", storlek: { w: 20, h: 20 }, art: "kc-akvarium" },
   { id: "guldstaty", namn: "Guldstaty", emoji: "🗿", targetPrice: 5000, zon: "golv", storlek: { w: 12, h: 30 }, art: "kc-guldstaty" },

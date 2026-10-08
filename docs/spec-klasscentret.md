@@ -52,6 +52,7 @@ Jämn takt, byggnadens utseende byts automatiskt, trösklar ökar exponentiellt 
 ## 6. Pokaler & statistik
 - Pokaler delas ut AUTOMATISKT när klassen vinner utmaningar (t.ex. vinnare i Mattematchen – Klasskampen när perioden avslutas, vinst i en Live-match, "Liveläge avklarat") och placeras i rummet.
 - Hover-tooltip: snygg informationsruta, t.ex. "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans."
+- #528 (Elias 2026-10-08, "man ska ju kunna vinna från olika grejer"): silver/brons i Mattematchen (plats 2/3, minst 3 klasser), Läsresan-milstolpar (100/250/500/1000 godkända texter tillsammans) och lärarens egen pokal (motiv + titel + text från lärarsidan). INGEN pokal för ny Klasscenter-nivå. Shoppens Troféhylla = hedershyllan: klassens 6 finaste pokaler ställs dit automatiskt; den gratis hyllan rymmer 3. Detaljer: DATAMODELL.md "Pokaler".
 - Statistiktavla: fast, klickbar möbel i rummet som visar klassens totala EXP, totalt antal lösta uppgifter tillsammans, progress till nästa byggnadsnivå.
 
 ## 7. Besöka andra klasser (gästläge / view-only)

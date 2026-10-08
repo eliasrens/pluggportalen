@@ -12,6 +12,8 @@
 //     (bekräftelse; blir en NY version, så den kan ångras härifrån).
 //   • Klasskassan (#526): saldo, "Lägg från klasskassan", klasskassörer och
 //     historik – i den dynamiska teacher-class-kassa.js.
+//   • Pokaler (#528): Läsresan-milstolparna, dela ut en egen pokal, klassens
+//     pokaler – i den dynamiska teacher-class-pokaler.js.
 //
 // Laddas DYNAMISKT från teacher-classes-sections.js – aldrig i den statiska
 // bootgrafen (#271). Rena delar: klasscenter/kc-larare.js.
@@ -65,6 +67,7 @@ export async function renderClassKlasscenter(ctx, cls, host, students) {
       <div class="kc-insamling"><div class="spinner">Laddar insamlingen…</div></div>
     </div>
     <div class="cls-block" data-kc="kassa"><div class="spinner">Laddar klasskassan…</div></div>
+    <div class="cls-block" data-kc="pokaler"><div class="spinner">Laddar pokalerna…</div></div>
     <div class="cls-block" data-kc="historik">
       <h3 style="${H3}">${icon("shuffle", 18)} Rummets historik</h3>
       <p class="hint">De senaste sparningarna av rummet. Har någon ställt till det kan du återställa
@@ -83,6 +86,11 @@ export async function renderClassKlasscenter(ctx, cls, host, students) {
       .then((m) => m.renderClassKassa(box.querySelector('[data-kc="kassa"]'), cls, elever, namnFor))
       .catch((err) => {
         box.querySelector('[data-kc="kassa"]').innerHTML = fel(`Kunde inte läsa klasskassan: ${err.message}`);
+      }),
+    import("./teacher-class-pokaler.js")
+      .then((m) => m.renderClassPokaler(box.querySelector('[data-kc="pokaler"]'), cls))
+      .catch((err) => {
+        box.querySelector('[data-kc="pokaler"]').innerHTML = fel(`Kunde inte läsa pokalerna: ${err.message}`);
       }),
   ]);
 }

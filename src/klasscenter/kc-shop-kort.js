@@ -125,6 +125,7 @@ export function kortHtml(item, fund, { coins = 0, bidrag = 0, bild = null, kassa
   return `<div class="shop-card kcs-kort${kopt ? " is-owned" : ""}" data-kc="${item.id}">
     <div class="kcs-bild kcs-bild-${item.zon}">${bild || `<span class="kcs-emoji">${item.emoji}</span>`}</div>
     <div class="shop-namn">${item.namn}</div>
+    ${item.beskrivning ? `<div class="kcs-beskrivning">${item.beskrivning}</div>` : ""}
     <div class="kcs-mal">Mål: ${tal(item.targetPrice)} mynt</div>
     <div class="kcs-matare">${matareHtml(fund, bidrag)}</div>
     <div class="kcs-handling">${handlingHtml(fund, coins, kassa)}</div>
