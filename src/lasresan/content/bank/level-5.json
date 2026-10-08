@@ -634,5 +634,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n5-provet",
+    "title": "Svaret i bänkens kant",
+    "level": 5,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Det var tyst i klassrummet. Det enda som hördes var pennor som skrapade mot papper och elementet som knäppte under fönstret. Filip stirrade på fråga sju i engelskaprovet. Han hade pluggat glosor hela helgen, men just det här ordet var som bortblåst.\n\nLäraren Bengt hade gått ut i korridoren för att hämta ett suddgummi åt någon. Då såg Filip det. Jesper, som satt snett framför honom, hade lagt sitt papper alldeles i kanten av bänken. Svaret på fråga sju syntes tydligt, skrivet med Jespers prydliga bokstäver.\n\nDet pirrade i magen. Det skulle bara ta en sekund, och ingen skulle märka något. Filip hade redan börjat luta sig fram när han kom att tänka på något som hans storasyster brukade säga: att ett prov är som en karta över vad man kan, och att en falsk karta bara gör att man går vilse senare.\n\nHan lutade sig tillbaka och skrev det han själv trodde var rätt, fast han inte var säker.\n\nVeckan efter delade Bengt ut proven. Filip hade fått fjorton av tjugo poäng, sämre än han hade hoppats. Men längst ner hade Bengt skrivit: ”Du blandar ihop their och there. Vi övar på dem tillsammans på fredag.”\n\nJesper hade fått nitton poäng, men han såg inte glad ut. På rasten berättade han att Bengt hade bett honom förklara vad några av orden betydde, och att han inte hade kunnat det. Han hade nämligen själv smygtittat i mobilen under provet.\n\nFilip sa ingenting. Han tänkte på den falska kartan. På fredagen stannade han kvar efter lektionen och övade tills orden satt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför var läraren inte i klassrummet en stund under provet?",
+        "options": [
+          "Han hämtade ett suddgummi åt en elev",
+          "Han hämtade en kopp kaffe i personalrummet",
+          "Han kopierade fler prov åt klassen",
+          "Han pratade med rektorn i korridoren"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många poäng fick Filip på provet?",
+        "options": [
+          "Nitton av tjugo",
+          "Fjorton av tjugo",
+          "Sjutton av tjugo",
+          "Tjugo av tjugo"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att ordet var ”som bortblåst”?",
+        "options": [
+          "Filip hade aldrig sett ordet förut",
+          "Provpappret hade blåst ner på golvet",
+          "Ordet var felstavat på provet",
+          "Filip kom inte ihåg det alls"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför lutade sig Filip tillbaka i stället för att titta?",
+        "options": [
+          "Han var rädd att Jesper skulle vända sig om",
+          "Han såg att läraren var på väg tillbaka in",
+          "Han insåg att fusk inte lär honom något",
+          "Han kom plötsligt på det rätta svaret själv"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menar storasystern med att ett prov är ”som en karta”?",
+        "options": [
+          "Man ska kunna rita kartor för att klara prov",
+          "Provet visar vägen till ett högt betyg i ämnet",
+          "Prov är lika svåra att förstå som gamla kartor",
+          "Provet visar vad man kan och vad man behöver öva på"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför såg Jesper inte glad ut trots att han fick nitton poäng?",
+        "options": [
+          "Han hade hoppats på att få alla tjugo poängen",
+          "Han hade blivit av med sin mobil",
+          "Läraren hade märkt att han inte kunde orden",
+          "Han visste att Filip hade fått mer än han"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar lärarens kommentar på Filips prov?",
+        "options": [
+          "Att Filip hade fått lägst poäng i klassen",
+          "Att läraren vill hjälpa honom med det han inte kan",
+          "Att Filip måste göra om hela provet igen på fredag",
+          "Att läraren misstänker att Filip har fuskat"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen framför allt om?",
+        "options": [
+          "Att det lönar sig att vara ärlig mot sig själv",
+          "Att engelska glosor är svåra att komma ihåg",
+          "Att man inte ska lita på sina klasskamrater",
+          "Att man alltid lyckas om man pluggar hela helgen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-novelltavlingen",
+    "title": "Den blå anteckningsboken",
+    "level": 5,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Freja skrev nästan jämt. Hon skrev på bussen, på rasterna och ibland i kanten av mattehäftet, fast hon visste att hon inte borde. Men ingen fick läsa det hon skrev. Allt samlades i en blå anteckningsbok som hon alltid hade i ryggsäcken.\n\nEn dag berättade läraren Rebecka om kommunens skrivtävling. Alla elever i årskurs fem och sex fick skicka in en novell på högst tre sidor.\n\n”Du borde vara med”, viskade Jamila. ”Du skriver ju hela tiden.”\n\nFreja skakade på huvudet. Tänk om juryn skrattade åt henne. Tänk om någon tyckte att hennes text var barnslig.\n\nÄndå kunde hon inte släppa tanken. På kvällarna skrev hon om en flicka som lagar sin morfars gamla roddbåt och ror ut på sjön en tidig morgon. Hon strök, skrev om och strök igen. Sista dagen innan tävlingen stängde stod hon länge vid brevlådan med kuvertet i handen. Till slut släppte hon ner det.\n\nFreja vann inte. Hon fick inte ens något hedersomnämnande. Men alla som hade skickat in en text blev bjudna till prisutdelningen på biblioteket. Där höll en av domarna, en författare med grått hår och röda glasögon, ett kort tal.\n\n”Vissa meningar stannar kvar i en”, sa hon. ”Som den här: Sjön låg så stilla att båten verkade ro på himlen.”\n\nFreja kände igen meningen direkt. Det var hennes egen. Hon sa ingenting till någon, men hela vägen hem log hon för sig själv. På bussen tog hon fram den blå boken och började på en ny berättelse. Den här gången skrev hon inte bara för sig själv.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var samlade Freja allt hon skrev?",
+        "options": [
+          "I en låda under sängen",
+          "I en blå anteckningsbok",
+          "I en mapp på datorn",
+          "I en pärm i klassrummet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilka blev bjudna till prisutdelningen?",
+        "options": [
+          "Bara de som fick hedersomnämnande",
+          "Alla elever i årskurs fem och sex",
+          "Alla som hade skickat in en text",
+          "Bara de tre som hade vunnit"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ville Freja först inte vara med i tävlingen?",
+        "options": [
+          "Hon var rädd för vad andra skulle tycka",
+          "Hon tyckte att tävlingar var barnsliga",
+          "Hon tyckte att tre sidor var alldeles för lite",
+          "Hon hade inte tid på grund av alla läxor"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att Freja ”inte kunde släppa tanken”?",
+        "options": [
+          "Hon berättade om tävlingen för alla",
+          "Hon glömde snabbt bort hela tävlingen",
+          "Hon bestämde sig för att inte delta",
+          "Hon fortsatte att tänka på tävlingen"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad visar det att Freja stod länge vid brevlådan?",
+        "options": [
+          "Att hon tvekade in i det sista",
+          "Att hon hade glömt frimärket på kuvertet",
+          "Att hon väntade på att Jamila skulle komma",
+          "Att hon inte hittade brevlådans öppning"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är ett hedersomnämnande, så som ordet används i texten?",
+        "options": [
+          "Att man får ett pris för att ha skrivit snabbast",
+          "Att man nämns som särskilt bra utan att vinna",
+          "Att man får vara domare nästa år",
+          "Att man får läsa upp sin text på biblioteket"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Hur kände sig Freja när domaren läste upp meningen?",
+        "options": [
+          "Arg för att domaren använde texten utan lov",
+          "Generad, eftersom alla vände sig mot henne",
+          "Besviken över att hon ändå inte hade vunnit",
+          "Glad och stolt, men hon visade det inte"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad betyder slutet, att hon ”inte bara skrev för sig själv”?",
+        "options": [
+          "Hon tänker vinna tävlingen nästa år till varje pris",
+          "Hon vill skriva en berättelse om domaren",
+          "Hon har fått mod att låta andra läsa",
+          "Hon ska skriva nästa text tillsammans med Jamila"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-lagerskolan",
+    "title": "Den randiga kudden",
+    "level": 5,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Alla i 5B hade längtat efter lägerskolan i flera veckor. Tre dagar på en lägergård i skogen, med kanoter, grillning och nattvandring med ficklampor. Albin hade också längtat. Det trodde han i alla fall.\n\nFörsta dagen gick fort. De paddlade, grillade korv över elden och spelade brännboll tills det blev mörkt. Men när lampan släcktes i stugan och de andra pojkarna började viska och fnissa, kom en tung känsla smygande. Madrassen luktade främmande, och någonstans ute i mörkret ropade en fågel med en ensam, ihålig röst.\n\nAlbin vände ansiktet mot väggen. Han saknade sin egen säng, surret från diskmaskinen och mammas röst när hon sa godnatt. Han var elva år och skämdes. Hemlängtan var väl något som bara små barn hade?\n\nHan försökte gråta så tyst som möjligt, men sängen gnisslade.\n\n”Albin?” viskade någon i sängen bredvid. Det var Rasmus, som alltid var högljudd och skämtade mest av alla i klassen. ”Jag tycker också att det är jobbigt. Jag har min kudde hemifrån i väskan. Mamma vet inte ens att jag tog med den.”\n\nAlbin vände sig om. I mörkret kunde han se att Rasmus höll om en randig kudde.\n\nDe låg och viskade om sina hem en lång stund, om hundar, om syskon som snarkade och om vad de skulle äta när de kom hem. Till slut somnade Albin utan att märka när.\n\nNästa morgon var det Albin som visade de andra var han hade sett en hackspett i en död tall. Ingen pratade om natten. Men vid frukosten skickade Rasmus smöret till honom innan han ens hade hunnit be om det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gjorde klassen den första dagen?",
+        "options": [
+          "Gick nattvandring med ficklampor och badade",
+          "Byggde kojor och fiskade i sjön",
+          "Paddlade, grillade korv och spelade brännboll",
+          "Vandrade i skogen och plockade blåbär"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade Rasmus tagit med sig i hemlighet?",
+        "options": [
+          "En bild på sin hund",
+          "Sin kudde hemifrån",
+          "En stor ficklampa",
+          "Godis till hela stugan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är hemlängtan?",
+        "options": [
+          "Att man är rädd för att vara i mörker",
+          "Att man vill flytta till ett nytt hem",
+          "Att man längtar efter att åka på läger",
+          "Att man saknar sitt hem"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför skämdes Albin?",
+        "options": [
+          "Han trodde att bara små barn längtade hem",
+          "Han hade råkat väcka alla andra i stugan",
+          "Han hade glömt att packa ner sin kudde hemma",
+          "Han hade inte vågat sitta i en kanot"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför berättade Rasmus om kudden, tror du?",
+        "options": [
+          "För att han ville skryta inför de andra",
+          "För att han ville låna ut den till Albin",
+          "För att han var rädd att någon skulle ta den",
+          "Så att Albin inte skulle känna sig ensam"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det överraskande att just Rasmus också tycker att det är jobbigt?",
+        "options": [
+          "Han har varit på lägerskola många gånger",
+          "Han brukar vara den som skämtar mest",
+          "Han är den äldsta i hela klassen",
+          "Han hade sagt att han inte gillar sin kudde"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att ”en tung känsla kom smygande”?",
+        "options": [
+          "Albin blev sakta mer och mer ledsen",
+          "Täcket kändes tungt och varmt",
+          "Någon smög in i stugan i mörkret",
+          "Albin blev plötsligt väldigt sömnig"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar slutet med smöret vid frukosten?",
+        "options": [
+          "Att alla i klassen visste vad som hade hänt",
+          "Att Albin inte vågade be om smöret själv",
+          "Att de har blivit vänner utan många ord",
+          "Att Rasmus ville be om förlåtelse för något"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-loppisen",
+    "title": "Lurvis för tio kronor",
+    "level": 5,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "En lördag i maj bar Ellen och hennes lillebror Tim ut ett fällbord till trottoaren framför huset. Hela kvarteret hade loppis, och de hade bestämt sig för att sälja allt de hade vuxit ifrån. På bordet låg pussel, böcker, en rosa cykelhjälm och en hel låda med plastdinosaurier.\n\nEllen hade skrivit prislappar på maskeringstejp. Hon hade räknat ut att de kunde tjäna minst trehundra kronor om de hade tur. Pengarna skulle de dela lika på.\n\nDet gick bättre än hon hade trott. Dinosaurierna såldes på en kvart, och en man köpte alla pusslen på en gång.\n\nLängst bak på bordet satt Lurvis, en sliten brun hund av tyg med ena örat avtuggat. Ellen hade sovit med honom varje natt tills hon var nio. Nu hade han suttit på en hylla i två år. Hon hade satt priset till tio kronor, för att visa sig själv att hon var stor.\n\nStrax efter lunch kom en flicka i fyraårsåldern gående med sin pappa. Hon stannade framför bordet och pekade.\n\n”Hunden”, sa hon. ”Han ser ledsen ut.”\n\nEllen kände ett hugg i magen. Hon ville säga att han inte var till salu. Hon ville ta honom och springa in. Men flickan höll redan om Lurvis som om hon aldrig tänkte släppa honom, och pappan räckte fram en tiokrona.\n\n”Han heter Lurvis”, sa Ellen. ”Han gillar att sova under täcket.”\n\nFlickan nickade allvarligt, som om hon hade fått ett viktigt uppdrag.\n\nPå kvällen räknade Tim pengarna. Det blev trehundrafemtio kronor. Ellen tog sin del, men hon tänkte mest på att Lurvis nu sov under ett nytt täcke. Det kändes konstigt, men inte bara sorgligt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur mycket pengar fick syskonen ihop?",
+        "options": [
+          "Trehundra kronor",
+          "Fyrahundrafemtio kronor",
+          "Tvåhundrafemtio kronor",
+          "Trehundrafemtio kronor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade Ellen skrivit prislapparna på?",
+        "options": [
+          "Små papperslappar",
+          "Maskeringstejp",
+          "Gula klisterlappar",
+          "Bordskanten med krita"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att Ellen ”kände ett hugg i magen”?",
+        "options": [
+          "Hon fick plötsligt en stark, obehaglig känsla",
+          "Hon hade ätit för fort och fick ont",
+          "Hon blev väldigt hungrig efter lunchen",
+          "Hon blev glad och förväntansfull"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför hade Ellen satt priset på Lurvis till bara tio kronor?",
+        "options": [
+          "Han var alldeles för sliten för att kosta mer",
+          "Hon ville bli av med honom snabbt",
+          "Hon ville visa sig själv att hon var stor",
+          "Tim hade bestämt alla priser på bordet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför berättade Ellen att Lurvis gillar att sova under täcket?",
+        "options": [
+          "Hon ville att pappan skulle betala mer",
+          "Hon ville få flickan att ändra sig",
+          "Pappan hade frågat hur man tvättar honom",
+          "Hon ville att han skulle få det bra hos flickan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur gammal var flickan som köpte Lurvis?",
+        "options": [
+          "Ungefär nio år",
+          "Ungefär fyra år",
+          "Ungefär två år",
+          "Ungefär tolv år"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar det att flickan nickade allvarligt?",
+        "options": [
+          "Att hon inte förstod vad Ellen sa",
+          "Att hon hellre ville ha en dinosaurie",
+          "Att hon tänkte ta väl hand om Lurvis",
+          "Att hon var lite rädd för Ellen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menas med att det kändes ”konstigt, men inte bara sorgligt”?",
+        "options": [
+          "Hon saknade Lurvis men var glad för hans skull",
+          "Ellen tyckte att Tim hade tagit för stor del",
+          "Ellen var besviken över att de inte tjänade mer",
+          "Ellen ångrade att hon hade sålt så många av sina saker"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-skarmfri-vecka",
+    "title": "Skokartongen",
+    "level": 5,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "”En vecka”, sa mamma och höll upp en skokartong. ”Alla mobiler och surfplattor åker ner här efter middagen. Min också.”\n\nKarim stirrade på henne. Pappa skrattade nervöst, och storasyster Nour himlade med ögonen så mycket att det nästan såg ut att göra ont.\n\nAllt hade börjat kvällen innan. Hela familjen hade suttit i soffan i två timmar, alla med varsin skärm, utan att någon sa ett ord. Mamma hade tittat upp och känt sig, som hon sa, ”som i ett väntrum”.\n\nDen första kvällen var fruktansvärd. Karim visste inte vad han skulle göra med händerna. Han öppnade kylskåpet fyra gånger fast han inte var hungrig. Klockan halv åtta hade han redan räknat alla ränder i taket.\n\nDen andra kvällen hittade pappa en gammal kortlek i en låda. Ingen mindes reglerna till spelet de brukade spela, så de hittade på egna. Nour fuskade så uppenbart att alla skrattade tills de fick ont i magen.\n\nDen fjärde kvällen frågade Karim pappa hur man lagar ett punkterat cykeldäck. Det tog en timme och de blev svarta om händerna, men sedan höll däcket.\n\nNär veckan var slut ställde mamma fram skokartongen på bordet. Karim tog sin mobil, tittade på den en stund och stoppade ner den i fickan utan att slå på den.\n\n”Ska vi inte spela kort?” sa han.\n\nNour himlade med ögonen igen. Men hon hämtade kortleken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför bestämde mamma att familjen skulle lägga undan skärmarna?",
+        "options": [
+          "Karim hade fått dåliga resultat på grund av mobilen",
+          "Nour hade suttit med mobilen vid middagsbordet",
+          "Familjen hade suttit tyst med varsin skärm en hel kväll",
+          "Pappa hade glömt att betala räkningen för mobilerna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad lärde sig Karim den fjärde kvällen?",
+        "options": [
+          "Att laga ett cykeldäck",
+          "Att baka bröd med mamma",
+          "Att sy fast en knapp",
+          "Att spela ett nytt kortspel"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att Nour ”himlade med ögonen”?",
+        "options": [
+          "Hon visade att hon var ledsen",
+          "Hon visade att hon tyckte att något var fånigt",
+          "Hon visade att hon var väldigt trött och sömnig",
+          "Hon tittade upp mot himlen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad menade mamma med att hon kände sig ”som i ett väntrum”?",
+        "options": [
+          "Det fanns för många människor i soffan",
+          "Hon var trött och ville gå och lägga sig",
+          "Hon väntade på att någon skulle laga mat",
+          "Alla satt tillsammans men ingen pratade"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför öppnade Karim kylskåpet fyra gånger?",
+        "options": [
+          "Han var fortfarande hungrig efter middagen",
+          "Han letade efter sin mobil",
+          "Han ville se om mamma hade gömt godis där",
+          "Han hade tråkigt och visste inte vad han skulle göra"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gjorde familjen när ingen mindes reglerna till kortspelet?",
+        "options": [
+          "De slutade spela och gick och la sig",
+          "De hittade på egna regler",
+          "De ringde farmor och frågade",
+          "De letade upp reglerna på nätet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar det att Nour hämtade kortleken i slutet?",
+        "options": [
+          "Att hon ville vinna över Karim en gång till",
+          "Att hennes mobil hade gått sönder",
+          "Att hon också hade gillat veckan",
+          "Att mamma hade bestämt att alla måste spela"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad har förändrats för Karim under veckan?",
+        "options": [
+          "Han har märkt att det är roligt att göra saker tillsammans",
+          "Han har börjat tycka om att vara ensam i sitt rum på kvällarna",
+          "Han har blivit bättre än pappa på att laga cyklar",
+          "Han har bestämt sig för att aldrig använda mobilen igen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-babyvakten",
+    "title": "Rösten i babyvakten",
+    "level": 5,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Matilda hade lånat den gamla babyvakten som föräldrarna använde när hennes lillasyster Hilma var liten. Sändaren satt fastsurrad vid fågelholken utanför fönstret, och mottagaren stod på nattduksbordet. Varje kväll hördes ett svagt kvitter.\n\nMen en kväll i oktober hördes något annat: en mansröst, mörk och lugn.\n\n”... och då sa björnen att han inte alls var trött, fast han gäspade så att granarna skakade.”\n\nMatilda satt käpprak i sängen. Fågelholken var tom, och ingen man brukade sitta i trädet och berätta sagor.\n\nNästa kväll kom rösten igen, klockan sju precis. Matilda bestämde sig för att lösa gåtan. Först vred hon på den lilla kanalratten på mottagaren. Rösten försvann och fåglarna kom tillbaka. När hon vred tillbaka hördes sagan igen. Hon mindes att pappa hade sagt att en babyvakt skickar ljud med radiovågor som bara når en kort bit, kanske några hus bort.\n\nRösten måste alltså komma från någon i närheten som hade en likadan apparat på samma kanal.\n\nDen tredje kvällen fick hon nästa ledtråd. Mitt i sagan började ett litet barn skrika, och mannen sa: ”Sch, sch, lilla Lo.” Matilda visste bara om ett hus med en bebis: familjen som hade flyttat in i det gula huset bredvid i somras.\n\nDagen efter ringde hon på där. En gammal man i rutig skjorta öppnade. Han var morfar till bebisen och bodde hos familjen några veckor.\n\n”Så du har hört alla mina sagor”, sa han och skrattade när hon förklarade. ”Vad tyckte du om björnen?”\n\nSedan dess vrider Matilda om kanalratten varje kväll klockan sju. Fåglarna får vänta.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför satt babyvaktens sändare vid fågelholken?",
+        "options": [
+          "Pappa ville prova om apparaten fungerade",
+          "Matilda ville lyssna på fåglarna",
+          "Matilda ville spela in sagor på kvällen",
+          "Föräldrarna ville höra Hilma leka ute"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hände när Matilda vred på kanalratten?",
+        "options": [
+          "Babyvakten tystnade och slutade fungera helt",
+          "Rösten blev starkare och tydligare",
+          "Rösten försvann och fåglarna hördes igen",
+          "Hon hörde en bebis som skrek"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var det viktigt att radiovågorna bara når en kort bit?",
+        "options": [
+          "Det visade att rösten kom från ett hus i närheten",
+          "Det visade att babyvakten var trasig",
+          "Det visade att mannen satt ute i trädet",
+          "Det visade att sagan var inspelad i förväg"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att Matilda satt ”käpprak” i sängen?",
+        "options": [
+          "Hon satt lutad mot väggen",
+          "Hon låg hopkrupen under täcket",
+          "Hon satt och halvsov",
+          "Hon satt alldeles rak i ryggen"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vilken ledtråd fick Matilda att tänka på det gula huset?",
+        "options": [
+          "Ett litet barn började skrika under sagan",
+          "Mannen nämnde husets färg i sagan",
+          "Rösten hördes bara på morgnarna",
+          "Hon såg en gammal man i grannhusets fönster"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vem var det som berättade sagorna?",
+        "options": [
+          "Matildas egen morfar",
+          "Bebisens pappa",
+          "Bebisens morfar",
+          "En man på radion"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med den sista meningen, ”Fåglarna får vänta”?",
+        "options": [
+          "Hon ska sätta upp en ny fågelholk senare",
+          "Hon lyssnar hellre på sagorna än på fåglarna",
+          "Fåglarna har flyttat söderut för vintern",
+          "Fåglarna kvittrar först efter klockan sju"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Hur löste Matilda gåtan?",
+        "options": [
+          "Hon knackade på i alla hus på gatan",
+          "Hon fick veta svaret av en ren slump",
+          "Hon frågade föräldrarna, som visste svaret",
+          "Hon samlade ledtrådar och drog slutsatser"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
