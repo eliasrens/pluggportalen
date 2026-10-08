@@ -4953,11 +4953,17 @@ body.varld-lage .container {
 .kc-bubbla { animation: kc-bubbla 2.8s ease-in infinite; }
 .kc-bubbla.d2 { animation-delay: -1.4s; }
 @keyframes kc-bubbla { 0% { transform: translateY(8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-26px); opacity: 0; } }
+/* Klasscentrets statistiktavla (#496, art-klasscenter-pokaler-mobler.js): "klicka
+   mig"-affordans = glöd bakom ramen som andas + bricka som guppar. */
+.kc-glod { animation: kc-glod 2.4s ease-in-out infinite alternate; }
+@keyframes kc-glod { from { opacity: 0.25; } to { opacity: 1; } }
+.kc-guppa { animation: kc-guppa 1.8s ease-in-out infinite alternate; }
+@keyframes kc-guppa { from { transform: translateY(0); } to { transform: translateY(-3px); } }
 
 @media (prefers-reduced-motion: reduce) {
   .hus-moln, .hus-solstralar, .hus-rok,
   .kc-flamma, .kc-fana, .kc-glitter, .kc-svava, .kc-blink,
-  .kc-pendel, .kc-vatten, .kc-kaskad, .kc-fisk, .kc-bubbla { animation: none; }
+  .kc-pendel, .kc-vatten, .kc-kaskad, .kc-fisk, .kc-bubbla, .kc-glod, .kc-guppa { animation: none; }
   .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, #laggard-dorr, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
 }
 
