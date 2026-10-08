@@ -42,9 +42,12 @@ test("elever + genitiv", () => {
 test("startLevelInfo: standard 4 när inget är satt, annars klassens", () => {
   assert.deepEqual(startLevelInfo({}), { level: 4, isDefault: true, text: "Nivå 4 (standard)" });
   assert.deepEqual(startLevelInfo(null), { level: 4, isDefault: true, text: "Nivå 4 (standard)" });
-  assert.deepEqual(startLevelInfo({ lasresaStartLevel: 1 }), { level: 1, isDefault: false, text: "Nivå 1" });
+  const ny = (lvl) => ({ lasresaStartLevel10: lvl, lasresaStartLevel: Math.min(7, Math.max(1, lvl - 3)) });
+  assert.deepEqual(startLevelInfo(ny(1)), { level: 1, isDefault: false, text: "Nivå 1" });
   assert.equal(startLevelInfo({ lasresaStartLevel: 11 }).text, "Nivå 4 (standard)");
-  assert.equal(startLevelInfo({ lasresaStartLevel: 9 }).text, "Nivå 9");
+  assert.equal(startLevelInfo(ny(9)).text, "Nivå 9");
+  // Gammalt sparat värde (gammal skala, #519) visas +3.
+  assert.equal(startLevelInfo({ lasresaStartLevel: 3 }).text, "Nivå 6");
 });
 
 test("classStudentIds: bara kända elever, inga dubbletter", () => {

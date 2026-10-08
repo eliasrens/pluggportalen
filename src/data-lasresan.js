@@ -15,6 +15,11 @@
 // och försöket sparas i stället i studentData.lasresaAttemptsFallback (de
 // senaste FALLBACK_ATTEMPTS_MAX). Progression, nivå och pengar påverkas inte.
 // listAttempts läser båda källorna.
+//
+// NIVÅSKALA 1–10 (#519): lasresa skrivs ALLTID via toStoredLasresa (ny skala
+// i level10/pendingLevel10, spegel i gammal skala i level/pendingLevel – så
+// att gamla cachade klienter inte kan klampa den). Läsning migrerar lat via
+// normalizeLasresa; försök normaliseras i listAttempts (gammal textLevel +3).
 // ============================================================================
 
 import { db } from "./firebase-config.js";
@@ -36,6 +41,7 @@ import {
   applyCompletion,
 } from "./lasresan/progress.js";
 import { award } from "./lasresan/rewards.js";
+import { normalizeAttempt, toStoredLasresa } from "./lasresan/level-scale.js";
 import { getStudentStartLevel } from "./data-lasresan-niva.js";
 import { WORLDS } from "./lasresan/worlds/index.js";
 
@@ -53,7 +59,7 @@ const isPermissionDenied = (err) =>
 
 /**
  * Elevens Läsresan-tillstånd. Saknas fältet → ny elev (Skogen, steg 0, på
- * klassens startnivå, #505 – annars nivå 3).
+ * klassens startnivå, #505 – annars nivå 4).
  * OBS: innehåller den DOLDA nivån – visa aldrig `level` för eleven.
  */
 export async function getLasresa(studentId = currentStudentId()) {
@@ -82,8 +88,9 @@ export async function startText(textId, studentId = currentStudentId(), { force 
     const cur = normalizeLasresa(sd && sd.lasresa, WORLDS, { startLevel });
     const out = withStartedText(cur, textId, Date.now(), { force });
     if (!out.resumed) {
-      if (snap.exists()) tx.update(ref, { lasresa: out.lasresa });
-      else tx.set(ref, { ...defaultStudentData(), lasresa: out.lasresa });
+      const lasresa = toStoredLasresa(out.lasresa);
+      if (snap.exists()) tx.update(ref, { lasresa });
+      else tx.set(ref, { ...defaultStudentData(), lasresa });
     }
     return { textId: out.textId, resumed: out.resumed };
   });
@@ -110,7 +117,7 @@ function completeTx(ref, studentId, text, answers, completedAt, withSubcollectio
       studentId,
     });
     const { lasresa, journey } = applyCompletion(cur, attempt, WORLDS, completedAt);
-    const patch = { lasresa };
+    const patch = { lasresa: toStoredLasresa(lasresa) };
     if (withSubcollection) {
       tx.set(doc(collection(ref, ATTEMPTS_SUBCOLLECTION)), attempt);
     } else {
@@ -182,6 +189,7 @@ export async function completeText({ text, answers }, studentId = currentStudent
 /**
  * Elevens senaste försök (nyast först). Läser lasresaAttempts och fallback-
  * fältet i studentData; nekad/saknad subkollektion ger bara fallbacken.
+ * textLevel är alltid på skalan 1–10 (gamla försök flyttas +3, #519).
  */
 export async function listAttempts(studentId = currentStudentId(), max = 20) {
   requireId(studentId);
@@ -205,7 +213,10 @@ export async function listAttempts(studentId = currentStudentId(), max = 20) {
   } catch (err) {
     console.warn("[Läsresan] kunde inte läsa fallback-försök", err);
   }
-  return out.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0)).slice(0, max);
+  return out
+    .map(normalizeAttempt)
+    .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
+    .slice(0, max);
 }
 
 /**

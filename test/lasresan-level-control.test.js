@@ -63,7 +63,8 @@ test("withTeacherLevel avvisar ogiltig nivå (kastar), startnivå normaliseras t
   assert.equal(effectiveStartLevel(11), START_LEVEL);
   assert.equal(effectiveStartLevel(10), 10);
   assert.equal(effectiveStartLevel("1"), 1);
-  assert.equal(classStartLevelOf({ lasresaStartLevel: 2 }), 2);
+  assert.equal(classStartLevelOf({ lasresaStartLevel10: 2, lasresaStartLevel: 1 }), 2);
+  assert.equal(classStartLevelOf({ lasresaStartLevel: 2 }), 5); // gammal skala (#519)
   assert.equal(classStartLevelOf({}), null);
   assert.equal(classStartLevelOf(null), null);
 });

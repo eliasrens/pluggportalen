@@ -12,7 +12,8 @@
 //         gamla nivån och nivån byts när den är klar (progress.applyCompletion)
 //     Inget annat fält rörs (resultat, sedda texter, totaler, världar, pengar).
 //     Efteråt fortsätter den vanliga automatiska progressionen (level.js).
-//   * KLASSENS STARTNIVÅ (classes/{id}.lasresaStartLevel): ersätter START_LEVEL
+//   * KLASSENS STARTNIVÅ (classes/{id}.lasresaStartLevel10 + spegeln
+//     lasresaStartLevel i gammal skala, #519 – se level-scale.js): ersätter START_LEVEL
 //     för elever som INTE har börjat. "Inte börjat" = studentData.lasresa
 //     saknas helt. Läsresans objekt skapas först när eleven startar sin första
 //     text (startText) eller när läraren sätter en individuell nivå – därefter
@@ -21,6 +22,7 @@
 // ============================================================================
 
 import { LEVEL_MIN, LEVEL_MAX, START_LEVEL } from "./config.js";
+import { readClassStartLevel } from "./level-scale.js";
 
 /** Vem som senast satte nivån manuellt (studentData.lasresa.levelSetBy). */
 export const LEVEL_SET_BY_TEACHER = "teacher";
@@ -44,9 +46,13 @@ export function effectiveStartLevel(classStartLevel) {
   return parseTeacherLevel(classStartLevel) ?? START_LEVEL;
 }
 
-/** Startnivån ur ett klassdokument ({ lasresaStartLevel? }) – null = ej satt. */
+/**
+ * Startnivån (1–10) ur ett klassdokument – null = ej satt. Lagras som
+ * lasresaStartLevel10 + spegeln lasresaStartLevel (gammal skala); ett gammalt
+ * värde utan det nya fältet flyttas +3 (#519, level-scale.readClassStartLevel).
+ */
 export function classStartLevelOf(classDoc) {
-  return parseTeacherLevel(classDoc && classDoc.lasresaStartLevel);
+  return readClassStartLevel(classDoc);
 }
 
 /**

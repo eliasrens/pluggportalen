@@ -13,7 +13,8 @@ import {
   collection, connectFirestoreEmulator, doc, getDoc, getDocs, getFirestore, runTransaction,
 } from "firebase/firestore";
 import { normalizeLasresa, withStartedText, applyCompletion, buildAttempt } from "../src/lasresan/progress.js";
-import { withTeacherLevel, effectiveStartLevel } from "../src/lasresan/level-control.js";
+import { withTeacherLevel, effectiveStartLevel, classStartLevelOf } from "../src/lasresan/level-control.js";
+import { toStoredLasresa } from "../src/lasresan/level-scale.js";
 import { pickText } from "../src/lasresan/picker.js";
 import { coinsFor } from "../src/lasresan/rewards.js";
 import { WORLDS } from "../src/lasresan/worlds/index.js";
@@ -54,7 +55,7 @@ export const larare = () => som("qalarare", "qalarare@larare.pluggportalen.local
 export async function startnivaFor(db, uid) {
   const snap = await getDocs(collection(db, "classes"));
   const cls = snap.docs.map((d) => d.data()).find((c) => Array.isArray(c.studentIds) && c.studentIds.includes(uid));
-  return effectiveStartLevel(cls && cls.lasresaStartLevel);
+  return effectiveStartLevel(classStartLevelOf(cls));
 }
 
 // Läraren: setStudentLevel (data-lasresan-niva.js) – EN transaktion.
@@ -64,8 +65,8 @@ export async function sattNiva(db, uid, level) {
     const snap = await tx.get(ref);
     const sd = snap.exists() ? snap.data() : null;
     const out = withTeacherLevel(normalizeLasresa(sd && sd.lasresa, WORLDS), level, Date.now());
-    if (snap.exists()) tx.update(ref, { lasresa: out.lasresa });
-    else tx.set(ref, { coins: 0, progress: {}, lasresa: out.lasresa });
+    if (snap.exists()) tx.update(ref, { lasresa: toStoredLasresa(out.lasresa) });
+    else tx.set(ref, { coins: 0, progress: {}, lasresa: toStoredLasresa(out.lasresa) });
     return out.applied;
   });
 }
@@ -90,7 +91,7 @@ export async function nastaText(db, uid) {
     const sd = snap.exists() ? snap.data() : null;
     const cur = normalizeLasresa(sd && sd.lasresa, WORLDS, { startLevel });
     const out = withStartedText(cur, picked.id, Date.now(), { force: !!lr.currentTextId });
-    if (!out.resumed) tx.update(ref, { lasresa: out.lasresa });
+    if (!out.resumed) tx.update(ref, { lasresa: toStoredLasresa(out.lasresa) });
   });
   return { text: picked, resumed: false, lr };
 }
@@ -111,7 +112,7 @@ export async function lasKlart(db, uid, text, ratt) {
     const attempt = buildAttempt(text, svar(text, ratt), { startedAt: cur.currentStartedAt, completedAt: now, studentId: uid });
     const { lasresa } = applyCompletion(cur, attempt, WORLDS, now);
     tx.set(doc(collection(ref, "lasresaAttempts")), attempt);
-    tx.update(ref, { lasresa });
+    tx.update(ref, { lasresa: toStoredLasresa(lasresa) });
     return { ok: true, attempt, lasresa };
   });
   if (res.ok) {

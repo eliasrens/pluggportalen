@@ -4,8 +4,11 @@
 // Tunn brygga ovanpå den rena kärnan src/lasresan/level-control.js:
 //   studentData/{id}.lasresa.{level, pendingLevel, levelSetAt, levelSetBy}
 //                                    – elevens nivå (EN transaktion per elev)
-//   classes/{id}.lasresaStartLevel   – klassens startnivå (heltal 1–7, eller
-//                                      saknas = START_LEVEL)
+//   classes/{id}.lasresaStartLevel10 – klassens startnivå (heltal 1–10, eller
+//                                      saknas = START_LEVEL) + spegeln
+//                                      lasresaStartLevel (gammal skala 1–7)
+// Nivåskala 1–10 (#519): ny skala i nya fält, gamla fält = spegel som gamla
+// cachade klienter läser/skriver ofarligt – se src/lasresan/level-scale.js.
 // Se docs/LASRESAN.md "Lärarstyrd nivå" + docs/DATAMODELL.md.
 //
 // Behörighet ligger i firestore.rules: studentData skrivs bara av eleven själv
@@ -33,9 +36,15 @@ import {
   withTeacherLevel,
 } from "./lasresan/level-control.js";
 import { LEVEL_MIN, LEVEL_MAX } from "./lasresan/config.js";
+import {
+  CLASS_START_LEVEL_FIELD,
+  CLASS_START_LEVEL_LEGACY_FIELD,
+  classStartLevelFields,
+  toStoredLasresa,
+} from "./lasresan/level-scale.js";
 import { WORLDS } from "./lasresan/worlds/index.js";
 
-export const CLASS_START_LEVEL_FIELD = "lasresaStartLevel";
+export { CLASS_START_LEVEL_FIELD };
 
 function requireLevel(level) {
   const lvl = parseTeacherLevel(level);
@@ -60,8 +69,9 @@ export async function setStudentLevel(studentId, level) {
     const sd = snap.exists() ? snap.data() : null;
     const cur = normalizeLasresa(sd && sd.lasresa, WORLDS);
     const out = withTeacherLevel(cur, lvl, Date.now());
-    if (snap.exists()) tx.update(ref, { lasresa: out.lasresa });
-    else tx.set(ref, { ...defaultStudentData(), lasresa: out.lasresa });
+    const lasresa = toStoredLasresa(out.lasresa);
+    if (snap.exists()) tx.update(ref, { lasresa });
+    else tx.set(ref, { ...defaultStudentData(), lasresa });
     return out.applied;
   });
   invalidateStudentData(studentId);
@@ -103,7 +113,7 @@ export async function setClassLevel(classIdOrStudentIds, level) {
   return out;
 }
 
-/** Klassens startnivå (1–7), eller null om den inte är satt (→ START_LEVEL). */
+/** Klassens startnivå (1–10), eller null om den inte är satt (→ START_LEVEL). */
 export async function getClassStartLevel(classId) {
   if (!classId) return null;
   const snap = await getDoc(doc(db, "classes", classId));
@@ -113,17 +123,19 @@ export async function getClassStartLevel(classId) {
 /**
  * Sätt klassens startnivå (lärare). Gäller elever som inte har börjat Läsresan
  * och nya elever – INTE elever som redan är igång (använd setClassLevel för
- * dem). `level` null → fältet tas bort (tillbaka till START_LEVEL).
+ * dem). `level` null → fälten tas bort (tillbaka till START_LEVEL).
+ * Skriver lasresaStartLevel10 + spegeln lasresaStartLevel (1–7), så det
+ * fungerar även innan de nya reglerna är deployade (#519).
  * @returns {Promise<number|null>} sparad nivå (null = borttagen)
  */
 export async function setClassStartLevel(classId, level) {
   if (!classId) throw new Error("classId saknas.");
   const lvl = level == null ? null : requireLevel(level);
-  await setDoc(
-    doc(db, "classes", classId),
-    { [CLASS_START_LEVEL_FIELD]: lvl === null ? deleteField() : lvl },
-    { merge: true }
-  );
+  const fields =
+    lvl === null
+      ? { [CLASS_START_LEVEL_FIELD]: deleteField(), [CLASS_START_LEVEL_LEGACY_FIELD]: deleteField() }
+      : classStartLevelFields(lvl);
+  await setDoc(doc(db, "classes", classId), fields, { merge: true });
   clearClassCache();
   return lvl;
 }
@@ -136,7 +148,7 @@ export async function setClassStartLevel(classId, level) {
 export async function getStudentStartLevel(studentId = currentStudentId()) {
   try {
     const cls = studentId ? await getClassForStudent(studentId) : null;
-    return effectiveStartLevel(cls && cls[CLASS_START_LEVEL_FIELD]);
+    return effectiveStartLevel(classStartLevelOf(cls));
   } catch (err) {
     console.warn("[Läsresan] kunde inte läsa klassens startnivå", err);
     return effectiveStartLevel(null);
