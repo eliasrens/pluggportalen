@@ -5,6 +5,8 @@
 //   proj-lobby.js   lobby + STARTA MATCH       proj-rocket.js  VY 1 Raketrace
 //   proj-stats.js   VY 2 Statistik (exakt)     proj-tug.js     VY 3 Dragkamp
 //   proj-winner.js  vinnarskärm + konfetti     proj-sound.js   ljud på/av
+//   trollkarl/      VY 4 Trollkarlsduellen (#536) – laddas LATT (import()),
+//                   äger sin egen final + resultatskärm (finale: true)
 //
 // GEMENSAMT (Firestore, live-feed.js): status, start, timer, poäng, avslut.
 // LOKALT per webbläsare (localStorage): vyval pp:live:vy, ljud pp:live:ljud –
@@ -22,7 +24,10 @@
 //
 // API: mountProjector(ctx, sid, { cleanups, uid, deps?, screen? }) → Promise
 //   deps (för förhandsvisning/test; default = riktiga Firestore-lagret):
-//     { subscribe(sid, cb, opts), now(), start(sid), finish(sid), setDivisor(sid, cid, n) }
+//     { subscribe(sid, cb, opts), now(), start(sid), finish(sid), setDivisor(sid, cid, n),
+//       setWizards?(sid, map) }
+// VIEWS-post: { id, label, create(host, { st, colors, sound }) → { update, destroy },
+//   only2?: bara två klasser, finale?: vyn visar själv slutet (ingen proj-winner) }
 //   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
 // ============================================================================
 
@@ -41,10 +46,37 @@ import { createScreenControl } from "./elevskarm-panel.js";
 import { createScreenChrome } from "./elevskarm-skarm.js";
 
 const VIEW_KEY = "pp:live:vy";
+const loadTrollkarl = () => import("./trollkarl/trollkarl-vy.js");
+
+// Lat vy: modulen hämtas först när vyn väljs (inga nya filer i bootgrafen).
+// Senaste st buffras medan den laddar.
+function lazyView(load, name) {
+  return (host, opts) => {
+    let ui = null;
+    let last = opts.st;
+    let dead = false;
+    host.innerHTML = `<div class="lp-wait">Laddar…</div>`;
+    load().then((m) => {
+      if (!dead) ui = m[name](host, { ...opts, st: last });
+    }).catch((err) => {
+      if (dead) return;
+      const w = document.createElement("div");
+      w.className = "lp-wait";
+      w.textContent = `Vyn kunde inte laddas (${err?.message || err}). Välj en annan vy eller ladda om sidan.`;
+      host.replaceChildren(w);
+    });
+    return {
+      update(st) { last = st; ui?.update(st); },
+      destroy() { dead = true; ui?.destroy(); },
+    };
+  };
+}
+
 const VIEWS = [
   { id: "raket", label: "🚀 Raketrace", create: createRocketView },
   { id: "statistik", label: "📊 Statistik", create: createStatsView },
   { id: "dragkamp", label: "🪢 Dragkamp", create: createTugView, only2: true },
+  { id: "trollkarl", label: "🧙 Trollkarlsduellen", create: lazyView(loadTrollkarl, "createTrollkarlView"), only2: true, finale: true },
 ];
 // En vinnarskärm som visas inom så här lång tid efter slutet får konfetti.
 const CELEBRATE_MS = 3 * 60_000;
@@ -57,6 +89,7 @@ async function realDeps() {
     start: data.startLiveSession,
     finish: data.finishLiveSession,
     setDivisor: data.setClassDivisor,
+    setWizards: data.setLiveWizards,
   };
 }
 
@@ -113,6 +146,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     start: () => { sound.unlock(); return d.start(sid); },
     cancel: () => d.finish(sid),
     setDivisor: (cid, n) => d.setDivisor(sid, cid, n),
+    setWizards: d.setWizards ? (map) => d.setWizards(sid, map) : null,
   };
 
   // --- Verktygsraden -------------------------------------------------------
@@ -238,11 +272,16 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     }
     prevTotal = st.totalCorrect;
     if ((phase === "ended" || phase === "finished") && prevPhase === "live") sound.end();
-    if (phase === "finished" && prevPhase && prevPhase !== "finished" && sawLive) setTimeout(() => sound.win(), 900);
+    if (phase === "finished" && prevPhase && prevPhase !== "finished" && sawLive && !ownsFinale()) setTimeout(() => sound.win(), 900);
     if (phase === "ended" && !overlay.querySelector(".lp-ended")) {
       overlay.innerHTML = `<div class="lp-ended">⏱ TIDEN ÄR UTE!</div>`;
     } else if (phase !== "ended") overlay.querySelector(".lp-ended")?.remove();
     prevPhase = phase;
+  }
+
+  // Vyn spelar själv matchslutet (Trollkarlsduellen) i stället för proj-winner.
+  function ownsFinale() {
+    return !!VIEWS.find((v) => v.id === viewId)?.finale && availableViews().some((v) => v.id === viewId);
   }
 
   function mountKind(kind, key, build) {
@@ -262,14 +301,19 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     s.participatingClassIds.forEach((id, i) => { colors[id] = classColor(i); });
     $("[data-name]").textContent = `· ${s.name}`;
     const phase = st.phase;
-    const game = phase === "countdown" || phase === "live" || phase === "ended";
-    const kind = phase === "lobby" ? "lobby" : phase === "finished" ? "winner" : phase === "cancelled" ? "cancelled" : "game";
-    if (game && !availableViews().some((v) => v.id === viewId)) viewId = "raket";
+    const playing = phase === "countdown" || phase === "live" || phase === "ended";
+    const ownEnd = phase === "finished" && ownsFinale();
+    const game = playing || ownEnd;
+    const kind = phase === "lobby" ? "lobby" : phase === "finished" && !ownEnd ? "winner" : phase === "cancelled" ? "cancelled" : "game";
+    if (playing && !availableViews().some((v) => v.id === viewId)) viewId = "raket";
     const key = game ? `${viewId}|${s.participatingClassIds.join(",")}` : kind;
+    // Lobbyn med två klasser och Trollkarlsduellen vald: förladda vyn (§17).
+    if (kind === "lobby" && viewId === "trollkarl" && st.classes.length === 2) loadTrollkarl().catch(() => {});
 
+    // Efter slutet i en vy med egen final: vyflikarna kvar (annan vy = vanliga vinnarskärmen).
     $(".lp-views").hidden = !game;
-    $("[data-end]").hidden = !game;
-    $(".lp-timer").hidden = !game;
+    $("[data-end]").hidden = !playing;
+    $(".lp-timer").hidden = !playing;
     root.dataset.kind = game ? viewId : kind;
     root.querySelectorAll("[data-view]").forEach((b) => {
       b.hidden = !availableViews().some((v) => v.id === b.dataset.view);
@@ -282,7 +326,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
         mountKind(kind, key, () => createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen }));
       } else if (kind === "game") {
         const v = VIEWS.find((x) => x.id === viewId);
-        mountKind(kind, key, () => v.create(stage, { st, colors }));
+        mountKind(kind, key, () => v.create(stage, { st, colors, sound }));
       } else if (kind === "winner") {
         const fin = toMs(s.finishedAt);
         const celebrate = sawLive || (fin != null && d.now() - fin < CELEBRATE_MS);
