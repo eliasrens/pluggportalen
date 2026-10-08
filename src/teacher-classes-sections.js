@@ -130,7 +130,9 @@ export const CLASS_SECTIONS = [
         .map((id) => students.find((s) => s.id === id))
         .filter(Boolean);
       const studentById = new Map(students.map((s) => [s.id, s]));
-      await renderClassStats(ctx, host, { students: classStudents, subjects, studentById, loadAreas, classId: cls.id, cls });
+      await renderClassStats(ctx, host, {
+        students: classStudents, subjects, studentById, loadAreas, classId: cls.id, cls, classes: store.sorted(),
+      });
     },
   },
 ];
