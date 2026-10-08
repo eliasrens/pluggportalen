@@ -103,15 +103,15 @@
       },
       {
         "id": "q4",
-        "question": "Lola viftar på svansen. Vad betyder viftar?",
+        "question": "Vad gör Lola med svansen?",
         "options": [
           "Gömmer den",
           "Biter i den",
-          "Rör den fort",
+          "Viftar med den",
           "Håller den still"
         ],
         "answerIndex": 2,
-        "category": "ordforstaelse"
+        "category": "fakta"
       }
     ]
   },
@@ -219,15 +219,15 @@
       },
       {
         "id": "q4",
-        "question": "De bygger tillsammans. Vad betyder tillsammans?",
+        "question": "Vad gör Lukas när Theo säger förlåt?",
         "options": [
-          "Var för sig",
-          "Med varandra",
-          "Mycket fort",
-          "Väldigt tyst"
+          "Han gråter",
+          "Han ler",
+          "Han går hem",
+          "Han somnar"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
+        "category": "fakta"
       }
     ]
   },
@@ -311,15 +311,15 @@
       },
       {
         "id": "q3",
-        "question": "Alla i laget jublar. Vad betyder jublar?",
+        "question": "Vem jublar mest?",
         "options": [
-          "Gråter tyst",
-          "Ropar av glädje",
-          "Går hem",
-          "Blir arga"
+          "Tränaren",
+          "Zakaria",
+          "Mamma",
+          "Målvakten"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
+        "category": "fakta"
       },
       {
         "id": "q4",
@@ -473,15 +473,15 @@
       },
       {
         "id": "q4",
-        "question": "Diana fnissar. Vad betyder fnissar?",
+        "question": "Vad har Diana runt munnen?",
         "options": [
-          "Gråter mycket",
-          "Skrattar lite",
-          "Pratar högt",
-          "Somnar fort"
+          "Sylt",
+          "Choklad",
+          "Glass",
+          "Mjölk"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
+        "category": "fakta"
       }
     ]
   },
@@ -1105,7 +1105,7 @@
     "level": 1,
     "textType": "fact",
     "topic": "djur",
-    "body": "Ugglan är en fågel. Den är vaken på natten. På dagen sover den.\n\nUgglan har stora ögon. Den ser bra i mörker.\n\nUgglan kan vrida huvudet långt bakåt.\n\nUgglan flyger helt tyst. Den fångar möss.\n\nUgglan säger ”hoo, hoo”.",
+    "body": "Ugglan är en fågel. Den är vaken på natten. På dagen sover den.\n\nUgglan har stora ögon. Den ser bra i mörker.\n\nUgglan kan vrida huvudet långt bakåt.\n\nUgglan flyger helt tyst. Den fångar möss.\n\nUgglan säger ”hu, hu”.",
     "questions": [
       {
         "id": "q1",
@@ -1149,7 +1149,7 @@
         "options": [
           "Kvitt, kvitt",
           "Kra, kra",
-          "Hoo, hoo",
+          "Hu, hu",
           "Pip, pip"
         ],
         "answerIndex": 2,
@@ -1353,15 +1353,15 @@
       },
       {
         "id": "q3",
-        "question": "Ögonen blir fuktiga. Vad betyder fuktiga?",
+        "question": "Vad gör vi många gånger varje minut?",
         "options": [
-          "Väldigt torra",
-          "Mycket varma",
-          "Helt stängda",
-          "Lite blöta"
+          "Gäspar",
+          "Nyser",
+          "Hostar",
+          "Blinkar"
         ],
         "answerIndex": 3,
-        "category": "ordforstaelse"
+        "category": "fakta"
       },
       {
         "id": "q4",
@@ -1441,7 +1441,7 @@
     "level": 1,
     "textType": "fact",
     "topic": "teknik",
-    "body": "Brandbilen är stor och röd. Den har en lång stege på taket.\n\nBrandbilen har också en slang. Med slangen sprutar de vatten på elden.\n\nNär brandbilen kör fort låter det ”ijo, ijo”. Det är sirenen.\n\nDå flyttar sig alla andra bilar.",
+    "body": "Brandbilen är stor och röd. Den har en lång stege på taket.\n\nBrandbilen har också en slang. Ur slangen sprutar vatten på elden.\n\nNär brandbilen kör fort låter det ”ijo, ijo”. Det är sirenen.\n\nDå flyttar sig alla andra bilar.",
     "questions": [
       {
         "id": "q1",
@@ -1469,7 +1469,7 @@
       },
       {
         "id": "q3",
-        "question": "Vad sprutar de på elden?",
+        "question": "Vad sprutar ur slangen?",
         "options": [
           "Vatten",
           "Sand",
@@ -1655,15 +1655,15 @@
       },
       {
         "id": "q4",
-        "question": "Telefonen såg annorlunda ut. Vad betyder annorlunda?",
+        "question": "Var får mobilerna plats?",
         "options": [
-          "Inte likadan",
-          "Väldigt dyr",
-          "Mycket ny",
-          "Alldeles ren"
+          "I fickan",
+          "I väggen",
+          "I lådan",
+          "I bilen"
         ],
         "answerIndex": 0,
-        "category": "ordforstaelse"
+        "category": "fakta"
       }
     ]
   }

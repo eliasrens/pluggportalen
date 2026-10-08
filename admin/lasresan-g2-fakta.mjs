@@ -11,8 +11,8 @@ export const FAKTA = [
   {
     id: "lr-g2-fjarilen", title: "Från larv till fjäril", textType: "fact", topic: "djur",
     body: [
-      "En fjäril börjar sitt liv som ett litet ägg på ett blad.",
-      "Ur ägget kryper en larv. Larven äter och äter. Den äter blad hela dagarna och blir större och större.",
+      "En fjäril börjar sitt liv som ett litet ägg. Ägget ligger på ett blad.",
+      "Ur ägget kryper en larv. Larven äter och äter. Den äter blad hela dagarna. Den blir större och större.",
       "Sedan gör larven ett hårt skal runt sig själv. Nu kallas den puppa. Puppan ser ut att sova, men inuti händer mycket.",
       "Efter några veckor spricker skalet. Ut kommer en fjäril med blöta vingar. När vingarna har torkat flyger den iväg.",
     ],
@@ -27,9 +27,9 @@ export const FAKTA = [
   {
     id: "lr-g2-skoldpaddan", title: "Huset på ryggen", textType: "fact", topic: "djur",
     body: [
-      "En sköldpadda har ett hårt skal på ryggen. Skalet är som ett hus som den alltid bär med sig.",
-      "Om sköldpaddan blir rädd drar den in huvudet och benen i skalet. Då är den skyddad.",
-      "Sköldpaddor som lever på land går mycket långsamt. De äter gräs, blad och blommor. De har inga tänder, men munnen är vass som en näbb.",
+      "En sköldpadda har ett hårt skal på ryggen. Skalet är som ett hus. Det bär den alltid med sig.",
+      "Ibland blir sköldpaddan rädd. Då drar den in huvudet och benen i skalet. Nu är den skyddad.",
+      "Sköldpaddor som lever på land går mycket långsamt. De äter gräs, blad och blommor. De har inga tänder. Men munnen är vass som en näbb.",
       "Sköldpaddor kan bli väldigt gamla. Vissa lever i över hundra år!",
     ],
     q: [
@@ -37,16 +37,16 @@ export const FAKTA = [
       ["Vad gör sköldpaddan när den blir rädd?", ["Drar in huvudet", "Springer iväg", "Klättrar i ett träd", "Gräver ett hål"], "fakta"],
       ["Vad äter sköldpaddor som lever på land?", ["Gräs och blad", "Fisk och kött", "Bröd och ost", "Myror och maskar"], "fakta"],
       ["Vad har sköldpaddan i stället för tänder?", ["En vass mun", "Små taggar", "En lång tunga", "Vassa klor"], "fakta"],
-      ["Den är skyddad. Vad betyder skyddad?", ["Att inget kan skada den", "Att den är hungrig", "Att den sover", "Att den är ensam"], "ordforstaelse"],
+      ["Nu är den skyddad. Vad betyder skyddad?", ["Att inget kan skada den", "Att den är hungrig", "Att den sover", "Att den är ensam"], "ordforstaelse"],
     ],
   },
   {
     id: "lr-g2-tranan", title: "Fåglarna som dansar", textType: "fact", topic: "djur",
     body: [
-      "Tranan är en stor grå fågel med långa ben och lång hals. På huvudet har den en röd fläck.",
+      "Tranan är en stor grå fågel. Den har långa ben och lång hals. På huvudet har den en röd fläck.",
       "På vintern bor tranorna i varmare länder. På våren flyger de tillbaka till Sverige.",
       "Då händer något roligt. Tranorna dansar! De hoppar, slår med vingarna och bugar mot varandra.",
-      "Tranan har ett högt läte som låter som en trumpet. Det hörs långt bort. Många människor åker ut för att titta på dansen.",
+      "Tranan har ett högt läte. Det låter som en trumpet. Det hörs långt bort. Många människor åker ut för att titta på dansen.",
     ],
     q: [
       ["Vilken färg har tranan?", ["Grå", "Vit", "Svart", "Brun"], "fakta"],
@@ -60,7 +60,7 @@ export const FAKTA = [
     id: "lr-g2-blabar", title: "Blåbär i skogen", textType: "fact", topic: "natur",
     body: [
       "I skogen växer blåbärsris. Riset är lågt och har små gröna blad.",
-      "På våren får riset små blommor som ser ut som lyktor. Bina flyger till blommorna. Sedan blir blommorna till bär.",
+      "På våren får riset små blommor. De ser ut som lyktor. Bina flyger till blommorna. Sedan blir blommorna till bär.",
       "Först är bären gröna och hårda. I juli och augusti blir de blå och mjuka. Då kan man plocka dem.",
       "Blåbär är goda och nyttiga. Man kan äta dem i gröt eller baka paj. Men akta dig: munnen och fingrarna blir blå!",
     ],
@@ -125,8 +125,8 @@ export const FAKTA = [
     body: [
       "En ubåt är en båt som kan åka under vattnet.",
       "Ubåten har stora tankar inuti. När den ska dyka släpper den in vatten i tankarna. Då blir den tung och sjunker.",
-      "När ubåten ska upp igen trycker den ut vattnet med luft. Då blir den lätt och stiger mot ytan.",
-      "Ibland vill de som är i ubåten se vad som finns ovanför vattnet. Då skjuter de upp ett långt rör med speglar. Det kallas periskop.",
+      "Sedan ska ubåten upp igen. Den trycker ut vattnet med luft. Då blir den lätt och stiger mot ytan.",
+      "Ibland vill de som åker ubåt se upp över vattnet. Då skjuter de upp ett långt rör med speglar. Det kallas periskop.",
     ],
     q: [
       ["Var kan en ubåt åka?", ["Under vattnet", "I luften", "På isen", "På land"], "fakta"],
@@ -139,8 +139,8 @@ export const FAKTA = [
   {
     id: "lr-g2-gravmaskinen", title: "Grävmaskinen", textType: "fact", topic: "teknik",
     body: [
-      "När man ska bygga ett hus behöver man först gräva ett stort hål. Då kommer grävmaskinen.",
-      "Grävmaskinen har en lång arm. Längst ut på armen sitter en skopa med vassa tänder. Skopan gräver i jorden och lyfter upp den.",
+      "Man ska bygga ett hus. Först måste man gräva ett stort hål. Då kommer grävmaskinen.",
+      "Grävmaskinen har en lång arm. Längst ut på armen sitter en skopa. Den har vassa tänder. Skopan gräver i jorden och lyfter upp den.",
       "Föraren sitter i en hytt och styr med spakar. Hytten kan snurra runt.",
       "Många grävmaskiner har larvband i stället för hjul. Larvbanden gör att maskinen inte sjunker ner i lera.",
     ],
@@ -156,7 +156,7 @@ export const FAKTA = [
     id: "lr-g2-merkurius", title: "Planeten närmast solen", textType: "fact", topic: "rymden",
     body: [
       "Merkurius är den planet som ligger närmast solen. Den är också den minsta planeten.",
-      "Merkurius har ingen luft runt sig, som vi har på jorden. Därför blir det väldigt varmt på dagen. Men på natten blir det iskallt.",
+      "Runt jorden finns det luft. Men Merkurius har ingen luft runt sig. Därför blir det väldigt varmt på dagen. Men på natten blir det iskallt.",
       "Merkurius är grå och full av gropar. Den liknar vår måne.",
       "Merkurius åker snabbt runt solen. Ett år där är bara ungefär tre månader långt. Ingen människa har varit där.",
     ],
@@ -171,9 +171,9 @@ export const FAKTA = [
   {
     id: "lr-g2-lajka", title: "Hunden i rymden", textType: "fact", topic: "rymden",
     body: [
-      "För länge sedan visste ingen om ett djur kunde åka till rymden. Kunde man andas och äta där uppe?",
-      "År 1957 skickade Sovjetunionen upp en liten hund i en rymdfarkost. Hunden hette Lajka. Hon hade bott på gatan i Moskva innan.",
-      "Lajka satt i en liten kapsel. Den hade luft och mat. Hon åkte runt jorden flera gånger.",
+      "För länge sedan undrade forskarna en sak. Kunde ett djur åka till rymden? Kunde man andas och äta där uppe?",
+      "År 1957 skickade Sovjetunionen upp en liten hund. Hunden hette Lajka. Hon hade bott på gatan i Moskva innan.",
+      "Lajka satt i en liten kapsel. Den hade luft och mat. Hon åkte runt jorden flera gånger. Men Lajka kom aldrig tillbaka till jorden.",
       "Tack vare Lajka lärde sig forskarna mycket. Några år senare kunde den första människan åka till rymden.",
     ],
     q: [
@@ -221,12 +221,12 @@ export const FAKTA = [
     body: [
       "Förr fanns det ingen el i husen. Det fanns inga lampor att tända med en knapp.",
       "När det blev mörkt tände man stearinljus. Ännu tidigare gjorde man ljus av fett från djur. Barnen fick hjälpa till att göra ljusen.",
-      "Senare kom fotogenlampan. Den lyste starkare än ett ljus, men den luktade och sotade.",
+      "Senare kom fotogenlampan. Den lyste starkare än ett ljus. Men den luktade och sotade.",
       "Ljus var dyra. Därför gick många människor och lade sig tidigt. På vintern var kvällarna långa och mörka.",
     ],
     q: [
       ["Vad fanns inte i husen förr?", ["El", "Fönster", "Dörrar", "Sängar"], "fakta"],
-      ["Vad tände man när det blev mörkt?", ["Stearinljus", "Lampor", "Ficklampor", "Fyrverkerier"], "fakta"],
+      ["Vad tände man när det blev mörkt?", ["Stearinljus", "Lampor med el", "Ficklampor", "Fyrverkerier"], "fakta"],
       ["Vad gjorde man ljus av ännu tidigare?", ["Fett från djur", "Sand och vatten", "Gräs och halm", "Trä från granen"], "fakta"],
       ["Vad var dåligt med fotogenlampan?", ["Den luktade och sotade", "Den var för liten", "Den lyste för svagt", "Den gick inte att bära"], "fakta"],
       ["Varför gick många och lade sig tidigt?", ["Ljusen var dyra", "De var sjuka", "De hade inga sängar", "Barnen var trötta"], "fakta"],

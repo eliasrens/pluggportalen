@@ -5,7 +5,7 @@
     "level": 2,
     "textType": "story",
     "topic": "skola",
-    "body": "I december bygger klass två pepparkakshus. Zeynep och hennes grupp gör ett hus med fönster och dörr.\n\nDe sätter på taket. Det står still en stund. Sedan glider det ner, och en bit går sönder.\n\nZeynep blir ledsen. Men fröken har en idé. Hon smälter socker i en kastrull. Det blir varmt och klibbigt.\n\nNu sitter taket fast! Gruppen lägger snö av florsocker på det. Huset blir det finaste i klassen.",
+    "body": "I december bygger klass två pepparkakshus. Zeynep och hennes grupp gör ett hus. Det har fönster och dörr.\n\nDe sätter på taket. Det står still en stund. Sedan glider det ner, och en bit går sönder.\n\nZeynep blir ledsen. Men fröken har en idé. Hon smälter socker i en kastrull. Det blir varmt och klibbigt.\n\nNu sitter taket fast! Gruppen lägger snö av florsocker på det. Huset blir det finaste i klassen.",
     "questions": [
       {
         "id": "q1",
@@ -215,7 +215,7 @@
     "level": 2,
     "textType": "story",
     "topic": "vardag",
-    "body": "Det har snöat hela natten. Folke tittar ut genom fönstret. Allt är vitt.\n\nGrannen Esther är gammal och går med käpp. Hennes trappa är full av snö.\n\nFolke tar på sig overall och vantar. Han hämtar en snöskyffel. Han skottar steg för steg. Det tar lång tid, och han blir varm.\n\nTill slut är trappan fin. Esther öppnar dörren. ”Tack, min vän!” säger hon. Sedan får Folke varm choklad och en bulle i hennes kök.",
+    "body": "Det har snöat hela natten. Folke tittar ut genom fönstret. Allt är vitt.\n\nGrannen Esther är gammal och går med käpp. Hennes trappa är full av snö.\n\nFolke tar på sig overall och vantar. Han hämtar en snöskyffel. Han skottar steg för steg. Det tar lång tid, och han blir varm.\n\nTill slut är trappan fin. Esther öppnar dörren. ”Tack, min vän!” säger hon. Sedan får Folke följa med in i köket. Där får han varm choklad och en bulle.",
     "questions": [
       {
         "id": "q1",
@@ -224,7 +224,7 @@
           "Hela natten",
           "En timme",
           "Hela veckan",
-          "Sedan i går kväll"
+          "Hela dagen"
         ],
         "answerIndex": 0,
         "category": "fakta"
@@ -425,7 +425,7 @@
     "level": 2,
     "textType": "story",
     "topic": "mysterier",
-    "body": "Det är kväll. Kerim ska sova. Han tittar ut genom fönstret mot trädgården.\n\nI lekstugan lyser ett litet ljus. Det rör sig fram och tillbaka. Vem är där?\n\nKerim tar på sig tofflorna och går ut. Gräset är vått. Han smyger fram till lekstugan och tittar in genom fönstret.\n\nDär sitter storasyster Dana med en ficklampa och en tjock bok.\n\n”Det är så tyst här”, säger hon. Kerim kryper in bredvid henne. Hon läser högt för honom.",
+    "body": "Det är kväll. Kerim ska sova. Han tittar ut genom fönstret mot trädgården.\n\nI lekstugan lyser ett litet ljus. Det rör sig fram och tillbaka. Vem är där?\n\nKerim tar på sig tofflorna och går ut. Gräset är vått. Han smyger fram till lekstugan och tittar in genom fönstret.\n\nDär sitter storasyster Dana. Hon har en ficklampa och en tjock bok.\n\n”Det är så tyst här”, säger hon. Kerim kryper in bredvid henne. Hon läser högt för honom.",
     "questions": [
       {
         "id": "q1",
@@ -565,7 +565,7 @@
     "level": 2,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "Mormor har fått en ny mobil. Nu vill hon ringa med bild till Olle för första gången.\n\nDet plingar. Olle svarar. Men han ser bara en stor näsa!\n\n”Hej Olle! Ser du mig?” säger mormor. Nu ser Olle bara taket och en lampa.\n\n”Håll mobilen längre bort”, säger Olle. Nu ser han mormors öra. Olle skrattar så att han får hicka.\n\nTill slut hittar mormor rätt. Där är hela hon, med glasögon och ett stort leende.",
+    "body": "Mormor har fått en ny mobil. Nu vill hon ringa med bild till Olle. Det är första gången.\n\nDet plingar. Olle svarar. Men han ser bara en stor näsa!\n\n”Hej Olle! Ser du mig?” säger mormor. Nu ser Olle bara taket och en lampa.\n\n”Håll mobilen längre bort”, säger Olle. Nu ser han mormors öra. Olle skrattar så att han får hicka.\n\nTill slut hittar mormor rätt. Där är hela hon, med glasögon och ett stort leende.",
     "questions": [
       {
         "id": "q1",
@@ -623,7 +623,7 @@
     "level": 2,
     "textType": "story",
     "topic": "relationer",
-    "body": "Rafael har feber. Han ligger i soffan under en filt. Han är varm och ledsen.\n\nHans storasyster Saba ska egentligen gå till en kompis. Men hon stannar hemma.\n\nFörst läser hon en bok om en bil som kan flyga. Sedan ritar hon en bild till Rafael. Det är en bil med vingar.\n\nRafael somnar med bilden i handen. När han vaknar mår han lite bättre.\n\n”Tack, Saba”, viskar han. ”Du är bäst.”",
+    "body": "Rafael har feber. Han ligger i soffan under en filt. Han är varm och ledsen.\n\nHans storasyster Saba ska egentligen gå till en kompis. Men hon stannar hemma.\n\nFörst läser hon en bok. Den handlar om en bil som kan flyga. Sedan ritar hon en bild till Rafael. Det är en bil med vingar.\n\nRafael somnar med bilden i handen. När han vaknar mår han lite bättre.\n\n”Tack, Saba”, viskar han. ”Du är bäst.”",
     "questions": [
       {
         "id": "q1",
@@ -693,11 +693,11 @@
     "level": 2,
     "textType": "story",
     "topic": "relationer",
-    "body": "Jacob och Deniz har bakat en sockerkaka. Nu är bara en bit kvar.\n\n”Den är min!” säger Jacob. ”Nej, min!” säger Deniz. De drar i tallriken. Nästan ramlar biten på golvet.\n\nDeniz farmor kommer in. ”Jag har ett knep”, säger hon. ”En av er delar biten. Den andra får välja först.”\n\nJacob delar mycket noga. Bitarna blir precis lika stora. Deniz väljer en. Båda blir nöjda och äter upp.",
+    "body": "Jacob och Deniz har bakat en sockerkaka. Nu är bara en bit kvar.\n\n”Den är min!” säger Jacob. ”Nej, min!” säger Deniz. De drar i tallriken. Biten ramlar nästan i golvet.\n\nDeniz farmor kommer in. ”Jag har ett knep”, säger hon. ”En av er delar biten. Den andra får välja först.”\n\nJacob delar mycket noga. Bitarna blir precis lika stora. Deniz väljer en. Båda blir nöjda och äter upp.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad har pojkarna bakat?",
+        "question": "Vad har Jacob och Deniz bakat?",
         "options": [
           "Bullar",
           "En sockerkaka",
@@ -763,7 +763,7 @@
     "level": 2,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Lavin och morfar går längs stranden. Längst ut står en hög vit fyr med ett rött bälte.\n\nDörren är öppen. Inne finns en smal trappa som snurrar uppåt. Lavin räknar stegen: ett, två, tre … hundra!\n\nHennes ben är trötta, men nu är de högst upp. Det blåser och måsarna skriker.\n\nLångt ute på havet ser Lavin ett stort skepp. ”Förr visade fyren skeppen vägen i mörkret”, säger morfar.",
+    "body": "Lavin och morfar går längs stranden. Längst ut står en hög vit fyr. Den har ett rött bälte.\n\nDörren är öppen. Inne finns en smal trappa som snurrar uppåt. Lavin räknar stegen: ett, två, tre … hundra!\n\nHennes ben är trötta, men nu är de högst upp. Det blåser och måsarna skriker.\n\nLångt ute på havet ser Lavin ett stort skepp. ”Förr visade fyren skeppen vägen i mörkret”, säger morfar.",
     "questions": [
       {
         "id": "q1",
@@ -1043,7 +1043,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "djur",
-    "body": "En fjäril börjar sitt liv som ett litet ägg på ett blad.\n\nUr ägget kryper en larv. Larven äter och äter. Den äter blad hela dagarna och blir större och större.\n\nSedan gör larven ett hårt skal runt sig själv. Nu kallas den puppa. Puppan ser ut att sova, men inuti händer mycket.\n\nEfter några veckor spricker skalet. Ut kommer en fjäril med blöta vingar. När vingarna har torkat flyger den iväg.",
+    "body": "En fjäril börjar sitt liv som ett litet ägg. Ägget ligger på ett blad.\n\nUr ägget kryper en larv. Larven äter och äter. Den äter blad hela dagarna. Den blir större och större.\n\nSedan gör larven ett hårt skal runt sig själv. Nu kallas den puppa. Puppan ser ut att sova, men inuti händer mycket.\n\nEfter några veckor spricker skalet. Ut kommer en fjäril med blöta vingar. När vingarna har torkat flyger den iväg.",
     "questions": [
       {
         "id": "q1",
@@ -1113,7 +1113,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "djur",
-    "body": "En sköldpadda har ett hårt skal på ryggen. Skalet är som ett hus som den alltid bär med sig.\n\nOm sköldpaddan blir rädd drar den in huvudet och benen i skalet. Då är den skyddad.\n\nSköldpaddor som lever på land går mycket långsamt. De äter gräs, blad och blommor. De har inga tänder, men munnen är vass som en näbb.\n\nSköldpaddor kan bli väldigt gamla. Vissa lever i över hundra år!",
+    "body": "En sköldpadda har ett hårt skal på ryggen. Skalet är som ett hus. Det bär den alltid med sig.\n\nIbland blir sköldpaddan rädd. Då drar den in huvudet och benen i skalet. Nu är den skyddad.\n\nSköldpaddor som lever på land går mycket långsamt. De äter gräs, blad och blommor. De har inga tänder. Men munnen är vass som en näbb.\n\nSköldpaddor kan bli väldigt gamla. Vissa lever i över hundra år!",
     "questions": [
       {
         "id": "q1",
@@ -1165,7 +1165,7 @@
       },
       {
         "id": "q5",
-        "question": "Den är skyddad. Vad betyder skyddad?",
+        "question": "Nu är den skyddad. Vad betyder skyddad?",
         "options": [
           "Att den är hungrig",
           "Att den sover",
@@ -1183,7 +1183,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "djur",
-    "body": "Tranan är en stor grå fågel med långa ben och lång hals. På huvudet har den en röd fläck.\n\nPå vintern bor tranorna i varmare länder. På våren flyger de tillbaka till Sverige.\n\nDå händer något roligt. Tranorna dansar! De hoppar, slår med vingarna och bugar mot varandra.\n\nTranan har ett högt läte som låter som en trumpet. Det hörs långt bort. Många människor åker ut för att titta på dansen.",
+    "body": "Tranan är en stor grå fågel. Den har långa ben och lång hals. På huvudet har den en röd fläck.\n\nPå vintern bor tranorna i varmare länder. På våren flyger de tillbaka till Sverige.\n\nDå händer något roligt. Tranorna dansar! De hoppar, slår med vingarna och bugar mot varandra.\n\nTranan har ett högt läte. Det låter som en trumpet. Det hörs långt bort. Många människor åker ut för att titta på dansen.",
     "questions": [
       {
         "id": "q1",
@@ -1253,7 +1253,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "natur",
-    "body": "I skogen växer blåbärsris. Riset är lågt och har små gröna blad.\n\nPå våren får riset små blommor som ser ut som lyktor. Bina flyger till blommorna. Sedan blir blommorna till bär.\n\nFörst är bären gröna och hårda. I juli och augusti blir de blå och mjuka. Då kan man plocka dem.\n\nBlåbär är goda och nyttiga. Man kan äta dem i gröt eller baka paj. Men akta dig: munnen och fingrarna blir blå!",
+    "body": "I skogen växer blåbärsris. Riset är lågt och har små gröna blad.\n\nPå våren får riset små blommor. De ser ut som lyktor. Bina flyger till blommorna. Sedan blir blommorna till bär.\n\nFörst är bären gröna och hårda. I juli och augusti blir de blå och mjuka. Då kan man plocka dem.\n\nBlåbär är goda och nyttiga. Man kan äta dem i gröt eller baka paj. Men akta dig: munnen och fingrarna blir blå!",
     "questions": [
       {
         "id": "q1",
@@ -1533,7 +1533,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "teknik",
-    "body": "En ubåt är en båt som kan åka under vattnet.\n\nUbåten har stora tankar inuti. När den ska dyka släpper den in vatten i tankarna. Då blir den tung och sjunker.\n\nNär ubåten ska upp igen trycker den ut vattnet med luft. Då blir den lätt och stiger mot ytan.\n\nIbland vill de som är i ubåten se vad som finns ovanför vattnet. Då skjuter de upp ett långt rör med speglar. Det kallas periskop.",
+    "body": "En ubåt är en båt som kan åka under vattnet.\n\nUbåten har stora tankar inuti. När den ska dyka släpper den in vatten i tankarna. Då blir den tung och sjunker.\n\nSedan ska ubåten upp igen. Den trycker ut vattnet med luft. Då blir den lätt och stiger mot ytan.\n\nIbland vill de som åker ubåt se upp över vattnet. Då skjuter de upp ett långt rör med speglar. Det kallas periskop.",
     "questions": [
       {
         "id": "q1",
@@ -1603,7 +1603,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "teknik",
-    "body": "När man ska bygga ett hus behöver man först gräva ett stort hål. Då kommer grävmaskinen.\n\nGrävmaskinen har en lång arm. Längst ut på armen sitter en skopa med vassa tänder. Skopan gräver i jorden och lyfter upp den.\n\nFöraren sitter i en hytt och styr med spakar. Hytten kan snurra runt.\n\nMånga grävmaskiner har larvband i stället för hjul. Larvbanden gör att maskinen inte sjunker ner i lera.",
+    "body": "Man ska bygga ett hus. Först måste man gräva ett stort hål. Då kommer grävmaskinen.\n\nGrävmaskinen har en lång arm. Längst ut på armen sitter en skopa. Den har vassa tänder. Skopan gräver i jorden och lyfter upp den.\n\nFöraren sitter i en hytt och styr med spakar. Hytten kan snurra runt.\n\nMånga grävmaskiner har larvband i stället för hjul. Larvbanden gör att maskinen inte sjunker ner i lera.",
     "questions": [
       {
         "id": "q1",
@@ -1673,7 +1673,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "rymden",
-    "body": "Merkurius är den planet som ligger närmast solen. Den är också den minsta planeten.\n\nMerkurius har ingen luft runt sig, som vi har på jorden. Därför blir det väldigt varmt på dagen. Men på natten blir det iskallt.\n\nMerkurius är grå och full av gropar. Den liknar vår måne.\n\nMerkurius åker snabbt runt solen. Ett år där är bara ungefär tre månader långt. Ingen människa har varit där.",
+    "body": "Merkurius är den planet som ligger närmast solen. Den är också den minsta planeten.\n\nRunt jorden finns det luft. Men Merkurius har ingen luft runt sig. Därför blir det väldigt varmt på dagen. Men på natten blir det iskallt.\n\nMerkurius är grå och full av gropar. Den liknar vår måne.\n\nMerkurius åker snabbt runt solen. Ett år där är bara ungefär tre månader långt. Ingen människa har varit där.",
     "questions": [
       {
         "id": "q1",
@@ -1743,7 +1743,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "rymden",
-    "body": "För länge sedan visste ingen om ett djur kunde åka till rymden. Kunde man andas och äta där uppe?\n\nÅr 1957 skickade Sovjetunionen upp en liten hund i en rymdfarkost. Hunden hette Lajka. Hon hade bott på gatan i Moskva innan.\n\nLajka satt i en liten kapsel. Den hade luft och mat. Hon åkte runt jorden flera gånger.\n\nTack vare Lajka lärde sig forskarna mycket. Några år senare kunde den första människan åka till rymden.",
+    "body": "För länge sedan undrade forskarna en sak. Kunde ett djur åka till rymden? Kunde man andas och äta där uppe?\n\nÅr 1957 skickade Sovjetunionen upp en liten hund. Hunden hette Lajka. Hon hade bott på gatan i Moskva innan.\n\nLajka satt i en liten kapsel. Den hade luft och mat. Hon åkte runt jorden flera gånger. Men Lajka kom aldrig tillbaka till jorden.\n\nTack vare Lajka lärde sig forskarna mycket. Några år senare kunde den första människan åka till rymden.",
     "questions": [
       {
         "id": "q1",
@@ -1953,7 +1953,7 @@
     "level": 2,
     "textType": "fact",
     "topic": "historia",
-    "body": "Förr fanns det ingen el i husen. Det fanns inga lampor att tända med en knapp.\n\nNär det blev mörkt tände man stearinljus. Ännu tidigare gjorde man ljus av fett från djur. Barnen fick hjälpa till att göra ljusen.\n\nSenare kom fotogenlampan. Den lyste starkare än ett ljus, men den luktade och sotade.\n\nLjus var dyra. Därför gick många människor och lade sig tidigt. På vintern var kvällarna långa och mörka.",
+    "body": "Förr fanns det ingen el i husen. Det fanns inga lampor att tända med en knapp.\n\nNär det blev mörkt tände man stearinljus. Ännu tidigare gjorde man ljus av fett från djur. Barnen fick hjälpa till att göra ljusen.\n\nSenare kom fotogenlampan. Den lyste starkare än ett ljus. Men den luktade och sotade.\n\nLjus var dyra. Därför gick många människor och lade sig tidigt. På vintern var kvällarna långa och mörka.",
     "questions": [
       {
         "id": "q1",
@@ -1971,7 +1971,7 @@
         "id": "q2",
         "question": "Vad tände man när det blev mörkt?",
         "options": [
-          "Lampor",
+          "Lampor med el",
           "Ficklampor",
           "Stearinljus",
           "Fyrverkerier"

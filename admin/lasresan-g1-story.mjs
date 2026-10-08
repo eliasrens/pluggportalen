@@ -35,7 +35,7 @@ export const STORY = [
       ["Vad heter hunden?", ["Lola", "Fia", "Doris", "Tessan"], "fakta"],
       ["Var ligger Lola?", ["På en filt", "I en korg", "På en stol", "Under bordet"], "fakta"],
       ["Vad gör Noor?", ["Läser en bok", "Ritar en bild", "Sjunger en sång", "Kastar en boll"], "fakta"],
-      ["Lola viftar på svansen. Vad betyder viftar?", ["Rör den fort", "Gömmer den", "Biter i den", "Håller den still"], "ordforstaelse"],
+      ["Vad gör Lola med svansen?", ["Viftar med den", "Gömmer den", "Biter i den", "Håller den still"], "fakta"],
     ],
   },
   {
@@ -67,7 +67,7 @@ export const STORY = [
       ["Vad bygger Lukas?", ["Ett torn", "En bil", "Ett hus", "En bro"], "fakta"],
       ["Vilka färger har tornet?", ["Blått och gult", "Rött och vitt", "Grönt och svart", "Rosa och lila"], "fakta"],
       ["Vad säger Theo?", ["Förlåt", "Hej då", "Tack", "God natt"], "fakta"],
-      ["De bygger tillsammans. Vad betyder tillsammans?", ["Med varandra", "Var för sig", "Mycket fort", "Väldigt tyst"], "ordforstaelse"],
+      ["Vad gör Lukas när Theo säger förlåt?", ["Han ler", "Han gråter", "Han går hem", "Han somnar"], "fakta"],
     ],
   },
   {
@@ -97,7 +97,7 @@ export const STORY = [
     q: [
       ["Vilken färg har Zakarias skor?", ["Gröna", "Röda", "Vita", "Svarta"], "fakta"],
       ["Vad gör Zakaria med bollen?", ["Sparkar hårt", "Kastar den", "Tar upp den", "Ger bort den"], "fakta"],
-      ["Alla i laget jublar. Vad betyder jublar?", ["Ropar av glädje", "Gråter tyst", "Går hem", "Blir arga"], "ordforstaelse"],
+      ["Vem jublar mest?", ["Zakaria", "Tränaren", "Mamma", "Målvakten"], "fakta"],
       ["Vilket mål är det för Zakaria?", ["Hans första", "Hans andra", "Hans tionde", "Hans sista"], "fakta"],
     ],
   },
@@ -143,7 +143,7 @@ export const STORY = [
       ["Var ligger kakorna?", ["På ett fat", "I en burk", "I en låda", "På golvet"], "fakta"],
       ["Vad har Diana på tröjan?", ["Smulor", "Färg", "Sand", "Vatten"], "fakta"],
       ["Vem tog kakorna?", ["Diana", "Emir", "Mamma", "Pappa"], "fakta"],
-      ["Diana fnissar. Vad betyder fnissar?", ["Skrattar lite", "Gråter mycket", "Pratar högt", "Somnar fort"], "ordforstaelse"],
+      ["Vad har Diana runt munnen?", ["Choklad", "Sylt", "Glass", "Mjölk"], "fakta"],
     ],
   },
   {

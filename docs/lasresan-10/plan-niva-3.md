@@ -18,11 +18,11 @@ Nivå 3 = grundläggande läsförståelse: 100–140 ord, korta meningar (≈ 6 
 | lr-g3-fagelungen | äventyr | Ungen på gräsmattan | Esra | Esra hittar en fågelunge; mormor säger att de ska låta den vara; föräldrarna kommer och matar |
 | lr-g3-badmintonen | sport | Badminton i blåsten | Khalid | Khalid spelar badminton med morfar, vinden tar bollen, de hittar på egna regler |
 | lr-g3-langdhoppet | sport | Hoppet över linjen | Linn | Linn trampar över i längdhopp, tränaren lär henne räkna stegen, hon klarar ett giltigt hopp |
-| lr-g3-picknicken | vardag | Picknick i regnet | Tea | Tea och pappa har picknick, regnet kommer, de äter under en bro och matar änder |
+| lr-g3-hissen | vardag | Stopp i hissen | Tiam, grannen Edvard | Hissen stannar; Edvard larmar lugnt, delar en apelsin och lär Tiam ett kortspel (ersatte lr-g3-picknicken i #524) |
 | lr-g3-dammen | äventyr | Dammen i bäcken | Darius | Darius bygger en stendamm i bäcken, ser en liten fisk som inte kommer förbi och öppnar dammen |
 | lr-g3-knackningen | mysterier | Vem knackar på fönstret? | Leah | Det knackar på fönstret varje morgon; det är en talgoxe som hackar på sin egen spegelbild |
-| lr-g3-vanten | mysterier | Vanten som vandrade | Mohammed, Joline | En röd vante dyker upp på nya ställen varje morgon; grannens hund Ruffen bär runt den |
-| lr-g3-visselpipan | äventyr | Visselpipan | Pedro | Pedro kommer bort på bärplockning, stannar vid ett stort träd och blåser i visselpipan |
+| lr-g3-musiken | mysterier | Musiken genom väggen | Henny, Asif | Samma låt med samma fel varje kväll; Henny väntar i trappan och hittar nya grannen som övar fiol (ersatte lr-g3-vanten i #524) |
+| lr-g3-fossilet | äventyr | Djuret i stenen | Nora | Nora hittar ett mönster i en sten på stranden; i naturhuset får hon veta att det är ett fossil (ersatte lr-g3-visselpipan i #524) |
 | lr-g3-korna | äventyr | Korna på vägen | Hawa | Korna har rymt ut på vägen; Hawa ringer bonden Ragnar och hjälper till att driva in dem |
 | lr-g3-hatten | roliga situationer | Hatten som flög | Ismail | Pappas nya hatt blåser av på torget och landar i fiskdisken |
 
@@ -56,3 +56,4 @@ Nivå 3 = grundläggande läsförståelse: 100–140 ord, korta meningar (≈ 6 
 - Bipersoner: Birgit (lärare), Smulan (kanin), Musa (lillebror), Kex (valp), Kenneth (tränare), Joline, Ruffen (hund), Edit, Ragnar (bonde).
 - Slutkontroll mot färdiga `level-2.json` (#522, f3b3b6f), `level-1.json` och nivå 4–10: 0 namnkrockar, 0 id-krockar, inga delade faktaämnen eller premisser.
 - `validateBank` på hela banken: 0 fel, 0 varningar.
+- Efter granskningen i #524 har texterna rättats; aktuella mätvärden i `docs/lasresan-10/GRANSKNING-niva-1-3.md`.
