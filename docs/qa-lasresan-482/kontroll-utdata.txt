@@ -1,0 +1,73 @@
+
+[p1] bank: ≥ 40 kompletta texter per nivå
+  ✓ validateBank över hela banken – 280 texter, 0 fel / 0 varningar
+  ✓ nivå 1: 40/40 giltiga, facit inom alternativen, pickText ger nivå 1
+  ✓ nivå 2: 40/40 giltiga, facit inom alternativen, pickText ger nivå 2
+  ✓ nivå 3: 40/40 giltiga, facit inom alternativen, pickText ger nivå 3
+  ✓ nivå 4: 40/40 giltiga, facit inom alternativen, pickText ger nivå 4
+  ✓ nivå 5: 40/40 giltiga, facit inom alternativen, pickText ger nivå 5
+  ✓ nivå 6: 40/40 giltiga, facit inom alternativen, pickText ger nivå 6
+  ✓ nivå 7: 40/40 giltiga, facit inom alternativen, pickText ger nivå 7
+  ✓ text-id unika
+  ✓ rättning mot facit: alla rätt 100 %, alla fel 0 %
+
+[p2] enskild elev
+  ✓ läraren sätter nivå 6 (ingen påbörjad text) → gäller direkt
+  ✓ efter omladdning: nivå 6 kvar, levelSetBy teacher – level=6
+  ✓ elevens NÄSTA text kommer från nivå 6 – lr-n6-tryckpressen
+  ✓ påbörjad text: nivå 1 sparas som väntande
+  ✓ eleven får först den påbörjade nivå 4-texten
+  ✓ efter den: nivå 1, inget väntande, streaks 0 (trots 100 %) – level=1
+  ✓ försöket räknades på nivå 4
+  ✓ NÄSTA text kommer från nivå 1 – lr-n1-majslabyrinten
+
+[p3] hela klassen (qa-klass-b)
+  före: qa-b-anna=5, qa-b-bertil=2, qa-b-cesar=ej börjat
+  ✓ alla 3 uppdaterade utan fel
+  ✓ alla på nivå 1 (även den som inte börjat) – 1,1,1
+  ✓ qa-b-anna: nästa text från nivå 1 – lr-n1-streckkoden
+  ✓ qa-b-bertil: nästa text från nivå 1 – lr-n1-snoflingor
+  ✓ enskild elev kan ändras efteråt (qa-b-bertil → 4) – Bertil har en påbörjad text → väntande 4
+  ✓ Bertils nästa text efter den påbörjade: nivå 4 – lr-n4-solcellen
+
+[p4] klassens startnivå (ny klass qa-482-kontroll)
+  ✓ startnivå 1 sparad, kvar efter omladdning
+  ✓ elev som INTE börjat: första texten från nivå 1, nivå 1 sparad – lr-n1-ekorren
+  ✓ elev som är IGÅNG påverkas inte (nivå 5) – lr-n5-provet
+  ✓ NY elev i klassen: första texten från nivå 1 – lr-n1-fotspar-snon
+  ✓ exemplet: startnivå 1 + alla till 1 → alla (inkl. Ivar på 5) har nivå 1 (nu/väntande) – 1,1,1
+  ✓ Ivars nästa text: nivå 1 – lr-n1-myrstacken
+  ✓ startnivån finns kvar (1)
+
+[p5] resultat/belöningar kvar efter nivåbyte
+  ✓ enskild (påbörjad → väntande) → 7: studentData (coins, ägda saker, …) oförändrat – coins=74
+  ✓ enskild (påbörjad → väntande) → 7: lasresa utom nivåfälten oförändrad (texter, totaler, moneyEarned, världar, catStats) – totalTexts=5 moneyEarned=69
+  ✓ enskild (påbörjad → väntande) → 7: lasresaAttempts oförändrade (2 st)
+  ✓ hela klassen-vägen → 2: studentData (coins, ägda saker, …) oförändrat – coins=74
+  ✓ hela klassen-vägen → 2: lasresa utom nivåfälten oförändrad (texter, totaler, moneyEarned, världar, catStats) – totalTexts=5 moneyEarned=69
+  ✓ hela klassen-vägen → 2: lasresaAttempts oförändrade (2 st)
+  ✓ efter nästa text räknas allt vidare (totaler +1, moneyEarned och coins ökar, försök +1) – totalTexts 5→6, coins 74→89
+  ✓ väntande nivå 2 gäller efter texten
+
+[p6] automatisk progression från lärarens nivå
+  ✓   text 1 (nivå 2) är oläst – lr-n2-frisyren
+  ✓   text 2 (nivå 2) är oläst – lr-n2-solrosen
+  ✓ 2 höga på nivå 2 → fortfarande nivå 2
+  ✓   text 3 (nivå 2) är oläst – lr-n2-blasten
+  ✓ 3:e höga i rad → nivå 3
+  ✓ nästa text från nivå 3 – lr-n3-island
+  ✓ 1 låg → kvar på 3
+  ✓   text 4 (nivå 3) är oläst – lr-n3-bjornens-ide
+  ✓ 2:a låga i rad → nivå 2
+  ✓ pickText väljer den enda olästa nivå 2-texten (100 försök) – lr-n2-klassens-fisk
+
+[p7] behörighet (råa skrivningar som eleven/läraren)
+  ✓ elev kan INTE sätta klassens startnivå
+  ✓ elev kan INTE ändra en annan elevs nivå
+  ✓ elev kan INTE ta bort klassens startnivå
+  ✓ lärare: startnivå 8 nekas
+  ✓ lärare: startnivå "3" (sträng) nekas
+  ✓ lärare: startnivå 3 tillåts
+  ✓ bryggan vägrar ogiltig elevnivå (0, 8, 3.5, "abc", null)
+
+✓ alla kontroller gröna
