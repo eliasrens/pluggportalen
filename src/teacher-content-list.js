@@ -7,8 +7,7 @@
 // ut områdets UNDERRADER (#454, teacher-area-items.js – laddas med import() vid
 // första utfällning, #271): redigera/lägg till/ta bort enskilda frågor, par och
 // texter. ✏️ öppnar wizarden (onEdit); övriga ikonknappar bevarar alla gamla
-// funktioner: Lägg till (#40), Nivåtexter (#152; öppnar underraden på fliken
-// Nivåtexter, #455) och Ta bort (med confirm).
+// funktioner: Lägg till (#40) och Ta bort (med confirm).
 // Utfällningar visas i en full-bredds-rad direkt under raden; vilka områden som
 // är utfällda (och vald flik, #455) minns i opts.itemState så de står kvar när listan laddas om. Rubrikerna Område/Årskurs är
 // klickbara (aria-sort + ▲/▼); själva sorteringen sker i grades.filterSortAreas
@@ -55,7 +54,6 @@ function quantityText(a) {
   if (a.quiz?.length) parts.push(`${a.quiz.length} frågor`);
   if (a.pairs?.length) parts.push(`${a.pairs.length} par`);
   if (a.texts?.length) parts.push(`${a.texts.length} texter`);
-  if (a.readingTexts?.length) parts.push(`${a.readingTexts.length} nivåtexter`);
   return parts.length ? parts.join(" · ") : "Tomt – inget innehåll ännu";
 }
 
@@ -63,7 +61,6 @@ function quantityText(a) {
 function textBadges(a) {
   let out = "";
   if (a.texts?.length) out += `<span class="badge type-badge">📄 Lästexter</span>`;
-  if (a.readingTexts?.length) out += `<span class="badge type-badge">📖 Nivåtexter</span>`;
   return out;
 }
 
@@ -136,7 +133,6 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
         ${actBtn("edit", "pencil", `Redigera ${a.name}`)}
         ${actBtn("review", "eye", "Granska innehållet")}
         ${actBtn("add", "plus", "Lägg till innehåll")}
-        ${actBtn("reading", "book", "Nivåtexter")}
         ${actBtn("del", "trash", "Ta bort", "danger")}
       </div></td>
     </tr></tbody></table>`).querySelector("tr");
@@ -149,19 +145,15 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
     expandRow.firstElementChild.append(itemsSlot, mergeSlot);
     const btn = (act) => row.querySelector(`[data-act="${act}"]`);
     const slotBtns = new Map([[itemsSlot, btn("review")], [mergeSlot, btn("add")]]);
-    let panel = null; // underradens panel när den är byggd (selectTab för 📖).
+    let panel = null; // underradens panel när den är byggd.
 
     // Utfällningsraden + knapparnas aktiv-läge följer slottarnas hidden – även när
-    // formulärens egna "Stäng"-knappar (merge/nivåtexter) döljer sin slot.
+    // formulärets egen "Stäng"-knapp (merge) döljer sin slot.
     const syncExpand = () => {
       for (const [slot, b] of slotBtns) {
         b.classList.toggle("active", !slot.hidden);
         b.setAttribute("aria-expanded", String(!slot.hidden));
       }
-      // 📖 är aktiv när underraden visar fliken Nivåtexter (#455).
-      const onReading = !itemsSlot.hidden && state.tab.get(key) === "reading";
-      btn("reading").classList.toggle("active", onReading);
-      btn("reading").setAttribute("aria-expanded", String(onReading));
       row.setAttribute("aria-expanded", String(!itemsSlot.hidden));
       row.classList.toggle("expanded", !itemsSlot.hidden);
       expandRow.hidden = itemsSlot.hidden && mergeSlot.hidden;
@@ -205,7 +197,6 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
             state.tab.set(key, id);
             syncExpand();
           },
-          onClose: () => !itemsSlot.hidden && toggleItems(),
           onSaved: (msg) => {
             state.notice.set(key, msg);
             (onItemsSaved || onRefresh)();
@@ -251,18 +242,6 @@ export function buildAreaTable(areas, { subjectId, onEdit, onRefresh, sort, onSo
     btn("add").addEventListener("click", () =>
       toggleSlot(mergeSlot, () => buildMergeForm(a, mergeSlot, { subjectId, onSaved: onRefresh }))
     );
-    // 📖 Nivåtexter (#152) bor nu i underradens flik (#455): öppna den fliken,
-    // eller fäll ihop om den redan visas.
-    btn("reading").addEventListener("click", () => {
-      if (!itemsSlot.hidden && state.tab.get(key) === "reading") return toggleItems();
-      state.tab.set(key, "reading");
-      if (!itemsSlot.hidden && panel) {
-        panel.selectTab("reading");
-        itemsSlot.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
-        return;
-      }
-      toggleItems();
-    });
     btn("del").addEventListener("click", async () => {
       if (!confirm(`Ta bort arbetsområdet "${a.name}"? Detta går inte att ångra.`)) return;
       try {

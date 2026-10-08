@@ -259,8 +259,8 @@ export async function pageElevPlugga() {
       // Dölj områden som saknar SPELBART innehåll för den här eleven (#308): finns
       // inget synligt läge med underlag visas ingen "inget innehåll än"-platshållare
       // – området listas inte alls. Samma resolution som områdesöversikten
-      // (visibleGamemodesForClassArea): underlag ur areaContentFlags (quiz/pairs/
-      // readingTexts + generator-området, som ALDRIG räknas som tomt) minus lägen
+      // (visibleGamemodesForClassArea): underlag ur areaContentFlags (quiz/pairs
+      // + generator-området, som ALDRIG räknas som tomt) minus lägen
       // läraren bockat ur för område/klass/klass×område. Enbart elevvyn – lärarvyn
       // (teacher.js) listar fortfarande tomma områden så de kan fyllas på.
       if (visibleGamemodesForClassArea(a, studentClass).length === 0) continue;

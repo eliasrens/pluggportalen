@@ -36,11 +36,6 @@ import { EXISTING_MAX_CHARS, existingContentBlock, generatorContext } from "./pr
 // Exempel-JSON som innehållssidan visar som mall ("Visa exempel-JSON").
 export const EXAMPLE_JSON = EXAMPLE;
 
-// Läsförståelse 2.0 (issue #152): prompt + exempel för en läs-text i 3 nivåer.
-// Ligger i src/prompt-reading.js; re-exporteras här så lärar-UI:t bara importerar
-// från prompts.js.
-export { buildReadingPrompt, READING_EXAMPLE_JSON } from "./prompt-reading.js";
-
 /**
  * Bygg en komplett områdes-prompt som speglar de valda övningstyperna.
  *
@@ -123,7 +118,7 @@ export const MORE_PROMPT_MAX_CHARS = EXISTING_MAX_CHARS;
  * område. Bygger på buildAreaPrompt OFÖRÄNDRAD (områdets typer + årskurs) och
  * lägger till ett tillägg som ber AI:n att bara svara med det nya. Issue #471:
  * HELA det befintliga innehållet (texter, quiz med alternativ/svar/kategori/
- * passage, par, nivåtexter) skickas med som JSON så AI:n ser allt och inte
+ * passage, par) skickas med som JSON så AI:n ser allt och inte
  * upprepar det; bara extrema områden kortas (EXISTING_MAX_CHARS, med notering).
  * Har området läsförståelse-frågor (quiz[].passage) ombeds AI:n göra fler av
  * samma slag. Räknegeneratorn är inget AI-innehåll och skickas inte med som typ –
@@ -146,12 +141,11 @@ export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS) {
 
   const befintligt = existingContentBlock(
     area,
-    ["texts", "quiz", "pairs", "readingTexts"],
+    ["texts", "quiz", "pairs"],
     `allt detta finns redan i "${name}" (samma JSON-format som ovan; "answerIndex" pekar ut rätt svar):`,
     maxChars
   );
   const harPassage = (area?.quiz || []).some((q) => q && String(q.passage || "").trim());
-  const harNivatexter = Array.isArray(area?.readingTexts) && area.readingTexts.length > 0;
   const generator = generatorContext(area);
 
   const krav = [
@@ -163,11 +157,6 @@ export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS) {
   if (harPassage) {
     krav.push(
       `- Området används för läsförståelse: varje ny quizfråga MÅSTE ha en egen "passage" (3–5 meningar) precis som de befintliga frågorna – gör fler frågor av samma slag.`
-    );
-  }
-  if (harNivatexter) {
-    krav.push(
-      `- "readingTexts" (nivåtexter i 3 nivåer) visas bara som bakgrund så du vet vad eleverna redan läst – svara INTE med "readingTexts".`
     );
   }
   if (generator) krav.push(`- ${generator}`);

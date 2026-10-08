@@ -1452,7 +1452,6 @@ body.larare-lage .container {
 .teacher-dark .member-name,
 .teacher-dark .assign-subject { color: var(--t-text); }
 .teacher-dark .member-row input,
-.teacher-dark .rt-prereq-toggle input,
 .teacher-dark input[type="checkbox"],
 .teacher-dark input[type="radio"] { accent-color: var(--t-accent); }
 
@@ -1518,39 +1517,21 @@ body.larare-lage .container {
 .teacher-dark .composer-callout .hint { color: #a9ecc6; }
 
 /* --- Läs/AI-editorer & granska-vy ---------------------------------------- */
-.teacher-dark .rv-passage,
-.teacher-dark .rt-ai { background: var(--t-surface-2); }
+.teacher-dark .rv-passage { background: var(--t-surface-2); }
 .teacher-dark .rv-expl { background: rgba(242, 201, 76, 0.12); }
 .teacher-dark .rv-imgflag { background: rgba(255, 255, 255, 0.08); }
 .teacher-dark .rv-arrow { color: var(--t-accent); }
 .teacher-dark .rv-opt.correct { color: #7ee0a6; }
-.teacher-dark .rt-prereq {
-  background: rgba(242, 201, 76, 0.12);
-  border-color: rgba(242, 201, 76, 0.4);
-}
-.teacher-dark .rt-card {
-  background: var(--t-surface-2);
-  border: 1px solid var(--t-border);
-}
-.teacher-dark .rt-q { border-color: var(--t-border-strong); }
-.teacher-dark .rt-tab.active { box-shadow: inset 0 0 0 2px var(--t-accent); }
-.teacher-dark .rv-level,
-.teacher-dark .area-reading,
 .teacher-dark .area-merge,
 .teacher-dark .area-review { border-left-color: rgba(46, 193, 110, 0.4); }
 .teacher-dark .btn.small.active { box-shadow: inset 0 0 0 2px var(--t-accent); }
 
 /* --- Statustext, kod, felrutor ------------------------------------------- */
 .teacher-dark .ok-inline,
-.teacher-dark .gc-ok,
-.teacher-dark .rl-flash .gc-ok,
-.teacher-dark .rl-bulk-flash .gc-ok { color: #7ee0a6; }
+.teacher-dark .gc-ok { color: #7ee0a6; }
 .teacher-dark .err-inline,
 .teacher-dark .gc-err,
-.teacher-dark .ae-err,
-.teacher-dark .rl-flash .gc-err,
-.teacher-dark .rl-bulk-flash .gc-err { color: #ff9d9d; }
-.teacher-dark .rl-cell-label,
+.teacher-dark .ae-err { color: #ff9d9d; }
 .teacher-dark .mm-main .mm-username,
 .teacher-dark .lc-hint { color: var(--t-muted); }
 .teacher-dark code { background: rgba(255, 255, 255, 0.08); color: #a9ecc6; }
@@ -2113,40 +2094,6 @@ body.larare-lage .container {
 }
 
 .rv-text-title { font-weight: 700; margin-bottom: 4px; }
-
-/* Läsförståelse i 3 nivåer – granska-vyn (issue #152). */
-.rv-level { margin: 10px 0 0; padding-left: 10px; border-left: 3px solid #cfe0f7; }
-.rv-level-h { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-
-/* Läsförståelse-editorn (issue #152). */
-.area-reading { margin-left: 14px; border-left: 3px solid #cfe0f7; padding-left: 12px; }
-.area-reading .subpanel { margin: 0; }
-.rt-editor { display: flex; flex-direction: column; gap: 10px; }
-/* Förkravs-kontroll: kräv läsförståelse innan andra övningar (issue #155). */
-.rt-prereq { background: #fff6e5; border: 2px solid #f2c94c; border-radius: 12px; padding: 12px; }
-.rt-prereq-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; line-height: 1.35; }
-.rt-prereq-toggle input { margin-top: 3px; flex: none; }
-.rt-prereq-count { margin-top: 10px; }
-.rt-prereq-n { width: 90px; }
-.rt-ai { background: #f0f6ff; border-radius: 12px; padding: 12px; }
-.rt-lbl { font-weight: 700; display: block; margin-bottom: 4px; }
-.rt-input { width: 100%; box-sizing: border-box; }
-.rt-body { font-family: inherit; }
-.rt-list { display: flex; flex-direction: column; gap: 14px; }
-.rt-card { border: 1px solid #e2e8f5; border-radius: 12px; padding: 12px; background: #fff; }
-.rt-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.rt-card-head .rt-title { flex: 1; }
-.rt-num { flex: none; }
-.rt-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-.rt-tab.active { box-shadow: inset 0 0 0 2px var(--bla); font-weight: 700; }
-.rt-level { display: flex; flex-direction: column; gap: 4px; }
-.rt-qlist { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
-.rt-q { border: 1px dashed #d5deee; border-radius: 10px; padding: 10px; }
-.rt-q-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.rt-q-head .badge { flex: 1; }
-.rt-opts { display: flex; flex-direction: column; gap: 5px; }
-.rt-opt { display: flex; align-items: center; gap: 8px; }
-.rt-opt input[type="text"] { flex: 1; }
 
 .area-info {
   display: flex;
@@ -3943,17 +3890,6 @@ code {
 .mm-add-body { padding-bottom: 10px; }
 .mm-add-body .mm-count { width: 80px; text-align: center; }
 .mm-create-flash, .mm-link-flash { font-size: 0.9rem; }
-
-/* Läsnivå per elev (#154/#211): nivåväljare direkt i elevraden + "Sätt för alla". */
-.mm-level-bulk .rl-bulk { align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-.rl-bulk-flash { font-size: 0.9rem; }
-.mm-level { display: flex; align-items: center; }
-.rl-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.rl-cell-label { font-size: 0.9rem; color: #4a5a73; font-weight: 600; }
-.rl-sel { width: 160px; }
-.rl-flash { font-size: 0.88rem; min-width: 70px; }
-.rl-flash .gc-ok, .rl-bulk-flash .gc-ok { color: #1e7a45; font-weight: 700; }
-.rl-flash .gc-err, .rl-bulk-flash .gc-err { color: #b3261e; font-weight: 700; }
 
 /* ============================================================================
    Husvärlden (#/elev/hus + #/elev/rum) – EN spelscen med kamerazoom-nivåer
@@ -7084,8 +7020,6 @@ body:has(.teacher-dark) .container {
   scrollbar-color: var(--t-border-strong) transparent;
 }
 .teacher-dark .ai-scroll > .ai-list { flex: none; }
-.teacher-dark .ai-reading-host { padding-right: 4px; }
-.teacher-dark .ai-reading-host > .rt-editor { margin: 0; }
 
 /* Inline-formulär (fråga/par/text) */
 .teacher-dark .ai-form { display: flex; flex-direction: column; gap: 12px; }

@@ -137,7 +137,6 @@ export function summaryParts(value) {
   if (value.quiz?.length) bits.push(`${value.quiz.length} frågor`);
   if (value.pairs?.length) bits.push(`${value.pairs.length} par`);
   if (value.texts?.length) bits.push(`${value.texts.length} texter`);
-  if (value.readingTexts?.length) bits.push(`${value.readingTexts.length} nivåtexter`);
   const generator = generatorSummary(value.generator);
   return { generator, bits };
 }

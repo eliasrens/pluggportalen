@@ -12,12 +12,7 @@ import { addXp } from "./data-xp.js";
 import { xpForExercise, xpIntoLevel } from "./leveling.js";
 import { awardProjectionPatch, mirrorStudentProjection } from "./projection-sync.js";
 import { coinIcon } from "./icons.js";
-import {
-  MAX_QUESTIONS_PER_SESSION,
-  MAX_TEXTS_PER_SESSION,
-  pickRotatingQuestions,
-  textKey,
-} from "./question-rotation.js";
+import { MAX_QUESTIONS_PER_SESSION, pickRotatingQuestions } from "./question-rotation.js";
 
 export const enc = encodeURIComponent;
 
@@ -87,18 +82,6 @@ export { MAX_QUESTIONS_PER_SESSION };
  */
 export function pickSessionQuestions(pool, seen) {
   return pickRotatingQuestions(pool, seen);
-}
-
-/**
- * Som pickSessionQuestions men för LÄS-TEXTER (issue #153): samma roterande motor
- * serverar max MAX_TEXTS_PER_SESSION osedda texter per session (nyckel = textKey),
- * så eleven får nya texter tills områdets alla körts igenom, inte samma om igen.
- * @param {Array} pool  områdets readingTexts
- * @param {string[]} seen  sedda text-nycklar i pågående varv
- * @returns {{questions: Array, seen: string[]}}  texterna att köra + sedda att spara.
- */
-export function pickSessionTexts(pool, seen) {
-  return pickRotatingQuestions(pool, seen, MAX_TEXTS_PER_SESSION, textKey);
 }
 
 /** Har frågan en icke-tom källtext ("passage")? En sådan fråga är en
@@ -188,7 +171,7 @@ export function muteButton() {
 // övning varje gång och slipper grind-reduktionen (full pott coins + XP alltid).
 // Övriga lägen (kunskapsjakt = tidsloop på hela poolen, para/memory = par) kör
 // oförändrat grind-skydd. Rör inte de par-baserade lägena.
-const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse", "lastext"]);
+const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
 
 // Grind-trappa för omspel i icke-quiz/läsförståelse-lägen: belöningen skalas ned
 // steg för steg ju fler gånger samma övning körts i samma läge, med ett golv på

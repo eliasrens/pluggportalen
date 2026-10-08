@@ -16,7 +16,6 @@ import { app, el, go, loading, renderTopbar, getParams } from "./ui.js";
 import { GAMEMODES, starRow, enc, areaContentFlags, isModeHiddenForClassArea, areaStarModes } from "./game-shared.js";
 import { readingPrereqStatus } from "./reading-prereq.js";
 import { startQuiz, startLasforstaelse } from "./games-quiz.js";
-import { startLastext } from "./games-lastext.js";
 import { startPara, startMemory } from "./games-match.js";
 import { startKunskapsjakt } from "./games-jakt.js";
 import { startSanningsjakt } from "./games-sanningsjakt.js";
@@ -111,11 +110,9 @@ export async function pageElevOmrade() {
   // Fail-safe: bara ett förkrav när läsförståelsen faktiskt går att spela – annars
   // skulle området kunna deadlocka. Bakåtkompatibelt (inget förkrav → allt öppet).
   const prereq = readingPrereqStatus(areaData, areaProgress);
-  // Läsförståelse går att spela om området har nivåtexter (Läsuppdrag/lastext)
-  // ELLER quiz-innehåll (gamla lasforstaelse). Utan något av dem finns ingen
-  // uppgift att låsa upp med → lås inget (annars deadlock).
-  const readingPlayable = has.readingTexts || has.quiz;
-  const lockOthers = prereq.enabled && !prereq.met && readingPlayable;
+  // Läsförståelse går att spela om området har quiz-innehåll. Utan det finns
+  // ingen uppgift att låsa upp med → lås inget (annars deadlock).
+  const lockOthers = prereq.enabled && !prereq.met && has.quiz;
 
   // Läraren kan dölja lägen per område (#200), för hela klassen (#208) OCH för
   // klassen på just detta område (#298): avbockade lägen (på någon av nivåerna)
@@ -132,10 +129,8 @@ export async function pageElevOmrade() {
   const cards = visibleModes
     .map((gm) => {
       const stars = areaProgress[gm.id]?.stars || 0;
-      // Själva läslägena låses aldrig – de är ju det eleven ska göra först.
-      // (både gamla "lasforstaelse" och nya "lastext"/Läsuppdrag).
-      const locked =
-        lockOthers && gm.id !== "lasforstaelse" && gm.id !== "lastext";
+      // Själva läsläget låses aldrig – det är ju det eleven ska göra först.
+      const locked = lockOthers && gm.id !== "lasforstaelse";
       const statusHtml = locked
         ? `<span class="card-lock">🔒 Gör läsförståelsen först</span>`
         : `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
@@ -232,7 +227,6 @@ export async function pageElevSpela() {
   switch (mode) {
     case "quiz": return startQuiz(ctx);
     case "lasforstaelse": return startLasforstaelse(ctx);
-    case "lastext": return startLastext(ctx);
     case "para": return startPara(ctx);
     case "kunskapsjakt": return startKunskapsjakt(ctx);
     case "sanningsjakt": return startSanningsjakt(ctx);

@@ -21,7 +21,7 @@
 //     ("lasforstaelse") som ETT godkänt genomförande.
 //
 // Ren logik utan DOM/Firestore – testbar för sig och delad mellan elevvyn
-// (gamemodes.js) och lärarvyn (teacher-reading.js) samt validering (validate.js).
+// (gamemodes.js), granska-vyn (teacher-content-review.js) och validering (validate.js).
 // ============================================================================
 
 // Minsta antal stjärnor för "godkänt" (chans-skydd). 2 stjärnor = ≥ 70 % rätt.

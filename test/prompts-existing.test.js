@@ -1,23 +1,25 @@
 // ============================================================================
 // Enhetstest för "BEFINTLIGT INNEHÅLL" i AI-prompterna (issue #471):
 //   • mer-innehåll-prompten skickar med ALLT: fråga, alternativ, rätt svar,
-//     kategori, passage, par med definition, texter och nivåtexter
+//     kategori, passage, par med definition och texter
 //   • blocket är giltig JSON i samma format som AI:n svarar i
 //   • ingen avkortning för normalstora områden; jätteområden kortas rättvist
 //     och får en notering om vad som utelämnades
 //   • räknegeneratorns räknesätt nämns som kontext (#470)
-//   • lästext-prompten skickar med befintliga nivåtexter
+//   • gamla nivåtexter (readingTexts, borttagna i #531) skickas INTE med
 // Körs med Node:s inbyggda testkörare:  node --test
 // ============================================================================
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildMorePrompt, buildReadingPrompt, MORE_PROMPT_MAX_CHARS } from "../src/prompts.js";
+import { buildMorePrompt, MORE_PROMPT_MAX_CHARS } from "../src/prompts.js";
 import { existingContentJson } from "../src/prompt-existing.js";
 import { parseAndMergeArea } from "../src/merge-area.js";
 import { validateArea } from "../src/validate.js";
 
+// Gamla nivåtexter (#152) kan ligga kvar i äldre områdesdokument – de ska
+// ignoreras helt sedan #531.
 const nivatext = (title) => ({
   title,
   levels: Object.fromEntries(
@@ -74,9 +76,8 @@ test("mer-innehåll-prompten skickar med svar, alternativ, kategori, passage, de
   });
   assert.equal(b.quiz[1].passage, "Visby låg mitt i Östersjön.");
   assert.deepEqual(b.pairs, [{ term: "Kogg", definition: "Ett handelsskepp" }]);
-  assert.equal(b.readingTexts[0].title, "Vikingarnas resor");
-  assert.equal(b.readingTexts[0].levels["3"].questions[0].answerIndex, 1);
-  assert.match(p, /svara INTE med "readingTexts"/);
+  assert.equal(b.readingTexts, undefined, "gamla nivåtexter skickas inte med (#531)");
+  assert.doesNotMatch(p, /readingTexts|nivåtext/);
   assert.match(p, /bygg vidare i samma stil/);
   assert.doesNotMatch(p, /utelämnades/);
 });
@@ -135,7 +136,7 @@ test("ett AI-svar i samma format som blocket mergas som förut", () => {
   const res = parseAndMergeArea(JSON.stringify(nytt), existing);
   assert.equal(res.ok, true, res.errors?.join("\n"));
   assert.equal(res.added.quiz, 1);
-  assert.equal(res.value.readingTexts.length, 1);
+  assert.equal(res.value.readingTexts, undefined, "gamla nivåtexter följer inte med (#531)");
 });
 
 test("generator-område: valda räknesätt och varianter nämns som kontext", () => {
@@ -147,25 +148,4 @@ test("generator-område: valda räknesätt och varianter nämns som kontext", ()
   assert.match(p, /räknegenerator .* räknesätten: Addition \(Enkel\); Negativa tal \(Temperatur, Rakna\)/);
   assert.doesNotMatch(p, /befintliga innehållet nedan/, "ingen hänvisning till ett block som saknas");
   assert.doesNotMatch(buildMorePrompt(area()), /räknegenerator som skapar/);
-});
-
-test("lästext-prompten skickar med befintliga nivåtexter och ber om ett nytt tema", () => {
-  const utan = buildReadingPrompt("Rymden");
-  assert.doesNotMatch(utan, /BEFINTLIGT INNEHÅLL/);
-  assert.equal(buildReadingPrompt("Rymden", []), utan);
-  const med = buildReadingPrompt("Rymden", [nivatext("Vikingarnas resor"), nivatext("Hansan")]);
-  assert.ok(med.startsWith(utan), "grundprompten är oförändrad");
-  assert.match(med, /Skapa en NY läs-text/);
-  const b = blockJson(med);
-  assert.deepEqual(b.readingTexts.map((t) => t.title), ["Vikingarnas resor", "Hansan"]);
-  assert.equal(b.readingTexts[1].levels["2"].body, "Hansan, brödtext nivå 2.");
-  assert.deepEqual(b.readingTexts[1].levels["2"].questions[0].options, ["Ja", "Nej"]);
-});
-
-test("lästext-prompten kortar extremt många nivåtexter med notering", () => {
-  const många = Array.from({ length: 50 }, (_, i) => nivatext(`Tema ${i} ${"lång ".repeat(200)}`));
-  const p = buildReadingPrompt("", många, 20000);
-  const b = blockJson(p);
-  assert.ok(b.readingTexts.length < 50);
-  assert.match(p, new RegExp(`${50 - b.readingTexts.length} nivåtexter utelämnades`));
 });

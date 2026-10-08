@@ -4,10 +4,9 @@
 // ----------------------------------------------------------------------------
 // Klick på en rad i Innehållsstudions tabell (eller ögat) fäller ut den här
 // panelen: områdets innehåll i FLIKAR (#455, flikmotorn i teacher-area-items-tabs.js)
-// Quiz & läsförståelse (n) · Para ihop (n) · Lästexter (n) · Nivåtexter (n) –
-// kompakta listrader med ✏️ Redigera och 🗑 Ta bort i en egen scrollyta per flik,
-// "+ Lägg till …" alltid synlig under den. Nivåtexter = den befintliga 📖-editorn
-// (teacher-reading.js) inbäddad; 📖-knappen i raden öppnar underraden på den fliken.
+// Quiz & läsförståelse (n) · Para ihop (n) · Lästexter (n) – kompakta listrader
+// med ✏️ Redigera och 🗑 Ta bort i en egen scrollyta per flik, "+ Lägg till …"
+// alltid synlig under den.
 // Generatorområden (Räkna) får en kort rad om räknegeneratorn (ändras via pennan).
 //
 // SPARNING (saveArea = full överskrivning): hämta FÄRSK kopia med data.getArea,
@@ -30,7 +29,6 @@ import {
 } from "./teacher-area-items-ops.js";
 import { buildQuizForm, buildPairForm, buildTextForm } from "./teacher-area-items-forms.js";
 import { createTabs } from "./teacher-area-items-tabs.js";
-import { buildReadingEditor } from "./teacher-reading.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { generatorSummary } from "./teacher-generator-labels.js";
 
@@ -46,7 +44,6 @@ const TAB = {
   quiz: { label: "Quiz & läsförståelse", ic: "📝" },
   pairs: { label: "Para ihop", ic: "🔗" },
   texts: { label: "Lästexter", ic: "📄" },
-  reading: { label: "Nivåtexter", ic: "📖" },
 };
 
 const SAVED = {
@@ -86,12 +83,11 @@ function itemHtml(kind, it) {
  * Bygg underraden för ett område.
  * @param {object} area  området som listan visar (från getAreas).
  * @param {{ subjectId:string, notice?:string, onSaved:(notice:string)=>void,
- *   tab?:string, onTabChange?:(id:string)=>void, onClose?:()=>void }} deps
- *   tab = senast vald flik (förvalet, tvingas fram), onTabChange = minns den,
- *   onClose = Nivåtext-editorns "Stäng" fäller ihop underraden.
+ *   tab?:string, onTabChange?:(id:string)=>void }} deps
+ *   tab = senast vald flik (förvalet, tvingas fram), onTabChange = minns den.
  * @returns {HTMLElement & { selectTab:(id:string,opts?:{focus?:boolean})=>HTMLElement|null }}
  */
-export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabChange, onClose }) {
+export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabChange }) {
   const panel = el(`<div class="ai-panel" role="region" tabindex="-1" aria-label="Innehåll i ${esc(area.name)}"></div>`);
   if (notice) {
     const n = el(`<div class="msg ok ai-notice" role="status">${icon("check", 15)} ${esc(notice)}</div>`);
@@ -264,18 +260,6 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
     return sec;
   }
 
-  /** Nivåtexter: den BEFINTLIGA 📖-editorn (#152) inbäddad i fliken. Dess
-   *  "Stäng" döljer värden → hela underraden fälls ihop (onClose). */
-  function buildReading() {
-    const host = el(`<div class="ai-scroll ai-reading-host" tabindex="0" role="group" aria-label="Nivåtexter"></div>`);
-    host.append(buildReadingEditor(area, host, { subjectId, onSaved: () => onSaved("Nivåtexterna sparades.") }));
-    new MutationObserver(() => host.hidden && onClose?.()).observe(host, {
-      attributes: true,
-      attributeFilter: ["hidden"],
-    });
-    return host;
-  }
-
   // --- Räknegenerator: kort rad, ändras via pennan (wizarden) ----------------
   if (isGeneratorArea(area)) {
     const g = generatorSummary(area.generator);
@@ -285,7 +269,7 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
       <span class="ai-hint">Ändras via pennan (Redigera).</span></div>`));
   }
 
-  // --- Flikar (#455): Quiz & läsförståelse · Para ihop · Lästexter · Nivåtexter --
+  // --- Flikar (#455): Quiz & läsförståelse · Para ihop · Lästexter -------------
   const tabDef = (t) => ({ ...TAB[t.id], id: t.id, count: t.count });
   const tabList = tabsFor(area, tab ? [tab] : []);
   const tabs = createTabs({
@@ -293,11 +277,11 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
     tabs: tabList.map(tabDef),
     order: ITEM_TABS,
     active: pickTab(tabList, tab),
-    render: (id) => (id === "reading" ? buildReading() : buildSection(id)),
+    render: (id) => buildSection(id),
     onChange: (id) => onTabChange?.(id),
   });
 
-  /** Visa (och vid behov lägg till) en flik – används av 📖 och "+ Lästext". */
+  /** Visa (och vid behov lägg till) en flik – används av "+ Lästext". */
   function selectTab(id, { focus = false } = {}) {
     if (!tabs.has(id)) tabs.add(tabDef(tabsFor(area, [id]).find((t) => t.id === id)));
     const p = tabs.select(id, { focus });

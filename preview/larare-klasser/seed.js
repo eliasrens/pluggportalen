@@ -1,6 +1,6 @@
 // ============================================================================
 // Sådd för preview-larare-klasser.html (#440): fyra klasser (5E, 4B, 4A och en
-// tom 6C) med elever, två ämnen med områden, lite progress och läsnivåer, så
+// tom 6C) med elever, två ämnen med områden, lite progress, så
 // alla sektioner i klassdetaljen har något att visa. 4A har ett aktivt fokusläge
 // (🔒 i master-listan).
 // ============================================================================
@@ -28,7 +28,7 @@ export function seed(satt) {
   satt("subjects/ma", { name: "Matematik", icon: "🔢", order: 3 });
   // #454: giltiga områden (validateArea går igenom) så underraderna kan sparas
   // i previewn – vanliga frågor, läsförståelse (passage), bildpar, lästexter,
-  // grupp, nivåtext-fri, plus ett räknegenerator-område.
+  // grupp, plus ett räknegenerator-område.
   for (const [subj, list] of Object.entries(omraden)) {
     list.forEach(([id, name, coverEmoji], i) => {
       const doc = {
@@ -65,7 +65,7 @@ export function seed(satt) {
       const avatarId = AVATARER[nr++ % AVATARER.length];
       satt(`students/${sid}`, { namn: n, username: `${id}${String(nr).padStart(2, "0")}`, avatarId, classIds: [id] });
       satt(`studentData/${sid}`, {
-        coins: 40 + nr * 7, xp: nr * 30, readingLevel: (nr % 3) + 1, avatarId,
+        coins: 40 + nr * 7, xp: nr * 30, avatarId,
         progress: nr % 4 === 0 ? {} : { vikingar: { quiz: { completed: true, stars: (nr % 3) + 1 }, pairs: { completed: true, stars: 2 } } },
       });
       return sid;

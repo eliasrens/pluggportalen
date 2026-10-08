@@ -19,7 +19,7 @@
 //
 // Reglerna (spec §2):
 //   quiz, lasforstaelse     { ratt, totalt }  → 1 om ratt/totalt ≥ 50 %, annars 0
-//   para, memory, kunskapsjakt, sanningsjakt, lastext, aventyr
+//   para, memory, kunskapsjakt, sanningsjakt, aventyr
 //                           { klar? }         → 1 de 3 första gångerna per
 //                                               område och elev (räknare
 //                                               "<modul>|<area>"), sedan 0
@@ -167,7 +167,6 @@ for (const [modul, namn] of [
   ["memory", "Memory"],
   ["kunskapsjakt", "Kunskapsjakten"],
   ["sanningsjakt", "Fånga sanningar"],
-  ["lastext", "Lästext"],
   ["aventyr", "Äventyr"],
 ]) {
   registreraRegel(

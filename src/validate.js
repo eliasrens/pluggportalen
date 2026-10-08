@@ -19,7 +19,6 @@ import {
   normalizeQuestionCategory,
   QUESTION_CATEGORY_KEYS,
 } from "./exercise-types.js";
-import { validateReadingTexts } from "./validate-reading.js";
 import { validateGenerator } from "./validate-generator.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { normalizeGrade } from "./grades.js";
@@ -266,12 +265,6 @@ export function validateArea(obj) {
     }
   }
 
-  // --- readingTexts[] (läsförståelse 2.0, 3 nivåer) -------------------------
-  // Valfritt fält: läs-texter där samma tema finns i tre svårighetsnivåer, var
-  // och en med egen brödtext + egna kryssfrågor. Bakåtkompatibelt (saknas fältet
-  // → tom lista). Regeln bor i src/validate-reading.js.
-  const readingTexts = validateReadingTexts(obj.readingTexts, errors, slugify);
-
   // --- generator (issue #279, flera räknesätt #470) -------------------------
   // area.generator = { topics: [{ topic, variants, … }], grade? } (eller gammalt
   // { topic, variants }) – valfritt och bakåtkompatibelt. Regeln bor i
@@ -283,11 +276,10 @@ export function validateArea(obj) {
     texts.length === 0 &&
     quiz.length === 0 &&
     pairs.length === 0 &&
-    readingTexts.length === 0 &&
     !generator
   ) {
     errors.push(
-      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par, en läs-text eller en räknegenerator."
+      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par eller en räknegenerator."
     );
   }
 
@@ -319,7 +311,6 @@ export function validateArea(obj) {
     texts,
     quiz,
     pairs,
-    readingTexts,
     exerciseTypes,
     hiddenModes,
   };
