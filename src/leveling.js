@@ -161,6 +161,25 @@ export function progressTotals(progress = {}) {
 }
 
 /**
+ * Antal avklarade spelomgångar totalt (#498, Klasscentrets statistiktavla):
+ * summan av progress[area][mode].plays – räknaren awardExercise höjer vid
+ * varje avklarad körning. Äldre noder utan plays men med completed räknas
+ * som 1 (samma tolkning som awardExercise:s prevPlays).
+ * @returns {number}
+ */
+export function playsTotal(progress = {}) {
+  let plays = 0;
+  for (const modes of Object.values(progress || {})) {
+    for (const r of Object.values(modes || {})) {
+      if (!r || typeof r !== "object") continue;
+      const n = typeof r.plays === "number" ? Math.floor(r.plays) : r.completed ? 1 : 0;
+      if (n > 0) plays += n;
+    }
+  }
+  return plays;
+}
+
+/**
  * Aggregera POSITIV klasstatistik ur en lista elever, var och en med redan
  * uträknade per-elev-mått { xp, completed, stars } (se
  * data.getStudentsWithLooks, som fyller dem ur samma studentData-läsning som

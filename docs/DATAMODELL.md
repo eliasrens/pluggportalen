@@ -360,6 +360,8 @@ djur mellan rum/hage/laggård. Säkerhetsregler: `farm` ligger i `studentData`
 som redan är self-writable – **inga regeländringar behövs**.
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, plays, lastPlayed, cat? }`.
+`plays` (antal avklarade körningar) summeras per elev till `plays` i klass-
+projektionens members-entry (`playsTotal`, #498 – Klasscentrets statistiktavla).
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
 
 `cat` (valfri, #445) = rätt/totalt per frågekategori, **ackumulerat** över alla
@@ -771,6 +773,7 @@ ClassCenterLayout) är anpassad så här:
 | `currentCenterLevel` | **härleds** – `nivaFor(classTotalExp, classes/{id}.studentIds.length)`, lagras inte | **1 (klar, #477)** |
 | "3 första gångerna"-räknare | `expMembers/{uid}.counts` (per elev och klass) | **1 (klar, #477)** |
 | `trophies[]` | underkollektion `classCenters/{classId}/trophies/{typ}-{kallaId}` | **3 (kärna klar, #494)** |
+| statistiktavlan (EXP, lösta uppgifter, progress) | **inget nytt dokument** – `expShards` + `classProjections/{classId}.members.*.plays` | **3 (klar, #498)** |
 | ClassCenterShopItems | katalog i kod + `fund/{itemId}` + `donations/{id}` | 2/3 |
 | ClassCenterLayout | `layout/current` + `layoutHistory/{0..9}` | **2 (klar, #489)** |
 | lärarens "får ej inreda" | `classCenters/{classId}.inredningSparr` | **2 (klar, #489)** |
@@ -916,6 +919,32 @@ deltagandet enligt tabellen ovan. Elever kan inte skapa/ändra pokaler alls.
 `test/firestore-rules-klasscenter-pokal.test.js`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan pokaler kan
 delas ut live.
+
+### Statistiktavlan (epic 3, #498)
+
+En **fast möbel** i rummet (som pokalhyllan): inte köpbar, inte flyttbar, finns
+i varje klass rum (även för gäster). Klick/tryck/Enter öppnar panelen
+"Klassens statistik" (✕/Escape stänger, fokus tillbaka till tavlan). Siffrorna
+står även direkt på tavlan. Kod: `src/klasscenter/kc-statistik.js` (rent),
+`kc-statistik-data.js` + `kc-rum-statistik.js` (bara dynamiskt).
+
+| Visas | Källa | Läsning |
+| --- | --- | --- |
+| Klassens totala EXP | summan av `expShards/{0..4}.exp` (`subscribeClassExp`, realtid) | ≤ 5 dok |
+| Lösta uppgifter tillsammans | summan av `classProjections/{classId}.members.{uid}.plays` för klassens nuvarande `studentIds` | 1 dok (+ cachad `classes`) |
+| Progress till nästa nivå | `progressTillNasta(exp, antalElever)` – nivå X → X+1, stapel + "50 / 175 EXP · 125 kvar"; högsta nivån → full stapel + "högsta nivån är nådd" | – |
+
+**Varför ingen ny räknare (val b i #498):** elevernas `progress[area][mode].plays`
+(höjs av `awardExercise` vid varje avklarad omgång) speglas redan in i klass-
+projektionen vid varje belöning (`awardProjectionPatch` → `plays`, och self-heal
+via `projectionEntryFrom`). Alltså: noll nya skrivningar, inga regeländringar och
+O(1) läsning per klass. **Historiken finns från start:** en projektions-entry
+skriven före #498 saknar `plays` → `completed` (antal avklarade övningar) räknas
+som golv tills eleven spelar nästa gång. "Lösta uppgifter" = avklarade omgångar i
+övningslägena (quiz, memory, para, räkna, äventyr …) – Läsresan, Mattematchen och
+Live räknas inte där (de har egna aggregat) men ger klass-EXP. Projektionen är
+klassmedlems-skrivbar som förut (#231) – samma förtroendenivå som byns
+"övningar klarade"; `plays` ger ingen EXP och ingen nivå.
 
 ### Crowdfunding (epic 2, #486)
 
