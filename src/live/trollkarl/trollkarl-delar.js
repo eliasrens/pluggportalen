@@ -18,7 +18,7 @@ export const PIVOT = {
   elbowR: [300, 330],
   body: [200, 520],
   cape: [200, 280],
-  hat: [200, 70],
+  hat: [200, 30],
   wand: [318, 300],
 };
 
@@ -26,7 +26,7 @@ export const PIVOT = {
 export const ANCHOR = {
   wandTip: [352, 182],
   head: [200, 150],
-  hat: [200, -90],
+  hat: [200, -20],
   body: [200, 380],
   feet: [200, 540],
 };
@@ -117,31 +117,10 @@ export function collarSvg(t, who) {
   </g>`;
 }
 
-// Hatt – i skala med de fotobaserade huvudena (huvudet spänner x≈88–312):
-// brättet är BREDARE än huvudet och ligger över hårets ovansida; kullen täcker
-// hjässan. Rasmus: sned floppig hatt med knäckt topp så rufset sticker fram
-// runtom; Elias: ståtligare, högre och rakare med guldband.
-export function hatSvg(t, who) {
-  if (who === "rasmus") {
-    return `<g transform="translate(200 84) scale(1.3) translate(-200 -84) rotate(-9 200 60)">
-      <path d="M124 64 Q146 -20 204 -48 Q218 -54 212 -36 Q202 -6 258 48 Q196 28 124 64Z" fill="${t.hat}"/>
-      <path d="M124 64 Q180 36 258 48 Q220 44 186 58 Q150 70 124 64Z" fill="${t.robe2}" opacity=".6"/>
-      <circle cx="211" cy="-44" r="9" fill="${t.hatBand}"/>
-      <path d="M60 62 Q200 14 340 66 Q346 88 322 90 Q200 44 78 88 Q54 84 60 62Z" fill="${t.hat}"/>
-      <path d="M78 88 Q200 44 322 90 Q200 56 78 88Z" fill="${t.robe2}" opacity=".55"/>
-      <path d="M130 52 Q200 26 272 46 l-6 16 Q200 44 136 68 Z" fill="${t.hatBand}" opacity=".95"/>
-      ${stars(t, [[176, 2, 1.1], [232, 20, 0.7]])}
-    </g>`;
-  }
-  return `<g transform="translate(200 84) scale(1.3) translate(-200 -84) rotate(3 200 60)">
-    <path d="M126 66 Q158 -26 200 -52 Q242 -26 274 66 Q200 38 126 66Z" fill="${t.hat}"/>
-    <path d="M200 -52 q12 12 7 26 l-14 0 q-5 -14 7 -26Z" fill="${t.hatBand}"/>
-    <path d="M52 68 Q200 20 348 70 Q354 94 328 96 Q200 48 72 96 Q46 90 52 68Z" fill="${t.hat}"/>
-    <path d="M72 96 Q200 48 328 96 Q200 60 72 96Z" fill="${t.robe2}" opacity=".5"/>
-    <path d="M132 56 Q200 32 270 54 l5 16 Q200 50 128 72 Z" fill="${t.hatBand}"/>
-    ${stars(t, [[200, -6, 1.2], [166, 24, 0.7], [236, 24, 0.7]])}
-  </g>`;
-}
+// Hatten är borttagen ur grundfiguren (Elias beslut: håret gör dem mer lika).
+// layer("hat") i figuren är en TOM grupp på hjässan – attacker (HATTUS
+// GIGANTUS, regnmoln m.fl.) kan montera och animera saker där; attack-
+// figurerna ritar egna hattar i attacker/attack-figurer.js.
 
 // Bakre arm (vänster när figuren är vänd åt höger).
 export function armLSvg(t) {

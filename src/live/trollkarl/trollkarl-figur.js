@@ -11,7 +11,7 @@
 //       transform, reset, destroy }
 // ============================================================================
 
-import { VIEW, PIVOT, ANCHOR, THEME, FACE, bodySvg, capeSvg, legsSvg, neckSvg, collarSvg, hatSvg, armLSvg, armRSvg } from "./trollkarl-delar.js";
+import { VIEW, PIVOT, ANCHOR, THEME, FACE, bodySvg, capeSvg, legsSvg, neckSvg, collarSvg, armLSvg, armRSvg } from "./trollkarl-delar.js";
 import { POSES, PRIO, runPose } from "./trollkarl-poser.js";
 import { startIdleLoops, createEventScheduler } from "./trollkarl-idle.js";
 
@@ -61,7 +61,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
         ${neckSvg(t)}
         <g data-part="face" transform="translate(${FX} ${FY})">${faceImgs}</g>
         ${collarSvg(t, who)}
-        <g data-part="hat">${hatSvg(t, who)}</g>
+        <g data-part="hat"></g>
         <g data-part="wow" style="display:none" aria-hidden="true">
           <text x="318" y="140" font-size="52" font-weight="900" fill="${t.trim}" stroke="#3b2a12" stroke-width="1.5" transform="rotate(12 318 140)">!</text>
           <path transform="translate(344 168) scale(1.1)" fill="#fff" d="M0 -7 1.8 -1.8 7 0 1.8 1.8 0 7 -1.8 1.8 -7 0 -1.8 -1.8Z"/>
