@@ -56,6 +56,20 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
 
+    // Sparade elevlösenord (lärarens "Redigera inloggning" + inloggningskort):
+    // studentCredentials/{uid} = { username, password?, updatedAt }. BARA
+    // lärare läser/skriver – en elev kan aldrig läsa något, inte ens sitt eget.
+    // Skrivs av lärarklienten när konton skapas och av Cloud Functionen
+    // updateStudentLogin (Admin SDK, förbi reglerna) när lösenordet byts.
+    match /studentCredentials/{studentId} {
+      allow read, delete: if isTeacher();
+      allow create, update: if isTeacher() &&
+        request.resource.data.keys().hasOnly(['username', 'password', 'updatedAt']) &&
+        request.resource.data.username is string &&
+        (!('password' in request.resource.data) ||
+          (request.resource.data.password is string && request.resource.data.password.size() >= 6));
+    }
+
     // Elevdata (framsteg, pluggcoins, shop-saker, rummets placering): eleven
     // äger sitt eget; lärare läser alla (klassöversikt) och skriver (ge coins).
     // Alla inloggade får LÄSA (byn/grannbyn/kompisrummet visar hus, avatar och
