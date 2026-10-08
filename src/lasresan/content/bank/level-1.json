@@ -490,5 +490,661 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n1-matsacken",
+    "title": "Matsäcken som blev kvar",
+    "level": 1,
+    "textType": "story",
+    "topic": "skola",
+    "body": "I dag ska klass 4B på utflykt till skogen. Alla har med sig matsäck. Alla utom Ture.\n\nHan står vid bussen och tittar ner i sin ryggsäck. Där ligger bara en vattenflaska och en mössa. Matlådan står kvar på köksbänken hemma.\n\nNär klassen kommer fram sätter sig alla på en stor sten. De öppnar sina lådor. Ture sitter tyst och tittar på några myror.\n\nDå räcker Ronja fram en halv smörgås. Kim ger honom ett äpple. Fröken har en extra banan.\n\nSnart har Ture mer mat än alla andra. ”Nästa gång kanske jag glömmer matsäcken med flit”, säger han och skrattar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart ska klassen åka?",
+        "options": [
+          "Till skogen",
+          "Till stranden",
+          "Till ett museum",
+          "Till en bondgård"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad ligger i Tures ryggsäck?",
+        "options": [
+          "En matlåda och en banan",
+          "En vattenflaska och en mössa",
+          "En bok och en penna",
+          "Ett äpple och en mössa"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var står Tures matlåda?",
+        "options": [
+          "Kvar i bussen",
+          "Under den stora stenen",
+          "På köksbänken hemma",
+          "Hos fröken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför sitter Ture tyst?",
+        "options": [
+          "Han är rädd för myrorna",
+          "Han är arg på fröken",
+          "Han vill sova en stund",
+          "Han har ingen mat"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad får Ture av Kim?",
+        "options": [
+          "En banan",
+          "En halv smörgås",
+          "Ett äpple",
+          "En kaka"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Ture säger ”med flit”. Vad betyder det?",
+        "options": [
+          "Att man gör det med vilje",
+          "Att man gör det av misstag",
+          "Att man gör det mycket snabbt",
+          "Att man gör det med en kompis"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-brandovningen",
+    "title": "Larmet mitt i matten",
+    "level": 1,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Klassen har matte. Siri räknar på ett svårt tal. Plötsligt tjuter det i hela skolan. Det är brandlarmet!\n\nSiri blir rädd och tappar pennan. Brinner det på riktigt?\n\n”Lugn”, säger läraren Mats. ”Ställ er i en rad vid dörren. Ta inte med något.”\n\nKlassen går ut genom korridoren och ner för trappan. Ingen springer. På skolgården ställer de sig vid flaggstången. Mats räknar alla barn. Alla är med.\n\nSedan kommer rektorn ut. ”Bra jobbat! Det här var bara en övning”, säger hon. ”Nu vet ni vad ni ska göra om det brinner på riktigt.”\n\nSiri andas ut. Hon tycker att hon var modig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken lektion har klassen?",
+        "options": [
+          "Svenska",
+          "Musik",
+          "Idrott",
+          "Matte"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör Siri när larmet tjuter?",
+        "options": [
+          "Hon springer ut",
+          "Hon tappar pennan",
+          "Hon börjar gråta",
+          "Hon gömmer sig"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var ställer sig klassen på skolgården?",
+        "options": [
+          "Vid cykelstället",
+          "Vid gungorna",
+          "Vid grinden",
+          "Vid flaggstången"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför räknar Mats alla barn?",
+        "options": [
+          "För att det är mattelektion",
+          "För att dela in dem i lag",
+          "För att se att alla är med",
+          "För att dela ut frukt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Rektorn säger att det var en övning. Vad betyder det?",
+        "options": [
+          "Larmet var trasigt",
+          "Det brann inte på riktigt",
+          "Det brann i köket",
+          "Klassen fick gå hem"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur känner sig Siri i slutet?",
+        "options": [
+          "Lättad och modig",
+          "Arg och ledsen",
+          "Rädd och trött",
+          "Sur och hungrig"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-tyst-larare",
+    "title": "Den tysta dagen",
+    "level": 1,
+    "textType": "story",
+    "topic": "skola",
+    "body": "När klassen kommer in på morgonen står det något på tavlan: ”God morgon! Jag har tappat rösten. Jag kan inte prata i dag.”\n\nLäraren Lisa pekar på sin hals och ler. Hon är förkyld.\n\nDante räcker upp handen. ”Jag kan läsa högt åt dig!”\n\nLisa nickar glatt. Hon skriver på tavlan och Dante läser för klassen. ”Öppna boken på sidan tolv.” ”Skriv tre meningar om hösten.”\n\nDet blir den tystaste dagen någonsin. Alla viskar, fast de inte behöver.\n\nNär det ringer ut skriver Lisa en sista sak på tavlan: ”Tack, Dante! Du är en bra lärare.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad står det på tavlan på morgonen?",
+        "options": [
+          "Att det blir prov i dag",
+          "Att Lisa inte kan prata",
+          "Att klassen ska gå hem",
+          "Att Lisa har fått en katt"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför har Lisa tappat rösten?",
+        "options": [
+          "Hon har sjungit mycket",
+          "Hon har skrikit på klassen",
+          "Hon har ont i en tand",
+          "Hon är förkyld"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem läser högt för klassen?",
+        "options": [
+          "Dante",
+          "Lisa",
+          "Rektorn",
+          "Alla barnen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad ska klassen skriva om?",
+        "options": [
+          "Vintern",
+          "Sommarlovet",
+          "Hösten",
+          "Sin familj"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Lisa nickar. Vad visar hon då?",
+        "options": [
+          "Att hon är trött",
+          "Att hon säger nej",
+          "Att hon säger ja",
+          "Att hon är arg"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad tycker Lisa om Dantes hjälp?",
+        "options": [
+          "Hon tycker att han läser för fort",
+          "Hon är tacksam",
+          "Hon vill att någon annan läser",
+          "Hon blir irriterad på honom"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-handla-sjalv",
+    "title": "Liam handlar själv",
+    "level": 1,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Liam ska handla själv för första gången. Mamma ger honom en lapp och en hundralapp.\n\nPå lappen står det: mjölk, bröd, bananer.\n\nAffären ligger bara runt hörnet. Liam går in och tar en korg. Han hittar bröd och bananer direkt. Men var är mjölken?\n\nHan går fram och tillbaka. Till slut frågar han en man som fyller på hyllorna.\n\n”Mjölken står i kylen längst in”, säger mannen.\n\nLiam betalar i kassan och får pengar tillbaka. Han går hem med en tung kasse.\n\n”Du klarade allt!” säger mamma. Liam känner sig stor och stolt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad får Liam av mamma?",
+        "options": [
+          "En korg och en kasse",
+          "En lapp och en penna",
+          "En hundralapp och en nyckel",
+          "En lapp och en hundralapp"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken vara står INTE på lappen?",
+        "options": [
+          "Ost",
+          "Mjölk",
+          "Bröd",
+          "Bananer"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad har Liam svårt att hitta?",
+        "options": [
+          "Mjölken",
+          "Brödet",
+          "Bananerna",
+          "Kassan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var står mjölken?",
+        "options": [
+          "Vid kassan",
+          "Bredvid brödet",
+          "Längst fram i affären",
+          "I kylen längst in"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Mannen fyller på hyllorna. Vad gör han?",
+        "options": [
+          "Han sopar golvet i affären",
+          "Han ställer fram varor",
+          "Han tar betalt i kassan",
+          "Han bär kassar åt folk"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur känner sig Liam när han kommer hem?",
+        "options": [
+          "Rädd",
+          "Trött",
+          "Stolt",
+          "Besviken"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-pannkakor",
+    "title": "Den svarta pannkakan",
+    "level": 1,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Det är lördag och Selin vill göra pannkakor åt hela familjen. Pappa hjälper till att läsa receptet.\n\nSelin vispar mjöl, mjölk och ägg i en bunke. Smeten blir gul och slät.\n\nPappa sätter på spisen. Selin häller smet i stekpannan. Då ringer hennes kompis, och Selin pratar länge.\n\nPlötsligt luktar det bränt. Den första pannkakan är svart!\n\n”Den första blir ofta konstig”, säger pappa. ”Prova igen.”\n\nNu står Selin kvar vid spisen hela tiden. Hon vänder pannkakan i rätt tid. Den blir gyllene och fin.\n\nTill slut har hon en hög med tolv pannkakor. Den svarta lägger hon i komposten.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag är det?",
+        "options": [
+          "Söndag",
+          "Fredag",
+          "Måndag",
+          "Lördag"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad vispar Selin ihop?",
+        "options": [
+          "Mjöl, mjölk och ägg",
+          "Socker, smör och ägg",
+          "Mjöl, vatten och salt",
+          "Mjölk, sylt och grädde"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför blir den första pannkakan svart?",
+        "options": [
+          "Smeten var för gammal",
+          "Stekpannan var trasig",
+          "Selin pratade för länge",
+          "Pappa läste fel i receptet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Pannkakan blir gyllene. Hur ser den ut?",
+        "options": [
+          "Svart som sot",
+          "Gulbrun som guld",
+          "Vit som mjölk",
+          "Röd som sylt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur många pannkakor blir det till slut?",
+        "options": [
+          "Sex",
+          "Tolv",
+          "Tio",
+          "Tjugo"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad lär sig Selin?",
+        "options": [
+          "Att pannkakor inte är goda",
+          "Att pappa ska laga maten",
+          "Att hon ska vakta stekpannan",
+          "Att man inte ska ha ägg i smeten"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-blomman",
+    "title": "Vem vattnar blomman?",
+    "level": 1,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "I klassrummet står en stor grön växt i fönstret. Ingen i klassen vattnar den. Ändå är jorden alltid blöt.\n\n”Konstigt”, tänker Amanda. Hon bestämmer sig för att lösa gåtan.\n\nFörst frågar hon läraren. ”Nej, inte jag”, säger han. Sedan frågar hon kompisarna. Ingen har vattnat.\n\nEn morgon kommer Amanda till skolan extra tidigt. Klassrummet är tomt och tyst. Då öppnas dörren. In kommer vaktmästaren Göran med en grön kanna.\n\n”Jag vattnar alla växter i skolan innan barnen kommer”, säger han och blinkar.\n\nNu är gåtan löst. Amanda hjälper Göran att vattna resten av växterna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var står växten?",
+        "options": [
+          "I fönstret",
+          "På lärarens bord",
+          "Vid dörren",
+          "Ute i korridoren"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är konstigt med växten?",
+        "options": [
+          "Den växer på natten",
+          "Den har röda blad",
+          "Den luktar konstigt",
+          "Jorden är alltid blöt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Amanda vill lösa gåtan. Vad betyder det?",
+        "options": [
+          "Skriva en dikt om den",
+          "Rita en bild av den",
+          "Ta reda på svaret",
+          "Glömma bort den"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kommer Amanda extra tidigt?",
+        "options": [
+          "Hon har glömt sin bok",
+          "Hon vill leka på gården",
+          "Hon ska hjälpa läraren",
+          "Hon vill se vem som vattnar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vem vattnar växten?",
+        "options": [
+          "Vaktmästaren",
+          "Läraren",
+          "Rektorn",
+          "Amandas kompis"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "När vattnar han växterna?",
+        "options": [
+          "På lunchrasten",
+          "Innan barnen kommer",
+          "Efter skolan",
+          "På helgen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-fotspar-snon",
+    "title": "Spåren i snön",
+    "level": 1,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "En morgon i december ser Edvin fotspår i snön. De går från huset bort till garaget.\n\nFotspåren är stora. Under dem syns ett mönster av ränder.\n\nEdvin följer spåren. Vid garagedörren tar de slut. Dörren är låst.\n\n”Någon har varit här i natt”, viskar Edvin till sin syster Mona.\n\nDe smyger runt huset. Genom ett litet fönster ser de en stor låda med ett rött band.\n\nEdvin går in och tittar på pappas stövlar i hallen. Under stövlarna är det samma ränder som i snön!\n\nHan ler. Nu vet han vem som har gömt något i garaget. Men han säger ingenting. Det är ju snart jul.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken månad är det?",
+        "options": [
+          "December",
+          "Januari",
+          "Mars",
+          "November"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vart går fotspåren?",
+        "options": [
+          "Till grannen",
+          "Till skogen",
+          "Till garaget",
+          "Till brevlådan"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad ser barnen genom fönstret?",
+        "options": [
+          "En stor snögubbe",
+          "En låda med ett rött band",
+          "En cykel med blå ränder",
+          "Pappa som sover"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "De smyger runt huset. Hur går de?",
+        "options": [
+          "Snabbt och högt",
+          "Baklänges",
+          "Hoppande på ett ben",
+          "Tyst och försiktigt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vem har gått till garaget i natten?",
+        "options": [
+          "Mona",
+          "Pappa",
+          "En tjuv",
+          "Grannen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför säger Edvin ingenting?",
+        "options": [
+          "Det är nog en julklapp",
+          "Han är rädd för pappa",
+          "Mona sa åt honom att tiga",
+          "Han vill sova en stund till"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-kartan-brevladan",
+    "title": "Kartan i brevlådan",
+    "level": 1,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "När Juni tittar i brevlådan ligger det inget brev där. Det ligger en karta!\n\nKartan är ritad med kritor. Den visar Junis gata, en stor ek och en röd bänk. Vid bänken finns ett kryss.\n\nLängst ner står det: ”Kom klockan tre. Ta med dig något att dricka.”\n\nVem har skickat den? Juni går till eken. Där sitter en lapp med en pil. Pilen pekar mot den röda bänken.\n\nVid bänken ligger en filt och en korg. Där sitter en flicka från huset mitt emot.\n\n”Hej, jag heter Fanny”, säger hon. ”Vi har just flyttat hit. Vill du ha picknick med mig?”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hittar Juni i brevlådan?",
+        "options": [
+          "Ett brev",
+          "En tidning",
+          "Ett paket",
+          "En karta"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är kartan ritad med?",
+        "options": [
+          "Blyertspenna",
+          "Tusch",
+          "Kritor",
+          "Vattenfärg"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad ska Juni ta med sig?",
+        "options": [
+          "Något att äta",
+          "En filt",
+          "En boll",
+          "Något att dricka"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vart pekar pilen vid eken?",
+        "options": [
+          "Mot Junis hus",
+          "Mot den röda bänken",
+          "Mot brevlådan",
+          "Mot skolan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför har Fanny skickat kartan?",
+        "options": [
+          "Hon vill lura Juni",
+          "Hon har tappat sin katt",
+          "Hon vill få en ny vän",
+          "Hon vill sälja sin korg"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Fanny har just flyttat hit. Vad betyder det?",
+        "options": [
+          "Hon bor här sedan nyss",
+          "Hon ska snart flytta härifrån",
+          "Hon är på semester här",
+          "Hon har bott här länge"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      }
+    ]
   }
 ]
