@@ -195,4 +195,7 @@
 @media (prefers-reduced-motion: reduce) {
   .tk *, .tk *::before, .tk *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; }
   .tkm-fill { transition-duration: .15s; }
+  /* Attacknamnet är information: står still i stället för att animeras (annars
+     slutar den korta animationen på opacity 0 och namnet syns aldrig, #541). */
+  .tk-banner.on { animation: none; opacity: 1; }
 }
