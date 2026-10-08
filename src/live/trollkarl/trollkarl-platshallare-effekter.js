@@ -51,12 +51,13 @@ registerAttack({
     await cast;
     if (signal.aborted) return;
     o.remove();
+    // Avbrott (matchslut) kollas mellan varje steg – ritar aldrig vidare efter regins reset().
     poof(layer, scene.point(to.wizard, "body"));
     scene.state(to.side, "HIT");
     to.wizard.setExpression("sad");
     from.wizard.setExpression("happy");
     await to.wizard.play("hit");
-    await scene.wait(500, signal);
+    await scene.wait(500, signal); // kastar vid avbrott → inget mer ritas efter matchslut
     scene.state(to.side, "RECOVERING");
     from.wizard.play("laugh");
     await to.wizard.play("stagger");
