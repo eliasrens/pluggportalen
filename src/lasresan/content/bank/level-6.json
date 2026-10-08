@@ -1906,5 +1906,535 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n6-tolken",
+    "title": "Yara tolkar",
+    "level": 6,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Yara hade tolkat åt sin pappa sedan hon var åtta. Hon hade översatt på vårdcentralen, på banken och när hyresvärden ringde om ett läckande rör. Pappa hade varit ingenjör i landet de kom ifrån, men här läste han fortfarande svenska på kvällarna, och de svåra orden fastnade i munnen på honom.\n\nDärför kändes det självklart att hon skulle tolka på sitt eget utvecklingssamtal också.\n\nLäraren Helena började med det som var bra. Yara läste mycket och skrev fina texter. Yara översatte varje ord, och pappa nickade och log.\n\nSedan bläddrade Helena fram till nästa papper. ”Men Yara glömmer ofta sina läxor i matte”, sa hon. ”Och hon pratar mycket med kompisarna när jag har genomgång.”\n\nYara kände hur det drog i magen. Hon vände sig till pappa och sa på arabiska: ”Hon säger att jag behöver öva lite mer på matte.”\n\nDet var inte direkt en lögn. Men det var inte heller sanningen.\n\nPappa tittade länge på henne. Sedan vände han sig till Helena och sa långsamt på svenska: ”Glömmer … läxor. Pratar … på genomgång. Jag förstår.”\n\nYara blev het i hela ansiktet. Helena såg från den ena till den andra och lade ner pennan.\n\n”Jag ber om ursäkt”, sa hon. ”Det var fel av mig att låta Yara tolka sitt eget samtal. Det är inte rimligt att ett barn ska behöva göra det. Nästa gång bokar vi en riktig tolk.”\n\nPå vägen hem gick de tysta en lång stund. Till slut sa Yara: ”Förlåt. Jag ville inte att du skulle bli besviken.”\n\nPappa stannade vid ett övergångsställe. ”Jag förstår mer än jag kan säga”, sa han. ”Det är svårt för mig, varje dag. Men jag vill hellre höra det svåra från dig än något fint som inte är sant.”\n\nSedan log han lite. ”Och matteläxorna gör vi tillsammans. Jag var ju ingenjör. Där behöver jag ingen tolk.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket yrke hade pappa haft i landet de kom ifrån?",
+        "options": [
+          "Lärare",
+          "Läkare",
+          "Ingenjör",
+          "Tolk"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad sa Yara på arabiska när Helena berättade om problemen?",
+        "options": [
+          "Att hon pratade för mycket i klassrummet",
+          "Att Helena var nöjd med allt hon gjorde",
+          "Att hon ofta glömde sina läxor hemma",
+          "Att hon behövde öva mer på matte"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Det ”drog i magen” på Yara. Vad betyder det?",
+        "options": [
+          "Hon var hungrig",
+          "Hon kände sig orolig",
+          "Hon hade ont i magen",
+          "Hon längtade hem"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför sa Yara inte hela sanningen till sin pappa?",
+        "options": [
+          "Hon ville inte göra honom besviken",
+          "Hon kunde inte orden på arabiska",
+          "Hon hade inte hört vad Helena sa",
+          "Hon ville att samtalet skulle ta slut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur visste pappa vad Helena egentligen hade sagt?",
+        "options": [
+          "Helena hade skickat ett brev hem innan",
+          "Han förstod mer svenska än Yara trodde",
+          "Han hade sett det i Yaras matteböcker",
+          "En annan förälder hade berättat det för honom"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Helena säger att det inte är ”rimligt”. Vad betyder det här?",
+        "options": [
+          "Att det inte är tillåtet enligt lag",
+          "Att det tar för lång tid att göra",
+          "Att det är svårt att förstå",
+          "Att det inte är rätt eller schysst"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar pappa med att han hellre vill höra ”det svåra” från Yara?",
+        "options": [
+          "Att ärlighet betyder mer för honom än fina ord",
+          "Att han tycker att Yara borde prata mer svenska",
+          "Att han vill att Yara ska tolka mer svåra ord",
+          "Att han är arg för att Yara inte gör sina läxor"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen främst om?",
+        "options": [
+          "Hur man blir en bra tolk som vuxen",
+          "Varför matematik är ett viktigt skolämne",
+          "Ärlighet mellan ett barn och en förälder",
+          "Hur ett utvecklingssamtal på en skola går till"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-hundspannet",
+    "title": "Släpp aldrig släden",
+    "level": 6,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Det var minus tjugotvå grader när Märta klev ut ur stugan. Luften stack i näsan, och snön knarrade under kängorna. Utanför stod sex hundar fastspända framför en smal släde. De skällde, hoppade och drog i linorna som om de inte kunde vänta en sekund till.\n\nGuiden Ante gick igenom reglerna. Man står längst bak på medarna och styr genom att luta sig. Bromsen är en metallbit med taggar som man trampar ner i snön. Och den viktigaste regeln av alla: ”Släpp aldrig släden. Hundarna stannar inte för att du ramlar av. De springer hem utan dig.”\n\nMärta skulle köra sitt eget spann bakom Antes. De första kilometrarna var som att flyga. Hundarna sprang tyst nu, och det enda som hördes var medarna mot snön. Björkarna var vita av frost, och solen låg låg över fjällen fast klockan bara var elva.\n\nSedan sprang en ripa upp ur snön precis bredvid spåret.\n\nHundarna kastade sig åt sidan. Släden tippade, och Märta föll på knä i snön. Men hon släppte inte. Hon höll i handtaget med båda händerna medan hon släpades flera meter och snön yrde i ansiktet.\n\n”Bromsen!” ropade Ante någonstans framför.\n\nMärta fick upp en fot på medarna, sedan den andra. Hon trampade ner bromsen med hela sin tyngd. Hundarna drog, sedan drog de lite mindre, och till slut stannade de och tittade bakåt på henne med flämtande tungor, som om de undrade varför hon hade så bråttom att stanna.\n\nAnte kom pulsande genom snön. Han såg på henne, på släden och på hundarna. ”Du släppte inte”, sa han.\n\n”Jag hade inte tid att tänka”, sa Märta. Hennes ben skakade.\n\n”Det är därför man lär sig reglerna innan”, sa Ante. ”När det händer finns ingen tid att tänka.”\n\nResten av turen gick lugnt. Men på kvällen, när Märta låg i sin sovsäck och lyssnade på hundarna som ylade ute i mörkret, kände hon fortfarande handtaget i händerna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad skrämde hundarna så att släden tippade?",
+        "options": [
+          "En ren",
+          "En hare",
+          "En ripa",
+          "En räv"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur styr man släden, enligt Ante?",
+        "options": [
+          "Genom att luta sig",
+          "Genom att dra i linorna",
+          "Genom att ropa på hundarna",
+          "Genom att trampa på bromsen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför är det så viktigt att inte släppa släden?",
+        "options": [
+          "Släden går sönder om den välter i snön",
+          "Föraren fryser fast i snön om hon ligger stilla",
+          "Ante blir arg på den som tappar sin släde",
+          "Hundarna fortsätter springa utan föraren"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Ante kom ”pulsande” genom snön. Vad betyder det?",
+        "options": [
+          "Han åkte fort på skidor",
+          "Han gick tungt i djup snö",
+          "Han sprang på en plogad väg",
+          "Han kröp fram på magen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tittade hundarna bakåt när de hade stannat?",
+        "options": [
+          "De ville fortsätta springa",
+          "De ville kontrollera att ripan var borta",
+          "De var rädda för att Ante skulle skälla",
+          "De väntade på att få mat av Märta"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skakade Märtas ben efteråt?",
+        "options": [
+          "Hon hade slagit sig ordentligt när släden tippade",
+          "Hon frös mer än hon hade gjort förut",
+          "Hon hade blivit rädd fast hon klarade sig",
+          "Hon var trött efter att ha sprungit"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Solen låg ”låg över fjällen”. Vad betyder det?",
+        "options": [
+          "Den var gömd bakom moln",
+          "Den stod nära horisonten",
+          "Den stod högt på himlen",
+          "Den hade precis gått ner"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är Antes viktigaste lärdom i berättelsen?",
+        "options": [
+          "Hundar är farliga och man ska undvika dem",
+          "Man ska alltid stanna när man ser en ripa",
+          "Det är bäst att köra släde på eftermiddagen",
+          "Inövade regler hjälper när det gäller"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-vraket",
+    "title": "Spanten i tången",
+    "level": 6,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Gabriel hade aldrig tyckt om djupt vatten. Hemma i badhuset var det lugnt och blått, men havet vid moster Leilas sommarhus var grönt och mörkt, och tången rörde sig som långa armar.\n\n”Du behöver bara simma längs stranden”, sa moster. ”Jag är bredvid hela tiden.”\n\nGabriel drog på sig cyklopet och snorkeln. De första minuterna andades han så snabbt att det pep i röret. Men sedan såg han en krabba som gick sidledes över en sten, en liten fisk som gömde sig bland snäckorna och solljus som rörde sig i ränder över sanden. Han glömde nästan att vara rädd.\n\nVid udden låg det något bland tången som inte såg ut som stenar. Det var långa, svarta trästycken som stack upp ur sanden i en rad, böjda som revben. Gabriel dök ner så långt han vågade och kände på ett av dem. Det var mjukt och slätt av havet.\n\nUppe på stranden ritade moster i sanden med en pinne. ”Det där är spant”, sa hon. ”Det är skelettet i en träbåt. Du har hittat ett vrak.”\n\nGabriel ville genast simma ut igen och ta med sig en bit hem. Men moster skakade på huvudet. Gamla vrak är skyddade enligt lag, förklarade hon. Man får titta, men inte ta något eller flytta på det. En liten bit kan verka oviktig, men för den som forskar kan den vara precis den bit som berättar hur gammal båten är.\n\nI stället lånade de en undervattenskamera. Gabriel fotograferade varje spant, och moster mätte avståndet från udden. Samma kväll skickade de bilderna och en karta till sjöhistoriska museet.\n\nDet dröjde en månad innan svaret kom. Vraket hade inte varit känt tidigare. Nästa sommar skulle marinarkeologer komma och undersöka det, och de undrade om Gabriel ville vara med och visa vägen.\n\nGabriel läste mejlet två gånger. Sedan gick han ner till stranden och tittade ut över det mörka vattnet.\n\nDet såg inte lika läskigt ut längre. Det såg ut som ett ställe där det fanns saker kvar att hitta.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var spanten, enligt moster?",
+        "options": [
+          "Rester av en gammal brygga",
+          "Träd som fallit i vattnet",
+          "Delar av en fiskfälla",
+          "Skelettet i en träbåt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vart skickade de bilderna?",
+        "options": [
+          "Till en tidning",
+          "Till polisen",
+          "Till ett museum",
+          "Till kommunen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Trästyckena var böjda ”som revben”. Vad menas med det?",
+        "options": [
+          "De var vita och hårda som gamla ben",
+          "De var krökta som benen runt bröstet",
+          "De var korta och låg huller om buller",
+          "De var trasiga som efter en olycka"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför andades Gabriel så snabbt i början?",
+        "options": [
+          "Han var nervös i det mörka vattnet",
+          "Snorkeln var för kort för honom",
+          "Han hade simmat väldigt långt ut från stranden",
+          "Vattnet var mycket kallt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför glömde Gabriel nästan att vara rädd?",
+        "options": [
+          "Allt han såg fångade honom",
+          "Moster höll honom i handen",
+          "Vattnet blev plötsligt grunt",
+          "Han hade simmat i havet förut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan en liten bit från ett vrak vara viktig?",
+        "options": [
+          "Den kan vara värd mycket pengar",
+          "Den kan få vraket att gå sönder",
+          "Den kan hjälpa båten att flyta",
+          "Den kan visa hur gammal båten är"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Marinarkeologer ska ”undersöka” vraket. Vad betyder det?",
+        "options": [
+          "Lyfta upp det",
+          "Laga det igen",
+          "Granska det",
+          "Flytta det"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Hur har Gabriels känsla för havet förändrats i slutet?",
+        "options": [
+          "Han tycker fortfarande att det är läskigt",
+          "Han ser det som en plats att upptäcka",
+          "Han vill aldrig mer snorkla igen",
+          "Han bryr sig inte längre om havet"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-segelflyget",
+    "title": "Utan motor",
+    "level": 6,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Ida hade alltid vetat att farmor Inga flög segelflyg. Det fanns bilder i hallen på smala vita flygplan med långa vingar. Men det var först sommaren hon fyllde tolv som hon fick följa med.\n\n”Det finns ingen motor?” frågade hon för tredje gången när hon satt fastspänd i framsätet.\n\n”Ingen alls”, sa farmor bakom henne. ”Vi blir uppdragna. Sedan klarar vi oss själva.”\n\nEtt litet motorflygplan rullade fram framför dem. Mellan planen spändes ett långt rep. När motorplanet började köra över gräset rycktes de framåt, och efter bara några sekunder lättade marken under dem. Ida höll så hårt i sätet att knogarna blev vita.\n\nPå sexhundra meters höjd drog farmor i ett handtag. Det smällde till, repet släppte, och motorplanet svängde iväg. Plötsligt blev det tyst. Det enda som hördes var vinden som susade längs huven.\n\n”Nu letar vi termik”, sa farmor. ”Det är varm luft som stiger från marken. Solen värmer ett sädesfält eller en parkering, och luften ovanför blir lättare och stiger uppåt som en bubbla.”\n\nHon styrde mot ett gult fält. Planet skakade till, och Ida kände hur de lyftes, som i en hiss. Farmor lade planet i en brant sväng och började cirkla. Bredvid dem, nästan på samma höjd, cirklade en ormvråk med utbredda vingar. Den slog inte med dem en enda gång.\n\n”Den gör precis som vi”, sa Ida.\n\n”Det är snarare vi som gör som den”, svarade farmor. ”Fåglarna kunde det här långt innan människan ens hade tänkt tanken.”\n\nEfter en stund fick Ida hålla i spaken. Planet var lättare att styra än hon trott, och hon förstod plötsligt varför farmor ofta såg lite frånvarande ut på marken, som om hon lyssnade efter något.\n\nLandningen var mjuk. När de klev ur skrattade Ida utan att veta varför.\n\n”Det brukar bli så första gången”, sa farmor. ”Man får aldrig riktigt bort det.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur kom segelflygplanet upp i luften?",
+        "options": [
+          "Det sköts upp med ett stort gummiband",
+          "Det rullade nerför en lång backe",
+          "Det lyftes av en stark vindby",
+          "Det drogs upp av ett motorflygplan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är termik, enligt farmor?",
+        "options": [
+          "Kall luft som faller neråt",
+          "Vind som blåser längs marken",
+          "Varm luft som stiger uppåt",
+          "Moln som rör sig snabbt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Planet ”lättade”. Vad betyder det här?",
+        "options": [
+          "Det lämnade marken",
+          "Det blev lättare att bära",
+          "Det blev ljusare inuti",
+          "Det svängde åt sidan"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför höll Ida hårt i sätet vid starten?",
+        "options": [
+          "Sätet satt löst i planet",
+          "Hon var nervös för att flyga",
+          "Farmor hade sagt att hon skulle",
+          "Hon frös om händerna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför flög farmor mot det gula fältet?",
+        "options": [
+          "Där fanns en plats där de kunde landa",
+          "Där kunde de se ormvråken på nära håll",
+          "Där kunde luften stiga",
+          "Där blåste det mindre än över skogen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar farmor med att det snarare är de som gör som ormvråken?",
+        "options": [
+          "Att ormvråken hade lärt sig flyga av segelflygare",
+          "Att de följde efter fågeln för att hitta hem",
+          "Att ormvråken flög fortare än segelflygplanet",
+          "Att fåglarna använde termik långt före människan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Farmor såg ofta ”frånvarande” ut. Vad betyder det?",
+        "options": [
+          "Som om hon tänkte på annat",
+          "Som om hon var mycket arg",
+          "Som om hon ville sova",
+          "Som om hon var sjuk"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar farmor med att man ”aldrig riktigt får bort det”?",
+        "options": [
+          "Att man alltid blir lite rädd när man flyger",
+          "Att glädjen över att flyga stannar kvar",
+          "Att man får ont i magen av att flyga",
+          "Att det är svårt att lära sig landa planet"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-skadan",
+    "title": "Från bänken",
+    "level": 6,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Det knakade när Malik landade snett på foten. Två dagar senare satt han på bänken med foten i en stödskena. Fyra veckor utan fotboll, hade läkaren sagt. Det var mitt i säsongen, och laget hade bara förlorat en match.\n\nDen första matchen var han sur från början till slut. Han tittade bara på bollen och tänkte på allt han själv hade gjort annorlunda.\n\nEfter matchen satte sig tränaren Roger bredvid honom. ”Du ser matcherna från ett ställe där ingen av oss andra står”, sa han. ”Vill du hjälpa mig? Skriv ner allt du märker. Inte bara bollen. Allt.”\n\nMalik tyckte först att det lät som ett sätt att hålla honom sysselsatt. Men på nästa match tog han med ett block. Han ritade en plan och gjorde en prick varje gång laget tappade bollen.\n\nEfter halvtid såg han något. Nästan alla prickar låg på vänsterkanten. Varje gång försvararna sköt bollen åt det hållet stod motståndarnas snabbaste spelare och väntade. Det märktes inte ute på planen, där allt gick fort. Men från bänken syntes det tydligt, som ett mönster i en tapet.\n\nI pausen visade han blocket för Roger. Tränaren tittade på det i några sekunder. Sedan gick han fram till laget och ritade på sin lilla whiteboard. Under andra halvlek spelade de mer åt höger. Laget vann med två mål.\n\nUnder veckorna som följde blev Malik något som Roger kallade sin ”spejare”. Han lärde sig att se vem som ofta tittade ner på bollen i stället för upp, och vem som alltid sprang åt samma håll.\n\nNär foten var läkt och han äntligen fick spela igen hände något märkligt. Han såg planen annorlunda. Innan han fick bollen hade han redan tittat upp och sett var luckorna fanns.\n\n”Du har blivit bättre”, sa Roger efter träningen, ”fast du inte har spelat på en månad.”\n\nMalik log. ”Jag har spelat”, sa han. ”Jag har bara gjort det från bänken.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur länge fick Malik inte spela fotboll?",
+        "options": [
+          "Två veckor",
+          "Fyra veckor",
+          "En säsong",
+          "Två dagar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var tappade laget oftast bollen?",
+        "options": [
+          "På vänsterkanten",
+          "På högerkanten",
+          "Mitt på planen",
+          "Framför målet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var Malik sur under den första matchen?",
+        "options": [
+          "Laget förlorade stort mot ett svagt lag",
+          "Roger hade sagt att han spelade dåligt",
+          "Han ville spela och kände sig utanför",
+          "Han hade ont i foten hela matchen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför tyckte Malik först att uppdraget var ett sätt att hålla honom ”sysselsatt”?",
+        "options": [
+          "Han trodde att Roger ville ha en ny målvakt",
+          "Han trodde att Roger tyckte att han var lat",
+          "Han trodde att Roger ville att han skulle sluta",
+          "Han trodde att det bara var ett tidsfördriv"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Mönstret syntes ”som ett mönster i en tapet”. Vad menas?",
+        "options": [
+          "Det var vackert och hade många färger",
+          "Det var svårt att se även när man stod på nära håll",
+          "Det upprepades och blev tydligt på avstånd",
+          "Det försvann när man tittade närmare"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Malik blev lagets ”spejare”. Vad gjorde han?",
+        "options": [
+          "Han skötte lagets bollar",
+          "Han ledde uppvärmningen",
+          "Han var lagets kapten",
+          "Han iakttog spelet"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför spelade Malik bättre när han kom tillbaka?",
+        "options": [
+          "Han hade lärt sig att se hela spelet",
+          "Han hade tränat extra mycket hemma på kvällarna",
+          "Foten var starkare än förut",
+          "Han fick spela på en ny plats"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar Malik med ”Jag har spelat”?",
+        "options": [
+          "Att han i hemlighet hade tränat med laget ändå",
+          "Att han lärt sig mycket fast han inte sprungit",
+          "Att han tyckte att läkaren hade fel",
+          "Att han egentligen inte hade varit skadad"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
