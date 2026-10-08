@@ -8,7 +8,7 @@
 //   * visas med "–" i texter/frågor/rätt/fel/rätt %
 //   * RÄKNAS som startnivå och Skogen steg 0 – så nivå/värld/steg-kolumnerna
 //     visar och sorterar på det, inte på "saknas". Startnivån = klassens
-//     lasresaStartLevel (#505) om den skickas in, annars START_LEVEL (3).
+//     lasresaStartLevel (#505) om den skickas in, annars START_LEVEL.
 //   * har läraren satt en nivå åt en elev som inte börjat (#505) räknas eleven
 //     fortfarande som "ej börjat" men visar lärarens nivå.
 //   * `pendingLevel` (#505) = lärarvald nivå som väntar på att en påbörjad text

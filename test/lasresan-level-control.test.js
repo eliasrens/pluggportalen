@@ -50,17 +50,18 @@ const KEEP = [
 ];
 const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o[k]]));
 
-test("parseTeacherLevel: bara heltal 1–7 (även '4' från <select>)", () => {
-  for (const ok of [1, 4, 7, "1", " 7 "]) assert.equal(parseTeacherLevel(ok), Number(ok));
-  for (const bad of [0, 8, -1, 3.5, "3.5", "abc", "", null, undefined, NaN, true, {}, [3]]) {
+test("parseTeacherLevel: bara heltal 1–10 (även '4' från <select>)", () => {
+  for (const ok of [1, 4, 7, 10, "1", " 7 ", "10"]) assert.equal(parseTeacherLevel(ok), Number(ok));
+  for (const bad of [0, 11, -1, 3.5, "3.5", "abc", "", null, undefined, NaN, true, {}, [3]]) {
     assert.equal(parseTeacherLevel(bad), null, String(bad));
   }
 });
 
-test("withTeacherLevel avvisar ogiltig nivå (kastar), startnivå normaliseras till 3", () => {
-  for (const bad of [0, 8, "x", 2.5]) assert.throws(() => withTeacherLevel(defaultLasresa(), bad), /Ogiltig nivå/);
+test("withTeacherLevel avvisar ogiltig nivå (kastar), startnivå normaliseras till 4", () => {
+  for (const bad of [0, 11, "x", 2.5]) assert.throws(() => withTeacherLevel(defaultLasresa(), bad), /Ogiltig nivå/);
   assert.equal(effectiveStartLevel(undefined), START_LEVEL);
-  assert.equal(effectiveStartLevel(9), START_LEVEL);
+  assert.equal(effectiveStartLevel(11), START_LEVEL);
+  assert.equal(effectiveStartLevel(10), 10);
   assert.equal(effectiveStartLevel("1"), 1);
   assert.equal(classStartLevelOf({ lasresaStartLevel: 2 }), 2);
   assert.equal(classStartLevelOf({}), null);

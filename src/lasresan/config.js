@@ -6,15 +6,18 @@
 // beroenden, så den kan importeras av både webbläsarkod och `node --test`.
 // Se docs/LASRESAN.md för hur talen används.
 //
-// OBS: Läsresans dolda nivå (1–7) är HELT skild från Läsuppdragens lärarsatta
+// OBS: Läsresans dolda nivå (1–10) är HELT skild från Läsuppdragens lärarsatta
 // studentData.readingLevel (1–3, src/reading-level.js). Blanda aldrig ihop dem.
 // ============================================================================
 
 // --- Dold adaptiv läsnivå (level.js) ----------------------------------------
 export const LEVEL_MIN = 1;
-export const LEVEL_MAX = 7;
-/** Alla nya elever börjar här (spec §9). */
-export const START_LEVEL = 3;
+export const LEVEL_MAX = 10;
+/**
+ * Alla nya elever börjar här (spec §9). Nivå 1–3 är de enklare nivåerna från
+ * epic #516; den gamla startnivån 3 motsvarar nu 4 (gammal nivå N = ny N+3).
+ */
+export const START_LEVEL = 4;
 /** ≥ HIGH_PCT % rätt på en text = hög prestation (exakt 70 % ÄR hög). */
 export const HIGH_PCT = 70;
 /** < LOW_PCT % rätt = låg prestation (exakt 50 % är INTE låg). */
@@ -33,8 +36,15 @@ export const COINS_PER_CORRECT = 3;
 export const DEFAULT_STEPS_PER_WORLD = 20;
 
 // --- Innehåll (content/validate.js) -------------------------------------------
+/** Globalt frågeintervall per text – gäller nivåer som saknas i QUESTIONS_BY_LEVEL. */
 export const QUESTIONS_MIN = 5;
 export const QUESTIONS_MAX = 9;
+/** Frågeintervall [min, max] per nivå (epic #516): de nya enkla nivåerna har färre frågor. */
+export const QUESTIONS_BY_LEVEL = {
+  1: [3, 4],
+  2: [4, 5],
+  3: [5, 7],
+};
 export const OPTIONS_PER_QUESTION = 4;
 export const TEXT_TYPES = ["story", "fact"];
 
@@ -49,16 +59,21 @@ export const CATEGORY_LABELS = {
 
 /**
  * Riktintervall för ordantal per nivå (spec §16). RIKTLINJER, inte regler:
- * validatorn ger en VARNING (aldrig fel) utanför intervallet.
+ * validatorn ger en VARNING (aldrig fel) utanför intervallet. Nivå 1–3 (epic
+ * #516, spec 30–50 / 60–90 / 100–140 ord) har lite marginal; nivå 4–10 är
+ * de gamla nivåerna 1–7 oförändrade.
  */
 export const LEVEL_WORD_RANGES = {
-  1: [60, 110],
-  2: [80, 140],
-  3: [120, 190],
-  4: [150, 230],
-  5: [180, 300],
-  6: [220, 380],
-  7: [280, 500],
+  1: [25, 55],
+  2: [55, 95],
+  3: [95, 150],
+  4: [60, 110],
+  5: [80, 140],
+  6: [120, 190],
+  7: [150, 230],
+  8: [180, 300],
+  9: [220, 380],
+  10: [280, 500],
 };
 
 /**

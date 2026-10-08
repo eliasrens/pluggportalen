@@ -2,14 +2,14 @@
 // Läsresan – dold adaptiv läsnivå (src/lasresan/level.js)
 // ----------------------------------------------------------------------------
 // Ren logik (ingen DOM/Firestore), testad i test/lasresan-level.test.js.
-// Nivån (1–7) avgör BARA hur svår nästa text blir. Eleven ser den aldrig;
+// Nivån (1–10) avgör BARA hur svår nästa text blir. Eleven ser den aldrig;
 // läraren gör det. Den är helt skild från resans steg/världar (journey.js).
 //
 // Regler (spec §10, talen i config.js):
 //   * ≥ 70 % rätt  → HÖG:  highStreak+1, lowStreak=0. 3 i rad → nivå +1.
 //   * <  50 % rätt → LÅG:  lowStreak+1, highStreak=0. 2 i rad → nivå −1.
 //   * 50–69,99 %   → MITT: båda streaks nollas, ingen ändring.
-//   * Efter en nivåförändring nollas båda streaks. Vid tak (7) / golv (1)
+//   * Efter en nivåförändring nollas båda streaks. Vid tak (10) / golv (1)
 //     nollas streaken ändå, fast nivån står still.
 // Procentgränserna jämförs med HELTAL (correct*100 >= 70*total) så att t.ex.
 // 7/10 inte råkar bli 69,999… % av flyttalsfel.

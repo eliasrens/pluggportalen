@@ -28,7 +28,7 @@ const idList = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === "string")
 
 /**
  * Ny elev: första världen (Skogen), före steg 1, på startnivån (klassens
- * lasresaStartLevel om satt, annars START_LEVEL = 3).
+ * lasresaStartLevel om satt, annars START_LEVEL).
  */
 export function defaultLasresa(registry = WORLDS, startLevel = START_LEVEL) {
   const w = firstWorld(registry);

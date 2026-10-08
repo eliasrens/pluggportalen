@@ -17,10 +17,10 @@ const entries = [
   { studentId: "s3", namn: "Bo", lasresa: { level: 2, totalTexts: 4, totalQuestions: 24, totalCorrect: 9, totalIncorrect: 15, moneyEarned: 27, worldId: "skogen", stepInWorld: 4, completedWorlds: [] } },
   { studentId: "s4", namn: "Cleo", lasresa: { level: 6, totalTexts: 22, totalQuestions: 150, totalCorrect: 130, totalIncorrect: 20, moneyEarned: 390, worldId: "oknen", stepInWorld: 2, completedWorlds: ["skogen"] } },
   // Startat en text men inte avslutat någon: börjat, men ingen procent.
-  { studentId: "s5", namn: "Dan", lasresa: { level: 3, totalTexts: 0, totalQuestions: 0, worldId: "skogen", stepInWorld: 0, currentTextId: "t1" } },
+  { studentId: "s5", namn: "Dan", lasresa: { level: 4, totalTexts: 0, totalQuestions: 0, worldId: "skogen", stepInWorld: 0, currentTextId: "t1" } },
 ];
 
-test("rader: korrekta värden, ej börjat = nivå 3 / Skogen 0 utan procent", () => {
+test("rader: korrekta värden, ej börjat = nivå 4 / Skogen 0 utan procent", () => {
   const rows = teacherClassRows(entries);
   const by = Object.fromEntries(rows.map((r) => [r.studentId, r]));
   assert.equal(rows.length, 5);
@@ -29,7 +29,7 @@ test("rader: korrekta värden, ej börjat = nivå 3 / Skogen 0 utan procent", ()
     [18, 126, 91, 35, 72, 5, "Skogen", 18, 20]
   );
   assert.equal(by.s2.started, false);
-  assert.deepEqual([by.s2.level, by.s2.worldName, by.s2.stepInWorld, by.s2.pct, by.s2.texts], [3, "Skogen", 0, null, 0]);
+  assert.deepEqual([by.s2.level, by.s2.worldName, by.s2.stepInWorld, by.s2.pct, by.s2.texts], [4, "Skogen", 0, null, 0]);
   assert.equal(by.s4.worldName, "Öknen");
   assert.equal(by.s5.started, true);
   assert.equal(by.s5.pct, null);

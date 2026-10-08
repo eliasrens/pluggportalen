@@ -26,8 +26,8 @@ const base = (over = {}) => ({
 const rowOf = (lasresa, startLevel) =>
   teacherClassRows([{ studentId: "s", namn: "Sam", lasresa }], undefined, { startLevel })[0];
 
-test("nivåerna 1–7", () => {
-  assert.deepEqual(LEVELS, [1, 2, 3, 4, 5, 6, 7]);
+test("nivåerna 1–10", () => {
+  assert.deepEqual(LEVELS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 });
 
 test("elever + genitiv", () => {
@@ -39,11 +39,12 @@ test("elever + genitiv", () => {
   assert.equal(genitiv("Max"), "Max");
 });
 
-test("startLevelInfo: standard 3 när inget är satt, annars klassens", () => {
-  assert.deepEqual(startLevelInfo({}), { level: 3, isDefault: true, text: "Nivå 3 (standard)" });
-  assert.deepEqual(startLevelInfo(null), { level: 3, isDefault: true, text: "Nivå 3 (standard)" });
+test("startLevelInfo: standard 4 när inget är satt, annars klassens", () => {
+  assert.deepEqual(startLevelInfo({}), { level: 4, isDefault: true, text: "Nivå 4 (standard)" });
+  assert.deepEqual(startLevelInfo(null), { level: 4, isDefault: true, text: "Nivå 4 (standard)" });
   assert.deepEqual(startLevelInfo({ lasresaStartLevel: 1 }), { level: 1, isDefault: false, text: "Nivå 1" });
-  assert.equal(startLevelInfo({ lasresaStartLevel: 9 }).text, "Nivå 3 (standard)");
+  assert.equal(startLevelInfo({ lasresaStartLevel: 11 }).text, "Nivå 4 (standard)");
+  assert.equal(startLevelInfo({ lasresaStartLevel: 9 }).text, "Nivå 9");
 });
 
 test("classStudentIds: bara kända elever, inga dubbletter", () => {
@@ -56,7 +57,7 @@ test("classStudentIds: bara kända elever, inga dubbletter", () => {
 
 test("levelCell: nuvarande nivå, väntande nivå och klassens startnivå", () => {
   assert.equal(levelCell(rowOf(base())).text, "4");
-  assert.match(levelCell(rowOf(base())).title, /Dold Läsresan-nivå 4 av 7/);
+  assert.match(levelCell(rowOf(base())).title, /Dold Läsresan-nivå 4 av 10/);
 
   const pend = levelCell(rowOf(base({ currentTextId: "x", pendingLevel: 1 })));
   assert.equal(pend.text, "4 → 1");
@@ -67,7 +68,7 @@ test("levelCell: nuvarande nivå, väntande nivå och klassens startnivå", () =
   const notStarted = levelCell(rowOf(null, 1));
   assert.equal(notStarted.text, "1");
   assert.match(notStarted.title, /Har inte börjat – börjar på nivå 1/);
-  assert.equal(levelCell(rowOf(null)).text, "3");
+  assert.equal(levelCell(rowOf(null)).text, "4");
 });
 
 test("levelCell: väntande nivå lika med nuvarande räknas inte som väntande", () => {
