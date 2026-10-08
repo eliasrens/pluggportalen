@@ -22,7 +22,7 @@ Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grene
 | (befintlig) lr-n7-staderna | fact | geografi | Varför flyttar allt fler till städerna? | — | Urbanisering, orsaker och följder |
 | lr-n7-debatten | story | skola | Fel sida | Hjördis | Lottas att debattera för den sida hon ogillar och förstår motståndarna bättre |
 | lr-n7-jubileet | story | skola | Hundra år i samma korridor | Elof | Intervjuar en äldre kvinna inför skolans jubileum; hennes bild av skolan förr är inte den han väntade sig |
-| lr-n7-laxhjalpen | story | skola | Att förklara bråk | Sigge | Mattesnillet blir läxhjälp åt en fyra och märker att han inte förstår det han kan |
+| lr-n7-laxhjalpen | story | skola | Att förklara bråk | Harald | Mattesnillet blir läxhjälp åt en fyra och märker att han inte förstår det han kan |
 | lr-n7-allergin | story | vardag | Kalaset utan nötter | Dagny | Lillasystern får svår nötallergi; vardagen ändras och Dagny tar ansvar på ett kalas |
 | lr-n7-tidningsrundan | story | vardag | Klockan halv fem | Ville | Följer med mamma på morgonens tidningsrunda och ser hennes arbete med nya ögon |
 | lr-n7-gastboken | story | mysterier | Gästboken i stugan | Truls | Hyrstugans gästbok har anteckningar från dagar då ingen hyrde; spåren leder till ägarens äldre bror |
@@ -36,7 +36,7 @@ Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grene
 | lr-n7-flotten | story | äventyr | Sex dagar på älven | Svea | Familjen bygger en timmerflotte och flyter nedför en älv; tålamod och samarbete |
 | lr-n7-snogrottan | story | äventyr | Natten i snögrottan | Ossian | Vintertur, oväder, de gräver en snögrotta och måste lita på kunskap |
 | lr-n7-volten | story | sport | Spärren | Thea | Gymnasten som plötsligt inte vågar göra volten hon kunnat i flera år |
-| lr-n7-rullstolsbasket | story | sport | Fyra hjul och en korg | Kim, Yara | Kim följer med Yara på rullstolsbasket och förlorar stort; respekt och regler |
+| lr-n7-rullstolsbasket | story | sport | Fyra hjul och en korg | Joar, Yara | Joar följer med Yara på rullstolsbasket och förlorar stort; respekt och regler |
 | lr-n7-elefanterna | fact | djur | Elefanternas osynliga samtal | — | Infraljud, flockens äldsta hona, minne |
 | lr-n7-bjorndjur | fact | djur | Djuret som tål nästan allt | — | Björndjur (trögkrypare) och torrdvala |
 | lr-n7-vargen | fact | djur | Vargen kommer tillbaka | — | Vargens återkomst i Sverige, konflikter och olika intressen |
