@@ -209,6 +209,46 @@ reg("splatt", (ac, o, t) => {
   ton(ac, o, t, { f: 220, dur: 0.2, typ: "square", vol: 0.07, glid: 70 });
 });
 
+// --- Attack 9–17:s ljud (del D, #539) ----------------------------------------
+
+reg("snurr", (ac, o, t) => { // snurrförbannelse: stigande virvel som skruvar sig uppåt
+  ton(ac, o, t, { f: 300, dur: 0.5, typ: "sine", vol: 0.12, glid: 1500 });
+  ton(ac, o, t, { f: 450, at: 0.4, dur: 0.5, typ: "sine", vol: 0.1, glid: 2000 });
+  brus(ac, o, t, { dur: 1.0, vol: 0.07, filter: "bandpass", fc: 700, glid: 2600, q: 2 });
+}, 600);
+
+reg("blixt", (ac, o, t) => { // tecknad blixt: KNÄPP + litet dån, ofarligt
+  brus(ac, o, t, { dur: 0.1, vol: 0.26, filter: "highpass", fc: 2400 });
+  brus(ac, o, t, { at: 0.08, dur: 0.6, vol: 0.18, fc: 900, glid: 110 });
+  ton(ac, o, t, { f: 70, at: 0.08, dur: 0.5, typ: "sine", vol: 0.18, glid: 40 });
+}, 700);
+
+reg("studs", (ac, o, t) => { // studsmatta: BOING med fjädrande glid
+  ton(ac, o, t, { f: 160, dur: 0.3, typ: "triangle", vol: 0.2, glid: 620 });
+  ton(ac, o, t, { f: 320, at: 0.04, dur: 0.26, typ: "sine", vol: 0.1, glid: 900 });
+}, 300);
+
+reg("bubbla", (ac, o, t) => { // såpbubbla växer: mjukt bubblande uppåt
+  [260, 340, 460, 620].forEach((f, i) => ton(ac, o, t, { f, at: i * 0.12, dur: 0.14, typ: "sine", vol: 0.1, glid: f * 1.5 }));
+  glitter(ac, o, t, { n: 4, at: 0.3, spann: 0.35, vol: 0.04, bas: 1800 });
+}, 600);
+
+reg("plopp", (ac, o, t) => { // bubblan spricker: stort komiskt PLOPP
+  ton(ac, o, t, { f: 900, dur: 0.12, typ: "sine", vol: 0.24, glid: 180 });
+  brus(ac, o, t, { at: 0.05, dur: 0.2, vol: 0.14, fc: 1800, glid: 300 });
+});
+
+reg("faar", (ac, o, t) => { // magiskt får: darrande BÄÄÄ
+  [0, 0.09, 0.18, 0.27, 0.36].forEach((at, i) =>
+    ton(ac, o, t, { f: i % 2 ? 350 : 310, at, dur: 0.1, typ: "sawtooth", vol: 0.1, glid: i % 2 ? 330 : 325 }));
+}, 600);
+
+reg("dans", (ac, o, t) => { // dansförbannelse: studsig liten discoslinga
+  const mel = [[392, 0], [494, 0.16], [587, 0.32], [494, 0.48], [659, 0.64]];
+  for (const [f, at] of mel) ton(ac, o, t, { f, at, dur: 0.14, typ: "square", vol: 0.07 });
+  [0, 0.32, 0.64].forEach((at) => ton(ac, o, t, { f: 98, at, dur: 0.14, typ: "sine", vol: 0.16, glid: 70 }));
+}, 800);
+
 // Generisk reserv för nycklar som (ännu) saknar eget ljud – mjukt glitter.
 reg("*", (ac, o, t) => {
   glitter(ac, o, t, { n: 4, spann: 0.3, vol: 0.06 });

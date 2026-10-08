@@ -78,6 +78,53 @@
 .tk-slem i:nth-child(2) { left: 2%; top: 40%; width: 44%; height: 46%; }
 .tk-slem i:nth-child(3) { left: 52%; top: 44%; width: 42%; height: 44%; }
 
+/* --- rörelseattackerna 9/12/15 (#539) ---------------------------------------- */
+.tk-spiral { border-radius: 50%;
+  background: conic-gradient(#ffd0ef 0 20%, #ff6fc2 0 45%, #ffe9f7 0 65%, #e23fa0 0 100%);
+  -webkit-mask: radial-gradient(circle, transparent 0 14%, #000 16% 70%, transparent 72%);
+          mask: radial-gradient(circle, transparent 0 14%, #000 16% 70%, transparent 72%);
+  box-shadow: 0 0 30px 8px rgba(255, 110, 195, .5); }
+.tk-spiralmini { border-radius: 50%; border: 4px solid rgba(255, 130, 205, .9); border-top-color: transparent; }
+.tk-blixt { background: linear-gradient(#fff6c8, #ffd94d);
+  clip-path: polygon(44% 0, 100% 0, 58% 38%, 86% 38%, 30% 100%, 48% 52%, 20% 52%);
+  filter: drop-shadow(0 0 22px rgba(255, 224, 100, .9)); }
+.tk-blixt-flash { position: absolute; inset: -60px; background: #fff8dc; }
+.tk-rok { border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(190, 190, 200, .9) 0 35%, rgba(120, 120, 135, .7) 70%, transparent 74%); }
+.tk-studsplatta { height: 70px !important; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(140, 255, 220, .9) 0 30%, rgba(60, 220, 170, .55) 55%, rgba(60, 220, 170, 0) 72%);
+  box-shadow: 0 0 40px 10px rgba(90, 240, 190, .35); }
+
+/* --- föremålsattackerna 10/11/13/14 (#539) ------------------------------------ */
+.tk-jattehatt { filter: drop-shadow(0 16px 22px rgba(20, 20, 50, .4)); }
+.tk-jattehatt svg { width: 100%; height: 100%; }
+.tk-bubbla { border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .55) 0 10%, rgba(210, 240, 255, .18) 30%, rgba(190, 225, 255, .1) 60%, rgba(160, 205, 255, .3) 86%, rgba(255, 255, 255, .5) 94%, transparent 96%);
+  box-shadow: inset 0 0 50px rgba(255, 255, 255, .35), 0 0 36px rgba(170, 215, 255, .4); }
+.tk-plopp-poff { background: radial-gradient(circle, #fff 0 32%, #d8f0ff 55%, rgba(170, 215, 255, 0) 72%); }
+.tk-plopp-poff span { color: #1c6ba0; }
+.tk-bubbelstank { border-radius: 50%; border: 3px solid rgba(190, 230, 255, .95);
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, .8) 0 20%, rgba(200, 235, 255, .25) 70%); }
+.tk-nysmoln { border-radius: 50%; filter: blur(1px);
+  background: radial-gradient(circle at 42% 36%, #ffd9ec 0 30%, rgba(255, 150, 205, .85) 65%, rgba(255, 150, 205, 0) 74%); }
+.tk-drake svg { width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(20, 40, 20, .35)); }
+.tk-drake-hoger svg { transform: scaleX(-1); }
+.tk-rokring { border-radius: 50%; border: 12px solid rgba(150, 150, 165, .8);
+  -webkit-mask: radial-gradient(circle, transparent 0 30%, #000 32%);
+          mask: radial-gradient(circle, transparent 0 30%, #000 32%); }
+.tk-sot { border-radius: 50%; filter: blur(3px);
+  background: radial-gradient(circle, rgba(60, 55, 60, .8) 0 40%, rgba(60, 55, 60, 0) 72%); }
+
+/* --- extraattackerna 16/17 (#539) --------------------------------------------- */
+.tk-far svg { width: 100%; height: 100%; filter: drop-shadow(0 8px 12px rgba(30, 30, 40, .3)); }
+.tk-far-hoger svg { transform: scaleX(-1); }
+.tk-faa-poff { background: radial-gradient(circle, #fff 0 32%, #f1ead8 55%, rgba(220, 205, 170, 0) 72%); }
+.tk-faa-poff span { color: #6b5637; font-size: 34px; }
+.tk-disco { border-radius: 50%; filter: blur(6px); mix-blend-mode: screen;
+  background: radial-gradient(circle, var(--tk-disco, #ff5fa2) 0 35%, transparent 72%); }
+.tk-not { display: grid; place-items: center; font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 46px; font-weight: 800; color: #ffd76b; text-shadow: 0 2px 0 rgba(60, 30, 100, .5); }
+
 /* Reducerad rörelse: trombens egen CSS-snurr stängs av (resten styrs i JS). */
 @media (prefers-reduced-motion: reduce) {
   .tk-tromb i { animation: none; }

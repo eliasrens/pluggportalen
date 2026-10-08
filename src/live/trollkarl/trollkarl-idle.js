@@ -30,10 +30,23 @@ const IDLE_LOOPS = [
   ], 3200, "ease-in-out"],
 ];
 
+// Tillfällig SVG-rekvisita i figurens egen svg (rökpuff, fjäril …). animFn(g)
+// startar animationen; elementet tas alltid bort efter ttl ms (#539).
+function tempSvg(parts, inner, animFn, ttl = 3000) {
+  const svg = parts.fig?.ownerSVGElement;
+  if (!svg) return null;
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.innerHTML = inner;
+  svg.appendChild(g);
+  try { animFn?.(g); } catch { /* en missad animation är ofarlig */ }
+  setTimeout(() => g.remove(), ttl);
+  return g;
+}
+
 // Småhändelser: körs som vanliga pos-steg via figurens play-mekanik vore för
 // tungt – de är korta mikro-animationer direkt här. Varje händelse
 // returnerar sin längd i ms.
-const IDLE_EVENTS = [
+export const IDLE_EVENTS = [
   function blink({ parts }) { // "blinkning": snabb squint av hela ansiktslagret
     parts.face?.animate(
       [{ transform: "scale(1,1)" }, { transform: "scale(1,0.86)" }, { transform: "scale(1,1)" }],
@@ -85,6 +98,68 @@ const IDLE_EVENTS = [
        { transform: "translate(0px,2px) rotate(2deg)" }, { transform: "translate(0px,0px) rotate(0deg)" }],
       { duration: 700, easing: "cubic-bezier(.34,1.56,.64,1)" });
     return 800;
+  },
+  function hatTrick({ parts, api }) { // (#539 §10) försöker trolla ur hatten – bara en rökpuff
+    parts.armL?.animate(
+      [{ transform: "rotate(0deg)" }, { transform: "rotate(-148deg)" }, { transform: "rotate(-140deg)" },
+       { transform: "rotate(-148deg)" }, { transform: "rotate(0deg)" }],
+      { duration: 1900, easing: "ease-in-out" });
+    parts.hat?.animate(
+      [{ transform: "translate(0px,0px) rotate(0deg)" }, { transform: "translate(-6px,-14px) rotate(-10deg)" },
+       { transform: "translate(-6px,-14px) rotate(-10deg)" }, { transform: "translate(0px,0px) rotate(0deg)" }],
+      { duration: 1900, easing: "ease-in-out" });
+    tempSvg(parts, `<circle cx="200" cy="30" r="14" fill="rgba(180,180,195,.85)"/>
+      <circle cx="214" cy="14" r="9" fill="rgba(200,200,215,.7)"/>`, (g) =>
+      g.animate([{ transform: "translate(0,0) scale(.3)", opacity: 0 },
+        { transform: "translate(0,-20px) scale(1)", opacity: .9, offset: .45 },
+        { transform: "translate(6px,-70px) scale(1.4)", opacity: 0 }],
+        { duration: 1200, delay: 650, easing: "ease-out", fill: "both" }), 1900);
+    setTimeout(() => api.setExpression("sad"), 900);
+    setTimeout(() => api.setExpression(api.baseExpression()), 2000);
+    return 2100;
+  },
+  function capeAdjust({ parts, api }) { // (#539 §10) rättar till manteln, extra självsäker
+    api.setExpression("happy");
+    parts.cape?.animate(
+      [{ transform: "rotate(0deg)" }, { transform: "rotate(-5deg)" }, { transform: "rotate(3deg)" }, { transform: "rotate(0deg)" }],
+      { duration: 1300, easing: "ease-in-out" });
+    parts.body?.animate(
+      [{ transform: "scale(1,1)" }, { transform: "scale(1.04,1.015)" }, { transform: "scale(1.04,1.015)" }, { transform: "scale(1,1)" }],
+      { duration: 1300, easing: "ease-in-out" });
+    parts.head?.animate(
+      [{ transform: "translate(0px,0px)" }, { transform: "translate(0px,-4px)" }, { transform: "translate(0px,-4px)" }, { transform: "translate(0px,0px)" }],
+      { duration: 1300, easing: "ease-in-out" });
+    setTimeout(() => api.setExpression(api.baseExpression()), 1400);
+    return 1500;
+  },
+  function butterfly({ parts }) { // (#539 §10) en liten magisk fjäril flyger förbi
+    const g = tempSvg(parts, `<g data-vinge><ellipse cx="-7" cy="0" rx="8" ry="11" fill="#d98fff"/>
+      <ellipse cx="7" cy="0" rx="8" ry="11" fill="#b36bff"/></g>
+      <rect x="-2" y="-8" width="4" height="16" rx="2" fill="#5b2fa0"/>`, (el) =>
+      el.animate([{ transform: "translate(-80px,300px)", opacity: 1 },
+        { transform: "translate(120px,210px)", opacity: 1, offset: .3 },
+        { transform: "translate(260px,260px)", opacity: 1, offset: .6 },
+        { transform: "translate(480px,160px)", opacity: 0 }],
+        { duration: 2600, easing: "ease-in-out", fill: "both" }), 2650);
+    g?.querySelector("[data-vinge]")?.animate(
+      [{ transform: "scale(1,1)" }, { transform: "scale(.4,1)" }, { transform: "scale(1,1)" }],
+      { duration: 240, iterations: 11 });
+    parts.head?.animate(
+      [{ transform: "rotate(0deg)" }, { transform: "rotate(-4deg)" }, { transform: "rotate(4deg)" }, { transform: "rotate(0deg)" }],
+      { duration: 2600, easing: "ease-in-out" });
+    return 2700;
+  },
+  function challenge({ parts, api }) { // (#539 §10) utmanande gest mot motståndaren
+    api.setExpression("angry");
+    parts.armR?.animate(
+      [{ transform: "rotate(0deg)" }, { transform: "rotate(-58deg)" }, { transform: "rotate(-52deg)" },
+       { transform: "rotate(-58deg)" }, { transform: "rotate(0deg)" }],
+      { duration: 1400, easing: "ease-in-out" });
+    parts.head?.animate(
+      [{ transform: "translate(0px,0px)" }, { transform: "translate(4px,-3px)" }, { transform: "translate(4px,-3px)" }, { transform: "translate(0px,0px)" }],
+      { duration: 1400, easing: "ease-in-out" });
+    setTimeout(() => api.setExpression(api.baseExpression()), 1500);
+    return 1600;
   },
   function sneeze({ parts, api }) { // stjärna på näsan → nysning
     api.setExpression("surprised");

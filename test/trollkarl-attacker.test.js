@@ -1,4 +1,4 @@
-// Trollkarlsduellen (#538): attackmotorn – registret med attacker 1–8,
+// Trollkarlsduellen (#538/#539): attackmotorn – registret med attacker 1–17,
 // deterministiskt slumpval utan direkt upprepning, burst-komprimering och
 // kön under tryck. Körs med: node --test
 import { describe, it } from "node:test";
@@ -10,19 +10,21 @@ import { listAttacks, getAttack, pickAttack } from "../src/live/trollkarl/trollk
 import { attackSeed } from "../src/live/trollkarl/trollkarl-magi.js";
 import { createDirector, rushFor } from "../src/live/trollkarl/trollkarl-regi.js";
 
-const IDS = [
-  "grodifix", "honus-panikus", "potatus-totalus", "regnus-maximus",
-  "fjadrus-stormus", "stinkus-maximus", "bananus-halkus", "slemmus-blaaus",
-];
 const NAMN = {
   grodifix: "GRODIFIX!", "honus-panikus": "HÖNUS PANIKUS!", "potatus-totalus": "POTATUS TOTALUS!",
   "regnus-maximus": "REGNUS MAXIMUS!", "stinkus-maximus": "STINKUS MAXIMUS!",
   "bananus-halkus": "BANANUS HALKUS!", "slemmus-blaaus": "SLEMMUS BLÄÄÄUS!", "fjadrus-stormus": "FJÄDRUS STORMUS!",
+  // Del D (#539): attack 9–15 + två extra (§8 kreativ frihet).
+  "snurrus-yrus": "SNURRUS YRUS!", "hattus-gigantus": "HATTUS GIGANTUS!", "bubblus-flygus": "BUBBLUS FLYGUS!",
+  "blixtus-hoppus": "BLIXTUS HOPPUS!", "nysus-megus": "NYSUS MEGUS!", "drakus-minius": "DRAKUS MINIUS!",
+  "studsus-maximus": "STUDSUS MAXIMUS!", "farus-rammus": "FÅRUS RAMMUS!", "dansus-discus": "DANSUS DISCUS!",
 };
+const IDS = Object.keys(NAMN);
 
 describe("Attackregistret (§8, §9)", () => {
-  it("attack 1–8 är registrerade med unika id, namn, varaktighet, ljud och run()", () => {
+  it("minst 15 attacker registrerade med unika id, namn, varaktighet, ljud och run()", () => {
     const list = listAttacks();
+    assert.ok(list.length >= 15, `minst 15 attacker (§8) – nu ${list.length}`);
     assert.deepEqual(new Set(list.map((a) => a.id)), new Set(IDS));
     assert.equal(new Set(list.map((a) => a.id)).size, list.length, "unika id");
     for (const a of list) {
@@ -42,7 +44,7 @@ describe("Attackregistret (§8, §9)", () => {
     }
   });
 
-  it("aldrig samma attack två gånger i rad för samma trollkarl; båda når alla 8", () => {
+  it("aldrig samma attack två gånger i rad för samma trollkarl; båda når alla", () => {
     for (const cid of ["4b", "5e"]) {
       const traff = new Set();
       let forra = null;
