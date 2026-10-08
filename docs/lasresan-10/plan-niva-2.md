@@ -42,3 +42,14 @@ Nivå 2 = enkel läsning: 60–90 ord, korta tydliga meningar, början–mitten�
 | lr-g2-skane | geografi | Sveriges sydspets | Skåne: platt, stora åkrar, gula rapsfält |
 | lr-g2-ljus-forr | historia | Ljus innan elen | stearinljus, fotogenlampa, tidigt i säng |
 | lr-g2-leksaker-forr | historia | Leksaker förr | trähästar, tygdockor, kottkor |
+
+**Krockkontroll mot `plan-niva-3.md` (#523) före sign-off:** inga gemensamma faktaämnen, premisser eller namn kvar (nivå 3 bytte sina krockar mot denna plan).
+
+## Resultat
+- Byggs med `node admin/lasresan-g2-bygg.mjs` (källtexter i `admin/lasresan-g2-story.mjs` och `admin/lasresan-g2-fakta.mjs`, rätt svar först; skriptet balanserar positionerna seedat). Test: `test/lasresan-bank-niva2.test.js`.
+- 30 texter, 15 story + 15 fact. 149 frågor: 29 texter har 5 frågor och 1 text har 4.
+- Kategorier: fakta 131, ordforstaelse 9, mellan_raderna 7, helhet_slutsats 2 (högst en slutsatsfråga per text).
+- Rätt svars position: A 38, B 37, C 37, D 37.
+- Rätt svar unikt längst: 28 av 149 (19 %).
+- Ordantal: min 64, medel 71,2, max 77. Ord per mening: medel 6,2, max 13.
+- `validateBank` på hela banken: 0 fel, 0 varningar.
