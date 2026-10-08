@@ -283,8 +283,10 @@ describe("Klassprofilen: inredningSparr", () => {
     await assertFails(setDoc(doc(teacher(), "classCenters", "6a"), { inredningSparr: mycket }, { merge: true }));
   });
 
-  it("klassprofilen läses av alla inloggade, inte utloggad", async () => {
-    await assertSucceeds(getDoc(doc(elev("elev2"), "classCenters", "6a")));
+  it("klassprofilen läses av klassen och lärare – inte gäst eller utloggad (#500)", async () => {
+    await assertSucceeds(getDoc(doc(elev("elev1"), "classCenters", "6a")));
+    await assertSucceeds(getDoc(doc(teacher(), "classCenters", "6a")));
+    await assertFails(getDoc(doc(elev("elev2"), "classCenters", "6a")));
     await assertFails(getDoc(doc(unauth(), "classCenters", "6a")));
   });
 });

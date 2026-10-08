@@ -147,7 +147,7 @@ async function regler() {
     const b = writeBatch(ks01);
     b.set(doc(ks01, "classCenters", KS, "donations", id), { uid: "ks01", itemId: "guldstaty", amount: 600, at: serverTimestamp() });
     b.set(doc(ks01, "classCenters", KS, "fund", "guldstaty"), { ...f, fundedAmount: f.fundedAmount + 600, lastDonationId: id });
-    b.set(doc(ks01, "studentData", "ks01"), { coins: -100 }, { merge: true });
+    b.set(doc(ks01, "studentData", "ks01"), { coins: -100, kcDonation: `${KS}/${id}` }, { merge: true });
     await b.commit();
   })));
   kontroll("donation till köpt föremål (rå batch) nekas", nekad(await utfall(async () => {
@@ -155,7 +155,7 @@ async function regler() {
     const b = writeBatch(ks01);
     b.set(doc(ks01, "classCenters", KS, "donations", id), { uid: "ks01", itemId: "klassfana", amount: 10, at: serverTimestamp() });
     b.set(doc(ks01, "classCenters", KS, "fund", "klassfana"), { targetPrice: 2000, fundedAmount: 2000, isUnlocked: true, unlockedAt: serverTimestamp(), lastDonationId: id });
-    b.set(doc(ks01, "studentData", "ks01"), { coins: 490 }, { merge: true });
+    b.set(doc(ks01, "studentData", "ks01"), { coins: 490, kcDonation: `${KS}/${id}` }, { merge: true });
     await b.commit();
   })));
   kontroll("elev låser upp med eget lågt pris (targetPrice 100) nekas", nekad(await utfall(async () => {
@@ -163,7 +163,7 @@ async function regler() {
     const b = writeBatch(ks01);
     b.set(doc(ks01, "classCenters", KS, "donations", id), { uid: "ks01", itemId: "lounge", amount: 100, at: serverTimestamp() });
     b.set(doc(ks01, "classCenters", KS, "fund", "lounge"), { targetPrice: 100, fundedAmount: 100, isUnlocked: true, unlockedAt: serverTimestamp(), lastDonationId: id });
-    b.set(doc(ks01, "studentData", "ks01"), { coins: 400 }, { merge: true });
+    b.set(doc(ks01, "studentData", "ks01"), { coins: 400, kcDonation: `${KS}/${id}` }, { merge: true });
     await b.commit();
   })));
   kontroll("elev raderar donationspost nekas", nekad(await utfall(async () => {

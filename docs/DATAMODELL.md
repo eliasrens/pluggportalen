@@ -250,6 +250,7 @@ Exempel (`students/elev1`):
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
 | `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt }`. `level` (1–7) är Läsresans **dolda** nivå – helt skild från `readingLevel` (1–3). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, nivå 3) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
+| `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
 
@@ -847,7 +848,8 @@ En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevanta
 | `inredningSparr` | array | **2 (klar, #489)** | uid:n som läraren bockat ur – får titta/donera men inte spara layout (≤ 200, `setInredningSparr`) |
 | `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
 
-Läses av alla inloggade (gästläge). Skrivs bara av lärare.
+Läses av klassens elever och lärare (#500 – spärrlistan visar vilka elever
+som bockats ur; gästläget behöver den inte). Skrivs bara av lärare.
 **Regler (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200).
 Pokalerna bor INTE här utan i underkollektionen `trophies/` (#494, nedan) –
 profilens `changedOnly`-lista är oförändrad. Elever kan inte skriva dokumentet
@@ -989,7 +991,8 @@ av posterna). **Läses bara av lärare** – för klassen är donationerna anony
 `donate(classId, itemId, amount)` i den dynamiska `kc-fund-data.js`): läs
 `fund` + `studentData.coins` från servern → `planDonation` cappar beloppet
 till min(begärt, det som saknas, saldot) (heltal ≥ 1; överskottet dras aldrig)
-→ EN atomär batch: `coins` = `increment(−n)`, ny donationspost, `fund` med
+→ EN atomär batch: `coins` = `increment(−n)` + `kcDonation` =
+`"<classId>/<donationId>"` (#500), ny donationspost, `fund` med
 `fundedAmount` = `increment(+n)` (#493). Ingen transaktion: med en hel klass
 samma sekund köade transaktionerna på `fund`-låset och gav upp. Relativa
 värden räknas av reglerna mot det AKTUELLA läget → samtidiga givare under
@@ -1009,8 +1012,11 @@ klassmedlem och bara ihop med en NY donationspost (`lastDonationId` byts,
 när köpt, och ingenting alls när `isUnlocked` redan är sant. Donationsposten:
 egen uid, klassmedlem, `amount` heltal ≥ 1, `at == request.time`, fundens
 `lastDonationId` pekar på posten och samma skrivning sänker
-`studentData/{uid}.coins` med exakt `amount` (≥ 0 kvar). Annan klass/icke-
-medlem nekas (`isClassMember`).
+`studentData/{uid}.coins` med exakt `amount` (≥ 0 kvar) och sätter
+`studentData/{uid}.kcDonation == "<classId>/<donationId>"` – ett avdrag kan
+bara betala EN donation (#500: utan markören delade flera donationer i samma
+batch på ett avdrag). Annan klass/icke-medlem nekas (`isClassMember`).
+Säkerhetsgranskningen: `docs/SAKERHET-klasscentret.md`.
 **Kvarvarande begränsning:** `studentData.coins` är klient-skrivbart
 (`isSelf`, utan fältvalidering) → reglerna garanterar *insamlat == summan av
 donationerna* och att saldot sjunker lika mycket i samma skrivning, inte att

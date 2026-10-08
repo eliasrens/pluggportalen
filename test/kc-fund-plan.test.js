@@ -118,7 +118,7 @@ describe("planDonationWrites", () => {
     assert.deepEqual(w.map((x) => x.path.join("/")), [
       "studentData/elev1", "classCenters/6a/donations/d1", "classCenters/6a/fund/guldstaty",
     ]);
-    assert.deepEqual(w[0].data, { coins: 200 });
+    assert.deepEqual(w[0].data, { coins: 200, kcDonation: "6a/d1" });
     assert.deepEqual(w[1].data, { uid: "elev1", itemId: "guldstaty", amount: 100, at: "TS" });
     assert.deepEqual(w[2].data, { targetPrice: 5000, fundedAmount: 100, isUnlocked: false, lastDonationId: "d1" });
   });
@@ -174,7 +174,7 @@ describe("korDonation (falskt SDK)", () => {
     assert.equal(r.amount, 40);
     assert.equal(r.donationId, "auto1");
     assert.deepEqual(sets.map((s) => s[0]), ["studentData/elev1", "classCenters/6a/donations/auto1", "classCenters/6a/fund/guldstaty"]);
-    assert.deepEqual(sets[0][1], { coins: { inc: -40 } });
+    assert.deepEqual(sets[0][1], { coins: { inc: -40 }, kcDonation: "6a/auto1" });
     assert.deepEqual(sets[2][1].fundedAmount, { inc: 40 });
     assert.equal(state["studentData/elev1"].coins, 0);
   });
