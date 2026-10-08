@@ -21,7 +21,7 @@ Nivå 3 = grundläggande läsförståelse: 100–140 ord, korta meningar (≈ 6 
 | lr-g3-picknicken | vardag | Picknick i regnet | Tea | Tea och pappa har picknick, regnet kommer, de äter under en bro och matar änder |
 | lr-g3-dammen | äventyr | Dammen i bäcken | Darius | Darius bygger en stendamm i bäcken, ser en liten fisk som inte kommer förbi och öppnar dammen |
 | lr-g3-knackningen | mysterier | Vem knackar på fönstret? | Leah | Det knackar på fönstret varje morgon; det är en talgoxe som hackar på sin egen spegelbild |
-| lr-g3-handsken | mysterier | Handsken som vandrade | Mohammed | En röd vante dyker upp på nya ställen varje morgon; grannens hund bär runt den |
+| lr-g3-vanten | mysterier | Vanten som vandrade | Mohammed, Joline | En röd vante dyker upp på nya ställen varje morgon; grannens hund Ruffen bär runt den |
 | lr-g3-visselpipan | äventyr | Visselpipan | Pedro | Pedro kommer bort på bärplockning, stannar vid ett stort träd och blåser i visselpipan |
 | lr-g3-korna | äventyr | Korna på vägen | Hawa | Korna har rymt ut på vägen; Hawa ringer bonden Ragnar och hjälper till att driva in dem |
 | lr-g3-hatten | roliga situationer | Hatten som flög | Ismail | Pappas nya hatt blåser av på torget och landar i fiskdisken |
@@ -44,3 +44,15 @@ Nivå 3 = grundläggande läsförståelse: 100–140 ord, korta meningar (≈ 6 
 | lr-g3-fjordarna | geografi | Norges fjordar | isen grävde dalar, havet fyllde dem, branta berg, båtar |
 | lr-g3-jasten | vetenskap | Varför degen växer | jäst är små svampar som äter socker och gör gasbubblor, värme hjälper |
 | lr-g3-svetten | vetenskap | Därför svettas vi | kroppen kyls av svett, drick vatten |
+
+## Resultat
+- Byggs med `node admin/lasresan-g3-bygg.mjs` (källtexter i `admin/lasresan-g3-story.mjs` och `admin/lasresan-g3-fakta.mjs`, rätt svar först; skriptet balanserar positionerna seedat). Test: `test/lasresan-bank-niva3.test.js`.
+- 30 texter, 15 story + 15 fact. 180 frågor, 6 per text.
+- Kategorier: fakta 125, ordforstaelse 29, mellan_raderna 13, helhet_slutsats 13.
+- Rätt svars position: A 45, B 45, C 45, D 45.
+- Rätt svar unikt längst: 31 av 180 (17 %).
+- Ordantal: min 108, medel 116,2, max 125. Ord per mening: medel 6,7, max 14 (nivå 4: 87–109 ord, 6,8 ord/mening, 6 frågor).
+- Varje text har minst ett av sambandsorden därför, sedan eller plötsligt.
+- Bipersoner: Birgit (lärare), Smulan (kanin), Musa (lillebror), Kex (valp), Kenneth (tränare), Joline, Ruffen (hund), Edit, Ragnar (bonde).
+- Slutkontroll mot färdiga `level-2.json` (#522, f3b3b6f), `level-1.json` och nivå 4–10: 0 namnkrockar, 0 id-krockar, inga delade faktaämnen eller premisser.
+- `validateBank` på hela banken: 0 fel, 0 varningar.
