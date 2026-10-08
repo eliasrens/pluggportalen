@@ -15,6 +15,8 @@
 //                Reglerna (#489) är den riktiga spärren.
 //   pokaler    = bevakaPokaler (#497) → hyllan + auto-placering + hover-rutan
 //                (kc-rum-pokaler.js); en flyttad pokal sparas som en möbel.
+//   statistik  = subscribeClassExp + hamtaLosta (#498) → statistiktavlan och
+//                dess panel (kc-rum-statistik.js); fast möbel, även för gäst.
 // Laddas BARA dynamiskt (#271). deps kan injiceras (preview utan Firestore).
 // ============================================================================
 
@@ -26,13 +28,16 @@ import { KC_SHOP_ITEMS, kcShopItem } from "./kc-shop-items.js";
 import { skapaKcRumTillstand, statusHtml } from "./kc-rum-tillstand.js";
 import { ritaHistorik } from "./kc-rum-historik.js";
 import { skapaKcRumPokaler } from "./kc-rum-pokaler.js";
+import { skapaKcRumStatistik } from "./kc-rum-statistik.js";
 
 /** Riktiga beroenden (Firestore) – laddas först när rummet öppnas. */
 async function riktigaDeps() {
-  const [layout, fund, pokal, auth, fb, sdk] = await Promise.all([
+  const [layout, fund, pokal, exp, stat, auth, fb, sdk] = await Promise.all([
     import("./kc-layout-data.js"),
     import("./kc-fund-data.js"),
     import("./kc-pokal-data.js"),
+    import("./kc-exp-data.js"),
+    import("./kc-statistik-data.js"),
     import("../auth.js"),
     import("../firebase-config.js"),
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"),
@@ -46,6 +51,8 @@ async function riktigaDeps() {
     subscribeFunds: fund.subscribeFunds,
     unlockedItems: fund.unlockedItems,
     bevakaPokaler: pokal.bevakaPokaler,
+    subscribeClassExp: exp.subscribeClassExp,
+    hamtaLosta: stat.hamtaLosta,
     arLarare: auth.isTeacher,
     // Bara läraren ser "vem" i historiken (elevnamn ur students/{uid}).
     namnFor: async (uids) => {
@@ -67,11 +74,14 @@ async function riktigaDeps() {
  * @returns {{ t:object, slapAmbient:(pa:boolean)=>void,
  *   panelOppnad:(namn:string)=>void, stad:()=>void }}
  */
-export function startaKcRumSession(o, { lager, q }) {
+export function startaKcRumSession(o, { lager, q, oppnaPanel }) {
   const visaOnly = !!o.visaOnly;
   const classId = o.classId;
   const ui = q("status").parentElement;
   const pok = skapaKcRumPokaler({ lager, ui, vidResize: () => omplacera() });
+  const stat = skapaKcRumStatistik({
+    lager, panel: q("statistik").parentElement, oppnaPanel: oppnaPanel || (() => {}), klassNamn: o.klassNamn,
+  });
   const t = skapaKcRumTillstand({ autoPlacera: (lokal) => pok.autoPlacera(lokal) });
   let deps = o.deps || null;
   let kan = false;
@@ -120,7 +130,7 @@ export function startaKcRumSession(o, { lager, q }) {
     tray: q("lada"),
     trayHint: q("lada-hint"),
     adapter,
-    bakgrund: () => kcHallHtml(o.niva || 1) + pok.hyllaHtml(animera),
+    bakgrund: () => kcHallHtml(o.niva || 1) + pok.hyllaHtml(animera) + stat.tavlaHtml(animera),
     text: {
       tomtRum: () => (!t.laddad ? ""
         : kan ? "Rummet är tomt – öppna Möbellådan 📦 och ställ in klassens saker!"
@@ -180,6 +190,11 @@ export function startaKcRumSession(o, { lager, q }) {
         omplacera();
       }, (err) => console.warn("[klasscenter] pokalerna kunde inte läsas", err?.code || err)));
     }
+    if (deps.subscribeClassExp) {
+      avreg.push(deps.subscribeClassExp(classId, (k) => stat.exp(k),
+        (err) => console.warn("[klasscenter] klass-EXP kunde inte läsas", err?.code || err)));
+    }
+    hamtaLosta();
     if (kan) {
       avreg.push(deps.subscribeFunds(classId, (funds) => {
         upplasta = new Set(deps.unlockedItems(funds).map((it) => it.id));
@@ -187,6 +202,15 @@ export function startaKcRumSession(o, { lager, q }) {
         inr.ritaLada();
       }, (err) => console.warn("[klasscenter] möbellådan kunde inte läsas", err?.code || err)));
     }
+  }
+
+  // Lösta uppgifter: ETT dokument (klass-projektionen), vid start + varje panelöppning.
+  function hamtaLosta({ farsk = false } = {}) {
+    if (!deps?.hamtaLosta) return;
+    deps.hamtaLosta(classId, { farsk }).then((n) => { if (levande) stat.losta(n); }, (err) => {
+      console.warn("[klasscenter] lösta uppgifter kunde inte läsas", err?.code || err);
+      if (levande) stat.losta(null);
+    });
   }
 
   async function spara() {
@@ -269,10 +293,12 @@ export function startaKcRumSession(o, { lager, q }) {
     panelOppnad(namn) {
       if (namn === "historik" && deps) visaHistorik();
       if (namn === "lada" && !ladaLaddad) q("lada-hint").textContent = "Hämtar klassens saker…";
+      if (namn === "statistik") hamtaLosta({ farsk: true });
     },
     stad() {
       levande = false;
       pok.stad();
+      stat.stad();
       ui.removeEventListener("click", vidKlick);
       for (const a of avreg) a?.();
       q("status").hidden = true;

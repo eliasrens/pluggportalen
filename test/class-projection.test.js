@@ -48,11 +48,12 @@ test("projectionEntryFrom bär ALLA översiktsfält inkl husLast", () => {
   assert.equal(e.husLast, true);
   assert.equal(e.xp, 120);
   assert.equal(e.completed, 1);
+  assert.equal(e.plays, 1); // completed utan plays-fält = 1 körning
   assert.equal(e.stars, 3);
   // exakt fältuppsättningen (inget läcker, inget saknas)
   assert.deepEqual(
     Object.keys(e).sort(),
-    ["avatarId", "avatarItems", "completed", "husLast", "husSkalId", "namn", "paletteId", "stars", "username", "xp"]
+    ["avatarId", "avatarItems", "completed", "husLast", "husSkalId", "namn", "paletteId", "plays", "stars", "username", "xp"]
   );
 });
 

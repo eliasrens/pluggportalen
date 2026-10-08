@@ -64,6 +64,11 @@ const UI_HTML = `
     <h3>Historik 🕘</h3>
     <p class="hint" data-kc="historik-hint"></p>
     <ul class="kc-historik" data-kc="historik"></ul>
+  </div>
+  <div class="varld-panel kc-stat-panel" data-kc-panel="statistik" role="dialog" aria-label="Klassens statistik" hidden>
+    <button type="button" class="varld-panel-stang" aria-label="Stäng panelen">✕</button>
+    <h3>Klassens statistik 📊</h3>
+    <div data-kc="statistik"></div>
   </div>`;
 
 const VYER = new WeakMap(); // .varld-stage → vy
@@ -153,7 +158,7 @@ function byggVy(stage) {
       ? `Klasscentret i ${o.klassNamn} 🏛️`
       : `Klasscentret · Nivå ${o.niva || 1}${o.nivaNamn ? ` ${o.nivaNamn}` : ""} 🏛️`;
     q("matare").textContent = o.matare || "";
-    sess = startaKcRumSession(o, { lager, q });
+    sess = startaKcRumSession(o, { lager, q, oppnaPanel });
     sess.forraNiva = stage.dataset.niva;
     sess.kamera = k.kamera;
     sess.slot = o.slot;
@@ -203,6 +208,16 @@ function byggVy(stage) {
     }
   }
 
+  /** Öppna en panel (knapparna, eller statistiktavlan i scenen #498). */
+  function oppnaPanel(namn) {
+    const panel = ui.querySelector(`[data-kc-panel="${namn}"]`);
+    if (!panel || !sess) return;
+    stangPaneler();
+    panel.hidden = false;
+    ui.querySelector(`[data-kc-oppna="${namn}"]`)?.classList.add("aktiv");
+    sess.panelOppnad(namn);
+  }
+
   // Skalets knappar: Till byn, panelerna (öppna/stäng) och Escape. Sessionen
   // äger Spara/Visa deras/Återställ (kc-rum-session.js).
   ui.addEventListener("click", (e) => {
@@ -212,13 +227,8 @@ function byggVy(stage) {
     const oppnaBtn = e.target.closest("[data-kc-oppna]");
     if (!oppnaBtn) return;
     const namn = oppnaBtn.dataset.kcOppna;
-    const panel = ui.querySelector(`[data-kc-panel="${namn}"]`);
-    const varOppen = !panel.hidden;
-    stangPaneler();
-    if (varOppen) return;
-    panel.hidden = false;
-    oppnaBtn.classList.add("aktiv");
-    sess.panelOppnad(namn);
+    if (!ui.querySelector(`[data-kc-panel="${namn}"]`).hidden) return stangPaneler();
+    oppnaPanel(namn);
   });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape" || !sess || !lager.isConnected) return;

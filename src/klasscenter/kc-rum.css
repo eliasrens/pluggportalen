@@ -176,3 +176,53 @@
   .kc-rum-verktyg .varld-knapp span { display: none; }
   .kc-rum-status { font-size: 0.82rem; }
 }
+
+/* Statistiktavlan (#498): FAST möbel i bakgrunden (aldrig dragbar) men
+   klickbar – en <button> som öppnar panelen "Klassens statistik". */
+.kc-statistiktavla {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 14px;
+  font: inherit;
+  filter: drop-shadow(0 3px 2px rgba(59, 51, 80, 0.25));
+  transition: transform 0.15s ease-out;
+}
+.kc-statistiktavla > svg { display: block; width: 100%; height: 100%; }
+.kc-statistiktavla:hover { transform: translate(-50%, -50%) scale(1.04); }
+.kc-statistiktavla:focus-visible { outline: 3px solid var(--lila, #7c5cd6); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .kc-statistiktavla { transition: none; }
+  .kc-statistiktavla:hover { transform: translate(-50%, -50%); }
+}
+
+.kc-stat-rutor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.kc-stat-ruta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: #f6f3fb;
+  text-align: center;
+}
+.kc-stat-ikon { font-size: 1.4rem; line-height: 1; }
+.kc-stat-ruta b { font-size: 1.6rem; font-weight: 900; color: #3b3350; }
+.kc-stat-ruta span:last-child { font-size: 0.85rem; font-weight: 700; color: #5b5470; }
+.kc-stat-niva { padding: 10px 12px; border-radius: 14px; background: #fff7de; }
+.kc-stat-niva-rad { font-weight: 800; color: #6b4a00; }
+.kc-stat-stapel {
+  height: 14px;
+  margin: 8px 0 4px;
+  border-radius: 7px;
+  background: #ece6f5;
+  overflow: hidden;
+}
+.kc-stat-stapel > span { display: block; height: 100%; border-radius: 7px; background: #7bd389; }
+.kc-stat-stapel.max > span { background: #f2c14e; }
+.kc-stat-stapel-text { font-size: 0.85rem; font-weight: 700; color: #5b5470; }
+.kc-stat-fot { margin: 10px 0 0; font-size: 0.78rem; color: #6b6380; }
