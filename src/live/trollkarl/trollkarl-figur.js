@@ -51,9 +51,6 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
     .join("");
 
   svg.innerHTML = `
-  <defs>
-    <clipPath id="${id}-chin"><path d="M-20 -20 H${FW + 20} V${FH * 0.74} L${FW * 0.8} ${FH * 0.84} V${FH * 1.05} H${FW * 0.2} V${FH * 0.84} L-20 ${FH * 0.74} Z"/></clipPath>
-  </defs>
   <g data-part="flip">
     <g data-part="fig">
       ${legsSvg(t)}
@@ -62,7 +59,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
       <g data-part="body">${bodySvg(t, who)}</g>
       <g data-part="head">
         ${neckSvg(t)}
-        <g data-part="face" clip-path="url(#${id}-chin)" transform="translate(${FX} ${FY})">${faceImgs}</g>
+        <g data-part="face" transform="translate(${FX} ${FY})">${faceImgs}</g>
         ${collarSvg(t, who)}
         <g data-part="hat">${hatSvg(t, who)}</g>
         <g data-part="wow" style="display:none" aria-hidden="true">
