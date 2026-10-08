@@ -180,6 +180,8 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     idleT = setTimeout(() => root.classList.add("lp-idle"), 3500);
   };
   root.addEventListener("pointermove", onMove);
+  // Tona bort även om musen aldrig rörs (annars täcker raden HUD:en för gott, #541).
+  onMove();
 
   // --- Elevskärmen (#533) ---------------------------------------------------
   // Panelen: knapp + status i raden, skickar vyval/ljud. Skärmen: följer dem.
