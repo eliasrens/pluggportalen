@@ -82,6 +82,7 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `stats.js` | Aggregering: `summarize`, `categoryBreakdown`, `aggregateAttempts`, `classRows`, `sortRows` |
 | `rewards.js` | `coinsFor(correct)`, `award(correct)` → `data.addCoins` (lat import) |
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
+| `level-control.js` | Lärarstyrd nivå (#505): `parseTeacherLevel`, `withTeacherLevel`, `applyPendingLevel`, `hasStartedLasresa`, `effectiveStartLevel`, `classStartLevelOf` |
 | `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
 | `ui-map.js` | Kartvyn (#400): världs-agnostisk renderare + `ui-map-stil.js` (CSS, injiceras – rör inte styles.css) |
@@ -91,6 +92,7 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `lasresan.css` | Stilar för läsvy/sammanfattning/Min läsning, laddas LAT av page-lasresan |
 | `page-lasresan.js` | Route-skal: karta → text → completeText → sammanfattning → karta, `?vy=min` = Min läsning |
 | `../data-lasresan.js` | Firestore-brygga: `getLasresa`, `startText`, `completeText`, `listAttempts`, `getClassLasresa` |
+| `../data-lasresan-niva.js` | Firestore-brygga för lärarstyrd nivå (#505): `setStudentLevel`, `setClassLevel`, `getClassStartLevel`, `setClassStartLevel`, `getStudentStartLevel` |
 
 **Bootgrafen:** inget under `src/lasresan/` och inte `data-lasresan.js`
 importeras statiskt från `app.js`. Routen `#/elev/lasresan` (#401) laddar
@@ -165,6 +167,47 @@ man kan inte hoppa över en dålig text. `completeText` kräver att
 vilket skyddar mot dubbelklick och dubbelbelöning. `force: true` används bara
 om den påbörjade texten har försvunnit ur banken.
 
+### Lärarstyrd nivå (#505, epic #482 – spec §2–5)
+Ren logik i `level-control.js` (testad i `test/lasresan-level-control.test.js`),
+Firestore i `data-lasresan-niva.js` (bara dynamiskt importerad).
+
+- **Enskild elev** (`setStudentLevel`, EN transaktion per elev,
+  `withTeacherLevel`):
+  - ingen påbörjad text → `level` sätts direkt och båda streaks nollas;
+  - påbörjad text (`currentTextId`) → `pendingLevel` sparas. Texten slutförs
+    på den gamla nivån; `applyCompletion` räknar resultatet som vanligt och
+    sätter sedan `level = pendingLevel`, streaks 0, `pendingLevel = null`.
+  - Båda stämplar `levelSetAt` (ms) och `levelSetBy: "teacher"`.
+  - Inget annat rörs: resultat, `seenTextIds`, totaler, `catStats`,
+    världar/steg, `moneyEarned`, coins och `lasresaAttempts` står kvar.
+  - Därefter fortsätter den vanliga automatiska progressionen från vald nivå.
+  - Race-skydd: `normalizeLasresa` och `withStartedText` lägger en kvarglömd
+    `pendingLevel` på plats så fort ingen text är påbörjad (t.ex. vid
+    `force`-byte), så `pendingLevel` finns bara medan en text pågår.
+- **Hela klassen** (`setClassLevel(classId | studentIds, level)`): samma sak
+  per elev, parallellt; ett misslyckat byte stoppar inte de andra. Returnerar
+  `{ level, total, updated, now, pending, failed[] }`. Enskilda elever kan
+  ändras efteråt.
+- **Klassens startnivå** (`classes/{id}.lasresaStartLevel`, heltal 1–7):
+  ersätter `START_LEVEL` (3) för elever som **inte har börjat**.
+  **Definition:** eleven har inte börjat = `studentData.lasresa` saknas helt.
+  Objektet skapas först av `startText` (första texten) eller när läraren sätter
+  en individuell nivå. Därför påverkar startnivån aldrig elever som är igång, och
+  en lärarsatt individuell nivå vinner alltid över startnivån.
+  `getLasresa`/`startText` slår upp elevens klass (`getClassForStudent`, första
+  klassen i ordningen om flera) via `getStudentStartLevel` och skickar den till
+  `normalizeLasresa(raw, worlds, { startLevel })`; första texten sparas då på
+  startnivån. Fel vid uppslag → 3. `hasStartedLasresa(raw)` (läst, påbörjad
+  eller sedd text) används av lärartabellen för "ej börjat" – en elev med bara
+  en lärarsatt nivå visas som ej börjat men med lärarens nivå.
+- **Ogiltiga nivåer:** lärarens val tolkas STRIKT (`parseTeacherLevel`: heltal
+  1–7, även `"4"` från en `<select>`); 0, 8, 3.5, `"abc"` → bryggan kastar.
+  Ogiltig `pendingLevel`/startnivå i lagrad data ignoreras (→ 3).
+- **Behörighet:** `classes` skrivs bara av lärare och `lasresaStartLevel`
+  valideras (heltal 1–7) i `firestore.rules`; studentData skrivs bara av eleven
+  själv eller lärare. Regeltester: `test/firestore-rules-lasresan-niva.test.js`.
+  ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
+
 ---
 
 ## 3. Datamodell
@@ -179,10 +222,13 @@ Se även `docs/DATAMODELL.md`.
   moneyEarned,                               // pluggcoins tjänade via Läsresan (statistik)
   seenTextIds[], catStats{kategori:{q,correct}},
   currentTextId, currentStartedAt, lastTextId,
-  updatedAt }                                // ms sedan epoch
+  updatedAt,                                 // ms sedan epoch
+  pendingLevel,                              // #505: lärarnivå som väntar på påbörjad text (1–7 | null)
+  levelSetAt, levelSetBy }                   // #505: senaste lärarbyte (ms | null, "teacher" | null)
 ```
-Saknas fältet räknas eleven som ny (Skogen, steg 0, nivå 3) via
-`normalizeLasresa`. Ingen migrering behövs.
+Saknas fältet räknas eleven som ny (Skogen, steg 0, klassens startnivå
+`classes/{id}.lasresaStartLevel` eller 3) via `normalizeLasresa`. Ingen
+migrering behövs; gamla objekt utan de nya fälten får `null`.
 
 ### `studentData/{id}/lasresaAttempts/{autoId}`
 Ett dokument per färdig text:
@@ -262,6 +308,16 @@ onDone({ answers: [{ qid, chosen }] })
 - `getClassLasresa(studentIds)` → `[{ studentId, lasresa|null }]`. En läsning per
   elev, bara i lärarvyn.
 
+### Bryggan: `data-lasresan-niva.js` (#505, lärare)
+- `setStudentLevel(studentId, level)` → `{ studentId, level, applied: "now"|"pending" }`.
+- `setClassLevel(classId | studentIds[], level)` → `{ level, total, updated, now, pending, failed:[{studentId, error}] }`.
+- `getClassStartLevel(classId)` → `1–7 | null` (null = ej satt → 3).
+- `setClassStartLevel(classId, level | null)` → sparad nivå (null tar bort fältet).
+- `getStudentStartLevel(studentId?)` → startnivån som gäller för eleven (1–7).
+- Rena hjälpare för lärar-UI:t: `teacherClassRows(entries, worlds, { startLevel })`
+  (raden har även `pendingLevel`), `classStartLevelOf(classDoc)`,
+  `parseTeacherLevel(value)`.
+
 ### Statistik: `stats.js`
 - Elevens "Min läsning": `summarize(lasresa)` (utan nivå).
 - Lärarens tabell: `classRows([{studentId, namn, lasresa}])` + `sortRows(rows, key, dir)`.
@@ -293,6 +349,23 @@ onDone({ answers: [{ qid, chosen }] })
   helt utan data visas ett tomt läge.
 - **CSS** ligger i `styles.css` under `.teacher-dark` med prefixet `lrt-`
   (`lr-` tillhör elevens `lasresan.css`).
+- **Nivåstyrning (#506):** i Läsresan-fliken (bara när klassen skickas med, dvs. på
+  klasskortet) ligger två kort ovanför tabellen, och elevdetaljen har en sektion
+  **Ändra nivå**. Vyn finns i `teacher-lasresan-niva.js` (importeras av
+  `teacher-lasresan.js`, så den är dynamisk; bryggan `data-lasresan-niva.js` laddas lat
+  först vid sparning). Texterna kommer ur `lasresan/teacher-niva.js` (testas i
+  `test/lasresan-teacher-niva.test.js`).
+  - *Ändra klassens startnivå*: "Gäller nya elever och elever som inte har börjat" →
+    `setClassStartLevel`. Visar nuvarande nivå ("Nivå 3 (standard)" om den inte är satt). Elever utan
+    `lasresa` visar startnivån i nivå-kolumnen.
+  - *Ändra nivå för hela klassen*: klassväljare (förvald = aktuell, alla lärarens
+    klasser), nivå → bekräftelsedialog (`role=alertdialog`) med klass, antal elever
+    och nivå → `setClassLevel(studentIds, nivå)`, där listan är exakt de elever som
+    räknades i dialogen. Resultatet visar antal satta, antal väntande och vilka som misslyckades.
+  - *Elev*: nuvarande nivå + badge "Väntande nivå X" vid `pendingLevel`. Nivå-kolumnen
+    visar `4 → 1` medan en ändring väntar. Efter sparning läses bara den eleven om.
+  - CSS-prefix `lrn-` i `styles.css`. Emulator-preview:
+    `admin/qa-lasresan-niva-preview.sh` (klickguide i `docs/preview-lasresan-niva.md`).
 - **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
   blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
   namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.

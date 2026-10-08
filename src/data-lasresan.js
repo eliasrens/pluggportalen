@@ -36,6 +36,7 @@ import {
   applyCompletion,
 } from "./lasresan/progress.js";
 import { award } from "./lasresan/rewards.js";
+import { getStudentStartLevel } from "./data-lasresan-niva.js";
 import { WORLDS } from "./lasresan/worlds/index.js";
 
 export const ATTEMPTS_SUBCOLLECTION = "lasresaAttempts";
@@ -51,12 +52,15 @@ const isPermissionDenied = (err) =>
   !!err && (err.code === "permission-denied" || /insufficient permissions/i.test(err.message || ""));
 
 /**
- * Elevens Läsresan-tillstånd. Saknas fältet → ny elev (Skogen, steg 0, nivå 3).
+ * Elevens Läsresan-tillstånd. Saknas fältet → ny elev (Skogen, steg 0, på
+ * klassens startnivå, #505 – annars nivå 3).
  * OBS: innehåller den DOLDA nivån – visa aldrig `level` för eleven.
  */
 export async function getLasresa(studentId = currentStudentId()) {
   const sd = await getStudentData(requireId(studentId));
-  return normalizeLasresa(sd && sd.lasresa, WORLDS);
+  const raw = sd && sd.lasresa;
+  const startLevel = raw ? undefined : await getStudentStartLevel(studentId);
+  return normalizeLasresa(raw, WORLDS, { startLevel });
 }
 
 /**
@@ -69,10 +73,13 @@ export async function startText(textId, studentId = currentStudentId(), { force 
   requireId(studentId);
   if (typeof textId !== "string" || !textId) throw new Error("textId saknas.");
   const ref = doc(db, "studentData", studentId);
+  // Klassens startnivå (#505) behövs bara om eleven inte börjat – men måste
+  // vara samma som getLasresa gav, annars sparas fel nivå vid första texten.
+  const startLevel = await getStudentStartLevel(studentId);
   const res = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const sd = snap.exists() ? snap.data() : null;
-    const cur = normalizeLasresa(sd && sd.lasresa, WORLDS);
+    const cur = normalizeLasresa(sd && sd.lasresa, WORLDS, { startLevel });
     const out = withStartedText(cur, textId, Date.now(), { force });
     if (!out.resumed) {
       if (snap.exists()) tx.update(ref, { lasresa: out.lasresa });
