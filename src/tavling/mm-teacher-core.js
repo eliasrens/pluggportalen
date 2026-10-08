@@ -135,6 +135,11 @@ export function splitCompetitions(comps, now) {
   return { current, history };
 }
 
+/** Klasserna på placeringen (delad plats → alla), bara med minst ett rätt svar. */
+function plats(klasser, rank) {
+  return klasser.filter((k) => k.rank === rank && k.correct > 0).map((k) => k.classId);
+}
+
 /**
  * Historikens ögonblicksbild – sparas i mathCompetitions/{cid}.result vid
  * avslut. Underdokumenten (studentStats/scores/…) ligger dessutom kvar, så
@@ -175,7 +180,11 @@ export function buildResult({ scores, stats, counters, classes, participatingIds
     winnerClass: klasser[0] && klasser[0].correct > 0 ? klasser[0].classId : null,
     // Delad förstaplats (samma poäng/elev) = alla delade vinnare – Klasscentrets
     // pokal mm-klasskamp (#495) går till var och en (firestore.rules läser fältet).
-    winnerClasses: klasser.filter((k) => k.rank === 1 && k.correct > 0).map((k) => k.classId),
+    winnerClasses: plats(klasser, 1),
+    // Plats 2 och 3 (#528) → pokalerna mm-silver/mm-brons; reglerna kräver
+    // dessutom minst 3 deltagande klasser (kc-pokal-typer MM_PLATS_MIN_KLASSER).
+    silverClasses: plats(klasser, 2),
+    bronzeClasses: plats(klasser, 3),
     top,
     classes: klasser.map(({ rank, classId, name, correct: c, students: n, score }) => ({ rank, classId, name, correct: c, students: n, score })),
     students,

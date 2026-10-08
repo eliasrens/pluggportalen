@@ -721,7 +721,8 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `startedAt` | timestamp | sätts vid STARTA, MÅSTE vara `serverTimestamp()`; oföränderlig därefter |
 | `endsAt` | timestamp | skrivs direkt efter start och MÅSTE vara `startedAt + countdownSeconds + durationSeconds` |
 | `finishedAt` | timestamp | när matchen markerades klar |
-| `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw" }` |
+| `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw", winnerClasses[] }` – skrivs aldrig om när det väl finns (#526) |
+| `coinPrize` | int 0–100 000 (valfri) | **#526** mynt-pris till vinnarklassens klasskassa; sätts bara vid skapandet, reglerna nekar varje ändring därefter. Saknas/0 = inget pris |
 
 - Bara lärare skapar/ändrar, och **alla lärare** får styra alla sessioner.
   `gameMode`, klasser, längd, nedräkning och shards låses när matchen startat.
@@ -742,6 +743,11 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
   + i KOOPERATIVA lägen (`GameMode.cooperative`, #495) `cooperative: true,
   goalReached: bool` (lägets `goalReached(standings, session)`). Klienten vars
   transaktion skrev `result` delar sedan ut Live-bonusar och pokaler.
+  `winnerClasses` (#526) = mynt-prisets mottagare: ledarna (vid oavgjort alla
+  som delar 1:a), men tom om ingen klass fick poäng; kooperativt = alla klasser
+  med spelare om `goalReached`, annars tom. Samma klient betalar sedan ut
+  `coinPrize` till klasskassorna (se Klasscentret → Klasskassan); historikvyn
+  försöker igen om projektorn stängdes innan (idempotent).
 
 ### Live-kärnan i klienten (#460)
 
@@ -846,6 +852,7 @@ firestore.rules har ingen nivågräns – nivån härleds i klienten.
 | `lastUid` | string | senaste skribent (elev-uid eller lärarens uid) |
 | `lastAt` | timestamp | serverns tid för senaste ökningen |
 | `lastKalla` | string ≤ 40 | regelmodul/bonuskälla ("quiz", "live" …) |
+| `lasresan` | number (valfri, #528) | godkända Läsresan-texter i sharden; +1 bara i en elevs EXP-skrivning med `lastKalla == "lasresan"` (läraren rör den aldrig) → Läsresan-milstolparna |
 
 Läses av **alla inloggade** (mätaren syns även för gäster). Skrivs bara via
 `increment`: elev (klassmedlem) +1..+3 i samma batch som den egna
@@ -885,11 +892,12 @@ En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevanta
 | Fält | Typ | Epic | Beskrivning |
 | --- | --- | --- | --- |
 | `inredningSparr` | array | **2 (klar, #489)** | uid:n som läraren bockat ur – får titta/donera men inte spara layout (≤ 200, `setInredningSparr`) |
+| `kassorer` | array | **#526** | klasskassörer (≤ 50, `setKassorer`) – får lägga från klasskassan |
 | `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
 
 Läses av klassens elever och lärare (#500 – spärrlistan visar vilka elever
 som bockats ur; gästläget behöver den inte). Skrivs bara av lärare.
-**Regler (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200).
+**Regler (#489, #526):** bara `inredningSparr` och `kassorer` får skrivas (lärare, listor ≤ 200 resp. ≤ 50; skrivs med `merge`, så de rör inte varandra).
 Pokalerna bor INTE här utan i underkollektionen `trophies/` (#494, nedan) –
 profilens `changedOnly`-lista är oförändrad. Elever kan inte skriva dokumentet
 alls (inte ens ta bort sig själva ur spärren).
@@ -910,6 +918,9 @@ vinnare(kallaDoc), detaljFran? })`):
 | `mm-klasskamp` | `mathCompetitions/{cid}` | `result.winnerClass` + alla i `result.winnerClasses` när `status == "finished"` | "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans." |
 | `live-vinst` | `liveSessions/{sid}` | TÄVLINGSLÄGE: `result.winner` (inte `"draw"`, inte `result.cooperative`) med ≥ 1 spelare | "Klassen vann Live-matchen! …" |
 | `live-avklarat` | `liveSessions/{sid}` | KOOPERATIVT läge med `result.goalReached == true`: varje deltagande klass med `result.perClass[klass].players > 0` | "Klassen klarade ett Liveläge tillsammans!" |
+| `mm-silver` / `mm-brons` (#528) | `mathCompetitions/{cid}` | `result.silverClasses` / `result.bronzeClasses` (plats 2/3 i Klasskampen, delad plats → alla, minst 1 rätt) – bara när **minst 3 klasser deltog** | "Andra/Tredje plats i Mattematchens klasskamp! …" |
+| `lasresan-milstolpe` (#528) | milstolpen `100`/`250`/`500`/`1000` | klassen vars `expShards/*.lasresan` summerar till minst milstolpen | "Klassen har läst så många texter på Läsresan – tillsammans! …" |
+| `larare` (#528) | slumpat id (`planLararPokal`) | lärarens val – egen `titel`, `detalj` = egen text, `motiv` | lärarens egen text |
 
 **Beslut (#495):**
 - **Oavgjort i Klasskampen = alla delade vinnare får pokalen** (samma
@@ -921,6 +932,35 @@ vinnare(kallaDoc), detaljFran? })`):
   I dag finns bara tävlingsläget `multiplication_0_10` → `live-avklarat` delas
   inte ut förrän ett läge med `cooperative: true` + `goalReached()` registreras
   (`src/live/game-modes.js`). Klassbonusen `"live"` (EXP) är oförändrad.
+
+**Beslut (#528):**
+- **Silver/brons kräver minst 3 deltagande klasser** (issue: "minst 3 resp. 2
+  klasser"; tolkat så att en tvåklassmatch inte ger förloraren "silver";
+  brons kräver i praktiken 3:e plats = minst 3). `buildResult` sparar
+  `silverClasses`/`bronzeClasses`; äldre `result` saknar dem → ingen
+  silver/brons i efterhand.
+- **Läsresan-milstolpar räknas i absoluta tal (100/250/500/1000 godkända
+  texter tillsammans), inte per elev**: reglerna kan inte räkna klassens
+  elever, och "tillsammans" ska kännas gemensamt. En godkänd text = samma
+  regel som klass-EXP:en (≥ 5/7 rätt): EXP-skrivningen från Läsresan ökar
+  även shardens `lasresan` med 1. Räkningen startar vid rules-deploy (texter
+  lästa före dess räknas inte). En liten klass tar längre tid – vill Elias
+  normalisera kan trösklarna ändras på ett ställe (`LASRESAN_MILSTOLPAR` +
+  listan i `kcPokalLasresan`).
+- **Milstolparna delas ut av LÄRARKLIENTEN** (elever får aldrig skapa
+  pokaler): när läraren öppnar klassen på lärarsidan (högst var 5:e minut per
+  klass och flik), öppnar Klasscentret-sektionen eller går in i rummet.
+  Pokalen kommer alltså nästa gång en lärare är inne – inte samma sekund som
+  texten blir godkänd.
+- **Ingen pokal för ny Klasscenter-nivå** (Elias: byggnaden räcker).
+- **Lärarens pokal** (`delaUtLararPokal`, lärarsidan → klassen →
+  Klasscentret → Pokaler): motiv `guld`/`stjarna`/`hjarta`/`medalj`, titel
+  1–80, text ≤ 120. Bara den typen kan läraren ta bort (`taBortLararPokal`).
+- **Troféhyllan = hedershyllan**: står shoppens Troféhylla (`trofehylla`) i
+  rummets layout ritas klassens 6 finaste pokaler (typens `varde`, sedan
+  nyast) IN I den (`hedersPokaler`), automatiskt – flyttade pokaler stannar
+  där de flyttats. Den gratis pokalhyllan rymmer bara 3 (finast först);
+  resten auto-placeras på väggen.
 
 **Utdelningen (#495)** görs av lärarklienten som skrev källans `result`,
 EFTER skrivningen (reglerna verifierar med `getAfter`), via dynamisk import
@@ -939,7 +979,8 @@ Misslyckas utdelningen (nät/regler) görs inget nytt försök automatiskt –
 | `typ` | string | pokaltypens id (se tabellen) |
 | `kallaId` | string | källans dokument-id (tävling/session), `[A-Za-z0-9_-]{1,100}` |
 | `titel` | string 1–80 | typens rubrik vid utdelningen ("Mattematchens mästare") |
-| `detalj` | string ≤ 120 (valfri) | källans namn ("Mattematchen oktober 2026") |
+| `detalj` | string ≤ 120 (valfri) | källans namn ("Mattematchen oktober 2026"); lärarens pokal: lärarens text |
+| `motiv` | string (bara `larare`, #528) | `guld` \| `stjarna` \| `hjarta` \| `medalj` – konsten |
 | `wonAt` | timestamp | serverns tid vid utdelningen |
 | `awardedBy` | string | lärarens uid |
 
@@ -949,15 +990,17 @@ EN transaktion: finns dokumentet → `ny: false`, inget skrivs; annars create.
 Flera lärarklienter samtidigt (projektor + historikvy) ger en enda pokal.
 
 **Regler (firestore.rules "Pokaler")**: läses av alla inloggade. Create bara
-av lärare (teacher-claim), aldrig update/delete. Fälten exakt enligt tabellen,
+av lärare (teacher-claim), aldrig update; delete bara typ `larare` av lärare
+(#528). Fälten exakt enligt tabellen,
 `wonAt == request.time`, `awardedBy == auth.uid`, id == `typ + "-" + kallaId`,
 `typ` i `kcPokalTyper()`, och källan verifieras med `getAfter` (även när
 pokalen skrivs i samma batch som `result`): status `finished` + vinnaren/
 deltagandet enligt tabellen ovan. Elever kan inte skapa/ändra pokaler alls.
 ⚠️ Ny typ = `registreraPokaltyp` + typen i `kcPokalTyper()` + en gren i
 `kcPokalVerifierad` (`test/kc-pokal-typer.test.js` failar om de glider isär)
-+ rules-deploy. Tester: `test/kc-pokal-typer.test.js`,
-`test/firestore-rules-klasscenter-pokal.test.js`.
++ rules-deploy. Tester: `test/kc-pokal-typer.test.js`, `test/kc-pokal-528.test.js`,
+`test/firestore-rules-klasscenter-pokal.test.js`,
+`test/firestore-rules-klasscenter-pokal-528.test.js`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan pokaler kan
 delas ut live.
 
@@ -1020,6 +1063,7 @@ donationen – saknat dokument = 0 insamlat (`normaliseraFunds`).
 | `itemId` | string | föremålet |
 | `amount` | int ≥ 1 | det faktiskt dragna (cappade) beloppet |
 | `at` | timestamp | serverns tid |
+| `kassa` | `true` (valfri) | **#526** betalt ur klasskassan (uid = kassören/läraren) i stället för elevens mynt |
 
 Create-only (ingen ändring/radering, inte ens lärare → insamlat == summan
 av posterna). **Läses bara av lärare** – för klassen är donationerna anonyma
@@ -1071,6 +1115,49 @@ bidragit med X" räknas lokalt i `localStorage` (`pp:kc:bidrag:<uid>:<classId>`,
 per enhet) – inga andras uid läses. QA: `admin/qa-klasscentrum-shop.mjs`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan donationer
 fungerar live.
+
+### Klasskassan (#526)
+
+Klassens gemensamma mynt. Fylls av Live-matchernas mynt-pris (`liveSessions.coinPrize`)
+och läggs av klasskassörer/lärare på Klasscentrum-föremål – samma `fund`-mätare,
+samma cap och samma "Köpt → möbellådan" som elevernas donationer. Elevernas egna
+mynt påverkas aldrig. Logik + skrivplaner: `src/klasscenter/kc-kassa-plan.js`;
+SDK: `kc-kassa-data.js` (dynamisk).
+
+#### `classCenters/{classId}/kassa/saldo`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `saldo` | int ≥ 0 | kassans saldo (ändras med `increment`) |
+| `lastTxId` | string | historikposten som just ändrade saldot |
+
+#### `classCenters/{classId}/kassaHistorik/{txId}` (create-only)
+
+| `typ` | Fält | Id |
+| --- | --- | --- |
+| `"in"` | `kalla: "live"`, `sessionId`, `titel` (matchnamn ≤ 80), `belopp`, `at`, `av` (lärarens uid) | `live-<sessionId>` → en gång per match och klass |
+| `"ut"` | `itemId`, `belopp`, `uid` (kassör/lärare), `at` | = donationspostens id |
+
+**Insättning** (`korLivePris`, lärarklienten som skrev `result`): per klass i
+`result.winnerClasses` EN batch: `kassa/saldo` `increment(+andel)` +
+historik `in`, andel = `floor(coinPrize / antal vinnare)`. Finns posten redan
+(annan projektor hann före) hoppas klassen över.
+
+**Uttag** (`korKassaUt` via `laggFranKassan`): läs `fund` + saldot från servern,
+cappa till min(begärt, det som saknas, saldot) → EN batch: saldo
+`increment(−n)`, historik `ut`, donationspost `{…, kassa: true}`, `fund`
+`increment(+n)`. Samtidiga skrivare körs om (`kc-omforsok.js`, 8 försök).
+
+**Regler:** läses bara av klassen + lärare (gäster ser ingenting). Saldot ändras
+bara ihop med en NY historikpost och exakt ±dess belopp, aldrig under 0. `in`:
+bara lärare, sessionen `finished` med `startedAt`, klassen i `result.winnerClasses`,
+`belopp == math.floor(coinPrize / antal)`, id `live-<sessionId>`. `ut`: lärare
+eller kassör (klassmedlem i profilens `kassorer`), i samma batch som en
+`kassa:true`-donation med samma id/belopp/föremål. Historiken kan inte ändras
+eller raderas (inte ens av lärare). Tester: `test/firestore-rules-klasscenter-kassa.test.js`.
+UI: kassarad överst i shoppens Klasscentrum-flik (`kc-kassa-vy.js`), lärarens
+block "Klasskassan" under klassen (`teacher-class-kassa.js`). QA-seed:
+`admin/qa-kassa-seed.mjs`. ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
 
 ### Gemensam layout + historik (epic 2, #489)
 

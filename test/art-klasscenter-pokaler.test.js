@@ -12,13 +12,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  KC_POKALER, POKAL_VB, KC_POKALHYLLA_PLATSER, KC_STATISTIK_FALT,
-  kcPokalSvg, kcPokalMarkup, kcPokalStorlek, kcPokalhyllaSvg,
+  KC_POKALER, POKAL_VB, KC_POKALHYLLA_PLATSER, KC_TROFEHYLLA_PLATSER, KC_STATISTIK_FALT,
+  kcPokalSvg, kcPokalMarkup, kcPokalStorlek, kcPokalhyllaSvg, kcTrofehyllaSvg,
 } from "../src/art-klasscenter-pokaler.js";
 import { listaPokaltyper, normaliseraPokal } from "../src/klasscenter/kc-pokal-typer.js";
 
 const AMBIENT = /class="[^"]*\bkc-(flamma|glitter|glod|guppa|pendel)\b/;
-const MOBLER = ["kc-pokalhylla", "kc-statistiktavla"];
+const MOBLER = ["kc-pokalhylla", "kc-trofehylla", "kc-statistiktavla"];
 
 const giltig = (svg, namn) => {
   assert.match(svg, /^<svg[\s\S]*<\/svg>$/);
@@ -63,8 +63,8 @@ test("statistiktavlan har klicka-mig-glöd och tre fält inom viewBox", () => {
   for (const [k, r] of Object.entries(KC_STATISTIK_FALT)) inom(r, KC_POKALER["kc-statistiktavla"].viewBox, k);
 });
 
-test("pokalhyllan: 8 platser inom viewBox, pokaler auto-placeras i ordning", () => {
-  assert.equal(KC_POKALHYLLA_PLATSER.length, 8);
+test("pokalhyllan: 3 platser inom viewBox (#528), pokaler auto-placeras i ordning", () => {
+  assert.equal(KC_POKALHYLLA_PLATSER.length, 3);
   KC_POKALHYLLA_PLATSER.forEach((r, i) => inom(r, KC_POKALER["kc-pokalhylla"].viewBox, `plats ${i}`));
   const pokaler = [
     { id: "mm-klasskamp-a", art: "pokal-mm", titel: 'Mästare "6B"' },
@@ -79,10 +79,27 @@ test("pokalhyllan: 8 platser inom viewBox, pokaler auto-placeras i ordning", () 
   assert.match(svg, /aria-label="Mästare &#34;6B&#34;"/);
   const { x, y } = KC_POKALHYLLA_PLATSER[0];
   assert.ok(svg.includes(`x="${x}" y="${y}"`));
-  // Fler pokaler än platser → bara 8 ritas.
+  // Fler pokaler än platser → bara 3 ritas.
   const många = Array.from({ length: 11 }, (_, i) => ({ id: `p${i}`, art: "pokal-mm" }));
-  assert.equal((kcPokalhyllaSvg(många).match(/kc-pokal-plats/g) || []).length, 8);
+  assert.equal((kcPokalhyllaSvg(många).match(/kc-pokal-plats/g) || []).length, 3);
   assert.equal((kcPokalhyllaSvg([]).match(/kc-pokal-plats/g) || []).length, 0);
+});
+
+test("#528 Troféhyllan: 6 platser inom viewBox, fler än gratis-hyllan; nya pokalfigurer giltiga", () => {
+  assert.equal(KC_TROFEHYLLA_PLATSER.length, 6);
+  assert.ok(KC_TROFEHYLLA_PLATSER.length > KC_POKALHYLLA_PLATSER.length);
+  KC_TROFEHYLLA_PLATSER.forEach((r, i) => inom(r, KC_POKALER["kc-trofehylla"].viewBox, `trofé ${i}`));
+  const många = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}`, art: "pokal-lasresan-500" }));
+  const svg = kcTrofehyllaSvg(många, { aria: "Troféhylla" });
+  giltig(svg, "troféhylla");
+  assert.equal((svg.match(/kc-pokal-plats/g) || []).length, 6);
+  for (const art of ["pokal-mm-silver", "pokal-mm-brons", "pokal-lasresan-100", "pokal-lasresan-250",
+    "pokal-lasresan-500", "pokal-lasresan-1000", "pokal-larare-guld", "pokal-larare-stjarna",
+    "pokal-larare-hjarta", "pokal-larare-medalj"]) {
+    assert.equal(KC_POKALER[art].viewBox, POKAL_VB, art);
+    giltig(kcPokalSvg(art, { aria: art }), art);
+    assert.doesNotMatch(kcPokalSvg(art, { animera: false }), /class="kc-(glitter|flamma)/, `${art} utan ambient`);
+  }
 });
 
 test("okänd art-nyckel → null; aria escapas; storlek ur viewBox", () => {

@@ -95,3 +95,22 @@ Två elever samtidigt: använd en vanlig flik och ett privat fönster, eller tv�
 ## Före merge till main
 
 Se listan i `docs/QA-RAPPORT-klasscentret-4.md` (§ Före merge). Det viktigaste: **`firebase deploy --only firestore:rules`** före eller samtidigt med mergen. Inga nya index behövs, och ingen migrering krävs.
+
+## #528 – Fler pokaler + Troféhyllan
+
+Efter preview-skriptet: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8520 node admin/qa-pokal-528-seed.mjs`
+(samma FS-port som previewn). Den låser upp Troféhyllan för QA-klass 4A, ger 4A fler pokaler
+(silver, brons, Liveläge, lärarens hjärta), 260 godkända Läsresan-texter, och en Mattematch med
+4 klasser vars tid tog slut.
+
+1. **Mattematchen guld/silver/brons:** `qalarare` → Mattematchen → öppna "Mattematchen #528 (4 klasser)".
+   Den arkiveras och delar ut: guld till QA-klass 4B, silver till 4A, brons till 4C, inget till 5A.
+2. **Läsresan-milstolpar:** `qalarare` → Klasser & elever → QA-klass 4A → Klasscentret → Pokaler.
+   Raden säger "260 godkända Läsresan-texter … Nästa pokal vid 500", och listan har "Läsresan: 100 texter"
+   och "Läsresan: 250 texter" (en gång var, hur många gånger du än öppnar).
+3. **Lärarens pokal:** i samma block – välj motiv, skriv titel + text, "Dela ut pokalen". Den syns i listan
+   (med Ta bort) och i rummet med din text i hover-rutan.
+4. **Troféhyllan:** `kc01` → byn → klicka centret → 📦 Möbellådan → Troféhylla → Spara. De 6 finaste
+   pokalerna står i den med belysning; gratis-hyllan har 3, resten står på väggen. Håll musen över en
+   pokal i Troféhyllan → rutan med titel/text.
+5. **Shoppen:** `ks01` → Shoppen → Klasscentrum: Troféhyllans kort förklarar att den är hedershyllan.

@@ -372,3 +372,16 @@
     transition-duration: 0.2s !important;
   }
 }
+
+/* Mynt-pris till klasskassan (#526) – lobbyn och vinnarskärmen. */
+.lp-prize {
+  margin: 0;
+  padding: 0.35em 1.1em;
+  border-radius: 999px;
+  background: rgba(255, 210, 61, 0.16);
+  border: 2px solid rgba(255, 210, 61, 0.55);
+  color: #ffd23d;
+  font-weight: 800;
+  font-size: clamp(18px, 3vh, 34px);
+}
+.lpw-prize { animation: lp-pop 0.8s 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }

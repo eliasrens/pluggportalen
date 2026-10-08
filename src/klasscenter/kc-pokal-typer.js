@@ -11,15 +11,21 @@
 // En pokaltyp = {
 //   id        "mm-klasskamp" – blir dokument-id:ts prefix ({id}-{kallaId})
 //   kalla     "mattematchen" | "live" – vilken källsamling kallaId pekar på
-//             (mathCompetitions/{kallaId} resp. liveSessions/{kallaId})
+//             (mathCompetitions/{kallaId} resp. liveSessions/{kallaId});
+//             "lasresan" (#528: kallaId = milstolpen, verifieras mot klassens
+//             Läsresan-räknare) | "larare" (#528: kallaId = slumpat id)
 //   titel     kort rubrik (≤ 80 tecken), sparas i dokumentet
 //   text      tooltipens brödtext
 //   art       rit-nyckel för konsten (sub-issue C/D)
+//   varde     rangordning för hedershyllan (#528, högre = finare)
 //   tooltip(detalj) → string   valfri; standard = text
-//   vinnare(kallaDoc) → classId[]  vilka klasser som förtjänat pokalen enligt
-//             källans `result` – SAMMA villkor som reglerna kontrollerar med
-//             getAfter() (ändras det ena måste det andra ändras)
+//   vinnare(kallaDoc) → classId[]  (mattematchen/live) vilka klasser som
+//             förtjänat pokalen enligt källans `result` – SAMMA villkor som
+//             reglerna kontrollerar med getAfter() (ändras det ena måste det
+//             andra ändras)
 //   detaljFran(kallaDoc) → string  valfri; standard = källans `name`
+//   titelFran(kallaId) / artFran(data) / vardeFran(data)  valfria (#528)
+//   egenText  true → tooltipens text = dokumentets detalj (lärarens pokal)
 // }
 // ⚠️ Ny typ = registreraPokaltyp här + en gren i kcPokalVerifierad och typen
 // i KC_POKAL_TYPER i firestore.rules (+ rules-deploy). test/kc-pokal-typer.
@@ -42,8 +48,14 @@
 //         dokumentet → ny:false och inget skrivs, annars create
 //   normaliseraPokal(id, data) / normaliseraPokaler(docs) → Pokal[] nyast först
 //   pokalTooltip(pokal) → { rubrik, text, detalj, datum }
-//   Pokal = { id, typ, kallaId, titel, detalj, wonAt (ms|null), awardedBy, art, kand }
-//   Fel   = { ok:false, kod: "okand-typ"|"ogiltigt-id"|"saknar-uid", error }
+//   Pokal = { id, typ, kallaId, titel, detalj, wonAt (ms|null), awardedBy, art,
+//             varde, motiv, kand }
+// #528:
+//   LASRESAN_MILSTOLPAR [100, 250, 500, 1000]  godkända texter tillsammans
+//   lasresanMilstolpar(antal) → number[]  nådda milstolpar
+//   LARAR_MOTIV [{ id, namn, art }]   pokalmotiv läraren väljer bland
+//   planLararPokal({ motiv, titel, text, uid, fv, kallaId? }) → { ok, id, data } | Fel
+//   Fel   = { ok:false, kod: "okand-typ"|"ogiltigt-id"|"saknar-uid"|"okant-motiv"|"saknar-titel", error }
 // ============================================================================
 
 /** Rubrikens och detaljens maxlängd (samma gränser som reglerna). */
@@ -52,6 +64,9 @@ export const POKAL_DETALJ_MAX = 120;
 
 const KALLA_ID = /^[A-Za-z0-9_-]{1,100}$/;
 const TYPER = new Map();
+/** Källor med ett källdokument (vinnare() ur dess result) resp. alla källor. */
+const KALLDOK = ["mattematchen", "live"];
+const KALLOR = [...KALLDOK, "lasresan", "larare"];
 
 function fel(kod, error) {
   return { ok: false, kod, error };
@@ -66,9 +81,11 @@ export function registreraPokaltyp(typ) {
   const t = typ || {};
   if (!t.id || !/^[a-z0-9-]{1,30}$/.test(t.id)) throw new Error("registreraPokaltyp: ogiltigt id");
   if (!t.titel) throw new Error(`registreraPokaltyp(${t.id}): titel saknas`);
-  if (!["mattematchen", "live"].includes(t.kalla)) throw new Error(`registreraPokaltyp(${t.id}): okänd kalla`);
-  if (typeof t.vinnare !== "function") throw new Error(`registreraPokaltyp(${t.id}): vinnare() saknas`);
-  TYPER.set(t.id, Object.freeze({ text: "", art: "pokal", ...t, titel: text(t.titel, POKAL_TITEL_MAX) }));
+  if (!KALLOR.includes(t.kalla)) throw new Error(`registreraPokaltyp(${t.id}): okänd kalla`);
+  if (KALLDOK.includes(t.kalla) && typeof t.vinnare !== "function") {
+    throw new Error(`registreraPokaltyp(${t.id}): vinnare() saknas`);
+  }
+  TYPER.set(t.id, Object.freeze({ text: "", art: "pokal", varde: 10, ...t, titel: text(t.titel, POKAL_TITEL_MAX) }));
 }
 
 export function pokaltyp(id) {
@@ -111,7 +128,7 @@ export function pokalIdFranNyckel(nyckel) {
 /** Har klassen förtjänat pokalen enligt källdokumentet (klientens spegel av reglerna)? */
 export function verifieraPokal(typ, kallaDoc, classId) {
   const t = pokaltyp(typ);
-  return !!(t && kallaDoc && classId && (t.vinnare(kallaDoc) || []).includes(classId));
+  return !!(t?.vinnare && kallaDoc && classId && (t.vinnare(kallaDoc) || []).includes(classId));
 }
 
 /**
@@ -142,7 +159,8 @@ export function planPokal({ typ, kallaId, detalj, uid, fv } = {}) {
   const id = pokalId(typ, kallaId);
   if (!id) return fel("ogiltigt-id", "Ogiltigt käll-id för pokalen.");
   if (!uid) return fel("saknar-uid", "Ingen inloggad lärare.");
-  const data = { typ, kallaId, titel: t.titel, wonAt: fv.serverTimestamp(), awardedBy: uid };
+  const titel = text(t.titelFran ? t.titelFran(kallaId) : t.titel, POKAL_TITEL_MAX);
+  const data = { typ, kallaId, titel, wonAt: fv.serverTimestamp(), awardedBy: uid };
   const d = text(detalj, POKAL_DETALJ_MAX);
   if (d) data.detalj = d;
   return { ok: true, id, data };
@@ -186,7 +204,9 @@ export function normaliseraPokal(id, data) {
     detalj: text(d.detalj, POKAL_DETALJ_MAX),
     wonAt: ms(d.wonAt),
     awardedBy: String(d.awardedBy || ""),
-    art: t?.art || "pokal",
+    art: (t?.artFran && t.artFran(d)) || t?.art || "pokal",
+    varde: Number((t?.vardeFran && t.vardeFran(d)) || t?.varde) || 0,
+    motiv: typeof d.motiv === "string" ? d.motiv : "",
     kand: !!t,
   };
 }
@@ -204,11 +224,12 @@ const DATUM = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "long", 
 export function pokalTooltip(pokal) {
   const p = pokal || {};
   const t = pokaltyp(p.typ);
-  const brod = t ? (t.tooltip ? t.tooltip(p.detalj || "") : t.text) : "";
+  const egen = !!t?.egenText;
+  const brod = egen ? p.detalj || t.text : t ? (t.tooltip ? t.tooltip(p.detalj || "") : t.text) : "";
   return {
     rubrik: p.titel || t?.titel || "Pokal",
     text: brod || "",
-    detalj: p.detalj || "",
+    detalj: egen ? "" : p.detalj || "",
     datum: p.wonAt ? DATUM.format(new Date(p.wonAt)) : "",
   };
 }
@@ -237,6 +258,7 @@ registreraPokaltyp({
   titel: "Mattematchens mästare",
   text: "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans.",
   art: "pokal-mm",
+  varde: 50,
   vinnare: mmVinnare,
 });
 
@@ -256,6 +278,7 @@ registreraPokaltyp({
   titel: "Live-segrare",
   text: "Klassen vann Live-matchen! Alla räknade för fullt – och det lönade sig.",
   art: "pokal-live",
+  varde: 40,
   vinnare(k) {
     const w = avslutad(k) && k.result.cooperative !== true ? k.result.winner : null;
     return w && w !== "draw" && liveDeltar(k, w) ? [w] : [];
@@ -271,6 +294,105 @@ registreraPokaltyp({
   titel: "Liveläge avklarat",
   text: "Klassen klarade ett Liveläge tillsammans!",
   art: "pokal-live-klar",
+  varde: 28,
   vinnare: (k) => (avslutad(k) && k.result.goalReached === true
     ? Object.keys(k.result.perClass || {}).filter((c) => liveDeltar(k, c)) : []),
 });
+
+// --- #528: Mattematchen silver/brons ---------------------------------------
+// result.silverClasses / result.bronzeClasses (mm-teacher-core buildResult):
+// plats 2 resp. 3 i Klasskampen (delad plats → alla), bara klasser med minst
+// ett rätt svar och bara när minst MM_PLATS_MIN_KLASSER klasser deltog (en
+// tvåklassmatch ger alltså ingen "silver" till förloraren).
+export const MM_PLATS_MIN_KLASSER = 3;
+function mmPlats(falt) {
+  return (k) => (avslutad(k) && Array.isArray(k.participatingClassIds) &&
+    k.participatingClassIds.length >= MM_PLATS_MIN_KLASSER && Array.isArray(k.result[falt])
+    ? [...new Set(k.result[falt])].filter((c) => typeof c === "string" && c && k.participatingClassIds.includes(c))
+    : []);
+}
+registreraPokaltyp({
+  id: "mm-silver",
+  kalla: "mattematchen",
+  titel: "Mattematchen – silver",
+  text: "Andra plats i Mattematchens klasskamp! Riktigt starkt jobbat tillsammans.",
+  art: "pokal-mm-silver",
+  varde: 30,
+  vinnare: mmPlats("silverClasses"),
+});
+registreraPokaltyp({
+  id: "mm-brons",
+  kalla: "mattematchen",
+  titel: "Mattematchen – brons",
+  text: "Tredje plats i Mattematchens klasskamp! Klassen tog sig upp på pallen.",
+  art: "pokal-mm-brons",
+  varde: 20,
+  vinnare: mmPlats("bronzeClasses"),
+});
+
+// --- #528: Läsresan-milstolpar ----------------------------------------------
+// Godkända Läsresan-texter (≥ 5/7 rätt = samma regel som klass-EXP:en) som
+// klassen läst TILLSAMMANS. Räknas i expShards.lasresan (+1 i samma skrivning
+// som textens EXP, firestore.rules) – absoluta tal, inte per elev: reglerna
+// kan inte räkna klassens elever, och "tillsammans" ska kännas gemensamt.
+// kallaId = milstolpen ("100" …) → varje milstolpe en gång per klass.
+export const LASRESAN_MILSTOLPAR = Object.freeze([100, 250, 500, 1000]);
+const LAS_VARDE = { 100: 25, 250: 35, 500: 42, 1000: 48 };
+
+/** Milstolparna klassen nått med `antal` godkända texter. */
+export function lasresanMilstolpar(antal) {
+  const n = Math.floor(Number(antal) || 0);
+  return LASRESAN_MILSTOLPAR.filter((m) => n >= m);
+}
+registreraPokaltyp({
+  id: "lasresan-milstolpe",
+  kalla: "lasresan",
+  titel: "Läsresan-milstolpe",
+  text: "Klassen har läst massor av texter på Läsresan tillsammans!",
+  art: "pokal-lasresan-100",
+  titelFran: (m) => `Läsresan: ${m} texter`,
+  tooltip: () => "Klassen har läst så många texter på Läsresan – tillsammans! Varje godkänd text räknades.",
+  artFran: (d) => (LAS_VARDE[d.kallaId] ? `pokal-lasresan-${d.kallaId}` : null),
+  vardeFran: (d) => LAS_VARDE[d.kallaId],
+});
+
+// --- #528: Lärarens pokal ---------------------------------------------------
+// Läraren delar ut den från lärarsidan: motiv + egen titel + egen text
+// (detalj). Bara lärare skapar (reglerna), och läraren kan ta bort den.
+export const LARAR_MOTIV = Object.freeze([
+  { id: "guld", namn: "Guldpokal", art: "pokal-larare-guld" },
+  { id: "stjarna", namn: "Stjärna", art: "pokal-larare-stjarna" },
+  { id: "hjarta", namn: "Hjärta", art: "pokal-larare-hjarta" },
+  { id: "medalj", namn: "Medalj", art: "pokal-larare-medalj" },
+].map((m) => Object.freeze(m)));
+const MOTIV = new Map(LARAR_MOTIV.map((m) => [m.id, m]));
+registreraPokaltyp({
+  id: "larare",
+  kalla: "larare",
+  titel: "Lärarens pokal",
+  text: "En pokal från läraren!",
+  art: "pokal-larare-guld",
+  varde: 45,
+  egenText: true,
+  artFran: (d) => MOTIV.get(d.motiv)?.art,
+});
+
+/** Slumpat käll-id för en lärarpokal (tid + slump → sorterbart, unikt). */
+function nyttKallaId(rng = Math.random) {
+  return Date.now().toString(36) + Array.from({ length: 6 }, () => Math.floor(rng() * 36).toString(36)).join("");
+}
+
+/** Lärarens pokal att skapa (setDoc på trophies/{id}). */
+export function planLararPokal({ motiv, titel, text: brod, uid, fv, kallaId } = {}) {
+  if (!MOTIV.has(motiv)) return fel("okant-motiv", "Välj ett pokalmotiv.");
+  const t = text(titel, POKAL_TITEL_MAX);
+  if (!t) return fel("saknar-titel", "Skriv en titel på pokalen.");
+  if (!uid) return fel("saknar-uid", "Ingen inloggad lärare.");
+  const kid = kallaId || nyttKallaId();
+  const id = pokalId("larare", kid);
+  if (!id) return fel("ogiltigt-id", "Ogiltigt id för pokalen.");
+  const data = { typ: "larare", kallaId: kid, titel: t, motiv, wonAt: fv.serverTimestamp(), awardedBy: uid };
+  const d = text(brod, POKAL_DETALJ_MAX);
+  if (d) data.detalj = d;
+  return { ok: true, id, data };
+}

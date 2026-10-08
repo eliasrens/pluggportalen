@@ -26,12 +26,18 @@
 //   topPlayers(players, n)    → [{ uid, name, classId, correct, incorrect }]
 //   buildResult(s, standings, players, mode?) → result-map till liveSessions.result
 //                             (mode = sessionens GameMode; kooperativt läge →
-//                             result.cooperative + result.goalReached, #495)
+//                             result.cooperative + result.goalReached, #495;
+//                             result.winnerClasses = prisets mottagare, #526)
+//   LIVE_PRIZE_MAX            100 000 – högsta mynt-pris (reglerna har samma tak)
+//   parsePrize(v)             → heltal ≥ 0 | NaN (tomt = 0 = inget pris)
+//   sessionPrize(s)           → sessionens mynt-pris (0 = inget)
+//   prizeShare(prize, n)      → varje vinnarklass andel (avrundat nedåt)
+//   prizeText(s, result?)     → "Vinnarklassen får 1 000 mynt till klasskassan!" | ""
 //   formatScore(n)            → "20,0" (1 decimal, svensk komma)
 //   formatClock(ms)           → "12:43"
 //   sessionTitle(s)           → "4B MOT 5E" (klassnamn ur classNames)
 //   defaultSessionName(names) → "4B mot 5E"
-//   validateSessionInput(i)   → string[] fel (tom = ok)
+//   validateSessionInput(i)   → string[] fel (tom = ok) – i.coinPrize valfritt
 //   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby")
 // ============================================================================
 
@@ -40,6 +46,47 @@ export const LIVE_COUNTDOWN_SECONDS = 4;
 export const LIVE_COUNTER_SHARDS = 10;
 export const READY_FRESH_MS = 75_000;
 export const MAX_LIVE_CLASSES = 8;
+export const LIVE_PRIZE_MAX = 100_000;
+
+const tal = (n) => Math.max(0, Math.floor(Number(n) || 0)).toLocaleString("sv-SE");
+
+/** Lärarens fält → heltal ≥ 0 (tomt = 0 = inget pris), NaN om ogiltigt. */
+export function parsePrize(v) {
+  const t = String(v ?? "").replace(/[\s\u00a0]/g, "");
+  if (!t) return 0;
+  return /^\d+$/.test(t) ? Number(t) : NaN;
+}
+
+/** Sessionens mynt-pris till vinnarklassens klasskassa (#526). 0 = inget pris. */
+export function sessionPrize(s) {
+  const n = Number(s?.coinPrize);
+  return Number.isInteger(n) && n > 0 ? n : 0;
+}
+
+/** Varje vinnarklass andel: oavgjort delas lika, avrundat nedåt (reglerna räknar likadant). */
+export function prizeShare(prize, n) {
+  const p = Math.floor(Number(prize) || 0);
+  const k = Math.floor(Number(n) || 0);
+  return p > 0 && k > 0 ? Math.floor(p / k) : 0;
+}
+
+/**
+ * Prisraden för lobby/projektor/vinnarskärm. Med result: vad som faktiskt
+ * delas ut (en vinnare / oavgjort / ingen vinnare); utan: utlovat pris.
+ */
+export function prizeText(s, result = null) {
+  const prize = sessionPrize(s);
+  if (!prize) return "";
+  if (!result) return `Vinnarklassen får ${tal(prize)} mynt till klasskassan!`;
+  const vinnare = Array.isArray(result.winnerClasses) ? result.winnerClasses : [];
+  if (!vinnare.length) return "Ingen klass fick poäng – mynt-priset delas inte ut.";
+  const andel = prizeShare(prize, vinnare.length);
+  if (vinnare.length === 1) {
+    const namn = s?.classNames?.[vinnare[0]] || vinnare[0];
+    return `${namn} får ${tal(andel)} mynt till klasskassan!`;
+  }
+  return `Priset delas – ${tal(andel)} mynt var till de vinnande klassernas klasskassor!`;
+}
 
 /** Timestamp | Date | number → ms (null om saknas). */
 export function toMs(t) {
@@ -163,6 +210,13 @@ export function buildResult(s, standings, players = [], mode = null) {
     result.cooperative = true;
     result.goalReached = !!mode.goalReached(standings, s);
   }
+  // Mynt-prisets mottagare (#526, reglerna läser listan): ledarna – vid
+  // oavgjort alla som delar 1:a – men bara om någon fick poäng. Kooperativt:
+  // alla klasser som spelade, om målet nåddes.
+  const best = standings.length ? Math.max(...standings.map((c) => c.score)) : 0;
+  result.winnerClasses = result.cooperative
+    ? (result.goalReached ? standings.filter((c) => c.joined > 0).map((c) => c.classId) : [])
+    : best > 0 ? standings.filter((c) => c.score === best).map((c) => c.classId) : [];
   return result;
 }
 
@@ -193,7 +247,7 @@ export function defaultSessionName(names) {
 
 /**
  * Validera lärarens formulär.
- * input: { name, gameMode, classIds[], durationMin, divisors{classId:n} }
+ * input: { name, gameMode, classIds[], durationMin, divisors{classId:n}, coinPrize? }
  * @param {object} input
  * @param {{ knownModes?: string[] }} [opts]
  */
@@ -209,6 +263,10 @@ export function validateSessionInput(input, opts = {}) {
   if (ids.length < 2) errs.push("Välj minst två klasser (klass mot klass).");
   if (ids.length > MAX_LIVE_CLASSES) errs.push(`Högst ${MAX_LIVE_CLASSES} klasser.`);
   if (!LIVE_DURATIONS_MIN.includes(Number(input?.durationMin))) errs.push("Välj matchlängd.");
+  const prize = parsePrize(input?.coinPrize);
+  if (!Number.isInteger(prize) || prize > LIVE_PRIZE_MAX) {
+    errs.push(`Mynt-priset måste vara ett heltal 0–${tal(LIVE_PRIZE_MAX)} (tomt = inget pris).`);
+  }
   for (const id of ids) {
     const n = Number(input?.divisors?.[id]);
     if (!Number.isInteger(n) || n < 1 || n > 999) errs.push(`Nämnaren för ${input?.classNames?.[id] || id} måste vara ett heltal 1–999.`);
@@ -229,7 +287,7 @@ export function buildSessionDoc(input, { uid }) {
     classDivisors[id] = Math.floor(Number(input.divisors[id]));
     classNames[id] = String(input.classNames?.[id] || id);
   }
-  return {
+  const doc = {
     name: String(input.name).trim(),
     gameMode: input.gameMode,
     participatingClassIds: classIds,
@@ -241,4 +299,7 @@ export function buildSessionDoc(input, { uid }) {
     status: "lobby",
     createdBy: uid,
   };
+  const prize = parsePrize(input.coinPrize);
+  if (Number.isInteger(prize) && prize > 0) doc.coinPrize = prize;
+  return doc;
 }

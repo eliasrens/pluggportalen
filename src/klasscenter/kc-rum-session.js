@@ -22,6 +22,7 @@
 //                rummet stängs i stället för att behålla förra användarens verktyg.
 //   pokaler    = bevakaPokaler (#497) → hyllan + auto-placering + hover-rutan
 //                (kc-rum-pokaler.js); en flyttad pokal sparas som en möbel.
+//                Står Troféhyllan i rummet visar den de 6 finaste (#528).
 //   statistik  = subscribeClassExp + hamtaLosta (#498) → statistiktavlan och
 //                dess panel (kc-rum-statistik.js); fast möbel, även för gäst.
 // Laddas BARA dynamiskt (#271). deps kan injiceras (preview utan Firestore).
@@ -38,6 +39,7 @@ import { progressTillNasta } from "./kc-niva.js";
 import { matarRad } from "./kc-by.js";
 import { ritaHistorik } from "./kc-rum-historik.js";
 import { skapaKcRumPokaler } from "./kc-rum-pokaler.js";
+import { KC_TROFEHYLLA_ID } from "./kc-pokal-placering.js";
 import { skapaKcRumStatistik } from "./kc-rum-statistik.js";
 
 /** Riktiga beroenden (Firestore) – laddas först när rummet öppnas. */
@@ -61,6 +63,7 @@ async function riktigaDeps() {
     subscribeFunds: fund.subscribeFunds,
     unlockedItems: fund.unlockedItems,
     bevakaPokaler: pokal.bevakaPokaler,
+    lasresanMilstolpar: pokal.delaUtLasresanMilstolpar,
     subscribeClassExp: exp.subscribeClassExp,
     hamtaLosta: stat.hamtaLosta,
     arLarare: auth.isTeacher,
@@ -131,10 +134,9 @@ export function startaKcRumSession(o, { lager, q, oppnaPanel, stangHart = () => 
       const it = kcShopItem(id);
       if (!it) return null;
       const st = kcInredningStorlek(it.art) || { w: it.storlek.w / 2.5, h: it.storlek.h / 2.5 };
-      return {
-        namn: it.namn, w: st.w, h: st.h, golv: it.zon === "golv",
-        art: kcInredningSvg(it.art, { animera }) || it.emoji,
-      };
+      // Troféhyllan (#528) = hedershyllan: ritas med klassens finaste pokaler.
+      const art = id === KC_TROFEHYLLA_ID ? pok.trofehyllaArt(animera) : kcInredningSvg(it.art, { animera });
+      return { namn: it.namn, w: st.w, h: st.h, golv: it.zon === "golv", art: art || it.emoji };
     },
     rang: (k) => t.rang(k),
     ovanpa: (k) => t.ovanpa(k),
@@ -220,6 +222,8 @@ export function startaKcRumSession(o, { lager, q, oppnaPanel, stangHart = () => 
     });
     if (!levande) return;
     if (!sammaAnvandare()) return stangHart();
+    // Läsresan-milstolpar (#528) delas ut av lärarklienten (reglerna).
+    if (deps.arLarare?.()) deps.lasresanMilstolpar?.(classId);
     kan = rollKanInreda(roll);
     q("verktyg").hidden = !kan;
     rubrik();

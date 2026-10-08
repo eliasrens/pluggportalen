@@ -164,6 +164,18 @@ body.live-lage .container {
 .live-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .live-table tr.live-win th { color: var(--t-accent, #27ae60); }
 .live-history-winner { font-size: 1.3rem; font-weight: 800; }
+/* Mynt-pris (#526): lärarens historik + elevens lobby/slutskärm. */
+.live-prize { font-weight: 700; color: var(--t-accent, #b7791f); margin: -4px 0 12px; }
+.live-elev-prize {
+  display: inline-block;
+  margin: 10px 0;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #fff6d6;
+  border: 2px solid #f4c430;
+  color: #7a5200;
+  font-weight: 800;
+}
 .live-link { cursor: pointer; text-decoration: underline; }
 
 /* Projektorvyn (#461): projector.css + projector-views.css (laddas av projector.js). */

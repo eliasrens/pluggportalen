@@ -4,14 +4,15 @@
 // matchens stjärnor, pokal och konfetti. Oavgjort → "OAVGJORT!" och BÅDA
 // (alla delade ledare) firas: krona på varje kort, konfetti i deras färger.
 // Konfettin är en canvas med requestAnimationFrame som stannar av sig själv
-// (~7 s) och hoppas över helt vid prefers-reduced-motion.
+// (~7 s) och hoppas över helt vid prefers-reduced-motion. Mynt-priset (#526)
+// visas under rubriken: vem som får hur mycket till klasskassan.
 //
 // API: createWinner(host, { st, colors, onBack, celebrate }) → { update(st), destroy() }
 //   celebrate: true = spela konfetti (inte vid omladdning av en gammal match)
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
-import { formatScore } from "./live-core.js";
+import { formatScore, prizeText } from "./live-core.js";
 
 const TROPHY = `<svg class="lpw-trophy" viewBox="0 0 120 130" aria-hidden="true">
   <path d="M30 14H10c0 26 10 38 26 40M90 14h20c0 26-10 38-26 40" fill="none" stroke="#f4b400" stroke-width="8" stroke-linecap="round"/>
@@ -104,9 +105,13 @@ export function createWinner(host, { st, colors, onBack, celebrate }) {
       ? `<h1 class="lpw-title">🤝 OAVGJORT!</h1><p class="lpw-lead">${winners.map((id) => `<b style="color:${colors[id]}">${esc(name(id))}</b>`).join(" och ")} delar segern!</p>`
       : `<h1 class="lpw-title">VINNARE – <span style="color:${colors[next.winnerId]}">${esc(name(next.winnerId))}</span>!</h1>`;
     const players = next.classes.reduce((n, c) => n + c.joined, 0);
+    // Före sparat result: samma utfall som buildResult kommer att spara.
+    const utfall = next.result || { winnerClasses: next.classes.some((c) => c.score > 0) ? winners : [] };
+    const pris = prizeText(next.session, utfall);
     inner.innerHTML = `
         ${TROPHY}
         ${head}
+        ${pris ? `<p class="lp-prize lpw-prize">🪙 ${esc(pris)}</p>` : ""}
         <div class="lpw-cards">${ranked.map((c) => `
           <div class="lpw-card${winners.includes(c.classId) ? " vann" : ""}" style="--c:${colors[c.classId]}">
             ${winners.includes(c.classId) ? `<i class="lpw-crown">👑</i>` : ""}

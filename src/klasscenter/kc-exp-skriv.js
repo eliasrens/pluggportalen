@@ -10,7 +10,8 @@
 //
 // Dokument (DATAMODELL.md "Klasscentret"):
 //   classCenters/{classId}/expShards/{0..EXP_SHARDS-1}
-//       { exp, lastUid, lastAt, lastKalla }      ← klassens EXP = summan
+//       { exp, lasresan?, lastUid, lastAt, lastKalla }  ← klassens EXP = summan
+//       (lasresan = godkända Läsresan-texter, #528 – milstolpe-pokalerna)
 //   classCenters/{classId}/expMembers/{uid}
 //       { uid, exp, counts, lastAt, lastAmount, lastShard, lastKalla }
 //       ← elevens bidrag till klassen + regelräknarna (counts) + spärrtid
@@ -32,6 +33,7 @@
 //   planRaknareWrite({ classId, uid, raknare })    → Write | null (bara räknare, ingen EXP)
 //   planKlassBonusWrite({ classId, uid, mangd, kalla, shard, fv }) → Write (lärare)
 //   sumKlassExp(shardDocs)                         → klassens totala EXP
+//   sumLasresan(shardDocs)                         → klassens godkända Läsresan-texter (#528)
 //   Write = { path: string[], data: object, merge: boolean }
 //     kör som tx/batch.set(doc(db, ...path), data, merge ? { merge: true } : undefined)
 // ============================================================================
@@ -46,6 +48,8 @@ export const MAX_BONUS_PER_SKRIVNING = 1000;
 export const EXP_SPARR_S = 15;
 
 const KALLA_MAX = 40;
+/** Källan vars EXP-skrivning även räknar en godkänd Läsresan-text (#528). */
+export const LASRESAN_KALLA = "lasresan";
 
 export function pickExpShard(rng = Math.random) {
   return Math.min(EXP_SHARDS - 1, Math.max(0, Math.floor(rng() * EXP_SHARDS)));
@@ -81,12 +85,13 @@ export function planKlassExpWrites({ classId, uid, antal, kalla, raknare = null,
     lastKalla: k,
   };
   if (raknare && Object.keys(raknare).length) member.counts = { ...raknare };
+  const shardData = { exp: fv.increment(n), lastUid: uid, lastAt: fv.serverTimestamp(), lastKalla: k };
+  // #528: en godkänd Läsresan-text (EXP:en kommer bara vid ≥ 5/7) räknas även
+  // i shardens `lasresan` → klassens Läsresan-milstolpar (reglerna: +1 bara
+  // när lastKalla är "lasresan").
+  if (k === LASRESAN_KALLA) shardData.lasresan = fv.increment(1);
   return [
-    {
-      path: shardPath(classId, shard),
-      data: { exp: fv.increment(n), lastUid: uid, lastAt: fv.serverTimestamp(), lastKalla: k },
-      merge: true,
-    },
+    { path: shardPath(classId, shard), data: shardData, merge: true },
     { path: memberPath(classId, uid), data: member, merge: true },
   ];
 }
@@ -106,6 +111,16 @@ export function planKlassBonusWrite({ classId, uid, mangd, kalla, shard, fv }) {
     data: { exp: fv.increment(n), lastUid: uid, lastAt: fv.serverTimestamp(), lastKalla: kallaAv(kalla) },
     merge: true,
   };
+}
+
+/** Klassens godkända Läsresan-texter = summan av shardarnas `lasresan` (#528). */
+export function sumLasresan(shardDocs) {
+  let sum = 0;
+  for (const d of Array.isArray(shardDocs) ? shardDocs : []) {
+    const n = Math.floor(Number(d?.lasresan) || 0);
+    if (n > 0) sum += n;
+  }
+  return sum;
 }
 
 /** Klassens totala EXP = summan av shard-dokumentens exp. */
