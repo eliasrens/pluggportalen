@@ -1146,5 +1146,743 @@
         "category": "ordforstaelse"
       }
     ]
+  },
+  {
+    "id": "lr-n1-rosa-tvatten",
+    "title": "Allt blev rosa",
+    "level": 1,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Kasper vill hjälpa till hemma. Han bestämmer sig för att tvätta. Han lägger pappas vita skjortor och alla vita lakan i tvättmaskinen. Sedan trycker han på start.\n\nEfter en timme piper maskinen. Kasper öppnar luckan och tittar in. Allt är rosa!\n\nLängst in ligger en liten röd strumpa. Den har färgat av sig på allt det vita.\n\nPappa kommer in i tvättstugan. Han tittar på de rosa skjortorna. Kasper väntar på att han ska bli arg.\n\nMen pappa börjar skratta. ”Jag har alltid velat ha en rosa skjorta”, säger han.\n\nNästa dag går pappa till jobbet i rosa. Och Kasper kollar alltid tvätten först.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad lägger Kasper i tvättmaskinen?",
+        "options": [
+          "Vita skjortor och lakan",
+          "Röda tröjor och mössor",
+          "Sina egna byxor",
+          "Handdukar och filtar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken färg har tvätten när den är klar?",
+        "options": [
+          "Röd",
+          "Rosa",
+          "Vit",
+          "Grå"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad hittar Kasper längst in i maskinen?",
+        "options": [
+          "En röd penna",
+          "En rosa vante",
+          "En röd strumpa",
+          "En röd leksaksbil"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Strumpan har färgat av sig. Vad betyder det?",
+        "options": [
+          "Den har blivit helt vit",
+          "Den har gått sönder",
+          "Den har krympt i den varma tvätten",
+          "Den har gett färg åt tvätten"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad tror Kasper att pappa ska göra?",
+        "options": [
+          "Börja gråta",
+          "Skratta högt",
+          "Bli arg",
+          "Gå till jobbet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad lär sig Kasper?",
+        "options": [
+          "Att kolla tvätten först",
+          "Att aldrig hjälpa till hemma",
+          "Att rosa är en ful färg",
+          "Att pappa inte gillar skjortor"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-aprilskamt",
+    "title": "Saltet i sockerskålen",
+    "level": 1,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det är första april. Hanna vill lura sin storebror Joel. Hon häller ut sockret ur sockerskålen och fyller den med salt i stället.\n\n”Han strör alltid socker på gröten”, fnissar hon.\n\nMen Joel har redan ätit frukost. Han har gått till träningen.\n\nHanna sätter sig vid bordet med sin egen gröt. Hon tänker inte på saken. Hon tar en stor sked ur sockerskålen och strör över gröten.\n\nSedan tar hon en tugga. Usch! Det smakar som havsvatten.\n\nMamma tittar på henne och ler. ”April, april!” säger mamma.\n\nHanna skrattar fast hon inte vill. Hon lurade bara sig själv.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag är det?",
+        "options": [
+          "Första maj",
+          "Julafton",
+          "Hannas födelsedag",
+          "Första april"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem vill Hanna lura?",
+        "options": [
+          "Sin mamma",
+          "Sin bror Joel",
+          "Sin pappa",
+          "Sin bästa kompis"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad häller Hanna i sockerskålen?",
+        "options": [
+          "Mjöl",
+          "Peppar",
+          "Sand",
+          "Salt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför fungerar inte skämtet på Joel?",
+        "options": [
+          "Han tycker inte om gröt",
+          "Han såg vad Hanna gjorde",
+          "Han har redan gått",
+          "Han strör aldrig socker"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hanna fnissar. Vad gör hon?",
+        "options": [
+          "Gråter högt",
+          "Skrattar tyst",
+          "Suckar trött",
+          "Sjunger glatt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vem blir lurad till slut?",
+        "options": [
+          "Hanna",
+          "Joel",
+          "Mamma",
+          "Ingen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-gungan",
+    "title": "En gunga för två",
+    "level": 1,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "På rasten springer Moa och Lisen till gungorna. Det finns bara en gunga kvar. Båda tar tag i den samtidigt.\n\n”Jag var först!” säger Moa.\n\n”Nej, jag!” säger Lisen.\n\nDe drar i gungan och blir sura. Ingen av dem får gunga. Snart ringer det in.\n\nDagen efter springer de till gungan igen. Den här gången stannar Moa.\n\n”Vi kan turas om”, säger hon. ”Du gungar tjugo gånger, sedan jag.”\n\nLisen nickar. Hon räknar högt medan Moa knuffar på. Sedan byter de.\n\nDet blir den roligaste rasten på länge. Nu räknar de alltid tillsammans.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många lediga gungor finns det?",
+        "options": [
+          "Två",
+          "En",
+          "Tre",
+          "Ingen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer på den första rasten?",
+        "options": [
+          "Moa får gunga först",
+          "Lisen ramlar av gungan",
+          "De gungar tillsammans",
+          "Ingen av dem får gunga"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Moa och Lisen blir sura. Hur känner de sig?",
+        "options": [
+          "Arga",
+          "Glada",
+          "Trötta",
+          "Rädda"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vem kommer på hur de ska göra?",
+        "options": [
+          "Lisen",
+          "Läraren",
+          "Moa",
+          "En kompis"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur många gånger får Lisen gunga innan de byter?",
+        "options": [
+          "Tio",
+          "Fem",
+          "Tjugo",
+          "Hundra"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad lär sig Moa och Lisen?",
+        "options": [
+          "Att man ska springa fortare",
+          "Att det är roligare att dela",
+          "Att gungor är tråkiga",
+          "Att det är bäst att leka själv"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-brevet",
+    "title": "Ett brev med en älg",
+    "level": 1,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Ali och Sixten har varit bästa vänner sedan förskolan. Men i somras flyttade Sixten till en stad långt bort i norr.\n\nNu är Ali ofta ensam på rasterna. Han saknar Sixten varje dag.\n\nEn dag ligger ett brev på hallmattan. Det är till Ali! Kuvertet har ett frimärke med en älg.\n\n”Hej Ali! Här är det redan snö. Jag har en ny kompis som heter Vilgot, men ingen är lika rolig som du. Skriv tillbaka!”\n\nAli hämtar papper och pennor. Han skriver ett långt brev och ritar en bild av deras gamla koja.\n\nSedan går han till brevlådan med mamma. Nu väntar han på nästa brev.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Sedan när har Ali och Sixten varit vänner?",
+        "options": [
+          "Sedan i somras",
+          "Sedan förra veckan",
+          "Sedan de var tio",
+          "Sedan förskolan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vart har Sixten flyttat?",
+        "options": [
+          "Till en stad i norr",
+          "Till ett annat land",
+          "Till huset bredvid",
+          "Till en ö i söder"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ali saknar Sixten. Vad betyder det?",
+        "options": [
+          "Ali längtar efter honom",
+          "Ali har glömt bort honom",
+          "Ali är arg på honom",
+          "Ali är rädd för honom"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vilket djur finns på frimärket?",
+        "options": [
+          "En björn",
+          "En räv",
+          "En ren",
+          "En älg"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad ritar Ali?",
+        "options": [
+          "Sixtens nya hus",
+          "Deras gamla koja",
+          "En älg i snön",
+          "Sin skola"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad vill Sixten visa med sitt brev?",
+        "options": [
+          "Att han inte gillar snö",
+          "Att han vill flytta hem nu",
+          "Att han fortfarande är Alis vän",
+          "Att Vilgot är hans bästa vän"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-on-i-sjon",
+    "title": "Ovädret på ön",
+    "level": 1,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Isak och morfar ror ut till en liten ö mitt i sjön. Morfar ror och Isak håller i fiskespöt.\n\nPå ön finns bara stenar, höga granar och en gammal eldstad. De grillar korv och tittar på fåglarna.\n\nPlötsligt blir himlen mörk. Det börjar blåsa och vågorna blir stora.\n\n”Vi ror inte tillbaka nu”, säger morfar. ”Det är för farligt.”\n\nDe drar upp båten på land och kryper in under en stor gran. Regnet smattrar på grenarna, men under granen är det torrt.\n\nEfter en timme slutar det regna. Sjön blir blank igen. Isak och morfar ror hem i solnedgången.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur tar sig Isak och morfar till ön?",
+        "options": [
+          "De simmar",
+          "De åker motorbåt",
+          "De går på isen",
+          "De ror"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör de på ön innan vädret blir dåligt?",
+        "options": [
+          "Grillar korv",
+          "Bygger en koja",
+          "Badar i sjön",
+          "Plockar svamp"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer med vädret?",
+        "options": [
+          "Det börjar snöa",
+          "Det blir väldigt varmt",
+          "Det blir oväder",
+          "Det blir tät dimma"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför ror de inte hem direkt?",
+        "options": [
+          "Båten har gått sönder",
+          "Vågorna är för stora",
+          "Morfar är för trött",
+          "De vill fiska mer"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Regnet smattrar på grenarna. Vad betyder smattrar?",
+        "options": [
+          "Faller utan att höras",
+          "Låter som många små slag",
+          "Fryser till is på dem",
+          "Blåser bort åt sidan"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var morfars beslut bra?",
+        "options": [
+          "De hann fånga många stora fiskar",
+          "Isak fick sova i båten",
+          "De höll sig torra och säkra",
+          "De slapp grilla korven"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-majslabyrinten",
+    "title": "Vilse i majsen",
+    "level": 1,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Lova och hennes pappa går in i en labyrint i ett majsfält. Majsen är mycket högre än pappa. Man ser bara gröna blad och blå himmel.\n\n”Vi ska hitta till tornet i mitten”, säger pappa.\n\nDe går höger och vänster och höger igen. Snart vet de inte var de är. Pappa kliar sig i huvudet.\n\nDå ser Lova något. På vissa stolpar sitter små gula skyltar med en sol på.\n\n”Vi följer solarna!” säger hon.\n\nSkylt för skylt kommer de närmare. Till slut står de vid ett trätorn. De klättrar upp och ser ut över hela fältet.\n\n”Utan dig hade vi gått vilse hela dagen”, säger pappa.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var finns labyrinten?",
+        "options": [
+          "I ett majsfält",
+          "I en stor park",
+          "I en skog",
+          "Inne i ett slott"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur hög är majsen?",
+        "options": [
+          "Lika hög som Lova",
+          "Bara till knäna",
+          "Lägre än pappa",
+          "Högre än pappa"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Pappa kliar sig i huvudet. Vad visar det?",
+        "options": [
+          "Att han har fått myggbett",
+          "Att han är glad",
+          "Att han inte vet vägen",
+          "Att han är hungrig"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad finns på de gula skyltarna?",
+        "options": [
+          "En pil",
+          "En stjärna",
+          "Ett torn",
+          "En sol"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är en labyrint?",
+        "options": [
+          "Gångar där man lätt går vilse",
+          "Ett högt torn av trä",
+          "Ett fält med blommor",
+          "En stor lekplats med gungor"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur hittar de till tornet?",
+        "options": [
+          "Pappa minns vägen",
+          "De följer skyltarna",
+          "De frågar en annan familj",
+          "De klättrar över majsen"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-malvakten",
+    "title": "Zara står i mål",
+    "level": 1,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Zara ska stå i mål för första gången. Lagets vanliga målvakt Hampus är sjuk.\n\nZara får låna stora handskar. Hennes ben skakar när matchen börjar.\n\nDet andra laget anfaller hela tiden. En boll flyger högt mot målet. Zara hoppar och slår ut den med handen!\n\nEfter en stund blir det straff. Zara står mitt i målet och tittar på bollen. Spelaren skjuter åt vänster. Zara kastar sig åt samma håll och tar bollen.\n\nHela laget jublar. Matchen slutar ett–noll till Zaras lag.\n\n”Du får gärna stå i mål igen”, säger tränaren. Zara ler med hela ansiktet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför står Zara i mål?",
+        "options": [
+          "Hampus är sjuk",
+          "Hon vill helst stå i mål",
+          "Tränaren är arg på henne",
+          "Hon har ont i benet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför skakar Zaras ben när matchen börjar?",
+        "options": [
+          "Hon har ont",
+          "Hon är arg",
+          "Hon är nervös",
+          "Hon har sprungit"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Hur räddar Zara den höga bollen?",
+        "options": [
+          "Hon nickar bort den",
+          "Hon slår ut den med handen",
+          "Hon sparkar bort den",
+          "Hon fångar den med båda händerna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Åt vilket håll skjuter spelaren straffen?",
+        "options": [
+          "Åt höger",
+          "Rakt i mitten",
+          "Högt över målet",
+          "Åt vänster"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur slutar matchen?",
+        "options": [
+          "Noll–noll",
+          "Ett–noll till Zaras lag",
+          "Ett–noll till det andra laget",
+          "Två–ett till Zaras lag"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Laget jublar. Vad gör de?",
+        "options": [
+          "Ropar högt av glädje",
+          "Gråter av besvikelse",
+          "Står helt tysta",
+          "Går hem från planen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-skridskor",
+    "title": "Alfreds nya skridskor",
+    "level": 1,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Alfred har fått nya skridskor. I dag ska han prova dem på isbanan.\n\nHan ställer sig på isen. Benen glider åt varsitt håll och han ramlar direkt. Pang! Rumpan blir blöt och kall.\n\nHans kusin Tova åker förbi. ”Ta en sån här”, säger hon. Hon skjuter fram en skridskohjälp av plast. Den ser ut som en liten stol med handtag.\n\nAlfred håller i handtagen och skjuter den framför sig. Nu ramlar han inte. Han tar små steg och glider lite längre för varje gång.\n\nEfter en timme släpper han handtagen. Han åker en hel runda själv!\n\n”Nästa gång tävlar vi”, säger Tova.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var provar Alfred sina skridskor?",
+        "options": [
+          "På en frusen sjö",
+          "På skolgården",
+          "På gatan hemma",
+          "På isbanan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer första gången Alfred ställer sig på isen?",
+        "options": [
+          "Han åker en runda",
+          "Han tävlar med Tova",
+          "Han ramlar",
+          "Han tappar en skridsko"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem är Tova?",
+        "options": [
+          "Alfreds syster",
+          "Alfreds tränare",
+          "Alfreds granne",
+          "Alfreds kusin"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur ser skridskohjälpen ut?",
+        "options": [
+          "Som en stor kälke med rep",
+          "Som en liten stol med handtag",
+          "Som en pinne med krok",
+          "Som ett par skidstavar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ramlar Alfred inte med skridskohjälpen?",
+        "options": [
+          "Isen blir mindre hal",
+          "Tova håller i honom",
+          "Han kan hålla sig i den",
+          "Han åker mycket fort"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan Alfred göra efter en timme?",
+        "options": [
+          "Åka själv",
+          "Åka baklänges",
+          "Hoppa på isen",
+          "Vinna över Tova"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-stafetten",
+    "title": "Pinnen på gruset",
+    "level": 1,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Det är skolans idrottsdag. Nils springer stafett med sitt lag. Han ska springa sist och komma i mål.\n\nLaget ligger först. Nils står och väntar med handen bakåt. Där kommer Wanda med stafettpinnen.\n\nMen när hon ska lämna över tappar Nils pinnen! Den rullar bort på gruset.\n\nNils springer efter och plockar upp den. Nu är två lag före.\n\nHan springer så fort han kan. Han hinner ikapp ett av lagen och springer förbi. Men det andra laget kommer först i mål.\n\nNils känner sig dum. Men Wanda klappar honom på axeln.\n\n”Du gav inte upp”, säger hon. ”Det är det viktigaste.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken sträcka springer Nils?",
+        "options": [
+          "Den sista",
+          "Den första",
+          "Den andra",
+          "Alla sträckor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer när Wanda ska lämna över pinnen?",
+        "options": [
+          "Wanda ramlar",
+          "Nils tappar den",
+          "Nils springer åt fel håll",
+          "Pinnen går sönder"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Nils hinner ikapp ett lag. Vad betyder det?",
+        "options": [
+          "Han ramlar över det",
+          "Han blir slagen av det",
+          "Han kommer upp bredvid det",
+          "Han väntar på det"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vilken plats kommer Nils lag på?",
+        "options": [
+          "Etta",
+          "Trea",
+          "Sist",
+          "Tvåa"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför känner sig Nils dum?",
+        "options": [
+          "Han sprang för långsamt från start",
+          "Wanda skrattade åt honom",
+          "Han tappade pinnen",
+          "Han glömde sitt lag"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad tycker Wanda är viktigast?",
+        "options": [
+          "Att inte ge upp",
+          "Att alltid vinna",
+          "Att springa först",
+          "Att aldrig tappa pinnen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
