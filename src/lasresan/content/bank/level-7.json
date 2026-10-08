@@ -2712,5 +2712,595 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n7-elefanterna",
+    "title": "Elefanternas osynliga samtal",
+    "level": 7,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Den som har stått nära en flock elefanter beskriver ofta en märklig känsla. Djuren verkar tysta, men ibland kan man känna ett lätt dån i bröstet, nästan som när en stor lastbil går på tomgång. Det man känner är elefanternas röster. En stor del av deras samtal sker nämligen med ljud som är så låga att det mänskliga örat inte kan uppfatta dem.\n\nSådana ljud kallas infraljud. De har så låg frekvens att de rör sig långt utan att försvagas särskilt mycket, och när förhållandena är goda kan andra elefanter uppfatta dem flera kilometer bort. På så sätt kan flockar som har kommit ifrån varandra hålla kontakten, och en hona som är redo att para sig kan locka till sig hanar som befinner sig långt borta. Forskare tror dessutom att elefanter kan känna vibrationer i marken genom sina känsliga fotsulor, ungefär som om fötterna också lyssnar.\n\nElefanternas samhälle är byggt kring familjen. En flock består av honor och deras ungar, och den leds av den äldsta och mest erfarna honan, som kallas matriark. Hanarna lämnar flocken när de blir tonåringar och lever sedan ensamma eller i lösa grupper med andra hanar.\n\nMatriarkens viktigaste uppgift är att minnas. Hon vet var det finns vatten under torra år, vilka vägar som är säkra och hur flocken ska bete sig när en fara närmar sig. Forskare som har följt elefanter under svåra torkperioder har sett att flockar med en gammal matriark klarade sig bättre än flockar som leddes av en yngre hona. Den gamla honan kunde leda dem till vattenhål som hon kanske inte hade besökt på flera decennier.\n\nDet betyder att kunskap hos elefanter inte bara sitter i den enskilda hjärnan. Den förs vidare mellan generationer, ungefär som traditioner hos människor. Ungarna lär sig genom att gå bredvid de vuxna, år efter år. En elefantunge bärs i ungefär tjugotvå månader innan den föds, och den är beroende av flocken under många år efter det.\n\nJust därför är tjuvjakten på elefanter så förödande. Tjuvjägare dödar elefanter för elfenbenets skull, och de vill helst ha de största betarna. Sådana har ofta de äldsta djuren. När en matriark dödas försvinner alltså inte bara ett djur, utan också flockens minne. De unga elefanterna står kvar utan någon som vet vart man ska gå när vattnet tar slut.\n\nElefanterna lär oss alltså något som gäller fler än dem: ett samhälle är beroende av sina äldsta medlemmar, inte för att de är starkast, utan för att de har varit med längst.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är infraljud enligt texten?",
+        "options": [
+          "Ljud som är för höga för människans öra",
+          "Ljud som är för låga för människans öra",
+          "Ljud som bara hörs under vattnet",
+          "Ljud som elefanter gör när de äter"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad kan elefanter använda infraljudet till?",
+        "options": [
+          "Att skrämma bort lejon som kommer för nära ungarna",
+          "Att hitta vatten djupt nere i den torra marken",
+          "Att jaga små djur som gömmer sig i gräset",
+          "Att hålla kontakten med flockar som är långt borta"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ordet ”matriark” i texten?",
+        "options": [
+          "Den äldsta honan som leder flocken",
+          "Den största och starkaste hanen i området",
+          "Den yngsta ungen i en flock",
+          "En elefant som lever ensam"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad händer med hanarna när de blir tonåringar?",
+        "options": [
+          "De blir ledare",
+          "De slutar äta",
+          "De lämnar flocken",
+          "De föder ungar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför klarade sig flockar med en gammal matriark bättre under torka?",
+        "options": [
+          "Hon var starkast och kunde gräva djupast",
+          "Hon mindes var det fanns vatten sedan länge",
+          "Hon kunde höra regn på mycket långt håll",
+          "Hon behövde mindre vatten än de yngre djuren"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menas med att kunskapen förs vidare mellan ”generationer”?",
+        "options": [
+          "Från en flock till en helt annan flock",
+          "Från elefanter till människor i närheten",
+          "Från hanarna till honorna i flocken",
+          "Från äldre djur till yngre, i flera led"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför drabbar tjuvjakten ofta de äldsta elefanterna?",
+        "options": [
+          "Tjuvjägarna vill ha de största betarna",
+          "De äldsta elefanterna är långsammast",
+          "De äldsta går alltid först när flocken vandrar",
+          "De äldsta hörs bäst på långt avstånd"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att flockens ”minne” försvinner när matriarken dödas?",
+        "options": [
+          "Att de unga elefanterna glömmer hur hon såg ut",
+          "Att flocken inte längre kan höra varandras infraljud",
+          "Att ungarna glömmer vilka som är deras föräldrar",
+          "Att hennes kunskap om vatten och faror går förlorad"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vilken slutsats drar texten i sista stycket?",
+        "options": [
+          "Att de starkaste djuren alltid bör få leda en flock",
+          "Att elefanter är smartare än alla andra djur på jorden",
+          "Att ett samhälle behöver sina äldsta för deras erfarenhet",
+          "Att människor borde lära sig kommunicera med infraljud"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-bjorndjur",
+    "title": "Djuret som tål nästan allt",
+    "level": 7,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Om du skrapar loss en bit mossa från ett tak eller en sten och lägger den i lite vatten under ett mikroskop, har du goda chanser att få se ett av världens mest motståndskraftiga djur. Det är mindre än en millimeter långt, har åtta knubbiga ben med små klor och rör sig så långsamt och klumpigt att det har fått namnet björndjur. Ett annat svenskt namn är trögkrypare.\n\nBjörndjur finns nästan överallt på jorden: i mossa och lavar, i sjöar och hav, på höga berg och i Antarktis. Det finns över tusen kända arter. De flesta lever av vätskan i växtceller eller av ännu mindre organismer, som de suger i sig genom en mun som liknar ett sugrör.\n\nDet som gör björndjuren berömda är vad de klarar av. Mossan de lever i torkar ofta ut helt, och då skulle de flesta smådjur dö. Björndjuret gör något annat. Det drar in benen, rullar ihop sig till en liten tunna och släpper ut nästan allt vatten ur kroppen. Ämnesomsättningen, alltså de kemiska processer som håller kroppen vid liv, stannar nästan helt. Djuret är varken riktigt levande eller dött. Det kallas torrdvala.\n\nI det tillståndet kan björndjur överleva i åratal. Forskare har fått uttorkade björndjur att vakna till liv igen efter att de har legat torra mycket länge. Det räcker att ge dem lite vatten, och efter en stund börjar benen röra sig.\n\nI torrdvala tål de också sådant som inget annat djur skulle klara. I laboratorier har de överlevt kyla nära den kallaste temperatur som finns, en kort stund i hetta över kokpunkten och strålning som skulle döda en människa många gånger om. Under ett försök som leddes av en svensk forskare skickades uttorkade björndjur ut i rymden och utsattes för rymdens vakuum utanför en farkost. När de kom tillbaka till jorden och fick vatten levde många av dem.\n\nDet betyder inte att björndjur är odödliga. När de är aktiva och fulla av vatten är de lika sköra som andra små djur, och de flesta lever bara några månader. Deras styrka är att de kan pausa livet när förhållandena blir omöjliga och starta det igen när det blir bättre.\n\nDärför är forskare så intresserade av dem. Om man förstod hur björndjuret skyddar sina celler när vattnet försvinner, skulle man kanske kunna förvara vacciner och läkemedel utan kylskåp. Ett djur som får plats på ett knappnålshuvud kan alltså en dag hjälpa människor på andra sidan jorden.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var kan man enligt texten ha goda chanser att hitta björndjur?",
+        "options": [
+          "I jorden under granar djupt inne i skogen",
+          "I en bit mossa från ett tak eller en sten",
+          "I varma källor där vattnet är mycket hett",
+          "I päls på djur som lever i Antarktis"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför har djuret fått namnet björndjur?",
+        "options": [
+          "Det rör sig långsamt och klumpigt som en björn",
+          "Det lever bara i de skogar där det finns björnar",
+          "Det sover i ide hela vintern precis som björnar",
+          "Det är det största djuret som lever i mossa"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör björndjuret när mossan torkar ut?",
+        "options": [
+          "Gräver sig ner djupt i marken och väntar",
+          "Kryper iväg för att leta efter en ny blöt plats",
+          "Äter så mycket det kan och lagrar vatten i kroppen",
+          "Rullar ihop sig och släpper ut nästan allt vatten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ”ämnesomsättningen” enligt texten?",
+        "options": [
+          "De kemiska processer som håller kroppen vid liv",
+          "Det sätt som djuret byter skal på när det växer",
+          "Den mat som djuret äter under en vanlig dag",
+          "Det vatten som djuret dricker varje timme"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skriver texten att djuret i torrdvala är ”varken riktigt levande eller dött”?",
+        "options": [
+          "Det har dött men kan bli levande om någon värmer det",
+          "Nästan allt i kroppen har stannat, men det kan vakna igen",
+          "Det lever men kan inte längre röra sig någonsin",
+          "Det har lämnat sitt gamla skal och lever vidare i ett nytt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad hände med björndjuren som skickades ut i rymden?",
+        "options": [
+          "Alla dog direkt i rymdens vakuum",
+          "De förökade sig ute på rymdfarkosten",
+          "Många levde när de fick vatten på jorden",
+          "De blev större av strålningen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är björndjur inte odödliga, enligt texten?",
+        "options": [
+          "De tål inte att torka ut mer än en gång i livet",
+          "De blir alltid uppätna av större djur i mossan",
+          "De dör om de får för mycket vatten alldeles på en gång",
+          "De är sköra när de är aktiva och lever ofta kort"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Hur skulle forskningen om björndjur kunna hjälpa människor?",
+        "options": [
+          "Genom att lära människor att leva i rymden",
+          "Genom att ge människor en kur mot strålning",
+          "Genom att visa hur vacciner kan förvaras utan kyla",
+          "Genom att göra mossa till ett nytt och billigt livsmedel"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vilket påstående sammanfattar textens bild av björndjuret bäst?",
+        "options": [
+          "Dess styrka är att kunna pausa livet och starta igen",
+          "Det är världens starkaste djur i förhållande till storleken",
+          "Det kan överleva allt eftersom det aldrig behöver vatten",
+          "Det är ett farligt djur som sprider sig överallt på jorden"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-vargen",
+    "title": "Vargen kommer tillbaka",
+    "level": 7,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "För ungefär femtio år sedan var vargen nästan försvunnen från Sverige. Under lång tid hade den jagats hårt, eftersom den dödade får, kor och renar, och staten betalade till och med pengar för varje död varg. På sextiotalet fanns bara några få djur kvar. År 1966 blev vargen fredad, vilket betyder att det blev förbjudet att jaga den. Men då var det nästan för sent.\n\nI början av åttiotalet hände något oväntat. Ett vargpar som hade vandrat hela vägen från Finland eller Ryssland slog sig ner i Värmland och fick valpar. Från dem, och från några få djur som kom senare, härstammar nästan alla vargar som lever i Sverige och Norge i dag. I dag finns det några hundra vargar i landet, de flesta i Mellansverige.\n\nAtt en art kommer tillbaka låter som en lyckad historia. På många sätt är det också det. Vargen är ett topprovdjur, alltså ett djur som står högst i näringskedjan. Den påverkar hur rådjur och älgar rör sig och var de betar, och när den lämnar rester efter sig får rävar, korpar och örnar mat. Många människor tycker dessutom att vargen hör hemma i den svenska naturen och att vi har ett ansvar för att den finns kvar.\n\nMen det finns också människor som ser vargens återkomst på ett helt annat sätt. En fårbonde som en morgon hittar flera döda djur i hagen förlorar inte bara pengar, utan också djur som hon har tagit hand om varje dag. Jägare oroar sig för sina hundar, som vargar ibland angriper i skogen. Och i områden där det finns renskötsel kan vargar orsaka stora förluster för samerna.\n\nDet finns också ett problem som inte syns utifrån. Eftersom så många av vargarna härstammar från så få djur är de nära släkt med varandra. Sådan inavel kan leda till sämre hälsa och färre valpar. Därför är forskare glada varje gång en ny varg lyckas vandra in från Finland eller Ryssland.\n\nPolitikerna måste alltså väga olika intressen mot varandra. Hur många vargar behövs för att arten ska överleva på lång sikt? Hur många vargar kan människor som bor nära dem leva med? Ibland tillåts en begränsad jakt, och djurägare kan få bidrag till stängsel som ska hålla vargarna borta.\n\nFrågan om vargen handlar därför inte bara om ett djur. Den handlar om hur människor som lever på olika platser och på olika sätt ska kunna dela samma land.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hände med vargen i Sverige år 1966?",
+        "options": [
+          "Den försvann helt från hela landet",
+          "Den blev fredad och fick inte längre jagas",
+          "Den började vandra in från Finland",
+          "Staten började betala för döda vargar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder det att en art är ”fredad”?",
+        "options": [
+          "Att den lever i ett stängslat område",
+          "Att den har slutat angripa andra djur",
+          "Att den bara finns kvar på ett ställe",
+          "Att det är förbjudet att jaga den"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varifrån kom vargparet som slog sig ner i Värmland?",
+        "options": [
+          "Från en djurpark i Norge",
+          "Från fjällen i norra Sverige",
+          "Från Finland eller Ryssland",
+          "Från Danmark och Tyskland"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett ”topprovdjur”?",
+        "options": [
+          "Ett djur högst upp i näringskedjan",
+          "Ett djur som lever på höga berg",
+          "Ett djur som bara äter växter",
+          "Ett djur som jagar i stora flockar"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kan vargen hjälpa andra djur, enligt texten?",
+        "options": [
+          "Den skyddar rådjur och älgar mot både björnar och lodjur",
+          "Rävar, korpar och örnar kan äta av det vargen lämnar",
+          "Den gräver hålor som andra djur kan bo i på vintern",
+          "Den skrämmer bort människor från skogarna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför beskriver texten fårbondens förlust som mer än pengar?",
+        "options": [
+          "Hon har inte fått något bidrag till stängsel",
+          "Hon kan inte längre sälja ull och kött",
+          "Hon måste flytta från gården till staden",
+          "Hon har tagit hand om djuren varje dag"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är forskare glada när en ny varg vandrar in från öster?",
+        "options": [
+          "Den nya vargen ökar jakten på älgar",
+          "Den nya vargen brukar inte angripa får",
+          "Den nya vargen minskar problemet med inavel",
+          "Den nya vargen kan bära sändare åt forskarna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilka två frågor måste politikerna väga mot varandra?",
+        "options": [
+          "Hur mycket vargarna äter och hur många älgar som finns kvar",
+          "Hur många vargar arten behöver och hur många människor kan leva med",
+          "Hur många vargar som finns i Norge och hur många som finns kvar i Finland",
+          "Hur mycket stängsel kostar och hur många jägare det finns"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med att frågan om vargen ”inte bara handlar om ett djur”?",
+        "options": [
+          "Den handlar om hur olika människor ska dela samma land",
+          "Den handlar om att även andra rovdjur i landet borde fredas",
+          "Den handlar om att vargen är farlig för alla barn",
+          "Den handlar om att Sverige ska ha fler djurparker"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-ozonlagret",
+    "title": "Hålet i himlen som håller på att läkas",
+    "level": 7,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Högt uppe i atmosfären, ungefär två till tre mil över marken, finns ett tunt skikt av en gas som heter ozon. Om man samlade allt ozon och tryckte ihop det vid marken skulle lagret bara bli några millimeter tjockt. Ändå är det livsviktigt. Ozonet fångar upp en stor del av solens ultravioletta strålning, UV-strålningen, som kan ge brännskador, hudcancer och grumliga ögonlinser hos människor och skada växter och plankton.\n\nI mitten av åttiotalet kom ett oroväckande besked. Forskare som mätte ozonet över Antarktis upptäckte att det varje vår minskade kraftigt. Det hade uppstått ett ozonhål, ett område där skiktet var mycket tunnare än det borde vara. Hålet blev större för varje år.\n\nOrsaken visade sig vara ämnen som människor själva hade tillverkat. De kallas freoner och hade länge setts som perfekta. De var billiga, brann inte och var inte giftiga att andas in. Därför användes de i kylskåp, i sprayburkar och i skumplast. Men när freonerna steg upp i atmosfären bröts de ner av solljuset, och då frigjordes ämnen som förstörde ozon. En enda sådan partikel kunde bryta ner tusentals ozonmolekyler innan den försvann.\n\nDet som hände sedan brukar beskrivas som ett av de största miljöframgångarna i historien. År 1987 skrev ett stort antal länder under ett avtal som kallas Montrealprotokollet. Länderna lovade att steg för steg sluta tillverka och använda freoner och liknande ämnen. Med tiden skrev alla världens länder under. Företagen tog fram andra ämnen till kylskåp och sprayburkar, och användningen av freoner sjönk kraftigt.\n\nOzonlagret läker dock långsamt. Freoner kan finnas kvar i atmosfären i många decennier, så hålet över Antarktis dök fortfarande upp varje vår långt efter förbudet. Forskare har ändå kunnat mäta att lagret sakta blir tjockare igen. Beräkningar tyder på att det kan vara tillbaka på samma nivå som före åttiotalet omkring år 2040 i större delen av världen, och över Antarktis ett par decennier senare.\n\nVarför fungerade det så bra? En förklaring är att forskarna var överens om orsaken och kunde visa den tydligt. En annan är att det fanns ersättningsämnen som inte var mycket dyrare. Och en tredje är att länderna förstod att ingen kunde lösa problemet ensam, eftersom atmosfären inte bryr sig om gränser.\n\nDärför brukar ozonlagret nämnas när man diskuterar andra miljöproblem, som klimatförändringarna. Det visar att det är möjligt för hela världen att komma överens, även om det inte alltid är lika lätt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför är ozonlagret viktigt för livet på jorden?",
+        "options": [
+          "Det håller jorden varm under de långa vintrarna",
+          "Det skapar syret som människor andas in",
+          "Det stoppar regnet från att falla för hårt",
+          "Det fångar upp mycket av solens UV-strålning"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför skriver texten ”Ändå är det livsviktigt” efter att ha beskrivit hur tunt lagret är?",
+        "options": [
+          "För att visa att något litet kan ha mycket stor betydelse",
+          "För att visa att forskarna har mätt fel på ozonlagret länge",
+          "För att förklara att lagret egentligen är mycket tjockt",
+          "För att visa att lagret bara finns över Antarktis"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad menas med ett ”ozonhål”?",
+        "options": [
+          "Ett hål i marken där ozon tränger upp ur jorden",
+          "En plats där man tillverkar ozon",
+          "Ett område där ozonskiktet är mycket tunnare",
+          "En öppning i rymden ovanför jorden"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför hade freoner länge setts som perfekta ämnen?",
+        "options": [
+          "De gjorde kylskåpen tystare och sprayen mer behagligt doftande",
+          "De var billiga, brann inte och var inte giftiga att andas",
+          "De skyddade ozonlagret mot solens farliga strålning",
+          "De kunde återvinnas många gånger utan att ta slut"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var freonerna så skadliga trots att det fanns ganska lite av dem?",
+        "options": [
+          "De stannade nere vid marken och förgiftade alla växterna",
+          "De gjorde så att solen sände ut mer UV-strålning",
+          "De fastnade i molnen och gjorde regnet surt",
+          "En enda partikel kunde förstöra tusentals ozonmolekyler"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad lovade länderna i Montrealprotokollet?",
+        "options": [
+          "Att steg för steg sluta använda freoner",
+          "Att bygga nya kylskåp till alla länder",
+          "Att mäta ozonet över Antarktis varje dag",
+          "Att förbjuda alla sprayburkar på en gång"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför fortsatte ozonhålet att dyka upp långt efter förbudet?",
+        "options": [
+          "Många länder fortsatte i hemlighet att använda freoner",
+          "Freoner finns kvar i atmosfären i många decennier",
+          "Ersättningsämnena förstörde ozonet ännu snabbare",
+          "Hålet var ett mätfel som forskarna inte rättade"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilka skäl ger texten till att avtalet fungerade så bra?",
+        "options": [
+          "Höga straff, snabba förbud och mycket pengar till forskning",
+          "Att bara ett fåtal länder hade använt freoner över huvud taget",
+          "Enighet om orsaken, billiga ersättningar och samarbete",
+          "Att solen blev svagare och strålningen minskade av sig själv"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Varför nämns ozonlagret när man diskuterar klimatförändringarna?",
+        "options": [
+          "Det är samma gaser som orsakar båda problemen",
+          "Det visar att världen kan enas om ett miljöproblem",
+          "Ozonhålet är den största orsaken till uppvärmningen",
+          "Klimatet blir kallare när ozonlagret blir tjockare"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-mikroplast",
+    "title": "Plast man inte ser",
+    "level": 7,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En plastpåse som blåser ut i havet försvinner inte. Den kan flyta omkring i många år, och med tiden gör solljus, vågor och sand den skör. Den spricker i bitar, och bitarna spricker i ännu mindre bitar. Till slut är de så små att man inte ser dem. Men de finns kvar. Plastbitar som är mindre än fem millimeter kallas mikroplast.\n\nMikroplast kommer inte bara från skräp som har slängts i naturen. En stor del bildas när vi använder saker helt vanligt. När en bil kör slits det hela tiden små partiklar från däcken, och regnet sköljer ner dem i diken och vattendrag. I Sverige räknas däckslitage som en av de största källorna till mikroplast. När man tvättar kläder av konstfiber, till exempel fleece, lossnar tunna fibrer som följer med tvättvattnet. Konstgräsplaner kan sprida små gummikorn, och slitna båtbottnar och målade ytor släpper ifrån sig färgflagor.\n\nEftersom bitarna är så små hamnar de nästan överallt. Forskare har hittat mikroplast i havsvatten och på havsbotten, i sjöar, i jord, i snö långt uppe i Arktis och i luften vi andas. Små djur som musslor och plankton kan inte skilja plastbitar från mat och får i sig dem. När större fiskar äter de små djuren följer plasten med uppåt i näringskedjan. Mikroplast har också hittats i människokroppen.\n\nVad betyder det då för oss och för djuren? Ärligt talat vet ingen ännu säkert. Man vet att plast kan innehålla tillsatser som är skadliga i stora mängder, och att mycket små partiklar kan påverka celler i laboratorieförsök. Men det är svårt att mäta hur mycket mikroplast människor faktiskt får i sig och vad det gör i kroppen under ett helt liv. Forskningen pågår, och nya resultat kommer hela tiden.\n\nDet man vet säkert är att plast bryts ner extremt långsamt i naturen. Det som släpps ut i dag kommer att finnas kvar länge efter att vi själva är borta. Därför försöker många länder minska utsläppen redan innan alla svar är klara. I Sverige förbjöds till exempel år 2018 små plastkulor i kosmetika som sköljs av, som vissa tandkrämer och skrubbkrämer, och inom EU har fler regler kommit sedan dess.\n\nDet går också att göra något i vardagen. Man kan tvätta kläder av konstfiber mer sällan och vid fulla maskiner, där de skaver mindre mot varandra. Man kan låta bli att slänga skräp ute, eftersom varje plastpåse som inte hamnar i naturen blir tusentals bitar som aldrig bildas.\n\nProblemet med mikroplast är alltså inte att den syns. Det är att den inte gör det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var har forskare hittat mikroplast enligt texten?",
+        "options": [
+          "Bland annat i snö långt uppe i Arktis",
+          "Bara i havsvatten nära de stora städerna",
+          "Bara i fiskar som människor äter",
+          "Bara på stränder med mycket skräp"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur bildas mikroplast från en plastpåse i havet?",
+        "options": [
+          "Saltet i havsvattnet löser långsamt upp den till ett tunt slemmigt lager",
+          "Fiskar tuggar sönder den när de tror att den är mat",
+          "Den smälter i värmen från solen och blir till små droppar",
+          "Solljus, vågor och sand gör att den spricker i allt mindre bitar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför skriver texten att mikroplast bildas när vi använder saker ”helt vanligt”?",
+        "options": [
+          "Den kommer bara från skräp som någon har slängt i naturen",
+          "Den bildas bara i fabriker som tillverkar plast",
+          "Den kommer från vardagliga saker som bilar och kläder",
+          "Den kommer från plast som vi har sorterat fel"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vilken av följande räknas som en av de största källorna i Sverige?",
+        "options": [
+          "Plastpåsar på stranden",
+          "Tandkräm med plastkulor",
+          "Slitage från bildäck",
+          "Leksaker av plast"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kan mikroplast hamna i stora fiskar?",
+        "options": [
+          "Fiskarna andas in plasten från luften över havet",
+          "Fiskarna äter små djur som har fått i sig plasten",
+          "Plasten tränger in genom fiskarnas fjäll",
+          "Fiskarna äter hela plastpåsar som flyter på ytan"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menas med att plast innehåller ”tillsatser”?",
+        "options": [
+          "Ämnen som har blandats i plasten",
+          "Små hål som finns inne i plasten",
+          "Färg som målas på plasten efteråt",
+          "Lim som håller ihop två plastbitar"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför börjar länder minska utsläppen ”innan alla svar är klara”?",
+        "options": [
+          "Forskarna har redan bevisat att mikroplast är dödligt",
+          "Det är billigare att förbjuda plast än att forska om den",
+          "Alla länder har lovat att sluta tillverka all sorts plast helt",
+          "Plasten finns kvar så länge att det kan bli för sent att vänta"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket råd ger texten om kläder av konstfiber?",
+        "options": [
+          "Tvätta dem oftare i varmare vatten",
+          "Tvätta dem mer sällan och i fulla maskiner",
+          "Slänga dem i stället för att tvätta",
+          "Bara tvätta dem för hand i kallt vatten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med den sista meningen?",
+        "options": [
+          "Det farliga är att problemet är osynligt",
+          "Det farliga är att plasten är så färgglad",
+          "Det farliga är att ingen bryr sig om havet",
+          "Det farliga är att plasten syns överallt"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
