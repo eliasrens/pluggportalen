@@ -1270,5 +1270,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n5-dorren",
+    "title": "Dörren som inte fanns",
+    "level": 5,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Otto och hans familj hade bott i det gamla trähuset i ett halvår när han hittade fotografiet. Det låg i en kartong på vinden, mellan gulnade tidningar och en trasig lampskärm. På baksidan stod det med blyerts: ”Sommaren 1952”.\n\nBilden visade huset från trädgården. Allt såg ut ungefär som nu: verandan, de tre fönstren på bottenvåningen och det spetsiga taket. Men något stämde inte. Otto tittade länge innan han förstod vad det var. På bilden fanns en smal dörr på husets kortsida, precis bredvid köksfönstret. I verkligheten fanns där bara en slät vägg med vit panel.\n\nOtto gick ut och ställde sig där dörren borde ha suttit. Han knackade på panelen. På de flesta ställen lät det kompakt, men på ett ställe ekade det ihåligt.\n\nInne i köket stod ett stort skåp mot just den väggen. Otto och pappa tömde det på konservburkar och mjölpaket och sköt det åt sidan. Bakom skåpet fanns en träskiva som var fastspikad i väggen. När pappa försiktigt bände loss den kom de in i ett smalt, mörkt utrymme, inte större än en garderob.\n\nHyllorna längs väggarna var tomma och golvet var kallt. I ena hörnet stod en gammal glasburk med en handskriven lapp: ”Lingon 1951”.\n\n”Ett skafferi”, sa pappa. ”Förr hade många hus en köksingång och ett svalt rum mot norr, där man förvarade maten. Någon har byggt om köket och stängt igen dörren.”\n\nOtto höll upp burken mot ljuset. Lingonen var mörka som kaffe.\n\n”Vi gör det till ett läsrum”, sa han. ”Med fotot på väggen.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var hittade Otto fotografiet?",
+        "options": [
+          "I ett album hos grannen",
+          "I en kartong på vinden",
+          "Bakom panelen på kortsidan",
+          "I en låda i köksskåpet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skilde fotot från hur huset ser ut i dag?",
+        "options": [
+          "På fotot fanns en dörr bredvid köksfönstret",
+          "På fotot hade huset ett platt tak",
+          "På fotot hade huset fyra fönster på bottenvåningen",
+          "På fotot saknades verandan helt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför knackade Otto på väggen?",
+        "options": [
+          "Han ville kontrollera att väggen inte var fuktig",
+          "Han trodde att någon gömde sig där inne",
+          "Han ville höra om det var tomt bakom",
+          "Han ville skrämma bort fåglar från taket"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att det ”ekade ihåligt”?",
+        "options": [
+          "Det lät som om panelen var gjord av metall",
+          "Det lät som om väggen var extra tjock",
+          "Det lät som om någon knackade tillbaka",
+          "Det lät som om det var tomt bakom"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad stod det på lappen på glasburken?",
+        "options": [
+          "Sommaren 1952",
+          "Lingon 1925",
+          "Blåbär 1952",
+          "Lingon 1951"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är ett skafferi, enligt texten?",
+        "options": [
+          "En liten bod för ved och verktyg",
+          "Ett skåp för porslin och fina glas",
+          "Ett svalt rum där man förvarar mat",
+          "Ett varmt rum där man torkar tvätt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför hade dörren försvunnit, enligt pappa?",
+        "options": [
+          "Någon hade byggt om och stängt igen den",
+          "Den hade aldrig funnits, fotot var fel",
+          "Den hade ruttnat och ramlat av för länge sedan",
+          "Grannarna hade tyckt att den var ful"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Hur löste Otto gåtan med dörren?",
+        "options": [
+          "Han frågade familjen som hade bott där förut",
+          "Han jämförde fotot med huset och letade efter spår",
+          "Han läste om huset i en gammal tidning",
+          "Han hittade en gammal ritning av huset på vinden"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-hunden-vid-grinden",
+    "title": "Hunden vid grinden",
+    "level": 5,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Varje dag klockan tolv, när eleverna strömmade ut på lunchrasten, satt den där: en gammal svart labrador med grå nos, alldeles stilla utanför skolgrinden. Den skällde aldrig och den tiggde inte. Den bara tittade bort mot trappan vid skolans ingång, som om den väntade på någon.\n\nIngen visste vems hunden var. Den hade ett rött halsband men ingen namnbricka. Halv ett reste den sig och lunkade iväg längs gatan. Så hade det varit i ungefär två veckor.\n\nSam bestämde sig för att ta reda på mer. Han frågade vaktmästaren Lennart, som hade jobbat på skolan längre än någon annan.\n\nLennart kliade sig i skägget. ”Det ser ut som Bamse”, sa han långsamt. ”Göstas hund. Gösta var vaktmästare här innan jag kom. Han åt sin lunch på trappan varje dag klockan tolv, och Bamse fick alltid en bit av smörgåsen.”\n\n”Var är Gösta nu?” frågade Sam.\n\n”Han flyttade till ett äldreboende förra året. Jag trodde att Bamse bodde hos hans dotter, långt ute på landet.”\n\nSam tänkte efter. ”Men om Bamse kommer hit varje dag kan han inte bo långt bort.”\n\nLennart ringde några samtal. Det visade sig att Göstas dotter hade flyttat in till ett hus bara tre gator från skolan för två veckor sedan. Bamse smet ut genom ett hål i staketet varje dag vid samma tid.\n\n”Han har aldrig glömt var Gösta åt lunch”, sa Lennart.\n\nVeckan efter stannade en bil utanför skolan. Ur den klev en gammal man med käpp. Han satte sig på trappan med en smörgås i handen, och Bamse lade huvudet i hans knä. Halva skolgården stod tyst och tittade. Sedan började någon applådera.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur länge hade hunden suttit vid grinden?",
+        "options": [
+          "Sedan terminen började",
+          "Bara en enda dag",
+          "I flera år",
+          "I ungefär två veckor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde hunden när klockan blev halv ett?",
+        "options": [
+          "Den lade sig ner och sov",
+          "Den gick därifrån",
+          "Den sprang in på skolgården",
+          "Den började skälla högt"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att hunden ”lunkade” iväg?",
+        "options": [
+          "Den smög tyst och försiktigt",
+          "Den haltade på ett av benen",
+          "Den gick i lugn och jämn takt",
+          "Den sprang så fort den kunde"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kom hunden till skolan just klockan tolv?",
+        "options": [
+          "Gösta åt sin lunch på trappan då",
+          "Det var då eleverna slängde sina matrester",
+          "Då ringde skolans klocka högt",
+          "Lennart brukade ge den mat vid den tiden"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad var Sams viktiga tanke, som hjälpte till att lösa gåtan?",
+        "options": [
+          "Hunden måste vara hungrig och tappat bort sig",
+          "Någon i skolan måste äga hunden",
+          "Gösta måste ha rymt från äldreboendet",
+          "Hunden måste bo nära skolan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är ett äldreboende?",
+        "options": [
+          "Ett hem för äldre som behöver hjälp",
+          "Ett sjukhus för gamla hundar och katter",
+          "En stuga långt ute på landet",
+          "Ett hus där skolans personal bor"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför stod halva skolgården tyst och tittade?",
+        "options": [
+          "De var rädda för den stora svarta hunden",
+          "De blev rörda av att se hunden och Gösta",
+          "Lennart hade bett alla att vara alldeles tysta",
+          "De väntade på att rasten skulle ta slut"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen främst om?",
+        "options": [
+          "Varför man inte ska mata hundar på skolgården",
+          "Hur man gör när man hittar en bortsprungen hund",
+          "Hur trogen en hund kan vara",
+          "Hur viktigt det är med namnbricka på halsbandet"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-fel-vaska",
+    "title": "Fel väska",
+    "level": 5,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Adrian slängde träningsväskan på hallgolvet och ropade att han var hemma. Det var först när mamma skulle tvätta hans fotbollskläder som skriket hördes från tvättstugan.\n\n”Adrian! Sedan när dansar du balett?”\n\nHan rusade dit. Mamma höll upp ett par ljusrosa balettskor i ena handen och en glittrig kjol i den andra. Väskan på golvet var svart med en vit rand, precis som hans. Men den var inte hans.\n\nHan mindes direkt. På bussen hem hade han lagt väskan på hyllan ovanför sätena, bredvid en som såg likadan ut. När han klev av hade han tagit den som låg närmast.\n\nI sidofickan låg en lapp: ”Generalrepetition lördag kl. 10. Glöm inte hårnålarna! Kram, mamma.” På handtaget satt en adresslapp med namnet Edith Sandell.\n\nAdrian stönade. Edith gick i 6A. Hon var bäst i skolan på fotboll och hade tacklat honom så hårt på rasten förra veckan att han hade landat i en vattenpöl.\n\nHan cyklade till adressen. Edith öppnade dörren. Hon höll hans väska på armlängds avstånd.\n\n”Den luktar som en död räv”, sa hon.\n\nSedan såg hon den glittriga kjolen som stack upp ur hennes egen väska, och hela ansiktet blev rött.\n\n”Du säger ingenting i skolan”, sa hon. ”Om balett.”\n\nAdrian tänkte efter. ”Om du inte säger något om att mina strumpor luktar död räv.”\n\nEdith försökte se arg ut, men mungiporna ryckte. De skakade hand.\n\nPå söndagen satt Adrian längst bak i salongen på dansskolans uppvisning. Edith svävade över scenen som om hon inte vägde någonting. När hon bugade efteråt fick hon syn på honom och vinkade, så lite att ingen annan märkte det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem upptäckte först att väskan var fel?",
+        "options": [
+          "Edith",
+          "Ediths mamma",
+          "Adrian själv",
+          "Mamma"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var hade väskorna blivit förväxlade?",
+        "options": [
+          "På bussen hem",
+          "Vid fotbollsplanen",
+          "I omklädningsrummet",
+          "I skolans korridor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur fick Adrian veta vem väskan tillhörde?",
+        "options": [
+          "Han frågade busschauffören om ägaren",
+          "Mamma ringde runt till alla grannar",
+          "Det satt en adresslapp på handtaget",
+          "Han letade på dansskolans hemsida"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför ville Edith inte att någon i skolan skulle veta om baletten?",
+        "options": [
+          "Hon tyckte själv att hon dansade dåligt",
+          "Hon var rädd att andra skulle se henne annorlunda",
+          "Hon hade lovat sin dansskola att aldrig berätta för någon",
+          "Hon tänkte sluta dansa efter uppvisningen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder det att Edith höll väskan ”på armlängds avstånd”?",
+        "options": [
+          "Hårt tryckt mot bröstet",
+          "Uppe på ryggen som en ryggsäck",
+          "Så långt bort från sig som hon kunde",
+          "Nere vid fötterna på trappan"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sa Adrian det där om sina strumpor?",
+        "options": [
+          "Han var arg för att hon hade öppnat väskan",
+          "Han ville att Edith skulle tvätta dem åt honom",
+          "Han ville få henne att skratta åt honom i skolan",
+          "Han ville göra det jämnt mellan dem"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är en generalrepetition?",
+        "options": [
+          "En sista övning inför uppvisningen",
+          "En uppvisning bara för föräldrarna",
+          "En tävling mellan olika dansskolor",
+          "Den första lektionen i en ny dans"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Hur förändras det mellan Adrian och Edith i berättelsen?",
+        "options": [
+          "De bestämmer sig för att börja dansa balett tillsammans",
+          "De går från att vara nästan ovänner till att dela en hemlighet",
+          "De börjar spela fotboll i samma lag",
+          "De blir ovänner på riktigt för att de bråkar om vems väskan var"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-vinkningen",
+    "title": "Tre som vinkade",
+    "level": 5,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det var en blåsig tisdagsmorgon och Meja hade bråttom till bussen. På andra sidan gatan fick hon syn på någon med en lång mörk fläta och en gul mössa. Det måste vara Liva! Ingen annan i hela stan hade en så gul mössa.\n\nMeja hoppade upp och ner och vinkade med båda armarna. ”LIVA! HEJ!”\n\nPersonen vände sig om. Det var inte Liva. Det var inte ens en flicka, utan en tant i sextioårsåldern med en hund i koppel. Tanten såg förvånad ut, men sedan log hon brett och vinkade glatt tillbaka.\n\nMeja frös till. Det enda hon kunde komma på var att låtsas att hon egentligen hade vinkat till någon bakom tanten. Hon fortsatte vinka, nu lite mer åt vänster.\n\nBakom tanten stod en man i kostym och väntade på grönt ljus. Han tittade upp, såg Meja vinka och blev alldeles röd i ansiktet. Sedan vinkade han tveksamt tillbaka, som om han försökte minnas vem hon var.\n\nNu vinkade tre personer till varandra, och ingen av dem kände någon av de andra.\n\nMeja sänkte armarna och gick snabbt in i närmaste affär, som råkade vara en blomsteraffär. Där, bakom en hink med tulpaner, stod Liva utan mössa och skrattade så att hon nästan tappade ryggsäcken.\n\n”Jag såg allt”, flämtade hon. ”Det var det bästa jag har sett i hela mitt liv.”\n\nMeja ville sjunka genom golvet. Men Liva tog henne under armen. ”En gång sa jag ’tack, mamma’ till vår lärare”, sa hon. ”Inför hela klassen.”\n\nHela vägen till bussen pratade de om pinsamma saker de hade varit med om. På lunchen berättade Meja själv om vinkningen för alla vid bordet. Historien blev roligare för varje gång.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför trodde Meja att personen var Liva?",
+        "options": [
+          "Hon gick med Livas hund i koppel",
+          "Hon stod vid Livas vanliga busshållplats",
+          "Hon hade en mörk fläta och en gul mössa",
+          "Hon bar Livas blå ryggsäck"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem var det som Meja först vinkade till?",
+        "options": [
+          "En lärare från skolan",
+          "En tant med en hund",
+          "Livas mamma",
+          "En man i kostym"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför fortsatte Meja vinka, men lite mer åt vänster?",
+        "options": [
+          "Hon ville att tanten skulle gå över gatan",
+          "Hon ville att bussen skulle stanna för henne",
+          "Hon hade just fått syn på den riktiga Liva där borta",
+          "Hon ville låtsas att hon vinkat till någon annan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför blev mannen i kostym röd i ansiktet?",
+        "options": [
+          "Han trodde att han borde känna igen Meja",
+          "Han var arg på Meja för att hon störde",
+          "Han frös i den kalla, blåsiga morgonluften",
+          "Han hade sprungit för att hinna till grönt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder det att Meja ”ville sjunka genom golvet”?",
+        "options": [
+          "Hon var väldigt trött efter morgonen",
+          "Hon ville köpa blommor till Liva",
+          "Hon hade tappat något på golvet",
+          "Hon skämdes väldigt mycket"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder ordet ”flämtade”?",
+        "options": [
+          "Pratade medan hon andades häftigt",
+          "Sjöng högt och falskt",
+          "Viskade tyst och försiktigt",
+          "Ropade argt och ilsket"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför berättade Liva om när hon sa ”tack, mamma” till läraren?",
+        "options": [
+          "För att hon snabbt ville byta samtalsämne",
+          "För att visa att hon själv var roligare än Meja",
+          "Så att Meja inte skulle känna sig ensam",
+          "För att få Meja att skratta åt läraren"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar slutet, när Meja själv berättar om vinkningen?",
+        "options": [
+          "Att hon vill att alla ska skratta åt Liva",
+          "Att det pinsamma har blivit en rolig historia",
+          "Att hon har bestämt sig för att sluta vinka",
+          "Att hon fortfarande skäms och vill glömma det"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-robotdammsugaren",
+    "title": "Rulle städar",
+    "level": 5,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "När familjen köpte en robotdammsugare fick Smilla bestämma namnet. Hon döpte den till Rulle. Rulle var rund och platt som en tårta, och han åkte omkring på golvet och sög upp smulor medan alla andra gjorde annat. Det fanns bara ett problem: Smilla var den enda i familjen som hade läst bruksanvisningen.\n\nPå lördagen skulle mammas nya chef komma på middag. Mamma hade städat i två dagar och dukat med de fina glasen. Hon var så nervös att hon hade bytt blus tre gånger.\n\nKlockan sju satt alla vid bordet. Då hördes ett glatt pip från hallen: ”Startar städning.” Pappa hade tryckt på måfå på knapparna och råkat ställa in Rulle på att städa varje kväll klockan sju.\n\nRulle körde in i matsalen med katten Pelle sittande på ryggen som en kung på en tron. Efter sig släpade han en av pappas strumpor som hade fastnat i borsten. Han svängde runt chefens stol, knuffade till hennes handväska och stannade under bordet.\n\n”Rengör borsten”, sa Rulle med hög röst. ”Rengör borsten. Rengör borsten.”\n\nMamma blev röd ända upp till öronen. Pappa kröp under bordet för att hitta avstängningsknappen. Pelle hoppade av och satte sig i chefens knä.\n\nDå började chefen skratta. Hon skrattade så att tårarna rann.\n\n”Vår robot körde en gång rakt ut på balkongen och fastnade i en blomlåda”, sa hon. ”Den heter Herr Svensson.”\n\nResten av kvällen pratade de mest om robotar och katter. Mamma hade aldrig sett så glad ut på en middag.\n\nNär gästen hade gått kom mamma in till Smilla. ”Kan du lära mig hur Rulle fungerar?” sa hon.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför startade Rulle mitt under middagen?",
+        "options": [
+          "Katten trampade på startknappen",
+          "Smilla startade honom som ett skämt mot mamma",
+          "Han var inställd på att städa klockan sju",
+          "Chefen ville se hur han fungerade"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem satt på Rulles rygg när han körde in i matsalen?",
+        "options": [
+          "Mammas nya chef",
+          "Smillas gosedjur",
+          "Ingen alls",
+          "Katten Pelle"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att pappa tryckte ”på måfå”?",
+        "options": [
+          "Utan att veta vad han gjorde",
+          "I hemlighet när ingen såg",
+          "Mycket noggrant och långsamt",
+          "Med stor ilska och kraft"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad vill texten visa med att katten satt ”som en kung på en tron”?",
+        "options": [
+          "Att katten var rädd och höll sig fast",
+          "Att katten satt stolt och nöjd",
+          "Att katten ville bestämma över chefen",
+          "Att katten hade en liten krona"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kände sig mamma före middagen?",
+        "options": [
+          "Glad för att slippa laga maten själv",
+          "Trött efter en lång dag på jobbet",
+          "Nervös för att allt skulle bli perfekt",
+          "Arg på pappa för att han köpt roboten"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför berättade chefen om Herr Svensson?",
+        "options": [
+          "För att hon tyckte att Rulle var farlig",
+          "För att hon ville tala om något annat",
+          "För att hon ville sälja sin egen robot",
+          "För att visa att sådant händer henne också"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar mammas fråga till Smilla i slutet?",
+        "options": [
+          "Att Smilla kan Rulle bäst i familjen",
+          "Att mamma är arg på Smilla för det som hände",
+          "Att Smilla ska städa själv från och med nu",
+          "Att mamma vill sälja Rulle så snart som möjligt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad kan man lära sig av berättelsen?",
+        "options": [
+          "Robotar hör inte hemma i ett hem med katter",
+          "Ett misstag kan göra stämningen bättre",
+          "Man ska alltid städa noga före en middag",
+          "Man ska aldrig bjuda hem sin chef"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-hasten-som-inte-fanns",
+    "title": "Hästen som inte fanns",
+    "level": 5,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Redan första veckan i nya klassen berättade Vanja om Storm. Han var en grå häst på sexton år som stod på ett stall utanför stan. Han kunde hoppa över hinder som var högre än Vanja själv, och han åt äpplen ur hennes hand.\n\nHilda älskade hästar mer än allt annat. Hon och Vanja blev snabbt vänner, och nästan varje rast handlade om Storm.\n\n”Får jag följa med och träffa honom någon gång?” frågade Hilda.\n\n”Absolut”, sa Vanja. ”Fast inte den här helgen. Han har ont i ett ben.”\n\nHelgen därpå skulle stallet målas om. Helgen efter det var Vanja förkyld.\n\nEn lördag cyklade Hilda och hennes mamma förbi det enda stallet utanför stan. Hilda frågade en tjej som mockade en box om Storm.\n\n”Storm?” Tjejen skakade på huvudet. ”Här finns ingen Storm. Och ingen som heter Vanja heller.”\n\nHela söndagen var Hilda arg. Hon tänkte på alla raster hon hade lyssnat. Hon funderade på att berätta för hela klassen att Vanja ljög.\n\nI stället gick hon fram till Vanja vid cykelstället på måndagen. ”Jag var på stallet”, sa hon bara.\n\nVanja blev alldeles blek. Sedan tittade hon ner i asfalten. ”I min förra skola hade jag ingen att vara med”, sa hon tyst. ”Jag trodde att någon skulle vilja vara med mig om jag hade en häst.”\n\nHilda var tyst länge. Hon var fortfarande arg, men nu kände hon något annat också.\n\n”Jag var inte din kompis för hästens skull”, sa hon till slut. ”Men du får inte ljuga för mig igen.”\n\nVanja nickade. På lördagen cyklade de till stallet tillsammans och frågade om de fick hjälpa till. De fick mocka, och en gammal brun häst som hette Kanel åt äpplen ur deras händer.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad berättade Vanja om Storm?",
+        "options": [
+          "Att han var grå och kunde hoppa högt",
+          "Att hon hade fått honom av sin morfar",
+          "Att han var en ung svart ponny",
+          "Att han hade vunnit en stor tävling"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken var Vanjas första ursäkt?",
+        "options": [
+          "Hon var själv förkyld",
+          "Stallet skulle målas om",
+          "Storm hade ont i ett ben",
+          "Stallet hade stängt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör man när man ”mockar en box”?",
+        "options": [
+          "Målar om stalldörrarna",
+          "Gör rent där hästen står",
+          "Bär in hö till hästarna",
+          "Borstar och kammar hästen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför hittade Vanja hela tiden på nya ursäkter?",
+        "options": [
+          "Storm var ofta sjuk på riktigt",
+          "Hon ville inte träffa Hilda på helgerna",
+          "Hennes mamma hade förbjudit besök i stallet",
+          "Hon kunde inte visa en häst som inte fanns"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa Hilda bara ”Jag var på stallet”?",
+        "options": [
+          "Hon ville att hela klassen skulle höra det",
+          "Hon ville att Vanja skulle följa med dit",
+          "Hon hade glömt vad hon hade tänkt säga",
+          "Hon ville ge Vanja en chans att förklara sig"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför hade Vanja ljugit om hästen?",
+        "options": [
+          "Hon ville låna Hildas cykel på helgerna",
+          "Hon trodde att Hilda också ljög om saker",
+          "Hon ville att någon skulle vilja vara med henne",
+          "Hon ville att Hilda skulle bli avundsjuk på henne"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att Vanja ”blev alldeles blek”?",
+        "options": [
+          "Hon fick tårar i ögonen",
+          "Hon tappade färgen i ansiktet",
+          "Hon blev röd av ilska",
+          "Hon började skratta nervöst"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Att förlåta en vän men ändå säga ifrån",
+          "Att det är farligt att cykla till stallet",
+          "Att hästar är de bästa djuren att ha",
+          "Att man aldrig ska lita på nya kompisar"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
