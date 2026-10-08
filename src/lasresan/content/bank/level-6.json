@@ -636,105 +636,105 @@
     ]
   },
   {
-    "id": "lr-n6-debatten",
-    "title": "Fel sida i debatten",
+    "id": "lr-n6-bankgrannen",
+    "title": "Clownen i bänken bredvid",
     "level": 6,
     "textType": "story",
     "topic": "skola",
-    "body": "Fröken Kerstin drog lappar ur en burk och läste högt. ”Cornelia, du ska argumentera för att mobiler ska vara förbjudna under hela skoldagen.”\n\nCornelia stönade så att alla hörde det. Hela klassen visste vad hon tyckte. Det var hon som hade samlat namn på en lista förra året, när skolan började samla in mobilerna på lektionerna. Nu skulle hon stå framför alla och säga motsatsen.\n\n”Det är orättvist”, sa hon efter lektionen. ”Jag tror inte på ett enda ord av det jag ska säga.”\n\n”Just därför”, svarade Kerstin. ”Den som bara kan försvara sin egen åsikt vet inte riktigt varför hon har den.”\n\nHemma stirrade Cornelia länge på ett tomt papper. Till slut bestämde hon sig för att ta reda på saker i stället för att gissa. Hon mejlade skolans kurator, som svarade att många elever kände sig stressade av gruppchattar som plingade även på rasterna. Hon frågade sin lillebror Ville i trean vad han tyckte. ”Ingen vill spela fotboll längre”, sa han. ”Alla sitter på bänken och tittar på sina skärmar.”\n\nSamma kväll gjorde hon ett streck på en lapp varje gång hon tog upp sin egen mobil. När hon gick och lade sig fanns det trettiofyra streck.\n\nPå debattdagen började Jack, som hade fått den andra sidan. Han sa att mobilen behövs om något händer och att den kan användas som miniräknare och ordbok. Klassen nickade.\n\nCornelia höll sig lugn. Hon svarade sakligt, utan att höja rösten, med det kuratorn hade skrivit och det Ville hade sagt. Sist läste hon upp sina trettiofyra streck. Det blev alldeles tyst, och sedan skrattade några, eftersom de kände igen sig.\n\nNär omröstningen räknades blev det lika många röster för båda sidor.\n\n”Nå”, sa Kerstin efteråt. ”Vad tycker du nu?”\n\nCornelia tänkte efter. ”Jag tycker fortfarande att ett förbud är fel. Men nu förstår jag varför någon kan tycka tvärtom. Det är inte en dum åsikt.”",
+    "body": "När läraren Ulla gjorde en ny bänkplacering hamnade Cecilia bredvid Milan. Hon suckade så tyst hon kunde. Milan var klassens clown. Han gjorde miner bakom lärarens rygg, ritade mustascher på bilderna i läroboken och hade alltid ett skämt redo när någon ställde en fråga.\n\nDe första veckorna var lika jobbiga som hon hade trott. Varje gång Ulla bad någon läsa högt började Milan prata om något annat, eller tappa sin penna så att den rullade iväg under bänkarna. Klassen skrattade, Ulla blev irriterad, och lektionen tog slut innan det blev hans tur.\n\nMen efter ett tag började Cecilia lägga märke till något. Milan skämtade aldrig på mattelektionerna. Där räknade han snabbt och tyst, ofta snabbare än hon. Han skämtade inte heller när de pratade om saker i grupp. Det var bara när det skulle läsas eller skrivas som clownen vaknade.\n\nEn dag skulle de skriva en sammanfattning tillsammans. Cecilia sköt över boken till honom. ”Kan du läsa första sidan, så tar jag nästa?”\n\nMilan tittade på sidan länge. Sedan sa han något dumt om att författaren säkert hade somnat medan han skrev. Cecilia skrattade inte. Hon väntade.\n\n”Jag läser långsamt”, sa han till slut, så tyst att hon knappt hörde. ”Bokstäverna hoppar runt. Om jag läser högt låter jag som en sexåring.”\n\nDet var första gången Cecilia förstod att skämten var en sköld. Hellre att alla skrattade för att han var rolig än för att han läste fel.\n\nHon sa ingenting till någon. Men hon föreslog att de skulle lyssna på kapitlet i en ljudbok och följa texten med fingret samtidigt. Det gick mycket bättre. Milans sammanfattning blev dessutom den bästa i gruppen, eftersom han kom ihåg allt han hade hört.\n\nNågra veckor senare berättade Milan själv för Ulla att han hade svårt att läsa. Han fick göra ett test, och sedan fick han hjälp och egna ljudböcker.\n\nHan är fortfarande klassens clown. Men nu skämtar han på rasterna i stället för på lektionerna. Och när Ulla gör nästa bänkplacering frågar Cecilia om hon får sitta kvar.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad tyckte Cornelia om mobiler i skolan innan debatten?",
+        "question": "På vilka lektioner skämtade Milan aldrig?",
         "options": [
-          "Hon ville att de skulle förbjudas helt",
-          "Hon brydde sig inte om frågan alls",
-          "Hon var emot att skolan samlade in dem",
-          "Hon tyckte att lärarna fick bestämma"
+          "På engelsklektionerna",
+          "På idrottslektionerna",
+          "På mattelektionerna",
+          "På musiklektionerna"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Kerstin säger att den som bara kan försvara sin egen åsikt ”inte riktigt vet varför hon har den”. Vad menar hon?",
+        "question": "Vad föreslog Cecilia att de skulle göra med kapitlet?",
         "options": [
-          "Man borde aldrig ändra sin åsikt efter att ha hört en debatt",
-          "Det är läraren som ska välja åsikter åt eleverna",
-          "Egna åsikter brukar oftast vara felaktiga",
-          "Man förstår sin åsikt bättre om man känner motsatsen"
+          "Läsa det högt för klassen",
+          "Hoppa över det helt",
+          "Be Ulla läsa det för dem",
+          "Lyssna på det som ljudbok"
         ],
         "answerIndex": 3,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q3",
-        "question": "Vad svarade skolans kurator?",
-        "options": [
-          "Att chattar som plingade stressade många",
-          "Att eleverna sov alldeles för lite på nätterna",
-          "Att mobiler ofta stals i omklädningsrummet",
-          "Att föräldrar ville kunna nå sina barn"
-        ],
-        "answerIndex": 0,
         "category": "fakta"
       },
       {
-        "id": "q4",
-        "question": "Varför gjorde Cornelia streck varje gång hon tog upp sin mobil?",
+        "id": "q3",
+        "question": "Varför tappade Milan pennan när det var dags att läsa högt?",
         "options": [
-          "Kerstin hade gett henne det som läxa",
-          "Hon ville se om argumenten gällde henne själv",
-          "Hon ville bevisa att Ville hade fel",
-          "Hon behövde en siffra som Jack kunde använda"
+          "Han ville slippa läsa inför klassen",
+          "Han var klumpig och tappade ofta saker",
+          "Han ville att Cecilia skulle plocka upp den",
+          "Han hade tråkigt och ville gå hem"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför skrattade Cecilia inte åt Milans skämt om författaren?",
+        "options": [
+          "Hon tyckte att skämtet var elakt",
+          "Hon anade att skämtet dolde något",
+          "Hon hade inte hört vad han sa",
+          "Hon var arg på honom sedan förut"
         ],
         "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q5",
-        "question": "Cornelia svarade ”sakligt”. Vad betyder det?",
+        "question": "Skämten var ”en sköld”. Vad betyder det här?",
         "options": [
-          "Snabbt och utan att tänka efter",
-          "Lugnt och med fakta",
-          "Tyst så att bara Jack hörde",
-          "Argt men med många exempel"
+          "Ett vapen för att såra andra",
+          "Ett skydd mot att bli utskrattad",
+          "Ett sätt att få fler kompisar",
+          "En tävling om vem som är roligast"
         ],
         "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
-        "question": "Cornelia hade ”samlat namn på en lista”. Vad betyder det här?",
+        "question": "Cecilia började ”lägga märke till” något. Vad betyder det?",
         "options": [
-          "Hon hade skrivit ner vilka som hade egna mobiler",
-          "Hon hade gjort en lista över elever som bröt mot regler",
-          "Hon hade låtit andra skriva under att de höll med",
-          "Hon hade antecknat vilka som ville vara med i debatten"
+          "Glömma",
+          "Rita av",
+          "Upptäcka",
+          "Strunta i"
         ],
         "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q7",
-        "question": "Varför skrattade några i klassen när Cornelia läste upp strecken?",
+        "question": "Varför blev Milans sammanfattning den bästa i gruppen?",
         "options": [
-          "De kände igen samma vana hos sig själva",
-          "De tyckte att hon hade räknat fel",
-          "De trodde att hon bara skämtade med Jack och klassen",
-          "De ville visa att de höll med Jack"
+          "Han mindes allt han hade hört",
+          "Cecilia hade skrivit den åt honom",
+          "Han hade läst boken flera gånger",
+          "Ulla hade hjälpt honom med den"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
-        "question": "Hur har Cornelia förändrats i slutet av berättelsen?",
+        "question": "Vad handlar berättelsen främst om?",
         "options": [
-          "Hon har bytt åsikt och vill nu förbjuda mobiler",
-          "Hon tycker fortfarande att uppgiften var orättvis",
-          "Hon har slutat bry sig om vad andra tycker",
-          "Hon har kvar sin åsikt men respekterar den andra"
+          "Att clowner bör sitta längst bak i klassen",
+          "Att ljudböcker är bättre än vanliga böcker",
+          "Att det är fel att skämta på lektionerna",
+          "Att ett beteende kan dölja något annat"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
@@ -747,7 +747,7 @@
     "level": 6,
     "textType": "story",
     "topic": "skola",
-    "body": "I början av terminen ställde läraren Jens en låda av kartong på sin kateder. Den hade ett smalt hål i locket. ”Här kan ni lägga frågor som ni inte vill ställa högt”, sa han. ”Ni behöver inte skriva ert namn.”\n\nDe första veckorna handlade lapparna mest om läxor och om varför man måste lära sig bråk. Men en fredag tog Jens upp en lapp och blev stående tyst en stund innan han läste den.\n\n”Jag har ingen att vara med på rasterna. Hur gör man för att få kompisar?”\n\nIngen i klassen sa något. Stina kände hur det hettade i ansiktet, fast lappen inte var hennes. Jens vek ihop den och delade ut tomma papper. ”Svara den som skrev”, sa han. ”Ni behöver inte heller skriva era namn.”\n\nStina skrev att man kan fråga om man får vara med, även om det känns läskigt. Men medan hon skrev tittade hon runt i klassrummet. Vem kunde det vara? Kanske Abdi, som ofta stod vid staketet. Eller Hiba, som alltid läste en bok på rasten.\n\n”Vi borde ta reda på vem det är”, viskade hon till Maryam på vägen hem.\n\nMaryam skakade på huvudet. ”Då blir det ju inte hemligt längre. Och tänk om vi gissar fel och pekar ut någon.”\n\nStina låg vaken länge den kvällen. Till slut förstod hon att Maryam hade rätt. Det viktiga var inte vem som hade skrivit lappen. Det viktiga var att ingen skulle behöva skriva en sådan lapp igen.\n\nPå måndagen frågade hon Abdi om han ville spela kubb. Maryam frågade Hiba. Flera andra i klassen hade tydligen tänkt samma sak, för plötsligt var det ovanligt många som frågade varandra om saker. Jens sa ingenting, men han log när han såg ut genom fönstret.\n\nTvå veckor senare låg det en ny lapp i lådan. Jens läste den högt: ”Tack. Det har blivit bättre nu.”\n\nStina vet fortfarande inte vem som skrev den. Hon har slutat försöka gissa.",
+    "body": "I början av terminen ställde läraren Jens en låda av kartong på sin kateder. Den hade ett smalt hål i locket. ”Här kan ni lägga frågor som ni inte vill ställa högt”, sa han. ”Ni behöver inte skriva ert namn.”\n\nDe första veckorna handlade lapparna mest om läxor och om varför man måste lära sig bråk. Men en fredag tog Jens upp en lapp och blev stående tyst en stund innan han läste den.\n\n”Jag har ingen att vara med på rasterna. Hur gör man för att få kompisar?”\n\nIngen i klassen sa något. Ellinor kände hur det hettade i ansiktet, fast lappen inte var hennes. Jens vek ihop den och delade ut tomma papper. ”Svara den som skrev”, sa han. ”Ni behöver inte heller skriva era namn.”\n\nEllinor skrev att man kan fråga om man får vara med, även om det känns läskigt. Men medan hon skrev tittade hon runt i klassrummet. Vem kunde det vara? Kanske Abdi, som ofta stod vid staketet. Eller Hiba, som alltid läste en bok på rasten.\n\n”Vi borde ta reda på vem det är”, viskade hon till Maryam på vägen hem.\n\nMaryam skakade på huvudet. ”Då blir det ju inte hemligt längre. Och tänk om vi gissar fel och pekar ut någon.”\n\nEllinor låg vaken länge den kvällen. Till slut förstod hon att Maryam hade rätt. Det viktiga var inte vem som hade skrivit lappen. Det viktiga var att ingen skulle behöva skriva en sådan lapp igen.\n\nPå måndagen frågade hon Abdi om han ville spela kubb. Maryam frågade Hiba. Flera andra i klassen hade tydligen tänkt samma sak, för plötsligt var det ovanligt många som frågade varandra om saker. Jens sa ingenting, men han log när han såg ut genom fönstret.\n\nTvå veckor senare låg det en ny lapp i lådan. Jens läste den högt: ”Tack. Det har blivit bättre nu.”\n\nEllinor vet fortfarande inte vem som skrev den. Hon har slutat försöka gissa.",
     "questions": [
       {
         "id": "q1",
@@ -766,7 +766,7 @@
         "question": "Varför blev Jens stående tyst innan han läste lappen?",
         "options": [
           "Han kunde inte läsa handstilen",
-          "Han ville inte att Stina skulle höra",
+          "Han ville inte att Ellinor skulle höra",
           "Han trodde att lappen var ett skämt",
           "Han förstod att lappen var allvarlig"
         ],
@@ -775,7 +775,7 @@
       },
       {
         "id": "q3",
-        "question": "Det ”hettade” i Stinas ansikte. Vad betyder det?",
+        "question": "Det ”hettade” i Ellinors ansikte. Vad betyder det?",
         "options": [
           "Hon hade fått feber i skolan",
           "Hon kände sig varm av obehag",
@@ -787,7 +787,7 @@
       },
       {
         "id": "q4",
-        "question": "Vad svarade Stina på lappen?",
+        "question": "Vad svarade Ellinor på lappen?",
         "options": [
           "Att man ska gå med i en idrottsförening",
           "Att man ska prata med Jens om saken",
@@ -853,7 +853,7 @@
     "level": 6,
     "textType": "story",
     "topic": "vardag",
-    "body": "Det var Jonna som såg den först. En brun plånbok låg under bänken i busskuren, halvt dold av löv. Hon plockade upp den och öppnade den försiktigt.\n\n”Tolvhundra kronor”, viskade Tekla, som tittade över hennes axel. ”I sedlar!”\n\nI ett fack låg ett id-kort. Ingegerd Blom, född 1946. Adressen var bara några kvarter bort. Bakom kortet satt ett gammalt fotografi av en man med glasögon och en hatt.\n\nTekla bet sig i läppen. ”Vi kan lämna in plånboken, men behålla pengarna. Ingen skulle veta. Hon har säkert tappat dem för länge sedan.”\n\nJonna svarade inte direkt. Hon tänkte på sin egen mormor, som alltid betalade med kontanter i affären eftersom hon inte litade på kort.\n\n”Löven var torra”, sa hon till slut. ”Den kan inte ha legat här mer än i dag.”\n\nDe gick dit tillsammans. Det tog lång tid innan dörren öppnades, och en kvinna med rödgråtna ögon tittade ut. När hon såg plånboken tog hon den med båda händerna och satte sig rakt ner på pallen i hallen.\n\n”Jag har letat i hela eftermiddag”, sa hon. ”Pengarna skulle bli en cykel till mitt barnbarn. Men det var fotot jag var mest rädd att förlora. Det är min man, Sture. Det finns inget annat som det.”\n\nHon ville ge dem en hundralapp var som tack. Jonna sa nej, men Ingegerd envisades tills de gick med på en påse kanelbullar i stället.\n\nPå vägen hem var Tekla ovanligt tyst. Vid busskuren stannade hon.\n\n”Om vi hade tagit pengarna hade hon aldrig fått veta det”, sa hon. ”Men vi hade vetat.”\n\nJonna räckte henne den största bullen.",
+    "body": "Det var Jonna som såg den först. En brun plånbok låg under bänken i busskuren, halvt dold av löv. Hon plockade upp den och öppnade den försiktigt.\n\n”Tolvhundra kronor”, viskade Saida, som tittade över hennes axel. ”I sedlar!”\n\nI ett fack låg ett id-kort. Ingegerd Blom, född 1946. Adressen var bara några kvarter bort. Bakom kortet satt ett gammalt fotografi av en man med glasögon och en hatt.\n\nSaida bet sig i läppen. ”Vi kan lämna in plånboken, men behålla pengarna. Ingen skulle veta. Hon har säkert tappat dem för länge sedan.”\n\nJonna svarade inte direkt. Hon tänkte på sin egen mormor, som alltid betalade med kontanter i affären eftersom hon inte litade på kort.\n\n”Löven var torra”, sa hon till slut. ”Den kan inte ha legat här mer än i dag.”\n\nDe gick dit tillsammans. Det tog lång tid innan dörren öppnades, och en kvinna med rödgråtna ögon tittade ut. När hon såg plånboken tog hon den med båda händerna och satte sig rakt ner på pallen i hallen.\n\n”Jag har letat i hela eftermiddag”, sa hon. ”Pengarna skulle bli en cykel till mitt barnbarn. Men det var fotot jag var mest rädd att förlora. Det är min man, Arvo. Det finns inget annat som det.”\n\nHon ville ge dem en hundralapp var som tack. Jonna sa nej, men Ingegerd envisades tills de gick med på en påse kanelbullar i stället.\n\nPå vägen hem var Saida ovanligt tyst. Vid busskuren stannade hon.\n\n”Om vi hade tagit pengarna hade hon aldrig fått veta det”, sa hon. ”Men vi hade vetat.”\n\nJonna räckte henne den största bullen.",
     "questions": [
       {
         "id": "q1",
@@ -929,7 +929,7 @@
       },
       {
         "id": "q7",
-        "question": "Vad menar Tekla med ”Men vi hade vetat”?",
+        "question": "Vad menar Saida med ”Men vi hade vetat”?",
         "options": [
           "Att de hade blivit upptäckta av Ingegerd ändå till slut",
           "Att de hade vetat var de kunde köpa en cykel",
@@ -955,7 +955,7 @@
   },
   {
     "id": "lr-n6-budgeten",
-    "title": "Lappen på kylskåpet",
+    "title": "Raden längst ner",
     "level": 6,
     "textType": "story",
     "topic": "vardag",
@@ -1180,7 +1180,7 @@
           "EL",
           "VA",
           "FIB",
-          "En pil"
+          "TV"
         ],
         "answerIndex": 0,
         "category": "fakta"
@@ -1273,7 +1273,7 @@
   },
   {
     "id": "lr-n6-ljussignalerna",
-    "title": "Ljuset i fönstret mittemot",
+    "title": "Blinkningarna klockan åtta",
     "level": 6,
     "textType": "story",
     "topic": "mysterier",
@@ -1489,7 +1489,7 @@
     "level": 6,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "Harald i huset bredvid hade haft samma trädgårdstomte i trettio år. Den stod vid trappan med röd luva och en skottkärra full av plastblommor. En morgon i juni var den borta.\n\nHarald gick runt i hela kvarteret och frågade alla. Han var säker på att någon hade stulit den. Emil hade aldrig sett honom så upprörd. Sedan hans fru dog förra vintern hade han nästan inte pratat med någon alls.\n\nEn vecka senare kom ett vykort. På bilden syntes tomten framför ett gammalt korsvirkeshus. På baksidan stod det: ”Hälsningar från Ystad! Här blåser det så att skägget fladdrar. Kram, Tomten.”\n\nHarald stod länge vid brevlådan med kortet i handen. Emil såg att han nästan log.\n\nFler kort kom. Tomten framför slottet i Kalmar. Tomten på en kaj i Göteborg. Tomten framför en vägskylt till Haparanda, med texten: ”Längre norrut än så här kommer jag inte. Det är kallt om tårna.” Harald satte upp korten på sin kylskåpsdörr och började visa dem för alla som gick förbi. Folk som aldrig hade hälsat på honom stannade för att fråga hur resan gick.\n\nEmil blev misstänksam. Han kände igen orterna. Det var samma städer som hans mamma körde lastbil till. Och när han jämförde poststämplarna med hennes körschema på kylskåpet stämde datumen nästan helt.\n\nEn kväll när hon kom hem ställde han sig i hallen med korsade armar. ”Det är du som är tomten.”\n\nMamma tittade på honom. Sedan lade hon ett finger över munnen. ”Han satt ju bara inne hela våren”, viskade hon. ”Jag ville ge honom något att se fram emot. Lovar du att inte säga något?”\n\nEmil lovade.\n\nI augusti stod tomten tillbaka vid trappan, solbränd med en ny liten solhatt. Harald bjöd hela gatan på kaffe och berättade om tomtens äventyr. Han hade köpt en karta och satt nålar i alla orter.\n\n”Vem kan ha gjort det?” frågade han och tittade på Emil.\n\nEmil ryckte på axlarna och tog en bulle till.",
+    "body": "Evert i huset bredvid hade haft samma trädgårdstomte i trettio år. Den stod vid trappan med röd luva och en skottkärra full av plastblommor. En morgon i juni var den borta.\n\nEvert gick runt i hela kvarteret och frågade alla. Han var säker på att någon hade stulit den. Emil hade aldrig sett honom så upprörd. Sedan hans fru dog förra vintern hade han nästan inte pratat med någon alls.\n\nEn vecka senare kom ett vykort. På bilden syntes tomten framför ett gammalt korsvirkeshus. På baksidan stod det: ”Hälsningar från Ystad! Här blåser det så att skägget fladdrar. Kram, Tomten.”\n\nEvert stod länge vid brevlådan med kortet i handen. Emil såg att han nästan log.\n\nFler kort kom. Tomten framför slottet i Kalmar. Tomten på en kaj i Göteborg. Tomten framför en vägskylt till Haparanda, med texten: ”Längre norrut än så här kommer jag inte. Det är kallt om tårna.” Evert satte upp korten på sin kylskåpsdörr och började visa dem för alla som gick förbi. Folk som aldrig hade hälsat på honom stannade för att fråga hur resan gick.\n\nEmil blev misstänksam. Han kände igen orterna. Det var samma städer som hans mamma körde lastbil till. Och när han jämförde poststämplarna med hennes körschema på kylskåpet stämde datumen nästan helt.\n\nEn kväll när hon kom hem ställde han sig i hallen med korsade armar. ”Det är du som är tomten.”\n\nMamma tittade på honom. Sedan lade hon ett finger över munnen. ”Han satt ju bara inne hela våren”, viskade hon. ”Jag ville ge honom något att se fram emot. Lovar du att inte säga något?”\n\nEmil lovade.\n\nI augusti stod tomten tillbaka vid trappan, solbränd med en ny liten solhatt. Evert bjöd hela gatan på kaffe och berättade om tomtens äventyr. Han hade köpt en karta och satt nålar i alla orter.\n\n”Vem kan ha gjort det?” frågade han och tittade på Emil.\n\nEmil ryckte på axlarna och tog en bulle till.",
     "questions": [
       {
         "id": "q1",
@@ -1505,7 +1505,7 @@
       },
       {
         "id": "q2",
-        "question": "Vad gjorde Harald med vykorten?",
+        "question": "Vad gjorde Evert med vykorten?",
         "options": [
           "Lämnade in dem till polisen",
           "Skickade dem till sina barn",
@@ -1517,12 +1517,12 @@
       },
       {
         "id": "q3",
-        "question": "Varför blev Emil förvånad över att Harald var så upprörd?",
+        "question": "Varför blev Emil förvånad över att Evert var så upprörd?",
         "options": [
-          "Harald brukade inte bry sig om sin trädgård",
+          "Evert brukade inte bry sig om sin trädgård",
           "Tomten hade varit trasig i flera år",
-          "Harald hade knappt pratat med någon på länge",
-          "Harald var annars aldrig hemma"
+          "Evert hade knappt pratat med någon på länge",
+          "Evert var annars aldrig hemma"
         ],
         "answerIndex": 2,
         "category": "mellan_raderna"
@@ -1533,7 +1533,7 @@
         "options": [
           "Han började ana att något inte stämde",
           "Han blev rädd för att han skulle bli anklagad",
-          "Han blev sur på Harald som visade korten",
+          "Han blev sur på Evert som visade korten",
           "Han började tycka att vykorten var tråkiga"
         ],
         "answerIndex": 0,
@@ -1546,7 +1546,7 @@
           "Han kände igen mammas handstil på korten",
           "Orterna och datumen passade med mammas körningar",
           "Han såg mamma ta tomten från trappan",
-          "Harald berättade vem han trodde att det var"
+          "Evert berättade vem han trodde att det var"
         ],
         "answerIndex": 1,
         "category": "mellan_raderna"
@@ -1568,7 +1568,7 @@
         "question": "Varför skickade mamma vykorten?",
         "options": [
           "Hon ville muntra upp den ensamma grannen",
-          "Hon ville lura Harald på ett elakt sätt",
+          "Hon ville lura Evert på ett elakt sätt",
           "Hon tyckte att tomten var ful och ville byta",
           "Hon ville att Emil skulle lära sig orterna"
         ],
@@ -1577,7 +1577,7 @@
       },
       {
         "id": "q8",
-        "question": "Vilken förändring sker med Harald under berättelsen?",
+        "question": "Vilken förändring sker med Evert under berättelsen?",
         "options": [
           "Han slutar bry sig om sin gamla tomte",
           "Han flyttar till en annan stad",
@@ -1590,105 +1590,105 @@
     ]
   },
   {
-    "id": "lr-n6-biffen",
-    "title": "Kan jag bli en biff?",
+    "id": "lr-n6-luciatoget",
+    "title": "Lucia i discoläge",
     "level": 6,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "Arons pappa var stolt över sin engelska. Han hade läst den i skolan i nio år och sett hundratals filmer utan undertexter. ”Det här klarar jag själv”, sa han när familjen kom in på en liten restaurang i London den första kvällen.\n\nServitören kom fram med block och penna. Pappa rätade på ryggen. ”Can I become a steak?”\n\nServitören blinkade några gånger. ”I certainly hope not, sir”, sa han. Vid bordet bredvid satte en kvinna kaffet i halsen.\n\nAron förstod direkt vad som hade hänt. Pappa hade velat fråga om han kunde få en biff, men han hade tänkt på det svenska ordet ”bli” och valt become. Det engelska ordet betyder att man förvandlas till något. Pappa hade alltså frågat om han kunde förvandlas till en köttbit.\n\nAron förklarade för servitören, som skrattade och sa att det var den bästa beställningen han hade hört på hela månaden.\n\nPappa var lite tyst under resten av middagen. Men dagen efter hände det igen, när han skulle boka en guidad tur. ”We will eventually come tomorrow”, sa han. Han menade att de kanske skulle komma. Men eventually betyder inte eventuellt. Det betyder ”till slut”. Guiden väntade på dem i en halvtimme.\n\nEfter det fick Aron sköta pratandet. Han kände sig ganska duktig. På sista kvällen var familjen tillbaka på restaurangen, och servitören frågade om mamma och pappa var på smekmånad.\n\n”No”, sa Aron. ”They are very gift.”\n\nHan menade att de var gifta sedan länge. Servitören såg förvirrad ut. På engelska betyder gift nämligen present.\n\nPappa lutade sig fram och klappade Aron på axeln. ”Välkommen i klubben”, sa han.\n\nDet blev resans bästa minne. Hemma i köket har de nu en lista på kylskåpet med ord som ser likadana ut på svenska och engelska men betyder olika saker. Den blir längre för varje resa.",
+    "body": "Annie hade övat på luciasångerna sedan oktober. Hon kunde alla verser utantill, och hon hade bestämt sig för att det här året skulle bli perfekt. Hon var nämligen lucia. Hela skolan skulle sitta i den mörka gymnastiksalen, föräldrarna skulle filma, och rektorn hade sagt att det var årets mest högtidliga stund.\n\nLjuskronan var ny. Den hade lampor med batterier i stället för riktiga ljus, och Annies kompis Bianca hade lånat den hem kvällen innan för att prova den. ”Den har flera lägen”, hade hon sagt. ”Jag har ställt den på rätt.”\n\nKlockan åtta släcktes taklamporna. Annie tryckte på knappen, och lamporna i kronan tändes med ett varmt, stilla sken. Tåget började gå in medan alla sjöng ”Natten går tunga fjät”.\n\nHalvvägs genom salen stötte Annie till kronan med handen när hon skulle rätta till håret. Det klickade. Plötsligt började lamporna blinka. Först långsamt, sedan snabbare. Sedan bytte de färg: rött, grönt, blått, lila.\n\nEtt fnitter gick genom de främsta raderna. Annie fortsatte gå med sänkt blick och kände hur kinderna blev lika röda som lamporna. Hon försökte trycka på knappen igen, men det enda som hände var att blinkandet fick en takt. Det såg ut som ett diskotek ovanpå hennes huvud.\n\nBakom henne viskade Bianca: ”Fem tryck till! Det är fem lägen!”\n\nMen Annie vågade inte. Om hon tryckte fel kanske lamporna slocknade helt. Så hon gjorde det enda hon kunde komma på. Hon höjde rösten och sjöng ännu tydligare, som om allt var precis som det skulle.\n\nDå hände något. Musikläraren vid pianot började spela lite snabbare, i takt med blinkandet. Någon i publiken började klappa. Snart klappade hela salen, och luciatåget gick ut genom dörren under jubel, i en takt som ingen hade övat på.\n\nEfteråt kom rektorn fram. Annie väntade sig en utskällning.\n\n”Det var den roligaste lucia vi har haft på tjugo år”, sa rektorn. ”Men nästa år kanske vi låter kronan vara hemma kvällen innan.”\n\nBianca rodnade. Annie skrattade så att hon fick hicka.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad sa pappa när han skulle beställa mat första kvällen?",
+        "question": "Varför hade ljuskronan bytt läge?",
         "options": [
-          "I will eventually eat a steak.",
-          "Can I become a steak?",
-          "Can I have a steak, please?",
-          "My steak is very gift."
+          "Bianca tryckte på den bakom henne",
+          "Annie stötte till den med handen",
+          "Batterierna började ta slut",
+          "Musikläraren tände den fel"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad betyder engelskans eventually, enligt texten?",
+        "question": "Hur många lägen hade ljuskronan, enligt Bianca?",
         "options": [
-          "Kanske",
-          "Snart",
-          "Till slut",
-          "I morgon"
+          "Tre",
+          "Två",
+          "Fem",
+          "Sex"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Varför satte kvinnan vid bordet bredvid kaffet i halsen?",
+        "question": "Rektorn kallade luciatåget en ”högtidlig” stund. Vad betyder det?",
         "options": [
-          "Hon tyckte att pappas fråga var väldigt rolig",
-          "Hon tyckte att kaffet var alldeles för varmt",
-          "Hon blev arg på att servitören var oartig",
-          "Hon kände igen familjen från Sverige"
+          "Allvarlig och fin",
+          "Lång och tråkig",
+          "Rolig och stökig",
+          "Kort och snabb"
         ],
         "answerIndex": 0,
-        "category": "mellan_raderna"
+        "category": "ordforstaelse"
       },
       {
         "id": "q4",
-        "question": "Varför var pappa tyst under resten av middagen?",
+        "question": "Varför vågade Annie inte trycka på knappen igen?",
         "options": [
-          "Han tyckte inte om biffen han fick",
-          "Han var trött efter den långa resan",
-          "Han var arg på Aron som skrattade",
-          "Han skämdes lite över sitt misstag"
+          "Hon hade inte händerna fria under tåget",
+          "Hon ville att alla skulle se discoläget",
+          "Bianca hade sagt åt henne att låta bli",
+          "Hon var rädd att lamporna skulle slockna"
         ],
         "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q5",
-        "question": "Servitören såg ”förvirrad” ut. Vad betyder det?",
+        "question": "Varför sjöng Annie ännu tydligare?",
         "options": [
-          "Han förstod inte vad Aron menade",
-          "Han var arg på hela familjen",
-          "Han var trött efter en lång kväll",
-          "Han ville att de skulle gå därifrån"
+          "För att visa att tåget skulle gå vidare",
+          "För att överrösta skrattet från Bianca",
+          "För att musikläraren hade bett henne",
+          "För att hon ville att lampan skulle släckas"
         ],
         "answerIndex": 0,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q6",
-        "question": "Varför väntade guiden på familjen?",
-        "options": [
-          "Pappa hade betalat för turen i förväg",
-          "Guiden hade missförstått vilken dag det var",
-          "Familjen hade bokat två olika turer",
-          "Guiden trodde att de lovade att komma"
-        ],
-        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
-        "id": "q7",
-        "question": "Vad menar pappa med ”Välkommen i klubben”?",
+        "id": "q6",
+        "question": "Annie väntade sig en ”utskällning”. Vad betyder det?",
         "options": [
-          "Att Aron nu får vara med i en engelsk klubb",
-          "Att nu har Aron också gjort ett språkmisstag",
-          "Att servitören har bjudit in dem igen",
-          "Att Aron har blivit bättre än pappa på engelska"
+          "Att någon skulle ge henne ett pris för sången",
+          "Att någon skulle be henne sjunga igen",
+          "Att någon skulle skratta åt henne efteråt",
+          "Att någon skulle bli arg och säga till henne"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför rodnade Bianca när rektorn pratade?",
+        "options": [
+          "Hon hade frusit i gymnastiksalen",
+          "Hon förstod att det var hennes fel",
+          "Hon ville också bli lucia nästa år",
+          "Hon skämdes över sin egen sång"
         ],
         "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
-        "question": "Vad handlar berättelsen mest om?",
+        "question": "Vad visar berättelsen?",
         "options": [
-          "Hur man beställer mat på en restaurang",
-          "Varför man ska läsa engelska i nio år",
-          "Hur ord som liknar varandra kan lura en",
-          "Hur en familj hittar Londons bästa biff"
+          "Att man aldrig ska låna ut saker till sina kompisar",
+          "Att lucia är tråkigt utan riktiga levande ljus",
+          "Att ett misstag kan bli något bra om man inte ger upp",
+          "Att man alltid ska trycka på knappar man inte känner"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
@@ -1807,7 +1807,7 @@
     "level": 6,
     "textType": "story",
     "topic": "relationer",
-    "body": "När mamma och Patrik flyttade ihop fick Love en bonusbror. Matteo var elva år, ett år yngre än Love, och han bodde hos dem varannan vecka. Resten av tiden bodde han hos sin mamma i en annan stad.\n\nLove hade bestämt sig för att vara schysst. Men Matteo gjorde det inte lätt. Han svarade med ett ord när man frågade något. Han satt på sitt rum med dörren stängd och åt middag som om han var på restaurang, artigt och tyst. Han sa ”tack för maten” varje kväll, vilket ingen annan i familjen någonsin gjorde.\n\n”Han tycker nog att vi är töntiga”, sa Love till mamma.\n\nEn lördag skulle Love hämta cykelpumpen i garaget. Där inne satt Matteo på en hink med mobilen i handen. Han torkade snabbt bort något från kinden.\n\n”Jag hittar inte toalettpappret”, sa han, fast det inte alls var vad han höll på med. ”Eller skeden. Eller någonting. Jag vet aldrig var något är här. Jag måste fråga om allt.”\n\nLove stod tyst. Han hade aldrig tänkt på det. Han visste var varje sak i huset fanns utan att tänka efter. Matteo var här så sällan att han inte hann lära sig det innan han åkte igen. Han var inte en tönt. Han var en gäst. Och gäster säger tack för maten.\n\nDen kvällen gjorde Love en karta över köket och satte upp den på insidan av ett skåp. Han ritade pilar till skedarna, till chipsen och till det hemliga facket där mamma gömde chokladen. Sedan gick han till Patrik och frågade om de kunde göra en skylt till Matteos dörr.\n\nDe sågade ut en träbit i garaget och brände in namnet med en lödkolv. Bokstäverna blev sneda, och E:et blev nästan ett F.\n\nNär Matteo kom tillbaka efter sin vecka hos mamman stod han länge framför dörren. Han sa ingenting. Men på kvällen öppnade han skåpet utan att fråga, tog chips från rätt hylla och satte sig bredvid Love i soffan.\n\nHan sa inte tack för maten den kvällen. Love tolkade det som ett gott tecken.",
+    "body": "När mamma och Jörgen flyttade ihop fick Love en bonusbror. Matteo var elva år, ett år yngre än Love, och han bodde hos dem varannan vecka. Resten av tiden bodde han hos sin mamma i en annan stad.\n\nLove hade bestämt sig för att vara schysst. Men Matteo gjorde det inte lätt. Han svarade med ett ord när man frågade något. Han satt på sitt rum med dörren stängd och åt middag som om han var på restaurang, artigt och tyst. Han sa ”tack för maten” varje kväll, vilket ingen annan i familjen någonsin gjorde.\n\n”Han tycker nog att vi är töntiga”, sa Love till mamma.\n\nEn lördag skulle Love hämta cykelpumpen i garaget. Där inne satt Matteo på en hink med mobilen i handen. Han torkade snabbt bort något från kinden.\n\n”Jag hittar inte toalettpappret”, sa han, fast det inte alls var vad han höll på med. ”Eller skeden. Eller någonting. Jag vet aldrig var något är här. Jag måste fråga om allt.”\n\nLove stod tyst. Han hade aldrig tänkt på det. Han visste var varje sak i huset fanns utan att tänka efter. Matteo var här så sällan att han inte hann lära sig det innan han åkte igen. Han var inte en tönt. Han var en gäst. Och gäster säger tack för maten.\n\nDen kvällen gjorde Love en karta över köket och satte upp den på insidan av ett skåp. Han ritade pilar till skedarna, till chipsen och till det hemliga facket där mamma gömde chokladen. Sedan gick han till Jörgen och frågade om de kunde göra en skylt till Matteos dörr.\n\nDe sågade ut en träbit i garaget och brände in namnet med en lödkolv. Bokstäverna blev sneda, och E:et blev nästan ett F.\n\nNär Matteo kom tillbaka efter sin vecka hos mamman stod han länge framför dörren. Han sa ingenting. Men på kvällen öppnade han skåpet utan att fråga, tog chips från rätt hylla och satte sig bredvid Love i soffan.\n\nHan sa inte tack för maten den kvällen. Love tolkade det som ett gott tecken.",
     "questions": [
       {
         "id": "q1",
@@ -1875,7 +1875,7 @@
         "options": [
           "Matteo glömde ofta vilket rum som var hans",
           "Matteo skulle känna att rummet var hans",
-          "Patrik hade bett om hjälp med en skylt",
+          "Jörgen hade bett om hjälp med en skylt",
           "Love ville öva på att använda en lödkolv"
         ],
         "answerIndex": 1,
@@ -1900,7 +1900,7 @@
           "Han hade glömt bort hur man gör",
           "Han tyckte inte om maten längre",
           "Han kände sig inte längre som en gäst",
-          "Han var arg på Love och Patrik den kvällen"
+          "Han var arg på Love och Jörgen den kvällen"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
@@ -1909,11 +1909,11 @@
   },
   {
     "id": "lr-n6-tolken",
-    "title": "Yara tolkar",
+    "title": "Rania tolkar",
     "level": 6,
     "textType": "story",
     "topic": "relationer",
-    "body": "Yara hade tolkat åt sin pappa sedan hon var åtta. Hon hade översatt på vårdcentralen, på banken och när hyresvärden ringde om ett läckande rör. Pappa hade varit ingenjör i landet de kom ifrån, men här läste han fortfarande svenska på kvällarna, och de svåra orden fastnade i munnen på honom.\n\nDärför kändes det självklart att hon skulle tolka på sitt eget utvecklingssamtal också.\n\nLäraren Helena började med det som var bra. Yara läste mycket och skrev fina texter. Yara översatte varje ord, och pappa nickade och log.\n\nSedan bläddrade Helena fram till nästa papper. ”Men Yara glömmer ofta sina läxor i matte”, sa hon. ”Och hon pratar mycket med kompisarna när jag har genomgång.”\n\nYara kände hur det drog i magen. Hon vände sig till pappa och sa på arabiska: ”Hon säger att jag behöver öva lite mer på matte.”\n\nDet var inte direkt en lögn. Men det var inte heller sanningen.\n\nPappa tittade länge på henne. Sedan vände han sig till Helena och sa långsamt på svenska: ”Glömmer … läxor. Pratar … på genomgång. Jag förstår.”\n\nYara blev het i hela ansiktet. Helena såg från den ena till den andra och lade ner pennan.\n\n”Jag ber om ursäkt”, sa hon. ”Det var fel av mig att låta Yara tolka sitt eget samtal. Det är inte rimligt att ett barn ska behöva göra det. Nästa gång bokar vi en riktig tolk.”\n\nPå vägen hem gick de tysta en lång stund. Till slut sa Yara: ”Förlåt. Jag ville inte att du skulle bli besviken.”\n\nPappa stannade vid ett övergångsställe. ”Jag förstår mer än jag kan säga”, sa han. ”Det är svårt för mig, varje dag. Men jag vill hellre höra det svåra från dig än något fint som inte är sant.”\n\nSedan log han lite. ”Och matteläxorna gör vi tillsammans. Jag var ju ingenjör. Där behöver jag ingen tolk.”",
+    "body": "Rania hade tolkat åt sin pappa sedan hon var åtta. Hon hade översatt på vårdcentralen, på banken och när hyresvärden ringde om ett läckande rör. Pappa hade varit ingenjör i landet de kom ifrån, men här läste han fortfarande svenska på kvällarna, och de svåra orden fastnade i munnen på honom.\n\nDärför kändes det självklart att hon skulle tolka på sitt eget utvecklingssamtal också.\n\nLäraren Helena började med det som var bra. Rania läste mycket och skrev fina texter. Rania översatte varje ord, och pappa nickade och log.\n\nSedan bläddrade Helena fram till nästa papper. ”Men Rania glömmer ofta sina läxor i matte”, sa hon. ”Och hon pratar mycket med kompisarna när jag har genomgång.”\n\nRania kände hur det drog i magen. Hon vände sig till pappa och sa på arabiska: ”Hon säger att jag behöver öva lite mer på matte.”\n\nDet var inte direkt en lögn. Men det var inte heller sanningen.\n\nPappa tittade länge på henne. Sedan vände han sig till Helena och sa långsamt på svenska: ”Glömmer … läxor. Pratar … på genomgång. Jag förstår.”\n\nRania blev het i hela ansiktet. Helena såg från den ena till den andra och lade ner pennan.\n\n”Jag ber om ursäkt”, sa hon. ”Det var fel av mig att låta Rania tolka sitt eget samtal. Det är inte rimligt att ett barn ska behöva göra det. Nästa gång bokar vi en riktig tolk.”\n\nPå vägen hem gick de tysta en lång stund. Till slut sa Rania: ”Förlåt. Jag ville inte att du skulle bli besviken.”\n\nPappa stannade vid ett övergångsställe. ”Jag förstår mer än jag kan säga”, sa han. ”Det är svårt för mig, varje dag. Men jag vill hellre höra det svåra från dig än något fint som inte är sant.”\n\nSedan log han lite. ”Och matteläxorna gör vi tillsammans. Jag var ju ingenjör. Där behöver jag ingen tolk.”",
     "questions": [
       {
         "id": "q1",
@@ -1929,7 +1929,7 @@
       },
       {
         "id": "q2",
-        "question": "Vad sa Yara på arabiska när Helena berättade om problemen?",
+        "question": "Vad sa Rania på arabiska när Helena berättade om problemen?",
         "options": [
           "Att hon pratade för mycket i klassrummet",
           "Att Helena var nöjd med allt hon gjorde",
@@ -1941,7 +1941,7 @@
       },
       {
         "id": "q3",
-        "question": "Det ”drog i magen” på Yara. Vad betyder det?",
+        "question": "Det ”drog i magen” på Rania. Vad betyder det?",
         "options": [
           "Hon var hungrig",
           "Hon kände sig orolig",
@@ -1953,7 +1953,7 @@
       },
       {
         "id": "q4",
-        "question": "Varför sa Yara inte hela sanningen till sin pappa?",
+        "question": "Varför sa Rania inte hela sanningen till sin pappa?",
         "options": [
           "Hon ville inte göra honom besviken",
           "Hon kunde inte orden på arabiska",
@@ -1968,8 +1968,8 @@
         "question": "Hur visste pappa vad Helena egentligen hade sagt?",
         "options": [
           "Helena hade skickat ett brev hem innan",
-          "Han förstod mer svenska än Yara trodde",
-          "Han hade sett det i Yaras matteböcker",
+          "Han förstod mer svenska än Rania trodde",
+          "Han hade sett det i Ranias matteböcker",
           "En annan förälder hade berättat det för honom"
         ],
         "answerIndex": 1,
@@ -1989,12 +1989,12 @@
       },
       {
         "id": "q7",
-        "question": "Vad menar pappa med att han hellre vill höra ”det svåra” från Yara?",
+        "question": "Vad menar pappa med att han hellre vill höra ”det svåra” från Rania?",
         "options": [
           "Att ärlighet betyder mer för honom än fina ord",
-          "Att han tycker att Yara borde prata mer svenska",
-          "Att han vill att Yara ska tolka mer svåra ord",
-          "Att han är arg för att Yara inte gör sina läxor"
+          "Att han tycker att Rania borde prata mer svenska",
+          "Att han vill att Rania ska tolka mer svåra ord",
+          "Att han är arg för att Rania inte gör sina läxor"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
@@ -3030,7 +3030,7 @@
           "Räddningstjänsten får inte åka upp på fjället",
           "Kamraterna har alltid bättre utrustning",
           "Hjälpen utifrån hinner sällan fram",
-          "Kamraterna har oftast utlöst skredet själva"
+          "Kamraterna är alltid utbildade räddare"
         ],
         "answerIndex": 2,
         "category": "mellan_raderna"
@@ -3605,7 +3605,7 @@
   },
   {
     "id": "lr-n6-kryptering",
-    "title": "Hemliga meddelanden",
+    "title": "Koder och nycklar",
     "level": 6,
     "textType": "fact",
     "topic": "teknik",
