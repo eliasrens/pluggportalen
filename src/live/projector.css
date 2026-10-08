@@ -253,6 +253,11 @@
   color: #fff;
   font: inherit;
 }
+/* Trollkarlsduellen (#536): vem är Rasmus/Elias – bara i tvåklassmatcher. */
+.lpl-tk { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.5em;
+  font-size: clamp(16px, 2.6vh, 28px); font-weight: 700; }
+.lpl-tk > span { opacity: 0.8; font-weight: 600; }
+.lpl-tk b span { font-weight: 800; }
 .lpl-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2vw; font-size: clamp(18px, 3vh, 32px); }
 .lpl-status {
   display: inline-flex;

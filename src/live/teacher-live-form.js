@@ -6,6 +6,8 @@
 // min och nämnare per klass (förifylld med klassens elevantal, justerbar).
 // Valfritt mynt-pris (#526) till vinnarklassens klasskassa – låst efter
 // skapandet (reglerna), betalas ut automatiskt vid matchslut.
+// Exakt två klasser → Trollkarlsduellen-valet (#536): vem är Rasmus/Elias
+// (byt-knapp, aldrig samma på båda; sparas i sessionen, kan bytas i lobbyn).
 // Skapad session = status "lobby" → syns direkt för eleverna i klasserna.
 //
 // API: renderCreateForm(host, { classes, uid, createdByName, onCreated(sid) })
@@ -14,6 +16,7 @@
 import { el, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
 import { createLiveSession } from "./live-data.js";
+import { defaultWizards, swapWizards, validWizards, WIZARD_NAMES } from "./trollkarl/trollkarl-val.js";
 import { LIVE_DURATIONS_MIN, LIVE_PRIZE_MAX, validateSessionInput, defaultSessionName, MAX_LIVE_CLASSES } from "./live-core.js";
 
 export function renderCreateForm(host, { classes, uid, createdByName, onCreated }) {
@@ -35,6 +38,11 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
       <label>Nämnare per klass <small class="hint">(antal elever idag – poäng = rätt / nämnare)</small></label>
       <div class="live-divisor-rows"></div>
     </div>
+    <div class="field live-wizards" hidden>
+      <label>🧙 Trollkarlsduellen <small class="hint">(projektorvy för två klasser – vem är Rasmus och vem är Elias?
+        Kan bytas i lobbyn före start.)</small></label>
+      <div class="live-wizard-rows"></div>
+    </div>
     <div class="field"><label>Matchlängd</label>
       <div class="live-durations">${LIVE_DURATIONS_MIN.map((m) => `<label class="live-chip">
         <input type="radio" name="dur" value="${m}" ${m === 20 ? "checked" : ""} /><span>${m} min</span></label>`).join("")}</div>
@@ -55,6 +63,7 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
   let nameTouched = false;
   nameInput.addEventListener("input", () => (nameTouched = true));
   const divisors = {};
+  let wizards = null;
 
   const selected = () => [...form.querySelectorAll('input[name="klass"]:checked')].map((i) => i.value);
 
@@ -69,9 +78,24 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
       row.querySelector("input").addEventListener("input", (e) => (divisors[id] = e.target.value));
       return row;
     }));
+    syncWizards(ids);
     if (!nameTouched) nameInput.value = defaultSessionName(ids.map((id) => byId.get(id)?.name || id));
     form.querySelectorAll('input[name="klass"]').forEach((i) => {
       i.disabled = !i.checked && ids.length >= MAX_LIVE_CLASSES;
+    });
+  }
+  function syncWizards(ids) {
+    const box = form.querySelector(".live-wizards");
+    box.hidden = ids.length !== 2;
+    if (ids.length !== 2) return;
+    if (!validWizards(wizards, ids)) wizards = defaultWizards(ids);
+    const rows = form.querySelector(".live-wizard-rows");
+    rows.replaceChildren(el(`<div class="live-wizard-row">${ids.map((id) =>
+      `<span class="live-chip"><span>${esc(byId.get(id)?.name || id)}: <b>${WIZARD_NAMES[wizards[id]]}</b></span></span>`).join("")}
+      <button type="button" class="btn" data-swap>⇄ Byt</button></div>`));
+    rows.querySelector("[data-swap]").addEventListener("click", () => {
+      wizards = swapWizards(wizards);
+      syncWizards(selected());
     });
   }
   form.querySelectorAll('input[name="klass"]').forEach((i) => i.addEventListener("change", syncDivisors));
@@ -88,6 +112,7 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
       durationMin: Number(form.querySelector('input[name="dur"]:checked')?.value),
       divisors: Object.fromEntries(ids.map((id) => [id, Number(divisors[id])])),
       coinPrize: form.querySelector("#live-prize").value,
+      wizards: ids.length === 2 ? wizards : undefined,
       createdByName,
     };
     const errs = validateSessionInput(input, { knownModes: modes.map((m) => m.id) });

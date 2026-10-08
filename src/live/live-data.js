@@ -11,6 +11,8 @@
 //                                         sedan endsAt = startedAt + nedräkning + längd
 //   fillEndsAt(sid)                     → skriv endsAt om den saknas (idempotent)
 //   setClassDivisor(sid, classId, n)    → justera nämnaren (även under match)
+//   setLiveWizards(sid, wizards)        → Trollkarlsduellen: { classId: "rasmus"|"elias" }
+//                                         (bara i lobbyn – reglerna, #536)
 //   finishLiveSession(sid)              → avsluta nu (lärarens knapp) / avbryt lobby
 //   writeResultIfMissing(sid, result)   → historikens ögonblicksbild (en gång)
 //   listFinishedSessions()              → avslutade sessioner (historik), nyast först
@@ -94,6 +96,11 @@ export async function setClassDivisor(sid, classId, n) {
   const v = Math.floor(Number(n));
   if (!Number.isInteger(v) || v < 1 || v > 999) throw new Error("Nämnaren måste vara 1–999.");
   await updateDoc(sessRef(sid), { [`classDivisors.${classId}`]: v });
+}
+
+/** Trollkarlsduellen (#536): vem som är Rasmus/Elias. Reglerna: bara i lobbyn, en av varje. */
+export async function setLiveWizards(sid, wizards) {
+  await updateDoc(sessRef(sid), { wizards: { ...wizards } });
 }
 
 /** Lärarens "Avsluta" (live) eller "Avbryt" (lobby). */

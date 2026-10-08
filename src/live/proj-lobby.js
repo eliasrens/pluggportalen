@@ -6,19 +6,25 @@
 // Vilken lärare som helst som öppnat sessionen kan starta – startLiveSession
 // är en transaktion, så två samtidiga tryck startar inte om klockan.
 //
+// Trollkarlsduellen (#536): i tvåklassmatcher visas vem som är Rasmus/Elias
+// och läraren kan byta (bara i lobbyn – sparas i sessionen, wizards).
+//
 // API: createLobby(host, { st, colors, modeName, actions, say, readonly })
 //        → { update(st), destroy() }
-//   actions: { start(), cancel(), setDivisor(classId, n) } (Promise)
+//   actions: { start(), cancel(), setDivisor(classId, n), setWizards?(map) } (Promise)
 //   readonly: elevskärmen (#533) – inga knappar/nämnarfält, bara det eleverna ser
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
 import { prizeText } from "./live-core.js";
+import { resolveWizards, swapWizards, WIZARD_NAMES } from "./trollkarl/trollkarl-val.js";
 
 const MAX_DOTS = 40;
 
 export function createLobby(host, { st, colors, modeName, actions, say, readonly = false }) {
   const s = st.session;
+  const duel = st.classes.length === 2;
+  let session = s;
   const names = st.classes.map((c) => `<span style="color:${colors[c.classId]}">${esc(c.name)}</span>`);
   const root = document.createElement("div");
   root.className = "lpl";
@@ -36,6 +42,8 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
           <input type="number" min="1" max="999" value="${c.divisor}" data-div /></label>`}
       </div>`).join("")}
     </div>
+    ${duel ? `<div class="lpl-tk">🧙 <span>Trollkarlsduellen:</span> <b data-tk></b>
+      ${readonly || !actions?.setWizards ? "" : `<button class="lp-btn" data-tk-swap title="Byt vilken klass som är Rasmus och Elias">⇄ Byt trollkarlar</button>`}</div>` : ""}
     <div class="lpl-meta">
       <span class="lpl-len">⏱ Matchtid: <b>${Math.round((s.durationSeconds || 0) / 60)} min</b></span>
       <span class="lpl-status"><i class="lpl-pulse"></i>Väntar på start</span>
@@ -47,6 +55,22 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
     </div>`;
   host.replaceChildren(root);
   if (!readonly) wireControls(root, { actions, say });
+  const tkText = root.querySelector("[data-tk]");
+  const swapBtn = root.querySelector("[data-tk-swap]");
+  swapBtn?.addEventListener("click", () => {
+    const map = resolveWizards(session);
+    if (!map) return;
+    swapBtn.disabled = true;
+    actions.setWizards(swapWizards(map)).then(() => say(""))
+      .catch((err) => say(`Kunde inte byta trollkarlar: ${err.message}`))
+      .finally(() => { swapBtn.disabled = false; });
+  });
+  function drawWizards() {
+    if (!tkText) return;
+    const map = resolveWizards(session) || {};
+    tkText.innerHTML = st.classes.map((c) =>
+      `<span style="color:${colors[c.classId]}">${esc(c.name)}</span> = ${WIZARD_NAMES[map[c.classId]] || "?"}`).join(" · ");
+  }
 
   const cards = new Map();
   root.querySelectorAll("[data-cid]").forEach((card) => cards.set(card.dataset.cid, {
@@ -58,6 +82,10 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
   }));
 
   function update(next) {
+    if (next.session && next.session !== session) {
+      session = next.session;
+      drawWizards();
+    }
     for (const c of next.classes) {
       const ui = cards.get(c.classId);
       if (!ui) continue;
@@ -80,6 +108,7 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
     }
   }
 
+  drawWizards();
   update(st);
   return { update, destroy() {} };
 }
