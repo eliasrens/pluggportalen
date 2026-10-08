@@ -170,10 +170,11 @@
 .tk-poof span { font-size: 48px; font-weight: 800; color: #5b2fa0; transform: rotate(-8deg); }
 @keyframes tk-poff { 0% { transform: scale(.2); opacity: 0; } 25% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
 
-.tk-result { position: absolute; z-index: 8; left: 50%; top: 250px; transform: translateX(-50%); width: 900px; padding: 26px 40px 30px;
+/* Nertill (över golv/mätare) så figurernas ansikten – seger/förlust – syns ovanför. */
+.tk-result { position: absolute; z-index: 8; left: 50%; bottom: 26px; transform: translateX(-50%); width: 860px; padding: 18px 36px 22px;
   text-align: center; border-radius: 36px; background: rgba(16, 10, 44, .9); border: 4px solid #ffd23d;
   box-shadow: 0 0 60px rgba(255, 210, 61, .45), 0 20px 50px rgba(0, 0, 0, .6); animation: tk-resultat .7s cubic-bezier(.2, 1.4, .4, 1); }
-.tk-result-title { font-size: 92px; font-weight: 800; line-height: 1.05; color: #ffe27a; text-shadow: 0 5px 0 #7a4b00; }
+.tk-result-title { font-size: 76px; font-weight: 800; line-height: 1.05; color: #ffe27a; text-shadow: 0 5px 0 #7a4b00; }
 .tk-result-sub { font-size: 30px; font-weight: 700; margin-top: 6px; opacity: .92; }
 .tk-result-scores { display: flex; gap: 22px; justify-content: center; margin-top: 18px; }
 .tk-result-row { flex: 1; padding: 12px 18px; border-radius: 22px; background: rgba(255, 255, 255, .08); border: 3px solid var(--tk-farg, #8f7bff);
@@ -183,7 +184,7 @@
 .tk-result-row.vinnare { box-shadow: 0 0 30px rgba(255, 210, 61, .55); }
 .tk-result-row b { font-size: 40px; color: var(--tk-farg); }
 .tk-result-row span { font-size: 22px; opacity: .85; }
-.tk-result-row strong { font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; }
+.tk-result-row strong { font-size: 48px; line-height: 1; font-variant-numeric: tabular-nums; }
 .tk-result-row small { font-size: 18px; opacity: .75; }
 .tk-result-prize { margin-top: 14px; font-size: 26px; font-weight: 700; color: #ffe27a; min-height: 1em; }
 @keyframes tk-resultat { from { opacity: 0; transform: translateX(-50%) scale(.6); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
