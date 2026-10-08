@@ -231,6 +231,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
     layer(name) { return parts[LAYERS[name]] || null; },
     transform,
     reset,
+    showHat(on) { parts.hat.style.display = on === false ? "none" : ""; },
     get transformed() { return transformed; },
     get expression() { return shownExp; },
     setFacing(dir) { mirrored = dir === "left"; applyFacing(); },

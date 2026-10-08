@@ -29,6 +29,7 @@
     <div class="panel"><b>Uttryck (båda)</b><span id="exps"></span></div>
     <div class="panel"><b>Poser – klicka = Rasmus spelar, skift-klick = Elias</b><span id="poses"></span></div>
     <div class="panel"><b>Övrigt</b>
+      <button id="hats" class="on">Hattar PÅ</button>
       <button id="idle" class="on">Idle PÅ</button>
       <button id="events" class="on">Småhändelser PÅ</button>
       <button id="mirror">Spegla (byt sida)</button>
@@ -73,7 +74,14 @@
         setTimeout(() => w.play(qp.get("pose")), 300);
       }
 
-      let idleOn = true, evOn = true, sideSwap = false, glow = false;
+      let idleOn = true, evOn = true, sideSwap = false, glow = false, hatsOn = true;
+      if (qp.get("hatt") === "av") { hatsOn = false; both.forEach((w) => w.showHat(false)); }
+      document.getElementById("hats").onclick = function () {
+        hatsOn = !hatsOn;
+        both.forEach((w) => w.showHat(hatsOn));
+        this.classList.toggle("on", hatsOn);
+        this.textContent = "Hattar " + (hatsOn ? "PÅ" : "AV");
+      };
       document.getElementById("idle").onclick = function () {
         idleOn = !idleOn;
         both.forEach((w) => w.setIdle(idleOn));
