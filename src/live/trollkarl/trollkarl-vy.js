@@ -33,6 +33,7 @@ import "./trollkarl-innehall.js";
 
 const CSS = "src/live/trollkarl/trollkarl.css";
 const ATTACK_CSS = "src/live/trollkarl/attacker/attacker.css";
+const FINAL_CSS = "src/live/trollkarl/final/final.css";
 // En final som skulle börja så här långt efter matchslut spelas inte (gammal match).
 const STALE_FINALE_MS = 3 * 60_000;
 const CHARGE_MAX_MS = 1300;
@@ -51,7 +52,7 @@ export function preload() {
 const race = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(r, ms))]);
 
 export function createTrollkarlView(host, { st, sound }) {
-  ensureLiveCss([CSS, ATTACK_CSS]);
+  ensureLiveCss([CSS, ATTACK_CSS, FINAL_CSS]);
   preload();
   const reducedMotion = !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const root = document.createElement("div");
@@ -96,6 +97,8 @@ export function createTrollkarlView(host, { st, sound }) {
   let lastD = null;
   let lastSt = st;
   let finishedSeen = null;
+  let lastTension = "";
+  let lastTickSec = 0;
   let finaleBegun = false;
   let resultShown = false;
   let pendingRemount = false;
@@ -175,6 +178,8 @@ export function createTrollkarlView(host, { st, sound }) {
     stage, fx: root.querySelector(".tk-fx"), fxBack: root.querySelector(".tk-fxback"),
     bannerEl: root.querySelector(".tk-banner"), slots, sound, reducedMotion, director,
   });
+  // §12: full mätare = en ny attack köas – litet "klart!"-pling (aldrig vid omladdning).
+  director.on("attack", () => scene.sound("matare-full"));
 
   function mountWizards(d) {
     const busy = !director.idle() || finaleBegun;
@@ -255,6 +260,13 @@ export function createTrollkarlView(host, { st, sound }) {
       sides[s.side].slot.classList.toggle("tk-near", !!meters[s.classId]?.near && director.idle() && !d.ended);
     }
     for (const e of events) director.attack({ ...e, from: e.classId, to: other(bySide(e.classId)).classId });
+    // §13: subtil signal när slutspurten börjar + nedräkningstick sista 10 s.
+    if (d.tension && d.tension !== lastTension) scene.sound("spanning");
+    lastTension = d.tension;
+    if (d.tension === "final") {
+      const sec = Math.ceil(d.msLeft / 1000);
+      if (sec !== lastTickSec && sec > 0 && sec <= 10) { lastTickSec = sec; scene.sound("nedrakning"); }
+    }
     root.dataset.tension = d.tension;
     if (!finaleBegun) arena.setMood(d.tension);
     if (d.ended && !director.stopped()) {

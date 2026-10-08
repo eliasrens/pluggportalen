@@ -73,5 +73,7 @@ export function registerSound(name, fn) {
 }
 
 export function getSound(name) {
-  return sounds.get(name) || null;
+  // Okänd nyckel → det generiska reservljudet "*" (trollkarl-ljud.js), så en
+  // ny attack (del D) aldrig blir helt tyst innan den fått ett eget ljud.
+  return sounds.get(name) || sounds.get("*") || null;
 }
