@@ -81,23 +81,22 @@ test("tabsFor: flikar bara för typer/innehåll, med antal, i fast ordning", () 
     { id: "quiz", count: 3 },
     { id: "pairs", count: 2 },
     { id: "texts", count: 1 },
-    { id: "reading", count: 1 },
   ]);
-  // Bara quiz → ingen Para ihop/Lästexter/Nivåtexter.
+  // Bara quiz → ingen Para ihop/Lästexter.
   assert.deepEqual(ids(tabsFor({ exerciseTypes: ["quiz"], quiz: [q(1)] })), ["quiz"]);
   // Typ utan innehåll → fliken visas med 0 (så man kan lägga till).
   assert.deepEqual(tabsFor({ exerciseTypes: ["bildpar"] }), [{ id: "pairs", count: 0 }]);
-  // Nivåtexter: texts ELLER readingTexts ELLER förkrav.
-  assert.deepEqual(ids(tabsFor({ quiz: [q(1)], texts: [{ title: "a", body: "b" }] })), ["quiz", "texts", "reading"]);
-  assert.deepEqual(tabsFor({ readingTexts: [{}, {}] }), [{ id: "reading", count: 2 }]);
-  assert.deepEqual(ids(tabsFor({ readingPrereq: { required: 1 } })), ["reading"]);
+  // Gamla nivåtexter/förkrav ger ingen egen flik (Nivåtexter borttagen, #531).
+  assert.deepEqual(ids(tabsFor({ quiz: [q(1)], texts: [{ title: "a", body: "b" }] })), ["quiz", "texts"]);
+  assert.deepEqual(tabsFor({ readingTexts: [{}, {}] }), []);
+  assert.deepEqual(tabsFor({ readingPrereq: { required: 1 } }), []);
   // Räkna-område utan annat innehåll → inga flikar.
   assert.deepEqual(tabsFor({ generator: { topic: "addition", variants: ["enkel"] } }), []);
-  // extra tvingar fram (📖 → reading, "+ Lästext" → texts) men i fast ordning.
+  // extra tvingar fram ("+ Lästext" → texts) men i fast ordning; okända
+  // (t.ex. en ihågkommen gammal "reading") ignoreras.
   assert.deepEqual(ids(tabsFor({ exerciseTypes: ["quiz"], quiz: [q(1)] }, ["reading", "texts", "bogus"])), [
     "quiz",
     "texts",
-    "reading",
   ]);
 });
 
@@ -105,11 +104,11 @@ test("pickTab: ihågkommen flik om den visas, annars första med innehåll", () 
   const tabs = [
     { id: "quiz", count: 0 },
     { id: "pairs", count: 4 },
-    { id: "reading", count: 0 },
+    { id: "texts", count: 0 },
   ];
   assert.equal(pickTab(tabs), "pairs");
-  assert.equal(pickTab(tabs, "reading"), "reading");
-  assert.equal(pickTab(tabs, "texts"), "pairs", "ihågkommen flik som inte visas ignoreras");
+  assert.equal(pickTab(tabs, "texts"), "texts");
+  assert.equal(pickTab(tabs, "reading"), "pairs", "ihågkommen flik som inte visas ignoreras");
   assert.equal(pickTab([{ id: "quiz", count: 0 }, { id: "pairs", count: 0 }]), "quiz");
   assert.equal(pickTab([]), null);
   assert.equal(pickTab(tabsFor(area())), "quiz");

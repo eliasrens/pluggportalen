@@ -19,8 +19,8 @@
     <div class="wrap">
       <div class="panel">
         <b>Förhandsvisning: "Kopiera AI-prompt för mer innehåll" (issue #471)</b> – samma
-        <code>buildMorePrompt</code>/<code>buildReadingPrompt</code> som lärarsidan, mot exempelområden.
-        Det befintliga innehållet (svar, alternativ, kategori, passage, definitioner, texter, nivåtexter)
+        <code>buildMorePrompt</code> som lärarsidan, mot exempelområden.
+        Det befintliga innehållet (svar, alternativ, kategori, passage, definitioner, texter)
         ligger nu som JSON i blocket <mark>BEFINTLIGT INNEHÅLL</mark> sist i prompten.
         <div class="pick" id="pick"></div>
         <div class="meta" id="meta"></div>
@@ -29,17 +29,7 @@
       <pre id="out"></pre>
     </div>
     <script type="module">
-      import { buildMorePrompt, buildReadingPrompt } from "./src/prompts.js";
-
-      const lv = (title, l) => ({
-        body: `${title} – brödtext för nivå ${l}. Vikingarna seglade långt i sina långskepp.`,
-        questions: [1, 2, 3].map((n) => ({
-          question: `Fråga ${n} om ${title.toLowerCase()} (nivå ${l})?`,
-          options: ["Rätt svar", "Fel svar", "Fel svar", "Fel svar"],
-          answerIndex: 0,
-        })),
-      });
-      const nivatext = (title) => ({ title, levels: { 1: lv(title, 1), 2: lv(title, 2), 3: lv(title, 3) } });
+      import { buildMorePrompt } from "./src/prompts.js";
 
       const normal = {
         name: "Vikingatiden",
@@ -55,7 +45,6 @@
           { term: "Runsten", definition: "En sten med inristad text" },
           { term: "Tingsplats", definition: "Där man samlades för att döma och bestämma" },
         ],
-        readingTexts: [nivatext("Vikingarnas resor")],
       };
       const generator = {
         name: "Blandad räkning åk 3",
@@ -72,8 +61,6 @@
         "Mer innehåll – vanligt område": () => buildMorePrompt(normal, "fler svåra frågor om handel"),
         "Mer innehåll – generator-område": () => buildMorePrompt(generator, ""),
         "Mer innehåll – jätteområde (kortas)": () => buildMorePrompt(jatte, ""),
-        "Lästext (3 nivåer) – område med nivåtexter": () =>
-          buildReadingPrompt("Vikingarnas handel", [nivatext("Vikingarnas resor"), nivatext("Livet på en vikingagård")]),
       };
 
       const out = document.getElementById("out");

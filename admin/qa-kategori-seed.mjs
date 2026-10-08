@@ -113,19 +113,9 @@ async function seedAreas() {
   await db.doc(`subjects/so/areas/${vid}`).set(vrest); // gammalt område, inga category-fält
   console.log("✓ so/vikingatiden (utan kategorier)");
   // Regression: bildpar (partisymboler) + räkna-generator (gammalt område, inga kategorier).
-  // + en nivåtext (Läsuppdrag/lastext, #153) – normaliserad via validateArea.
-  const niva = (n) => ({
-    body: `Riksdagen har 349 ledamöter (nivå ${n}).\n\nDe väljs vart fjärde år.`,
-    questions: [
-      { question: "Hur många ledamöter har riksdagen?", options: ["349", "100", "500"], answerIndex: 0 },
-      { question: "Hur ofta är det val?", options: ["Vart fjärde år", "Varje år", "Vart tionde år"], answerIndex: 0 },
-      { question: "Vad heter Sveriges parlament?", options: ["Riksdagen", "Kongressen", "Tinget"], answerIndex: 0 },
-    ],
-  });
   const bild = validateArea({
     name: "QA Bildpar", order: 9, coverEmoji: "🗳️", description: "Bildpar-regression (#448).",
     pairs: ["s", "m", "v", "c"].map((l) => ({ id: `b${l}`, term: "", termImage: `partier/${l}`, definition: `Parti ${l.toUpperCase()}` })),
-    readingTexts: [{ title: "Riksdagen", levels: { 1: niva(1), 2: niva(2), 3: niva(3) } }],
   });
   if (!bild.ok) throw new Error(bild.errors.join("; "));
   const { id: _bid, ...bildValue } = bild.value;

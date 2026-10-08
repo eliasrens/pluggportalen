@@ -21,7 +21,6 @@ import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js"
 // credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
 // behålls här för befintliga importörer (preview-larare.html).
 export { credentialsPanel };
-import { mountMemberLevels } from "./teacher-student-level.js";
 
 // --- Genererade inloggningsuppgifter ----------------------------------------
 
@@ -176,7 +175,6 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
         <button class="btn ghost small mm-login" title="Redigera inloggning (användarnamn/lösenord)">${icon("key", 16)}<span>Inloggning</span></button>
         <span class="mm-save-flash" aria-live="polite"></span>
       </div>
-      <div class="mm-level"><span class="rl-slot"></span></div>
       <div class="give-coins">
         <div class="gc-row">
           <input class="cell gc-amount" type="number" min="1" step="1" value="10" aria-label="Antal coins" />
@@ -262,7 +260,6 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
     const wrap = el(`<div class="member-manage">
       <div class="mm-head"><h3 class="subhead sm">${icon("grad", 18)}<span>Elever i klassen (${members.length})</span></h3>
         ${members.length ? `<button class="btn small mm-print">${icon("printer", 16)}<span>Skriv ut inloggningskort</span></button>` : ""}</div>
-      <div class="mm-level-bulk"></div>
       <div class="mm-list"></div>
       <details class="mm-add">
         <summary>${icon("plus", 16)} Skapa nya elevkonton i klassen</summary>
@@ -287,21 +284,11 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
       import("./teacher-login-print.js").then((m) => m.openPrintPicker(cls.name || cls.id, members))
     );
     const listEl = wrap.querySelector(".mm-list");
-    // Läsnivå per elev (#211): en väljare direkt i varje elevrad. Vi renderar
-    // raderna med en tom platshållare och samlar dem så teacher-student-level.js
-    // kan batch-ladda nivåerna en gång och fylla i varje väljare.
-    const levelSlots = new Map(); // id → platshållarelement
     if (members.length === 0) {
       listEl.appendChild(el(`<p class="hint">Inga elever i klassen än – skapa konton nedan.</p>`));
     } else {
-      members.forEach((s) => {
-        const row = memberRow(s);
-        levelSlots.set(s.id, row.querySelector(".rl-slot"));
-        listEl.appendChild(row);
-      });
+      members.forEach((s) => listEl.appendChild(memberRow(s)));
     }
-    // Fyll väljarna + koppla "Sätt för alla"-snabbknappen (batch-laddar nivåerna).
-    mountMemberLevels(wrap.querySelector(".mm-level-bulk"), levelSlots, members);
 
     // Skapa nya konton i klassen: förslag → redigerbar tabell → skapa.
     const createBtn = wrap.querySelector(".mm-create");

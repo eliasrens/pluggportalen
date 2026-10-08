@@ -64,7 +64,6 @@ läsning för klienten).
 | `texts`       | array\<Text\>  | Faktatexter för läsförståelse            |
 | `quiz`        | array\<Quiz\>  | Quizfrågor (flerval)                     |
 | `pairs`       | array\<Pair\>  | Fakta-par (begrepp ↔ förklaring)         |
-| `readingTexts` | array\<ReadingText\> | Läsförståelse-texter i 3 nivåer (se nedan) |
 | `exerciseTypes` | string[]     | Valda övningstyper (se nedan)            |
 | `generator`   | object \| saknas | Räknegenerator – ett eller flera räknesätt (se nedan) |
 
@@ -128,23 +127,9 @@ grad och exempel anpassas till årskursen – en styrning läraren kan sätta, i
   sparningen) för okända värden – fältet utelämnas då. Samma valfria fält finns på
   **Pair** (används när äventyren gör flervalsfrågor av par).
 
-**ReadingText** (läsförståelse 2.0, issue #152): `{ id, title, levels }` – en läs-text
-där **samma tema** finns i **tre språkliga svårighetsnivåer**.
-
-- `title` är temat/rubriken (samma för alla tre nivåerna).
-- `levels` är ett objekt med nycklarna `"1"`, `"2"` och `"3"` (**alla tre obligatoriska**).
-  Varje nivå: `{ body, questions }`.
-  - `body` är läs-texten för nivån (gärna flera stycken, `\n\n` mellan). Samma fakta i alla
-    nivåer – bara språket/längden skiljer (nivå 1 kortast/enklast, nivå 3 längst/mest avancerad).
-  - `questions` är **3–5 kryssfrågor** (flerval) som hör till just den nivåns text. Frågorna är
-    **egna per nivå** (nivå 1:s frågor ≠ nivå 3:s). Varje fråga:
-    `{ id, question, options: string[], answerIndex, explanation? }` – samma form som `quiz`
-    (`answerIndex` 0-baserat index i `options`).
-- **Bakåtkompatibelt/valfritt:** saknas fältet är det en tom lista och äldre områden påverkas
-  inte. Den gamla läsförståelsen (`quiz`-frågor med `passage`) fungerar oförändrat parallellt.
-- Valideras i [`src/validate-reading.js`](../src/validate-reading.js) (anropad av `validate.js`).
-  AI-prompt: `buildReadingPrompt` ([`src/prompt-reading.js`](../src/prompt-reading.js)).
-  Lärar-editor: [`src/teacher-reading.js`](../src/teacher-reading.js) (knappen "📖 Nivåtexter").
+**Borttaget (#531):** de gamla nivåtexterna `readingTexts` (3 nivåer, #152) och Plugga-läget
+Läsuppdrag/`lastext` finns inte längre. Äldre dokument kan ha kvar fältet – det ignoreras
+(valideras inte, visas inte, skickas inte med i AI-prompten). Läsresan (#398) ersätter dem.
 
 **Pair**: `{ id, term, definition, termImage?, defImage?, group? }` – används för para ihop / memory.
 
@@ -278,7 +263,7 @@ Firestore-batchen. Fel: `permission-denied`, `invalid-argument`, `already-exists
 | `husLast`    | bool   | `true` = huset är **låst**: en klasskamrats läs-vy (`src/pages-klasskamrat.js`) visar `🔒 Låst` i stället för rummet. Toggle i verktygsmenyn (`src/pages-varld.js`); delad hjälpare `isHouseLocked(studentData)` i `src/data-room.js`. Husets exteriör i byn påverkas inte. |
 | `avatarId`   | string | Vald avatar (spegel av `students`)                     |
 | `avatarChosen` | bool | `true` när eleven själv valt grundavatar (styr avatarvalet vid första inloggning) |
-| `readingLevel` | number | **Läsnivå (1–3)** för läsförståelse (#154): läraren sätter den per elev i klasshanteringen (`src/teacher-reading-level.js`), och läsförståelse-läget serverar då områdets `readingTexts` på elevens nivå (`buildReadingPool` i `src/reading-level.js`). **Bakåtkompatibelt:** saknas fältet → `normalizeReadingLevel` ger default `2` (mellan). Helpers `getReadingLevel`/`setReadingLevel` i `src/data-reading-level.js`. |
+| `readingLevel` | number | **Borttaget (#531).** Gamla läsnivån (1–3, #154). Skrivs inte längre i nya elevdokument; finns kvar i äldre dokument men ignoreras. Läsresans nivå är `lasresa.level`. |
 | `pets`       | array  | Kläckbara husdjuren (mystery eggs) – se nedan. Eleven kan ha **flera** samtidigt |
 | `appleCount` | number | Köpta men outlagda **äpplen** (matning). Se avsnittet om äpplen nedan |
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
@@ -881,7 +866,7 @@ begränsning: spelresultaten räknas i klienten (som coins/framsteg i dag), så 
 skriptande elev kan ge ≤ 3 EXP/15 s – spårbart per elev i `expMembers`.
 
 **Regelregistret** (`src/klasscenter/kc-exp-regler.js`): quiz/läsförståelse
-≥ 50 % rätt = 1 varje omgång; para/memory/kunskapsjakt/sanningsjakt/lastext/
+≥ 50 % rätt = 1 varje omgång; para/memory/kunskapsjakt/sanningsjakt/
 äventyr = 1 de 3 första gångerna per område; Läsresan ≥ 5/7 = 1; Mattematchen
 var 20:e rätt = 1; Räkna 10 rätt = 1 (rest sparas i `counts`); Live/klass-
 utmaningar = lärarbonus `klassBonusFor(kalla, elevantal)` (t.ex. Live 3/elev).

@@ -24,8 +24,6 @@ import { ADVENTURE_THEME_META } from "./adventure/themes/meta.js";
 export const GAMEMODES = [
   { id: "lasforstaelse", name: "Läsförståelse", emoji: "📖", color: "bla",
     sub: "Läs en text och svara på frågor", needs: "quiz" },
-  { id: "lastext", name: "Läsuppdrag", emoji: "📚", color: "gul",
-    sub: "Läs hela texten – klara alla frågorna", needs: "readingTexts" },
   { id: "para", name: "Para ihop", emoji: "🧩", color: "gron",
     sub: "Matcha begrepp med förklaring", needs: "pairs" },
   { id: "quiz", name: "Quiz", emoji: "❓", color: "orange",
@@ -124,8 +122,6 @@ export function areaContentFlags(area) {
   return {
     quiz: Array.isArray(area?.quiz) && area.quiz.length > 0,
     pairs: Array.isArray(area?.pairs) && area.pairs.length > 0,
-    // Läsuppdrag (issue #153) kräver nivåtexter (readingTexts, 3 nivåer).
-    readingTexts: Array.isArray(area?.readingTexts) && area.readingTexts.length > 0,
     // Arkad-läget kan härleda påståenden ur par (minst 2) eller quiz.
     sanningsjakt: hasSanningsjaktContent(area),
     // Räkna-läget (issue #279): tänds av ett giltigt generator-område (topic +

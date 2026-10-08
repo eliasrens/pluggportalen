@@ -252,13 +252,13 @@ describe("synk + bootgraf", () => {
     assert.match(rules, /'pokal-\(' \+ kcPokalTyper\(\)\.join\('\|'\)/);
   });
 
-  it("bootgrafen: 110 filer, inga pokal-/rum-moduler (#271)", () => {
+  it("bootgrafen: 107 filer (110 före #531), inga pokal-/rum-moduler (#271)", () => {
     const g = staticBootGraph();
     for (const f of ["klasscenter/kc-pokal-placering.js", "klasscenter/kc-rum-pokaler.js", "klasscenter/kc-pokal-typer.js",
       "klasscenter/kc-rum-session.js", "art-klasscenter-pokaler.js", "rum-inredning.js"]) {
       assert.equal(g.has(join(SRC, f)), false, `${f} får inte ligga i bootgrafen`);
     }
-    assert.equal(g.size, 110);
+    assert.equal(g.size, 107);
   });
 });
 

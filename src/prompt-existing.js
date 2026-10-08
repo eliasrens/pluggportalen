@@ -2,9 +2,9 @@
 // Pluggporten – "BEFINTLIGT INNEHÅLL"-block till AI-prompterna (prompt-existing.js)
 // ----------------------------------------------------------------------------
 // Issue #471. När läraren ber AI:n om MER innehåll till ett befintligt område
-// (buildMorePrompt) eller fler nivåtexter (buildReadingPrompt) skickas ALLT som
-// redan finns med – fråga + alternativ + rätt svar + kategori + passage, par med
-// term + definition, texter och nivåtexter – så AI:n ser hela bilden och inte
+// (buildMorePrompt) skickas ALLT som redan finns med – fråga + alternativ + rätt
+// svar + kategori + passage, par med term + definition och texter – så AI:n ser
+// hela bilden och inte
 // upprepar något. Formatet är kompakt JSON (ett objekt per rad) i samma format
 // som AI:n själv ska svara i, så det är både maskinläsbart och lätt att härma.
 //
@@ -25,7 +25,6 @@ const WORDS = {
   texts: ["text", "texter"],
   quiz: ["quizfråga", "quizfrågor"],
   pairs: ["par", "par"],
-  readingTexts: ["nivåtext", "nivåtexter"],
 };
 
 const str = (v) => (typeof v === "string" ? v.trim() : "");
@@ -50,27 +49,10 @@ const QUIZ_KEYS = ["question", "options", "answerIndex", "category", "passage", 
 const PAIR_KEYS = ["term", "definition", "termImage", "defImage", "group"];
 const TEXT_KEYS = ["title", "body"];
 
-/** En nivåtext i kompakt form: titel + per nivå brödtext och frågor med svar. */
-function compactReading(rt) {
-  const levels = {};
-  for (const [lvl, L] of Object.entries(rt?.levels || {})) {
-    const body = str(L?.body);
-    const questions = (Array.isArray(L?.questions) ? L.questions : [])
-      .map((q) => pick(q, ["question", "options", "answerIndex", "explanation"]))
-      .filter((q) => q.question);
-    if (body || questions.length) levels[lvl] = { body, questions };
-  }
-  const out = {};
-  if (str(rt?.title)) out.title = str(rt.title);
-  if (Object.keys(levels).length) out.levels = levels;
-  return out;
-}
-
 const COMPACT = {
   texts: (t) => pick(t, TEXT_KEYS),
   quiz: (q) => pick(q, QUIZ_KEYS),
   pairs: (p) => pick(p, PAIR_KEYS),
-  readingTexts: compactReading,
 };
 
 /**
@@ -78,7 +60,7 @@ const COMPACT = {
  *
  * @param {object} source – objekt med listorna (t.ex. området).
  * @param {string[]} kinds – vilka listor som tas med, i ordning
- *   ("texts" | "quiz" | "pairs" | "readingTexts").
+ *   ("texts" | "quiz" | "pairs").
  * @param {number} [maxChars] – tak för blocket i tecken.
  * @returns {{ json: string, count: number, omitted: Record<string, number> }}
  *   json = giltig JSON (tom sträng om inget finns), count = antal poster som
@@ -122,7 +104,7 @@ export function existingContentJson(source, kinds, maxChars = EXISTING_MAX_CHARS
   return { json, count, omitted };
 }
 
-/** "120 quizfrågor och 4 nivåtexter" ur omitted-räknarna. */
+/** "120 quizfrågor och 4 texter" ur omitted-räknarna. */
 function omittedText(omitted) {
   const parts = Object.entries(omitted).map(([k, n]) => `${n} ${WORDS[k][n === 1 ? 0 : 1]}`);
   return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} och ${parts.at(-1)}` : parts[0];

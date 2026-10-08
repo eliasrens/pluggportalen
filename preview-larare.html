@@ -44,7 +44,6 @@
       import { renderClassStats } from "/src/teacher-class.js";
       import { renderAccountEditor, printLoginCards } from "/src/teacher-login-cards.js";
       import { credentialsPanel } from "/src/teacher-class-accounts.js";
-      import { buildReadingEditor } from "/src/teacher-reading.js";
 
       const root = document.getElementById("root");
       const ctx = { app: root, go: () => {}, renderTopbar: () => {}, refresh: () => {} };
@@ -211,26 +210,6 @@
           { username: "6a-alva", password: "sten472", namn: "Alva Berg" },
           { username: "6a-bruno", password: "boll819", namn: "Bruno Ek" },
         ]));
-      }
-
-      // ======================================================================
-      // 7) INNEHÅLL – läs/AI-editor (nivåtexter)
-      // ======================================================================
-      label("7 · Innehåll – nivåtexts-editor (läsförståelse)");
-      {
-        const wrap = page("innehall", "book", "Innehållsstudion");
-        const host = el(`<div class="panel class-card"></div>`);
-        wrap.appendChild(host);
-        try {
-          const ed = buildReadingEditor(
-            { id: "vikingar", name: "Vikingatiden", readingTexts: [] },
-            host,
-            { subjectId: "so", onSaved: () => {} }
-          );
-          host.appendChild(ed);
-        } catch (e) {
-          host.appendChild(el(`<p class="hint">(läs-editorn kräver mer kontext – hoppas i preview: ${e.message})</p>`));
-        }
       }
 
       // ======================================================================

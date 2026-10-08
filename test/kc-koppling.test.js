@@ -50,8 +50,8 @@ test("quiz/läsförståelse: ≥ 50 % rätt = 1, under = 0 (och ingen skrivning)
   }
 });
 
-test("para/memory/jakt/sanningsjakt/lastext/äventyr: bara 3 första gångerna per område", async () => {
-  for (const modul of ["para", "memory", "kunskapsjakt", "sanningsjakt", "lastext", "aventyr:gruvan"]) {
+test("para/memory/jakt/sanningsjakt/äventyr: bara 3 första gångerna per område", async () => {
+  for (const modul of ["para", "memory", "kunskapsjakt", "sanningsjakt", "aventyr:gruvan"]) {
     const k = minnesKlass();
     const r = [];
     for (let i = 0; i < 5; i++) r.push((await k.spela(modul, undefined, "bråk")).k1);

@@ -16,6 +16,7 @@ const auths = new Map();
 const tagna = new Set();
 
 export const browserLocalPersistence = { type: "LOCAL" };
+export const indexedDBLocalPersistence = { type: "LOCAL" };
 export const browserSessionPersistence = { type: "SESSION" };
 export function getAuth(app) {
   const namn = app?.name || "[DEFAULT]";

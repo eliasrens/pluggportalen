@@ -11,9 +11,7 @@ import assert from "node:assert/strict";
 
 import {
   MAX_QUESTIONS_PER_SESSION,
-  MAX_TEXTS_PER_SESSION,
   questionKey,
-  textKey,
   pickRotatingQuestions,
 } from "../src/question-rotation.js";
 
@@ -41,37 +39,18 @@ test("questionKey tål saknad/tom frågetext", () => {
   assert.equal(typeof questionKey({}), "string");
 });
 
-// --- Läsförståelse-texter (issue #153) ------------------------------------
+// --- Egen gräns + egen nyckel-funktion ------------------------------------
 
-// Bygg en pool med n läs-texter (id + titel), som readingTexts-modellen.
-function texts(n) {
-  return Array.from({ length: n }, (_, i) => ({
-    id: `text-${i}`,
-    title: `Läs-text ${i}`,
-    levels: {},
-  }));
-}
-
-test("MAX_TEXTS_PER_SESSION är 3 (issue #153)", () => {
-  assert.equal(MAX_TEXTS_PER_SESSION, 3);
-});
-
-test("textKey föredrar id, är stabil och skiljer texter åt", () => {
-  assert.equal(textKey({ id: "vikingar", title: "X" }), textKey({ id: "vikingar", title: "Y" }));
-  assert.notEqual(textKey({ id: "a" }), textKey({ id: "b" }));
-  assert.equal(textKey({ title: "Bara titel" }), textKey({ title: "Bara titel" }));
-  assert.equal(typeof textKey(null), "string");
-});
-
-test("text-rotation: nya texter tills varvet är klart, sedan om", () => {
-  const p = texts(7);
-  const limit = MAX_TEXTS_PER_SESSION;
-  // Session 1: limit osedda texter.
-  const s1 = pickRotatingQuestions(p, [], limit, textKey);
+test("egen limit + keyOf: nya objekt tills varvet är klart", () => {
+  const p = Array.from({ length: 7 }, (_, i) => ({ id: `obj-${i}` }));
+  const keyOf = (o) => o.id;
+  const limit = 3;
+  // Session 1: limit osedda objekt.
+  const s1 = pickRotatingQuestions(p, [], limit, keyOf);
   assert.equal(s1.questions.length, limit);
   assert.equal(s1.seen.length, limit);
-  // Session 2: helt nya texter (ingen överlappning med session 1).
-  const s2 = pickRotatingQuestions(p, s1.seen, limit, textKey);
+  // Session 2: helt nya objekt (ingen överlappning med session 1).
+  const s2 = pickRotatingQuestions(p, s1.seen, limit, keyOf);
   const overlap = s2.questions.filter((t) =>
     s1.questions.some((u) => u.id === t.id)
   );

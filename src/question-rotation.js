@@ -17,12 +17,6 @@
 // körs alla (och rotationen är då meningslös → nollställs).
 export const MAX_QUESTIONS_PER_SESSION = 10;
 
-// Max antal LÄS-TEXTER per ny läsförståelse-session (issue #153). Färre än
-// frågetaket: varje text är flera stycken + 3–5 kryssfrågor och kan behöva läsas
-// om, så en session om 3 texter räcker. Rotationen (samma motor som frågorna)
-// ser till att nästa session ger nya texter tills områdets alla körts igenom.
-export const MAX_TEXTS_PER_SESSION = 3;
-
 /** Blanda en array (kopia, Fisher–Yates). Lokal kopia för att hålla modulen fri
  *  från beroenden (game-shared.js har en egen exporterad shuffle för UI-koden). */
 function shuffle(arr) {
@@ -45,18 +39,7 @@ export function questionKey(q) {
   return hashKey(text, "q");
 }
 
-/**
- * Stabil nyckel för en LÄS-TEXT (issue #153). Vi föredrar textens `id` (som
- * validate-reading.js sätter, stabilt även om titeln redigeras) och faller
- * tillbaka på titeln. Låter samma rotationsmotor servera nya texter, inte samma
- * om igen.
- */
-export function textKey(t) {
-  const base = t && (t.id || t.title) ? String(t.id || t.title) : "";
-  return hashKey(base, "t");
-}
-
-/** djb2-hash → prefix + base36 (delas av question-/text-nycklarna). */
+/** djb2-hash → prefix + base36. */
 function hashKey(str, prefix) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) {
@@ -86,8 +69,7 @@ function dedupe(keys) {
  *                         data → tom lista → slumpad start, bakåtkompatibelt)
  * @param {number} limit  max frågor per session (default MAX_QUESTIONS_PER_SESSION)
  * @param {(item:*)=>string} keyOf  nyckel-funktion per pool-objekt (default
- *                         questionKey). Läsförståelse-läget skickar textKey så
- *                         samma motor roterar läs-texter i stället för frågor.
+ *                         questionKey).
  * @returns {{questions: Array, seen: string[]}}  objekten att köra + den
  *          uppdaterade listan sedda nycklar att spara inför nästa session.
  *

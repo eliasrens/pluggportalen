@@ -66,26 +66,24 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
   assert.deepEqual(areaContentFlags({ quiz: QUIZ }), {
     quiz: true,
     pairs: false,
-    readingTexts: false,
     sanningsjakt: true, // härleds ur quiz
     generator: false,
   });
   assert.deepEqual(areaContentFlags({ pairs: PAIRS }), {
     quiz: false,
     pairs: true,
-    readingTexts: false,
     sanningsjakt: true, // ≥2 par
     generator: false,
   });
   assert.deepEqual(areaContentFlags({}), {
     quiz: false,
     pairs: false,
-    readingTexts: false,
     sanningsjakt: false,
     generator: false,
   });
-  // Läsuppdrag (issue #153): nivåtexter ger readingTexts-flaggan.
-  assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, true);
+  // Gamla nivåtexter (readingTexts) tänder inget läge sedan #531.
+  assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, undefined);
+  assert.equal(availableGamemodes({ readingTexts: [{ id: "t1" }] }).length, 0);
   // Räknegenerator (issue #279): en giltig area.generator ger generator-flaggan
   // (och INTE quiz/pairs), medan en ogiltig (okänd topic/ingen variant) inte gör det.
   assert.equal(
@@ -224,10 +222,10 @@ test("mergeAreaContent behåller områdets hiddenModes", () => {
 });
 
 // Katalogen ska ha alla lägen (skydd mot att någon råkar tömma den).
-test("GAMEMODES har de åtta lägena (inkl. räkna)", () => {
+test("GAMEMODES har de sju lägena (inkl. räkna)", () => {
   assert.deepEqual(
     GAMEMODES.map((gm) => gm.id),
-    ["lasforstaelse", "lastext", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory", "rakna"]
+    ["lasforstaelse", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory", "rakna"]
   );
 });
 
@@ -346,7 +344,7 @@ test("isModeHiddenForClassArea döljer via var och en av de tre nivåerna", () =
   assert.equal(isModeHiddenForClassArea(area, cls, "memory"), true);         // klass globalt
   assert.equal(isModeHiddenForClassArea(area, cls, "para"), true);           // klass × område a1
   assert.equal(isModeHiddenForClassArea(area, cls, "kunskapsjakt"), false);  // gäller bara a2, inte a1
-  assert.equal(isModeHiddenForClassArea(area, cls, "lastext"), false);       // odolt
+  assert.equal(isModeHiddenForClassArea(area, cls, "sanningsjakt"), false);  // odolt
 });
 
 test("isModeHiddenForClassArea är bakåtkompatibel (= område∪klass) utan map", () => {

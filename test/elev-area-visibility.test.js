@@ -86,7 +86,7 @@ test("#311 generator-område visar BARA räkna – inga tomma quiz/läs/para/mem
   const area = { id: "gen", name: "Räkna", generator: { topic: "addition", variants: ["enkel"] } };
   const modes = plainModes(area);
   assert.deepEqual(modes, ["rakna"], "endast räkna-läget ska renderas");
-  for (const empty of ["quiz", "lasforstaelse", "lastext", "para", "memory", "kunskapsjakt", "sanningsjakt"]) {
+  for (const empty of ["quiz", "lasforstaelse", "para", "memory", "kunskapsjakt", "sanningsjakt"]) {
     assert.ok(!modes.includes(empty), `${empty} har inget underlag och ska INTE renderas`);
   }
 });

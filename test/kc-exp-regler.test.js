@@ -33,7 +33,7 @@ describe("Quiz + Läsförståelse: ≥ 50 % rätt", () => {
 });
 
 describe("Para ihop / Memory / liknande: 3 första gångerna per område och elev", () => {
-  for (const modul of ["para", "memory", "kunskapsjakt", "sanningsjakt", "lastext", "aventyr"]) {
+  for (const modul of ["para", "memory", "kunskapsjakt", "sanningsjakt", "aventyr"]) {
     it(`${modul}: 3:e gången → 1, 4:e → 0`, () => {
       const nyckel = `${modul}|vikingar`;
       const ctx = (n) => ({ area: "vikingar", raknare: { [nyckel]: n } });

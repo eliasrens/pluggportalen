@@ -13,7 +13,7 @@
 // KONTRAKT (saveArea = setDoc = full överskrivning): anroparen hämtar en FÄRSK
 // kopia (data.getArea) direkt före skrivning, applicerar ENBART ändringen här och
 // skriver hela dokumentet. Alla andra fält (hiddenModes, grade, generator,
-// coverEmoji, order, exerciseTypes, readingTexts, readingPrereq …) följer med
+// coverEmoji, order, exerciseTypes, readingPrereq …) följer med
 // OFÖRÄNDRADE – vi skriver den råa färska kopian + ändringen, inte validateArea:s
 // normaliserade värde (som skulle härleda exerciseTypes m.m.). validateArea är
 // grinden: går den inte igenom sparas inget. quiz[].passage (läsförståelse #151)
@@ -218,23 +218,20 @@ export function lastItemWarning(area, kind) {
 
 // --- Flikar i underraden (#455) ---------------------------------------------
 
-/** Flikarnas ordning. "reading" = nivåtexter (readingTexts, #152) i 📖-editorn. */
-export const ITEM_TABS = ["quiz", "pairs", "texts", "reading"];
+/** Flikarnas ordning. */
+export const ITEM_TABS = ["quiz", "pairs", "texts"];
 
 /**
  * Vilka flikar underraden visar, i fast ordning, med antal:
- *   quiz/pairs/texts – samma regel som sectionsFor (typ ELLER innehåll),
- *   reading – när området har texts, readingTexts eller läsförståelse-förkrav.
- * `extra` tvingar fram flikar (📖-knappen → "reading", "+ Lästext" → "texts",
- * senast vald flik efter omritning) även när regeln annars döljer dem.
+ *   quiz/pairs/texts – samma regel som sectionsFor (typ ELLER innehåll).
+ * `extra` tvingar fram flikar ("+ Lästext" → "texts", senast vald flik efter
+ * omritning) även när regeln annars döljer dem.
  * @returns {{id:string, count:number}[]}
  */
 export function tabsFor(area, extra = []) {
   const shown = new Set(sectionsFor(area));
-  const readingCount = Array.isArray(area?.readingTexts) ? area.readingTexts.length : 0;
-  if (itemCounts(area).texts || readingCount || area?.readingPrereq) shown.add("reading");
   for (const id of extra) if (ITEM_TABS.includes(id)) shown.add(id);
-  const counts = { ...itemCounts(area), reading: readingCount };
+  const counts = itemCounts(area);
   return ITEM_TABS.filter((id) => shown.has(id)).map((id) => ({ id, count: counts[id] }));
 }
 

@@ -58,10 +58,10 @@ system, arkitekturen, datamodellen och kontrakten som kartan (#400), läsvyn
   (geometri: `scene`, `start`, `stepPositions`, `decorations`), och kartvyn
   (#400) ritar scenen i samma SVG-stil.
 
-### Befintligt läs-system (RÖRS INTE)
-- `studentData.readingLevel` (1–3, lärarsatt, `src/reading-level.js`,
-  `data-reading-level.js`), Läsuppdrag `games-lastext.js` och
-  `validate-reading.js` (områdenas `readingTexts`).
+### Gamla läs-systemet (borttaget i #531)
+- `studentData.readingLevel` (1–3), Läsuppdrag `lastext` och områdenas
+  `readingTexts` är borttagna ur koden; fälten ligger kvar i äldre dokument
+  men ignoreras.
 - Läsresan är **helt separat**: egen nivå `studentData.lasresa.level` (1–10, före epic #516 1–7),
   egna texter (`src/lasresan/content/`) och egen validator. Ingen befintlig fil i
   det systemet är ändrad.
