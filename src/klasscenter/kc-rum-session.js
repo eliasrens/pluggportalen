@@ -13,6 +13,8 @@
 //   kanInreda  = false för gäst (grannby) och bockad elev → läsläge: ingen
 //                låda, ingen drag, ingen Spara/Återställ – titta + hovra går.
 //                Reglerna (#489) är den riktiga spärren.
+//   pokaler    = bevakaPokaler (#497) → hyllan + auto-placering + hover-rutan
+//                (kc-rum-pokaler.js); en flyttad pokal sparas som en möbel.
 // Laddas BARA dynamiskt (#271). deps kan injiceras (preview utan Firestore).
 // ============================================================================
 
@@ -23,12 +25,14 @@ import { kcInredningSvg, kcInredningStorlek } from "../art-klasscenter-inredning
 import { KC_SHOP_ITEMS, kcShopItem } from "./kc-shop-items.js";
 import { skapaKcRumTillstand, statusHtml } from "./kc-rum-tillstand.js";
 import { ritaHistorik } from "./kc-rum-historik.js";
+import { skapaKcRumPokaler } from "./kc-rum-pokaler.js";
 
 /** Riktiga beroenden (Firestore) – laddas först när rummet öppnas. */
 async function riktigaDeps() {
-  const [layout, fund, auth, fb, sdk] = await Promise.all([
+  const [layout, fund, pokal, auth, fb, sdk] = await Promise.all([
     import("./kc-layout-data.js"),
     import("./kc-fund-data.js"),
+    import("./kc-pokal-data.js"),
     import("../auth.js"),
     import("../firebase-config.js"),
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"),
@@ -41,6 +45,7 @@ async function riktigaDeps() {
     kanInreda: layout.kanInreda,
     subscribeFunds: fund.subscribeFunds,
     unlockedItems: fund.unlockedItems,
+    bevakaPokaler: pokal.bevakaPokaler,
     arLarare: auth.isTeacher,
     // Bara läraren ser "vem" i historiken (elevnamn ur students/{uid}).
     namnFor: async (uids) => {
@@ -65,7 +70,9 @@ async function riktigaDeps() {
 export function startaKcRumSession(o, { lager, q }) {
   const visaOnly = !!o.visaOnly;
   const classId = o.classId;
-  const t = skapaKcRumTillstand();
+  const ui = q("status").parentElement;
+  const pok = skapaKcRumPokaler({ lager, ui, vidResize: () => omplacera() });
+  const t = skapaKcRumTillstand({ autoPlacera: (lokal) => pok.autoPlacera(lokal) });
   let deps = o.deps || null;
   let kan = false;
   let animera = false;
@@ -83,11 +90,15 @@ export function startaKcRumSession(o, { lager, q }) {
     ladaIds: () => KC_SHOP_ITEMS.filter((it) => upplasta.has(it.id)).map((it) => it.id),
     spara: () => {
       t.andrat();
+      // En borttagen/flyttad pokal ändrar auto-placeringen (tillbaka på hyllan).
+      if (pok.finns()) inr.rita();
       sparatNyss = false;
       status();
     },
     kanInreda: () => kan && t.laddad,
     sak: (id) => {
+      const ps = pok.sak(id, { auto: t.arAuto(id), animera });
+      if (ps !== undefined) return ps;
       const it = kcShopItem(id);
       if (!it) return null;
       const st = kcInredningStorlek(it.art) || { w: it.storlek.w / 2.5, h: it.storlek.h / 2.5 };
@@ -109,7 +120,7 @@ export function startaKcRumSession(o, { lager, q }) {
     tray: q("lada"),
     trayHint: q("lada-hint"),
     adapter,
-    bakgrund: () => kcHallHtml(o.niva || 1),
+    bakgrund: () => kcHallHtml(o.niva || 1) + pok.hyllaHtml(animera),
     text: {
       tomtRum: () => (!t.laddad ? ""
         : kan ? "Rummet är tomt – öppna Möbellådan 📦 och ställ in klassens saker!"
@@ -119,6 +130,12 @@ export function startaKcRumSession(o, { lager, q }) {
       valj: "Klicka på en sak för att ställa den i rummet. Dra den sedan dit du vill och tryck Spara.",
     },
   });
+
+  // Pokalerna/scenens mått ändrades → auto-placeringen räknas om (inte mitt i en drag).
+  function omplacera() {
+    t.omplacera();
+    if (levande && !inr.pagarDrag()) inr.rita();
+  }
 
   function ritaAllt() {
     if (!levande) return;
@@ -157,6 +174,12 @@ export function startaKcRumSession(o, { lager, q }) {
       fel = "Rummet gick inte att hämta just nu.";
       status();
     }));
+    if (deps.bevakaPokaler) {
+      avreg.push(deps.bevakaPokaler(classId, (lista) => {
+        pok.satt(lista);
+        omplacera();
+      }, (err) => console.warn("[klasscenter] pokalerna kunde inte läsas", err?.code || err)));
+    }
     if (kan) {
       avreg.push(deps.subscribeFunds(classId, (funds) => {
         upplasta = new Set(deps.unlockedItems(funds).map((it) => it.id));
@@ -212,7 +235,6 @@ export function startaKcRumSession(o, { lager, q }) {
   }
 
   // Sessionens knappar (skalet äger Till byn/paneler/Escape).
-  const ui = q("status").parentElement;
   const vidKlick = (e) => {
     if (e.target.closest('[data-kc="spara"]')) return spara();
     if (e.target.closest('[data-kc="visa-deras"]')) {
@@ -250,6 +272,7 @@ export function startaKcRumSession(o, { lager, q }) {
     },
     stad() {
       levande = false;
+      pok.stad();
       ui.removeEventListener("click", vidKlick);
       for (const a of avreg) a?.();
       q("status").hidden = true;

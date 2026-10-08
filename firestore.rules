@@ -704,33 +704,73 @@ service cloud.firestore {
       //    historikslot version % 10 skrivs i SAMMA batch med samma
       //    placedItems/version (getAfter). En historikslot skrivs aldrig
       //    ensam (kräver att current får just den versionen nu).
-      //  • placedItems: bara katalog-id:n som nycklar (kcKatalog), högst 40
-      //    poster, varje post exakt {x, y, z}: x/y tal 0–100, z heltal 0–999.
+      //  • placedItems: katalog-id:n (kcKatalog) och högst 8 flyttade pokaler
+      //    ("pokal-<trophyId>", #497) som nycklar, högst 16 poster, varje
+      //    post exakt {x, y, z}: x/y tal 0–100, z heltal 0–999.
       //    Att föremålet är UPPLÅST kontrolleras i klienten (kan inte loopa
       //    över fund här) – ett ej köpt föremål i layouten ger bara en möbel
       //    för mycket i rummet, inga mynt eller EXP.
       //  • inredningSparr (klassprofilen classCenters/{classId}): bara lärare,
       //    och bara det fältet (lista ≤ 200 uid:n).
-      // ⚠️ Ny post i kcKatalog = ny kcPos-rad i kcPlaced (test/kc-layout-
-      // plan.test.js kontrollerar).
+      // ⚠️ Ny post i kcKatalog = höj taket i kcPlaced (n <= …) + en
+      // kcPosOk-rad per index (test/kc-layout-plan.test.js kontrollerar).
       // ----------------------------------------------------------------
       function kcSparrad() {
         let p = /databases/$(database)/documents/classCenters/$(classId);
         return exists(p) && request.auth.uid in get(p).data.get('inredningSparr', []);
       }
       function kcKanInreda() { return isTeacher() || (isClassMember(classId) && !kcSparrad()); }
-      function kcPos(pi, id) {
-        return !(id in pi) || (pi[id] is map && pi[id].keys().hasOnly(['x', 'y', 'z']) &&
-          pi[id].keys().hasAll(['x', 'y', 'z']) &&
-          pi[id].x is number && pi[id].x >= 0 && pi[id].x <= 100 &&
-          pi[id].y is number && pi[id].y >= 0 && pi[id].y <= 100 &&
-          pi[id].z is int && pi[id].z >= 0 && pi[id].z <= 999);
+      // En post {x, y, z}: x/y tal 0–100, z heltal 0–999 – som EN regex över
+      // talen (`* 1` → fel för text/bool; ett flyttal z blir "1.0" och
+      // nekas). 🔴 Budget: reglerna tillåter 1000 uttryck per skrivning; den
+      // gamla kontrollen (13 jämförelser per post) sprängde den redan vid
+      // alla 8 föremål i rummet (#497 – mätt i emulatorn), därför detta.
+      function kcPosOk(p) {
+        return p.size() == 3 && (string(p.x * 1) + ',' + string(p.y * 1) + ',' + string(p.z * 1)).matches(
+          '(100(\\.0+)?|[0-9]{1,2}(\\.[0-9]+)?),(100(\\.0+)?|[0-9]{1,2}(\\.[0-9]+)?),[0-9]{1,3}');
       }
+      // Pokaler i rummet (#497): nycklar "pokal-<trophyId>" (trophyId =
+      // <typ>-<kallaId>, se Pokaler nedan) får stå bredvid katalog-id:n,
+      // högst 8 (= hyllans platser; fler ryms inte i uttrycksbudgeten).
+      // Reglerna kan inte loopa → alla icke-katalognycklar joinas med '/'
+      // (split-kontrollen: ingen nyckel innehåller '/', så två nycklar kan
+      // inte låtsas vara en) och matchas mot EN regex.
+      // AVVÄGNING: att pokalen finns (exists() på trophies/) kontrolleras
+      // INTE – 8 exists() per dokument spränger anropsbudgeten (10/20,
+      // current + historik läser redan klass/profil/getAfter). En påhittad
+      // nyckel ger bara en post som klienten inte ritar (den ritar bara
+      // klassens hämtade pokaler).
+      function kcPokalNyckel() {
+        return 'pokal-(' + kcPokalTyper().join('|') + ')-[A-Za-z0-9_-]{1,100}';
+      }
+      function kcPokalerOk(pk) {
+        return pk.size() == 0 || (pk.size() <= 8 &&
+          pk.join('/').split('/').size() == pk.size() &&
+          pk.join('/').matches(kcPokalNyckel() + '(/' + kcPokalNyckel() + ')*'));
+      }
+      // Nycklar: katalog-id:n + pokaler; positionerna per index i values()
+      // (högst 8 föremål + 8 pokaler = 16 poster).
       function kcPlaced(pi) {
-        return pi is map && pi.size() <= 40 && pi.keys().hasOnly(kcKatalog().keys()) &&
-          kcPos(pi, 'klassfana') && kcPos(pi, 'trofehylla') && kcPos(pi, 'lounge') &&
-          kcPos(pi, 'akvarium') && kcPos(pi, 'guldstaty') && kcPos(pi, 'flygel') &&
-          kcPos(pi, 'fontan') && kcPos(pi, 'kristallkrona');
+        let v = pi.values();
+        let n = v.size();
+        return pi is map && n <= 16 &&
+          kcPokalerOk(pi.keys().removeAll(kcKatalog().keys())) &&
+          (n <= 0 || kcPosOk(v[0])) &&
+          (n <= 1 || kcPosOk(v[1])) &&
+          (n <= 2 || kcPosOk(v[2])) &&
+          (n <= 3 || kcPosOk(v[3])) &&
+          (n <= 4 || kcPosOk(v[4])) &&
+          (n <= 5 || kcPosOk(v[5])) &&
+          (n <= 6 || kcPosOk(v[6])) &&
+          (n <= 7 || kcPosOk(v[7])) &&
+          (n <= 8 || kcPosOk(v[8])) &&
+          (n <= 9 || kcPosOk(v[9])) &&
+          (n <= 10 || kcPosOk(v[10])) &&
+          (n <= 11 || kcPosOk(v[11])) &&
+          (n <= 12 || kcPosOk(v[12])) &&
+          (n <= 13 || kcPosOk(v[13])) &&
+          (n <= 14 || kcPosOk(v[14])) &&
+          (n <= 15 || kcPosOk(v[15]));
       }
       function kcLayoutCurrent() {
         let d = request.resource.data;

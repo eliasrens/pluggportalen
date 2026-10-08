@@ -1009,7 +1009,7 @@ dynamiskt): `src/klasscenter/kc-layout-data.js` – `subscribeLayout`,
 
 | Fält | Typ | Beskrivning |
 | --- | --- | --- |
-| `placedItems` | map | `{ "<itemId>": { x, y, z } }` – x/y tal 0–100 (procent av scenen, som `studentData.room.placements`), `z` heltal 0–999 (ritordning, högre = framför). Högst 40 poster. |
+| `placedItems` | map | `{ "<itemId>" \| "pokal-<trophyId>": { x, y, z } }` – x/y tal 0–100 (procent av scenen, som `studentData.room.placements`), `z` heltal 0–999 (ritordning, högre = framför). Högst 16 poster: 8 katalogföremål + högst 8 **flyttade** pokaler (#497). Pokaler som ingen flyttat sparas inte – de auto-placeras på pokalhyllan (äldst först) av `kc-pokal-placering.js`. |
 | `version` | int | 1, 2, 3 … (+1 per sparning; saknat dokument = version 0) |
 | `updatedBy` | string | den som sparade (= `auth.uid`, elev eller lärare) |
 | `updatedAt` | timestamp | serverns tid |
@@ -1061,9 +1061,13 @@ fälten, `version == gammal + 1` (create: 1), `updatedBy == auth.uid`,
 samma `version`/`placedItems`/skribent/tid. Historikslot: id ∈ 0..9 ==
 `version % 10`, och `getAfter(current)` har just den versionen skriven nu
 (`updatedAt == request.time`) → en slot kan aldrig skrivas ensam.
-`placedItems`: nycklar ⊆ `kcKatalog` (samma karta som `kcPris`), ≤ 40, varje
-post exakt `{x, y, z}` med intervallen ovan (en `kcPos`-rad per föremål –
-`test/kc-layout-plan.test.js` failar om någon saknas). Att föremålet är
+`placedItems`: nycklar ⊆ `kcKatalog` (samma karta som `kcPris`) plus högst 8
+`pokal-<typ>-<kallaId>` (typ ∈ `kcPokalTyper`, EN regex över de joinade
+nycklarna; att pokalen finns kontrolleras inte – budget), ≤ 16 poster, varje
+post exakt `{x, y, z}` med intervallen ovan (`kcPosOk` per index i
+`values()` – `test/kc-layout-plan.test.js` failar om taket och raderna glider
+isär). 🔴 Reglernas tak är 1000 uttryck per skrivning: den gamla kontrollen
+nekade redan ett rum med alla 8 föremål (#497 fixade, mätt i emulatorn). Att föremålet är
 *upplåst* kollas bara i klienten (reglerna kan inte loopa över `fund`) – en
 fuskande elev kan som mest ställa en ej köpt möbel i rummet. Radera = lärare.
 Tester: `test/kc-layout-plan.test.js`, `test/firestore-rules-klasscenter-layout.test.js`.

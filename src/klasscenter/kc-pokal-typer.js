@@ -30,6 +30,9 @@
 //   pokaltyp(id) → typ|null            harPokaltyp(id)   listaPokaltyper()
 //   pokalId(typ, kallaId) → string|null   "<typ>-<kallaId>" (null = ogiltigt)
 //   giltigtKallaId(id) → bool          1–100 tecken [A-Za-z0-9_-]
+//   pokalNyckel(id) → "pokal-<id>"     layout-nyckeln för en pokal i rummet (#497)
+//   pokalIdFranNyckel(nyckel) → id|null  bara känd typ + giltigt kallaId
+//       (samma form som reglernas kcPokalNyckel)
 //   verifieraPokal(typ, kallaDoc, classId) → bool  förtjänade klassen pokalen?
 //   pokalerUrKalla(kalla, kallaId, kallaDoc)
 //       → [{ classId, typ, kallaId, id, detalj }]  alla pokaler källan ger
@@ -88,6 +91,21 @@ export function giltigtKallaId(id) {
 export function pokalId(typ, kallaId) {
   if (!harPokaltyp(typ) || !giltigtKallaId(kallaId)) return null;
   return `${typ}-${kallaId}`;
+}
+
+/** placedItems-nyckeln för en flyttad pokal i Klasscentrets rum (#497). */
+export function pokalNyckel(trophyId) {
+  return `pokal-${trophyId}`;
+}
+
+/** "pokal-<typ>-<kallaId>" → trophyId, eller null (okänd typ/ogiltigt id). */
+export function pokalIdFranNyckel(nyckel) {
+  if (typeof nyckel !== "string" || !nyckel.startsWith("pokal-")) return null;
+  const id = nyckel.slice(6);
+  for (const t of TYPER.keys()) {
+    if (id.startsWith(`${t}-`) && giltigtKallaId(id.slice(t.length + 1))) return id;
+  }
+  return null;
 }
 
 /** Har klassen förtjänat pokalen enligt källdokumentet (klientens spegel av reglerna)? */

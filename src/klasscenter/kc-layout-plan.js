@@ -30,6 +30,11 @@
 // `forvantadVersion` (versionen som visades): avviker current → kod "krock"
 // och ingenting skrivs.
 //
+// Pokaler (#497): "pokal-<trophyId>" (kc-pokal-typer.js pokalNyckel) är en
+// FLYTTAD pokal – högst KC_POKAL_MAX, inte i möbellådan (pokalen tillhör
+// klassen). Oflyttade pokaler auto-placeras och sparas aldrig
+// (kc-pokal-placering.js).
+//
 // "#<n>"-nycklar (extra exemplar, n ≥ 2, som rummets makePlacementKey) godtas
 // här om lådan har ≥ n exemplar. Crowdfunding ger ett exemplar per föremål,
 // och firestore.rules godtar bara katalog-id:n som nycklar – flera exemplar
@@ -56,17 +61,23 @@
 //   Layout = { placedItems, version, updatedBy, updatedAt }
 //   Plan = { ok:true, version, slot, placedItems, uid }
 //   Fel  = { ok:false, kod, error, nyckel? }  kod: "ogiltig-form" |
-//          "for-manga" | "okant-foremal" | "ej-i-ladan" | "ogiltig-position" |
+//          "for-manga" | "for-manga-pokaler" | "okant-foremal" | "ej-i-ladan" | "ogiltig-position" |
 //          "ingen-anvandare" | "krock" | "tom-slot" | "ogiltig-slot" |
 //          "historik-andrad" (slotten innehåller inte längre historikVersion)
 // ============================================================================
 
 import { kcShopItem } from "./kc-shop-items.js";
+import { pokalIdFranNyckel } from "./kc-pokal-typer.js";
 import { medKrockOmforsok, sammaSomNekat, SAMMA_LAGE } from "./kc-omforsok.js";
 
 export const KC_HISTORIK = 10;
-/** Max antal placerade föremål (även reglernas storleksgräns). */
-export const KC_LAYOUT_MAX = 40;
+/** Max antal flyttade pokaler i layouten (reglernas kcPokalerOk). */
+export const KC_POKAL_MAX = 8;
+/**
+ * Max antal placerade poster = alla 8 katalogföremål + KC_POKAL_MAX (även
+ * reglernas storleksgräns, en kcPosOk-rad per index – 1000-uttryckstaket).
+ */
+export const KC_LAYOUT_MAX = 16;
 export const KC_Z_MIN = 0;
 export const KC_Z_MAX = 999;
 /** Försök när en samtidig sparning krockar (se kc-omforsok.js). */
@@ -128,9 +139,18 @@ export function validatePlacedItems(placedItems, { lada } = {}) {
   if (nycklar.length > KC_LAYOUT_MAX) {
     return fel("for-manga", `Högst ${KC_LAYOUT_MAX} föremål får stå i rummet.`);
   }
+  if (nycklar.filter((k) => pokalIdFranNyckel(k)).length > KC_POKAL_MAX) {
+    return fel("for-manga-pokaler", `Högst ${KC_POKAL_MAX} pokaler kan flyttas från hyllan – ställ tillbaka någon.`);
+  }
   const antal = lada === undefined ? null : ladaAntal(lada);
   const ut = {};
   for (const nyckel of nycklar.sort()) {
+    if (pokalIdFranNyckel(nyckel)) {
+      const pos = position(placedItems[nyckel]);
+      if (!pos) return fel("ogiltig-position", "Pokalen har en ogiltig plats.", nyckel);
+      ut[nyckel] = pos;
+      continue;
+    }
     const m = NYCKEL.exec(nyckel);
     if (!m || !kcShopItem(m[1])) return fel("okant-foremal", "Föremålet finns inte.", nyckel);
     const exemplar = m[2] === undefined ? 1 : Number(m[2]);
@@ -152,7 +172,8 @@ function lasPlacerade(pi) {
   for (const [nyckel, p] of Object.entries(pi)) {
     const m = NYCKEL.exec(nyckel);
     const pos = position(p);
-    if (m && kcShopItem(m[1]) && pos && Object.keys(ut).length < KC_LAYOUT_MAX) ut[nyckel] = pos;
+    const kand = (m && kcShopItem(m[1])) || pokalIdFranNyckel(nyckel);
+    if (kand && pos && Object.keys(ut).length < KC_LAYOUT_MAX) ut[nyckel] = pos;
   }
   return ut;
 }
@@ -217,6 +238,10 @@ export function planRestore(historySlot, { lada } = {}) {
   const antal = lada === undefined ? null : ladaAntal(lada);
   const ut = {};
   for (const [nyckel, pos] of Object.entries(pi)) {
+    if (pokalIdFranNyckel(nyckel)) {
+      ut[nyckel] = pos; // pokalen tillhör klassen – aldrig i lådan
+      continue;
+    }
     const [, id, n] = NYCKEL.exec(nyckel);
     if (!antal || (antal.get(id) || 0) >= (n === undefined ? 1 : Number(n))) ut[nyckel] = pos;
   }
