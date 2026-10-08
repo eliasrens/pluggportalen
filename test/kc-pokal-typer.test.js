@@ -80,14 +80,33 @@ describe("vilka klasser får pokal", () => {
     assert.equal(verifieraPokal("mm-klasskamp", mm(), "6a"), true);
     assert.equal(verifieraPokal("mm-klasskamp", mm(), "6b"), false);
   });
-  it("Live: vinnaren får live-vinst, varje klass med spelare live-avklarat", () => {
+  it("Mattematchen oavgjort (#495): ALLA delade vinnare får pokalen", () => {
+    const lika = mm({ result: { winnerClass: "6a", winnerClasses: ["6a", "6b"] } });
+    assert.deepEqual(pokalerUrKalla("mattematchen", "c1", lika).map((p) => p.classId), ["6a", "6b"]);
+    assert.equal(verifieraPokal("mm-klasskamp", lika, "6b"), true);
+    // Äldre result utan winnerClasses → bara winnerClass; ingen deltagare/svar → ingen.
+    assert.deepEqual(pokalerUrKalla("mattematchen", "c1", mm()).map((p) => p.classId), ["6a"]);
+    const ingen = mm({ participatingClassIds: [], result: { winnerClass: null, winnerClasses: [] } });
+    assert.deepEqual(pokalerUrKalla("mattematchen", "c1", ingen), []);
+  });
+  it("Live tävlingsläge: bara vinnaren får pokal (live-vinst), ingen live-avklarat", () => {
     const ut = pokalerUrKalla("live", "s1", live()).map((p) => `${p.typ}:${p.classId}`).sort();
-    assert.deepEqual(ut, ["live-avklarat:6a", "live-avklarat:6b", "live-vinst:6b"]);
+    assert.deepEqual(ut, ["live-vinst:6b"]);
+    assert.deepEqual(pokalerUrKalla("live", "s1", live({ participatingClassIds: [], result: { perClass: {}, winner: null } })), []);
+  });
+  it("Live kooperativt läge (#495): målet nått → live-avklarat till klasser med spelare, aldrig vinst", () => {
+    const koop = (goalReached) => live({ result: { ...live().result, cooperative: true, goalReached } });
+    const ut = pokalerUrKalla("live", "s1", koop(true)).map((p) => `${p.typ}:${p.classId}`).sort();
+    assert.deepEqual(ut, ["live-avklarat:6a", "live-avklarat:6b"]);
+    assert.deepEqual(pokalerUrKalla("live", "s1", koop(false)), []);
+    assert.equal(verifieraPokal("live-vinst", koop(true), "6b"), false);
   });
   it("Live: oavgjort, vinnare utan spelare, ej deltagande eller pågående → ingen vinst", () => {
     assert.equal(verifieraPokal("live-vinst", live({ result: { ...live().result, winner: "draw" } }), "6b"), false);
     assert.equal(verifieraPokal("live-vinst", live({ result: { ...live().result, winner: "6c" } }), "6c"), false);
-    assert.equal(verifieraPokal("live-avklarat", live({ participatingClassIds: ["6b"] }), "6a"), false);
+    const nadd = { ...live().result, cooperative: true, goalReached: true };
+    assert.equal(verifieraPokal("live-avklarat", live({ result: nadd }), "6a"), true);
+    assert.equal(verifieraPokal("live-avklarat", live({ participatingClassIds: ["6b"], result: nadd }), "6a"), false);
     assert.deepEqual(pokalerUrKalla("live", "s1", live({ status: "live" })), []);
     assert.deepEqual(pokalerUrKalla("live", "a/b", live()), []);
     assert.deepEqual(pokalerUrKalla("live", "s1", null), []);

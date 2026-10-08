@@ -531,8 +531,11 @@ lärarsidan: kör därefter `admin/qa-mattematchen-larare-seed.mjs` (qalarare / 
 
 **Lärarsidan (#459):** "Avsluta" (och första öppningen av en tävling vars tid
 tagit slut av sig själv, `archiveIfEnded`) skriver `status: "finished"` +
-`result` = `{ savedAt, winner, winnerClass, top, classes, students
+`result` = `{ savedAt, winner, winnerClass, winnerClasses[], top, classes, students
 [{uid,name,classId,correct,incorrect}], totals, tables[0–10] }` (≤ 2000 elever).
+`winnerClasses` (#495) = alla klasser på delad förstaplats (samma poäng/elev,
+> 0 rätt); `winnerClass` = den första av dem (visningen). Efter skrivningen
+delar samma lärarklient ut Klasscentrets pokal `mm-klasskamp` (se Pokaler).
 Underdokumenten ligger kvar → elevdetaljen per tabell går att öppna i efterhand.
 Klasstabellen läser `studentStats where documentId() in [klassens elever]` (30 per
 fråga). "Totalt i multiplikation" = två `count()` på `collectionGroup("answers")`
@@ -693,7 +696,10 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
   kan dessutom avsluta i förtid / avbryta en lobby.
 - **`result`** skrivs EN gång (transaktion) av en lärarklient (projektorn, eller
   historikvyn om ingen projektor var öppen) ~2,5 s efter slut:
-  `{ perClass: { classId: { correct, divisor, score, players } }, winner: classId|"draw", totalCorrect, players, computedAt }`.
+  `{ perClass: { classId: { correct, divisor, score, players } }, winner: classId|"draw", totalCorrect, players, computedAt }`
+  + i KOOPERATIVA lägen (`GameMode.cooperative`, #495) `cooperative: true,
+  goalReached: bool` (lägets `goalReached(standings, session)`). Klienten vars
+  transaktion skrev `result` delar sedan ut Live-bonusar och pokaler.
 
 ### Live-kärnan i klienten (#460)
 
@@ -857,13 +863,30 @@ vinnare(kallaDoc), detaljFran? })`):
 
 | `typ` | Källa (`kallaId`) | Delas ut till | Tooltip |
 | --- | --- | --- | --- |
-| `mm-klasskamp` | `mathCompetitions/{cid}` | `result.winnerClass` när `status == "finished"` | "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans." |
-| `live-vinst` | `liveSessions/{sid}` | `result.winner` (inte `"draw"`) med ≥ 1 spelare | "Klassen vann Live-matchen! …" |
-| `live-avklarat` | `liveSessions/{sid}` | varje deltagande klass med `result.perClass[klass].players > 0` | "Klassen klarade ett Liveläge tillsammans!" |
+| `mm-klasskamp` | `mathCompetitions/{cid}` | `result.winnerClass` + alla i `result.winnerClasses` när `status == "finished"` | "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans." |
+| `live-vinst` | `liveSessions/{sid}` | TÄVLINGSLÄGE: `result.winner` (inte `"draw"`, inte `result.cooperative`) med ≥ 1 spelare | "Klassen vann Live-matchen! …" |
+| `live-avklarat` | `liveSessions/{sid}` | KOOPERATIVT läge med `result.goalReached == true`: varje deltagande klass med `result.perClass[klass].players > 0` | "Klassen klarade ett Liveläge tillsammans!" |
 
-`live-avklarat` = samma villkor som klassbonusen `"live"` (`liveBonusar` i
-`kc-koppling.js`). Vill epic 3 B ha ett skarpare "kooperativt mål" krävs ett
-nytt fält i Live-`result` + regelvillkoret nedan.
+**Beslut (#495):**
+- **Oavgjort i Klasskampen = alla delade vinnare får pokalen** (samma
+  poäng/elev på förstaplatsen, `winnerClasses`). Äldre `result` utan fältet →
+  bara `winnerClass`. Ingen klass med rätt svar → ingen pokal.
+- **Oavgjort i Live (`"draw"`) = ingen `live-vinst`** (oförändrat från #494).
+- **`live-avklarat` bara i kooperativa lägen** där målet nåddes – ett vanligt
+  tävlingsläge ger bara vinnaren en pokal (inte en "deltagarpokal" per match).
+  I dag finns bara tävlingsläget `multiplication_0_10` → `live-avklarat` delas
+  inte ut förrän ett läge med `cooperative: true` + `goalReached()` registreras
+  (`src/live/game-modes.js`). Klassbonusen `"live"` (EXP) är oförändrad.
+
+**Utdelningen (#495)** görs av lärarklienten som skrev källans `result`,
+EFTER skrivningen (reglerna verifierar med `getAfter`), via dynamisk import
+`kc-koppling.js pokalerEfterAvslut(kalla, kallaId, kallaDoc)` → fire-and-
+forget, aldrig kastande (ett pokalfel stör aldrig avslutet):
+- Mattematchen: `mm-teacher-data.js` `finishCompetition` + `archiveIfEnded`.
+- Live: `live-data.js` `writeResultIfMissing` (bara klienten vars transaktion
+  skrev `result`, samma ställe som `liveKlassBonus`).
+Misslyckas utdelningen (nät/regler) görs inget nytt försök automatiskt –
+`archiveIfEnded` gör inget när `result` redan finns.
 
 #### `classCenters/{classId}/trophies/{typ}-{kallaId}`
 

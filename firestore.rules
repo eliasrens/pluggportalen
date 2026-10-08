@@ -765,8 +765,11 @@ service cloud.firestore {
       //  • Verifieras mot källans `result` med getAfter (fungerar även när
       //    pokalen skrivs i samma batch som resultatet): status 'finished' och
       //      mm-klasskamp   mathCompetitions/{kallaId}.result.winnerClass == klassen
-      //      live-vinst     liveSessions/{kallaId}.result.winner == klassen
-      //      live-avklarat  liveSessions/{kallaId}: klassen deltog
+      //                     eller klassen i result.winnerClasses (delad 1:a, #495)
+      //      live-vinst     liveSessions/{kallaId}.result.winner == klassen och
+      //                     inte result.cooperative
+      //      live-avklarat  liveSessions/{kallaId}: result.goalReached == true
+      //                     (kooperativt läge, #495) och klassen deltog
       //    (live-* kräver dessutom klassen i participatingClassIds och
       //    result.perClass[klassen].players > 0).
       // ⚠️ Ny pokaltyp = typen i kcPokalTyper + gren i kcPokalVerifierad +
@@ -775,14 +778,17 @@ service cloud.firestore {
       function kcPokalTyper() { return ['mm-klasskamp', 'live-vinst', 'live-avklarat']; }
       function kcPokalMm(cid) {
         let c = getAfter(/databases/$(database)/documents/mathCompetitions/$(cid)).data;
-        return c.status == 'finished' && c.get('result', {}).get('winnerClass', null) == classId;
+        let r = c.get('result', {});
+        return c.status == 'finished' &&
+          (r.get('winnerClass', null) == classId || classId in r.get('winnerClasses', []));
       }
       function kcPokalLive(sid, vinst) {
         let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
         let r = s.get('result', {});
         return s.status == 'finished' && classId in s.participatingClassIds &&
           r.get('perClass', {}).get(classId, {}).get('players', 0) > 0 &&
-          (!vinst || r.get('winner', null) == classId);
+          (vinst ? r.get('winner', null) == classId && r.get('cooperative', false) != true
+                 : r.get('goalReached', false) == true);
       }
       function kcPokalVerifierad(typ, kallaId) {
         return (typ == 'mm-klasskamp' && kcPokalMm(kallaId)) ||

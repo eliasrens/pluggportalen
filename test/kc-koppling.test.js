@@ -11,7 +11,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  behoverSkrivning, klassExpEfterOvning, liveBonusar, liveKlassBonus,
+  behoverSkrivning, klassExpEfterOvning, liveBonusar, liveKlassBonus, pokalerEfterAvslut,
 } from "../src/klasscenter/kc-koppling.js";
 import { planKlassExp } from "../src/klasscenter/kc-exp-regler.js";
 
@@ -152,7 +152,54 @@ test("anropspunkterna skickar rätt modul + resultatform (dynamiskt, utan await)
   assert.match(las("games-rakna.js"), /classResult: \{ ratt: correct \}/);
   assert.match(las("lasresan/page-lasresan.js"), /modul: "lasresan", resultat: \{ ratt: a\.correct, totalt: a\.totalQuestions \}/);
   assert.match(las("tavling/page-mattematchen.js"), /modul: "mattematchen", resultat: \{ rattFore, rattEfter: bekraftade \}/);
-  assert.match(las("live/live-data.js"), /if \(skrev\) \{\s*import\("\.\.\/klasscenter\/kc-koppling\.js"\)\.then\(\(m\) => m\.liveKlassBonus\(result\)\)/);
+  assert.match(las("live/live-data.js"), /if \(skrev\) \{\s*import\("\.\.\/klasscenter\/kc-koppling\.js"\)\.then\(\(m\) => \{\s*m\.liveKlassBonus\(result\);\s*m\.pokalerEfterAvslut\("live", sid, skrev\);/);
+});
+
+// --- Pokaler (#495) -----------------------------------------------------------
+
+const MM_KALLA = {
+  name: "MM okt", status: "finished", participatingClassIds: ["a", "b", "c"],
+  result: { winnerClass: "a", winnerClasses: ["a", "b"] },
+};
+
+test("pokaler: delar ut det källans result ger, en anropning per källa", async () => {
+  const anrop = [];
+  const dela = async (kalla, id, doc) => { anrop.push([kalla, id, doc.name]); return [{ ok: true }]; };
+  assert.deepEqual(await pokalerEfterAvslut("mattematchen", "c1", MM_KALLA, { dela }), [{ ok: true }]);
+  assert.deepEqual(anrop, [["mattematchen", "c1", "MM okt"]]);
+});
+
+test("pokaler: ingen vinnare / pågående / ingen deltagare → inget anrop", async () => {
+  let n = 0;
+  const dela = async () => { n++; return []; };
+  const tom = { ...MM_KALLA, result: { winnerClass: null, winnerClasses: [] } };
+  assert.deepEqual(await pokalerEfterAvslut("mattematchen", "c1", tom, { dela }), []);
+  assert.deepEqual(await pokalerEfterAvslut("mattematchen", "c1", { ...MM_KALLA, status: "active" }, { dela }), []);
+  assert.deepEqual(await pokalerEfterAvslut("live", "s1", { status: "finished", participatingClassIds: [], result: { perClass: {}, winner: null } }, { dela }), []);
+  assert.deepEqual(await pokalerEfterAvslut("live", "s1", null, { dela }), []);
+  assert.equal(n, 0);
+});
+
+test("pokaler: fel kastas aldrig vidare (avslutet skyddas)", async () => {
+  const orig = console.warn;
+  console.warn = () => {};
+  try {
+    const dela = async () => { throw Object.assign(new Error("nej"), { code: "permission-denied" }); };
+    assert.deepEqual(await pokalerEfterAvslut("mattematchen", "c1", MM_KALLA, { dela }), []);
+  } finally {
+    console.warn = orig;
+  }
+});
+
+test("pokaler: MM-avsluten delar ut EFTER att result skrivits (dynamiskt, utan await)", () => {
+  const mm = las("tavling/mm-teacher-data.js");
+  assert.match(mm, /import\("\.\.\/klasscenter\/kc-koppling\.js"\)\s*\.then\(\(m\) => m\.pokalerEfterAvslut\("mattematchen", comp\.id, kalla\)\)\s*\.catch/);
+  for (const fn of ["finishCompetition", "archiveIfEnded"]) {
+    const kropp = mm.slice(mm.indexOf(`export async function ${fn}`)).split("\n}\n")[0];
+    assert.match(kropp, /await updateDoc\([^;]*result \}\);\s*delaUtPokaler\(comp, result\);/, fn);
+  }
+  assert.doesNotMatch(mm, /^import .*kc-(koppling|pokal)/m, "aldrig statiskt");
+  assert.doesNotMatch(las("live/live-data.js"), /^import .*kc-(koppling|pokal)/m, "aldrig statiskt");
 });
 
 // --- Bootgraf (#271) ----------------------------------------------------------

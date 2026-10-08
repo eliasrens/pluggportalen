@@ -36,7 +36,7 @@ function winnerText(s, result) {
 async function ensureResult(s, players) {
   if (s.result) return s.result;
   const standings = classStandings(s, sumCounters(await getCounters(s.id)));
-  const result = buildResult(s, standings, players);
+  const result = buildResult(s, standings, players, getGameMode(s.gameMode));
   writeResultIfMissing(s.id, result).catch(() => {});
   return result;
 }

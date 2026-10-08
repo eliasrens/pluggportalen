@@ -69,6 +69,10 @@ describe("registret", () => {
     assert.ok(errs.some((e) => e.includes("inputMode")));
     assert.ok(errs.some((e) => e.includes("pointsPerCorrect")));
     assert.ok(errs.some((e) => e.includes("createSource")));
+    const koop = validateGameMode({ ...requireGameMode("multiplication_0_10"), id: "koop_x", cooperative: true });
+    assert.ok(koop.some((e) => e.includes("goalReached")));
+    assert.ok(validateGameMode({ ...requireGameMode("multiplication_0_10"), cooperative: "ja" }).some((e) => e.includes("cooperative")));
+    assert.deepEqual(validateGameMode({ ...requireGameMode("multiplication_0_10"), cooperative: true, goalReached: () => true }), []);
     assert.equal(getGameMode("geography"), null);
     assert.throws(() => requireGameMode("geography"), /Okänt/);
   });

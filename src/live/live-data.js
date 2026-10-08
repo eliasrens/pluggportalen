@@ -122,19 +122,23 @@ export async function autoFinish(sid) {
 /**
  * Historikens ögonblicksbild – skrivs en gång (av en lärarklient). Den klient
  * vars transaktion skrev result delar också ut Klasscentrets Live-bonusar
- * (#479, dynamiskt, aldrig kastande) → exakt en gång per session.
+ * (#479) och pokaler (#495) – dynamiskt, aldrig kastande → en gång per session.
  */
 export async function writeResultIfMissing(sid, result) {
-  let skrev = false;
+  let skrev = null;
   await runTransaction(db, async (tx) => {
-    skrev = false;
+    skrev = null;
     const snap = await tx.get(sessRef(sid));
     if (!snap.exists() || snap.data().result || snap.data().status !== "finished") return;
     tx.update(sessRef(sid), { result: { ...result, computedAt: serverTimestamp() } });
-    skrev = true;
+    skrev = { ...snap.data(), result };
   });
+  // Först NÄR result är committat: bonus + pokaler (#495, idempotenta id:n).
   if (skrev) {
-    import("../klasscenter/kc-koppling.js").then((m) => m.liveKlassBonus(result)).catch(() => {});
+    import("../klasscenter/kc-koppling.js").then((m) => {
+      m.liveKlassBonus(result);
+      m.pokalerEfterAvslut("live", sid, skrev);
+    }).catch(() => {});
   }
 }
 
