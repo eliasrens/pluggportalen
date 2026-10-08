@@ -2436,5 +2436,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n5-hajar",
+    "title": "Hajen har fått fel rykte",
+    "level": 5,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "När många hör ordet haj tänker de på en farlig mördare med vassa tänder. Men den bilden stämmer dåligt med verkligheten.\n\nHajar har funnits i haven i över 400 miljoner år, alltså långt innan de första dinosaurierna. Det finns fler än 500 olika arter. Den största är valhajen, som kan bli över tolv meter lång. Trots storleken äter den nästan bara plankton, små djur och växter som svävar i vattnet. Den simmar med gapet öppet och silar maten ur vattnet. Även i svenska vatten finns hajar, till exempel pigghajen på västkusten.\n\nEn haj har inget skelett av ben. Skelettet är i stället av brosk, samma böjliga material som du har i öronen och näsan. Hajens tänder sitter i flera rader. När en tand lossnar flyttar en ny fram och tar dess plats, och under sitt liv kan en haj göra av med tusentals tänder.\n\nHajar har sinnen som vi saknar. Längs sidorna har de en linje som känner av rörelser i vattnet. I nosen finns små porer som kan uppfatta de svaga elektriska signaler som alla djurs muskler sänder ut. Därför kan en haj hitta en fisk som har grävt ner sig i sanden.\n\nHajar angriper mycket sällan människor. I hela världen dör bara ett fåtal personer om året efter hajattacker. Samtidigt fångar människor många miljoner hajar varje år, och flera arter är nu hotade. Den som borde vara rädd är alltså snarare hajen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad äter valhajen nästan bara?",
+        "options": [
+          "Sälar",
+          "Stora fiskar",
+          "Sjögräs",
+          "Plankton"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är hajens skelett gjort av?",
+        "options": [
+          "Brosk",
+          "Horn",
+          "Kalksten",
+          "Ben"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att valhajen ”silar maten ur vattnet”?",
+        "options": [
+          "Den tuggar maten länge och noga",
+          "Den spottar ut maten den inte tycker om",
+          "Vattnet rinner ut men maten blir kvar",
+          "Den blandar maten med vatten"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kan en haj hitta en fisk som har grävt ner sig i sanden?",
+        "options": [
+          "Den känner lukten av fiskens blod",
+          "Den känner fiskens elektriska signaler",
+          "Den hör hur fisken andas där under sanden",
+          "Den ser fisken med sina skarpa ögon"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är porer?",
+        "options": [
+          "Mycket små hål",
+          "Små hårda fjäll",
+          "Vassa taggar",
+          "Tunna hårstrån"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tar hajens tänder aldrig slut?",
+        "options": [
+          "Hajen använder nästan aldrig sina tänder",
+          "Tänderna växer ut igen varje vinter",
+          "Tänderna är så hårda att de aldrig slits",
+          "Nya tänder flyttar fram när gamla lossnar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar texten med att den som borde vara rädd ”snarare är hajen”?",
+        "options": [
+          "Hajar blir rädda när de ser dykare i vattnet",
+          "Människor är ett större hot mot hajarna",
+          "Hajar är räddare för valar än för människor",
+          "Hajar är rädda för andra, större hajar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten framför allt visa?",
+        "options": [
+          "Att valhajen är den enda ofarliga hajen",
+          "Att det inte finns hajar i Sverige",
+          "Att hajar är annorlunda än sitt rykte",
+          "Att hajar är havets farligaste djur"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-krakfaglar",
+    "title": "Fåglarna som tänker",
+    "level": 5,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Har du sett en kråka hoppa omkring på en parkeringsplats och leta mat? Den kan verka helt vanlig, men forskare har upptäckt att kråkfåglar hör till de smartaste djuren på jorden.\n\nTill kråkfåglarna hör bland annat kråka, korp, kaja och skata. Deras hjärnor är små, men fulla av tätt packade nervceller. I vissa försök klarar de uppgifter lika bra som människoapor.\n\nEtt känt försök bygger på en gammal fabel om en törstig fågel. Forskarna lade en godbit som flöt på vattnet längst ner i ett smalt glasrör. Fågeln nådde inte ner. Men flera kråkfåglar kom på att de kunde släppa ner stenar i röret. Då steg vattnet, och till slut kunde de nappa åt sig godbiten.\n\nPå ön Nya Kaledonien i Stilla havet lever kråkor som tillverkar egna verktyg. De formar kvistar och blad till krokar och använder dem för att peta fram larver ur hål i träd.\n\nKråkor kan också känna igen människors ansikten. I ett försök i USA bar forskare en viss mask när de fångade och märkte kråkor. Flera år senare skränade kråkorna fortfarande ilsket mot den som bar just den masken, även kråkor som själva aldrig hade blivit fångade. De hade lärt sig av de andra.\n\nSkatan har klarat ett test som bara ett fåtal djur klarar. Forskare satte en liten färgfläck på skatans hals, där den bara kunde se den i en spegel. Skatan försökte få bort fläcken. Det tyder på att den förstod att det var sig själv den såg.\n\nNästa gång en kråka tittar på dig kanske den alltså kommer ihåg dig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka fåglar nämns i texten som kråkfåglar?",
+        "options": [
+          "Kråka, mås, duva och skata",
+          "Korp, örn, kaja och uggla",
+          "Kaja, trast, korp och svala",
+          "Kråka, korp, kaja och skata"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur kom fåglarna åt godbiten i glasröret?",
+        "options": [
+          "De fiskade upp den med en böjd kvist",
+          "De släppte ner stenar så att vattnet steg",
+          "De välte röret så att allt vattnet rann ut",
+          "De knackade sönder glaset med näbben"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att kråkorna ”skränade”?",
+        "options": [
+          "De skrek högt och argt",
+          "De sjöng vackert",
+          "De flög snabbt därifrån",
+          "De gömde sig tyst"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad visar det att även kråkor som aldrig blivit fångade skränade mot masken?",
+        "options": [
+          "Att forskarna hade fångat alla kråkor",
+          "Att alla kråkor tycker illa om masker",
+          "Att kråkor kan lära sig av varandra",
+          "Att kråkor ser bättre än människor"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör kråkorna på Nya Kaledonien?",
+        "options": [
+          "Gör krokar som de petar fram larver med",
+          "Gömmer nötter i marken inför vintern",
+          "Härmar människors röster och ord",
+          "Bygger bon av glasbitar och små stenar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder det att något ”tyder på” något?",
+        "options": [
+          "Det bevisar att något är fel",
+          "Det visar att något troligen är sant",
+          "Det pekar ut en viss plats",
+          "Det betyder att något är väldigt farligt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför satte forskarna fläcken där skatan bara kunde se den i spegeln?",
+        "options": [
+          "För att färgen inte skulle smitta av sig på andra fåglar",
+          "För att skatan inte skulle bli rädd för färgen",
+          "För att se om skatan kände igen sig själv",
+          "För att skatan skulle tro att den såg en annan fågel"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Att kråkor kan vara farliga för människor",
+          "Varför kråkor letar mat på parkeringar",
+          "Hur man fångar och märker fåglar",
+          "Att kråkfåglar är mycket smarta"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-torvmossen",
+    "title": "Mossen som sparar allt",
+    "level": 5,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En mosse kan se ut som en tom och blöt plats där fötterna sjunker ner för varje steg. Men under ytan pågår något märkligt.\n\nMossar finns i stora delar av Sverige, särskilt i norr. Den viktigaste växten där är vitmossan. Den suger upp vatten som en tvättsvamp och kan hålla många gånger sin egen vikt i vatten. Vitmossan gör också vattnet runt sig surt.\n\nI det sura vattnet finns nästan inget syre. Därför bryts döda växter inte ner som i en vanlig skog. I stället pressas de långsamt ihop och blir till torv. Torven växer bara någon millimeter om året, så en mosse som är flera meter djup har vuxit i tusentals år.\n\nEftersom nästan ingenting ruttnar kan en mosse bevara saker mycket länge. I Danmark hittade två bröder år 1950 en död man i en mosse. Han var så välbevarad att de trodde att han hade dött nyligen, och de ringde polisen. Det visade sig att mannen hade levt för ungefär 2 400 år sedan. I dag kallas han Tollundmannen.\n\nMossar är också viktiga för klimatet. Växterna tar upp koldioxid ur luften, och när de blir torv stannar kolet kvar i marken. Fast torvmarker bara täcker en liten del av jordens yta lagrar de mer kol än alla världens skogar tillsammans.\n\nFörr grävde man diken för att torka ut mossar och få mer mark för skog och odling. Då började torven brytas ner, och kolet släpptes ut i luften. I dag fyller man på många håll igen dikena, så att mossarna kan bli blöta igen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken växt är den viktigaste i en mosse?",
+        "options": [
+          "Hjortronet",
+          "Ljungen",
+          "Tallen",
+          "Vitmossan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur snabbt växer torven?",
+        "options": [
+          "Bara någon millimeter om året",
+          "Några centimeter varje sommar",
+          "Ungefär en meter varje år",
+          "Ungefär en decimeter om året"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ruttnar döda växter inte i mossen?",
+        "options": [
+          "Vitmossan äter upp dem först",
+          "Det sura vattnet har nästan inget syre",
+          "Det är för kallt i mossen året runt",
+          "Det kommer för lite ljus dit"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att mannen var ”välbevarad”?",
+        "options": [
+          "Han var mycket gammal, torr och skör",
+          "Han var noggrant gömd för alla",
+          "Han var i gott skick trots sin ålder",
+          "Han var fastfrusen i isen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ringde bröderna till polisen?",
+        "options": [
+          "De trodde att mannen hade dött nyligen",
+          "De hade blivit rädda för att gå i mossen",
+          "De ville ha hjälp att gräva upp mannen",
+          "Det var förbjudet att gräva i mossar"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad händer när en mosse torkas ut med diken?",
+        "options": [
+          "Vitmossan börjar växa snabbare än förut",
+          "Torven bryts ner och kolet släpps ut",
+          "Mer vatten rinner in i mossen",
+          "Torven blir hårdare och lagrar mer kol"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att torvmarker ”lagrar” kol?",
+        "options": [
+          "De förstör kolet",
+          "De släpper ut kolet",
+          "De tillverkar nytt kol",
+          "De samlar och sparar kolet"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten främst säga om mossar?",
+        "options": [
+          "De är farliga platser att gå på",
+          "De finns bara i norra Sverige",
+          "De är mer värdefulla än de ser ut",
+          "De borde torkas ut för att ge mer skog"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-skogsbranden",
+    "title": "Skogen som behöver eld",
+    "level": 5,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En skogsbrand är förstås farlig för människor och hus. Men för skogen själv är elden inte bara förstörelse. Många växter och djur behöver den faktiskt.\n\nLångt innan det fanns människor i Sverige brann skogarna regelbundet, oftast efter att blixten slagit ner under en torr sommar. Genom att undersöka gamla träd och stubbar har forskare sett att samma skogsområde förr kunde brinna med några decenniers mellanrum.\n\nGamla tallar är väl rustade för eld. De har tjock bark som skyddar stammen, och de lägsta grenarna sitter ofta högt upp. En vanlig skogsbrand kryper fram längs marken och bränner mossa, ris och små träd, men den stora tallen överlever ofta. Kvar blir ett mörkt brandärr på stammen.\n\nEfter branden är marken full av aska, som innehåller näring. Solljuset når ner till marken igen, och nya växter tar chansen. Björk och asp kommer snabbt. Växten brandnäva har frön som kan ligga i jorden i många decennier och vänta. Först när hettan från en brand väcker dem börjar de gro.\n\nVissa skalbaggar söker sig till och med till elden. En liten svart skalbagge har särskilda sinnesorgan som känner av värmen från en brand på flera kilometers avstånd. Den lägger sina ägg i de brända träden, där det finns gott om föda och få fiender.\n\nI dag släcker vi nästan alla bränder, och därför har många arter som behöver eld blivit sällsynta. Därför tänder man ibland eld i skogen med flit, under noggrann kontroll. Det kallas naturvårdsbränning.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad startade oftast skogsbränderna förr?",
+        "options": [
+          "Blixten under torra somrar",
+          "Människor som eldade i skogen",
+          "Gnistor från vulkanutbrott",
+          "Solens värme direkt på mossan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur skyddar sig gamla tallar mot eld?",
+        "options": [
+          "De tappar grenarna",
+          "De har blöta barr",
+          "De har tjock bark",
+          "De växer nära sjöar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att tallarna är ”väl rustade” för eld?",
+        "options": [
+          "De är väldigt gamla",
+          "De är mycket höga",
+          "De är täckta av rost",
+          "De är väl förberedda"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför växer nya växter bra efter en brand?",
+        "options": [
+          "Marken blir mjuk och varm av elden",
+          "Det finns mycket näring och ljus",
+          "Det regnar alltid mycket efter en brand",
+          "Alla djur som äter växter har flytt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är speciellt med brandnävans frön?",
+        "options": [
+          "De gror först när en brand har värmt dem",
+          "De kan inte brinna upp i elden",
+          "De gror bara i tallarnas tjocka bark",
+          "De sprids med vinden till nya skogar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför lägger skalbaggen sina ägg i brända träd?",
+        "options": [
+          "Där kan inga människor hitta äggen",
+          "Där är det svalare än i friska träd",
+          "Där finns mycket mat och få fiender",
+          "Där skyddas äggen av askan från regn"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är naturvårdsbränning?",
+        "options": [
+          "Att släcka alla bränder så snabbt som det bara går",
+          "Att bränna skog med flit för att hjälpa naturen",
+          "Att elda upp gamla löv i trädgården",
+          "Att bygga breda brandgator mellan skogar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten framför allt säga?",
+        "options": [
+          "Att skalbaggar startar många skogsbränder",
+          "Att tallen är det enda trädet som klarar eld",
+          "Att alla skogsbränder måste släckas genast",
+          "Att eld är en naturlig och viktig del av skogen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-lavar",
+    "title": "Två som blev en",
+    "level": 5,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "På stenar, trädstammar och gamla staket sitter ofta gröna, gula eller grå fläckar. Många tror att det är mossa, men ofta är det lavar. Och en lav är något ganska märkligt: den är inte en levande varelse, utan två.\n\nEn lav består av en svamp och en alg som lever tillsammans. Svampen bygger upp största delen av laven. Den håller kvar fukt och fäster laven mot underlaget. Algen gör något som svampen inte kan: den tillverkar socker med hjälp av solljus. Sockret delar den med svampen. Ett sådant samarbete, där båda har nytta av varandra, kallas symbios.\n\nTack vare samarbetet kan lavar leva på platser där nästan inget annat växer, till exempel på kala klippor, högt upp på fjället och till och med i Antarktis. De kan torka ut helt och sedan vakna till liv igen när det regnar.\n\nLavar växer mycket långsamt. Vissa arter växer bara någon millimeter om året, och en stor lav på en klippa kan vara flera hundra år gammal.\n\nFör renarna är renlaven livsviktig. På vintern gräver de genom snön med hovarna för att komma åt den.\n\nLavar är känsliga för smutsig luft, eftersom de tar upp vatten och näring direkt ur luften och regnet. När luften i svenska städer var full av rök från fabriker och eldning försvann många lavar. Sedan luften har blivit renare har de börjat komma tillbaka. Därför kan man använda lavar för att ta reda på hur ren luften är.\n\nI Sverige finns över 2 000 olika arter av lavar. Nästa gång du ser en grå fläck på en sten, titta lite närmare.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad består en lav av?",
+        "options": [
+          "En mossa och ett gräs",
+          "Två sorters mossa",
+          "En svamp och en alg",
+          "En mossa och en svamp"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör algen i laven?",
+        "options": [
+          "Den fäster laven mot stenen",
+          "Den skyddar svampen mot kylan",
+          "Den håller kvar fukten i laven",
+          "Den gör socker med hjälp av solljus"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder symbios?",
+        "options": [
+          "Ett samarbete där båda har nytta",
+          "Ett djur som lever på ett annat djur",
+          "En kamp om samma sorts föda",
+          "En växt som växer mycket långsamt"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ”underlaget”, så som ordet används i texten?",
+        "options": [
+          "Lavens långa rötter",
+          "Det som laven sitter fast på",
+          "Jorden som finns under snön",
+          "Den undre delen av laven"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan lavar leva på kala klippor där nästan inget annat växer?",
+        "options": [
+          "Klipporna är varma även på vintern",
+          "Svampen och algen hjälper varandra",
+          "Lavar behöver inget vatten alls",
+          "Det finns mycket jord uppe på klipporna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur kommer renarna åt renlaven på vintern?",
+        "options": [
+          "De hittar den i grottor under fjället",
+          "De äter den från trädens grenar",
+          "De gräver genom snön med hovarna",
+          "De väntar tills snön har smält bort"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför har lavarna börjat komma tillbaka i städerna?",
+        "options": [
+          "Människor har sått nya lavar",
+          "Fler träd har planterats",
+          "Det regnar mer än förr",
+          "Luften har blivit renare"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är huvudpoängen i texten?",
+        "options": [
+          "Lavar är ett märkligt och viktigt samarbete",
+          "Lavar finns nästan bara i Antarktis och på fjället",
+          "Lavar är en sorts mossa som växer nästan överallt",
+          "Lavar skadar stenar och träd som de växer på"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-vasaskeppet",
+    "title": "Skeppet som sjönk direkt",
+    "level": 5,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "Den 10 augusti 1628 samlades massor av människor vid stränderna i Stockholm. Kungens nya krigsskepp Vasa skulle ge sig ut på sin första resa. Skeppet var enormt, smyckat med hundratals målade träskulpturer och hade 64 kanoner. Det skulle visa hela världen hur mäktigt Sverige var.\n\nMen resan blev mycket kort. Efter ungefär 1 300 meter tog en vindby tag i seglen. Vasa krängde över på sidan, och vatten forsade in genom de öppna kanonportarna. Inom några minuter sjönk skeppet mitt framför den chockade publiken. Omkring 30 människor dog.\n\nVad hade gått fel? Vasa var för hög och för smal och hade för lite tyngd längst ner. Kungen Gustav II Adolf ville ha två våningar med kanoner, och de tunga kanonerna högt upp gjorde skeppet ostadigt. Redan före resan hade man gjort ett prov där trettio män sprang fram och tillbaka över däcket. Skeppet gungade så mycket att provet avbröts. Ändå fick det segla iväg.\n\nSedan låg Vasa på botten i över 300 år. Att skeppet inte förstördes berodde på Östersjöns vatten. Det innehåller så lite salt att skeppsmasken, en mussla som äter trä, inte kan leva där.\n\nPå 1950-talet hittades vraket, och 1961 lyftes det upp till ytan. I många år sprutades det med ett särskilt medel så att träet inte skulle spricka när det torkade.\n\nI dag står Vasa i ett eget museum i Stockholm, och miljontals besökare har sett det. Ett skepp som var en katastrof på sin tid har blivit en skatt för vår.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt seglade Vasa innan skeppet sjönk?",
+        "options": [
+          "Ungefär 13 kilometer",
+          "Ungefär 130 meter",
+          "Ungefär 1 300 meter",
+          "Ungefär 3 000 meter"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur kom vattnet in i skeppet?",
+        "options": [
+          "Genom ett stort hål i botten",
+          "Genom sprickor i det nya däcket",
+          "Över relingen i höga vågor",
+          "Genom de öppna kanonportarna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att Vasa ”krängde”?",
+        "options": [
+          "Skeppet snurrade runt",
+          "Skeppet lutade kraftigt åt sidan",
+          "Skeppet åkte baklänges",
+          "Skeppet stannade plötsligt och tvärt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad visar provet där trettio män sprang över däcket?",
+        "options": [
+          "Att man kunde ha anat att skeppet var ostadigt",
+          "Att skeppet var för långsamt för krig",
+          "Att besättningen var vältränad och snabb på däcket",
+          "Att kungen själv var med och provade"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var Vasa så ostadigt?",
+        "options": [
+          "Seglen var för små för att klara vinden",
+          "Skeppet var byggt av alldeles för tunt och dåligt virke",
+          "Skeppet hade för mycket tung last i botten",
+          "Det var högt och smalt med tunga kanoner högt upp"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför har Vasa bevarats så bra på botten?",
+        "options": [
+          "Dykare tog hand om skeppet varje år",
+          "Skeppsmasken kan inte leva i Östersjön",
+          "Skeppet var målat med skyddande färg",
+          "Vattnet var så kallt att skeppet frös"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ordet ”vrak”?",
+        "options": [
+          "Resterna av ett förlist skepp",
+          "En hamn för gamla skepp",
+          "Ett skepp som är helt nybyggt",
+          "Ett skepp som används i krig"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menas med den sista meningen i texten?",
+        "options": [
+          "Det fanns gömda skatter ombord på skeppet",
+          "Vasa ska snart segla ut på en ny resa",
+          "Olyckan då har gett oss något värdefullt i dag",
+          "Skeppet var egentligen ingen katastrof alls"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
