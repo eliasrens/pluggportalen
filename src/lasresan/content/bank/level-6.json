@@ -3708,5 +3708,535 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n6-tidszoner",
+    "title": "Klockan är inte överallt lika mycket",
+    "level": 6,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Förr i tiden ställde varje stad sin klocka efter solen. När solen stod som högst på himlen var klockan tolv. Men eftersom jorden snurrar kommer solen högst lite tidigare i öst än i väst. Därför gick klockan i en stad i östra Sverige några minuter före klockan i en stad längre västerut.\n\nDet gjorde inte så mycket så länge människor reste med häst och vagn. Men när järnvägen kom blev det krångligt. Hur skulle man skriva en tidtabell när varje station hade sin egen tid? I slutet av 1800-talet bestämde därför Sverige, liksom många andra länder, att hela landet skulle ha samma tid.\n\nSnart behövde hela världen ett gemensamt system. Jorden snurrar ett helt varv, 360 grader, på ett dygn. Det blir 15 grader i timmen. Därför delades jorden in i 24 tidszoner, ungefär som klyftor i en apelsin, där varje zon ligger en timme före eller efter grannzonen. Vid ett stort möte år 1884 bestämde man att räkningen skulle utgå från Greenwich i London.\n\nI verkligheten följer gränserna sällan de raka linjerna. Länder vill gärna ha samma tid i hela landet, så gränserna slingrar sig efter ländernas gränser. Kina är nästan lika brett som fem tidszoner men har ändå bara en enda tid. I västra Kina går solen därför upp väldigt sent på morgonen, enligt klockan.\n\nNär klockan är tolv i Sverige en vinterdag är den bara sex på morgonen i New York. Den som flyger långt österut eller västerut kan därför få en så kallad jetlag. Kroppen följer fortfarande hemmets tid, och man blir trött mitt på dagen och pigg mitt i natten.\n\nMitt i Stilla havet finns datumgränsen. Den som korsar den västerut hoppar fram en hel dag i kalendern. Den som reser åt andra hållet får leva samma dag två gånger.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många tidszoner delades jorden in i?",
+        "options": [
+          "12",
+          "15",
+          "24",
+          "360"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varifrån bestämde man år 1884 att räkningen skulle utgå?",
+        "options": [
+          "Stockholm i Sverige",
+          "Greenwich i London",
+          "Datumgränsen i Stilla havet",
+          "New York i USA"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför blev det krångligt med olika tider när järnvägen kom?",
+        "options": [
+          "Tidtabellerna gick inte ihop",
+          "Tågen gick för långsamt för att hinna mellan städerna",
+          "Solen stod inte lika högt vid alla järnvägsstationer",
+          "Man kunde inte se solen inne i tågen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför är varje tidszon ungefär 15 grader bred?",
+        "options": [
+          "Det finns 15 länder i varje zon",
+          "Haven är 15 grader varmare där",
+          "Ett land får vara högst 15 grader brett",
+          "Jorden snurrar 15 grader på en timme"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Gränserna ”slingrar sig”. Vad betyder det?",
+        "options": [
+          "De är helt raka",
+          "De går i bukter och svängar",
+          "De flyttas lite varje år",
+          "De är svåra att se"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför går solen upp sent enligt klockan i västra Kina?",
+        "options": [
+          "Det är alltid molnigt där på morgonen",
+          "Folket där vill sova länge på morgnarna",
+          "Det ligger nära datumgränsen i Stilla havet",
+          "Hela landet har samma tid som östra Kina"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”jetlag”, enligt texten?",
+        "options": [
+          "Att flygplanet blir försenat på flygplatsen",
+          "Att man glömmer att ställa om sin klocka",
+          "Att kroppen inte hänger med i den nya tiden",
+          "Att man har tappat bort ett helt dygn"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar texten om tid?",
+        "options": [
+          "Att klockans tid är en överenskommelse",
+          "Att solen går upp vid samma klockslag i hela världen",
+          "Att det är bäst att aldrig resa till andra tidszoner",
+          "Att alla länder har samma antal tidszoner"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-monsunen",
+    "title": "Regnet som alla väntar på",
+    "level": 6,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "I stora delar av Indien är våren het, torr och dammig. Floderna krymper, marken spricker och temperaturen kan stiga över 40 grader. Sedan, någon gång i juni, mörknar himlen. Det första kraftiga regnet brukar mötas med jubel på gatorna. Monsunen har kommit.\n\nOrdet monsun kommer från ett arabiskt ord som betyder årstid. Det är egentligen namnet på en vind som byter riktning med årstiderna. Under sommaren värms landet upp mycket snabbare än havet. Den varma luften över land stiger uppåt, och fuktig luft från Indiska oceanen sugs in för att ta dess plats. När den fuktiga luften når land och tvingas upp mot berg och kullar kyls den av, och fukten faller som regn. På vintern är det tvärtom. Då är landet kallare än havet, vinden blåser ut mot havet, och det blir torrt.\n\nMonsunregnen brukar nå Indiens sydspets i början av juni och sedan sprida sig norrut under flera veckor. De varar till september. Under de månaderna faller den största delen av hela årets regn. Några orter i nordöstra Indien hör till de regnigaste platserna på jorden.\n\nFör de hundratals miljoner människor som lever av jordbruk är monsunen livsviktig. Riset och många andra grödor behöver regnet, och vattnet fyller dammar och brunnar som ska räcka hela den torra delen av året. Ett år när monsunen kommer sent eller blir svag kan skörden slå fel och maten bli dyr i hela landet.\n\nMen för mycket regn är också ett problem. Ibland faller så mycket på kort tid att floder svämmar över, vägar spolas bort och människor tvingas lämna sina hem.\n\nDet är därför vädertjänsten i Indien följer monsunen dag för dag och meddelar när den når en ny delstat. Att veta när regnet kommer kan avgöra när bönderna ska så.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad betyder det arabiska ordet som monsun kommer från?",
+        "options": [
+          "Regn",
+          "Vind",
+          "Hav",
+          "Årstid"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur länge varar monsunregnen?",
+        "options": [
+          "Från januari till mars",
+          "Från juni till september",
+          "Från mars till maj",
+          "Hela året om"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför sugs fuktig luft in över land på sommaren?",
+        "options": [
+          "Varm luft över land stiger uppåt",
+          "Havet blir varmare än landet under sommaren",
+          "Bergen drar till sig all fukt från havet",
+          "Vinden blåser alltid från havet mot land"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Regnet möts med ”jubel”. Vad betyder det?",
+        "options": [
+          "Med stor rädsla",
+          "Med tystnad",
+          "Med stor glädje",
+          "Med ilska"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan maten bli dyr i hela landet om monsunen blir svag?",
+        "options": [
+          "Bönderna vill inte sälja maten när det är torrt",
+          "Skörden blir mindre när regnet inte räcker",
+          "Vägarna spolas bort så att maten inte kommer fram",
+          "Folk äter mer mat när det är varmt ute"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Skörden kan ”slå fel”. Vad betyder det?",
+        "options": [
+          "Den kan misslyckas",
+          "Den kan bli större",
+          "Den kan bli tidig",
+          "Den kan bli dyrare"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför följer vädertjänsten monsunen dag för dag?",
+        "options": [
+          "Turisterna vill veta när de ska resa",
+          "Den vill räkna ut hur varm våren blir",
+          "Den vill stoppa regnet innan det kommer",
+          "Bönderna behöver veta när de ska så"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är textens huvudtanke om monsunen?",
+        "options": [
+          "Den är farlig och borde helst stoppas",
+          "Den förstör det mesta av skörden",
+          "Den är livsviktig men kan skada",
+          "Den är bara viktig för städerna"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-gronland",
+    "title": "Ön under isen",
+    "level": 6,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Grönland är världens största ö, om man inte räknar Australien, som brukar kallas en kontinent. Ön är ungefär fem gånger så stor som Sverige. Ändå bor där färre än 60 000 människor, ungefär lika många som i en mellanstor svensk stad.\n\nNamnet kan verka konstigt. Ungefär fyra femtedelar av ön är täckta av en enorm inlandsis, som på sina ställen är omkring tre kilometer tjock. Enligt de isländska sagorna fick ön sitt namn för drygt tusen år sedan av en nordisk upptäcktsresande. Han ville locka nybyggare och tänkte att ett vackert namn skulle hjälpa.\n\nMänniskorna på Grönland bor nästan bara längs kusterna, där isen tar slut. De flesta är inuiter, ett folk som har levt i Arktis i tusentals år. Grönland hör till det danska kungariket men har ett eget självstyre och bestämmer själv över det mesta.\n\nMellan städerna finns inga vägar. Isen, fjordarna och bergen gör det omöjligt att bygga dem. Den som ska resa tar båt, flygplan eller helikopter. På vintern används fortfarande hundsläde i de norra delarna, särskilt för jakt och fiske ute på havsisen.\n\nInlandsisen är så stor att den påverkar hela världen. Den rymmer så mycket vatten att havsytan skulle stiga ungefär sju meter om allt smälte. Det kommer inte att hända på länge, men isen krymper redan. Varje sommar smälter mer is än vad som byggs upp av snö under vintern, och smältvattnet rinner ut i havet. Forskare från många länder borrar därför upp långa cylindrar av is för att undersöka hur klimatet har förändrats.\n\nFör grönländarna innebär förändringen både problem och möjligheter. Havsisen blir osäkrare för jägarna, men när isen drar sig tillbaka blir det lättare att nå fisk och mineraler. Vad som är bäst för ön är en fråga som grönländarna själva diskuterar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Ungefär hur stor del av Grönland täcks av is?",
+        "options": [
+          "Hälften",
+          "Fyra femtedelar",
+          "En tredjedel",
+          "Nio tiondelar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur reser man mellan städerna på Grönland?",
+        "options": [
+          "Med båt, flyg eller helikopter",
+          "Med bil på långa vägar",
+          "Med tåg genom tunnlar",
+          "Med buss över den tjocka isen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför bor människorna nästan bara längs kusterna?",
+        "options": [
+          "Det är varmare i inlandet",
+          "Det är förbjudet att bo inne på ön",
+          "Inlandet är täckt av is",
+          "Kusterna har flest vägar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför fick ön namnet Grönland, enligt sagorna?",
+        "options": [
+          "Ön var grön av skog när den upptäcktes",
+          "Upptäcktsresanden hette något med grön",
+          "Isen ser grön ut i solljus",
+          "Ett vackert namn skulle locka nybyggare"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Grönland har ”självstyre”. Vad betyder det?",
+        "options": [
+          "Ön styrs helt av Danmark",
+          "Ön bestämmer själv",
+          "Ön har ingen regering alls",
+          "Ön styrs av forskare"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varje sommar smälter mer is än det som ”byggs upp”. Vad betyder det?",
+        "options": [
+          "Byggs av människor med maskiner",
+          "Flyter in från havet",
+          "Bildas av snö som blir is",
+          "Faller ner som regn"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför borrar forskare upp cylindrar av is?",
+        "options": [
+          "För att studera klimatet förr",
+          "För att få dricksvatten till städerna",
+          "För att hitta vägar genom inlandsisen",
+          "För att stoppa isen från att smälta"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad säger texten om hur förändringen påverkar grönländarna?",
+        "options": [
+          "Den är bara bra för alla som bor där",
+          "Den påverkar inte livet på ön alls",
+          "Den gör att alla vill flytta därifrån",
+          "Den ger både problem och chanser"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-trogheten",
+    "title": "Varför du behöver bältet",
+    "level": 6,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Den som har stått upp i en buss som bromsar hårt vet vad som händer. Kroppen fortsätter framåt, fast bussen stannar. När bussen sedan börjar köra igen tippar man i stället bakåt. Det beror på en egenskap som alla föremål har: tröghet.\n\nTröghet betyder att saker vill fortsätta göra det de redan gör. Ett föremål som ligger stilla vill ligga kvar. Ett föremål som rör sig vill fortsätta i samma riktning och med samma fart. För att ändra på det behövs en kraft, till exempel en knuff, friktion mot marken eller ett handtag att hålla sig i. Den engelske forskaren Isaac Newton skrev ner den här regeln för mer än trehundra år sedan, och den kallas ofta tröghetslagen.\n\nJu tyngre något är, desto större är trögheten. En tom kundvagn är lätt att få fart på och lätt att stoppa. En full kundvagn är trög att sätta igång, och när den väl rullar är den svår att stanna.\n\nTrögheten kan också användas till konster. Om man rycker en slät duk snabbt nog från ett bord blir glasen kvar. De hinner inte följa med innan duken är borta.\n\nI en bil blir trögheten allvarlig. Om en bil som kör i 50 kilometer i timmen krockar stannar den nästan direkt. Men den som sitter i bilen fortsätter framåt i 50 kilometer i timmen, tills något stoppar kroppen: ratten, rutan eller sätet framför. Smällen blir ungefär lika hård som att falla från tio meters höjd.\n\nDet är därför bilbältet uppfanns. Bältet tar emot kroppen och fördelar kraften över de starka delarna, bröstkorgen och höfterna. Det bälte med tre fästpunkter som används i nästan alla bilar i dag konstruerades av en svensk ingenjör på Volvo år 1959. Företaget lät alla andra biltillverkare använda idén gratis, och den har räddat väldigt många liv.\n\nTrögheten går inte att stänga av. Men man kan bestämma vad som ska stoppa en.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem skrev ner tröghetslagen, enligt texten?",
+        "options": [
+          "En ingenjör på Volvo",
+          "En forskare i Sverige",
+          "Isaac Newton",
+          "En busschaufför"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år konstruerades bilbältet med tre fästpunkter?",
+        "options": [
+          "1909",
+          "1950",
+          "1995",
+          "1959"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ”tröghet” i texten?",
+        "options": [
+          "Att saker rör sig långsamt",
+          "Att saker vill fortsätta som förut",
+          "Att saker blir trötta efter ett tag",
+          "Att saker väger mycket"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför tippar man bakåt när bussen börjar köra?",
+        "options": [
+          "Kroppen vill stå kvar",
+          "Bussen lutar bakåt när motorn startar",
+          "Golvet blir halt när bussen kör fort",
+          "Man håller i handtaget för hårt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är en full kundvagn svår att stanna?",
+        "options": [
+          "Den har mindre hjul än en tom",
+          "Den har större tröghet än en tom",
+          "Den rullar alltid nerför backe",
+          "Varorna knuffar den framåt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blir glasen kvar när duken rycks bort?",
+        "options": [
+          "De är fastlimmade på bordet",
+          "Duken är för hal för att röra dem",
+          "De hinner inte följa med duken",
+          "De är för tunga för att flytta"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Bältet ”fördelar” kraften. Vad betyder det?",
+        "options": [
+          "Sprider den över flera delar",
+          "Tar bort den helt",
+          "Gör den större",
+          "Samlar den på ett ställe"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar den sista meningen?",
+        "options": [
+          "Man kan välja att köra så att trögheten försvinner",
+          "Man kan välja att aldrig mer åka bil eller buss",
+          "Man kan stänga av trögheten om man kör sakta",
+          "Man kan välja vad som tar emot kroppen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-bla-himmel",
+    "title": "Därför är himlen blå",
+    "level": 6,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Titta upp en klar dag, och himlen är blå. Det är så självklart att få frågar sig varför. Luften är ju genomskinlig, och solens ljus ser vitt ut. Var kommer det blå ifrån?\n\nSvaret börjar med att solljuset inte bara är vitt. Det är en blandning av alla regnbågens färger. Det märks när ljuset går genom ett prisma eller en vattendroppe och delas upp i rött, orange, gult, grönt, blått och violett.\n\nNär solljuset når jorden måste det ta sig genom atmosfären, det tjocka lagret av luft runt planeten. Luften består av mycket små partiklar, mest kväve och syre. När ljuset träffar dem studsar en del av det åt alla håll. Det kallas att ljuset sprids. Men alla färger sprids inte lika mycket. Det blå ljuset sprids mycket mer än det röda. Därför kommer blått ljus mot våra ögon från hela himlen, vart vi än tittar, medan det röda och gula mest fortsätter rakt fram från solen.\n\nViolett ljus sprids ännu mer än blått, så varför är himlen inte lila? Solen skickar ut mindre violett ljus än blått, och våra ögon är dessutom sämre på att uppfatta det. Därför ser vi himlen som blå.\n\nVid solnedgången står solen lågt, och ljuset måste färdas en mycket längre väg genom luften innan det når oss. På vägen hinner nästan allt blått ljus spridas bort åt sidorna. Kvar blir de röda och orange färgerna som färgar kvällshimlen.\n\nMoln är vita av en annan anledning. Vattendropparna i dem är mycket större än luftens partiklar och sprider alla färger ungefär lika mycket. Och alla färger tillsammans blir vitt.\n\nPå månen finns ingen luft alls. Där är himlen svart, även när solen lyser. Och på Mars, där luften är full av fint rött damm, är himlen gulbrun på dagen och solnedgångarna blåaktiga. Himlens färg berättar alltså något om luften på den plats där man står.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg har himlen på månen?",
+        "options": [
+          "Svart",
+          "Blå",
+          "Gulbrun",
+          "Vit"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad består luften mest av, enligt texten?",
+        "options": [
+          "Vatten och damm",
+          "Koldioxid och is",
+          "Kväve och syre",
+          "Moln och ånga"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ljuset ”sprids”. Vad betyder det här?",
+        "options": [
+          "Det blir mycket starkare",
+          "Det studsar åt alla håll",
+          "Det blandas med vatten",
+          "Det försvinner helt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför ser vi blått ljus från hela himlen?",
+        "options": [
+          "Solen skickar bara ut blått ljus",
+          "Havet speglar sig i himlen",
+          "Det blå ljuset färdas fortast",
+          "Det blå ljuset sprids mest i luften"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är himlen inte lila fast violett sprids mer?",
+        "options": [
+          "Solen ger mindre violett och ögonen ser det sämre",
+          "Violett ljus kan inte ta sig genom molnen",
+          "Det violetta ljuset studsar tillbaka ut i rymden",
+          "Det finns inget violett ljus i solljuset alls"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blir kvällshimlen röd vid solnedgången?",
+        "options": [
+          "Solen blir kallare och lyser rött på kvällen",
+          "Luften fylls av damm när det blir kväll",
+          "Det blå har spridits bort på vägen",
+          "Det röda ljuset sprids mest när det är mörkt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”atmosfären” i texten?",
+        "options": [
+          "Stämningen på en plats",
+          "Lagret av luft runt jorden",
+          "Ljuset från solen på dagen",
+          "Molnen på himlen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är textens slutsats i sista stycket?",
+        "options": [
+          "Himlen är blå på alla planeter",
+          "Månen och Mars har samma himmel",
+          "Himlens färg beror bara på solen",
+          "Himlens färg beror på luften"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
