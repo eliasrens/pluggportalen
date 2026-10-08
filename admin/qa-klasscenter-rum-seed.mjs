@@ -8,6 +8,8 @@
 //   • inredningSparr: kc03 är bockad av läraren (ser rummet, kan inte inreda)
 //   • `tom` som argument → nollställer layout + historik (rummet tomt igen)
 // Klass qa-kc2 (4B, kd01 …) får en färdig layout → gästbesök från 4A visar den.
+// Pokaler (#497): qa-kc får 3 (2 MM-vinster + 1 Live) som auto-placeras på
+// hyllan; qa-kc2 får 2, varav en redan flyttad i layouten.
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8490 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9490 \
 //   GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-klasscenter-rum-seed.mjs [tom]
@@ -42,18 +44,33 @@ async function rensaLayout(classId) {
   console.log(`✓ ${classId}: layout + historik nollställd`);
 }
 
+const DAG = 86400000;
+async function pokal(classId, typ, kallaId, detalj, dagarSedan, titel) {
+  const wonAt = admin.firestore.Timestamp.fromMillis(Date.now() - dagarSedan * DAG);
+  await db.doc(`classCenters/${classId}/trophies/${typ}-${kallaId}`).set({
+    typ, kallaId, titel, detalj, wonAt, awardedBy: "qa-larare",
+  });
+}
+
 async function main() {
   await lasUpp("qa-kc", ["guldstaty", "lounge", "akvarium", "klassfana", "kristallkrona"]);
   await db.doc("classCenters/qa-kc").set({ inredningSparr: ["kc03"] }, { merge: true });
   console.log("✓ qa-kc: kc03 bockad (inredningSparr)");
   if (process.argv[2] === "tom") await rensaLayout("qa-kc");
+  await pokal("qa-kc", "mm-klasskamp", "qa-mm-host", "Höstmatchen v.38", 20, "Mattematchens mästare");
+  await pokal("qa-kc", "live-vinst", "qa-live-1", "Live: Multiplikationsracet", 9, "Live-segrare");
+  await pokal("qa-kc", "mm-klasskamp", "qa-mm-okt", "Oktobermatchen", 2, "Mattematchens mästare");
+  console.log("✓ qa-kc: 3 pokaler");
 
   // 4B: färdigt inrett rum att besöka som gäst.
+  await pokal("qa-kc2", "mm-klasskamp", "qa-mm-host", "Höstmatchen v.38", 20, "Mattematchens mästare");
+  await pokal("qa-kc2", "live-vinst", "qa-live-2", "Live: Bråkduellen", 5, "Live-segrare");
   const pi = {
     fontan: { x: 50, y: 80, z: 1 }, flygel: { x: 22, y: 78, z: 0 },
-    klassfana: { x: 80, y: 30, z: 2 }, trofehylla: { x: 25, y: 34, z: 3 },
+    klassfana: { x: 80, y: 30, z: 2 }, trofehylla: { x: 62, y: 34, z: 3 },
+    "pokal-live-vinst-qa-live-2": { x: 70, y: 50, z: 4 },
   };
-  await lasUpp("qa-kc2", Object.keys(pi));
+  await lasUpp("qa-kc2", ["fontan", "flygel", "klassfana", "trofehylla"]);
   await db.doc("classCenters/qa-kc2/layout/current").set({ placedItems: pi, version: 1, updatedBy: "kd01", updatedAt: nu });
   await db.doc("classCenters/qa-kc2/layoutHistory/1").set({ placedItems: pi, version: 1, savedBy: "kd01", savedAt: nu });
   console.log("✓ qa-kc2: layout v1");

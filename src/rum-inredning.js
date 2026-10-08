@@ -12,7 +12,8 @@
 //   spara(placements)   → en ändring är gjord (debounce/"osparat" = adapterns sak)
 //   kanInreda()         → false = läsläge: ingen låda, ingen drag, ingen 🗑️,
 //                          men sakerna syns och hovras (title)
-//   sak(id)             → { namn, art (markup), w, h (rums-enheter), golv } | null
+//   sak(id)             → { namn, art (markup), w, h (rums-enheter), golv,
+//                          taBort? (false = ingen 🗑️ på just den saken) } | null
 //   rang?(nyckel)       → ritordning (stigande); default nyckelordning
 //   ovanpa?(nyckel)     → en sak placerades/flyttades (lägg den överst)
 //   efterDrag?()        → en drag/ett klick på en sak är avslutad
@@ -72,7 +73,7 @@ export function mountInredning({ stage, tray, trayHint, adapter, bakgrund, text 
       const pos = p[nyckel];
       html += rumSakHtml({
         key: esc(nyckel), x: pos.x, y: pos.y, titel: esc(s.namn), art: s.art,
-        w: s.w, h: s.h, vald: vald === nyckel, taBort: kan,
+        w: s.w, h: s.h, vald: vald === nyckel, taBort: kan && s.taBort !== false,
       });
     }
     const tomt = typeof text.tomtRum === "function" ? text.tomtRum() : text.tomtRum;

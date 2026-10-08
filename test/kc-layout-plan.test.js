@@ -10,7 +10,7 @@ import { KC_SHOP_ITEMS, kcShopItem } from "../src/klasscenter/kc-shop-items.js";
 import {
   historikSlot, ladaAntal, validatePlacedItems, normaliseraLayout, normaliseraHistorik,
   planSave, planRestore, planSaveWrites, korSparning, korAterstallning, kanInredaFor,
-  KC_HISTORIK, KC_LAYOUT_MAX,
+  KC_HISTORIK, KC_LAYOUT_MAX, KC_POKAL_MAX,
 } from "../src/klasscenter/kc-layout-plan.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -255,13 +255,17 @@ describe("kanInredaFor", () => {
   });
 });
 
-it("firestore.rules: kcPlaced har en kcPos-rad per katalogföremål", () => {
+it("firestore.rules: kcPlaced har tak KC_LAYOUT_MAX och en kcPosOk-rad per index", () => {
   const rules = readFileSync(join(ROOT, "firestore.rules"), "utf8");
   const block = rules.match(/function kcPlaced\(pi\)\s*\{([\s\S]*?)\n\s*\}/);
   assert.ok(block, "kcPlaced finns i firestore.rules");
-  const ids = [...block[1].matchAll(/kcPos\(pi, '([a-z0-9-]+)'\)/g)].map((m) => m[1]).sort();
-  assert.deepEqual(ids, KC_SHOP_ITEMS.map((i) => i.id).sort());
-  assert.match(block[1], new RegExp(`pi\\.size\\(\\) <= ${KC_LAYOUT_MAX}\\b`));
+  assert.match(block[1], new RegExp(`n <= ${KC_LAYOUT_MAX}\\b`));
+  const idx = [...block[1].matchAll(/\(n <= (\d+) \|\| kcPosOk\(v\[(\d+)\]\)\)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  assert.deepEqual(idx, Array.from({ length: KC_LAYOUT_MAX }, (_, i) => [i, i]));
+  // Alla katalogföremål + taket för pokaler ryms (katalogen i reglerna = kcKatalog).
+  assert.equal(KC_LAYOUT_MAX, KC_SHOP_ITEMS.length + KC_POKAL_MAX);
+  const kat = rules.match(/function kcKatalog\(\)\s*\{[\s\S]*?\{([\s\S]*?)\}/)[1];
+  assert.deepEqual([...kat.matchAll(/'([a-z0-9-]+)'/g)].map((m) => m[1]).sort(), KC_SHOP_ITEMS.map((i) => i.id).sort());
 });
 
 it("bootgrafen: layout-modulerna bara dynamiskt (#271)", () => {
