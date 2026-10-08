@@ -1296,5 +1296,595 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n7-gastboken",
+    "title": "Gästboken i stugan",
+    "level": 7,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Stugan låg längst ut på en udde, och familjen hade hyrt den en vecka i augusti. Ägaren, en kvinna som hette Bodil, hade lämnat nyckeln i en kruka och en lapp på köksbordet: ”Skriv gärna i gästboken! Stugan har stått tom sedan i vintras, eftersom taket lades om i maj och juni. Ni är sommarens första gäster.”\n\nTruls läste gästboken redan första kvällen, medan hans storasyster Ingeborg klagade på myggen. De flesta anteckningar var som man kunde vänta sig. Tack för en härlig vecka. Fina solnedgångar. Bastun är bäst. Men längst bak, efter förra sommarens sista gäst, fanns några korta rader med en spretig, lutande handstil.\n\nIsen gick den 3 maj. /S\n\nSvalorna tillbaka under taket. /S\n\nGäddan står vid stenen igen. /S\n\n”Konstigt”, sa Truls. ”Bodil skriver ju att ingen har varit här sedan i vintras.”\n\n”Det var säkert hantverkarna”, sa Ingeborg utan att titta upp.\n\nMen hantverkare skriver inte om svalor, tänkte Truls. Under veckan började han lägga märke till andra saker. Ytterdörren, som enligt Bodils lapp skulle gnissla, var nyoljad. Vedtraven bakom bastun var omstaplad, mycket prydligare än resten av huset. Och den nedersta trappsteget till bryggan var nytt, fast det inte stod något om det.\n\nDet var Ingeborg som till slut gjorde det avgörande fyndet. I en byrålåda låg en gammal fiskebok med gulnade sidor. Där hade någon på sextiotalet skrivit ner varje fångst. Gädda, 2 kilo, vid stora stenen. Sture, 12 år. Handstilen var barnslig, men den lutade åt samma håll och s:et hade samma långa svans.\n\nSista morgonen vaknade Truls tidigt. Genom fönstret såg han en roddbåt glida fram över det blanka vattnet. En gammal man rodde långsamt mot stenen, kastade ut ett drag och väntade. Han såg inte ut som en tjuv. Han såg ut som någon som var hemma.\n\nNär Bodil kom för att hämta nyckeln berättade Truls allt, och visade fiskeboken. Hon blev tyst länge.\n\n”Sture är min bror”, sa hon till slut. ”Vi växte upp här. När våra föräldrar dog fick jag stugan, och vi blev så osams att vi inte har pratat på tolv år.” Hon strök med fingret över raden om svalorna. ”Han har alltid haft en egen nyckel. Jag trodde att han hade slängt den.”\n\nÅret därpå hyrde familjen stugan igen. I gästboken, på första sidan efter vintern, stod det två namn bredvid varandra.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför skrev Bodil att familjen var sommarens första gäster?",
+        "options": [
+          "Hon hade just köpt stugan av sin bror",
+          "Taket hade lagts om och stugan stått tom",
+          "Stugan hade varit uthyrd till hantverkare",
+          "Det hade varit för kallt att bo där i maj"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför tror Truls inte på Ingeborgs förklaring om hantverkarna?",
+        "options": [
+          "Hantverkarna hade skrivit sina namn på första sidan",
+          "Bodil hade sagt att inga hantverkare varit där",
+          "Anteckningarna handlar om naturen, inte om arbete",
+          "Han hade sett hantverkarna åka därifrån i april"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vilket av följande hade någon gjort i stugan innan familjen kom?",
+        "options": [
+          "Lagat bastun och målat bryggan",
+          "Tagit med sig fiskeboken därifrån",
+          "Bytt låset och flyttat nyckeln",
+          "Oljat dörren och staplat om veden"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad sa fiskeboken som hjälpte syskonen att lösa gåtan?",
+        "options": [
+          "Den berättade var nyckeln låg gömd",
+          "Handstilen liknade den i gästboken",
+          "Den visade att gäddan fanns kvar",
+          "Den var skriven av hantverkarna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder att handstilen var ”spretig”?",
+        "options": [
+          "Ojämn, med bokstäver åt olika håll",
+          "Mycket liten och svår att se",
+          "Prydlig och lätt att läsa",
+          "Skriven med blyerts i stället för bläck"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar texten med att mannen i båten ”såg ut som någon som var hemma”?",
+        "options": [
+          "Han hade på sig samma kläder som han brukade hemma",
+          "Han rodde mot stugan för att gå in och lägga sig",
+          "Han rörde sig lugnt, som om platsen var hans egen",
+          "Han hade bott i en annan stuga längre bort vid sjön"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför hade Bodil och Sture inte pratat på tolv år?",
+        "options": [
+          "Sture hade flyttat utomlands för länge sedan",
+          "Bodil hade sålt Stures båt utan att fråga",
+          "De hade bråkat om vem som skulle laga taket",
+          "De blev osams när Bodil fick stugan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Vad tyder det på att Bodil säger ”Jag trodde att han hade slängt den” om nyckeln?",
+        "options": [
+          "Att hon var arg för att Sture hade tagit hennes nyckel",
+          "Att hon ville ha tillbaka nyckeln av Sture på en gång",
+          "Att hon hade glömt att det någonsin fanns en extra nyckel",
+          "Att hon trodde att Sture inte längre brydde sig om stugan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad betyder slutet, där två namn står bredvid varandra i gästboken?",
+        "options": [
+          "Att Truls och Ingeborg skrev i boken båda två",
+          "Att syskonen har försonats och varit där tillsammans",
+          "Att två nya familjer hade hyrt stugan samma vecka",
+          "Att Sture har köpt tillbaka stugan av sin syster"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-hotellet",
+    "title": "Stegen på fjärde våningen",
+    "level": 7,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Hotellet var över hundra år gammalt och hade trägolv som knarrade så fort man rörde sig. I broschyren på rummet stod det att en ”grå dam” sades vandra i korridorerna. Farahs lillebror Rami läste den texten högt första kvällen, och sedan ville han inte gå på toaletten ensam.\n\nFarah trodde inte på spöken. Därför blev hon mer irriterad än rädd när hon vaknade mitt i natten av steg i taket. Familjen bodde på tredje våningen, och stegen kom ovanifrån. De gick fram och tillbaka, långsamt, i ungefär tio minuter. Sedan blev det tyst.\n\nNästa morgon frågade hon i receptionen vem som bodde ovanför dem.\n\n”Ingen”, sa kvinnan bakom disken. ”Fjärde våningen är stängd för renovering. Där finns bara byggdamm och gamla madrasser.”\n\nRami blev alldeles vit i ansiktet. Farah bestämde sig för att undersöka saken ordentligt.\n\nAndra natten låg hon vaken med mobilen i handen. Stegen började klockan 01.58 och slutade 02.09. Hon lyssnade noga. Det var inte bara steg. Mellan de tunga stegen hördes ett lätt, snabbt knäppande, som när någon trummar med naglarna mot ett bord. Knäppandet var aldrig ensamt. Det följde alltid stegen.\n\nTredje natten började det 01.57. Farah skrev ner tiderna i en tabell. Spöken, resonerade hon, borde väl inte hålla sig till ett schema som en busschaufför.\n\nPå morgonen smög hon upp för trappan till fjärde våningen. Dörren var låst, men på den översta trappavsatsen låg damm, och i dammet syntes avtryck. Några var stora och platta, som efter gummisulor. Andra var små och runda, fyra i en klunga, om och om igen. Vid dörrkarmen satt några korta bruna hårstrån fast i en spricka.\n\nFarah satte sig på trappan och tänkte. Ett regelbundet klockslag. Två sorters spår. Ett knäppande ljud som alltid följde med. Hon hade inte bevis, men hon hade en ganska bra gissning.\n\nDen natten satte hon väckarklockan på 01.50 och tog med sig Rami ut i korridoren. Precis innan två hörde de hissen. Ut klev nattportieren, en lång man med en ficklampa, en nyckelknippa och en gammal brun tax i koppel. Taxens klor knäppte mot trägolvet.\n\n”Jaså, ni är vakna”, sa han förvånat. ”Jag går brandrond varje natt, även på den stängda våningen. Det är regler. Och Spöket här vill alltid följa med.”\n\n”Heter hunden Spöket?” frågade Rami.\n\n”Ja”, sa portieren. ”Gäster brukar tycka att det är roligt. Fast inte mitt i natten.”\n\nRami gick på toaletten ensam resten av veckan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför ville Rami inte gå på toaletten ensam den första kvällen?",
+        "options": [
+          "Han hade sett ett spöke i korridoren",
+          "Toaletten låg på en annan våning",
+          "Han hade hört en text om en grå dam",
+          "Han hade hört steg i taket på natten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför blev Farah mer irriterad än rädd av stegen?",
+        "options": [
+          "Hon trodde inte på spöken och ville sova",
+          "Hon trodde att Rami gick omkring i rummet",
+          "Hon visste redan att det var nattportieren",
+          "Hon var arg på receptionen för renoveringen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad svarade kvinnan i receptionen om fjärde våningen?",
+        "options": [
+          "Att den grå damen hade sitt rum där uppe",
+          "Att den var stängd och att ingen bodde där",
+          "Att personalen sov där under renoveringen",
+          "Att den var full med andra hotellgäster"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför skrev Farah ner tiderna i en tabell?",
+        "options": [
+          "Hon ville se om ljuden kom vid samma tid",
+          "Hon ville visa föräldrarna att hon inte sov",
+          "Hon ville skicka tabellen till receptionen",
+          "Hon ville lära sig att göra en egen tabell"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Farah ”resonerade” att spöken inte borde ha ett schema. Vad betyder det?",
+        "options": [
+          "Hon pratade högt",
+          "Hon blev osäker",
+          "Hon tänkte logiskt",
+          "Hon skämtade"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kom de små, runda avtrycken i dammet från, att döma av slutet?",
+        "options": [
+          "Portierens klackar",
+          "Ramis skor",
+          "Gamla madrasser",
+          "Taxens tassar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilka ledtrådar använde Farah för sin gissning?",
+        "options": [
+          "Broschyren, byggdammet och de gamla madrasserna",
+          "Ficklampan, hissen och nyckelknippan på dörren",
+          "Tiden, de två sorternas spår och knäppandet",
+          "Ramis rädsla, den grå damen och trägolvet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför gick nattportieren upp på fjärde våningen varje natt?",
+        "options": [
+          "Han ville skrämma hotellets gäster",
+          "Han letade efter den grå damen",
+          "Han sov där när han hade rast",
+          "Han gick brandrond enligt reglerna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q9",
+        "question": "Vad visar slutet, när Rami går på toaletten ensam resten av veckan?",
+        "options": [
+          "Att hans rädsla försvann när gåtan fick en förklaring",
+          "Att han fortfarande var för rädd för att väcka Farah",
+          "Att familjen hade bytt till ett rum med egen toalett",
+          "Att han hade blivit vän med den grå damen på hotellet"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-kartfallan",
+    "title": "Gatan som inte finns",
+    "level": 7,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Stina köpte kartan för tjugo kronor i ett antikvariat, mest för att den var vacker. Det var en gammal stadskarta över hennes egen stad, tryckt på sjuttiotalet, med kvarteren i blekt rosa och parkerna i grönt. Hemma bredde hon ut den på golvet och letade upp sitt hus. Det fanns inte, förstås. Där låg en åker på kartan.\n\nSedan hittade hon något konstigare. Mellan Bryggargatan och Kyrkogatan, mitt i centrum, gick en kort liten gata som hette Lilla Klockargränd. Stina hade gått där hundratals gånger. Det fanns ingen gränd där. Bara en lång tegelvägg.\n\nHon frågade sin morfar, som hade bott i staden i hela sitt liv. Han skakade på huvudet. ”Någon Klockargränd har aldrig funnits”, sa han. ”Det skulle jag minnas.”\n\nStina blev nyfiken. Kanske hade gränden rivits? Hon gick till biblioteket och frågade efter gamla kartor. Bibliotekarien, en kvinna som hette Eivor, tog fram tre stycken från olika år. På ingen av dem fanns gränden. Bara på Stinas.\n\n”Intressant”, sa Eivor och kisade mot kartan. ”Vet du vad en kartfälla är?”\n\nDet visste Stina inte. Eivor förklarade att det kostar mycket arbete att göra en noggrann karta. Någon måste mäta, gå runt och kontrollera varje gata. Ett företag som inte vill göra jobbet själv kan frestas att kopiera en annans karta. För att kunna avslöja sådant har kartritare ibland lagt in en liten påhittad detalj, till exempel en gata som inte finns. Om samma påhittade gata sedan dyker upp på en annan karta, vet man att den har kopierats.\n\n”Så gränden är en fälla”, sa Stina. ”Men har någon gått i den?”\n\nEivor log. ”Det får du ta reda på.”\n\nDet tog Stina två veckor av antikvariat och loppisar. Hon hittade kartor över staden från fem olika förlag. Fyra av dem saknade gränden. Men den femte, från ett annat förlag och tryckt några år senare än hennes, hade den. Lilla Klockargränd, på exakt samma ställe, med samma lilla knyck i mitten.\n\nHon visade den för Eivor, som skrattade högt i det tysta biblioteket.\n\n”Där har vi tjuven”, sa hon. ”Femtio år för sent, men ändå.”\n\nStina skrev en artikel om gränden till skoltidningen. När den kom ut gick hon förbi tegelväggen och tänkte på kartritaren som en gång hade hittat på en gata, bara för att se om någon skulle följa efter.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför fanns inte Stinas hus på den gamla kartan?",
+        "options": [
+          "Kartritaren hade glömt att rita det",
+          "Där låg en åker när kartan trycktes",
+          "Huset låg utanför kartans kant",
+          "Huset hade fått ett annat namn"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fanns i verkligheten där Lilla Klockargränd låg på kartan?",
+        "options": [
+          "En lång tegelvägg",
+          "En liten park",
+          "En gammal kyrka",
+          "En parkeringsplats"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför gick Stina till biblioteket?",
+        "options": [
+          "Hon ville låna en bok om hur man ritar kartor",
+          "Hon ville se om gränden fanns på andra kartor",
+          "Hon ville sälja kartan till bibliotekarien",
+          "Hon ville skriva sin artikel i lugn och ro"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att ett företag kan ”frestas” att kopiera?",
+        "options": [
+          "Att det har lov att göra det",
+          "Att det blir straffat för det",
+          "Att det kan lockas att göra det",
+          "Att det är tvunget att göra det"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är en kartfälla enligt Eivor?",
+        "options": [
+          "En gata som ritas fel för att den har rivits",
+          "Ett misstag som kartritaren inte märkte",
+          "En hemlig gång som bara kartritaren känner till",
+          "En påhittad detalj som avslöjar den som kopierar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar Stina med frågan ”Men har någon gått i den?”",
+        "options": [
+          "Om någon har kopierat kartan och åkt fast",
+          "Om någon har promenerat genom gränden",
+          "Om morfar har gått vilse i staden",
+          "Om någon har ramlat vid tegelväggen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför var det viktigt att gränden på den femte kartan hade samma lilla knyck?",
+        "options": [
+          "Det visade att gränden verkligen fanns på riktigt en gång",
+          "Det visade att båda kartorna var ritade av Eivor själv",
+          "Det visade att den hade kopierats och inte ritats på nytt",
+          "Det visade att kartan var äldre än Stinas egen karta"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar Eivor med ”Femtio år för sent, men ändå”?",
+        "options": [
+          "Att kartan hade kostat för mycket",
+          "Att Stina kom för sent till biblioteket",
+          "Att tjuven fortfarande gör kartor",
+          "Att fusket upptäcktes långt efteråt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Hur en stad förändras när gamla gator rivs och nya byggs",
+          "Hur en nyfiken fråga leder till att ett gammalt fusk avslöjas",
+          "Hur Stina lär sig rita egna kartor tillsammans med sin morfar",
+          "Hur en bibliotekarie hjälper elever att skriva artiklar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-oversattningen",
+    "title": "Appen som ljög",
+    "level": 7,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Tekla kunde fyra ord franska när klassen åkte till sin vänskola i Frankrike: hej, tack, ja och nej. Hon var inte orolig. Hon hade en översättningsapp i mobilen som både lyssnade och pratade. Man sa något på svenska, och en lugn röst upprepade det på franska. Det kändes nästan som fusk.\n\nHon skulle bo en vecka hos familjen Moreau, som hade en dotter i hennes ålder som hette Amélie. Första kvällen bjöd de på en gryta som hade fått stå lite för länge på spisen. Mamman i familjen ursäktade sig och såg olycklig ut. Tekla ville trösta henne, så hon höll fram mobilen och sa det mamma alltid sa hemma när något gick snett.\n\n”Ingen fara på taket!”\n\nAppen översatte. Mamman tittade förvirrat på Tekla. Pappan reste sig, gick fram till fönstret och tittade upp mot hustaket. Amélie fnissade.\n\nDet var först senare, i sitt rum, som Tekla lät appen översätta tillbaka och förstod vad som hade hänt. Appen hade översatt varje ord för sig. Hon hade alltså sagt att det inte fanns någon fara uppe på taket. Ingen i familjen visste att det var ett svenskt sätt att säga att något inte gör någonting.\n\nHon borde ha lärt sig av det. Men dagen därpå, efter en lång utflykt, sa hon att hon var ”helt slut”, och appen fick det att låta som om hon var på väg att dö eller åtminstone tänkte ge upp för alltid. Monsieur Moreau erbjöd sig att ringa en läkare. På fredagen försökte hon säga att det regnade ”småspik”, och Amélie fick förklara för sin lillebror att det inte föll vassa saker från himlen.\n\nTill slut slutade Tekla prata i bilder. Hon lärde sig att säga korta, raka meningar till appen. Jag är trött. Maten är god. Tack för i dag. Det blev mindre roligt, men alla förstod.\n\nSista kvällen satt hon och Amélie på trappan. Amélie visade henne hur man säger saker på franska som inte går att översätta ord för ord, och Tekla förklarade svenska uttryck med hjälp av teckningar. De skrattade så mycket att grannarna öppnade ett fönster.\n\nNär bussen skulle åka nästa morgon stod hela familjen Moreau på trottoaren. Tekla var ledsen och hade svårt att få fram ett enda ord. Då lutade sig Amélie fram och sa, på stapplande men helt begriplig svenska:\n\n”Ingen fara på taket.”\n\nTekla skrattade så att hon nästan glömde att gråta.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur fungerade översättningsappen som Tekla hade med sig?",
+        "options": [
+          "Den lyssnade på svenska och talade franska",
+          "Den visade bilder av det man ville säga",
+          "Den översatte bara skrivna meningar",
+          "Den lärde en ett nytt ord varje dag"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför sa Tekla ”Ingen fara på taket” vid middagen?",
+        "options": [
+          "Hon ville skämta om familjens hus",
+          "Hon var rädd att taket skulle läcka",
+          "Hon ville att pappan skulle titta ut",
+          "Hon ville trösta mamman efter grytan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Varför gick pappan fram till fönstret och tittade upp mot taket?",
+        "options": [
+          "Han ville se om det hade börjat regna utanför",
+          "Han trodde att Tekla menade att något hänt med taket",
+          "Han ville slippa äta mer av den brända grytan",
+          "Han hade hört ett konstigt ljud uppe på vinden"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gjorde appen fel, enligt det Tekla kom fram till?",
+        "options": [
+          "Den pratade alldeles för fort",
+          "Den valde fel språk att översätta till",
+          "Den översatte varje ord för sig",
+          "Den hörde inte vad Tekla sa"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "I texten står det att Tekla till slut ”slutade prata i bilder”. Vad betyder det?",
+        "options": [
+          "Hon slutade visa foton i mobilen",
+          "Hon slutade använda bildliga uttryck",
+          "Hon slutade rita teckningar åt Amélie",
+          "Hon slutade prata när hon var trött"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför erbjöd sig Monsieur Moreau att ringa en läkare?",
+        "options": [
+          "Tekla hade ramlat och slagit sig under utflykten",
+          "Tekla hade sagt att hon hade ont i magen",
+          "Amélie hade sagt att Tekla såg blek ut",
+          "Appens översättning fick det att låta allvarligt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför blev det ”mindre roligt” när Tekla började tala i korta, raka meningar?",
+        "options": [
+          "Appen slutade fungera helt",
+          "Familjen slutade lyssna på henne",
+          "Missförstånden och skratten försvann",
+          "Amélie blev sur på henne"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar det att Amélie säger ”Ingen fara på taket” på svenska när bussen ska åka?",
+        "options": [
+          "Att hon förstått uttrycket och vill trösta Tekla",
+          "Att hon fortfarande tror att taket är farligt",
+          "Att hon vill reta Tekla för misstaget vid middagen",
+          "Att hon har lärt sig allt hon kan om svenska språket"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför passar titeln ”Appen som ljög” på ett ironiskt sätt?",
+        "options": [
+          "Appen ljög inte, den översatte precis det hon sa",
+          "Appen ljög faktiskt om vad Tekla hade sagt hela veckan",
+          "Appen var gjord för att skämta med den som använde den",
+          "Tekla ljög för familjen om hur god maten hade varit"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-maskoten",
+    "title": "Inne i björnen",
+    "level": 7,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Skolans maskot hette Brumma och var en björn i brunt fuskpäls med ett huvud stort som en tvättkorg. Den brukade bäras av en nia som hette Henning, men på morgonen före den stora handbollsmatchen mot Norrbyskolan ringde Henning och sa att han hade feber. Valter räckte upp handen innan han hann tänka.\n\n”Det är lätt”, sa idrottsläraren och hjälpte honom i dräkten. ”Du springer in i halvtid, dansar lite, viftar åt publiken och sätter dig på vår bänk. Klart.”\n\nDet han inte nämnde var att Brummas ögon bestod av två små nätfönster, ungefär lika stora som tändsticksaskar. Valter kunde se sina egna fötter, en bit golv och ingenting annat. Dessutom luktade huvudet som en gammal gympapåse.\n\nHan väntade i korridoren tills någon skulle knacka på honom. När han hörde en dörr slå igen trodde han att det var signalen, öppnade närmaste dörr och klev in. Det var omklädningsrummet. Fel omklädningsrum. Norrbyskolans lag satt på bänkarna och lyssnade på sin tränare, som höll ett allvarligt tal om att inte släppa in fler mål.\n\nAlla vände sig mot björnen. Valter visste inte vad han skulle göra, så han gjorde det enda han hade fått instruktioner om. Han dansade. Först skrattade en spelare, sedan en till, och till slut skrattade även tränaren. När Valter backade ut genom dörren applåderade de.\n\nUte i korridoren hörde han jubel och trodde att halvtid hade börjat. Han rusade in i hallen, med armarna i luften, rakt in på planen mitt under ett anfall. Domaren blåste i visslan. Spelarna stannade. Valter, som bara såg golvet, sprang i en båge och gjorde high five med den första hand han kunde se. Det var domarens.\n\nPubliken vrålade av skratt. Någon filmade. Idrottsläraren kom och ledde ut honom i armen, ungefär som man för bort en vilsen ko.\n\nSkolans lag förlorade med tre mål. Ändå var det ingen som pratade om resultatet på måndagen. Filmen på björnen som gav domaren high five hade setts av nästan hela skolan, och några lärare låtsades att de inte hade skrattat.\n\nTvå veckor senare kom ett brev till skolan. Det var från Norrbyskolans handbollslag. De undrade, mycket artigt, om Brumma kunde komma och heja på dem i deras nästa hemmamatch.\n\n”De tyckte visst att du gav dem tur”, sa idrottsläraren.\n\nValter tänkte på talet i omklädningsrummet och på hur alla hade börjat skratta. Han tänkte att han kanske hade gjort mer för dem än för sitt eget lag. Och han tänkte att han helst ville åka dit, om han bara fick större ögonhål.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför fick Valter bära maskotdräkten den här gången?",
+        "options": [
+          "Valter hade vunnit en tävling om det",
+          "Idrottsläraren tvingade honom att göra det",
+          "Den vanliga björnen Henning var sjuk",
+          "Henning ville hellre spela i laget"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad var det största problemet med dräkten?",
+        "options": [
+          "Dräkten var för kort och hasade upp",
+          "Ögonhålen var så små att han knappt såg något",
+          "Huvudet var så tungt att han inte orkade bära det",
+          "Pälsen var så varm att han fick feber"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför gick Valter in i fel omklädningsrum?",
+        "options": [
+          "Han ville spionera på motståndarnas taktik",
+          "Idrottsläraren hade pekat på fel dörr åt honom",
+          "Han letade efter en toalett för att tvätta huvudet",
+          "Han trodde att en dörr som slog igen var signalen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför började Valter dansa i omklädningsrummet?",
+        "options": [
+          "Han ville göra motståndarlaget nervöst",
+          "Tränaren bad honom att dansa för laget",
+          "Han visste inte vad han annars skulle göra",
+          "Han trodde att han hade kommit ut på planen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Idrottsläraren ledde ut Valter ”ungefär som man för bort en vilsen ko”. Vad visar jämförelsen?",
+        "options": [
+          "Att Valter verkade hjälplös och inte visste vart han skulle",
+          "Att Valter hade börjat råma som en ko inne i dräkten",
+          "Att idrottsläraren var mycket arg och skällde högt",
+          "Att publiken trodde att björnen egentligen var en ko"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vem gav Valter high five på planen?",
+        "options": [
+          "Lagkaptenen",
+          "Domaren",
+          "Idrottsläraren",
+          "Tränaren för Norrby"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att några lärare ”låtsades att de inte hade skrattat”?",
+        "options": [
+          "De hade inte sett filmen alls",
+          "De tyckte inte att filmen var rolig",
+          "De var arga på eleven som filmade",
+          "De hade skrattat men ville verka allvarliga"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför ville Norrbyskolans lag ha Brumma på sin nästa match?",
+        "options": [
+          "De ville skämta med Valters skola",
+          "Deras egen maskot hade gått sönder",
+          "Domaren hade bett dem att bjuda in honom",
+          "De trodde att björnen hade gett dem tur"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad är det ironiska i berättelsen?",
+        "options": [
+          "Valter blev rädd för björnar efter matchen",
+          "Henning kunde inte bära dräkten fast han var nia",
+          "Maskoten hjälpte motståndarna mer än sitt eget lag",
+          "Domaren tyckte inte om att få high five"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
