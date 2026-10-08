@@ -144,6 +144,33 @@ export function takeSessionLostNotice() {
   return v;
 }
 
+// Byte av användare (#501 O4): en vy som håller förra användarens rättigheter
+// (Klasscentrets rum, shoppens insamling) stänger sig. fn({ studentId, teacher,
+// uid }) körs när spegeln rekoncilierats till en NY användare (eller ingen) –
+// även vid avsiktlig utloggning. Returnerar avregistrering.
+const authChangeListeners = new Set();
+let authChangeKey = null;
+/** Registrera fn({ studentId, teacher, uid }) för varje byte av inloggad användare. */
+export function onAuthChange(fn) {
+  authChangeListeners.add(fn);
+  return () => authChangeListeners.delete(fn);
+}
+function notifyAuthChange() {
+  const info = {
+    studentId: cachedSession?.studentId ?? null,
+    teacher: teacherClaim,
+    uid: auth.currentUser?.uid ?? null,
+  };
+  const key = info.teacher ? `t:${info.uid}` : `s:${info.studentId ?? ""}`;
+  if (key === authChangeKey) return;
+  const forsta = authChangeKey === null;
+  authChangeKey = key;
+  if (forsta) return; // uppstarten är inget byte
+  for (const fn of authChangeListeners) {
+    try { fn(info); } catch {}
+  }
+}
+
 onAuthStateChanged(auth, async (user) => {
   try {
     if (!user) {
@@ -197,6 +224,7 @@ onAuthStateChanged(auth, async (user) => {
       }
     }
   } finally {
+    if (!user || auth.currentUser?.uid === user.uid) notifyAuthChange();
     if (!readySettled) {
       readySettled = true;
       resolveReady();
@@ -259,6 +287,7 @@ export function signOutCurrent() {
   cachedSession = null;
   teacherClaim = false;
   clearMirror();
+  notifyAuthChange();
   // Fire-and-forget: anroparna väntar inte, och onAuthStateChanged städar ändå.
   return signOut(auth).catch(() => {});
 }

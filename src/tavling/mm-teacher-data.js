@@ -5,6 +5,7 @@
 //   createCompetition / updateCompetition / startNow / stop / resume
 //   finishCompetition  → status "finished" + result (historik-ögonblicksbild)
 //   archiveIfEnded     → tävling vars tid tog slut utan "Avsluta": spara result
+//                        (båda delar sedan ut Klasscentrets pokal, #495)
 //   resetCompetition   → radera answers, studentStats, scores, classCounters
 //                        (i omgångar om ≤ 400) + ta bort result
 // Läsningar (KVOT, incident #114 – aldrig svar per elev i tabeller):
@@ -111,10 +112,23 @@ async function snapshotResult(comp) {
   });
 }
 
+/**
+ * Klasscentrets pokal till vinnarklass(erna) – EFTER att result skrivits
+ * (reglerna verifierar mot det). Dynamiskt, fire-and-forget, aldrig kastande;
+ * deterministiskt pokal-id → två avslut/flikar ger EN pokal (#495).
+ */
+function delaUtPokaler(comp, result) {
+  const kalla = { ...comp, status: "finished", result };
+  import("../klasscenter/kc-koppling.js")
+    .then((m) => m.pokalerEfterAvslut("mattematchen", comp.id, kalla))
+    .catch(() => {});
+}
+
 /** "Avsluta": tävlingen stängs och resultatet sparas i historiken. */
 export async function finishCompetition(comp) {
   const result = await snapshotResult(comp);
   await updateDoc(doc(db, COL, comp.id), { status: "finished", finishedAt: serverTimestamp(), result });
+  delaUtPokaler(comp, result);
   return result;
 }
 
@@ -126,6 +140,7 @@ export async function archiveIfEnded(comp, now = Date.now()) {
   if (comp.result || competitionPhase(comp, now) !== "avslutad") return comp.result || null;
   const result = await snapshotResult(comp);
   await updateDoc(doc(db, COL, comp.id), { status: "finished", result });
+  delaUtPokaler(comp, result);
   return result;
 }
 

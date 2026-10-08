@@ -24,7 +24,9 @@
 //                             correct, divisor, score, joined, ready }]
 //   decideWinner(standings)   → { winnerId|null, draw, leaderIds }
 //   topPlayers(players, n)    → [{ uid, name, classId, correct, incorrect }]
-//   buildResult(s, standings, players) → result-map till liveSessions.result
+//   buildResult(s, standings, players, mode?) → result-map till liveSessions.result
+//                             (mode = sessionens GameMode; kooperativt läge →
+//                             result.cooperative + result.goalReached, #495)
 //   formatScore(n)            → "20,0" (1 decimal, svensk komma)
 //   formatClock(ms)           → "12:43"
 //   sessionTitle(s)           → "4B MOT 5E" (klassnamn ur classNames)
@@ -145,16 +147,23 @@ export function topPlayers(players, n = 10) {
 }
 
 /** Historikens ögonblicksbild (skrivs till liveSessions.result vid matchslut). */
-export function buildResult(s, standings, players = []) {
+export function buildResult(s, standings, players = [], mode = null) {
   const { winnerId, draw } = decideWinner(standings);
   const perClass = {};
   for (const c of standings) perClass[c.classId] = { correct: c.correct, divisor: c.divisor, score: c.score, players: c.joined };
-  return {
+  const result = {
     perClass,
     winner: draw ? "draw" : winnerId,
     totalCorrect: standings.reduce((sum, c) => sum + c.correct, 0),
     players: (players || []).length,
   };
+  // Kooperativt läge: målet nått eller inte (pokal "live-avklarat"; winner
+  // lämnas för vyerna men ger ingen "live-vinst"-pokal).
+  if (mode?.cooperative === true && mode.id === s?.gameMode) {
+    result.cooperative = true;
+    result.goalReached = !!mode.goalReached(standings, s);
+  }
+  return result;
 }
 
 /** 20 → "20,0", 19.04 → "19,0". */

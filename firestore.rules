@@ -555,6 +555,346 @@ service cloud.firestore {
       allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
     }
 
+    // ------------------------------------------------------------------
+    // KLASSCENTRET – Klass-EXP (#477, epic #476). Se docs/DATAMODELL.md
+    // "Klasscentret" och skrivplanen i src/klasscenter/kc-exp-skriv.js.
+    //
+    //  • expShards/{0..4}: klassens EXP = summan av shardarnas `exp`. Läses av
+    //    alla inloggade (mätaren syns även för gäster). Får BARA öka:
+    //      – elev: klassMEDLEM, +1..+3, och i SAMMA batch som den egna
+    //        expMembers-posten ökar lika mycket och pekar på just den shardn
+    //        (getAfter) → ingen shard-ökning utan spårbar elevpost.
+    //      – lärare: +1..+1000 (klassbonus för Live/klassutmaningar).
+    //    Sänkning, godtycklig set, främmande fält och icke-medlem nekas.
+    //  • expMembers/{uid}: elevens bidrag + regelräknare (counts) + spärr.
+    //    Bara eleven själv (och klassmedlem) skriver; `exp` ökar exakt
+    //    lastAmount, lastAt = serverns tid och minst 15 s efter förra
+    //    utdelningen (takt-spärr mot request.time, oavsett klientklocka).
+    //    counts (t.ex. "memory|<område>": 2) får uppdateras separat utan EXP.
+    //    Läses bara av eleven själv och lärare.
+    // Kvarvarande begränsning (ärligt): spelresultaten (quiz-procent m.m.)
+    // räknas i klienten – reglerna kan inte se vilken omgång som spelades. En
+    // elev som skriptar kan ge högst 3 EXP per 15 s, och varje poäng syns per
+    // elev i expMembers (läraren kan se och nollställa).
+    // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från
+    // Pages). Ingenting här är deployat.
+    // ------------------------------------------------------------------
+    match /classCenters/{classId} {
+      function kcPath(sub, id) {
+        return /databases/$(database)/documents/classCenters/$(classId)/$(sub)/$(id);
+      }
+      function kcKalla(d) { return d.lastKalla is string && d.lastKalla.size() <= 40; }
+      function kcShardOk(shardId) { return shardId in ['0', '1', '2', '3', '4']; }
+      // Ökningen av `exp` i den här skrivningen (create: från 0).
+      function kcDelta() { return newInt('exp') - prevInt('exp'); }
+      function kcShardStudent(shardId) {
+        let d = request.resource.data;
+        let m = getAfter(kcPath('expMembers', request.auth.uid)).data;
+        return isClassMember(classId) && kcShardOk(shardId) &&
+          changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
+          d.exp is int && kcDelta() >= 1 && kcDelta() <= 3 &&
+          d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d) &&
+          m.lastAt == request.time && m.lastAmount == kcDelta() &&
+          string(m.lastShard) == shardId;
+      }
+      function kcShardTeacher(shardId) {
+        let d = request.resource.data;
+        return isTeacher() && kcShardOk(shardId) &&
+          changedOnly(['exp', 'lastUid', 'lastAt', 'lastKalla']) &&
+          d.exp is int && kcDelta() >= 1 && kcDelta() <= 1000 &&
+          d.lastUid == request.auth.uid && d.lastAt == request.time && kcKalla(d);
+      }
+      function kcCountsOk(d) { return !('counts' in d) || (d.counts is map && d.counts.size() <= 300); }
+      function kcMemberAward(uid) {
+        let d = request.resource.data;
+        let n = d.lastAmount;
+        return isSelf(uid) && isClassMember(classId) && d.uid == uid &&
+          changedOnly(['uid', 'exp', 'counts', 'lastAt', 'lastAmount', 'lastShard', 'lastKalla']) &&
+          n is int && n >= 1 && n <= 3 && d.exp is int && bumped('exp', n) &&
+          d.lastAt == request.time &&
+          (resource == null || !('lastAt' in resource.data) ||
+            request.time > resource.data.lastAt + duration.value(15, 's')) &&
+          d.lastShard is int && d.lastShard >= 0 && d.lastShard <= 4 && kcKalla(d) &&
+          kcCountsOk(d) &&
+          getAfter(kcPath('expShards', string(d.lastShard))).data.lastAt == request.time &&
+          getAfter(kcPath('expShards', string(d.lastShard))).data.lastUid == uid;
+      }
+      function kcMemberCounts(uid) {
+        let d = request.resource.data;
+        return isSelf(uid) && isClassMember(classId) && d.uid == uid &&
+          changedOnly(['uid', 'counts']) && d.counts is map && kcCountsOk(d);
+      }
+
+      match /expShards/{shardId} {
+        allow read: if signedIn();
+        allow create, update: if kcShardStudent(shardId) || kcShardTeacher(shardId);
+        allow delete: if isTeacher();
+      }
+      match /expMembers/{uid} {
+        allow read: if isTeacher() || isSelf(uid);
+        allow create, update: if kcMemberAward(uid) || kcMemberCounts(uid);
+        allow delete: if isTeacher();
+      }
+
+      // ----------------------------------------------------------------
+      // Crowdfunding (#486, epic #475). Skrivplan: src/klasscenter/
+      // kc-fund-plan.js (korDonation = EN batch med tre skrivningar, coins och
+      // fundedAmount som increment → räknas mot aktuellt läge, #493):
+      //   studentData/{uid}.coins − n, donations/{nytt id} {uid,itemId,amount,at},
+      //   fund/{itemId} {targetPrice, fundedAmount, isUnlocked, unlockedAt?,
+      //   lastDonationId}.
+      //  • fund: läses av alla inloggade. Klassmedlem skriver bara ihop med
+      //    en NY donationspost (lastDonationId, existsAfter men ej exists):
+      //    fundedAmount ökar exakt donationens amount, aldrig över
+      //    targetPrice (= katalogpriset kcPris, låst), isUnlocked ==
+      //    (fundedAmount == targetPrice), inget alls när redan isUnlocked.
+      //  • donations: create-only, egen uid, klassmedlem, heltal ≥ 1, och
+      //    samma transaktion pekar fund på posten + drar exakt amount från
+      //    elevens coins (≥ 0 kvar) och sätter studentData.kcDonation =
+      //    "<klass>/<id>" (ett avdrag = en donation, #500). Läses BARA av
+      //    lärare (anonymt i klassen).
+      // Kvarvarande begränsning (ärligt): studentData är klient-skrivbart
+      // (isSelf) → reglerna garanterar insamlat == summan av donationerna och
+      // att saldot sjunker lika mycket i samma skrivning, inte att eleven
+      // "förtjänat" mynten.
+      // ⚠️ Katalogen kcPris = kopia av src/klasscenter/kc-shop-items.js
+      // (test/kc-fund-plan.test.js jämför). Nytt föremål = rules-deploy.
+      // ----------------------------------------------------------------
+      function kcKatalog() {
+        return {
+          'klassfana': 2000, 'trofehylla': 2500, 'lounge': 3000, 'akvarium': 4000,
+          'guldstaty': 5000, 'flygel': 6000, 'fontan': 8000, 'kristallkrona': 10000
+        };
+      }
+      function kcPris(itemId) { return kcKatalog().get(itemId, 0); }
+      function kcFundWrite(itemId) {
+        let d = request.resource.data;
+        let don = getAfter(kcPath('donations', d.lastDonationId)).data;
+        return isClassMember(classId) && kcPris(itemId) > 0 &&
+          (resource == null || resource.data.isUnlocked != true) &&
+          changedOnly(['targetPrice', 'fundedAmount', 'isUnlocked', 'unlockedAt', 'lastDonationId']) &&
+          d.targetPrice == kcPris(itemId) &&
+          (resource == null || d.targetPrice == resource.data.targetPrice) &&
+          d.fundedAmount is int && d.fundedAmount <= d.targetPrice &&
+          d.isUnlocked == (d.fundedAmount == d.targetPrice) &&
+          ((d.isUnlocked && d.unlockedAt == request.time) || (!d.isUnlocked && !('unlockedAt' in d))) &&
+          d.lastDonationId is string &&
+          (resource == null || d.lastDonationId != resource.data.lastDonationId) &&
+          !exists(kcPath('donations', d.lastDonationId)) &&
+          don.uid == request.auth.uid && don.itemId == itemId &&
+          don.amount == d.fundedAmount - prevInt('fundedAmount');
+      }
+      // Avdraget knyts till EN donation: studentData.kcDonation ==
+      // "<klass>/<donationId>" i samma skrivning (#500). Utan markören kunde
+      // en batch med flera donationer (olika föremål/klasser) dela på ETT
+      // avdrag – 100 mynt gav 8 × 100 insamlat.
+      function kcCoinsPaid(n, donationId) {
+        let p = /databases/$(database)/documents/studentData/$(request.auth.uid);
+        let efter = getAfter(p).data;
+        return efter.get('coins', 0) == get(p).data.get('coins', 0) - n && efter.get('coins', 0) >= 0 &&
+          efter.get('kcDonation', '') == classId + '/' + donationId;
+      }
+      function kcDonationCreate(donationId) {
+        let d = request.resource.data;
+        return isClassMember(classId) &&
+          d.keys().hasOnly(['uid', 'itemId', 'amount', 'at']) &&
+          d.uid == request.auth.uid && d.itemId is string && kcPris(d.itemId) > 0 &&
+          d.amount is int && d.amount >= 1 && d.at == request.time &&
+          getAfter(kcPath('fund', d.itemId)).data.lastDonationId == donationId &&
+          kcCoinsPaid(d.amount, donationId);
+      }
+
+      match /fund/{itemId} {
+        allow read: if signedIn();
+        allow create, update: if kcFundWrite(itemId);
+      }
+      match /donations/{donationId} {
+        allow read: if isTeacher();
+        allow create: if kcDonationCreate(donationId);
+      }
+
+      // ----------------------------------------------------------------
+      // Gemensam layout + historik (#489, epic #475). Skrivplan: src/
+      // klasscenter/kc-layout-plan.js (korSparning/korAterstallning = EN
+      // transaktion med två set utan merge):
+      //   layout/current {placedItems, version, updatedBy, updatedAt}
+      //   layoutHistory/{version % 10} {placedItems, savedBy, savedAt, version}
+      //  • Läses av alla inloggade (gästläge, spec §7).
+      //  • Skrivs av lärare, eller klassmedlem som INTE står i klassprofilens
+      //    inredningSparr. current: version == gammal + 1 (create: 1) och
+      //    historikslot version % 10 skrivs i SAMMA batch med samma
+      //    placedItems/version (getAfter). En historikslot skrivs aldrig
+      //    ensam (kräver att current får just den versionen nu).
+      //  • placedItems: katalog-id:n (kcKatalog) och högst 8 flyttade pokaler
+      //    ("pokal-<trophyId>", #497) som nycklar, högst 16 poster, varje
+      //    post exakt {x, y, z}: x/y tal 0–100, z heltal 0–999.
+      //    Att föremålet är UPPLÅST kontrolleras i klienten (kan inte loopa
+      //    över fund här) – ett ej köpt föremål i layouten ger bara en möbel
+      //    för mycket i rummet, inga mynt eller EXP.
+      //  • inredningSparr (klassprofilen classCenters/{classId}): bara lärare,
+      //    och bara det fältet (lista ≤ 200 uid:n). Läses av klassen + lärare.
+      // ⚠️ Ny post i kcKatalog = höj taket i kcPlaced (n <= …) + en
+      // kcPosOk-rad per index (test/kc-layout-plan.test.js kontrollerar).
+      // ----------------------------------------------------------------
+      function kcSparrad() {
+        let p = /databases/$(database)/documents/classCenters/$(classId);
+        return exists(p) && request.auth.uid in get(p).data.get('inredningSparr', []);
+      }
+      function kcKanInreda() { return isTeacher() || (isClassMember(classId) && !kcSparrad()); }
+      // En post {x, y, z}: x/y tal 0–100, z heltal 0–999 – som EN regex över
+      // talen (`* 1` → fel för text/bool; ett flyttal z blir "1.0" och
+      // nekas). 🔴 Budget: reglerna tillåter 1000 uttryck per skrivning; den
+      // gamla kontrollen (13 jämförelser per post) sprängde den redan vid
+      // alla 8 föremål i rummet (#497 – mätt i emulatorn), därför detta.
+      function kcPosOk(p) {
+        return p.size() == 3 && (string(p.x * 1) + ',' + string(p.y * 1) + ',' + string(p.z * 1)).matches(
+          '(100(\\.0+)?|[0-9]{1,2}(\\.[0-9]+)?),(100(\\.0+)?|[0-9]{1,2}(\\.[0-9]+)?),[0-9]{1,3}');
+      }
+      // Pokaler i rummet (#497): nycklar "pokal-<trophyId>" (trophyId =
+      // <typ>-<kallaId>, se Pokaler nedan) får stå bredvid katalog-id:n,
+      // högst 8 (= hyllans platser; fler ryms inte i uttrycksbudgeten).
+      // Reglerna kan inte loopa → alla icke-katalognycklar joinas med '/'
+      // (split-kontrollen: ingen nyckel innehåller '/', så två nycklar kan
+      // inte låtsas vara en) och matchas mot EN regex.
+      // AVVÄGNING: att pokalen finns (exists() på trophies/) kontrolleras
+      // INTE – 8 exists() per dokument spränger anropsbudgeten (10/20,
+      // current + historik läser redan klass/profil/getAfter). En påhittad
+      // nyckel ger bara en post som klienten inte ritar (den ritar bara
+      // klassens hämtade pokaler).
+      function kcPokalNyckel() {
+        return 'pokal-(' + kcPokalTyper().join('|') + ')-[A-Za-z0-9_-]{1,100}';
+      }
+      function kcPokalerOk(pk) {
+        return pk.size() == 0 || (pk.size() <= 8 &&
+          pk.join('/').split('/').size() == pk.size() &&
+          pk.join('/').matches(kcPokalNyckel() + '(/' + kcPokalNyckel() + ')*'));
+      }
+      // Nycklar: katalog-id:n + pokaler; positionerna per index i values()
+      // (högst 8 föremål + 8 pokaler = 16 poster).
+      function kcPlaced(pi) {
+        let v = pi.values();
+        let n = v.size();
+        return pi is map && n <= 16 &&
+          kcPokalerOk(pi.keys().removeAll(kcKatalog().keys())) &&
+          (n <= 0 || kcPosOk(v[0])) &&
+          (n <= 1 || kcPosOk(v[1])) &&
+          (n <= 2 || kcPosOk(v[2])) &&
+          (n <= 3 || kcPosOk(v[3])) &&
+          (n <= 4 || kcPosOk(v[4])) &&
+          (n <= 5 || kcPosOk(v[5])) &&
+          (n <= 6 || kcPosOk(v[6])) &&
+          (n <= 7 || kcPosOk(v[7])) &&
+          (n <= 8 || kcPosOk(v[8])) &&
+          (n <= 9 || kcPosOk(v[9])) &&
+          (n <= 10 || kcPosOk(v[10])) &&
+          (n <= 11 || kcPosOk(v[11])) &&
+          (n <= 12 || kcPosOk(v[12])) &&
+          (n <= 13 || kcPosOk(v[13])) &&
+          (n <= 14 || kcPosOk(v[14])) &&
+          (n <= 15 || kcPosOk(v[15]));
+      }
+      function kcLayoutCurrent() {
+        let d = request.resource.data;
+        let h = getAfter(kcPath('layoutHistory', string(d.version % 10))).data;
+        return kcKanInreda() &&
+          d.keys().hasOnly(['placedItems', 'version', 'updatedBy', 'updatedAt']) &&
+          kcPlaced(d.placedItems) &&
+          d.version is int && d.version == prevInt('version') + 1 &&
+          d.updatedBy == request.auth.uid && d.updatedAt == request.time &&
+          h.version == d.version && h.savedAt == request.time &&
+          h.savedBy == request.auth.uid && h.placedItems == d.placedItems;
+      }
+      function kcLayoutHistory(slot) {
+        let d = request.resource.data;
+        let cur = getAfter(kcPath('layout', 'current')).data;
+        return kcKanInreda() && slot in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] &&
+          d.keys().hasOnly(['placedItems', 'savedBy', 'savedAt', 'version']) &&
+          d.version is int && string(d.version % 10) == slot &&
+          d.savedBy == request.auth.uid && d.savedAt == request.time &&
+          cur.version == d.version && cur.updatedAt == request.time &&
+          cur.placedItems == d.placedItems;
+      }
+
+      // ----------------------------------------------------------------
+      // Pokaler (#494, epic #474). Register + transaktion: src/klasscenter/
+      // kc-pokal-typer.js (korPokalUtdelning), SDK-lager kc-pokal-data.js.
+      //   trophies/{typ}-{kallaId} {typ, kallaId, titel, detalj?, wonAt, awardedBy}
+      //  • Läses av alla inloggade (gästläge, spec §7).
+      //  • Skapas BARA av lärare (lärarklienten som avslutar tävlingen/
+      //    matchen), create-only (ingen ändring/radering) → deterministiskt
+      //    id = samma vinst ger aldrig två pokaler.
+      //  • Verifieras mot källans `result` med getAfter (fungerar även när
+      //    pokalen skrivs i samma batch som resultatet): status 'finished' och
+      //      mm-klasskamp   mathCompetitions/{kallaId}.result.winnerClass == klassen
+      //                     eller klassen i result.winnerClasses (delad 1:a, #495)
+      //      live-vinst     liveSessions/{kallaId}.result.winner == klassen och
+      //                     inte result.cooperative
+      //      live-avklarat  liveSessions/{kallaId}: result.goalReached == true
+      //                     (kooperativt läge, #495) och klassen deltog
+      //    (live-* kräver dessutom klassen i participatingClassIds och
+      //    result.perClass[klassen].players > 0).
+      // ⚠️ Ny pokaltyp = typen i kcPokalTyper + gren i kcPokalVerifierad +
+      // registreraPokaltyp (test/kc-pokal-typer.test.js jämför) + rules-deploy.
+      // ----------------------------------------------------------------
+      function kcPokalTyper() { return ['mm-klasskamp', 'live-vinst', 'live-avklarat']; }
+      function kcPokalMm(cid) {
+        let c = getAfter(/databases/$(database)/documents/mathCompetitions/$(cid)).data;
+        let r = c.get('result', {});
+        return c.status == 'finished' &&
+          (r.get('winnerClass', null) == classId || classId in r.get('winnerClasses', []));
+      }
+      function kcPokalLive(sid, vinst) {
+        let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
+        let r = s.get('result', {});
+        return s.status == 'finished' && classId in s.participatingClassIds &&
+          r.get('perClass', {}).get(classId, {}).get('players', 0) > 0 &&
+          (vinst ? r.get('winner', null) == classId && r.get('cooperative', false) != true
+                 : r.get('goalReached', false) == true);
+      }
+      function kcPokalVerifierad(typ, kallaId) {
+        return (typ == 'mm-klasskamp' && kcPokalMm(kallaId)) ||
+          (typ == 'live-vinst' && kcPokalLive(kallaId, true)) ||
+          (typ == 'live-avklarat' && kcPokalLive(kallaId, false));
+      }
+      function kcPokalCreate(trophyId) {
+        let d = request.resource.data;
+        return isTeacher() &&
+          d.keys().hasOnly(['typ', 'kallaId', 'titel', 'detalj', 'wonAt', 'awardedBy']) &&
+          d.keys().hasAll(['typ', 'kallaId', 'titel', 'wonAt', 'awardedBy']) &&
+          d.typ in kcPokalTyper() &&
+          d.kallaId is string && d.kallaId.matches('[A-Za-z0-9_-]{1,100}') &&
+          trophyId == d.typ + '-' + d.kallaId &&
+          d.titel is string && d.titel.size() >= 1 && d.titel.size() <= 80 &&
+          (!('detalj' in d) || (d.detalj is string && d.detalj.size() <= 120)) &&
+          d.wonAt == request.time && d.awardedBy == request.auth.uid &&
+          kcPokalVerifierad(d.typ, d.kallaId);
+      }
+
+      match /trophies/{trophyId} {
+        allow read: if signedIn();
+        allow create: if kcPokalCreate(trophyId);
+      }
+
+      // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).
+      // Läses bara av klassen och lärare (#500): spärrlistan säger vilka
+      // elever läraren bockat ur – gästläget behöver den inte.
+      allow read: if isTeacher() || isClassMember(classId);
+      allow create, update: if isTeacher() && changedOnly(['inredningSparr']) &&
+        request.resource.data.inredningSparr is list &&
+        request.resource.data.inredningSparr.size() <= 200;
+
+      match /layout/{docId} {
+        allow read: if signedIn();
+        allow create, update: if docId == 'current' && kcLayoutCurrent();
+        allow delete: if isTeacher();
+      }
+      match /layoutHistory/{slot} {
+        allow read: if signedIn();
+        allow create, update: if kcLayoutHistory(slot);
+        allow delete: if isTeacher();
+      }
+    }
+
     // Allt annat nekas.
     match /{document=**} {
       allow read, write: if false;

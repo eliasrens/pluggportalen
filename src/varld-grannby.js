@@ -104,7 +104,11 @@ export function createGrannbyVy({
     // normalt ingen elev i en ANNAN klass → ingen "Du!"-tomt. Husen blir samma
     // klickbara .by-tomt som i egna byn; klickhanteringen (in i rum / låst-bubbla)
     // sitter i pages-varld på grannbyLager.
-    const { fokusById } = mountByScen({ lager: grannbyLager, meId, students });
+    // Klasscentret (#480): DERAS center med deras nivå, view-only.
+    const { fokusById } = mountByScen({
+      lager: grannbyLager, meId, students,
+      klasscenter: { classId: klass.id, visaOnly: true, klassNamn },
+    });
 
     // Klassens stjärnor: samma ✨-toggle + skylt som egna byn (fyll via onStats).
     onStats?.(stats, klassNamn);

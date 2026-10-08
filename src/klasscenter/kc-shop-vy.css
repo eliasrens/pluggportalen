@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Klasscentret – shoppens "Klasscentrum"-flik (#488). Laddas dynamiskt av
+   kc-shop-vy.js (inte i index.html/styles.css). Korten återanvänder
+   .shop-card/.shop-namn/.buy-btn ur styles.css; här bara det nya. Prefix
+   kcs- (inte kc-): byns mätare i styles.css äger redan t.ex. .kc-matare.
+   ========================================================================== */
+
+.kcs-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+
+.kcs-kort { gap: 8px; }
+
+.kcs-bild {
+  width: 100%;
+  height: 150px;
+  border-radius: 14px;
+  padding: 10px;
+  box-sizing: border-box;
+  /* Vägg + golv (samma toner som rummet), upphängda saker bara vägg. */
+  background: linear-gradient(#ffe9cc 0 64%, #c9996b 64%);
+}
+.kcs-bild-vagg { background: #ffe9cc; }
+.kcs-bild > svg { width: 100%; height: 100%; display: block; }
+.kcs-emoji { font-size: 4rem; line-height: 130px; }
+
+.kcs-mal { font-size: 0.85rem; font-weight: 700; color: #b26e35; }
+
+.kcs-matare { width: 100%; }
+.kcs-bar {
+  width: 100%;
+  height: 16px;
+  border-radius: 999px;
+  background: #eef1f6;
+  box-shadow: inset 0 2px 0 #dbe2ec;
+  overflow: hidden;
+}
+.kcs-bar-fyll {
+  height: 100%;
+  min-width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffcf4a, #f5a524);
+  transition: width 0.6s ease;
+}
+.kcs-kort.is-owned .kcs-bar-fyll { background: linear-gradient(90deg, #5fd38d, #2fb36a); }
+.kcs-insamlat { font-size: 0.9rem; margin-top: 4px; }
+.kcs-eget { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+
+.kcs-handling { width: 100%; }
+.kcs-kopt {
+  font-weight: 800;
+  color: #1e7a45;
+  background: #e5f8ec;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+
+.kcs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff8e8;
+  border: 2px solid #ffd39a;
+  border-radius: 14px;
+  padding: 10px;
+  margin-top: 4px;
+}
+.kcs-saknas { font-size: 0.95rem; }
+.kcs-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.kcs-chip {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 0.9rem;
+  border: 2px solid #ffd39a;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.kcs-chip.active { background: var(--gul); border-color: #f5a524; }
+.kcs-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.kcs-falt { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; }
+.kcs-belopp {
+  font: inherit;
+  font-weight: 700;
+  width: 7em;
+  padding: 4px 8px;
+  border: 2px solid #ffd39a;
+  border-radius: 10px;
+}
+.kcs-maxinfo { font-size: 0.75rem; opacity: 0.7; }
+.kcs-panel-knappar { display: flex; gap: 8px; align-items: stretch; }
+.kcs-panel-knappar .buy-btn { margin-top: 0; flex: 1; }
+.kcs-avbryt {
+  font-family: var(--font);
+  font-weight: 700;
+  border: none;
+  background: #eef1f6;
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.kcs-klassval { display: inline-flex; gap: 6px; align-items: center; margin: 0 0 10px; font-weight: 700; }
+.kcs-klass { font: inherit; padding: 2px 6px; border-radius: 8px; }
+.kcs-ingen-klass { max-width: 60ch; }

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Klasscentrets pokaler + statistiktavla</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #496: pokalernas kodritade konst
+         (art-klasscenter-pokaler.js) med titel/text ur pokalregistret
+         (kc-pokal-typer.js), pokalhyllan med auto-placerade pokaler och
+         statistiktavlan med sina tre (tomma) värdefält markerade.
+         Ingen inloggning behövs – sidan ritar bara konsten. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 80ch; }
+      .wrap { padding: 12px 20px 40px; }
+      h2 { font-size: 1.05rem; margin: 22px 0 8px; }
+      .verktyg { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 0.9rem; }
+      .verktyg button, .verktyg select { font: inherit; padding: 4px 12px; border-radius: 10px; border: 2px solid #ffd39a; background: #fff; cursor: pointer; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+      .kort { background: #fff; border: 3px solid #3B3350; border-radius: 18px; overflow: hidden; }
+      .kort .bild { height: 200px; padding: 12px; box-sizing: border-box; background: #FFE9CC; }
+      .kort .bild > svg { width: 100%; height: 100%; display: block; }
+      .kort .info { padding: 6px 10px 8px; }
+      .kort .namn { font-weight: 800; }
+      .kort .meta { font-size: 0.8rem; opacity: 0.7; }
+      .rad { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+      .mobel { background: #FFE9CC; border: 3px solid #3B3350; border-radius: 18px; padding: 14px; }
+      .mobel > svg { display: block; }
+      .tavla { position: relative; cursor: pointer; }
+      .tavla svg { width: 26rem; display: block; }
+      /* Demo av hur sub-issue E kan lägga siffror i KC_STATISTIK_FALT. */
+      .tavla .falt { position: absolute; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.15rem; outline: 1px dashed rgba(255,255,255,0.35); }
+      .tavla .stapel { position: absolute; border-radius: 999px; background: #7BC67E; }
+      #tip { position: fixed; pointer-events: none; background: #fff; border: 3px solid #3B3350; border-radius: 14px; padding: 8px 12px; max-width: 18rem; font-size: 0.9rem; display: none; box-shadow: 0 4px 0 rgba(59,51,80,.2); }
+      #tip b { display: block; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – Klasscentrets pokaler 🏆⭐🚀 + statistiktavla 📊</h1>
+      <p>
+        Kodritad konst för varje pokaltyp (issue #496, <code>kcPokalSvg(art)</code>). Titel och
+        tooltip-text kommer direkt ur <code>kc-pokal-typer.js</code>. Hyllan visar
+        <code>kcPokalhyllaSvg(pokaler)</code> (håll musen över en pokal), tavlan sina tre värdefält
+        (<code>KC_STATISTIK_FALT</code>) med påhittade siffror som sub-issue E ska rita.
+      </p>
+    </header>
+    <div class="wrap">
+      <div class="verktyg">
+        <button id="anim">⏸ Pausa ambient</button>
+        <label>Klassens färg: <input type="color" id="fana" value="#EF6F6C" /></label>
+        <label>Pokaler på hyllan: <select id="antal"></select></label>
+      </div>
+      <h2>Alla pokaler</h2>
+      <div class="grid" id="grid"></div>
+      <h2>Pokalhyllan och statistiktavlan</h2>
+      <div class="rad">
+        <div class="mobel" id="hylla"></div>
+        <div class="mobel"><div class="tavla" id="tavla" title="Klicka för klassens statistik"></div></div>
+      </div>
+    </div>
+    <div id="tip"></div>
+    <script type="module">
+      import { kcPokalSvg, kcPokalhyllaSvg, kcPokalStorlek, KC_POKALER, KC_STATISTIK_FALT } from "./src/art-klasscenter-pokaler.js";
+      import { listaPokaltyper, pokalTooltip } from "./src/klasscenter/kc-pokal-typer.js";
+
+      let animera = true;
+      const typer = listaPokaltyper();
+      const KORT = [...typer.map((t) => ({ art: t.art, namn: t.titel, text: t.text, meta: t.id })),
+        { art: "pokal", namn: "Pokal (reserv)", text: "Okänd/framtida pokaltyp.", meta: "reserv" }];
+
+      // Påhittade pokaler (som normaliseraPokaler ger: nyast först).
+      const DAG = 86400000;
+      const DEMO = Array.from({ length: 10 }, (_, i) => {
+        const t = typer[i % typer.length];
+        return { id: `${t.id}-demo${i}`, typ: t.id, art: t.art, titel: t.titel, detalj: `Omgång ${10 - i}`, wonAt: Date.now() - i * 7 * DAG };
+      });
+      const antal = document.getElementById("antal");
+      antal.innerHTML = [0, 1, 3, 5, 8, 10].map((n) => `<option ${n === 5 ? "selected" : ""}>${n}</option>`).join("");
+
+      function ritaGrid() {
+        document.getElementById("grid").innerHTML = KORT.map((k) => `<div class="kort">
+            <div class="bild">${kcPokalSvg(k.art, { animera, aria: k.namn })}</div>
+            <div class="info"><div class="namn">${k.namn}</div><div>${k.text}</div>
+              <div class="meta">${k.meta} · ${k.art}</div></div></div>`).join("");
+      }
+      function ritaHylla() {
+        const s = kcPokalStorlek("kc-pokalhylla");
+        const el = document.getElementById("hylla");
+        el.innerHTML = kcPokalhyllaSvg(DEMO.slice(0, +antal.value), { animera, aria: "Pokalhylla" });
+        Object.assign(el.firstChild.style, { width: `${s.w * 2.2}rem` });
+      }
+      function ritaTavla() {
+        const [, , vw, vh] = KC_POKALER["kc-statistiktavla"].viewBox.split(" ").map(Number);
+        const pct = (r) => `left:${(r.x / vw) * 100}%;top:${(r.y / vh) * 100}%;width:${(r.w / vw) * 100}%;height:${(r.h / vh) * 100}%`;
+        const p = KC_STATISTIK_FALT.progress;
+        document.getElementById("tavla").innerHTML = kcPokalSvg("kc-statistiktavla", { animera, aria: "Klassens statistik" }) +
+          `<div class="falt" style="${pct(KC_STATISTIK_FALT.exp)}">12 480</div>` +
+          `<div class="falt" style="${pct(KC_STATISTIK_FALT.losta)}">3 917</div>` +
+          `<div class="stapel" style="${pct({ ...p, w: p.w * 0.62 })}"></div>`;
+      }
+      function rita() { ritaGrid(); ritaHylla(); ritaTavla(); }
+
+      const tip = document.getElementById("tip");
+      document.getElementById("hylla").addEventListener("mousemove", (e) => {
+        const plats = e.target.closest?.("[data-pokal-id]");
+        const p = plats && DEMO.find((d) => d.id === plats.dataset.pokalId);
+        if (!p) { tip.style.display = "none"; return; }
+        const t = pokalTooltip(p);
+        tip.innerHTML = `<b>${t.rubrik}</b>${t.text}<br><small>${t.detalj} · ${t.datum}</small>`;
+        Object.assign(tip.style, { display: "block", left: `${e.clientX + 14}px`, top: `${e.clientY + 14}px` });
+      });
+      document.getElementById("hylla").addEventListener("mouseleave", () => (tip.style.display = "none"));
+      document.getElementById("anim").addEventListener("click", (e) => {
+        animera = !animera;
+        e.target.textContent = animera ? "⏸ Pausa ambient" : "▶ Starta ambient";
+        rita();
+      });
+      antal.addEventListener("change", ritaHylla);
+      document.getElementById("fana").addEventListener("input", (e) =>
+        document.documentElement.style.setProperty("--kc-fana", e.target.value));
+      rita();
+    </script>
+  </body>
+</html>

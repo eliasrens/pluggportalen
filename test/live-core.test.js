@@ -91,6 +91,19 @@ describe("Live: poäng = rätt / lärarens nämnare (spec Live-test 6)", () => {
     assert.equal(r.totalCorrect, 758);
     assert.equal(r.perClass["5e"].score, 19);
     assert.equal(r.players, 3);
+    assert.equal(r.cooperative, undefined);
+    assert.equal(r.goalReached, undefined);
+  });
+
+  it("kooperativt läge (#495): result.cooperative + goalReached ur lägets mål", () => {
+    const st = classStandings(base({ gameMode: "koop_test" }), { "4b": 340, "5e": 418 }, []);
+    const koop = (mal) => ({ id: "koop_test", cooperative: true, goalReached: (s) => s.reduce((n, c) => n + c.correct, 0) >= mal });
+    const nadd = buildResult(base({ gameMode: "koop_test" }), st, [], koop(700));
+    assert.deepEqual([nadd.cooperative, nadd.goalReached], [true, true]);
+    assert.equal(buildResult(base({ gameMode: "koop_test" }), st, [], koop(800)).goalReached, false);
+    // Tävlingsläge eller läge som inte är sessionens → inga koop-fält.
+    assert.equal(buildResult(base(), st, [], koop(700)).cooperative, undefined);
+    assert.equal(buildResult(base({ gameMode: "koop_test" }), st, [], { id: "koop_test" }).cooperative, undefined);
   });
 });
 

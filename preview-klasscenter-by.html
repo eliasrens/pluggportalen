@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Klasscentret i byn – förhandsvisning (issue #480)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { background: #0b0f14; margin: 0; }
+      .pv-intro { max-width: 1200px; margin: 0 auto; padding: 16px 20px 0; color: #cfd8e3;
+        font: 500 0.95rem/1.5 system-ui, sans-serif; }
+      .pv-intro b { color: #fff; }
+      .pv-ctrl { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; flex-wrap: wrap;
+        gap: 14px 22px; align-items: center; color: #cfd8e3; font: 600 0.85rem system-ui, sans-serif; }
+      .pv-pick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .pv-pick button { border-radius: 999px; padding: 4px 12px; border: 1px solid #39465a;
+        background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui, sans-serif; }
+      .pv-pick button[aria-pressed="true"] { background: #2f8f5b; border-color: #2f8f5b; color: #fff; }
+      .pv-ctrl input[type="range"] { width: 220px; }
+      .pv-status { color: #7ee0a6; }
+      .pv-scen { position: relative; max-width: 1200px; margin: 0 auto 30px; aspect-ratio: 3 / 2;
+        overflow: hidden; border-radius: 16px; background: #bde3f5; }
+      .pv-scen > .varld-lager { inset: 0; width: 100% !important; height: 100% !important;
+        margin: 0 !important; transform: none !important; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-intro">
+      <b>Issue #480 – Klasscentret i byn.</b> Riktiga <code>mountByScen</code> + by-layouten:
+      centret står i mitten av översta raden (hus, hus, CENTRET, hus, hus), resten fyller raderna under. EXP:n matas in här
+      i stället för Firestore (samma <code>kalla</code>-gränssnitt som prenumerationen) – dra
+      reglaget och se byggnaden bytas när tröskeln nås. (Klick öppnar klassens rum, #490 – bara i husvärlden, inte på denna sida.)
+      <b>#484:</b> mätaren syns bara när du hovrar (eller Tab-fokuserar) byggnaden; på pekskärm visar bubblan mätartexten.
+    </div>
+    <div class="pv-ctrl">
+      <div class="pv-pick" id="pv-antal"><span>Elever:</span></div>
+      <div class="pv-pick" id="pv-niva"><span>Hoppa till nivå:</span></div>
+      <label>EXP <input type="range" id="pv-exp" min="0" max="100" value="0" /></label>
+      <span class="pv-status" id="pv-status"></span>
+      <div class="pv-pick" id="pv-vy"><span>Vy:</span></div>
+    </div>
+    <div class="pv-scen" id="pv-scen"><div class="varld-lager varld-by" id="pv-lager"></div><div class="varld-ui" id="pv-ui"></div></div>
+
+    <script type="module">
+      import { mountByScen } from "./src/varld-by-scen.js";
+      import { troskelFor, nivaFor, NIVAER } from "./src/klasscenter/kc-niva.js";
+      import { ROOM_PALETTES } from "./src/room-palettes.js";
+      import { AVATARS } from "./src/avatars.js";
+      import { mountNavSkyltar } from "./src/varld-navskylt.js";
+
+      const NAMN = ["Alva", "Ebbe", "Saga", "Leo", "Maja", "Noah", "Elsa", "Liam", "Wilma", "Hugo",
+        "Alice", "Oskar", "Ella", "Vincent", "Freja", "Elias", "Stella", "Theo", "Ines", "Adam",
+        "Siri", "Melvin", "Tyra", "Sixten", "Ebba", "Love", "Nora", "Viggo", "Ida", "Otto",
+        "Lova", "Arvid", "Molly", "Isak", "Juni", "Valter", "Signe", "Alvin", "Tilde", "Ture"];
+      const PAL = Object.keys(ROOM_PALETTES);
+      const AV = Object.keys(AVATARS);
+
+      const q = new URLSearchParams(location.search);
+      let antal = Number(q.get("elever") ?? 14);
+      let exp = 0;
+      let vy = q.get("vy") || "egen"; // egen | grannby
+      let lyssnare = null; // kc-by.js kalla-callback
+
+      const lager = document.getElementById("pv-lager");
+      // #483: den riktiga "Andra byar"-skylten nere till vänster (?bredd=760 ≈ surfplatta).
+      if (q.get("bredd")) document.getElementById("pv-scen").style.maxWidth = q.get("bredd") + "px";
+      mountNavSkyltar({ ui: document.getElementById("pv-ui"), onAndraByar() {}, onTillGarden() {} })
+        .visa(vy === "egen" ? "by" : "grannby", true);
+      const expEl = document.getElementById("pv-exp");
+      const status = document.getElementById("pv-status");
+
+      function elever(n) {
+        return Array.from({ length: n }, (_, i) => ({
+          id: "e" + i, namn: NAMN[i % NAMN.length],
+          paletteId: PAL[i % PAL.length], avatarId: AV[(i * 7) % AV.length],
+        }));
+      }
+      function skicka() {
+        const n = Math.max(1, antal);
+        status.textContent = `${exp} övningar · ${n} elever → Nivå ${nivaFor(exp, n)}`;
+        lyssnare?.({ exp, antalElever: n });
+      }
+      function rita() {
+        const n = Math.max(1, antal);
+        expEl.max = String(troskelFor(10, n) + 20);
+        expEl.value = String(exp);
+        mountByScen({
+          lager, meId: vy === "egen" ? "e0" : "ingen", students: elever(antal),
+          klasscenter: {
+            classId: "demo", visaOnly: vy === "grannby", klassNamn: "6B",
+            kalla: (_id, cb) => { lyssnare = cb; skicka(); return () => { if (lyssnare === cb) lyssnare = null; }; },
+          },
+        });
+        skicka();
+      }
+      function knappar(wrap, val, aktiv, onVal) {
+        for (const [v, txt] of val) {
+          const b = document.createElement("button");
+          b.textContent = txt;
+          b.dataset.v = v;
+          b.setAttribute("aria-pressed", String(v === aktiv));
+          b.onclick = () => {
+            wrap.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            onVal(v);
+          };
+          wrap.appendChild(b);
+        }
+      }
+      knappar(document.getElementById("pv-antal"), [0, 1, 5, 10, 11, 14, 17, 18, 27, 28, 36, 40].map((n) => [n, String(n)]), antal,
+        (n) => { antal = n; exp = Math.min(exp, troskelFor(10, Math.max(1, n)) + 20); rita(); });
+      knappar(document.getElementById("pv-vy"), [["egen", "Egna byn"], ["grannby", "Grannby (view-only)"]], vy,
+        (v) => { vy = v; document.getElementById("by-skylt").hidden = v !== "egen"; rita(); });
+      const nivWrap = document.getElementById("pv-niva");
+      for (const n of NIVAER) {
+        const b = document.createElement("button");
+        b.textContent = n.niva;
+        b.title = n.namn;
+        b.onclick = () => { exp = troskelFor(n.niva, Math.max(1, antal)) + (n.niva === NIVAER.length ? 0 : 3); expEl.value = exp; skicka(); };
+        nivWrap.appendChild(b);
+      }
+      expEl.addEventListener("input", () => { exp = Number(expEl.value); skicka(); });
+      if (q.get("niva")) exp = troskelFor(Number(q.get("niva")), Math.max(1, antal)) + 3;
+      rita();
+    </script>
+  </body>
+</html>

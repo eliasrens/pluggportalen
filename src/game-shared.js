@@ -214,7 +214,7 @@ function grindMultiplier(prevPlays) {
  * additivt i progress (saveProgress) och påverkar INTE coins/XP/stjärnor.
  * @returns {Promise<{coins:number, xp:number, totalXp:number, firstTime:boolean, reduced:boolean, pct:number, prevAreaProgress:(object|null)}>}
  */
-export async function awardExercise(area, mode, { stars, bestScore, baseCoins, catStats }) {
+export async function awardExercise(area, mode, { stars, bestScore, baseCoins, catStats, classResult }) {
   let firstTime = true;
   let prevPlays = 0; // antal tidigare avklarade körningar (n i trappan)
   let prevAreaProgress = null; // progress[area] FÖRE spelet (#447: "du blev bättre på …")
@@ -286,6 +286,14 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
     const { growCropsFromExercise } = await import("./data-farm.js");
     await growCropsFromExercise();
   } catch {}
+  // Klasscentret (#479): Klass-EXP enligt regelregistret (kc-exp-regler.js).
+  // classResult = lägets resultatform (quiz { ratt, totalt }, rakna { ratt });
+  // saknas den räknas omgången som "klar". Dynamisk import (#271) och INGEN
+  // await – utdelningen väntar ut takt-spärren i bakgrunden och får aldrig
+  // störa eller fördröja elevens egen belöning.
+  import("./klasscenter/kc-koppling.js")
+    .then((m) => m.klassExpEfterOvning({ modul: mode, resultat: classResult, area }))
+    .catch(() => {});
   return { coins, xp, totalXp, firstTime, reduced, pct, prevAreaProgress };
 }
 
@@ -297,13 +305,14 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
  *   stjärnor: dölj stjärnraden och ersätt med neutral uppmuntran. Övriga lägen
  *   (para-ihop/quiz m.fl.) skickar inte flaggan och är helt oförändrade.
  * @param {object} [opts.catStats]  rätt/totalt per frågekategori (#445), se awardExercise.
+ * @param {object} [opts.classResult]  resultat för Klass-EXP-regeln (#479), se awardExercise.
  */
-export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false, catStats }) {
+export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false, catStats, classResult }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
   // "Så gick det" per kategori + stjärnhjälpen (#447): NY fil → dynamisk import
   // (#271), hämtas parallellt med sparningen. Saknas den visas kortet som förr.
   const feedbackMod = import("./plugga-framsteg.js").catch(() => null);
-  const { coins, xp, totalXp, reduced, pct, prevAreaProgress } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats });
+  const { coins, xp, totalXp, reduced, pct, prevAreaProgress } = await awardExercise(area, mode, { stars, bestScore, baseCoins, catStats, classResult });
   await renderTopbar(); // uppdatera coins-saldo + nivå i sidhuvudet
   let feedback = "";
   let retried = false;
