@@ -9,6 +9,7 @@
 //
 // API: createWinner(host, { st, colors, onBack, celebrate }) → { update(st), destroy() }
 //   celebrate: true = spela konfetti (inte vid omladdning av en gammal match)
+//   onBack: null = ingen "Till Live"-knapp (elevskärmen, #533)
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
@@ -128,10 +129,10 @@ export function createWinner(host, { st, colors, onBack, celebrate }) {
         ${next.top.length ? `<div class="lpw-stars">⭐ Matchens stjärnor: ${next.top.slice(0, 3).map((p, i) =>
           `<span>${MEDALS[i]} ${esc(p.name || "Elev")} <small>${esc(next.session?.classNames?.[p.classId] || "")} · ${p.correct}</small></span>`).join("")}</div>` : ""}
         <div class="lpw-foot">
-          <button class="lp-btn" data-back>← Till Live</button>
+          ${onBack ? `<button class="lp-btn" data-back>← Till Live</button>` : ""}
           <span>${next.result ? "Resultatet är sparat i historiken." : "Sparar resultatet…"}</span>
         </div>`;
-    inner.querySelector("[data-back]").addEventListener("click", onBack);
+    inner.querySelector("[data-back]")?.addEventListener("click", onBack);
     if (celebrate) {
       celebrate = false; // en gång – omritningar (t.ex. "sparat") startar inte om den
       const palette = [...winners.map((id) => colors[id]), "#ffd23d", "#ffffff", ...winners.map((id) => colors[id])];

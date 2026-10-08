@@ -4,6 +4,8 @@
 //   #/larare/live              skapa match + Aktiva Live-sessioner (ALLA lärares,
 //                              realtid) + historik
 //   #/larare/live?id=<sid>     projektorvyn (projector.js, #461)
+//   #/larare/live?id=<sid>&skarm=elev  elevskärmen: utvidgad skärm utan
+//                              kontroller, styrs från projektorvyn (#533)
 //   #/larare/live?historik=<sid>  en avslutad matchs resultat + elevresultat
 // Sessionerna lever i Firestore – vilken lärare som helst kan öppna/starta
 // vilken session som helst, och en omladdning hittar tillbaka till samma läge.
@@ -40,7 +42,7 @@ export async function pageLarareLive(ctx) {
   const params = getParams();
   if (params.id) {
     const { mountProjector } = await import("./projector.js");
-    return mountProjector(ctx, params.id, { cleanups, uid });
+    return mountProjector(ctx, params.id, { cleanups, uid, screen: params.skarm === "elev" });
   }
 
   const page = el(`<div class="teacher-page teacher-dark live-teacher"></div>`);
