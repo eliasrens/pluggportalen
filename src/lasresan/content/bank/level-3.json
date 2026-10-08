@@ -2172,5 +2172,569 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n3-blackfisken",
+    "title": "Havets mästare på att gömma sig",
+    "level": 3,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Bläckfisken är ett av havets mest märkliga djur. Den vanliga bläckfisken har åtta armar som är täckta med sugkoppar. Med dem kan den hålla fast byten, klättra över stenar och till och med känna smaken av saker som den rör vid.\n\nBläckfisken har inget skelett. Den enda hårda delen av kroppen är en näbb som liknar en papegojas. Därför kan en stor bläckfisk pressa sig igenom ett hål som inte är mycket större än näbben.\n\nNär en fiende kommer nära har bläckfisken flera knep. Den kan byta färg på några sekunder och smälta in bland stenar och sand. Om det inte räcker sprutar den ut ett moln av mörkt bläck och simmar snabbt därifrån. Fienden ser bara ett svart moln.\n\nBläckfisken har dessutom tre hjärtan, och dess blod är blått.\n\nForskare har upptäckt att bläckfiskar är mycket kloka. På akvarier har de lärt sig att skruva av locket på en burk för att komma åt maten inuti. Ändå lever de flesta bläckfiskar bara ett eller ett par år.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många hjärtan har bläckfisken?",
+        "options": [
+          "Ett",
+          "Två",
+          "Tre",
+          "Åtta"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken del av bläckfiskens kropp är hård?",
+        "options": [
+          "Näbben",
+          "Armarna",
+          "Sugkopparna",
+          "Huvudet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Bläckfisken kan ”smälta in” bland stenarna. Vad betyder det?",
+        "options": [
+          "Den blir mjuk och flytande",
+          "Den gräver ner sig i sanden",
+          "Den äter upp små stenar",
+          "Den blir svår att upptäcka"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Bläckfiskar är ”kloka”. Vad betyder det?",
+        "options": [
+          "Snabba",
+          "Smarta",
+          "Farliga",
+          "Lugna"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan bläckfisken ta sig igenom så små hål?",
+        "options": [
+          "Den kan göra sig osynlig",
+          "Den har åtta långa armar",
+          "Den har inget skelett",
+          "Den sprutar bläck på hålet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur hjälper bläckmolnet bläckfisken?",
+        "options": [
+          "Fienden ser inte vart den simmar",
+          "Bläcket får den att simma fortare",
+          "Bläcket värmer upp vattnet",
+          "Bläcket lockar till sig mat"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man fångar bläckfisk",
+          "Varför havet ser blått ut",
+          "Hur bläckfisken klarar sig i havet",
+          "Hur man sköter ett stort akvarium"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-bjornens-ide",
+    "title": "Björnens långa vintervila",
+    "level": 3,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "På hösten har brunbjörnen bråttom. Den äter nästan hela dagarna, mest blåbär, lingon och kråkbär. En björn kan äta tusentals bär på en enda dag. Maten blir till ett tjockt lager fett under pälsen.\n\nFettet behövs, för när vintern kommer går björnen i ide. Den lägger sig i en grop under en rotvälta, i en gammal myrstack eller i ett hål som den har grävt i en slänt. Där ligger den kvar i ungefär ett halvår.\n\nUnder hela den tiden äter björnen ingenting och dricker ingenting. Hjärtat slår mycket långsammare än vanligt, och kroppen sparar energi. Björnen lever på fettet som den samlade på hösten.\n\nÄndå sover den inte som en sten. Om någon stör den kan den vakna och lämna idet.\n\nMitt i vintern händer något särskilt. Björnhonor föder sina ungar i idet. Ungarna föds blinda och väger ungefär lika mycket som ett paket smör. De dricker mjölk och växer, medan mamman fortsätter att vila.\n\nNär våren kommer kliver björnarna ut, smala och hungriga. Då börjar letandet efter mat igen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken mat äter brunbjörnen mest på hösten enligt texten?",
+        "options": [
+          "Fisk",
+          "Myror",
+          "Svamp",
+          "Bär"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur länge ligger björnen i idet?",
+        "options": [
+          "Ungefär ett halvår",
+          "Ungefär en månad",
+          "Ungefär ett helt år",
+          "Ungefär två veckor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ett ”ide”?",
+        "options": [
+          "Ett lager fett under pälsen",
+          "Platsen där björnen vilar på vintern",
+          "En sorts bär som björnen äter på hösten",
+          "En björnunge som just har fötts"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Björnen sover inte ”som en sten”. Vad betyder det?",
+        "options": [
+          "Den sover inte på marken",
+          "Den sover inte alls",
+          "Den sover inte helt djupt",
+          "Den sover inte ensam"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför äter björnen så mycket på hösten?",
+        "options": [
+          "Bären försvinner om den inte äter dem",
+          "Den måste mata sina ungar på hösten",
+          "Den blir hungrigare när det blir kallt",
+          "Den lever på fettet under vintern"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är björnarna smala på våren?",
+        "options": [
+          "De har sprungit mycket i snön",
+          "De har använt upp sitt fett",
+          "Ungarna har ätit upp deras mat",
+          "De har ätit för många bär"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är textens syfte?",
+        "options": [
+          "Att förklara hur björnen klarar vintern",
+          "Att varna för björnar i skogen",
+          "Att lära ut hur man plockar bär",
+          "Att berätta om en björnjakt"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-fladdermossen",
+    "title": "De som ser med öronen",
+    "level": 3,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "När det skymmer en sommarkväll kan man ibland se små mörka djur som fladdrar fram och tillbaka i luften. Det är inte fåglar. Det är fladdermöss.\n\nFladdermöss är däggdjur, precis som hundar och människor. Ungarna dricker mjölk från sin mamma. Men fladdermössen är de enda däggdjur som kan flyga på riktigt. Deras vingar är tunn hud som sitter spänd mellan långa fingrar.\n\nI Sverige finns ungefär tjugo arter, och alla äter insekter. De jagar på natten, när det är mörkt. Hur hittar de maten?\n\nSvaret är ljud. Fladdermusen skickar ut korta, höga läten, så höga att människor inte kan höra dem. Ljudet studsar mot det som det träffar och kommer tillbaka som ett eko. Genom att lyssna på ekot vet fladdermusen var en mygga finns och åt vilket håll den flyger. Det kallas ekolokalisering.\n\nPå dagen vilar fladdermössen på mörka platser, till exempel i ihåliga träd, på vindar eller i fladdermusholkar. Många av dem hänger då upp och ner med fötterna i taket.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad äter fladdermössen i Sverige?",
+        "options": [
+          "Insekter",
+          "Frukt",
+          "Små fåglar",
+          "Fiskar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var vilar fladdermössen på dagen?",
+        "options": [
+          "På öppna ängar i solen",
+          "I bon som de bygger högt uppe i träden",
+          "I ihåliga träd och på vindar",
+          "I hålor nere i marken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Fladdermössen ”fladdrar”. Vad betyder det?",
+        "options": [
+          "De glider långsamt utan att röra vingarna",
+          "De flyger med snabba, ryckiga rörelser",
+          "De sover upp och ner",
+          "De piper mycket högt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ett ”eko”?",
+        "options": [
+          "Ett ljud som ingen kan höra",
+          "En insekt som flyger på natten",
+          "Ett bo där fladdermöss bor",
+          "Ljud som studsar tillbaka"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför behöver fladdermössen ekolokalisering?",
+        "options": [
+          "De har inga ögon alls",
+          "De vill skrämma bort fåglar",
+          "De jagar när det är mörkt",
+          "De pratar med sina ungar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför hör vi inte fladdermössens läten?",
+        "options": [
+          "Fladdermössen är helt tysta",
+          "De jagar bara långt ute i skogen",
+          "Vi sover alltid när de jagar",
+          "Ljuden är för höga för våra öron"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill texten främst visa?",
+        "options": [
+          "Hur fladdermöss lever och hittar mat",
+          "Varför fladdermöss är farliga",
+          "Hur man bygger en fladdermusholk",
+          "Varför fåglar flyger bättre än fladdermöss"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-askan",
+    "title": "Blixt och dunder",
+    "level": 3,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En varm sommardag kan höga, mörka moln växa upp på himlen. Inne i molnen far vattendroppar och iskorn upp och ner i starka vindar. De gnids mot varandra, och molnet laddas med elektricitet, ungefär som en ballong som man gnider mot håret.\n\nTill slut blir laddningen så stor att den släpps ut i en jättelik gnista. Det är blixten. Den kan gå inne i molnet, mellan två moln eller ner till marken.\n\nBlixten är otroligt het, flera gånger hetare än ytan på solen. Luften runt den värms upp på ett ögonblick och utvidgas med en smäll. Den smällen är åskan.\n\nLjus färdas mycket snabbare än ljud. Därför ser vi blixten innan vi hör mullret. Räkna sekunderna mellan blixt och knall och dela med tre. Då vet du ungefär hur många kilometer bort ovädret är.\n\nBlixten slår gärna ner i höga saker. Under ett åskväder ska man därför inte ställa sig under ett ensamt träd eller bada. Ett hus eller en bil är bra ställen att vänta i.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad händer med luften runt blixten?",
+        "options": [
+          "Den blir kall och fryser",
+          "Den blir het och utvidgas",
+          "Den försvinner helt",
+          "Den blir till regn"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilka platser är bra att vänta i under ett åskväder?",
+        "options": [
+          "Under ett ensamt träd",
+          "Ett hus eller en bil",
+          "I en sjö eller vid stranden",
+          "Mitt på en öppen äng"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Luften ”utvidgas”. Vad betyder det?",
+        "options": [
+          "Den tar plötsligt större plats",
+          "Den blir tyngre och sjunker",
+          "Den byter färg",
+          "Den blir alldeles stilla"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ”mullret” i texten?",
+        "options": [
+          "Ljuset från blixten",
+          "Det smattrande regnet mot taket",
+          "Vinden i träden",
+          "Det dova ljudet av åskan"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Du ser en blixt och räknar till sex innan det mullrar. Hur långt bort är ovädret ungefär?",
+        "options": [
+          "Sex kilometer",
+          "Tre kilometer",
+          "Två kilometer",
+          "Arton kilometer"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ska man inte stå under ett ensamt träd när det åskar?",
+        "options": [
+          "Trädet blir blött av regnet",
+          "Löven gör att man inte ser blixten",
+          "Åskan låter högre under träd",
+          "Blixten slår gärna ner i höga saker"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förklarar texten främst?",
+        "options": [
+          "Hur man mäter hur mycket det regnar",
+          "Varför molnen är vita",
+          "Hur blixt och åska uppstår",
+          "Hur el görs i kraftverk"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-svamparna",
+    "title": "Skogens gömda trådar",
+    "level": 3,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "När vi går i skogen på hösten ser vi kantareller, flugsvampar och många andra svampar. Men det vi ser är bara en liten del av svampen. Den största delen finns gömd under marken.\n\nUnder mossan och löven växer svampens mycel. Det är tunna trådar, finare än hårstrån, som sprider sig åt alla håll. Ett mycel kan bli mycket stort och leva i många år. Den del som sticker upp ovanför marken kallas fruktkropp. Den finns där bara en kort tid för att sprida svampens sporer, som är små som damm och flyger iväg med vinden.\n\nSvampar är varken växter eller djur. De har inget grönt färgämne och kan inte göra sin egen näring av solljus. I stället bryter många svampar ner döda löv och gamla stubbar. Utan dem skulle skogen fyllas av skräp.\n\nMånga svampar samarbetar också med träd. Svampens trådar hjälper trädets rötter att få vatten och näring. Som tack får svampen socker från trädet.\n\nPlocka bara svampar som du säkert känner igen. Några av skogens svampar är så giftiga att de är livsfarliga.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas svampens tunna trådar under marken?",
+        "options": [
+          "Mycel",
+          "Sporer",
+          "Fruktkropp",
+          "Rötter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad får svampen från trädet som tack?",
+        "options": [
+          "Vatten",
+          "Socker",
+          "Solljus",
+          "Sporer"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Svampen ”bryter ner” döda löv. Vad betyder det?",
+        "options": [
+          "Den löser upp dem till näring",
+          "Den bygger bo av dem",
+          "Den gömmer dem under mossan",
+          "Den gör dem gröna igen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Några svampar är ”livsfarliga”. Vad betyder det?",
+        "options": [
+          "De smakar lite konstigt",
+          "De växer bara på vintern",
+          "De går sönder väldigt lätt",
+          "De kan döda den som äter dem"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad skulle hända om det inte fanns några svampar i skogen?",
+        "options": [
+          "Träden skulle växa mycket fortare",
+          "Döda löv skulle bli liggande kvar",
+          "Det skulle bli fler djur i skogen",
+          "Mossan skulle bli grönare"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ser man inte det mesta av en svamp?",
+        "options": [
+          "Det är genomskinligt",
+          "Det växer bara på natten",
+          "Det växer under marken",
+          "Det har flugit iväg med vinden"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar bäst till texten?",
+        "options": [
+          "Så lagar du kantarellsoppa",
+          "Skogens farligaste djur",
+          "Svampens hemliga liv under marken",
+          "Därför faller löven på hösten"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-isen-pa-sjon",
+    "title": "Därför fryser sjön uppifrån",
+    "level": 3,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Har du tänkt på att en sjö alltid fryser uppifrån och ner? Det beror på att vatten är ett ovanligt ämne.\n\nDe flesta ämnen blir tyngre ju kallare de blir. Vatten blir också tyngre när det kyls ner, men bara tills det är ungefär fyra grader varmt. Kallare än så blir det lättare igen.\n\nPå hösten kyls sjöns yta av den kalla luften. Det kalla vattnet sjunker till botten, och varmare vatten stiger upp. Till slut har hela sjön ungefär fyra grader. Sedan stannar det ännu kallare vattnet kvar vid ytan. Där fryser det till is, och isen flyter eftersom den är lättare än vattnet.\n\nIsen fungerar som ett lock. Den skyddar vattnet under från den kalla luften. Därför fryser en sjö sällan ända ner till botten, och fiskarna kan överleva vintern i det kalla men flytande vattnet.\n\nIsen är inte lika tjock överallt. Den är ofta tunnare vid vass och bryggor och där vatten strömmar. Gå därför aldrig ut på isen ensam, och ha alltid isdubbar runt halsen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vid vilken temperatur är vatten som tyngst?",
+        "options": [
+          "Ungefär fyra grader",
+          "Noll grader",
+          "Ungefär tio grader",
+          "Hundra grader"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var är isen ofta tunnare enligt texten?",
+        "options": [
+          "Mitt ute på sjön",
+          "Där sjön är som djupast",
+          "Där solen inte når fram",
+          "Vid vass och bryggor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Isen fungerar som ett ”lock”. Vad menas med det?",
+        "options": [
+          "Den låser fast fiskarna i isen",
+          "Den täcker och skyddar vattnet under",
+          "Den håller sjön stängd för båtar",
+          "Den gör att vattnet blir salt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vatten är ett ”ovanligt” ämne. Vad menas med det?",
+        "options": [
+          "Det finns nästan inget vatten på jorden",
+          "Det beter sig inte som de flesta ämnen",
+          "Det är farligt att röra vid",
+          "Det är dyrt att köpa"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan fiskarna överleva vintern?",
+        "options": [
+          "Fiskarna sover inne i isen",
+          "Fiskarna simmar ut till havet",
+          "Vattnet under isen fryser inte",
+          "Solen värmer upp bottnen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ska man ha isdubbar runt halsen?",
+        "options": [
+          "För att kunna ta sig upp om isen brister",
+          "För att hålla halsen varm i kylan",
+          "För att mäta hur tjock isen är",
+          "För att kunna borra hål och fiska genom isen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förklarar texten främst?",
+        "options": [
+          "Hur man åker långfärdsskridsko",
+          "Varför fiskar tycker om kallt vatten",
+          "Hur man fiskar genom ett hål i isen",
+          "Varför sjöar fryser uppifrån"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
