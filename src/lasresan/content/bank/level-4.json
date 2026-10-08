@@ -2252,7 +2252,7 @@
           "I Kanada",
           "I samma hus",
           "I Australien",
-          "I en annan stad"
+          "I Nya Zeeland"
         ],
         "answerIndex": 2,
         "category": "fakta"
@@ -2393,7 +2393,7 @@
         "options": [
           "Den ligger mycket långt bort från solen",
           "Den är mycket större än jorden",
-          "Den snurrar baklänges och mycket långsamt runt sig själv",
+          "Den är tyngre än alla andra planeter tillsammans",
           "Den stannar på vägen för att vila"
         ],
         "answerIndex": 0,
@@ -3397,7 +3397,7 @@
     "level": 4,
     "textType": "story",
     "topic": "vardag",
-    "body": "Noomis klass arbetade med matsvinn, alltså mat som slängs fast den hade kunnat ätas. Läxan var att väga allt som familjen slängde under två veckor.\n\nNoomi ställde en hink under diskbänken och satte upp en lapp på kylskåpet: ”All mat som slängs ska i hinken!” Pappa skrattade, men lovade att vara med.\n\nRedan första kvällen hamnade det mycket i hinken. Brödkanter, en halv tallrik pasta, ett ruttet äpple och yoghurt som passerat bäst före-datum. Efter en vecka vägde Noomi hinken på badrumsvågen. Den visade tre kilo.\n\n”Tre kilo!” sa mamma. ”Det är ju som tre paket mjöl.”\n\nHela familjen började tänka om. Noomi läste på och upptäckte att bäst före-datum inte betyder att maten blir farlig direkt. Man kan titta, lukta och smaka först. Mamma frös in bröd i skivor. Lillasyster Elsie fick ta mindre portioner och hellre gå och hämta mer.\n\nPappa gjorde något som han kallade fredagsröra. Han stekte alla rester som fanns i kylskåpet och serverade dem med ett ägg ovanpå. Första gången tittade alla misstänksamt på pannan. Andra gången bad Elsie om en extra portion.\n\nNär den andra veckan var slut vägde Noomi hinken igen. Den här gången vägde den mindre än ett kilo.\n\nI skolan visade hon ett diagram med två staplar, en hög och en låg. Men det bästa resultatet syntes hemma. Fredagsröran fick bli kvar.",
+    "body": "Noomis klass arbetade med matsvinn, alltså mat som slängs fast den hade kunnat ätas. Läxan var att väga allt som familjen slängde under två veckor.\n\nNoomi ställde en hink under diskbänken och satte upp en lapp på kylskåpet: ”All mat som slängs ska i hinken!” Pappa skrattade, men lovade att vara med.\n\nRedan första kvällen hamnade det mycket i hinken. Brödkanter, en halv tallrik pasta, ett ruttet äpple och yoghurt som passerat bäst före-datum. Efter en vecka vägde Noomi hinken på badrumsvågen. Den visade tre kilo.\n\n”Tre kilo!” sa mamma. ”Det är ju lika tungt som tre paket mjölk.”\n\nHela familjen började tänka om. Noomi läste på och upptäckte att bäst före-datum inte betyder att maten blir farlig direkt. Man kan titta, lukta och smaka först. Mamma frös in bröd i skivor. Lillasyster Elsie fick ta mindre portioner och hellre gå och hämta mer.\n\nPappa gjorde något som han kallade fredagsröra. Han stekte alla rester som fanns i kylskåpet och serverade dem med ett ägg ovanpå. Första gången tittade alla misstänksamt på pannan. Andra gången bad Elsie om en extra portion.\n\nNär den andra veckan var slut vägde Noomi hinken igen. Den här gången vägde den mindre än ett kilo.\n\nI skolan visade hon ett diagram med två staplar, en hög och en låg. Men det bästa resultatet syntes hemma. Fredagsröran fick bli kvar.",
     "questions": [
       {
         "id": "q1",
@@ -3461,7 +3461,7 @@
       },
       {
         "id": "q6",
-        "question": "Varför kunde Noomis familj spara yoghurt som passerat datumet?",
+        "question": "Varför behöver man inte alltid slänga yoghurt som passerat bäst före-datum?",
         "options": [
           "Yoghurt blir godare ju äldre den är",
           "Mamma hade köpt en ny sorts yoghurt som håller längre",
