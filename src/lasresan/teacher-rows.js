@@ -6,11 +6,17 @@
 // tabellen behöver: världsnamn, stegantal, en sorterbar "resa"-nyckel och
 // regeln för elever som inte har börjat (spec §18 / issue #402):
 //   * visas med "–" i texter/frågor/rätt/fel/rätt %
-//   * RÄKNAS som startnivå (3) och Skogen steg 0 – så nivå/värld/steg-kolumnerna
-//     visar och sorterar på det, inte på "saknas".
+//   * RÄKNAS som startnivå och Skogen steg 0 – så nivå/värld/steg-kolumnerna
+//     visar och sorterar på det, inte på "saknas". Startnivån = klassens
+//     lasresaStartLevel (#505) om den skickas in, annars START_LEVEL (3).
+//   * har läraren satt en nivå åt en elev som inte börjat (#505) räknas eleven
+//     fortfarande som "ej börjat" men visar lärarens nivå.
+//   * `pendingLevel` (#505) = lärarvald nivå som väntar på att en påbörjad text
+//     ska bli klar (null annars).
 // ============================================================================
 
-import { DEFAULT_STEPS_PER_WORLD, START_LEVEL } from "./config.js";
+import { DEFAULT_STEPS_PER_WORLD } from "./config.js";
+import { effectiveStartLevel, hasStartedLasresa, parseTeacherLevel } from "./level-control.js";
 import { classRows, sortRows } from "./stats.js";
 import { WORLDS, firstWorld, getWorld } from "./worlds/index.js";
 
@@ -30,17 +36,24 @@ export const TABLE_COLUMNS = [
 /**
  * entries = [{ studentId, namn, lasresa }] (lasresa null = inte börjat, som
  * data-lasresan.getClassLasresa ger). Returnerar en rad per elev.
+ * `startLevel` = klassens startnivå (classes/{id}.lasresaStartLevel), visas
+ * för elever som inte har börjat och saknar lärarsatt nivå.
  */
-export function teacherClassRows(entries, registry = WORLDS) {
+export function teacherClassRows(entries, registry = WORLDS, { startLevel } = {}) {
   const first = firstWorld(registry);
-  return classRows(entries).map((r) => {
+  const start = effectiveStartLevel(startLevel);
+  const list = entries || [];
+  return classRows(list).map((row, i) => {
+    const lasresa = list[i] && list[i].lasresa;
+    const r = { ...row, started: row.started && hasStartedLasresa(lasresa) };
     const world = (r.started && getWorld(r.worldId, registry)) || first;
     const step = r.started ? r.stepInWorld : 0;
     const order = world ? world.order || 0 : 0;
     const hasAnswers = r.started && r.questions > 0;
     return {
       ...r,
-      level: r.started && Number.isFinite(r.level) ? r.level : START_LEVEL,
+      level: lasresa && Number.isFinite(r.level) ? r.level : start,
+      pendingLevel: parseTeacherLevel(lasresa && lasresa.pendingLevel),
       worldId: world ? world.id : null,
       worldName: world ? world.name : "–",
       steps: (world && world.steps) || DEFAULT_STEPS_PER_WORLD,
