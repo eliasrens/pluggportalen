@@ -29,11 +29,13 @@
 //     visaVantande() → bool, sparat(plan), aterstallt(plan), rang(nyckel),
 //     ovanpa(nyckel) }
 //   sammaLayout(a, b) → bool
-//   statusHtml({ fel, laddad, kan, visaOnly, vantande, osparat, sparatNyss })
+//   statusHtml({ fel, laddad, roll, vantande, osparat, sparatNyss })
 //       → statusradens markup ("" = dölj)
+//   rubrikText({ roll, visaOnly, klassNamn, niva, nivaNamn }) → rummets rubrik
 // ============================================================================
 
 import { KC_Z_MAX } from "./kc-layout-plan.js";
+import { rollArGast, rollKanInreda } from "./kc-behorighet.js";
 
 const kopia = (pi) => {
   const ut = {};
@@ -179,15 +181,17 @@ export function skapaKcRumTillstand({ autoPlacera = null } = {}) {
   };
 }
 
-/** Statusraden (ren – testas i Node). Tom sträng = dölj raden. */
-export function statusHtml({ fel = "", laddad, kan, visaOnly, vantande, osparat, sparatNyss }) {
+/**
+ * Statusraden (ren – testas i Node). Tom sträng = dölj raden.
+ * roll = kc-behorighet.js kcRoll (null = inte avgjord än).
+ */
+export function statusHtml({ fel = "", laddad, roll = null, vantande, osparat, sparatNyss }) {
   if (fel) return fel;
-  if (!laddad) return "Hämtar rummet…";
-  if (!kan) {
-    return visaOnly
-      ? "👀 Du är på besök – bara klassen själv kan inreda här. Hovra över sakerna och titta dig omkring!"
-      : "👀 Du kan titta på rummet, men läraren har stängt av inredning för dig.";
+  if (!laddad || !roll) return "Hämtar rummet…";
+  if (rollArGast(roll)) {
+    return "👀 Du är på besök – bara klassen själv kan inreda här. Hovra över sakerna och titta dig omkring!";
   }
+  if (!rollKanInreda(roll)) return "👀 Du kan titta på rummet, men läraren har stängt av inredning för dig.";
   if (vantande) {
     return `🔔 Någon i klassen sparade rummet nyss. <button type="button" class="kc-lank" data-kc="visa-deras">Visa deras</button>
       – eller tryck Spara för att använda din (deras finns kvar i Historik).`;
@@ -195,4 +199,14 @@ export function statusHtml({ fel = "", laddad, kan, visaOnly, vantande, osparat,
   if (osparat) return "✏️ Ändringar som inte är sparade – tryck Spara så ser hela klassen dem.";
   if (sparatNyss) return "✓ Sparat! Alla i klassen ser nu rummet så här.";
   return "";
+}
+
+/**
+ * Rummets rubrik (ren). Gäst: klassens namn; hemma/lärare: nivån. Innan
+ * rollen är avgjord (roll null) gissar vägen in (visaOnly = grannbyn).
+ */
+export function rubrikText({ roll = null, visaOnly = false, klassNamn = "", niva = 1, nivaNamn = "" } = {}) {
+  const gast = roll ? rollArGast(roll) : !!visaOnly;
+  if (gast && klassNamn) return `Klasscentret i ${klassNamn} 🏛️`;
+  return `Klasscentret · Nivå ${niva || 1}${nivaNamn ? ` ${nivaNamn}` : ""} 🏛️`;
 }

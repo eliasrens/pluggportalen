@@ -22,6 +22,8 @@
 //       → Promise<Plan & { aterstalldFran } | Fel>  (blir en NY version;
 //         historikVersion = versionen listan visade → Fel.kod
 //         "historik-andrad" om ringbufferten skrivit över slotten)
+//   rollFor(classId, uid?)               → Promise<roll> (kc-behorighet.js;
+//       kastar vid läsfel – rummet visas då i läsläge)
 //   kanInreda(classId, uid?)             → Promise<bool> (lärare, eller
 //       klassmedlem som inte står i inredningSparr)
 //   getInredningSparr(classId)           → Promise<string[]> (klassen + lärare)
@@ -36,9 +38,10 @@ import {
 import { currentStudentId, isTeacher } from "../auth.js";
 import { getFunds, unlockedItems } from "./kc-fund-data.js";
 import {
-  korSparning, korAterstallning, kanInredaFor, normaliseraLayout, normaliseraHistorik,
+  korSparning, korAterstallning, normaliseraLayout, normaliseraHistorik,
   KC_LAYOUT_MAX,
 } from "./kc-layout-plan.js";
+import { kcRoll, rollKanInreda } from "./kc-behorighet.js";
 
 export { KC_LAYOUT_MAX };
 
@@ -125,16 +128,25 @@ export async function getInredningSparr(classId) {
   return Array.isArray(s) ? s.filter((u) => typeof u === "string") : [];
 }
 
+/**
+ * Rummets roll för `uid` (#501): "larare" | "hemma" | "sparrad" | "gast" |
+ * "utloggad" (kc-behorighet.js). Gästen läser bara klassdokumentet –
+ * spärrlistan är bara läsbar för klassen (#500). Kastar vid läsfel.
+ */
+export async function rollFor(classId, uid = currentStudentId()) {
+  if (isTeacher()) return "larare";
+  if (!classId || !uid) return "utloggad";
+  const klass = await getDoc(doc(db, "classes", classId));
+  const studentIds = klass.exists() ? klass.data().studentIds : [];
+  const utanSparr = kcRoll({ uid, studentIds });
+  if (utanSparr !== "hemma") return utanSparr;
+  return kcRoll({ uid, studentIds, inredningSparr: await getInredningSparr(classId) });
+}
+
 /** Får `uid` inreda klassens rum? (UI-grind; reglerna avgör på riktigt.) */
 export async function kanInreda(classId, uid = currentStudentId()) {
-  if (isTeacher()) return true;
-  if (!classId || !uid) return false;
   try {
-    const klass = await getDoc(doc(db, "classes", classId));
-    const studentIds = klass.exists() ? klass.data().studentIds : [];
-    // Gäst: klassprofilen (spärrlistan) är bara läsbar för klassen (#500).
-    if (!kanInredaFor({ uid, studentIds })) return false;
-    return kanInredaFor({ uid, studentIds, inredningSparr: await getInredningSparr(classId) });
+    return rollKanInreda(await rollFor(classId, uid));
   } catch (err) {
     console.warn("[klasscenter] kanInreda", classId, err?.code || err);
     return false;

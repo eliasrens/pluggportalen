@@ -6,7 +6,8 @@
 // egen liten kamera korszoomar by-lagret ↔ hallen mot byggnaden – samma
 // varld-kamera.js och samma anda som hus → rum (och kompis-nivån). "← Till
 // byn" (eller Escape) zoomar tillbaka. Gäller både egna byn och en grannby
-// (gästläge, spec §7) – lagret byggs runt det by-lager centret står i.
+// – lagret byggs runt det by-lager centret står i. Gäst eller hemma avgörs
+// av behörigheten i sessionen, inte av vägen in (spec §7, #501).
 //
 // Innehållet (data, inredning, Spara/Historik) är en session per öppning –
 // kc-rum-session.js; här bor bara skalet: lager, UI-ram, kamera, öppna/stäng.
@@ -78,7 +79,8 @@ const VYER = new WeakMap(); // .varld-stage → vy
  * @param {object} o
  * @param {HTMLElement} o.slot   .by-klasscenter som klickades
  * @param {string} o.classId
- * @param {boolean} [o.visaOnly]  grannby = gäst (aldrig inredning)
+ * @param {boolean} [o.visaOnly]  kom via grannbyn (bara rubrikens gissning
+ *   innan behörigheten är avgjord – rollen avgör, kc-behorighet.js #501)
  * @param {string} [o.klassNamn]
  * @param {number} [o.niva]       byggnadens nivå (hallens tema)
  * @param {string} [o.nivaNamn]
@@ -154,11 +156,8 @@ function byggVy(stage) {
     const zoom = Math.min(8, Math.max(2, 0.9 * Math.min(lr.width / sr.width, lr.height / sr.height)));
     const k = kameraFor(yttre, fokus, zoom);
 
-    q("titel").textContent = o.visaOnly && o.klassNamn
-      ? `Klasscentret i ${o.klassNamn} 🏛️`
-      : `Klasscentret · Nivå ${o.niva || 1}${o.nivaNamn ? ` ${o.nivaNamn}` : ""} 🏛️`;
-    q("matare").textContent = o.matare || "";
-    sess = startaKcRumSession(o, { lager, q, oppnaPanel });
+    // Rubrik/mätare/behörighet sköts av sessionen (#501).
+    sess = startaKcRumSession(o, { lager, q, oppnaPanel, stangHart: () => stang({ hart: true }) });
     sess.forraNiva = stage.dataset.niva;
     sess.kamera = k.kamera;
     sess.slot = o.slot;

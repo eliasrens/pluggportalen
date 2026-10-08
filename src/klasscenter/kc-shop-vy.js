@@ -16,10 +16,15 @@
 // API
 //   mountKcShop(yta, { coins, onCoins, flash, deps? }) → stopp()
 //     coins   elevens saldo nu; onCoins(nytt) efter varje lyckad donation
-//     deps    (tester/preview) { uid, klasser(), subscribeFunds, donate, bild }
+//     deps    (tester/preview) { uid, klasser(), subscribeFunds, donate, bild,
+//             onAuthChange? }
+// Behörighet (#501, spec §7): bara elevens EGNA klasser (arKlassmedlem) kan
+// väljas eller få en donation – aldrig en klass man besöker. Byts användaren
+// i fliken (O4) stängs insamlingen i stället för att donera i förra elevens namn.
 // ============================================================================
 
 import { KC_SHOP_ITEMS, kcShopItem } from "./kc-shop-items.js";
+import { arKlassmedlem } from "./kc-behorighet.js";
 import { donationsGrans, handlingHtml, klampaBelopp, kortHtml, matareHtml, panelHtml } from "./kc-shop-kort.js";
 
 const CSS = "src/klasscenter/kc-shop-vy.css";
@@ -36,20 +41,22 @@ function laddaCss() {
 
 /** Riktiga beroenden (Firestore + konsten) – laddas först när fliken öppnas. */
 async function riktigaDeps() {
-  const [data, klasser, fund, art] = await Promise.all([
+  const [data, klasser, fund, art, auth] = await Promise.all([
     import("../data.js"),
     import("../data-classes.js"),
     import("./kc-fund-data.js"),
     import("../art-klasscenter-inredning.js"),
+    import("../auth.js"),
   ]);
   const uid = data.currentStudentId();
   return {
     uid,
     klasser: async () => (await klasser.getClasses())
-      .filter((k) => Array.isArray(k.studentIds) && k.studentIds.includes(uid)),
+      .filter((k) => arKlassmedlem(uid, k.studentIds)),
     subscribeFunds: fund.subscribeFunds,
     donate: fund.donate,
     bild: (it) => art.kcInredningSvg(it.art, { aria: it.namn }),
+    onAuthChange: auth.onAuthChange,
   };
 }
 
@@ -69,11 +76,14 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
   let aktiv = true;
   let avsluta = null; // subscribeFunds-avregistrering
   const st = { coins, funds: null, classId: null, uid: null, bidrag: {}, oppen: null, belopp: 0, skickar: false };
+  const egna = new Set(); // elevens egna klasser – de enda som får en donation
+  let slappAuth = null;
 
   function stopp() {
     if (!aktiv) return;
     aktiv = false;
     window.removeEventListener("hashchange", vidHash);
+    slappAuth?.();
     if (avsluta) avsluta();
     avsluta = null;
   }
@@ -89,8 +99,14 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
     const d = deps || (await riktigaDeps());
     if (!aktiv) return;
     st.uid = d.uid;
+    slappAuth = d.onAuthChange?.((info) => {
+      if (info.studentId === st.uid || !aktiv) return;
+      stopp();
+      yta.innerHTML = `<p class="hint">Du har bytt användare – öppna shoppen igen för att se klassens insamling.</p>`;
+    }) || null;
     const klasser = await d.klasser();
     if (!aktiv) return;
+    for (const k of klasser) egna.add(k.id);
     if (!klasser.length) {
       yta.innerHTML = `<p class="hint kcs-ingen-klass">🏛️ Klasscentrum är klassens gemensamma
         insamling. Du är inte med i någon klass än – be din lärare lägga till dig, så kan du
@@ -116,6 +132,7 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
       klassen! Alla bidrag läggs ihop – när mätaren är full är saken köpt och hamnar i
       klassens möbellåda i Klasscentret.</p>${val}<div class="shop-grid kcs-grid"><p class="hint">Laddar…</p></div>`;
     yta.querySelector(".kcs-klass")?.addEventListener("change", (e) => {
+      if (!egna.has(e.target.value)) return;
       st.classId = e.target.value;
       skrivLS(VALD_KLASS_KEY, st.classId);
       st.oppen = null;
@@ -220,7 +237,7 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
   async function skanka(d, kort, id, knapp) {
     const g = donationsGrans(st.funds[id], st.coins);
     const belopp = klampaBelopp(st.belopp, g.max);
-    if (!belopp) return;
+    if (!belopp || !egna.has(st.classId)) return;
     st.skickar = true;
     knapp.disabled = true;
     knapp.textContent = "Skänker…";
