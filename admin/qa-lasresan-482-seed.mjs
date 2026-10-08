@@ -5,7 +5,7 @@
 // Lägger till klassen för startnivå-testet i klickguiden
 // (docs/preview-lasresan-482.md) och återställer det som
 // admin/qa-lasresan-482-kontroll.mjs ändrar:
-//   * qa-482-start "QA-klass 6C" UTAN startnivå (= standard 3) med
+//   * qa-482-start "QA-klass 6C" UTAN startnivå (= standard 4 sedan epic #516) med
 //       qa-6c-ny     "Ny Nils"     – har inte börjat (inget lasresa-objekt)
 //       qa-6c-igang  "Igång Ines"  – igång på nivå 5 (3 lästa texter, 45 kr)
 //   * qa-6c-sen "Sen Sara" – elevkonto som INTE är med i någon klass än

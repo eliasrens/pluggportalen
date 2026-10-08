@@ -7,7 +7,9 @@
 //     (lr-n4-talangshowen) → en ny nivå blir "väntande" tills texten är klar
 //   * qa-klass-b "QA-klass 5B" med 3 egna elever (klassväljaren i
 //     "Ändra nivå för hela klassen"), varav en som inte har börjat
-//   * qa-klass utan lasresaStartLevel (= standard 3)
+//   * qa-klass utan lasresaStartLevel (= standard 4)
+// Nivåerna lagras i GAMMAL skala 1–7 (inga level10-fält) och visas +3 sedan
+// epic #516 (Pia: gammal 4 → 7). Ny skala + blandat: admin/qa-lasresan-10-seed.mjs.
 // Idempotent. Lösenord lilla123 för alla. Vägrar köra utan emulator-variablerna.
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… node admin/qa-lasresan-niva-seed.mjs
 // ============================================================================

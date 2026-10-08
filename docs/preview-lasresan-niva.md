@@ -1,5 +1,8 @@
 # Preview: Läsresans nivåstyrning (#506)
 
+> Sedan epic #516 är skalan 1–10. Seedens elever är lagrade i **gammal skala** och
+> visas +3 (t.ex. Pågående Pia: gammal 4 → **7**). Se även `docs/preview-lasresan-10.md`.
+
 Körs mot Firestore-/Auth-**emulatorn** (inget når produktion):
 
 ```bash
@@ -11,7 +14,7 @@ Lösenord **lilla123** för alla. Läraren heter **qalarare**.
 ## Läraren
 1. Gå till **Lärare →** och logga in som `qalarare`. Välj **QA-klass 4A** → **Statistik** → **Läsresan**.
 2. Ovanför tabellen finns två kort:
-   - **Ändra klassens startnivå**. Den gäller nya elever och elever som inte har börjat. Just nu står det "Nivå 3 (standard)".
+   - **Ändra klassens startnivå**. Den gäller nya elever och elever som inte har börjat. Just nu står det "Nivå 4 (standard)". Väljaren har nivå 1–10 (epic #516).
    - **Ändra nivå för hela klassen**. Den ändrar även elever som redan är igång.
 
 ### En elev

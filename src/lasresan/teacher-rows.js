@@ -8,15 +8,21 @@
 //   * visas med "–" i texter/frågor/rätt/fel/rätt %
 //   * RÄKNAS som startnivå och Skogen steg 0 – så nivå/värld/steg-kolumnerna
 //     visar och sorterar på det, inte på "saknas". Startnivån = klassens
-//     lasresaStartLevel (#505) om den skickas in, annars START_LEVEL.
+//     startnivå (#505, level-control.classStartLevelOf) om den skickas in,
+//     annars START_LEVEL.
 //   * har läraren satt en nivå åt en elev som inte börjat (#505) räknas eleven
 //     fortfarande som "ej börjat" men visar lärarens nivå.
 //   * `pendingLevel` (#505) = lärarvald nivå som väntar på att en påbörjad text
 //     ska bli klar (null annars).
+//   * skalan 1–10 (#520, epic #516): varje lasresa-objekt går genom
+//     normalizeLasresa, så lagrad gammal-skala-data (utan level10) visas
+//     migrerad (+3) även om källan inte normaliserat den. Idempotent för
+//     objekt som data-lasresan.getClassLasresa redan normaliserat.
 // ============================================================================
 
 import { DEFAULT_STEPS_PER_WORLD } from "./config.js";
 import { effectiveStartLevel, hasStartedLasresa, parseTeacherLevel } from "./level-control.js";
+import { normalizeLasresa } from "./progress.js";
 import { classRows, sortRows } from "./stats.js";
 import { WORLDS, firstWorld, getWorld } from "./worlds/index.js";
 
@@ -36,13 +42,15 @@ export const TABLE_COLUMNS = [
 /**
  * entries = [{ studentId, namn, lasresa }] (lasresa null = inte börjat, som
  * data-lasresan.getClassLasresa ger). Returnerar en rad per elev.
- * `startLevel` = klassens startnivå (classes/{id}.lasresaStartLevel), visas
+ * `startLevel` = klassens startnivå (1–10, classStartLevelOf), visas
  * för elever som inte har börjat och saknar lärarsatt nivå.
  */
 export function teacherClassRows(entries, registry = WORLDS, { startLevel } = {}) {
   const first = firstWorld(registry);
   const start = effectiveStartLevel(startLevel);
-  const list = entries || [];
+  const list = (entries || []).map((e) =>
+    e && e.lasresa ? { ...e, lasresa: normalizeLasresa(e.lasresa, registry, { startLevel: start }) } : e
+  );
   return classRows(list).map((row, i) => {
     const lasresa = list[i] && list[i].lasresa;
     const r = { ...row, started: row.started && hasStartedLasresa(lasresa) };

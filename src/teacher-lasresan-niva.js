@@ -8,7 +8,7 @@
 //       "Ändra nivå för hela klassen" (även elever som är igång) → bekräftelse-
 //       dialog med klass, antal elever och nivå → resultat
 //   * renderStudentLevelControl – "Ändra nivå" i elevdetaljen
-//     (teacher-lasresan-elev.js): nuvarande nivå, väntande nivå, välj 1–7, Spara
+//     (teacher-lasresan-elev.js): nuvarande nivå, väntande nivå, välj 1–10, Spara
 // Texterna kommer ur den rena modulen lasresan/teacher-niva.js. CSS-prefix lrn-.
 //
 // Laddas bara via teacher-lasresan.js (som själv laddas dynamiskt) – aldrig i
@@ -19,6 +19,8 @@
 import { el, esc, icon } from "./teacher-shared.js";
 import {
   LEVELS,
+  LEVEL_RANGE_ERROR,
+  NEW_LEVELS_HINT,
   classConfirmText,
   classResultText,
   classStudentIds,
@@ -144,6 +146,7 @@ export function renderLevelPanel(host, { cls, classes, studentById, api = DEFAUL
       <h4 class="lrn-card-title">${icon("sliders", 16)}<span>Ändra klassens startnivå</span></h4>
       <p class="lrn-what">Gäller <b>nya elever</b> och elever som <b>inte har börjat</b> Läsresan.
         Elever som redan är igång påverkas inte.</p>
+      <p class="hint lrn-scale">${esc(NEW_LEVELS_HINT)}</p>
       <p class="lrn-now">Nuvarande startnivå för ${esc(nameOfClass(cls))}: <b class="lrn-start-now">${esc(info.text)}</b></p>
       <div class="lrn-row">
         <label for="${ids.start}">Startnivå</label>
@@ -176,7 +179,7 @@ export function renderLevelPanel(host, { cls, classes, studentById, api = DEFAUL
   const startBtn = startCard.querySelector(".lrn-start-save");
   startBtn.addEventListener("click", async () => {
     const level = parseTeacherLevel(startCard.querySelector(".lrn-start-sel").value);
-    if (level === null) return say(startMsg, "error", "Välj en nivå mellan 1 och 7.");
+    if (level === null) return say(startMsg, "error", LEVEL_RANGE_ERROR);
     try {
       const saved = await busy(startBtn, () => api.setClassStartLevel(cls.id, level));
       Object.assign(cls, classStartLevelFields(saved));
@@ -193,7 +196,7 @@ export function renderLevelPanel(host, { cls, classes, studentById, api = DEFAUL
   goBtn.addEventListener("click", async () => {
     const target = all.find((c) => c.id === classCard.querySelector(".lrn-class-sel").value) || cls;
     const level = parseTeacherLevel(classCard.querySelector(".lrn-class-lvl").value);
-    if (level === null) return say(classMsg, "error", "Välj en nivå mellan 1 och 7.");
+    if (level === null) return say(classMsg, "error", LEVEL_RANGE_ERROR);
     const studentIds = classStudentIds(target, studentById);
     const className = nameOfClass(target);
     if (studentIds.length === 0) return say(classMsg, "warn", `${className} har inga elever.`);
@@ -252,7 +255,7 @@ export function renderStudentLevelControl(host, { student, row, lasresa, api = D
   const btn = box.querySelector(".lrn-student-save");
   btn.addEventListener("click", async () => {
     const level = parseTeacherLevel(sel.value);
-    if (level === null) return say(msg, "error", "Välj en nivå mellan 1 och 7.");
+    if (level === null) return say(msg, "error", LEVEL_RANGE_ERROR);
     try {
       const res = await busy(btn, () => api.setStudentLevel(student.id, level));
       say(msg, "ok", studentSavedText(name, res));
