@@ -83,6 +83,7 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `rewards.js` | `coinsFor(correct)`, `award(correct)` → `data.addCoins` (lat import) |
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
 | `level-control.js` | Lärarstyrd nivå (#505): `parseTeacherLevel`, `withTeacherLevel`, `applyPendingLevel`, `hasStartedLasresa`, `effectiveStartLevel`, `classStartLevelOf` |
+| `level-scale.js` | Nivåskala 1–10, lat migrering (#519): `readStoredLevels`, `toStoredLasresa`, `readClassStartLevel`, `classStartLevelFields`, `normalizeAttempt` |
 | `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
 | `ui-map.js` | Kartvyn (#400): världs-agnostisk renderare + `ui-map-stil.js` (CSS, injiceras – rör inte styles.css) |
@@ -188,7 +189,8 @@ Firestore i `data-lasresan-niva.js` (bara dynamiskt importerad).
   per elev, parallellt; ett misslyckat byte stoppar inte de andra. Returnerar
   `{ level, total, updated, now, pending, failed[] }`. Enskilda elever kan
   ändras efteråt.
-- **Klassens startnivå** (`classes/{id}.lasresaStartLevel`, heltal 1–10):
+- **Klassens startnivå** (`classes/{id}.lasresaStartLevel10`, heltal 1–10,
+  plus spegeln `lasresaStartLevel` i gammal skala – se "Nivåskala 1–10" nedan):
   ersätter `START_LEVEL` (4) för elever som **inte har börjat**.
   **Definition:** eleven har inte börjat = `studentData.lasresa` saknas helt.
   Objektet skapas först av `startText` (första texten) eller när läraren sätter
@@ -203,10 +205,62 @@ Firestore i `data-lasresan-niva.js` (bara dynamiskt importerad).
 - **Ogiltiga nivåer:** lärarens val tolkas STRIKT (`parseTeacherLevel`: heltal
   1–10, även `"4"` från en `<select>`); 0, 11, 3.5, `"abc"` → bryggan kastar.
   Ogiltig `pendingLevel`/startnivå i lagrad data ignoreras (→ 4).
-- **Behörighet:** `classes` skrivs bara av lärare och `lasresaStartLevel`
-  valideras (heltal 1–7; 1–10 i del B av epic #516) i `firestore.rules`; studentData skrivs bara av eleven
-  själv eller lärare. Regeltester: `test/firestore-rules-lasresan-niva.test.js`.
-  ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
+- **Behörighet:** `classes` skrivs bara av lärare; `lasresaStartLevel10`
+  valideras som heltal 1–10 och spegeln `lasresaStartLevel` som heltal 1–7 i
+  `firestore.rules`; studentData skrivs bara av eleven själv eller lärare.
+  Regeltester: `test/firestore-rules-lasresan-niva.test.js`.
+  ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`. Klienten fungerar
+  även innan: den skriver bara spegelvärden 1–7 i det gamla fältet, och de
+  gamla reglerna validerar inte `lasresaStartLevel10`.
+
+### Nivåskala 1–10: lat migrering (#519, epic #516)
+Gamla nivå N = nya nivå N+3 (banken omnumrerad i #518, text-id:n oförändrade).
+Det finns **inget engångsskript**. Lagrad data tolkas vid läsning och skrivs
+i ny form vid nästa skrivning. All logik ligger i `src/lasresan/level-scale.js`
+(ren, testad i `test/lasresan-level-scale.test.js`).
+
+**Designval: ny skala i NYA fältnamn, de gamla fälten blir en spegel.** En
+gammal cachad klient (Pages cachar JS ~10 min, och en flik kan stå öppen i
+timmar) klampar `lasresa.level` till 1–7 och sprider okända fält (`...raw`).
+Med bara en skalmarkör och ny nivå i `level` skulle den skriva 9 → 7 och
+markören stå kvar, vilket ger tyst korruption. Därför gäller detta:
+
+| Data | Ny skala (gäller) | Spegel, gammal skala (gamla klienter) |
+| ---- | ----------------- | ------------------------------------- |
+| `studentData.lasresa` | `level10`, `pendingLevel10` (1–10) | `level`, `pendingLevel` = ny − 3, klampad 1–7 |
+| `classes/{id}` | `lasresaStartLevel10` (1–10) | `lasresaStartLevel` = ny − 3, klampad 1–7 |
+| `lasresaAttempts` | `levelScale: 10` på nya försök (`textLevel` är då ny skala) | – (försök skrivs bara en gång) |
+
+- **Läsning** (`readStoredLevels`, `readClassStartLevel`):
+  - Saknas det nya fältet är datat gammalt, och nivån flyttas +3. Gammal 1/3/7
+    blir 4/6/10, gammal pendingLevel 2 blir 5 och gammal startnivå 3 blir 6.
+  - Finns det nya fältet och spegeln stämmer gäller det nya fältet.
+  - Stämmer spegeln **inte** har en gammal klient ändrat nivån (progression
+    eller lärarbyte i gammal vy). Då vinner dess värde +3. Om spegeln för
+    väntande nivå är borta (förbrukad) men nivåspegeln motsvarar den väntande
+    nivån gäller `pendingLevel10`. Om en gammal lärarvy tagit bort
+    startnivåspegeln gäller standardnivån.
+- **I minnet** (`normalizeLasresa`) bär `level`/`pendingLevel` alltid ny skala,
+  och objektet märks `levelScale: 10`. Det gör att en ny normalisering aldrig
+  lägger på +3 igen (idempotent). Märkta objekt och objekt med `level10` får
+  aldrig +3 en gång till.
+- **Skrivning:** bryggorna (`data-lasresan.js`, `data-lasresan-niva.js`)
+  skriver ALLTID `toStoredLasresa(lasresa)`. Den kastar om objektet inte är
+  normaliserat, så rå data kan aldrig skrivas med fel skala. Startnivån skrivs
+  med `classStartLevelFields(level)` (båda fälten).
+- **Ofarligt för gamla klienter:** de läser spegeln, som är en giltig nivå på
+  deras skala, och skriver tillbaka den eller sin egen ändring av den. De nya
+  fälten följer med orörda genom `...raw`. Nivå 8–10 kan alltså inte klampas
+  bort. Kvar finns en grovhet: ny nivå 1–4 har samma spegel (1), så en gammal
+  klient som flyttar en elev på nivå 1–3 uppåt hamnar på 5.
+- **Försök:** nya försök bär `levelScale: 10`. `listAttempts` normaliserar
+  gamla försök (`normalizeAttempt`): text-id:t avgör nivån när det följer
+  konventionen (`lr-n<N>` = N+3, `lr-g<N>` = N), annars gäller `textLevel` +3.
+- **Oförändrat:** `seenTextIds`, totaler, `catStats`, världar/steg och pengar.
+  Text-id:n är identiska före och efter #518 (alla 280 kontrollerade), så
+  lästa texter behöver ingen migrering.
+- **Progression:** `level.applyResult` gäller över 1–10 med golv 1 och tak 10
+  (tester för 1↔2 och 9↔10).
 
 ---
 
@@ -215,25 +269,29 @@ Firestore i `data-lasresan-niva.js` (bara dynamiskt importerad).
 Se även `docs/DATAMODELL.md`.
 
 ### `studentData/{id}.lasresa` (map)
+Lagringsform (#519). I minnet efter `normalizeLasresa` är `level`/`pendingLevel`
+på skalan 1–10 och `levelScale: 10`, utan `level10`/`pendingLevel10`.
 ```
-{ level, highStreak, lowStreak,              // DOLD nivå 1–10 (visas aldrig för eleven)
+{ level10, pendingLevel10,                   // #519: DOLD nivå 1–10 + väntande lärarnivå (1–10 | null)
+  level, pendingLevel,                       // SPEGEL i gammal skala 1–7 (för gamla klienter)
+  highStreak, lowStreak,
   worldId, stepInWorld, completedWorlds[],   // resan (stepInWorld 0 = före steg 1)
   totalTexts, totalQuestions, totalCorrect, totalIncorrect,
   moneyEarned,                               // pluggcoins tjänade via Läsresan (statistik)
   seenTextIds[], catStats{kategori:{q,correct}},
   currentTextId, currentStartedAt, lastTextId,
   updatedAt,                                 // ms sedan epoch
-  pendingLevel,                              // #505: lärarnivå som väntar på påbörjad text (1–10 | null)
   levelSetAt, levelSetBy }                   // #505: senaste lärarbyte (ms | null, "teacher" | null)
 ```
 Saknas fältet räknas eleven som ny (Skogen, steg 0, klassens startnivå
-`classes/{id}.lasresaStartLevel` eller 4) via `normalizeLasresa`. Ingen
-migrering behövs; gamla objekt utan de nya fälten får `null`.
+`classes/{id}.lasresaStartLevel10` eller 4) via `normalizeLasresa`. Gamla
+objekt utan `level10` har nivåerna i gammal skala och flyttas +3 vid läsning
+(se "Nivåskala 1–10"). Andra saknade fält får `null`.
 
 ### `studentData/{id}/lasresaAttempts/{autoId}`
 Ett dokument per färdig text:
 ```
-{ textId, title, textType, textLevel, studentId,
+{ textId, title, textType, textLevel, levelScale, studentId,   // levelScale 10 = textLevel 1–10 (#519); saknas = gammal skala
   startedAt, completedAt,                    // ms sedan epoch
   totalQuestions, correct, incorrect, percentage, earnedMoney,
   perQuestion: [{ qid, category, chosen, correct }],

@@ -29,6 +29,7 @@ import {
   studentLevelStatus,
   studentSavedText,
 } from "./lasresan/teacher-niva.js";
+import { classStartLevelFields } from "./lasresan/level-scale.js";
 
 /** Standard-API: #505:s Firestore-brygga, laddad först vid sparning. */
 const lazy = (name) => async (...args) => (await import("./data-lasresan-niva.js"))[name](...args);
@@ -120,7 +121,7 @@ export function confirmDialog({ title, facts, body, confirm }) {
  * Klassens två nivåkort ovanför tabellen.
  * @param {HTMLElement} host
  * @param {{
- *   cls: object,                // aktuell klass (muteras: lasresaStartLevel efter sparning)
+ *   cls: object,                // aktuell klass (muteras: startnivåfälten efter sparning)
  *   classes?: object[],         // lärarens klasser för klassväljaren (förvald = cls)
  *   studentById?: Map,          // id → elev (namn i felrader, filtrerar bort borttagna elever)
  *   api?: typeof DEFAULT_LEVEL_API,
@@ -178,7 +179,7 @@ export function renderLevelPanel(host, { cls, classes, studentById, api = DEFAUL
     if (level === null) return say(startMsg, "error", "Välj en nivå mellan 1 och 7.");
     try {
       const saved = await busy(startBtn, () => api.setClassStartLevel(cls.id, level));
-      cls.lasresaStartLevel = saved;
+      Object.assign(cls, classStartLevelFields(saved));
       startCard.querySelector(".lrn-start-now").textContent = startLevelInfo(cls).text;
       say(startMsg, "ok", startSavedText(nameOfClass(cls), saved));
       onChanged();
