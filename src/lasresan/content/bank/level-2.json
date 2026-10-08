@@ -1415,7 +1415,7 @@
     "level": 2,
     "textType": "story",
     "topic": "mysterier",
-    "body": "Varje kväll klockan sju hör Nova pianomusik i trapphuset. Det är samma vackra melodi varje gång. Men vem är det som spelar?\n\nNova börjar leta ledtrådar. Familjen på våningen under har bara små barn. Studenten på översta våningen spelar gitarr, inte piano.\n\nKvar är herr Nyström på våning tre. Han är gammal och lite sur. Han säger nästan aldrig hej.\n\nEn kväll står Nova utanför hans dörr när musiken börjar. Ja, den kommer därifrån! Hon tar mod till sig och knackar.\n\nHerr Nyström öppnar. ”Var det för högt?” frågar han oroligt.\n\n”Nej”, säger Nova. ”Det är så fint. Vad heter låten?”\n\nHerr Nyström ler för första gången. ”Den har inget namn. Jag skrev den till min fru. Vill du lära dig den?”",
+    "body": "Varje kväll klockan sju hör Nova pianomusik i trapphuset. Det är samma vackra melodi varje gång. Men vem är det som spelar?\n\nNova börjar leta ledtrådar. Familjen på våningen under har bara små barn. Studenten på översta våningen spelar gitarr, inte piano.\n\nKvar är herr Nyström på våning tre. Han är gammal och går nästan aldrig ut. Nova har bara sett honom några gånger.\n\nEn kväll står Nova utanför hans dörr när musiken börjar. Ja, den kommer därifrån! Hon tar mod till sig och knackar.\n\nHerr Nyström öppnar. ”Var det för högt?” frågar han oroligt.\n\n”Nej”, säger Nova. ”Det är så fint. Vad heter låten?”\n\nHerr Nyström ler för första gången. ”Den har inget namn. Jag skrev den till min fru. Vill du lära dig den?”",
     "questions": [
       {
         "id": "q1",
@@ -1491,12 +1491,12 @@
       },
       {
         "id": "q7",
-        "question": "Vad lär sig Nova om herr Nyström?",
+        "question": "Hur slutar berättelsen?",
         "options": [
-          "Han är lika sur som hon trodde",
-          "Han tycker inte om barn",
-          "Han vill sluta spela piano",
-          "Han är vänligare än hon trodde"
+          "Nova måste vara tyst i trappan",
+          "Herr Nyström flyttar därifrån",
+          "Herr Nyström slutar spela",
+          "Nova får lära sig melodin"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
@@ -2445,11 +2445,11 @@
   },
   {
     "id": "lr-n2-vinden",
-    "title": "Kartan på vinden",
+    "title": "Fotot på vinden",
     "level": 2,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Tage och farfar städar på vinden. Där är det dammigt och fullt av gamla saker. Bakom en trasig gungstol hittar Tage en plåtask. I asken ligger en hopvikt karta.\n\nKartan är ritad med blyerts. Den visar farfars trädgård med äppelträdet, brunnen och ett stort kryss vid staketet. Under krysset står det: 10 steg från brunnen.\n\n”Den ritade jag när jag var tio år”, säger farfar förvånat. ”Det hade jag helt glömt.”\n\nDe hämtar en spade. Tage räknar tio steg från brunnen och börjar gräva. Snart slår spaden i något hårt. Det är en rostig burk med lock.\n\nI burken ligger tre glaskulor, ett fotbollskort och en lapp: Till den som hittar det här. Ta väl hand om skatten!\n\nFarfar skrattar. ”Den skatten var nog finare för mig när jag var liten.” Men Tage tycker att den är fin ändå.",
+    "body": "Tage och farfar städar på den dammiga vinden. Bakom en trasig gungstol hittar Tage en plåtask. I asken ligger ett gammalt svartvitt foto.\n\nPå fotot står en pojke med en spade bredvid en brunn. På baksidan står det med blyerts: Skatten ligger 10 steg från brunnen, mot staketet.\n\n”Det där är ju jag!” säger farfar förvånat. ”Jag var tio år då. Det hade jag helt glömt.”\n\nDe hämtar en spade. Tage räknar tio steg från brunnen och börjar gräva. Snart slår spaden i något hårt. Det är en rostig burk med lock.\n\nI burken ligger tre glaskulor, ett fotbollskort och en lapp: Till den som hittar det här. Ta väl hand om skatten!\n\nFarfar skrattar. ”Den skatten var nog finare för mig när jag var liten.” Men Tage tycker att den är fin ändå.",
     "questions": [
       {
         "id": "q1",
@@ -2465,12 +2465,12 @@
       },
       {
         "id": "q2",
-        "question": "Vad visar kartan?",
+        "question": "Vad syns på fotot?",
         "options": [
-          "En skog nära byn",
-          "En ö ute i havet",
-          "Farfars trädgård",
-          "Farfars gamla skola"
+          "En flicka med en hund",
+          "Ett hus vid en sjö",
+          "En pojke med en spade",
+          "En gammal röd bil"
         ],
         "answerIndex": 2,
         "category": "fakta"
@@ -2491,22 +2491,22 @@
         "id": "q4",
         "question": "Varför blir farfar förvånad?",
         "options": [
-          "Han har aldrig sett kartan",
-          "Kartan är ritad av Tage",
+          "Han har aldrig sett fotot",
+          "Fotot är taget av Tage",
           "Han trodde att vinden var tom",
-          "Han hade glömt bort kartan"
+          "Han hade glömt bort skatten"
         ],
         "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q5",
-        "question": "Kartan är hopvikt. Vad betyder det?",
+        "question": "Farfar säger det förvånat. Vad betyder förvånat?",
         "options": [
-          "Vikt flera gånger",
-          "Sönderriven",
-          "Ihoprullad",
-          "Fastklistrad"
+          "Överraskat",
+          "Ilsket",
+          "Ledset",
+          "Trött"
         ],
         "answerIndex": 0,
         "category": "ordforstaelse"
@@ -2815,6 +2815,946 @@
           "Hur flygplan ser ut i dag"
         ],
         "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-stjarnbilder",
+    "title": "Bilder på natthimlen",
+    "level": 2,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "En klar natt kan du se tusentals stjärnor. För länge sedan började människor se mönster bland stjärnorna. De drog tänkta linjer mellan dem och fick bilder av djur, människor och saker. Sådana mönster kallas stjärnbilder.\n\nEn av de mest kända i Sverige är Karlavagnen. Den ser ut som en kastrull med långt skaft. Karlavagnen är egentligen en del av en större stjärnbild som heter Stora björnen.\n\nOm du följer de två stjärnorna längst ut på kastrullen hittar du Polstjärnan. Den står nästan rakt över nordpolen och verkar inte flytta sig på himlen. Därför har sjömän i hundratals år använt den för att hitta norrut.\n\nStjärnorna i en stjärnbild ser ut att sitta nära varandra. Men egentligen kan de vara olika långt bort.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är en stjärnbild?",
+        "options": [
+          "En mycket stor stjärna",
+          "En bild tagen i rymden",
+          "En planet som lyser",
+          "Ett mönster av stjärnor"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q2",
+        "question": "Vad liknar Karlavagnen?",
+        "options": [
+          "En kastrull med långt skaft",
+          "En fågel med stora vingar",
+          "En båt med segel",
+          "En stjärna med fem uddar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilken stjärnbild är Karlavagnen en del av?",
+        "options": [
+          "Lilla björnen",
+          "Orion",
+          "Stora björnen",
+          "Polstjärnan"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kan du hitta Polstjärnan?",
+        "options": [
+          "Titta rakt söderut",
+          "Följ två stjärnor i Karlavagnen",
+          "Leta efter den största stjärnan",
+          "Vänta tills månen går ner"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är det bra att Polstjärnan inte flyttar sig?",
+        "options": [
+          "Den lyser starkare då",
+          "Den syns även på dagen",
+          "Den kan inte falla ner",
+          "Den visar alltid samma håll"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är sant om stjärnorna i en stjärnbild?",
+        "options": [
+          "De sitter alltid ihop",
+          "De är lika stora",
+          "De kan vara olika långt bort",
+          "De har samma färg"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken rubrik passar bäst för texten?",
+        "options": [
+          "Livet på en sjömansbåt",
+          "Mönster på natthimlen",
+          "Hur stjärnor föds",
+          "Björnar i skogen"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-kometen",
+    "title": "Snöbollen med svans",
+    "level": 2,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "En komet är en stor klump av is, damm och sten. Forskare brukar kalla kometer för smutsiga snöbollar i rymden. En komet kan vara flera kilometer stor.\n\nKometerna åker runt solen, precis som jorden. Men de flesta har en lång och utdragen bana. Under största delen av tiden är de långt ute i rymden, där det är iskallt.\n\nNär en komet kommer nära solen blir den varm. Isen förvandlas till gas, och gas och damm sprutar ut. Då bildas en lång lysande svans. Svansen pekar alltid bort från solen.\n\nEn känd komet heter Halleys komet. Den syns från jorden ungefär vart 76:e år. Senast var 1986, och nästa gång blir 2061. Hur gammal är du då?",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad består en komet av?",
+        "options": [
+          "Is, damm och sten",
+          "Eld och gas",
+          "Järn och guld",
+          "Vatten och sand"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför kallas kometer för smutsiga snöbollar?",
+        "options": [
+          "De är vita och helt runda",
+          "De smälter bara på vintern",
+          "De är av is blandad med damm",
+          "Barn kastar dem på varandra"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Var är kometen under största delen av tiden?",
+        "options": [
+          "Långt ute i rymden",
+          "Nära solen",
+          "Runt jorden",
+          "Bakom månen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad händer när kometen kommer nära solen?",
+        "options": [
+          "Kometen fryser",
+          "Isen blir till gas",
+          "Kometen stannar",
+          "Svansen ramlar av"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Åt vilket håll pekar svansen?",
+        "options": [
+          "Mot solen",
+          "Mot jorden",
+          "Rakt neråt",
+          "Bort från solen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Banan är utdragen. Vad betyder utdragen?",
+        "options": [
+          "Kort och rund",
+          "Lång och smal",
+          "Rak och bred",
+          "Trasig och knölig"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man gör en snöboll",
+          "Varför solen är varm",
+          "Hur stjärnbilder får namn",
+          "Vad en komet är"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-saturnus",
+    "title": "Planeten med ringar",
+    "level": 2,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Saturnus är den sjätte planeten från solen och den näst största i vårt solsystem. Mer än 700 jordklot skulle få plats inuti den.\n\nSaturnus är en gasplanet. Den har ingen fast mark att stå på. Planeten är också mycket lätt för sin storlek. Om det fanns ett tillräckligt stort badkar skulle Saturnus kunna flyta i det.\n\nDet mest kända med Saturnus är ringarna. De består av miljarder bitar av is och sten. Vissa är små som sandkorn, andra stora som hus. Ringarna är mycket breda men ganska tunna.\n\nSaturnus ligger långt från solen. Därför tar det ungefär 29 år för planeten att åka ett varv runt solen. Saturnus har också mer än hundra månar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken planet från solen är Saturnus?",
+        "options": [
+          "Den tredje",
+          "Den femte",
+          "Den sjätte",
+          "Den åttonde"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför kan man inte stå på Saturnus?",
+        "options": [
+          "Den har ingen fast mark",
+          "Den är för varm",
+          "Den snurrar för fort",
+          "Den är täckt av vatten"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ringarna gjorda av?",
+        "options": [
+          "Gas och eld",
+          "Damm och vatten",
+          "Is och sten",
+          "Metall och glas"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Ringarna är breda. Vad betyder breda?",
+        "options": [
+          "Tjocka på höjden",
+          "Stora åt sidorna",
+          "Mörka och svarta",
+          "Snabba och lätta"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skulle Saturnus kunna flyta i ett badkar?",
+        "options": [
+          "Den är mindre än jorden",
+          "Den har ringar runt sig",
+          "Den är full av vatten",
+          "Den är lätt för sin storlek"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Om du är 29 år på jorden, hur många Saturnus-år är du då?",
+        "options": [
+          "Ett år",
+          "29 år",
+          "Tio år",
+          "Hundra år"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man reser i rymden",
+          "Saturnus och dess ringar",
+          "Varför jorden har en måne",
+          "Vad alla planeter heter"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-vattentornet",
+    "title": "Vattnet i tornet",
+    "level": 2,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Har du sett ett högt torn med en stor, tjock topp? Det är ofta ett vattentorn.\n\nVattnet vi dricker kommer från sjöar eller från grundvatten under marken. Först renas det i ett vattenverk. Sedan pumpas det upp till en stor tank högst upp i vattentornet.\n\nFrån tanken rinner vattnet ner i rör under marken. Rören leder till alla hus i närheten. Eftersom vattnet kommer från hög höjd trycks det fram med kraft. Därför sprutar det ur kranen när du öppnar den, även på översta våningen.\n\nVattentorn byggs ofta på en kulle, så att vattnet kommer ännu högre upp.\n\nPå natten, när de flesta sover, fylls tanken på. På morgonen, när alla duschar och borstar tänderna, finns det mycket vatten redo.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var renas vattnet?",
+        "options": [
+          "I vattentornet",
+          "I sjön",
+          "I ett vattenverk",
+          "I kranen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var finns tanken med vatten?",
+        "options": [
+          "Under marken",
+          "I källaren på huset",
+          "Nere vid sjön",
+          "Högst upp i tornet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vattnet renas. Vad betyder renas?",
+        "options": [
+          "Görs rent",
+          "Görs varmt",
+          "Görs kallt",
+          "Görs blått"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför sprutar vattnet ur kranen?",
+        "options": [
+          "Det värms upp i rören",
+          "Det trycks ner från hög höjd",
+          "Kranen har en egen pump",
+          "Det blåser i rören"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad skulle hända om vattentornet var mycket lågt?",
+        "options": [
+          "Vattnet skulle komma ut svagare",
+          "Vattnet skulle bli smutsigt",
+          "Vattnet skulle bli varmare",
+          "Vattnet skulle aldrig ta slut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "När fylls tanken på?",
+        "options": [
+          "På morgonen",
+          "Vid lunch",
+          "På natten",
+          "En gång i månaden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Varför vi ska dricka vatten",
+          "Hur man bygger ett högt torn",
+          "Var grundvatten kommer ifrån",
+          "Hur vattnet kommer till kranen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-termosen",
+    "title": "Flaskan som håller värmen",
+    "level": 2,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Du häller varm choklad i en termos på morgonen. På eftermiddagen, ute i skidbacken, är chokladen fortfarande varm. Hur går det till?\n\nVärme vill alltid vandra från något varmt till något kallt. Chokladen vill alltså gärna lämna ifrån sig sin värme till den kalla luften.\n\nEn termos har två väggar, en inre och en yttre. Mellan väggarna har man tagit bort nästan all luft. Värme har mycket svårt att ta sig igenom ett sådant tomt utrymme.\n\nInsidan är ofta blank som en spegel. Den skickar tillbaka värmen in mot drycken. Locket ska sitta tätt, annars smiter värmen ut uppåt.\n\nEn termos fungerar också åt andra hållet. Kall saft förblir kall länge, även en varm sommardag.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Åt vilket håll vandrar värme?",
+        "options": [
+          "Från kallt till varmt",
+          "Bara mot solen",
+          "Från varmt till kallt",
+          "Ingenstans alls"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många väggar har en termos?",
+        "options": [
+          "En",
+          "Tre",
+          "Fyra",
+          "Två"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad finns mellan väggarna?",
+        "options": [
+          "Nästan ingen luft",
+          "Varmt vatten",
+          "Tjock ull",
+          "Små bitar is"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Värmen smiter ut. Vad betyder smiter?",
+        "options": [
+          "Stannar kvar",
+          "Försvinner ut",
+          "Blir större",
+          "Kommer tillbaka"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad händer om du glömmer att skruva på locket?",
+        "options": [
+          "Chokladen kallnar fortare",
+          "Chokladen blir varmare",
+          "Termosen går sönder",
+          "Väggarna blir blanka"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gör den blanka insidan?",
+        "options": [
+          "Gör drycken söt",
+          "Skickar tillbaka värmen",
+          "Gör termosen lätt",
+          "Släpper in ljus"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är den viktigaste slutsatsen i texten?",
+        "options": [
+          "Choklad smakar allra bäst i skidbacken",
+          "Kall saft är godast på sommaren",
+          "Termosen stänger in värme och kyla",
+          "En termos gör drycken varmare"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-island",
+    "title": "Landet av is och eld",
+    "level": 2,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Island är en ö långt ute i Atlanten, nordväst om Europa. Där bor färre människor än i Stockholm. Ön kallas ibland landet av is och eld.\n\nIsen finns i stora glaciärer. En glaciär är ett tjockt istäcke som ligger kvar året runt.\n\nElden kommer från alla vulkaner. Djupt under Island är det mycket varmt, och ibland får en vulkan utbrott. Då kan glödande lava rinna ut över marken.\n\nVärmen under marken värmer också upp vatten. På vissa ställen sprutar hett vatten och ånga rakt upp i luften. Det kallas en gejser. Ordet kommer från en känd källa på Island som heter Geysir.\n\nIslänningarna använder det varma vattnet för att värma upp sina hus och sina badpooler.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ligger Island?",
+        "options": [
+          "I Östersjön, öster om Sverige",
+          "I Medelhavet, söder om Italien",
+          "I Stilla havet, nära Japan",
+          "I Atlanten, nordväst om Europa"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är en glaciär?",
+        "options": [
+          "Ett högt berg av sten",
+          "En sjö som fryser",
+          "En stor snöstorm",
+          "Ett tjockt istäcke"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varifrån kommer elden på Island?",
+        "options": [
+          "Från vulkanerna",
+          "Från skogsbränder",
+          "Från solen",
+          "Från blixtar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en gejser?",
+        "options": [
+          "En sorts liten vulkan",
+          "En iskall källa",
+          "Hett vatten som sprutar upp",
+          "Ett isberg i havet"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad heter källan som gett ordet gejser sitt namn?",
+        "options": [
+          "Hekla",
+          "Geysir",
+          "Atlant",
+          "Glaciär"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Hur kan islänningarna värma sina hus?",
+        "options": [
+          "Med ved från skogen",
+          "Med solljus från glaciärerna",
+          "Med is som smälter",
+          "Med varmt vatten från marken"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför kallas Island landet av is och eld?",
+        "options": [
+          "Det är kallt på dagen och varmt på natten",
+          "Islänningarna tänder eldar på isen",
+          "Där finns glaciärer och vulkaner",
+          "Solen skiner på snön hela året"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-midnattssolen",
+    "title": "Solen som inte går ner",
+    "level": 2,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Längst upp i norra Sverige händer något speciellt på sommaren. Solen går inte ner på natten. Klockan tolv på natten står den lågt på himlen, men den lyser fortfarande. Det kallas midnattssol.\n\nMidnattssol finns bara norr om en tänkt linje som heter polcirkeln. Ju längre norrut man kommer, desto fler nätter är solen uppe.\n\nDet beror på att jorden lutar. På sommaren lutar den norra delen av jorden mot solen. Då är det allra nordligaste området i solljus dygnet runt.\n\nPå vintern är det tvärtom. Då lutar norra delen bort från solen. Längst upp i norr finns det några veckor när solen inte går upp alls. Det kallas polarnatt.\n\nMånga som bor där har mörka gardiner på sommaren, så att de kan sova.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är midnattssol?",
+        "options": [
+          "Solen syns mitt i natten",
+          "Månen lyser som solen",
+          "Solen är extra varm",
+          "Solen är röd hela dagen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var finns midnattssol i Sverige?",
+        "options": [
+          "Söder om Stockholm",
+          "Norr om polcirkeln",
+          "Vid västkusten",
+          "På Gotland"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför blir det midnattssol?",
+        "options": [
+          "Solen är närmare på sommaren",
+          "Månen lyser upp natten",
+          "Jorden slutar snurra",
+          "Norra delen lutar mot solen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Solljus dygnet runt. Vad betyder dygnet runt?",
+        "options": [
+          "Bara på morgonen",
+          "Varannan dag",
+          "Hela dagen och natten",
+          "En gång i veckan"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kallas det när solen inte går upp alls?",
+        "options": [
+          "Midnattssol",
+          "Polarnatt",
+          "Polcirkel",
+          "Solnedgång"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför har många mörka gardiner på sommaren?",
+        "options": [
+          "Det är ljust när de ska sova",
+          "Solen är för varm",
+          "De vill inte bli sedda",
+          "Gardinerna är billiga"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man sover bäst",
+          "Varför solen är varm",
+          "Hur polcirkeln ritades",
+          "Ljusa och mörka tider i norr"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-venedig",
+    "title": "Staden på vatten",
+    "level": 2,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Venedig är en stad i norra Italien. Den är byggd på mer än hundra små öar i en grund havsvik.\n\nMellan öarna går kanaler i stället för vanliga gator. Den största kanalen ringlar som ett stort S genom staden. Över kanalerna går hundratals broar.\n\nI Venedig finns inga bilar. Folk går till fots eller åker båt. Det finns vattenbussar och smala båtar som kallas gondoler. Till och med ambulansen och sopbilen är båtar.\n\nHusen står på tusentals trästolpar som man slog ner i den mjuka botten för länge sedan. Under vattnet ruttnar träet inte så lätt, eftersom det finns så lite luft där.\n\nIbland stiger vattnet så mycket att torgen översvämmas. Då går folk på upphöjda gångbroar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "I vilket land ligger Venedig?",
+        "options": [
+          "Italien",
+          "Spanien",
+          "Grekland",
+          "Frankrike"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad finns i stället för vanliga gator?",
+        "options": [
+          "Tunnlar",
+          "Kanaler",
+          "Järnvägar",
+          "Cykelbanor"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur tar sig folk fram i Venedig?",
+        "options": [
+          "Med bil eller buss",
+          "Med cykel eller tåg",
+          "Till fots eller med båt",
+          "Med häst och vagn"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Torgen översvämmas. Vad betyder översvämmas?",
+        "options": [
+          "Fylls med folk",
+          "Täcks av vatten",
+          "Torkar ut",
+          "Byggs om"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad står husen på?",
+        "options": [
+          "Stora stenar",
+          "Flytande flottar",
+          "Trästolpar",
+          "Gamla båtar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är ambulansen en båt i Venedig?",
+        "options": [
+          "Båtar är snabbare än bilar",
+          "Sjukhuset ligger i havet",
+          "Det är billigare så",
+          "Det finns inga bilvägar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad gör Venedig speciellt?",
+        "options": [
+          "Staden är byggd på vatten",
+          "Staden har flest bilar",
+          "Staden ligger på ett berg",
+          "Staden har inga hus"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-ekot",
+    "title": "Ljudet som studsar",
+    "level": 2,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Ropa ”Hallå!” mot en bergvägg. Efter en liten stund hör du ”Hallå!” igen. Det är ett eko.\n\nLjud är små skakningar som färdas genom luften, ungefär som ringar på vattnet. När ljudet träffar något hårt, till exempel en bergvägg, studsar det tillbaka. Det kommer tillbaka till dina öron lite senare.\n\nMjuka saker som gardiner, mattor och kuddar suger upp ljudet i stället. Därför ekar det i ett tomt rum men inte i ett möblerat.\n\nFladdermöss använder eko för att hitta mat i mörkret. De skickar ut höga pip som människor inte kan höra. När pipet studsar mot en insekt hör fladdermusen ekot. Då vet den precis var insekten är.\n\nDelfiner gör likadant under vattnet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är ljud enligt texten?",
+        "options": [
+          "Små prickar av ljus",
+          "Vind som blåser in i örat",
+          "Små skakningar i luften",
+          "Vatten som rör sig"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer när ljudet träffar en bergvägg?",
+        "options": [
+          "Det studsar tillbaka",
+          "Det försvinner helt",
+          "Det blir starkare och starkare",
+          "Det går rakt igenom berget"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ekar det i ett tomt rum?",
+        "options": [
+          "Rummet är alldeles för litet",
+          "Inget mjukt suger upp ljudet",
+          "Det finns för många fönster",
+          "Det är för tyst där"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Mjuka saker suger upp ljudet. Vad betyder det?",
+        "options": [
+          "Ljudet blir högre av dem",
+          "Ljudet studsar på dem",
+          "Ljudet byter färg",
+          "Ljudet stannar i dem"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skickar fladdermöss ut pip?",
+        "options": [
+          "För att skrämma fiender",
+          "För att prata med varandra",
+          "För att väcka sina ungar",
+          "För att hitta insekter"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vilka djur använder också eko på det här sättet?",
+        "options": [
+          "Delfiner",
+          "Ugglor",
+          "Bävrar",
+          "Fiskmåsar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad har bergväggen och insekten gemensamt i texten?",
+        "options": [
+          "Båda är hårda och kalla",
+          "Båda äts av fladdermöss",
+          "Ljud studsar mot båda",
+          "Båda finns bara i mörker"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-skuggan",
+    "title": "Skuggan som växer",
+    "level": 2,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Ljus går alltid rakt fram. När ljuset träffar något som det inte kan gå igenom, till exempel din kropp, blir det mörkt bakom. Det mörka området är din skugga.\n\nSkuggan hamnar alltid på motsatt sida från ljuset. Om solen är framför dig ligger skuggan bakom dig.\n\nUnder dagen ändrar skuggan längd. På morgonen och kvällen står solen lågt. Då blir skuggorna långa. Mitt på dagen står solen högt på himlen, och då blir skuggorna korta.\n\nFörr i tiden använde människor skuggor som klocka. De satte en pinne i marken och tittade var skuggan hamnade. Det kallas ett solur.\n\nProva själv med en lampa: håll handen nära lampan, så blir skuggan på väggen jättestor.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur går ljus?",
+        "options": [
+          "I cirklar",
+          "Rakt fram",
+          "I sicksack",
+          "Runt hörn"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var hamnar skuggan om solen är framför dig?",
+        "options": [
+          "Framför dig",
+          "Under fötterna",
+          "Bakom dig",
+          "Bredvid dig"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "När är skuggorna som kortast?",
+        "options": [
+          "Mitt på dagen",
+          "På morgonen",
+          "På kvällen",
+          "Precis i solnedgången"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Skuggan hamnar på motsatt sida. Vad betyder motsatt?",
+        "options": [
+          "Samma sida",
+          "Andra sidan",
+          "Övre sidan",
+          "Närmaste sidan"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är ett solur?",
+        "options": [
+          "En lampa som lyser som solen",
+          "En karta över himlen",
+          "En kalender för sommaren",
+          "En klocka som använder skuggan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Du ser en mycket lång skugga ute. När är det troligen?",
+        "options": [
+          "Mitt på dagen",
+          "Mitt i natten",
+          "När det regnar",
+          "På kvällen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad bestämmer hur lång din skugga blir ute?",
+        "options": [
+          "Hur högt solen står",
+          "Hur fort du går",
+          "Hur varmt det är",
+          "Vilken färg du har på dig"
+        ],
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
