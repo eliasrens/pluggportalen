@@ -754,7 +754,61 @@ service cloud.firestore {
           cur.placedItems == d.placedItems;
       }
 
-      // Klassprofilen (trophies kommer i epic 3, hogstaNiva valfritt).
+      // ----------------------------------------------------------------
+      // Pokaler (#494, epic #474). Register + transaktion: src/klasscenter/
+      // kc-pokal-typer.js (korPokalUtdelning), SDK-lager kc-pokal-data.js.
+      //   trophies/{typ}-{kallaId} {typ, kallaId, titel, detalj?, wonAt, awardedBy}
+      //  • Läses av alla inloggade (gästläge, spec §7).
+      //  • Skapas BARA av lärare (lärarklienten som avslutar tävlingen/
+      //    matchen), create-only (ingen ändring/radering) → deterministiskt
+      //    id = samma vinst ger aldrig två pokaler.
+      //  • Verifieras mot källans `result` med getAfter (fungerar även när
+      //    pokalen skrivs i samma batch som resultatet): status 'finished' och
+      //      mm-klasskamp   mathCompetitions/{kallaId}.result.winnerClass == klassen
+      //      live-vinst     liveSessions/{kallaId}.result.winner == klassen
+      //      live-avklarat  liveSessions/{kallaId}: klassen deltog
+      //    (live-* kräver dessutom klassen i participatingClassIds och
+      //    result.perClass[klassen].players > 0).
+      // ⚠️ Ny pokaltyp = typen i kcPokalTyper + gren i kcPokalVerifierad +
+      // registreraPokaltyp (test/kc-pokal-typer.test.js jämför) + rules-deploy.
+      // ----------------------------------------------------------------
+      function kcPokalTyper() { return ['mm-klasskamp', 'live-vinst', 'live-avklarat']; }
+      function kcPokalMm(cid) {
+        let c = getAfter(/databases/$(database)/documents/mathCompetitions/$(cid)).data;
+        return c.status == 'finished' && c.get('result', {}).get('winnerClass', null) == classId;
+      }
+      function kcPokalLive(sid, vinst) {
+        let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
+        let r = s.get('result', {});
+        return s.status == 'finished' && classId in s.participatingClassIds &&
+          r.get('perClass', {}).get(classId, {}).get('players', 0) > 0 &&
+          (!vinst || r.get('winner', null) == classId);
+      }
+      function kcPokalVerifierad(typ, kallaId) {
+        return (typ == 'mm-klasskamp' && kcPokalMm(kallaId)) ||
+          (typ == 'live-vinst' && kcPokalLive(kallaId, true)) ||
+          (typ == 'live-avklarat' && kcPokalLive(kallaId, false));
+      }
+      function kcPokalCreate(trophyId) {
+        let d = request.resource.data;
+        return isTeacher() &&
+          d.keys().hasOnly(['typ', 'kallaId', 'titel', 'detalj', 'wonAt', 'awardedBy']) &&
+          d.keys().hasAll(['typ', 'kallaId', 'titel', 'wonAt', 'awardedBy']) &&
+          d.typ in kcPokalTyper() &&
+          d.kallaId is string && d.kallaId.matches('[A-Za-z0-9_-]{1,100}') &&
+          trophyId == d.typ + '-' + d.kallaId &&
+          d.titel is string && d.titel.size() >= 1 && d.titel.size() <= 80 &&
+          (!('detalj' in d) || (d.detalj is string && d.detalj.size() <= 120)) &&
+          d.wonAt == request.time && d.awardedBy == request.auth.uid &&
+          kcPokalVerifierad(d.typ, d.kallaId);
+      }
+
+      match /trophies/{trophyId} {
+        allow read: if signedIn();
+        allow create: if kcPokalCreate(trophyId);
+      }
+
+      // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).
       allow read: if signedIn();
       allow create, update: if isTeacher() && changedOnly(['inredningSparr']) &&
         request.resource.data.inredningSparr is list &&
