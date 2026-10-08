@@ -1702,5 +1702,475 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n3-delat-rum",
+    "title": "Lakanet mitt i rummet",
+    "level": 3,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "När mamma och Mattias flyttade ihop fick Juli en bonussyster. Lejla var nio år, ett år yngre än Juli, och nu skulle de dela rum.\n\nJuli tyckte inte om det alls. Hon hade alltid haft ett eget rum. Lejla lämnade strumpor på golvet, sjöng när hon borstade tänderna och ville prata när Juli ville sova.\n\nEfter en vecka hängde Juli upp ett gammalt lakan mitt i rummet. ”Det här är min halva”, sa hon. ”Och det där är din.”\n\nLejla sa ingenting. Hon gick bara och lade sig.\n\nSamma natt kom ett åskväder. Det blixtrade och mullrade så att fönstret skallrade. Juli låg vaken och lyssnade. Då hörde hon något bakom lakanet. Lejla grät tyst i sin säng.\n\nJuli låg stilla en stund. Sedan drog hon undan lakanet. ”Är du rädd för åska?”\n\n”Lite”, snyftade Lejla. ”Hemma hos mamma kröp jag alltid ner hos henne när det åskade.”\n\nJuli satte sig på Lejlas säng. Hon tände sin ficklampa och gjorde skuggdjur på väggen, en hare, en hund och en flaxande fågel. Till slut började Lejla fnissa, och snart somnade de båda.\n\nLakanet åkte aldrig upp igen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur gammal var Lejla?",
+        "options": [
+          "Åtta år",
+          "Tio år",
+          "Nio år",
+          "Elva år"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hängde Juli upp mitt i rummet?",
+        "options": [
+          "En tjock filt",
+          "Ett gammalt lakan",
+          "En gardin från köket",
+          "En stor karta"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Fönstret ”skallrade”. Vad betyder det?",
+        "options": [
+          "Det gick sönder",
+          "Det öppnades av vinden",
+          "Det skakade och lät",
+          "Det blev alldeles blött"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Lejla ”snyftade”. Hur lät hon?",
+        "options": [
+          "Som någon som skrattar",
+          "Som någon som sjunger",
+          "Som någon som är arg",
+          "Som någon som gråter"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför hängde Juli upp lakanet?",
+        "options": [
+          "Hon ville ha en egen del av rummet",
+          "Hon ville stänga ute ljuset från fönstret",
+          "Lejla bad henne att göra det",
+          "Hon skulle bygga en koja att leka i"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var åskan extra jobbig för Lejla just här?",
+        "options": [
+          "Hon hade tappat sitt gosedjur på golvet",
+          "Hon kunde inte krypa ner hos sin mamma",
+          "Hon var arg på Mattias",
+          "Hon frös under sitt täcke"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att lakanet ”aldrig åkte upp igen”?",
+        "options": [
+          "Lakanet hade gått sönder i ovädret",
+          "Mamma tyckte att det såg fult ut",
+          "Lejla flyttade till ett eget rum",
+          "Systrarna hade kommit varandra närmare"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-tagresan",
+    "title": "Ensam på tåget",
+    "level": 3,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Isabell var elva år och skulle för första gången åka tåg ensam till farmor. Pappa följde henne till perrongen. ”Du åker bara tills det står Sundsvall på skylten”, sa han. ”Farmor möter dig där.”\n\nResan började bra. Isabell läste en serietidning och åt sina smörgåsar. Men efter två timmar stannade tåget mitt i en skog.\n\n”Ett träd har blåst ner över spåret”, sa en röst i högtalaren. ”Alla resenärer får byta till buss vid nästa station.”\n\nIsabell kände hur det pirrade i magen. Hon tittade sig omkring och fick syn på konduktören, en kvinna med röd mössa.\n\n”Jag ska till Sundsvall och reser ensam”, sa Isabell. ”Vad ska jag göra?”\n\n”Du följer mig”, sa konduktören. ”Jag ser till att du kommer på rätt buss.”\n\nPå stationen ringde Isabell till farmor och berättade att hon skulle bli sen. Bussen var full och skumpig, men konduktören satt två rader bakom henne hela vägen.\n\nNär Isabell klev av i Sundsvall stod farmor och väntade med en termos varm choklad. ”Du har varit modig i dag”, sa farmor.\n\nIsabell nickade. Hon kände sig faktiskt lite längre än när hon åkte hemifrån.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför stannade tåget i skogen?",
+        "options": [
+          "Ett träd låg över spåret",
+          "Tåget hade fått motorstopp",
+          "Det stod en älg på rälsen",
+          "Föraren hade blivit sjuk"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade farmor med sig till stationen?",
+        "options": [
+          "En påse nybakade bullar",
+          "En varm filt",
+          "En termos varm choklad",
+          "Ett stort paraply"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Det ”pirrade i magen”. Hur kände sig Isabell?",
+        "options": [
+          "Nervös och orolig",
+          "Hungrig och trött",
+          "Glad och lugn",
+          "Sur och arg"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Bussen var ”skumpig”. Vad betyder det?",
+        "options": [
+          "Den var smutsig och kall",
+          "Den luktade konstigt",
+          "Den körde mycket långsamt",
+          "Den skakade och hoppade"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför satt konduktören bakom Isabell hela vägen?",
+        "options": [
+          "Hon skulle också hälsa på farmor",
+          "Hon var rädd för att åka buss",
+          "Hon ville hålla ett öga på henne",
+          "Hon skulle sälja biljetter på bussen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ringde Isabell till farmor från stationen?",
+        "options": [
+          "Farmor skulle hämta henne i skogen",
+          "Så att farmor inte skulle oroa sig",
+          "Hon hade glömt vart hon skulle",
+          "Konduktören ville låna telefonen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med att Isabell kände sig ”lite längre”?",
+        "options": [
+          "Hon kände sig större och modigare",
+          "Hon hade vuxit under resan",
+          "Hon hade sträckt på sig efter den långa resan",
+          "Hon stod på tå för att se farmor"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-luftballongen",
+    "title": "Morgonen i luftballongen",
+    "level": 3,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Klockan var fyra på morgonen när morbror Ivar väckte Dennis. ”Det är vindstilla”, viskade han. ”I dag flyger vi.”\n\nUte på en äng låg en enorm ballong av tyg utbredd på gräset. Bredvid stod en stor flätad korg med plats för fyra personer. Piloten Ulrika startade en brännare som sprutade ut en lång låga. Den varma luften fyllde ballongen, och sakta reste den sig mot himlen.\n\n”Varm luft är lättare än kall”, förklarade Ulrika. ”Därför stiger vi.”\n\nDennis höll hårt i korgens kant när marken försvann under dem. Det var alldeles tyst, förutom när brännaren fräste. Långt nere såg han hus som liknade leksaker och en älg som travade över en åker.\n\nEn ballong kan inte styras som ett flygplan. Den följer vinden. Därför åkte en bil efter dem på vägarna nedanför.\n\nEfter en timme sa Ulrika att det var dags att landa. Hon släppte ut lite av den varma luften, och ballongen sjönk. Korgen tog i marken, studsade en gång och tippade över på sidan i en hage full av kor.\n\nKorna stirrade. Dennis låg i korgen och skrattade.\n\n”Välkommen ner”, sa morbror Ivar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur dags väckte morbror Ivar Dennis?",
+        "options": [
+          "Klockan fem",
+          "Klockan sex",
+          "Klockan sju",
+          "Klockan fyra"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var landade ballongen?",
+        "options": [
+          "På åkern där älgen travade",
+          "I en hage med kor",
+          "På ängen där de startade",
+          "Vid vägen bredvid bilen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”brännare” i texten?",
+        "options": [
+          "En pump som blåser in kall luft",
+          "En spak som styr ballongen",
+          "Den gör eld som värmer luften",
+          "En lampa som lyser i mörkret"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Ballongen låg ”utbredd” på gräset. Vad betyder det?",
+        "options": [
+          "Den var hoprullad till en boll",
+          "Den låg platt och utlagd",
+          "Den stod rakt upp i luften",
+          "Den var trasig och smutsig"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför åkte en bil efter ballongen?",
+        "options": [
+          "Bilen skulle dra ballongen framåt",
+          "Morbror Ivar ville hellre åka bil efter dem",
+          "Bilen hade med sig mer varm luft",
+          "Ingen visste exakt var den skulle landa"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför flög de just den morgonen?",
+        "options": [
+          "Det var vindstilla",
+          "Det var Dennis födelsedag",
+          "Ulrika hade ledigt den dagen",
+          "Korna skulle släppas ut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur kan man bäst beskriva Dennis tur?",
+        "options": [
+          "Tråkig och alldeles för lång",
+          "Farlig och mycket obehaglig",
+          "Spännande och lite rolig",
+          "Kall och ganska ensam"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-judon",
+    "title": "Det gula bältet",
+    "level": 3,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Bruno hade tränat judo i ett år, och i dag var det gradering. Om han klarade alla moment skulle han få byta sitt vita bälte mot ett gult.\n\nHan hade övat kast, grepp och fallteknik många gånger. Men i omklädningsrummet kändes benen som spagetti.\n\n”Tänk inte på bältet”, sa tränaren Ahmed. ”Gör bara det du kan.”\n\nFörst skulle Bruno visa hur man faller. Han slog i mattan med handflatan och rullade runt utan att slå i huvudet. Det gick bra.\n\nSedan skulle han kasta sin träningskompis Charlie. Bruno tog tag i Charlies dräkt, vred sig och drog. Men han satte foten fel och tappade balansen. Båda föll i en hög.\n\nDet blev tyst i salen. Bruno ville sjunka genom mattan.\n\nAhmed nickade lugnt. ”En gång till.”\n\nBruno andades djupt. Den här gången tänkte han på fötterna först. Han vred sig och drog, och Charlie flög i en fin båge ner på mattan.\n\nEfteråt knöt Ahmed det gula bältet runt Brunos midja.\n\n”Vet du varför du klarade det?” frågade Ahmed. ”Du gav inte upp när det gick fel.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg hade Brunos bälte före graderingen?",
+        "options": [
+          "Gult",
+          "Vitt",
+          "Grönt",
+          "Svart"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gick fel första gången Bruno skulle kasta Charlie?",
+        "options": [
+          "Han satte foten fel",
+          "Han tappade greppet om dräkten",
+          "Charlie hoppade undan",
+          "Han halkade på mattan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Benen kändes som ”spagetti”. Vad betyder det?",
+        "options": [
+          "De var långa och smala",
+          "De kändes starka och snabba",
+          "De var kalla och stela",
+          "De kändes svaga och darriga"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en ”gradering” i texten?",
+        "options": [
+          "En tävling mot en annan klubb",
+          "En träning för nybörjare",
+          "Ett prov där man visar vad man kan",
+          "En fest när terminen slutar"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ville Bruno ”sjunka genom mattan”?",
+        "options": [
+          "Han hade gjort sig illa i foten",
+          "Han ville gömma sig för Charlie",
+          "Han skämdes över misstaget",
+          "Han var trött och ville vila"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sa Ahmed bara ”En gång till” helt lugnt?",
+        "options": [
+          "Han hade inte sett att Bruno föll",
+          "Han ville att Bruno skulle få försöka igen",
+          "Han tyckte att Charlie gjorde fel",
+          "Han var för arg för att säga något mer till dem"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är textens budskap?",
+        "options": [
+          "Judo är den svåraste sporten som finns",
+          "Ett gult bälte är finare än ett vitt",
+          "Man ska alltid träna ensam före ett prov",
+          "Det lönar sig att försöka igen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-schacket",
+    "title": "Ett drag längre",
+    "level": 3,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Melker hade spelat schack med morfar sedan han var sex år. Nu var han tolv och skulle för första gången spela en riktig turnering.\n\nI det första partiet mötte han en flicka som hette Sofia. Hon var yngre än han, och Melker tänkte att det skulle gå fort. Han flyttade sina pjäser snabbt, nästan utan att tänka.\n\nEfter tio minuter hade Sofia tagit hans dam. Melker stirrade på brädet. Hur hade det gått till?\n\nHan förlorade partiet. Efteråt satt han ensam i korridoren med en klump i halsen.\n\nDå kom en äldre domare fram till honom. ”Jag såg ditt parti”, sa hon. ”Du har för bråttom. I schack vinner sällan den som är snabbast. Det är den som tänker ett drag längre.”\n\nI nästa parti satt Melker på händerna. Innan han flyttade en pjäs frågade han sig själv: Vad kan motståndaren göra nu? Det tog tid, men han såg fällorna innan han gick i dem.\n\nHan vann det partiet och nästa. På kvällen ringde han till morfar.\n\n”Hur gick det?” frågade morfar.\n\n”Jag förlorade mot en nioåring”, sa Melker. ”Och det var det bästa som hände i dag.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur gammal var Melker när han spelade turneringen?",
+        "options": [
+          "Tolv år",
+          "Sex år",
+          "Nio år",
+          "Tio år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken pjäs tog Sofia från Melker?",
+        "options": [
+          "Hans torn",
+          "Hans häst",
+          "Hans löpare",
+          "Hans dam"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Melker hade ”en klump i halsen”. Vad betyder det?",
+        "options": [
+          "Han var nära att gråta",
+          "Han hade fått något i halsen",
+          "Han var förkyld och hes",
+          "Han var mycket törstig"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Melker ”satt på händerna”. Vad betyder det här?",
+        "options": [
+          "Han frös om fingrarna",
+          "Han tvingade sig att vänta",
+          "Han gömde en pjäs under sig",
+          "Han var trött i armarna"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför trodde Melker att det första partiet skulle gå fort?",
+        "options": [
+          "Han hade spelat mot henne förut",
+          "Domaren hade sagt det till honom",
+          "Sofia var yngre än han",
+          "Sofia var ny på schack"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var förlusten ”det bästa som hände”?",
+        "options": [
+          "Han fick ett pris för bästa förlorare",
+          "Den lärde honom att tänka efter",
+          "Sofia blev hans nya bästa vän",
+          "Han slapp spela fler partier"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilket råd är viktigast i texten?",
+        "options": [
+          "Flytta pjäserna så snabbt du kan",
+          "Spela bara mot dem som är yngre",
+          "Träna alltid med någon i familjen",
+          "Tänk efter innan du gör ditt drag"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
