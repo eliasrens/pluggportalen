@@ -3708,5 +3708,535 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n5-broar",
+    "title": "Hur en bro bär",
+    "level": 5,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "En bro ska bära sin egen tyngd, alla bilar, tåg och människor som åker över den, och dessutom stå emot vind och vatten. För att klara det använder ingenjörer några olika grundidéer.\n\nDen enklaste bron är balkbron. Den fungerar som en planka som ligger över en bäck. När något tungt rör sig över plankan böjer den sig. Ovansidan pressas ihop, och undersidan dras isär. Ju längre bron är, desto mer böjer den sig. Därför behöver långa balkbroar många pelare under sig.\n\nValvbron är böjd som en båge. När tyngden trycker ner på bågen fördelas kraften ut mot fästena i marken på båda sidor. Romarna byggde valvbroar av sten för ungefär 2 000 år sedan, och några av dem står kvar än i dag.\n\nHängbron klarar de allra längsta spannen, alltså avstånden mellan stöden. Två höga torn bär upp tjocka stålkablar, och från kablarna hänger lodräta linor som håller upp vägbanan. Högakustenbron i Ångermanland är en hängbro där avståndet mellan tornen är över en kilometer.\n\nVinden kan vara en överraskande fara. År 1940 började en nybyggd hängbro i USA att vrida sig och svaja allt kraftigare i vinden, tills den slets sönder och rasade. Ingen människa omkom, men ingenjörer över hela världen lärde sig något viktigt. I dag testas modeller av stora broar i vindtunnlar innan de byggs.\n\nÖresundsbron, som öppnade år 2000, binder ihop Sverige och Danmark. Den är nästan åtta kilometer lång och övergår sedan i en tunnel under havet, så att stora fartyg kan passera.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad händer med en balkbro när något tungt åker över den?",
+        "options": [
+          "Den vrider sig",
+          "Den lyfts upp",
+          "Den böjer sig",
+          "Den sträcks ut"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför behöver långa balkbroar många pelare?",
+        "options": [
+          "Pelarna gör att bron står emot vattnets kraft",
+          "Bron blir vackrare med många pelare",
+          "Bilarna behöver något att svänga runt",
+          "Ju längre bron är, desto mer böjer den sig"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ett spann, så som ordet används i texten?",
+        "options": [
+          "Den tyngd som en bro klarar",
+          "Avståndet mellan en bros stöd",
+          "Ett torn som står mitt på en bro",
+          "Den kabel som håller upp vägen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför står några av romarnas valvbroar kvar än i dag?",
+        "options": [
+          "Bågformen fördelar tyngden ut mot fästena",
+          "Romarna lagade broarna varje år",
+          "De är byggda av stål och betong",
+          "Det kör inga bilar över dem längre"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder ”lodräta” linor?",
+        "options": [
+          "Linor som hänger rakt nedåt",
+          "Linor som går snett mellan tornen",
+          "Linor som ligger längs vägen",
+          "Linor som är gjorda av bly"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad lärde sig ingenjörerna av bron som rasade 1940?",
+        "options": [
+          "Att broar bara ska byggas av sten och trä",
+          "Att man måste räkna med vinden",
+          "Att det är farligt att köra bil på en bro",
+          "Att hängbroar aldrig ska byggas över breda vatten"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför övergår Öresundsbron i en tunnel?",
+        "options": [
+          "För att Danmark ville ha en tunnel",
+          "Så att tågen kan åka fortare",
+          "För att bron annars blev för dyr",
+          "Så att stora fartyg kan passera"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten främst om?",
+        "options": [
+          "Hur romarna byggde sina vägar",
+          "Varför broar ibland rasar i vinden",
+          "Olika sätt att bygga broar som bär",
+          "Hur man reser mellan Sverige och Danmark"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-pantburken",
+    "title": "Burken som kommer tillbaka",
+    "level": 5,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "När du pantar en läskburk får du en krona tillbaka. Det kan verka lite, men burken du stoppar in i pantautomaten är början på en lång resa, som kan sluta med att samma metall blir en ny burk igen.\n\nI Sverige har det funnits pant på aluminiumburkar sedan 1984, och sedan 1994 även på plastflaskor. Idén är enkel: när burken är värd pengar slänger färre människor den i naturen. I dag pantas nästan nio av tio burkar.\n\nI pantautomaten läses burkens streckkod av, så att maskinen vet att det är en burk med pant. Sedan pressas burken ihop. Hela lass med hoppressade burkar körs vidare till en fabrik där de smälts ner. Den flytande metallen gjuts till stora block som sedan valsas, alltså pressas mellan tunga valsar, tills de blir till tunna plåtar. Av plåten tillverkas nya burkar.\n\nDet fina med aluminium är att metallen kan smältas om gång på gång utan att bli sämre. Att göra en burk av gammalt aluminium kräver dessutom mycket mindre energi än att göra en helt ny. Ny aluminium tillverkas av en bergart som heter bauxit. Den måste grävas upp i stora gruvor och behandlas med enorma mängder el. Att smälta om en gammal burk kräver bara en bråkdel av den energin.\n\nEn burk som slängs i skogen kan däremot ligga kvar i hundratals år.\n\nSå nästa gång du står vid pantautomaten kan du tänka på att du inte bara får en krona. Du sparar också energi och gör det möjligt för burken att få ett nytt liv.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Sedan vilket år har det funnits pant på aluminiumburkar i Sverige?",
+        "options": [
+          "1984",
+          "1964",
+          "2004",
+          "1994"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur stor del av burkarna pantas i dag?",
+        "options": [
+          "Ungefär hälften",
+          "Alla utan undantag",
+          "Nästan nio av tio",
+          "Ungefär en av tio"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför infördes pant på burkar?",
+        "options": [
+          "Pantautomaterna behövde något att göra",
+          "Burkarna blev billigare att tillverka",
+          "Affärerna ville sälja mer läsk",
+          "Färre slänger något som är värt pengar"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att metallen ”valsas”?",
+        "options": [
+          "Den målas i olika glada färger",
+          "Den pressas mellan tunga valsar",
+          "Den smälts ner i en ugn",
+          "Den skärs i små bitar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad tillverkas ny aluminium av?",
+        "options": [
+          "Sand",
+          "Järnmalm",
+          "Bauxit",
+          "Gamla burkar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det bra att smälta om gamla burkar i stället för att göra ny metall?",
+        "options": [
+          "Det sparar mycket energi",
+          "Det ger starkare burkar",
+          "Det går fortare att dricka ur dem",
+          "Det gör burkarna lättare att öppna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”en bråkdel”?",
+        "options": [
+          "Ungefär hälften",
+          "En mycket liten del",
+          "Dubbelt så mycket",
+          "En del som har gått sönder"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten främst få läsaren att förstå?",
+        "options": [
+          "Att aluminium är en metall som snabbt blir sämre och sämre",
+          "Att det bara är pengarna som är viktiga när man pantar burkar",
+          "Att det är bättre att dricka ur plastflaskor än ur burkar",
+          "Att panten gör att burkens metall kan användas igen och igen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-laset",
+    "title": "Hemligheten i låset",
+    "level": 5,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Du stoppar in nyckeln, vrider om, och dörren går upp. Men varför fungerar bara din nyckel? Svaret finns i några små metallbitar inuti låset.\n\nMänniskor har låst in sina ägodelar i tusentals år. För ungefär 4 000 år sedan fanns det redan lås av trä i Egypten. De hade lösa pinnar som föll ner och spärrade en träregel. Med en stor träkrok kunde man lyfta pinnarna och dra regeln åt sidan.\n\nEtt vanligt dörrlås i dag bygger på samma idé, men är mycket mindre. Det kallas cylinderlås och uppfanns i sin moderna form i USA på 1860-talet. Inne i låset sitter en metallcylinder som kan vridas. Genom cylindern och det fasta höljet runt den går en rad små hål. I varje hål sitter två små metallstift ovanpå varandra, och en fjäder trycker ner dem. Stiften är olika långa.\n\nNär ingen nyckel sitter i låset hamnar några av stiften mitt i skarven mellan cylindern och höljet. De fungerar som spärrar, och cylindern kan inte vridas.\n\nNyckelns ojämna kant har toppar och dalar. När du stoppar in rätt nyckel lyfts varje stiftpar till exakt rätt höjd, så att skarven mellan de två stiften hamnar precis vid kanten av cylindern. Då finns inget som spärrar längre, och du kan vrida om.\n\nMed fel nyckel hamnar minst ett stift på fel höjd, och låset förblir låst. Eftersom stiften kan ha många olika längder finns det tusentals möjliga kombinationer.\n\nI dag finns också lås som öppnas med kod, kort eller mobil. Men det gamla stiftlåset sitter fortfarande i miljontals dörrar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var de första låsen i Egypten gjorda av?",
+        "options": [
+          "Trä",
+          "Sten",
+          "Järn",
+          "Brons"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad trycker ner stiften i ett cylinderlås?",
+        "options": [
+          "Dörrens tyngd",
+          "Nyckeln",
+          "En fjäder",
+          "En liten magnet"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”skarv”, så som ordet används i texten?",
+        "options": [
+          "Ett litet hål i nyckeln",
+          "Den ojämna kanten på nyckeln",
+          "Det yttre skalet runt låset",
+          "Stället där två delar möts"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kan cylindern inte vridas när ingen nyckel sitter i låset?",
+        "options": [
+          "Fjädern är för svag",
+          "Stiften spärrar i skarven",
+          "Cylindern är fastlimmad",
+          "Dörren väger för mycket"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör rätt nyckel med stiften?",
+        "options": [
+          "Lyfter varje stiftpar till exakt rätt höjd",
+          "Tar bort stiften ur låset",
+          "Gör alla stiften lika långa",
+          "Trycker ner alla stiften så långt det går"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder det att låset ”förblir låst”?",
+        "options": [
+          "Det låser sig självt igen",
+          "Det blir låst för alltid",
+          "Det fortsätter att vara låst",
+          "Det går sönder av fel nyckel"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är det viktigt att stiften kan ha många olika längder?",
+        "options": [
+          "Då kan man öppna alla dörrar med samma nyckel",
+          "Då kan nästan varje lås få en egen nyckel",
+          "Då går det fortare att låsa upp dörren",
+          "Då blir låset lättare att tillverka i fabriken"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad förklarar texten framför allt?",
+        "options": [
+          "Varför människor har behövt låsa in saker",
+          "Hur man öppnar ett lås utan nyckel",
+          "Varför kodlås är bättre än vanliga lås",
+          "Hur ett lås vet vilken nyckel som är rätt"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-kebnekaise",
+    "title": "Toppen som krymper",
+    "level": 5,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Kebnekaise är Sveriges högsta fjäll. Det ligger i Lappland, väster om Kiruna, och är ungefär 2 100 meter högt. Varje sommar vandrar tusentals människor upp på det för att se ut över ett landskap av fjäll, dalar och glaciärer.\n\nKebnekaise har två toppar, en på norra sidan och en på södra. Nordtoppen består av fast berg. Sydtoppen däremot har en mössa av is och snö överst, en liten glaciär. Därför har sydtoppen inte alltid samma höjd. Den beror på hur mycket snö som faller på vintern och hur mycket som smälter på sommaren.\n\nLänge var sydtoppen den högsta punkten i Sverige. Men de senaste femtio åren har den krympt med mer än tjugo meter. Somrarna i fjällen har blivit varmare, och mer is smälter bort än vad som hinner bildas. För några år sedan blev sydtoppen för första gången lägre än nordtoppen. I dag är det nordtoppen som räknas som Sveriges högsta punkt.\n\nForskare vid en forskningsstation i närheten mäter isen varje år. Kebnekaise är inte ensamt. Nästan alla de några hundra små glaciärerna i den svenska fjällvärlden krymper. Det är ett av de tydligaste tecknen på att klimatet blir varmare.\n\nGlaciärerna är viktiga för mer än utsikten. Smältvattnet rinner ner i bäckar och älvar och ger vatten åt växter, djur och kraftverk längre ner.\n\nOm du någon gång står på toppen av Kebnekaise kan du alltså stå på ett berg som förändras medan du tittar på det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Ungefär hur högt är Kebnekaise?",
+        "options": [
+          "2 100 meter",
+          "1 200 meter",
+          "8 800 meter",
+          "3 100 meter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är skillnaden mellan Kebnekaises två toppar?",
+        "options": [
+          "Nordtoppen har is överst, sydtoppen är fast berg",
+          "Båda topparna är täckta av en tjock glaciär",
+          "Sydtoppen är en vulkan, nordtoppen är det inte",
+          "Sydtoppen har is överst, nordtoppen är fast berg"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför har sydtoppen inte alltid samma höjd?",
+        "options": [
+          "Berget sjunker sakta ner i marken",
+          "Vandrarna nöter bort berget med skorna",
+          "Isen på toppen växer och smälter",
+          "Forskarna mäter på olika sätt varje år"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför har sydtoppen krympt?",
+        "options": [
+          "Det har kommit mer snö",
+          "Somrarna har blivit varmare",
+          "Stormar har blåst bort toppen",
+          "Berget har haft jordskalv"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är en glaciär?",
+        "options": [
+          "En frusen sjö högt uppe på fjället",
+          "Ett vattenfall som har frusit på vintern",
+          "En stor massa is som ligger kvar år efter år",
+          "En snödriva som smälter varje vår"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skriver texten att Kebnekaise ”inte är ensamt”?",
+        "options": [
+          "Det ligger nära staden Kiruna",
+          "Det finns fler fjäll med samma namn",
+          "Många människor vandrar dit varje sommar",
+          "Andra glaciärer i fjällen krymper också"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”tecken” i meningen om att glaciärerna är ett av de tydligaste tecknen?",
+        "options": [
+          "Något som visar att något händer",
+          "En bokstav i ett alfabet",
+          "En skylt längs en vandringsled",
+          "Ett märke som forskarna målar på isen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är det viktigaste texten vill säga?",
+        "options": [
+          "Att glaciärer bara finns på Kebnekaise",
+          "Att ett varmare klimat syns på Kebnekaise",
+          "Att nordtoppen alltid har varit Sveriges högsta punkt",
+          "Att Kebnekaise är det bästa fjället att vandra på"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-japan",
+    "title": "Att leva där marken skakar",
+    "level": 5,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Japan är ett land i Stilla havet som består av fyra stora öar och tusentals små. Där bor över 120 miljoner människor. Landet är känt för höga skyskrapor, snabba tåg och vulkanen Fuji. Men det är också ett av de länder i världen där marken skakar oftast.\n\nJordens yta består av stora plattor som långsamt rör sig. Under Japan möts fyra sådana plattor. När de trycker mot varandra byggs spänningar upp i berget. Till slut släpper spänningen med ett ryck, och det blir en jordbävning. I Japan sker ungefär en femtedel av världens kraftiga jordbävningar.\n\nDen värsta på senare tid kom i mars 2011. En mycket kraftig jordbävning under havet satte igång en tsunami, en våg som kan bli flera meter hög när den når land. Vattnet sköljde långt in över kusten. Omkring 18 000 människor omkom eller försvann.\n\nJapanerna har lärt sig att leva med faran. Höga hus byggs så att de kan svaja utan att gå sönder, och många står på stora kuddar av gummi som tar upp skakningarna. Mobiltelefonerna får ett varningsmeddelande några sekunder innan skakningarna når fram, vilket kan räcka för att ta skydd under ett bord.\n\nI skolorna övar eleverna regelbundet på vad de ska göra. Den 1 september varje år hålls övningar över hela landet. Dagen påminner om en stor jordbävning som förstörde Tokyo år 1923.\n\nOrdet tsunami kommer förresten från japanskan och betyder ungefär hamnvåg. Det är inte så konstigt att världen har lånat just det ordet från Japan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många stora öar består Japan av?",
+        "options": [
+          "Sex",
+          "Tusentals",
+          "Fyra",
+          "Två"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför blir det så många jordbävningar i Japan?",
+        "options": [
+          "De snabba tågen får marken att skaka",
+          "Vulkanen Fuji får ofta utbrott",
+          "Landet har så många höga skyskrapor",
+          "Flera plattor möts under landet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en tsunami?",
+        "options": [
+          "En stor våg från något under havet",
+          "Ett vulkanutbrott på havets botten",
+          "En kraftig storm med mycket regn",
+          "En jordbävning som bara känns på land"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad händer med mobilerna i Japan före en jordbävning?",
+        "options": [
+          "De slutar fungera en timme innan",
+          "De får en varning några sekunder innan",
+          "De visar vägen till närmaste skyddsrum",
+          "De börjar skaka i fickan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför byggs höga hus i Japan så att de kan svaja?",
+        "options": [
+          "Det blir billigare att bygga hus",
+          "Det blir roligare att bo högt upp",
+          "Husen behöver kunna stå emot snö",
+          "Då går de inte lika lätt sönder"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför hålls övningarna just den 1 september?",
+        "options": [
+          "Det är dagen då tsunamin kom år 2011",
+          "Den dagen förstörde en jordbävning Tokyo 1923",
+          "Det är den dag då det skakar oftast",
+          "Den dagen börjar alla skolor i hela Japan"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder ”regelbundet”?",
+        "options": [
+          "Ofta och med jämna mellanrum",
+          "Bara när man själv har lust",
+          "Mycket noggrant",
+          "Bara en gång"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten främst om?",
+        "options": [
+          "Hur man bygger snabba tåg",
+          "Varför det bor så många människor i Japan",
+          "Hur Japan lever med risken för jordbävningar",
+          "Varför vulkanen Fuji är så känd"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
