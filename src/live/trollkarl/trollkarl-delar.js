@@ -18,7 +18,7 @@ export const PIVOT = {
   elbowR: [300, 330],
   body: [200, 520],
   cape: [200, 280],
-  hat: [200, 90],
+  hat: [200, 30],
   wand: [318, 300],
 };
 
@@ -26,7 +26,7 @@ export const PIVOT = {
 export const ANCHOR = {
   wandTip: [352, 182],
   head: [200, 150],
-  hat: [200, 40],
+  hat: [200, -20],
   body: [200, 380],
   feet: [200, 540],
 };
@@ -100,25 +100,27 @@ export function neckSvg(t) {
     <path d="M146 286 Q200 254 254 286 L246 306 Q200 282 154 306 Z" fill="${t.trim}"/>`;
 }
 
-// Hatt – Rasmus: sned och buckling så rufset syns; Elias: ståtligare med band.
-export function hatSvg(t, who) {
-  if (who === "rasmus") {
-    return `<g transform="translate(0 -46) rotate(-10 200 92)">
-      <path d="M118 102 Q200 74 288 104 Q290 118 276 120 Q198 96 128 118 Q114 116 118 102Z" fill="${t.hat}"/>
-      <path d="M142 104 Q150 48 196 14 Q206 8 204 22 Q196 60 236 96 Q196 84 142 104Z" fill="${t.hat}"/>
-      <path d="M196 14 q18 -12 14 6 q-4 14 -14 10 q-8 -6 0 -16Z" fill="${t.hatBand}"/>
-      <path d="M146 96 Q196 78 232 92 l-4 12 Q196 92 150 108 Z" fill="${t.hatBand}" opacity=".9"/>
-      ${stars(t, [[176, 66, 0.9]])}
+// Mantelkrage/halsduk FRAMFÖR ansiktslagret: hög vid sidorna (döljer tröj-
+// rester ur beskärningen), dippar under hakan i mitten så käklinjen syns.
+export function collarSvg(t, who) {
+  if (who === "elias") {
+    // Slätrakad haka + svart skjorta i urklippet: kragen tuckas tätt under hakan.
+    return `<g aria-hidden="true">
+      <path d="M106 304 L114 264 Q200 288 286 264 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+      <path d="M114 264 Q200 288 286 264 L283 275 Q200 300 117 275Z" fill="#00000026"/>
     </g>`;
   }
-  return `<g transform="translate(0 -38) rotate(3 200 92)">
-    <path d="M108 108 Q200 80 292 108 Q296 124 280 126 Q200 102 120 126 Q104 124 108 108Z" fill="${t.hat}"/>
-    <path d="M140 108 Q164 30 200 4 Q236 30 260 108 Q200 86 140 108Z" fill="${t.hat}"/>
-    <path d="M148 98 Q200 80 252 98 l3 12 Q200 92 145 110 Z" fill="${t.hatBand}"/>
-    <path d="M200 4 q10 10 6 22 l-12 0 q-4 -12 6 -22Z" fill="${t.hatBand}"/>
-    ${stars(t, [[200, 56, 1.1], [174, 78, 0.6], [226, 78, 0.6]])}
+  // Rasmus: skägget flödar ner – kragen får sitta lägre och dippa i mitten.
+  return `<g aria-hidden="true">
+    <path d="M106 304 L117 248 Q200 290 283 248 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+    <path d="M117 248 Q200 290 283 248 L280 260 Q200 300 120 260Z" fill="#00000026"/>
   </g>`;
 }
+
+// Hatten är borttagen ur grundfiguren (Elias beslut: håret gör dem mer lika).
+// layer("hat") i figuren är en TOM grupp på hjässan – attacker (HATTUS
+// GIGANTUS, regnmoln m.fl.) kan montera och animera saker där; attack-
+// figurerna ritar egna hattar i attacker/attack-figurer.js.
 
 // Bakre arm (vänster när figuren är vänd åt höger).
 export function armLSvg(t) {
