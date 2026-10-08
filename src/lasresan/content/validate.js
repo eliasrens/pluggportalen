@@ -2,15 +2,17 @@
 // Läsresan – innehållsvalidator (src/lasresan/content/validate.js)
 // ----------------------------------------------------------------------------
 // Kontrollerar texter mot Innehållskontraktet (epic #398/#404):
-//   ReadingText = { id, title, level (1-7), textType ("story"|"fact"), topic,
-//                   body ("stycke\n\nstycke"), questions: Question[] (5-9) }
+//   ReadingText = { id, title, level (1-10), textType ("story"|"fact"), topic,
+//                   body ("stycke\n\nstycke"), questions: Question[] (antal per
+//                   nivå: questionRange – nivå 1: 3–4, 2: 4–5, 3: 5–7, övriga 5–9) }
 //   Question    = { id, question, options: [4 strängar], answerIndex (0-3),
 //                   category ("fakta"|"ordforstaelse"|"mellan_raderna"|"helhet_slutsats") }
 //
 // FEL (texten är oanvändbar, loadern hoppar över den):
 //   saknade fält, fel antal frågor/alternativ, answerIndex utanför 0–3, okänd
-//   kategori/textType, nivå utanför 1–7, dubblett-id (text i banken / fråga i text).
+//   kategori/textType, nivå utanför 1–10, dubblett-id (text i banken / fråga i text).
 // VARNINGAR (texten används ändå): ordantal utanför nivåns riktintervall,
+//   id vars nivå (levelFromId) inte stämmer med `level`,
 //   saknat topic, dubbletter bland alternativen, skev fördelning av rätt svars
 //   position (A–D) per nivå, längdledtråd (rätt svar unikt längst i >45 % eller
 //   <10 % av flervalsfrågorna på en nivå).
@@ -23,6 +25,7 @@ import {
   LEVEL_MAX,
   QUESTIONS_MIN,
   QUESTIONS_MAX,
+  QUESTIONS_BY_LEVEL,
   OPTIONS_PER_QUESTION,
   TEXT_TYPES,
   CATEGORIES,
@@ -41,6 +44,23 @@ export function wordCount(body) {
   return body.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 }
 
+/** Tillåtet antal frågor [min, max] för en nivå (QUESTIONS_BY_LEVEL, annars globalt). */
+export function questionRange(level) {
+  return QUESTIONS_BY_LEVEL[level] || [QUESTIONS_MIN, QUESTIONS_MAX];
+}
+
+/**
+ * Nivån ett text-id hör till enligt id-konventionen, eller null:
+ *   lr-g<N>-…  → nivå N (nya texter på nivå 1–3, epic #516)
+ *   lr-n<N>-…  → nivå N+3 (gamla nivå 1–7 ligger på 4–10; id:t är en stabil
+ *               nyckel i elevdatan och byts aldrig)
+ */
+export function levelFromId(id) {
+  const hit = typeof id === "string" ? /^lr-([gn])(\d+)-/.exec(id) : null;
+  if (!hit) return null;
+  return hit[1] === "g" ? Number(hit[2]) : Number(hit[2]) + 3;
+}
+
 /**
  * Validera EN text.
  * @returns {{errors:string[], warnings:string[]}}
@@ -57,6 +77,10 @@ export function validateText(text) {
     errors.push(`${tag}: level måste vara ett heltal ${LEVEL_MIN}–${LEVEL_MAX}`);
   }
   if (!TEXT_TYPES.includes(text.textType)) errors.push(`${tag}: textType måste vara ${TEXT_TYPES.join("/")}`);
+  const idLevel = levelFromId(text.id);
+  if (idLevel !== null && Number.isInteger(text.level) && idLevel !== text.level) {
+    warnings.push(`${tag}: id:t hör till nivå ${idLevel} men level är ${text.level}`);
+  }
   if (!isStr(text.topic)) warnings.push(`${tag}: topic saknas`);
   if (!isStr(text.body)) errors.push(`${tag}: body saknas`);
 
@@ -73,8 +97,9 @@ export function validateText(text) {
     errors.push(`${tag}: questions saknas`);
     return { errors, warnings };
   }
-  if (qs.length < QUESTIONS_MIN || qs.length > QUESTIONS_MAX) {
-    errors.push(`${tag}: ${qs.length} frågor (ska vara ${QUESTIONS_MIN}–${QUESTIONS_MAX})`);
+  const [qMin, qMax] = questionRange(text.level);
+  if (qs.length < qMin || qs.length > qMax) {
+    errors.push(`${tag}: ${qs.length} frågor (ska vara ${qMin}–${qMax})`);
   }
   const qids = new Set();
   qs.forEach((q, i) => {

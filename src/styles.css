@@ -1798,6 +1798,66 @@ body.larare-lage .container {
 .teacher-dark .lrt-date { white-space: nowrap; color: var(--t-muted); }
 .teacher-dark .lrt-empty { margin: 4px 0; }
 
+/* --- Läsresan-nivåstyrning (issue #506) ------------------------------------
+   teacher-lasresan-niva.js: korten "Ändra klassens startnivå" / "Ändra nivå för
+   hela klassen" ovanför Läsresan-tabellen, bekräftelsedialogen och "Ändra nivå"
+   i elevdetaljen. Prefix lrn-. */
+.teacher-dark .lrn-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin: 6px 0 14px;
+}
+.teacher-dark .lrn-card {
+  padding: 12px 14px;
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+}
+.teacher-dark .lrn-card-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  color: var(--t-text);
+}
+.teacher-dark .lrn-card-title .t-icon { color: var(--t-accent); }
+.teacher-dark .lrn-what { margin: 0 0 8px; color: var(--t-muted); font-size: 0.86rem; line-height: 1.4; }
+.teacher-dark .lrn-what b { color: var(--t-text); font-weight: 600; }
+.teacher-dark .lrn-now { margin: 0 0 8px; font-size: 0.9rem; }
+.teacher-dark .lrn-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.teacher-dark .lrn-row label { color: var(--t-muted); font-size: 0.86rem; font-weight: 600; }
+.teacher-dark .lrn-row select { padding: 6px 10px; font: inherit; font-size: 0.9rem; max-width: 220px; }
+.teacher-dark .lrn-msg:not(:empty) { margin-top: 10px; }
+.teacher-dark .lrn-msg .msg { margin: 0; font-size: 0.88rem; }
+.teacher-dark .lrn-pending-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(242, 201, 76, 0.14);
+  color: #f5d77a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.teacher-dark .lrn-student .lrn-status { margin: 0 0 8px; }
+.teacher-dark .lrt-lvl.lrn-has-pending { background: rgba(242, 201, 76, 0.16); color: #f5d77a; white-space: nowrap; }
+.teacher-dark .lrn-confirm-box { max-width: 480px; }
+.teacher-dark .lrn-confirm-title { margin: 0 0 12px; font-size: 1.15rem; color: var(--t-text); }
+.teacher-dark .lrn-facts { display: grid; gap: 6px; margin: 0 0 12px; }
+.teacher-dark .lrn-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--t-surface-2);
+  border-radius: 9px;
+}
+.teacher-dark .lrn-facts dt { color: var(--t-muted); }
+.teacher-dark .lrn-facts dd { margin: 0; font-weight: 700; color: var(--t-text); }
+.teacher-dark .lrn-confirm-body { margin: 0 0 14px; color: var(--t-muted); font-size: 0.9rem; line-height: 1.45; }
+.teacher-dark .lrn-confirm-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
 /* --- Statistik → Per område (issue #446) ---------------------------------
    Klasstabell per ämne/område (teacher-plugga.js) + djupdykning per kategori
    (teacher-plugga-elev.js). Bygger på lrt-klasserna ovan; prefix pp-. */

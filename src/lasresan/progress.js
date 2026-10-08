@@ -10,7 +10,13 @@
 //     worldId, stepInWorld, completedWorlds[],       ← resan (journey.js)
 //     totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned,
 //     seenTextIds[], catStats{kategori:{q,correct}},
-//     currentTextId, currentStartedAt, lastTextId, updatedAt }
+//     currentTextId, currentStartedAt, lastTextId, updatedAt,
+//     pendingLevel, levelSetAt, levelSetBy }      ← lärarstyrd nivå (#505,
+//                                                   level-control.js)
+// Nivåskalan 1–10 (#519): i MINNET bär level/pendingLevel ny skala och objektet
+// har `levelScale: 10`; LAGRAT ligger ny skala i level10/pendingLevel10 och
+// level/pendingLevel är en spegel i gammal skala (level-scale.js). Bryggorna
+// skriver därför alltid toStoredLasresa(…) – aldrig minnesformen direkt.
 // ============================================================================
 
 import { START_LEVEL } from "./config.js";
@@ -18,16 +24,22 @@ import { applyResult, normalizeLevel, percent } from "./level.js";
 import { completeStep, normalizeProgress } from "./journey.js";
 import { mergeCategoryStats } from "./stats.js";
 import { coinsFor } from "./rewards.js";
+import { applyPendingLevel, effectiveStartLevel, parseTeacherLevel, LEVEL_SET_BY_TEACHER } from "./level-control.js";
+import { LEVEL_SCALE, isScaledLasresa, readStoredLevels } from "./level-scale.js";
 import { WORLDS, firstWorld } from "./worlds/index.js";
 
 const count = (v) => (Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
 const idList = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
 
-/** Ny elev: första världen (Skogen), före steg 1, nivå 3. */
-export function defaultLasresa(registry = WORLDS) {
+/**
+ * Ny elev: första världen (Skogen), före steg 1, på startnivån (klassens
+ * lasresaStartLevel om satt, annars START_LEVEL).
+ */
+export function defaultLasresa(registry = WORLDS, startLevel = START_LEVEL) {
   const w = firstWorld(registry);
   return {
-    level: START_LEVEL,
+    level: effectiveStartLevel(startLevel),
+    levelScale: LEVEL_SCALE,
     highStreak: 0,
     lowStreak: 0,
     worldId: w ? w.id : null,
@@ -44,21 +56,35 @@ export function defaultLasresa(registry = WORLDS) {
     currentStartedAt: null,
     lastTextId: null,
     updatedAt: null,
+    pendingLevel: null,
+    levelSetAt: null,
+    levelSetBy: null,
   };
 }
 
 /**
  * Tvätta ett lagrat lasresa-objekt (eller undefined = ny elev) till en
  * komplett form. Okända extra fält behålls (framåtkompatibelt).
+ * `startLevel` = klassens startnivå (#505): används BARA när objektet saknas
+ * (eleven har inte börjat) eller saknar nivå. En väntande lärarnivå
+ * (pendingLevel) läggs på plats direkt om ingen text är påbörjad.
+ * Lagrad data migreras till skalan 1–10 (#519, level-scale.readStoredLevels:
+ * gammal nivå +3); ett redan normaliserat objekt (`levelScale: 10`) rörs inte.
  */
-export function normalizeLasresa(raw, registry = WORLDS) {
-  if (!raw || typeof raw !== "object") return defaultLasresa(registry);
-  const base = defaultLasresa(registry);
+export function normalizeLasresa(raw, registry = WORLDS, { startLevel = START_LEVEL } = {}) {
+  if (!raw || typeof raw !== "object") return defaultLasresa(registry, startLevel);
+  const base = defaultLasresa(registry, startLevel);
   const journey = normalizeProgress(raw, registry);
-  return {
+  const lv = isScaledLasresa(raw)
+    ? { level: raw.level == null ? null : normalizeLevel(raw.level), pendingLevel: parseTeacherLevel(raw.pendingLevel) }
+    : readStoredLevels(raw);
+  // eslint-disable-next-line no-unused-vars
+  const { level10, pendingLevel10, ...rest } = raw;
+  return applyPendingLevel({
     ...base,
-    ...raw,
-    level: normalizeLevel(raw.level ?? START_LEVEL),
+    ...rest,
+    level: lv.level ?? base.level,
+    levelScale: LEVEL_SCALE,
     highStreak: count(raw.highStreak),
     lowStreak: count(raw.lowStreak),
     ...journey,
@@ -72,7 +98,10 @@ export function normalizeLasresa(raw, registry = WORLDS) {
     currentTextId: typeof raw.currentTextId === "string" ? raw.currentTextId : null,
     currentStartedAt: Number.isFinite(raw.currentStartedAt) ? raw.currentStartedAt : null,
     lastTextId: typeof raw.lastTextId === "string" ? raw.lastTextId : null,
-  };
+    pendingLevel: lv.pendingLevel,
+    levelSetAt: Number.isFinite(raw.levelSetAt) ? raw.levelSetAt : null,
+    levelSetBy: raw.levelSetBy === LEVEL_SET_BY_TEACHER ? LEVEL_SET_BY_TEACHER : null,
+  });
 }
 
 /**
@@ -86,8 +115,10 @@ export function withStartedText(lasresa, textId, now = Date.now(), { force = fal
   if (lasresa.currentTextId && !force) {
     return { lasresa, textId: lasresa.currentTextId, resumed: true };
   }
+  // En väntande lärarnivå gäller från den här texten (den förra är borta).
+  const base = applyPendingLevel({ ...lasresa, currentTextId: null });
   return {
-    lasresa: { ...lasresa, currentTextId: textId, currentStartedAt: now, updatedAt: now },
+    lasresa: { ...base, currentTextId: textId, currentStartedAt: now, updatedAt: now },
     textId,
     resumed: false,
   };
@@ -120,8 +151,9 @@ export function scoreAnswers(text, answers) {
 
 /**
  * Bygg ett lasresaAttempts-dokument för en färdig text.
- * @returns {object} { textId, title, textType, textLevel, startedAt, completedAt,
+ * @returns {object} { textId, title, textType, textLevel, levelScale, startedAt, completedAt,
  *   totalQuestions, correct, incorrect, percentage, earnedMoney, perQuestion[], perCategory{} }
+ *   `levelScale: 10` = textLevel är på skalan 1–10 (gamla försök saknar den, #519).
  */
 export function buildAttempt(text, answers, { startedAt = null, completedAt = Date.now(), studentId = null } = {}) {
   const s = scoreAnswers(text, answers);
@@ -130,6 +162,7 @@ export function buildAttempt(text, answers, { startedAt = null, completedAt = Da
     title: text.title || text.id,
     textType: text.textType || null,
     textLevel: text.level,
+    levelScale: LEVEL_SCALE,
     startedAt: Number.isFinite(startedAt) ? startedAt : null,
     completedAt,
     totalQuestions: s.total,
@@ -147,6 +180,8 @@ export function buildAttempt(text, answers, { startedAt = null, completedAt = Da
 /**
  * Applicera ett färdigt försök på elevens lasresa: nivå (dold), ett steg
  * framåt, totaler, sedda texter, kategoristatistik. Rör inget annat.
+ * Har läraren satt en nivå medan texten var påbörjad (pendingLevel) räknas
+ * resultatet som vanligt, men nästa text hämtas från lärarens nivå (streaks 0).
  * @returns {{
  *   lasresa: object,          // nytt tillstånd att spara
  *   levelChanged: boolean,    // ALDRIG visas för eleven
@@ -178,5 +213,6 @@ export function applyCompletion(lasresa, attempt, registry = WORLDS, now = Date.
     lastTextId: attempt.textId,
     updatedAt: now,
   };
-  return { lasresa: next, levelChanged: lvl.changed, journey };
+  const out = applyPendingLevel(next);
+  return { lasresa: out, levelChanged: out.level !== cur.level, journey };
 }

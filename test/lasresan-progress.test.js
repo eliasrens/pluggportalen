@@ -13,7 +13,7 @@ import {
 import { coinsFor, award } from "../src/lasresan/rewards.js";
 
 /** Text med n frågor (alla rätt svar = index 2, kategorier roterar). */
-function makeText(id, n, level = 3) {
+function makeText(id, n, level = 4) {
   const cats = ["fakta", "ordforstaelse", "mellan_raderna", "helhet_slutsats"];
   return {
     id, title: `Text ${id}`, level, textType: "story", topic: "test", body: "x",
@@ -33,11 +33,11 @@ function finish(lasresa, text, correct) {
   return { attempt, ...applyCompletion(started, attempt, undefined, 2000) };
 }
 
-test("Test 1: ny elev (inget lasresa-fält) → Skogen, före steg 1, nivå 3", () => {
+test("Test 1: ny elev (inget lasresa-fält) → Skogen, före steg 1, nivå 4", () => {
   const l = normalizeLasresa(undefined);
   assert.equal(l.worldId, "skogen");
   assert.equal(l.stepInWorld, 0);
-  assert.equal(l.level, 3);
+  assert.equal(l.level, 4);
   assert.deepEqual(l, defaultLasresa());
 });
 
@@ -56,7 +56,7 @@ test("Test 2: 6 rätt av 8 → 75 %, 18 kr, registrerad, highStreak 1, +1 steg",
   assert.equal(lasresa.lastTextId, "t1");
   assert.equal(lasresa.currentTextId, null);
   assert.equal(lasresa.highStreak, 1);
-  assert.equal(lasresa.level, 3);
+  assert.equal(lasresa.level, 4);
   assert.equal(levelChanged, false);
   assert.equal(lasresa.stepInWorld, 1);
   assert.deepEqual(journey.walk, { worldId: "skogen", fromStep: 0, toStep: 1 });
@@ -66,13 +66,13 @@ test("Test 2: 6 rätt av 8 → 75 %, 18 kr, registrerad, highStreak 1, +1 steg",
   );
 });
 
-test("Test 3 hela vägen: 75/80/71 % → nivå 4, tre steg framåt", () => {
+test("Test 3 hela vägen: 75/80/71 % → nivå 5, tre steg framåt", () => {
   let l = defaultLasresa();
   let changed;
   for (const [id, n, c] of [["a", 8, 6], ["b", 5, 4], ["c", 7, 5]]) {
     ({ lasresa: l, levelChanged: changed } = finish(l, makeText(id, n), c));
   }
-  assert.equal(l.level, 4);
+  assert.equal(l.level, 5);
   assert.equal(changed, true);
   assert.equal(l.stepInWorld, 3);
 });
@@ -136,7 +136,7 @@ test("catStats och seenTextIds ackumuleras, samma text räknas inte dubbelt i se
 
 test("normalizeLasresa tvättar trasig data och behåller okända fält", () => {
   const l = normalizeLasresa({ level: 42, highStreak: -3, seenTextIds: ["a", "a", 5], extra: "kvar" });
-  assert.equal(l.level, 7);
+  assert.equal(l.level, 10);
   assert.equal(l.highStreak, 0);
   assert.deepEqual(l.seenTextIds, ["a"]);
   assert.equal(l.extra, "kvar");
