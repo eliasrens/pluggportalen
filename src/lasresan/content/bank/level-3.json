@@ -1138,5 +1138,569 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n3-kodlaset",
+    "title": "Resväskan på vinden",
+    "level": 3,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Agnes och hennes kusin Elvira letade efter gamla kläder till en maskerad när de hittade en brun resväska längst in på mormors vind. Väskan hade ett lås med tre små hjul med siffror.\n\n”Den var morfars”, sa mormor. ”Men koden har jag aldrig vetat.”\n\nAgnes provade 1-2-3. Ingenting hände. Hon tänkte på morfars födelseår, men det hade ju fyra siffror och låset bara tre.\n\nDå hittade Elvira ett gammalt fotografi som satt fast under väskans handtag. Det visade en ung man framför ett hus. Över dörren stod siffrorna 417.\n\n”Det måste vara huset där morfar bodde när han var ung”, sa Agnes. Hon vred hjulen till 4, 1 och 7.\n\nKlick! Locket gled upp.\n\nInuti låg ett tjockt paket brev med ett snöre runt. Alla var skrivna till morfar, och alla var undertecknade med samma namn: Astrid.\n\nMormor tog upp det översta brevet och började le.\n\n”Astrid”, sa hon tyst. ”Det var jag som skrev dem. Innan vi gifte oss bodde vi i olika städer.”\n\nDen kvällen satt de alla tre i soffan medan mormor läste högt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många sifferhjul hade låset?",
+        "options": [
+          "Två",
+          "Fyra",
+          "Fem",
+          "Tre"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken kod öppnade låset?",
+        "options": [
+          "417",
+          "123",
+          "714",
+          "471"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Breven var ”undertecknade” med samma namn. Vad betyder det?",
+        "options": [
+          "Namnet stod på kuvertets framsida",
+          "Namnet var understruket med rött",
+          "Namnet stod skrivet sist i breven",
+          "Namnet var hemligt och överstruket"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Väskan låg på mormors ”vind”. Vad är en vind?",
+        "options": [
+          "Ett rum långt nere i källaren",
+          "Ett skjul ute i trädgården",
+          "Ett utrymme högst upp under taket",
+          "Ett stort skåp i hallen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kunde inte morfars födelseår vara koden?",
+        "options": [
+          "Det hade fyra siffror, men låset bara tre",
+          "Agnes kom inte ihåg vilket år morfar föddes",
+          "Låset var trasigt och satt fast",
+          "Mormor hade bytt koden för länge sedan"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vem var Astrid?",
+        "options": [
+          "Morfars syster",
+          "Mormor",
+          "Agnes mamma",
+          "En granne till morfar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad blev breven till slut för familjen?",
+        "options": [
+          "En hemlighet som mormor ville gömma",
+          "Kläder till flickornas maskerad",
+          "Ett bevis på att morfar hade ljugit",
+          "Ett fint minne att dela"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-daggen",
+    "title": "Den blöta rutschkanan",
+    "level": 3,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Varje morgon på väg till skolan gick Nova genom lekparken. Och varje morgon var rutschkanan blöt, fast det inte hade regnat på flera dagar.\n\n”Någon häller vatten på den”, sa hennes lillebror Gustav. ”För att retas.”\n\nNova bestämde sig för att ta reda på sanningen. En kväll ställde hon en tom plastburk upp och ner på rutschkanan. Om någon hällde vatten skulle det hamna runt burken, men inte under den.\n\nNästa morgon lyfte hon på burken. Rutschkanan var blöt runt omkring. Men på insidan av burken satt också små droppar. Där kunde ingen ha hällt vatten.\n\nNova berättade om experimentet för sin lärare Peter.\n\n”Det låter som dagg”, sa han. ”På natten blir luften och metallen kall. I luften finns vatten som man inte kan se. När luften kyls ner blir vattnet till små droppar på kalla ytor.”\n\n”Som när man andas på en kall fönsterruta?” frågade Nova.\n\n”Precis!”\n\nPå eftermiddagen förklarade Nova allt för Gustav. Han såg nästan besviken ut.\n\n”Så det finns ingen bov?” frågade han.\n\n”Jo”, sa Nova. ”Natten.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad ställde Nova på rutschkanan en kväll?",
+        "options": [
+          "En gammal handduk",
+          "En tom plastburk",
+          "En tom glasflaska",
+          "Ett papper med en lapp"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var hittade Nova droppar som ingen kunde ha hällt dit?",
+        "options": [
+          "På insidan av burken",
+          "Under rutschkanan",
+          "I sandlådan bredvid",
+          "På gungornas sitsar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ”dagg”?",
+        "options": [
+          "Regn som faller mitt i natten",
+          "Vatten som någon har hällt ut",
+          "Is som smälter när solen går upp",
+          "Droppar som bildas ur kall luft"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "”Så det finns ingen bov?” Vad är en bov?",
+        "options": [
+          "En polis som jagar skurkar",
+          "En vän som hjälper till",
+          "En skurk som gör något dumt",
+          "Ett vittne som såg allt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ställde Nova burken upp och ner?",
+        "options": [
+          "För att fånga en insekt under den",
+          "Så att ingen kunde hälla vatten under den",
+          "För att Gustav skulle hitta den",
+          "För att burken skulle hinna torka till morgonen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför såg Gustav nästan besviken ut?",
+        "options": [
+          "Han ville också göra ett experiment",
+          "Han tyckte inte om att åka rutschkana",
+          "Nova hade glömt att ta med honom",
+          "Han hade hoppats på en spännande skurk"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar Nova med att boven är ”natten”?",
+        "options": [
+          "Någon häller vatten när det är mörkt",
+          "Det regnar alltid på natten",
+          "Nattens kyla gör kanan blöt",
+          "Gustav smyger ut när alla sover"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-teckningarna",
+    "title": "Konstnären på tavlan",
+    "level": 3,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Det började en måndag. När klass 4C kom in i klassrummet satt en liten teckning på whiteboardtavlan: en katt med glasögon som läste en bok.\n\n”Vem har ritat den?” frågade läraren Barbro. Ingen svarade.\n\nNästa dag var det en hund på skateboard. Dagen därpå en snögubbe som åt glass. Alla pratade om den hemliga konstnären.\n\nSigne bestämde sig för att lösa gåtan. Hon märkte att teckningarna alltid var gjorda med grön penna, fast klassrummets pennor var svarta och blå. Hon märkte också att Ilyas alltid satt i sin bänk när de andra kom in. Hans mamma jobbade tidigt och lämnade honom vid skolan när den öppnade.\n\nEn morgon cyklade Signe till skolan en halvtimme tidigare än vanligt. Genom fönstret såg hon Ilyas stå vid tavlan med en grön penna i handen.\n\nNär han fick syn på henne ryckte han till. ”Säg inget”, bad han. ”Det är roligare om ingen vet.”\n\nSigne funderade. Sedan log hon. ”Okej. Men i morgon vill jag ha en giraff.”\n\nNästa morgon fanns en giraff med halsduk på tavlan, och Signe var den enda som inte såg förvånad ut.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg hade pennan som teckningarna gjordes med?",
+        "options": [
+          "Grön",
+          "Svart",
+          "Blå",
+          "Röd"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad föreställde den allra första teckningen?",
+        "options": [
+          "En hund på skateboard",
+          "En snögubbe som åt glass",
+          "En katt med glasögon",
+          "En giraff med halsduk"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ilyas ”ryckte till”. Vad betyder det?",
+        "options": [
+          "Han spratt till av förvåning",
+          "Han ryckte pennan ur hennes hand",
+          "Han började springa iväg",
+          "Han somnade vid bänken"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Signe ville lösa ”gåtan”. Vad betyder gåta här?",
+        "options": [
+          "En svår räkneuppgift i boken",
+          "Något som man inte vet svaret på",
+          "En lek som man leker på rasten",
+          "En teckning som någon har gjort"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kunde Ilyas rita utan att någon såg honom?",
+        "options": [
+          "Han ritade under lektionerna",
+          "Han smög in på lunchrasten",
+          "Barbro hjälpte honom att gömma sig",
+          "Han kom till skolan före de andra"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var Signe den enda som inte såg förvånad ut?",
+        "options": [
+          "Hon tyckte inte om giraffer",
+          "Hon hade inte sett teckningen",
+          "Hon visste vem som ritade",
+          "Hon kom för sent den dagen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad bestämmer Signe till slut?",
+        "options": [
+          "Att berätta för hela klassen vem konstnären är",
+          "Att dela hemligheten med Ilyas",
+          "Att själv börja rita på tavlan",
+          "Att sluta prata med Ilyas"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-papegojan",
+    "title": "Papegojan som lyssnade",
+    "level": 3,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Grannen Bo skulle resa bort, och Linneas familj lovade att ta hand om hans papegoja Kapten. Kapten var grön med röda fjädrar på huvudet och kunde härma nästan allt han hörde.\n\nFörsta dagen sa han ”Hej hej!” och ”Kaffe?” med Bos djupa röst. Linnea skrattade så att hon fick hicka.\n\nSedan började han lära sig nya saker. När telefonen ringde härmade han signalen så bra att pappa sprang och svarade tre gånger i onödan. Och när storebror Ludvig suckade ”Åh nej, nu kommer moster Gun och pratar i flera timmar” lyssnade Kapten noga.\n\nPå lördagen kom moster Gun på middag. Hon hade fin klänning och en tårta med sig. Alla satte sig vid bordet.\n\n”Vad mysigt det är här”, sa moster Gun.\n\nDå hördes en välkänd suck från buren. ”Åh nej”, sa Kapten med Ludvigs röst. ”Nu kommer moster Gun och pratar i flera timmar!”\n\nDet blev knäpptyst. Ludvig blev röd som en tomat.\n\nMen moster Gun skrattade så att tårarna rann. ”Då får jag väl prata extra länge”, sa hon och blinkade åt Ludvig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg hade Kaptens fjädrar på huvudet?",
+        "options": [
+          "Röd",
+          "Grön",
+          "Gul",
+          "Blå"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade moster Gun med sig till middagen?",
+        "options": [
+          "En blombukett",
+          "En flaska saft",
+          "En present till Ludvig",
+          "En tårta"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Kapten kunde ”härma”. Vad betyder det?",
+        "options": [
+          "Göra likadant som någon annan",
+          "Flyga långa sträckor utan att vila",
+          "Sjunga vackra sånger",
+          "Prata ett annat språk"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Det blev ”knäpptyst”. Vad betyder det?",
+        "options": [
+          "Lite lugnare",
+          "Ganska stökigt",
+          "Väldigt mörkt",
+          "Helt tyst"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sprang pappa till telefonen i onödan?",
+        "options": [
+          "Telefonen var trasig",
+          "Kapten härmade signalen",
+          "Han väntade på samtal från Bo",
+          "Ludvig lurade honom"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blev Ludvig röd som en tomat?",
+        "options": [
+          "Han hade ätit för mycket tårta",
+          "Det var väldigt varmt i rummet",
+          "Han skämdes över det han hade sagt",
+          "Han var arg på moster Gun"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur slutar middagen?",
+        "options": [
+          "Ludvig får gå till sitt rum",
+          "Bo kommer hem och hämtar Kapten",
+          "Moster Gun blir sur och går hem tidigt",
+          "Moster Gun tar det med humor"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-mormors-meddelanden",
+    "title": "Mormor och de små bilderna",
+    "level": 3,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Mormor hade fått sin första smarta telefon, och Lovisa hade lovat att lära henne att skicka meddelanden.\n\n”Du skriver här”, förklarade Lovisa. ”Och om du vill kan du lägga till små bilder. De heter emojier.”\n\nMormor blev genast förtjust i de små bilderna. Redan samma kväll plingade Lovisas telefon. ”God natt, älskade barnbarn!” stod det, och efter orden kom en raket, en bläckfisk och tre gubbar som grät av skratt.\n\nLovisa fnissade. Nästa morgon kom ett nytt meddelande: ”Det regnar här.” Efter orden kom en gubbe som grät av skratt igen.\n\n”Varför skrattar du åt regnet?” skrev Lovisa.\n\n”Skrattar? Den lilla gubben gråter ju för att det är så ruskigt väder!” svarade mormor.\n\nDå förstod Lovisa. Mormor såg inte att gubben skrattade. Hon trodde att alla tårar betydde att man var ledsen.\n\nPå söndagen åkte Lovisa till mormor och gick igenom alla emojier med henne, en i taget. De skrattade så mycket att de själva fick tårar i ögonen.\n\nPå kvällen kom ett nytt meddelande: ”Tack för i dag!” Efter orden kom ett hjärta. Bara ett. Och det var precis rätt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad skrev mormor i meddelandet på morgonen?",
+        "options": [
+          "God natt, älskade barnbarn",
+          "Det regnar här",
+          "Tack för i dag",
+          "Kom och hälsa på mig"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken bild skickade mormor i sitt sista meddelande?",
+        "options": [
+          "En raket",
+          "En bläckfisk",
+          "Ett hjärta",
+          "En skrattande gubbe"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Mormor blev ”förtjust” i bilderna. Vad betyder det?",
+        "options": [
+          "Hon tyckte mycket om dem",
+          "Hon blev rädd för dem",
+          "Hon blev trött på dem",
+          "Hon tyckte att de var fula"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Det var ”ruskigt väder”. Hur var vädret?",
+        "options": [
+          "Kallt, blött och otrevligt",
+          "Varmt och soligt hela dagen",
+          "Lugnt och stilla",
+          "Torrt och blåsigt"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skickade mormor en skrattande gubbe när det regnade?",
+        "options": [
+          "Hon tyckte att regnet var roligt",
+          "Hon tryckte fel med fingret",
+          "Hon trodde att den var ledsen",
+          "Hon ville skämta lite med Lovisa"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var det enda hjärtat ”precis rätt”?",
+        "options": [
+          "Telefonen kunde bara skicka en bild",
+          "Nu använde mormor bilden rätt",
+          "Lovisa ville inte ha fler meddelanden",
+          "Mormor hade glömt bort de andra bilderna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man köper en ny smart telefon",
+          "Varför det alltid regnar så mycket där mormor bor",
+          "Hur Lovisa lär sig baka bullar hos mormor",
+          "Ett missförstånd som Lovisa och mormor löser"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-handslaget",
+    "title": "Det hemliga handslaget",
+    "level": 3,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Stella och Molly hade varit bästa vänner sedan förskolan. De satt bredvid varandra, gick hem samma väg och hade ett hemligt handslag som ingen annan kunde.\n\nMen i höstas hade Molly börjat spela handboll. Där träffade hon Wilda, och plötsligt pratade Molly bara om Wilda. Wilda kunde skjuta hårdare än alla. Wilda hade en hund som kunde sitta på kommando.\n\nEn dag på rasten kom Molly gående arm i arm med Wilda. Stella kände ett stygn i magen. Hon vände sig om och gick åt andra hållet.\n\nHela eftermiddagen var hon tyst. När Molly frågade vad som hänt svarade hon bara: ”Ingenting.”\n\nPå kvällen pratade Stella med pappa. ”Det känns som att Molly byter ut mig”, sa hon.\n\n”Kan man inte ha mer än en vän?” frågade pappa. ”Du har ju både mig och mamma.”\n\nNästa dag gick Stella fram till dem. ”Vill du lära dig vårt hemliga handslag?” frågade hon Wilda och sneglade på Molly.\n\nMolly sken upp. Snart stod alla tre och skakade hand, klappade och knäppte med fingrarna. Det tog en hel rast att lära Wilda, men ingen av dem tyckte att det var långtråkigt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var hade Molly träffat Wilda?",
+        "options": [
+          "I skolans matsal",
+          "På förskolan",
+          "På handbollen",
+          "Hos en granne"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad kunde Wildas hund göra?",
+        "options": [
+          "Sitta på kommando",
+          "Hämta en boll",
+          "Dansa på bakbenen",
+          "Öppna dörrar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Stella kände ett ”stygn i magen”. Vad betyder det här?",
+        "options": [
+          "Hon hade ätit för fort",
+          "Hon blev ledsen och sårad",
+          "Hon var hungrig efter maten",
+          "Hon hade sprungit för mycket"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Stella ”sneglade” på Molly. Vad betyder det?",
+        "options": [
+          "Hon stirrade argt länge",
+          "Hon vinkade glatt",
+          "Hon blinkade med båda ögonen",
+          "Hon tittade snabbt åt sidan"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför svarade Stella ”Ingenting” när Molly frågade?",
+        "options": [
+          "Hon ville inte visa att hon var ledsen",
+          "Det hade inte hänt något alls",
+          "Hon hörde inte riktigt vad Molly frågade om",
+          "Hon var arg på sin pappa"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad ville pappa få Stella att förstå?",
+        "options": [
+          "Att Molly inte var en bra vän",
+          "Att man kan ha flera vänner samtidigt",
+          "Att hon borde börja spela handboll",
+          "Att hon skulle leka mer med sina föräldrar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur löser Stella problemet till slut?",
+        "options": [
+          "Hon börjar också spela handboll",
+          "Hon skaffar en ny bästa vän",
+          "Hon ber pappa prata med Molly",
+          "Hon delar något fint med Wilda"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
