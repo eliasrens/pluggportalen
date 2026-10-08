@@ -19,7 +19,7 @@
 // emulator (test/data-cache.test.js).
 // ============================================================================
 
-import { xpFromStudentData, progressTotals } from "./leveling.js";
+import { xpFromStudentData, progressTotals, playsTotal } from "./leveling.js";
 
 // ---------------------------------------------------------------------------
 // Generisk TTL-session-cache (#274)
@@ -99,6 +99,7 @@ export function projectionEntryFrom(student = {}, sd = {}) {
     stars,
     xp: xpFromStudentData(d),
     completed,
+    plays: playsTotal(d.progress), // #498: Klasscentrets "lösta uppgifter"
     husLast: d.husLast === true,
   };
 }

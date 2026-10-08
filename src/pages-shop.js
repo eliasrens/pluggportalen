@@ -39,6 +39,10 @@ const BAKSIDAN_SEKTIONER = [
   { id: "lada", rubrik: "🛖 Lada-typer", match: (it) => !!it.barnSkin },
 ];
 
+// "🏛️ Klasscentrum"-fliken (#488): klassens crowdfunding. ALLT UI bor i den
+// dynamiska klasscenter/kc-shop-vy.js (#271) – här bara flik + import() + stopp.
+const KC_TAB = { id: "klasscentrum", name: "Klasscentrum", emoji: "🏛️" };
+
 /** Hör saken hemma i Baksidan-fliken (och ska bort ur sin vanliga flik)? */
 function isBaksidanItem(it) {
   return BAKSIDAN_SEKTIONER.some((s) => s.match(it));
@@ -70,7 +74,7 @@ export async function pageElevShop() {
     // Vanliga djur (roomAnimals) resp. bondgårdsdjur (#330, farm.animals) tillåter
     // flera exemplar per art → vi räknar antal per art.
     animalCounts: countAnimalsByArt(animalsFromData(sd)),
-    farmAnimalCounts: countFarmAnimalsByArt(data.farmFromData(sd).animals),
+    farmAnimalCounts: countAnimalsByArt(data.farmFromData(sd).animals),
     // Gårds-uppgraderingarnas nivåer (#333): sparade fält i farm (aldrig
     // ownedItems) – korten härleder "Köpt"/"🔒 nästa nivå" härifrån.
     farmLevels: farmLevelsFrom(data.farmFromData(sd)),
@@ -88,6 +92,7 @@ export async function pageElevShop() {
   const tabCats = [];
   for (const cat of CATEGORIES) {
     if (cat.id === "tradgard") tabCats.push(BAKSIDAN_TAB);
+    if (cat.id === "mystery") tabCats.push(KC_TAB);
     if (itemsInTab(cat.id).length > 0) tabCats.push(cat);
   }
 
@@ -99,11 +104,13 @@ export async function pageElevShop() {
   // sektionen finns & har varor) avgörs i renderKatalog mot de icke-tomma
   // sektionerna. Default: första sub-fliken med varor.
   let activeBaksidan = readLS(ACTIVE_BAKSIDAN_KEY);
+  let kcStopp = null; // Klasscentrum-flikens realtidsprenumeration (#488)
 
   // Rita flikraden + den aktiva kategorins varor. Anropas om vid varje köp så
   // knapparnas läge ("köp" / "har inte råd" / "köpt") alltid stämmer med saldot,
   // och vid flikbyte (ingen sidladdning – bara listan byts).
   function renderKatalog() {
+    if (kcStopp) kcStopp = void kcStopp();
     const cat = tabCats.find((c) => c.id === activeCat) || tabCats[0];
     if (!cat) {
       katalog.replaceChildren(el(`<p class="hint">Shoppen är tom just nu.</p>`));
@@ -147,6 +154,8 @@ export async function pageElevShop() {
       const cards = aktiv ? aktiv.items.map((it) => shopCardHtml(it, state)).join("") : "";
       varor = `<div class="shop-subtabs" role="tablist">${subtabs}</div>
         <div class="shop-grid">${cards}</div>`;
+    } else if (cat.id === KC_TAB.id) {
+      varor = `<div class="kc-shop"></div>`;
     } else {
       const cards = itemsInTab(cat.id).map((it) => shopCardHtml(it, state)).join("");
       varor = `<div class="shop-grid">${cards}</div>`;
@@ -162,6 +171,11 @@ export async function pageElevShop() {
         </section>
       </div>`)
     );
+    const kcYta = katalog.querySelector(".kc-shop");
+    if (kcYta) import("./klasscenter/kc-shop-vy.js").then((m) => {
+      if (kcYta.isConnected) kcStopp = m.mountKcShop(kcYta, { coins: state.coins, flash,
+        onCoins: (c) => { state.coins = c; renderTopbar(); } });
+    }).catch((err) => pageError("Kunde inte ladda Klasscentrum", err));
   }
 
   renderKatalog();
@@ -246,7 +260,7 @@ export async function pageElevShop() {
       if (res.counts) state.ownedCounts = { ...res.counts };
       if (res.animals) state.animalCounts = countAnimalsByArt(res.animals);
       if (res.farm) {
-        state.farmAnimalCounts = countFarmAnimalsByArt(res.farm.animals);
+        state.farmAnimalCounts = countAnimalsByArt(res.farm.animals);
         state.farmLevels = farmLevelsFrom(res.farm);
       }
       if (typeof res.appleCount === "number") state.appleCount = res.appleCount;
@@ -318,28 +332,16 @@ function readSavedCat(tabCats) {
   return null;
 }
 
-/** Antal vanliga djur per art ur en animalsFromData-lista: { [art]: n }. */
+/** Antal djur per art ur animalsFromData / farm.animals (#330): { [art]: n }. */
 function countAnimalsByArt(animals) {
   const counts = {};
   for (const a of animals || []) counts[a.id] = (counts[a.id] || 0) + 1;
   return counts;
 }
 
-/** Antal bondgårdsdjur per art ur farm.animals (#330) – samma form som ovan. */
-function countFarmAnimalsByArt(animals) {
-  return countAnimalsByArt(animals);
-}
-
 /** Gårds-nivåerna ur ett farm-objekt (#333): { garden, barn }. */
 function farmLevelsFrom(farm) {
   return { garden: farm.gardenTier, barn: farm.barnLevel };
-}
-
-/** Hur många exemplar eleven äger av en multi-sak (möbler/dekor) i shop-state. */
-function multiCount(id, state) {
-  const counts = state.ownedCounts || {};
-  if (Object.prototype.hasOwnProperty.call(counts, id)) return Math.max(0, Math.round(counts[id] || 0));
-  return state.owned.has(id) ? 1 : 0;
 }
 
 /** HTML för ett shop-kort, med rätt knappläge utifrån ägande/saldo. */
@@ -385,7 +387,7 @@ function shopCardHtml(it, state) {
   if (consumable) have = state.appleCount;
   else if (animal) have = state.animalCounts[it.id] || 0;
   else if (farmAnimal) have = state.farmAnimalCounts[it.id] || 0;
-  else if (multi) have = multiCount(it.id, state);
+  else if (multi) have = data.ownedCount({ ownedCounts: state.ownedCounts, ownedItems: [...state.owned] }, it.id);
   const antal = rebuyable && !box ? `<div class="shop-antal">Du har: ${have} st</div>` : "";
   return `<div class="shop-card${owned ? " is-owned" : ""}">
     <div class="shop-emoji">${bild}</div>

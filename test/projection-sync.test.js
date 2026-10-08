@@ -43,15 +43,15 @@ test("awardProjectionPatch härleder stars/xp/completed EXAKT som projectionEntr
     const entry = projectionEntryFrom({}, sd);
     assert.deepEqual(
       patch,
-      { stars: entry.stars, xp: entry.xp, completed: entry.completed },
+      { stars: entry.stars, xp: entry.xp, completed: entry.completed, plays: entry.plays },
       `patch matchar entryn för ${JSON.stringify(sd)}`
     );
   }
 });
 
 test("awardProjectionPatch tål saknad/ogiltig studentData", () => {
-  assert.deepEqual(awardProjectionPatch(), { stars: 0, xp: 0, completed: 0 });
-  assert.deepEqual(awardProjectionPatch(null), { stars: 0, xp: 0, completed: 0 });
+  assert.deepEqual(awardProjectionPatch(), { stars: 0, xp: 0, completed: 0, plays: 0 });
+  assert.deepEqual(awardProjectionPatch(null), { stars: 0, xp: 0, completed: 0, plays: 0 });
 });
 
 // --- mirrorStudentProjection: rätt patch vidare, aldrig kastande -------------

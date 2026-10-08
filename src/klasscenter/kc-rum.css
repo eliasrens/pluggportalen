@@ -1,0 +1,231 @@
+/* ============================================================================
+   Klasscentrets rum – "City Hall" (#490). Laddas DYNAMISKT av kc-rum-vy.js
+   (ingen ny fil i bootgrafen, #271). Lagret är en vanlig .varld-lager
+   .room-stage (cqw-skalning, drag-CSS för .room-item ärvs från styles.css);
+   UI:t (.kc-rum-ui) är en egen .varld-ui som bara syns på nivån "kcrum".
+   ============================================================================ */
+
+/* Husvärldens egen overlay göms medan rummet är öppet – och tvärtom. */
+.varld-stage[data-niva="kcrum"] > .varld-ui:not(.kc-rum-ui) { display: none; }
+.varld-stage:not([data-niva="kcrum"]) > .kc-rum-ui { display: none; }
+
+.kc-rum-lager { background: #d6a06a; }
+.kc-hall-bg svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Läsläge (gäst/bockad elev): sakerna går att hovra men inte dra. */
+.kc-rum-lager.inredning-las .room-item { cursor: default; }
+
+.kc-rum-lager .room-empty {
+  top: 34%;
+  width: auto;
+  max-width: 80%;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2.5px solid #3b3350;
+  color: #3b3350;
+}
+
+.kc-rum-titel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.25;
+}
+.kc-rum-titel small {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #5b5470;
+}
+.kc-rum-titel small:empty { display: none; }
+
+.kc-rum-verktyg {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.kc-spara:disabled {
+  opacity: 0.55;
+  cursor: default;
+  transform: none;
+}
+.kc-spara.kc-osparat {
+  background: #ffe58f;
+  border-color: #b07a00;
+}
+
+.kc-rum-status {
+  pointer-events: auto;
+  align-self: center;
+  margin-top: 8px;
+  max-width: min(640px, 100%);
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2.5px solid #3b3350;
+  border-radius: 18px;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.18);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #3b3350;
+  text-align: center;
+}
+.kc-lank {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 800;
+  color: var(--lila, #7c5cd6);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.kc-historik {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kc-historik-rad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 12px;
+  background: #f6f3fb;
+}
+.kc-historik-rad.aktuell { background: #efe7ff; outline: 2px solid var(--lila, #7c5cd6); }
+.kc-historik-info { display: flex; flex-direction: column; }
+.kc-historik-info span { font-size: 0.85rem; color: #5b5470; }
+.kc-historik-nu { font-weight: 800; font-size: 0.85rem; color: var(--lila, #7c5cd6); padding-right: 6px; }
+.kc-historik-btn { padding: 4px 12px; font-size: 13px; }
+
+/* Pokaler (#497): fast hylla i bakgrunden (aldrig dragbar, klick går igenom
+   till scenen) + hover-/tryck-rutan i UI-lagret (stör aldrig drag). */
+.kc-pokalhylla {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.kc-pokalhylla > svg { display: block; width: 100%; height: 100%; }
+.kc-rum-lager .room-item[data-id^="pokal-"] { filter: drop-shadow(0 3px 2px rgba(59, 51, 80, 0.25)); }
+
+.kc-pokal-tips {
+  position: absolute;
+  z-index: 2;
+  transform: translateX(-50%);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: min(17rem, 80vw);
+  padding: 8px 14px 9px;
+  background: #fffaf0;
+  border: 2.5px solid #3b3350;
+  border-radius: 16px;
+  box-shadow: 3px 3px 0 rgba(59, 51, 80, 0.2);
+  color: #3b3350;
+  text-align: center;
+  line-height: 1.3;
+  animation: kc-pokal-tips-in 0.14s ease-out;
+}
+.kc-pokal-tips[hidden] { display: none; }
+.kc-pokal-tips::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 14px;
+  height: 14px;
+  background: inherit;
+  border: inherit;
+  border-width: 0 2.5px 2.5px 0;
+  border-radius: 0 0 4px 0;
+  transform: translateX(-50%) rotate(45deg);
+}
+.kc-pokal-tips.under::after {
+  bottom: auto;
+  top: -9px;
+  border-width: 2.5px 0 0 2.5px;
+  border-radius: 4px 0 0 0;
+}
+.kc-pokal-tips-rubrik { font-size: 1rem; font-weight: 800; color: #8a5a00; }
+.kc-pokal-tips-text { font-size: 0.88rem; font-weight: 600; }
+.kc-pokal-tips-fot { margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: #6b6380; }
+@keyframes kc-pokal-tips-in {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kc-pokal-tips { animation: none; }
+}
+
+@media (max-width: 700px) {
+  .kc-rum-verktyg .varld-knapp span { display: none; }
+  .kc-rum-status { font-size: 0.82rem; }
+}
+
+/* Statistiktavlan (#498): FAST möbel i bakgrunden (aldrig dragbar) men
+   klickbar – en <button> som öppnar panelen "Klassens statistik".
+   #501 O3: över de placerade sakerna (de har ingen z-index) så en möbel aldrig
+   täcker knappen – men under saken som dras (--z-scen-drag). */
+.kc-statistiktavla {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 14px;
+  font: inherit;
+  filter: drop-shadow(0 3px 2px rgba(59, 51, 80, 0.25));
+  transition: transform 0.15s ease-out;
+}
+.kc-statistiktavla > svg { display: block; width: 100%; height: 100%; }
+.kc-statistiktavla:hover { transform: translate(-50%, -50%) scale(1.04); }
+.kc-statistiktavla:focus-visible { outline: 3px solid var(--lila, #7c5cd6); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .kc-statistiktavla { transition: none; }
+  .kc-statistiktavla:hover { transform: translate(-50%, -50%); }
+}
+
+.kc-stat-rutor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.kc-stat-ruta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: #f6f3fb;
+  text-align: center;
+}
+.kc-stat-ikon { font-size: 1.4rem; line-height: 1; }
+.kc-stat-ruta b { font-size: 1.6rem; font-weight: 900; color: #3b3350; }
+.kc-stat-ruta span:last-child { font-size: 0.85rem; font-weight: 700; color: #5b5470; }
+.kc-stat-niva { padding: 10px 12px; border-radius: 14px; background: #fff7de; }
+.kc-stat-niva-rad { font-weight: 800; color: #6b4a00; }
+.kc-stat-stapel {
+  height: 14px;
+  margin: 8px 0 4px;
+  border-radius: 7px;
+  background: #ece6f5;
+  overflow: hidden;
+}
+.kc-stat-stapel > span { display: block; height: 100%; border-radius: 7px; background: #7bd389; }
+.kc-stat-stapel.max > span { background: #f2c14e; }
+.kc-stat-stapel-text { font-size: 0.85rem; font-weight: 700; color: #5b5470; }
+.kc-stat-fot { margin: 10px 0 0; font-size: 0.78rem; color: #6b6380; }

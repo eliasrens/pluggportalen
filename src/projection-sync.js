@@ -13,19 +13,19 @@
 // data-room.js/data-content.js kopplar in de riktiga data-lager-funktionerna.
 // ============================================================================
 
-import { progressTotals, xpFromStudentData } from "./leveling.js";
+import { progressTotals, playsTotal, xpFromStudentData } from "./leveling.js";
 
 /**
- * Award-patchen (stars/xp/completed) härledd EXAKT som by-översikten räknar
+ * Award-patchen (stars/xp/completed/plays) härledd EXAKT som by-översikten räknar
  * fram dem ur elevens studentData (se class-projection.projectionEntryFrom /
  * data-content.getStudentsWithLooks – samma hjälpare, en KÄLLA för formen).
  * Så projektionen visar samma siffror som en per-elev-läsning annars gett.
  * @param {object} sd elevens FÄRSKA studentData (efter att award sparats)
- * @returns {{stars:number, xp:number, completed:number}}
+ * @returns {{stars:number, xp:number, completed:number, plays:number}}
  */
 export function awardProjectionPatch(sd = {}) {
   const { completed, stars } = progressTotals(sd && sd.progress);
-  return { stars, xp: xpFromStudentData(sd), completed };
+  return { stars, xp: xpFromStudentData(sd), completed, plays: playsTotal(sd && sd.progress) };
 }
 
 /** Default-loggning av en fallerad projektions-skrivning (aldrig kastande). */

@@ -37,6 +37,13 @@
 //                                (multiplikation: tabellerna, "t7","t8").
 //   statCategories     → [{ key, label }] – alla kategorier i visningsordning
 //                                (statistikvyer bygger tabeller ur denna).
+//   cooperative        bool    – VALFRI (default false). true = klasserna spelar
+//                                MOT ETT MÅL i stället för mot varandra.
+//   goalReached(standings, session) → bool – KRÄVS om cooperative. Nådde
+//                                matchen målet? (live-core buildResult sparar
+//                                svaret i result.goalReached → pokalen
+//                                "live-avklarat" till deltagande klasser, #495.
+//                                Tävlingslägen ger i stället "live-vinst".)
 //
 // Question är mode-specifik men har alltid { key, text } – `text` är det
 // svarskomponenten (src/mult/fast-answer.js) visar stort.
@@ -67,6 +74,10 @@ export function validateGameMode(mode) {
   if (!Array.isArray(mode.statCategories) ||
       !mode.statCategories.every((c) => c && typeof c.key === "string" && typeof c.label === "string")) {
     errs.push("statCategories måste vara [{key,label}]");
+  }
+  if (mode.cooperative != null && typeof mode.cooperative !== "boolean") errs.push("cooperative måste vara bool");
+  if (mode.cooperative === true && typeof mode.goalReached !== "function") {
+    errs.push("goalReached() krävs för ett kooperativt läge");
   }
   return errs;
 }

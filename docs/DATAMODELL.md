@@ -23,6 +23,7 @@ studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök pe
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
+classCenters/{classId}/…                 ← Klasscentret (#476–): Klass-EXP, crowdfunding, layout, pokaler
 ```
 
 `studentData` har **samma dokument-id** som `students` (elevens id), så de hör ihop.
@@ -249,6 +250,7 @@ Exempel (`students/elev1`):
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
 | `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt }`. `level` (1–7) är Läsresans **dolda** nivå – helt skild från `readingLevel` (1–3). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, nivå 3) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
+| `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
 
 ### `studentData/{studentId}/lasresaAttempts/{autoId}` – Läsresan-försök (#399)
 
@@ -359,6 +361,8 @@ djur mellan rum/hage/laggård. Säkerhetsregler: `farm` ligger i `studentData`
 som redan är self-writable – **inga regeländringar behövs**.
 
 `progress`-resultat per gamemode: `{ completed, bestScore, stars, plays, lastPlayed, cat? }`.
+`plays` (antal avklarade körningar) summeras per elev till `plays` i klass-
+projektionens members-entry (`playsTotal`, #498 – Klasscentrets statistiktavla).
 `gamemode` är en sträng, förslagsvis `"quiz"`, `"lasforstaelse"`, `"para"`.
 
 `cat` (valfri, #445) = rätt/totalt per frågekategori, **ackumulerat** över alla
@@ -530,8 +534,11 @@ lärarsidan: kör därefter `admin/qa-mattematchen-larare-seed.mjs` (qalarare / 
 
 **Lärarsidan (#459):** "Avsluta" (och första öppningen av en tävling vars tid
 tagit slut av sig själv, `archiveIfEnded`) skriver `status: "finished"` +
-`result` = `{ savedAt, winner, winnerClass, top, classes, students
+`result` = `{ savedAt, winner, winnerClass, winnerClasses[], top, classes, students
 [{uid,name,classId,correct,incorrect}], totals, tables[0–10] }` (≤ 2000 elever).
+`winnerClasses` (#495) = alla klasser på delad förstaplats (samma poäng/elev,
+> 0 rätt); `winnerClass` = den första av dem (visningen). Efter skrivningen
+delar samma lärarklient ut Klasscentrets pokal `mm-klasskamp` (se Pokaler).
 Underdokumenten ligger kvar → elevdetaljen per tabell går att öppna i efterhand.
 Klasstabellen läser `studentStats where documentId() in [klassens elever]` (30 per
 fråga). "Totalt i multiplikation" = två `count()` på `collectionGroup("answers")`
@@ -692,7 +699,10 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
   kan dessutom avsluta i förtid / avbryta en lobby.
 - **`result`** skrivs EN gång (transaktion) av en lärarklient (projektorn, eller
   historikvyn om ingen projektor var öppen) ~2,5 s efter slut:
-  `{ perClass: { classId: { correct, divisor, score, players } }, winner: classId|"draw", totalCorrect, players, computedAt }`.
+  `{ perClass: { classId: { correct, divisor, score, players } }, winner: classId|"draw", totalCorrect, players, computedAt }`
+  + i KOOPERATIVA lägen (`GameMode.cooperative`, #495) `cooperative: true,
+  goalReached: bool` (lägets `goalReached(standings, session)`). Klienten vars
+  transaktion skrev `result` delar sedan ut Live-bonusar och pokaler.
 
 ### Live-kärnan i klienten (#460)
 
@@ -747,6 +757,356 @@ Se API-kommentaren i `src/live/game-modes.js`: `id`, `displayName`, `icon`,
 `answerRecord()`, `statKeys()`, `statCategories`. Nytt läge = ny fil i
 `src/live/modes/` + en rad i `src/live/modes/index.js` + en gren i
 `liveModeAnswerOk` i `firestore.rules` (annars nekas lägets svar).
+
+---
+
+## Klasscentret (#476–, epic 1–4)
+
+Spec: [`docs/spec-klasscentret.md`](spec-klasscentret.md), analys:
+[`docs/klasscentret-analys.md`](klasscentret-analys.md). Allt bor under
+`classCenters/{classId}` – en klass är helt oberoende av andra (100 klasser =
+100 separata träd). Specens §8 (ClassProfile / ClassCenterShopItems /
+ClassCenterLayout) är anpassad så här:
+
+| Spec §8 | Här | Epic |
+| --- | --- | --- |
+| `classTotalExp` | summan av `expShards/{0..4}.exp` (shardad) | **1 (klar, #477)** |
+| `currentCenterLevel` | **härleds** – `nivaFor(classTotalExp, classes/{id}.studentIds.length)`, lagras inte | **1 (klar, #477)** |
+| "3 första gångerna"-räknare | `expMembers/{uid}.counts` (per elev och klass) | **1 (klar, #477)** |
+| `trophies[]` | underkollektion `classCenters/{classId}/trophies/{typ}-{kallaId}` | **3 (kärna klar, #494)** |
+| statistiktavlan (EXP, lösta uppgifter, progress) | **inget nytt dokument** – `expShards` + `classProjections/{classId}.members.*.plays` | **3 (klar, #498)** |
+| ClassCenterShopItems | katalog i kod + `fund/{itemId}` + `donations/{id}` | 2/3 |
+| ClassCenterLayout | `layout/current` + `layoutHistory/{0..9}` | **2 (klar, #489)** |
+| lärarens "får ej inreda" | `classCenters/{classId}.inredningSparr` | **2 (klar, #489)** |
+
+### Normalisering och nivåer (epic 1, `src/klasscenter/kc-niva.js`)
+
+Nivå *n* kräver `ceil(TROSKLAR_PER_ELEV[n-1] × antalElever)` klass-EXP, där
+`TROSKLAR_PER_ELEV = [0, 7, 17, 32, 55, 90, 141, 219, 335, 509]` (exponentiellt,
+steg × 1,5, beslut 2026-10-07; motivering i filhuvudet: Nivå 10 ≈ 509
+övningar/elev, med ~8/vecka hela läsåret och mer – aktiva klasser når toppen,
+mindre aktiva stannar runt Nivå 7–8). Trösklarna skalas alltså med elevantalet – samma
+sak som att jämföra EXP/elev, men mätaren kan visa hela klassens tal
+("50 / 175 övningar till Nivå 2"). Nivån härleds alltid ur NUVARANDE elevantal:
+läggs elever till kan nivån i teorin sjunka. Vill epic 1 C/D undvika det kan
+ett golv `classCenters/{classId}.hogstaNiva` lagras (visa `max(härledd, golv)`).
+
+**Så lägger du till en nivå (11, 12 …).** `NIVAER` i `src/klasscenter/kc-niva.js`
+är enda sanningskällan (`KLASSCENTER_NIVAER` i `art-klasscenter.js` härleds ur
+den). Det krävs bara (1) en ny post sist i `NIVAER` och (2) en ny rit-funktion
+i art-modulen (MARKUP). Trösklarna räknas med formeln per index och förlängs
+automatiskt; nivaFor/mätare/"Maxnivå"/preview-knappar följer listans längd.
+`test/art-klasscenter.test.js` failar om en nivå saknar rit-funktion.
+firestore.rules har ingen nivågräns – nivån härleds i klienten.
+
+### `classCenters/{classId}/expShards/{0..4}` – Klass-EXP (epic 1)
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `exp` | number | shardens del av klassens EXP (bara uppåt) |
+| `lastUid` | string | senaste skribent (elev-uid eller lärarens uid) |
+| `lastAt` | timestamp | serverns tid för senaste ökningen |
+| `lastKalla` | string ≤ 40 | regelmodul/bonuskälla ("quiz", "live" …) |
+
+Läses av **alla inloggade** (mätaren syns även för gäster). Skrivs bara via
+`increment`: elev (klassmedlem) +1..+3 i samma batch som den egna
+`expMembers`-posten, lärare +1..+1000 (klassbonus). Radera = lärare (nollställ).
+
+### `classCenters/{classId}/expMembers/{uid}` – elevens bidrag (epic 1)
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `uid` | string | elevens uid (= dok-id) |
+| `exp` | number | elevens totala bidrag till klassen |
+| `counts` | map | regelräknare, t.ex. `{"memory\|vikingar": 3, "rakna\|ratt": 7}` |
+| `lastAt` | timestamp | serverns tid för senaste utdelningen (takt-spärr 15 s) |
+| `lastAmount` | number | senaste ökningen (1–3) – måste = shardens ökning |
+| `lastShard` | number | vilken shard senaste ökningen gick till |
+| `lastKalla` | string | senaste regelmodul |
+
+Läses bara av eleven själv och lärare (ingen topplista mellan elever). Elevens
+egna framsteg (`studentData.progress/xp/coins`) rörs **inte** av Klass-EXP.
+
+**Regler (firestore.rules "KLASSCENTRET")**: shard +n kräver att samma batch
+ökar `expMembers/{egen uid}.exp` med `lastAmount == n` och `lastShard ==
+shard` (getAfter), 1 ≤ n ≤ 3, `lastAt == request.time` och minst 15 s sedan
+förra utdelningen. `counts` får sparas separat (utan EXP). Kvarvarande
+begränsning: spelresultaten räknas i klienten (som coins/framsteg i dag), så en
+skriptande elev kan ge ≤ 3 EXP/15 s – spårbart per elev i `expMembers`.
+
+**Regelregistret** (`src/klasscenter/kc-exp-regler.js`): quiz/läsförståelse
+≥ 50 % rätt = 1 varje omgång; para/memory/kunskapsjakt/sanningsjakt/lastext/
+äventyr = 1 de 3 första gångerna per område; Läsresan ≥ 5/7 = 1; Mattematchen
+var 20:e rätt = 1; Räkna 10 rätt = 1 (rest sparas i `counts`); Live/klass-
+utmaningar = lärarbonus `klassBonusFor(kalla, elevantal)` (t.ex. Live 3/elev).
+En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevantal).
+
+### `classCenters/{classId}` – klassprofil (epic 2–4)
+
+| Fält | Typ | Epic | Beskrivning |
+| --- | --- | --- | --- |
+| `inredningSparr` | array | **2 (klar, #489)** | uid:n som läraren bockat ur – får titta/donera men inte spara layout (≤ 200, `setInredningSparr`) |
+| `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
+
+Läses av klassens elever och lärare (#500 – spärrlistan visar vilka elever
+som bockats ur; gästläget behöver den inte). Skrivs bara av lärare.
+**Regler (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200).
+Pokalerna bor INTE här utan i underkollektionen `trophies/` (#494, nedan) –
+profilens `changedOnly`-lista är oförändrad. Elever kan inte skriva dokumentet
+alls (inte ens ta bort sig själva ur spärren).
+
+### Pokaler (epic 3, #494)
+
+Register (rent): `src/klasscenter/kc-pokal-typer.js`; Firestore (bara
+dynamiskt): `src/klasscenter/kc-pokal-data.js` – `delaUtPokal(classId, typ,
+kallaId, detalj?)`, `delaUtPokalerFor(kalla, kallaId, kallaDoc)`,
+`hamtaPokaler(classId)` (EN query), `bevakaPokaler(classId, cb)`,
+`pokalTooltip(pokal)`.
+
+**Typer** (`registreraPokaltyp({ id, kalla, titel, text, art, tooltip?,
+vinnare(kallaDoc), detaljFran? })`):
+
+| `typ` | Källa (`kallaId`) | Delas ut till | Tooltip |
+| --- | --- | --- | --- |
+| `mm-klasskamp` | `mathCompetitions/{cid}` | `result.winnerClass` + alla i `result.winnerClasses` när `status == "finished"` | "Vinnare av Mattematchen! Klassen kämpade stenhårt tillsammans." |
+| `live-vinst` | `liveSessions/{sid}` | TÄVLINGSLÄGE: `result.winner` (inte `"draw"`, inte `result.cooperative`) med ≥ 1 spelare | "Klassen vann Live-matchen! …" |
+| `live-avklarat` | `liveSessions/{sid}` | KOOPERATIVT läge med `result.goalReached == true`: varje deltagande klass med `result.perClass[klass].players > 0` | "Klassen klarade ett Liveläge tillsammans!" |
+
+**Beslut (#495):**
+- **Oavgjort i Klasskampen = alla delade vinnare får pokalen** (samma
+  poäng/elev på förstaplatsen, `winnerClasses`). Äldre `result` utan fältet →
+  bara `winnerClass`. Ingen klass med rätt svar → ingen pokal.
+- **Oavgjort i Live (`"draw"`) = ingen `live-vinst`** (oförändrat från #494).
+- **`live-avklarat` bara i kooperativa lägen** där målet nåddes – ett vanligt
+  tävlingsläge ger bara vinnaren en pokal (inte en "deltagarpokal" per match).
+  I dag finns bara tävlingsläget `multiplication_0_10` → `live-avklarat` delas
+  inte ut förrän ett läge med `cooperative: true` + `goalReached()` registreras
+  (`src/live/game-modes.js`). Klassbonusen `"live"` (EXP) är oförändrad.
+
+**Utdelningen (#495)** görs av lärarklienten som skrev källans `result`,
+EFTER skrivningen (reglerna verifierar med `getAfter`), via dynamisk import
+`kc-koppling.js pokalerEfterAvslut(kalla, kallaId, kallaDoc)` → fire-and-
+forget, aldrig kastande (ett pokalfel stör aldrig avslutet):
+- Mattematchen: `mm-teacher-data.js` `finishCompetition` + `archiveIfEnded`.
+- Live: `live-data.js` `writeResultIfMissing` (bara klienten vars transaktion
+  skrev `result`, samma ställe som `liveKlassBonus`).
+Misslyckas utdelningen (nät/regler) görs inget nytt försök automatiskt –
+`archiveIfEnded` gör inget när `result` redan finns.
+
+#### `classCenters/{classId}/trophies/{typ}-{kallaId}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `typ` | string | pokaltypens id (se tabellen) |
+| `kallaId` | string | källans dokument-id (tävling/session), `[A-Za-z0-9_-]{1,100}` |
+| `titel` | string 1–80 | typens rubrik vid utdelningen ("Mattematchens mästare") |
+| `detalj` | string ≤ 120 (valfri) | källans namn ("Mattematchen oktober 2026") |
+| `wonAt` | timestamp | serverns tid vid utdelningen |
+| `awardedBy` | string | lärarens uid |
+
+**Idempotent:** dokument-id = `"<typ>-<kallaId>"` (t.ex. `mm-klasskamp-<cid>`,
+`live-vinst-<sid>`) → samma vinst ger alltid samma dokument. `delaUtPokal` är
+EN transaktion: finns dokumentet → `ny: false`, inget skrivs; annars create.
+Flera lärarklienter samtidigt (projektor + historikvy) ger en enda pokal.
+
+**Regler (firestore.rules "Pokaler")**: läses av alla inloggade. Create bara
+av lärare (teacher-claim), aldrig update/delete. Fälten exakt enligt tabellen,
+`wonAt == request.time`, `awardedBy == auth.uid`, id == `typ + "-" + kallaId`,
+`typ` i `kcPokalTyper()`, och källan verifieras med `getAfter` (även när
+pokalen skrivs i samma batch som `result`): status `finished` + vinnaren/
+deltagandet enligt tabellen ovan. Elever kan inte skapa/ändra pokaler alls.
+⚠️ Ny typ = `registreraPokaltyp` + typen i `kcPokalTyper()` + en gren i
+`kcPokalVerifierad` (`test/kc-pokal-typer.test.js` failar om de glider isär)
++ rules-deploy. Tester: `test/kc-pokal-typer.test.js`,
+`test/firestore-rules-klasscenter-pokal.test.js`.
+⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan pokaler kan
+delas ut live.
+
+### Statistiktavlan (epic 3, #498)
+
+En **fast möbel** i rummet (som pokalhyllan): inte köpbar, inte flyttbar, finns
+i varje klass rum (även för gäster). Klick/tryck/Enter öppnar panelen
+"Klassens statistik" (✕/Escape stänger, fokus tillbaka till tavlan). Siffrorna
+står även direkt på tavlan. Kod: `src/klasscenter/kc-statistik.js` (rent),
+`kc-statistik-data.js` + `kc-rum-statistik.js` (bara dynamiskt).
+
+| Visas | Källa | Läsning |
+| --- | --- | --- |
+| Klassens totala EXP | summan av `expShards/{0..4}.exp` (`subscribeClassExp`, realtid) | ≤ 5 dok |
+| Lösta uppgifter tillsammans | summan av `classProjections/{classId}.members.{uid}.plays` för klassens nuvarande `studentIds` | 1 dok (+ cachad `classes`) |
+| Progress till nästa nivå | `progressTillNasta(exp, antalElever)` – nivå X → X+1, stapel + "50 / 175 EXP · 125 kvar"; högsta nivån → full stapel + "högsta nivån är nådd" | – |
+
+**Varför ingen ny räknare (val b i #498):** elevernas `progress[area][mode].plays`
+(höjs av `awardExercise` vid varje avklarad omgång) speglas redan in i klass-
+projektionen vid varje belöning (`awardProjectionPatch` → `plays`, och self-heal
+via `projectionEntryFrom`). Alltså: noll nya skrivningar, inga regeländringar och
+O(1) läsning per klass. **Historiken finns från start:** en projektions-entry
+skriven före #498 saknar `plays` → `completed` (antal avklarade övningar) räknas
+som golv tills eleven spelar nästa gång. "Lösta uppgifter" = avklarade omgångar i
+övningslägena (quiz, memory, para, räkna, äventyr …) – Läsresan, Mattematchen och
+Live räknas inte där (de har egna aggregat) men ger klass-EXP. Projektionen är
+klassmedlems-skrivbar som förut (#231) – samma förtroendenivå som byns
+"övningar klarade"; `plays` ger ingen EXP och ingen nivå.
+
+### Crowdfunding (epic 2, #486)
+
+**Katalogen** ligger i kod: `src/klasscenter/kc-shop-items.js` (dynamisk –
+`shop-items.js` är 400/400 rader och i bootgrafen). Åtta föremål `{ id, namn,
+emoji, targetPrice, zon, storlek, art }`: klassfana 2000, troféhylla 2500,
+lounge 3000, akvarium 4000, guldstaty 5000, flygel 6000, fontän 8000,
+kristallkrona 10000. `zon` = `"golv"` | `"vagg"` (upphängt), `storlek` =
+`{ w, h }` i procent av scenen, `art` = rit-nyckel (konsten: sub-issue B).
+⚠️ `firestore.rules` (`kcPris`) har en kopia av id → pris; nytt föremål =
+rad i båda + rules-deploy (`test/kc-fund-plan.test.js` failar om de glider isär).
+Ändra aldrig priset på ett befintligt id (fund-dokumentet låser priset).
+
+#### `classCenters/{classId}/fund/{itemId}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `targetPrice` | int | = katalogpriset, låst från första donationen |
+| `fundedAmount` | int | insamlat, 0 < … ≤ `targetPrice` |
+| `isUnlocked` | bool | `fundedAmount == targetPrice` (köpt) |
+| `unlockedAt` | timestamp | serverns tid när målet nåddes (bara när köpt) |
+| `lastDonationId` | string | donationsposten som skrevs i samma batch |
+
+Läses av alla inloggade (realtid "150 / 5000"). Dokumentet skapas vid första
+donationen – saknat dokument = 0 insamlat (`normaliseraFunds`).
+
+#### `classCenters/{classId}/donations/{autoId}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `uid` | string | donerande elev (= `auth.uid`) |
+| `itemId` | string | föremålet |
+| `amount` | int ≥ 1 | det faktiskt dragna (cappade) beloppet |
+| `at` | timestamp | serverns tid |
+
+Create-only (ingen ändring/radering, inte ens lärare → insamlat == summan
+av posterna). **Läses bara av lärare** – för klassen är donationerna anonyma
+(BESLUT, bara totalsumman syns). Återanvänd INTE `classProjects` (#331): dess
+`contributions.{uid}` är läsbart för alla inloggade.
+
+**Donationen** (`korDonation` i `src/klasscenter/kc-fund-plan.js`, via
+`donate(classId, itemId, amount)` i den dynamiska `kc-fund-data.js`): läs
+`fund` + `studentData.coins` från servern → `planDonation` cappar beloppet
+till min(begärt, det som saknas, saldot) (heltal ≥ 1; överskottet dras aldrig)
+→ EN atomär batch: `coins` = `increment(−n)` + `kcDonation` =
+`"<classId>/<donationId>"` (#500), ny donationspost, `fund` med
+`fundedAmount` = `increment(+n)` (#493). Ingen transaktion: med en hel klass
+samma sekund köade transaktionerna på `fund`-låset och gav upp. Relativa
+värden räknas av reglerna mot det AKTUELLA läget → samtidiga givare under
+målet går alla igenom direkt. Hann någon före så att cappningen/`isUnlocked`
+inte längre stämmer nekar reglerna (`permission-denied`), och
+`kc-omforsok.js` läser om och cappar om (upp till 10 försök, exponentiell
+backoff med jitter; målet nått → `redan-kopt`, inget dras). Nekas ett
+försök och nästa läser exakt samma läge är det ett verkligt nej (t.ex. ej
+klassmedlem) → slutar direkt. Fel: `redan-kopt`, `for-lite-mynt`,
+`ogiltigt-belopp`, `okant-foremal`, `nekad`.
+
+**Regler (firestore.rules "KLASSCENTRET")**: `fund` skrivs bara av
+klassmedlem och bara ihop med en NY donationspost (`lastDonationId` byts,
+`!exists` före + `getAfter` efter): `fundedAmount` ökar exakt postens
+`amount`, aldrig över `targetPrice` (== `kcPris`, oförändrat),
+`isUnlocked == (fundedAmount == targetPrice)`, `unlockedAt == request.time`
+när köpt, och ingenting alls när `isUnlocked` redan är sant. Donationsposten:
+egen uid, klassmedlem, `amount` heltal ≥ 1, `at == request.time`, fundens
+`lastDonationId` pekar på posten och samma skrivning sänker
+`studentData/{uid}.coins` med exakt `amount` (≥ 0 kvar) och sätter
+`studentData/{uid}.kcDonation == "<classId>/<donationId>"` – ett avdrag kan
+bara betala EN donation (#500: utan markören delade flera donationer i samma
+batch på ett avdrag). Annan klass/icke-medlem nekas (`isClassMember`).
+Säkerhetsgranskningen: `docs/SAKERHET-klasscentret.md`.
+**Kvarvarande begränsning:** `studentData.coins` är klient-skrivbart
+(`isSelf`, utan fältvalidering) → reglerna garanterar *insamlat == summan av
+donationerna* och att saldot sjunker lika mycket i samma skrivning, inte att
+eleven "förtjänat" mynten.
+
+**Klassens möbellåda** härleds: `unlockedItems(funds)` = katalogföremålen vars
+`fund` har `isUnlocked` (inget eget dokument).
+
+**Shoppens flik "🏛️ Klasscentrum"** (#488): `pages-shop.js` har bara fliken +
+`import("./klasscenter/kc-shop-vy.js")`; vyn (+ `kc-shop-kort.js`, `kc-shop-vy.css`)
+prenumererar med `subscribeFunds` och stänger den vid flik-/sidbyte. "Du har
+bidragit med X" räknas lokalt i `localStorage` (`pp:kc:bidrag:<uid>:<classId>`,
+per enhet) – inga andras uid läses. QA: `admin/qa-klasscentrum-shop.mjs`.
+⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan donationer
+fungerar live.
+
+### Gemensam layout + historik (epic 2, #489)
+
+Ren logik + skrivplan: `src/klasscenter/kc-layout-plan.js`; Firestore (bara
+dynamiskt): `src/klasscenter/kc-layout-data.js` – `subscribeLayout`,
+`getLayout`, `saveLayout`, `listHistory`, `restoreLayout`, `kanInreda`,
+`getInredningSparr`, `setInredningSparr`.
+
+#### `classCenters/{classId}/layout/current`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `placedItems` | map | `{ "<itemId>" \| "pokal-<trophyId>": { x, y, z } }` – x/y tal 0–100 (procent av scenen, som `studentData.room.placements`), `z` heltal 0–999 (ritordning, högre = framför). Högst 16 poster: 8 katalogföremål + högst 8 **flyttade** pokaler (#497). Pokaler som ingen flyttat sparas inte – de auto-placeras på pokalhyllan (äldst först) av `kc-pokal-placering.js`. |
+| `version` | int | 1, 2, 3 … (+1 per sparning; saknat dokument = version 0) |
+| `updatedBy` | string | den som sparade (= `auth.uid`, elev eller lärare) |
+| `updatedAt` | timestamp | serverns tid |
+
+#### `classCenters/{classId}/layoutHistory/{0..9}`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `placedItems` | map | samma layout som `current` fick i den sparningen |
+| `version` | int | versionen; dokument-id = `version % 10` |
+| `savedBy` | string | den som sparade |
+| `savedAt` | timestamp | serverns tid |
+
+**Ringbuffert:** varje "Spara" = EN transaktion (`korSparning`) som läser
+`current` och skriver `current` (version + 1) och slot `version % 10` – alltid
+de 10 senaste, inga raderingar (version 11 skriver över slot 1, version 20
+slot 0). **"Återställ"** (`restoreLayout(classId, slot, { historikVersion })`)
+läser sloten i samma transaktion och skriver den som en NY version
+(`historikVersion` = versionen som listan visade; har ringbufferten skrivit
+över sloten sedan dess → `historik-andrad`, inget skrivs, listan laddas om –
+#493) → återställningen hamnar
+själv i historiken och kan ångras. Föremål som inte finns i möbellådan tas
+bort vid återställning. Båda skrivningarna är `set` UTAN merge – annars
+slår Firestore ihop den nästlade `placedItems`-kartan med den gamla.
+
+**Samtidighet (BESLUT: senaste vinner, med historik):** sparar två samtidigt
+körs den ena transaktionen om med färska värden (även när reglerna svarar
+`permission-denied` i stället för en vanlig krock – upp till 8 försök via
+`kc-omforsok.js`; oförändrad version + nekad = verkligt nej, slutar direkt) → två
+hela versioner i följd, båda i historiken, den senaste syns. Aldrig en
+blandad layout (hela kartan ersätts, reglerna kräver version = gammal + 1).
+Vill rum-UI:t (sub-issue E) hellre varna skickas `{ forvantadVersion }` (den
+version som visades) → `kod: "krock"` ("Någon annan sparade nyss – laddar
+om rummet.") och ingenting skrivs.
+
+**Möbellådan:** klienten (`validatePlacedItems`) godtar bara nycklar som finns
+i `unlockedItems(getFunds(classId))`; okänd/ej upplåst/fel form → Fel med
+`kod` (`okant-foremal`, `ej-i-ladan`, `ogiltig-position`, `for-manga`,
+`ogiltig-form`), positionen klamras. `"<itemId>#<n>"` (extra exemplar, som
+rummet) stöds i planmodulen, men crowdfunding ger ett exemplar per föremål
+och reglerna godtar bara katalog-id:n – flera exemplar kräver regeländring.
+
+**Regler (firestore.rules "KLASSCENTRET" → layout):** läses av alla inloggade
+(gästläge §7). Skrivs av lärare (`isTeacher`, som övriga lärarregler – det
+finns ingen lärare↔klass-koppling i dag), eller klassmedlem
+(`isClassMember`) som inte står i `inredningSparr`. `current`: bara de fyra
+fälten, `version == gammal + 1` (create: 1), `updatedBy == auth.uid`,
+`updatedAt == request.time`, och `getAfter(layoutHistory/{version % 10})` har
+samma `version`/`placedItems`/skribent/tid. Historikslot: id ∈ 0..9 ==
+`version % 10`, och `getAfter(current)` har just den versionen skriven nu
+(`updatedAt == request.time`) → en slot kan aldrig skrivas ensam.
+`placedItems`: nycklar ⊆ `kcKatalog` (samma karta som `kcPris`) plus högst 8
+`pokal-<typ>-<kallaId>` (typ ∈ `kcPokalTyper`, EN regex över de joinade
+nycklarna; att pokalen finns kontrolleras inte – budget), ≤ 16 poster, varje
+post exakt `{x, y, z}` med intervallen ovan (`kcPosOk` per index i
+`values()` – `test/kc-layout-plan.test.js` failar om taket och raderna glider
+isär). 🔴 Reglernas tak är 1000 uttryck per skrivning: den gamla kontrollen
+nekade redan ett rum med alla 8 föremål (#497 fixade, mätt i emulatorn). Att föremålet är
+*upplåst* kollas bara i klienten (reglerna kan inte loopa över `fund`) – en
+fuskande elev kan som mest ställa en ej köpt möbel i rummet. Radera = lärare.
+Tester: `test/kc-layout-plan.test.js`, `test/firestore-rules-klasscenter-layout.test.js`.
+⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (layout + klassprofilen).
 
 ---
 

@@ -36,6 +36,7 @@ import {
   phaseAt, sumCounters, classStandings, decideWinner, topPlayers, buildResult, formatClock,
 } from "./live-core.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
+import { getGameMode } from "./modes/index.js";
 
 const TICK_MS = 250;
 // Vänta in svar som committats precis före slutet innan resultatet fryses.
@@ -108,7 +109,8 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
       resultTimer = setTimeout(() => {
         if (closed || session?.result) return;
         const final = compute();
-        writeResultIfMissing(sid, buildResult(session, final.classes, players)).catch(onError);
+        const result = buildResult(session, final.classes, players, getGameMode(session?.gameMode));
+        writeResultIfMissing(sid, result).catch(onError);
       }, RESULT_SETTLE_MS);
     }
   }

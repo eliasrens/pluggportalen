@@ -14,6 +14,7 @@
 //   3. dold nivåändring (räknas i samma transaktion, returneras aldrig)
 //   4. kort positiv sammanfattning (antal rätt + coins, aldrig nivån)
 //   5. kartan med animateFromStep = walk.fromStep, avataren går ett steg
+//   (+ Klass-EXP i bakgrunden, kc-koppling.js #479)
 //
 // En påbörjad text återupptas (currentTextId), och redan låsta svar följer med
 // via localStorage (reader-logic.js). Nivån (lasresa.level) används bara för
@@ -205,6 +206,10 @@ export async function pageLasresan() {
     }
     await renderTopbar(); // nytt saldo i sidomenyn
     const a = res.attempt;
+    // Klass-EXP (#479): en text med ≥ 5/7 rätt. Dynamiskt + fire-and-forget.
+    import("../klasscenter/kc-koppling.js")
+      .then((m) => m.klassExpEfterOvning({ modul: "lasresan", resultat: { ratt: a.correct, totalt: a.totalQuestions } }))
+      .catch(() => {});
     const worldDone = res.worldCompleted ? getWorld(res.completedWorldId) : null;
     const nextWorld = res.unlockedWorldId ? getWorld(res.unlockedWorldId) : null;
     swap(null);

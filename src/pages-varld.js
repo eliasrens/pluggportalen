@@ -346,7 +346,9 @@ export async function pageElevVarld(startNiva) {
         if (b.id === meId) return 1;
         return String(a.namn || "").localeCompare(String(b.namn || ""), "sv");
       });
-      const { fokus, fokusById } = mountByScen({ lager: byLager, meId, students: boende });
+      const { fokus, fokusById } = mountByScen({
+        lager: byLager, meId, students: boende, klasscenter: meClassId ? { classId: meClassId } : null,
+      });
       byNiva.fokus = fokus; // kameran läser fokus vid varje övergång
       // Gemensam klasstatistik: summera allas positiva bidrag (XP → klass-nivå,
       // klarade övningar, stjärnor) och fyll stjärn-toggeln + skylten. Bara
@@ -659,6 +661,9 @@ export async function pageElevVarld(startNiva) {
   liveScen = {
     stage,
     async visaNiva(nivaId, id) {
+      // Klasscentrets rum (#490) är ett eget lager ovanpå byn: stäng det hårt
+      // innan någon kamera rör by-lagret (no-op när det inte är öppet).
+      stage.dispatchEvent(new Event("kc-rum-stang"));
       // Kompis-hus-nivån: zooma in till den klickade kamratens exteriör.
       if (nivaId === "kompis") return kompisVy.visa(id);
       // Grannby-nivån: zooma in till en annan klass by-översikt (grannbyVy.visa
