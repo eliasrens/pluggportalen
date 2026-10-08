@@ -38,8 +38,11 @@
 //   sessionTitle(s)           → "4B MOT 5E" (klassnamn ur classNames)
 //   defaultSessionName(names) → "4B mot 5E"
 //   validateSessionInput(i)   → string[] fel (tom = ok) – i.coinPrize valfritt
-//   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby")
+//   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby"); två
+//                             klasser → wizards (Trollkarlsduellen, #536)
 // ============================================================================
+
+import { validWizards, defaultWizards } from "./trollkarl/trollkarl-val.js";
 
 export const LIVE_DURATIONS_MIN = [5, 10, 15, 20, 25, 30];
 export const LIVE_COUNTDOWN_SECONDS = 4;
@@ -301,5 +304,9 @@ export function buildSessionDoc(input, { uid }) {
   };
   const prize = parsePrize(input.coinPrize);
   if (Number.isInteger(prize) && prize > 0) doc.coinPrize = prize;
+  // Trollkarlsduellen (#536): vem som är Rasmus/Elias – bara klass mot klass.
+  if (classIds.length === 2) {
+    doc.wizards = validWizards(input.wizards, classIds) ? { ...input.wizards } : defaultWizards(classIds);
+  }
   return doc;
 }

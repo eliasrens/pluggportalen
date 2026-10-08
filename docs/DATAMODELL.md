@@ -708,6 +708,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `finishedAt` | timestamp | när matchen markerades klar |
 | `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw", winnerClasses[] }` – skrivs aldrig om när det väl finns (#526) |
 | `coinPrize` | int 0–100 000 (valfri) | **#526** mynt-pris till vinnarklassens klasskassa; sätts bara vid skapandet, reglerna nekar varje ändring därefter. Saknas/0 = inget pris |
+| `wizards` | map (valfri) | **#536** Trollkarlsduellen: `{ classId: "rasmus" \| "elias" }` – bara i tvåklassmatcher, exakt de två klasserna, en av varje. Skrivs av `buildSessionDoc` (default klass 1 = Rasmus), kan bytas i lobbyn, låst efter start (reglerna). Saknas → samma default i vyn |
 
 - Bara lärare skapar/ändrar, och **alla lärare** får styra alla sessioner.
   `gameMode`, klasser, längd, nedräkning och shards låses när matchen startat.
