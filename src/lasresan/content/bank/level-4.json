@@ -3178,5 +3178,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n4-isen",
+    "title": "Tre slag med ispiken",
+    "level": 4,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Det var en klar februaridag, och isen på sjön låg blank som ett fönster. Edgar och pappa skulle åka långfärdsskridskor till en ö mitt i sjön.\n\nInnan de gav sig av gick pappa igenom packningen. Båda hade isdubbar runt halsen, två handtag med vassa spikar. I ryggsäcken fanns en lina och ombyteskläder i en vattentät påse. Pappa hade en ispik, en lång stav med spets.\n\n”Isen är fin, men den är aldrig lika tjock överallt”, sa han. Medan de åkte slog han ispiken i isen med jämna mellanrum. Så länge det lät hårt kunde de fortsätta.\n\nNära ön rann en bäck ut i sjön. Där var isen mörkare. Pappa slog med ispiken, och den gick rakt igenom. I samma ögonblick sprack isen under honom, och han föll i det iskalla vattnet.\n\nEdgar blev alldeles kall inombords, men han gjorde som de hade övat. Han lade sig ner på isen, tog fram linan och kastade den mot pappa. Pappa grep tag i den med ena handen. Med den andra högg han isdubbarna i isen och drog sig upp, medan Edgar höll emot.\n\nPappa rullade bort från hålet innan han ställde sig upp. Sedan åkte de raka vägen till ön och bytte kläder i skydd bakom en sten.\n\n”Allt vi packade kom till användning”, sa pappa med darrande läppar. ”Och du var lugnare än jag.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart var Edgar och pappa på väg?",
+        "options": [
+          "Till en ö mitt i sjön",
+          "Hem till en granne",
+          "Till en bäck i skogen",
+          "Till en skridskobana"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var var isen mörkare?",
+        "options": [
+          "Mitt ute på sjön",
+          "Precis vid stranden",
+          "Där en bäck rann ut",
+          "Bakom en stor sten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ”isdubbar” enligt texten?",
+        "options": [
+          "En lång stav med spets",
+          "Skor med spikar under",
+          "En tjock och varm halsduk",
+          "Handtag med vassa spikar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Edgar blev ”kall inombords”. Vad betyder det här?",
+        "options": [
+          "Han började frysa om händerna",
+          "Han blev väldigt rädd",
+          "Han blev arg på pappa",
+          "Han kände sig hungrig"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför slog pappa ispiken i isen hela tiden?",
+        "options": [
+          "För att hålla sig varm medan han åkte",
+          "För att visa Edgar vägen mot ön",
+          "För att höra om isen var stark",
+          "För att skrämma bort fåglarna på isen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför lade sig Edgar ner på isen innan han kastade linan?",
+        "options": [
+          "Så att isen under honom inte skulle brista",
+          "Så att han inte skulle se det kalla vattnet",
+          "Så att pappa kunde se honom bättre",
+          "Så att linan skulle hamna längre bort"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur vet man att Edgar och pappa hade förberett sig?",
+        "options": [
+          "Pappa hade åkt till ön många gånger förut",
+          "Edgar visste exakt hur tjock isen var",
+          "De hade frågat andra om isen dagen innan",
+          "Det står att Edgar gjorde som de övat"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar berättelsen framför allt?",
+        "options": [
+          "Att man aldrig ska åka skridskor på en sjö",
+          "Att förberedelser kan rädda liv på isen",
+          "Att det är bäst att åka ensam på isen",
+          "Att isen alltid är tjockast vid en bäck"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-geocaching",
+    "title": "Skatten under trollnäsan",
+    "level": 4,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Jakob och hans kusin Minna hade börjat med geocaching. Det är en sorts skattjakt över hela världen. Någon gömmer en liten låda och lägger ut lådans position i en app. Sedan kan andra leta efter den med hjälp av mobilen.\n\nDen här lördagen ville de hitta en låda som hette ”Trollets utsikt”. Den låg på toppen av ett berg i skogen bakom Minnas hus.\n\nStigen var brant och full av rötter. När de kom upp blåste det kallt, men utsikten var fantastisk. De kunde se ända bort till kyrktornet i byn.\n\nMobilen visade att lådan skulle ligga precis där de stod. Ändå hittade de ingenting. De letade under buskar, bakom stenar och i en ihålig stubbe. Efter en halvtimme ville Jakob ge upp. Mörka moln drog in från väster.\n\n”Vänta, det finns en ledtråd”, sa Minna och läste högt: ”Titta under trollets näsa.”\n\nDe såg sig omkring. Till slut fick Jakob syn på en stor sten som stack ut från berget. Från sidan såg den ut som en lång, krokig näsa. Under den låg en grön plastburk.\n\nI burken fanns ett anteckningsblock och några små saker. De skrev sina namn i blocket. Minna tog en liten leksaksbil och lade i en nyckelring i stället.\n\nPrecis när de stängde locket började det regna. De sprang hela vägen ner och skrattade, blöta ända in på skinnet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hette lådan som Jakob och Minna letade efter?",
+        "options": [
+          "Bergets skatt",
+          "Den gröna burken",
+          "Kyrktornets hemlighet",
+          "Trollets utsikt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad lade Minna i burken?",
+        "options": [
+          "En nyckelring",
+          "En leksaksbil",
+          "Ett anteckningsblock",
+          "En karta"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Stigen var ”brant”. Vad betyder det?",
+        "options": [
+          "Den var blöt och lerig",
+          "Den lutade mycket uppåt",
+          "Den var bred och platt",
+          "Den var full av folk"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "De var blöta ”ända in på skinnet”. Vad betyder det?",
+        "options": [
+          "Lite fuktiga",
+          "Bara blöta om fötterna",
+          "Helt genomblöta",
+          "Svettiga av springandet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför hittade de inte lådan direkt?",
+        "options": [
+          "Mobilen visade fel plats och ledde dem åt fel håll i skogen",
+          "Någon annan hade redan tagit med sig lådan",
+          "Lådan låg under en sten som liknade en näsa",
+          "Den låg i den ihåliga stubben under löven"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ville Jakob ge upp efter en halvtimme?",
+        "options": [
+          "Han tyckte inte om utsikten från berget",
+          "De hade letat länge och det såg ut att bli regn",
+          "Minna ville hellre gå hem och leka",
+          "Mobilen hade slutat att fungera uppe på det kalla berget"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför bytte Minna en sak mot en annan i burken?",
+        "options": [
+          "Hon tyckte att nyckelringen var fulare än bilen",
+          "Det var den enda regeln som stod i blocket",
+          "Jakob ville inte ha någon nyckelring",
+          "Så att det finns saker kvar till nästa person"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Hur kände sig Jakob och Minna i slutet?",
+        "options": [
+          "Glada fast de blev blöta",
+          "Arga över att det regnade",
+          "Besvikna på skatten",
+          "Trötta och sura"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-tunnelbanan",
+    "title": "Dörrarna stängs",
+    "level": 4,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Filippa var i Stockholm och hälsade på sin moster Annelie. Hon hade aldrig åkt tunnelbana förut. Rulltrapporna var så långa att det kändes som att åka ner i jordens inre.\n\nInnan de gick ner på perrongen stannade moster Annelie. ”Om vi skulle tappa bort varandra”, sa hon, ”så kliver du av vid nästa station och står kvar på perrongen. Rör dig inte därifrån. Jag kommer.”\n\nFilippa nickade, men hon trodde inte att det skulle behövas.\n\nTåget var fullt av människor. Filippa trängde sig in genom dörrarna, och precis när hon vände sig om hörde hon en signal. Dörrarna gled igen. Moster Annelie stod kvar på perrongen med en kasse i varje hand och ögonen uppspärrade.\n\nTåget rusade in i den mörka tunneln. Filippas hjärta dunkade så hårt att det kändes i öronen. Hon ville gråta. Sedan kom hon ihåg mosters ord.\n\nVid nästa station klev hon av. Hon ställde sig vid en bänk under en stor klocka och väntade. Folk strömmade förbi. En äldre man frågade om hon behövde hjälp. ”Min moster kommer med nästa tåg”, sa hon, och han stannade bredvid henne en stund.\n\nEfter fyra minuter som kändes som fyrtio kom nästa tåg. Dörrarna öppnades, och moster Annelie kom springande med kassarna.\n\n”Du gjorde precis rätt”, sa hon och kramade Filippa så hårt att kassarna slog ihop bakom hennes rygg.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem hälsade Filippa på i Stockholm?",
+        "options": [
+          "Sin moster",
+          "Sin farmor",
+          "Sin kusin",
+          "Sin pappa"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var ställde sig Filippa och väntade?",
+        "options": [
+          "Vid rulltrappan upp mot gatan",
+          "Vid en bänk under en klocka",
+          "Inne i det tomma tåget",
+          "Utanför stationen vid en kiosk"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Människor ”strömmade förbi”. Vad betyder det?",
+        "options": [
+          "Människor sprang förbi i regnet",
+          "Några få människor stod och väntade",
+          "Många människor gick förbi hela tiden",
+          "Människor gick förbi och tittade på henne"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Mosters ögon var ”uppspärrade”. Hur såg hon ut?",
+        "options": [
+          "Trött och sömnig",
+          "Glad och lättad",
+          "Arg och sur",
+          "Rädd och chockad"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför hamnade Filippa ensam på tåget?",
+        "options": [
+          "Dörrarna stängdes innan moster hann kliva på",
+          "Moster sa åt henne att åka i förväg till nästa station",
+          "Filippa gick på fel tåg med flit",
+          "Moster hade glömt bort henne"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kändes fyra minuter som fyrtio?",
+        "options": [
+          "Klockan på stationen gick fel",
+          "Nästa tåg var försenat i nästan fyrtio minuter",
+          "Hon hade aldrig sett en klocka förut",
+          "Hon var orolig och väntan kändes lång"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför var mosters regel så bra?",
+        "options": [
+          "Filippa slapp att åka tunnelbana igen",
+          "Båda visste var de skulle träffas",
+          "Mannen på stationen kunde hjälpa till",
+          "Moster kunde ringa till tågföraren"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen framför allt om?",
+        "options": [
+          "Att det är farligt med rulltrappor",
+          "Att man inte ska åka till Stockholm",
+          "Att hålla sig lugn och följa en plan",
+          "Att man ska bära tunga kassar"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-klattervaggen",
+    "title": "Nästa grepp",
+    "level": 4,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Alla i Adrians klass hade börjat klättra i klätterhallen på torsdagarna. Adrian följde med, fast han egentligen var rädd för höjder. Redan på en stege kände han hur benen blev som gelé.\n\nTränaren Josefin visade hur selen skulle sitta och hur repet gick upp till toppen och ner till den som säkrade. ”Om du släpper håller repet dig”, sa hon. ”Du kan inte falla mer än en liten bit.”\n\nFörsta gången kom Adrian upp tre grepp. Sedan tittade han ner och frös fast. Han kunde inte röra sig uppåt, och inte neråt heller. Josefin fick prata med honom länge innan han vågade luta sig bakåt i repet och bli nedfirad.\n\nPå vägen hem kände han sig dum. De andra hade ringt i klockan på toppen flera gånger.\n\nAndra torsdagen gav Josefin honom ett råd. ”Titta inte ner och inte upp mot toppen. Titta bara på nästa grepp. Ett i taget.”\n\nAdrian klättrade. Nästa grepp, ett rött. Nästa, ett blått. Han pratade högt med sig själv. Den gången kom han halvvägs, längre än någonsin.\n\nTredje torsdagen hände något. Han tänkte bara på nästa grepp, och nästa. Plötsligt fanns det inga fler grepp, bara en mässingsklocka framför näsan.\n\nAdrian ringde i den så hårt att alla i hallen vände sig om. Sedan lutade han sig bakåt och lät repet föra honom ner, med ett leende över hela ansiktet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag klättrade klassen?",
+        "options": [
+          "Torsdag",
+          "Måndag",
+          "Lördag",
+          "Fredag"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur långt kom Adrian den första gången?",
+        "options": [
+          "Ända till klockan",
+          "Tre grepp upp",
+          "Halvvägs upp",
+          "Ett enda grepp"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Benen blev ”som gelé”. Vad betyder det?",
+        "options": [
+          "De blev kalla och blå",
+          "De blev starka och snabba",
+          "De kändes svaga och darriga",
+          "De somnade och kändes tunga"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Adrian ”frös fast”. Vad betyder det här?",
+        "options": [
+          "Han började frysa i klätterhallen",
+          "Han satt fast med selen i väggen",
+          "Han blev kall och fick låna en tröja",
+          "Han kunde inte röra sig av rädsla"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kände sig Adrian dum efter första gången?",
+        "options": [
+          "Josefin hade skällt på honom framför alla de andra i klassen",
+          "Han hade glömt hur selen skulle sitta",
+          "Han hade ramlat och slagit sig i väggen",
+          "De andra hade klarat det som han inte klarade"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför hjälpte det att bara titta på nästa grepp?",
+        "options": [
+          "Greppen var lättare att se då",
+          "De röda greppen var lättare att hålla i",
+          "Han tänkte inte på hur högt det var",
+          "Han kunde klättra fortare med stängda ögon"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur märktes det att Adrian hade nått toppen?",
+        "options": [
+          "Josefin ropade att han var framme",
+          "Det fanns en klocka framför honom",
+          "Taket nuddade hans hjälm",
+          "Repet tog slut i hans händer"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Vad lär man sig av berättelsen?",
+        "options": [
+          "Ett svårt mål kan nås ett litet steg i taget",
+          "Man ska bara klättra om man inte är rädd",
+          "Det är bäst att klättra så fort som möjligt till toppen",
+          "Man behöver ingen tränare för att klättra"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-mount-everest",
+    "title": "Världens tak",
+    "level": 4,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Mount Everest är världens högsta berg. Toppen ligger nästan 8 850 meter över havet, alltså nästan nio kilometer upp i luften. Berget ligger i bergskedjan Himalaya, på gränsen mellan Nepal och Kina.\n\nHimalaya har bildats av att två jättelika delar av jordskorpan trycks mot varandra. Den ena bär Indien och den andra resten av Asien. De trycks fortfarande ihop, och därför växer bergen några millimeter varje år.\n\nUppe på Everest är det farligt. Det kan vara under 30 minusgrader och blåsa hårdare än i en storm. Det svåraste är ändå luften. Ju högre upp man kommer, desto tunnare blir den. På toppen får man bara ungefär en tredjedel så mycket syre i varje andetag som vid havet. Därför bär de flesta klättrare med sig syrgas i flaskor.\n\nDe första som säkert nådde toppen var Edmund Hillary från Nya Zeeland och Tenzing Norgay från Nepal. Det hände år 1953. Tenzing var sherpa. Sherpafolket bor i bergen och är vana vid den tunna luften. Många av dem arbetar i dag som guider och bärare.\n\nVarje år försöker hundratals människor nå toppen. Det har lett till ett nytt problem. Klättrarna har lämnat efter sig tält, flaskor och skräp, och nu måste berget städas.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Mellan vilka länder ligger Mount Everest?",
+        "options": [
+          "Indien och Nepal",
+          "Nepal och Kina",
+          "Kina och Indien",
+          "Nepal och Nya Zeeland"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år nådde de första människorna säkert toppen?",
+        "options": [
+          "År 1935",
+          "År 1885",
+          "År 2001",
+          "År 1953"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Luften blir ”tunnare” högt upp. Vad betyder det?",
+        "options": [
+          "Den blir varmare och fuktigare",
+          "Den blir svår att se igenom",
+          "Det finns mindre syre i den",
+          "Den börjar blåsa mer"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ordet ”bärare” i texten?",
+        "options": [
+          "Människor som bär packning åt klättrarna",
+          "Människor som bor i bergen året om",
+          "Människor som städar upp efter andra",
+          "Människor som mäter och räknar ut hur högt berget är"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför växer Himalaya fortfarande?",
+        "options": [
+          "Två delar av jordskorpan trycks fortfarande ihop",
+          "Snön på toppen blir tjockare och tjockare",
+          "Klättrarna lämnar skräp som samlas i högar uppe på toppen",
+          "Vulkaner under berget har börjat få utbrott"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför klarar sherpafolket den tunna luften bättre än andra?",
+        "options": [
+          "De bär alltid med sig syrgas i flaskor",
+          "De klättrar bara på sommaren när det är varmt",
+          "De har lärt sig andas av Edmund Hillary",
+          "De bor i bergen och är vana vid den"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför bär de flesta klättrare med sig syrgas?",
+        "options": [
+          "Det är mycket kallt högt upp på berget",
+          "Det blåser starka stormar på toppen",
+          "Det finns lite syre i luften på toppen",
+          "Det är lättare att bära än mat"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket problem har uppstått för att så många vill klättra?",
+        "options": [
+          "Berget har börjat krympa",
+          "Det ligger mycket skräp på berget",
+          "Sherpafolket har flyttat därifrån",
+          "Det finns inga guider kvar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-nederlanderna",
+    "title": "Landet under havet",
+    "level": 4,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Nederländerna betyder ”de låga länderna”, och namnet stämmer. Ungefär en fjärdedel av landet ligger lägre än havet. Om ingen skyddade det skulle stora delar ligga under vatten vid högvatten. Till och med den stora flygplatsen vid Amsterdam ligger under havsytan.\n\nHur går det till? I mer än tusen år har människorna där byggt vallar, långa höga jordbankar som stänger ute havet och floderna. Bakom vallarna har de pumpat bort vattnet och fått fram ny, torr mark. Sådan mark kallas polder.\n\nFörr i tiden gjorde väderkvarnar jobbet. Vinden snurrade de stora vingarna, och kvarnen lyfte vattnet upp i kanaler som ledde ut i havet. Många gamla kvarnar står kvar och har blivit landets kännetecken. I dag sköts pumpningen mest av elektriska pumpar.\n\nÄndå är det inte alltid säkert. År 1953 drabbades landet av en svår stormflod. Havet bröt igenom vallarna, och nära 2 000 människor dog. Efter katastrofen byggdes enorma dammar och portar som kan stängas när en storm är på väg.\n\nNär klimatet blir varmare stiger havet långsamt. Därför arbetar Nederländerna hela tiden med nya sätt att skydda landet. På vissa platser har de till och med byggt hus som flyter.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur stor del av Nederländerna ligger lägre än havet?",
+        "options": [
+          "Ungefär en fjärdedel",
+          "Ungefär hälften",
+          "Nästan hela landet",
+          "En liten bit vid kusten"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad drev de gamla väderkvarnarna?",
+        "options": [
+          "Elen",
+          "Vinden",
+          "Vattnet",
+          "Hästar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”polder”?",
+        "options": [
+          "En stor väderkvarn med fyra vingar",
+          "En damm med portar som kan stängas när en storm kommer",
+          "Torr mark som man fått fram bakom vallar",
+          "Ett hus som flyter på vattnet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Väderkvarnarna har blivit landets ”kännetecken”. Vad betyder det?",
+        "options": [
+          "Något som är förbjudet att röra",
+          "Något som landet tjänar pengar på",
+          "Något som bara finns i museer",
+          "Något som man känner igen landet på"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gjorde man efter stormfloden 1953?",
+        "options": [
+          "Man flyttade alla människor bort från kusten",
+          "Man byggde nya väderkvarnar längs stränderna",
+          "Man byggde dammar och portar som kan stängas",
+          "Man slutade helt att bo i de låga delarna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför behöver vattnet pumpas bort från poldrarna?",
+        "options": [
+          "Bönderna vill ha vatten till sina djur",
+          "Marken ligger lägre än vattnet runt omkring",
+          "Vattnet är för salt för att dricka",
+          "Vallarna skulle annars bli för tunga och sjunka ner i marken"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför arbetar landet hela tiden med nya skydd?",
+        "options": [
+          "Väderkvarnarna har slutat att snurra",
+          "Vallarna är byggda av sand som blåser bort i varje storm",
+          "Människorna vill bo närmare havet",
+          "Havet stiger långsamt när klimatet blir varmare"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur ett land skyddar sig mot vattnet",
+          "Hur man bygger en väderkvarn",
+          "Varför Amsterdam har en flygplats",
+          "Hur en storm bildas över havet"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
