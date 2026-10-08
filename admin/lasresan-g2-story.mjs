@@ -11,7 +11,7 @@ export const STORY = [
   {
     id: "lr-g2-pepparkakshuset", title: "Taket som rasade", textType: "story", topic: "skola",
     body: [
-      "I december bygger klass två pepparkakshus. Zeynep och hennes grupp gör ett hus med fönster och dörr.",
+      "I december bygger klass två pepparkakshus. Zeynep och hennes grupp gör ett hus. Det har fönster och dörr.",
       "De sätter på taket. Det står still en stund. Sedan glider det ner, och en bit går sönder.",
       "Zeynep blir ledsen. Men fröken har en idé. Hon smälter socker i en kastrull. Det blir varmt och klibbigt.",
       "Nu sitter taket fast! Gruppen lägger snö av florsocker på det. Huset blir det finaste i klassen.",
@@ -63,10 +63,10 @@ export const STORY = [
       "Det har snöat hela natten. Folke tittar ut genom fönstret. Allt är vitt.",
       "Grannen Esther är gammal och går med käpp. Hennes trappa är full av snö.",
       "Folke tar på sig overall och vantar. Han hämtar en snöskyffel. Han skottar steg för steg. Det tar lång tid, och han blir varm.",
-      "Till slut är trappan fin. Esther öppnar dörren. ”Tack, min vän!” säger hon. Sedan får Folke varm choklad och en bulle i hennes kök.",
+      "Till slut är trappan fin. Esther öppnar dörren. ”Tack, min vän!” säger hon. Sedan får Folke följa med in i köket. Där får han varm choklad och en bulle.",
     ],
     q: [
-      ["Hur länge har det snöat?", ["Hela natten", "En timme", "Hela veckan", "Sedan i går kväll"], "fakta"],
+      ["Hur länge har det snöat?", ["Hela natten", "En timme", "Hela veckan", "Hela dagen"], "fakta"],
       ["Vad går Esther med?", ["Käpp", "Rullator", "Kryckor", "Paraply"], "fakta"],
       ["Vad skottar Folke med?", ["En snöskyffel", "En kvast", "En hink", "Händerna"], "fakta"],
       ["Vad får Folke i köket?", ["Choklad och en bulle", "Saft och en kaka", "Te och en macka", "Glass och en våffla"], "fakta"],
@@ -112,7 +112,7 @@ export const STORY = [
       "Det är kväll. Kerim ska sova. Han tittar ut genom fönstret mot trädgården.",
       "I lekstugan lyser ett litet ljus. Det rör sig fram och tillbaka. Vem är där?",
       "Kerim tar på sig tofflorna och går ut. Gräset är vått. Han smyger fram till lekstugan och tittar in genom fönstret.",
-      "Där sitter storasyster Dana med en ficklampa och en tjock bok.",
+      "Där sitter storasyster Dana. Hon har en ficklampa och en tjock bok.",
       "”Det är så tyst här”, säger hon. Kerim kryper in bredvid henne. Hon läser högt för honom.",
     ],
     q: [
@@ -142,7 +142,7 @@ export const STORY = [
   {
     id: "lr-g2-mormors-nasa", title: "Mormors näsa", textType: "story", topic: "roliga situationer",
     body: [
-      "Mormor har fått en ny mobil. Nu vill hon ringa med bild till Olle för första gången.",
+      "Mormor har fått en ny mobil. Nu vill hon ringa med bild till Olle. Det är första gången.",
       "Det plingar. Olle svarar. Men han ser bara en stor näsa!",
       "”Hej Olle! Ser du mig?” säger mormor. Nu ser Olle bara taket och en lampa.",
       "”Håll mobilen längre bort”, säger Olle. Nu ser han mormors öra. Olle skrattar så att han får hicka.",
@@ -160,7 +160,7 @@ export const STORY = [
     body: [
       "Rafael har feber. Han ligger i soffan under en filt. Han är varm och ledsen.",
       "Hans storasyster Saba ska egentligen gå till en kompis. Men hon stannar hemma.",
-      "Först läser hon en bok om en bil som kan flyga. Sedan ritar hon en bild till Rafael. Det är en bil med vingar.",
+      "Först läser hon en bok. Den handlar om en bil som kan flyga. Sedan ritar hon en bild till Rafael. Det är en bil med vingar.",
       "Rafael somnar med bilden i handen. När han vaknar mår han lite bättre.",
       "”Tack, Saba”, viskar han. ”Du är bäst.”",
     ],
@@ -176,12 +176,12 @@ export const STORY = [
     id: "lr-g2-sista-biten", title: "Den sista biten", textType: "story", topic: "relationer",
     body: [
       "Jacob och Deniz har bakat en sockerkaka. Nu är bara en bit kvar.",
-      "”Den är min!” säger Jacob. ”Nej, min!” säger Deniz. De drar i tallriken. Nästan ramlar biten på golvet.",
+      "”Den är min!” säger Jacob. ”Nej, min!” säger Deniz. De drar i tallriken. Biten ramlar nästan i golvet.",
       "Deniz farmor kommer in. ”Jag har ett knep”, säger hon. ”En av er delar biten. Den andra får välja först.”",
       "Jacob delar mycket noga. Bitarna blir precis lika stora. Deniz väljer en. Båda blir nöjda och äter upp.",
     ],
     q: [
-      ["Vad har pojkarna bakat?", ["En sockerkaka", "Bullar", "Muffins", "Pepparkakor"], "fakta"],
+      ["Vad har Jacob och Deniz bakat?", ["En sockerkaka", "Bullar", "Muffins", "Pepparkakor"], "fakta"],
       ["Vad gör de med tallriken?", ["Drar i den", "Tappar den", "Diskar den", "Gömmer den"], "fakta"],
       ["Vem kommer in i köket?", ["Deniz farmor", "Jacobs mamma", "En granne", "Deniz pappa"], "fakta"],
       ["Vem delar biten?", ["Jacob", "Deniz", "Farmor", "Ingen"], "fakta"],
@@ -191,7 +191,7 @@ export const STORY = [
   {
     id: "lr-g2-fyren", title: "Upp i fyren", textType: "story", topic: "äventyr",
     body: [
-      "Lavin och morfar går längs stranden. Längst ut står en hög vit fyr med ett rött bälte.",
+      "Lavin och morfar går längs stranden. Längst ut står en hög vit fyr. Den har ett rött bälte.",
       "Dörren är öppen. Inne finns en smal trappa som snurrar uppåt. Lavin räknar stegen: ett, två, tre … hundra!",
       "Hennes ben är trötta, men nu är de högst upp. Det blåser och måsarna skriker.",
       "Långt ute på havet ser Lavin ett stort skepp. ”Förr visade fyren skeppen vägen i mörkret”, säger morfar.",

@@ -89,13 +89,13 @@ export const FAKTA = [
       "Ugglan har stora ögon. Den ser bra i mörker.",
       "Ugglan kan vrida huvudet långt bakåt.",
       "Ugglan flyger helt tyst. Den fångar möss.",
-      "Ugglan säger ”hoo, hoo”.",
+      "Ugglan säger ”hu, hu”.",
     ],
     q: [
       ["När är ugglan vaken?", ["På natten", "På morgonen", "På dagen", "Vid lunch"], "fakta"],
       ["Vad fångar ugglan?", ["Möss", "Fiskar", "Fjärilar", "Grodor"], "fakta"],
       ["Hur flyger ugglan?", ["Helt tyst", "Mycket högljutt", "Bara baklänges", "Bara på dagen"], "fakta"],
-      ["Vad säger ugglan?", ["Hoo, hoo", "Kvitt, kvitt", "Kra, kra", "Pip, pip"], "fakta"],
+      ["Vad säger ugglan?", ["Hu, hu", "Kvitt, kvitt", "Kra, kra", "Pip, pip"], "fakta"],
     ],
   },
   {
@@ -154,7 +154,7 @@ export const FAKTA = [
     q: [
       ["Hur många ögon har vi?", ["Två", "Ett", "Tre", "Fyra"], "fakta"],
       ["Vilka färger kan ögon ha?", ["Blå, bruna eller gröna", "Röda, rosa eller lila", "Gula, orange eller vita", "Lila, rosa eller svarta"], "fakta"],
-      ["Ögonen blir fuktiga. Vad betyder fuktiga?", ["Lite blöta", "Väldigt torra", "Mycket varma", "Helt stängda"], "ordforstaelse"],
+      ["Vad gör vi många gånger varje minut?", ["Blinkar", "Gäspar", "Nyser", "Hostar"], "fakta"],
       ["Vad gör vi när det är mörkt?", ["Tänder en lampa", "Blinkar fort", "Blundar hårt", "Tvättar ögonen"], "fakta"],
     ],
   },
@@ -177,14 +177,14 @@ export const FAKTA = [
     id: "lr-g1-brandbilen", title: "Brandbilen", textType: "fact", topic: "teknik",
     body: [
       "Brandbilen är stor och röd. Den har en lång stege på taket.",
-      "Brandbilen har också en slang. Med slangen sprutar de vatten på elden.",
+      "Brandbilen har också en slang. Ur slangen sprutar vatten på elden.",
       "När brandbilen kör fort låter det ”ijo, ijo”. Det är sirenen.",
       "Då flyttar sig alla andra bilar.",
     ],
     q: [
       ["Vilken färg har brandbilen?", ["Röd", "Gul", "Vit", "Blå"], "fakta"],
       ["Vad har brandbilen på taket?", ["En stege", "En lampa", "En båt", "En flagga"], "fakta"],
-      ["Vad sprutar de på elden?", ["Vatten", "Sand", "Snö", "Mjölk"], "fakta"],
+      ["Vad sprutar ur slangen?", ["Vatten", "Sand", "Snö", "Mjölk"], "fakta"],
       ["Vad heter det som låter ”ijo, ijo”?", ["Sirenen", "Tutan", "Klockan", "Motorn"], "fakta"],
     ],
   },
@@ -230,7 +230,7 @@ export const FAKTA = [
       ["Vad hade telefonen förr?", ["En sladd", "En skärm", "En kamera", "Ett spel"], "fakta"],
       ["Var fick du stå och prata?", ["Vid väggen", "I bilen", "I parken", "I sängen"], "fakta"],
       ["Hur ringde man förr?", ["Snurrade på en ratt", "Tryckte på en skärm", "Skrev på en tavla", "Ropade i ett rör"], "fakta"],
-      ["Telefonen såg annorlunda ut. Vad betyder annorlunda?", ["Inte likadan", "Väldigt dyr", "Mycket ny", "Alldeles ren"], "ordforstaelse"],
+      ["Var får mobilerna plats?", ["I fickan", "I väggen", "I lådan", "I bilen"], "fakta"],
     ],
   },
 ];

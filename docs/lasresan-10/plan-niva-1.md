@@ -51,3 +51,4 @@ Nivå 1 = mycket enkel läsning: 30–50 ord, meningar på 3–6 ord, 3–4 frå
 - Rätt svar unikt längst: 20 av 114 (18 %).
 - Ordantal: min 39, medel 43,6, max 50. Ord per mening: medel 4,5, max 8.
 - `validateBank` på hela banken: 0 fel, 0 varningar.
+- Efter granskningen i #524 har texterna rättats; aktuella mätvärden i `docs/lasresan-10/GRANSKNING-niva-1-3.md`.

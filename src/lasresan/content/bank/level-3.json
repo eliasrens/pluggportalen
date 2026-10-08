@@ -87,7 +87,7 @@
     "level": 3,
     "textType": "story",
     "topic": "skola",
-    "body": "På sommarlovet får Arvin ta hem klassens kanin. Den heter Smulan och är grå med vita tassar. Arvin lovar läraren att ta väl hand om henne.\n\nVarje morgon ger han Smulan hö, vatten och en bit morot. Sedan får hon springa runt i vardagsrummet en stund.\n\nEn dag ringer det på dörren. Arvin springer för att öppna. När han kommer tillbaka är Smulan borta! Han letar under soffan och bakom gardinerna. Han letar till och med i köket. Ingen kanin.\n\nArvin blir alldeles kall. Hur ska han säga det till klassen?\n\nPlötsligt hör han ett prasslande ljud från badrummet. Där står tvättkorgen. Arvin lyfter på en handduk. Där ligger Smulan och sover bland de mjuka kläderna.\n\nEfter den dagen stänger Arvin alltid dörren till badrummet.",
+    "body": "På sommarlovet får Arvin ta hem klassens kanin. Den heter Smulan och är grå med vita tassar. Arvin lovar läraren att ta väl hand om henne.\n\nVarje morgon ger han Smulan hö, vatten och en bit morot. Sedan får hon springa runt i vardagsrummet en stund.\n\nEn dag ringer det på dörren. Arvin springer för att öppna. När han kommer tillbaka är Smulan borta! Han letar under soffan och bakom gardinerna. Ingen kanin.\n\nArvin blir alldeles kall. Hur ska han säga det till klassen?\n\nPlötsligt hör han ett prasslande ljud från badrummet. Där står tvättkorgen. Arvin lyfter på en handduk. Där ligger Smulan och sover bland de mjuka kläderna.\n\nEfter den dagen stänger Arvin alltid dörren till badrummet.",
     "questions": [
       {
         "id": "q1",
@@ -656,81 +656,81 @@
     ]
   },
   {
-    "id": "lr-g3-picknicken",
-    "title": "Picknick i regnet",
+    "id": "lr-g3-hissen",
+    "title": "Stopp i hissen",
     "level": 3,
     "textType": "story",
     "topic": "vardag",
-    "body": "Det är lördag, och solen skiner. Tea och pappa packar en korg med smörgåsar, jordgubbar och saft. Sedan cyklar de till ån.\n\nDe breder ut en filt på gräset. Tea ska just ta första tuggan. Då ser hon ett mörkt moln. Plötsligt börjar det regna. Stora droppar slår ner på filten.\n\n”Snabbt, till bron!” ropar pappa.\n\nDe springer med korgen och filten in under en gammal stenbro. Där är det torrt. De sätter sig på filten och äter. Regnet smattrar på vattnet.\n\nEfter en stund kommer en familj änder simmande. De guppar fram och tittar nyfiket på Tea.\n\n”Det här är den bästa picknicken någonsin”, säger Tea. Pappa håller med.",
+    "body": "Tiam bor på femte våningen i ett höghus. En dag åker han hiss med grannen Edvard. Edvard är gammal och har en kasse med apelsiner.\n\nPlötsligt rycker hissen till och stannar. Lampan blinkar. Tiam trycker på knappen till femte våningen, men ingenting händer. Han blir varm i ansiktet och andas fort.\n\nEdvard trycker lugnt på en gul knapp med en klocka. En röst svarar i högtalaren. ”Vi skickar en tekniker. Det tar ungefär en halvtimme.”\n\nDärför sätter de sig på golvet. Edvard skalar en apelsin och delar den med Tiam. Sedan lär han Tiam ett kortspel. Tiam vinner två gånger.\n\nNär hissen äntligen åker igen är Tiam nästan besviken. Nu spelar de kort hos Edvard varje lördag.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad packar de i korgen?",
+        "question": "På vilken våning bor Tiam?",
         "options": [
-          "Bullar, äpplen och mjölk",
-          "Pannkakor, sylt och te",
-          "Korv, bröd och vatten",
-          "Smörgåsar, jordgubbar och saft"
+          "Tredje",
+          "Första",
+          "Tionde",
+          "Femte"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Hur tar de sig till ån?",
+        "question": "Vad har Edvard i sin kasse?",
         "options": [
-          "De går",
-          "De cyklar",
-          "De åker buss",
-          "De åker bil"
+          "Äpplen",
+          "Apelsiner",
+          "Bananer",
+          "Mjölk"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad ser Tea innan det börjar regna?",
+        "question": "Vilken knapp trycker Edvard på?",
         "options": [
-          "Ett mörkt moln",
-          "En regnbåge",
-          "En blixt",
-          "En stor svart fågel"
+          "En gul knapp med en klocka",
+          "Knappen till femte våningen",
+          "En röd knapp med en pil",
+          "En grön knapp med en lampa"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Varför springer de in under bron?",
+        "question": "Hissen rycker till. Vad betyder det?",
         "options": [
-          "Där är det torrt",
-          "Där bor änderna",
-          "Där är det varmt",
-          "Där finns bänkar"
+          "Den gör en plötslig rörelse",
+          "Den åker sakta uppåt",
+          "Den blir alldeles tyst",
+          "Den öppnar dörrarna"
         ],
         "answerIndex": 0,
-        "category": "fakta"
-      },
-      {
-        "id": "q5",
-        "question": "Regnet smattrar. Hur låter det?",
-        "options": [
-          "Helt tyst",
-          "Som ett högt tjut",
-          "Som många små knackningar",
-          "Som ett mjukt sus"
-        ],
-        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
-        "id": "q6",
-        "question": "Vad tycker Tea om dagen till slut?",
+        "id": "q5",
+        "question": "Varför andas Tiam fort?",
         "options": [
-          "Att den blev förstörd",
-          "Att den var tråkig",
-          "Att den var alldeles för lång",
-          "Att den blev bäst av alla"
+          "Han har sprungit i trappan",
+          "Han är förkyld",
+          "Han blir rädd",
+          "Han skrattar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur slutar det för Tiam och Edvard?",
+        "options": [
+          "De börjar bråka",
+          "De flyttar bort",
+          "De blir rädda för hissar",
+          "De blir vänner"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
@@ -743,7 +743,7 @@
     "level": 3,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Bakom Darius hus rinner en liten bäck. En varm dag bestämmer han sig för att bygga en damm. Han bär dit stenar. Han lägger dem i en rad tvärs över bäcken. Sedan tätar han hålen med lera och mossa.\n\nVattnet stiger sakta bakom dammen. Snart har det blivit en liten pool. Darius är mycket nöjd.\n\nMen plötsligt ser han något som glittrar. En liten fisk simmar fram och tillbaka vid stenarna. Den vill vidare nedför bäcken men kommer inte förbi.\n\nDarius tänker en stund. Fisken bodde ju i bäcken långt innan han kom dit.\n\nDärför tar han bort två stenar i mitten. Vattnet forsar igenom, och fisken följer med. Darius ser den försvinna. I morgon bygger han en damm i sandlådan i stället.",
+    "body": "Bakom Darius hus rinner en liten bäck. En varm dag bestämmer han sig för att bygga en damm. Han lägger stenar i en rad tvärs över bäcken. Sedan tätar han hålen med lera och mossa.\n\nVattnet stiger sakta bakom dammen. Snart har det blivit en liten pool. Darius är mycket nöjd.\n\nMen plötsligt ser han något som glittrar. En liten fisk simmar fram och tillbaka vid stenarna. Den vill vidare nedför bäcken men kommer inte förbi.\n\nDarius tänker en stund. Fisken bodde ju i bäcken långt innan han kom dit.\n\nDärför tar han bort två stenar i mitten. Vattnet forsar igenom, och fisken följer med. I morgon bygger han en damm i sandlådan i stället.",
     "questions": [
       {
         "id": "q1",
@@ -825,7 +825,7 @@
     "level": 3,
     "textType": "story",
     "topic": "mysterier",
-    "body": "Varje morgon vaknar Leah av ett ljud. Knack, knack, knack. Det kommer från köksfönstret. Men när hon tittar ut finns ingen där.\n\nLeah blir nyfiken. Hon vill ta reda på vem det är. Därför går hon upp lite tidigare nästa dag. Hon smyger in i köket och gömmer sig bakom dörren.\n\nSedan väntar hon. Snart hörs ljudet igen. Leah kikar försiktigt fram.\n\nPå fönsterblecket sitter en liten fågel. Den har gul mage och svart huvud. Det är en talgoxe! Den hackar på glaset om och om igen.\n\nMamma förklarar. ”Den ser sin egen spegelbild i rutan. Den tror att det är en annan fågel som vill ta dess plats.”\n\nLeah sätter upp en pappersblomma på rutan. Efter det blir det tyst om morgnarna.",
+    "body": "Varje morgon vaknar Leah av ett ljud. Knack, knack, knack. Det kommer från köksfönstret. Men när hon tittar ut finns ingen där.\n\nLeah vill ta reda på vem det är. Därför går hon upp lite tidigare nästa dag. Hon smyger in i köket och gömmer sig bakom dörren.\n\nSnart hörs ljudet igen. Leah kikar försiktigt fram.\n\nPå fönsterblecket sitter en liten fågel. Den har gul mage och svart huvud. Det är en talgoxe! Den hackar på glaset om och om igen.\n\nMamma förklarar. ”Den ser sin egen spegelbild i rutan. Den tror att det är en annan fågel som vill ta dess plats.”\n\nLeah sätter upp en pappersblomma på rutan. Efter det blir det tyst om morgnarna.",
     "questions": [
       {
         "id": "q1",
@@ -902,166 +902,166 @@
     ]
   },
   {
-    "id": "lr-g3-vanten",
-    "title": "Vanten som vandrade",
+    "id": "lr-g3-musiken",
+    "title": "Musiken genom väggen",
     "level": 3,
     "textType": "story",
     "topic": "mysterier",
-    "body": "En morgon på väg till skolan ser Mohammed en röd vante. Den hänger på grannens staket. Nästa morgon ligger samma vante på busshållplatsen. Dagen därpå sitter den på en cykel.\n\n”Hur kan en vante flytta sig?” undrar Mohammed. Han berättar det för sin kompis Joline.\n\nJoline tror att det är ett spöke. Mohammed tror inte på spöken. Därför bestämmer de sig för att hålla utkik.\n\nPå lördagen sitter de på trappan och väntar. Plötsligt kommer grannens hund Ruffen. Han har vanten i munnen! Han lägger den på en bänk och springer hem.\n\nGrannen skrattar när de berättar. ”Han hittade den i parken. Nu leker han att den är hans skatt.”\n\nTill slut hittar de ägaren. Det är lilla Edit på första våningen. Hon blir jätteglad.",
+    "body": "Varje kväll klockan sju hör Henny musik genom väggen. Det är låten ”Blinka lilla stjärna”. Men mitt i låten blir det alltid fel. Det gnisslar och piper. Sedan börjar låten om från början.\n\nI lägenheten bredvid har någon nyss flyttat in. Men Henny har aldrig sett vem.\n\nMamma tror att det är en radio. Men Henny tvivlar. En radio spelar ju inte fel varje gång.\n\nDärför sätter hon sig i trappan strax före sju. Plötsligt kommer en pojke uppför trappan. Han bär en svart väska som har formen av en fiol. Han låser upp dörren bredvid. Snart hörs låten igen. Och felet.\n\nHenny knackar på. Pojken heter Asif. Han har nyss börjat spela fiol. Nu övar de tillsammans. Henny spelar blockflöjt.",
     "questions": [
       {
         "id": "q1",
-        "question": "Var ser Mohammed vanten första gången?",
+        "question": "När hör Henny musiken?",
         "options": [
-          "På grannens staket",
-          "På busshållplatsen",
-          "På en cykel",
-          "På en bänk"
+          "Varje kväll klockan sju",
+          "Varje morgon före skolan",
+          "Varje lördag efter lunch",
+          "Mitt i natten"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad tror Joline?",
+        "question": "Vilken låt hörs genom väggen?",
         "options": [
-          "Att det är en tjuv",
-          "Att det är en fågel",
-          "Att det är Mohammeds lillebror",
-          "Att det är ett spöke"
+          "Imse vimse spindel",
+          "Lilla snigel",
+          "Bä, bä, vita lamm",
+          "Blinka lilla stjärna"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "De ska hålla utkik. Vad betyder det?",
+        "question": "Det gnisslar. Hur låter det?",
         "options": [
-          "Titta noga efter något",
-          "Hålla något hårt",
-          "Gömma sig i ett mörkt skåp",
-          "Leta i en låda"
+          "Gällt och skrapigt",
+          "Mjukt och fint",
+          "Dovt som en trumma",
+          "Helt tyst"
         ],
         "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
-        "question": "Vem är det som flyttar vanten?",
+        "question": "Varför tror Henny inte att det är en radio?",
         "options": [
-          "Grannen",
-          "Grannens hund",
-          "Joline",
-          "Vinden"
+          "Grannarna har aldrig haft någon radio",
+          "En radio spelar inte fel varje gång",
+          "Radion är trasig",
+          "Det är för tyst"
         ],
         "answerIndex": 1,
-        "category": "fakta"
+        "category": "mellan_raderna"
       },
       {
         "id": "q5",
-        "question": "Varför bär Ruffen runt vanten?",
+        "question": "Vad bär pojken?",
         "options": [
-          "Han vill värma tassarna",
-          "Han leker att den är en skatt",
-          "Han ska ge den till Mohammed",
-          "Han vill gömma den för katten"
+          "En stor gitarr på ryggen",
+          "En väska som ser ut som en fiol",
+          "En trumma",
+          "En kasse med mat från affären"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q6",
-        "question": "Vem äger vanten?",
+        "question": "Hur löser Henny gåtan?",
         "options": [
-          "Joline",
-          "Grannen",
-          "Mohammed",
-          "Edit"
+          "Hon frågar mamma",
+          "Hon ringer på hos alla grannar",
+          "Hon lyssnar på radion",
+          "Hon väntar i trappan"
         ],
         "answerIndex": 3,
-        "category": "fakta"
+        "category": "helhet_slutsats"
       }
     ]
   },
   {
-    "id": "lr-g3-visselpipan",
-    "title": "Visselpipan",
+    "id": "lr-g3-fossilet",
+    "title": "Djuret i stenen",
     "level": 3,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Pedro och hans familj plockar lingon i skogen. Pedro har en visselpipa i ett snöre runt halsen. Pappa gav honom den innan de gick ut. ”Om du kommer bort, stanna och blås”, sa han.\n\nPedro hittar en plats med massor av lingon. Han plockar och plockar. När han tittar upp ser han ingen. Alla träd ser likadana ut.\n\nPedro blir rädd. Han vill springa. Men han kommer ihåg vad pappa sa. Därför sätter han sig vid en stor sten och blåser i pipan. Tre korta signaler. Sedan väntar han och lyssnar.\n\nDet är tyst länge. Plötsligt hörs en röst långt borta. ”Pedro! Fortsätt blåsa!”\n\nHan blåser igen. Snart kommer pappa springande mellan träden. Han kramar Pedro hårt. Hinken är full av lingon.",
+    "body": "Nora och farbror klättrar på stenarna vid stranden.\n\nPlötsligt ser Nora något konstigt. I en liten sten finns ett mönster. Det ser ut som en lång strut med ränder tvärs över.\n\n”Vad är det?” frågar hon. Farbror vet inte. Därför tar de en bild med mobilen. Nora stoppar stenen i fickan.\n\nSedan går de till ett litet naturhus. Där jobbar en kvinna som kan mycket om stenar. Nora visar bilden för henne.\n\n”Det är ett fossil”, säger hon. ”Det är spåren av ett djur som liknade en bläckfisk. Det levde i havet för mer än fyrahundra miljoner år sedan. Det var långt innan dinosaurierna fanns.”\n\nNora tittar ut mot havet. Där simmade djuret en gång. Hemma får stenen en egen plats i fönstret.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad plockar familjen?",
+        "question": "Var klättrar Nora och farbror?",
         "options": [
-          "Svamp",
-          "Hallon",
-          "Jordgubbar",
-          "Lingon"
+          "På de stora stenarna i skogen",
+          "I en klätterställning",
+          "På ett tak",
+          "På stenarna vid stranden"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Var har Pedro visselpipan?",
+        "question": "Hur ser mönstret i stenen ut?",
         "options": [
-          "I fickan",
-          "I ryggsäcken",
-          "I ett snöre runt halsen",
-          "I hinken"
+          "Som en fågel med utbredda vingar",
+          "Som en stor blomma",
+          "Som en lång strut med ränder",
+          "Som ett fotavtryck"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Varför vet Pedro inte var han är?",
+        "question": "Vad gör de när farbror inte vet vad det är?",
         "options": [
-          "Det har blivit mörkt",
-          "Han har tappat kartan",
-          "Alla träd ser likadana ut",
-          "Det är tjock dimma i skogen"
+          "Kastar stenen i havet",
+          "Ringer till mormor",
+          "Tar en bild med mobilen",
+          "Letar i en bok"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Hur många signaler blåser han först?",
+        "question": "Vad är ett fossil?",
         "options": [
-          "En",
-          "Två",
-          "Fem",
-          "Tre"
+          "En sten som har blivit våt",
+          "En sorts bläckfisk som lever i dag",
+          "Ett skal som någon har tappat",
+          "Spåren av ett djur från förr"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "När levde djuret?",
+        "options": [
+          "Samtidigt som dinosaurierna levde",
+          "När mormor var liten",
+          "Förra sommaren",
+          "Långt innan dinosaurierna fanns"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
-        "id": "q5",
-        "question": "Varför springer Pedro inte iväg?",
+        "id": "q6",
+        "question": "Varför får stenen en egen plats i fönstret?",
         "options": [
-          "Han har ont i foten",
-          "Han är för trött",
-          "Han vill plocka mer lingon",
-          "Han minns vad pappa sa"
+          "Den är smutsig",
+          "Den är för tung att bära",
+          "Farbror vill bli av med den",
+          "Den är viktig för Nora"
         ],
         "answerIndex": 3,
         "category": "mellan_raderna"
-      },
-      {
-        "id": "q6",
-        "question": "Vad var klokast av Pedro?",
-        "options": [
-          "Att springa hem",
-          "Att ropa på mamma",
-          "Att klättra upp i ett träd",
-          "Att stanna och blåsa"
-        ],
-        "answerIndex": 3,
-        "category": "helhet_slutsats"
       }
     ]
   },
@@ -1317,7 +1317,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "djur",
-    "body": "Delfinen bor i havet och ser ut lite som en fisk. Men delfinen är inte en fisk. Den är ett däggdjur, precis som vi. Därför måste den andas luft.\n\nUppe på huvudet har delfinen ett andningshål. Med jämna mellanrum simmar den upp till ytan. Där blåser den ut gammal luft och andas in ny.\n\nDelfinungen föds under vattnet. Mamman knuffar genast upp den till ytan. Där tar ungen sitt första andetag. Sedan dricker ungen mjölk av sin mamma.\n\nDelfiner lever i grupper. De pratar med varandra med visslingar och klickande ljud.\n\nHur sover en delfin utan att drunkna? Den låter halva hjärnan vila åt gången. Den andra halvan håller koll på andningen.",
+    "body": "Delfinen bor i havet och ser ut lite som en fisk. Men delfinen är inte en fisk. Den är ett däggdjur, precis som vi. Därför måste den andas luft.\n\nUppe på huvudet har delfinen ett andningshål. Med jämna mellanrum simmar den upp till ytan. Där blåser den ut gammal luft och andas in ny.\n\nUngen föds under vattnet. Mamman knuffar genast upp den till ytan. Där tar ungen sitt första andetag. Sedan dricker ungen mjölk av sin mamma.\n\nDelfiner lever i grupper. De pratar med varandra med visslingar och klick.\n\nHur sover en delfin utan att drunkna? Den låter halva hjärnan vila åt gången. Den andra halvan håller koll på andningen.",
     "questions": [
       {
         "id": "q1",
@@ -1563,7 +1563,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "natur",
-    "body": "Björken är ett av de vanligaste träden i Sverige. Den är lätt att känna igen på sin vita bark med svarta fläckar. Barken kallas näver. Förr gjorde man korgar och skor av näver. Den brinner också bra. Därför används den ofta när man tänder en brasa.\n\nPå våren får björken små gröna löv. Då säger man att björken har musöron. Samtidigt hänger långa hängen från grenarna. Det är björkens blommor. Vinden sprider deras gula pollen.\n\nMånga människor är allergiska mot björkens pollen. De nyser och kliar i ögonen när björken blommar.\n\nTidigt på våren stiger saven i trädet. Sav är en söt vätska som går från rötterna upp till grenarna.",
+    "body": "Björken är ett av de vanligaste träden i Sverige. Den är lätt att känna igen på sin vita bark med svarta fläckar. Barken kallas näver. Förr gjorde man korgar och skor av näver. Den brinner också bra. Därför tar man den ofta när man tänder en brasa.\n\nPå våren får björken små gröna löv. Då säger man att björken har musöron. Nu hänger också långa hängen från grenarna. Det är björkens blommor. Vinden för bort deras gula pollen.\n\nMånga är allergiska mot björkens pollen. De nyser och kliar i ögonen när björken blommar.\n\nTidigt på våren stiger saven i trädet. Sav är en söt vätska som går från rötterna upp till grenarna.",
     "questions": [
       {
         "id": "q1",
@@ -1727,7 +1727,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "natur",
-    "body": "På många stränder ligger stenar som är alldeles runda och släta. Men från början var de vassa och kantiga. Hur har de blivit så fina?\n\nDet är vattnet som har gjort jobbet. Vågorna rullar stenarna fram och tillbaka mot varandra. De slår mot sand och grus. Varje gång nöts lite av kanterna bort. Det går mycket långsamt. Det kan ta tusentals år innan en sten blir rund.\n\nSamma sak händer i bäckar och älvar. Där är det strömmen som rullar stenarna med sig nedåt. Därför ligger det ofta släta stenar på botten av en bäck.\n\nEn sten som rullas länge blir mindre och rundare. Till slut blir den till sand. Hittar du en slät sten? Tänk då på hur gammal den är.",
+    "body": "På många stränder ligger stenar som är alldeles runda och släta. Men från början var de vassa och kantiga. Hur har de blivit så fina?\n\nDet är vattnet som har gjort jobbet. Vågorna rullar stenarna fram och tillbaka mot varandra. Varje gång nöts lite av kanterna bort. Det går mycket långsamt. Det kan ta tusentals år innan en sten blir rund.\n\nSamma sak händer i bäckar och älvar. Där är det strömmen som rullar stenarna med sig nedåt. Därför ligger det ofta släta stenar på botten av en bäck.\n\nEn sten som rullas länge blir mindre och rundare. Till slut blir den till sand. Hittar du en slät sten? Tänk då på hur gammal den är.",
     "questions": [
       {
         "id": "q1",
@@ -1809,7 +1809,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "rymden",
-    "body": "När en astronaut ska gå ut från rymdstationen behövs en rymddräkt. Utan den skulle astronauten inte överleva en enda minut.\n\nI rymden finns ingen luft att andas. Därför har dräkten en stor ryggsäck med syrgas. Där finns också en fläkt som tar bort luften man andas ut.\n\nI rymden är det också väldigt kallt eller väldigt varmt. I skuggan kan det bli över hundra grader kallt. I solen kan det bli över hundra grader varmt. Dräkten har därför många lager som skyddar.\n\nHjälmen har ett guldfärgat visir. Det skyddar ögonen mot det starka solljuset.\n\nEn rymddräkt är tung. Den väger mer än en vuxen människa. Det tar nästan en timme att klä på sig den.",
+    "body": "En astronaut som ska gå ut i rymden behöver en rymddräkt. Utan den skulle astronauten inte överleva en enda minut.\n\nI rymden finns ingen luft att andas. Därför har dräkten en stor ryggsäck med syrgas. Där finns också en fläkt som tar bort luften man andas ut.\n\nI rymden är det också väldigt kallt eller väldigt varmt. I skuggan kan det bli över hundra grader kallt. I solen kan det bli över hundra grader varmt. Dräkten har därför många lager som skyddar.\n\nHjälmen har ett guldfärgat visir. Det skyddar ögonen mot den starka solen.\n\nEn rymddräkt är tung. Den väger mer än en vuxen människa. Det tar nästan en timme att klä på sig den.",
     "questions": [
       {
         "id": "q1",
@@ -1876,7 +1876,7 @@
         "question": "Varför tar det lång tid att klä på sig dräkten?",
         "options": [
           "Astronauterna är långsamma",
-          "Den är tung och har många delar",
+          "Den är tung och har många lager",
           "De måste äta först",
           "Dräkten är för liten"
         ],
@@ -1891,7 +1891,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "teknik",
-    "body": "I korsningar där många bilar kör finns ofta trafikljus. De bestämmer vem som får köra och vem som ska vänta.\n\nRött betyder stopp. Grönt betyder att man får köra. Gult betyder att ljuset snart byter. Därför ska bilarna börja stanna när det lyser gult.\n\nMånga trafikljus vet om det står bilar och väntar. Under asfalten finns en slinga med elektricitet. När en bil stannar ovanpå slingan känner trafikljuset av den. Då byter det till grönt lite snabbare.\n\nFör den som går finns en egen knapp. När man trycker på den börjar det ofta ticka. Tickandet blir snabbare när det slår om till grönt. Det hjälper personer som inte kan se.\n\nDe första trafikljusen i Sverige kom för ungefär hundra år sedan.",
+    "body": "I korsningar där många bilar kör finns ofta trafikljus. De bestämmer vem som får köra och vem som ska vänta.\n\nRött betyder stopp. Grönt betyder att man får köra. Gult betyder att ljuset snart byter. Därför ska bilarna börja stanna när det lyser gult.\n\nMånga trafikljus vet om det står bilar och väntar. Under asfalten finns en slinga med ström. När en bil stannar ovanpå slingan känner trafikljuset av den. Då byter det till grönt lite snabbare.\n\nFör den som går finns en egen knapp. När man trycker på den börjar det ofta ticka. Tickandet blir snabbare när det slår om till grönt. Det hjälper den som inte kan se.",
     "questions": [
       {
         "id": "q1",
@@ -2055,7 +2055,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "historia",
-    "body": "För hundra år sedan fanns det inga tvättmaskiner. Då var tvätten ett tungt arbete som kunde ta flera dagar.\n\nFörst måste man bära vatten från brunnen. Vattnet värmdes i en stor gryta över elden. Sedan fick kläderna ligga i blöt med såpa.\n\nSmutsen gnuggades bort på en tvättbräda. Det är en bräda med räfflor av trä eller metall. Arbetet var hårt för både händerna och ryggen.\n\nEfter det skulle kläderna sköljas. Många bar ner tvätten till sjön eller ån. Där sköljdes den, även när det var kallt.\n\nTill sist hängdes tvätten på en lina ute. På vintern kunde den frysa till stela plattor. Då fick man ta in den och torka den inomhus.\n\nDärför tvättade man inte så ofta förr.",
+    "body": "För hundra år sedan fanns det inga tvättmaskiner. Då var tvätten ett tungt arbete som kunde ta flera dagar.\n\nFörst måste man bära vatten från brunnen. Man värmde vattnet i en stor gryta över elden. Sedan fick kläderna ligga i blöt med såpa.\n\nSmutsen gnuggades bort på en tvättbräda. Det är en bräda med räfflor av trä eller metall. Det var hårt för både händer och rygg.\n\nEfter det skulle kläderna sköljas. Många bar ner tvätten till sjön eller ån. Där sköljdes den, även när det var kallt.\n\nTill sist hängde man tvätten på en lina ute. På vintern kunde den frysa till stela plattor. Då fick man ta in den och torka den inne.\n\nDärför tvättade man inte så ofta förr.",
     "questions": [
       {
         "id": "q1",
@@ -2137,7 +2137,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "historia",
-    "body": "Duvor har en fantastisk förmåga. De hittar hem, även om man släpper dem långt bort. Ingen vet exakt hur. Forskare tror att de använder solen och känner igen landskapet.\n\nFörr använde människor detta för att skicka meddelanden. Man skrev ett kort brev på ett tunt papper. Sedan rullade man ihop det. Det sattes i en liten hylsa på duvans ben. När duvan flög hem kunde någon där läsa brevet.\n\nBrevduvor användes i tusentals år. De bar nyheter och viktiga beslut. I krig räddade duvor många liv genom att flyga med meddelanden.\n\nEn brevduva kan flyga omkring 80 kilometer i timmen. I dag tävlar många med sina duvor som en hobby.",
+    "body": "Duvor har en fantastisk förmåga. De hittar hem, även om man släpper dem långt bort. Ingen vet exakt hur. Forskare tror att de tar hjälp av solen. De känner också igen marken under sig.\n\nFörr tog man hjälp av duvorna för att skicka brev. Man skrev ett kort brev på ett tunt papper. Sedan rullade man ihop det. Det sattes i en liten hylsa på duvans ben. När duvan flög hem kunde någon där läsa brevet.\n\nBrevduvor användes i tusentals år. De bar nyheter och viktiga beslut. I krig räddade duvor många liv genom att flyga med meddelanden.\n\nEn brevduva kan flyga omkring 80 kilometer i timmen. I dag tävlar många med sina duvor som en hobby.",
     "questions": [
       {
         "id": "q1",
@@ -2219,7 +2219,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "geografi",
-    "body": "Norge är Sveriges granne i väster. Längs Norges kust finns hundratals fjordar. En fjord är en lång och smal havsvik. Den går långt in i landet. På båda sidor reser sig branta berg. Ibland forsar vattenfall rakt ner i fjorden.\n\nHur blev fjordarna till? För länge sedan var landet täckt av is. Isen var flera kilometer tjock. Den gled sakta mot havet och grävde djupa dalar. När isen smälte steg havet. Sedan fylldes dalarna med havsvatten.\n\nFjordarna kan vara mycket djupa. Den längsta fjorden i Norge är över tjugo mil lång.\n\nMånga turister åker båt på fjordarna. De vill se den vackra naturen. På sluttningarna ligger små gårdar. Där har människor bott i hundratals år.",
+    "body": "Norge är Sveriges granne i väster. Längs Norges kust finns många fjordar. En fjord är en lång och smal havsvik. Den går långt in i landet. På båda sidor reser sig branta berg. Ibland forsar vattenfall rakt ner i fjorden.\n\nHur blev fjordarna till? För länge sedan var landet täckt av is. Isen var flera kilometer tjock. Den gled sakta mot havet och grävde djupa dalar. När isen smälte steg havet. Sedan rann havet in i dalarna.\n\nFjordarna kan vara mycket djupa. Den längsta fjorden i Norge är över tjugo mil lång.\n\nMånga turister åker båt på fjordarna. De vill se den vackra naturen. På bergens sidor ligger små gårdar. Där har folk bott i hundratals år.",
     "questions": [
       {
         "id": "q1",
@@ -2383,7 +2383,7 @@
     "level": 3,
     "textType": "fact",
     "topic": "vetenskap",
-    "body": "Springer du fort en varm sommardag? Då börjar du kanske svettas. Det är kroppens eget sätt att svalka sig.\n\nI huden finns miljontals små körtlar. De kallas svettkörtlar. Blir kroppen för varm, pressar de ut svett. Svetten kommer ut genom små hål i huden. Svett är mest vatten med lite salt i. Därför smakar svett salt.\n\nSedan avdunstar svetten. Det betyder att vattnet försvinner upp i luften. När det händer tar det med sig värme från huden. Då blir du svalare.\n\nOm man svettas mycket förlorar kroppen vatten. Därför ska man dricka mycket vatten när man tränar.\n\nHundar svettas nästan inte alls. I stället flämtar de med tungan ute.",
+    "body": "Springer du fort en varm dag? Då börjar du kanske svettas. Det är kroppens eget sätt att svalka sig.\n\nI huden finns miljontals små körtlar. De kallas svettkörtlar. Blir du för varm, pressar de ut svett. Svetten kommer ut genom små hål i huden. Svett är mest vatten med lite salt i. Därför smakar svett salt.\n\nSedan avdunstar svetten. Det betyder att vattnet försvinner upp i luften. När det händer tar det med sig värme från huden. Då blir du svalare.\n\nOm man svettas mycket tappar kroppen vatten. Därför ska man dricka mycket vatten när man tränar.\n\nHundar svettas nästan inte alls. I stället flämtar de med tungan ute.",
     "questions": [
       {
         "id": "q1",
@@ -2440,7 +2440,7 @@
           "Man blir hungrig",
           "Man blir sömnig",
           "Musklerna blir kalla och stela",
-          "Kroppen förlorar vatten"
+          "Kroppen tappar vatten"
         ],
         "answerIndex": 3,
         "category": "fakta"

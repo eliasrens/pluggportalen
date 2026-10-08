@@ -53,3 +53,4 @@ Nivå 2 = enkel läsning: 60–90 ord, korta tydliga meningar, början–mitten�
 - Rätt svar unikt längst: 28 av 149 (19 %).
 - Ordantal: min 64, medel 71,2, max 77. Ord per mening: medel 6,2, max 13.
 - `validateBank` på hela banken: 0 fel, 0 varningar.
+- Efter granskningen i #524 har texterna rättats; aktuella mätvärden i `docs/lasresan-10/GRANSKNING-niva-1-3.md`.

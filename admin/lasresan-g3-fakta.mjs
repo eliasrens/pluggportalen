@@ -30,8 +30,8 @@ export const FAKTA = [
     body: [
       "Delfinen bor i havet och ser ut lite som en fisk. Men delfinen är inte en fisk. Den är ett däggdjur, precis som vi. Därför måste den andas luft.",
       "Uppe på huvudet har delfinen ett andningshål. Med jämna mellanrum simmar den upp till ytan. Där blåser den ut gammal luft och andas in ny.",
-      "Delfinungen föds under vattnet. Mamman knuffar genast upp den till ytan. Där tar ungen sitt första andetag. Sedan dricker ungen mjölk av sin mamma.",
-      "Delfiner lever i grupper. De pratar med varandra med visslingar och klickande ljud.",
+      "Ungen föds under vattnet. Mamman knuffar genast upp den till ytan. Där tar ungen sitt första andetag. Sedan dricker ungen mjölk av sin mamma.",
+      "Delfiner lever i grupper. De pratar med varandra med visslingar och klick.",
       "Hur sover en delfin utan att drunkna? Den låter halva hjärnan vila åt gången. Den andra halvan håller koll på andningen.",
     ],
     q: [
@@ -81,9 +81,9 @@ export const FAKTA = [
   {
     id: "lr-g3-bjorken", title: "Björken med vit bark", textType: "fact", topic: "natur",
     body: [
-      "Björken är ett av de vanligaste träden i Sverige. Den är lätt att känna igen på sin vita bark med svarta fläckar. Barken kallas näver. Förr gjorde man korgar och skor av näver. Den brinner också bra. Därför används den ofta när man tänder en brasa.",
-      "På våren får björken små gröna löv. Då säger man att björken har musöron. Samtidigt hänger långa hängen från grenarna. Det är björkens blommor. Vinden sprider deras gula pollen.",
-      "Många människor är allergiska mot björkens pollen. De nyser och kliar i ögonen när björken blommar.",
+      "Björken är ett av de vanligaste träden i Sverige. Den är lätt att känna igen på sin vita bark med svarta fläckar. Barken kallas näver. Förr gjorde man korgar och skor av näver. Den brinner också bra. Därför tar man den ofta när man tänder en brasa.",
+      "På våren får björken små gröna löv. Då säger man att björken har musöron. Nu hänger också långa hängen från grenarna. Det är björkens blommor. Vinden för bort deras gula pollen.",
+      "Många är allergiska mot björkens pollen. De nyser och kliar i ögonen när björken blommar.",
       "Tidigt på våren stiger saven i trädet. Sav är en söt vätska som går från rötterna upp till grenarna.",
     ],
     q: [
@@ -116,7 +116,7 @@ export const FAKTA = [
     id: "lr-g3-stenarna", title: "Stenarna som blev runda", textType: "fact", topic: "natur",
     body: [
       "På många stränder ligger stenar som är alldeles runda och släta. Men från början var de vassa och kantiga. Hur har de blivit så fina?",
-      "Det är vattnet som har gjort jobbet. Vågorna rullar stenarna fram och tillbaka mot varandra. De slår mot sand och grus. Varje gång nöts lite av kanterna bort. Det går mycket långsamt. Det kan ta tusentals år innan en sten blir rund.",
+      "Det är vattnet som har gjort jobbet. Vågorna rullar stenarna fram och tillbaka mot varandra. Varje gång nöts lite av kanterna bort. Det går mycket långsamt. Det kan ta tusentals år innan en sten blir rund.",
       "Samma sak händer i bäckar och älvar. Där är det strömmen som rullar stenarna med sig nedåt. Därför ligger det ofta släta stenar på botten av en bäck.",
       "En sten som rullas länge blir mindre och rundare. Till slut blir den till sand. Hittar du en slät sten? Tänk då på hur gammal den är.",
     ],
@@ -132,10 +132,10 @@ export const FAKTA = [
   {
     id: "lr-g3-rymddrakten", title: "Rymddräkten", textType: "fact", topic: "rymden",
     body: [
-      "När en astronaut ska gå ut från rymdstationen behövs en rymddräkt. Utan den skulle astronauten inte överleva en enda minut.",
+      "En astronaut som ska gå ut i rymden behöver en rymddräkt. Utan den skulle astronauten inte överleva en enda minut.",
       "I rymden finns ingen luft att andas. Därför har dräkten en stor ryggsäck med syrgas. Där finns också en fläkt som tar bort luften man andas ut.",
       "I rymden är det också väldigt kallt eller väldigt varmt. I skuggan kan det bli över hundra grader kallt. I solen kan det bli över hundra grader varmt. Dräkten har därför många lager som skyddar.",
-      "Hjälmen har ett guldfärgat visir. Det skyddar ögonen mot det starka solljuset.",
+      "Hjälmen har ett guldfärgat visir. Det skyddar ögonen mot den starka solen.",
       "En rymddräkt är tung. Den väger mer än en vuxen människa. Det tar nästan en timme att klä på sig den.",
     ],
     q: [
@@ -144,7 +144,7 @@ export const FAKTA = [
       ["Varför har dräkten många lager?", ["De skyddar mot kyla och hetta", "De gör dräkten snyggare", "De gör dräkten lättare", "De gör dräkten mjukare att sitta i"], "fakta"],
       ["Vad är visiret till för?", ["Att skydda ögonen", "Att andas genom", "Att prata i", "Att hålla hjälmen fast"], "fakta"],
       ["Överleva betyder …", ["klara sig och leva vidare", "bli mycket trött", "somna djupt", "flyga iväg"], "ordforstaelse"],
-      ["Varför tar det lång tid att klä på sig dräkten?", ["Den är tung och har många delar", "Astronauterna är långsamma", "De måste äta först", "Dräkten är för liten"], "mellan_raderna"],
+      ["Varför tar det lång tid att klä på sig dräkten?", ["Den är tung och har många lager", "Astronauterna är långsamma", "De måste äta först", "Dräkten är för liten"], "mellan_raderna"],
     ],
   },
   {
@@ -152,9 +152,8 @@ export const FAKTA = [
     body: [
       "I korsningar där många bilar kör finns ofta trafikljus. De bestämmer vem som får köra och vem som ska vänta.",
       "Rött betyder stopp. Grönt betyder att man får köra. Gult betyder att ljuset snart byter. Därför ska bilarna börja stanna när det lyser gult.",
-      "Många trafikljus vet om det står bilar och väntar. Under asfalten finns en slinga med elektricitet. När en bil stannar ovanpå slingan känner trafikljuset av den. Då byter det till grönt lite snabbare.",
-      "För den som går finns en egen knapp. När man trycker på den börjar det ofta ticka. Tickandet blir snabbare när det slår om till grönt. Det hjälper personer som inte kan se.",
-      "De första trafikljusen i Sverige kom för ungefär hundra år sedan.",
+      "Många trafikljus vet om det står bilar och väntar. Under asfalten finns en slinga med ström. När en bil stannar ovanpå slingan känner trafikljuset av den. Då byter det till grönt lite snabbare.",
+      "För den som går finns en egen knapp. När man trycker på den börjar det ofta ticka. Tickandet blir snabbare när det slår om till grönt. Det hjälper den som inte kan se.",
     ],
     q: [
       ["Vad betyder gult ljus?", ["Att ljuset snart byter", "Att man ska köra fort", "Att man får gå", "Att vägen är stängd för alla"], "fakta"],
@@ -187,10 +186,10 @@ export const FAKTA = [
     id: "lr-g3-tvatt-forr", title: "Tvättdagen förr", textType: "fact", topic: "historia",
     body: [
       "För hundra år sedan fanns det inga tvättmaskiner. Då var tvätten ett tungt arbete som kunde ta flera dagar.",
-      "Först måste man bära vatten från brunnen. Vattnet värmdes i en stor gryta över elden. Sedan fick kläderna ligga i blöt med såpa.",
-      "Smutsen gnuggades bort på en tvättbräda. Det är en bräda med räfflor av trä eller metall. Arbetet var hårt för både händerna och ryggen.",
+      "Först måste man bära vatten från brunnen. Man värmde vattnet i en stor gryta över elden. Sedan fick kläderna ligga i blöt med såpa.",
+      "Smutsen gnuggades bort på en tvättbräda. Det är en bräda med räfflor av trä eller metall. Det var hårt för både händer och rygg.",
       "Efter det skulle kläderna sköljas. Många bar ner tvätten till sjön eller ån. Där sköljdes den, även när det var kallt.",
-      "Till sist hängdes tvätten på en lina ute. På vintern kunde den frysa till stela plattor. Då fick man ta in den och torka den inomhus.",
+      "Till sist hängde man tvätten på en lina ute. På vintern kunde den frysa till stela plattor. Då fick man ta in den och torka den inne.",
       "Därför tvättade man inte så ofta förr.",
     ],
     q: [
@@ -205,8 +204,8 @@ export const FAKTA = [
   {
     id: "lr-g3-brevduvan", title: "Brevduvan", textType: "fact", topic: "historia",
     body: [
-      "Duvor har en fantastisk förmåga. De hittar hem, även om man släpper dem långt bort. Ingen vet exakt hur. Forskare tror att de använder solen och känner igen landskapet.",
-      "Förr använde människor detta för att skicka meddelanden. Man skrev ett kort brev på ett tunt papper. Sedan rullade man ihop det. Det sattes i en liten hylsa på duvans ben. När duvan flög hem kunde någon där läsa brevet.",
+      "Duvor har en fantastisk förmåga. De hittar hem, även om man släpper dem långt bort. Ingen vet exakt hur. Forskare tror att de tar hjälp av solen. De känner också igen marken under sig.",
+      "Förr tog man hjälp av duvorna för att skicka brev. Man skrev ett kort brev på ett tunt papper. Sedan rullade man ihop det. Det sattes i en liten hylsa på duvans ben. När duvan flög hem kunde någon där läsa brevet.",
       "Brevduvor användes i tusentals år. De bar nyheter och viktiga beslut. I krig räddade duvor många liv genom att flyga med meddelanden.",
       "En brevduva kan flyga omkring 80 kilometer i timmen. I dag tävlar många med sina duvor som en hobby.",
     ],
@@ -222,10 +221,10 @@ export const FAKTA = [
   {
     id: "lr-g3-fjordarna", title: "Norges fjordar", textType: "fact", topic: "geografi",
     body: [
-      "Norge är Sveriges granne i väster. Längs Norges kust finns hundratals fjordar. En fjord är en lång och smal havsvik. Den går långt in i landet. På båda sidor reser sig branta berg. Ibland forsar vattenfall rakt ner i fjorden.",
-      "Hur blev fjordarna till? För länge sedan var landet täckt av is. Isen var flera kilometer tjock. Den gled sakta mot havet och grävde djupa dalar. När isen smälte steg havet. Sedan fylldes dalarna med havsvatten.",
+      "Norge är Sveriges granne i väster. Längs Norges kust finns många fjordar. En fjord är en lång och smal havsvik. Den går långt in i landet. På båda sidor reser sig branta berg. Ibland forsar vattenfall rakt ner i fjorden.",
+      "Hur blev fjordarna till? För länge sedan var landet täckt av is. Isen var flera kilometer tjock. Den gled sakta mot havet och grävde djupa dalar. När isen smälte steg havet. Sedan rann havet in i dalarna.",
       "Fjordarna kan vara mycket djupa. Den längsta fjorden i Norge är över tjugo mil lång.",
-      "Många turister åker båt på fjordarna. De vill se den vackra naturen. På sluttningarna ligger små gårdar. Där har människor bott i hundratals år.",
+      "Många turister åker båt på fjordarna. De vill se den vackra naturen. På bergens sidor ligger små gårdar. Där har folk bott i hundratals år.",
     ],
     q: [
       ["Var ligger Norge?", ["Väster om Sverige", "Öster om Sverige", "Söder om Tyskland", "Mitt i Afrika"], "fakta"],
@@ -256,10 +255,10 @@ export const FAKTA = [
   {
     id: "lr-g3-svetten", title: "Därför svettas vi", textType: "fact", topic: "vetenskap",
     body: [
-      "Springer du fort en varm sommardag? Då börjar du kanske svettas. Det är kroppens eget sätt att svalka sig.",
-      "I huden finns miljontals små körtlar. De kallas svettkörtlar. Blir kroppen för varm, pressar de ut svett. Svetten kommer ut genom små hål i huden. Svett är mest vatten med lite salt i. Därför smakar svett salt.",
+      "Springer du fort en varm dag? Då börjar du kanske svettas. Det är kroppens eget sätt att svalka sig.",
+      "I huden finns miljontals små körtlar. De kallas svettkörtlar. Blir du för varm, pressar de ut svett. Svetten kommer ut genom små hål i huden. Svett är mest vatten med lite salt i. Därför smakar svett salt.",
       "Sedan avdunstar svetten. Det betyder att vattnet försvinner upp i luften. När det händer tar det med sig värme från huden. Då blir du svalare.",
-      "Om man svettas mycket förlorar kroppen vatten. Därför ska man dricka mycket vatten när man tränar.",
+      "Om man svettas mycket tappar kroppen vatten. Därför ska man dricka mycket vatten när man tränar.",
       "Hundar svettas nästan inte alls. I stället flämtar de med tungan ute.",
     ],
     q: [
@@ -267,7 +266,7 @@ export const FAKTA = [
       ["Var finns svettkörtlarna?", ["I huden", "I magen", "I hjärtat", "I håret"], "fakta"],
       ["Vad består svett mest av?", ["Vatten", "Olja", "Socker", "Blod"], "fakta"],
       ["Svetten avdunstar. Vad betyder det?", ["Den försvinner upp i luften", "Den fryser till is", "Den rinner ner på marken", "Den blir till salt"], "ordforstaelse"],
-      ["Varför ska man dricka när man tränar?", ["Kroppen förlorar vatten", "Man blir hungrig", "Man blir sömnig", "Musklerna blir kalla och stela"], "fakta"],
+      ["Varför ska man dricka när man tränar?", ["Kroppen tappar vatten", "Man blir hungrig", "Man blir sömnig", "Musklerna blir kalla och stela"], "fakta"],
       ["Hur svalkar sig hundar?", ["De flämtar med tungan ute", "De svettas mycket", "De rullar sig i den kalla sanden", "De sover mer"], "fakta"],
     ],
   },
