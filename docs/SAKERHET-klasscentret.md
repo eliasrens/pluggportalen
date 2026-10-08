@@ -81,6 +81,30 @@ Radnumren gäller `firestore.rules` i den här grenen.
 | 6c | Utloggad läser och skriver ingenting | `signedIn()` i alla regler | – | GAST "utloggad läser ingenting", "raderar ingenting"; SAK "utloggad skapar varken shard eller elevpost" | ✅ |
 | 7 | Lärare i en annan klass | `isTeacher()` = globalt anspråk | GAST "vilken lärare som helst får inreda, spärra och dela ut verifierad pokal" | GAST "inte heller en lärare får gå förbi verifieringen eller fejka en elev", "en uid som heter som läraren hjälper inte" | ⚠️ förtroendemodell (R1) |
 
+## Klasskassan (#526)
+
+Regler: `kcKassaSaldo`, `kcKassaIn`, `kcKassaUt`, `kcKassaBetald` i
+`firestore.rules` + Live-sessionens `livePrizeOk` och låsningen av `coinPrize`
+och `result` i `liveSessionUpdateOk`. Tester: **KASSA** =
+`firestore-rules-klasscenter-kassa.test.js` (30 st).
+
+| # | Garanti | Regel | Status |
+|---|---------|-------|--------|
+| K1 | Priset sätts bara av lärare vid skapandet (heltal 0–100 000), ändras aldrig efter | `livePrizeOk`, `coinPrize` oförändrat i update, `liveAutoFinishOk` rör bara status | ✅ |
+| K2 | `result` skrivs aldrig om (vinnaren kan inte bytas efter utbetalning) | `o.result == null \|\| n.result == o.result` | ✅ |
+| K3 | Utbetalning bara efter avslutad match, bara till vinnarklass(er), exakt priset/andelen, en gång | `kcKassaIn` (status finished + startedAt, `winnerClasses`, `math.floor`), id `live-<sid>` create-only | ✅ |
+| K4 | Saldot ändras bara ihop med en ny historikpost och exakt ±beloppet, aldrig < 0 | `kcKassaSaldo` | ✅ |
+| K5 | Uttag bara av kassör (klassmedlem i `kassorer`) eller lärare, atomärt med fund-ökningen, samma cap | `kcKassaUt` + `kcDonationCreate` (kassa-gren) + `kcFundWrite` | ✅ |
+| K6 | Aldrig till/från en annan klass | `kcKassor` = `isClassMember(classId)`, alla sökvägar via `kcPath` | ✅ |
+| K7 | Gäster/utloggade ser varken saldo eller historik; historiken kan inte ändras/raderas | `read: isTeacher() \|\| isClassMember`, bara `create` | ✅ |
+| K8 | Elevens egna mynt och Live-poängen rörs inte | utbetalningen skriver bara `classCenters/…/kassa*` | ✅ |
+
+Kvarvarande (samma förtroendemodell som R1): lärare är globala, och `result`
+skrivs av lärarklienten – en lärare kan alltså ange vem som vann, men bara
+EN gång per session, och priset är låst sedan skapandet. En lärare som raderar
+en session och skapar om den med samma id kan inte betala samma klass igen
+(historikposten finns kvar), men en annan klass skulle kunna få priset.
+
 ## Förtroendemodell och kvarvarande risker
 
 - **R1 – lärare är globala.** `teacher:true` (custom claim,

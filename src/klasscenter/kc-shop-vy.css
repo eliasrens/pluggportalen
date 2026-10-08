@@ -103,3 +103,51 @@
 .kcs-klassval { display: inline-flex; gap: 6px; align-items: center; margin: 0 0 10px; font-weight: 700; }
 .kcs-klass { font: inherit; padding: 2px 6px; border-radius: 8px; }
 .kcs-ingen-klass { max-width: 60ch; }
+
+/* Klasskassan (#526): saldo överst, historik bakom en knapp, kassörens knapp. */
+.kcs-kassa {
+  margin: 4px 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff6d6, #ffe9b0);
+  border: 2px solid #f4c430;
+  box-shadow: 0 3px 0 #e2b021;
+}
+.kcs-kassa-topp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kcs-kassa-ikon { font-size: 1.8rem; line-height: 1; }
+.kcs-kassa-text { display: flex; flex-direction: column; font-weight: 700; color: #7a5200; flex: 1; min-width: 160px; }
+.kcs-kassa-saldo { font-size: 1.5rem; color: #5a3d00; }
+.kcs-kassa-hist {
+  font-family: var(--font);
+  font-weight: 800;
+  border: 2px solid #f4c430;
+  background: #fff;
+  color: #7a5200;
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.kcs-kassa-hint { margin: 8px 0 0; font-size: 0.9rem; color: #6b4a00; }
+.kcs-kassa-vem { font-weight: 700; }
+.kcs-kassa-lista { margin-top: 10px; }
+.kcs-kassa-tom { margin: 0; font-size: 0.9rem; opacity: 0.8; }
+.kcs-kh-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.kcs-kh {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+.kcs-kh small { opacity: 0.65; white-space: nowrap; }
+.kcs-kh.in .kcs-kh-belopp { color: #1e7a45; }
+.kcs-kh.ut .kcs-kh-belopp { color: #b0461e; }
+
+.kcs-knappar { display: flex; flex-direction: column; gap: 6px; }
+.kcs-fran-kassan { background: #f4c430; color: #4a3200; }
+.kcs-fran-kassan:disabled { opacity: 0.45; cursor: not-allowed; }
+.kcs-panel-kassa { background: #fff6d6; border-color: #f4c430; }
+.kcs-panel-rubrik { font-weight: 800; color: #7a5200; }

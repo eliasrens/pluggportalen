@@ -17,15 +17,20 @@
 //   mountKcShop(yta, { coins, onCoins, flash, deps? }) → stopp()
 //     coins   elevens saldo nu; onCoins(nytt) efter varje lyckad donation
 //     deps    (tester/preview) { uid, klasser(), subscribeFunds, donate, bild,
-//             onAuthChange? }
+//             onAuthChange?, kassa? } – kassa = deps för kc-kassa-vy +
+//             laggFranKassan (utan kassa visas ingen kassarad)
 // Behörighet (#501, spec §7): bara elevens EGNA klasser (arKlassmedlem) kan
 // väljas eller få en donation – aldrig en klass man besöker. Byts användaren
 // i fliken (O4) stängs insamlingen i stället för att donera i förra elevens namn.
+// Klasskassan (#526): saldot + historiken överst (kc-kassa-vy.js); klassens
+// kassörer får "Från klasskassan" på varje kort – samma panel och samma cap,
+// men beloppet tas ur kassan (laggFranKassan) i stället för elevens mynt.
 // ============================================================================
 
 import { KC_SHOP_ITEMS, kcShopItem } from "./kc-shop-items.js";
 import { arKlassmedlem } from "./kc-behorighet.js";
-import { donationsGrans, handlingHtml, klampaBelopp, kortHtml, matareHtml, panelHtml } from "./kc-shop-kort.js";
+import { donationsGrans, handlingHtml, klampaBelopp, kortHtml, matareHtml, panelHtml, skankText } from "./kc-shop-kort.js";
+import { mountKassaRad } from "./kc-kassa-vy.js";
 
 const CSS = "src/klasscenter/kc-shop-vy.css";
 const VALD_KLASS_KEY = "pp:kc:shopKlass";
@@ -41,12 +46,15 @@ function laddaCss() {
 
 /** Riktiga beroenden (Firestore + konsten) – laddas först när fliken öppnas. */
 async function riktigaDeps() {
-  const [data, klasser, fund, art, auth] = await Promise.all([
+  const [data, klasser, fund, art, auth, kassa, fs, fb] = await Promise.all([
     import("../data.js"),
     import("../data-classes.js"),
     import("./kc-fund-data.js"),
     import("../art-klasscenter-inredning.js"),
     import("../auth.js"),
+    import("./kc-kassa-data.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"),
+    import("../firebase-config.js"),
   ]);
   const uid = data.currentStudentId();
   return {
@@ -57,6 +65,17 @@ async function riktigaDeps() {
     donate: fund.donate,
     bild: (it) => art.kcInredningSvg(it.art, { aria: it.namn }),
     onAuthChange: auth.onAuthChange,
+    kassa: {
+      getKassorer: kassa.getKassorer,
+      subscribeKassa: kassa.subscribeKassa,
+      subscribeKassaHistorik: kassa.subscribeKassaHistorik,
+      laggFranKassan: kassa.laggFranKassan,
+      // students/{uid} är läsbart för inloggade; saknas = läraren (#526).
+      namnFor: async (u) => {
+        const snap = await fs.getDoc(fs.doc(fb.db, "students", u));
+        return snap.exists() ? snap.data().namn || "en elev" : "läraren";
+      },
+    },
   };
 }
 
@@ -75,7 +94,9 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
   laddaCss();
   let aktiv = true;
   let avsluta = null; // subscribeFunds-avregistrering
-  const st = { coins, funds: null, classId: null, uid: null, bidrag: {}, oppen: null, belopp: 0, skickar: false };
+  let stoppKassa = null; // kassaradens avregistrering
+  const st = { coins, funds: null, classId: null, uid: null, bidrag: {}, oppen: null, belopp: 0, skickar: false,
+    kassa: { kan: false, saldo: 0 }, lage: "egen" };
   const egna = new Set(); // elevens egna klasser – de enda som får en donation
   let slappAuth = null;
 
@@ -86,6 +107,8 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
     slappAuth?.();
     if (avsluta) avsluta();
     avsluta = null;
+    stoppKassa?.();
+    stoppKassa = null;
   }
   // Sidbyte: shoppen ritas inte om, så stäng prenumerationen här.
   function vidHash() {
@@ -130,7 +153,8 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
       : "";
     yta.innerHTML = `<p class="hint shop-cat-hint">Samla ihop till något stort tillsammans med
       klassen! Alla bidrag läggs ihop – när mätaren är full är saken köpt och hamnar i
-      klassens möbellåda i Klasscentret.</p>${val}<div class="shop-grid kcs-grid"><p class="hint">Laddar…</p></div>`;
+      klassens möbellåda i Klasscentret.</p>${val}<div class="kcs-kassa-host"></div>
+      <div class="shop-grid kcs-grid"><p class="hint">Laddar…</p></div>`;
     yta.querySelector(".kcs-klass")?.addEventListener("change", (e) => {
       if (!egna.has(e.target.value)) return;
       st.classId = e.target.value;
@@ -151,6 +175,7 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
     st.funds = null;
     st.bidrag = lasBidrag(st.uid, st.classId);
     const classId = st.classId;
+    monteraKassa(d, classId);
     avsluta = d.subscribeFunds(classId, (funds) => {
       if (!aktiv || classId !== st.classId) return;
       const forsta = !st.funds;
@@ -164,11 +189,32 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
     });
   }
 
+  function monteraKassa(d, classId) {
+    stoppKassa?.();
+    stoppKassa = null;
+    st.kassa = { kan: false, saldo: 0 };
+    const host = yta.querySelector(".kcs-kassa-host");
+    if (!d.kassa || !host) return;
+    stoppKassa = mountKassaRad(host, {
+      classId, uid: st.uid, deps: d.kassa,
+      onChange: (k) => {
+        if (!aktiv || classId !== st.classId) return;
+        const fore = `${st.kassa.kan}|${st.kassa.saldo}`;
+        st.kassa = k;
+        if (st.funds && fore !== `${k.kan}|${k.saldo}`) for (const it of KC_SHOP_ITEMS) uppdateraKort(it.id);
+      },
+    });
+  }
+
+  /** Gränsen för den öppna panelen: elevens mynt eller kassans saldo. */
+  const gransFor = (id, lage = st.lage) =>
+    donationsGrans(st.funds[id], lage === "kassa" ? st.kassa.saldo : st.coins);
+
   function ritaKort(d) {
     const grid = yta.querySelector(".kcs-grid");
     if (!grid) return;
     grid.innerHTML = KC_SHOP_ITEMS
-      .map((it) => kortHtml(it, st.funds[it.id], { coins: st.coins, bidrag: st.bidrag[it.id] || 0, bild: d.bild(it) }))
+      .map((it) => kortHtml(it, st.funds[it.id], { coins: st.coins, bidrag: st.bidrag[it.id] || 0, bild: d.bild(it), kassa: st.kassa }))
       .join("");
   }
 
@@ -180,20 +226,20 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
     const fund = st.funds && st.funds[id];
     if (!kort || !fund) return;
     kort.querySelector(".kcs-matare").innerHTML = matareHtml(fund, st.bidrag[id] || 0);
-    const g = donationsGrans(fund, st.coins);
+    const g = gransFor(id);
     kort.classList.toggle("is-owned", g.kopt);
     if (st.oppen === id && !g.kopt && g.max > 0) return uppdateraPanel(kort, true);
-    if (st.oppen === id) st.oppen = null; // köpt (eller saldot slut) under tiden
-    kort.querySelector(".kcs-handling").innerHTML = handlingHtml(fund, st.coins);
+    if (st.oppen === id) st.oppen = null; // köpt (eller saldot/kassan slut) under tiden
+    kort.querySelector(".kcs-handling").innerHTML = handlingHtml(fund, st.coins, st.kassa);
   }
 
   /** Rita panelen; hel = false → bara knappen/chippen (fältet behåller fokus). */
   function uppdateraPanel(kort, hel) {
     if (!kort) return;
-    const g = donationsGrans(st.funds[kort.dataset.kc], st.coins);
+    const g = gransFor(kort.dataset.kc);
     if (hel) {
       const fokus = document.activeElement?.classList.contains("kcs-belopp");
-      kort.querySelector(".kcs-handling").innerHTML = panelHtml(g, st.belopp);
+      kort.querySelector(".kcs-handling").innerHTML = panelHtml(g, st.belopp, { kassa: st.lage === "kassa" });
       const falt = kort.querySelector(".kcs-belopp");
       if (fokus && falt) falt.focus();
       return;
@@ -205,16 +251,18 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
     for (const c of kort.querySelectorAll(".kcs-chip")) c.classList.toggle("active", Number(c.dataset.belopp) === b);
     const skank = kort.querySelector(".kcs-skank");
     skank.disabled = !b;
-    skank.textContent = b ? `Skänk ${b.toLocaleString("sv-SE")}` : "Skänk";
+    skank.textContent = skankText(b, st.lage === "kassa");
   }
 
   async function klick(d, e) {
     const kort = e.target.closest(".kcs-kort");
     if (!kort || st.skickar) return;
     const id = kort.dataset.kc;
-    if (e.target.closest(".kcs-donera")) {
+    const fran = e.target.closest(".kcs-donera") ? "egen" : e.target.closest(".kcs-fran-kassan") ? "kassa" : null;
+    if (fran && (fran === "egen" || st.kassa.kan)) {
       const forra = st.oppen;
       st.oppen = id;
+      st.lage = fran;
       st.belopp = 0;
       if (forra && forra !== id) uppdateraKort(forra);
       return uppdateraPanel(kort, true);
@@ -235,22 +283,28 @@ export function mountKcShop(yta, { coins = 0, onCoins = () => {}, flash = () => 
   }
 
   async function skanka(d, kort, id, knapp) {
-    const g = donationsGrans(st.funds[id], st.coins);
+    const g = gransFor(id);
     const belopp = klampaBelopp(st.belopp, g.max);
     if (!belopp || !egna.has(st.classId)) return;
+    const kassa = st.lage === "kassa";
     st.skickar = true;
     knapp.disabled = true;
-    knapp.textContent = "Skänker…";
+    knapp.textContent = kassa ? "Lägger…" : "Skänker…";
     const classId = st.classId;
     let res;
     try {
-      res = await d.donate(classId, id, belopp);
+      res = kassa ? await d.kassa.laggFranKassan(classId, id, belopp) : await d.donate(classId, id, belopp);
     } finally {
       st.skickar = false;
     }
     if (!aktiv) return;
     const namn = kcShopItem(id)?.namn || id;
-    if (res && res.ok) {
+    if (kassa && res && res.ok) {
+      st.oppen = null;
+      flash(res.isUnlocked
+        ? `🎉 Klassen klarade det! ${namn} är köpt och finns i klassens möbellåda.`
+        : `🏦 ${res.amount} mynt från klasskassan lades på ${namn}.${res.cappat ? " (Det behövdes inte mer än så!)" : ""}`);
+    } else if (res && res.ok) {
       st.coins = res.coins;
       st.bidrag[id] = (st.bidrag[id] || 0) + res.amount;
       skrivLS(bidragKey(st.uid, classId), JSON.stringify(st.bidrag));

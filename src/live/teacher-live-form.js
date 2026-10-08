@@ -4,6 +4,8 @@
 // Välj spelläge (ur gameMode-registret – inget hårdkodat för multiplikation),
 // klasser (klass mot klass; datamodellen klarar upp till 8), matchlängd 5–30
 // min och nämnare per klass (förifylld med klassens elevantal, justerbar).
+// Valfritt mynt-pris (#526) till vinnarklassens klasskassa – låst efter
+// skapandet (reglerna), betalas ut automatiskt vid matchslut.
 // Skapad session = status "lobby" → syns direkt för eleverna i klasserna.
 //
 // API: renderCreateForm(host, { classes, uid, createdByName, onCreated(sid) })
@@ -12,7 +14,7 @@
 import { el, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
 import { createLiveSession } from "./live-data.js";
-import { LIVE_DURATIONS_MIN, validateSessionInput, defaultSessionName, MAX_LIVE_CLASSES } from "./live-core.js";
+import { LIVE_DURATIONS_MIN, LIVE_PRIZE_MAX, validateSessionInput, defaultSessionName, MAX_LIVE_CLASSES } from "./live-core.js";
 
 export function renderCreateForm(host, { classes, uid, createdByName, onCreated }) {
   const modes = listGameModes();
@@ -37,6 +39,10 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
       <div class="live-durations">${LIVE_DURATIONS_MIN.map((m) => `<label class="live-chip">
         <input type="radio" name="dur" value="${m}" ${m === 20 ? "checked" : ""} /><span>${m} min</span></label>`).join("")}</div>
     </div>
+    <div class="field"><label for="live-prize">Mynt-pris till vinnarklassen <small class="hint">(valfritt – går till
+      klassens klasskassa i Klasscentret; oavgjort delas lika. Kan inte ändras efter att matchen skapats.)</small></label>
+      <input id="live-prize" class="live-prize-input" type="number" min="0" max="${LIVE_PRIZE_MAX}" step="1" inputmode="numeric"
+        placeholder="t.ex. 1000 (tomt = inget pris)" /></div>
     <div class="field"><label for="live-name">Matchnamn</label>
       <input id="live-name" maxlength="80" placeholder="t.ex. 4B mot 5E" /></div>
     <div class="live-form-msg"></div>
@@ -81,6 +87,7 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
       classNames: Object.fromEntries(ids.map((id) => [id, byId.get(id)?.name || id])),
       durationMin: Number(form.querySelector('input[name="dur"]:checked')?.value),
       divisors: Object.fromEntries(ids.map((id) => [id, Number(divisors[id])])),
+      coinPrize: form.querySelector("#live-prize").value,
       createdByName,
     };
     const errs = validateSessionInput(input, { knownModes: modes.map((m) => m.id) });

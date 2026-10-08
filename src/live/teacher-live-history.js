@@ -4,7 +4,8 @@
 // Avslutade matcher ligger kvar i liveSessions (status "finished") med
 // `result` (ögonblicksbild) + spelardokumenten (elevresultat). Saknas
 // `result` (ingen projektor var öppen vid slutet) räknas det ur räknarna och
-// sparas härifrån.
+// sparas härifrån. Har matchen ett mynt-pris (#526) som inte betalats ut
+// (projektorn stängdes innan) betalas det härifrån – idempotent.
 //
 // API
 //   renderHistoryList(ctx, host)                 – Live-flikens historiklista
@@ -18,7 +19,7 @@ import { getGameMode } from "./modes/index.js";
 import {
   listFinishedSessions, listClassSessions, getSession, getPlayers, getCounters, writeResultIfMissing,
 } from "./live-data.js";
-import { toMs, sumCounters, classStandings, buildResult, formatScore } from "./live-core.js";
+import { toMs, sumCounters, classStandings, buildResult, formatScore, prizeText, sessionPrize } from "./live-core.js";
 
 const fmtDate = (t) => {
   const ms = toMs(t);
@@ -71,6 +72,9 @@ export async function renderHistoryDetail(ctx, host, sid) {
     if (!s) throw new Error("matchen finns inte");
     players = await getPlayers(sid);
     result = s.status === "finished" && s.startedAt ? await ensureResult(s, players) : null;
+    if (s.result && sessionPrize(s)) {
+      import("../klasscenter/kc-koppling.js").then((m) => m.livePrisEfterAvslut(s.id, s)).catch(() => {});
+    }
   } catch (err) {
     host.replaceChildren(el(`<p class="err-inline">Kunde inte läsa matchen: ${esc(err.message)}</p>`));
     return;
@@ -96,6 +100,7 @@ export async function renderHistoryDetail(ctx, host, sid) {
       ${s.status !== "finished" ? " · pågår ännu" : ""}</p>
     <p class="live-history-winner">${result ? (result.winner === "draw" ? "🤝 OAVGJORT" : `🏆 VINNARE – ${esc(className(s, result.winner))}`) : ""}
       ${result ? `<small class="hint">Totalt ${result.totalCorrect} rätt</small>` : ""}</p>
+    ${sessionPrize(s) ? `<p class="live-prize">🪙 ${esc(prizeText(s, result))}</p>` : ""}
     <table class="live-table"><thead><tr><th>Klass</th><th class="num">Rätt</th><th class="num">Nämnare</th><th class="num">Poäng</th></tr></thead>
       <tbody>${classRows}</tbody></table>
     <h3>Elevresultat</h3>

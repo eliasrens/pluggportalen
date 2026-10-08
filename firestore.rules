@@ -426,11 +426,17 @@ service cloud.firestore {
         d.counterShards is int && d.counterShards >= 1 && d.counterShards <= 50 &&
         d.status in ['lobby', 'live', 'finished'];
     }
+    // Mynt-pris till vinnarklassens klasskassa (#526): valfritt heltal
+    // 0–100 000, sätts BARA när läraren skapar sessionen (låst i update).
+    function livePrizeOk(d) {
+      return !('coinPrize' in d) ||
+        (d.coinPrize is int && d.coinPrize >= 0 && d.coinPrize <= 100000);
+    }
     function liveSessionCreateOk() {
       let d = request.resource.data;
       return validLiveSessionShape() && d.status == 'lobby' &&
         d.createdBy == request.auth.uid && d.createdAt == request.time &&
-        !('startedAt' in d) && !('endsAt' in d);
+        !('startedAt' in d) && !('endsAt' in d) && livePrizeOk(d) && !('result' in d);
     }
     // STARTA: startedAt = serverns tid (serverTimestamp). endsAt skrivs i ett
     // andra steg och MÅSTE vara startedAt + nedräkning + matchlängd. Svars-
@@ -439,7 +445,12 @@ service cloud.firestore {
       let o = resource.data;
       let n = request.resource.data;
       let starting = o.status == 'lobby' && n.status == 'live';
+      // Priset ändras aldrig efter skapandet, och ett skrivet result (som
+      // kassans utbetalning läser, #526) skrivs aldrig om.
       return validLiveSessionShape() &&
+        n.get('coinPrize', 0) == o.get('coinPrize', 0) &&
+        (o.get('result', null) == null || n.get('result', null) == o.result) &&
+        (n.get('result', null) == null || n.status == 'finished') &&
         (n.status == o.status || starting ||
           (o.status == 'lobby' && n.status == 'finished') ||
           (o.status == 'live' && n.status == 'finished')) &&
@@ -670,7 +681,8 @@ service cloud.firestore {
       function kcFundWrite(itemId) {
         let d = request.resource.data;
         let don = getAfter(kcPath('donations', d.lastDonationId)).data;
-        return isClassMember(classId) && kcPris(itemId) > 0 &&
+        return (isClassMember(classId) || (isTeacher() && don.get('kassa', false) == true)) &&
+          kcPris(itemId) > 0 &&
           (resource == null || resource.data.isUnlocked != true) &&
           changedOnly(['targetPrice', 'fundedAmount', 'isUnlocked', 'unlockedAt', 'lastDonationId']) &&
           d.targetPrice == kcPris(itemId) &&
@@ -694,14 +706,24 @@ service cloud.firestore {
         return efter.get('coins', 0) == get(p).data.get('coins', 0) - n && efter.get('coins', 0) >= 0 &&
           efter.get('kcDonation', '') == classId + '/' + donationId;
       }
+      // Elevens donation betalas med egna mynt; kassa:true (#526) betalas ur
+      // klasskassan av kassör/lärare – kassaHistorik "ut" med samma id och
+      // belopp i samma batch (som i sin tur kräver att saldot sjönk).
       function kcDonationCreate(donationId) {
         let d = request.resource.data;
-        return isClassMember(classId) &&
-          d.keys().hasOnly(['uid', 'itemId', 'amount', 'at']) &&
-          d.uid == request.auth.uid && d.itemId is string && kcPris(d.itemId) > 0 &&
+        return d.uid == request.auth.uid && d.itemId is string && kcPris(d.itemId) > 0 &&
           d.amount is int && d.amount >= 1 && d.at == request.time &&
           getAfter(kcPath('fund', d.itemId)).data.lastDonationId == donationId &&
-          kcCoinsPaid(d.amount, donationId);
+          (d.get('kassa', false) == true
+            ? d.keys().hasOnly(['uid', 'itemId', 'amount', 'at', 'kassa']) && kcKassaBehorig() &&
+              kcKassaBetald(donationId, d)
+            : isClassMember(classId) && d.keys().hasOnly(['uid', 'itemId', 'amount', 'at']) &&
+              kcCoinsPaid(d.amount, donationId));
+      }
+      function kcKassaBetald(txId, don) {
+        let tx = getAfter(kcPath('kassaHistorik', txId)).data;
+        return tx.typ == 'ut' && tx.belopp == don.amount && tx.itemId == don.itemId &&
+          tx.uid == request.auth.uid;
       }
 
       match /fund/{itemId} {
@@ -711,6 +733,76 @@ service cloud.firestore {
       match /donations/{donationId} {
         allow read: if isTeacher();
         allow create: if kcDonationCreate(donationId);
+      }
+
+      // ----------------------------------------------------------------
+      // Klasskassan (#526). Skrivplan: src/klasscenter/kc-kassa-plan.js.
+      //   kassa/saldo            {saldo, lastTxId}
+      //   kassaHistorik/{txId}   in:  {typ, kalla:'live', sessionId, titel,
+      //                                belopp, at, av}   txId = live-<sessionId>
+      //                          ut:  {typ, itemId, belopp, uid, at}
+      //  • Läses BARA av klassen + lärare (gäster ser varken saldo eller
+      //    historik).
+      //  • saldo ändras bara ihop med en NY historikpost (lastTxId, !exists
+      //    före) och exakt ±postens belopp; aldrig under 0.
+      //  • "in": bara lärare, bara efter att Live-sessionen är avslutad
+      //    (status finished + startedAt), bara till en klass i
+      //    result.winnerClasses och exakt floor(coinPrize / antal vinnare).
+      //    Id:t live-<sessionId> + create-only → en gång per match och klass.
+      //  • "ut": bara lärare eller kassör (klassmedlem i klassprofilens
+      //    kassorer), i samma batch som en donationspost kassa:true med samma
+      //    id/belopp/föremål → fund ökar lika mycket (kcFundWrite, samma cap).
+      //  • Historiken kan aldrig ändras eller raderas.
+      // ----------------------------------------------------------------
+      function kcKassor() {
+        let p = /databases/$(database)/documents/classCenters/$(classId);
+        return isClassMember(classId) && exists(p) &&
+          request.auth.uid in get(p).data.get('kassorer', []);
+      }
+      function kcKassaBehorig() { return isTeacher() || kcKassor(); }
+      function kcKassaSaldo(docId) {
+        let d = request.resource.data;
+        let tx = getAfter(kcPath('kassaHistorik', d.lastTxId)).data;
+        let delta = newInt('saldo') - prevInt('saldo');
+        return docId == 'saldo' && changedOnly(['saldo', 'lastTxId']) &&
+          d.saldo is int && d.saldo >= 0 && d.lastTxId is string &&
+          !exists(kcPath('kassaHistorik', d.lastTxId)) &&
+          ((tx.typ == 'in' && delta == tx.belopp) || (tx.typ == 'ut' && delta == -tx.belopp));
+      }
+      function kcKassaIn(txId) {
+        let d = request.resource.data;
+        let s = get(/databases/$(database)/documents/liveSessions/$(d.sessionId)).data;
+        let vinnare = s.get('result', {}).get('winnerClasses', []);
+        let pris = s.get('coinPrize', 0);
+        return isTeacher() &&
+          d.keys().hasOnly(['typ', 'kalla', 'sessionId', 'titel', 'belopp', 'at', 'av']) &&
+          d.kalla == 'live' && txId == 'live-' + d.sessionId &&
+          d.titel is string && d.titel.size() <= 80 &&
+          d.at == request.time && d.av == request.auth.uid &&
+          s.status == 'finished' && s.get('startedAt', null) != null &&
+          vinnare is list && classId in vinnare &&
+          pris is int && pris >= 1 && d.belopp is int && d.belopp >= 1 &&
+          d.belopp == math.floor(pris / vinnare.size()) &&
+          getAfter(kcPath('kassa', 'saldo')).data.lastTxId == txId;
+      }
+      function kcKassaUt(txId) {
+        let d = request.resource.data;
+        return kcKassaBehorig() &&
+          d.keys().hasOnly(['typ', 'itemId', 'belopp', 'uid', 'at']) &&
+          d.uid == request.auth.uid && d.itemId is string && kcPris(d.itemId) > 0 &&
+          d.belopp is int && d.belopp >= 1 && d.at == request.time &&
+          getAfter(kcPath('kassa', 'saldo')).data.lastTxId == txId &&
+          getAfter(kcPath('donations', txId)).data.get('kassa', false) == true;
+      }
+
+      match /kassa/{docId} {
+        allow read: if isTeacher() || isClassMember(classId);
+        allow create, update: if kcKassaSaldo(docId);
+      }
+      match /kassaHistorik/{txId} {
+        allow read: if isTeacher() || isClassMember(classId);
+        allow create: if (request.resource.data.typ == 'in' && kcKassaIn(txId)) ||
+          (request.resource.data.typ == 'ut' && kcKassaUt(txId));
       }
 
       // ----------------------------------------------------------------
@@ -877,11 +969,14 @@ service cloud.firestore {
 
       // Klassprofilen (pokalerna bor i trophies/ ovan, hogstaNiva valfritt).
       // Läses bara av klassen och lärare (#500): spärrlistan säger vilka
-      // elever läraren bockat ur – gästläget behöver den inte.
+      // elever läraren bockat ur – gästläget behöver den inte. kassorer
+      // (#526) = de elever läraren utsett till klasskassörer.
       allow read: if isTeacher() || isClassMember(classId);
-      allow create, update: if isTeacher() && changedOnly(['inredningSparr']) &&
-        request.resource.data.inredningSparr is list &&
-        request.resource.data.inredningSparr.size() <= 200;
+      allow create, update: if isTeacher() && changedOnly(['inredningSparr', 'kassorer']) &&
+        request.resource.data.get('inredningSparr', []) is list &&
+        request.resource.data.get('inredningSparr', []).size() <= 200 &&
+        request.resource.data.get('kassorer', []) is list &&
+        request.resource.data.get('kassorer', []).size() <= 50;
 
       match /layout/{docId} {
         allow read: if signedIn();

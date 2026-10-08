@@ -6,6 +6,7 @@
 // Ingen timer och ingen stor statistik på elevskärmen (spec). Allt tillstånd
 // kommer från Firestore, så omladdning/avbrott = samma session igen.
 // Sen anslutning: är matchen redan LIVE går eleven direkt in i spelet.
+// Mynt-pris (#526): visas i lobbyn och på slutskärmen.
 // Laddas DYNAMISKT från app.js (#271).
 // ============================================================================
 
@@ -16,7 +17,7 @@ import { mountFastAnswer } from "../mult/fast-answer.js";
 import { watchActiveSessions, watchMyPlayer, joinLiveSession, heartbeat, submitLiveAnswer, getSession } from "./live-data.js";
 import { subscribeLiveSession } from "./live-feed.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
-import { sessionTitle, sessionTimes, formatScore } from "./live-core.js";
+import { sessionTitle, sessionTimes, formatScore, prizeText } from "./live-core.js";
 import { relevantSessions } from "./live-watch.js";
 import { ensureLiveCss, onLeaveRoute } from "./live-css.js";
 
@@ -96,6 +97,7 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
     <div class="live-elev-stage">
       <div class="live-elev-lobby" hidden>
         <p class="live-elev-wait">Väntar på start…</p>
+        ${prizeText(initial) ? `<p class="live-elev-prize">🪙 ${escHtml(prizeText(initial))}</p>` : ""}
         <button class="btn stor gron live-elev-join" hidden>Gå med i Live-match</button>
         <p class="live-elev-ready hint" hidden>✅ Du är redo! Matchen startar automatiskt.</p>
       </div>
@@ -213,5 +215,6 @@ function endHtml(st, player, classId) {
   const head = r.winner === "draw"
     ? `<h2>🤝 OAVGJORT!</h2>`
     : `<h2>🏆 VINNARE – ${escHtml(names[r.winner] || r.winner)}!</h2>`;
-  return `${head}<ul class="live-elev-result">${rows}</ul>${mine}`;
+  const pris = prizeText(st.session, r);
+  return `${head}${pris ? `<p class="live-elev-prize">🪙 ${escHtml(pris)}</p>` : ""}<ul class="live-elev-result">${rows}</ul>${mine}`;
 }

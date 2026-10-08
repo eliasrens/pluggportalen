@@ -718,7 +718,8 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `startedAt` | timestamp | sätts vid STARTA, MÅSTE vara `serverTimestamp()`; oföränderlig därefter |
 | `endsAt` | timestamp | skrivs direkt efter start och MÅSTE vara `startedAt + countdownSeconds + durationSeconds` |
 | `finishedAt` | timestamp | när matchen markerades klar |
-| `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw" }` |
+| `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw", winnerClasses[] }` – skrivs aldrig om när det väl finns (#526) |
+| `coinPrize` | int 0–100 000 (valfri) | **#526** mynt-pris till vinnarklassens klasskassa; sätts bara vid skapandet, reglerna nekar varje ändring därefter. Saknas/0 = inget pris |
 
 - Bara lärare skapar/ändrar, och **alla lärare** får styra alla sessioner.
   `gameMode`, klasser, längd, nedräkning och shards låses när matchen startat.
@@ -739,6 +740,11 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
   + i KOOPERATIVA lägen (`GameMode.cooperative`, #495) `cooperative: true,
   goalReached: bool` (lägets `goalReached(standings, session)`). Klienten vars
   transaktion skrev `result` delar sedan ut Live-bonusar och pokaler.
+  `winnerClasses` (#526) = mynt-prisets mottagare: ledarna (vid oavgjort alla
+  som delar 1:a), men tom om ingen klass fick poäng; kooperativt = alla klasser
+  med spelare om `goalReached`, annars tom. Samma klient betalar sedan ut
+  `coinPrize` till klasskassorna (se Klasscentret → Klasskassan); historikvyn
+  försöker igen om projektorn stängdes innan (idempotent).
 
 ### Live-kärnan i klienten (#460)
 
@@ -882,11 +888,12 @@ En elev i flera klasser ger EXP till varje klass (räknas i varje klass elevanta
 | Fält | Typ | Epic | Beskrivning |
 | --- | --- | --- | --- |
 | `inredningSparr` | array | **2 (klar, #489)** | uid:n som läraren bockat ur – får titta/donera men inte spara layout (≤ 200, `setInredningSparr`) |
+| `kassorer` | array | **#526** | klasskassörer (≤ 50, `setKassorer`) – får lägga från klasskassan |
 | `hogstaNiva` | number | 1 C/D (valfri) | golv så nivån inte sjunker när elevantalet växer |
 
 Läses av klassens elever och lärare (#500 – spärrlistan visar vilka elever
 som bockats ur; gästläget behöver den inte). Skrivs bara av lärare.
-**Regler (#489):** bara `inredningSparr` får skrivas (lärare, lista ≤ 200).
+**Regler (#489, #526):** bara `inredningSparr` och `kassorer` får skrivas (lärare, listor ≤ 200 resp. ≤ 50; skrivs med `merge`, så de rör inte varandra).
 Pokalerna bor INTE här utan i underkollektionen `trophies/` (#494, nedan) –
 profilens `changedOnly`-lista är oförändrad. Elever kan inte skriva dokumentet
 alls (inte ens ta bort sig själva ur spärren).
@@ -1017,6 +1024,7 @@ donationen – saknat dokument = 0 insamlat (`normaliseraFunds`).
 | `itemId` | string | föremålet |
 | `amount` | int ≥ 1 | det faktiskt dragna (cappade) beloppet |
 | `at` | timestamp | serverns tid |
+| `kassa` | `true` (valfri) | **#526** betalt ur klasskassan (uid = kassören/läraren) i stället för elevens mynt |
 
 Create-only (ingen ändring/radering, inte ens lärare → insamlat == summan
 av posterna). **Läses bara av lärare** – för klassen är donationerna anonyma
@@ -1068,6 +1076,49 @@ bidragit med X" räknas lokalt i `localStorage` (`pp:kc:bidrag:<uid>:<classId>`,
 per enhet) – inga andras uid läses. QA: `admin/qa-klasscentrum-shop.mjs`.
 ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` innan donationer
 fungerar live.
+
+### Klasskassan (#526)
+
+Klassens gemensamma mynt. Fylls av Live-matchernas mynt-pris (`liveSessions.coinPrize`)
+och läggs av klasskassörer/lärare på Klasscentrum-föremål – samma `fund`-mätare,
+samma cap och samma "Köpt → möbellådan" som elevernas donationer. Elevernas egna
+mynt påverkas aldrig. Logik + skrivplaner: `src/klasscenter/kc-kassa-plan.js`;
+SDK: `kc-kassa-data.js` (dynamisk).
+
+#### `classCenters/{classId}/kassa/saldo`
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `saldo` | int ≥ 0 | kassans saldo (ändras med `increment`) |
+| `lastTxId` | string | historikposten som just ändrade saldot |
+
+#### `classCenters/{classId}/kassaHistorik/{txId}` (create-only)
+
+| `typ` | Fält | Id |
+| --- | --- | --- |
+| `"in"` | `kalla: "live"`, `sessionId`, `titel` (matchnamn ≤ 80), `belopp`, `at`, `av` (lärarens uid) | `live-<sessionId>` → en gång per match och klass |
+| `"ut"` | `itemId`, `belopp`, `uid` (kassör/lärare), `at` | = donationspostens id |
+
+**Insättning** (`korLivePris`, lärarklienten som skrev `result`): per klass i
+`result.winnerClasses` EN batch: `kassa/saldo` `increment(+andel)` +
+historik `in`, andel = `floor(coinPrize / antal vinnare)`. Finns posten redan
+(annan projektor hann före) hoppas klassen över.
+
+**Uttag** (`korKassaUt` via `laggFranKassan`): läs `fund` + saldot från servern,
+cappa till min(begärt, det som saknas, saldot) → EN batch: saldo
+`increment(−n)`, historik `ut`, donationspost `{…, kassa: true}`, `fund`
+`increment(+n)`. Samtidiga skrivare körs om (`kc-omforsok.js`, 8 försök).
+
+**Regler:** läses bara av klassen + lärare (gäster ser ingenting). Saldot ändras
+bara ihop med en NY historikpost och exakt ±dess belopp, aldrig under 0. `in`:
+bara lärare, sessionen `finished` med `startedAt`, klassen i `result.winnerClasses`,
+`belopp == math.floor(coinPrize / antal)`, id `live-<sessionId>`. `ut`: lärare
+eller kassör (klassmedlem i profilens `kassorer`), i samma batch som en
+`kassa:true`-donation med samma id/belopp/föremål. Historiken kan inte ändras
+eller raderas (inte ens av lärare). Tester: `test/firestore-rules-klasscenter-kassa.test.js`.
+UI: kassarad överst i shoppens Klasscentrum-flik (`kc-kassa-vy.js`), lärarens
+block "Klasskassan" under klassen (`teacher-class-kassa.js`). QA-seed:
+`admin/qa-kassa-seed.mjs`. ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
 
 ### Gemensam layout + historik (epic 2, #489)
 

@@ -17,8 +17,11 @@
 //   snabbvalLista(grans)                   → [{ belopp, etikett, av }]
 //   kortHtml(item, fund, { coins, bidrag, bild })   → hela kortet
 //   matareHtml(fund, bidrag)               → mätaren ("150 / 5000 mynt insamlade")
-//   handlingHtml(fund, coins)              → "Donera"-knappen eller "Köpt!"
-//   panelHtml(grans, belopp)               → donationspanelen (snabbval + fält)
+//   handlingHtml(fund, coins, kassa?)      → "Donera"-knappen eller "Köpt!";
+//       kassa = { kan, saldo } (#526): kassör/lärare får "Från klasskassan"
+//   panelHtml(grans, belopp, { kassa? })   → donationspanelen (snabbval + fält);
+//       kassa:true = samma panel men beloppet tas ur klasskassan
+//   skankText(belopp, kassa)               → knapptexten i panelen
 // ============================================================================
 
 export const SNABBVAL = Object.freeze([10, 50, 100, 500]);
@@ -68,48 +71,62 @@ export function matareHtml(fund, bidrag = 0) {
     <div class="kcs-insamlat"><b>${tal(insamlat)}</b> / ${tal(mal)} mynt insamlade</div>${eget}`;
 }
 
-/** Knappraden: "Köpt!" vid 100 %, annars "Donera" (avstängd utan mynt). */
-export function handlingHtml(fund, coins) {
+/**
+ * Knappraden: "Köpt!" vid 100 %, annars "Donera" (avstängd utan mynt). Är
+ * eleven kassör (kassa.kan) finns även "Från klasskassan" (avstängd när
+ * kassan är tom).
+ */
+export function handlingHtml(fund, coins, kassa = null) {
   const g = donationsGrans(fund, coins);
   if (g.kopt) {
     return `<div class="kcs-kopt">✓ Köpt! Finns i klassens möbellåda</div>`;
   }
-  if (g.max < 1) {
-    return `<button type="button" class="buy-btn nej" disabled title="Du har inga mynt just nu">Donera</button>`;
-  }
-  return `<button type="button" class="buy-btn kcs-donera">Donera 💛</button>`;
+  const egen = g.max < 1
+    ? `<button type="button" class="buy-btn nej" disabled title="Du har inga mynt just nu">Donera</button>`
+    : `<button type="button" class="buy-btn kcs-donera">Donera 💛</button>`;
+  if (!kassa?.kan) return egen;
+  const tom = Math.floor(Number(kassa.saldo) || 0) < 1;
+  return `<div class="kcs-knappar">${egen}<button type="button" class="buy-btn kcs-fran-kassan"${tom
+    ? ` disabled title="Klasskassan är tom"` : ""}>🏦 Från klasskassan</button></div>`;
+}
+
+/** Panelens skicka-knapp: "Skänk 50" / "Lägg 50 från kassan". */
+export function skankText(belopp, kassa = false) {
+  if (!belopp) return kassa ? "Lägg från kassan" : "Skänk";
+  return kassa ? `Lägg ${tal(belopp)} från kassan` : `Skänk ${tal(belopp)}`;
 }
 
 /** Donationspanelen (öppnas i kortet): snabbval, fritt fält, skänk/avbryt. */
-export function panelHtml(grans, belopp = 0) {
+export function panelHtml(grans, belopp = 0, { kassa = false } = {}) {
   const b = klampaBelopp(belopp, grans.max);
   const chips = snabbvalLista(grans)
     .map((c) => `<button type="button" class="kcs-chip${c.belopp === b ? " active" : ""}"
       data-belopp="${c.belopp}"${c.av ? " disabled" : ""}>${c.etikett}</button>`)
     .join("");
-  return `<div class="kcs-panel">
+  return `<div class="kcs-panel${kassa ? " kcs-panel-kassa" : ""}">
+    ${kassa ? `<div class="kcs-panel-rubrik">🏦 Från klasskassan</div>` : ""}
     <div class="kcs-saknas">Bara <b>${tal(grans.saknas)}</b> mynt saknas!</div>
     <div class="kcs-chips">${chips}</div>
     <label class="kcs-falt">Eget belopp
       <input type="number" class="kcs-belopp" inputmode="numeric" min="1" max="${grans.max}"
         step="1" value="${b || ""}" placeholder="1–${grans.max}" />
     </label>
-    <div class="kcs-maxinfo">Du kan skänka högst ${tal(grans.max)} mynt.</div>
+    <div class="kcs-maxinfo">${kassa ? `Högst ${tal(grans.max)} mynt ur kassan.` : `Du kan skänka högst ${tal(grans.max)} mynt.`}</div>
     <div class="kcs-panel-knappar">
       <button type="button" class="kcs-avbryt">Avbryt</button>
-      <button type="button" class="buy-btn kcs-skank"${b ? "" : " disabled"}>${b ? `Skänk ${tal(b)}` : "Skänk"}</button>
+      <button type="button" class="buy-btn kcs-skank"${b ? "" : " disabled"}>${skankText(b, kassa)}</button>
     </div>
   </div>`;
 }
 
 /** Hela kortet. bild = konstens <svg> (eller null → katalogens emoji). */
-export function kortHtml(item, fund, { coins = 0, bidrag = 0, bild = null } = {}) {
+export function kortHtml(item, fund, { coins = 0, bidrag = 0, bild = null, kassa = null } = {}) {
   const kopt = donationsGrans(fund, coins).kopt;
   return `<div class="shop-card kcs-kort${kopt ? " is-owned" : ""}" data-kc="${item.id}">
     <div class="kcs-bild kcs-bild-${item.zon}">${bild || `<span class="kcs-emoji">${item.emoji}</span>`}</div>
     <div class="shop-namn">${item.namn}</div>
     <div class="kcs-mal">Mål: ${tal(item.targetPrice)} mynt</div>
     <div class="kcs-matare">${matareHtml(fund, bidrag)}</div>
-    <div class="kcs-handling">${handlingHtml(fund, coins)}</div>
+    <div class="kcs-handling">${handlingHtml(fund, coins, kassa)}</div>
   </div>`;
 }

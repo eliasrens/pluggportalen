@@ -122,7 +122,8 @@ export async function autoFinish(sid) {
 /**
  * Historikens ögonblicksbild – skrivs en gång (av en lärarklient). Den klient
  * vars transaktion skrev result delar också ut Klasscentrets Live-bonusar
- * (#479) och pokaler (#495) – dynamiskt, aldrig kastande → en gång per session.
+ * (#479), pokaler (#495) och mynt-priset till klasskassan (#526) –
+ * dynamiskt, aldrig kastande → en gång per session.
  */
 export async function writeResultIfMissing(sid, result) {
   let skrev = null;
@@ -138,6 +139,7 @@ export async function writeResultIfMissing(sid, result) {
     import("../klasscenter/kc-koppling.js").then((m) => {
       m.liveKlassBonus(result);
       m.pokalerEfterAvslut("live", sid, skrev);
+      m.livePrisEfterAvslut(sid, skrev);
     }).catch(() => {});
   }
 }

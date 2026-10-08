@@ -14,8 +14,10 @@
 //   tavling/page-mattematchen.js  mattematchen { rattFore, rattEfter } per
 //                                 server-bekräftat rätt svar (+1-batchen)
 //   live/live-data.js             writeResultIfMissing → liveKlassBonus(result)
-//                                 + pokalerEfterAvslut("live", …) (lärarklienten,
-//                                 en gång per session, EFTER att result skrivits)
+//                                 + pokalerEfterAvslut("live", …)
+//                                 + livePrisEfterAvslut(sid, …) (lärarklienten,
+//                                 en gång per session, EFTER att result skrivits;
+//                                 historiken kör livePrisEfterAvslut igen = idempotent)
 //   tavling/mm-teacher-data.js    finishCompetition / archiveIfEnded →
 //                                 pokalerEfterAvslut("mattematchen", …) (#495)
 //
@@ -30,6 +32,10 @@
 //       pokalerna källans result ger (kc-pokal-typer pokalerUrKalla) via
 //       kc-pokal-data delaUtPokalerFor. Idempotent (deterministiskt id) –
 //       avsluta två gånger / två lärarflikar → EN pokal. Aldrig kastande.
+//   livePrisEfterAvslut(sid, session, { betala? }) → Promise<[{ classId, belopp, status }]>
+//       Live-matchens mynt-pris (#526) till vinnarklassernas klasskassor via
+//       kc-kassa-data livePrisTillKassan. Idempotent (id live-<sid>). Inget
+//       pris → kassamodulen laddas inte ens. Aldrig kastande.
 // ============================================================================
 
 import { planKlassExp, harRegel, modulFor } from "./kc-exp-regler.js";
@@ -115,6 +121,21 @@ export async function pokalerEfterAvslut(kalla, kallaId, kallaDoc, { dela } = {}
     return (await fn(kalla, kallaId, kallaDoc)) || [];
   } catch (err) {
     console.warn("[klasscenter] pokaler hoppades över", kalla, kallaId, err?.code || err);
+    return [];
+  }
+}
+
+/** Live-matchens mynt-pris till klasskassan (#526). Aldrig kastande. */
+export async function livePrisEfterAvslut(sid, session, { betala } = {}) {
+  try {
+    const { livePrisPoster } = await import("./kc-kassa-plan.js");
+    if (!livePrisPoster(sid, session).length) return [];
+    const fn = betala || (await import("./kc-kassa-data.js")).livePrisTillKassan;
+    const ut = (await fn(sid, session)) || [];
+    for (const r of ut) if (r.status === "nekad") console.warn("[klasscenter] Live-priset nekades", sid, r.classId, r.fel);
+    return ut;
+  } catch (err) {
+    console.warn("[klasscenter] Live-priset hoppades över", sid, err?.code || err);
     return [];
   }
 }

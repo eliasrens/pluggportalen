@@ -6,7 +6,9 @@
 //
 //   sparrUrBockning(elever, ikryssade) → inredningSparr (urbockade elevers uid)
 //   donatorerPerForemal(donations)     → Map itemId → [{uid, summa, antal}]
+//       (uttag ur klasskassan, kassa:true, samlas under uid "kassa", #526)
 //   inredningHtml(elever, sparr)       → kryssrutorna "Får inreda"
+//   kassorerHtml(elever, kassorer)     → kryssrutorna "Klasskassör" (#526)
 //   insamlingHtml(funds, donations, namnFor) → listan per föremål
 //   historikHtml(poster, {aktuellVersion, namnFor, nu}) → layout-historiken
 //
@@ -53,10 +55,11 @@ export function donatorerPerForemal(donations) {
     const belopp = Math.max(0, Math.trunc(Number(d.amount) || 0));
     if (!per.has(d.itemId)) per.set(d.itemId, new Map());
     const m = per.get(d.itemId);
-    const r = m.get(d.uid) || { uid: d.uid, summa: 0, antal: 0 };
+    const vem = d.kassa === true ? "kassa" : d.uid;
+    const r = m.get(vem) || { uid: vem, summa: 0, antal: 0 };
     r.summa += belopp;
     r.antal += 1;
-    m.set(d.uid, r);
+    m.set(vem, r);
   }
   const ut = new Map();
   for (const [itemId, m] of per) {
@@ -80,6 +83,20 @@ export function inredningHtml(elever, sparr) {
 }
 
 /**
+ * Kryssrutorna "Klasskassör" – ikryssade = nuvarande kassörer.
+ * @param {object[]} elever    klassens elever (redan sorterade)
+ * @param {string[]} kassorer  nuvarande kassorer
+ */
+export function kassorerHtml(elever, kassorer) {
+  if (!elever.length) return `<p class="hint">Klassen har inga elever än.</p>`;
+  const valda = new Set(kassorer || []);
+  return `<div class="member-grid">${elever.map((s) => `<label class="member-row">
+      <input type="checkbox" data-kc-kassor="${esc(s.id)}"${valda.has(s.id) ? " checked" : ""} />
+      <span class="member-name">${esc(elevNamn(s))}</span>
+    </label>`).join("")}</div>`;
+}
+
+/**
  * Insamlingen per föremål: insamlat / mål, Köpt, och vem som gett hur mycket.
  * @param {{[itemId:string]: {fundedAmount:number, targetPrice:number, isUnlocked:boolean}}} funds
  * @param {object[]} donations   listDonations
@@ -96,7 +113,7 @@ export function insamlingHtml(funds, donations, namnFor) {
       ? `<span class="ok-inline">✓ Köpt</span>`
       : f.fundedAmount > 0 ? `${pct} %` : `<span class="hint">ej påbörjad</span>`;
     const lista = vem.length
-      ? vem.map((r) => `<span class="kc-donator">${esc(namnFor(r.uid))} <b>${tal(r.summa)}</b> mynt${r.antal > 1 ? ` <span class="hint">(${r.antal} gånger)</span>` : ""}</span>`).join(" · ")
+      ? vem.map((r) => `<span class="kc-donator">${esc(r.uid === "kassa" ? "🏦 Klasskassan" : namnFor(r.uid))} <b>${tal(r.summa)}</b> mynt${r.antal > 1 ? ` <span class="hint">(${r.antal} gånger)</span>` : ""}</span>`).join(" · ")
       : `<span class="hint">Inga donationer än</span>`;
     return `<li data-kc-item="${esc(it.id)}" style="${KORT}">
       <div style="${RAD}"><b>${esc(it.emoji)} ${esc(it.namn)}</b>
