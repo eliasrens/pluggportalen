@@ -100,6 +100,23 @@ export function neckSvg(t) {
     <path d="M146 286 Q200 254 254 286 L246 306 Q200 282 154 306 Z" fill="${t.trim}"/>`;
 }
 
+// Mantelkrage/halsduk FRAMFÖR ansiktslagret: hög vid sidorna (döljer tröj-
+// rester ur beskärningen), dippar under hakan i mitten så käklinjen syns.
+export function collarSvg(t, who) {
+  if (who === "elias") {
+    // Slätrakad haka + svart skjorta i urklippet: kragen tuckas tätt under hakan.
+    return `<g aria-hidden="true">
+      <path d="M106 304 L115 243 Q200 257 285 243 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+      <path d="M115 243 Q200 257 285 243 L282 254 Q200 270 118 254Z" fill="#00000026"/>
+    </g>`;
+  }
+  // Rasmus: skägget flödar ner – kragen får sitta lägre och dippa i mitten.
+  return `<g aria-hidden="true">
+    <path d="M106 304 L117 248 Q200 290 283 248 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+    <path d="M117 248 Q200 290 283 248 L280 260 Q200 300 120 260Z" fill="#00000026"/>
+  </g>`;
+}
+
 // Hatt – i skala med de fotobaserade huvudena (huvudet spänner x≈88–312):
 // brättet är BREDARE än huvudet och ligger över hårets ovansida; kullen täcker
 // hjässan. Rasmus: sned floppig hatt med knäckt topp så rufset sticker fram

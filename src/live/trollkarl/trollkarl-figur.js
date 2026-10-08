@@ -11,7 +11,7 @@
 //       transform, reset, destroy }
 // ============================================================================
 
-import { VIEW, PIVOT, ANCHOR, THEME, FACE, bodySvg, capeSvg, legsSvg, neckSvg, hatSvg, armLSvg, armRSvg } from "./trollkarl-delar.js";
+import { VIEW, PIVOT, ANCHOR, THEME, FACE, bodySvg, capeSvg, legsSvg, neckSvg, collarSvg, hatSvg, armLSvg, armRSvg } from "./trollkarl-delar.js";
 import { POSES, PRIO, runPose } from "./trollkarl-poser.js";
 import { startIdleLoops, createEventScheduler } from "./trollkarl-idle.js";
 
@@ -52,7 +52,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
 
   svg.innerHTML = `
   <defs>
-    <clipPath id="${id}-chin"><path d="M-20 -20 H${FW + 20} V${FH * 0.72} Q${FW} ${FH * 0.93} ${FW / 2} ${FH * 0.96} Q0 ${FH * 0.93} -20 ${FH * 0.72} Z"/></clipPath>
+    <clipPath id="${id}-chin"><path d="M-20 -20 H${FW + 20} V${FH * 0.74} L${FW * 0.8} ${FH * 0.84} V${FH * 1.05} H${FW * 0.2} V${FH * 0.84} L-20 ${FH * 0.74} Z"/></clipPath>
   </defs>
   <g data-part="flip">
     <g data-part="fig">
@@ -63,6 +63,7 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
       <g data-part="head">
         ${neckSvg(t)}
         <g data-part="face" clip-path="url(#${id}-chin)" transform="translate(${FX} ${FY})">${faceImgs}</g>
+        ${collarSvg(t, who)}
         <g data-part="hat">${hatSvg(t, who)}</g>
         <g data-part="wow" style="display:none" aria-hidden="true">
           <text x="318" y="140" font-size="52" font-weight="900" fill="${t.trim}" stroke="#3b2a12" stroke-width="1.5" transform="rotate(12 318 140)">!</text>
