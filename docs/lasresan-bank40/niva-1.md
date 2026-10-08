@@ -32,7 +32,7 @@ Faktaämnena är valda så att de inte krockar med befintliga texter: inga pingv
 | lr-n1-kartan-brevladan | story | mysterier | Kartan i brevlådan | Juni, Fanny | Kritkarta i brevlådan är en inbjudan från ny granne |
 | lr-n1-rosa-tvatten | story | roliga situationer | Allt blev rosa | Kasper | En röd strumpa färgar pappas vita skjortor rosa |
 | lr-n1-aprilskamt | story | roliga situationer | Saltet i sockerskålen | Hanna, Joel | Aprilskämt med salt i sockerskålen slår tillbaka |
-| lr-n1-gungan | story | relationer | En gunga för två | Moa, Lisen | Två vänner bråkar om en gunga och lär sig turas om |
+| lr-n1-gungan | story | relationer | En gunga för två | Mira, Lisen | Två vänner bråkar om en gunga och lär sig turas om |
 | lr-n1-brevet | story | relationer | Ett brev med en älg | Ali, Sixten | Bästa vännen har flyttat, de håller kontakten med brev |
 | lr-n1-on-i-sjon | story | äventyr | Ovädret på ön | Isak, morfar | Oväder på en ö, morfar väljer att vänta ut det under en gran |
 | lr-n1-majslabyrinten | story | äventyr | Vilse i majsen | Lova | Vilse i majslabyrint, Lova följer solskyltarna |
