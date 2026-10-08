@@ -33,6 +33,15 @@ export const STATES = [
 // Skyddsnät: en attack/final som aldrig blir klar släpps efter så här länge.
 const GUARD_MS = 30_000;
 
+// Burst (#538, §11/§16): vid lång kö komprimeras attackerna i stället för att
+// tappas – högre tempo (a.speed, används av dur()/a.wait i attackerna) och
+// överhoppad uppladdning. Räkningen ligger i MagicSystem och påverkas aldrig.
+export function rushFor(pending) {
+  const p = Math.max(0, Math.floor(Number(pending) || 0));
+  const speed = p <= 0 ? 1 : p <= 2 ? 1.4 : p <= 4 ? 1.8 : 2.4;
+  return { speed, skipCharge: p >= 2 };
+}
+
 export function createDirector({ runAttack, runFinale, settle = () => {}, guardMs = GUARD_MS }) {
   const handlers = new Map();
   const queue = [];

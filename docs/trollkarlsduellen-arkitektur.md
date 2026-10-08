@@ -123,6 +123,50 @@ deterministiskt, aldrig samma två gånger i följd för samma klass (om ≥ 2
 attacker finns). Platshållaren (`placeholder: true`) används bara tills
 riktiga attacker registrerats.
 
+### Burst-komprimering (#538)
+
+Vid lång kö tappas inget – allt spelas, men snabbare: `rushFor(pending)`
+(`trollkarl-regi.js`) ger `{ speed, skipCharge }`. Vyn hoppar över
+uppladdningen vid `skipCharge` och ger attacken `a.speed` (≥ 1) plus
+`a.wait(ms)` (= `scene.wait(ms / speed, signal)`). Skriv därför ALLA pauser
+med `a.wait(ms)` och alla WAAPI-tider med `dur(scene, a, ms)` ur
+`attacker/attack-verktyg.js` – då komprimeras attacken automatiskt (och
+respekterar `prefers-reduced-motion`). Timeouten i kön skalas också med
+`speed`.
+
+### Attacker 1–8 och hur del D lägger till 9–15 (#538)
+
+Attackerna ligger i `src/live/trollkarl/attacker/` – en modul per GRUPP som
+bara registrerar sig (`registerAttack`) och importeras med EN rad i
+`trollkarl-innehall.js`:
+
+| Modul | Attacker |
+|---|---|
+| `attacker-forvandling.js` | 1 GRODIFIX! · 2 HÖNUS PANIKUS! · 3 POTATUS TOTALUS! |
+| `attacker-vader.js` | 4 REGNUS MAXIMUS! · 8 FJÄDRUS STORMUS! |
+| `attacker-kladd.js` | 5 STINKUS MAXIMUS! · 6 BANANUS HALKUS! · 7 SLEMMUS BLÄÄÄUS! |
+
+Så lägger del D till attack 9–15: ny modul (t.ex. `attacker-rorelse.js`)
+som registrerar sina attacker + en importrad i manifestet – klart (demot,
+slumpvalet och kön hittar dem via registret). Byggstenar:
+
+- `attack-verktyg.js`: `dur`, `spawn`, `anim`, `fly` (projektil med
+  båge/rotation), `poff` (POOF-moln + text), `burst` (partiklar, globalt
+  tak `PARTIKEL_TAK` = 120, färre vid reducedMotion), `upptakt`
+  (standardupptakt kastare/offer), `riggaOverlay`.
+- `attack-figurer.js`: groda/höna/potatis som SVG-strängar till
+  `wizard.transform()` (identitetsdrag per trollkarl + hatt i klassfärg).
+- `attacker.css`: effektklasser (`.tk-layer > *` är redan absolut
+  positionerat). Laddas av vyn via `ensureLiveCss`.
+- Attackdefinitionen har `sounds: ["swisch", …]` – nycklarna attacken
+  spelar via `scene.sound(namn)`. Del E registrerar ljuden; tills dess är
+  de tysta. Använda nycklar: `uppladdning`, `swisch`, `poff`, `kvack`,
+  `virvel`, `kackel`, `suck`, `regn`, `plask`, `tornado`, `nys`, `stank`,
+  `halk`, `duns`, `splatt`.
+- Kolla `a.signal.aborted` mellan stegen och städa egna "kvarlämnade"
+  element (lagret tas bort automatiskt, men `fill: forwards`-element som
+  ska bort mitt i attacken tar du bort själv).
+
 ## Kontrakt för del E (final + ljud)
 
 ```js
