@@ -443,7 +443,17 @@ service cloud.firestore {
         d.durationSeconds is int && d.durationSeconds >= 30 && d.durationSeconds <= 3600 &&
         d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
         d.counterShards is int && d.counterShards >= 1 && d.counterShards <= 50 &&
-        d.status in ['lobby', 'live', 'finished'];
+        d.status in ['lobby', 'live', 'finished'] && liveWizardsOk(d);
+    }
+    // Trollkarlsduellen (#536): vem som är Rasmus/Elias – valfritt, bara i
+    // tvåklassmatcher, exakt de två klasserna, en av varje trollkarl.
+    // Får bara ändras i lobbyn (liveSessionUpdateOk).
+    function liveWizardsOk(d) {
+      return !('wizards' in d) || (
+        d.wizards is map && d.participatingClassIds.size() == 2 &&
+        d.wizards.size() == 2 && d.wizards.keys().hasOnly(d.participatingClassIds) &&
+        d.wizards.values().hasOnly(['rasmus', 'elias']) &&
+        d.wizards[d.participatingClassIds[0]] != d.wizards[d.participatingClassIds[1]]);
     }
     // Mynt-pris till vinnarklassens klasskassa (#526): valfritt heltal
     // 0–100 000, sätts BARA när läraren skapar sessionen (låst i update).
@@ -477,6 +487,7 @@ service cloud.firestore {
           (!starting && n.get('startedAt', null) == o.get('startedAt', null))) &&
         (o.status == 'lobby' ||
           (n.gameMode == o.gameMode && n.participatingClassIds == o.participatingClassIds &&
+           n.get('wizards', null) == o.get('wizards', null) &&
            n.durationSeconds == o.durationSeconds && n.countdownSeconds == o.countdownSeconds &&
            n.counterShards == o.counterShards)) &&
         (!('endsAt' in n) || n.endsAt == o.get('endsAt', null) ||
