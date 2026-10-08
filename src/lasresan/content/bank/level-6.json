@@ -1270,5 +1270,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n6-ljussignalerna",
+    "title": "Ljuset i fönstret mittemot",
+    "level": 6,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Varje kväll klockan åtta började det blinka i ett fönster på andra sidan gården. Korta blink och långa blink, i flera minuter, och sedan blev det mörkt.\n\nFörsta kvällen trodde Axel att någon hade en trasig lampa. Andra kvällen blev han nyfiken. Tredje kvällen satt han beredd med ett block och skrev ner blinken som prickar och streck.\n\n”Någon skickar meddelanden”, sa han till farfar Rune, som bodde hos dem den veckan. ”Kanske till någon som ska bryta sig in.”\n\nFarfar tittade på blocket och började skratta. Han hade arbetat som telegrafist på fartyg när han var ung. ”Det här är morse”, sa han. ”Ett gammalt sätt att skicka bokstäver med ljud eller ljus. Och det är inte SOS, om du var orolig. Det skulle vara tre korta, tre långa och tre korta.”\n\nTillsammans översatte de prickarna. Fyra korta blink var ett H. Ett kort var ett E. Ett kort och tre långa var ett J. Meddelandet sa HEJ, om och om igen, och sedan några ord till: ÄR DET NÅGON DÄR?\n\nAxel kände sig plötsligt lite skamsen. Det var ingen tjuv. Det var någon som ville prata.\n\nNästa kväll stod Axel vid sitt fönster med en ficklampa och farfars gamla morsetabell. Det tog honom nästan tio minuter att blinka HEJ JAG HETER AXEL. Svaret kom långsamt men tydligt: JAMAL. BRUTET BEN. SEX VECKOR.\n\nUnder de följande kvällarna lärde Axel sig tabellen utantill. Han fick veta att Jamal hade ramlat i en skidbacke, att han låg hemma medan föräldrarna jobbade och att han dött av tristess om han inte hittat en gammal bok om morse i bokhyllan.\n\n”Varför skickar ni inte bara sms?” frågade Axels mamma.\n\nAxel ryckte på axlarna. ”Det skulle gå för fort.”\n\nI mars kom en kille på kryckor in på skolgården. De hade gått på samma skola i två år utan att säga ett ord till varandra. Nu stannade han framför Axel och knackade tre gånger med kryckan i asfalten, kort, kort, kort.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur skulle SOS ha sett ut, enligt farfar?",
+        "options": [
+          "Fyra korta och ett långt",
+          "Tre korta, tre långa, tre korta",
+          "Ett kort och tre långa",
+          "Tre långa, tre korta, tre långa"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför var Jamal hemma från skolan?",
+        "options": [
+          "Han hade brutit benet",
+          "Han hade fått influensa",
+          "Han hade flyttat nyss",
+          "Han ville inte gå dit"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kände sig Axel skamsen när meddelandet var översatt?",
+        "options": [
+          "Han hade inte förstått morse lika snabbt som farfar",
+          "Han hade läst fel och skrivit ner fel bokstäver",
+          "Han hade glömt att svara på meddelandet direkt",
+          "Han hade trott det värsta om någon som var ensam"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Farfar hade varit ”telegrafist”. Vad gjorde han då?",
+        "options": [
+          "Lagade trasiga lampor på fartyg",
+          "Styrde fartyget genom stormar",
+          "Skickade och tog emot meddelanden",
+          "Lagade mat åt hela besättningen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Jamal hade nästan ”dött av tristess”. Vad menar han?",
+        "options": [
+          "Att han hade varit allvarligt sjuk",
+          "Att han hade haft väldigt tråkigt",
+          "Att han hade varit mycket rädd",
+          "Att han hade haft ont i benet"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tror du att Axel tycker att sms ”skulle gå för fort”?",
+        "options": [
+          "Det långsamma sättet gjorde samtalen speciella",
+          "Hans mobil var för gammal för att skicka sms",
+          "Jamal hade inte någon egen mobiltelefon",
+          "Farfar hade förbjudit honom att använda sms"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att Jamal knackar kort, kort, kort med kryckan?",
+        "options": [
+          "Han vill att Axel ska hjälpa honom att gå",
+          "Han ber om hjälp eftersom han har ont",
+          "Han försöker skrämma Axel på skolgården",
+          "Han visar att han känner igen Axel och morsen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen främst om?",
+        "options": [
+          "Hur man lär sig morse på en enda vecka",
+          "Varför man aldrig ska åka i en skidbacke",
+          "Hur en gåta ledde till en ny vänskap",
+          "Hur Axel avslöjade en tjuv i huset"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-potatisen",
+    "title": "Pappa är ingen potatis",
+    "level": 6,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Pappa hade förberett sig i en hel vecka. På torsdagen skulle han presentera sitt nya projekt för hela företaget i ett videomöte, och chefen från huvudkontoret skulle vara med. Han hade strukit sin finaste skjorta, fast bara överdelen skulle synas.\n\n”Nu får ingen störa mig på en timme”, sa han och stängde dörren till sovrummet där datorn stod.\n\nEmilia satt i köket när hon hörde honom säga ”God morgon allihop!” med sin allvarligaste röst. Sedan blev det tyst. Sedan sa någon i datorn: ”Ehm … Staffan? Du är en potatis.”\n\nEmilia frös till. Hennes lillebror Otis hade lånat pappas dator dagen innan för att prova roliga filter i videoappen. Han hade gjort sig själv till en hund, en tomat och till sist en potatis med stora ögon.\n\nHon smög in i sovrummet. På skärmen syntes en stor brun potatis med pappas glasögon, som rörde munnen när han pratade. Pappa klickade frenetiskt på alla knappar han hittade.\n\n”Jag är ingen potatis”, sa han till de tjugo ansiktena på skärmen. ”Jag vet inte varför det här händer.”\n\nEmilia kröp fram på golvet så att hon inte skulle synas i kameran. Hon viskade: ”Inställningar, sedan effekter.” Pappa hittade fel meny två gånger. Under tiden hade flera i mötet börjat skratta så mycket att de fick stänga av sina mikrofoner.\n\nTill slut försvann potatisen. Pappa harklade sig och började om från början. Men innan han hann säga något mer slog chefen på huvudkontoret på sin egen kamera. Han hade gjort sig till en pirat med ögonlapp.\n\n”Fortsätt gärna, Staffan”, sa han. ”Det här är det roligaste möte vi har haft på hela året. Och nu lyssnar alla.”\n\nPresentationen gick bra. Efteråt satt pappa länge och stirrade ut genom fönstret.\n\nVeckan efter kom ett paket till honom med posten. I det låg en kaffekopp med en tryckt potatis och texten: Årets mest minnesvärda presentation.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför var pappa en potatis på skärmen?",
+        "options": [
+          "Pappa hade klickat på fel knapp",
+          "Otis hade provat filter på datorn",
+          "Chefen hade skämtat med alla",
+          "Emilia hade bytt bild på honom"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket filter använde chefen?",
+        "options": [
+          "En pirat",
+          "En hund",
+          "En tomat",
+          "En katt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Pappa klickade ”frenetiskt”. Vad betyder det?",
+        "options": [
+          "Långsamt och noggrant",
+          "Försiktigt och tyst",
+          "Säkert och lugnt, utan att tveka",
+          "Mycket hastigt och upprört"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför kröp Emilia på golvet?",
+        "options": [
+          "Hon letade efter pappas glasögon",
+          "Hon ville skrämma sin lillebror",
+          "Hon ville inte synas i kameran",
+          "Hon hade tappat något under bordet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför stängde flera i mötet av sina mikrofoner?",
+        "options": [
+          "De ville inte höra pappas presentation",
+          "De hade problem med sina egna datorer",
+          "De ville inte att chefen skulle tala",
+          "De skrattade så mycket att det hördes"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför slog chefen troligen på ett eget filter?",
+        "options": [
+          "För att han ville visa vilken dator han hade",
+          "För att han inte ville synas i mötet",
+          "För att pappa inte skulle skämmas så mycket",
+          "För att han ville göra sig lustig över pappa"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Koppen kallade presentationen ”minnesvärd”. Vad betyder det?",
+        "options": [
+          "Något som man kommer att minnas",
+          "Något som man helst vill glömma",
+          "Något som var väldigt långt",
+          "Något som var mycket svårt"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar slutet av berättelsen?",
+        "options": [
+          "Att man inte ska använda videomöten",
+          "Att något pinsamt kan bli något bra",
+          "Att pappa fick sparken från jobbet",
+          "Att barn aldrig får låna datorer"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-tradgardstomten",
+    "title": "Vykorten från tomten",
+    "level": 6,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Harald i huset bredvid hade haft samma trädgårdstomte i trettio år. Den stod vid trappan med röd luva och en skottkärra full av plastblommor. En morgon i juni var den borta.\n\nHarald gick runt i hela kvarteret och frågade alla. Han var säker på att någon hade stulit den. Emil hade aldrig sett honom så upprörd. Sedan hans fru dog förra vintern hade han nästan inte pratat med någon alls.\n\nEn vecka senare kom ett vykort. På bilden syntes tomten framför ett gammalt korsvirkeshus. På baksidan stod det: ”Hälsningar från Ystad! Här blåser det så att skägget fladdrar. Kram, Tomten.”\n\nHarald stod länge vid brevlådan med kortet i handen. Emil såg att han nästan log.\n\nFler kort kom. Tomten framför slottet i Kalmar. Tomten på en kaj i Göteborg. Tomten framför en vägskylt till Haparanda, med texten: ”Längre norrut än så här kommer jag inte. Det är kallt om tårna.” Harald satte upp korten på sin kylskåpsdörr och började visa dem för alla som gick förbi. Folk som aldrig hade hälsat på honom stannade för att fråga hur resan gick.\n\nEmil blev misstänksam. Han kände igen orterna. Det var samma städer som hans mamma körde lastbil till. Och när han jämförde poststämplarna med hennes körschema på kylskåpet stämde datumen nästan helt.\n\nEn kväll när hon kom hem ställde han sig i hallen med korsade armar. ”Det är du som är tomten.”\n\nMamma tittade på honom. Sedan lade hon ett finger över munnen. ”Han satt ju bara inne hela våren”, viskade hon. ”Jag ville ge honom något att se fram emot. Lovar du att inte säga något?”\n\nEmil lovade.\n\nI augusti stod tomten tillbaka vid trappan, solbränd med en ny liten solhatt. Harald bjöd hela gatan på kaffe och berättade om tomtens äventyr. Han hade köpt en karta och satt nålar i alla orter.\n\n”Vem kan ha gjort det?” frågade han och tittade på Emil.\n\nEmil ryckte på axlarna och tog en bulle till.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varifrån kom det första vykortet?",
+        "options": [
+          "Kalmar",
+          "Ystad",
+          "Göteborg",
+          "Haparanda"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde Harald med vykorten?",
+        "options": [
+          "Lämnade in dem till polisen",
+          "Skickade dem till sina barn",
+          "Lade dem i en låda i hallen",
+          "Satte upp dem på kylskåpet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför blev Emil förvånad över att Harald var så upprörd?",
+        "options": [
+          "Harald brukade inte bry sig om sin trädgård",
+          "Tomten hade varit trasig i flera år",
+          "Harald hade knappt pratat med någon på länge",
+          "Harald var annars aldrig hemma"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Emil blev ”misstänksam”. Vad betyder det?",
+        "options": [
+          "Han började ana att något inte stämde",
+          "Han blev rädd för att han skulle bli anklagad",
+          "Han blev sur på Harald som visade korten",
+          "Han började tycka att vykorten var tråkiga"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kom Emil fram till vem som skickade korten?",
+        "options": [
+          "Han kände igen mammas handstil på korten",
+          "Orterna och datumen passade med mammas körningar",
+          "Han såg mamma ta tomten från trappan",
+          "Harald berättade vem han trodde att det var"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder det att mamma lade ”ett finger över munnen”?",
+        "options": [
+          "Att hon var mycket trött",
+          "Att hon ville äta något",
+          "Att hon tänkte efter länge",
+          "Att Emil skulle hålla tyst"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför skickade mamma vykorten?",
+        "options": [
+          "Hon ville muntra upp den ensamma grannen",
+          "Hon ville lura Harald på ett elakt sätt",
+          "Hon tyckte att tomten var ful och ville byta",
+          "Hon ville att Emil skulle lära sig orterna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken förändring sker med Harald under berättelsen?",
+        "options": [
+          "Han slutar bry sig om sin gamla tomte",
+          "Han flyttar till en annan stad",
+          "Han börjar umgås med grannarna igen",
+          "Han blir arg på hela kvarteret"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-biffen",
+    "title": "Kan jag bli en biff?",
+    "level": 6,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Arons pappa var stolt över sin engelska. Han hade läst den i skolan i nio år och sett hundratals filmer utan undertexter. ”Det här klarar jag själv”, sa han när familjen kom in på en liten restaurang i London den första kvällen.\n\nServitören kom fram med block och penna. Pappa rätade på ryggen. ”Can I become a steak?”\n\nServitören blinkade några gånger. ”I certainly hope not, sir”, sa han. Vid bordet bredvid satte en kvinna kaffet i halsen.\n\nAron förstod direkt vad som hade hänt. Pappa hade velat fråga om han kunde få en biff, men han hade tänkt på det svenska ordet ”bli” och valt become. Det engelska ordet betyder att man förvandlas till något. Pappa hade alltså frågat om han kunde förvandlas till en köttbit.\n\nAron förklarade för servitören, som skrattade och sa att det var den bästa beställningen han hade hört på hela månaden.\n\nPappa var lite tyst under resten av middagen. Men dagen efter hände det igen, när han skulle boka en guidad tur. ”We will eventually come tomorrow”, sa han. Han menade att de kanske skulle komma. Men eventually betyder inte eventuellt. Det betyder ”till slut”. Guiden väntade på dem i en halvtimme.\n\nEfter det fick Aron sköta pratandet. Han kände sig ganska duktig. På sista kvällen var familjen tillbaka på restaurangen, och servitören frågade om mamma och pappa var på smekmånad.\n\n”No”, sa Aron. ”They are very gift.”\n\nHan menade att de var gifta sedan länge. Servitören såg förvirrad ut. På engelska betyder gift nämligen present.\n\nPappa lutade sig fram och klappade Aron på axeln. ”Välkommen i klubben”, sa han.\n\nDet blev resans bästa minne. Hemma i köket har de nu en lista på kylskåpet med ord som ser likadana ut på svenska och engelska men betyder olika saker. Den blir längre för varje resa.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad sa pappa när han skulle beställa mat första kvällen?",
+        "options": [
+          "I will eventually eat a steak.",
+          "Can I become a steak?",
+          "Can I have a steak, please?",
+          "My steak is very gift."
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder engelskans eventually, enligt texten?",
+        "options": [
+          "Kanske",
+          "Snart",
+          "Till slut",
+          "I morgon"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför satte kvinnan vid bordet bredvid kaffet i halsen?",
+        "options": [
+          "Hon tyckte att pappas fråga var väldigt rolig",
+          "Hon tyckte att kaffet var alldeles för varmt",
+          "Hon blev arg på att servitören var oartig",
+          "Hon kände igen familjen från Sverige"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför var pappa tyst under resten av middagen?",
+        "options": [
+          "Han tyckte inte om biffen han fick",
+          "Han var trött efter den långa resan",
+          "Han var arg på Aron som skrattade",
+          "Han skämdes lite över sitt misstag"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Servitören såg ”förvirrad” ut. Vad betyder det?",
+        "options": [
+          "Han förstod inte vad Aron menade",
+          "Han var arg på hela familjen",
+          "Han var trött efter en lång kväll",
+          "Han ville att de skulle gå därifrån"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför väntade guiden på familjen?",
+        "options": [
+          "Pappa hade betalat för turen i förväg",
+          "Guiden hade missförstått vilken dag det var",
+          "Familjen hade bokat två olika turer",
+          "Guiden trodde att de lovade att komma"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar pappa med ”Välkommen i klubben”?",
+        "options": [
+          "Att Aron nu får vara med i en engelsk klubb",
+          "Att nu har Aron också gjort ett språkmisstag",
+          "Att servitören har bjudit in dem igen",
+          "Att Aron har blivit bättre än pappa på engelska"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Hur man beställer mat på en restaurang",
+          "Varför man ska läsa engelska i nio år",
+          "Hur ord som liknar varandra kan lura en",
+          "Hur en familj hittar Londons bästa biff"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-nya-kompisen",
+    "title": "Vänskap är ingen tårta",
+    "level": 6,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Vilja och Wendela hade varit bästa vänner sedan förskolan. De hade samma färg på cykelhjälmarna, åt lunch på samma plats varje dag och visste vad den andra tänkte innan hon sa det.\n\nSedan började Kajsa i klassen.\n\nKajsa kunde rita hästar som såg ut att springa rakt ut ur pappret. Wendela älskade hästar. Redan andra veckan satt de böjda över samma ritblock på rasten, och Vilja stod bredvid och visste inte var hon skulle göra av händerna.\n\nHon började räkna saker. Hur många gånger Wendela skrattade åt något Kajsa sa. Hur många raster de hade varit tre i stället för två. Siffrorna gjorde henne inte gladare.\n\nEn onsdag satt Wendela och Kajsa redan vid lunchbordet när Vilja kom. Det fanns bara en tom stol, vid andra änden. Vilja satte sig där och skrev ett meddelande på mobilen under bordet: ”Du har visst fått en ny bästis. Grattis.” Hon hade tummen på skicka-knappen.\n\nMen hon skickade det inte. I stället raderade hon det, gick fram till Kajsa på eftermiddagen och frågade rakt ut: ”Tycker du att jag är i vägen?”\n\nKajsa såg förvånad ut. ”Jag trodde att det var du som inte gillade mig”, sa hon. ”Wendela pratar om dig hela tiden. Om allt ni har gjort. Jag har varit rädd att jag förstör något.”\n\nVilja visste inte vad hon skulle säga.\n\nPå kvällen berättade hon allt för mormor, som lyssnade medan hon skalade äpplen. ”Vänskap är ingen tårta”, sa mormor. ”Det blir inte mindre kvar till dig för att någon annan också får en bit.”\n\nDagen efter tog Vilja med sig ett eget ritblock till skolan. Hon kunde inte rita hästar. Men Kajsa lärde henne att börja med benen, och Wendela skrattade så att hon fick hicka åt Viljas första häst, som mest liknade en ko.\n\nDet var tre som skrattade den rasten. Vilja slutade räkna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var Kajsa särskilt bra på?",
+        "options": [
+          "Att rida hästar",
+          "Att spela fotboll",
+          "Att skriva sagor",
+          "Att rita hästar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför började Vilja räkna saker?",
+        "options": [
+          "Hennes lärare hade bett henne föra statistik i klassen",
+          "Hon ville visa Kajsa hur bra hon var på matte",
+          "Hon var svartsjuk och ville se om hon förlorade Wendela",
+          "Hon tyckte att det var roligt att räkna på rasterna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vilja visste inte ”var hon skulle göra av händerna”. Vad betyder det?",
+        "options": [
+          "Hon frös om händerna på rasten",
+          "Hon kände sig utanför och osäker",
+          "Hon ville också börja rita",
+          "Hon hade glömt sina vantar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför skickade Vilja aldrig meddelandet?",
+        "options": [
+          "Hon förstod att det skulle göra saken värre",
+          "Batteriet i mobilen tog slut innan hon hann",
+          "Läraren tog mobilen innan hon hann trycka",
+          "Wendela hade redan skickat ett meddelande till henne"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad hade Kajsa varit rädd för?",
+        "options": [
+          "Att Wendela skulle sluta prata med henne",
+          "Att hon inte skulle hitta någon plats i matsalen",
+          "Att hon skulle förstöra något mellan dem",
+          "Att hennes hästteckningar var för dåliga"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vilja frågade Kajsa ”rakt ut”. Vad betyder det?",
+        "options": [
+          "Högt, så alla hörde",
+          "Snabbt, i förbifarten",
+          "Försiktigt, med en lapp",
+          "Direkt, utan omvägar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar mormor med att vänskap ”är ingen tårta”?",
+        "options": [
+          "Att en vän inte tar slut för att den delas",
+          "Att man inte ska bjuda vänner på för mycket",
+          "Att vänskap är svårare än att baka",
+          "Att Vilja borde bjuda Kajsa på fika"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad betyder den sista meningen, ”Vilja slutade räkna”?",
+        "options": [
+          "Hon hade tröttnat på matematiken i skolan",
+          "Hon var inte längre rädd att förlora sin vän",
+          "Hon hade bestämt sig för att lämna gruppen",
+          "Hon hade glömt bort hur många raster det var"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-bonusbrodern",
+    "title": "Gästen i rummet bredvid",
+    "level": 6,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "När mamma och Patrik flyttade ihop fick Love en bonusbror. Matteo var elva år, ett år yngre än Love, och han bodde hos dem varannan vecka. Resten av tiden bodde han hos sin mamma i en annan stad.\n\nLove hade bestämt sig för att vara schysst. Men Matteo gjorde det inte lätt. Han svarade med ett ord när man frågade något. Han satt på sitt rum med dörren stängd och åt middag som om han var på restaurang, artigt och tyst. Han sa ”tack för maten” varje kväll, vilket ingen annan i familjen någonsin gjorde.\n\n”Han tycker nog att vi är töntiga”, sa Love till mamma.\n\nEn lördag skulle Love hämta cykelpumpen i garaget. Där inne satt Matteo på en hink med mobilen i handen. Han torkade snabbt bort något från kinden.\n\n”Jag hittar inte toalettpappret”, sa han, fast det inte alls var vad han höll på med. ”Eller skeden. Eller någonting. Jag vet aldrig var något är här. Jag måste fråga om allt.”\n\nLove stod tyst. Han hade aldrig tänkt på det. Han visste var varje sak i huset fanns utan att tänka efter. Matteo var här så sällan att han inte hann lära sig det innan han åkte igen. Han var inte en tönt. Han var en gäst. Och gäster säger tack för maten.\n\nDen kvällen gjorde Love en karta över köket och satte upp den på insidan av ett skåp. Han ritade pilar till skedarna, till chipsen och till det hemliga facket där mamma gömde chokladen. Sedan gick han till Patrik och frågade om de kunde göra en skylt till Matteos dörr.\n\nDe sågade ut en träbit i garaget och brände in namnet med en lödkolv. Bokstäverna blev sneda, och E:et blev nästan ett F.\n\nNär Matteo kom tillbaka efter sin vecka hos mamman stod han länge framför dörren. Han sa ingenting. Men på kvällen öppnade han skåpet utan att fråga, tog chips från rätt hylla och satte sig bredvid Love i soffan.\n\nHan sa inte tack för maten den kvällen. Love tolkade det som ett gott tecken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur ofta bodde Matteo hos Love och hans familj?",
+        "options": [
+          "Varje helg",
+          "Varannan vecka",
+          "Under loven",
+          "Hela tiden"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde Love i köket för Matteos skull?",
+        "options": [
+          "Han flyttade alla skedar till en låda",
+          "Han satte namnlappar på alla hyllor",
+          "Han skrev en lista över all mat",
+          "Han gjorde en karta i ett skåp"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför trodde Love först att Matteo tyckte att de var töntiga?",
+        "options": [
+          "Matteo skrattade åt Loves kläder",
+          "Matteo sa att han ville bo någon annanstans",
+          "Matteo var tyst och höll sig för sig själv",
+          "Matteo vägrade äta maten som fanns"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför sa Matteo att han letade efter toalettpapper?",
+        "options": [
+          "Han ville dölja att han hade gråtit",
+          "Han hade verkligen gått vilse i garaget",
+          "Han trodde att pappret fanns i garaget",
+          "Han ville att Love skulle gå därifrån"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Matteo åt ”artigt”. Vad betyder det?",
+        "options": [
+          "Med fint och korrekt uppförande",
+          "Med stor aptit och snabbt",
+          "Utan att tycka om maten",
+          "Medan han tittade i mobilen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ville Love sätta upp en skylt på Matteos dörr?",
+        "options": [
+          "Matteo glömde ofta vilket rum som var hans",
+          "Matteo skulle känna att rummet var hans",
+          "Patrik hade bett om hjälp med en skylt",
+          "Love ville öva på att använda en lödkolv"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Love ”tolkade” något som ett gott tecken. Vad betyder det?",
+        "options": [
+          "Han skrev upp det i en bok",
+          "Han berättade om det för alla",
+          "Han blev arg över det",
+          "Han förstod det på det sättet"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför är det ett gott tecken att Matteo inte sa tack för maten?",
+        "options": [
+          "Han hade glömt bort hur man gör",
+          "Han tyckte inte om maten längre",
+          "Han kände sig inte längre som en gäst",
+          "Han var arg på Love och Patrik den kvällen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
