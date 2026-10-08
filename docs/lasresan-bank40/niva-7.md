@@ -9,7 +9,7 @@
 - Statistik (positioner, längdledtråd, ordantal) fylls i när banken är klar.
 
 ## Undvikna överlapp mot andra nivåer
-Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grenen. Inga faktaämnen som redan finns (t.ex. bin, blåval, lax, hajar, kråkfåglar, flyttfåglar, invasiva arter, Pompeji, Vasaskeppet, digerdöden, emigrationen, tryckpressen, svarta hål, Voyager, Jupiter, Mars, solceller, broar, lås, AI, Kiruna, Japan, Everest, urbanisering, bakterier, sömn, vetenskaplig metod). Nivå 6 (#513) skrivs parallellt; helhetsgranskningen (#514) bör jämföra nivå 6 och 7.
+Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grenen. Inga faktaämnen som redan finns (t.ex. bin, blåval, lax, ål, elefanter, björndjur, hajar, kråkfåglar, flyttfåglar, invasiva arter, Pompeji, Vasaskeppet, digerdöden, emigrationen, tryckpressen, rösträtten, vaccinet, svarta hål, exoplaneter, rymdskrot, Voyager, Jupiter, Mars, solceller, broar, lås, slussar, kryptering, AI, Kiruna, Japan, Everest, tidszoner, monsunen, Grönland, urbanisering, bakterier, sömn, vetenskaplig metod). Nivå 6 (#513) skrevs parallellt och blev klar först. Den hade sju av de faktaämnen som först planerades här (elefanter, björndjur, rösträtt, rymdskrot, exoplaneter, kryptering, tidszoner). Därför ersattes de på nivå 7 med djuphavet, myggan, Titanic, meteoriten, Venus, vattenkraften och Antarktis. Elnätet byttes mot pekskärmen, eftersom det låg för nära vattenkraften. Även en del av lr-n7-glida-isar (ett elakt meddelande som raderas) skrevs om, eftersom den liknade lr-n6-nya-kompisen. Nivå 6 och 7 är jämförda mot varandra, både ämnen och namn.
 
 ## Texter
 | id | typ | topic | titel | huvudperson | vinkel |
@@ -37,20 +37,20 @@ Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grene
 | lr-n7-snogrottan | story | äventyr | Natten i snögrottan | Ossian | Vintertur, oväder, de gräver en snögrotta och måste lita på kunskap |
 | lr-n7-volten | story | sport | Spärren | Thea | Gymnasten som plötsligt inte vågar göra volten hon kunnat i flera år |
 | lr-n7-rullstolsbasket | story | sport | Fyra hjul och en korg | Joar, Yara | Joar följer med Yara på rullstolsbasket och förlorar stort; respekt och regler |
-| lr-n7-elefanterna | fact | djur | Elefanternas osynliga samtal | — | Infraljud, flockens äldsta hona, minne |
-| lr-n7-bjorndjur | fact | djur | Djuret som tål nästan allt | — | Björndjur (trögkrypare) och torrdvala |
+| lr-n7-djuphavet | fact | djur | Ljus i det eviga mörkret | — | Djuphavets mörker och tryck, bioluminiscens, marin snö, varma källor |
+| lr-n7-myggan | fact | djur | Det farligaste djuret | — | Bara honor suger blod, malaria, frossan i Sverige förr, frågan om att utrota arter |
 | lr-n7-vargen | fact | djur | Vargen kommer tillbaka | — | Vargens återkomst i Sverige, konflikter och olika intressen |
 | lr-n7-ozonlagret | fact | natur | Hålet i himlen som håller på att läkas | — | Ozonlagret, freoner och ett internationellt förbud som fungerade |
 | lr-n7-mikroplast | fact | natur | Plast man inte ser | — | Mikroplast: var den kommer ifrån, vart den tar vägen, vad vi vet och inte vet |
-| lr-n7-rostratten | fact | historia | Rösten som måste kämpas fram | — | Allmän och lika rösträtt i Sverige, kvinnors rösträtt (beslut 1919, första valet 1921) |
+| lr-n7-titanic | fact | historia | Natten då det osänkbara sjönk | — | Titanic 1912, för få livbåtar enligt dåtidens regler, säkerhetsavtalet efteråt |
 | lr-n7-berlinmuren | fact | historia | Muren genom staden | — | Berlinmuren 1961–1989, delat Tyskland och murens fall |
 | lr-n7-fabrikerna | fact | historia | När maskinerna kom | — | Industriella revolutionen, ångmaskinen och barnarbete |
-| lr-n7-exoplaneter | fact | rymden | Planeter runt andra stjärnor | — | Hur man hittar exoplaneter (transitmetoden) och letar efter liv |
-| lr-n7-rymdskrot | fact | rymden | Soporna i omloppsbanan | — | Rymdskrot, risker och försök att städa |
+| lr-n7-meteoriten | fact | rymden | Dagen då dinosaurierna försvann | — | Iridiumlagret, kratern i Mexiko, asteroid/meteor/meteorit, följderna, DART 2022 |
+| lr-n7-venus | fact | rymden | Planeten som blev för varm | — | Venus: hetast i solsystemet, skenande växthuseffekt, dygn längre än år |
 | lr-n7-ljusar | fact | rymden | Att se bakåt i tiden | — | Ljusår, ljusets fart och att stjärnljus är gammalt |
-| lr-n7-kryptering | fact | teknik | Hemliga meddelanden | — | Från Caesarchiffer till kryptering på nätet |
-| lr-n7-elnatet | fact | teknik | Balansen i elnätet | — | Produktion och förbrukning måste vara lika stora hela tiden |
+| lr-n7-vattenkraften | fact | teknik | Älvarna som ger ström | — | Vattenkraft: fallhöjd, turbin, magasin; för- och nackdelar, nationalälvarna |
+| lr-n7-pekskarmen | fact | teknik | Skärmen som känner fingret | — | Hur en pekskärm känner av fingret (kapacitiv), varför vantar inte fungerar |
 | lr-n7-containern | fact | teknik | Lådan som förändrade världshandeln | — | Containern, standardmått och billigare transporter |
 | lr-n7-golfstrommen | fact | geografi | Därför är Norden inte lika kallt | — | Golfströmmen och havsströmmar som värmepump |
-| lr-n7-tidszoner | fact | geografi | När klockan slår olika | — | Tidszoner, järnvägen och datumgränsen |
+| lr-n7-antarktis | fact | geografi | Kontinenten som ingen äger | — | Antarktis: is, kyla, forskning och Antarktisfördraget |
 | lr-n7-antibiotika | fact | vetenskap | Läkemedlet som kan sluta fungera | — | Penicillinet och antibiotikaresistens |

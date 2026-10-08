@@ -1893,7 +1893,7 @@
     "level": 7,
     "textType": "story",
     "topic": "relationer",
-    "body": "På förskolan hade fröknarna kallat dem SignyIben, som om det var ett enda namn. De hade samma ryggsäck i olika färger, de hade lärt sig cykla samma vecka och de hade en anteckningsbok som bara hette Boken, där de skrev serier, hemligheter och listor över allt som var orättvist i världen.\n\nI femman började Iben i en teatergrupp. Först var det bara på torsdagar. Sedan blev det torsdagar och lördagar, och till slut repetitioner nästan varje dag inför vårens föreställning. Iben kom till skolan och pratade om repliker, om att ”gå in i en roll” och om en kille i gruppen som kunde gråta på kommando. Hon skrattade åt skämt som Signy inte förstod, och när Signy frågade sa Iben att man ”måste ha varit där”.\n\nSigny hade inte varit där. Hon hade varit hemma, eller ute i våtmarken med morbror Dan och hans kikare. Hon hade börjat lära sig fåglar, och i hemlighet var hon ganska stolt över att hon kunde skilja en sävsångare från en rörsångare bara på lätet. Men det kändes inte som något man berättade för någon som kunde gråta på kommando.\n\nBoken låg i Signys skrivbordslåda. Den sista sidan Iben hade skrivit på var från i höstas.\n\nEn kväll skrev Signy ett långt meddelande till Iben. Det handlade om att man inte kan byta ut sin bästa vän mot en teatergrupp, och om att hon inte tänkte vara den som alltid ringde först. Hon läste det tre gånger. Sedan raderade hon det, inte för att det var osant, utan för att det bara var halva sanningen. Hon hade ju inte heller berättat om fåglarna.\n\nFöreställningen var i maj. Signy gick dit med sin mamma och satt längst bak. Iben spelade en gammal kvinna som hade förlorat sin hund. Hon var bra, så bra att Signy glömde att hon var arg. Någon gång under andra akten förstod hon att Iben inte hade bytt ut henne mot något. Iben hade bara hittat något som var hennes eget.\n\nEfteråt stod de i foajén. Det var konstigt och lite stelt.\n\n”Du var jättebra”, sa Signy.\n\n”Tack.” Iben tittade ner på sina skor. ”Jag trodde inte att du skulle komma. Du verkar alltid vara någon annanstans nu.”\n\nDet hade Signy aldrig tänkt på. Att det kunde kännas likadant från andra hållet.\n\nDagen därpå tog hon med sig Boken till skolan. Hon hade skrivit på en ny sida, en lista med rubriken Saker jag inte har berättat. Överst stod sävsångaren. Iben läste den på rasten och skrev en egen lista under.\n\nDe blev aldrig SignyIben igen. Men de blev Signy och Iben, och det visade sig fungera.",
+    "body": "På förskolan hade fröknarna kallat dem SignyIben, som om det var ett enda namn. De hade samma ryggsäck i olika färger, de hade lärt sig cykla samma vecka och de hade en anteckningsbok som bara hette Boken, där de skrev serier, hemligheter och listor över allt som var orättvist i världen.\n\nI femman började Iben i en teatergrupp. Först var det bara på torsdagar. Sedan blev det torsdagar och lördagar, och till slut repetitioner nästan varje dag inför vårens föreställning. Iben kom till skolan och pratade om repliker, om att ”gå in i en roll” och om en kille i gruppen som kunde gråta på kommando. Hon skrattade åt skämt som Signy inte förstod, och när Signy frågade sa Iben att man ”måste ha varit där”.\n\nSigny hade inte varit där. Hon hade varit hemma, eller ute i våtmarken med morbror Dan och hans kikare. Hon hade börjat lära sig fåglar, och i hemlighet var hon ganska stolt över att hon kunde skilja en sävsångare från en rörsångare bara på lätet. Men det kändes inte som något man berättade för någon som kunde gråta på kommando.\n\nBoken låg i Signys skrivbordslåda. Den sista sidan Iben hade skrivit på var från i höstas.\n\nEn kväll tog Signy fram Boken och bläddrade igenom den. Hon bestämde sig för att slänga den. Den kändes som om den tillhörde två personer som inte fanns längre. Hon hade redan lagt den i papperskorgen när hon kom att tänka på något som gjorde henne obekväm. Inte heller hon hade skrivit något i den sedan i höstas. Hon hade inte berättat om fåglarna. Hon tog upp Boken igen och torkade av pärmen.\n\nFöreställningen var i maj. Signy gick dit med sin mamma och satt längst bak. Iben spelade en gammal kvinna som hade förlorat sin hund. Hon var bra, så bra att Signy glömde att hon var arg. Någon gång under andra akten förstod hon att Iben inte hade bytt ut henne mot något. Iben hade bara hittat något som var hennes eget.\n\nEfteråt stod de i foajén. Det var konstigt och lite stelt.\n\n”Du var jättebra”, sa Signy.\n\n”Tack.” Iben tittade ner på sina skor. ”Jag trodde inte att du skulle komma. Du verkar alltid vara någon annanstans nu.”\n\nDet hade Signy aldrig tänkt på. Att det kunde kännas likadant från andra hållet.\n\nDagen därpå tog hon med sig Boken till skolan. Hon hade skrivit på en ny sida, en lista med rubriken Saker jag inte har berättat. Överst stod sävsångaren. Iben läste den på rasten och skrev en egen lista under.\n\nDe blev aldrig SignyIben igen. Men de blev Signy och Iben, och det visade sig fungera.",
     "questions": [
       {
         "id": "q1",
@@ -1945,12 +1945,12 @@
       },
       {
         "id": "q5",
-        "question": "Varför raderade Signy sitt meddelande?",
+        "question": "Varför tog Signy upp Boken ur papperskorgen igen?",
         "options": [
-          "Det var bara halva sanningen",
-          "Hon kunde inte stava rätt",
-          "Iben hade redan ringt henne",
-          "Mamma tyckte att det var elakt"
+          "Hon insåg att även hon hade slutat skriva",
+          "Hon kom på att Iben hade skrivit något nytt",
+          "Hon ville visa den för sin mamma först",
+          "Morbror Dan bad henne att spara den"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
@@ -2714,242 +2714,6 @@
     ]
   },
   {
-    "id": "lr-n7-elefanterna",
-    "title": "Elefanternas osynliga samtal",
-    "level": 7,
-    "textType": "fact",
-    "topic": "djur",
-    "body": "Den som har stått nära en flock elefanter beskriver ofta en märklig känsla. Djuren verkar tysta, men ibland kan man känna ett lätt dån i bröstet, nästan som när en stor lastbil går på tomgång. Det man känner är elefanternas röster. En stor del av deras samtal sker nämligen med ljud som är så låga att det mänskliga örat inte kan uppfatta dem.\n\nSådana ljud kallas infraljud. De har så låg frekvens att de rör sig långt utan att försvagas särskilt mycket, och när förhållandena är goda kan andra elefanter uppfatta dem flera kilometer bort. På så sätt kan flockar som har kommit ifrån varandra hålla kontakten, och en hona som är redo att para sig kan locka till sig hanar som befinner sig långt borta. Forskare tror dessutom att elefanter kan känna vibrationer i marken genom sina känsliga fotsulor, ungefär som om fötterna också lyssnar.\n\nElefanternas samhälle är byggt kring familjen. En flock består av honor och deras ungar, och den leds av den äldsta och mest erfarna honan, som kallas matriark. Hanarna lämnar flocken när de blir tonåringar och lever sedan ensamma eller i lösa grupper med andra hanar.\n\nMatriarkens viktigaste uppgift är att minnas. Hon vet var det finns vatten under torra år, vilka vägar som är säkra och hur flocken ska bete sig när en fara närmar sig. Forskare som har följt elefanter under svåra torkperioder har sett att flockar med en gammal matriark klarade sig bättre än flockar som leddes av en yngre hona. Den gamla honan kunde leda dem till vattenhål som hon kanske inte hade besökt på flera decennier.\n\nDet betyder att kunskap hos elefanter inte bara sitter i den enskilda hjärnan. Den förs vidare mellan generationer, ungefär som traditioner hos människor. Ungarna lär sig genom att gå bredvid de vuxna, år efter år. En elefantunge bärs i ungefär tjugotvå månader innan den föds, och den är beroende av flocken under många år efter det.\n\nJust därför är tjuvjakten på elefanter så förödande. Tjuvjägare dödar elefanter för elfenbenets skull, och de vill helst ha de största betarna. Sådana har ofta de äldsta djuren. När en matriark dödas försvinner alltså inte bara ett djur, utan också flockens minne. De unga elefanterna står kvar utan någon som vet vart man ska gå när vattnet tar slut.\n\nElefanterna lär oss alltså något som gäller fler än dem: ett samhälle är beroende av sina äldsta medlemmar, inte för att de är starkast, utan för att de har varit med längst.",
-    "questions": [
-      {
-        "id": "q1",
-        "question": "Vad är infraljud enligt texten?",
-        "options": [
-          "Ljud som är för höga för människans öra",
-          "Ljud som är för låga för människans öra",
-          "Ljud som bara hörs under vattnet",
-          "Ljud som elefanter gör när de äter"
-        ],
-        "answerIndex": 1,
-        "category": "fakta"
-      },
-      {
-        "id": "q2",
-        "question": "Vad kan elefanter använda infraljudet till?",
-        "options": [
-          "Att skrämma bort lejon som kommer för nära ungarna",
-          "Att hitta vatten djupt nere i den torra marken",
-          "Att jaga små djur som gömmer sig i gräset",
-          "Att hålla kontakten med flockar som är långt borta"
-        ],
-        "answerIndex": 3,
-        "category": "fakta"
-      },
-      {
-        "id": "q3",
-        "question": "Vad betyder ordet ”matriark” i texten?",
-        "options": [
-          "Den äldsta honan som leder flocken",
-          "Den största och starkaste hanen i området",
-          "Den yngsta ungen i en flock",
-          "En elefant som lever ensam"
-        ],
-        "answerIndex": 0,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q4",
-        "question": "Vad händer med hanarna när de blir tonåringar?",
-        "options": [
-          "De blir ledare",
-          "De slutar äta",
-          "De lämnar flocken",
-          "De föder ungar"
-        ],
-        "answerIndex": 2,
-        "category": "fakta"
-      },
-      {
-        "id": "q5",
-        "question": "Varför klarade sig flockar med en gammal matriark bättre under torka?",
-        "options": [
-          "Hon var starkast och kunde gräva djupast",
-          "Hon mindes var det fanns vatten sedan länge",
-          "Hon kunde höra regn på mycket långt håll",
-          "Hon behövde mindre vatten än de yngre djuren"
-        ],
-        "answerIndex": 1,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q6",
-        "question": "Vad menas med att kunskapen förs vidare mellan ”generationer”?",
-        "options": [
-          "Från en flock till en helt annan flock",
-          "Från elefanter till människor i närheten",
-          "Från hanarna till honorna i flocken",
-          "Från äldre djur till yngre, i flera led"
-        ],
-        "answerIndex": 3,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q7",
-        "question": "Varför drabbar tjuvjakten ofta de äldsta elefanterna?",
-        "options": [
-          "Tjuvjägarna vill ha de största betarna",
-          "De äldsta elefanterna är långsammast",
-          "De äldsta går alltid först när flocken vandrar",
-          "De äldsta hörs bäst på långt avstånd"
-        ],
-        "answerIndex": 0,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q8",
-        "question": "Vad menar texten med att flockens ”minne” försvinner när matriarken dödas?",
-        "options": [
-          "Att de unga elefanterna glömmer hur hon såg ut",
-          "Att flocken inte längre kan höra varandras infraljud",
-          "Att ungarna glömmer vilka som är deras föräldrar",
-          "Att hennes kunskap om vatten och faror går förlorad"
-        ],
-        "answerIndex": 3,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q9",
-        "question": "Vilken slutsats drar texten i sista stycket?",
-        "options": [
-          "Att de starkaste djuren alltid bör få leda en flock",
-          "Att elefanter är smartare än alla andra djur på jorden",
-          "Att ett samhälle behöver sina äldsta för deras erfarenhet",
-          "Att människor borde lära sig kommunicera med infraljud"
-        ],
-        "answerIndex": 2,
-        "category": "helhet_slutsats"
-      }
-    ]
-  },
-  {
-    "id": "lr-n7-bjorndjur",
-    "title": "Djuret som tål nästan allt",
-    "level": 7,
-    "textType": "fact",
-    "topic": "djur",
-    "body": "Om du skrapar loss en bit mossa från ett tak eller en sten och lägger den i lite vatten under ett mikroskop, har du goda chanser att få se ett av världens mest motståndskraftiga djur. Det är mindre än en millimeter långt, har åtta knubbiga ben med små klor och rör sig så långsamt och klumpigt att det har fått namnet björndjur. Ett annat svenskt namn är trögkrypare.\n\nBjörndjur finns nästan överallt på jorden: i mossa och lavar, i sjöar och hav, på höga berg och i Antarktis. Det finns över tusen kända arter. De flesta lever av vätskan i växtceller eller av ännu mindre organismer, som de suger i sig genom en mun som liknar ett sugrör.\n\nDet som gör björndjuren berömda är vad de klarar av. Mossan de lever i torkar ofta ut helt, och då skulle de flesta smådjur dö. Björndjuret gör något annat. Det drar in benen, rullar ihop sig till en liten tunna och släpper ut nästan allt vatten ur kroppen. Ämnesomsättningen, alltså de kemiska processer som håller kroppen vid liv, stannar nästan helt. Djuret är varken riktigt levande eller dött. Det kallas torrdvala.\n\nI det tillståndet kan björndjur överleva i åratal. Forskare har fått uttorkade björndjur att vakna till liv igen efter att de har legat torra mycket länge. Det räcker att ge dem lite vatten, och efter en stund börjar benen röra sig.\n\nI torrdvala tål de också sådant som inget annat djur skulle klara. I laboratorier har de överlevt kyla nära den kallaste temperatur som finns, en kort stund i hetta över kokpunkten och strålning som skulle döda en människa många gånger om. Under ett försök som leddes av en svensk forskare skickades uttorkade björndjur ut i rymden och utsattes för rymdens vakuum utanför en farkost. När de kom tillbaka till jorden och fick vatten levde många av dem.\n\nDet betyder inte att björndjur är odödliga. När de är aktiva och fulla av vatten är de lika sköra som andra små djur, och de flesta lever bara några månader. Deras styrka är att de kan pausa livet när förhållandena blir omöjliga och starta det igen när det blir bättre.\n\nDärför är forskare så intresserade av dem. Om man förstod hur björndjuret skyddar sina celler när vattnet försvinner, skulle man kanske kunna förvara vacciner och läkemedel utan kylskåp. Ett djur som får plats på ett knappnålshuvud kan alltså en dag hjälpa människor på andra sidan jorden.",
-    "questions": [
-      {
-        "id": "q1",
-        "question": "Var kan man enligt texten ha goda chanser att hitta björndjur?",
-        "options": [
-          "I jorden under granar djupt inne i skogen",
-          "I en bit mossa från ett tak eller en sten",
-          "I varma källor där vattnet är mycket hett",
-          "I päls på djur som lever i Antarktis"
-        ],
-        "answerIndex": 1,
-        "category": "fakta"
-      },
-      {
-        "id": "q2",
-        "question": "Varför har djuret fått namnet björndjur?",
-        "options": [
-          "Det rör sig långsamt och klumpigt som en björn",
-          "Det lever bara i de skogar där det finns björnar",
-          "Det sover i ide hela vintern precis som björnar",
-          "Det är det största djuret som lever i mossa"
-        ],
-        "answerIndex": 0,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q3",
-        "question": "Vad gör björndjuret när mossan torkar ut?",
-        "options": [
-          "Gräver sig ner djupt i marken och väntar",
-          "Kryper iväg för att leta efter en ny blöt plats",
-          "Äter så mycket det kan och lagrar vatten i kroppen",
-          "Rullar ihop sig och släpper ut nästan allt vatten"
-        ],
-        "answerIndex": 3,
-        "category": "fakta"
-      },
-      {
-        "id": "q4",
-        "question": "Vad betyder ”ämnesomsättningen” enligt texten?",
-        "options": [
-          "De kemiska processer som håller kroppen vid liv",
-          "Det sätt som djuret byter skal på när det växer",
-          "Den mat som djuret äter under en vanlig dag",
-          "Det vatten som djuret dricker varje timme"
-        ],
-        "answerIndex": 0,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q5",
-        "question": "Varför skriver texten att djuret i torrdvala är ”varken riktigt levande eller dött”?",
-        "options": [
-          "Det har dött men kan bli levande om någon värmer det",
-          "Nästan allt i kroppen har stannat, men det kan vakna igen",
-          "Det lever men kan inte längre röra sig någonsin",
-          "Det har lämnat sitt gamla skal och lever vidare i ett nytt"
-        ],
-        "answerIndex": 1,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q6",
-        "question": "Vad hände med björndjuren som skickades ut i rymden?",
-        "options": [
-          "Alla dog direkt i rymdens vakuum",
-          "De förökade sig ute på rymdfarkosten",
-          "Många levde när de fick vatten på jorden",
-          "De blev större av strålningen"
-        ],
-        "answerIndex": 2,
-        "category": "fakta"
-      },
-      {
-        "id": "q7",
-        "question": "Varför är björndjur inte odödliga, enligt texten?",
-        "options": [
-          "De tål inte att torka ut mer än en gång i livet",
-          "De blir alltid uppätna av större djur i mossan",
-          "De dör om de får för mycket vatten alldeles på en gång",
-          "De är sköra när de är aktiva och lever ofta kort"
-        ],
-        "answerIndex": 3,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q8",
-        "question": "Hur skulle forskningen om björndjur kunna hjälpa människor?",
-        "options": [
-          "Genom att lära människor att leva i rymden",
-          "Genom att ge människor en kur mot strålning",
-          "Genom att visa hur vacciner kan förvaras utan kyla",
-          "Genom att göra mossa till ett nytt och billigt livsmedel"
-        ],
-        "answerIndex": 2,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q9",
-        "question": "Vilket påstående sammanfattar textens bild av björndjuret bäst?",
-        "options": [
-          "Dess styrka är att kunna pausa livet och starta igen",
-          "Det är världens starkaste djur i förhållande till storleken",
-          "Det kan överleva allt eftersom det aldrig behöver vatten",
-          "Det är ett farligt djur som sprider sig överallt på jorden"
-        ],
-        "answerIndex": 0,
-        "category": "helhet_slutsats"
-      }
-    ]
-  },
-  {
     "id": "lr-n7-vargen",
     "title": "Vargen kommer tillbaka",
     "level": 7,
@@ -2985,24 +2749,24 @@
         "id": "q3",
         "question": "Varifrån kom vargparet som slog sig ner i Värmland?",
         "options": [
+          "Från Finland eller Ryssland",
           "Från en djurpark i Norge",
           "Från fjällen i norra Sverige",
-          "Från Finland eller Ryssland",
           "Från Danmark och Tyskland"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Vad är ett ”topprovdjur”?",
         "options": [
-          "Ett djur högst upp i näringskedjan",
           "Ett djur som lever på höga berg",
           "Ett djur som bara äter växter",
+          "Ett djur högst upp i näringskedjan",
           "Ett djur som jagar i stora flockar"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -3033,12 +2797,12 @@
         "id": "q7",
         "question": "Varför är forskare glada när en ny varg vandrar in från öster?",
         "options": [
+          "Den nya vargen minskar problemet med inavel",
           "Den nya vargen ökar jakten på älgar",
           "Den nya vargen brukar inte angripa får",
-          "Den nya vargen minskar problemet med inavel",
           "Den nya vargen kan bära sändare åt forskarna"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -3046,23 +2810,23 @@
         "question": "Vilka två frågor måste politikerna väga mot varandra?",
         "options": [
           "Hur mycket vargarna äter och hur många älgar som finns kvar",
-          "Hur många vargar arten behöver och hur många människor kan leva med",
           "Hur många vargar som finns i Norge och hur många som finns kvar i Finland",
-          "Hur mycket stängsel kostar och hur många jägare det finns"
+          "Hur mycket stängsel kostar och hur många jägare det finns",
+          "Hur många vargar arten behöver och hur många människor kan leva med"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       },
       {
         "id": "q9",
         "question": "Vad menar texten med att frågan om vargen ”inte bara handlar om ett djur”?",
         "options": [
-          "Den handlar om hur olika människor ska dela samma land",
           "Den handlar om att även andra rovdjur i landet borde fredas",
           "Den handlar om att vargen är farlig för alla barn",
+          "Den handlar om hur olika människor ska dela samma land",
           "Den handlar om att Sverige ska ha fler djurparker"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -3080,11 +2844,11 @@
         "question": "Varför är ozonlagret viktigt för livet på jorden?",
         "options": [
           "Det håller jorden varm under de långa vintrarna",
+          "Det fångar upp mycket av solens UV-strålning",
           "Det skapar syret som människor andas in",
-          "Det stoppar regnet från att falla för hårt",
-          "Det fångar upp mycket av solens UV-strålning"
+          "Det stoppar regnet från att falla för hårt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -3105,22 +2869,22 @@
         "options": [
           "Ett hål i marken där ozon tränger upp ur jorden",
           "En plats där man tillverkar ozon",
-          "Ett område där ozonskiktet är mycket tunnare",
-          "En öppning i rymden ovanför jorden"
+          "En öppning i rymden ovanför jorden",
+          "Ett område där ozonskiktet är mycket tunnare"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Varför hade freoner länge setts som perfekta ämnen?",
         "options": [
-          "De gjorde kylskåpen tystare och sprayen mer behagligt doftande",
           "De var billiga, brann inte och var inte giftiga att andas",
+          "De gjorde kylskåpen tystare och sprayen mer behagligt doftande",
           "De skyddade ozonlagret mot solens farliga strålning",
           "De kunde återvinnas många gånger utan att ta slut"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -3128,23 +2892,23 @@
         "question": "Varför var freonerna så skadliga trots att det fanns ganska lite av dem?",
         "options": [
           "De stannade nere vid marken och förgiftade alla växterna",
+          "En enda partikel kunde förstöra tusentals ozonmolekyler",
           "De gjorde så att solen sände ut mer UV-strålning",
-          "De fastnade i molnen och gjorde regnet surt",
-          "En enda partikel kunde förstöra tusentals ozonmolekyler"
+          "De fastnade i molnen och gjorde regnet surt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Vad lovade länderna i Montrealprotokollet?",
         "options": [
-          "Att steg för steg sluta använda freoner",
           "Att bygga nya kylskåp till alla länder",
           "Att mäta ozonet över Antarktis varje dag",
+          "Att steg för steg sluta använda freoner",
           "Att förbjuda alla sprayburkar på en gång"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -3152,11 +2916,11 @@
         "question": "Varför fortsatte ozonhålet att dyka upp långt efter förbudet?",
         "options": [
           "Många länder fortsatte i hemlighet att använda freoner",
-          "Freoner finns kvar i atmosfären i många decennier",
           "Ersättningsämnena förstörde ozonet ännu snabbare",
-          "Hålet var ett mätfel som forskarna inte rättade"
+          "Hålet var ett mätfel som forskarna inte rättade",
+          "Freoner finns kvar i atmosfären i många decennier"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -3175,12 +2939,12 @@
         "id": "q9",
         "question": "Varför nämns ozonlagret när man diskuterar klimatförändringarna?",
         "options": [
-          "Det är samma gaser som orsakar båda problemen",
           "Det visar att världen kan enas om ett miljöproblem",
+          "Det är samma gaser som orsakar båda problemen",
           "Ozonhålet är den största orsaken till uppvärmningen",
           "Klimatet blir kallare när ozonlagret blir tjockare"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -3197,12 +2961,12 @@
         "id": "q1",
         "question": "Var har forskare hittat mikroplast enligt texten?",
         "options": [
-          "Bland annat i snö långt uppe i Arktis",
           "Bara i havsvatten nära de stora städerna",
+          "Bland annat i snö långt uppe i Arktis",
           "Bara i fiskar som människor äter",
           "Bara på stränder med mycket skräp"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -3233,12 +2997,12 @@
         "id": "q4",
         "question": "Vilken av följande räknas som en av de största källorna i Sverige?",
         "options": [
+          "Slitage från bildäck",
           "Plastpåsar på stranden",
           "Tandkräm med plastkulor",
-          "Slitage från bildäck",
           "Leksaker av plast"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -3257,12 +3021,12 @@
         "id": "q6",
         "question": "Vad menas med att plast innehåller ”tillsatser”?",
         "options": [
-          "Ämnen som har blandats i plasten",
           "Små hål som finns inne i plasten",
           "Färg som målas på plasten efteråt",
-          "Lim som håller ihop två plastbitar"
+          "Lim som håller ihop två plastbitar",
+          "Ämnen som har blandats i plasten"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -3271,10 +3035,10 @@
         "options": [
           "Forskarna har redan bevisat att mikroplast är dödligt",
           "Det är billigare att förbjuda plast än att forska om den",
-          "Alla länder har lovat att sluta tillverka all sorts plast helt",
-          "Plasten finns kvar så länge att det kan bli för sent att vänta"
+          "Plasten finns kvar så länge att det kan bli för sent att vänta",
+          "Alla länder har lovat att sluta tillverka all sorts plast helt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -3299,6 +3063,950 @@
           "Det farliga är att plasten syns överallt"
         ],
         "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-berlinmuren",
+    "title": "Muren genom staden",
+    "level": 7,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "En söndagsmorgon i augusti 1961 vaknade invånarna i Berlin och upptäckte att staden hade delats i två delar under natten. Soldater och arbetare hade dragit taggtråd tvärs genom gator, parker och bostadsområden. Spårvagnar som brukade gå från den ena delen till den andra stod plötsligt stilla. Den som hade gått över till andra sidan för att hälsa på släktingar kunde inte längre komma hem.\n\nFör att förstå varför måste man gå tillbaka till andra världskrigets slut 1945. Tyskland hade förlorat kriget och delades upp mellan segrarmakterna. Ur den västra delen bildades Västtyskland, ett demokratiskt land med marknadsekonomi. Ur den östra bildades Östtyskland, som styrdes av ett kommunistiskt parti med stöd av Sovjetunionen. Berlin låg mitt inne i Östtyskland, men också staden var delad, och Västberlin hörde ihop med väst.\n\nUnder 1950-talet flydde miljontals människor från Östtyskland till väst, många av dem unga och välutbildade. Den enklaste vägen gick genom Berlin, där man bara behövde ta tunnelbanan eller gå över en gata. För Östtysklands ledare var det ett hot. Landet höll på att förlora sina läkare, ingenjörer och lärare. Muren var deras lösning.\n\nTaggtråden ersattes snart av en mur av betong. Den gick runt hela Västberlin och var drygt femton mil lång. Bakom muren fanns en bred remsa som kallades dödsremsan, med vakttorn, strålkastare och hundar. Soldaterna hade order att stoppa alla som försökte fly, och det betydde att de kunde skjuta. Ändå försökte tusentals människor ta sig över, genom tunnlar, gömda i bilar eller med hemmabyggda luftballonger. Minst 140 personer dödades vid muren.\n\nMuren stod i 28 år. Den blev en symbol för hela den delade världen, där väst och öst stod emot varandra i det som kallades det kalla kriget.\n\nHösten 1989 förändrades allt. I flera östeuropeiska länder protesterade människor mot sina regeringar, och i Östtyskland samlades hundratusentals till demonstrationer. Den 9 november skulle en talesperson för regeringen presentera nya, friare regler för resor. Han var dåligt förberedd och svarade att reglerna gällde ”omedelbart”. Nyheten spreds på tv, och samma kväll strömmade tusentals människor till gränsövergångarna. Vakterna hade inga order och var för få. Till slut öppnade de bommarna.\n\nDen natten klättrade människor upp på muren, dansade och högg loss bitar med hammare. Mindre än ett år senare, i oktober 1990, blev Tyskland ett land igen.\n\nI dag finns bara några delar av muren kvar i Berlin. På många ställen visar en rad med stenar i gatan var den gick, som en påminnelse om att gränser som verkar eviga ändå kan försvinna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad upptäckte Berlinborna en söndagsmorgon i augusti 1961?",
+        "options": [
+          "Att kriget hade tagit slut och soldaterna åkt hem",
+          "Att muren hade rivits medan de sov",
+          "Att alla spårvagnar hade fått nya färger",
+          "Att staden hade delats med taggtråd under natten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur skilde sig Västtyskland från Östtyskland?",
+        "options": [
+          "Väst var en demokrati, öst styrdes av ett kommunistiskt parti",
+          "Väst styrdes av Sovjetunionen, öst av Frankrike och England",
+          "Öst var en demokrati, väst styrdes av en kung",
+          "Väst låg mitt inne i Berlin, öst låg utanför"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var flykten ett hot mot Östtysklands ledare?",
+        "options": [
+          "Flyktingarna tog med sig landets pengar",
+          "Väst hotade att anfalla om flykten fortsatte",
+          "Landet förlorade många utbildade människor",
+          "Ledarna själva ville fly till väst"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför gick den enklaste flyktvägen genom Berlin?",
+        "options": [
+          "Där fanns det inga soldater före år 1961",
+          "Där räckte det att gå över en gata eller ta tunnelbanan",
+          "Där kunde man flyga direkt till Amerika",
+          "Där fick man pengar av staten för att flytta västerut"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menas med ”dödsremsan”?",
+        "options": [
+          "En gata där många hade dött i kriget",
+          "Ett tunt band som soldaterna bar",
+          "En tunnel under muren",
+          "Det bevakade området bakom muren"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Muren blev en ”symbol” för den delade världen. Vad betyder det?",
+        "options": [
+          "Den stod för något större än sig själv",
+          "Den var det största bygget i världen",
+          "Den skilde alla länder i Europa åt",
+          "Den målades med flaggor från öst och väst"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken roll spelade talespersonens svar ”omedelbart” den 9 november?",
+        "options": [
+          "Det gjorde att vakterna fick order att skjuta",
+          "Det fick folk att rusa till gränsen samma kväll",
+          "Det ledde till att muren byggdes ännu högre",
+          "Det gjorde att demonstrationerna slutade helt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför öppnade vakterna till slut bommarna?",
+        "options": [
+          "De hade fått order att släppa igenom alla resenärer",
+          "De ville själva fly till Västberlin samma natt",
+          "De hade inga order och var för få mot alla människor",
+          "Talespersonen kom själv dit och bad dem att öppna bommarna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad vill texten säga med raden av stenar i gatan?",
+        "options": [
+          "Att muren snart kommer att byggas upp igen",
+          "Att även gränser som verkar eviga kan försvinna",
+          "Att Berlin fortfarande är en delad stad i dag",
+          "Att man inte längre får gå på platsen där muren en gång stod"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-fabrikerna",
+    "title": "När maskinerna kom",
+    "level": 7,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "Under nästan hela mänsklighetens historia gjordes saker för hand. Tyg vävdes i hemmen, verktyg smiddes av smeder och mat odlades med hjälp av människor och djur. Det som tillverkades räckte sällan till mycket mer än det som behövdes. Men i England, under 1700-talet, började något förändras som skulle påverka hela världen. Det brukar kallas den industriella revolutionen.\n\nFörändringen började med tyg. Uppfinnare konstruerade maskiner som kunde spinna tråd och väva tyg mycket snabbare än någon människa. Maskinerna placerades i stora byggnader, fabriker, och drevs först av vattenhjul vid forsande åar. Sedan kom ångmaskinen. Den hade funnits ett tag, men under 1700-talets andra hälft förbättrades den så mycket att den kunde driva maskiner nästan var som helst, så länge det fanns kol att elda med. Snart drev ångan också tåg och fartyg.\n\nPlötsligt behövdes tusentals arbetare på samma plats. Människor flyttade från landsbygden till städer som växte fortare än någon hann bygga bostäder. Familjer trängdes i fuktiga rum, och röken från fabrikerna och kolet låg tät över gatorna.\n\nArbetsdagarna var ofta tolv timmar eller längre, sex dagar i veckan. Lönerna var låga, och det fanns inga semestrar och ingen sjukförsäkring. Många av arbetarna var barn. Fabriksägarna anställde gärna barn, eftersom de fick lägre lön och var små nog att krypa in under maskinerna för att knyta ihop trasiga trådar eller plocka bort skräp. Det var farligt arbete, och olyckor var vanliga. I gruvorna kunde barn sitta ensamma i mörkret hela dagen och öppna och stänga dörrar för vagnarna.\n\nEfter hand växte protesterna. Läkare, journalister och politiker beskrev förhållandena, och arbetarna började gå samman i fackföreningar för att kräva bättre villkor. I England kom på 1830-talet lagar som förbjöd de yngsta barnen att arbeta i textilfabriker och begränsade arbetstiden för de lite äldre. I Sverige, där industrin kom igång senare, kom en liknande lag 1881.\n\nDen industriella revolutionen hade alltså två sidor. Den gjorde varor som tyg, verktyg och redskap mycket billigare, och med tiden fick vanliga människor det bättre än någonsin tidigare. Men vägen dit betalades av människor som arbetade under svåra förhållanden, ofta utan att själva få del av vinsterna.\n\nKanske känner du igen en del av frågorna från i dag. Var tillverkas våra kläder och mobiler, och under vilka förhållanden? Historien om fabrikerna gör det lättare att förstå varför sådana frågor fortfarande ställs.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Inom vilket område började den industriella revolutionen enligt texten?",
+        "options": [
+          "Tillverkningen av tyg",
+          "Byggandet av järnvägar",
+          "Brytningen av kol",
+          "Odlingen av mat"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad drev de första fabriksmaskinerna innan ångmaskinen tog över?",
+        "options": [
+          "Hästar som gick runt i cirklar",
+          "Elektricitet från små kraftverk",
+          "Väderkvarnar uppe på taken",
+          "Vattenhjul vid forsande åar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför gjorde den förbättrade ångmaskinen så stor skillnad?",
+        "options": [
+          "Den gjorde att arbetarna fick kortare dagar",
+          "Den gick att driva helt utan bränsle",
+          "Fabrikerna behövde inte längre ligga vid vatten",
+          "Den gjorde fabrikerna tysta och rena"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför trängdes familjerna i fuktiga rum i de nya städerna?",
+        "options": [
+          "Fabriksägarna bestämde var arbetarna fick bo",
+          "Det var för dyrt att elda i stora rum",
+          "Städerna växte snabbare än det byggdes bostäder",
+          "Lagen förbjöd arbetare att bo kvar ute på landet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför anställde fabriksägarna gärna barn?",
+        "options": [
+          "De var både starkare och snabbare än de vuxna arbetarna",
+          "De fick lägre lön och var små nog för vissa uppgifter",
+          "De hade lärt sig att sköta maskinerna i skolan",
+          "De behövde pengar till sina skolböcker"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Arbetarna gick samman i ”fackföreningar”. Vad är det?",
+        "options": [
+          "Föreningar där arbetare tillsammans kräver bättre villkor",
+          "Föreningar där fabriksägare bestämmer lönerna för alla arbetare",
+          "Skolor där barn lär sig ett nytt yrke",
+          "Kontor där man söker jobb i en fabrik"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "När kom en lag om barnarbete i Sverige?",
+        "options": [
+          "År 1830",
+          "År 1750",
+          "År 1921",
+          "År 1881"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Vilka är de ”två sidorna” av den industriella revolutionen?",
+        "options": [
+          "Fler fabriker, men färre människor i städerna",
+          "Billigare varor, men svåra villkor för arbetarna",
+          "Mer kol, men mindre tyg till kläder",
+          "Högre löner, men längre semestrar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Varför avslutar texten med frågor om var våra kläder och mobiler tillverkas?",
+        "options": [
+          "För att visa att historien hjälper oss förstå frågor i dag",
+          "För att visa att alla kläder fortfarande tillverkas i England",
+          "För att visa att barnarbete förbjöds i hela världen 1881",
+          "För att visa att mobiler var en del av revolutionen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-ljusar",
+    "title": "Att se bakåt i tiden",
+    "level": 7,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Ljus är det snabbaste som finns. Det färdas ungefär 300 000 kilometer på en enda sekund, vilket räcker för att åka runt jorden sju varv. När du tänder en lampa i ett rum verkar ljuset nå väggarna på en gång. Men i rymden, där avstånden är ofattbart stora, tar även ljuset tid på sig.\n\nLjuset från månen behöver ungefär en sekund på sig för att nå oss. Ljuset från solen tar ungefär åtta minuter. Det betyder att när du tittar på solen, vilket du förstås aldrig ska göra direkt, ser du den som den var för åtta minuter sedan. Om solen plötsligt skulle slockna skulle vi inte märka något förrän åtta minuter senare.\n\nStjärnorna ligger mycket längre bort. Därför använder astronomer en särskild måttenhet, ljusåret. Ett ljusår är inte en tid, fast namnet låter så. Det är en sträcka: den sträcka ljuset hinner färdas på ett år. Den är nästan tiotusen miljarder kilometer lång. Den närmaste stjärnan efter solen ligger drygt fyra ljusår bort. Ljuset du ser från den i kväll lämnade alltså stjärnan för drygt fyra år sedan.\n\nJu längre bort man tittar, desto längre bakåt i tiden ser man. En klar höstnatt långt från stadens ljus kan man med blotta ögat se en suddig ljusfläck i stjärnbilden Andromeda. Det är en hel galax, en samling av hundratals miljarder stjärnor, och ljuset från den har varit på väg i ungefär två och en halv miljon år. Det lämnade galaxen ungefär när de första människoliknande varelserna levde på jorden.\n\nDet här är något astronomer kan använda. Med stora rymdteleskop har de fångat ljus från galaxer som har färdats i över tretton miljarder år. De ser alltså galaxer som de såg ut när universum var ungt. Genom att titta allt längre bort kan forskarna nästan bläddra bakåt i universums historia, ungefär som i ett fotoalbum.\n\nIbland hör man att många av stjärnorna vi ser på himlen redan är döda. Det låter spännande, men det stämmer sällan. De flesta stjärnor som syns med blotta ögat ligger några hundra eller tusen ljusår bort, och en stjärna lever oftast i många miljoner eller miljarder år. Chansen att just den stjärna du tittar på har slocknat under de år ljuset har varit på väg är därför liten.\n\nÄndå är det en svindlande tanke. Allt vi ser på natthimlen är gamla meddelanden. Ingenting där uppe ser vi som det är just nu, bara som det var när ljuset gav sig iväg.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt färdas ljuset på en sekund enligt texten?",
+        "options": [
+          "Ungefär 300 kilometer",
+          "Ungefär 3 000 000 kilometer",
+          "Ungefär 30 000 kilometer",
+          "Ungefär 300 000 kilometer"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skulle hända om solen plötsligt slocknade?",
+        "options": [
+          "Vi skulle märka det i samma sekund som det hände",
+          "Vi skulle märka det först efter ungefär åtta år",
+          "Vi skulle märka det först efter ungefär åtta minuter",
+          "Vi skulle aldrig märka det eftersom månen lyser"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ett ljusår?",
+        "options": [
+          "Den tid det tar för solen att gå runt",
+          "Ett år då det är extra ljust på jorden",
+          "Den sträcka ljuset färdas på ett år",
+          "Den tid det tar för ljus att nå månen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför påpekar texten att ljusåret ”inte är en tid, fast namnet låter så”?",
+        "options": [
+          "Ljusåret byttes ut mot ett nytt och bättre mått för länge sedan",
+          "Ordet år får många att tro att det mäter tid",
+          "Ett ljusår är lika långt som ett vanligt år",
+          "Forskarna är oense om vad ett ljusår är"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är den suddiga ljusfläcken i stjärnbilden Andromeda?",
+        "options": [
+          "En hel galax med väldigt många stjärnor",
+          "En enda stjärna som håller på att dö",
+          "En planet som kretsar runt en stjärna",
+          "Ljuset från en stad på andra sidan jorden"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan astronomer se hur universum såg ut när det var ungt?",
+        "options": [
+          "Teleskopen kan skicka tillbaka ljus i tiden",
+          "De har hittat gamla fotografier av universum",
+          "Universum ser likadant ut i dag som när det var ungt",
+          "Ljuset från de mest avlägsna galaxerna är mycket gammalt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Forskarna kan ”bläddra bakåt” i universums historia. Vad menas?",
+        "options": [
+          "Se allt äldre skeden genom att titta längre bort",
+          "Läsa gamla böcker om rymden på biblioteket",
+          "Vända på teleskopet så att det pekar mot jorden",
+          "Gå tillbaka i tiden med hjälp av en rymdfarkost"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför stämmer det sällan att stjärnorna vi ser redan är döda?",
+        "options": [
+          "Döda stjärnor fortsätter att lysa i miljarder år",
+          "Det finns inga stjärnor längre bort än fyra ljusår",
+          "Ljuset från stjärnor kommer fram på en gång",
+          "Stjärnor lever mycket längre än ljuset har varit på väg"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med att allt på natthimlen är ”gamla meddelanden”?",
+        "options": [
+          "Stjärnorna skickar budskap som forskare tolkar",
+          "Vi ser allt som det var när ljuset lämnade det",
+          "Allt på himlen är på väg att slockna snart",
+          "Rymden innehåller brev från gamla rymdfärder"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-djuphavet",
+    "title": "Ljus i det eviga mörkret",
+    "level": 7,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Om du dök rakt ner i ett av världshaven skulle ljuset försvinna fortare än du tror. Redan efter några tiotal meter blir vattnet blåaktigt, eftersom de röda färgerna i solljuset fångas upp först. Ett par hundra meter ner är det skymning. Under ungefär tusen meter når inget solljus alls. Där börjar djuphavet, och det fortsätter ner till botten, som i genomsnitt ligger på nästan fyra kilometers djup och i de djupaste gravarna på omkring elva kilometer.\n\nLivet där nere är svårare än nästan någon annanstans på jorden. Det är mörkt, kallt och trycket är enormt. För varje tionde meter man sjunker ökar trycket lika mycket som hela luftens tryck vid havsytan. På fyra kilometers djup trycker vattnet alltså ungefär fyrahundra gånger hårdare än luften trycker på dig just nu. Ändå kryllar djuphavet av liv.\n\nMånga djuphavsdjur har löst problemet med mörkret på ett märkligt sätt. De gör sitt eget ljus. Förmågan kallas bioluminiscens, och den uppstår när ämnen i djurets kropp reagerar med varandra och avger ljus nästan utan värme. Undersökningar har visat att en stor del av djuren i de mörka vattenmassorna kan lysa.\n\nLjuset används på olika sätt. Djuphavsmarulken har ett slags spö som sticker ut från huvudet, med en lysande klump längst ut. Små djur som simmar fram mot ljuset för att undersöka det hamnar rakt i fiskens stora mun. Vissa bläckfiskar och räkor sprutar ut ett lysande moln när de blir angripna, ungefär som en ljusbomb, och simmar sedan iväg i mörkret medan fienden stirrar på molnet. Andra djur har lysande buk. Det låter som ett dåligt sätt att gömma sig, men sett underifrån blir djuret svårare att upptäcka, eftersom ljuset suddar ut dess skugga mot det svaga ljuset ovanifrån.\n\nMat är också ett problem. Inga växter kan växa utan ljus, så de flesta djur i djuphavet lever på det som långsamt singlar ner från ytan: döda alger, små djur och avföring. Forskare kallar det marin snö. När en val dör och sjunker till botten blir den ett festbord som kan försörja tusentals djur i flera decennier.\n\nPå vissa platser på havsbotten strömmar varmt vatten fullt av mineraler upp ur sprickor. Där lever bakterier som får sin energi från kemiska ämnen i stället för från solljus, och runt dem finns hela samhällen av rörmaskar, musslor och krabbor. När sådana platser upptäcktes på sjuttiotalet förändrade det forskarnas syn på var liv kan finnas.\n\nTrots att djuphavet täcker en stor del av jorden är bara en mindre del av havsbotten noggrant kartlagd. Varje gång forskare skickar ner en undervattensrobot hittar de arter som ingen har sett förut. Den största okända världen ligger alltså inte i rymden, utan här, under vågorna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad händer med solljuset när man dyker djupare ner i havet?",
+        "options": [
+          "Ljuset blir starkare eftersom vattnet är så klart",
+          "Ljuset blir rött och sedan alldeles gult",
+          "De röda färgerna försvinner först och sedan allt ljus",
+          "Ljuset försvinner helt redan efter någon enstaka meter"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur mycket hårdare trycker vattnet på fyra kilometers djup?",
+        "options": [
+          "Ungefär fyra gånger hårdare än luften",
+          "Ungefär fyrahundra gånger hårdare än luften",
+          "Ungefär fyrtio gånger hårdare än luften",
+          "Ungefär lika hårt som luften vid ytan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är bioluminiscens?",
+        "options": [
+          "Att djur ser bra i mörker",
+          "Att vatten lyser när det är varmt",
+          "Att levande varelser gör eget ljus",
+          "Att solljus når långt ner"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför simmar små djur rakt in i djuphavsmarulkens mun?",
+        "options": [
+          "De lockas av den lysande klumpen",
+          "De vill gömma sig inne i munnen",
+          "De ser inte fisken i det klara vattnet",
+          "De trycks dit av strömmar i vattnet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sprutar vissa bläckfiskar ut ett lysande moln?",
+        "options": [
+          "För att locka till sig fler bläckfiskar i mörkret",
+          "För att lysa upp vägen när de letar efter mat",
+          "För att skrämma bort marulken från sitt bo",
+          "För att hinna fly medan fienden tittar på molnet"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan en lysande buk hjälpa ett djur att gömma sig?",
+        "options": [
+          "Ljuset bländar alla fiender som kommer nära",
+          "Ljuset gör djuret större än det egentligen är",
+          "Ljuset visar andra djur att det är giftigt",
+          "Ljuset suddar ut skuggan sett underifrån"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar forskarna med ”marin snö”?",
+        "options": [
+          "Snö som faller ner över haven på vintern",
+          "Rester som långsamt singlar ner från ytan",
+          "Is som bildas på havsbotten",
+          "Vit sand som virvlar upp"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför förändrade upptäckten vid de varma sprickorna forskarnas syn på liv?",
+        "options": [
+          "Där fanns liv som inte behövde solljus",
+          "Där fanns djur som var större än valar",
+          "Där fanns växter som kunde växa i mörker",
+          "Där fanns människor som byggt hus"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med att den största okända världen ligger ”under vågorna”?",
+        "options": [
+          "Att det finns hela städer gömda på havets botten",
+          "Att rymden redan är helt utforskad av forskarna",
+          "Att djuphavet fortfarande är till stor del outforskat",
+          "Att vågorna är för höga för att kunna undersökas"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-myggan",
+    "title": "Det farligaste djuret",
+    "level": 7,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Om man frågar vilket djur som är farligast för människor tänker många på hajar, lejon eller ormar. Svaret är ett djur som väger mindre än ett riskorn. Myggor orsakar fler människors död än något annat djur, och det beror inte på själva sticket. Det beror på vad de kan föra med sig.\n\nDet är bara myggornas honor som suger blod. Hanarna lever på nektar och växtsaft, och det gör honorna också för det mesta. Men för att kunna lägga ägg behöver honan protein, och det får hon ur blod. Hon hittar sitt byte på flera sätt. Hon känner av koldioxiden i vår utandningsluft på långt håll, och när hon kommer närmare dras hon till kroppsvärme och till dofter från huden. Därför är vissa människor mer myggattraherade än andra.\n\nNär myggan sticker sprutar hon in lite saliv som hindrar blodet från att levra sig. Kroppen reagerar på salivens ämnen, och det är därför det kliar. Men saliven kan också innehålla smittämnen. Den farligaste av dem är en liten parasit som orsakar malaria.\n\nMalaria är en sjukdom som ger hög feber och som kan bli livshotande, särskilt för små barn. Varje år dör fortfarande över en halv miljon människor av malaria, de flesta av dem barn i Afrika söder om Sahara. Myggor kan också sprida andra sjukdomar, som denguefeber, och de finns i nästan alla delar av världen.\n\nÄven Sverige hade malaria förr. Den kallades frossa och fanns kvar i vissa trakter en bit in på 1900-talet. Den försvann bland annat när våtmarker dikades ut, när bostäderna blev bättre och när människor och boskap inte längre bodde tätt inpå varandra. De myggor som surrar i svenska sommarnätter i dag sprider inte malaria.\n\nKampen mot malaria har gett resultat. Myggnät som har behandlats med insektsmedel skyddar människor medan de sover, och nya läkemedel och vacciner har tagits fram. Ändå är myggorna svåra att besegra, eftersom de förökar sig snabbt och med tiden kan bli motståndskraftiga mot insektsmedlen.\n\nEn del forskare har föreslagit något mer drastiskt: att med hjälp av genteknik utrota de myggarter som sprider malaria. Förslaget väcker starka känslor. Myggornas larver lever i vatten och är mat åt fiskar, och fullvuxna myggor äts av fåglar och fladdermöss. Vad skulle hända om vissa arter försvann? Andra menar att det rör sig om ett fåtal av världens flera tusen myggarter, och att det vore värt det för att rädda hundratusentals liv varje år.\n\nFrågan visar hur svåra naturens avvägningar kan vara. Det minsta djuret kan väcka de största frågorna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför är myggor så farliga för människor?",
+        "options": [
+          "Deras stick är mycket giftigt",
+          "De kan sprida smittämnen",
+          "De angriper i stora svärmar",
+          "De förstör människors skördar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför suger myggans honor blod?",
+        "options": [
+          "De kan inte äta nektar som hanarna gör",
+          "De behöver vatten under varma sommardagar",
+          "De behöver protein för att kunna lägga ägg",
+          "De behöver värme från kroppen för att flyga"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kan vissa människor bli mer stuckna än andra?",
+        "options": [
+          "Myggor dras till dofter och värme som skiljer sig mellan människor",
+          "Vissa människor har tunnare hud som myggorna lättare tränger igenom",
+          "Myggor väljer bara människor som har blivit stuckna förut",
+          "Vissa människor har blod som innehåller mer socker än andras"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Myggans saliv hindrar blodet från att ”levra sig”. Vad betyder det?",
+        "options": [
+          "Att det blir rött i färgen",
+          "Att det rinner snabbare ut",
+          "Att det blir varmt och kliar",
+          "Att det stelnar och tätar såret"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad orsakar malaria enligt texten?",
+        "options": [
+          "Själva sticket när det blir infekterat",
+          "En liten parasit som finns i myggans saliv",
+          "Ett virus som sprids mellan människor",
+          "Smutsigt vatten som man dricker"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vilka förändringar hjälpte till att få bort malarian ur Sverige?",
+        "options": [
+          "Ett vaccin som alla barn fick i skolan",
+          "Att alla myggor i landet besprutades",
+          "Att vintrarna blev kallare än förut",
+          "Utdikade våtmarker och bättre bostäder"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är myggorna svåra att besegra trots myggnät och läkemedel?",
+        "options": [
+          "De kan flyga genom myggnät utan att märkas",
+          "De lever bara på platser dit ingen kan resa",
+          "De förökar sig snabbt och kan bli motståndskraftiga",
+          "Läkemedlen gör myggorna starkare och större"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilka skäl ges mot att utrota de myggarter som sprider malaria?",
+        "options": [
+          "Andra djur äter myggor och larver",
+          "Myggor skyddar fiskar mot sjukdomar",
+          "Myggor gör vattnet i sjöar renare",
+          "Det skulle bli för dyrt att forska"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med att ”det minsta djuret kan väcka de största frågorna”?",
+        "options": [
+          "Att myggor är mycket smartare än de flesta tror",
+          "Att ett litet djur kan leda till svåra beslut om liv och natur",
+          "Att forskarna vet allt om myggor men nästan inget om stora djur",
+          "Att små djur är viktigare än stora för naturen"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-titanic",
+    "title": "Natten då det osänkbara sjönk",
+    "level": 7,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "När passagerarfartyget Titanic lämnade England i april 1912 var det ett av de största rörliga föremål som människor någonsin hade byggt. Det var nästan trehundra meter långt och hade restauranger, ett gym och en simbassäng. Skrovet var indelat i vattentäta avdelningar, och många, inte minst tidningarna, kallade det osänkbart. Det var fartygets första resa, och målet var New York.\n\nNatten till den 15 april, strax före midnatt, gled Titanic fram i hög fart genom ett kallt och alldeles stilla hav. Under dagen hade fartyget fått flera varningar via radio om att det fanns is i området. Det var en mörk natt utan måne, och på det blanka vattnet syntes inga vågor som bröt mot isen. När utkiken till slut fick syn på ett isberg rakt framför var det för sent. Fartyget hann svänga lite, men isberget skrapade längs sidan och öppnade skrovet på flera ställen.\n\nTitanic var byggd för att flyta även om några av de vattentäta avdelningarna fylldes. Men nu var för många skadade. Konstruktören som fanns ombord räknade snabbt ut att fartyget skulle sjunka inom ett par timmar.\n\nDå blev det värsta problemet tydligt. Det fanns över tvåtusen människor ombord, men livbåtarna rymde bara ungefär hälften av dem. Det var inget brott mot reglerna. Lagarna på den tiden utgick från fartygets storlek, inte från hur många som reste med det. Dessutom sjösattes många av de första båtarna halvtomma, eftersom passagerarna inte trodde att faran var verklig och det inte fanns någon plan för hur båtarna skulle fyllas. Passagerare i tredje klass, som bodde längst ner i fartyget, hade svårast att hitta upp till båtdäcket.\n\nUngefär två timmar och fyrtio minuter efter krocken bröts fartyget i två delar och sjönk. Omkring femtonhundra människor dog, de flesta av kyla i det iskalla vattnet. Ett annat fartyg låg så nära att det kanske hade kunnat hinna fram, men dess radiooperatör hade gått och lagt sig och hörde aldrig nödanropen. Först flera timmar senare kom ett fartyg som räddade dem som satt i livbåtarna.\n\nKatastrofen fick stora följder. Bara två år senare kom ett internationellt avtal om säkerhet till sjöss. Nu skulle det finnas plats i livbåtarna för alla ombord, och fartygen måste ha radion bemannad dygnet runt. Länderna startade också en särskild patrull som skulle bevaka isbergen i Nordatlanten och varna fartygen.\n\nTitanic har blivit en symbol för vad som kan hända när människor litar för mycket på sin egen teknik. Men olyckan är också ett exempel på något annat: att säkerhetsregler ofta skrivs i efterhand, när någon redan har betalat priset.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför kallades Titanic osänkbart?",
+        "options": [
+          "Skrovet var delat i vattentäta avdelningar",
+          "Fartyget var byggt helt av trä och flöt bra",
+          "Fartyget hade fler livbåtar än något annat",
+          "Kaptenen hade aldrig råkat ut för en olycka"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför var isberget så svårt att upptäcka den natten?",
+        "options": [
+          "Det var dimma och snöstorm som skymde all sikt framåt",
+          "Isberget låg helt under vattnet och syntes inte alls från fartyget",
+          "Det var mörkt och havet var så stilla att inga vågor bröt mot isen",
+          "Utkiken hade somnat och missade alla varningar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vilka varningar hade Titanic fått under dagen?",
+        "options": [
+          "Varningar om en storm från väster",
+          "Varningar om att skrovet läckte",
+          "Varningar om ett fartyg i närheten",
+          "Radiovarningar om is i området"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför förstod konstruktören att fartyget skulle sjunka?",
+        "options": [
+          "För många av de vattentäta avdelningarna hade skadats",
+          "Fartyget hade gått sönder i två delar redan vid krocken",
+          "Livbåtarna hade redan sjösatts och var på väg bort",
+          "Radion hade slutat fungera och ingen kunde kallas"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur många rymdes i livbåtarna?",
+        "options": [
+          "Alla passagerare men inte besättningen",
+          "Bara passagerarna i första klass",
+          "Ungefär hälften av dem ombord",
+          "Ungefär en tiondel av dem ombord"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sjösattes många av de första livbåtarna halvtomma?",
+        "options": [
+          "Besättningen ville spara plats åt sig själva",
+          "Båtarna var för små för att bära fler personer",
+          "Havet var för stormigt för att fylla dem helt",
+          "Passagerarna trodde inte att faran var verklig"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Radion skulle vara ”bemannad dygnet runt”. Vad betyder det?",
+        "options": [
+          "Radion skulle stå på hög volym hela tiden",
+          "Någon skulle alltid lyssna på radion",
+          "Radion skulle bara användas av kaptenen",
+          "Det skulle finnas en reservradio ombord"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför kunde det närmaste fartyget inte hjälpa till?",
+        "options": [
+          "Det hade också kört på ett isberg samma natt",
+          "Det låg för långt bort för att hinna fram",
+          "Dess radiooperatör sov och hörde inte nödanropen",
+          "Kaptenen vägrade att ändra kurs mot Titanic"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med att säkerhetsregler ofta skrivs ”när någon redan har betalat priset”?",
+        "options": [
+          "Att resenärer måste betala extra för säkerhet",
+          "Att regler ofta kommer först efter en olycka",
+          "Att regler om livbåtar är mycket dyra att följa",
+          "Att det var rederiet som betalade för olyckan"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-meteoriten",
+    "title": "Dagen då dinosaurierna försvann",
+    "level": 7,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "I över 150 miljoner år dominerade dinosaurierna livet på land. Sedan, för ungefär 66 miljoner år sedan, försvann de nästan på en gång, tillsammans med en stor del av alla andra djur- och växtarter. Länge var det en av vetenskapens stora gåtor vad som hade hänt.\n\nLedtråden hittades inte i ett skelett, utan i ett tunt lager lera. År 1980 presenterade en amerikansk fysiker och hans son, som var geolog, en upptäckt. I bergarter från just den tiden fanns på många platser i världen ett lerlager som innehöll ovanligt mycket av grundämnet iridium. Iridium är sällsynt i jordskorpan, men vanligt i vissa himlakroppar. Forskarna föreslog därför att en stor sten från rymden hade slagit ner och spridit sitt material över hela jorden.\n\nMånga var tveksamma. Om det var sant borde det ju finnas en enorm krater någonstans. Ett drygt årtionde senare hittades den, delvis dold under havet och under yngre lager vid Yucatánhalvön i Mexiko. Kratern är omkring 180 kilometer bred. Den sten som skapade den beräknas ha varit ungefär en mil i diameter.\n\nHär kan det vara bra att reda ut några ord. En sådan sten kallas asteroid så länge den färdas i rymden. Det ljusstreck som syns när en sten brinner i atmosfären kallas meteor, eller stjärnfall. Den bit som till slut når marken kallas meteorit.\n\nSjälva nedslaget var en katastrof utan like. Det frigjorde mer energi än alla världens kärnvapen tillsammans skulle göra. Stora mängder sten förångades och kastades upp i atmosfären. Skogsbränder bröt ut på många håll, och enorma flodvågor sköljde in över kusterna. Men det farligaste kom efteråt. Sot och stoft lade sig som ett täcke runt jorden och stängde ute en stor del av solljuset i flera år. Det blev kallt och mörkt. Växter och alger kunde inte längre få tillräckligt med ljus, och när de dog fick djuren som åt dem ingen mat. Ungefär tre fjärdedelar av alla arter dog ut.\n\nVissa klarade sig ändå. Små djur som kunde gömma sig och äta lite av vad som helst hade bäst chans. Bland dem fanns små däggdjur, som sedan fick möjlighet att utvecklas i en värld utan stora dinosaurier. Utan nedslaget hade människan kanske aldrig funnits. Och alla dinosaurier försvann faktiskt inte. Fåglarna är ättlingar till en grupp dinosaurier, så på sätt och vis flyger de fortfarande omkring oss.\n\nKan det hända igen? Asteroider av den storleken träffar jorden mycket sällan, kanske en gång på hundra miljoner år. I dag kartlägger astronomer de stenar som kommer nära jorden. År 2022 lät man dessutom en rymdsond krocka med en liten asteroid, och man kunde mäta att dess bana ändrades. Det var första gången människor flyttade på en himlakropp.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var hittade forskarna den första ledtråden till vad som hände dinosaurierna?",
+        "options": [
+          "I ett skelett med märken efter brännskador",
+          "I en krater mitt i den amerikanska öknen",
+          "I gamla fotografier från ett rymdteleskop",
+          "I ett tunt lerlager med mycket iridium"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför tydde iridiumet på en sten från rymden?",
+        "options": [
+          "Ämnet är sällsynt på jorden men vanligt i vissa himlakroppar",
+          "Ämnet bildas bara när mycket stora djur dör ut",
+          "Ämnet hade aldrig tidigare hittats någon annanstans på hela jorden",
+          "Ämnet lyser i mörker precis som stjärnorna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var många forskare tveksamma till förslaget i början?",
+        "options": [
+          "Ingen hade ännu hittat den krater som borde finnas",
+          "Iridiumet fanns bara på en enda plats i världen",
+          "Det fanns inga dinosaurier för 66 miljoner år sedan",
+          "Forskarna som föreslog det var inte geologer"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad kallas en sten från rymden som har nått marken?",
+        "options": [
+          "Asteroid",
+          "Meteor",
+          "Stjärnfall",
+          "Meteorit"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad var det farligaste med nedslaget enligt texten?",
+        "options": [
+          "Själva smällen vid nedslaget",
+          "Flodvågorna längs kusterna",
+          "Mörkret och kylan efteråt",
+          "Skogsbränderna i Mexiko"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför dog också djur som aldrig var nära nedslaget?",
+        "options": [
+          "Stenen delade sig och träffade hela jorden",
+          "Växterna dog och djuren fick ingen mat",
+          "Vattnet blev giftigt av all iridium",
+          "Djuren drunknade i de enorma flodvågorna vid kusterna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför klarade sig små däggdjur bättre än dinosaurierna?",
+        "options": [
+          "De kunde gömma sig och äta nästan vad som helst",
+          "De hade tjock päls som skyddade mot elden",
+          "De levde under vattnet där det var varmare",
+          "De hade redan flyttat till andra sidan jorden"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att dinosaurierna ”på sätt och vis flyger omkring oss”?",
+        "options": [
+          "Det finns flygande dinosaurier kvar",
+          "Fossil har hittats uppe i atmosfären",
+          "Asteroider ser ut som dinosaurier",
+          "Fåglarna härstammar från dinosaurier"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför nämner texten rymdsonden som krockade med en asteroid 2022?",
+        "options": [
+          "För att visa att asteroiden hade orsakat nedslaget",
+          "För att visa att människor kanske kan skydda jorden",
+          "För att visa att stora asteroider ofta träffar jorden",
+          "För att visa att sonden hittade dinosaurier"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-venus",
+    "title": "Planeten som blev för varm",
+    "level": 7,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Efter solen och månen är Venus det ljusaste vi kan se på himlen. Den syns ofta strax efter solnedgången eller strax före soluppgången, och därför har den fått namnen aftonstjärnan och morgonstjärnan, fast den inte är någon stjärna alls. Venus är en planet, den andra från solen, och den är nästan exakt lika stor som jorden. Länge föreställde sig människor att den kanske var en grönskande värld, täckt av djungler under sina tjocka moln.\n\nSanningen visade sig vara en helt annan. När rymdsonder började undersöka Venus på sextio- och sjuttiotalet upptäckte forskarna att det är den hetaste planeten i solsystemet. Vid ytan är det omkring 460 grader varmt, så varmt att bly skulle smälta. Det är varmare än på Merkurius, trots att Merkurius ligger närmare solen.\n\nFörklaringen finns i atmosfären. Venus omges av en mycket tjock atmosfär som till största delen består av koldioxid. Trycket vid ytan är ungefär nittio gånger så högt som på jorden, ungefär som att befinna sig nästan en kilometer ner i havet. Molnen består av droppar av svavelsyra. Solljuset tar sig igenom molnen och värmer marken, men värmestrålningen från marken stängs till stor del inne av koldioxiden och kan inte stråla ut i rymden igen. Det kallas växthuseffekt, och på Venus har den blivit extrem.\n\nDet har inte alltid varit så, tror många forskare. När solsystemet var ungt kan Venus ha haft hav av vatten. Men eftersom planeten ligger närmare solen än jorden blev det varmare där. Mer vatten avdunstade, och vattenångan förstärkte i sin tur växthuseffekten, så att ännu mer vatten avdunstade. Till slut fanns inget flytande vatten kvar. Forskare kallar det en skenande växthuseffekt.\n\nVenus är märklig även på andra sätt. Planeten snurrar mycket långsamt, och åt motsatt håll mot jorden. Ett varv runt den egna axeln tar längre tid än ett varv runt solen, så ett dygn på Venus är längre än ett år. Den som stod på ytan skulle dessutom se solen gå upp i väster.\n\nAtt landa där är nästan omöjligt. Några sovjetiska landare lyckades på sjuttio- och åttiotalet skicka bilder från ytan. De visade platta, gulbruna stenhällar under en orange himmel. Den som klarade sig längst fungerade i ungefär två timmar innan värmen och trycket förstörde den.\n\nVarför bryr sig forskare om en plats där ingenting kan leva? En anledning är att Venus och jorden en gång var lika varandra men utvecklades helt olika. Genom att förstå vad som hände där kan man lära sig mer om hur växthuseffekten fungerar och vad som gör en planet beboelig. Venus är på så sätt en tvillingsyster som visar hur annorlunda det kan gå.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför kallas Venus aftonstjärnan fast den inte är någon stjärna?",
+        "options": [
+          "Den har en egen ljuskälla precis som stjärnorna",
+          "Den syns bara under de mörkaste vinternätterna",
+          "Den lyser starkt på himlen kring solnedgången",
+          "Den ligger längre bort än alla andra planeter"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q2",
+        "question": "Vad trodde människor länge att Venus var?",
+        "options": [
+          "En frusen planet täckt av is",
+          "En grönskande värld med djungler",
+          "En stjärna som snart skulle slockna",
+          "En måne som kretsade runt jorden"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför är det överraskande att Venus är varmare än Merkurius?",
+        "options": [
+          "Merkurius är mycket större än Venus",
+          "Merkurius har ett tjockt molntäcke",
+          "Merkurius har hav av flytande vatten",
+          "Merkurius ligger närmare solen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad består Venus atmosfär främst av?",
+        "options": [
+          "Syre",
+          "Vattenånga",
+          "Koldioxid",
+          "Svavelsyra"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menas med ”växthuseffekt” i texten?",
+        "options": [
+          "Att värmen stängs inne av gaser i atmosfären",
+          "Att planeten är full av växter och växthus",
+          "Att ljuset från solen inte når fram till ytan",
+          "Att planeten snurrar runt solen mycket fort"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menas med att växthuseffekten blev ”skenande” på Venus?",
+        "options": [
+          "Den förstärkte sig själv tills allt vatten var borta",
+          "Den gick över på bara några dagar",
+          "Den flyttade sig till en annan planet",
+          "Den gjorde planeten kallare och kallare för varje år"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad skulle man se om man stod på Venus yta?",
+        "options": [
+          "Två solar på himlen",
+          "Solen gå upp i väster",
+          "Blå himmel och moln",
+          "Jorden lysa i söder"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Varför fungerade de sovjetiska landarna bara en kort tid?",
+        "options": [
+          "Batterierna räckte bara en timme",
+          "De sjönk ner i hav av svavelsyra",
+          "Radiosignalerna nådde inte jorden",
+          "Värmen och trycket förstörde dem"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför kallar texten Venus för jordens ”tvillingsyster”?",
+        "options": [
+          "De har samma temperatur och samma luft",
+          "De ligger lika långt från solen",
+          "De var en gång lika men utvecklades helt olika",
+          "De upptäcktes av samma forskare på sextiotalet"
+        ],
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
