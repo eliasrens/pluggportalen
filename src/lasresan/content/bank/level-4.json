@@ -2542,5 +2542,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n4-skarmfri-vecka",
+    "title": "Veckan utan skärmar",
+    "level": 4,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "En söndagskväll samlade mamma hela familjen vid köksbordet. ”Från och med i morgon har vi en skärmfri vecka”, sa hon. ”Inga mobiler, inga plattor och ingen tv efter skolan och jobbet. Det gäller alla, även vuxna.”\n\nFreja stönade. Pappa såg ännu mer olycklig ut.\n\nMåndagen var den längsta dag Freja kunde minnas. Hon låg på sängen och stirrade i taket. Klockan verkade gå baklänges.\n\nPå tisdagen letade hon fram ett gammalt pussel med tusen bitar längst in i ett skåp. Bilden föreställde en fyr vid havet. Hon började med kanterna, och snart satt lillebror Ivo bredvid henne och letade blå bitar till himlen.\n\nPå onsdagen var det pappa som hade det svårast. Freja gick för att borsta tänderna och hittade honom på toalettlocket med mobilen i handen. Han rodnade. ”Jag skulle bara kolla vädret”, mumlade han. De kom överens om att mamma inte behövde få veta, om han hjälpte till med pusslet hela kvällen.\n\nResten av veckan växte fyren fram bit för bit. Familjen pratade mer vid middagen än de brukade, och en kväll spelade de kort tills det var långt efter läggdags.\n\nPå söndagen fick skärmarna komma tillbaka. Ändå rörde ingen sin mobil förrän den sista pusselbiten satt på plats. Sedan bestämde de att söndagarna skulle få fortsätta vara skärmfria.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad föreställde pusslet?",
+        "options": [
+          "En häst på en äng",
+          "En båt i en storm",
+          "En fyr vid havet",
+          "En stad på natten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem hade svårast med den skärmfria veckan på onsdagen?",
+        "options": [
+          "Mamma",
+          "Ruben",
+          "Freja",
+          "Pappa"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Freja ”stönade” när hon hörde planen. Vad visade hon då?",
+        "options": [
+          "Att hon blev glad och förvånad",
+          "Att hon inte tyckte om idén",
+          "Att hon hade ont någonstans",
+          "Att hon inte hörde vad mamma sa"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Pappa ”rodnade”. Vad hände med honom?",
+        "options": [
+          "Han blev röd i ansiktet",
+          "Han började skratta högt",
+          "Han blev blek och rädd",
+          "Han tappade mobilen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför verkade klockan ”gå baklänges” på måndagen?",
+        "options": [
+          "Klockan i hennes rum var trasig och gick fel",
+          "Freja hade ställt om klockan för att lura sig själv",
+          "Freja hade så tråkigt att tiden kändes lång",
+          "Det var söndag och klockan hade ställts om till vintertid"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sa pappa att han ”bara skulle kolla vädret”?",
+        "options": [
+          "Han skämdes och ville ha en ursäkt",
+          "Det skulle bli storm samma kväll",
+          "Han hade lovat Freja att kolla det",
+          "Han ville bestämma om de skulle gå ut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför rörde ingen sin mobil direkt på söndagen?",
+        "options": [
+          "Mobilerna hade inte hunnit laddas än",
+          "Mamma hade gömt alla mobiler längst in i ett skåp",
+          "De hade glömt bort var mobilerna låg",
+          "De ville först lägga den sista pusselbiten"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad kom familjen fram till efter veckan?",
+        "options": [
+          "Att det var omöjligt att leva utan mobil",
+          "Att tiden utan skärmar kunde vara rolig",
+          "Att pussel är tråkigare än kortspel",
+          "Att pappa inte fick ha någon mobil alls"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-paketet",
+    "title": "Paketet med fel nummer",
+    "level": 4,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "En eftermiddag låg ett paket utanför Hildas dörr på Rönngatan 7. Det var adresserat till Greta Holm, men ingen som hette Holm bodde i deras hus. Hilda och pappa läste på alla dörrar i trapphuset för säkerhets skull. Ingen Holm.\n\n”Vi lämnar det till posten i morgon”, sa pappa.\n\nMen Hilda tittade närmare på paketet. På sidan satt en orange etikett: ”Levande växter. Öppnas omedelbart!” Avsändaren var en plantskola. Hilda kände på kartongen. Den var lätt och lite fuktig i ena hörnet.\n\n”Om vi väntar till i morgon kanske växterna dör”, sa hon.\n\nHon studerade adressen igen. Siffran 7 stod alldeles intill en klisterlapp från posten. Under kanten på lappen stack något fram. Det såg ut som ett litet streck, kanske början på en etta.\n\nDå kom Hilda att tänka på huset längre ner på gatan, det med ett stort växthus på baksidan. Det var nummer 17.\n\nHilda och pappa gick dit och ringde på. En gammal kvinna med jord på händerna öppnade. ”Greta Holm”, sa hon. När hon såg paketet sken hon upp. ”Mina tomatplantor! Jag trodde att de hade kommit bort.”\n\nHon förklarade att brevbäraren var ny och att han säkert hade missat ettan.\n\nVeckan efter stod en tomatplanta i en kruka utanför Hildas dörr. På lappen stod det: ”Tack, detektiven!”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken adress bodde Hilda på?",
+        "options": [
+          "Rönngatan 17",
+          "Rönngatan 7",
+          "Rönngatan 1",
+          "Rönngatan 71"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fanns i paketet?",
+        "options": [
+          "Blomsterfrön",
+          "Trädgårdsredskap",
+          "En kruka",
+          "Tomatplantor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Paketet skulle öppnas ”omedelbart”. Vad betyder det?",
+        "options": [
+          "Med en gång",
+          "Mycket försiktigt",
+          "Utomhus",
+          "På kvällen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Greta ”sken upp” när hon såg paketet. Vad betyder det?",
+        "options": [
+          "Hon blev mycket förvånad och rädd",
+          "Hon tände en lampa i hallen",
+          "Hon blev plötsligt glad",
+          "Hon blev röd i ansiktet av ilska"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ville Hilda inte vänta till nästa dag?",
+        "options": [
+          "Paketet tog för stor plats i hallen",
+          "Växterna i paketet kunde dö",
+          "Posten skulle vara stängd hela veckan",
+          "Hon ville gärna se vad som fanns i det"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vilken ledtråd fick Hilda att tänka på en etta?",
+        "options": [
+          "Ett litet streck under postens klisterlapp",
+          "En orange etikett på sidan av paketet",
+          "Ett fuktigt hörn på kartongen",
+          "En lapp som satt på dörren till Gretas stora växthus"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför tänkte Hilda just på huset med växthuset?",
+        "options": [
+          "Hon hade sett Greta bära paket dit förut",
+          "Pappa hade berättat att Greta väntade på post",
+          "Det var det enda huset på hela gatan",
+          "Paketet innehöll växter"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar lappen på krukan?",
+        "options": [
+          "Greta ville att Hilda skulle sköta hennes växthus",
+          "Greta tyckte att Hilda borde bli brevbärare",
+          "Greta var tacksam för att Hilda löste gåtan",
+          "Greta hade skickat fel paket till Hilda"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-grannen-margit",
+    "title": "Torsdagar hos Margit",
+    "level": 4,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Ayla var ensam hemma efter skolan varje dag tills mamma kom från jobbet. Ofta satt hon framför matteboken och suckade. Bråk var det värsta hon visste.\n\nEn dag mötte hon grannen Margit i trappan. Margit var över åttio år och bar på två tunga matkassar. Ayla tog den ena utan att fråga. Utanför dörren bjöd Margit på te och kanelbullar som tack.\n\nLägenheten var full av böcker, och på väggen hängde ett foto av en ung kvinna framför en svart tavla.\n\n”Är det du?” frågade Ayla.\n\n”I fyrtio år var jag mattelärare”, sa Margit och log.\n\nAyla tvekade, men tog sedan fram sin bok. Margit skar en bulle i fyra bitar och sedan i åtta. På en kvart förstod Ayla mer än hon gjort på hela terminen.\n\nInnan Ayla gick tittade Margit sorgset på sin mobil. ”Mitt barnbarn bor i Australien”, sa hon. ”Han vill att vi ska prata med bild, men jag begriper inte hur man gör.”\n\nAyla visade henne, steg för steg. Hon skrev upp allt på en lapp med stora bokstäver. När ett suddigt ansikte dök upp på skärmen och sa ”Hej mormor!” började Margit gråta av glädje.\n\nSedan dess var torsdagar deras dag. Ayla fick hjälp med matten, och Margit fick hjälp med mobilen. Ingen av dem var lika ensam längre.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad tyckte Ayla var det svåraste i matten?",
+        "options": [
+          "Geometri",
+          "Klockan",
+          "Bråk",
+          "Gångertabellen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var bodde Margits barnbarn?",
+        "options": [
+          "I Kanada",
+          "I samma hus",
+          "I en annan stad",
+          "I Australien"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Margit tittade ”sorgset” på mobilen. Hur såg hon ut?",
+        "options": [
+          "Ledsen",
+          "Förvånad",
+          "Trött",
+          "Glad"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Margit sa att hon inte ”begriper” hur man gör. Vad betyder det?",
+        "options": [
+          "Hon vill inte",
+          "Hon förstår inte",
+          "Hon har inte tid",
+          "Hon orkar inte"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skar Margit bullen i fyra och sedan åtta bitar?",
+        "options": [
+          "För att visa hur bråk fungerar",
+          "För att dela den rättvist med Ayla",
+          "För att bullen var för stor att äta",
+          "För att hon ville spara några bitar"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skrev Ayla upp instruktionerna med stora bokstäver?",
+        "options": [
+          "Så att mamma skulle se vad hon gjort hos Margit",
+          "Så att barnbarnet kunde läsa dem i Australien",
+          "Så att Margit kunde läsa dem och klara det själv",
+          "Så att hon själv inte skulle glömma bort hur man gjorde"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med att ”ingen av dem var lika ensam längre”?",
+        "options": [
+          "Ayla hade flyttat in hos Margit på torsdagar",
+          "Margits barnbarn hade flyttat hem från Australien",
+          "Aylas mamma hade slutat jobba på eftermiddagarna",
+          "De hade fått sällskap och glädje av varandra"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket budskap passar bäst till texten?",
+        "options": [
+          "Man ska inte prata med sina grannar",
+          "Unga och gamla kan lära sig av varandra",
+          "Det är farligt att vara ensam hemma efter skolan",
+          "Bråk går bara att förstå med bullar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-tvillingarna",
+    "title": "Två av samma sort",
+    "level": 4,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Elise och Embla var tvillingar och så lika att till och med deras farfar ibland sa fel namn. De hade alltid samma kläder, samma frisyr och samma fritidsaktivitet: fotboll.\n\nEn kväll satte sig Embla på Elises säng. ”Jag vill sluta med fotbollen”, sa hon. ”Jag vill börja på teater i stället.”\n\nElise stirrade på henne. ”Men vi gör ju allt tillsammans.”\n\n”Det är just det”, sa Embla. ”Jag vill att folk ska veta vem jag är. Inte bara att jag är en av tvillingarna.”\n\nElise sa ingenting. Hon vände sig mot väggen och låtsades sova.\n\nVeckorna som följde var konstiga. På fotbollsträningen stod Elise ensam när de skulle dela upp sig i par. Hemma övade Embla repliker i badrummet och pratade om nya kompisar som Elise inte kände. Elise kände sig utbytt.\n\nSedan var det dags för teaterns föreställning. Elise hade först tänkt stanna hemma, men gick ändå. I mörkret såg hon Embla kliva fram på scenen som en sur gammal kung. Hela salongen skrattade, och Elise skrattade högst.\n\nEfteråt sprang Elise fram och kramade henne. ”Du var ju någon helt annan”, sa hon. ”Det var bra.”\n\nVeckan efter klippte Embla en kort lugg. Elise behöll sitt långa hår. Nu sa farfar aldrig fel namn. Men när de gick till skolan tryckte de fortfarande varandras händer tre gånger, deras hemliga tvillingtecken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken fritidsaktivitet ville Embla börja med?",
+        "options": [
+          "Simning",
+          "Dans",
+          "Teater",
+          "Ridning"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken roll spelade Embla i föreställningen?",
+        "options": [
+          "En glad ung prinsessa",
+          "En elak häxa",
+          "En talande fotboll",
+          "En sur gammal kung"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Embla övade ”repliker”. Vad är det?",
+        "options": [
+          "Danssteg till en föreställning",
+          "Det som en skådespelare ska säga",
+          "Kläder och peruker som används på scenen",
+          "Biljetter till en teater"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Elise kände sig ”utbytt”. Vad betyder det här?",
+        "options": [
+          "Som om Embla hade valt andra före henne",
+          "Som om hon hade blivit sjuk",
+          "Som om hon hade fått nya kläder",
+          "Som om hon hade bytt rum"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför låtsades Elise sova efter samtalet?",
+        "options": [
+          "Hon var mycket trött efter fotbollen",
+          "Hon ville att Embla skulle gå och lägga sig",
+          "Hon hade inte hört vad Embla sa",
+          "Hon var ledsen och ville inte prata"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ville Embla börja på teater?",
+        "options": [
+          "Hon var osams med sina lagkompisar i fotbollen",
+          "Hon ville vara sig själv, inte bara en tvilling",
+          "Hennes farfar hade bett henne att börja på teatern",
+          "Hon ville träffa nya kompisar till Elise"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför slutade farfar säga fel namn?",
+        "options": [
+          "Tvillingarna hade olika frisyrer",
+          "Farfar hade fått nya glasögon",
+          "Tvillingarna bar namnlappar",
+          "Embla hade slutat i skolan"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar tvillingtecknet i slutet?",
+        "options": [
+          "De vill fortfarande göra exakt samma saker",
+          "De måste hålla varandra i handen för att inte gå vilse",
+          "De står fortfarande nära varandra fast de är olika",
+          "De har bestämt sig för att sluta vara olika"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-pluto",
+    "title": "Planeten som blev degraderad",
+    "level": 4,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "År 1930 upptäckte en ung amerikansk astronom en liten prick som rörde sig långt ute i solsystemet. Han hette Clyde Tombaugh. Pricken var en ny himlakropp, och den fick namnet Pluto. Namnet föreslogs av en elvaårig flicka i England, efter guden som härskade över de dödas rike.\n\nI mer än 75 år lärde sig skolbarn att Pluto var den nionde planeten. Den är mindre än vår egen måne och så långt bort att den behöver ungefär 248 år för att åka ett varv runt solen.\n\nMed tiden hittade astronomerna fler saker i samma del av rymden. Det var små himlakroppar av is och sten, och en del var nästan lika stora som Pluto. Skulle alla de också räknas som planeter?\n\nÅr 2006 bestämde forskare från hela världen vad en planet är. Den ska gå runt solen och vara rund. Dessutom ska den vara så stor att den har röjt undan det mesta annat i sin bana. Det sista klarar inte Pluto. Den delar sin väg med många andra isklumpar. Därför blev Pluto i stället en dvärgplanet.\n\nMånga blev ledsna, men Pluto blev inte mindre intressant. År 2015 flög rymdsonden New Horizons förbi. Bilderna visade berg av is och ett stort, ljust område som ser ut som ett hjärta.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem föreslog namnet Pluto?",
+        "options": [
+          "Clyde Tombaugh",
+          "En grupp forskare",
+          "En lärare i USA",
+          "En elvaårig flicka"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år bestämde forskarna vad en planet är?",
+        "options": [
+          "År 2006",
+          "År 1930",
+          "År 2015",
+          "År 1948"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Pluto blev ”degraderad”. Vad betyder det?",
+        "options": [
+          "Den blev kallare än den var förut",
+          "Den fick ett nytt och finare namn",
+          "Den flyttades ner till en lägre grupp",
+          "Den åkte mycket längre bort från solen än förut"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Pluto har inte ”röjt undan” annat i sin bana. Vad betyder det?",
+        "options": [
+          "Den har inte hunnit åka ett helt varv runt solen än",
+          "Den har inte rensat bort andra saker från sin väg",
+          "Den har inte fått några egna månar",
+          "Den har inte smält sin is än"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tar det så lång tid för Pluto att åka runt solen?",
+        "options": [
+          "Den ligger mycket långt bort från solen",
+          "Den är mycket större än jorden",
+          "Den snurrar baklänges och mycket långsamt runt sig själv",
+          "Den stannar på vägen för att vila"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vilken av reglerna för en planet klarar inte Pluto?",
+        "options": [
+          "Att vara rund som de andra planeterna",
+          "Att ha röjt undan det mesta i sin bana",
+          "Att åka runt solen hela tiden",
+          "Att vara gjord av is och sten"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför ville forskarna bestämma vad en planet är?",
+        "options": [
+          "De ville att solsystemet skulle ha färre månar",
+          "Pluto hade krympt sedan den upptäcktes",
+          "De hade hittat fler saker som liknade Pluto",
+          "New Horizons hade inte hittat Pluto"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att Pluto ”inte blev mindre intressant”?",
+        "options": [
+          "Den växte och blev större igen",
+          "Den blev en planet igen 2015",
+          "Fler barn än förut lärde sig om den i skolan",
+          "Forskarna fortsatte att utforska den"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-solcellen",
+    "title": "Ström från solljus",
+    "level": 4,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Kanske har du en miniräknare med en liten mörk ruta överst. Den rutan är en solcell. Den gör el av ljus, så att räknaren fungerar utan batteri.\n\nDe flesta solceller är gjorda av kisel, ett ämne som finns i vanlig sand. Kislet renas och skärs i tunna skivor. När solljuset träffar skivan sätter ljuset fart på mycket små delar inne i materialet, som kallas elektroner. När elektronerna rör sig i samma riktning blir det en elektrisk ström. Ingenting brinner, ingenting snurrar och det hörs inget ljud.\n\nEn enda solcell ger inte mycket el. Därför sätts många solceller ihop till en solpanel. Panelerna kan sitta på hustak, på stora fält eller på satelliter ute i rymden. Faktiskt var satelliter några av de första som använde solceller, redan för mer än sextio år sedan.\n\nSolceller fungerar även när det är molnigt, men då ger de mindre el. På natten ger de ingen el alls. Därför sparar man ibland elen i batterier eller skickar den ut på elnätet.\n\nI Sverige är det ljust länge på sommaren men mörkt nästan hela dagen på vintern. Därför gör solpanelerna här mest el under sommarhalvåret.\n\nSolceller släpper inte ut några avgaser när de gör el. Därför är de en viktig del av framtidens energi.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket ämne är de flesta solceller gjorda av?",
+        "options": [
+          "Koppar",
+          "Glas",
+          "Plast",
+          "Kisel"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad händer med en solcell på natten?",
+        "options": [
+          "Den ger mer el än på dagen",
+          "Den ger ingen el alls",
+          "Den laddar sig själv med månljus",
+          "Den måste tas in i huset"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Solceller sitter på ”satelliter”. Vad är det?",
+        "options": [
+          "Farkoster som åker runt jorden i rymden",
+          "Höga torn som skickar ut el till hus",
+          "Stora fält med många paneler bredvid varandra",
+          "Batterier som sparar el till natten"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "En solpanel ger el till ”elnätet”. Vad är det?",
+        "options": [
+          "Ett nät som skyddar panelerna mot fåglar",
+          "En stor solcell som sitter på taket",
+          "Ledningar som för el till många hus",
+          "En sorts batteri inne i miniräknaren"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sätter man ihop många solceller till en solpanel?",
+        "options": [
+          "Solcellerna går lättare sönder ensamma",
+          "Det ser snyggare ut på taket",
+          "Kislet måste värmas upp av andra celler",
+          "En enda solcell ger inte mycket el"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför gör solpanelerna i Sverige mest el på sommaren?",
+        "options": [
+          "Då är det varmare och kislet blir mjukare",
+          "Då är det ljust under en större del av dygnet",
+          "Då är det molnigt och molnen samlar ihop allt solljus",
+          "Då använder människor mindre el hemma"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar texten med att ”ingenting snurrar”?",
+        "options": [
+          "En solcell har inga delar som rör sig",
+          "Jorden slutar snurra när solen lyser",
+          "Elektronerna står helt stilla i kislet",
+          "Man får inte vrida på en solpanel"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför kallas solceller en viktig del av framtidens energi?",
+        "options": [
+          "De gör el som går att äta och dricka",
+          "De fungerar bäst när det är natt",
+          "De gör el utan att släppa ut avgaser",
+          "De är gjorda av ovanliga material"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
