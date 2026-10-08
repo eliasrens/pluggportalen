@@ -11,16 +11,18 @@ import {
   TABLE_COLUMNS, teacherClassRows, sortTeacherRows, nextSort, pctLevel,
 } from "../src/lasresan/teacher-rows.js";
 
+// Som data-lasresan.getClassLasresa levererar dem: normaliserade (levelScale 10).
+const lr = (o) => ({ levelScale: 10, ...o });
 const entries = [
-  { studentId: "s1", namn: "Örjan", lasresa: { level: 5, totalTexts: 18, totalQuestions: 126, totalCorrect: 91, totalIncorrect: 35, moneyEarned: 273, worldId: "skogen", stepInWorld: 18, completedWorlds: [] } },
+  { studentId: "s1", namn: "Örjan", lasresa: lr({ level: 5, totalTexts: 18, totalQuestions: 126, totalCorrect: 91, totalIncorrect: 35, moneyEarned: 273, worldId: "skogen", stepInWorld: 18, completedWorlds: [] }) },
   { studentId: "s2", namn: "Alva", lasresa: null },
-  { studentId: "s3", namn: "Bo", lasresa: { level: 2, totalTexts: 4, totalQuestions: 24, totalCorrect: 9, totalIncorrect: 15, moneyEarned: 27, worldId: "skogen", stepInWorld: 4, completedWorlds: [] } },
-  { studentId: "s4", namn: "Cleo", lasresa: { level: 6, totalTexts: 22, totalQuestions: 150, totalCorrect: 130, totalIncorrect: 20, moneyEarned: 390, worldId: "oknen", stepInWorld: 2, completedWorlds: ["skogen"] } },
+  { studentId: "s3", namn: "Bo", lasresa: lr({ level: 2, totalTexts: 4, totalQuestions: 24, totalCorrect: 9, totalIncorrect: 15, moneyEarned: 27, worldId: "skogen", stepInWorld: 4, completedWorlds: [] }) },
+  { studentId: "s4", namn: "Cleo", lasresa: lr({ level: 6, totalTexts: 22, totalQuestions: 150, totalCorrect: 130, totalIncorrect: 20, moneyEarned: 390, worldId: "oknen", stepInWorld: 2, completedWorlds: ["skogen"] }) },
   // Startat en text men inte avslutat någon: börjat, men ingen procent.
-  { studentId: "s5", namn: "Dan", lasresa: { level: 3, totalTexts: 0, totalQuestions: 0, worldId: "skogen", stepInWorld: 0, currentTextId: "t1" } },
+  { studentId: "s5", namn: "Dan", lasresa: lr({ level: 4, totalTexts: 0, totalQuestions: 0, worldId: "skogen", stepInWorld: 0, currentTextId: "t1" }) },
 ];
 
-test("rader: korrekta värden, ej börjat = nivå 3 / Skogen 0 utan procent", () => {
+test("rader: korrekta värden, ej börjat = nivå 4 / Skogen 0 utan procent", () => {
   const rows = teacherClassRows(entries);
   const by = Object.fromEntries(rows.map((r) => [r.studentId, r]));
   assert.equal(rows.length, 5);
@@ -29,7 +31,7 @@ test("rader: korrekta värden, ej börjat = nivå 3 / Skogen 0 utan procent", ()
     [18, 126, 91, 35, 72, 5, "Skogen", 18, 20]
   );
   assert.equal(by.s2.started, false);
-  assert.deepEqual([by.s2.level, by.s2.worldName, by.s2.stepInWorld, by.s2.pct, by.s2.texts], [3, "Skogen", 0, null, 0]);
+  assert.deepEqual([by.s2.level, by.s2.worldName, by.s2.stepInWorld, by.s2.pct, by.s2.texts], [4, "Skogen", 0, null, 0]);
   assert.equal(by.s4.worldName, "Öknen");
   assert.equal(by.s5.started, true);
   assert.equal(by.s5.pct, null);
@@ -69,4 +71,23 @@ test("lärarvyn laddas dynamiskt (inte i bootgrafen) och läser inga försök i 
   assert.doesNotMatch(table, /^import .*data-lasresan/m);
   // listAttempts används bara som injicerbar källa till elevdetaljen.
   assert.equal((table.match(/listAttempts/g) || []).length, 1);
+});
+
+test("skalan 1–10 (#520): rå gammal-skala-data visas migrerad (+3), ny data orörd", () => {
+  const raw = (o) => ({ totalTexts: 3, totalQuestions: 18, totalCorrect: 12, totalIncorrect: 6, worldId: "skogen", stepInWorld: 3, seenTextIds: ["a"], ...o });
+  const rows = teacherClassRows([
+    { studentId: "g1", namn: "G1", lasresa: raw({ level: 1 }) },
+    { studentId: "g3", namn: "G3", lasresa: raw({ level: 3 }) },
+    { studentId: "g7", namn: "G7", lasresa: raw({ level: 7 }) },
+    // Gammal väntande nivå 2 (påbörjad text) → 5.
+    { studentId: "gp", namn: "GP", lasresa: raw({ level: 3, pendingLevel: 2, currentTextId: "x" }) },
+    // Lagrad i ny skala (level10 + spegel) → level10 gäller.
+    { studentId: "n9", namn: "N9", lasresa: raw({ level10: 9, level: 6, pendingLevel10: null, pendingLevel: null }) },
+    { studentId: "n2", namn: "N2", lasresa: raw({ level10: 2, level: 1 }) },
+  ]);
+  const by = Object.fromEntries(rows.map((r) => [r.studentId, r]));
+  assert.deepEqual(["g1", "g3", "g7", "n9", "n2"].map((id) => by[id].level), [4, 6, 10, 9, 2]);
+  assert.deepEqual([by.gp.level, by.gp.pendingLevel], [6, 5]);
+  // Normaliserat objekt (levelScale 10) flyttas aldrig en gång till.
+  assert.equal(teacherClassRows([{ studentId: "x", lasresa: { levelScale: 10, level: 7, seenTextIds: ["a"] } }])[0].level, 7);
 });

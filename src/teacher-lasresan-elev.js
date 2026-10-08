@@ -2,14 +2,18 @@
 // Pluggporten – lärarsidan: Läsresan-elevdetalj (teacher-lasresan-elev.js)
 // ----------------------------------------------------------------------------
 // Modal som öppnas från Läsresan-tabellen (teacher-lasresan.js, spec §19):
-//   * aktuell DOLD läsnivå (1–7) – bara läraren ser den
+//   * aktuell DOLD läsnivå (1–10, epic #516) – bara läraren ser den
 //   * lästa texter, frågor, rätt, fel, rätt %, värld + steg, pluggcoins
 //   * statistik per frågetyp (Fakta, Ordförståelse, Mellan raderna,
 //     Helhet/slutsats) som staplar – ur studentData.lasresa.catStats, så den
 //     täcker ALLA elevens texter, inte bara de senaste försöken
 //   * senaste genomförda texterna med resultat per text – här (och bara här)
 //     läses försöken: listAttempts läser lasresaAttempts + fallback-fältet och
-//     tål permission-denied (regeln är inte deployad överallt).
+//     tål permission-denied (regeln är inte deployad överallt). Varje försök
+//     går genom normalizeAttempt, så en gammal textnivå visas migrerad (+3)
+//     även från en injicerad källa (#520).
+//   * "Ändra nivå" (#506) – ritas av `renderLevel` (teacher-lasresan-niva.js)
+//     när lärarvyn skickar med den.
 // Samma modal-skal (.cx-modal) och mörka tema som teacher-class-detail.js.
 // All elevdata (namn, texttitlar) escapas.
 // ============================================================================
@@ -17,6 +21,7 @@
 import { avatarEmoji } from "./avatars.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { LEVEL_MAX } from "./lasresan/config.js";
+import { normalizeAttempt } from "./lasresan/level-scale.js";
 import { categoryBreakdown, percent } from "./lasresan/stats.js";
 import { pctLevel } from "./lasresan/teacher-rows.js";
 
@@ -92,7 +97,7 @@ export function categoryHtml(catStats) {
 
 /** Tabell över senaste genomförda texter (nyast först). */
 export function attemptsHtml(attempts) {
-  const list = (attempts || []).filter(Boolean).slice(0, RECENT_TEXTS);
+  const list = (attempts || []).filter(Boolean).slice(0, RECENT_TEXTS).map(normalizeAttempt);
   if (list.length === 0) return `<p class="hint lrt-empty">Inga genomförda texter än.</p>`;
   const rows = list
     .map((a) => {
@@ -119,10 +124,12 @@ export function attemptsHtml(attempts) {
  * Öppna Läsresan-detaljen för en elev.
  * @param {object} student  { id, namn, username, avatarId }
  * @param {{ row: object, lasresa: (object|null),
- *   loadAttempts: (studentId:string, max:number) => Promise<object[]> }} opts
+ *   loadAttempts: (studentId:string, max:number) => Promise<object[]>,
+ *   renderLevel?: ((slot:HTMLElement, {updateRow}) => void) | null }} opts
  *   `row` = elevens rad ur teacherClassRows (redan beräknad i tabellen).
+ *   `renderLevel` ritar "Ändra nivå"-kontrollen (#506) i sin sektion.
  */
-export function openLasresanDetail(student, { row, lasresa, loadAttempts }) {
+export function openLasresanDetail(student, { row, lasresa, loadAttempts, renderLevel }) {
   const name = student.namn || student.username || student.id;
   const overlay = el(`<div class="cx-modal-overlay teacher-dark lrt-modal" role="dialog" aria-modal="true"
       aria-label="Läsresan – ${esc(name)}">
@@ -138,6 +145,7 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts }) {
       <div class="cx-modal-body">
         ${statsGridHtml(row)}
         <p class="lrt-hidden-note">${icon("eye", 14)} Läsresan-nivån är dold för eleven – den styr bara vilka texter som väljs.</p>
+        ${renderLevel ? `<div class="cx-detail-sec lrn-sec"><h3>Ändra nivå</h3><div class="lrn-slot"></div></div>` : ""}
         <div class="cx-detail-sec">
           <h3>Per frågetyp</h3>
           ${categoryHtml(lasresa && lasresa.catStats)}
@@ -168,6 +176,12 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts }) {
   // Modalen ligger i body – stäng den vid ruttbyte (Tillbaka/hash-byte, #463).
   window.addEventListener("hashchange", close);
   document.body.appendChild(overlay);
+  // Efter ett nivåbyte ritas nyckeltalen om med elevens nya rad.
+  const updateRow = (r) => {
+    const grid = overlay.querySelector(".lrt-stat-grid");
+    if (grid && r) grid.replaceWith(el(statsGridHtml(r)));
+  };
+  if (renderLevel) renderLevel(overlay.querySelector(".lrn-slot"), { updateRow });
   overlay.querySelector(".cx-modal-close").focus();
 
   // Försöken läses bara för den här eleven, och bara om den har börjat.

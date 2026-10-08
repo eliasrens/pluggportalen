@@ -20,10 +20,8 @@
 // `node --test` utan nätverk.
 // ============================================================================
 
-import { validateBank } from "./validate.js";
+import { validateBank, levelFromId } from "./validate.js";
 import { DEV_SEED } from "./dev-seed.js";
-
-const ID_LEVEL = /^lr-n(\d+)-/;
 
 /**
  * @param {{fetch?:Function, baseUrl?:(string|URL), seed?:object[], warn?:Function}} [opts]
@@ -123,9 +121,9 @@ export function createLoader(opts = {}) {
   /** En text via id (för att återuppta currentTextId). Null om den inte finns. */
   async function findText(id) {
     if (typeof id !== "string") return null;
-    const hit = ID_LEVEL.exec(id);
-    if (hit) {
-      const t = (await loadLevel(Number(hit[1]))).find((x) => x.id === id);
+    const idLevel = levelFromId(id);
+    if (idLevel !== null) {
+      const t = (await loadLevel(idLevel)).find((x) => x.id === id);
       if (t) return t;
     }
     return (await loadBank()).find((x) => x.id === id) || null;

@@ -57,6 +57,7 @@ function cellHtml(earned, maxStars) {
  *   studentById?: Map,                  // id → elev (för elev-fördjupningen)
  *   loadAreas: (subjectId:string) => Promise<object[]>  // områden per ämne (helst cachad)
  *   classId?: string                    // klassen – ger flikarna Mattematchen (#459) och Live (#460)
+ *   cls?: object, classes?: object[]    // klassen + lärarens klasser – Läsresans nivåstyrning (#506)
  * }} opts
  */
 export async function renderClassStats(ctx, host, opts) {
@@ -119,7 +120,9 @@ const STATS_TABS = [
   {
     key: "lasresan", label: "Läsresan", icon: "book", what: "Läsresan", lazy: true,
     render: async (ctx, pane, o) =>
-      (await import("./teacher-lasresan.js")).renderClassLasresan(ctx, pane, { students: o.students }),
+      (await import("./teacher-lasresan.js")).renderClassLasresan(ctx, pane, {
+        students: o.students, cls: o.cls, classes: o.classes, studentById: o.studentById, // #506 nivåstyrning
+      }),
   },
   {
     key: "mattematchen", label: "Mattematchen", icon: "trophy", what: "Mattematchen", lazy: true,

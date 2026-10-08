@@ -284,7 +284,7 @@ Firestore-batchen. Fel: `permission-denied`, `invalid-argument`, `already-exists
 | `floorApples`| array  | Äpplen som ligger på golvet i rummet: `{ id, x, y }` (procent). Se nedan |
 | `pet`        | map    | **Utfasad** singular-föregångare till `pets` – migreras till `pets[0]` vid första inläsningen (fältet lämnas kvar men ignoreras när `pets` finns) |
 | `farm`       | map    | **Gården** (epic gård-expansion, #327): laggård, odlingsbädd, skörde-förråd och djurplaceringar – se avsnittet nedan. **Bakåtkompatibelt:** saknas fältet (alla äldre dokument) default-mergas det vid inläsning (`farmFromData` i `src/farm-core.js`) – ingen migrering behövs |
-| `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt }`. `level` (1–7) är Läsresans **dolda** nivå – helt skild från `readingLevel` (1–3). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, nivå 3) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
+| `lasresa`    | map    | **Läsresan** (#399): `{ level, highStreak, lowStreak, worldId, stepInWorld, completedWorlds[], totalTexts, totalQuestions, totalCorrect, totalIncorrect, moneyEarned, seenTextIds[], catStats{kategori:{q,correct}}, currentTextId, currentStartedAt, lastTextId, updatedAt, pendingLevel, levelSetAt, levelSetBy }`. Läsresans **dolda** nivå (1–10) – helt skild från `readingLevel` (1–3). **Skala 1–10 (#519):** nivån lagras i `level10` (1–10) och väntande lärarnivå i `pendingLevel10` (1–10 eller null); `level`/`pendingLevel` är en SPEGEL i gammal skala 1–7 (ny − 3, klampad) för gamla cachade klienter. Saknas `level10` är datat gammalt och nivåerna flyttas +3 vid läsning (lat migrering, `src/lasresan/level-scale.js`). **Lärarstyrd nivå (#505):** `pendingLevel10` = lärarvald nivå som gäller efter elevens påbörjade text; `levelSetAt` (ms) + `levelSetBy: "teacher"` = senaste lärarbyte (brygga `src/data-lasresan-niva.js`). **Bakåtkompatibelt:** saknas fältet = ny elev (Skogen, steg 0, klassens startnivå eller nivå 4) via `normalizeLasresa` i `src/lasresan/progress.js`. Brygga: `src/data-lasresan.js`. Se [LASRESAN.md](LASRESAN.md). |
 | `lasresaAttemptsFallback` | array | Läsresan: de senaste (max 30) försöken när skrivning till `lasresaAttempts` nekas (regeln ännu ej deployad). Samma form som ett försöksdokument. Läses av `listAttempts`. |
 | `kcDonation` | string | Klasscentret (#500): `"<classId>/<donationId>"` för elevens senaste donation – skrivs i samma batch som myntavdraget så att ett avdrag bara kan betala EN donationspost (se Crowdfunding). Läses inte av appen. |
 
@@ -296,6 +296,7 @@ av `completeText` i `src/data-lasresan.js`):
 | Fält | Typ | Beskrivning |
 | ---- | --- | ----------- |
 | `textId`, `title`, `textType`, `textLevel` | string/number | Vilken text (id enligt innehållskontraktet, t.ex. `lr-n3-bollen-som-forsvann`) |
+| `levelScale` | number | `10` = `textLevel` är på skalan 1–10 (#519). Saknas = gammalt försök; `listAttempts` normaliserar det (nivå ur text-id, annars `textLevel` + 3) |
 | `studentId` | string | Eleven |
 | `startedAt`, `completedAt` | number | ms sedan epoch |
 | `totalQuestions`, `correct`, `incorrect`, `percentage` | number | Resultat |
@@ -446,6 +447,8 @@ flera klasser utan extra kopplingsdata).
 | `studentIds`    | array\<string\>       | Id:n på eleverna i klassen (pekar på `students`)|
 | `assignedAreas` | array\<Assignment\>   | Aktiva/tilldelade arbetsområden (valfritt, se nedan) |
 | `lock`          | ClassLock             | Fokusläge (#436): klassen låst till ETT mål till ett klockslag (valfritt, se nedan) |
+| `lasresaStartLevel10` | int 1–10      | Läsresans startnivå (#505, skala 1–10 i #519) för klassens elever som INTE börjat Läsresan (saknar `studentData.lasresa`) och nya elever. Saknas = 4. Påverkar inte elever som är igång. Bara lärare skriver (regeln validerar heltal 1–10; ⚠️ rules-deploy). Se [LASRESAN.md](LASRESAN.md). |
+| `lasresaStartLevel` | int 1–7           | SPEGEL av startnivån i gammal skala (ny − 3, klampad 1–7) för gamla cachade klienter. Skrivs alltid tillsammans med `lasresaStartLevel10`. Finns bara detta fält är värdet gammalt och tolkas +3 (gammal 3 → 6). |
 
 **Assignment**: `{ subjectId, areaId }` – pekar på ett `subjects/{subjectId}/areas/{areaId}`.
 

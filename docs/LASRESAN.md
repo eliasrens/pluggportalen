@@ -2,7 +2,7 @@
 
 Adaptiv läsförståelseträning (åk 3–6) som en egen huvudmodul i Pluggportalen.
 Eleven går en resa med sin avatar (1 färdig text = 1 steg, 20 steg = en värld),
-medan en **dold** nivå 1–7 avgör hur svår nästa text blir. Produktspec:
+medan en **dold** nivå 1–10 avgör hur svår nästa text blir. Produktspec:
 `BYGG_EN_NY_MODUL_I_PLUGGPORTALEN.txt` (epic #398, innehållsepic #404).
 
 Det här dokumentet beskriver kärnan från issue #399: analysen av befintliga
@@ -62,7 +62,7 @@ system, arkitekturen, datamodellen och kontrakten som kartan (#400), läsvyn
 - `studentData.readingLevel` (1–3, lärarsatt, `src/reading-level.js`,
   `data-reading-level.js`), Läsuppdrag `games-lastext.js` och
   `validate-reading.js` (områdenas `readingTexts`).
-- Läsresan är **helt separat**: egen nivå `studentData.lasresa.level` (1–7),
+- Läsresan är **helt separat**: egen nivå `studentData.lasresa.level` (1–10, före epic #516 1–7),
   egna texter (`src/lasresan/content/`) och egen validator. Ingen befintlig fil i
   det systemet är ändrad.
 
@@ -75,13 +75,15 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 
 | Fil | Ansvar |
 | --- | --- |
-| `config.js` | Alla justerbara tal: nivå 1–7, start 3, 70 %/50 %, streak 3/2, 3 coins/rätt, 20 steg, 5–9 frågor, ordantal per nivå |
+| `config.js` | Alla justerbara tal: nivå 1–10, start 4, 70 %/50 %, streak 3/2, 3 coins/rätt, 20 steg, frågor per nivå (`QUESTIONS_BY_LEVEL`, annars 5–9), ordantal per nivå |
 | `level.js` | Dold nivå: `applyResult(state, {correct,total})`, `classifyResult`, `normalizeLevel`, `percent` |
 | `journey.js` | Resan: `completeStep(progress, worlds)`, `normalizeProgress` |
 | `picker.js` | Textval: `pickText(level, seenTextIds, bank, {lastTextId, rng})` |
 | `stats.js` | Aggregering: `summarize`, `categoryBreakdown`, `aggregateAttempts`, `classRows`, `sortRows` |
 | `rewards.js` | `coinsFor(correct)`, `award(correct)` → `data.addCoins` (lat import) |
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
+| `level-control.js` | Lärarstyrd nivå (#505): `parseTeacherLevel`, `withTeacherLevel`, `applyPendingLevel`, `hasStartedLasresa`, `effectiveStartLevel`, `classStartLevelOf` |
+| `level-scale.js` | Nivåskala 1–10, lat migrering (#519): `readStoredLevels`, `toStoredLasresa`, `readClassStartLevel`, `classStartLevelFields`, `normalizeAttempt` |
 | `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
 | `ui-map.js` | Kartvyn (#400): världs-agnostisk renderare + `ui-map-stil.js` (CSS, injiceras – rör inte styles.css) |
@@ -91,6 +93,7 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `lasresan.css` | Stilar för läsvy/sammanfattning/Min läsning, laddas LAT av page-lasresan |
 | `page-lasresan.js` | Route-skal: karta → text → completeText → sammanfattning → karta, `?vy=min` = Min läsning |
 | `../data-lasresan.js` | Firestore-brygga: `getLasresa`, `startText`, `completeText`, `listAttempts`, `getClassLasresa` |
+| `../data-lasresan-niva.js` | Firestore-brygga för lärarstyrd nivå (#505): `setStudentLevel`, `setClassLevel`, `getClassStartLevel`, `setClassStartLevel`, `getStudentStartLevel` |
 
 **Bootgrafen:** inget under `src/lasresan/` och inte `data-lasresan.js`
 importeras statiskt från `app.js`. Routen `#/elev/lasresan` (#401) laddar
@@ -111,8 +114,9 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   innehållet blir ingen ledtråd och ordningen är densamma efter en omladdning.
   Vyn skickar alltid originalindex. Klick → alla knappar låses → ✅ Rätt! / ❌ Fel
   → nästa fråga automatiskt efter 1,1 s (fel: 1,6 s).
-- **Rätt svar avslöjas inte vid fel** (spec §7 säger bara ✅/❌). Det kan läggas
-  till i `ui-reader.js` om lärarna vill.
+- **Rätt svar visas vid fel** (spec 10 nivåer §4, ändrat i #525): det valda
+  alternativet blir rött och det rätta grönt under de 1,6 s innan nästa fråga.
+  (Före #525 visades bara ✅/❌.)
 - **Påbörjad text:** svaren sparas efter varje klick i
   `localStorage["pp:lasresan:pagaende:<elevId>"]`. Lämnar eleven texten (← Kartan,
   omladdning) återupptas samma text på samma fråga med de låsta svaren, så det
@@ -132,7 +136,7 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   pluggcoins. Ingen nivå och inga jämförelser.
 
 ### Nivålogik (spec §10)
-- `correct*100 >= 70*total` → **hög**: highStreak+1, lowStreak=0. Vid 3 → nivå +1 (tak 7).
+- `correct*100 >= 70*total` → **hög**: highStreak+1, lowStreak=0. Vid 3 → nivå +1 (tak 10).
 - `correct*100 < 50*total` → **låg**: lowStreak+1, highStreak=0. Vid 2 → nivå −1 (golv 1).
 - Annars (50–69,99 %) → båda streaks nollas.
 - Efter nivåbyte nollas båda streaks. Vid tak/golv nollas streaken ändå.
@@ -165,6 +169,100 @@ man kan inte hoppa över en dålig text. `completeText` kräver att
 vilket skyddar mot dubbelklick och dubbelbelöning. `force: true` används bara
 om den påbörjade texten har försvunnit ur banken.
 
+### Lärarstyrd nivå (#505, epic #482 – spec §2–5)
+Ren logik i `level-control.js` (testad i `test/lasresan-level-control.test.js`),
+Firestore i `data-lasresan-niva.js` (bara dynamiskt importerad).
+
+- **Enskild elev** (`setStudentLevel`, EN transaktion per elev,
+  `withTeacherLevel`):
+  - ingen påbörjad text → `level` sätts direkt och båda streaks nollas;
+  - påbörjad text (`currentTextId`) → `pendingLevel` sparas. Texten slutförs
+    på den gamla nivån; `applyCompletion` räknar resultatet som vanligt och
+    sätter sedan `level = pendingLevel`, streaks 0, `pendingLevel = null`.
+  - Båda stämplar `levelSetAt` (ms) och `levelSetBy: "teacher"`.
+  - Inget annat rörs: resultat, `seenTextIds`, totaler, `catStats`,
+    världar/steg, `moneyEarned`, coins och `lasresaAttempts` står kvar.
+  - Därefter fortsätter den vanliga automatiska progressionen från vald nivå.
+  - Race-skydd: `normalizeLasresa` och `withStartedText` lägger en kvarglömd
+    `pendingLevel` på plats så fort ingen text är påbörjad (t.ex. vid
+    `force`-byte), så `pendingLevel` finns bara medan en text pågår.
+- **Hela klassen** (`setClassLevel(classId | studentIds, level)`): samma sak
+  per elev, parallellt; ett misslyckat byte stoppar inte de andra. Returnerar
+  `{ level, total, updated, now, pending, failed[] }`. Enskilda elever kan
+  ändras efteråt.
+- **Klassens startnivå** (`classes/{id}.lasresaStartLevel10`, heltal 1–10,
+  plus spegeln `lasresaStartLevel` i gammal skala – se "Nivåskala 1–10" nedan):
+  ersätter `START_LEVEL` (4) för elever som **inte har börjat**.
+  **Definition:** eleven har inte börjat = `studentData.lasresa` saknas helt.
+  Objektet skapas först av `startText` (första texten) eller när läraren sätter
+  en individuell nivå. Därför påverkar startnivån aldrig elever som är igång, och
+  en lärarsatt individuell nivå vinner alltid över startnivån.
+  `getLasresa`/`startText` slår upp elevens klass (`getClassForStudent`, första
+  klassen i ordningen om flera) via `getStudentStartLevel` och skickar den till
+  `normalizeLasresa(raw, worlds, { startLevel })`; första texten sparas då på
+  startnivån. Fel vid uppslag → 4. `hasStartedLasresa(raw)` (läst, påbörjad
+  eller sedd text) används av lärartabellen för "ej börjat" – en elev med bara
+  en lärarsatt nivå visas som ej börjat men med lärarens nivå.
+- **Ogiltiga nivåer:** lärarens val tolkas STRIKT (`parseTeacherLevel`: heltal
+  1–10, även `"4"` från en `<select>`); 0, 11, 3.5, `"abc"` → bryggan kastar.
+  Ogiltig `pendingLevel`/startnivå i lagrad data ignoreras (→ 4).
+- **Behörighet:** `classes` skrivs bara av lärare; `lasresaStartLevel10`
+  valideras som heltal 1–10 och spegeln `lasresaStartLevel` som heltal 1–7 i
+  `firestore.rules`; studentData skrivs bara av eleven själv eller lärare.
+  Regeltester: `test/firestore-rules-lasresan-niva.test.js`.
+  ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`. Klienten fungerar
+  även innan: den skriver bara spegelvärden 1–7 i det gamla fältet, och de
+  gamla reglerna validerar inte `lasresaStartLevel10`.
+
+### Nivåskala 1–10: lat migrering (#519, epic #516)
+Gamla nivå N = nya nivå N+3 (banken omnumrerad i #518, text-id:n oförändrade).
+Det finns **inget engångsskript**. Lagrad data tolkas vid läsning och skrivs
+i ny form vid nästa skrivning. All logik ligger i `src/lasresan/level-scale.js`
+(ren, testad i `test/lasresan-level-scale.test.js`).
+
+**Designval: ny skala i NYA fältnamn, de gamla fälten blir en spegel.** En
+gammal cachad klient (Pages cachar JS ~10 min, och en flik kan stå öppen i
+timmar) klampar `lasresa.level` till 1–7 och sprider okända fält (`...raw`).
+Med bara en skalmarkör och ny nivå i `level` skulle den skriva 9 → 7 och
+markören stå kvar, vilket ger tyst korruption. Därför gäller detta:
+
+| Data | Ny skala (gäller) | Spegel, gammal skala (gamla klienter) |
+| ---- | ----------------- | ------------------------------------- |
+| `studentData.lasresa` | `level10`, `pendingLevel10` (1–10) | `level`, `pendingLevel` = ny − 3, klampad 1–7 |
+| `classes/{id}` | `lasresaStartLevel10` (1–10) | `lasresaStartLevel` = ny − 3, klampad 1–7 |
+| `lasresaAttempts` | `levelScale: 10` på nya försök (`textLevel` är då ny skala) | – (försök skrivs bara en gång) |
+
+- **Läsning** (`readStoredLevels`, `readClassStartLevel`):
+  - Saknas det nya fältet är datat gammalt, och nivån flyttas +3. Gammal 1/3/7
+    blir 4/6/10, gammal pendingLevel 2 blir 5 och gammal startnivå 3 blir 6.
+  - Finns det nya fältet och spegeln stämmer gäller det nya fältet.
+  - Stämmer spegeln **inte** har en gammal klient ändrat nivån (progression
+    eller lärarbyte i gammal vy). Då vinner dess värde +3. Om spegeln för
+    väntande nivå är borta (förbrukad) men nivåspegeln motsvarar den väntande
+    nivån gäller `pendingLevel10`. Om en gammal lärarvy tagit bort
+    startnivåspegeln gäller standardnivån.
+- **I minnet** (`normalizeLasresa`) bär `level`/`pendingLevel` alltid ny skala,
+  och objektet märks `levelScale: 10`. Det gör att en ny normalisering aldrig
+  lägger på +3 igen (idempotent). Märkta objekt och objekt med `level10` får
+  aldrig +3 en gång till.
+- **Skrivning:** bryggorna (`data-lasresan.js`, `data-lasresan-niva.js`)
+  skriver ALLTID `toStoredLasresa(lasresa)`. Den kastar om objektet inte är
+  normaliserat, så rå data kan aldrig skrivas med fel skala. Startnivån skrivs
+  med `classStartLevelFields(level)` (båda fälten).
+- **Ofarligt för gamla klienter:** de läser spegeln, som är en giltig nivå på
+  deras skala, och skriver tillbaka den eller sin egen ändring av den. De nya
+  fälten följer med orörda genom `...raw`. Nivå 8–10 kan alltså inte klampas
+  bort. Kvar finns en grovhet: ny nivå 1–4 har samma spegel (1), så en gammal
+  klient som flyttar en elev på nivå 1–3 uppåt hamnar på 5.
+- **Försök:** nya försök bär `levelScale: 10`. `listAttempts` normaliserar
+  gamla försök (`normalizeAttempt`): text-id:t avgör nivån när det följer
+  konventionen (`lr-n<N>` = N+3, `lr-g<N>` = N), annars gäller `textLevel` +3.
+- **Oförändrat:** `seenTextIds`, totaler, `catStats`, världar/steg och pengar.
+  Text-id:n är identiska före och efter #518 (alla 280 kontrollerade), så
+  lästa texter behöver ingen migrering.
+- **Progression:** `level.applyResult` gäller över 1–10 med golv 1 och tak 10
+  (tester för 1↔2 och 9↔10).
+
 ---
 
 ## 3. Datamodell
@@ -172,22 +270,29 @@ om den påbörjade texten har försvunnit ur banken.
 Se även `docs/DATAMODELL.md`.
 
 ### `studentData/{id}.lasresa` (map)
+Lagringsform (#519). I minnet efter `normalizeLasresa` är `level`/`pendingLevel`
+på skalan 1–10 och `levelScale: 10`, utan `level10`/`pendingLevel10`.
 ```
-{ level, highStreak, lowStreak,              // DOLD nivå 1–7 (visas aldrig för eleven)
+{ level10, pendingLevel10,                   // #519: DOLD nivå 1–10 + väntande lärarnivå (1–10 | null)
+  level, pendingLevel,                       // SPEGEL i gammal skala 1–7 (för gamla klienter)
+  highStreak, lowStreak,
   worldId, stepInWorld, completedWorlds[],   // resan (stepInWorld 0 = före steg 1)
   totalTexts, totalQuestions, totalCorrect, totalIncorrect,
   moneyEarned,                               // pluggcoins tjänade via Läsresan (statistik)
   seenTextIds[], catStats{kategori:{q,correct}},
   currentTextId, currentStartedAt, lastTextId,
-  updatedAt }                                // ms sedan epoch
+  updatedAt,                                 // ms sedan epoch
+  levelSetAt, levelSetBy }                   // #505: senaste lärarbyte (ms | null, "teacher" | null)
 ```
-Saknas fältet räknas eleven som ny (Skogen, steg 0, nivå 3) via
-`normalizeLasresa`. Ingen migrering behövs.
+Saknas fältet räknas eleven som ny (Skogen, steg 0, klassens startnivå
+`classes/{id}.lasresaStartLevel10` eller 4) via `normalizeLasresa`. Gamla
+objekt utan `level10` har nivåerna i gammal skala och flyttas +3 vid läsning
+(se "Nivåskala 1–10"). Andra saknade fält får `null`.
 
 ### `studentData/{id}/lasresaAttempts/{autoId}`
 Ett dokument per färdig text:
 ```
-{ textId, title, textType, textLevel, studentId,
+{ textId, title, textType, textLevel, levelScale, studentId,   // levelScale 10 = textLevel 1–10 (#519); saknas = gammal skala
   startedAt, completedAt,                    // ms sedan epoch
   totalQuestions, correct, incorrect, percentage, earnedMoney,
   perQuestion: [{ qid, category, chosen, correct }],
@@ -262,6 +367,16 @@ onDone({ answers: [{ qid, chosen }] })
 - `getClassLasresa(studentIds)` → `[{ studentId, lasresa|null }]`. En läsning per
   elev, bara i lärarvyn.
 
+### Bryggan: `data-lasresan-niva.js` (#505, lärare)
+- `setStudentLevel(studentId, level)` → `{ studentId, level, applied: "now"|"pending" }`.
+- `setClassLevel(classId | studentIds[], level)` → `{ level, total, updated, now, pending, failed:[{studentId, error}] }`.
+- `getClassStartLevel(classId)` → `1–10 | null` (null = ej satt → 4).
+- `setClassStartLevel(classId, level | null)` → sparad nivå (null tar bort fältet).
+- `getStudentStartLevel(studentId?)` → startnivån som gäller för eleven (1–10).
+- Rena hjälpare för lärar-UI:t: `teacherClassRows(entries, worlds, { startLevel })`
+  (raden har även `pendingLevel`), `classStartLevelOf(classDoc)`,
+  `parseTeacherLevel(value)`.
+
 ### Statistik: `stats.js`
 - Elevens "Min läsning": `summarize(lasresa)` (utan nivå).
 - Lärarens tabell: `classRows([{studentId, namn, lasresa}])` + `sortRows(rows, key, dir)`.
@@ -275,12 +390,16 @@ onDone({ answers: [{ qid, chosen }] })
   inget av Läsresan hamnar i bootgrafen. Ingen egen sida.
 - **Tabell** (`teacher-lasresan.js`): Elev | Texter | Frågor | Rätt | Fel |
   Rätt % | Läsnivå | Värld | Steg. Alla kolumner går att sortera. Lika värden
-  sorteras på namn, och en saknad procent hamnar alltid sist. Ren logik ligger
+  sorteras på namn, och en saknad procent hamnar alltid sist. Nivåerna visas
+  på skalan 1–10 (#520): `teacherClassRows` kör varje `lasresa` genom
+  `normalizeLasresa` och elevdetaljen varje försök genom `normalizeAttempt`,
+  så rå gammal-skala-data (utan `level10`/`levelScale`) visas +3 även från en
+  injicerad källa. Ren logik ligger
   i `src/lasresan/teacher-rows.js` (`teacherClassRows`, `sortTeacherRows`,
   `nextSort`, `pctLevel`) och testas i `test/lasresan-teacher.test.js`.
 - **Ej börjat** (`lasresa` saknas): texter/frågor/rätt/fel/% visas som "–",
   märkt *ej börjat*. Nivå, värld och steg visas och sorteras som startvärdena
-  3 / Skogen / 0. Den som har startat en text men inte avslutat någon räknas
+  klassens startnivå (standard 4) / Skogen / 0. Den som har startat en text men inte avslutat någon räknas
   som börjad, men rätt % blir "–" eftersom det inte finns några svar.
 - **"Värld"-sortering** går på resans läge (`world.order * 1000 + steg`).
   Öknen steg 2 räknas alltså som längre fram än Skogen steg 18.
@@ -293,6 +412,26 @@ onDone({ answers: [{ qid, chosen }] })
   helt utan data visas ett tomt läge.
 - **CSS** ligger i `styles.css` under `.teacher-dark` med prefixet `lrt-`
   (`lr-` tillhör elevens `lasresan.css`).
+- **Nivåstyrning (#506):** i Läsresan-fliken (bara när klassen skickas med, dvs. på
+  klasskortet) ligger två kort ovanför tabellen, och elevdetaljen har en sektion
+  **Ändra nivå**. Vyn finns i `teacher-lasresan-niva.js` (importeras av
+  `teacher-lasresan.js`, så den är dynamisk; bryggan `data-lasresan-niva.js` laddas lat
+  först vid sparning). Texterna kommer ur `lasresan/teacher-niva.js` (testas i
+  `test/lasresan-teacher-niva.test.js`).
+  - *Ändra klassens startnivå*: "Gäller nya elever och elever som inte har börjat" →
+    `setClassStartLevel`. Visar nuvarande nivå ("Nivå 4 (standard)" om den inte är satt), väljare 1–10
+    och en förklaring att 1–3 är de nya, enklare nivåerna (`NEW_LEVELS_HINT`). Elever utan
+    `lasresa` visar startnivån i nivå-kolumnen.
+  - *Ändra nivå för hela klassen*: klassväljare (förvald = aktuell, alla lärarens
+    klasser), nivå → bekräftelsedialog (`role=alertdialog`) med klass, antal elever
+    och nivå → `setClassLevel(studentIds, nivå)`, där listan är exakt de elever som
+    räknades i dialogen. Resultatet visar antal satta, antal väntande och vilka som misslyckades.
+  - *Elev*: nuvarande nivå + badge "Väntande nivå X" vid `pendingLevel`. Nivå-kolumnen
+    visar `4 → 1` medan en ändring väntar. Efter sparning läses bara den eleven om.
+  - CSS-prefix `lrn-` i `styles.css`. Emulator-preview:
+    `admin/qa-lasresan-niva-preview.sh` (klickguide i `docs/preview-lasresan-niva.md`).
+    Skalan 1–10 med elever i gammal och ny lagring: `admin/qa-lasresan-10-preview.sh`
+    (proxy :8541, seed `qa-lasresan-10-seed.mjs`, klickguide `docs/preview-lasresan-10.md`).
 - **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
   blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
   namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.
@@ -303,25 +442,39 @@ onDone({ answers: [{ qid, chosen }] })
 
 Kontraktet delas med innehållsepicet #404 och ändras inte ensidigt:
 ```
-src/lasresan/content/bank/manifest.json: { "version": 1, "levels": { "1": ["level-1.json"], …, "7": ["level-7.json"] } }
+src/lasresan/content/bank/manifest.json: { "version": 1, "levels": { "1": ["level-1.json"], …, "10": ["level-10.json"] } }
 level-N.json: ReadingText[]
-ReadingText = { id, title, level (1-7), textType ("story"|"fact"), topic, body ("stycke\n\nstycke"), questions: Question[] (5-9) }
+ReadingText = { id, title, level (1-10), textType ("story"|"fact"), topic, body ("stycke\n\nstycke"), questions: Question[] (antal per nivå, se nedan) }
 Question   = { id, question, options: [4 strängar], answerIndex (0-3), category ("fakta"|"ordforstaelse"|"mellan_raderna"|"helhet_slutsats") }
 ```
 - `content/bank/` ägs av #404. Motorn skapar inga filer där.
+- **10 nivåer (epic #516, #518):** de gamla nivåerna 1–7 ligger nu på 4–10
+  (gammal nivå N = ny nivå N+3; filerna flyttade och `level` +3, inget annat
+  ändrat). Nivå 1–3 är nya, enklare nivåer (`level-1..3.json`, tomma tills
+  D1–D3 fyller dem). En tom nivå är okej: pickern tar närmaste nivå med texter.
+- **Frågor per text** (`questionRange(level)`, `QUESTIONS_BY_LEVEL` i
+  `config.js`): nivå 1 = 3–4, nivå 2 = 4–5, nivå 3 = 5–7, nivå 4–10 = 5–9.
+  Alltid 4 alternativ och exakt ett `answerIndex`.
+- **Id-konvention** (id:t är en stabil nyckel i `seenTextIds`, `lastTextId`,
+  `currentTextId` och `lasresaAttempts` – byts ALDRIG):
+  - `lr-n<N>-<slug>` = gamla texter, ligger på nivå **N+3** (`lr-n1-…` = nivå 4).
+  - `lr-g<N>-<slug>` = nya texter på nivå 1–3, ligger på nivå **N** (`lr-g1-…` = nivå 1).
+  `levelFromId(id)` (validate.js) räknar ut nivån; loaderns `findText` använder
+  den, och validatorn varnar om id-nivån och `level` inte stämmer.
 - **Loadern** hämtar manifestet och sedan nivåfilerna lat per nivå (flera filer
   per nivå går bra). Varje text valideras, och texter med fel hoppas över med
   `console.warn`. Saknas en listad nivåfil (404) eller ger den inga giltiga
   texter används dev-seedens texter för just den nivån (om de finns, annars blir
   nivån tom och pickern tar närmaste nivå). Saknas hela banken (404/nätfel) eller
-  kommer ingen enda text ur den används hela `dev-seed.js`: spec:ens fyra referenstexter (nivå 1/3/5/7),
+  kommer ingen enda text ur den används hela `dev-seed.js`: spec:ens fyra referenstexter (gamla nivå 1/3/5/7 = nya 4/6/8/10),
   kompletterade till 5–6 frågor var.
 - **Validatorn** ger **fel** för saknade fält, fel antal frågor/alternativ,
-  answerIndex utanför 0–3, okänd kategori/textType, nivå utanför 1–7 och
+  answerIndex utanför 0–3, okänd kategori/textType, nivå utanför 1–10 och
   dubblett-id. Den ger **varningar** för ordantal utanför nivåns riktintervall,
+  id vars nivå inte stämmer med `level`, längdledtråd,
   saknat topic, likadana alternativ och skev fördelning av rätt svars position
   (> 40 % på en bokstav, från 12 frågor per nivå).
-- Känd varning: spec:ens egen nivå 7-referens är 259 ord (riktintervall
+- Känd varning: spec:ens egen (gamla) nivå 7-referens (nu nivå 10) är 259 ord (riktintervall
   280–500). Den citeras ordagrant och har därför lämnats orörd.
 
 ---
@@ -329,8 +482,9 @@ Question   = { id, question, options: [4 strängar], answerIndex (0-3), category
 ## 6. Så bygger du ut
 
 - **Ny text:** lägg den i rätt `content/bank/level-N*.json` (eller en ny fil i
-  manifestet). `id` = `lr-n{nivå}-{slug}`, stabilt för alltid (seenTextIds bygger
-  på det). Ingen kodändring.
+  manifestet). Nya texter på nivå 1–3: `id` = `lr-g{nivå}-{slug}`; gamla
+  `lr-n…`-id:n behålls (se Id-konvention ovan). Id:t är stabilt för alltid
+  (seenTextIds bygger på det). Ingen kodändring.
 - **Ny värld:** se avsnittet "Så skapar du en ny värld" nedan.
 - **Ny frågekategori:** lägg till nyckeln i `CATEGORIES` + `CATEGORY_LABELS`
   (`config.js`). Statistiken behåller redan okända kategorier.

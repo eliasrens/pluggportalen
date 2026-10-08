@@ -37,7 +37,8 @@ test("bara EN text på nivån och den är senast → den väljs ändå", () => {
 test("nivån saknar texter → närmaste nivå (lättare vid lika avstånd)", () => {
   assert.equal(pickText(2, [], bank).level, 1); // 1 och 3 lika nära → 1
   assert.equal(pickText(7, [], bank).level, 4);
-  assert.deepEqual(levelSearchOrder(3), [3, 2, 4, 1, 5, 6, 7]);
+  assert.equal(pickText(10, [], bank).level, 4);
+  assert.deepEqual(levelSearchOrder(3), [3, 2, 4, 1, 5, 6, 7, 8, 9, 10]);
 });
 
 test("nivå-map fungerar också som bank, tom bank → null", () => {

@@ -113,6 +113,8 @@ export function renderReader(container, { text, onDone, initialAnswers, onAnswer
     const right = chosen === q.answerIndex;
     answers.push({ qid: q.id, chosen });
     b.classList.add(right ? "chosen-correct" : "chosen-wrong");
+    // Fel → visa rätt svar (spec 10 nivåer §4): rätt alternativ blir grönt.
+    if (!right) qHost.querySelector(`button[data-k="${q.answerIndex}"]`)?.classList.add("chosen-correct");
     const fb = qHost.querySelector(".lr-feedback");
     fb.className = `lr-feedback ${right ? "ratt" : "fel"}`;
     fb.textContent = right ? "✅ Rätt!" : "❌ Fel";

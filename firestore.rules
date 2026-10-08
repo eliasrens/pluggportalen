@@ -165,10 +165,29 @@ service cloud.firestore {
         (resource != null && request.resource.data.lock == resource.data.get('lock', null)) ||
         validLockShape(request.resource.data.lock);
     }
+    // LÄSRESAN STARTNIVÅ (#505, skala 1–10 i #519): startnivån för klassens
+    // elever som INTE börjat Läsresan (ersätter standardnivån 4). Två fält:
+    //   `lasresaStartLevel10` – heltal 1–10, nya skalan (gäller)
+    //   `lasresaStartLevel`   – heltal 1–7, SPEGEL i gamla skalan (nivå − 3,
+    //                           klampad) så att gamla cachade klienter läser
+    //                           och skriver ofarligt (src/lasresan/level-scale.js)
+    // Läsbart för alla inloggade (elevens klient läser sin klass), skrivbart
+    // bara av lärare. Saknade fält = standardnivån. Klienten skriver bara
+    // värden som även reglerna FÖRE #519 godtar, så den fungerar före deploy.
+    // Elevernas individuella nivå (studentData.lasresa.level10/level m.fl.)
+    // skyddas av studentData-regeln ovan (eleven själv eller lärare).
+    // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validLasresaStartLevel() {
+      let d = request.resource.data;
+      return (!('lasresaStartLevel' in d) ||
+               (d.lasresaStartLevel is int && d.lasresaStartLevel >= 1 && d.lasresaStartLevel <= 7)) &&
+             (!('lasresaStartLevel10' in d) ||
+               (d.lasresaStartLevel10 is int && d.lasresaStartLevel10 >= 1 && d.lasresaStartLevel10 <= 10));
+    }
     match /classes/{classId} {
       allow read:  if signedIn();
       allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules() &&
-                               validLock();
+                               validLock() && validLasresaStartLevel();
       allow delete: if isTeacher();
     }
 
