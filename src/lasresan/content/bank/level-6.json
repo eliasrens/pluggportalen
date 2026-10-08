@@ -2436,5 +2436,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n6-alen",
+    "title": "Ålens hemliga resa",
+    "level": 6,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "I över två tusen år har människor undrat var ålen kommer ifrån. Ingen hittade några ägg, och ingen såg några små ålungar. Den grekiske filosofen Aristoteles trodde därför att ålar bildades av sig själva i gyttjan på botten av sjöar och vattendrag.\n\nSvaret började hittas först i början av 1900-talet. Den danske forskaren Johannes Schmidt seglade under många år kors och tvärs över Atlanten och fångade ålens larver i fina nät. Ju längre västerut han kom, desto mindre var larverna. De allra minsta hittade han i Sargassohavet, ett område i Atlanten öster om Nordamerika. Där, drog han slutsatsen, måste ålarna födas.\n\nLarverna ser inte alls ut som ålar. De är platta och genomskinliga, ungefär som små blad av glas. Med havsströmmarna driver de mot Europa, en resa som tar ett till tre år. När de närmar sig kusten förvandlas de till smala, genomskinliga glasålar, och sedan simmar många av dem upp i åar och sjöar. Där blir de gulbruna och kan leva i tio, tjugo år eller ännu längre. Ålen kan till och med ta sig korta sträckor över blött gräs för att komma till ett nytt vatten.\n\nNär det är dags att föröka sig förändras ålen igen. Den blir silverfärgad, ögonen blir större och den slutar äta. Sedan lämnar den sjön och simmar mer än 6 000 kilometer tillbaka till Sargassohavet, där den föddes. Efter leken dör den.\n\nTrots all forskning har ingen ännu sett ålarna para sig ute i havet. Det är fortfarande en av naturens stora gåtor.\n\nI dag är ålen akut hotad. Dammar och kraftverk stänger vägen i många vattendrag, och ålen har länge fiskats hårt. I Sverige är fiske efter ål därför till största delen förbjudet. Det är ett djur som vi fortfarande inte helt förstår, och som vi riskerar att förlora innan vi hinner göra det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var fann Johannes Schmidt de minsta larverna?",
+        "options": [
+          "I svenska sjöar",
+          "Utanför Danmark",
+          "I Medelhavet",
+          "I Sargassohavet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur ser ålens larver ut, enligt texten?",
+        "options": [
+          "Som platta blad av glas",
+          "Långa och gulbruna, som små ormar",
+          "Runda och silverfärgade, som små mynt",
+          "Små och svarta, som korn av sand"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför trodde Aristoteles att ålar bildades i gyttjan?",
+        "options": [
+          "Han hade sett ålar krypa upp ur gyttjan",
+          "Ålarna levde bara på sjöarnas botten",
+          "Ingen hade sett ålarnas ägg eller ungar",
+          "Han hade hittat ålägg i gyttjan"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför drog Schmidt slutsatsen att ålarna föds i Sargassohavet?",
+        "options": [
+          "Han såg ålarna para sig där",
+          "Larverna var minst där",
+          "Fiskare berättade det för honom",
+          "Där fanns flest vuxna ålar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Schmidt seglade ”kors och tvärs” över Atlanten. Vad betyder det?",
+        "options": [
+          "I många olika riktningar",
+          "Bara rakt österut",
+          "Med ett stort kors målat på seglet",
+          "Mycket snabbt"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Ålen är ”akut hotad”. Vad betyder det?",
+        "options": [
+          "Den är farlig för människor att röra",
+          "Den hotar andra fiskar i sjöarna",
+          "Den riskerar allvarligt att dö ut",
+          "Den har snabbt blivit vanligare"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför stoppar dammar och kraftverk ålen?",
+        "options": [
+          "Vattnet blir för varmt för ålen vid dammarna",
+          "Ålen kan inte ta sig förbi dem upp eller ner",
+          "Ålen äter inget när den är nära en damm",
+          "Ålen blir rädd för ljudet från kraftverket"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill den sista meningen säga?",
+        "options": [
+          "Att forskarna snart har löst alla gåtor om ålen",
+          "Att ålen inte är värd att forska om längre",
+          "Att det är bättre att äta ål än att studera den",
+          "Att vi borde skydda ålen medan vi lär oss mer"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-elefanterna",
+    "title": "Samtal som ingen hör",
+    "level": 6,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Den som har varit nära en elefantflock har kanske hört dem trumpeta, frusta och gnissla. Men mycket av det elefanterna säger till varandra hör vi människor inte alls.\n\nElefanter kan göra ett djupt, mullrande läte som kommer från strupen. En del av ljudet är så mörkt att det ligger under det vi kan uppfatta med öronen. Sådant ljud kallas infraljud. Mörka ljud har en fördel: de dämpas mindre av träd, buskar och kullar än ljusa ljud, och därför kan de färdas mycket långt. Forskare har räknat ut att elefanter kan höra varandra på flera kilometers avstånd, särskilt under stilla kvällar och nätter när luften är lugn.\n\nDet finns också tecken på att elefanter inte bara lyssnar med öronen. Mullret får marken att vibrera, och forskare tror att elefanterna kan känna vibrationerna med sina känsliga fötter och med snabeln. Man har sett elefanter stå stilla, luta sig fram och lyfta en fot, som om de lyssnar genom marken.\n\nVad säger de då? Forskarna har spelat in lätena och lärt sig skilja på några av dem. Det finns läten som betyder ungefär ”nu går vi”, läten när en unge är i fara och läten när två vänner möts efter en tid isär. Hälsningarna kan vara både långa och högljudda.\n\nEn elefantflock leds oftast av den äldsta honan, som kallas matriark. Hon har levt länge och känner igen rösterna från många andra elefanter. Försök har visat att flockar med en äldre ledare bättre kan avgöra om ett okänt läte betyder fara eller inte. Hennes minne gör hela flocken tryggare.\n\nDärför kan det bli ett stort problem när just de äldsta elefanterna dödas av tjuvjägare. Med dem försvinner inte bara ett djur, utan också en kunskap som flocken behöver.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas ljud som är för mörka för människors öron?",
+        "options": [
+          "Infraljud",
+          "Ultraljud",
+          "Ekoljud",
+          "Brus"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem leder oftast en elefantflock?",
+        "options": [
+          "Den starkaste hanen",
+          "Den yngsta honan",
+          "Den äldsta honan",
+          "Den största ungen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför hörs elefanternas mullrande så långt?",
+        "options": [
+          "Elefanterna mullrar starkast mitt på dagen",
+          "Mörka ljud dämpas mindre av hinder",
+          "Lätena studsar mot himlen och kommer tillbaka",
+          "Andra djur skickar ljuden vidare"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Ljuden ”dämpas mindre”. Vad betyder det?",
+        "options": [
+          "De blir ljusare och skarpare",
+          "De ändrar riktning lättare",
+          "De blir mycket högre",
+          "De försvagas inte lika mycket"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför lyfter elefanter ibland en fot och står stilla?",
+        "options": [
+          "De kanske känner efter vibrationer i marken",
+          "De vilar sina tunga ben efter en lång vandring",
+          "De försöker skrämma bort andra djur",
+          "De visar att de vill bli ledare"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hälsningarna kan vara ”högljudda”. Vad betyder det?",
+        "options": [
+          "Att de är mycket mörka",
+          "Att de tar lång tid",
+          "Att de låter mycket",
+          "Att de är svåra att förstå"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är en flock tryggare med en äldre ledare?",
+        "options": [
+          "Hon är större och kan slåss mot alla rovdjur",
+          "Hon vet var tjuvjägarna brukar gömma sig",
+          "Hon kan höra infraljud som de andra inte hör",
+          "Hon vet vilka läten som betyder fara"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att en ”kunskap” försvinner när de äldsta dödas?",
+        "options": [
+          "Forskarna kan inte längre spela in lätena",
+          "Flocken förlorar ett minne som skyddar dem",
+          "De yngre elefanterna slutar att mullra",
+          "Flocken glömmer bort hur man hittar vatten"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-bjorndjur",
+    "title": "Det tåligaste djuret",
+    "level": 6,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "I mossan på en sten eller ett tak lever ett djur som de flesta aldrig har sett. Det är ungefär en halv millimeter långt, har åtta korta ben med små klor och kryper fram lika långsamt och klumpigt som en liten björn. Därför kallas det björndjur.\n\nBjörndjur finns över nästan hela jorden, från höga berg till havets botten och isen i Antarktis. För att leva och röra sig behöver de en tunn hinna av vatten omkring sig. Men det märkliga är vad som händer när vattnet försvinner.\n\nNär mossan torkar ut drar björndjuret in benen och huvudet och krymper ihop till en liten torr tunna. Nästan allt vatten i kroppen försvinner, och livet går ner till nästan ingenting. I det läget kan det klara sådant som skulle döda nästan alla andra djur: stark kyla, hetta under en kortare tid och lång tid utan mat. När vatten kommer tillbaka sväller tunnan, benen kommer fram och djuret börjar krypa igen, ibland efter bara några timmar.\n\nForskare har väckt björndjur som legat infrysta i mossa i omkring trettio år. År 2007 skickade svenska forskare upp torkade björndjur i rymden, på utsidan av en satellit. Många överlevde det tomma rymdvakuumet, och några klarade till och med solens starka strålning. Det hade inget djur gjort tidigare, så långt man visste.\n\nÄndå är björndjur inte odödliga. När de är aktiva och kryper omkring i mossan är de sårbara och kan dö av torka om de inte hinner förbereda sig. Deras styrka är att de kan vänta ut svåra tider.\n\nForskarna hoppas att björndjuren kan lära oss något. Om man förstår hur de skyddar sina celler när de torkar, kanske man en dag kan använda samma knep för att förvara vaccin och mediciner utan kyla.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Ungefär hur långt är ett björndjur?",
+        "options": [
+          "En halv centimeter",
+          "En halv millimeter",
+          "Fem millimeter",
+          "En millimeter"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde svenska forskare år 2007?",
+        "options": [
+          "Väckte björndjur ur gammal is",
+          "Hittade björndjur i Antarktis",
+          "Skickade björndjur ut i rymden",
+          "Upptäckte björndjur i mossa"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför heter djuret björndjur?",
+        "options": [
+          "Det rör sig som en liten björn",
+          "Det äter samma mat som björnar",
+          "Det sover på vintern som björnar",
+          "Det lever i skogar där björnar bor"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är det som gör att björndjuret ”vaknar” igen?",
+        "options": [
+          "Att det blir varmare",
+          "Att det får mat",
+          "Att det blir ljust",
+          "Att det får vatten"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Björndjur är inte ”odödliga”. Vad betyder det?",
+        "options": [
+          "De kan dö",
+          "De kan inte simma",
+          "De lever kort",
+          "De kan inte flyga"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "När är björndjuret som mest sårbart?",
+        "options": [
+          "När det har krympt till en torr tunna",
+          "När det ligger infryst i is",
+          "När det är aktivt och kryper i mossan",
+          "När det befinner sig ute i rymden"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför skulle björndjur kunna hjälpa till med vaccin?",
+        "options": [
+          "De tillverkar egna mediciner i kroppen",
+          "De skyddar sina celler när de torkar ut",
+          "De äter bakterier som orsakar sjukdomar",
+          "De kan leva länge inne i ett kylskåp"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är björndjurets viktigaste styrka, enligt texten?",
+        "options": [
+          "Att det är starkare än andra djur",
+          "Att det kan leva utan vatten för alltid",
+          "Att det kryper fortare än andra djur",
+          "Att det kan vänta ut svåra tider"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-dod-ved",
+    "title": "Ett dött träd fullt av liv",
+    "level": 6,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "När ett träd dör är det lätt att tro att det är slut. Men för väldigt många arter är det först nu det börjar. Ett dött träd kan vara ett av skogens viktigaste hem.\n\nDet börjar ofta medan trädet fortfarande står upp. Skalbaggar lägger ägg under barken, och larverna gnager gångar i veden. Hackspettar kommer för att äta larverna och hackar ut bohål i den mjuka stammen. När hackspetten har flyttat tar andra fåglar över hålen, till exempel mesar och ugglor, som inte kan hacka ut egna. Även fladdermöss kan bo i dem.\n\nTill slut faller trädet. En liggande död stam kallas låga. Nu kommer svampar, mossor och lavar. Svamparna bryter långsamt ner veden inifrån, så att den blir mjuk och porös som en svamp. Det kan ta flera decennier innan en tjock låga har förvandlats till jord. Under hela den tiden flyttar nya arter in medan andra flyttar ut, eftersom olika arter behöver ved i olika stadier.\n\nI Sverige lever tusentals arter av död ved. Många av dem är små och märks knappt, men de har viktiga uppgifter. De bryter ner gamla träd och gör om dem till näring som nya träd kan växa av. Utan dem skulle skogen till slut kvävas av sina egna döda stammar.\n\nProblemet är att det finns mycket mindre död ved i dag än förr. I en skog som brukas tas de flesta träd ut för att bli virke och papper innan de hinner dö och ruttna. Därför har många av arterna som behöver död ved blivit ovanliga, och en del är hotade.\n\nNumera lämnar man ofta kvar några döda eller gamla träd när skogen avverkas. Man kan också göra det själv i liten skala. En vedhög som får ligga orörd i ett hörn av trädgården kan bli ett hem för fler arter än man kan tro.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas en liggande död trädstam?",
+        "options": [
+          "Stubbe",
+          "Gren",
+          "Bark",
+          "Låga"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilka fåglar tar ofta över hackspettens gamla bohål?",
+        "options": [
+          "Mesar och ugglor",
+          "Kråkor och skator",
+          "Måsar och tärnor",
+          "Svanar och änder"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Veden blir ”porös”. Vad betyder det?",
+        "options": [
+          "Den blir hård som sten",
+          "Den blir mörk av fukt",
+          "Den får många små hål",
+          "Den börjar lysa svagt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför flyttar olika arter in och ut ur en låga?",
+        "options": [
+          "Lågan blir för trång för alla arter",
+          "Arterna behöver veden i olika stadier",
+          "Fåglarna jagar bort de andra arterna",
+          "Svamparna gör veden giftig efter ett tag"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad skulle hända om ingen bröt ner de döda träden?",
+        "options": [
+          "Skogen skulle kvävas av döda stammar",
+          "Skogen skulle växa mycket snabbare",
+          "Fåglarna skulle få fler bohål",
+          "Det skulle bli mer svamp i skogen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Skogen ”brukas”. Vad betyder det här?",
+        "options": [
+          "Den skyddas från alla människor",
+          "Den används för att odla svamp",
+          "Den får växa helt fritt",
+          "Den används för att ta ut virke"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är död ved ovanligare i dag än förr?",
+        "options": [
+          "Det blåser färre stormar i Sverige",
+          "Träden tas ut innan de hinner dö",
+          "Svamparna bryter ner veden snabbare",
+          "Hackspettarna äter upp all död ved"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten främst visa?",
+        "options": [
+          "Att hackspettar är skogens viktigaste fåglar",
+          "Att man inte borde avverka några träd alls",
+          "Att döda träd är viktiga för skogens liv",
+          "Att en vedhög i trädgården är farlig"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-grundvattnet",
+    "title": "Vattnet under dina fötter",
+    "level": 6,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Under marken du går på finns det vatten. Inte i stora underjordiska sjöar, som många tror, utan i små mellanrum mellan sandkorn och stenar och i sprickor i berget. Det kallas grundvatten.\n\nGrundvattnet kommer från regn och smält snö. En del av vattnet rinner bort på marken eller avdunstar, men en del sjunker ner genom jorden. Ju längre ner det kommer, desto mer fylls alla små hålrum. Den nivå där marken blir helt mättad med vatten kallas grundvattenytan. Gräver man en brunn tillräckligt djupt rinner vattnet in i den.\n\nPå vägen ner händer något viktigt. Jorden fungerar som ett filter. Sand och grus sorterar bort smuts, och små organismer i marken bryter ner en del av det som inte hör hemma i vattnet. Därför är grundvatten ofta rent och gott att dricka. Särskilt bra är de långa åsar av sand och grus som isen lämnade efter sig när den smälte för många tusen år sedan.\n\nI Sverige kommer ungefär hälften av det dricksvatten som kommunerna levererar från grundvatten. Nästan alla som har egen brunn på landet dricker grundvatten varje dag.\n\nMen grundvattnet rör sig långsamt. Det kan ta månader och ibland många år innan regnvattnet har letat sig ner till en brunn. Det är därför en torr sommar inte syns direkt. Det märks först efteråt, när brunnarna sinar och grundvattenytan har sjunkit, trots att det kanske redan har börjat regna igen.\n\nDen långsamma rörelsen gör också att det är svårt att få bort föroreningar. Om olja, gödsel eller kemikalier har kommit ner i grundvattnet kan de ligga kvar där i många år. Därför är det viktigt att skydda marken ovanför de platser där vi tar vårt vatten. Det vi släpper ut i dag kan vi få tillbaka i glaset långt senare.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var finns grundvattnet, enligt texten?",
+        "options": [
+          "I stora sjöar djupt under marken",
+          "I rör som kommunen har lagt ner",
+          "I molnen ovanför marken",
+          "I små hålrum och sprickor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Ungefär hur stor del av kommunernas dricksvatten är grundvatten?",
+        "options": [
+          "Nästan allt",
+          "Ungefär hälften",
+          "En tiondel",
+          "Ingenting"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Marken blir ”mättad” med vatten. Vad betyder det?",
+        "options": [
+          "Den blir torr och hård",
+          "Den blir varm av vattnet",
+          "Den kan inte ta upp mer",
+          "Den får en annan färg"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför är grundvatten ofta rent?",
+        "options": [
+          "Jorden filtrerar vattnet på vägen ner",
+          "Kommunen tillsätter rengöringsmedel",
+          "Vattnet kommer direkt från molnen",
+          "Det är så kallt att inget kan leva där"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför märks en torr sommar först efteråt i brunnarna?",
+        "options": [
+          "Brunnarna töms av alla som badar och vattnar",
+          "Regnet faller bara på hösten",
+          "Solen värmer upp grundvattnet",
+          "Grundvattnet rör sig mycket långsamt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Brunnarna ”sinar”. Vad betyder det?",
+        "options": [
+          "De fryser till is",
+          "De svämmar över",
+          "De blir tomma",
+          "De blir smutsiga"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är det svårt att få bort föroreningar ur grundvattnet?",
+        "options": [
+          "Vattnet byts ut mycket långsamt",
+          "De flyter upp till ytan och sprids över hela marken",
+          "De löses upp så att ingen kan hitta dem igen",
+          "De fastnar i molnen och kommer ner som regn"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att vi kan ”få tillbaka i glaset” det vi släpper ut?",
+        "options": [
+          "Det vatten vi slösar kommer alltid tillbaka till oss",
+          "Det som förorenar marken kan hamna i dricksvattnet",
+          "Det vatten vi dricker blir renare för varje år",
+          "Det är bäst att dricka vatten ur glas än ur flaska"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n6-snoskred",
+    "title": "När snön släpper",
+    "level": 6,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En stilla fjällsluttning med orörd snö kan se fridfull ut. Men under ytan kan det finnas spänningar som bara väntar på att släppa. Ett snöskred, eller en lavin, kan på några sekunder sätta flera ton snö i rörelse.\n\nSnön på en fjällsida ligger i lager, ett för varje snöfall under vintern. Lagren är olika. Vissa är hårda och sammanpressade av vind, andra är lösa och luftiga, och ibland bildas ett skört lager av kristaller som fäster dåligt. Om ett tungt och fast lager ligger ovanpå ett sådant svagt lager kan hela flaket plötsligt brista och glida iväg, ungefär som en bok som glider av en lutande bordsskiva. Det kallas flakskred, och det är den farligaste sortens skred.\n\nDe flesta skred startar i sluttningar som är brantare än ungefär trettio grader. Nysnö, stark vind och snabbt stigande temperatur gör risken större. Och i de flesta olyckor är det människorna själva som utlöser skredet. Tyngden av en skidåkare eller en snöskoter kan räcka för att det svaga lagret ska ge vika.\n\nDen som hamnar i ett skred kan begravas under snö som efteråt blir hård som betong. Därför har man bråttom. Den som grävs fram inom ungefär en kvart har goda chanser att överleva, men sedan sjunker chanserna snabbt. Det är oftast kamraterna på plats som hinner fram först, inte räddningstjänsten.\n\nDen som åker i lavinterräng bär därför en liten sändare som skickar ut signaler, en lång sond att sticka ner i snön och en spade. Och utrustningen räcker inte om man inte har övat på att använda den.\n\nDet allra bästa är förstås att inte hamna i ett skred alls. För de svenska fjällen finns lavinprognoser som talar om hur stor risken är och var den är störst. Erfarna fjällåkare läser dem varje morgon, och ibland betyder det klokaste beslutet att man vänder om.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas den farligaste sortens skred, enligt texten?",
+        "options": [
+          "Lössnöskred",
+          "Jordskred",
+          "Flakskred",
+          "Isskred"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad bär den som åker i lavinterräng med sig?",
+        "options": [
+          "En kompass, en karta och en visselpipa",
+          "En sändare, en sond och en spade",
+          "En ficklampa, ett rep och en kniv",
+          "En mobil, en radio och en hjälm"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför jämför texten ett skred med en bok på en lutande bordsskiva?",
+        "options": [
+          "Snön blir lika platt som en bok efter skredet",
+          "Skredet händer bara på platta sluttningar",
+          "Snön är tung och samlas i sidor",
+          "Ett fast lager kan glida av ett svagt lager"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Lagret kan ”ge vika”. Vad betyder det?",
+        "options": [
+          "Det brister under tyngden",
+          "Det blir hårdare av tyngden",
+          "Det smälter i solen",
+          "Det fryser till is"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är det kamraterna som oftast måste rädda den som begravts?",
+        "options": [
+          "Räddningstjänsten får inte åka upp på fjället",
+          "Kamraterna har alltid bättre utrustning",
+          "Hjälpen utifrån hinner sällan fram",
+          "Kamraterna har oftast utlöst skredet själva"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Snön blir ”hård som betong”. Vad menas?",
+        "options": [
+          "Den blir grå och smutsig",
+          "Den blir svår att gräva i",
+          "Den smälter mycket långsamt",
+          "Den blir tung att bära"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför räcker det inte att bara ha med sig utrustningen?",
+        "options": [
+          "Man måste också ha övat på att använda den",
+          "Utrustningen fungerar bara på vissa fjäll",
+          "Utrustningen är för tung att bära länge",
+          "Man måste också ha med sig en snöskoter"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken är textens viktigaste råd?",
+        "options": [
+          "Åk bara på branta sluttningar med nysnö",
+          "Lita på att räddningstjänsten kommer snabbt",
+          "Undvik fjällen helt under hela vintern",
+          "Ta reda på risken och var beredd att vända"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
