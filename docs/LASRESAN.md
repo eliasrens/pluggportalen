@@ -349,6 +349,23 @@ onDone({ answers: [{ qid, chosen }] })
   helt utan data visas ett tomt läge.
 - **CSS** ligger i `styles.css` under `.teacher-dark` med prefixet `lrt-`
   (`lr-` tillhör elevens `lasresan.css`).
+- **Nivåstyrning (#506):** i Läsresan-fliken (bara när klassen skickas med, dvs. på
+  klasskortet) ligger två kort ovanför tabellen, och elevdetaljen har en sektion
+  **Ändra nivå**. Vyn finns i `teacher-lasresan-niva.js` (importeras av
+  `teacher-lasresan.js`, så den är dynamisk; bryggan `data-lasresan-niva.js` laddas lat
+  först vid sparning). Texterna kommer ur `lasresan/teacher-niva.js` (testas i
+  `test/lasresan-teacher-niva.test.js`).
+  - *Ändra klassens startnivå*: "Gäller nya elever och elever som inte har börjat" →
+    `setClassStartLevel`. Visar nuvarande nivå ("Nivå 3 (standard)" om den inte är satt). Elever utan
+    `lasresa` visar startnivån i nivå-kolumnen.
+  - *Ändra nivå för hela klassen*: klassväljare (förvald = aktuell, alla lärarens
+    klasser), nivå → bekräftelsedialog (`role=alertdialog`) med klass, antal elever
+    och nivå → `setClassLevel(studentIds, nivå)`, där listan är exakt de elever som
+    räknades i dialogen. Resultatet visar antal satta, antal väntande och vilka som misslyckades.
+  - *Elev*: nuvarande nivå + badge "Väntande nivå X" vid `pendingLevel`. Nivå-kolumnen
+    visar `4 → 1` medan en ändring väntar. Efter sparning läses bara den eleven om.
+  - CSS-prefix `lrn-` i `styles.css`. Emulator-preview:
+    `admin/qa-lasresan-niva-preview.sh` (klickguide i `docs/preview-lasresan-niva.md`).
 - **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
   blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
   namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.
