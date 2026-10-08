@@ -1886,5 +1886,831 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n7-glida-isar",
+    "title": "Två som brukade vara en",
+    "level": 7,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "På förskolan hade fröknarna kallat dem SignyIben, som om det var ett enda namn. De hade samma ryggsäck i olika färger, de hade lärt sig cykla samma vecka och de hade en anteckningsbok som bara hette Boken, där de skrev serier, hemligheter och listor över allt som var orättvist i världen.\n\nI femman började Iben i en teatergrupp. Först var det bara på torsdagar. Sedan blev det torsdagar och lördagar, och till slut repetitioner nästan varje dag inför vårens föreställning. Iben kom till skolan och pratade om repliker, om att ”gå in i en roll” och om en kille i gruppen som kunde gråta på kommando. Hon skrattade åt skämt som Signy inte förstod, och när Signy frågade sa Iben att man ”måste ha varit där”.\n\nSigny hade inte varit där. Hon hade varit hemma, eller ute i våtmarken med morbror Dan och hans kikare. Hon hade börjat lära sig fåglar, och i hemlighet var hon ganska stolt över att hon kunde skilja en sävsångare från en rörsångare bara på lätet. Men det kändes inte som något man berättade för någon som kunde gråta på kommando.\n\nBoken låg i Signys skrivbordslåda. Den sista sidan Iben hade skrivit på var från i höstas.\n\nEn kväll skrev Signy ett långt meddelande till Iben. Det handlade om att man inte kan byta ut sin bästa vän mot en teatergrupp, och om att hon inte tänkte vara den som alltid ringde först. Hon läste det tre gånger. Sedan raderade hon det, inte för att det var osant, utan för att det bara var halva sanningen. Hon hade ju inte heller berättat om fåglarna.\n\nFöreställningen var i maj. Signy gick dit med sin mamma och satt längst bak. Iben spelade en gammal kvinna som hade förlorat sin hund. Hon var bra, så bra att Signy glömde att hon var arg. Någon gång under andra akten förstod hon att Iben inte hade bytt ut henne mot något. Iben hade bara hittat något som var hennes eget.\n\nEfteråt stod de i foajén. Det var konstigt och lite stelt.\n\n”Du var jättebra”, sa Signy.\n\n”Tack.” Iben tittade ner på sina skor. ”Jag trodde inte att du skulle komma. Du verkar alltid vara någon annanstans nu.”\n\nDet hade Signy aldrig tänkt på. Att det kunde kännas likadant från andra hållet.\n\nDagen därpå tog hon med sig Boken till skolan. Hon hade skrivit på en ny sida, en lista med rubriken Saker jag inte har berättat. Överst stod sävsångaren. Iben läste den på rasten och skrev en egen lista under.\n\nDe blev aldrig SignyIben igen. Men de blev Signy och Iben, och det visade sig fungera.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var Boken?",
+        "options": [
+          "En anteckningsbok som de skrev i tillsammans",
+          "En bok om fåglar som Signy hade fått av morbror",
+          "Ett manus till teatergruppens pjäs",
+          "En dagbok som Signy skrev i ensam"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför kände sig Signy utanför när Iben pratade om teatern?",
+        "options": [
+          "Hon hade själv sökt till teatergruppen men inte kommit in",
+          "Hon förstod inte deras skämt och hade inte varit med",
+          "Iben hade sagt att hon inte ville vara vän längre",
+          "Hon tyckte att teater var tråkigt och barnsligt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder att kunna gråta ”på kommando”?",
+        "options": [
+          "Att gråta så fort någon annan blir ledsen",
+          "Att kunna gråta när man själv bestämmer det",
+          "Att gråta så tyst att ingen hör det",
+          "Att aldrig gråta inför andra människor"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför berättade Signy inte om fåglarna för Iben?",
+        "options": [
+          "Hon hade lovat morbror Dan att fåglarna var en hemlighet",
+          "Hon kunde inte tillräckligt mycket om fåglar ännu",
+          "Hon trodde att det skulle verka töntigt bredvid teatern",
+          "Iben hade sagt att hon inte tyckte om fåglar"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför raderade Signy sitt meddelande?",
+        "options": [
+          "Det var bara halva sanningen",
+          "Hon kunde inte stava rätt",
+          "Iben hade redan ringt henne",
+          "Mamma tyckte att det var elakt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad förstod Signy under föreställningen?",
+        "options": [
+          "Att Iben var en bättre skådespelare än alla andra",
+          "Att hon själv också ville börja spela teater",
+          "Att Iben hade skrivit hela pjäsen om deras egen vänskap",
+          "Att Iben hade hittat något eget, inte bytt ut henne"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad avslöjar Iben när hon säger ”Du verkar alltid vara någon annanstans nu”?",
+        "options": [
+          "Att hon var arg för att Signy kom sent",
+          "Att hon också hade känt sig övergiven",
+          "Att hon inte hade sett Signy i salongen",
+          "Att hon tyckte Signy var för upptagen med skolan"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför skriver Signy en lista med rubriken Saker jag inte har berättat?",
+        "options": [
+          "Hon vill visa Iben att hon kan många fler fåglar än Iben kan",
+          "Hon vill få Iben att sluta i teatergruppen",
+          "Hon vill skriva en egen pjäs till nästa vår",
+          "Hon vill bli ärlig och låta Iben komma närmare igen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vad betyder den sista meningen om att de blev ”Signy och Iben”?",
+        "options": [
+          "Att de bestämde sig för att sluta vara vänner",
+          "Att de började i samma teatergrupp tillsammans",
+          "Att de blev vänner som var olika men höll ihop",
+          "Att lärarna slutade blanda ihop deras namn"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-ladbilen",
+    "title": "Lådbilen",
+    "level": 7,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Patrik hade bott hos dem i fyra månader, och han försökte hela tiden. Det var det som var problemet. Han köpte Lokes favoritflingor fast ingen hade sagt vilka de var. Han skrattade för högt åt Lokes skämt, även de som inte var roliga. Och han sa ”kompis” på ett sätt som fick Loke att vilja gå in på sitt rum och stänga dörren.\n\nMamma bad Loke att ge honom en chans. ”Han är nervös”, sa hon. ”Han har aldrig bott med ett barn förut.”\n\n”Jag är inget barn”, sa Loke. ”Jag är elva.”\n\nI augusti var det dags för byns lådbilsrace, en tävling där man byggde egna bilar utan motor och rullade nerför kyrkbacken. Loke hade varit med två gånger med sin morfar, men morfar orkade inte längre. Patrik föreslog att de skulle bygga en bil tillsammans. Loke sa ja, mest för att mamma tittade på honom.\n\nDet blev inte som han trodde. Patrik var ingenjör och ritade. Han ritade ritningar på ritningarna. Han räknade på vikten, lutningen och luftmotståndet och ville ha en spetsig nos av plåt. Loke ville bara ha fyra hjul, en låda och ett namn målat på sidan, som morfar och han alltid hade haft.\n\nEn kväll i garaget sa Patrik att lådan var för tung och borde bytas ut. Loke kastade ner skruvmejseln.\n\n”Du är inte min pappa”, sa han.\n\nDet blev alldeles tyst. Patrik nickade långsamt och gick in. Loke stod kvar i garaget och kände sig mer elak än han hade tänkt att han skulle göra.\n\nDe byggde färdigt bilen, men de pratade inte mycket. På tävlingsdagen var den både spetsig och tung, med plåtnos och Lokes gamla låda.\n\nHalvvägs nerför backen lossnade vänster framhjul. Bilen gjorde en lång, nästan elegant sväng och körde rakt in i en hög med halmbalar. Loke låg på rygg i halmen och hörde publiken skrika.\n\nPatrik kom springande. Han var vit i ansiktet och föll på knä bredvid honom. ”Är du hel? Förlåt. Det var mitt hjul. Jag dubbelkollade inte. Jag vet ingenting om sådant här, jag menar inte bilar, jag menar …” Han gjorde en gest mot Loke, mot sig själv och mot backen. ”Jag vet inte hur man gör.”\n\nLoke tittade på honom. Det var första gången Patrik inte försökte vara rolig eller trevlig eller rätt. Han var bara rädd. Och plötsligt började Loke skratta, så att halmen stack honom i nacken.\n\n”Nästa år”, sa han när han hade satt sig upp, ”bygger vi efter mina ritningar.”\n\nPatrik skrattade också. Den här gången lät det inte för högt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad menar texten med att Patrik ”försökte hela tiden” och att ”det var det som var problemet”?",
+        "options": [
+          "Hans överdrivna ansträngningar kändes konstlade för Loke",
+          "Han gjorde aldrig något för att lära känna Loke",
+          "Han försökte flytta därifrån men mamma ville inte låta honom",
+          "Han övade på lådbilen varje kväll och störde alla"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q2",
+        "question": "Varför byggde Loke inte bilen med sin morfar det här året?",
+        "options": [
+          "Morfar hade flyttat bort",
+          "Morfar ville inte tävla",
+          "Morfar var för upptagen",
+          "Morfar orkade inte längre"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför sa Loke ja till att bygga bilen med Patrik?",
+        "options": [
+          "Han ville vinna loppet i år",
+          "Han behövde hjälp med ritningarna",
+          "Han ville inte göra mamma ledsen",
+          "Han tyckte om Patriks idé"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Hur skilde sig Patriks och Lokes idéer om bilen?",
+        "options": [
+          "Patrik ville ha en motor, Loke ville ha den utan",
+          "Patrik ville räkna och rita, Loke ville ha det enkelt",
+          "Loke ville ha plåtnos, Patrik ville ha en träskiva",
+          "Loke ville bygga själv, Patrik ville köpa en färdig bil"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kände Loke sig efter att han hade sagt ”Du är inte min pappa”?",
+        "options": [
+          "Han kände att han hade varit elakare än han ville",
+          "Han kände sig nöjd över att han hade vunnit bråket",
+          "Han kände sig lättad över att få säga sanningen",
+          "Han kände sig rädd för att Patrik skulle skrika"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Bilen gjorde en ”nästan elegant” sväng in i halmen. Vad betyder elegant här?",
+        "options": [
+          "Snygg och smidig",
+          "Långsam och tung",
+          "Farlig och vild",
+          "Kort och ryckig"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar Patrik med ”Jag vet inte hur man gör” när han pekar mot Loke och sig själv?",
+        "options": [
+          "Att han inte vet hur man lagar ett hjul",
+          "Att han inte vet hur man kör en lådbil",
+          "Att han inte vet vägen hem från backen",
+          "Att han inte vet hur man är bonuspappa"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför börjar Loke skratta i halmen?",
+        "options": [
+          "Han tycker att det är roligt att Patriks bil gick sönder",
+          "Han ser att Patrik för första gången är ärlig och osäker",
+          "Han har slagit huvudet och förstår inte vad som händer",
+          "Han vill visa publiken att han inte är rädd för någonting"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad visar Lokes förslag om att bygga efter hans ritningar nästa år?",
+        "options": [
+          "Att han vill tävla mot Patrik och slå honom",
+          "Att han tycker att Patriks ritningar var bäst",
+          "Att han vill fortsätta göra saker med Patrik",
+          "Att han aldrig vill bygga en lådbil igen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-kajaken",
+    "title": "När åskan kom över fjärden",
+    "level": 7,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Det var tredje dagen av kajakturen i skärgården, och Elis hade börjat känna sig som en riktig paddlare. Moster Rakel hade lärt honom att läsa sjökortet, att hålla undan för stora båtar och att packa allt i vattentäta säckar. De hade sovit i tält på små öar och badat från släta klippor. Den eftermiddagen skulle de paddla över en bred fjärd till en ö där Rakel visste att det fanns en bra tältplats.\n\nVid tvåtiden började molnen växa i väster. De var vita och höga och såg nästan ut som blomkålshuvuden. Rakel tittade på dem länge utan att säga något.\n\n”De där kan bli åskmoln”, sa hon till slut. ”När toppen planar ut som ett städ är det dags att vara på land.”\n\nElis tyckte att det var långt kvar till dess. Solen sken fortfarande på dem. Men en halvtimme senare var molnen mörkblå i botten, och toppen hade brett ut sig. Det mullrade långt borta.\n\nRakel lade paddeln över kajaken och räknade högt efter nästa blixt. Hon kom till femton innan mullret hördes. ”Ljudet går ungefär en kilometer på tre sekunder”, sa hon. ”Det betyder att åskan är ungefär fem kilometer bort. Och den kommer hitåt.”\n\nTältplatsen låg två kilometer bort, på andra sidan fjärden. Elis ville fortsätta. Det skulle gå på tjugo minuter om de paddlade hårt, sa han. Rakel skakade på huvudet och pekade på en liten kobbe till höger, bara ett par hundra meter bort.\n\n”Ute på vattnet är vi det högsta som finns”, sa hon. ”Vi går i land nu.”\n\nDe drog upp kajakerna på klipporna. Ön var kal, med en enda tall längst upp. Elis ville sätta sig under den för att slippa regnet, men Rakel tog honom i armen och drog honom därifrån, ner i en sänka nära strandkanten. Där satte de sig på huk på sina flytvästar, med fötterna ihop.\n\nSedan kom regnet, så hårt att det studsade mot berget. Blixtarna kom tätare. Vid en av dem hann Elis inte ens börja räkna innan smällen kom, och han kände hur det pirrade i nacken av rädsla. Ute på fjärden, ungefär där de skulle ha varit, slog en blixt ner i vattnet.\n\nEfter fyrtio minuter drog ovädret vidare österut. Himlen blev ljusgul. Elis reste sig med stela ben och tittade ut över den lugna fjärden, där ingenting syntes av det som hade hänt.\n\n”Hade vi hunnit?” frågade han.\n\n”Kanske”, sa Rakel. ”Men man fattar inte beslut på kanske.”\n\nDe slog upp tältet på kobben och åt stuvade makaroner i solnedgången. Det var inte den tältplats de hade planerat, men Elis tyckte att det var den bästa på hela resan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka tecken visade att åskan närmade sig?",
+        "options": [
+          "Vattnet blev plötsligt alldeles kallt och lugnt",
+          "Fåglarna slutade flyga och satte sig på klipporna",
+          "Molnen blev mörka i botten och toppen bredde ut sig",
+          "Vinden vände plötsligt och började blåsa mycket varmt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Rakel säger att molnets topp planar ut ”som ett städ”. Vad syftar jämförelsen på?",
+        "options": [
+          "Att toppen blir platt och bred",
+          "Att molnet låter som en hammare",
+          "Att molnet blir tungt och mörkt",
+          "Att toppen blir spetsig och smal"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Hur räknade Rakel ut hur långt bort åskan var?",
+        "options": [
+          "Hon tittade på sjökortet och mätte avståndet",
+          "Hon räknade sekunder mellan blixt och muller",
+          "Hon räknade hur många blixtar som kom per minut",
+          "Hon lyssnade på väderradion i sin mobil"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför ville Elis fortsätta till tältplatsen?",
+        "options": [
+          "Han var rädd för att gå i land på en okänd ö",
+          "Han trodde inte att det var åska som mullrade",
+          "Han ville visa Rakel att han var en bättre paddlare",
+          "Han trodde att de skulle hinna om de paddlade hårt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför drog Rakel bort Elis från tallen?",
+        "options": [
+          "Tallen var full av myror och spindlar",
+          "Det fanns ingen plats för två under den",
+          "Ett ensamt högt träd kan träffas av blixten",
+          "Grenarna kunde blåsa ner över dem i stormen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur satt de medan ovädret pågick?",
+        "options": [
+          "I kajakerna med paddlarna i händerna",
+          "På huk på flytvästarna med fötterna ihop",
+          "Inne i tältet under den enda tallen",
+          "Raklånga på berget alldeles högst upp på ön"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför blev Elis extra rädd vid en av blixtarna?",
+        "options": [
+          "Han såg att kajakerna hade blåst ut på vattnet",
+          "Rakel ropade att de måste springa därifrån",
+          "Regnet hade gjort hans flytväst blöt",
+          "Smällen kom direkt, så blixten var mycket nära"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar Rakel med ”man fattar inte beslut på kanske”?",
+        "options": [
+          "Att man inte ska chansa när livet kan stå på spel",
+          "Att hon inte visste om de skulle ha hunnit fram",
+          "Att Elis borde ha frågat henne tidigare på dagen",
+          "Att det alltid är bäst att följa den plan man gjort"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Varför tycker Elis att kobben var den bästa tältplatsen på resan?",
+        "options": [
+          "Han förstår att de klarade sig tack vare beslutet",
+          "Den hade släta klippor och mycket bra badplatser",
+          "Den låg närmare hemmet än alla andra tältplatser",
+          "Rakel hade lovat att de skulle stanna där länge"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-flotten",
+    "title": "Sex dagar på älven",
+    "level": 7,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "När pappa sa att familjen skulle bygga en flotte och flyta nedför en älv i sex dagar trodde Svea att han skämtade. Sedan trodde hon att han hade blivit galen. Det fanns ingen motor, ingen el och knappt någon täckning. Man flöt med strömmen, ungefär lika fort som en långsam promenad, och sov i tält på stränderna.\n\nFörsta dagen byggde de själva. De fick stockar som de skulle binda ihop med rep enligt en ritning. Svea och hennes lillebror Nicke knöt knutar tills fingrarna värkte, medan pappa läste högt ur en broschyr om att älvar som den här förr i tiden användes för att flotta timmer ner till sågverken. Svea lyssnade inte. Hon tänkte på allt hon missade hemma.\n\nAndra dagen var tråkigast i hela hennes liv. Flotten gled fram så långsamt att hon kunde se samma tall i nästan en kvart. Hon försökte läsa men blev åksjuk. Hon försökte sova men solen var för stark. Mamma satt bara och tittade ut över vattnet med ett lugn som gjorde Svea ännu mer irriterad.\n\nPå tredje dagen hände något. Flotten gled in på en sandbank och fastnade. Pappa försökte stöta loss den med en lång stake, men den satt som fastlimmad. Till slut fick alla fyra kliva ner i det knädjupa vattnet och skjuta på samma gång. ”Ett, två, tre!” ropade Svea, och flotten gled loss så plötsligt att Nicke ramlade baklänges i vattnet. Alla skrattade, till och med han.\n\nEfter det var det som om tiden ändrade fart. Svea började lägga märke till saker. Att vattnet hade olika färg där det var djupt och där det var grunt. Att det luktade annorlunda på morgonen. En kväll satt en stor fågel i en död tall vid stranden, och mamma viskade att det var en havsörn. Den satt kvar tills det var för mörkt för att se den.\n\nPå femte dagen var det Svea som styrde. Hon lärde sig läsa strömmen, se var vattnet krusade sig över stenar och hur man skulle hålla flotten i mitten av fåran. Pappa satt längst bak och sa nästan ingenting.\n\nDen sista morgonen kunde de se bron vid slutmålet långt framme. Svea satt längst fram på flotten och märkte till sin förvåning att hon önskade att strömmen skulle gå lite långsammare.\n\n”Det är en sak jag inte förstår”, sa hon till mamma. ”Varför var det så tråkigt i början?”\n\nMamma tänkte efter. ”Kanske för att du fortfarande var hemma”, sa hon. ”Fast kroppen var här.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur fort flöt flotten enligt texten?",
+        "options": [
+          "Ungefär som en snabb cykeltur",
+          "Lika fort som en motorbåt",
+          "Ungefär som en långsam promenad",
+          "Så fort att de knappt hann styra"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad användes älvar som den här till förr i tiden?",
+        "options": [
+          "Att transportera människor till stan",
+          "Att flotta timmer till sågverken",
+          "Att bygga kraftverk som gav el",
+          "Att fiska lax med stora nät"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför lyssnade Svea inte på pappas broschyr den första dagen?",
+        "options": [
+          "Hon var upptagen med att styra flotten",
+          "Hon kunde redan allt om älvens historia",
+          "Nicke pratade så högt att hon inte hörde",
+          "Hon tänkte på allt hon missade hemma"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Varför blev Svea ännu mer irriterad av mammas lugn den andra dagen?",
+        "options": [
+          "Mamma verkade trivas med det som Svea tyckte var tråkigt",
+          "Mamma ville inte hjälpa till att styra flotten åt dem",
+          "Mamma hade lovat att de skulle åka hem efter en dag",
+          "Mamma läste högt ur broschyren om timmer hela tiden"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur fick familjen loss flotten från sandbanken?",
+        "options": [
+          "Pappa stötte loss den ensam med staken",
+          "De väntade tills vattnet steg igen",
+          "Alla klev i vattnet och sköt samtidigt",
+          "En annan flotte drog loss dem med rep"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tycks händelsen vid sandbanken förändra resan för Svea?",
+        "options": [
+          "Nicke slog sig och de måste stanna en dag",
+          "Flotten gick sönder och de fick bygga en ny",
+          "Svea fick bestämma att resan skulle avbrytas",
+          "De löste ett problem tillsammans och hade roligt"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q7",
+        "question": "Svea lärde sig hålla flotten ”i mitten av fåran”. Vad betyder fåran här?",
+        "options": [
+          "Den grunda kanten nära stranden",
+          "Den djupaste delen där vattnet rinner",
+          "Sandbanken där de hade fastnat",
+          "Det lugna vattnet bakom en stor sten"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför sa pappa nästan ingenting när Svea styrde?",
+        "options": [
+          "Han hade somnat längst bak",
+          "Han litade på att hon klarade det",
+          "Han var fortfarande sur över sandbanken",
+          "Han var rädd för havsörnen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar mamma med att Svea ”fortfarande var hemma, fast kroppen var här”?",
+        "options": [
+          "Att hennes tankar var hemma och inte där hon var",
+          "Att hon hade glömt att packa sina saker hemma",
+          "Att hon egentligen hela tiden hade velat stanna hemma",
+          "Att hon längtade efter att bo på en flotte"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-snogrottan",
+    "title": "Natten i snögrottan",
+    "level": 7,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Väderprognosen hade lovat sol hela helgen. Därför hade Ossian, hans pappa och pappas gamle vän Jörgen gett sig iväg på skidor mot en övernattningsstuga i fjällen, med packning för en natt och en snöspade som pappa alltid hade med sig ”för säkerhets skull”.\n\nVid tretiden vände vädret. Vinden kom från ingenstans, och snön som låg på marken började yra upp så att det blev svårt att se skidspetsarna. Efter en halvtimme såg Ossian inte längre ledmarkeringarna, de röda kryssen på stolpar som skulle visa vägen. Pappa stannade och tittade på kartan och kompassen. Stugan låg kanske en kilometer bort, kanske två. Ingen visste säkert.\n\n”Vi går inte vilse i det här”, sa pappa. ”Vi gräver ner oss.”\n\nJörgen skrattade först, som om det var ett skämt. Sedan förstod han att det inte var det.\n\nDe hittade en stor snödriva i läet av en sluttning. Pappa grävde en ingång, och Ossian, som var minst, kröp in och började gräva inåt och uppåt. Han mindes vad scoutledaren hade sagt: sovplatsen ska ligga högre än ingången, eftersom kall luft sjunker och varm luft stiger. Taket ska vara välvt, så att smältvatten rinner längs väggarna i stället för att droppa ner på en.\n\nDet tog nästan två timmar. Ossian svettades, fast det var tjugo minusgrader ute. Pappa påminde honom hela tiden om att ta det lugnt. ”Blir kläderna blöta av svett fryser du sen.”\n\nTill sist var grottan stor nog för tre. Pappa stack skidstaven rakt upp genom taket för att göra ett lufthål, och Jörgen tände ett värmeljus. Det lilla ljuset fick väggarna att glittra som socker.\n\nUte ven stormen. Inne var det märkligt tyst. Ossian såg på termometern som hängde i pappas jacka. Strax under noll. Snön runt dem isolerade, precis som ett tjockt täcke.\n\nJörgen var tyst länge. Hans händer var vita, och han hade inte sagt att han frös. Ossian tog av honom vantarna, lade hans händer under sin egen jacka mot magen och höll dem där tills färgen kom tillbaka. Det hade han också lärt sig på scouterna, fast han aldrig hade trott att han skulle behöva det.\n\nDe sov i omgångar. Pappa väckte dem då och då för att peta upp lufthålet med staven, eftersom snön kunde täppa till det.\n\nPå morgonen var himlen alldeles blå. Ossian kröp ut och kisade mot det vita. Där nere, bara några hundra meter bort, låg stugan med rök ur skorstenen.\n\nJörgen skrattade, och den här gången var det inget skämt han skrattade åt. ”Vi var nästan framme”, sa han.\n\n”Ja”, sa pappa. ”Men det kunde vi inte veta i går.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför kunde de inte längre följa leden?",
+        "options": [
+          "Pappa hade tappat både kartan och kompassen i den djupa snön",
+          "Ledmarkeringarna hade tagits bort under hösten",
+          "Det blev mörkt så fort att de inte såg någonting",
+          "Den yrande snön gjorde att de inte såg markeringarna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför skrattade Jörgen när pappa sa att de skulle gräva ner sig?",
+        "options": [
+          "Han tyckte att idén var mycket bra",
+          "Han var glad över att slippa åka mer",
+          "Han trodde först att pappa skämtade",
+          "Han ville visa att han inte var rädd"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Varför skulle sovplatsen ligga högre än ingången?",
+        "options": [
+          "Det blir lättare att krypa ut på morgonen",
+          "Snön är mycket mjukare högre upp i drivan",
+          "Kall luft sjunker och varm luft stiger",
+          "Då syns grottan bättre för andra"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "De grävde i en snödriva ”i läet av en sluttning”. Vad betyder det?",
+        "options": [
+          "På den sida där det var skyddat från vinden",
+          "Högst upp på sluttningen där det var brantast",
+          "Längst ner där snön var som allra djupast",
+          "På den sida där solen lyste mest på dagen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa pappa åt Ossian att ta det lugnt när han grävde?",
+        "options": [
+          "Han var rädd att taket skulle rasa över honom",
+          "Han skulle frysa om kläderna blev blöta av svett",
+          "Spaden riskerade att gå sönder om han tog i",
+          "Han ville att Jörgen också skulle hjälpa till"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad var skidstaven till för inne i grottan?",
+        "options": [
+          "Att mäta hur djup snön var",
+          "Att hänga upp termometern på",
+          "Att stötta upp det välvda taket",
+          "Att göra och hålla öppet ett lufthål"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad tyder det på att Jörgen inte sa att han frös?",
+        "options": [
+          "Att han tyckte att grottan var varm",
+          "Att han inte ville visa sig svag",
+          "Att han inte märkte att händerna var vita",
+          "Att han var arg på Ossian och pappa"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar berättelsen om Ossian?",
+        "options": [
+          "Att han var för liten för att gå på fjällturer",
+          "Att han hade dålig koll på var stugan låg",
+          "Att han helst ville sova i snögrottor i stället för i stugor",
+          "Att det han lärt sig hjälpte när det verkligen gällde"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar pappa med ”Men det kunde vi inte veta i går”?",
+        "options": [
+          "Att beslutet var rätt utifrån det de visste då",
+          "Att de borde ha fortsatt gå mot stugan i stället",
+          "Att det var Jörgens fel att de inte hittade fram",
+          "Att väderprognosen hade sagt att det skulle storma"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-volten",
+    "title": "Spärren",
+    "level": 7,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Thea hade gjort bakåtvolter sedan hon var åtta. Hon kunde göra dem på golvet, på bommen med en tränare bredvid och i drömmen, där hon ibland svävade runt flera varv. Det var den rörelse hon tänkte minst på i hela sitt program. Kroppen bara gjorde den.\n\nEn tisdag i oktober gjorde kroppen inte det.\n\nHon tog sats som vanligt, svingade armarna och skulle hoppa, men någonting i henne tvärstannade. Hon stod kvar på mattan med armarna i luften, som en figur i ett spel som någon har pausat. Det hände igen på nästa försök. Och nästa.\n\nTränaren Monika kom fram. ”Har du ont någonstans?”\n\nThea skakade på huvudet. Hon hade inte ont. Hon var inte ens särskilt rädd. Det var bara som om hennes kropp hade glömt en sak som hennes huvud fortfarande kunde.\n\nHemma googlade hon på natten. Hon hittade gymnaster som beskrev precis samma sak. Plötsligt en dag kunde de inte göra en rörelse de hade gjort tusen gånger. Vissa kallade det en spärr. Det stod att det ofta blev värre om man försökte tvinga sig.\n\nÄndå försökte hon tvinga sig. Tävlingen var om fem veckor, och mamma hade redan bokat hotell. Varje träning stod Thea vid kanten av mattan och räknade till tre. Varje gång hände ingenting. De andra slutade titta, vilket nästan var värre än om de hade tittat.\n\nEfter två veckor tog Monika med henne till trampolinen vid skumgropen, den där de minsta barnen brukade hoppa.\n\n”Vi börjar om”, sa Monika. ”Som när du var åtta.”\n\nThea tyckte att det var förnedrande. Men hon gjorde det. Först bakåtfall ner i gropen. Sedan halva volter, med Monikas händer mot ryggen. Medan de höll på frågade Monika, som om det inte var så viktigt, om något särskilt hade hänt innan spärren kom.\n\nThea skulle säga nej. Sedan mindes hon Alida. Veckan före hade Alida landat snett efter en volt och brutit armen. Thea hade stått närmast och hört ljudet. Hon hade inte tänkt på det sedan dess, åtminstone inte med huvudet.\n\n”Det kan ha med det att göra”, sa Monika. ”Kroppen är inte dum. Den försöker skydda dig.”\n\nThea gjorde inte volten på tävlingen. Hon bytte ut den mot en enklare rörelse och fick lägre poäng än hon brukade. Mamma sa att hon var stolt ändå, och Thea trodde henne nästan.\n\nEn månad senare, en vanlig torsdag, tog hon sats på golvet utan att tänka. Armarna svingade, och kroppen snurrade runt i luften och landade. Det var så enkelt att hon nästan blev arg.\n\nHon tittade upp. Monika stod vid kanten och log, men sa ingenting. Hon visste att Thea inte behövde beröm. Bara tid.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hände med Thea en tisdag i oktober?",
+        "options": [
+          "Hon landade snett och skadade sin fot",
+          "Hon fick veta att tävlingen var inställd",
+          "Hon kunde plötsligt inte göra sin bakåtvolt",
+          "Hon klarade en volt med flera varv i luften"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Thea stod ”som en figur i ett spel som någon har pausat”. Vad beskriver jämförelsen?",
+        "options": [
+          "Att hon stannade helt mitt i rörelsen",
+          "Att hon kände sig som en datorspelsfigur",
+          "Att hon hade slutat bry sig om gymnastiken",
+          "Att hon spelade på mobilen under träningen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var det ”nästan värre” att de andra slutade titta?",
+        "options": [
+          "Det betydde att de inte längre tyckte om henne",
+          "Hon ville att de skulle titta så att hon fick beröm",
+          "Det visade att de hade vant sig vid att hon misslyckades",
+          "Det gjorde att Monika inte heller märkte henne"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad läste Thea på nätet om spärrar?",
+        "options": [
+          "Att de bara drabbar den som har en skada",
+          "Att de ofta blir värre om man tvingar sig",
+          "Att de alltid försvinner efter en vecka",
+          "Att man måste sluta med gymnastik helt och hållet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tyckte Thea att det var förnedrande att gå till trampolinen vid skumgropen?",
+        "options": [
+          "Hon var rädd för att landa i skumgropen",
+          "Monika skrattade åt henne inför de andra",
+          "Hon var för lång för att få plats i gropen",
+          "Det var där de minsta barnen brukade hoppa"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför frågade Monika ”som om det inte var så viktigt”?",
+        "options": [
+          "Hon tyckte inte att frågan var viktig alls",
+          "Hon hade redan glömt vad hon ville veta",
+          "Hon ville att Thea skulle våga svara ärligt",
+          "Hon ville byta samtalsämne från spärren"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar texten med att Thea inte hade tänkt på Alidas olycka ”åtminstone inte med huvudet”?",
+        "options": [
+          "Att kroppen hade reagerat på det fast hon inte tänkte på det",
+          "Att hon hade glömt bort olyckan helt och hållet",
+          "Att hon bara mindes olyckan när hon låg och sov",
+          "Att hon tänkte på olyckan hela tiden men aldrig sa något om det"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför hjälpte det Thea att börja om från grunden?",
+        "options": [
+          "Hon fick lägre poäng och slapp tävla mer",
+          "Kroppen fick känna sig trygg igen steg för steg",
+          "Hon lärde sig en helt ny rörelse i stället",
+          "Mamma avbokade hotellet och all press försvann på en gång"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q9",
+        "question": "Vad visar det att Monika bara ler och inte säger något i slutet?",
+        "options": [
+          "Hon tycker att volten var dåligt gjord",
+          "Hon har inte sett att Thea klarade det",
+          "Hon är fortfarande besviken över tävlingen",
+          "Hon förstår att det Thea behövde var tid"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-rullstolsbasket",
+    "title": "Fyra hjul och en korg",
+    "level": 7,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Joar var bäst i klassen på basket och såg till att alla visste om det. Han kunde dunka bollen mellan benen och träffa från trepoängslinjen tre gånger av fem. När Yara, som satt i rullstol sedan hon var liten, berättade att hon spelade rullstolsbasket i en klubb, sa han det första han tänkte.\n\n”Det måste ju vara lättare. Man behöver inte springa.”\n\nYara tittade på honom en lång stund. ”Kom på träningen på torsdag”, sa hon. ”Det är öppet för vem som helst. Vi har lånestolar.”\n\nJoar skrattade och sa ja. Han tänkte att han kanske skulle få visa några tricks.\n\nLånestolen var inte alls som Yaras vanliga rullstol. Den var låg och lätt, och hjulen lutade inåt upptill så att den blev stadig när man svängde snabbt. Ett litet extra hjul satt längst bak för att man inte skulle välta baklänges. Joar spändes fast med en rem över låren.\n\nHan märkte direkt att han inte visste var han skulle göra av händerna. För att röra sig behövde han driva hjulen, men för att spela behövde han bollen. Tränaren förklarade regeln: man fick ta två skjut på hjulen, sedan måste man studsa bollen, passa eller skjuta. Annars var det fel, precis som att gå med bollen i vanlig basket.\n\nFörsta passningen han fick träffade honom i bröstet, eftersom han höll på att svänga. Andra gången rullade han baklänges när han försökte ta emot. Korgen satt på precis samma höjd som vanligt, men nu satt han ner, och hans skott tog i ringen underifrån och studsade rakt tillbaka på honom.\n\nYara susade förbi honom gång på gång. Hon tog bollen, svängde med ena handen och lade den i korgen nästan utan att titta. Efter en halvtimme var Joars armar så trötta att de skakade, och han hade gjort noll poäng.\n\nUnder en vattenpaus satt han och flämtade. En äldre spelare i laget rullade fram. ”Första gången?” Joar nickade. ”Det syns”, sa spelaren vänligt. ”Det tar ett år innan man slutar tänka på stolen.”\n\nNär träningen var slut hade Joar blåsor i händerna. Yara rullade fram till honom.\n\n”Nå”, sa hon. ”Var det lättare?”\n\nJoar tänkte på sitt skämt i klassrummet. Han skämdes, men han ville inte låtsas.\n\n”Nej”, sa han. ”Det var mycket svårare. Jag hade ingen aning.”\n\nYara log. ”Det var det jag ville att du skulle se.”\n\nPå måndagen stod Joar med några kompisar vid korgen på skolgården. När Yara kom förbi kastade han bollen till henne. Hon tog emot den och skickade den rakt ner i korgen.\n\n”Två skjut och sedan studs”, sa Joar till de andra. ”Det är svårare än det ser ut.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad sa Joar när han fick veta att Yara spelade rullstolsbasket?",
+        "options": [
+          "Att han gärna ville lära sig spela tillsammans med henne",
+          "Att han inte visste att det fanns en sådan sport",
+          "Att det måste vara lättare eftersom man inte springer",
+          "Att det måste vara farligt att spela i rullstol"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför tittade Yara på Joar ”en lång stund” innan hon bjöd in honom?",
+        "options": [
+          "Hon funderade på hur hon skulle visa honom att han hade fel",
+          "Hon var osäker på om lånestolarna var lediga på torsdag",
+          "Hon blev så glad att hon inte kom på vad hon skulle säga",
+          "Hon ville se om han bara skämtade eller om han menade allvar"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Varför lutade hjulen på lånestolen inåt upptill?",
+        "options": [
+          "Så att stolen blev lättare att lyfta upp",
+          "Så att stolen blev stadig i snabba svängar",
+          "Så att spelaren satt högre upp mot korgen",
+          "Så att stolen gick att fälla ihop"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vilken regel förklarade tränaren?",
+        "options": [
+          "Man får inte röra en annan spelares stol under spelet",
+          "Man måste alltid ha båda händerna på hjulen",
+          "Bollen får bara passas bakåt till en medspelare",
+          "Två skjut på hjulen, sedan studsa, passa eller skjuta"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var det svårare än Joar trodde att skjuta på korgen?",
+        "options": [
+          "Han satt ner, men korgen satt lika högt som vanligt",
+          "Korgen satt mycket högre upp än i vanlig basket",
+          "Bollen var tyngre och större än en vanlig basketboll",
+          "Tränaren lät honom bara skjuta med ena handen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Yara ”susade förbi” Joar. Vad betyder det?",
+        "options": [
+          "Hon viskade något när hon åkte",
+          "Hon åkte förbi utan att se honom",
+          "Hon stannade alldeles bredvid honom",
+          "Hon åkte förbi mycket snabbt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menar den äldre spelaren med att det tar ett år ”innan man slutar tänka på stolen”?",
+        "options": [
+          "Att man måste ha spelat ett år innan man får en egen stol",
+          "Att man behöver lång träning innan stolen sköter sig av sig själv",
+          "Att man efter ett år får välja att spela utan stol",
+          "Att stolen brukar gå sönder efter ungefär ett år och måste bytas ut"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför svarade Joar ärligt fast han skämdes?",
+        "options": [
+          "Han ville få komma tillbaka nästa torsdag",
+          "Tränaren hade sagt åt honom att vara ärlig",
+          "Han ville inte låtsas när han hade haft fel",
+          "Han ville att Yara skulle tycka synd om honom"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad visar slutet på skolgården?",
+        "options": [
+          "Att Joar har slutat spela vanlig basket",
+          "Att Yara vill vara med i Joars lag",
+          "Att Joar har fått respekt för Yaras sport",
+          "Att kompisarna inte tror på det Joar säger"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
