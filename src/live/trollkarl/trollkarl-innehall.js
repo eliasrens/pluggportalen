@@ -10,4 +10,7 @@ import "./trollkarl-platshallare-effekter.js";
 import "./attacker/attacker-forvandling.js"; // 1 GRODIFIX! · 2 HÖNUS PANIKUS! · 3 POTATUS TOTALUS!
 import "./attacker/attacker-vader.js"; //       4 REGNUS MAXIMUS! · 8 FJÄDRUS STORMUS!
 import "./attacker/attacker-kladd.js"; //       5 STINKUS MAXIMUS! · 6 BANANUS HALKUS! · 7 SLEMMUS BLÄÄÄUS!
-// Del E:   finaler + ljud här, t.ex. import "./final/energikula.js";
+// Del E (#540): ljud (§12) + finaler (§14).
+import "./trollkarl-ljud.js"; //         alla ljudnycklar (Web Audio) + reserv "*"
+import "./final/final-vinst.js"; //      energikula · potatis-gigantus · drakus-finalus
+import "./final/final-oavgjort.js"; //   magisk-krock (§14.4)

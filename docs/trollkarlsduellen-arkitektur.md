@@ -185,6 +185,25 @@ registerSound("grodifix-kvack", (ac, out, t) => { /* Web Audio-noder → out */ 
   ljudet är på, upplåst och inte tystat (elevskärmen spelar i stället).
   Ingen egen AudioContext.
 
+### Del E är byggd (#540)
+
+- **Ljuden** ligger i `trollkarl-ljud.js`: alla nycklar ur listan ovan + HUD/
+  klocka (`matare-full`, `spanning`, `nedrakning`) + finalens (`final-mork`,
+  `final-laddning`, `final-skott`, `final-explosion`, `forvandling`,
+  `segerfanfar`, `jubel`, `fyrverkeri`, `konfetti`, `oavgjort-krock`,
+  `skratt`, `drake`, `grat`). Okänd nyckel (t.ex. en ny attack i del D)
+  faller tillbaka på det generiska glittret `"*"` (`getSound`), så nya
+  attacker aldrig är helt tysta. Kaosskydd: per-ljud-spärr (minGap), globalt
+  tak på ljudstarter per 300 ms och en gemensam kompressorbuss med volymtak.
+- **Finalerna** i `final/`: vinst `energikula` · `potatis-gigantus` ·
+  `drakus-finalus` (§14.3), oavgjort `magisk-krock` (§14.4); delade
+  byggstenar i `final-verktyg.js`, stilar i `final.css` (prefix `tkf-`).
+- **En gång-valet**: omladdning efter slutet visar resultatskärmen DIREKT
+  utan att spela om finalen (`tracker.finaleSeen()` i sessionStorage per
+  fönster + `STALE_FINALE_MS` för gamla matcher) – inte proj-winners
+  CELEBRATE-fönster, eftersom finalen är lång och elevskärm/panel i samma
+  webbläsare inte ska triggas om varandra.
+
 ## Händelsebuss och prioritet (§11, §14, §16)
 
 `createDirector()` i `trollkarl-regi.js`:
