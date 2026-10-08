@@ -2622,5 +2622,661 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n1-borgen",
+    "title": "Livet på borgen",
+    "level": 1,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "På medeltiden, för flera hundra år sedan, byggdes många borgar i Europa. En borg var ett stort hus av sten med tjocka murar.\n\nRunt många borgar fanns en vallgrav. Det var ett djupt dike, ofta fyllt med vatten. Över vallgraven gick en vindbrygga. Den kunde dras upp när fiender kom.\n\nI borgen bodde en rik herre med sin familj. Där bodde också soldater, kockar och tjänare.\n\nDet var kallt och dragigt i borgen. Fönstren var små och saknade ofta glas. På vintern eldade man i stora öppna spisar för att hålla värmen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad var en borg byggd av?",
+        "options": [
+          "Trä",
+          "Sten",
+          "Lera",
+          "Is"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är en vallgrav?",
+        "options": [
+          "Ett högt torn mitt på borgen",
+          "En stor port av trä",
+          "En gång under jorden",
+          "Ett djupt dike runt borgen"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gjorde man med vindbryggan när fiender kom?",
+        "options": [
+          "Drog upp den",
+          "Målade den",
+          "Brände den",
+          "Lade blommor på den"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vilka bodde i borgen förutom herren och hans familj?",
+        "options": [
+          "Bara några hästar",
+          "Kungar från andra länder",
+          "Soldater och tjänare",
+          "Bönder och fiskare"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var det kallt i borgen?",
+        "options": [
+          "Det fanns inga spisar",
+          "Murarna var gjorda av is",
+          "Fönstren saknade glas",
+          "Borgen låg under vatten"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför hade borgarna tjocka murar och vallgrav?",
+        "options": [
+          "För att fånga fisk",
+          "Som skydd mot fiender",
+          "För att det såg vackert ut",
+          "För att hästarna skulle bada"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-skolan-forr",
+    "title": "Skolan för hundra år sedan",
+    "level": 1,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För drygt hundra år sedan såg skolan annorlunda ut. Många barn gick i en liten skola med bara ett klassrum. Där satt barn i olika åldrar tillsammans.\n\nBarnen skrev inte i block. De skrev på en griffeltavla. Det var en liten svart tavla av sten. Man skrev på den med en griffel och suddade ut med en trasa.\n\nBarnen satt i raka rader och fick inte prata utan lov. Läraren var ofta mycket sträng.\n\nMånga barn hade lång väg till skolan. De gick flera kilometer, även på vintern. Efter skolan hjälpte de ofta till hemma på gården.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många klassrum hade många skolor?",
+        "options": [
+          "Två",
+          "Tio",
+          "Inga alls",
+          "Bara ett"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skrev barnen på?",
+        "options": [
+          "En griffeltavla",
+          "Ett block",
+          "En dator",
+          "Ett tygstycke"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur suddade man ut på tavlan?",
+        "options": [
+          "Med en trasa",
+          "Med ett suddgummi",
+          "Med vatten och tvål",
+          "Med en kniv"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Läraren var sträng. Vad betyder det?",
+        "options": [
+          "Snäll och rolig",
+          "Ung och glad",
+          "Trött och sjuk",
+          "Hård och bestämd"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad var jobbigt för många barn på vintern?",
+        "options": [
+          "Att skriva på tavlan",
+          "Att gå till skolan",
+          "Att hitta sitt klassrum",
+          "Att prata med läraren"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man gör en tavla",
+          "Varför lärare är stränga",
+          "Hur skolan var förr",
+          "Hur barn hjälper till hemma"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-vindkraftverket",
+    "title": "Fläkten som gör el",
+    "level": 1,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Ett vindkraftverk ser ut som en jättestor fläkt på en hög stång. Men det blåser inte ut luft. Det gör tvärtom.\n\nNär vinden blåser sätter den fart på de långa bladen. Oftast har ett vindkraftverk tre blad. Bladen snurrar runt.\n\nUppe i toppen sitter en maskin som heter generator. När bladen snurrar gör generatorn el. Elen går sedan i kablar till hus, skolor och fabriker.\n\nVindkraft är bra eftersom vinden aldrig tar slut. Men när det är helt vindstilla står bladen still. Då gör vindkraftverket ingen el.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många blad har ett vindkraftverk oftast?",
+        "options": [
+          "Två",
+          "Fyra",
+          "Sex",
+          "Tre"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad får bladen att snurra?",
+        "options": [
+          "Vinden",
+          "En motor",
+          "Solen",
+          "Elen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör generatorn?",
+        "options": [
+          "Den blåser luft",
+          "Den bromsar bladen",
+          "Den gör el",
+          "Den mäter vinden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vart går elen?",
+        "options": [
+          "Upp i molnen",
+          "Till hus, skolor och fabriker",
+          "Tillbaka till vinden",
+          "Ner i havet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Det är vindstilla. Vad betyder det?",
+        "options": [
+          "Det blåser storm",
+          "Det blåser inte alls",
+          "Det regnar mycket",
+          "Det är mörkt ute"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "En fläkt gör vind av el. Vad gör ett vindkraftverk?",
+        "options": [
+          "Gör vind av el",
+          "Gör regn av vind",
+          "Gör el av vind",
+          "Gör ljus av regn"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-streckkoden",
+    "title": "Strecken på mjölkpaketet",
+    "level": 1,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "På nästan alla varor i affären finns en streckkod. Den består av svarta streck och vita mellanrum. Under strecken står en rad siffror.\n\nStrecken är olika tjocka. Tillsammans blir de en kod som en dator kan läsa.\n\nI kassan finns en läsare som lyser med rött ljus på koden. Det svarta och det vita skickar tillbaka ljuset på olika sätt. Då kan datorn läsa vilken vara det är och vad den kostar.\n\nPip! Så låter det när koden har lästs. Om koden är skrynklig kan kassören skriva in siffrorna för hand.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad består en streckkod av?",
+        "options": [
+          "Svarta streck och mellanrum",
+          "Röda prickar och gröna rutor",
+          "Bokstäver i olika färger",
+          "Små bilder på varor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad står under strecken?",
+        "options": [
+          "Varans namn",
+          "Ett datum",
+          "En bild",
+          "En rad siffror"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilken färg har ljuset från läsaren?",
+        "options": [
+          "Blå",
+          "Grön",
+          "Röd",
+          "Gul"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad får datorn veta av koden?",
+        "options": [
+          "Vem som har köpt varan",
+          "Hur varan har fraktats",
+          "Var kunden bor någonstans",
+          "Vad varan är och kostar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Koden är skrynklig. Hur ser den ut?",
+        "options": [
+          "Den är full av veck",
+          "Den är helt ny",
+          "Den är blank",
+          "Den är jättestor"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad händer om läsaren inte kan läsa koden?",
+        "options": [
+          "Varan blir gratis",
+          "Siffrorna skrivs in",
+          "Kunden får inte köpa den",
+          "Datorn gissar priset"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-hissen",
+    "title": "Hur fungerar en hiss?",
+    "level": 1,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "I höga hus finns det ofta en hiss. Med hissen kan man åka upp och ner mellan våningarna utan att gå i trappan.\n\nHissen är en liten korg som hänger i starka stållinor. Linorna går upp till en motor, ofta högst upp i huset. När motorn snurrar dras korgen upp eller sänks ner.\n\nPå andra sidan hänger en tung vikt. Den kallas motvikt. Den gör att motorn inte behöver jobba så hårt.\n\nHissar har också bromsar. Om något går sönder stoppar bromsarna hissen. Därför är det mycket säkert att åka hiss.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hänger hisskorgen i?",
+        "options": [
+          "Starka stållinor",
+          "Tjocka rep av tyg",
+          "Långa kedjor av plast",
+          "Gummiband"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var sitter motorn ofta?",
+        "options": [
+          "I källaren",
+          "Inne i korgen",
+          "Högst upp i huset",
+          "Utanför huset"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en motvikt?",
+        "options": [
+          "En knapp man trycker på",
+          "En vikt på andra sidan",
+          "En broms som stoppar",
+          "En lampa i taket"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gör motvikten?",
+        "options": [
+          "Lyser upp hissen",
+          "Öppnar dörrarna",
+          "Ringer ett larm",
+          "Hjälper motorn"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör bromsarna om något går sönder?",
+        "options": [
+          "Ringer brandkåren",
+          "Stoppar hissen",
+          "Öppnar taket",
+          "Tänder lampan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det säkert att åka hiss?",
+        "options": [
+          "Det finns bromsar",
+          "Hissen åker långsamt",
+          "Linorna är av plast",
+          "Någon kör hissen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-gotland",
+    "title": "Ön med stenjättarna",
+    "level": 1,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Gotland är Sveriges största ö. Den ligger i Östersjön, öster om fastlandet. Man åker dit med färja eller flyg. Färjan tar några timmar.\n\nDen största staden på Gotland heter Visby. Runt Visby står en lång mur av sten. Den byggdes för flera hundra år sedan och står kvar än i dag.\n\nPå Gotlands stränder finns konstiga stenpelare. De kallas raukar. Vågor och is har nött på stenen i tusentals år. Nu ser en del av dem ut som jättar och djur.\n\nPå Gotland finns också små hästar som kallas russ.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ligger Gotland?",
+        "options": [
+          "I Västerhavet",
+          "Uppe i fjällen",
+          "Mitt i en stor sjö",
+          "I Östersjön"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur kan man resa till Gotland?",
+        "options": [
+          "Med tåg eller buss",
+          "Med bil på en lång bro",
+          "Med färja eller flyg",
+          "Bara med cykel"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad står runt Visby?",
+        "options": [
+          "En stor skog",
+          "En hög häck",
+          "Ett staket av trä",
+          "En mur av sten"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är raukar?",
+        "options": [
+          "Små hästar",
+          "Stenpelare vid stranden",
+          "Gamla hus",
+          "Färjor"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ser raukarna konstiga ut?",
+        "options": [
+          "Någon har huggit ut dem",
+          "De har vuxit upp ur sanden",
+          "Havet har nött på dem",
+          "Jättar har byggt dem"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kallas de små hästarna på Gotland?",
+        "options": [
+          "Russ",
+          "Raukar",
+          "Ölandshästar",
+          "Östersjöhästar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-floden",
+    "title": "Från källa till hav",
+    "level": 1,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "En flod börjar ofta högt upp i bergen. Där kommer vatten från regn och smält snö. Platsen där floden börjar kallas källan.\n\nVattnet rinner alltid nedåt. Små bäckar rinner ihop till en å, och åar rinner ihop till en stor flod. Ju längre floden rinner, desto bredare blir den.\n\nTill slut rinner floden ut i havet eller i en stor sjö. Den platsen kallas mynningen.\n\nFloder har varit viktiga för människor i alla tider. Längs floderna har man byggt byar och städer. Där fanns vatten att dricka och vatten att resa på.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var börjar en flod ofta?",
+        "options": [
+          "Högt upp i bergen",
+          "Ute i havet",
+          "Mitt i en stad",
+          "Under en bro"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är flodens mynning?",
+        "options": [
+          "Där den börjar",
+          "Där den rinner ut",
+          "Där den är smalast",
+          "Där den fryser"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Åt vilket håll rinner vattnet alltid?",
+        "options": [
+          "Uppåt",
+          "Runt i ring",
+          "Nedåt",
+          "Bakåt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad händer när små bäckar rinner ihop?",
+        "options": [
+          "De blir ett berg",
+          "De försvinner",
+          "De blir till snö",
+          "De blir en å"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blir floden bredare ju längre den rinner?",
+        "options": [
+          "Bergen trycker på den",
+          "Fiskarna gräver i den",
+          "Mer vatten rinner till",
+          "Solen värmer upp den"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför byggde människor byar vid floder?",
+        "options": [
+          "De behövde vattnet",
+          "Där var det varmast",
+          "Där fanns mest berg",
+          "Där kom ingen snö"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-kartan",
+    "title": "Världen ovanifrån",
+    "level": 1,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "En karta är en bild av ett område sett ovanifrån, som om du vore en fågel. Allt är mycket mindre än i verkligheten.\n\nKartan använder färger och tecken. Blått betyder vatten, som sjöar och hav. Grönt betyder ofta skog eller park. Vägar är ritade som linjer.\n\nLängst upp på kartan är det oftast norr. Söder är längst ner.\n\nVid sidan av kartan finns en ruta som förklarar alla tecken. Den kallas teckenförklaring.\n\nMed en karta kan du ta reda på var du är. Du kan också hitta vägen till platser där du aldrig har varit.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur ser man ett område på en karta?",
+        "options": [
+          "Från sidan",
+          "Underifrån",
+          "Inifrån",
+          "Ovanifrån"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad betyder blått på en karta?",
+        "options": [
+          "Skog",
+          "Vatten",
+          "Väg",
+          "Berg"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilket väderstreck är oftast längst upp?",
+        "options": [
+          "Söder",
+          "Öster",
+          "Väster",
+          "Norr"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en teckenförklaring?",
+        "options": [
+          "En pil som visar vägen mot norr",
+          "En bild av en fågel",
+          "En ruta som förklarar tecknen",
+          "En linje som är en väg"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "På kartan finns en stor grön yta. Vad kan det vara?",
+        "options": [
+          "En sjö",
+          "En skog",
+          "En väg",
+          "Ett hav"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan du använda en karta till?",
+        "options": [
+          "Att hitta vägen",
+          "Att mäta tid",
+          "Att se vädret",
+          "Att räkna pengar"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
