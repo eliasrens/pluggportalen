@@ -65,8 +65,8 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
         <g data-part="face" clip-path="url(#${id}-chin)" transform="translate(${FX} ${FY})">${faceImgs}</g>
         <g data-part="hat">${hatSvg(t, who)}</g>
         <g data-part="wow" style="display:none" aria-hidden="true">
-          <text x="268" y="92" font-size="52" font-weight="900" fill="${t.trim}" stroke="#3b2a12" stroke-width="1.5" transform="rotate(12 268 92)">!</text>
-          <path transform="translate(300 118) scale(1.1)" fill="#fff" d="M0 -7 1.8 -1.8 7 0 1.8 1.8 0 7 -1.8 1.8 -7 0 -1.8 -1.8Z"/>
+          <text x="318" y="140" font-size="52" font-weight="900" fill="${t.trim}" stroke="#3b2a12" stroke-width="1.5" transform="rotate(12 318 140)">!</text>
+          <path transform="translate(344 168) scale(1.1)" fill="#fff" d="M0 -7 1.8 -1.8 7 0 1.8 1.8 0 7 -1.8 1.8 -7 0 -1.8 -1.8Z"/>
         </g>
       </g>
       <g data-part="armR">${armRSvg(t)}</g>
