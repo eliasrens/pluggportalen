@@ -42,3 +42,12 @@ Nivå 1 = mycket enkel läsning: 30–50 ord, meningar på 3–6 ord, 3–4 frå
 | lr-g1-raketen | rymden | Raketen | raketen åker upp i rymden, eld och rök, astronauter |
 | lr-g1-vanern | geografi | Den stora sjön | Vänern är Sveriges största sjö |
 | lr-g1-telefonen-forr | historia | Telefonen förr | förr satt telefonen fast med en sladd |
+
+## Resultat
+- Byggs med `node admin/lasresan-g1-bygg.mjs` (källtexter i `admin/lasresan-g1-story.mjs` och `admin/lasresan-g1-fakta.mjs`, rätt svar först; skriptet balanserar positionerna seedat). Test: `test/lasresan-bank-niva1.test.js`.
+- 30 texter, 15 story + 15 fact. 114 frågor: 24 texter har 4 frågor och 6 texter har 3.
+- Kategorier: fakta 103, ordforstaelse 11.
+- Rätt svars position: A 29, B 29, C 28, D 28.
+- Rätt svar unikt längst: 20 av 114 (18 %).
+- Ordantal: min 39, medel 43,6, max 50. Ord per mening: medel 4,5, max 8.
+- `validateBank` på hela banken: 0 fel, 0 varningar.
