@@ -574,5 +574,569 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n3-larare-for-en-dag",
+    "title": "Lärare för en dag",
+    "level": 3,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Varje år fick en elev i 5A vara lärare under en lektion. I år hade Alvin dragit lappen med sitt namn, och han hade förberett sig i en hel vecka.\n\n”Det här blir lätt”, sa han till sin lärare Gunilla. ”Jag ska bara prata om dinosaurier.”\n\nNär lektionen började stod Alvin framme vid tavlan med bilder och en lång lista med fakta. Men redan efter två minuter började Kalle viska med sin bänkgranne. Någon tappade en penna. Två flickor vid fönstret fnissade åt något.\n\n”Hallå! Lyssna nu!” sa Alvin. Det blev tyst en kort stund, sedan började pratet igen.\n\nAlvin tittade bort mot Gunilla, som satt längst bak. Hon log bara och väntade.\n\nDå fick han en idé. Han slutade prata och höll upp en bild av en tyrannosaurus. ”Vem tror att den här kunde springa fortare än en bil?” frågade han.\n\nPlötsligt räckte alla upp handen. Resten av lektionen gissade och diskuterade klassen ivrigt.\n\nEfteråt sjönk Alvin ner på sin stol. ”Hur orkar du det här varje dag?” frågade han Gunilla.\n\n”Man lär sig”, sa hon. ”Och du lärde dig snabbt.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hade Alvin tänkt prata om på lektionen?",
+        "options": [
+          "Planeter",
+          "Vulkanutbrott",
+          "Hajar",
+          "Dinosaurier"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var satt Gunilla under Alvins lektion?",
+        "options": [
+          "Vid fönstret bredvid flickorna",
+          "Längst bak i klassrummet",
+          "Framme vid tavlan med Alvin",
+          "Ute i korridoren"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Två flickor ”fnissade”. Vad gjorde de?",
+        "options": [
+          "Viskade arga ord till varandra",
+          "Gäspade högt",
+          "Skrattade lite tyst",
+          "Suckade djupt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Klassen diskuterade ”ivrigt”. Vad betyder det?",
+        "options": [
+          "Tyst och mycket försiktigt",
+          "Långsamt och utan att bry sig",
+          "Argt och högljutt",
+          "Med stor lust och energi"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför väntade Gunilla bara i stället för att hjälpa Alvin?",
+        "options": [
+          "Hon ville att han skulle lösa det själv",
+          "Hon märkte inte att klassen pratade",
+          "Hon tyckte att lektionen gick bra",
+          "Hon var arg på Alvin för hans långa lista"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför räckte plötsligt alla upp handen?",
+        "options": [
+          "Gunilla sa åt dem att räcka upp",
+          "De ville gå ut på rast",
+          "Frågan gjorde dem nyfikna",
+          "Alvin lovade dem godis"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad kom Alvin fram till efter lektionen?",
+        "options": [
+          "Att dinosaurier är tråkiga att prata om",
+          "Att klassen aldrig lyssnar på någon alls",
+          "Att Gunilla borde vara mycket strängare mot klassen",
+          "Att det är svårare att vara lärare än han trott"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-grupparbetet",
+    "title": "Affischen om Östersjön",
+    "level": 3,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Leia suckade när fröken läste upp grupperna. Hon skulle jobba med Måns, killen som aldrig sa något och mest satt och klottrade i sitt kollegieblock.\n\nUppgiften var att göra en affisch om djuren i Östersjön. Leia bestämde sig för att göra allt själv. Hon skrev om sälar, torskar och musslor tills handen värkte. Måns satt tyst bredvid.\n\nDagen före redovisningen tittade Leia på affischen. Den var full av text, men den såg tråkig ut. Ingen skulle orka läsa allt.\n\n”Får jag prova en sak?” frågade Måns försiktigt.\n\nLeia ryckte på axlarna. Måns tog fram sina pennor. Med snabba drag ritade han en gråsäl som låg på en sten och en torsk som simmade bland tången. Bilderna såg nästan levande ut.\n\nLeia stirrade. ”Var det sådant du klottrade hela tiden?”\n\nMåns nickade och rodnade.\n\nPå redovisningen samlades alla runt deras affisch. ”Vem har ritat sälen?” frågade fröken.\n\n”Måns”, sa Leia. ”Och nästa gång gör vi allt tillsammans från början.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad skulle affischen handla om?",
+        "options": [
+          "Fåglarna i skogen",
+          "Djuren i Östersjön",
+          "Fiskarna i en sjö",
+          "Växterna vid stranden"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket djur ritade Måns liggande på en sten?",
+        "options": [
+          "En gråsäl",
+          "En torsk",
+          "En mussla",
+          "En mås"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Måns ”klottrade” i blocket. Vad betyder det?",
+        "options": [
+          "Han rev ut sidor ur blocket",
+          "Han räknade matteuppgifter noga",
+          "Han suddade allt han skrivit",
+          "Han ritade snabbt och slarvigt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Måns ”rodnade”. Vad hände med honom?",
+        "options": [
+          "Han blev röd i ansiktet",
+          "Han blev blek av rädsla",
+          "Han började skratta högt",
+          "Han tittade bort och gäspade"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ville Leia först göra allt själv?",
+        "options": [
+          "Hon tyckte mest om att skriva om sälar",
+          "Hon trodde inte att Måns kunde bidra",
+          "Fröken hade sagt att hon skulle göra det",
+          "Måns var sjuk nästan hela veckan"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blev affischen bättre med Månss bilder?",
+        "options": [
+          "Den fick plats med mer text",
+          "Den blev färdig mycket snabbare",
+          "Den blev roligare att titta på",
+          "Fröken ville bara ha bilder"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad lärde sig Leia?",
+        "options": [
+          "Att alla i en grupp kan bidra med något",
+          "Att det alltid är bäst att jobba helt ensam",
+          "Att en affisch ska ha mycket text",
+          "Att Måns ritar bättre än fröken gör"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-skoltidningen",
+    "title": "Kokerskans hemlighet",
+    "level": 3,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Klass 5B gjorde en skoltidning, och Nadja fick det uppdrag som ingen annan ville ha. Hon skulle intervjua Inga-Lill i skolköket.\n\nInga-Lill var känd för att vara sträng. Hon sa till om man tog för mycket sås eller lämnade disk på bordet. Nadja skrev ner sina frågor på ett papper och knackade nervöst på köksdörren.\n\n”Kom in”, sa Inga-Lill. ”Men rör ingenting.”\n\nNadja började med de enkla frågorna. Hur länge hade hon jobbat på skolan? Vilken mat var svårast att laga? Sedan frågade hon vad Inga-Lill gjorde innan hon kom hit.\n\nInga-Lill torkade händerna på förklädet. ”Jag var kock på ett fartyg”, sa hon. ”I tolv år seglade jag runt jorden.”\n\nNadja glömde helt bort sitt papper. Hon fick höra om stormar på Atlanten, om kryddmarknader i Indien och om ett kök där alla grytor måste spännas fast.\n\nIntervjun tog en hel rast. När tidningen kom ut läste alla om kokerskan som hade seglat runt jorden.\n\nNästa dag sa flera elever ”tack för maten” lite extra tydligt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad arbetade Inga-Lill med innan hon kom till skolan?",
+        "options": [
+          "Hon sålde kryddor i Indien",
+          "Hon var lärare på en annan skola",
+          "Hon var kock på ett fartyg",
+          "Hon körde buss i staden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur lång tid tog intervjun?",
+        "options": [
+          "En hel lektion",
+          "En hel rast",
+          "Några få minuter",
+          "Hela eftermiddagen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”intervju”?",
+        "options": [
+          "En lista med regler för ett kök",
+          "En berättelse som är påhittad",
+          "Ett möte där alla röstar om något",
+          "Ett samtal där man ställer frågor"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Inga-Lill var ”sträng”. Vad betyder det?",
+        "options": [
+          "Hon var mycket stark",
+          "Hon var ofta ledsen",
+          "Hon var noga med regler",
+          "Hon pratade väldigt tyst"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför måste grytorna i fartygets kök spännas fast?",
+        "options": [
+          "Annars kunde någon stjäla dem",
+          "De var för varma att hålla i",
+          "Kocken ville ha ordning och reda i köket",
+          "Fartyget gungade i stormar och vågor"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför glömde Nadja bort sitt papper?",
+        "options": [
+          "Inga-Lill sa åt henne att lägga bort det",
+          "Inga-Lills berättelser var så spännande",
+          "Hon tappade det på golvet i köket",
+          "Hon kunde alla frågor utantill"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför sa eleverna ”tack för maten” extra tydligt nästa dag?",
+        "options": [
+          "De såg Inga-Lill på ett nytt sätt",
+          "Inga-Lill hade blivit ännu strängare",
+          "Fröken hade bestämt att de skulle göra så",
+          "Maten var godare än den brukade vara"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-tvattstugan",
+    "title": "Bråket i tvättstugan",
+    "level": 3,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "I Heddas hus fanns en tvättstuga i källaren. Där bokade man tid genom att sätta ett litet lås på en tavla. På lördagen hade pappa bokat klockan tio, och Hedda fick hjälpa till.\n\nDe hade precis startat den första maskinen när dörren flög upp. Där stod Ruth från tredje våningen med en full tvättkorg.\n\n”Det här är min tid!” sa hon surt. ”Jag har bokat.”\n\nPappa visade tavlan. Deras lås satt på lördag klockan tio. Ruths lås satt på söndag.\n\nRuth kisade mot tavlan och tystnade. ”Jag ser så dåligt på nära håll”, sa hon till slut. ”Bokstäverna är så små.”\n\nHedda tittade på tavlan. Dagarna var skrivna med pyttesmå bokstäver. Det var inte konstigt att man kunde göra fel.\n\nSamma eftermiddag tog Hedda fram papper och tjocka pennor. Hon skrev MÅNDAG, TISDAG och alla de andra dagarna med stora, tydliga bokstäver och tejpade upp dem ovanför tavlan.\n\nPå söndagen låg en påse kanelbullar utanför deras dörr. På påsen stod det med darrig stil: ”Tack, Hedda!”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag hade Ruth egentligen bokat?",
+        "options": [
+          "Söndag",
+          "Lördag",
+          "Fredag",
+          "Måndag"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var i huset låg tvättstugan?",
+        "options": [
+          "På tredje våningen",
+          "Uppe på vinden",
+          "I källaren",
+          "I huset bredvid"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ruth ”kisade” mot tavlan. Vad gjorde hon?",
+        "options": [
+          "Hon pekade argt med fingret mot den",
+          "Hon knep ihop ögonen för att se",
+          "Hon blundade och suckade",
+          "Hon skrattade åt tavlan"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Bokstäverna var ”pyttesmå”. Vad betyder det?",
+        "options": [
+          "Ganska stora",
+          "Svåra att stava",
+          "Lite suddiga",
+          "Väldigt små"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför trodde Ruth att det var hennes tid?",
+        "options": [
+          "Hon ville ha den bästa tiden i veckan",
+          "Pappa hade flyttat hennes lås",
+          "Hon hade tappat sitt eget lås",
+          "Hon kunde inte se de små bokstäverna"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför låg det kanelbullar utanför dörren?",
+        "options": [
+          "Ruth ville tacka Hedda för skyltarna",
+          "Pappa hade köpt dem på lördagen",
+          "Ruth ville be om en ny tvättid",
+          "Hedda hade bakat dem åt grannarna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar texten om Hedda?",
+        "options": [
+          "Hon tycker inte om att tvätta",
+          "Hon är rädd för grannen Ruth",
+          "Hon ser vad som behövs och hjälper till",
+          "Hon vill bestämma över allt i tvättstugan"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-hundvakten",
+    "title": "En vecka med Doris",
+    "level": 3,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Familjen Lund skulle resa bort en vecka, och Elton hade lovat att gå ut med deras hund Doris. Hon var en stor och glad labrador.\n\n”Det klarar jag lätt”, sa Elton till mamma.\n\nFörsta morgonen gick allt bra tills de kom till parken. Där simmade några änder i dammen. Doris fick syn på dem och rusade iväg. Elton höll fast i kopplet, men han halkade i det blöta gräset och hamnade på magen. Doris stannade vid kanten och skällde glatt.\n\nElton reste sig med lerig jacka. Det här var svårare än han hade trott.\n\nPå kvällen ringde han till fru Lund. ”Håll kopplet kort”, sa hon. ”Och ta med godbitar i fickan. Ge henne en när hon går fint bredvid dig.”\n\nNästa dag gjorde Elton precis så. Varje gång Doris gick lugnt fick hon en liten bit. När de kom till dammen spetsade hon öronen, men hon tittade upp på Elton i stället för att springa.\n\nNär familjen Lund kom hem viftade Doris på svansen åt Elton. ”Hon har visst fått en ny bästa vän”, skrattade fru Lund.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad fick Doris att rusa iväg i parken?",
+        "options": [
+          "En annan hund",
+          "Änderna i dammen",
+          "En katt i ett träd",
+          "En boll i gräset"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad tyckte fru Lund att Elton skulle ha i fickan?",
+        "options": [
+          "Godbitar",
+          "En hundvissla",
+          "En liten boll",
+          "Ett extra koppel"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Doris ”rusade” iväg. Vad betyder det?",
+        "options": [
+          "Hon gick långsamt",
+          "Hon smög tyst",
+          "Hon hoppade högt",
+          "Hon sprang mycket fort"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Doris ”spetsade öronen”. Vad betyder det?",
+        "options": [
+          "Hon blev rädd och kröp ihop under en buske",
+          "Hon kliade sig länge bakom örat",
+          "Hon lyssnade och blev uppmärksam",
+          "Hon somnade i gräset"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur kände sig Elton när han reste sig med lerig jacka?",
+        "options": [
+          "Han var stolt över sig själv",
+          "Han förstod att uppdraget var svårt",
+          "Han tyckte att det var kul att falla",
+          "Han var arg på fru Lund"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tittade Doris upp på Elton vid dammen andra dagen?",
+        "options": [
+          "Hon var rädd för det kalla vattnet",
+          "Elton ropade högt på henne",
+          "Änderna simmade bort från henne",
+          "Hon hade lärt sig att det gav en godbit"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur familjen Lund reser bort",
+          "Varför labradorer tycker så mycket om änder",
+          "Hur Elton lär sig ta hand om en hund",
+          "Hur man tvättar en lerig jacka"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-tandlakaren",
+    "title": "Ljudet i väntrummet",
+    "level": 3,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Lykke hade haft ont i magen hela morgonen. Klockan två skulle hon till tandläkaren, och hon hade ett hål i en tand som måste lagas.\n\nI väntrummet satt hon och vickade med benen. Från ett rum längre bort hördes ett vinande ljud. Lykke kände hur händerna blev kalla och svettiga.\n\nTandläkaren hette Anders och hade glasögon med små lampor på. ”Vill du se vad jag gör?” frågade han och gav henne en spegel.\n\nLykke nickade. Han visade sina verktyg ett i taget. Den lilla sugen lät som en dammsugare och tog bort vatten ur munnen. Borren var det som vinade. ”Den låter värre än den känns”, sa Anders. ”Om något gör ont räcker du upp handen, så stannar jag.”\n\nFörst gav han henne bedövning, och snart kändes läppen tjock och konstig. Sedan borrade han. Lykke räckte inte upp handen en enda gång.\n\nEfteråt tittade hon i spegeln. Hålet var borta, och tanden såg ut som vanligt.\n\n”Det var ju inte så farligt”, sa hon. Men eftersom läppen fortfarande var bedövad lät det mest som ”Fe var ju inte få farligt”.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hade Anders på sina glasögon?",
+        "options": [
+          "Små speglar",
+          "Små lampor",
+          "Ett förstoringsglas",
+          "Färgade glas"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skulle Lykke göra om något gjorde ont?",
+        "options": [
+          "Räcka upp handen",
+          "Blunda hårt",
+          "Stampa med foten",
+          "Knacka på stolen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Tanden måste ”lagas”. Vad betyder det?",
+        "options": [
+          "Den ska dras ut",
+          "Den ska göras hel igen",
+          "Den ska putsas ren",
+          "Den ska målas vit"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Lykke fick ”bedövning”. Vad gör en bedövning?",
+        "options": [
+          "Den gör att det inte känns",
+          "Den gör tanden vitare",
+          "Den tar bort hålet",
+          "Den gör att tanden blir starkare"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blev Lykkes händer kalla och svettiga i väntrummet?",
+        "options": [
+          "Det var kallt i väntrummet",
+          "Hon hade just tvättat händerna",
+          "Hon hade sprungit hela vägen dit",
+          "Hon var nervös för besöket"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför gav Anders Lykke en spegel?",
+        "options": [
+          "Så att hon kunde rätta till sitt hår",
+          "För att han behövde mer ljus i munnen",
+          "Så att hon kunde se och bli mindre rädd",
+          "För att visa hur smutsiga alla tänderna var"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man borstar tänderna på rätt sätt",
+          "Hur Lykke klarar något hon var rädd för",
+          "Varför man får hål i tänderna",
+          "Hur Anders lärde sig att bli tandläkare"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
