@@ -13,6 +13,8 @@
 //   NY SKALA (som #519 skriver: level10 + spegel i level):
 //     qa-10-n9  "Nio Nadja"     level10 9 (spegel 6)       → visas 9
 //     qa-10-n2  "Lätt Lisa"     level10 2 (spegel 1)       → visas 2
+//     qa-10-n1  "Etta Ebba"     level10 1 (spegel 1), ny   → visas 1 "ej börjat"
+//     qa-10-n3  "Trea Tore"     level10 3 (spegel 1)       → visas 3
 //   qa-10-ej  "Ej Elin"         inget lasresa-objekt       → klassens startnivå
 // Klassen har en GAMMAL startnivå (lasresaStartLevel 3, utan
 // lasresaStartLevel10) → "Nivå 6". Idempotent. Lösenord lilla123.
@@ -81,6 +83,9 @@ const ELEVER = [
     lasresa: lasresa({ level10: 2, level: 1, pendingLevel10: null }),
     attempts: [attempt("lr-g2-pepparkakshuset", "Taket som rasade", 2, 4, 5, 20, true)],
   },
+  // Nya, enklare nivåer (#525: elevflödet på nivå 1 och 3 i previewn).
+  { uid: "qa-10-n1", namn: "Etta Ebba", avatarId: "penguin", lasresa: lasresa({ level10: 1, level: 1, pendingLevel10: null, totalTexts: 0, totalQuestions: 0, totalCorrect: 0, totalIncorrect: 0, moneyEarned: 0, seenTextIds: [], catStats: {}, lastTextId: null, stepInWorld: 0 }) },
+  { uid: "qa-10-n3", namn: "Trea Tore", avatarId: "lion", lasresa: lasresa({ level10: 3, level: 1, pendingLevel10: null }) },
   { uid: "qa-10-ej", namn: "Ej Elin", avatarId: "dog", lasresa: null },
 ];
 

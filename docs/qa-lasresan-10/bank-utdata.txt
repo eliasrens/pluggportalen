@@ -1,0 +1,23 @@
+[bank] 370 texter i manifestet (10 nivåer)
+  ✓ validateBank – 0 fel / 0 varningar
+  ✓ ≥ 300 texter totalt – 370
+  ✓ manifestet har exakt nivå 1–10
+  ✓ text-id unika
+  ✓ nivå 1: 30/30 giltiga (15 story/15 fact), frågor 3–4 (krav 3–4), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 1
+  ✓ nivå 2: 30/30 giltiga (15 story/15 fact), frågor 4–5 (krav 4–5), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 2
+  ✓ nivå 3: 30/30 giltiga (15 story/15 fact), frågor 6–6 (krav 5–7), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 3
+  ✓ nivå 4: 40/40 giltiga (20 story/20 fact), frågor 6–6 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 4
+  ✓ nivå 5: 40/40 giltiga (20 story/20 fact), frågor 7–7 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 5
+  ✓ nivå 6: 40/40 giltiga (20 story/20 fact), frågor 7–8 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 6
+  ✓ nivå 7: 40/40 giltiga (20 story/20 fact), frågor 8–8 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 7
+  ✓ nivå 8: 40/40 giltiga (20 story/20 fact), frågor 8–8 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 8
+  ✓ nivå 9: 40/40 giltiga (20 story/20 fact), frågor 8–8 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 9
+  ✓ nivå 10: 40/40 giltiga (20 story/20 fact), frågor 9–9 (krav 5–9), 4 unika alternativ + ett facit, id ↔ nivå, pickText ger 10
+
+[gamla texter] jämför mot origin/epic/l-sresan-40-texter-per-niv-l-rarstyrda-n-7ef183
+  ✓ alla 280 gamla text-id finns kvar
+  ✓ varje gammal text ligger på gammal nivå + 3
+  ✓ gamla texter identiska utöver level (titel, brödtext, frågor, facit)
+  ✓ nya texter: 90 st, alla lr-g1/2/3- på nivå 1–3
+
+✓ alla bankkontroller gröna

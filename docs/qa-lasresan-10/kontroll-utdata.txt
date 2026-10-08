@@ -1,0 +1,95 @@
+
+[§5] migrering av elever i gammal skala (lat, idempotent)
+  ✓ klassens gamla startnivå 3 läses som 6 – 6
+  ✓ qa-525-g1: gammal 1 → nivå 4 (elevens klient) – level=4
+  ✓ qa-525-g1: lärarens vy visar 4
+  ✓ qa-525-g1: normalisering är idempotent
+  ✓ qa-525-g1: försök (subkollektion + fallback) på nivå 4 – 4,4,4
+  ✓ qa-525-g1: nästa text från nivå 4 – lr-n1-kartan
+  ✓ qa-525-g1: lagrat level10 4 + spegel level 1 – level10=4 level=1
+  ✓ qa-525-g1: totals, catStats, seenTextIds, världar, pengar, försök, fallback oförändrade
+  ✓ qa-525-g1: omläsning efter skrivning → fortfarande 4 (ingen dubbelflytt) – level=4
+  ✓ qa-525-g1: efter en text räknas allt vidare (texter +1, frågor +6, coins +18)
+  ✓ qa-525-g1: nytt försök levelScale 10, textLevel 4; nivån kvar 4 – level10=4
+  ✓ qa-525-g1: ny inloggning → 4 igen
+  ✓ qa-525-g3: gammal 3 → nivå 6 (elevens klient) – level=6
+  ✓ qa-525-g3: lärarens vy visar 6
+  ✓ qa-525-g3: normalisering är idempotent
+  ✓ qa-525-g3: försök (subkollektion + fallback) på nivå 6 – 6,6,6
+  ✓ qa-525-g3: nästa text från nivå 6 – lr-n3-kometer
+  ✓ qa-525-g3: lagrat level10 6 + spegel level 3 – level10=6 level=3
+  ✓ qa-525-g3: totals, catStats, seenTextIds, världar, pengar, försök, fallback oförändrade
+  ✓ qa-525-g3: omläsning efter skrivning → fortfarande 6 (ingen dubbelflytt) – level=6
+  ✓ qa-525-g3: efter en text räknas allt vidare (texter +1, frågor +7, coins +21)
+  ✓ qa-525-g3: nytt försök levelScale 10, textLevel 6; nivån kvar 6 – level10=6
+  ✓ qa-525-g3: ny inloggning → 6 igen
+  ✓ qa-525-g7: gammal 7 → nivå 10 (elevens klient) – level=10
+  ✓ qa-525-g7: lärarens vy visar 10
+  ✓ qa-525-g7: normalisering är idempotent
+  ✓ qa-525-g7: försök (subkollektion + fallback) på nivå 10 – 10,10,10
+  ✓ qa-525-g7: nästa text från nivå 10 – lr-n7-staderna
+  ✓ qa-525-g7: lagrat level10 10 + spegel level 7 – level10=10 level=7
+  ✓ qa-525-g7: totals, catStats, seenTextIds, världar, pengar, försök, fallback oförändrade
+  ✓ qa-525-g7: omläsning efter skrivning → fortfarande 10 (ingen dubbelflytt) – level=10
+  ✓ qa-525-g7: efter en text räknas allt vidare (texter +1, frågor +9, coins +27)
+  ✓ qa-525-g7: nytt försök levelScale 10, textLevel 10; nivån kvar 10 – level10=10
+  ✓ qa-525-g7: ny inloggning → 10 igen
+  ✓ qa-525-gp: gammal 3 + väntande 2 → nivå 6, väntande 5 – 6 → 5
+  ✓ qa-525-gp: den påbörjade texten återupptas (nu nivå 6)
+  ✓ qa-525-gp: efter texten nivå 5, inget väntande; försöket på nivå 6
+  ✓ qa-525-gp: lagrat level10 5, spegel 2, pendingLevel10/pendingLevel null
+  ✓ qa-525-ej: startnivå för ej börjad = 6
+  ✓ qa-525-ej: första texten från nivå 6, lagrad level10 6 – lr-n3-pyramiderna
+  ✓ startnivå sparad om som 6 → lasresaStartLevel10 6 + spegel 3, läses 6 (inte 9)
+
+[§5] nya elever: standard 4, lärarvald startnivå 2 och 9
+  ✓ elev utan klass: startnivå 4
+  ✓ elev utan klass: första texten från nivå 4 – lr-n1-hissen
+  ✓ klass med startnivå 2: ny elev på nivå 2, första texten nivå 2, lagrat level10 2 – lr-g2-korgen, spegel 1
+  ✓ klass med startnivå 9: ny elev på nivå 9, första texten nivå 9, lagrat level10 9 – lr-n6-vaccinet, spegel 6
+
+[§6] automatisk progression på alla tio nivåer (golv 1, tak 10)
+  ✓ läraren sätter nivå 1
+  ✓ 27 höga texter i rad: 1 → 10, ett steg per 3 höga – 1→2→3→4→5→6→7→8→9→10
+  ✓ varje text kom från elevens aktuella nivå
+  ✓ 4 höga till på nivå 10 → stannar på 10 (tak)
+  ✓ 2 låga i rad på nivå 10 → 9 (en låg räcker inte) – 10, 9
+  ✓ från 2: 2 låga → 1, 2 låga till → stannar på 1 (golv) – 2,1,1,1
+  ✓ lagrat level10 1 + spegel 1
+
+[§5] behörighet (grenens regler)
+  ✓ elev kan inte sätta klassens startnivå
+  ✓ elev kan inte ändra en annan elevs nivå
+  ✓ lärare: startnivå 10 (+ spegel 7) tillåts
+  ✓ lärare: startnivå 1 (+ spegel 1) tillåts
+  ✓ lärare: lasresaStartLevel10 11 nekas
+  ✓ lärare: lasresaStartLevel10 0 nekas
+  ✓ lärare: lasresaStartLevel10 "5" (sträng) nekas
+  ✓ lärare: spegeln lasresaStartLevel 8 nekas
+  ✓ lärare sätter elevnivå 10
+
+[B-beslut] gammal cachad klient (LEVEL_MAX 7) mot ny data
+  ✓ gamla koden har LEVEL_MAX 7, START_LEVEL 3
+  ✓ a) gammal klient ser spegeln 6 (giltig på dess skala), level10 följer med
+  ✓ a) efter gammal skrivning: level10 9 kvar, spegel 6 → ny klient läser 9
+  ✓ a) gammalt försök (utan levelScale) får rätt nivå via text-id – textLevel lagrat 6, normaliserat 6
+  ✓ b) 3 höga i gammal klient: spegel 6 → 7, ny klient läser 10 (9 + 1) – level=7 level10=9
+  ✓ b) nästa skrivning från ny klient: level10 10 + spegel 7, text nivå 10
+  ✓ c) nivå 10 + 3 höga i gammal klient → fortfarande 10 – lr-n4-talangshowen
+  ✓ d) gammal lärarvy sätter 7 → ny klient läser 10
+  ✓ d) gammal lärarvy sätter 1 → ny klient läser 4
+  ✓ e) väntande ny nivå 2 läggs på plats av gammal klient → ny klient läser 2
+  ✓ f) gammal lärarvy sätter startnivå 2 → läses 5
+  ✓ f) gammal lärarvy tar bort startnivån → standard (null → 4)
+  ✓ g) (dokumenterad grovhet) nivå 2 + 3 höga i gammal klient → 5, inte 3 – ny nivå 5
+    gammal 1 (= ny 4): 1 texter ur dev-seed, t.ex. lr-n1-katten-i-regnet
+    gammal 2 (= ny 5): 29 texter ur nya bankens nivå 2, t.ex. lr-g2-pepparkakshuset
+    gammal 3 (= ny 6): 30 texter ur nya bankens nivå 3, t.ex. lr-g3-museet
+    gammal 4 (= ny 7): 40 texter ur nya bankens nivå 4, t.ex. lr-n1-tanden
+    gammal 5 (= ny 8): 40 texter ur nya bankens nivå 5, t.ex. lr-n2-klassens-fisk
+    gammal 6 (= ny 9): 40 texter ur nya bankens nivå 6, t.ex. lr-n3-nya-eleven
+    gammal 7 (= ny 10): 40 texter ur nya bankens nivå 7, t.ex. lr-n4-talangshowen
+  ✓ h) gammal klient kraschar inte på ny bank (varje gammal nivå ger texter)
+    (lr-n7-text återupptas av gammal klient: nej – den gamla sidan startar då en ny text)
+
+✓ alla kontroller gröna

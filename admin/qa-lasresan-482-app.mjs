@@ -129,7 +129,7 @@ export async function dump(uid) {
   const sd = (await adb.doc(`studentData/${uid}`).get()).data() || {};
   const at = await adb.collection(`studentData/${uid}/lasresaAttempts`).get();
   const lr = { ...(sd.lasresa || {}) };
-  for (const k of ["level", "highStreak", "lowStreak", "pendingLevel", "levelSetAt", "levelSetBy", "updatedAt"]) delete lr[k];
+  for (const k of ["level", "level10", "highStreak", "lowStreak", "pendingLevel", "pendingLevel10", "levelSetAt", "levelSetBy", "updatedAt"]) delete lr[k];
   const rest = { ...sd };
   delete rest.lasresa;
   return {

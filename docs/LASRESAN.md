@@ -114,8 +114,9 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   innehållet blir ingen ledtråd och ordningen är densamma efter en omladdning.
   Vyn skickar alltid originalindex. Klick → alla knappar låses → ✅ Rätt! / ❌ Fel
   → nästa fråga automatiskt efter 1,1 s (fel: 1,6 s).
-- **Rätt svar avslöjas inte vid fel** (spec §7 säger bara ✅/❌). Det kan läggas
-  till i `ui-reader.js` om lärarna vill.
+- **Rätt svar visas vid fel** (spec 10 nivåer §4, ändrat i #525): det valda
+  alternativet blir rött och det rätta grönt under de 1,6 s innan nästa fråga.
+  (Före #525 visades bara ✅/❌.)
 - **Påbörjad text:** svaren sparas efter varje klick i
   `localStorage["pp:lasresan:pagaende:<elevId>"]`. Lämnar eleven texten (← Kartan,
   omladdning) återupptas samma text på samma fråga med de låsta svaren, så det
