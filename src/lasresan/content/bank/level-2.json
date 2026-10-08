@@ -562,5 +562,757 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n2-vikarien",
+    "title": "Vikarien som visste",
+    "level": 2,
+    "textType": "story",
+    "topic": "skola",
+    "body": "När klass 4C kommer in efter rasten sitter en okänd kvinna vid katedern. ”Hej! Jag heter Sanna och är er vikarie i dag”, säger hon.\n\nHjalmar får en idé. Han viskar till de andra: ”Vi byter namn med varandra!” Alla fnissar och nickar.\n\nSanna läser upp namnen på listan. När hon säger ”Hjalmar” räcker Bilal upp handen. När hon säger ”Bilal” räcker Hjalmar upp handen. Hela klassen försöker att inte skratta.\n\nSanna ler lite men säger ingenting. Hela lektionen kallar hon dem för fel namn, precis som de vill.\n\nNär det ringer ut tittar hon rakt på Hjalmar. ”Hej då, Hjalmar. Hälsa din mamma från mig!”\n\nHjalmar blir röd i ansiktet. Nu känner han igen henne. Sanna är mammas kusin. Hon har känt honom sedan han var liten.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter vikarien?",
+        "options": [
+          "Sanna",
+          "Anna",
+          "Sofia",
+          "Lina"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är Hjalmars idé?",
+        "options": [
+          "Att alla ska gömma sig",
+          "Att alla ska vara tysta",
+          "Att alla ska byta bänk",
+          "Att alla ska byta namn"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem räcker upp handen när Sanna säger ”Hjalmar”?",
+        "options": [
+          "Hjalmar",
+          "Bilal",
+          "Ingen",
+          "Hela klassen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Alla fnissar. Vad betyder fnissar?",
+        "options": [
+          "Gråter tyst",
+          "Suckar högt",
+          "Skrattar tyst",
+          "Viskar argt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför säger Sanna ingenting om namnen under lektionen?",
+        "options": [
+          "Hon hör inte vad de säger",
+          "Hon är arg på klassen",
+          "Hon kan inte läsa listan",
+          "Hon spelar med i skämtet"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vem är Sanna?",
+        "options": [
+          "Hjalmars storasyster",
+          "Mammas kusin",
+          "Bilals mamma",
+          "Rektorn på skolan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar slutet av berättelsen?",
+        "options": [
+          "Klassen lurade Sanna hela dagen",
+          "Sanna blev arg på hela klassen",
+          "Sanna visste vem Hjalmar var",
+          "Bilal och Hjalmar är bröder"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-solrosen",
+    "title": "Fröet som tog tid",
+    "level": 2,
+    "textType": "story",
+    "topic": "skola",
+    "body": "I april får alla i klassen var sin kruka med jord och ett solrosfrö. ”Vi ska se vems solros som blir högst före sommarlovet”, säger läraren Mattias.\n\nEster sticker ner fröet djupt i jorden. Hon vattnar det varje dag.\n\nEfter en vecka har det kommit upp gröna skott i nästan alla krukor. Men i Esters kruka syns bara mörk jord. Hon känner sig avundsjuk när de andra mäter sina plantor med linjal.\n\n”Ge den lite tid”, säger Mattias. ”Ett frö som ligger djupt behöver längre tid på sig.”\n\nTre dagar senare tittar ett litet blad fram. Sedan växer plantan snabbt. Den får en tjock och stark stjälk.\n\nI juni är Esters solros inte högst i klassen. Men den är den enda som har två blommor.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad får eleverna i april?",
+        "options": [
+          "En kruka och ett solrosfrö",
+          "En kruka och en tomatplanta",
+          "En påse med blomlökar",
+          "Ett paket med morotsfrön"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad vill klassen ta reda på?",
+        "options": [
+          "Vems solros som blommar först",
+          "Vems solros som blir högst",
+          "Vems kruka som är finast",
+          "Vem som vattnar mest"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur sätter Ester ner fröet?",
+        "options": [
+          "Djupt ner i jorden",
+          "Ovanpå jorden",
+          "Precis vid kanten",
+          "Med spetsen uppåt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Ester känner sig avundsjuk. Vad betyder det?",
+        "options": [
+          "Hon är rädd att de andra ska skratta",
+          "Hon är trött på att vattna",
+          "Hon önskar att hon hade det de har",
+          "Hon är glad för de andras skull"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför säger Mattias ”Ge den lite tid”?",
+        "options": [
+          "Han vill att Ester ska byta frö",
+          "Han tycker att tävlingen är slut",
+          "Han vill att Ester ska vattna mer",
+          "Han vill inte att Ester ska ge upp"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är speciellt med Esters solros i juni?",
+        "options": [
+          "Den är högst i klassen",
+          "Den har röda blad",
+          "Den har två blommor",
+          "Den har ingen stjälk"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill berättelsen visa?",
+        "options": [
+          "Det är viktigast att vinna",
+          "Det som tar tid kan ändå bli bra",
+          "Man ska inte vattna varje dag",
+          "Solrosor växer bäst i mörker"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-bussen",
+    "title": "En extra tur",
+    "level": 2,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Folke ska åka buss ensam för första gången. Han ska hälsa på farmor, som bor sju hållplatser bort. Pappa har skrivit namnet på hållplatsen på en lapp: Kvarnbacken.\n\nFolke sätter sig längst fram och räknar hållplatserna på fingrarna. Men vid den fjärde hållplatsen kliver många personer på. Folke tittar på en liten hund i en väska och glömmer att räkna.\n\nPlötsligt ser han inget som han känner igen. Det drar ihop sig i magen.\n\nHan går fram till chauffören och visar lappen. ”Kvarnbacken åkte vi förbi för två hållplatser sedan”, säger chauffören vänligt. ”Hoppa av här och ta bussen tillbaka från andra sidan gatan.”\n\nTio minuter senare ringer Folke på farmors dörr. ”Du är lite sen”, säger farmor.\n\n”Jag tog en extra tur”, säger Folke och ler.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem ska Folke hälsa på?",
+        "options": [
+          "Morfar",
+          "En kompis",
+          "Sin moster",
+          "Farmor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många hållplatser bort bor farmor?",
+        "options": [
+          "Sju",
+          "Fyra",
+          "Fem",
+          "Tio"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför glömmer Folke att räkna?",
+        "options": [
+          "Han ser en hund i en väska",
+          "Han pratar i telefon med pappa",
+          "Han somnar på sätet",
+          "Han läser en serietidning"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Det drar ihop sig i Folkes mage. Vad betyder det?",
+        "options": [
+          "Han blir hungrig",
+          "Han blir glad",
+          "Han blir orolig",
+          "Han blir trött"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad säger chauffören att Folke ska göra?",
+        "options": [
+          "Ringa till sin pappa",
+          "Gå hela vägen till farmor",
+          "Stanna kvar på bussen",
+          "Ta bussen tillbaka"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar Folke med ”en extra tur”?",
+        "options": [
+          "Att han gick en promenad först",
+          "Att han åkte för långt",
+          "Att han hade tur med vädret",
+          "Att bussen gick sönder"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur löser Folke sitt problem?",
+        "options": [
+          "Han ringer till farmor",
+          "Han går av och springer",
+          "Han ber chauffören om hjälp",
+          "Han följer efter hunden"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-flytten",
+    "title": "Kartongerna med VIKTIGT",
+    "level": 2,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Signes familj ska flytta till en lägenhet i en annan stadsdel. Signe packar sitt rum i flyttkartonger. På varje kartong skriver hon med en tjock penna: VIKTIGT!\n\nFlyttbilen kommer på lördagen. Två starka flyttgubbar bär ut alla kartonger. Signe bär själv sin kaktus i en kruka.\n\nPå kvällen står det kartonger överallt i den nya lägenheten. Signe ska bädda sin säng. Men var är lakanen och täcket? Hon öppnar kartong efter kartong. Böcker. Leksaker. Ännu fler böcker.\n\n”Vilken kartong packade du lakanen i?” frågar mamma.\n\n”I en där det står VIKTIGT”, säger Signe.\n\nMamma skrattar. Den natten sover hela familjen i sovsäckar på vardagsrumsgolvet. Det känns nästan som att campa.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart ska familjen flytta?",
+        "options": [
+          "Till ett hus på landet",
+          "Till en ny lägenhet",
+          "Till ett hus vid havet",
+          "Till farmors gård"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skriver Signe på kartongerna?",
+        "options": [
+          "SIGNE",
+          "RÄTT RUM",
+          "ÖMTÅLIGT",
+          "VIKTIGT"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad bär Signe själv till flyttbilen?",
+        "options": [
+          "Sin kaktus",
+          "Sin lampa",
+          "Sina böcker",
+          "Sitt täcke"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad letar Signe efter på kvällen?",
+        "options": [
+          "Tandborsten och pyjamasen",
+          "Lakanen och täcket",
+          "Sina leksaker",
+          "Sin kaktus"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är det svårt att hitta lakanen?",
+        "options": [
+          "Flyttgubbarna tappade bort kartongen",
+          "Mamma har packat dem i en väska",
+          "Det står VIKTIGT på alla kartonger",
+          "Kartongerna är kvar i flyttbilen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "”Det känns nästan som att campa.” Vad betyder campa?",
+        "options": [
+          "Att sova hos en kompis",
+          "Att flytta till ett nytt hus",
+          "Att städa hela lägenheten",
+          "Att sova i tält ute i naturen"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Hur borde Signe ha märkt kartongerna?",
+        "options": [
+          "Med vad som finns i dem",
+          "Med VIKTIGT ännu större",
+          "Med röd penna i stället",
+          "Med sitt eget namn"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-nyckeln",
+    "title": "Utelåst i regnet",
+    "level": 2,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Elton går hem från skolan. Han letar i jackfickan efter nyckeln. Den är inte där. Han letar i ryggsäcken. Inte där heller. Mamma och pappa jobbar till fem, och klockan är bara tre.\n\nDet börjar regna. Elton sätter sig på trappan och känner sig dum.\n\nDå öppnas dörren bredvid. Det är grannen Birgitta, som har en stor grå katt.\n\n”Har du låst dig ute?” frågar hon. Elton nickar. ”Kom in och vänta hos mig. Vi kan ringa din mamma.”\n\nElton får varm choklad och spelar kort med Birgitta. Katten ligger i hans knä och spinner.\n\nNär mamma kommer hem håller hon upp nyckeln. ”Den satt kvar i dörren när jag gick i morse”, säger hon.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var letar Elton först efter nyckeln?",
+        "options": [
+          "I jackfickan",
+          "I ryggsäcken",
+          "Under dörrmattan",
+          "I byxfickan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "När kommer mamma och pappa hem?",
+        "options": [
+          "Klockan tre",
+          "Klockan fem",
+          "Klockan fyra",
+          "Klockan sex"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem öppnar dörren bredvid?",
+        "options": [
+          "Eltons mormor",
+          "En granne med hund",
+          "Grannen Birgitta",
+          "Eltons storebror"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var hade nyckeln suttit på morgonen?",
+        "options": [
+          "I jackfickan",
+          "I ryggsäcken",
+          "Under mattan",
+          "I dörren"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Katten spinner. Vad betyder det?",
+        "options": [
+          "Den låter mjukt när den trivs",
+          "Den fräser när den är arg",
+          "Den jamar högt när den är hungrig",
+          "Den snurrar runt i en ring"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför känner sig Elton dum?",
+        "options": [
+          "Han har fått dåligt på ett prov",
+          "Han har glömt sin jacka i skolan",
+          "Han kom för sent till skolan",
+          "Han tror att han tappat nyckeln"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar berättelsen om Birgitta?",
+        "options": [
+          "Hon är sträng och arg",
+          "Hon tycker inte om barn",
+          "Hon är snäll och hjälpsam",
+          "Hon vill inte bli störd"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-bavern",
+    "title": "Bävern bygger",
+    "level": 2,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Bävern är Europas största gnagare. Den har brun päls, en platt svans och stora orange framtänder. Tänderna slutar aldrig att växa. Det är bra, för de slits hela tiden när bävern gnager.\n\nBävern äter bark, kvistar och blad. Den kan fälla ett helt träd med tänderna.\n\nBävern bor i en hydda av grenar och lera. Ingången ligger under vattnet. Då kan rävar och andra fiender inte ta sig in.\n\nOm vattnet i bäcken är för grunt bygger bävern en damm. Dammen stoppar vattnet så att det blir djupare.\n\nOm bävern blir rädd slår den svansen hårt i vattnet. Det smäller högt, och alla bävrar i närheten vet att de ska dyka.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg har bäverns framtänder?",
+        "options": [
+          "Vita",
+          "Orange",
+          "Gula",
+          "Bruna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad äter bävern?",
+        "options": [
+          "Fisk, grodor och sniglar",
+          "Bark, kvistar och blad",
+          "Gräs, bär och svamp",
+          "Nötter, frön och kottar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vattnet i bäcken är för grunt. Vad betyder grunt?",
+        "options": [
+          "Inte kallt",
+          "Inte rent",
+          "Inte djupt",
+          "Inte stilla"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Var ligger ingången till hyddan?",
+        "options": [
+          "Under vattnet",
+          "Högt upp i ett träd",
+          "På toppen av hyddan",
+          "Bakom en stor sten"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad händer om en räv försöker ta sig in i hyddan?",
+        "options": [
+          "Bävern flyttar därifrån",
+          "Räven bygger en damm",
+          "Bävern slåss med räven",
+          "Räven kommer inte in"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gör bävern om den blir rädd?",
+        "options": [
+          "Klättrar upp i ett träd",
+          "Springer in i skogen",
+          "Slår svansen i vattnet",
+          "Gnager på en gren"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man fäller ett träd",
+          "Hur bävern lever och bygger",
+          "Varför rävar jagar bävrar",
+          "Hur en bäck blir djupare"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-blackfisken",
+    "title": "Djuret med åtta armar",
+    "level": 2,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Bläckfisken lever i havet. Den har åtta långa armar med sugkoppar. Med sugkopparna kan den hålla fast i stenar och fånga krabbor.\n\nBläckfisken har inget skelett. Kroppen är mjuk, och därför kan den klämma sig igenom mycket små hål.\n\nDen kan också byta färg på några sekunder. Om den ligger på en röd sten kan den bli röd. Då är den svår att upptäcka.\n\nOm en fiende kommer nära sprutar bläckfisken ut mörkt bläck i vattnet. Fienden ser ingenting, och bläckfisken hinner simma iväg.\n\nBläckfisken är dessutom ett smart djur. Forskare har sett bläckfiskar skruva av locket på en burk för att komma åt maten inuti. Den har också tre hjärtan och blått blod.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många armar har bläckfisken?",
+        "options": [
+          "Åtta",
+          "Sex",
+          "Tio",
+          "Fyra"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad använder bläckfisken sugkopparna till?",
+        "options": [
+          "Att andas under vattnet",
+          "Att byta färg",
+          "Att spruta bläck",
+          "Att hålla fast och fånga mat"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad visar det att bläckfisken kan öppna en burk?",
+        "options": [
+          "Att den är stark",
+          "Att den är snabb",
+          "Att den är ledsen",
+          "Att den är smart"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Den är svår att upptäcka. Vad betyder upptäcka?",
+        "options": [
+          "Få syn på",
+          "Simma ifatt",
+          "Skrämma bort",
+          "Ta fast"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför byter bläckfisken färg?",
+        "options": [
+          "För att den fryser",
+          "För att den är glad",
+          "För att gömma sig",
+          "För att den är sjuk"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad händer när bläckfisken sprutar bläck?",
+        "options": [
+          "Fienden blir sjuk",
+          "Fienden ser ingenting",
+          "Vattnet blir varmt",
+          "Bläckfisken blir röd"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man fångar en bläckfisk",
+          "Vad krabbor äter i havet",
+          "Varför havet är salt",
+          "Bläckfiskens knep och förmågor"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-askan",
+    "title": "Blixt och dunder",
+    "level": 2,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En varm sommardag kan himlen plötsligt bli mörk. Snart kommer ett åskväder.\n\nBlixten är en enorm gnista av elektricitet. Den hoppar mellan molnen eller mellan ett moln och marken. Blixten gör luften runt sig väldigt het. Luften pressas ut åt alla håll så snabbt att det smäller. Smällen är det vi kallar åska.\n\nLjus färdas mycket snabbare än ljud. Därför ser vi blixten först och hör åskan efteråt.\n\nDu kan räkna ut hur långt bort ovädret är. Räkna sekunderna från blixten till mullret. Dela sedan med tre. Om det tar sex sekunder är åskan ungefär två kilometer bort.\n\nNär det åskar ska du gå inomhus. Ställ dig aldrig under ett ensamt träd, och gå upp ur vattnet om du badar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är en blixt?",
+        "options": [
+          "En stor gnista av elektricitet",
+          "Solljus som studsar i molnen",
+          "Is som krockar i himlen",
+          "Ett hål mellan två moln"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör blixten med luften?",
+        "options": [
+          "Gör den iskall",
+          "Gör den väldigt het",
+          "Gör den fuktig",
+          "Gör den tunn"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ser vi blixten innan vi hör åskan?",
+        "options": [
+          "Åskan börjar en stund senare",
+          "Åskan är längre bort",
+          "Ljus färdas snabbare än ljud",
+          "Ögonen är snabbare än öronen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Det tar nio sekunder från blixten till mullret. Hur långt bort är ovädret?",
+        "options": [
+          "Ungefär nio kilometer",
+          "Ungefär sex kilometer",
+          "Ungefär en kilometer",
+          "Ungefär tre kilometer"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är mullret i texten?",
+        "options": [
+          "Ljudet av åskan",
+          "Ljuset från blixten",
+          "Regnet som faller",
+          "Vinden i träden"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad ska du göra när det åskar?",
+        "options": [
+          "Ställa dig under ett träd",
+          "Gå inomhus",
+          "Hoppa i sjön och bada",
+          "Springa ut på en äng"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Varför det regnar på sommaren",
+          "Hur moln bildas på himlen",
+          "Vad åska är och hur man är säker",
+          "Hur elektricitet kommer in i huset"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
