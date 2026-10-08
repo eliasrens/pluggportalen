@@ -6,10 +6,14 @@
 - 20 story + 20 fact.
 - Story: skola 3, vardag 3, mysterier 3, roliga situationer 3, relationer 3, äventyr 3, sport 2.
 - Fact: djur 3, natur 3, historia 3, rymden 3, teknik 3, geografi 3, vetenskap 2.
-- Statistik (positioner, längdledtråd, ordantal) fylls i när banken är klar.
+- Frågekategorier (alla 360 frågor): fakta 98, ordförståelse 51, mellan raderna 150, helhet/slutsats 61.
+- Rätt svars position (alla 360 frågor): A 91, B 91, C 89, D 89 (25 % var).
+- Rätt svar unikt längst: 66 av 360 (18 %); bland de 306 nya frågorna 59 (19 %). De 6 befintliga texterna står för 7 av 54 (13 %).
+- Ordantal för de nya texterna: 384–473.
+- Huvudpersonernas och bipersonernas namn är unika inom nivån och krockar inte med andra nivåer (kontrollerat mot alla `level-*.json` på grenen och nivå 6 från #513:s färdiga gren).
 
 ## Undvikna överlapp mot andra nivåer
-Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grenen. Inga faktaämnen som redan finns (t.ex. bin, blåval, lax, ål, elefanter, björndjur, hajar, kråkfåglar, flyttfåglar, invasiva arter, Pompeji, Vasaskeppet, digerdöden, emigrationen, tryckpressen, rösträtten, vaccinet, svarta hål, exoplaneter, rymdskrot, Voyager, Jupiter, Mars, solceller, broar, lås, slussar, kryptering, AI, Kiruna, Japan, Everest, tidszoner, monsunen, Grönland, urbanisering, bakterier, sömn, vetenskaplig metod). Nivå 6 (#513) skrevs parallellt och blev klar först. Den hade sju av de faktaämnen som först planerades här (elefanter, björndjur, rösträtt, rymdskrot, exoplaneter, kryptering, tidszoner). Därför ersattes de på nivå 7 med djuphavet, myggan, Titanic, meteoriten, Venus, vattenkraften och Antarktis. Elnätet byttes mot pekskärmen, eftersom det låg för nära vattenkraften. Även en del av lr-n7-glida-isar (ett elakt meddelande som raderas) skrevs om, eftersom den liknade lr-n6-nya-kompisen. Nivå 6 och 7 är jämförda mot varandra, både ämnen och namn.
+Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grenen samt nivå 6 (`level-6.json`, `niva-6.md`) från #513:s gren. Inga faktaämnen som redan finns (t.ex. bin, blåval, lax, ål, elefanter, björndjur, hajar, kråkfåglar, flyttfåglar, invasiva arter, Pompeji, Vasaskeppet, digerdöden, emigrationen, tryckpressen, rösträtten, vaccinet, svarta hål, exoplaneter, rymdskrot, Voyager, Jupiter, Mars, solceller, broar, lås, slussar, kryptering, AI, Kiruna, Japan, Everest, tidszoner, monsunen, Grönland, urbanisering, bakterier, sömn, vetenskaplig metod). Nivå 6 (#513) skrevs parallellt och blev klar först. Den hade sju av de faktaämnen som först planerades här (elefanter, björndjur, rösträtt, rymdskrot, exoplaneter, kryptering, tidszoner). Därför ersattes de på nivå 7 med djuphavet, myggan, Titanic, meteoriten, Venus, vattenkraften och Antarktis. Elnätet byttes mot pekskärmen, eftersom det låg för nära vattenkraften. Även en del av lr-n7-glida-isar (ett elakt meddelande som raderas) skrevs om, eftersom den liknade lr-n6-nya-kompisen. Nivå 6 och 7 är jämförda mot varandra, både ämnen och namn.
 
 ## Texter
 | id | typ | topic | titel | huvudperson | vinkel |
@@ -54,3 +58,5 @@ Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grene
 | lr-n7-golfstrommen | fact | geografi | Därför är Norden inte lika kallt | — | Golfströmmen och havsströmmar som värmepump |
 | lr-n7-antarktis | fact | geografi | Kontinenten som ingen äger | — | Antarktis: is, kyla, forskning och Antarktisfördraget |
 | lr-n7-antibiotika | fact | vetenskap | Läkemedlet som kan sluta fungera | — | Penicillinet och antibiotikaresistens |
+
+Att jämföra i #514: lr-n7-oversattningen (översättningsapp, ordagranna idiom, komik) och lr-n6-tolken (tolkar sitt eget utvecklingssamtal) handlar båda om språk och översättning, men har olika genre och poäng. lr-n7-ladbilen (bonuspappa) och lr-n6-bonusbrodern handlar båda om en ny familjemedlem.

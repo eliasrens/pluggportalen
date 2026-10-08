@@ -2365,7 +2365,7 @@
     "level": 7,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Väderprognosen hade lovat sol hela helgen. Därför hade Ossian, hans pappa och pappas gamle vän Jörgen gett sig iväg på skidor mot en övernattningsstuga i fjällen, med packning för en natt och en snöspade som pappa alltid hade med sig ”för säkerhets skull”.\n\nVid tretiden vände vädret. Vinden kom från ingenstans, och snön som låg på marken började yra upp så att det blev svårt att se skidspetsarna. Efter en halvtimme såg Ossian inte längre ledmarkeringarna, de röda kryssen på stolpar som skulle visa vägen. Pappa stannade och tittade på kartan och kompassen. Stugan låg kanske en kilometer bort, kanske två. Ingen visste säkert.\n\n”Vi går inte vilse i det här”, sa pappa. ”Vi gräver ner oss.”\n\nJörgen skrattade först, som om det var ett skämt. Sedan förstod han att det inte var det.\n\nDe hittade en stor snödriva i läet av en sluttning. Pappa grävde en ingång, och Ossian, som var minst, kröp in och började gräva inåt och uppåt. Han mindes vad scoutledaren hade sagt: sovplatsen ska ligga högre än ingången, eftersom kall luft sjunker och varm luft stiger. Taket ska vara välvt, så att smältvatten rinner längs väggarna i stället för att droppa ner på en.\n\nDet tog nästan två timmar. Ossian svettades, fast det var tjugo minusgrader ute. Pappa påminde honom hela tiden om att ta det lugnt. ”Blir kläderna blöta av svett fryser du sen.”\n\nTill sist var grottan stor nog för tre. Pappa stack skidstaven rakt upp genom taket för att göra ett lufthål, och Jörgen tände ett värmeljus. Det lilla ljuset fick väggarna att glittra som socker.\n\nUte ven stormen. Inne var det märkligt tyst. Ossian såg på termometern som hängde i pappas jacka. Strax under noll. Snön runt dem isolerade, precis som ett tjockt täcke.\n\nJörgen var tyst länge. Hans händer var vita, och han hade inte sagt att han frös. Ossian tog av honom vantarna, lade hans händer under sin egen jacka mot magen och höll dem där tills färgen kom tillbaka. Det hade han också lärt sig på scouterna, fast han aldrig hade trott att han skulle behöva det.\n\nDe sov i omgångar. Pappa väckte dem då och då för att peta upp lufthålet med staven, eftersom snön kunde täppa till det.\n\nPå morgonen var himlen alldeles blå. Ossian kröp ut och kisade mot det vita. Där nere, bara några hundra meter bort, låg stugan med rök ur skorstenen.\n\nJörgen skrattade, och den här gången var det inget skämt han skrattade åt. ”Vi var nästan framme”, sa han.\n\n”Ja”, sa pappa. ”Men det kunde vi inte veta i går.”",
+    "body": "Väderprognosen hade lovat sol hela helgen. Därför hade Ossian, hans pappa och pappas gamle vän Jörgen gett sig iväg på skidor mot en övernattningsstuga i fjällen, med packning för en natt och en snöspade som pappa alltid hade med sig ”för säkerhets skull”.\n\nVid tretiden vände vädret. Vinden kom från ingenstans, och snön som låg på marken började yra upp så att det blev svårt att se skidspetsarna. Efter en halvtimme såg Ossian inte längre ledmarkeringarna, de röda kryssen på stolpar som skulle visa vägen. Pappa stannade och tittade på kartan och kompassen. Stugan låg kanske en kilometer bort, kanske två. Ingen visste säkert.\n\n”Vi går inte vilse i det här”, sa pappa. ”Vi gräver ner oss.”\n\nJörgen skrattade först, som om det var ett skämt. Sedan förstod han att det inte var det.\n\nDe hittade en stor snödriva i läet av en sluttning. Pappa grävde en ingång, och Ossian, som var minst, kröp in och började gräva inåt och uppåt. Han mindes vad scoutledaren hade sagt: sovplatsen ska ligga högre än ingången, eftersom kall luft sjunker och varm luft stiger. Taket ska vara välvt, så att smältvatten rinner längs väggarna i stället för att droppa ner på en.\n\nDet tog nästan två timmar. Ossian svettades, fast det var tjugo minusgrader ute. Pappa påminde honom hela tiden om att ta det lugnt. ”Blir kläderna blöta av svett fryser du sen.”\n\nTill sist var grottan stor nog för tre. Pappa stack skidstaven rakt upp genom taket för att göra ett lufthål, och Jörgen tände ett värmeljus. Det lilla ljuset fick väggarna att glittra som socker.\n\nUte ven stormen. Inne var det märkligt tyst. Ossian såg på termometern som hängde i pappas jacka. Strax under noll. Snön runt dem isolerade, precis som ett tjockt täcke.\n\nJörgen var tyst länge. Hans händer var vita, och han hade inte sagt att han frös. Ossian tog av honom vantarna, lade hans händer under sin egen jacka mot magen och höll dem där tills färgen kom tillbaka. Det hade han också lärt sig på scouterna, fast han aldrig hade trott att han skulle behöva det.\n\nDe sov i omgångar. Pappa väckte dem då och då för att peta upp lufthålet med staven, eftersom snön kunde täppa till det.\n\nPå morgonen var himlen alldeles blå. Ossian kröp ut och kisade mot det vita. Där nere, bara några hundra meter bort, låg stugan med rök ur skorstenen.\n\nNär de satt vid kaminen i stugan med varsin kopp varm choklad berättade Jörgen för stugvärden om natten. Han berättade om grottan och lufthålet, men mest om händerna.\n\n”Pojken visste precis vad han skulle göra”, sa han. ”Det gjorde inte jag.”\n\nOssian tittade ner i koppen. Han hade alltid tyckt att scouternas övningar var lite fåniga, nästan som en lek för småbarn. Nu tänkte han att han nog skulle gå på nästa möte också.",
     "questions": [
       {
         "id": "q1",
@@ -2453,24 +2453,24 @@
       },
       {
         "id": "q8",
-        "question": "Vad visar berättelsen om Ossian?",
+        "question": "Varför säger Jörgen ”Det gjorde inte jag” till stugvärden?",
         "options": [
-          "Att han var för liten för att gå på fjällturer",
-          "Att han hade dålig koll på var stugan låg",
-          "Att han helst ville sova i snögrottor i stället för i stugor",
-          "Att det han lärt sig hjälpte när det verkligen gällde"
+          "Han vill att stugvärden ska tro att han var modigast",
+          "Han menar att han aldrig var med inne i grottan",
+          "Han är arg för att Ossian tog över hela turen",
+          "Han erkänner att han själv inte visste vad han skulle göra"
         ],
         "answerIndex": 3,
-        "category": "helhet_slutsats"
+        "category": "mellan_raderna"
       },
       {
         "id": "q9",
-        "question": "Vad menar pappa med ”Men det kunde vi inte veta i går”?",
+        "question": "Vad har Ossian förstått om scouternas övningar i slutet?",
         "options": [
-          "Att beslutet var rätt utifrån det de visste då",
-          "Att de borde ha fortsatt gå mot stugan i stället",
-          "Att det var Jörgens fel att de inte hittade fram",
-          "Att väderprognosen hade sagt att det skulle storma"
+          "Att de var mer värda än han hade trott",
+          "Att de bara var en lek för småbarn",
+          "Att han redan kunde allt och kunde sluta",
+          "Att Jörgen borde börja på scouterna"
         ],
         "answerIndex": 0,
         "category": "helhet_slutsats"
@@ -4007,6 +4007,714 @@
           "De upptäcktes av samma forskare på sextiotalet"
         ],
         "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-containern",
+    "title": "Lådan som förändrade världshandeln",
+    "level": 7,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Titta dig omkring i rummet. Tröjan du har på dig, mobilen, kanske till och med bananen i fruktskålen har med stor sannolikhet färdats över ett hav innan de kom till dig. Och nästan säkert har de gjort det i en stor plåtlåda. Containern är en av de minst glamorösa uppfinningarna i historien, men få saker har förändrat världen lika mycket.\n\nFöre 1950-talet gick det till på ett helt annat sätt. Varor lastades ombord på fartyg en och en: säckar med kaffe, lådor med maskindelar, tunnor med olja, balar med bomull. Hundratals hamnarbetare bar, lyfte och staplade, och varje fartyg kunde bli liggande i hamnen i en vecka eller mer bara för att lastas och lossas. Det var tungt, dyrt och farligt arbete. Dessutom försvann en hel del varor på vägen, eftersom det var lätt att stoppa något i fickan.\n\nIdén till en förändring kom från en amerikansk åkeriägare som hette Malcom McLean. Han var trött på att se sina lastbilar stå och vänta i hamnen medan lasten flyttades för hand. Varför inte lyfta upp hela lastbilsflaket på fartyget i stället? År 1956 lät han ett ombyggt tankfartyg segla med femtioåtta sådana lådor på däck. Det blev början på något nytt.\n\nDet som gjorde containern så kraftfull var inte själva lådan, utan att den blev standard. Under 1960-talet kom länderna överens om vilka mått containrarna skulle ha. De vanligaste är ungefär sex eller tolv meter långa och har likadana beslag i hörnen. Det betydde att samma låda kunde lyftas av samma kranar, staplas på samma fartyg och spännas fast på samma lastbilar och tåg överallt i världen. Varorna inuti behövde aldrig röras från fabriken till butiken.\n\nFöljderna blev enorma. Att lasta ett fartyg gick plötsligt på timmar i stället för dagar, och kostnaden för att frakta varor över haven sjönk till en bråkdel av vad den hade varit. Därför blev det lönsamt att tillverka saker långt borta och skicka dem jorden runt. I dag kan de största containerfartygen bära över tjugotusen containrar på en gång, och den största delen av världens varuhandel går över haven.\n\nMen förändringen hade också baksidor. Tusentals hamnarbetare blev av med sina jobb när kranarna tog över. Hamnarna flyttade ut från stadskärnorna till stora ytor där containrarna fick plats, och gamla hamnkvarter blev ödsliga. När det blev billigt att frakta flyttade många fabriker till länder där lönerna var lägre, och arbetstillfällen försvann från andra platser.\n\nContainern visar att en uppfinning inte behöver vara avancerad för att förändra världen. Ibland räcker det med en enkel låda, om bara alla kommer överens om hur stor den ska vara.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur lastades fartyg innan containrarna kom?",
+        "options": [
+          "Varorna lyftes ombord i stora nät av kranar",
+          "Varorna rullades ombord på små vagnar och tåg",
+          "Varorna packades i plåtlådor av olika storlek",
+          "Varorna bars ombord en och en av hamnarbetare"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför försvann det ofta varor när fartyg lastades för hand?",
+        "options": [
+          "Varorna föll ofta i vattnet när det blåste hårt",
+          "Det var lätt för någon att ta något på vägen",
+          "Hamnarbetarna glömde att skriva upp dem",
+          "Fartygen var för små för att rymma allt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Vad var det som störde Malcom McLean?",
+        "options": [
+          "Att hans lastbilar fick stå och vänta i hamnen",
+          "Att hans fartyg sjönk i de stora stormarna på Atlanten",
+          "Att hamnarbetarna tog för mycket betalt",
+          "Att hans tankfartyg var för långsamma"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Containern blev ”standard”. Vad betyder det här?",
+        "options": [
+          "Att den blev den billigaste lådan att köpa",
+          "Att den bara fick användas i USA först",
+          "Att alla använde samma mått och utformning",
+          "Att den målades i samma färg överallt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var standardmåtten så viktiga?",
+        "options": [
+          "Lådorna blev så lätta att de kunde bäras av en person",
+          "Samma låda kunde hanteras av kranar, fartyg och tåg överallt",
+          "Varorna i lådorna kunde inte stjälas längre",
+          "Det blev mycket lättare att se vad som fanns inuti varje låda"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blev det lönsamt att tillverka varor långt borta?",
+        "options": [
+          "Frakten över haven blev mycket billigare",
+          "Fartygen började segla mycket snabbare",
+          "Fabrikerna fick ett eget containerfartyg",
+          "Varorna blev bättre av att färdas långt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Gamla hamnkvarter blev ”ödsliga”. Vad betyder det?",
+        "options": [
+          "Trånga och bullriga",
+          "Moderna och dyra",
+          "Tomma och övergivna",
+          "Smutsiga och farliga"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken baksida med containern nämner texten?",
+        "options": [
+          "Containrarna rostar och läcker olja i havet",
+          "Fartygen blev för stora för haven",
+          "Det blev brist på varor i butikerna",
+          "Många hamnarbetare blev av med jobbet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q9",
+        "question": "Vad är textens huvudpoäng i sista stycket?",
+        "options": [
+          "En enkel idé kan förändra världen om alla följer den",
+          "Avancerade uppfinningar är alltid de viktigaste",
+          "Lådor av plåt borde bytas ut mot lådor av trä",
+          "Hamnarna kommer snart att flytta tillbaka in i städerna"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-vattenkraften",
+    "title": "Älvarna som ger ström",
+    "level": 7,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Varje gång du tänder en lampa i Sverige finns det en god chans att en del av strömmen har kommit från en älv i Norrland. Vattenkraften står för ungefär fyrtio procent av Sveriges elproduktion, och de flesta stora kraftverken ligger längs de långa älvarna som rinner från fjällen ner mot Bottenviken.\n\nPrincipen är gammal. I hundratals år har människor använt strömmande vatten för att driva kvarnhjul och sågar. Ett modernt vattenkraftverk bygger på samma idé, men i stor skala. Vid kraftverket byggs en damm som dämmer upp vattnet, så att det bildas en stor sjö bakom den, ett vattenmagasin. Från magasinet leds vattnet genom tunnlar ner till en turbin, ett slags skovelhjul som börjar snurra när vattnet forsar igenom. Turbinen sitter ihop med en generator, som omvandlar rörelsen till elektricitet.\n\nHur mycket el ett kraftverk kan ge beror på två saker: hur mycket vatten som rinner igenom och hur högt det faller. Fallhöjden är viktig, eftersom vatten som faller långt hinner få mer fart och kraft. Därför byggs kraftverken gärna där älvarna störtar ner i forsar och fall.\n\nVattenkraften har en stor fördel som många andra energikällor saknar: den går att spara. Vindkraft ger bara el när det blåser, och solceller bara när solen lyser. Men vattnet i magasinen kan ligga kvar tills det behövs. På våren, när snön smälter i fjällen och vårfloden kommer, fylls magasinen. På vintern, när det är kallt och mörkt och människor behöver mest el, släpps vattnet ut. Kraftverken kan också öka eller minska sin produktion snabbt när vinden plötsligt mojnar eller tar i.\n\nDessutom släpper vattenkraften inte ut koldioxid när den producerar el. Därför ses den ofta som en ren energikälla. Men den har ett pris som syns i naturen.\n\nNär en älv byggs ut förändras den i grunden. Fiskar som lax och öring kan inte längre vandra upp för att leka, eftersom dammarna står i vägen. På vissa sträckor leds nästan allt vatten bort genom tunnlar, och kvar blir en torrfåra, en uttorkad flodbädd med stenar där det förut forsade. Stora landområden har lagts under vatten när magasinen fylldes. I flera fall dränktes byar, och för samerna förlorades betesmarker och boplatser som hade använts i generationer.\n\nDärför har fyra stora älvar i norr fått ett särskilt skydd. Torneälven, Kalixälven, Piteälven och Vindelälven kallas nationalälvar, och där får inga stora kraftverk byggas. De rinner fortfarande fritt från fjällen till havet.\n\nVattenkraften visar alltså att ingen energikälla är helt utan nackdelar. Frågan är vad man är beredd att ge upp, och för vad.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur stor del av Sveriges el kommer ungefär från vattenkraft?",
+        "options": [
+          "Ungefär fyra procent",
+          "Nästan all el",
+          "Ungefär fyrtio procent",
+          "Ungefär tio procent av all el"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är ett ”vattenmagasin” enligt texten?",
+        "options": [
+          "En tidning om vatten och fiske",
+          "Sjön som bildas bakom dammen",
+          "En stor tank där man sparar dricksvatten",
+          "Rummet där turbinen och generatorn står"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör generatorn i ett vattenkraftverk?",
+        "options": [
+          "Den pumpar upp vattnet till magasinet",
+          "Den bromsar vattnet så att dammen håller",
+          "Den renar vattnet från sand och stenar",
+          "Den omvandlar rörelsen till elektricitet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför byggs kraftverken gärna vid forsar och fall?",
+        "options": [
+          "Där är vattnet varmast",
+          "Där finns flest fiskar",
+          "Där är fallhöjden stor",
+          "Där är älven som bredast"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vilken fördel har vattenkraften jämfört med vind och sol?",
+        "options": [
+          "Energin kan sparas tills den behövs",
+          "Den fungerar bara när det är vinter",
+          "Den kräver inga dammar eller tunnlar",
+          "Den kan byggas var som helst i landet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför släpps mycket vatten ut från magasinen på vintern?",
+        "options": [
+          "Det är då vårfloden fyller dammarna",
+          "Det är då fiskarna vandrar uppströms",
+          "Det är då isen kan skada dammarna",
+          "Det är då människor behöver mest el"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är en ”torrfåra”?",
+        "options": [
+          "En lång tunnel som leder vatten till turbinen",
+          "En uttorkad flodbädd där vatten förut rann",
+          "En åker som har torkat ut på sommaren",
+          "Ett dike som grävts för att skydda en by"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Varför skriver texten att vattenkraftens pris ”syns i naturen”?",
+        "options": [
+          "Dammarna och magasinen förändrar älvarna och landskapet",
+          "Elen från vattenkraft är dyrare än all annan el",
+          "Kraftverken släpper ut väldigt mycket koldioxid och rök",
+          "Det kostar mycket pengar att besöka nationalälvarna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med frågan ”vad man är beredd att ge upp, och för vad”?",
+        "options": [
+          "Att man ska sluta använda el helt",
+          "Att alla älvar borde byggas ut",
+          "Att man måste väga fördelar mot nackdelar",
+          "Att samerna borde flytta bort från fjällen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-pekskarmen",
+    "title": "Skärmen som känner fingret",
+    "level": 7,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Du sveper, nyper och trycker på skärmar flera hundra gånger om dagen utan att tänka på det. Ändå är det ganska märkligt att en glasyta kan veta exakt var ditt finger är. Glaset känner ju ingenting. Förklaringen är att skärmen inte känner av själva trycket, utan något som händer med elektriciteten när du rör vid den.\n\nDe flesta mobiler och surfplattor har en så kallad kapacitiv pekskärm. Under det yttersta glaset finns ett tunt, genomskinligt lager som kan leda ström. Det är uppdelat i ett fint rutnät av ledningar, så tunna att du inte ser dem, och genom dem går en svag elektrisk laddning hela tiden. Varje punkt där ledningarna korsar varandra fungerar som en liten mätstation.\n\nDin kropp leder också elektricitet, eftersom den innehåller mycket vatten med salter i. När fingertoppen kommer nära glaset drar den till sig en liten del av laddningen i just den punkten. Det är inte farligt och känns inte alls. Men skärmens styrkrets märker att laddningen har förändrats på ett visst ställe i rutnätet och kan räkna ut var fingret är. Det sker många gånger per sekund, så att skärmen kan följa fingret när det rör sig.\n\nEftersom varje korsning mäts för sig kan skärmen känna av flera fingrar samtidigt. Det är därför man kan zooma genom att föra isär två fingrar. Telefonen räknar ut att avståndet mellan två beröringspunkter ökar och förstorar bilden.\n\nTekniken förklarar också några vardagliga irritationsmoment. Om du har tjocka vantar på dig fungerar skärmen inte, eftersom tyget inte leder ström och fingret aldrig når laddningen. Därför finns det särskilda handskar med ledande trådar i fingertopparna. En vanlig blyertspenna eller en plastsked fungerar inte heller, medan en korv faktiskt gör det, eftersom den innehåller vatten och salt. Vattendroppar på skärmen kan ibland förvirra den, så att den tror att någon trycker där det bara har regnat.\n\nDet finns också en äldre sorts pekskärm som fungerar på ett helt annat sätt. Den består av två tunna lager med ett litet mellanrum. När man trycker hårt nuddar lagren varandra, och skärmen känner av var det sker. En sådan skärm fungerar med vad som helst, även med naglar eller handskar, men den kräver ett ordentligt tryck och kan oftast bara känna av en punkt åt gången. Den finns fortfarande kvar i en del biljettautomater och maskiner.\n\nPekskärmar blev vanliga i mobiler först i slutet av 2000-talet. Innan dess hade de flesta telefoner knappar. I dag har tekniken blivit så självklar att små barn ibland försöker svepa på tidningar och tv-apparater, och blir förvånade när ingenting händer.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad känner en kapacitiv pekskärm egentligen av?",
+        "options": [
+          "Hur hårt fingret trycker mot glaset",
+          "En förändring i elektrisk laddning",
+          "Värmen från fingertoppen på glaset",
+          "Ljuset som fingret skymmer på skärmen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var finns rutnätet av ledningar?",
+        "options": [
+          "På baksidan av telefonens batteri",
+          "Ovanpå glaset som ett tunt och skyddande lager",
+          "Inne i telefonens högtalare",
+          "I ett tunt lager under det yttersta glaset"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kan kroppen påverka laddningen i skärmen?",
+        "options": [
+          "Kroppen sänder ut en egen radiosignal som skärmen tar emot",
+          "Fingret trycker på små knappar som är gömda under det tunna glaset",
+          "Huden är kall och gör att ledningarna drar ihop sig",
+          "Kroppen leder ström eftersom den innehåller vatten och salter"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kan skärmen veta att du vill zooma in?",
+        "options": [
+          "Den märker att du trycker extra hårt med ett finger",
+          "Den märker att avståndet mellan två fingrar ökar",
+          "Den känner att du håller fingret stilla en lång stund",
+          "Den hör att du säger zooma till telefonen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför fungerar inte skärmen med tjocka vantar?",
+        "options": [
+          "Tyget leder inte ström",
+          "Vantarna är för varma",
+          "Tyget repar glaset",
+          "Vantarna är för tunga att ha på"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför fungerar en korv på skärmen men inte en plastsked?",
+        "options": [
+          "Korven är mjukare och trycker på en större yta",
+          "Korven är varm och skeden är alldeles kall",
+          "Korven innehåller vatten och salt som leder ström",
+          "Korven är tyngre än skeden och trycker hårdare"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vattendroppar kan ”förvirra” skärmen. Vad betyder det här?",
+        "options": [
+          "Att den tolkar dem som beröring",
+          "Att den slutar ladda batteriet",
+          "Att den byter färg och blir suddig",
+          "Att den går sönder och måste lagas"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Hur fungerar den äldre sortens pekskärm?",
+        "options": [
+          "Kameran filmar fingret och räknar ut var det är",
+          "Två lager nuddar varandra när man trycker hårt",
+          "Den känner av värmen från handen genom glaset",
+          "Ljusstrålar bryts när fingret kommer nära"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q9",
+        "question": "Vad visar exemplet med små barn som sveper på tidningar?",
+        "options": [
+          "Att tidningar snart kommer att få pekskärmar",
+          "Att barn har svårare att lära sig läsa i dag",
+          "Att pekskärmar har blivit en självklar del av vardagen",
+          "Att tv-apparater är mycket svårare att använda än mobilerna"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-golfstrommen",
+    "title": "Därför är Norden inte lika kallt",
+    "level": 7,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Ta fram en jordglob och följ breddgraden som går genom Stockholm åt väster. Den passerar södra Grönland och fortsätter in över Kanada till trakter vid Hudson Bay, där havet fryser till varje vinter och isbjörnar strövar längs stränderna. Längst ut på den norska kusten, ännu längre norrut, är hamnarna ändå isfria hela året. Hur kan det vara så stor skillnad mellan platser som ligger lika långt från ekvatorn?\n\nEn viktig del av svaret är havet. I Atlanten finns en stor havsström som kallas Golfströmmen. Den bildas i värmen nära Mexikanska golfen och Karibien och flyter längs Nordamerikas östkust. Sedan viker den av österut över Atlanten och fortsätter, under namnet Nordatlantiska strömmen, ända upp mot Norge. Den för med sig enorma mängder varmt vatten, mycket mer än alla världens floder tillsammans.\n\nNär det varma vattnet når våra breddgrader avger det värme till luften ovanför. Vindarna här blåser oftast från väster, alltså från havet in över land. De tar med sig den milda och fuktiga luften in över Norge och Sverige. Därför är vintrarna här betydligt mildare än de annars skulle ha varit, och därför kan det växa skog och odlas säd så långt norrut. Forskare menar att både havsströmmen och de västliga vindarna behövs för att förklara det milda klimatet. Det är samarbetet mellan hav och luft som gör skillnaden.\n\nGolfströmmen är också en del av ett ännu större system. När vattnet har avgett sin värme i norr blir det kallare. Samtidigt har det blivit saltare på vägen, eftersom en del vatten har avdunstat. Kallt och salt vatten är tyngre än varmt och sött vatten, så det sjunker mot botten och strömmar sakta tillbaka söderut på stora djup. Där det sjönk dras nytt varmt ytvatten in från söder. Hela rörelsen brukar liknas vid ett gigantiskt transportband som flyttar värme runt jorden.\n\nDet här transportbandet är känsligt. När isar på Grönland smälter rinner stora mängder sött vatten ut i havet i norr. Sött vatten är lättare och sjunker inte lika bra, och då kan hela systemet försvagas. Forskare undersöker noga om det redan håller på att hända. Många mätningar tyder på att strömmarna har blivit något svagare, men hur mycket de kommer att förändras och hur snabbt är fortfarande osäkert.\n\nOm transportbandet försvagades kraftigt skulle det kunna bli kallare i delar av Nordeuropa, samtidigt som resten av jorden fortsatte att bli varmare. Det låter motsägelsefullt, men det visar hur sammanflätat klimatet är.\n\nNästa gång du badar i en svensk sjö en varm sommardag kan du alltså tänka på att en del av värmen i luften har rest tusentals kilometer över Atlanten för att komma hit.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad finns vid Hudson Bay, som ligger på samma breddgrad som Stockholm?",
+        "options": [
+          "Isfria hamnar hela året och milda vintrar",
+          "Tät lövskog och stora fält med säd",
+          "Varmt vatten från Mexikanska golfen",
+          "Hav som fryser varje vinter och isbjörnar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför ställer texten frågan om skillnaden mellan platser på samma breddgrad?",
+        "options": [
+          "För att väcka en gåta som texten sedan förklarar",
+          "För att visa att jordgloben har ritats fel",
+          "För att jämföra hur många isbjörnar som finns",
+          "För att bevisa att Stockholm ligger nära ekvatorn"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "Var bildas Golfströmmen enligt texten?",
+        "options": [
+          "Uppe vid Grönland där isarna smälter",
+          "Längs den norska kusten långt i norr",
+          "I Stilla havet väster om Amerika",
+          "I värmen nära Mexikanska golfen och Karibien"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför är vindarnas riktning viktig för klimatet i Norden?",
+        "options": [
+          "De blåser bort det kalla vattnet från de svenska kusterna",
+          "De gör att Golfströmmen flyter fortare mot Norge",
+          "De blåser från havet och för in den milda luften över land",
+          "De blåser kall luft från Kanada som sedan värms upp på vägen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder att det är ett ”samarbete” mellan hav och luft?",
+        "options": [
+          "Att forskare som studerar havet och luften jobbar ihop",
+          "Att båda behövs för att förklara det milda klimatet",
+          "Att havet och luften har samma temperatur",
+          "Att vindarna skapar Golfströmmen helt själva"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sjunker vattnet när det har kommit långt norrut?",
+        "options": [
+          "Det har blivit varmare och sötare och därmed lättare",
+          "Det har blivit kallare och saltare och därmed tyngre",
+          "Det har frusit till is som sjunker ner till botten",
+          "Det har blandats med regnvatten från Norge"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför liknas havsströmmarna vid ett ”transportband”?",
+        "options": [
+          "De används för att frakta varor med fartyg",
+          "De går lika fort som ett band på en fabrik",
+          "De är byggda av människor för att flytta vatten",
+          "De flyttar hela tiden värme runt jorden"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Hur kan smältande isar på Grönland påverka systemet?",
+        "options": [
+          "Sött vatten sjunker sämre och kan försvaga strömmarna",
+          "Isen gör havet saltare så att strömmarna går fortare",
+          "Smältvattnet värmer upp havet runt hela Norden",
+          "Isbitarna blockerar Golfströmmen så att den stannar helt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför skriver texten att det låter ”motsägelsefullt” att det kan bli kallare i Nordeuropa?",
+        "options": [
+          "Det är redan kallare i Nordeuropa än på Grönland",
+          "Forskarna är helt säkra på att det aldrig kan hända",
+          "Det kan bli kallare där fast jorden i stort blir varmare",
+          "Golfströmmen gör alltid havet mycket kallare än luften ovanför"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-antarktis",
+    "title": "Kontinenten som ingen äger",
+    "level": 7,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Längst ner på jordklotet ligger en kontinent som är större än Europa men som saknar städer, vägar och fasta invånare. Antarktis är det kallaste, blåsigaste och torraste området på jorden. Nästan hela kontinenten är täckt av is, i genomsnitt omkring två kilometer tjock och på sina ställen över fyra kilometer. Isen är så tung att den har tryckt ner berggrunden under sig. I den ligger ungefär sjuttio procent av allt sött vatten på jorden.\n\nDen lägsta temperatur som har uppmätts vid en väderstation på jorden kommer härifrån. Den var nästan nittio minusgrader. Ute vid kusterna är det mildare, och där lever pingviner, sälar och sjöfåglar som hämtar sin mat i det näringsrika havet. Inåt land finns nästan inget liv alls, bortsett från lavar, mossor och små djur på de få ställen där berget sticker upp ur isen.\n\nMänniskor kom hit sent. Under början av 1900-talet tävlade upptäcktsresande om att bli först till sydpolen. Norrmannen Roald Amundsen och hans följe nådde fram i december 1911, med hjälp av skidor och hundspann. Ett brittiskt lag som kom fram några veckor senare omkom på vägen tillbaka.\n\nEfter upptäcktsresorna gjorde flera länder anspråk på delar av kontinenten, och ibland överlappade deras anspråk varandra. Det fanns en risk att Antarktis skulle bli en plats för konflikter. Men år 1959, mitt under det kalla kriget, då öst och väst misstrodde varandra, skrev tolv länder under Antarktisfördraget. Det slog fast att kontinenten bara får användas för fredliga syften. Militära baser och vapenprov förbjöds, och alla länder får forska fritt och ska dela med sig av sina resultat. Ländernas anspråk på mark lades på is, så att ingen kunde utvidga dem. Senare har många fler länder anslutit sig, och genom ett tillägg förbjöds även all gruvdrift.\n\nDärför är Antarktis i dag ett av få ställen på jorden som i praktiken inte tillhör något land. De människor som bor där är forskare och personal på forskningsstationer, ungefär tusen på vintern och flera tusen på sommaren.\n\nForskningen är viktig långt utanför Antarktis. När snö faller och pressas ihop till is fångas små luftbubblor i den. Genom att borra upp långa iskärnor kan forskare undersöka luft som är hundratusentals år gammal och se hur klimatet har förändrats. Antarktis har också betydelse för framtiden. Om stora delar av isen smälte skulle havsytan höjas, och det skulle påverka kuststäder över hela världen.\n\nAntarktis visar att länder faktiskt kan komma överens om att låta en plats vara, även när de inte litar på varandra. Den kallaste kontinenten blev en av de mest fredliga.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör Antarktis unikt jämfört med andra kontinenter, enligt första stycket?",
+        "options": [
+          "Den är den minsta av alla kontinenter",
+          "Den saknar städer, vägar och fasta invånare",
+          "Den har flest människor per kvadratkilometer",
+          "Den har mest skog och flest floder"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var på Antarktis finns det mest liv?",
+        "options": [
+          "Mitt inne på isen",
+          "Vid själva sydpolen",
+          "Under den tjocka isen",
+          "Ute vid kusterna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur tog sig Roald Amundsen fram till sydpolen?",
+        "options": [
+          "Med flygplan och fallskärm",
+          "Med båt längs en isfri flod",
+          "Med skidor och hundspann",
+          "Med traktorer och lastbilar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför fanns det en risk för konflikter om Antarktis?",
+        "options": [
+          "Flera länder gjorde anspråk på samma områden",
+          "Länderna ville alla bygga städer vid sydpolen",
+          "Det fanns stora mängder guld under isen",
+          "Forskarna vägrade dela sina resultat med andra"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är det anmärkningsvärt att fördraget skrevs under 1959?",
+        "options": [
+          "Det skedde när öst och väst misstrodde varandra",
+          "Det skedde precis när isen började smälta",
+          "Det skedde innan någon hade nått sydpolen",
+          "Det skedde när Amundsen fortfarande levde där"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Anspråken på mark ”lades på is”. Vad betyder uttrycket här?",
+        "options": [
+          "De flyttades ut på glaciärerna",
+          "De glömdes bort för alltid",
+          "De frystes och fick inte utvidgas",
+          "De blev större för varje vinter"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vem bor på Antarktis i dag?",
+        "options": [
+          "Fiskare och deras familjer längs kusten",
+          "Forskare och personal på forskningsstationer",
+          "Soldater som bevakar de olika ländernas gränser",
+          "Gruvarbetare som letar efter metaller"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q8",
+        "question": "Hur kan iskärnor visa hur klimatet var för länge sedan?",
+        "options": [
+          "De innehåller gamla växter som har frusit fast",
+          "De visar hur många pingviner som levde där förr i tiden",
+          "De har årtal inristade av tidigare forskare",
+          "De innehåller luftbubblor som har fångats i isen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Vad menar texten med att den kallaste kontinenten blev ”en av de mest fredliga”?",
+        "options": [
+          "Att det är för kallt för människor att kunna bråka",
+          "Att länderna enades om att bara använda den fredligt",
+          "Att pingvinerna och sälarna aldrig slåss med varandra",
+          "Att inga upptäcktsresande dog när de reste dit"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n7-antibiotika",
+    "title": "Läkemedlet som kan sluta fungera",
+    "level": 7,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Sommaren 1928 åkte den skotske forskaren Alexander Fleming på semester och lämnade några odlingsskålar med bakterier på sitt labb. När han kom tillbaka hade en av skålarna fått mögel. Det var inget ovanligt. Men Fleming lade märke till något som var ovanligt: runt mögelfläcken hade bakterierna dött. Möglet tillverkade ett ämne som kunde döda bakterier. Fleming kallade det penicillin.\n\nDet dröjde mer än tio år innan andra forskare lyckades framställa penicillin i stora mängder. Men när det väl skedde, under andra världskriget, förändrade det sjukvården i grunden. Före antibiotikan kunde ett skrubbsår som blev infekterat, en halsfluss eller en lunginflammation vara livsfarlig. Plötsligt gick sådana infektioner att bota på några dagar. Penicillinet blev det första av många antibiotika, läkemedel som dödar bakterier eller hindrar dem från att föröka sig.\n\nAntibiotika fungerar bara mot bakterier. De hjälper alltså inte mot förkylning eller influensa, som orsakas av virus. Det är viktigt att känna till, av ett skäl som Fleming själv varnade för redan när han fick Nobelpriset.\n\nBakterier förökar sig mycket snabbt. Ibland uppstår små förändringar i deras arvsmassa, och en sådan förändring kan göra en bakterie lite tåligare mot ett visst antibiotikum. När man tar antibiotika dör de flesta bakterierna, men de tåligaste kan överleva. Om de överlevande sedan förökar sig får man till slut en hel bakteriestam som läkemedlet inte biter på. Den har blivit resistent. Dessutom kan bakterier ge varandra sådana egenskaper, ungefär som om de bytte bruksanvisningar med varandra.\n\nJu mer antibiotika som används, desto fler tillfällen får bakterierna att utveckla motstånd. I många länder har antibiotika skrivits ut mot sjukdomar där det inte hjälper, och i vissa länder ges stora mängder till friska djur för att de ska växa snabbare. Sverige förbjöd redan 1986, som första land, att man använde antibiotika för att få djur att växa fortare, och här finns fortfarande mindre resistenta bakterier än i många andra länder. Men bakterier håller sig inte inom landsgränser. De följer med resenärer, mat och djur över hela världen.\n\nVärldshälsoorganisationen räknar antibiotikaresistens som ett av de största hoten mot människors hälsa. Om allt fler antibiotika slutar fungera kan vanliga operationer, där man behöver skydd mot infektioner, bli mycket farligare. Forskare letar efter nya läkemedel, men det tar lång tid att ta fram dem.\n\nDet finns ändå saker var och en kan göra. Man ska bara ta antibiotika när en läkare har skrivit ut det, ta det precis som läkaren har sagt och inte spara rester till nästa gång. Och den enklaste åtgärden av alla är att tvätta händerna, eftersom en infektion som aldrig uppstår inte heller behöver behandlas.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad upptäckte Fleming när han kom tillbaka från semestern?",
+        "options": [
+          "Att bakterierna hade dött runt en mögelfläck",
+          "Att alla odlingsskålar hade blivit stulna",
+          "Att möglet hade spridit sig över hela labbet",
+          "Att bakterierna hade vuxit mer än vanligt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför skriver texten att mögel i en skål ”inte var något ovanligt”?",
+        "options": [
+          "Fleming brukade odla mögel med flit",
+          "Labbet var smutsigt och städades aldrig",
+          "Det ovanliga var vad som hände runt möglet",
+          "Alla forskare visste redan om penicillinet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q3",
+        "question": "När började penicillin tillverkas i stora mängder?",
+        "options": [
+          "Sommaren 1928",
+          "Strax efter Nobelpriset",
+          "Först efter år 1986",
+          "Under andra världskriget"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför förändrade penicillinet sjukvården ”i grunden”?",
+        "options": [
+          "Infektioner som kunnat döda gick nu att bota",
+          "Det gjorde att människor aldrig blev förkylda",
+          "Det ersatte alla andra mediciner som fanns",
+          "Det gjorde operationer helt onödiga"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Varför hjälper antibiotika inte mot förkylning?",
+        "options": [
+          "Förkylning går över av sig själv",
+          "Antibiotika är för starkt för det",
+          "Förkylning orsakas av mögel",
+          "Förkylning orsakas av virus"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder det att en bakteriestam har blivit ”resistent”?",
+        "options": [
+          "Att den har dött ut helt",
+          "Att den har blivit ofarlig",
+          "Att läkemedlet inte längre biter på den",
+          "Att den bara finns i friska djur"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Hur bidrar stor användning av antibiotika till resistens?",
+        "options": [
+          "Människorna blir själva resistenta mot medicinen",
+          "Bakterierna får fler tillfällen att utveckla motstånd",
+          "Läkemedlet blir svagare när det ligger länge",
+          "Bakterierna äter upp antibiotikan och blir mycket starkare"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Varför räcker det inte att Sverige har få resistenta bakterier?",
+        "options": [
+          "Sverige har slutat använda antibiotika helt och hållet",
+          "Bakterier sprids över gränserna med människor, mat och djur",
+          "Svenska bakterier är farligare än bakterier i andra länder",
+          "Svenska läkare får inte längre skriva ut antibiotika till någon"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q9",
+        "question": "Varför avslutar texten med att handtvätt är den enklaste åtgärden?",
+        "options": [
+          "En infektion som aldrig uppstår behöver ingen behandling",
+          "Tvål fungerar bättre än antibiotika mot alla bakterier",
+          "Handtvätt gör att antibiotikan fungerar dubbelt så bra",
+          "Det är det enda som läkarna rekommenderar till alla i dag"
+        ],
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
