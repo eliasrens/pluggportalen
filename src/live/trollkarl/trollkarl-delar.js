@@ -18,7 +18,7 @@ export const PIVOT = {
   elbowR: [300, 330],
   body: [200, 520],
   cape: [200, 280],
-  hat: [200, 90],
+  hat: [200, 70],
   wand: [318, 300],
 };
 
@@ -26,7 +26,7 @@ export const PIVOT = {
 export const ANCHOR = {
   wandTip: [352, 182],
   head: [200, 150],
-  hat: [200, 40],
+  hat: [200, -45],
   body: [200, 380],
   feet: [200, 540],
 };
@@ -100,23 +100,46 @@ export function neckSvg(t) {
     <path d="M146 286 Q200 254 254 286 L246 306 Q200 282 154 306 Z" fill="${t.trim}"/>`;
 }
 
-// Hatt – Rasmus: sned och buckling så rufset syns; Elias: ståtligare med band.
-export function hatSvg(t, who) {
-  if (who === "rasmus") {
-    return `<g transform="translate(0 -46) rotate(-10 200 92)">
-      <path d="M118 102 Q200 74 288 104 Q290 118 276 120 Q198 96 128 118 Q114 116 118 102Z" fill="${t.hat}"/>
-      <path d="M142 104 Q150 48 196 14 Q206 8 204 22 Q196 60 236 96 Q196 84 142 104Z" fill="${t.hat}"/>
-      <path d="M196 14 q18 -12 14 6 q-4 14 -14 10 q-8 -6 0 -16Z" fill="${t.hatBand}"/>
-      <path d="M146 96 Q196 78 232 92 l-4 12 Q196 92 150 108 Z" fill="${t.hatBand}" opacity=".9"/>
-      ${stars(t, [[176, 66, 0.9]])}
+// Mantelkrage/halsduk FRAMFÖR ansiktslagret: hög vid sidorna (döljer tröj-
+// rester ur beskärningen), dippar under hakan i mitten så käklinjen syns.
+export function collarSvg(t, who) {
+  if (who === "elias") {
+    // Slätrakad haka + svart skjorta i urklippet: kragen tuckas tätt under hakan.
+    return `<g aria-hidden="true">
+      <path d="M106 304 L115 243 Q200 257 285 243 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+      <path d="M115 243 Q200 257 285 243 L282 254 Q200 270 118 254Z" fill="#00000026"/>
     </g>`;
   }
-  return `<g transform="translate(0 -38) rotate(3 200 92)">
-    <path d="M108 108 Q200 80 292 108 Q296 124 280 126 Q200 102 120 126 Q104 124 108 108Z" fill="${t.hat}"/>
-    <path d="M140 108 Q164 30 200 4 Q236 30 260 108 Q200 86 140 108Z" fill="${t.hat}"/>
-    <path d="M148 98 Q200 80 252 98 l3 12 Q200 92 145 110 Z" fill="${t.hatBand}"/>
-    <path d="M200 4 q10 10 6 22 l-12 0 q-4 -12 6 -22Z" fill="${t.hatBand}"/>
-    ${stars(t, [[200, 56, 1.1], [174, 78, 0.6], [226, 78, 0.6]])}
+  // Rasmus: skägget flödar ner – kragen får sitta lägre och dippa i mitten.
+  return `<g aria-hidden="true">
+    <path d="M106 304 L117 248 Q200 290 283 248 L294 304 Q200 338 106 304Z" fill="${t.trim}"/>
+    <path d="M117 248 Q200 290 283 248 L280 260 Q200 300 120 260Z" fill="#00000026"/>
+  </g>`;
+}
+
+// Hatt – i skala med de fotobaserade huvudena (huvudet spänner x≈88–312):
+// brättet är BREDARE än huvudet och ligger över hårets ovansida; kullen täcker
+// hjässan. Rasmus: sned floppig hatt med knäckt topp så rufset sticker fram
+// runtom; Elias: ståtligare, högre och rakare med guldband.
+export function hatSvg(t, who) {
+  if (who === "rasmus") {
+    return `<g transform="rotate(-9 200 60)">
+      <path d="M124 64 Q146 -20 204 -48 Q218 -54 212 -36 Q202 -6 258 48 Q196 28 124 64Z" fill="${t.hat}"/>
+      <path d="M124 64 Q180 36 258 48 Q220 44 186 58 Q150 70 124 64Z" fill="${t.robe2}" opacity=".6"/>
+      <circle cx="211" cy="-44" r="9" fill="${t.hatBand}"/>
+      <path d="M60 62 Q200 14 340 66 Q346 88 322 90 Q200 44 78 88 Q54 84 60 62Z" fill="${t.hat}"/>
+      <path d="M78 88 Q200 44 322 90 Q200 56 78 88Z" fill="${t.robe2}" opacity=".55"/>
+      <path d="M130 52 Q200 26 272 46 l-6 16 Q200 44 136 68 Z" fill="${t.hatBand}" opacity=".95"/>
+      ${stars(t, [[176, 2, 1.1], [232, 20, 0.7]])}
+    </g>`;
+  }
+  return `<g transform="rotate(3 200 60)">
+    <path d="M126 66 Q158 -26 200 -52 Q242 -26 274 66 Q200 38 126 66Z" fill="${t.hat}"/>
+    <path d="M200 -52 q12 12 7 26 l-14 0 q-5 -14 7 -26Z" fill="${t.hatBand}"/>
+    <path d="M52 68 Q200 20 348 70 Q354 94 328 96 Q200 48 72 96 Q46 90 52 68Z" fill="${t.hat}"/>
+    <path d="M72 96 Q200 48 328 96 Q200 60 72 96Z" fill="${t.robe2}" opacity=".5"/>
+    <path d="M132 56 Q200 32 270 54 l5 16 Q200 50 128 72 Z" fill="${t.hatBand}"/>
+    ${stars(t, [[200, -6, 1.2], [166, 24, 0.7], [236, 24, 0.7]])}
   </g>`;
 }
 
