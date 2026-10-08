@@ -3072,5 +3072,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n5-digerdoden",
+    "title": "Den stora döden",
+    "level": 5,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "På 1300-talet drabbades Europa av den värsta sjukdomskatastrofen i världsdelens historia. Den kallades senare digerdöden, där ”diger” betyder stor.\n\nSjukdomen var pest och orsakades av en bakterie. Den spreds främst med loppor som levde på råttor. När råttorna dog hoppade lopporna över till människor. Pesten kunde också smitta direkt mellan människor, till exempel genom hosta.\n\nÅr 1347 kom pesten med handelsfartyg till hamnar i södra Europa. Fartygen var fulla av varor, men också av råttor. Sedan spreds sjukdomen längs handelsvägarna. Till Norge kom den med ett skepp 1349, och året därpå nådde den Sverige.\n\nDe sjuka fick hög feber och svullnader på kroppen, och många dog inom några dagar. Ingen visste vad som orsakade sjukdomen. En del trodde att det var dålig luft, andra att det var ett straff från Gud. Läkarna hade inga mediciner som hjälpte.\n\nIngen vet exakt hur många som dog, men forskare tror att ungefär en tredjedel av Europas befolkning dog, kanske ännu fler. I Sverige blev många gårdar övergivna, eftersom det inte fanns någon kvar som kunde bruka jorden. Det tog mer än hundra år innan befolkningen var lika stor igen.\n\nPesten förändrade också samhället. När så många hade dött fanns det färre som kunde arbeta på åkrarna. De som överlevde kunde därför ibland kräva bättre villkor.\n\nI dag finns det mediciner som botar pest, och sjukdomen är mycket ovanlig. Men digerdöden visar hur snabbt en smitta kan spridas när människor och varor reser mellan länder.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad betyder ordet ”diger” i digerdöden?",
+        "options": [
+          "Snabb",
+          "Svart",
+          "Stor",
+          "Dödlig"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur spreds pesten främst?",
+        "options": [
+          "Med smutsigt dricksvatten",
+          "Med loppor som levde på råttor",
+          "Med fåglar som flög mellan länder",
+          "Med mat som hade blivit dålig"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilket år nådde pesten Sverige?",
+        "options": [
+          "År 1347",
+          "År 1349",
+          "År 1450",
+          "År 1350"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför spreds pesten längs handelsvägarna?",
+        "options": [
+          "Råttor och loppor följde med fartygen",
+          "Handelsmännen var oftare sjuka än andra",
+          "De flesta läkarna bodde längs vägarna",
+          "Luften var sämst längs de stora vägarna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad betyder det att ”bruka jorden”?",
+        "options": [
+          "Att odla på åkrarna",
+          "Att bygga nya hus",
+          "Att gräva gravar",
+          "Att sälja marken"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kunde de som överlevde ibland kräva bättre villkor?",
+        "options": [
+          "De hade blivit starkare av sjukdomen",
+          "Kungen hade bestämt att alla skulle få mer",
+          "Det fanns färre som kunde arbeta",
+          "Det fanns mer mat än någonsin förut"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad betyder det att gårdarna blev ”övergivna”?",
+        "options": [
+          "De förstördes av översvämningar",
+          "De såldes billigt till kungen",
+          "De brändes ner för att stoppa smittan",
+          "Ingen bodde eller arbetade där längre"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten visa med det sista stycket?",
+        "options": [
+          "Att alla sjukdomar sprids med råttor",
+          "Att historien kan lära oss om smitta i dag",
+          "Att pesten fortfarande är lika farlig i dag",
+          "Att man helst inte ska resa till andra länder"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-emigrationen",
+    "title": "Resan till Amerika",
+    "level": 5,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För ungefär 150 år sedan var Sverige ett fattigt land. De flesta bodde på landet och levde på det de själva kunde odla. När skörden slog fel blev det svält. Åren 1867 till 1869 var särskilt svåra, med kalla somrar och förstörda skördar. De kallas nödåren.\n\nSamtidigt kom berättelser om ett land på andra sidan Atlanten där det fanns gott om jord och arbete: Amerika. Mellan mitten av 1800-talet och 1930 reste över en miljon svenskar dit. Det var en mycket stor del av landets befolkning.\n\nResan var lång. Många åkte först till Göteborg och tog sedan en båt till England. Därifrån fortsatte de med stora ångfartyg över Atlanten, en resa som tog en till två veckor. Med de äldre segelfartygen hade samma resa kunnat ta två månader. Ombord trängdes hundratals passagerare under däck med sina packningar.\n\nI Amerika bosatte sig många svenskar i delstater som Minnesota och Illinois. Där röjde de skog, byggde hus och odlade vete. Andra fick arbete i städernas fabriker eller som hembiträden.\n\nUtvandrarna skrev brev hem till sina släktingar. Breven kallades Amerikabrev, och de berättade om ett nytt liv, ibland bättre än det egentligen var. Breven lockade fler att resa, och ibland reste många från samma by efter varandra.\n\nDet var inte lätt att lämna allt. De flesta visste att de troligen aldrig skulle träffa sina föräldrar igen.\n\nI dag har miljontals amerikaner svenska förfäder. Och Sverige har själv blivit ett land dit många människor flyttar för att få ett bättre liv.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallas åren 1867 till 1869?",
+        "options": [
+          "Krigsåren",
+          "Ångåren",
+          "Amerikaåren",
+          "Nödåren"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur reste många svenskar den första delen av resan?",
+        "options": [
+          "Via Göteborg till Island",
+          "Via Stockholm till Norge",
+          "Via Göteborg till England",
+          "Via Malmö till Tyskland"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ville så många lämna Sverige?",
+        "options": [
+          "De ville lära sig engelska och se världen",
+          "De var fattiga och saknade jord och arbete",
+          "Sverige låg i krig med flera av grannländerna",
+          "Kungen bestämde att många måste flytta därifrån"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att skörden ”slog fel”?",
+        "options": [
+          "Den blev mycket sämre än väntat",
+          "Den skördades alldeles för tidigt",
+          "Den blev större än någon trott",
+          "Den såldes för ett för lågt pris"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gjorde många svenskar i Minnesota och Illinois?",
+        "options": [
+          "Röjde skog, byggde hus och odlade vete",
+          "Byggde järnvägar genom hela landet",
+          "Jagade valar ute på havet",
+          "Grävde efter guld uppe i bergen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför lockade Amerikabreven fler att resa?",
+        "options": [
+          "Breven var skrivna av kungen själv",
+          "Breven innehöll biljetter till båten",
+          "De beskrev livet där som bra",
+          "Breven berättade hur farlig resan var"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är förfäder?",
+        "options": [
+          "Barn och barnbarn",
+          "Släktingar som lever i dag",
+          "Grannar som flyttade samtidigt",
+          "Släktingar som levde långt tidigare"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten säga med den sista meningen?",
+        "options": [
+          "Att alla svenskar egentligen borde flytta till Amerika igen",
+          "Att många nu flyttar till Sverige i stället för därifrån",
+          "Att utvandringen till Amerika fortfarande pågår precis som förr",
+          "Att Amerika i dag har blivit ett fattigt land"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-svarta-hal",
+    "title": "Där inte ens ljuset kommer ut",
+    "level": 5,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Tänk dig något som är så tungt och tätt packat att ingenting kan komma loss från det, inte ens ljus. Det är ett svart hål.\n\nEtt svart hål kan bildas när en mycket stor stjärna, många gånger tyngre än solen, når slutet av sitt liv. Stjärnan har då gjort slut på sitt bränsle och klarar inte längre att hålla emot sin egen tyngd. Den faller ihop mot sitt eget centrum. Allt pressas samman till något oerhört litet och tätt, och dragningskraften runt det blir enorm.\n\nRunt ett svart hål finns en gräns som kallas händelsehorisonten. Det som passerar den kan aldrig komma ut igen. Eftersom inte heller ljuset kommer ut kan man inte se själva hålet. Forskare hittar svarta hål genom att studera hur stjärnor och gas runt dem rör sig. Gas som virvlar runt ett svart hål blir så het att den lyser starkt.\n\nÅr 2019 visades den första bilden av ett svart hål. Den var tagen med radioteleskop på flera platser på jorden som samarbetade som ett enda jätteteleskop. Bilden visar en lysande ring runt en mörk fläck. Några år senare kom en bild av det svarta hålet i mitten av vår egen galax, Vintergatan. Det väger ungefär fyra miljoner gånger så mycket som solen.\n\nBehöver vi oroa oss? Nej. Solen är för liten för att någonsin bli ett svart hål. Och det närmaste svarta hål man känner till ligger så långt bort att ljuset därifrån behöver över tusen år för att nå oss.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur kan ett svart hål bildas?",
+        "options": [
+          "Solen slocknar under en natt",
+          "En mycket stor stjärna faller ihop",
+          "En komet slår hål i rymden",
+          "Två planeter krockar med varandra"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är händelsehorisonten?",
+        "options": [
+          "Platsen där den stora stjärnan föddes",
+          "Den lysande ringen runt det svarta hålet",
+          "Den yttersta kanten av vår galax",
+          "Gränsen som inget kan komma ut igen från"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kan man inte se ett svart hål direkt?",
+        "options": [
+          "Det syns bara mitt på dagen",
+          "Det är för litet för teleskop",
+          "Inte ens ljus kommer ut därifrån",
+          "Det ligger alltid bakom solen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Hur hittar forskare svarta hål?",
+        "options": [
+          "De ser hur stjärnor och gas runt dem rör sig",
+          "De mäter hur kallt det är ute i rymden",
+          "De skickar rymdsonder som faller in i dem",
+          "De lyssnar efter konstiga ljud som kommer från hålen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad syns på den första bilden av ett svart hål?",
+        "options": [
+          "Ett djupt hål i en planet",
+          "En svart stjärna med en lång svans",
+          "En virvel av blått och grönt ljus",
+          "En lysande ring runt en mörk fläck"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad betyder ”dragningskraft”?",
+        "options": [
+          "Kraften som drar saker mot något",
+          "Värmen inne i en stjärnas mitt",
+          "Ljuset som strålar ut från en stjärna",
+          "Kraften som trycker isär saker"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Varför samarbetade radioteleskop på flera platser?",
+        "options": [
+          "Ett av teleskopen hade gått sönder",
+          "Det svarta hålet syntes bara från några få länder",
+          "De fungerade tillsammans som ett jätteteleskop",
+          "Det var molnigt på de flesta platser"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad är syftet med det sista stycket i texten?",
+        "options": [
+          "Att förklara hur solen ska bli ett svart hål",
+          "Att visa att svarta hål inte hotar jorden",
+          "Att berätta hur man kan resa till ett svart hål",
+          "Att visa att det finns svarta hål nära oss"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-voyager",
+    "title": "Den längsta resan",
+    "level": 5,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "År 1977 sköts två rymdsonder upp från USA. De hette Voyager 1 och Voyager 2 och vägde ungefär lika mycket som en liten bil. Ingen kunde ana att de fortfarande skulle vara på väg nästan femtio år senare.\n\nTidpunkten var noga vald. Just då stod de yttre planeterna så att en rymdsond kunde flyga från den ena till den andra och använda varje planets dragningskraft för att få fart mot nästa. Ett sådant läge inträffar bara ungefär vart 175:e år. Voyager 2 besökte Jupiter, Saturnus, Uranus och Neptunus. Den är fortfarande den enda farkost som har varit nära Uranus och Neptunus.\n\nOmbord på båda sonderna finns en guldpläterad skiva. På den finns hälsningar på 55 språk, musik, ljud av regn, vind och skratt, och bilder från jorden. Den är tänkt som ett meddelande till den som kanske hittar sonden någon gång i framtiden.\n\nÅr 1990 vände Voyager 1 sin kamera bakåt och fotograferade jorden från sex miljarder kilometers avstånd. På bilden syns jorden bara som en liten ljusblå prick i en solstråle.\n\nI dag har båda sonderna lämnat det område runt solen där solvinden blåser, och de färdas nu mellan stjärnorna. De är längre bort än något annat som människor har byggt. Radiosignalerna från dem rör sig med ljusets hastighet, men det tar ändå nästan ett dygn innan de når jorden.\n\nDatorerna ombord har mindre minne än en enda bild i en mobiltelefon, och energin räcker inte så länge till. Forskarna stänger av ett instrument i taget för att spara ström. Men även när sonderna har tystnat kommer de att fortsätta färdas genom rymden i miljontals år.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket år sköts Voyager-sonderna upp?",
+        "options": [
+          "År 1990",
+          "År 2012",
+          "År 1977",
+          "År 1969"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilka planeter besökte Voyager 2?",
+        "options": [
+          "Jupiter, Saturnus, Uranus och Neptunus",
+          "Merkurius, Venus, Mars och Jupiter",
+          "Venus, Saturnus, Uranus och Jupiter",
+          "Mars, Jupiter, Saturnus och Neptunus"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför var tidpunkten för uppskjutningen så viktig?",
+        "options": [
+          "Det var bara då som USA hade råd att bygga stora raketer",
+          "Planeterna stod på rad så att sonden kunde besöka flera",
+          "Det var den enda tiden på året utan stormar på jorden",
+          "Solen lyste extra starkt just det året och gav mer energi"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en farkost?",
+        "options": [
+          "En stjärna som rör sig snabbt",
+          "En planet som ingen har besökt",
+          "Ett teleskop som står på jorden",
+          "Något som är byggt för att färdas"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vem är guldskivan tänkt för?",
+        "options": [
+          "Barn som besöker rymdmuseer",
+          "Forskarna som byggde och styr sonden",
+          "Astronauterna på den internationella rymdstationen",
+          "Den som kanske hittar sonden i framtiden"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur såg jorden ut på bilden från 1990?",
+        "options": [
+          "Som en liten ljusblå prick",
+          "Den syntes inte alls på bilden",
+          "Som en stor blå kula med vita moln",
+          "Som en röd prick bredvid månen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför stänger forskarna av ett instrument i taget?",
+        "options": [
+          "Det finns inget mer att mäta",
+          "Instrumenten har frusit sönder",
+          "Energin börjar ta slut",
+          "Signalerna stör andra satelliter"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten främst berätta om Voyager-sonderna?",
+        "options": [
+          "Att de har hittat liv på andra planeter",
+          "Att de gör en lång och unik resa ut i rymden",
+          "Att de snart kommer att vända tillbaka till jorden",
+          "Att de var ett misslyckat och dyrt projekt"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-jupiter",
+    "title": "Jätten bland planeterna",
+    "level": 5,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Jupiter är den största planeten i vårt solsystem. Den är så stor att mer än 1 300 jordklot skulle få plats i den. Ändå väger den bara drygt 300 gånger så mycket som jorden, eftersom den mest består av lätta gaser som väte och helium.\n\nJupiter har ingen fast yta att stå på. Om en rymdsond försökte landa skulle den sjunka allt djupare genom tjocka moln, där trycket och värmen blir större och större, tills sonden krossades.\n\nPlaneten snurrar mycket snabbt. Ett dygn på Jupiter är kortare än tio timmar. Den snabba snurrningen drar ut molnen i ljusa och mörka band runt planeten. Ett år, alltså ett varv runt solen, tar däremot nästan tolv av våra år.\n\nPå Jupiter finns den stora röda fläcken. Det är en storm som är större än hela jorden och som har rasat i minst 150 år. Vindarna i den blåser mycket snabbare än i de värsta orkanerna på jorden.\n\nJupiter har fler än 90 kända månar. Fyra av dem är så stora att man kan se dem med en vanlig kikare. Io är full av vulkaner som får utbrott hela tiden. Ganymedes är den största månen i hela solsystemet, större än planeten Merkurius. Europa är täckt av is, och under isen tror forskarna att det finns ett hav av flytande vatten. Därför undrar många om det kan finnas liv där.\n\nEn klar kväll när Jupiter syns på himlen ser den ut som en starkt lysande stjärna som inte blinkar. Med en kikare kan du kanske se de fyra stora månarna som små prickar på rad bredvid den.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många jordklot skulle få plats i Jupiter?",
+        "options": [
+          "Mer än 1 300",
+          "Ungefär 300",
+          "Ungefär 90",
+          "Mer än 13 000"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur långt är ett dygn på Jupiter?",
+        "options": [
+          "Nästan tolv av våra år",
+          "Längre än en vecka",
+          "Precis 24 timmar",
+          "Kortare än tio timmar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför väger Jupiter inte mer, trots att den är så stor?",
+        "options": [
+          "Den har ingen kärna alls inuti",
+          "Den består mest av lätta gaser",
+          "Dess många månar bär upp den",
+          "Den snurrar så fort att den blir lätt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder det att stormen har ”rasat” i minst 150 år?",
+        "options": [
+          "Den har fallit ihop och försvunnit",
+          "Den har legat helt stilla",
+          "Den har pågått med stor kraft",
+          "Den har sakta krympt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vilken av Jupiters månar kan ha ett hav under isen?",
+        "options": [
+          "Ganymedes",
+          "Io",
+          "Merkurius",
+          "Europa"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför undrar forskare om det kan finnas liv på Europa?",
+        "options": [
+          "Den är täckt av gröna moln",
+          "Där kan finnas flytande vatten",
+          "Det är den största månen",
+          "Där finns många vulkaner"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med att Jupiter inte har någon ”fast yta”?",
+        "options": [
+          "Ytan rör sig aldrig ur fläcken",
+          "Molnen ligger alltid stilla",
+          "Det finns ingen mark att stå på",
+          "Hela ytan är täckt av tjock is"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur jätteplaneten Jupiter och dess månar är",
+          "Hur man bygger rymdsonder som kan åka till Jupiter",
+          "Varför Jupiter ser ut som en stjärna på himlen",
+          "Hur stora stormar bildas här på jorden"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n5-smak-och-lukt",
+    "title": "Därför smakar maten ingenting",
+    "level": 5,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Har du märkt att maten nästan inte smakar något när du är förkyld? Det beror inte på tungan. Det beror på näsan.\n\nPå tungan sitter tusentals små smaklökar. De kan känna fem grundsmaker: sött, surt, salt, beskt och umami. Umami är en mustig smak som finns i till exempel buljong, ost och tomater. Smaklökarna slits fort, men kroppen byter ut cellerna i dem ungefär varannan vecka.\n\nKanske har du sett en bild av en tunga som är indelad i olika områden, med sött längst fram och beskt längst bak. Den bilden är fel. Alla delar av tungan kan känna alla grundsmaker.\n\nMen fem smaker räcker inte långt. Att jordgubbar smakar jordgubbe och kanel smakar kanel beror mest på lukten. När du tuggar stiger dofter från maten upp från baksidan av munnen till näsan. Hjärnan blandar ihop det tungan känner med det näsan känner, och resultatet upplever vi som smak.\n\nDet kan du testa själv. Be någon skära små bitar av ett äpple och en rå potatis. Blunda, håll för näsan och smaka. Många har svårt att säga vilken bit som är vilken. Släpp näsan, så blir det plötsligt lätt.\n\nNär du är förkyld är näsan täppt, och dofterna når inte fram. Kvar blir bara grundsmakerna.\n\nSmakerna har också hjälpt människor att överleva. Söt smak betyder ofta att maten innehåller energi. Besk smak kan vara en varning, eftersom många giftiga växter är beska. Därför är det inte så konstigt att många barn tycker om godis men rynkar på näsan åt brysselkål.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka fem grundsmaker nämns i texten?",
+        "options": [
+          "Sött, surt, salt, beskt och umami",
+          "Sött, surt, salt, starkt och fett",
+          "Sött, salt, beskt, kryddigt och umami",
+          "Surt, salt, beskt, starkt och kallt"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är fel med bilden av tungan med olika smakområden?",
+        "options": [
+          "Det finns fler områden än bilden visar",
+          "Hela tungan känner alla grundsmaker",
+          "Tungan känner bara salt och sött",
+          "Det söta känns egentligen längst bak"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ordet ”mustig”?",
+        "options": [
+          "Svag och vattnig",
+          "Sur och stickande",
+          "Söt och klibbig",
+          "Kraftig och fyllig"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför smakar maten nästan ingenting när man är förkyld?",
+        "options": [
+          "Smaklökarna slutar fungera när man har feber",
+          "Hjärnan orkar inte tolka smaker när man är sjuk",
+          "Dofterna når inte fram till den täppta näsan",
+          "Tungan blir för torr för att känna smaker"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Hur når dofterna från maten näsan när man tuggar?",
+        "options": [
+          "De går genom tänderna",
+          "De letar sig in genom öronen",
+          "De stiger upp från baksidan av munnen",
+          "De följer med luften ner i lungorna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar testet med äpplet och potatisen?",
+        "options": [
+          "Att äpplen och potatis innehåller samma ämnen",
+          "Att vi behöver lukten för att skilja på smaker",
+          "Att det är farligt att äta rå potatis",
+          "Att man smakar bättre med stängda ögon"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför kan det ha varit bra för människor att inte gilla besk smak?",
+        "options": [
+          "Besk mat innehåller mest energi",
+          "Beska växter var svåra att hitta",
+          "Besk mat ger hål i tänderna",
+          "Många giftiga växter är beska"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur tunga, näsa och hjärna skapar smak",
+          "Varför många barn inte tycker om grönsaker",
+          "Hur man snabbast blir av med en förkylning",
+          "Varför tungan är indelad i olika smakområden"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
