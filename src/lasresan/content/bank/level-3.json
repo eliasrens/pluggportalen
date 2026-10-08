@@ -739,7 +739,7 @@
       },
       {
         "id": "q6",
-        "question": "Varför blev affischen bättre med Månss bilder?",
+        "question": "Varför blev affischen bättre med Måns bilder?",
         "options": [
           "Den fick plats med mer text",
           "Den blev färdig mycket snabbare",
@@ -1427,7 +1427,7 @@
     "level": 3,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "Grannen Bo skulle resa bort, och Linneas familj lovade att ta hand om hans papegoja Kapten. Kapten var grön med röda fjädrar på huvudet och kunde härma nästan allt han hörde.\n\nFörsta dagen sa han ”Hej hej!” och ”Kaffe?” med Bos djupa röst. Linnea skrattade så att hon fick hicka.\n\nSedan började han lära sig nya saker. När telefonen ringde härmade han signalen så bra att pappa sprang och svarade tre gånger i onödan. Och när storebror Ludvig suckade ”Åh nej, nu kommer moster Gun och pratar i flera timmar” lyssnade Kapten noga.\n\nPå lördagen kom moster Gun på middag. Hon hade fin klänning och en tårta med sig. Alla satte sig vid bordet.\n\n”Vad mysigt det är här”, sa moster Gun.\n\nDå hördes en välkänd suck från buren. ”Åh nej”, sa Kapten med Ludvigs röst. ”Nu kommer moster Gun och pratar i flera timmar!”\n\nDet blev knäpptyst. Ludvig blev röd som en tomat.\n\nMen moster Gun skrattade så att tårarna rann. ”Då får jag väl prata extra länge”, sa hon och blinkade åt Ludvig.",
+    "body": "Grannen Bo skulle resa bort, och Amiras familj lovade att ta hand om hans papegoja Kapten. Kapten var grön med röda fjädrar på huvudet och kunde härma nästan allt han hörde.\n\nFörsta dagen sa han ”Hej hej!” och ”Kaffe?” med Bos djupa röst. Amira skrattade så att hon fick hicka.\n\nSedan började han lära sig nya saker. När telefonen ringde härmade han signalen så bra att pappa sprang och svarade tre gånger i onödan. Och när storebror Ludvig suckade ”Åh nej, nu kommer moster Gun och pratar i flera timmar” lyssnade Kapten noga.\n\nPå lördagen kom moster Gun på middag. Hon hade fin klänning och en tårta med sig. Alla satte sig vid bordet.\n\n”Vad mysigt det är här”, sa moster Gun.\n\nDå hördes en välkänd suck från buren. ”Åh nej”, sa Kapten med Ludvigs röst. ”Nu kommer moster Gun och pratar i flera timmar!”\n\nDet blev knäpptyst. Ludvig blev röd som en tomat.\n\nMen moster Gun skrattade så att tårarna rann. ”Då får jag väl prata extra länge”, sa hon och blinkade åt Ludvig.",
     "questions": [
       {
         "id": "q1",
@@ -1929,7 +1929,7 @@
         "options": [
           "En pump som blåser in kall luft",
           "En spak som styr ballongen",
-          "Den gör eld som värmer luften",
+          "En eld som värmer upp luften",
           "En lampa som lyser i mörkret"
         ],
         "answerIndex": 2,
@@ -1952,7 +1952,7 @@
         "question": "Varför åkte en bil efter ballongen?",
         "options": [
           "Bilen skulle dra ballongen framåt",
-          "Morbror Ivar ville hellre åka bil efter dem",
+          "Farbror Ivar ville hellre åka bil efter dem",
           "Bilen hade med sig mer varm luft",
           "Ingen visste exakt var den skulle landa"
         ],

@@ -34,7 +34,7 @@ Närmast befintligt: `lr-n3-isen-pa-sjon` (varför sjön fryser uppifrån) grän
 | lr-n3-kodlaset | story | mysterier | Resväskan på vinden | Agnes, Elvira, mormor Astrid | Kodlås på morfars resväska, koden finns på ett foto; breven var mormors |
 | lr-n3-daggen | story | mysterier | Den blöta rutschkanan | Nova, Gustav, läraren Peter | Blöt rutschkana varje morgon; burk-experiment visar att det är dagg |
 | lr-n3-teckningarna | story | mysterier | Konstnären på tavlan | Signe, Ilyas | Hemliga teckningar på tavlan; Signe avslöjar men bevarar hemligheten |
-| lr-n3-papegojan | story | roliga situationer | Papegojan som lyssnade | Linnea, Ludvig, papegojan Kapten | Lånad papegoja härmar storebrors suck om mostern mitt i middagen |
+| lr-n3-papegojan | story | roliga situationer | Papegojan som lyssnade | Amira, Ludvig, papegojan Kapten | Lånad papegoja härmar storebrors suck om mostern mitt i middagen |
 | lr-n3-mormors-meddelanden | story | roliga situationer | Mormor och de små bilderna | Lovisa, mormor | Mormor tror att skrattande emoji gråter; missförstånd reds ut |
 | lr-n3-handslaget | story | relationer | Det hemliga handslaget | Stella, Molly, Wilda | Svartsjuka när bästisen får en ny vän; delar sitt hemliga handslag |
 | lr-n3-delat-rum | story | relationer | Lakanet mitt i rummet | Juli, Lejla | Bonussystrar delar rum med lakan emellan; åskväder för dem samman |
