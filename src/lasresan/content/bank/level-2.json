@@ -2066,5 +2066,757 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n2-glasogonen",
+    "title": "Två ugglor",
+    "level": 2,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Hedvig har fått glasögon. De är runda och blå. Plötsligt ser hon varje litet löv på träden utanför fönstret.\n\nMen på morgonen vill hon inte gå till skolan. ”Alla kommer att titta på mig”, säger hon till mamma.\n\nI klassrummet sätter hon sig längst bak och håller huvudet nere. Hon väntar på att någon ska säga något dumt.\n\nPå rasten kommer hennes kompis Wilda fram. Hon tittar länge på Hedvig. ”Du ser ut som en uggla”, säger Wilda.\n\nHedvig känner tårarna komma. Men då fortsätter Wilda: ”Ugglor är mina favoritdjur! De är de klokaste djuren i hela skogen.”\n\nDagen efter kommer Wilda till skolan med ett par runda glasögonbågar utan glas på näsan. ”Nu är vi två ugglor”, säger hon.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur ser Hedvigs glasögon ut?",
+        "options": [
+          "Fyrkantiga och röda",
+          "Runda och blå",
+          "Runda och svarta",
+          "Små och gröna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad ser Hedvig plötsligt med glasögonen?",
+        "options": [
+          "Varje bokstav på tavlan",
+          "Fåglarna på taket",
+          "Varje litet löv på träden",
+          "Molnen på himlen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför sätter sig Hedvig längst bak?",
+        "options": [
+          "Hon ser bättre därifrån",
+          "Läraren säger åt henne",
+          "Hon kom sist till lektionen",
+          "Hon vill inte synas"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad säger Wilda först?",
+        "options": [
+          "Du ser ut som en uggla",
+          "Du ser ut som en katt",
+          "Vilka fina glasögon",
+          "Var har du köpt dem?"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hedvig känner tårarna komma. Vad betyder det?",
+        "options": [
+          "Hon har fått något i ögat",
+          "Hon är nära att gråta",
+          "Hon är nära att skratta",
+          "Hon har ont i huvudet"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur menar Wilda när hon pratar om ugglor?",
+        "options": [
+          "Hon menar det som något fint",
+          "Hon vill reta Hedvig",
+          "Hon vill prata om skogen",
+          "Hon tycker att Hedvig är dum"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför har Wilda glasögonbågar dagen efter?",
+        "options": [
+          "För att hon också ser dåligt",
+          "För att hon vill reta Hedvig",
+          "För att stötta Hedvig",
+          "För att det är maskerad"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-storasyster",
+    "title": "Ett tomt rum",
+    "level": 2,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Kians storasyster Mahsa ska flytta hemifrån. Hon har fått en studentlägenhet i en annan stad.\n\nKian brukar tycka att Mahsa är jobbig. Hon tar alltid längst tid i badrummet, och hon bestämmer vad de ska titta på.\n\nMen när flyttbilen har åkt står Kian länge i hennes tomma rum. Där hon hade sina affischer syns bara ljusa fyrkanter på väggen.\n\nPå kvällen är det för tyst vid middagen. Ingen retas med honom. Ingen skrattar för högt.\n\nKlockan nio plingar det i hans mobil. Det är ett videosamtal från Mahsa. ”Jag kan inte sova i det nya rummet”, säger hon. ”Kan du berätta om din dag?”\n\nKian berättar om fotbollsträningen och om katten som välte en blomkruka. Mahsa skrattar för högt, precis som vanligt. Efteråt somnar Kian med ett leende.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart ska Mahsa flytta?",
+        "options": [
+          "Till ett annat land",
+          "Till ett hus på landet",
+          "Till grannhuset",
+          "Till en annan stad"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad brukar Kian tycka är jobbigt med Mahsa?",
+        "options": [
+          "Hon lånar hans kläder",
+          "Hon spelar hög musik",
+          "Hon äter upp hans godis",
+          "Hon tar lång tid i badrummet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad syns på väggen i det tomma rummet?",
+        "options": [
+          "Mörka fläckar",
+          "Ljusa fyrkanter",
+          "Gamla affischer",
+          "Teckningar av Kian"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Ingen retas med Kian. Vad betyder retas?",
+        "options": [
+          "Säger saker för att trösta",
+          "Hjälper till med läxor",
+          "Säger saker för att busa",
+          "Pratar om sin dag"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är det för tyst vid middagen?",
+        "options": [
+          "Mahsa är inte där",
+          "Kian är sjuk",
+          "Alla är arga",
+          "Tv:n är trasig"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ringer Mahsa till Kian?",
+        "options": [
+          "Hon saknar sin familj",
+          "Hon har glömt sin nyckel",
+          "Hon vill låna pengar",
+          "Hon behöver hjälp att flytta"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förstår Kian i berättelsen?",
+        "options": [
+          "Att han vill ha hennes rum",
+          "Att han vill flytta också",
+          "Att Mahsa är jobbig",
+          "Att han saknar sin syster"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-hemligheten",
+    "title": "Orden på tungan",
+    "level": 2,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "På rasten viskar Lejla en hemlighet till Dalia: ”Jag är kär i Anton i 5A. Lova att inte säga det till någon!” Dalia lovar.\n\nPå lunchen sitter Dalia med några andra från klassen. De pratar om vem som är kär i vem.\n\n”Vet du något, Dalia?” frågar Elvira och blinkar. ”Du och Lejla har säkert hemligheter.”\n\nAlla tittar på Dalia. Det pirrar i hela kroppen. Hon vet att de andra skulle tycka att det var spännande. Orden ligger nästan på tungan.\n\nMen Dalia tänker på Lejlas ansikte när hon viskade. Hon såg både glad och nervös ut.\n\n”Nej, ingenting”, säger Dalia och tar en tugga potatis.\n\nLejla sitter vid bordet bredvid och har hört allt. På eftermiddagen ger hon Dalia en lapp. Där står det: Tack. Du är den bästa vän jag har.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När berättar Lejla sin hemlighet?",
+        "options": [
+          "På lunchen",
+          "På rasten",
+          "Efter skolan",
+          "På idrotten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem är Lejla kär i?",
+        "options": [
+          "Anton i 4B",
+          "Elvira i klassen",
+          "Anton i 5A",
+          "Dalias bror"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem frågar Dalia om hemligheter?",
+        "options": [
+          "Elvira",
+          "Lejla",
+          "Anton",
+          "Läraren"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Orden ligger nästan på tungan. Vad betyder det?",
+        "options": [
+          "Hon har ont i munnen",
+          "Hon har glömt orden",
+          "Hon är nära att säga det",
+          "Hon äter för fort"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför säger Dalia ingenting?",
+        "options": [
+          "Hon vet ingen hemlighet",
+          "Hon vill hålla sitt löfte",
+          "Hon har mat i munnen",
+          "Hon tycker inte om Elvira"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Var sitter Lejla på lunchen?",
+        "options": [
+          "Bredvid Dalia",
+          "I klassrummet",
+          "Ute på skolgården",
+          "Vid bordet bredvid"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Att bli kär i någon i 5A",
+          "Att äta lunch i skolan",
+          "Att kunna hålla ett löfte",
+          "Att skriva lappar"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-grottan",
+    "title": "Längst in i grottan",
+    "level": 2,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Sigge och morbror Lars ska utforska en grotta i skogen. Morbror har med sig hjälmar med lampor, ett långt rep och en påse russin.\n\nIngången är så låg att de måste krypa. Sedan blir grottan högre. Det droppar från taket, och det luktar sten och jord. Väggarna glittrar när lampan lyser på dem.\n\nLängre in sitter små bruna klumpar tätt ihop i taket. ”Fladdermöss”, viskar morbror. ”De sover. Vi får inte väcka dem.”\n\nLängst in delar sig grottan i två gångar. Sigge vill gå till vänster. ”Vänta”, säger morbror. Han knyter fast repet runt en sten. ”Nu hittar vi alltid tillbaka.”\n\nEfter en stund tar gången slut vid en liten sjö med alldeles klart vatten. Sigge håller andan. Det är det vackraste han har sett.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad har morbror med sig?",
+        "options": [
+          "Hjälmar med lampor och ett rep",
+          "En karta och en kompass",
+          "Ficklampor och en stege",
+          "En spade och en hink"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför måste de krypa i början?",
+        "options": [
+          "Det är halt på marken",
+          "Ingången är så låg",
+          "De vill inte väcka fladdermössen",
+          "Det är för mörkt att gå"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Väggarna glittrar. Vad betyder glittrar?",
+        "options": [
+          "Är blöta och hala",
+          "Är mörka och smutsiga",
+          "Rasar sakta ner",
+          "Blänker och glimmar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad sitter i taket längre in?",
+        "options": [
+          "Fladdermöss",
+          "Spindlar",
+          "Istappar",
+          "Rötter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför knyter morbror fast repet?",
+        "options": [
+          "Så att de kan klättra upp",
+          "Så att de inte går vilse",
+          "Så att Sigge inte springer iväg",
+          "Så att fladdermössen sover"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad finns där gången tar slut?",
+        "options": [
+          "En utgång",
+          "En gammal kista",
+          "En liten sjö",
+          "Ett djupt hål"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Hur känner sig Sigge i slutet?",
+        "options": [
+          "Rädd och vill hem",
+          "Trött och hungrig",
+          "Arg på morbror",
+          "Förundrad och glad"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-vinden",
+    "title": "Kartan på vinden",
+    "level": 2,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Tage och farfar städar på vinden. Där är det dammigt och fullt av gamla saker. Bakom en trasig gungstol hittar Tage en plåtask. I asken ligger en hopvikt karta.\n\nKartan är ritad med blyerts. Den visar farfars trädgård med äppelträdet, brunnen och ett stort kryss vid staketet. Under krysset står det: 10 steg från brunnen.\n\n”Den ritade jag när jag var tio år”, säger farfar förvånat. ”Det hade jag helt glömt.”\n\nDe hämtar en spade. Tage räknar tio steg från brunnen och börjar gräva. Snart slår spaden i något hårt. Det är en rostig burk med lock.\n\nI burken ligger tre glaskulor, ett fotbollskort och en lapp: Till den som hittar det här. Ta väl hand om skatten!\n\nFarfar skrattar. ”Den skatten var nog finare för mig när jag var liten.” Men Tage tycker att den är fin ändå.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var hittar Tage asken?",
+        "options": [
+          "Under en gammal säng",
+          "Bakom en trasig gungstol",
+          "I en låda med böcker",
+          "Bakom en hög med mattor"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad visar kartan?",
+        "options": [
+          "En skog nära byn",
+          "En ö ute i havet",
+          "Farfars trädgård",
+          "Farfars gamla skola"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur många steg från brunnen ska man gå?",
+        "options": [
+          "Tio",
+          "Sju",
+          "Tjugo",
+          "Fem"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför blir farfar förvånad?",
+        "options": [
+          "Han har aldrig sett kartan",
+          "Kartan är ritad av Tage",
+          "Han trodde att vinden var tom",
+          "Han hade glömt bort kartan"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Kartan är hopvikt. Vad betyder det?",
+        "options": [
+          "Vikt flera gånger",
+          "Sönderriven",
+          "Ihoprullad",
+          "Fastklistrad"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad ligger i burken?",
+        "options": [
+          "Gamla mynt och en guldring",
+          "Ett brev och ett gammalt foto",
+          "Kulor, ett kort och en lapp",
+          "En kompass och en fickkniv"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är skatten egentligen?",
+        "options": [
+          "Guld som någon gömde förr",
+          "En present som farfar köpt",
+          "Saker som tjuvar har gömt",
+          "Saker farfar gömde som barn"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-ridturen",
+    "title": "När Pärlan blev rädd",
+    "level": 2,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Alma ska rida ut i skogen för första gången. Hon rider på Pärlan, en lugn vit häst. Ridläraren Fredrik rider först, och fyra andra ryttare kommer efter.\n\nDet är tyst i skogen. Bara hovarna klapprar mot stigen.\n\nPlötsligt prasslar det i en buske. En plastpåse fladdrar i vinden. Pärlan spänner sig, gör ett skutt åt sidan och börjar trava.\n\nAlma vill skrika. Men hon kommer ihåg vad Fredrik har lärt henne: sitt djupt i sadeln, håll i tyglarna och prata lugnt.\n\n”Lugn, Pärlan, lugn”, säger hon och drar försiktigt i tyglarna. Pärlan saktar ner och stannar.\n\nFredrik vänder sig om. ”Bra gjort, Alma! Du var lugnare än hästen.”\n\nResten av turen sitter Alma rak i ryggen. Hon känner sig som en riktig ryttare.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter hästen?",
+        "options": [
+          "Stjärnan",
+          "Pärlan",
+          "Molly",
+          "Blixten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem rider först?",
+        "options": [
+          "Ridläraren Fredrik",
+          "Alma på Pärlan",
+          "En annan ryttare",
+          "Almas mamma"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör Pärlan rädd?",
+        "options": [
+          "En hund som skäller",
+          "En plastpåse som fladdrar",
+          "En bil som tutar",
+          "En fågel som flyger upp"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Pärlan gör ett skutt åt sidan. Vad är ett skutt?",
+        "options": [
+          "En långsam promenad",
+          "Ett högt gnägg",
+          "En lång paus",
+          "Ett snabbt hopp"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad har Fredrik lärt Alma?",
+        "options": [
+          "Hoppa av och springa",
+          "Skrika högt på hjälp",
+          "Sitta djupt och prata lugnt",
+          "Luta sig långt framåt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar Fredrik med ”Du var lugnare än hästen”?",
+        "options": [
+          "Alma klarade det bra",
+          "Alma red för långsamt",
+          "Pärlan är en dålig häst",
+          "Alma var inte alls rädd"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur förändras Alma under turen?",
+        "options": [
+          "Hon blir rädd för hästar",
+          "Hon vill sluta rida",
+          "Hon blir trött och hungrig",
+          "Hon känner sig säkrare"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-skidloppet",
+    "title": "Bakåt i backen",
+    "level": 2,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Det är skolans skiddag. Agnes ska åka längdskidor i ett lopp på tre kilometer. Hon har fått låna morfars gamla skidor.\n\nI början går det bra. Agnes glider fram i spåret och kör om flera andra. Men sedan kommer en lång uppförsbacke.\n\nAgnes tar ett steg. Skidorna glider bakåt. Hon tar ett steg till. Bakåt igen! De andra går förbi henne en efter en.\n\n”Sätt isär skidspetsarna och gå som en anka!” ropar idrottsläraren Malin.\n\nAgnes ställer skidorna som ett V. Det ser fånigt ut, men nu fastnar skidorna i snön. Steg för steg tar hon sig upp. Spåren efter henne ser ut som ett fiskben.\n\nAgnes kommer i mål som nummer tolv av tjugo. Men när klassen åker en extra runda efter lunch är hon först uppför backen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt är loppet?",
+        "options": [
+          "Fem kilometer",
+          "Tre kilometer",
+          "En kilometer",
+          "Tio kilometer"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vems skidor åker Agnes på?",
+        "options": [
+          "Sina egna nya skidor",
+          "Skolans skidor",
+          "Morfars gamla skidor",
+          "Mammas skidor"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer i uppförsbacken?",
+        "options": [
+          "Skidorna glider bakåt",
+          "Agnes ramlar framåt",
+          "En stav går sönder",
+          "Spåret tar slut"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför går de andra förbi Agnes i backen?",
+        "options": [
+          "Hon stannar för att vila",
+          "Hon glider bakåt hela tiden",
+          "Hon har tappat en stav",
+          "Hon väntar på Malin"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad ropar Malin till Agnes?",
+        "options": [
+          "Att hon ska åka fortare",
+          "Att hon ska ta av skidorna",
+          "Att hon ska vänta på de andra",
+          "Att hon ska gå som en anka"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Det ser fånigt ut. Vad betyder fånigt?",
+        "options": [
+          "Farligt",
+          "Snyggt",
+          "Löjligt",
+          "Svårt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar slutet av berättelsen?",
+        "options": [
+          "Agnes vann hela loppet",
+          "Agnes vill sluta åka skidor",
+          "Agnes har fått nya skidor",
+          "Agnes har lärt sig tekniken"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-forsta-flygningen",
+    "title": "Tolv sekunder i luften",
+    "level": 2,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "I tusentals år drömde människor om att flyga som fåglarna. Många försökte, men ingen lyckades flyga med ett plan som hade motor.\n\nBröderna Wilbur och Orville Wright bodde i USA. De hade en cykelverkstad, men på fritiden byggde de flygplan. Först testade de glidflygplan utan motor. De gjorde hundratals försök och lärde sig hur ett plan kan styras.\n\nEn kall och blåsig dag i december 1903 var det dags. Orville lade sig på planet, och motorn startade. Planet lyfte och flög i tolv sekunder innan det landade i sanden.\n\nDet låter inte mycket. Men det var första gången ett plan med motor hade flugit med en människa ombord. Samma dag flög Wilbur nästan en hel minut.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "I vilket land bodde bröderna Wright?",
+        "options": [
+          "England",
+          "Frankrike",
+          "USA",
+          "Sverige"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade bröderna för arbete?",
+        "options": [
+          "De hade en cykelverkstad",
+          "De flög stora flygplan",
+          "De byggde bilar",
+          "De var lärare"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad testade bröderna först?",
+        "options": [
+          "Stora luftballonger",
+          "Glidflygplan utan motor",
+          "Vingar av fjädrar",
+          "Raketer med motor"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur länge flög Orville?",
+        "options": [
+          "I en hel minut",
+          "I tolv minuter",
+          "I två sekunder",
+          "I tolv sekunder"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Planet lyfte. Vad betyder lyfte?",
+        "options": [
+          "Gick sönder",
+          "Svängde runt",
+          "Kom upp från marken",
+          "Stannade helt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var de tolv sekunderna så viktiga?",
+        "options": [
+          "Ingen hade gjort det förut",
+          "Det var ett nytt rekord i löpning",
+          "Planet hade aldrig gått sönder",
+          "Planet var byggt av cyklar"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur fåglar kan flyga",
+          "Den första flygningen med motor",
+          "Hur man lagar en cykel",
+          "Hur flygplan ser ut i dag"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
