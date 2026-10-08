@@ -41,20 +41,20 @@ Planen är gjord mot alla `level-*.json` och `niva-1.md`–`niva-5.md` på grene
 | lr-n7-snogrottan | story | äventyr | Natten i snögrottan | Ossian | Vintertur, oväder, de gräver en snögrotta och måste lita på kunskap |
 | lr-n7-volten | story | sport | Spärren | Thea | Gymnasten som plötsligt inte vågar göra volten hon kunnat i flera år |
 | lr-n7-rullstolsbasket | story | sport | Fyra hjul och en korg | Joar, Yara | Joar följer med Yara på rullstolsbasket och förlorar stort; respekt och regler |
-| lr-n7-djuphavet | fact | djur | Ljus i det eviga mörkret | — | Djuphavets mörker och tryck, bioluminiscens, marin snö, varma källor |
-| lr-n7-myggan | fact | djur | Det farligaste djuret | — | Bara honor suger blod, malaria, frossan i Sverige förr, frågan om att utrota arter |
 | lr-n7-vargen | fact | djur | Vargen kommer tillbaka | — | Vargens återkomst i Sverige, konflikter och olika intressen |
 | lr-n7-ozonlagret | fact | natur | Hålet i himlen som håller på att läkas | — | Ozonlagret, freoner och ett internationellt förbud som fungerade |
 | lr-n7-mikroplast | fact | natur | Plast man inte ser | — | Mikroplast: var den kommer ifrån, vart den tar vägen, vad vi vet och inte vet |
-| lr-n7-titanic | fact | historia | Natten då det osänkbara sjönk | — | Titanic 1912, för få livbåtar enligt dåtidens regler, säkerhetsavtalet efteråt |
 | lr-n7-berlinmuren | fact | historia | Muren genom staden | — | Berlinmuren 1961–1989, delat Tyskland och murens fall |
 | lr-n7-fabrikerna | fact | historia | När maskinerna kom | — | Industriella revolutionen, ångmaskinen och barnarbete |
+| lr-n7-ljusar | fact | rymden | Att se bakåt i tiden | — | Ljusår, ljusets fart och att stjärnljus är gammalt |
+| lr-n7-djuphavet | fact | djur | Ljus i det eviga mörkret | — | Djuphavets mörker och tryck, bioluminiscens, marin snö, varma källor |
+| lr-n7-myggan | fact | djur | Det farligaste djuret | — | Bara honor suger blod, malaria, frossan i Sverige förr, frågan om att utrota arter |
+| lr-n7-titanic | fact | historia | Natten då det osänkbara sjönk | — | Titanic 1912, för få livbåtar enligt dåtidens regler, säkerhetsavtalet efteråt |
 | lr-n7-meteoriten | fact | rymden | Dagen då dinosaurierna försvann | — | Iridiumlagret, kratern i Mexiko, asteroid/meteor/meteorit, följderna, DART 2022 |
 | lr-n7-venus | fact | rymden | Planeten som blev för varm | — | Venus: hetast i solsystemet, skenande växthuseffekt, dygn längre än år |
-| lr-n7-ljusar | fact | rymden | Att se bakåt i tiden | — | Ljusår, ljusets fart och att stjärnljus är gammalt |
+| lr-n7-containern | fact | teknik | Lådan som förändrade världshandeln | — | Containern, standardmått och billigare transporter |
 | lr-n7-vattenkraften | fact | teknik | Älvarna som ger ström | — | Vattenkraft: fallhöjd, turbin, magasin; för- och nackdelar, nationalälvarna |
 | lr-n7-pekskarmen | fact | teknik | Skärmen som känner fingret | — | Hur en pekskärm känner av fingret (kapacitiv), varför vantar inte fungerar |
-| lr-n7-containern | fact | teknik | Lådan som förändrade världshandeln | — | Containern, standardmått och billigare transporter |
 | lr-n7-golfstrommen | fact | geografi | Därför är Norden inte lika kallt | — | Golfströmmen och havsströmmar som värmepump |
 | lr-n7-antarktis | fact | geografi | Kontinenten som ingen äger | — | Antarktis: is, kyla, forskning och Antarktisfördraget |
 | lr-n7-antibiotika | fact | vetenskap | Läkemedlet som kan sluta fungera | — | Penicillinet och antibiotikaresistens |
