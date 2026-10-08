@@ -136,7 +136,12 @@ Emulator = riktig match via proxyn (lärarklient + `qa-mm-live-sim`), Demo =
   lång task 75 ms (attackstart), 9 % tappade bildrutor → raster/GPU-bundet i
   SwiftShader, inte JS. Bör ses på en riktig skoldator; inget åtgärdat.
 - **Minne**: JS-heap efter GC 2,37 → 2,82 MB efter 34 attacker, DOM-noder 940 → 947,
-  lyssnare 52 → 52. Långkörning: se raden nedan.
+  lyssnare 52 → 52. **Långkörning 102 attacker** (3 varv × 17 × 2 håll, 1280×720, ~13 min):
+  heap 2,36 → 2,98 MB, noder 940 → 959 (dokumentets totala, inkl. frikopplade),
+  lyssnare 52 → 52; scenens DOM ±0 efter varje attack, 1644/1644 ljudkällor avslutade,
+  alla 102 återställda, bildrutor p50 16,7 ms i alla tre varven (ingen försämring).
+  Tillväxten är avtagande (+0,45 MB efter 34, +0,62 MB efter 102) → ingen läcka att tala
+  om; en 30-minutersmatch har typiskt 5–20 attacker.
 - **Ljud**: 548 Web Audio-källor startade, 548 avslutade (inget hänger); med reducerad
   rörelse 528/528. Ljud av → matchen påverkas inte (ljud går bara via `fx()`).
 - **Inga hängande animationer**: antalet oändliga animationer (58 = arena + idle) är
