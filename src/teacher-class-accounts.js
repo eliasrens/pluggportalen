@@ -9,8 +9,9 @@
 // lärarens egen session inte kastas ut) och kopplas till klassen.
 //
 // Här bor även "medlemshanteraren" under ett klasskort: klassens elever med döp
-// om/avatar, ge 🪙, ta ur klassen och ta bort konto – plus panelerna för att
-// skapa nya konton eller lägga till befintliga elever i klassen.
+// om/avatar, ge 🪙, Inloggning (teacher-login-edit.js), ta ur klassen och ta
+// bort konto – plus "Skriv ut inloggningskort" (teacher-login-print.js) och
+// panelerna för att skapa nya konton eller lägga till befintliga elever.
 // ============================================================================
 
 import * as data from "./data.js";
@@ -73,8 +74,8 @@ export function buildAccountPlan({ count, prefix, taken }) {
 /**
  * Skapa elevkonton från färdiga (ev. lärar-redigerade) rader. Varje rad skapar
  * Auth-kontot + students-dokumentet via data.upsertStudent(null, …) och läggs
- * till i `created` som { id, namn, username, password } (lösenordet i klartext –
- * enda tillfället läraren kan se det). Kastar vid fel, men bifogar `err.created`
+ * till i `created` som { id, namn, username, password } (lösenordet i klartext;
+ * det sparas även i studentCredentials för läraren). Kastar vid fel, men bifogar `err.created`
  * med de rader som hann skapas så anroparen inte tappar dem.
  * @param {Array<{namn:string, username:string, password:string}>} entries
  * @param {Function=} onProgress (done, total)
@@ -170,8 +171,9 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
       <div class="mm-main">
         ${avatarSelectHtml(s.avatarId || "fox")}
         <input class="cell mm-namn" value="${esc(s.namn || "")}" placeholder="Elevens namn" />
-        <input class="cell mm-username" value="${esc(s.username || "")}" disabled title="Användarnamn kan inte ändras" />
+        <input class="cell mm-username" value="${esc(s.username || "")}" disabled title="Ändras under Inloggning" />
         <button class="btn ghost small mm-save" title="Spara namn/avatar">${icon("save", 16)}</button>
+        <button class="btn ghost small mm-login" title="Redigera inloggning (användarnamn/lösenord)">${icon("key", 16)}<span>Inloggning</span></button>
         <span class="mm-save-flash" aria-live="polite"></span>
       </div>
       <div class="mm-level"><span class="rl-slot"></span></div>
@@ -191,6 +193,11 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
     </div>`);
 
     wireGiveCoins(row, s);
+    row.querySelector(".mm-login").addEventListener("click", () =>
+      import("./teacher-login-edit.js").then((m) =>
+        m.openLoginEditor(s, { onSaved: () => (row.querySelector(".mm-username").value = s.username) })
+      )
+    );
 
     const saveFlash = row.querySelector(".mm-save-flash");
     row.querySelector(".mm-save").addEventListener("click", async (e) => {
@@ -253,7 +260,8 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
     const prefix = usernamePrefix(cls.name || cls.id);
 
     const wrap = el(`<div class="member-manage">
-      <h3 class="subhead sm">${icon("grad", 18)}<span>Elever i klassen (${members.length})</span></h3>
+      <div class="mm-head"><h3 class="subhead sm">${icon("grad", 18)}<span>Elever i klassen (${members.length})</span></h3>
+        ${members.length ? `<button class="btn small mm-print">${icon("printer", 16)}<span>Skriv ut inloggningskort</span></button>` : ""}</div>
       <div class="mm-level-bulk"></div>
       <div class="mm-list"></div>
       <details class="mm-add">
@@ -275,6 +283,9 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
       </details>
     </div>`);
 
+    wrap.querySelector(".mm-print")?.addEventListener("click", () =>
+      import("./teacher-login-print.js").then((m) => m.openPrintPicker(cls.name || cls.id, members))
+    );
     const listEl = wrap.querySelector(".mm-list");
     // Läsnivå per elev (#211): en väljare direkt i varje elevrad. Vi renderar
     // raderna med en tom platshållare och samlar dem så teacher-student-level.js

@@ -9,6 +9,10 @@
 // Därför fungerar den även i en förhandsvisning som körs på en annan dator/
 // origin (https-proxy). firebase-config.js byts mot en variant som pekar
 // Firestore (host + ssl) och Auth på location. Appkoden i repot ändras INTE.
+// Cloud Functions (lärarens "Redigera inloggning"): POST /<funktionsnamn> →
+// Functions-emulatorn (5001, europe-west1) om den körs (--only functions,auth,
+// firestore); config-varianten sätter globalThis.__PP_FUNCTIONS_URL = origin
+// (data-student-login.js; SDK:t använder bara originet av en custom-domän).
 //
 //   firebase emulators:start --only auth,firestore --project pluggportalen-so-2026
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
@@ -24,6 +28,9 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const PORT = Number(process.env.PORT || 8000);
 const FS = (process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080").split(":");
 const AUTH = (process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099").split(":");
+const FN = (process.env.FUNCTIONS_EMULATOR_HOST || "127.0.0.1:5001").split(":");
+const FN_BASE = `/${process.env.GCLOUD_PROJECT || "pluggportalen-so-2026"}/europe-west1`;
+const FN_NAMES = new Set(["/updateStudentLogin"]);
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 
 const TYPES = {
@@ -40,11 +47,11 @@ async function emulatorConfig() {
     .replace(/export const db = getFirestore\(app\);/,
       `export const db = initializeFirestore(app, { host: location.host, ssl: location.protocol === "https:", experimentalForceLongPolling: true });`)
     .replace(/export const auth = getAuth\(app\);/,
-      `export const auth = getAuth(app);\n__cae(auth, location.origin, { disableWarnings: true });\nconsole.info("[QA] Firebase → emulatorer via", location.origin);`);
+      `export const auth = getAuth(app);\n__cae(auth, location.origin, { disableWarnings: true });\nglobalThis.__PP_FUNCTIONS_URL = location.origin;\nconsole.info("[QA] Firebase → emulatorer via", location.origin);`);
 }
 
-function proxy(req, res, [host, port]) {
-  const up = request({ agent: false, host, port: Number(port), method: req.method, path: req.url, headers: { ...req.headers, host: `${host}:${port}` } }, (r) => {
+function proxy(req, res, [host, port], path = req.url) {
+  const up = request({ agent: false, host, port: Number(port), method: req.method, path, headers: { ...req.headers, host: `${host}:${port}` } }, (r) => {
     res.writeHead(r.statusCode || 502, r.headers);
     r.pipe(res);
   });
@@ -65,6 +72,7 @@ createServer(async (req, res) => {
   if (url.startsWith("/identitytoolkit.googleapis.com") || url.startsWith("/securetoken.googleapis.com") || url.startsWith("/emulator/")) {
     return proxy(req, res, AUTH);
   }
+  if (FN_NAMES.has(url.split("?")[0])) return proxy(req, res, FN, FN_BASE + url);
   try {
     let p = decodeURIComponent(new URL(url, "http://x").pathname);
     if (p.endsWith("/")) p += "index.html";

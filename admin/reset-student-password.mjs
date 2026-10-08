@@ -2,8 +2,9 @@
 // Återställ en elevs lösenord (lokalt, Admin SDK).
 // ----------------------------------------------------------------------------
 // Klienten kan INTE byta en annan användares lösenord (webb-SDK:t saknar
-// behörighet), så lärarens "glömt lösenord"-väg går via detta lokala skript.
-// Refereras från src/data-content.js (upsertStudent-kommentaren).
+// behörighet). I lärarsidan görs det numera via Cloud Functionen
+// updateStudentLogin; detta lokala skript är reservvägen. Det sparade
+// lösenordet i studentCredentials/{uid} uppdateras också (lärarens vy).
 //
 //   node admin/reset-student-password.mjs --id=elev1 --password=<minst6>
 //   node admin/reset-student-password.mjs --username=elev1 --password=<minst6>
@@ -49,6 +50,11 @@ async function main() {
   const uid = await resolveUid();
   console.log(`Mål: ${isEmulator ? "EMULATOR" : "LIVE"} – återställer lösenord för uid ${uid}`);
   await auth.updateUser(uid, { password });
+  const student = await db.collection("students").doc(uid).get();
+  await db.collection("studentCredentials").doc(uid).set(
+    { username: student.get("username") || "", password, updatedAt: new Date() },
+    { merge: true }
+  );
   console.log(`✓ Nytt lösenord satt för ${uid}. Meddela eleven.`);
 }
 

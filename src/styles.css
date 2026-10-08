@@ -5427,7 +5427,8 @@ body.varld-lage .container {
 .acct-editor-actions .ae-flash { font-size: 0.9rem; min-height: 1.1em; }
 
 /* ==========================================================================
-   Inloggningskort – utskriftsvänlig vy (printLoginCards)
+   Inloggningskort – utskriftsvänlig A4-vy (teacher-login-print.js)
+   Skärm: kort i rutnät. Utskrift: 2 × 4 kort per A4 med streckade klipplinjer.
    ========================================================================== */
 .login-cards-overlay {
   position: fixed;
@@ -5450,41 +5451,72 @@ body.varld-lage .container {
 
 .login-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
+/* Korten är fysiska utdelningskort: alltid ljusa, även i lärarens mörka tema. */
 .login-card {
   border: 2px dashed #b9c9e6;
   border-radius: 14px;
   background: #fff;
-  padding: 18px 20px;
+  color: #1f2a44;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
-.login-card .lc-app { font-size: 0.9rem; color: var(--text-svag); font-weight: 600; }
-.login-card .lc-name { font-size: 1.35rem; font-weight: 800; line-height: 1.2; }
+.login-card .lc-head { display: flex; align-items: center; gap: 8px; }
+.login-card .lc-logo { font-size: 1.7rem; line-height: 0; }
+.login-card .lc-app { font-weight: 800; font-size: 1.05rem; color: #3b3350; letter-spacing: 0.2px; }
+.login-card .lc-class {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #5a6c96;
+  background: #eef3fb;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.login-card .lc-name { font-size: 1.3rem; font-weight: 800; line-height: 1.2; }
 .login-card .lc-field {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   border-top: 1px solid #eef2f8;
-  padding-top: 8px;
+  padding-top: 7px;
 }
-.login-card .lc-label { color: var(--text-svag); font-size: 0.9rem; }
+.login-card .lc-label { color: #5b6b82; font-size: 0.9rem; }
 .login-card .lc-value {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-weight: 700;
   font-size: 1.15rem;
   letter-spacing: 0.5px;
 }
-.login-card .lc-class { margin-top: 4px; font-size: 0.85rem; color: var(--text-svag); }
+.login-card .lc-blank {
+  flex: 1;
+  max-width: 60%;
+  border-bottom: 1.5px solid #1f2a44;
+  min-height: 1.2em;
+}
+.login-card .lc-url {
+  margin-top: 3px;
+  text-align: center;
+  font-size: 1rem;
+  color: #3b3350;
+  background: #fff8e1;
+  border: 1px solid #f7c948;
+  border-radius: 10px;
+  padding: 5px 8px;
+}
+.login-card .lc-url b { font-size: 1.2rem; letter-spacing: 0.3px; }
 
 @media print {
+  @page { size: A4 portrait; margin: 10mm; }
   /* Dölj all app-chrome; visa bara korten. */
   body > *:not(.login-cards-overlay) { display: none !important; }
-  .login-cards-overlay {
+  .login-cards-overlay,
+  .teacher-dark.login-cards-overlay {
     position: static;
     padding: 0;
     background: #fff;
@@ -5492,15 +5524,84 @@ body.varld-lage .container {
   }
   .lc-toolbar,
   .lc-hint { display: none !important; }
-  .login-cards-grid { gap: 0; }
+  /* 2 kolumner × 4 rader = 8 kort per sida; delade streckade kanter = klipplinjer. */
+  .login-cards-grid { grid-template-columns: 1fr 1fr; gap: 0; }
   .login-card {
+    box-sizing: border-box;
+    height: 69mm;
     page-break-inside: avoid;
     break-inside: avoid;
-    border: 1px dashed #999;
-    border-radius: 10px;
-    margin: 5mm;
+    border: 1px dashed #888;
+    border-radius: 0;
+    margin: 0;
+    padding: 6mm 7mm;
+    justify-content: center;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
+
+/* ==========================================================================
+   Lärarsidan: Redigera inloggning (teacher-login-edit.js) + välj elever för
+   inloggningskort (teacher-login-print.js). Bygger på .cx-modal + .teacher-dark.
+   ========================================================================== */
+.mm-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.mm-head .subhead.sm { margin: 0; }
+.le-modal .cx-modal,
+.lp-modal .cx-modal { max-width: 560px; }
+.le-current {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--t-surface-2, #f6faff);
+  border: 1px solid var(--t-border, #e6eefa);
+  margin-bottom: 16px;
+}
+.le-cur { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.le-lbl { min-width: 110px; color: var(--t-muted, var(--text-svag)); font-size: 0.9rem; }
+.le-cur-pass { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.le-val {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.le-unknown { color: #f5c26b; font-weight: 600; }
+.le-form { display: flex; flex-direction: column; gap: 12px; }
+.le-field { display: flex; flex-direction: column; gap: 5px; font-size: 0.9rem; color: var(--t-muted, var(--text-svag)); }
+.le-field .cell { box-sizing: border-box; height: 40px; padding: 0 12px; font-size: 1rem; max-width: 100%; }
+.le-pass-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.le-pass-row .cell { flex: 1 1 200px; }
+.le-note { margin: 0; }
+.le-actions { gap: 8px; }
+.le-msg .msg { margin: 0; }
+
+.lp-tools { gap: 6px; margin: 4px 0 10px; }
+.lp-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 46vh;
+  overflow-y: auto;
+  border: 1px solid var(--t-border, #e6eefa);
+  border-radius: 12px;
+}
+.lp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--t-border, #eef2f8);
+}
+.lp-row:last-child { border-bottom: none; }
+.lp-row input { width: 18px; height: 18px; accent-color: var(--t-accent, var(--gron)); }
+.lp-avatar { font-size: 1.3rem; }
+.lp-name { font-weight: 600; }
+.lp-user { color: var(--t-muted, var(--text-svag)); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9rem; }
+.lp-state { margin-left: auto; font-size: 0.8rem; color: var(--t-muted, var(--text-svag)); white-space: nowrap; }
+.lp-state[data-state="known"] { color: #7ee0a6; }
+.lp-state[data-state="unknown"] { color: #f5c26b; }
+.lp-actions { margin-top: 14px; gap: 10px; }
 
 /* ============================================================================
    Mysterybox – kategori-hint i shoppen + öppnings-/reveal-modal
