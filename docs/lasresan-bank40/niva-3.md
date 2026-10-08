@@ -36,8 +36,8 @@ Närmast befintligt: `lr-n3-isen-pa-sjon` (varför sjön fryser uppifrån) grän
 | lr-n3-teckningarna | story | mysterier | Konstnären på tavlan | Signe, Ilyas | Hemliga teckningar på tavlan; Signe avslöjar men bevarar hemligheten |
 | lr-n3-papegojan | story | roliga situationer | Papegojan som lyssnade | Amira, Ludvig, papegojan Kapten | Lånad papegoja härmar storebrors suck om mostern mitt i middagen |
 | lr-n3-mormors-meddelanden | story | roliga situationer | Mormor och de små bilderna | Lovisa, mormor | Mormor tror att skrattande emoji gråter; missförstånd reds ut |
-| lr-n3-handslaget | story | relationer | Det hemliga handslaget | Stella, Molly, Wilda | Svartsjuka när bästisen får en ny vän; delar sitt hemliga handslag |
-| lr-n3-delat-rum | story | relationer | Lakanet mitt i rummet | Juli, Lejla | Bonussystrar delar rum med lakan emellan; åskväder för dem samman |
+| lr-n3-lillebror | story | relationer | Lillebror härmar | Vidar, lillebror Stig | Storebror tröttnar på att bli härmad; teckningen Min hjälte visar varför (#514, ersatte lr-n3-handslaget) |
+| lr-n3-delat-rum | story | relationer | Lakanet mitt i rummet | Juli, kusinen Alba | Kusinen bor hos Juli ett halvår, lakan mitt i rummet; åskväder för dem samman (#514: var bonussyster Lejla) |
 | lr-n3-tagresan | story | äventyr | Ensam på tåget | Isabell, farmor | Första tågresan ensam, träd över spåret, byte till buss med konduktörens hjälp |
 | lr-n3-luftballongen | story | äventyr | Morgonen i luftballongen | Dennis, farbror Ivar, piloten Ulrika | Gryningstur i luftballong som följer vinden, landar bland kor |
 | lr-n3-judon | story | sport | Det gula bältet | Bruno, tränaren Ahmed, Charlie | Gradering till gult bälte, misslyckat kast, försöker igen |
