@@ -209,15 +209,16 @@ export function createWizard(host, { who = "rasmus", facing = "right", reducedMo
     if (idleOn) { loops?.stop(); loops = startIdleLoops(parts, reducedMotion); }
   }
 
-  // --- ankare i värdens koordinater ---------------------------------------------
+  // --- ankare -----------------------------------------------------------------
+  // Returnerar VIEWPORT-px (som getBoundingClientRect) enligt del A:s kontrakt;
+  // arenans scene.point() räknar om till designrummet 1600×900.
   function anchor(name) {
     const [ax, ay] = ANCHOR[name] || ANCHOR.body;
     const x = mirrored ? VIEW.w - ax : ax;
     const r = svg.getBoundingClientRect();
-    const hr = (host.getBoundingClientRect?.() || r);
     return {
-      x: r.left - hr.left + (x / VIEW.w) * r.width,
-      y: r.top - hr.top + (ay / VIEW.h) * r.height,
+      x: r.left + (x / VIEW.w) * r.width,
+      y: r.top + (ay / VIEW.h) * r.height,
     };
   }
 
