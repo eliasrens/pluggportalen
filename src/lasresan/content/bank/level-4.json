@@ -671,7 +671,7 @@
         "id": "q3",
         "question": "Wilmer kände hur ”halsen snördes ihop”. Vad betyder det?",
         "options": [
-          "Han hade blivit förkyld under natten",
+          "Han hade blivit förkyld och fått ont i halsen under natten",
           "Han var törstig efter bussresan",
           "Han höll på att börja skratta",
           "Han blev nervös och fick svårt att prata"
@@ -790,7 +790,7 @@
         "question": "Brodern ”himlade med ögonen”. Vad visade han då?",
         "options": [
           "Att han hade fått något i ögat",
-          "Att han var mycket imponerad av lappen",
+          "Att han var mycket imponerad av lappen som Jelena skrivit",
           "Att han tyckte att lappen var lite fånig",
           "Att han inte kunde läsa vad det stod"
         ],
@@ -801,7 +801,7 @@
         "id": "q5",
         "question": "Hur märks det att Jelena ändrade sig under besöket?",
         "options": [
-          "Hon bad att få åka hem tidigare med bussen",
+          "Hon bad att få åka hem tidigare med bussen än de andra",
           "Hon skrattade åt allt som Rolf berättade för dem",
           "Hon ville inte gå fram till de stora gallren",
           "Hon glömde att hålla för näsan och frågade mycket"
@@ -931,7 +931,7 @@
         "id": "q7",
         "question": "Varför sa mamma att moset och ljusen var bra?",
         "options": [
-          "Hon tyckte att köttbullarna var bäst av allt",
+          "Hon tyckte att köttbullarna var det bästa hon någonsin ätit",
           "Hon ville att Iris skulle äta upp sin mat",
           "Hon hade inte smakat på köttbullarna än",
           "Hon ville att Albin inte skulle känna sig misslyckad"
@@ -1143,7 +1143,7 @@
         "id": "q7",
         "question": "Vad kan man lära sig av klottret på väggarna?",
         "options": [
-          "Hur man bygger ett hus som tål en vulkan",
+          "Hur man bygger ett hus som klarar ett vulkanutbrott",
           "Hur vanliga människor tänkte och skämtade",
           "Exakt hur många som bodde i staden",
           "Varför Vesuvius fick sitt utbrott"
@@ -1156,7 +1156,7 @@
         "question": "Vad menar texten med att ”tiden stannade”?",
         "options": [
           "Alla klockor i staden visar samma tid",
-          "Turisterna får bara stanna en kort stund",
+          "Turisterna får bara stanna en mycket kort stund i staden",
           "Ingen vet när utbrottet egentligen hände",
           "Staden ser ut ungefär som den gjorde år 79"
         ],
@@ -1262,11 +1262,647 @@
         "question": "Vad handlar texten mest om?",
         "options": [
           "Hur man plockar hjortron på rätt sätt",
-          "Varför man inte ska gå ut på myrar",
+          "Varför man aldrig ska gå ut på en myr utan stövlar på fötterna",
           "Hur en mosse fungerar och varför den är viktig",
           "Hur förr i tiden blöjor tillverkades"
         ],
         "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-loppisen",
+    "title": "Ugglan på loppisen",
+    "level": 4,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Valter ville ha en ny skateboard, men den kostade mer än han hade i spargrisen. Därför bestämde han sig för att ha loppis på garageuppfarten en lördag i maj.\n\nHan bar ut gamla spel, böcker, en fotboll och en låda med bilar. Allra sist hittade han ugglan Hoo längst in i garderoben. Han hade sovit med den varje natt tills han var sju år. Han tvekade en stund, men lade den till slut på bordet. Han var ju för stor för gosedjur nu.\n\nDet kom mycket folk. Spelen såldes nästan direkt, och bilarna köptes av en farfar till hans barnbarn. Spargrisen blev tyngre och tyngre.\n\nVid lunchtid stannade en liten flicka framför bordet. Hon pekade på Hoo och tittade upp på sin pappa med stora ögon.\n\nValter kände ett hugg i magen. ”Den kostar hundra kronor”, sa han snabbt. Han hoppades att det var för dyrt.\n\nFlickan räknade sina mynt. Hon hade tolv kronor. Hennes läpp började darra.\n\nValter tittade på Hoo och sedan på flickan. Ugglan hade legat i garderoben i flera år, men den här flickan skulle krama den varje kväll.\n\n”Tolv kronor räcker precis”, sa han.\n\nPå kvällen fattades det fortfarande lite till skateboarden. Ändå kände sig Valter konstigt nöjd när han gick och lade sig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför ordnade Valter en loppis?",
+        "options": [
+          "Familjen skulle flytta till en mindre lägenhet",
+          "Mamma tyckte att hans rum var för stökigt",
+          "Han ville ha pengar till en skateboard",
+          "Han ville hjälpa en kompis att samla pengar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem köpte lådan med bilar?",
+        "options": [
+          "En liten flicka",
+          "En farfar",
+          "En granne",
+          "En storebror"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Valter ”tvekade” innan han lade ugglan på bordet. Vad betyder det?",
+        "options": [
+          "Han var osäker och väntade",
+          "Han blev arg och skyndade sig",
+          "Han glömde bort vad han gjorde",
+          "Han skrattade för sig själv"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Valter ”kände ett hugg i magen”. Vad betyder det här?",
+        "options": [
+          "Han var hungrig eftersom det var lunchtid",
+          "Han hade ätit något som han mådde illa av",
+          "Han hade sprungit för fort till bordet",
+          "Han kände sig plötsligt orolig och ledsen"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa Valter att ugglan kostade hundra kronor?",
+        "options": [
+          "Han trodde att den var mycket värd",
+          "Hans pappa hade bestämt priset",
+          "Han ville egentligen inte sälja den",
+          "Han behövde precis hundra kronor"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sålde Valter ändå ugglan för tolv kronor?",
+        "options": [
+          "Han ville bli av med den så fort som möjligt",
+          "Han förstod att flickan skulle älska den",
+          "Flickans pappa tyckte att det var för dyrt",
+          "Han hade redan fått nog med pengar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför kände sig Valter nöjd fast pengarna inte räckte?",
+        "options": [
+          "Han hade fått tillbaka ugglan",
+          "Han hade sålt allting han hade",
+          "Han tyckte inte om skateboards längre",
+          "Han hade gjort någon annan glad"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket budskap passar bäst till texten?",
+        "options": [
+          "Att ge glädje kan kännas viktigare än pengar",
+          "Man ska aldrig sälja sina gamla gosedjur",
+          "Det lönar sig alltid att sätta höga priser på allt man säljer",
+          "Det är svårt att spara till dyra saker"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-vandrande-pinnen",
+    "title": "Pinnen som försvann",
+    "level": 4,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Klassen 4C hade en vandrande pinne som hette Kvisten. Den bodde i ett terrarium på fönsterbänken och var lika lång som ett finger. Den rörde sig så långsamt att många tyckte att den var tråkig, men Rasmus kunde titta på den i en evighet.\n\nEn måndagsmorgon var terrariet tomt. Locket stod på glänt.\n\n”Någon har tagit den!” ropade Smilla. Snart hade halva klassen en misstänkt. Vissa trodde att sexorna i rummet bredvid hade gjort ett spratt. Andra trodde att vaktmästaren råkat slänga den.\n\nRasmus satte sig i stället vid terrariet och funderade. Kvisten kunde inte flyga, och den var långsam. Den måste alltså finnas någonstans i närheten. Han kom också ihåg att läraren Ingrid brukade mata Kvisten med blad på fredagarna. Kanske hade locket inte stängts ordentligt då.\n\nPå Ingrids skrivbord stod en vas med nyplockade björnbärskvistar. Hon hade tagit med dem för att ha mat till hela veckan.\n\nRasmus gick fram och tittade länge på vasen. Alla kvistar såg likadana ut. Men så rörde sig en av dem, alldeles lite, fast inget fönster var öppet.\n\n”Här är den!” sa Rasmus.\n\nKvisten satt mitt bland de andra kvistarna och åt av ett blad. Den hade gått direkt till maten under helgen.\n\nIngrid skrattade. ”Den har gömt sig så bra att vi letade förbi den i en hel timme.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur lång var Kvisten?",
+        "options": [
+          "Lika lång som en linjal",
+          "Lika lång som ett finger",
+          "Lika lång som en penna",
+          "Lika lång som en hand"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad stod på Ingrids skrivbord?",
+        "options": [
+          "Ett tomt terrarium utan lock",
+          "En låda med mat till fiskarna",
+          "En vas med björnbärskvistar",
+          "En bukett med röda rosor"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Locket stod ”på glänt”. Vad betyder det?",
+        "options": [
+          "Det var lite öppet",
+          "Det var trasigt",
+          "Det var fastlimmat",
+          "Det låg på golvet"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Halva klassen hade ”en misstänkt”. Vad betyder det?",
+        "options": [
+          "Någon som de ville fråga om hjälp",
+          "Någon som hade sett vad som hände",
+          "Någon som hade lovat att leta",
+          "Någon som de trodde hade gjort det"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför trodde Rasmus att Kvisten fanns nära?",
+        "options": [
+          "Han hade hört den prassla bakom terrariet",
+          "Ingrid hade sagt att den gömde sig i rummet",
+          "Den var så långsam att den inte kunde gå långt",
+          "Han hade sett den på fönsterbänken på fredagen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför gick Kvisten till vasen på skrivbordet?",
+        "options": [
+          "Där var det varmt",
+          "Där fanns mat",
+          "Där fanns en kompis",
+          "Där var det mörkt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför var Kvisten så svår att hitta?",
+        "options": [
+          "Den såg ut som kvistarna den satt bland",
+          "Den hade krupit in i en låda",
+          "Sexorna hade gömt den i sitt eget klassrum bredvid",
+          "Den var för liten för att synas"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad gjorde att Rasmus löste mysteriet?",
+        "options": [
+          "Han frågade sexorna i rummet bredvid",
+          "Han fick ett tips från vaktmästaren",
+          "Han satte ut mat och väntade på den",
+          "Han tänkte efter och tittade noga"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-fel-klassrum",
+    "title": "En lektion med sexorna",
+    "level": 4,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det var Benjamins första dag på den nya skolan. Mamma hade följt honom till dörren och sagt att hans klass fanns i sal 32 på andra våningen. Benjamin var så nervös att siffrorna snurrade i huvudet.\n\nHan gick uppför trappan, hittade en dörr där det stod 23 och knackade. En lång lärare med glasögon öppnade. ”Du måste vara den nya eleven”, sa han glatt. ”Sätt dig där borta.”\n\nBenjamin satte sig. Alla i klassrummet verkade väldigt stora. Flera killar hade mörka skuggor på överläppen, och i ett hörn av tavlan stod det ”Välkommen tillbaka, 6A!”. Det märkte Benjamin inte.\n\nLäraren delade ut ett papper med uträkningar som Benjamin aldrig hade sett förut. Han skrev av siffrorna från tavlan och försökte se lugn ut. När läraren frågade vad han tyckte om uppgiften sa han bara: ”Den är utmanande.”\n\nEfter fyrtio minuter tog läraren fram närvarolistan. ”Benjamin … Benjamin … Du står inte här.”\n\n”Jag ska gå i fyran”, sa Benjamin tyst.\n\nDet blev knäpptyst. Sedan började hela klassen skratta, och läraren skrattade mest av alla.\n\nNär Benjamin äntligen kom till sal 32 hade hans riktiga klass redan hört vad som hänt. ”Hur var det i sexan?” frågade en tjej. Benjamin flinade. ”Jobbigt. Jag tror jag stannar här.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "I vilken sal skulle Benjamin egentligen vara?",
+        "options": [
+          "Sal 23",
+          "Sal 32",
+          "Sal 6",
+          "Sal 4"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur förstod läraren att Benjamin satt i fel klass?",
+        "options": [
+          "Hans namn stod inte på närvarolistan",
+          "Benjamin räckte upp handen och berättade",
+          "Benjamins mamma ringde till skolan",
+          "En elev i klassen kände igen honom"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Benjamin sa att uppgiften var ”utmanande”. Vad betyder det?",
+        "options": [
+          "Rolig och kort",
+          "Lätt och enkel",
+          "Tråkig och lång",
+          "Svår och krävande"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Det blev ”knäpptyst” i klassrummet. Vad betyder det?",
+        "options": [
+          "Lite stökigt",
+          "Mycket kallt",
+          "Helt tyst",
+          "Väldigt mörkt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför gick Benjamin in i fel sal?",
+        "options": [
+          "Han var nervös och blandade ihop siffrorna",
+          "Mamma hade sagt fel nummer till honom",
+          "Läraren i sal 23 bjöd in honom",
+          "Det stod inget nummer på hans rätta sal"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför märkte inte läraren att Benjamin var i fel klass från början?",
+        "options": [
+          "Benjamin såg precis lika gammal ut som alla de andra eleverna i sexan",
+          "Han hade redan läst upp alla namn på listan",
+          "Han var för upptagen med att skriva på tavlan",
+          "Han väntade en ny elev och trodde att det var Benjamin"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför svarade Benjamin bara att uppgiften var utmanande?",
+        "options": [
+          "Han tyckte att uppgiften var väldigt rolig",
+          "Han hade redan löst den på en minut",
+          "Han ville inte visa att han inte förstod",
+          "Han ville att läraren skulle ge honom mer"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Hur slutar berättelsen?",
+        "options": [
+          "Benjamin bestämmer sig för att stanna kvar i sexan resten av året",
+          "Benjamin skämtar om det som hänt med sin nya klass",
+          "Benjamin går hem och vill byta skola",
+          "Benjamin blir arg på läraren i sal 23"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-laxen",
+    "title": "Laxens väg hem",
+    "level": 4,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Laxen lever ett liv med två hem: älven och havet. Livet börjar i en strömmande älv, där honan har grävt en grop i gruset på botten och lagt sin rom. Där kläcks de små laxungarna.\n\nUngarna stannar i älven i några år. De gömmer sig bland stenarna och äter insekter. När de är ungefär lika långa som en hand förändras de. De blir silverglänsande och simmar nedströms, hela vägen ut i havet.\n\nI havet finns mycket mer mat. Laxarna äter fisk och växer snabbt. Efter ett eller flera år har de blivit stora och starka. Då börjar den märkligaste delen av resan. De simmar tillbaka mot kusten och letar upp just den älv där de själva föddes. Forskarna tror att laxen bland annat använder luktsinnet. Varje älv luktar lite annorlunda, och laxen minns lukten från sin barndom.\n\nUppför älven är det tungt. Laxen måste simma mot strömmen och kan hoppa högt för att ta sig förbi forsar och små vattenfall. Där människor byggt kraftverk har man ibland gjort laxtrappor, en rad små bassänger som laxen kan hoppa uppför.\n\nVäl framme leker laxarna och lägger ny rom. Många laxar är så utmattade att de dör efteråt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var lägger laxhonan sin rom?",
+        "options": [
+          "Ute i det salta havet",
+          "Under ett vattenfall",
+          "Bland sjögräset vid kusten",
+          "I en grop i gruset"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad äter laxungarna i älven?",
+        "options": [
+          "Insekter",
+          "Fisk",
+          "Gräs",
+          "Rom"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Laxen simmar ”nedströms”. Åt vilket håll simmar den då?",
+        "options": [
+          "Mot strömmen, uppåt älven",
+          "Med strömmen, mot havet",
+          "Rakt ner mot botten",
+          "Runt i cirklar i en sjö"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en ”laxtrappa”?",
+        "options": [
+          "En trappa där fiskare står när de fiskar lax",
+          "Ett sätt att räkna hur stora laxarna blir",
+          "Små bassänger som laxen kan hoppa uppför",
+          "En sorts nät som fångar laxen i älven"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur hittar laxen tillbaka till sin älv, enligt forskarna?",
+        "options": [
+          "Den följer andra fiskar uppför älven",
+          "Den simmar alltid åt norr till slut",
+          "Den använder bland annat luktsinnet",
+          "Den känner igen stenarna på botten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför simmar de unga laxarna ut i havet?",
+        "options": [
+          "Vattnet i älven fryser till is",
+          "De blir jagade av sina föräldrar",
+          "De vill lägga rom i saltvatten",
+          "Det finns mycket mer mat där"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är många laxar så utmattade när de kommit fram?",
+        "options": [
+          "Resan uppför älven mot strömmen är mycket tung",
+          "De har ätit för mycket under tiden i havet",
+          "De har varit tvungna att gräva gropar hela vägen",
+          "De har blivit gamla under resan uppför älven"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menas med att laxen har ”två hem”?",
+        "options": [
+          "Den bor i två olika älvar under livet",
+          "Den lever både i älven och i havet",
+          "Den har ett hem på dagen och ett på natten",
+          "Den byter hem varje gång den får ungar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-vasaskeppet",
+    "title": "Skeppet som sjönk direkt",
+    "level": 4,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "På 1620-talet var Sverige i krig, och kung Gustav II Adolf ville ha ett mäktigt krigsskepp. Det skulle vara stort, ha många kanoner och vara vackert dekorerat med hundratals träskulpturer. Skeppet fick namnet Vasa.\n\nDen 10 augusti 1628 var det dags för den första resan. Mycket folk stod vid stränderna i Stockholm för att titta. Seglen hissades, och skeppet gled ut i hamnen. Men efter bara en kort bit kom en vindby. Vasa lutade kraftigt åt sidan, vatten forsade in genom kanonportarna, och skeppet sjönk. Ett trettiotal människor dog.\n\nVarför sjönk ett så stort skepp? Vasa var för hög och för tung i överdelen. Längst ner i skeppet fanns för lite tyngd som kunde hålla det stadigt. Därför välte det så lätt.\n\nVasa låg på botten i 333 år. Vattnet i Östersjön är inte lika salt som i världshaven, och därför trivs inte skeppsmasken där. Den brukar äta upp trä som ligger i havet. Tack vare det var Vasa förvånansvärt hel när den bärgades år 1961.\n\nI dag står skeppet på Vasamuseet i Stockholm. Där kan man se det nästan helt bevarade skeppet och lära sig hur människor levde på 1600-talet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken kung ville ha skeppet Vasa?",
+        "options": [
+          "Gustav Vasa",
+          "Karl XII",
+          "Gustav II Adolf",
+          "Erik XIV"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år bärgades Vasa?",
+        "options": [
+          "År 1961",
+          "År 1628",
+          "År 1333",
+          "År 1700"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vasa ”bärgades”. Vad betyder det?",
+        "options": [
+          "Skeppet byggdes om",
+          "Skeppet togs upp från botten",
+          "Skeppet målades om",
+          "Skeppet sjönk igen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vatten ”forsade in”. Vad betyder det?",
+        "options": [
+          "Det droppade sakta in",
+          "Det frös till is",
+          "Det rann ut igen",
+          "Det strömmade in snabbt och mycket"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gjorde att Vasa började luta?",
+        "options": [
+          "En kanonkula",
+          "Ett annat skepp",
+          "En stor våg från havet",
+          "En vindby"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför välte Vasa så lätt?",
+        "options": [
+          "Seglen var för små för ett stort skepp",
+          "Det fanns för lite tyngd längst ner",
+          "Sjömännen kunde inte styra rätt",
+          "Skeppet hade alldeles för få kanoner"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför var Vasa så hel efter så lång tid på botten?",
+        "options": [
+          "Skeppsmasken trivs inte i Östersjön",
+          "Skeppet var byggt av sten i stället för trä",
+          "Dykare lagade skeppet under vattnet varje år",
+          "Vattnet i Stockholm är varmare än i havet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad kan man säga om Vasa utifrån texten?",
+        "options": [
+          "Det var det snabbaste skeppet i Sveriges flotta",
+          "Skeppet vann många stora krig åt Sverige innan det till slut sjönk",
+          "En misslyckad resa blev till slut ett viktigt museum",
+          "Det var ett litet skepp utan några kanoner"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-manlandningen",
+    "title": "Fotspåren på månen",
+    "level": 4,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Den 20 juli 1969 satt hundratals miljoner människor framför tv-apparater runt om i världen. De såg suddiga, svartvita bilder från månen. En astronaut klev försiktigt ner för en stege och satte foten i det grå dammet.\n\nAstronauten hette Neil Armstrong, och han var den första människan på månen. Han sa: ”Det här är ett litet steg för en människa, men ett jättekliv för mänskligheten.” Strax efter kom Buzz Aldrin ut. Den tredje astronauten, Michael Collins, stannade i rymdfarkosten som cirklade runt månen.\n\nResan hette Apollo 11 och startade från USA. Det tog ungefär fyra dygn att ta sig från jorden till månens yta.\n\nPå månen finns ingen luft att andas, så astronauterna hade tjocka dräkter med syre på ryggen. Tyngdkraften är bara en sjättedel av den på jorden, och därför skuttade de fram nästan som kängurur. De samlade in stenar, tog bilder och satte upp en flagga.\n\nEfter några timmar ute på ytan lämnade de månen. Fotspåren finns troligen kvar än i dag. På månen blåser det aldrig och regnar aldrig, så det finns inget som suddar ut dem.\n\nFram till 1972 gick tolv människor på månen. Sedan dess har ingen varit där.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem var den första människan på månen?",
+        "options": [
+          "Buzz Aldrin",
+          "Neil Armstrong",
+          "Michael Collins",
+          "Jurij Gagarin"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många människor har gått på månen enligt texten?",
+        "options": [
+          "Tolv",
+          "Tre",
+          "Två",
+          "Elva"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Astronauterna ”skuttade” fram. Hur rörde de sig?",
+        "options": [
+          "Långsamt krypande",
+          "Med stora kliv bakåt",
+          "Helt utan att röra benen",
+          "Med små hopp"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Rymdfarkosten ”cirklade runt månen”. Vad betyder det?",
+        "options": [
+          "Den landade bredvid de andra astronauterna",
+          "Den åkte hem till jorden direkt",
+          "Den åkte runt månen om och om igen",
+          "Den gjorde stora ringar på månens yta"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför behövde astronauterna syre på ryggen?",
+        "options": [
+          "Det är mycket varmt i månens damm",
+          "Syret gjorde dem lättare att bära",
+          "Det finns ingen luft att andas på månen",
+          "De behövde det för att kunna prata"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kunde astronauterna skutta fram som kängurur?",
+        "options": [
+          "Tyngdkraften är mycket svagare än på jorden",
+          "Deras dräkter hade fjädrar under skorna",
+          "Marken på månen är lika mjuk och studsig som en studsmatta",
+          "De hade tränat på att hoppa i flera år"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför finns fotspåren troligen kvar än i dag?",
+        "options": [
+          "Astronauterna gjorde dem extra djupa med flit",
+          "Någon har lagt ett skyddande tak över dem",
+          "Dammet på månen är hårt som betong",
+          "Det finns varken vind eller regn som suddar ut dem"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menade Armstrong med ”ett jättekliv för mänskligheten”?",
+        "options": [
+          "Att hans steg var mycket längre än på jorden",
+          "Att det var ett stort ögonblick för alla människor",
+          "Att det var svårt att kliva ner för stegen",
+          "Att alla människor på jorden snart skulle flytta till månen"
+        ],
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
