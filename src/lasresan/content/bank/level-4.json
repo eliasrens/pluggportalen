@@ -634,5 +634,641 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n4-bokredovisningen",
+    "title": "Boken han aldrig läste",
+    "level": 4,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Alla i 5B skulle hålla en muntlig bokredovisning inför klassen. Wilmer hade lånat en tjock äventyrsbok om en pojke som seglade över havet, men han hade bara läst baksidan. Varje kväll hade något annat känts roligare än att läsa.\n\nPå morgonen före redovisningen satt han i skolbussen och gjorde upp en plan. Han skulle prata om bilden på omslaget, berätta vad baksidan sa och sedan säga att slutet var för spännande för att avslöja.\n\nNär det blev hans tur gick det bra i en minut. Sedan räckte Nour upp handen. ”Vad hette hunden på båten?” frågade hon. ”Jag har också läst den. Hunden är min favorit.”\n\nWilmer kände hur halsen snördes ihop. Han kunde gissa ett namn. Ingen skulle kanske märka något, utom Nour.\n\nHan tittade på läraren Katarina och sedan ner i golvet. ”Jag vet inte”, sa han till slut. ”Jag har inte läst boken. Jag har bara läst baksidan.”\n\nDet blev alldeles tyst. Wilmer väntade på att någon skulle skratta, men ingen gjorde det.\n\nEfter lektionen kallade Katarina fram honom. Hon var inte arg. Hon gav honom två veckor till och ett tips: tio sidor varje kväll innan skärmen fick slås på.\n\nTvå veckor senare redovisade Wilmer igen. Den här gången visste han att hunden hette Kompass, och han berättade om slutet så ivrigt att Nour fick påminna honom om att inte avslöja det.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad handlade boken som Wilmer hade lånat om?",
+        "options": [
+          "En hund som gick vilse i skogen",
+          "En flicka som vann en simtävling",
+          "En pojke som seglade över havet",
+          "En klass som åkte på lägerskola"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket tips fick Wilmer av Katarina?",
+        "options": [
+          "Att läsa tio sidor varje kväll",
+          "Att lyssna på boken som ljudbok",
+          "Att läsa i skolbussen varje morgon",
+          "Att välja en kortare och lättare bok"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Wilmer kände hur ”halsen snördes ihop”. Vad betyder det?",
+        "options": [
+          "Han hade blivit förkyld under natten",
+          "Han var törstig efter bussresan",
+          "Han höll på att börja skratta",
+          "Han blev nervös och fick svårt att prata"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Wilmer berättade om slutet ”ivrigt”. Hur berättade han då?",
+        "options": [
+          "Långsamt och osäkert",
+          "Med stor lust och energi",
+          "Tyst och nästan viskande",
+          "Kort och lite tråkigt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var Nours fråga så svår för Wilmer?",
+        "options": [
+          "Han hörde inte vad hon sa",
+          "Han tyckte inte om hundar",
+          "Svaret fanns inte på baksidan",
+          "Katarina hade förbjudit frågor"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför gissade Wilmer inte bara ett namn på hunden?",
+        "options": [
+          "Han kunde inte komma på något hundnamn alls",
+          "Han ville inte ljuga, och Nour skulle märka det",
+          "Katarina hade redan sagt det rätta namnet högt",
+          "Han trodde att boken inte hade någon hund"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur reagerade Katarina på att Wilmer inte hade läst boken?",
+        "options": [
+          "Hon blev arg och gav honom underkänt",
+          "Hon skrattade tillsammans med klassen",
+          "Hon ringde genast hem till hans föräldrar",
+          "Hon gav honom en ny chans"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket budskap passar bäst till texten?",
+        "options": [
+          "Det lönar sig att vara ärlig",
+          "Man ska bara läsa korta böcker",
+          "Det är bäst att alltid gissa",
+          "Baksidan säger allt om en bok"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-reningsverket",
+    "title": "Vart tar vattnet vägen?",
+    "level": 4,
+    "textType": "story",
+    "topic": "skola",
+    "body": "När läraren berättade att klassen skulle göra studiebesök på reningsverket stönade Jelena högt. ”Ska vi åka och titta på bajs?” sa hon, och halva klassen skrattade.\n\nRedan när bussen stannade kände hon lukten. Den var inte lika hemsk som hon trott, men den var tydlig. Guiden Rolf hade gula stövlar och ett stort leende.\n\n”Allt ni spolar ner hamnar här till slut”, sa han. ”Vi gör vattnet så rent att det kan släppas ut i havet igen.”\n\nFörst fick de se stora galler som fångade upp skräp. Där hängde trasor, plastbitar och massor av våtservetter. ”Våtservetter är vår värsta fiende”, sa Rolf. ”De löses inte upp som toapapper. De trasslar in sig i pumparna.”\n\nSedan gick de förbi bassänger där smutsen fick sjunka till botten, och andra där små bakterier åt upp det som fanns kvar i vattnet. Jelena glömde att hålla för näsan. Hon ställde fråga efter fråga, tills Rolf skrattade och undrade om hon ville börja jobba där.\n\nSist fick de se vattnet som var klart. Det var nästan genomskinligt.\n\nPå kvällen satte Jelena upp en lapp på toaletten hemma: ”Bara kiss, bajs och toapapper. Inget annat!” Hennes storebror himlade med ögonen, men han slängde sin våtservett i soporna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hade guiden Rolf på fötterna?",
+        "options": [
+          "Gula stövlar",
+          "Svarta gympaskor",
+          "Bruna kängor",
+          "Blå tofflor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde de små bakterierna i bassängerna?",
+        "options": [
+          "De gjorde vattnet varmare inför havet",
+          "De fångade upp plast och våtservetter",
+          "De fick vattnet att lukta mindre illa",
+          "De åt upp det som fanns kvar i vattnet"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Jelena ”stönade” när hon hörde om resan. Vad betyder det?",
+        "options": [
+          "Hon hoppade av glädje",
+          "Hon lät missnöjd",
+          "Hon blev rädd",
+          "Hon nickade glatt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Brodern ”himlade med ögonen”. Vad visade han då?",
+        "options": [
+          "Att han hade fått något i ögat",
+          "Att han var mycket imponerad av lappen",
+          "Att han tyckte att lappen var lite fånig",
+          "Att han inte kunde läsa vad det stod"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur märks det att Jelena ändrade sig under besöket?",
+        "options": [
+          "Hon bad att få åka hem tidigare med bussen",
+          "Hon skrattade åt allt som Rolf berättade för dem",
+          "Hon ville inte gå fram till de stora gallren",
+          "Hon glömde att hålla för näsan och frågade mycket"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför slängde brodern sin våtservett i soporna?",
+        "options": [
+          "Jelenas lapp fick honom att tänka om",
+          "Toaletten hemma var redan stopp",
+          "Rolf hade ringt hem till familjen",
+          "Han ville inte att lappen skulle synas"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är våtservetter ett problem på reningsverket?",
+        "options": [
+          "De gör att vattnet luktar mycket starkare",
+          "De löses inte upp och trasslar in sig i pumparna",
+          "De äter upp de nyttiga bakterierna i bassängerna",
+          "De gör vattnet i havet varmare än förut"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad lärde sig Jelena framför allt av besöket?",
+        "options": [
+          "Hur man blir guide på ett reningsverk",
+          "Att reningsverk luktar värre än man tror",
+          "Vad man får spola ner i toaletten",
+          "Varför havet är salt och inte sött"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-middagen",
+    "title": "Middagen som Albin lagade",
+    "level": 4,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Mamma och pappa skulle jobba sent på fredagen, och Albin hade lovat att laga middag till hela familjen. Han hade valt köttbullar med potatismos, för det var hans favorit.\n\nReceptet var skrivet för två personer. De var fem i familjen, så Albin räknade i huvudet. ”Två och en halv gånger mer av allt”, mumlade han och började blanda.\n\nAllt gick bra tills han kom till saltet. Han var trött på att räkna och hällde i en hel matsked i stället för en tesked. Smeten såg likadan ut som förut, så han märkte ingenting.\n\nKöttbullarna blev runda och bruna. Moset blev slätt. Albin dukade med tända ljus och vikta servetter, och när föräldrarna kom hem väntade middagen på bordet.\n\nPappa tog den första tuggan. Han tuggade länge. Sedan drack han ett helt glas vatten i ett svep. Lillasyster Iris spottade ut sin köttbulle på tallriken och ropade: ”Den smakar hav!”\n\nAlbin smakade själv och grimaserade. Han förstod genast vad han hade gjort.\n\nMamma började skratta, och snart skrattade alla. ”Moset är i alla fall perfekt”, sa hon. ”Och ljusen.”\n\nDen kvällen åt familjen potatismos med smör och ägg. På lördagen stod Albin vid spisen igen, och den här gången läste han varje rad i receptet två gånger.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många personer var skrivet i receptet för?",
+        "options": [
+          "Två",
+          "Tre",
+          "Fem",
+          "Fyra"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad åt familjen till slut på fredagskvällen?",
+        "options": [
+          "Köttbullar med mycket ketchup",
+          "Pizza som pappa beställde hem",
+          "Smörgåsar med ost och gurka",
+          "Potatismos med smör och ägg"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Pappa drack vattnet ”i ett svep”. Vad betyder det?",
+        "options": [
+          "Han drack långsamt och försiktigt",
+          "Han spillde ut det mesta av vattnet",
+          "Han drack allt på en gång",
+          "Han drack bara en liten slurk"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Albin ”grimaserade” när han smakade. Vad gjorde han?",
+        "options": [
+          "Han log stort och nöjt",
+          "Han gjorde en ful min",
+          "Han började hosta högt",
+          "Han blundade och njöt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför märkte Albin inte felet när han lagade maten?",
+        "options": [
+          "Han hade glömt att läsa receptet alls",
+          "Iris pratade med honom hela tiden",
+          "Smeten såg ut precis som vanligt",
+          "Saltet var gömt längst in i skåpet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menade Iris med att köttbullen ”smakar hav”?",
+        "options": [
+          "Att den var alldeles för salt",
+          "Att den smakade som fisk",
+          "Att den var blöt och kall",
+          "Att den var godare än vanligt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför sa mamma att moset och ljusen var bra?",
+        "options": [
+          "Hon tyckte att köttbullarna var bäst av allt",
+          "Hon ville att Iris skulle äta upp sin mat",
+          "Hon hade inte smakat på köttbullarna än",
+          "Hon ville att Albin inte skulle känna sig misslyckad"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar slutet om Albin?",
+        "options": [
+          "Han bestämde sig för att aldrig mer laga mat",
+          "Han lärde sig av misstaget och försökte igen",
+          "Han tyckte att föräldrarna borde laga maten själva",
+          "Han ville bara laga potatismos i fortsättningen"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-blavalen",
+    "title": "Havets största jätte",
+    "level": 4,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Blåvalen är det största djur som vi vet har levt på jorden, större än alla dinosaurier. En vuxen blåval kan bli omkring 30 meter lång. Det är ungefär lika långt som tre bussar efter varandra.\n\nTrots att blåvalen lever i havet är den ingen fisk. Den är ett däggdjur, precis som vi. Den måste upp till ytan för att andas luft genom blåshålen på huvudet. När den andas ut sprutar en hög kaskad av vattenånga upp i luften.\n\nDet märkliga är att världens största djur äter några av havets minsta djur. Blåvalen äter krill, små kräftdjur som liknar räkor. Den har inga tänder. I stället har den barder, långa plattor som hänger från överkäken som en kam. Valen tar en enorm munfull vatten och pressar sedan ut vattnet genom barderna. Krillet fastnar och kan sväljas. På en dag kan en blåval äta flera ton krill.\n\nBlåvalar kommunicerar med djupa ljud som kan höras mycket långt bort under vattnet.\n\nFör hundra år sedan jagades blåvalarna hårt för sitt späcks skull, och de var nära att dö ut. I dag är de fridlysta, och långsamt har de blivit fler. Men de är fortfarande ovanliga.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur lång kan en vuxen blåval bli?",
+        "options": [
+          "Omkring 30 meter",
+          "Omkring 10 meter",
+          "Omkring 60 meter",
+          "Omkring 100 meter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad äter blåvalen?",
+        "options": [
+          "Stora fiskar",
+          "Sjögräs",
+          "Sälar",
+          "Krill"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ”barder” enligt texten?",
+        "options": [
+          "Små tänder längst bak i munnen",
+          "Långa plattor som silar vattnet",
+          "Hål på huvudet som valen andas genom",
+          "Fenor som valen styr med i vattnet"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Blåvalarna är ”fridlysta”. Vad betyder det?",
+        "options": [
+          "Att de lever i ljust vatten",
+          "Att de bara simmar på dagen",
+          "Att man inte får jaga dem",
+          "Att man får se dem i djurparker"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför måste blåvalen upp till ytan?",
+        "options": [
+          "Den måste andas luft",
+          "Den jagar fåglar där",
+          "Den vill värma sig i solen",
+          "Den letar efter sina ungar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan blåvalen leva på så små djur som krill?",
+        "options": [
+          "Krillet är mycket större än det ser ut",
+          "Den får i sig väldigt många på en gång",
+          "Den äter också fisk när krillet tar slut",
+          "Den behöver inte särskilt mycket mat"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför har blåvalarna blivit fler de senaste åren?",
+        "options": [
+          "Det finns mer krill i haven",
+          "De har fått nya tänder",
+          "Haven har blivit kallare",
+          "De får inte längre jagas"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken rubrik skulle också passa till texten?",
+        "options": [
+          "Därför är blåvalen en sorts fisk",
+          "Blåvalen jagar hellre än den äter",
+          "En jätte som lever på små kräftdjur",
+          "Hur dinosaurierna dog ut i havet"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-pompeji",
+    "title": "Staden under askan",
+    "level": 4,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För nästan 2 000 år sedan låg staden Pompeji i södra Italien. Där bodde tusentals människor. De handlade på torget, gick på teater och badade i stora badhus. Ovanför staden reste sig berget Vesuvius. Ingen förstod att det var en vulkan som snart skulle vakna.\n\nDet var år 79 efter Kristus. Plötsligt exploderade toppen av berget. Ett jättelikt moln av aska och sten steg mot himlen och föll sedan ner över staden. Många hann fly, men andra stannade kvar. Efter bara några dygn var Pompeji begravt under flera meter aska.\n\nSedan glömdes staden bort i mer än 1 500 år. Först på 1700-talet började man gräva fram den på riktigt. Askan hade skyddat husen som ett tjockt täcke. Forskarna hittade väggmålningar i starka färger, gator med stenar att kliva på och till och med bröd som blivit kvar i en ugn. På husväggarna fanns klotter, till exempel skämt och reklam för val.\n\nI askan fanns också hålrum efter människor och djur. Forskarna fyllde hålen med gips och fick då fram formen av kropparna.\n\nI dag besöker miljontals turister Pompeji varje år. Det är nästan som att gå runt i en stad där tiden stannade.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket år fick Vesuvius sitt utbrott?",
+        "options": [
+          "År 1700 efter Kristus",
+          "År 1500 efter Kristus",
+          "År 2000 före Kristus",
+          "År 79 efter Kristus"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hittade forskarna i en ugn?",
+        "options": [
+          "Mynt",
+          "Gips",
+          "Bröd",
+          "Smycken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder ”hålrum” i texten?",
+        "options": [
+          "Gamla källare under husen",
+          "Tomma utrymmen i askan",
+          "Rum där man förvarade aska",
+          "Stora gropar efter stenar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Pompeji blev ”begravt”. Vad betyder det här?",
+        "options": [
+          "Täckt helt och hållet",
+          "Förstört av en brand",
+          "Lämnat av alla som bodde där",
+          "Flyttat till en annan plats"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför finns så mycket kvar av Pompeji än i dag?",
+        "options": [
+          "Askan skyddade husen i många hundra år",
+          "Människorna byggde nya hus ovanpå de gamla",
+          "Romarna lagade allt direkt efter utbrottet",
+          "Staden låg långt ifrån själva vulkanen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför stannade människor kvar i staden?",
+        "options": [
+          "De ville gå på teater samma kväll",
+          "De visste att askan inte var farlig",
+          "De förstod inte att berget var en vulkan",
+          "Forskarna hade sagt åt dem att stanna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad kan man lära sig av klottret på väggarna?",
+        "options": [
+          "Hur man bygger ett hus som tål en vulkan",
+          "Hur vanliga människor tänkte och skämtade",
+          "Exakt hur många som bodde i staden",
+          "Varför Vesuvius fick sitt utbrott"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad menar texten med att ”tiden stannade”?",
+        "options": [
+          "Alla klockor i staden visar samma tid",
+          "Turisterna får bara stanna en kort stund",
+          "Ingen vet när utbrottet egentligen hände",
+          "Staden ser ut ungefär som den gjorde år 79"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-mossen",
+    "title": "Marken som är en svamp",
+    "level": 4,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Om du går ut på en mosse kan det kännas som att gå på en madrass. Marken gungar och vatten trycks upp runt skorna. En mosse är en sorts myr, en blöt mark där marken nästan alltid är full av vatten. I Sverige finns det väldigt många myrar, särskilt i norr.\n\nDen viktigaste växten på mossen är vitmossa. Den fungerar som en svamp och kan suga upp många gånger sin egen vikt i vatten. Förr i tiden torkade man vitmossa och använde den som blöjor till små barn.\n\nI mossen finns nästan inget syre, och vattnet är surt. Därför ruttnar inte döda växter som på andra platser. De ligger kvar och pressas ihop till torv. Torven växer långsamt, bara omkring en millimeter om året. En mosse som är flera meter djup har alltså vuxit i tusentals år.\n\nEftersom så lite bryts ner kan mossar bevara gamla saker. Man har hittat träskidor, verktyg och smör som legat där i hundratals eller till och med tusentals år.\n\nPå mossen växer också hjortron och den lilla växten sileshår, som fångar insekter med klibbiga hår.\n\nMossar är viktiga för klimatet. Torven lagrar stora mängder kol. När en mosse dikas ut och torkar släpps kolet ut i luften.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken växt är viktigast på mossen?",
+        "options": [
+          "Ljung",
+          "Vitmossa",
+          "Blåbär",
+          "Gräs"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur fort växer torven ungefär?",
+        "options": [
+          "En millimeter om året",
+          "En centimeter om året",
+          "En millimeter i veckan",
+          "En meter på hundra år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder det att marken ”gungar”?",
+        "options": [
+          "Den är hård som sten",
+          "Den är mycket varm",
+          "Den är täckt av is",
+          "Den rör sig upp och ner"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ”torv” enligt texten?",
+        "options": [
+          "En sorts fågel som bor på myrar",
+          "Små insekter som lever i vattnet",
+          "Döda växter som pressats ihop",
+          "Ett verktyg som man gräver med"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur fångar sileshåret sin mat?",
+        "options": [
+          "Med vassa taggar",
+          "Med långa rötter",
+          "Med söta bär",
+          "Med klibbiga hår"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan man hitta gamla skidor och smör i en mosse?",
+        "options": [
+          "Människor gömde saker där för att leka",
+          "Lite syre gör att nästan inget ruttnar",
+          "Vitmossan gör allt hårt som sten",
+          "Mossen är för blöt för att någon ska gå där"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är det dåligt för klimatet att dika ut en mosse?",
+        "options": [
+          "Kolet i torven släpps ut i luften",
+          "Hjortronen slutar att växa där",
+          "Vattnet blir surare än förut",
+          "Djuren kan inte längre gå över mossen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man plockar hjortron på rätt sätt",
+          "Varför man inte ska gå ut på myrar",
+          "Hur en mosse fungerar och varför den är viktig",
+          "Hur förr i tiden blöjor tillverkades"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
