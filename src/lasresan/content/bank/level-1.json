@@ -1884,5 +1884,743 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n1-myrstacken",
+    "title": "Myrornas stack",
+    "level": 1,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Myror lever tillsammans i stora grupper. En sådan grupp kallas ett samhälle. I skogen bygger många myror en stack av barr och små pinnar.\n\nI stacken finns en eller flera drottningar. Det är de som lägger alla ägg. De andra myrorna kallas arbetare. De hämtar mat, bygger och tar hand om äggen.\n\nMyror är mycket starka för sin storlek. En myra kan bära saker som är tyngre än den själv.\n\nMyror kan inte prata. I stället lämnar de doftspår på marken. När en myra hittar mat följer de andra doften dit. Därför går myrorna ofta i långa rader.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad bygger myrorna stacken av?",
+        "options": [
+          "Lera och stenar",
+          "Sand och snäckor",
+          "Gräs och fjädrar",
+          "Barr och små pinnar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem lägger äggen i stacken?",
+        "options": [
+          "Arbetarna",
+          "Drottningarna",
+          "Kungen",
+          "De unga myrorna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder samhälle i texten?",
+        "options": [
+          "En myra som bor ensam",
+          "En väg genom skogen",
+          "En hög med barr",
+          "En grupp som bor ihop"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gör arbetarna?",
+        "options": [
+          "Lägger alla ägg",
+          "Sover hela dagen",
+          "Hämtar mat och bygger",
+          "Flyger till nya stackar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kan en myra bära?",
+        "options": [
+          "Bara små korn av sand",
+          "Mer än sin egen vikt",
+          "Ingenting alls",
+          "Bara sina egna ägg"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför går myror ofta i långa rader?",
+        "options": [
+          "De följer ett doftspår",
+          "De ser varandra i mörkret",
+          "Drottningen säger åt dem",
+          "De tycker om att tävla"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-grodan",
+    "title": "Från ägg till groda",
+    "level": 1,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "En groda börjar sitt liv i vattnet. På våren lägger grodhonan massor av ägg i en damm. Äggen ligger i en klump som ser ut som gelé. Den kallas grodrom.\n\nUr äggen kläcks små grodyngel. De har en lång svans och simmar som fiskar. De andas med gälar under vattnet.\n\nSedan händer något märkligt. Ynglet får bakben och sedan framben. Svansen blir mindre och mindre. Till slut är den borta.\n\nNu är det en liten groda. Den kan andas luft och hoppa upp på land. Där fångar den insekter med sin klibbiga tunga.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När lägger grodan sina ägg?",
+        "options": [
+          "På hösten",
+          "På våren",
+          "På vintern",
+          "Mitt i sommaren"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är grodrom?",
+        "options": [
+          "En sorts damm",
+          "Grodans svans",
+          "En liten fisk",
+          "Grodans ägg"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Hur andas grodynglen?",
+        "options": [
+          "Med gälar",
+          "Med näsan ovanför vattnet",
+          "Genom svansen",
+          "Med munnen i luften"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vilka ben växer ut först?",
+        "options": [
+          "Frambenen",
+          "Alla på en gång",
+          "Bakbenen",
+          "Inga ben växer ut"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad händer med ynglets svans?",
+        "options": [
+          "Den blir längre",
+          "Den blir ett femte ben",
+          "Den försvinner",
+          "Den blir grön"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur grodor fångar insekter",
+          "Hur ett yngel blir en groda",
+          "Varför dammar är viktiga",
+          "Hur fiskar simmar"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-regnbagen",
+    "title": "Färgerna i regnbågen",
+    "level": 1,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Har du sett en regnbåge? Den syns oftast när solen skiner samtidigt som det regnar.\n\nSolens ljus ser vitt ut. Men det vita ljuset är egentligen en blandning av många färger. När ljuset går in i en regndroppe delas det upp. Då syns färgerna var för sig.\n\nI en regnbåge kommer färgerna alltid i samma ordning: rött, orange, gult, grönt, blått och lila. Rött är ytterst i bågen.\n\nVill du se en regnbåge ska du ställa dig med solen i ryggen och titta mot regnet. Du kan också göra en egen med en vattenslang en solig dag.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När syns en regnbåge oftast?",
+        "options": [
+          "När det är mörkt och kallt",
+          "När det åskar på natten",
+          "När det snöar mycket",
+          "När det är sol och regn"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är det vita ljuset egentligen?",
+        "options": [
+          "En blandning av färger",
+          "Bara gult ljus",
+          "Ljus från månen",
+          "Vatten som lyser"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilken färg är ytterst i regnbågen?",
+        "options": [
+          "Rött",
+          "Lila",
+          "Grönt",
+          "Gult"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Ljuset delas upp i droppen. Vad betyder det?",
+        "options": [
+          "Ljuset blir mörkare",
+          "Droppen fryser",
+          "Ljuset slocknar",
+          "Färgerna skiljs åt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Var ska solen vara när du letar efter en regnbåge?",
+        "options": [
+          "Framför dig",
+          "Bakom dig",
+          "Rakt ovanför dig",
+          "Under molnen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Hur kan du göra en egen regnbåge?",
+        "options": [
+          "Med en lampa i mörkret",
+          "Med en spegel i regnet",
+          "Med en vattenslang i solen",
+          "Med färgpennor på en sten"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-hostloven",
+    "title": "När löven byter färg",
+    "level": 1,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "På hösten byter många träd färg. Bladen blir gula, röda och bruna. Sedan faller de av. Varför händer det?\n\nPå sommaren är bladen gröna. Det beror på ett grönt ämne i bladen. Det hjälper trädet att göra näring av solljus.\n\nPå hösten blir dagarna kortare och kallare. Då tar trädet tillbaka det gröna ämnet. Nu syns andra färger, som gult och rött.\n\nSedan släpper trädet sina blad. Så klarar det vintern bättre. Bladen på marken blir till ny jord.\n\nGran och tall har barr i stället för blad. Barren sitter kvar på vintern. Därför är de gröna hela året.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka färger får bladen på hösten?",
+        "options": [
+          "Blått och lila",
+          "Vitt och grått",
+          "Svart och rosa",
+          "Gult, rött och brunt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hjälper det gröna ämnet trädet med?",
+        "options": [
+          "Att göra näring av solljus",
+          "Att stå emot stormar",
+          "Att hålla bladen kalla",
+          "Att locka till sig fåglar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur är dagarna på hösten?",
+        "options": [
+          "Längre och varmare",
+          "Ljusare och torrare",
+          "Kortare och kallare",
+          "Blåsigare och varmare"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför släpper trädet sina blad?",
+        "options": [
+          "För att bladen blir för tunga",
+          "För att klara vintern",
+          "För att fåglarna äter dem",
+          "För att det vill bli brunt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad händer med bladen på marken?",
+        "options": [
+          "De blir gröna igen",
+          "De blir till jord",
+          "De flyger upp i trädet",
+          "De blir till is"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vilka träd är gröna hela året?",
+        "options": [
+          "Björk och ek",
+          "Lönn och asp",
+          "Gran och tall",
+          "Rönn och lind"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-solen",
+    "title": "Vår närmaste stjärna",
+    "level": 1,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Solen ser liten ut på himlen. Men den är enormt stor. Mer än en miljon jordklot skulle få plats i den.\n\nSolen är en stjärna, precis som stjärnorna vi ser på natten. Den ser bara större ut för att den är mycket närmare oss.\n\nSolen är ett jättestort klot av heta gaser. Den ger oss ljus och värme. Utan solen skulle det vara mörkt och iskallt på jorden. Inga växter skulle kunna växa.\n\nTitta aldrig rakt in i solen, inte ens med solglasögon. Ljuset är så starkt att det kan skada ögonen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många jordklot skulle få plats i solen?",
+        "options": [
+          "Mer än en miljon",
+          "Ungefär tio",
+          "Ungefär hundra",
+          "Bara ett"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är solen?",
+        "options": [
+          "En planet",
+          "En måne",
+          "Ett moln",
+          "En stjärna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ser solen större ut än andra stjärnor?",
+        "options": [
+          "Den är varmare",
+          "Den är gul",
+          "Den är närmare oss",
+          "Den lyser på dagen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Solen är enormt stor. Vad betyder enormt?",
+        "options": [
+          "Bara lite",
+          "Lagom",
+          "Inte alls",
+          "Väldigt mycket"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur skulle det vara på jorden utan solen?",
+        "options": [
+          "Mörkt och iskallt",
+          "Varmt och ljust",
+          "Blött och blåsigt",
+          "Precis som nu"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ska man inte titta rakt in i solen?",
+        "options": [
+          "Man blir solbränd",
+          "Ögonen kan skadas",
+          "Solen kan slockna",
+          "Man blir trött"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-dag-och-natt",
+    "title": "Därför blir det natt",
+    "level": 1,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Varför blir det natt? Det beror på att jorden snurrar runt sig själv. Den snurrar ett helt varv på ett dygn. Ett dygn är en dag och en natt, ungefär 24 timmar.\n\nSolen lyser bara på ena sidan av jorden i taget. Där är det dag. På den andra sidan är det mörkt. Där är det natt.\n\nNär det är mitt på dagen i Sverige är det natt i länder på andra sidan jorden. Där sover barnen medan du äter lunch.\n\nDet känns som att solen rör sig över himlen. Men det är jorden som snurrar, inte solen som flyttar sig.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur lång tid tar det för jorden att snurra ett varv?",
+        "options": [
+          "Ett dygn",
+          "En timme",
+          "En vecka",
+          "Ett år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är ett dygn?",
+        "options": [
+          "Bara en natt",
+          "En hel vecka",
+          "En dag och en natt",
+          "Från lunch till middag"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q3",
+        "question": "Varför är det natt på ena sidan av jorden?",
+        "options": [
+          "Månen skymmer solen",
+          "Solen lyser inte där",
+          "Det är moln där",
+          "Folk släcker lamporna"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gör barnen på andra sidan jorden när du äter lunch?",
+        "options": [
+          "De äter också lunch",
+          "De går till skolan",
+          "De äter frukost",
+          "De sover"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Om det är natt i Sverige, hur är det då på andra sidan jorden?",
+        "options": [
+          "Där är det också natt",
+          "Där är det dag",
+          "Där är det kväll",
+          "Där snöar det"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är det som egentligen rör sig?",
+        "options": [
+          "Jorden",
+          "Solen",
+          "Månen",
+          "Molnen"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-magneten",
+    "title": "Magnetens hemliga kraft",
+    "level": 1,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "En magnet kan dra till sig saker utan att röra vid dem. Det ser nästan ut som trolleri.\n\nMen en magnet drar inte till sig allt. Den fastnar på saker av järn, till exempel spikar och gem. Den fastnar inte på trä, plast, papper eller glas.\n\nVarje magnet har två ändar som kallas poler. Den ena heter nordpol och den andra sydpol. Om du håller två olika poler mot varandra drar de ihop sig. Om du håller två lika poler mot varandra knuffar de bort varandra.\n\nEn kompass har en liten magnetnål inuti. Den pekar mot norr.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad fastnar en magnet på?",
+        "options": [
+          "Saker av trä",
+          "Saker av plast",
+          "Saker av glas",
+          "Saker av järn"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad kallas magnetens två ändar?",
+        "options": [
+          "Spetsar",
+          "Hörn",
+          "Poler",
+          "Kanter"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer om du håller två lika poler mot varandra?",
+        "options": [
+          "De drar ihop sig",
+          "De börjar lysa",
+          "De blir varma",
+          "De knuffar bort varandra"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Det ser ut som trolleri. Vad menas?",
+        "options": [
+          "Det ser farligt ut",
+          "Det ser ut som magi",
+          "Det ser tråkigt ut",
+          "Det ser trasigt ut"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad finns inuti en kompass?",
+        "options": [
+          "En liten lampa",
+          "En klocka",
+          "En liten magnetnål",
+          "En bit trä"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Du har en spik och en plastsked. Vilken fastnar på magneten?",
+        "options": [
+          "Spiken",
+          "Plastskeden",
+          "Båda två",
+          "Ingen av dem"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-vattnets-former",
+    "title": "Is, vatten och ånga",
+    "level": 1,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Vatten kan finnas på tre olika sätt. Det kan vara flytande, fast eller en gas.\n\nDet vatten vi dricker är flytande. Det rinner och tar formen av glaset.\n\nNär vatten blir kallt nog fryser det till is. Det händer vid noll grader. Is är fast. Den har en egen form och rinner inte.\n\nNär vatten blir mycket varmt kokar det. Då blir det till vattenånga. Ånga är en gas som stiger upp i luften.\n\nIs kan smälta och bli vatten igen. Och när ånga når ett kallt fönster blir den till små droppar. Det är samma vatten hela tiden.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "På hur många sätt kan vatten finnas?",
+        "options": [
+          "Tre",
+          "Två",
+          "Fyra",
+          "Fem"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vid hur många grader fryser vatten?",
+        "options": [
+          "Tio grader",
+          "Noll grader",
+          "Hundra grader",
+          "Tjugo grader"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vatten är flytande. Vad betyder det?",
+        "options": [
+          "Att det är hårt",
+          "Att det är varmt",
+          "Att det rinner",
+          "Att det flyger"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad blir vatten när det kokar?",
+        "options": [
+          "Is",
+          "Snö",
+          "Salt",
+          "Ånga"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Var kan ånga bli till droppar igen?",
+        "options": [
+          "I en varm ugn",
+          "Inne i en brasa",
+          "På ett kallt fönster",
+          "På en het spis"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar texten om is, vatten och ånga?",
+        "options": [
+          "Allt är samma ämne",
+          "Allt är lika varmt",
+          "Bara is är vatten",
+          "Ånga är ett slags is"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n1-stenaldern",
+    "title": "Verktyg av sten",
+    "level": 1,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För mycket länge sedan kunde människorna inte göra saker av metall. De gjorde sina verktyg av sten, ben och trä. Därför kallar vi den tiden stenåldern.\n\nAv flinta gjorde de yxor och knivar. Flinta är en hård sten som kan bli skarp som glas.\n\nI början jagade människorna djur, fiskade och plockade bär och nötter. De flyttade dit maten fanns.\n\nDe kunde göra upp eld. Elden gav värme och ljus, och över elden kunde de laga mat.\n\nSenare började människorna odla och ha djur. Då kunde de bo kvar på samma plats.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gjorde människorna sina verktyg av?",
+        "options": [
+          "Järn och koppar",
+          "Plast och glas",
+          "Guld och silver",
+          "Sten, ben och trä"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gjorde de av flinta?",
+        "options": [
+          "Krukor och fat",
+          "Yxor och knivar",
+          "Kläder och skor",
+          "Hus och båtar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Flinta kan bli skarp. Vad betyder skarp?",
+        "options": [
+          "Mjuk",
+          "Tung",
+          "Blank",
+          "Vass"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gav elden?",
+        "options": [
+          "Vatten och mat",
+          "Sten och trä",
+          "Värme och ljus",
+          "Skugga och regn"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför flyttade människorna ofta i början?",
+        "options": [
+          "De tyckte om att resa",
+          "De följde efter maten",
+          "Husen gick sönder",
+          "Det var för varmt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gjorde att människor kunde bo kvar på en plats?",
+        "options": [
+          "De började odla",
+          "De hittade flinta",
+          "De lärde sig fiska",
+          "De gjorde upp eld"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
