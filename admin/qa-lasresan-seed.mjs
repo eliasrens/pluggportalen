@@ -10,6 +10,8 @@
 //
 // Vägrar köra utan emulator-variablerna (skriver aldrig till produktion).
 // Konton (lösenord lilla123): lärare `qalarare`, elever se SCENARIER nedan.
+// Nivåerna lagras i GAMMAL skala 1–7 (inga level10-fält) och visas/används +3
+// sedan epic #516 (#519 lat migrering). Ny skala: admin/qa-lasresan-10-seed.mjs.
 // ============================================================================
 import admin from "firebase-admin";
 

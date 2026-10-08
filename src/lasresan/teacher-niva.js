@@ -8,7 +8,8 @@
 //   * nivå-kolumnen (nuvarande nivå, väntande nivå, klassens startnivå)
 //   * elevens nivåstatus + bekräftelse efter sparning
 //   * bekräftelsetexten för "Ändra nivå för hela klassen" + resultatet
-//   * klassens startnivå (standard 3 när den inte är satt)
+//   * klassens startnivå (standard START_LEVEL = 4 när den inte är satt)
+// Skalan är 1–10 sedan epic #516 (gamla 1–7 = nya 4–10, level-scale.js).
 // ============================================================================
 
 import { LEVEL_MIN, LEVEL_MAX, START_LEVEL } from "./config.js";
@@ -16,6 +17,14 @@ import { classStartLevelOf, parseTeacherLevel } from "./level-control.js";
 
 /** Nivåerna läraren kan välja: [LEVEL_MIN, …, LEVEL_MAX]. */
 export const LEVELS = Array.from({ length: LEVEL_MAX - LEVEL_MIN + 1 }, (_, i) => LEVEL_MIN + i);
+
+/** Fel när ett <select>-värde inte är en giltig nivå. */
+export const LEVEL_RANGE_ERROR = `Välj en nivå mellan ${LEVEL_MIN} och ${LEVEL_MAX}.`;
+
+/** Förklaring under startnivå-väljaren: skalan och de nya, enklare nivåerna (epic #516). */
+export const NEW_LEVELS_HINT =
+  `Nivåerna går från ${LEVEL_MIN} (lättast) till ${LEVEL_MAX} (svårast). Nivå 1–3 är nya, enklare nivåer ` +
+  `med kortare texter och färre frågor. Standard är nivå ${START_LEVEL}.`;
 
 /** Svensk genitiv: "Astrids", men "Elias" / "Max" (slutar på s/x/z). */
 export const genitiv = (name) => (/[sxz]$/i.test(name) ? name : `${name}s`);

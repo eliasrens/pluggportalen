@@ -5,6 +5,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   LEVELS,
+  LEVEL_RANGE_ERROR,
+  NEW_LEVELS_HINT,
   classConfirmText,
   classResultText,
   classStudentIds,
@@ -18,8 +20,9 @@ import {
 } from "../src/lasresan/teacher-niva.js";
 import { teacherClassRows } from "../src/lasresan/teacher-rows.js";
 
+// Normaliserad form (levelScale 10), som data-lasresan levererar den.
 const base = (over = {}) => ({
-  level: 4, highStreak: 0, lowStreak: 0, worldId: "skogen", stepInWorld: 3, completedWorlds: [],
+  levelScale: 10, level: 4, highStreak: 0, lowStreak: 0, worldId: "skogen", stepInWorld: 3, completedWorlds: [],
   totalTexts: 3, totalQuestions: 18, totalCorrect: 12, totalIncorrect: 6, moneyEarned: 36,
   seenTextIds: ["a", "b", "c"], catStats: {}, currentTextId: null, lastTextId: "c", ...over,
 });
@@ -137,4 +140,14 @@ test("bootgraf: nivåvyn importeras bara från dynamiskt laddade lärarmoduler",
   // … och Firestore-bryggan för nivåer laddas lat även inne i vyn.
   assert.doesNotMatch(src("teacher-lasresan-niva.js"), /^import .*data-lasresan-niva/m);
   assert.match(src("teacher-lasresan-niva.js"), /import\("\.\/data-lasresan-niva\.js"\)/);
+});
+
+test("skalan 1–10 (#520): felmeddelande och startnivå-förklaring", () => {
+  assert.equal(LEVEL_RANGE_ERROR, "Välj en nivå mellan 1 och 10.");
+  assert.match(NEW_LEVELS_HINT, /från 1 \(lättast\) till 10 \(svårast\)/);
+  assert.match(NEW_LEVELS_HINT, /Nivå 1–3 är nya, enklare nivåer/);
+  assert.match(NEW_LEVELS_HINT, /Standard är nivå 4\./);
+  // Lagrad gammal-skala-elev (utan level10) visas migrerad i nivå-cellen.
+  const old = { level: 7, totalTexts: 2, seenTextIds: ["a"], currentTextId: "x", pendingLevel: 1 };
+  assert.equal(levelCell(rowOf(old)).text, "10 → 4");
 });

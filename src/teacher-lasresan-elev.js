@@ -2,14 +2,16 @@
 // Pluggporten – lärarsidan: Läsresan-elevdetalj (teacher-lasresan-elev.js)
 // ----------------------------------------------------------------------------
 // Modal som öppnas från Läsresan-tabellen (teacher-lasresan.js, spec §19):
-//   * aktuell DOLD läsnivå (1–7) – bara läraren ser den
+//   * aktuell DOLD läsnivå (1–10, epic #516) – bara läraren ser den
 //   * lästa texter, frågor, rätt, fel, rätt %, värld + steg, pluggcoins
 //   * statistik per frågetyp (Fakta, Ordförståelse, Mellan raderna,
 //     Helhet/slutsats) som staplar – ur studentData.lasresa.catStats, så den
 //     täcker ALLA elevens texter, inte bara de senaste försöken
 //   * senaste genomförda texterna med resultat per text – här (och bara här)
 //     läses försöken: listAttempts läser lasresaAttempts + fallback-fältet och
-//     tål permission-denied (regeln är inte deployad överallt).
+//     tål permission-denied (regeln är inte deployad överallt). Varje försök
+//     går genom normalizeAttempt, så en gammal textnivå visas migrerad (+3)
+//     även från en injicerad källa (#520).
 //   * "Ändra nivå" (#506) – ritas av `renderLevel` (teacher-lasresan-niva.js)
 //     när lärarvyn skickar med den.
 // Samma modal-skal (.cx-modal) och mörka tema som teacher-class-detail.js.
@@ -19,6 +21,7 @@
 import { avatarEmoji } from "./avatars.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { LEVEL_MAX } from "./lasresan/config.js";
+import { normalizeAttempt } from "./lasresan/level-scale.js";
 import { categoryBreakdown, percent } from "./lasresan/stats.js";
 import { pctLevel } from "./lasresan/teacher-rows.js";
 
@@ -94,7 +97,7 @@ export function categoryHtml(catStats) {
 
 /** Tabell över senaste genomförda texter (nyast först). */
 export function attemptsHtml(attempts) {
-  const list = (attempts || []).filter(Boolean).slice(0, RECENT_TEXTS);
+  const list = (attempts || []).filter(Boolean).slice(0, RECENT_TEXTS).map(normalizeAttempt);
   if (list.length === 0) return `<p class="hint lrt-empty">Inga genomförda texter än.</p>`;
   const rows = list
     .map((a) => {

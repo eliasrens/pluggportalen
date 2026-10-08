@@ -389,12 +389,16 @@ onDone({ answers: [{ qid, chosen }] })
   inget av Läsresan hamnar i bootgrafen. Ingen egen sida.
 - **Tabell** (`teacher-lasresan.js`): Elev | Texter | Frågor | Rätt | Fel |
   Rätt % | Läsnivå | Värld | Steg. Alla kolumner går att sortera. Lika värden
-  sorteras på namn, och en saknad procent hamnar alltid sist. Ren logik ligger
+  sorteras på namn, och en saknad procent hamnar alltid sist. Nivåerna visas
+  på skalan 1–10 (#520): `teacherClassRows` kör varje `lasresa` genom
+  `normalizeLasresa` och elevdetaljen varje försök genom `normalizeAttempt`,
+  så rå gammal-skala-data (utan `level10`/`levelScale`) visas +3 även från en
+  injicerad källa. Ren logik ligger
   i `src/lasresan/teacher-rows.js` (`teacherClassRows`, `sortTeacherRows`,
   `nextSort`, `pctLevel`) och testas i `test/lasresan-teacher.test.js`.
 - **Ej börjat** (`lasresa` saknas): texter/frågor/rätt/fel/% visas som "–",
   märkt *ej börjat*. Nivå, värld och steg visas och sorteras som startvärdena
-  3 / Skogen / 0. Den som har startat en text men inte avslutat någon räknas
+  klassens startnivå (standard 4) / Skogen / 0. Den som har startat en text men inte avslutat någon räknas
   som börjad, men rätt % blir "–" eftersom det inte finns några svar.
 - **"Värld"-sortering** går på resans läge (`world.order * 1000 + steg`).
   Öknen steg 2 räknas alltså som längre fram än Skogen steg 18.
@@ -414,7 +418,8 @@ onDone({ answers: [{ qid, chosen }] })
   först vid sparning). Texterna kommer ur `lasresan/teacher-niva.js` (testas i
   `test/lasresan-teacher-niva.test.js`).
   - *Ändra klassens startnivå*: "Gäller nya elever och elever som inte har börjat" →
-    `setClassStartLevel`. Visar nuvarande nivå ("Nivå 3 (standard)" om den inte är satt). Elever utan
+    `setClassStartLevel`. Visar nuvarande nivå ("Nivå 4 (standard)" om den inte är satt), väljare 1–10
+    och en förklaring att 1–3 är de nya, enklare nivåerna (`NEW_LEVELS_HINT`). Elever utan
     `lasresa` visar startnivån i nivå-kolumnen.
   - *Ändra nivå för hela klassen*: klassväljare (förvald = aktuell, alla lärarens
     klasser), nivå → bekräftelsedialog (`role=alertdialog`) med klass, antal elever
@@ -424,6 +429,8 @@ onDone({ answers: [{ qid, chosen }] })
     visar `4 → 1` medan en ändring väntar. Efter sparning läses bara den eleven om.
   - CSS-prefix `lrn-` i `styles.css`. Emulator-preview:
     `admin/qa-lasresan-niva-preview.sh` (klickguide i `docs/preview-lasresan-niva.md`).
+    Skalan 1–10 med elever i gammal och ny lagring: `admin/qa-lasresan-10-preview.sh`
+    (proxy :8541, seed `qa-lasresan-10-seed.mjs`, klickguide `docs/preview-lasresan-10.md`).
 - **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
   blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
   namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.
