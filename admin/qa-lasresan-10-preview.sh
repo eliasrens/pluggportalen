@@ -7,13 +7,13 @@
 # till qa-lasresan-10-seed (QA-klass 10N: elever i gammal OCH ny skala, gammal
 # startnivå). Klickguide: docs/preview-lasresan-10.md. Skriver aldrig till produktion.
 #
-#   JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-10-preview.sh   # FS 8530, Auth 9530, proxy 8531
+#   JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-10-preview.sh   # FS 8540, Auth 9540, proxy 8541
 #   RESEED=1 bash admin/qa-lasresan-10-preview.sh   # bara seeda om en redan körande emulator
 #
 # Stoppa: döda PID:erna som skrivs ut sist (inte via `pkill -f` på namnet).
 # ============================================================================
 set -euo pipefail
-export FS=${FS:-8530} AUTH=${AUTH:-9530} PROXY=${PROXY:-8531}
+export FS=${FS:-8540} AUTH=${AUTH:-9540} PROXY=${PROXY:-8541}
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 cd "$REPO"
 if [ -n "${RESEED:-}" ]; then

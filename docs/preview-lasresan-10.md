@@ -3,7 +3,7 @@
 Körs mot Firestore-/Auth-**emulatorn** (inget når produktion):
 
 ```bash
-JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-10-preview.sh   # proxy på :8531
+JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-10-preview.sh   # proxy på :8541
 RESEED=1 bash admin/qa-lasresan-10-preview.sh                    # återställ data
 ```
 

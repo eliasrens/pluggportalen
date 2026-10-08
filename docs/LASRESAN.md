@@ -430,7 +430,7 @@ onDone({ answers: [{ qid, chosen }] })
   - CSS-prefix `lrn-` i `styles.css`. Emulator-preview:
     `admin/qa-lasresan-niva-preview.sh` (klickguide i `docs/preview-lasresan-niva.md`).
     Skalan 1–10 med elever i gammal och ny lagring: `admin/qa-lasresan-10-preview.sh`
-    (proxy :8531, seed `qa-lasresan-10-seed.mjs`, klickguide `docs/preview-lasresan-10.md`).
+    (proxy :8541, seed `qa-lasresan-10-seed.mjs`, klickguide `docs/preview-lasresan-10.md`).
 - **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
   blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
   namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.
