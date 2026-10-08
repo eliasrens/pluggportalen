@@ -1897,11 +1897,11 @@
     "level": 3,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Klockan var fyra på morgonen när morbror Ivar väckte Dennis. ”Det är vindstilla”, viskade han. ”I dag flyger vi.”\n\nUte på en äng låg en enorm ballong av tyg utbredd på gräset. Bredvid stod en stor flätad korg med plats för fyra personer. Piloten Ulrika startade en brännare som sprutade ut en lång låga. Den varma luften fyllde ballongen, och sakta reste den sig mot himlen.\n\n”Varm luft är lättare än kall”, förklarade Ulrika. ”Därför stiger vi.”\n\nDennis höll hårt i korgens kant när marken försvann under dem. Det var alldeles tyst, förutom när brännaren fräste. Långt nere såg han hus som liknade leksaker och en älg som travade över en åker.\n\nEn ballong kan inte styras som ett flygplan. Den följer vinden. Därför åkte en bil efter dem på vägarna nedanför.\n\nEfter en timme sa Ulrika att det var dags att landa. Hon släppte ut lite av den varma luften, och ballongen sjönk. Korgen tog i marken, studsade en gång och tippade över på sidan i en hage full av kor.\n\nKorna stirrade. Dennis låg i korgen och skrattade.\n\n”Välkommen ner”, sa morbror Ivar.",
+    "body": "Klockan var fyra på morgonen när farbror Ivar väckte Dennis. ”Det är vindstilla”, viskade han. ”I dag flyger vi.”\n\nUte på en äng låg en enorm ballong av tyg utbredd på gräset. Bredvid stod en stor flätad korg med plats för fyra personer. Piloten Ulrika startade en brännare som sprutade ut en lång låga. Den varma luften fyllde ballongen, och sakta reste den sig mot himlen.\n\n”Varm luft är lättare än kall”, förklarade Ulrika. ”Därför stiger vi.”\n\nDennis höll hårt i korgens kant när marken försvann under dem. Det var alldeles tyst, förutom när brännaren fräste. Långt nere såg han hus som liknade leksaker och en älg som travade över en åker.\n\nEn ballong kan inte styras som ett flygplan. Den följer vinden. Därför åkte en bil efter dem på vägarna nedanför.\n\nEfter en timme sa Ulrika att det var dags att landa. Hon släppte ut lite av den varma luften, och ballongen sjönk. Korgen tog i marken, studsade en gång och tippade över på sidan i en hage full av kor.\n\nKorna stirrade. Dennis låg i korgen och skrattade.\n\n”Välkommen ner”, sa farbror Ivar.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur dags väckte morbror Ivar Dennis?",
+        "question": "Hur dags väckte farbror Ivar Dennis?",
         "options": [
           "Klockan fem",
           "Klockan sex",
@@ -3297,6 +3297,476 @@
           "Datorns långa historia"
         ],
         "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-pyramiderna",
+    "title": "Gravarna vid Nilen",
+    "level": 3,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För mer än 4 500 år sedan började egyptierna bygga pyramider vid floden Nilen. Pyramiderna var gravar åt kungarna, som kallades faraoner.\n\nEgyptierna trodde på ett liv efter döden. Därför balsamerades den döde faraon till en mumie, så att kroppen skulle hålla. I graven lades sådant som han kunde behöva i nästa liv, till exempel mat, smycken, möbler och till och med båtar.\n\nDen största pyramiden byggdes åt farao Cheops. Den var nästan 150 meter hög när den var ny och består av mer än två miljoner stenblock. Många av blocken väger mer än en bil. I nästan fyratusen år var den världens högsta byggnad.\n\nHur lyckades man utan kranar och lastbilar? Blocken drogs på slädar och flyttades uppåt längs ramper. Forskare tror i dag att arbetarna inte var slavar, som man länge trodde, utan bönder och hantverkare som fick mat och betalt.\n\nTrots hemliga gångar och tunga stenar lyckades gravplundrare ta sig in i nästan alla pyramider. Skatterna försvann för länge sedan, men pyramiderna står kvar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kallades kungarna i det gamla Egypten?",
+        "options": [
+          "Vikingar",
+          "Kejsare",
+          "Faraoner",
+          "Hövdingar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur flyttades stenblocken enligt texten?",
+        "options": [
+          "Med lastbilar",
+          "Med stora kranar",
+          "På vagnar med hjul",
+          "På slädar och ramper"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”gravplundrare”?",
+        "options": [
+          "En arbetare som bygger gravar",
+          "En tjuv som stjäl ur gravar",
+          "En präst som vaktar gravar",
+          "En forskare som skriver om gravar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Faraon ”balsamerades”. Vad betyder det?",
+        "options": [
+          "Kroppen begravdes i sanden",
+          "Kroppen brändes upp",
+          "Kroppen lades i en kista av rent guld",
+          "Kroppen behandlades så att den höll"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför lade man mat och möbler i graven?",
+        "options": [
+          "Faraon skulle behöva dem i nästa liv",
+          "Det fanns ingen annan plats för sakerna",
+          "Arbetarna skulle äta maten",
+          "Gravplundrarna skulle luras"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar det att arbetarna fick mat och betalt?",
+        "options": [
+          "De var faraoner själva",
+          "De arbetade bara på natten",
+          "De var inte slavar",
+          "De byggde mycket snabbt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Varför och hur pyramiderna byggdes",
+          "Hur floden Nilen bildades",
+          "Hur man blir farao",
+          "Hur mumier ser ut i dag"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-antika-os",
+    "title": "De första olympiska spelen",
+    "level": 3,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "De olympiska spelen är mycket äldre än du kanske tror. De första spelen som vi känner till hölls år 776 före Kristus i Olympia i Grekland.\n\nSpelen hölls vart fjärde år för att hedra guden Zeus. Medan spelen pågick rådde fred mellan de grekiska städerna, så att idrottare och åskådare kunde resa dit utan att bli anfallna.\n\nI början fanns det bara en gren: ett lopp på ungefär 200 meter. Senare kom fler grenar, som brottning, boxning, diskus, spjut och längdhopp. Det fanns också kapplöpning med hästar och vagnar.\n\nBara fria grekiska män fick tävla. Kvinnor fick inte vara med, och gifta kvinnor fick inte ens titta på. Idrottarna tävlade dessutom nakna.\n\nVinnaren fick ingen medalj. I stället fick han en krans av olivkvistar på huvudet. Men när han kom hem blev han firad som en hjälte, och ibland fick han gratis mat resten av livet.\n\nEfter mer än tusen år förbjöds spelen. Det dröjde ända till år 1896 innan olympiska spel hölls igen, den gången i Aten.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken gud hedrades med spelen?",
+        "options": [
+          "Oden",
+          "Zeus",
+          "Apollon",
+          "Poseidon"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fick vinnaren på huvudet?",
+        "options": [
+          "En tung krona av rent guld",
+          "En hjälm av brons",
+          "En krans av olivkvistar",
+          "En mössa av ull"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Det ”rådde fred” under spelen. Vad betyder det?",
+        "options": [
+          "Någon gav goda råd om fred",
+          "Folk bad gudarna om fred",
+          "Kungen skrev ett brev om fred",
+          "Det var fred under den tiden"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ordet ”gren” i texten?",
+        "options": [
+          "En del av ett träd",
+          "En väg till Olympia",
+          "En grupp idrottare",
+          "En sorts tävling"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var freden viktig för spelen?",
+        "options": [
+          "Folk kunde resa säkert till Olympia",
+          "Idrottarna ville inte slåss i brottningen",
+          "Gifta kvinnor fick då titta på",
+          "Spelen kunde då hållas varje år"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför fick en vinnare gratis mat när han kom hem?",
+        "options": [
+          "Han hade vunnit mycket guld",
+          "Hans stad ville hedra honom",
+          "Han hade blivit kung",
+          "Han hade byggt upp Olympia"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar texten?",
+        "options": [
+          "Hur man tränar inför en tävling",
+          "Varför Grekland är ett så varmt och soligt land",
+          "Hur de första olympiska spelen gick till",
+          "Hur man gör en krans av oliver"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-amazonas",
+    "title": "Skogen där det regnar varje dag",
+    "level": 3,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "I Sydamerika ligger världens största regnskog, Amazonas. Den är så stor att den sträcker sig över nio länder, men den största delen finns i Brasilien. Genom skogen slingrar sig Amazonfloden, den flod i världen som för med sig mest vatten ut i havet.\n\nI regnskogen är det varmt hela året, och det regnar nästan varje dag. Träden växer tätt och blir mycket höga. Deras kronor bildar ett grönt tak högt uppe i luften. Där uppe finns ljus och mat, och där lever de flesta av skogens djur. Nere på marken är det nästan alltid skumt, eftersom så lite solljus når ner.\n\nFå platser på jorden har så många olika arter av djur och växter. Här lever jaguarer, sengångare som rör sig väldigt långsamt, färgglada papegojor och små grodor som är giftiga.\n\nForskare hittar fortfarande nya arter varje år. Samtidigt huggs stora delar av skogen ner för att göra plats åt kor och odlingar. Därför arbetar många för att skydda regnskogen, som är hem för både djur, växter och människor.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "I vilket land finns den största delen av Amazonas?",
+        "options": [
+          "Peru",
+          "Brasilien",
+          "Mexiko",
+          "Argentina"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var lever de flesta djuren i regnskogen?",
+        "options": [
+          "Nere på marken",
+          "I själva floden",
+          "Uppe i trädkronorna",
+          "I grottor under marken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Det är ”skumt” nere på marken. Vad betyder det här?",
+        "options": [
+          "Mycket blött",
+          "Väldigt varmt",
+          "Mycket kallt",
+          "Ganska mörkt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ”art” i texten?",
+        "options": [
+          "En sorts djur eller växt",
+          "En del av en skog",
+          "Ett land i Sydamerika",
+          "En målning av ett djur"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför når så lite ljus ner till marken?",
+        "options": [
+          "Det regnar hela tiden",
+          "Molnen ligger alltid tätt över hela skogen",
+          "Trädkronorna tar det mesta av ljuset",
+          "Floden skuggar marken"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför behöver regnskogen skyddas?",
+        "options": [
+          "Den är för varm för människor",
+          "Stora delar av den håller på att försvinna",
+          "Det regnar för mycket där",
+          "Floden håller på att torka ut helt och hållet"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur det ser ut i Amazonas regnskog",
+          "Hur man reser till Brasilien",
+          "Varför det regnar i Sverige",
+          "Hur papegojor lär sig prata"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-island",
+    "title": "Landet av eld och is",
+    "level": 3,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Island brukar kallas landet av eld och is. Ön ligger i Atlanten mellan Norge och Grönland, och där finns både sprutande vulkaner och stora glaciärer.\n\nAtt det finns så många vulkaner beror på var ön ligger. Jordens yta består av stora plattor som långsamt rör sig. Island ligger precis där två sådana plattor glider ifrån varandra, ungefär två centimeter per år. I sprickorna kan het, smält sten tränga upp från djupet. År 2010 sprutade en vulkan på Island ut så mycket aska att flygplan i stora delar av Europa fick stå kvar på marken i flera dagar.\n\nUnder marken är det varmt. På vissa ställen sprutar hett vatten och ånga rakt upp ur marken. Det kallas gejser, efter en känd källa som heter Geysir.\n\nIslänningarna tar vara på värmen. Hett vatten från djupet värmer upp de flesta husen, och ibland även trottoarer så att snön smälter.\n\nUngefär 400 000 människor bor på Island, och mer än hälften av dem bor i och runt huvudstaden Reykjavik.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter Islands huvudstad?",
+        "options": [
+          "Geysir",
+          "Oslo",
+          "Nuuk",
+          "Reykjavik"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hände i Europa efter vulkanutbrottet år 2010?",
+        "options": [
+          "Det snöade i hela Europa",
+          "Snön smälte på alla trottoarer i Europa",
+          "Isen på Grönland smälte",
+          "Flygplan fick stå kvar på marken"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”glaciär”?",
+        "options": [
+          "En sorts vulkan",
+          "En källa med varmt vatten i marken",
+          "En stor och tjock ismassa på land",
+          "En smal fjord vid havet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Smält sten kan ”tränga upp”. Vad betyder det?",
+        "options": [
+          "Pressa sig uppåt",
+          "Falla ner",
+          "Stelna snabbt",
+          "Försvinna bort"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför har Island så många vulkaner?",
+        "options": [
+          "Ön ligger väldigt långt norrut",
+          "Ön ligger där två plattor glider isär",
+          "Det finns mycket is på ön",
+          "Havet runt ön är så varmt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför smälter snön på vissa trottoarer?",
+        "options": [
+          "Solen skiner hela vintern",
+          "Folk sopar dem varje timme",
+          "De värms av hett vatten underifrån",
+          "Vulkanerna sprutar lava på dem"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför kallas Island ”landet av eld och is”?",
+        "options": [
+          "Det brinner ofta i skogarna på vintern",
+          "Islänningarna grillar ute på isen",
+          "Ön är formad som en flamma",
+          "Där finns både vulkaner och glaciärer"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-bakterier",
+    "title": "Osynligt liv på dina händer",
+    "level": 3,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "På dina händer finns just nu miljontals levande varelser. Du kan inte se dem, för de är alldeles för små. Det är bakterier.\n\nEn bakterie består av en enda cell. Den är så liten att tusen bakterier i rad skulle bli ungefär en millimeter lång. Den första som såg bakterier var holländaren Antonie van Leeuwenhoek. Han slipade själv linser till ett mikroskop och blev förvånad när han på 1670-talet såg små varelser simma omkring i en vattendroppe.\n\nBakterier finns överallt: i jorden, i vattnet, i luften och i din kropp. De flesta är ofarliga, och många är till nytta. I tarmen hjälper bakterier till att bryta ner maten. Bakterier används också när man gör yoghurt och ost.\n\nMen vissa bakterier kan göra oss sjuka. De förökar sig dessutom mycket snabbt. En bakterie delar sig i två, de två blir fyra, och när det är varmt och fuktigt kan det hända så ofta som var tjugonde minut.\n\nDärför är det viktigt att tvätta händerna med tvål, särskilt innan du äter. Tvålen hjälper vattnet att skölja bort bakterierna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad använde Antonie van Leeuwenhoek för att se bakterier?",
+        "options": [
+          "Ett mikroskop",
+          "En kamera",
+          "En kikare",
+          "Ett teleskop"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör bakterierna i tarmen?",
+        "options": [
+          "Gör oss sjuka varje gång vi äter något",
+          "Hjälper till att bryta ner maten",
+          "Gör yoghurt av mjölken",
+          "Simmar runt i blodet"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Bakterierna ”förökar sig”. Vad betyder det?",
+        "options": [
+          "De blir större",
+          "De blir fler",
+          "De blir starkare",
+          "De blir färre"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "De flesta bakterier är ”ofarliga”. Vad betyder det?",
+        "options": [
+          "De gör oss inte illa",
+          "De går inte att se",
+          "De lever bara i vatten",
+          "De dör av lite tvål"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ska man tvätta händerna innan man äter?",
+        "options": [
+          "Så att maten ska smaka mycket bättre efteråt",
+          "Så att händerna blir varma",
+          "Så att bakterier inte följer med maten",
+          "Så att bakterierna delar sig"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur kan några få bakterier snabbt bli väldigt många?",
+        "options": [
+          "De äter upp varandra",
+          "De flyger genom luften",
+          "De blir större och större",
+          "De delar sig om och om igen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken mening sammanfattar texten bäst?",
+        "options": [
+          "Alla bakterier är farliga och måste tvättas bort",
+          "Bakterier finns bara på smutsiga händer",
+          "Bakterier kan vara både nyttiga och farliga",
+          "Yoghurt är det nyttigaste man kan äta"
+        ],
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
