@@ -1,0 +1,155 @@
+/* ============================================================================
+   Live-design (#571): gemensamma stilar för de nya lägenas avatarer,
+   reaktioner och banderoller. Egen fil (designspec §3.1) – laddas bara av
+   live-avatar-pool.js / live-banner.js, aldrig av Klassmatchens vyer.
+   Bara transform och opacitet animeras (§11). z-ordningen inom en avatar
+   följer DOM-ordningen (glow → figur → bubbla → bock → partiklar), inga
+   z-tal (DESIGNSYSTEM.md "Avatarplagg … använder inte z-index").
+   ========================================================================== */
+
+/* --- Avatarelementet ------------------------------------------------------ */
+.lav {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1.2em;
+  line-height: 1;
+  vertical-align: bottom;
+}
+.lav > .avatar-figure {
+  display: block;
+  vertical-align: top;
+  transform-origin: 50% 100%;
+}
+
+/* Storlekar (§4.4): publik, topplista, pall. Vyerna kan också sätta egen font-size. */
+.lav-liten { font-size: clamp(34px, 5.2vh, 64px); }
+.lav-mellan { font-size: clamp(56px, 9vh, 110px); }
+.lav-stor { font-size: clamp(120px, 24vh, 300px); }
+
+/* Projektionen inte läst än: diskret platshållare, figuren byts när den kommer. */
+.lav.lav-laddar > .avatar-figure { opacity: 0.35; }
+
+/* Har svarat: ljus bakom figuren + bock. */
+.lav-glow {
+  position: absolute;
+  inset: 0 -0.2em -0.05em;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 225, 120, 0.95), rgba(255, 200, 60, 0.35) 60%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.lav.svarat > .lav-glow { opacity: 0.55; }
+
+.lav-bock {
+  position: absolute;
+  right: -0.3em;
+  top: -0.1em;
+  border-radius: 50%;
+  background: #22a35b;
+  color: #fff;
+  /* font-size krymper em: måtten nedan är i bockens egen em (≈ 0,36 figurbredd) */
+  font: 800 0.24em/1 "Baloo 2", system-ui, sans-serif;
+  width: 1.5em;
+  height: 1.5em;
+  border: 0.12em solid #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0.1em 0.3em rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: scale(0.3);
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.3, 1.6, 0.5, 1);
+  pointer-events: none;
+}
+.lav.svarat > .lav-bock { opacity: 1; transform: none; }
+
+/* Skyddad: lysande bubbla runt figuren. */
+.lav-bubbla {
+  position: absolute;
+  inset: -0.14em -0.2em -0.04em;
+  border-radius: 50%;
+  border: 0.035em solid rgba(150, 215, 255, 0.95);
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6), rgba(140, 205, 255, 0.16) 45%, rgba(110, 185, 255, 0.34));
+  box-shadow: 0 0 0.12em rgba(120, 200, 255, 0.8), inset 0 0 0.1em rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+  pointer-events: none;
+}
+.lav.skyddad > .lav-bubbla { opacity: 1; transform: none; }
+
+/* Väntar (idle): mycket diskret andning/vickning, osynkat mellan figurerna. */
+.lav.vantar > .avatar-figure {
+  animation: lav-andas 3.4s ease-in-out infinite;
+  animation-delay: var(--lav-d, 0s);
+}
+@keyframes lav-andas {
+  0%, 100% { transform: none; }
+  50% { transform: scaleY(1.025) rotate(var(--lav-vick, 1deg)); }
+}
+
+/* --- Partiklar (font-size = P_FONT i live-reactions.js) -------------------- */
+.lav-fx { position: absolute; inset: 0; pointer-events: none; }
+.lav-p {
+  position: absolute;
+  left: 50%;
+  font-size: 0.25em;
+  line-height: 1;
+  pointer-events: none;
+}
+.lav-p-damm {
+  bottom: -0.2em;
+  width: 1.3em;
+  height: 0.9em;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(235, 222, 200, 0.95), rgba(210, 190, 160, 0.4));
+}
+.lav-p-stjarna {
+  top: 45%;
+  font-size: 0.32em;
+  color: #ffd23f;
+  text-shadow: 0 0 0.2em rgba(255, 200, 40, 0.9), 0 0.05em 0 #c98a00;
+}
+.lav-p-mynt {
+  bottom: 0.2em;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #ffc928 45%, #d99a00);
+  box-shadow: inset 0 0 0 0.12em #e8a800;
+}
+
+/* --- Banderoll (live-banner.js) -------------------------------------------- */
+.lbn-host {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9%;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.lbn {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  max-width: 80%;
+  padding: 0.35em 1.1em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff8dc, #ffe08a);
+  color: #3b2200;
+  border: 0.08em solid #fff;
+  box-shadow: 0 0.25em 0.9em rgba(0, 0, 0, 0.35);
+  font: 800 clamp(28px, 4.4vh, 56px)/1.1 "Baloo 2", system-ui, sans-serif;
+  opacity: 0;
+}
+.lbn[data-tone="gold"] { background: linear-gradient(180deg, #fff3b0, #ffc928); }
+.lbn[data-tone="blue"] { background: linear-gradient(180deg, #e3f2ff, #9fd2ff); color: #0d2a4a; }
+.lbn[data-tone="red"] { background: linear-gradient(180deg, #ffe3e0, #ff9f95); color: #4a0d07; }
+.lbn-ikon { font-size: 1.15em; }
+.lbn-sub { font-weight: 600; font-size: 0.62em; opacity: 0.85; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lav.vantar > .avatar-figure { animation: none; }
+  .lav-bock, .lav-bubbla { transition: opacity 0.3s ease; transform: none; }
+}
