@@ -117,8 +117,29 @@ body.live-lage .container {
 }
 .live-chip input:focus-visible + span { outline: 2px solid var(--t-accent, #27ae60); }
 .live-chip input:disabled + span { opacity: 0.4; cursor: not-allowed; }
-.live-divisors { margin: 4px 0 14px; }
-.live-divisors[hidden] { display: none; }
+.live-divisors, .live-perclass { margin: 4px 0 14px; }
+.live-form .field[hidden] { display: none; }
+/* Formatväljaren (#548) – visas bara när fler än ett format finns */
+.live-answerkinds, .live-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.live-formats { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.live-form .live-format-card { position: relative; display: flex; cursor: pointer; margin: 0; font-weight: 400; }
+.live-form .live-toggle { display: inline-flex; gap: 8px; align-items: center; }
+.live-form .live-toggle input { width: auto; }
+.live-format-card input { position: absolute; opacity: 0; pointer-events: none; }
+.live-format-card > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 2px solid var(--t-border-strong, #ccd);
+  background: var(--t-raised, #fff);
+}
+.live-format-card small { color: var(--t-muted, #667); line-height: 1.3; }
+.live-format-icon { font-size: 2rem; line-height: 1; }
+.live-format-card input:checked + span { border-color: var(--t-accent, #27ae60); background: var(--t-accent-soft, #e8f8ef); }
+.live-format-card input:focus-visible + span { outline: 2px solid var(--t-accent, #27ae60); outline-offset: 2px; }
 .live-wizard-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
 .live-divisor-rows { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 .live-divisor { display: inline-flex; gap: 8px; align-items: center; }

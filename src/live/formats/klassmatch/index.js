@@ -9,6 +9,7 @@
 //   klassmatch-projector.js  LAT: lobby (redo per klass), Raketrace, Statistik,
 //                            Dragkamp, Trollkarlsduellen, vinnarskärm, nämnare
 //   klassmatch-student.js    LAT: elevens lobbyrad (pris) + slutskärm
+//   klassmatch-setup.js      LAT: lärarformulärets trollkarlsval (custom-fält)
 //   klassmatch-history.js    LAT: historikens vinnare/klasstabell + Statistik → Live
 //
 // Hör till Klassmatchen (inte kärnan): nämnare, shardade klassräknare, mynt-
@@ -21,8 +22,9 @@
 // ============================================================================
 
 import { answerKindsFor } from "../../live-formats.js";
+import { durationField } from "../../live-setup-fields.js";
 import {
-  MIN_LIVE_CLASSES, MAX_LIVE_CLASSES, sumCounters, classStandings, decideWinner, buildResult,
+  MIN_LIVE_CLASSES, MAX_LIVE_CLASSES, LIVE_PRIZE_MAX, sumCounters, classStandings, decideWinner, buildResult,
   sessionTitle, validateSetup, buildSessionFields,
 } from "./klassmatch-core.js";
 
@@ -38,8 +40,27 @@ const KLASSMATCH = {
   pacing: "tid",
   classCounters: true,
   classDivisors: true,
-  // Nämnare, mynt-pris och trollkarlar ritas av teacher-live-form.js.
-  setupFields: [],
+  // Ritas generiskt av lärarformuläret (#548, live-setup-fields.js) – samma
+  // ordning och utseende som före formatväljaren. validate:false: reglerna
+  // (och felmeddelandena) ligger kvar i validateSetup / kärnans matchlängd.
+  setupFields: [
+    {
+      key: "divisors", kind: "perClass", label: "Nämnare per klass", cls: "live-divisors",
+      hint: "antal elever idag – poäng = rätt / nämnare", min: 1, max: 999, validate: false,
+      defaultFor: (c) => Math.max(1, (c?.studentIds || []).length),
+    },
+    {
+      key: "wizards", kind: "custom", label: "🧙 Trollkarlsduellen", cls: "live-wizards",
+      hint: "projektorvy för två klasser – vem är Rasmus och vem är Elias? Kan bytas i lobbyn före start.",
+      load: () => import("./klassmatch-setup.js"),
+    },
+    durationField(),
+    {
+      key: "coinPrize", kind: "number", label: "Mynt-pris till vinnarklassen", id: "live-prize", inputCls: "live-prize-input",
+      hint: "valfritt – går till klassens klasskassa i Klasscentret; oavgjort delas lika. Kan inte ändras efter att matchen skapats.",
+      min: 0, max: LIVE_PRIZE_MAX, placeholder: "t.ex. 1000 (tomt = inget pris)", validate: false,
+    },
+  ],
 
   compatibleGameModes(mode) {
     return answerKindsFor(KLASSMATCH, mode).length > 0;

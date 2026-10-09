@@ -33,12 +33,17 @@
 //   pacing        "tid" (serverstyrd matchklocka, durationSeconds) |
 //                 "lärarstyrd" (läraren går vidare fråga för fråga)
 //   compatibleGameModes(mode) → bool – kan formatet spelas med spelläget?
-//   setupFields   [{ key, label, kind }] – formatets egna lärarinställningar
-//                 som ett generiskt formulär kan rita (tom lista = formatet
-//                 ritar inga generiska fält)
+//   setupFields   [{ key, label, kind, … }] – formatets egna lärarinställningar,
+//                 ritade GENERISKT av lärarformuläret (#548). Sorterna
+//                 (choice/number/text/toggle/perClass/custom) och deras
+//                 nycklar: src/live/live-setup-fields.js. Matchlängden ritas
+//                 av kärnan vid pacing "tid" om formatet inte själv lagt ett
+//                 "durationMin"-fält (durationField()) i listan.
 //   validateSetup(input) → string[] – formatets egna fält (kärnan kontrollerar
 //                 namn, spelläge, klassantal och – vid pacing "tid" – matchlängd)
 //   buildSessionFields(input) → object – formatspecifika fält på sessionen
+//   defaultSessionName(names) VALFRI → förslaget i Matchnamn ("4B mot 5E" om
+//                 den saknas)
 //   sessionTitle(s) → string – stor rubrik (elevlistan, elevens matchvy)
 //   computeStandings(s, { counters, players, now }) → { classes, totalCorrect,
 //                 leaderIds, winnerId, draw } – ställningen projektorvyerna
