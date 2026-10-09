@@ -178,7 +178,8 @@ export function buildSessionDoc(input, { uid }) {
     answerKind,
     participatingClassIds: classIds,
     classNames,
-    durationSeconds: Number(input.durationMin) * 60,
+    // Matchklockan finns bara vid pacing "tid" (Snilleblixten: tid per fråga).
+    ...(fmt.pacing === "tid" ? { durationSeconds: Number(input.durationMin) * 60 } : {}),
     countdownSeconds: LIVE_COUNTDOWN_SECONDS,
     status: "lobby",
     createdBy: uid,

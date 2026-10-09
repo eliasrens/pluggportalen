@@ -30,6 +30,7 @@ import { validateSessionInput } from "./live-core.js";
 import { defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
 import {
   fieldsFor, setupFieldsHtml, perClassRowsHtml, coerceSetupValue, formatPickerHtml, answerKindHtml, classHint,
+  answerKindDefaults,
 } from "./live-setup-fields.js";
 
 export function renderCreateForm(host, opts) {
@@ -104,6 +105,21 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
     const html = answerKindHtml(answerKindsFor(format, selectedMode()), prev);
     box.hidden = !html;
     box.innerHTML = html;
+    box.querySelectorAll('input[name="answerKind"]').forEach((i) => i.addEventListener("change", applyKindDefaults));
+    applyKindDefaults();
+  }
+
+  // Förval som följer svarssättet (Snilleblixtens frågetid) – tills läraren
+  // själv rört fältet.
+  const touched = new Set();
+  fields.forEach((f) => boxOf(f)?.addEventListener("change", (e) => { if (e.isTrusted) touched.add(f.key); }));
+  function applyKindDefaults() {
+    const kind = form.querySelector('input[name="answerKind"]:checked')?.value || defaultAnswerKind(answerKindsFor(format, selectedMode()));
+    for (const [key, v] of Object.entries(answerKindDefaults(fields, kind))) {
+      if (touched.has(key)) continue;
+      const r = boxOf({ key })?.querySelector(`input[value="${CSS.escape(String(v))}"]`);
+      if (r) r.checked = true;
+    }
   }
 
   function syncClasses() {

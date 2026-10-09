@@ -479,9 +479,10 @@ service cloud.firestore {
       return !('answerKind' in d) || d.answerKind in ['free', 'choice'];
     }
     // Spelformat (#547, src/live/formats/): HUR matchen spelas. Saknas fältet
-    // är det Klassmatchen (alla sessioner före #547) – ingen migrering. Nytt
-    // format = lägg till dess id här + dess regelgren och regeltester.
-    // Formatet byts aldrig (liveSessionUpdateOk).
+    // är det Klassmatchen (alla sessioner före #547) – ingen migrering. Här
+    // = Klassmatchens gren; ett nytt format får en EGEN gren (create/update
+    // routas på formatet i match /liveSessions, som Snilleblixten #556) och
+    // egna regeltester. Formatet byts aldrig (liveSessionUpdateOk, sbSettingsOk).
     function liveFormatOk(d) {
       return !('format' in d) || d.format in ['klassmatch'];
     }
@@ -572,6 +573,39 @@ service cloud.firestore {
         n.finishedAt == request.time &&
         request.time >= o.startedAt + duration.value(o.countdownSeconds + o.durationSeconds, 's');
     }
+    // ---------------- Live: Snilleblixten (format "snilleblixt", #556) ----------------
+    // Hela klassen samma fråga, läraren styr. Se src/live/formats/snilleblixt/
+    // (snilleblixt-core.js: datamodellen) och docs/DATAMODELL.md.
+    //  • sessionen: egna inställningar (inga nämnare/räknare/matchklocka);
+    //    q = PÅGÅENDE fråga { index, phase, openedAt, closedAt?, question,
+    //    facit? } – alla inloggade läser den, men question kopieras först när
+    //    läraren öppnar frågan och facit först vid avslöjandet (båda måste
+    //    vara exakt ögonblicksbildens post). Inställningarna låses vid skapandet.
+    //  • sbPrivate/snapshot: { questions, facit } – BARA lärare läser.
+    //  • sbAnswers/{i}_{uid}: elevens ENDA svar (bara create), at = serverns
+    //    tid, inom frågans öppna fönster, rätt svarssätt, ingen sen anslutning
+    //    mitt i frågan, inget isCorrect/poäng.
+    //  • sbScores/{i}: poängen, skrivs EN gång av läraren vid avslöjandet ur
+    //    serverstämplarna (at − openedAt). Ingen kan ändra den.
+    //  • Övergångar (öppna/stäng/avslöja/hoppa/nästa/avsluta) går bara ett steg
+    //    från aktuellt läge – två lärare samtidigt ger exakt ett steg.
+    function sbFormat(d) { return d.get('format', 'klassmatch') == 'snilleblixt'; }
+    function sbSettingsOk(d) {
+      return d.keys().hasOnly(['name', 'format', 'gameMode', 'answerKind', 'participatingClassIds',
+          'classNames', 'countdownSeconds', 'status', 'createdBy', 'createdByName', 'createdAt',
+          'questionSeconds', 'questionCount', 'shuffleQuestions', 'showQuestionOnStudent', 'quiz',
+          'startedAt', 'q', 'finishedAt', 'result']) &&
+        d.name is string && d.name.size() > 0 && d.name.size() <= 80 &&
+        d.gameMode is string && d.gameMode.size() <= 40 && d.answerKind in ['free', 'choice'] &&
+        d.participatingClassIds is list && d.participatingClassIds.size() >= 1 &&
+        d.participatingClassIds.size() <= 3 &&
+        d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
+        d.questionSeconds in [10, 20, 30, 60] &&
+        d.questionCount is int && d.questionCount >= 1 && d.questionCount <= 100 &&
+        d.shuffleQuestions is bool && d.showQuestionOnStudent is bool &&
+        d.status in ['lobby', 'live', 'finished'];
+    }
+
     match /liveSessions/{sid} {
       function livePath(sub, id) {
         return /databases/$(database)/documents/liveSessions/$(sid)/$(sub)/$(id);
@@ -617,11 +651,104 @@ service cloud.firestore {
           bumped('correct', ok ? 1 : 0) && bumped('incorrect', ok ? 0 : 1);
       }
 
+      // --- Snilleblixten (#556) ---
+      function sbPrivate() { return get(livePath('sbPrivate', 'snapshot')).data; }
+      // Skapa: lobby + ögonblicksbilden i SAMMA batch.
+      function sbSessionCreateOk() {
+        let d = request.resource.data;
+        return sbSettingsOk(d) && d.status == 'lobby' && d.createdBy == request.auth.uid &&
+          d.createdAt == request.time && !('startedAt' in d) && !('q' in d) &&
+          !('finishedAt' in d) && !('result' in d) &&
+          existsAfter(livePath('sbPrivate', 'snapshot'));
+      }
+      // Öppna fråga `index`: frågan = ögonblicksbildens post, openedAt = nu.
+      function sbOpenOk(nq, index) {
+        return nq.keys().hasOnly(['index', 'phase', 'openedAt', 'question']) &&
+          nq.index == index && nq.phase == 'open' && nq.openedAt == request.time &&
+          nq.question == sbPrivate().questions[index];
+      }
+      // En frågeövergång – bara ett steg från AKTUELLT läge.
+      function sbStepOk(o, n) {
+        let oq = o.get('q', null);
+        let nq = n.q;
+        return (oq == null && sbOpenOk(nq, 0)) || (oq != null && (
+          // NÄSTA FRÅGA
+          (oq.phase in ['revealed', 'skipped'] && oq.index + 1 < o.questionCount && sbOpenOk(nq, oq.index + 1)) ||
+          // stäng (tiden ute / alla svarat / "Avsluta frågan nu") eller hoppa över en öppen
+          (oq.phase == 'open' && nq.diff(oq).affectedKeys().hasOnly(['phase', 'closedAt']) &&
+            nq.phase in ['closed', 'skipped'] && nq.closedAt == request.time) ||
+          // hoppa över en stängd
+          (oq.phase == 'closed' && nq.diff(oq).affectedKeys().hasOnly(['phase']) && nq.phase == 'skipped') ||
+          // avslöja: facit = ögonblicksbildens
+          (oq.phase == 'closed' && nq.diff(oq).affectedKeys().hasOnly(['phase', 'facit']) &&
+            nq.phase == 'revealed' && nq.facit == sbPrivate().facit[oq.index])));
+      }
+      function sbSessionUpdateOk() {
+        let o = resource.data;
+        let n = request.resource.data;
+        let keys = n.diff(o).affectedKeys();
+        return sbSettingsOk(n) &&
+          keys.hasOnly(['name', 'status', 'startedAt', 'q', 'finishedAt', 'result', 'showQuestionOnStudent']) &&
+          (o.status == 'lobby' || !keys.hasAny(['name'])) && (
+            // namn (lobby) / visa frågan på elevskärmen
+            !keys.hasAny(['status', 'startedAt', 'q', 'finishedAt', 'result']) ||
+            // STARTA
+            (keys.hasOnly(['status', 'startedAt']) && o.status == 'lobby' && n.status == 'live' &&
+              n.startedAt == request.time) ||
+            (keys.hasOnly(['q']) && o.status == 'live' && sbStepOk(o, n)) ||
+            // avsluta (live) / avbryt (lobby)
+            (keys.hasOnly(['status', 'finishedAt']) && o.status in ['lobby', 'live'] &&
+              n.status == 'finished' && n.finishedAt == request.time) ||
+            // historikens result – en gång, efter slut
+            (keys.hasOnly(['result']) && o.status == 'finished' && o.get('result', null) == null &&
+              n.result is map));
+      }
+      function sbAnswerKindOk(d, kind, q) {
+        return (kind == 'choice' &&
+            d.keys().hasOnly(['uid', 'classId', 'q', 'answerKind', 'choiceIndex', 'at']) &&
+            d.choiceIndex is int && d.choiceIndex >= 0 && d.choiceIndex < q.question.options.size()) ||
+          (kind == 'free' &&
+            d.keys().hasOnly(['uid', 'classId', 'q', 'answerKind', 'answer', 'at']) &&
+            d.answer is string && d.answer.size() >= 1 && d.answer.size() <= 40);
+      }
+      function sbAnswerCreate(answerId) {
+        let d = request.resource.data;
+        let s = session();
+        let q = s.q;
+        return signedIn() && sbFormat(s) && s.status == 'live' && q.phase == 'open' &&
+          d.uid == request.auth.uid && d.q == q.index && answerId == string(d.q) + '_' + d.uid &&
+          d.at == request.time && request.time >= q.openedAt &&
+          request.time < q.openedAt + duration.value(s.questionSeconds, 's') &&
+          d.answerKind == s.answerKind && sbAnswerKindOk(d, s.answerKind, q) &&
+          d.classId in s.participatingClassIds && isClassMember(d.classId) &&
+          get(livePath('players', d.uid)).data.joinedAt < q.openedAt;
+      }
+      function sbSnapshotCreate(docId) {
+        let d = request.resource.data;
+        let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
+        return isTeacher() && docId == 'snapshot' && sbFormat(s) && s.status == 'lobby' &&
+          d.keys().hasOnly(['questions', 'facit']) && d.questions is list && d.facit is list &&
+          d.questions.size() == s.questionCount && d.facit.size() == s.questionCount;
+      }
+      function sbScoreCreate(qid) {
+        let d = request.resource.data;
+        let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
+        return isTeacher() && sbFormat(s) && s.q.phase in ['revealed', 'skipped'] &&
+          qid == string(s.q.index) && d.index == s.q.index &&
+          d.keys().hasOnly(['index', 'skipped', 'answered', 'correctCount', 'points', 'correct',
+                            'choiceCounts', 'topWrong']) &&
+          d.skipped == (s.q.phase == 'skipped') && d.points is map && d.correct is map;
+      }
+
       // Alla inloggade läser sessionen (eleven ser lobby/status); ALLA lärare
       // skapar/styr ALLA sessioner (projektorn i vilket klassrum som helst).
+      // Formatet avgör regelgrenen (Snilleblixten har en egen, #556).
       allow read: if signedIn();
-      allow create: if isTeacher() && liveSessionCreateOk();
-      allow update: if (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
+      allow create: if isTeacher() &&
+        (sbFormat(request.resource.data) ? sbSessionCreateOk() : liveSessionCreateOk());
+      allow update: if sbFormat(resource.data)
+        ? isTeacher() && sbSessionUpdateOk()
+        : (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
       // Radera (#543): bara en session som ALDRIG startat (status lobby) –
       // startade/avslutade är historik. Lobbyns spelardokument (närvaro/redo)
       // raderas i samma batch (live-data deleteLiveSession); svar/räknare finns
@@ -641,6 +768,30 @@ service cloud.firestore {
         allow read: if isTeacher() || isSelf(uid);
         allow create: if liveJoin(uid);
         allow update: if liveHeartbeat(uid) || livePlayerBump(uid);
+        allow delete: if isTeacher();
+      }
+      // Snilleblixten (#556): ögonblicksbilden (facit + kommande frågor) –
+      // eleven kan aldrig läsa den.
+      match /sbPrivate/{docId} {
+        allow read: if isTeacher();
+        allow create: if sbSnapshotCreate(docId);
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+      // Ett svar per elev och fråga: id {fråga}_{uid}, bara create. Eleven får
+      // läsa sitt eget (även "finns inte" – omladdning), läraren alla.
+      match /sbAnswers/{answerId} {
+        allow read: if isTeacher() ||
+          (signedIn() && answerId == answerId.split('_')[0] + '_' + request.auth.uid);
+        allow create: if sbAnswerCreate(answerId);
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+      // Frågans poäng – läraren skriver EN gång, deltagarna läser.
+      match /sbScores/{qid} {
+        allow read: if isTeacher() || (signedIn() && exists(livePath('players', request.auth.uid)));
+        allow create: if sbScoreCreate(qid);
+        allow update: if false;
         allow delete: if isTeacher();
       }
       // Shardade klassräknare – läses av projektorvyerna (lärare).

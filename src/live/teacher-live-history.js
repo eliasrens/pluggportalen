@@ -58,7 +58,8 @@ async function ensureResult(s, players) {
   // players → perClass[].players (#499: utan dem blev det 0 → ingen pokal/bonus)
   const counters = fmt.classCounters ? await getCounters(s.id) : [];
   const { classes } = fmt.computeStandings(s, { counters, players });
-  const result = fmt.buildResult(s, classes, players, getGameMode(s.gameMode));
+  const extra = fmt.resultInputs ? await fmt.resultInputs(s) : undefined;
+  const result = fmt.buildResult(s, classes, players, getGameMode(s.gameMode), extra);
   writeResultIfMissing(s.id, result).catch(() => {});
   return result;
 }

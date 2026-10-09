@@ -110,12 +110,19 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
       fillEndsAt(sid).catch(() => {});
     }
     if (st.phase === "finished" && !st.result && !resultTimer) {
-      resultTimer = setTimeout(() => {
+      resultTimer = setTimeout(async () => {
         const fmt = formatOf(session);
         if (closed || session?.result || !fmt) return;
-        const final = compute();
-        const result = fmt.buildResult(session, final.classes, players, getGameMode(session?.gameMode));
-        writeResultIfMissing(sid, result).catch(onError);
+        try {
+          // Format som räknar result ur egna dokument (Snilleblixten: sbScores).
+          const extra = fmt.resultInputs ? await fmt.resultInputs(session) : undefined;
+          if (closed || session?.result) return;
+          const final = compute();
+          const result = fmt.buildResult(session, final.classes, players, getGameMode(session?.gameMode), extra);
+          await writeResultIfMissing(sid, result);
+        } catch (err) {
+          onError(err);
+        }
       }, RESULT_SETTLE_MS);
     }
   }
