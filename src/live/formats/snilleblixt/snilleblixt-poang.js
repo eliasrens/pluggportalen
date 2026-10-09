@@ -20,9 +20,11 @@
 //   computeStandings(s, { scores, players }) → { players, classes, totalCorrect,
 //                           leaderIds, winnerId, draw }
 //   buildResult(s, _classes, players, mode, { scores }) → historikens result
+//                         (+ rewards, live-rewards.js #557)
 // ============================================================================
 
 import { toMs } from "../../live-time.js";
+import { withRewards } from "../../live-rewards.js";
 
 export const SB_MAX_POINTS = 1000;
 export const SB_MIN_POINTS = 500;
@@ -149,14 +151,16 @@ export function computeStandings(s, { scores = [], players = [] } = {}) {
 /**
  * Historikens ögonblicksbild (liveSessions.result, skrivs en gång vid slut).
  * Ingen klassvinnare (winner null, inget perClass) → inga klasspokaler/
- * klassbonus/mynt-pris via kc-koppling (§7.2.6). Pluggmynt: #557.
+ * klassbonus/mynt-pris via kc-koppling (§7.2.6). Pluggmynt (#557): rewards
+ * {uid: { rank, correct, prize, correctCoins, total }} om sessionen har
+ * belöningar – placering ur poängen, bara elever med minst ett räknat svar.
  */
 export function buildResult(s, _classes, players = [], _mode = null, { scores = [] } = {}) {
   const st = computeStandings(s, { scores, players });
   const perQuestion = [...(scores || [])].sort((a, b) => a.index - b.index).map((sc) => ({
     index: sc.index, skipped: !!sc.skipped, answered: Number(sc.answered) || 0, correct: Number(sc.correctCount) || 0,
   }));
-  return {
+  return withRewards(s, {
     format: "snilleblixt",
     winner: null,
     ranking: st.players.map(({ uid, name, classId, points, correct, rank }) => ({ uid, name, classId, points, correct, rank })),
@@ -164,5 +168,5 @@ export function buildResult(s, _classes, players = [], _mode = null, { scores = 
     questionsPlayed: perQuestion.filter((q) => !q.skipped).length,
     totalCorrect: st.totalCorrect,
     players: (players || []).length,
-  };
+  }, st.players.map((p) => ({ uid: p.uid, score: p.points, correct: p.correct, answered: p.answered })));
 }

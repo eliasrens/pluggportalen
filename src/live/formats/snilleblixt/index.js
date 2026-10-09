@@ -16,6 +16,9 @@
 //   resultInputs(s)     → Promise<{ scores }> – buildResult behöver sbScores
 //                         (live-feed / historiken hämtar dem före buildResult)
 //
+// Pluggmynt efter matchen (#557): gemensamma live-rewards.js – fältet
+// rewardsSetupField, sessionens `rewards`, result.rewards (buildResult).
+//
 // Vyerna byggs i egna issues: studentView #558, projectorViews #559,
 // historyRenderer #560 (här en enkel topplista tills dess).
 //
@@ -28,6 +31,7 @@ import {
   buildSnapshot, validateSetup, buildSessionFields, sessionTitle, defaultSessionName,
 } from "./snilleblixt-core.js";
 import { computeStandings, buildResult } from "./snilleblixt-poang.js";
+import { rewardsSetupField, validateRewards, rewardSessionFields } from "../../live-rewards.js";
 
 const notYet = (what, issue) => () => Promise.reject(new Error(`Snilleblixtens ${what} är inte byggd än (#${issue})`));
 
@@ -61,14 +65,15 @@ const SNILLEBLIXT = {
       key: "showQuestionOnStudent", kind: "toggle", label: "Visa frågan på elevernas skärmar", default: true,
       hint: "av = eleverna ser bara svarsknapparna/svarsfältet",
     },
+    rewardsSetupField(),
   ],
 
   compatibleGameModes(mode) {
     return answerKindsFor(SNILLEBLIXT, mode).length > 0;
   },
 
-  validateSetup,
-  buildSessionFields,
+  validateSetup: (input) => [...validateSetup(input), ...validateRewards(input?.rewards)],
+  buildSessionFields: (input) => ({ ...buildSessionFields(input), ...rewardSessionFields(input?.rewards) }),
   sessionTitle,
   defaultSessionName,
   computeStandings,

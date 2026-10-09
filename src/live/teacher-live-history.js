@@ -5,7 +5,8 @@
 // `result` (ögonblicksbild) + spelardokumenten (elevresultat). Saknas
 // `result` (ingen projektor var öppen vid slutet) räknas det ur räknarna och
 // sparas härifrån. Har matchen ett mynt-pris (#526) som inte betalats ut
-// (projektorn stängdes innan) betalas det härifrån – idempotent.
+// (projektorn stängdes innan) betalas det härifrån – idempotent. Samma för
+// elevernas Pluggmynt i de nya formaten (#557, kvitto per elev).
 // Det formatspecifika (vinnare, klasstabell, pris – Klassmatchen) ritar
 // sessionens FORMAT (historyRenderer(), laddas latt, #547); kärnan ritar
 // rubrik, datum, spelläge och elevtabellen. Formatets ikon visas före
@@ -97,6 +98,8 @@ export async function renderHistoryDetail(ctx, host, sid) {
     players = await getPlayers(sid);
     result = s.status === "finished" && s.startedAt ? await ensureResult(s, players) : null;
     hist.settle?.(s);
+    // Pluggmynt (#557) som inte hann betalas ut (projektorn stängdes) – idempotent.
+    if (s.result?.rewards) import("./live-rewards-data.js").then((m) => m.settleLiveRewards(s.id, s)).catch(() => {});
   } catch (err) {
     host.replaceChildren(el(`<p class="err-inline">Kunde inte läsa matchen: ${esc(err.message)}</p>`));
     return;

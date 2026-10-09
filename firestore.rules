@@ -589,12 +589,22 @@ service cloud.firestore {
     //    serverstämplarna (at − openedAt). Ingen kan ändra den.
     //  • Övergångar (öppna/stäng/avslöja/hoppa/nästa/avsluta) går bara ett steg
     //    från aktuellt läge – två lärare samtidigt ger exakt ett steg.
+    // Pluggmynt efter matchen (#557, nya format – live-rewards.js): lärarens
+    // val, låst efter skapandet (inte med i formatens tillåtna ändringar).
+    // Taken = src/live/rewards-config.js LIVE_REWARD_LIMITS – ändra båda.
+    function liveRewardsOk(d) {
+      let r = d.get('rewards', null);
+      return r == null || (r is map && r.keys().hasOnly(['firstPrize', 'perCorrect', 'cap']) &&
+        r.firstPrize is int && r.firstPrize >= 0 && r.firstPrize <= 1000 &&
+        r.perCorrect is int && r.perCorrect >= 0 && r.perCorrect <= 50 &&
+        r.cap is int && r.cap >= 1 && r.cap <= 1000);
+    }
     function sbFormat(d) { return d.get('format', 'klassmatch') == 'snilleblixt'; }
     function sbSettingsOk(d) {
       return d.keys().hasOnly(['name', 'format', 'gameMode', 'answerKind', 'participatingClassIds',
           'classNames', 'countdownSeconds', 'status', 'createdBy', 'createdByName', 'createdAt',
           'questionSeconds', 'questionCount', 'shuffleQuestions', 'showQuestionOnStudent', 'quiz',
-          'startedAt', 'q', 'finishedAt', 'result']) &&
+          'startedAt', 'q', 'finishedAt', 'result', 'rewards']) && liveRewardsOk(d) &&
         d.name is string && d.name.size() > 0 && d.name.size() <= 80 &&
         d.gameMode is string && d.gameMode.size() <= 40 && d.answerKind in ['free', 'choice'] &&
         d.participatingClassIds is list && d.participatingClassIds.size() >= 1 &&
@@ -740,6 +750,31 @@ service cloud.firestore {
           d.skipped == (s.q.phase == 'skipped') && d.points is map && d.correct is map;
       }
 
+      // --- Pluggmynt efter matchen (#557) ---
+      // Kvittot coinReceipts/{uid} = "eleven har fått sina pluggmynt för
+      // matchen". Bara create (aldrig ändra/radera) → EN utbetalning per elev
+      // och session, hur många lärarflikar/omkörningar det än blir. Bara
+      // lärare, bara efter matchslut (aldrig demo), beloppen = det sparade
+      // result.rewards[uid] (inom sessionens tak) och elevens saldo måste i
+      // SAMMA skrivning öka med exakt total (live-rewards-pay.js).
+      function liveCoinReceipt(uid) {
+        let d = request.resource.data;
+        let s = session();
+        let cfg = s.get('rewards', null);
+        let r = s.get('result', {}).get('rewards', {}).get(uid, null);
+        let sd = /databases/$(database)/documents/studentData/$(uid);
+        let fore = exists(sd) ? get(sd).data.get('coins', 0) : 0;
+        return isTeacher() && s.status == 'finished' && s.get('demo', false) != true &&
+          cfg is map && r is map &&
+          d.keys().hasOnly(['uid', 'prize', 'correctCoins', 'total', 'at', 'by']) &&
+          d.uid == uid && d.at == request.time && d.by == request.auth.uid &&
+          d.prize is int && d.correctCoins is int && d.total is int && d.total >= 1 &&
+          d.prize == r.prize && d.correctCoins == r.correctCoins && d.total == r.total &&
+          d.total == d.prize + d.correctCoins &&
+          d.prize <= cfg.firstPrize && d.correctCoins <= cfg.cap &&
+          getAfter(sd).data.get('coins', 0) == fore + d.total;
+      }
+
       // Alla inloggade läser sessionen (eleven ser lobby/status); ALLA lärare
       // skapar/styr ALLA sessioner (projektorn i vilket klassrum som helst).
       // Formatet avgör regelgrenen (Snilleblixten har en egen, #556).
@@ -793,6 +828,12 @@ service cloud.firestore {
         allow create: if sbScoreCreate(qid);
         allow update: if false;
         allow delete: if isTeacher();
+      }
+      // Pluggmynt-kvitton (#557) – eleven läser sitt eget, läraren alla.
+      match /coinReceipts/{uid} {
+        allow read: if isTeacher() || isSelf(uid);
+        allow create: if liveCoinReceipt(uid);
+        allow update, delete: if false;
       }
       // Shardade klassräknare – läses av projektorvyerna (lärare).
       match /counters/{counterId} {
