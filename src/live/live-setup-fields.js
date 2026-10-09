@@ -13,7 +13,9 @@
 // formulärets input till validateSetup/buildSessionFields), label, hint?,
 // cls? (extra klass på .field), validate? (false = formatets validateSetup
 // kontrollerar fältet själv, generiska kontrollen hoppas över), required?
-//   "choice"   options [{ value, label }], default?   → radio-chips
+//   "choice"   options [{ value, label }], default?,  → radio-chips
+//              defaultByAnswerKind? { free: v, choice: v } – förvalet följer
+//              svarssättet tills läraren själv valt (Snilleblixtens frågetid)
 //   "number"   min?, max?, placeholder?, id?, inputCls? → heltalsfält (värdet
 //              lämnas som RÅ sträng – tomt = inget värde)
 //   "text"     maxlength?, placeholder?, id?          → textfält
@@ -33,6 +35,8 @@
 //   perClassRowsHtml(field, classes, values) → raderna för ett perClass-fält
 //   coerceSetupValue(field, raw)          → typat värde ur formulärets råvärde
 //   defaultSetupValues(fields)            → { key: standardvärde }
+//   answerKindDefaults(fields, kind)      → { key: förval } för fält med
+//                                         defaultByAnswerKind
 //   validateSetupFields(fields, input)    → string[] generiska fel
 //   formatPickerHtml(formats, selectedId) → "" om ≤ 1 format (dold/auto-vald)
 //   answerKindHtml(kinds, selected)       → "" om ≤ 1 svarssätt; förval =
@@ -130,6 +134,16 @@ export function coerceSetupValue(f, raw) {
 export function defaultSetupValues(fields) {
   const out = {};
   for (const f of fields || []) if (f.default !== undefined) out[f.key] = f.default;
+  return out;
+}
+
+/** Förval som beror på svarssättet (defaultByAnswerKind). */
+export function answerKindDefaults(fields, kind) {
+  const out = {};
+  for (const f of fields || []) {
+    const v = f.defaultByAnswerKind?.[kind];
+    if (v !== undefined) out[f.key] = v;
+  }
   return out;
 }
 
