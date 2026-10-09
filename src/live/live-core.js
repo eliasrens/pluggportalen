@@ -38,6 +38,7 @@
 //   sessionTitle(s)           → "4B MOT 5E" (klassnamn ur classNames)
 //   defaultSessionName(names) → "4B mot 5E"
 //   validateSessionInput(i)   → string[] fel (tom = ok) – i.coinPrize valfritt
+//   DIVISOR_LOCKED_MSG        förklaringen när nämnaren är låst efter slut (#543)
 //   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby"); två
 //                             klasser → wizards (Trollkarlsduellen, #536)
 // ============================================================================
@@ -276,6 +277,10 @@ export function validateSessionInput(input, opts = {}) {
   }
   return errs;
 }
+
+/** Nämnaren är låst efter matchslut (#543) – förklaringen läraren ser. */
+export const DIVISOR_LOCKED_MSG =
+  "Matchen är avslutad – resultat, vinnare, mynt-pris och pokaler är redan utdelade, så nämnaren går inte att ändra längre.";
 
 /**
  * Sessionsdokumentet som skapas (createdAt sätts av anroparen = serverTimestamp).

@@ -45,7 +45,8 @@ export async function pageElevLive() {
   const wantId = getParams().id;
   if (wantId) {
     const s = await getSession(wantId).catch(() => null);
-    if (!s || !s.participatingClassIds?.some((id) => myClassIds.includes(id))) {
+    if (!s) return renderCancelled();
+    if (!s.participatingClassIds?.some((id) => myClassIds.includes(id))) {
       return renderMessage("🤔", "Den här Live-matchen hittades inte", "Din klass är inte med i den matchen.");
     }
     return mountSession(s, { uid, myClassIds, cleanups });
@@ -72,6 +73,11 @@ function renderMessage(emoji, title, text) {
     <div class="big-emoji">${emoji}</div><h2>${escHtml(title)}</h2><p class="hint">${escHtml(text)}</p>
     <button class="btn" id="live-hem">Till Hem</button></div>`));
   app.querySelector("#live-hem").addEventListener("click", () => go("#/elev/hus"));
+}
+
+// Läraren raderade matchen innan den startade (#543).
+function renderCancelled() {
+  renderMessage("🛑", "Matchen har ställts in", "Din lärare tog bort matchen innan den startade. Du kan gå tillbaka hem.");
 }
 
 function renderList(list) {
@@ -113,6 +119,8 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
   let st = null;
   let lastAnswerAt = 0;
   let fa = null;
+  let gone = false;
+  let hb = 0;
 
   const join = () => {
     joining ||= joinLiveSession(initial.id, { uid, classId })
@@ -153,7 +161,15 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
   function render() {
     if (!st) return;
     const s = st.session;
-    if (!s) return renderMessage("🤔", "Matchen finns inte längre", "Läraren har tagit bort den.");
+    if (gone) return;
+    if (!s) {
+      // Raderad (#543): visa beskedet EN gång och sluta lyssna/pulsa.
+      gone = true;
+      fa?.destroy();
+      fa = null;
+      clearInterval(hb);
+      return renderCancelled();
+    }
     $(".live-elev-me").textContent = player && st.phase !== "lobby" ? `${player.correct || 0} rätt` : "";
     // Sen anslutning: matchen har startat → gå med automatiskt.
     if (!player && (st.phase === "countdown" || st.phase === "live")) join();
@@ -193,7 +209,7 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
     if (p) joining = null;
     render();
   }, (e) => console.warn("Live: spelardokumentet", e)));
-  const hb = setInterval(() => {
+  hb = setInterval(() => {
     if (!player || !st) return;
     const lobbyish = st.phase === "lobby" || st.phase === "countdown";
     const idle = st.phase === "live" && Date.now() - lastAnswerAt > HEARTBEAT_MS;

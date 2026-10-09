@@ -2,7 +2,8 @@
 // Live – lärarmodulen #/larare/live (#460)
 // ----------------------------------------------------------------------------
 //   #/larare/live              skapa match + Aktiva Live-sessioner (ALLA lärares,
-//                              realtid) + historik
+//                              realtid; Ändra nämnare / Radera ej startad, #543)
+//                              + historik
 //   #/larare/live?id=<sid>     projektorvyn (projector.js, #461)
 //   #/larare/live?id=<sid>&skarm=elev  elevskärmen: utvidgad skärm utan
 //                              kontroller, styrs från projektorvyn (#533)
@@ -17,7 +18,8 @@ import { getParams } from "../ui.js";
 import { auth } from "../firebase-config.js";
 import * as data from "../data.js";
 import { getGameMode } from "./modes/index.js";
-import { watchActiveSessions, autoFinish } from "./live-data.js";
+import { watchActiveSessions, autoFinish, setClassDivisor, deleteLiveSession } from "./live-data.js";
+import { openDivisorDialog } from "./live-divisor-dialog.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
 import { phaseAt, formatClock } from "./live-core.js";
 import { renderCreateForm } from "./teacher-live-form.js";
@@ -116,9 +118,27 @@ function drawActive(ctx, host, list) {
       <div><b>${esc(s.name)}</b> <span class="live-status ${st.cls}">${esc(st.txt)}</span>
         <div class="hint">${esc(mode ? mode.displayName : s.gameMode)} · ${Math.round((s.durationSeconds || 0) / 60)} min${
           s.createdByName ? ` · skapad av ${esc(s.createdByName)}` : ""}</div></div>
-      <button class="btn small" data-open="${esc(s.id)}">Öppna projektorvy</button></li>`;
+      <div class="live-active-btns">
+        <button class="btn small" data-open="${esc(s.id)}">Öppna projektorvy</button>
+        <button class="btn small ghost" data-div="${esc(s.id)}">Ändra nämnare</button>
+        ${s.status === "lobby" ? `<button class="btn small ghost danger" data-del="${esc(s.id)}">Radera</button>` : ""}
+      </div></li>`;
   }).join("");
   const ul = el(`<ul class="live-active-ul">${html}</ul>`);
+  const byId = (id) => list.find((s) => s.id === id);
   ul.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => ctx.go(`#/larare/live?id=${b.dataset.open}`)));
+  ul.querySelectorAll("[data-div]").forEach((b) => b.addEventListener("click", () => {
+    const s = byId(b.dataset.div);
+    if (s) openDivisorDialog(document.body, { session: s, save: (cid, n) => setClassDivisor(s.id, cid, n) });
+  }));
+  ul.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+    const s = byId(b.dataset.del);
+    if (!s || !confirm(`Radera "${s.name}"? Matchen har inte startat och tas bort helt. Elever som väntar i lobbyn får se att den ställts in.`)) return;
+    try {
+      await deleteLiveSession(s.id);
+    } catch (err) {
+      alert(err.message);
+    }
+  }));
   host.replaceChildren(ul);
 }

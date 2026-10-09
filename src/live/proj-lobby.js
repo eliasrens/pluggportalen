@@ -11,7 +11,9 @@
 //
 // API: createLobby(host, { st, colors, modeName, actions, say, readonly })
 //        → { update(st), destroy() }
-//   actions: { start(), cancel(), setDivisor(classId, n), setWizards?(map) } (Promise)
+//   actions: { start(), cancel(), setDivisor(classId, n), setWizards?(map), remove?() } (Promise)
+//   remove: radera den ej startade matchen helt (#543) – "Avbryt" sparar den
+//   som avbruten i historiken, "Radera" tar bort den.
 //   readonly: elevskärmen (#533) – inga knappar/nämnarfält, bara det eleverna ser
 // ============================================================================
 
@@ -52,6 +54,7 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
     <div class="lpl-foot">
       <span>Eleverna går in via <b>Live</b> i menyn och väntar i lobbyn.</span>
       ${readonly ? "" : `<button class="lp-link" data-cancel>Avbryt matchen</button>`}
+      ${readonly || !actions?.remove ? "" : `<button class="lp-link" data-remove>Radera matchen</button>`}
     </div>`;
   host.replaceChildren(root);
   if (!readonly) wireControls(root, { actions, say });
@@ -128,6 +131,11 @@ function wireControls(root, { actions, say }) {
   });
   root.querySelector("[data-cancel]").addEventListener("click", () => {
     if (confirm("Avbryta matchen? Eleverna i lobbyn får se att den avbröts.")) actions.cancel().catch((err) => say(err.message));
+  });
+  root.querySelector("[data-remove]")?.addEventListener("click", () => {
+    if (confirm("Radera matchen? Den har inte startat och tas bort helt. Eleverna i lobbyn får se att den ställts in.")) {
+      actions.remove().catch((err) => say(err.message));
+    }
   });
   root.querySelectorAll("[data-div]").forEach((inp) => {
     const cid = inp.closest("[data-cid]").dataset.cid;

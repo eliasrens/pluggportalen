@@ -10,7 +10,10 @@
 //   startLiveSession(sid)               → STARTA: startedAt = serverTimestamp,
 //                                         sedan endsAt = startedAt + nedräkning + längd
 //   fillEndsAt(sid)                     → skriv endsAt om den saknas (idempotent)
-//   setClassDivisor(sid, classId, n)    → justera nämnaren (även under match)
+//   setClassDivisor(sid, classId, n)    → justera nämnaren (lobby + under match;
+//                                         låst efter slut → DIVISOR_LOCKED_MSG)
+//   deleteLiveSession(sid)              → radera en session som inte startat
+//                                         (+ lobbyns spelardokument) (#543)
 //   setLiveWizards(sid, wizards)        → Trollkarlsduellen: { classId: "rasmus"|"elias" }
 //                                         (bara i lobbyn – reglerna, #536)
 //   finishLiveSession(sid)              → avsluta nu (lärarens knapp) / avbryt lobby
@@ -39,7 +42,7 @@ import {
   addDoc, updateDoc, setDoc, writeBatch, runTransaction, increment, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { planLiveAnswerWrites, planLiveJoin, planLiveHeartbeat, pickShard } from "../tavling/answer-writes.js";
-import { buildSessionDoc, toMs } from "./live-core.js";
+import { buildSessionDoc, toMs, DIVISOR_LOCKED_MSG } from "./live-core.js";
 import { noteServerStamp } from "./live-clock.js";
 
 const fv = { increment, serverTimestamp };
@@ -91,11 +94,41 @@ export async function fillEndsAt(sid) {
   await updateDoc(sessRef(sid), { endsAt });
 }
 
-/** Lärarens nämnare (förifylld med klassens elevantal). */
+/**
+ * Lärarens nämnare (förifylld med klassens elevantal). Går i lobbyn och under
+ * pågående match (#543) – poängen räknas om direkt i alla vyer via
+ * realtidslagret. Efter slut nekar reglerna; här blir det ett begripligt fel.
+ */
 export async function setClassDivisor(sid, classId, n) {
-  const v = Math.floor(Number(n));
-  if (!Number.isInteger(v) || v < 1 || v > 999) throw new Error("Nämnaren måste vara 1–999.");
-  await updateDoc(sessRef(sid), { [`classDivisors.${classId}`]: v });
+  const v = Number(n);
+  if (!Number.isInteger(v) || v < 1 || v > 999) throw new Error("Nämnaren måste vara ett heltal 1–999.");
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(sessRef(sid));
+    if (!snap.exists()) throw new Error("Matchen finns inte längre.");
+    if (snap.data().status === "finished") throw new Error(DIVISOR_LOCKED_MSG);
+    tx.update(sessRef(sid), { [`classDivisors.${classId}`]: v });
+  });
+}
+
+/**
+ * Radera en session som INTE startat (#543). Lobbyns spelardokument
+ * (närvaro/redo) tas bort i samma batch; svar/räknare finns inte före start.
+ * Reglerna nekar om sessionen hunnit starta (status ≠ lobby).
+ */
+export async function deleteLiveSession(sid) {
+  const s = await getDocFromServer(sessRef(sid));
+  if (!s.exists()) return;
+  if (s.data().status !== "lobby") throw new Error("Bara en match som inte startat kan raderas – startade matcher sparas i historiken.");
+  const players = await getDocs(collection(db, "liveSessions", sid, "players"));
+  const b = writeBatch(db);
+  players.docs.forEach((d) => b.delete(d.ref));
+  b.delete(sessRef(sid));
+  try {
+    await b.commit();
+  } catch (err) {
+    if (err?.code === "permission-denied") throw new Error("Matchen hann starta – den kan inte raderas längre.");
+    throw err;
+  }
 }
 
 /** Trollkarlsduellen (#536): vem som är Rasmus/Elias. Reglerna: bara i lobbyn, en av varje. */

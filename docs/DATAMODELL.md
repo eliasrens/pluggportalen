@@ -697,7 +697,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `participatingClassIds` | array\<string\> (1–8) | klasserna |
-| `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal, får ändras även under matchen) |
+| `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal). Får ändras i lobbyn och under matchen (#543: heltal 1–999, exakt deltagarklasserna; under match rör ändringen bara detta fält) – **låst efter slut** |
 | `durationSeconds` | int 30–3600 | matchlängd (UI: 300–1800 i 5-min-steg; kortare för QA) |
 | `countdownSeconds` | int 0–10 | 3–2–1–KÖR innan svar godtas (förslag 4) |
 | `counterShards` | int 1–50 | klassräknar-shards (förslag 10) |
@@ -709,6 +709,8 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `result` | map (valfri) | historik: `{ perClass: { classId: { correct, divisor, score } }, winner \| "draw", winnerClasses[] }` – skrivs aldrig om när det väl finns (#526) |
 | `coinPrize` | int 0–100 000 (valfri) | **#526** mynt-pris till vinnarklassens klasskassa; sätts bara vid skapandet, reglerna nekar varje ändring därefter. Saknas/0 = inget pris |
 | `wizards` | map (valfri) | **#536** Trollkarlsduellen: `{ classId: "rasmus" \| "elias" }` – bara i tvåklassmatcher, exakt de två klasserna, en av varje. Skrivs av `buildSessionDoc` (default klass 1 = Rasmus), kan bytas i lobbyn, låst efter start (reglerna). Saknas → samma default i vyn |
+
+**Radera (#543):** bara en session med `status == 'lobby'` (aldrig startad). `deleteLiveSession` tar bort lobbyns `players` + sessionen i en batch (svar/räknare finns inte före start). Ett spelardokument som skapas samtidigt kan bli kvar – ofarligt (bara eleven + lärare läser det; nya svar/spelare nekas när sessionen saknas). Eleven i lobbyn ser "Matchen har ställts in".
 
 - Bara lärare skapar/ändrar, och **alla lärare** får styra alla sessioner.
   `gameMode`, klasser, längd, nedräkning och shards låses när matchen startat.
