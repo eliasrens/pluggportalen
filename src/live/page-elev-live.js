@@ -10,18 +10,20 @@
 // Rubrik, lobbyrad och slutskärm kommer från sessionens FORMAT (#547):
 // sessionTitle(s) + studentView() (laddas latt; Klassmatchen =
 // formats/klassmatch/klassmatch-student.js). Format saknas = Klassmatchen.
+// Svarskomponenten väljs ur sessionens answerKind (#551, answer-kinds.js):
+// "free" = skriv själv (fast-answer), "choice" = flerval. Saknas = "free".
 // Laddas DYNAMISKT från app.js (#271).
 // ============================================================================
 
 import { app, el, go, renderTopbar, loading, getParams, escHtml } from "../ui.js";
 import * as data from "../data.js";
 import { requireGameMode } from "./modes/index.js";
-import { mountFastAnswer } from "../mult/fast-answer.js";
+import { hasAnswerComponent, loadAnswerComponent } from "./answer-kinds.js";
 import { watchActiveSessions, watchMyPlayer, joinLiveSession, heartbeat, submitLiveAnswer, getSession } from "./live-data.js";
 import { subscribeLiveSession } from "./live-feed.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
 import { sessionTimes } from "./live-core.js";
-import { formatOf } from "./formats/index.js";
+import { formatOf, answerKindOf } from "./formats/index.js";
 import { relevantSessions } from "./live-watch.js";
 import { ensureLiveCss, onLeaveRoute } from "./live-css.js";
 
@@ -105,12 +107,18 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
   }
   const fmt = formatOf(initial);
   if (!fmt) return renderMessage("🧩", "Okänt Live-format", "Den här matchen använder ett format som inte finns i din version – ladda om sidan.");
+  // Svarssättet är låst efter start (reglerna) – läses en gång.
+  const answerKind = answerKindOf(initial);
+  const modeKinds = mode.answerKinds || ["free"];
+  if (!modeKinds.includes(answerKind) || !hasAnswerComponent(answerKind)) {
+    return renderMessage("🧩", "Okänt svarssätt", "Den här matchen använder ett svarssätt som inte finns i din version – ladda om sidan.");
+  }
   // Sidan kan lämnas medan formatets elevdel laddas – rita då ingenting.
   let left = false;
   cleanups.push(() => { left = true; });
-  let fv;
+  let fv, mountAnswer;
   try {
-    fv = await fmt.studentView();
+    [fv, mountAnswer] = await Promise.all([fmt.studentView(), loadAnswerComponent(answerKind)]);
   } catch {
     return left ? undefined : renderMessage("😕", "Kunde inte ladda matchen", "Prova att ladda om sidan.");
   }
@@ -155,8 +163,8 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
 
   function ensureFa() {
     if (fa) return fa;
-    fa = mountFastAnswer($(".live-elev-fa"), {
-      source: mode.createSource(),
+    fa = mountAnswer($(".live-elev-fa"), {
+      source: mode.createSource({ answerKind }),
       check: mode.checkAnswer,
       inputMode: mode.inputMode,
       enabled: false,

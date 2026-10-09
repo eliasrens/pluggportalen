@@ -4,7 +4,8 @@
 // Lärarens "Skapa Live-match" (teacher-live-form.js) ritar varje formats
 // `setupFields` härifrån – ett nytt format behöver ingen ny formulärkod.
 // Här finns också formatväljaren (steg 1) och svarssättsvalet (steg 3).
-// Ren modul (ingen DOM/Firebase, inga importer) – HTML som strängar, så att
+// Ren modul (ingen DOM/Firebase; importerar bara det rena formatregistret) –
+// HTML som strängar, så att
 // den går att testa i node (test/live-setup-fields.test.js). live-core.js
 // importerar härifrån, så den här filen får INTE importera live-core.
 //
@@ -34,9 +35,12 @@
 //   defaultSetupValues(fields)            → { key: standardvärde }
 //   validateSetupFields(fields, input)    → string[] generiska fel
 //   formatPickerHtml(formats, selectedId) → "" om ≤ 1 format (dold/auto-vald)
-//   answerKindHtml(kinds, selected)       → "" om ≤ 1 svarssätt
+//   answerKindHtml(kinds, selected)       → "" om ≤ 1 svarssätt; förval =
+//                                         selected om giltigt, annars free
 //   classHint(format)                     → "klass mot klass – välj minst två"
 // ============================================================================
+
+import { defaultAnswerKind } from "./live-formats.js";
 
 export const LIVE_DURATIONS_MIN = [5, 10, 15, 20, 25, 30];
 export const ANSWER_KIND_LABELS = { free: "✍️ Skriv själv", choice: "🔘 Flerval" };
@@ -182,8 +186,8 @@ export function formatPickerHtml(formats, selectedId) {
 /** Steg 3: svarssätt – bara om fler än ett gemensamt finns. */
 export function answerKindHtml(kinds, selected) {
   if (!kinds || kinds.length <= 1) return "";
-  const sel = kinds.includes(selected) ? selected : kinds[0];
-  return `<label>Svarssätt</label>
+  const sel = kinds.includes(selected) ? selected : defaultAnswerKind(kinds);
+  return `<label>Välj svarssätt</label>
       <div class="live-answerkinds">${kinds.map((k) => `<label class="live-chip">
         <input type="radio" name="answerKind" value="${esc(k)}" ${k === sel ? "checked" : ""} /><span>${esc(ANSWER_KIND_LABELS[k] || k)}</span></label>`).join("")}</div>`;
 }

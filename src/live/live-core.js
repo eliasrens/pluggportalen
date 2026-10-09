@@ -24,8 +24,11 @@
 //   validateSessionInput(i)   → string[] fel (tom = ok) – kärnan + generisk
 //                             kontroll av formatets setupFields (#548) + formatets
 //                             validateSetup (i.format saknas = Klassmatchen)
+//                             + svarssättet (#551): i.answerKind måste stödjas
+//                             av BÅDE formatet och spelläget (saknas = förval)
 //   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby", format
-//                             = formatets id) + formatets buildSessionFields
+//                             = formatets id, answerKind = "free"|"choice")
+//                             + formatets buildSessionFields
 //
 // Re-exporterade Klassmatchen-namn (bakåtkompatibla, logiken i
 // formats/klassmatch/klassmatch-core.js): LIVE_COUNTER_SHARDS, READY_FRESH_MS,
@@ -35,7 +38,8 @@
 // ============================================================================
 
 import { toMs } from "./live-time.js";
-import { requireFormat, DEFAULT_FORMAT } from "./formats/index.js";
+import { requireFormat, resolveAnswerKind, DEFAULT_FORMAT } from "./formats/index.js";
+import { getGameMode } from "./game-modes.js";
 import { LIVE_DURATIONS_MIN, validateSetupFields } from "./live-setup-fields.js";
 
 export { toMs };
@@ -137,18 +141,28 @@ export function validateSessionInput(input, opts = {}) {
   }
   if (ids.length > fmt.maxClasses) errs.push(`Högst ${fmt.maxClasses} ${fmt.maxClasses === 1 ? "klass" : "klasser"}.`);
   if (fmt.pacing === "tid" && !LIVE_DURATIONS_MIN.includes(Number(input?.durationMin))) errs.push("Välj matchlängd.");
+  if (input?.gameMode && !resolveAnswerKind(fmt, modeOf(input), input.answerKind)) {
+    errs.push("Välj ett svarssätt som både formatet och spelläget stöder.");
+  }
   return [...errs, ...validateSetupFields(fmt.setupFields, input), ...fmt.validateSetup(input)];
 }
 
+// Spelläget ur registret (fyllt av modes/index.js, som lärarformuläret laddar).
+// Ej registrerat → bara "free" (spelläge utan answerKinds), som förut.
+const modeOf = (input) => getGameMode(input?.gameMode) || {};
+
 /**
  * Sessionsdokumentet som skapas (createdAt sätts av anroparen = serverTimestamp).
- * Kärnans fält + `format` + formatets buildSessionFields (Klassmatchen:
+ * Kärnans fält + `format` + `answerKind` (låst efter start, reglerna) +
+ * formatets buildSessionFields (Klassmatchen:
  * classDivisors, counterShards, coinPrize?, wizards?).
  * @param {object} input som validateSessionInput (+ classNames)
  * @param {{ uid: string }} ctx
  */
 export function buildSessionDoc(input, { uid }) {
   const fmt = requireFormat(input.format ?? DEFAULT_FORMAT);
+  const answerKind = resolveAnswerKind(fmt, modeOf(input), input.answerKind);
+  if (!answerKind) throw new Error(`Svarssättet ${input.answerKind} stöds inte av ${fmt.id} + ${input.gameMode}`);
   const classIds = [...input.classIds];
   const classNames = {};
   for (const id of classIds) classNames[id] = String(input.classNames?.[id] || id);
@@ -156,6 +170,7 @@ export function buildSessionDoc(input, { uid }) {
     name: String(input.name).trim(),
     format: fmt.id,
     gameMode: input.gameMode,
+    answerKind,
     participatingClassIds: classIds,
     classNames,
     durationSeconds: Number(input.durationMin) * 60,

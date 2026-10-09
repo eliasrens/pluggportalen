@@ -316,17 +316,41 @@ service cloud.firestore {
                                'correctAnswer', 'isCorrect', 'shard', 'at']) &&
         d.keys().hasAll(['uid', 'classId', 'mode', 'factorA', 'factorB', 'answer',
                          'correctAnswer', 'isCorrect', 'shard', 'at']) &&
-        d.mode == 'multiplication_0_10' &&
+        multValuesOk(d);
+    }
+    // Multiplikation med fyra alternativ (Live, svarssätt "choice", #551):
+    // samma fält + answerKind/choiceIndex. `answer` = det valda alternativets
+    // tal – facit räknas om här, så ett felaktigt "rätt" nekas ändå.
+    function multChoiceAnswerOk(d) {
+      return d.keys().hasOnly(['uid', 'classId', 'mode', 'factorA', 'factorB', 'answer',
+                               'correctAnswer', 'isCorrect', 'shard', 'at', 'answerKind', 'choiceIndex']) &&
+        d.keys().hasAll(['uid', 'classId', 'mode', 'factorA', 'factorB', 'answer',
+                         'correctAnswer', 'isCorrect', 'shard', 'at', 'answerKind', 'choiceIndex']) &&
+        multValuesOk(d);
+    }
+    function multValuesOk(d) {
+      return d.mode == 'multiplication_0_10' &&
         d.factorA is int && d.factorA >= 0 && d.factorA <= 10 &&
         d.factorB is int && d.factorB >= 0 && d.factorB <= 10 &&
         d.answer is int && d.answer >= 0 && d.answer <= 9999 &&
         d.correctAnswer == d.factorA * d.factorB &&
         d.isCorrect == (d.answer == d.correctAnswer);
     }
-    // Live: svarsfälten valideras PER gameMode. Ett nytt mode kräver en gren
-    // här (annars nekas dess svar) – medvetet: inget mode räknas oprövat.
-    function liveModeAnswerOk(d) {
-      return d.mode == 'multiplication_0_10' && multAnswerOk(d);
+    // Live: svarsfälten valideras PER gameMode OCH svarssätt (kind =
+    // sessionens answerKind, saknas = 'free'). Ett nytt mode/svarssätt kräver
+    // en gren här (annars nekas dess svar) – medvetet: inget räknas oprövat.
+    function liveModeAnswerOk(d, kind) {
+      return liveAnswerKindOk(d, kind) && d.mode == 'multiplication_0_10' &&
+        ((kind == 'free' && multAnswerOk(d)) || (kind == 'choice' && multChoiceAnswerOk(d)));
+    }
+    // Svarssättet (#551, src/tavling/answer-writes.js): 'free' (skriv själv)
+    // = dokumentet som före #551, utan answerKind/choiceIndex; 'choice'
+    // (flerval) = answerKind 'choice' + choiceIndex heltal 0–3. Ett svar i
+    // fel form för sessionen (t.ex. skriv själv i en flervalsmatch) nekas.
+    function liveAnswerKindOk(d, kind) {
+      return (kind == 'free' && !('answerKind' in d) && !('choiceIndex' in d)) ||
+        (kind == 'choice' && d.get('answerKind', '') == 'choice' &&
+          d.choiceIndex is int && d.choiceIndex >= 0 && d.choiceIndex <= 3);
     }
     // Gemensam kärna för svarsdokumentet (MM och Live).
     function answerCoreOk(d, attemptId, shards) {
@@ -443,7 +467,16 @@ service cloud.firestore {
         d.durationSeconds is int && d.durationSeconds >= 30 && d.durationSeconds <= 3600 &&
         d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
         d.counterShards is int && d.counterShards >= 1 && d.counterShards <= 50 &&
-        d.status in ['lobby', 'live', 'finished'] && liveWizardsOk(d) && liveFormatOk(d);
+        d.status in ['lobby', 'live', 'finished'] && liveWizardsOk(d) && liveFormatOk(d) &&
+        liveSessionAnswerKindOk(d);
+    }
+    // Svarssätt (#551): 'free' (skriv själv) | 'choice' (flerval). Saknas =
+    // 'free' (alla sessioner före #551) – ingen migrering. Vilka svarssätt
+    // ett format + spelläge erbjuder avgör lärarformuläret (registren); här
+    // bara giltigt värde. Svaren valideras mot det (liveAnswerKindOk), och
+    // det är låst efter start (liveSessionUpdateOk).
+    function liveSessionAnswerKindOk(d) {
+      return !('answerKind' in d) || d.answerKind in ['free', 'choice'];
     }
     // Spelformat (#547, src/live/formats/): HUR matchen spelas. Saknas fältet
     // är det Klassmatchen (alla sessioner före #547) – ingen migrering. Nytt
@@ -518,6 +551,7 @@ service cloud.firestore {
           (!starting && n.get('startedAt', null) == o.get('startedAt', null))) &&
         (o.status == 'lobby' ||
           (n.gameMode == o.gameMode && n.participatingClassIds == o.participatingClassIds &&
+           n.get('answerKind', 'free') == o.get('answerKind', 'free') &&
            n.get('wizards', null) == o.get('wizards', null) &&
            n.durationSeconds == o.durationSeconds && n.countdownSeconds == o.countdownSeconds &&
            n.counterShards == o.counterShards)) &&
@@ -548,7 +582,7 @@ service cloud.firestore {
         let s = session();
         let t0 = s.startedAt + duration.value(s.countdownSeconds, 's');
         return answerCoreOk(d, attemptId, s.counterShards) &&
-          d.mode == s.gameMode && liveModeAnswerOk(d) &&
+          d.mode == s.gameMode && liveModeAnswerOk(d, s.get('answerKind', 'free')) &&
           s.status == 'live' && request.time >= t0 &&
           request.time < t0 + duration.value(s.durationSeconds, 's') &&
           d.classId in s.participatingClassIds &&

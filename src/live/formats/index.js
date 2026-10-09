@@ -10,7 +10,8 @@
 //      formatOf(session)   → format | null (null = okänt id, t.ex. en session
 //        skapad av en nyare klient – visa "ladda om", krascha inte)
 //      DEFAULT_FORMAT      – id:t lärarens väljare förvaljer
-//      re-exporterar getFormat/requireFormat/listFormats/answerKindsFor
+//      re-exporterar getFormat/requireFormat/listFormats/answerKindsFor/
+//        defaultAnswerKind/resolveAnswerKind/answerKindOf (svarssätt, #551)
 //
 // ⚠️ Bootgraf (#271): importera bara DYNAMISKT från Live-sidorna, aldrig
 // statiskt från app.js eller en annan kärn-bootfil.
@@ -35,4 +36,6 @@ export function formatOf(session) {
   return getFormat(formatIdOf(session));
 }
 
-export { getFormat, requireFormat, listFormats, answerKindsFor } from "../live-formats.js";
+export {
+  getFormat, requireFormat, listFormats, answerKindsFor, defaultAnswerKind, resolveAnswerKind, answerKindOf,
+} from "../live-formats.js";

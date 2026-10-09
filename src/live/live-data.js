@@ -45,6 +45,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { planLiveAnswerWrites, planLiveJoin, planLiveHeartbeat, pickShard } from "../tavling/answer-writes.js";
 import { buildSessionDoc, toMs } from "./live-core.js";
+import { answerKindOf } from "./formats/index.js";
 import { DIVISOR_LOCKED_MSG } from "./formats/klassmatch/klassmatch-core.js";
 import { noteServerStamp } from "./live-clock.js";
 
@@ -295,6 +296,7 @@ export function submitLiveAnswer({ session, uid, classId, mode, attempt }) {
     isCorrect: !!attempt.result.correct,
     shard: pickShard(session.counterShards),
     fv,
+    answerKind: answerKindOf(session),
   });
   const b = writeBatch(db);
   for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);
