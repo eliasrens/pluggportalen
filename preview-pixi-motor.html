@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>F4b #428 – motorn: ambient/sprites + målförvärmning (stub)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { background: #0b0f14; color: #cfd8e3; font: 500 0.9rem/1.4 system-ui, sans-serif; margin: 0; }
+      .w { max-width: 1100px; margin: 0 auto; padding: 10px; }
+      h1 { font: 800 1.05rem "Baloo 2", system-ui; color: #7ee0a6; margin: 0 0 4px; }
+      p { margin: 0 0 6px; }
+      .knappar { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; align-items: center; }
+      .knappar button { border-radius: 999px; padding: 5px 12px; border: 1px solid #39465a; background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.82rem system-ui; }
+      .knappar button:hover { border-color: #7ee0a6; }
+      .knappar b { color: #7ee0a6; }
+      /* Staget i fast storlek (stub) – lagren som i appen. */
+      .w .varld-stage { height: 520px; margin: 0 0 8px; border-radius: 10px; }
+      pre { background: #141b24; padding: 8px; border-radius: 8px; white-space: pre-wrap; font-size: 0.74rem; max-height: 300px; overflow: auto; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="w">
+      <h1>Motorn F4b (#428): ambient bakas in · sprites ovanpå · målförvärmning vid hover</h1>
+      <p>By med 25 stub-hus (profil <code>t-by</code>: sprites <code>.hus-rok</code>, malSelektor <code>.by-tomt[data-fokus-x]</code>),
+        hus (<code>t-hus</code>: ambient moln/sol/rök = inbakade), rum (<code>t-rum</code>: husdjur + äpplen = sprites).
+        Hovra en kamrat → målförvärmning (se “mål” nedan / HUD med <code>?pixi=debug</code>), klicka → kamratens hus.
+        Flaggor: <code>?pixi=debug|frys|tvinga|av|normal</code>.</p>
+      <div class="knappar">
+        <span>Nivå: <b id="niva">–</b> · väg: <b id="vag">–</b></span>
+        <button id="b-tillbaka">◀ Till byn</button>
+        <button id="b-hus">Mitt hus (T2 in)</button>
+        <button id="b-in">Gå in (T3 in)</button>
+        <button id="b-ut">Gå ut (T3 ut)</button>
+        <button id="b-jamfor">Jämför canvas/DOM</button>
+        <button id="b-stats">Yta.stats()</button>
+      </div>
+      <div class="varld-stage" id="varld-stage">
+        <canvas class="varld-pixi" aria-hidden="true"></canvas>
+        <div class="varld-lager varld-by" id="by-lager" data-spegel-profil="t-by"></div>
+        <div class="varld-lager varld-ute" id="ute-lager" data-spegel-profil="t-hus"></div>
+        <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager" data-spegel-profil="t-hus"></div>
+        <div class="varld-lager room-stage varld-rum" id="rum-lager" data-spegel-profil="t-rum"></div>
+      </div>
+      <pre id="logg">Laddar…</pre>
+    </div>
+    <script type="module">
+      import { createKamera } from "./src/varld-kamera.js";
+      import { mountByScen } from "./src/varld-by-scen.js";
+      import { BY_ZOOM } from "./src/varld-by.js";
+      import { husScen, listHusSkal } from "./src/art-hus-ute.js";
+      import { avatarMarkup, AVATARS } from "./src/avatars.js";
+      import { roomBackdropHtml, windowItemHtml } from "./src/art-room.js";
+      import { itemSvg, itemSize } from "./src/art-items.js";
+      import { spriteRigHtml } from "./src/art-pet-sprites.js";
+      import { creatureSvg } from "./src/art-pets-creatures.js";
+      import { ROOM_PALETTES, getPalette } from "./src/room-palettes.js";
+
+      const $ = (id) => document.getElementById(id);
+      const stage = $("varld-stage"), byLager = $("by-lager"), ute = $("ute-lager"), kompis = $("kompis-lager"), rum = $("rum-lager");
+      const palett = (el, id) => {
+        const p = getPalette(id);
+        for (const [k, v] of [["house", p.house], ["roof", p.roof], ["wall", p.wall], ["wall2", p.wall2]]) el.style.setProperty(`--hus-${k}`, v);
+        el.style.setProperty("--rum-wall", p.wall); el.style.setProperty("--rum-wall2", p.wall2);
+      };
+
+      // 25 stub-elever (som preview-varld-spegel.html); "me" = Hugo, två låsta.
+      const AV = Object.keys(AVATARS), PAL = Object.keys(ROOM_PALETTES), SKAL = listHusSkal().map((s) => s.id);
+      const KL = [["keps"], ["krona", "cape"], ["glasogon", "halsduk"], [], ["mustasch", "partyhatt"], ["ballong"], ["cowboyhatt", "slips"]];
+      const NAMN = ["Alva", "Bruno", "Cora", "Dante", "Ebba", "Frans", "Gun", "Hugo", "Ines", "Jack", "Kim", "Lova", "Malte",
+        "Nora", "Olle", "Pia", "Rut", "Sam", "Tea", "Ulf", "Vera", "Wille", "Maximiliana Vanderbilt-Ekström", "Zeb", "Åke"];
+      const elever = NAMN.map((namn, i) => i === 7
+        ? { id: "me", namn: "Hugo", avatarId: "fox", avatarItems: ["krona", "cape"], paletteId: "persika", husSkalId: SKAL[0] }
+        : { id: `e${i}`, namn, avatarId: AV[(i * 7) % AV.length], avatarItems: KL[i % KL.length], paletteId: PAL[(i * 5) % PAL.length],
+            husSkalId: SKAL[(i * 3) % SKAL.length], locked: i === 3 || i === 16 });
+
+      function rumHtml() {
+        const sak = (id, x, y) => {
+          const s = itemSize(id);
+          const m = (n) => `calc(${n} * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px)))`;
+          return `<div class="room-item" data-id="${id}" style="left:${x}%;top:${y}%"><span class="ri-emoji" style="width:${m(s.w)};height:${m(s.h)}">${itemSvg(id)}</span></div>`;
+        };
+        return roomBackdropHtml() + windowItemHtml({ x: 50, y: 30 }) + sak("sang", 22, 72) + sak("lampa", 82, 60) + sak("matta", 50, 86) + sak("bokhylla", 10, 52)
+          + `<div class="room-item room-pet pet-vuxen-2" data-pet-id="p1" style="left:62%;top:72%"><span class="ri-emoji">${spriteRigHtml("butterfly", 2, "glad")}</span><span class="rp-namn">Fjärlis</span></div>`
+          + `<div class="room-item room-pet pet-vuxen-1" data-pet-id="p2" style="left:38%;top:74%"><span class="ri-emoji">${creatureSvg("blomp", "glad")}</span><span class="rp-namn">Blomp</span></div>`
+          + `<span class="room-apple" style="left:44%;top:88%">🍎</span><span class="room-apple" style="left:70%;top:90%">🍎</span>`;
+      }
+
+      // --- Scenerna ---------------------------------------------------------------
+      palett(stage, "persika");
+      ute.innerHTML = husScen(avatarMarkup("fox", ["krona", "cape"]), { skalId: SKAL[0], skylt: { rad1: "Klass 4B", rad2: "– Solbyn –" } });
+      palett(rum, "persika");
+      rum.innerHTML = rumHtml();
+      const { fokus, fokusById } = mountByScen({ lager: byLager, meId: "me", students: elever });
+      // Stand-in för S2: data-fokus-x/y på tomterna (= layout.fokusFor, kamerans fokus vid klick).
+      for (const t of byLager.querySelectorAll(".by-tomt[data-id]")) {
+        const f = fokusById[t.dataset.id];
+        if (f) { t.dataset.fokusX = f.x; t.dataset.fokusY = f.y; }
+      }
+
+      const onNiva = (id) => { stage.dataset.niva = id; $("niva").textContent = id; };
+      const kamera = createKamera({
+        nivaer: [
+          { id: "by", el: byLager, fokus, zoom: BY_ZOOM },
+          { id: "hus", el: ute, fokus: { x: 48.5, y: 52 }, zoom: 6 },
+          { id: "rum", el: rum, fokus: { x: 50, y: 50 }, zoom: 6 },
+        ],
+        startId: "by", onNiva,
+      });
+      onNiva("by");
+
+      // Kompis-vyn som S2 (varld-kompis.js): egen kamera, skapas LAT vid första klicket.
+      const byKompisNiva = { id: "by", el: byLager, fokus: { x: 50, y: 40 }, zoom: BY_ZOOM };
+      let kompisKam = null, kompisId = null;
+      const forrendera = (friend) => {
+        if (kompisId === friend.id) return;
+        kompisId = friend.id;
+        kompis.innerHTML = husScen(avatarMarkup(friend.avatarId, friend.avatarItems), { skalId: friend.husSkalId, skylt: null })
+          .replace('id="husgrupp"', 'id="kompis-husgrupp"').replace('id="ute-avatar"', 'id="kompis-avatar"');
+        palett(kompis, friend.paletteId);
+      };
+      const motor = () => window.__ppPixi?.motor;
+      byLager.addEventListener("pointerover", (e) => {
+        const t = e.target.closest(".by-tomt[data-id]");
+        if (!t || t.dataset.me || t.dataset.locked) return;
+        // S2-mönstret: förrendera kamratens exteriör i det dolda lagret och be
+        // motorn värma innerlagret (målet startades redan av motorns capture-lyssnare).
+        forrendera(elever.find((s) => s.id === t.dataset.id));
+        motor()?.forvarmLager?.(kompis);
+      });
+      byLager.addEventListener("click", (e) => {
+        const t = e.target.closest(".by-tomt[data-id]");
+        if (!t || stage.dataset.niva !== "by") return;
+        if (t.dataset.me) return kamera.gaTill("hus");
+        if (t.dataset.locked) return;
+        forrendera(elever.find((s) => s.id === t.dataset.id));
+        byKompisNiva.fokus = fokusById[t.dataset.id];
+        const forsta = !kompisKam;
+        kompisKam ??= createKamera({ nivaer: [byKompisNiva, { id: "kompishus", el: kompis, fokus: { x: 48.5, y: 52 }, zoom: 6 }], startId: "by", onNiva });
+        if (forsta) requestAnimationFrame(() => requestAnimationFrame(() => kompisKam.gaTill("kompishus")));
+        else kompisKam.gaTill("kompishus");
+      });
+      $("b-tillbaka").onclick = () => {
+        if (stage.dataset.niva === "kompishus") kompisKam.gaTill("by");
+        else if (stage.dataset.niva === "hus") kamera.gaTill("by");
+      };
+      $("b-hus").onclick = () => { if (stage.dataset.niva === "by") kamera.gaTill("hus"); };
+      $("b-in").onclick = () => { if (stage.dataset.niva === "hus") kamera.gaTill("rum"); };
+      $("b-ut").onclick = () => { if (stage.dataset.niva === "rum") kamera.gaTill("hus"); };
+      let jamfor = false;
+      $("b-jamfor").onclick = () => { jamfor = !jamfor; motor()?.jamfor(jamfor); };
+      $("b-stats").onclick = async () => { window.__stats = await window.__ppPixi?.motor?.stats?.(); };
+
+      // --- Motorn: registrera stub-profilerna (S1–S4 gör egna filer) och installera.
+      const TX = await import("./src/varld-motor-textur.js");
+      TX.registreraProfil("t-by", { sprites: [".hus-rok"], objekt: ".by-tomt", ignorera: ".by-last-bubbla", malSelektor: ".by-tomt[data-fokus-x]" });
+      TX.registreraProfil("t-hus", { ambient: [".hus-moln", ".hus-solstralar", ".hus-rok"] });
+      TX.registreraProfil("t-rum", { sprites: [".room-pet", ".room-apple"], fangst: "lager" });
+      const M = await import("./src/varld-motor.js");
+      window.__M = M;
+      await M.installeraMotor(stage);
+
+      const visa = () => {
+        const m = motor();
+        $("vag").textContent = stage.dataset.pixiSpel || "–";
+        $("logg").textContent = JSON.stringify({
+          senaste: m?.senaste ? { ...m.senaste, frames: undefined } : null,
+          mal: m?.mal, senasteMal: m?.senasteMal, stats: window.__stats,
+          poster: m?.poster().map((p) => `${p.pid} ${p.lager} ${p.kalla} ${p.minKlar ? "✓" : "…"} z${p.nivaer.join(",")}`),
+        }, null, 1);
+      };
+      setInterval(visa, 400);
+    </script>
+  </body>
+</html>

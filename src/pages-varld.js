@@ -41,7 +41,7 @@ import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { husScen, husSkalMarkup, renderHusSkalPicker, navSkyltSvg } from "./art-hus-ute.js";
 import { mountRumScen } from "./varld-rum.js";
 import { mountTradgard } from "./varld-tradgard.js";
-import { createKamera } from "./varld-kamera.js";
+import { createKamera, pixiPaslagen } from "./varld-kamera.js";
 import { BY_ZOOM } from "./varld-by.js";
 import { mountByScen } from "./varld-by-scen.js";
 import { createKompisVy } from "./varld-kompis.js";
@@ -135,20 +135,21 @@ export async function pageElevVarld(startNiva) {
   const view = el(`<div class="varld-sida">
     <div class="varld-stage" id="varld-stage"
       style="--hus-house:${pal.house};--hus-roof:${pal.roof};--hus-wall:${pal.wall};--hus-wall2:${pal.wall2}">
-      <div class="varld-lager varld-skola" id="skola-lager"></div>
-      <div class="varld-lager varld-skola varld-grannby varld-dold" id="grannby-lager"></div>
-      <div class="varld-lager varld-by" id="by-lager"></div>
-      <div class="varld-lager varld-ute" id="ute-lager">${husScen(avatarMarkup(avatarId, sd.avatarItems || []), { skalId: sd.husSkalId, skylt })}</div>
-      <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager"></div>
+      ${pixiPaslagen() ? `<canvas class="varld-pixi" aria-hidden="true"></canvas>` : ""}
+      <div class="varld-lager varld-skola" id="skola-lager" data-spegel-profil="skola"></div>
+      <div class="varld-lager varld-skola varld-grannby varld-dold" id="grannby-lager" data-spegel-profil="by"></div>
+      <div class="varld-lager varld-by" id="by-lager" data-spegel-profil="by"></div>
+      <div class="varld-lager varld-ute" id="ute-lager" data-spegel-profil="hus">${husScen(avatarMarkup(avatarId, sd.avatarItems || []), { skalId: sd.husSkalId, skylt })}</div>
+      <div class="varld-lager varld-ute varld-kompis varld-dold" id="kompis-lager" data-spegel-profil="hus"></div>
       <!-- Grannby-HUS-lagret: en ANNAN klass elevs hus-exteriör (läs-vy, #114).
            Samma sorts ute-lager som kompis-lagret, fast över klassgränser. -->
-      <div class="varld-lager varld-ute varld-kompis varld-grannbyhus varld-dold" id="grannbyhus-lager"></div>
+      <div class="varld-lager varld-ute varld-kompis varld-grannbyhus varld-dold" id="grannbyhus-lager" data-spegel-profil="hus"></div>
       <!-- Gårds-grenen (#328): baksidan/gården + laggårdens interiör. Tomma
            tills första gårds-besöket (varld-gard.js ritar dem lat och laddas
            själv dynamiskt) – huvudkameran rör dem aldrig. -->
-      <div class="varld-lager varld-ute varld-gard varld-dold" id="gard-lager"></div>
-      <div class="varld-lager varld-ute varld-laggard varld-dold" id="laggard-lager"></div>
-      <div class="varld-lager room-stage varld-rum" id="rum-lager"></div>
+      <div class="varld-lager varld-ute varld-gard varld-dold" id="gard-lager" data-spegel-profil="gard"></div>
+      <div class="varld-lager varld-ute varld-laggard varld-dold" id="laggard-lager" data-spegel-profil="gard"></div>
+      <div class="varld-lager room-stage varld-rum" id="rum-lager" data-spegel-profil="rum"></div>
 
       <div class="varld-ui">
         <div class="varld-ui-topp">
@@ -263,6 +264,15 @@ export async function pageElevVarld(startNiva) {
     onAndraByar: () => go("#/elev/skolan"),
     onTillGarden: () => go("#/elev/gard"),
   });
+
+  // Pixi-rörelsen (#396, I1 #426): första gårdsbesöket kan bara förvärmas när
+  // gårds-grenen finns → ladda den vid hover/fokus på "Till gården" (ingen ny
+  // läsning). Utan motor / pp:pixi:av: exakt dagens (laddas vid klicket).
+  const gardForvarm = () => {
+    const p = window.__ppPixi;
+    if (p?.motor && !p.dod && !p.flaggor?.().av) laddaGardVy().then((vy) => vy.forvarm()).catch(() => {});
+  };
+  for (const ev of ["pointerenter", "focusin"]) view.querySelector("#gard-skylt")?.addEventListener(ev, gardForvarm);
 
   // Klassbyns stjärn-toggle (uppe till höger): fälls ut/in med ✨-knappen och
   // fylls när byn laddats (lat). Presentationslogiken bor i varld-by-stats.js.
@@ -1051,6 +1061,9 @@ export async function pageElevVarld(startNiva) {
   }
 
   app.replaceChildren(view);
+  // Pixi-rörelsen (#396): OPT-IN (pp:pixi:pa) – annars laddas motorn aldrig och
+  // allt är dagens CSS/DOM-väg. Dynamiskt i idle (aldrig i bootgrafen).
+  if (pixiPaslagen()) (window.requestIdleCallback || setTimeout)(() => import("./varld-motor.js").then((m) => m.installeraMotor(stage)).catch(() => {}));
 
   // Djuplänk till en kompis: zooma in till deras hus när scenen står i DOM:en.
   if (startNiva === "kompis") kompisVy.visa(kompisId);

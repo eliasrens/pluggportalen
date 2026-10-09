@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Textur-pipelinen #417 – pyramid, tegel, cache, budget</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      body { background: #0b0f14; color: #cfd8e3; font: 500 0.92rem/1.45 system-ui, sans-serif; }
+      .w { max-width: 1400px; margin: 0 auto; padding: 14px 16px 40px; }
+      h1 { font: 800 1.1rem "Baloo 2", system-ui; color: #7ee0a6; margin: 0 0 6px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+      .kol { display: flex; flex-direction: column; gap: 6px; }
+      .etikett { font: 700 0.75rem system-ui; letter-spacing: 0.06em; text-transform: uppercase; color: #9fb3c8; }
+      /* Lagerboxen är SMALARE än staget (som #373 på desktop) → fångsten = staget,
+         övertecknad natur följer med. Överstyr desktop-boxen i styles.css. */
+      .tx-stage { position: relative; width: 640px; height: 400px; overflow: hidden; border-radius: 10px; background: #bde3f5;
+        --varld-avatar-font: 120px; --hus-house: #F4D6A0; --hus-roof: #C0504D; --hus-wall: #FFF3DC; --hus-wall2: #F2E2C4; }
+      .tx-stage[data-scen="by"] { background: #a8da8f; }
+      /* will-change:auto → DOM-referensen rastreras i MÅLskalan (skarp sanning; med
+         will-change:transform skalar Chromium upp skala-1-rastret = suddigt, #374). */
+      .tx-stage > .varld-lager.tx-lager { width: auto; height: auto; margin: 0; inset: 0 60px; transition: none; will-change: auto; }
+      .tx-stage > .varld-lager.tx-dold { visibility: hidden; }
+      .tx-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .knappar button, .knappar select { border-radius: 999px; padding: 6px 14px; border: 1px solid #39465a; background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui; margin: 0 6px 6px 0; }
+      .knappar button:hover { border-color: #7ee0a6; }
+      .knappar button[aria-pressed="true"] { border-color: #7ee0a6; color: #7ee0a6; }
+      #status { font-weight: 700; color: #f2b56b; }
+      pre { background: #141b24; padding: 10px; border-radius: 8px; max-width: 1300px; white-space: pre-wrap; font-size: 0.78rem; }
+    </style>
+  </head>
+  <body>
+    <div class="w">
+      <h1>Textur-pipelinen (#417, F3 i epic #396): pyramid → tegel → worker</h1>
+      <p>Vänster: DOM-lagret i <code>scale(z)</code> kring kamerans fokus (sanningen). Höger: samma lager speglat → avkodat EN gång →
+        pyramid (nivåer ×≤1.5, skurna ur bilden med käll-rektangel, rastrerade i band om ≈ 6 ms per idle-uppgift) → Pixi i workern, visat i samma
+        <code>scale(z)</code>. T3 = hus → rum (zoom 6, fönstret). T2 = by → hus (zoom 5, egen tomt; huset som inkommande lager z 0.2→1).
+        Status: <span id="status">laddar…</span></p>
+      <div class="knappar">
+        <button id="b-t3">Bygg T3</button>
+        <button id="b-t2">Bygg T2</button>
+        <select id="s-klass" aria-label="Enhetsklass"><option value="">klass: auto</option><option value="normal">klass: normal</option><option value="svag">klass: svag</option></select>
+      </div>
+      <div class="knappar" id="zoomknappar">
+        <button data-z="1">Visa z=1</button>
+        <button data-z="2">z=2</button>
+        <button data-z="3.5">z=3.5</button>
+        <button data-z="5">z=5</button>
+        <button data-z="6">z=6</button>
+        <button data-inre="0.2">inre z=0.2</button>
+        <button data-inre="0.5">inre z=0.5</button>
+        <button id="b-evict">Evict</button>
+      </div>
+      <div class="rad">
+        <div class="kol"><span class="etikett">DOM scale(z)</span>
+          <div class="tx-stage" id="dom-stage" data-scen="hus">
+            <div class="varld-lager varld-by tx-lager tx-dold" id="dom-by"></div>
+            <div class="varld-lager varld-ute tx-lager" id="dom-hus"></div>
+          </div>
+        </div>
+        <div class="kol"><span class="etikett">Pixi-worker (pyramid)</span>
+          <div class="tx-stage" id="pixi-stage"><canvas id="pixi-canvas"></canvas></div>
+        </div>
+      </div>
+      <pre id="logg">Laddar…</pre>
+    </div>
+    <script type="module" src="./preview/varld-textur/textur.js"></script>
+  </body>
+</html>

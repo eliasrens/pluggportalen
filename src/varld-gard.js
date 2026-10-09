@@ -30,10 +30,24 @@ import { createKamera } from "./varld-kamera.js";
 import { gardScen, laggardScen } from "./art-gard.js";
 import { mountOdling } from "./varld-odling.js";
 import { mountGardDjur } from "./gard-djur.js";
-import { getFarm } from "./data-farm.js";
+import { getFarm, getCachedFarm } from "./data-farm.js";
 import { mountFoder } from "./varld-foder.js";
 import { mountLadaSkin } from "./varld-lada-skin.js";
 import { mountLadaVerktyg } from "./varld-lada-verktyg.js";
+
+/** Längsta väntan på gårdens omritning innan Pixi-rörelsen startar (ms). */
+const RITA_FORE_ZOOM_MAX_MS = 150;
+
+/** Spelar rörelse-motorn (#396) övergångarna? Läser bara motorns runtime-
+ * objekt – ingen import, så en saknad Pixi-fil kan aldrig fälla gården. */
+function pixiAktiv() {
+  try {
+    const p = window.__ppPixi;
+    return !!(p?.motor && !p.dod && !p.flaggor?.().av);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Skapa gårds-grenen.
@@ -59,6 +73,8 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
   // Samma uteLager som huvudkamerans hus-nivå men EGET fokus: kameran dyker
   // "in i" huset (dörren/fasadmitten) på väg till baksidan.
   const husGardNiva = { id: "hus", el: uteLager, fokus: { x: 50, y: 46 }, zoom: 5 };
+  // Fokus = laggårdens dörr (i % av lagret) → gard→laggard zoomar dit.
+  const dorrFokus = { x: 82, y: 74 };
   let kamera = null;
   let byggd = null; // "gardenTier:barnLevel:barnSkin" som scenerna senast ritades för
   let odling = null; // odlingsbädden (#329) – monteras när scenen byggts
@@ -81,6 +97,12 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     gardLager.innerHTML = gardScen(
       farm ? { gardenTier: farm.gardenTier, barnLevel: farm.barnLevel, barnSkin: farm.barnSkin } : {});
     laggardLager.innerHTML = laggardScen(farm ? farm.barnLevel : 1, farm ? farm.barnSkin : null);
+    // Pixi-rörelsen (#396/#423): dörren bär kamerans T8-fokus + innerlagret så
+    // att motorn kan förvärma gård→laggård vid hover/fokus (profilens malSelektor).
+    const dorr = gardLager.querySelector("#laggard-dorr");
+    dorr?.setAttribute("data-fokus-x", dorrFokus.x);
+    dorr?.setAttribute("data-fokus-y", dorrFokus.y);
+    dorr?.setAttribute("data-fokus-lager", laggardLager.id);
     odling ??= mountOdling({ stage, gardLager });
     // Lada-skin-väljaren (#353): "🛖 Ny lada" på gårds-nivåerna. Ett sparat byte
     // ritar om BÅDA scenerna (bygg – nyckeln har ändrats) och ritar sedan om
@@ -117,8 +139,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     return (kamera ??= createKamera({
       nivaer: [
         husGardNiva,
-        // Fokus = laggårdens dörr (i % av lagret) → gard→laggard zoomar dit.
-        { id: "gard", el: gardLager, fokus: { x: 82, y: 74 }, zoom: 5 },
+        { id: "gard", el: gardLager, fokus: dorrFokus, zoom: 5 },
         { id: "laggard", el: laggardLager, fokus: { x: 50, y: 50 }, zoom: 5 },
       ],
       startId: "hus",
@@ -148,15 +169,25 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     // Rita odlingsbädden med färskt tillstånd vid varje gårds-besök (grödor kan
     // ha vuxit av plugguppgifter sedan sist). Fire-and-forget: kameran ska inte
     // vänta på Firestore.
-    if (nivaId === "gard" && odling) odling.visa();
+    const odlingRitad = nivaId === "gard" && odling ? odling.visa() : null;
     // Trädgårds-sakerna på gården (#356): säkra lagret (bygg kan ha skrivit om
     // scenens innerHTML) och rita placeringarna innan kameran zoomar in.
     tradgard?.()?.gardRita();
     // Bondgårdsdjuren (#330): läs placeringarna färskt och rita/animera djuren
     // i hagen & ladan. Blockerar inte kamerazoomen (fire-and-forget); ett
     // nätverksfel lämnar bara scenen tom (nästa besök försöker igen).
-    (gardDjur ??= mountGardDjur({ gardLager, laggardLager })).refresh().catch(() => {});
+    const djurRitade = (gardDjur ??= mountGardDjur({ gardLager, laggardLager })).refresh().catch(() => {});
     await ensureHus();
+    // Pixi-rörelsen (#396/#423): omritningarna ovan byter ut djur- och
+    // odlingsnoderna. Sker det MITT i handoffen speglas fel noder, och de nya
+    // startar sina animationer från noll i stället för att fortsätta från den
+    // frusna posen. Läsningarna är session-cachade (i praktiken klara direkt),
+    // så låt dem landa före rörelsen, men vänta aldrig på nätet. CSS-vägen
+    // (pp:pixi:av, ingen motor) är oförändrad.
+    if (pixiAktiv()) {
+      await Promise.race([Promise.all([odlingRitad, djurRitade]).catch(() => {}),
+        new Promise((r) => setTimeout(r, RITA_FORE_ZOOM_MAX_MS))]);
+    }
     const forsta = !kamera;
     const cam = ensureKamera();
     if (forsta) {
@@ -166,6 +197,27 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
     } else {
       cam.gaTill(nivaId);
     }
+  }
+
+  /**
+   * Pixi-rörelsen (#396, I1 #426): förbered första gårdsbesöket vid hover/
+   * fokus på "Till gården". Ytterrollen (huset kring gård-fokus) behöver ingen
+   * data och förvärms alltid. Gårds-scenen ritas (+ kameran skapas, så motorn
+   * känner nivåerna) BARA om studentData ligger färsk i sessions-cachen –
+   * hovern får aldrig orsaka en Firestore-läsning (varje skrivning ogiltig-
+   * förklarar cachen). Djur/odling ritas först vid besöket (de läser färskt).
+   * Utan aktiv motor (pp:pixi:av): inget.
+   */
+  async function forvarm() {
+    if (!pixiAktiv() || stage.dataset.niva !== "hus") return false;
+    if (getCachedFarm()) {
+      await bygg();
+      if (stage.dataset.niva !== "hus") return false;
+      tradgard?.()?.gardRita();
+      ensureKamera();
+    }
+    const gard = { el: gardLager, fokus: dorrFokus, zoom: 5 };
+    return !!window.__ppPixi?.motor?.forvarmOvergang?.(husGardNiva, gard);
   }
 
   /** Zooma UT ett steg mot huset (laggard → gard → hus). @returns hanterat? */
@@ -197,6 +249,7 @@ export function createGardVy({ stage, uteLager, gardLager, laggardLager, ensureH
 
   return {
     visa,
+    forvarm,
     tillbaka,
     nollstall,
     get aktivId() {

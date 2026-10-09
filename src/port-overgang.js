@@ -27,12 +27,20 @@
 //
 // Modulen laddas DYNAMISKT från pages-elev.js (aldrig statiskt!) så att
 // bootgrafen inte växer med en ny fil (#271).
+//
+// Pixi-vägen (#424, epic #396): forladdaPortPixi() laddar varld-profil-port.js
+// med import() när login-sidan är i vila och förvärmer portens texturer i
+// Pixi-workern. Är den redo vid inloggningen spelar workern exakt samma
+// rörelse på en egen canvas ovanpå overlayt (svg:n flyttas då inte). Annars –
+// inte laddad, inte redo, pp:pixi:av, gömd flik, fel – dagens CSS-väg nedan.
+// Beslutet är SYNKRONT: inloggningen väntar aldrig på Pixi. Vägen syns i
+// overlay.dataset.pixiSpel = "pixi" | "css:<orsak>".
 // ============================================================================
 
 // Samma totala zoomtid som världskameran – övergången ska kännas som samma
 // kamera som sedan flyger by ↔ hus ↔ rum. (varld-kamera.js ligger redan i
 // bootgrafen via pages-varld.js, så importen drar inte in något nytt.)
-import { KAMERA_MS } from "./varld-kamera.js";
+import { KAMERA_MS, pixiPaslagen } from "./varld-kamera.js";
 
 /** Grindhalvornas öppningstid (ms) – matchar .port-overgang .port-halva i
     styles.css. Zoomen startar strax innan halvorna är helt öppna. */
@@ -45,6 +53,26 @@ const ZOOM_START_MS = 260;
     mitt i öppningen (spjältopp 316 → botten 506 i art-port.js). Kameran
     zoomar MOT den punkten – samma fokus-idé som varld-kamera.js. */
 const FOKUS = { x: 480, y: 428 };
+
+/** varld-profil-port.js när den laddats (null = inte än / gick inte). */
+let pixiPort = null;
+
+/**
+ * Förladda Pixi-vägen (anropas i idle från login-sidan). Kastar aldrig och
+ * blockerar ingenting – ett fel betyder bara att CSS-vägen används.
+ * @param {HTMLElement|null} scenEl  .port-scen
+ */
+export function forladdaPortPixi(scenEl) {
+  try {
+    if (!pixiPaslagen() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  } catch {}
+  import("./varld-profil-port.js")
+    .then((m) => {
+      pixiPort = m;
+      return m.forvarmPort(scenEl);
+    })
+    .catch((err) => console.warn("[pp:pixi] port-förladdningen:", err));
+}
 
 /**
  * Starta port-övergången ovanpå den nuvarande port-scenen.
@@ -76,6 +104,29 @@ export function startaPortOvergang(scenEl) {
     overlay.style.top = `${rect.top}px`;
     overlay.style.width = `${rect.width}px`;
     overlay.style.height = `${rect.height}px`;
+
+    // Pixi-vägen (#424): workern spelar på sin egen canvas ovanpå overlayt.
+    // Port-SVG:n står kvar i scenen (navigeringen tar bort den).
+    let orsak = pixiPaslagen() ? "ej-laddad" : "av"; // opt-in (pp:pixi:pa)
+    if (pixiPort) {
+      try {
+        const svar = pixiPort.spelaPort(scenEl);
+        orsak = svar.vag === "pixi" ? null : svar.orsak;
+      } catch (err) {
+        console.warn("[pp:pixi] port-övergången föll tillbaka till CSS:", err);
+        orsak = "fel";
+      }
+    }
+    if (!orsak) {
+      overlay.dataset.pixiSpel = "pixi";
+      document.body.appendChild(overlay);
+      setTimeout(() => {
+        overlay.remove();
+        pixiPort.efterPort();
+      }, ZOOM_START_MS + KAMERA_MS + 250);
+      return true;
+    }
+    overlay.dataset.pixiSpel = `css:${orsak}`;
 
     // Zoom-origo = portöppningen i ELEMENT-koordinater. SVG:n ritas med
     // preserveAspectRatio "meet": skala = min(w/960, h/600) och viewBox-

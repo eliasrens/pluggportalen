@@ -38,6 +38,37 @@ const reduceMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
+ * Pixi-rörelsen (#396) är OPT-IN: på bara med pp:pixi:pa i localStorage (eller
+ * ?pixi=pa i URL:en, som sparas dit; ?pixi=normal tar bort den) och aldrig med
+ * pp:pixi:av. Utan → exakt dagens CSS/DOM-väg och inga Pixi-moduler laddas.
+ * Läses av pages-varld.js (motorn) och port-overgang.js (porten). Kastar aldrig.
+ */
+export function pixiPaslagen() {
+  try {
+    const q = (new URLSearchParams(location.search).get("pixi") || "").split(",");
+    if (q.includes("normal")) localStorage.removeItem("pp:pixi:pa");
+    else if (q.includes("pa")) localStorage.setItem("pp:pixi:pa", "1");
+    const flagga = (n) => { const v = localStorage.getItem(`pp:pixi:${n}`); return v != null && v !== "0" && v !== "false"; };
+    return flagga("pa") && !flagga("av");
+  } catch {
+    return false;
+  }
+}
+
+// Pixi-rörelsen (#396): en INJICERBAR motor (varld-motor.js, laddas dynamiskt
+// i idle – därför en setter och ingen import, bootgrafen är oförändrad). Utan
+// motor, eller när motorn säger nej (pp:pixi:av, ingen WebGL, texturer inte
+// klara …), körs exakt dagens CSS-väg nedan.
+let motor = null;
+const kameror = []; // de senast skapade kamerornas nivåer (registreras retroaktivt)
+
+/** Koppla in (eller ur, null) rörelse-motorn. Registrerar redan skapade kameror. */
+export function setRorelseMotor(m) {
+  motor = m;
+  for (const nivaer of kameror) motor?.registrera(nivaer);
+}
+
+/**
  * Skapa kameran.
  * @param {object} o
  * @param {Array<{id:string, el:HTMLElement, fokus:{x:number,y:number}, zoom:number}>} o.nivaer
@@ -107,6 +138,7 @@ export function createKamera({ nivaer, startId, onNiva }) {
   function hoppaTill(id) {
     const mal = nivaer.findIndex((n) => n.id === id);
     if (mal === -1) return;
+    motor?.avbryt?.();
     for (const n of nivaer) n.el.classList.add("varld-utan-anim");
     aktiv = mal;
     apply(aktiv);
@@ -129,7 +161,16 @@ export function createKamera({ nivaer, startId, onNiva }) {
       return Promise.resolve();
     }
     const origoNiva = Math.min(mal, aktiv);
+    const riktning = mal > aktiv ? "in" : "ut";
     aktiv = mal;
+    const spec = motor && {
+      yttre: nivaer[origoNiva], inre: nivaer[origoNiva + 1], riktning,
+      stage: nivaer[0].el.parentElement,
+    };
+    if (spec && motor.kanSpela(spec)) {
+      return motor.spela(spec, () => apply(mal, origoNiva)).then(() => onNiva?.(id));
+    }
+    motor?.avbryt?.();
     apply(aktiv, origoNiva);
     return new Promise((res) =>
       setTimeout(() => {
@@ -138,6 +179,10 @@ export function createKamera({ nivaer, startId, onNiva }) {
       }, KAMERA_MS)
     );
   }
+
+  kameror.push(nivaer);
+  if (kameror.length > 8) kameror.shift();
+  motor?.registrera(nivaer);
 
   apply(aktiv);
   // Startläget ska inte animeras in.
