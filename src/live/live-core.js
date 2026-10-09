@@ -18,6 +18,9 @@
 //     phase: "lobby" | "countdown" | "live" | "ended" (tiden ute men status
 //     ännu "live") | "finished" | "cancelled" (avbruten i lobbyn)
 //     countdown: 3,2,1 eller 0 (= "KÖR!") under "countdown", annars null
+//     Utan matchklocka (pacing "lärarstyrd", ingen durationSeconds –
+//     Snilleblixten): "live" tills läraren avslutar, aldrig "ended";
+//     msLeft = null (ingen matchtid att visa).
 //   topPlayers(players, n)    → [{ uid, name, classId, correct, incorrect }]
 //   formatScore(n)            → "20,0" (1 decimal, svensk komma)
 //   formatClock(ms)           → "12:43"
@@ -79,6 +82,9 @@ export function phaseAt(s, now) {
     const rem = Math.ceil((t0Ms - now) / 1000); // 4,3,2,1
     return { phase: "countdown", countdown: Math.max(0, rem - 1), msLeft: durMs };
   }
+  // Lärarstyrd takt (#559): ingen matchklocka → inget 00:00-slut. Annars
+  // skulle lärarklienten auto-avsluta sessionen direkt efter 3-2-1-KÖR!.
+  if (s.durationSeconds == null) return { phase: "live", countdown: null, msLeft: null };
   if (now < endMs) return { phase: "live", countdown: null, msLeft: endMs - now };
   return { phase: "ended", countdown: null, msLeft: 0 };
 }

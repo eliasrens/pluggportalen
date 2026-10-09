@@ -93,7 +93,7 @@ function statusText(s) {
   const ph = phaseAt(s, serverNow());
   if (ph.phase === "lobby") return { cls: "lobby", txt: "Lobby – väntar på start" };
   if (ph.phase === "countdown") return { cls: "live", txt: "Startar…" };
-  if (ph.phase === "live") return { cls: "live", txt: `Pågår · ${formatClock(ph.msLeft)} kvar` };
+  if (ph.phase === "live") return { cls: "live", txt: ph.msLeft == null ? "Pågår" : `Pågår · ${formatClock(ph.msLeft)} kvar` };
   return { cls: "ended", txt: "Tiden är ute" };
 }
 
@@ -117,7 +117,7 @@ function drawActive(ctx, host, list) {
     const mode = getGameMode(s.gameMode);
     return `<li class="live-active-item">
       <div><b>${esc(s.name)}</b> <span class="live-status ${st.cls}">${esc(st.txt)}</span>
-        <div class="hint">${esc(mode ? mode.displayName : s.gameMode)} · ${Math.round((s.durationSeconds || 0) / 60)} min${
+        <div class="hint">${esc(mode ? mode.displayName : s.gameMode)} · ${s.durationSeconds == null ? `${formatOf(s)?.icon || ""} ${Number(s.questionCount) || 0} frågor` : `${Math.round(s.durationSeconds / 60)} min`}${
           s.createdByName ? ` · skapad av ${esc(s.createdByName)}` : ""}</div></div>
       <div class="live-active-btns">
         <button class="btn small" data-open="${esc(s.id)}">Öppna projektorvy</button>

@@ -29,9 +29,15 @@
 // NÄMNARE (#543): "÷ Nämnare" i raden (inte på elevskärmen) under match och
 // efter slut (då bara förklaringen – låst). Lobbyn har egna nämnarfält.
 // RADERA (#543): lobbyns "Radera matchen" (bara ej startad) → tillbaka till Live.
-// Vy-post (formatets views): { id, label, create(host, { st, colors, sound }) →
-//   { update, destroy }, only2?: bara två klasser, finale?: vyn visar själv
-//   slutet (ingen vinnarskärm), preload?() }
+// Vy-post (formatets views): { id, label, create(host, { st, colors, sound,
+//   actions, screen, deps }) → { update, destroy }, only2?: bara två klasser,
+//   finale?: vyn visar själv slutet (ingen vinnarskärm), preload?() }
+//   actions = skalets lärarhandlingar (start/cancel/finish …), deps = datalagret
+//   ovan (förhandsvisning: formatets låtsasdata), screen = elevskärmen.
+// Formatets projectorViews()-modul kan sätta ownControls: true – vyn har egna
+// lärarkontroller (Snilleblixten #559: Avsluta spelet m.m.), skalets
+// "Avsluta" göms. Utan matchklocka (st.msLeft null, lärarstyrd takt) göms
+// skalets matchtimer – vyn visar sin egen (frågans) nedräkning.
 //   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
 // ============================================================================
 
@@ -117,6 +123,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
   const actions = {
     start: () => { sound.unlock(); return d.start(sid); },
     cancel: () => d.finish(sid),
+    finish: () => d.finish(sid),
     setDivisor: (cid, n) => d.setDivisor(sid, cid, n),
     setWizards: d.setWizards ? (map) => d.setWizards(sid, map) : null,
     remove: d.remove && !screen ? async () => { await d.remove(sid); back?.(); } : null,
@@ -308,16 +315,17 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     const ownEnd = phase === "finished" && ownsFinale();
     const game = playing || ownEnd;
     const kind = phase === "lobby" ? "lobby" : phase === "finished" && !ownEnd ? "winner" : phase === "cancelled" ? "cancelled" : "game";
-    if (playing && !availableViews().some((v) => v.id === viewId)) viewId = views()[0].id;
+    // Sparat vyval från ett annat format (localStorage delas) → formatets första vy.
+    if ((playing || phase === "finished") && !availableViews().some((v) => v.id === viewId)) viewId = views()[0].id;
     const key = game ? `${viewId}|${s.participatingClassIds.join(",")}` : kind;
     // Lobbyn: förladda den valda vyn om den kan (Trollkarlsduellen, §17).
     if (kind === "lobby") availableViews().find((v) => v.id === viewId)?.preload?.();
 
     // Efter slutet i en vy med egen final: vyflikarna kvar (annan vy = vanliga vinnarskärmen).
     $(".lp-views").hidden = !game;
-    $("[data-end]").hidden = !playing;
+    $("[data-end]").hidden = !playing || !!ui.ownControls;
     $("[data-divs]").hidden = screen || !ui.editDivisors || kind === "lobby" || kind === "cancelled";
-    $(".lp-timer").hidden = !playing;
+    $(".lp-timer").hidden = !playing || st.msLeft == null;
     root.dataset.kind = game ? viewId : kind;
     root.querySelectorAll("[data-view]").forEach((b) => {
       b.hidden = !availableViews().some((v) => v.id === b.dataset.view);
@@ -330,11 +338,11 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
         mountKind(kind, key, () => ui.createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen }));
       } else if (kind === "game") {
         const v = views().find((x) => x.id === viewId);
-        mountKind(kind, key, () => v.create(stage, { st, colors, sound }));
+        mountKind(kind, key, () => v.create(stage, { st, colors, sound, actions, screen, deps: d }));
       } else if (kind === "winner") {
         const fin = toMs(s.finishedAt);
         const celebrate = sawLive || (fin != null && d.now() - fin < CELEBRATE_MS);
-        mountKind(kind, key, () => ui.createWinner(stage, { st, colors, onBack: back, celebrate }));
+        mountKind(kind, key, () => ui.createWinner(stage, { st, colors, onBack: back, celebrate, sound, actions, screen, deps: d }));
       } else {
         mountKind(kind, key, () => {
           stage.innerHTML = `<div class="lp-wait">Matchen avbröts innan den startade.${back ? `<button class="lp-btn" data-back2>← Till Live</button>` : ""}</div>`;
