@@ -695,7 +695,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `name` | string ≤ 80 | "4B mot 5E" |
 | `classNames` | map `{ classId: string }` | klassnamnen denormaliserade vid skapandet (#460) – elev/projektor slipper läsa `classes` |
 | `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
-| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc` (`"klassmatch"`). **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Reglerna godtar bara frånvarande eller `"klassmatch"` och nekar varje byte |
+| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc`. **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Klassmatchens regelgren godtar frånvarande eller `"klassmatch"`; `"snilleblixt"` har en egen gren (se Snilleblixten nedan). Varje byte nekas |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `answerKind` | `"free"` \| `"choice"` (valfri) | **#551** svarssätt: skriv själv / flerval. Skrivs av `buildSessionDoc` – lärarens val bland svarssätten som BÅDE formatet och spelläget stöder (förval `"free"`). **Saknas = `"free"`** (alla sessioner före #551, ingen migrering). Får ändras i lobbyn, låst efter start (reglerna). Svaren valideras mot det |
 | `quiz` | map (valfri) | **#553** bara spelläget `plugga_quiz`: `{ subjectId, areaId, subjectName, areaName, passagePolicy: "skip" }` – lärarens ämne + arbetsområde (`buildSessionFields`). Frågornas ögonblicksbild (elevsynligt + lärarskyddat facit, §4.4) skrivs av formatet som spelar quizet (Snilleblixten/Guldrushen) – inte här. ⚠️ Ännu inte låst efter start i reglerna |
@@ -822,11 +822,110 @@ Tredje axeln bredvid gameMode (VAD eleverna svarar på) och projektorvy: formate
 `compatibleGameModes()`, `setupFields`, `validateSetup()`, `buildSessionFields()`,
 `sessionTitle()`, `computeStandings()`, `buildResult()` och de LATT laddade
 DOM-delarna `projectorViews()`, `studentView()`, `historyRenderer()`; valfria
-flaggor `classCounters` (shardade klassräknare) och `classDivisors` (nämnare).
+flaggor `classCounters` (shardade klassräknare) och `classDivisors` (nämnare),
+samt (#556) `prepareCreate()` (underdokument i samma batch som sessionen),
+`privateDocs` (raderas med en lobby) och `resultInputs()` (extra data till
+`buildResult`). `durationSeconds` skrivs bara vid `pacing: "tid"`.
 Nytt format = mapp `src/live/formats/<id>/` + en rad i `src/live/formats/index.js`
-+ id:t i `liveFormatOk` och formatets regelgren i `firestore.rules`.
++ en EGEN regelgren i `firestore.rules` (create/update routas på `format` i
+`match /liveSessions/{sid}`, som Snilleblixten) och regeltester.
 Kärnan (session, lobby-/spelfaser, klocka, 3-2-1-KÖR!, närvaro/puls, sen
 anslutning, återanslutning, elevskärm, ljud, fullskärm) är gemensam.
+
+### Snilleblixten (`format: "snilleblixt"`, #556, epic #555)
+
+Hela klassen (1–3 klasser, alla individuellt) får samma fråga; läraren styr.
+Logik: `src/live/formats/snilleblixt/` (`snilleblixt-core.js` datamodell +
+ögonblicksbild, `-poang.js` poäng/ställning, `-flode.js` övergångar,
+`-data.js` Firestore). Regler: `firestore.rules` "Snilleblixten", tester
+`test/firestore-rules-live-snilleblixt.test.js` + `test/live-snilleblixt.test.js`.
+
+**`liveSessions/{sid}`** – kärnans fält (`name`, `format`, `gameMode`,
+`answerKind` (krävs), `participatingClassIds` 1–3, `classNames`,
+`countdownSeconds`, `status`, `createdBy`, `createdByName?`, `createdAt`,
+`quiz?`, `startedAt`, `finishedAt`, `result`) – INGA `classDivisors`,
+`counterShards`, `durationSeconds`, `endsAt`, `coinPrize`, `wizards`
+(reglerna har `hasOnly`). Plus:
+
+| Fält | Typ | Beskrivning |
+| --- | --- | --- |
+| `questionSeconds` | 10\|20\|30\|60 | tid per fråga (förval 20 s skriv själv, 10 s flerval) |
+| `questionCount` | int 1–100 | ögonblicksbildens längd (valt antal, eller färre/alla i quiz-området) |
+| `shuffleQuestions` | bool | slumpa ordningen när ögonblicksbilden tas |
+| `showQuestionOnStudent` | bool | visa frågetexten på elevskärmen (standard på; enda inställningen som får ändras efter start) |
+| `q` | map | PÅGÅENDE fråga: `{ index, phase: "open"\|"closed"\|"revealed"\|"skipped", openedAt (server), closedAt? (server), question, facit? }`. `question` = ögonblicksbildens post, publiceras när läraren öppnar frågan; `facit` = ögonblicksbildens facit, först vid avslöjandet |
+
+Inställningarna låses vid skapandet (i lobbyn får bara `name` ändras).
+Övergångar (alla lärare, transaktion ur aktuellt läge, regeln tillåter bara
+ett steg): STARTA (`status` live + `startedAt`) → öppna 0 → stäng
+(`closedAt`) → avslöja (`facit`) → öppna index + 1 …; öppen/stängd → hoppa
+över (`skipped`); avsluta (`status: finished`). Ingen auto-avslutning på tid
+(Klassmatchens `liveAutoFinishOk` gäller inte). `result` skrivs en gång.
+
+**`liveSessions/{sid}/sbPrivate/snapshot`** – `{ questions[], facit[] }`,
+index-parallella, skapas i SAMMA batch som sessionen (sessionen kräver den).
+`questions[i]`: `{ key|id, text, options? (flerval), statKeys, category? }`;
+`facit[i]`: `{ answerIndex? (flerval), correctAnswer, explanation? }`.
+Bara lärare läser – eleven kan aldrig läsa kommande frågor eller facit.
+
+**`liveSessions/{sid}/sbAnswers/{i}_{uid}`** – elevens ENDA svar på fråga i
+(bara create): `{ uid, classId, q, answerKind, choiceIndex (0–antal alternativ)
+| answer (sträng 1–40), at = request.time }`. Godtas bara när `q.phase == "open"`,
+`q.index == i`, `openedAt ≤ request.time < openedAt + questionSeconds`, rätt
+svarssätt, klassmedlem i deltagande klass och spelaren anslöt FÖRE frågan
+öppnades (sen anslutning = från nästa fråga). Inget `isCorrect`/poäng – eleven
+får inte veta facit före avslöjandet. Eleven läser bara sitt eget (även
+"saknas"), läraren alla. Egen samling (inte `answers`) så att
+`collectionGroup("answers")`-statistiken inte blandas.
+
+**`liveSessions/{sid}/sbScores/{i}`** – frågans poäng, skrivs EN gång av
+läraren i avslöjande-/hoppa över-transaktionen (create-only, ingen kan ändra):
+`{ index, skipped, answered, correctCount, points{uid}, correct{uid},
+choiceCounts? [4], topWrong? [{ answer, n }] }`. Läses av lärare och
+deltagare (spelardokument finns).
+
+**Poäng** = `round(1000 − 500 × t / questionSeconds)` för rätt, t = `at − openedAt`
+(båda serverstämplar, bara svar inom `[openedAt, min(closedAt, openedAt +
+frågetid))`), fel/inget = 0. Räknas av lärarklienten (`scoreQuestion`): reglerna
+kan inte räkna själva – eleven vet inte `request.time` när svaret skrivs och
+får inte se facit – och en Cloud Function skulle ge deploy-beroende och
+fördröjning för samma uträkning. Läraren är betrodd (custom claim), uträkningen
+använder bara serverstämplar och kan göras om ur svarsdokumenten. Ställning =
+summan av `sbScores`; lika poäng = delad placering (1, 1, 3).
+**"x av y har svarat"** = lärarens realtidsfråga på `sbAnswers where q == i`
+(varje svar är ett eget dokument – ingen het skrivning, och projektorn vet
+exakt VEM som svarat för auto-stängningen när alla anslutna svarat).
+
+`result` (`buildResult`): `{ format, winner: null, ranking[{ uid, name,
+classId, points, correct, rank }], perQuestion[{ index, skipped, answered,
+correct }], questionsPlayed, totalCorrect, players }` – inget `perClass`/
+`winnerClasses` → inga klasspokaler/klassbonus/mynt-pris via kc-koppling.
+Plus `rewards` (Pluggmynt, nedan) när sessionen har belöningar.
+
+### Pluggmynt efter matchen (#557, nya format – Snilleblixten, Guldrushen)
+
+Gemensam motor: `src/live/live-rewards.js` (ren logik), ekonomins rattar i
+`src/live/rewards-config.js` (block 20, trappa 1/.8/.6/.4/.2, förval 5 per
+rätt + tak 300, max förstapris 1000), utbetalning `live-rewards-pay.js`
+(SDK injiceras) via `live-rewards-data.js`. Klassmatchens mynt-pris till
+klasskassan (#526) är orört. Spelvalutan (poäng/guld) avgör placeringen;
+Pluggmynt (`studentData.coins`) delas ut först efter slut och rör sig aldrig
+mellan elever.
+
+| Fält | Var | Beskrivning |
+| --- | --- | --- |
+| `rewards` | `liveSessions/{sid}` | `{ firstPrize 0–1000 (0 = av), perCorrect 0–50 (0 = av), cap 1–1000 }` – lärarens val, låst efter skapandet (reglerna `liveRewardsOk`) |
+| `result.rewards` | `liveSessions/{sid}` | `{ [uid]: { rank, correct, prize, correctCoins, total } }` – bara deltagare (≥ 1 räknat svar). `prize = round(first × 0,85^(rank−1))`, golv 1; delad placering = samma pris, nästa placering hoppar över. `correctCoins` = trappa per block om 20 rätt, uppåt avrundat, max `cap` |
+| `coinReceipts/{uid}` | `liveSessions/{sid}/…` | `{ uid, prize, correctCoins, total, at, by }` – kvittot. Bara create (aldrig ändra/radera), bara lärare, efter `status: finished`, aldrig `demo: true`; beloppen = `result.rewards[uid]` och elevens `coins` måste öka med exakt `total` i SAMMA skrivning. Eleven läser sitt eget, läraren alla |
+
+**Exakt en gång:** kvitto + saldo i en transaktion (addCoins-mönstret). Den
+lärarklient vars transaktion skrev `result` betalar (`writeResultIfMissing`),
+historikvyn försöker igen. Två lärarflikar / omladdning / avbrott → kvittot
+finns → "redan" (reglerna nekar ett andra). Ingen Cloud Function: allt som
+behövs är verifierat i `result`, kvittot ger idempotensen och Snilleblixten
+slipper ett deploy-beroende. Demo-/testläge (`demo: true`) betalar aldrig.
+Inga klasspokaler för nya format (§7.2.6) – `winner: null`; vill man lägga
+till senare räcker ett `winnerClasses` i result + en kalla i kc-pokal-typer.
 
 ---
 
