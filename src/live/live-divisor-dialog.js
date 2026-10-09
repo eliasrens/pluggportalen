@@ -12,7 +12,7 @@
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
-import { DIVISOR_LOCKED_MSG } from "./live-core.js";
+import { DIVISOR_LOCKED_MSG } from "./formats/klassmatch/klassmatch-core.js";
 
 export function openDivisorDialog(host, { session, save, lockedText = DIVISOR_LOCKED_MSG }) {
   const s = session;

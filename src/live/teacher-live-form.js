@@ -9,18 +9,25 @@
 // Exakt två klasser → Trollkarlsduellen-valet (#536): vem är Rasmus/Elias
 // (byt-knapp, aldrig samma på båda; sparas i sessionen, kan bytas i lobbyn).
 // Skapad session = status "lobby" → syns direkt för eleverna i klasserna.
+// Formuläret är Klassmatchens inställningar (#547): sessionen skapas med
+// format "klassmatch", klassantal + validering kommer från formatet och bara
+// spellägen formatet kan spela visas. (Formatväljaren, spec §3.4, kommer
+// ovanpå detta – förvald Klassmatchen så arbetsflödet inte ändras.)
 //
 // API: renderCreateForm(host, { classes, uid, createdByName, onCreated(sid) })
 // ============================================================================
 
 import { el, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
+import { requireFormat, DEFAULT_FORMAT } from "./formats/index.js";
 import { createLiveSession } from "./live-data.js";
 import { defaultWizards, swapWizards, validWizards, WIZARD_NAMES } from "./trollkarl/trollkarl-val.js";
-import { LIVE_DURATIONS_MIN, LIVE_PRIZE_MAX, validateSessionInput, defaultSessionName, MAX_LIVE_CLASSES } from "./live-core.js";
+import { LIVE_DURATIONS_MIN, validateSessionInput } from "./live-core.js";
+import { LIVE_PRIZE_MAX, defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
 
 export function renderCreateForm(host, { classes, uid, createdByName, onCreated }) {
-  const modes = listGameModes();
+  const format = requireFormat(DEFAULT_FORMAT);
+  const modes = listGameModes().filter((m) => format.compatibleGameModes(m));
   const form = el(`<form class="panel live-form" novalidate>
     <h2 class="live-h2">Skapa Live-match</h2>
     <div class="field"><label>Spelläge</label>
@@ -81,7 +88,7 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
     syncWizards(ids);
     if (!nameTouched) nameInput.value = defaultSessionName(ids.map((id) => byId.get(id)?.name || id));
     form.querySelectorAll('input[name="klass"]').forEach((i) => {
-      i.disabled = !i.checked && ids.length >= MAX_LIVE_CLASSES;
+      i.disabled = !i.checked && ids.length >= format.maxClasses;
     });
   }
   function syncWizards(ids) {
@@ -106,6 +113,7 @@ export function renderCreateForm(host, { classes, uid, createdByName, onCreated 
     const ids = selected();
     const input = {
       name: nameInput.value,
+      format: format.id,
       gameMode: form.querySelector('input[name="mode"]:checked')?.value,
       classIds: ids,
       classNames: Object.fromEntries(ids.map((id) => [id, byId.get(id)?.name || id])),

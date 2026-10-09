@@ -35,7 +35,7 @@
 import { kcShopItem } from "./kc-shop-items.js";
 import { planDonation, planDonationWrites } from "./kc-fund-plan.js";
 import { medKrockOmforsok, sammaSomNekat, SAMMA_LAGE } from "./kc-omforsok.js";
-import { sessionPrize, prizeShare } from "../live/live-core.js";
+import { sessionPrize, prizeShare } from "../live/formats/klassmatch/klassmatch-core.js";
 
 export const KASSA_FORSOK = 8;
 

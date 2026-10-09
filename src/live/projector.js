@@ -1,12 +1,12 @@
 // ============================================================================
 // Live – PROJEKTORVYN (#461), #/larare/live?id=<sid>. Skalet: helskärmsyta,
 // verktygsrad (vyval, ljud, fullskärm), stor matchtimer, gemensam 3-2-1-KÖR!
-// och fasväxling lobby → spelvy → vinnarskärm. Vyerna ligger i egna moduler:
-//   proj-lobby.js   lobby + STARTA MATCH       proj-rocket.js  VY 1 Raketrace
-//   proj-stats.js   VY 2 Statistik (exakt)     proj-tug.js     VY 3 Dragkamp
-//   proj-winner.js  vinnarskärm + konfetti     proj-sound.js   ljud på/av
-//   trollkarl/      VY 4 Trollkarlsduellen (#536) – laddas LATT (import()),
-//                   äger sin egen final + resultatskärm (finale: true)
+// och fasväxling lobby → spelvy → vinnarskärm. Lobby, spelvyer och
+// vinnarskärm hör till sessionens SPELFORMAT (#547): skalet slår upp
+// formatOf(session) (format saknas = Klassmatchen) och laddar dess
+// projectorViews() LATT – Klassmatchen: formats/klassmatch/klassmatch-
+// projector.js (lobby, Raketrace, Statistik, Dragkamp, Trollkarlsduellen,
+// vinnarskärm, nämnare). Skalet äger proj-sound.js (ljud på/av).
 //
 // GEMENSAMT (Firestore, live-feed.js): status, start, timer, poäng, avslut.
 // LOKALT per webbläsare (localStorage): vyval pp:live:vy, ljud pp:live:ljud –
@@ -29,59 +29,23 @@
 // NÄMNARE (#543): "÷ Nämnare" i raden (inte på elevskärmen) under match och
 // efter slut (då bara förklaringen – låst). Lobbyn har egna nämnarfält.
 // RADERA (#543): lobbyns "Radera matchen" (bara ej startad) → tillbaka till Live.
-// VIEWS-post: { id, label, create(host, { st, colors, sound }) → { update, destroy },
-//   only2?: bara två klasser, finale?: vyn visar själv slutet (ingen proj-winner) }
+// Vy-post (formatets views): { id, label, create(host, { st, colors, sound }) →
+//   { update, destroy }, only2?: bara två klasser, finale?: vyn visar själv
+//   slutet (ingen vinnarskärm), preload?() }
 //   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
 // ============================================================================
 
 import { getGameMode } from "./modes/index.js";
+import { formatOf } from "./formats/index.js";
 import { phaseAt, formatClock, toMs } from "./live-core.js";
 import { classColor } from "./proj-scale.js";
 import { createSound } from "./proj-sound.js";
-import { createLobby } from "./proj-lobby.js";
-import { createRocketView } from "./proj-rocket.js";
-import { createStatsView } from "./proj-stats.js";
-import { createTugView } from "./proj-tug.js";
-import { createWinner } from "./proj-winner.js";
 import { ensureLiveCss } from "./live-css.js";
 import { createScreenLink } from "./elevskarm-kanal.js";
 import { createScreenControl } from "./elevskarm-panel.js";
 import { createScreenChrome } from "./elevskarm-skarm.js";
-import { openDivisorDialog } from "./live-divisor-dialog.js";
 
 const VIEW_KEY = "pp:live:vy";
-const loadTrollkarl = () => import("./trollkarl/trollkarl-vy.js");
-
-// Lat vy: modulen hämtas först när vyn väljs (inga nya filer i bootgrafen).
-// Senaste st buffras medan den laddar.
-function lazyView(load, name) {
-  return (host, opts) => {
-    let ui = null;
-    let last = opts.st;
-    let dead = false;
-    host.innerHTML = `<div class="lp-wait">Laddar…</div>`;
-    load().then((m) => {
-      if (!dead) ui = m[name](host, { ...opts, st: last });
-    }).catch((err) => {
-      if (dead) return;
-      const w = document.createElement("div");
-      w.className = "lp-wait";
-      w.textContent = `Vyn kunde inte laddas (${err?.message || err}). Välj en annan vy eller ladda om sidan.`;
-      host.replaceChildren(w);
-    });
-    return {
-      update(st) { last = st; ui?.update(st); },
-      destroy() { dead = true; ui?.destroy(); },
-    };
-  };
-}
-
-const VIEWS = [
-  { id: "raket", label: "🚀 Raketrace", create: createRocketView },
-  { id: "statistik", label: "📊 Statistik", create: createStatsView },
-  { id: "dragkamp", label: "🪢 Dragkamp", create: createTugView, only2: true },
-  { id: "trollkarl", label: "🧙 Trollkarlsduellen", create: lazyView(loadTrollkarl, "createTrollkarlView"), only2: true, finale: true },
-];
 // En vinnarskärm som visas inom så här lång tid efter slutet får konfetti.
 const CELEBRATE_MS = 3 * 60_000;
 
@@ -112,7 +76,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
       <button class="lp-btn" data-back>← Live</button>
       <div class="lp-brand">⚡ MATTEMATCH LIVE <span data-name></span></div>
       <div class="lp-es-host"></div>
-      <div class="lp-views" role="tablist" hidden>${VIEWS.map((v) => `<button class="lp-btn lp-vbtn" role="tab" data-view="${v.id}">${v.label}</button>`).join("")}</div>
+      <div class="lp-views" role="tablist" hidden></div>
       <button class="lp-btn" data-sound></button>
       <button class="lp-btn" data-fs>⛶ Fullskärm</button>
       <button class="lp-btn" data-divs hidden title="Ändra klassernas nämnare (poäng = rätt ÷ nämnare)">÷ Nämnare</button>
@@ -131,6 +95,8 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
   let st = null;
   let colors = {};
   let current = null; // { kind, view, key, ui }
+  let ui = null; // formatets projektordelar (projectorViews()) – laddas vid första sessionen
+  let uiLoading = false;
   let viewId = readView();
   let shownCount = null;
   let clockText = "";
@@ -173,12 +139,11 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     if (confirm("Avsluta matchen NU, före tiden? Resultatet räknas som det står.")) d.finish(sid).catch((e) => say(e.message));
   });
   $("[data-divs]").addEventListener("click", () => {
-    if (st?.session) openDivisorDialog(root, { session: st.session, save: actions.setDivisor });
+    if (st?.session) ui?.editDivisors?.(root, { session: st.session, save: actions.setDivisor });
   });
-  root.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => pickView(b.dataset.view)));
   const onKey = (e) => {
     if (e.target.closest?.("input, textarea") || e.ctrlKey || e.metaKey || e.altKey) return;
-    const v = VIEWS[Number(e.key) - 1];
+    const v = views()[Number(e.key) - 1];
     if (v && !$(".lp-views").hidden) pickView(v.id);
   };
   if (!screen) document.addEventListener("keydown", onKey);
@@ -226,13 +191,14 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     b.classList.toggle("lp-off", !sound.on);
   }
 
+  const views = () => ui?.views || [];
   function availableViews() {
-    return VIEWS.filter((v) => !v.only2 || st?.classes.length === 2);
+    return views().filter((v) => !v.only2 || st?.classes.length === 2);
   }
 
   function pickView(id) {
-    // Elevskärmen tar emot vyn även innan matchdatan kommit (st saknas än).
-    if (screen && VIEWS.some((v) => v.id === id) && (!st || availableViews().some((v) => v.id === id))) {
+    // Elevskärmen tar emot vyn även innan matchdatan/formatets vyer kommit.
+    if (screen && (!ui || views().some((v) => v.id === id)) && (!st || !ui || availableViews().some((v) => v.id === id))) {
       viewId = id;
       return draw();
     }
@@ -293,7 +259,31 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
 
   // Vyn spelar själv matchslutet (Trollkarlsduellen) i stället för proj-winner.
   function ownsFinale() {
-    return !!VIEWS.find((v) => v.id === viewId)?.finale && availableViews().some((v) => v.id === viewId);
+    return !!views().find((v) => v.id === viewId)?.finale && availableViews().some((v) => v.id === viewId);
+  }
+
+  // Formatets projektordelar hämtas en gång, när sessionen (och därmed
+  // formatet) är känd. Under tiden står "Ansluter till matchen…" kvar.
+  function loadUi(s) {
+    if (uiLoading) return;
+    const fmt = formatOf(s);
+    const fail = (text) => {
+      const w = document.createElement("div");
+      w.className = "lp-wait";
+      w.textContent = text;
+      stage.replaceChildren(w);
+    };
+    if (!fmt) return fail("Matchen använder ett format som inte finns i den här versionen – ladda om sidan.");
+    uiLoading = true;
+    fmt.projectorViews().then((m) => {
+      ui = m;
+      $(".lp-views").innerHTML = views().map((v) => `<button class="lp-btn lp-vbtn" role="tab" data-view="${v.id}">${v.label}</button>`).join("");
+      root.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => pickView(b.dataset.view)));
+      draw();
+    }).catch((err) => {
+      uiLoading = false;
+      fail(`Projektorvyn kunde inte laddas (${err?.message || err}). Ladda om sidan.`);
+    });
   }
 
   function mountKind(kind, key, build) {
@@ -310,6 +300,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
       stage.innerHTML = `<div class="lp-wait">Matchen finns inte längre – den raderades innan den startade.</div>`;
       return;
     }
+    if (!ui) return loadUi(s);
     s.participatingClassIds.forEach((id, i) => { colors[id] = classColor(i); });
     $("[data-name]").textContent = `· ${s.name}`;
     const phase = st.phase;
@@ -317,15 +308,15 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     const ownEnd = phase === "finished" && ownsFinale();
     const game = playing || ownEnd;
     const kind = phase === "lobby" ? "lobby" : phase === "finished" && !ownEnd ? "winner" : phase === "cancelled" ? "cancelled" : "game";
-    if (playing && !availableViews().some((v) => v.id === viewId)) viewId = "raket";
+    if (playing && !availableViews().some((v) => v.id === viewId)) viewId = views()[0].id;
     const key = game ? `${viewId}|${s.participatingClassIds.join(",")}` : kind;
-    // Lobbyn med två klasser och Trollkarlsduellen vald: förladda vyn (§17).
-    if (kind === "lobby" && viewId === "trollkarl" && st.classes.length === 2) loadTrollkarl().then((m) => m.preload?.()).catch(() => {});
+    // Lobbyn: förladda den valda vyn om den kan (Trollkarlsduellen, §17).
+    if (kind === "lobby") availableViews().find((v) => v.id === viewId)?.preload?.();
 
     // Efter slutet i en vy med egen final: vyflikarna kvar (annan vy = vanliga vinnarskärmen).
     $(".lp-views").hidden = !game;
     $("[data-end]").hidden = !playing;
-    $("[data-divs]").hidden = screen || kind === "lobby" || kind === "cancelled";
+    $("[data-divs]").hidden = screen || !ui.editDivisors || kind === "lobby" || kind === "cancelled";
     $(".lp-timer").hidden = !playing;
     root.dataset.kind = game ? viewId : kind;
     root.querySelectorAll("[data-view]").forEach((b) => {
@@ -336,14 +327,14 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     if (current?.key !== key) {
       if (kind === "lobby") {
         const mode = getGameMode(s.gameMode);
-        mountKind(kind, key, () => createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen }));
+        mountKind(kind, key, () => ui.createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen }));
       } else if (kind === "game") {
-        const v = VIEWS.find((x) => x.id === viewId);
+        const v = views().find((x) => x.id === viewId);
         mountKind(kind, key, () => v.create(stage, { st, colors, sound }));
       } else if (kind === "winner") {
         const fin = toMs(s.finishedAt);
         const celebrate = sawLive || (fin != null && d.now() - fin < CELEBRATE_MS);
-        mountKind(kind, key, () => createWinner(stage, { st, colors, onBack: back, celebrate }));
+        mountKind(kind, key, () => ui.createWinner(stage, { st, colors, onBack: back, celebrate }));
       } else {
         mountKind(kind, key, () => {
           stage.innerHTML = `<div class="lp-wait">Matchen avbröts innan den startade.${back ? `<button class="lp-btn" data-back2>← Till Live</button>` : ""}</div>`;
