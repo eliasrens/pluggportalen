@@ -182,7 +182,8 @@ export async function autoFinish(sid) {
 /**
  * Historikens ögonblicksbild – skrivs en gång (av en lärarklient). Den klient
  * vars transaktion skrev result delar också ut Klasscentrets Live-bonusar
- * (#479), pokaler (#495) och mynt-priset till klasskassan (#526) –
+ * (#479), pokaler (#495), mynt-priset till klasskassan (#526) och elevernas
+ * Pluggmynt (#557, nya format) –
  * dynamiskt, aldrig kastande → en gång per session.
  */
 export async function writeResultIfMissing(sid, result) {
@@ -201,6 +202,8 @@ export async function writeResultIfMissing(sid, result) {
       m.pokalerEfterAvslut("live", sid, skrev);
       m.livePrisEfterAvslut(sid, skrev);
     }).catch(() => {});
+    // Pluggmynt efter matchen (#557) – idempotent (kvitto per elev).
+    if (result?.rewards) import("./live-rewards-data.js").then((m) => m.settleLiveRewards(sid, skrev)).catch(() => {});
   }
 }
 
