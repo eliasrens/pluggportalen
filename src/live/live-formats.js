@@ -67,6 +67,8 @@
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
 //   classDivisors VALFRI bool – lärarens nämnare per klass ("÷ Nämnare")
+//   emitOnPlayers VALFRI bool – realtidslagret skickar nytt tillstånd vid varje
+//                 spelarändring (svar, även fel) för händelsesystemet (#571)
 //   prepareCreate VALFRI (input, sessionData, ctx?) → Promise<{ data?, subdocs? }>
 //                 körs av createLiveSession före skapandet: data slås in i
 //                 sessionen, subdocs [{ path: [samling, id], data }] skapas
@@ -127,7 +129,7 @@ export function validateFormat(f) {
       f.privateDocs.every((p) => Array.isArray(p) && p.length === 2 && p.every((x) => typeof x === "string" && x)))) {
     errs.push("privateDocs måste vara [[samling, id]]");
   }
-  for (const b of ["classCounters", "classDivisors"]) {
+  for (const b of ["classCounters", "classDivisors", "emitOnPlayers"]) {
     if (f[b] != null && typeof f[b] !== "boolean") errs.push(`${b} måste vara bool`);
   }
   return errs;
@@ -142,7 +144,7 @@ export function registerFormat(f) {
   const errs = validateFormat(f);
   if (errs.length) throw new Error(`registerFormat(${f?.id}): ${errs.join("; ")}`);
   if (REGISTRY.has(f.id)) throw new Error(`registerFormat: "${f.id}" finns redan`);
-  const frozen = Object.freeze({ description: "", classCounters: false, classDivisors: false, ...f });
+  const frozen = Object.freeze({ description: "", classCounters: false, classDivisors: false, emitOnPlayers: false, ...f });
   REGISTRY.set(f.id, frozen);
   return frozen;
 }

@@ -23,12 +23,18 @@
 //                                    // Klassmatchen: classes = [{ classId, name,
 //                                    // correct, divisor, score, joined, ready }]
 //     top: [{ uid, name, classId, correct, incorrect }],
+//     players: [{ uid, name, classId, correct, incorrect, answerKey }],  // alla
+//                                    // anslutna (lärare) – avatarer/händelser (#571)
 //     result,                        // sparad historik (efter slut) eller null
 //     now,                           // server-korrigerad tid för renderingen
 //   }
 //
 // Formatet (formatOf(session), saknat = Klassmatchen) avgör ställningen,
 // historikens result och om klassräknarna (classCounters) ska lyssnas på.
+// fmt.emitOnPlayers (#571, de nya lägena): skicka ett nytt tillstånd vid
+// VARJE spelarändring (anslutning, svar – även fel svar), så händelsesystemet
+// (design/live-events.js) ser "Har svarat". Klassmatchen sätter den inte och
+// ritas exakt som förut.
 //
 // Återanslutning: Firestore-lyssnarna återupptas själva efter avbrott, och en
 // omladdning prenumererar bara på nytt – allt tillstånd kommer från servern.
@@ -46,6 +52,18 @@ import { formatOf } from "./formats/index.js";
 const NO_STANDINGS = { classes: [], totalCorrect: 0, leaderIds: [], winnerId: null, draw: false };
 
 const TICK_MS = 250;
+
+/** Alla spelare i tillståndet (#571): lätta poster, svarsnyckel = senaste svaret. */
+function allPlayers(players) {
+  return (players || []).filter((p) => p && p.uid).map((p) => ({
+    uid: p.uid,
+    name: p.name || "",
+    classId: p.classId,
+    correct: Number(p.correct) || 0,
+    incorrect: Number(p.incorrect) || 0,
+    answerKey: p.lastAttemptId || null,
+  }));
+}
 // Vänta in svar som committats precis före slutet innan resultatet fryses.
 const RESULT_SETTLE_MS = 2500;
 
@@ -86,6 +104,7 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
       clock: formatClock(ph.msLeft),
       ...standings,
       top: topPlayers(players, topN),
+      players: allPlayers(players),
       result: s?.result || null,
       now,
     };
@@ -132,7 +151,8 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
     const st = compute();
     // Rita bara om något syns ändrat (sekund-upplöst klocka, poäng, status …).
     const key = JSON.stringify([st.status, st.phase, st.countdown, st.clock, st.classes, st.top, !!st.result,
-      st.session?.classDivisors, st.session?.endsAt?.seconds]);
+      st.session?.classDivisors, st.session?.endsAt?.seconds,
+      formatOf(st.session)?.emitOnPlayers ? st.players.map((p) => [p.uid, p.answerKey, p.correct]) : 0]);
     chores(st);
     if (!force && key === lastKey) return;
     lastKey = key;
