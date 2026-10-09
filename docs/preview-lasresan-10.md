@@ -7,7 +7,7 @@ JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-10-preview.sh   # proxy på
 RESEED=1 bash admin/qa-lasresan-10-preview.sh                    # återställ data
 ```
 
-Lösenord **lilla123** för alla. Läraren heter **qalarare**. Gammal skala = lagrad
+Lösenord **lilla123** för alla (endast emulator). Läraren heter **qalarare**. Gammal skala = lagrad
 före #519 (inga `level10`-fält). Gammal nivå N visas som N+3.
 
 ## Läraren

@@ -2,7 +2,7 @@
 // QA-seed för klasskassan (#526) – BARA mot Firebase-emulatorerna.
 // ----------------------------------------------------------------------------
 // Körs EFTER admin/qa-live-seed.mjs (lärare rasmus/elias, 4B/5E/3A, lösenord
-// lilla123). Lägger till:
+// lilla123, endast emulator). Lägger till:
 //   • historik-demo (4B 20,0 mot 5E 19,0) får mynt-pris 1000 – result saknas,
 //     så första gången läraren öppnar matchen i historiken räknas result och
 //     4B:s kassa får +1000 (en gång).

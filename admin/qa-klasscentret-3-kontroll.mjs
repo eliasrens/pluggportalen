@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Kör först: qa-klasscenter-by-seed → qa-klasscenter-rum-seed →
 // qa-klasscenter-larare-seed (qa-kc/qa-kc2/qa-kc3, kc01…, kd01…, qalarare).
-// Lösenord lilla123. Allt går via klient-SDK:n som läraren/eleven (reglerna
+// Lösenord lilla123 (endast emulator). Allt går via klient-SDK:n som läraren/eleven (reglerna
 // gäller), testdata (källdokument) skrivs med admin.
 //
 //   pokaler      utdelning via korPokalUtdelning/pokalerUrKalla (samma kod som
@@ -41,7 +41,7 @@ if (!FS || !AUTH) {
   process.exit(1);
 }
 const PROJECT = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const adminApp = admin.initializeApp({ projectId: PROJECT });
 const adb = admin.firestore(adminApp);
 const sdk = { runTransaction, doc, serverTimestamp };

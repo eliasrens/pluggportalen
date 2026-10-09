@@ -25,7 +25,7 @@ Skärmdumpar: `docs/qa-klasscentret-1/`.
 
 - Emulator: firebase-tools + JRE (`/tmp/kc481/firebase.json`, Firestore 8483, Auth 9483), regler = `firestore.rules` i grenen.
 - Proxy: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8483 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9483 PORT=8484 node admin/qa-emulator-proxy.mjs`
-- Seed: `admin/qa-klasscenter-by-seed.mjs` – **utökad i #481** med klass `qa-kc3` "QA-klass 4C", 28 elever (`ke01…ke28`). Nu: `qa-kc` 14 elever (`kc01…`), `qa-kc2` 5 elever (`kd01…`), `qa-kc3` 28 elever. Lösenord `lilla123`. `exp <klass> <antal>` sätter shard 0.
+- Seed: `admin/qa-klasscenter-by-seed.mjs` – **utökad i #481** med klass `qa-kc3` "QA-klass 4C", 28 elever (`ke01…ke28`). Nu: `qa-kc` 14 elever (`kc01…`), `qa-kc2` 5 elever (`kd01…`), `qa-kc3` 28 elever. Lösenord `lilla123` (endast emulator). `exp <klass> <antal>` sätter shard 0.
 - Viewport i headless: 780×437.
 
 ## 1. Boot och bootgraf

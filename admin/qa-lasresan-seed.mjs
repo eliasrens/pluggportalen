@@ -9,7 +9,7 @@
 //   GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-lasresan-seed.mjs
 //
 // Vägrar köra utan emulator-variablerna (skriver aldrig till produktion).
-// Konton (lösenord lilla123): lärare `qalarare`, elever se SCENARIER nedan.
+// Konton (lösenord lilla123, endast emulator): lärare `qalarare`, elever se SCENARIER nedan.
 // Nivåerna lagras i GAMMAL skala 1–7 (inga level10-fält) och visas/används +3
 // sedan epic #516 (#519 lat migrering). Ny skala: admin/qa-lasresan-10-seed.mjs.
 // ============================================================================
@@ -24,7 +24,7 @@ const app = admin.initializeApp({ projectId: PROJECT_ID });
 const auth = admin.auth(app);
 const db = admin.firestore(app);
 
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const CLASS_ID = "qa-klass";
 const NOW = Date.UTC(2026, 9, 5, 8, 0, 0);
 

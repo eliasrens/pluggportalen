@@ -2,7 +2,7 @@
 // QA-seed för Mattematchen + Live (#462) – BARA mot Firebase-emulatorerna.
 // ----------------------------------------------------------------------------
 // EN seed för hela epic #456-QA:n och Elias klickguide
-// (docs/preview-mattematchen-live.md). Lösenord för alla: lilla123.
+// (docs/preview-mattematchen-live.md). Lösenord för alla: lilla123 (endast emulator).
 //
 //   Lärare   rasmus, elias            (teacher-claim, "två lärare")
 //   4B       b01–b20  (20 elever)     deltar i Mattematchen oktober
@@ -35,7 +35,7 @@ const auth = admin.auth(app);
 const db = admin.firestore(app);
 const { Timestamp } = admin.firestore;
 
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const NOW = Date.now();
 const DAG = 24 * 3600 * 1000;
 const START_OM = (Number(process.env.START_OM_S) || 120) * 1000;

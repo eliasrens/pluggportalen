@@ -8,10 +8,9 @@ Sajten är en **statisk sida** (ren HTML/CSS/JS – inget byggsteg) som ligger p
 JS SDK. Inloggning sker via **Firebase Auth** (se `docs/security-plan.md` och
 `docs/ADMIN.md`).
 
-> **Testkonto (live):** användarnamn `elev1`.
-> **Före** lösenordsmigreringen (nuvarande live): lösenord `123`.
-> **Efter** migreringen: lösenord `lilla123` (elev1 har < 6 tecken och får det
-> nya lösenordet via `--short=set:lilla123`, se `docs/ADMIN.md`).
+> **Testkonto (live):** användarnamn `elev1`. Lösenordet står **inte** i repot
+> (repot och GitHub Pages är publika) – det finns hos läraren. Byt det vid behov
+> med `node admin/reset-student-password.mjs` (se `docs/ADMIN.md`).
 > (Läraren loggar in med sitt eget lärarkonto – **användarnamn** (t.ex.
 > `teacher26`) + lösenord, precis som eleverna. Kontot skapas med
 > `node admin/set-teacher-claim.mjs --username=teacher26 --password=<minst6>`.)

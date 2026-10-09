@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för Klasscentrets rum (#490, epic #475) – BARA emulatorn.
 // ----------------------------------------------------------------------------
-// Kör först admin/qa-klasscenter-by-seed.mjs (klasser + elever, lösen lilla123).
+// Kör först admin/qa-klasscenter-by-seed.mjs (klasser + elever, lösen lilla123, endast emulator).
 // Den här lägger till, för klass qa-kc ("QA-klass 4A", kc01 … kc14):
 //   • upplåsta föremål (fund isUnlocked) = möbellådan: guldstaty, lounge,
 //     akvarium, klassfana, kristallkrona (flygel/fontän/troféhylla ej köpta)

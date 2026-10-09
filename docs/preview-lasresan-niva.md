@@ -9,7 +9,7 @@ Körs mot Firestore-/Auth-**emulatorn** (inget når produktion):
 JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-niva-preview.sh   # proxy på :8507
 ```
 
-Lösenord **lilla123** för alla. Läraren heter **qalarare**.
+Lösenord **lilla123** för alla (endast emulator). Läraren heter **qalarare**.
 
 ## Läraren
 1. Gå till **Lärare →** och logga in som `qalarare`. Välj **QA-klass 4A** → **Statistik** → **Läsresan**.

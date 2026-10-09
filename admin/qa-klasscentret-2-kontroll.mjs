@@ -2,7 +2,7 @@
 // QA för Klasscentret 2/4 (#492, epic #475) – BARA emulatorn.
 // ----------------------------------------------------------------------------
 // Kör först: qa-klasscenter-by-seed → qa-klasscenter-rum-seed →
-// qa-klasscenter-larare-seed → qa-klasscentrum-shop seed. Lösenord lilla123.
+// qa-klasscenter-larare-seed → qa-klasscentrum-shop seed. Lösenord lilla123 (endast emulator).
 //
 //   samtidighet [elever=10] [perElev=3]   (elever 1–28; #493: 28 1 = en hel klass)
 //                 klass qa-ks får ks03…ks12 (1 000 mynt); 10 elever × 3
@@ -36,7 +36,7 @@ if (!FS || !AUTH) {
   process.exit(1);
 }
 const PROJECT = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const KS = "qa-ks";
 const adminApp = admin.initializeApp({ projectId: PROJECT });
 const adb = admin.firestore(adminApp);

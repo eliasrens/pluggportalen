@@ -25,4 +25,4 @@ else
   export FIRESTORE_EMULATOR_HOST=127.0.0.1:$FS FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:$AUTH GCLOUD_PROJECT=pluggportalen-so-2026
 fi
 node admin/qa-lasresan-482-seed.mjs | tail -1
-echo "Klar: http://127.0.0.1:$PROXY/  (lärare qalarare / lilla123, guide docs/preview-lasresan-482.md)"
+echo "Klar: http://127.0.0.1:$PROXY/  (lärare qalarare / lilla123, endast emulator, guide docs/preview-lasresan-482.md)"

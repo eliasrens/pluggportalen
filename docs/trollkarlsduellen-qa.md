@@ -26,7 +26,7 @@ FIREBASE_BIN=~/.npm/_npx/7750544ccf494d8b/node_modules/.bin \
 bash admin/qa-trollkarlsduellen-preview.sh      # Firestore 8541, Auth 9541, proxy 8542
 ```
 
-1. Öppna previewn → **Lärare →** → logga in `elias` / `lilla123`.
+1. Öppna previewn → **Lärare →** → logga in `elias` / `lilla123` (endast emulator).
 2. Meny **Live** → under "Aktiva Live-sessioner" finns **4B mot 5E**
    (`trollkarl-demo`, 5 min, 4B = Elias, 5E = Rasmus, nämnare 10/22) →
    **Öppna projektorvy**. (Eller skapa en egen: kryssa 4B + 5E → rutan

@@ -258,9 +258,9 @@ export const areas = {
 // Exempelelev så att man kan logga in direkt efter seedning (dev/emulator).
 // `password` används av seed/seed.mjs för att skapa elevens Firebase Auth-konto
 // (Firebase kräver minst 6 tecken → "passa123"). Det skrivs INTE till
-// students-dokumentet (bor i Auth). OBS: i LIVE har testeleven elev1 lösenordet
-// "123" – seed-datan här gäller en färsk/emulator-databas, inte live.
-// Användarnamn: elev1   Lösenord (dev-seed): passa123
+// students-dokumentet (bor i Auth). ENDAST EMULATOR/färsk dev-databas – live-
+// kontot elev1 har ett annat lösenord som inte finns i repot.
+// Användarnamn: elev1   Lösenord (endast emulator): passa123
 export const students = [
   {
     id: "elev1",

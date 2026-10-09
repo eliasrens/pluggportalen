@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Kör först: qa-klasscenter-by-seed → qa-klasscenter-rum-seed →
 // qa-klasscenter-larare-seed → qa-klasscentrum-shop seed (qa-kc 14 elever,
-// qa-kc2 5, qa-kc3 28, qa-ks 2 + qalarare). Lösenord lilla123. Allt som
+// qa-kc2 5, qa-kc3 28, qa-ks 2 + qalarare). Lösenord lilla123 (endast emulator). Allt som
 // skriver går via klient-SDK:n som eleven/läraren (reglerna gäller).
 //
 //   placering    spec §9.1: byLayout för 0–30 elever (centret mitt i översta
@@ -46,7 +46,7 @@ if (!FS || !AUTH) {
   process.exit(1);
 }
 const PROJECT = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const adminApp = admin.initializeApp({ projectId: PROJECT });
 const adb = admin.firestore(adminApp);
 const sdk = { runTransaction, doc, collection, getDocFromServer, writeBatch, increment, serverTimestamp };

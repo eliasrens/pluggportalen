@@ -20,7 +20,7 @@ bash admin/qa-klasscentret-preview.sh
 - För hjälpkommandona nedan behöver terminalen:
   `export FIRESTORE_EMULATOR_HOST=127.0.0.1:8520 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9520 GCLOUD_PROJECT=pluggportalen-so-2026`
 
-## Inloggningar (lösenord för alla: `lilla123`)
+## Inloggningar (lösenord för alla: `lilla123` – endast emulator)
 
 | Roll | Användarnamn | Vem / klass | Att titta på |
 |------|--------------|-------------|--------------|

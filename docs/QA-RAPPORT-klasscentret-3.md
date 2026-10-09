@@ -22,7 +22,7 @@ Skärmdumpar: `docs/qa-klasscentret-3/499-*.png`.
 
 - Emulator: firebase-tools (npx-cache) + JRE `/tmp/mm457/jdkdl/jdk-21.0.12.1+1-jre/bin`, `JAVA_TOOL_OPTIONS=-Xmx384m`. Temporär config med egna portar (Firestore 8510, Auth 9510, hub 4510), regler = grenens `firestore.rules`. Configfilen är borttagen efteråt.
 - Proxy: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8510 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9510 PORT=8511 node admin/qa-emulator-proxy.mjs`
-- Seed (i ordning): `qa-klasscenter-by-seed` → `qa-klasscenter-rum-seed` → `qa-klasscenter-larare-seed` → `qa-klasscentrum-shop seed` → `qa-mattematchen-seed` → `qa-mattematchen-larare-seed` → `qa-live-seed`. Lösenord `lilla123`.
+- Seed (i ordning): `qa-klasscenter-by-seed` → `qa-klasscenter-rum-seed` → `qa-klasscenter-larare-seed` → `qa-klasscentrum-shop seed` → `qa-mattematchen-seed` → `qa-mattematchen-larare-seed` → `qa-live-seed`. Lösenord `lilla123` (endast emulator).
 - **`npm test` finns inte** i `package.json`. Motsvarande körning: enhet = `node --test` på `test/*.test.*` utom `firestore-rules*`/`e2e*`; regler = `npm run test:rules` (här med `--config` mot egna portar); e2e = `test/e2e-auth.test.mjs` under `emulators:exec --only auth,firestore`.
 - **Nytt:** `admin/qa-klasscentret-3-kontroll.mjs pokaler | layout | placering` – skriptade kontroller via klient-SDK:n (som läraren/eleven, reglerna gäller), samma kod som appen (`korPokalUtdelning`, `pokalerUrKalla`, `placeraPokaler`). Avslutar med exit 1 om något failar. `layout` återställer rummets layout efteråt.
 - Byte av användare i samma flik: `import("/src/auth.js")` → `signOutCurrent()` + `signInStudent(u, pw, true)` / `signInTeacher()`. Se O4: ladda om sidan innan behörighet i rummet bedöms.

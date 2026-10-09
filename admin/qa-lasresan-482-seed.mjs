@@ -12,7 +12,7 @@
 //     ("ny elev": läggs till i 6C efter att startnivån satts)
 //   * tar bort kontrollskriptets qa-482-*-elever (konton + data) och dess
 //     klass qa-482-kontroll
-// Idempotent. Lösenord lilla123. Vägrar köra utan emulator-variablerna.
+// Idempotent. Lösenord lilla123 (endast emulator). Vägrar köra utan emulator-variablerna.
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… node admin/qa-lasresan-482-seed.mjs
 // ============================================================================
 import admin from "firebase-admin";
@@ -25,7 +25,7 @@ const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "plug
 const auth = admin.auth(app);
 const db = admin.firestore(app);
 const FV = admin.firestore.FieldValue;
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const NOW = Date.UTC(2026, 9, 8, 8, 0, 0);
 
 const IGANG = {

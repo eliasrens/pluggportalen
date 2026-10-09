@@ -1,7 +1,7 @@
 // ============================================================================
 // QA för shoppens Klasscentrum-flik (#488, epic #475) – BARA emulatorn.
 // ----------------------------------------------------------------------------
-// Lösenord för alla: lilla123.
+// Lösenord för alla: lilla123 (endast emulator).
 //
 //   seed                     klass qa-ks "QA-klass 5A": ks01 + ks02 (3 000 mynt
 //                            var), ks99 utan klass (500 mynt); tömmer insamlingen
@@ -30,7 +30,7 @@ if (!FS || !AUTH) {
   process.exit(1);
 }
 const PROJECT = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const KLASS = "qa-ks";
 const email = (uid) => `${uid}@elev.pluggportalen.local`;
 

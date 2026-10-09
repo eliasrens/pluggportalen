@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för Stjärnor & kategoristatistik (#448, epic #444) – BARA emulatorn.
 // ----------------------------------------------------------------------------
-// Lösenord för alla: lilla123.
+// Lösenord för alla: lilla123 (endast emulator).
 //
 //   Lärare   qalarare                       (teacher-claim)
 //   Klass    qa-kat "QA-klass 5B"
@@ -33,7 +33,7 @@ const auth = admin.auth(app);
 const db = admin.firestore(app);
 const { Timestamp } = admin.firestore;
 
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const CLASS_ID = "qa-kat";
 const DAG = 24 * 3600 * 1000;
 const ts = (dagarSedan) => Timestamp.fromMillis(Date.now() - dagarSedan * DAG);

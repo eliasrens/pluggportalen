@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------------
 # Firestore + Auth-emulatorn (minnesdata, grenens firestore.rules), seeden från
 # qa-mm-live-seed.mjs (lärare rasmus/elias, klasser 4B b01–b20 / 5E e01–e22,
-# lösen lilla123) + två lobby-matcher och admin/qa-emulator-proxy.mjs på $PROXY:
+# lösen lilla123, endast emulator) + två lobby-matcher och admin/qa-emulator-proxy.mjs på $PROXY:
 #
 #   trollkarl-demo   4B mot 5E, 5 min, 4B = Elias / 5E = Rasmus, nämnare 10/22
 #                    (5E kan ha FLER rätt men LÄGRE snitt → snittet avgör)

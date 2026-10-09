@@ -50,7 +50,7 @@ async function as(uid) {
   const db = initializeFirestore(app, {});
   const [h, p] = FS.split(":");
   connectFirestoreEmulator(db, h, Number(p));
-  await signInWithEmailAndPassword(auth, `${uid}@elev.pluggportalen.local`, "lilla123");
+  await signInWithEmailAndPassword(auth, `${uid}@elev.pluggportalen.local`, "lilla123"); // endast emulator
   clients.set(uid, db);
   return db;
 }

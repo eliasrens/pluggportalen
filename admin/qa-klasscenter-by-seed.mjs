@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för Klasscentret i byn (#480, epic #476) – BARA emulatorn.
 // ----------------------------------------------------------------------------
-// Lösenord för alla: lilla123.
+// Lösenord för alla: lilla123 (endast emulator).
 //
 //   Klass qa-kc  "QA-klass 4A"  – 14 elever (kc01 … kc14), klass-EXP → Nivå 3
 //   Klass qa-kc2 "QA-klass 4B"  –  5 elever (kd01 … kd05), klass-EXP → Nivå 7
@@ -26,7 +26,7 @@ const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "plug
 const auth = admin.auth(app);
 const db = admin.firestore(app);
 
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const NAMN = ["Alva", "Ebbe", "Saga", "Leo", "Maja", "Noah", "Elsa", "Liam", "Wilma", "Hugo",
   "Alice", "Oskar", "Ella", "Vincent", "Freja", "Elias", "Stella", "Theo", "Ines"];
 const AVATARER = ["fox", "owl", "cat", "dog", "panda", "frog", "unicorn", "lion", "penguin", "koala"];

@@ -506,7 +506,7 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 
 ### 5.1 Miljö och metod
 
-- **Riktiga appen mot emulatorerna** (Auth + Firestore, Java 21). `seed/seed.mjs` + `admin/qa-lasresan-seed.mjs` ger läraren `qalarare` och `elev1` (båda `lilla123`) och QA-klass 4A med 10 elever och Läsresan-data. En proxy med samma origin byter `src/firebase-config.js` mot emulatorkoppling (receptet från #436). Proxyn kopplar dessutom `auth.js`:s sekundära app (kontoskapande) till emulatorn, annars skulle `createStudentAuthAccount` gå mot prod.
+- **Riktiga appen mot emulatorerna** (Auth + Firestore, Java 21). `seed/seed.mjs` + `admin/qa-lasresan-seed.mjs` ger läraren `qalarare` och `elev1` (båda `lilla123`, endast emulator) och QA-klass 4A med 10 elever och Läsresan-data. En proxy med samma origin byter `src/firebase-config.js` mot emulatorkoppling (receptet från #436). Proxyn kopplar dessutom `auth.js`:s sekundära app (kontoskapande) till emulatorn, annars skulle `createStudentAuthAccount` gå mot prod.
 - Klickflödena kördes i headless-Chrome: riktiga klick och skrivningar, plus DOM-skript för att mäta. Sparade värden kontrollerades direkt i emulatorn med Admin SDK.
 - Kompletterande körning i stubben `preview-larare-klasser.html` (minnes-Firestore med läsräknare `__ppStub`) för att räkna läsningar vid klassbyte.
 - `node --test test/*.test.js`: **742/748**. De 6 felen är regeltesterna, som kräver `emulators:exec` (samma som på main).

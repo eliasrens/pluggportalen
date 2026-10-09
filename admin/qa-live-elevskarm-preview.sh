@@ -3,7 +3,7 @@
 # Live-elevskärmen (#533) – klickbar preview mot EMULATORN.
 # ----------------------------------------------------------------------------
 # Firestore + Auth-emulatorn (minnesdata, grenens firestore.rules), Live-seeden
-# (lärare rasmus/elias, lösen lilla123, klasser 4B/5E) + en lobby-match
+# (lärare rasmus/elias, lösen lilla123, endast emulator, klasser 4B/5E) + en lobby-match
 # "elevskarm-demo" på 1 minut, och admin/qa-emulator-proxy.mjs på $PROXY.
 # Logga in som lärare → #/larare/live?id=elevskarm-demo → "📺 Öppna elevskärm".
 # Simulera elever: node admin/qa-live-seed.mjs --sim elevskarm-demo --redo 15,18 [--svar 30]

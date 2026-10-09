@@ -81,19 +81,19 @@ node admin/migrate-passwords.mjs
 **Skarpt (det avsedda kommandot – se beslutet om korta lösenord nedan):**
 
 ```bash
-node admin/migrate-passwords.mjs --commit --short=set:lilla123
+node admin/migrate-passwords.mjs --commit --short=set:<nytt-lösen>
 ```
 
 ### Korta lösenord (< 6 tecken) – VIKTIGT
 
-Firebase Auth kräver **minst 6 tecken** i `createUser`. Testeleven **elev1** har
-lösenordet **`123`** (3 tecken) i live och kan därför **inte** skapas på den
+Firebase Auth kräver **minst 6 tecken** i `createUser`. Testeleven **elev1** hade
+ett lösenord under 6 tecken i live och kunde därför **inte** skapas på den
 vanliga vägen. Välj strategi:
 
 | Strategi | Flagga | Effekt |
 |---|---|---|
 | Stoppa (default) | `--short=stop` | Avbryter och listar berörda elever. |
-| Behåll exakt lösenord | `--short=preserve` | Importerar via SCRYPT så `123` fortsätter funka. Kräver `admin/firebase-hash-config.json` (se nedan) och **verifiering av en inloggning efteråt**. |
+| Behåll exakt lösenord | `--short=preserve` | Importerar via SCRYPT så det korta lösenordet fortsätter funka. Kräver `admin/firebase-hash-config.json` (se nedan) och **verifiering av en inloggning efteråt**. |
 | Sätt nytt lösenord | `--short=set:<pw>` | Ger alla kort-lösenords-elever ett nytt gemensamt lösenord (≥ 6). Skriptet skriver ut listan så läraren kan meddela dem. |
 
 **`--short=preserve` behöver projektets hash-parametrar.** Hämta dem i Console →
@@ -109,11 +109,12 @@ lägg i `admin/firebase-hash-config.json` (också `.gitignore`:ad):
 }
 ```
 
-> **BESLUT (beställaren):** använd **`--short=set:lilla123`**. Elever med lösenord
-> under 6 tecken (t.ex. **elev1**) får det nya lösenordet **`lilla123`**. Elever
-> med ≥ 6 tecken behåller sitt. Meddela de berörda eleverna det nya lösenordet.
-> (Alternativet `--short=preserve` – behåll exakt `123` via SCRYPT – finns kvar i
-> skriptet men används alltså inte här.)
+> **BESLUT (beställaren):** använd **`--short=set:<nytt-lösen>`**. Elever med
+> lösenord under 6 tecken (t.ex. **elev1**) får det nya lösenordet. Elever med
+> ≥ 6 tecken behåller sitt. Meddela de berörda eleverna det nya lösenordet.
+> Skriv **aldrig** in live-lösenord här – repot är publikt.
+> (Alternativet `--short=preserve` – behåll exakt det korta lösenordet via
+> SCRYPT – finns kvar i skriptet men används alltså inte här.)
 
 ---
 
@@ -203,7 +204,7 @@ nya konton får inget sparat lösenord (regeln saknas) – kontoskapandet funger
 
 **QA mot emulatorerna:** `bash admin/qa-inloggning-preview.sh` startar
 functions+auth+firestore (5533/9533/8533), seedar `admin/qa-inloggning-seed.mjs`
-(qalarare / lilla123, klass 4B, två elever utan sparat lösenord) och kör
+(qalarare / lilla123 – endast emulator, klass 4B, två elever utan sparat lösenord) och kör
 `admin/qa-emulator-proxy.mjs` på 8531 – proxyn routar `POST /updateStudentLogin`
 till Functions-emulatorn.
 
@@ -228,18 +229,17 @@ reglerna *innan* eleverna fått Auth-konton kan ingen logga in. Rätt ordning:
 2. **Skapa lärarkonto + claim** (steg 2).
 3. **Migrera** eleverna med det avsedda kommandot:
    ```bash
-   node admin/migrate-passwords.mjs --commit --short=set:lilla123
+   node admin/migrate-passwords.mjs --commit --short=set:<nytt-lösen>
    ```
    Nu har alla Auth-konton och `password`-fälten är borta. Elever med lösenord
-   under 6 tecken (t.ex. **elev1**) har fått det nya lösenordet **`lilla123`** –
-   meddela dem.
+   under 6 tecken (t.ex. **elev1**) har fått det nya lösenordet – meddela dem.
 4. **Deploya koden** (auth-lagret) till hosting – i samma veva som:
 5. **Deploya reglerna:**
    ```bash
    firebase deploy --only firestore:rules
    ```
-6. **Rök-test:** logga in som **elev1 / lilla123** (nytt lösenord efter
-   migreringen; ser bara egen data) och som läraren (skapar/ger coins). Kolla att
+6. **Rök-test:** logga in som **elev1** (nytt lösenord efter
+   migreringen, finns hos läraren; ser bara egen data) och som läraren (skapar/ger coins). Kolla att
    inga konsolfel syns.
 
 > Steg 3 och 5 hör ihop: migrering **före** regel-deploy. Gör man tvärtom slutar
