@@ -4,19 +4,18 @@
 // Elevsidan (och nya format) väljer HUR eleven svarar ur sessionens
 // answerKind (answerKindOf(session), saknas = "free"):
 //   "free"   ✍️ skriv själv – src/mult/fast-answer.js (som före #551)
-//   "choice" 🔘 flerval – fyra alternativknappar. Komponenten byggs i issue B
-//            (#552) och kopplas in i COMPONENTS nedan; tills dess finns den
-//            inte och elevsidan visar "ladda om" i stället för att krascha.
+//   "choice" 🔘 flerval – src/live/choice-flow.js: spelläget + fyra
+//            knappar (src/live/choice-answer.js, #552). Laddas latt.
+// Ett svarssätt som saknas här (nyare klient) → elevsidan visar "ladda om".
 //
 // KOMPONENT-KONTRAKTET (samma som mountFastAnswer, så elevsidan är generisk):
 //   mount(root, opts) → handle
-//     opts: { source, check, onAnswer, inputMode?, enabled?, idleText? }
-//       source.next() → fråga; för "choice" med q.options (4 alternativ,
-//       se game-modes.js "SVARSSÄTTET choice")
-//       check(q, raw) → { valid, correct, correctAnswer, … } – raw = text
-//       (free) resp. knappens index 0–3 (choice)
+//     opts: { source, check, choices?, onAnswer, inputMode?, enabled?, idleText? }
+//       source.next() → fråga, check(q, raw) → { valid, correct, correctAnswer }
+//       – SAMMA rättning för båda (choice: raw = valt alternativs värde).
+//       choices(q) → { options, answerIndex } (bara choice, game-modes.js)
 //       onAnswer(attempt) EN gång per fråga: { attemptId, seq, question,
-//       raw, result, answeredAt } – för choice bär result choiceIndex
+//       raw, result, answeredAt } – choice dessutom choiceIndex (0–3)
 //   handle: setEnabled(bool, idleText?), destroy(), focus?(),
 //           pauseFocus?() / resumeFocus?()
 //
@@ -27,11 +26,10 @@
 
 import { mountFastAnswer } from "../mult/fast-answer.js";
 
-// Flerval (#552): lägg till t.ex.
-//   choice: () => import("./choice-answer.js").then((m) => m.mountChoiceAnswer),
-// (dynamisk import – inte i den boot-kritiska kedjan, #271).
+// Nytt svarssätt = en rad här (dynamisk import – inte i bootkedjan, #271).
 const COMPONENTS = {
   free: async () => mountFastAnswer,
+  choice: () => import("./choice-flow.js").then((m) => m.mountChoiceFlow),
 };
 
 /** Finns en svarskomponent för svarssättet i den här versionen? */

@@ -297,6 +297,7 @@ export function submitLiveAnswer({ session, uid, classId, mode, attempt }) {
     shard: pickShard(session.counterShards),
     fv,
     answerKind: answerKindOf(session),
+    choiceIndex: attempt.choiceIndex,
   });
   const b = writeBatch(db);
   for (const w of writes) b.set(doc(db, ...w.path), w.data, w.merge ? { merge: true } : undefined);

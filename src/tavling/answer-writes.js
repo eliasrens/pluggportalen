@@ -18,13 +18,14 @@
 //             { factorA, factorB, answer, correctAnswer }
 //   planLiveAnswerWrites(args)          → Write[]  (Live)
 //     args: { sessionId, attemptId, uid, classId, mode, record, isCorrect,
-//             shard, fv, answerKind? }
+//             shard, fv, answerKind?, choiceIndex? }
 //     answerKind = sessionens svarssätt (#551, answerKindOf(session)):
 //       "free"   (default) – dokumentet exakt som före #551, inget extra fält
-//       "choice" – record måste ha choiceIndex (heltal 0–3); dokumentet får
-//                  answerKind: "choice". Fel form → kastar (reglerna nekar
-//                  också ett svar i fel svarssätt för sessionen).
-//   liveAnswerKindError(answerKind, record) → string | null (felet ovan)
+//                  (choiceIndex får inte skickas)
+//       "choice" – choiceIndex = valda knappen (heltal 0–3); dokumentet får
+//                  modens record + answerKind: "choice" + choiceIndex.
+//       Fel form → kastar (reglerna nekar också ett svar i fel svarssätt).
+//   liveAnswerKindError(answerKind, choiceIndex) → string | null (felet ovan)
 //   planLiveJoin({ sessionId, uid, classId, name, fv }) → Write (spelare/"redo")
 //   planLiveHeartbeat({ sessionId, uid, fv })           → Write
 //   Write = { path: string[], data: object, merge: boolean }
@@ -90,13 +91,12 @@ export function planMathAnswerWrites(args) {
 }
 
 /** Passar svarets form sessionens svarssätt? null = ok. */
-export function liveAnswerKindError(answerKind, record) {
-  const hasIndex = record != null && "choiceIndex" in record;
+export function liveAnswerKindError(answerKind, choiceIndex) {
   if (answerKind === "choice") {
-    const i = record?.choiceIndex;
+    const i = choiceIndex;
     return Number.isInteger(i) && i >= 0 && i <= 3 ? null : "flervalssvar kräver choiceIndex 0–3";
   }
-  if (answerKind === "free") return hasIndex ? "skriv själv-svar får inte ha choiceIndex" : null;
+  if (answerKind === "free") return choiceIndex !== undefined ? "skriv själv-svar får inte ha choiceIndex" : null;
   return `okänt svarssätt: ${answerKind}`;
 }
 
@@ -105,12 +105,12 @@ export function liveAnswerKindError(answerKind, record) {
  * (planLiveJoin) – sen anslutning = join + sedan svar.
  */
 export function planLiveAnswerWrites(args) {
-  const { sessionId: sid, attemptId, uid, classId, mode, record, isCorrect, shard, fv, answerKind = "free" } = args;
-  const err = liveAnswerKindError(answerKind, record);
+  const { sessionId: sid, attemptId, uid, classId, mode, record, isCorrect, shard, fv, answerKind = "free", choiceIndex } = args;
+  const err = liveAnswerKindError(answerKind, choiceIndex);
   if (err) throw new Error(`planLiveAnswerWrites: ${err}`);
   const base = ["liveSessions", sid];
   const ok = !!isCorrect;
-  const rec = answerKind === "free" ? record : { ...record, answerKind };
+  const rec = answerKind === "free" ? record : { ...record, answerKind, choiceIndex };
   const writes = [
     { path: [...base, "answers", attemptId], data: answerDoc({ uid, classId, mode, record: rec, isCorrect: ok, shard, fv }), merge: false },
     {

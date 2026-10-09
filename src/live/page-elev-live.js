@@ -164,8 +164,9 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
   function ensureFa() {
     if (fa) return fa;
     fa = mountAnswer($(".live-elev-fa"), {
-      source: mode.createSource({ answerKind }),
+      source: mode.createSource(),
       check: mode.checkAnswer,
+      choices: mode.choices,
       inputMode: mode.inputMode,
       enabled: false,
       idleText: "Väntar…",

@@ -40,7 +40,7 @@
 //   answerKinds        string[] – VALFRI (saknas = ["free"], #551). Svarssätten
 //                                läget kan leverera: "free" = skriv själv
 //                                (src/mult/fast-answer.js), "choice" = fyra
-//                                alternativ (flervalskomponenten, se nedan).
+//                                alternativ (flervalsflödet, se nedan).
 //                                Sessionens svarssätt (liveSessions.answerKind)
 //                                måste finnas här OCH i formatets answerKinds.
 //   cooperative        bool    – VALFRI (default false). true = klasserna spelar
@@ -54,20 +54,18 @@
 // Question är mode-specifik men har alltid { key, text } – `text` är det
 // svarskomponenten (src/mult/fast-answer.js) visar stort.
 //
-// SVARSSÄTTET "choice" (#551) – kontraktet ett läge med "choice" i
-// answerKinds uppfyller (kärnan/elevsidan förutsätter det):
-//   createSource({ rng?, answerKind: "choice" }) → frågor med dessutom
-//                      `options` = exakt 4 alternativ (visningstext, i den
-//                      ordning knapparna ritas) – rätt svars plats varierar.
-//                      answerKind "free" (eller saknas) = som förut.
-//   checkAnswer(q, choiceIndex) – raw är knappens index 0–3 (inte text);
-//                      resultatet bär dessutom `choiceIndex`.
-//   answerRecord(q, r) → modens fält + `choiceIndex` (heltal 0–3).
-//                      Svarsdokumentet får också `answerKind: "choice"`
-//                      (planLiveAnswerWrites lägger dit det); reglerna nekar
-//                      ett svar vars form inte matchar sessionens answerKind.
+// SVARSSÄTTET "choice" (#551/#552) – ett läge med "choice" i answerKinds
+// har dessutom (validateGameMode kräver det):
+//   choices(q, rng?) → { options: 4 alternativ, answerIndex } – samma frågor
+//                      ur createSource() som skriv själv; rätt svars plats
+//                      varierar (multiplikation: multChoices i motorn).
+//   Rättningen är DENSAMMA som skriv själv: checkAnswer(q, String(options[i]))
+//   på det valda alternativets värde, och answerRecord(q, r) ger samma fält.
+//   Kärnan (planLiveAnswerWrites) lägger själv till `answerKind: "choice"` +
+//   `choiceIndex` (knappens index 0–3) på svarsdokumentet; reglerna nekar
+//   ett svar vars form inte matchar sessionens answerKind.
 //   Elevsidan väljer komponent ur sessionens answerKind via
-//   src/live/answer-kinds.js (free = fast-answer, choice = flervalskomponenten).
+//   src/live/answer-kinds.js (free = fast-answer, choice = choice-flow.js).
 // ============================================================================
 
 const REGISTRY = new Map();
@@ -101,6 +99,9 @@ export function validateGameMode(mode) {
   if (mode.answerKinds != null && (!Array.isArray(mode.answerKinds) || !mode.answerKinds.length ||
       !mode.answerKinds.every((k) => ANSWER_KINDS.includes(k)))) {
     errs.push(`answerKinds måste vara en icke-tom delmängd av ${ANSWER_KINDS.join(",")}`);
+  }
+  if (mode.answerKinds?.includes?.("choice") && typeof mode.choices !== "function") {
+    errs.push("choices() krävs för svarssättet choice");
   }
   if (mode.cooperative != null && typeof mode.cooperative !== "boolean") errs.push("cooperative måste vara bool");
   if (mode.cooperative === true && typeof mode.goalReached !== "function") {

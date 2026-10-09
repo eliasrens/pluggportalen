@@ -20,6 +20,8 @@ import {
 import { createRulesEnv } from "./helpers/rules-env.js";
 import { buildSessionDoc } from "../src/live/live-core.js";
 import { planLiveAnswerWrites } from "../src/tavling/answer-writes.js";
+import { requireGameMode } from "../src/live/modes/index.js";
+import { seededRng } from "../src/mult/generator.js";
 
 let testEnv, elev, teacher;
 const fv = { increment, serverTimestamp };
@@ -51,10 +53,9 @@ function commit(db, writes) {
 // Ett svar som klienten bygger det. choiceIndex → flervalssvar.
 function svar(sid, { answerKind = "free", answer = 56, choiceIndex, attemptId = aid() } = {}) {
   const record = { factorA: 7, factorB: 8, answer, correctAnswer: 56 };
-  if (choiceIndex !== undefined) record.choiceIndex = choiceIndex;
   return planLiveAnswerWrites({
     sessionId: sid, attemptId, uid: "alma", classId: "4b", mode: "multiplication_0_10",
-    record, isCorrect: answer === 56, shard: 0, fv, answerKind,
+    record, isCorrect: answer === 56, shard: 0, fv, answerKind, choiceIndex,
   });
 }
 // Manipulerat: samma batch men svarsdokumentet ändrat förbi planen.
@@ -164,6 +165,24 @@ describe("Live-svarssätt: svaren", () => {
     await assertFails(commit(elev("alma"), manip(ok(), { correctAnswer: 63, answer: 63 })));
     await assertFails(commit(elev("alma"), manip(ok(), { options: [56, 54, 63, 48] })));
     await assertSucceeds(commit(elev("alma"), ok()));
+  });
+
+  it("klientens riktiga väg (#552): choices → checkAnswer på valt värde → answerRecord godtas, alla knappar", async () => {
+    const mode = requireGameMode("multiplication_0_10");
+    const rng = seededRng(551);
+    const src = mode.createSource({ rng });
+    for (let n = 0; n < 6; n++) {
+      const q = src.next();
+      const { options, answerIndex } = mode.choices(q, rng);
+      for (const i of [answerIndex, (answerIndex + 1) % 4]) {
+        const r = mode.checkAnswer(q, String(options[i]));
+        assert.equal(r.correct, i === answerIndex);
+        await assertSucceeds(commit(elev("alma"), planLiveAnswerWrites({
+          sessionId: "flerval", attemptId: aid(), uid: "alma", classId: "4b", mode: mode.id,
+          record: mode.answerRecord(q, r), isCorrect: r.correct, shard: 0, fv, answerKind: "choice", choiceIndex: i,
+        })));
+      }
+    }
   });
 
   it("gammal session utan answerKind = skriv själv: vanligt svar godtas, flerval nekas", async () => {
