@@ -81,7 +81,7 @@ async function larare() {
   const db = initializeFirestore(app, {});
   const [h, p] = FS.split(":");
   connectFirestoreEmulator(db, h, Number(p));
-  await signInWithEmailAndPassword(auth, "elias@larare.pluggportalen.local", "lilla123");
+  await signInWithEmailAndPassword(auth, "elias@larare.pluggportalen.local", "lilla123"); // endast emulator
   return db;
 }
 

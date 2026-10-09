@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Kör först admin/qa-klasscenter-by-seed.mjs och admin/qa-klasscenter-rum-seed.mjs.
 // Den här lägger till, för klass qa-kc ("QA-klass 4A", kc01 … kc14):
-//   • lärarkontot qalarare (lösen lilla123, claim teacher:true)
+//   • lärarkontot qalarare (lösen lilla123, endast emulator, claim teacher:true)
 //   • donationsposter bakom de upplåsta föremålen + en pågående insamling
 //     (flygel 1 850 / 6 000) så "Vem har donerat" har innehåll
 //   • tre sparningar i layout-historiken (kc01, kc02, kc01) – version 3 visas nu
@@ -23,7 +23,7 @@ if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AUTH_EMULATOR_
 const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "pluggportalen-so-2026" });
 const db = admin.firestore(app);
 const auth = admin.auth(app);
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const nu = Date.now();
 const ts = (minSedan) => admin.firestore.Timestamp.fromMillis(nu - minSedan * 60_000);
 

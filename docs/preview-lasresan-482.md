@@ -8,7 +8,7 @@ JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-482-preview.sh   # proxy p�
 RESEED=1 bash admin/qa-lasresan-482-preview.sh                     # återställ data i en körande preview
 ```
 
-Alla har lösenordet **lilla123**. Läraren heter **qalarare**. Logga in som eleven i ett **inkognitofönster**, så kan du vara inloggad som lärare samtidigt.
+Alla har lösenordet **lilla123** (endast emulator). Läraren heter **qalarare**. Logga in som eleven i ett **inkognitofönster**, så kan du vara inloggad som lärare samtidigt.
 
 ## Konton
 

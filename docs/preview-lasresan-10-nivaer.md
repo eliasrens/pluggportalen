@@ -8,7 +8,7 @@ JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-lasresan-10-preview.sh   # FS 8540, 
 RESEED=1 bash admin/qa-lasresan-10-preview.sh                    # återställ data
 ```
 
-Alla konton har lösenordet **lilla123**. Läraren heter **qalarare**.
+Alla konton har lösenordet **lilla123** (endast emulator). Läraren heter **qalarare**.
 "Gammal skala" betyder data som sparades före 10 nivåer. Den gamla nivån N visas som N+3.
 
 ## 1. Läraren (Lärare → qalarare)

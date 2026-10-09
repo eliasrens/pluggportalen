@@ -19,7 +19,7 @@
 //
 // ---------------------------------------------------------------------------
 // KORTA LÖSENORD (< 6 tecken): Firebase Auth kräver minst 6 tecken i createUser.
-// Testeleven elev1 har lösenordet "123" (3 tecken) i live → kan INTE skapas med
+// Elever med lösenord under 6 tecken (t.ex. testeleven elev1) kan INTE skapas med
 // den vanliga vägen. Välj strategi med --short=<strategi>:
 //
 //   --short=stop      (DEFAULT) avbryt och rapportera vilka elever som berörs.

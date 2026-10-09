@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för Live (#460) – BARA mot Firebase-emulatorerna.
 // ----------------------------------------------------------------------------
-// Två lärare (rasmus, elias – lösenord lilla123, teacher-claim), klasserna
+// Två lärare (rasmus, elias – lösenord lilla123, endast emulator, teacher-claim), klasserna
 // 4B, 5E och 3A (3A bjuds inte in → ska INTE se Live) och en AVSLUTAD match
 // för historik/statistik (spec Live-test 6: 340/17 = 20,0 mot 418/22 = 19,0).
 //
@@ -24,7 +24,7 @@ const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "plug
 const auth = admin.auth(app);
 const db = admin.firestore(app);
 const { FieldValue, Timestamp } = admin.firestore;
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 
 const KLASSER = {
   "4b": { name: "4B", elever: [["alma4b", "Alma"], ["omar4b", "Omar"], ["ines4b", "Ines"], ["leo4b", "Leo"]] },

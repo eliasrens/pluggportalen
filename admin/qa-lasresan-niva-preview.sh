@@ -48,5 +48,5 @@ echo "▶ proxy på $PROXY…"
 (cd "$DIR" && PORT=$PROXY setsid -f node "$REPO/admin/qa-emulator-proxy.mjs" > "$DIR/proxy.log" 2>&1 < /dev/null)
 sleep 2
 curl -s -o /dev/null -w "proxy svarar %{http_code}\n" "http://127.0.0.1:$PROXY/"
-echo "Klar: http://127.0.0.1:$PROXY/  (lärare qalarare / lilla123, guide docs/preview-lasresan-niva.md, loggar i $DIR)"
+echo "Klar: http://127.0.0.1:$PROXY/  (lärare qalarare / lilla123, endast emulator, guide docs/preview-lasresan-niva.md, loggar i $DIR)"
 ss -ltnp 2>/dev/null | grep -E ":($FS|$AUTH|$PROXY) " || true   # ← PID:er att döda

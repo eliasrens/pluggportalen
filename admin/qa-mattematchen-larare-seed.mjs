@@ -10,7 +10,7 @@
 //     öppnar den (archiveIfEnded)
 //   • några svarsdokument för elev1 i Mattematchen + en Live-session →
 //     "Totalt i multiplikation (MM + Live)" i elevdetaljen
-// Idempotent. Logga in som qalarare / lilla123 på #/larare/mattematchen.
+// Idempotent. Logga in som qalarare / lilla123 (endast emulator) på #/larare/mattematchen.
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
 //   GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-mattematchen-larare-seed.mjs

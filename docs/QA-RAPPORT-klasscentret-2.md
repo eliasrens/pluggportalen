@@ -24,7 +24,7 @@ Skärmdumpar: `docs/qa-klasscentret-2/`.
 
 - Emulator: firebase-tools + JRE (`/tmp/kc492/firebase.json`: Firestore 8492, Auth 9492, hub 4492), regler = grenens `firestore.rules`.
 - Proxy: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8492 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9492 PORT=8493 node admin/qa-emulator-proxy.mjs`
-- Seed (i ordning): `qa-klasscenter-by-seed.mjs` → `qa-klasscenter-rum-seed.mjs` → `qa-klasscenter-larare-seed.mjs` → `qa-klasscentrum-shop.mjs seed`. Lösenord `lilla123`, lärare `qalarare`.
+- Seed (i ordning): `qa-klasscenter-by-seed.mjs` → `qa-klasscenter-rum-seed.mjs` → `qa-klasscenter-larare-seed.mjs` → `qa-klasscentrum-shop.mjs seed`. Lösenord `lilla123` (endast emulator), lärare `qalarare`.
 - **Nytt:** `admin/qa-klasscentret-2-kontroll.mjs samtidighet [elever] [perElev] | regler | layout` – skriptade kontroller (klient-SDK + regler, som eleven/läraren). Avslutar med exit 1 om något failar.
 - Byte av användare i samma flik: `import("/src/auth.js")` → `signOutCurrent()` + `signInStudent()` / `signInTeacher()` i `evaluate_script`.
 

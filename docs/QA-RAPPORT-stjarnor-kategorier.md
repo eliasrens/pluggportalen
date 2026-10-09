@@ -58,5 +58,5 @@ Inget skrevs till produktion. Main-checkouten och de tillfälliga skripten är b
       GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-kategori-seed.mjs
     PORT=8000 node admin/qa-emulator-proxy.mjs
 
-Lärare `qalarare`, elever `kat-ny`/`kat-gammal`/`kat-mix`/`kat-ingen`/`kat-eko`, lösenord `lilla123`.
+Lärare `qalarare`, elever `kat-ny`/`kat-gammal`/`kat-mix`/`kat-ingen`/`kat-eko`, lösenord `lilla123` (endast emulator).
 Skapa "Rymden QA" i wizarden genom att klistra in `docs/qa-stjarnor/qa-kategori-omrade.json`.

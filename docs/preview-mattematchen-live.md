@@ -21,7 +21,7 @@ och du kan klicka hur mycket du vill. QA-resultat: [QA-RAPPORT-mattematchen-live
 "Du har loggats ut". För **olika** elever använder du ett vanligt fönster, ett inkognitofönster och en annan webbläsare.
 Lärare loggar in **per flik**, vilket är så det fungerar redan i dag.
 
-## 2. Inloggningar (lösenord för alla: `lilla123`)
+## 2. Inloggningar (lösenord för alla: `lilla123` – endast emulator)
 
 | Vem | Användarnamn | Vad den ser |
 |---|---|---|

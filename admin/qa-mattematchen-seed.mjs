@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för Mattematchen-elevsidan (#458) – BARA mot Firebase-emulatorerna.
 // ----------------------------------------------------------------------------
-// Bygger spec MM-test 1–6 som klickbara konton (lösenord lilla123):
+// Bygger spec MM-test 1–6 som klickbara konton (lösenord lilla123, endast emulator):
 //   elev1   – 4A deltar i en AKTIV period (test 3–6): 60 elever på topplistan
 //             (Topp 25 visas), elev1 utanför topp 25, egen statistik per tabell
 //   elev2   – 4C: perioden STARTAR om START_OM_S sekunder (default 120) –
@@ -25,7 +25,7 @@ const auth = admin.auth(app);
 const db = admin.firestore(app);
 const { Timestamp } = admin.firestore;
 
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const NOW = Date.now();
 const MIN = 60_000;
 const DAG = 24 * 60 * MIN;

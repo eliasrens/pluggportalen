@@ -26,7 +26,7 @@ if (!FS || !AUTH) {
   process.exit(1);
 }
 export const PROJECT = process.env.GCLOUD_PROJECT || "pluggportalen-so-2026";
-export const PW = "lilla123";
+export const PW = "lilla123"; // endast emulator
 const adminApp = admin.initializeApp({ projectId: PROJECT });
 export const adb = admin.firestore(adminApp);
 const aauth = admin.auth(adminApp);

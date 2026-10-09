@@ -3,7 +3,7 @@
 # QA-förhandsvisning: lärarens "Redigera inloggning" + inloggningskort mot
 # EMULATORERNA (functions + auth + firestore) – inga skrivningar mot live.
 #   bash admin/qa-inloggning-preview.sh    # FS 8533, Auth 9533, Functions 5533, app 8531
-# Logga in på http://127.0.0.1:8531/#/larare som qalarare / lilla123 (klass 4B).
+# Logga in på http://127.0.0.1:8531/#/larare som qalarare / lilla123 (endast emulator) (klass 4B).
 # Stoppa: döda PID:erna som skrivs ut sist (döda INTE andra items proxyer via namn).
 # Kräver: firebase-CLI + Java 21 på PATH (JAVA_BIN/FIREBASE_BIN läggs till om satta)
 # och `npm --prefix functions install`.

@@ -32,8 +32,8 @@ All E2E kördes i webbläsaren mot **Firebase-emulatorerna** (Auth + Firestore),
    Seed-skriptet vägrar köra utan emulatorvariablerna.
 3. **`PORT=8000 node admin/qa-emulator-server.mjs`**: samma som `server.mjs`, men byter `src/firebase-config.js`
    mot en variant som anropar `connectFirestoreEmulator`/`connectAuthEmulator`. Ingen appfil ändras.
-4. Headless Chrome mot `http://localhost:8000`. Inloggning sker via det riktiga formuläret som `elev1`/`lilla123`
-   och läraren `qalarare`/`lilla123`.
+4. Headless Chrome mot `http://localhost:8000`. Inloggning sker via det riktiga formuläret (endast emulatorn) som `elev1`/`lilla123`
+   och läraren `qalarare`/`lilla123` (endast emulator-konton).
 
 **Seedning (enligt issuen):** tester som kräver många texter seedas genom att sätta `studentData.lasresa` direkt
 (`admin/qa-lasresan-seed.mjs`, listan `SCENARIER`). Exempel: `qa-skogen19` har `stepInWorld: 19`, nivå 4 och 19 texter.
@@ -163,4 +163,4 @@ firebase emulators:exec --only auth,firestore --project pluggportalen-so-2026 "n
 ```
 
 Konton (emulator): elever `elev1`, `qa-hog`, `qa-mitt`, `qa-lag`, `qa-femtio`, `qa-skogen19`, `qa-olast`, `qa-oken`,
-`qa-svag`, `qa-ny` och läraren `qalarare`. Alla har lösenordet `lilla123`.
+`qa-svag`, `qa-ny` och läraren `qalarare`. Alla har lösenordet `lilla123` (endast emulator).

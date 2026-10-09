@@ -554,7 +554,7 @@ Demo: `preview-mult-snabb.html`. Tester: `test/mult-generator.test.js`,
 `test/mm-core.test.js`, `test/firestore-rules-mattematchen-elev.test.js`,
 `test/mm-teacher-core.test.js`, `test/firestore-rules-mattematchen-larare.test.js`.
 Elevsidan mot emulatorn: `admin/qa-mattematchen-seed.mjs` + `admin/qa-emulator-proxy.mjs`;
-lärarsidan: kör därefter `admin/qa-mattematchen-larare-seed.mjs` (qalarare / lilla123).
+lärarsidan: kör därefter `admin/qa-mattematchen-larare-seed.mjs` (qalarare / lilla123 – endast emulator).
 
 **Lärarsidan (#459):** "Avsluta" (och första öppningen av en tävling vars tid
 tagit slut av sig själv, `archiveIfEnded`) skriver `status: "finished"` +

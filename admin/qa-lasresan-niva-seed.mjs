@@ -10,7 +10,7 @@
 //   * qa-klass utan lasresaStartLevel (= standard 4)
 // Nivåerna lagras i GAMMAL skala 1–7 (inga level10-fält) och visas +3 sedan
 // epic #516 (Pia: gammal 4 → 7). Ny skala + blandat: admin/qa-lasresan-10-seed.mjs.
-// Idempotent. Lösenord lilla123 för alla. Vägrar köra utan emulator-variablerna.
+// Idempotent. Lösenord lilla123 (endast emulator) för alla. Vägrar köra utan emulator-variablerna.
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… node admin/qa-lasresan-niva-seed.mjs
 // ============================================================================
 import admin from "firebase-admin";
@@ -23,7 +23,7 @@ const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "plug
 const auth = admin.auth(app);
 const db = admin.firestore(app);
 const FV = admin.firestore.FieldValue;
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const NOW = Date.UTC(2026, 9, 8, 8, 0, 0);
 
 const lasresa = (over = {}) => ({

@@ -22,7 +22,7 @@ async function som(user, larare) {
   const app = initializeApp({ projectId: "pluggportalen-so-2026", apiKey: "x" }, `a${n++}`);
   const auth = getAuth(app); connectAuthEmulator(auth, `http://${AU}`, { disableWarnings: true });
   const db = getFirestore(app); const [h, p] = FS.split(":"); connectFirestoreEmulator(db, h, Number(p));
-  await signInWithEmailAndPassword(auth, `${user}@${larare ? "larare" : "elev"}.pluggportalen.local`, "lilla123");
+  await signInWithEmailAndPassword(auth, `${user}@${larare ? "larare" : "elev"}.pluggportalen.local`, "lilla123"); // endast emulator
   return { db, uid: auth.currentUser.uid, app };
 }
 async function nekas(namn, fn) {

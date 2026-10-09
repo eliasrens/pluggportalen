@@ -1,7 +1,7 @@
 // ============================================================================
 // QA-seed för lärarens "Redigera inloggning" + inloggningskort – BARA emulator.
 // ----------------------------------------------------------------------------
-// Lärare qalarare / lilla123 (claim teacher:true) och klassen 4B med fem elever.
+// Lärare qalarare / lilla123 (endast emulator) (claim teacher:true) och klassen 4B med fem elever.
 // Tre har ett sparat lösenord i studentCredentials (som om kontot skapats i
 // lärarsidan), två är "gamla" konton utan (→ "Lösenord okänt – sätt nytt").
 // Omar (omar861) är fallet Elias ändrade för hand. Idempotent.

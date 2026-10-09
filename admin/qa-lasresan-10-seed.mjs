@@ -17,7 +17,7 @@
 //     qa-10-n3  "Trea Tore"     level10 3 (spegel 1)       → visas 3
 //   qa-10-ej  "Ej Elin"         inget lasresa-objekt       → klassens startnivå
 // Klassen har en GAMMAL startnivå (lasresaStartLevel 3, utan
-// lasresaStartLevel10) → "Nivå 6". Idempotent. Lösenord lilla123.
+// lasresaStartLevel10) → "Nivå 6". Idempotent. Lösenord lilla123 (endast emulator).
 // Vägrar köra utan emulator-variablerna (skriver aldrig till produktion).
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… node admin/qa-lasresan-10-seed.mjs
 // ============================================================================
@@ -30,7 +30,7 @@ if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AUTH_EMULATOR_
 const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "pluggportalen-so-2026" });
 const auth = admin.auth(app);
 const db = admin.firestore(app);
-const PW = "lilla123";
+const PW = "lilla123"; // endast emulator
 const CLASS_ID = "qa-10-klass";
 const NOW = Date.UTC(2026, 9, 8, 8, 0, 0);
 const CAT = { fakta: { q: 12, correct: 9 }, ordforstaelse: { q: 8, correct: 6 }, mellan_raderna: { q: 8, correct: 5 }, helhet_slutsats: { q: 4, correct: 3 } };
