@@ -93,7 +93,7 @@ function statusText(s) {
   const ph = phaseAt(s, serverNow());
   if (ph.phase === "lobby") return { cls: "lobby", txt: "Lobby – väntar på start" };
   if (ph.phase === "countdown") return { cls: "live", txt: "Startar…" };
-  if (ph.phase === "live") return { cls: "live", txt: ph.msLeft == null ? "Pågår" : `Pågår · ${formatClock(ph.msLeft)} kvar` };
+  if (ph.phase === "live") return { cls: "live", txt: s.durationSeconds == null ? "Pågår" : `Pågår · ${formatClock(ph.msLeft)} kvar` };
   return { cls: "ended", txt: "Tiden är ute" };
 }
 

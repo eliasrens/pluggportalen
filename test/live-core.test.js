@@ -43,12 +43,13 @@ describe("Live: faser och tid (server-korrigerad)", () => {
     assert.equal(phaseAt(base({ status: "finished" }), T).phase, "cancelled");
   });
 
-  it("lärarstyrd takt (ingen durationSeconds, #559): live tills läraren avslutar – aldrig ended", () => {
-    const s = { status: "live", startedAt: T, countdownSeconds: 4, format: "snilleblixt" };
+  it("ingen matchklocka (lärarstyrt format, #558): live tills status finished – aldrig ended", () => {
+    const s = { status: "live", startedAt: T, countdownSeconds: 4 };
+    assert.equal(sessionTimes(s).endMs, null);
     assert.equal(phaseAt(s, T + 1000).phase, "countdown");
-    assert.deepEqual(phaseAt(s, T + 4000), { phase: "live", countdown: null, msLeft: null });
+    assert.deepEqual(phaseAt(s, T + 4000), { phase: "live", countdown: null, msLeft: 0 });
     assert.equal(phaseAt(s, T + 6 * 3600_000).phase, "live");
-    assert.equal(phaseAt({ ...s, status: "finished" }, T + 9000).phase, "finished");
+    assert.equal(phaseAt({ ...s, status: "finished" }, T).phase, "finished");
   });
 
   it("klockan visar 00:00 först när tiden är ute", () => {

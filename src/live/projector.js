@@ -36,14 +36,14 @@
 //   ovan (förhandsvisning: formatets låtsasdata), screen = elevskärmen.
 // Formatets projectorViews()-modul kan sätta ownControls: true – vyn har egna
 // lärarkontroller (Snilleblixten #559: Avsluta spelet m.m.), skalets
-// "Avsluta" göms. Utan matchklocka (st.msLeft null, lärarstyrd takt) göms
+// "Avsluta" göms. Utan matchklocka (sessionTimes endMs null, lärarstyrd takt) göms
 // skalets matchtimer – vyn visar sin egen (frågans) nedräkning.
 //   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
 // ============================================================================
 
 import { getGameMode } from "./modes/index.js";
 import { formatOf } from "./formats/index.js";
-import { phaseAt, formatClock, toMs } from "./live-core.js";
+import { phaseAt, formatClock, toMs, sessionTimes } from "./live-core.js";
 import { classColor } from "./proj-scale.js";
 import { createSound } from "./proj-sound.js";
 import { ensureLiveCss } from "./live-css.js";
@@ -325,7 +325,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     $(".lp-views").hidden = !game;
     $("[data-end]").hidden = !playing || !!ui.ownControls;
     $("[data-divs]").hidden = screen || !ui.editDivisors || kind === "lobby" || kind === "cancelled";
-    $(".lp-timer").hidden = !playing || st.msLeft == null;
+    $(".lp-timer").hidden = !playing || sessionTimes(s).endMs == null;
     root.dataset.kind = game ? viewId : kind;
     root.querySelectorAll("[data-view]").forEach((b) => {
       b.hidden = !availableViews().some((v) => v.id === b.dataset.view);
@@ -335,7 +335,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     if (current?.key !== key) {
       if (kind === "lobby") {
         const mode = getGameMode(s.gameMode);
-        mountKind(kind, key, () => ui.createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen }));
+        mountKind(kind, key, () => ui.createLobby(stage, { st, colors, modeName: mode ? mode.displayName : s.gameMode, actions, say, readonly: screen, sound, deps: d }));
       } else if (kind === "game") {
         const v = views().find((x) => x.id === viewId);
         mountKind(kind, key, () => v.create(stage, { st, colors, sound, actions, screen, deps: d }));
