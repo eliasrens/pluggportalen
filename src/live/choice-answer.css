@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Flervalskomponent (#552) – src/live/choice-answer.js
+   Fyra knappar i 2×2 som FYLLER värdelementet (ge .ca-root en höjd, t.ex.
+   100% av en flex-yta). Skalar med vh/vw → ryms utan scroll på 1366×768,
+   surfplatta och mobil. Färg + form + siffran 1–4 på varje knapp.
+   Kontrast: vit text på röd/blå/grön (≥ 5:1), mörk text på gul (≥ 10:1).
+   Inga z-index behövs (DESIGNSYSTEM §1) – allt ligger i flödet.
+   ========================================================================== */
+
+.ca-root {
+  --ca-rod: #c62828;
+  --ca-bla: #1565c0;
+  --ca-gul: #ffc928;
+  --ca-gron: #2e7d32;
+  --ca-text-ljus: #fff;
+  --ca-text-mork: #1d2433;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.6vh, 16px);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  font-family: var(--font, system-ui, sans-serif);
+  color: var(--text, #22314a);
+}
+
+.ca-fraga {
+  flex: none;
+  text-align: center;
+  font-size: clamp(26px, min(8vh, 7vw), 72px);
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ca-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(8px, 1.8vh, 18px);
+}
+
+.ca-knapp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 28px);
+  min-width: 0;
+  min-height: 72px;
+  padding: clamp(10px, 2vh, 24px) clamp(14px, 2.4vw, 32px);
+  border: 4px solid transparent;
+  border-radius: 20px;
+  font: inherit;
+  font-size: clamp(28px, min(9vh, 6vw), 84px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ca-rod { background: var(--ca-rod); color: var(--ca-text-ljus); }
+.ca-bla { background: var(--ca-bla); color: var(--ca-text-ljus); }
+.ca-gul { background: var(--ca-gul); color: var(--ca-text-mork); }
+.ca-gron { background: var(--ca-gron); color: var(--ca-text-ljus); }
+
+.ca-form {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentColor;
+}
+
+.ca-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.1;
+}
+
+.ca-tangent {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: clamp(13px, 2.2vh, 20px);
+  font-weight: 800;
+  opacity: 0.8;
+}
+
+.ca-markor {
+  flex: none;
+  font-size: 0.9em;
+}
+.ca-markor:empty { display: none; }
+
+/* Hover/fokus bara när knappen går att trycka. */
+.ca-root:not(.ca-last) .ca-knapp:hover { filter: brightness(1.08); transform: translateY(-2px); }
+.ca-root:not(.ca-last) .ca-knapp:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22); }
+.ca-knapp:focus-visible { outline: 5px solid var(--text, #22314a); outline-offset: 3px; }
+.ca-root.ca-last .ca-knapp { cursor: default; }
+
+/* Har svarat: den valda lyser, de andra krymper och bleks. */
+.ca-knapp.ca-vald {
+  border-color: #fff;
+  box-shadow: 0 0 0 5px var(--text, #22314a), 0 0 28px 6px rgba(255, 255, 255, 0.85), 0 6px 0 rgba(0, 0, 0, 0.22);
+  transform: scale(1.03);
+}
+.ca-knapp.ca-krympt { transform: scale(0.86); opacity: 0.38; filter: saturate(0.6); }
+
+/* Avslöjande: rätt knapp tydlig, valt fel markerat med ✗ (inte bara färg). */
+.ca-avslojad .ca-knapp.ca-ratt { opacity: 1; filter: none; transform: scale(1.03); border-color: #fff; }
+.ca-avslojad .ca-knapp.ca-fel { opacity: 0.7; transform: scale(0.96); }
+
+.ca-status {
+  flex: none;
+  min-height: 1.3em;
+  text-align: center;
+  font-size: clamp(18px, 3.6vh, 32px);
+  font-weight: 800;
+}
+.ca-status:empty { visibility: hidden; }
+
+/* Smal skärm (mobil stående): en kolumn, fyra rader. */
+@media (max-width: 520px) and (orientation: portrait) {
+  .ca-grid { grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); }
+}
+
+/* Reducerad rörelse: inga skalningar/hopp – bara mjuka toningar. */
+@media (prefers-reduced-motion: reduce) {
+  .ca-knapp { transition: opacity 0.2s linear, box-shadow 0.2s linear; }
+  .ca-root .ca-knapp,
+  .ca-root:not(.ca-last) .ca-knapp:hover,
+  .ca-root:not(.ca-last) .ca-knapp:active,
+  .ca-knapp.ca-vald,
+  .ca-knapp.ca-krympt,
+  .ca-avslojad .ca-knapp.ca-ratt,
+  .ca-avslojad .ca-knapp.ca-fel { transform: none; }
+}
+
+/* Windows högkontrast: behåll ramar så knapparna syns. */
+@media (forced-colors: active) {
+  .ca-knapp { border-color: ButtonText; }
+  .ca-knapp.ca-vald { outline: 6px solid Highlight; }
+}
