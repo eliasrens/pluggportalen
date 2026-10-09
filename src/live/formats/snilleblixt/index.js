@@ -19,8 +19,9 @@
 // Pluggmynt efter matchen (#557): gemensamma live-rewards.js – fältet
 // rewardsSetupField, sessionens `rewards`, result.rewards (buildResult).
 //
-// Vyerna byggs i egna issues: studentView #558, projectorViews #559,
-// historyRenderer #560 (här en enkel topplista tills dess).
+// Vyerna byggs i egna issues: studentView #558 (snilleblixt-student.js,
+// egen spelyta via createStage; lägena i snilleblixt-elev.js),
+// projectorViews #559, historyRenderer #560 (här en enkel topplista tills dess).
 //
 // API: export default SNILLEBLIXT (format-objekt, oregistrerat).
 // ============================================================================
@@ -104,7 +105,7 @@ const SNILLEBLIXT = {
   },
 
   projectorViews: notYet("projektorvy", 559),
-  studentView: notYet("elevvy", 558),
+  studentView: () => import("./snilleblixt-student.js"),
   historyRenderer: () => import("./snilleblixt-history.js"),
 };
 
