@@ -1,0 +1,276 @@
+/* ==========================================================================
+   Snilleblixten – TV-studion (#559): LOBBYN, LÄRARKONTROLLERNA, FINALEN
+   (pallplats + resultat, designspec §5.7) och STATISTIKVYN (§7). Fortsättning
+   på snilleblixt-studio.css (samma variabler under .sb). Laddas av
+   sb-miljo.js ensureStudioCss. Bara transform/opacitet animeras; reducerad
+   rörelse = toningar, ingen konfetti (sb-pall.js hoppar över den).
+   ========================================================================== */
+
+/* --- Lärarkontrollerna ------------------------------------------------------ */
+.sbc {
+  position: absolute;
+  right: 1.2vw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9vh;
+  width: max(190px, 14vw);
+}
+.sbc button {
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(12, 8, 44, 0.72);
+  padding: 0.45em 1em;
+  font-size: clamp(14px, 1.7vh, 20px);
+}
+.sbc button:hover { background: rgba(60, 40, 160, 0.9); }
+.sbc button:focus-visible { outline: 3px solid var(--sb-gul); outline-offset: 2px; }
+.sbc button:disabled { opacity: 0.5; cursor: wait; }
+.sbc .sbc-nasta {
+  font-size: clamp(17px, 2.3vh, 30px);
+  white-space: nowrap;
+  font-weight: 800;
+  color: #3b1d00;
+  background: linear-gradient(#fff3a0, #ffc928);
+  border: 0;
+  box-shadow: 0 0.5vh 0 #b77a00, 0 0 3vh rgba(255, 210, 63, 0.55);
+  padding: 0.5em 0.8em;
+}
+.sbc .sbc-nasta:hover { background: linear-gradient(#fffbe0, #ffd84d); }
+.sbc .sbc-fara { background: rgba(160, 30, 30, 0.6); border-color: rgba(255, 140, 140, 0.45); }
+.sbc-hint { font-size: clamp(13px, 1.6vh, 18px); opacity: 0.8; text-align: center; }
+.sbc-hint:empty { display: none; }
+
+/* --- Lobbyn ----------------------------------------------------------------- */
+.sb-lobby { grid-template-rows: 1fr auto; }
+.sbl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2vh;
+  padding: var(--sb-topp) 4vw 1vh;
+  text-align: center;
+  min-height: 0;
+}
+.sbl .sbm-logo-stor { font-size: clamp(44px, 9vh, 130px); }
+.sbl-klass { margin: 0; font-size: clamp(40px, 7vh, 92px); line-height: 1; color: #fff3c4; text-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+.sbl-meta { font-size: clamp(18px, 2.6vh, 32px); opacity: 0.9; }
+.sbl-pris { font-size: clamp(18px, 2.6vh, 32px); font-weight: 700; padding: 0.1em 0.9em; border-radius: 999px; background: rgba(255, 210, 63, 0.18); border: 1px solid rgba(255, 210, 63, 0.5); }
+.sbl-rad { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 1vh 3vw; }
+.sbl-antal { font-size: clamp(28px, 4vh, 50px); font-weight: 800; }
+.sbl-antal b { font-size: 1.6em; color: var(--sb-gul); font-variant-numeric: tabular-nums; }
+.sbl-vantar { font-size: clamp(28px, 3.6vh, 46px); font-weight: 700; display: flex; align-items: center; gap: 0.4em; }
+.sbl-puls { width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--sb-gul); animation: sb-andas 1.4s ease-in-out infinite; }
+.sbl-start {
+  font: inherit;
+  font-weight: 800;
+  font-size: clamp(32px, 6vh, 76px);
+  padding: 0.12em 1.4em 0.18em;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #3b1d00;
+  background: linear-gradient(#fff3a0, #ffc928);
+  box-shadow: 0 0.9vh 0 #b77a00, 0 0 5vh rgba(255, 210, 63, 0.6);
+  transition: transform 0.15s;
+}
+.sbl-start:hover { transform: translateY(-2px) scale(1.02); }
+.sbl-start:focus-visible { outline: 4px solid #fff; outline-offset: 4px; }
+.sbl-start:disabled { opacity: 0.7; cursor: wait; }
+.sbl-fot { display: flex; gap: 1.2vw; align-items: center; font-size: clamp(14px, 1.8vh, 20px); opacity: 0.85; }
+.sbl-fot .lp-link { color: #ffb3b3; }
+
+/* --- Finalen: pallplats ---------------------------------------------------- */
+.sbf { position: absolute; inset: 0; pointer-events: none; }
+.sbf[hidden] { display: none; }
+.sbf-dim {
+  position: absolute;
+  inset: 0;
+  /* Scenen dämpas, publiken (nederst) bara lite – de ska synas klappa. */
+  background: radial-gradient(ellipse at 50% 45%, rgba(8, 5, 30, 0.3), rgba(4, 2, 16, 0.85) 65%),
+    linear-gradient(to top, rgba(4, 2, 16, 0.55) 0 22vh, transparent 30vh);
+  mask-image: linear-gradient(to bottom, #000 0 70vh, rgba(0, 0, 0, 0.45) 78vh);
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.sbf-kagla {
+  position: absolute;
+  left: 50%;
+  top: -10vh;
+  width: 70vw;
+  height: 95vh;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgba(255, 246, 205, 0.32), rgba(255, 246, 205, 0.06) 75%, transparent);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  opacity: 0;
+  transition: opacity 0.9s ease 0.2s;
+}
+.sbf-pa .sbf-dim, .sbf-pa .sbf-kagla { opacity: 1; }
+.sb[data-scene="final"] .sb-mitt, .sb[data-scene="final"] .sb-klocka { opacity: 0; }
+.sbf-rubrik {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--sb-topp) + 1vh);
+  margin: 0;
+  text-align: center;
+  font-size: clamp(30px, 5vh, 64px);
+  color: var(--sb-gul);
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+.sbf-pa .sbf-rubrik { opacity: 1; }
+.sbf-pall {
+  position: absolute;
+  left: 50%;
+  bottom: 26vh;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.2vw;
+  transform: translateX(-50%);
+  transform-origin: 50% 0;
+}
+.sbf-steg { width: 25vw; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.sbf-steg.sbf-tom { visibility: hidden; }
+.sbf-figurer, .sbf-namn, .sbf-poang, .sbf-pris { opacity: 0; transition: opacity 0.4s; }
+.sbf-uppe .sbf-figurer, .sbf-uppe .sbf-namn, .sbf-uppe .sbf-poang, .sbf-uppe .sbf-pris { opacity: 1; }
+.sbf-figurer { display: flex; justify-content: center; align-items: flex-end; gap: 0.6vw; }
+.sbf-figurer .lav.lav-stor { font-size: calc(14vh / (1 + (var(--n, 1) - 1) * 0.55)); }
+.sbf-steg-mitten .sbf-figurer .lav.lav-stor { font-size: calc(18vh / (1 + (var(--n, 1) - 1) * 0.55)); }
+.sbf-namn { margin-top: 0.6vh; font-size: clamp(28px, 4.2vh, 54px); font-weight: 800; line-height: 1.05; max-width: 100%; overflow-wrap: anywhere; }
+.sbf-poang { font-size: clamp(24px, 3.2vh, 40px); font-weight: 700; opacity: 0.9; }
+.sbf-pris {
+  margin-top: 0.4vh;
+  padding: 0.05em 0.7em;
+  border-radius: 999px;
+  font-size: clamp(22px, 2.8vh, 34px);
+  font-weight: 800;
+  color: #3b1d00;
+  background: linear-gradient(#fff3a0, #ffc928);
+}
+.sbf-block {
+  width: 100%;
+  margin-top: 1vh;
+  border-radius: 1.4vh 1.4vh 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #3b2200;
+  font-weight: 800;
+  box-shadow: inset 0 1vh 0 rgba(255, 255, 255, 0.35), 0 1vh 3vh rgba(0, 0, 0, 0.5);
+}
+.sbf-block span { font-size: clamp(26px, 4vh, 52px); }
+.sbf-block b { font-size: clamp(32px, 5.4vh, 70px); line-height: 1; }
+.sbf-steg-mitten .sbf-block { height: 15vh; background: linear-gradient(#ffe7a0, #e0a92e); }
+.sbf-steg-vanster .sbf-block { height: 10vh; background: linear-gradient(#f2f4f8, #aab3c4); }
+.sbf-steg-hoger .sbf-block { height: 7.5vh; background: linear-gradient(#ffd2b0, #c27a43); }
+.sbf-steg-vanster .sbf-block, .sbf-steg-hoger .sbf-block { flex-direction: row; gap: 0.3em; }
+.sbf-vinnare .sbf-steg-mitten .sbf-namn { color: var(--sb-gul); text-shadow: 0 0 0.4em rgba(255, 210, 63, 0.8); }
+.sbf-konfetti { position: absolute; inset: 0; overflow: hidden; }
+.sbf-konfetti i { position: absolute; top: 0; width: 1vh; height: 1.6vh; border-radius: 2px; }
+
+/* --- Resultatskärmen: pallen krymper upp, hela klassens topplista under --- */
+.sb.sb-resultat .sb-fot { opacity: 0; transition: opacity 0.6s; }
+.sbf-resultat .sbf-pall { bottom: auto; top: calc(var(--sb-topp) + 5vh); transform: translateX(-50%) scale(0.5); }
+.sbf-lista {
+  position: absolute;
+  left: 2vw;
+  right: 2vw;
+  top: calc(var(--sb-topp) + 33vh);
+  bottom: 2vh;
+}
+.sbf-lista[hidden] { display: none; }
+.sbf-lista ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(var(--kol, 1), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rader, 10), minmax(0, 1fr));
+  gap: 0.5vh 1.4vw;
+}
+.sbf-lista li {
+  display: grid;
+  grid-template-columns: 2.2em auto 1fr auto auto;
+  align-items: center;
+  gap: 0.5vw;
+  padding: 0 0.8vw;
+  border-radius: 1vh;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: clamp(20px, min(3.2vh, calc(52vh / var(--rader, 10) * 0.6)), 40px);
+  font-weight: 700;
+  min-height: 0;
+  animation: sbf-in 0.5s ease backwards;
+}
+.sbf-lista li[data-rank="1"] { background: rgba(255, 210, 63, 0.35); }
+.sbf-lista li[data-rank="2"] { background: rgba(220, 226, 238, 0.28); }
+.sbf-lista li[data-rank="3"] { background: rgba(214, 140, 80, 0.3); }
+.sbf-lnr { text-align: right; opacity: 0.85; }
+.sbf-lav .lav { font-size: 1.3em; }
+.sbf-lnamn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sbf-lratt { font-size: 0.75em; opacity: 0.8; }
+.sbf-lista b { font-variant-numeric: tabular-nums; color: #fff7d1; }
+@keyframes sbf-in { from { opacity: 0; } }
+
+/* --- Statistikvyn (§7) ------------------------------------------------------ */
+.sb-stat { grid-template-rows: auto 1fr auto; }
+.sbx-topp { display: flex; justify-content: space-between; align-items: center; gap: 2vw; padding: var(--sb-topp) 2vw 1vh; position: relative; }
+.sbx-status { font-size: clamp(26px, 3.8vh, 46px); font-weight: 700; text-align: right; }
+.sbx-status b { color: var(--sb-gul); font-variant-numeric: tabular-nums; }
+.sbx-status .sbx-rod { color: #ff6b6b; }
+.sbx-tabell {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--kol, 1), minmax(0, 1fr));
+  gap: 1vw;
+  padding: 0 2vw;
+  align-content: start;
+  min-height: 0;
+  font-size: clamp(16px, min(3.6vh, calc(64vh / (var(--rader, 10) + 1) * 0.6)), 40px);
+}
+.sbx-tabell table { width: 100%; border-collapse: separate; border-spacing: 0 0.35vh; }
+.sbx-tabell table + table { border-left: 2px solid rgba(255, 210, 63, 0.35); padding-left: 1vw; }
+.sbx-tabell th, .sbx-tabell td { padding: 0.1em 0.45em; text-align: left; white-space: nowrap; }
+.sbx-tabell thead th { font-size: 0.7em; opacity: 0.8; font-weight: 700; }
+.sbx-tabell tbody tr { background: rgba(255, 255, 255, 0.08); }
+.sbx-tabell tbody th { font-weight: 700; max-width: 12vw; overflow: hidden; text-overflow: ellipsis; }
+.sbx-tabell .num { text-align: right; font-variant-numeric: tabular-nums; }
+.sbx-pcol { position: relative; width: 34%; }
+.sbx-stapel {
+  position: absolute;
+  inset: 15% 0;
+  border-radius: 0.3em;
+  background: linear-gradient(90deg, rgba(255, 210, 63, 0.75), rgba(255, 150, 40, 0.75));
+  transform-origin: left center;
+}
+.sbx-pcol b { position: relative; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.sbx-tom { font-size: clamp(28px, 4vh, 48px); text-align: center; }
+.sbx-fragor {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6vh 0.6vw;
+  padding: 1vh 2vw 1.4vh;
+  font-size: clamp(16px, 2.2vh, 28px);
+}
+.sbx-fl { opacity: 0.8; margin-right: 0.4vw; }
+.sbx-fq { padding: 0.05em 0.5em; border-radius: 0.5em; background: rgba(255, 255, 255, 0.1); }
+.sbx-fq b { color: var(--sb-gul); margin-right: 0.3em; }
+.sbx-hoppad { opacity: 0.55; }
+.sb-stat .sbc { top: auto; bottom: 7vh; transform: none; }
+.sb-stat:not(.sb-skarm) .sbx-tabell { padding-right: calc(2vw + max(190px, 14vw)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sbf-lista li { animation: none; }
+}

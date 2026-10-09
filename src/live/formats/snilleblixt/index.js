@@ -103,7 +103,11 @@ const SNILLEBLIXT = {
     return { scores: await getScores(s.id) };
   },
 
-  projectorViews: notYet("projektorvy", 559),
+  // TV-studion (#559): Studion + Statistik, lobby, pallplats, lärarkontroller.
+  projectorViews: () => import("./snilleblixt-projector.js"),
+  // Varje spelarändring (anslutning, puls) → nytt tillstånd: publiken och
+  // "17 av 24 har svarat" räknar anslutna elever med färsk puls.
+  emitOnPlayers: true,
   studentView: notYet("elevvy", 558),
   historyRenderer: () => import("./snilleblixt-history.js"),
 };
