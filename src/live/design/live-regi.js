@@ -31,6 +31,8 @@ import { createLiveEventTracker } from "./live-events.js";
 import { createLiveQueue } from "./live-queue.js";
 import { react, setAvatarState } from "./live-reactions.js";
 
+const STATE_REACTIONS = new Set(["svarat", "skyddad"]);
+
 function defaultJobs(evt, { nameOf }) {
   switch (evt.type) {
     case "join": return [{ kind: "reaction", uid: evt.uid, reaction: "ankomst", cue: "pling" }];
@@ -75,7 +77,12 @@ export function createLiveRegi({
   queue = createLiveQueue({ play, settle, ...queueOpts });
 
   function push(job) {
-    if (job.kind === "reaction" && job.cue) sound?.cue?.(job.cue);
+    if (job.kind === "reaction") {
+      if (job.cue) sound?.cue?.(job.cue);
+      // Tillstånd (bock, sköld) är information: sätts direkt, även om själva
+      // animationen hoppas över i en storm (kön har tak för samtidiga reaktioner).
+      if (STATE_REACTIONS.has(job.reaction)) setAvatarState(pool.el(job.uid), job.reaction, true);
+    }
     return queue.push(job);
   }
 

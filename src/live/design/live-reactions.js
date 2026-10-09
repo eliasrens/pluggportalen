@@ -121,7 +121,7 @@ function particles(fx, kind, { big, reduced, delay, dur }) {
       const ang = (t * 160 + 190) * (Math.PI / 180); // solfjäder uppåt
       const r = big ? 0.85 : 0.65;
       frames = [{ transform: "translate(-50%, -50%) scale(.3)", opacity: 0 }, { offset: 0.2, opacity: 1 },
-        { transform: `translate(calc(-50% + ${fe(Math.cos(ang) * r)}), calc(-50% + ${fe(Math.sin(ang) * r)})) scale(1) rotate(${(i % 2 ? 1 : -1) * 90}deg)`, opacity: 0 }];
+        { transform: `translate(calc(-50% + ${fe(Math.cos(ang) * r)}), calc(-50% + ${fe(Math.sin(ang) * r)})) scale(1.4) rotate(${(i % 2 ? 1 : -1) * 90}deg)`, opacity: 0 }];
     } else { // aj: mynten rullar iväg åt sidorna
       const dir = i % 2 ? 1 : -1;
       frames = [{ transform: "translate(-50%, 0) rotate(0)", opacity: 1 },
