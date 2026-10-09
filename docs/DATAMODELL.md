@@ -900,6 +900,32 @@ exakt VEM som svarat för auto-stängningen när alla anslutna svarat).
 classId, points, correct, rank }], perQuestion[{ index, skipped, answered,
 correct }], questionsPlayed, totalCorrect, players }` – inget `perClass`/
 `winnerClasses` → inga klasspokaler/klassbonus/mynt-pris via kc-koppling.
+Plus `rewards` (Pluggmynt, nedan) när sessionen har belöningar.
+
+### Pluggmynt efter matchen (#557, nya format – Snilleblixten, Guldrushen)
+
+Gemensam motor: `src/live/live-rewards.js` (ren logik), ekonomins rattar i
+`src/live/rewards-config.js` (block 20, trappa 1/.8/.6/.4/.2, förval 5 per
+rätt + tak 300, max förstapris 1000), utbetalning `live-rewards-pay.js`
+(SDK injiceras) via `live-rewards-data.js`. Klassmatchens mynt-pris till
+klasskassan (#526) är orört. Spelvalutan (poäng/guld) avgör placeringen;
+Pluggmynt (`studentData.coins`) delas ut först efter slut och rör sig aldrig
+mellan elever.
+
+| Fält | Var | Beskrivning |
+| --- | --- | --- |
+| `rewards` | `liveSessions/{sid}` | `{ firstPrize 0–1000 (0 = av), perCorrect 0–50 (0 = av), cap 1–1000 }` – lärarens val, låst efter skapandet (reglerna `liveRewardsOk`) |
+| `result.rewards` | `liveSessions/{sid}` | `{ [uid]: { rank, correct, prize, correctCoins, total } }` – bara deltagare (≥ 1 räknat svar). `prize = round(first × 0,85^(rank−1))`, golv 1; delad placering = samma pris, nästa placering hoppar över. `correctCoins` = trappa per block om 20 rätt, uppåt avrundat, max `cap` |
+| `coinReceipts/{uid}` | `liveSessions/{sid}/…` | `{ uid, prize, correctCoins, total, at, by }` – kvittot. Bara create (aldrig ändra/radera), bara lärare, efter `status: finished`, aldrig `demo: true`; beloppen = `result.rewards[uid]` och elevens `coins` måste öka med exakt `total` i SAMMA skrivning. Eleven läser sitt eget, läraren alla |
+
+**Exakt en gång:** kvitto + saldo i en transaktion (addCoins-mönstret). Den
+lärarklient vars transaktion skrev `result` betalar (`writeResultIfMissing`),
+historikvyn försöker igen. Två lärarflikar / omladdning / avbrott → kvittot
+finns → "redan" (reglerna nekar ett andra). Ingen Cloud Function: allt som
+behövs är verifierat i `result`, kvittot ger idempotensen och Snilleblixten
+slipper ett deploy-beroende. Demo-/testläge (`demo: true`) betalar aldrig.
+Inga klasspokaler för nya format (§7.2.6) – `winner: null`; vill man lägga
+till senare räcker ett `winnerClasses` i result + en kalla i kc-pokal-typer.
 
 ---
 
