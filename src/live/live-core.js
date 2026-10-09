@@ -21,7 +21,8 @@
 //   topPlayers(players, n)    → [{ uid, name, classId, correct, incorrect }]
 //   formatScore(n)            → "20,0" (1 decimal, svensk komma)
 //   formatClock(ms)           → "12:43"
-//   validateSessionInput(i)   → string[] fel (tom = ok) – kärnan + formatets
+//   validateSessionInput(i)   → string[] fel (tom = ok) – kärnan + generisk
+//                             kontroll av formatets setupFields (#548) + formatets
 //                             validateSetup (i.format saknas = Klassmatchen)
 //   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby", format
 //                             = formatets id) + formatets buildSessionFields
@@ -35,6 +36,7 @@
 
 import { toMs } from "./live-time.js";
 import { requireFormat, DEFAULT_FORMAT } from "./formats/index.js";
+import { LIVE_DURATIONS_MIN, validateSetupFields } from "./live-setup-fields.js";
 
 export { toMs };
 // Klassmatchens namn (#547) – logiken bor i formatet; re-exporteras här så
@@ -46,7 +48,7 @@ export {
   classStandings, decideWinner, buildResult, sessionTitle, defaultSessionName, DIVISOR_LOCKED_MSG,
 } from "./formats/klassmatch/klassmatch-core.js";
 
-export const LIVE_DURATIONS_MIN = [5, 10, 15, 20, 25, 30];
+export { LIVE_DURATIONS_MIN };
 export const LIVE_COUNTDOWN_SECONDS = 4;
 
 const ORDTAL = ["noll", "en", "två", "tre", "fyra", "fem", "sex", "sju", "åtta"];
@@ -135,7 +137,7 @@ export function validateSessionInput(input, opts = {}) {
   }
   if (ids.length > fmt.maxClasses) errs.push(`Högst ${fmt.maxClasses} ${fmt.maxClasses === 1 ? "klass" : "klasser"}.`);
   if (fmt.pacing === "tid" && !LIVE_DURATIONS_MIN.includes(Number(input?.durationMin))) errs.push("Välj matchlängd.");
-  return [...errs, ...fmt.validateSetup(input)];
+  return [...errs, ...validateSetupFields(fmt.setupFields, input), ...fmt.validateSetup(input)];
 }
 
 /**

@@ -8,7 +8,8 @@
 // (projektorn stängdes innan) betalas det härifrån – idempotent.
 // Det formatspecifika (vinnare, klasstabell, pris – Klassmatchen) ritar
 // sessionens FORMAT (historyRenderer(), laddas latt, #547); kärnan ritar
-// rubrik, datum, spelläge och elevtabellen.
+// rubrik, datum, spelläge och elevtabellen. Formatets ikon visas före
+// matchnamnet när fler än ett format är registrerat (#548).
 //
 // API
 //   renderHistoryList(ctx, host)                 – Live-flikens historiklista
@@ -19,7 +20,7 @@
 
 import { el, esc } from "../teacher-shared.js";
 import { getGameMode } from "./modes/index.js";
-import { formatOf, formatIdOf } from "./formats/index.js";
+import { formatOf, formatIdOf, listFormats } from "./formats/index.js";
 import {
   listFinishedSessions, listClassSessions, getSession, getPlayers, getCounters, writeResultIfMissing,
 } from "./live-data.js";
@@ -31,6 +32,17 @@ const fmtDate = (t) => {
 };
 const pct = (c, w) => (c + w ? `${Math.round((100 * c) / (c + w))} %` : "–");
 const className = (s, id) => s.classNames?.[id] || id;
+
+/**
+ * Formatets ikon före matchnamnet (#548) – bara när fler än ett format finns,
+ * så att historiken med enbart Klassmatchen ser ut exakt som förut. Session
+ * utan `format` = Klassmatchen (formatOf).
+ */
+function formatIcon(s) {
+  if (listFormats().length <= 1) return "";
+  const fmt = formatOf(s);
+  return fmt ? `<span class="live-format-badge" title="${esc(fmt.displayName)}">${esc(fmt.icon)}</span> ` : "";
+}
 
 /** Formatets historikdel (null = okänt format i den här versionen). */
 function historyFor(s) {
@@ -67,7 +79,7 @@ export async function renderHistoryList(ctx, host) {
   }
   const ul = el(`<ul class="live-history-ul">${list.slice(0, 30).map((s, i) => `<li>
     <button class="live-history-item" data-sid="${esc(s.id)}">
-      <span><b>${esc(s.name)}</b> <small class="hint">${fmtDate(s.startedAt)}</small></span>
+      <span>${formatIcon(s)}<b>${esc(s.name)}</b> <small class="hint">${fmtDate(s.startedAt)}</small></span>
       <span>${hist[i] ? hist[i].winnerText(s, s.result) : "–"}</span></button></li>`).join("")}</ul>`);
   ul.querySelectorAll("[data-sid]").forEach((b) => b.addEventListener("click", () => ctx.go(`#/larare/live?historik=${b.dataset.sid}`)));
   host.replaceChildren(ul);
@@ -97,7 +109,7 @@ export async function renderHistoryDetail(ctx, host, sid) {
   }).join("");
   const view = el(`<div class="panel live-history-detail">
     <a class="back-link" data-back>← Till Live</a>
-    <h2 class="live-h2">${esc(s.name)}</h2>
+    <h2 class="live-h2">${formatIcon(s)}${esc(s.name)}</h2>
     <p class="hint">${fmtDate(s.startedAt)} · ${esc(mode ? mode.displayName : s.gameMode)} · ${Math.round(s.durationSeconds / 60)} min
       ${s.status !== "finished" ? " · pågår ännu" : ""}</p>
     ${hist.detailHtml(s, result)}
