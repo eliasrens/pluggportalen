@@ -50,6 +50,14 @@
 //                                svaret i result.goalReached → pokalen
 //                                "live-avklarat" till deltagande klasser, #495.
 //                                Tävlingslägen ger i stället "live-vinst".)
+//   setupFields        VALFRI – lägets egna lärarinställningar (#553), samma
+//                                fältsorter som formatets (live-setup-fields.js),
+//                                ritade under spellägesvalet. "custom"-fältets
+//                                mount får { className, format } – t.ex. quizets
+//                                ämne/område läser formatets minQuestions.
+//   validateSetup(input, { format }) VALFRI → string[] – lägets egna fält
+//   buildSessionFields(input) VALFRI → object – lägets fält på sessionen
+//                                (quiz: { quiz: { subjectId, areaId, … } })
 //
 // Question är mode-specifik men har alltid { key, text } – `text` är det
 // svarskomponenten (src/mult/fast-answer.js) visar stort.
@@ -102,6 +110,13 @@ export function validateGameMode(mode) {
   }
   if (mode.answerKinds?.includes?.("choice") && typeof mode.choices !== "function") {
     errs.push("choices() krävs för svarssättet choice");
+  }
+  if (mode.setupFields != null && (!Array.isArray(mode.setupFields) ||
+      !mode.setupFields.every((x) => x && typeof x.key === "string" && typeof x.label === "string" && typeof x.kind === "string"))) {
+    errs.push("setupFields måste vara [{key,label,kind}]");
+  }
+  for (const f of ["validateSetup", "buildSessionFields"]) {
+    if (mode[f] != null && typeof mode[f] !== "function") errs.push(`${f} måste vara en funktion`);
   }
   if (mode.cooperative != null && typeof mode.cooperative !== "boolean") errs.push("cooperative måste vara bool");
   if (mode.cooperative === true && typeof mode.goalReached !== "function") {

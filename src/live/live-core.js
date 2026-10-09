@@ -26,9 +26,10 @@
 //                             validateSetup (i.format saknas = Klassmatchen)
 //                             + svarssättet (#551): i.answerKind måste stödjas
 //                             av BÅDE formatet och spelläget (saknas = förval)
+//                             + spellägets setupFields/validateSetup (#553)
 //   buildSessionDoc(i, ctx)   → dokumentet som skapas (status "lobby", format
 //                             = formatets id, answerKind = "free"|"choice")
-//                             + formatets buildSessionFields
+//                             + spellägets och formatets buildSessionFields
 //
 // Re-exporterade Klassmatchen-namn (bakåtkompatibla, logiken i
 // formats/klassmatch/klassmatch-core.js): LIVE_COUNTER_SHARDS, READY_FRESH_MS,
@@ -144,7 +145,11 @@ export function validateSessionInput(input, opts = {}) {
   if (input?.gameMode && !resolveAnswerKind(fmt, modeOf(input), input.answerKind)) {
     errs.push("Välj ett svarssätt som både formatet och spelläget stöder.");
   }
-  return [...errs, ...validateSetupFields(fmt.setupFields, input), ...fmt.validateSetup(input)];
+  const mode = modeOf(input);
+  return [
+    ...errs, ...validateSetupFields(fmt.setupFields, input), ...fmt.validateSetup(input),
+    ...validateSetupFields(mode.setupFields, input), ...(mode.validateSetup?.(input, { format: fmt }) || []),
+  ];
 }
 
 // Spelläget ur registret (fyllt av modes/index.js, som lärarformuläret laddar).
@@ -177,6 +182,7 @@ export function buildSessionDoc(input, { uid }) {
     countdownSeconds: LIVE_COUNTDOWN_SECONDS,
     status: "lobby",
     createdBy: uid,
+    ...(modeOf(input).buildSessionFields?.(input) || {}),
     ...fmt.buildSessionFields(input),
   };
 }

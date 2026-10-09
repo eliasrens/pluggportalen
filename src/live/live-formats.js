@@ -66,6 +66,8 @@
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
 //   classDivisors VALFRI bool – lärarens nämnare per klass ("÷ Nämnare")
+//   minQuestions  VALFRI heltal ≥ 1 – färre frågor än så i ett quizområde ger
+//                 läraren en tydlig varning (#553; saknas = 5, plugga-quiz-core.js)
 // ============================================================================
 
 const REGISTRY = new Map();
@@ -105,6 +107,9 @@ export function validateFormat(f) {
     errs.push("setupFields måste vara [{key,label,kind}]");
   }
   for (const fn of FUNCS) if (typeof f[fn] !== "function") errs.push(`${fn}() saknas`);
+  if (f.minQuestions != null && !(Number.isInteger(f.minQuestions) && f.minQuestions >= 1)) {
+    errs.push("minQuestions måste vara ett heltal ≥ 1");
+  }
   for (const b of ["classCounters", "classDivisors"]) {
     if (f[b] != null && typeof f[b] !== "boolean") errs.push(`${b} måste vara bool`);
   }
