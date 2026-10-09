@@ -119,7 +119,8 @@ describe("Live-sessionens mynt-pris", () => {
   it("ett skrivet result skrivs aldrig om (vinnaren kan inte bytas efter utbetalning)", async () => {
     const r = { ...session().result, winner: "6b", winnerClasses: ["6b"] };
     await assertFails(updateDoc(doc(teacher(), "liveSessions", "sFin"), { result: r }));
-    await assertSucceeds(updateDoc(doc(teacher(), "liveSessions", "sFin"), { "classDivisors.6a": 3 }));
+    // #543: efter slut är även nämnaren låst (resultat/pris redan utdelat).
+    await assertFails(updateDoc(doc(teacher(), "liveSessions", "sFin"), { "classDivisors.6a": 3 }));
   });
 });
 

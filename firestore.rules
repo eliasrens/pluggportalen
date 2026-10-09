@@ -461,6 +461,29 @@ service cloud.firestore {
       return !('coinPrize' in d) ||
         (d.coinPrize is int && d.coinPrize >= 0 && d.coinPrize <= 100000);
     }
+    // Nämnarna (#543): exakt deltagarklasserna som nycklar, var och en ett
+    // heltal 1–999 (högst 8 klasser – samma tak som validLiveSessionShape).
+    function liveDivOk(d, i) {
+      return d.participatingClassIds.size() <= i ||
+        (d.classDivisors.get(d.participatingClassIds[i], 0) is int &&
+         d.classDivisors[d.participatingClassIds[i]] >= 1 &&
+         d.classDivisors[d.participatingClassIds[i]] <= 999);
+    }
+    function liveDivisorsOk(d) {
+      return d.classDivisors.keys().hasOnly(d.participatingClassIds) &&
+        liveDivOk(d, 0) && liveDivOk(d, 1) && liveDivOk(d, 2) && liveDivOk(d, 3) &&
+        liveDivOk(d, 4) && liveDivOk(d, 5) && liveDivOk(d, 6) && liveDivOk(d, 7);
+    }
+    // Justera nämnaren (#543): bara i lobbyn och under pågående match. Under
+    // match rör ändringen BARA classDivisors (i lobbyn får hela uppsättningen
+    // fortfarande ändras, som förut). Efter slut är den låst – resultat,
+    // vinnare, klasskassans pris och pokaler är redan utdelade.
+    function liveDivisorChangeOk(o, n) {
+      return n.classDivisors == o.classDivisors || (liveDivisorsOk(n) && (
+        (o.status == 'lobby' && n.status == 'lobby') ||
+        (o.status == 'live' && n.status == 'live' &&
+          n.diff(o).affectedKeys().hasOnly(['classDivisors']))));
+    }
     function liveSessionCreateOk() {
       let d = request.resource.data;
       return validLiveSessionShape() && d.status == 'lobby' &&
@@ -476,7 +499,7 @@ service cloud.firestore {
       let starting = o.status == 'lobby' && n.status == 'live';
       // Priset ändras aldrig efter skapandet, och ett skrivet result (som
       // kassans utbetalning läser, #526) skrivs aldrig om.
-      return validLiveSessionShape() &&
+      return validLiveSessionShape() && liveDivisorChangeOk(o, n) &&
         n.get('coinPrize', 0) == o.get('coinPrize', 0) &&
         (o.get('result', null) == null || n.get('result', null) == o.result) &&
         (n.get('result', null) == null || n.status == 'finished') &&
@@ -557,7 +580,14 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create: if isTeacher() && liveSessionCreateOk();
       allow update: if (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
-      allow delete: if isTeacher();
+      // Radera (#543): bara en session som ALDRIG startat (status lobby) –
+      // startade/avslutade är historik. Lobbyns spelardokument (närvaro/redo)
+      // raderas i samma batch (live-data deleteLiveSession); svar/räknare finns
+      // inte före start. Ett spelardokument som hinner skapas samtidigt blir
+      // kvar men är ofarligt: bara eleven själv + lärare läser det, ingen
+      // räknar på det, och svar/nya spelare under en session som inte finns
+      // nekas (session() → get() på saknat dokument).
+      allow delete: if isTeacher() && resource.data.status == 'lobby';
 
       match /answers/{attemptId} {
         allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);

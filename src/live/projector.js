@@ -25,7 +25,10 @@
 // API: mountProjector(ctx, sid, { cleanups, uid, deps?, screen? }) → Promise
 //   deps (för förhandsvisning/test; default = riktiga Firestore-lagret):
 //     { subscribe(sid, cb, opts), now(), start(sid), finish(sid), setDivisor(sid, cid, n),
-//       setWizards?(sid, map) }
+//       setWizards?(sid, map), remove?(sid) }
+// NÄMNARE (#543): "÷ Nämnare" i raden (inte på elevskärmen) under match och
+// efter slut (då bara förklaringen – låst). Lobbyn har egna nämnarfält.
+// RADERA (#543): lobbyns "Radera matchen" (bara ej startad) → tillbaka till Live.
 // VIEWS-post: { id, label, create(host, { st, colors, sound }) → { update, destroy },
 //   only2?: bara två klasser, finale?: vyn visar själv slutet (ingen proj-winner) }
 //   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
@@ -44,6 +47,7 @@ import { ensureLiveCss } from "./live-css.js";
 import { createScreenLink } from "./elevskarm-kanal.js";
 import { createScreenControl } from "./elevskarm-panel.js";
 import { createScreenChrome } from "./elevskarm-skarm.js";
+import { openDivisorDialog } from "./live-divisor-dialog.js";
 
 const VIEW_KEY = "pp:live:vy";
 const loadTrollkarl = () => import("./trollkarl/trollkarl-vy.js");
@@ -90,6 +94,7 @@ async function realDeps() {
     finish: data.finishLiveSession,
     setDivisor: data.setClassDivisor,
     setWizards: data.setLiveWizards,
+    remove: data.deleteLiveSession,
   };
 }
 
@@ -110,6 +115,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
       <div class="lp-views" role="tablist" hidden>${VIEWS.map((v) => `<button class="lp-btn lp-vbtn" role="tab" data-view="${v.id}">${v.label}</button>`).join("")}</div>
       <button class="lp-btn" data-sound></button>
       <button class="lp-btn" data-fs>⛶ Fullskärm</button>
+      <button class="lp-btn" data-divs hidden title="Ändra klassernas nämnare (poäng = rätt ÷ nämnare)">÷ Nämnare</button>
       <button class="lp-btn lp-danger" data-end hidden>Avsluta</button>
     </div>
     <div class="lp-stage"><div class="lp-wait">Ansluter till matchen…</div></div>
@@ -147,6 +153,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     cancel: () => d.finish(sid),
     setDivisor: (cid, n) => d.setDivisor(sid, cid, n),
     setWizards: d.setWizards ? (map) => d.setWizards(sid, map) : null,
+    remove: d.remove && !screen ? async () => { await d.remove(sid); back?.(); } : null,
   };
 
   // --- Verktygsraden -------------------------------------------------------
@@ -164,6 +171,9 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
   $("[data-sound]").addEventListener("click", () => { sound.toggle(); soundLabel(); es?.publish(); });
   $("[data-end]").addEventListener("click", () => {
     if (confirm("Avsluta matchen NU, före tiden? Resultatet räknas som det står.")) d.finish(sid).catch((e) => say(e.message));
+  });
+  $("[data-divs]").addEventListener("click", () => {
+    if (st?.session) openDivisorDialog(root, { session: st.session, save: actions.setDivisor });
   });
   root.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => pickView(b.dataset.view)));
   const onKey = (e) => {
@@ -297,7 +307,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     if (!s) {
       current?.ui?.destroy();
       current = null;
-      stage.innerHTML = `<div class="lp-wait">Matchen finns inte (borttagen?).</div>`;
+      stage.innerHTML = `<div class="lp-wait">Matchen finns inte längre – den raderades innan den startade.</div>`;
       return;
     }
     s.participatingClassIds.forEach((id, i) => { colors[id] = classColor(i); });
@@ -315,6 +325,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     // Efter slutet i en vy med egen final: vyflikarna kvar (annan vy = vanliga vinnarskärmen).
     $(".lp-views").hidden = !game;
     $("[data-end]").hidden = !playing;
+    $("[data-divs]").hidden = screen || kind === "lobby" || kind === "cancelled";
     $(".lp-timer").hidden = !playing;
     root.dataset.kind = game ? viewId : kind;
     root.querySelectorAll("[data-view]").forEach((b) => {
