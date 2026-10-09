@@ -5,7 +5,7 @@
 //   ljuset dämpas + strålkastarna mot pallen → trumvirvel → 3:an kliver upp →
 //   trumvirvel → 2:an → längre trumvirvel → 1:an med stor blixt, konfetti och
 //   fanfar → vinnaren jublar, de andra (pallen + publiken) klappar/vinkar →
-//   resultatskärmen med hela klassens topplista.
+//   resultatskärmen med hela klassens topplista. Totalt ~8–9 s med tre pallsteg.
 // Delad placering = samma pallsteg (podiumGroups). Pluggmyntpriset för
 // placeringen visas under varje steg (sessionens rewards, #557). Figurerna
 // är avatarpoolens egna element (plats "pall"/"res") – kläderna följer med.
@@ -132,14 +132,14 @@ export function createFinal(host, { pool, sound, flashHost }) {
     // Ljuset dämpas, strålkastarna vänds mot pallen.
     root.getBoundingClientRect();
     root.classList.add("sbf-pa");
-    await wait(700, signal);
+    await wait(600, signal);
     const g = data.groups || [];
     const order = [g[2], g[1], g[0]].filter(Boolean);
     for (let i = 0; i < order.length; i++) {
       if (signal?.aborted) break;
       const winner = i === order.length - 1 && order[i] === g[0];
       sound?.cue?.("trumvirvel");
-      await wait(winner ? 1700 : 1150, signal);
+      await wait(winner ? 1400 : 1000, signal);
       if (winner) {
         if (flashHost) flash(flashHost, { strong: true });
         sound?.cue?.("fanfar");
@@ -152,7 +152,7 @@ export function createFinal(host, { pool, sound, flashHost }) {
         for (const grp of g.slice(1)) for (const p of grp.players) react(pool.el(p.uid, "pall"), "glad", { signal });
         data.cheer?.(g[0].players.map((p) => p.uid));
       }
-      await wait(winner ? 1900 : 450, signal);
+      await wait(winner ? 1000 : 350, signal);
     }
     if (!order.length) await wait(600, signal);
     showResult(data);

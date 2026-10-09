@@ -22,7 +22,7 @@
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
 import { createBanner } from "../../design/live-banner.js";
 import { createLiveRegi } from "../../design/live-regi.js";
-import { react } from "../../design/live-reactions.js";
+import { react, prefersReducedMotion } from "../../design/live-reactions.js";
 import { sessionRewards, placementPrize } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
 import { studioScene, questionClock, shownScores, revealInfo, streaks, podiumGroups } from "./sb-scen.js";
@@ -138,8 +138,10 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
     u.innerHTML = text;
     u.hidden = false;
     u.getAnimations().forEach((a) => a.cancel());
-    u.animate([{ opacity: 0, transform: "scale(.7)" }, { opacity: 1, transform: "scale(1.05)", offset: 0.2 }, { opacity: 1, transform: "none", offset: 0.8 }, { opacity: 0 }],
-      { duration: 1250, easing: "ease-out" }).finished.catch(() => {}).finally(() => { u.hidden = true; });
+    const frames = prefersReducedMotion()
+      ? [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }]
+      : [{ opacity: 0, transform: "scale(.7)" }, { opacity: 1, transform: "scale(1.05)", offset: 0.2 }, { opacity: 1, transform: "none", offset: 0.8 }, { opacity: 0 }];
+    u.animate(frames, { duration: 1250, easing: "ease-out" }).finished.catch(() => {}).finally(() => { u.hidden = true; });
   }
 
   function info(html) {
