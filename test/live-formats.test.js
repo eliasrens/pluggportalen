@@ -199,7 +199,7 @@ describe("Klassmatchen: identiskt resultat som före refaktorn", () => {
     assert.deepEqual(r.winnerClasses, ["4b"]);
   });
 
-  it("sessionsdokumentet: före-fälten oförändrade + format \"klassmatch\"", () => {
+  it("sessionsdokumentet: före-fälten oförändrade + format \"klassmatch\" + answerKind \"free\" (#551)", () => {
     const rng = seededRng(54);
     for (let i = 0; i < 300; i++) {
       const s = slumpSession(rng);
@@ -209,7 +209,7 @@ describe("Klassmatchen: identiskt resultat som före refaktorn", () => {
         coinPrize: ["", "0", "1000", " 2 500 ", "abc"][i % 5],
         wizards: i % 3 ? undefined : { [s.participatingClassIds[0]]: "elias", [s.participatingClassIds[1]]: "rasmus" },
       };
-      assert.deepEqual(core.buildSessionDoc(input, { uid: "u" }), { ...fore.buildSessionDoc(input, { uid: "u" }), format: "klassmatch" });
+      assert.deepEqual(core.buildSessionDoc(input, { uid: "u" }), { ...fore.buildSessionDoc(input, { uid: "u" }), format: "klassmatch", answerKind: "free" });
       assert.deepEqual(core.validateSessionInput(input), fore.validateSessionInput(input));
     }
   });

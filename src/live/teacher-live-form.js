@@ -6,7 +6,9 @@
 //                   registrerat format → inget val visas, det är auto-valt.
 //   2. innehåll     spellägen där formatets compatibleGameModes stämmer
 //   3. svarssätt    bara om formatet + spelläget har fler än ett gemensamt
-//                   (answerKindsFor) – annars inget val
+//                   (answerKindsFor) – annars inget val. Förval "free" (skriv
+//                   själv) om möjligt. Sparas som liveSessions.answerKind och
+//                   låses när matchen startar (firestore.rules, #551)
 //   4. klasser      inom formatets minClasses–maxClasses
 //   5. inställningar formatets setupFields, ritade generiskt (live-setup-
 //                   fields.js; matchlängden vid pacing "tid")
@@ -20,7 +22,7 @@
 
 import { el, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
-import { requireFormat, listFormats, answerKindsFor, DEFAULT_FORMAT } from "./formats/index.js";
+import { requireFormat, listFormats, answerKindsFor, defaultAnswerKind, DEFAULT_FORMAT } from "./formats/index.js";
 import { createLiveSession } from "./live-data.js";
 import { validateSessionInput } from "./live-core.js";
 import { defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
@@ -155,7 +157,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       name: nameInput.value,
       format: format.id,
       gameMode: mode?.id,
-      answerKind: form.querySelector('input[name="answerKind"]:checked')?.value || kinds[0],
+      answerKind: form.querySelector('input[name="answerKind"]:checked')?.value || defaultAnswerKind(kinds),
       classIds: ids,
       classNames: Object.fromEntries(ids.map((id) => [id, className(id)])),
       ...readSetup(),

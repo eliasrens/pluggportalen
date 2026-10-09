@@ -165,13 +165,13 @@ describe("Klassmatchen som setupFields (oförändrat beteende)", () => {
     assert.equal(errs[2], "Nämnaren för 4B måste vara ett heltal 1–999.");
   });
 
-  it("sessionsdokumentet som förut (answerKind sparas inte än)", () => {
+  it("sessionsdokumentet som förut + answerKind \"free\" (#551)", () => {
     const doc = buildSessionDoc(input, { uid: "t" });
     assert.equal(doc.durationSeconds, 900);
     assert.deepEqual(doc.classDivisors, { a: 20, b: 22 });
     assert.deepEqual(doc.wizards, { a: "elias", b: "rasmus" });
     assert.equal(doc.coinPrize, undefined);
-    assert.equal(doc.answerKind, undefined);
+    assert.equal(doc.answerKind, "free");
     assert.equal(doc.format, "klassmatch");
   });
 });

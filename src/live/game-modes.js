@@ -37,6 +37,12 @@
 //                                (multiplikation: tabellerna, "t7","t8").
 //   statCategories     → [{ key, label }] – alla kategorier i visningsordning
 //                                (statistikvyer bygger tabeller ur denna).
+//   answerKinds        string[] – VALFRI (saknas = ["free"], #551). Svarssätten
+//                                läget kan leverera: "free" = skriv själv
+//                                (src/mult/fast-answer.js), "choice" = fyra
+//                                alternativ (flervalsflödet, se nedan).
+//                                Sessionens svarssätt (liveSessions.answerKind)
+//                                måste finnas här OCH i formatets answerKinds.
 //   cooperative        bool    – VALFRI (default false). true = klasserna spelar
 //                                MOT ETT MÅL i stället för mot varandra.
 //   goalReached(standings, session) → bool – KRÄVS om cooperative. Nådde
@@ -47,11 +53,26 @@
 //
 // Question är mode-specifik men har alltid { key, text } – `text` är det
 // svarskomponenten (src/mult/fast-answer.js) visar stort.
+//
+// SVARSSÄTTET "choice" (#551/#552) – ett läge med "choice" i answerKinds
+// har dessutom (validateGameMode kräver det):
+//   choices(q, rng?) → { options: 4 alternativ, answerIndex } – samma frågor
+//                      ur createSource() som skriv själv; rätt svars plats
+//                      varierar (multiplikation: multChoices i motorn).
+//   Rättningen är DENSAMMA som skriv själv: checkAnswer(q, String(options[i]))
+//   på det valda alternativets värde, och answerRecord(q, r) ger samma fält.
+//   Kärnan (planLiveAnswerWrites) lägger själv till `answerKind: "choice"` +
+//   `choiceIndex` (knappens index 0–3) på svarsdokumentet; reglerna nekar
+//   ett svar vars form inte matchar sessionens answerKind.
+//   Elevsidan väljer komponent ur sessionens answerKind via
+//   src/live/answer-kinds.js (free = fast-answer, choice = choice-flow.js).
 // ============================================================================
 
 const REGISTRY = new Map();
 
 const FUNCS = ["createSource", "checkAnswer", "answerRecord", "statKeys"];
+// Samma lista som live-formats.js ANSWER_KINDS (registren är fristående).
+const ANSWER_KINDS = ["free", "choice"];
 
 /**
  * Kontrollera att ett objekt uppfyller GameMode-interfacet.
@@ -74,6 +95,13 @@ export function validateGameMode(mode) {
   if (!Array.isArray(mode.statCategories) ||
       !mode.statCategories.every((c) => c && typeof c.key === "string" && typeof c.label === "string")) {
     errs.push("statCategories måste vara [{key,label}]");
+  }
+  if (mode.answerKinds != null && (!Array.isArray(mode.answerKinds) || !mode.answerKinds.length ||
+      !mode.answerKinds.every((k) => ANSWER_KINDS.includes(k)))) {
+    errs.push(`answerKinds måste vara en icke-tom delmängd av ${ANSWER_KINDS.join(",")}`);
+  }
+  if (mode.answerKinds?.includes?.("choice") && typeof mode.choices !== "function") {
+    errs.push("choices() krävs för svarssättet choice");
   }
   if (mode.cooperative != null && typeof mode.cooperative !== "boolean") errs.push("cooperative måste vara bool");
   if (mode.cooperative === true && typeof mode.goalReached !== "function") {
