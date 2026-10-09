@@ -119,6 +119,7 @@ body.live-lage .container {
 .live-chip input:disabled + span { opacity: 0.4; cursor: not-allowed; }
 .live-divisors { margin: 4px 0 14px; }
 .live-divisors[hidden] { display: none; }
+.live-wizard-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
 .live-divisor-rows { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 .live-divisor { display: inline-flex; gap: 8px; align-items: center; }
 .live-divisor input {

@@ -1,0 +1,201 @@
+/* ==========================================================================
+   Trollkarlsduellen (#536) – arenan, HUD:en, magimätarna, platshållarfigurer
+   och platshållareffekter. Scopat under .tk. Laddas av trollkarl-vy.js
+   (ensureLiveCss). Designrummet .tk-stage är 1600 × 900 px och skalas in
+   av vyn (transform) – alla mått nedan är i designpixlar.
+   Animationer bara med transform/opacity; reducerad rörelse stänger av
+   ambient-rörelsen men aldrig någon information.
+   ========================================================================== */
+
+/* Projektorns egen timer behövs inte – arenan har en stor klocka i mitten. */
+.lp[data-kind="trollkarl"] .lp-timer { display: none !important; }
+.lp[data-kind="trollkarl"] { background: #0c0a24; }
+
+.tk { position: absolute; inset: 0; overflow: hidden; opacity: 1 !important; transition: opacity .3s; background: #0c0a24; }
+.tk-stage { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; overflow: hidden; }
+.tk-fx, .tk-fxback { position: absolute; inset: 0; pointer-events: none; }
+.tk-fxback { z-index: 1; }
+.tk-fx { z-index: 4; }
+.tk-layer { position: absolute; inset: 0; }
+
+/* --- Arenan ------------------------------------------------------------------ */
+.tka { position: absolute; inset: 0; z-index: 0; }
+.tka-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tka-flame { transform-origin: 0 0; animation: tka-flamma 0.9s ease-in-out infinite alternate; }
+.tka-glow { animation: tka-sken 1.7s ease-in-out infinite alternate; }
+.tka-rune { color: #8f7bff; opacity: .35; transform-box: fill-box; transform-origin: center; }
+.tka-rune-a { color: #ff9a5c; }
+.tka-rune-b { color: #6fd2ff; }
+.tka-rune-mitt { color: #d6b4ff; animation: tka-puls 4s ease-in-out infinite; }
+.tka-rune-a, .tka-rune-b { animation: tka-puls 5s ease-in-out infinite; }
+.tka-rune-b { animation-delay: -2.5s; }
+.tka-mist i { position: absolute; left: -10%; width: 120%; height: 260px; bottom: 120px; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(180, 160, 255, .16), transparent 70%);
+  animation: tka-dimma 26s ease-in-out infinite alternate; }
+.tka-mist i + i { bottom: 40px; animation-duration: 34s; animation-direction: alternate-reverse; opacity: .8; }
+.tka-orbs i { position: absolute; width: 18px; height: 18px; border-radius: 50%;
+  left: calc(120px + var(--i) * 215px); top: calc(150px + (var(--i) * 53px) % 220px);
+  background: radial-gradient(circle, #fff 0 20%, #c7b5ff 40%, transparent 70%);
+  box-shadow: 0 0 24px 8px rgba(170, 140, 255, .35);
+  animation: tka-sväv calc(7s + var(--i) * 1.3s) ease-in-out infinite alternate; animation-delay: calc(var(--i) * -1.7s); }
+.tka-motes i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff6c9;
+  left: calc((var(--i) * 89px) % 1600px); bottom: 60px; opacity: 0;
+  animation: tka-stoft calc(9s + (var(--i) * 0.7s)) linear infinite; animation-delay: calc(var(--i) * -0.9s); }
+.tka-dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(4, 2, 18, .75));
+  opacity: 0; transition: opacity 1.2s; pointer-events: none; }
+.tka[data-mood="high"] .tka-dim { opacity: .35; }
+.tka[data-mood="final"] .tka-dim { opacity: .55; }
+.tka[data-mood="finale"] .tka-dim { opacity: .7; }
+.tka[data-mood="final"] .tka-rune, .tka[data-mood="high"] .tka-rune { opacity: .6; }
+
+@keyframes tka-flamma { from { transform: scale(1, 1) rotate(-3deg); } to { transform: scale(.9, 1.12) rotate(3deg); } }
+@keyframes tka-sken { from { opacity: .7; } to { opacity: 1; } }
+@keyframes tka-puls { 0%, 100% { opacity: .25; } 50% { opacity: .55; } }
+@keyframes tka-dimma { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+@keyframes tka-sväv { from { transform: translate(0, 0); } to { transform: translate(30px, -40px); } }
+@keyframes tka-stoft { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .8; } 100% { transform: translateY(-640px); opacity: 0; } }
+
+/* --- Figurplatser ------------------------------------------------------------ */
+.tk-slot { position: absolute; z-index: 2; bottom: 96px; width: 440px; height: 560px; }
+.tk-slot[data-side="left"] { left: 210px; }
+.tk-slot[data-side="right"] { left: 950px; }
+/* Glöd under fötterna: uppladdning + nästan full mätare (§7.1, prioritet CHARGE). */
+.tk-slot::before { content: ""; position: absolute; left: 10%; right: 10%; bottom: -24px; height: 70px; border-radius: 50%;
+  background: radial-gradient(ellipse, var(--tk-glod, #b48cff) 0, transparent 70%); opacity: .25; transition: opacity .5s; }
+.tk-slot[data-who="rasmus"] { --tk-glod: #ff8a3d; }
+.tk-slot[data-who="elias"] { --tk-glod: #4cc3ff; }
+.tk-slot.tk-near::before { opacity: .6; animation: tk-pulsglod 1s ease-in-out infinite alternate; }
+.tk-slot.tk-charging::before { opacity: 1; animation: tk-pulsglod .35s ease-in-out infinite alternate; }
+@keyframes tk-pulsglod { from { transform: scale(.9); } to { transform: scale(1.15); } }
+
+/* Del B:s figur (#537): SVG 400 × 560 fyller platsen, fötterna vid nederkanten. */
+.tk-slot > svg.tkf { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* --- Platshållarfiguren (byts mot del B:s figur) ----------------------------- */
+.tkw { position: absolute; inset: 0; }
+.tkw-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity .25s; }
+.tkw-left .tkw-svg { transform: scaleX(-1); }
+.tkw [data-layer] { transform-box: view-box; }
+.tkw-fig { transform-origin: 0 0; }
+.tkw [data-layer="armR"] { transform-origin: 46px -205px; }
+.tkw-idle .tkw-fig { animation: tkw-andas 3.2s ease-in-out infinite; }
+.tkw-morph { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); font-size: 220px; line-height: 1; }
+.tk-charging .tkw-tip, .tk-near .tkw-tip { filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px var(--tk-glod)); }
+@keyframes tkw-andas { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-3px) scale(1.01, .995); } }
+
+/* --- HUD --------------------------------------------------------------------- */
+.tkh { position: absolute; inset: 0; z-index: 6; pointer-events: none; color: #fff; }
+.tkh-side { position: absolute; top: 58px; width: 470px; padding: 14px 24px 12px; border-radius: 26px;
+  background: linear-gradient(180deg, rgba(20, 14, 52, .86), rgba(20, 14, 52, .7));
+  border: 3px solid var(--tk-farg, #8f7bff); box-shadow: 0 10px 30px rgba(0, 0, 0, .4); transition: box-shadow .5s, transform .5s; }
+.tkh-left { left: 40px; }
+.tkh-right { right: 40px; text-align: right; }
+.tkh-side[data-who="rasmus"] { --tk-farg: #ff8a3d; }
+.tkh-side[data-who="elias"] { --tk-farg: #4cc3ff; }
+.tkh-class { font-size: 56px; font-weight: 800; line-height: 1; color: var(--tk-farg); text-shadow: 0 3px 0 rgba(0, 0, 0, .35);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tkh-wiz { font-size: 26px; font-weight: 700; opacity: .92; margin-top: 2px; }
+.tkh-score { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; }
+.tkh-right .tkh-score { justify-content: flex-end; }
+.tkh-score b { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.tkh-score span { font-size: 22px; opacity: .85; }
+.tkh-raw { display: block; font-size: 18px; opacity: .7; }
+.tkh-pop { animation: tkh-pop .45s ease-out; display: inline-block; }
+@keyframes tkh-pop { 40% { transform: scale(1.12); } }
+.tkh-lead { position: absolute; top: -22px; left: 20px; padding: 2px 14px; border-radius: 999px; font-size: 20px; font-weight: 800;
+  background: #ffd23d; color: #3b2a00; opacity: 0; transform: translateY(8px); transition: opacity .4s, transform .4s; }
+.tkh-right .tkh-lead { left: auto; right: 20px; }
+.tkh-side.leder { box-shadow: 0 0 0 4px rgba(255, 210, 61, .45), 0 0 40px rgba(255, 210, 61, .35); }
+.tkh-side.leder .tkh-lead { opacity: 1; transform: none; }
+
+.tkh-mid { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tkh-clock { display: flex; align-items: baseline; gap: 10px; padding: 4px 34px 8px; border-radius: 999px;
+  font-size: 104px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums;
+  background: rgba(14, 10, 40, .85); border: 4px solid rgba(214, 180, 255, .55);
+  box-shadow: 0 0 30px rgba(180, 140, 255, .35), 0 10px 30px rgba(0, 0, 0, .45); }
+.tkh-clock span { font-size: 30px; opacity: .8; }
+.tkh[data-tension="high"] .tkh-clock { border-color: #ffb648; box-shadow: 0 0 46px rgba(255, 182, 72, .55); }
+.tkh[data-tension="high"] .tkh-clock b { color: #ffd07a; }
+.tkh[data-tension="final"] .tkh-clock { border-color: #ff5d73; animation: tkh-tick 1s ease-in-out infinite; }
+.tkh[data-tension="final"] .tkh-clock b { color: #ff9aa8; }
+@keyframes tkh-tick { 0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255, 93, 115, .5); } 50% { transform: scale(1.06); box-shadow: 0 0 70px rgba(255, 93, 115, .8); } }
+.tkh-vs { font-size: 54px; font-weight: 800; letter-spacing: .06em; color: #ffe27a;
+  text-shadow: 0 0 18px rgba(255, 210, 61, .7), 0 4px 0 #7a4b00; }
+
+/* --- Magimätarna -------------------------------------------------------------- */
+.tkh-meters { position: absolute; left: 40px; right: 40px; bottom: 22px; display: flex; justify-content: space-between; }
+.tkh-mhost { width: 600px; }
+.tkm { --c1: #ffb347; --c2: #ff5e1a; --c3: #ffe08a; color: #fff; }
+.tkm[data-who="elias"] { --c1: #6fe3ff; --c2: #2f6bff; --c3: #c9f6ff; }
+.tkm-top { display: flex; align-items: baseline; gap: 14px; font-weight: 800; margin-bottom: 6px; }
+.tkm-right .tkm-top { flex-direction: row-reverse; }
+.tkm-label { font-size: 24px; letter-spacing: .08em; color: var(--c3); }
+.tkm-count { font-size: 30px; font-variant-numeric: tabular-nums; }
+.tkm-attacks { font-size: 24px; opacity: .85; margin-left: auto; }
+.tkm-right .tkm-attacks { margin-left: 0; margin-right: auto; }
+.tkm-tube { position: relative; height: 44px; border-radius: 999px; overflow: visible;
+  background: rgba(10, 6, 30, .8); border: 3px solid rgba(255, 255, 255, .35); box-shadow: inset 0 4px 12px rgba(0, 0, 0, .6); }
+.tkm-fill { position: absolute; inset: 3px; border-radius: 999px; overflow: hidden; transform-origin: 0 50%; transform: scaleX(0);
+  background: linear-gradient(90deg, var(--c2), var(--c1) 70%, var(--c3)); transition: transform .6s cubic-bezier(.2, .8, .3, 1); }
+.tkm-right .tkm-fill { transform-origin: 100% 50%; background: linear-gradient(270deg, var(--c2), var(--c1) 70%, var(--c3)); }
+.tkm-shine { position: absolute; left: 0; right: 0; top: 4px; height: 9px; border-radius: 999px; background: rgba(255, 255, 255, .45); }
+.tkm-bubbles i { position: absolute; bottom: -10px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7);
+  animation: tkm-bubbla 2.4s ease-in infinite; }
+.tkm-bubbles i:nth-child(1) { left: 8%; } .tkm-bubbles i:nth-child(2) { left: 22%; animation-delay: -.6s; }
+.tkm-bubbles i:nth-child(3) { left: 37%; animation-delay: -1.2s; } .tkm-bubbles i:nth-child(4) { left: 51%; animation-delay: -1.8s; }
+.tkm-bubbles i:nth-child(5) { left: 66%; animation-delay: -.3s; } .tkm-bubbles i:nth-child(6) { left: 79%; animation-delay: -.9s; }
+.tkm-bubbles i:nth-child(7) { left: 92%; animation-delay: -1.5s; }
+@keyframes tkm-bubbla { from { transform: translateY(0); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(-46px); opacity: 0; } }
+.tkm-ticks { position: absolute; inset: 0; display: flex; justify-content: space-evenly; pointer-events: none; }
+.tkm-ticks i { width: 2px; background: rgba(255, 255, 255, .14); }
+.tkm-sparks { position: absolute; inset: 0; pointer-events: none; }
+.tkm-sparks i { position: absolute; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--c3);
+  box-shadow: 0 0 10px var(--c1); animation: tkm-gnista 1.1s ease-out forwards; }
+@keyframes tkm-gnista { to { transform: translate(var(--dx), -70px) scale(.3); opacity: 0; } }
+.tkm-near .tkm-tube { border-color: var(--c3); box-shadow: 0 0 22px var(--c1), inset 0 4px 12px rgba(0, 0, 0, .6); animation: tkm-nara 0.8s ease-in-out infinite alternate; }
+@keyframes tkm-nara { to { box-shadow: 0 0 40px var(--c1), inset 0 4px 12px rgba(0, 0, 0, .6); } }
+.tkm-burst .tkm-tube { animation: tkm-full 1.5s ease-out; }
+@keyframes tkm-full { 0% { box-shadow: 0 0 0 var(--c1); } 20% { box-shadow: 0 0 80px 20px var(--c3); transform: scale(1.05); } 100% { box-shadow: 0 0 0 var(--c1); transform: none; } }
+
+/* --- Attackbanner, platshållareffekter, final ---------------------------------- */
+.tk-banner { position: absolute; z-index: 7; left: 0; right: 0; top: 300px; text-align: center; pointer-events: none;
+  font-size: 92px; font-weight: 800; letter-spacing: .04em; color: #fff3a8; opacity: 0;
+  text-shadow: 0 0 24px rgba(255, 210, 61, .8), 0 6px 0 #5b2fa0, 0 10px 24px rgba(0, 0, 0, .6); }
+.tk-banner.on { animation: tk-banner 2.4s ease-out forwards; }
+@keyframes tk-banner { 0% { opacity: 0; transform: scale(.4) rotate(-6deg); } 15% { opacity: 1; transform: scale(1.12) rotate(2deg); }
+  25% { transform: scale(1) rotate(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-30px); } }
+.tk-orb { position: absolute; border-radius: 50%; background: radial-gradient(circle, #fff 0 25%, #ffe07a 45%, #ff7ad9 70%, transparent 72%);
+  box-shadow: 0 0 40px 14px rgba(255, 170, 240, .6); }
+.tk-orb-big { box-shadow: 0 0 90px 40px rgba(255, 220, 120, .7); }
+.tk-poof { position: absolute; display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .95) 0 30%, rgba(214, 180, 255, .7) 55%, transparent 72%);
+  animation: tk-poff 1.1s ease-out forwards; }
+.tk-poof span { font-size: 48px; font-weight: 800; color: #5b2fa0; transform: rotate(-8deg); }
+@keyframes tk-poff { 0% { transform: scale(.2); opacity: 0; } 25% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+
+/* Nertill (över golv/mätare) så figurernas ansikten – seger/förlust – syns ovanför. */
+.tk-result { position: absolute; z-index: 8; left: 50%; bottom: 26px; transform: translateX(-50%); width: 860px; padding: 18px 36px 22px;
+  text-align: center; border-radius: 36px; background: rgba(16, 10, 44, .9); border: 4px solid #ffd23d;
+  box-shadow: 0 0 60px rgba(255, 210, 61, .45), 0 20px 50px rgba(0, 0, 0, .6); animation: tk-resultat .7s cubic-bezier(.2, 1.4, .4, 1); }
+.tk-result-title { font-size: 76px; font-weight: 800; line-height: 1.05; color: #ffe27a; text-shadow: 0 5px 0 #7a4b00; }
+.tk-result-sub { font-size: 30px; font-weight: 700; margin-top: 6px; opacity: .92; }
+.tk-result-scores { display: flex; gap: 22px; justify-content: center; margin-top: 18px; }
+.tk-result-row { flex: 1; padding: 12px 18px; border-radius: 22px; background: rgba(255, 255, 255, .08); border: 3px solid var(--tk-farg, #8f7bff);
+  display: grid; gap: 2px; }
+.tk-result-row[data-who="rasmus"] { --tk-farg: #ff8a3d; }
+.tk-result-row[data-who="elias"] { --tk-farg: #4cc3ff; }
+.tk-result-row.vinnare { box-shadow: 0 0 30px rgba(255, 210, 61, .55); }
+.tk-result-row b { font-size: 40px; color: var(--tk-farg); }
+.tk-result-row span { font-size: 22px; opacity: .85; }
+.tk-result-row strong { font-size: 48px; line-height: 1; font-variant-numeric: tabular-nums; }
+.tk-result-row small { font-size: 18px; opacity: .75; }
+.tk-result-prize { margin-top: 14px; font-size: 26px; font-weight: 700; color: #ffe27a; min-height: 1em; }
+@keyframes tk-resultat { from { opacity: 0; transform: translateX(-50%) scale(.6); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tk *, .tk *::before, .tk *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; }
+  .tkm-fill { transition-duration: .15s; }
+  /* Attacknamnet är information: står still i stället för att animeras (annars
+     slutar den korta animationen på opacity 0 och namnet syns aldrig, #541). */
+  .tk-banner.on { animation: none; opacity: 1; }
+}

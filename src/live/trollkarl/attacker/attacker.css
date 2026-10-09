@@ -1,0 +1,131 @@
+/* ============================================================================
+   Trollkarlsduellen (#538): stilar för attackeffekterna (del C/D).
+   Allt lever i .tk-layer (skapas per attack av scenen och städas automatiskt).
+   Bara transform/opacity animeras (kompositerbart, §17).
+   ========================================================================== */
+
+.tk-layer > * { position: absolute; pointer-events: none; will-change: transform, opacity; }
+
+/* --- projektiler ----------------------------------------------------------- */
+.tk-orb-grodd { background: radial-gradient(circle, #eaffd8 0 22%, #7ee26a 48%, #2e9e3f 70%, transparent 72%);
+  box-shadow: 0 0 34px 10px rgba(110, 230, 110, .55); }
+.tk-orb-potatis { background: radial-gradient(circle, #ffe9bd 0 22%, #d7a35a 50%, #8a5a26 70%, transparent 72%);
+  border-radius: 46% 54% 52% 48%; box-shadow: 0 0 30px 8px rgba(230, 180, 90, .5); }
+.tk-virvel { border-radius: 50%;
+  background: conic-gradient(#b388ff 0 25%, #e3d4ff 0 50%, #7c4dff 0 75%, #d4bcff 0 100%);
+  -webkit-mask: radial-gradient(circle, transparent 0 18%, #000 20% 70%, transparent 72%);
+          mask: radial-gradient(circle, transparent 0 18%, #000 20% 70%, transparent 72%);
+  box-shadow: 0 0 30px 8px rgba(160, 120, 255, .5); }
+.tk-bomb { border-radius: 50%; background: radial-gradient(circle at 36% 30%, #b8f28a 0 18%, #4f9e3a 55%, #2d6b22 100%);
+  box-shadow: 0 0 24px 6px rgba(120, 200, 80, .55); }
+.tk-slemboll { border-radius: 44% 56% 58% 42%;
+  background: radial-gradient(circle at 38% 32%, #d8ff9e 0 20%, #8ee04e 55%, #4ca32a 100%);
+  box-shadow: 0 0 26px 8px rgba(140, 225, 90, .55); }
+
+/* --- POFF-moln -------------------------------------------------------------- */
+.tk-poff { display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 34%, #f3e3ff 55%, rgba(220, 190, 255, 0) 72%); }
+.tk-poff span { font-family: "Baloo 2", system-ui, sans-serif; font-size: 44px; font-weight: 800;
+  color: #5b2fa0; transform: rotate(-8deg); white-space: nowrap; text-shadow: 0 2px 0 #fff; }
+.tk-stank-poff { background: radial-gradient(circle, #eaffcf 0 34%, #b8e986 55%, rgba(150, 200, 90, 0) 72%); }
+.tk-stank-poff span { color: #3c6b1f; }
+.tk-splatt-poff { background: radial-gradient(circle, #e9ffc8 0 30%, #a5e86a 55%, rgba(130, 210, 80, 0) 72%); }
+.tk-splatt-poff span { color: #2f7a1d; }
+.tk-atjo { background: radial-gradient(circle, #fff 0 30%, #d9ecff 55%, rgba(170, 210, 255, 0) 72%); }
+.tk-atjo span { color: #1c56a0; font-size: 36px; }
+
+/* --- partiklar --------------------------------------------------------------- */
+.tk-gnista { border-radius: 50%; background: radial-gradient(circle, #fff 0 35%, #ffd76b 70%, transparent 72%); }
+.tk-damm { border-radius: 50%; background: radial-gradient(circle, rgba(222, 205, 170, .9) 0 50%, transparent 72%); }
+.tk-stjarna { background: #ffd76b;
+  clip-path: polygon(50% 0, 63% 36%, 100% 38%, 70% 60%, 82% 100%, 50% 74%, 18% 100%, 30% 60%, 0 38%, 37% 36%); }
+.tk-fjader { border-radius: 80% 20% 60% 40% / 70% 40% 60% 30%;
+  background: linear-gradient(115deg, #fdf7ea 0 55%, #efe0bd 100%); border: 1px solid rgba(160, 140, 100, .4); }
+.tk-droppe { border-radius: 60% 60% 70% 70% / 40% 40% 90% 90%;
+  background: linear-gradient(#bfe3ff, #5aa7e8); opacity: .9; }
+.tk-slemstank { border-radius: 60% 40% 55% 45%; background: radial-gradient(circle at 40% 35%, #cdf39a 0 30%, #6cc23c 100%); }
+.tk-slemdroppe { border-radius: 60% 60% 70% 70% / 40% 40% 95% 95%; background: linear-gradient(#b9ed7e, #58aa2e); }
+
+/* --- regnmolnet (REGNUS MAXIMUS!) ------------------------------------------- */
+.tk-moln { aspect-ratio: auto; height: 120px !important; filter: drop-shadow(0 10px 16px rgba(20, 30, 60, .35)); }
+.tk-moln i { position: absolute; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #8d9bb5 0 40%, #5a6880 100%); }
+.tk-moln i:nth-child(1) { left: 6%; top: 28%; width: 46%; height: 64%; }
+.tk-moln i:nth-child(2) { left: 30%; top: 4%; width: 48%; height: 82%; }
+.tk-moln i:nth-child(3) { left: 56%; top: 30%; width: 40%; height: 60%; }
+
+/* --- pölen ------------------------------------------------------------------- */
+.tk-pol { height: 34px !important; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(130, 185, 235, .75) 0 55%, rgba(130, 185, 235, 0) 72%); }
+
+/* --- fjädertornadon (FJÄDRUS STORMUS!) --------------------------------------- */
+.tk-tromb { height: 430px !important; }
+.tk-tromb i { position: absolute; left: 50%; border-radius: 50%;
+  border: 5px solid rgba(240, 232, 210, .75); border-top-color: rgba(200, 185, 150, .9);
+  animation: tk-tromb-snurr .5s linear infinite; }
+.tk-tromb i:nth-child(1) { top: 0; width: 290px; height: 74px; margin-left: -145px; }
+.tk-tromb i:nth-child(2) { top: 120px; width: 220px; height: 62px; margin-left: -110px; animation-duration: .42s; }
+.tk-tromb i:nth-child(3) { top: 235px; width: 150px; height: 50px; margin-left: -75px; animation-duration: .36s; }
+.tk-tromb i:nth-child(4) { top: 340px; width: 84px; height: 40px; margin-left: -42px; animation-duration: .3s; }
+@keyframes tk-tromb-snurr { from { transform: rotateY(0) } to { transform: rotateY(360deg) } }
+
+/* --- stinkmoln + slem --------------------------------------------------------- */
+.tk-stankmoln { border-radius: 50%;
+  background: radial-gradient(circle at 42% 36%, rgba(205, 240, 150, .95) 0 30%, rgba(130, 190, 80, .85) 70%, rgba(110, 170, 70, 0) 74%); }
+.tk-slem { height: 250px !important; }
+.tk-slem i { position: absolute; border-radius: 55% 45% 60% 40% / 55% 60% 40% 45%;
+  background: radial-gradient(circle at 38% 30%, rgba(200, 245, 140, .95) 0 25%, rgba(120, 205, 70, .9) 70%, rgba(90, 170, 50, .85) 100%); }
+.tk-slem i:nth-child(1) { left: 12%; top: 6%; width: 76%; height: 62%; }
+.tk-slem i:nth-child(2) { left: 2%; top: 40%; width: 44%; height: 46%; }
+.tk-slem i:nth-child(3) { left: 52%; top: 44%; width: 42%; height: 44%; }
+
+/* --- rörelseattackerna 9/12/15 (#539) ---------------------------------------- */
+.tk-spiral { border-radius: 50%;
+  background: conic-gradient(#ffd0ef 0 20%, #ff6fc2 0 45%, #ffe9f7 0 65%, #e23fa0 0 100%);
+  -webkit-mask: radial-gradient(circle, transparent 0 14%, #000 16% 70%, transparent 72%);
+          mask: radial-gradient(circle, transparent 0 14%, #000 16% 70%, transparent 72%);
+  box-shadow: 0 0 30px 8px rgba(255, 110, 195, .5); }
+.tk-spiralmini { border-radius: 50%; border: 4px solid rgba(255, 130, 205, .9); border-top-color: transparent; }
+.tk-blixt { background: linear-gradient(#fff6c8, #ffd94d);
+  clip-path: polygon(44% 0, 100% 0, 58% 38%, 86% 38%, 30% 100%, 48% 52%, 20% 52%);
+  filter: drop-shadow(0 0 22px rgba(255, 224, 100, .9)); }
+.tk-blixt-flash { position: absolute; inset: -60px; background: #fff8dc; }
+.tk-rok { border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(190, 190, 200, .9) 0 35%, rgba(120, 120, 135, .7) 70%, transparent 74%); }
+.tk-studsplatta { height: 70px !important; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(140, 255, 220, .9) 0 30%, rgba(60, 220, 170, .55) 55%, rgba(60, 220, 170, 0) 72%);
+  box-shadow: 0 0 40px 10px rgba(90, 240, 190, .35); }
+
+/* --- föremålsattackerna 10/11/13/14 (#539) ------------------------------------ */
+.tk-jattehatt { filter: drop-shadow(0 16px 22px rgba(20, 20, 50, .4)); }
+.tk-jattehatt svg { width: 100%; height: 100%; }
+.tk-bubbla { border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .55) 0 10%, rgba(210, 240, 255, .18) 30%, rgba(190, 225, 255, .1) 60%, rgba(160, 205, 255, .3) 86%, rgba(255, 255, 255, .5) 94%, transparent 96%);
+  box-shadow: inset 0 0 50px rgba(255, 255, 255, .35), 0 0 36px rgba(170, 215, 255, .4); }
+.tk-plopp-poff { background: radial-gradient(circle, #fff 0 32%, #d8f0ff 55%, rgba(170, 215, 255, 0) 72%); }
+.tk-plopp-poff span { color: #1c6ba0; }
+.tk-bubbelstank { border-radius: 50%; border: 3px solid rgba(190, 230, 255, .95);
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, .8) 0 20%, rgba(200, 235, 255, .25) 70%); }
+.tk-nysmoln { border-radius: 50%; filter: blur(1px);
+  background: radial-gradient(circle at 42% 36%, #ffd9ec 0 30%, rgba(255, 150, 205, .85) 65%, rgba(255, 150, 205, 0) 74%); }
+.tk-drake svg { width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(20, 40, 20, .35)); }
+.tk-drake-hoger svg { transform: scaleX(-1); }
+.tk-rokring { border-radius: 50%; border: 12px solid rgba(150, 150, 165, .8);
+  -webkit-mask: radial-gradient(circle, transparent 0 30%, #000 32%);
+          mask: radial-gradient(circle, transparent 0 30%, #000 32%); }
+.tk-sot { border-radius: 50%; filter: blur(3px);
+  background: radial-gradient(circle, rgba(60, 55, 60, .8) 0 40%, rgba(60, 55, 60, 0) 72%); }
+
+/* --- extraattackerna 16/17 (#539) --------------------------------------------- */
+.tk-far svg { width: 100%; height: 100%; filter: drop-shadow(0 8px 12px rgba(30, 30, 40, .3)); }
+.tk-far-hoger svg { transform: scaleX(-1); }
+.tk-faa-poff { background: radial-gradient(circle, #fff 0 32%, #f1ead8 55%, rgba(220, 205, 170, 0) 72%); }
+.tk-faa-poff span { color: #6b5637; font-size: 34px; }
+.tk-disco { border-radius: 50%; filter: blur(6px); mix-blend-mode: screen;
+  background: radial-gradient(circle, var(--tk-disco, #ff5fa2) 0 35%, transparent 72%); }
+.tk-not { display: grid; place-items: center; font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 46px; font-weight: 800; color: #ffd76b; text-shadow: 0 2px 0 rgba(60, 30, 100, .5); }
+
+/* Reducerad rörelse: trombens egen CSS-snurr stängs av (resten styrs i JS). */
+@media (prefers-reduced-motion: reduce) {
+  .tk-tromb i { animation: none; }
+}

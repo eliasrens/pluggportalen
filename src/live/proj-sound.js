@@ -9,10 +9,12 @@
 // knappen kan be om ett klick ("Klicka för ljud").
 //
 // API
-//   createSound()  → { on, unlocked(), toggle() → on, unlock(), setOn(on), mute(m),
+//   createSound()  → { on, unlocked(), toggle() → on, unlock(), setOn(on), mute(m), fx(fn),
 //                      tick(n), go(), blip(), lead(), end(), win(), destroy() }
 //   setOn(on)  elevskärmen (#533) följer kontrollpanelens val (sparar inget)
 //   mute(m)    kontrollpanelen tystnar medan en elevskärm spelar ljudet (#533)
+//   fx(fn)     egna ljud (Trollkarlsduellen, #536): fn(audioCtx, ut) bara när ljudet
+//              är på, upplåst och inte tystat – samma kontext och volym som resten
 // ============================================================================
 
 const KEY = "pp:live:ljud";
@@ -88,6 +90,12 @@ export function createSound() {
       else ctx?.suspend().catch(() => {});
     },
     mute(m) { muted = !!m; },
+    fx(fn) {
+      if (muted) return;
+      const c = ensure();
+      if (!c || c.state !== "running") return;
+      try { fn(c, master); } catch (e) { console.warn("Live-ljud:", e); }
+    },
     /** 3 · 2 · 1 */
     tick(n) {
       tone(n === 1 ? 740 : 587, 0, 0.22, "triangle", 0.4);
