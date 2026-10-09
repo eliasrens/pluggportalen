@@ -695,6 +695,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `name` | string ≤ 80 | "4B mot 5E" |
 | `classNames` | map `{ classId: string }` | klassnamnen denormaliserade vid skapandet (#460) – elev/projektor slipper läsa `classes` |
 | `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
+| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc` (`"klassmatch"`). **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Reglerna godtar bara frånvarande eller `"klassmatch"` och nekar varje byte |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `participatingClassIds` | array\<string\> (1–8) | klasserna |
 | `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal). Får ändras i lobbyn och under matchen (#543: heltal 1–999, exakt deltagarklasserna; under match rör ändringen bara detta fält) – **låst efter slut** |
@@ -741,13 +742,15 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 
 | Lager | Modul |
 | ----- | ----- |
-| Ren logik: faser (lobby/countdown/live/ended/finished), 3-2-1, tid kvar, poäng, vinnare, topplista | `src/live/live-core.js` |
+| Ren logik: faser (lobby/countdown/live/ended/finished), 3-2-1, tid kvar, topplista, formulär, sessionsdokument | `src/live/live-core.js` |
+| Formatregistret (#547) – `formatOf(session)` = `session.format ?? "klassmatch"` | `src/live/live-formats.js` + `src/live/formats/index.js` |
+| Klassmatchen: poäng (rätt ÷ nämnare), vinnare, `result`, mynt-pris, trollkarlar; latt laddade projektor-/elev-/historikdelar | `src/live/formats/klassmatch/` |
 | Server-korrigerad klocka (liveClock-rundtur + färska serverstämplar) | `src/live/live-clock.js` |
 | Firestore-lagret (skapa/starta/avsluta, prenumerationer, gå med, svar) | `src/live/live-data.js` |
 | **Realtids-datalagret för projektorvyer** – `subscribeLiveSession(sid, cb)` | `src/live/live-feed.js` |
 | Elevens meny-synlighet (onSnapshot på status lobby\|live) | `src/live/live-watch.js` |
 | Elevsidan `#/elev/live` | `src/live/page-elev-live.js` |
-| Lärarfliken `#/larare/live` (skapa, aktiva, historik), projektorvyn `?id=` (#461: lobby, Raketrace, Statistik, Dragkamp, vinnare) | `src/live/teacher-live*.js`, `src/live/projector.js` + `src/live/proj-*.js` |
+| Lärarfliken `#/larare/live` (skapa, aktiva, historik), projektorskalet `?id=` (#461); formatets lobby/vyer/vinnare (Klassmatchen: Raketrace, Statistik, Dragkamp, Trollkarlsduellen) | `src/live/teacher-live*.js`, `src/live/projector.js` + `formats/klassmatch/klassmatch-projector.js` → `src/live/proj-*.js`, `src/live/trollkarl/` |
 | Statistik → Live per klass | `renderClassLiveStats` i `src/live/teacher-live-history.js` |
 
 Start = transaktion `lobby → live` med `startedAt = serverTimestamp()`, sedan
@@ -790,6 +793,22 @@ Se API-kommentaren i `src/live/game-modes.js`: `id`, `displayName`, `icon`,
 `answerRecord()`, `statKeys()`, `statCategories`. Nytt läge = ny fil i
 `src/live/modes/` + en rad i `src/live/modes/index.js` + en gren i
 `liveModeAnswerOk` i `firestore.rules` (annars nekas lägets svar).
+
+### Format-interfacet (Live, #547)
+
+Tredje axeln bredvid gameMode (VAD eleverna svarar på) och projektorvy: formatet
+= HUR matchen spelas. Se API-kommentaren i `src/live/live-formats.js`: `id`,
+`displayName`, `icon`, `description`, `scope` (`"mellan-klasser"`/`"inom-klass"`),
+`minClasses`/`maxClasses`, `answerKinds` (`"free"`/`"choice"`; spelläge utan
+`answerKinds` = `["free"]`), `pacing` (`"tid"`/`"lärarstyrd"`),
+`compatibleGameModes()`, `setupFields`, `validateSetup()`, `buildSessionFields()`,
+`sessionTitle()`, `computeStandings()`, `buildResult()` och de LATT laddade
+DOM-delarna `projectorViews()`, `studentView()`, `historyRenderer()`; valfria
+flaggor `classCounters` (shardade klassräknare) och `classDivisors` (nämnare).
+Nytt format = mapp `src/live/formats/<id>/` + en rad i `src/live/formats/index.js`
++ id:t i `liveFormatOk` och formatets regelgren i `firestore.rules`.
+Kärnan (session, lobby-/spelfaser, klocka, 3-2-1-KÖR!, närvaro/puls, sen
+anslutning, återanslutning, elevskärm, ljud, fullskärm) är gemensam.
 
 ---
 

@@ -10,6 +10,8 @@
 //   startLiveSession(sid)               → STARTA: startedAt = serverTimestamp,
 //                                         sedan endsAt = startedAt + nedräkning + längd
 //   fillEndsAt(sid)                     → skriv endsAt om den saknas (idempotent)
+//   (Klassmatchen, #547: setClassDivisor, setLiveWizards, getCounters/
+//    watchCounters och svarets shardade klassräknare hör till formatet.)
 //   setClassDivisor(sid, classId, n)    → justera nämnaren (lobby + under match;
 //                                         låst efter slut → DIVISOR_LOCKED_MSG)
 //   deleteLiveSession(sid)              → radera en session som inte startat
@@ -42,7 +44,8 @@ import {
   addDoc, updateDoc, setDoc, writeBatch, runTransaction, increment, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { planLiveAnswerWrites, planLiveJoin, planLiveHeartbeat, pickShard } from "../tavling/answer-writes.js";
-import { buildSessionDoc, toMs, DIVISOR_LOCKED_MSG } from "./live-core.js";
+import { buildSessionDoc, toMs } from "./live-core.js";
+import { DIVISOR_LOCKED_MSG } from "./formats/klassmatch/klassmatch-core.js";
 import { noteServerStamp } from "./live-clock.js";
 
 const fv = { increment, serverTimestamp };

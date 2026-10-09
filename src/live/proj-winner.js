@@ -13,7 +13,8 @@
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
-import { formatScore, prizeText } from "./live-core.js";
+import { formatScore } from "./live-core.js";
+import { prizeText } from "./formats/klassmatch/klassmatch-core.js";
 
 const TROPHY = `<svg class="lpw-trophy" viewBox="0 0 120 130" aria-hidden="true">
   <path d="M30 14H10c0 26 10 38 26 40M90 14h20c0 26-10 38-26 40" fill="none" stroke="#f4b400" stroke-width="8" stroke-linecap="round"/>

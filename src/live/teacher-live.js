@@ -18,6 +18,7 @@ import { getParams } from "../ui.js";
 import { auth } from "../firebase-config.js";
 import * as data from "../data.js";
 import { getGameMode } from "./modes/index.js";
+import { formatOf } from "./formats/index.js";
 import { watchActiveSessions, autoFinish, setClassDivisor, deleteLiveSession } from "./live-data.js";
 import { openDivisorDialog } from "./live-divisor-dialog.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
@@ -120,7 +121,7 @@ function drawActive(ctx, host, list) {
           s.createdByName ? ` · skapad av ${esc(s.createdByName)}` : ""}</div></div>
       <div class="live-active-btns">
         <button class="btn small" data-open="${esc(s.id)}">Öppna projektorvy</button>
-        <button class="btn small ghost" data-div="${esc(s.id)}">Ändra nämnare</button>
+        ${formatOf(s)?.classDivisors ? `<button class="btn small ghost" data-div="${esc(s.id)}">Ändra nämnare</button>` : ""}
         ${s.status === "lobby" ? `<button class="btn small ghost danger" data-del="${esc(s.id)}">Radera</button>` : ""}
       </div></li>`;
   }).join("");

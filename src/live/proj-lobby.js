@@ -18,7 +18,7 @@
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
-import { prizeText } from "./live-core.js";
+import { prizeText } from "./formats/klassmatch/klassmatch-core.js";
 import { resolveWizards, swapWizards, WIZARD_NAMES } from "./trollkarl/trollkarl-val.js";
 
 const MAX_DOTS = 40;

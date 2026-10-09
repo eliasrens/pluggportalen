@@ -18,12 +18,17 @@
 //     status,                        // "lobby" | "live" | "finished"
 //     phase, countdown, msLeft,      // se live-core phaseAt (server-korrigerat)
 //     clock,                         // "12:43"
-//     classes: [{ classId, name, correct, divisor, score, joined, ready }],
-//     totalCorrect, leaderIds, winnerId, draw,
+//     classes, totalCorrect, leaderIds, winnerId, draw,  // ur sessionens
+//                                    // FORMAT (computeStandings, #547) –
+//                                    // Klassmatchen: classes = [{ classId, name,
+//                                    // correct, divisor, score, joined, ready }]
 //     top: [{ uid, name, classId, correct, incorrect }],
 //     result,                        // sparad historik (efter slut) eller null
 //     now,                           // server-korrigerad tid för renderingen
 //   }
+//
+// Formatet (formatOf(session), saknat = Klassmatchen) avgör ställningen,
+// historikens result och om klassräknarna (classCounters) ska lyssnas på.
 //
 // Återanslutning: Firestore-lyssnarna återupptas själva efter avbrott, och en
 // omladdning prenumererar bara på nytt – allt tillstånd kommer från servern.
@@ -32,11 +37,13 @@
 import {
   watchSession, watchCounters, watchPlayers, autoFinish, fillEndsAt, writeResultIfMissing,
 } from "./live-data.js";
-import {
-  phaseAt, sumCounters, classStandings, decideWinner, topPlayers, buildResult, formatClock,
-} from "./live-core.js";
+import { phaseAt, topPlayers, formatClock } from "./live-core.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
 import { getGameMode } from "./modes/index.js";
+import { formatOf } from "./formats/index.js";
+
+// Okänt format (session från en nyare klient): ingen ställning, inget result.
+const NO_STANDINGS = { classes: [], totalCorrect: 0, leaderIds: [], winnerId: null, draw: false };
 
 const TICK_MS = 250;
 // Vänta in svar som committats precis före slutet innan resultatet fryses.
@@ -54,6 +61,7 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
   let counters = [];
   let players = [];
   let lastKey = "";
+  let countersOn = false;
   let closed = false;
   let finishTried = false;
   let resultTimer = 0;
@@ -66,8 +74,8 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
     const now = serverNow();
     const s = session || null;
     const ph = phaseAt(s, now);
-    const classes = classStandings(s, sumCounters(counters), players, s?.status === "lobby" ? now : null);
-    const w = decideWinner(classes);
+    const fmt = formatOf(s);
+    const standings = s && fmt ? fmt.computeStandings(s, { counters, players, now }) : NO_STANDINGS;
     return {
       sessionId: sid,
       session: s,
@@ -76,11 +84,7 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
       countdown: ph.countdown,
       msLeft: ph.msLeft,
       clock: formatClock(ph.msLeft),
-      classes,
-      totalCorrect: classes.reduce((n, c) => n + c.correct, 0),
-      leaderIds: w.leaderIds,
-      winnerId: w.winnerId,
-      draw: w.draw,
+      ...standings,
       top: topPlayers(players, topN),
       result: s?.result || null,
       now,
@@ -107,9 +111,10 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
     }
     if (st.phase === "finished" && !st.result && !resultTimer) {
       resultTimer = setTimeout(() => {
-        if (closed || session?.result) return;
+        const fmt = formatOf(session);
+        if (closed || session?.result || !fmt) return;
         const final = compute();
-        const result = buildResult(session, final.classes, players, getGameMode(session?.gameMode));
+        const result = fmt.buildResult(session, final.classes, players, getGameMode(session?.gameMode));
         writeResultIfMissing(sid, result).catch(onError);
       }, RESULT_SETTLE_MS);
     }
@@ -129,13 +134,15 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
 
   unsubs.push(watchSession(sid, (s) => {
     session = s;
+    // Klassräknarna (Klassmatchen) – först när formatet är känt.
+    if (teacher && s && !countersOn && formatOf(s)?.classCounters) {
+      countersOn = true;
+      unsubs.push(watchCounters(sid, (docs) => { counters = docs; emit(); }, onError));
+    }
     if (s?.status !== "live") finishTried = s?.status === "finished";
     emit(true);
   }, onError));
-  if (teacher) {
-    unsubs.push(watchCounters(sid, (docs) => { counters = docs; emit(); }, onError));
-    unsubs.push(watchPlayers(sid, (docs) => { players = docs; emit(); }, onError));
-  }
+  if (teacher) unsubs.push(watchPlayers(sid, (docs) => { players = docs; emit(); }, onError));
   const iv = setInterval(() => emit(), TICK_MS);
   const onVis = () => { if (!document.hidden) emit(true); };
   document.addEventListener("visibilitychange", onVis);
