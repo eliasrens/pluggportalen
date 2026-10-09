@@ -13,7 +13,9 @@
 //   LIVE_DURATIONS_MIN        [5,10,15,20,25,30] – lärarens val av matchlängd
 //   LIVE_COUNTDOWN_SECONDS    4  (3 · 2 · 1 · KÖR!) innan svar godtas
 //   toMs(t)                   → ms | null (live-time.js)
-//   sessionTimes(s)           → { startMs, t0Ms, endMs } (null före start)
+//   sessionTimes(s)           → { startMs, t0Ms, endMs } (null före start;
+//                               endMs null = ingen matchklocka, pacing
+//                               "lärarstyrd" – Snilleblixten, #558)
 //   phaseAt(s, now)           → { phase, countdown, msLeft }
 //     phase: "lobby" | "countdown" | "live" | "ended" (tiden ute men status
 //     ännu "live") | "finished" | "cancelled" (avbruten i lobbyn)
@@ -63,7 +65,9 @@ export function sessionTimes(s) {
   const startMs = toMs(s?.startedAt);
   if (startMs == null) return { startMs: null, t0Ms: null, endMs: null };
   const t0Ms = startMs + (Number(s.countdownSeconds) || 0) * 1000;
-  return { startMs, t0Ms, endMs: t0Ms + (Number(s.durationSeconds) || 0) * 1000 };
+  // Ingen matchklocka (lärarstyrt format): live tills läraren avslutar.
+  const durMs = (Number(s.durationSeconds) || 0) * 1000;
+  return { startMs, t0Ms, endMs: durMs > 0 ? t0Ms + durMs : null };
 }
 
 /** Var är sessionen just nu (mot server-korrigerad tid)? */
@@ -79,6 +83,7 @@ export function phaseAt(s, now) {
     const rem = Math.ceil((t0Ms - now) / 1000); // 4,3,2,1
     return { phase: "countdown", countdown: Math.max(0, rem - 1), msLeft: durMs };
   }
+  if (endMs == null) return { phase: "live", countdown: null, msLeft: 0 };
   if (now < endMs) return { phase: "live", countdown: null, msLeft: endMs - now };
   return { phase: "ended", countdown: null, msLeft: 0 };
 }
