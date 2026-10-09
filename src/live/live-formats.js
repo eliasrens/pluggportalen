@@ -66,6 +66,8 @@
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
 //   classDivisors VALFRI bool – lärarens nämnare per klass ("÷ Nämnare")
+//   emitOnPlayers VALFRI bool – realtidslagret skickar nytt tillstånd vid varje
+//                 spelarändring (svar, även fel) för händelsesystemet (#571)
 //   minQuestions  VALFRI heltal ≥ 1 – färre frågor än så i ett quizområde ger
 //                 läraren en tydlig varning (#553; saknas = 5, plugga-quiz-core.js)
 // ============================================================================
@@ -110,7 +112,7 @@ export function validateFormat(f) {
   if (f.minQuestions != null && !(Number.isInteger(f.minQuestions) && f.minQuestions >= 1)) {
     errs.push("minQuestions måste vara ett heltal ≥ 1");
   }
-  for (const b of ["classCounters", "classDivisors"]) {
+  for (const b of ["classCounters", "classDivisors", "emitOnPlayers"]) {
     if (f[b] != null && typeof f[b] !== "boolean") errs.push(`${b} måste vara bool`);
   }
   return errs;
@@ -125,7 +127,7 @@ export function registerFormat(f) {
   const errs = validateFormat(f);
   if (errs.length) throw new Error(`registerFormat(${f?.id}): ${errs.join("; ")}`);
   if (REGISTRY.has(f.id)) throw new Error(`registerFormat: "${f.id}" finns redan`);
-  const frozen = Object.freeze({ description: "", classCounters: false, classDivisors: false, ...f });
+  const frozen = Object.freeze({ description: "", classCounters: false, classDivisors: false, emitOnPlayers: false, ...f });
   REGISTRY.set(f.id, frozen);
   return frozen;
 }

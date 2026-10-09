@@ -73,6 +73,7 @@ export function createLiveQueue({
   let running = null; // { job, ac, done }
   const reacting = new Map(); // uid → { job, ac }
   let finalOn = false;
+  let finalDone = false;
   let dead = false;
   let pumping = false;
   let idleWaiters = [];
@@ -87,7 +88,7 @@ export function createLiveQueue({
   }
 
   function notifyIdle() {
-    if (running || banners.length || rankJob) return;
+    if (running || banners.length || rankJob || (finalOn && !finalDone)) return;
     const w = idleWaiters;
     idleWaiters = [];
     w.forEach((r) => r());
@@ -206,7 +207,7 @@ export function createLiveQueue({
         cur.done = runJob(fin, ac, { speed: 1, short: false });
         await cur.done;
         if (running === cur) running = null;
-      }).finally(notifyIdle);
+      }).finally(() => { finalDone = true; notifyIdle(); });
       return true;
     },
     idle: () => !running && !banners.length && !rankJob && !finalOn,
@@ -221,11 +222,12 @@ export function createLiveQueue({
     finalStarted: () => finalOn,
     stats: () => ({ ...counts }),
     whenIdle() {
-      if (!running && !banners.length && !rankJob) return Promise.resolve();
+      if (!running && !banners.length && !rankJob && (!finalOn || finalDone)) return Promise.resolve();
       return new Promise((r) => idleWaiters.push(r));
     },
     destroy() {
       dead = true;
+      finalDone = true;
       banners.length = 0;
       rankJob = null;
       running?.ac.abort();
