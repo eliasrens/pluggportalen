@@ -20,10 +20,8 @@
 //     demo.allAnswer(p)             alla svarar nu (rätt med sannolikhet p)
 //     demo.test7b()                 skriv själv: 5 × "54", 3 × "64", resten rätt
 //     demo.revealNow()              stäng frågan → trumvirvel → avslöjande
-//     demo.leaderChange()           tvåan svarar snabbt rätt, ettan fel → ny ledare
 //     demo.soonOut(sek)             frågan har sek sekunder kvar
-//     demo.climb()                  nästa fråga: bara plats 4 svarar (klättring)
-//     demo.playQuestions(k)         spela k frågor direkt (topplista)
+//     demo.playQuestions(k)         spela k frågor direkt (mellanbild/final)
 //     demo.jumpToFinal(tie)         hoppa till pallplatsen; tie null | "forsta"
 //                                   (oavgjort om 1:a) | "andra" (delad 2:a)
 //     demo.toggleFreeze()           serverns tid står still (skärmdumpar)
@@ -101,7 +99,7 @@ export function createSbDemo({ kind = "choice", sid = "demo-snilleblixt", screen
   let answers = [];
   let scores = [];
   let timers = [];
-  let plan = null; // nästa frågas styrda svar (klättring/ledningsbyte)
+  let plan = null; // nästa frågas styrda svar (t.ex. test 7b)
   let cb = null;
   let lastKey = "";
   let resultTimer = null;
@@ -168,7 +166,7 @@ export function createSbDemo({ kind = "choice", sid = "demo-snilleblixt", screen
     step("open", session.q ? session.q.index : -1);
   }
 
-  /** Spela k frågor direkt (tidigare frågor i matchen, för topplista/final). */
+  /** Spela k frågor direkt (tidigare frågor i matchen, för mellanbild/final). */
   function playQuestions(k) {
     if (session.status === "lobby") { session.status = "live"; session.startedAt = now() - 600_000; }
     const startIx = session.q ? session.q.index + 1 : 0;
@@ -299,35 +297,10 @@ export function createSbDemo({ kind = "choice", sid = "demo-snilleblixt", screen
       if (session.q?.phase !== "open") return onLog("ingen öppen fråga att avslöja");
       step("close", session.q.index);
     },
-    leaderChange() {
-      steer(() => {
-        const st = standings();
-        const [leader] = st.players;
-        const ch = st.players.find((p) => p.uid !== leader?.uid && leader.points - p.points < 940) || st.players[1];
-        if (!leader || !ch) return onLog("för få elever");
-        const opened = Number(session.q.openedAt);
-        const target = ch.points + 990;
-        if (target <= leader.points) onLog("avståndet till ettan är för stort – tryck igen");
-        players.forEach((p, i) => {
-          const row = st.players.find((r) => r.uid === p.uid);
-          const good = p.uid === ch.uid || (p.uid !== leader.uid && (row?.points || 0) + 1000 < target && rng() < 0.6);
-          const at = p.uid === ch.uid ? opened + 200 : null;
-          later(() => answer(p.uid, { correct: good, at: at ?? undefined }), p.uid === ch.uid ? 250 : 500 + i * 60);
-        });
-        later(() => { if (session.q?.phase === "open") step("close", session.q.index); }, 600 + players.length * 60);
-      });
-    },
     soonOut(sek = 6) {
       if (session.q?.phase !== "open") return onLog("ingen öppen fråga");
       session.q = { ...session.q, openedAt: now() - (session.questionSeconds - sek) * 1000 };
       emit(true);
-    },
-    climb() {
-      steer(() => {
-        const ch = standings().players[3];
-        if (!ch) return;
-        later(() => answer(ch.uid, { correct: true }), 300);
-      });
     },
     playQuestions,
     jumpToFinal(tieKind = null) {

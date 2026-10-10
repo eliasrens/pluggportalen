@@ -33,7 +33,7 @@ import { invalidateStudentData } from "../../../data.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { serverNow } from "../../live-clock.js";
 import { placeText, myReward, rewardSummary, sessionRewards } from "../../live-rewards.js";
-import { elevLage, formatPoints, relativeText, endStanding, firstName } from "./snilleblixt-elev.js";
+import { elevLage, formatPoints, relativeText, endStanding, firstName, stageAction } from "./snilleblixt-elev.js";
 import { createAvatarRoster } from "../../design/live-avatars.js";
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
 import { react, setAvatarState } from "../../design/live-reactions.js";
@@ -132,7 +132,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       dc.getClassProjection(cid).then((p) => {
         for (const [u, m] of Object.entries(p?.members || {})) if (m?.namn) names[u] = firstName(m.namn);
       }).catch(() => {}))))
-      .then(() => { if (!destroyed) draw(); }, () => {});
+      .then(() => { if (!destroyed) sync(); }, () => {});
   }
   loadNames();
   let coinTimers = null;
@@ -159,7 +159,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
         f.textContent = "😕 Svaret kom inte fram – försök igen!";
         f.hidden = false;
       })
-      .finally(() => draw());
+      .finally(() => sync());
   }
 
   const comp = choice
@@ -180,7 +180,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
 
   function startScores() {
     if (unsubScores || !player || destroyed) return;
-    unsubScores = watchScores(sid, (list) => { scores = list; draw(); }, () => {
+    unsubScores = watchScores(sid, (list) => { scores = list; sync(); }, () => {
       // Läsregeln kräver spelardokumentet – försök igen om en stund.
       unsubScores = null;
       clearTimeout(scoresRetry);
@@ -247,7 +247,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       else {
         fetchedFirst = true;
         const index = q.index;
-        getMyAnswer(sid, index, uid).then((a) => { if (!mineBy.get(index)) mineBy.set(index, a); }, () => mineBy.set(index, null)).finally(draw);
+        getMyAnswer(sid, index, uid).then((a) => { if (!mineBy.get(index)) mineBy.set(index, a); }, () => mineBy.set(index, null)).finally(sync);
       }
     }
     const loading = q && player && !mineBy.has(q.index);
@@ -261,7 +261,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     view.classList.toggle("sb-fel", kind === "fel");
     timeBar({ ...l, kind });
     clearTimeout(timer);
-    if (kind === "fraga" && l.endMs != null) timer = setTimeout(draw, Math.max(50, l.endMs - serverNow() + 30));
+    if (kind === "fraga" && l.endMs != null) timer = setTimeout(sync, Math.max(50, l.endMs - serverNow() + 30));
 
     const answerArea = kind === "fraga" || (kind === "svarat" && choice);
     if (answerArea) showAnswer({ ...l, kind }, l.question);
@@ -317,15 +317,23 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     }
   }
 
+  // Rita det som hör till fasen. Asynkrona callbacks (poäng, namn) går också
+  // hit – ett draw() i lobbyn flyttade avataren till den dolda spelytan (#561 F2).
+  function sync() {
+    if (destroyed || !st) return;
+    const what = stageAction(st.phase);
+    if (what === "spel") return draw();
+    clearTimeout(timer);
+    if (what === "lobby") place(view.querySelector(".live-elev-lobby [data-sb-av]"));
+    else if (what === "slut") drawEnd();
+  }
+
   return {
     update(next, p) {
       st = next;
       player = p;
       if (player) startScores();
-      if (st.phase === "live") return draw();
-      clearTimeout(timer);
-      if (st.phase === "lobby") place(view.querySelector(".live-elev-lobby [data-sb-av]"));
-      else if (st.phase === "finished" || st.phase === "cancelled") drawEnd();
+      sync();
     },
     destroy() {
       destroyed = true;

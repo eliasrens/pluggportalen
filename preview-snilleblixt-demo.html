@@ -54,7 +54,7 @@
         <b>Börja i (startar om)</b>
         <button data-go="lobby">Tom lobby</button>
         <button data-go="fraga">Fråga 4 pågår</button>
-        <button data-go="topplista">Topplista</button>
+        <button data-go="mellan">Mellanbild (efter fråga 4)</button>
         <b>Lobby</b>
         <button data-act="anslut">+30 elever ansluter</button>
         <b>Frågan</b>
@@ -63,9 +63,6 @@
         <button data-act="avslojande">Avslöja nu</button>
         <button data-act="snart">Tid snart slut (6 s)</button>
         <button data-act="t7b">Test 7b (5×54, 3×64)</button>
-        <b>Topplistan</b>
-        <button data-act="ledning">Ledningsbyte</button>
-        <button data-act="klattra">Klättring plats 4 → 1</button>
         <b>Pallplats</b>
         <button data-act="final">Hoppa till pallplats</button>
         <button data-act="final-andra">Delad 2:a</button>
@@ -107,7 +104,7 @@
       if (FAS !== "lobby") {
         demo.join(30, 0, Date.now() - 900_000);
         if (FAS === "fraga") { demo.playQuestions(3); demo.step("open", 2); }
-        if (FAS === "topplista") demo.playQuestions(Number(q.get("historik")) || 4);
+        if (FAS === "mellan") demo.playQuestions(4);
         if (FAS === "final") demo.jumpToFinal(q.get("delad") ? "andra" : q.get("oavgjort") ? "forsta" : null);
       }
 
@@ -130,8 +127,6 @@
         avslojande: () => demo.revealNow(),
         snart: () => demo.soonOut(6),
         t7b: () => demo.test7b(),
-        ledning: () => demo.leaderChange(),
-        klattra: () => demo.climb(),
         final: () => go({ fas: "final" }),
         "final-andra": () => go({ fas: "final", delad: "1" }),
         "final-forsta": () => go({ fas: "final", oavgjort: "1" }),
