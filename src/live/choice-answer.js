@@ -16,11 +16,12 @@
 //   mountChoiceAnswer(root, opts) → handle
 //     opts.options    4 alternativ (tal/text) – kan sättas senare via setQuestion
 //     opts.question   frågetext ovanför knapparna (valfri; "" = ingen rad)
+//     opts.context    kort kontextrad ovanför frågan (quizets passage, #582)
 //     opts.onChoose   (index, option) => void – EXAKT en gång per fråga
 //     opts.sentText   statusrad efter val (default "⚡ Svar inskickat!")
 //     opts.enabled    false → knapparna låsta (lobby/avslöjande)
 //     opts.keyboard   false → ingen 1–4-lyssnare (t.ex. två komponenter samtidigt)
-//   handle.setQuestion({ options, question? }) – ny fråga, olåst och påslagen
+//   handle.setQuestion({ options, question?, context? }) – ny fråga, olåst och påslagen
 //   handle.reveal(correctIndex) – markera rätt (✓) / valt fel (✗), låser
 //   handle.showChosen(index)    – visa ett REDAN inskickat val (omladdning,
 //                                 #558): låst och markerat, utan onChoose
@@ -80,6 +81,7 @@ export function mountChoiceAnswer(root, opts = {}) {
 
   root.classList.add("ca-root");
   root.innerHTML = `
+    <p class="ca-kontext" hidden></p>
     <div class="ca-fraga" aria-live="polite"></div>
     <div class="ca-grid" role="group" aria-label="Svarsalternativ">
       ${CHOICE_STYLES.map((s, i) => `
@@ -92,6 +94,7 @@ export function mountChoiceAnswer(root, opts = {}) {
     </div>
     <div class="ca-status" role="status" aria-live="polite"></div>`;
   const qEl = root.querySelector(".ca-fraga");
+  const ctxEl = root.querySelector(".ca-kontext");
   const grid = root.querySelector(".ca-grid");
   const buttons = [...root.querySelectorAll(".ca-knapp")];
   const statusEl = root.querySelector(".ca-status");
@@ -150,10 +153,12 @@ export function mountChoiceAnswer(root, opts = {}) {
   grid.addEventListener("click", onClick);
   if (opts.keyboard !== false) document.addEventListener("keydown", onKey);
 
-  function setQuestion({ options: opt = [], question = "" } = {}) {
+  function setQuestion({ options: opt = [], question = "", context = "" } = {}) {
     options = opt.slice(0, 4);
     chosen = null;
     enabled = true;
+    ctxEl.textContent = context;
+    ctxEl.hidden = !context;
     qEl.textContent = question;
     qEl.hidden = !question;
     statusEl.textContent = "";
@@ -165,7 +170,7 @@ export function mountChoiceAnswer(root, opts = {}) {
     render();
   }
 
-  setQuestion({ options: opts.options || [], question: opts.question || "" });
+  setQuestion({ options: opts.options || [], question: opts.question || "", context: opts.context || "" });
   enabled = opts.enabled !== false;
   syncState();
 

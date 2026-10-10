@@ -63,7 +63,7 @@ const PLUGGA_QUIZ = {
     },
   ],
 
-  /** input.quizArea = väljarens value(): { subjectId, areaId, subjectName, areaName, usable } */
+  /** input.quizArea = väljarens value(): { subjectId, areaId, subjectName, areaName, usable, showPassage } */
   validateSetup(input) {
     const a = input?.[QUIZ_AREA_FIELD];
     if (!a?.subjectId || !a?.areaId) return ["Välj ämne och arbetsområde för quizet."];
@@ -80,6 +80,7 @@ const PLUGGA_QUIZ = {
         subjectName: String(a.subjectName || a.subjectId),
         areaName: String(a.areaName || a.areaId),
         passagePolicy: QUIZ_PASSAGE_POLICY,
+        showPassage: a.showPassage === true,
       },
     };
   },

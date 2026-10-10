@@ -156,7 +156,7 @@ export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS) {
   ].filter(Boolean);
   if (harPassage) {
     krav.push(
-      `- Området används för läsförståelse: varje ny quizfråga MÅSTE ha en egen "passage" (3–5 meningar) precis som de befintliga frågorna – gör fler frågor av samma slag.`
+      `- Området används för läsförståelse: varje ny quizfråga MÅSTE ha en egen "passage" (3–5 meningar bakgrundsinformation) precis som de befintliga frågorna. Frågan ska ändå gå att besvara med rätt ämneskunskap UTAN att läsa passagen – "enligt texten", "i texten" och liknande är förbjudet.`
     );
   }
   if (generator) krav.push(`- ${generator}`);

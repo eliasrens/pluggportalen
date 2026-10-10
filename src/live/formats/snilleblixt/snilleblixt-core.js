@@ -84,7 +84,7 @@ function shuffle(arr, rng) {
  *     buildQuizSnapshot, injiceras så att kärnan inte laddar quizkoden),
  *     count 0 = alla
  * @param {object} mode GameMode
- * @param {{ answerKind, count, shuffle, quiz?, quizSnapshot?, rng? }} opts
+ * @param {{ answerKind, count, shuffle, quiz?, quizSnapshot?, showPassage?, rng? }} opts
  */
 export function buildSnapshot(mode, opts = {}) {
   const rng = opts.rng || Math.random;
@@ -93,7 +93,7 @@ export function buildSnapshot(mode, opts = {}) {
   const questions = [];
   const facit = [];
   if (mode?.id === QUIZ_MODE) {
-    const snap = opts.quizSnapshot(opts.quiz, { count: count || undefined, shuffle: opts.shuffle !== false, rng });
+    const snap = opts.quizSnapshot(opts.quiz, { count: count || undefined, shuffle: opts.shuffle !== false, showPassage: opts.showPassage === true, rng });
     snap.questions.slice(0, SB_MAX_QUESTIONS).forEach((q, i) => {
       const f = snap.facit[i];
       questions.push({ ...q, statKeys: mode.statKeys(q) });

@@ -76,7 +76,8 @@ const GULDRUSH = {
     const getArea = ctx.getArea || (await import("../../../data-content.js")).getArea;
     const area = await getArea(data.quiz.subjectId, data.quiz.areaId);
     const { buildQuizSnapshot } = await import("../../modes/plugga-quiz-core.js");
-    const pool = buildQuizPool(mode, area?.quiz || [], buildQuizSnapshot, ctx.rng);
+    const pool = buildQuizPool(mode, area?.quiz || [], buildQuizSnapshot, ctx.rng,
+      { showPassage: data.quiz.showPassage === true });
     if (!pool.questions.length) throw new Error("Det finns inga frågor att spela.");
     return {
       data: { questionCount: pool.questions.length },

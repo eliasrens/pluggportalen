@@ -5,13 +5,16 @@
 // av lärarformuläret (teacher-live-form.js) först när quizläget väljs. Visar
 // hur många frågor området har och kan spelas – och en tydlig varning (för
 // få, under formatets minQuestions) eller ett stopp (inga alls) – INNAN Skapa.
+// Har området passage-frågor visas rutan "Visa lästext till frågorna" (av som
+// standard, #582); antalen räknas om efter rutan. På → längre frågetid föreslås
+// (formulärets sf-questionSeconds, om formatet har det).
 //
 // API
 //   mount(box, inner, { format?, content? }) → { sync(), value() }
 //     format   formatet som valts (minQuestions + namnet i varningen)
 //     content  { getSubjects(), getAreas(subjectId) } – default
 //              src/data-content.js (dynamiskt); förhandsvisningen stubbar.
-//   value() → { subjectId, areaId, subjectName, areaName, usable, total } | null
+//   value() → { subjectId, areaId, subjectName, areaName, usable, total, showPassage } | null
 // ============================================================================
 
 import { summarizeQuizArea, quizAreaMessage, minQuestionsFor } from "./plugga-quiz-core.js";
@@ -29,14 +32,26 @@ export function mount(box, inner, ctx = {}) {
       <select class="live-quiz-subject" aria-label="Ämne"><option value="">Laddar ämnen…</option></select>
       <select class="live-quiz-area" aria-label="Arbetsområde" disabled><option value="">Välj ämne först</option></select>
     </div>
+    <label class="live-toggle live-quiz-passage" hidden><input type="checkbox" class="live-quiz-passage-cb" />
+      <span>Visa lästext till frågorna</span> <small class="hint">(kort text ovanför frågan på projektor och elevskärm)</small></label>
     <p class="live-quiz-info hint" role="status" aria-live="polite"></p>`;
   const subjSel = inner.querySelector(".live-quiz-subject");
   const areaSel = inner.querySelector(".live-quiz-area");
   const info = inner.querySelector(".live-quiz-info");
+  const passageBox = inner.querySelector(".live-quiz-passage");
+  const passageCb = inner.querySelector(".live-quiz-passage-cb");
   let subjects = [];
   let areas = [];
   let picked = null;
   let token = 0;
+  const summarize = (a) => summarizeQuizArea(a.quiz, { minQuestions, showPassage: passageCb.checked });
+
+  function renderAreaOptions() {
+    const keep = areaSel.value;
+    areaSel.innerHTML = `<option value="">Välj arbetsområde…</option>${areas.map(({ a, s }) =>
+      `<option value="${esc(a.id)}">${esc(`${nameOf(a)} (${s.usable} ${s.usable === 1 ? "fråga" : "frågor"})`)}</option>`).join("")}`;
+    areaSel.value = keep;
+  }
 
   function setInfo(level, text) {
     info.className = `live-quiz-info ${level === "ok" ? "hint" : `msg ${level === "warn" ? "warn" : "error"}`}`;
@@ -60,6 +75,7 @@ export function mount(box, inner, ctx = {}) {
     picked = null;
     areas = [];
     info.textContent = "";
+    passageBox.hidden = true;
     areaSel.disabled = true;
     if (!subjectId) {
       areaSel.innerHTML = `<option value="">Välj ämne först</option>`;
@@ -70,9 +86,8 @@ export function mount(box, inner, ctx = {}) {
       const content = await contentP;
       const list = await content.getAreas(subjectId);
       if (my !== token) return;
-      areas = list.map((a) => ({ a, s: summarizeQuizArea(a.quiz, { minQuestions }) }));
-      areaSel.innerHTML = `<option value="">Välj arbetsområde…</option>${areas.map(({ a, s }) =>
-        `<option value="${esc(a.id)}">${esc(`${nameOf(a)} (${s.usable} ${s.usable === 1 ? "fråga" : "frågor"})`)}</option>`).join("")}`;
+      areas = list.map((a) => ({ a, s: summarize(a) }));
+      renderAreaOptions();
       areaSel.disabled = false;
       if (!areas.length) setInfo("error", "Ämnet har inga arbetsområden.");
     } catch (err) {
@@ -87,12 +102,14 @@ export function mount(box, inner, ctx = {}) {
     if (!hit) {
       picked = null;
       info.textContent = "";
+      passageBox.hidden = true;
       return;
     }
+    passageBox.hidden = !(hit.s.withPassage > 0);
     const subject = subjects.find((s) => s.id === subjSel.value);
     picked = {
       subjectId: subjSel.value, areaId: hit.a.id, subjectName: nameOf(subject), areaName: nameOf(hit.a),
-      usable: hit.s.usable, total: hit.s.total,
+      usable: hit.s.usable, total: hit.s.total, showPassage: passageCb.checked && hit.s.withPassage > 0,
     };
     const m = quizAreaMessage(hit.s, ctx.format?.displayName || "");
     setInfo(m.level, m.text);
@@ -100,6 +117,23 @@ export function mount(box, inner, ctx = {}) {
 
   subjSel.addEventListener("change", () => loadAreas(subjSel.value));
   areaSel.addEventListener("change", () => pickArea(areaSel.value));
+  passageCb.addEventListener("change", () => {
+    for (const x of areas) x.s = summarize(x.a);
+    renderAreaOptions();
+    pickArea(areaSel.value);
+    if (passageCb.checked) suggestLongerTime();
+  });
+
+  // Lästext tar tid att läsa: föreslå 30 s per fråga om kortare är valt.
+  function suggestLongerTime() {
+    const radios = [...(box.closest("form") || document).querySelectorAll('input[name="sf-questionSeconds"]')];
+    const cur = radios.find((r) => r.checked);
+    const to = radios.find((r) => Number(r.value) === 30);
+    if (to && cur && Number(cur.value) < 30) {
+      to.checked = true;
+      to.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
   loadSubjects();
 
   return {

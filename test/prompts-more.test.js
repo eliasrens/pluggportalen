@@ -61,6 +61,17 @@ test("buildMorePrompt ber om passage när området har läsförståelse-frågor"
   assert.doesNotMatch(utan, /varje ny quizfråga MÅSTE ha en egen "passage"/);
 });
 
+test("prompterna: quizfrågor är kunskapsfrågor – passagen är bakgrund, \"enligt texten\" förbjudet (#582)", () => {
+  const med = buildMorePrompt(area({ quiz: [{ question: "Q?", options: ["a", "b"], answerIndex: 0, passage: "En text." }] }));
+  assert.match(med, /besvara med rätt ämneskunskap UTAN att läsa passagen/);
+  assert.match(med, /"enligt texten", "i texten" och liknande är förbjudet/);
+  const ny = buildAreaPrompt(["quiz"], "Vikingatiden", "ak4");
+  assert.match(ny, /BAKGRUNDSINFORMATION/);
+  assert.match(ny, /UTAN att läsa\s+passagen/);
+  assert.match(ny, /FÖRBJUDNA/);
+  assert.doesNotMatch(ny, /kan besvaras enbart utifrån/);
+});
+
 test("buildMorePrompt hittar inte på typer: rent quiz-område ber inte om par", () => {
   const p = buildMorePrompt(area({ exerciseTypes: ["quiz"], pairs: [] }));
   assert.ok(p.startsWith(buildAreaPrompt(["quiz"], 'Mer innehåll till det befintliga arbetsområdet "Handel förr"', "ak6")));
