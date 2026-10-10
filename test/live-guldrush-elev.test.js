@@ -141,6 +141,54 @@ test("test 20i: slutskärmens underlag – topp 3 pallplats, övriga relativt", 
   assert.equal(endStanding(result, "x").row, null);
 });
 
+// #577 (Elias 2026-10-10, ändrat beslut): ALDRIG en placeringssiffra på
+// elevskärmen – ingen ska få veta att hen ligger sist. Slutskärmen (endHtml i
+// gr-skarmar.js) bygger rubriken på endStanding().podium och raden på
+// standingText(rel), så det är de som låses här.
+const INGEN_SIFFRA = /\d+\s*:\s*[ae]\b|ligger|kom \d|plats|av \d|sist/i;
+
+test("#577 toppraden: de tre fallen – leder, bakom, lika", () => {
+  const list = [p("alma", 120), p("omar", 80), p("leo", 80), p("ines", 10)];
+  assert.equal(standingText(goldStanding(list, "alma").rel), "Du leder! 💰");
+  assert.equal(standingText(goldStanding(list, "ines").rel), "70 guld bakom Leo");
+  assert.equal(standingText(goldStanding(list, "omar").rel), "Lika med Leo");
+  assert.equal(standingText(goldStanding(list, "leo").rel), "Lika med Omar");
+});
+
+test("#577 plats 4 och nedåt: ingen placeringssiffra, inget \"ligger\"/\"kom N:e\", ingen sista-markering", () => {
+  const list = Array.from({ length: 30 }, (_, i) => p(`elev${String(i).padStart(2, "0")}`, 300 - i * 10));
+  list.push(p("tva", 10), p("noll", 0));
+  for (const { uid } of list) {
+    const text = standingText(goldStanding(list, uid).rel);
+    assert.ok(text, `${uid} får en rad`);
+    assert.doesNotMatch(text, INGEN_SIFFRA, `${uid}: "${text}"`);
+  }
+  // Sist: bara avståndet till närmaste framför.
+  assert.equal(standingText(goldStanding(list, "noll").rel), "10 guld bakom Elev29");
+  const ranking = [...list].sort((a, b) => b.gold - a.gold).map((x, i) => ({ ...x, correct: 1, rank: i + 1 }));
+  for (const row of ranking.slice(3)) {
+    const end = endStanding({ ranking }, row.uid);
+    assert.equal(end.podium, null, `${row.uid} (rank ${row.rank}) får ingen pall`);
+    assert.doesNotMatch(standingText(end.rel), INGEN_SIFFRA);
+  }
+});
+
+test("#577 slutskärmen: bara topp 3 (med guld) får pallplats, delad vid lika", () => {
+  const ranking = [
+    { uid: "alma", name: "Alma", gold: 300, correct: 9, rank: 1 },
+    { uid: "omar", name: "Omar", gold: 200, correct: 8, rank: 2 },
+    { uid: "clara", name: "Clara", gold: 200, correct: 8, rank: 2 },
+    { uid: "leo", name: "Leo", gold: 150, correct: 5, rank: 4 },
+    { uid: "ines", name: "Ines", gold: 90, correct: 3, rank: 5 },
+  ];
+  const pall = Object.fromEntries(ranking.map((r) => [r.uid, endStanding({ ranking }, r.uid).podium]));
+  assert.deepEqual(pall, { alma: 1, omar: 2, clara: 2, leo: null, ines: null });
+  assert.equal(standingText(endStanding({ ranking }, "leo").rel), "50 guld bakom Clara");
+  // Topp 3 utan guld (alla 0) → ingen pall.
+  const tom = [{ uid: "a", name: "A", gold: 0, correct: 0, rank: 1 }, { uid: "b", name: "B", gold: 0, correct: 0, rank: 1 }];
+  assert.equal(endStanding({ ranking: tom }, "a").podium, null);
+});
+
 test("faser, uppräkning, format", () => {
   assert.equal(stageAction("live"), "spel");
   assert.equal(stageAction("lobby"), "lobby");
