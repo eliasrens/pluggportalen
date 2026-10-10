@@ -7,13 +7,17 @@
 // aldrig själv ut vad en kista innehåller – kistans utseende/ljud slås upp ur
 // kistkonfigen (delat/chests-config.js) med det id servern svarade.
 //
-// INGEN PLACERING SOM NUMMER (Elias 2026-10-10, samma regel som
-// Snilleblixten): toppraden visar läget mot närmaste elev FRAMFÖR ("20 guld
-// bakom Alma" / "Du leder! 💰"); bara topp 3 ser sin pallplats på slutskärmen.
+// PLACERING ENLIGT SPECEN (Elias 2026-10-10, #577 – Guldrushen följer INTE
+// Snilleblixtens regel): toppraden visar diskret "Du ligger 4:a" (funktions-
+// spec §6.7, designspec §6.6), ettan "Du leder! 💰"; slutskärmen "Du kom 4:e!"
+// för alla (§7.2.4), medalj bara för topp 3. Lika guld = DELAD placering
+// (1, 1, 3 – samma som guldrush-core rankByGold): "Du ligger delad 2:a".
+// Innan någon har guld finns ingen placering (alla vore delad 1:a).
 //
 // API
-//   goldStanding(grPlayers, uid) → { gold, rel }   rel = relativeStanding (guld)
-//   standingText(rel) → "20 guld bakom Alma" | "Du leder! 💰" | "Lika med Alma" | ""
+//   goldStanding(grPlayers, uid) → { gold, place }   place = { rank, shared } | null
+//   standingText(place) → "Du leder! 💰" | "Ni delar ledningen! 💰"
+//       | "Du ligger 4:a" | "Du ligger delad 4:a" | ""
 //   victimRows(kind, me, grPlayers, now) → [{ uid, name, first, classId, gold,
 //       ok, shield, why }]  offerväljarens knappar: sorterade på guld (mest
 //       först), aldrig en själv; byte visar BARA de med mer guld. ok=false =
@@ -24,7 +28,8 @@
 //   victimView(result, names?) → samma för stöldens/bytets utfall
 //   createHitWatcher() → { take(me) → notis | null }  "🦝 Leo knyckte 20 guld
 //       från dig!" – FÖRSTA anropet är baslinjen (omladdning visar inget gammalt)
-//   endStanding(result, uid) → { podium: 1|2|3|null, row, rel }
+//   endStanding(result, uid) → { podium: 1|2|3|null, row, place }
+//   endText(place) → "Du kom 2:a!" | "Du kom delad 2:a!" | ""
 //   stageAction(phase) → "spel" | "lobby" | "slut" | null
 //   formatGold(n) → "1 240"
 //   countUp(from, to, t) → värdet vid t ∈ [0,1] (mjuk inbromsning)
@@ -33,7 +38,8 @@
 
 import { GR_EVENT_TEXTS, GR_RULES } from "./delat/chests-config.js";
 import { chestById, victimProblem, toMs } from "./delat/guldrush-regler.js";
-import { relativeStanding, firstName } from "../snilleblixt/snilleblixt-elev.js";
+import { firstName } from "../snilleblixt/snilleblixt-elev.js";
+import { placeText } from "../../live-rewards.js";
 
 export { firstName };
 
@@ -43,25 +49,29 @@ export function formatGold(n) {
   return Math.round(Number(n) || 0).toLocaleString("sv-SE").replace(/\s/g, " ");
 }
 
-/** Mitt guld + läget mot närmaste framför (aldrig ett placeringsnummer). */
+/** Placering ur allas guld: antal med MER guld + 1, delad vid lika. Ingen har guld → null. */
+function placeOf(golds, gold) {
+  if (!golds.some((g) => g > 0)) return null;
+  const above = golds.filter((g) => g > gold).length;
+  const same = golds.filter((g) => g === gold).length;
+  return { rank: above + 1, shared: same > 1 };
+}
+
+/** Mitt guld + min placering (sen anslutning utan dokument = 0 guld). */
 export function goldStanding(grPlayers, uid) {
-  const list = (grPlayers || []).filter((p) => p?.uid).map((p) => ({ uid: p.uid, points: int(p.gold), name: firstName(p.name) }));
-  if (!list.some((p) => p.uid === uid)) list.push({ uid, points: 0, name: "" });
-  const gold = list.find((p) => p.uid === uid).points;
-  return { gold, rel: relativeStanding(list, uid) };
+  const golds = new Map();
+  for (const p of grPlayers || []) if (p?.uid) golds.set(p.uid, int(p.gold));
+  if (!golds.has(uid)) golds.set(uid, 0);
+  const gold = golds.get(uid);
+  return { gold, place: placeOf([...golds.values()], gold) };
 }
 
 const NAMNLOS = "en klasskompis";
 
-export function standingText(rel) {
-  const n = (rel?.name || "").trim() || NAMNLOS;
-  switch (rel?.kind) {
-    case "leder": return "Du leder! 💰";
-    case "lika-topp": return `Lika med ${n} – ni leder! 💰`;
-    case "lika": return `Lika med ${n}`;
-    case "bakom": return `${formatGold(rel.diff)} guld bakom ${n}`;
-    default: return "";
-  }
+export function standingText(place) {
+  if (!place?.rank) return "";
+  if (place.rank === 1) return place.shared ? "Ni delar ledningen! 💰" : "Du leder! 💰";
+  return `Du ligger ${place.shared ? "delad " : ""}${placeText(place.rank)}`;
 }
 
 const WHY = {
@@ -163,13 +173,19 @@ export function createHitWatcher() {
   };
 }
 
-/** Slutskärmen ur result.ranking: topp 3 (med guld) → pallplats, annars läget mot närmaste framför. */
+/** Slutskärmen ur result.ranking (rank satt av servern, delad vid lika): placering för alla, pall för topp 3 med guld. */
 export function endStanding(result, uid) {
   const ranking = result?.ranking || [];
   const row = ranking.find((p) => p.uid === uid) || null;
-  const podium = row && row.gold > 0 && row.rank <= 3 ? row.rank : null;
-  const list = ranking.map((p) => ({ uid: p.uid, points: int(p.gold), name: firstName(p.name) }));
-  return { podium, row, rel: row ? relativeStanding(list, uid) : { kind: "ingen" } };
+  const anyGold = ranking.some((p) => int(p.gold) > 0);
+  const place = row && anyGold && row.rank ? { rank: row.rank, shared: ranking.filter((p) => p.rank === row.rank).length > 1 } : null;
+  const podium = place && int(row.gold) > 0 && place.rank <= 3 ? place.rank : null;
+  return { podium, row, place };
+}
+
+export function endText(place) {
+  if (!place?.rank) return "";
+  return `Du kom ${place.shared ? "delad " : ""}${placeText(place.rank)}!`;
 }
 
 export function stageAction(phase) {

@@ -7,8 +7,8 @@
 // varje rätt svar ger kistor via servern.
 //
 // Layout (Chromebook 1366×768 först, allt utan scroll):
-//   överst   eget guld stort och glänsande + läget ("20 guld bakom Alma" –
-//            ingen placering som nummer, se gr-elev.js) + ljudknapp + avatar
+//   överst   eget guld stort och glänsande + diskret placering ("Du ligger
+//            4:a" / "Du leder! 💰", spec §6.6, se gr-elev.js) + ljudknapp + avatar
 //            i hörnet som reagerar (Glad, Jubel, Aj, Skyddad)
 //   mitten   fråga + svarsfält/alternativ (gr-fraga.js) ELLER de tre kistorna
 //            (gr-kistor.js) ELLER offerväljaren (gr-offer.js)
@@ -120,8 +120,8 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
 
   function drawTop() {
     gold.sync(mine?.gold);
-    const { rel } = goldStanding(grPlayers, uid);
-    const lage = standingText(rel) || (gotPlayers ? "Svara rätt – öppna en kista! 🗝️" : "");
+    const { place } = goldStanding(grPlayers, uid);
+    const lage = standingText(place) || (gotPlayers ? "Svara rätt – öppna en kista! 🗝️" : "");
     $(".gr-lage").textContent = lage;
     const skydd = $(".gr-skydd");
     const prot = isProtected(mine, serverNow());
