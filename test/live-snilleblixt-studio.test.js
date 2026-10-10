@@ -1,8 +1,9 @@
 // ============================================================================
 // Enhetstester: Snilleblixtens TV-studio (#559) – scenlogiken (sb-scen.js):
 // scener ur q-fas + servertid, frågans nedräkning (spänning sista 5 s),
-// avslöjandets siffror (test 7b: "54 (5 st) · 64 (3 st)"), svit, pallsteg
-// med delad placering (test 12 / designtest 9), publikens rutnät
+// avslöjandets siffror (test 7b: "54 (5 st) · 64 (3 st)"), klassens anonyma
+// andel rätt (ingen uthängning, Elias 2026-10-10), pallsteg med delad
+// placering (test 12 / designtest 9), publikens rutnät
 // (designtest 4), lärarautomatiken (test 9: alla svarat → stäng) och
 // kopplingen: två lärarfönster trycker NÄSTA FRÅGA samtidigt → exakt ett
 // steg (test 10). DOM-delarna provas i preview-snilleblixt-studio.html.
@@ -11,7 +12,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  studioScene, questionClock, shownScores, revealInfo, streaks, podiumGroups, audienceLayout, choreFor, controlsFor,
+  studioScene, questionClock, revealInfo, classSummary, podiumGroups, audienceLayout, choreFor, controlsFor,
   SB_DRUM_MS, SB_REVEAL_HOLD_MS, SB_OPEN_DELAY_MS,
 } from "../src/live/formats/snilleblixt/sb-scen.js";
 import { scoreQuestion, computeStandings } from "../src/live/formats/snilleblixt/snilleblixt-poang.js";
@@ -27,7 +28,7 @@ const sess = (over = {}) => ({
 const st = (s, phase = "live") => ({ session: s, phase, players: [] });
 
 describe("Snilleblixten-studion: scener", () => {
-  it("lobby → intro → fraga → stangd → svar → topplista → final", () => {
+  it("lobby → intro → fraga → stangd → svar → mellan (ingen topplista) → final", () => {
     assert.equal(studioScene(st(sess({ status: "lobby" }), "lobby"), { now: T }), "lobby");
     assert.equal(studioScene(st(sess(), "countdown"), { now: T }), "intro");
     assert.equal(studioScene(st(sess()), { now: T + 5000 }), "intro");
@@ -37,10 +38,10 @@ describe("Snilleblixten-studion: scener", () => {
     const rev = { ...q, phase: "revealed", closedAt: T + 20_000 };
     // Sett live: avslöjandet visas SB_REVEAL_HOLD_MS från när fönstret såg det.
     assert.equal(studioScene(st(sess({ q: rev })), { now: T + 30_000, revealSeenAt: T + 29_000 }), "svar");
-    assert.equal(studioScene(st(sess({ q: rev })), { now: T + 29_000 + SB_REVEAL_HOLD_MS, revealSeenAt: T + 29_000 }), "topplista");
+    assert.equal(studioScene(st(sess({ q: rev })), { now: T + 29_000 + SB_REVEAL_HOLD_MS, revealSeenAt: T + 29_000 }), "mellan");
     // Omladdning: räknas ur closedAt + trumvirveln.
     assert.equal(studioScene(st(sess({ q: rev })), { now: T + 20_000 + SB_DRUM_MS + 100 }), "svar");
-    assert.equal(studioScene(st(sess({ q: rev })), { now: T + 60_000 }), "topplista");
+    assert.equal(studioScene(st(sess({ q: rev })), { now: T + 60_000 }), "mellan");
     assert.equal(studioScene(st(sess({ q: { ...q, phase: "skipped", closedAt: T + 12_000 } })), { now: T + 12_500 }), "hoppad");
     assert.equal(studioScene(st(sess({ status: "finished" }), "finished"), { now: T }), "final");
   });
@@ -53,14 +54,6 @@ describe("Snilleblixten-studion: scener", () => {
     assert.equal(questionClock(s, T + 25_000).msLeft, 0);
     assert.equal(questionClock(s, T + 25_000).tension, false);
     assert.equal(questionClock(sess(), T), null);
-  });
-
-  it("under frågan/avslöjandet visas ställningen FÖRE frågan, topplistan alla", () => {
-    const scores = [{ index: 0 }, { index: 1 }, { index: 2 }];
-    const q = { index: 2 };
-    assert.deepEqual(shownScores(scores, "svar", q).map((x) => x.index), [0, 1]);
-    assert.deepEqual(shownScores(scores, "fraga", q).map((x) => x.index), [0, 1]);
-    assert.deepEqual(shownScores(scores, "topplista", q).map((x) => x.index), [0, 1, 2]);
   });
 });
 
@@ -88,10 +81,16 @@ describe("Snilleblixten-studion: avslöjandet", () => {
     assert.deepEqual([empty.correctIndex, empty.counts, empty.ready], [2, [0, 0, 0, 0], false]);
   });
 
-  it("svit = rätt i rad; fel eller inget svar bryter, överhoppad fråga räknas inte", () => {
-    const sc = (index, correct, skipped = false) => ({ index, correct, skipped });
-    const s = streaks([sc(0, { a: true, b: true, c: true }), sc(1, { a: true, b: false }), sc(2, {}, true), sc(3, { a: true, c: true })]);
-    assert.deepEqual(s, { a: 3, c: 1 });
+  it("klassens andel rätt per fråga och totalt – anonymt (inga uid/namn), överhoppad räknas inte", () => {
+    const sum = classSummary([
+      { index: 1, answered: 20, correctCount: 15, points: { a: 900 }, correct: { a: true } },
+      { index: 0, answered: 10, correctCount: 5, points: { b: 800 }, correct: { b: true } },
+      { index: 2, skipped: true, answered: 4, correctCount: 0, points: {}, correct: {} },
+    ]);
+    assert.deepEqual(sum.perQuestion.map((x) => [x.index, x.share, x.skipped]), [[0, 50, false], [1, 75, false], [2, 0, true]]);
+    assert.deepEqual([sum.answered, sum.correct, sum.share], [30, 20, 67]);
+    const json = JSON.stringify(sum);
+    assert.ok(!/"a"|"b"|points|900/.test(json), "inget per elev i statistiken");
   });
 });
 

@@ -157,10 +157,9 @@
 
 /* --- Mitten: frågeschaktet --------------------------------------------------- */
 .sb-mitt { min-height: 0; }
-.sbs, .sbt, .sb-info { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.2vh; padding: 1vh 16vw; }
-.lp-elevskarm .sbs, .lp-elevskarm .sbt, .sb-skarm .sbs, .sb-skarm .sbt { padding-inline: 8vw; }
+.sbs, .sb-info { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.2vh; padding: 1vh 16vw; }
+.lp-elevskarm .sbs, .sb-skarm .sbs { padding-inline: 8vw; }
 .sb:not([data-scene="fraga"]):not([data-scene="stangd"]):not([data-scene="svar"]) .sbs { display: none; }
-.sb:not([data-scene="topplista"]) .sbt { display: none; }
 .sbs-kort {
   position: relative;
   max-width: 68vw;
@@ -274,35 +273,23 @@
 .sbs-vanliga span { padding: 0 0.5em; border-radius: 0.5em; background: rgba(255, 90, 90, 0.22); }
 .sbs-vanliga i { opacity: 0.6; font-style: normal; }
 
-/* --- Topplistan ------------------------------------------------------------- */
-.sbt-rubrik { margin: 0; font-size: clamp(28px, 4.4vh, 56px); color: var(--sb-gul); text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5); }
-.sbt-lista { list-style: none; margin: 0; padding: 0; width: min(66vw, 1240px); display: flex; flex-direction: column; gap: 0.9vh; }
-.sbt { gap: 1.4vh; }
-.sbt-rad {
-  display: grid;
-  grid-template-columns: 1.8em auto 1fr auto auto;
-  align-items: center;
-  gap: 1.2vw;
-  height: 7.6vh;
-  padding: 0 1.6vw 0 1vw;
-  border-radius: 2vh;
-  font-size: clamp(28px, 4.2vh, 52px);
-  font-weight: 800;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
-  border: 2px solid rgba(255, 255, 255, 0.18);
-}
-.sbt-rad[data-plats="1"] { background: linear-gradient(90deg, rgba(255, 210, 63, 0.45), rgba(255, 210, 63, 0.08)); border-color: rgba(255, 210, 63, 0.8); }
-.sbt-nr { text-align: center; }
-.sbt-av .lav { font-size: 5.6vh; }
-.sbt-namn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sbt-svit { font-size: 0.8em; color: #ffb648; }
-.sbt-p { font-variant-numeric: tabular-nums; color: #fff7d1; }
-.sbt-klattrar { box-shadow: 0 0 3vh rgba(255, 210, 63, 0.8); }
-.sbt-tom { font-size: clamp(28px, 4vh, 48px); opacity: 0.85; }
-
 /* --- Intro / hoppad / utrop ------------------------------------------------- */
 .sb-info { text-align: center; }
 .sb-intro p, .sb-hoppad { margin: 2vh 0 0; font-size: clamp(32px, 5vh, 64px); font-weight: 800; }
+/* Mellanbilden efter avslöjandet: neutral, utan namn (ingen topplista). */
+.sb-mellan { display: flex; flex-direction: column; align-items: center; gap: 1.6vh; }
+.sb-mellan p { margin: 0; font-size: clamp(28px, 4vh, 50px); font-weight: 700; opacity: 0.9; }
+.sb-mellan .sb-mellan-nr { color: #fff3c4; }
+.sb-mellan .sb-mellan-stor {
+  font-size: clamp(44px, 9vh, 116px);
+  font-weight: 800;
+  opacity: 1;
+  padding: 0.1em 0.8em;
+  border-radius: 3vh;
+  background: rgba(10, 6, 40, 0.6);
+  border: 0.4vh solid rgba(255, 210, 63, 0.6);
+}
+.sb-mellan .sb-mellan-stor b { color: var(--sb-gul); font-variant-numeric: tabular-nums; }
 .sb-utrop {
   position: absolute;
   left: 0;

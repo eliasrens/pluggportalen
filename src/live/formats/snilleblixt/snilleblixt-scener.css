@@ -177,100 +177,72 @@
 .sbf-konfetti { position: absolute; inset: 0; overflow: hidden; }
 .sbf-konfetti i { position: absolute; top: 0; width: 1vh; height: 1.6vh; border-radius: 2px; }
 
-/* --- Resultatskärmen: pallen krymper upp, hela klassens topplista under --- */
-.sb.sb-resultat .sb-fot { opacity: 0; transition: opacity 0.6s; }
-.sbf-resultat .sbf-pall { bottom: auto; top: calc(var(--sb-topp) + 5vh); transform: translateX(-50%) scale(0.5); }
-.sbf-lista {
+/* --- Resultatskärmen: pallen står kvar + en anonym klassrad ---------------
+   Ingen helklasslista på projektorn (Elias 2026-10-10) – bara topp 3. */
+.sbf-sub {
   position: absolute;
-  left: 2vw;
-  right: 2vw;
-  top: calc(var(--sb-topp) + 33vh);
-  bottom: 2vh;
-}
-.sbf-lista[hidden] { display: none; }
-.sbf-lista ol {
-  list-style: none;
+  left: 0;
+  right: 0;
+  top: calc(var(--sb-topp) + 8.5vh);
   margin: 0;
-  padding: 0;
-  height: 100%;
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-columns: repeat(var(--kol, 1), minmax(0, 1fr));
-  grid-template-rows: repeat(var(--rader, 10), minmax(0, 1fr));
-  gap: 0.5vh 1.4vw;
-}
-.sbf-lista li {
-  display: grid;
-  grid-template-columns: 2.2em auto 1fr auto auto;
-  align-items: center;
-  gap: 0.5vw;
-  padding: 0 0.8vw;
-  border-radius: 1vh;
-  background: rgba(255, 255, 255, 0.09);
-  font-size: clamp(20px, min(3.2vh, calc(52vh / var(--rader, 10) * 0.6)), 40px);
+  text-align: center;
+  font-size: clamp(28px, 3.6vh, 46px);
   font-weight: 700;
-  min-height: 0;
-  animation: sbf-in 0.5s ease backwards;
+  color: #fff3c4;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
 }
-.sbf-lista li[data-rank="1"] { background: rgba(255, 210, 63, 0.35); }
-.sbf-lista li[data-rank="2"] { background: rgba(220, 226, 238, 0.28); }
-.sbf-lista li[data-rank="3"] { background: rgba(214, 140, 80, 0.3); }
-.sbf-lnr { text-align: right; opacity: 0.85; }
-.sbf-lav .lav { font-size: 1.3em; }
-.sbf-lnamn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sbf-lratt { font-size: 0.75em; opacity: 0.8; }
-.sbf-lista b { font-variant-numeric: tabular-nums; color: #fff7d1; }
-@keyframes sbf-in { from { opacity: 0; } }
+.sbf-sub[hidden] { display: none; }
 
-/* --- Statistikvyn (§7) ------------------------------------------------------ */
+/* --- Statistikvyn (§7) – anonym: klassen som helhet, inga namn --------------- */
 .sb-stat { grid-template-rows: auto 1fr auto; }
 .sbx-topp { display: flex; justify-content: space-between; align-items: center; gap: 2vw; padding: var(--sb-topp) 2vw 1vh; position: relative; }
 .sbx-status { font-size: clamp(26px, 3.8vh, 46px); font-weight: 700; text-align: right; }
 .sbx-status b { color: var(--sb-gul); font-variant-numeric: tabular-nums; }
 .sbx-status .sbx-rod { color: #ff6b6b; }
-.sbx-tabell {
+.sbx-grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; padding: 1vh 2vw; min-height: 0; }
+.sb-stat:not(.sb-skarm) .sbx-grid { padding-right: calc(2vw + max(190px, 14vw)); }
+.sbx-grid section { min-height: 0; display: flex; flex-direction: column; gap: 1.4vh; padding: 2vh 1.6vw; border-radius: 2vh; background: rgba(10, 6, 40, 0.55); border: 2px solid rgba(255, 210, 63, 0.3); }
+.sbx-h { margin: 0; font-size: clamp(28px, 3.8vh, 46px); color: var(--sb-gul); }
+.sbx-h span { color: #fff; }
+.sbx-tom { margin: 0; font-size: clamp(28px, 3.6vh, 44px); opacity: 0.85; }
+.sbx-alt { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1vh; }
+.sbx-opt {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--kol, 1), minmax(0, 1fr));
-  gap: 1vw;
-  padding: 0 2vw;
-  align-content: start;
-  min-height: 0;
-  font-size: clamp(16px, min(3.6vh, calc(64vh / (var(--rader, 10) + 1) * 0.6)), 40px);
-}
-.sbx-tabell table { width: 100%; border-collapse: separate; border-spacing: 0 0.35vh; }
-.sbx-tabell table + table { border-left: 2px solid rgba(255, 210, 63, 0.35); padding-left: 1vw; }
-.sbx-tabell th, .sbx-tabell td { padding: 0.1em 0.45em; text-align: left; white-space: nowrap; }
-.sbx-tabell thead th { font-size: 0.7em; opacity: 0.8; font-weight: 700; }
-.sbx-tabell tbody tr { background: rgba(255, 255, 255, 0.08); }
-.sbx-tabell tbody th { font-weight: 700; max-width: 12vw; overflow: hidden; text-overflow: ellipsis; }
-.sbx-tabell .num { text-align: right; font-variant-numeric: tabular-nums; }
-.sbx-pcol { position: relative; width: 34%; }
-.sbx-stapel {
-  position: absolute;
-  inset: 15% 0;
-  border-radius: 0.3em;
-  background: linear-gradient(90deg, rgba(255, 210, 63, 0.75), rgba(255, 150, 40, 0.75));
-  transform-origin: left center;
-}
-.sbx-pcol b { position: relative; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
-.sbx-tom { font-size: clamp(28px, 4vh, 48px); text-align: center; }
-.sbx-fragor {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
+  grid-template-columns: auto minmax(0, 1fr) 2fr auto;
   align-items: center;
-  gap: 0.6vh 0.6vw;
-  padding: 1vh 2vw 1.4vh;
-  font-size: clamp(16px, 2.2vh, 28px);
+  gap: 1vw;
+  padding: 0.6vh 1vw;
+  border-radius: 1.4vh;
+  font-size: clamp(28px, 3.8vh, 46px);
+  font-weight: 800;
 }
-.sbx-fl { opacity: 0.8; margin-right: 0.4vw; }
-.sbx-fq { padding: 0.05em 0.5em; border-radius: 0.5em; background: rgba(255, 255, 255, 0.1); }
-.sbx-fq b { color: var(--sb-gul); margin-right: 0.3em; }
+.sbx-opt:not(.sbx-ratt) { opacity: 0.6; }
+.sbx-ratt { box-shadow: 0 0 0 0.4vh #fff, 0 0 3vh rgba(255, 255, 255, 0.5); }
+.sbx-form svg { width: 1.1em; height: auto; fill: currentColor; display: block; }
+.sbx-otext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbx-stapel { position: relative; height: 0.7em; border-radius: 0.35em; background: rgba(0, 0, 0, 0.25); overflow: hidden; }
+.sbx-stapel i { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.75); transform-origin: left center; }
+.sbx-opt b { font-variant-numeric: tabular-nums; }
+.sbx-andel, .sbx-fritt, .sbx-vanliga { margin: 0; font-size: clamp(28px, 3.8vh, 46px); }
+.sbx-andel b, .sbx-fritt b { color: var(--sb-gul); }
+.sbx-andel small { font-size: 0.7em; opacity: 0.85; }
+.sbx-staplar {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 10), minmax(0, 1fr));
+  gap: 0.6vw;
+  align-items: stretch;
+}
+.sbx-kol { display: flex; flex-direction: column; align-items: center; gap: 0.6vh; min-height: 0; }
+.sbx-pct { font-size: clamp(16px, 2.4vh, 30px); font-weight: 700; min-height: 1.2em; white-space: nowrap; }
+.sbx-ror { position: relative; flex: 1; width: 70%; min-height: 4vh; border-radius: 1vh 1vh 0 0; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.sbx-ror i { position: absolute; inset: 0; background: linear-gradient(#ffe07a, #f2a71b); transform-origin: bottom center; }
+.sbx-kol b { font-size: clamp(20px, 2.8vh, 34px); color: var(--sb-gul); }
+.sbx-kommer { opacity: 0.4; }
 .sbx-hoppad { opacity: 0.55; }
+.sbx-klass { position: relative; padding: 1vh 2vw 2vh; font-size: clamp(28px, 3.8vh, 46px); font-weight: 700; text-align: center; }
+.sbx-klass b { color: var(--sb-gul); }
+.sbx-klass small { font-size: 0.65em; opacity: 0.8; }
 .sb-stat .sbc { top: auto; bottom: 7vh; transform: none; }
-.sb-stat:not(.sb-skarm) .sbx-tabell { padding-right: calc(2vw + max(190px, 14vw)); }
-
-@media (prefers-reduced-motion: reduce) {
-  .sbf-lista li { animation: none; }
-}

@@ -8,21 +8,23 @@
 // SCENER (studioScene) – vad studion visar just nu, ur sessionens q-fas och
 // serverns tid:
 //   lobby · intro (3-2-1 / första frågan på väg) · fraga (öppen) · stangd
-//   (trumvirvel före avslöjandet) · svar (avslöjandet) · topplista ·
-//   hoppad (överhoppad fråga, kort) · final (status finished)
-// Avslöjandet visas SB_REVEAL_HOLD_MS, sedan glider topplistan in – samma
-// tidpunkt i kontrollpanelen och elevskärmen. Efter en omladdning räknas
-// avslöjandets start ur closedAt (serverstämpel) + trumvirveln.
+//   (trumvirvel före avslöjandet) · svar (avslöjandet) · mellan (neutral
+//   mellanbild "N av M svarade rätt" tills NÄSTA FRÅGA) · hoppad (överhoppad
+//   fråga, kort) · final (status finished)
+// Avslöjandet visas SB_REVEAL_HOLD_MS, sedan mellanbilden – samma tidpunkt i
+// kontrollpanelen och elevskärmen. Efter en omladdning räknas avslöjandets
+// start ur closedAt (serverstämpel) + trumvirveln.
+// INGEN UTHÄNGNING (Elias 2026-10-10): projektorn visar aldrig en klasslista,
+// topplista eller poäng per elev mellan frågorna – bara pallen (topp 3) i
+// slutet. Hela listan finns i lärarens historik.
 //
 // API
 //   SB_DRUM_MS, SB_REVEAL_HOLD_MS, SB_SKIP_HOLD_MS, SB_TENSION_S, SB_OPEN_DELAY_MS
 //   studioScene(st, { now, revealSeenAt? }) → scen-id (se ovan)
 //   questionClock(s, now) → { msLeft, secs, frac, tension } | null
-//   shownScores(scores, scene, q) → sbScores som ställningen ska visa just nu
-//     (under frågan/avslöjandet: bara tidigare frågor – topplistan visar
-//     klättringen först när den glider in)
-//   revealInfo(q, score, answerKind) → avslöjandets siffror
-//   streaks(scores) → { uid: rätt i rad (till och med senaste räknade fråga) }
+//   revealInfo(q, score, answerKind) → avslöjandets siffror (anonyma)
+//   classSummary(scores) → { perQuestion: [{ index, skipped, answered,
+//     correct, share }], answered, correct, share } – klassens andel rätt
 //   podiumGroups(ranking) → [{ rank, players }] högst tre pallsteg, delad
 //     placering = samma steg, bara poäng > 0
 //   audienceLayout(n) → { rows, perRow, scale } publikens rutnät
@@ -54,10 +56,10 @@ export function studioScene(st, { now, revealSeenAt = null } = {}) {
   if (q.phase === "closed") return "stangd";
   if (q.phase === "skipped") {
     const at = revealSeenAt ?? toMs(q.closedAt) ?? 0;
-    return now - at < SB_SKIP_HOLD_MS ? "hoppad" : "topplista";
+    return now - at < SB_SKIP_HOLD_MS ? "hoppad" : "mellan";
   }
   const start = revealSeenAt ?? ((toMs(q.closedAt) ?? 0) + SB_DRUM_MS);
-  return now - start < SB_REVEAL_HOLD_MS ? "svar" : "topplista";
+  return now - start < SB_REVEAL_HOLD_MS ? "svar" : "mellan";
 }
 
 /** Frågans nedräkning ur serverstämpeln (openedAt + frågetid). */
@@ -75,13 +77,6 @@ export function questionClock(s, now) {
     frac: total > 0 ? Math.min(1, msLeft / total) : 0,
     tension: q.phase === "open" && msLeft > 0 && secs <= SB_TENSION_S,
   };
-}
-
-/** Ställningens underlag just nu: under frågan/avslöjandet bara tidigare frågor. */
-export function shownScores(scores, scene, q) {
-  const list = scores || [];
-  if (!q || !["fraga", "stangd", "svar", "hoppad"].includes(scene)) return list;
-  return list.filter((sc) => sc && sc.index < q.index);
 }
 
 const pct = (a, b) => (b > 0 ? Math.round((100 * a) / b) : 0);
@@ -111,18 +106,17 @@ export function revealInfo(q, score, answerKind) {
   };
 }
 
-/** Rätt i rad per elev, räknat bakifrån från senaste räknade (ej överhoppade) frågan. */
-export function streaks(scores) {
-  const counted = (scores || []).filter((sc) => sc && !sc.skipped).sort((a, b) => a.index - b.index);
-  const out = {};
-  for (const sc of counted) {
-    const answered = sc.correct || {};
-    // Fel svar eller inget svar bryter sviten.
-    for (const u of Object.keys(out)) if (!(u in answered)) out[u] = 0;
-    for (const [uid, ok] of Object.entries(answered)) out[uid] = ok ? (out[uid] || 0) + 1 : 0;
-  }
-  for (const u of Object.keys(out)) if (!out[u]) delete out[u];
-  return out;
+/** Klassens andel rätt per fråga och totalt – anonymt (inga uid, inga namn). */
+export function classSummary(scores) {
+  const perQuestion = [...(scores || [])].filter(Boolean).sort((a, b) => a.index - b.index).map((sc) => {
+    const answered = Number(sc.answered) || 0;
+    const correct = sc.skipped ? 0 : Number(sc.correctCount) || 0;
+    return { index: sc.index, skipped: !!sc.skipped, answered, correct, share: pct(correct, answered) };
+  });
+  const counted = perQuestion.filter((x) => !x.skipped);
+  const answered = counted.reduce((n, x) => n + x.answered, 0);
+  const correct = counted.reduce((n, x) => n + x.correct, 0);
+  return { perQuestion, answered, correct, share: pct(correct, answered) };
 }
 
 /** Pallstegen: delad placering = samma steg, högst tre steg, bara poäng > 0. */
