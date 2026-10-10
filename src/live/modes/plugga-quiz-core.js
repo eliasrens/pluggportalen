@@ -8,11 +8,14 @@
 //
 // URVALET (prepareQuizQuestion) – en fråga används bara om den går att spela
 // rättvist på fyra färgknappar:
-//   passage   frågor med läsförståelsetext HOPPAS ÖVER (QUIZ_PASSAGE_POLICY).
-//             Live är snabbt: projektorn visar frågan i 10–30 s och Guldrushen
-//             går fråga på fråga – en hel källtext hinner ingen läsa. Plugga
-//             har eget läsförståelseläge för dem. (Samma delning som Pluggas
-//             plainQuizPool, men UTAN fallbacken "bara passage → ta alla".)
+//   passage   samma urval som Pluggas plainQuizPool: finns det spelbara
+//             frågor UTAN läsförståelsetext används bara de (passage-frågorna
+//             hoppas över – Plugga har eget läsförståelseläge för dem). Har
+//             området BARA passage-frågor (t.ex. Vikingatiden 2.0, #582)
+//             används de, och passagen följer med som en kort kontextrad
+//             ovanför frågan (projektor + elevskärm). Live är snabbt – en
+//             passage längre än QUIZ_PASSAGE_MAX (300) tecken hinner ingen
+//             läsa, så den frågan hoppas över ("lang-passage").
 //   alternativ normaliseras (NFC, blanksteg ihop, trim). Alternativ som blir
 //             LIKA efter normaliseringen slås ihop (första behålls) – annars
 //             kunde två knappar visa samma text och bara en räknas som rätt.
@@ -26,7 +29,8 @@
 //
 // FACIT (§4.4) – buildQuizSnapshot delar varje fråga i två index-parallella
 // listor så att ett format kan lagra dem åtskilda:
-//   questions[i]  ELEVSYNLIGT: { id, key, text, options, category? } – utan facit
+//   questions[i]  ELEVSYNLIGT: { id, key, text, options, category?, passage? }
+//                 – utan facit (passagen är elevsynlig text, inte facit)
 //   facit[i]      LÄRAR-/SERVERSKYDDAT: { id, answerIndex, explanation }
 //   joinFacit(questions[i], facit[i]) → hela frågan (lärarens/projektorns vy,
 //   eller formatets avslöjande). Alternativens ordning blandas EN gång här, så
@@ -35,12 +39,13 @@
 // API
 //   QUIZ_MAX_OPTIONS            4
 //   QUIZ_DEFAULT_MIN_QUESTIONS  5 – varningströskel om formatet saknar minQuestions
-//   QUIZ_PASSAGE_POLICY         "skip"
+//   QUIZ_PASSAGE_POLICY         "fallback" – utan passage om sådana finns, annars med
+//   QUIZ_PASSAGE_MAX            300 – längsta passage (tecken) som visas i Live
 //   QUIZ_OTHER_CATEGORY         "ovrig" – statistiknyckel för frågor utan kategori
 //   normalizeOptionText(s)      → "  Gustav  Vasa " → "Gustav Vasa"
-//   prepareQuizQuestion(raw, i) → { ok: true, q } | { ok: false, reason }
-//     reason: "passage" | "invalid" | "fa-alternativ" | "for-manga-alternativ"
-//     q = { id, text, options, answerIndex, explanation, category? }
+//   prepareQuizQuestion(raw, i, { allowPassage? }) → { ok: true, q } | { ok: false, reason }
+//     reason: "passage" | "lang-passage" | "invalid" | "fa-alternativ" | "for-manga-alternativ"
+//     q = { id, text, options, answerIndex, explanation, category?, passage? }
 //   selectQuizQuestions(quiz)   → { usable: q[], skipped: { reason: n } } (+ "dubblett")
 //   summarizeQuizArea(quiz, { minQuestions? }) → { total, usable, skipped,
 //                                 minQuestions, tooFew, empty }
@@ -60,7 +65,8 @@ import { QUESTION_CATEGORY_KEYS, normalizeQuestionCategory } from "../../exercis
 
 export const QUIZ_MAX_OPTIONS = 4;
 export const QUIZ_DEFAULT_MIN_QUESTIONS = 5;
-export const QUIZ_PASSAGE_POLICY = "skip";
+export const QUIZ_PASSAGE_POLICY = "fallback";
+export const QUIZ_PASSAGE_MAX = 300;
 export const QUIZ_OTHER_CATEGORY = "ovrig";
 
 /** Jämförelseform för alternativ och frågetext: NFC, blanksteg ihop, trim. */
@@ -74,10 +80,14 @@ const hasPassage = (q) => typeof q?.passage === "string" && q.passage.trim() !==
  * En områdesfråga → Live-fråga, eller skälet till att den inte kan spelas.
  * @param {object} raw områdets quizfråga
  * @param {number} [i] plats i området (för id om det saknas)
+ * @param {{ allowPassage?: boolean }} [opts] allowPassage = passage-frågor får
+ *   användas (området saknar spelbara frågor utan passage)
  */
-export function prepareQuizQuestion(raw, i = 0) {
+export function prepareQuizQuestion(raw, i = 0, { allowPassage = false } = {}) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, reason: "invalid" };
-  if (hasPassage(raw)) return { ok: false, reason: "passage" };
+  const passage = hasPassage(raw) ? normalizeOptionText(raw.passage) : "";
+  if (passage && !allowPassage) return { ok: false, reason: "passage" };
+  if (passage.length > QUIZ_PASSAGE_MAX) return { ok: false, reason: "lang-passage" };
   const text = normalizeOptionText(raw.question);
   const ai = raw.answerIndex;
   if (!text || !Array.isArray(raw.options) || !Number.isInteger(ai) || ai < 0 || ai >= raw.options.length) {
@@ -101,17 +111,26 @@ export function prepareQuizQuestion(raw, i = 0) {
   };
   const category = normalizeQuestionCategory(raw.category);
   if (category) q.category = category;
+  if (passage) q.passage = passage;
   return { ok: true, q };
 }
 
-/** Alla spelbara frågor i områdets ordning + hur många som hoppades över (per skäl). */
+/**
+ * Alla spelbara frågor i områdets ordning + hur många som hoppades över (per
+ * skäl). Utan passage i första hand; inga sådana spelbara → med passage.
+ */
 export function selectQuizQuestions(quiz) {
+  const plain = pickQuizQuestions(quiz, false);
+  return plain.usable.length ? plain : pickQuizQuestions(quiz, true);
+}
+
+function pickQuizQuestions(quiz, allowPassage) {
   const usable = [];
   const skipped = {};
   const seenText = new Set();
   const seenId = new Map();
   (Array.isArray(quiz) ? quiz : []).forEach((raw, i) => {
-    const r = prepareQuizQuestion(raw, i);
+    const r = prepareQuizQuestion(raw, i, { allowPassage });
     let reason = r.ok ? null : r.reason;
     if (r.ok && seenText.has(r.q.text)) reason = "dubblett";
     if (reason) {
@@ -150,6 +169,7 @@ export function summarizeQuizArea(quiz, { minQuestions = QUIZ_DEFAULT_MIN_QUESTI
 
 const SKIP_TEXT = {
   passage: (n) => `${n} läsförståelse${n === 1 ? "fråga" : "frågor"} (med text att läsa)`,
+  "lang-passage": (n) => `${n} med för lång text att läsa`,
   "for-manga-alternativ": (n) => `${n} med fler än ${QUIZ_MAX_OPTIONS} alternativ`,
   "fa-alternativ": (n) => `${n} med färre än 2 olika alternativ`,
   dubblett: (n) => `${n} ${n === 1 ? "dubblett" : "dubbletter"}`,
@@ -209,6 +229,7 @@ export function buildQuizSnapshot(quiz, opts = {}) {
     }
     const pub = { id: q.id, key: `${i}:${q.id}`, text: q.text, options };
     if (q.category) pub.category = q.category;
+    if (q.passage) pub.passage = q.passage;
     questions.push(pub);
     facit.push({ id: q.id, answerIndex, explanation: q.explanation });
   });

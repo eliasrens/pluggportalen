@@ -34,6 +34,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Quizets passage (#582): kort kontext ovanför frågan – liten och dämpad så
+   att frågan behåller fokus. */
+.ca-kontext {
+  flex: none;
+  margin: 0 auto;
+  max-width: 60em;
+  text-align: center;
+  font-size: clamp(13px, 2.1vh, 18px);
+  font-style: italic;
+  line-height: 1.3;
+  opacity: 0.75;
+}
+.ca-kontext[hidden] { display: none; }
+
 .ca-grid {
   flex: 1;
   min-height: 0;

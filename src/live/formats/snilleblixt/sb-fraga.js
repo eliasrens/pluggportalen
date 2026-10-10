@@ -90,10 +90,11 @@ export function createSchakt(host) {
     facitShown = false;
     root.classList.remove("sbs-avslojad");
     const text = q?.question?.text || "";
+    const passage = q?.question?.passage || "";
     const opts = (q?.question?.options || []).slice(0, 4);
     root.dataset.kind = answerKind;
     root.innerHTML = `
-      <div class="sbs-kort"><p class="sbs-fraga sbs-t-${textSize(text)}">${esc(text)}</p></div>
+      <div class="sbs-kort">${passage ? `<p class="sbs-kontext">${esc(passage)}</p>` : ""}<p class="sbs-fraga sbs-t-${textSize(text)}">${esc(text)}</p></div>
       ${answerKind === "choice" ? `<ol class="sbs-alt" data-n="${opts.length}">${opts.map((o, i) => `
         <li class="sbs-opt sbs-${CHOICE_STYLES[i].key}" data-i="${i}" aria-label="${esc(CHOICE_STYLES[i].label)}: ${esc(o)}">
           <span class="sbs-stapel" aria-hidden="true"><i></i></span>

@@ -182,6 +182,17 @@
 .sbs-kort::before { left: -2vw; }
 .sbs-kort::after { right: -2vw; }
 .sbs-fraga { margin: 0; text-align: center; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+/* Quizets passage (#582): kort kontextrad ovanför frågan, dämpad. */
+.sbs-kontext {
+  margin: 0 auto 1.2vh;
+  max-width: 56vw;
+  text-align: center;
+  font-size: clamp(16px, 2.3vh, 28px);
+  font-style: italic;
+  line-height: 1.3;
+  opacity: 0.78;
+  overflow-wrap: anywhere;
+}
 .sbs-t-xl { font-size: clamp(44px, 10vh, 130px); }
 .sbs-t-l { font-size: clamp(32px, 6vh, 76px); }
 .sbs-t-m { font-size: clamp(28px, 4.6vh, 58px); }

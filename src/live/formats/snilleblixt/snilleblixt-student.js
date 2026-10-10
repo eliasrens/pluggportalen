@@ -206,7 +206,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     svar.hidden = false;
     if (choice) {
       if (shownIndex !== l.index) {
-        comp.setQuestion({ options: q.options || [], question: qText(q) });
+        comp.setQuestion({ options: q.options || [], question: qText(q), context: showQ ? String(q?.passage ?? "") : "" });
         shownIndex = l.index;
       }
       if (l.kind === "svarat" && Number.isInteger(l.mine?.choiceIndex)) {

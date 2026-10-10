@@ -77,13 +77,13 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
         const qs = questions();
         if (!qs.length) return;
         const i = Number.isInteger(nextQ) && qs[nextQ] ? nextQ : Math.floor(Math.random() * qs.length);
-        current = { q: i, options: qs[i].options || [], text: String(qs[i].text ?? ""), attemptId: newAttemptId() };
+        current = { q: i, options: qs[i].options || [], text: String(qs[i].text ?? ""), context: String(qs[i].passage ?? ""), attemptId: newAttemptId() };
       } else {
         const q = src.next();
         const ch = mode.choices(q);
         current = { question: q, options: ch.options, answerIndex: ch.answerIndex, text: `${q.text} = ?`, attemptId: newAttemptId() };
       }
-      comp.setQuestion({ options: current.options, question: current.text });
+      comp.setQuestion({ options: current.options, question: current.text, context: current.context || "" });
     };
 
     function wrong(correctIndex) {
