@@ -14,6 +14,10 @@
 //   Omladdning: elevens eget svarsdokument läses EN gång för pågående fråga
 //   (finns = "Svar inskickat", inget nytt försök). Reglerna nekar ändå ett
 //   andra svar (create-only {i}_{uid}).
+// INGEN PLACERING SOM NUMMER (Elias 2026-10-10): avslöjandet och slutskärmen
+// visar "120 poäng bakom Alma" / "Du leder! ⚡" / "Lika med Alma" (närmaste
+// elev framför, ur sbScores). Bara topp 3 ser sin pallplats på slutskärmen.
+// Namnen ur klassprojektionen (samma cachade läsning som avatarerna).
 // Inga ljud på elevdatorn (designspec §8). Lätt: inga bakgrundsanimationer,
 // bara en smal tidsstapel (transform) och avatarens reaktion vid rätt svar.
 // Stilar: snilleblixt-elev.css (egen fil).
@@ -29,7 +33,7 @@ import { invalidateStudentData } from "../../../data.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { serverNow } from "../../live-clock.js";
 import { placeText, myReward, rewardSummary, sessionRewards } from "../../live-rewards.js";
-import { elevLage, formatPoints } from "./snilleblixt-elev.js";
+import { elevLage, formatPoints, relativeText, endStanding, firstName } from "./snilleblixt-elev.js";
 import { createAvatarRoster } from "../../design/live-avatars.js";
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
 import { react, setAvatarState } from "../../design/live-reactions.js";
@@ -46,17 +50,19 @@ export function lobbyHtml() {
   return `<div class="sb-lobby">${AV}</div>`;
 }
 
-/** Slutskärmen (§7.2.4): placering, avatar och pluggmynt ur result (verifierat). */
+/** Slutskärmen (§7.2.4): pallplats (bara topp 3) eller läget mot närmaste framför, avatar och pluggmynt ur result. */
 export function endHtml(st, player) {
   if (st.phase === "cancelled") return `<div class="big-emoji">🛑</div><h2>Matchen avbröts</h2>`;
   const r = st.result;
   if (!r) return `<div class="sb-final">${AV}<h2>⚡ Snilleblixten är slut!</h2><p class="hint">Resultatet räknas ihop…</p></div>`;
   const uid = player?.uid;
-  const row = (r.ranking || []).find((p) => p.uid === uid);
+  const { row, podium, rel } = endStanding(r, uid);
   const sum = rewardSummary(myReward(r, uid));
   if (!row && !sum) return `<div class="sb-final"><h2>⚡ Snilleblixten är slut!</h2><p class="hint">Du var inte med i den här matchen.</p></div>`;
-  const title = sum?.title || `${{ 1: "🥇", 2: "🥈", 3: "🥉" }[row.rank] || "🏅"} Du kom ${placeText(row.rank)}!`;
-  const stats = row ? `<p class="sb-final-poang">${formatPoints(row.points)} poäng · ${row.correct} rätt</p>` : "";
+  // Topp 3 får sin pallplats (syns ändå på projektorn) – alla andra aldrig ett nummer.
+  const title = podium ? `${{ 1: "🥇", 2: "🥈", 3: "🥉" }[podium]} Du kom ${placeText(podium)}!` : "⚡ Bra kämpat!";
+  const relRad = !podium && relativeText(rel) ? `<p class="sb-final-rel">${escHtml(relativeText(rel))}</p>` : "";
+  const stats = row ? `${relRad}<p class="sb-final-poang">${formatPoints(row.points)} poäng · ${row.correct} rätt</p>` : "";
   let coins = "";
   if (sum) {
     coins = `<ul class="sb-mynt">${sum.lines.map((l) => `<li><span>${escHtml(l.label)}</span><b>${l.coins}</b></li>`).join("")}</ul>
@@ -116,6 +122,19 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
   let current = null; // { index, question } för skriv själv
   let timer = 0;
   let reacted = "";
+  // Förnamn för "bakom <Namn>" ur klassprojektionen (cachad, en läsning/klass).
+  const names = {};
+  let namesAt = 0;
+  function loadNames() {
+    if (Date.now() - namesAt < 20_000) return;
+    namesAt = Date.now();
+    import("../../../data-content.js").then((dc) => Promise.all((session.participatingClassIds || []).map((cid) =>
+      dc.getClassProjection(cid).then((p) => {
+        for (const [u, m] of Object.entries(p?.members || {})) if (m?.namn) names[u] = firstName(m.namn);
+      }).catch(() => {}))))
+      .then(() => { if (!destroyed) draw(); }, () => {});
+  }
+  loadNames();
   let coinTimers = null;
   let destroyed = false;
 
@@ -232,7 +251,8 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       }
     }
     const loading = q && player && !mineBy.has(q.index);
-    const l = elevLage({ s, player, uid, mine: q ? mineBy.get(q.index) || null : null, scores, now: serverNow() });
+    const l = elevLage({ s, player, uid, mine: q ? mineBy.get(q.index) || null : null, scores, now: serverNow(), names });
+    if (l.rel?.name === "" && (l.rel.kind === "bakom" || l.rel.kind.startsWith("lika"))) loadNames();
     const kind = loading ? "laddar" : l.kind;
 
     $(".sb-nr").textContent = l.number > 0 ? `Fråga ${l.number} av ${l.total}` : "";
@@ -268,7 +288,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       if (kind === "svarat" && !choice && l.mine?.answer != null) text += `<span class="sb-ditt">Ditt svar: <b>${escHtml(l.mine.answer)}</b></span>`;
       if (reveal && kind !== "ratt") text = correctHtml(l.facit);
       $(".sb-kort-text").innerHTML = text;
-      $(".sb-kort-plats").textContent = reveal ? `Du ligger ${placeText(l.rank)}` : "";
+      $(".sb-kort-plats").textContent = reveal ? relativeText(l.rel) : "";
       const slot = kort.querySelector(".sb-av-plats");
       slot.hidden = !k.av;
       if (k.av) place(slot);
@@ -284,8 +304,8 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     view.classList.remove("sb-ratt", "sb-fel");
     if (!slot) return;
     place(slot);
-    const row = (st.result?.ranking || []).find((p) => p.uid === uid);
-    if (row && row.rank <= 3 && reacted !== "final") {
+    const { row, podium } = endStanding(st.result, uid);
+    if (podium && reacted !== "final") {
       reacted = "final";
       react(me, "jubel").catch(() => {});
     }

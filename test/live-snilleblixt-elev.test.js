@@ -7,7 +7,9 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { elevLage, myStanding, formatPoints } from "../src/live/formats/snilleblixt/snilleblixt-elev.js";
+import {
+  elevLage, myStanding, formatPoints, relativeStanding, relativeText, endStanding,
+} from "../src/live/formats/snilleblixt/snilleblixt-elev.js";
 import { scoreQuestion } from "../src/live/formats/snilleblixt/snilleblixt-poang.js";
 
 const T0 = 1_700_000_000_000;
@@ -62,11 +64,12 @@ describe("Snilleblixten elev: avslöjandet ur sbScores", () => {
   const sc = scoreQuestion({ q: open({ closedAt: T0 + 12_000 }), facit, answers, questionSeconds: 20, answerKind: "choice" });
   const revealed = sess(open({ phase: "revealed", closedAt: T0 + 12_000, facit }));
 
-  it("rätt → +900 (4 s av 20) och placering 1:a", () => {
+  it("rätt → +900 (4 s av 20) och 'Du leder! ⚡' (ingen placering som nummer)", () => {
     const l = elevLage({ s: revealed, player: me, uid: "alma", mine: { choiceIndex: 1 }, scores: [sc] });
     assert.equal(l.kind, "ratt");
     assert.equal(l.points, 900);
-    assert.equal(l.rank, 1);
+    assert.equal(l.rank, undefined);
+    assert.equal(relativeText(l.rel), "Du leder! ⚡");
     assert.equal(l.totalPoints, 900);
   });
 
@@ -75,7 +78,9 @@ describe("Snilleblixten elev: avslöjandet ur sbScores", () => {
     assert.equal(l.kind, "fel");
     assert.equal(l.points, 0);
     assert.deepEqual(l.facit, facit);
-    assert.equal(l.rank, 3);
+    // Leo har 0 → bakom den närmaste med poäng (Ines), namnet ur projektionen.
+    const named = elevLage({ s: revealed, player: { uid: "leo", joinedAt: T0 - 1 }, uid: "leo", mine: { choiceIndex: 0 }, scores: [sc], names: { ines: "Ines", alma: "Alma" } });
+    assert.match(relativeText(named.rel), /^\d[\d ]* poäng bakom Ines$/);
   });
 
   it("test 6: före avslöjandet syns inget omdöme (facit saknas, svarat)", () => {
@@ -91,6 +96,62 @@ describe("Snilleblixten elev: avslöjandet ur sbScores", () => {
   it("inget svar → inget-svar; sen anslutning → visa-svar (inget omdöme)", () => {
     assert.equal(elevLage({ s: revealed, player: { uid: "bo", joinedAt: T0 - 1 }, uid: "bo", scores: [sc] }).kind, "inget-svar");
     assert.equal(elevLage({ s: revealed, player: { uid: "sen", joinedAt: T0 + 1 }, uid: "sen", scores: [sc] }).kind, "visa-svar");
+  });
+});
+
+describe("Snilleblixten elev: ingen placering som nummer (Elias 2026-10-10)", () => {
+  const list = [
+    { uid: "a", points: 3000, name: "Alma" }, { uid: "b", points: 2500, name: "Bo" }, { uid: "c", points: 2500, name: "Cia" },
+    { uid: "d", points: 1800, name: "Dan" }, { uid: "e", points: 0, name: "Eva" },
+  ];
+  const ingetNummer = (t) => assert.ok(!/\d+:[ae]\b|plats|ligger|sist/i.test(t), `placering läckte: ${t}`);
+
+  it("ledaren: 'Du leder! ⚡'", () => {
+    assert.equal(relativeText(relativeStanding(list, "a")), "Du leder! ⚡");
+  });
+
+  it("mitten: 'X poäng bakom <närmaste framför>'", () => {
+    const t = relativeText(relativeStanding(list, "d"));
+    assert.equal(t, "700 poäng bakom Bo");
+    ingetNummer(t);
+  });
+
+  it("sist: bara avståndet till närmaste framför – ingen placering syns", () => {
+    const t = relativeText(relativeStanding(list, "e"));
+    assert.equal(t, "1 800 poäng bakom Dan");
+    ingetNummer(t);
+  });
+
+  it("lika poäng: 'Lika med <Namn>' (delad ledning: '– ni leder!'); flera framför på samma poäng → en av dem", () => {
+    assert.equal(relativeText(relativeStanding(list, "c")), "Lika med Bo");
+    assert.equal(relativeText(relativeStanding(list, "b")), "Lika med Cia");
+    const topp = [{ uid: "x", points: 900, name: "Xena" }, { uid: "y", points: 900, name: "Yan" }];
+    assert.equal(relativeText(relativeStanding(topp, "y")), "Lika med Xena – ni leder! ⚡");
+    const tva = [{ uid: "p", points: 500, name: "Pia" }, { uid: "o", points: 500, name: "Olle" }, { uid: "m", points: 100, name: "Me" }];
+    assert.equal(relativeText(relativeStanding(tva, "m")), "400 poäng bakom Olle");
+  });
+
+  it("ingen har poäng → ingen rad; saknat namn → 'en klasskompis'", () => {
+    assert.equal(relativeText(relativeStanding([{ uid: "a", points: 0 }, { uid: "b", points: 0 }], "a")), "");
+    assert.equal(relativeText(relativeStanding([{ uid: "a", points: 10 }, { uid: "b", points: 30 }], "a")), "20 poäng bakom en klasskompis");
+  });
+
+  it("slutskärmen: topp 3 får sin pallplats (även delad), övriga bara läget mot närmaste framför", () => {
+    const result = { ranking: [
+      { uid: "a", name: "Alma 4B", points: 3000, rank: 1 }, { uid: "b", name: "Bo 4B", points: 2500, rank: 2 },
+      { uid: "c", name: "Cia 4B", points: 2500, rank: 2 }, { uid: "d", name: "Dan 4B", points: 1800, rank: 4 },
+      { uid: "e", name: "Eva 4B", points: 0, rank: 5 },
+    ] };
+    assert.equal(endStanding(result, "a").podium, 1);
+    assert.equal(endStanding(result, "c").podium, 2);
+    const d = endStanding(result, "d");
+    assert.equal(d.podium, null);
+    assert.equal(relativeText(d.rel), "700 poäng bakom Bo");
+    const e = endStanding(result, "e");
+    assert.equal(e.podium, null);
+    assert.equal(relativeText(e.rel), "1 800 poäng bakom Dan");
+    // 0 poäng står aldrig på pallen, även om bara tre spelade.
+    assert.equal(endStanding({ ranking: [{ uid: "z", name: "Z", points: 0, rank: 1 }] }, "z").podium, null);
   });
 });
 
