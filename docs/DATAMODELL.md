@@ -586,7 +586,19 @@ liveSessions/{sid}                                   ← LiveSession (lärare)
 liveSessions/{sid}/answers/{attemptId}               ← ett Live-svar (create-only)
 liveSessions/{sid}/players/{uid}                     ← närvaro/"redo" + elevens matchresultat
 liveSessions/{sid}/counters/{classId}_{n}            ← shardad klassräknare (projektorn)
+liveSessions/{sid}/coinReceipts/{uid}                ← Pluggmynt-kvitto (nya format, #557)
+liveSessions/{sid}/sbPrivate/snapshot                ← Snilleblixten: frågor + facit (bara lärare)
+liveSessions/{sid}/sbAnswers/{i}_{uid}               ← Snilleblixten: elevens svar på fråga i
+liveSessions/{sid}/sbScores/{i}                      ← Snilleblixten: frågans poäng
+liveSessions/{sid}/grPublic/questions                ← Guldrushen (quiz): frågor utan facit
+liveSessions/{sid}/grPrivate/snapshot                ← Guldrushen (quiz): facit (bara lärare + servern)
+liveSessions/{sid}/grPlayers/{uid}                   ← Guldrushen: elevens guld (bara servern skriver)
+liveSessions/{sid}/grEvents/{id}                     ← Guldrushen: händelseflödet (bara servern skriver)
+liveSessions/{sid}/grMeta/leader                     ← Guldrushen: vem som leder (bara servern skriver)
 ```
+
+Hur ett nytt Live-format läggs till (filer, regelgren, tester, vyer,
+demoläge): **[docs/LIVE-FORMAT.md](LIVE-FORMAT.md)**.
 
 ### Grundprincip: poäng uppstår bara ur verifierade svarsdokument
 
@@ -698,7 +710,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc`. **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Klassmatchens regelgren godtar frånvarande eller `"klassmatch"`; `"snilleblixt"` och `"guldrush"` har egna grenar (se Snilleblixten/Guldrushen nedan). Varje byte nekas |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `answerKind` | `"free"` \| `"choice"` (valfri) | **#551** svarssätt: skriv själv / flerval. Skrivs av `buildSessionDoc` – lärarens val bland svarssätten som BÅDE formatet och spelläget stöder (förval `"free"`). **Saknas = `"free"`** (alla sessioner före #551, ingen migrering). Får ändras i lobbyn, låst efter start (reglerna). Svaren valideras mot det |
-| `quiz` | map (valfri) | **#553** bara spelläget `plugga_quiz`: `{ subjectId, areaId, subjectName, areaName, passagePolicy: "skip" }` – lärarens ämne + arbetsområde (`buildSessionFields`). Frågornas ögonblicksbild (elevsynligt + lärarskyddat facit, §4.4) skrivs av formatet som spelar quizet (Snilleblixten/Guldrushen) – inte här. ⚠️ Ännu inte låst efter start i reglerna |
+| `quiz` | map (valfri) | **#553** bara spelläget `plugga_quiz`: `{ subjectId, areaId, subjectName, areaName, passagePolicy: "skip" }` – lärarens ämne + arbetsområde (`buildSessionFields`). Frågornas ögonblicksbild (elevsynligt + lärarskyddat facit, §4.4) skrivs av formatet som spelar quizet (Snilleblixten/Guldrushen) – inte här. Låst efter skapandet i Snilleblixtens och Guldrushens regelgrenar (Klassmatchen spelar inte quiz) |
 | `participatingClassIds` | array\<string\> (1–8) | klasserna |
 | `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal). Får ändras i lobbyn och under matchen (#543: heltal 1–999, exakt deltagarklasserna; under match rör ändringen bara detta fält) – **låst efter slut** |
 | `durationSeconds` | int 30–3600 | matchlängd (UI: 300–1800 i 5-min-steg; kortare för QA) |
@@ -897,8 +909,10 @@ summan av `sbScores`; lika poäng = delad placering (1, 1, 3).
 exakt VEM som svarat för auto-stängningen när alla anslutna svarat).
 
 `result` (`buildResult`): `{ format, winner: null, ranking[{ uid, name,
-classId, points, correct, rank }], perQuestion[{ index, skipped, answered,
-correct }], questionsPlayed, totalCorrect, players }` – inget `perClass`/
+classId, points, correct, answered, rank }], perQuestion[{ index, skipped,
+answered, correct, text?, statKeys?, byClass{classId: { answered, correct }} }],
+questionsPlayed, totalCorrect, players, computedAt }` (`text`/`statKeys` ur
+ögonblicksbilden, #560 – "vilka frågor hade klassen svårast för") – inget `perClass`/
 `winnerClasses` → inga klasspokaler/klassbonus/mynt-pris via kc-koppling.
 Plus `rewards` (Pluggmynt, nedan) när sessionen har belöningar.
 
@@ -977,7 +991,12 @@ dokument: ett svar/en kista rör bara elevens egna dokument, en stöld två.
 
 `result` (`buildResult`): `{ format, winner: null, ranking[{ uid, name,
 classId, gold, correct, answered, chests, rank }], totalGold, classGold{classId},
-totalCorrect, players }` + `rewards` (Pluggmynt, placering ur guldet).
+totalCorrect, players, computedAt, perQuestion? }` + `rewards` (Pluggmynt,
+placering ur guldet). `perQuestion` (#566, `gr-historik-data.js`
+`questionStats`, högst 150 poster) = `[{ index, key, text, answered, correct,
+statKeys, byClass{classId: { answered, correct }} }]` – multiplikation per
+faktorpar (7 × 8 = 8 × 7), quiz per fråga. Saknas i matcher före #566 –
+historiken räknar då om ur svaren när matchen öppnas (sparas inte).
 
 ### Pluggmynt efter matchen (#557, nya format – Snilleblixten, Guldrushen)
 
@@ -1003,6 +1022,36 @@ behövs är verifierat i `result`, kvittot ger idempotensen och Snilleblixten
 slipper ett deploy-beroende. Demo-/testläge (`demo: true`) betalar aldrig.
 Inga klasspokaler för nya format (§7.2.6) – `winner: null`; vill man lägga
 till senare räcker ett `winnerClasses` i result + en kalla i kc-pokal-typer.
+
+### Bakåtkompatibilitet i Live (#547–#566)
+
+Inga migreringar – gamla sessioner läses som de är:
+
+| Fält | Saknas betyder | Läses med |
+| --- | --- | --- |
+| `liveSessions.format` | `"klassmatch"` (alla sessioner före #547) | `formatIdOf(s)` / `formatOf(s)` (`src/live/formats/index.js`) – läs aldrig `s.format` direkt |
+| `liveSessions.answerKind` | `"free"` (skriv själv, alla före #551) | `answerKindOf(s)` (`src/live/live-formats.js`) |
+| `answers.answerKind` / `choiceIndex` | skriv själv – exakt dokumentet före #551 | reglerna `liveAnswerKindOk` |
+| `liveSessions.rewards` / `result.rewards` | inga Pluggmynt | `sessionRewards(s)` / `myReward(result, uid)` |
+| `result.perQuestion` (Guldrushen) | räknas ur svaren när historiken öppnas | `guldrush-history.js` |
+| `result.perQuestion[].text` (Snilleblixten) | "Fråga n" | `snilleblixt-history.js` |
+
+Regler som håller det bakåtkompatibelt:
+
+- **Klassmatchens gren** godtar både saknat och `"klassmatch"`, och att skriva
+  ut eller ta bort fältet räknas inte som ett formatbyte
+  (`get('format', 'klassmatch')`). Varje annat byte nekas – formatet är
+  oföränderligt efter skapandet.
+- **Okänt format** (session skapad av en nyare klient) → `formatOf` ger `null`;
+  elevsidan, projektorn och historiken visar "ladda om" i stället för att krascha.
+  Samma för ett okänt svarssätt (`hasAnswerComponent`).
+- **Nya fält är alltid valfria** eller bara tillåtna i det nya formatets egen
+  regelgren (`hasOnly`) – Klassmatchens dokumentform är oförändrad sedan före #547.
+- Gamla klienter som läser en session med ett nytt format ser den i listor
+  (samma `liveSessions`-fråga) men kan inte spela den – därför ska
+  rules-deploy och sajtdeploy ske innan lärare skapar sessioner i nya format.
+- `id`:n för format, spellägen och svarssätt lagras i data och får **aldrig**
+  bytas namn.
 
 ---
 
