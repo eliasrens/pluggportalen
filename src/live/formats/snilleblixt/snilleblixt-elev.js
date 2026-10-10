@@ -18,11 +18,20 @@
 //     index, number ("Fråga 3 av 10"), total,
 //     question?  frågan (fraga/svarat), endMs? (fraga: svarsfönstrets slut)
 //     points?    frågans poäng (ratt/fel), facit? (avslöjad), mine?
-//     rank, totalPoints  placering/poäng hittills (ur alla sbScores)
+//     rel, totalPoints   läget relativt närmaste framför + poäng hittills
 //   }
 //   mine = elevens svarsdokument för q.index ({ choiceIndex | answer }) | null
-//   myStanding(s, scores, uid) → { rank, points, correct }
+//   names = { uid: förnamn } (klassprojektionen) – för "bakom <Namn>"
+//   myStanding(s, scores, uid) → { rank, points, correct } (internt – visas ALDRIG)
+//   relativeStanding(list, uid) → { kind: "leder"|"lika"|"lika-topp"|"bakom"|"ingen",
+//                      name?, diff? }  list = [{ uid, points, name? }]
+//   relativeText(rel) → "120 poäng bakom Alma" | "Du leder! ⚡" | "Lika med Alma" …
+//   endStanding(result, uid) → { podium: 1|2|3|null, rel, row } (slutskärmen)
 //   formatPoints(n) → "4 230"
+//
+// INGEN PLACERING SOM NUMMER (Elias 2026-10-10): eleven ska aldrig få veta att
+// hen ligger sist. Avslöjandet visar läget mot närmaste elev FRAMFÖR; bara
+// topp 3 ser sin pallplats på slutskärmen (pallen visas ändå på projektorn).
 // ============================================================================
 
 import { canAnswer } from "./snilleblixt-flode.js";
@@ -35,15 +44,62 @@ export function myStanding(s, scores, uid) {
   return { rank: me?.rank || 1, points: me?.points || 0, correct: me?.correct || 0 };
 }
 
+/** Närmaste framför i poäng (lägst poäng > mina; lika poäng → namnordning). */
+export function relativeStanding(list, uid) {
+  const rows = (list || []).filter((p) => p && p.uid);
+  const me = rows.find((p) => p.uid === uid);
+  const mine = Number(me?.points) || 0;
+  const byName = (a, b) => String(a.name || "").localeCompare(String(b.name || ""), "sv") || String(a.uid).localeCompare(String(b.uid));
+  const others = rows.filter((p) => p.uid !== uid);
+  const above = others.filter((p) => (Number(p.points) || 0) > mine);
+  const tied = others.filter((p) => (Number(p.points) || 0) === mine).sort(byName);
+  if (mine > 0 && tied.length) return { kind: above.length ? "lika" : "lika-topp", name: tied[0].name || "" };
+  if (!above.length) return mine > 0 ? { kind: "leder" } : { kind: "ingen" };
+  const top = Math.min(...above.map((p) => Number(p.points) || 0));
+  const next = above.filter((p) => (Number(p.points) || 0) === top).sort(byName)[0];
+  return { kind: "bakom", name: next.name || "", diff: top - mine };
+}
+
+const NAMNLOS = "en klasskompis";
+
+/** Förnamnet ("Alma 4B" → "Alma"). */
+export function firstName(n) {
+  return String(n || "").trim().split(/\s+/)[0] || "";
+}
+
+/** Elevens rad – aldrig en placering som nummer. */
+export function relativeText(rel) {
+  const n = (rel?.name || "").trim() || NAMNLOS;
+  switch (rel?.kind) {
+    case "leder": return "Du leder! ⚡";
+    case "lika-topp": return `Lika med ${n} – ni leder! ⚡`;
+    case "lika": return `Lika med ${n}`;
+    case "bakom": return `${formatPoints(rel.diff)} poäng bakom ${n}`;
+    default: return "";
+  }
+}
+
+/** Slutskärmen ur result.ranking (namn finns där): topp 3 → pallplats, annars relativt. */
+export function endStanding(result, uid) {
+  const ranking = result?.ranking || [];
+  const row = ranking.find((p) => p.uid === uid) || null;
+  const podium = row && row.points > 0 && row.rank <= 3 ? row.rank : null;
+  const list = ranking.map((p) => ({ uid: p.uid, points: p.points, name: firstName(p.name) }));
+  return { podium, row, rel: relativeStanding(list, uid) };
+}
+
 export function formatPoints(n) {
   return (Math.round(Number(n) || 0)).toLocaleString("sv-SE").replace(/ /g, " ");
 }
 
-export function elevLage({ s, player, uid, mine = null, scores = [], now = null } = {}) {
+export function elevLage({ s, player, uid, mine = null, scores = [], now = null, names = {} } = {}) {
   const q = s?.q || null;
   const total = Number(s?.questionCount) || 0;
-  const standing = myStanding(s, scores, uid);
-  const base = { index: q ? q.index : -1, number: q ? q.index + 1 : 0, total, rank: standing.rank, totalPoints: standing.points };
+  const st = computeStandings(s, { scores, players: [{ uid }] });
+  const list = st.players.map((p) => ({ uid: p.uid, points: p.points, name: names?.[p.uid] || "" }));
+  const rel = relativeStanding(list, uid);
+  const totalPoints = st.players.find((p) => p.uid === uid)?.points || 0;
+  const base = { index: q ? q.index : -1, number: q ? q.index + 1 : 0, total, rel, totalPoints };
   if (!player) return { ...base, kind: "ansluter" };
   if (!q) return { ...base, kind: "forsta" };
   // Fick eleven vara med på frågan? (anslöt före öppningen, §5.7)
