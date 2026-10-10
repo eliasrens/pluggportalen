@@ -18,9 +18,12 @@
 //   getMyAnswer(sid, attemptId)        → mitt svarsdokument | null (#564: en
 //                                       oöppnad kista efter omladdning)
 // API (alla deltagare)
-//   watchGrPlayers(sid, cb, onErr)     → unsub; cb(grPlayers[])
+//   watchGrPlayers(sid, cb, onErr)     → unsub; cb(grPlayers[], { fromCache })
 //   watchEvents(sid, cb, onErr, n=30)  → unsub; cb(senaste n händelser, nyast
-//                                       först, med id) – createEventCursor()
+//                                       först, med id, { fromCache }) –
+//                                       createEventCursor(); fromCache: true =
+//                                       ögonblicksbild ur cachen, inte servern
+//                                       (projektorns baslinje väntar in servern)
 //   getGrPlayers(sid)                  → grPlayers[] (resultat/historik)
 // ============================================================================
 
@@ -68,7 +71,7 @@ const grCol = (sid) => collection(db, "liveSessions", sid, "grPlayers");
 const withUid = (d) => ({ uid: d.id, ...d.data() });
 
 export function watchGrPlayers(sid, cb, onErr) {
-  return onSnapshot(grCol(sid), (snap) => cb(snap.docs.map(withUid)), onErr);
+  return onSnapshot(grCol(sid), (snap) => cb(snap.docs.map(withUid), { fromCache: snap.metadata.fromCache }), onErr);
 }
 
 export async function getGrPlayers(sid) {
@@ -81,7 +84,7 @@ export function watchMyGold(sid, uid, cb, onErr) {
 
 export function watchEvents(sid, cb, onErr, n = 30) {
   const q = query(collection(db, "liveSessions", sid, "grEvents"), orderBy("at", "desc"), limit(n));
-  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))), onErr);
+  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })), { fromCache: snap.metadata.fromCache }), onErr);
 }
 
 export async function getQuestions(sid) {

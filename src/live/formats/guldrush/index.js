@@ -17,8 +17,9 @@
 //
 // Pluggmynt efter matchen (#557): gemensamma live-rewards.js.
 // Elevvyn (#564): guldrush-student.js – egen spelyta (createStage) med
-// kistor, offerväljare och stöldnotis. Projektorvyerna byggs i en egen issue;
-// historiken är en enkel version (guldrush-history.js).
+// kistor, offerväljare och stöldnotis. Projektorvyerna (#565):
+// guldrush-projector.js – Skattkammaren + Statistik, lobby, pallplats.
+// Historiken är en enkel version (guldrush-history.js).
 //
 // API: export default GULDRUSH (format-objekt, oregistrerat).
 // ============================================================================
@@ -30,8 +31,6 @@ import {
   buildQuizPool, computeStandings, buildResult,
 } from "./guldrush-core.js";
 import { rewardsSetupField, validateRewards, rewardSessionFields } from "../../live-rewards.js";
-
-const notYet = (what) => () => Promise.reject(new Error(`Guldrushens ${what} är inte byggd än (epic #562)`));
 
 const GULDRUSH = {
   id: "guldrush",
@@ -91,7 +90,11 @@ const GULDRUSH = {
     return { grPlayers: await getGrPlayers(s.id) };
   },
 
-  projectorViews: notYet("projektorvy"),
+  // Skattkammaren (#565): Skattkammaren + Statistik, lobby, pallplats.
+  projectorViews: () => import("./guldrush-projector.js"),
+  // Varje spelarändring (anslutning, puls) → nytt tillstånd: lobbyns
+  // skattjägare studsar in direkt, sena elever syns i ställningen.
+  emitOnPlayers: true,
   studentView: () => import("./guldrush-student.js"),
   historyRenderer: () => import("./guldrush-history.js"),
 };
