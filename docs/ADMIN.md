@@ -169,7 +169,7 @@ node admin/migrate-passwords.mjs --commit
 npm run test:rules   # regel-tester mot Firestore-emulatorn (bevisar §3.4)
 npm run test:e2e     # auth→regler→data end-to-end mot emulatorerna
 npm --prefix functions install   # en gång (Cloud Functions-beroenden)
-npm run test:functions           # updateStudentLogin mot functions+auth+firestore
+npm run test:functions           # updateStudentLogin + Guldrushen mot functions+auth+firestore
 ```
 
 Båda startar/river emulatorerna själva via `firebase emulators:exec`. Kräver
@@ -195,6 +195,11 @@ om okänt) och **pluggporten.se**.
 npm --prefix functions install
 firebase deploy --only functions,firestore:rules
 ```
+
+Samma deploy tar med **Guldrushens** funktioner (`guldrushAnswer`,
+`guldrushOpenChest`, `guldrushChooseVictim`, #563) – utan dem kan ingen elev
+svara i en Guldrush-match. Predeploy-steget kopierar kistkonfigen
+(`npm run sync:guldrush`) till `functions/guldrush/`.
 
 Första gången aktiverar CLI:t Cloud Functions-, Cloud Build-, Artifact Registry-
 och Cloud Run-API:erna (godkänn frågan, eller aktivera dem i Google Cloud
