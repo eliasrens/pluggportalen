@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Synliga moduler per klass – förhandsvisning (issue #412)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Bara data.js stubbas (klasser + elev i minnet). Lärar-kontrollen
+         (teacher-class-modules.js), elevens sidomeny (ui.renderTopbar) och
+         grind-funktionerna (moduleForRoute + getHiddenModules, samma anrop som
+         app.js-routern gör) är de RIKTIGA modulerna. -->
+    <script type="importmap">
+      { "imports": { "/src/data.js": "/preview/modul-stubs/data.js" } }
+    </script>
+    <style>
+      body { background: #0b0f14; }
+      .pv-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px;
+        max-width: 1300px; margin: 0 auto; padding: 16px 20px 40px; }
+      @media (max-width: 900px) { .pv-wrap { grid-template-columns: 1fr; } }
+      .pv-h { color: #7ee0a6; font: 700 0.8rem/1 "Baloo 2", system-ui, sans-serif;
+        letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 10px; }
+      .pv-intro { max-width: 1300px; margin: 0 auto; padding: 18px 20px 0; color: #cfd8e3;
+        font: 500 0.95rem/1.5 system-ui, sans-serif; }
+      .pv-intro b { color: #fff; }
+      .pv-pick { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+      .pv-pick button { border-radius: 999px; padding: 4px 12px; border: 1px solid #39465a;
+        background: #141b24; color: #cfd8e3; cursor: pointer; font: 600 0.85rem system-ui, sans-serif; }
+      .pv-pick button[aria-pressed="true"] { background: #2f8f5b; border-color: #2f8f5b; color: #fff; }
+      .pv-elev { border-radius: 16px; overflow: hidden; background: #f5f2ea; color: #3b3350; }
+      .pv-elev .pv-pick { padding: 10px 12px 0; margin: 0; }
+      .pv-elev .pv-pick button { background: #fff; color: #3b3350; border-color: #cfc6b4; }
+      .pv-elev .pv-pick button[aria-pressed="true"] { background: #7c5cd6; border-color: #7c5cd6; color: #fff; }
+      .pv-elev-yta { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 0; min-height: 420px; }
+      @media (max-width: 560px) { .pv-elev-yta { grid-template-columns: 1fr; } }
+      /* Riktiga sidomenyn är sticky/off-canvas (mobil) i layouten – här bor den
+         alltid synlig i ramen, oavsett viewport-bredd. */
+      body.med-sidomeny .pv-elev-yta .sidebar { position: relative !important; inset: auto !important;
+        height: auto !important; max-height: none !important; transform: none !important;
+        width: auto !important; border-radius: 16px !important; margin: 10px; }
+      body.med-sidomeny .container { padding-top: 0; }
+      #hamburger, #sidebar-overlay { display: none !important; }
+      .pv-sida { padding: 16px; font: 600 0.95rem/1.5 system-ui, sans-serif; }
+      .pv-sida code { background: #fff; padding: 1px 6px; border-radius: 6px; }
+      .pv-lankar { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+      .pv-lankar a { background: #fff; border: 1px solid #cfc6b4; border-radius: 10px; padding: 4px 10px;
+        color: #3b3350; text-decoration: none; font-size: 0.85rem; }
+      .pv-logg { font-size: 0.85rem; white-space: pre-line; }
+      .pv-status { padding: 8px 12px; font: 600 0.85rem system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-intro">
+      <b>Issue #412 – lärarstyrd modul-synlighet.</b> Vänster: lärarens nya kontroll
+      <i>Synliga moduler</i> på klasskortet (välj klass). Höger: elevens RIKTIGA sidomeny för
+      en elev i vald klass. Bocka ur t.ex. <b>Läsresan</b> + <b>Spara moduler</b> → länken
+      försvinner direkt för klassens elever, och direktlänken skickar eleven hem. Allt
+      ikryssat = allt synligt (default). Alva går i både 4A och Specgrupp (union = striktast).
+    </div>
+    <div class="pv-wrap">
+      <section class="teacher-page teacher-dark">
+        <div class="pv-h">Lärarsidan · klasskort → Synliga moduler</div>
+        <div class="pv-pick" id="pv-larare-klass"></div>
+        <div class="panel class-card"><div class="class-modules" id="pv-larare"></div></div>
+      </section>
+      <section>
+        <div class="pv-h">Elevens sidomeny + direktlänkar</div>
+        <div class="pv-elev">
+          <div class="pv-pick" id="pv-elev"></div>
+          <div class="pv-status" id="pv-status"></div>
+          <div class="pv-elev-yta">
+            <button class="hamburger" id="hamburger" hidden></button>
+            <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+            <aside class="sidebar" id="sidebar"><div id="sidebar-body" class="sidebar-body"></div></aside>
+            <div class="pv-sida">
+              Nuvarande route: <code id="pv-route"></code>
+              <div class="pv-lankar">
+                <a href="#/elev/hus">#/elev/hus</a>
+                <a href="#/elev/plugga">#/elev/plugga</a>
+                <a href="#/elev/spela?subj=so&area=vikingar&mode=quiz">#/elev/spela…</a>
+                <a href="#/elev/lasresan">#/elev/lasresan</a>
+                <a href="#/elev/shop">#/elev/shop</a>
+              </div>
+              <div class="pv-logg" id="pv-logg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      import * as data from "/src/data.js";
+      import { renderClassModules } from "/src/teacher-class-modules.js";
+      import { renderTopbar, getHiddenModules, flash } from "/src/ui.js";
+      import { moduleForRoute } from "/src/gamemode-visibility.js";
+
+      const ctx = { app: document.body, go: () => {}, renderTopbar: () => {}, refresh: () => {} };
+      const classes = await data.getClasses();
+      const elever = [
+        { id: "bruno", namn: "Bruno", text: "Bruno (4A)" },
+        { id: "kim", namn: "Kim", text: "Kim (5A)" },
+        { id: "pia", namn: "Pia", text: "Pia (Specgrupp)" },
+        { id: "alva", namn: "Alva", text: "Alva (4A + Specgrupp)" },
+      ];
+      let lararKlass = classes[0].id;
+      let elev = elever[0];
+      if (!location.hash.startsWith("#/elev/")) location.replace("#/elev/hus");
+
+      function knappar(host, poster, valt, onPick, etikett) {
+        host.replaceChildren(
+          ...poster.map((p) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.textContent = etikett(p);
+            b.setAttribute("aria-pressed", String(p.id === valt));
+            b.addEventListener("click", () => onPick(p.id));
+            return b;
+          })
+        );
+      }
+
+      function ritaLarare() {
+        knappar(document.getElementById("pv-larare-klass"), classes, lararKlass, (id) => {
+          lararKlass = id;
+          ritaLarare();
+        }, (c) => c.name);
+        renderClassModules(ctx, classes.find((c) => c.id === lararKlass), document.getElementById("pv-larare"));
+      }
+
+      async function ritaElev() {
+        knappar(document.getElementById("pv-elev"), elever, elev.id, (id) => {
+          elev = elever.find((e) => e.id === id);
+          ritaElev();
+        }, (e) => e.text);
+        data.loginAs(elev.id, elev.namn);
+        await renderTopbar();
+        const dolda = await getHiddenModules();
+        document.getElementById("pv-status").textContent =
+          `Inloggad som ${elev.text} · ` +
+          (dolda.length ? `dolt av läraren: ${dolda.join(", ")}` : "inget dolt (default)");
+        document.getElementById("pv-route").textContent = location.hash;
+      }
+
+      // Samma grind som app.js-routern: modul-route + dold → flash + replace hem.
+      const logg = document.getElementById("pv-logg");
+      window.addEventListener("hashchange", async () => {
+        const path = location.hash.slice(1).split("?")[0];
+        const modul = moduleForRoute(path);
+        if (modul && (await getHiddenModules()).includes(modul)) {
+          logg.textContent = `⛔ ${path} hör till "${modul}", som är dold → skickas hem.\n` + logg.textContent;
+          flash("Den delen är stängd för din klass just nu.");
+          location.replace("#/elev/hus");
+          return;
+        }
+        logg.textContent = `✓ ${path} öppnas.\n` + logg.textContent;
+        ritaElev();
+      });
+
+      window.addEventListener("pv-classes-changed", ritaElev);
+      ritaLarare();
+      ritaElev();
+    </script>
+  </body>
+</html>

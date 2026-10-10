@@ -223,6 +223,6 @@ dem.
 
 ## Demoläge
 
-`preview-trollkarlsduellen.html` (rot): riktiga `mountProjector` med
+`preview/preview-trollkarlsduellen.html` (rot): riktiga `mountProjector` med
 simulerade deps (ingen Firestore, ingenting sparas utanför webbläsaren).
 Knappar för allt i §21 + omladdningstest och trollkarlsbyte.

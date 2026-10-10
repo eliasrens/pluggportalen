@@ -1,5 +1,5 @@
 // ============================================================================
-// Förhandsvisnings-STUB av firebase-auth 10.12.2 (preview-larare-klasser.html, #440)
+// Förhandsvisnings-STUB av firebase-auth 10.12.2 (preview/preview-larare-klasser.html, #440)
 // ----------------------------------------------------------------------------
 // En LÄRARE (claim teacher:true) är inloggad direkt. Varje Firebase-app får sin
 // egen auth – kontoskapandet (createStudentAuthAccount) kör på en sekundär app

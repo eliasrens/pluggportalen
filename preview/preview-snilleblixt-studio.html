@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Snilleblixten TV-studion (#559)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Bara förhandsvisningen: simuleringspanelen ovanpå projektorn. */
+      .pv { position: fixed; left: 10px; bottom: 10px; z-index: 100; width: 300px; font: 13px/1.35 system-ui, sans-serif;
+        background: rgba(255, 255, 255, 0.96); color: #1b2559; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; max-height: 60vh; overflow: auto; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c5cde0; background: #f3f6fc; cursor: pointer; }
+      .pv button:hover { background: #e3e9f7; }
+      .pv-note, .pv-stat { width: 100%; color: #5a6585; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 11px; color: #1b2559; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <details class="pv" open>
+      <summary>🧪 Snilleblixten – simulering (#559)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Låtsasdata i webbläsaren – ingen Firestore, inga riktiga elever eller pluggmynt. Övergångarna
+          körs med formatets riktiga planer (planStep/scoreQuestion), avatarerna ur en fejkad klassprojektion
+          (räknar läsningar). Lärarkontrollerna sitter i studion till höger.</span>
+        <b>Scenario (laddar om)</b>
+        <button data-go="svar=choice">Lobby · Flerval</button>
+        <button data-go="svar=free">Lobby · Skriv själv</button>
+        <button data-go="svar=choice&fas=fraga">Fråga 4 · Flerval</button>
+        <button data-go="svar=free&fas=fraga&auto=av">Fråga 1 · Skriv själv (7×8)</button>
+        <button data-go="svar=choice&fas=mellan">Mellanbild (efter fråga 4)</button>
+        <button data-go="svar=choice&fas=fraga&vy=sb-statistik">📊 Statistik (anonym)</button>
+        <button data-go="svar=choice&fas=final">Final</button>
+        <button data-go="svar=choice&fas=final&delad=1">Final · delad 2:a</button>
+        <b>Händelser</b>
+        <button data-act="anslut">+30 ansluter</button>
+        <button data-act="auto">Auto-svar på/av</button>
+        <button data-act="alla">Alla svarar nu</button>
+        <button data-act="t7b">Test 7b (5×54, 3×64)</button>
+        <button data-act="snart">Hoppa till 6 s kvar</button>
+        <button data-act="omladd">Omladdning</button>
+        <button data-act="frys">Frys tiden på/av</button>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { mountProjector } from "../src/live/projector.js";
+      import { phaseAt, formatClock } from "../src/live/live-core.js";
+      import { planStep } from "../src/live/formats/snilleblixt/snilleblixt-flode.js";
+      import { computeStandings, buildResult } from "../src/live/formats/snilleblixt/snilleblixt-poang.js";
+
+      const q = new URLSearchParams(location.search);
+      const KIND = q.get("svar") === "free" ? "free" : "choice";
+      const FAS = q.get("fas") || "lobby";
+      const elev = location.hash.includes("skarm=elev");
+      if (elev) document.querySelector(".pv").hidden = true;
+      const sid = `demo559-${KIND}-${FAS}${q.get("delad") ? "-d" : ""}`;
+      if (!elev && !q.has("behall")) {
+        sessionStorage.removeItem(`pp:live:handelser:${sid}`);
+        sessionStorage.removeItem(`pp:live:handelser:${sid}:lobby`);
+      }
+      localStorage.setItem("pp:live:vy", q.get("vy") || "studio");
+
+      const DJUR = ["fox", "owl", "cat", "dog", "panda", "frog", "unicorn", "dragon", "lion", "penguin", "koala", "robot", "bjorn",
+        "tiger", "rabbit", "pig", "cow", "monkey", "hamster", "mouse", "chick", "sheep", "hedgehog", "wolf", "deer", "raccoon",
+        "turtle", "bee", "elephant", "goat"];
+      const KLADER = [["trollkarlshatt", "cape"], ["krona", "medalj"], ["keps", "glasogon"], ["cowboyhatt", "mustasch", "svard"],
+        ["partyhatt", "ballong"], ["vikinghjalm", "cape"], ["tomtemossa", "halsduk"], ["strahatt", "blomma"], ["monokel", "fluga"],
+        ["djuroron", "glasstrut"], ["riddarhjalm", "svard", "cape"], ["kockmossa", "slips"], ["vintermossa", "halsduk", "bok"],
+        ["pilotglasogon", "trollstav"], ["ogonlapp", "cape"]];
+      const NAMN = ["Alma", "Omar", "Ines", "Leo", "Clara", "Sam", "Ella", "Noah", "Maja", "Elias", "Wilma", "Adam", "Saga", "Hugo",
+        "Freja", "Liam", "Alva", "Ali", "Signe", "Vera", "Otto", "Nora", "Ebbe", "Selma", "Malte", "Tove", "Isak", "Lova", "Arvid", "Juni"];
+      const members = {};
+      NAMN.forEach((n, i) => { members[`e${i + 1}`] = { namn: n, avatarId: DJUR[i], avatarItems: KLADER[i % KLADER.length], husLast: i === 5 }; });
+      let reads = 0;
+      const loadProjection = async () => { reads++; await new Promise((r) => setTimeout(r, 80)); return { members: { ...members } }; };
+
+      // Frågorna (ögonblicksbilden) – fråga 1 är 7 × 8 (test 7b).
+      const PAR = [[7, 8], [6, 7], [9, 4], [8, 8], [3, 9], [7, 7], [6, 9], [4, 8], [9, 9], [5, 7]];
+      const snapshot = { questions: [], facit: [] };
+      PAR.forEach(([a, b], i) => {
+        const pub = { key: `${i}:${a}x${b}`, text: `${a} × ${b}`, statKeys: [`m${a}`] };
+        const ans = a * b;
+        const f = { correctAnswer: String(ans) };
+        if (KIND === "choice") {
+          const opts = [ans, ans + b, ans - a, ans + 10].map(String);
+          const order = [0, 1, 2, 3].sort((x, y) => ((x * 7 + i * 3) % 4) - ((y * 7 + i * 3) % 4));
+          pub.options = order.map((k) => opts[k]);
+          f.answerIndex = order.indexOf(0);
+        }
+        snapshot.questions.push(pub);
+        snapshot.facit.push(f);
+      });
+
+      let offset = 0;
+      let frozen = null; // "Frys tiden" (skärmdumpar): serverns tid står still
+      const now = () => frozen ?? Date.now() + offset;
+      const session = {
+        id: sid, name: "Snilleblixten 4B", format: "snilleblixt", gameMode: "multiplication_0_10", answerKind: KIND,
+        participatingClassIds: ["4b"], classNames: { "4b": "4B" }, countdownSeconds: 4,
+        questionSeconds: KIND === "free" ? 20 : 10, questionCount: 10, shuffleQuestions: true, showQuestionOnStudent: true,
+        status: "lobby", createdBy: "rasmus", rewards: { firstPrize: 100, perCorrect: 2, cap: 300 },
+      };
+      let players = [];
+      let answers = [];
+      let scores = [];
+      const fv = { serverTimestamp: () => now() };
+
+      function addPlayer(i, joinedAt = now()) {
+        if (i >= NAMN.length || players.some((p) => p.uid === `e${i + 1}`)) return;
+        players.push({ uid: `e${i + 1}`, name: NAMN[i], classId: "4b", correct: 0, incorrect: 0, joinedAt, lastSeenAt: now() });
+      }
+      function applyPatch(patch) {
+        for (const [k, v] of Object.entries(patch)) {
+          if (k.startsWith("q.")) session.q = { ...session.q, [k.slice(2)]: v };
+          else session[k] = v;
+        }
+      }
+      function step(action, fromIndex) {
+        if (elev) return { done: false };
+        const plan = planStep(session, action, { fromIndex, snapshot, answers: answers.filter((a) => a.q === fromIndex), fv });
+        if (plan.noop) return { done: false, reason: plan.noop };
+        applyPatch(plan.patch);
+        if (plan.scores) scores = [...scores.filter((s) => s.index !== plan.scores.index), plan.scores].sort((a, b) => a.index - b.index);
+        if (action === "open") scheduleAnswers();
+        emit(true);
+        return { done: true };
+      }
+
+      // Ett svar (rätt med sannolikhet p). Skriv själv: vanliga felsvar ±1 rad.
+      function answer(uid, { correct, choice, text } = {}) {
+        const s = session;
+        if (s.q?.phase !== "open" || answers.some((a) => a.q === s.q.index && a.uid === uid)) return;
+        const f = snapshot.facit[s.q.index];
+        const a = { uid, classId: "4b", q: s.q.index, answerKind: KIND, at: now() };
+        if (KIND === "choice") a.choiceIndex = choice ?? (correct ? f.answerIndex : (f.answerIndex + 1 + (uid.length % 3)) % 4);
+        else a.answer = text ?? (correct ? f.correctAnswer : String(Number(f.correctAnswer) + (uid.charCodeAt(1) % 2 ? -2 : 8)));
+        answers.push(a);
+        emit(true);
+      }
+      let auto = !elev && q.get("auto") !== "av";
+      let timers = [];
+      function scheduleAnswers() {
+        timers.forEach(clearTimeout);
+        timers = [];
+        if (!auto) return;
+        const total = session.questionSeconds * 1000;
+        players.forEach((p, i) => {
+          if (Math.random() < 0.08) return; // några hinner inte
+          const at = 1200 + Math.random() * total * 0.62;
+          const good = Math.random() < 0.62;
+          timers.push(setTimeout(() => answer(p.uid, { correct: good }), at));
+        });
+      }
+
+      // Historik: spela k frågor direkt (för scenarierna fråga/mellanbild/final).
+      function history(k, { shared = false } = {}) {
+        session.status = "live";
+        session.startedAt = now() - 600_000;
+        for (let i = 0; i < k; i++) {
+          const t0 = Date.now() - (k - i) * 40_000;
+          offset = t0 - Date.now();
+          step("open", i - 1);
+          timers.forEach(clearTimeout);
+          players.forEach((p, j) => {
+            if ((j * 7 + i) % 11 === 0) return;
+            const at = t0 + 900 + ((j * 397 + i * 131) % (session.questionSeconds * 700));
+            const good = (j * 5 + i * 3) % 7 < 4 + (j < 6 ? 2 : 0);
+            const f = snapshot.facit[i];
+            answers.push({ uid: p.uid, classId: "4b", q: i, answerKind: KIND, at,
+              ...(KIND === "choice" ? { choiceIndex: good ? f.answerIndex : (f.answerIndex + 1) % 4 } : { answer: good ? f.correctAnswer : "54" }) });
+          });
+          offset = t0 + session.questionSeconds * 1000 + 500 - Date.now();
+          step("close", i);
+          step("reveal", i);
+        }
+        offset = 0;
+        if (shared) {
+          // Delad 2:a: ge tvåan och trean exakt samma poäng (bara förhandsvisningen).
+          const st = computeStandings(session, { scores, players });
+          const [, two, three] = st.players;
+          if (two && three) scores[scores.length - 1].points[three.uid] = (scores[scores.length - 1].points[three.uid] || 0) + two.points - three.points;
+        }
+      }
+
+      // --- Live-flödet (som live-feed.js, men i minnet) ---
+      function compute() {
+        const t = now();
+        const ph = phaseAt(session, t);
+        const standings = computeStandings(session, { scores: [], players });
+        return {
+          sessionId: sid, session: { ...session }, status: session.status, phase: ph.phase, countdown: ph.countdown,
+          msLeft: ph.msLeft, clock: formatClock(ph.msLeft), ...standings, top: [],
+          players: players.map((p) => ({ ...p, answerKey: null })), result: session.result || null, now: t,
+        };
+      }
+      let cb = null;
+      let lastKey = "";
+      const scoreCbs = new Set();
+      const ansCbs = new Set();
+      const simBus = "BroadcastChannel" in window ? new BroadcastChannel(`pv-sb-${sid}`) : null;
+      function emit(force) {
+        if (!elev) simBus?.postMessage({ session, players, answers, scores, offset });
+        scoreCbs.forEach((f) => f(scores.slice()));
+        ansCbs.forEach((x) => x.cb(answers.filter((a) => a.q === x.i)));
+        if (!elev && session.status === "finished" && !session.result && !emit.rt) {
+          emit.rt = setTimeout(() => { session.result = buildResult(session, [], players, null, { scores }); emit(true); }, 2500);
+        }
+        if (!cb) return;
+        const st = compute();
+        const key = JSON.stringify([st.status, st.phase, st.countdown, session.q, players.length, !!st.result]);
+        if (!force && key === lastKey) return;
+        lastKey = key;
+        cb(st);
+      }
+      setInterval(() => emit(false), 250);
+      if (elev && simBus) simBus.onmessage = (e) => {
+        for (const k of Object.keys(session)) delete session[k];
+        Object.assign(session, e.data.session);
+        ({ players, answers, scores, offset } = e.data);
+      };
+
+      if (FAS === "lobby") { for (let i = 0; i < 3; i++) addPlayer(i); }
+      else {
+        for (let i = 0; i < 30; i++) addPlayer(i, now() - 900_000);
+        if (FAS === "fraga") { history(KIND === "free" ? 0 : 3); step("open", session.q ? session.q.index : -1); }
+        if (FAS === "mellan") { history(4); offset = 0; }
+        if (FAS === "final") { history(10, { shared: !!q.get("delad") }); session.status = "finished"; session.finishedAt = now(); }
+      }
+
+      const deps = {
+        subscribe(_sid, fn) { cb = fn; emit(true); return () => { cb = null; }; },
+        now,
+        async start() { await new Promise((r) => setTimeout(r, 200)); if (session.status === "lobby") { session.status = "live"; session.startedAt = now(); } emit(true); },
+        async finish() { if (["lobby", "live"].includes(session.status)) { session.status = "finished"; session.finishedAt = now(); } emit(true); },
+        async remove() { console.log("radera"); },
+        loadProjection,
+        snilleblixt: {
+          watchScores(_s, f) { scoreCbs.add(f); f(scores.slice()); return () => scoreCbs.delete(f); },
+          watchQuestionAnswers(_s, i, f) { const x = { i, cb: f }; ansCbs.add(x); f(answers.filter((a) => a.q === i)); return () => ansCbs.delete(x); },
+          openQuestion: async (_s, i) => step("open", i),
+          closeQuestion: async (_s, i) => step("close", i),
+          revealQuestion: async (_s, i) => step("reveal", i),
+          skipQuestion: async (_s, i) => step("skip", i),
+        },
+      };
+      const ctx = { app: document.getElementById("app"), go: (h) => console.log("navigera till", h) };
+      let cleanups = [];
+      function mount() {
+        cleanups.forEach((c) => c());
+        cleanups = [];
+        cb = null;
+        mountProjector(ctx, sid, { cleanups, uid: "rasmus", deps, screen: elev });
+      }
+      mount();
+
+      // --- Panelen ---
+      const act = {
+        anslut() { for (let i = 0; i < 30; i++) setTimeout(() => { addPlayer(i); emit(true); }, i * 140); },
+        auto() { auto = !auto; if (auto && session.q?.phase === "open") scheduleAnswers(); },
+        alla() { timers.forEach(clearTimeout); players.forEach((p, i) => setTimeout(() => answer(p.uid, { correct: Math.random() < 0.6 }), i * 40)); },
+        t7b() {
+          timers.forEach(clearTimeout);
+          players.forEach((p, i) => setTimeout(() => answer(p.uid, { text: i < 5 ? "54" : i < 8 ? "64" : undefined, correct: true }), i * 50));
+        },
+        snart() { if (session.q?.phase === "open") session.q.openedAt = now() - (session.questionSeconds - 6) * 1000; emit(true); },
+        omladd() { mount(); },
+        frys() { frozen = frozen == null ? now() : null; },
+      };
+      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { location.search = b.dataset.go; }));
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act]()));
+      setInterval(() => {
+        const el = document.querySelector("[data-stat]");
+        if (el) el.textContent = `fas ${session.status}/${session.q ? `${session.q.index}:${session.q.phase}` : "-"} · elever ${players.length} · svar ${answers.filter((a) => a.q === session.q?.index).length} · projektionsläsningar ${reads} · auto ${auto ? "på" : "av"}`;
+      }, 400);
+      window.__sb = { session, act, step, answer, players: () => players, scores: () => scores, reads: () => reads };
+    </script>
+  </body>
+</html>

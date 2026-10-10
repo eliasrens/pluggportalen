@@ -2,7 +2,7 @@
 
 Attack 9–15 (§8) + två extraattacker (§8 kreativ frihet) + kompletterade
 småhändelser (§10) och matchreaktioner. Screenshots tagna i demoläget
-(`preview-trollkarlsduellen.html`), frysta mitt i attacken.
+(`preview/preview-trollkarlsduellen.html`), frysta mitt i attacken.
 
 | Fil | Attack |
 |---|---|

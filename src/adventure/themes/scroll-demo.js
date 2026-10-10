@@ -5,7 +5,7 @@
 // (som alla teman) men med theme.mapImage + världskoordinater i stället för en
 // ASCII-ruta. INTE registrerad i produktions-THEMES (themes/index.js) – syns
 // aldrig för elever, precis som test-tema.js. Används av preview-harnessen
-// (aventyr-scroll-demo.html) för att köra motorn utan Firebase.
+// (preview/aventyr-scroll-demo.html) för att köra motorn utan Firebase.
 //
 // Kartan är en stor inline-SVG (data-URI) – en liten park sedd uppifrån med en
 // damm (hinder) och några träd (hinder). Kollisionslagret är GROVT (rects över

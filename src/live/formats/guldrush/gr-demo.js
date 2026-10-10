@@ -9,7 +9,7 @@
 // buildResult. Projektorn monteras med `deps` (mountProjector) – inget
 // Firestore-lager laddas, inga Cloud Functions anropas, inget skrivs: inga
 // sessioner, resultat eller pluggmynt (sessionen har dessutom demo:true, som
-// live-rewards aldrig betalar för). Sidan: preview-guldrush-demo.html.
+// live-rewards aldrig betalar för). Sidan: preview/preview-guldrush-demo.html.
 // Testas i test/live-guldrush-demo.test.js.
 //
 // API

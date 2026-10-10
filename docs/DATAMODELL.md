@@ -549,7 +549,7 @@ Spec: [spec-mattematchen-live.md](spec-mattematchen-live.md). Två produkter med
 | MM lärarens Firestore-lager (skriv + nollställ + klass-statistik + träningstotal) | `src/tavling/mm-teacher-data.js` |
 | Statistik → Mattematchen (klass × period → tabell → elevdetalj per tabell 0–10) | `src/tavling/teacher-mm-stats.js` (+ `mm-larare.css`) |
 
-Demo: `preview-mult-snabb.html`. Tester: `test/mult-generator.test.js`,
+Demo: `preview/preview-mult-snabb.html`. Tester: `test/mult-generator.test.js`,
 `test/live-game-modes.test.js`, `test/firestore-rules-mattematchen-live.test.js`,
 `test/mm-core.test.js`, `test/firestore-rules-mattematchen-elev.test.js`,
 `test/mm-teacher-core.test.js`, `test/firestore-rules-mattematchen-larare.test.js`.

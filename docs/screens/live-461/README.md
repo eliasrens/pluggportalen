@@ -1,6 +1,6 @@
 # Live-projektorn (#461) – skärmdumpar (1600×900, 16:9)
 
-Tagna i `preview-live-projektor.html` (simulerad data, ingen Firestore). Emojis visas
+Tagna i `preview/preview-live-projektor.html` (simulerad data, ingen Firestore). Emojis visas
 som rutor i den huvudlösa test-Chromen (saknar emoji-typsnitt) – i en vanlig webbläsare
 syns 🚀📊🪢🔊⛶🏆👑.
 

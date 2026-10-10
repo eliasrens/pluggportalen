@@ -9,7 +9,7 @@
 //
 // Variant A (art-port.js) är ORÖRD och är fortsatt den som live-inloggningen
 // använder. Den här modulen är ett ALTERNATIV att jämföra i
-// preview-port-varianter.html tills användaren valt. Väljs B behöver
+// preview/preview-port-varianter.html tills användaren valt. Väljs B behöver
 // pages-elev.js bara byta importen – därför speglar modulen A:s hela kontrakt:
 //   • viewBox 960×600 med "meet" + överteckning långt utanför viewBoxen så
 //     letterbox-ytan fylls (helskärm kant till kant, .port-scen i styles.css).

@@ -24,8 +24,9 @@
 export const WORLD = { w: 2400, h: 1000 };
 
 // Bakgrunden serveras som fil (egentecknad, genererad SVG-grotta) – inte inline,
-// samma hållning som Skattjaktens karta. Sökväg relativt dokumentet.
-export const MAP_IMAGE = "src/adventure/assets/gruvan-karta.svg";
+// samma hållning som Skattjaktens karta. Löses mot modulens plats (#568), så den
+// funkar både från index.html och preview/-sidor.
+export const MAP_IMAGE = new URL("../assets/gruvan-karta.svg", import.meta.url).href;
 
 // --- Kammare (cirklar) i världspixlar {x,y,r} -------------------------------
 // Ryggraden går vänster→höger och slingrar i höjdled; radien ger "smal gång →

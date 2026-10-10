@@ -21,7 +21,7 @@
 // kistor, offerväljare och stöldnotis. Projektorvyerna (#565):
 // guldrush-projector.js – Skattkammaren + Statistik, lobby, pallplats.
 // Historiken + Statistik → Live (#566): guldrush-history.js. Demoläget:
-// gr-demo.js (preview-guldrush-demo.html).
+// gr-demo.js (preview/preview-guldrush-demo.html).
 //
 // API: export default GULDRUSH (format-objekt, oregistrerat).
 // ============================================================================

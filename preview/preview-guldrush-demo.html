@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demoläge – Guldrushen 💰 (#566)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <script>
+      // Isolering (§7.7): demot får ALDRIG nå Firestore/Firebase/Cloud Functions.
+      // Varje försök blockeras och räknas – panelen visar räknaren (ska vara 0).
+      (() => {
+        const FB = /firestore\.googleapis|firebaseio\.com|identitytoolkit|securetoken\.googleapis|firebasestorage|cloudfunctions\.net|run\.app/;
+        window.__grDemoBlocked = [];
+        const block = (url) => { window.__grDemoBlocked.push(String(url)); console.error("[demo] blockerat Firebase-anrop:", url); };
+        const f = window.fetch;
+        window.fetch = (u, o) => (FB.test(String(u?.url || u)) ? (block(u?.url || u), Promise.reject(new Error("demo: Firebase blockerat"))) : f(u, o));
+        const open = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (m, u, ...r) { if (FB.test(String(u))) { block(u); throw new Error("demo: Firebase blockerat"); } return open.call(this, m, u, ...r); };
+        const WS = window.WebSocket;
+        window.WebSocket = function (u, p) { if (FB.test(String(u))) { block(u); throw new Error("demo: Firebase blockerat"); } return new WS(u, p); };
+        const beacon = navigator.sendBeacon?.bind(navigator);
+        if (beacon) navigator.sendBeacon = (u, d) => (FB.test(String(u)) ? (block(u), false) : beacon(u, d));
+      })();
+    </script>
+    <style>
+      /* Skärmdumpar utan emoji-font: lägg Noto Color Emoji i qa-fonts/ (finns INTE i repot). */
+      @font-face { font-family: "Baloo 2"; src: url(../qa-fonts/NotoColorEmoji.ttf); font-weight: 100 900;
+        unicode-range: U+00A9, U+00AE, U+203C, U+2049, U+2122-2139, U+2190-21FF, U+2300-23FF, U+24C2, U+25A0-27BF, U+2900-297F, U+2B00-2BFF, U+3030, U+FE0F, U+200D, U+1F000-1FAFF; }
+      /* Demopanelen ligger ovanpå projektorn – finns BARA i den här filen. */
+      .pv { position: fixed; left: 10px; bottom: 10px; z-index: 100; width: 350px; font: 13px/1.35 system-ui, sans-serif;
+        background: rgba(255, 255, 255, 0.96); color: #2c2230; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; max-height: 66vh; overflow: auto; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button, .pv a.pv-l { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #d8c9b0; background: #fbf5ea; cursor: pointer; color: inherit; text-decoration: none; }
+      .pv button:hover { background: #f3e6cc; }
+      .pv button[aria-pressed="true"] { background: #6b4a12; color: #fff; border-color: #6b4a12; }
+      .pv-note, .pv-stat { width: 100%; color: #6a5a4a; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 11px; color: #2c2230; }
+      .pv-ok { color: #1e8a4c; font-weight: 700; } .pv-bad { color: #c0392b; font-weight: 700; }
+      .pv-log { width: 100%; font: 11px/1.3 ui-monospace, monospace; color: #33415c; white-space: pre-wrap; max-height: 90px; overflow: auto;
+        background: #fbf5ea; border-radius: 8px; padding: 6px; }
+      .pv-dold { display: none; }
+      /* Historiken som läraren ser den (lärarsidans mörka tema). */
+      .pv-hist { position: fixed; inset: 4vh 6vw; z-index: 99; overflow: auto; padding: 18px 24px; border-radius: 16px;
+        background: #1d2130; color: #eef1f8; box-shadow: 0 10px 40px rgba(0,0,0,.5); font-family: "Baloo 2", system-ui, sans-serif; }
+      .pv-hist .live-table { border-collapse: collapse; } .pv-hist .live-table td, .pv-hist .live-table th { padding: 3px 10px; text-align: left; }
+      .pv-hist .num { text-align: right !important; } .pv-hist .hint { opacity: .75; }
+      .pv-hist [data-close] { float: right; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div class="pv-hist" hidden><button class="lp-btn" data-close>Stäng ✕</button><div data-hist></div></div>
+    <details class="pv" open>
+      <summary>💰 Demoläge – Guldrushen</summary>
+      <div class="pv-body">
+        <span class="pv-note">Simulerad match i webbläsaren – ingen Firestore, inga Cloud Functions, inga riktiga elever,
+          resultat eller pluggmynt. 30 påhittade elever med olika djur och kläder. Kistorna följer formatets riktiga regler.
+          STARTA/Avsluta sitter i projektorn. Ljud: klicka i sidan en gång.</span>
+        <b>Börja i (startar om)</b>
+        <button data-go="fas=lobby">Tom lobby</button>
+        <button data-go="fas=kammare">Pågående match</button>
+        <button data-go="fas=kammare&vy=gr-statistik">📊 Statistik</button>
+        <button data-go="fas=kammare&klasser=2">Två klasser</button>
+        <button data-go="fas=kammare&namn=av">Visa namn av</button>
+        <button data-go="fas=kammare&stold=av">Stöld/byte av</button>
+        <b>Lobby &amp; svar</b>
+        <button data-act="anslut">+30 elever ansluter</button>
+        <button data-act="auto">Svar strömmar in</button>
+        <button data-act="storm">⚡ Händelsestorm (30 kistor)</button>
+        <b>Kistor (en i taget)</b>
+        <span data-kistor style="display:contents"></span>
+        <b>Händelser</b>
+        <button data-act="stold">🦝 Stöld</button>
+        <button data-act="byte">🔄 Byte</button>
+        <button data-act="skold">🛡️ Sköld stoppar stöld</button>
+        <button data-act="ledning">⭐ Ledningsbyte</button>
+        <button data-act="snart">⏰ Tid snart slut (12 s)</button>
+        <b>Pallplats</b>
+        <button data-go="fas=final">Hoppa till pallplats</button>
+        <button data-go="fas=final&delad=andra">Delad 2:a</button>
+        <button data-go="fas=final&delad=forsta">Oavgjort om 1:a</button>
+        <button data-act="historik">📜 Visa historiken</button>
+        <b>Visning</b>
+        <button data-act="rorelse">Reducerad rörelse</button>
+        <button data-act="frys">Frys tiden</button>
+        <button data-act="omladd">Omladdning</button>
+        <button data-act="dolj">Dölj panelen (5 s)</button>
+        <a class="pv-l" href="./preview-guldrush-kistor.html" target="_blank">Elevens kistor ↗</a>
+        <div class="pv-stat" data-stat></div>
+        <div class="pv-log" data-log></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { mountProjector } from "../src/live/projector.js";
+      import { createGrDemo, forceReducedMotion, DEMO_CHESTS } from "../src/live/formats/guldrush/gr-demo.js";
+
+      const q = new URLSearchParams(location.search);
+      const FAS = q.get("fas") || "lobby";
+      const elev = location.hash.includes("skarm=elev");
+      const panel = document.querySelector(".pv");
+      if (elev || q.get("panel") === "av") panel.hidden = true;
+      const sid = `demo566-${[...q].filter(([k]) => k !== "rorelse" && k !== "vy").map(([k, v]) => `${k}${v}`).join("-") || "lobby"}`;
+      if (!elev) {
+        sessionStorage.removeItem(`pp:live:handelser:${sid}`);
+        sessionStorage.removeItem(`pp:live:handelser:${sid}:lobby`);
+      }
+      localStorage.setItem("pp:live:vy", q.get("vy") || "skattkammaren");
+      const logEl = document.querySelector("[data-log]");
+      const log = (t) => { logEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${logEl.textContent}`.slice(0, 3000); };
+
+      const demo = createGrDemo({
+        sid, screen: elev, classes: q.get("klasser") === "2" ? 2 : 1, showNames: q.get("namn") !== "av",
+        stealSwap: q.get("stold") !== "av", onLog: log,
+      });
+      // Elevskärmsfönstret (#533) följer lärarflikens låtsasmatch.
+      const bus = "BroadcastChannel" in window ? new BroadcastChannel(`pv-gr-demo-${sid}`) : null;
+      if (elev && bus) bus.onmessage = (e) => demo.load(e.data);
+      if (!elev && bus) {
+        let t = 0;
+        demo.onChange(() => { if (Date.now() - t > 200) { t = Date.now(); bus.postMessage(JSON.parse(JSON.stringify(demo.snapshotState()))); } });
+      }
+
+      if (!elev) {
+        if (FAS === "kammare") { demo.playHistory(140); demo.setAuto(q.get("auto") !== "av"); }
+        if (FAS === "final") demo.jumpToFinal(q.get("delad") || null);
+      }
+
+      const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };
+      let cleanups = [];
+      function mount() {
+        cleanups.forEach((c) => c());
+        cleanups = [];
+        mountProjector(ctx, sid, { cleanups, uid: "demo-larare", deps: demo.deps, screen: elev });
+      }
+      let reduced = q.get("rorelse") === "reducerad";
+      if (reduced) forceReducedMotion(true);
+      mount();
+
+      async function historik() {
+        const s = demo.session;
+        if (!s.result) return log(s.status === "finished" ? "resultatet räknas – försök igen om en sekund" : "avsluta matchen först (eller hoppa till pallplats)");
+        const h = await import("../src/live/formats/guldrush/guldrush-history.js");
+        const box = document.querySelector(".pv-hist");
+        box.querySelector("[data-hist]").innerHTML = `<h2>💰 ${s.name}</h2>${await h.detailHtml(s, s.result, { getAnswers: async () => demo.state().answers })}`;
+        box.hidden = false;
+      }
+      document.querySelector("[data-close]").addEventListener("click", () => { document.querySelector(".pv-hist").hidden = true; });
+
+      const press = (name, on) => document.querySelector(`[data-act="${name}"]`)?.setAttribute("aria-pressed", String(on));
+      const act = {
+        anslut: () => demo.join(30, 140),
+        auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
+        storm: () => demo.storm(),
+        kista: (b) => demo.chest(b.dataset.k),
+        stold: () => demo.chest("stold"),
+        byte: () => demo.chest("byte"),
+        skold: () => demo.shieldBlock(),
+        ledning: () => demo.leadChange(),
+        snart: () => demo.soonOut(12),
+        historik,
+        rorelse: () => {
+          reduced = !reduced;
+          forceReducedMotion(reduced);
+          press("rorelse", reduced);
+          const p = new URLSearchParams(location.search);
+          if (reduced) p.set("rorelse", "reducerad"); else p.delete("rorelse");
+          history.replaceState(null, "", `?${p}${location.hash}`);
+          mount();
+        },
+        frys: () => press("frys", demo.toggleFreeze()),
+        omladd: () => mount(),
+        dolj: () => { panel.classList.add("pv-dold"); setTimeout(() => panel.classList.remove("pv-dold"), 5000); },
+      };
+      document.querySelector("[data-kistor]").innerHTML = DEMO_CHESTS.map((c) =>
+        `<button data-act="kista" data-k="${c.id}">${c.icon} ${c.label}</button>`).join("");
+      press("auto", demo.auto);
+      press("rorelse", reduced);
+      // Ny scenariostart: vy och rörelse följer med, resten nollas.
+      const go = (qs) => {
+        const old = new URLSearchParams(location.search);
+        const p = new URLSearchParams(qs);
+        if (old.has("rorelse")) p.set("rorelse", old.get("rorelse"));
+        location.search = p.toString();
+      };
+      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
+      setInterval(() => {
+        const { session: s, players, events, answers, reads } = demo.state();
+        const blocked = window.__grDemoBlocked.length;
+        document.querySelector("[data-stat]").innerHTML = `fas ${s.status} · elever ${players.length} · svar ${answers.length}
+          · händelser ${events.length} · projektionsläsningar ${reads} · auto ${demo.auto ? "på" : "av"}<br>
+          Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
+      }, 400);
+      window.__grDemo = { demo, act, mount };
+    </script>
+  </body>
+</html>

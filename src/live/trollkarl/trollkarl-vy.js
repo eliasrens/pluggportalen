@@ -14,7 +14,7 @@
 //
 // API: createTrollkarlView(host, { st, colors, sound }) → { update(st), destroy() }
 //   preload() – förladdar figurernas ansiktsbilder (lobbyn, §17)
-//   trollkarlDemo.view – demolägets krokar (preview-trollkarlsduellen.html):
+//   trollkarlDemo.view – demolägets krokar (preview/preview-trollkarlsduellen.html):
 //     { attack(side, attackId?), director, tracker } – påverkar bara bilden.
 // ============================================================================
 

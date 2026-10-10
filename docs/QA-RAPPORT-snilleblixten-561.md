@@ -166,7 +166,7 @@ Klassmatchen: [k01 Raketrace](qa-snilleblixt-561/k01-raketrace-1280.jpg) · [k02
 
 Demot behöver ingen inloggning och ingen emulator. Det skriver aldrig något.
 
-1. Öppna `preview-snilleblixt-demo.html` från sajtens rot, lokalt eller i förhandsvisningen.
+1. Öppna `preview/preview-snilleblixt-demo.html` från sajtens rot, lokalt eller i förhandsvisningen.
 2. Panelen nere till vänster är demopanelen. Studion fyller resten av skärmen. Tryck **⛶ Fullskärm** för projektorkänsla.
 3. **Lobbyn:** "Tom lobby" → "+30 elever ansluter" (avatarerna poppar upp med kläder). Tryck **⚡ STARTA** i studion.
 4. **Frågan:** "Fråga 4 pågår". Byt svarssätt med 🔘 Flerval / ✍️ Skriv själv. "Tid snart slut" visar den röda nedräkningen.
@@ -201,7 +201,7 @@ Körd 2026-10-10 på epic-grenen `652ae72` + QA-verktygen `ce72aed`, i den rikti
 | --- | --- | --- |
 | **F1** tom pall efter omladdning (fix `8043902`) | ✅ Åtgärdad | Två omladdningar mitt i finalen, ca 1 s och ca 3 s efter "🏆 Till pallen!", samt omladdning efter finalen (`status: finished`). Pallen var ifylld redan vid första mätpunkten (≤ 1,5 s): Elias 1:a 2 650 p +300, Ali 2:a 1 930 p +255, Nora 3:e 1 840 p +217 och klassraden "Hela klassen: 52 % rätt svar". Efter omladdning körs inga pall-animationer (`document.getAnimations()` visar bara ambient-svepet och avatarens andning), så resultatet visas direkt och uppbyggnaden spelas bara en gång. Utbetalningen skedde en gång per session: b01:s saldo gick 100 → 478 = 2 × 189 för de två sessionerna, trots tre laddningar av den ena |
 | **F2** ingen egen avatar i lobbyn (fix `6e34cfd`) | ✅ Åtgärdad | b01 gick med i en riktig lobby (8 svärm-elever). `.sb-lobby .avatar-figure` syns mitt i kortet med 5 kläddelar (krona, ögonlapp, amulett, ballong). Den ligger kvar efter att poäng och namn laddats (mätt efter 4–5 s) och efter omladdning, både på Chromebook och surfplatta |
-| **F3** demoknappar Topplista/Ledningsbyte/Klättring | ✅ Åtgärdad | `preview-snilleblixt-demo.html` har bara "Mellanbild (efter fråga 4)" kvar. Inga träffar på `leaderChange`/`climb` i `src/live/formats/snilleblixt/` |
+| **F3** demoknappar Topplista/Ledningsbyte/Klättring | ✅ Åtgärdad | `preview/preview-snilleblixt-demo.html` har bara "Mellanbild (efter fråga 4)" kvar. Inga träffar på `leaderChange`/`climb` i `src/live/formats/snilleblixt/` |
 
 **Elevskärmen utan placering.** `document.querySelector('main').innerText` lästes i varje läge. Den enda siffer-träffen för mitten och sist är frågeräknaren "Fråga 3 av 3". Det finns ingen "N:e", ingen "plats N", inget "av N" om placering och ingen sist-markering.
 

@@ -19,7 +19,7 @@ import { AVATARS, avatarEmoji } from "./avatars.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
 // credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
-// behålls här för befintliga importörer (preview-larare.html).
+// behålls här för befintliga importörer (preview/preview-larare.html).
 export { credentialsPanel };
 
 // --- Genererade inloggningsuppgifter ----------------------------------------

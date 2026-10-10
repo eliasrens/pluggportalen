@@ -6,7 +6,7 @@
 // placering (test 12 / designtest 9), publikens rutnät
 // (designtest 4), lärarautomatiken (test 9: alla svarat → stäng) och
 // kopplingen: två lärarfönster trycker NÄSTA FRÅGA samtidigt → exakt ett
-// steg (test 10). DOM-delarna provas i preview-snilleblixt-studio.html.
+// steg (test 10). DOM-delarna provas i preview/preview-snilleblixt-studio.html.
 // ============================================================================
 
 import { describe, it } from "node:test";

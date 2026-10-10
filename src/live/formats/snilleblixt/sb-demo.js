@@ -6,7 +6,7 @@
 // monteras med `deps` (mountProjector) – inget Firestore-lager laddas, inget
 // skrivs: inga sessioner, resultat eller pluggmynt (sessionen har dessutom
 // demo:true, som live-rewards aldrig betalar för). Sidan:
-// preview-snilleblixt-demo.html. Testas i test/live-snilleblixt-demo.test.js.
+// preview/preview-snilleblixt-demo.html. Testas i test/live-snilleblixt-demo.test.js.
 //
 // API
 //   DEMO_NAMES / demoMembers()      30 elever → klassprojektionens members

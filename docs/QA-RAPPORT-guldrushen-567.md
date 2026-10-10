@@ -165,7 +165,7 @@ Klassmatchen: [r01 Trollkarlsduellen](qa-guldrush-567/r01-klassmatchen-trollkarl
 
 ## Klickguide: demoläget (ingen inloggning, ingen data)
 
-Öppna `preview-guldrush-demo.html` i sajtens rot. Panelen nere till vänster:
+Öppna `preview/preview-guldrush-demo.html` i sajtens rot. Panelen nere till vänster:
 
 1. **Tom lobby** → **+30 elever ansluter**: avatarerna studsar in vid grottans ingång. Tryck **⛏️ STARTA** i projektorn (3-2-1).
 2. **Svar strömmar in**: högarna växer, flödet "I grottan" fylls.
@@ -174,7 +174,7 @@ Klassmatchen: [r01 Trollkarlsduellen](qa-guldrush-567/r01-klassmatchen-trollkarl
 5. **⚡ Händelsestorm**: 30 kistor samtidigt, högst en banderoll åt gången.
 6. **⏰ Tid snart slut** → pallen spelas av sig själv vid 00:00. Eller **Hoppa till pallplats** / **Delad 2:a** / **Oavgjort om 1:a**.
 7. **Visning**: **Reducerad rörelse**, **Frys tiden** (skärmdumpar), **Omladdning** (finalen spelas inte om), **📊 Statistik**, **Två klasser**, **Visa namn av**, **Stöld/byte av**.
-8. Elevens kistor: länken **Elevens kistor ↗** (`preview-guldrush-kistor.html`) → **▶ Alla tio i följd** visar alla kisttyper och mäter tiden.
+8. Elevens kistor: länken **Elevens kistor ↗** (`preview/preview-guldrush-kistor.html`) → **▶ Alla tio i följd** visar alla kisttyper och mäter tiden.
 
 ## Vad Elias måste deploya
 

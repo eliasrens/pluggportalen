@@ -69,4 +69,4 @@ echo "▶ proxy på $PROXY…"
 sleep 2
 curl -s -o /dev/null -w "proxy svarar %{http_code}\n" "http://127.0.0.1:$PROXY/"
 echo "Klar: http://127.0.0.1:$PROXY/#/larare/live?id=trollkarl-demo  (lärare elias / lilla123, loggar i $DIR)"
-echo "Demoläge (ingen emulator behövs): http://127.0.0.1:$PROXY/preview-trollkarlsduellen.html"
+echo "Demoläge (ingen emulator behövs): http://127.0.0.1:$PROXY/preview/preview-trollkarlsduellen.html"

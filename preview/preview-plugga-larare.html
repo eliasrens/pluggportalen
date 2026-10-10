@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plugga per område – lärarvy</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <!-- Bara getProgress stubbas (fixtur nedan); resten av data.js är riktig. -->
+    <script type="importmap">
+      { "imports": { "/src/data.js": "/preview/plugga-larare-stubs/data.js" } }
+    </script>
+  </head>
+  <body>
+    <div class="layout">
+      <main id="app" class="container"></main>
+    </div>
+
+    <script type="module">
+      // Issue #446: klassdetaljens Statistik-sektion med STUBBAD progress – ingen
+      // inloggning. Kör den RIKTIGA renderClassStats (teacher-class.js), som
+      // laddar underfliken "Per område" (teacher-plugga.js) med import().
+      // ?tom=1 → klass utan elever. ?dolt=1 → Gruvan dold för klassen (#467). ?klass=1 → skickar classId (visar även
+      // Mattematchen/Live-flikarna, som då läser riktiga Firestore).
+      import { el, icon, teacherNav, teacherHead } from "/src/teacher-shared.js";
+      import { renderClassStats } from "/src/teacher-class.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: () => {}, renderTopbar: () => {} };
+      const DAY = 86400;
+      const now = Math.floor(Date.now() / 1000);
+
+      const q = (n, cat) => Array.from({ length: n }, (_, i) => ({ q: `Fråga ${i + 1}`, options: ["a", "b", "c", "d"], correct: i % 4, category: cat }));
+      const pairs = (n) => Array.from({ length: n }, (_, i) => ({ term: `T${i}`, def: `D${i}` }));
+      const SUBJECTS = [
+        { id: "so", name: "SO", areas: [
+          { id: "vikingar", name: "Vikingatiden", coverEmoji: "⚔️", quiz: [...q(4, "begrepp"), ...q(4, "fakta"), ...q(4, "analys")], pairs: pairs(6) },
+          { id: "medeltid", name: "Medeltiden", coverEmoji: "🏰", quiz: q(8, "fakta"), pairs: pairs(6) },
+          { id: "rymden", name: "Rymden (äldre innehåll)", coverEmoji: "🪐", quiz: q(8), pairs: pairs(6) },
+        ] },
+        { id: "no", name: "NO", areas: [{ id: "kroppen", name: "Kroppen", coverEmoji: "🫀", quiz: q(6, "begrepp") }] },
+      ];
+
+      // progress-nod: stjärnor, klarad, omgångar, dagar sedan, kategorier {kat:[r,t]}
+      const n = (stars, completed, plays, daysAgo, cat) => ({
+        stars, completed, plays, bestScore: stars * 3, lastPlayed: { seconds: now - daysAgo * DAY },
+        ...(cat ? { cat: Object.fromEntries(Object.entries(cat).map(([k, [r, t]]) => [k, { r, t }])) } : {}),
+      });
+      globalThis.PREVIEW_PROGRESS = {
+        s1: { vikingar: { quiz: n(3, true, 3, 1, { begrepp: [7, 8], fakta: [10, 12], analys: [4, 9] }), kunskapsjakt: n(2, true, 2, 1, { fakta: [11, 14], analys: [3, 6] }), para: n(3, true, 1, 2) },
+              rymden: { quiz: n(2, true, 2, 30), para: n(1, false, 1, 31) } },
+        s2: {},
+        s3: { vikingar: { quiz: n(1, false, 1, 9, { begrepp: [2, 6], fakta: [5, 8], analys: [1, 5] }) } },
+        s4: { vikingar: { quiz: n(3, true, 2, 0, { begrepp: [8, 8], fakta: [11, 12], analys: [7, 8] }), lasforstaelse: n(3, true, 1, 0, { analys: [5, 6], fakta: [3, 3] }), kunskapsjakt: n(3, true, 4, 0, { begrepp: [6, 6], fakta: [9, 10] }), para: n(3, true, 1, 0), memory: n(0, true, 2, 0) },
+              medeltid: { quiz: n(2, true, 1, 3, { fakta: [6, 8] }) } },
+        s5: { vikingar: { para: n(2, true, 1, 20), memory: n(0, true, 1, 20) } }, // bara par → inga kategorier
+        s6: { vikingar: { quiz: n(2, true, 2, 4, { begrepp: [3, 8], fakta: [9, 10], analys: [6, 8] }) } },
+        s7: { vikingar: { quiz: n(1, true, 1, 6, { begrepp: [5, 6], fakta: [4, 8], analys: [2, 7] }), "aventyr:gruvan": n(3, true, 1, 6, { fakta: [5, 6] }) } },
+        s8: { rymden: { quiz: n(3, true, 2, 2), kunskapsjakt: n(2, true, 1, 2) } },
+        // #467 QA-fallet (F2): 3★ i ALLA lägen inkl. äventyr + Memory → samma 24/24 överallt.
+        s9: { vikingar: Object.fromEntries(["quiz", "lasforstaelse", "kunskapsjakt", "para", "sanningsjakt", "memory",
+          "aventyr:skattjakten", "aventyr:spokjakten", "aventyr:gruvan"].map((m) => [m, n(m === "memory" ? 0 : 3, true, 2, 0, m === "quiz" ? { fakta: [4, 4] } : null)])) },
+      };
+      const students = [
+        { id: "s1", namn: "Örjan Lind", username: "orjan.6a", avatarId: "lion" },
+        { id: "s2", namn: "Alva Berg", username: "alva.6a", avatarId: "owl" },
+        { id: "s3", namn: "Bo Ek", username: "bo.6a", avatarId: "frog" },
+        { id: "s4", namn: "Cleo Nyström", username: "cleo.6a", avatarId: "unicorn" },
+        { id: "s5", namn: "Dan Holm", username: "dan.6a", avatarId: "robot" },
+        { id: "s6", namn: "Elsa <b>Åberg</b>", username: "elsa.6a", avatarId: "cat" }, // escaping-test
+        { id: "s7", namn: "Filip Sund", username: "filip.6a", avatarId: "panda" },
+        { id: "s8", namn: "Greta Vik", username: "greta.6a", avatarId: "koala" },
+        { id: "s9", namn: "Hugo Allt", username: "hugo.6a", avatarId: "fox" },
+      ];
+
+      const container = el(`<div class="teacher-page teacher-dark"></div>`);
+      container.appendChild(teacherNav(ctx, "klasser"));
+      container.appendChild(teacherHead(ctx, { icon: "users", title: "Klasser & elever" }));
+      const card = el(`<div class="panel class-card">
+        <div class="class-head"><div class="class-title">
+          <span class="class-emoji" aria-hidden="true">${icon("school", 22)}</span>
+          <span class="class-name">6A · Statistik</span>
+          <span class="class-count">${students.length} elever</span>
+        </div></div>
+        <div class="class-stats"></div>
+      </div>`);
+      container.appendChild(card);
+      app.replaceChildren(container);
+
+      const empty = new URLSearchParams(location.search).has("tom");
+      const library = SUBJECTS;
+      renderClassStats(ctx, card.querySelector(".class-stats"), {
+        students: empty ? [] : students,
+        subjects: library.map(({ areas, ...s }) => s),
+        studentById: new Map(students.map((s) => [s.id, s])),
+        loadAreas: (id) => Promise.resolve(library.find((s) => s.id === id)?.areas || []),
+        classId: new URLSearchParams(location.search).has("klass") ? "preview-6a" : undefined,
+        // ?dolt=1 → klassen döljer Gruvan på Vikingatiden (#467: nämnaren följer synligheten).
+        cls: new URLSearchParams(location.search).has("dolt")
+          ? { id: "preview-6a", areaModes: { vikingar: { hiddenModes: ["aventyr:gruvan"] } } }
+          : null,
+      });
+    </script>
+  </body>
+</html>

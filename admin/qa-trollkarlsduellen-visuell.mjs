@@ -1,7 +1,7 @@
 // ============================================================================
 // Visuell + robusthets-QA för Trollkarlsduellen (#541) – headless Chromium.
 // ----------------------------------------------------------------------------
-// Kör DEMOLÄGET (preview-trollkarlsduellen.html, ingen Firestore) och:
+// Kör DEMOLÄGET (preview/preview-trollkarlsduellen.html, ingen Firestore) och:
 //   • alla registrerade attacker från BÅDA sidor: skärmdumpar mitt i, längd,
 //     återställning (IDLE, tomt effektlager, samma DOM-storlek, inga kvar-
 //     hängande oändliga animationer), konsolfel
@@ -63,7 +63,7 @@ const cdp = await page.createCDPSession();
 await cdp.send("Performance.enable");
 
 async function nyMatch() {
-  await page.goto(`${BASE}/preview-trollkarlsduellen.html`, { waitUntil: "networkidle0" });
+  await page.goto(`${BASE}/preview/preview-trollkarlsduellen.html`, { waitUntil: "networkidle0" });
   await page.evaluate(() => document.querySelector('[data-act="live"]').click());
   await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
   await page.waitForFunction(() => document.querySelectorAll(".tk-slot svg, .tk-slot img, .tk-slot canvas").length > 0, { timeout: 20000 });

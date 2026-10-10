@@ -63,7 +63,7 @@ och belöning är **oförändrade** – bara koordinatsystemet generaliseras.
 
 `stationArt`/`goalArt`/`progressIcon`/`texter`/`questionKinds` fungerar likadant
 som i grid-läget. Se `themes/scroll-demo.js` för ett komplett exempel och
-`aventyr-scroll-demo.html` för en Firebase-fri preview-harness.
+`preview/aventyr-scroll-demo.html` för en Firebase-fri preview-harness.
 
 ## Gemensamt (motorn) vs unikt (temat)
 

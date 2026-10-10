@@ -33,8 +33,8 @@
 // ============================================================================
 
 // Assets bor i repot under design/assets/husdjur/<art>/evolution-<0..2>/
-// (repo-roten servas, så sökvägen funkar relativt index.html).
-const ASSET_ROOT = "design/assets/husdjur";
+// Löses mot modulens plats (#568), så den funkar både från index.html och preview/.
+const ASSET_ROOT = new URL("../design/assets/husdjur", import.meta.url).href;
 
 // stageNames (valfri): namn på de 3 utvecklingsstegen [bebis, ung, fullvuxen].
 // Visas i husdjurspanelens steg-chips (pages-rum-pet-panel.js); saknas den

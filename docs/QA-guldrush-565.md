@@ -1,7 +1,7 @@
 # Guldrushen · Skattkammaren (#565, #578) – projektorvyer, verifiering
 
 Skärmdumpar: [`qa-guldrush-565/`](qa-guldrush-565/). `p*` = förhandsvisningen
-(`preview-guldrush-skattkammare.html`, 30 påhittade elever med kläder, kistorna
+(`preview/preview-guldrush-skattkammare.html`, 30 påhittade elever med kläder, kistorna
 slumpas med formatets riktiga regler). `e*` = riktiga appen mot emulatorerna
 (`admin/qa-guldrush-preview.sh` + `qa-snilleblixt-slut-seed.mjs` för kläder),
 matchen spelad genom serverkärnan (`admin/qa-guldrush-projektor-emu.mjs`).
