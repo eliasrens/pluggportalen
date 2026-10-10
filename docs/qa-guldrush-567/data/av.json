@@ -1,0 +1,26 @@
+[
+  {
+    "id": "18a",
+    "text": "stöld & byte av: 160 kistor, ingen Stöld/Byte",
+    "pass": true,
+    "detail": "{\"hal_i_fickan\":8,\"tom\":21,\"guld\":39,\"lite_guld\":48,\"dubbla\":15,\"mycket_guld\":19,\"skattkammare\":3,\"skold\":7}"
+  },
+  {
+    "id": "18b",
+    "text": "inga väntande offerval uppstod / inga fel",
+    "pass": true,
+    "detail": "fel 0"
+  },
+  {
+    "id": "18c",
+    "text": "kisttabellen utan stöld/byte: deras vikt flyttad till guldkistorna",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "18d",
+    "text": "inga steal/swap-händelser i flödet",
+    "pass": true,
+    "detail": "171 händelser"
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "id": "13a",
+    "text": "rätt svar → servern rättar (correct=true)",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "13b",
+    "text": "rätt svar → en kista öppnas, guldet kommer från servern",
+    "pass": true,
+    "detail": "lite_guld → 10 guld"
+  },
+  {
+    "id": "14a",
+    "text": "fel svar → correct=false",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "14b/19b",
+    "text": "kista på FEL svar nekas",
+    "pass": true,
+    "detail": "failed-precondition"
+  },
+  {
+    "id": "19a",
+    "text": "samma kista två gånger nekas",
+    "pass": true,
+    "detail": "already-exists"
+  },
+  {
+    "id": "19c",
+    "text": "kista utan något svar (påhittat id) nekas",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "19d",
+    "text": "kista på en klasskamrats rätta svar nekas",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "19e",
+    "text": "kistnummer utanför 0–2 nekas",
+    "pass": true,
+    "detail": "invalid-argument"
+  },
+  {
+    "id": "19f",
+    "text": "två kistor inom 1 s → 'En kista i taget!'",
+    "pass": true,
+    "detail": "resource-exhausted"
+  },
+  {
+    "id": "19g",
+    "text": "återanvända en klasskamrats svar-id nekas",
+    "pass": true,
+    "detail": "already-exists"
+  },
+  {
+    "id": "19h",
+    "text": "skriva eget guld (grPlayers) nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19i",
+    "text": "skriva klasskamrats guld nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19j",
+    "text": "skapa en händelse (grEvents) nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19k",
+    "text": "skriva ledaren (grMeta) nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19l",
+    "text": "skriva ett eget 'rätt svar' direkt (förbi servern) nekas",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "19m",
+    "text": "ta bort 'chest' från sitt öppnade svar (öppna igen) nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19n",
+    "text": "skriva matchens result nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19o",
+    "text": "skriva ett Pluggmynt-kvitto nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19p",
+    "text": "gå med under falskt namn nekas",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "19q",
+    "text": "elev i annan klass (5E) kan inte gå med som 4B",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "19r",
+    "text": "elev som inte är med kan inte svara",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "19s",
+    "text": "räkna upp sina rätt (players.correct) nekas",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "15a",
+    "text": "stöld 100 → Alma 85, Omar +15",
+    "pass": true,
+    "detail": "Alma 85, Omar 55"
+  },
+  {
+    "id": "15b",
+    "text": "händelsen (steal 15, båda namnen) finns i grEvents för projektorn",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "15c",
+    "text": "guldet bevarat (summan 140 före = 140 efter)",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "15d",
+    "text": "Alma fick stöldskydd (protectedUntil ≈ +30 s) + notis-underlag (lastHit)",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "20f",
+    "text": "stölden rör inga pluggmynt (studentData.coins oförändrat)",
+    "pass": true,
+    "detail": "{\"b01\":100,\"b02\":100}"
+  },
+  {
+    "id": "16",
+    "text": "stöld från elev med stöldskydd nekas av servern",
+    "pass": true,
+    "detail": "failed-precondition: Den eleven har stöldskydd en liten stund till 🛡️"
+  },
+  {
+    "id": "16b",
+    "text": "…och Almas guld är orört",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "16c",
+    "text": "välja sig själv nekas",
+    "pass": true,
+    "detail": "Du kan inte välja dig själv."
+  },
+  {
+    "id": "16d",
+    "text": "välja någon som inte är med nekas",
+    "pass": true,
+    "detail": "not-found"
+  },
+  {
+    "id": "16e",
+    "text": "inget val → servern slumpar en tillåten klasskamrat (aldrig Alma med skydd)",
+    "pass": true,
+    "detail": "{\"result\":\"steal\",\"chest\":\"stold\",\"victimUid\":\"b02\",\"amount\":8,\"delta\":8,\"gold\":38,\"victimGold\":47}"
+  },
+  {
+    "id": "T2",
+    "text": "samma offer två gånger i rad nekas",
+    "pass": true,
+    "detail": "Du kan inte välja samma elev två gånger i rad."
+  },
+  {
+    "id": "17a",
+    "text": "byte med någon som har MINDRE guld nekas",
+    "pass": true,
+    "detail": "Du kan bara byta med någon som har mer guld än du."
+  },
+  {
+    "id": "17b",
+    "text": "byte med rikare → guldet byts (5 ↔ 300) i en transaktion",
+    "pass": true,
+    "detail": "Ines 300, Clara 5"
+  },
+  {
+    "id": "17c",
+    "text": "byte med 0 eget guld nekas (ingen nollställs av ett byte)",
+    "pass": true,
+    "detail": "Du behöver eget guld för att byta."
+  },
+  {
+    "id": "17d",
+    "text": "har ingen giltig → vanlig guldkista i stället (fallback)",
+    "pass": true,
+    "detail": "{\"result\":\"fallback\",\"chest\":\"guld\",\"amount\":25,\"delta\":25,\"gold\":25}"
+  },
+  {
+    "id": "T3",
+    "text": "sköld stoppar stölden (0 guld flyttas) och förbrukas",
+    "pass": true,
+    "detail": "{\"result\":\"blocked\",\"chest\":\"stold\",\"victimUid\":\"b08\",\"amount\":0,\"delta\":0,\"gold\":5}"
+  },
+  {
+    "id": "T3b",
+    "text": "stöld från elev med för lite guld (≤ 6) nekas – ingen hamnar på 0",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "F1",
+    "text": "eleven kan INTE läsa quizets facit (grPrivate)",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "F2",
+    "text": "de publika frågorna saknar answerIndex/rätt svar",
+    "pass": true,
+    "detail": "id,key,text,options,statKeys"
+  },
+  {
+    "id": "F3",
+    "text": "quizsvaret rättas på servern + servern väljer nästa fråga",
+    "pass": true,
+    "detail": "{\"attemptId\":\"qa567-mv2iivg6-d\",\"correct\":true,\"correctAnswer\":\"4\",\"nextQ\":1}"
+  },
+  {
+    "id": "F4",
+    "text": "svara på en annan fråga än den servern gav (prova sig fram) nekas",
+    "pass": true,
+    "detail": "failed-precondition"
+  },
+  {
+    "id": "3d",
+    "text": "quiz = Flerval: ett 'skriv själv'-svar utan choiceIndex nekas",
+    "pass": true,
+    "detail": "invalid-argument"
+  },
+  {
+    "id": "F5",
+    "text": "eleven läser sitt eget svar (omladdning)",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "F6",
+    "text": "eleven kan inte läsa en klasskamrats svar",
+    "pass": true,
+    "detail": "permission-denied"
+  },
+  {
+    "id": "20a",
+    "text": "svar efter 00:00 nekas ('Tiden är ute! ⏰')",
+    "pass": true,
+    "detail": "Tiden är ute! ⏰"
+  },
+  {
+    "id": "20b'",
+    "text": "kista efter 00:00 nekas (även på ett rätt svar)",
+    "pass": true,
+    "detail": "Tiden är ute! ⏰"
+  },
+  {
+    "id": "20c'",
+    "text": "stöld/byte efter 00:00 nekas",
+    "pass": true,
+    "detail": "Tiden är ute! ⏰"
+  },
+  {
+    "id": "20d'",
+    "text": "svar efter avslutad match nekas",
+    "pass": true,
+    "detail": "Matchen pågår inte."
+  }
+]
