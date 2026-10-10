@@ -91,3 +91,17 @@ FIRESTORE_EMULATOR_HOST=127.0.0.1:8570 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:957
 NODE_PATH=<mapp med puppeteer-core + sharp> node admin/qa-styles-pixeldiff.mjs \
   --fore http://127.0.0.1:8571 --efter http://127.0.0.1:8572 --ut /tmp/570/shots
 ```
+
+## Testarens oberoende kontroll
+
+- Delarna `src/styles/*.css` hopfogade i nummerordning är **byte för byte**
+  lika med `src/styles.css` på `377fb41` (216 729 byte). Diffen mot
+  `styles.css` innehåller 0 borttagna rader, bara tillagda kommentarer.
+  Utan kommentarer är gammal och ny `styles.css` identiska. Samma CSS ger
+  samma rendering, så pixel-diffens 0 px följer redan av detta.
+- Ingen `.html` ändrad, inget `@import`, ingen sida länkar `src/styles/`.
+  Boot-kedjan är oförändrad.
+- `npm run build:css` på grenen ger ingen diff. Driftvakten fäller som den ska:
+  en regel tillagd i en del utan ombygge gav 1 fel i `test/styles-delar.test.js`.
+- Enhetstester: 1557/1557 gröna. Regler/functions/e2e berörs inte av en
+  ren CSS-ändring och kördes inte om (kodarens körning: 399/34/5 gröna).
