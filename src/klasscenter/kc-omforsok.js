@@ -1,8 +1,9 @@
 // ============================================================================
 // Klasscentret – omförsök vid samtidiga skrivningar (#493, epic #475).
 // ----------------------------------------------------------------------------
-// Ingen Firebase-import. Delas av korDonation (kc-fund-plan.js) och
-// korSparning/korAterstallning (kc-layout-plan.js). Laddas bara via dem –
+// Ingen Firebase-import. Delas av korDonation (kc-fund-plan.js),
+// korSparning/korAterstallning (kc-layout-plan.js) och Live-utbetalningen
+// (live/live-rewards-pay.js, #580). Laddas bara via dem –
 // alltså bara dynamiskt (#271).
 //
 // Varför permission-denied och inte en vanlig transaktionskrock: Firestore

@@ -4,6 +4,11 @@
    Bara transform och opacitet animeras (§11); kistornas lockande skak är
    kort och osynkat. Partiklarnas storlek i em (≈ kistbredd/6, .grk-fx).
    Inga z-index: ljuset ligger före kistan i DOM:en, partiklarna efter.
+   Storleken följer BEHÅLLAREN (cqi), inte viewporten: elevpanelen är smalare
+   än skärmen (sidomenyn), och med vw klipptes kista 1 och 3 på Chromebook
+   (#580, QA-fynd F2 i #567). 3 kistor + 2 mellanrum = 86 % av bredden, så
+   vald kista (scale 1.08) och siffran (−6px) får plats. vw-raderna före
+   cqi-raderna är reserv för webbläsare utan container queries.
    ========================================================================== */
 
 .grk {
@@ -18,13 +23,15 @@
   align-items: center;
   justify-content: center;
   gap: clamp(6px, 1.6vh, 18px);
+  container-type: inline-size;
 }
 .grk-rubrik { margin: 0; font-size: clamp(22px, 4.2vh, 38px); font-weight: 900; color: #6b3a00; }
 .grk-oppnad .grk-rubrik { visibility: hidden; }
-.grk-rad { display: flex; gap: clamp(18px, 4.5vw, 64px); justify-content: center; align-items: flex-end; }
+.grk-rad { display: flex; gap: clamp(18px, 4.5vw, 64px); gap: clamp(10px, 4cqi, 64px); justify-content: center; align-items: flex-end; }
 .grk-kista {
   position: relative;
-  width: clamp(130px, min(21vw, 37vh), 270px);
+  width: clamp(96px, min(21vw, 37vh), 270px);
+  width: clamp(80px, min(26cqi, 37vh), 270px);
   aspect-ratio: 120 / 100;
   padding: 0;
   border: 0;
@@ -96,7 +103,13 @@
 @keyframes grk-text { from { opacity: 0; transform: translateY(8px) scale(0.9); } to { opacity: 1; transform: none; } }
 
 /* Effekterna (gr-kistfx.js): partiklar i em (≈ kistbredd/6). */
-.grk-fx { position: absolute; inset: 0; pointer-events: none; font-size: clamp(22px, min(3.5vw, 6.2vh), 45px); }
+.grk-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: clamp(22px, min(3.5vw, 6.2vh), 45px);
+  font-size: clamp(16px, min(4.3cqi, 6.2vh), 45px);
+}
 .grfx { position: absolute; left: 50%; top: 42%; line-height: 1; pointer-events: none; }
 .grfx svg { display: block; width: 100%; height: auto; overflow: visible; }
 .grfx-mynt {
@@ -133,7 +146,4 @@
 @keyframes grk-tona { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-contrast: more) {
   .grk-rubrik, .grk-text { color: #000; }
-}
-@media (max-width: 820px) {
-  .grk-kista { width: clamp(96px, 27vw, 200px); }
 }
