@@ -71,6 +71,9 @@ export const CUES = {
   klirr: { prio: 2, dur: 300, play: (t) => [2637, 3136, 2349].forEach((f, i) => t(f, i * 0.06, 0.12, "triangle", 0.07)) },
   tassar: { prio: 2, dur: 500, play: (t) => [0, 0.12, 0.24, 0.36].forEach((a) => t(220, a, 0.06, "triangle", 0.08, 160)) },
   trumvirvel: { prio: 4, dur: 1200, play: (t) => { for (let i = 0; i < 18; i++) t(140 + (i % 2) * 12, i * 0.06, 0.05, "square", 0.025 + i * 0.002); } },
+  // Snilleblixtens nedräkning (#559): tick sista 10 s, snabbare (två per sekund) sista 5 s.
+  tick: { prio: 1, dur: 60, gap: 300, play: (t) => t(1046, 0, 0.045, "square", 0.035) },
+  tickSnabb: { prio: 2, dur: 60, gap: 200, play: (t) => t(1397, 0, 0.05, "square", 0.045) },
   fanfar: { prio: 4, dur: 1300, play: (t) => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => t(f, [0, 0.14, 0.28, 0.42, 0.62, 0.76][i], i === 5 ? 0.5 : 0.18, "triangle", 0.26)) },
 };
 

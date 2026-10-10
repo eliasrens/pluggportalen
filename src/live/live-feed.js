@@ -23,8 +23,9 @@
 //                                    // Klassmatchen: classes = [{ classId, name,
 //                                    // correct, divisor, score, joined, ready }]
 //     top: [{ uid, name, classId, correct, incorrect }],
-//     players: [{ uid, name, classId, correct, incorrect, answerKey }],  // alla
-//                                    // anslutna (lärare) – avatarer/händelser (#571)
+//     players: [{ uid, name, classId, correct, incorrect, answerKey,
+//                joinedAt, lastSeenAt }],  // alla anslutna (lärare, tider i ms)
+//                                    // – avatarer/händelser (#571), närvaro (#559)
 //     result,                        // sparad historik (efter slut) eller null
 //     now,                           // server-korrigerad tid för renderingen
 //   }
@@ -33,8 +34,9 @@
 // historikens result och om klassräknarna (classCounters) ska lyssnas på.
 // fmt.emitOnPlayers (#571, de nya lägena): skicka ett nytt tillstånd vid
 // VARJE spelarändring (anslutning, svar – även fel svar), så händelsesystemet
-// (design/live-events.js) ser "Har svarat". Klassmatchen sätter den inte och
-// ritas exakt som förut.
+// (design/live-events.js) ser "Har svarat" – och vid varje puls (lastSeenAt),
+// så närvaron (vem räknas som ansluten) aldrig är inaktuell. Klassmatchen
+// sätter den inte och ritas exakt som förut.
 //
 // Återanslutning: Firestore-lyssnarna återupptas själva efter avbrott, och en
 // omladdning prenumererar bara på nytt – allt tillstånd kommer från servern.
@@ -43,7 +45,7 @@
 import {
   watchSession, watchCounters, watchPlayers, autoFinish, fillEndsAt, writeResultIfMissing,
 } from "./live-data.js";
-import { phaseAt, topPlayers, formatClock } from "./live-core.js";
+import { phaseAt, topPlayers, formatClock, toMs } from "./live-core.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
 import { getGameMode } from "./modes/index.js";
 import { formatOf } from "./formats/index.js";
@@ -62,6 +64,10 @@ function allPlayers(players) {
     correct: Number(p.correct) || 0,
     incorrect: Number(p.incorrect) || 0,
     answerKey: p.lastAttemptId || null,
+    // Närvaro (#559): Snilleblixtens "17 av 24 har svarat" räknar anslutna
+    // (färsk puls) som fick svara (anslöt före frågan).
+    joinedAt: toMs(p.joinedAt),
+    lastSeenAt: toMs(p.lastSeenAt),
   }));
 }
 // Vänta in svar som committats precis före slutet innan resultatet fryses.
@@ -152,7 +158,7 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
     // Rita bara om något syns ändrat (sekund-upplöst klocka, poäng, status …).
     const key = JSON.stringify([st.status, st.phase, st.countdown, st.clock, st.classes, st.top, !!st.result,
       st.session?.classDivisors, st.session?.endsAt?.seconds,
-      formatOf(st.session)?.emitOnPlayers ? st.players.map((p) => [p.uid, p.answerKey, p.correct]) : 0]);
+      formatOf(st.session)?.emitOnPlayers ? st.players.map((p) => [p.uid, p.answerKey, p.correct, p.lastSeenAt]) : 0]);
     chores(st);
     if (!force && key === lastKey) return;
     lastKey = key;

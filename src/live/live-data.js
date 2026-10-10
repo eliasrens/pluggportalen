@@ -107,7 +107,8 @@ export async function startLiveSession(sid) {
 export async function fillEndsAt(sid) {
   const snap = await getDocFromServer(sessRef(sid));
   const s = snap.data();
-  if (!s || !s.startedAt || s.endsAt) return;
+  // Ingen matchklocka (lärarstyrd takt, Snilleblixten) → inget slut att skriva.
+  if (!s || !s.startedAt || s.endsAt || s.durationSeconds == null) return;
   const extra = (Number(s.countdownSeconds) || 0) + (Number(s.durationSeconds) || 0);
   const endsAt = new Timestamp(s.startedAt.seconds + extra, s.startedAt.nanoseconds);
   await updateDoc(sessRef(sid), { endsAt });
