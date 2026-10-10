@@ -36,7 +36,8 @@
 //   rankByGold(rows)      → sorterad + rank, DELAD placering (1, 1, 3)
 //   computeStandings(s, { players, grPlayers }) → { players, classes, totalGold,
 //                           totalCorrect, leaderIds, winnerId, draw }
-//   buildResult(s, _classes, players, _mode, { grPlayers }) → historikens result
+//   buildResult(s, _classes, players, _mode, { grPlayers, answers?, questions? })
+//                         → historikens result (+ perQuestion ur svaren, #566)
 //   createEventCursor()   → { take(events) } – nya händelser sedan förra
 //                           gången; FÖRSTA anropet = baslinje (efter omladdning
 //                           spelas inget gammalt upp, designspec §9)
@@ -44,6 +45,7 @@
 
 import { withRewards } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
+import { questionStats } from "./gr-historik-data.js";
 
 export const GR_MIN_CLASSES = 1;
 export const GR_MAX_CLASSES = 3;
@@ -161,10 +163,14 @@ export function computeStandings(s, { players = [], grPlayers = [] } = {}) {
  * Historikens ögonblicksbild (liveSessions.result, en gång vid slut). Ingen
  * klassvinnare (winner null) → inga klasspokaler/klassbonus (§7.2.6).
  * classGold = klassens totala guld; Pluggmynt (#557) ur guldet (placering)
- * och rätt svar – bara elever med minst ett svar.
+ * och rätt svar – bara elever med minst ett svar. perQuestion (#566): andel
+ * rätt per fråga (multiplikation: faktorparet) med statKeys + byClass ur
+ * svaren (answers, lärarens resultInputs; quiz: questions = grPublic för
+ * frågetexten) – utan svar (äldre anrop) saknas fältet.
  */
-export function buildResult(s, _classes, players = [], _mode = null, { grPlayers = [] } = {}) {
+export function buildResult(s, _classes, players = [], _mode = null, { grPlayers = [], answers = null, questions = null } = {}) {
   const st = computeStandings(s, { players, grPlayers });
+  const perQuestion = answers ? { perQuestion: questionStats(answers, { questions, players: st.players }) } : {};
   return withRewards(s, {
     format: "guldrush",
     winner: null,
@@ -174,6 +180,7 @@ export function buildResult(s, _classes, players = [], _mode = null, { grPlayers
     classGold: Object.fromEntries(st.classes.map((c) => [c.classId, c.gold])),
     totalCorrect: st.totalCorrect,
     players: (players || []).length,
+    ...perQuestion,
   }, st.players.map((p) => ({ uid: p.uid, score: p.gold, correct: p.correct, answered: p.correct + p.incorrect })));
 }
 
