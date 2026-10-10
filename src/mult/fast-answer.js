@@ -21,6 +21,8 @@
 //     opts.suffix      text efter frågan (default " = ?")
 //     opts.enabled     false → fältet låst och frågan dold (lobby/slut)
 //     opts.idleText    text som visas när komponenten är avstängd
+//     opts.feedback    false → ingen RÄTT/FEL-rad (Snilleblixten #558: facit
+//                      avslöjas först senare – värden visar "Svar inskickat")
 //   handle.setEnabled(bool, idleText?)  – t.ex. lobby → live → slut
 //   handle.pauseFocus() / resumeFocus() – släpp/återta autofokus (öppen panel)
 //   handle.focus()      handle.current() → aktuell Question|null
@@ -55,6 +57,7 @@ export function mountFastAnswer(root, opts) {
   const feedbackMs = { ...DEFAULT_FEEDBACK_MS, ...(opts.feedbackMs || {}) };
   const suffix = opts.suffix ?? " = ?";
   const numeric = (opts.inputMode || "numeric") === "numeric";
+  const feedback = opts.feedback !== false;
 
   root.classList.add("fa-root");
   root.innerHTML = `
@@ -134,7 +137,7 @@ export function mountFastAnswer(root, opts) {
     current = null;
     if (result.correct) counts.correct++;
     else counts.wrong++;
-    showFeedback(result);
+    if (feedback) showFeedback(result);
     showNext();
     try {
       const p = onAnswer(attempt);

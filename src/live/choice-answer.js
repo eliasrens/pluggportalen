@@ -22,6 +22,8 @@
 //     opts.keyboard   false → ingen 1–4-lyssnare (t.ex. två komponenter samtidigt)
 //   handle.setQuestion({ options, question? }) – ny fråga, olåst och påslagen
 //   handle.reveal(correctIndex) – markera rätt (✓) / valt fel (✗), låser
+//   handle.showChosen(index)    – visa ett REDAN inskickat val (omladdning,
+//                                 #558): låst och markerat, utan onChoose
 //   handle.setEnabled(bool)     handle.chosen() → index|null
 //   handle.destroy()
 // ============================================================================
@@ -177,6 +179,12 @@ export function mountChoiceAnswer(root, opts = {}) {
         b.classList.toggle("ca-fel", i === chosen && i !== correctIndex);
         b.querySelector(".ca-markor").textContent = i === correctIndex ? "✓" : i === chosen ? "✗" : "";
       });
+      syncState();
+    },
+    showChosen(i) {
+      if (!(i >= 0 && i < options.length)) return;
+      chosen = i;
+      statusEl.textContent = sentText;
       syncState();
     },
     setEnabled(on) {

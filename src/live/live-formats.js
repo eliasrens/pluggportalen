@@ -62,7 +62,12 @@
 //                 LAT (import()) – DOM-moduler. views = [{ id, label,
 //                 create(host, { st, colors, sound }) → { update, destroy },
 //                 only2?, finale?, preload? }]
-//   studentView()    → Promise<{ lobbyHtml(s), endHtml(st, player, classId) }>  LAT
+//   studentView()    → Promise<{ lobbyHtml(s), endHtml(st, player, classId),
+//                 joinedText?, createStage? }>  LAT. createStage({ view, host,
+//                 uid, classId, session, mode, answerKind }) → { update(st,
+//                 player), destroy() } VALFRI (#558): formatet äger spelytan
+//                 (host = "play"-delen) i stället för kärnans svarskomponent;
+//                 update körs i varje fas. joinedText = lobbyraden när eleven är med.
 //   historyRenderer() → Promise<{ winnerText, detailHtml, classStats }>   LAT
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
