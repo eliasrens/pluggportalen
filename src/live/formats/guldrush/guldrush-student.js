@@ -36,7 +36,7 @@ import { createAvatarRoster } from "../../design/live-avatars.js";
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
 import { react, setAvatarState, prefersReducedMotion } from "../../design/live-reactions.js";
 import { goldStanding, standingText, createHitWatcher, endStanding, stageAction, chestKey } from "./gr-elev.js";
-import { isProtected } from "./delat/guldrush-regler.js";
+import { isProtected, toMs } from "./delat/guldrush-regler.js";
 import { createQuestionFlow } from "./gr-fraga.js";
 import { playChests } from "./gr-kistor.js";
 import { pickVictim } from "./gr-offer.js";
@@ -115,6 +115,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
   const hits = createHitWatcher();
 
   const gold = createGoldCounter(goldEl, { reduced });
+  let protT = 0;
   const notis = createNotice($(".gr-notis"), { pool, roster });
 
   function drawTop() {
@@ -125,6 +126,9 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     const skydd = $(".gr-skydd");
     const prot = isProtected(mine, serverNow());
     skydd.hidden = !(mine?.shield || prot);
+    // Stöldskyddet tar slut av sig självt – rita om då.
+    clearTimeout(protT);
+    if (prot) protT = setTimeout(drawTop, toMs(mine.protectedUntil) - serverNow() + 100);
     skydd.textContent = mine?.shield ? "🛡️ Sköld – stoppar nästa stöld" : "🛡️ Stöldskydd en liten stund";
     setAvatarState(me, "skyddad", !!mine?.shield);
   }
@@ -344,6 +348,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       notis.destroy();
       clearTimeout(retryT);
       clearTimeout(problemT);
+      clearTimeout(protT);
       (coinTimers || []).forEach(clearTimeout);
       unsubPlayers?.();
       chests?.destroy();

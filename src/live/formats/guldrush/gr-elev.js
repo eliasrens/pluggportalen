@@ -65,7 +65,7 @@ export function standingText(rel) {
 }
 
 const WHY = {
-  "skyddad": "🛡️ Stöldskydd",
+  "skyddad": "🛡️ Skyddad",
   "samma-igen": "Nyss vald",
   "for-lite-guld": "För lite guld",
 };
