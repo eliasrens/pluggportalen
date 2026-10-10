@@ -119,9 +119,9 @@ function rals() {
 
 function ingang() {
   return `<g class="grg-ingang">
-    <path d="M-10 1000 L-10 330 Q120 250 260 330 Q380 420 390 620 L400 1000Z" fill="url(#grg-dag)"/>
-    <path d="M-10 1000 L-10 330 Q120 250 260 330 Q380 420 390 620 L400 1000" fill="none" stroke="#1d1622" stroke-width="38"/>
-    <path class="grg-dagsljus" d="M0 380 L760 1000 L120 1000Z" fill="url(#grg-strale)"/>
+    <path d="M-10 1000 L-10 420 Q90 340 200 400 Q300 470 310 660 L320 1000Z" fill="url(#grg-dag)"/>
+    <path d="M-10 1000 L-10 420 Q90 340 200 400 Q300 470 310 660 L320 1000" fill="none" stroke="#1d1622" stroke-width="34"/>
+    <path class="grg-dagsljus" d="M0 460 L700 1000 L100 1000Z" fill="url(#grg-strale)"/>
   </g>`;
 }
 
@@ -146,9 +146,9 @@ export function grottaHtml({ variant = "kammare" } = {}) {
     <svg class="grg-svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" focusable="false">
       <defs>
         <radialGradient id="grg-bak" cx="50%" cy="58%" r="70%"><stop offset="0" stop-color="#5a3b3a"/><stop offset=".45" stop-color="#3a2e3f"/><stop offset="1" stop-color="#1d1622"/></radialGradient>
+        <radialGradient id="grg-dag" cx="20%" cy="45%" r="85%"><stop offset="0" stop-color="#fff1c6"/><stop offset=".45" stop-color="#e8b060"/><stop offset="1" stop-color="#5a3420"/></radialGradient>
         <radialGradient id="grg-sken"><stop offset="0" stop-color="#ffce73" stop-opacity=".55"/><stop offset=".5" stop-color="#ff9a3a" stop-opacity=".16"/><stop offset="1" stop-color="#ff9a3a" stop-opacity="0"/></radialGradient>
         <linearGradient id="grg-golv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e5342"/><stop offset="1" stop-color="#43332a"/></linearGradient>
-        <linearGradient id="grg-dag" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff1c6"/><stop offset=".6" stop-color="#ffce73"/><stop offset="1" stop-color="#b8743a"/></linearGradient>
         <linearGradient id="grg-strale" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1c6" stop-opacity=".35"/><stop offset="1" stop-color="#fff1c6" stop-opacity="0"/></linearGradient>
       </defs>
       <rect width="1920" height="1080" fill="url(#grg-bak)"/>
@@ -161,8 +161,8 @@ export function grottaHtml({ variant = "kammare" } = {}) {
       <path d="M0 690 Q480 640 960 662 Q1440 640 1920 690 V1080 H0Z" fill="url(#grg-golv)"/>
       <path d="M0 690 Q480 640 960 662 Q1440 640 1920 690" fill="none" stroke="#856650" stroke-width="5" opacity=".6"/>
       ${variant === "lobby" ? ingang() : ""}
-      ${fackla(150, 330, 0)}${fackla(660, 230, 1)}${fackla(1260, 230, 2)}${fackla(1770, 330, 3)}
-      ${rals()}${gruvvagn()}
+      ${variant === "lobby" ? `${fackla(420, 330, 0)}${fackla(1770, 330, 3)}` : `${fackla(150, 330, 0)}${fackla(660, 230, 1)}${fackla(1260, 230, 2)}${fackla(1770, 330, 3)}`}
+      ${rals()}${variant === "lobby" ? "" : gruvvagn()}
       ${variant === "stilla" ? "" : liv()}
     </svg>
     <div class="grg-mork"></div>

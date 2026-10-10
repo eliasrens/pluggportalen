@@ -1,10 +1,10 @@
 /* ==========================================================================
    Guldrushen – SKATTKAMMAREN (#565, designspec §6.3, §6.7, §7): huvudvyn
-   (timer, klassens guld, guldhögarna, händelseflödet, banderollen), pallen
+   (timer, klassens guld, guldberget, händelseflödet, banderollen), pallen
    och statistiken. Egen fil (§3.1) – laddas av gr-grotta.js. Grottan/lobbyn:
    guldrush-grotta.css. 16:9: vh-mått, viktig text ≥ 28 px (clamp-golv).
    Layout (procent av höjden): topp 54 px + ~16 % timer/guld · luft ~14 %
-   (banderollen) · golvet resten (högarna) · högerkant ≈ 27 % (flödet).
+   (banderollen) · golvet resten (guldberget) · högerkant ≈ 27 % (flödet).
    Banderollen ligger i luften – den döljer aldrig timern eller högarna.
    ========================================================================== */
 
@@ -60,7 +60,7 @@
 .grk-luft .lbn-host { top: 50%; transform: translateY(-50%); }
 .grk-luft .lbn { font-size: clamp(32px, 5vh, 62px); }
 
-/* --- Golvet: topp 10 vid guldhögarna ---------------------------------------- */
+/* --- Golvet: klassens guldberg ---------------------------------------- */
 .grk-golv { grid-area: 3 / 1 / 4 / 2; position: relative; margin: 0 1vw 3.5vh; }
 .grk-tom {
   position: absolute;
@@ -72,32 +72,69 @@
   color: var(--gr-kram);
   text-shadow: 0 2px 6px #000;
 }
-.grh { position: absolute; inset: 0; --grh-fig: 110px; }
-.grh-plats {
+.grb {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 2vw;
+}
+.grb-berg {
+  flex: 0 1 calc(min(64%, 115vh) / var(--grb-n, 1) + 6% * (var(--grb-n, 1) - 1));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.grb-rymd { position: relative; flex: 1; width: 100%; min-height: 0; }
+.grb-mount {
   position: absolute;
   left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  transform-origin: 50% 100%;
+  transition: transform 0.9s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+.grb-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.grb-kista, .grb-krona { opacity: 0; transition: opacity 0.6s ease; }
+.grb-med-kista .grb-kista, .grb-med-krona .grb-krona { opacity: 1; }
+.grb-glimt { transform-box: fill-box; transform-origin: center; animation: grg-glitter 3.8s ease-in-out infinite; }
+.grb-glimt-2 { animation-delay: -1.9s; }
+.grb-regn { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.grb-mynt {
+  position: absolute;
   top: 0;
+  width: 2.6vh;
+  height: 1.5vh;
+  margin-left: -1.3vh;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #ffc928 45%, #d99a00);
+  box-shadow: inset 0 0 0 0.25vh #c48a00;
+}
+.grb-skylt { display: none; gap: 0.5em; align-items: baseline; margin-top: 0.6vh; font-size: clamp(28px, 3.6vh, 44px); font-weight: 800; text-shadow: 0 2px 5px #000; }
+.grb-flera .grb-skylt { display: flex; }
+.grb-klass { color: var(--gr-kram); }
+.grb-guld { color: var(--gr-guld); }
+.grb-mal {
   display: flex;
-  align-items: flex-end;
-  font-size: var(--grh-fig);
-  width: 2.3em;
-  height: 1.3em;
-  margin: -1.3em 0 0 -1.15em;
-  transform-origin: 50% 100%;
-  transition: transform 0.85s cubic-bezier(0.3, 0.9, 0.3, 1), opacity 0.5s ease;
-  will-change: transform;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0.8vh;
+  padding: 0.15em 0.7em;
+  border-radius: 999px;
+  background: rgba(29, 22, 34, 0.82);
+  border: 2px solid rgba(255, 207, 58, 0.5);
+  font-size: clamp(26px, 3.1vh, 38px);
+  font-weight: 700;
+  color: var(--gr-kram);
+  white-space: nowrap;
 }
-.grh-plats.grh-ny, .grh-plats.grh-ut { opacity: 0; }
-.grh-plats > .lav { flex: none; margin-right: -0.25em; }
-.grh-hog {
-  flex: none;
-  width: 1.4em;
-  height: 1.05em;
-  transform-origin: 50% 100%;
-  transition: transform 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
-}
-.grh-svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.grh-glimt { transform-box: fill-box; transform-origin: center; animation: grg-glitter 3.6s ease-in-out infinite; }
+.grb-flera .grb-mal { font-size: clamp(24px, 2.6vh, 32px); gap: 0.35em; }
+.grb-flera .grb-bar { width: clamp(50px, 4vw, 110px); }
+.grb-bar { width: clamp(90px, 10vw, 220px); height: 0.5em; border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.grb-bar i { display: block; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, #ffe680, #ffc928); transition: transform 0.6s ease; }
 
 /* --- Kanten: händelseflödet ------------------------------------------------- */
 .grk-kant { grid-area: 2 / 2 / 4 / 3; position: relative; padding: 0 1.4vw 3vh 0; min-height: 0; }
@@ -226,7 +263,6 @@
 .grx-tabell .num { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (prefers-reduced-motion: reduce) {
-  .grh-plats { transition: opacity 0.5s ease; }
-  .grh-hog { transition: transform 0.4s ease; }
-  .grk-klocka.grk-spanning, .grh-glimt { animation: none; }
+  .grb-mount { transition: transform 0.4s ease; }
+  .grk-klocka.grk-spanning, .grb-glimt { animation: none; }
 }

@@ -2,8 +2,8 @@
 // Guldrushen – Skattkammaren (#565, designspec §6.3): HÄNDELSEFLÖDET längs
 // högerkanten. De senaste (högst MAX) händelserna med små avatarer glider in
 // överst och tonar ut efter en stund. Texten är kistkonfigens lekfulla mall
-// (feedItem → eventText) – namn bara om läraren valt "Visa namn"; annars
-// avatarer och händelser utan namn.
+// och projektorns varsamma mallar (feedItem) – namn och avatar bara om
+// läraren valt "Visa namn", och bara för den som haft tur (ingen hängs ut).
 // TEMPO: högst en ny post per PACE_MS så att texten hinner läsas. Väntande
 // poster är högst PENDING; fler → de minst viktiga (småguld först, stora
 // händelser sist) och äldsta hoppas över. Storm (designtest 7): 30 kistor i
@@ -22,31 +22,12 @@
 
 import { esc } from "../../../teacher-shared.js";
 import { prefersReducedMotion } from "../../design/live-reactions.js";
+import { trimPending } from "./gr-proj-scen.js";
 
 const MAX = 5;
 const TTL_MS = 14_000;
 const OUT_MS = 500;
 const PACE_MS = 650;
-const PENDING = 3;
-
-/** Hur viktig en post är när kön måste gallras (högre = behålls). */
-export function weight(item) {
-  if (item.big) return 3;
-  if (["steal", "swap", "shieldBlock"].includes(item.type)) return 2;
-  return item.type === "chest" && ["lite_guld", "tom"].includes(item.chest) ? 0 : 1;
-}
-
-/** Gallra kön: behåll högst max – släpp lägst vikt, äldst först. */
-export function trimPending(list, max = PENDING) {
-  const out = [...list];
-  while (out.length > max) {
-    let ix = 0;
-    for (let i = 1; i < out.length; i++) if (weight(out[i]) < weight(out[ix])) ix = i;
-    out.splice(ix, 1);
-  }
-  return out;
-}
-
 export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
   const root = document.createElement("aside");
   root.className = "grf";
@@ -86,12 +67,10 @@ export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
     li.className = `grf-post${item.big ? " grf-stor" : ""}${item.tone ? ` grf-${item.tone}` : ""}`;
     li.dataset.typ = item.type;
     const slots = [];
-    const a = avatar(item.uid, `${id}a`, "grf-av-1");
-    if (a) { li.appendChild(a); slots.push([item.uid, `${id}a`]); }
+    // Avatar bara när namn visas och bara för den som haft tur (feedItem).
+    const a = avatar(item.avatarUid, `${id}a`, "grf-av-1");
+    if (a) { li.appendChild(a); slots.push([item.avatarUid, `${id}a`]); }
     li.insertAdjacentHTML("beforeend", `<span class="grf-text">${esc(item.text)}</span>`);
-    const b = item.victimUid && (item.type === "steal" || item.type === "swap" || item.type === "shieldBlock")
-      ? avatar(item.victimUid, `${id}b`, "grf-av-2") : "";
-    if (b) { li.appendChild(b); slots.push([item.victimUid, `${id}b`]); }
     return { li, slots, t: 0 };
   }
 

@@ -2,11 +2,16 @@
 // Guldrushen – SKATTKAMMAREN (#565, designspec §6.3): projektorns huvudvy
 // (views-posten "skattkammaren", finale: true – vyn spelar själv pallen).
 //   Överst   stor timer (matchens serverklocka) + "Tillsammans: 2 140 guld"
-//   Mitten   topp 10 som avatarer vid sina guldhögar (gr-hogar)
+//   Mitten   klassens guldberg (gr-berg) + "Nästa skatt: 3 000 guld"
 //   Kanten   händelseflödet (gr-flode) – senaste händelserna glider in/tonar ut
-//   Banderoll  stora händelser (Skattkammare, Byte, ledningsbyte) i luften
-//            mellan timern och högarna – döljer aldrig timer eller högar,
-//            köade (en i taget, ihopslagna, för gamla hoppas över)
+//   Banderoll  stora händelser (Skattkammare, Byte) och klassens delmål
+//            ("🎉 Tillsammans 1 000 guld!") i luften mellan timern och berget –
+//            döljer aldrig timer eller berg, köade (en i taget, ihopslagna,
+//            för gamla hoppas över)
+// AVSTEG FRÅN SPECEN (Elias 2026-10-10 + leaden #562, ingen uthängning):
+// ingen topp 10 med avatarer och ingen "Ny ledare"-banderoll – det är
+// rangordning. Avatarer/namn bara i flödet (lärarens "Visa namn", bara den
+// som haft tur – se gr-proj-scen feedItem) och på pallen.
 //   Final    pallplatsen EN gång (gr-pall), sedan resultatskärmen
 //
 // Händelserna kommer från servern (grEvents) via den gemensamma regin (#571:
@@ -14,7 +19,7 @@
 // själv ut vad som hänt. Regin startar först när BÅDE guldet och händelserna
 // kommit (gr-koppling ready): första sync = baslinje, så en omladdning visar
 // direkt rätt guld och spelar aldrig upp gamla händelser (§9, designtest 10).
-// Guld/ordning ritas alltid direkt ur grPlayers – aldrig via kön.
+// Guldet ritas alltid direkt ur grPlayers – aldrig via kön.
 //
 // API: createSkattkammare(host, { st, sound, screen, deps }) → { update(st), destroy() }
 // ============================================================================
@@ -24,18 +29,45 @@ import { createLiveRegi } from "../../design/live-regi.js";
 import { createBanner } from "../../design/live-banner.js";
 import { sessionRewards, placementPrize } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
-import { createGoldCounter } from "./gr-guld.js";
+import { countUp, formatGold } from "./gr-elev.js";
 import { createGrKoppling, avatarRoster } from "./gr-koppling.js";
 import { ensureGrottaCss, grottaHtml, logoHtml } from "./gr-grotta.js";
-import { createHogar } from "./gr-hogar.js";
+import { createBerg } from "./gr-berg.js";
 import { createFlode } from "./gr-flode.js";
 import { createFinal } from "./gr-pall.js";
 import {
-  matchClock, topPiles, createPileScale, feedItem, podiumGroups, classTitle, togetherText,
+  matchClock, feedItem, crossedMilestone, milestone, tal, podiumGroups, classTitle, togetherText,
 } from "./gr-proj-scen.js";
 
 const TICK_MS = 200;
 const IGNORE = new Set(["join", "answered", "correct", "wrong", "rank", "leader"]);
+
+// "Tillsammans": första värdet direkt (omladdning visar rätt guld), sedan räknar siffran mjukt dit.
+function createTills(el) {
+  let shown = null;
+  let raf = 0;
+  return {
+    sync(total) {
+      if (shown === null || matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+        shown = total;
+        el.textContent = formatGold(total);
+        return;
+      }
+      if (total === shown) return;
+      cancelAnimationFrame(raf);
+      const from = shown;
+      const t0 = performance.now();
+      const step = (t) => {
+        const x = Math.min(1, (t - t0) / 600);
+        shown = x >= 1 ? total : countUp(from, total, x);
+        el.textContent = formatGold(shown);
+        if (x < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    },
+    destroy() { cancelAnimationFrame(raf); },
+  };
+}
 
 export function createSkattkammare(host, { st, sound = null, screen = false, deps = null }) {
   ensureGrottaCss();
@@ -60,41 +92,51 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
   let dead = false;
   let finalDone = false;
   let lastSec = null;
-  const prevGold = new Map();
-  const scale = createPileScale();
+  let prevTotal = null; // null = baslinjen inte satt (omladdning: inga gamla delmål)
 
   const roster = avatarRoster(sid, deps);
   roster.prefetch(s0?.participatingClassIds || []);
   const pool = createAvatarPool({ roster });
-  const tills = createGoldCounter($("[data-tills]"));
+  const tills = createTills($("[data-tills]"));
   const banner = createBanner($(".grk-luft"));
-  const hogar = createHogar($(".grk-golv"), { pool });
+  const berg = createBerg($(".grk-golv"));
   const flode = createFlode($(".grk-kant"), { pool });
   const final = createFinal(root, { pool, sound });
   const koppling = createGrKoppling({ sid, deps, onChange: () => render(), say: (t) => console.warn("Guldrushen:", t) });
   const names = () => cur.session?.showNames !== false;
 
-  // Serverhändelse → flödet direkt (information) + ljud + reaktioner + ev. banderoll (kön).
+  // Serverhändelse → flödet direkt (information) + ljud + mynt på berget + ev. banderoll (kön).
   function mapEvent(evt) {
     if (evt.type !== "server") return IGNORE.has(evt.type) ? [] : undefined;
-    const item = feedItem({ ...evt, type: evt.serverType }, { names: names() });
+    const ev = { ...evt, type: evt.serverType };
+    const amount = Number(ev.amount) || 0;
+    if (amount > 0 && ev.type !== "steal" && ev.type !== "swap") berg.drop(ev.classId, amount >= 50 ? 3 : amount >= 25 ? 2 : 1);
+    const item = feedItem(ev, { names: names() });
+    if (!item) return [];
     flode.add([item]);
-    const jobs = item.reactions.filter((r) => hogar.has(r.uid)).map((r) => ({ kind: "reaction", uid: r.uid, reaction: r.reaction }));
     if (item.banner) {
-      const key = item.type === "lead" ? "lead" : item.type === "swap" ? "swap" : "skattkammare";
       return [{
         kind: "banner",
-        mergeKey: key,
+        mergeKey: item.type === "swap" ? "swap" : "skattkammare",
         banner: item.banner,
         cue: item.cue,
-        // Ledningsbyte: bara den senaste ledaren är sann. Skattkammare/byte: räkna upp.
-        merge: key === "lead" ? (a, b) => b : undefined,
         bannerMany: (job) => ({ ...job.banner, sub: `${job.count} på en gång!` }),
-        then: jobs,
       }];
     }
     if (item.cue) sound?.cue?.(item.cue);
-    return jobs;
+    return [];
+  }
+
+  // Klassens delmål: en banderoll när totalen passerar nästa skatt.
+  function milestoneBanner(m, total) {
+    const next = milestone(total).next;
+    regi.push({
+      kind: "banner",
+      mergeKey: "mal",
+      merge: (a, b) => b, // bara det senaste delmålet är sant
+      banner: { icon: "🎉", title: `Tillsammans ${tal(m)} guld!`, sub: next ? `Nästa skatt: ${tal(next)} guld` : "Alla skatter hittade!", tone: "gold" },
+      cue: "fanfarKort",
+    });
   }
 
   const regi = createLiveRegi({
@@ -152,16 +194,15 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     const standing = koppling.standings(cur);
     tills.sync(standing.totalGold);
 
-    // Topp 10 vid guldhögarna – direkt ur guldet.
-    const top = topPiles(standing.players);
-    hogar.update(top, { ref: scale.ref(top[0]?.gold || 0) });
-    for (const p of top) {
-      const before = prevGold.get(p.uid);
-      if (before != null && p.gold > before) hogar.bump(p.uid);
-    }
-    prevGold.clear();
-    for (const p of standing.players) prevGold.set(p.uid, p.gold);
-    $(".grk-tom").hidden = top.length > 0 || finished;
+    // Klassens guldberg (ett per klass) – direkt ur guldet.
+    const classes = standing.classes;
+    const multi = classes.length > 1;
+    berg.update(classes, { total: standing.totalGold, multi });
+    $(".grk-tom").hidden = standing.totalGold > 0 || finished;
+    // Delmål (bara uppåt, bara under spelet; första gången = baslinje).
+    const m = prevTotal == null || finished ? null : crossedMilestone(prevTotal, standing.totalGold);
+    if (m) milestoneBanner(m, standing.totalGold);
+    prevTotal = standing.totalGold;
 
     roster.ensure(cur.players || []);
     regi.sync({
@@ -192,7 +233,7 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
       koppling.destroy();
       tills.destroy();
       banner.destroy();
-      hogar.destroy();
+      berg.destroy();
       flode.destroy();
       final.destroy();
       pool.destroy();

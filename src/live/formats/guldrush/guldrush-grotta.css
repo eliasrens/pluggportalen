@@ -151,15 +151,15 @@
 .grlb-fot { display: flex; gap: 1em; align-items: center; font-size: clamp(16px, 2vh, 22px); color: var(--gr-kram); }
 .grlb-fot .lp-link { color: var(--gr-kram); }
 
-/* Skattjägarna vid grottans ingång (vänster nederkant → ut över golvet). */
+/* Skattjägarna samlas vid grottans ingång (vänster) och fyller golvet utåt. */
 .grlb-folk {
   position: absolute;
-  left: 2vw;
-  right: 2vw;
+  left: 15vw;
+  right: 3vw;
   bottom: 3vh;
   display: flex;
   flex-wrap: wrap-reverse;
-  justify-content: center;
+  justify-content: flex-start;
   align-content: flex-start;
   gap: 0.4vh 0.6vw;
   font-size: var(--grlb-fig, clamp(40px, 7.5vh, 90px));
