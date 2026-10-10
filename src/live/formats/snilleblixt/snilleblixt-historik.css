@@ -1,0 +1,28 @@
+/* Snilleblixten – historiken och Statistik → Live (#560). Laddas av
+   snilleblixt-history.js (ensureLiveCss). Genomskinliga toner – fungerar i
+   lärarsidans ljusa och mörka tema. */
+.sbh-pall { list-style: none; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 6px 0 14px; padding: 0; }
+.sbh-pall li { display: flex; flex-direction: column; align-items: center; min-width: 130px; padding: 10px 14px 8px;
+  border-radius: 14px 14px 6px 6px; background: rgba(127, 140, 170, 0.12); border: 1px solid var(--t-border, rgba(127, 140, 170, 0.35)); text-align: center; }
+.sbh-pall .sbh-pall-1 { order: 2; padding-top: 18px; background: rgba(241, 196, 15, 0.16); border-color: rgba(241, 196, 15, 0.7); }
+.sbh-pall .sbh-pall-2 { order: 1; padding-top: 12px; }
+.sbh-pall .sbh-pall-3 { order: 3; }
+.sbh-medalj { font-size: 1.8rem; line-height: 1; }
+.sbh-pall b { font-size: 1.05rem; }
+.sbh-pall small { opacity: 0.75; }
+.sbh-andel { white-space: nowrap; }
+.sbh-bar { display: inline-block; vertical-align: middle; width: 120px; height: 10px; border-radius: 6px;
+  background: rgba(127, 140, 170, 0.25); overflow: hidden; }
+.sbh-bar i { display: block; height: 100%; background: #27ae60; border-radius: inherit; }
+.sbh-bar.sbh-mellan i { background: #f2a33a; }
+.sbh-bar.sbh-lag i { background: #e2554f; }
+.sbh-svar th { color: #e2554f; }
+.sbh-tagg { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
+  background: rgba(226, 85, 79, 0.18); color: #e2554f; }
+.sbh-matris summary { cursor: pointer; font-weight: 700; margin: 8px 0; }
+.sbh-scroll { overflow-x: auto; }
+.sbh-matris .sbh-c { text-align: center; font-weight: 700; padding: 4px 6px; }
+.sbh-ratt { color: #27ae60; }
+.sbh-fel { color: #e2554f; }
+.sbh-inget, .sbh-hoppad { opacity: 0.5; }
+.sbh-klass h5 { margin: 10px 0 4px; font-size: 0.95rem; }

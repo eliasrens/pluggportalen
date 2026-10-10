@@ -69,6 +69,8 @@
 //                 (host = "play"-delen) i stället för kärnans svarskomponent;
 //                 update körs i varje fas. joinedText = lobbyraden när eleven är med.
 //   historyRenderer() → Promise<{ winnerText, detailHtml, classStats }>   LAT
+//                 (+ valfria ownPlayerTable, playerCounts, classSummaryHtml,
+//                 settle – se teacher-live-history.js; detailHtml får vara async)
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
 //   classDivisors VALFRI bool – lärarens nämnare per klass ("÷ Nämnare")
