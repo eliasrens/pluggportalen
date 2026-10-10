@@ -13,13 +13,15 @@
 //     batch som sessionen; questionCount = antal frågor. Multiplikation:
 //     inget att kopiera (servern räknar om facit).
 //   privateDocs   grPrivate + grPublic – raderas med en lobby
-//   resultInputs(s) → { grPlayers } – guldet till buildResult
+//   resultInputs(s) → { grPlayers, answers, questions } – guldet + svaren
+//     (statistik per fråga, #566) till buildResult
 //
 // Pluggmynt efter matchen (#557): gemensamma live-rewards.js.
 // Elevvyn (#564): guldrush-student.js – egen spelyta (createStage) med
 // kistor, offerväljare och stöldnotis. Projektorvyerna (#565):
 // guldrush-projector.js – Skattkammaren + Statistik, lobby, pallplats.
-// Historiken är en enkel version (guldrush-history.js).
+// Historiken + Statistik → Live (#566): guldrush-history.js. Demoläget:
+// gr-demo.js (preview-guldrush-demo.html).
 //
 // API: export default GULDRUSH (format-objekt, oregistrerat).
 // ============================================================================
@@ -86,8 +88,15 @@ const GULDRUSH = {
   },
 
   async resultInputs(s) {
-    const { getGrPlayers } = await import("./guldrush-data.js");
-    return { grPlayers: await getGrPlayers(s.id) };
+    const { getGrPlayers, getAnswers, getQuestions } = await import("./guldrush-data.js");
+    // Svaren → andel rätt per fråga/tabell (#566). Läses EN gång vid slut;
+    // misslyckas läsningen blir det ett result utan perQuestion (som förut).
+    const [grPlayers, answers, questions] = await Promise.all([
+      getGrPlayers(s.id),
+      getAnswers(s.id).catch(() => null),
+      s.gameMode === "plugga_quiz" ? getQuestions(s.id).catch(() => null) : null,
+    ]);
+    return { grPlayers, answers, questions };
   },
 
   // Skattkammaren (#565): Skattkammaren + Statistik, lobby, pallplats.

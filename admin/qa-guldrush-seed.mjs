@@ -8,6 +8,10 @@
 // och result skrivs (buildResult) → lärarens Live-historik visar Guldrushen
 // med topplista och klassens totala guld. Händelseflödet (grEvents) och
 // guldet (grPlayers) ligger kvar att titta på i emulatorn.
+// #566: två matcher – qa-guldrush-4b med result som FÖRE #566 (utan
+// perQuestion: historiken räknar frågestatistiken ur svaren) och
+// qa-guldrush-4b-ny UTAN result (historiken bygger det med resultInputs →
+// perQuestion sparas, Statistik → Live per tabell).
 //
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… node admin/qa-guldrush-seed.mjs
 // ============================================================================
@@ -34,19 +38,22 @@ const rng = () => {
 let clock = 0;
 const deps = { db, FieldValue, Timestamp, now: () => clock, rng };
 
-const SID = "qa-guldrush-4b";
-const START = Date.now() - 15 * 60_000;
-const T0 = START + 4_000;
-const END = T0 + 5 * 60_000;
-
 async function main() {
+  await play("qa-guldrush-4b", "Guldrushen 4B (QA)", Date.now() - 25 * 60_000, true);
+  await play("qa-guldrush-4b-ny", "Guldrushen 4B (QA #566)", Date.now() - 15 * 60_000, false);
+  await app.delete();
+}
+
+async function play(SID, name, START, writeResult) {
+  const T0 = START + 4_000;
+  const END = T0 + 5 * 60_000;
   const cls = (await db.doc("classes/4b").get()).data();
   if (!cls) throw new Error("Kör admin/qa-mm-live-seed.mjs först (klass 4b saknas).");
   const elever = cls.studentIds;
   const ref = db.doc(`liveSessions/${SID}`);
   await db.recursiveDelete(ref);
   const s = {
-    name: "Guldrushen 4B (QA)", format: "guldrush", gameMode: "multiplication_0_10", answerKind: "free",
+    name, format: "guldrush", gameMode: "multiplication_0_10", answerKind: "free",
     participatingClassIds: ["4b"], classNames: { "4b": "4B" }, durationSeconds: 300, countdownSeconds: 4,
     status: "live", stealSwap: true, showNames: true, createdBy: "qa", createdByName: "QA",
     createdAt: Timestamp.fromMillis(START - 60_000), startedAt: Timestamp.fromMillis(START),
@@ -84,11 +91,10 @@ async function main() {
   await ref.update({ status: "finished", finishedAt: Timestamp.fromMillis(END) });
   const grPlayers = (await ref.collection("grPlayers").get()).docs.map((d) => ({ uid: d.id, ...d.data() }));
   const result = buildResult(s, null, players, null, { grPlayers });
-  await ref.update({ result: { ...result, computedAt: FieldValue.serverTimestamp() } });
+  if (writeResult) await ref.update({ result: { ...result, computedAt: FieldValue.serverTimestamp() } });
   const ev = (await ref.collection("grEvents").count().get()).data().count;
   console.log(`Guldrushen ${SID}: ${stats.svar} svar, ${stats.kistor} kistor, ${stats.stold} stölder/byten, ${ev} händelser, ` +
-    `klassens guld ${result.totalGold}, etta ${result.ranking[0]?.name} (${result.ranking[0]?.gold}).`);
-  await app.delete();
+    `klassens guld ${result.totalGold}, etta ${result.ranking[0]?.name} (${result.ranking[0]?.gold})${writeResult ? "" : ", inget result (historiken bygger det)"}.`);
 }
 
 main().catch((e) => {

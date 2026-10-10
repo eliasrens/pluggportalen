@@ -25,6 +25,9 @@
 //                                       ögonblicksbild ur cachen, inte servern
 //                                       (projektorns baslinje väntar in servern)
 //   getGrPlayers(sid)                  → grPlayers[] (resultat/historik)
+// API (lärare)
+//   getAnswers(sid)                    → alla svarsdokument (#566: historikens
+//                                       statistik per fråga och elev)
 // ============================================================================
 
 import { app, db } from "../../../firebase-config.js";
@@ -76,6 +79,10 @@ export function watchGrPlayers(sid, cb, onErr) {
 
 export async function getGrPlayers(sid) {
   return (await getDocs(grCol(sid))).docs.map(withUid);
+}
+
+export async function getAnswers(sid) {
+  return (await getDocs(collection(db, "liveSessions", sid, "answers"))).docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export function watchMyGold(sid, uid, cb, onErr) {
