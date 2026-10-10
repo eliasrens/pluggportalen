@@ -13,7 +13,8 @@
 //     som ögonblicksbild till sbPrivate/snapshot (lärarskyddat, samma batch
 //     som sessionen) och questionCount = ögonblicksbildens längd.
 //   privateDocs         [["sbPrivate","snapshot"]] – raderas med en lobby
-//   resultInputs(s)     → Promise<{ scores }> – buildResult behöver sbScores
+//   resultInputs(s)     → Promise<{ scores, questions }> – buildResult behöver
+//                         sbScores (+ ögonblicksbildens frågor, #560)
 //                         (live-feed / historiken hämtar dem före buildResult)
 //
 // Pluggmynt efter matchen (#557): gemensamma live-rewards.js – fältet
@@ -21,7 +22,7 @@
 //
 // Vyerna byggs i egna issues: studentView #558 (snilleblixt-student.js,
 // egen spelyta via createStage; lägena i snilleblixt-elev.js),
-// projectorViews #559, historyRenderer #560 (här en enkel topplista tills dess).
+// projectorViews #559, historyRenderer #560 (snilleblixt-history.js).
 //
 // API: export default SNILLEBLIXT (format-objekt, oregistrerat).
 // ============================================================================
@@ -98,8 +99,11 @@ const SNILLEBLIXT = {
   },
 
   async resultInputs(s) {
-    const { getScores } = await import("./snilleblixt-data.js");
-    return { scores: await getScores(s.id) };
+    const { getScores, getSnapshot } = await import("./snilleblixt-data.js");
+    // Frågornas text/statKeys till historikens andel rätt per fråga (#560) –
+    // bara lärare läser ögonblicksbilden; utan den blir det bara "Fråga n".
+    const [scores, snap] = await Promise.all([getScores(s.id), getSnapshot(s.id).catch(() => null)]);
+    return { scores, questions: snap?.questions || null };
   },
 
   // TV-studion (#559): Studion + Statistik, lobby, pallplats, lärarkontroller.

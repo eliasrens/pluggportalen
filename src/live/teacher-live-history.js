@@ -9,7 +9,11 @@
 // elevernas Pluggmynt i de nya formaten (#557, kvitto per elev).
 // Det formatspecifika (vinnare, klasstabell, pris – Klassmatchen) ritar
 // sessionens FORMAT (historyRenderer(), laddas latt, #547); kärnan ritar
-// rubrik, datum, spelläge och elevtabellen. Formatets ikon visas före
+// rubrik, datum, spelläge och elevtabellen. Valfritt i historyRenderer (#560):
+// detailHtml får ge ett Promise, ownPlayerTable (formatet ritar elevtabellen
+// själv), playerCounts(s, result) → Map uid → { correct, incorrect } (format
+// som inte räknar på spelardokumenten) och classSummaryHtml(entries, classId)
+// (formatets sammanfattning i Statistik → Live). Formatets ikon visas före
 // matchnamnet när fler än ett format är registrerat (#548).
 //
 // API
@@ -89,7 +93,7 @@ export async function renderHistoryList(ctx, host) {
 
 export async function renderHistoryDetail(ctx, host, sid) {
   host.replaceChildren(el(`<div class="spinner">Laddar matchen…</div>`));
-  let s, players, result, hist;
+  let s, players, result, hist, detail;
   try {
     s = await getSession(sid);
     if (!s) throw new Error("matchen finns inte");
@@ -98,6 +102,7 @@ export async function renderHistoryDetail(ctx, host, sid) {
     players = await getPlayers(sid);
     result = s.status === "finished" && s.startedAt ? await ensureResult(s, players) : null;
     hist.settle?.(s);
+    detail = await hist.detailHtml(s, result);
     // Pluggmynt (#557) som inte hann betalas ut (projektorn stängdes) – idempotent.
     if (s.result?.rewards) import("./live-rewards-data.js").then((m) => m.settleLiveRewards(s.id, s)).catch(() => {});
   } catch (err) {
@@ -114,12 +119,12 @@ export async function renderHistoryDetail(ctx, host, sid) {
   const view = el(`<div class="panel live-history-detail">
     <a class="back-link" data-back>← Till Live</a>
     <h2 class="live-h2">${formatIcon(s)}${esc(s.name)}</h2>
-    <p class="hint">${fmtDate(s.startedAt)} · ${esc(mode ? mode.displayName : s.gameMode)} · ${Math.round(s.durationSeconds / 60)} min
+    <p class="hint">${fmtDate(s.startedAt)} · ${esc(mode ? mode.displayName : s.gameMode)}${s.durationSeconds ? ` · ${Math.round(s.durationSeconds / 60)} min` : ""}
       ${s.status !== "finished" ? " · pågår ännu" : ""}</p>
-    ${hist.detailHtml(s, result)}
-    <h3>Elevresultat</h3>
+    ${detail}
+    ${hist.ownPlayerTable ? "" : `<h3>Elevresultat</h3>
     ${players.length ? `<table class="live-table"><thead><tr><th>Elev</th><th>Klass</th><th class="num">Rätt</th><th class="num">Fel</th>
-      <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${playerRows}</tbody></table>` : `<p class="hint">Inga elever anslöt.</p>`}
+      <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${playerRows}</tbody></table>` : `<p class="hint">Inga elever anslöt.</p>`}`}
   </div>`);
   view.querySelector("[data-back]").addEventListener("click", () => ctx.go("#/larare/live"));
   host.replaceChildren(view);
@@ -144,11 +149,14 @@ export async function renderClassLiveStats(ctx, host, { classId, students = [] }
   for (let i = 0; i < sessions.length; i++) {
     const s = sessions[i];
     const mine = playersBySession[i].filter((p) => p.classId === classId);
+    // Format som inte räknar på spelardokumenten (Snilleblixten: ur result).
+    const counts = hists[i]?.playerCounts?.(s, results[i]);
     for (const p of mine) {
       const row = perStudent.get(p.uid) || { name: p.name || p.uid, matches: 0, c: 0, w: 0 };
+      const n = counts ? counts.get(p.uid) || { correct: 0, incorrect: 0 } : p;
       row.matches++;
-      row.c += p.correct || 0;
-      row.w += p.incorrect || 0;
+      row.c += n.correct || 0;
+      row.w += n.incorrect || 0;
       perStudent.set(p.uid, row);
     }
     // Formatets kolumner; matcher i ett annat format än tabellens (första
@@ -161,12 +169,24 @@ export async function renderClassLiveStats(ctx, host, { classId, students = [] }
     matchRows.push(`<tr><th scope="row"><a class="live-link" data-sid="${esc(s.id)}">${esc(s.name)}</a></th><td>${fmtDate(s.startedAt)}</td>
       ${cells}<td class="num">${mine.length}</td></tr>`);
   }
+  // Formatens sammanfattning över klassens matcher (Snilleblixten: andel rätt
+  // per tabell/kategori och svåraste frågorna, #560).
+  const summaries = new Map();
+  sessions.forEach((s, i) => {
+    const h = hists[i];
+    if (!h?.classSummaryHtml) return;
+    const e = summaries.get(h) || [];
+    e.push({ s, result: results[i] });
+    summaries.set(h, e);
+  });
+  const summaryHtml = [...summaries].map(([h, entries]) => h.classSummaryHtml(entries, classId)).join("");
   const studentRows = [...perStudent.values()].sort((a, b) => b.c - a.c || a.name.localeCompare(b.name, "sv")).map((r) =>
     `<tr><th scope="row">${esc(r.name)}</th><td class="num">${r.matches}</td><td class="num">${r.c}</td><td class="num">${r.w}</td>
       <td class="num">${r.c + r.w}</td><td class="num">${pct(r.c, r.w)}</td></tr>`).join("");
   const view = el(`<div class="live-class-stats">
     <h4>Matcher</h4>
     <table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${head?.stats.head ?? ""}<th class="num">Elever</th></tr></thead><tbody>${matchRows.join("")}</tbody></table>
+    ${summaryHtml}
     <h4>Elever (alla Live-matcher)</h4>
     <table class="live-table"><thead><tr><th>Elev</th><th class="num">Matcher</th><th class="num">Rätt</th><th class="num">Fel</th>
       <th class="num">Totalt</th><th class="num">Rätt %</th></tr></thead><tbody>${studentRows}</tbody></table>
