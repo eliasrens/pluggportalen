@@ -1,0 +1,26 @@
+[
+  {
+    "id": "20f",
+    "text": "pluggmynt orörda under matchen trots 640 kistor/stölder (28 elever)",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "P1",
+    "text": "28 elever × 9.1 kistor/min – inga serverfel",
+    "pass": true,
+    "detail": "{}"
+  },
+  {
+    "id": "P2",
+    "text": "kistanropet p95 < 1,5 s (emulatorn)",
+    "pass": true,
+    "detail": "p50 67 ms, p95 242 ms"
+  },
+  {
+    "id": "P3",
+    "text": "ingen elev har negativt guld / över taket",
+    "pass": true,
+    "detail": ""
+  }
+]

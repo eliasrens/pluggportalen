@@ -1,0 +1,12 @@
+{"t":1791647210601,"vem":"elias","sid":"qa-gr-567-pris300","action":"result","totalGold":22000,"rewards":25}
+{"t":1791647210602,"vem":"elias","sid":"qa-gr-567-pris100","action":"result","totalGold":1900,"rewards":6}
+{"t":1791647210863,"vem":"elias","warn":"[live] Pluggmynt nekades qa-gr-567-pris100 b02 permission-denied"}
+[live] Pluggmynt nekades qa-gr-567-pris100 b02 permission-denied
+{"t":1791647210863,"vem":"elias","warn":"[live] Pluggmynt nekades qa-gr-567-pris100 b03 permission-denied"}
+[live] Pluggmynt nekades qa-gr-567-pris100 b03 permission-denied
+{"t":1791647210863,"vem":"elias","warn":"[live] Pluggmynt nekades qa-gr-567-pris100 b04 permission-denied"}
+[live] Pluggmynt nekades qa-gr-567-pris100 b04 permission-denied
+{"t":1791647210863,"vem":"elias","warn":"[live] Pluggmynt nekades qa-gr-567-pris100 b05 permission-denied"}
+[live] Pluggmynt nekades qa-gr-567-pris100 b05 permission-denied
+{"t":1791647218618,"vem":"elias","sid":"qa-gr-567-pris300","action":"kvitton","n":24,"by":{"rasmus":24}}
+{"t":1791647218626,"vem":"elias","sid":"qa-gr-567-pris100","action":"kvitton","n":2,"by":{"elias":2}}

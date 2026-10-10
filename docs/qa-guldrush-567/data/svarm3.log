@@ -1,0 +1,34 @@
+{
+ "elever": 28,
+ "sek": 60,
+ "svar": 274,
+ "chests": 224,
+ "kistorPerElevOchMin": 8,
+ "per": {
+  "answer": {
+   "n": 274,
+   "p50": 394,
+   "p95": 1316,
+   "max": 1940
+  },
+  "openChest": {
+   "n": 224,
+   "p50": 472,
+   "p95": 1438,
+   "max": 1911
+  },
+  "chooseVictim": {
+   "n": 26,
+   "p50": 473,
+   "p95": 1527,
+   "max": 1634
+  }
+ },
+ "fel": {}
+}
+✅ 20f pluggmynt orörda under matchen trots 224 kistor/stölder (28 elever)
+✅ P1 28 elever × 8.0 kistor/min – inga serverfel – {}
+✅ P2 kistanropet p95 < 1,5 s (emulatorn) – p50 472 ms, p95 1438 ms
+✅ P3 ingen elev har negativt guld / över taket
+
+4/4 gröna → /tmp/gr567/svarm-60.json

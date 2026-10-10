@@ -9,6 +9,10 @@
 # Pluggmynt); elev- och projektorvyerna byggs i epicens senare issues.
 #
 #   JAVA_BIN=… FIREBASE_BIN=… bash admin/qa-guldrush-preview.sh
+#   FN_SEKVENS=1 → functions-emulatorn kör EN worker åt gången (--inspect-functions)
+#   i stället för en nodprocess (~140 MB) per samtidigt anrop – för svärmtester
+#   med 20–40 elever på en maskin med lite RAM (#567). Svarstiderna blir då
+#   KÖADE (pessimistiska); i produktionen skalar Cloud Functions själv.
 #   → http://127.0.0.1:8569/#/larare/live  (elias / lilla123)
 # ============================================================================
 set -euo pipefail
@@ -32,7 +36,7 @@ cat > "$DIR/firebase.json" <<EOT
     "functions": { "port": $FN }, "hub": { "port": $((FS - 4000)) }, "logging": { "port": $((FS - 3999)) },
     "eventarc": { "port": $((FS - 3998)) }, "ui": { "enabled": false }, "singleProjectMode": true } }
 EOT
-(cd "$DIR" && setsid -f firebase emulators:start --config "$DIR/firebase.json" --project pluggportalen-so-2026 --only functions,auth,firestore > "$DIR/emu.log" 2>&1 < /dev/null)
+(cd "$DIR" && setsid -f firebase emulators:start --config "$DIR/firebase.json" --project pluggportalen-so-2026 --only functions,auth,firestore ${FN_SEKVENS:+--inspect-functions $((FN + 1000))} > "$DIR/emu.log" 2>&1 < /dev/null)
 for _ in $(seq 1 90); do grep -q "All emulators ready" "$DIR/emu.log" 2>/dev/null && break; sleep 2; done
 grep -q "All emulators ready" "$DIR/emu.log" || { echo "Emulatorerna startade inte – se $DIR/emu.log"; exit 1; }
 cd "$REPO"

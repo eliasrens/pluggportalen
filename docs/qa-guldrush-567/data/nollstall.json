@@ -1,0 +1,20 @@
+[
+  {
+    "id": "T1",
+    "text": "inget sätt att nollställa någon (193781 slumpade effekter på guld > 0)",
+    "pass": true,
+    "detail": "nollade 0"
+  },
+  {
+    "id": "T1b",
+    "text": "stöld högst 15 %, hål i fickan högst 10 %",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "id": "T4",
+    "text": "händelsetexterna är lekfulla (inga hånfulla ord)",
+    "pass": true,
+    "detail": "🪙 {namn} hittade {belopp} guld! | 💰 {namn} hittade {belopp} guld! | 💎 {namn} hittade {belopp} guld! | 👑 SKATTKAMMARE! {namn} hittade {belopp} guld! | ✖️2 {namn} dubblade sitt guld (+{belopp})! | 🦝 {namn} knyckte {belopp} guld från {offer}! | 🔄 {namn} och {offer} bytte guld! | 🕳️ Hoppsan! {namn} tappade {belopp} guld. | 🍃 {namn} hittade ett löv. | 🛡️ {namn} skaffade en sköld!"
+  }
+]
