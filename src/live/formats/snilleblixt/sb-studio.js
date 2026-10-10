@@ -27,7 +27,7 @@ import { createLiveRegi } from "../../design/live-regi.js";
 import { react, prefersReducedMotion } from "../../design/live-reactions.js";
 import { sessionRewards, placementPrize } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
-import { studioScene, questionClock, revealInfo, podiumGroups, classSummary } from "./sb-scen.js";
+import { studioScene, questionClock, revealInfo, podiumGroups, classSummary, createResultatRitare } from "./sb-scen.js";
 import { createSbKoppling, avatarRoster } from "./sb-koppling.js";
 import { ensureStudioCss, miljoHtml, logoHtml, flash } from "./sb-miljo.js";
 import { createKlocka, createSchakt } from "./sb-fraga.js";
@@ -70,6 +70,8 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
   const say = (t) => console.warn("Snilleblixten:", t);
   const koppling = createSbKoppling({ sid, st, deps, actions, screen, onChange: () => render(), say });
   const kontroll = screen ? null : createKontroller(root, { koppling });
+  const ritaResultat = createResultatRitare((d) => final.showResult(d));
+  let finalDone = false;
   root.classList.toggle("sb-skarm", !!screen);
 
   const regi = createLiveRegi({
@@ -82,7 +84,10 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
       if (["correct", "wrong", "rank", "leader"].includes(evt.type)) return [];
       return undefined;
     },
-    playFinal: (job, signal) => final.play(finalData(), signal).then(() => root.classList.add("sb-resultat")),
+    // Finalen väntar in första poäng-snapshoten (annars tom pall), högst 4 s.
+    playFinal: (job, signal) => Promise.race([koppling.scoresReady, new Promise((r) => setTimeout(r, 4000))])
+      .then(() => final.play(finalData(), signal))
+      .then(() => { finalDone = true; root.classList.add("sb-resultat"); }),
   });
 
   function finalData() {
@@ -212,9 +217,11 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
     }
 
     // Finalen: spelas av regin (EN gång); annars direkt resultatet.
-    if (scene === "final" && !regi.queue.finalStarted() && !root.classList.contains("sb-resultat")) {
+    // Resultatet: direkt efter omladdning (finalen redan visad) eller när
+    // animationen är klar – och ritas om när sbScores/result kommer fram.
+    if (scene === "final" && (!regi.queue.finalStarted() || finalDone)) {
       root.classList.add("sb-resultat");
-      final.showResult(finalData());
+      ritaResultat(finalData());
     }
     kontroll?.update();
   }

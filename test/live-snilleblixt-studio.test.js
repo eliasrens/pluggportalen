@@ -13,6 +13,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   studioScene, questionClock, revealInfo, classSummary, podiumGroups, audienceLayout, choreFor, controlsFor,
+  createResultatRitare,
   SB_DRUM_MS, SB_REVEAL_HOLD_MS, SB_OPEN_DELAY_MS,
 } from "../src/live/formats/snilleblixt/sb-scen.js";
 import { scoreQuestion, computeStandings } from "../src/live/formats/snilleblixt/snilleblixt-poang.js";
@@ -176,5 +177,50 @@ describe("Snilleblixten-studion: formatet", () => {
     assert.equal(f.emitOnPlayers, true);
     const standings = computeStandings(sess(), { scores: [], players: [{ uid: "a", name: "A", classId: "4b" }] });
     assert.equal(standings.players.length, 1);
+  });
+});
+
+describe("Snilleblixten-studion: omladdning efter/mitt i finalen (#561 F1, designtest 10)", () => {
+  const players = [{ uid: "a", name: "Alma", classId: "4b" }, { uid: "b", name: "Bo", classId: "4b" }, { uid: "c", name: "Cia", classId: "4b" }];
+  const scores = [{ index: 0, skipped: false, answered: 3, correctCount: 3, points: { a: 900, b: 800, c: 700 }, correct: { a: true, b: true, c: true } }];
+  const data = (sc) => {
+    const st = computeStandings(sess(), { scores: sc, players });
+    return { groups: podiumGroups(st.players), sub: classSummary(sc).answered ? "klassrad" : "", prize: () => 0 };
+  };
+
+  it("tomma sbScores vid första ritningen → pallen ritas om när poängen kommer, sedan inte igen", () => {
+    const shown = [];
+    const rita = createResultatRitare((d) => shown.push(d));
+    assert.equal(rita(data([])), true); // omladdning: poängen inte framme än
+    assert.equal(shown[0].groups.length, 0);
+    assert.equal(rita(data([])), false); // samma underlag – ingen omritning
+    assert.equal(rita(data(scores)), true); // poängen kom → pallen fylls
+    assert.deepEqual(shown[1].groups.map((g) => [g.rank, g.players[0].name]), [[1, "Alma"], [2, "Bo"], [3, "Cia"]]);
+    assert.equal(shown[1].sub, "klassrad");
+    assert.equal(rita(data(scores)), false);
+    assert.equal(shown.length, 2);
+  });
+
+  it("priset (result.rewards kommer efter slutet) ritar också om", () => {
+    let n = 0;
+    const rita = createResultatRitare(() => n++);
+    rita({ ...data(scores), prize: () => 0 });
+    rita({ ...data(scores), prize: (r) => [0, 100, 85, 72][r] });
+    assert.equal(n, 2);
+  });
+
+  it("kopplingens scoresReady löses vid första poäng-snapshoten", async () => {
+    let cb = null;
+    const api = { watchScores: (_s, f) => { cb = f; return () => {}; }, watchQuestionAnswers: () => () => {} };
+    const k = createSbKoppling({ sid: "s1", st: st(sess({ status: "finished" }), "finished"), deps: { snilleblixt: api, now: () => T } });
+    let ready = false;
+    k.scoresReady.then(() => { ready = true; });
+    await new Promise((r) => setTimeout(r, 5));
+    assert.equal(ready, false);
+    cb(scores);
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(ready, true);
+    assert.equal(k.scores.length, 1);
+    k.destroy();
   });
 });

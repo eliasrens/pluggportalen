@@ -22,6 +22,8 @@
 //   createSbKoppling({ sid, st, deps, actions, screen, onChange, say? }) → {
 //     update(st)                 nytt Live-tillstånd (från skalet)
 //     scores, answers            senaste sbScores[] / svaren på pågående fråga
+//     scoresReady                Promise – löses vid första poäng-snapshoten
+//                                (eller om datalagret inte kunde laddas)
 //     progress()                 → answerProgress för pågående fråga
 //     standings(scores?)         → computeStandings (default alla poäng)
 //     now()                      server-korrigerad tid
@@ -60,6 +62,8 @@ export function createSbKoppling({ sid, st, deps = null, actions = {}, screen = 
   let answersIx = null;
   let unAnswers = null;
   let unScores = null;
+  let markReady = () => {};
+  const scoresReady = new Promise((r) => { markReady = r; });
   const tried = new Map(); // "action|index" → ms
   let busy = false;
   const now = () => (deps?.now ? deps.now() : cur?.now ?? Date.now());
@@ -67,10 +71,11 @@ export function createSbKoppling({ sid, st, deps = null, actions = {}, screen = 
   const ready = (api ? Promise.resolve(api) : import("./snilleblixt-data.js")).then((m) => {
     if (dead) return null;
     api = m;
-    unScores = api.watchScores(sid, (list) => { scores = list || []; onChange("scores"); }, (e) => say(`Poängen: ${e.message}`));
+    unScores = api.watchScores(sid, (list) => { scores = list || []; markReady(); onChange("scores"); },
+      (e) => { markReady(); say(`Poängen: ${e.message}`); });
     watchAnswers();
     return api;
-  }).catch((e) => { say(`Snilleblixten kunde inte laddas: ${e?.message || e}`); return null; });
+  }).catch((e) => { markReady(); say(`Snilleblixten kunde inte laddas: ${e?.message || e}`); return null; });
 
   function watchAnswers() {
     const q = cur?.session?.q;
@@ -143,6 +148,7 @@ export function createSbKoppling({ sid, st, deps = null, actions = {}, screen = 
       chores();
     },
     get scores() { return scores; },
+    scoresReady,
     get answers() { return answers; },
     get screen() { return screen; },
     progress,

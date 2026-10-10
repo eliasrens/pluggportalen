@@ -112,7 +112,8 @@ export function createFinal(host, { pool, sound, flashHost }) {
 
   function showResult(data) {
     root.hidden = false;
-    if (!pall.childElementCount) build(data);
+    // Alltid ur aktuellt underlag (omladdning: poängen kan komma efter första ritningen).
+    build(data);
     pall.querySelectorAll(".sbf-steg").forEach((s) => s.classList.add("sbf-uppe"));
     root.classList.add("sbf-pa", "sbf-resultat");
     sub.textContent = data.sub || "";
