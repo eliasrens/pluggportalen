@@ -1,0 +1,154 @@
+/* --- Trädgården: köpta utomhussaker placerade i ute-scenen (issue #132) -----
+   Lagret ligger OVANPÅ husScen-SVG:n i #ute-lager. pointer-events:none så klick
+   på huset/gräset går vidare till scenen; varje sak slår på pointer-events själv.
+   container-type:inline-size → sakernas cqw-storlek mäts mot scenens bredd (samma
+   idé som .varld-lager.room-stage), och --gard-koeff/--gard-cap sätter skalan. */
+.tradgard-lager {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  container-type: inline-size;
+  --gard-koeff: 2.4;
+  --gard-cap: 34px;
+}
+
+.garden-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  line-height: 1;
+  user-select: none;
+  touch-action: none;
+  pointer-events: auto;
+  z-index: var(--z-scen-markor);
+}
+
+.garden-item .gi-bild {
+  display: block;
+  pointer-events: none;
+}
+
+.garden-item .gi-bild svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Mjuk markskugga så sakerna sitter fast i gräset, inte svävar. */
+  filter: drop-shadow(0 3px 2px rgba(59, 51, 80, 0.18));
+}
+
+.garden-item.dragging {
+  cursor: grabbing;
+  z-index: var(--z-scen-drag);
+}
+
+.garden-item.selected {
+  outline: 3px dashed var(--lila);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.garden-item .gi-remove {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  border: none;
+  background: var(--rod);
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.garden-item.selected .gi-remove {
+  display: block;
+}
+
+.room-tray,
+.wear-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tray-item,
+.wear-item {
+  font-family: var(--font);
+  cursor: pointer;
+  background: #eef4ff;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 92px;
+  transition: transform 0.08s ease;
+}
+
+.tray-item:hover,
+.wear-item:hover {
+  transform: translateY(-3px);
+}
+
+.tray-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.tray-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* "Mina djur"-lådan: mystery-djurens sprite-rigg är höjd-driven (aspect-ratio),
+   så thumbnailen behöver en fast-höjd-ruta för att inte kollapsa. Procedurella
+   SVG-djur skalar redan via .tray-emoji svg. */
+.tray-pet-sprite {
+  display: inline-block;
+  height: 2.6rem;
+  vertical-align: middle;
+}
+
+/* Bondgårdsdjurens placerings-rader i "Mina djur" (#330): konst + namn + tre
+   platsval (Rummet/Hagen/Ladan). Aktivt val är ifylld knapp (disabled), övriga
+   ghost. Raden spänner hela lådans bredd (bryter flex-flödet av tray-kort). */
+.djurtray-farm-hint { flex-basis: 100%; margin: 6px 0 0; }
+.djurtray-farm-rad {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #eef4ff;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  padding: 8px 14px;
+}
+.djurtray-farm-rad .tray-emoji svg { width: 2.2rem; height: 2.2rem; display: block; }
+.djurtray-farm-val {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wear-item .wear-state {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--bla-mork);
+}
+
+.wear-item.on {
+  border-color: var(--gron);
+  background: #e5f8ec;
+}
+
+.wear-item.on .wear-state {
+  color: var(--gron-mork);
+}
+

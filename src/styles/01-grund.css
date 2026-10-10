@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Pluggporten – gemensam design
+   Barnvänlig (åk 4): stora knappar, tydlig typografi, glada färger.
+   ========================================================================== */
+
+:root {
+  --bla: #2f80ed;
+  --bla-mork: #1b5fc0;
+  --gron: #27ae60;
+  --gron-mork: #1e8e4e;
+  --gul: #f2c94c;
+  --orange: #f2994a;
+  --rod: #eb5757;
+  --lila: #9b51e0;
+  --rosa: #ff6b9d;
+  --ljus: #f4f9ff;
+  --panel: #ffffff;
+  --text: #22314a;
+  --text-svag: #64748b;
+  --skugga: 0 6px 0 rgba(0, 0, 0, 0.12);
+  --skugga-mjuk: 0 8px 24px rgba(31, 45, 74, 0.12);
+  --radie: 18px;
+  --font: "Baloo 2", "Segoe UI Rounded", system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+
+  /* --- Z-lager (våningsordningen), se docs/DESIGNSYSTEM.md ------------------
+     Centraliserad staplingsordning så överlapp-buggfamiljen slutar uppstå.
+     Värdena är exakt de som låg utspridda i filen förut – ordningen (vad som
+     ligger över vad) är alltså OFÖRÄNDRAD. Två grupper:
+
+     1) Scenens våningsordning – lokala staplingskontexter inuti .varld-stage /
+        .varld-lager (spelvyn: rum, hus, by). Låga tal, jämförs bara med
+        syskon i samma scen.
+     2) App-ram – sidnivåns fixed/sticky-chrome (meny, nav, toast, modal).
+        Höga tal, ligger ovanpå allt scen-innehåll. */
+
+  /* 1) Scen (lokalt i spelvyn) */
+  --z-scen-markor: 2;   /* små brickor i scenen: by-du, by-last-ikon, omrade-du */
+  --z-scen-drag: 5;     /* möbel som just dras (room-item.dragging) */
+  --z-scen-objekt: 6;   /* objekt/dörrar/rumslista på scenen (rum-dorr, rum-lista) */
+  --z-bubbla: 6;        /* pratbubblor & tooltips (by-last-bubbla) */
+  --z-scen-hint: 8;     /* hint-remsa nederst i scenen (hus-hint) */
+  --z-scen-ui: 12;      /* scenens overlay-kontrollskikt (varld-ui) */
+  --z-panel: 14;        /* flytande scen-paneler (varld-petpanel) */
+  --z-meny: 16;         /* popover-menyer i scenen (varld-verktyg-meny, varld-klass-stats) */
+
+  /* 2) App-ram (sidnivå) */
+  --z-flik-nav: 20;     /* sticky lärar-flikband (teacher-nav) */
+  --z-sido-overlay: 25; /* scrim bakom off-canvas-menyn (sidebar-overlay) */
+  --z-sidomeny: 30;     /* sidomenyn/sidebar */
+  --z-hamburger: 40;    /* hamburger-knappen (mobil) */
+  --z-toast: 50;        /* flash/toast (flash-box) */
+  --z-modal: 1000;      /* modaler (cx-modal-overlay) */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Robust göm-regel: hidden-attributet ska ALLTID dölja elementet, även när
+   komponenten sätter display:flex/inline-flex/grid. Utan !important vinner en
+   författar-regel som `.varld-knapp{display:inline-flex}` över webbläsarens
+   svaga UA-regel `[hidden]{display:none}` och elementet blir kvar synligt –
+   det var källan till hela överlapp/spök-element-buggfamiljen (t.ex.
+   `.varld-knapp[hidden]` "🔭 Andra byar" som hängde kvar). Se
+   docs/DESIGNSYSTEM.md. */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font);
+  /* Brödtext i Baloo 2 500 – lagom rund men läsbar för längre texter. */
+  font-weight: 500;
+  color: var(--text);
+  background: linear-gradient(160deg, #eaf3ff 0%, #f6ecff 60%, #fff6ec 100%);
+  min-height: 100vh;
+  font-size: 18px;
+  line-height: 1.5;
+}
+

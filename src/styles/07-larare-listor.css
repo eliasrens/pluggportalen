@@ -1,0 +1,271 @@
+/* --- Paneler och layout ---------------------------------------------------- */
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.row-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 18px;
+}
+
+.subpanel {
+  background: #f6faff;
+  border: 2px solid #e2ecfb;
+  border-radius: 14px;
+  padding: 18px;
+  margin: 12px 0 4px;
+}
+
+/* --- Knappvarianter -------------------------------------------------------- */
+
+.btn.small {
+  font-size: 0.95rem;
+  padding: 9px 16px;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 #cdddf5;
+}
+
+.btn.danger {
+  background: #fdecec;
+  color: #b3261e;
+  box-shadow: 0 4px 0 #f3c4c4;
+}
+
+.btn.copied {
+  background: var(--gron);
+  color: #fff;
+  box-shadow: 0 4px 0 var(--gron-mork);
+}
+
+.file-btn { position: relative; overflow: hidden; }
+
+/* --- Formulärkontroller ---------------------------------------------------- */
+
+.select {
+  font-family: var(--font);
+  font-size: 1.1rem;
+  padding: 12px 14px;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  background: #fbfdff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.select:focus { outline: none; border-color: var(--bla); }
+
+.json-input {
+  width: 100%;
+  min-height: 260px;
+  font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  padding: 14px 16px;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  background: #fbfdff;
+  color: var(--text);
+  resize: vertical;
+}
+
+.json-input:focus { outline: none; border-color: var(--bla); }
+
+/* --- Lista med arbetsområden ---------------------------------------------- */
+
+.area-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.area-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.area-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 2px solid #e2ecfb;
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+/* Inline-formuläret "Lägg till nytt innehåll" som fälls ut under en områdesrad. */
+.area-merge {
+  margin-left: 14px;
+  border-left: 3px solid #cfe0f7;
+  padding-left: 12px;
+}
+.area-merge .subpanel { margin: 0; }
+
+/* Read-only "granska"-vy som fälls ut under en områdesrad (issue #66). */
+.area-review {
+  margin-left: 14px;
+  border-left: 3px solid #cfe0f7;
+  padding-left: 12px;
+}
+.area-review .subpanel { margin: 0; }
+.btn.small.active { box-shadow: inset 0 0 0 2px var(--bla); }
+
+.rv-panel { display: flex; flex-direction: column; gap: 18px; }
+.rv-section { display: flex; flex-direction: column; gap: 8px; }
+.rv-h { margin: 0; font-size: 1.05rem; }
+.rv-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
+
+.rv-q-text { font-weight: 700; margin-bottom: 4px; }
+.rv-opts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.rv-opt { display: flex; gap: 6px; align-items: baseline; }
+.rv-opt.correct { font-weight: 700; color: var(--gron-mork, #1e7a3a); }
+.rv-mark { flex: none; }
+
+.rv-passage, .rv-expl {
+  background: #f0f6ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+.rv-expl { background: #fff7e6; }
+.rv-tag { font-weight: 700; margin-right: 4px; }
+
+.rv-pairs { padding-left: 0; list-style: none; }
+.rv-pair { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rv-term { font-weight: 700; }
+.rv-arrow { color: var(--bla-mork); flex: none; }
+.rv-imgflag {
+  display: inline-block;
+  font-size: 0.8rem;
+  background: #eef4ff;
+  border-radius: 8px;
+  padding: 1px 6px;
+}
+
+.rv-text-title { font-weight: 700; margin-bottom: 4px; }
+
+.area-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.area-emoji { font-size: 1.9rem; }
+
+.area-name { font-weight: 800; }
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--bla-mork);
+  background: #eef4ff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.error-list {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.error-list li { margin-bottom: 3px; }
+
+code {
+  font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+  background: #eef4ff;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+/* --- AI-prompter ----------------------------------------------------------- */
+
+.code-block {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background: #f6faff;
+  border: 2px solid #e2ecfb;
+  border-radius: 14px;
+  padding: 16px;
+  max-height: 340px;
+  overflow: auto;
+  margin: 0;
+}
+
+/* --- Elevkontotabell ------------------------------------------------------- */
+
+.table-scroll { overflow-x: auto; }
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.tbl th {
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--text-svag);
+  padding: 8px 8px;
+  border-bottom: 2px solid #e2ecfb;
+}
+
+.tbl td {
+  padding: 6px 8px;
+  vertical-align: middle;
+}
+
+.tbl .cell {
+  width: 100%;
+  font-family: var(--font);
+  font-size: 1rem;
+  padding: 10px 12px;
+  border: 2px solid #d7e3f7;
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.tbl .cell:focus { outline: none; border-color: var(--bla); }
+
+.tbl .avatar-sel {
+  font-size: 1.2rem;
+  padding: 8px 10px;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-row.center {
+  justify-content: center;
+}
+

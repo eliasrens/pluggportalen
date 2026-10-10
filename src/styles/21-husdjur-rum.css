@@ -1,0 +1,436 @@
+/* --- Husdjur i Mitt rum ----------------------------------------------------- */
+/* Äpplen på golvet (matning): ett litet emoji-äpple centrerat på sin procent-
+   position. Inga pekhändelser (djuren äter dem – man drar dem inte), och de är
+   inga .room-item så promenad-AI:n räknar dem inte som hinder. Ligger under
+   husdjuren i DOM-ordningen så djuret syns ovanpå när det gnager. */
+/* Placera-läge för Mysterymat: hela scenen får hårkors-pekare så det är tydligt
+   att nästa klick lägger ut mat på golvet (knappen markeras via .aktiv). */
+.room-stage.mat-placering,
+.room-stage.mat-placering .room-item,
+.room-stage.mat-placering .room-item * {
+  cursor: crosshair;
+}
+
+/* I mat-läget går utlagd mat att PLOCKA UPP (#347): bara då får matbitarna
+   pekhändelser (annars pointer-events: none, se .room-apple nedan) och en
+   egen pekare så det syns att de är klickbara. */
+.room-stage.mat-placering .room-apple {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.room-apple {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+  animation: apple-pop 0.32s ease-out;
+}
+/* Äpplet skalar med scenbredden i husvärldens rum (som möbler/djur). */
+.varld-lager.room-stage .room-apple { font-size: calc(1.5 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+@keyframes apple-pop {
+  from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-apple { animation: none; }
+}
+
+/* Matnings-mätare i husdjurspanelen: fylls med antal uppätna äpplen i steget. */
+.pet-matbar {
+  position: relative;
+  height: 22px;
+  border-radius: 11px;
+  background: #f3ead9;
+  border: 2px solid #e2cfa8;
+  overflow: hidden;
+  margin: 6px auto 2px;
+  max-width: 240px;
+}
+.pet-matbar-fyll {
+  height: 100%;
+  background: linear-gradient(90deg, #8fd18a, #5fbf62);
+  transition: width 0.4s ease;
+}
+.pet-matbar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
+/* Antal-rad på förbrukningsvaror (äpplen) i shoppen. */
+.shop-antal {
+  font-size: 0.8rem;
+  color: #5b6b86;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+/* Husdjuren ritas i rumsscenen med samma .room-item-pipeline som sakerna, men
+   med storlek per tillväxtsteg och en liten namnskylt under figuren. */
+
+/* BAS-storlek (fasta rem) – används av den lilla READ-ONLY kompis-vyn
+   (.room-stage utan container). I husvärldens rum skalas de om nedan. */
+.room-pet .ri-emoji { width: 3.2rem; height: 3.2rem; }
+.room-pet.pet-vuxen-2 .ri-emoji { width: 4.4rem; height: 4.4rem; }
+.room-pet.pet-vuxen-3 .ri-emoji { width: 5.8rem; height: 5.8rem; }
+
+/* Ägget i rummet: lite mindre + vaggar lugnt (samma keyframes som pet-sidan hade). */
+.room-pet.pet-agg-i-rum .ri-emoji {
+  width: 2.9rem;
+  height: 2.9rem;
+  animation: pet-wiggle 3.2s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+/* Husvärldens rum: husdjuren skalas med scenBREDDEN precis som möblerna, så de
+   håller proportionerna och krymper/växer med scenen (se .varld-lager.room-stage).
+   1cqw skrivs direkt här (Chromium resolvar cqw fel via en egen var). Faktisk
+   bredd/höjd (calc, inte transform) → drag-clampen följer med. */
+.varld-lager.room-stage .room-pet .ri-emoji { width: calc(3.2 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(3.2 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+.varld-lager.room-stage .room-pet.pet-vuxen-2 .ri-emoji { width: calc(4.4 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(4.4 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+.varld-lager.room-stage .room-pet.pet-vuxen-3 .ri-emoji { width: calc(5.8 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(5.8 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+.varld-lager.room-stage .room-pet.pet-agg-i-rum .ri-emoji { width: calc(2.9 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); height: calc(2.9 * min(var(--rum-koeff, 2.5) * 1cqw, var(--rum-cap, 25px))); }
+
+.room-pet .rp-namn {
+  display: block;
+  margin-top: 2px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #3c4a63;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1px 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-pet .rp-namn.rp-agg { color: #8a6d3b; }
+
+/* Namn-etiketten som döpnings-/panel-affordans: klickbar (till skillnad från den
+   generella pointer-events:none-etiketten). Öppnar inline-namnfältet/panelen –
+   samma för mystery-djur och vanliga djur. rp-namn-edit visar dessutom en liten
+   ✏️-hint (BARA innan djuret döpts); rp-namn-tap är samma klickbara etikett utan
+   den permanenta pennan (för ett redan namngivet djur). */
+.room-pet .rp-namn.rp-namn-edit,
+.room-pet .rp-namn.rp-namn-tap {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.room-pet .rp-namn.rp-namn-edit::after {
+  content: " ✏️";
+  font-size: 0.82em;
+  opacity: 0.5;
+}
+.room-pet .rp-namn.rp-namn-edit:hover,
+.room-pet .rp-namn.rp-namn-tap:hover {
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+}
+.room-pet .rp-namn.rp-namn-edit:hover::after { opacity: 0.9; }
+
+/* Promenad-AI (rum-promenad.js): mjukt tassande medan djuret går, och figuren
+   speglas när det går åt vänster. Klasserna sätts/tas bort av rAF-loopen. */
+.room-pet.promenerar .ri-emoji {
+  animation: pet-tassa 0.55s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+.room-pet.vand-vanster .ri-emoji svg { transform: scaleX(-1); }
+
+@keyframes pet-tassa {
+  0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+  50% { transform: translateY(-7%) rotate(1.2deg); }
+}
+
+/* Klick-lek: djuret lägger sig på rygg, sprattlar och reser sig igen.
+   Tajming från design-facit: 700 ms flip + 2600 ms sprattel + 550 ms upp
+   (totalt 3,85 s → flip klar vid ~18 %, sprattel till ~86 %). */
+.room-pet.pet-rygg .ri-emoji {
+  animation: pet-rygg 3.85s ease-in-out both;
+  transform-origin: 50% 62%;
+}
+
+@keyframes pet-rygg {
+  0% { transform: rotate(0); }
+  11% { transform: rotate(178deg); }   /* liten studs över… */
+  18% { transform: rotate(157deg); }   /* …och landar på rygg */
+  30% { transform: rotate(166deg); }
+  42% { transform: rotate(149deg); }   /* sprattel fram och tillbaka */
+  54% { transform: rotate(166deg); }
+  66% { transform: rotate(149deg); }
+  78% { transform: rotate(163deg); }
+  86% { transform: rotate(157deg); }
+  100% { transform: rotate(0); }       /* reser sig */
+}
+
+/* Hjärtan som bubblar upp medan djuret ligger och sprattlar. */
+.pet-rygg-fx {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 1.28s ease-out 3;
+}
+
+@keyframes pet-rygg-fx {
+  0% { opacity: 0; transform: translate(-50%, 2px) scale(0.6); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -26px) scale(1.35); }
+}
+
+/* Klick-klapp för de vanliga (fast-storleks-)djuren: ett kort glädjeskutt i
+   stället för rygg-lek (de lägger sig inte på rygg). Gullig, ~0,9 s, med
+   hjärtan – i samma anda som petBellyFlop men utan vändningen. */
+.room-pet.pet-klapp .ri-emoji {
+  animation: pet-klapp 0.9s ease-in-out both;
+  transform-origin: 50% 100%;
+}
+
+@keyframes pet-klapp {
+  0% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.12, 0.88); }   /* laddar – trycks ihop */
+  45% { transform: translateY(-22%) scale(0.92, 1.1); } /* studsar upp, sträcks */
+  62% { transform: translateY(0) scale(1.06, 0.96); }   /* landar mjukt */
+  80% { transform: translateY(-7%) scale(1, 1); }        /* liten extrastuds */
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* Hjärtan vid klick-klappen (en kort puff, till skillnad från rygg-lekens 3). */
+.pet-klapp-fx {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  pointer-events: none;
+  font-size: 1.05rem;
+  opacity: 0;
+  animation: pet-rygg-fx 0.9s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-pet.promenerar .ri-emoji { animation: none; }
+  .room-pet.pet-rygg .ri-emoji,
+  .room-pet.pet-rygg .ri-emoji:has(.pet-sprite),
+  .room-pet.pet-klapp .ri-emoji,
+  .pet-rygg-fx,
+  .pet-klapp-fx,
+  .room-pet.pet-agg-i-rum .ri-emoji {
+    animation: none;
+  }
+}
+
+/* --- Sprite-riggade husdjur (art-pet-sprites.js) ---------------------------- */
+/* Figuren monteras av 6 absolut positionerade bilddelar i en procent-rigg
+   (referensyta 340×360). Positioner/storlekar sätts inline per art & steg;
+   här bor rotationspunkter och animationer. Samma yttre klasser som SVG-djuren
+   (.promenerar, .pet-rygg, .vand-vanster) styr vilka del-animationer som går. */
+
+.pet-sprite {
+  position: relative;
+  display: block;
+  height: 100%;
+  aspect-ratio: 340 / 360;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.pet-sprite .ps-del {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.pet-sprite .ps-del img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Självmätande rigg: medan delarnas PNG-mått läses (art-pet-sprites.js) saknar
+   delarna position – håll dem dolda och tona in dem på plats när måtten finns,
+   så det aldrig syns någon layout-"pop". Containern har fast aspect-ratio, så
+   den yttre ytan är stabil redan innan delarna målas. */
+.pet-sprite .ps-del { transition: opacity 0.28s ease; }
+.pet-sprite.ps-laddar .ps-del { opacity: 0; }
+
+/* Rotationspunkter (designdoket): nacke 50 %/80 %, kropp 50 %/92 %,
+   höft = fotens topp 50 %/10 %. De här arternas armar hänger lodrätt
+   (tassen nedåt), så axeln sitter i armens topp – inte i inre änden. */
+.pet-sprite .ps-huvud { transform-origin: 50% 80%; }
+.pet-sprite .ps-kropp { transform-origin: 50% 92%; }
+.pet-sprite .ps-arm-v,
+.pet-sprite .ps-arm-h { transform-origin: 50% 12%; }
+.pet-sprite .ps-fot-v,
+.pet-sprite .ps-fot-h { transform-origin: 50% 10%; }
+
+/* Viloläge: armarna hänger med en lätt utåtvinkel. */
+.pet-sprite .ps-arm-v { transform: rotate(-6deg); }
+.pet-sprite .ps-arm-h { transform: rotate(6deg); }
+
+/* Spegling när djuret går åt vänster (hela riggen – delarna följer med). */
+.room-pet.vand-vanster .ri-emoji .pet-sprite { transform: scaleX(-1); }
+
+/* Ingen blinkning: ögonen är inbakade i 00-head.png och sitter olika per art
+   och steg (Fjärlis två ögon, Flammis slutform ett öga), så en ren ögon-enda
+   blink går inte att göra snyggt för alla arter/steg. En helhuvud-squash såg
+   inte bra ut → blinken är slopad (hellre ingen blink än att huvudet studsar). */
+
+/* Vila: kroppen andas lugnt, huvudet tittar runt, armarna svajar. */
+.room-pet .pet-sprite .ps-kropp { animation: ps-andas 3.4s ease-in-out infinite; }
+@keyframes ps-andas {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.025); }
+}
+
+.room-pet .pet-sprite .ps-huvud { animation: ps-funder 4.6s ease-in-out infinite; }
+@keyframes ps-funder {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-3deg); }
+  60% { transform: rotate(2.4deg); }
+}
+
+.room-pet .pet-sprite .ps-arm-v { animation: ps-svaj-v 3.4s ease-in-out infinite; }
+@keyframes ps-svaj-v {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(-11deg); }
+}
+
+.room-pet .pet-sprite .ps-arm-h { animation: ps-svaj-h 3.4s ease-in-out infinite; }
+@keyframes ps-svaj-h {
+  0%, 100% { transform: rotate(6deg); }
+  50% { transform: rotate(11deg); }
+}
+
+/* Gång (promenad-AI:ns .promenerar): bensteg + armpendling i motfas + huvudnick.
+   Kroppsgunget sköter pet-tassa på .ri-emoji (samma som SVG-djuren). */
+.room-pet.promenerar .pet-sprite .ps-fot-v { animation: ps-steg 0.5s ease-in-out infinite; }
+.room-pet.promenerar .pet-sprite .ps-fot-h { animation: ps-steg 0.5s ease-in-out infinite -0.25s; }
+@keyframes ps-steg {
+  0%, 100% { transform: rotate(14deg); }
+  50% { transform: rotate(-14deg); }
+}
+
+.room-pet.promenerar .pet-sprite .ps-arm-v { animation: ps-sving-v 0.5s ease-in-out infinite; }
+@keyframes ps-sving-v {
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(6deg); }
+}
+
+.room-pet.promenerar .pet-sprite .ps-arm-h { animation: ps-sving-h 0.5s ease-in-out infinite; }
+@keyframes ps-sving-h {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-6deg); }
+}
+
+.room-pet.promenerar .pet-sprite .ps-huvud { animation: ps-nick 0.5s ease-in-out infinite; }
+@keyframes ps-nick {
+  0%, 100% { transform: translateY(0) rotate(-1.6deg); }
+  50% { transform: translateY(2.5%) rotate(1.6deg); }
+}
+
+/* På rygg (klick-leken): SVG-djurens 157°-rotation läser inte som "ligger på
+   rygg" för sprite-riggen (den ser mest tiltad ut). Sprite-riggen rullar i
+   stället HELA vägen över till mage upp (~180°) så det tydligt syns att djuret
+   ligger på rygg, vaggar där, och reser sig igen. Högre specificitet än den
+   generella .ri-emoji-regeln (via :has) → vinner för sprite-arter. */
+.room-pet.pet-rygg .ri-emoji:has(.pet-sprite) {
+  animation: pet-rygg-sprite 3.85s ease-in-out both;
+  transform-origin: 50% 68%;
+}
+
+@keyframes pet-rygg-sprite {
+  0% { transform: rotate(0); }
+  14% { transform: rotate(192deg); }   /* rullar över kanten… */
+  20% { transform: rotate(180deg); }   /* …och landar på rygg, mage upp */
+  32% { transform: rotate(171deg); }
+  44% { transform: rotate(189deg); }   /* vaggar fram och tillbaka på ryggen */
+  56% { transform: rotate(171deg); }
+  68% { transform: rotate(187deg); }
+  80% { transform: rotate(177deg); }
+  88% { transform: rotate(180deg); }
+  100% { transform: rotate(0); }        /* reser sig igen */
+}
+
+/* Ben och armar sprattlar dessutom i motfas (designdoket: 0,32 s / 0,4 s)
+   medan djuret ligger på rygg. */
+.room-pet.pet-rygg .pet-sprite .ps-fot-v { animation: ps-sprattel-fot 0.32s ease-in-out infinite; }
+.room-pet.pet-rygg .pet-sprite .ps-fot-h { animation: ps-sprattel-fot 0.32s ease-in-out infinite -0.16s; }
+@keyframes ps-sprattel-fot {
+  0%, 100% { transform: rotate(12deg); }
+  50% { transform: rotate(-16deg); }
+}
+
+.room-pet.pet-rygg .pet-sprite .ps-arm-v { animation: ps-sprattel-arm-v 0.4s ease-in-out infinite; }
+@keyframes ps-sprattel-arm-v {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.room-pet.pet-rygg .pet-sprite .ps-arm-h { animation: ps-sprattel-arm-h 0.4s ease-in-out infinite -0.2s; }
+@keyframes ps-sprattel-arm-h {
+  0%, 100% { transform: rotate(20deg); }
+  50% { transform: rotate(-8deg); }
+}
+
+/* Humör-partikel (💤/❤️/🍎) – svävar stilla vid huvudet. */
+.pet-sprite .ps-humor {
+  position: absolute;
+  top: -4%;
+  right: -12%;
+  font-size: 0.95rem;
+  line-height: 1;
+  animation: ps-humor-svav 2.4s ease-in-out infinite;
+}
+
+@keyframes ps-humor-svav {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-sprite .ps-del,
+  .pet-sprite .ps-del img,
+  .pet-sprite .ps-humor {
+    animation: none !important;
+  }
+  .pet-sprite .ps-del { transition: none; }
+}
+
+/* Husdjurspanelen under rumsscenen. */
+.rum-pet-panel { margin-bottom: 20px; }
+
+.pet-namn-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
+
+.pet-namn-input {
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 10px 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  width: 220px;
+  max-width: 70vw;
+}
+
+.pet-namn-input:focus { outline: none; border-color: var(--lila); }
+

@@ -1,0 +1,55 @@
+/* --- Avatar med kläder (SVG-karaktär + SVG-klädsel per slot) --------------- */
+
+/* Figuren är en inline SVG i viewBox 100×120; containern är 1em × 1.2em så
+   allt fortfarande skalar med font-size och samma markup funkar litet
+   (sidhuvud) som stort (hjältebild). Klädseln läggs i slot-boxar satta i %
+   av containern – de träffar det gemensamma ankargriddet (se art-style.js)
+   som alla karaktärer ritas på, så en hatt sitter rätt på alla figurer. */
+.avatar-figure {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1.2em;
+  line-height: 1;
+  vertical-align: -0.2em;
+}
+
+.avatar-figure .af-base {
+  position: absolute;
+  inset: 0;
+}
+
+.avatar-figure .af-base svg,
+.avatar-figure .af-wear svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-figure .af-wear {
+  position: absolute;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+  /* emoji-fallback (om en klädsak saknar SVG-konst) */
+  font-size: 0.4em;
+  text-align: center;
+}
+
+/* Slot-boxar i % av containern (100 bred × 120 hög i viewBox-mått):
+   hatt sjunker mot hjässan (y≈14), ansikte över ögonen (y=34),
+   hals hänger från kraglinjen (y≈58), hand vid höger tass (79,77).
+   rygg (manteln) hänger från axel-/halslinjen och ritas BAKOM figuren
+   (af-rygg-spannet ligger före af-base i DOM, se avatarMarkup). */
+.af-wear.af-hatt { top: -6%; left: 50%; width: 62%; height: 26%; transform: translateX(-50%); }
+.af-wear.af-ansikte { top: 21%; left: 50%; width: 50%; height: 16%; transform: translateX(-50%); }
+.af-wear.af-hals { top: 44%; left: 50%; width: 46%; height: 22%; transform: translateX(-50%); }
+.af-wear.af-hand { top: 26%; left: 65%; width: 32%; height: 46%; }
+.af-wear.af-rygg { top: 28%; left: 50%; width: 68%; height: 54%; transform: translateX(-50%); }
+
+/* Ansiktssaker som hör hemma på över-läppen istället för ögonlinjen (mustasch):
+   sätts av avatarMarkup via af-anchor-mun när wearablen har anchor:"mun". Flyttar
+   ner ansikts-boxen så saken landar på mun-ankaret (y≈46) på alla figurer, som
+   följer samma normaliserade ansiktsmodell (se art-style.js / art-wearables-ansikte.js). */
+.af-wear.af-ansikte.af-anchor-mun { top: 31%; }
+

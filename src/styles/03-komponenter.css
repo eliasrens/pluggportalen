@@ -1,0 +1,367 @@
+/* --- Kort och paneler ------------------------------------------------------ */
+
+.panel {
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 28px;
+  margin: 0 auto 20px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.big-card {
+  border: none;
+  border-radius: var(--radie);
+  padding: 28px 20px;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--skugga);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  font-family: var(--font);
+}
+
+.big-card:hover {
+  transform: translateY(-3px);
+}
+
+.big-card:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.big-card .emoji {
+  font-size: 3.2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.big-card .title {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.big-card .sub {
+  font-size: 0.95rem;
+  opacity: 0.92;
+  margin-top: 4px;
+}
+
+.big-card.bla { background: linear-gradient(160deg, #56ccf2, var(--bla)); }
+.big-card.gron { background: linear-gradient(160deg, #6fcf97, var(--gron)); }
+.big-card.lila { background: linear-gradient(160deg, #bb6bd9, var(--lila)); }
+.big-card.orange { background: linear-gradient(160deg, #f2c94c, var(--orange)); }
+.big-card.rosa { background: linear-gradient(160deg, #ff9ebb, var(--rosa)); }
+
+/* Låst övning: förkravet (läsförståelse) är inte klarat ännu (issue #155).
+   Dämpad, ej klickbar, med en tydlig "gör läsförståelsen först"-etikett. */
+.big-card:disabled { cursor: not-allowed; }
+.big-card.locked {
+  filter: grayscale(0.55) brightness(0.97);
+  opacity: 0.72;
+}
+.big-card.locked:hover { transform: none; }
+.big-card .card-lock {
+  display: block;
+  margin-top: 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.big-card .card-stars {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  opacity: 0.85;
+}
+.big-card .card-stars.won { opacity: 1; }
+
+/* Tydlig hint ovanför övningskorten när läsförståelse-förkravet inte är klart. */
+.prereq-note {
+  background: #fff6e5;
+  border: 3px solid #f2c94c;
+  color: #6b4e00;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* --- Knappar --------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 1.15rem;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 26px;
+  cursor: pointer;
+  color: #fff;
+  background: var(--bla);
+  box-shadow: 0 5px 0 var(--bla-mork);
+  transition: transform 0.06s ease;
+}
+
+.btn:hover { filter: brightness(1.03); }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--bla-mork); }
+
+.btn.gron { background: var(--gron); box-shadow: 0 5px 0 var(--gron-mork); }
+.btn.stor { font-size: 1.3rem; padding: 18px 34px; width: 100%; }
+.btn.ghost {
+  background: #eef4ff;
+  color: var(--bla-mork);
+  box-shadow: 0 4px 0 #cdddf5;
+}
+
+/* --- Formulär -------------------------------------------------------------- */
+
+.field {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.field label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 1.05rem;
+}
+
+.field input {
+  width: 100%;
+  font-family: var(--font);
+  font-size: 1.2rem;
+  padding: 14px 16px;
+  border: 3px solid #d7e3f7;
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--bla);
+}
+
+/* --- Meddelanden ----------------------------------------------------------- */
+
+.msg {
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.msg.error {
+  background: #ffe6e6;
+  color: #b3261e;
+  border: 2px solid #ffbdbd;
+}
+
+.msg.ok {
+  background: #e5f8ec;
+  color: #1e7a45;
+  border: 2px solid #b6ebc9;
+}
+
+/* Icke-blockerande anmärkning (t.ex. okänd frågekategori, #467). */
+.msg.warn {
+  background: #fff6db;
+  color: #7a5a00;
+  border: 2px solid #f5dd92;
+}
+
+.hint {
+  color: var(--text-svag);
+  font-size: 0.95rem;
+}
+
+h1 { font-size: 2rem; margin: 0 0 8px; }
+h2 { font-size: 1.5rem; margin: 0 0 12px; }
+
+.avatar-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  margin: 8px 0 20px;
+}
+
+.avatar-opt {
+  font-size: 2.6rem;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 4px solid transparent;
+  background: #eef4ff;
+  cursor: pointer;
+  line-height: 1;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+
+.avatar-opt:hover {
+  transform: translateY(-3px);
+}
+
+.avatar-opt.selected {
+  border-color: var(--gron);
+  background: #e5f8ec;
+  transform: translateY(-2px);
+}
+
+/* Stor förhandsvisning av vald avatar. */
+.preview {
+  font-size: 5rem;
+  line-height: 1;
+  margin: 6px 0 12px;
+}
+
+/* Fristående karaktärs-SVG:er (avatarval, preview) skalar med font-size. */
+.preview svg,
+.avatar-opt svg {
+  width: 1em;
+  height: 1.2em;
+  vertical-align: middle;
+}
+
+/* --- Sidhuvud: inloggad elev ---------------------------------------------- */
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  background: #eef4ff;
+  color: var(--bla-mork);
+  font-family: var(--font);
+  font-weight: 800;
+  padding: 6px 14px 6px 8px;
+  border-radius: 999px;
+}
+
+.avatar-chip .avatar-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.avatar-chip .avatar-namn {
+  font-size: 1rem;
+}
+
+.btn.liten {
+  font-size: 0.95rem;
+  padding: 9px 16px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn.ghost.liten {
+  box-shadow: 0 4px 0 #cdddf5;
+}
+
+/* --- Kom-ihåg-mig ---------------------------------------------------------- */
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--gron);
+  cursor: pointer;
+}
+
+/* --- Startsida-hero + platshållare ---------------------------------------- */
+
+.hero-avatar {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.hero .coins {
+  font-size: 1rem;
+}
+
+.big-emoji {
+  font-size: 4.5rem;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+/* --- Profil: statistik ----------------------------------------------------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  border-radius: var(--radie);
+  padding: 20px 16px;
+  text-align: center;
+  color: #fff;
+  box-shadow: var(--skugga);
+}
+
+.stat-card.gul { background: linear-gradient(160deg, #f6d666, var(--gul)); color: #7a5c00; }
+.stat-card.gron { background: linear-gradient(160deg, #6fcf97, var(--gron)); }
+.stat-card.bla { background: linear-gradient(160deg, #56ccf2, var(--bla)); }
+.stat-card.lila { background: linear-gradient(160deg, #bb6bd9, var(--lila)); }
+
+.stat-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.stat-tal {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 4px 0 2px;
+}
+
+.stat-etikett {
+  font-size: 0.9rem;
+  font-weight: 700;
+  opacity: 0.95;
+}
+
+.spinner {
+  text-align: center;
+  color: var(--text-svag);
+  padding: 40px;
+  font-size: 1.1rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--bla-mork);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+

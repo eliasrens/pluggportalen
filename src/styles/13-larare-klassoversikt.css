@@ -1,0 +1,399 @@
+/* --- Klassöversikt (lärarsidan, #/larare/klass) ---------------------------- */
+
+.class-tbl {
+  min-width: 720px;
+  font-size: 0.92rem;
+}
+
+/* Elevkolumnen fastnålad till vänster så namnet syns när man scrollar i sidled.
+   OBS: z-index 1/2 här är en avsiktligt LOKAL stapling inuti den skrollbara
+   tabellen (fastnålad cell vs. hörn) – den rör inte scenens/appens våningsordning
+   och lämnas därför som literaler i stället för globala --z-tokens. */
+.class-tbl .cx-corner,
+.class-tbl .cx-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  text-align: left;
+}
+
+.class-tbl thead th {
+  vertical-align: bottom;
+  text-align: center;
+}
+
+.class-tbl .cx-corner {
+  z-index: 2;
+  background: #f6faff;
+}
+
+.class-tbl .cx-head {
+  min-width: 84px;
+  max-width: 120px;
+}
+
+.class-tbl .cx-head-emoji {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.class-tbl .cx-head-name {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.class-tbl .cx-total-head {
+  min-width: 74px;
+  text-align: center;
+}
+
+.class-tbl tbody tr:nth-child(even) td,
+.class-tbl tbody tr:nth-child(even) .cx-name {
+  background: #f9fbff;
+}
+
+.class-tbl .cx-name {
+  font-weight: 700;
+  white-space: nowrap;
+  padding-right: 14px;
+}
+
+.class-tbl .cx-avatar {
+  font-size: 1.2rem;
+  margin-right: 6px;
+}
+
+.class-tbl .cx {
+  text-align: center;
+  border-left: 1px solid #eef2f9;
+}
+
+.class-tbl .cx-stars {
+  display: block;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--bla-mork);
+  white-space: nowrap;
+}
+
+.class-tbl .cx-slash {
+  color: var(--text-svag);
+  font-weight: 600;
+}
+
+.class-tbl .cx-bar {
+  display: block;
+  height: 6px;
+  margin: 4px auto 0;
+  width: 80%;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.class-tbl .cx-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+
+.class-tbl .cx-empty {
+  color: var(--text-svag);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Nivåfärger (bakgrundston + stapel). */
+.class-tbl .cx.hog { background: #eafaf0; }
+.class-tbl .cx.mellan { background: #fff7e6; }
+.class-tbl .cx.lag { background: #fdecef; }
+.class-tbl .cx.hog .cx-bar-fill { background: var(--gron); }
+.class-tbl .cx.mellan .cx-bar-fill { background: var(--orange); }
+.class-tbl .cx.lag .cx-bar-fill { background: var(--rosa); }
+
+.class-tbl .cx-total {
+  text-align: center;
+  font-weight: 800;
+  border-left: 2px solid #e2ecfb;
+}
+
+.class-tbl .cx-total-pct {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.class-tbl .cx-total-stars {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-svag);
+}
+
+.class-tbl .cx-total.hog { color: var(--gron-mork); }
+.class-tbl .cx-total.mellan { color: #b9770f; }
+.class-tbl .cx-total.lag { color: #c0396a; }
+.class-tbl .cx-total.tom { color: var(--text-svag); }
+
+.cx-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--text-svag);
+}
+
+.cx-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.cx-dot.hog { background: #8fe0ab; }
+.cx-dot.mellan { background: #f6c777; }
+.cx-dot.lag { background: #f4a0b8; }
+.cx-dot.tom { background: #e2ecfb; }
+
+.cx-legend-tip {
+  margin-left: auto;
+  color: var(--bla-mork);
+  font-weight: 600;
+}
+
+/* Klickbara elevrader → fördjupad statistik. */
+.class-tbl tr.cx-row {
+  cursor: pointer;
+}
+.class-tbl tr.cx-row:hover td,
+.class-tbl tr.cx-row:hover .cx-name,
+.class-tbl tr.cx-row:focus-visible td,
+.class-tbl tr.cx-row:focus-visible .cx-name {
+  background: #eaf3ff;
+}
+.class-tbl tr.cx-row:focus-visible {
+  outline: 2px solid var(--bla);
+  outline-offset: -2px;
+}
+.class-tbl .cx-row-more {
+  float: right;
+  color: var(--bla);
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.class-tbl tr.cx-row:hover .cx-row-more,
+.class-tbl tr.cx-row:focus-visible .cx-row-more {
+  opacity: 1;
+}
+
+/* --- Per-elev-fördjupning (modal, lärarsidan) ------------------------------ */
+
+.cx-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(20, 30, 50, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 14px;
+  overflow-y: auto;
+  animation: cx-fade 0.14s ease;
+}
+
+@keyframes cx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.cx-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 720px;
+  padding: 22px 24px 26px;
+  box-shadow: 0 18px 50px rgba(20, 30, 50, 0.28);
+  margin: auto 0;
+}
+
+.cx-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: #f0f4fb;
+  color: var(--text-svag);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.cx-modal-close:hover { background: #e2ecfb; color: var(--bla-mork); }
+
+.cx-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-right: 32px;
+}
+.cx-modal-avatar { font-size: 2.6rem; }
+.cx-modal-name { margin: 0; font-size: 1.5rem; }
+.cx-modal-sub { margin: 2px 0 0; color: var(--text-svag); font-size: 0.85rem; }
+
+/* Nyckeltalskort */
+.cx-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.cx-stat {
+  background: #f6faff;
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.cx-stat-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--bla-mork);
+  line-height: 1.1;
+}
+.cx-stat-num.cx-stat-when { font-size: 1.05rem; }
+.cx-stat-of { color: var(--text-svag); font-weight: 600; font-size: 0.9rem; }
+.cx-stat-lbl {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--text-svag);
+  line-height: 1.2;
+}
+
+.cx-detail-total {
+  margin: 14px 0 4px;
+}
+.cx-detail-total-bar {
+  height: 10px;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cx-detail-total-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+.cx-detail-total.mellan .cx-detail-total-bar > span { background: var(--orange); }
+.cx-detail-total.lag .cx-detail-total-bar > span { background: var(--rosa); }
+.cx-detail-total.tom .cx-detail-total-bar > span { background: #cfdcef; }
+
+.cx-detail-sec { margin-top: 20px; }
+.cx-detail-sec h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+.cx-chip-lbl {
+  margin: 8px 0 6px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  font-weight: 600;
+}
+.cx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.cx-chip-emoji { font-size: 0.95rem; }
+.cx-chip.weak { background: #fdecef; color: #c0396a; }
+.cx-chip.not { background: #eef2f9; color: var(--text-svag); }
+.cx-chip b { font-weight: 800; }
+
+.cx-subject-block { margin-bottom: 16px; }
+.cx-subject-block h4 {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  color: var(--text-svag);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cx-area-row {
+  padding: 8px 0;
+  border-top: 1px solid #eef2f9;
+}
+.cx-area-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cx-area-name { font-weight: 700; }
+.cx-area-emoji { margin-right: 6px; }
+.cx-area-stars {
+  white-space: nowrap;
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--bla-mork);
+}
+.cx-area-bar {
+  height: 6px;
+  background: #e2ecfb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+.cx-area-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gron);
+}
+.cx-area-bar.mellan > span { background: var(--orange); }
+.cx-area-bar.lag > span { background: var(--rosa); }
+.cx-area-bar.tom > span { background: transparent; }
+
+.cx-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cx-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #f6faff;
+}
+.cx-mode.tom { opacity: 0.55; }
+.cx-mode-val { font-weight: 800; color: var(--bla-mork); }
+.cx-mode.tom .cx-mode-val { color: var(--text-svag); }
+
+@media (max-width: 560px) {
+  .cx-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .cx-modal { padding: 20px 16px 22px; border-radius: 16px; }
+}
+

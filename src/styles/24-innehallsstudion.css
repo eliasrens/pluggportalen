@@ -1,0 +1,433 @@
+/* ==========================================================================
+   Innehållsstudion (lärarsidan #/larare/innehall) – issue #303
+   Bibliotek (kort + ämnesflikar) + fokuserad kompositör (overlay). Lugn ton,
+   teal-accent (per godkänd mockup). Återanvänder appens paneler/knappar/fält.
+   ========================================================================== */
+.studio {
+  --teal: #0e9c92;
+  --teal-mork: #0a7c74;
+  --teal-ljus: #e6f6f4;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Verktygsrad: ämnesflikar + åtgärder */
+.studio-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+}
+.studio-subject-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.subject-tab {
+  border: 2px solid #e2ecfb;
+  background: #fbfdff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.subject-tab:hover { border-color: var(--teal); }
+.subject-tab.active {
+  background: var(--teal-ljus);
+  border-color: var(--teal);
+  color: var(--teal-mork);
+}
+.studio-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.studio-lib-controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0 4px;
+  color: var(--text-svag);
+}
+
+/* Biblioteks-korten (lärartabellen ersatte dem i #441; .area-card används
+   fortfarande av elevsidans områdesknappar i pages-elev.js – rör ej) */
+.area-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.area-card-wrap { display: flex; flex-direction: column; gap: 8px; }
+.area-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid #e2ecfb;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--skugga-mjuk);
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.area-card:hover { transform: translateY(-2px); border-color: var(--teal); }
+.area-card:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.area-card-top { display: flex; align-items: flex-start; gap: 12px; }
+.area-card-emoji { font-size: 2rem; line-height: 1; }
+.area-card-meta { flex: 1; min-width: 0; }
+.area-card-name { font-weight: 800; font-size: 1.08rem; color: var(--text); }
+.area-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.area-card .type-badge { background: var(--teal-ljus); color: var(--teal-mork); }
+.area-card-count { color: var(--text-svag); font-size: 0.9rem; font-weight: 600; }
+.area-card-actions { flex-wrap: wrap; gap: 6px; }
+/* Åtgärdsknapparna ska inte "öppna kortet" – de stoppar klicket i JS. */
+.area-card-actions .btn { pointer-events: auto; }
+
+/* Innehållsstudion som ETT kort (issue #453, Elias koncept; tabellen från #441):
+   sidhuvud → understruken ämnesflikrad → verktygsrad → tabell i egen inramad
+   behållare. Samma mörka tema/tokens – bara strukturen är ny. Bara lärarsidan. */
+.teacher-dark .studio-card {
+  background: var(--t-raised);
+  border: 1px solid var(--t-border);
+  border-radius: 18px;
+  box-shadow: var(--t-shadow);
+  padding: 22px 24px 24px;
+}
+.teacher-dark .studio-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.teacher-dark .studio-head .teacher-page-ic { width: 44px; height: 44px; border-radius: 12px; }
+.teacher-dark .studio-head-txt { min-width: 0; }
+.teacher-dark .studio-title { margin: 0; font-size: 1.4rem; font-weight: 700; line-height: 1.2; color: var(--t-text); }
+.teacher-dark .studio-sub { margin: 3px 0 0; font-size: 0.92rem; color: var(--t-muted); }
+
+/* Ämnesflikar: understruken flikrad med färgprick; "+ Nytt ämne" streckad sist. */
+.teacher-dark .studio-tabs-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .studio-subject-tabs { display: flex; flex-wrap: wrap; gap: 0 22px; }
+.teacher-dark .subject-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+  padding: 10px 2px 11px;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--t-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.teacher-dark .subject-tab:hover { background: none; color: var(--t-text); }
+.teacher-dark .subject-tab.active { background: none; color: var(--t-accent); border-bottom-color: var(--t-accent); }
+.teacher-dark .subject-tab:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; border-radius: 4px; }
+.teacher-dark .subject-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.teacher-dark .studio-new-subject {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px dashed var(--t-border-strong);
+  border-radius: 8px;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+.teacher-dark .studio-new-subject:hover { color: var(--t-accent); border-color: var(--t-accent); }
+.teacher-dark .studio-new-subject:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark #new-subject-form:not(:empty) { margin-top: 14px; }
+
+/* Verktygsrad: Visa årskurs till vänster, "+ Skapa nytt område" till höger. */
+.teacher-dark .studio-lib-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 0;
+  color: var(--t-muted);
+}
+.teacher-dark .studio-grade-filter { display: inline-flex; align-items: center; gap: 8px; font-size: 0.92rem; }
+.teacher-dark .studio-lib-controls #create-new { padding: 9px 18px; font-size: 1rem; }
+.teacher-dark .studio-grade-filter .select { padding: 7px 12px; font-size: 0.92rem; border-width: 1px; border-radius: 10px; min-width: 150px; }
+
+/* Tabellen i egen rundad, inramad behållare; scrollar horisontellt vid behov. */
+.teacher-dark .area-table-scroll {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 14px;
+}
+.teacher-dark .area-tbl { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 0.95rem; }
+.teacher-dark .area-tbl thead { background: var(--t-surface-2); }
+.teacher-dark .area-tbl th {
+  text-align: left;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--t-muted);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--t-border);
+  white-space: nowrap;
+}
+.teacher-dark .area-tbl th.sorted { color: var(--t-text); }
+.teacher-dark .area-tbl td { padding: 16px; vertical-align: middle; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .area-tbl tbody tr:last-child > td { border-bottom: 0; }
+.teacher-dark .area-tbl .th-sort {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 6px;
+}
+.teacher-dark .area-tbl .th-sort:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .area-tbl .sort-ind { font-size: 0.62rem; opacity: 0.35; }
+.teacher-dark .area-tbl th.sorted .sort-ind { opacity: 0.9; color: var(--t-accent); }
+.teacher-dark .area-tbl-row { cursor: pointer; transition: background 0.12s; }
+.teacher-dark .area-tbl-row:hover td { background: rgba(255, 255, 255, 0.025); }
+.teacher-dark .area-tbl-row:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; }
+.teacher-dark .area-tbl-name { font-weight: 700; white-space: nowrap; color: var(--t-text); }
+.teacher-dark .area-tbl-emoji { font-size: 1.25rem; margin-right: 10px; vertical-align: -2px; }
+.teacher-dark .area-tbl-grade { white-space: nowrap; color: var(--t-text); }
+.teacher-dark .area-tbl-count { color: var(--t-muted); font-size: 0.86rem; }
+.teacher-dark .area-tbl-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.teacher-dark .area-tbl-badges .type-badge {
+  background: transparent;
+  border: 1px solid rgba(46, 193, 110, 0.5);
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #7fe0a8;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.teacher-dark .area-tbl th.area-tbl-actions-h { text-align: right; }
+.teacher-dark .area-tbl-actions { display: flex; gap: 2px; justify-content: flex-end; flex-wrap: nowrap; }
+/* Åtgärder: rena ikonknappar utan boxad bakgrund, hover-ton. */
+.teacher-dark .area-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--t-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.teacher-dark .area-act:hover { background: rgba(255, 255, 255, 0.07); color: var(--t-text); }
+.teacher-dark .area-act:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+.teacher-dark .area-act.active { background: var(--t-accent-soft); color: var(--t-accent); }
+.teacher-dark .area-act.danger { color: #c48f8f; }
+.teacher-dark .area-act.danger:hover { background: rgba(235, 87, 87, 0.12); color: #ff9d9d; }
+.teacher-dark .area-expand-row > td { padding: 4px 16px 16px; background: var(--t-surface-2); }
+
+/* Lägg till-panelen (#453): AI-prompt för mer innehåll överst. */
+.teacher-dark .merge-ai {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .merge-ai-row { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 12px; }
+.teacher-dark .merge-wish {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--t-muted);
+}
+.teacher-dark .merge-wish { min-width: 0; }
+.teacher-dark .merge-wish input { box-sizing: border-box; width: 100%; min-width: 0; padding: 10px 12px; font: inherit; font-size: 0.95rem; }
+.teacher-dark .merge-copy { flex: none; max-width: 100%; white-space: normal; text-align: left; }
+.teacher-dark .merge-instr { margin: 10px 0 0; font-size: 0.9rem; color: var(--t-text); }
+
+/* Smal skärm (#449 F4, stil #453): varje rad blir ett litet kort i två kolumner –
+   namn | årskurs, innehåll över hela bredden, omfattning | åtgärder – så Åtgärder
+   syns utan sidscroll. Sorteringsrubrikerna (Område/Årskurs) står kvar. */
+@media (max-width: 640px) {
+  .teacher-dark .studio-card { padding: 16px 14px 18px; border-radius: 16px; }
+  .teacher-dark .studio-head { margin-bottom: 12px; }
+  .teacher-dark .studio-title { font-size: 1.2rem; }
+  .teacher-dark .studio-lib-controls #create-new { flex: 1 1 auto; justify-content: center; }
+  .teacher-dark .area-tbl,
+  .teacher-dark .area-tbl thead,
+  .teacher-dark .area-tbl tbody { display: block; min-width: 0; }
+  .teacher-dark .area-tbl thead tr { display: flex; gap: 4px; border-bottom: 1px solid var(--t-border); }
+  .teacher-dark .area-tbl thead th { border-bottom: 0; padding: 10px 12px; }
+  .teacher-dark .area-tbl thead th:nth-child(n + 3) { display: none; }
+  .teacher-dark .area-tbl-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    border-bottom: 1px solid var(--t-border);
+  }
+  .teacher-dark .area-tbl tbody tr:last-child { border-bottom: 0; }
+  .teacher-dark .area-tbl-row:hover { background: rgba(255, 255, 255, 0.025); }
+  .teacher-dark .area-tbl-row > td { border-bottom: 0; padding: 4px 12px; }
+  .teacher-dark .area-tbl-row > td:nth-child(-n + 2) { padding-top: 12px; }
+  .teacher-dark .area-tbl-row > td:nth-child(n + 4) { padding-bottom: 10px; align-self: center; }
+  .teacher-dark .area-tbl-row > td:nth-child(3) { grid-column: 1 / -1; }
+  .teacher-dark .area-tbl-name { white-space: normal; }
+  .teacher-dark .area-tbl-grade { text-align: right; color: var(--t-muted); font-size: 0.88rem; }
+  .teacher-dark .area-expand-row:not([hidden]),
+  .teacher-dark .area-expand-row > td { display: block; }
+  .teacher-dark .area-expand-row > td { padding: 4px 10px 14px; }
+  .teacher-dark .merge-ai-row > * { flex: 1 1 100%; }
+  .teacher-dark .merge-copy { justify-content: center; }
+}
+
+/* ---- Fokuserad kompositör (overlay) ------------------------------------- */
+body.composer-open { overflow: hidden; }
+.studio-composer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(20, 30, 50, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 14px;
+  overflow-y: auto;
+  animation: cx-fade 0.14s ease;
+}
+.studio-composer {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 760px;
+  padding: 22px 24px 26px;
+  box-shadow: 0 18px 50px rgba(20, 30, 50, 0.28);
+  margin: auto 0;
+}
+.composer-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-right: 32px;
+}
+.composer-icon { font-size: 2rem; }
+.composer-title { margin: 0; font-size: 1.4rem; color: var(--text); }
+.composer-sub { margin: 2px 0 0; color: var(--text-svag); font-size: 0.9rem; }
+.composer-basics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+/* Emoji-väljare för områdets symbol (issue #307) – spänner över båda kolumnerna */
+.composer-emoji-field { grid-column: 1 / -1; }
+.emoji-picker { display: flex; flex-direction: column; gap: 8px; }
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 6px;
+}
+.emoji-choice {
+  border: 2px solid #e2ecfb;
+  background: #fbfdff;
+  border-radius: 10px;
+  padding: 6px 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.emoji-choice:hover { border-color: var(--teal); }
+.emoji-choice.active { background: var(--teal-ljus); border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+.emoji-custom { align-items: center; gap: 8px; }
+.emoji-preview {
+  font-size: 1.6rem;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f4fb;
+  border-radius: 10px;
+}
+.emoji-input { max-width: 160px; }
+
+/* Metod-växeln (guidat / material) – jämbördiga flikar */
+.method-switch {
+  display: flex;
+  gap: 6px;
+  background: #f0f4fb;
+  border-radius: 12px;
+  padding: 4px;
+  margin: 16px 0;
+}
+.method-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-svag);
+  padding: 10px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.method-tab.active {
+  background: #fff;
+  color: var(--teal-mork);
+  box-shadow: 0 2px 6px rgba(20, 30, 50, 0.12);
+}
+
+/* Innehållstyp-växeln inne i "guidat" */
+.ctype-switch { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.ctype-tab {
+  border: 2px solid #e2ecfb;
+  background: #fbfdff;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ctype-tab.active { background: var(--teal-ljus); border-color: var(--teal); color: var(--teal-mork); }
+
+.composer-callout {
+  background: var(--teal-ljus);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+.composer-callout .hint { color: var(--teal-mork); }
+
+.composer-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.composer-result { margin-top: 12px; }
+.composer-result:empty { margin-top: 0; }
+
+@media (max-width: 560px) {
+  .composer-basics { grid-template-columns: 1fr; }
+  .studio-toolbar { align-items: stretch; }
+  .studio-composer { padding: 18px 16px 22px; }
+}
+
