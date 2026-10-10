@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   goldStanding, standingText, victimRows, pendingLeftMs, chestView, victimView, createHitWatcher,
-  endStanding, endText, stageAction, countUp, formatGold, chestKey,
+  endStanding, stageAction, countUp, formatGold, chestKey,
 } from "../src/live/formats/guldrush/gr-elev.js";
 import { GR_CHESTS, GR_RULES } from "../src/live/formats/guldrush/delat/chests-config.js";
 import { LOOKS } from "../src/live/formats/guldrush/gr-kistfx.js";
@@ -12,40 +12,20 @@ import { GR_SOUNDS } from "../src/live/formats/guldrush/gr-ljud.js";
 
 const p = (uid, gold, extra = {}) => ({ uid, name: `${uid[0].toUpperCase()}${uid.slice(1)} Svensson`, classId: "4b", gold, ...extra });
 
-test("toppraden: diskret placering enligt spec (\"Du ligger 4:a\"), ettan leder", () => {
+test("toppraden: läget mot närmaste framför, aldrig ett placeringsnummer", () => {
   const list = [p("alma", 120), p("omar", 80), p("leo", 60), p("ines", 10)];
-  assert.equal(standingText(goldStanding(list, "alma").place), "Du leder! 💰");
-  assert.equal(standingText(goldStanding(list, "omar").place), "Du ligger 2:a");
-  assert.equal(standingText(goldStanding(list, "leo").place), "Du ligger 3:e");
-  assert.equal(standingText(goldStanding(list, "ines").place), "Du ligger 4:e");
+  assert.equal(standingText(goldStanding(list, "alma").rel), "Du leder! 💰");
+  assert.equal(standingText(goldStanding(list, "leo").rel), "20 guld bakom Omar");
   assert.equal(goldStanding(list, "ines").gold, 10);
-  // Inga namn eller avstånd till andra – bara den egna placeringen.
-  for (const uid of ["alma", "omar", "leo", "ines"]) {
-    assert.doesNotMatch(standingText(goldStanding(list, uid).place), /bakom|Alma|Omar|Leo|Ines/);
-  }
-  // Sen anslutning: inget grPlayers-dokument än → 0 guld, sist.
+  const tie = [p("alma", 50), p("omar", 50), p("leo", 5)];
+  assert.equal(standingText(goldStanding(tie, "omar").rel), "Lika med Alma – ni leder! 💰");
+  // Sen anslutning: inget grPlayers-dokument än → 0 guld, bakom alla.
   const late = goldStanding(list, "ny");
   assert.equal(late.gold, 0);
-  assert.equal(standingText(late.place), "Du ligger 5:e");
-});
-
-test("toppraden: lika guld = DELAD placering (1, 1, 3 som servern)", () => {
-  const tie = [p("alma", 50), p("omar", 50), p("leo", 30), p("ines", 30), p("clara", 5)];
-  assert.deepEqual(goldStanding(tie, "omar").place, { rank: 1, shared: true });
-  assert.equal(standingText(goldStanding(tie, "alma").place), "Ni delar ledningen! 💰");
-  assert.equal(standingText(goldStanding(tie, "leo").place), "Du ligger delad 3:e");
-  assert.equal(standingText(goldStanding(tie, "clara").place), "Du ligger 5:e");
-  // Ingen har guld än → ingen placering (vyn visar "Svara rätt – öppna en kista!").
-  const start = [p("alma", 0), p("omar", 0)];
-  assert.equal(goldStanding(start, "alma").place, null);
-  assert.equal(standingText(goldStanding(start, "alma").place), "");
-  assert.equal(standingText(goldStanding([], "ny").place), "");
-  // 11:e/12:e och 21:a/22:a.
-  const many = Array.from({ length: 22 }, (_, i) => p(`e${String(i).padStart(2, "0")}`, 100 - i));
-  assert.equal(standingText(goldStanding(many, "e10").place), "Du ligger 11:e");
-  assert.equal(standingText(goldStanding(many, "e11").place), "Du ligger 12:e");
-  assert.equal(standingText(goldStanding(many, "e20").place), "Du ligger 21:a");
-  assert.equal(standingText(goldStanding(many, "e21").place), "Du ligger 22:a");
+  assert.equal(standingText(late.rel), "10 guld bakom Ines");
+  for (const uid of ["alma", "omar", "leo", "ines", "ny"]) {
+    assert.doesNotMatch(standingText(goldStanding(list, uid).rel), /\d+:[ae]|sist|plats/i);
+  }
 });
 
 test("offerväljaren: sorterad på guld, aldrig en själv, sköld/stöldskydd gråade", () => {
@@ -145,34 +125,20 @@ test("test 15/§6.7: notisen till den bestulna – bara nya stölder, aldrig eft
   assert.ok(fresh.take({ lastHit: hit }), "första stölden efter en baslinje utan stöld visas");
 });
 
-test("test 20i/§7.2.4: slutskärmen – alla ser sin placering, pall bara topp 3, delad vid lika", () => {
+test("test 20i: slutskärmens underlag – topp 3 pallplats, övriga relativt", () => {
   const result = { ranking: [
     { uid: "alma", name: "Alma", gold: 300, correct: 50, rank: 1 },
     { uid: "omar", name: "Omar", gold: 200, correct: 42, rank: 2 },
-    { uid: "clara", name: "Clara", gold: 200, correct: 40, rank: 2 },
-    { uid: "leo", name: "Leo", gold: 150, correct: 30, rank: 4 },
-    { uid: "ines", name: "Ines", gold: 90, correct: 20, rank: 5 },
-    { uid: "noll", name: "Noll", gold: 0, correct: 0, rank: 6 },
+    { uid: "leo", name: "Leo", gold: 150, correct: 30, rank: 3 },
+    { uid: "ines", name: "Ines", gold: 90, correct: 20, rank: 4 },
+    { uid: "noll", name: "Noll", gold: 0, correct: 0, rank: 5 },
   ] };
-  assert.equal(endStanding(result, "alma").podium, 1);
-  assert.equal(endText(endStanding(result, "alma").place), "Du kom 1:a!");
-  const omar = endStanding(result, "omar");
-  assert.equal(omar.podium, 2);
-  assert.equal(endText(omar.place), "Du kom delad 2:a!");
-  const leo = endStanding(result, "leo");
-  assert.equal(leo.podium, null);
-  assert.equal(endText(leo.place), "Du kom 4:e!");
-  assert.equal(endText(endStanding(result, "ines").place), "Du kom 5:e!");
-  const noll = endStanding(result, "noll");
-  assert.equal(noll.podium, null);
-  assert.equal(endText(noll.place), "Du kom 6:e!");
-  const x = endStanding(result, "x");
-  assert.equal(x.row, null);
-  assert.equal(endText(x.place), "");
-  // Ingen fick guld → ingen placering, ingen pall.
-  const tom = endStanding({ ranking: [{ uid: "a", gold: 0, correct: 0, rank: 1 }, { uid: "b", gold: 0, correct: 0, rank: 1 }] }, "a");
-  assert.equal(tom.podium, null);
-  assert.equal(tom.place, null);
+  assert.equal(endStanding(result, "omar").podium, 2);
+  const ines = endStanding(result, "ines");
+  assert.equal(ines.podium, null);
+  assert.equal(standingText(ines.rel), "60 guld bakom Leo");
+  assert.equal(endStanding(result, "noll").podium, null);
+  assert.equal(endStanding(result, "x").row, null);
 });
 
 test("faser, uppräkning, format", () => {
