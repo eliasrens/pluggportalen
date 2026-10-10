@@ -2,8 +2,9 @@
 // Guldrushen – Skattkammaren (#565, designspec §6.3): HÄNDELSEFLÖDET längs
 // högerkanten. De senaste (högst MAX) händelserna med små avatarer glider in
 // överst och tonar ut efter en stund. Texten är kistkonfigens lekfulla mall
-// och projektorns varsamma mallar (feedItem) – namn och avatar bara om
-// läraren valt "Visa namn", och bara för den som haft tur (ingen hängs ut).
+// (feedItem → eventText, "🦝 Alma knyckte 30 guld från Omar!") med den som
+// gjorde det först och ev. klasskamraten sist. Lärarens "Visa namn" av →
+// "Någon"/"en klasskamrat" och inga avatarer (#578).
 // TEMPO: högst en ny post per PACE_MS så att texten hinner läsas. Väntande
 // poster är högst PENDING; fler → de minst viktiga (småguld först, stora
 // händelser sist) och äldsta hoppas över. Storm (designtest 7): 30 kistor i
@@ -67,10 +68,13 @@ export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
     li.className = `grf-post${item.big ? " grf-stor" : ""}${item.tone ? ` grf-${item.tone}` : ""}`;
     li.dataset.typ = item.type;
     const slots = [];
-    // Avatar bara när namn visas och bara för den som haft tur (feedItem).
-    const a = avatar(item.avatarUid, `${id}a`, "grf-av-1");
-    if (a) { li.appendChild(a); slots.push([item.avatarUid, `${id}a`]); }
+    // Avatarer bara när namn visas (feedItem.avatars är då tom).
+    const [first, second] = item.avatars || [];
+    const a = avatar(first, `${id}a`, "grf-av-1");
+    if (a) { li.appendChild(a); slots.push([first, `${id}a`]); }
     li.insertAdjacentHTML("beforeend", `<span class="grf-text">${esc(item.text)}</span>`);
+    const b = avatar(second, `${id}b`, "grf-av-2");
+    if (b) { li.appendChild(b); slots.push([second, `${id}b`]); }
     return { li, slots, t: 0 };
   }
 

@@ -1,10 +1,10 @@
 /* ==========================================================================
    Guldrushen – SKATTKAMMAREN (#565, designspec §6.3, §6.7, §7): huvudvyn
-   (timer, klassens guld, guldberget, händelseflödet, banderollen), pallen
+   (timer, klassens guld, topp 10 vid guldhögarna, händelseflödet, banderollen), pallen
    och statistiken. Egen fil (§3.1) – laddas av gr-grotta.js. Grottan/lobbyn:
    guldrush-grotta.css. 16:9: vh-mått, viktig text ≥ 28 px (clamp-golv).
    Layout (procent av höjden): topp 54 px + ~16 % timer/guld · luft ~14 %
-   (banderollen) · golvet resten (guldberget) · högerkant ≈ 27 % (flödet).
+   (banderollen) · golvet resten (guldhögarna) · högerkant ≈ 27 % (flödet).
    Banderollen ligger i luften – den döljer aldrig timern eller högarna.
    ========================================================================== */
 
@@ -54,13 +54,14 @@
 .grk-tills span { font-size: clamp(28px, 3.2vh, 40px); font-weight: 700; color: var(--gr-kram); }
 .grk-tills b { font-size: clamp(36px, 6vh, 74px); font-weight: 800; color: var(--gr-guld); text-shadow: 0 0.05em 0 #7a4a00; white-space: nowrap; }
 .grk-tills i { font-style: normal; font-variant-numeric: tabular-nums; }
+.grk-tills small { font-size: clamp(22px, 2.4vh, 30px); font-weight: 700; color: var(--gr-kram); opacity: 0.85; }
 
 /* --- Luften: banderollen ---------------------------------------------------- */
 .grk-luft { grid-area: 2 / 1 / 3 / 2; position: relative; }
 .grk-luft .lbn-host { top: 50%; transform: translateY(-50%); }
 .grk-luft .lbn { font-size: clamp(32px, 5vh, 62px); }
 
-/* --- Golvet: klassens guldberg ---------------------------------------- */
+/* --- Golvet: topp 10 vid guldhögarna --------------------------------------- */
 .grk-golv { grid-area: 3 / 1 / 4 / 2; position: relative; margin: 0 1vw 3.5vh; }
 .grk-tom {
   position: absolute;
@@ -72,69 +73,55 @@
   color: var(--gr-kram);
   text-shadow: 0 2px 6px #000;
 }
-.grb {
+.grh { position: absolute; inset: 0; --grh-fig: 110px; --grh-lab: clamp(28px, 3vh, 36px); }
+.grh-plats {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
   display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 2vw;
+  align-items: flex-end;
+  font-size: var(--grh-fig);
+  width: 2.3em;
+  height: 1.3em;
+  margin: -1.3em 0 0 -1.15em;
+  transform-origin: 50% 100%;
+  transition: transform 0.85s cubic-bezier(0.3, 0.9, 0.3, 1), opacity 0.5s ease;
+  will-change: transform;
 }
-.grb-berg {
-  flex: 0 1 calc(min(64%, 115vh) / var(--grb-n, 1) + 6% * (var(--grb-n, 1) - 1));
+.grh-plats.grh-ny, .grh-plats.grh-ut { opacity: 0; }
+.grh-plats > .lav { flex: none; margin-right: -0.25em; }
+.grh-hog {
+  flex: none;
+  width: 1.4em;
+  height: 1.05em;
+  transform-origin: 50% 100%;
+  transition: transform 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.grh-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.grh-glimt { transform-box: fill-box; transform-origin: center; animation: grg-glitter 3.6s ease-in-out infinite; }
+/* Skylten under figuren: placering · namn · 🛡️ / guld. Bakre raden är skalad
+   ×0.78 – skylten skalas tillbaka så att texten är lika stor (≥ 28 px). */
+.grh-skylt {
+  position: absolute;
+  top: 100%;
+  left: -0.1em;
+  right: -0.1em;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 0;
-}
-.grb-rymd { position: relative; flex: 1; width: 100%; min-height: 0; }
-.grb-mount {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100%;
-  transform-origin: 50% 100%;
-  transition: transform 0.9s cubic-bezier(0.3, 1.3, 0.5, 1);
-}
-.grb-svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.grb-kista, .grb-krona { opacity: 0; transition: opacity 0.6s ease; }
-.grb-med-kista .grb-kista, .grb-med-krona .grb-krona { opacity: 1; }
-.grb-glimt { transform-box: fill-box; transform-origin: center; animation: grg-glitter 3.8s ease-in-out infinite; }
-.grb-glimt-2 { animation-delay: -1.9s; }
-.grb-regn { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
-.grb-mynt {
-  position: absolute;
-  top: 0;
-  width: 2.6vh;
-  height: 1.5vh;
-  margin-left: -1.3vh;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff3b0, #ffc928 45%, #d99a00);
-  box-shadow: inset 0 0 0 0.25vh #c48a00;
-}
-.grb-skylt { display: none; gap: 0.5em; align-items: baseline; margin-top: 0.6vh; font-size: clamp(28px, 3.6vh, 44px); font-weight: 800; text-shadow: 0 2px 5px #000; }
-.grb-flera .grb-skylt { display: flex; }
-.grb-klass { color: var(--gr-kram); }
-.grb-guld { color: var(--gr-guld); }
-.grb-mal {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  margin-top: 0.8vh;
-  padding: 0.15em 0.7em;
-  border-radius: 999px;
-  background: rgba(29, 22, 34, 0.82);
-  border: 2px solid rgba(255, 207, 58, 0.5);
-  font-size: clamp(26px, 3.1vh, 38px);
-  font-weight: 700;
-  color: var(--gr-kram);
+  font-size: var(--grh-lab);
+  line-height: 1.08;
+  text-shadow: 0 2px 4px #000, 0 0 8px #000;
   white-space: nowrap;
 }
-.grb-flera .grb-mal { font-size: clamp(24px, 2.6vh, 32px); gap: 0.35em; }
-.grb-flera .grb-bar { width: clamp(50px, 4vw, 110px); }
-.grb-bar { width: clamp(90px, 10vw, 220px); height: 0.5em; border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
-.grb-bar i { display: block; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, #ffe680, #ffc928); transition: transform 0.6s ease; }
+.grh-bak .grh-skylt { font-size: calc(var(--grh-lab) / 0.78); }
+.grh-matt { position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; }
+.grh-namn { display: flex; gap: 0.25em; max-width: 100%; font-weight: 800; color: var(--gr-kram); }
+.grh-text { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.grh-nr { font-style: normal; color: var(--gr-guld); }
+.grh-skold { font-style: normal; font-size: 0.85em; }
+.grh-guld { font-weight: 800; color: var(--gr-guld); font-variant-numeric: tabular-nums; }
+.grh-ledare .grh-namn { color: #fff3b0; }
 
 /* --- Kanten: händelseflödet ------------------------------------------------- */
 .grk-kant { grid-area: 2 / 2 / 4 / 3; position: relative; padding: 0 1.4vw 3vh 0; min-height: 0; }
@@ -227,42 +214,65 @@
 .grp-mynt { width: 2.4vh; height: 2.4vh; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3b0, #ffc928 45%, #d99a00); box-shadow: inset 0 0 0 0.3vh #e8a800; }
 .grp-konf { width: 1.1vh; height: 1.8vh; border-radius: 2px; }
 
-/* --- Statistiken (anonym) ---------------------------------------------------- */
-.grx { display: flex; flex-direction: column; gap: 2vh; padding: var(--gr-topp) 2.4vw 3vh; }
+/* --- Statistiken: klassens siffror + exakt ställning för alla ------------- */
+.grx { display: flex; flex-direction: column; gap: 1.6vh; padding: var(--gr-topp) 2.4vw 2.5vh; }
 .grx > :not(.grg) { position: relative; }
 .grx-topp { display: flex; align-items: center; gap: 2vw; }
 .grx-rubrik { margin: 0; flex: 1; font-size: clamp(34px, 5vh, 60px); color: var(--gr-kram); }
 .grx-tid { font-size: clamp(32px, 5vh, 60px); font-weight: 800; color: var(--gr-kram); }
 .grx-tid b { font-variant-numeric: tabular-nums; }
 .grx-rod { color: #ff8f7a; }
-.grx-kort-rad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4vh 1.4vw; }
+.grx-kort-rad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1vw; }
 .grx-kort, .grx-ruta {
   border-radius: 0.6em;
   background: rgba(29, 22, 34, 0.86);
   border: 3px solid rgba(255, 207, 58, 0.45);
   box-shadow: 0 0.2em 0.6em rgba(0, 0, 0, 0.4);
 }
-.grx-kort { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 0.5em; align-items: center; padding: 1vh 1.2vw; font-size: clamp(26px, 3vh, 36px); }
-.grx-ikon { grid-row: span 3; font-size: 1.8em; }
-.grx-label { font-weight: 700; color: var(--gr-kram); }
-.grx-varde { font-size: 1.6em; line-height: 1.05; color: var(--gr-guld); font-variant-numeric: tabular-nums; }
-.grx-kort small { font-size: 0.75em; opacity: 0.85; }
-.grx-grid { flex: 1; min-height: 0; display: flex; gap: 1.4vw; }
-.grx-ruta { flex: 1; display: flex; flex-direction: column; padding: 1.4vh 1.4vw; min-height: 0; }
-.grx-klasser { flex: 0 1 34%; }
-.grx-h { margin: 0 0 1vh; font-size: clamp(28px, 3.4vh, 42px); color: var(--gr-kram); }
-.grx-h small { font-size: 0.7em; opacity: 0.8; }
-.grx-staplar { flex: 1; display: grid; grid-template-columns: repeat(var(--n, 6), 1fr); gap: 1vw; min-height: 0; }
-.grx-kol { display: flex; flex-direction: column; align-items: center; gap: 0.4vh; min-height: 0; }
-.grx-antal { font-size: clamp(30px, 4vh, 48px); color: var(--gr-guld); }
-.grx-ror { flex: 1; width: 70%; display: flex; align-items: flex-end; border-radius: 0.4em 0.4em 0 0; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
-.grx-ror i { display: block; width: 100%; height: 100%; transform-origin: 50% 100%; background: linear-gradient(180deg, #ffe680, #ffc928 50%, #c48a00); transition: transform 0.6s ease; }
-.grx-spann { font-size: clamp(26px, 3vh, 36px); font-weight: 700; white-space: nowrap; }
-.grx-tabell { width: 100%; border-collapse: collapse; font-size: clamp(28px, 3.4vh, 40px); }
-.grx-tabell th, .grx-tabell td { padding: 0.15em 0.3em; text-align: left; border-bottom: 2px solid rgba(255, 255, 255, 0.12); }
-.grx-tabell .num { text-align: right; font-variant-numeric: tabular-nums; }
+.grx-kort { display: grid; grid-template-columns: auto 1fr; column-gap: 0.4em; align-items: center; padding: 0.8vh 0.9vw; font-size: clamp(22px, 2.5vh, 30px); min-width: 0; }
+.grx-ikon { grid-row: span 3; font-size: 1.6em; }
+.grx-label { font-weight: 700; color: var(--gr-kram); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grx-varde { font-size: 1.45em; line-height: 1.05; color: var(--gr-guld); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grx-kort small { font-size: 0.75em; opacity: 0.85; white-space: nowrap; }
+.grx-klassrad { margin: 0; display: flex; flex-wrap: wrap; gap: 0.5em 1.2em; font-size: clamp(24px, 2.8vh, 34px); color: var(--gr-kram); }
+.grx-klass { padding: 0.1em 0.6em; border-radius: 999px; background: rgba(29, 22, 34, 0.86); border: 2px solid rgba(255, 207, 58, 0.45); }
+.grx-klass b { color: var(--gr-guld); }
+.grx-stallning { flex: 1; min-height: 0; padding: 1vh 1.2vw; }
+.grx-kolumner {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(var(--kol, 1), minmax(0, 1fr));
+  gap: 2vw;
+  font-size: 28px; /* sätts efter rutans höjd (gr-statistik fit) */
+}
+/* Varje kolumn är ett rutnät: siffrorna tar sin naturliga bredd, namnet resten
+   (avkortas med … hellre än att trycka ut siffrorna). */
+.grx-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-content: start;
+  min-width: 0;
+}
+.grx-rad { display: contents; font-weight: 700; }
+.grx-rad > span {
+  padding: 0.06em 0.2em;
+  line-height: 1.3;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+.grx-huvud > span { font-size: 0.75em; color: var(--gr-kram); opacity: 0.8; border-bottom-color: rgba(255, 207, 58, 0.45); align-self: end; }
+.grx-nr { color: var(--gr-guld); text-align: right; font-variant-numeric: tabular-nums; }
+.grx-namn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--gr-kram); }
+.grx-namn i { font-style: normal; font-size: 0.85em; }
+.grx-guld { color: var(--gr-guld); }
+.grx-etta > span { background: rgba(255, 207, 58, 0.18); }
+.grx-rad .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 0.5em; }
+.grx-tom { margin: 0; font-size: clamp(28px, 3.4vh, 40px); color: var(--gr-kram); }
 
 @media (prefers-reduced-motion: reduce) {
-  .grb-mount { transition: transform 0.4s ease; }
-  .grk-klocka.grk-spanning, .grb-glimt { animation: none; }
+  .grh-plats { transition: opacity 0.5s ease; }
+  .grh-hog { transition: transform 0.4s ease; }
+  .grk-klocka.grk-spanning, .grh-glimt { animation: none; }
 }
