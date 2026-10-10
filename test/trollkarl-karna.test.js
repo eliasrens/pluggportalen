@@ -265,7 +265,8 @@ describe("Regin: kö + prioritet (§11, §14.1, §16)", () => {
 });
 
 describe("Bootgrafen: Trollkarlsduellen bara dynamiskt (#271)", () => {
-  it("ingen fil i src/live/trollkarl/ nås statiskt från app.js, och projector.js laddar vyn med import()", () => {
+  // #547: vyerna hör till Klassmatchen-formatet – laddas från klassmatch-projector.js.
+  it("ingen fil i src/live/trollkarl/ nås statiskt från app.js, och Klassmatchens projektordel laddar vyn med import()", () => {
     const SRC = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
     const seen = new Set([join(SRC, "app.js")]);
     const queue = [...seen];
@@ -282,8 +283,8 @@ describe("Bootgrafen: Trollkarlsduellen bara dynamiskt (#271)", () => {
       }
     }
     assert.equal([...seen].filter((f) => f.includes(`${join("live", "trollkarl")}`)).length, 0);
-    const proj = readFileSync(join(SRC, "live", "projector.js"), "utf8");
-    assert.match(proj, /import\("\.\/trollkarl\/trollkarl-vy\.js"\)/);
-    assert.doesNotMatch(proj, /from\s+["']\.\/trollkarl\/trollkarl-vy\.js["']/);
+    const proj = readFileSync(join(SRC, "live", "formats", "klassmatch", "klassmatch-projector.js"), "utf8");
+    assert.match(proj, /import\("\.\.\/\.\.\/trollkarl\/trollkarl-vy\.js"\)/);
+    assert.doesNotMatch(proj, /from\s+["'][./]*trollkarl\/trollkarl-vy\.js["']/);
   });
 });

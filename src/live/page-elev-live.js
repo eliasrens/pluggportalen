@@ -7,6 +7,9 @@
 // kommer från Firestore, så omladdning/avbrott = samma session igen.
 // Sen anslutning: är matchen redan LIVE går eleven direkt in i spelet.
 // Mynt-pris (#526): visas i lobbyn och på slutskärmen.
+// Rubrik, lobbyrad och slutskärm kommer från sessionens FORMAT (#547):
+// sessionTitle(s) + studentView() (laddas latt; Klassmatchen =
+// formats/klassmatch/klassmatch-student.js). Format saknas = Klassmatchen.
 // Laddas DYNAMISKT från app.js (#271).
 // ============================================================================
 
@@ -17,7 +20,8 @@ import { mountFastAnswer } from "../mult/fast-answer.js";
 import { watchActiveSessions, watchMyPlayer, joinLiveSession, heartbeat, submitLiveAnswer, getSession } from "./live-data.js";
 import { subscribeLiveSession } from "./live-feed.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
-import { sessionTitle, sessionTimes, formatScore, prizeText } from "./live-core.js";
+import { sessionTimes } from "./live-core.js";
+import { formatOf } from "./formats/index.js";
 import { relevantSessions } from "./live-watch.js";
 import { ensureLiveCss, onLeaveRoute } from "./live-css.js";
 
@@ -82,13 +86,16 @@ function renderCancelled() {
 
 function renderList(list) {
   app.replaceChildren(el(`<div class="panel live-elev-list"><h2>⚡ Live-matcher</h2>
-    ${list.map((s) => `<button class="btn stor live-elev-pick" data-id="${escHtml(s.id)}">${escHtml(sessionTitle(s))}
+    ${list.map((s) => `<button class="btn stor live-elev-pick" data-id="${escHtml(s.id)}">${escHtml(titleOf(s))}
       <small>${s.status === "live" ? "Pågår – hoppa in!" : "Väntar på start"}</small></button>`).join("")}</div>`));
   app.querySelectorAll(".live-elev-pick").forEach((b) => b.addEventListener("click", () => go(`#/elev/live?id=${b.dataset.id}`)));
 }
 
+// Rubrik ur formatet ("4B MOT 5E"); okänt format → matchnamnet.
+const titleOf = (s) => formatOf(s)?.sessionTitle(s) ?? s.name ?? "";
+
 /** Själva matchvyn för en session. */
-function mountSession(initial, { uid, myClassIds, cleanups }) {
+async function mountSession(initial, { uid, myClassIds, cleanups }) {
   const classId = initial.participatingClassIds.find((id) => myClassIds.includes(id));
   let mode;
   try {
@@ -96,14 +103,26 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
   } catch {
     return renderMessage("🧩", "Okänt spelläge", "Den här matchen använder ett spelläge som inte finns i din version – ladda om sidan.");
   }
+  const fmt = formatOf(initial);
+  if (!fmt) return renderMessage("🧩", "Okänt Live-format", "Den här matchen använder ett format som inte finns i din version – ladda om sidan.");
+  // Sidan kan lämnas medan formatets elevdel laddas – rita då ingenting.
+  let left = false;
+  cleanups.push(() => { left = true; });
+  let fv;
+  try {
+    fv = await fmt.studentView();
+  } catch {
+    return left ? undefined : renderMessage("😕", "Kunde inte ladda matchen", "Prova att ladda om sidan.");
+  }
+  if (left) return;
   const view = el(`<div class="live-elev">
     <header class="live-elev-head"><span class="live-elev-badge">⚡ LIVE</span>
-      <h1 class="live-elev-title">${escHtml(sessionTitle(initial))}</h1>
+      <h1 class="live-elev-title">${escHtml(fmt.sessionTitle(initial))}</h1>
       <span class="live-elev-me"></span></header>
     <div class="live-elev-stage">
       <div class="live-elev-lobby" hidden>
         <p class="live-elev-wait">Väntar på start…</p>
-        ${prizeText(initial) ? `<p class="live-elev-prize">🪙 ${escHtml(prizeText(initial))}</p>` : ""}
+        ${fv.lobbyHtml(initial)}
         <button class="btn stor gron live-elev-join" hidden>Gå med i Live-match</button>
         <p class="live-elev-ready hint" hidden>✅ Du är redo! Matchen startar automatiskt.</p>
       </div>
@@ -200,7 +219,7 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
     }
     fa?.setEnabled(false, "Matchen är slut!");
     show("end");
-    $(".live-elev-end").innerHTML = endHtml(st, player, classId);
+    $(".live-elev-end").innerHTML = fv.endHtml(st, player, classId);
   }
 
   cleanups.push(subscribeLiveSession(initial.id, (next) => { st = next; render(); }, { teacher: false, uid }));
@@ -216,21 +235,4 @@ function mountSession(initial, { uid, myClassIds, cleanups }) {
     if (lobbyish || idle) heartbeat(initial.id, uid).catch(() => {});
   }, HEARTBEAT_MS);
   cleanups.push(() => clearInterval(hb));
-}
-
-function endHtml(st, player, classId) {
-  if (st.phase === "cancelled") return `<div class="big-emoji">🛑</div><h2>Matchen avbröts</h2>`;
-  const mine = player ? `<p class="live-elev-mine">Du fick <b>${player.correct || 0}</b> rätt! 🎉</p>` : "";
-  const r = st.result;
-  if (!r) return `<div class="big-emoji">⏱️</div><h2>Matchen är slut!</h2>${mine}<p class="hint">Resultatet räknas ihop…</p>`;
-  const names = st.session.classNames || {};
-  const rows = Object.entries(r.perClass || {})
-    .sort((a, b) => b[1].score - a[1].score)
-    .map(([id, c]) => `<li class="${id === classId ? "mig" : ""}"><b>${escHtml(names[id] || id)}</b> ${formatScore(c.score)} poäng/elev</li>`)
-    .join("");
-  const head = r.winner === "draw"
-    ? `<h2>🤝 OAVGJORT!</h2>`
-    : `<h2>🏆 VINNARE – ${escHtml(names[r.winner] || r.winner)}!</h2>`;
-  const pris = prizeText(st.session, r);
-  return `${head}${pris ? `<p class="live-elev-prize">🪙 ${escHtml(pris)}</p>` : ""}<ul class="live-elev-result">${rows}</ul>${mine}`;
 }

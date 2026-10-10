@@ -19,7 +19,8 @@
 // ============================================================================
 
 import { ensureLiveCss } from "../live-css.js";
-import { prizeText, toMs } from "../live-core.js";
+import { toMs } from "../live-core.js";
+import { prizeText } from "../formats/klassmatch/klassmatch-core.js";
 import { esc } from "../../teacher-shared.js";
 import { createWizard, preloadWizardFaces } from "./trollkarl-figurval.js";
 import { createArena } from "./trollkarl-arena.js";
