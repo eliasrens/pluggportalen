@@ -17,7 +17,7 @@ de avstegen:
 
 | Specen | Nu |
 | --- | --- |
-| Topp 10 som avatarer vid egna guldhögar som växer/krymper | ✅ `gr-hogar.js`: två rader (1–5 fram, 6–10 bak), rikast i mitten. Skylt under varje hög: placering (👑 för ensam ledare), namn, guld, 🛡️ vid sköld/stöldskydd (§6.5). Högen växer/krymper med elevens guld; ordningen glider vid stöld/byte. [p02](qa-guldrush-578/p02-skattkammaren-1920.jpeg) |
+| Topp 10 som avatarer vid egna guldhögar som växer/krymper | ✅ `gr-hogar.js`: två lika stora rader i läsordning (#579) – plats 1–5 överst och 6–10 underst, vänster → höger; färre än 10 med guld fylls från plats 1, delad placering får samma siffra. Skylt under varje hög: placering (👑 för ensam ledare), namn, guld, 🛡️ vid sköld/stöldskydd (§6.5). Högen växer/krymper med elevens guld; ordningen glider vid stöld/byte. [p07](qa-guldrush-578/p07-hogar-lasordning-1920.jpeg), [p08](qa-guldrush-578/p08-hogar-lasordning-1280.jpeg), [p09 delad 2:a](qa-guldrush-578/p09-delad-2a-1280.jpeg), [p10 bara 4 med guld](qa-guldrush-578/p10-fa-med-guld-1920.jpeg) |
 | Stor timer + klassens totala guld överst | ✅ oförändrat + "Nästa skatt: 2 000" (klassens delmål) i samma ruta. Guldberget togs bort – topp 10-högarna fyller golvet |
 | Händelseflöde med namn och små avatarer | ✅ kistkonfigens mallar: "🦝 Alma knyckte 30 guld från Omar!", "🔄 Hussein och Ines bytte guld!" – avatar för den som gjorde det och (stöld/byte/sköld) klasskamraten |
 | "Namn i händelseflödet" av | ✅ "Någon …"/"en klasskamrat", inga avatarer i flödet. [p06](qa-guldrush-578/p06-namn-av-1280.jpeg) |
@@ -27,6 +27,18 @@ de avstegen:
 
 Skärmdumparna `p02`, `p04`, `p07`, `p09` i `qa-guldrush-565/` visar den
 gamla anonyma versionen (guldberget) och är ersatta av `qa-guldrush-578/`.
+
+### #579: Högarna i läsordning (Elias 2026-10-10)
+
+Förut stod 1–5 fram och 6–10 bak med den rikaste i mitten (4-2-1-3-5) –
+svårt att läsa. Nu läses högarna som en text (`pileSlot`: plats → rad
+`i < 5 ? 0 : 1`, kolumn `i % 5`). Den bakre radens ×0.78-skala är borttagen:
+båda raderna är lika stora, översta radens skylt slutar minst 8 px ovanför
+nedersta radens figurer (mätt i 1920: skylt 657 px / figur 819 px, i 1280:
+453 / 531 – ingen klippning, inga avkortade namn). Byte mellan raderna glider
+med samma transform-övergång. Förhandsvisningen har två nya stilla lägen:
+"Delad 2:a" (`&delad=1&auto=av`) och "Bara 4 med guld" (`&fa=4`). [`p02`](qa-guldrush-578/p02-skattkammaren-1920.jpeg)
+ovan visar den gamla bergsordningen.
 
 ### Fynd under #578 (åtgärdat)
 

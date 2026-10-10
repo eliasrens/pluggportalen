@@ -39,6 +39,8 @@
         <button data-go="fas=kammare&vy=gr-statistik">📊 Statistik</button>
         <button data-go="fas=kammare&klasser=2&vy=gr-statistik">📊 Två klasser</button>
         <button data-go="fas=kammare&namn=av">Namn av</button>
+        <button data-go="fas=kammare&auto=av&delad=1">Delad 2:a (stilla)</button>
+        <button data-go="fas=kammare&auto=av&fa=4">Bara 4 med guld</button>
         <button data-go="fas=final">Final</button>
         <button data-go="fas=final&delad=1">Final · delad 2:a</button>
         <b>Händelser</b>
@@ -215,6 +217,9 @@
       else {
         for (let i = 0; i < 30; i++) addPlayer(i, now() - 900_000);
         history(FAS === "final" ? 260 : 140, { shared: !!q.get("delad") });
+        // #579: bara de n rikaste har guld (topp 10 fylls från plats 1).
+        const fa = Number(q.get("fa")) || 0;
+        if (fa) [...gp.values()].sort((x, y) => y.gold - x.gold).slice(fa).forEach((g) => { g.gold = 0; });
         if (FAS === "final") { session.status = "finished"; session.finishedAt = now(); }
       }
 

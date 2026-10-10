@@ -1,17 +1,19 @@
 // ============================================================================
-// Guldrushen – Skattkammaren (#565/#578, designspec §6.3): TOPP 10 VID SINA
-// GULDHÖGAR. Två rader på grottgolvet (fram = de fem rikaste, bak = 6–10),
-// rikast i mitten (pileSlot) – högarna bildar ett berg. Varje plats är elevens
+// Guldrushen – Skattkammaren (#565/#578/#579, designspec §6.3): TOPP 10 VID
+// SINA GULDHÖGAR. Två lika stora rader i läsordning (pileSlot): plats 1–5 i
+// översta raden och 6–10 i nedersta, vänster → höger. Varje plats är elevens
 // avatar (avatarpoolens huvudelement – ritad EN gång med kläder) och en
 // guldhög som växer/krymper med elevens guld (pileLevel, transform: scale).
 // Flytt i listan = platsens transform glider dit (CSS-transition) – ordningen
 // sätts alltid direkt ur ställningen, så ingen avatar kan stanna på fel plats
-// (designtest 5: 4:an → 1:an glider mjukt till mitten fram).
+// (designtest 5: 4:an → 1:an glider mjukt längst till vänster överst; en
+// plats som byter rad glider också dit).
 // Under varje hög en skylt: placering (👑 för ensam ledare), namn och guld
 // (Elias 2026-10-10, #578: enligt specen). Sköld/stöldskydd = liten 🛡️ vid
 // namnet (§6.5); sköld från kista = dessutom bubblan runt avataren.
-// Höjden räknas så att båda radernas skyltar får plats: bakre radens skylt
-// ligger i glappet ovanför främre radens figurer.
+// Höjden räknas så att båda radernas skyltar får plats: översta radens
+// skylt ligger i glappet ovanför nedersta radens figurer – ingen rad skymmer
+// den andra.
 //
 // API
 //   createHogar(host, { pool }) → {
@@ -26,8 +28,7 @@ import { setAvatarState, prefersReducedMotion } from "../../design/live-reaction
 import { pileSlot, pileLevel, tal } from "./gr-proj-scen.js";
 
 const OUT_MS = 650;
-const BACK = 0.78; // bakre radens skala
-const GAP = 8; // px mellan bakre radens skylt och främre radens figurer
+const GAP = 8; // px (minst) mellan översta radens skylt och nedersta radens figurer
 
 // Guldhögen (ritas en gång per plats; höjden = transform).
 export function pileSvg() {
@@ -60,19 +61,19 @@ export function createHogar(host, { pool }) {
   let lastRef = 1;
   let lastLeader = null;
 
-  // Platsens fotpunkt i px (rad 0 fram, rad 1 bak och något mindre). Skylten
-  // hänger under figuren: främre radens fot ligger en skylthöjd ovanför golvets
-  // kant, bakre radens skylt slutar GAP ovanför främre radens figurer.
+  // Platsens fotpunkt i px (rad 0 överst, rad 1 underst, samma storlek).
+  // Skylten hänger under figuren: nedersta radens fot ligger en skylthöjd
+  // ovanför golvets kant, översta radens skylt slutar minst GAP ovanför
+  // nedersta radens figurer.
   function place(i) {
     const { row, col } = pileSlot(i);
-    const back = row === 1;
-    const span = back ? 0.86 : 0.96;
-    const x = size.w * ((1 - span) / 2 + span * ((col + 0.5) / 5));
-    const front = size.h - size.lab;
-    // Ledig höjd (figuren begränsas av bredden) → hälften lyfter bakre raden.
-    const free = Math.max(0, size.h - 2 * size.lab - GAP - size.fig * 1.3 * (1 + BACK));
-    const y = back ? front - size.fig * 1.3 - GAP - size.lab - free * 0.5 : front;
-    return { x, y, s: back ? BACK : 1, z: back ? 1 : 2 };
+    const x = size.w * (0.02 + 0.96 * ((col + 0.5) / 5));
+    const bottom = size.h - size.lab;
+    // Ledig höjd (figuren begränsas av bredden): en tredjedel ovanför
+    // översta raden, resten mellan raderna.
+    const free = Math.max(0, size.h - 2 * size.lab - GAP - 2 * size.fig * 1.3);
+    const y = row === 0 ? size.fig * 1.3 + free / 3 : bottom;
+    return { x, y };
   }
 
   function slotFor(uid) {
@@ -103,9 +104,7 @@ export function createHogar(host, { pool }) {
   function position(s, i) {
     const p = place(i);
     s.i = i;
-    s.el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) scale(${p.s})`;
-    s.el.style.zIndex = String(p.z);
-    s.el.classList.toggle("grh-bak", p.s !== 1);
+    s.el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
   }
 
   function label(s, p, leader) {
@@ -153,9 +152,9 @@ export function createHogar(host, { pool }) {
     const r = root.getBoundingClientRect();
     if (!r.width || (r.width === size.w && r.height === size.h)) return;
     // Figurens storlek: fem platser i bredd, och i höjd två rader figurer
-    // (1.3 em, bakre ×0.78) + två skyltar + glappet.
+    // (1.3 em) + två skyltar + glappet.
     const lab = Math.ceil(matt.getBoundingClientRect().height) || 64;
-    const fig = Math.max(24, Math.floor(Math.min(r.width / 5 / 2.3, (r.height - 2 * lab - GAP) / (1.3 * (1 + BACK)))));
+    const fig = Math.max(24, Math.floor(Math.min(r.width / 5 / 2.3, (r.height - 2 * lab - GAP) / 2.6)));
     size = { w: r.width, h: r.height, fig, lab };
     root.style.setProperty("--grh-fig", `${fig}px`);
     for (const s of slots.values()) s.needsPos = true;

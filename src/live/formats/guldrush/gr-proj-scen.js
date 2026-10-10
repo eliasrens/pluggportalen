@@ -17,8 +17,8 @@
 //   GR_MILESTONES                 klassens gemensamma delmål (guld)
 //   matchClock(s, now)            → { msLeft, secs, text, tension, phase }
 //   topPiles(players, n?)         → de n rikaste (guld > 0), rank-ordning
-//   pileSlot(i)                   → { row: 0 fram | 1 bak, col 0–4 } – rikast
-//                                   i mitten, sedan utåt (ett berg av högar)
+//   pileSlot(i)                   → { row: 0 överst | 1 underst, col 0–4 } –
+//                                   läsordning: 1–5 överst, 6–10 underst (#579)
 //   createPileScale(min?)         → { ref(maxGold) } – skalans tak höjs bara
 //                                   (en hög krymper bara när DEN tappar guld)
 //   pileLevel(gold, ref)          → 0.18–1 (höjd som andel av taket)
@@ -69,13 +69,10 @@ export function topPiles(players, n = GR_TOP) {
   return (players || []).filter((p) => p && p.uid && p.gold > 0).slice(0, n);
 }
 
-// Kolumnordning per rad: index i raden (0 = rikast) → kolumn. Rikast i
-// mitten, sedan växelvis vänster/höger – högarna bildar ett berg.
-const COLS = [2, 1, 3, 0, 4];
-
+// Läsordning som en text (Elias 2026-10-10, #579): plats 1–5 i översta raden
+// och 6–10 i nedersta, vänster → höger.
 export function pileSlot(i) {
-  const row = i < 5 ? 0 : 1;
-  return { row, col: COLS[i % 5] };
+  return { row: i < 5 ? 0 : 1, col: i % 5 };
 }
 
 const NICE = [1, 1.5, 2, 3, 5, 7.5, 10];
