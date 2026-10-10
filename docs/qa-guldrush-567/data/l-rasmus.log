@@ -1,0 +1,7 @@
+{"t":1791647210557,"vem":"rasmus","sid":"qa-gr-567-pris300","action":"result","totalGold":22000,"rewards":25}
+{"t":1791647210616,"vem":"rasmus","sid":"qa-gr-567-pris100","fel":"7 PERMISSION_DENIED: 
+{"t":1791647210631,"vem":"rasmus","sid":"qa-gr-567-pris100","action":"result","totalGold":1900,"rewards":6}
+{"t":1791647211251,"vem":"rasmus","warn":"[live] Pluggmynt nekades qa-gr-567-pris300 b06 permission-denied"}
+[live] Pluggmynt nekades qa-gr-567-pris300 b06 permission-denied
+{"t":1791647218574,"vem":"rasmus","sid":"qa-gr-567-pris300","action":"kvitton","n":24,"by":{"rasmus":24}}
+{"t":1791647218641,"vem":"rasmus","sid":"qa-gr-567-pris100","action":"kvitton","n":2,"by":{"elias":2}}

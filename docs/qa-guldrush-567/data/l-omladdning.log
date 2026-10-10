@@ -1,0 +1,6 @@
+{"t":1791647236533,"vem":"elias","sid":"qa-gr-567-pris300","action":"result","totalGold":22000,"rewards":25}
+{"t":1791647236612,"vem":"elias","sid":"qa-gr-567-pris100","action":"result","totalGold":1900,"rewards":6}
+{"t":1791647236758,"vem":"elias","sid":"qa-gr-567-pris100","action":"omforsok","per":{"redan":2,"betald":4}}
+{"t":1791647236870,"vem":"elias","sid":"qa-gr-567-pris300","action":"omforsok","per":{"redan":24,"betald":1}}
+{"t":1791647244786,"vem":"elias","sid":"qa-gr-567-pris100","action":"kvitton","n":6,"by":{"elias":6}}
+{"t":1791647244901,"vem":"elias","sid":"qa-gr-567-pris300","action":"kvitton","n":25,"by":{"rasmus":24,"elias":1}}
