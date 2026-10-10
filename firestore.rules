@@ -615,6 +615,38 @@ service cloud.firestore {
         d.shuffleQuestions is bool && d.showQuestionOnStudent is bool &&
         d.status in ['lobby', 'live', 'finished'];
     }
+    // ---------------- Live: Guldrushen (format "guldrush", #563) ----------------
+    // Varje elev i egen takt under matchklockan; mest guld vinner. Se
+    // src/live/formats/guldrush/ (guldrush-core.js: datamodellen) och
+    // docs/DATAMODELL.md. SERVERN (Cloud Functions, functions/guldrush-core.js)
+    // rättar svaren och skriver ALLT guld – här kan ingen klient skriva:
+    //  • answers/{attemptId}: Guldrushens svar skapas bara av servern (Admin
+    //    SDK) – liveAnswerCreate nekar formatet, så ingen skriver ett eget
+    //    "rätt" svar och inga svar kan komma in efter tid ute den vägen.
+    //  • grPlayers (guld, skydd, sköld, väntande stöld), grEvents (händelse-
+    //    flödet), grMeta (ledaren): bara läsning för deltagare och lärare.
+    //  • quiz: grPublic/questions (elevsynligt, utan facit) och
+    //    grPrivate/snapshot (facit – BARA lärare) skapas i lobbyn i samma
+    //    batch som sessionen, sedan aldrig ändrade.
+    //  • sessionen: inställningarna (stöld/byte, speltid …) låses vid
+    //    skapandet; namn i händelseflödet får läraren slå av/på när som helst.
+    function grFormat(d) { return d.get('format', 'klassmatch') == 'guldrush'; }
+    function grSettingsOk(d) {
+      return d.keys().hasOnly(['name', 'format', 'gameMode', 'answerKind', 'participatingClassIds',
+          'classNames', 'durationSeconds', 'countdownSeconds', 'status', 'createdBy', 'createdByName',
+          'createdAt', 'stealSwap', 'showNames', 'quiz', 'questionCount', 'rewards', 'startedAt',
+          'endsAt', 'finishedAt', 'result']) && liveRewardsOk(d) &&
+        d.name is string && d.name.size() > 0 && d.name.size() <= 80 &&
+        d.gameMode in ['multiplication_0_10', 'plugga_quiz'] && d.answerKind in ['free', 'choice'] &&
+        (d.gameMode != 'plugga_quiz' || d.answerKind == 'choice') &&
+        d.participatingClassIds is list && d.participatingClassIds.size() >= 1 &&
+        d.participatingClassIds.size() <= 3 &&
+        d.durationSeconds in [300, 600, 900, 1200] &&
+        d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
+        d.stealSwap is bool && d.showNames is bool &&
+        (!('questionCount' in d) || (d.questionCount is int && d.questionCount >= 1 && d.questionCount <= 100)) &&
+        d.status in ['lobby', 'live', 'finished'];
+    }
 
     match /liveSessions/{sid} {
       function livePath(sub, id) {
@@ -625,7 +657,7 @@ service cloud.firestore {
         let d = request.resource.data;
         let s = session();
         let t0 = s.startedAt + duration.value(s.countdownSeconds, 's');
-        return answerCoreOk(d, attemptId, s.counterShards) &&
+        return !grFormat(s) && answerCoreOk(d, attemptId, s.counterShards) &&
           d.mode == s.gameMode && liveModeAnswerOk(d, s.get('answerKind', 'free')) &&
           s.status == 'live' && request.time >= t0 &&
           request.time < t0 + duration.value(s.durationSeconds, 's') &&
@@ -750,6 +782,50 @@ service cloud.firestore {
           d.skipped == (s.q.phase == 'skipped') && d.points is map && d.correct is map;
       }
 
+      // --- Guldrushen (#563) ---
+      // Skapa: lobby; quiz → frågorna + facit i SAMMA batch.
+      function grSessionCreateOk() {
+        let d = request.resource.data;
+        return grSettingsOk(d) && d.status == 'lobby' && d.createdBy == request.auth.uid &&
+          d.createdAt == request.time && !('startedAt' in d) && !('endsAt' in d) &&
+          !('finishedAt' in d) && !('result' in d) &&
+          (d.gameMode != 'plugga_quiz' || (d.questionCount is int &&
+            existsAfter(livePath('grPrivate', 'snapshot')) && existsAfter(livePath('grPublic', 'questions'))));
+      }
+      function grSessionUpdateOk() {
+        let o = resource.data;
+        let n = request.resource.data;
+        let keys = n.diff(o).affectedKeys();
+        return grSettingsOk(n) &&
+          keys.hasOnly(['name', 'showNames', 'status', 'startedAt', 'endsAt', 'finishedAt', 'result']) &&
+          (o.status == 'lobby' || !keys.hasAny(['name'])) && (
+            // namn (lobby) / namn i händelseflödet
+            !keys.hasAny(['status', 'startedAt', 'endsAt', 'finishedAt', 'result']) ||
+            // STARTA
+            (keys.hasOnly(['status', 'startedAt']) && o.status == 'lobby' && n.status == 'live' &&
+              n.startedAt == request.time) ||
+            // endsAt = startedAt + nedräkning + speltid (bara bekvämlighet)
+            (keys.hasOnly(['endsAt']) && 'startedAt' in n &&
+              n.endsAt == n.startedAt + duration.value(n.countdownSeconds + n.durationSeconds, 's')) ||
+            // avsluta (live) / avbryt (lobby)
+            (keys.hasOnly(['status', 'finishedAt']) && o.status in ['lobby', 'live'] &&
+              n.status == 'finished' && n.finishedAt == request.time) ||
+            // historikens result – en gång, efter slut
+            (keys.hasOnly(['result']) && o.status == 'finished' && o.get('result', null) == null &&
+              n.result is map));
+      }
+      // Quizets ögonblicksbild: facit (grPrivate) / frågorna (grPublic).
+      function grQuizDocCreate(docId, want, field) {
+        let d = request.resource.data;
+        let s = getAfter(/databases/$(database)/documents/liveSessions/$(sid)).data;
+        return isTeacher() && docId == want && grFormat(s) && s.status == 'lobby' &&
+          s.gameMode == 'plugga_quiz' && d.keys().hasOnly([field]) && d[field] is list &&
+          d[field].size() == s.questionCount;
+      }
+      function grReader() {
+        return isTeacher() || (signedIn() && exists(livePath('players', request.auth.uid)));
+      }
+
       // --- Pluggmynt efter matchen (#557) ---
       // Kvittot coinReceipts/{uid} = "eleven har fått sina pluggmynt för
       // matchen". Bara create (aldrig ändra/radera) → EN utbetalning per elev
@@ -780,10 +856,13 @@ service cloud.firestore {
       // Formatet avgör regelgrenen (Snilleblixten har en egen, #556).
       allow read: if signedIn();
       allow create: if isTeacher() &&
-        (sbFormat(request.resource.data) ? sbSessionCreateOk() : liveSessionCreateOk());
+        (sbFormat(request.resource.data) ? sbSessionCreateOk()
+          : grFormat(request.resource.data) ? grSessionCreateOk() : liveSessionCreateOk());
       allow update: if sbFormat(resource.data)
         ? isTeacher() && sbSessionUpdateOk()
-        : (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
+        : grFormat(resource.data)
+          ? (isTeacher() && grSessionUpdateOk()) || liveAutoFinishOk()
+          : (isTeacher() && liveSessionUpdateOk()) || liveAutoFinishOk();
       // Radera (#543): bara en session som ALDRIG startat (status lobby) –
       // startade/avslutade är historik. Lobbyns spelardokument (närvaro/redo)
       // raderas i samma batch (live-data deleteLiveSession); svar/räknare finns
@@ -826,6 +905,36 @@ service cloud.firestore {
       match /sbScores/{qid} {
         allow read: if isTeacher() || (signedIn() && exists(livePath('players', request.auth.uid)));
         allow create: if sbScoreCreate(qid);
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+      // Guldrushen (#563): guld, skydd, händelser och ledaren skriver BARA
+      // servern (Cloud Functions, Admin SDK). Deltagare och lärare läser.
+      match /grPlayers/{uid} {
+        allow read: if grReader();
+        allow create, update: if false;
+        allow delete: if isTeacher();
+      }
+      match /grEvents/{eventId} {
+        allow read: if grReader();
+        allow create, update: if false;
+        allow delete: if isTeacher();
+      }
+      match /grMeta/{docId} {
+        allow read: if grReader();
+        allow create, update: if false;
+        allow delete: if isTeacher();
+      }
+      // Quizets facit – eleven kan aldrig läsa det (§4.4).
+      match /grPrivate/{docId} {
+        allow read: if isTeacher();
+        allow create: if grQuizDocCreate(docId, 'snapshot', 'facit');
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+      match /grPublic/{docId} {
+        allow read: if signedIn();
+        allow create: if grQuizDocCreate(docId, 'questions', 'questions');
         allow update: if false;
         allow delete: if isTeacher();
       }

@@ -695,7 +695,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `name` | string ≤ 80 | "4B mot 5E" |
 | `classNames` | map `{ classId: string }` | klassnamnen denormaliserade vid skapandet (#460) – elev/projektor slipper läsa `classes` |
 | `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
-| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc`. **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Klassmatchens regelgren godtar frånvarande eller `"klassmatch"`; `"snilleblixt"` har en egen gren (se Snilleblixten nedan). Varje byte nekas |
+| `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc`. **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Klassmatchens regelgren godtar frånvarande eller `"klassmatch"`; `"snilleblixt"` och `"guldrush"` har egna grenar (se Snilleblixten/Guldrushen nedan). Varje byte nekas |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
 | `answerKind` | `"free"` \| `"choice"` (valfri) | **#551** svarssätt: skriv själv / flerval. Skrivs av `buildSessionDoc` – lärarens val bland svarssätten som BÅDE formatet och spelläget stöder (förval `"free"`). **Saknas = `"free"`** (alla sessioner före #551, ingen migrering). Får ändras i lobbyn, låst efter start (reglerna). Svaren valideras mot det |
 | `quiz` | map (valfri) | **#553** bara spelläget `plugga_quiz`: `{ subjectId, areaId, subjectName, areaName, passagePolicy: "skip" }` – lärarens ämne + arbetsområde (`buildSessionFields`). Frågornas ögonblicksbild (elevsynligt + lärarskyddat facit, §4.4) skrivs av formatet som spelar quizet (Snilleblixten/Guldrushen) – inte här. ⚠️ Ännu inte låst efter start i reglerna |
@@ -901,6 +901,83 @@ classId, points, correct, rank }], perQuestion[{ index, skipped, answered,
 correct }], questionsPlayed, totalCorrect, players }` – inget `perClass`/
 `winnerClasses` → inga klasspokaler/klassbonus/mynt-pris via kc-koppling.
 Plus `rewards` (Pluggmynt, nedan) när sessionen har belöningar.
+
+### Guldrushen (`format: "guldrush"`, #563, epic #562)
+
+Varje elev svarar i egen takt under speltiden (kärnans matchklocka, pacing
+"tid"); rätt svar → tre kistor; mest guld vinner. **Servern avgör allt guld**
+(funktionsspec §6.6): tre anropbara Cloud Functions (`functions/index.js`,
+europe-west1, logik i `functions/guldrush-core.js`) – eleven skriver aldrig
+guld, kistor, skydd eller händelser (reglerna nekar alla klientskrivningar).
+Klientlogik: `src/live/formats/guldrush/` (`guldrush-core.js` format/ställning,
+`guldrush-data.js` Firestore + anrop). Regler: `firestore.rules` "Guldrushen".
+Tester: `test/live-guldrush*.test.js`, `test/firestore-rules-live-guldrush.test.js`,
+`test/functions-guldrush*.test.mjs` (`npm run test:functions`).
+
+**Kisttabellen = EN konfig:** `src/live/formats/guldrush/delat/chests-config.js`
+(id, effekt, vikt + utseende/ljud/händelsetext per kista, trygghetsrattarna
+`GR_RULES`) och spelreglerna `delat/guldrush-regler.js`. `functions/guldrush/`
+är en GENERERAD kopia (`npm run sync:guldrush`; `firebase deploy` kör den som
+predeploy; `test/live-guldrush-delat.test.js` fäller en kopia som glidit isär).
+Servern läser bara id/vikt/effekt.
+
+**`liveSessions/{sid}`** – kärnans fält (`name`, `format`, `gameMode`
+(`multiplication_0_10` | `plugga_quiz`), `answerKind` (quiz = `choice`),
+`participatingClassIds` 1–3, `classNames`, `durationSeconds` 300/600/900/1200,
+`countdownSeconds`, `status`, `createdBy`, `createdByName?`, `createdAt`,
+`quiz?`, `startedAt`, `endsAt`, `finishedAt`, `result`, `rewards?`) – inga
+Klassmatchen-fält (`hasOnly`). Plus `stealSwap` (bool, standard på – av = bara
+guld i kistorna), `showNames` (bool, namn i projektorns händelseflöde – enda
+inställningen som får ändras efter skapandet) och `questionCount` (quiz:
+antal frågor i ögonblicksbilden). Övergångar: STARTA, `endsAt`, avsluta,
+auto-avslut efter 00:00 (`liveAutoFinishOk`), `result` en gång.
+
+**Quiz:** `grPublic/questions` `{ questions[{ id, key, text, options,
+statKeys, category? }] }` (alla inloggade läser – inget facit) och
+`grPrivate/snapshot` `{ facit[{ answerIndex }] }` (BARA lärare + servern)
+skapas i SAMMA batch som sessionen (lobby), sedan aldrig ändrade. Servern
+väljer elevens nästa fråga (`grPlayers.nextQ`, aldrig samma två gånger i rad)
+och godtar bara svar på den – ingen kan pröva alternativen på samma fråga.
+
+**`liveSessions/{sid}/answers/{attemptId}`** – Guldrushens svar skapas BARA av
+servern (`guldrushAnswer`; `liveAnswerCreate` nekar formatet): `{ uid, classId,
+format: "guldrush", mode, isCorrect, at (server), answerKind?/choiceIndex?, …
+}` – multiplikation med Klassmatchens fält (`factorA`, `factorB`, `answer`,
+`correctAnswer`), quiz med `q`, `questionId`, `answer`, `correctAnswer`,
+`statKeys`. Samma samling som Klassmatchen (uid + isCorrect) → räknas i
+`collectionGroup("answers")`-träningsstatistiken. När kistan öppnats: `chest`
+(kistans id), `chestIndex` (0–2), `chestAt` – samma transaktion, så ett svar
+ger EN kista.
+
+**`liveSessions/{sid}/grPlayers/{uid}`** – elevens guld (bara servern skriver,
+deltagare och lärare läser): `{ uid, classId, name, gold, correct, incorrect,
+chests, shield, protectedUntil, lastVictimUid, pending, lastHit, nextQ?,
+joinedAt, lastAnswerAt, lastChestAt }`. Skapas vid första svaret (sen
+anslutning = 0 guld). `pending` = väntande stöld/byte `{ kind, chest,
+attemptId, at, expiresAt }` (eleven väljer offer inom ~10 s, annars slumpar
+servern); `lastHit` = senaste stöld/byte/stoppade försök MOT eleven (elevens
+notis) `{ kind, byUid, byName, amount, at }`.
+
+**`liveSessions/{sid}/grEvents/{id}`** – händelseflödet (designspec §9): `{ type:
+"chest"|"steal"|"swap"|"shieldBlock"|"lead", chest?, uid, name, classId,
+victimUid?, victimName?, victimClassId?, amount, gold, victimGold?, auto?,
+fallbackFrom?, previousUid?, at (server) }`. Skrivs i SAMMA transaktion som
+guldet; dokument-id:t är stabilt. Vyn tar första läsningen som baslinje
+(`createEventCursor`) – inget gammalt spelas upp efter omladdning. Texten
+byggs ur kistans mall (`eventText`, utan namn när `showNames` är av).
+**`grMeta/leader`** `{ uid, gold, at }` – vem som ensam leder; ett byte ger en
+`lead`-händelse (delad etta = ingen ny ledare).
+
+**Trygghet (§6.5, servern):** stöldskydd 30 s efter bestulen/bytt, inte samma
+offer två gånger i rad, byte bara med någon som har MER guld (och bara med eget
+guld), sköld stoppar nästa stöld/byte (förbrukas), stöld ≤ 15 %, hål i fickan
+≤ 10 %, inget nollställer. Ett manipulerat val nekas (valet ligger kvar); ingen
+möjlig → vanlig guldkista. Högst en kista per sekund och elev. Inga heta
+dokument: ett svar/en kista rör bara elevens egna dokument, en stöld två.
+
+`result` (`buildResult`): `{ format, winner: null, ranking[{ uid, name,
+classId, gold, correct, answered, chests, rank }], totalGold, classGold{classId},
+totalCorrect, players }` + `rewards` (Pluggmynt, placering ur guldet).
 
 ### Pluggmynt efter matchen (#557, nya format – Snilleblixten, Guldrushen)
 

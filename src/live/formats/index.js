@@ -20,8 +20,9 @@
 import { registerFormat, getFormat } from "../live-formats.js";
 import KLASSMATCH from "./klassmatch/index.js";
 import SNILLEBLIXT from "./snilleblixt/index.js";
+import GULDRUSH from "./guldrush/index.js";
 
-const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT];
+const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT, GULDRUSH];
 
 for (const f of BUILTIN_FORMATS) if (!getFormat(f.id)) registerFormat(f);
 
