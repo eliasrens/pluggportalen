@@ -19,8 +19,9 @@
 //   rankPlayers(list)     → sorterad, rank med DELAD placering (1, 1, 3)
 //   computeStandings(s, { scores, players }) → { players, classes, totalCorrect,
 //                           leaderIds, winnerId, draw }
-//   buildResult(s, _classes, players, mode, { scores }) → historikens result
-//                         (+ rewards, live-rewards.js #557)
+//   buildResult(s, _classes, players, mode, { scores, questions? }) → historikens
+//                         result (+ rewards, live-rewards.js #557). questions =
+//                         ögonblicksbildens frågor → perQuestion text/statKeys (#560)
 // ============================================================================
 
 import { toMs } from "../../live-time.js";
@@ -154,16 +155,34 @@ export function computeStandings(s, { scores = [], players = [] } = {}) {
  * klassbonus/mynt-pris via kc-koppling (§7.2.6). Pluggmynt (#557): rewards
  * {uid: { rank, correct, prize, correctCoins, total }} om sessionen har
  * belöningar – placering ur poängen, bara elever med minst ett räknat svar.
+ * perQuestion (#560, andel rätt per fråga): { index, skipped, answered,
+ * correct, text?, statKeys?, byClass{classId: { answered, correct }} } –
+ * text/statKeys ur ögonblicksbildens frågor (lärarens resultInputs), byClass
+ * för Statistik → Live per klass.
  */
-export function buildResult(s, _classes, players = [], _mode = null, { scores = [] } = {}) {
+export function buildResult(s, _classes, players = [], _mode = null, { scores = [], questions = null } = {}) {
   const st = computeStandings(s, { scores, players });
-  const perQuestion = [...(scores || [])].sort((a, b) => a.index - b.index).map((sc) => ({
-    index: sc.index, skipped: !!sc.skipped, answered: Number(sc.answered) || 0, correct: Number(sc.correctCount) || 0,
-  }));
+  const classOf = new Map(st.players.map((p) => [p.uid, p.classId]));
+  const perQuestion = [...(scores || [])].sort((a, b) => a.index - b.index).map((sc) => {
+    const row = { index: sc.index, skipped: !!sc.skipped, answered: Number(sc.answered) || 0, correct: Number(sc.correctCount) || 0 };
+    const q = questions?.[sc.index];
+    if (q?.text) row.text = String(q.text).slice(0, 200);
+    if (Array.isArray(q?.statKeys)) row.statKeys = q.statKeys.filter((k) => typeof k === "string");
+    const byClass = {};
+    for (const [uid, ok] of Object.entries(sc.correct || {})) {
+      const c = classOf.get(uid);
+      if (!c) continue;
+      const b = (byClass[c] ||= { answered: 0, correct: 0 });
+      b.answered++;
+      if (ok) b.correct++;
+    }
+    row.byClass = byClass;
+    return row;
+  });
   return withRewards(s, {
     format: "snilleblixt",
     winner: null,
-    ranking: st.players.map(({ uid, name, classId, points, correct, rank }) => ({ uid, name, classId, points, correct, rank })),
+    ranking: st.players.map(({ uid, name, classId, points, correct, answered, rank }) => ({ uid, name, classId, points, correct, answered, rank })),
     perQuestion,
     questionsPlayed: perQuestion.filter((q) => !q.skipped).length,
     totalCorrect: st.totalCorrect,
