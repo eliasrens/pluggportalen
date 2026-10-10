@@ -1,0 +1,248 @@
+/* ==========================================================================
+   Snilleblixten – TV-studion (#559): LOBBYN, LÄRARKONTROLLERNA, FINALEN
+   (pallplats + resultat, designspec §5.7) och STATISTIKVYN (§7). Fortsättning
+   på snilleblixt-studio.css (samma variabler under .sb). Laddas av
+   sb-miljo.js ensureStudioCss. Bara transform/opacitet animeras; reducerad
+   rörelse = toningar, ingen konfetti (sb-pall.js hoppar över den).
+   ========================================================================== */
+
+/* --- Lärarkontrollerna ------------------------------------------------------ */
+.sbc {
+  position: absolute;
+  right: 1.2vw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9vh;
+  width: max(190px, 14vw);
+}
+.sbc button {
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(12, 8, 44, 0.72);
+  padding: 0.45em 1em;
+  font-size: clamp(14px, 1.7vh, 20px);
+}
+.sbc button:hover { background: rgba(60, 40, 160, 0.9); }
+.sbc button:focus-visible { outline: 3px solid var(--sb-gul); outline-offset: 2px; }
+.sbc button:disabled { opacity: 0.5; cursor: wait; }
+.sbc .sbc-nasta {
+  font-size: clamp(17px, 2.3vh, 30px);
+  white-space: nowrap;
+  font-weight: 800;
+  color: #3b1d00;
+  background: linear-gradient(#fff3a0, #ffc928);
+  border: 0;
+  box-shadow: 0 0.5vh 0 #b77a00, 0 0 3vh rgba(255, 210, 63, 0.55);
+  padding: 0.5em 0.8em;
+}
+.sbc .sbc-nasta:hover { background: linear-gradient(#fffbe0, #ffd84d); }
+.sbc .sbc-fara { background: rgba(160, 30, 30, 0.6); border-color: rgba(255, 140, 140, 0.45); }
+.sbc-hint { font-size: clamp(13px, 1.6vh, 18px); opacity: 0.8; text-align: center; }
+.sbc-hint:empty { display: none; }
+
+/* --- Lobbyn ----------------------------------------------------------------- */
+.sb-lobby { grid-template-rows: 1fr auto; }
+.sbl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2vh;
+  padding: var(--sb-topp) 4vw 1vh;
+  text-align: center;
+  min-height: 0;
+}
+.sbl .sbm-logo-stor { font-size: clamp(44px, 9vh, 130px); }
+.sbl-klass { margin: 0; font-size: clamp(40px, 7vh, 92px); line-height: 1; color: #fff3c4; text-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+.sbl-meta { font-size: clamp(18px, 2.6vh, 32px); opacity: 0.9; }
+.sbl-pris { font-size: clamp(18px, 2.6vh, 32px); font-weight: 700; padding: 0.1em 0.9em; border-radius: 999px; background: rgba(255, 210, 63, 0.18); border: 1px solid rgba(255, 210, 63, 0.5); }
+.sbl-rad { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 1vh 3vw; }
+.sbl-antal { font-size: clamp(28px, 4vh, 50px); font-weight: 800; }
+.sbl-antal b { font-size: 1.6em; color: var(--sb-gul); font-variant-numeric: tabular-nums; }
+.sbl-vantar { font-size: clamp(28px, 3.6vh, 46px); font-weight: 700; display: flex; align-items: center; gap: 0.4em; }
+.sbl-puls { width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--sb-gul); animation: sb-andas 1.4s ease-in-out infinite; }
+.sbl-start {
+  font: inherit;
+  font-weight: 800;
+  font-size: clamp(32px, 6vh, 76px);
+  padding: 0.12em 1.4em 0.18em;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #3b1d00;
+  background: linear-gradient(#fff3a0, #ffc928);
+  box-shadow: 0 0.9vh 0 #b77a00, 0 0 5vh rgba(255, 210, 63, 0.6);
+  transition: transform 0.15s;
+}
+.sbl-start:hover { transform: translateY(-2px) scale(1.02); }
+.sbl-start:focus-visible { outline: 4px solid #fff; outline-offset: 4px; }
+.sbl-start:disabled { opacity: 0.7; cursor: wait; }
+.sbl-fot { display: flex; gap: 1.2vw; align-items: center; font-size: clamp(14px, 1.8vh, 20px); opacity: 0.85; }
+.sbl-fot .lp-link { color: #ffb3b3; }
+
+/* --- Finalen: pallplats ---------------------------------------------------- */
+.sbf { position: absolute; inset: 0; pointer-events: none; }
+.sbf[hidden] { display: none; }
+.sbf-dim {
+  position: absolute;
+  inset: 0;
+  /* Scenen dämpas, publiken (nederst) bara lite – de ska synas klappa. */
+  background: radial-gradient(ellipse at 50% 45%, rgba(8, 5, 30, 0.3), rgba(4, 2, 16, 0.85) 65%),
+    linear-gradient(to top, rgba(4, 2, 16, 0.55) 0 22vh, transparent 30vh);
+  mask-image: linear-gradient(to bottom, #000 0 70vh, rgba(0, 0, 0, 0.45) 78vh);
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.sbf-kagla {
+  position: absolute;
+  left: 50%;
+  top: -10vh;
+  width: 70vw;
+  height: 95vh;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgba(255, 246, 205, 0.32), rgba(255, 246, 205, 0.06) 75%, transparent);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  opacity: 0;
+  transition: opacity 0.9s ease 0.2s;
+}
+.sbf-pa .sbf-dim, .sbf-pa .sbf-kagla { opacity: 1; }
+.sb[data-scene="final"] .sb-mitt, .sb[data-scene="final"] .sb-klocka { opacity: 0; }
+.sbf-rubrik {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--sb-topp) + 1vh);
+  margin: 0;
+  text-align: center;
+  font-size: clamp(30px, 5vh, 64px);
+  color: var(--sb-gul);
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+.sbf-pa .sbf-rubrik { opacity: 1; }
+.sbf-pall {
+  position: absolute;
+  left: 50%;
+  bottom: 26vh;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.2vw;
+  transform: translateX(-50%);
+  transform-origin: 50% 0;
+}
+.sbf-steg { width: 25vw; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.sbf-steg.sbf-tom { visibility: hidden; }
+.sbf-figurer, .sbf-namn, .sbf-poang, .sbf-pris { opacity: 0; transition: opacity 0.4s; }
+.sbf-uppe .sbf-figurer, .sbf-uppe .sbf-namn, .sbf-uppe .sbf-poang, .sbf-uppe .sbf-pris { opacity: 1; }
+.sbf-figurer { display: flex; justify-content: center; align-items: flex-end; gap: 0.6vw; }
+.sbf-figurer .lav.lav-stor { font-size: calc(14vh / (1 + (var(--n, 1) - 1) * 0.55)); }
+.sbf-steg-mitten .sbf-figurer .lav.lav-stor { font-size: calc(18vh / (1 + (var(--n, 1) - 1) * 0.55)); }
+.sbf-namn { margin-top: 0.6vh; font-size: clamp(28px, 4.2vh, 54px); font-weight: 800; line-height: 1.05; max-width: 100%; overflow-wrap: anywhere; }
+.sbf-poang { font-size: clamp(24px, 3.2vh, 40px); font-weight: 700; opacity: 0.9; }
+.sbf-pris {
+  margin-top: 0.4vh;
+  padding: 0.05em 0.7em;
+  border-radius: 999px;
+  font-size: clamp(22px, 2.8vh, 34px);
+  font-weight: 800;
+  color: #3b1d00;
+  background: linear-gradient(#fff3a0, #ffc928);
+}
+.sbf-block {
+  width: 100%;
+  margin-top: 1vh;
+  border-radius: 1.4vh 1.4vh 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #3b2200;
+  font-weight: 800;
+  box-shadow: inset 0 1vh 0 rgba(255, 255, 255, 0.35), 0 1vh 3vh rgba(0, 0, 0, 0.5);
+}
+.sbf-block span { font-size: clamp(26px, 4vh, 52px); }
+.sbf-block b { font-size: clamp(32px, 5.4vh, 70px); line-height: 1; }
+.sbf-steg-mitten .sbf-block { height: 15vh; background: linear-gradient(#ffe7a0, #e0a92e); }
+.sbf-steg-vanster .sbf-block { height: 10vh; background: linear-gradient(#f2f4f8, #aab3c4); }
+.sbf-steg-hoger .sbf-block { height: 7.5vh; background: linear-gradient(#ffd2b0, #c27a43); }
+.sbf-steg-vanster .sbf-block, .sbf-steg-hoger .sbf-block { flex-direction: row; gap: 0.3em; }
+.sbf-vinnare .sbf-steg-mitten .sbf-namn { color: var(--sb-gul); text-shadow: 0 0 0.4em rgba(255, 210, 63, 0.8); }
+.sbf-konfetti { position: absolute; inset: 0; overflow: hidden; }
+.sbf-konfetti i { position: absolute; top: 0; width: 1vh; height: 1.6vh; border-radius: 2px; }
+
+/* --- Resultatskärmen: pallen står kvar + en anonym klassrad ---------------
+   Ingen helklasslista på projektorn (Elias 2026-10-10) – bara topp 3. */
+.sbf-sub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--sb-topp) + 8.5vh);
+  margin: 0;
+  text-align: center;
+  font-size: clamp(28px, 3.6vh, 46px);
+  font-weight: 700;
+  color: #fff3c4;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+.sbf-sub[hidden] { display: none; }
+
+/* --- Statistikvyn (§7) – anonym: klassen som helhet, inga namn --------------- */
+.sb-stat { grid-template-rows: auto 1fr auto; }
+.sbx-topp { display: flex; justify-content: space-between; align-items: center; gap: 2vw; padding: var(--sb-topp) 2vw 1vh; position: relative; }
+.sbx-status { font-size: clamp(26px, 3.8vh, 46px); font-weight: 700; text-align: right; }
+.sbx-status b { color: var(--sb-gul); font-variant-numeric: tabular-nums; }
+.sbx-status .sbx-rod { color: #ff6b6b; }
+.sbx-grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; padding: 1vh 2vw; min-height: 0; }
+.sb-stat:not(.sb-skarm) .sbx-grid { padding-right: calc(2vw + max(190px, 14vw)); }
+.sbx-grid section { min-height: 0; display: flex; flex-direction: column; gap: 1.4vh; padding: 2vh 1.6vw; border-radius: 2vh; background: rgba(10, 6, 40, 0.55); border: 2px solid rgba(255, 210, 63, 0.3); }
+.sbx-h { margin: 0; font-size: clamp(28px, 3.8vh, 46px); color: var(--sb-gul); }
+.sbx-h span { color: #fff; }
+.sbx-tom { margin: 0; font-size: clamp(28px, 3.6vh, 44px); opacity: 0.85; }
+.sbx-alt { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1vh; }
+.sbx-opt {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 2fr auto;
+  align-items: center;
+  gap: 1vw;
+  padding: 0.6vh 1vw;
+  border-radius: 1.4vh;
+  font-size: clamp(28px, 3.8vh, 46px);
+  font-weight: 800;
+}
+.sbx-opt:not(.sbx-ratt) { opacity: 0.6; }
+.sbx-ratt { box-shadow: 0 0 0 0.4vh #fff, 0 0 3vh rgba(255, 255, 255, 0.5); }
+.sbx-form svg { width: 1.1em; height: auto; fill: currentColor; display: block; }
+.sbx-otext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbx-stapel { position: relative; height: 0.7em; border-radius: 0.35em; background: rgba(0, 0, 0, 0.25); overflow: hidden; }
+.sbx-stapel i { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.75); transform-origin: left center; }
+.sbx-opt b { font-variant-numeric: tabular-nums; }
+.sbx-andel, .sbx-fritt, .sbx-vanliga { margin: 0; font-size: clamp(28px, 3.8vh, 46px); }
+.sbx-andel b, .sbx-fritt b { color: var(--sb-gul); }
+.sbx-andel small { font-size: 0.7em; opacity: 0.85; }
+.sbx-staplar {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 10), minmax(0, 1fr));
+  gap: 0.6vw;
+  align-items: stretch;
+}
+.sbx-kol { display: flex; flex-direction: column; align-items: center; gap: 0.6vh; min-height: 0; }
+.sbx-pct { font-size: clamp(16px, 2.4vh, 30px); font-weight: 700; min-height: 1.2em; white-space: nowrap; }
+.sbx-ror { position: relative; flex: 1; width: 70%; min-height: 4vh; border-radius: 1vh 1vh 0 0; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.sbx-ror i { position: absolute; inset: 0; background: linear-gradient(#ffe07a, #f2a71b); transform-origin: bottom center; }
+.sbx-kol b { font-size: clamp(20px, 2.8vh, 34px); color: var(--sb-gul); }
+.sbx-kommer { opacity: 0.4; }
+.sbx-hoppad { opacity: 0.55; }
+.sbx-klass { position: relative; padding: 1vh 2vw 2vh; font-size: clamp(28px, 3.8vh, 46px); font-weight: 700; text-align: center; }
+.sbx-klass b { color: var(--sb-gul); }
+.sbx-klass small { font-size: 0.65em; opacity: 0.8; }
+.sb-stat .sbc { top: auto; bottom: 7vh; transform: none; }

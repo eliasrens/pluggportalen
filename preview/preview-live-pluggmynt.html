@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Live: Pluggmynt efter matchen (#557)</title>
+    <link rel="stylesheet" href="../src/live/live.css" />
+    <script type="importmap">
+      { "imports": { "../src/teacher-shared.js": "./pluggmynt-stubs/teacher-shared.js" } }
+    </script>
+    <style>
+      /* Fristående testyta för #557: lärarformulärets sektion (riktiga
+         live-rewards-setup.js), placeringspriserna, trappan och elevens
+         slutskärm – allt ur samma rena live-rewards.js. Ingen inloggning. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      .wrap { max-width: 900px; padding: 16px 20px 40px; }
+      h1 { font-size: 1.3rem; margin: 0 0 4px; }
+      h2 { font-size: 1.05rem; margin: 26px 0 8px; }
+      .card { background: #fff; border-radius: 14px; padding: 14px 18px; box-shadow: 0 1px 4px #0001; overflow-x: auto; }
+      table { border-collapse: collapse; }
+      td, th { padding: 4px 10px; border-bottom: 1px solid #eee; text-align: right; }
+      .slut { display: inline-block; text-align: center; font-size: 1.15rem; line-height: 1.6; }
+      .slut b.tot { font-size: 1.4rem; }
+      .hint { color: #776; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>🪙 Pluggmynt efter matchen</h1>
+      <p class="hint">Snilleblixten & Guldrushen. Ändra fälten – tabellerna och slutskärmen räknas om.</p>
+      <h2>Lärarformuläret</h2>
+      <div class="card live-form"><div class="field live-rewards" data-field="rewards" hidden>
+        <label>🪙 Pluggmynt efter matchen <small class="hint">(delas ut när matchen är slut – kan aldrig stjälas)</small></label>
+        <div class="live-setup-custom"></div></div></div>
+      <h2>Placeringspris</h2>
+      <div class="card" id="platser"></div>
+      <h2>Pluggmynt för rätt svar (trappa per 20 rätt)</h2>
+      <div class="card" id="ratt"></div>
+      <h2>Elevens slutskärm – 2:a plats med 42 rätt</h2>
+      <div class="card"><div class="slut" id="slut"></div></div>
+    </div>
+    <script type="module">
+      import { mount } from "../src/live/live-rewards-setup.js";
+      import {
+        parseRewards, validateRewards, placementPrize, perCorrectCoins, computeRewards, rewardSummary,
+      } from "../src/live/live-rewards.js";
+      const box = document.querySelector("[data-field=rewards]");
+      const api = mount(box, box.querySelector(".live-setup-custom"));
+      function draw() {
+        const raw = api.value();
+        if (validateRewards(raw).length) return;
+        const r = parseRewards(raw);
+        const pl = Array.from({ length: 25 }, (_, i) => i + 1);
+        document.getElementById("platser").innerHTML = r.firstPrize
+          ? `<table><tr><th>Plats</th>${pl.map((p) => `<td>${p}</td>`).join("")}</tr>
+             <tr><th>Mynt</th>${pl.map((p) => `<td>${placementPrize(r.firstPrize, p)}</td>`).join("")}</tr></table>`
+          : `<p class="hint">Inget placeringspris.</p>`;
+        const n = [1, 15, 20, 42, 50, 80, 100, 200, 400];
+        document.getElementById("ratt").innerHTML = `<table><tr><th>Rätt</th>${n.map((x) => `<td>${x}</td>`).join("")}</tr>
+          <tr><th>Mynt</th>${n.map((x) => `<td>${perCorrectCoins(x, r.perCorrect, r.cap)}</td>`).join("")}</tr></table>`;
+        const rw = computeRewards({ rewards: r }, [
+          { uid: "alma", score: 9000, correct: 60, answered: 60 },
+          { uid: "du", score: 8000, correct: 42, answered: 45 },
+        ]);
+        const sum = rewardSummary(rw.du);
+        document.getElementById("slut").innerHTML = `<b>${sum.title}</b><br>${sum.lines.map((l) =>
+          `${l.label}: <b>${l.coins}</b> pluggmynt`).join("<br>")}<br><b class="tot">Totalt: ${sum.total} pluggmynt</b> 🎉`;
+      }
+      box.addEventListener("input", draw);
+      const forsta = box.querySelector("[data-rw=firstPrize]");
+      forsta.value = "300";
+      forsta.dispatchEvent(new Event("input", { bubbles: true }));
+    </script>
+  </body>
+</html>

@@ -6,7 +6,8 @@
 // regeltesterna kör). Laddas bara DYNAMISKT (Live-sidorna), aldrig i bootgrafen.
 //
 // API (lärare)
-//   createLiveSession(input)            → sid       (status "lobby")
+//   createLiveSession(input)            → sid       (status "lobby"; formatets
+//                                         prepareCreate-underdokument i samma batch)
 //   startLiveSession(sid)               → STARTA: startedAt = serverTimestamp,
 //                                         sedan endsAt = startedAt + nedräkning + längd
 //   fillEndsAt(sid)                     → skriv endsAt om den saknas (idempotent)
@@ -15,7 +16,8 @@
 //   setClassDivisor(sid, classId, n)    → justera nämnaren (lobby + under match;
 //                                         låst efter slut → DIVISOR_LOCKED_MSG)
 //   deleteLiveSession(sid)              → radera en session som inte startat
-//                                         (+ lobbyns spelardokument) (#543)
+//                                         (+ lobbyns spelardokument (#543) och
+//                                         formatets privateDocs)
 //   setLiveWizards(sid, wizards)        → Trollkarlsduellen: { classId: "rasmus"|"elias" }
 //                                         (bara i lobbyn – reglerna, #536)
 //   finishLiveSession(sid)              → avsluta nu (lärarens knapp) / avbryt lobby
@@ -45,7 +47,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { planLiveAnswerWrites, planLiveJoin, planLiveHeartbeat, pickShard } from "../tavling/answer-writes.js";
 import { buildSessionDoc, toMs } from "./live-core.js";
-import { answerKindOf } from "./formats/index.js";
+import { answerKindOf, formatOf } from "./formats/index.js";
 import { DIVISOR_LOCKED_MSG } from "./formats/klassmatch/klassmatch-core.js";
 import { noteServerStamp } from "./live-clock.js";
 
@@ -68,7 +70,20 @@ function noteStamps(snap, data, keys) {
 export async function createLiveSession(input, uid) {
   const data = { ...buildSessionDoc(input, { uid }), createdAt: serverTimestamp() };
   if (input.createdByName) data.createdByName = String(input.createdByName).slice(0, 60);
-  const ref = await addDoc(collection(db, "liveSessions"), data);
+  const fmt = formatOf(data);
+  if (!fmt?.prepareCreate) {
+    const ref = await addDoc(collection(db, "liveSessions"), data);
+    return ref.id;
+  }
+  // Formatets underdokument (Snilleblixten: frågornas ögonblicksbild +
+  // lärarskyddat facit, #556) skapas i SAMMA batch som sessionen.
+  const extra = await fmt.prepareCreate(input, data);
+  Object.assign(data, extra.data || {});
+  const ref = doc(collection(db, "liveSessions"));
+  const b = writeBatch(db);
+  b.set(ref, data);
+  for (const sd of extra.subdocs || []) b.set(doc(db, "liveSessions", ref.id, ...sd.path), sd.data);
+  await b.commit();
   return ref.id;
 }
 
@@ -92,7 +107,8 @@ export async function startLiveSession(sid) {
 export async function fillEndsAt(sid) {
   const snap = await getDocFromServer(sessRef(sid));
   const s = snap.data();
-  if (!s || !s.startedAt || s.endsAt) return;
+  // Ingen matchklocka (lärarstyrd takt, Snilleblixten) → inget slut att skriva.
+  if (!s || !s.startedAt || s.endsAt || s.durationSeconds == null) return;
   const extra = (Number(s.countdownSeconds) || 0) + (Number(s.durationSeconds) || 0);
   const endsAt = new Timestamp(s.startedAt.seconds + extra, s.startedAt.nanoseconds);
   await updateDoc(sessRef(sid), { endsAt });
@@ -126,6 +142,7 @@ export async function deleteLiveSession(sid) {
   const players = await getDocs(collection(db, "liveSessions", sid, "players"));
   const b = writeBatch(db);
   players.docs.forEach((d) => b.delete(d.ref));
+  for (const path of formatOf(s.data())?.privateDocs || []) b.delete(doc(db, "liveSessions", sid, ...path));
   b.delete(sessRef(sid));
   try {
     await b.commit();
@@ -166,7 +183,8 @@ export async function autoFinish(sid) {
 /**
  * Historikens ögonblicksbild – skrivs en gång (av en lärarklient). Den klient
  * vars transaktion skrev result delar också ut Klasscentrets Live-bonusar
- * (#479), pokaler (#495) och mynt-priset till klasskassan (#526) –
+ * (#479), pokaler (#495), mynt-priset till klasskassan (#526) och elevernas
+ * Pluggmynt (#557, nya format) –
  * dynamiskt, aldrig kastande → en gång per session.
  */
 export async function writeResultIfMissing(sid, result) {
@@ -185,6 +203,8 @@ export async function writeResultIfMissing(sid, result) {
       m.pokalerEfterAvslut("live", sid, skrev);
       m.livePrisEfterAvslut(sid, skrev);
     }).catch(() => {});
+    // Pluggmynt efter matchen (#557) – idempotent (kvitto per elev).
+    if (result?.rewards) import("./live-rewards-data.js").then((m) => m.settleLiveRewards(sid, skrev)).catch(() => {});
   }
 }
 

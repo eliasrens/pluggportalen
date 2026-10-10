@@ -94,8 +94,14 @@ describe("validateSetupFields (generiska regler)", () => {
 
 describe("formatväljaren + svarssätt + klassledtext", () => {
   it("ett format → ingen väljare (auto-vald Klassmatchen)", () => {
-    assert.equal(listFormats().length, 1);
-    assert.equal(formatPickerHtml(listFormats(), "klassmatch"), "");
+    assert.equal(formatPickerHtml([KM], "klassmatch"), "");
+  });
+
+  it("inbyggda formaten (Klassmatchen + Snilleblixten #556) → väljaren visas, Klassmatchen förvald", () => {
+    assert.deepEqual(listFormats().map((f) => f.id), ["klassmatch", "snilleblixt"]);
+    const html = formatPickerHtml(listFormats(), "klassmatch");
+    assert.match(html, /value="klassmatch" checked/);
+    assert.match(html, /value="snilleblixt"\s+\/>/);
   });
 
   it("svarssätt: Klassmatchen + multiplikation har bara free → inget val", () => {

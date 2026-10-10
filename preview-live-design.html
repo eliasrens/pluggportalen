@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Live-design grund (#571)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Bara förhandsvisningen: en enkel 16:9-scen som visar de tre storlekarna. */
+      html, body { margin: 0; height: 100%; background: #10163a; }
+      .st { position: relative; height: 100vh; aspect-ratio: 16 / 9; max-width: 100vw; margin: 0 auto; overflow: hidden;
+        background: radial-gradient(ellipse at 50% 0%, #2c3a8c, #131a46 60%, #0b1030); color: #fff;
+        font-family: "Baloo 2", system-ui, sans-serif; display: grid; grid-template-columns: 1.15fr 0.85fr; grid-template-rows: auto 1fr auto; }
+      .st h2 { margin: 0; font-size: clamp(16px, 2.4vh, 30px); opacity: .8; letter-spacing: .04em; }
+      .st-head { grid-column: 1 / -1; padding: 1.2vh 2vw; display: flex; gap: 2vw; align-items: baseline; }
+      .st-head b { font-size: clamp(28px, 4.6vh, 56px); }
+      .st-head span { font-size: clamp(16px, 2.2vh, 28px); opacity: .85; }
+      .publik { padding: 1vh 2vw; display: flex; flex-direction: column; gap: 1vh; }
+      .rader { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 1.4vh 1.2vw; padding: 1vh; border-radius: 2vh;
+        background: rgba(255,255,255,.06); flex: 1; }
+      .plats { display: flex; flex-direction: column; align-items: center; width: 6.2vh; }
+      .plats small { font-size: clamp(11px, 1.5vh, 18px); opacity: .85; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .topp { padding: 1vh 2vw; display: flex; flex-direction: column; gap: 1vh; }
+      .topp ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .8vh; }
+      .topp li { display: flex; align-items: center; gap: 1vw; background: rgba(255,255,255,.1); border-radius: 1.4vh; padding: .3vh 1vw;
+        font-size: clamp(20px, 3.2vh, 40px); }
+      .topp li .nr { width: 1.6em; text-align: center; font-weight: 800; color: #ffd23f; }
+      .topp li .namn { flex: 1; }
+      .topp li .p { font-weight: 800; }
+      .pall { grid-column: 1 / -1; display: flex; justify-content: center; align-items: flex-end; gap: 3vw; padding: 0 2vw 1vh; }
+      .steg { display: flex; flex-direction: column; align-items: center; }
+      .steg .blk { width: 15vh; border-radius: 1vh 1vh 0 0; display: grid; place-items: center; font-size: 4vh; font-weight: 800; color: #3b2200;
+        background: linear-gradient(#ffe7a0, #e0a92e); }
+      .steg[data-p="1"] .blk { height: 9vh; } .steg[data-p="2"] .blk { height: 6vh; background: linear-gradient(#f2f4f8, #aab3c4); }
+      .steg[data-p="3"] .blk { height: 4vh; background: linear-gradient(#ffd2b0, #c27a43); }
+      .steg .lav-stor { font-size: 15vh; }
+      .pv { position: fixed; right: 10px; bottom: 10px; z-index: 100; width: 300px; font: 13px/1.35 system-ui, sans-serif;
+        background: rgba(255, 255, 255, 0.96); color: #1b2559; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #c5cde0; background: #f3f6fc; cursor: pointer; }
+      .pv-note, .pv-stat { width: 100%; color: #5a6585; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 12px; color: #1b2559; }
+    </style>
+  </head>
+  <body>
+    <div class="st" id="st">
+      <div class="st-head"><b>⚡ Live-design – grund</b><span data-fas>Lobby</span></div>
+      <section class="publik"><h2>PUBLIK · lav-liten</h2><div class="rader" data-publik></div></section>
+      <section class="topp"><h2>TOPPLISTA · lav-mellan</h2><ol data-topp></ol></section>
+      <section class="pall" data-pall></section>
+    </div>
+    <details class="pv" open>
+      <summary>🧪 Simulering (#571, bara förhandsvisning)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Låtsasdata, ingen Firestore. Avatarerna läses ur en fejkad klassprojektion som RÄKNAR läsningar.
+          Elev 1 har trollkarlshatt + mantel. "Omladdning" bygger om regin med samma sessionStorage.</span>
+        <b>Lobby</b>
+        <button data-act="anslut">+30 ansluter</button>
+        <button data-act="sen">+1 sen elev (saknas i projektionen)</button>
+        <b>Match</b>
+        <button data-act="svar">Alla svarar</button>
+        <button data-act="ratt">Slumpade rätt</button>
+        <button data-act="klattra">Plats 4 → 1</button>
+        <button data-act="storm">Storm: 30 kistor</button>
+        <button data-act="final">Final</button>
+        <button data-act="omladd">Omladdning</button>
+        <b>Reaktioner (alla)</b>
+        <button data-r="ankomst">Ankomst</button><button data-r="svarat">Har svarat</button><button data-r="glad">Glad</button>
+        <button data-r="jubel">Jubel</button><button data-r="aj">Aj</button><button data-r="skyddad">Skyddad</button>
+        <button data-r="vantar">Väntar</button><button data-act="nollstall">Nollställ tillstånd</button>
+        <b>Kontroll</b>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { createAvatarRoster } from "./src/live/design/live-avatars.js";
+      import { createAvatarPool } from "./src/live/design/live-avatar-pool.js";
+      import { createBanner } from "./src/live/design/live-banner.js";
+      import { createLiveRegi } from "./src/live/design/live-regi.js";
+      import { react, setAvatarState } from "./src/live/design/live-reactions.js";
+      import { createSound } from "./src/live/proj-sound.js";
+
+      const DJUR = ["fox", "owl", "cat", "dog", "panda", "frog", "unicorn", "dragon", "lion", "penguin", "koala", "robot", "bjorn",
+        "tiger", "rabbit", "pig", "cow", "monkey", "hamster", "mouse", "chick", "sheep", "hedgehog", "wolf", "deer", "raccoon",
+        "turtle", "bee", "elephant", "goat"];
+      const KLADER = [["trollkarlshatt", "cape"], ["krona", "medalj"], ["keps", "glasogon"], ["cowboyhatt", "mustasch", "svard"],
+        ["partyhatt", "ballong"], ["vikinghjalm", "cape"], ["tomtemossa", "halsduk"], ["strahatt", "blomma"], ["monokel", "fluga"],
+        ["djuroron", "glasstrut"], ["riddarhjalm", "svard", "cape"], ["kockmossa", "slips"], ["vintermossa", "halsduk", "bok"],
+        ["pilotglasogon", "trollstav"], ["ogonlapp", "cape"]];
+      const NAMN = ["Alma", "Omar", "Ines", "Leo", "Clara", "Sam", "Ella", "Noah", "Maja", "Elias", "Wilma", "Adam", "Saga", "Hugo",
+        "Freja", "Liam", "Alva", "Ali", "Signe", "Vera", "Otto", "Nora", "Ebbe", "Selma", "Malte", "Tove", "Isak", "Lova", "Arvid", "Juni"];
+      const members = {};
+      NAMN.forEach((n, i) => {
+        members[`e${i + 1}`] = { namn: n, avatarId: DJUR[i], avatarItems: KLADER[i % KLADER.length], husLast: i === 5 };
+      });
+
+      // Fejkad klassprojektion: räknar varje läsning (designtest 2).
+      let reads = 0;
+      const load = async () => { reads++; await new Promise((r) => setTimeout(r, 120)); return { members: { ...members } }; };
+
+      const sid = "demo-571";
+      const roster = createAvatarRoster({ load, retryMs: 1500 });
+      const pool = createAvatarPool({ roster });
+      const st = document.getElementById("st");
+      const banner = createBanner(st);
+      const sound = createSound();
+      const $ = (s) => document.querySelector(s);
+
+      let phase = "lobby";
+      let players = [];
+      let regi = null;
+      let topRects = null;
+
+      // Topplistan ritas DIREKT ur datan; regins flyttjobb animerar bara dit (FLIP).
+      function snapshotTopp() {
+        const m = new Map();
+        $("[data-topp]").querySelectorAll("li").forEach((li) => m.set(li.dataset.uid, li.getBoundingClientRect().top));
+        return m;
+      }
+      function playRank(job, signal, { speed }) {
+        const anims = [];
+        $("[data-topp]").querySelectorAll("li").forEach((li) => {
+          const from = job.rects?.get(li.dataset.uid);
+          const to = li.getBoundingClientRect().top;
+          const dy = from == null ? 40 : from - to;
+          if (!dy) return;
+          anims.push(li.animate([{ transform: `translateY(${dy}px)`, opacity: from == null ? 0 : 1 }, { transform: "none", opacity: 1 }],
+            { duration: 600 / speed, easing: "cubic-bezier(.2,.8,.3,1)" }));
+        });
+        signal.addEventListener("abort", () => anims.forEach((a) => a.cancel()));
+        return Promise.allSettled(anims.map((a) => a.finished));
+      }
+      function playFinal(job, signal) {
+        sound.cue("trumvirvel");
+        const top3 = [...players].sort((a, b) => b.correct - a.correct).slice(0, 3);
+        const pall = $("[data-pall]");
+        pall.innerHTML = "";
+        const steg = [2, 1, 3].map((p) => {
+          const p0 = top3[p - 1];
+          const d = document.createElement("div");
+          d.className = "steg"; d.dataset.p = p;
+          if (p0) { const a = pool.el(p0.uid, "pall"); a.classList.add("lav-stor"); a.style.opacity = 0; d.appendChild(a); }
+          d.insertAdjacentHTML("beforeend", `<div class="blk">${p}</div>`);
+          pall.appendChild(d);
+          return { p, el: p0 && pool.el(p0.uid, "pall") };
+        });
+        // 3:an, 2:an, 1:an kliver upp i tur och ordning; vinnaren jublar länge.
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        return (async () => {
+          for (const p of [3, 2, 1]) {
+            if (signal.aborted) return;
+            const s = steg.find((x) => x.p === p);
+            if (!s.el) continue;
+            s.el.style.opacity = "";
+            await react(s.el, "ankomst", { signal });
+            await wait(250);
+          }
+          sound.cue("fanfar");
+          const w = steg.find((x) => x.p === 1).el;
+          if (w) await react(w, "jubel", { big: true, signal });
+        })();
+      }
+
+      function buildRegi() {
+        regi?.destroy();
+        regi = createLiveRegi({
+          sessionId: sid, pool, banner, sound, playRank, playFinal,
+          map: (evt) => {
+            if (evt.type === "rank") return [{ kind: "rank", rects: topRects }];
+            if (evt.type === "server" && evt.serverType === "kista") {
+              return [{ kind: "reaction", uid: evt.uid, reaction: "glad", cue: "klirr" },
+                { kind: "banner", mergeKey: "kista", banner: { icon: "💰", title: `${evt.namn} öppnade en kista!` },
+                  bannerMany: (j) => ({ icon: "💰", title: `${j.count} kistor öppnades!`, sub: "Guldet rullar in", tone: "gold" }) }];
+            }
+            return undefined;
+          },
+        });
+      }
+
+      let serverEvents = [];
+      function sync() {
+        topRects = snapshotTopp();
+        roster.ensure(players.map((p) => ({ uid: p.uid, classId: "4b" })));
+        regi.sync({ phase, players, events: serverEvents });
+        render();
+      }
+
+      function render() {
+        $("[data-fas]").textContent = { lobby: "Lobby", live: "Pågår", finished: "Final" }[phase];
+        const publik = $("[data-publik]");
+        for (const p of players) {
+          let pl = publik.querySelector(`[data-plats="${p.uid}"]`);
+          if (!pl) {
+            pl = document.createElement("div");
+            pl.className = "plats"; pl.dataset.plats = p.uid;
+            const a = pool.el(p.uid);
+            a.classList.add("lav-liten", "vantar");
+            pl.append(a);
+            pl.insertAdjacentHTML("beforeend", `<small>${p.name}</small>`);
+            publik.appendChild(pl);
+          }
+        }
+        const top = [...players].filter((p) => p.correct > 0).sort((a, b) => b.correct - a.correct || a.uid.localeCompare(b.uid)).slice(0, 5);
+        const ol = $("[data-topp]");
+        const rows = top.map((p, i) => {
+          let li = ol.querySelector(`[data-uid="${p.uid}"]`);
+          if (!li) {
+            li = document.createElement("li");
+            li.dataset.uid = p.uid;
+            li.innerHTML = `<span class="nr"></span><span class="av"></span><span class="namn">${p.name}</span><span class="p"></span>`;
+            const a = pool.el(p.uid, "topp");
+            a.classList.add("lav-mellan");
+            li.querySelector(".av").append(a);
+          }
+          li.querySelector(".nr").textContent = i + 1;
+          li.querySelector(".p").textContent = p.correct;
+          return li;
+        });
+        ol.replaceChildren(...rows);
+        $("[data-stat]").innerHTML = `Projektionsläsningar: <b>${reads}</b> · elever: ${players.length}<br>` +
+          `kö: väntande ${regi.queue.pending()} · reaktioner ${regi.queue.reactions()} · ${JSON.stringify(regi.queue.stats())}`;
+      }
+
+      let n = 0;
+      const act = {
+        anslut() {
+          const start = players.length;
+          for (let i = 0; i < 30 && start + i < 30; i++) {
+            setTimeout(() => { players = [...players, { uid: `e${start + i + 1}`, name: NAMN[start + i], classId: "4b", correct: 0 }]; sync(); }, i * 120);
+          }
+        },
+        sen() { players = [...players, { uid: `sen${++n}`, name: `Sen ${n}`, classId: "4b", correct: 0 }]; sync(); },
+        svar() { phase = "live"; players = players.map((p) => ({ ...p, answerKey: `q${++n}` })); sync(); },
+        ratt() {
+          phase = "live";
+          players = players.map((p) => (Math.random() < 0.4 ? { ...p, correct: p.correct + 1 + Math.floor(Math.random() * 3), answerKey: `q${++n}` } : p));
+          sync();
+        },
+        klattra() {
+          phase = "live";
+          const sorted = [...players].sort((a, b) => b.correct - a.correct);
+          const fyra = sorted[3];
+          if (!fyra) return;
+          players = players.map((p) => (p.uid === fyra.uid ? { ...p, correct: sorted[0].correct + 2, answerKey: `q${++n}` } : p));
+          sync();
+        },
+        storm() {
+          phase = "live";
+          serverEvents = [...serverEvents, ...players.map((p) => ({ id: `k${++n}`, type: "kista", uid: p.uid, namn: p.name }))];
+          sync();
+        },
+        final() { phase = "finished"; sync(); },
+        omladd() {
+          // Som en omladdning: ny regi (ny tracker), samma sessionStorage → inget gammalt spelas.
+          buildRegi();
+          sync();
+        },
+        nollstall() { players.forEach((p) => ["svarat", "skyddad"].forEach((s) => setAvatarState(pool.el(p.uid), s, false))); },
+      };
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act]()));
+      document.querySelectorAll("[data-r]").forEach((b) => b.addEventListener("click", () => {
+        players.forEach((p, i) => setTimeout(() => react(pool.el(p.uid), b.dataset.r), i * 25));
+      }));
+
+      sessionStorage.removeItem(`pp:live:handelser:${sid}`);
+      buildRegi();
+      await roster.prefetch(["4b"]);
+      sync();
+      const q = new URLSearchParams(location.search);
+      if (q.has("fyll")) {
+        players = NAMN.map((nm, i) => ({ uid: `e${i + 1}`, name: nm, classId: "4b", correct: (i * 7) % 11 }));
+        phase = "live";
+        buildRegi();
+        sync();
+      }
+      setInterval(render, 500);
+      window.__demo = { act, roster, pool, regi: () => regi, reads: () => reads };
+    </script>
+  </body>
+</html>

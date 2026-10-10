@@ -12,6 +12,9 @@
 // formats/klassmatch/klassmatch-student.js). Format saknas = Klassmatchen.
 // Svarskomponenten väljs ur sessionens answerKind (#551, answer-kinds.js):
 // "free" = skriv själv (fast-answer), "choice" = flerval. Saknas = "free".
+// Format med egen spelyta (#558, Snilleblixten: läraren styr fråga för fråga)
+// ger studentView().createStage – då äger formatet "play"-delen och kärnan
+// behåller lobby, 3-2-1-KÖR!, närvaro, sen anslutning och slutskärmens ram.
 // Laddas DYNAMISKT från app.js (#271).
 // ============================================================================
 
@@ -118,7 +121,9 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
   cleanups.push(() => { left = true; });
   let fv, mountAnswer;
   try {
-    [fv, mountAnswer] = await Promise.all([fmt.studentView(), loadAnswerComponent(answerKind)]);
+    fv = await fmt.studentView();
+    // Egen spelyta → kärnans svarskomponent behövs inte.
+    if (!fv.createStage) mountAnswer = await loadAnswerComponent(answerKind);
   } catch {
     return left ? undefined : renderMessage("😕", "Kunde inte ladda matchen", "Prova att ladda om sidan.");
   }
@@ -140,6 +145,8 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
     </div></div>`);
   app.replaceChildren(view);
   const $ = (s) => view.querySelector(s);
+  const stage = fv.createStage?.({ view, host: $(".live-elev-play"), uid, classId, session: initial, mode, answerKind }) || null;
+  if (stage) cleanups.push(() => stage.destroy());
 
   let player = null;
   let joining = null;
@@ -187,9 +194,14 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
   }
 
   function render() {
-    if (!st) return;
+    if (!st || gone) return;
+    renderPart();
+    // Formatets spelyta (#558) uppdateras i ALLA faser (lobbyavatar, slutskärm).
+    if (!gone) stage?.update(st, player);
+  }
+
+  function renderPart() {
     const s = st.session;
-    if (gone) return;
     if (!s) {
       // Raderad (#543): visa beskedet EN gång och sluta lyssna/pulsa.
       gone = true;
@@ -198,14 +210,15 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
       clearInterval(hb);
       return renderCancelled();
     }
-    $(".live-elev-me").textContent = player && st.phase !== "lobby" ? `${player.correct || 0} rätt` : "";
+    if (!stage) $(".live-elev-me").textContent = player && st.phase !== "lobby" ? `${player.correct || 0} rätt` : "";
     // Sen anslutning: matchen har startat → gå med automatiskt.
     if (!player && (st.phase === "countdown" || st.phase === "live")) join();
     if (st.phase === "lobby") {
       show("lobby");
       $(".live-elev-join").hidden = !!player;
-      $(".live-elev-ready").hidden = !player;
-      $(".live-elev-wait").textContent = "Väntar på start…";
+      // fv.joinedText (valfri): formatets egen rad när eleven är med.
+      $(".live-elev-ready").hidden = !player || !!fv.joinedText;
+      $(".live-elev-wait").textContent = player && fv.joinedText ? fv.joinedText : "Väntar på start…";
       return;
     }
     if (st.phase === "countdown") {
@@ -218,12 +231,12 @@ async function mountSession(initial, { uid, myClassIds, cleanups }) {
         void c.offsetWidth;
         c.classList.add("pop");
       }
-      ensureFa().setEnabled(false, "Snart…");
+      if (!stage) ensureFa().setEnabled(false, "Snart…");
       return;
     }
     if (st.phase === "live") {
       show("play");
-      ensureFa().setEnabled(!!player, player ? undefined : "Ansluter…");
+      if (!stage) ensureFa().setEnabled(!!player, player ? undefined : "Ansluter…");
       return;
     }
     fa?.setEnabled(false, "Matchen är slut!");

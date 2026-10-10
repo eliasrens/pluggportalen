@@ -55,17 +55,36 @@
 //   computeStandings(s, { counters, players, now }) → { classes, totalCorrect,
 //                 leaderIds, winnerId, draw } – ställningen projektorvyerna
 //                 ritar (läggs direkt på live-feed-tillståndet)
-//   buildResult(s, classes, players, mode) → historikens ögonblicksbild
-//                 (liveSessions.result, skrivs en gång vid matchslut)
+//   buildResult(s, classes, players, mode, extra?) → historikens ögonblicksbild
+//                 (liveSessions.result, skrivs en gång vid matchslut). extra =
+//                 resultInputs(s) om formatet har den (annars undefined)
 //   projectorViews() → Promise<{ views, createLobby, createWinner, editDivisors? }>
 //                 LAT (import()) – DOM-moduler. views = [{ id, label,
 //                 create(host, { st, colors, sound }) → { update, destroy },
 //                 only2?, finale?, preload? }]
-//   studentView()    → Promise<{ lobbyHtml(s), endHtml(st, player, classId) }>  LAT
+//   studentView()    → Promise<{ lobbyHtml(s), endHtml(st, player, classId),
+//                 joinedText?, createStage? }>  LAT. createStage({ view, host,
+//                 uid, classId, session, mode, answerKind }) → { update(st,
+//                 player), destroy() } VALFRI (#558): formatet äger spelytan
+//                 (host = "play"-delen) i stället för kärnans svarskomponent;
+//                 update körs i varje fas. joinedText = lobbyraden när eleven är med.
 //   historyRenderer() → Promise<{ winnerText, detailHtml, classStats }>   LAT
+//                 (+ valfria ownPlayerTable, playerCounts, classSummaryHtml,
+//                 settle – se teacher-live-history.js; detailHtml får vara async)
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
 //   classDivisors VALFRI bool – lärarens nämnare per klass ("÷ Nämnare")
+//   emitOnPlayers VALFRI bool – realtidslagret skickar nytt tillstånd vid varje
+//                 spelarändring (svar, även fel) för händelsesystemet (#571)
+//   prepareCreate VALFRI (input, sessionData, ctx?) → Promise<{ data?, subdocs? }>
+//                 körs av createLiveSession före skapandet: data slås in i
+//                 sessionen, subdocs [{ path: [samling, id], data }] skapas
+//                 under liveSessions/{sid} i SAMMA batch (Snilleblixten:
+//                 frågornas ögonblicksbild + lärarskyddat facit, #556)
+//   privateDocs   VALFRI [[samling, id]] – underdokument som raderas med en
+//                 lobby (deleteLiveSession)
+//   resultInputs  VALFRI (s) → Promise<extra> – data buildResult behöver
+//                 utöver ställningen (Snilleblixten: { scores } ur sbScores)
 //   minQuestions  VALFRI heltal ≥ 1 – färre frågor än så i ett quizområde ger
 //                 läraren en tydlig varning (#553; saknas = 5, plugga-quiz-core.js)
 // ============================================================================
@@ -110,7 +129,14 @@ export function validateFormat(f) {
   if (f.minQuestions != null && !(Number.isInteger(f.minQuestions) && f.minQuestions >= 1)) {
     errs.push("minQuestions måste vara ett heltal ≥ 1");
   }
-  for (const b of ["classCounters", "classDivisors"]) {
+  for (const fn of ["prepareCreate", "resultInputs"]) {
+    if (f[fn] != null && typeof f[fn] !== "function") errs.push(`${fn} måste vara en funktion`);
+  }
+  if (f.privateDocs != null && !(Array.isArray(f.privateDocs) &&
+      f.privateDocs.every((p) => Array.isArray(p) && p.length === 2 && p.every((x) => typeof x === "string" && x)))) {
+    errs.push("privateDocs måste vara [[samling, id]]");
+  }
+  for (const b of ["classCounters", "classDivisors", "emitOnPlayers"]) {
     if (f[b] != null && typeof f[b] !== "boolean") errs.push(`${b} måste vara bool`);
   }
   return errs;
@@ -125,7 +151,7 @@ export function registerFormat(f) {
   const errs = validateFormat(f);
   if (errs.length) throw new Error(`registerFormat(${f?.id}): ${errs.join("; ")}`);
   if (REGISTRY.has(f.id)) throw new Error(`registerFormat: "${f.id}" finns redan`);
-  const frozen = Object.freeze({ description: "", classCounters: false, classDivisors: false, ...f });
+  const frozen = Object.freeze({ description: "", classCounters: false, classDivisors: false, emitOnPlayers: false, ...f });
   REGISTRY.set(f.id, frozen);
   return frozen;
 }

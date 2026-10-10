@@ -1,0 +1,355 @@
+/* ==========================================================================
+   Snilleblixten – TV-STUDION (#559, designspec §5). Egen fil (§3.1) – laddas
+   av sb-miljo.js ensureStudioCss, aldrig av Klassmatchens vyer. Lobbyn,
+   lärarkontrollerna, finalen och statistiken: snilleblixt-scener.css.
+   16:9 (1920×1080 / 1280×720): vh-baserade mått, viktig text ≥ 28 px
+   (clamp-golv). Bara transform/opacitet animeras; bakgrunden är dämpad och
+   tar aldrig fokus. Skalets verktygsrad ligger överst (54 px) – studion
+   börjar under den i kontrollpanelen, högst upp på elevskärmen.
+   Alternativens färger = elevens knappar (choice-answer.css), alltid med form.
+   ========================================================================== */
+
+.sb {
+  --sb-gul: #ffd23f;
+  --sb-rod: #c62828;
+  --sb-bla: #1565c0;
+  --sb-gulalt: #ffc928;
+  --sb-gron: #2e7d32;
+  --sb-topp: 54px;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  color: #fff;
+  font-family: "Baloo 2", system-ui, sans-serif;
+  background: radial-gradient(ellipse at 50% 0%, #4a2bb0 0%, #24157a 38%, #120c46 70%, #08061f 100%);
+}
+.lp-elevskarm .sb { --sb-topp: 1.4vh; }
+.sb-topp, .sb-mitt, .sb-fot, .sbl { position: relative; }
+
+/* --- Miljön: strålkastare, golv, vattenstämpel ---------------------------- */
+.sbm { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sbm-glod {
+  position: absolute;
+  inset: -20vh -10vw auto;
+  height: 70vh;
+  background: radial-gradient(ellipse at 50% 30%, rgba(160, 110, 255, 0.45), transparent 65%);
+}
+.sbm-spots { position: absolute; inset: 0; }
+.sbm-spot {
+  position: absolute;
+  top: -12vh;
+  width: 28vw;
+  height: 125vh;
+  background: linear-gradient(to bottom, rgba(255, 248, 215, 0.2), rgba(255, 248, 215, 0.05) 60%, transparent 88%);
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  transform-origin: 50% 0;
+  will-change: transform;
+  animation: sbm-svep 16s ease-in-out infinite alternate;
+}
+.sbm-s1 { left: 2vw; transform: rotate(-18deg); }
+.sbm-s2 { left: 36vw; animation-duration: 21s; animation-delay: -6s; opacity: 0.8; }
+.sbm-s3 { right: 2vw; transform: rotate(18deg); animation-duration: 18s; animation-delay: -11s; }
+@keyframes sbm-svep {
+  from { transform: rotate(-20deg); }
+  to { transform: rotate(20deg); }
+}
+.sbm-vatten {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  opacity: 0.06;
+}
+.sbm-vatten-bolt { height: 70vh; width: auto; }
+.sbm-golv {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 25vh;
+  background: linear-gradient(to bottom, rgba(110, 80, 230, 0.32), rgba(25, 14, 70, 0.92) 55%, #07051a);
+  border-top: 2px solid rgba(255, 220, 120, 0.28);
+}
+.sbm-reflex {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 0;
+  height: 60%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 235, 170, 0.28), transparent 70%);
+}
+.sbm-linjer {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 8vw);
+  mask-image: linear-gradient(to bottom, #000, transparent 85%);
+}
+.sb-stilla .sbm-spot { animation: none; }
+.sbm-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, #fffbe6, rgba(255, 230, 120, 0.6) 45%, rgba(255, 210, 63, 0) 80%);
+  opacity: 0;
+}
+
+/* --- Loggan ---------------------------------------------------------------- */
+.sbm-logo { display: flex; align-items: center; gap: 0.5vw; font-weight: 800; letter-spacing: 0.05em; line-height: 1; }
+.sbm-logo .sbm-bolt { height: 1.4em; width: auto; filter: drop-shadow(0 0 0.25em rgba(255, 210, 63, 0.75)); }
+.sbm-namn b { color: var(--sb-gul); }
+.sbm-logo-liten { font-size: clamp(20px, 3vh, 38px); text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
+.sbm-logo-stor { font-size: clamp(48px, 10vh, 140px); justify-content: center; }
+.sbm-logo-stor .sbm-bolt { height: 1.35em; animation: sb-zap 3.2s ease-in-out infinite; }
+.sbm-logo-stor .sbm-namn {
+  background: linear-gradient(180deg, #fff 0%, #fff7cf 45%, #ffd23f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.06em 0 #6b3a00) drop-shadow(0 0 0.3em rgba(255, 200, 60, 0.45));
+}
+.sbm-logo-stor .sbm-namn b { color: transparent; }
+@keyframes sb-zap {
+  0%, 86%, 100% { transform: none; }
+  90% { transform: rotate(-6deg) scale(1.06); }
+  94% { transform: rotate(4deg) scale(1.03); }
+}
+
+/* --- Överst: logga, "Fråga 4 av 10", cirkulär nedräkning ------------------ */
+.sb-topp {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2vw;
+  padding: var(--sb-topp) 2vw 0;
+  min-height: calc(var(--sb-topp) + 13vh);
+}
+.sb-klass { justify-self: end; font-weight: 800; font-size: clamp(28px, 3.6vh, 46px); color: #fff3c4; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
+.sbk { display: flex; align-items: center; gap: 1.6vw; }
+.sbk-nr {
+  font-weight: 800;
+  font-size: clamp(28px, 4.2vh, 52px);
+  white-space: nowrap;
+  padding: 0.1em 0.7em;
+  border-radius: 999px;
+  background: rgba(10, 6, 40, 0.6);
+  border: 2px solid rgba(255, 210, 63, 0.5);
+}
+.sbk-nr:empty { display: none; }
+.sbk-ring { position: relative; width: clamp(84px, 13vh, 150px); aspect-ratio: 1; }
+.sbk-ring svg { width: 100%; height: 100%; display: block; }
+.sbk-spar { fill: rgba(10, 6, 40, 0.75); stroke: rgba(255, 255, 255, 0.16); stroke-width: 8; }
+.sbk-bage { fill: none; stroke: var(--sb-gul); stroke-width: 8; stroke-linecap: round; transition: stroke 0.3s; }
+.sbk-sek {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(40px, 7vh, 84px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sbk-spanning .sbk-bage { stroke: #ff4d4d; }
+.sbk-spanning .sbk-sek { color: #ff6b6b; }
+.sbk-spanning { animation: sb-puls 0.5s ease-in-out infinite alternate; }
+@keyframes sb-puls { to { transform: scale(1.08); } }
+
+/* --- Mitten: frågeschaktet --------------------------------------------------- */
+.sb-mitt { min-height: 0; }
+.sbs, .sb-info { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.2vh; padding: 1vh 16vw; }
+.lp-elevskarm .sbs, .sb-skarm .sbs { padding-inline: 8vw; }
+.sb:not([data-scene="fraga"]):not([data-scene="stangd"]):not([data-scene="svar"]) .sbs { display: none; }
+.sbs-kort {
+  position: relative;
+  max-width: 68vw;
+  padding: 2vh 3vw;
+  border-radius: 3vh;
+  background: linear-gradient(180deg, rgba(58, 34, 150, 0.95), rgba(26, 16, 82, 0.95));
+  border: 0.45vh solid rgba(255, 210, 63, 0.85);
+  box-shadow: 0 0 5vh rgba(255, 210, 63, 0.3), inset 0 0 3vh rgba(140, 110, 255, 0.35), 0 1.2vh 3vh rgba(0, 0, 0, 0.45);
+}
+/* Schaktets ljuspelare på sidorna. */
+.sbs-kort::before, .sbs-kort::after {
+  content: "";
+  position: absolute;
+  top: -40vh;
+  bottom: -2vh;
+  width: 1.2vw;
+  background: linear-gradient(to bottom, transparent, rgba(255, 220, 120, 0.25));
+  pointer-events: none;
+}
+.sbs-kort::before { left: -2vw; }
+.sbs-kort::after { right: -2vw; }
+.sbs-fraga { margin: 0; text-align: center; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.sbs-t-xl { font-size: clamp(44px, 10vh, 130px); }
+.sbs-t-l { font-size: clamp(32px, 6vh, 76px); }
+.sbs-t-m { font-size: clamp(28px, 4.6vh, 58px); }
+.sbs-t-s { font-size: clamp(28px, 3.8vh, 46px); }
+
+.sbs-alt {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: min(68vw, 1320px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.6vh 1.2vw;
+}
+.sbs-opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+  min-height: 10vh;
+  padding: 1.2vh 1.6vw;
+  border-radius: 2vh;
+  overflow: hidden;
+  font-weight: 800;
+  border: 0.35vh solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0.8vh 0 rgba(0, 0, 0, 0.3);
+  transition: opacity 0.5s, transform 0.5s, box-shadow 0.5s;
+}
+.sbs-rod { background: var(--sb-rod); }
+.sbs-bla { background: var(--sb-bla); }
+.sbs-gul { background: var(--sb-gulalt); color: #1d2433; }
+.sbs-gron { background: var(--sb-gron); }
+.sbs-form { flex: none; display: grid; }
+.sbs-form svg { width: clamp(36px, 6.4vh, 80px); height: auto; fill: currentColor; filter: drop-shadow(0 0.3vh 0 rgba(0, 0, 0, 0.25)); }
+.sbs-otext { flex: 1; min-width: 0; line-height: 1.1; overflow-wrap: anywhere; }
+.sbs-otext.sbs-t-l { font-size: clamp(28px, 4.4vh, 56px); }
+.sbs-otext.sbs-t-xl { font-size: clamp(34px, 6.4vh, 80px); }
+.sbs-stapel { position: absolute; inset: 0; pointer-events: none; }
+.sbs-stapel i {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.sbs-gul .sbs-stapel i { background: rgba(255, 255, 255, 0.45); }
+.sbs-form, .sbs-otext, .sbs-antal { position: relative; }
+.sbs-antal { font-size: clamp(30px, 5vh, 64px); font-variant-numeric: tabular-nums; }
+.sbs-avslojad .sbs-fel { opacity: 0.4; transform: scale(0.96); }
+.sbs-avslojad .sbs-ratt {
+  transform: scale(1.04);
+  border-color: #fff;
+  box-shadow: 0 0 0 0.5vh #fff, 0 0 6vh 1.4vh rgba(255, 255, 255, 0.65);
+}
+.sbs-avslojad .sbs-ratt .sbs-otext::after { content: " ✓"; }
+
+.sbs-skriv {
+  display: flex;
+  align-items: center;
+  gap: 1.4vw;
+  padding: 2.4vh 4vw;
+  border-radius: 2.4vh;
+  border: 0.5vh dashed rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 800;
+  font-size: clamp(36px, 6.6vh, 84px);
+  animation: sb-andas 2.4s ease-in-out infinite;
+}
+@keyframes sb-andas { 50% { opacity: 0.72; } }
+.sbs-facit { display: flex; align-items: center; justify-content: center; gap: 3vw; text-align: center; }
+.sbs-facit[hidden] { display: none; }
+.sbs-facit-info { display: flex; flex-direction: column; align-items: flex-start; gap: 1.2vh; text-align: left; max-width: 40vw; }
+.sbs-rattsvar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.6vh 4vw 1.4vh;
+  border-radius: 3vh;
+  background: linear-gradient(180deg, #2fbf6a, #1e8a49);
+  border: 0.5vh solid #fff;
+  box-shadow: 0 0 6vh rgba(80, 230, 140, 0.55);
+}
+.sbs-rattsvar small { font-size: clamp(24px, 3vh, 36px); font-weight: 700; opacity: 0.9; }
+.sbs-rattsvar b { font-size: clamp(56px, 12vh, 160px); line-height: 1; font-variant-numeric: tabular-nums; }
+.sbs-andel { font-size: clamp(30px, 4.6vh, 58px); }
+.sbs-andel b { color: var(--sb-gul); }
+.sbs-andel small, .sbs-vanliga small { font-size: 0.7em; opacity: 0.85; }
+.sbs-vanliga { font-size: clamp(28px, 4vh, 50px); display: flex; flex-wrap: wrap; gap: 0.4em 0.6em; align-items: baseline; }
+.sbs-vanliga span { padding: 0 0.5em; border-radius: 0.5em; background: rgba(255, 90, 90, 0.22); }
+.sbs-vanliga i { opacity: 0.6; font-style: normal; }
+
+/* --- Intro / hoppad / utrop ------------------------------------------------- */
+.sb-info { text-align: center; }
+.sb-intro p, .sb-hoppad { margin: 2vh 0 0; font-size: clamp(32px, 5vh, 64px); font-weight: 800; }
+/* Mellanbilden efter avslöjandet: neutral, utan namn (ingen topplista). */
+.sb-mellan { display: flex; flex-direction: column; align-items: center; gap: 1.6vh; }
+.sb-mellan p { margin: 0; font-size: clamp(28px, 4vh, 50px); font-weight: 700; opacity: 0.9; }
+.sb-mellan .sb-mellan-nr { color: #fff3c4; }
+.sb-mellan .sb-mellan-stor {
+  font-size: clamp(44px, 9vh, 116px);
+  font-weight: 800;
+  opacity: 1;
+  padding: 0.1em 0.8em;
+  border-radius: 3vh;
+  background: rgba(10, 6, 40, 0.6);
+  border: 0.4vh solid rgba(255, 210, 63, 0.6);
+}
+.sb-mellan .sb-mellan-stor b { color: var(--sb-gul); font-variant-numeric: tabular-nums; }
+.sb-utrop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 38%;
+  text-align: center;
+  pointer-events: none;
+  font-size: clamp(56px, 11vh, 140px);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 0.3em rgba(255, 200, 60, 0.9), 0 0.06em 0 #6b3a00;
+}
+.sb-utrop-alla { color: var(--sb-gul); }
+
+/* --- Publiken + "17 av 24 har svarat" -------------------------------------- */
+.sb-fot { padding: 0 1.6vw 1vh; }
+.sb-svarat {
+  display: table;
+  margin: 0 auto 0.8vh;
+  padding: 0.1em 1em;
+  border-radius: 999px;
+  font-size: clamp(28px, 3.8vh, 48px);
+  font-weight: 700;
+  background: rgba(10, 6, 40, 0.8);
+  border: 2px solid rgba(255, 210, 63, 0.65);
+}
+.sb-svarat b { color: var(--sb-gul); font-variant-numeric: tabular-nums; }
+.sbp { position: relative; }
+.sbp-rader { display: grid; grid-template-columns: repeat(var(--sbp-per-rad, 15), minmax(0, 1fr)); justify-items: center; row-gap: 0.3vh; }
+.sbp-plats { display: flex; flex-direction: column; align-items: center; min-width: 0; width: 100%; }
+.sbp-plats .lav { font-size: calc(7.2vh * var(--sbp-skala, 1)); }
+.sbp[data-rader="3"] .sbp-plats .lav { font-size: calc(5.6vh * var(--sbp-skala, 1)); }
+.sbp-namn {
+  max-width: 100%;
+  font-size: clamp(13px, 1.9vh, 22px);
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.sbp-ljus {
+  position: absolute;
+  left: var(--x, 50%);
+  bottom: 0;
+  width: 16vh;
+  height: 70vh;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, rgba(255, 244, 190, 0.5), rgba(255, 244, 190, 0.04));
+  clip-path: polygon(0 100%, 100% 100%, 60% 0, 40% 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Banderollen (#571) i studion: under skalets verktygsrad. */
+.sb .lbn-host { top: calc(var(--sb-topp) + 2vh); }
+
+/* --- Reducerad rörelse: inga svep/pulser – all information kvar ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .sbm-spot, .sbm-logo-stor .sbm-bolt, .sbk-spanning, .sbs-skriv, .sbl-puls { animation: none !important; }
+  .sbk-ring.sbk-spanning { outline: 0.5vh solid #ff4d4d; outline-offset: 0.4vh; border-radius: 50%; }
+}

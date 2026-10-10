@@ -1,0 +1,195 @@
+/* ==========================================================================
+   Snilleblixten – elevens skärm (#558, designspec §3.3, §5.8, §10, §11).
+   Egen fil (laddas av snilleblixt-student.js). Chromebook först (1366×768):
+   allt viktigt utan scroll, knapparna fyller ytan. Lätt: inga
+   bakgrundsanimationer – bara tidsstapeln (transform) och korta toningar.
+   Inga z-index (DESIGNSYSTEM §1) – allt ligger i flödet.
+   ========================================================================== */
+
+.sb-elev-vy {
+  --sb-ratt: #1f8a4c;
+  --sb-ratt-ljus: #e3f7ea;
+  --sb-fel: #c0392b;
+  --sb-fel-ljus: #fdecea;
+  --sb-blixt: #ffc928;
+  --sb-lila: #3b2a8f;
+  gap: 1.2vh;
+  min-height: calc(100vh - 90px);
+  min-height: calc(100dvh - 90px);
+}
+.sb-elev-vy .live-elev-stage {
+  align-items: stretch;
+  padding: clamp(10px, 2.2vh, 24px) clamp(10px, 1.6vw, 22px);
+  transition: background-color 0.25s ease;
+}
+.sb-elev-vy .live-elev-lobby,
+.sb-elev-vy .live-elev-end,
+.sb-elev-vy .live-elev-count { align-self: center; }
+.sb-elev-vy .live-elev-count { margin: auto; }
+.sb-elev-vy .live-elev-play {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.sb-elev-vy .live-elev-fa { display: none; }
+
+/* --- Avslöjande: hela ytan grön / röd (vänlig, inte larmig) --------------- */
+.sb-elev-vy.sb-ratt .live-elev-stage { background: var(--sb-ratt-ljus); box-shadow: inset 0 0 0 6px var(--sb-ratt); }
+.sb-elev-vy.sb-fel .live-elev-stage { background: var(--sb-fel-ljus); box-shadow: inset 0 0 0 6px var(--sb-fel); }
+
+/* --- Spelytan -------------------------------------------------------------- */
+.sb-elev {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.4vh, 14px);
+}
+.sb-elev > [hidden] { display: none !important; }
+
+.sb-rad {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 1.6em;
+  font-weight: 800;
+  font-size: clamp(16px, 2.6vh, 24px);
+  color: var(--text-svag, #4a5670);
+}
+.sb-nr { flex: none; }
+.sb-tid {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: #e6e9f2;
+  overflow: hidden;
+}
+.sb-tid i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--sb-blixt), #ff9f1a);
+  transform-origin: left center;
+}
+@keyframes sb-tid { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+.sb-felrad {
+  flex: none;
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  color: var(--sb-fel);
+}
+
+/* Svarsytan fyller resten: flervalets 2×2 eller skriv själv-fältet. */
+.sb-svar {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.sb-svar.ca-root { justify-content: stretch; }
+.sb-svar .ca-fraga:empty,
+.sb-svar .fa-question:empty { display: none; }
+.sb-svar .ca-status:empty { display: none; }
+.sb-svar .fa-feedback { display: none; }
+
+/* "Har svarat" (flerval): raden under knapparna med elevens avatar. */
+.sb-skickat {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: clamp(20px, 3.4vh, 32px);
+  font-weight: 800;
+  color: var(--sb-lila);
+}
+.sb-skickat .sb-av-plats { font-size: clamp(44px, 8vh, 80px); }
+
+/* --- Korten: svarat (skriv själv), väntan, avslöjande ---------------------- */
+.sb-kort {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(4px, 1vh, 10px);
+  animation: sb-in 0.25s ease-out;
+}
+.sb-kort-ikon { font-size: clamp(56px, 13vh, 120px); line-height: 1; }
+.sb-kort-rubrik { margin: 0; font-size: clamp(30px, 6.5vh, 58px); line-height: 1.1; }
+.sb-kort-poang { margin: 0; font-size: clamp(48px, 12vh, 112px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.sb-kort-poang:empty, .sb-kort-plats:empty, .sb-kort-text:empty { display: none; }
+.sb-kort-text { font-size: clamp(20px, 3.6vh, 32px); font-weight: 700; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.sb-kort-plats { margin: 0; font-size: clamp(22px, 4vh, 36px); font-weight: 800; color: var(--sb-lila); }
+.sb-kort .sb-av-plats { font-size: clamp(70px, 15vh, 140px); }
+.sb-kort .sb-av-plats[hidden] { display: none; }
+.sb-kort[data-lage="ratt"] .sb-kort-rubrik,
+.sb-kort[data-lage="ratt"] .sb-kort-poang { color: var(--sb-ratt); }
+.sb-kort[data-lage="fel"] .sb-kort-rubrik { color: var(--sb-fel); }
+.sb-kort[data-lage="fel"] .sb-kort-poang { color: #6b4a46; font-size: clamp(26px, 5vh, 44px); }
+.sb-ditt b, .sb-rattsvar b { font-size: 1.3em; }
+.sb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 6px;
+  padding: 4px 16px;
+  border-radius: 14px;
+  vertical-align: middle;
+  background: var(--chip, #444);
+  color: #fff;
+}
+.sb-chip.sb-chip-rod { --chip: #c62828; }
+.sb-chip.sb-chip-bla { --chip: #1565c0; }
+.sb-chip.sb-chip-gul { --chip: #ffc928; color: #1d2433; }
+.sb-chip.sb-chip-gron { --chip: #2e7d32; }
+.sb-chip .ca-form { width: 1.1em; height: 1.1em; fill: currentColor; }
+
+@keyframes sb-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* --- Lobby och final ------------------------------------------------------ */
+.sb-lobby { font-size: clamp(90px, 20vh, 180px); margin: 1vh 0; }
+.sb-final { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.sb-final [data-sb-av] { font-size: clamp(90px, 20vh, 180px); }
+.sb-final h2 { margin: 0; font-size: clamp(32px, 7vh, 60px); }
+.sb-final-poang { margin: 0; font-size: clamp(20px, 3.4vh, 30px); font-weight: 700; color: var(--text-svag, #4a5670); }
+/* Läget mot närmaste framför (ingen placering som nummer, #559). */
+.sb-final-rel { margin: 0; font-size: clamp(22px, 4vh, 36px); font-weight: 800; color: var(--sb-lila); }
+.sb-mynt {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 10px 22px;
+  min-width: min(420px, 90vw);
+  border-radius: 16px;
+  background: #fff6d6;
+  border: 2px solid #f4c430;
+  color: #5c3d00;
+  font-size: clamp(18px, 3.2vh, 28px);
+}
+.sb-mynt li { display: flex; justify-content: space-between; gap: 24px; padding: 2px 0; }
+.sb-mynt li b::after { content: " 🪙"; }
+.sb-mynt-tot { margin: 4px 0 0; font-size: clamp(24px, 4.6vh, 40px); font-weight: 900; color: #7a5200; }
+
+/* --- Tillgänglighet ------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .sb-kort { animation: sb-tona 0.3s ease-out; }
+  .sb-elev-vy .live-elev-stage { transition: none; }
+}
+@keyframes sb-tona { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-contrast: more) {
+  .sb-elev-vy.sb-ratt .live-elev-stage { background: #fff; box-shadow: inset 0 0 0 8px var(--sb-ratt); }
+  .sb-elev-vy.sb-fel .live-elev-stage { background: #fff; box-shadow: inset 0 0 0 8px var(--sb-fel); }
+  .sb-kort-plats, .sb-final-rel, .sb-skickat { color: #000; }
+}
+
+/* Mobil/smal skärm: kortare marginaler, knapparna får plats ändå. */
+@media (max-width: 600px) {
+  .sb-elev-vy { min-height: calc(100dvh - 70px); }
+  .sb-mynt { min-width: 0; width: 100%; }
+}

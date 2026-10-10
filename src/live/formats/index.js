@@ -19,8 +19,9 @@
 
 import { registerFormat, getFormat } from "../live-formats.js";
 import KLASSMATCH from "./klassmatch/index.js";
+import SNILLEBLIXT from "./snilleblixt/index.js";
 
-const BUILTIN_FORMATS = [KLASSMATCH];
+const BUILTIN_FORMATS = [KLASSMATCH, SNILLEBLIXT];
 
 for (const f of BUILTIN_FORMATS) if (!getFormat(f.id)) registerFormat(f);
 

@@ -23,12 +23,20 @@
 //                                    // Klassmatchen: classes = [{ classId, name,
 //                                    // correct, divisor, score, joined, ready }]
 //     top: [{ uid, name, classId, correct, incorrect }],
+//     players: [{ uid, name, classId, correct, incorrect, answerKey,
+//                joinedAt, lastSeenAt }],  // alla anslutna (lärare, tider i ms)
+//                                    // – avatarer/händelser (#571), närvaro (#559)
 //     result,                        // sparad historik (efter slut) eller null
 //     now,                           // server-korrigerad tid för renderingen
 //   }
 //
 // Formatet (formatOf(session), saknat = Klassmatchen) avgör ställningen,
 // historikens result och om klassräknarna (classCounters) ska lyssnas på.
+// fmt.emitOnPlayers (#571, de nya lägena): skicka ett nytt tillstånd vid
+// VARJE spelarändring (anslutning, svar – även fel svar), så händelsesystemet
+// (design/live-events.js) ser "Har svarat" – och vid varje puls (lastSeenAt),
+// så närvaron (vem räknas som ansluten) aldrig är inaktuell. Klassmatchen
+// sätter den inte och ritas exakt som förut.
 //
 // Återanslutning: Firestore-lyssnarna återupptas själva efter avbrott, och en
 // omladdning prenumererar bara på nytt – allt tillstånd kommer från servern.
@@ -37,7 +45,7 @@
 import {
   watchSession, watchCounters, watchPlayers, autoFinish, fillEndsAt, writeResultIfMissing,
 } from "./live-data.js";
-import { phaseAt, topPlayers, formatClock } from "./live-core.js";
+import { phaseAt, topPlayers, formatClock, toMs } from "./live-core.js";
 import { serverNow, syncLiveClock } from "./live-clock.js";
 import { getGameMode } from "./modes/index.js";
 import { formatOf } from "./formats/index.js";
@@ -46,6 +54,22 @@ import { formatOf } from "./formats/index.js";
 const NO_STANDINGS = { classes: [], totalCorrect: 0, leaderIds: [], winnerId: null, draw: false };
 
 const TICK_MS = 250;
+
+/** Alla spelare i tillståndet (#571): lätta poster, svarsnyckel = senaste svaret. */
+function allPlayers(players) {
+  return (players || []).filter((p) => p && p.uid).map((p) => ({
+    uid: p.uid,
+    name: p.name || "",
+    classId: p.classId,
+    correct: Number(p.correct) || 0,
+    incorrect: Number(p.incorrect) || 0,
+    answerKey: p.lastAttemptId || null,
+    // Närvaro (#559): Snilleblixtens "17 av 24 har svarat" räknar anslutna
+    // (färsk puls) som fick svara (anslöt före frågan).
+    joinedAt: toMs(p.joinedAt),
+    lastSeenAt: toMs(p.lastSeenAt),
+  }));
+}
 // Vänta in svar som committats precis före slutet innan resultatet fryses.
 const RESULT_SETTLE_MS = 2500;
 
@@ -86,6 +110,7 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
       clock: formatClock(ph.msLeft),
       ...standings,
       top: topPlayers(players, topN),
+      players: allPlayers(players),
       result: s?.result || null,
       now,
     };
@@ -110,12 +135,19 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
       fillEndsAt(sid).catch(() => {});
     }
     if (st.phase === "finished" && !st.result && !resultTimer) {
-      resultTimer = setTimeout(() => {
+      resultTimer = setTimeout(async () => {
         const fmt = formatOf(session);
         if (closed || session?.result || !fmt) return;
-        const final = compute();
-        const result = fmt.buildResult(session, final.classes, players, getGameMode(session?.gameMode));
-        writeResultIfMissing(sid, result).catch(onError);
+        try {
+          // Format som räknar result ur egna dokument (Snilleblixten: sbScores).
+          const extra = fmt.resultInputs ? await fmt.resultInputs(session) : undefined;
+          if (closed || session?.result) return;
+          const final = compute();
+          const result = fmt.buildResult(session, final.classes, players, getGameMode(session?.gameMode), extra);
+          await writeResultIfMissing(sid, result);
+        } catch (err) {
+          onError(err);
+        }
       }, RESULT_SETTLE_MS);
     }
   }
@@ -125,7 +157,8 @@ export function subscribeLiveSession(sid, cb, opts = {}) {
     const st = compute();
     // Rita bara om något syns ändrat (sekund-upplöst klocka, poäng, status …).
     const key = JSON.stringify([st.status, st.phase, st.countdown, st.clock, st.classes, st.top, !!st.result,
-      st.session?.classDivisors, st.session?.endsAt?.seconds]);
+      st.session?.classDivisors, st.session?.endsAt?.seconds,
+      formatOf(st.session)?.emitOnPlayers ? st.players.map((p) => [p.uid, p.answerKey, p.correct, p.lastSeenAt]) : 0]);
     chores(st);
     if (!force && key === lastKey) return;
     lastKey = key;
