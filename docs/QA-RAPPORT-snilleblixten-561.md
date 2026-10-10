@@ -190,3 +190,61 @@ env $E QA_UID=rasmus QA_ROLL=larare node --import ./admin/qa-node-app-loader.mjs
   admin/qa-snilleblixt-larare.mjs <sid> --nasta 7000 --pall [--start]
 env $E node admin/qa-snilleblixt-slut-verifiera.mjs <sid> A
 ```
+
+## Runda 2 (#575): verifiering av F1–F3 och elevskärm utan placering
+
+Körd 2026-10-10 på epic-grenen `652ae72` + QA-verktygen `ce72aed`, i den riktiga appen mot Firestore-emulatorn med grenens egna regler. Portarna var 8575/9575 med proxy 8576 (`FS=8575 AUTH=9575 PROXY=8576 bash admin/qa-snilleblixt-preview.sh`). Seeden är densamma som ovan plus kläder-seeden. Riggen var EN flik som växlade mellan eleven b01/b06 och läraren rasmus. Sessionerna målades med `admin/qa-sb561-tillstand.mjs` (7 elever i 4B, 3 frågor flerval). Därefter stängdes emulator, proxy och flik.
+
+**Resultat: F1, F2 och F3 är åtgärdade. Inga nya buggar.**
+
+| Fynd | Status | Hur det verifierades |
+| --- | --- | --- |
+| **F1** tom pall efter omladdning (fix `8043902`) | ✅ Åtgärdad | Två omladdningar mitt i finalen, ca 1 s och ca 3 s efter "🏆 Till pallen!", samt omladdning efter finalen (`status: finished`). Pallen var ifylld redan vid första mätpunkten (≤ 1,5 s): Elias 1:a 2 650 p +300, Ali 2:a 1 930 p +255, Nora 3:e 1 840 p +217 och klassraden "Hela klassen: 52 % rätt svar". Efter omladdning körs inga pall-animationer (`document.getAnimations()` visar bara ambient-svepet och avatarens andning), så resultatet visas direkt och uppbyggnaden spelas bara en gång. Utbetalningen skedde en gång per session: b01:s saldo gick 100 → 478 = 2 × 189 för de två sessionerna, trots tre laddningar av den ena |
+| **F2** ingen egen avatar i lobbyn (fix `6e34cfd`) | ✅ Åtgärdad | b01 gick med i en riktig lobby (8 svärm-elever). `.sb-lobby .avatar-figure` syns mitt i kortet med 5 kläddelar (krona, ögonlapp, amulett, ballong). Den ligger kvar efter att poäng och namn laddats (mätt efter 4–5 s) och efter omladdning, både på Chromebook och surfplatta |
+| **F3** demoknappar Topplista/Ledningsbyte/Klättring | ✅ Åtgärdad | `preview-snilleblixt-demo.html` har bara "Mellanbild (efter fråga 4)" kvar. Inga träffar på `leaderChange`/`climb` i `src/live/formats/snilleblixt/` |
+
+**Elevskärmen utan placering.** `document.querySelector('main').innerText` lästes i varje läge. Den enda siffer-träffen för mitten och sist är frågeräknaren "Fråga 3 av 3". Det finns ingen "N:e", ingen "plats N", inget "av N" om placering och ingen sist-markering.
+
+| Läge | Ledare (b01 2 950 p) | Mitten (b01 960 p, 4:e av 7) | Sist (b01 520 p, 7:e av 7) |
+| --- | --- | --- | --- |
+| Avslöjande | "Rätt! +975 · Du leder! ⚡" | "Inte rätt den här gången · 0 poäng · Rätt svar: 36 · 880 poäng bakom Nora" | "… · 80 poäng bakom Agnes" |
+| Slutskärm | "🥇 Du kom 1:a! · 2 950 poäng · 3 rätt · Placeringspris 300 · 3 rätt svar 15 · Totalt: 315 pluggmynt" | "⚡ Bra kämpat! · 880 poäng bakom Nora · 960 poäng · 1 rätt · … Totalt: 189 pluggmynt" | "⚡ Bra kämpat! · 80 poäng bakom Agnes · 520 poäng · 1 rätt · … Totalt: 118 pluggmynt" |
+
+Pallplatsen syns också för 2:an: b06 i ledarsessionen fick "🥈 Du kom 2:a! … Totalt: 270 pluggmynt". Avstånden stämmer mot ställningen (1 840 − 960 = 880 och 600 − 520 = 80). "Lika med <Namn>" testades inte, eftersom ingen målad session hade lika poäng.
+
+**Projektorn.** Namnen i scenen kontrollerades med innerText, med publikraden (`.sbp`) borträknad.
+- **Mellanbilden**, efter fråga 2 och efter sista frågan, visar bara "✔ Fråga N av 3 klar · 4 av 7 svarade rätt · Nästa fråga kommer snart …" (eller "Snart dags för pallen …"). Inga namn.
+- **Statistiken** visar svarsfördelning, andel rätt per fråga och klassraden. Inga namn alls.
+- **Resultatskärmen** visar namn bara på pallens tre steg plus den anonyma klassraden.
+
+**Svitar och boot.**
+- `node --test` på 115 filer (`test/*.test.js` utom `firestore-rules*`/e2e/functions) gav **1483/1483**. #561 hade 1484, och skillnaden är sannolikt testerna för de borttagna demoknapparna i `6e34cfd`.
+- Bootgrafen är **107** filer (`admin/qa-bootgraf-bfs.mjs`), ingen Live-fil.
+- Kall boot (`ignoreCache`) som lärare och som elev (inloggning → `#/elev/hus`) gav 0 konsolfel/-varningar och inga 4xx-svar.
+- test:rules kördes inte. Reglerna är oförändrade sedan #561, och specen säger att de inte ska köras samtidigt som webbläsartesterna.
+
+**Observationer (inte buggar, för Elias)**
+- **O3:** Projektorns publikrad (`.sbp`, alla elevers avatar + namn längst ned) syns i alla scener utom Statistik, också på mellanbilden och dämpad på resultatskärmen. Den är neutral: ordnad efter uid och utan rätt/fel- eller poängmarkering (alla `.sbp-plats` har samma klass). Den visar alltså inga resultat, men det är namn utanför pallen. Säg till om "inga namn utom på pallen" ska gälla även publikraden.
+- **O4:** Elevens slutskärm har raden "Placeringspris N" för alla, även för de som inte kom på pallen. Det står ingen plats, men ordet kan läsas som en placering. Möjligt alternativ: "Slutpris".
+- **O5:** Lärarens historikvy (`snilleblixt-history.js:138`, bara på lärarsidan) har kvar rubriken "Topplista". Den visas inte på projektorn, så den bryter inte mot beslutet, men lärarsidan är vad som syns på tavlan om läraren delar skärmen.
+
+| Vy | Chromebook 1366×768 | Surfplatta 820×1180 |
+| --- | --- | --- |
+| Lobby med egen avatar (F2) | [r2-e01](qa-snilleblixt-561/r2-e01-lobby-avatar-chromebook.jpg) | [r2-e02 efter omladdning](qa-snilleblixt-561/r2-e02-lobby-avatar-omladdad-surfplatta.jpg) |
+| Avslöjande, ledare | [r2-e03](qa-snilleblixt-561/r2-e03-avslojande-ledare-chromebook.jpg) | [r2-e09](qa-snilleblixt-561/r2-e09-avslojande-ledare-surfplatta.jpg) |
+| Avslöjande, mitten | [r2-e04](qa-snilleblixt-561/r2-e04-avslojande-mitten-chromebook.jpg) | [r2-e10](qa-snilleblixt-561/r2-e10-avslojande-mitten-surfplatta.jpg) |
+| Avslöjande, sist | [r2-e05](qa-snilleblixt-561/r2-e05-avslojande-sist-chromebook.jpg) | [r2-e11](qa-snilleblixt-561/r2-e11-avslojande-sist-surfplatta.jpg) |
+| Slutskärm, ledare (1:a) | [r2-e06](qa-snilleblixt-561/r2-e06-slut-ledare-chromebook.jpg) | [r2-e12](qa-snilleblixt-561/r2-e12-slut-ledare-surfplatta.jpg) |
+| Slutskärm, 2:a (b06) | – | [r2-e15](qa-snilleblixt-561/r2-e15-slut-andra-b06-surfplatta.jpg) |
+| Slutskärm, mitten | [r2-e07](qa-snilleblixt-561/r2-e07-slut-mitten-chromebook.jpg) | [r2-e13](qa-snilleblixt-561/r2-e13-slut-mitten-surfplatta.jpg) |
+| Slutskärm, sist | [r2-e08](qa-snilleblixt-561/r2-e08-slut-sist-chromebook.jpg) | [r2-e14](qa-snilleblixt-561/r2-e14-slut-sist-surfplatta.jpg) |
+
+| Projektor | Bild |
+| --- | --- |
+| Mellanbild efter sista frågan (1280) | [r2-p01](qa-snilleblixt-561/r2-p01-mellanbild-sista-fragan-1280.jpg) |
+| F1: omladdning mitt i finalen (1280) | [r2-p02](qa-snilleblixt-561/r2-p02-F1-omladdning-mitt-i-final-1280.jpg) |
+| F1: omladdning efter finalen (1920) | [r2-p03](qa-snilleblixt-561/r2-p03-F1-omladdning-efter-final-1920.jpg) |
+| Statistik, anonym (1920) | [r2-p04](qa-snilleblixt-561/r2-p04-statistik-anonym-1920.jpg) |
+| Mellanbild efter fråga 2 (1920) | [r2-p05](qa-snilleblixt-561/r2-p05-mellanbild-fraga2-1920.jpg) |
+
+Köra om: `qa-sb561-tillstand.mjs <svar|final|klar> <ledare|mitten|sist> [sid]` med emulator-env. "Klar" = sista frågan avslöjad, och läraren trycker "🏆 Till pallen!" på `#/larare/live?id=<sid>`. Mellanbilden efter fråga 2 är en "klar"-session där `q` sattes till fråga 2 och `sbScores/2` + `sbAnswers/2_*` togs bort (admin).
