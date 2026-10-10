@@ -14,8 +14,11 @@
 
 import { registerGameMode, getGameMode } from "../game-modes.js";
 import MULTIPLICATION_0_10 from "./multiplication-0-10.js";
+import PLUGGA_QUIZ from "./plugga-quiz.js";
 
-const BUILTIN_MODES = [MULTIPLICATION_0_10];
+// plugga_quiz (#553) är bara flerval – formatväljaren visar det bara för
+// format som har "choice" (Klassmatchen har bara skriv själv).
+const BUILTIN_MODES = [MULTIPLICATION_0_10, PLUGGA_QUIZ];
 
 for (const m of BUILTIN_MODES) if (!getGameMode(m.id)) registerGameMode(m);
 

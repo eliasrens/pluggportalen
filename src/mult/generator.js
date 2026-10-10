@@ -16,6 +16,9 @@
 //   isMirror(q1, q2)         → true om 7×8 / 8×7 (olika ordning, samma par)
 //   checkMultAnswer(q, raw)  → { valid, correct, given, correctAnswer }
 //   seededRng(seed)          → deterministisk mulberry32-ström
+//   multDistractors(q, rng?) → 3 rimliga felalternativ (se FLERVAL nedan)
+//   multChoices(q, rng?)     → { options: number[4], answerIndex } – samma
+//                              form som Pluggas quiz (options/answerIndex)
 //
 // URVAL – "shuffle-bag": en påse innehåller VARJE kombination (a, b) inom
 // intervallet, `weight(a, b)` gånger, och blandas. Frågor dras ur påsen tills
@@ -30,6 +33,12 @@
 // tredje fråga ×0 eller ×1. DEFAULT_WEIGHT ger varje kombination där en
 // faktor är 0 eller 1 vikt 1 och övriga vikt 2 → ca 20 % lätta frågor, men
 // alla 121 kombinationer förekommer i varje påse.
+//
+// FLERVAL (#552): felalternativen ska vara RIMLIGA, inte slumptal. I tur och
+// ordning: (1) grannar i tabellen a×(b±1), (a±1)×b; (2) andra produkter i
+// 0–10-tabellen nära facit (7×8 → 54, 49 …); (3) facit ±1, ±2 … som sista
+// utväg (bara 0×0 och liknande behöver den). Aldrig negativt, aldrig dubblett,
+// aldrig facit. Rätt svars plats blandas med rng (seedbar).
 // ============================================================================
 
 /** Default-vikt: lätta kombinationer (en faktor 0 eller 1) en gång per påse. */
@@ -163,4 +172,61 @@ export function createMultGenerator(opts = {}) {
     peekBagSize: () => bag.length,
     get drawn() { return drawn; },
   };
+}
+
+/** Alla produkter i 0–10-tabellen (0, 1, 2 … 100), sorterade. */
+const TABLE_PRODUCTS = (() => {
+  const set = new Set();
+  for (let x = 0; x <= 10; x++) for (let y = 0; y <= 10; y++) set.add(x * y);
+  return [...set].sort((p, q) => p - q);
+})();
+
+function shuffleInPlace(arr, rng) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/**
+ * Tre rimliga felalternativ till en multiplikationsfråga.
+ * @param {{a:number, b:number, answer:number}} q
+ * @param {() => number} [rng]
+ * @returns {number[]} 3 unika, icke-negativa tal ≠ facit
+ */
+export function multDistractors(q, rng = Math.random) {
+  const { a, b, answer } = q;
+  const picked = [];
+  const ok = (n) => Number.isInteger(n) && n >= 0 && n !== answer && !picked.includes(n);
+  const take = (pool) => {
+    for (const n of pool) {
+      if (picked.length >= 3) return;
+      if (ok(n)) picked.push(n);
+    }
+  };
+  // 1) Tabellgrannar – blandade så samma fråga inte alltid får samma trio.
+  take(shuffleInPlace([a * (b - 1), a * (b + 1), (a - 1) * b, (a + 1) * b], rng));
+  // 2) Närliggande produkter i tabellen – de närmaste (en reserv extra så
+  //    trion varierar), blandade inbördes.
+  if (picked.length < 3) {
+    const near = TABLE_PRODUCTS.filter(ok)
+      .sort((p, r) => Math.abs(p - answer) - Math.abs(r - answer) || p - r)
+      .slice(0, 3 - picked.length + 1);
+    take(shuffleInPlace(near, rng));
+  }
+  // 3) Sista utväg: facit ±1, ±2 …
+  for (let d = 1; picked.length < 3; d++) take([answer + d, answer - d]);
+  return picked;
+}
+
+/**
+ * Fyra alternativ med facit på slumpad plats.
+ * @param {{a:number, b:number, answer:number}} q
+ * @param {() => number} [rng]
+ * @returns {{options:number[], answerIndex:number}}
+ */
+export function multChoices(q, rng = Math.random) {
+  const options = shuffleInPlace([q.answer, ...multDistractors(q, rng)], rng);
+  return { options, answerIndex: options.indexOf(q.answer) };
 }

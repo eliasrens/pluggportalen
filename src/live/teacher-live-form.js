@@ -4,9 +4,13 @@
 // Flödet (spec §3.4), allt ur registren – inget hårdkodat per format:
 //   1. format       stora kort ur formatregistret (live-formats.js). Bara ETT
 //                   registrerat format → inget val visas, det är auto-valt.
-//   2. innehåll     spellägen där formatets compatibleGameModes stämmer
+//   2. innehåll     spellägen där formatets compatibleGameModes stämmer;
+//                   lägets egna setupFields (quiz: ämne + område, #553)
+//                   ritas direkt under och byts när läget byts
 //   3. svarssätt    bara om formatet + spelläget har fler än ett gemensamt
-//                   (answerKindsFor) – annars inget val
+//                   (answerKindsFor) – annars inget val. Förval "free" (skriv
+//                   själv) om möjligt. Sparas som liveSessions.answerKind och
+//                   låses när matchen startar (firestore.rules, #551)
 //   4. klasser      inom formatets minClasses–maxClasses
 //   5. inställningar formatets setupFields, ritade generiskt (live-setup-
 //                   fields.js; matchlängden vid pacing "tid")
@@ -20,7 +24,7 @@
 
 import { el, esc } from "../teacher-shared.js";
 import { listGameModes, DEFAULT_GAME_MODE } from "./modes/index.js";
-import { requireFormat, listFormats, answerKindsFor, DEFAULT_FORMAT } from "./formats/index.js";
+import { requireFormat, listFormats, answerKindsFor, defaultAnswerKind, DEFAULT_FORMAT } from "./formats/index.js";
 import { createLiveSession } from "./live-data.js";
 import { validateSessionInput } from "./live-core.js";
 import { defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
@@ -47,6 +51,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
         <input type="radio" name="mode" value="${esc(m.id)}" ${m.id === modeId ? "checked" : ""} />
         <span>${esc(m.icon)} ${esc(m.displayName)}</span></label>`).join("")}</div>
     </div>
+    <div class="live-mode-setup"></div>
     <div class="field live-answerkind" hidden></div>
     <div class="field"><label>Klasser <small class="hint">(${esc(classHint(format))})</small></label>
       <div class="live-classes">${classes.map((c) => `<label class="live-chip">
@@ -71,15 +76,26 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
   const selected = () => [...form.querySelectorAll('input[name="klass"]:checked')].map((i) => i.value);
   const selectedMode = () => modes.find((m) => m.id === form.querySelector('input[name="mode"]:checked')?.value);
 
-  // Formatets egna sektioner (custom) laddas latt och synkas när de kommit.
-  const customs = fields.filter((f) => f.kind === "custom").map((f) => ({ f, api: null }));
-  for (const c of customs) {
-    const box = boxOf(c.f);
-    c.f.load().then((m) => {
+  // Egna sektioner (custom) laddas latt och synkas när de kommit.
+  const mountCustoms = (list) => list.filter((f) => f.kind === "custom").map((f) => {
+    const c = { f, api: null };
+    const box = boxOf(f);
+    f.load().then((m) => {
       if (!box.isConnected) return;
-      c.api = m.mount(box, box.querySelector(".live-setup-custom"), { className });
+      c.api = m.mount(box, box.querySelector(".live-setup-custom"), { className, format });
       c.api.sync(selected());
-    }).catch((err) => console.warn(`Live: ${c.f.key} kunde inte laddas`, err));
+    }).catch((err) => console.warn(`Live: ${f.key} kunde inte laddas`, err));
+    return c;
+  });
+  const customs = mountCustoms(fields);
+
+  // Spellägets egna fält (#553) – ritas om när läget byts.
+  let modeFields = [];
+  let modeCustoms = [];
+  function syncModeSetup() {
+    modeFields = selectedMode()?.setupFields || [];
+    form.querySelector(".live-mode-setup").innerHTML = setupFieldsHtml(modeFields);
+    modeCustoms = mountCustoms(modeFields);
   }
 
   function syncAnswerKinds() {
@@ -102,7 +118,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       rows.innerHTML = perClassRowsHtml(f, ids.map((id) => ({ id, name: className(id) })), vals);
       rows.querySelectorAll("input[data-id]").forEach((i) => i.addEventListener("input", (e) => (vals[i.dataset.id] = e.target.value)));
     }
-    for (const c of customs) c.api?.sync(ids);
+    for (const c of [...customs, ...modeCustoms]) c.api?.sync(ids);
     if (!keep.nameTouched) {
       const names = ids.map(className);
       nameInput.value = keep.name = format.defaultSessionName ? format.defaultSessionName(names) : defaultSessionName(names);
@@ -114,12 +130,12 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
 
   function readSetup() {
     const out = {};
-    for (const f of fields) {
+    for (const f of [...fields, ...modeFields]) {
       if (f.kind === "perClass") {
         const vals = keep.perClass[f.key] || {};
         out[f.key] = Object.fromEntries(keep.classIds.map((id) => [id, Number(vals[id])]));
       } else if (f.kind === "custom") {
-        out[f.key] = customs.find((c) => c.f === f)?.api?.value();
+        out[f.key] = [...customs, ...modeCustoms].find((c) => c.f === f)?.api?.value();
       } else if (f.kind === "choice") {
         out[f.key] = coerceSetupValue(f, boxOf(f).querySelector("input:checked")?.value);
       } else if (f.kind === "toggle") {
@@ -134,6 +150,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
   form.querySelectorAll('input[name="klass"]').forEach((i) => i.addEventListener("change", syncClasses));
   form.querySelectorAll('input[name="mode"]').forEach((i) => i.addEventListener("change", () => {
     keep.mode = selectedMode()?.id;
+    syncModeSetup();
     syncAnswerKinds();
   }));
   form.querySelectorAll('input[name="format"]').forEach((i) => i.addEventListener("change", () => {
@@ -142,6 +159,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
     keep.classIds = keep.classIds.slice(0, requireFormat(i.value).maxClasses);
     drawForm(host, { classes, uid, createdByName, onCreated }, keep);
   }));
+  syncModeSetup();
   syncAnswerKinds();
   if (keep.classIds.length) syncClasses();
 
@@ -155,7 +173,7 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       name: nameInput.value,
       format: format.id,
       gameMode: mode?.id,
-      answerKind: form.querySelector('input[name="answerKind"]:checked')?.value || kinds[0],
+      answerKind: form.querySelector('input[name="answerKind"]:checked')?.value || defaultAnswerKind(kinds),
       classIds: ids,
       classNames: Object.fromEntries(ids.map((id) => [id, className(id)])),
       ...readSetup(),

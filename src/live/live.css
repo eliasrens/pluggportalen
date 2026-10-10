@@ -142,6 +142,11 @@ body.live-lage .container {
 .live-format-card input:focus-visible + span { outline: 2px solid var(--t-accent, #27ae60); outline-offset: 2px; }
 .live-wizard-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
 .live-divisor-rows { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+/* Quiz från Plugga (#553): ämne + arbetsområde + antal frågor */
+.live-quiz-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.live-quiz-pick select { min-width: 200px; max-width: 100%; }
+.live-quiz-info { margin: 8px 0 0; }
+.live-quiz-info:empty { display: none; }
 .live-divisor { display: inline-flex; gap: 8px; align-items: center; }
 .live-divisor input {
   width: 5.5ch;

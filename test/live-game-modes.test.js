@@ -59,7 +59,8 @@ describe("registret", () => {
     };
     registerGameMode(addition);
     assert.equal(getGameMode("addition_test").displayName, "Addition (test)");
-    assert.deepEqual(listGameModes().map((m) => m.id).slice(0, 2), ["multiplication_0_10", "addition_test"]);
+    // Inbyggda lägen först (modes/index.js), sedan det nya.
+    assert.deepEqual(listGameModes().map((m) => m.id).slice(0, 3), ["multiplication_0_10", "plugga_quiz", "addition_test"]);
     assert.throws(() => registerGameMode(addition), /finns redan/);
   });
 
@@ -73,6 +74,11 @@ describe("registret", () => {
     assert.ok(koop.some((e) => e.includes("goalReached")));
     assert.ok(validateGameMode({ ...requireGameMode("multiplication_0_10"), cooperative: "ja" }).some((e) => e.includes("cooperative")));
     assert.deepEqual(validateGameMode({ ...requireGameMode("multiplication_0_10"), cooperative: true, goalReached: () => true }), []);
+    // Lägets egna lärarinställningar (#553) är valfria men måste ha rätt form.
+    const mult = requireGameMode("multiplication_0_10");
+    assert.ok(validateGameMode({ ...mult, setupFields: [{ key: "x" }] }).some((e) => e.includes("setupFields")));
+    assert.ok(validateGameMode({ ...mult, validateSetup: "nej" }).some((e) => e.includes("validateSetup")));
+    assert.deepEqual(validateGameMode({ ...mult, setupFields: [{ key: "x", label: "X", kind: "text" }], validateSetup: () => [] }), []);
     assert.equal(getGameMode("geography"), null);
     assert.throws(() => requireGameMode("geography"), /Okänt/);
   });

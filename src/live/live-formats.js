@@ -20,6 +20,13 @@
 //   validateFormat(format)   → string[] med fel (tom = ok)
 //   answerKindsFor(format, mode) → svarssätt BÅDA stöder (mode utan
 //                              answerKinds = ["free"]), i formatets ordning
+//   defaultAnswerKind(kinds) → "free" om den finns med, annars den första
+//                              (null för tom lista) – lärarformulärets förval
+//   resolveAnswerKind(format, mode, wanted) → svarssättet sessionen sparar:
+//                              wanted om båda stöder det, saknat wanted =
+//                              defaultAnswerKind, annars null (ogiltigt val)
+//   answerKindOf(session)    → session.answerKind ?? "free" (#551: sessioner
+//                              utan fältet är skriv själv – ingen migrering)
 //   ANSWER_KINDS             ["free", "choice"]
 //
 // FORMAT-INTERFACET (obligatoriskt om inget annat sägs):
@@ -59,6 +66,8 @@
 //   classCounters VALFRI bool – sessionen har shardade klassräknare
 //                 (liveSessions/{sid}/counters) som realtidslagret lyssnar på
 //   classDivisors VALFRI bool – lärarens nämnare per klass ("÷ Nämnare")
+//   minQuestions  VALFRI heltal ≥ 1 – färre frågor än så i ett quizområde ger
+//                 läraren en tydlig varning (#553; saknas = 5, plugga-quiz-core.js)
 // ============================================================================
 
 const REGISTRY = new Map();
@@ -98,6 +107,9 @@ export function validateFormat(f) {
     errs.push("setupFields måste vara [{key,label,kind}]");
   }
   for (const fn of FUNCS) if (typeof f[fn] !== "function") errs.push(`${fn}() saknas`);
+  if (f.minQuestions != null && !(Number.isInteger(f.minQuestions) && f.minQuestions >= 1)) {
+    errs.push("minQuestions måste vara ett heltal ≥ 1");
+  }
   for (const b of ["classCounters", "classDivisors"]) {
     if (f[b] != null && typeof f[b] !== "boolean") errs.push(`${b} måste vara bool`);
   }
@@ -139,6 +151,24 @@ export function listFormats() {
 export function answerKindsFor(format, mode) {
   const modeKinds = Array.isArray(mode?.answerKinds) ? mode.answerKinds : ["free"];
   return (format?.answerKinds || []).filter((k) => modeKinds.includes(k));
+}
+
+/** Lärarformulärets förval: skriv själv om möjligt. */
+export function defaultAnswerKind(kinds) {
+  if (!kinds?.length) return null;
+  return kinds.includes("free") ? "free" : kinds[0];
+}
+
+/** Svarssättet en ny session sparar, eller null om valet inte går ihop. */
+export function resolveAnswerKind(format, mode, wanted) {
+  const kinds = answerKindsFor(format, mode);
+  if (wanted == null || wanted === "") return defaultAnswerKind(kinds);
+  return kinds.includes(wanted) ? wanted : null;
+}
+
+/** Sessionens svarssätt – saknat fält = "free" (alla sessioner före #551). */
+export function answerKindOf(session) {
+  return session?.answerKind ?? "free";
 }
 
 /** Bara för tester: töm registret. */

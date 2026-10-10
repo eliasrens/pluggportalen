@@ -697,6 +697,8 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 | `createdByName` | string (valfri) | lärarens användarnamn ("skapad av rasmus" i Aktiva Live-sessioner) |
 | `format` | string (valfri) | **#547** spelformat – HUR matchen spelas (id i formatregistret `src/live/formats/`). Skrivs av `buildSessionDoc` (`"klassmatch"`). **Saknas = `"klassmatch"`** (alla sessioner före #547, ingen migrering). Reglerna godtar bara frånvarande eller `"klassmatch"` och nekar varje byte |
 | `gameMode` | string | id i gameMode-registret, t.ex. `"multiplication_0_10"` |
+| `answerKind` | `"free"` \| `"choice"` (valfri) | **#551** svarssätt: skriv själv / flerval. Skrivs av `buildSessionDoc` – lärarens val bland svarssätten som BÅDE formatet och spelläget stöder (förval `"free"`). **Saknas = `"free"`** (alla sessioner före #551, ingen migrering). Får ändras i lobbyn, låst efter start (reglerna). Svaren valideras mot det |
+| `quiz` | map (valfri) | **#553** bara spelläget `plugga_quiz`: `{ subjectId, areaId, subjectName, areaName, passagePolicy: "skip" }` – lärarens ämne + arbetsområde (`buildSessionFields`). Frågornas ögonblicksbild (elevsynligt + lärarskyddat facit, §4.4) skrivs av formatet som spelar quizet (Snilleblixten/Guldrushen) – inte här. ⚠️ Ännu inte låst efter start i reglerna |
 | `participatingClassIds` | array\<string\> (1–8) | klasserna |
 | `classDivisors` | map `{ classId: int }` | lärarens nämnare (förifylls med klassens elevantal). Får ändras i lobbyn och under matchen (#543: heltal 1–999, exakt deltagarklasserna; under match rör ändringen bara detta fält) – **låst efter slut** |
 | `durationSeconds` | int 30–3600 | matchlängd (UI: 300–1800 i 5-min-steg; kortare för QA) |
@@ -714,7 +716,7 @@ klassens shards; **Klasskamp = rätt / `classes/{classId}.studentIds.length`**
 **Radera (#543):** bara en session med `status == 'lobby'` (aldrig startad). `deleteLiveSession` tar bort lobbyns `players` + sessionen i en batch (svar/räknare finns inte före start). Ett spelardokument som skapas samtidigt kan bli kvar – ofarligt (bara eleven + lärare läser det; nya svar/spelare nekas när sessionen saknas). Eleven i lobbyn ser "Matchen har ställts in".
 
 - Bara lärare skapar/ändrar, och **alla lärare** får styra alla sessioner.
-  `gameMode`, klasser, längd, nedräkning och shards låses när matchen startat.
+  `gameMode`, `answerKind`, klasser, längd, nedräkning och shards låses när matchen startat.
 - Alla inloggade läser sessionen (eleven hittar sin lobby med
   `where("participatingClassIds","array-contains",klassId)` + onSnapshot).
 - **Timer:** alla klienter räknar `endsAt` (eller `startedAt + …`) mot sin
@@ -776,7 +778,12 @@ eleven får uppdatera **bara** `lastSeenAt` som puls). Finns dokumentet redan
 ### `liveSessions/{sid}/answers/{attemptId}` – LiveAnswer
 
 Samma form som MathAnswer; `mode` måste vara sessionens `gameMode`, och
-fälten valideras PER mode i reglerna (`liveModeAnswerOk`). Godtas bara när
+fälten valideras PER mode och svarssätt i reglerna (`liveModeAnswerOk`).
+Svarssätt (#551, `liveAnswerKindOk`): sessionens `answerKind` `"free"` (eller
+saknas) = dokumentet utan `answerKind`/`choiceIndex`, som före #551;
+`"choice"` = dessutom `answerKind: "choice"` + `choiceIndex` (heltal 0–3) –
+för multiplikation är `answer` det valda alternativets tal och facit räknas
+ändå om. Ett svar i fel form för sessionen nekas. Godtas bara när
 `status == "live"` och `startedAt + countdown ≤ request.time < startedAt + countdown + duration`.
 
 ### `liveSessions/{sid}/counters/{classId}_{shard}` – shardad Live-klassräknare
@@ -790,9 +797,20 @@ klass; **matchpoäng = rätt / `classDivisors[classId]`**. Läses bara av lärar
 
 Se API-kommentaren i `src/live/game-modes.js`: `id`, `displayName`, `icon`,
 `inputMode`, `pointsPerCorrect`, `createSource()`, `checkAnswer()`,
-`answerRecord()`, `statKeys()`, `statCategories`. Nytt läge = ny fil i
+`answerRecord()`, `statKeys()`, `statCategories`, valfritt `answerKinds`
+(saknas = `["free"]`; kontraktet för `"choice"` – `options`, `choiceIndex` –
+står i samma kommentar). Elevsidan väljer svarskomponent ur sessionens
+`answerKind` via `src/live/answer-kinds.js`. Nytt läge = ny fil i
 `src/live/modes/` + en rad i `src/live/modes/index.js` + en gren i
 `liveModeAnswerOk` i `firestore.rules` (annars nekas lägets svar).
+
+Valfritt även `setupFields` / `validateSetup(input, { format })` /
+`buildSessionFields(input)` (#553) – lägets egna lärarinställningar, ritade
+under spellägesvalet. `plugga_quiz` (`src/live/modes/plugga-quiz.js`, ren
+logik i `plugga-quiz-core.js`): bara `answerKinds: ["choice"]`, ämne +
+område, passage-frågor hoppas över, alternativ unika efter
+whitespace-normalisering, varning under formatets `minQuestions` (saknas = 5).
+Ingen regelgren ännu – formatet lägger den ihop med sitt facit-dokument.
 
 ### Format-interfacet (Live, #547)
 
