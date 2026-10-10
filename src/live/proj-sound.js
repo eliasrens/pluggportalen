@@ -9,8 +9,12 @@
 // knappen kan be om ett klick ("Klicka för ljud").
 //
 // API
-//   createSound()  → { on, unlocked(), toggle() → on, unlock(), setOn(on), mute(m), fx(fn), cue(name),
-//                      tick(n), go(), blip(), lead(), end(), win(), destroy() }
+//   createSound({ key?, defaultOn?, volume? })  → { on, unlocked(), toggle() → on, unlock(),
+//                      setOn(on), mute(m), fx(fn), play(fn), cue(name), tick(n), go(), blip(),
+//                      lead(), end(), win(), destroy() }
+//              key/defaultOn/volume: Guldrushens diskreta kistljud på elevdatorn
+//              (#564) har egen nyckel, AV som standard (designspec §8)
+//   play(fn)   fn(tone) – egna toner med samma syntes (Guldrushens kistljud)
 //   setOn(on)  elevskärmen (#533) följer kontrollpanelens val (sparar inget)
 //   mute(m)    kontrollpanelen tystnar medan en elevskärm spelar ljudet (#533)
 //   fx(fn)     egna ljud (Trollkarlsduellen, #536): fn(audioCtx, ut) bara när ljudet
@@ -29,11 +33,12 @@
 
 const KEY = "pp:live:ljud";
 
-function readPref() {
+function readPref(key = KEY, defaultOn = true) {
   try {
-    return localStorage.getItem(KEY) !== "av";
+    const v = localStorage.getItem(key);
+    return v == null ? defaultOn : v !== "av";
   } catch {
-    return true;
+    return defaultOn;
   }
 }
 
@@ -77,8 +82,8 @@ export const CUES = {
   fanfar: { prio: 4, dur: 1300, play: (t) => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => t(f, [0, 0.14, 0.28, 0.42, 0.62, 0.76][i], i === 5 ? 0.5 : 0.18, "triangle", 0.26)) },
 };
 
-export function createSound() {
-  let on = readPref();
+export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) {
+  let on = readPref(key, defaultOn);
   let ctx = null;
   let master = null;
   let lastBlip = 0;
@@ -92,7 +97,7 @@ export function createSound() {
       if (!AC) return null;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 0.5;
+      master.gain.value = volume;
       master.connect(ctx.destination);
     }
     if (ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -129,7 +134,7 @@ export function createSound() {
     unlock: () => { ensure(); },
     toggle() {
       on = !on;
-      try { localStorage.setItem(KEY, on ? "pa" : "av"); } catch {}
+      try { localStorage.setItem(key, on ? "pa" : "av"); } catch {}
       if (on) ensure();
       else ctx?.suspend().catch(() => {});
       return on;
@@ -177,6 +182,12 @@ export function createSound() {
       const notes = [523, 659, 784, 1047, 784, 1047];
       const at = [0, 0.14, 0.28, 0.42, 0.62, 0.76];
       notes.forEach((f, i) => tone(f, at[i], i === notes.length - 1 ? 0.9 : 0.2, "triangle", 0.3));
+    },
+    /** Egna toner (Guldrushens kistljud, #564): fn(tone) bara när ljudet är på och upplåst. */
+    play(fn) {
+      if (!on || muted || !ctx || ctx.state !== "running") return false;
+      try { fn(tone); } catch (e) { console.warn("Live-ljud:", e); }
+      return true;
     },
     /** Namngivet ljud via ljudkön (#571): slås ihop/hoppas över vid trängsel. */
     cue(name) {

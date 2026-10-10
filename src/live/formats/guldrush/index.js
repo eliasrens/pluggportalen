@@ -16,8 +16,9 @@
 //   resultInputs(s) → { grPlayers } – guldet till buildResult
 //
 // Pluggmynt efter matchen (#557): gemensamma live-rewards.js.
-// Vyerna byggs i egna issues (elevvy, projektorvyer); historiken är en enkel
-// version (guldrush-history.js).
+// Elevvyn (#564): guldrush-student.js – egen spelyta (createStage) med
+// kistor, offerväljare och stöldnotis. Projektorvyerna byggs i en egen issue;
+// historiken är en enkel version (guldrush-history.js).
 //
 // API: export default GULDRUSH (format-objekt, oregistrerat).
 // ============================================================================
@@ -91,7 +92,7 @@ const GULDRUSH = {
   },
 
   projectorViews: notYet("projektorvy"),
-  studentView: notYet("elevvy"),
+  studentView: () => import("./guldrush-student.js"),
   historyRenderer: () => import("./guldrush-history.js"),
 };
 

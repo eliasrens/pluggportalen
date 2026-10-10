@@ -15,6 +15,8 @@
 //     → alla kastar GuldrushError { code, message } (svenskt meddelande)
 //   watchMyGold(sid, uid, cb, onErr)   → unsub; cb(grPlayers-dokumentet | null)
 //   getQuestions(sid)                  → quizets elevsynliga frågor (utan facit)
+//   getMyAnswer(sid, attemptId)        → mitt svarsdokument | null (#564: en
+//                                       oöppnad kista efter omladdning)
 // API (alla deltagare)
 //   watchGrPlayers(sid, cb, onErr)     → unsub; cb(grPlayers[])
 //   watchEvents(sid, cb, onErr, n=30)  → unsub; cb(senaste n händelser, nyast
@@ -85,4 +87,13 @@ export function watchEvents(sid, cb, onErr, n = 30) {
 export async function getQuestions(sid) {
   const snap = await getDoc(doc(db, "liveSessions", sid, ...GR_PUBLIC_DOC));
   return snap.exists() ? snap.data().questions || [] : [];
+}
+
+export async function getMyAnswer(sid, attemptId) {
+  try {
+    const snap = await getDoc(doc(db, "liveSessions", sid, "answers", attemptId));
+    return snap.exists() ? snap.data() : null;
+  } catch {
+    return null; // finns inte (reglerna kan inte läsa ett saknat dokuments uid) eller nätfel
+  }
 }
