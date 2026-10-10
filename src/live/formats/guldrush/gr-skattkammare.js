@@ -1,25 +1,29 @@
 // ============================================================================
-// Guldrushen – SKATTKAMMAREN (#565, designspec §6.3): projektorns huvudvy
-// (views-posten "skattkammaren", finale: true – vyn spelar själv pallen).
+// Guldrushen – SKATTKAMMAREN (#565/#578, designspec §6.3): projektorns
+// huvudvy (views-posten "skattkammaren", finale: true – vyn spelar pallen).
 //   Överst   stor timer (matchens serverklocka) + "Tillsammans: 2 140 guld"
-//   Mitten   klassens guldberg (gr-berg) + "Nästa skatt: 3 000 guld"
-//   Kanten   händelseflödet (gr-flode) – senaste händelserna glider in/tonar ut
-//   Banderoll  stora händelser (Skattkammare, Byte) och klassens delmål
-//            ("🎉 Tillsammans 1 000 guld!") i luften mellan timern och berget –
-//            döljer aldrig timer eller berg, köade (en i taget, ihopslagna,
-//            för gamla hoppas över)
-// AVSTEG FRÅN SPECEN (Elias 2026-10-10 + leaden #562, ingen uthängning):
-// ingen topp 10 med avatarer och ingen "Ny ledare"-banderoll – det är
-// rangordning. Avatarer/namn bara i flödet (lärarens "Visa namn", bara den
-// som haft tur – se gr-proj-scen feedItem) och på pallen.
-//   Final    pallplatsen EN gång (gr-pall), sedan resultatskärmen
+//            (klassens totala guld, "Nästa skatt" = gemensamt delmål)
+//   Mitten   topp 10 som avatarer vid egna guldhögar (gr-hogar) – högarna
+//            växer/krymper med guldet, ordningen glider vid stöld/byte
+//   Kanten   händelseflödet (gr-flode) – namn och små avatarer (lärarens
+//            "Visa namn" av → inga namn/avatarer), glider in/tonar ut
+//   Banderoll  stora händelser (Skattkammare, Byte, ledningsbyte) och
+//            klassens delmål i luften mellan timern och högarna – döljer
+//            aldrig timer eller topplista, köade (en i taget, ihopslagna,
+//            för gamla hoppas över), ≤ ~2 s (live-banner)
+//   Final    pallplatsen EN gång (gr-pall: 3:an → 2:an → 1:an → klassens
+//            totala guld), sedan resultatskärmen
+// Enligt specen (Elias 2026-10-10, #578) – Snilleblixtens "ingen
+// uthängning" gäller inte Guldrushen; trygghetsreglerna §6.5 gäller.
 //
 // Händelserna kommer från servern (grEvents) via den gemensamma regin (#571:
 // live-events → animationskö → reaktioner/banderoll/ljudkö). Vyn räknar inte
 // själv ut vad som hänt. Regin startar först när BÅDE guldet och händelserna
 // kommit (gr-koppling ready): första sync = baslinje, så en omladdning visar
 // direkt rätt guld och spelar aldrig upp gamla händelser (§9, designtest 10).
-// Guldet ritas alltid direkt ur grPlayers – aldrig via kön.
+// Guld och ordning ritas alltid direkt ur grPlayers – aldrig via kön.
+// Ledningsbytet är serverns händelse ("lead", grMeta/leader) – inte regins
+// egen ledarräkning (den får inga placeringar här).
 //
 // API: createSkattkammare(host, { st, sound, screen, deps }) → { update(st), destroy() }
 // ============================================================================
@@ -32,11 +36,12 @@ import { toMs } from "../../live-time.js";
 import { countUp, formatGold } from "./gr-elev.js";
 import { createGrKoppling, avatarRoster } from "./gr-koppling.js";
 import { ensureGrottaCss, grottaHtml, logoHtml } from "./gr-grotta.js";
-import { createBerg } from "./gr-berg.js";
+import { createHogar } from "./gr-hogar.js";
 import { createFlode } from "./gr-flode.js";
 import { createFinal } from "./gr-pall.js";
 import {
-  matchClock, feedItem, crossedMilestone, milestone, tal, podiumGroups, classTitle, togetherText,
+  matchClock, topPiles, createPileScale, isProtected, feedItem, crossedMilestone, milestone, tal,
+  podiumGroups, classTitle, togetherText,
 } from "./gr-proj-scen.js";
 
 const TICK_MS = 200;
@@ -80,7 +85,7 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     <header class="grk-topp">
       ${logoHtml({ size: "liten" })}
       <div class="grk-klocka" role="timer" aria-label="Tid kvar"><b data-klocka>00:00</b></div>
-      <div class="grk-tills"><span>Tillsammans</span><b><i data-tills>0</i> guld</b></div>
+      <div class="grk-tills"><span>Tillsammans</span><b><i data-tills>0</i> guld</b><small data-mal></small></div>
     </header>
     <div class="grk-luft"></div>
     <main class="grk-golv"><p class="grk-tom" hidden>⛏️ Första guldet hittas snart …</p></main>
@@ -93,38 +98,43 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
   let finalDone = false;
   let lastSec = null;
   let prevTotal = null; // null = baslinjen inte satt (omladdning: inga gamla delmål)
+  const prevGold = new Map();
+  const scale = createPileScale();
 
   const roster = avatarRoster(sid, deps);
   roster.prefetch(s0?.participatingClassIds || []);
   const pool = createAvatarPool({ roster });
   const tills = createTills($("[data-tills]"));
   const banner = createBanner($(".grk-luft"));
-  const berg = createBerg($(".grk-golv"));
+  const hogar = createHogar($(".grk-golv"), { pool });
   const flode = createFlode($(".grk-kant"), { pool });
   const final = createFinal(root, { pool, sound });
   const koppling = createGrKoppling({ sid, deps, onChange: () => render(), say: (t) => console.warn("Guldrushen:", t) });
   const names = () => cur.session?.showNames !== false;
 
-  // Serverhändelse → flödet direkt (information) + ljud + mynt på berget + ev. banderoll (kön).
+  // Serverhändelse → flödet direkt (information) + ljud + reaktioner vid
+  // högarna + ev. banderoll (kön).
   function mapEvent(evt) {
     if (evt.type !== "server") return IGNORE.has(evt.type) ? [] : undefined;
-    const ev = { ...evt, type: evt.serverType };
-    const amount = Number(ev.amount) || 0;
-    if (amount > 0 && ev.type !== "steal" && ev.type !== "swap") berg.drop(ev.classId, amount >= 50 ? 3 : amount >= 25 ? 2 : 1);
-    const item = feedItem(ev, { names: names() });
+    const item = feedItem({ ...evt, type: evt.serverType }, { names: names() });
     if (!item) return [];
     flode.add([item]);
+    const jobs = item.reactions.filter((r) => hogar.has(r.uid)).map((r) => ({ kind: "reaction", uid: r.uid, reaction: r.reaction }));
     if (item.banner) {
+      const key = item.type === "lead" ? "lead" : item.type === "swap" ? "swap" : "skattkammare";
       return [{
         kind: "banner",
-        mergeKey: item.type === "swap" ? "swap" : "skattkammare",
+        mergeKey: key,
         banner: item.banner,
         cue: item.cue,
+        // Ledningsbyte: bara den senaste ledaren är sann. Skattkammare/byte: räkna upp.
+        merge: key === "lead" ? (a, b) => b : undefined,
         bannerMany: (job) => ({ ...job.banner, sub: `${job.count} på en gång!` }),
+        then: jobs,
       }];
     }
     if (item.cue) sound?.cue?.(item.cue);
-    return [];
+    return jobs;
   }
 
   // Klassens delmål: en banderoll när totalen passerar nästa skatt.
@@ -194,11 +204,20 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     const standing = koppling.standings(cur);
     tills.sync(standing.totalGold);
 
-    // Klassens guldberg (ett per klass) – direkt ur guldet.
-    const classes = standing.classes;
-    const multi = classes.length > 1;
-    berg.update(classes, { total: standing.totalGold, multi });
-    $(".grk-tom").hidden = standing.totalGold > 0 || finished;
+    const goal = milestone(standing.totalGold);
+    const mal = goal.next ? `Nästa skatt: ${tal(goal.next)}` : "Alla skatter hittade! 🎉";
+    if ($("[data-mal]").textContent !== mal) $("[data-mal]").textContent = mal;
+
+    // Topp 10 vid guldhögarna – direkt ur guldet.
+    const top = topPiles(standing.players).map((p) => ({ ...p, prot: isProtected(p, now) }));
+    hogar.update(top, { ref: scale.ref(top[0]?.gold || 0), leader: standing.winnerId });
+    for (const p of top) {
+      const before = prevGold.get(p.uid);
+      if (before != null && p.gold > before) hogar.bump(p.uid);
+    }
+    prevGold.clear();
+    for (const p of standing.players) prevGold.set(p.uid, p.gold);
+    $(".grk-tom").hidden = top.length > 0 || finished;
     // Delmål (bara uppåt, bara under spelet; första gången = baslinje).
     const m = prevTotal == null || finished ? null : crossedMilestone(prevTotal, standing.totalGold);
     if (m) milestoneBanner(m, standing.totalGold);
@@ -209,7 +228,9 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
       phase: finished ? "finished" : cur.phase === "lobby" ? "lobby" : "live",
       players: standing.players.map((p) => ({ uid: p.uid, name: p.name })),
       ranks: {},
-      events: koppling.events,
+      // grEvents kommer nyast först – regin ska spela dem i den ordning de
+      // hände (skattkammaren före ledningsbytet den gav).
+      events: [...koppling.events].reverse(),
       finishedAt: toMs(s.finishedAt),
       now,
     });
@@ -233,7 +254,7 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
       koppling.destroy();
       tills.destroy();
       banner.destroy();
-      berg.destroy();
+      hogar.destroy();
       flode.destroy();
       final.destroy();
       pool.destroy();

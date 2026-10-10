@@ -7,7 +7,7 @@
 //   1:an med guldmyntsregn, konfetti och fanfar → vinnaren jublar → "Tillsammans
 //   samlade 4B 4 380 guld!" med alla elevernas avatarer som jublar →
 //   resultatskärmen (står kvar).
-// Pallen (topp 3) är projektorns enda namnlista (Elias 2026-10-10). Delad
+// Pallen visar topp 3 med namn och avatarer (enligt specen, #578). Delad
 // placering = samma pallsteg (podiumGroups). Pluggmyntpriset för placeringen
 // under varje steg (sessionens rewards, #557). Figurerna är avatarpoolens
 // egna element (plats "pall"/"jubel") – kläderna följer med. Reducerad rörelse:

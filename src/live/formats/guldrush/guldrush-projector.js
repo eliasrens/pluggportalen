@@ -6,7 +6,8 @@
 // (#533) följer vyvalet och ljudet via skalets kanal som vanligt.
 //   views        💰 Skattkammaren (grottan: timer + klassens guld, topp 10
 //                vid guldhögar, händelseflöde, banderoller, pallplats –
-//                finale) · 📊 Statistik (anonym, exakt – finale)
+//                finale) · 📊 Statistik (exakt ställning för alla elever +
+//                klassens siffror – finale)
 //   createLobby  grottans ingång (skattjägarna studsar in, STARTA)
 //   createWinner Skattkammaren (pallplats/resultat) – skalet visar den bara
 //                om vyvalet saknar egen final
