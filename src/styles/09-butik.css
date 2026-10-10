@@ -1,0 +1,268 @@
+/* --- Shop ------------------------------------------------------------------ */
+
+.shop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.shop-saldo {
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-svag);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.shop-saldo .coins {
+  padding: 8px 16px 8px 12px;
+  font-size: 1.15rem;
+  margin-top: 4px;
+}
+
+/* --- Shop-flikar (kategori-tabbar) ---------------------------------------- */
+/* Klibbig flikrad högst upp i katalogen: en flik per kategori som har varor.
+   Aktiv flik markerad; endast den aktiva kategorins varor visas under raden. */
+.shop-tabs {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-flik-nav);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+  margin-bottom: 6px;
+  background: rgba(247, 250, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.shop-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.96rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(31, 45, 74, 0.08);
+  border: 2px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease,
+    color 0.12s ease, border-color 0.12s ease;
+}
+
+.shop-tab:hover {
+  transform: translateY(-2px);
+  border-color: #d7e3f7;
+  box-shadow: 0 5px 12px rgba(31, 45, 74, 0.13);
+}
+
+.shop-tab.active {
+  background: linear-gradient(160deg, #56ccf2, var(--bla));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(47, 128, 237, 0.35);
+}
+
+.shop-tab.active:hover {
+  border-color: transparent;
+  transform: translateY(-2px);
+}
+
+.shop-tab-emoji {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Mobil: låt flikarna scrolla i en rad i stället för att brytas i flera rader. */
+@media (max-width: 560px) {
+  .shop-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shop-tabs::-webkit-scrollbar { display: none; }
+  .shop-tab { flex: 0 0 auto; }
+}
+
+.shop-cat {
+  margin-bottom: 22px;
+}
+
+.shop-cat h2 {
+  margin: 6px 0 12px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+
+/* Baksidan-flikens underrubriker (#358): sektioner i samma scrollande flik. */
+.shop-underrubrik {
+  margin: 22px 0 10px;
+  font-size: 1.1rem;
+}
+
+.shop-underrubrik:first-of-type {
+  margin-top: 4px;
+}
+
+/* Baksidans klickbara sub-flikar (#364): en rad chips inne i Baksidan-panelen –
+   klickas i stället för att scrolla. Håller sig i linje med huvudflikarna men är
+   nedtonade (sekundärnivå) och wrappar/scrollar snyggt på liten skärm. */
+.shop-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 2px 0 16px;
+}
+
+.shop-subtab {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: #eef3fb;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 2px solid transparent;
+  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease,
+    border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.shop-subtab:hover {
+  transform: translateY(-1px);
+  border-color: #d7e3f7;
+}
+
+.shop-subtab.active {
+  background: linear-gradient(160deg, #56ccf2, var(--bla));
+  color: #fff;
+  box-shadow: 0 3px 9px rgba(47, 128, 237, 0.3);
+}
+
+/* Mobil: låt sub-flikarna scrolla i en rad i stället för att spränga layouten. */
+@media (max-width: 560px) {
+  .shop-subtabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shop-subtabs::-webkit-scrollbar { display: none; }
+  .shop-subtab { flex: 0 0 auto; }
+}
+
+.shop-card {
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  padding: 16px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 3px solid transparent;
+}
+
+.shop-card.is-owned {
+  border-color: #b6ebc9;
+  background: #f3fcf6;
+}
+
+.shop-emoji {
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+/* Shop-/lådsaker ritas som SVG och skalar med font-size. */
+.shop-emoji svg,
+.tray-emoji svg {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+}
+
+/* Kategori-ikon i rubriken (SVG i stället för emoji). */
+.cat-ico {
+  display: inline-block;
+  vertical-align: -0.22em;
+}
+.cat-ico svg {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+.shop-namn {
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
+.buy-btn {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #fff;
+  background: var(--gron);
+  box-shadow: 0 4px 0 var(--gron-mork);
+  transition: transform 0.06s ease;
+  margin-top: 4px;
+  width: 100%;
+  /* Text + pris-chip sitter på samma rad, centrerade. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Pris-chip på köp-knappen (ersätter den gamla separata prisraden). */
+.buy-pris {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: #7a5c00;
+  background: var(--gul);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 0.9rem;
+}
+/* "Har inte råd": priset syns men tonas ned. */
+.buy-btn.nej .buy-pris { opacity: 0.6; }
+
+.buy-btn:hover:not(:disabled) { filter: brightness(1.03); }
+.buy-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--gron-mork); }
+
+.buy-btn.kopt {
+  background: #e5f8ec;
+  color: #1e7a45;
+  box-shadow: 0 4px 0 #b6ebc9;
+  cursor: default;
+}
+
+.buy-btn.nej {
+  background: #eef1f6;
+  color: #94a3b8;
+  box-shadow: 0 4px 0 #dbe2ec;
+  cursor: not-allowed;
+}
+

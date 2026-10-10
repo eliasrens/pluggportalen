@@ -1,0 +1,449 @@
+/* === Revamp #442 – "Skapa nytt område"-wizarden (4 steg) ==================
+   Modal med fast huvud (titel + klickbar stegindikator) och fast fot
+   (Föregående / Nästa / Spara); bara stegets innehåll scrollar, så allt ryms på
+   1366×768. Allt scopat under .teacher-dark (lärarsidan, X-04). */
+.teacher-dark .wz-overlay { align-items: center; padding: 16px 14px; background: rgba(4, 7, 11, 0.72); }
+.teacher-dark .wz-dialog {
+  max-width: 960px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.teacher-dark .wz-head {
+  padding: 18px 56px 12px 24px;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .wz-titles { margin-bottom: 12px; }
+.teacher-dark .wz-stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.teacher-dark .wz-stepbtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--t-border-strong);
+  background: var(--t-surface-2);
+  color: var(--t-muted);
+  font: 700 0.9rem/1.2 var(--font);
+  text-align: left;
+  cursor: pointer;
+}
+.teacher-dark .wz-stepbtn:hover { border-color: var(--t-accent); color: var(--t-text); }
+.teacher-dark .wz-stepnr {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--t-raised);
+  color: var(--t-text);
+}
+.teacher-dark .wz-stepbtn.done .wz-stepnr { background: var(--t-accent-soft); color: #7ee0a6; }
+.teacher-dark .wz-stepbtn.active {
+  background: var(--t-accent-soft);
+  border-color: var(--t-accent);
+  color: #eafff2;
+}
+.teacher-dark .wz-stepbtn.active .wz-stepnr { background: var(--t-accent); color: #08130c; }
+
+.teacher-dark .wz-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 24px;
+  color-scheme: dark;
+  scrollbar-color: var(--t-border-strong) transparent;
+}
+.teacher-dark .wz-step-title { margin: 0 0 10px; font-size: 1.15rem; color: var(--t-text); }
+.teacher-dark .wz-sub { display: block; font-weight: 700; color: var(--t-text); margin-bottom: 6px; }
+.teacher-dark .wz-basics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.teacher-dark .wz-name { font-size: 1.1rem; }
+
+/* Steg 2: stora klickbara typkort (grön kant + bock när valt). */
+.teacher-dark .wz-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+.teacher-dark .wz-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 140px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid var(--t-border-strong);
+  background: var(--t-surface-2);
+  color: var(--t-text);
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.teacher-dark .wz-card:hover { border-color: rgba(46, 193, 110, 0.55); }
+.teacher-dark .wz-card:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .wz-card-emoji { font-size: 2rem; line-height: 1; }
+.teacher-dark .wz-card-title { font-weight: 800; font-size: 1.05rem; }
+.teacher-dark .wz-card-hint { color: var(--t-muted); font-size: 0.88rem; line-height: 1.35; }
+.teacher-dark .wz-card-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  background: var(--t-accent);
+  color: #08130c;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.teacher-dark .wz-card.selected {
+  border-color: var(--t-accent);
+  background: var(--t-accent-soft);
+  box-shadow: 0 0 0 1px var(--t-accent);
+}
+.teacher-dark .wz-card.selected .wz-card-check { opacity: 1; transform: none; }
+.teacher-dark .wz-onskemal { width: 100%; resize: vertical; font-family: var(--font); }
+
+/* Steg 3: AI-verkstaden – stor kopiera-knapp och stor materialruta. */
+.teacher-dark .wz-prompt {
+  background: var(--t-accent-soft);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.teacher-dark .wz-copy { width: 100%; font-size: 1.15rem; padding: 16px 20px; }
+.teacher-dark .wz-instr { margin: 10px 0 0; color: #a9ecc6; }
+.teacher-dark .wz-bildpar { margin: 8px 0 0; }
+.teacher-dark .wz-generator {
+  border: 1px solid var(--t-border-strong);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 14px 0;
+}
+/* Räknegeneratorn (#470): kompakta kryss-chips för räknesätt + ett block per
+   ikryssat räknesätt med varianter och inställningar. */
+.gen-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gen-chips .gen-chip { padding: 5px 10px; gap: 6px; border-radius: 999px; }
+.gen-chips .gen-chip input { width: 16px; height: 16px; margin: 0; }
+.gen-chips .gen-chip .member-name { font-weight: 600; font-size: 0.92rem; }
+.gen-chip:has(input:checked) { border-color: var(--gron); }
+.teacher-dark .gen-chip:has(input:checked) { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.gen-blocks { display: grid; gap: 10px; margin-top: 10px; }
+.gen-block {
+  border: 1px solid var(--t-border-strong, #e6eefa);
+  border-radius: 12px;
+  padding: 8px 12px 10px;
+  margin: 0;
+  min-width: 0;
+}
+.gen-block legend { font-weight: 700; padding: 0 6px; }
+.gen-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 8px; }
+.gen-inline { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem; }
+.gen-inline .select { width: auto; padding: 5px 8px; }
+.gen-warn { margin: 6px 0 0; font-size: 0.88rem; color: #e8a33d; }
+.teacher-dark .wz-material-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.teacher-dark .wz-material-head .wz-sub { margin: 0; }
+.teacher-dark .wz-material-head .btn { padding: 8px 13px; font-size: 0.9rem; }
+.teacher-dark .wz-json { width: 100%; min-height: 34vh; resize: vertical; }
+.teacher-dark .wz-check-row { margin-top: 12px; }
+.teacher-dark .wz-result { margin-top: 10px; }
+.teacher-dark .wz-back3 { margin-top: 10px; }
+
+/* Osparat-varningen (ersätter stäng tills läraren väljer). */
+.teacher-dark .wz-leave {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(242, 201, 76, 0.12);
+  border-top: 1px solid rgba(242, 201, 76, 0.4);
+  color: var(--t-text);
+  font-weight: 700;
+}
+.teacher-dark .wz-leave .btn { padding: 8px 14px; font-size: 0.92rem; }
+
+.teacher-dark .wz-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--t-border);
+  background: var(--t-surface);
+}
+.teacher-dark .wz-pos { flex: 1; text-align: center; color: var(--t-muted); font-size: 0.9rem; }
+.teacher-dark .wz-foot .btn:disabled { opacity: 0.4; cursor: default; filter: none; }
+.teacher-dark .wz-save { font-size: 1.15rem; padding: 14px 30px; }
+
+@media (max-width: 700px) {
+  .teacher-dark .wz-stepper { grid-template-columns: repeat(4, auto); }
+  .teacher-dark .wz-steplabel { display: none; }
+  .teacher-dark .wz-basics { grid-template-columns: 1fr; }
+  .teacher-dark .wz-head,
+  .teacher-dark .wz-body,
+  .teacher-dark .wz-foot { padding-left: 16px; padding-right: 16px; }
+  .teacher-dark .wz-pos { display: none; }
+}
+
+/* ---- Utfällda underrader per område (issue #454) ------------------------
+   Klick på en rad i Innehållsstudions tabell fäller ut frågor/par/texter som
+   kompakta listrader med Redigera/Ta bort + inline-formulär. Vårt designspråk:
+   mörka ytor, linje-ikoner, accentgrön som enda accent. */
+.teacher-dark .area-tbl-row.expanded > td { background: rgba(46, 193, 110, 0.05); border-bottom-color: transparent; }
+.teacher-dark .area-tbl-row.expanded .area-tbl-name { color: var(--t-accent); }
+.teacher-dark .area-items { padding-top: 10px; }
+.teacher-dark .ai-panel { display: flex; flex-direction: column; gap: 18px; outline: none; }
+.teacher-dark .ai-notice { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin: 0; font-size: 0.92rem; }
+.teacher-dark .ai-generator {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 10px 14px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  color: var(--t-text);
+}
+.teacher-dark .ai-generator .t-icon { color: var(--t-accent); }
+.teacher-dark .ai-section { display: flex; flex-direction: column; gap: 8px; }
+.teacher-dark .ai-count {
+  min-width: 22px;
+  padding: 1px 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  color: var(--t-text);
+  font-size: 0.78rem;
+  text-align: center;
+}
+.teacher-dark .ai-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.teacher-dark .ai-item + .ai-item { border-top: 1px solid var(--t-border); }
+.teacher-dark .ai-view { display: flex; align-items: flex-start; gap: 12px; padding: 10px 10px 10px 14px; }
+.teacher-dark .ai-view:hover { background: rgba(255, 255, 255, 0.025); }
+.teacher-dark .ai-nr { flex: none; min-width: 18px; padding-top: 1px; color: var(--t-muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.teacher-dark .ai-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.teacher-dark .ai-text { color: var(--t-text); font-weight: 600; overflow-wrap: anywhere; }
+.teacher-dark .ai-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; color: var(--t-muted); font-size: 0.86rem; }
+.teacher-dark .ai-excerpt { display: block; overflow-wrap: anywhere; }
+.teacher-dark .ai-answer { display: inline-flex; align-items: center; gap: 5px; color: #7ee0a6; font-weight: 600; }
+.teacher-dark .ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  color: var(--t-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.teacher-dark .ai-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.teacher-dark .ai-term,
+.teacher-dark .ai-def { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.teacher-dark .ai-def { font-weight: 400; color: var(--t-text); }
+.teacher-dark .ai-arrow { color: var(--t-accent); }
+.teacher-dark .ai-acts { flex: none; display: flex; gap: 2px; }
+.teacher-dark .ai-slot { padding: 12px 14px 14px; background: rgba(46, 193, 110, 0.04); }
+.teacher-dark .ai-item.editing,
+.teacher-dark .ai-item.confirming { box-shadow: inset 3px 0 0 var(--t-accent); }
+.teacher-dark .ai-item.confirming { box-shadow: inset 3px 0 0 #eb5757; }
+.teacher-dark .ai-empty { margin: 0; color: var(--t-muted); font-size: 0.9rem; }
+.teacher-dark .ai-add {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px dashed var(--t-border-strong);
+  border-radius: 8px;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.teacher-dark .ai-add:hover { color: var(--t-accent); border-color: var(--t-accent); }
+.teacher-dark .ai-add:focus-visible,
+.teacher-dark .ai-panel .area-act:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+.teacher-dark .ai-add-slot {
+  padding: 12px 14px 14px;
+  background: var(--t-surface);
+  border: 1px solid rgba(46, 193, 110, 0.4);
+  border-radius: 10px;
+}
+
+/* ---- Flikar + scroll i underraden (issue #455) ---------------------------
+   Understruken flikrad som ämnesflikarna (#453) med antal-badge; varje flik har
+   sin lista i en egen scrollyta, "+ Lägg till …" ligger under den (alltid synlig). */
+.teacher-dark .ai-tabs { display: flex; flex-direction: column; gap: 12px; }
+.teacher-dark .ai-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 4px 18px;
+  border-bottom: 1px solid var(--t-border);
+}
+.teacher-dark .ai-tablist { display: flex; flex-wrap: wrap; gap: 0 22px; min-width: 0; }
+.teacher-dark .ai-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: -1px;
+  padding: 8px 2px 9px;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.teacher-dark .ai-tab:hover { color: var(--t-text); }
+.teacher-dark .ai-tab.active { color: var(--t-accent); border-bottom-color: var(--t-accent); }
+.teacher-dark .ai-tab.active .ai-count { background: rgba(46, 193, 110, 0.16); color: var(--t-accent); }
+.teacher-dark .ai-tab:focus-visible,
+.teacher-dark .ai-tab-add:focus-visible,
+.teacher-dark .ai-scroll:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; border-radius: 4px; }
+.teacher-dark .ai-tab-add {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 5px 0;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px dashed var(--t-border-strong);
+  border-radius: 999px;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.teacher-dark .ai-tab-add:hover { color: var(--t-accent); border-color: var(--t-accent); }
+.teacher-dark .ai-tabpanel:focus-visible { outline: none; }
+.teacher-dark .ai-tabnote { margin: 0; color: var(--t-muted); font-size: 0.88rem; }
+.teacher-dark .ai-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--t-border-strong) transparent;
+}
+.teacher-dark .ai-scroll > .ai-list { flex: none; }
+
+/* Inline-formulär (fråga/par/text) */
+.teacher-dark .ai-form { display: flex; flex-direction: column; gap: 12px; }
+.teacher-dark .ai-form-title { font-weight: 700; color: var(--t-text); }
+.teacher-dark .ai-form-grid { display: flex; flex-direction: column; gap: 12px; }
+.teacher-dark .ai-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.teacher-dark .ai-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.teacher-dark .ai-field > label,
+.teacher-dark .ai-field > legend { font-size: 0.85rem; font-weight: 600; color: var(--t-muted); padding: 0; margin-bottom: 5px; }
+.teacher-dark .ai-field input[type="text"],
+.teacher-dark .ai-field textarea,
+.teacher-dark .ai-field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 0.95rem;
+  border-width: 1px;
+  resize: vertical;
+}
+.teacher-dark .ai-req { color: var(--t-accent); }
+.teacher-dark .ai-hint { color: var(--t-muted); font-size: 0.8rem; font-weight: 400; }
+.teacher-dark .ai-opts { gap: 7px; }
+.teacher-dark .ai-opt { display: flex; align-items: center; gap: 8px; }
+.teacher-dark .ai-opt input[type="radio"] { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--t-accent); cursor: pointer; }
+.teacher-dark .ai-opt-nr { flex: none; width: 14px; color: var(--t-muted); font-size: 0.82rem; cursor: pointer; }
+.teacher-dark .ai-opt input[type="text"] { flex: 1; }
+.teacher-dark .ai-opt:has(input[type="radio"]:checked) input[type="text"] { border-color: rgba(46, 193, 110, 0.6); }
+.teacher-dark .ai-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.teacher-dark .ai-form-actions .ai-save .t-icon { color: inherit; }
+.teacher-dark .ai-form-errors:empty { display: none; }
+.teacher-dark .ai-form-errors .msg { margin: 0; padding: 10px 12px; font-size: 0.9rem; }
+.teacher-dark .ai-form-errors .error-list { margin: 6px 0 0; padding-left: 20px; }
+
+/* Ta bort – tvåstegsbekräftelse inne i sidan */
+.teacher-dark .ai-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.teacher-dark .ai-confirm-q { font-weight: 700; color: var(--t-text); }
+.teacher-dark .ai-warn {
+  flex-basis: 100%;
+  order: 3;
+  padding: 7px 10px;
+  background: rgba(242, 201, 76, 0.12);
+  border: 1px solid rgba(242, 201, 76, 0.4);
+  border-radius: 8px;
+  color: #f2d27a;
+  font-size: 0.88rem;
+}
+.teacher-dark .ai-confirm-acts { display: flex; gap: 8px; }
+.teacher-dark .ai-confirm-yes { background: #eb5757; color: #fff; }
+.teacher-dark .btn.small.ai-confirm-yes .t-icon { color: #fff; }
+.teacher-dark .ai-confirm .ai-form-errors { flex-basis: 100%; order: 4; }
+
+@media (max-width: 640px) {
+  .teacher-dark .ai-view { padding: 10px 6px 10px 10px; gap: 8px; }
+  .teacher-dark .ai-slot,
+  .teacher-dark .ai-add-slot { padding: 10px; }
+  .teacher-dark .ai-form-2col { grid-template-columns: 1fr; }
+  .teacher-dark .ai-form-actions .btn { flex: 1 1 auto; justify-content: center; }
+  .teacher-dark .ai-add { align-self: stretch; justify-content: center; }
+  /* Flikraden scrollar i sidled i stället för att bryta; lägre scrollyta. */
+  .teacher-dark .ai-tabs-row { overflow-x: auto; scrollbar-width: none; }
+  .teacher-dark .ai-tablist { flex-wrap: nowrap; gap: 0 18px; }
+  .teacher-dark .ai-scroll { max-height: min(55vh, 420px); }
+}

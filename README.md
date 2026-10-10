@@ -39,7 +39,9 @@ src/
   firebase-config.js     Firebase-init (publik webbconfig)
   data*.js               Datamodulen – Firestore-anropen
   auth.js                Inloggning (Firebase Auth)
-  styles.css, games.css  Gemensam design
+  styles/                Gemensam design per område (01-grund … 27-larare-wizard)
+  styles.css             GENERERAD av styles/ (npm run build:css) – redigera inte
+  games.css              Spelens gemensamma design
   live/                  Live: kärnan, format/ (klassmatch, snilleblixt, guldrush), modes/
   klasscenter/           Klasscentret
   lasresan/              Läsresan
@@ -64,6 +66,12 @@ server.mjs               Liten statisk webbserver för lokal utveckling
 > ⚠️ **Bootgrafen:** filer som `src/app.js` importerar statiskt laddas vid
 > varje sidladdning. Nya moduler ska laddas med dynamisk `import()` – en ny
 > fil i bootkedjan kan ge vit sida under GitHub Pages deploy-fönster.
+
+> 🎨 **CSS:** ändra i `src/styles/NN-*.css` och kör `npm run build:css`.
+> Sajten laddar fortfarande bara den sammanfogade `src/styles.css` (samma
+> skäl som ovan – inga nya filer i boot). Nummerprefixet är laddningsordningen;
+> flytta aldrig regler mellan filer utan att tänka på kaskaden. Testet
+> `test/styles-delar.test.js` fäller en `styles.css` som inte är ombyggd.
 
 ## Köra lokalt
 

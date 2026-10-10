@@ -1,0 +1,337 @@
+/* --- Mitt rum -------------------------------------------------------------- */
+
+.room-stage {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  border-radius: var(--radie);
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: var(--skugga-mjuk);
+  /* Rum enligt designfacit: vägg + panelband upptill i elevens palettfärger
+     (--rum-wall/--rum-wall2 sätts av Mitt rum, default = persika-paletten);
+     plankgolvet (#C9996B, ritas som SVG i .room-bg) täcker nedersta 38 %
+     och färgas ALDRIG om. Ljus takrand & mörkare panelfot räknas fram ur
+     palettfärgen med color-mix. */
+  --rum-wall: #ffe9cc;
+  --rum-wall2: #fbd9a6;
+  background:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--rum-wall) 72%, #fff) 0%,
+      var(--rum-wall) 36%, var(--rum-wall) 49.3%,
+      rgba(59, 51, 80, 0.25) 49.3%, rgba(59, 51, 80, 0.25) 50%,
+      var(--rum-wall2) 50%,
+      color-mix(in srgb, var(--rum-wall2) 88%, #8a6242) 62%, #c9996b 62%);
+  touch-action: none;
+}
+
+/* Bakgrundslagret (plankgolv + fönster) – under sakerna, tar inga pekare. */
+.room-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.room-bg .room-floor {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 38%;
+  display: block;
+}
+
+/* Fönstret är numera ett interaktivt rums-objekt (flyttbart/raderbart) och
+   ritas som en .room-item, inte i bakgrunden. Storleken hålls oförändrad
+   (klamp mot scenbredden) och skalas INTE med --rum-skala. */
+.room-window-item {
+  width: clamp(120px, 24%, 190px);
+  font-size: 0;
+}
+
+.room-window-item .rw-svg {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.room-window-item .rw-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+/* --- Palettväljaren (Måla om – delas av Mitt rum & hus-vyn) ---------------- */
+
+.palett-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.palett-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 3px solid #e3d9f2;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.palett-knapp:hover {
+  transform: translateY(-2px);
+}
+
+.palett-knapp.vald {
+  border-color: var(--lila, #7c5cd6);
+  box-shadow: 0 4px 0 rgba(124, 92, 214, 0.25);
+}
+
+.palett-farger {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #3b3350;
+}
+
+.palett-farger span {
+  width: 22px;
+  height: 26px;
+  display: block;
+}
+
+.palett-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
+/* Husskal-väljaren ("Nytt hus") – samma knapp-look som paletten, men varje
+   ruta visar en liten förhandsvisning av husets exteriör (färgas av paletten). */
+.hus-skal-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hus-skal-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 3px solid #e3d9f2;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.hus-skal-knapp:hover {
+  transform: translateY(-2px);
+}
+
+.hus-skal-knapp.vald {
+  border-color: var(--lila, #7c5cd6);
+  box-shadow: 0 4px 0 rgba(124, 92, 214, 0.25);
+}
+
+.hus-skal-bild {
+  width: 76px;
+  height: 68px;
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(#e8f6fd, #d7efe0);
+  border: 2px solid #3b3350;
+}
+
+.hus-skal-bild svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hus-skal-namn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b3350;
+}
+
+/* Moln som driver förbi i fönstret – ren transform-animation (låg CPU). */
+.rum-moln {
+  animation: rum-moln-driva var(--t, 40s) linear infinite;
+  will-change: transform;
+}
+
+@keyframes rum-moln-driva {
+  from { transform: translateX(-70px); }
+  to { transform: translateX(290px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rum-moln { animation: none; }
+}
+
+.room-empty {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #5b6b86;
+  font-weight: 700;
+  text-align: center;
+  width: 80%;
+}
+
+/* ---------------------------------------------------------------------------
+   Rums-växlaren (flerrums-huset, issue #34): dörrar inne på väggarna + en liten
+   rumslista högst upp. Ligger ovanpå rummets innehåll (z-index) men under
+   overlay-panelerna. Delas av eget rum (.varld-lager.room-stage) och
+   klasskamratens läs-vy (.room-stage.readonly).
+   --------------------------------------------------------------------------- */
+.rum-lista {
+  position: absolute;
+  /* Sitter under scenens topp-rad (.varld-ui-topp: "Mitt rum 🛏️" + knappar,
+     ~46 px hög) i stället för i samma topp-zon – annars ritas pill-raden ovanpå
+     titeln och de överlappar. På mobil är topp-raden lägre (ikon-knappar), så
+     samma offset ger fortfarande luft. */
+  top: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  z-index: var(--z-scen-objekt);
+  background: rgba(255, 255, 255, 0.82);
+  border: 2px solid var(--o, #3b3350);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(59, 51, 80, 0.18);
+  max-width: 94%;
+  overflow-x: auto;
+}
+.rum-flik {
+  border: 0;
+  background: transparent;
+  color: #4a4066;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+.rum-flik:hover { background: rgba(59, 51, 80, 0.1); }
+.rum-flik.aktiv {
+  background: #f7c948;
+  color: #3b3350;
+  box-shadow: inset 0 0 0 2px #3b3350;
+}
+
+.rum-dorrar { pointer-events: none; }
+/* Dörren sitter på VÄGGEN (inte på golvet framför spelaren, issue #59): läget
+   sätts som centrum-koordinater inline (left/top %) av växlaren och centreras
+   med translate(-50%,-50%). Den är flyttbar (drag) → cursor:grab + touch-action
+   avstängd så pekdraget inte skrollar sidan. */
+.rum-dorr {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-scen-objekt);
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  padding: 0;
+  filter: drop-shadow(0 2px 3px rgba(59, 51, 80, 0.28));
+}
+.rum-dorr.dragging { cursor: grabbing; }
+/* display:flex ovan skulle förr slå ut hidden – nu täcks det av den globala
+   [hidden]{display:none!important}-regeln högst upp, så dörren döljs i
+   första/sista rummet utan en egen override. */
+.rum-dorr-svg { width: clamp(48px, 13cqw, 90px); display: block; }
+.rum-dorr-svg svg { width: 100%; height: auto; display: block; }
+.rum-dorr-nr {
+  font-weight: 800;
+  font-size: 0.72rem;
+  color: #3b3350;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid #3b3350;
+  border-radius: 999px;
+  padding: 0 7px;
+  white-space: nowrap;
+}
+.rum-dorr:hover .rum-dorr-svg { transform: translateY(-2px); }
+.rum-dorr-svg { transition: transform 0.12s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .rum-dorr-svg { transition: none; }
+}
+
+.room-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  font-size: 2.6rem;
+  line-height: 1;
+  user-select: none;
+  touch-action: none;
+}
+
+.room-item .ri-emoji {
+  display: block;
+  pointer-events: none;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+/* Placerad sak: SVG fyller sin ruta och skalar snyggt (behåller proportioner). */
+.room-item .ri-emoji svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.room-item.dragging {
+  cursor: grabbing;
+  z-index: var(--z-scen-drag);
+}
+
+.room-item.selected {
+  outline: 3px dashed var(--lila);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.ri-remove {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  border: none;
+  background: var(--rod);
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.room-item.selected .ri-remove {
+  display: block;
+}
+

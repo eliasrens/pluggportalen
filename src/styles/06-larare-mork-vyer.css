@@ -1,0 +1,508 @@
+/* ==========================================================================
+   Lärarsidan – MÖRK design utrullad till ALLA lärarvyer (issue #367, epic #362)
+   --------------------------------------------------------------------------
+   #363 satte designspråket (tokens/bas-komponenter under `.teacher-dark`) men
+   bara på dashboard + toppnav + klasslistan. Här rullas det ut till resten:
+   Innehållsstudion (bibliotek + kompositör + läs/AI-editorer), klass-vyerna
+   (områdesval, lägen, statistik-tabell + elevmodal) och login-korten.
+
+   ALLT nedan är scopat under `.teacher-dark …` → elevsidan är orörd. Vyer som
+   låg på <body> (elev-modalen, login-korten) har fått `.teacher-dark` PÅ sin
+   egen overlay i JS, så samma scope når dem. Vi ÅTERANVÄNDER #363:s tokens
+   (--t-surface/-2, --t-raised, --t-border, --t-text, --t-muted, --t-accent…).
+   ========================================================================== */
+
+/* --- KONTRAST-BUGG (prio 1): Områden-valet + alla ljusa "kort"-ytor -------
+   Områdesval (renderClassAssignments) ritar .member-row-kryssrutor med vit
+   bakgrund och .assign-subject-rubriker – på den mörka sidan blev de vita öar
+   där texten drunknade. Gör dem till mörka upphöjda ytor med ljus text. */
+.teacher-dark .member-row,
+.teacher-dark .member-manage-row,
+.teacher-dark .area-row,
+.teacher-dark .acct-editor {
+  background: var(--t-surface-2);
+  border-color: var(--t-border-strong);
+  color: var(--t-text);
+}
+.teacher-dark .member-row:hover {
+  border-color: var(--t-accent);
+}
+.teacher-dark .member-name,
+.teacher-dark .assign-subject { color: var(--t-text); }
+.teacher-dark .member-row input,
+.teacher-dark input[type="checkbox"],
+.teacher-dark input[type="radio"] { accent-color: var(--t-accent); }
+
+/* --- Bibliotek (Innehållsstudion) – kort + tabell har sitt block vid #441/#453 nedan */
+
+/* Badges (typ/årskurs) – diskreta accent-chips i stället för ljusa öar. */
+.teacher-dark .badge,
+.teacher-dark .type-badge {
+  background: var(--t-accent-soft);
+  color: #a9ecc6;
+}
+.teacher-dark .grade-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--t-muted);
+}
+
+/* Ämnesflikar: understruken flikrad – se studiokortets block vid #453 nedan. */
+
+/* --- Fokuserad kompositör (overlay) -------------------------------------- */
+.teacher-dark .studio-composer {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.teacher-dark .composer-title { color: var(--t-text); }
+.teacher-dark .composer-sub { color: var(--t-muted); }
+.teacher-dark .composer-icon { color: var(--t-accent); }
+
+/* Metod-växeln (guidat / material). */
+.teacher-dark .method-switch { background: var(--t-surface-2); }
+.teacher-dark .method-tab { color: var(--t-muted); }
+.teacher-dark .method-tab.active {
+  background: var(--t-raised);
+  color: #eafff2;
+  box-shadow: none;
+}
+/* Innehållstyp-flikar. */
+.teacher-dark .ctype-tab {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+  color: var(--t-text);
+}
+.teacher-dark .ctype-tab.active {
+  background: var(--t-accent-soft);
+  border-color: rgba(46, 193, 110, 0.4);
+  color: #eafff2;
+}
+
+/* Emoji-väljaren (områdets symbol – emojin är INNEHÅLL, bara chromet mörknar). */
+.teacher-dark .emoji-choice {
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+}
+.teacher-dark .emoji-choice:hover { border-color: var(--t-accent); }
+.teacher-dark .emoji-choice.active {
+  background: var(--t-accent-soft);
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 1px var(--t-accent);
+}
+.teacher-dark .emoji-preview { background: var(--t-surface-2); }
+
+.teacher-dark .composer-callout { background: var(--t-accent-soft); }
+.teacher-dark .composer-callout .hint { color: #a9ecc6; }
+
+/* --- Läs/AI-editorer & granska-vy ---------------------------------------- */
+.teacher-dark .rv-passage { background: var(--t-surface-2); }
+.teacher-dark .rv-expl { background: rgba(242, 201, 76, 0.12); }
+.teacher-dark .rv-imgflag { background: rgba(255, 255, 255, 0.08); }
+.teacher-dark .rv-arrow { color: var(--t-accent); }
+.teacher-dark .rv-opt.correct { color: #7ee0a6; }
+.teacher-dark .area-merge,
+.teacher-dark .area-review { border-left-color: rgba(46, 193, 110, 0.4); }
+.teacher-dark .btn.small.active { box-shadow: inset 0 0 0 2px var(--t-accent); }
+
+/* --- Statustext, kod, felrutor ------------------------------------------- */
+.teacher-dark .ok-inline,
+.teacher-dark .gc-ok { color: #7ee0a6; }
+.teacher-dark .err-inline,
+.teacher-dark .gc-err,
+.teacher-dark .ae-err { color: #ff9d9d; }
+.teacher-dark .mm-main .mm-username,
+.teacher-dark .lc-hint { color: var(--t-muted); }
+.teacher-dark code { background: rgba(255, 255, 255, 0.08); color: #a9ecc6; }
+
+/* --- Kontoskapande / medlemshanterare ------------------------------------ */
+.teacher-dark .mm-add { border-color: var(--t-border-strong); }
+.teacher-dark .mm-add[open] > summary { border-bottom-color: var(--t-border); }
+.teacher-dark .cred-panel {
+  background: rgba(242, 201, 76, 0.1);
+  border-color: rgba(242, 201, 76, 0.4);
+}
+.teacher-dark .tbl th { color: var(--t-muted); border-bottom-color: var(--t-border); }
+.teacher-dark .tbl .cell {
+  background: var(--t-surface-2);
+  border: 1.5px solid var(--t-border-strong);
+  color: var(--t-text);
+}
+.teacher-dark .tbl .cell:focus { border-color: var(--t-accent); }
+.teacher-dark .acct-tbl .ae-invalid .cell { border-color: #ff9d9d; }
+
+/* --- Statistik-tabell (klass) -------------------------------------------- */
+.teacher-dark .class-tbl .cx-corner,
+.teacher-dark .class-tbl .cx-name { background: var(--t-surface); }
+.teacher-dark .class-tbl .cx-corner { background: var(--t-surface-2); }
+.teacher-dark .class-tbl tbody tr:nth-child(even) td,
+.teacher-dark .class-tbl tbody tr:nth-child(even) .cx-name { background: rgba(255, 255, 255, 0.03); }
+.teacher-dark .class-tbl .cx-head-name,
+.teacher-dark .class-tbl .cx-slash,
+.teacher-dark .class-tbl .cx-empty,
+.teacher-dark .class-tbl .cx-total-stars { color: var(--t-muted); }
+.teacher-dark .class-tbl .cx { border-left-color: var(--t-border); }
+.teacher-dark .class-tbl .cx-stars,
+.teacher-dark .class-tbl .cx-total-pct { color: var(--t-text); }
+.teacher-dark .class-tbl .cx-bar,
+.teacher-dark .class-tbl .cx-total { border-left-color: var(--t-border); }
+.teacher-dark .class-tbl .cx-bar { background: rgba(255, 255, 255, 0.1); }
+/* Nivåfärger som halvgenomskinliga toner så de läser mot mörk botten. */
+.teacher-dark .class-tbl .cx.hog { background: rgba(46, 193, 110, 0.16); }
+.teacher-dark .class-tbl .cx.mellan { background: rgba(242, 153, 74, 0.16); }
+.teacher-dark .class-tbl .cx.lag { background: rgba(235, 87, 87, 0.16); }
+.teacher-dark .class-tbl .cx-total.hog { color: #7ee0a6; }
+.teacher-dark .class-tbl .cx-total.mellan { color: #f2b06a; }
+.teacher-dark .class-tbl .cx-total.lag { color: #ff9d9d; }
+.teacher-dark .class-tbl .cx-total.tom { color: var(--t-muted); }
+.teacher-dark .class-tbl tr.cx-row:hover td,
+.teacher-dark .class-tbl tr.cx-row:hover .cx-name,
+.teacher-dark .class-tbl tr.cx-row:focus-visible td,
+.teacher-dark .class-tbl tr.cx-row:focus-visible .cx-name { background: var(--t-accent-soft); }
+.teacher-dark .class-tbl .cx-row-more { color: var(--t-accent); }
+.teacher-dark .cx-legend { color: var(--t-muted); }
+.teacher-dark .cx-legend-tip { color: var(--t-accent); }
+.teacher-dark .cx-dot.tom { background: rgba(255, 255, 255, 0.12); }
+
+/* --- Elev-modal (per-elev-fördjupning) ----------------------------------- */
+.teacher-dark .cx-modal {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.teacher-dark .cx-modal-close { background: var(--t-raised); color: var(--t-muted); }
+.teacher-dark .cx-modal-close:hover { background: #27333f; color: var(--t-text); }
+.teacher-dark .cx-modal-sub,
+.teacher-dark .cx-stat-of,
+.teacher-dark .cx-stat-lbl,
+.teacher-dark .cx-chip-lbl,
+.teacher-dark .cx-subject-block h4 { color: var(--t-muted); }
+.teacher-dark .cx-stat { background: var(--t-surface-2); }
+.teacher-dark .cx-stat-num { color: var(--t-text); }
+.teacher-dark .cx-area-stars,
+.teacher-dark .cx-mode-val { color: var(--t-text); }
+.teacher-dark .cx-area-row { border-top-color: var(--t-border); }
+.teacher-dark .cx-area-bar,
+.teacher-dark .cx-detail-total-bar { background: rgba(255, 255, 255, 0.1); }
+.teacher-dark .cx-mode { background: var(--t-surface-2); }
+.teacher-dark .cx-mode.tom .cx-mode-val { color: var(--t-muted); }
+.teacher-dark .cx-chip.weak { background: rgba(235, 87, 87, 0.16); color: #ff9d9d; }
+.teacher-dark .cx-chip.not { background: rgba(255, 255, 255, 0.06); color: var(--t-muted); }
+
+/* --- Statistik-flikar + Läsresan-lärarvy (issue #402) ----------------------
+   Klasskortets Statistik-panel har flikarna Ämnen | Läsresan. Läsresans tabell
+   (teacher-lasresan.js) och elevdetalj (teacher-lasresan-elev.js) använder
+   prefixet lrt- (lr- hör till elevens lasresan.css). */
+.teacher-dark .stats-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 4px 0 14px;
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+}
+.teacher-dark .stats-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.teacher-dark .stats-tab:hover { color: var(--t-text); background: rgba(255, 255, 255, 0.05); }
+.teacher-dark .stats-tab.active { background: var(--t-accent-soft); color: var(--t-accent); }
+.teacher-dark .stats-tab:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+
+.teacher-dark .lrt-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-bottom: 8px;
+}
+.teacher-dark .lrt-title { margin: 0; }
+.teacher-dark .lrt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: var(--t-muted);
+  font-size: 0.88rem;
+}
+.teacher-dark .lrt-summary b { color: var(--t-text); }
+
+.teacher-dark .lrt-tbl { min-width: 720px; }
+.teacher-dark .lrt-tbl th,
+.teacher-dark .lrt-tbl td { padding: 8px 8px; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .lrt-tbl td,
+.teacher-dark .lrt-tbl .lrt-name { font-size: 0.95rem; }
+.teacher-dark .lrt-num { text-align: right; font-variant-numeric: tabular-nums; }
+.teacher-dark .lrt-th { padding: 4px 2px; white-space: nowrap; }
+.teacher-dark .lrt-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.teacher-dark .lrt-th.lrt-num .lrt-sort { justify-content: flex-end; }
+.teacher-dark .lrt-sort:hover { color: var(--t-text); background: rgba(255, 255, 255, 0.05); }
+.teacher-dark .lrt-sort:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; }
+.teacher-dark .lrt-th.active .lrt-sort { color: var(--t-accent); }
+.teacher-dark .lrt-arrow { font-size: 0.7rem; opacity: 0.55; }
+.teacher-dark .lrt-th.active .lrt-arrow { opacity: 1; }
+
+.teacher-dark .lrt-row { cursor: pointer; }
+.teacher-dark .lrt-row:nth-child(even) th,
+.teacher-dark .lrt-row:nth-child(even) td { background: rgba(255, 255, 255, 0.025); }
+.teacher-dark .lrt-row:hover th,
+.teacher-dark .lrt-row:hover td,
+.teacher-dark .lrt-row:focus-visible th,
+.teacher-dark .lrt-row:focus-visible td { background: var(--t-accent-soft); }
+.teacher-dark .lrt-row:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -2px; }
+.teacher-dark .lrt-tbl .lrt-name { font-weight: 600; color: var(--t-text); white-space: nowrap; text-align: left; }
+.teacher-dark .lrt-name .cx-avatar { margin-right: 6px; }
+.teacher-dark .lrt-badge {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--t-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.teacher-dark .lrt-not-started td { color: var(--t-muted); }
+.teacher-dark .lrt-dash { color: var(--t-muted); }
+.teacher-dark .lrt-of { color: var(--t-muted); font-weight: 500; font-size: 0.85em; }
+.teacher-dark .lrt-pct { font-weight: 700; }
+.teacher-dark .lrt-pct.hog { color: #7ee0a6; }
+.teacher-dark .lrt-pct.mellan { color: #f2b06a; }
+.teacher-dark .lrt-pct.lag { color: #ff9d9d; }
+.teacher-dark .lrt-lvl {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: rgba(86, 156, 255, 0.16);
+  color: #a9cbff;
+  font-weight: 700;
+}
+.teacher-dark .lrt-lvl.start { background: rgba(255, 255, 255, 0.06); color: var(--t-muted); }
+.teacher-dark .lrt-world { white-space: nowrap; }
+.teacher-dark .lrt-legend { margin-top: 10px; flex-wrap: wrap; }
+
+/* Elevdetalj (modal) */
+.teacher-dark .lrt-stat-grid .cx-stat-num { font-size: 1.35rem; }
+.teacher-dark .lrt-stat-world .cx-stat-num { font-size: 1.1rem; }
+.teacher-dark .lrt-stat-level { background: rgba(86, 156, 255, 0.12); }
+.teacher-dark .lrt-stat-level .cx-stat-num { color: #a9cbff; }
+.teacher-dark .lrt-stat-grid .lrt-pct.hog .cx-stat-num { color: #7ee0a6; }
+.teacher-dark .lrt-stat-grid .lrt-pct.mellan .cx-stat-num { color: #f2b06a; }
+.teacher-dark .lrt-stat-grid .lrt-pct.lag .cx-stat-num { color: #ff9d9d; }
+.teacher-dark .lrt-pips { display: flex; justify-content: center; gap: 3px; margin-top: 6px; }
+.teacher-dark .lrt-pip { width: 9px; height: 9px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); }
+.teacher-dark .lrt-pip.on { background: #6aa8ff; }
+.teacher-dark .lrt-hidden-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: var(--t-muted);
+  font-size: 0.8rem;
+}
+.teacher-dark .lrt-cats { display: grid; gap: 12px; }
+.teacher-dark .lrt-cat-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 0.92rem;
+}
+.teacher-dark .lrt-cat-name { color: var(--t-text); font-weight: 600; }
+.teacher-dark .lrt-cat-val b { color: var(--t-text); }
+.teacher-dark .lrt-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.teacher-dark .lrt-bar > span { display: block; height: 100%; border-radius: 999px; }
+.teacher-dark .lrt-cat.hog .lrt-bar > span { background: #2ec16e; }
+.teacher-dark .lrt-cat.mellan .lrt-bar > span { background: #f2994a; }
+.teacher-dark .lrt-cat.lag .lrt-bar > span { background: #eb5757; }
+.teacher-dark .lrt-cat.hog .lrt-cat-val b { color: #7ee0a6; }
+.teacher-dark .lrt-cat.mellan .lrt-cat-val b { color: #f2b06a; }
+.teacher-dark .lrt-cat.lag .lrt-cat-val b { color: #ff9d9d; }
+.teacher-dark .lrt-att-tbl { min-width: 480px; }
+.teacher-dark .lrt-att-tbl th,
+.teacher-dark .lrt-att-tbl td { padding: 7px 8px; border-bottom: 1px solid var(--t-border); }
+.teacher-dark .lrt-att-tbl td { font-size: 0.9rem; }
+.teacher-dark .lrt-att-title { color: var(--t-text); font-weight: 600; }
+.teacher-dark .lrt-date { white-space: nowrap; color: var(--t-muted); }
+.teacher-dark .lrt-empty { margin: 4px 0; }
+
+/* --- Läsresan-nivåstyrning (issue #506) ------------------------------------
+   teacher-lasresan-niva.js: korten "Ändra klassens startnivå" / "Ändra nivå för
+   hela klassen" ovanför Läsresan-tabellen, bekräftelsedialogen och "Ändra nivå"
+   i elevdetaljen. Prefix lrn-. */
+.teacher-dark .lrn-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin: 6px 0 14px;
+}
+.teacher-dark .lrn-card {
+  padding: 12px 14px;
+  background: var(--t-surface-2);
+  border: 1px solid var(--t-border);
+  border-radius: 12px;
+}
+.teacher-dark .lrn-card-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  color: var(--t-text);
+}
+.teacher-dark .lrn-card-title .t-icon { color: var(--t-accent); }
+.teacher-dark .lrn-what { margin: 0 0 8px; color: var(--t-muted); font-size: 0.86rem; line-height: 1.4; }
+.teacher-dark .lrn-what b { color: var(--t-text); font-weight: 600; }
+.teacher-dark .lrn-now { margin: 0 0 8px; font-size: 0.9rem; }
+.teacher-dark .lrn-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.teacher-dark .lrn-row label { color: var(--t-muted); font-size: 0.86rem; font-weight: 600; }
+.teacher-dark .lrn-row select { padding: 6px 10px; font: inherit; font-size: 0.9rem; max-width: 220px; }
+.teacher-dark .lrn-msg:not(:empty) { margin-top: 10px; }
+.teacher-dark .lrn-msg .msg { margin: 0; font-size: 0.88rem; }
+.teacher-dark .lrn-pending-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(242, 201, 76, 0.14);
+  color: #f5d77a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.teacher-dark .lrn-student .lrn-status { margin: 0 0 8px; }
+.teacher-dark .lrt-lvl.lrn-has-pending { background: rgba(242, 201, 76, 0.16); color: #f5d77a; white-space: nowrap; }
+.teacher-dark .lrn-confirm-box { max-width: 480px; }
+.teacher-dark .lrn-confirm-title { margin: 0 0 12px; font-size: 1.15rem; color: var(--t-text); }
+.teacher-dark .lrn-facts { display: grid; gap: 6px; margin: 0 0 12px; }
+.teacher-dark .lrn-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--t-surface-2);
+  border-radius: 9px;
+}
+.teacher-dark .lrn-facts dt { color: var(--t-muted); }
+.teacher-dark .lrn-facts dd { margin: 0; font-weight: 700; color: var(--t-text); }
+.teacher-dark .lrn-confirm-body { margin: 0 0 14px; color: var(--t-muted); font-size: 0.9rem; line-height: 1.45; }
+.teacher-dark .lrn-confirm-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+/* --- Statistik → Per område (issue #446) ---------------------------------
+   Klasstabell per ämne/område (teacher-plugga.js) + djupdykning per kategori
+   (teacher-plugga-elev.js). Bygger på lrt-klasserna ovan; prefix pp-. */
+.teacher-dark .pp-pickers { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px; }
+.teacher-dark .pp-pickers .field { flex: 1 1 220px; max-width: 320px; margin-bottom: 8px; }
+.teacher-dark .pp-teacher .lrt-summary { margin: 4px 0 10px; }
+.teacher-dark .pp-sum-cat { white-space: nowrap; }
+.teacher-dark .pp-sum-cat.hog b { color: #7ee0a6; }
+.teacher-dark .pp-sum-cat.mellan b { color: #f2b06a; }
+.teacher-dark .pp-sum-cat.lag b { color: #ff9d9d; }
+.teacher-dark .pp-tbl { min-width: 680px; }
+.teacher-dark .pp-stars { white-space: nowrap; }
+.teacher-dark .pp-cats-head { text-align: center; white-space: nowrap; }
+.teacher-dark .pp-cats-lbl {
+  display: block;
+  color: var(--t-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.teacher-dark .pp-cats-cell { text-align: center; }
+.teacher-dark .pp-minibars { display: inline-flex; align-items: flex-end; gap: 5px; height: 24px; vertical-align: middle; }
+.teacher-dark .pp-minibars.head { height: auto; }
+.teacher-dark .pp-minibars.none { align-items: center; }
+.teacher-dark .pp-minibar,
+.teacher-dark .pp-minibar-head { width: 14px; text-align: center; font-size: 0.72rem; line-height: 1; }
+.teacher-dark .pp-minibar {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.teacher-dark .pp-minibar > span { display: block; width: 100%; border-radius: 3px 3px 0 0; }
+.teacher-dark .pp-minibar.hog > span { background: #2ec16e; }
+.teacher-dark .pp-minibar.mellan > span { background: #f2994a; }
+.teacher-dark .pp-minibar.lag > span { background: #eb5757; }
+.teacher-dark .pp-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--t-muted);
+  font-size: 0.86rem;
+}
+.teacher-dark .pp-note .t-icon { flex: none; margin-top: 2px; }
+.teacher-dark .pp-cat-src { margin: 10px 0 0; font-size: 0.85rem; }
+.teacher-dark .pp-callout {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid #eb5757;
+  background: rgba(235, 87, 87, 0.1);
+  color: var(--t-text);
+  font-size: 0.92rem;
+}
+.teacher-dark .pp-callout.mellan { border-left-color: #f2994a; background: rgba(242, 153, 74, 0.1); }
+.teacher-dark .pp-callout.hog { border-left-color: #2ec16e; background: rgba(46, 193, 110, 0.1); }
+.teacher-dark .pp-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+.teacher-dark .pp-badge.weak { background: rgba(235, 87, 87, 0.18); color: #ff9d9d; }
+.teacher-dark .pp-badge.strong { background: rgba(46, 193, 110, 0.16); color: #7ee0a6; }
+.teacher-dark .lrt-cat.pp-weakest {
+  margin: -6px;
+  padding: 6px;
+  border-radius: 10px;
+  outline: 1px dashed rgba(235, 87, 87, 0.45);
+}
+.teacher-dark .pp-starrow { color: #f2c94c; letter-spacing: 1px; white-space: nowrap; }
+.teacher-dark .pp-starrow .off { color: rgba(255, 255, 255, 0.15); }
+
+/* --- Login-korten (utskriftsvänliga) -------------------------------------
+   Overlayen + verktygsraden mörknar; SJÄLVA korten hålls vita med mörk text –
+   de är fysiska utdelningskort som ska skrivas ut på papper (print-vänligt),
+   inte en "ljus ö" i UI:t. @media print nedan är oförändrad. */
+.teacher-dark.login-cards-overlay { background: var(--t-bg); }
+.teacher-dark .lc-title { color: var(--t-text); }
+

@@ -1,0 +1,316 @@
+/* ==========================================================================
+   === Revamp #440 – Klassvyn Master-Detail + lärarskal (epic #438) ===
+   --------------------------------------------------------------------------
+   #/larare/klasser: smal klasslista (master) + EN klass inställningar (detalj)
+   med sektionsflikar ur CLASS_SECTIONS (teacher-classes-*.js). Allt scopat
+   under .teacher-dark / body.larare-lage – elevsidan är orörd (X-04).
+   X-03: lärarrotens maxbredd ändras HÄR och bara här; #441 ärver den.
+   ========================================================================== */
+body.larare-lage .container,
+body:has(.teacher-dark) .container {
+  max-width: min(1280px, 96vw);
+}
+
+.teacher-dark .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.teacher-dark .cls-md {
+  display: grid;
+  grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+/* .panel har margin: 0 auto – auto-marginaler krymper grid-celler till innehållet. */
+.teacher-dark .cls-md > .panel { margin: 0; }
+
+/* --- Master (vänsterlistan) ---------------------------------------------- */
+.teacher-dark .cls-master {
+  position: sticky;
+  top: 86px; /* under den sticky toppnaven */
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+.teacher-dark .cls-master-head {
+  padding: 2px 8px 0;
+}
+.teacher-dark .cls-master-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+}
+.teacher-dark .cls-new {
+  justify-content: flex-start;
+  width: 100%;
+  border-style: dashed;
+}
+.teacher-dark .cls-new.active {
+  color: #eafff2;
+  background: var(--t-accent-soft);
+  border-color: rgba(46, 193, 110, 0.45);
+}
+.teacher-dark .cls-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.teacher-dark .cls-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--t-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.teacher-dark .cls-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--t-border);
+}
+.teacher-dark .cls-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--t-accent-soft);
+  border-color: var(--t-accent);
+}
+.teacher-dark .cls-item.active {
+  background: var(--t-accent-soft);
+  border-color: rgba(46, 193, 110, 0.45);
+  color: #eafff2;
+}
+.teacher-dark .cls-item.active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--t-accent);
+}
+.teacher-dark .cls-item-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.teacher-dark .cls-item-lock {
+  display: inline-flex;
+  color: #f2c94c;
+}
+.teacher-dark .cls-item-count {
+  flex: none;
+  min-width: 26px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--t-muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--t-border);
+}
+.teacher-dark .cls-item.active .cls-item-count {
+  color: var(--t-accent);
+  border-color: rgba(46, 193, 110, 0.35);
+}
+.teacher-dark .cls-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  font-size: 0.9rem;
+  color: var(--t-muted);
+}
+.teacher-dark .cls-empty b { color: var(--t-text); }
+.teacher-dark .cls-picker-wrap { display: none; }
+
+/* --- Detalj --------------------------------------------------------------- */
+.teacher-dark .cls-detail {
+  min-width: 0;
+  padding: 22px 24px 26px;
+}
+.teacher-dark .cls-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.teacher-dark .cls-detail-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.teacher-dark .cls-detail-name {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--t-text);
+  overflow-wrap: anywhere;
+}
+.teacher-dark .cls-detail-count {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.teacher-dark .cls-flash:empty { display: none; }
+.teacher-dark .cls-flash { margin-top: 12px; }
+
+.teacher-dark .cls-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 18px 0 0;
+  border-bottom: 1px solid var(--t-border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.teacher-dark .cls-tabs::-webkit-scrollbar { display: none; }
+.teacher-dark .cls-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 10px 14px 11px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--t-muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.teacher-dark .cls-tab:hover { color: var(--t-text); }
+.teacher-dark .cls-tab:focus-visible {
+  outline: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: inset 0 0 0 2px var(--t-accent-soft);
+}
+.teacher-dark .cls-tab.active {
+  color: #eafff2;
+  border-bottom-color: var(--t-accent);
+}
+.teacher-dark .cls-tab.active .t-icon { color: var(--t-accent); }
+
+.teacher-dark .cls-section {
+  padding-top: 20px;
+  min-height: 160px;
+}
+.teacher-dark .cls-block + .cls-block {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--t-border);
+}
+.teacher-dark .cls-detail-empty {
+  padding: 30px 8px;
+  text-align: center;
+}
+
+/* --- Skapa en ny klass (detaljytans "ny"-läge, D-4) ----------------------- */
+.teacher-dark .cls-create .new-class {
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+}
+.teacher-dark .cls-create-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--t-muted);
+}
+/* #453: .new-class #new-name/#new-count har flex-basis 220px/96px (gamla radlayouten);
+   i den kolumn-riktade labeln blev det HÖJD (220/96 px). Nollställ flexen (id-
+   specificitet krävs för att slå de gamla reglerna) och ge
+   normal inputhöjd, och knappen samma höjd så den ligger i linje med fälten. */
+.teacher-dark .cls-create-field #new-name,
+.teacher-dark .cls-create-field #new-count { flex: none; box-sizing: border-box; height: 44px; padding: 0 12px; }
+.teacher-dark .cls-create .new-class .btn { height: 44px; padding-block: 0; }
+.teacher-dark .cls-create-field #new-name { min-width: 220px; }
+.teacher-dark .cls-create-field #new-count { width: 110px; }
+.teacher-dark .cls-create #new-msg { margin-top: 14px; }
+/* #453: övriga fält i detaljytan i samma normala storlek – medlemsradernas
+   namn/användarnamn, coins-fältet och "antal konton" hade webbläsarens 19 px
+   (.cell stylas bara inuti .tbl), och appens .select (56 px) stack ut mot
+   knapparna (40–42 px). Kontotabellens .tbl .cell rörs inte. */
+.teacher-dark .cls-detail .mm-namn,
+.teacher-dark .cls-detail .mm-username,
+.teacher-dark .cls-detail .gc-amount,
+.teacher-dark .cls-detail .mm-count {
+  box-sizing: border-box;
+  height: 38px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 0.92rem;
+}
+.teacher-dark .cls-detail .select {
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  border-width: 1.5px;
+  border-radius: 10px;
+}
+
+/* --- Smal skärm: master blir en <select> överst --------------------------- */
+@media (max-width: 760px) {
+  .teacher-dark .cls-md {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .teacher-dark .cls-master {
+    position: static;
+    max-height: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 12px;
+  }
+  .teacher-dark .cls-master-head,
+  .teacher-dark .cls-list,
+  .teacher-dark .cls-new { display: none; }
+  .teacher-dark .cls-picker-wrap {
+    display: block;
+    flex: 1 1 auto;
+  }
+  .teacher-dark .cls-picker {
+    width: 100%;
+    padding: 10px 12px;
+    font: inherit;
+    font-weight: 600;
+  }
+  .teacher-dark .cls-detail { padding: 16px 14px 20px; }
+  .teacher-dark .cls-detail-name { font-size: 1.25rem; }
+  .teacher-dark .cls-create-field,
+  .teacher-dark .cls-create-field #new-name { min-width: 0; width: 100%; }
+}
+

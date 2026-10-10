@@ -1,0 +1,38 @@
+/* --- Flash / toast --------------------------------------------------------- */
+
+.flash-box {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.flash {
+  background: var(--gron);
+  color: #fff;
+  font-weight: 800;
+  padding: 12px 20px;
+  border-radius: 999px;
+  box-shadow: var(--skugga-mjuk);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.flash.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.flash.error {
+  background: var(--rod);
+}
+

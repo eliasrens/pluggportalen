@@ -1,0 +1,424 @@
+/* --- Klassbyn (by-nivån): hus längs en slingrande väg med dekor ------------ */
+.varld-by { background: #a8da8f; }
+
+/* Stämningsdekor (träd/granar/buskar/lyktstolpar, art-by-dekor.js): egna små
+   SVG:er ankrade med bottenmitten på sin markpunkt (left/top i % av lagret,
+   inline från varld-by-scen.js). Aldrig klickbara – klick ska alltid nå
+   husen/tomterna bakom. */
+.by-dekor {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+.by-dekor > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.by-mark,
+.omrade-mark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Låter gräs/himmel/väg som ritas UTANFÖR viewBoxen (0–100) svämma ut och fylla
+     det full-bleed:ade staget sömlöst på desktop (#373). Staget klipper (overflow
+     hidden) mot skärmkanten. På mobil ligger allt ändå inom scen-boxen. */
+  overflow: visible;
+}
+
+/* En tomt = ett minihus + elevens avatar (husMini) med namnskylt under.
+   left/top/width/height sätts inline av varld-by-scen.js utifrån byLayout
+   (procent av lagret – samma koordinater som kamerans fokuspunkter). */
+.by-tomt {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  outline: none;
+}
+.by-tomt > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 90%;
+}
+.by-tomt:hover > svg,
+.by-tomt:focus-visible > svg { transform: scale(1.06); }
+.by-tomt:focus-visible { outline: 3px solid var(--lila, #7c5cd6); outline-offset: 4px; border-radius: 12px; }
+
+.by-namn {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 150%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #3b3350;
+}
+.by-tomt.du .by-namn {
+  background: var(--gron, #34a853);
+  border-color: rgba(59, 51, 80, 0.55);
+  color: #fff;
+}
+
+.by-du {
+  position: absolute;
+  top: -4px;
+  left: 72%;
+  background: var(--gron, #34a853);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  box-shadow: var(--skugga);
+  transform: rotate(6deg);
+  z-index: var(--z-scen-markor);
+  pointer-events: none;
+}
+
+/* Låst kompis-hus: en liten hänglås-bricka på huset + huset tonas lätt så det
+   syns att man inte kommer in just nu (klick öppnar .by-last-bubbla i stället). */
+.by-tomt.last > svg { filter: grayscale(0.35) brightness(0.97); }
+.by-last-ikon {
+  position: absolute;
+  top: -2px;
+  left: 68%;
+  font-size: 0.95rem;
+  z-index: var(--z-scen-markor);
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+/* Vänlig pratbubbla ovanför ett låst hus (visas i byn, ingen navigering). Hänger
+   ovanför tomt-noden och pekar ned mot huset; tonar in/ut via .show. */
+.by-last-bubbla {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translate(-50%, 6px);
+  background: #fff;
+  color: #3b3350;
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  box-shadow: var(--skugga-mjuk);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: var(--z-bubbla);
+  pointer-events: none;
+}
+.by-last-bubbla::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #fff;
+  filter: drop-shadow(0 2px 0 rgba(59, 51, 80, 0.35));
+}
+.by-last-bubbla.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .by-last-bubbla { transition-duration: 0.01s; }
+}
+
+/* --- Klasscentret i byn (#480, klasscenter/kc-by.js) ----------------------- */
+/* Rutan placeras av by-layouten (left = mitten, top = överkant, procent av
+   lagret) och bottnar på samma marklinje som radens hus. Byggnaden ritas utan
+   ambient (kc-by.js animera:false, #374); bara HTML-boxar transformeras. */
+.by-klasscenter {
+  position: absolute;
+  transform: translateX(-50%);
+  cursor: pointer;
+  outline: none;
+}
+.by-klasscenter > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 94%;
+}
+.by-klasscenter:hover > svg,
+.by-klasscenter:focus-visible > svg { transform: scale(1.04); }
+.by-klasscenter:focus-visible { outline: 3px solid var(--lila, #7c5cd6); outline-offset: 4px; border-radius: 12px; }
+.by-klasscenter.kc-nyniva > svg { animation: kc-nyniva 0.6s ease-out; }
+@keyframes kc-nyniva { 0% { transform: scale(0.85); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* Mätaren: diskret pill ovanför byggnaden (samma stil som .by-namn). Klick går
+   igenom till byggnaden. Dold tills hovring/tangentbordsfokus (#484) – bara
+   opacity/transform (kompositerbart, ingen layout, #374). Hovringen gäller bara
+   enheter som KAN hovra: pekskärmar får "fastnad" :hover efter tryck, där tar
+   bubblan över (kc-by.js medMatare). */
+.kc-matare-plats {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.by-klasscenter:focus-visible .kc-matare-plats { opacity: 1; transform: translate(-50%, 0); }
+@media (hover: hover) {
+  .by-klasscenter:hover .kc-matare-plats { opacity: 1; transform: translate(-50%, 0); }
+}
+.kc-matare {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 9.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 12px;
+  padding: 3px 10px 4px;
+  color: #3b3350;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  box-shadow: var(--skugga-mjuk);
+}
+.kc-matare-titel { font-size: 0.78rem; font-weight: 800; }
+.kc-matare-bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(59, 51, 80, 0.15);
+  overflow: hidden;
+}
+.kc-matare-bar > i { display: block; height: 100%; border-radius: inherit; background: var(--gron, #34a853); }
+.kc-matare.max .kc-matare-bar > i { background: linear-gradient(90deg, #8fd3ff, #c99bff, #ffd36b); }
+
+/* Placeholder-bubblan vid klick (rummet byggs i epic 2) – .by-last-bubbla-familjen. */
+.kc-bubbla {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, 6px);
+  max-width: 18rem;
+  background: #fff;
+  color: #3b3350;
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-align: center;
+  box-shadow: var(--skugga-mjuk);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: var(--z-bubbla);
+  pointer-events: none;
+}
+.kc-bubbla.show { opacity: 1; transform: translate(-50%, 0); }
+/* Bubblan ersätter mätaren medan den visas (samma plats ovanför byggnaden). */
+.by-klasscenter.kc-bubbla-oppen .kc-matare-plats { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kc-bubbla, .kc-matare-plats, .by-klasscenter > svg { transition-duration: 0.01s; }
+  .by-klasscenter.kc-nyniva > svg { animation: none; }
+}
+
+/* --- Klasspoäng: stjärn-toggle uppe till höger (#klass-toggle-wrap) --------- */
+/* Kompakt ✨-knapp i by-scenens högra hörn som fäller ut/in klassens stats-
+   skylt; default infälld så byn inte skyms. Wrappen är ankaret (position:
+   relative) som skylten hänger under, i samma anda som verktygs-rullgardinen. */
+.varld-klass-toggle { position: relative; display: flex; justify-content: flex-end; }
+/* (hidden döljs nu av den globala [hidden]-regeln trots display:flex ovan) */
+
+/* Själva ✨-knappen ärver .varld-knapp; en gul touch + siffra gör den till en
+   tydlig "klasspoäng"-pill. */
+.varld-klass-stjarna {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.varld-klass-stjarna .ks-toggle-tal { font-weight: 800; }
+.varld-klass-stjarna[aria-expanded="true"] {
+  background: #fff6d9;
+  border-color: #ffb703;
+}
+
+/* Utfällbar "byskylt": klassens gemensamma nivå + positiva totaler. Absolut
+   under ✨-knappen (höger-ankrad), samma popover-känsla som verktygsmenyn. */
+.varld-klass-stats {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-meny);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: max-content;
+  max-width: min(360px, 80vw);
+  padding: 8px 16px;
+  background: #fff;
+  border: 3px solid #3b3350;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 rgba(59, 51, 80, 0.18);
+  text-align: center;
+  animation: verktyg-meny-in 0.12s ease;
+}
+/* (hidden döljs nu av den globala [hidden]-regeln trots display:flex ovan) */
+.varld-klass-stats .ks-rubrik {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #3b3350;
+}
+.varld-klass-stats .ks-niva {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.varld-klass-stats .ks-niva-badge {
+  flex: 0 0 auto;
+  background: var(--lila, #7c5cd6);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.varld-klass-stats .ks-bar {
+  flex: 1 1 auto;
+  height: 12px;
+  min-width: 70px;
+  background: #ece7f6;
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.varld-klass-stats .ks-bar-fyll {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ffd34d, #ffb703);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+.varld-klass-stats .ks-rad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+}
+.varld-klass-stats .ks-stat {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #3b3350;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .varld-klass-stats .ks-bar-fyll { transition: none; }
+}
+@media (max-width: 700px) {
+  /* Tightare utfälld skylt på smala skärmar; den hänger fortsatt under ✨-knappen. */
+  .varld-klass-stats { padding: 6px 12px; }
+  .varld-klass-stats .ks-rubrik { font-size: 0.85rem; }
+  /* Övriga knappar visar bara ikon på mobil, men ✨-siffran är hela poängen med
+     togglen → behåll talet synligt. */
+  .varld-klass-stjarna .ks-toggle-tal { display: inline; }
+}
+
+/* På by-nivån göms rums-/husverktygen (Måla om gäller det egna huset). */
+.varld-stage[data-niva="by"] .varld-knapp.bara-rum,
+.varld-stage[data-niva="by"] .varld-knapp.rum-och-hus,
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="palett"],
+.varld-stage[data-niva="by"] .varld-knapp[data-panel="hus"] { display: none; }
+
+/* På en KAMRATS hus (läs-vy) – och en ANNAN klass elevs hus (grannbyhus, #114) –
+   göms alla scen-kontroller helt: man kan bara titta in i deras rum eller gå
+   tillbaka. */
+.varld-stage[data-niva="kompishus"] .varld-verktyg,
+.varld-stage[data-niva="grannbyhus"] .varld-verktyg { display: none; }
+
+/* På skol-/grannby-nivån (andra klassers byar) göms rums-/husverktygen – här
+   tittar man bara på byar, inget att måla om eller pyssla med. */
+.varld-stage[data-niva="skola"] .varld-verktyg,
+.varld-stage[data-niva="grannby"] .varld-verktyg { display: none; }
+
+/* --- Skol-nivån (områdesöversikt): en klass-by per klass ------------------- */
+.varld-skola { background: #a8da8f; }
+/* .omrade-mark delar layout + overflow:visible med .by-mark (definierat ovan). */
+
+/* En klass-by-enhet: generisk by-silhuett + en namnskylt. left/top/width/height
+   sätts inline av varld-omrade.js (procent av lagret – samma koordinater som
+   kamerans fokuspunkter). */
+.omrade-by {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  outline: none;
+}
+.omrade-by-hus {
+  width: 100%;
+  height: 76%;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 90%;
+}
+.omrade-by:hover .omrade-by-hus,
+.omrade-by:focus-visible .omrade-by-hus { transform: scale(1.06); }
+.omrade-by:focus-visible {
+  outline: 3px solid var(--lila, #7c5cd6);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+.omrade-by-hus > svg { width: 100%; height: 100%; display: block; }
+
+.omrade-by-namn {
+  margin-top: 2px;
+  max-width: 150%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(59, 51, 80, 0.55);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #3b3350;
+}
+.omrade-by-namn b { color: var(--lila, #7c5cd6); }
+.omrade-by.du .omrade-by-namn {
+  background: var(--gron, #34a853);
+  border-color: rgba(59, 51, 80, 0.55);
+  color: #fff;
+}
+.omrade-by.du .omrade-by-namn b { color: #fff; }
+
+/* --- Grannby-nivån (läs-vy av en annan klass by) -------------------------- */
+/* Grannbyn ritas numera IDENTISKT med den egna klassbyn (#114): samma
+   mountByScen → samma globala .by-mark/.by-tomt/.by-namn-stilar gäller här. Bara
+   lagrets bakgrund behövs som egen regel. Grannby-hus-lagret (en annan klass
+   elevs exteriör, läs-vy) ärver .varld-kompis-lagrets stilar. */
+.varld-grannby { background: #a8da8f; }
+

@@ -1,3 +1,7 @@
+/* GENERERAD FIL – redigera inte här. Källan är src/styles/*.css (en fil per
+   område, laddas i nummerordning). Bygg om: npm run build:css (#570). */
+
+/* ── src/styles/01-grund.css ── */
 /* ==========================================================================
    Pluggporten – gemensam design
    Barnvänlig (åk 4): stora knappar, tydlig typografi, glada färger.
@@ -85,6 +89,8 @@ body {
   line-height: 1.5;
 }
 
+
+/* ── src/styles/02-layout-meny.css ── */
 /* --- Layout: bestående sidomeny + innehållsyta ---------------------------- */
 
 .layout {
@@ -536,6 +542,8 @@ body.med-sidomeny .sidebar {
   text-align: center;
 }
 
+
+/* ── src/styles/03-komponenter.css ── */
 /* --- Kort och paneler ------------------------------------------------------ */
 
 .panel {
@@ -903,6 +911,8 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
   cursor: pointer;
 }
 
+
+/* ── src/styles/04-larare-bas.css ── */
 /* ==========================================================================
    Lärarsidan (teacher.js)
    ========================================================================== */
@@ -1046,6 +1056,8 @@ h2 { font-size: 1.5rem; margin: 0 0 12px; }
 .gate-panel { max-width: 460px; }
 .gate-icon { font-size: 3.2rem; line-height: 1; display: block; margin-bottom: 4px; }
 
+
+/* ── src/styles/05-larare-mork.css ── */
 /* ==========================================================================
    Lärarsidan – moget MÖRKT designspråk (issue #363, epic #362)
    --------------------------------------------------------------------------
@@ -1420,6 +1432,8 @@ body.larare-lage .container {
   border-color: var(--t-border) !important;
 }
 
+
+/* ── src/styles/06-larare-mork-vyer.css ── */
 /* ==========================================================================
    Lärarsidan – MÖRK design utrullad till ALLA lärarvyer (issue #367, epic #362)
    --------------------------------------------------------------------------
@@ -1928,6 +1942,8 @@ body.larare-lage .container {
 .teacher-dark.login-cards-overlay { background: var(--t-bg); }
 .teacher-dark .lc-title { color: var(--t-text); }
 
+
+/* ── src/styles/07-larare-listor.css ── */
 /* --- Paneler och layout ---------------------------------------------------- */
 
 .panel-head {
@@ -2199,6 +2215,8 @@ code {
   justify-content: center;
 }
 
+
+/* ── src/styles/08-avatar-klader.css ── */
 /* --- Avatar med kläder (SVG-karaktär + SVG-klädsel per slot) --------------- */
 
 /* Figuren är en inline SVG i viewBox 100×120; containern är 1em × 1.2em så
@@ -2254,6 +2272,8 @@ code {
    följer samma normaliserade ansiktsmodell (se art-style.js / art-wearables-ansikte.js). */
 .af-wear.af-ansikte.af-anchor-mun { top: 31%; }
 
+
+/* ── src/styles/09-butik.css ── */
 /* --- Shop ------------------------------------------------------------------ */
 
 .shop-head {
@@ -2522,6 +2542,8 @@ code {
   cursor: not-allowed;
 }
 
+
+/* ── src/styles/10-rum.css ── */
 /* --- Mitt rum -------------------------------------------------------------- */
 
 .room-stage {
@@ -2859,6 +2881,8 @@ code {
   display: block;
 }
 
+
+/* ── src/styles/11-tradgard.css ── */
 /* --- Trädgården: köpta utomhussaker placerade i ute-scenen (issue #132) -----
    Lagret ligger OVANPÅ husScen-SVG:n i #ute-lager. pointer-events:none så klick
    på huset/gräset går vidare till scenen; varje sak slår på pointer-events själv.
@@ -3013,6 +3037,8 @@ code {
   color: var(--gron-mork);
 }
 
+
+/* ── src/styles/12-flash.css ── */
 /* --- Flash / toast --------------------------------------------------------- */
 
 .flash-box {
@@ -3051,6 +3077,8 @@ code {
   background: var(--rod);
 }
 
+
+/* ── src/styles/13-larare-klassoversikt.css ── */
 /* --- Klassöversikt (lärarsidan, #/larare/klass) ---------------------------- */
 
 .class-tbl {
@@ -3450,6 +3478,8 @@ code {
   .cx-modal { padding: 20px 16px 22px; border-radius: 16px; }
 }
 
+
+/* ── src/styles/14-utveckling.css ── */
 /* --- Utveckling (karaktärs-evolution, #/elev/utveckling) ------------------- */
 
 .evo-hero {
@@ -3630,6 +3660,8 @@ code {
   margin-bottom: 8px;
 }
 
+
+/* ── src/styles/15-larare-klasshantering.css ── */
 /* ==========================================================================
    Klasshantering (#/larare/klasser) – teacher-classes.js
    Additivt tillägg (håll separat för enkel rebase).
@@ -3776,6 +3808,8 @@ code {
   font-weight: 600;
 }
 
+
+/* ── src/styles/16-husdjur-sida.css ── */
 /* --- Mitt husdjur (#/elev/husdjur) – ägg, varelse och tillväxt ------------ */
 .pet-figur { margin: 14px auto; }
 .pet-figur svg { width: 100%; height: 100%; display: block; }
@@ -3807,6 +3841,8 @@ code {
 .pet-steg-chip.aktiv { background: var(--gul); border-color: rgba(0, 0, 0, 0.15); }
 .pet-steg-chip.klar { background: #d9f4e4; }
 
+
+/* ── src/styles/17-larare-klasser-konton.css ── */
 /* Lärare: "Ge coins" i elevlistan */
 .give-coins-cell { vertical-align: middle; }
 .give-coins .gc-row {
@@ -3891,6 +3927,8 @@ code {
 .mm-add-body .mm-count { width: 80px; text-align: center; }
 .mm-create-flash, .mm-link-flash { font-size: 0.9rem; }
 
+
+/* ── src/styles/18-varld.css ── */
 /* ============================================================================
    Husvärlden (#/elev/hus + #/elev/rum) – EN spelscen med kamerazoom-nivåer
    ============================================================================
@@ -4250,6 +4288,8 @@ body.varld-lage .container {
 /* Etiketterna ska ALLTID synas i menyn (även på mobil där de annars göms). */
 .varld-ut-meny .varld-knapp span { display: inline; }
 
+
+/* ── src/styles/19-varld-by.css ── */
 /* --- Klassbyn (by-nivån): hus längs en slingrande väg med dekor ------------ */
 .varld-by { background: #a8da8f; }
 
@@ -4674,6 +4714,8 @@ body.varld-lage .container {
    elevs exteriör, läs-vy) ärver .varld-kompis-lagrets stilar. */
 .varld-grannby { background: #a8da8f; }
 
+
+/* ── src/styles/20-varld-ui.css ── */
 /* --- Overlay-UI i spelvyn (integrerade scen-kontroller) -------------------- */
 /* Själva overlay-skiktet släpper igenom pekare; bara knappar/paneler fångar. */
 .varld-ui {
@@ -4963,6 +5005,8 @@ body.varld-lage .container {
   .varld-lager, #husgrupp, #kompis-husgrupp, #klasskylt, #laggard-dorr, .by-tomt > svg, .omrade-by-hus { transition-duration: 0.01s; }
 }
 
+
+/* ── src/styles/21-husdjur-rum.css ── */
 /* --- Husdjur i Mitt rum ----------------------------------------------------- */
 /* Äpplen på golvet (matning): ett litet emoji-äpple centrerat på sin procent-
    position. Inga pekhändelser (djuren äter dem – man drar dem inte), och de är
@@ -5399,6 +5443,8 @@ body.varld-lage .container {
 
 .pet-namn-input:focus { outline: none; border-color: var(--lila); }
 
+
+/* ── src/styles/22-larare-inloggning.css ── */
 /* ==========================================================================
    Redigerbar kontotabell (förslag före skapande) – teacher-login-cards.js
    ========================================================================== */
@@ -5599,6 +5645,8 @@ body.varld-lage .container {
 .lp-state[data-state="unknown"] { color: #f5c26b; }
 .lp-actions { margin-top: 14px; gap: 10px; }
 
+
+/* ── src/styles/23-mysterybox.css ── */
 /* ============================================================================
    Mysterybox – kategori-hint i shoppen + öppnings-/reveal-modal
    (pages-shop.js, pages-shop-mystery.js)
@@ -5699,6 +5747,8 @@ body.varld-lage .container {
 .mb-got { margin: 0 0 16px; color: var(--text-svag); font-size: 0.92rem; }
 .mb-ok { min-width: 130px; }
 
+
+/* ── src/styles/24-innehallsstudion.css ── */
 /* ==========================================================================
    Innehållsstudion (lärarsidan #/larare/innehall) – issue #303
    Bibliotek (kort + ämnesflikar) + fokuserad kompositör (overlay). Lugn ton,
@@ -6132,6 +6182,8 @@ body.composer-open { overflow: hidden; }
   .studio-composer { padding: 18px 16px 22px; }
 }
 
+
+/* ── src/styles/25-porten.css ── */
 /* ==========================================================================
    Porten – elev-inloggningen (issue #338)
    ==========================================================================
@@ -6320,6 +6372,8 @@ body.composer-open { overflow: hidden; }
   .port-overgang { display: none !important; }
 }
 
+
+/* ── src/styles/26-larare-revamp.css ── */
 /* ==========================================================================
    === Revamp #440 – Klassvyn Master-Detail + lärarskal (epic #438) ===
    --------------------------------------------------------------------------
@@ -6636,6 +6690,8 @@ body:has(.teacher-dark) .container {
   .teacher-dark .cls-create-field #new-name { min-width: 0; width: 100%; }
 }
 
+
+/* ── src/styles/27-larare-wizard.css ── */
 /* === Revamp #442 – "Skapa nytt område"-wizarden (4 steg) ==================
    Modal med fast huvud (titel + klickbar stegindikator) och fast fot
    (Föregående / Nästa / Spara); bara stegets innehåll scrollar, så allt ryms på
