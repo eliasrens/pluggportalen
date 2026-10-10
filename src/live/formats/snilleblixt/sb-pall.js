@@ -5,10 +5,13 @@
 //   ljuset dämpas + strålkastarna mot pallen → trumvirvel → 3:an kliver upp →
 //   trumvirvel → 2:an → längre trumvirvel → 1:an med stor blixt, konfetti och
 //   fanfar → vinnaren jublar, de andra (pallen + publiken) klappar/vinkar →
-//   resultatskärmen med hela klassens topplista. Totalt ~8–9 s med tre pallsteg.
+//   resultatskärmen. Totalt ~8–9 s med tre pallsteg.
+// Pallen (topp 3) är projektorns ENDA namnlista (Elias 2026-10-10): resultat-
+// skärmen är pallen kvar + en anonym klassrad ("Hela klassen: 62 % rätt
+// svar") – aldrig hela klassens topplista (den finns i lärarens historik).
 // Delad placering = samma pallsteg (podiumGroups). Pluggmyntpriset för
 // placeringen visas under varje steg (sessionens rewards, #557). Figurerna
-// är avatarpoolens egna element (plats "pall"/"res") – kläderna följer med.
+// är avatarpoolens egna element (plats "pall") – kläderna följer med.
 // Reducerad rörelse: samma ordning, men toningar i stället för hopp och
 // ingen konfetti.
 //
@@ -18,8 +21,8 @@
 //     showResult(data)                 direkt till resultatskärmen
 //     el, destroy()
 //   }
-//   data = { ranking: [{ uid, name, points, correct, rank }], groups:
-//            podiumGroups(ranking), prize(rank) → mynt|0, title, cheer(uids) }
+//   data = { groups: podiumGroups(ranking) (bara topp 3), prize(rank) → mynt|0,
+//            title, sub (anonym klassrad), cheer(uids) }
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
@@ -44,10 +47,10 @@ export function createFinal(host, { pool, sound, flashHost }) {
   root.className = "sbf";
   root.hidden = true;
   root.innerHTML = `<div class="sbf-dim" aria-hidden="true"></div><span class="sbf-kagla" aria-hidden="true"></span>
-    <h2 class="sbf-rubrik"></h2><div class="sbf-pall"></div><div class="sbf-lista" hidden></div><div class="sbf-konfetti" aria-hidden="true"></div>`;
+    <h2 class="sbf-rubrik"></h2><div class="sbf-pall"></div><p class="sbf-sub" hidden></p><div class="sbf-konfetti" aria-hidden="true"></div>`;
   host.appendChild(root);
   const pall = root.querySelector(".sbf-pall");
-  const lista = root.querySelector(".sbf-lista");
+  const sub = root.querySelector(".sbf-sub");
 
   // Pallen: mitten = bästa gruppen, vänster = näst bästa, höger = tredje.
   function build(data) {
@@ -112,18 +115,8 @@ export function createFinal(host, { pool, sound, flashHost }) {
     if (!pall.childElementCount) build(data);
     pall.querySelectorAll(".sbf-steg").forEach((s) => s.classList.add("sbf-uppe"));
     root.classList.add("sbf-pa", "sbf-resultat");
-    const rows = data.ranking || [];
-    const cols = rows.length > 20 ? 3 : rows.length > 8 ? 2 : 1;
-    lista.style.setProperty("--kol", cols);
-    lista.style.setProperty("--rader", Math.max(1, Math.ceil(rows.length / cols)));
-    lista.innerHTML = `<ol>${rows.map((p) => `
-      <li data-uid="${esc(p.uid)}" data-rank="${p.rank}"><span class="sbf-lnr">${p.rank}.</span><span class="sbf-lav"></span>
-        <span class="sbf-lnamn">${esc(p.name || "?")}</span><span class="sbf-lratt">${p.correct} rätt</span><b>${tal(p.points)}</b></li>`).join("")}</ol>`;
-    lista.querySelectorAll("li").forEach((li) => {
-      const av = pool.el(li.dataset.uid, "res");
-      li.querySelector(".sbf-lav").append(av);
-    });
-    lista.hidden = false;
+    sub.textContent = data.sub || "";
+    sub.hidden = !data.sub;
   }
 
   async function play(data, signal) {

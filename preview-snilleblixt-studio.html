@@ -33,8 +33,8 @@
         <button data-go="svar=free">Lobby · Skriv själv</button>
         <button data-go="svar=choice&fas=fraga">Fråga 4 · Flerval</button>
         <button data-go="svar=free&fas=fraga&auto=av">Fråga 1 · Skriv själv (7×8)</button>
-        <button data-go="svar=choice&fas=topplista">Topplista</button>
-        <button data-go="svar=choice&fas=topplista&historik=1">Topplista efter fråga 1</button>
+        <button data-go="svar=choice&fas=mellan">Mellanbild (efter fråga 4)</button>
+        <button data-go="svar=choice&fas=fraga&vy=sb-statistik">📊 Statistik (anonym)</button>
         <button data-go="svar=choice&fas=final">Final</button>
         <button data-go="svar=choice&fas=final&delad=1">Final · delad 2:a</button>
         <b>Händelser</b>
@@ -42,7 +42,6 @@
         <button data-act="auto">Auto-svar på/av</button>
         <button data-act="alla">Alla svarar nu</button>
         <button data-act="t7b">Test 7b (5×54, 3×64)</button>
-        <button data-act="klattra">Nästa: plats 4 → 1</button>
         <button data-act="snart">Hoppa till 6 s kvar</button>
         <button data-act="omladd">Omladdning</button>
         <button data-act="frys">Frys tiden på/av</button>
@@ -147,23 +146,20 @@
       }
       let auto = !elev && q.get("auto") !== "av";
       let timers = [];
-      let klattra = null;
       function scheduleAnswers() {
         timers.forEach(clearTimeout);
         timers = [];
         if (!auto) return;
         const total = session.questionSeconds * 1000;
         players.forEach((p, i) => {
-          if (klattra && p.uid !== klattra) return; // "plats 4 → 1": bara klättraren svarar
-          if (!klattra && Math.random() < 0.08) return; // några hinner inte
+          if (Math.random() < 0.08) return; // några hinner inte
           const at = 1200 + Math.random() * total * 0.62;
-          const good = klattra ? p.uid === klattra : Math.random() < 0.62;
-          timers.push(setTimeout(() => answer(p.uid, { correct: good }), klattra === p.uid ? 300 : at));
+          const good = Math.random() < 0.62;
+          timers.push(setTimeout(() => answer(p.uid, { correct: good }), at));
         });
-        klattra = null;
       }
 
-      // Historik: spela k frågor direkt (för scenarierna fråga/topplista/final).
+      // Historik: spela k frågor direkt (för scenarierna fråga/mellanbild/final).
       function history(k, { shared = false } = {}) {
         session.status = "live";
         session.startedAt = now() - 600_000;
@@ -234,7 +230,7 @@
       else {
         for (let i = 0; i < 30; i++) addPlayer(i, now() - 900_000);
         if (FAS === "fraga") { history(KIND === "free" ? 0 : 3); step("open", session.q ? session.q.index : -1); }
-        if (FAS === "topplista") { history(Number(q.get("historik")) || 4); offset = 0; }
+        if (FAS === "mellan") { history(4); offset = 0; }
         if (FAS === "final") { history(10, { shared: !!q.get("delad") }); session.status = "finished"; session.finishedAt = now(); }
       }
 
@@ -272,10 +268,6 @@
         t7b() {
           timers.forEach(clearTimeout);
           players.forEach((p, i) => setTimeout(() => answer(p.uid, { text: i < 5 ? "54" : i < 8 ? "64" : undefined, correct: true }), i * 50));
-        },
-        klattra() {
-          const st = computeStandings(session, { scores, players });
-          klattra = st.players[3]?.uid || null;
         },
         snart() { if (session.q?.phase === "open") session.q.openedAt = now() - (session.questionSeconds - 6) * 1000; emit(true); },
         omladd() { mount(); },

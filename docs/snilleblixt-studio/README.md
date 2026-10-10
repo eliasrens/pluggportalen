@@ -1,48 +1,52 @@
 # Snilleblixten – TV-studion på projektorn (#559)
 
-Skärmdumparna är tagna ur `preview-snilleblixt-studio.html`, som kör låtsasdata med 30 elever med kläder (avatarerna kommer ur en fejkad klassprojektion). Bilderna finns i 1920×1080 (`-1920`) och 1280×720 (`-1280`). Emoji visas som rutor eftersom testwebbläsaren saknar ett typsnitt för färg-emoji. I en vanlig webbläsare syns de.
+Skärmdumparna är tagna ur `preview-snilleblixt-studio.html`. Förhandsvisningen kör låtsasdata med 30 elever som har kläder på sig, och avatarerna kommer ur en fejkad klassprojektion. Bilderna finns i 1920×1080 (`-1920`) och 1280×720 (`-1280`). Emoji visas som rutor eftersom testwebbläsaren saknar ett typsnitt för färg-emoji. I en vanlig webbläsare syns de.
+
+## Ingen uthängning (Elias, 2026-10-10)
+
+Projektorn får inte hänga ut elever. Hela klassen ska inte kunna se hur många rätt varje elev hade. Därför gäller detta:
+
+- **Ingen topplista mellan frågorna.** Efter avslöjandet visas en neutral mellanbild, till exempel "✔ Fråga 4 av 10 klar · 15 av 24 svarade rätt · Nästa fråga kommer snart …". Mellanbilden visar inga namn.
+- **Ingen ledarbanderoll, ingen klättring och inga poäng per elev.** Regin får aldrig någon ställning mellan frågorna.
+- **Publiken visar vem som har svarat, aldrig vem som svarade rätt.** Eleverna med rätt svar gör alltså ingen Glad-reaktion vid avslöjandet.
+- **Pallen (topp 3) är den enda namnlistan.** Resultatskärmen efter pallen visar pallen och en anonym rad, till exempel "Hela klassen: 62 % rätt svar". Den visar inte hela klassens topplista.
+- **📊 Statistik är anonym.** Den visar andel rätt per fråga och klassens totala andel rätt. Den visar också svarsfördelningen för frågan, men först efter avslöjandet så att den inte påverkar svaren. Dessutom visas "N av M har svarat" och tid kvar. Statistiken visar inga namn, poäng eller rätt per elev.
+- **Hela listan per elev finns bara i lärarens historik (#560).** Elevens egen placering och poäng på den egna skärmen (#558) finns kvar.
+
+## Skärmdumpar
 
 | Fil | Vy |
 | --- | --- |
 | 01-lobby | Lobbyn: logga, klass, "30 elever i studion", STARTA och publiken |
-| 02-fraga-flerval | Fråga 4 av 10 med cirkulär nedräkning, 2×2-alternativ med färg och form, publiken med bockar och "N av 30 har svarat" |
+| 02-fraga-flerval | Fråga 4 av 10 med cirkulär nedräkning, 2×2-alternativ med färg och form, och publiken med bockar för "har svarat" |
 | 03-spanning | De sista 5 sekunderna: nedräkningen är röd och pulserar |
-| 04-avslojande-flerval | Rätt alternativ tänt, felalternativen tonade, staplar med antal |
-| 05a-fraga-skriv / 05-avslojande-skriv | Skriv själv, test 7b (7 × 8): 56 rätt, andel rätt, "54 (5 st) · 64 (3 st)" utan namn |
-| 06-topplista | Topp 5 som avatarer med namn och poäng, 🔥 vid flera rätt i rad |
-| 07-statistik | Statistikvyn: alla elever, poäng, rätt, andel rätt, tid kvar och andel rätt per fråga |
-| 08-pallplats | Finalen: vinnaren jublar under strålkastaren, konfetti, pluggmyntpris under varje steg |
-| 09-resultat-delad | Resultatskärmen med delad 2:a på samma pallsteg och hela klassens topplista |
+| 04-avslojande-flerval | Rätt alternativ är tänt, felalternativen är tonade och staplarna visar antal svar |
+| 05a-fraga-skriv / 05-avslojande-skriv | Skriv själv, test 7b (7 × 8): 56 rätt, andel rätt och "54 (5 st) · 64 (3 st)" utan namn |
+| 08-pallplats | Finalen: vinnaren jublar under strålkastaren, konfetti och pluggmyntpris under varje steg |
 
-## Verifierat i webbläsare
+**Väntar på webbläsare:** mellanbilden, den anonyma statistiken och resultatskärmen (pallen med klassraden) har inga skärmdumpar än. Leaden har inte gett klartecken för webbläsaren ännu (RAM-regeln). De gamla bilderna 06 (topplista), 07 (statistik med elevtabell) och 09 (resultat med helklasslista) är borttagna eftersom de visade namnlistor.
 
-Alla tester är gröna.
+## Verifierat
 
-- **Förhandsvisningen:**
+- **Före ändringen, i webbläsare.** Följande verifierades:
   - Funktionstest 4: "0 av 30" räknar upp.
-  - 7b, 9 och 12 (delad placering).
-  - Designtest 4: 30 avatarer i 1280×720, inget döljs.
-  - Designtest 5: plats 4 → 1 med FLIP och banderollen "Ny ledare" exakt en gång.
-  - Designtest 8 och 9.
-  - Designtest 11: 30 svar på 1,2 s gav bara några få bock-toner.
-  - Designtest 12: reducerad rörelse, 0 animationer med förflyttning, ingen konfetti, stilla strålkastare.
-  - Omladdning mitt i spelet och efter finalen: finalen spelas inte om.
-  - Elevskärmsfönstret följer vyvalet och visar inga kontroller.
-- **Riktiga appen mot emulatorn** (`admin/qa-snilleblixt-preview.sh` med elevsimulatorn från #558):
-  - Session med 19 elever.
-  - 3-2-1 leder till att fråga 1 öppnas automatiskt.
-  - Alla svarar: frågan stängs och avslöjas.
-  - NÄSTA FRÅGA, Hoppa över, Avsluta frågan nu och Avsluta spelet (med bekräftelse) fungerar.
-  - Pallplatsen spelas, sedan skrivs result.
-  - Efter omladdning visas resultatet direkt.
-- **Designtest 13 (Klassmatchen):** Raketrace, Statistik, Dragkamp, Trollkarlsduellen, timern och Avsluta fungerar som förut. Vinnarskärmen visas även när ett vyval från Snilleblixten finns sparat.
-- **Test 10 (två lärare):** täcks av ett enhetstest (`test/live-snilleblixt-studio.test.js`) och av transaktionerna och reglerna från #556.
+  - Test 7b och test 9.
+  - Test 12: delad placering på samma pallsteg.
+  - Designtest 4: 30 avatarer i 1280×720.
+  - Designtest 8, 9, 11 och 12.
+  - Omladdning visar inget en gång till.
+  - Elevskärmsfönstret fungerar.
+  - Designtest 13: Klassmatchen är oförändrad.
+  - Den riktiga appen mot emulatorn tillsammans med elevvyn (#558).
+- **Gäller inte längre:**
+  - Designtest 5 (klättring med "Ny ledare") är medvetet borttaget.
+  - Delar av designtest 8–9 som gällde resultatlistan har ersatts av att pallen är den enda namnlistan.
+- **Efter ändringen.** Node-testerna är gröna, bland annat `test/live-snilleblixt-studio.test.js` med mellanscenen och den anonyma klassummeringen. Webbläsarkontrollen görs när leaden ger klartecken.
 
 ## Designbeslut
 
-- **Tidslinje efter en fråga:** först avslöjandet i 5,5 s, sedan glider topplistan in. Listan visar först ställningen före frågan och klättrar sedan till den nya. Tidpunkten räknas ur serverstämpeln `closedAt`, så kontrollpanelen och elevskärmen visar samma sak samtidigt.
-- **Lärarautomatik:** projektorn öppnar själv fråga 1 efter KÖR!, stänger frågan när tiden är ute eller alla har svarat och avslöjar efter trumvirveln. Varje steg är en transaktion, så flera fönster ger ändå exakt ett steg.
-- **Två vyer:** ⚡ Studion och 📊 Statistik. Båda har egna lärarkontroller, så spelet går vidare även när statistiken visas. Pallplatsen spelas i Studion.
-- **🔥 + antal** visar bara rätt svar i rad. Spelet har ingen svitbonus.
-- **Textstorlek:** namnen under publikens avatarer och statistiktabellen med 30 elever är under 28 px i 1280×720. Allt annat viktigt (fråga, alternativ, nedräkning, "N av M har svarat", topplistan och pallen) är minst 28 px.
-- **Ljud:** syntetiserat med Web Audio i den befintliga ljudkön, inga ljudfiler. Nya ljud är `tick` (sista 10 s) och `tickSnabb` (sista 5 s).
+- **Tidslinje efter en fråga:** avslöjandet visas i 5,5 s, sedan mellanbilden. Mellanbilden står kvar tills läraren trycker NÄSTA FRÅGA eller "🏆 Till pallen!". Tidpunkten räknas ur serverstämpeln `closedAt`, så kontrollpanelen och elevskärmen byter samtidigt.
+- **Lärarautomatik:** projektorn öppnar själv fråga 1 efter KÖR!. Den stänger frågan när tiden är ute eller alla har svarat, och avslöjar efter trumvirveln. Varje steg är en transaktion.
+- **Två vyer:** ⚡ Studion och 📊 Statistik. Båda har egna lärarkontroller. Pallplatsen spelas i Studion.
+- **Text:** namnen under publikens avatarer är under 28 px i 1280×720. Allt annat viktigt är minst 28 px.
+- **Ljud:** syntetiserat med Web Audio via den befintliga ljudkön. Nya ljud är `tick` och `tickSnabb`. Swoosh används inte längre, eftersom det inte finns något ledarbyte på projektorn.

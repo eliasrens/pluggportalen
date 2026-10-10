@@ -2,17 +2,20 @@
 // Snilleblixten – TV-STUDION (#559, designspec §5): projektorns huvudvy
 // (views-posten "studio", finale: true – vyn spelar själv pallplatsen).
 // Sätter ihop miljön (sb-miljo), klockan + frågeschaktet (sb-fraga),
-// topplistan (sb-topplista), publiken (sb-publik), finalen (sb-pall),
-// lärarkontrollerna (sb-kontroller) och den gemensamma regin (#571:
-// händelser → animationskö → reaktioner/banderoll/ljudkö).
+// publiken (sb-publik), finalen (sb-pall), lärarkontrollerna (sb-kontroller)
+// och den gemensamma regin (#571: händelser → animationskö → reaktioner/
+// ljudkö).
 //
 // Scenen (sb-scen studioScene) räknas ur sessionens q-fas + serverns tid:
 //   intro → fraga (landar med blixt, publiken lyser upp med bock när någon
 //   svarat, "17 av 24 har svarat", sista 5 s röd puls + snabbare tick) →
 //   stangd ("Alla har svarat!" / "Tiden är ute!", trumvirvel) → svar
-//   (rätt alternativ + staplar / rätt svar + vanliga felsvar, ding, de som
-//   svarade rätt gör Glad) → topplista (glider in, klättring, "Ny ledare")
-//   → NÄSTA FRÅGA … → final (pallplats EN gång, sedan resultatet).
+//   (rätt alternativ + staplar / rätt svar + vanliga felsvar, ding) →
+//   mellan (neutral mellanbild: "15 av 24 svarade rätt") → NÄSTA FRÅGA … →
+//   final (pallplats EN gång – topp 3 är den ENDA namnlistan).
+// INGEN UTHÄNGNING (Elias 2026-10-10): ingen topplista, ingen ledarbanderoll,
+// inga poäng per elev och ingen reaktion som avslöjar vem som svarade rätt.
+// Publiken visar bara vem som HAR svarat (bocken), aldrig rätt/fel.
 // Omladdning: regins första sync hoppar till nuläget – inget spelas om,
 // ställning/svar ritas direkt rätt.
 //
@@ -20,23 +23,19 @@
 // ============================================================================
 
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
-import { createBanner } from "../../design/live-banner.js";
 import { createLiveRegi } from "../../design/live-regi.js";
 import { react, prefersReducedMotion } from "../../design/live-reactions.js";
 import { sessionRewards, placementPrize } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
-import { studioScene, questionClock, shownScores, revealInfo, streaks, podiumGroups } from "./sb-scen.js";
+import { studioScene, questionClock, revealInfo, podiumGroups, classSummary } from "./sb-scen.js";
 import { createSbKoppling, avatarRoster } from "./sb-koppling.js";
 import { ensureStudioCss, miljoHtml, logoHtml, flash } from "./sb-miljo.js";
 import { createKlocka, createSchakt } from "./sb-fraga.js";
-import { createTopplista } from "./sb-topplista.js";
 import { createPublik } from "./sb-publik.js";
 import { createFinal } from "./sb-pall.js";
 import { createKontroller } from "./sb-kontroller.js";
 
 const TICK_MS = 100;
-// Topplistan visar först ställningen FÖRE frågan, sedan klättringen.
-const CLIMB_DELAY_MS = 900;
 
 export function createStudioView(host, { st, sound = null, actions = {}, screen = false, deps = null }) {
   ensureStudioCss();
@@ -56,9 +55,7 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
   let cur = st;
   let scene = null;
   let dead = false;
-  let topEnterAt = 0;
   let lastTick = "";
-  let gladDone = -1;
   let introIx = null;
   const revealSeen = new Map(); // frågeindex → serverns tid när fönstret såg avslöjandet
   const seenOpen = new Set(); // frågor fönstret sett öppna (live, inte via omladdning)
@@ -68,47 +65,24 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
   const pool = createAvatarPool({ roster });
   const klocka = createKlocka($(".sb-klocka"));
   const schakt = createSchakt(mitt);
-  const topp = createTopplista(mitt, { pool });
   const publik = createPublik($(".sb-fot"), { pool });
   const final = createFinal(root, { pool, sound, flashHost: root });
-  const realBanner = createBanner(root);
   const say = (t) => console.warn("Snilleblixten:", t);
   const koppling = createSbKoppling({ sid, st, deps, actions, screen, onChange: () => render(), say });
   const kontroll = screen ? null : createKontroller(root, { koppling });
   root.classList.toggle("sb-skarm", !!screen);
 
-  // Banderollen: "⚡ Ny ledare: Clara!" + Claras avatar i topplistan jublar.
-  const banner = {
-    show(b, signal, opts) {
-      if (b.jubelUid && pool.has(b.jubelUid, "topp")) react(pool.el(b.jubelUid, "topp"), "jubel", { signal });
-      return realBanner.show(b, signal, opts);
-    },
-  };
-
   const regi = createLiveRegi({
     sessionId: sid,
     pool,
-    banner,
     sound,
-    map(evt, { nameOf }) {
-      if (evt.type === "correct" || evt.type === "wrong") return [];
-      if (evt.type === "rank") return scene === "topplista" ? [{ kind: "rank" }] : [];
-      if (evt.type === "leader") {
-        const name = nameOf(evt.uid) || "?";
-        return [{
-          kind: "banner",
-          mergeKey: "leader",
-          merge: (a, b) => b,
-          banner: { icon: "⚡", title: evt.prev ? `Ny ledare: ${name}!` : `${name} tar ledningen!`, tone: "gold", jubelUid: evt.uid },
-          cue: "swoosh",
-          then: [{ kind: "reaction", uid: evt.uid, reaction: "jubel" }],
-        }];
-      }
+    // Inga ställningshändelser (rank/leader/correct) – bara anslutning,
+    // "har svarat" och finalen.
+    map(evt) {
+      if (["correct", "wrong", "rank", "leader"].includes(evt.type)) return [];
       return undefined;
     },
-    playRank: (job, signal, opts) => topp.play(signal, opts),
     playFinal: (job, signal) => final.play(finalData(), signal).then(() => root.classList.add("sb-resultat")),
-    settle: (job) => { if (job.kind === "rank") topp.settle(); },
   });
 
   function finalData() {
@@ -116,9 +90,10 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
     const standing = koppling.standings();
     const rw = sessionRewards(sess);
     const res = cur.result?.rewards || null;
+    const sum = classSummary(koppling.scores);
     return {
-      ranking: standing.players,
       groups: podiumGroups(standing.players),
+      sub: sum.answered ? `Hela klassen: ${sum.share} % rätt svar – bra kämpat! 🎉` : "",
       title: `🏆 ${(sess?.participatingClassIds || []).map((id) => sess.classNames?.[id] || id).join(" + ")} – vilken final!`,
       prize: (rank) => {
         const p = res ? Object.values(res).find((r) => r.rank === rank) : null;
@@ -166,9 +141,6 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
       flash(root);
       sound?.cue?.("ding");
     }
-    if (next === "topplista") {
-      topEnterAt = Date.now();
-    }
   }
 
   let lastProgress = null;
@@ -182,7 +154,7 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
     // Fönstret ser frågan öppen/avslöjad "live" → animationerna får spelas.
     if (q && q.phase === "open" && scene !== null && !seenOpen.has(q.index)) seenOpen.add(q.index);
     if (q && ["revealed", "skipped"].includes(q.phase) && !revealSeen.has(q.index)) {
-      revealSeen.set(q.index, scene && scene !== "topplista" && scene !== "final" && scene !== "intro" ? now : null);
+      revealSeen.set(q.index, scene && scene !== "mellan" && scene !== "final" && scene !== "intro" ? now : null);
     }
     const next = studioScene(cur, { now, revealSeenAt: q ? revealSeen.get(q.index) ?? null : null });
     const prev = scene;
@@ -192,25 +164,15 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
       if (prev !== null) enter(next, prev, q);
     }
 
-    // Ställningen som visas: under frågan bara tidigare frågor; topplistan
-    // visar först ställningen före frågan, sedan klättringen.
-    let list = shownScores(koppling.scores, scene, q);
-    if (scene === "topplista" && q && Date.now() - topEnterAt < CLIMB_DELAY_MS && topEnterAt) {
-      const before = list.filter((sc) => sc.index < q.index);
-      // Ingen hade poäng före frågan (första frågan): visa ställningen direkt.
-      if (koppling.standings(before).players.some((p) => p.points > 0)) list = before;
-    }
-    const standing = koppling.standings(list);
     const answered = new Set(koppling.answers.filter((a) => a.q === q?.index).map((a) => a.uid));
     // "Har svarat"-händelser (bock + ljud) bara för en fråga fönstret sett
     // öppnas: efter en omladdning ritar publiken bockarna direkt ur datan.
     const liveAnswer = (uid) => (q && seenOpen.has(q.index) && (scene === "fraga" || scene === "stangd") && answered.has(uid) ? `q${q.index}` : null);
-    const ranks = {};
-    for (const p of standing.players) if (p.points > 0) ranks[p.uid] = p.rank;
-    const events = regi.sync({
+    // Regin får ALDRIG poäng/placering mellan frågorna (ingen klättring/ledare).
+    regi.sync({
       phase: cur.phase === "finished" ? "finished" : cur.phase === "lobby" ? "lobby" : "live",
-      players: standing.players.map((p) => ({ uid: p.uid, name: p.name, score: p.points, answerKey: liveAnswer(p.uid) })),
-      ranks,
+      players: (cur.players || []).map((p) => ({ uid: p.uid, name: p.name, answerKey: liveAnswer(p.uid) })),
+      ranks: {},
       finishedAt: toMs(s.finishedAt),
       now,
     });
@@ -239,29 +201,15 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
       if (introIx !== "intro") { introIx = "intro"; schakt.clear(); }
       info(`<div class="sb-intro">${logoHtml({ size: "stor" })}<p>Gör er redo! Första frågan kommer …</p></div>`);
     } else if (scene === "hoppad") info(`<div class="sb-hoppad">⏭ Frågan hoppades över</div>`);
+    else if (scene === "mellan" && q) info(mellanHtml(s, q));
     else info("");
     if (q && (scene === "fraga" || scene === "stangd" || scene === "svar")) {
       schakt.show(q, { answerKind: s.answerKind, land: seenOpen.has(q.index) && scene === "fraga" });
       if (scene === "svar" && q.facit) {
         const sc = koppling.scores.find((x) => x.index === q.index) || null;
         schakt.reveal(revealInfo(q, sc, s.answerKind), { animate: prev !== null });
-        if (sc && gladDone !== q.index) {
-          gladDone = q.index;
-          if (revealSeen.get(q.index) != null) {
-            Object.entries(sc.correct || {}).filter(([, ok]) => ok)
-              .forEach(([uid], i) => setTimeout(() => !dead && regi.push({ kind: "reaction", uid, reaction: "glad" }), 250 + (i % 12) * 60));
-          }
-        }
       }
     }
-    if (scene === "topplista") {
-      const title = q ? `🏆 Topplistan efter fråga ${q.index + 1} av ${s.questionCount}` : "🏆 Topplistan";
-      const flip = events.some((e) => e.type === "rank");
-      const wasHidden = topp.el.dataset.syns !== "1";
-      topp.el.dataset.syns = "1";
-      topp.render(standing.players.filter((p) => p.points > 0).slice(0, 5), { title, streaks: streaks(list), flip: flip && !wasHidden });
-      if (wasHidden && prev !== null) topp.enter();
-    } else topp.el.dataset.syns = "0";
 
     // Finalen: spelas av regin (EN gång); annars direkt resultatet.
     if (scene === "final" && !regi.queue.finalStarted() && !root.classList.contains("sb-resultat")) {
@@ -269,6 +217,17 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
       final.showResult(finalData());
     }
     kontroll?.update();
+  }
+
+  // Mellanbilden: neutral, utan namn – bara klassens resultat på frågan.
+  function mellanHtml(s, q) {
+    const nr = `Fråga ${q.index + 1} av ${s.questionCount}`;
+    const last = q.index + 1 >= (Number(s.questionCount) || 0);
+    const vidare = last ? "Snart dags för pallen …" : "Nästa fråga kommer snart …";
+    if (q.phase === "skipped") return `<div class="sb-mellan"><p class="sb-mellan-nr">${nr}</p><p class="sb-mellan-stor">⏭ Hoppades över</p><p>${vidare}</p></div>`;
+    const sc = koppling.scores.find((x) => x.index === q.index);
+    const resultat = sc ? `<p class="sb-mellan-stor"><b>${Number(sc.correctCount) || 0}</b> av <b>${Number(sc.answered) || 0}</b> svarade rätt</p>` : "";
+    return `<div class="sb-mellan"><p class="sb-mellan-nr">✔ ${nr} klar</p>${resultat}<p>${vidare}</p></div>`;
   }
 
   // Sista 10 s: tick varje sekund; sista 5 s: två per sekund (snabbare).
@@ -298,7 +257,6 @@ export function createStudioView(host, { st, sound = null, actions = {}, screen 
       regi.destroy();
       koppling.destroy();
       kontroll?.destroy();
-      realBanner.destroy();
       final.destroy();
       pool.destroy();
       root.remove();

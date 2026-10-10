@@ -18,7 +18,7 @@
 //   createSchakt(host) → {
 //     show(q, { answerKind, land? })   ny fråga (land = blixtlandning)
 //     reveal(info)                     revealInfo(...) ur sb-scen.js
-//     clear()                          töm (intro/topplista)
+//     clear()                          töm (intro)
 //     destroy()
 //   }
 // ============================================================================
