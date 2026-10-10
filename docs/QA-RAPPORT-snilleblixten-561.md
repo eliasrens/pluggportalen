@@ -4,6 +4,7 @@ Slutverifiering av epic-grenen `665f5d7` (A #556, B #557, design #571, elevvy #5
 Funktionsspec §1, §10 och §12 samt designspec §14, §16 och §17.
 
 **Resultat: allt funktionellt är grönt, och Klassmatchen är oförändrad.**
+**Runda 2 (efter fixarna 8043902 och 6e34cfd):** F1, F2 och F3 är verifierade som åtgärdade, och Elias regel för elevskärmen är grön. Ett nytt fynd: F4 (prisbeloppet avslöjar placeringen indirekt), som leaden får avgöra. Se [Runda 2](#runda-2--verifiering-av-f1f3-och-elevskärmens-regel).
 Fynden är 1 bugg (F1, designtest 10) och 2 mindre (F2 och F3). Inga konsolfel uppstod vid kall boot och inte heller i elevvyn.
 Designen ändrar varken poäng, placering, facit eller tid. Pallen och belöningarna stämmer mot en oberoende omräkning av ställningen ur serverstämplarna.
 
@@ -77,7 +78,7 @@ Två tidigare körningar (`JTtnhPo9…` och `PZVWV79T…`) fick riggfel i mitt s
 | **5** Klättring / Ny ledare | ➖ Medvetet borttaget (Elias 2026-10-10, ingen uthängning). Verifierat att ingen topplista eller banderoll visas |
 | **8** Pallplats | ✅ 3:an, 2:an och 1:an i rätt ordning med kläder. Topp 3 = ställningen ur serverstämplarna (A, B, C) |
 | **9** Delad placering | ✅ Samma pallsteg ("Ines & Leo", "Ivar & Nora") |
-| **10** Omladdning | ✅ Mitt i en fråga visas rätt fråga och "22 av 23" direkt, utan gamla händelser. Finalen spelas inte om. ❌ **F1:** Efter finalen blir pallen tom |
+| **10** Omladdning | ✅ Mitt i en fråga visas rätt fråga och "22 av 23" direkt, utan gamla händelser. Finalen spelas inte om. Runda 1: ❌ F1, tom pall efter finalen. Runda 2: ✅ åtgärdad |
 | **11** Ljud | ✅ Elevvyn skapade 0 AudioContext och 0 uppspelningar under en hel match. Projektorns ljudkö är inte omprovad här (#559 + enhetstester) |
 | **12** Reducerad rörelse | ✅ I finalen fanns 0 translate/scale-animationer och ingen konfetti, bara toningar. All information syns. [p11](qa-snilleblixt-561/p11-pallplats-delad-andra-reducerad-rorelse-1280-demo.jpg) |
 | **13** Klassmatchen | ✅ Se nedan |
@@ -89,13 +90,44 @@ Två tidigare körningar (`JTtnhPo9…` och `PZVWV79T…`) fick riggfel i mitt s
 - **Jämfört med `origin/main` på samma session:** Vinnarskärmens DOM-struktur har samma hash. Texten är identisk utom ljudknappen ("Klicka för ljud" / "Ljud på"), som speglar webbläsarens tillstånd och inte koden. Trollkarlsduellens text är identisk (runpartiklarna varierar).
 - **Test 1:** Historikdetaljen för en gammal session utan `format` har samma hash i main och grenen.
 
+## Runda 2 – verifiering av F1–F3 och elevskärmens regel
+
+Grenen är mergad med epic-grenen `652ae72` (F1-fix 8043902, F2/F3-fix 6e34cfd).
+- Node-testerna är gröna, 1489 / 1489. Bootgrafen är 107 filer.
+- Kall boot (elev b03, utan cache, hus och Live) gav inga konsolmeddelanden.
+
+**Miljö:** #561 var redan landad. Därför stänger nattvakten (`nattvakt.py`, var 60:e s) emulatorer under worktree-sökvägen och webbläsaren varje minut. Det gav exit 143 vid sekund :12.
+- Emulatorn kördes därför från `/tmp/qa561-emu` med en förexporterad databas.
+- Webbläsarpassen hölls under 55 s.
+- Sessionslägena skrevs direkt med nya `admin/qa-sb561-tillstand.mjs`. Den skriver samma datamodell som appen (players, sbAnswers, sbScores, och result via appens egen `buildResult`): 7 elever, b01 som ledare, i mitten eller sist.
+- Allt är stängt efteråt.
+
+| Kontroll | Resultat |
+| --- | --- |
+| **F1** omladdning mitt i finalen | ✅ Pallen är fylld direkt efter omladdningen (topp 3, priser, klassraden "62 % rätt svar"). Finalen spelas inte om: klassen är `sbf-resultat` från första bildrutan och `final:true` ligger kvar. [bild](qa-snilleblixt-561/r2-F1-omladdning-mitt-i-final.png) |
+| **F1** omladdning efter finalen | ✅ Pallen är fylld och inget steg är tomt. [bild](qa-snilleblixt-561/r2-F1-omladdning-efter-final-pall-fylld-1280.png) |
+| **F1** finalen utan omladdning | ✅ Spelas exakt en gång: uppbyggnad → vinnare (7,5 s) → resultat (10,5 s), pallen fylld |
+| **F2** elevens lobby | ✅ Elevens egen avatar visas med kläder (krona, ögonlapp, amulett, ballong) under "Du är med! Väntar på start …" och finns kvar efter att namn och poäng laddats. [bild](qa-snilleblixt-561/r2-e01-lobby-egen-avatar-chromebook.png) |
+| **F3** demopanelen | ✅ Topplista, Ledningsbyte och Klättring är borttagna i 6e34cfd (kod och tester). Inte omklickat i webbläsaren |
+| Avslöjande, ledare | ✅ "+975 · Du leder! ⚡" [bild](qa-snilleblixt-561/r2-e11-avslojande-ledare-chromebook.png) |
+| Avslöjande, mitten (4:a av 7) | ✅ "880 poäng bakom Nora". Nora är närmast framför (1840 mot 960). [bild](qa-snilleblixt-561/r2-e12-avslojande-mitten-chromebook.png) |
+| Avslöjande, **sist** (7:a av 7) | ✅ "80 poäng bakom Agnes" (600 mot 520). [bild](qa-snilleblixt-561/r2-e13-avslojande-sist-chromebook.png) |
+| Slutskärm, mitten | ✅ "⚡ Bra kämpat! · 880 poäng bakom Nora". [bild](qa-snilleblixt-561/r2-e14-final-mitten-chromebook.png) |
+| Slutskärm, **sist** | ✅ "⚡ Bra kämpat! · 80 poäng bakom Agnes". [bild](qa-snilleblixt-561/r2-e15-final-sist-chromebook.png) |
+| Slutskärm, ledare (topp 3) | ✅ "🥇 Du kom 1:a!" (pallen är offentlig, enligt regeln). [bild](qa-snilleblixt-561/r2-e16-final-ledare-topp3-chromebook.png) |
+| DOM-text, alla sex lägen | ✅ Hela `body.innerText` och `innerHTML` söktes efter `sist*`, `N:a/N:e`, `plats N`, `Du ligger` och `placering`. Ingen träff utom ordet "Placeringspris" (se F4) och "1:a" för ledaren (topp 3, tillåtet) |
+
+**F4 (nytt, för leaden/Elias):** Slutskärmen visar "Placeringspris" med beloppet för platsen, till exempel **113** för sista plats av 7 och **184** för 4:e plats. Lobbyn på projektorn visar prisstegen "1:a 300 · 2:a 255 · 3:e 217", och priset sjunker 15 % per plats. En elev som räknar kan därför lista ut sin placering, och den som är sist ser att den fick lägst pris. Spec §7.2.4 kräver raden, och Elias regel säger "aldrig placering". Förslag om det ska skärpas: visa raden som "Pris för din insats" utan att belopp och plats går att koppla ihop, eller slå ihop de två raderna till en total.
+
+Skärmdumparna från runda 2 är PNG (`r2-*`), eftersom webbläsaren startades om varje minut och JPEG-konverteringen via canvas inte hann köras.
+
 ## Fynd till leaden
 
 | # | Allvar | Fynd |
 | --- | --- | --- |
-| **F1** | Bugg (prio 1, designtest 10) | **Omladdning efter eller under finalen ger en tom pall.** Pallen visar tre tomma steg utan klassrad och fylls aldrig i. Orsak: `sb-studio.js:215` anropar `final.showResult(finalData())` vid första renderingen, innan `watchScores` har levererat sbScores (`koppling.scores = []`). Därefter sätts `sb-resultat`, så resultatet ritas aldrig om. Förslag: rita om `showResult` när poängen ändras och scenen är final, eller vänta på första poängsnapshoten. Data påverkas inte: result, utbetalning och saldo stämmer. [F1](qa-snilleblixt-561/F1-omladdning-efter-final-tom-pall-1920.jpg) |
-| F2 | Mindre (designspec §5.8) | Elevens **lobby** visar bara "Du är med! Väntar på start …" utan elevens egen avatar i mitten. Avataren syns bara i sidomenyn. Läget "Har svarat" och finalen har avatar. [e01](qa-snilleblixt-561/e01-lobby-chromebook.jpg) |
-| F3 | Mindre (demo) | Demopanelen har kvar knapparna **Topplista**, **Ledningsbyte** och **Klättring 4 → 1**. De gör ingenting synligt längre, eftersom funktionerna togs bort på Elias begäran. Ta bort dem eller märk dem som borttagna |
+| **F1** ✅ åtgärdad (8043902, verifierad runda 2) | Bugg (prio 1, designtest 10) | **Omladdning efter eller under finalen ger en tom pall.** Pallen visar tre tomma steg utan klassrad och fylls aldrig i. Orsak: `sb-studio.js:215` anropar `final.showResult(finalData())` vid första renderingen, innan `watchScores` har levererat sbScores (`koppling.scores = []`). Därefter sätts `sb-resultat`, så resultatet ritas aldrig om. Förslag: rita om `showResult` när poängen ändras och scenen är final, eller vänta på första poängsnapshoten. Data påverkas inte: result, utbetalning och saldo stämmer. [F1](qa-snilleblixt-561/F1-omladdning-efter-final-tom-pall-1920.jpg) |
+| F2 ✅ åtgärdad (6e34cfd, verifierad runda 2) | Mindre (designspec §5.8) | Elevens **lobby** visar bara "Du är med! Väntar på start …" utan elevens egen avatar i mitten. Avataren syns bara i sidomenyn. Läget "Har svarat" och finalen har avatar. [e01](qa-snilleblixt-561/e01-lobby-chromebook.jpg) |
+| F3 ✅ åtgärdad (6e34cfd) | Mindre (demo) | Demopanelen har kvar knapparna **Topplista**, **Ledningsbyte** och **Klättring 4 → 1**. De gör ingenting synligt längre, eftersom funktionerna togs bort på Elias begäran. Ta bort dem eller märk dem som borttagna |
 
 **Observationer (inte buggar)**
 
@@ -143,7 +175,7 @@ Demot behöver ingen inloggning och ingen emulator. Det skriver aldrig något.
 7. **Pallplatsen:** "Hoppa till pallplats", "Delad 2:a" eller "Oavgjort om 1:a".
 8. **Tillgänglighet:** "Reducerad rörelse" (följer med till pallen). "Frys tiden" låser nedräkningen för skärmdumpar.
 
-Hoppa över knapparna Topplista, Ledningsbyte och Klättring. De gör ingenting längre (F3).
+(Knapparna Topplista, Ledningsbyte och Klättring är borttagna i 6e34cfd.)
 
 ## Köra om
 
