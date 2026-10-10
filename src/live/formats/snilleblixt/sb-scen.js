@@ -28,6 +28,9 @@
 //   podiumGroups(ranking) → [{ rank, players }] högst tre pallsteg, delad
 //     placering = samma steg, bara poäng > 0
 //   audienceLayout(n) → { rows, perRow, scale } publikens rutnät
+//   createResultatRitare(show) → rita(data) – resultatskärmen ritas om när
+//     underlaget ändras (omladdning: sbScores/result kommer EFTER första
+//     ritningen – annars blev pallen tom, #561 F1); samma underlag = ingen omritning
 //   choreFor(s, { phase, now, progress }) → { action, fromIndex } | null –
 //     lärarklientens automatik: första frågan efter KÖR!, stäng när tiden är
 //     ute / alla svarat, avslöja efter trumvirveln
@@ -129,6 +132,26 @@ export function podiumGroups(ranking) {
     else groups.push({ rank: p.rank, players: [p] });
   }
   return groups.sort((a, b) => a.rank - b.rank).slice(0, 3);
+}
+
+/**
+ * Resultatskärmens omritning: show(data) körs bara när pallen, priserna eller
+ * klassraden faktiskt ändrats. data = { groups, sub, prize(rank) }.
+ */
+export function createResultatRitare(show) {
+  let key = null;
+  return function rita(data) {
+    const d = data || {};
+    const k = JSON.stringify([
+      (d.groups || []).map((g) => [g.rank, g.players.map((p) => [p.uid, p.points, p.name])]),
+      d.sub || "",
+      [1, 2, 3].map((r) => (d.prize ? d.prize(r) : 0)),
+    ]);
+    if (k === key) return false;
+    key = k;
+    show(d);
+    return true;
+  };
 }
 
 /** Publikens rutnät: en–tre rader, figurerna krymper när klassen är stor. */
