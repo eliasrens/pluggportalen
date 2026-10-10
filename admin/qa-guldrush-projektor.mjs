@@ -5,11 +5,17 @@
 // data, ingen Firestore). Inga beroenden: Node 22 (global WebSocket) + en
 // chromium i PATH.
 //
-//   node admin/qa-guldrush-projektor.mjs <steg.json> [--port 8565] [--ut dir]
+//   node admin/qa-guldrush-projektor.mjs <steg.json> [--port 8565] [--ut dir] [--jpeg]
 //
 // steg.json = [{ "namn": "kammare-1920", "w": 1920, "h": 1080,
 //                "url": "fas=kammare", "vanta": 4000, "js": "…valfritt…",
 //                "reduced": false, "mat": "…uttryck som loggas…" }, …]
+//   "full": "http://127.0.0.1:8569/#/…" i stället för url = riktiga appen mot
+//   emulatorerna (admin/qa-guldrush-preview.sh). Profilen (/tmp/gr565-profil)
+//   ligger kvar mellan stegen, så ett inloggningssteg räcker:
+//   { "namn": "login", "full": "http://127.0.0.1:8569/#/", "js": "…fyll #u/#p…" }
+//   "ingenBild": true hoppar över skärmdumpen. "behall": true – nästa steg i
+//   samma flik (lärarinloggningen gäller bara fliken).
 // Varje steg: ny flik i rätt storlek → url (+ &panel=av) → väntar → kör js
 // (async, i sidan) → väntar "efter" ms → skärmdump <ut>/<namn>.png. "mat"
 // utvärderas och skrivs ut (JSON) – t.ex. antal poster i flödet.
@@ -23,6 +29,7 @@ const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] :
 const steps = JSON.parse(readFileSync(args[0], "utf8"));
 const port = opt("--port", "8565");
 const ut = opt("--ut", "/tmp/gr565");
+const jpeg = args.includes("--jpeg");
 mkdirSync(ut, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -50,26 +57,37 @@ const send = (method, params = {}, sessionId) => new Promise((res, rej) => {
 });
 
 try {
+  let kept = null; // { targetId, sessionId } – "behall": nästa steg i samma flik
   for (const s of steps) {
-    const { targetId } = await send("Target.createTarget", { url: "about:blank" });
-    const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
+    const { targetId } = kept || await send("Target.createTarget", { url: "about:blank" });
+    const { sessionId } = kept || await send("Target.attachToTarget", { targetId, flatten: true });
     const S = (m, p) => send(m, p, sessionId);
-    await S("Page.enable");
-    await S("Runtime.enable");
+    if (!kept) {
+      await S("Page.enable");
+      await S("Runtime.enable");
+    }
+    kept = null;
     await S("Emulation.setDeviceMetricsOverride", { width: s.w, height: s.h, deviceScaleFactor: 1, mobile: false });
     if (s.reduced) await S("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
-    await S("Page.navigate", { url: `http://localhost:${port}/preview-guldrush-skattkammare.html?${s.url}&panel=av` });
+    await S("Page.navigate", { url: s.full || `http://localhost:${port}/preview-guldrush-skattkammare.html?${s.url}&panel=av` });
     await sleep(s.vanta ?? 4000);
-    if (s.js) await S("Runtime.evaluate", { expression: `(async () => { ${s.js} })()`, awaitPromise: true });
+    if (s.js) {
+      const r = await S("Runtime.evaluate", { expression: `(async () => { ${s.js} })()`, awaitPromise: true });
+      if (r.exceptionDetails) console.log(s.namn, "js-fel:", r.exceptionDetails.exception?.description || r.exceptionDetails.text);
+    }
     if (s.efter) await sleep(s.efter);
     if (s.mat) {
       const r = await S("Runtime.evaluate", { expression: `(async () => (${s.mat}))()`, awaitPromise: true, returnByValue: true });
       console.log(s.namn, JSON.stringify(r.result.value));
     }
-    const shot = await S("Page.captureScreenshot", { format: "png" });
-    writeFileSync(`${ut}/${s.namn}.png`, Buffer.from(shot.data, "base64"));
-    console.log("✓", `${ut}/${s.namn}.png`);
-    await send("Target.closeTarget", { targetId });
+    if (!s.ingenBild) {
+      const shot = await S("Page.captureScreenshot", jpeg ? { format: "jpeg", quality: 82 } : { format: "png" });
+      const fil = `${ut}/${s.namn}.${jpeg ? "jpg" : "png"}`;
+      writeFileSync(fil, Buffer.from(shot.data, "base64"));
+      console.log("✓", fil);
+    }
+    if (s.behall) kept = { targetId, sessionId };
+    else await send("Target.closeTarget", { targetId });
   }
 } finally {
   ws.close();

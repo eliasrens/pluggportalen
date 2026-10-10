@@ -72,7 +72,7 @@ export function createStatsView(host, { st, screen = false, deps = null }) {
       kort("💰", "Tillsammans", `${tal(sum.totalGold)} guld`),
       kort("✅", "Rätt svar", tal(sum.correct), `av ${tal(sum.answered)} svar`),
       kort("🎯", "Andel rätt", `${sum.share} %`),
-      kort("⚡", "Svarsfrekvens", perMin == null ? "–" : `${tal(perMin)}/min`, "svar senaste minuten"),
+      kort("⚡", "Svarsfrekvens", perMin == null ? "–" : `${tal(perMin)}/min`, perMin == null && !fin ? "mäts …" : "svar senaste minuten"),
       kort("🧰", "Kistor öppnade", tal(sum.chests)),
       kort("⛏️", "Skattjägare", tal(sum.joined), `${tal(sum.active)} har svarat`),
     ].join("");

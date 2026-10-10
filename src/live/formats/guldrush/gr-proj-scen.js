@@ -33,6 +33,7 @@
 //   statSummary(standing)         → klassens anonyma siffror (statistikvyn)
 //   goldBuckets(players, n?)      → anonym fördelning: [{ from, to, count }]
 //   createRate({ windowMs? })     → { add(total, now), perMin(now) } – svar/min
+//                                   (null de första 15 s – inget påhittat 0)
 //   tal(n)                        → "2 140"
 // ============================================================================
 
@@ -225,6 +226,8 @@ export function goldBuckets(players, n = 6) {
   return out;
 }
 
+const MIN_SPAN_MS = 15_000;
+
 /** Svarsfrekvens: svar per minut över senaste fönstret (ur klassens totala antal svar). */
 export function createRate({ windowMs = 60_000 } = {}) {
   let samples = []; // [ms, total]
@@ -235,12 +238,13 @@ export function createRate({ windowMs = 60_000 } = {}) {
       samples.push([now, Number(total) || 0]);
       samples = samples.filter(([t]) => now - t <= windowMs + 1000);
     },
+    /** null = har inte mätt länge nog än (minst MIN_SPAN_MS sedan första provet). */
     perMin(now) {
       const live = samples.filter(([t]) => now - t <= windowMs);
-      if (live.length < 2) return 0;
+      if (!live.length || now - live[0][0] < MIN_SPAN_MS) return null;
       const [t0, a] = live[0];
-      const [t1, b] = live[live.length - 1];
-      const span = Math.max(10_000, t1 - t0);
+      const [, b] = live[live.length - 1];
+      const span = Math.max(MIN_SPAN_MS, now - t0);
       return Math.max(0, Math.round(((b - a) / span) * 60_000));
     },
   };

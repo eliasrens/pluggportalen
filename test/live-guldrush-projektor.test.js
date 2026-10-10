@@ -179,6 +179,7 @@ test("statistiken: anonyma klassiffror + fördelning, inga per elev", () => {
   assert.equal(b.at(-1).to, null);
   const r = createRate();
   r.add(0, 0);
+  assert.equal(r.perMin(5_000), null, "för tidigt att mäta → inget påhittat 0");
   r.add(30, 30_000);
   assert.equal(r.perMin(30_000), 60);
 });

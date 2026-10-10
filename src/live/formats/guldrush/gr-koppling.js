@@ -4,9 +4,12 @@
 //   • lyssnar på grPlayers (guldet – bara servern skriver) och grEvents
 //     (händelseflödet, senaste 30) – samma lyssnare som elevvyn läser
 //   • ställningen = formatets computeStandings(s, { players, grPlayers })
-//   • ready = BÅDA första ögonblicksbilderna har kommit. Vyn startar inte
-//     händelsesystemet förrän dess: första sync blir då baslinjen med alla
-//     gamla händelser – en omladdning spelar aldrig upp något igen (§9).
+//   • ready = BÅDA första ögonblicksbilderna FRÅN SERVERN har kommit (en
+//     ögonblicksbild ur cachen kan sakna händelser – då spelades gamla upp
+//     som nya, upptäckt mot emulatorn). Vyn startar inte händelsesystemet
+//     förrän dess: första sync blir baslinjen med alla gamla händelser – en
+//     omladdning spelar aldrig upp något igen (§9). Utan nät: cachen gäller
+//     efter CACHE_MS.
 //
 // Datalagret: deps.guldrush (förhandsvisningens låtsasdata) eller
 // guldrush-data.js (laddas latt). Avatarerna: avatarRoster – EN roster per
@@ -29,6 +32,7 @@ import { createAvatarRoster } from "../../design/live-avatars.js";
 import { computeStandings } from "./guldrush-core.js";
 
 let rosterCache = null; // { sid, roster }
+const CACHE_MS = 4000;
 
 /** Avatarlistan för sessionen – samma instans för lobby och spelvyer. */
 export function avatarRoster(sid, deps = null) {
@@ -49,9 +53,20 @@ export function createGrKoppling({ sid, deps = null, onChange = () => {}, say = 
   let markReady = () => {};
   const whenReady = new Promise((r) => { markReady = r; });
   const unsubs = [];
+  let offline = false;
+  let sawPlayers = false;
+  let sawEvents = false;
+  const offT = setTimeout(() => {
+    offline = true;
+    gotPlayers = gotPlayers || sawPlayers;
+    gotEvents = gotEvents || sawEvents;
+    check();
+    onChange();
+  }, CACHE_MS);
 
   const check = () => {
     if (!ready && gotPlayers && gotEvents) {
+      clearTimeout(offT);
       ready = true;
       markReady();
     }
@@ -66,15 +81,17 @@ export function createGrKoppling({ sid, deps = null, onChange = () => {}, say = 
 
   (deps?.guldrush ? Promise.resolve(deps.guldrush) : import("./guldrush-data.js")).then((api) => {
     if (dead) return;
-    unsubs.push(api.watchGrPlayers(sid, (list) => {
+    unsubs.push(api.watchGrPlayers(sid, (list, meta) => {
       grPlayers = list || [];
-      gotPlayers = true;
+      sawPlayers = true;
+      gotPlayers = gotPlayers || !meta?.fromCache || offline;
       check();
       onChange("players");
     }, fail("Guldet")));
-    unsubs.push(api.watchEvents(sid, (list) => {
+    unsubs.push(api.watchEvents(sid, (list, meta) => {
       events = list || [];
-      gotEvents = true;
+      sawEvents = true;
+      gotEvents = gotEvents || !meta?.fromCache || offline;
       check();
       onChange("events");
     }, fail("Händelserna")));
@@ -96,6 +113,7 @@ export function createGrKoppling({ sid, deps = null, onChange = () => {}, say = 
     now: () => (deps?.now ? deps.now() : Date.now()),
     destroy() {
       dead = true;
+      clearTimeout(offT);
       unsubs.forEach((u) => { try { u?.(); } catch {} });
     },
   };
