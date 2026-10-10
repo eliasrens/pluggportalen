@@ -177,7 +177,7 @@
 | S-09 | Läsresan-tabell | Summering (börjat x av N, lästa texter, % rätt) + 9 sorterbara kolumner (Elev, Texter, Frågor, Rätt, Fel, Rätt %, Läsresan-nivå, Värld, Steg; `aria-sort`, ▲▼↕, sortering minns `lastSort`), "ej börjat"-badge; data `getClassLasresa(ids)` | teacher-lasresan.js `renderClassLasresan` + teacher-rows.js | `D:Statistik` → flik Läsresan (OFÖR; kan bli egen sektion via registryn, se §3.3) | ✅ "8 av 10 elever har börjat · 50 lästa texter", 9 kolumner, sortering Rätt % ▼ med `aria-sort`; sorteringen minns över klassbyte |
 | S-10 | Läsresan-elevdetalj (modal) | Dold nivå 1–7 med pips, nyckeltal, per frågetyp-staplar, senaste 10 texter (`listAttempts`, laddas först här) | teacher-lasresan-elev.js `openLasresanDetail` | OFÖR | ✅ Öken Ella: dold nivå 5/7, nyckeltal, per frågetyp |
 | S-11 | Läsresan-legend + tomtillstånd | "Klassen har inga elever än" | `renderClassLasresan` | OFÖR | ✅ Tomläget "Klassen har inga elever än" (5E) |
-| S-12 | Underflik "Per område" (#446) | Ämne + arbetsområde (eller "Alla områden i ämnet") → sorterbar klasstabell: Elev, Genomförda, Rätt %, Stjärnor (av möjliga = `starScope` → `areaStarModes`, samma nämnare som S-03 och elevpanelen, #467), Senast aktiv + mini-staplar per frågekategori; summering med kategori-snitt; notis när urvalet saknar kategorier. Progress delas med S-03 (`loadProgress`, en läsning per elev) | teacher-plugga.js `renderClassPlugga` + plugga-teacher-rows.js (läs-API `summarizeClass`, #445) | `D:Statistik` → flik Per område (STATS_TABS i teacher-class.js, dynamisk import) | ✅ preview-plugga-larare.html |
+| S-12 | Underflik "Per område" (#446) | Ämne + arbetsområde (eller "Alla områden i ämnet") → sorterbar klasstabell: Elev, Genomförda, Rätt %, Stjärnor (av möjliga = `starScope` → `areaStarModes`, samma nämnare som S-03 och elevpanelen, #467), Senast aktiv + mini-staplar per frågekategori; summering med kategori-snitt; notis när urvalet saknar kategorier. Progress delas med S-03 (`loadProgress`, en läsning per elev) | teacher-plugga.js `renderClassPlugga` + plugga-teacher-rows.js (läs-API `summarizeClass`, #445) | `D:Statistik` → flik Per område (STATS_TABS i teacher-class.js, dynamisk import) | ✅ preview/preview-plugga-larare.html |
 | S-13 | Djupdykning per elev (modal) | Nyckeltal, rätt-% per kategori med r/t-rådata, svagast ("Behöver stöd") / starkast markerat + stöd-rad, per spelläge (★★☆, klarade, omgångar, rätt %); fallback per spelläge + notis för äldre innehåll; Esc/✕/backdrop | teacher-plugga-elev.js `openPluggaDetail` | OFÖR (modal över `D`) | ✅ preview; S-07 finns kvar oförändrad |
 
 ### 1.10 Innehåll – biblioteket (`teacher-content.js`, `-view.js`, `-list.js`, `teacher-subject-form.js`)
@@ -420,7 +420,7 @@ samma felfall). Gränssnittet utåt behålls: `{ element, openNew(), openEdit(ar
 | `teacher-wizard-steg3.js` | ny, dyn. | AI-verkstaden: stor "Kopiera AI-prompt för valda typer" (`buildAreaPrompt` + `copyText`), instruktion, bildpar-hjälp, generator-kontroll (Räkna), stor textyta + Ladda upp fil / Infoga exempel / Rensa, **Kontrollera** + resultat (`createAreaInput.validateCurrent`) | ~180 |
 | `teacher-wizard-steg4.js` | ny, dyn. | Synliga lägen (`createModeVisibility` + `syncModeVisibility`), "Det här skapas"-sammanfattning, stor grön **Spara** → `data.saveArea` → `onSaved()` → stäng → tabellen | ~120 |
 | `teacher-composer.js` | befintlig, dyn. | Tas bort när wizarden landat (eller lämnas oanvänd en release – Leads val). Inget annat importerar den | −292 |
-| `teacher-content-view.js` | befintlig, statisk | `buildComposerView` tas bort när den inte används (⚠️ preview-larare.html importerar den – uppdatera) | −145 |
+| `teacher-content-view.js` | befintlig, statisk | `buildComposerView` tas bort när den inte används (⚠️ preview/preview-larare.html importerar den – uppdatera) | −145 |
 
 **Återanvänds oförändrat (diffa mot main):** `prompts.buildAreaPrompt`, `prompts.EXAMPLE_JSON`,
 `validate.validateArea`, `teacher-area-input.createAreaInput` (validateCurrent/syncModeVisibility),
@@ -450,7 +450,7 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 - **D-2:** Samma wizard för redigera, förifylld, alla steg klickbara. Startsteg 3 för material-områden; generator-områden startar på steg 3 med generatorn synlig.
 - **D-3:** Räkna (generator) är ett eget kort i steg 2. Kombinationen generator + quiz i samma område ska fortsatt fungera.
 - **D-4:** Skapa klass = detaljytans "ny"-läge (ingen overlay).
-- **D-5:** `teacher-composer.js` + `buildComposerView` tas bort i #442, och `preview-larare.html` uppdateras i samma commit.
+- **D-5:** `teacher-composer.js` + `buildComposerView` tas bort i #442, och `preview/preview-larare.html` uppdateras i samma commit.
 - **X-03 (bredd):** Bara #440 ändrar lärarrotens maxbredd. #441 ärver den och rör inte bredden.
 - **X-08 (lösen):** Store sparar senaste `created`-credentials per klass under sessionen och visar panelen igen tills läraren stänger den. Ingen `confirm()`.
 - **styles.css (4.1):** #440 lägger sitt block **sist** i filen. #441 lägger sitt block **direkt efter befintliga innehålls-/biblioteksregler** (inte sist), så att parallella grenar inte krockar på samma rad. #442 lägger sitt block sist (efter #440).
@@ -471,8 +471,8 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 | `src/teacher-content-list.js` | – | ✔ | (✔ redigera-knappen anropar `openEdit`) | |
 | `src/grades.js` + `test/grades.test.js` | – | ✔ | – | |
 | `src/teacher-classes.js`, `teacher-class-accounts.js` | ✔ | – | – | |
-| `preview-larare.html` | ✔ | ✔ | ✔ | importerar `buildAreaCards`, `buildLibraryView`, `buildComposerView`, `credentialsPanel`, `renderClassStats` m.fl. – den som byter namn/tar bort en export uppdaterar previewn |
-| `preview-larare-dashboard.html`, `preview-by-synlighet.html`, `preview-modul-synlighet.html`, `preview-lasresan-larare.html` | ✔ | – | – | importerar `renderClassAssignments/AreaModes/Villages/Modules`, `renderClassLasresan` – behåll exportnamnen |
+| `preview/preview-larare.html` | ✔ | ✔ | ✔ | importerar `buildAreaCards`, `buildLibraryView`, `buildComposerView`, `credentialsPanel`, `renderClassStats` m.fl. – den som byter namn/tar bort en export uppdaterar previewn |
+| `preview/preview-larare-dashboard.html`, `preview/preview-by-synlighet.html`, `preview/preview-modul-synlighet.html`, `preview/preview-lasresan-larare.html` | ✔ | – | – | importerar `renderClassAssignments/AreaModes/Villages/Modules`, `renderClassLasresan` – behåll exportnamnen |
 
 → **#440 och #441 kan gå parallellt; #442 efter #441** (bekräftar epicens plan).
 
@@ -508,7 +508,7 @@ JSON-texten, generatorvalet och lägesbockarna ägs av sina befintliga kontrolle
 
 - **Riktiga appen mot emulatorerna** (Auth + Firestore, Java 21). `seed/seed.mjs` + `admin/qa-lasresan-seed.mjs` ger läraren `qalarare` och `elev1` (båda `lilla123`, endast emulator) och QA-klass 4A med 10 elever och Läsresan-data. En proxy med samma origin byter `src/firebase-config.js` mot emulatorkoppling (receptet från #436). Proxyn kopplar dessutom `auth.js`:s sekundära app (kontoskapande) till emulatorn, annars skulle `createStudentAuthAccount` gå mot prod.
 - Klickflödena kördes i headless-Chrome: riktiga klick och skrivningar, plus DOM-skript för att mäta. Sparade värden kontrollerades direkt i emulatorn med Admin SDK.
-- Kompletterande körning i stubben `preview-larare-klasser.html` (minnes-Firestore med läsräknare `__ppStub`) för att räkna läsningar vid klassbyte.
+- Kompletterande körning i stubben `preview/preview-larare-klasser.html` (minnes-Firestore med läsräknare `__ppStub`) för att räkna läsningar vid klassbyte.
 - `node --test test/*.test.js`: **742/748**. De 6 felen är regeltesterna, som kräver `emulators:exec` (samma som på main).
 - **Bootgraf (BFS från `src/app.js`):** 133 → **110** filer. **Ingen ny fil** i den statiska grafen. 23 lärarfiler har flyttats ut ur den (laddas med `import()` via `lazyPage`/`TEACHER_TABS`).
 - **Fil-taket:** alla JS-filer som epicen ändrat är ≤ 379 rader. `data-classes.js` är orörd (400).
@@ -544,7 +544,7 @@ Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas s
 
 ### 5.5 Fynd
 
-**F1–F4 åtgärdade (commit 9dcc9e3, #449).** Verifierat i `preview-larare-klasser.html` (F1–F3) och vid 400 px (F4); 742/742 tester gröna, inga konsolfel.
+**F1–F4 åtgärdade (commit 9dcc9e3, #449).** Verifierat i `preview/preview-larare-klasser.html` (F1–F3) och vid 400 px (F4); 742/742 tester gröna, inga konsolfel.
 
 **I epicen (till Lead):**
 
@@ -565,7 +565,7 @@ Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas s
 | P4 | Låg | "Ge 🪙" kan visa fel nytt saldo ("0" fast DB har 50) om en annan `getStudentData` (t.ex. en nivå-sparning) är i luften samtidigt (cache-race) | Ge coins + "Sätt för alla" direkt efter varandra |
 | P5 | Kosmetisk | Generatorns tal-typer visas som id utan å/ä/ö: "Talfoljd", "Negativa-tal", "Oppna-utsaga", "Matt-langd" | Wizard → Räkna → steg 3 |
 
-**Polish 2 (commit ff4c9d2, #453).** Elias tre ändringar efter klick-genomgången. Ingen funktion borttagen, ingen ändring i datamodell, `data-*.js` eller `firestore.rules`. Verifierat i `preview-larare-klasser.html` (hela appen mot minnes-stubben) vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **749/749**, BFS-testerna gröna (ingen ny fil, bootgrafen oförändrad). Inga konsolfel.
+**Polish 2 (commit ff4c9d2, #453).** Elias tre ändringar efter klick-genomgången. Ingen funktion borttagen, ingen ändring i datamodell, `data-*.js` eller `firestore.rules`. Verifierat i `preview/preview-larare-klasser.html` (hela appen mot minnes-stubben) vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **749/749**, BFS-testerna gröna (ingen ny fil, bootgrafen oförändrad). Inga konsolfel.
 
 | # | Ändring | Resultat | Bevis |
 |---|---|---|---|
@@ -573,7 +573,7 @@ Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas s
 | 2 | **Skapa en ny klass: för stora fält.** Rotorsaken var att de gamla reglerna `.new-class #new-name { flex: 1 1 220px }` och `#new-count { flex: 0 0 96px }` blev **höjd** i #440:s kolumnriktade `.cls-create-field`. Fixen nollställer flexen med id-specificitet och sätter 44 px på fält och knapp. I samma genomgång var medlemsradernas namn och användarnamn, coins-fältet och "antal konton" bara 19 px höga, eftersom `.cell` bara stylas inuti `.tbl`. De är nu 38 px. Detaljytans `.select` har gått från 56 till 44 px. Döp om är en `prompt()` och har inget formulär. Kontoeditorns `.tbl .cell` (47 px) är orörd | **PASS**. Klassnamn 220 → 44 px och Antal elever 96 → 44 px, och knappen ligger på samma rad (1366). Vid 400 px staplas de i full bredd | ![](qa-larar-revamp/polish2-fore-skapa-klass-1366.jpeg) → ![](qa-larar-revamp/polish2-efter-skapa-klass-1366.jpeg) ![](qa-larar-revamp/polish2-efter-skapa-klass-400.jpeg) ![](qa-larar-revamp/polish2-efter-elever-falt-1366.jpeg) ![](qa-larar-revamp/polish2-efter-elevkonton-1366.jpeg) |
 | 3 | **Lägg till: "Kopiera AI-prompt för mer innehåll"** (`buildMergeForm`). Överst finns "Eget önskemål (valfritt)", knappen (via `copyText`, som visar "✓ Kopierat!") och instruktionen. Prompten byggs av nya `buildMorePrompt(area, onskemal)` i `prompts.js`, som anropar `buildAreaPrompt(types, …, grade)` **oförändrad** med områdets typer (räknegeneratorn exkluderas) och årskurs. Därefter läggs ett tillägg till: bara nytt innehåll, inga nya övningstyper, undvik befintliga quizfrågor och par-begrepp (högst 40 rader, rättvist delat) och krav på `passage` om området har läsförståelse-frågor (#151). Utan önskemål ber prompten om "mer innehåll till …" i stället för PDF-platshållaren. Merge-logiken är orörd | **PASS**. Den kopierade prompten (9 184 tecken) innehåller önskemålet och undvik-listan. 7 nya enhetstester i `test/prompts-more.test.js`. 400 px: raden staplas, inget spiller över | ![](qa-larar-revamp/polish2-efter-lagg-till-1366.jpeg) ![](qa-larar-revamp/polish2-efter-lagg-till-400.jpeg) |
 
-**Polish 3 (#454): klick på område → utfällda underrader.** Klick, Enter eller Space på en tabellrad (inte på åtgärdsknapparna) fäller ut eller ihop en full-bredds-underrad (`aria-expanded` på raden). Ögat fäller ut samma underrad, så det finns en vy och inte två. Pennan öppnar fortfarande wizarden (D-2). Lägg till (AI-merge + Kopiera AI-prompt), Nivåtexter och Ta bort område är oförändrade. Ingen ändring i datamodell, `data-*.js`, `firestore.rules`, `validateArea`, merge- eller promptlogik. Verifierat i `preview-larare-klasser.html` (stub-sådden har nu giltiga områden: passage-frågor, bildpar, grupp, lästext och ett räknegenerator-område i nytt ämne Matematik) vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **757/757**. Inga konsolfel.
+**Polish 3 (#454): klick på område → utfällda underrader.** Klick, Enter eller Space på en tabellrad (inte på åtgärdsknapparna) fäller ut eller ihop en full-bredds-underrad (`aria-expanded` på raden). Ögat fäller ut samma underrad, så det finns en vy och inte två. Pennan öppnar fortfarande wizarden (D-2). Lägg till (AI-merge + Kopiera AI-prompt), Nivåtexter och Ta bort område är oförändrade. Ingen ändring i datamodell, `data-*.js`, `firestore.rules`, `validateArea`, merge- eller promptlogik. Verifierat i `preview/preview-larare-klasser.html` (stub-sådden har nu giltiga områden: passage-frågor, bildpar, grupp, lästext och ett räknegenerator-område i nytt ämne Matematik) vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **757/757**. Inga konsolfel.
 
 | # | Ändring | Resultat | Bevis |
 |---|---|---|---|
@@ -586,7 +586,7 @@ Extra: **D-2/D-3** – "QA Räkna" (generator addition + 4 quizfrågor) sparas s
 
 **Notera:** gamla Granska visade alla svarsalternativ och förklaringen direkt. Nu visar listraden fråga och rätt svar, och resten syns i Redigera-formuläret. `buildReviewPanel` finns kvar och används för nivåtexterna i underraden.
 
-**Polish 4 (#455): flikar + scroll i områdets underrad.** Sektionerna som låg staplade är nu flikar: **Quiz & läsförståelse (n) · Para ihop (n) · Lästexter (n) · Nivåtexter (n)**, understrukna i ämnesflikarnas stil med antal-badge. Flikmotorn ligger i nya `teacher-area-items-tabs.js`, som bara importeras av `teacher-area-items.js` (laddas med `import()`), så bootgrafen är oförändrad och BFS-testet grönt. Sparlogiken från #454 är orörd. Ingen ändring i datamodell, `data-*.js`, `validate*.js`, prompter eller `firestore.rules`. Verifierat i `preview-larare-klasser.html` vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **759/759**. Inga konsolfel.
+**Polish 4 (#455): flikar + scroll i områdets underrad.** Sektionerna som låg staplade är nu flikar: **Quiz & läsförståelse (n) · Para ihop (n) · Lästexter (n) · Nivåtexter (n)**, understrukna i ämnesflikarnas stil med antal-badge. Flikmotorn ligger i nya `teacher-area-items-tabs.js`, som bara importeras av `teacher-area-items.js` (laddas med `import()`), så bootgrafen är oförändrad och BFS-testet grönt. Sparlogiken från #454 är orörd. Ingen ändring i datamodell, `data-*.js`, `validate*.js`, prompter eller `firestore.rules`. Verifierat i `preview/preview-larare-klasser.html` vid 1366×768 och 400 px. `node --test` (utom regeltesterna): **759/759**. Inga konsolfel.
 
 | # | Ändring | Resultat | Bevis |
 |---|---|---|---|

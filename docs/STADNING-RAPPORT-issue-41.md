@@ -71,5 +71,5 @@ seed, test, html; verifierat med import-/referensgraf + syntaxkontroll + enhetst
   skapande/migrering) – latent inkonsekvens, ej live-bugg.
 - `legacy`-migreringar i `data-pet.js`/`data-animals.js`/`pages-varld.js` är
   avsiktlig kompatibilitetskod (migrerar gammal datastruktur) – **ej** död kod.
-- `preview-djur.html`, `design/husdjur-hem-2.0-prototyp.html`, `seed/seed.html` är
+- `preview/preview-djur.html`, `design/husdjur-hem-2.0-prototyp.html`, `seed/seed.html` är
   fristående dev-/prototypverktyg (laddas inte av `index.html`) – behållna.

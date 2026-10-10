@@ -13,7 +13,7 @@
 //
 // Laddas bara via teacher-lasresan.js (som själv laddas dynamiskt) – aldrig i
 // app.js statiska bootgraf (#271). Firestore-bryggan importeras lat, och kan
-// injiceras (`api`) så preview-lasresan-larare.html kör utan Firebase.
+// injiceras (`api`) så preview/preview-lasresan-larare.html kör utan Firebase.
 // ============================================================================
 
 import { el, esc, icon } from "./teacher-shared.js";

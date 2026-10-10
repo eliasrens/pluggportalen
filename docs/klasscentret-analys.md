@@ -38,7 +38,7 @@ Radnummer gäller epic-grenens bas (08659b2). Datamodellen: `docs/DATAMODELL.md`
 ## 4. Art-pipelinen (epic 1 B)
 
 - Kodritad SVG i `src/art-hus-*.js` (t.ex. `art-hus-lyx.js:268` `LYX_HUS_SKAL`), koordinatsystem x 300–660, marklinje y ≈ 512, färger via `--hus-house/--hus-roof/--hus-wall/--hus-wall2`. Register spreadas in i `HUS_SKAL` (`src/art-hus-ute.js:167-171`); minihuset i byn = `husMini` (`art-hus-ute.js:387`).
-- Förhandsvisning: `preview-*.html` i roten (t.ex. `preview-hus-lyx.html` importerar `./src/art-hus-ute.js` direkt i en `<script type="module">`).
+- Förhandsvisning: `preview-*.html` i roten (t.ex. `preview/preview-hus-lyx.html` importerar `./src/art-hus-ute.js` direkt i en `<script type="module">`).
 - Klasscentrets 10 nivåer → `art-klasscenter-*.js` med eget register keyat på `NIVAER[i].id` (`src/klasscenter/kc-niva.js`) – aldrig i `HUS_SKAL` (de är inte köpbara elevhus).
 
 ## 5. Pixi-vägen (#396, `?pixi=pa`)

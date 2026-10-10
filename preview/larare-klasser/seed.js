@@ -1,5 +1,5 @@
 // ============================================================================
-// Sådd för preview-larare-klasser.html (#440): fyra klasser (5E, 4B, 4A och en
+// Sådd för preview/preview-larare-klasser.html (#440): fyra klasser (5E, 4B, 4A och en
 // tom 6C) med elever, två ämnen med områden, lite progress, så
 // alla sektioner i klassdetaljen har något att visa. 4A har ett aktivt fokusläge
 // (🔒 i master-listan).

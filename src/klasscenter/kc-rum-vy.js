@@ -26,13 +26,15 @@ import { createKamera } from "../varld-kamera.js";
 import { startaKcRumSession } from "./kc-rum-session.js";
 
 const CSS = "src/klasscenter/kc-rum.css";
+// Löses mot modulens plats (inte dokumentet) så att preview/-sidor funkar (#568).
+const CSS_URL = new URL("../../" + CSS, import.meta.url).href;
 
 function laddaCss() {
   const finns = document.querySelector(`link[data-kc-css="${CSS}"]`);
   if (finns) return finns._laddad || Promise.resolve();
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = CSS;
+  link.href = CSS_URL;
   link.dataset.kcCss = CSS;
   link._laddad = new Promise((res) => {
     link.onload = res;

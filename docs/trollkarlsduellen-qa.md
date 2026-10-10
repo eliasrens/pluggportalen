@@ -10,12 +10,12 @@ regressioner i övriga Live-vyer.** Tre observationer till leaden längst ner.
 ## Klickguide för Elias
 
 ### 1. Demoläget (ingen inloggning, ingen Firestore)
-Öppna `preview-trollkarlsduellen.html` (i previewn: `/preview-trollkarlsduellen.html`).
+Öppna `preview/preview-trollkarlsduellen.html` (i previewn: `/preview/preview-trollkarlsduellen.html`).
 Panelen nere till vänster har allt från spec §21: +10 rätt A/B, full mätare,
 98 → 103, båda fulla samtidigt, slumpattack, valfri attack från vänster/höger,
 ledningsbyte, 35 s / 10 s kvar, byt trollkarlar, matchslut, oavgjort, Rasmus
 vinner, Elias vinner, omladdningstest. Klicka en gång i bilden för ljud.
-Figurerna separat: `preview-trollkarl-figurer.html`.
+Figurerna separat: `preview/preview-trollkarl-figurer.html`.
 
 ### 2. Riktig match i emulatorn
 Starta (eller låt den gå – den lämnades igång på port **8542**):
@@ -76,7 +76,7 @@ Kör det visuella skriptet med `NODE_PATH=<mapp med puppeteer-core + sharp>`
 ## §20 Funktionella tester
 
 Emulator = riktig match via proxyn (lärarklient + `qa-mm-live-sim`), Demo =
-`preview-trollkarlsduellen.html`, Pupp = `qa-trollkarlsduellen-visuell.mjs`.
+`preview/preview-trollkarlsduellen.html`, Pupp = `qa-trollkarlsduellen-visuell.mjs`.
 
 | Krav | Resultat | Bevis |
 |---|---|---|

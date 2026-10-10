@@ -1,7 +1,7 @@
 # QA-rapport – Gruvan 2.0 (issue #226)
 
 Slut-QA av Gruvan 2.0 efter den egna Diablo-lika grott-kartan (#224) + pickhacke-
-avataren med hack-animation (#225). Verifierat mot `preview-gruvan.html` i headless-
+avataren med hack-animation (#225). Verifierat mot `preview/preview-gruvan.html` i headless-
 browsern (riktig sida, inte about:blank) samt ren matte via enhetstester. **Inga
 buggar hittade** – banan är komplett och spelbar från gruvöppning till jättekristall.
 Ingen kodändring behövd; nåbarheten är redan låst med flood-fill-tester (från #224).
@@ -14,7 +14,7 @@ Ingen kodändring behövd; nåbarheten är redan låst med flood-fill-tester (fr
 - Övriga pure-tester gröna per fil; endast `firestore-rules` "failar" – den kräver
   Firebase-emulatorn och kan inte köras headless här (ej i scope för detta issue).
 
-## Live-verifiering (headless Chrome mot preview-gruvan.html)
+## Live-verifiering (headless Chrome mot preview/preview-gruvan.html)
 | Krav | Utfall |
 | --- | --- |
 | Start vänster vid gruvöppningen | ✅ start (175, 500) px = normaliserat (0.073, 0.5), på gångbar mark |

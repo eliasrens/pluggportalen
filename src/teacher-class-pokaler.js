@@ -13,13 +13,15 @@ import { esc, icon } from "./teacher-shared.js";
 import { formularHtml, lasresanRad, pokalListaHtml } from "./klasscenter/kc-larare-pokal.js";
 
 const CSS = "src/klasscenter/kc-larare-pokal.css";
+// Löses mot modulens plats (inte dokumentet) så att preview/-sidor funkar (#568).
+const CSS_URL = new URL("../" + CSS, import.meta.url).href;
 const H3 = "display:flex;align-items:center;gap:8px;margin:0 0 6px";
 
 function laddaCss() {
   if (document.querySelector(`link[data-kc-css="${CSS}"]`)) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = CSS;
+  link.href = CSS_URL;
   link.dataset.kcCss = CSS;
   document.head.appendChild(link);
 }

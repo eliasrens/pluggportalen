@@ -143,7 +143,7 @@ describe("#566 demoläget – isolerat", () => {
     const src = readFileSync(new URL("../src/live/formats/guldrush/gr-demo.js", import.meta.url), "utf8");
     const imports = src.match(/^(?:import|export) .* from .*$/gm).join("\n");
     assert.doesNotMatch(imports, /guldrush-data|firebase|live-data|live-rewards-data/);
-    const html = readFileSync(new URL("../preview-guldrush-demo.html", import.meta.url), "utf8");
+    const html = readFileSync(new URL("../preview/preview-guldrush-demo.html", import.meta.url), "utf8");
     assert.match(html, /cloudfunctions\\\.net/);
     assert.match(html, /deps: demo\.deps/);
   });

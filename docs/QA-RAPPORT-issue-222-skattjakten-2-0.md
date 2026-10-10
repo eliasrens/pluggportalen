@@ -1,7 +1,7 @@
 # QA-rapport – Skattjakten 2.0 (issue #222)
 
 Slut-QA av Skattjakten 2.0 efter motorn (#220) + ö-integrationen (#221). Verifierat
-mot `preview-skattjakten.html` i headless-browsern (riktig sida, inte about:blank)
+mot `preview/preview-skattjakten.html` i headless-browsern (riktig sida, inte about:blank)
 samt ren matte via enhetstester. **Inga buggar hittade** – banan är komplett och
 spelbar. En hårdnings-åtgärd tillagd (flood-fill-test), i övrigt ingen kodändring.
 
@@ -10,7 +10,7 @@ spelbar. En hårdnings-åtgärd tillagd (flood-fill-test), i övrigt ingen kodä
 - Hela pure-sviten grön: **196/196** (`node --test test/*.test.js` utom
   `firestore-rules`/`e2e`, som kräver emulator). Var 193 – +3 nya flood-fill-tester.
 
-## Live-verifiering (headless Chrome mot preview-skattjakten.html)
+## Live-verifiering (headless Chrome mot preview/preview-skattjakten.html)
 | Krav | Utfall |
 | --- | --- |
 | Start vid bryggan (anländer med båt, nere-höger) | ✅ start (0.74, 0.66), på sand |
@@ -46,10 +46,10 @@ belöningen delades ut (grind-skalat mode `aventyr:skattjakten`).
   (ingen `adv-world`/scroll, 176 tiles, 10 stationer), motorns delade flöde intakt.
 
 ## Dev-artefakter (städning inför merge)
-- `preview-skattjakten.html` (#221) – **behåll.** Följer den etablerade
+- `preview/preview-skattjakten.html` (#221) – **behåll.** Följer den etablerade
   `preview-*.html`-konventionen (preview-spokjakten, preview-gruvan m.fl. i repo-roten),
   Firebase-fri, ingen elev-route.
-- `aventyr-scroll-demo.html` (#220) – **behåll.** Motor-nivå-demo (scroll-demo-temat,
+- `preview/aventyr-scroll-demo.html` (#220) – **behåll.** Motor-nivå-demo (scroll-demo-temat,
   stubbad modal), refererad från `docs`/`themes/README.md` och `themes/scroll-demo.js`.
   Att ta bort den kräver att även referenserna städas; värdet av demot > städvinsten.
 

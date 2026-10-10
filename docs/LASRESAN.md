@@ -432,7 +432,7 @@ onDone({ answers: [{ qid, chosen }] })
     `admin/qa-lasresan-niva-preview.sh` (klickguide i `docs/preview-lasresan-niva.md`).
     Skalan 1–10 med elever i gammal och ny lagring: `admin/qa-lasresan-10-preview.sh`
     (proxy :8541, seed `qa-lasresan-10-seed.mjs`, klickguide `docs/preview-lasresan-10.md`).
-- **Preview:** `preview-lasresan-larare.html` har stubbad klass med 8 elever:
+- **Preview:** `preview/preview-lasresan-larare.html` har stubbad klass med 8 elever:
   blandade nivåer, en som inte börjat, en utan avslutad text, en i Öknen och ett
   namn med HTML som testar escaping. `?tom=1` ger en klass utan elever.
 
@@ -523,6 +523,6 @@ en config-fil + en scen-fil + en rad i registret. Mall: `worlds/oknen.js` +
    `WORLDS`. Klart – kartan, världsväljaren, upplåsningen, firandet och
    `normalizeProgress` hanterar den automatiskt.
 4. **Verifiera:** `node --test test/lasresan-*.test.js` kör `validateWorld`
-   på alla världar i registret; titta sedan i `preview-lasresan-karta.html`.
+   på alla världar i registret; titta sedan i `preview/preview-lasresan-karta.html`.
 
 Visa ALDRIG nivån på kartan, och håll UI-texten minimal (spec §21).

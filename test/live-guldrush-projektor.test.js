@@ -5,7 +5,7 @@
 // ledningsbyte (designtest 5), gallring (designtest 7), händelsesystemet
 // efter omladdning (designtest 10), pallsteg med delad placering (designtest
 // 9), test 15 (stöld syns i flödet) och statistikens exakta ställning.
-// DOM-delarna provas i preview-guldrush-skattkammare.html.
+// DOM-delarna provas i preview/preview-guldrush-skattkammare.html.
 // ============================================================================
 
 import test from "node:test";

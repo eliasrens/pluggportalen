@@ -1,8 +1,8 @@
 // ============================================================================
-// Förhandsvisnings-STUB av firebase-firestore 10.12.2 (preview-larare-klasser.html,
+// Förhandsvisnings-STUB av firebase-firestore 10.12.2 (preview/preview-larare-klasser.html,
 // #440 – kopia av #419:s preview/pixi-hus-stub + onSnapshot)
 // ----------------------------------------------------------------------------
-// Importmappen i preview-larare-klasser.html pekar SDK-URL:en hit, så HELA den
+// Importmappen i preview/preview-larare-klasser.html pekar SDK-URL:en hit, så HELA den
 // riktiga appen (router, lärarsidan, data*.js) körs mot ett minnes-Firestore i
 // stället för prod. Bara den yta appen faktiskt
 // importerar finns (doc/getDoc/setDoc/updateDoc/deleteDoc/collection/getDocs/

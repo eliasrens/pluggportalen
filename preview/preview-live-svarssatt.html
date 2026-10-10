@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Live svarssätt (#551)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/live/live.css" />
+    <link rel="stylesheet" href="../src/mult/fast-answer.css" />
+    <style>
+      /* Elevens spelvy med sessionens svarssätt – samma väg som elevsidan:
+         answer-kinds.js → fast-answer (free) / choice-flow (choice). */
+      html, body { height: 100%; margin: 0; overflow: hidden; }
+      body { display: flex; flex-direction: column; background: var(--ljus); }
+      .pv-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 14px;
+        font-size: 13px; background: #fff; box-shadow: var(--skugga-mjuk); }
+      .pv-bar b { color: var(--bla-mork); }
+      .pv-stage { flex: 1; min-height: 0; padding: 2vh 2vw; display: flex; align-items: center; }
+      .pv-stage > div { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+      .pv-foot { padding: 6px 14px; font-size: 12px; color: var(--text-svag); background: #fff;
+        font-family: ui-monospace, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-bar">
+      <b>Live svarssätt (#551)</b>
+      <label><input type="radio" name="kind" value="free" checked /> ✍️ Skriv själv</label>
+      <label><input type="radio" name="kind" value="choice" /> 🔘 Flerval</label>
+      <button type="button" id="pv-av">Stäng av / på</button>
+      <span>Multiplikation 0–10 – samma rättning för båda.</span>
+    </div>
+    <div class="pv-stage"><div id="pv-root"></div></div>
+    <div class="pv-foot" id="pv-log">Svarsdokumentet (som planLiveAnswerWrites bygger det) visas här.</div>
+    <script type="module">
+      // Samma laddning som elevsidan: dynamisk import, inget i bootkedjan.
+      const [{ loadAnswerComponent }, { requireGameMode }, { planLiveAnswerWrites }] = await Promise.all([
+        import("../src/live/answer-kinds.js"),
+        import("../src/live/modes/index.js"),
+        import("../src/tavling/answer-writes.js"),
+      ]);
+      const mode = requireGameMode("multiplication_0_10");
+      const root = document.getElementById("pv-root");
+      const log = document.getElementById("pv-log");
+      const fv = { increment: (n) => `+${n}`, serverTimestamp: () => "serverTime" };
+      let handle = null, on = true;
+
+      async function mount(kind) {
+        handle?.destroy();
+        const mountAnswer = await loadAnswerComponent(kind);
+        handle = mountAnswer(root, {
+          source: mode.createSource(),
+          check: mode.checkAnswer,
+          choices: mode.choices,
+          inputMode: mode.inputMode,
+          onAnswer: (a) => {
+            const [w] = planLiveAnswerWrites({
+              sessionId: "demo", attemptId: a.attemptId, uid: "elev", classId: "4b", mode: mode.id,
+              record: mode.answerRecord(a.question, a.result), isCorrect: a.result.correct, shard: 0, fv,
+              answerKind: kind, choiceIndex: a.choiceIndex,
+            });
+            const { at, uid, classId, shard, ...visa } = w.data;
+            log.textContent = JSON.stringify(visa);
+            window.__pvSvar = [...(window.__pvSvar || []), w.data];
+          },
+        });
+        on = true;
+      }
+      document.querySelectorAll('input[name="kind"]').forEach((i) => i.addEventListener("change", () => mount(i.value)));
+      document.getElementById("pv-av").addEventListener("click", () => { on = !on; handle.setEnabled(on, "Väntar…"); });
+      const start = new URLSearchParams(location.search).get("kind") === "choice" ? "choice" : "free";
+      document.querySelector(`input[name="kind"][value="${start}"]`).checked = true;
+      await mount(start);
+      window.__pvKlar = true;
+    </script>
+  </body>
+</html>

@@ -15,7 +15,7 @@
 //
 // Laddas DYNAMISKT från teacher-class.js – aldrig i app.js statiska bootgraf
 // (#271, vaktas av test/lasresan-reader.test.js). Datakällorna kan injiceras
-// (preview-lasresan-larare.html kör utan Firebase).
+// (preview/preview-lasresan-larare.html kör utan Firebase).
 // ============================================================================
 
 import { avatarEmoji } from "./avatars.js";

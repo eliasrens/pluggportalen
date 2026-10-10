@@ -1,6 +1,6 @@
 # Snilleblixten – TV-studion på projektorn (#559)
 
-Skärmdumparna är tagna ur `preview-snilleblixt-studio.html`. Förhandsvisningen kör låtsasdata med 30 elever som har kläder på sig, och avatarerna kommer ur en fejkad klassprojektion. Bilderna finns i 1920×1080 (`-1920`) och 1280×720 (`-1280`). Emoji visas som rutor eftersom testwebbläsaren saknar ett typsnitt för färg-emoji. I en vanlig webbläsare syns de.
+Skärmdumparna är tagna ur `preview/preview-snilleblixt-studio.html`. Förhandsvisningen kör låtsasdata med 30 elever som har kläder på sig, och avatarerna kommer ur en fejkad klassprojektion. Bilderna finns i 1920×1080 (`-1920`) och 1280×720 (`-1280`). Emoji visas som rutor eftersom testwebbläsaren saknar ett typsnitt för färg-emoji. I en vanlig webbläsare syns de.
 
 ## Ingen uthängning (Elias, 2026-10-10)
 

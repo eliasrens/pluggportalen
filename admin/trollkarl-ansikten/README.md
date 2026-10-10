@@ -40,5 +40,5 @@ node gor-ansiktslager.cjs
   255 i en Uint8Array → prickad linje längs masken.
 - Hattarna är borttagna ur grundfiguren; lagren ska visa HELA håret.
 - Nya uttryck: lägg till panelbox i `JOBS`, Rasmus behöver även en
-  `JAW`-polylinje; verifiera mot mörk bakgrund i preview-trollkarl-figurer.html
+  `JAW`-polylinje; verifiera mot mörk bakgrund i preview/preview-trollkarl-figurer.html
   (2× zoom på hår + haka).

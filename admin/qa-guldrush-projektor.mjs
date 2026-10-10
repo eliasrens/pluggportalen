@@ -1,7 +1,7 @@
 // ============================================================================
 // QA (#565): Guldrushens Skattkammare i en riktig (huvudlös) Chromium via
 // DevTools-protokollet – skärmdumpar i realtid (inga virtuella klockor) och
-// mätningar i förhandsvisningen preview-guldrush-skattkammare.html (låtsas-
+// mätningar i förhandsvisningen preview/preview-guldrush-skattkammare.html (låtsas-
 // data, ingen Firestore). Inga beroenden: Node 22 (global WebSocket) + en
 // chromium i PATH.
 //
@@ -69,7 +69,7 @@ try {
     kept = null;
     await S("Emulation.setDeviceMetricsOverride", { width: s.w, height: s.h, deviceScaleFactor: 1, mobile: false });
     if (s.reduced) await S("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
-    await S("Page.navigate", { url: s.full || `http://localhost:${port}/preview-guldrush-skattkammare.html?${s.url}&panel=av` });
+    await S("Page.navigate", { url: s.full || `http://localhost:${port}/preview/preview-guldrush-skattkammare.html?${s.url}&panel=av` });
     await sleep(s.vanta ?? 4000);
     if (s.js) {
       const r = await S("Runtime.evaluate", { expression: `(async () => { ${s.js} })()`, awaitPromise: true });

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Klasscentret (10 nivåer)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Fristående testyta för issue #478: Klasscentrets 10 nivåer (art-klasscenter.js)
+         på by-lik gräsbakgrund, plus skal-jämförelse mot vanliga minihus (husMini).
+         Ingen inloggning behövs – sidan ritar bara konsten. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 80ch; }
+      .wrap { padding: 12px 20px 40px; }
+      h2 { font-size: 1.05rem; margin: 22px 0 8px; }
+      .verktyg { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 0.9rem; }
+      .verktyg button { font: inherit; padding: 4px 12px; border-radius: 10px; border: 2px solid #ffd39a; background: #fff; cursor: pointer; }
+      /* By-lik mark: himmel → gräs med marklinje där SVG:ernas botten-48-enheter hamnar. */
+      .falt {
+        --hus-house: #F7C948; --hus-roof: #EF6F6C; --hus-wall: #7FC7E8; --hus-wall2: #C9EEFB;
+        background: linear-gradient(#cfeefc 0, #e8f6fd var(--mark), #8FCB74 var(--mark), #7dbd63 100%);
+        border: 3px solid #3B3350; border-radius: 18px; overflow: hidden;
+      }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+      .kort { --mark: 94%; /* 752/800 = marklinjen */ position: relative; aspect-ratio: 1250 / 800; }
+      .kort > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      figure { margin: 0; }
+      figcaption { font-weight: 800; font-size: 0.95rem; padding: 4px 6px 0; }
+      /* Byrad: minihus 140 px bred ⇒ klasscentret 2,5 × 140 = 350 px (KLASSCENTER_MATT). */
+      .byrad { --mini: 140px; --mark: calc(100% - var(--mini) * 48 / 500); /* 48 enheter under marken */ display: flex; align-items: flex-end; gap: 0; padding: 12px 16px 0; overflow-x: auto; }
+      .byrad .tomt { flex: none; width: var(--mini); height: calc(var(--mini) * 460 / 500); }
+      .byrad .center { flex: none; width: calc(var(--mini) * 2.5); height: calc(var(--mini) * 2.5 * 800 / 1250); }
+      .byrad .tomt > svg, .byrad .center > svg { width: 100%; height: 100%; display: block; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Förhandsvisning – Klasscentret 🔥⛺🛖🏡🏠🏛️🛡️🏰🏢💎</h1>
+      <p>
+        Klasscentrets byggnad i 10 nivåer (issue #478, <code>klasscenterSvg(niva)</code>).
+        Alla nivåer delar viewBox 1250×800 och marklinjen y=752, så de står på samma mark.
+        Nedre raden visar skalan i byn: klasscentret ritas 2,5 × ett minihus bredd.
+      </p>
+    </header>
+    <div class="wrap">
+      <div class="verktyg">
+        <button id="anim">⏸ Pausa ambient</button>
+        <label>Klassens fana: <input type="color" id="fana" value="#EF6F6C" /></label>
+      </div>
+      <h2>Alla 10 nivåer</h2>
+      <div class="grid" id="grid"></div>
+      <h2>Skala i byn – bredvid vanliga minihus</h2>
+      <div class="verktyg" id="nivaval"></div>
+      <div class="falt byrad" id="byrad"></div>
+    </div>
+    <script type="module">
+      import { klasscenterSvg, KLASSCENTER_NIVAER } from "../src/art-klasscenter.js";
+      import { husMini } from "../src/art-hus-ute.js";
+
+      let animera = true;
+      let byNiva = 10;
+      const root = document.documentElement;
+
+      function ritaGrid() {
+        document.getElementById("grid").innerHTML = KLASSCENTER_NIVAER.map(
+          (n) => `<figure><div class="falt kort">${klasscenterSvg(n.niva, { animera, aria: n.namn })}</div>
+            <figcaption>${n.niva}. ${n.emoji} ${n.namn}</figcaption></figure>`
+        ).join("");
+      }
+      function ritaByrad() {
+        const mini = (skal) => `<div class="tomt">${husMini({ skalId: skal })}</div>`;
+        document.getElementById("byrad").innerHTML =
+          mini("stuga") + mini("slott") +
+          `<div class="center">${klasscenterSvg(byNiva, { animera })}</div>` +
+          mini("svamphus") + mini("stuga");
+      }
+      document.getElementById("nivaval").innerHTML =
+        "Nivå i byraden: " +
+        KLASSCENTER_NIVAER.map((n) => `<button data-niva="${n.niva}">${n.niva}</button>`).join("");
+      document.getElementById("nivaval").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-niva]");
+        if (!b) return;
+        byNiva = Number(b.dataset.niva);
+        ritaByrad();
+      });
+      document.getElementById("anim").addEventListener("click", (e) => {
+        animera = !animera;
+        e.target.textContent = animera ? "⏸ Pausa ambient" : "▶ Starta ambient";
+        ritaGrid();
+        ritaByrad();
+      });
+      document.getElementById("fana").addEventListener("input", (e) => {
+        root.style.setProperty("--kc-fana", e.target.value);
+      });
+      ritaGrid();
+      ritaByrad();
+    </script>
+  </body>
+</html>

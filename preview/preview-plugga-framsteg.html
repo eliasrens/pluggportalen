@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plugga – framsteg per kategori</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/games.css" />
+    <style>
+      body { padding: 16px; }
+      .preview-bar { max-width: 960px; margin: 0 auto 16px; padding: 12px 16px; background: #eef4ff; border: 2px solid #cfe0ff; border-radius: 14px; }
+      .preview-bar h1 { margin: 0 0 4px; font-size: 1.2rem; }
+      .preview-bar p { margin: 0 0 8px; color: #35507a; }
+      .menu { display: flex; gap: 8px; flex-wrap: wrap; }
+      #app { max-width: 960px; margin: 0 auto; }
+    </style>
+    <!-- Firebase-/router-beroenden → lätta stubbar. Områdessidan (gamemodes.js),
+         spelen, resultatskärmen (game-shared.js), data-progress.js och den nya
+         plugga-framsteg.js körs OFÖRÄNDRADE mot en minnes-Firestore. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/src/ui.js": "/preview/framsteg-stubs/ui.js",
+          "/src/data.js": "/preview/framsteg-stubs/data.js",
+          "/src/fx.js": "/preview/kategori-stubs/fx.js",
+          "/src/data-xp.js": "/preview/kategori-stubs/data-xp.js",
+          "/src/firebase-config.js": "/preview/kategori-stubs/firebase-config.js",
+          "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js": "/preview/kategori-stubs/firestore.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="preview-bar">
+      <h1>⭐ Elevvy – framsteg per kategori (issue #447)</h1>
+      <p>Riktiga områdessidan + spelen + resultatskärmen mot minnesdata. <b>Vikingatiden</b> har frågor taggade
+        Begrepp/Fakta/Analys (eleven har spelat lite redan). <b>Medeltiden</b> är ett gammalt område utan kategorier (fallback).</p>
+      <div class="menu">
+        <button class="btn liten" data-go="vikingatiden">⚔️ Vikingatiden (kategorier)</button>
+        <button class="btn liten" data-go="medeltiden">🏰 Medeltiden (utan kategorier)</button>
+        <button class="btn liten ghost" id="reset">↺ Nollställ elevdata</button>
+      </div>
+    </div>
+    <div id="app"></div>
+
+    <script type="module">
+      import { MEM } from "/preview/kategori-stubs/firestore.js";
+      import { validateArea } from "/src/validate.js";
+      import { pageElevOmrade, pageElevSpela } from "/src/gamemodes.js";
+
+      const START = () => ({
+        vikingatiden: { quiz: { completed: true, stars: 1, plays: 1, bestScore: 4,
+          cat: { begrepp: { r: 2, t: 2 }, fakta: { r: 1, t: 2 }, analys: { r: 0, t: 2 } } } },
+        medeltiden: { para: { completed: true, stars: 2, plays: 1, bestScore: 6 } },
+      });
+      MEM.progress = START();
+
+      const vik = validateArea({
+        name: "Vikingatiden", coverEmoji: "⚔️", description: "Hur levde vikingarna?",
+        quiz: [
+          { question: "Vad betyder ordet runsten?", options: ["En sten med inristad skrift", "En vass yxa", "Ett handelsskepp", "En gud"], answerIndex: 0, category: "begrepp" },
+          { question: "Vad är en knarr?", options: ["En hjälm", "Ett handelsskepp", "En bondgård", "En sång"], answerIndex: 1, category: "begrepp" },
+          { question: "Ungefär när började vikingatiden?", options: ["År 300", "År 1500", "År 800", "År 1900"], answerIndex: 2, category: "fakta" },
+          { question: "Vad hette vikingarnas skrivtecken?", options: ["Hieroglyfer", "Bokstäver", "Siffror", "Runor"], answerIndex: 3, category: "fakta" },
+          { question: "Vilken gud hade en hammare?", options: ["Oden", "Tor", "Frej", "Loke"], answerIndex: 1, category: "fakta" },
+          { question: "Varför byggde vikingarna smala, grunda skepp?", options: ["För att de var billiga", "För att kunna segla uppför floder", "För att de var vackra", "För att de var tunga"], answerIndex: 1, category: "analys" },
+          { question: "Varför blev handel viktig för vikingarna?", options: ["De kunde byta till sig sådant som inte fanns hemma", "De gillade att resa", "De hade inga djur", "Kungen bestämde det"], answerIndex: 0, category: "analys" },
+        ],
+        pairs: [
+          { term: "Runa", definition: "Skrivtecken" }, { term: "Knarr", definition: "Handelsskepp" },
+          { term: "Tor", definition: "Åskgud" }, { term: "Birka", definition: "Handelsplats" },
+        ],
+      }).value;
+      const med = validateArea({
+        name: "Medeltiden", coverEmoji: "🏰", description: "Riddare, borgar och städer.",
+        quiz: [
+          { question: "Var bodde riddare ofta?", options: ["I en borg", "I ett tält", "På en båt", "I en grotta"], answerIndex: 0 },
+          { question: "Vad kallades en lärling hos en hantverkare?", options: ["Gesäll", "Kung", "Präst", "Bonde"], answerIndex: 0 },
+          { question: "Vilken sjukdom spreds på 1300-talet?", options: ["Digerdöden", "Influensa", "Mässling", "Polio"], answerIndex: 0 },
+        ],
+        pairs: [
+          { term: "Borg", definition: "Befäst hus" }, { term: "Riddare", definition: "Krigare till häst" },
+          { term: "Munk", definition: "Bor i kloster" }, { term: "Hansan", definition: "Handelsförbund" },
+        ],
+      }).value;
+      globalThis.__PREVIEW_AREAS = { vikingatiden: vik, medeltiden: med };
+
+      function route() {
+        const h = location.hash || "";
+        if (h.startsWith("#/elev/spela")) return pageElevSpela();
+        if (h.startsWith("#/elev/omrade")) return pageElevOmrade();
+        location.hash = "#/elev/omrade?subj=so&area=vikingatiden";
+      }
+      window.addEventListener("hashchange", route);
+      document.querySelectorAll("[data-go]").forEach((b) =>
+        b.addEventListener("click", () => { location.hash = `#/elev/omrade?subj=so&area=${b.dataset.go}`; }));
+      document.getElementById("reset").onclick = () => { MEM.progress = START(); route(); };
+      route();
+    </script>
+  </body>
+</html>
