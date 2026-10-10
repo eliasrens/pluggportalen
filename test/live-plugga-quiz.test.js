@@ -340,3 +340,21 @@ describe("lärarformuläret: ämne + område", () => {
     assert.equal("quiz" in buildSessionDoc(i, { uid: "larare" }), false);
   });
 });
+
+describe("formaten skickar rutan vidare till ögonblicksbilden (#582)", async () => {
+  const { buildQuizPool } = await import("../src/live/formats/guldrush/guldrush-core.js");
+  const { buildSnapshot } = await import("../src/live/formats/snilleblixt/snilleblixt-core.js");
+  const quiz = Array.from({ length: 4 }, (_, i) => fraga(`p${i}`, { passage: "Kort text." }));
+
+  it("Guldrushen: passagen bara med rutan på", () => {
+    assert.ok(buildQuizPool(QUIZ, quiz, buildQuizSnapshot).questions.every((q) => !("passage" in q)));
+    assert.ok(buildQuizPool(QUIZ, quiz, buildQuizSnapshot, Math.random, { showPassage: true })
+      .questions.every((q) => q.passage === "Kort text."));
+  });
+
+  it("Snilleblixten: passagen bara med rutan på", () => {
+    const opts = { answerKind: "choice", count: 0, quiz, quizSnapshot: buildQuizSnapshot };
+    assert.ok(buildSnapshot(QUIZ, opts).questions.every((q) => !("passage" in q)));
+    assert.ok(buildSnapshot(QUIZ, { ...opts, showPassage: true }).questions.every((q) => q.passage === "Kort text."));
+  });
+});
