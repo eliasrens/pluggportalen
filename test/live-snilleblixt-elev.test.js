@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  elevLage, myStanding, formatPoints, relativeStanding, relativeText, endStanding,
+  elevLage, myStanding, formatPoints, relativeStanding, relativeText, endStanding, stageAction,
 } from "../src/live/formats/snilleblixt/snilleblixt-elev.js";
 import { scoreQuestion } from "../src/live/formats/snilleblixt/snilleblixt-poang.js";
 
@@ -167,5 +167,24 @@ describe("Snilleblixten elev: placering och format", () => {
   it("formatPoints: '4 230' (vanligt mellanslag)", () => {
     assert.equal(formatPoints(4230), "4 230");
     assert.equal(formatPoints(870), "870");
+  });
+});
+
+describe("Snilleblixten elev: lobbyns avatar (#561 F2)", () => {
+  it("fasvalet: lobbyn ritar avataren i lobbyn – aldrig spelkortet (även när poäng/namn laddas)", () => {
+    assert.equal(stageAction("lobby"), "lobby");
+    assert.equal(stageAction("live"), "spel");
+    assert.equal(stageAction("finished"), "slut");
+    assert.equal(stageAction("cancelled"), "slut");
+    assert.equal(stageAction("countdown"), null);
+  });
+
+  it("elevytan anropar inte draw() direkt från asynkrona callbacks (poäng, namn, eget svar)", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const src = await readFile(new URL("../src/live/formats/snilleblixt/snilleblixt-student.js", import.meta.url), "utf8");
+    assert.ok(!/scores = list;\s*draw\(\)/.test(src), "poäng-callback ska gå via sync()");
+    assert.ok(/scores = list;\s*sync\(\)/.test(src), "poäng-callback går via sync()");
+    assert.ok(!/finally\(\(?\)?\s*=?>?\s*draw/.test(src) && !/finally\(draw\)/.test(src), "finally ska gå via sync()");
+    assert.ok(!/setTimeout\(draw\b/.test(src), "timern ska gå via sync()");
   });
 });

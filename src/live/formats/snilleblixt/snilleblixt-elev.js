@@ -27,6 +27,10 @@
 //                      name?, diff? }  list = [{ uid, points, name? }]
 //   relativeText(rel) → "120 poäng bakom Alma" | "Du leder! ⚡" | "Lika med Alma" …
 //   endStanding(result, uid) → { podium: 1|2|3|null, rel, row } (slutskärmen)
+//   stageAction(phase) → "spel" | "lobby" | "slut" | null – vad elevytan ska
+//                     rita i fasen. ALLA ritningar (även asynkrona: poäng, namn,
+//                     eget svar) går via den, så avataren aldrig flyttas till
+//                     den dolda spelytan i lobbyn (#561 F2).
 //   formatPoints(n) → "4 230"
 //
 // INGEN PLACERING SOM NUMMER (Elias 2026-10-10): eleven ska aldrig få veta att
@@ -86,6 +90,14 @@ export function endStanding(result, uid) {
   const podium = row && row.points > 0 && row.rank <= 3 ? row.rank : null;
   const list = ranking.map((p) => ({ uid: p.uid, points: p.points, name: firstName(p.name) }));
   return { podium, row, rel: relativeStanding(list, uid) };
+}
+
+/** Vad elevytan ska rita i fasen (lobby: avataren i lobbyn, aldrig spelkortet). */
+export function stageAction(phase) {
+  if (phase === "live") return "spel";
+  if (phase === "lobby") return "lobby";
+  if (phase === "finished" || phase === "cancelled") return "slut";
+  return null;
 }
 
 export function formatPoints(n) {
