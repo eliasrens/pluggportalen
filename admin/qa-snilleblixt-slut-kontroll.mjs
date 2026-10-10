@@ -23,6 +23,8 @@
 //       scen "C" (20i): L rätt först alltid; b01 (webbläsaren) rätt näst –
 //         från fråga 4 skrivs b01 här (klient, --b01 rätt), fråga 1–3 svarar
 //         b01 själv i webbläsaren; b01 fel på de 8 sista; övriga ~35 % rätt.
+//       scen "E" --b01 rätt --plan '[{"b01":"fel","andra":"ratt"},…]' (elevskärmen: b01
+//         ledare/mitten/sist på beställning; b01 skrivs här, webbläsaren visar)
 //   (verifieringen efteråt: admin/qa-snilleblixt-slut-verifiera.mjs <sid> <scen>)
 //
 // Loggar: /tmp/sb561-<sid>-elever.jsonl (varje svar: uid, q, skickat, svar).
@@ -116,6 +118,7 @@ if (cmd === "fraga78" || cmd === "utoka") {
 if (cmd === "elever") {
   const [antalS, scen] = rest;
   const b01 = rest.includes("--b01") ? rest[rest.indexOf("--b01") + 1] : null;
+  const PLAN = rest.includes("--plan") ? JSON.parse(rest[rest.indexOf("--plan") + 1]) : [];
   const s0 = (await sess.get()).data();
   const alla = await deltagare(s0);
   const antal = Number(antalS) || 24;
@@ -271,6 +274,14 @@ if (cmd === "elever") {
           .then((d) => (d.exists() ? "redan" : svara(k, s, i, { right: i < sist }))));
         else efter(1200 + Math.random() * 1500, () => svara(k, s, i, { right: Math.random() < 0.35 }));
       }
+    } else if (scen === "E") {
+      // Styrd elevskärm (#561 runda 2): plan per fråga (sista posten upprepas).
+      //   b01: forst (rätt 200 ms) | fel (600 ms) · andra: ratt | fel | halv (varannan rätt)
+      const p = PLAN[Math.min(i, PLAN.length - 1)];
+      klienter.forEach((k, n) => {
+        if (k.webb) efter(p.b01 === "forst" ? 200 : 600, () => svara(k, s, i, { right: p.b01 === "forst" }));
+        else efter(700 + n * 60, () => svara(k, s, i, { right: p.andra === "ratt" || (p.andra === "halv" && n % 2 === 0) }));
+      });
     }
     await Promise.all(jobb);
   });
