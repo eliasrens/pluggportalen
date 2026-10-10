@@ -6,7 +6,8 @@ import assert from "node:assert/strict";
 import {
   normalizeOptionText, prepareQuizQuestion, selectQuizQuestions, summarizeQuizArea, quizAreaMessage,
   minQuestionsFor, buildQuizSnapshot, joinFacit, checkQuizAnswer, quizStatKeys,
-  QUIZ_DEFAULT_MIN_QUESTIONS, QUIZ_PASSAGE_POLICY, QUIZ_PASSAGE_MAX,
+  QUIZ_DEFAULT_MIN_QUESTIONS, QUIZ_PASSAGE_POLICY, QUIZ_PASSAGE_MAX, QUIZ_TEXT_REF_WORDS, refersToText,
+  countPassageQuestions,
 } from "../src/live/modes/plugga-quiz-core.js";
 import { requireGameMode, listGameModes } from "../src/live/modes/index.js";
 import { validateGameMode } from "../src/live/game-modes.js";
@@ -94,28 +95,66 @@ describe("normalisering och urval", () => {
     assert.equal(skipped.passage, 2);
   });
 
-  it("bara passage-frågor (t.ex. Vikingatiden 2.0, #582) → alla används, passagen följer med", () => {
+  it("rutan av, bara passage-frågor (t.ex. Vikingatiden 2.0, #582) → används UTAN passage", () => {
     const quiz = Array.from({ length: 6 }, (_, i) => fraga(`v${i}`, { passage: `  Vikingatiden  pågick ${i}. ` }));
     const s = summarizeQuizArea(quiz);
     assert.equal(s.usable, 6);
     assert.equal(s.empty, false);
+    assert.equal(s.withPassage, 6);
     assert.deepEqual(s.skipped, {});
     assert.match(quizAreaMessage(s).text, /6 frågor kan användas \(av 6/);
-    const { usable } = selectQuizQuestions(quiz);
-    assert.equal(usable[0].passage, "Vikingatiden pågick 0.", "normaliserad");
+    assert.ok(selectQuizQuestions(quiz).usable.every((q) => !("passage" in q)));
+    const { questions } = buildQuizSnapshot(quiz);
+    assert.equal(questions.length, 6);
+    assert.equal(JSON.stringify(questions).includes("Vikingatiden pågick"), false, "passagen skickas inte med");
   });
 
-  it("passage längre än QUIZ_PASSAGE_MAX hoppas över även i ett rent passage-område", () => {
+  it("rutan av: frågor som kräver texten (\"Enligt texten …\") filtreras bort", () => {
+    const quiz = [
+      fraga("a", { question: "Enligt texten, vad gjorde vikingarna?", passage: "t" }),
+      fraga("b", { question: "Vad gör författaren i början?", passage: "t" }),
+      fraga("c", { question: "Vilka år räknas som vikingatiden?", passage: "t" }),
+    ];
+    const { usable, skipped } = selectQuizQuestions(quiz);
+    assert.deepEqual(usable.map((q) => q.id), ["c"]);
+    assert.equal(skipped["kraver-text"], 2);
+    assert.match(quizAreaMessage(summarizeQuizArea(quiz)).text, /2 som hänvisar till texten/);
+  });
+
+  it("refersToText: orden i QUIZ_TEXT_REF_WORDS, skiftlägesokänsligt och som hela ord", () => {
+    for (const w of QUIZ_TEXT_REF_WORDS) assert.equal(refersToText(`Vad säger ${w.toUpperCase()} om det?`), true, w);
+    assert.equal(refersToText("ENLIGT TEXTEN?"), true);
+    assert.equal(refersToText("Vilka år räknas som vikingatiden?"), false);
+    assert.equal(refersToText("Hur många stycken fanns det?"), false);
+    assert.equal(refersToText("Vad betyder enlighet?"), false);
+  });
+
+  it("rutan på: alla frågor används, passagen följer med och text-hänvisningar är tillåtna", () => {
+    const quiz = [
+      fraga("a"),
+      fraga("b", { question: "Enligt texten, vad?", passage: "  Kort  text. " }),
+      fraga("c", { passage: "Annan text." }),
+    ];
+    const { usable } = selectQuizQuestions(quiz, { showPassage: true });
+    assert.deepEqual(usable.map((q) => q.id), ["a", "b", "c"]);
+    assert.equal(usable[1].passage, "Kort text.", "normaliserad");
+    assert.equal("passage" in usable[0], false);
+    assert.equal(summarizeQuizArea(quiz, { showPassage: true }).usable, 3);
+    assert.equal(summarizeQuizArea(quiz).usable, 1, "rutan av: bara frågan utan passage");
+    assert.equal(countPassageQuestions(quiz), 2);
+  });
+
+  it("rutan på: passage längre än QUIZ_PASSAGE_MAX hoppas över", () => {
     assert.equal(QUIZ_PASSAGE_MAX, 300);
     const lang = "x".repeat(301);
-    assert.equal(prepareQuizQuestion(fraga("l", { passage: lang }), 0, { allowPassage: true }).reason, "lang-passage");
-    assert.equal(prepareQuizQuestion(fraga("k", { passage: "x".repeat(300) }), 0, { allowPassage: true }).ok, true);
-    const s = summarizeQuizArea([fraga("a", { passage: lang }), fraga("b", { passage: "kort" })]);
+    const opt = { showPassage: true };
+    assert.equal(prepareQuizQuestion(fraga("l", { passage: lang }), 0, opt).reason, "lang-passage");
+    assert.equal(prepareQuizQuestion(fraga("k", { passage: "x".repeat(300) }), 0, opt).ok, true);
+    const s = summarizeQuizArea([fraga("a", { passage: lang }), fraga("b", { passage: "kort" })], opt);
     assert.equal(s.usable, 1);
     assert.equal(s.skipped["lang-passage"], 1);
     assert.match(quizAreaMessage(s).text, /1 med för lång text/);
-    const bara = summarizeQuizArea([fraga("a", { passage: lang })]);
-    assert.equal(bara.empty, true);
+    assert.equal(summarizeQuizArea([fraga("a", { passage: lang })]).usable, 1, "rutan av: lång passage spelar ingen roll");
   });
 
   it("för många / för få olika alternativ och ofullständiga frågor hoppas över", () => {
@@ -202,9 +241,9 @@ describe("ögonblicksbild + facit (§4.4)", () => {
     });
   });
 
-  it("passage-fråga: passagen är elevsynlig (questions), facit oförändrat", () => {
+  it("rutan på: passagen är elevsynlig (questions), facit oförändrat", () => {
     const pq = Array.from({ length: 3 }, (_, i) => fraga(`p${i}`, { passage: "Kort text." }));
-    const { questions, facit } = buildQuizSnapshot(pq, { shuffle: false, shuffleOptions: false });
+    const { questions, facit } = buildQuizSnapshot(pq, { shuffle: false, shuffleOptions: false, showPassage: true });
     assert.equal(questions.length, 3);
     for (const q of questions) assert.deepEqual(Object.keys(q).sort(), ["id", "key", "options", "passage", "text"]);
     assert.equal(questions[0].passage, "Kort text.");
@@ -279,6 +318,11 @@ describe("lärarformuläret: ämne + område", () => {
     assert.match(validateSessionInput(input({ quizArea: { ...area, usable: 0 } })).join(), /inga quizfrågor som passar/);
   });
 
+  it("rutan \"Visa lästext\" sparas på sessionen (quiz.showPassage)", () => {
+    const doc = buildSessionDoc(input({ quizArea: { ...area, showPassage: true } }), { uid: "larare" });
+    assert.equal(doc.quiz.showPassage, true);
+  });
+
   it("giltigt → sessionen får quiz-fältet och svarssättet choice", () => {
     const i = input({ quizArea: area });
     assert.deepEqual(validateSessionInput(i), []);
@@ -286,7 +330,7 @@ describe("lärarformuläret: ämne + område", () => {
     assert.equal(doc.answerKind, "choice");
     assert.equal(doc.gameMode, "plugga_quiz");
     assert.deepEqual(doc.quiz, {
-      subjectId: "so", areaId: "vikingar", subjectName: "SO", areaName: "Vikingatiden", passagePolicy: "fallback",
+      subjectId: "so", areaId: "vikingar", subjectName: "SO", areaName: "Vikingatiden", passagePolicy: "fallback", showPassage: false,
     });
   });
 

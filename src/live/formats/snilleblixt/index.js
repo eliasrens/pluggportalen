@@ -88,6 +88,7 @@ const SNILLEBLIXT = {
       const getArea = ctx.getArea || (await import("../../../data-content.js")).getArea;
       const area = await getArea(data.quiz.subjectId, data.quiz.areaId);
       opts.quiz = area?.quiz || [];
+      opts.showPassage = data.quiz.showPassage === true;
       opts.quizSnapshot = (await import("../../modes/plugga-quiz-core.js")).buildQuizSnapshot;
     }
     const snap = buildSnapshot(mode, opts);

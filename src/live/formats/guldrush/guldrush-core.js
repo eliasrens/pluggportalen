@@ -32,7 +32,7 @@
 //   validateSetup(input)  → string[]
 //   buildSessionFields(input) → { stealSwap, showNames }
 //   sessionTitle(s) / defaultSessionName(names)
-//   buildQuizPool(mode, quiz, quizSnapshot, rng?) → { questions, facit }
+//   buildQuizPool(mode, quiz, quizSnapshot, rng?, { showPassage? }) → { questions, facit }
 //   rankByGold(rows)      → sorterad + rank, DELAD placering (1, 1, 3)
 //   computeStandings(s, { players, grPlayers }) → { players, classes, totalGold,
 //                           totalCorrect, leaderIds, winnerId, draw }
@@ -97,9 +97,10 @@ export function defaultSessionName(names) {
  * (grPublic), facit[i] lärar-/serverskyddat (grPrivate). Alternativens
  * ordning blandas en gång här. quizSnapshot = plugga-quiz-core
  * buildQuizSnapshot (injiceras så att kärnan inte laddar quizkoden).
+ * showPassage = lärarens ruta "Visa lästext" (session.quiz.showPassage).
  */
-export function buildQuizPool(mode, quiz, quizSnapshot, rng = Math.random) {
-  const snap = quizSnapshot(quiz || [], { shuffle: true, rng });
+export function buildQuizPool(mode, quiz, quizSnapshot, rng = Math.random, { showPassage = false } = {}) {
+  const snap = quizSnapshot(quiz || [], { shuffle: true, showPassage, rng });
   const questions = [];
   const facit = [];
   snap.questions.slice(0, GR_MAX_QUESTIONS).forEach((q, i) => {

@@ -8,14 +8,20 @@
 //
 // URVALET (prepareQuizQuestion) – en fråga används bara om den går att spela
 // rättvist på fyra färgknappar:
-//   passage   samma urval som Pluggas plainQuizPool: finns det spelbara
-//             frågor UTAN läsförståelsetext används bara de (passage-frågorna
-//             hoppas över – Plugga har eget läsförståelseläge för dem). Har
-//             området BARA passage-frågor (t.ex. Vikingatiden 2.0, #582)
-//             används de, och passagen följer med som en kort kontextrad
-//             ovanför frågan (projektor + elevskärm). Live är snabbt – en
-//             passage längre än QUIZ_PASSAGE_MAX (300) tecken hinner ingen
-//             läsa, så den frågan hoppas över ("lang-passage").
+//   passage   två lägen, styrs av lärarens kryssruta "Visa lästext till
+//             frågorna" (session.quiz.showPassage, #582):
+//             AV (standard) – samma urval som Pluggas plainQuizPool: finns
+//               spelbara frågor UTAN passage används bara de. Har området BARA
+//               passage-frågor (t.ex. Vikingatiden 2.0) används de, men
+//               passagen visas aldrig och följer inte med i ögonblicksbilden.
+//               Frågor vars text uppenbart kräver texten ("Enligt texten …",
+//               QUIZ_TEXT_REF_WORDS) hoppas då över ("kraver-text").
+//             PÅ – alla frågor används; passagen följer med i den elevsynliga
+//               frågan och visas som en kort kontextrad ovanför frågan
+//               (projektor + elevskärm). Text-hänvisningar är då tillåtna.
+//               Live är snabbt – en passage längre än QUIZ_PASSAGE_MAX (300)
+//               tecken hinner ingen läsa, så den frågan hoppas över
+//               ("lang-passage").
 //   alternativ normaliseras (NFC, blanksteg ihop, trim). Alternativ som blir
 //             LIKA efter normaliseringen slås ihop (första behålls) – annars
 //             kunde två knappar visa samma text och bara en räknas som rätt.
@@ -39,19 +45,25 @@
 // API
 //   QUIZ_MAX_OPTIONS            4
 //   QUIZ_DEFAULT_MIN_QUESTIONS  5 – varningströskel om formatet saknar minQuestions
-//   QUIZ_PASSAGE_POLICY         "fallback" – utan passage om sådana finns, annars med
+//   QUIZ_PASSAGE_POLICY         "fallback" – rutan av: utan passage om sådana finns,
+//                               annars passage-frågorna UTAN passagen (se ovan)
 //   QUIZ_PASSAGE_MAX            300 – längsta passage (tecken) som visas i Live
+//   QUIZ_TEXT_REF_WORDS         ord som visar att frågan kräver texten
+//   refersToText(text)          → true om frågetexten innehåller något av orden
 //   QUIZ_OTHER_CATEGORY         "ovrig" – statistiknyckel för frågor utan kategori
 //   normalizeOptionText(s)      → "  Gustav  Vasa " → "Gustav Vasa"
-//   prepareQuizQuestion(raw, i, { allowPassage? }) → { ok: true, q } | { ok: false, reason }
-//     reason: "passage" | "lang-passage" | "invalid" | "fa-alternativ" | "for-manga-alternativ"
+//   prepareQuizQuestion(raw, i, { allowPassage?, showPassage? }) → { ok: true, q } | { ok: false, reason }
+//     reason: "passage" | "lang-passage" | "kraver-text" | "invalid" | "fa-alternativ"
+//             | "for-manga-alternativ"
 //     q = { id, text, options, answerIndex, explanation, category?, passage? }
-//   selectQuizQuestions(quiz)   → { usable: q[], skipped: { reason: n } } (+ "dubblett")
-//   summarizeQuizArea(quiz, { minQuestions? }) → { total, usable, skipped,
-//                                 minQuestions, tooFew, empty }
+//   selectQuizQuestions(quiz, { showPassage? }) → { usable: q[], skipped: { reason: n } }
+//                                 (+ "dubblett")
+//   countPassageQuestions(quiz) → antal frågor med passage (rutan visas bara då)
+//   summarizeQuizArea(quiz, { minQuestions?, showPassage? }) → { total, usable,
+//                                 skipped, minQuestions, tooFew, empty, withPassage }
 //   quizAreaMessage(summary, formatName?) → { level: "ok"|"warn"|"error", text }
 //   minQuestionsFor(format)     → format.minQuestions ?? QUIZ_DEFAULT_MIN_QUESTIONS
-//   buildQuizSnapshot(quiz, { count?, shuffle?, shuffleOptions?, rng? })
+//   buildQuizSnapshot(quiz, { count?, shuffle?, shuffleOptions?, showPassage?, rng? })
 //                               → { questions, facit } (se FACIT ovan); count =
 //                                 antal frågor (saknas/"alla" = alla användbara)
 //   joinFacit(pub, facit)       → { ...pub, answerIndex, explanation }
@@ -67,6 +79,10 @@ export const QUIZ_MAX_OPTIONS = 4;
 export const QUIZ_DEFAULT_MIN_QUESTIONS = 5;
 export const QUIZ_PASSAGE_POLICY = "fallback";
 export const QUIZ_PASSAGE_MAX = 300;
+/** Frågetext med något av dessa (skiftlägesokänsligt) kräver texten – rutan av → hoppas över. */
+export const QUIZ_TEXT_REF_WORDS = Object.freeze([
+  "texten", "enligt", "berättelsen", "författaren", "i stycket", "ovan", "i dikten",
+]);
 export const QUIZ_OTHER_CATEGORY = "ovrig";
 
 /** Jämförelseform för alternativ och frågetext: NFC, blanksteg ihop, trim. */
@@ -76,19 +92,34 @@ export function normalizeOptionText(s) {
 
 const hasPassage = (q) => typeof q?.passage === "string" && q.passage.trim() !== "";
 
+/** Kräver frågetexten den (dolda) texten? "Enligt texten …", "Vad gör författaren …" */
+export function refersToText(text) {
+  const t = normalizeOptionText(text).toLocaleLowerCase("sv");
+  return QUIZ_TEXT_REF_WORDS.some((w) => new RegExp(`(^|[^\\p{L}])${w}($|[^\\p{L}])`, "u").test(t));
+}
+
+/** Antal frågor med passage i området (lärarens kryssruta visas bara då). */
+export function countPassageQuestions(quiz) {
+  return (Array.isArray(quiz) ? quiz : []).filter(hasPassage).length;
+}
+
 /**
  * En områdesfråga → Live-fråga, eller skälet till att den inte kan spelas.
  * @param {object} raw områdets quizfråga
  * @param {number} [i] plats i området (för id om det saknas)
- * @param {{ allowPassage?: boolean }} [opts] allowPassage = passage-frågor får
- *   användas (området saknar spelbara frågor utan passage)
+ * @param {{ allowPassage?: boolean, showPassage?: boolean }} [opts]
+ *   allowPassage passage-frågor får användas; showPassage passagen följer med
+ *   (lärarens ruta) – annars döljs den och frågor som kräver texten hoppas över
  */
-export function prepareQuizQuestion(raw, i = 0, { allowPassage = false } = {}) {
+export function prepareQuizQuestion(raw, i = 0, { allowPassage = false, showPassage = false } = {}) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, reason: "invalid" };
   const passage = hasPassage(raw) ? normalizeOptionText(raw.passage) : "";
-  if (passage && !allowPassage) return { ok: false, reason: "passage" };
-  if (passage.length > QUIZ_PASSAGE_MAX) return { ok: false, reason: "lang-passage" };
   const text = normalizeOptionText(raw.question);
+  if (passage) {
+    if (!allowPassage && !showPassage) return { ok: false, reason: "passage" };
+    if (showPassage && passage.length > QUIZ_PASSAGE_MAX) return { ok: false, reason: "lang-passage" };
+    if (!showPassage && refersToText(text)) return { ok: false, reason: "kraver-text" };
+  }
   const ai = raw.answerIndex;
   if (!text || !Array.isArray(raw.options) || !Number.isInteger(ai) || ai < 0 || ai >= raw.options.length) {
     return { ok: false, reason: "invalid" };
@@ -111,26 +142,28 @@ export function prepareQuizQuestion(raw, i = 0, { allowPassage = false } = {}) {
   };
   const category = normalizeQuestionCategory(raw.category);
   if (category) q.category = category;
-  if (passage) q.passage = passage;
+  if (passage && showPassage) q.passage = passage;
   return { ok: true, q };
 }
 
 /**
  * Alla spelbara frågor i områdets ordning + hur många som hoppades över (per
- * skäl). Utan passage i första hand; inga sådana spelbara → med passage.
+ * skäl). Rutan på: alla frågor, med passage. Av: utan passage i första hand;
+ * inga sådana spelbara → passage-frågorna, utan passagen.
  */
-export function selectQuizQuestions(quiz) {
-  const plain = pickQuizQuestions(quiz, false);
-  return plain.usable.length ? plain : pickQuizQuestions(quiz, true);
+export function selectQuizQuestions(quiz, { showPassage = false } = {}) {
+  if (showPassage) return pickQuizQuestions(quiz, { showPassage: true });
+  const plain = pickQuizQuestions(quiz, {});
+  return plain.usable.length ? plain : pickQuizQuestions(quiz, { allowPassage: true });
 }
 
-function pickQuizQuestions(quiz, allowPassage) {
+function pickQuizQuestions(quiz, opts) {
   const usable = [];
   const skipped = {};
   const seenText = new Set();
   const seenId = new Map();
   (Array.isArray(quiz) ? quiz : []).forEach((raw, i) => {
-    const r = prepareQuizQuestion(raw, i, { allowPassage });
+    const r = prepareQuizQuestion(raw, i, opts);
     let reason = r.ok ? null : r.reason;
     if (r.ok && seenText.has(r.q.text)) reason = "dubblett";
     if (reason) {
@@ -154,8 +187,8 @@ export function minQuestionsFor(format) {
 }
 
 /** Vad läraren ser innan Skapa: hur många frågor området har och kan spelas. */
-export function summarizeQuizArea(quiz, { minQuestions = QUIZ_DEFAULT_MIN_QUESTIONS } = {}) {
-  const { usable, skipped } = selectQuizQuestions(quiz);
+export function summarizeQuizArea(quiz, { minQuestions = QUIZ_DEFAULT_MIN_QUESTIONS, showPassage = false } = {}) {
+  const { usable, skipped } = selectQuizQuestions(quiz, { showPassage });
   const total = Array.isArray(quiz) ? quiz.length : 0;
   return {
     total,
@@ -164,12 +197,14 @@ export function summarizeQuizArea(quiz, { minQuestions = QUIZ_DEFAULT_MIN_QUESTI
     minQuestions,
     tooFew: usable.length < minQuestions,
     empty: usable.length === 0,
+    withPassage: countPassageQuestions(quiz),
   };
 }
 
 const SKIP_TEXT = {
   passage: (n) => `${n} läsförståelse${n === 1 ? "fråga" : "frågor"} (med text att läsa)`,
   "lang-passage": (n) => `${n} med för lång text att läsa`,
+  "kraver-text": (n) => `${n} som hänvisar till texten`,
   "for-manga-alternativ": (n) => `${n} med fler än ${QUIZ_MAX_OPTIONS} alternativ`,
   "fa-alternativ": (n) => `${n} med färre än 2 olika alternativ`,
   dubblett: (n) => `${n} ${n === 1 ? "dubblett" : "dubbletter"}`,
@@ -208,12 +243,12 @@ export function shuffled(arr, rng = Math.random) {
 /**
  * Ögonblicksbild för en session: valda frågor, uppdelade i elevsynligt + facit.
  * @param {object[]} quiz områdets quiz-lista
- * @param {{ count?: number|"alla", shuffle?: boolean, shuffleOptions?: boolean, rng?: () => number }} [opts]
+ * @param {{ count?: number|"alla", shuffle?: boolean, shuffleOptions?: boolean, showPassage?: boolean, rng?: () => number }} [opts]
  * @returns {{ questions: object[], facit: object[] }}
  */
 export function buildQuizSnapshot(quiz, opts = {}) {
   const rng = opts.rng || Math.random;
-  let picked = selectQuizQuestions(quiz).usable;
+  let picked = selectQuizQuestions(quiz, { showPassage: opts.showPassage === true }).usable;
   if (opts.shuffle !== false) picked = shuffled(picked, rng);
   const n = Number(opts.count);
   if (Number.isInteger(n) && n > 0) picked = picked.slice(0, n);
