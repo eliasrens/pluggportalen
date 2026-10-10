@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Guldrushen Skattkammaren (#565)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <style>
+      /* Skärmdumpar i en huvudlös webbläsare utan emoji-font: lägg Noto Color
+         Emoji i qa-fonts/ (finns INTE i repot) – annars 404 och vanlig fallback. */
+      @font-face { font-family: "Baloo 2"; src: url(./qa-fonts/NotoColorEmoji.ttf); font-weight: 100 900;
+        unicode-range: U+00A9, U+00AE, U+203C, U+2049, U+2122-2139, U+2190-21FF, U+2300-23FF, U+24C2, U+25A0-27BF, U+2900-297F, U+2B00-2BFF, U+3030, U+FE0F, U+200D, U+1F000-1FAFF; }
+      /* Bara förhandsvisningen: simuleringspanelen ovanpå projektorn. */
+      .pv { position: fixed; left: 10px; bottom: 10px; z-index: 100; width: 310px; font: 13px/1.35 system-ui, sans-serif;
+        background: rgba(255, 255, 255, 0.96); color: #2c2230; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+      .pv summary { cursor: pointer; padding: 8px 12px; font-weight: 700; }
+      .pv-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; max-height: 60vh; overflow: auto; }
+      .pv-body b { width: 100%; margin-top: 6px; }
+      .pv button { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid #d8c9b0; background: #fbf5ea; cursor: pointer; }
+      .pv button:hover { background: #f3e6cc; }
+      .pv-note, .pv-stat { width: 100%; color: #6a5a4a; }
+      .pv-stat { font-family: ui-monospace, monospace; font-size: 11px; color: #2c2230; }
+      .pv-dold { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <details class="pv" open>
+      <summary>🧪 Guldrushen – simulering (#565)</summary>
+      <div class="pv-body">
+        <span class="pv-note">Låtsasdata i webbläsaren – ingen Firestore, inga riktiga elever eller pluggmynt. Kistorna slumpas
+          med formatets riktiga regler (rollChest/applySelfEffect/resolveVictim), avatarerna ur en fejkad klassprojektion
+          (räknar läsningar). Ljud: klicka i sidan en gång.</span>
+        <b>Scenario (laddar om)</b>
+        <button data-go="fas=lobby">Lobby</button>
+        <button data-go="fas=kammare">💰 Skattkammaren</button>
+        <button data-go="fas=kammare&vy=gr-statistik">📊 Statistik</button>
+        <button data-go="fas=kammare&klasser=2&vy=gr-statistik">📊 Två klasser</button>
+        <button data-go="fas=kammare&namn=av">Namn av</button>
+        <button data-go="fas=final">Final</button>
+        <button data-go="fas=final&delad=1">Final · delad 2:a</button>
+        <b>Händelser</b>
+        <button data-act="anslut">+30 ansluter</button>
+        <button data-act="auto">Auto-spel på/av</button>
+        <button data-act="storm">Storm: 30 kistor nu</button>
+        <button data-act="kista" data-k="skattkammare">👑 Skattkammare</button>
+        <button data-act="kista" data-k="stold">🦝 Stöld</button>
+        <button data-act="kista" data-k="byte">🔄 Byte</button>
+        <button data-act="kista" data-k="skold">🛡️ Sköld</button>
+        <button data-act="kista" data-k="hal_i_fickan">🕳️ Hål i fickan</button>
+        <button data-act="kista" data-k="dubbla">✖️2 Dubbla</button>
+        <button data-act="ledning">⭐ Ledningsbyte</button>
+        <button data-act="snart">12 s kvar</button>
+        <button data-act="slut">Slut nu</button>
+        <button data-act="omladd">Omladdning</button>
+        <button data-act="frys">Frys tiden på/av</button>
+        <button data-act="dolj">Dölj panelen (5 s)</button>
+        <div class="pv-stat" data-stat></div>
+      </div>
+    </details>
+
+    <script type="module">
+      import { mountProjector } from "./src/live/projector.js";
+      import { phaseAt, formatClock } from "./src/live/live-core.js";
+      import { computeStandings, buildResult } from "./src/live/formats/guldrush/guldrush-core.js";
+      import { rollChest, chestById, applySelfEffect, resolveVictim, eligibleVictims, isVictimKind } from "./src/live/formats/guldrush/delat/guldrush-regler.js";
+      import { GR_RULES } from "./src/live/formats/guldrush/delat/chests-config.js";
+
+      const q = new URLSearchParams(location.search);
+      const FAS = q.get("fas") || "lobby";
+      const TWO = q.get("klasser") === "2";
+      const sid = `demo565-${FAS}${q.get("delad") ? "-d" : ""}${TWO ? "-2" : ""}`;
+      if (!q.has("behall")) {
+        sessionStorage.removeItem(`pp:live:handelser:${sid}`);
+        sessionStorage.removeItem(`pp:live:handelser:${sid}:lobby`);
+      }
+      localStorage.setItem("pp:live:vy", q.get("vy") || "skattkammaren");
+
+      const DJUR = ["fox", "owl", "cat", "dog", "panda", "frog", "unicorn", "dragon", "lion", "penguin", "koala", "robot", "bjorn",
+        "tiger", "rabbit", "pig", "cow", "monkey", "hamster", "mouse", "chick", "sheep", "hedgehog", "wolf", "deer", "raccoon",
+        "turtle", "bee", "elephant", "goat"];
+      const KLADER = [["trollkarlshatt", "cape"], ["krona", "medalj"], ["keps", "glasogon"], ["cowboyhatt", "mustasch", "svard"],
+        ["partyhatt", "ballong"], ["vikinghjalm", "cape"], ["tomtemossa", "halsduk"], ["strahatt", "blomma"], ["monokel", "fluga"],
+        ["djuroron", "glasstrut"], ["riddarhjalm", "svard", "cape"], ["kockmossa", "slips"], ["vintermossa", "halsduk", "bok"],
+        ["pilotglasogon", "trollstav"], ["ogonlapp", "cape"]];
+      const NAMN = ["Alma", "Omar", "Ines", "Leo", "Clara", "Hussein", "Ella", "Noah", "Maja", "Elias", "Wilma", "Adam", "Saga", "Hugo",
+        "Freja", "Liam", "Alva", "Ali", "Signe", "Vera", "Otto", "Nora", "Ebbe", "Selma", "Malte", "Tove", "Isak", "Lova", "Arvid", "Juni"];
+      const cls = (i) => (TWO && i % 2 ? "5e" : "4b");
+      const members = { "4b": {}, "5e": {} };
+      NAMN.forEach((n, i) => { members[cls(i)][`e${i + 1}`] = { namn: n, avatarId: DJUR[i], avatarItems: KLADER[i % KLADER.length], husLast: i === 5 }; });
+      let reads = 0;
+      const loadProjection = async (cid) => { reads++; await new Promise((r) => setTimeout(r, 80)); return { members: { ...members[cid] } }; };
+
+      let offset = 0;
+      let frozen = null;
+      const now = () => frozen ?? Date.now() + offset;
+      const session = {
+        id: sid, name: "Guldrushen 4B", format: "guldrush", gameMode: "multiplication_0_10", answerKind: "free",
+        participatingClassIds: TWO ? ["4b", "5e"] : ["4b"], classNames: { "4b": "4B", "5e": "5E" }, countdownSeconds: 4,
+        durationSeconds: 600, stealSwap: true, showNames: q.get("namn") !== "av",
+        status: "lobby", createdBy: "rasmus", rewards: { firstPrize: 100, perCorrect: 2, cap: 300 },
+      };
+      let players = [];
+      let gp = new Map(); // uid → grPlayers-dokumentet
+      let events = [];
+      let evN = 0;
+      let leader = null;
+
+      function addPlayer(i, joinedAt = now()) {
+        const uid = `e${i + 1}`;
+        if (i >= NAMN.length || players.some((p) => p.uid === uid)) return;
+        players.push({ uid, name: NAMN[i], classId: cls(i), correct: 0, incorrect: 0, joinedAt, lastSeenAt: now() });
+        gp.set(uid, { uid, name: NAMN[i], classId: cls(i), gold: 0, correct: 0, incorrect: 0, chests: 0, shield: false, protectedUntil: null, lastVictimUid: null });
+      }
+      function ev(e) { events.unshift({ id: `ev${++evN}`, at: now(), ...e }); events = events.slice(0, 60); }
+      function noteLeader() {
+        const top = [...gp.values()].sort((a, b) => b.gold - a.gold);
+        const a = top[0];
+        if (!a || !(a.gold > 0) || (top[1] && top[1].gold === a.gold) || a.uid === leader) return;
+        leader = a.uid;
+        ev({ type: "lead", uid: a.uid, name: a.name, classId: a.classId, gold: a.gold });
+      }
+
+      // En elev svarar; rätt → en kista (som servern: slump, effekt, händelse).
+      function answer(uid, correct, chestId = null) {
+        const p = players.find((x) => x.uid === uid);
+        const g = gp.get(uid);
+        if (!p || !g) return;
+        p[correct ? "correct" : "incorrect"]++;
+        g[correct ? "correct" : "incorrect"]++;
+        p.lastAttemptId = `a${evN}${uid}`;
+        if (correct) openChest(uid, chestId);
+        emit();
+      }
+      function openChest(uid, chestId) {
+        const g = gp.get(uid);
+        let chest = chestId ? chestById(chestId) : rollChest(session.stealSwap);
+        g.chests++;
+        const t = now();
+        if (isVictimKind(chest)) {
+          const kind = chest.effect.kind;
+          const cands = eligibleVictims(kind, g, [...gp.values()], t);
+          if (!cands.length) chest = chestById(chest.fallback);
+          else {
+            const v = cands[Math.floor(Math.random() * cands.length)];
+            const res = resolveVictim(kind, g, v);
+            const who = { victimUid: v.uid, victimName: v.name, victimClassId: v.classId };
+            g.gold = res.thiefGold; g.lastVictimUid = v.uid;
+            if (res.blocked) { v.shield = false; ev({ type: "shieldBlock", chest: chest.id, uid, name: g.name, ...who, amount: 0 }); }
+            else { v.gold = res.victimGold; v.protectedUntil = t + GR_RULES.protectionMs; ev({ type: kind, chest: chest.id, uid, name: g.name, ...who, amount: res.amount }); }
+            noteLeader();
+            return;
+          }
+        }
+        const eff = applySelfEffect(chest, g.gold);
+        g.gold = eff.gold;
+        if (eff.shield) g.shield = true;
+        ev({ type: "chest", chest: chest.id, uid, name: g.name, classId: g.classId, amount: eff.delta, gold: eff.gold });
+        noteLeader();
+      }
+
+      // Historik: spela n svar direkt (scenarierna kammare/final).
+      function history(n, { shared = false } = {}) {
+        session.status = "live";
+        session.startedAt = now() - 300_000;
+        for (let k = 0; k < n; k++) {
+          const i = (k * 7 + Math.floor(k / 30)) % players.length;
+          answer(players[i].uid, (k * 5 + i) % 4 !== 0);
+        }
+        if (shared) {
+          const top = [...gp.values()].sort((a, b) => b.gold - a.gold);
+          if (top[2]) top[2].gold = top[1].gold;
+        }
+        events = [];
+      }
+
+      // --- Live-flödet (som live-feed.js, men i minnet) ---
+      function compute() {
+        const t = now();
+        const ph = phaseAt(session, t);
+        const standings = computeStandings(session, { players });
+        return {
+          sessionId: sid, session: { ...session }, status: session.status, phase: ph.phase, countdown: ph.countdown,
+          msLeft: ph.msLeft, clock: formatClock(ph.msLeft), ...standings, top: [],
+          players: players.map((p) => ({ ...p, answerKey: p.lastAttemptId || null })), result: session.result || null, now: t,
+        };
+      }
+      let cb = null;
+      let lastKey = "";
+      const gpCbs = new Set();
+      const evCbs = new Set();
+      function emit(force = true) {
+        gpCbs.forEach((f) => f([...gp.values()].map((x) => ({ ...x }))));
+        evCbs.forEach((f) => f(events.slice(0, 30)));
+        if (session.status === "finished" && !session.result && !emit.rt) {
+          emit.rt = setTimeout(() => { session.result = buildResult(session, [], players, null, { grPlayers: [...gp.values()] }); emit(); }, 1500);
+        }
+        if (!cb) return;
+        const st = compute();
+        const key = JSON.stringify([st.status, st.phase, st.countdown, players.length, !!st.result, players.map((p) => p.lastAttemptId)]);
+        if (!force && key === lastKey) return;
+        lastKey = key;
+        cb(st);
+      }
+      setInterval(() => {
+        const ph = phaseAt(session, now());
+        if (ph.phase === "ended" && session.status === "live") { session.status = "finished"; session.finishedAt = now(); auto = false; }
+        emit(false);
+      }, 250);
+
+      if (FAS === "lobby") { for (let i = 0; i < 3; i++) addPlayer(i); }
+      else {
+        for (let i = 0; i < 30; i++) addPlayer(i, now() - 900_000);
+        history(FAS === "final" ? 260 : 140, { shared: !!q.get("delad") });
+        if (FAS === "final") { session.status = "finished"; session.finishedAt = now(); }
+      }
+
+      const deps = {
+        subscribe(_sid, fn) { cb = fn; emit(); return () => { cb = null; }; },
+        now,
+        async start() { await new Promise((r) => setTimeout(r, 200)); if (session.status === "lobby") { session.status = "live"; session.startedAt = now(); } emit(); },
+        async finish() { if (["lobby", "live"].includes(session.status)) { session.status = "finished"; session.finishedAt = now(); auto = false; } emit(); },
+        async remove() { console.log("radera"); },
+        loadProjection,
+        guldrush: {
+          watchGrPlayers(_s, f) { gpCbs.add(f); setTimeout(() => f([...gp.values()].map((x) => ({ ...x }))), 120); return () => gpCbs.delete(f); },
+          watchEvents(_s, f) { evCbs.add(f); setTimeout(() => f(events.slice(0, 30)), 200); return () => evCbs.delete(f); },
+        },
+      };
+      const ctx = { app: document.getElementById("app"), go: (h) => console.log("navigera till", h) };
+      let cleanups = [];
+      function mount() {
+        cleanups.forEach((c) => c());
+        cleanups = [];
+        cb = null;
+        mountProjector(ctx, sid, { cleanups, uid: "rasmus", deps });
+      }
+      mount();
+
+      // Auto-spel: en elev svarar var ~250 ms (75 % rätt).
+      let auto = FAS === "kammare" && q.get("auto") !== "av";
+      setInterval(() => {
+        if (!auto || session.status !== "live" || phaseAt(session, now()).phase !== "live" || !players.length) return;
+        const p = players[Math.floor(Math.random() * players.length)];
+        answer(p.uid, Math.random() < 0.75);
+      }, 250);
+      const rich = () => [...gp.values()].sort((a, b) => b.gold - a.gold);
+      const pick = () => players[Math.floor(Math.random() * players.length)]?.uid;
+
+      const act = {
+        anslut() { for (let i = 0; i < 30; i++) setTimeout(() => { addPlayer(i); emit(); }, i * 140); },
+        auto() { auto = !auto; },
+        storm() { players.forEach((p) => answer(p.uid, true)); },
+        kista(b) { const u = b.dataset.k === "byte" ? rich()[rich().length - 1]?.uid : pick(); if (u) answer(u, true, b.dataset.k); },
+        ledning() {
+          const r = rich();
+          const lo = r[Math.min(4, r.length - 1)];
+          if (!lo) return;
+          const g = gp.get(lo.uid);
+          g.gold = r[0].gold + 40;
+          ev({ type: "chest", chest: "skattkammare", uid: g.uid, name: g.name, amount: 100, gold: g.gold });
+          noteLeader();
+          emit();
+        },
+        snart() { if (session.status === "live") session.startedAt = now() - (session.durationSeconds - 12) * 1000 - session.countdownSeconds * 1000; emit(); },
+        slut() { deps.finish(); },
+        omladd() { mount(); },
+        frys() { frozen = frozen == null ? now() : null; },
+        dolj() { document.querySelector(".pv").classList.add("pv-dold"); setTimeout(() => document.querySelector(".pv").classList.remove("pv-dold"), 5000); },
+      };
+      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { location.search = b.dataset.go; }));
+      document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act](b)));
+      setInterval(() => {
+        const el = document.querySelector("[data-stat]");
+        if (el) el.textContent = `fas ${session.status} · elever ${players.length} · händelser ${evN} · projektionsläsningar ${reads} · auto ${auto ? "på" : "av"}`;
+      }, 400);
+      window.__gr = { session, act, answer, players: () => players, gp: () => gp, events: () => events, reads: () => reads };
+    </script>
+  </body>
+</html>
