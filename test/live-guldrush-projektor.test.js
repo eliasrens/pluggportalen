@@ -47,9 +47,13 @@ test("topp 10: de rikaste med guld, rikast i mitten fram, delad plats behålls",
   assert.equal(top.length, GR_TOP);
   assert.deepEqual(top.map((p) => p.uid), ps.slice(0, 10).map((p) => p.uid));
   assert.equal(topPiles([{ uid: "a", gold: 0 }]).length, 0, "0 guld = ingen hög");
-  assert.deepEqual(pileSlot(0), { row: 0, col: 2 }, "ettan mitt fram");
-  assert.deepEqual([1, 2, 3, 4].map((i) => pileSlot(i).col), [1, 3, 0, 4]);
-  assert.deepEqual(pileSlot(5), { row: 1, col: 2 }, "sexan mitt bak");
+  assert.deepEqual(pileSlot(0), { row: 0, col: 0 }, "ettan överst till vänster");
+  assert.deepEqual(pileSlot(4), { row: 0, col: 4 }, "femman överst till höger");
+  assert.deepEqual(pileSlot(5), { row: 1, col: 0 }, "sexan underst till vänster");
+  assert.deepEqual(pileSlot(9), { row: 1, col: 4 }, "tian underst till höger");
+  const ordning = Array.from({ length: 10 }, (_, i) => pileSlot(i))
+    .map((p, i) => [p.row * 5 + p.col, i]).sort((a, b) => a[0] - b[0]).map(([, i]) => i);
+  assert.deepEqual(ordning, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "läses som en text");
   const cols = new Set(Array.from({ length: 10 }, (_, i) => `${pileSlot(i).row}:${pileSlot(i).col}`));
   assert.equal(cols.size, 10, "tio olika platser");
 });

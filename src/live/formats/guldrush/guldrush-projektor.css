@@ -99,8 +99,7 @@
 }
 .grh-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .grh-glimt { transform-box: fill-box; transform-origin: center; animation: grg-glitter 3.6s ease-in-out infinite; }
-/* Skylten under figuren: placering · namn · 🛡️ / guld. Bakre raden är skalad
-   ×0.78 – skylten skalas tillbaka så att texten är lika stor (≥ 28 px). */
+/* Skylten under figuren: placering · namn · 🛡️ / guld (≥ 28 px). */
 .grh-skylt {
   position: absolute;
   top: 100%;
@@ -114,7 +113,6 @@
   text-shadow: 0 2px 4px #000, 0 0 8px #000;
   white-space: nowrap;
 }
-.grh-bak .grh-skylt { font-size: calc(var(--grh-lab) / 0.78); }
 .grh-matt { position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; }
 .grh-namn { display: flex; gap: 0.25em; max-width: 100%; font-weight: 800; color: var(--gr-kram); }
 .grh-text { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
