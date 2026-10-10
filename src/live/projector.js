@@ -36,7 +36,8 @@
 //   ovan (förhandsvisning: formatets låtsasdata), screen = elevskärmen.
 // Formatets projectorViews()-modul kan sätta ownControls: true – vyn har egna
 // lärarkontroller (Snilleblixten #559: Avsluta spelet m.m.), skalets
-// "Avsluta" göms. Utan matchklocka (sessionTimes endMs null, lärarstyrd takt) göms
+// "Avsluta" göms. ownTimer: true – vyerna visar matchens klocka själva
+// (Guldrushen #565), skalets timer göms. Utan matchklocka (sessionTimes endMs null, lärarstyrd takt) göms
 // skalets matchtimer – vyn visar sin egen (frågans) nedräkning.
 //   screen: true = elevskärmen (inga kontroller, vyval/ljud från kanalen)
 // ============================================================================
@@ -325,7 +326,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     $(".lp-views").hidden = !game;
     $("[data-end]").hidden = !playing || !!ui.ownControls;
     $("[data-divs]").hidden = screen || !ui.editDivisors || kind === "lobby" || kind === "cancelled";
-    $(".lp-timer").hidden = !playing || sessionTimes(s).endMs == null;
+    $(".lp-timer").hidden = !playing || sessionTimes(s).endMs == null || !!ui.ownTimer;
     root.dataset.kind = game ? viewId : kind;
     root.querySelectorAll("[data-view]").forEach((b) => {
       b.hidden = !availableViews().some((v) => v.id === b.dataset.view);

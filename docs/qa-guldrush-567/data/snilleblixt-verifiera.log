@@ -1,0 +1,22 @@
+session zOjHZet089TCyjvpHSbR: status finished, 5 frågor, 19 spelare, 84 svar, 5 sbScores, 17 kvitton
+  ✓ sbScores 0..4 i följd, inga hopp (test 10)
+  ✓ ingen fråga överhoppad
+  ✓ alla poäng = round(1000 − 500 × t/10) ur serverstämplarna (±1 för ms-avrundning av openedAt)
+  rewards-inställning: {"firstPrize":300,"perCorrect":5,"cap":300}
+  ✓ result.rewards = pris(plats) + trappa(rätt) för alla 19 (egen beräkning, delad placering)
+  topp: 1. b02 4911p 5r → 325 | 2. b05 1551p 2r → 265 | 3. b03 948p 1r → 222 | 3. b04 948p 1r → 222 | 5. b10 598p 1r → 162
+  ✓ ett kvitto per belönad elev (17/17)
+  ✓ kvittots total = result.rewards
+  ✓ saldo efter = före + total för alla 20 (exakt en gång, 20g)
+  P1 b03 948p plats 3 · P2 b04 948p plats 3
+  ✗ delad 2:a plats (test 12/20d)
+  ✓ b07 anslöt men svarade aldrig → inget pris, inga mynt, inget kvitto (20h)
+  ✓ dubbelsvar: ["ok","permission-denied"] → exakt ett svarsdokument (test 7)
+  ✓ spion: 5 försök (facit, alla svar, annans svar, skriva poäng/fas, fel svarsform) – alla nekade, inget facit i sessionen före avslöjandet (test 8, 3d)
+    {"snapshot":"permission-denied","allaSvar":"permission-denied","annansSvar":"permission-denied","poangSkriv":"permission-denied","fasSkriv":"permission-denied","facitISession":false,"frågorISession":false,"felForm":"permission-denied"}
+  ✓ svar efter stängning nekas (permission-denied)
+  ✓ sen anslutning: svar på pågående fråga nekas (permission-denied), från nästa fråga (§5.7)
+    test 5: b09 svarade NaN s efter öppning → undefined poäng
+  ✗ test 5: rätt efter ≈4 s av 20 s ≈ 900 poäng
+  svarsskrivning: median 12 ms, p95 36 ms, max 47 ms (84 svar)
+✗ 2 fel

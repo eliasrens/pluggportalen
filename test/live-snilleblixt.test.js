@@ -37,7 +37,7 @@ const input = (over = {}) => ({
 
 describe("Snilleblixten: formatet", () => {
   it("registrerat: inom-klass, 1–3 klasser, lärarstyrd, free+choice, giltigt interface", () => {
-    assert.deepEqual(listFormats().map((f) => f.id), ["klassmatch", "snilleblixt"]);
+    assert.deepEqual(listFormats().map((f) => f.id), ["klassmatch", "snilleblixt", "guldrush"]);
     assert.deepEqual(validateFormat(SB), []);
     assert.equal(SB.scope, "inom-klass");
     assert.equal(SB.minClasses, 1);

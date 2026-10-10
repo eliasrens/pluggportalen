@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Guldrushen – DE TRE KISTORNA och deras effekter (#564, designspec §6.4).
+   Egen fil, laddas av gr-kistor.js själv (elevvyn och förhandsvisningen).
+   Bara transform och opacitet animeras (§11); kistornas lockande skak är
+   kort och osynkat. Partiklarnas storlek i em (≈ kistbredd/6, .grk-fx).
+   Inga z-index: ljuset ligger före kistan i DOM:en, partiklarna efter.
+   Storleken följer BEHÅLLAREN (cqi), inte viewporten: elevpanelen är smalare
+   än skärmen (sidomenyn), och med vw klipptes kista 1 och 3 på Chromebook
+   (#580, QA-fynd F2 i #567). 3 kistor + 2 mellanrum = 86 % av bredden, så
+   vald kista (scale 1.08) och siffran (−6px) får plats. vw-raderna före
+   cqi-raderna är reserv för webbläsare utan container queries.
+   ========================================================================== */
+
+.grk {
+  --grk-guld: #ffd23f;
+  --grk-guld-mork: #c98a00;
+  --grk-brun: #3d250e;
+  --grk-text: #4a2a06;
+  --grk-fokus: #1f6fd6;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.6vh, 18px);
+  container-type: inline-size;
+}
+.grk-rubrik { margin: 0; font-size: clamp(22px, 4.2vh, 38px); font-weight: 900; color: #6b3a00; }
+.grk-oppnad .grk-rubrik { visibility: hidden; }
+.grk-rad { display: flex; gap: clamp(18px, 4.5vw, 64px); gap: clamp(10px, 4cqi, 64px); justify-content: center; align-items: flex-end; }
+.grk-kista {
+  position: relative;
+  width: clamp(96px, min(21vw, 37vh), 270px);
+  width: clamp(80px, min(26cqi, 37vh), 270px);
+  aspect-ratio: 120 / 100;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: none;
+  cursor: pointer;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.grk-kista:disabled { cursor: default; }
+.grk-kista:focus-visible { outline: 5px solid var(--grk-fokus); outline-offset: 8px; }
+.grk-lockar .grk-kista:hover { transform: translateY(-4px) scale(1.04); }
+.grk-svg { position: relative; display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 92%; }
+.grk-lock { transform-box: fill-box; transform-origin: 50% 100%; }
+/* Lockande: kistorna skakar till då och då, osynkat; locket glipar. */
+.grk-lockar .grk-kista .grk-svg { animation: grk-skak 2.2s ease-in-out infinite; animation-delay: var(--grk-d, 0s); }
+.grk-lockar .grk-kista .grk-lock { animation: grk-glipa 2.2s ease-in-out infinite; animation-delay: var(--grk-d, 0s); }
+@keyframes grk-skak {
+  0%, 62%, 100% { transform: none; }
+  68% { transform: rotate(-4deg); }
+  74% { transform: rotate(4deg); }
+  80% { transform: rotate(-3deg); }
+  86% { transform: rotate(2deg); }
+  92% { transform: none; }
+}
+@keyframes grk-glipa {
+  0%, 64%, 92%, 100% { transform: none; }
+  72%, 84% { transform: translateY(-4px) rotate(-2deg); }
+}
+.grk-valt .grk-kista.bort { opacity: 0.22; transform: scale(0.86); }
+.grk-valt .grk-kista.vald:not(.oppen) .grk-svg { animation: grk-skramla 0.3s linear infinite; }
+@keyframes grk-skramla {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: translateY(-2px) rotate(-3deg); }
+  75% { transform: translateY(-2px) rotate(3deg); }
+}
+.grk-valt .grk-kista.vald { transform: scale(1.08); }
+.grk-ljus {
+  position: absolute;
+  left: -40%;
+  top: -75%;
+  width: 180%;
+  height: 150%;
+  background: radial-gradient(ellipse 45% 60% at 50% 72%, rgba(255, 238, 160, 0.95), rgba(255, 196, 60, 0.5) 45%, rgba(255, 180, 40, 0) 75%);
+  opacity: 0;
+  pointer-events: none;
+}
+.grk-nr {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 1.7em;
+  height: 1.7em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--grk-guld-mork);
+  background: #fff;
+  color: var(--grk-brun);
+  font-weight: 900;
+  font-size: clamp(14px, 2.2vh, 20px);
+}
+.grk-valt .grk-nr { visibility: hidden; }
+.grk-text { margin: 0; min-height: 1.3em; font-size: clamp(24px, 4.8vh, 42px); font-weight: 900; color: var(--grk-text); opacity: 0; }
+.grk-text.syns { animation: grk-text 0.3s ease-out forwards; }
+.grk-text[data-kind="lose"] { color: #c0392b; }
+.grk-text[data-kind="steal"], .grk-text[data-kind="swap"] { color: #5b2a86; }
+.grk-text[data-kind="shield"] { color: #134a8a; }
+.grk-ikon { font-size: 1.1em; }
+@keyframes grk-text { from { opacity: 0; transform: translateY(8px) scale(0.9); } to { opacity: 1; transform: none; } }
+
+/* Effekterna (gr-kistfx.js): partiklar i em (≈ kistbredd/6). */
+.grk-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: clamp(22px, min(3.5vw, 6.2vh), 45px);
+  font-size: clamp(16px, min(4.3cqi, 6.2vh), 45px);
+}
+.grfx { position: absolute; left: 50%; top: 42%; line-height: 1; pointer-events: none; }
+.grfx svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grfx-mynt {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c4 0 14%, #ffc928 50%, #d99a00);
+  box-shadow: inset 0 0 0 0.1em #e8a800, 0 0.05em 0.12em rgba(0, 0, 0, 0.35);
+}
+.grfx-mynt-kant { top: 70%; }
+.grfx-sten { width: 1.4em; filter: drop-shadow(0 0 0.15em rgba(255, 255, 255, 0.9)); }
+.grfx-gnista { color: #fff; font-size: 0.9em; text-shadow: 0 0 0.3em #ffe680, 0 0 0.1em #ffd23f; }
+.grfx-stjarna { color: var(--grk-guld); }
+.grfx-stjarna > b { font-size: 1.4em; text-shadow: 0 0 0.25em rgba(255, 200, 40, 0.9), 0 0.05em 0 var(--grk-guld-mork); }
+.grfx-krona { width: 3.4em; filter: drop-shadow(0 0 0.3em rgba(255, 210, 63, 0.95)); }
+.grfx-text > b { display: block; font-size: 2.6em; font-weight: 900; color: var(--grk-guld); -webkit-text-stroke: 0.035em #7a4c00; text-shadow: 0 0.05em 0 #7a4c00; }
+.grfx-tvattbjorn { width: 3.6em; }
+.grfx-blink, .grfx-oga { transform-box: fill-box; transform-origin: 50% 50%; }
+.grfx-pilar { width: 3.6em; filter: drop-shadow(0 0 0.2em rgba(255, 200, 40, 0.8)); }
+.grfx-damm { top: 52%; width: 1.7em; height: 1em; border-radius: 50%; background: radial-gradient(closest-side, rgba(228, 214, 190, 0.95), rgba(200, 180, 150, 0.35)); }
+.grfx-lov { width: 1.7em; }
+.grfx-skold { width: 2.8em; filter: drop-shadow(0 0 0.35em rgba(110, 190, 255, 0.95)); }
+.grfx-still > b { display: block; font-size: 2.6em; font-weight: 900; color: var(--grk-guld); -webkit-text-stroke: 0.03em #7a4c00; }
+.grfx-still svg { width: 1.4em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grk-lockar .grk-kista .grk-svg,
+  .grk-lockar .grk-kista .grk-lock,
+  .grk-valt .grk-kista.vald:not(.oppen) .grk-svg { animation: none; }
+  .grk-valt .grk-kista.vald .grk-svg { opacity: 0.85; }
+  .grk-lockar .grk-kista:hover, .grk-valt .grk-kista.vald, .grk-valt .grk-kista.bort { transform: none; }
+  .grk-text.syns { animation: grk-tona 0.3s ease-out forwards; }
+}
+@keyframes grk-tona { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-contrast: more) {
+  .grk-rubrik, .grk-text { color: #000; }
+}

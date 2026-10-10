@@ -97,8 +97,8 @@ describe("formatväljaren + svarssätt + klassledtext", () => {
     assert.equal(formatPickerHtml([KM], "klassmatch"), "");
   });
 
-  it("inbyggda formaten (Klassmatchen + Snilleblixten #556) → väljaren visas, Klassmatchen förvald", () => {
-    assert.deepEqual(listFormats().map((f) => f.id), ["klassmatch", "snilleblixt"]);
+  it("inbyggda formaten (Klassmatchen + Snilleblixten #556 + Guldrushen #563) → väljaren visas, Klassmatchen förvald", () => {
+    assert.deepEqual(listFormats().map((f) => f.id), ["klassmatch", "snilleblixt", "guldrush"]);
     const html = formatPickerHtml(listFormats(), "klassmatch");
     assert.match(html, /value="klassmatch" checked/);
     assert.match(html, /value="snilleblixt"\s+\/>/);

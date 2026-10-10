@@ -1,0 +1,294 @@
+/* ==========================================================================
+   Guldrushen – elevens skärm (#564, designspec §3.3, §6.4–6.6, §10, §11).
+   Egen fil (laddas av guldrush-student.js). Chromebook först (1366×768):
+   allt viktigt utan scroll. Lätt: ingen bakgrundsanimation – bara kistornas
+   korta lockande skak, effekterna (transform/opacitet) och avatarens andning.
+   Inga z-index (DESIGNSYSTEM §1): notisen, tvättbjörnen och partiklarna
+   ligger sist i DOM:en och målas därför ovanpå, utan att ta emot klick.
+   ========================================================================== */
+
+.gr-elev-vy {
+  --gr-guld: #ffd23f;
+  --gr-guld-mork: #c98a00;
+  --gr-barnsten: #e09b00;
+  --gr-brun: #3d250e;
+  --gr-brun-ljus: #6b3a00;
+  --gr-text: #4a2a06;
+  --gr-fel: #c0392b;
+  --gr-lila: #5b2a86;
+  --gr-fokus: #1f6fd6;
+  gap: 1vh;
+  min-height: calc(100vh - 90px);
+  min-height: calc(100dvh - 90px);
+}
+.gr-elev-vy .live-elev-head { gap: 10px; }
+.gr-elev-vy .live-elev-title { font-size: clamp(22px, 4vh, 38px); }
+.gr-elev-vy .live-elev-stage {
+  align-items: stretch;
+  padding: clamp(8px, 1.6vh, 18px) clamp(10px, 1.6vw, 22px);
+  background: linear-gradient(180deg, #fffaf0 0%, #fff1d2 100%);
+  box-shadow: var(--skugga-mjuk), inset 0 0 0 3px #f3d38a;
+}
+.gr-elev-vy .live-elev-lobby,
+.gr-elev-vy .live-elev-end,
+.gr-elev-vy .live-elev-count { align-self: center; }
+.gr-elev-vy .live-elev-count { margin: auto; color: var(--gr-barnsten); }
+.gr-elev-vy .live-elev-play { width: 100%; display: flex; flex-direction: column; min-height: 0; }
+
+/* --- Spelytan -------------------------------------------------------------- */
+.gr-elev {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1vh, 10px);
+  overflow: hidden;
+}
+.gr-elev [hidden] { display: none !important; }
+
+/* Överst: guldet stort och glänsande, läget, ljud, avatar i hörnet. */
+.gr-topp { flex: none; display: flex; align-items: center; gap: clamp(10px, 1.6vw, 20px); }
+.gr-guld-ruta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 22px 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #6a4419, var(--gr-brun));
+  box-shadow: 0 4px 0 #24150a, inset 0 2px 0 rgba(255, 230, 150, 0.35);
+}
+.gr-guld-mynt {
+  width: clamp(34px, 6vh, 56px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fffbe0 0 12%, #ffe066 24%, #ffc928 55%, #d99a00 100%);
+  box-shadow: inset 0 0 0 4px #e8a800, inset 0 0 0 7px #ffd54a, 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.gr-guld-pos { position: relative; display: inline-block; }
+.gr-guld, .gr-guld-skugga {
+  display: inline-block;
+  font-size: clamp(40px, 8.4vh, 76px);
+  font-weight: 900;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #fffbe6 0%, #ffe680 30%, var(--gr-guld) 55%, var(--gr-barnsten) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 0 #7a4c00);
+}
+.gr-guld-skugga { position: absolute; left: 0; top: 0; pointer-events: none; }
+.gr-guld-enh { font-size: clamp(16px, 2.6vh, 24px); font-weight: 800; color: #ffe8a3; }
+.gr-info { flex: 1; min-width: 0; text-align: left; }
+.gr-lage { margin: 0; font-size: clamp(18px, 3.2vh, 30px); font-weight: 800; color: var(--gr-brun-ljus); }
+.gr-skydd {
+  display: inline-block;
+  margin: 2px 0 0;
+  padding: 1px 12px;
+  border-radius: 999px;
+  background: #e2f1ff;
+  color: #134a8a;
+  font-weight: 800;
+  font-size: clamp(13px, 2vh, 17px);
+}
+.gr-ljud {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid #e6c46a;
+  background: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+.gr-ljud:focus-visible { outline: 4px solid var(--gr-fokus); outline-offset: 2px; }
+.gr-horn { flex: none; padding: 0.16em 0.22em 0; font-size: clamp(52px, 9.5vh, 92px); line-height: 1; }
+
+.gr-felrad { flex: none; margin: 0; text-align: center; font-weight: 800; color: var(--gr-fel); }
+
+/* Mitten: fråga + svar, kistorna eller offerväljaren. */
+.gr-mitt { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.gr-mitt > * { flex: 1; min-height: 0; }
+.gr-vanta { display: grid; place-items: center; margin: 0; font-size: clamp(22px, 4vh, 34px); font-weight: 800; color: var(--gr-brun-ljus); }
+.gr-svar { position: relative; display: flex; flex-direction: column; justify-content: center; }
+.gr-svar.ca-root { justify-content: stretch; }
+.gr-svar .ca-status:empty, .gr-svar .ca-fraga:empty { display: none; }
+/* Fel: kort ❌ (nästa fråga kommer direkt). */
+.gr-svar[data-fel]::after {
+  content: "❌";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(90px, 22vh, 200px);
+  pointer-events: none;
+  animation: gr-kryss 0.75s ease-out forwards;
+}
+@keyframes gr-kryss {
+  0% { opacity: 0; transform: scale(0.5); }
+  25% { opacity: 0.95; transform: scale(1.05); }
+  70% { opacity: 0.85; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* --- Offerväljaren (gr-offer.js) ------------------------------------------ */
+.gro { height: 100%; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.gro-topp { flex: none; display: flex; align-items: center; justify-content: center; gap: 16px; }
+.gro-rubrik { margin: 0; font-size: clamp(20px, 3.6vh, 32px); color: var(--gr-lila); }
+.gro-klocka {
+  flex: none;
+  width: 2.3em;
+  height: 2.3em;
+  display: grid;
+  place-items: center;
+  grid-auto-flow: column;
+  border-radius: 50%;
+  background: var(--gr-brun);
+  color: var(--gr-guld);
+  font-weight: 900;
+  font-size: clamp(18px, 3vh, 28px);
+  font-variant-numeric: tabular-nums;
+}
+.gro-klocka small { font-size: 0.55em; margin-left: 1px; }
+.gro-brattom .gro-klocka { background: var(--gr-fel); color: #fff; }
+.gro-tid { flex: none; height: 8px; border-radius: 999px; background: #eadcc0; overflow: hidden; }
+.gro-tid i { display: block; height: 100%; background: linear-gradient(90deg, var(--gr-guld), var(--gr-barnsten)); transform-origin: left center; transition: transform 0.2s linear; }
+.gro-hint { flex: none; margin: 0; text-align: center; font-size: clamp(14px, 2.2vh, 19px); color: #6b5a40; font-weight: 700; }
+.gro-klar .gro-hint { font-size: clamp(20px, 3.4vh, 30px); color: var(--gr-lila); }
+.gro-tom, .gro-fel { flex: none; margin: 0; text-align: center; font-weight: 800; }
+.gro-fel { color: var(--gr-fel); }
+.gro-rutnat {
+  --gro-w: 158px;
+  --gro-av: clamp(44px, 7.5vh, 64px);
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--gro-w), 1fr));
+  align-content: start;
+  gap: 8px;
+  overflow: auto;
+  padding: 4px;
+}
+.gro[data-many="1"] .gro-rutnat { --gro-w: 146px; }
+.gro[data-many="2"] .gro-rutnat { --gro-w: 132px; --gro-av: clamp(38px, 6.4vh, 56px); }
+.gro[data-many="3"] .gro-rutnat { --gro-w: 122px; --gro-av: clamp(34px, 5.8vh, 50px); gap: 6px; }
+.gro-kamrat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 14px;
+  border: 3px solid #e6c46a;
+  background: #fffaf0;
+  color: var(--gr-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, opacity 0.2s ease;
+}
+.gro-kamrat:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gr-barnsten); background: #fff3d0; }
+.gro-kamrat:focus-visible { outline: 4px solid var(--gr-fokus); outline-offset: 2px; }
+.gro-av { grid-row: span 3; font-size: var(--gro-av); line-height: 1; }
+.gro-namn { font-weight: 800; font-size: clamp(15px, 2.3vh, 20px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gro-guld { font-weight: 800; color: #8a5a00; font-size: clamp(13px, 2vh, 17px); font-variant-numeric: tabular-nums; }
+.gro-why { font-size: clamp(11px, 1.6vh, 14px); font-weight: 700; color: #134a8a; white-space: nowrap; }
+.gro-why:empty { display: none; }
+.gro-kamrat.gro-av-gra { opacity: 0.55; border-style: dashed; border-color: #b9c4d6; background: #f1f3f7; cursor: not-allowed; }
+.gro-kamrat.gro-av-gra .gro-av { filter: grayscale(0.85); }
+.gro-kamrat.vald { opacity: 1; border-color: #22a35b; background: #e3f7ea; transform: scale(1.04); }
+.gro-kamrat:disabled:not(.vald):not(.gro-av-gra) { opacity: 0.7; }
+/* Tvättbjörnen springer med guldpåsen (byte: guldpilarna snurrar). */
+.gro-spring { position: absolute; left: 0; top: 46%; width: clamp(80px, 13vh, 130px); pointer-events: none; }
+.gro-spring svg { display: block; width: 100%; height: auto; }
+.gro-pase { position: absolute; left: -38%; bottom: -6%; font-size: clamp(36px, 6vh, 60px); }
+.gro-spring-byte { left: 50%; top: 32%; width: clamp(110px, 20vh, 180px); }
+
+/* --- Notisen: "🦝 Leo knyckte 20 guld från dig!" ---------------------------- */
+.gr-notis {
+  position: absolute;
+  top: clamp(64px, 15vh, 130px);
+  right: 6px;
+  max-width: min(560px, 92%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 8px;
+  border-radius: 18px;
+  background: var(--gr-brun);
+  color: #fff;
+  font-size: clamp(16px, 2.8vh, 24px);
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(40, 20, 0, 0.35);
+  pointer-events: none;
+  opacity: 0;
+}
+.gr-notis.in { animation: gr-notis 2.2s ease forwards; }
+.gr-notis b { color: var(--gr-guld); }
+.gr-notis-av { flex: none; font-size: clamp(40px, 7vh, 60px); line-height: 1; }
+.gr-notis-av:empty { display: none; }
+@keyframes gr-notis {
+  0% { opacity: 0; transform: translateX(110%); }
+  12% { opacity: 1; transform: translateX(0); }
+  86% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(110%); }
+}
+
+/* --- Lobby och slutskärm --------------------------------------------------- */
+.gr-lobby { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 1vh 0; }
+.gr-lobby [data-gr-av] { font-size: clamp(90px, 20vh, 180px); line-height: 1; }
+.gr-lobby-text { margin: 0; font-size: clamp(18px, 3vh, 26px); font-weight: 800; color: var(--gr-brun-ljus); }
+.gr-final { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.gr-final [data-gr-av] { font-size: clamp(80px, 17vh, 160px); line-height: 1; }
+.gr-final h2 { margin: 0; font-size: clamp(32px, 7vh, 60px); }
+.gr-final-rel { margin: 0; font-size: clamp(22px, 4vh, 34px); font-weight: 800; color: var(--gr-lila); }
+.gr-final-guld { margin: 0; font-size: clamp(20px, 3.4vh, 30px); font-weight: 700; color: var(--gr-brun-ljus); }
+.gr-final-guld b { color: var(--gr-barnsten); }
+.gr-final-klass { margin: 4px 0 0; font-size: clamp(16px, 2.6vh, 22px); font-weight: 700; color: #6b5a40; }
+.gr-mynt {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 10px 22px;
+  min-width: min(420px, 90vw);
+  border-radius: 16px;
+  background: #fff6d6;
+  border: 2px solid #f4c430;
+  color: #5c3d00;
+  font-size: clamp(18px, 3.2vh, 28px);
+}
+.gr-mynt li { display: flex; justify-content: space-between; gap: 24px; padding: 2px 0; }
+.gr-mynt li b::after { content: " 🪙"; }
+.gr-mynt-tot { margin: 4px 0 0; font-size: clamp(24px, 4.6vh, 40px); font-weight: 900; color: #7a5200; }
+
+/* --- Tillgänglighet ------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .gro-kamrat.vald, .gro-kamrat:hover:not(:disabled) { transform: none; }
+  .gr-svar[data-fel]::after { animation: gr-tona-ut 0.75s ease-out forwards; }
+  .gr-notis.in { animation: gr-notis-tona 2.2s ease forwards; }
+  .gro-tid i { transition: none; }
+}
+@keyframes gr-tona { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gr-tona-ut { 0% { opacity: 0; } 25% { opacity: 0.95; } 70% { opacity: 0.85; } 100% { opacity: 0; } }
+@keyframes gr-notis-tona { 0% { opacity: 0; } 12%, 86% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-contrast: more) {
+  .gr-elev-vy .live-elev-stage { background: #fff; box-shadow: inset 0 0 0 3px #000; }
+  .gr-guld, .gr-guld-skugga { background: none; color: #ffe066; filter: none; }
+  .gr-lage, .gro-hint, .gr-final-rel { color: #000; }
+  .gro-kamrat { border-color: #000; background: #fff; }
+  .gro-kamrat.gro-av-gra { opacity: 1; color: #555; border-color: #555; }
+  .gr-skydd, .gro-why { color: #000; }
+}
+
+/* Surfplatta på högkant/mobil: kortare marginaler, kistorna och knapparna får plats. */
+@media (max-width: 820px) {
+  .gr-elev-vy { min-height: calc(100dvh - 100px); }
+  .gr-topp { flex-wrap: wrap; row-gap: 2px; }
+  .gr-ljud { margin-left: auto; }
+  .gr-info { order: 3; flex-basis: 100%; }
+  .gro .gro-rutnat { --gro-w: 150px; --gro-av: 40px; }
+  .gro-kamrat { column-gap: 4px; padding-right: 6px; }
+  .gr-mynt { min-width: 0; width: 100%; }
+}
