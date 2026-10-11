@@ -11,7 +11,19 @@ Miljö:
 
 ## Sammanfattning
 
-UTKAST – fylls på under körningen.
+**Allt grönt: test 1–16, 18–27 och regressionen.** Test 17 (elevskärmsfönstret) kördes inte om,
+eftersom uppdraget bara tillåter EN webbläsarflik. Det är verifierat i #593.
+Inga buggar som stoppar landning. Fem små iakttagelser (O1–O5) står längst ned.
+
+**Deploy före live (i den här ordningen):**
+1. `firebase deploy --only firestore:rules` – **reglerna ÄR ändrade** (#589): `durationSeconds`
+   gick från `in [300, 600, 900, 1200]` till hela minuter 60–3600. Specen trodde att ingen
+   regeländring behövdes, men utan den nekas 3, 7 och 30 min i produktion (`permission-denied`).
+2. `firebase deploy --only functions` – sköldregeln (`guldrush-core.js`, `guldrush/guldrush-regler.js`,
+   `guldrush/chests-config.js`). Predeploy-kroken kör `sync-guldrush-functions.mjs`.
+3. Därefter merge till main (Pages). Index är oförändrade.
+
+Ordningen spelar roll: ny klient mot gamla functions = gamla sköldregeln (`shield`) på servern.
 
 ## Sviter (test 14)
 
@@ -64,3 +76,59 @@ webbläsaren mot emulatorn, eleven b01 (Saga 4B) i en pågående match:
 | 19b Effekter av | ✅ "🔇 Ljud av" + gemensam skatt → 0 ramper på musikens gainer, kontexten igång → jämn volym. |
 | 20 00:00 | ✅ Fade 0,3 → 0 på 1,0 s startar när klockan når 00:00 (ctx 38,44 → 39,44 s); trumvirveln börjar ctx 39,69 s – efter uttoningen. Källan stoppas sedan. |
 | 21 Omladdning | ✅ "🎵 Musik av" kvar efter omladdning (localStorage). |
+
+## Speltid (test 22–24) – riktig lärarvy mot emulatorn
+
+| Test | Resultat |
+| --- | --- |
+| Formuläret | ✅ Snabbknappar 3/5/10/15/20/30 min + "Egen tid", förval 10 min (`t22-formular-speltid`). |
+| 22 Egen tid 7 | ✅ Lobbyn "⏱ 7 min", `durationSeconds 420`, klockan startar på 07:00 efter nedräkningen, historiken "· 7 min –". |
+| 23 Ogiltigt | ✅ 0 och 61 → "Speltiden måste vara hela minuter mellan 1 och 60." · 2.5 → samma text · tomt → "Skriv in hur många minuter matchen ska vara (1–60)." Ingen session skapas. Se O1 om "2,5". |
+| 24 30 min | ✅ Lobbyn "⏱ 30 min" (lobbyn raderades sedan). |
+
+## Mynt-ikonen (test 25–27)
+
+| Test | Resultat |
+| --- | --- |
+| 25 | ✅ Sökt i den renderade DOM:en (text + `::before/::after`) efter mynt-emojin och alla tecken i U+1FA70–1FAFF: **0 träffar** i Guldrushens lobby, spel, final och elevens slutskärm, i Snilleblixtens formulär, lobby och final, i Klassmatchens lobby och vinnarvy, och i historiken för alla tre formaten. Myntet är överallt `svg.coin-svg`/Pluggcoin-SVG (1–2 per vy där pluggmynt visas). |
+| 26 | ✅ `grep -r "🪙" src` → 0 (även `test/mynt-ikon.test.js`). |
+| 27 | ✅ Riktig match: b01 1:a med 9 rätt, förstapris 300, 5/rätt → slutskärmen "Placeringspris 300" (egen rad, överst), "9 rätt svar 45", "Totalt: 345 pluggmynt". `result.rewards.b01 = {prize 300, correctCoins 45, total 345}`, saldot 100 → 445. |
+
+## Regression (test 14)
+
+| Vad | Resultat |
+| --- | --- |
+| Sviter, bootgraf | ✅ se tabellen överst. |
+| Snilleblixten | ✅ Lobby (10 frågor, 20 s, mynt-SVG), 12 sim-elever, 10 frågor autospelade, Avsluta → final "🏆 4B – vilken final!" med pall och "+N pluggmynt", `result.rewards` skrivet (1:a 100+45). Musikknappen finns men är dold (`hidden`) – formatet saknar `music`. |
+| Klassmatchen | ✅ 4B mot 5E, 5 min, 12 sim-elever via klient-SDK (reglerna prövar varje svar), 54 rätt → "VINNARE – 4B!", nämnare, matchens stjärnor, "Resultatet är sparat i historiken". Ingen musikknapp synlig. |
+| Test 18 elevdator | ✅ Elevens Guldrush-vy efter hård omladdning: 250 resurser, ingen `.ogg`, ingen `proj-music.js`/`projector.js` (bara `proj-sound.js`, som elevens kistljud använt sedan förut). |
+| Riktig projektor | ✅ Guldrushens projektorvy och final mot emulatorn (`r01`, `r02`): topp 10, guldrutan med mätare, finalen centrerad. |
+
+I konsolen syntes två `failed-precondition` på Snilleblixtens sessionsdokument när simulatorn
+och läraren skrev samtidigt. Det är transaktioner som försöker igen, och flödet gick klart.
+
+## Iakttagelser (inga stoppar landning)
+
+| # | Vikt | Vad | Förslag |
+| --- | --- | --- | --- |
+| O1 | Låg | "Egen tid": i en webbläsare med engelsk locale filtrerar `<input type=number>` bort kommatecknet, så att "2,5" blir **25** och en 25-minutersmatch skapas utan fel. I svensk locale tolkas "2,5" som 2,5 och nekas. | Låt det vara, eller använd `type=text inputmode=numeric` med egen tolkning. |
+| O2 | Låg | Offerväljaren när ALLA är skyddade säger "Ingen har tillräckligt med guld att knycka just nu", fast orsaken är skydden (rutorna visar 🛡️). | Egen text när alla rader är skyddade. |
+| O3 | Info | Projektorns pall visar placeringspriset ("+300 pluggmynt"), elevens slutskärm totalen (345). Det är oförändrat sedan tidigare, men samma elev ser två olika tal. | Elias avgör. |
+| O4 | Info | Spindeln (ambient dekor) hänger från taket ner i glappet mellan timern och guldrutan. Den täcker inget i topraden. | – |
+| O5 | Info | 1280×720: fälten "Pris till 1:a plats"/"Tak per elev" är så smala att platshållaren och "300" klipps ("30("). Det är inte nytt i epicen. | – |
+
+## Skärmdumpar (`docs/qa-guldrush-594/`)
+
+| Fil | Vad |
+| --- | --- |
+| `p01-spel-fore-skatt-{1920x1080,1280x720}` | projektorn under spel, före en gemensam skatt (mätare, flöde) |
+| `p02-spel-under-skatt-*` | firandet i guldrutan (mätaren full, puls, konfetti). Tagna med sidans timers 8× långsammare och animationerna pausade, därför står några figurer mitt i en förflyttning i 1920-bilden |
+| `p03-spel-efter-skatt-*` | mätaren har börjat om mot nästa skatt |
+| `p04-flode-storm-*` | händelseflödet med många händelser (högst 4 rader) + "Ny ledare"-banderollen |
+| `f02/f03/f25-final-{2,3,25}-spelare-*` | finalskärmen med 2, 3 och 25 spelare |
+| `e01-elev-utan-skydd-*`, `e02-elev-med-skydd-*` | elevens skärm utan och med "🛡️ Skyddad 0:47" |
+| `o01-offervaljare-skyddad-kompis-*` | offerväljaren med en skyddad kompis ("🛡️ 0:03"/"0:06", gråad) |
+| `e03-elev-slutskarm-test27-*` | test 27: Placeringspris 300, 9 rätt svar 45, Totalt 345 |
+| `r01-riktig-projektor-emulator-1920x1080`, `r02-riktig-final-emulator-1920x1080` | appens projektor mot emulatorn |
+| `t22-formular-speltid`, `t22-lobby-7-min`, `t22-historik-7-min` | valfri speltid |
+| `reg-snilleblixten-final`, `reg-klassmatchen-vinnare` | regression |
