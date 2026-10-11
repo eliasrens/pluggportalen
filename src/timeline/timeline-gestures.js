@@ -7,12 +7,22 @@
 //   översikten tryck/dra = flytta det synliga fönstret (panorera).
 //   stegknapp  tryck = ett steg, håll inne = upprepa.
 // Gesterna talar bara med tillståndet (createTimelineState i ./timeline-logic.js)
-// och två återanrop: choose(year) och render().
+// och tre återanrop: choose(year), restore(year|null) och render().
 // ============================================================================
 
 import { fracToYear, isZoomed, ZOOM_STEP } from "./timeline-logic.js";
 
 const EDGE = 0.05;
+const DRAG_PX = 8;
+
+/** Fånga pekaren om det går – en redan släppt pekare kastar InvalidPointerId. */
+function capture(node, pointerId) {
+  try {
+    node.setPointerCapture?.(pointerId);
+  } catch {
+    /* utan fångst fungerar dragningen ändå så länge pekaren är över linjen */
+  }
+}
 
 function listen(node, type, fn, opts, offs) {
   node.addEventListener?.(type, fn, opts);
@@ -21,7 +31,7 @@ function listen(node, type, fn, opts, offs) {
 
 /**
  * @param {{ linje, yta, oversikt, ovBana, focusEl, win }} dom
- * @param {{ state: () => object, choose: (y:number)=>void, render: ()=>void }} ctl
+ * @param {{ state: () => object, choose: (y:number)=>void, restore: (y:number|null)=>void, render: ()=>void }} ctl
  *        state() ger AKTUELLT tillståndsobjekt (det byts vid ny fråga)
  * @returns {{ cancel(): void, destroy(): void }}
  */
@@ -68,17 +78,20 @@ export function attachGestures(dom, ctl) {
   function onDown(e) {
     if (e.pointerType === "mouse" && e.button !== undefined && e.button !== 0) return;
     pointers.set(e.pointerId, e.clientX);
-    linje.setPointerCapture?.(e.pointerId);
+    capture(linje, e.pointerId);
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
       pinch = { d0: Math.abs(a - b) || 1, view0: { ...ctl.state().get().view }, anchor: yearAtFrac((a + b) / 2) };
+      // Första fingret i en nypning var inget val – ångra dess hopp.
+      if (drag && Math.abs(drag.x - drag.x0) <= DRAG_PX) ctl.restore(drag.before);
       drag = null;
+      linje.classList.remove("tl-drar");
       return;
     }
     if (pointers.size > 2) return;
     e.preventDefault?.();
     focusEl.focus?.({ preventScroll: true });
-    drag = { id: e.pointerId, x: e.clientX };
+    drag = { id: e.pointerId, x: e.clientX, x0: e.clientX, before: ctl.state().get().year };
     linje.classList.add("tl-drar");
     ctl.choose(yearAt(e.clientX));
   }
@@ -141,7 +154,7 @@ export function attachGestures(dom, ctl) {
   listen(linje, "wheel", onWheel, { passive: false }, offs);
   listen(oversikt, "pointerdown", (e) => {
     ovDrag = e.pointerId;
-    oversikt.setPointerCapture?.(e.pointerId);
+    capture(oversikt, e.pointerId);
     e.preventDefault?.();
     ovCenter(e.clientX);
   }, undefined, offs);

@@ -222,6 +222,36 @@ test("stegknapp med pekare: ett steg på pointerdown, klicket efteråt dubblar i
   assert.equal(h.value(), 1521);
 });
 
+test("nyp med två fingrar zoomar utan att ändra valt år", () => {
+  const { q, tap, h } = mount();
+  tap(160); // 1520
+  const linje = q("tl-linje");
+  linje.dispatch("pointerdown", { pointerId: 21, clientX: 370, pointerType: "touch" });
+  linje.dispatch("pointerdown", { pointerId: 22, clientX: 430, pointerType: "touch" });
+  linje.dispatch("pointermove", { pointerId: 21, clientX: 250 });
+  linje.dispatch("pointermove", { pointerId: 22, clientX: 550 });
+  linje.dispatch("pointerup", { pointerId: 21 });
+  linje.dispatch("pointerup", { pointerId: 22 });
+  assert.equal(h.value(), 1520, "första fingret flyttade inte svaret");
+  assert.equal(q("tl-oversikt").hidden, false, "inzoomat");
+});
+
+test("nyp före något val lämnar fortfarande inget val", () => {
+  const { q, h } = mount();
+  const linje = q("tl-linje");
+  linje.dispatch("pointerdown", { pointerId: 21, clientX: 370, pointerType: "touch" });
+  linje.dispatch("pointerdown", { pointerId: 22, clientX: 430, pointerType: "touch" });
+  assert.equal(h.value(), null);
+  assert.equal(q("tl-las").disabled, true);
+});
+
+test("pekarfångst som kastar (släppt pekare) stoppar inte tryck på linjen", () => {
+  const { q, tap, h } = mount();
+  q("tl-linje").setPointerCapture = () => { throw new Error("InvalidPointerId"); };
+  tap(160);
+  assert.equal(h.value(), 1520);
+});
+
 // --- Bootgrafen --------------------------------------------------------------
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");

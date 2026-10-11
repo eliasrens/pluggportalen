@@ -182,6 +182,10 @@ export function mountTimelineAnswer(root, opts = {}) {
     const before = state.get().year;
     if (state.choose(y)) changed(before);
   }
+  function restore(y) {
+    const before = state.get().year;
+    if (state.restore(y)) changed(before);
+  }
   function step(delta) {
     const before = state.get().year;
     if (state.step(delta)) changed(before);
@@ -201,7 +205,7 @@ export function mountTimelineAnswer(root, opts = {}) {
 
   const gestures = attachGestures(
     { linje: d.linje, yta: d.yta, oversikt: d.oversikt, ovBana: d.ovBana, focusEl: d.giss.node, win },
-    { state: () => state, choose, render }
+    { state: () => state, choose, restore, render }
   );
   const repeat = attachRepeatButtons(d.stepBtns, step);
 

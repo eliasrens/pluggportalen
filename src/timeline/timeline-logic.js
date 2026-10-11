@@ -283,6 +283,12 @@ export function createTimelineState(span) {
     enable() {
       s.enabled = true;
     },
+    /** Återställ ett tidigare val (null = inget val) – t.ex. när en nypning börjar. */
+    restore(year) {
+      if (!canEdit()) return false;
+      s.year = year === null || year === undefined ? null : clampYear(year, s.span);
+      return true;
+    },
     /** Visa ett redan inskickat år (omladdning) – låst, utan nytt anrop. */
     showLocked(year) {
       s.year = clampYear(year, s.span);
