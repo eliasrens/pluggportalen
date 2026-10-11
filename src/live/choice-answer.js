@@ -9,9 +9,17 @@
 // Tangenterna 1–4 väljer. Första valet LÅSER: dubbelklick/dubbeltangent
 // registrerar bara det första. Låst = vald knapp lyser, övriga krymper.
 // Styling: src/live/choice-answer.css – laddas av komponenten själv.
+// Textlängd (#621): korta tal (multiplikation) får den stora stilen, långa
+// quiztexter en mindre som skalar efter behållaren (cqi). textLength() klassar
+// frågan och det LÄNGSTA alternativet var för sig → data-len på .ca-fraga
+// och .ca-grid; .ca-root får data-len="lang"/"mellan" när något är längre än
+// kort (eller lästext visas) och blir då en container (container-type).
 //
 // API
 //   CHOICE_STYLES  [{ key, name, shape, label }] – index 0–3 (röd/blå/gul/grön)
+//   textLength(texts, kind) → "kort" | "mellan" | "lang" – längsta texten;
+//                  kind "alt" (alternativ) eller "fraga" (TEXT_LIMITS)
+//   keepNumbers(text) → "4 000" med hårt mellanslag (talet bryts aldrig)
 //   choiceShapeSvg(i) → inline-SVG för formen (projektorn kan återanvända)
 //   mountChoiceAnswer(root, opts) → handle
 //     opts.options    4 alternativ (tal/text) – kan sättas senare via setQuestion
@@ -35,6 +43,37 @@ export const CHOICE_STYLES = Object.freeze([
   { key: "gul", name: "gul", shape: "cirkel", label: "Gul cirkel" },
   { key: "gron", name: "grön", shape: "kvadrat", label: "Grön kvadrat" },
 ]);
+
+/**
+ * Gränser per sort: kort/mellan = längsta texten i tecken, ord = längsta
+ * ordet som ryms i "mellan" (längre ord → "lang", så att ordet inte bryts).
+ * "kort" är multiplikationens tal (högst 3–4 tecken) – den stora stilen.
+ */
+export const TEXT_LIMITS = Object.freeze({
+  alt: Object.freeze({ kort: 5, mellan: 20, ord: 9 }),
+  fraga: Object.freeze({ kort: 16, mellan: 60, ord: 14 }),
+});
+
+/** Längdklass för den längsta av texterna (ren funktion, testad). */
+export function textLength(texts, kind = "alt") {
+  const lim = TEXT_LIMITS[kind] || TEXT_LIMITS.alt;
+  let n = 0;
+  let ord = 0;
+  for (const t of Array.isArray(texts) ? texts : [texts]) {
+    const s = String(t ?? "").trim();
+    n = Math.max(n, [...s].length);
+    for (const w of s.split(/\s+/)) ord = Math.max(ord, [...w].length);
+  }
+  if (n <= lim.kort) return "kort";
+  return n <= lim.mellan && ord <= lim.ord ? "mellan" : "lang";
+}
+
+const RANK = { kort: 0, mellan: 1, lang: 2 };
+
+/** Tal med tusentalsmellanrum ("4 000", "1 604") bryts aldrig: hårt mellanslag (#621). */
+export function keepNumbers(text) {
+  return String(text ?? "").replace(/(\d) (?=\d{3}(?!\d))/g, "$1\u00a0");
+}
 
 const SHAPES = {
   triangel: '<polygon points="12,2.5 22.5,21 1.5,21"/>',
@@ -108,10 +147,15 @@ export function mountChoiceAnswer(root, opts = {}) {
     buttons.forEach((b, i) => {
       const has = i < options.length;
       b.hidden = !has;
-      b.querySelector(".ca-text").textContent = has ? String(options[i]) : "";
+      b.querySelector(".ca-text").textContent = has ? keepNumbers(options[i]) : "";
       b.setAttribute("aria-label", has ? `${i + 1}: ${options[i]} (${CHOICE_STYLES[i].label})` : "");
     });
     grid.dataset.antal = String(options.length);
+    grid.dataset.len = textLength(options, "alt");
+    qEl.dataset.len = textLength(qEl.textContent, "fraga");
+    // Roten: den längsta klassen; lästext räknas som minst "mellan".
+    const lens = [grid.dataset.len, qEl.dataset.len, ctxEl.hidden ? "kort" : "mellan"];
+    root.dataset.len = lens.reduce((a, b) => (RANK[b] > RANK[a] ? b : a));
     syncState();
   }
 
@@ -157,9 +201,9 @@ export function mountChoiceAnswer(root, opts = {}) {
     options = opt.slice(0, 4);
     chosen = null;
     enabled = true;
-    ctxEl.textContent = context;
+    ctxEl.textContent = keepNumbers(context);
     ctxEl.hidden = !context;
-    qEl.textContent = question;
+    qEl.textContent = keepNumbers(question);
     qEl.hidden = !question;
     statusEl.textContent = "";
     buttons.forEach((b) => {
@@ -202,6 +246,7 @@ export function mountChoiceAnswer(root, opts = {}) {
       grid.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKey);
       root.classList.remove("ca-root", "ca-last", "ca-har-valt", "ca-avslojad");
+      delete root.dataset.len;
       root.innerHTML = "";
     },
   };
