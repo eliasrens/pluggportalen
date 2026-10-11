@@ -54,6 +54,7 @@ function quantityText(a) {
   const parts = [];
   if (a.quiz?.length) parts.push(`${a.quiz.length} frågor`);
   if (a.pairs?.length) parts.push(`${a.pairs.length} par`);
+  if (a.timeline?.length) parts.push(`${a.timeline.length} händelser`);
   if (a.texts?.length) parts.push(`${a.texts.length} texter`);
   return parts.length ? parts.join(" · ") : "Tomt – inget innehåll ännu";
 }

@@ -185,3 +185,39 @@ export function buildTextForm(item, { onSubmit, onCancel }) {
     onCancel,
   });
 }
+
+/**
+ * Tidslinjehändelse (Tidsjakten, #598): händelse, fråga, årtal (heltal, negativt =
+ * f.Kr.), beskrivning före svaret (får inte avslöja årtalet) och förklaring efter.
+ * Reglerna (årtal, avslöjat årtal, spann) kontrolleras av validateArea vid Spara.
+ */
+export function buildTimelineForm(item, { onSubmit, onCancel }) {
+  const yearId = nextUid();
+  const year = item?.year ?? "";
+  const body = `
+    <div class="ai-form-2col ai-tl-row">
+      ${field("Händelse", "event", item?.event || "", { required: true, hint: "Kort namn, t.ex. Stockholms blodbad." })}
+      <div class="ai-field ai-field-year">
+        <label for="${yearId}">Årtal <span class="ai-req" aria-hidden="true">*</span></label>
+        <input id="${yearId}" name="year" type="number" step="1" inputmode="numeric" required value="${esc(year)}" />
+        <span class="ai-hint">Negativt = f.Kr. (−500 = 500 f.Kr.)</span>
+      </div>
+    </div>
+    ${field("Fråga", "question", item?.question || "", { required: true, hint: "T.ex. Vilket år inträffade Stockholms blodbad?" })}
+    ${field("Beskrivning (visas före svaret)", "description", item?.description || "", {
+      textarea: true, rows: 2, hint: "Får inte innehålla årtalet.",
+    })}
+    ${field("Förklaring (visas efter svaret)", "explanation", item?.explanation || "", { textarea: true, rows: 2 })}`;
+  return shell(item ? "Redigera händelse" : "Ny händelse", body, {
+    collect: (f) => ({
+      event: val(f, "event"),
+      year: val(f, "year"),
+      question: val(f, "question"),
+      description: val(f, "description"),
+      explanation: val(f, "explanation"),
+    }),
+    precheck: (x) => (String(x.year).trim() ? [] : ["Årtalet saknas – skriv in ett heltal, t.ex. 1520."]),
+    onSubmit,
+    onCancel,
+  });
+}
