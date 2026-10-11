@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Tidslinjekomponent (#597)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Bara previewns ram – komponenten har egen CSS (src/timeline/timeline-answer.css). */
+      body { margin: 0; background: var(--ljus); }
+      .pv-bar { display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; padding: 10px 14px;
+        font-size: 14px; background: #fff; box-shadow: var(--skugga-mjuk); }
+      .pv-bar b { color: var(--bla-mork); }
+      .pv-bar select, .pv-bar button { font: inherit; padding: 4px 8px; }
+      .pv-stage { padding: 20px 12px; display: flex; justify-content: center; }
+      .pv-ram { width: 100%; background: #fff; border-radius: var(--radie); padding: 18px; box-shadow: var(--skugga); }
+      .pv-ram[data-w="desktop"] { max-width: 1100px; }
+      .pv-ram[data-w="surfplatta"] { max-width: 768px; }
+      .pv-ram[data-w="mobil"] { max-width: 390px; padding: 12px 8px; }
+      .pv-ram[data-w="live"] { max-width: 800px; background: #1d2a4d; color: #fff; }
+      .pv-ram[data-w="live"] .tl-fraga, .pv-ram[data-w="live"] .tl-valt-etikett { color: #fff; }
+      .pv-log { max-width: 1100px; margin: 0 auto 30px; padding: 0 14px; font: 13px ui-monospace, monospace; color: var(--text-svag); }
+      .pv-log div { padding: 2px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="pv-bar">
+      <b>Tidslinje #597</b>
+      <label>Bredd <select id="pv-w">
+        <option value="desktop">Dator</option><option value="surfplatta">Surfplatta</option>
+        <option value="mobil">Mobil</option><option value="live">Live (kompakt)</option>
+      </select></label>
+      <label>Område <select id="pv-omr"></select></label>
+      <button type="button" id="pv-nasta">Nästa fråga</button>
+      <button type="button" id="pv-avsloja">Avslöja</button>
+      <button type="button" id="pv-tid">⏰ Tid ute (lock + disable)</button>
+      <button type="button" id="pv-av">disable()</button>
+    </div>
+    <div class="pv-stage"><div class="pv-ram" id="pv-ram" data-w="desktop"><div id="pv-root"></div></div></div>
+    <div class="pv-log" id="pv-log"></div>
+    <script type="module">
+      // Samma laddning som formaten: dynamisk import, inget i bootkedjan.
+      const [{ mountTimelineAnswer }, { resolveSpan }] = await Promise.all([
+        import("../src/timeline/timeline-answer.js"),
+        import("../src/timeline/timeline-logic.js"),
+      ]);
+      // Exempelområden. Spannet räknas ur HELA områdets händelser (eller
+      // timelineSpan) – samma för varje fråga, aldrig centrerat på svaret.
+      const OMRADEN = {
+        vasa: { namn: "Vasatiden (ur händelserna)", events: [
+          { q: "Vilket år var Stockholms blodbad?", y: 1520, fakta: "Kristian II lät avrätta ett 80-tal personer i Stockholm." },
+          { q: "Vilket år blev Gustav Vasa kung?", y: 1523, fakta: "Han valdes till kung i Strängnäs den 6 juni." },
+          { q: "Vilket år var riksdagen i Västerås?", y: 1527, fakta: "Kyrkans egendom drogs in till kronan." },
+          { q: "Vilket år startade Dackefejden?", y: 1542, fakta: "Bönder i Småland gjorde uppror under Nils Dacke." },
+          { q: "Vilket år dog Gustav Vasa?", y: 1560, fakta: "Han dog i Stockholm och begravdes i Uppsala domkyrka." },
+        ] },
+        ww2: { namn: "Andra världskriget (lärarens spann 1930–1950)", timelineSpan: { start: 1930, end: 1950 }, events: [
+          { q: "Vilket år började andra världskriget?", y: 1939, fakta: "Tyskland anföll Polen den 1 september." },
+          { q: "Vilket år tog kriget slut i Europa?", y: 1945, fakta: "Tyskland kapitulerade i maj." },
+        ] },
+        oversikt: { namn: "Stor översikt (800 f.Kr.–2000)", timelineSpan: [-800, 2000], events: [
+          { q: "Vilket år kröntes Karl den store till kejsare?", y: 800, fakta: "Kröningen skedde i Rom på juldagen." },
+          { q: "Vilket år grundades Rom enligt sägnen?", y: -753, fakta: "Enligt sägnen grundade Romulus staden." },
+        ] },
+      };
+      const omrSel = document.getElementById("pv-omr");
+      omrSel.innerHTML = Object.entries(OMRADEN).map(([k, o]) => `<option value="${k}">${o.namn}</option>`).join("");
+      const ram = document.getElementById("pv-ram");
+      const root = document.getElementById("pv-root");
+      const logEl = document.getElementById("pv-log");
+      const log = (t) => logEl.insertAdjacentHTML("afterbegin", `<div>${new Date().toLocaleTimeString()} – ${t}</div>`);
+      let h = null;
+      let i = 0;
+
+      function omrade() { return OMRADEN[omrSel.value]; }
+      function spanFor(o) { return resolveSpan({ timelineSpan: o.timelineSpan, years: o.events.map((e) => e.y) }); }
+      function fraga() { const o = omrade(); return o.events[i % o.events.length]; }
+
+      function mount() {
+        h?.destroy();
+        const o = omrade();
+        const span = spanFor(o);
+        h = mountTimelineAnswer(root, {
+          span,
+          question: fraga().q,
+          compact: ram.dataset.w === "live",
+          onLock: (y) => log(`onLock(${y}) – visat: ${root.querySelector(".tl-valt-ar").textContent}`),
+        });
+        log(`montera: ${o.namn}, spann ${span.min}–${span.max}`);
+        window.pvHandle = h;
+      }
+
+      document.getElementById("pv-w").addEventListener("change", (e) => { ram.dataset.w = e.target.value; mount(); });
+      omrSel.addEventListener("change", () => { i = 0; mount(); });
+      document.getElementById("pv-nasta").addEventListener("click", () => {
+        i++;
+        h.setQuestion({ question: fraga().q });
+        log(`ny fråga: ${fraga().q}`);
+      });
+      document.getElementById("pv-avsloja").addEventListener("click", () => {
+        const r = h.reveal(fraga().y, { text: fraga().fakta });
+        log(`reveal → ${JSON.stringify(r)}`);
+      });
+      document.getElementById("pv-tid").addEventListener("click", () => {
+        const y = h.lock();
+        h.disable();
+        log(`tid ute: lock() → ${y}, disable()`);
+      });
+      document.getElementById("pv-av").addEventListener("click", () => { h.disable(); log("disable()"); });
+      mount();
+    </script>
+  </body>
+</html>
