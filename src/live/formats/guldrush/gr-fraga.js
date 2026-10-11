@@ -12,6 +12,11 @@
 // kistan öppnas ändå först när servern bekräftat rätt svar. Quiz väntar på
 // serverns besked.
 // Fel → kort ❌ och nästa fråga direkt, inga kistor.
+// Tidslinjefråga (#601, epic #595, kind "timeline" i grPublic): i stället för
+//                alternativen visas tidslinjen (src/timeline/timeline-answer.js,
+//                kompakt, laddas latt) – dra, finjustera, lås → send({ q, year }).
+//                Servern rättar (exakt år = rätt → kistor). Fel → kort ❌ +
+//                rätt år på linjen en stund, sedan nästa fråga.
 //
 // API
 //   createQuestionFlow(host, { mode, answerKind, send, onCorrect, onProblem,
@@ -27,6 +32,8 @@ import { mountChoiceAnswer } from "../../choice-answer.js";
 import { newAttemptId } from "../../../mult/attempt-id.js";
 
 const WRONG_MS = 750;
+const TL_WRONG_MS = 1800; // rätt år ska hinna läsas
+const TL_URL = "../../../timeline/timeline-answer.js";
 
 export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, onProblem = () => {}, questions = () => [] }) {
   const choice = answerKind === "choice";
@@ -38,6 +45,8 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
   let wrongT = 0;
   let comp;
   let showChoice = () => {};
+  let tl = null; // tidslinjen (bara quiz med tidslinjefrågor)
+  let tlP = null;
 
   function flashWrong() {
     host.dataset.fel = "";
@@ -69,6 +78,7 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
   } else {
     const src = quiz ? null : mode.createSource();
     comp = mountChoiceAnswer(host, { onChoose, sentText: "", enabled: false });
+    if (quiz && questions().some((q) => q?.kind === "timeline")) ensureTl().catch(() => {});
 
     showChoice = (again = null) => {
       if (again) {
@@ -78,11 +88,15 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
         if (!qs.length) return;
         const i = Number.isInteger(nextQ) && qs[nextQ] ? nextQ : Math.floor(Math.random() * qs.length);
         current = { q: i, options: qs[i].options || [], text: String(qs[i].text ?? ""), context: String(qs[i].passage ?? ""), attemptId: newAttemptId() };
+        if (qs[i].kind === "timeline") Object.assign(current, { tl: true, question: qs[i] });
       } else {
         const q = src.next();
         const ch = mode.choices(q);
         current = { question: q, options: ch.options, answerIndex: ch.answerIndex, text: `${q.text} = ?`, attemptId: newAttemptId() };
       }
+      if (current.tl) return showTimeline(current);
+      delete host.dataset.tl;
+      tl?.disable();
       comp.setQuestion({ options: current.options, question: current.text, context: current.context || "" });
     };
 
@@ -133,6 +147,63 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
     }
   }
 
+  // --- Tidslinjefrågor (#601) ---------------------------------------------------
+  function ensureTl() {
+    tlP ||= import(TL_URL).then(({ mountTimelineAnswer }) => {
+      if (destroyed) return null;
+      const box = host.ownerDocument.createElement("div");
+      box.className = "gr-svar-tl";
+      host.appendChild(box);
+      tl = mountTimelineAnswer(box, { span: { min: 1500, max: 1600 }, compact: true, enabled: false, celebrate: false, onLock });
+      return tl;
+    });
+    return tlP;
+  }
+
+  async function showTimeline(c) {
+    comp.setEnabled(false);
+    host.dataset.tl = "";
+    let t;
+    try {
+      t = await ensureTl();
+    } catch (err) {
+      tlP = null;
+      if (!destroyed) onProblem(err);
+      return;
+    }
+    if (!t || destroyed || current !== c || !enabled) return;
+    const q = c.question;
+    t.setQuestion({ span: q.span, question: c.text, context: [q.event, q.description].filter(Boolean).join(": ") });
+    t.enable();
+  }
+
+  async function onLock(year) {
+    const c = current;
+    if (!c?.tl || !enabled) return;
+    let res;
+    try {
+      res = await send({ attemptId: c.attemptId, q: c.q, year });
+    } catch (err) {
+      if (destroyed) return;
+      onProblem(err);
+      // Svaret finns redan (låst år) → vidare; annars samma försök igen.
+      if (enabled) showChoice(err?.code === "already-exists" ? null : c);
+      return;
+    }
+    if (destroyed) return;
+    if (Number.isInteger(res?.nextQ)) nextQ = res.nextQ;
+    if (res?.correct) {
+      enabled = false;
+      tl.disable();
+      onCorrect({ attemptId: c.attemptId, answerP: Promise.resolve(res) });
+      return;
+    }
+    if (Number.isInteger(res?.correctYear)) tl.reveal(res.correctYear);
+    else tl.disable();
+    flashWrong();
+    setTimeout(() => { if (enabled && !destroyed && current === c) showChoice(); }, TL_WRONG_MS);
+  }
+
   return {
     show() {
       if (destroyed) return;
@@ -142,6 +213,7 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
     },
     hide() {
       enabled = false;
+      tl?.disable();
       if (choice) comp.setEnabled(false);
       else comp.setEnabled(false, "");
     },
@@ -151,6 +223,7 @@ export function createQuestionFlow(host, { mode, answerKind, send, onCorrect, on
     destroy() {
       destroyed = true;
       clearTimeout(wrongT);
+      tl?.destroy();
       comp.destroy();
     },
   };
