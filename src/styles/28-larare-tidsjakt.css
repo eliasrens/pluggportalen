@@ -1,0 +1,87 @@
+/* ---- Tidsjakten i lärarflödet (issue #598, epic #595) --------------------
+   Minitidslinje (spann + en prick per händelse), granskning av händelserna före
+   sparande, spann-redigeraren i underradens Tidsjakten-flik och antalsväljaren
+   i wizarden / "Lägg till innehåll". Mörka lärardesignen: accentgrön som enda
+   accent, röd bara för händelser utanför spannet. */
+.teacher-dark .tl-mini { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px 8px; }
+.teacher-dark .tl-mini-track {
+  position: relative;
+  height: 6px;
+  margin: 6px 0 2px;
+  background: var(--t-border-strong);
+  border-radius: 999px;
+}
+.teacher-dark .tl-mini-dot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  transform: translateY(-50%);
+  background: var(--t-accent);
+  border: 2px solid var(--t-surface);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(46, 193, 110, 0.4);
+}
+.teacher-dark .tl-mini-dot.out { background: #eb5757; box-shadow: 0 0 0 1px rgba(235, 87, 87, 0.5); }
+.teacher-dark .tl-mini-ticks { position: relative; height: 22px; }
+.teacher-dark .tl-mini-tick {
+  position: absolute;
+  top: 0;
+  height: 6px;
+  border-left: 1px solid var(--t-muted);
+}
+.teacher-dark .tl-mini-tick > span {
+  position: absolute;
+  top: 6px;
+  transform: translateX(-50%);
+  color: var(--t-muted);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.teacher-dark .tl-mini-cap { color: var(--t-text); font-size: 0.84rem; font-weight: 600; }
+.teacher-dark .tl-mini-auto { color: var(--t-muted); font-weight: 400; }
+
+.teacher-dark .tl-review {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+}
+.teacher-dark .tl-review-h { margin: 0 0 4px; color: var(--t-text); font-size: 1rem; }
+.teacher-dark .tl-rv-list { margin: 8px 0 0; padding: 0; list-style: none; max-height: 420px; overflow-y: auto; }
+.teacher-dark .tl-rv-item { display: flex; gap: 14px; padding: 10px 0; }
+.teacher-dark .tl-rv-item + .tl-rv-item { border-top: 1px solid var(--t-border); }
+.teacher-dark .tl-rv-year {
+  flex: none;
+  min-width: 64px;
+  color: #7ee0a6;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.teacher-dark .tl-rv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.teacher-dark .tl-rv-event { color: var(--t-text); font-weight: 700; }
+.teacher-dark .tl-rv-q { color: var(--t-text); }
+.teacher-dark .tl-rv-desc { color: var(--t-muted); font-size: 0.88rem; overflow-wrap: anywhere; }
+
+.teacher-dark .ai-span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+}
+.teacher-dark .ai-span-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.teacher-dark .ai-span-label { color: var(--t-text); font-weight: 700; margin-right: 4px; }
+.teacher-dark .ai-span label { display: inline-flex; align-items: center; gap: 6px; color: var(--t-muted); font-size: 0.88rem; }
+.teacher-dark .ai-span input[type="number"],
+.teacher-dark .ai-field-year input { width: 7.5em; font-variant-numeric: tabular-nums; }
+.teacher-dark .ai-span-preview .tl-mini { padding: 10px 4px 2px; }
+.teacher-dark .ai-span .ai-hint { margin: 0; color: var(--t-muted); font-size: 0.8rem; }
+
+.teacher-dark .wz-tl-count { margin-top: 14px; max-width: 420px; }
+.teacher-dark .merge-tl-count select { min-width: 8em; }

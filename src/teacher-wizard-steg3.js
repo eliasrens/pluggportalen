@@ -17,6 +17,7 @@ import { listPairImageKeys } from "./pair-images.js";
 import { createGeneratorControl } from "./teacher-generator.js";
 import { aiTypes, summaryParts, wantsGenerator } from "./teacher-wizard-state.js";
 import { el, esc, icon, copyText, warningsHtml } from "./teacher-shared.js";
+import { timelineReviewHtml } from "./teacher-timeline-mini.js";
 
 /** Rita valideringsfel (kompositörens showErrors). */
 export function renderErrors(box, errors) {
@@ -29,6 +30,8 @@ export function renderErrors(box, errors) {
 /**
  * Rita "✓ Ser bra ut! Det här skapas: …" (kompositörens showValidSummary) +
  * ev. varningar (okänd kategori m.m., #467) i en gul ruta under – blockerar inte.
+ * Tidsjakten (#598): händelserna granskas här före sparande (årtal, frågor,
+ * texter före/efter svaret + minitidslinje över spannet).
  */
 export function renderSummary(box, value, tail, warnings = []) {
   const { generator, bits } = summaryParts(value);
@@ -41,7 +44,7 @@ export function renderSummary(box, value, tail, warnings = []) {
   box.innerHTML = `<div class="msg ok">
     ✓ <b>Ser bra ut!</b> Det här skapas: <b>${esc(value.name)}</b>${parts.length ? " – " + parts.join(", ") : ""}.
     ${tail}
-  </div>${warningsHtml(warnings)}`;
+  </div>${warningsHtml(warnings)}${timelineReviewHtml(value.timeline, value.timelineSpan)}`;
 }
 
 /**
@@ -103,7 +106,12 @@ export function createStep3(wz) {
   const generatorCtl = createGeneratorControl(root.querySelector("#generator-config"), () => wz.sync());
 
   root.querySelector("#copy-area-prompt").addEventListener("click", (e) =>
-    copyText(buildAreaPrompt(aiTypes(wz.state), wz.state.onskemal, normalizeGrade(wz.state.grade)), e.currentTarget)
+    copyText(
+      buildAreaPrompt(aiTypes(wz.state), wz.state.onskemal, normalizeGrade(wz.state.grade), {
+        timelineCount: wz.state.timelineCount,
+      }),
+      e.currentTarget
+    )
   );
 
   jsonEl.addEventListener("input", () => wz.sync());

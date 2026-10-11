@@ -24,13 +24,13 @@ test("fyra steg i ordning", () => {
 });
 
 test("blankState: tomt, inget kort förvalt (läraren väljer i steg 2)", () => {
-  assert.deepEqual(blankState(), { name: "", grade: null, emoji: "", types: [], onskemal: "" });
+  assert.deepEqual(blankState(), { name: "", grade: null, emoji: "", types: [], onskemal: "", timelineCount: null });
   assert.notEqual(blankState().types, blankState().types, "ny array varje gång");
 });
 
 test("stateFromArea fyller namn/emoji/årskurs/typer", () => {
   const s = stateFromArea({ id: "v", name: "Vikingar", coverEmoji: " ⚔️ ", grade: "4", exerciseTypes: ["pairs", "quiz"] });
-  assert.deepEqual(s, { name: "Vikingar", grade: "ak4", emoji: "⚔️", types: ["quiz", "pairs"], onskemal: "" });
+  assert.deepEqual(s, { name: "Vikingar", grade: "ak4", emoji: "⚔️", types: ["quiz", "pairs"], onskemal: "", timelineCount: null });
 });
 
 test("stateFromArea härleder typer för äldre områden och tappar aldrig generatorn", () => {
