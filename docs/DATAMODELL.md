@@ -66,11 +66,14 @@ läsning för klienten).
 | `pairs`       | array\<Pair\>  | Fakta-par (begrepp ↔ förklaring)         |
 | `exerciseTypes` | string[]     | Valda övningstyper (se nedan)            |
 | `generator`   | object \| saknas | Räknegenerator – ett eller flera räknesätt (se nedan) |
+| `timeline`    | array\<TimelineEvent\> \| saknas | Tidslinjefrågor för Tidsjakten, Quiz och Live (se nedan, #596) |
+| `timelineSpan` | `{ from, to }` \| saknas | Valfritt tidsspann för tidslinjen (se nedan, #596) |
 
 **exerciseTypes**: läraren kryssar i vilka övningstyper området ska ha i
 "Fix område"-formuläret (`src/teacher-content.js`). Giltiga id (se
 [`src/exercise-types.js`](../src/exercise-types.js)): `"quiz"` (Quiz, Läsförståelse,
-Kunskapsjakt), `"pairs"` (Para ihop, Memory) och `"bildpar"` (fakta-par med bild).
+Kunskapsjakt), `"pairs"` (Para ihop, Memory), `"bildpar"` (fakta-par med bild),
+`"generator"` (räknegeneratorn) och `"tidsjakt"` (Tidsjakten + tidslinjefrågor, #596).
 Valet styr AI-prompten (`buildAreaPrompt`) så att bara passande innehåll efterfrågas
 (t.ex. inga bildpar om `"bildpar"` inte kryssats). Saknas fältet (äldre områden)
 härleds typerna ur innehållet vid validering, så dokumentet får alltid fältet.
@@ -99,6 +102,56 @@ rättning/answerType/bildstöd följer varje uppgifts faktiska topic.
 **Bakåtkompatibelt:** det gamla formatet `{ topic, variants, talstorlek?, bildstod?, grade? }`
 läses som en lista med ett räknesätt (ger exakt samma uppgifter som förut) – ingen
 migrering; nästa sparning skriver det nya formatet.
+
+**timeline** (Tidsjakten, epic #595/#596): historiska händelser som eleven besvarar
+genom att **dra en markör på en tidslinje** till ett årtal – aldrig flerval. EN lagring
+per händelse på området; samma lista används av Tidsjakten, Quiz, Guldrushen och
+Snilleblixten (inga kopior per läge). Ligger i en egen lista, inte i `quiz[]`, så
+lägen som läser `quiz[]` (Kunskapsjakt, Fånga sanningar, äventyr …) aldrig får en
+tidslinjefråga som flerval.
+
+```js
+timeline: [
+  { id: "e1",                                   // "e1", "e2" … (eller eget id, slug)
+    event: "Stockholms blodbad",                // händelsens namn (obligatoriskt)
+    question: "Vilket år inträffade Stockholms blodbad?", // frågan (obligatorisk)
+    year: 1520,                                 // HELTAL, obligatoriskt; negativt = f.Kr.
+    description: "Kristian II lät avrätta …",   // visas FÖRE svaret – får inte avslöja årtalet
+    explanation: "Det skedde i november 1520." } // visas EFTER svaret (årtalet får stå här)
+],
+timelineSpan: { from: 1500, to: 1580 }          // valfritt; heltal, from < to
+```
+
+Regler (`src/validate-timeline.js`, anropas från `validate.js`): `event`, `question`
+och `year` är obligatoriska; `year` är ett heltal mellan −100000 och 2100 (en sträng
+med bara ett heltal, `"1520"`, godtas och blir tal). `event`, `question` och
+`description` får inte innehålla årtalet som fristående tal (årtal under 100
+kontrolleras inte – för många falsklarm). Saknad `description`/`explanation` ger en
+**varning**. Samma händelse + år två gånger tas med en gång (varning). Ett satt
+`timelineSpan` måste rymma alla händelser. Fältet `exerciseTypes` får `"tidsjakt"`
+(härleds ur `timeline` för områden utan uttryckligt val).
+
+`timelineSpan` styr tidslinjens spann. Saknas det härleder tidslinjekomponenten ett
+spann med marginal ur områdets händelser – linjen centreras **aldrig** på rätt svar.
+
+**Bakåtkompatibelt:** områden utan `timeline` valideras och sparas exakt som förut –
+fälten skrivs bara när det finns händelser respektive ett spann. Firestore-reglerna för
+`areas` (lärare skriver, inloggade läser) täcker de nya fälten utan ändring.
+
+**Innehållsflödet** (gäller alla typer, Tidsjakten är bara en lista till):
+1. **Prompt:** läraren väljer typer i wizarden (steg 2) → `buildAreaPrompt(types,
+   önskemål, årskurs, { timelineCount })` (`src/prompts.js` + fragmenten i
+   `src/prompt-parts.js`). Är `"tidsjakt"` vald läggs schemat för `timeline`, antalet
+   (lärarens 5/10/15/20 eller en skala efter materialet), kvalitetskraven och ett
+   exempel till; annars nämns tidslinjen inte alls.
+2. **Inklistrat AI-svar:** JSON:en klistras in i materialrutan (steg 3).
+3. **Validering:** `parseAndValidateArea` → `validateArea` (`src/validate.js`)
+   normaliserar allt och ger fel (blockerar) och varningar (blockerar inte).
+4. **Sammanslagning ("skapa fler"):** `buildMorePrompt` skickar med befintligt innehåll
+   (även händelserna och spannet); svaret slås ihop med `mergeAreaContent`
+   (`src/merge-area.js`) – dubbletter på händelse + år hoppas över, nya id `eN`,
+   områdets spann behålls – och slutvalideras med `validateArea`.
+5. **Spara:** `saveArea` (`src/data-content.js`) skriver hela dokumentet (`setDoc`).
 
 **grade**: valfri årskurs på området (`"ak1"`–`"ak9"`), satt i innehålls-
 formuläret (`src/teacher-content.js`). Fältet är **valfritt och bakåtkompatibelt**:

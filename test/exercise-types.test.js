@@ -27,9 +27,9 @@ import { buildAreaPrompt } from "../src/prompts.js";
 
 // --- exercise-types.js ------------------------------------------------------
 
-test("EXERCISE_TYPES har de fyra valbara typerna (inkl. generator)", () => {
+test("EXERCISE_TYPES har de fem valbara typerna (inkl. generator och tidsjakt)", () => {
   const ids = EXERCISE_TYPES.map((t) => t.id);
-  assert.deepEqual(ids, ["quiz", "pairs", "bildpar", "generator"]);
+  assert.deepEqual(ids, ["quiz", "pairs", "bildpar", "generator", "tidsjakt"]);
   // generator är genererad (egen kontroll, inte i AI-prompt-rutan).
   assert.equal(EXERCISE_TYPES.find((t) => t.id === "generator").generated, true);
 });

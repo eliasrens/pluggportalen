@@ -5,6 +5,11 @@
    surfplatta och mobil. Färg + form + siffran 1–4 på varje knapp.
    Kontrast: vit text på röd/blå/grön (≥ 5:1), mörk text på gul (≥ 10:1).
    Inga z-index behövs (DESIGNSYSTEM §1) – allt ligger i flödet.
+   Textlängd (#621): data-len="kort|mellan|lang" (choice-answer.js
+   textLength). "kort" (multiplikationens tal) = den stora vh/vw-stilen,
+   orörd. Längre texter skalar efter komponentens egen bredd (cqi) – på
+   elevsidan är ytan bara ~800 px bred bredvid sidomenyn, så vw blev för
+   stort. Ord bryts aldrig mitt i (bara extremt långa ord, som nödfall).
    ========================================================================== */
 
 .ca-root {
@@ -34,17 +39,26 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Quizets passage (#582): kort kontext ovanför frågan – liten och dämpad så
-   att frågan behåller fokus. */
+/* Quizets passage (#582): lästexten ovanför frågan – läsbar (~15–16 px på
+   Chromebook), vänsterställd och med en maxhöjd; längre text scrollar i
+   rutan så att frågan och alla fyra knappar alltid syns (#621). */
 .ca-kontext {
   flex: none;
-  margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 60em;
-  text-align: center;
-  font-size: clamp(13px, 2.1vh, 18px);
-  font-style: italic;
-  line-height: 1.3;
-  opacity: 0.75;
+  max-height: 24vh;
+  overflow-y: auto;
+  margin: 0 auto;
+  padding: 0.45em 0.8em;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(34, 49, 74, 0.12);
+  text-align: left;
+  font-size: clamp(14px, min(2.2vh, 2cqi), 18px);
+  font-weight: 500;
+  line-height: 1.4;
+  overflow-wrap: break-word;
 }
 .ca-kontext[hidden] { display: none; }
 
@@ -92,9 +106,40 @@
 .ca-text {
   flex: 1;
   min-width: 0;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word; /* bara nödfall: ett ord bredare än knappen */
   line-height: 1.1;
 }
+
+/* --- Längre texter (#621) ---------------------------------------------------
+   Roten blir container först här, så "kort" påverkas inte alls. */
+.ca-root[data-len="mellan"],
+.ca-root[data-len="lang"] { container-type: inline-size; }
+
+.ca-fraga[data-len="mellan"] {
+  font-size: clamp(20px, min(5vh, 4cqi), 48px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.ca-fraga[data-len="lang"] {
+  font-size: clamp(18px, min(3.8vh, 3.2cqi), 34px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.ca-grid[data-len="mellan"] .ca-knapp {
+  gap: 0.5em;
+  padding: 0.35em 1.1em 0.35em 0.7em;
+  font-size: clamp(20px, min(6vh, 5cqi), 56px);
+}
+.ca-grid[data-len="lang"] .ca-knapp {
+  gap: 0.6em;
+  min-height: 56px;
+  padding: 0.5em 1.4em 0.5em 0.8em;
+  font-size: clamp(16px, min(3.6vh, 3cqi), 30px);
+}
+.ca-grid[data-len="mellan"] .ca-text { line-height: 1.15; }
+.ca-grid[data-len="lang"] .ca-text { line-height: 1.2; text-wrap: pretty; }
 
 .ca-tangent {
   position: absolute;
