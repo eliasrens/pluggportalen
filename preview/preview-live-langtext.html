@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – långa quiztexter i Live (#621)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Väljaren ligger ovanpå (fast) så att elevsidans layout är orörd. */
+      .pv { position: fixed; right: 8px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+        max-width: 560px; padding: 6px 10px; font: 12px system-ui, sans-serif; background: rgba(255, 255, 255, 0.92);
+        border: 1px solid #ccd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15); }
+      .pv[hidden] { display: none; }
+      .pv a { padding: 2px 6px; border-radius: 4px; color: #1f4fa8; text-decoration: none; }
+      .pv a[aria-current] { background: #1f4fa8; color: #fff; }
+      .pv b { margin-left: 4px; }
+      .pv-stub { padding: 20px; color: #8a93a8; font-weight: 700; }
+    </style>
+  </head>
+  <body class="med-sidomeny live-lage">
+    <!-- Samma ram som appens elevsida i Live: sidomeny (264 px) + .container
+         (max 880 px) – formatets spelyta ritas med formatens riktiga CSS. -->
+    <div class="layout">
+      <aside class="sidebar" aria-label="Sidomeny"><div class="pv-stub">Sidomeny</div></aside>
+      <main id="app" class="container"></main>
+    </div>
+    <nav class="pv" aria-label="Förhandsvisning"></nav>
+
+    <script type="module">
+      import { ensureLiveCss } from "../src/live/live-css.js";
+      import { mountChoiceAnswer } from "../src/live/choice-answer.js";
+      import { DEMO_QUIZ } from "../src/live/demo-quiz.js";
+
+      const p = new URLSearchParams(location.search);
+      const VY = p.get("vy") === "sb" ? "sb" : "gr";
+      const FRAGOR = ["mult", "quiz", "lastext"].includes(p.get("fragor")) ? p.get("fragor") : "lastext";
+      const NR = Math.min(DEMO_QUIZ.length - 1, Math.max(0, Number(p.get("nr")) || 0));
+
+      const link = (k, v, text) => {
+        const u = new URLSearchParams(p);
+        u.set(k, v);
+        const on = (p.get(k) ?? { vy: "gr", fragor: "lastext", nr: "0" }[k]) === v;
+        return `<a href="?${u}"${on ? ' aria-current="true"' : ""}>${text}</a>`;
+      };
+      document.querySelector(".pv").innerHTML = `<b>Vy</b>${link("vy", "gr", "Guldrushen")}${link("vy", "sb", "Snilleblixten")}
+        <b>Frågor</b>${link("fragor", "mult", "Multiplikation")}${link("fragor", "quiz", "Lång quiz")}${link("fragor", "lastext", "+ lästext")}
+        <b>Fråga</b>${DEMO_QUIZ.map((_, i) => link("nr", String(i), String(i + 1))).join("")}
+        <a href="./preview-snilleblixt-demo.html?fas=fraga&fragor=lastext" target="_blank">Projektorn ↗</a>`;
+      document.querySelector(".pv").hidden = p.get("panel") === "av"; // skärmdumpar
+
+      const CSS = VY === "gr" ? "src/live/formats/guldrush/guldrush-elev.css" : "src/live/formats/snilleblixt/snilleblixt-elev.css";
+      ensureLiveCss([CSS]);
+      const titel = VY === "gr" ? "💰 Guldrushen" : "⚡ Snilleblixten";
+      // Formatens createStage-mallar (guldrush-student.js / snilleblixt-student.js), utan Firestore.
+      const play = VY === "gr"
+        ? `<div class="gr-elev"><div class="gr-topp">
+            <div class="gr-guld-ruta"><span class="gr-guld-mynt" aria-hidden="true"></span>
+              <span class="gr-guld-pos"><b class="gr-guld">120</b></span><span class="gr-guld-enh">guld</span></div>
+            <div class="gr-info"><p class="gr-lage">20 guld bakom Alma</p></div>
+            <button type="button" class="gr-ljud">🔇</button><span class="gr-horn">🦊</span></div>
+            <div class="gr-mitt"><div class="gr-svar"></div></div></div>`
+        : `<div class="sb-elev"><div class="sb-rad"><span class="sb-nr">Fråga 3 av 10</span><span class="sb-tid"><i></i></span></div>
+            <div class="sb-svar"></div></div>`;
+      document.getElementById("app").innerHTML = `<div class="live-elev ${VY}-elev-vy">
+          <header class="live-elev-head"><span class="live-elev-badge">⚡ LIVE</span><h1 class="live-elev-title">${titel}</h1><span class="live-elev-me"></span></header>
+          <div class="live-elev-stage"><div class="live-elev-play">${play}</div></div></div>`;
+
+      const host = document.querySelector(VY === "gr" ? ".gr-svar" : ".sb-svar");
+      const ca = mountChoiceAnswer(host, { sentText: "" });
+      if (FRAGOR === "mult") {
+        ca.setQuestion({ options: ["56", "64", "48", "66"], question: "7 · 8 = ?" });
+      } else {
+        const q = DEMO_QUIZ[NR];
+        ca.setQuestion({ options: q.options, question: q.text, context: FRAGOR === "lastext" ? q.passage : "" });
+      }
+      window.__ca = ca;
+    </script>
+  </body>
+</html>

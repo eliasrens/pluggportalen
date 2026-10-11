@@ -24,7 +24,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
-import { CHOICE_STYLES, choiceShapeSvg } from "../../choice-answer.js";
+import { CHOICE_STYLES, choiceShapeSvg, textLength, keepNumbers } from "../../choice-answer.js";
 import { prefersReducedMotion } from "../../design/live-reactions.js";
 
 const R = 44;
@@ -65,11 +65,16 @@ export function createKlocka(host) {
   };
 }
 
-/** Frågetextens storleksklass efter längd (stor och lättläst, aldrig < 28 px). */
-function textSize(text) {
+/** Frågetextens storleksklass efter längd (stor och lättläst, aldrig < 28 px).
+ *  Med lästext ett steg mindre, så att kortet ryms över alternativen (#621). */
+function textSize(text, passage = false) {
   const n = String(text || "").length;
-  return n <= 24 ? "xl" : n <= 70 ? "l" : n <= 140 ? "m" : "s";
+  const i = (n <= 24 ? 0 : n <= 70 ? 1 : n <= 140 ? 2 : 3) + (passage ? 1 : 0);
+  return ["xl", "l", "m", "s"][Math.min(3, i)];
 }
+
+/** Alternativens storlek – samma längdklass som elevens knappar (choice-answer.js). */
+const OPT_SIZE = { kort: "xl", mellan: "l", lang: "m" };
 
 export function createSchakt(host) {
   const root = document.createElement("section");
@@ -92,14 +97,15 @@ export function createSchakt(host) {
     const text = q?.question?.text || "";
     const passage = q?.question?.passage || "";
     const opts = (q?.question?.options || []).slice(0, 4);
+    const optLen = textLength(opts, "alt");
     root.dataset.kind = answerKind;
     root.innerHTML = `
-      <div class="sbs-kort">${passage ? `<p class="sbs-kontext">${esc(passage)}</p>` : ""}<p class="sbs-fraga sbs-t-${textSize(text)}">${esc(text)}</p></div>
-      ${answerKind === "choice" ? `<ol class="sbs-alt" data-n="${opts.length}">${opts.map((o, i) => `
+      <div class="sbs-kort">${passage ? `<p class="sbs-kontext">${esc(keepNumbers(passage))}</p>` : ""}<p class="sbs-fraga sbs-t-${textSize(text, !!passage)}">${esc(keepNumbers(text))}</p></div>
+      ${answerKind === "choice" ? `<ol class="sbs-alt" data-n="${opts.length}" data-len="${optLen}">${opts.map((o, i) => `
         <li class="sbs-opt sbs-${CHOICE_STYLES[i].key}" data-i="${i}" aria-label="${esc(CHOICE_STYLES[i].label)}: ${esc(o)}">
           <span class="sbs-stapel" aria-hidden="true"><i></i></span>
           <span class="sbs-form">${choiceShapeSvg(i)}</span>
-          <span class="sbs-otext sbs-t-${textSize(o) === "xl" ? "xl" : "l"}">${esc(o)}</span>
+          <span class="sbs-otext sbs-t-${OPT_SIZE[optLen]}">${esc(keepNumbers(o))}</span>
           <b class="sbs-antal" aria-hidden="true"></b>
         </li>`).join("")}</ol>`
     : `<div class="sbs-skriv"><span class="sbs-penna" aria-hidden="true">✍️</span> Skriv ditt svar!</div>`}
