@@ -28,6 +28,8 @@
 //     demo.protectedList()          [{ uid, name, leftMs }] – skyddade just nu
 //     demo.leadChange()             en ny elev tar ensam ledningen
 //     demo.storm()                  alla elever öppnar en kista samtidigt
+//     demo.treasure()               klassen når nästa gemensamma skatt (en
+//                                   Guld-kista tar totalen över delmålet, #591)
 //     demo.soonOut(sek)             matchen har sek sekunder kvar
 //     demo.playHistory(n)           n svar direkt (en pågående match)
 //     demo.jumpToFinal(tie)         hoppa till pallplatsen; tie null | "andra"
@@ -44,11 +46,12 @@ import {
   shieldUntil, hitProtectionUntil, protectedLeftMs,
 } from "./delat/guldrush-regler.js";
 import { GR_CHESTS } from "./delat/chests-config.js";
-import { withCoinIcon } from "../../../icons.js";
+import { milestone } from "./gr-proj-scen.js";
+import { withGrIcons } from "./gr-ikoner.js";
 import { DEMO_NAMES, demoMembers } from "../snilleblixt/sb-demo.js";
 
 export { forceReducedMotion } from "../snilleblixt/sb-demo.js";
-export const DEMO_CHESTS = GR_CHESTS.map((c) => ({ id: c.id, icon: withCoinIcon(c.icon), label: c.label }));
+export const DEMO_CHESTS = GR_CHESTS.map((c) => ({ id: c.id, icon: withGrIcons(c.icon), label: c.label }));
 
 export function createGrDemo({
   sid = "demo-guldrush", classes = 1, showNames = true, stealSwap = true, screen = false,
@@ -315,6 +318,17 @@ export function createGrDemo({
       lo.gold = Math.max(0, r[0].gold - 60); // + Skattkammaren (100) = leder med 40
       const out = answer(lo.uid, true, "skattkammare");
       onLog(`⭐ ${lo.name} tar ledningen (${out?.result})`);
+    },
+    treasure() {
+      if (!ensureLive()) return onLog("matchen är slut");
+      const total = [...gp.values()].reduce((n, x) => n + (x.gold || 0), 0);
+      const next = milestone(total).next;
+      if (!next) return onLog("alla skatter redan hittade");
+      // Tyst påfyllning så att nästa Guld-kista (+25) tar totalen över skatten.
+      const g = byGold()[Math.min(6, players.length - 1)];
+      g.gold += Math.max(0, next - total - 25);
+      answer(g.uid, true, "guld");
+      onLog(`🎉 skatt ${next} – ${g.name}`);
     },
     storm() {
       if (!ensureLive()) return onLog("matchen är slut");

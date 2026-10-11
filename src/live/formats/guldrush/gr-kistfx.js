@@ -29,7 +29,8 @@
 //   svgOf(name) → inline-SVG (krona, tvättbjörn, pilar, löv, sköld, ädelsten)
 // ============================================================================
 
-import { coinIcon, withCoinIcon } from "../../../icons.js";
+import { coinIcon } from "../../../icons.js";
+import { withGrIcons } from "./gr-ikoner.js";
 
 const EASE = "cubic-bezier(.2,.8,.3,1)";
 const GEM_COLORS = ["#e53950", "#2f7de1", "#22b573", "#9b51e0"];
@@ -235,7 +236,7 @@ export function playLook(look, { fx, chest = null, gold = null, avatar = null, i
   if (!fx || typeof fx.animate !== "function") return Promise.resolve();
   const fn = LOOK_FNS[look];
   if (reduced || !fn) {
-    const el = part(fx, "grfx-still", `<b>${STILL[look] || withCoinIcon(icon, 48)}</b>`);
+    const el = part(fx, "grfx-still", `<b>${STILL[look] || withGrIcons(icon, 48)}</b>`);
     return run(el, [{ transform: at(0, -2.2), opacity: 0 }, { offset: 0.3, opacity: 1 }, { offset: 0.75, opacity: 1 }, { transform: at(0, -2.2), opacity: 0 }],
       { duration: 850, easing: "ease-in-out" });
   }

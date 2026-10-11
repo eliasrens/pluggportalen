@@ -42,7 +42,8 @@
 //   eligibleVictims(kind, thief, players, now) → spelare som går att välja
 //                                     (servern slumpar bland dem)
 //   resolveVictim(kind, thief, victim) → { amount, thiefGold, victimGold }
-//   eventText(ev, { names })        → händelseflödets text (ev från grEvents)
+//   eventText(ev, { names, short? }) → händelsens text (ev från grEvents);
+//                                     short = flödets korta rad (feedText, #591)
 //                                     ("{mynt}" = mynt-ikonens markör, #590)
 // ============================================================================
 
@@ -174,14 +175,15 @@ export function resolveVictim(kind, thief, victim) {
  * names false (session.showNames av) → "Någon"/"en klasskamrat". Okänd typ
  * (t.ex. "shieldBlock" från före #588) → "".
  */
-export function eventText(ev, { names = true } = {}) {
+export function eventText(ev, { names = true, short = false } = {}) {
   const vars = {
     namn: names ? ev?.name || "?" : GR_ANON.namn,
     offer: names ? ev?.victimName || "?" : GR_ANON.offer,
     belopp: Math.abs(Number(ev?.amount) || 0).toLocaleString("sv-SE"),
     mynt: GR_COIN, // markören står kvar – UI:t byter den mot mynt-ikonen
   };
-  if (ev?.type === "lead") return fill(GR_EVENT_TEXTS.lead, vars);
+  if (ev?.type === "lead") return fill(short ? GR_EVENT_TEXTS.leadFeed : GR_EVENT_TEXTS.lead, vars);
   if (ev?.type && !["chest", ...VICTIM_KINDS].includes(ev.type)) return "";
-  return fill(chestById(ev?.chest)?.eventText, vars);
+  const chest = chestById(ev?.chest);
+  return fill(short ? chest?.feedText || chest?.eventText : chest?.eventText, vars);
 }

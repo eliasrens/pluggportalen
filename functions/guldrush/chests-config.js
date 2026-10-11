@@ -10,10 +10,10 @@
 // Lövmodul – inga importer (Cloud Functions laddar den utan resten av src/).
 //
 // Servern läser BARA id, weight och effect (+ fallback). Visuella fält (icon,
-// label, rarity, look, sound, eventText) ignoreras där.
+// label, rarity, look, sound, eventText, feedText) ignoreras där.
 //
 // KISTA = { id, icon, label, rarity, weight, effect, look, sound, eventText,
-//           fallback? }
+//           feedText, fallback? }
 //   weight  relativ sannolikhet (summan behöver inte vara 100)
 //   effect  { kind, … } – vad kistan gör (guldrush-regler.js applySelfEffect /
 //           resolveVictim):
@@ -28,7 +28,9 @@
 //   fallback  (steal/swap) kistans id som gäller i stället när ingen kan väljas
 //             (alla skyddade, ingen har mer guld …) – "vanlig guldkista"
 //   look/sound  animations- och ljud-id för elevvyn/projektorn
-//   eventText   händelseflödets mall: {namn} öppnaren, {belopp}, {offer}
+//   eventText   händelsens mall: {namn} öppnaren, {belopp}, {offer}
+//   feedText    projektorns händelseflöde – EN kort rad ("💎 {namn} +{belopp}",
+//               "🦝 {namn} → {offer} {belopp}"); "✖️2" ritas som SVG (#591)
 //   {mynt} (GR_COIN) i icon/eventText = mynt-ikonen: emojin (Emoji 13) är ▯
 //             på Windows 10, så UI:t byter markören mot coinIcon() (src/icons.js
 //             withCoinIcon, samma markör där) – #590
@@ -46,57 +48,68 @@ export const GR_CHESTS = Object.freeze([
     id: "lite_guld", icon: GR_COIN, label: "Lite guld", rarity: "vanlig", weight: 22,
     effect: { kind: "gold", amount: 10 },
     look: "mynt-hopp", sound: "klirr", eventText: "{mynt} {namn} hittade {belopp} guld!",
+    feedText: "{mynt} {namn} +{belopp}",
   },
   {
     id: "guld", icon: "💰", label: "Guld", rarity: "vanlig", weight: 20,
     effect: { kind: "gold", amount: 25 },
     look: "mynt-fontan", sound: "klirr-stor", eventText: "💰 {namn} hittade {belopp} guld!",
+    feedText: "💰 {namn} +{belopp}",
   },
   {
     id: "mycket_guld", icon: "💎", label: "Mycket guld", rarity: "ovanlig", weight: 9,
     effect: { kind: "gold", amount: 50 },
     look: "adelstenar", sound: "glitter", eventText: "💎 {namn} hittade {belopp} guld!",
+    feedText: "💎 {namn} +{belopp}",
   },
   {
     id: "skattkammare", icon: "👑", label: "Skattkammare", rarity: "sällsynt", weight: 3,
     effect: { kind: "gold", amount: 100 },
     look: "guldexplosion", sound: "fanfar", eventText: "👑 SKATTKAMMARE! {namn} hittade {belopp} guld!",
+    feedText: "👑 {namn} +{belopp}",
   },
   {
     id: "dubbla", icon: "✖️2", label: "Dubbla", rarity: "ovanlig", weight: 7,
     effect: { kind: "double", cap: 150 },
     look: "siffra-delas", sound: "pling-pling", eventText: "✖️2 {namn} dubblade sitt guld (+{belopp})!",
+    feedText: "✖️2 {namn} +{belopp}",
   },
   {
     id: "stold", icon: "🦝", label: "Stöld", rarity: "ovanlig", weight: 9,
     effect: { kind: "steal", share: 0.15 }, fallback: "guld",
     look: "tvattbjorn", sound: "smygtassar", eventText: "🦝 {namn} knyckte {belopp} guld från {offer}!",
+    feedText: "🦝 {namn} → {offer} {belopp}",
   },
   {
     id: "byte", icon: "🔄", label: "Byte", rarity: "sällsynt", weight: 3,
     effect: { kind: "swap" }, fallback: "guld",
     look: "guldpilar", sound: "svisch", eventText: "🔄 {namn} och {offer} bytte guld!",
+    feedText: "🔄 {namn} ↔ {offer}",
   },
   {
     id: "hal_i_fickan", icon: "🕳️", label: "Hål i fickan", rarity: "ovanlig", weight: 8,
     effect: { kind: "lose", share: 0.1 },
     look: "mynt-rullar", sound: "mynt-studs", eventText: "🕳️ Hoppsan! {namn} tappade {belopp} guld.",
+    feedText: "🕳️ {namn} −{belopp}",
   },
   {
     id: "tom", icon: "🍃", label: "Tom kista", rarity: "vanlig", weight: 13,
     effect: { kind: "empty" },
     look: "lov-dammpuff", sound: "puff", eventText: "🍃 {namn} hittade ett löv.",
+    feedText: "🍃 {namn}: ett löv",
   },
   {
     id: "skold", icon: "🛡️", label: "Sköld", rarity: "ovanlig", weight: 6,
     effect: { kind: "shield" },
     look: "skold-glod", sound: "vosh", eventText: "🛡️ {namn} är skyddad!",
+    feedText: "🛡️ {namn} skyddad",
   },
 ]);
 
 // Händelser som inte är en kista (samma mallar som eventText).
 export const GR_EVENT_TEXTS = Object.freeze({
   lead: "⭐ {namn} tog ledningen!",
+  leadFeed: "⭐ {namn} leder!",
   // Elevens egen notis när någon knyckt/bytt (elevskärmen, §6.7).
   victimSteal: "🦝 {namn} knyckte {belopp} guld från dig!",
   victimSwap: "🔄 {namn} bytte guld med dig!",

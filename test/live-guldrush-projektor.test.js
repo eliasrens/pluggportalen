@@ -17,6 +17,7 @@ import {
 } from "../src/live/formats/guldrush/gr-proj-scen.js";
 import { weight, trimPending } from "../src/live/formats/guldrush/gr-proj-scen.js";
 import { computeStandings } from "../src/live/formats/guldrush/guldrush-core.js";
+import { withGrIcons, x2Icon } from "../src/live/formats/guldrush/gr-ikoner.js";
 import { createLiveEventTracker } from "../src/live/design/live-events.js";
 import { createSoundGate, CUES } from "../src/live/proj-sound.js";
 import { GR_CHESTS, GR_COIN } from "../src/live/formats/guldrush/delat/chests-config.js";
@@ -123,6 +124,38 @@ test("flödet: specens exempel, inget hån, tomma fickor visas inte", () => {
       if (!names) assert.doesNotMatch(it.text, /Ali|Bo\b/);
     }
   }
+});
+
+test("#591: flödets korta rad – en rad per händelse, specens exempel", () => {
+  const sh = (ev, o) => feedItem(ev, o).short;
+  assert.equal(sh({ type: "chest", chest: "mycket_guld", uid: "t", name: "testklass101", amount: 50 }), "💎 testklass101 +50");
+  assert.equal(sh({ type: "chest", chest: "dubbla", uid: "t", name: "testklass101", amount: 150 }), "✖️2 testklass101 +150");
+  assert.equal(sh({ type: "steal", chest: "stold", uid: "a", name: "Alma", victimUid: "o", victimName: "Omar", amount: 30 }), "🦝 Alma → Omar 30");
+  assert.equal(sh({ type: "chest", chest: "lite_guld", uid: "a", name: "Alma", amount: 10 }), `${GR_COIN} Alma +10`);
+  assert.equal(sh({ type: "lead", uid: "c", name: "Clara" }), "⭐ Clara leder!");
+  assert.equal(sh({ type: "chest", chest: "skold", uid: "l", name: "Leo" }), "🛡️ Leo skyddad");
+  assert.equal(sh({ type: "steal", chest: "stold", uid: "a", name: "Alma", victimUid: "o", victimName: "Omar", amount: 30 }, { names: false }), "🦝 Någon → en klasskamrat 30");
+  // Alla kisttyper har en kort mall: utan mallrester, utan radbrytning, kortare än den långa texten.
+  for (const c of GR_CHESTS) {
+    for (const names of [true, false]) {
+      const it = feedItem({ type: "chest", chest: c.id, uid: "u", name: "Ali", victimUid: "v", victimName: "Bo", amount: 12 }, { names });
+      assert.ok(c.feedText, `${c.id} saknar feedText`);
+      assert.doesNotMatch(it.short.replaceAll(GR_COIN, ""), /[{}\n]|undefined/);
+      assert.ok(it.short.length < it.text.length, `${c.id}: kort rad ska vara kortare`);
+    }
+  }
+});
+
+test("#591: ✖️2 och {mynt} ritas som SVG – aldrig som \"X 2\" eller ▯", () => {
+  for (const txt of ["✖️2 Leo +150", "\u27162 Leo +150"]) {
+    const html = withGrIcons(txt);
+    assert.doesNotMatch(html, /\u2716/, txt);
+    assert.match(html, /<svg class="gr-x2"[^>]*aria-label="gånger 2"/);
+  }
+  const coin = withGrIcons(`${GR_COIN} Alma +10`);
+  assert.ok(!coin.includes(GR_COIN));
+  assert.match(coin, /<svg class="coin-svg"/);
+  assert.match(x2Icon(), /^<svg/);
 });
 
 test("stora händelser: Skattkammare, Byte och ledningsbyte → banderoll (designtest 5)", () => {

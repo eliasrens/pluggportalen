@@ -71,6 +71,7 @@
         <button data-act="anslut">+30 elever ansluter</button>
         <button data-act="auto">Svar strömmar in</button>
         <button data-act="storm">⚡ Händelsestorm (30 kistor)</button>
+        <button data-act="skatt">🎉 Gemensam skatt</button>
         <b>Kistor (en i taget)</b>
         <span data-kistor style="display:contents"></span>
         <b>Händelser</b>
@@ -157,6 +158,7 @@
         anslut: () => demo.join(30, 140),
         auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
         storm: () => demo.storm(),
+        skatt: () => demo.treasure(),
         kista: (b) => demo.chest(b.dataset.k),
         stold: () => demo.chest("stold"),
         byte: () => demo.chest("byte"),

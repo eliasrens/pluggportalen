@@ -21,12 +21,16 @@
 //     update(top [{ uid, rank, name, gold, prot }], { ref, leader })
 //                                  ritar om bara det som ändrats
 //     bump(uid)                    liten studs på högen (nytt guld)
+//     areas()                      alla GR_TOP platsers yta (figur + skylt) i
+//                                  skärmkoordinater – även tomma platser, så
+//                                  grottans dekor-vakt (#591) inte blinkar
+//                                  när en hög dyker upp
 //     has(uid), el, destroy()
 //   }
 // ============================================================================
 
 import { setAvatarState, prefersReducedMotion } from "../../design/live-reactions.js";
-import { pileSlot, pileLevel, tal } from "./gr-proj-scen.js";
+import { pileSlot, pileLevel, tal, GR_TOP } from "./gr-proj-scen.js";
 
 const OUT_MS = 650;
 const GAP = 8; // px (minst) mellan översta radens skylt och nedersta radens figurer
@@ -167,6 +171,16 @@ export function createHogar(host, { pool }) {
     el: root,
     update,
     has: (uid) => slots.has(uid) && !slots.get(uid).out,
+    areas() {
+      if (!size.fig) return [];
+      const r = root.getBoundingClientRect();
+      const f = size.fig;
+      return Array.from({ length: GR_TOP }, (_, i) => {
+        const p = place(i);
+        // Figuren (1.3 em hög, 2.3 em bred + hatt/bubbla) och skylten under.
+        return { left: r.left + p.x - 1.25 * f, right: r.left + p.x + 1.25 * f, top: r.top + p.y - 1.5 * f, bottom: r.top + p.y + size.lab };
+      });
+    },
     bump(uid) {
       const s = slots.get(uid);
       if (!s || s.out || prefersReducedMotion()) return;
