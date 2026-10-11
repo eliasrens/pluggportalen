@@ -208,3 +208,46 @@ describe("Snilleblixten: tidslinjefrågor", () => {
     assert.throws(() => planAnswer({ sid: "s1", s, uid: "a", classId: "4b", year: 1400, fv }));
   });
 });
+
+describe("Projektorn: spridningen och demot", async () => {
+  const { spreadBins } = await import("../src/timeline/timeline-spread.js");
+  const { spreadText, revealInfo } = await import("../src/live/formats/snilleblixt/sb-scen.js");
+  const { demoSnapshot, createSbDemo } = await import("../src/live/formats/snilleblixt/sb-demo.js");
+
+  it("spreadBins: årssteg efter spannets bredd, antal per grupp", () => {
+    assert.deepEqual(spreadBins([1520, 1520, 1523, 1559], { min: 1500, max: 1580 }), {
+      size: 2, bins: [{ from: 1520, to: 1521, n: 2 }, { from: 1522, to: 1523, n: 1 }, { from: 1558, to: 1559, n: 1 }],
+    });
+    assert.equal(spreadBins([1], { min: -3000, max: 2000 }).size, 100);
+    assert.deepEqual(spreadBins([], { min: 0, max: 50 }).bins, []);
+  });
+
+  it("spreadText och revealInfo: rätt år + anonym spridning, per fråga", () => {
+    assert.equal(spreadText([1530, 1515, 1527]), "Gissningarna: 1515–1530, mitten 1527");
+    assert.equal(spreadText([1527, 1527]), "Alla gissade 1527");
+    assert.equal(spreadText([]), "");
+    const q = { question: { kind: "timeline", span: { min: 1500, max: 1580 } }, facit: { year: 1527, correctAnswer: "1527" } };
+    const info = revealInfo(q, { answered: 3, correctCount: 1, guesses: [1530, 1527, 1515] }, "choice");
+    assert.equal(info.kind, "timeline");
+    assert.equal(info.correctYear, 1527);
+    assert.deepEqual(info.guesses, [1515, 1527, 1530]);
+    assert.equal(info.share, 33);
+    assert.equal(revealInfo({ question: { options: ["a", "b"] }, facit: { answerIndex: 0 } }, null, "choice").kind, "choice");
+  });
+
+  it("demot: varannan fråga är en tidslinjefråga och hela matchen går att spela", () => {
+    const snap = demoSnapshot("choice", "tidslinje");
+    assert.equal(snap.questions.filter((q) => q.kind === "timeline").length, 5);
+    assert.ok(snap.questions.every((q, i) => q.kind !== "timeline" || !JSON.stringify(q).includes(String(snap.facit[i].year))));
+    const demo = createSbDemo({ fragor: "tidslinje", auto: false, rng: seededRng(2) });
+    try {
+      demo.jumpToFinal();
+      const { scores, session } = demo.state();
+      assert.equal(session.status, "finished");
+      const tl = scores.find((s) => snap.questions[s.index].kind === "timeline");
+      assert.ok(tl.guesses.length > 0 && tl.correctCount > 0);
+    } finally {
+      demo.destroy();
+    }
+  });
+});
