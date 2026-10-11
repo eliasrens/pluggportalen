@@ -73,6 +73,7 @@ export { MAX_QUESTIONS_PER_SESSION };
  * @param {Array} pool  hela områdets fråge-pool (för läget)
  * @param {string[]} seen  nycklar som redan serverats i pågående varv (från
  *                          data.getQuestionRotation; saknas → slumpad start)
+ * @param {number} [limit]  max frågor (Quiz lämnar plats för tidslinjefrågor, #599)
  * @returns {{questions: Array, seen: string[]}}  frågorna att köra + den
  *          uppdaterade listan sedda nycklar att spara (data.saveQuestionRotation).
  *
@@ -80,8 +81,8 @@ export { MAX_QUESTIONS_PER_SESSION };
  * frågor går inte via den här – de kör exakt sina specifika frågor (repetition
  * inom rundan sköts av runQuestions och rör inte det här urvalet).
  */
-export function pickSessionQuestions(pool, seen) {
-  return pickRotatingQuestions(pool, seen);
+export function pickSessionQuestions(pool, seen, limit = MAX_QUESTIONS_PER_SESSION) {
+  return pickRotatingQuestions(pool, seen, limit);
 }
 
 /** Har frågan en icke-tom källtext ("passage")? En sådan fråga är en
@@ -289,8 +290,9 @@ export async function awardExercise(area, mode, { stars, bestScore, baseCoins, c
  *   (para-ihop/quiz m.fl.) skickar inte flaggan och är helt oförändrade.
  * @param {object} [opts.catStats]  rätt/totalt per frågekategori (#445), se awardExercise.
  * @param {object} [opts.classResult]  resultat för Klass-EXP-regeln (#479), se awardExercise.
+ * @param {string} [opts.scoreHtml]  extra resultat-markup under scoreLine (Tidsjaktens nyckeltal, #599).
  */
-export async function showResult({ container, subj, area, mode, stars, scoreLine, baseCoins, bestScore, replay, noStars = false, catStats, classResult }) {
+export async function showResult({ container, subj, area, mode, stars, scoreLine, scoreHtml = "", baseCoins, bestScore, replay, noStars = false, catStats, classResult }) {
   container.innerHTML = `<div class="spinner">Sparar…</div>`;
   // "Så gick det" per kategori + stjärnhjälpen (#447): NY fil → dynamisk import
   // (#271), hämtas parallellt med sparningen. Saknas den visas kortet som förr.
@@ -315,6 +317,7 @@ export async function showResult({ container, subj, area, mode, stars, scoreLine
     <h1>Bra jobbat!</h1>
     ${noStars ? "" : `<div class="result-stars">${starRow(stars)}</div>`}
     ${scoreLine ? `<p class="result-score">${scoreLine}</p>` : ""}
+    ${scoreHtml}
     <div class="coin-pop">${coinIcon(22)} +${coins} pluggcoins</div>
     <div class="xp-pop">⭐ +${xp} XP</div>
     ${leveledUp ? `<div class="levelup-pop">🎉 Ny nivå – du är nu <b>nivå ${after.level}</b>!</div>` : ""}
