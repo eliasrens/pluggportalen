@@ -982,7 +982,8 @@ victimUid?, victimName?, victimClassId?, amount, gold, victimGold?, auto?,
 fallbackFrom?, previousUid?, at (server) }`. Skrivs i SAMMA transaktion som
 guldet; dokument-id:t är stabilt. Vyn tar första läsningen som baslinje
 (`createEventCursor`) – inget gammalt spelas upp efter omladdning. Texten
-byggs ur kistans mall (`eventText`, utan namn när `showNames` är av). Sköld-
+byggs ur kistans mall (`eventText`, utan namn när `showNames` är av);
+projektorns flöde visar den korta raden (`feedText`, t.ex. "💎 Alma +50", #591). Sköld-
 kistan = `chest` med `chest: "skold"` ("🛡️ Alma är skyddad!"). Typen
 `shieldBlock` (före #588) skrivs inte längre; gamla sådana visas inte.
 **`grMeta/leader`** `{ uid, gold, at }` – vem som ensam leder; ett byte ger en
