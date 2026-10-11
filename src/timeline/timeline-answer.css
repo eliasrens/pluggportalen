@@ -351,19 +351,31 @@
    gissningar som staplar (anonymt) vid avslöjandet. */
 .tl-visning { --tl-hojd: clamp(150px, 24vh, 240px); --tl-knopp: 34px; }
 .tl-visning .tl-linje { cursor: default; touch-action: auto; }
-.tl-visning .tl-bana { top: 70%; }
-.tl-visning .tl-streck { top: calc(70% + 7px); }
+.tl-visning .tl-bana { top: 64%; }
+.tl-visning .tl-streck { top: calc(64% + 7px); }
 .tl-visning .tl-etikett { font-size: clamp(0.95rem, 1.6vw, 1.35rem); }
-.tl-visning .tl-markor-knopp { top: 70%; }
-.tl-visning .tl-markor-stav { top: 8px; bottom: 30%; }
+.tl-visning .tl-markor-knopp { top: 64%; }
+.tl-visning .tl-markor-stav { top: 8px; bottom: 36%; width: 3px; }
 .tl-visning .tl-ratt .tl-markor-text { top: 4px; font-size: clamp(1rem, 1.8vw, 1.5rem); }
 .tl-visning.tl-avslojad .tl-etikett { opacity: 0.6; }
+.tl-visning-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22%;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.2rem, 2.6vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text-svag);
+  pointer-events: none;
+}
 .tl-spridning {
   position: absolute;
   left: 0;
   right: 0;
-  top: 18%;
-  bottom: calc(30% + 8px);
+  top: 8%;
+  bottom: calc(36% + 6px);
   pointer-events: none;
 }
 .tl-stapel {
@@ -375,7 +387,12 @@
   opacity: 0.55;
   transform-origin: bottom;
 }
-.tl-stapel-ratt { background: var(--gron); opacity: 0.9; }
+.tl-stapel-ratt { background: var(--gron-mork, #1e8a49); opacity: 1; }
+/* Rätt-staplens antal inne i stapeln (rätt-markörens etikett sitter överst). */
+.tl-visning .tl-ratt .tl-markor-stav { opacity: 0.6; }
+.tl-visning:not(:has(.tl-ratt .tl-markor-text:empty)) .tl-spridning { top: 30%; }
+.tl-visning .tl-ratt .tl-markor-knopp { width: 26px; height: 26px; border-width: 3px; }
+.tl-stapel-inne b { bottom: auto; top: 2px; color: #fff; }
 .tl-stapel b {
   position: absolute;
   bottom: 100%;

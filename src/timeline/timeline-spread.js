@@ -9,7 +9,9 @@
 // API
 //   spreadBins(guesses, view, maxBins?) → { size, bins: [{ from, to, n }] }
 //                         (ren – gissningar grupperade i "snälla" årssteg)
-//   mountTimelineSpread(root, { span }) → handle
+//   mountTimelineSpread(root, { span, hint? }) → handle
+//     hint = text i linjens tomma yta före avslöjandet ("Dra till rätt år …")
+//     label = false → ingen "Rätt: 1523"-etikett på markören (vyn visar året själv)
 //     handle.reveal({ correct, guesses, animate? })  rätt år + spridningen
 //     handle.reset()                                 tillbaka till bara linjen
 //     handle.destroy()
@@ -43,7 +45,7 @@ export function spreadBins(guesses, view, maxBins = MAX_BINS) {
   return { size, bins };
 }
 
-export function mountTimelineSpread(root, { span } = {}) {
+export function mountTimelineSpread(root, { span, hint = "", label = true } = {}) {
   if (!span) throw new Error("mountTimelineSpread: span krävs");
   const doc = root.ownerDocument || document;
   const win = doc.defaultView || null;
@@ -58,6 +60,8 @@ export function mountTimelineSpread(root, { span } = {}) {
   skala.setAttribute("aria-hidden", "true");
   const spridning = el("div", "tl-spridning", yta);
   spridning.setAttribute("aria-hidden", "true");
+  const hintEl = el("p", "tl-visning-hint", linje, hint);
+  hintEl.hidden = !hint;
   const ratt = el("div", "tl-markor tl-ratt", yta);
   el("span", "tl-markor-stav", ratt);
   el("span", "tl-markor-knopp", ratt);
@@ -81,8 +85,11 @@ export function mountTimelineSpread(root, { span } = {}) {
     const first = shown === null;
     shown = key;
     root.classList.add("tl-avslojad");
+    hintEl.hidden = true;
     place(ratt, yearToFrac(c, view));
-    rattText.textContent = `Rätt: ${formatYear(c)}`;
+    // Etiketten bara om ingen egen ruta visar året (label: false i Snilleblixten).
+    rattText.textContent = label ? `Rätt: ${formatYear(c)}` : "";
+    ratt.setAttribute("aria-label", `Rätt år: ${formatYear(c)}`);
     ratt.hidden = false;
     while (spridning.firstChild) spridning.removeChild(spridning.firstChild);
     const { size, bins } = spreadBins(guesses, view);
@@ -90,7 +97,9 @@ export function mountTimelineSpread(root, { span } = {}) {
     const w = (size / (view.max - view.min)) * 100;
     const reduced = !!win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     bins.forEach((b, i) => {
-      const bar = el("span", `tl-stapel${c >= b.from && c <= b.to ? " tl-stapel-ratt" : ""}`, spridning);
+      // Höga staplar har antalet inuti (rätt-markörens etikett sitter överst).
+      const inne = b.n / max >= 0.35 ? " tl-stapel-inne" : "";
+      const bar = el("span", `tl-stapel${c >= b.from && c <= b.to ? " tl-stapel-ratt" : ""}${inne}`, spridning);
       bar.style.left = `${(yearToFrac(b.from, view) * 100).toFixed(3)}%`;
       bar.style.width = `max(6px, calc(${w.toFixed(3)}% - 2px))`;
       bar.style.height = `${((b.n / max) * 100).toFixed(1)}%`;
@@ -114,6 +123,7 @@ export function mountTimelineSpread(root, { span } = {}) {
     reset() {
       shown = null;
       ratt.hidden = true;
+      hintEl.hidden = !hint;
       root.classList.remove("tl-avslojad");
       while (spridning.firstChild) spridning.removeChild(spridning.firstChild);
     },

@@ -109,7 +109,7 @@ export function createSchakt(host) {
     import("../../../timeline/timeline-spread.js").then(({ mountTimelineSpread }) => {
       const box = root.querySelector(".sbs-tidslinje");
       if (spreadKey !== k || !box) return;
-      spread = mountTimelineSpread(box, { span });
+      spread = mountTimelineSpread(box, { span, hint: "📅 Dra till rätt år på din skärm!", label: false });
       if (pendingReveal) spread.reveal(pendingReveal);
     }, (err) => console.warn("Snilleblixten: tidslinjen kunde inte laddas", err));
   }
@@ -131,7 +131,7 @@ export function createSchakt(host) {
     root.dataset.kind = kind;
     root.innerHTML = `
       <div class="sbs-kort">${passage ? `<p class="sbs-kontext">${esc(keepNumbers(passage))}</p>` : ""}<p class="sbs-fraga sbs-t-${textSize(text, !!passage)}">${esc(keepNumbers(text))}</p></div>
-      ${tl ? `<div class="sbs-tidslinje"></div><div class="sbs-skriv sbs-dra"><span class="sbs-penna" aria-hidden="true">📅</span> Dra till rätt år!</div>`
+      ${tl ? `<div class="sbs-tidslinje"></div>`
     : kind === "choice" ? `<ol class="sbs-alt" data-n="${opts.length}" data-len="${optLen}">${opts.map((o, i) => `
         <li class="sbs-opt sbs-${CHOICE_STYLES[i].key}" data-i="${i}" aria-label="${esc(CHOICE_STYLES[i].label)}: ${esc(o)}">
           <span class="sbs-stapel" aria-hidden="true"><i></i></span>
@@ -210,7 +210,6 @@ export function createSchakt(host) {
       f.innerHTML = html;
     }
     f.hidden = false;
-    root.querySelector(".sbs-dra")?.setAttribute("hidden", "");
     if (!reduced && !facitShown) {
       f.querySelector(".sbs-rattsvar").animate([{ opacity: 0, transform: "scale(1.6)" }, { opacity: 1, transform: "none" }], { duration: 480, easing: "cubic-bezier(.2,.9,.3,1.2)" });
     }
