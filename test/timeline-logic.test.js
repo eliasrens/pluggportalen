@@ -16,6 +16,7 @@ import {
   niceStep,
   panView,
   resolveSpan,
+  areaSpan,
   stepYear,
   ticks,
   VIEW_MIN_WIDTH,
@@ -216,4 +217,12 @@ test("tillstånd: valt år följs av fönstret när man zoomat in", () => {
   const { view, year } = s.get();
   assert.equal(year, 1550);
   assert.ok(year >= view.min && year <= view.max);
+});
+
+test("areaSpan: #596:s form – timeline[].year + timelineSpan { from, to }", () => {
+  const timeline = VASA.map((year, i) => ({ id: `e${i}`, event: "x", question: "?", year }));
+  assert.deepEqual(areaSpan({ timeline }), resolveSpan({ years: VASA }));
+  assert.deepEqual(areaSpan({ timeline, timelineSpan: { from: 1500, to: 1600 } }), { min: 1500, max: 1600 });
+  assert.deepEqual(areaSpan({ timeline: [{ year: -500 }, { year: 100 }], timelineSpan: { from: -800, to: 200 } }), { min: -800, max: 200 });
+  assert.ok(areaSpan({}).max > areaSpan({}).min, "tomt område ger ändå ett spann");
 });

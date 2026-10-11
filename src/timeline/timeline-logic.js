@@ -106,7 +106,7 @@ function asSpan(raw) {
 
 /**
  * Tidslinjens spann för ett OMRÅDE (inte för en fråga).
- *   timelineSpan  lärarens/områdets spann: { min, max } | { start, end } | [a, b]
+ *   timelineSpan  lärarens/områdets spann: { from, to } (#596) | { min, max } | [a, b]
  *                 – används som det är om det är giltigt.
  *   years         ALLA händelseår i området (inte bara aktuell fråga).
  * Utan timelineSpan: händelsernas min–max + marginal, utvidgat till minst
@@ -126,6 +126,17 @@ export function resolveSpan({ timelineSpan, years = [] } = {}) {
   if (lo === null) return { min: 1500, max: 2000 };
   const margin = Math.max(SPAN_MIN_MARGIN, Math.round((hi - lo) * SPAN_MARGIN));
   return widen({ min: lo - margin, max: hi + margin }, ys);
+}
+
+/**
+ * Spannet för ett område i #596:s form: area.timeline[] = { year, … } och
+ * area.timelineSpan? = { from, to }. Samma spann för varje fråga i området.
+ */
+export function areaSpan(area) {
+  return resolveSpan({
+    timelineSpan: area?.timelineSpan,
+    years: (Array.isArray(area?.timeline) ? area.timeline : []).map((e) => e?.year),
+  });
 }
 
 /**

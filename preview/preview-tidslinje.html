@@ -40,28 +40,32 @@
     <div class="pv-log" id="pv-log"></div>
     <script type="module">
       // Samma laddning som formaten: dynamisk import, inget i bootkedjan.
-      const [{ mountTimelineAnswer }, { resolveSpan }] = await Promise.all([
+      const [{ mountTimelineAnswer }, { areaSpan }, { VASATIDEN_JSON }] = await Promise.all([
         import("../src/timeline/timeline-answer.js"),
         import("../src/timeline/timeline-logic.js"),
+        import("../test/fixtures/vasatiden-tidsjakt.js"),
       ]);
       // Exempelområden. Spannet räknas ur HELA områdets händelser (eller
       // timelineSpan) – samma för varje fråga, aldrig centrerat på svaret.
+      const ev = (list) => list.map((e, i) => ({ id: `e${i}`, question: e.q, year: e.y, explanation: e.fakta }));
+      const vasaFixtur = JSON.parse(VASATIDEN_JSON);
       const OMRADEN = {
-        vasa: { namn: "Vasatiden (ur händelserna)", events: [
+        fixtur: { namn: "Vasatiden – #596-fixturen (ur händelserna)", timeline: vasaFixtur.timeline, timelineSpan: vasaFixtur.timelineSpan },
+        vasa: { namn: "Vasatiden kort (ur händelserna)", timeline: ev([
           { q: "Vilket år var Stockholms blodbad?", y: 1520, fakta: "Kristian II lät avrätta ett 80-tal personer i Stockholm." },
           { q: "Vilket år blev Gustav Vasa kung?", y: 1523, fakta: "Han valdes till kung i Strängnäs den 6 juni." },
           { q: "Vilket år var riksdagen i Västerås?", y: 1527, fakta: "Kyrkans egendom drogs in till kronan." },
           { q: "Vilket år startade Dackefejden?", y: 1542, fakta: "Bönder i Småland gjorde uppror under Nils Dacke." },
           { q: "Vilket år dog Gustav Vasa?", y: 1560, fakta: "Han dog i Stockholm och begravdes i Uppsala domkyrka." },
-        ] },
-        ww2: { namn: "Andra världskriget (lärarens spann 1930–1950)", timelineSpan: { start: 1930, end: 1950 }, events: [
+        ]) },
+        ww2: { namn: "Andra världskriget (lärarens spann 1930–1950)", timelineSpan: { from: 1930, to: 1950 }, timeline: ev([
           { q: "Vilket år började andra världskriget?", y: 1939, fakta: "Tyskland anföll Polen den 1 september." },
           { q: "Vilket år tog kriget slut i Europa?", y: 1945, fakta: "Tyskland kapitulerade i maj." },
-        ] },
-        oversikt: { namn: "Stor översikt (800 f.Kr.–2000)", timelineSpan: [-800, 2000], events: [
+        ]) },
+        oversikt: { namn: "Stor översikt (800 f.Kr.–2000)", timelineSpan: { from: -800, to: 2000 }, timeline: ev([
           { q: "Vilket år kröntes Karl den store till kejsare?", y: 800, fakta: "Kröningen skedde i Rom på juldagen." },
           { q: "Vilket år grundades Rom enligt sägnen?", y: -753, fakta: "Enligt sägnen grundade Romulus staden." },
-        ] },
+        ]) },
       };
       const omrSel = document.getElementById("pv-omr");
       omrSel.innerHTML = Object.entries(OMRADEN).map(([k, o]) => `<option value="${k}">${o.namn}</option>`).join("");
@@ -73,16 +77,16 @@
       let i = 0;
 
       function omrade() { return OMRADEN[omrSel.value]; }
-      function spanFor(o) { return resolveSpan({ timelineSpan: o.timelineSpan, years: o.events.map((e) => e.y) }); }
-      function fraga() { const o = omrade(); return o.events[i % o.events.length]; }
+      function fraga() { const o = omrade(); return o.timeline[i % o.timeline.length]; }
 
       function mount() {
         h?.destroy();
         const o = omrade();
-        const span = spanFor(o);
+        const span = areaSpan(o);
         h = mountTimelineAnswer(root, {
           span,
-          question: fraga().q,
+          question: fraga().question,
+          context: fraga().description,
           compact: ram.dataset.w === "live",
           onLock: (y) => log(`onLock(${y}) – visat: ${root.querySelector(".tl-valt-ar").textContent}`),
         });
@@ -94,11 +98,11 @@
       omrSel.addEventListener("change", () => { i = 0; mount(); });
       document.getElementById("pv-nasta").addEventListener("click", () => {
         i++;
-        h.setQuestion({ question: fraga().q });
-        log(`ny fråga: ${fraga().q}`);
+        h.setQuestion({ question: fraga().question, context: fraga().description });
+        log(`ny fråga: ${fraga().question}`);
       });
       document.getElementById("pv-avsloja").addEventListener("click", () => {
-        const r = h.reveal(fraga().y, { text: fraga().fakta });
+        const r = h.reveal(fraga().year, { text: fraga().explanation });
         log(`reveal → ${JSON.stringify(r)}`);
       });
       document.getElementById("pv-tid").addEventListener("click", () => {
