@@ -11,10 +11,12 @@ import { validateFormat } from "../src/live/live-formats.js";
 import { requireGameMode } from "../src/live/modes/index.js";
 import { buildSessionDoc, validateSessionInput } from "../src/live/live-core.js";
 import { fieldsFor } from "../src/live/live-setup-fields.js";
+import { computeRewards, perCorrectCoins } from "../src/live/live-rewards.js";
+import { LIVE_REWARDS, LIVE_REWARD_LIMITS } from "../src/live/rewards-config.js";
 import { seededRng } from "../src/mult/generator.js";
 import { buildQuizSnapshot } from "../src/live/modes/plugga-quiz-core.js";
 import {
-  GR_DURATIONS_MIN, buildQuizPool, computeStandings, buildResult, createEventCursor, rankByGold,
+  GR_DURATIONS_MIN, validateSetup, buildQuizPool, computeStandings, buildResult, createEventCursor, rankByGold,
 } from "../src/live/formats/guldrush/guldrush-core.js";
 import { GR_CHESTS, GR_RULES } from "../src/live/formats/guldrush/delat/chests-config.js";
 import {
@@ -49,21 +51,60 @@ describe("Guldrushen: formatet", () => {
     assert.equal(GR.compatibleGameModes({ id: "okant", answerKinds: ["free"] }), false);
   });
 
-  it("inställningar: speltid 5/10/15/20, stöld & byte + namn på som standard, Pluggmynt-fältet", () => {
+  it("inställningar: speltid 3/5/10/15/20/30 + Egen tid, stöld & byte + namn på som standard, Pluggmynt-fältet", () => {
     const keys = fieldsFor(GR).map((f) => f.key);
     assert.deepEqual(keys, ["durationMin", "stealSwap", "showNames", "rewards"], "kärnan lägger inte till en egen matchlängd");
     const dur = GR.setupFields.find((f) => f.key === "durationMin");
     assert.deepEqual(dur.options.map((o) => o.value), GR_DURATIONS_MIN);
+    assert.deepEqual(GR_DURATIONS_MIN, [3, 5, 10, 15, 20, 30]);
+    assert.equal(dur.default, 10);
+    assert.deepEqual([dur.custom.min, dur.custom.max], [1, 60]);
     assert.equal(GR.setupFields.find((f) => f.key === "stealSwap").default, true);
     assert.equal(GR.setupFields.find((f) => f.key === "showNames").default, true);
     assert.equal(GR.setupFields.find((f) => f.key === "rewards").kind, "custom");
   });
 
-  it("validering: giltigt formulär ok, 25 min / 4 klasser / fel Pluggmynt nekas", () => {
+  it("validering: giltigt formulär ok, 61 min / 4 klasser / fel Pluggmynt nekas", () => {
     assert.deepEqual(validateSessionInput(input()), []);
-    assert.ok(validateSessionInput(input({ durationMin: 25 })).some((e) => /speltid/i.test(e)));
+    assert.ok(validateSessionInput(input({ durationMin: 61 })).some((e) => /speltid/i.test(e)));
     assert.ok(validateSessionInput(input({ classIds: ["a", "b", "c", "d"] })).some((e) => /Högst 3/.test(e)));
     assert.ok(validateSessionInput(input({ rewards: { firstPrize: 5000, perCorrect: 1, cap: 10 } })).length > 0);
+  });
+
+  it("speltid (test 22–24, #589): snabbknappar och Egen tid 1–60 hela minuter; tomt/0/decimal/över 60 nekas", () => {
+    for (const m of [...GR_DURATIONS_MIN, 1, 7, 12, 25, 60, "7", " 12 "]) {
+      assert.deepEqual(validateSetup({ durationMin: m }), [], `ok: ${JSON.stringify(m)}`);
+      assert.deepEqual(validateSessionInput(input({ durationMin: m })), [], `hela formuläret ok: ${JSON.stringify(m)}`);
+    }
+    for (const bad of [undefined, "", "  ", 0, "0", 61, "61", 2.5, "2.5", "2,5", -5, "7min", "abc"]) {
+      const errs = validateSetup({ durationMin: bad });
+      assert.equal(errs.length, 1, `nekas: ${JSON.stringify(bad)}`);
+      assert.match(errs[0], /minuter/);
+      assert.ok(validateSessionInput(input({ durationMin: bad })).length, `formuläret nekas: ${JSON.stringify(bad)}`);
+    }
+    assert.match(validateSetup({ durationMin: "" })[0], /Skriv in/);
+    assert.match(validateSetup({ durationMin: 61 })[0], /mellan 1 och 60/);
+    assert.equal(buildSessionDoc(input({ durationMin: 7 }), { uid: "l1" }).durationSeconds, 420);
+    assert.equal(buildSessionDoc(input({ durationMin: "12" }), { uid: "l1" }).durationSeconds, 720);
+    assert.equal(buildSessionDoc(input({ durationMin: 30 }), { uid: "l1" }).durationSeconds, 1800);
+    assert.equal(buildSessionDoc(input({ durationMin: 60 }), { uid: "l1" }).durationSeconds, 3600);
+  });
+
+  it("Pluggmynt vid 60 min (#589): trappan + taket per elev håller oavsett matchlängd", () => {
+    // 60 min i rasande takt: ett rätt varannan sekund = 1 800 rätt.
+    const s = buildSessionDoc(input({ durationMin: 60, rewards: { firstPrize: "", perCorrect: "50", cap: "1000" } }), { uid: "l1" });
+    assert.equal(s.durationSeconds, 3600);
+    const rows = [{ uid: "a", score: 9000, correct: 1800, answered: 1800 }, { uid: "b", score: 10, correct: 30, answered: 30 }];
+    const r = computeRewards(s, rows);
+    assert.equal(r.a.correctCoins, LIVE_REWARD_LIMITS.cap, "taket biter");
+    assert.ok(r.a.total <= LIVE_REWARD_LIMITS.cap);
+    // Trappan: efter fem block om 20 ger varje rätt bara sista steget (20 %).
+    const { blockSize, steps } = LIVE_REWARDS;
+    const after = blockSize * steps.length;
+    assert.equal(perCorrectCoins(after + 10, 5, 1e9) - perCorrectCoins(after, 5, 1e9), 10 * 5 * steps.at(-1));
+    // Förvalstaket (300) gäller också vid 60 min.
+    const d = buildSessionDoc(input({ durationMin: 60, rewards: { firstPrize: "", perCorrect: "5", cap: "" } }), { uid: "l1" });
+    assert.equal(computeRewards(d, rows).a.correctCoins, LIVE_REWARDS.defaultCap);
   });
 
   it("sessionsdokumentet: format, durationSeconds, stealSwap/showNames, rewards", () => {

@@ -117,6 +117,12 @@ body.live-lage .container {
 }
 .live-chip input:focus-visible + span { outline: 2px solid var(--t-accent, #27ae60); }
 .live-chip input:disabled + span { opacity: 0.4; cursor: not-allowed; }
+/* "Egen tid" (#589): chip med ett synligt minutfält */
+.live-chip-egen span { display: inline-flex; align-items: center; gap: 6px; padding-block: 3px; }
+.live-chip .live-egen {
+  position: static; opacity: 1; pointer-events: auto;
+  width: 4.2em; padding: 3px 6px; margin: 0; font: inherit; font-weight: 400;
+}
 .live-divisors, .live-perclass { margin: 4px 0 14px; }
 .live-form .field[hidden] { display: none; }
 /* Formatväljaren (#548) – visas bara när fler än ett format finns */

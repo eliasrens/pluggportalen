@@ -11,7 +11,7 @@ import { requireGameMode } from "../src/live/modes/index.js";
 import { validateSessionInput, buildSessionDoc, LIVE_DURATIONS_MIN } from "../src/live/live-core.js";
 import {
   fieldsFor, setupFieldsHtml, perClassRowsHtml, coerceSetupValue, defaultSetupValues, validateSetupFields,
-  formatPickerHtml, answerKindHtml, classHint, durationField,
+  formatPickerHtml, answerKindHtml, classHint, durationField, CUSTOM_CHOICE, coerceCustomChoice,
 } from "../src/live/live-setup-fields.js";
 
 const KM = requireFormat("klassmatch");
@@ -65,6 +65,25 @@ describe("generisk rendering av setupFields", () => {
     assert.equal(coerceSetupValue(TEST_FIELDS[1], "3"), "3");
     assert.equal(coerceSetupValue(TEST_FIELDS[3], "on"), true);
     assert.deepEqual(defaultSetupValues(TEST_FIELDS), { sek: 20, stjal: true });
+  });
+});
+
+describe("choice med custom (\"Egen tid\", #589)", () => {
+  const f = { key: "durationMin", label: "Speltid", kind: "choice", validate: false, default: 10,
+    options: [{ value: 5, label: "5 min" }, { value: 10, label: "10 min" }], custom: { label: "Egen tid", min: 1, max: 60, unit: "min" } };
+
+  it("ritar ett extra chip med heltalsfält; förvalet ligger kvar på snabbknappen", () => {
+    const html = setupFieldsHtml([f]);
+    assert.match(html, new RegExp(`class="live-chip live-chip-egen">\\s*<input type="radio" name="sf-durationMin" value="${CUSTOM_CHOICE}" />`));
+    assert.match(html, /class="live-egen" type="number" min="1" max="60" step="1"/);
+    assert.match(html, /value="10" checked/);
+    assert.doesNotMatch(setupFieldsHtml([{ ...f, custom: undefined }]), /live-egen/);
+  });
+
+  it("coerceCustomChoice: heltal → tal, annars råsträngen (formatet nekar)", () => {
+    assert.equal(coerceCustomChoice("7"), 7);
+    assert.equal(coerceCustomChoice(" 12 "), 12);
+    for (const [raw, v] of [["", ""], [undefined, ""], ["2.5", "2.5"], ["2,5", "2,5"], ["-3", "-3"]]) assert.equal(coerceCustomChoice(raw), v);
   });
 });
 
