@@ -157,6 +157,10 @@ export function renderQuestionCard({ q, showPassage = false, progressHtml = "", 
  *
  * reviewButton (valfri) läggs överst på varje fråga – används av Läsförståelse.
  *
+ * renderTimeline (valfri, #599): renderare för tidslinjefrågor (kind "timeline")
+ * med samma kontrakt som renderQuestionCard (+ setCleanup). Quiz skickar den när
+ * området har area.timeline; utan den hoppas tidslinjefrågor över.
+ *
  * showPassage (valfri): när sant visas frågans egna korta text (q.passage) i ett
  * lugnt block OVANFÖR just den frågan. Passage följer med i frågeobjektet, så den
  * visas korrekt även när en felsvarad fråga återkommer. Saknar frågan passage
@@ -167,12 +171,16 @@ export function renderQuestionCard({ q, showPassage = false, progressHtml = "", 
  * räknas EN gång, på sitt FÖRSTA svar (r om det var rätt). Repetitioner räknas
  * inte, så rätt-% speglar vad eleven kunde direkt. Frågor utan kategori räknas inte.
  */
-export function runQuestions({ body, questions, onFinish, reviewButton, showPassage }) {
+export function runQuestions({ body, questions, onFinish, reviewButton, showPassage, renderTimeline }) {
+  // Tidslinjefrågor (kind "timeline", #599) körs bara när Quiz skickat med sin
+  // renderare (laddad dynamiskt) – annars hoppas de över, aldrig som flerval.
+  const playable = questions.filter((q) => q?.kind !== "timeline" || renderTimeline);
   // Bygg ett frågeobjekt per unik fråga (med stabilt id för unik-räkningen).
-  const built = shuffle(questions).map((q, id) => {
+  const built = shuffle(playable).map((q, id) => {
+    const base = { id, returns: 0, category: normalizeQuestionCategory(q.category), counted: false };
+    if (q.kind === "timeline") return { ...q, ...base };
     const opts = q.options.map((text, i) => ({ text, correct: i === q.answerIndex }));
-    return { id, question: q.question, explanation: q.explanation, passage: q.passage, options: shuffle(opts), returns: 0,
-      category: normalizeQuestionCategory(q.category), counted: false };
+    return { ...base, question: q.question, explanation: q.explanation, passage: q.passage, options: shuffle(opts) };
   });
   const cat = {}; // rätt/totalt per kategori (första svaret per unik fråga)
 
@@ -182,6 +190,11 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
   // Kön av frågor att visa. Kan växa när fel-svarade frågor köas om.
   const queue = built.slice();
   let pos = 0;
+  let cleanup = null; // tidslinjekortets städning (dokument-lyssnare)
+  const clean = () => {
+    cleanup?.();
+    cleanup = null;
+  };
 
   function renderQ() {
     const q = queue[pos];
@@ -193,9 +206,12 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
       `</div>` +
       `<p class="quiz-count">Fråga ${Math.min(doneUnique + 1, totalUnique)} av ${totalUnique}</p>`;
 
-    const wrap = renderQuestionCard({
+    clean();
+    const render = q.kind === "timeline" ? renderTimeline : renderQuestionCard;
+    const wrap = render({
       q,
       showPassage,
+      setCleanup: (fn) => (cleanup = fn),
       progressHtml,
       reviewButton,
       onAnswer: (correct) => {
@@ -208,7 +224,7 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
         } else if (q.returns < MAX_RETURNS) {
           // Köa om frågan ett par frågor senare (om vi inte nått taket).
           q.returns++;
-          q.options = shuffle(q.options); // blanda om alternativen till återkomsten
+          if (q.options) q.options = shuffle(q.options); // blanda om alternativen till återkomsten
           const gap = 2 + Math.floor(Math.random() * 2); // 2–3 frågor senare
           const insertAt = Math.min(pos + gap, queue.length); // sist om vi är nära slutet
           queue.splice(insertAt, 0, q);
@@ -218,7 +234,10 @@ export function runQuestions({ body, questions, onFinish, reviewButton, showPass
       },
       onNext: () => {
         pos++;
-        if (pos >= queue.length) onFinish(resolved.size, totalUnique, cat);
+        if (pos >= queue.length) {
+          clean();
+          onFinish(resolved.size, totalUnique, cat);
+        }
         else renderQ();
       },
     });
