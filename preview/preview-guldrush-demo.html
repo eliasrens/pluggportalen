@@ -76,7 +76,8 @@
         <b>Händelser</b>
         <button data-act="stold">🦝 Stöld</button>
         <button data-act="byte">🔄 Byte</button>
-        <button data-act="skold">🛡️ Sköld stoppar stöld</button>
+        <button data-act="skold">🛡️ Sköld (60 s)</button>
+        <button data-act="skold5">🛡️ Sköld som går ut om 5 s</button>
         <button data-act="ledning">⭐ Ledningsbyte</button>
         <button data-act="snart">⏰ Tid snart slut (12 s)</button>
         <b>Pallplats</b>
@@ -159,7 +160,8 @@
         kista: (b) => demo.chest(b.dataset.k),
         stold: () => demo.chest("stold"),
         byte: () => demo.chest("byte"),
-        skold: () => demo.shieldBlock(),
+        skold: () => demo.shield(),
+        skold5: () => demo.shield({ ms: 5_000 }),
         ledning: () => demo.leadChange(),
         snart: () => demo.soonOut(12),
         historik,
@@ -192,8 +194,10 @@
       setInterval(() => {
         const { session: s, players, events, answers, reads } = demo.state();
         const blocked = window.__grDemoBlocked.length;
+        const skydd = demo.protectedList().map((p) => `${p.name} ${Math.floor(Math.ceil(p.leftMs / 1000) / 60)}:${String(Math.ceil(p.leftMs / 1000) % 60).padStart(2, "0")}`);
         document.querySelector("[data-stat]").innerHTML = `fas ${s.status} · elever ${players.length} · svar ${answers.length}
           · händelser ${events.length} · projektionsläsningar ${reads} · auto ${demo.auto ? "på" : "av"}<br>
+          🛡️ skyddade: ${skydd.length ? skydd.join(", ") : "ingen"}<br>
           Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
       }, 400);
       window.__grDemo = { demo, act, mount };

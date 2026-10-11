@@ -22,7 +22,8 @@
 //   createPileScale(min?)         → { ref(maxGold) } – skalans tak höjs bara
 //                                   (en hög krymper bara när DEN tappar guld)
 //   pileLevel(gold, ref)          → 0.18–1 (höjd som andel av taket)
-//   isProtected(p, now)           → sköld eller stöldskydd (§6.5: sköld vid namnet)
+//   isProtected(p, now)           → skyddad just nu (guldrush-regler.js, #588:
+//                                   🛡️ vid namnet + bubblan bara då)
 //   milestone(total)              → { prev, next, frac } – nästa delmål
 //   crossedMilestone(from, to)    → högsta delmål som passerades | null
 //   feedItem(ev, { names })       → händelseflödets post (text, avatarer,
@@ -43,8 +44,9 @@
 // ============================================================================
 
 import { phaseAt, formatClock } from "../../live-core.js";
-import { chestById, eventText } from "./delat/guldrush-regler.js";
-import { toMs } from "../../live-time.js";
+import { chestById, eventText, isProtected } from "./delat/guldrush-regler.js";
+
+export { isProtected };
 
 export const GR_TOP = 10;
 export const GR_TICK_S = 10;
@@ -102,11 +104,6 @@ export function pileLevel(gold, ref) {
   return Math.min(1, 0.18 + 0.82 * Math.sqrt(Math.min(1, g / ref)));
 }
 
-/** Sköld (kista) eller stöldskydd efter stöld/byte – §6.5 "liten sköld vid namnet". */
-export function isProtected(p, now) {
-  return !!p?.shield || (toMs(p?.protectedUntil) ?? 0) > now;
-}
-
 export const GR_MILESTONES = Object.freeze([250, 500, 1000, 2000, 3000, 5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000, 100000]);
 
 /** Nästa gemensamma delmål och hur långt klassen kommit dit (0–1). */
@@ -142,12 +139,14 @@ export function feedItem(ev, { names = true } = {}) {
   // Tomma fickor: "tappade 0 guld" / "dubblade (+0)" säger inget – visas inte.
   if ((kind === "lose" || kind === "double") && !(Math.abs(Number(ev?.amount) || 0) > 0)) return null;
   const who = names ? ev?.name || "" : "";
+  // Okänd typ (t.ex. "shieldBlock" från före #588) visas inte.
+  if (!["chest", "steal", "swap", "lead"].includes(type)) return null;
   const item = {
     id: ev?.id ?? null,
     type,
     chest: chest?.id || null,
     text: eventText(ev, { names }),
-    avatars: names ? [ev?.uid, ["steal", "swap", "shieldBlock"].includes(type) ? ev?.victimUid : null].filter(Boolean) : [],
+    avatars: names ? [ev?.uid, ["steal", "swap"].includes(type) ? ev?.victimUid : null].filter(Boolean) : [],
     big: false,
     tone: "",
     cue: null,
@@ -168,9 +167,6 @@ export function feedItem(ev, { names = true } = {}) {
   } else if (type === "steal") {
     item.cue = "stold";
     item.reactions = [{ uid: ev?.uid, reaction: "glad" }, { uid: ev?.victimUid, reaction: "aj" }];
-  } else if (type === "shieldBlock") {
-    item.cue = "vosh";
-    item.reactions = [{ uid: ev?.victimUid, reaction: "skyddad" }];
   } else if (chest?.id === "skattkammare") {
     item.big = true;
     item.cue = "fanfarKort";
@@ -185,7 +181,7 @@ export function feedItem(ev, { names = true } = {}) {
 /** Hur viktig en post är när kön måste gallras (högre = behålls). */
 export function weight(item) {
   if (item.big) return 3;
-  if (["steal", "swap", "shieldBlock", "lead"].includes(item.type)) return 2;
+  if (["steal", "swap", "lead"].includes(item.type)) return 2;
   return item.type === "chest" && ["lite_guld", "tom"].includes(item.chest) ? 0 : 1;
 }
 

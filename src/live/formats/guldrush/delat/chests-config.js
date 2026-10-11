@@ -21,7 +21,8 @@
 //     "double" { cap }     dubblar elevens guld, högst +cap
 //     "lose"   { share }   tappar floor(share × guld) (Hål i fickan, ≤ 10 %)
 //     "empty"              ingenting
-//     "shield"             skyddar mot NÄSTA stöld/byte
+//     "shield"             skyddad GR_RULES.shieldMs (60 s) – samma skydd som
+//                          stöldskyddet, bara längre (guldrush-regler.js)
 //     "steal"  { share }   VÄLJ OFFER: knycker floor(share × offrets guld)
 //     "swap"               VÄLJ OFFER: byter allt guld med någon som har MER
 //   fallback  (steal/swap) kistans id som gäller i stället när ingen kan väljas
@@ -83,19 +84,16 @@ export const GR_CHESTS = Object.freeze([
   {
     id: "skold", icon: "🛡️", label: "Sköld", rarity: "ovanlig", weight: 6,
     effect: { kind: "shield" },
-    look: "skold-glod", sound: "vosh", eventText: "🛡️ {namn} skaffade en sköld!",
+    look: "skold-glod", sound: "vosh", eventText: "🛡️ {namn} är skyddad!",
   },
 ]);
 
 // Händelser som inte är en kista (samma mallar som eventText).
 export const GR_EVENT_TEXTS = Object.freeze({
-  // Offrets sköld stoppade en stöld/ett byte – skölden förbrukas.
-  shieldBlock: "🛡️ {offer}s sköld stoppade {namn}!",
   lead: "⭐ {namn} tog ledningen!",
   // Elevens egen notis när någon knyckt/bytt (elevskärmen, §6.7).
   victimSteal: "🦝 {namn} knyckte {belopp} guld från dig!",
   victimSwap: "🔄 {namn} bytte guld med dig!",
-  victimBlocked: "🛡️ Din sköld stoppade {namn}!",
 });
 
 // Namn i händelseflödet AV (session.showNames = false): mallarnas namn byts.
@@ -104,6 +102,10 @@ export const GR_ANON = Object.freeze({ namn: "Någon", offer: "en klasskamrat" }
 // Spelets rattar (servern kontrollerar alla).
 export const GR_RULES = Object.freeze({
   chestsOffered: 3, // kistor att välja mellan efter ett rätt svar
+  // ETT skydd (protectedUntil, guldrush-regler.js): ingen kan stjäla från
+  // eller byta med en skyddad elev. Sköldkistan sätter det till nu + shieldMs
+  // (även om eleven redan är skyddad); bestulen/bytt → nu + protectionMs.
+  shieldMs: 60_000, // Sköld-kistan
   protectionMs: 30_000, // stöldskydd efter bestulen/bytt (§6.5)
   victimPickMs: 10_000, // tid att välja offer innan servern slumpar (§6.4)
   victimGraceMs: 5_000, // nätverksmarginal efter victimPickMs

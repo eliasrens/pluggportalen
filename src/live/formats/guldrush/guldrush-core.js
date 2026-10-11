@@ -15,7 +15,7 @@
 //   …/grPrivate/snapshot          quiz: { facit[] } BARA lärare (+ servern)
 //   …/answers/{attemptId}         elevens svar, rättat av servern (create-only),
 //                                 chest/chestIndex när kistan öppnats
-//   …/grPlayers/{uid}             { gold, correct, incorrect, chests, shield,
+//   …/grPlayers/{uid}             { gold, correct, incorrect, chests,
 //                                 protectedUntil, lastVictimUid, pending,
 //                                 lastHit, nextQ? } – bara servern skriver
 //   …/grEvents/{id}               händelseflödet (serverstämpel, stabilt id)
@@ -128,7 +128,7 @@ export function rankByGold(rows) {
  */
 export function computeStandings(s, { players = [], grPlayers = [] } = {}) {
   const by = new Map();
-  const row = (p) => ({ uid: p.uid, name: p.name || "", classId: p.classId ?? null, gold: 0, correct: 0, incorrect: 0, chests: 0, shield: false, protectedUntil: null });
+  const row = (p) => ({ uid: p.uid, name: p.name || "", classId: p.classId ?? null, gold: 0, correct: 0, incorrect: 0, chests: 0, protectedUntil: null });
   for (const p of players || []) if (p?.uid) by.set(p.uid, row(p));
   for (const g of grPlayers || []) {
     if (!g?.uid) continue;
@@ -136,7 +136,7 @@ export function computeStandings(s, { players = [], grPlayers = [] } = {}) {
     Object.assign(r, {
       name: r.name || g.name || "", classId: r.classId ?? g.classId ?? null,
       gold: int(g.gold), correct: int(g.correct), incorrect: int(g.incorrect), chests: int(g.chests),
-      shield: !!g.shield, protectedUntil: toMs(g.protectedUntil),
+      protectedUntil: toMs(g.protectedUntil),
     });
     by.set(g.uid, r);
   }

@@ -3,8 +3,11 @@
 // (funktionsspec §6.4, designspec §6.5).
 //   • klasskamraterna som stora avatarknappar med namn + guld, sorterade på
 //     guld (gr-elev.js victimRows); byte visar bara de med MER guld
-//   • sköld / stöldskydd → gråad med 🛡️, går inte att välja (servern nekar
-//     ändå ett manipulerat val – det här är bara visningen)
+//   • skyddad → gråad med "🛡️ 0:04"; listan är LEVANDE (ritas om varje tick)
+//     och kompisen blir valbar när nedräkningen når noll. Väljartimern pausas
+//     aldrig. Servern prövar skyddet i valets ögonblick: hann offret skaffa en
+//     sköld nekas valet ("🛡️ Alma hann skaffa en sköld!") och tjuven väljer
+//     om på tiden som är kvar
 //   • synlig nedräkning (~10 s, serverns expiresAt) → servern slumpar
 //     (choose(null)); valet ligger kvar vid omladdning (grPlayers.pending)
 //   • vid val springer tvättbjörnen över skärmen med guldpåsen (byte: guld-
@@ -72,9 +75,11 @@ export function pickVictim(host, opts) {
       b.addEventListener("click", () => pick(row.uid));
       btns.set(row.uid, b);
     }
-    b.querySelector(".gro-namn").textContent = row.first || row.name || "?";
-    b.querySelector(".gro-guld").textContent = `💰 ${formatGold(row.gold)}`;
-    b.querySelector(".gro-why").textContent = row.why;
+    // Ritas om varje tick (skyddens nedräkning) – skriv bara det som ändrats.
+    const set = (q, text) => { const el = b.querySelector(q); if (el.textContent !== text) el.textContent = text; };
+    set(".gro-namn", row.first || row.name || "?");
+    set(".gro-guld", `💰 ${formatGold(row.gold)}`);
+    set(".gro-why", row.why);
     b.classList.toggle("gro-av-gra", !row.ok);
     b.classList.toggle("gro-skyddad", row.shield);
     b.disabled = busy || !row.ok;
@@ -82,10 +87,15 @@ export function pickVictim(host, opts) {
     return b;
   }
 
+  let rosterKey = "";
   function draw() {
     const rows = victimRows(kind, me, players, now());
     names = Object.fromEntries(rows.map((r) => [r.uid, r.first || r.name]));
-    roster?.ensure(rows.map((r) => ({ uid: r.uid, classId: r.classId }))).catch(() => {});
+    const key = rows.map((r) => r.uid).join();
+    if (key !== rosterKey) {
+      rosterKey = key;
+      roster?.ensure(rows.map((r) => ({ uid: r.uid, classId: r.classId }))).catch(() => {});
+    }
     root.dataset.many = rows.length > 24 ? "3" : rows.length > 15 ? "2" : rows.length > 8 ? "1" : "0";
     const keep = new Set(rows.map((r) => r.uid));
     for (const [uid, b] of btns) if (!keep.has(uid)) { b.remove(); btns.delete(uid); }
@@ -112,7 +122,8 @@ export function pickVictim(host, opts) {
     } catch (err) {
       if (destroyed) return;
       busy = false;
-      fel.textContent = `😕 ${err?.message || "Det gick inte – välj någon annan."}`;
+      const msg = err?.message || "Det gick inte – välj någon annan.";
+      fel.textContent = msg.startsWith("🛡️") ? msg : `😕 ${msg}`;
       fel.hidden = false;
       for (const b of btns.values()) b.classList.remove("vald");
       draw();
@@ -160,6 +171,8 @@ export function pickVictim(host, opts) {
     sek.textContent = String(Math.ceil(left / 1000));
     bar.style.transform = `scaleX(${Math.min(1, left / total).toFixed(3)})`;
     root.classList.toggle("gro-brattom", left <= 3000);
+    // Levande lista: skyddens nedräkning, och den som når 0:00 blir valbar.
+    if (!busy) draw();
     if (left <= 0 && !busy && !autoSent) {
       autoSent = true;
       pick(null);

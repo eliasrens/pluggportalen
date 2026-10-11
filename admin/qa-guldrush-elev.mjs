@@ -93,7 +93,7 @@ async function start(mode = "free") {
   }
   const gp = (await ref.collection("grPlayers").get()).docs.map((d) => d.data());
   console.log(`✓ ${SID} (${mode}) pågår 10 min: ${gp.length} klasskamrater med guld (${gp.map((p) => p.gold).sort((a, b) => b - a).join(", ")}); ` +
-    `${gp.filter((p) => p.shield).length} med sköld. Logga in som b01 / lilla123 → #/elev/live`);
+    `${gp.filter((p) => (p.protectedUntil?.toMillis?.() ?? 0) > Date.now()).length} skyddade. Logga in som b01 / lilla123 → #/elev/live`);
 }
 
 /** Tvinga fram en Stöld/Byte för `uid` (servern avgör sedan i chooseVictim). */
