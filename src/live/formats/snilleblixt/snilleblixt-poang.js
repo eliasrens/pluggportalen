@@ -9,13 +9,18 @@
 //   pointsFor({ correct, atMs, openedMs, questionSeconds }) → 0 | 500–1000
 //                         rätt = round(1000 − 500 × t/frågetid), t klämt 0..frågetid
 //   normFree(s)           → jämförelseform för skriv själv ("  056 " → "56")
-//   isCorrectAnswer(a, facit, kind) → bool
+//   isCorrectAnswer(a, facit, kind) → bool – kind "timeline" (#600): exakt år
+//                         (a.year === facit.year), ingen tolerans
 //   questionWindow(q, questionSeconds) → { startMs, endMs } | null –
 //                         [openedAt, min(closedAt, openedAt + frågetid))
 //   scoreQuestion({ q, facit, answers, questionSeconds, answerKind, skipped? })
 //                         → sbScores-dokumentet { index, skipped, answered,
 //                           correctCount, points{uid}, correct{uid},
-//                           choiceCounts? (flerval), topWrong? (skriv själv) }
+//                           choiceCounts? (flerval), topWrong? (skriv själv),
+//                           guesses? (tidslinje: alla gissade år, sorterade,
+//                           anonyma – projektorns spridning, #600) }
+//                         Svarssättet gäller PER FRÅGA: en tidslinjefråga
+//                         (q.question.kind) åsidosätter sessionens answerKind.
 //   rankPlayers(list)     → sorterad, rank med DELAD placering (1, 1, 3)
 //   computeStandings(s, { scores, players }) → { players, classes, totalCorrect,
 //                           leaderIds, winnerId, draw }
@@ -26,6 +31,7 @@
 
 import { toMs } from "../../live-time.js";
 import { withRewards } from "../../live-rewards.js";
+import { questionAnswerKind } from "../../../tavling/answer-writes.js";
 
 export const SB_MAX_POINTS = 1000;
 export const SB_MIN_POINTS = 500;
@@ -49,6 +55,7 @@ export function normFree(s) {
 export function isCorrectAnswer(a, facit, kind) {
   if (!a || !facit) return false;
   if (kind === "choice") return Number.isInteger(a.choiceIndex) && a.choiceIndex === facit.answerIndex;
+  if (kind === "timeline") return Number.isInteger(a.year) && a.year === facit.year;
   const given = normFree(a.answer);
   return given !== "" && given === normFree(facit.correctAnswer);
 }
@@ -67,19 +74,22 @@ export function questionWindow(q, questionSeconds) {
  * svarsdokument (alla, lärarens läsning). Svar utanför fönstret räknas inte.
  * skipped = överhoppad fråga: inga poäng, men raden finns för historiken.
  */
-export function scoreQuestion({ q, facit, answers = [], questionSeconds, answerKind, skipped = false }) {
+export function scoreQuestion({ q, facit, answers = [], questionSeconds, answerKind: sessionKind, skipped = false }) {
+  const answerKind = questionAnswerKind(q?.question, sessionKind);
   const win = questionWindow(q, questionSeconds);
   const out = {
     index: q.index, skipped: !!skipped, answered: 0, correctCount: 0, points: {}, correct: {},
   };
   const choiceCounts = [0, 0, 0, 0];
   const wrong = new Map();
+  const guesses = [];
   for (const a of answers) {
     if (!a || a.q !== q.index || typeof a.uid !== "string") continue;
     const at = toMs(a.at);
     if (!win || at == null || at < win.startMs || at >= win.endMs) continue;
     out.answered++;
     if (answerKind === "choice" && Number.isInteger(a.choiceIndex) && a.choiceIndex < 4) choiceCounts[a.choiceIndex]++;
+    if (answerKind === "timeline" && Number.isInteger(a.year)) guesses.push(a.year);
     if (skipped) continue;
     const ok = isCorrectAnswer(a, facit, answerKind);
     out.correct[a.uid] = ok;
@@ -91,6 +101,8 @@ export function scoreQuestion({ q, facit, answers = [], questionSeconds, answerK
     }
   }
   if (answerKind === "choice") out.choiceCounts = choiceCounts;
+  // Spridningen av gissningarna (tidslinje) – bara årtal, inga namn.
+  if (answerKind === "timeline") out.guesses = guesses.sort((a, b) => a - b);
   // Vanligaste felsvaren (skriv själv, §5.3 steg 6) – utan namn, högst 3.
   if (answerKind === "free") {
     out.topWrong = [...wrong].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "sv"))

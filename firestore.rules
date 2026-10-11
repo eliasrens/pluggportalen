@@ -584,7 +584,8 @@ service cloud.firestore {
     //  • sbPrivate/snapshot: { questions, facit } – BARA lärare läser.
     //  • sbAnswers/{i}_{uid}: elevens ENDA svar (bara create), at = serverns
     //    tid, inom frågans öppna fönster, rätt svarssätt, ingen sen anslutning
-    //    mitt i frågan, inget isCorrect/poäng.
+    //    mitt i frågan, inget isCorrect/poäng. Tidslinjefrågor (#600):
+    //    svarssättet 'timeline' per fråga, year = heltal inom frågans spann.
     //  • sbScores/{i}: poängen, skrivs EN gång av läraren vid avslöjandet ur
     //    serverstämplarna (at − openedAt). Ingen kan ändra den.
     //  • Övergångar (öppna/stäng/avslöja/hoppa/nästa/avsluta) går bara ett steg
@@ -747,8 +748,18 @@ service cloud.firestore {
             (keys.hasOnly(['result']) && o.status == 'finished' && o.get('result', null) == null &&
               n.result is map));
       }
+      // Svarssättet gäller PER FRÅGA (#600): en tidslinjefråga (question.kind
+      // 'timeline') åsidosätter sessionens answerKind. Ett tidslinjesvar =
+      // BARA year, ett heltalsår inom frågans spann (src/tavling/answer-writes.js
+      // answerShapeError). Frågor utan kind: exakt som förut.
+      function sbQuestionKind(s, q) {
+        return q.question.get('kind', '') == 'timeline' ? 'timeline' : s.answerKind;
+      }
       function sbAnswerKindOk(d, kind, q) {
-        return (kind == 'choice' &&
+        return (kind == 'timeline' &&
+            d.keys().hasOnly(['uid', 'classId', 'q', 'answerKind', 'year', 'at']) &&
+            d.year is int && d.year >= q.question.span.min && d.year <= q.question.span.max) ||
+          (kind == 'choice' &&
             d.keys().hasOnly(['uid', 'classId', 'q', 'answerKind', 'choiceIndex', 'at']) &&
             d.choiceIndex is int && d.choiceIndex >= 0 && d.choiceIndex < q.question.options.size()) ||
           (kind == 'free' &&
@@ -763,7 +774,7 @@ service cloud.firestore {
           d.uid == request.auth.uid && d.q == q.index && answerId == string(d.q) + '_' + d.uid &&
           d.at == request.time && request.time >= q.openedAt &&
           request.time < q.openedAt + duration.value(s.questionSeconds, 's') &&
-          d.answerKind == s.answerKind && sbAnswerKindOk(d, s.answerKind, q) &&
+          d.answerKind == sbQuestionKind(s, q) && sbAnswerKindOk(d, d.answerKind, q) &&
           d.classId in s.participatingClassIds && isClassMember(d.classId) &&
           get(livePath('players', d.uid)).data.joinedAt < q.openedAt;
       }
@@ -780,7 +791,7 @@ service cloud.firestore {
         return isTeacher() && sbFormat(s) && s.q.phase in ['revealed', 'skipped'] &&
           qid == string(s.q.index) && d.index == s.q.index &&
           d.keys().hasOnly(['index', 'skipped', 'answered', 'correctCount', 'points', 'correct',
-                            'choiceCounts', 'topWrong']) &&
+                            'choiceCounts', 'topWrong', 'guesses']) &&
           d.skipped == (s.q.phase == 'skipped') && d.points is map && d.correct is map;
       }
 

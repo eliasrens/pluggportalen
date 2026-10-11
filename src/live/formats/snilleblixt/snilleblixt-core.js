@@ -15,7 +15,9 @@
 //                                    öppnar frågan, q.facit vid avslöjandet.
 //   liveSessions/{sid}/sbAnswers/{i}_{uid}  elevens ENDA svar på fråga i:
 //                                    { uid, classId, q, answerKind,
-//                                    choiceIndex | answer, at = serverns tid }
+//                                    choiceIndex | answer | year, at = serverns tid }
+//                                    answerKind = FRÅGANS svarssätt: "timeline"
+//                                    för en tidslinjefråga (#600), annars sessionens
 //                                    – bara create. INGET isCorrect: eleven
 //                                    får inte veta facit före avslöjandet.
 //   liveSessions/{sid}/sbScores/{i}  frågans poäng (skrivs EN gång av läraren
@@ -41,8 +43,12 @@
 //   SB_MAX_QUESTIONS      100 (reglerna har samma tak)
 //   SB_PRIVATE_DOC        ["sbPrivate", "snapshot"]
 //   answerDocId(i, uid)   → "3_uid"
-//   buildSnapshot(mode, { answerKind, count, shuffle, quiz?, quizSnapshot?, rng? })
+//   buildSnapshot(mode, { answerKind, count, shuffle, quiz?, quizSnapshot?, timeline?, timelineSpan?, rng? })
 //                         → { questions, facit } (elevsynligt / lärarskyddat)
+//                         TIDSLINJEFRÅGOR (#600, bara quiz med session.quiz.timeline):
+//                         questions[i] { key, id, kind: "timeline", text, event,
+//                         description?, span, statKeys } – facit[i] { year,
+//                         correctAnswer ("1523"), explanation }. Årtalet bara i facit.
 //   validateSetup(input)  → string[] (antal frågor, tid per fråga)
 //   buildSessionFields(input) → { questionSeconds, questionCount,
 //                           shuffleQuestions, showQuestionOnStudent }
@@ -59,6 +65,9 @@ export const SB_MAX_QUESTIONS = 100;
 export const SB_PRIVATE_DOC = ["sbPrivate", "snapshot"];
 
 const QUIZ_MODE = "plugga_quiz";
+
+/** "1523" / "500 f.Kr." (samma som tidslinjen). */
+const yearText = (y) => (y < 0 ? `${-y} f.Kr.` : String(y));
 
 /** Svarsdokumentets id: ett svar per elev och fråga. */
 export function answerDocId(index, uid) {
@@ -93,10 +102,16 @@ export function buildSnapshot(mode, opts = {}) {
   const questions = [];
   const facit = [];
   if (mode?.id === QUIZ_MODE) {
-    const snap = opts.quizSnapshot(opts.quiz, { count: count || undefined, shuffle: opts.shuffle !== false, showPassage: opts.showPassage === true, rng });
+    const snapOpts = { count: count || undefined, shuffle: opts.shuffle !== false, showPassage: opts.showPassage === true, rng };
+    if (opts.timeline) Object.assign(snapOpts, { timeline: opts.timeline, timelineSpan: opts.timelineSpan || null });
+    const snap = opts.quizSnapshot(opts.quiz, snapOpts);
     snap.questions.slice(0, SB_MAX_QUESTIONS).forEach((q, i) => {
       const f = snap.facit[i];
       questions.push({ ...q, statKeys: mode.statKeys(q) });
+      if (q.kind === "timeline") {
+        facit.push({ year: f.year, correctAnswer: yearText(f.year), explanation: f.explanation || "" });
+        return;
+      }
       facit.push({ answerIndex: f.answerIndex, correctAnswer: q.options[f.answerIndex], explanation: f.explanation || "" });
     });
     return { questions, facit };

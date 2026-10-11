@@ -21,7 +21,8 @@
 //   watchScores(sid, cb, onErr)     → unsub; cb(sbScores[]) i frågeordning
 //   getScores(sid)                  → sbScores[]
 // API (elev)
-//   submitAnswer({ sid, s, uid, classId, choiceIndex?, answer? })
+//   submitAnswer({ sid, s, uid, classId, choiceIndex?, answer?, year? })
+//                                   year = tidslinjefråga (#600)
 //                                   → Promise<"ok" | "redan-svarat">
 //   getMyAnswer(sid, index, uid)    → svarsdokumentet | null (omladdning)
 // ============================================================================
@@ -96,8 +97,8 @@ export function watchScores(sid, cb, onErr) {
 }
 
 /** Elevens enda svar. Fanns det redan (dubbelklick, två flikar) nekar reglerna → "redan-svarat". */
-export async function submitAnswer({ sid, s, uid, classId, choiceIndex, answer }) {
-  const w = planAnswer({ sid, s, uid, classId, choiceIndex, answer, fv });
+export async function submitAnswer({ sid, s, uid, classId, choiceIndex, answer, year }) {
+  const w = planAnswer({ sid, s, uid, classId, choiceIndex, answer, year, fv });
   try {
     await setDoc(doc(db, ...w.path), w.data);
     return "ok";

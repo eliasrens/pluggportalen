@@ -8,13 +8,17 @@
 // Har området passage-frågor visas rutan "Visa lästext till frågorna" (av som
 // standard, #582); antalen räknas om efter rutan. På → längre frågetid föreslås
 // (formulärets sf-questionSeconds, om formatet har det).
+// Tidslinjefrågor (#600): har området timeline[] OCH formatet säger
+// timelineQuestions: true visas rutan "Ta med tidslinjefrågor" (PÅ som
+// standard) – antalen räknas med dem. Andra format ser ingen skillnad.
 //
 // API
 //   mount(box, inner, { format?, content? }) → { sync(), value() }
 //     format   formatet som valts (minQuestions + namnet i varningen)
 //     content  { getSubjects(), getAreas(subjectId) } – default
 //              src/data-content.js (dynamiskt); förhandsvisningen stubbar.
-//   value() → { subjectId, areaId, subjectName, areaName, usable, total, showPassage } | null
+//   value() → { subjectId, areaId, subjectName, areaName, usable, total, showPassage, timeline? } | null
+//     timeline: true bara när rutan syns och är på
 // ============================================================================
 
 import { summarizeQuizArea, quizAreaMessage, minQuestionsFor } from "./plugga-quiz-core.js";
@@ -34,17 +38,27 @@ export function mount(box, inner, ctx = {}) {
     </div>
     <label class="live-toggle live-quiz-passage" hidden><input type="checkbox" class="live-quiz-passage-cb" />
       <span>Visa lästext till frågorna</span> <small class="hint">(kort text ovanför frågan på projektor och elevskärm)</small></label>
+    <label class="live-toggle live-quiz-timeline" hidden><input type="checkbox" class="live-quiz-timeline-cb" checked />
+      <span>Ta med tidslinjefrågor</span> <small class="hint">(eleverna drar till rätt årtal på en tidslinje)</small></label>
     <p class="live-quiz-info hint" role="status" aria-live="polite"></p>`;
   const subjSel = inner.querySelector(".live-quiz-subject");
   const areaSel = inner.querySelector(".live-quiz-area");
   const info = inner.querySelector(".live-quiz-info");
   const passageBox = inner.querySelector(".live-quiz-passage");
   const passageCb = inner.querySelector(".live-quiz-passage-cb");
+  const timelineBox = inner.querySelector(".live-quiz-timeline");
+  const timelineCb = inner.querySelector(".live-quiz-timeline-cb");
+  const tlFormat = ctx.format?.timelineQuestions === true;
+  const hasTimeline = (a) => tlFormat && Array.isArray(a?.timeline) && a.timeline.length > 0;
   let subjects = [];
   let areas = [];
   let picked = null;
   let token = 0;
-  const summarize = (a) => summarizeQuizArea(a.quiz, { minQuestions, showPassage: passageCb.checked });
+  const summarize = (a) => summarizeQuizArea(a.quiz, {
+    minQuestions,
+    showPassage: passageCb.checked,
+    ...(hasTimeline(a) && timelineCb.checked ? { timeline: a.timeline, timelineSpan: a.timelineSpan } : {}),
+  });
 
   function renderAreaOptions() {
     const keep = areaSel.value;
@@ -76,6 +90,7 @@ export function mount(box, inner, ctx = {}) {
     areas = [];
     info.textContent = "";
     passageBox.hidden = true;
+    timelineBox.hidden = true;
     areaSel.disabled = true;
     if (!subjectId) {
       areaSel.innerHTML = `<option value="">Välj ämne först</option>`;
@@ -103,26 +118,33 @@ export function mount(box, inner, ctx = {}) {
       picked = null;
       info.textContent = "";
       passageBox.hidden = true;
+      timelineBox.hidden = true;
       return;
     }
     passageBox.hidden = !(hit.s.withPassage > 0);
+    timelineBox.hidden = !hasTimeline(hit.a);
     const subject = subjects.find((s) => s.id === subjSel.value);
     picked = {
       subjectId: subjSel.value, areaId: hit.a.id, subjectName: nameOf(subject), areaName: nameOf(hit.a),
       usable: hit.s.usable, total: hit.s.total, showPassage: passageCb.checked && hit.s.withPassage > 0,
     };
+    if (hasTimeline(hit.a) && timelineCb.checked) picked.timeline = true;
     const m = quizAreaMessage(hit.s, ctx.format?.displayName || "");
     setInfo(m.level, m.text);
   }
 
   subjSel.addEventListener("change", () => loadAreas(subjSel.value));
   areaSel.addEventListener("change", () => pickArea(areaSel.value));
-  passageCb.addEventListener("change", () => {
+  function resummarize() {
     for (const x of areas) x.s = summarize(x.a);
     renderAreaOptions();
     pickArea(areaSel.value);
+  }
+  passageCb.addEventListener("change", () => {
+    resummarize();
     if (passageCb.checked) suggestLongerTime();
   });
+  timelineCb.addEventListener("change", resummarize);
 
   // Lästext tar tid att läsa: föreslå 30 s per fråga om kortare är valt.
   function suggestLongerTime() {

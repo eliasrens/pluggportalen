@@ -18,13 +18,18 @@
 //   autoCloseReason(s, { answers, players, now }) → "alla" | "tid" | null
 //   planStep(s, action, { fromIndex, snapshot?, answers?, fv }) → { patch,
 //                           scores? } | { noop }  action open|close|reveal|skip|finish
-//   planAnswer({ sid, s, uid, classId, choiceIndex?, answer?, fv }) → Write
-//                           { path, data } – EN create, utan facit/poäng
+//   planAnswer({ sid, s, uid, classId, choiceIndex?, answer?, year?, fv }) → Write
+//                           { path, data } – EN create, utan facit/poäng.
+//                           Svarssättet = FRÅGANS (#600): en tidslinjefråga
+//                           kräver year (heltal inom q.question.span) och
+//                           answerKind "timeline"; fel form kastar
+//                           (answer-writes answerShapeError – reglerna nekar också)
 // ============================================================================
 
 import { toMs } from "../../live-time.js";
 import { answerDocId } from "./snilleblixt-core.js";
 import { scoreQuestion, questionWindow } from "./snilleblixt-poang.js";
+import { questionAnswerKind, answerShapeError } from "../../../tavling/answer-writes.js";
 
 // Puls äldre än så → eleven räknas inte som "ansluten" vid auto-stängning.
 export const SB_CONNECTED_MS = 75_000;
@@ -115,15 +120,20 @@ export function planStep(s, action, { fromIndex = -1, snapshot = null, answers =
 }
 
 /**
- * Elevens svar → EN skrivning (create). choiceIndex (flerval) eller answer
- * (skriv själv, rå sträng). Facit och poäng skickas aldrig.
+ * Elevens svar → EN skrivning (create). choiceIndex (flerval), answer (skriv
+ * själv, rå sträng) eller year (tidslinjefråga, #600). Facit och poäng
+ * skickas aldrig.
  */
-export function planAnswer({ sid, s, uid, classId, choiceIndex, answer, fv }) {
+export function planAnswer({ sid, s, uid, classId, choiceIndex, answer, year, fv }) {
   const index = s?.q?.index;
   if (!Number.isInteger(index)) throw new Error("Snilleblixten: ingen pågående fråga");
-  const kind = s.answerKind;
+  const kind = questionAnswerKind(s.q.question, s.answerKind);
   const data = { uid, classId, q: index, answerKind: kind, at: fv.serverTimestamp() };
-  if (kind === "choice") {
+  if (kind === "timeline") {
+    const err = answerShapeError({ kind, choiceIndex, answer, year, span: s.q.question?.span });
+    if (err) throw new Error(`Snilleblixten: ${err}`);
+    data.year = year;
+  } else if (kind === "choice") {
     if (!Number.isInteger(choiceIndex) || choiceIndex < 0 || choiceIndex > 3) throw new Error("Snilleblixten: choiceIndex 0–3 krävs");
     data.choiceIndex = choiceIndex;
   } else {
