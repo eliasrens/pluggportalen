@@ -71,18 +71,23 @@
         <button data-act="anslut">+30 elever ansluter</button>
         <button data-act="auto">Svar strömmar in</button>
         <button data-act="storm">⚡ Händelsestorm (30 kistor)</button>
+        <button data-act="skatt">🎉 Gemensam skatt</button>
         <b>Kistor (en i taget)</b>
         <span data-kistor style="display:contents"></span>
         <b>Händelser</b>
         <button data-act="stold">🦝 Stöld</button>
         <button data-act="byte">🔄 Byte</button>
-        <button data-act="skold">🛡️ Sköld stoppar stöld</button>
+        <button data-act="skold">🛡️ Sköld (60 s)</button>
+        <button data-act="skold5">🛡️ Sköld som går ut om 5 s</button>
         <button data-act="ledning">⭐ Ledningsbyte</button>
         <button data-act="snart">⏰ Tid snart slut (12 s)</button>
         <b>Pallplats</b>
         <button data-go="fas=final">Hoppa till pallplats</button>
         <button data-go="fas=final&delad=andra">Delad 2:a</button>
         <button data-go="fas=final&delad=forsta">Oavgjort om 1:a</button>
+        <button data-go="fas=final&antal=2">Pall: 2 spelare</button>
+        <button data-go="fas=final&antal=3">Pall: 3 spelare</button>
+        <button data-go="fas=final&antal=25">Pall: 25 spelare</button>
         <button data-act="historik">📜 Visa historiken</button>
         <b>Visning</b>
         <button data-act="rorelse">Reducerad rörelse</button>
@@ -127,7 +132,7 @@
 
       if (!elev) {
         if (FAS === "kammare") { demo.playHistory(140); demo.setAuto(q.get("auto") !== "av"); }
-        if (FAS === "final") demo.jumpToFinal(q.get("delad") || null);
+        if (FAS === "final") demo.jumpToFinal(q.get("delad") || null, Number(q.get("antal")) || undefined);
       }
 
       const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };
@@ -156,10 +161,12 @@
         anslut: () => demo.join(30, 140),
         auto: () => { demo.setAuto(!demo.auto); press("auto", demo.auto); },
         storm: () => demo.storm(),
+        skatt: () => demo.treasure(),
         kista: (b) => demo.chest(b.dataset.k),
         stold: () => demo.chest("stold"),
         byte: () => demo.chest("byte"),
-        skold: () => demo.shieldBlock(),
+        skold: () => demo.shield(),
+        skold5: () => demo.shield({ ms: 5_000 }),
         ledning: () => demo.leadChange(),
         snart: () => demo.soonOut(12),
         historik,
@@ -192,8 +199,10 @@
       setInterval(() => {
         const { session: s, players, events, answers, reads } = demo.state();
         const blocked = window.__grDemoBlocked.length;
+        const skydd = demo.protectedList().map((p) => `${p.name} ${Math.floor(Math.ceil(p.leftMs / 1000) / 60)}:${String(Math.ceil(p.leftMs / 1000) % 60).padStart(2, "0")}`);
         document.querySelector("[data-stat]").innerHTML = `fas ${s.status} · elever ${players.length} · svar ${answers.length}
           · händelser ${events.length} · projektionsläsningar ${reads} · auto ${demo.auto ? "på" : "av"}<br>
+          🛡️ skyddade: ${skydd.length ? skydd.join(", ") : "ingen"}<br>
           Firebase-anrop: <span class="${blocked ? "pv-bad" : "pv-ok"}">${blocked ? `${blocked} BLOCKERADE` : "0 ✓"}</span>`;
       }, 400);
       window.__grDemo = { demo, act, mount };

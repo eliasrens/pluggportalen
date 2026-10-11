@@ -1,7 +1,8 @@
 // ============================================================================
 // Pluggporten – små återanvändbara inline-SVG-ikoner
-// Just nu: pluggcoin-myntet (variant B "Blixt") som ersätter emojin 🪙 överallt
-// coins visas, och stjärn-ikonen (samma femuddiga guldstjärna som sitter på
+// Just nu: pluggcoin-myntet (variant B "Blixt") som ersätter mynt-emojin
+// (U+1FA99, Emoji 13 – saknas på Windows 10 och visas där som ▯) överallt
+// coins visas – test/mynt-emoji.test.js fäller den i src/ (#590), och stjärn-ikonen (samma femuddiga guldstjärna som sitter på
 // grind-bågen i inloggningen) som ersätter emojin ⭐ i sidomenyns valuta-rad.
 // Varje instans får ett unikt gradient-id så flera ikoner på samma sida inte
 // krockar.
@@ -10,10 +11,27 @@
 let coinSeq = 0;
 let starSeq = 0;
 
+// Markören som datatexter (t.ex. Guldrushens kistnamn och händelsemallar i
+// chests-config.js) använder i stället för mynt-emojin; UI:t byter den mot
+// coinIcon() med withCoinIcon. Samma sträng står i chests-config.js (lövmodul).
+export const COIN_MARK = "{mynt}";
+
+/**
+ * Byter varje COIN_MARK i en (redan escapad) HTML-sträng mot coinIcon(size).
+ *
+ * @param {string} html
+ * @param {number|string} size  som coinIcon
+ * @returns {string}
+ */
+export function withCoinIcon(html, size = "1em") {
+  return String(html ?? "").replaceAll(COIN_MARK, () => coinIcon(size));
+}
+
 /**
  * Inline-SVG för ett pluggcoin (guldmynt med blixt). Skalar med angiven storlek.
  *
- * @param {number} size  Kant i px (t.ex. 22 i sidomenyfoten, 24 i shoppen).
+ * @param {number|string} size  Kant i px (t.ex. 22 i sidomenyfoten, 24 i shoppen)
+ *                     eller en CSS-längd ("1em" = följer textstorleken).
  * @returns {string}     HTML-sträng med en fristående <svg>.
  */
 export function coinIcon(size = 20) {

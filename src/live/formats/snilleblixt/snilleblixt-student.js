@@ -29,6 +29,7 @@
 // ============================================================================
 
 import { escHtml, renderTopbar } from "../../../ui.js";
+import { coinIcon } from "../../../icons.js";
 import { invalidateStudentData } from "../../../data.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { serverNow } from "../../live-clock.js";
@@ -65,7 +66,7 @@ export function endHtml(st, player) {
   const stats = row ? `${relRad}<p class="sb-final-poang">${formatPoints(row.points)} poäng · ${row.correct} rätt</p>` : "";
   let coins = "";
   if (sum) {
-    coins = `<ul class="sb-mynt">${sum.lines.map((l) => `<li><span>${escHtml(l.label)}</span><b>${l.coins}</b></li>`).join("")}</ul>
+    coins = `<ul class="sb-mynt">${sum.lines.map((l) => `<li><span>${escHtml(l.label)}</span><b>${l.coins} ${coinIcon("1em")}</b></li>`).join("")}</ul>
       <p class="sb-mynt-tot">Totalt: <b>${sum.total}</b> pluggmynt 🎉</p>`;
   } else if (sessionRewards(st.session)) {
     coins = `<p class="hint">Inga pluggmynt den här gången – svara på frågorna nästa gång!</p>`;

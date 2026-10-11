@@ -48,7 +48,7 @@ function lazyView(load, name) {
 export const views = [
   { id: "raket", label: "🚀 Raketrace", create: createRocketView },
   { id: "statistik", label: "📊 Statistik", create: createStatsView },
-  { id: "dragkamp", label: "🪢 Dragkamp", create: createTugView, only2: true },
+  { id: "dragkamp", label: "💪 Dragkamp", create: createTugView, only2: true },
   {
     id: "trollkarl", label: "🧙 Trollkarlsduellen", create: lazyView(loadTrollkarl, "createTrollkarlView"), only2: true, finale: true,
     // Lobbyn med två klasser och Trollkarlsduellen vald: förladda vyn (§17).

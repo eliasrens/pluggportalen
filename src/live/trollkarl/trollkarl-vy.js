@@ -22,6 +22,7 @@ import { ensureLiveCss } from "../live-css.js";
 import { toMs } from "../live-core.js";
 import { prizeText } from "../formats/klassmatch/klassmatch-core.js";
 import { esc } from "../../teacher-shared.js";
+import { coinIcon } from "../../icons.js";
 import { createWizard, preloadWizardFaces } from "./trollkarl-figurval.js";
 import { createArena } from "./trollkarl-arena.js";
 import { createHud } from "./trollkarl-hud.js";
@@ -229,7 +230,7 @@ export function createTrollkarlView(host, { st, sound }) {
     const p = resultEl.querySelector("[data-prize]");
     if (!p) return;
     const t = lastSt.result ? prizeText(lastSt.session, lastSt.result) : "";
-    p.textContent = t ? `🪙 ${t}` : "";
+    p.innerHTML = t ? `${coinIcon("1em")} ${esc(t)}` : "";
   }
 
   function startFinale(d) {

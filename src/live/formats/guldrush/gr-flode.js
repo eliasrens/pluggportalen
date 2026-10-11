@@ -1,10 +1,13 @@
 // ============================================================================
 // Guldrushen – Skattkammaren (#565, designspec §6.3): HÄNDELSEFLÖDET längs
-// högerkanten. De senaste (högst MAX) händelserna med små avatarer glider in
-// överst och tonar ut efter en stund. Texten är kistkonfigens lekfulla mall
-// (feedItem → eventText, "🦝 Alma knyckte 30 guld från Omar!") med den som
-// gjorde det först och ev. klasskamraten sist. Lärarens "Visa namn" av →
-// "Någon"/"en klasskamrat" och inga avatarer (#578).
+// högerkanten. De senaste (högst MAX = 4, #591) händelserna glider in överst
+// och tonar ut efter en stund. EN rad per händelse, aldrig radbrytning: den
+// korta texten (feedItem.short, kistkonfigens feedText – "💎 Alma +50",
+// "✖️2 Alma +150", "🦝 Alma → Omar 30") med den som gjorde det som liten
+// avatar först; blir raden ändå för lång kortas den med "…" (hela texten
+// ligger i title). "✖️2" och {mynt} ritas som SVG (gr-ikoner withGrIcons).
+// Lärarens "Visa namn" av → "Någon"/"en klasskamrat" och inga avatarer (#578).
+// Listan har en fast höjd för MAX rader – flödet växer aldrig ut över något.
 // TEMPO: högst en ny post per PACE_MS så att texten hinner läsas. Väntande
 // poster är högst PENDING; fler → de minst viktiga (småguld först, stora
 // händelser sist) och äldsta hoppas över. Storm (designtest 7): 30 kistor i
@@ -15,17 +18,18 @@
 // försvinner.
 //
 // API
-//   createFlode(host, { pool, max? = 5, ttlMs? = 14000 }) → {
+//   createFlode(host, { pool, max? = 4, ttlMs? = 14000 }) → {
 //     add(items)       feedItem-poster, äldst först (köas i tempot)
 //     el, size(), pending(), destroy()
 //   }
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { withGrIcons } from "./gr-ikoner.js";
 import { prefersReducedMotion } from "../../design/live-reactions.js";
 import { trimPending } from "./gr-proj-scen.js";
 
-const MAX = 5;
+const MAX = 4;
 const TTL_MS = 14_000;
 const OUT_MS = 500;
 const PACE_MS = 650;
@@ -34,6 +38,7 @@ export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
   root.className = "grf";
   root.setAttribute("aria-label", "Händelser i grottan");
   root.innerHTML = `<h2 class="grf-h">📜 I grottan</h2><ol class="grf-lista" aria-live="polite"></ol><p class="grf-tom">Grottan väntar på första kistan …</p>`;
+  root.style.setProperty("--grf-max", String(max));
   host.appendChild(root);
   const list = root.querySelector(".grf-lista");
   const posts = []; // { li, slots: [[uid, slot]], t }
@@ -68,13 +73,13 @@ export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
     li.className = `grf-post${item.big ? " grf-stor" : ""}${item.tone ? ` grf-${item.tone}` : ""}`;
     li.dataset.typ = item.type;
     const slots = [];
-    // Avatarer bara när namn visas (feedItem.avatars är då tom).
-    const [first, second] = item.avatars || [];
+    // Bara den som gjorde det får en avatar (och bara när namn visas –
+    // feedItem.avatars är då tom). Klasskamraten står i texten.
+    const [first] = item.avatars || [];
     const a = avatar(first, `${id}a`, "grf-av-1");
     if (a) { li.appendChild(a); slots.push([first, `${id}a`]); }
-    li.insertAdjacentHTML("beforeend", `<span class="grf-text">${esc(item.text)}</span>`);
-    const b = avatar(second, `${id}b`, "grf-av-2");
-    if (b) { li.appendChild(b); slots.push([second, `${id}b`]); }
+    li.insertAdjacentHTML("beforeend", `<span class="grf-text">${withGrIcons(esc(item.short || item.text))}</span>`);
+    li.title = String(item.text || "").replaceAll("{mynt}", "").replace(/\s+/g, " ").trim();
     return { li, slots, t: 0 };
   }
 

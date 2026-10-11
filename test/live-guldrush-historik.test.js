@@ -113,11 +113,30 @@ describe("#566 demoläget – isolerat", () => {
       else assert.deepEqual([e.type, e.chest], ["chest", c.id]);
     }
   });
-  it("sköld stoppar stöld, ledningsbyte, storm och tid snart slut", () => {
+  it("sköld (#588): skyddad med nedräkning, slipper stöld, skyddet går ut", () => {
+    let clock = 5_000_000;
+    const d = mk({ now: () => clock });
+    d.playHistory(120);
+    const uid = d.shield();
+    const e = d.state().events.find((x) => x.type !== "lead");
+    assert.deepEqual([e.type, e.chest, e.uid], ["chest", "skold", uid]);
+    assert.deepEqual(d.protectedList().find((x) => x.uid === uid)?.leftMs, 60_000);
+    clock += 20_000;
+    assert.equal(d.protectedList().find((x) => x.uid === uid).leftMs, 40_000, "nedräkningen");
+    for (let i = 0; i < 25; i++) d.chest("stold");
+    assert.ok(!d.state().events.some((x) => x.type === "steal" && x.victimUid === uid), "ingen stjäl från den skyddade");
+    clock += 40_000;
+    assert.ok(!d.protectedList().some((x) => x.uid === uid), "skyddet har gått ut");
+    // Kortare sköld (panelens "går ut om 5 s").
+    const kort = d.shield({ ms: 5_000 });
+    assert.equal(d.protectedList().find((x) => x.uid === kort).leftMs, 5_000);
+    clock += 5_000;
+    assert.ok(!d.protectedList().some((x) => x.uid === kort));
+    assert.ok(!d.state().grPlayers.some((g) => "shield" in g), "fältet shield finns inte");
+  });
+  it("ledningsbyte, storm och tid snart slut", () => {
     const d = mk();
     d.playHistory(120);
-    d.shieldBlock();
-    assert.equal(d.state().events[0].type, "shieldBlock");
     d.leadChange();
     assert.equal(d.state().events[0].type, "lead");
     const n = d.state().answers.length;

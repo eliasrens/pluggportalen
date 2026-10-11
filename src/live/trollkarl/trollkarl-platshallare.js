@@ -52,7 +52,7 @@ const POSES = {
   defeat: [["fig", [{ transform: "none" }, { transform: "translateY(36px) scale(.9,.8) rotate(-6deg)" }], 900, "forwards"]],
 };
 
-const TRANSFORMS = { frog: "🐸", chicken: "🐔", potato: "🥔", bubble: "🫧", banana: "🍌", default: "✨" };
+const TRANSFORMS = { frog: "🐸", chicken: "🐔", potato: "🥔", bubble: "⚪", banana: "🍌", default: "✨" };
 
 function svg(who, L) {
   return `<svg class="tkw-svg" viewBox="-150 -400 300 410" aria-hidden="true">

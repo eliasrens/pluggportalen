@@ -96,8 +96,8 @@ async function attack() {
   check("19s", "räkna upp sina rätt (players.correct) nekas", !fejkKlass.ok, fejkKlass.code || "skrevs!");
 
   // Test 15: Alma 100 → Omar stjäl → 85 / +15, i en transaktion + händelse.
-  await setGp(SID, alma.uid, { gold: 100, shield: false, protectedUntil: null });
-  await setGp(SID, omar.uid, { gold: 40, shield: false, protectedUntil: null, lastVictimUid: null });
+  await setGp(SID, alma.uid, { gold: 100, protectedUntil: null });
+  await setGp(SID, omar.uid, { gold: 40, protectedUntil: null, lastVictimUid: null });
   const rs = await svara(O, SID, true);
   await tvingaVal(SID, omar.uid, "steal", rs.attemptId);
   const coinsFore = await saldon([alma.uid, omar.uid]);
@@ -129,7 +129,7 @@ async function attack() {
   check("16e", "inget val → servern slumpar en tillåten klasskamrat (aldrig Alma med skydd)", s16e.ok && s16e.v.victimUid !== alma.uid && s16e.v.victimUid !== leo.uid, JSON.stringify(s16e.v || s16e.code));
 
   // Samma offer två gånger i rad.
-  await setGp(SID, juni.uid, { gold: 200, protectedUntil: null, shield: false });
+  await setGp(SID, juni.uid, { gold: 200, protectedUntil: null });
   await setGp(SID, omar.uid, { lastVictimUid: juni.uid });
   const rj = await svara(O, SID, true);
   await tvingaVal(SID, omar.uid, "steal", rj.attemptId);
@@ -139,8 +139,8 @@ async function attack() {
 
   // Test 17: Ines minst guld → byte bara mot rikare.
   await setGp(SID, ines.uid, { gold: 5, lastVictimUid: null, protectedUntil: null });
-  await setGp(SID, hussein.uid, { gold: 3, protectedUntil: null, shield: false });
-  await setGp(SID, clara.uid, { gold: 300, protectedUntil: null, shield: false });
+  await setGp(SID, hussein.uid, { gold: 3, protectedUntil: null });
+  await setGp(SID, clara.uid, { gold: 300, protectedUntil: null });
   const ri = await svara(I, SID, true);
   await tvingaVal(SID, ines.uid, "swap", ri.attemptId);
   const s17 = await fel(I.chooseVictim({ sid: SID, victimUid: hussein.uid }));
@@ -158,15 +158,15 @@ async function attack() {
   const s17d = await fel(H.chooseVictim({ sid: SID, victimUid: null }));
   check("17d", "har ingen giltig → vanlig guldkista i stället (fallback)", s17d.ok && s17d.v.result === "fallback", JSON.stringify(s17d.v || s17d.code));
 
-  // Sköld: stoppar nästa stöld, förbrukas.
-  await setGp(SID, eva.uid, { gold: 120, shield: true, protectedUntil: null });
+  // Sköld (#588): ett tidsbegränsat skydd – ett val mot en skyddad elev nekas.
+  await setGp(SID, eva.uid, { gold: 120, protectedUntil: Timestamp.fromMillis(Date.now() + 60_000) });
   await setGp(SID, clara.uid, { lastVictimUid: null, pending: null });
   await sleep(1100);
   const rc = await svara(C, SID, true);
   await tvingaVal(SID, clara.uid, "steal", rc.attemptId);
   const sSk = await fel(C.chooseVictim({ sid: SID, victimUid: eva.uid }));
   const ge = await gp(SID, eva.uid);
-  check("T3", "sköld stoppar stölden (0 guld flyttas) och förbrukas", sSk.ok && sSk.v.result === "blocked" && ge.gold === 120 && ge.shield === false, JSON.stringify(sSk.v || sSk.code));
+  check("T3", "skyddad (sköld 60 s) → valet nekas 'hann skaffa en sköld', 0 guld flyttas", !sSk.ok && /hann skaffa en sköld/.test(sSk.msg) && ge.gold === 120, sSk.msg);
   check("T3b", "stöld från elev med för lite guld (≤ 6) nekas – ingen hamnar på 0", victimProblem("steal", { uid: "x" }, { uid: "y", gold: 6 }, Date.now()) === "for-lite-guld");
 
   // Facit (quiz) – eleven kan inte läsa det.
@@ -257,7 +257,7 @@ function nollstall() {
     const k = chest.effect.kind;
     if (k === "steal" || k === "swap") {
       const thief = { uid: "t", gold: Math.floor(rnd() * 3000), lastVictimUid: null };
-      const victim = { uid: "v", gold: g, shield: rnd() < 0.1 };
+      const victim = { uid: "v", gold: g };
       if (victimProblem(k, thief, victim, 0)) continue;
       const r = resolveVictim(k, thief, victim);
       if (r.victimGold === 0 || r.thiefGold === 0) nollad++;

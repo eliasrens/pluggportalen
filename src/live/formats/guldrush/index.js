@@ -21,7 +21,9 @@
 // kistor, offerväljare och stöldnotis. Projektorvyerna (#565):
 // guldrush-projector.js – Skattkammaren + Statistik, lobby, pallplats.
 // Historiken + Statistik → Live (#566): guldrush-history.js. Demoläget:
-// gr-demo.js (preview/preview-guldrush-demo.html).
+// gr-demo.js (preview/preview-guldrush-demo.html). Bakgrundsmusik (#593):
+// `music` → assets/guldrushen-loop.ogg (≈ 84 s sömlös loop), spelas av
+// projektorskalet (proj-music.js) – filen hämtas först i lobbyn.
 //
 // API: export default GULDRUSH (format-objekt, oregistrerat).
 // ============================================================================
@@ -46,6 +48,9 @@ const GULDRUSH = {
   pacing: "tid",
   minQuestions: 5,
   privateDocs: [GR_PRIVATE_DOC, GR_PUBLIC_DOC],
+  // Tyst lobby (läraren pratar; ljud får ändå inte starta före STARTA),
+  // matchen ≈ 30 % av effekternas volym.
+  music: { src: new URL("./assets/guldrushen-loop.ogg", import.meta.url).href, level: 0.3, lobby: 0 },
 
   setupFields: [
     durationField(),

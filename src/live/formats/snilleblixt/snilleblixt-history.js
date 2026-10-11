@@ -21,6 +21,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { coinIcon } from "../../../icons.js";
 import { getGameMode } from "../../modes/index.js";
 import { ensureLiveCss } from "../../live-css.js";
 import {
@@ -78,7 +79,7 @@ function topplistaHtml(s, result) {
   }).join("");
   if (!rows) return `<p class="hint">Inga elever anslöt.</p>`;
   return `<table class="live-table"><thead><tr><th class="num">Plats</th><th>Elev</th>${flera ? "<th>Klass</th>" : ""}
-      <th class="num">Rätt</th><th class="num">Fel</th><th class="num">Poäng</th>${rw ? `<th class="num">🪙 Pluggmynt</th>` : ""}</tr></thead>
+      <th class="num">Rätt</th><th class="num">Fel</th><th class="num">Poäng</th>${rw ? `<th class="num">${coinIcon("1em")} Pluggmynt</th>` : ""}</tr></thead>
     <tbody>${rows}</tbody></table>`;
 }
 

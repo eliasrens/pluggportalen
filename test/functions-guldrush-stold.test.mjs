@@ -7,7 +7,10 @@
 //   test 17  byte bara med någon som har mer guld (manipulerat nekas)
 //   test 18  stöld & byte av → kan aldrig komma; manipulerat väntande val →
 //            vanlig guldkista
-//   + sköld, slumpat offer, för sent, ingen att välja
+//   + slumpat offer, för sent, ingen att välja
+//   #588 ETT tidsbegränsat skydd (spec DEL 3 test 1–8): Sköld 60 s (förlängs),
+//   bestulen 30 s, skyddet prövas i valets ögonblick, slumpen bara bland
+//   oskyddade, alla skyddade → guldkista, manipulerat anrop nekas
 // Körs av `npm run test:functions`. Riggen: test/helpers/guldrush-core-rig.js.
 // ============================================================================
 
@@ -115,27 +118,6 @@ describe("stöld och byte (test 15–18)", () => {
     assert.equal((await gp(s, "leo")).gold, 100, "ingen stöld när den är avstängd");
   });
 
-  it("sköld stoppar nästa stöld och förbrukas; slumpat offer tar aldrig någon med sköld", async () => {
-    const s = await makeSession();
-    await setGold(s, "leo", 200, { shield: true });
-    await setGold(s, "alma", 100);
-    await setGold(s, "omar", 0, { pending: pending("steal") });
-    const r = await chooseVictim(deps, "omar", { sid: s, victimUid: "leo" });
-    assert.deepEqual([r.result, r.amount], ["blocked", 0]);
-    const leo = await gp(s, "leo");
-    assert.deepEqual([leo.gold, leo.shield, leo.lastHit.kind], [200, false, "blocked"]);
-    assert.ok((await events(s)).some((e) => e.type === "shieldBlock" && e.victimUid === "leo"));
-    // Slumpat: Leo har ny sköld → bara Alma kan väljas.
-    await setGold(s, "leo", 200, { shield: true });
-    await setGold(s, "omar", 0, { pending: pending("steal"), lastVictimUid: null });
-    for (const x of [0, 0.5, 0.99]) {
-      ctl.roll = x;
-      await setGold(s, "omar", 0, { pending: pending("steal"), lastVictimUid: null });
-      await setGold(s, "alma", 100, { protectedUntil: null });
-      const auto = await chooseVictim(deps, "omar", { sid: s });
-      assert.equal(auto.victimUid, "alma");
-    }
-  });
 
   it("för sent (efter ~10 s): servern slumpar även om eleven skickar ett namn", async () => {
     const s = await makeSession();
@@ -155,5 +137,121 @@ describe("stöld och byte (test 15–18)", () => {
     await setGold(s, "alma", 100);
     await setGold(s, "omar", 0);
     assert.equal(await code(chooseVictim(deps, "omar", { sid: s, victimUid: "alma" })), "failed-precondition");
+  });
+});
+
+describe("ETT tidsbegränsat skydd (#588, spec DEL 3 test 1–8)", () => {
+  const sköld = async (s, uid) => {
+    ctl.roll = rngFor("skold");
+    ctl.clock += 2_000;
+    return openChest(deps, uid, { sid: s, attemptId: await rightAnswer(s, uid), chestIndex: 1 });
+  };
+  const until = async (s, uid) => (await gp(s, uid)).protectedUntil?.toMillis() ?? null;
+
+  it("test 1: Sköld-kistan → skyddad i 60 s, därefter inte; händelsen '🛡️ … är skyddad!'", async () => {
+    const s = await makeSession();
+    await setGold(s, "alma", 100);
+    await setGold(s, "omar", 0);
+    const r = await sköld(s, "alma");
+    const t = ctl.clock;
+    assert.deepEqual([r.kind, r.protectedUntil], ["shield", t + 60_000]);
+    assert.equal(await until(s, "alma"), t + 60_000);
+    assert.equal("shield" in (await gp(s, "alma")), false, "inget separat sköld-fält");
+    assert.ok((await events(s)).some((e) => e.type === "chest" && e.chest === "skold" && e.uid === "alma"));
+    // Medan skyddet gäller: nekas. Vid 60 s: går.
+    await setGold(s, "omar", 0, { pending: pending("steal", "stold", t + 59_000) });
+    ctl.clock = t + 59_000;
+    assert.equal(await code(chooseVictim(deps, "omar", { sid: s, victimUid: "alma" })), "failed-precondition");
+    ctl.clock = t + 60_000;
+    assert.equal((await chooseVictim(deps, "omar", { sid: s, victimUid: "alma" })).result, "steal");
+  });
+
+  it("test 2: skyddad elev öppnar ny Sköld efter 40 s → 60 s från NU", async () => {
+    const s = await makeSession();
+    await setGold(s, "alma", 100);
+    await sköld(s, "alma");
+    const first = ctl.clock;
+    ctl.clock = first + 40_000 - 2_000; // sköld() lägger på 2 s
+    await sköld(s, "alma");
+    assert.equal(ctl.clock, first + 40_000);
+    assert.equal(await until(s, "alma"), first + 100_000);
+  });
+
+  it("test 3: Alma blir bestulen → skyddad i 30 s", async () => {
+    const s = await makeSession();
+    await setGold(s, "alma", 100);
+    await setGold(s, "omar", 0, { pending: pending("steal") });
+    await chooseVictim(deps, "omar", { sid: s, victimUid: "alma" });
+    assert.equal(await until(s, "alma"), ctl.clock + GR_RULES.protectionMs);
+    assert.equal(GR_RULES.protectionMs, 30_000);
+  });
+
+  it("test 4: Alma skyddad 4 s till → tjuven väntar ut nedräkningen och väljer henne → går igenom", async () => {
+    const s = await makeSession();
+    await setGold(s, "alma", 100, { protectedUntil: Timestamp.fromMillis(ctl.clock + 4_000) });
+    await setGold(s, "omar", 0, { pending: pending("steal") });
+    ctl.clock += 4_000; // inom väljartiden (10 s)
+    const r = await chooseVictim(deps, "omar", { sid: s, victimUid: "alma" });
+    assert.deepEqual([r.result, r.victimUid, r.amount], ["steal", "alma", 15]);
+    assert.equal(r.gold, 15);
+  });
+
+  it("test 5: offret skaffar sköld under väljartiden → nekas 'hann skaffa en sköld', tjuven väljer om", async () => {
+    const s = await makeSession();
+    await setGold(s, "alma", 100);
+    await setGold(s, "leo", 80);
+    await setGold(s, "omar", 0, { pending: pending("steal") });
+    ctl.clock += 2_000;
+    await sköld(s, "alma"); // offret öppnar Sköld medan Omar väljer
+    ctl.clock += 1_000;
+    await assert.rejects(chooseVictim(deps, "omar", { sid: s, victimUid: "alma" }),
+      (e) => e.code === "failed-precondition" && e.message === "🛡️ Alma hann skaffa en sköld!");
+    assert.ok((await gp(s, "omar")).pending, "valet ligger kvar");
+    assert.equal((await gp(s, "alma")).gold, 100);
+    const r = await chooseVictim(deps, "omar", { sid: s, victimUid: "leo" });
+    assert.deepEqual([r.result, r.victimUid, r.amount], ["steal", "leo", 12]);
+  });
+
+  it("test 6: väljartiden går ut → servern slumpar aldrig fram en skyddad elev", async () => {
+    const s = await makeSession({}, ["alma", "omar", "leo", "ines", "bo"]);
+    await setGold(s, "alma", 300, { protectedUntil: Timestamp.fromMillis(ctl.clock + 60_000) });
+    await setGold(s, "leo", 200, { protectedUntil: Timestamp.fromMillis(ctl.clock + 5_000) });
+    await setGold(s, "ines", 100);
+    await setGold(s, "bo", 90, { protectedUntil: Timestamp.fromMillis(ctl.clock + 30_000) });
+    for (const x of [0, 0.2, 0.4, 0.6, 0.8, 0.99]) {
+      ctl.roll = x;
+      await setGold(s, "omar", 0, { pending: pending("steal"), lastVictimUid: null });
+      await setGold(s, "ines", 100, { protectedUntil: null });
+      const r = await chooseVictim(deps, "omar", { sid: s }); // null = tiden ute
+      assert.deepEqual([r.result, r.victimUid], ["steal", "ines"], String(x));
+    }
+    // För sent med ett namn på en skyddad → slumpas bland oskyddade.
+    await setGold(s, "omar", 0, { pending: pending("steal", "stold", ctl.clock - GR_RULES.victimPickMs - GR_RULES.victimGraceMs - 1), lastVictimUid: null });
+    await setGold(s, "ines", 100, { protectedUntil: null });
+    assert.equal((await chooseVictim(deps, "omar", { sid: s, victimUid: "alma" })).victimUid, "ines");
+  });
+
+  it("test 7: alla kompisar skyddade → vanlig guldkista", async () => {
+    const s = await makeSession();
+    for (const uid of ["alma", "leo", "ines"]) await setGold(s, uid, 100, { protectedUntil: Timestamp.fromMillis(ctl.clock + 20_000) });
+    await setGold(s, "omar", 10, { pending: pending("steal") });
+    const r = await chooseVictim(deps, "omar", { sid: s });
+    assert.deepEqual([r.result, r.chest, r.delta, r.gold], ["fallback", "guld", 25, 35]);
+    for (const uid of ["alma", "leo", "ines"]) assert.equal((await gp(s, uid)).gold, 100);
+    assert.ok((await events(s)).some((e) => e.type === "chest" && e.chest === "guld" && e.fallbackFrom === "stold"));
+  });
+
+  it("test 8: manipulerat anrop mot en skyddad elev nekas (stöld och byte)", async () => {
+    const s = await makeSession();
+    await setGold(s, "alma", 500, { protectedUntil: Timestamp.fromMillis(ctl.clock + 50_000) });
+    await setGold(s, "omar", 10, { pending: pending("steal") });
+    assert.equal(await code(chooseVictim(deps, "omar", { sid: s, victimUid: "alma" })), "failed-precondition");
+    await setGold(s, "omar", 10, { pending: pending("swap") });
+    assert.equal(await code(chooseVictim(deps, "omar", { sid: s, victimUid: "alma" })), "failed-precondition");
+    assert.deepEqual([(await gp(s, "alma")).gold, (await gp(s, "omar")).gold], [500, 10]);
+    // En gammal sköld-flagga (före #588) skyddar inte längre.
+    await setGold(s, "leo", 200, { shield: true });
+    await setGold(s, "omar", 10, { pending: pending("steal") });
+    assert.equal((await chooseVictim(deps, "omar", { sid: s, victimUid: "leo" })).result, "steal");
   });
 });

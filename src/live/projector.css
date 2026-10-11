@@ -62,6 +62,8 @@
 .lp-btn:hover { background: rgba(255, 255, 255, 0.26); }
 .lp-btn:focus-visible { outline: 3px solid #ffd23d; outline-offset: 2px; }
 .lp-btn.lp-off { opacity: 0.7; }
+/* 🎵 Musik (#593): lärarens kontroll – syns aldrig i helskärm (projektorbilden). */
+.lp-fs .lp-btn[data-music] { display: none; }
 .lp-danger { background: rgba(255, 77, 77, 0.28); border-color: rgba(255, 140, 140, 0.4); }
 .lp-views { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(0, 0, 0, 0.28); }
 .lp-vbtn { border-color: transparent; background: transparent; }

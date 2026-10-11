@@ -23,6 +23,7 @@ const TYPES = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".ico": "image/x-icon",
+  ".ogg": "audio/ogg",
 };
 
 const server = createServer(async (req, res) => {

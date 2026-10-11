@@ -76,9 +76,9 @@
       import { createNotice } from "../src/live/formats/guldrush/gr-notis.js";
       import { createGoldCounter } from "../src/live/formats/guldrush/gr-guld.js";
       import { createChestSound } from "../src/live/formats/guldrush/gr-ljud.js";
-      import { createHitWatcher } from "../src/live/formats/guldrush/gr-elev.js";
+      import { createHitWatcher, myProtection } from "../src/live/formats/guldrush/gr-elev.js";
       import { GR_CHESTS, GR_RULES } from "../src/live/formats/guldrush/delat/chests-config.js";
-      import { applySelfEffect, rollChest, resolveVictim } from "../src/live/formats/guldrush/delat/guldrush-regler.js";
+      import { applySelfEffect, rollChest, resolveVictim, shieldUntil, hitProtectionUntil, victimProblem, victimMessage, eligibleVictims } from "../src/live/formats/guldrush/delat/guldrush-regler.js";
       import { createAvatarRoster } from "../src/live/design/live-avatars.js";
       import { createAvatarPool } from "../src/live/design/live-avatar-pool.js";
       import { react, setAvatarState, prefersReducedMotion } from "../src/live/design/live-reactions.js";
@@ -107,13 +107,20 @@
       const sound = createChestSound();
       const ljud = $("[data-ljud]");
       ljud.addEventListener("click", () => { sound.toggle(); ljud.textContent = sound.on ? "🔊" : "🔇"; });
-      let my = { uid: "e0", name: "Jag", classId: "4b", gold: 40, shield: false };
+      let my = { uid: "e0", name: "Jag", classId: "4b", gold: 40, protectedUntil: null };
       gold.sync(my.gold);
       const now0 = Date.now();
       let players = NAMN.slice(1).map((n, i) => ({
         uid: `e${i + 1}`, name: n, classId: "4b", gold: Math.max(0, 260 - i * 9 + (i % 4) * 5),
-        shield: i === 2 || i === 11, protectedUntil: i === 5 || i === 17 ? now0 + 600_000 : null,
+        protectedUntil: i === 5 || i === 17 ? now0 + 600_000 : null,
       }));
+      // Elevens egen skyddsrad (#588): "🛡️ Skyddad 0:42" bara medan skyddet gäller.
+      setInterval(() => {
+        const text = myProtection(my, Date.now());
+        $(".gr-skydd").hidden = !text;
+        $(".gr-skydd").textContent = text;
+        setAvatarState(me, "skyddad", !!text);
+      }, 250);
       const reduced = () => $("[data-reduced]").checked || prefersReducedMotion();
       const latency = () => Number($("[data-lat]").value) || 0;
       const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -140,14 +147,12 @@
               }
               const eff = applySelfEffect(chest, my.gold);
               const prev = my.gold;
-              my = { ...my, gold: eff.gold, shield: my.shield || eff.shield };
-              return { chest: chest.id, kind: chest.effect.kind, delta: eff.gold - prev, gold: eff.gold, shield: my.shield };
+              my = { ...my, gold: eff.gold, ...(eff.protect ? { protectedUntil: shieldUntil(Date.now()) } : {}) };
+              return { chest: chest.id, kind: chest.effect.kind, delta: eff.gold - prev, gold: eff.gold, protectedUntil: my.protectedUntil };
             },
             onReveal(v) {
               gold.reveal(my.gold, v.gold);
               if (v.mood) react(me, v.mood).catch(() => {});
-              setAvatarState(me, "skyddad", my.shield);
-              $(".gr-skydd").hidden = !my.shield;
             },
           });
           if (autoPick != null) setTimeout(() => parts.kistor.querySelectorAll(".grk-kista")[autoPick]?.click(), 700);
@@ -165,13 +170,34 @@
       function victim(kind) {
         show("offer");
         const pending = { kind, expiresAtMs: Date.now() + GR_RULES.victimPickMs };
+        // Levande offerlista (#588): två av de rikaste är skyddade 4 s resp.
+        // 60 s när väljaren öppnas; efter 2 s skaffar den rikaste oskyddade en
+        // sköld – listan får veta det först 3 s senare (som ett segt nät): väljer
+        // man den under tiden nekar "servern" med "hann skaffa en sköld".
+        const t0 = Date.now();
+        let cur = null;
+        const rich = [...players].sort((a, b) => b.gold - a.gold);
+        players = players.map((p) => (p.uid === rich[0].uid ? { ...p, protectedUntil: t0 + 4_000 }
+          : p.uid === rich[1].uid ? { ...p, protectedUntil: t0 + 60_000 } : p));
+        setTimeout(() => {
+          const v = eligibleVictims(kind, my, players, Date.now()).sort((a, b) => b.gold - a.gold)[0];
+          if (!v) return;
+          players = players.map((p) => (p.uid === v.uid ? { ...p, protectedUntil: shieldUntil(Date.now()) } : p));
+          log(`🛡️ ${v.name} skaffade en sköld under väljartiden (listan vet om 3 s)`);
+          window.__grSkold = { uid: v.uid, at: Date.now() };
+          const snap = players;
+          setTimeout(() => cur?.update(null, snap), 3_000);
+        }, 2_000);
         return new Promise((resolve) => {
-          const h = pickVictim(parts.offer, {
+          const h = cur = pickVictim(parts.offer, {
             kind, me: { ...my, pending }, players, pending, now: () => Date.now(), pool, roster, stage: $(".gr-elev"), reduced: reduced(),
             choose: async (uid) => {
               await sleep(latency());
-              const cands = players.filter((p) => !p.shield && !(p.protectedUntil > Date.now()) && (kind !== "swap" || p.gold > my.gold));
+              const cands = eligibleVictims(kind, my, players, Date.now());
               const v = uid ? players.find((p) => p.uid === uid) : cands[Math.floor(Math.random() * cands.length)];
+              // Som servern: skyddet prövas i valets ögonblick.
+              const problem = uid ? victimProblem(kind, my, v, Date.now()) : null;
+              if (problem) throw new Error(victimMessage(problem, v));
               if (!v) { // ingen att välja → vanlig guldkista (serverns fallback)
                 my = { ...my, gold: my.gold + 25 };
                 return { result: "fallback", chest: "guld", amount: 25, delta: 25, gold: my.gold };
@@ -179,7 +205,7 @@
               const res = resolveVictim(kind, my, v);
               const prev = my.gold;
               my = { ...my, gold: res.thiefGold, lastVictimUid: v.uid };
-              players = players.map((p) => (p.uid === v.uid ? { ...p, gold: res.victimGold, protectedUntil: Date.now() + GR_RULES.protectionMs } : p));
+              players = players.map((p) => (p.uid === v.uid ? { ...p, gold: res.victimGold, protectedUntil: hitProtectionUntil(p, Date.now()) } : p));
               return { result: kind, chest: kind === "swap" ? "byte" : "stold", victimUid: v.uid, amount: res.amount, delta: res.thiefGold - prev, gold: res.thiefGold };
             },
             onResult(v) { gold.reveal(my.gold, v.gold); if (v.mood) react(me, v.mood).catch(() => {}); },

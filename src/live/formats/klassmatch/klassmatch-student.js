@@ -9,11 +9,12 @@
 // ============================================================================
 
 import { escHtml } from "../../../ui.js";
+import { coinIcon } from "../../../icons.js";
 import { formatScore } from "../../live-core.js";
 import { prizeText } from "./klassmatch-core.js";
 
 export function lobbyHtml(s) {
-  return prizeText(s) ? `<p class="live-elev-prize">🪙 ${escHtml(prizeText(s))}</p>` : "";
+  return prizeText(s) ? `<p class="live-elev-prize">${coinIcon("1em")} ${escHtml(prizeText(s))}</p>` : "";
 }
 
 export function endHtml(st, player, classId) {
@@ -30,5 +31,5 @@ export function endHtml(st, player, classId) {
     ? `<h2>🤝 OAVGJORT!</h2>`
     : `<h2>🏆 VINNARE – ${escHtml(names[r.winner] || r.winner)}!</h2>`;
   const pris = prizeText(st.session, r);
-  return `${head}${pris ? `<p class="live-elev-prize">🪙 ${escHtml(pris)}</p>` : ""}<ul class="live-elev-result">${rows}</ul>${mine}`;
+  return `${head}${pris ? `<p class="live-elev-prize">${coinIcon("1em")} ${escHtml(pris)}</p>` : ""}<ul class="live-elev-result">${rows}</ul>${mine}`;
 }

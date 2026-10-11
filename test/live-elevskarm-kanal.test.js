@@ -34,7 +34,7 @@ test("nyöppnad elevskärm får panelens aktuella vy och ljud direkt (hello → 
   panel.publish({ view: "statistik", sound: true });
   const got = [];
   createScreenLink("s1", { open: h.open, poll: false, onState: (s) => got.push(s) });
-  assert.deepEqual(got, [{ view: "statistik", sound: true }]);
+  assert.deepEqual(got, [{ view: "statistik", sound: true, music: true }]);
   assert.equal(panel.connected(), true);
 });
 
@@ -66,10 +66,10 @@ test("närvaro: ansluten via livstecken, borta efter STALE_MS eller bye", () => 
   const panel = createPanelLink("s1", { open: h.open, poll: false, now: () => t, onChange: (i) => changes.push(i) });
   let audio = false;
   const screen = createScreenLink("s1", { open: h.open, poll: false, audio: () => audio });
-  assert.deepEqual(changes.at(-1), { connected: true, audio: false });
+  assert.deepEqual(changes.at(-1), { connected: true, audio: false, music: false });
   audio = true;
   screen.ping();
-  assert.deepEqual(changes.at(-1), { connected: true, audio: true });
+  assert.deepEqual(changes.at(-1), { connected: true, audio: true, music: false });
   t += STALE_MS + 1;
   panel.check();
   assert.equal(panel.connected(), false);
@@ -87,7 +87,7 @@ test("omladdad panel hittar en redan öppen elevskärm (panelens hello → ping)
   const changes = [];
   const panel = createPanelLink("s1", { open: h.open, poll: false, onChange: (i) => changes.push(i) });
   assert.equal(panel.connected(), true);
-  assert.deepEqual(changes, [{ connected: true, audio: true }]);
+  assert.deepEqual(changes, [{ connected: true, audio: true, music: false }]);
 });
 
 test("omladdad elevskärm återansluter och får senaste läget igen", () => {
@@ -98,7 +98,7 @@ test("omladdad elevskärm återansluter och får senaste läget igen", () => {
   first.destroy(); // omladdning
   const got = [];
   createScreenLink("s1", { open: h.open, poll: false, onState: (s) => got.push(s) });
-  assert.deepEqual(got, [{ view: "dragkamp", sound: false }]);
+  assert.deepEqual(got, [{ view: "dragkamp", sound: false, music: true }]);
 });
 
 test("Stäng elevskärm: skärmen får close", () => {
@@ -129,5 +129,42 @@ test("riktig BroadcastChannel (Node) bär protokollet", { skip: typeof Broadcast
     const screen = createScreenLink("real", { poll: false, onState: (s) => { screen.destroy(); resolve(s); } });
   });
   panel.destroy();
-  assert.deepEqual(got, { view: "statistik", sound: true });
+  assert.deepEqual(got, { view: "statistik", sound: true, music: true });
+});
+
+// --- Bakgrundsmusiken (#593) -------------------------------------------------
+
+test("musik av följer med till elevskärmen, oberoende av ljudet", () => {
+  const h = hub();
+  const panel = createPanelLink("s1", { open: h.open, poll: false });
+  const got = [];
+  createScreenLink("s1", { open: h.open, poll: false, onState: (s) => got.push(s) });
+  panel.publish({ view: "skattkammaren", sound: true, music: false });
+  panel.publish({ view: "skattkammaren", sound: false, music: true });
+  assert.deepEqual(got, [
+    { view: "skattkammaren", sound: true, music: false },
+    { view: "skattkammaren", sound: false, music: true },
+  ]);
+});
+
+test("panel före #593 (utan music i state) → elevskärmen spelar musik (standard på)", () => {
+  const h = hub();
+  const got = [];
+  createScreenLink("s1", { open: h.open, poll: false, onState: (s) => got.push(s) });
+  const old = h.open("pp-live-elevskarm:s1");
+  old.postMessage({ t: "state", view: "raket", sound: true });
+  assert.deepEqual(got, [{ view: "raket", sound: true, music: true }]);
+});
+
+test("elevskärmen rapporterar musiken separat – panelen vet när den ska tystna", () => {
+  const h = hub();
+  const changes = [];
+  const panel = createPanelLink("s1", { open: h.open, poll: false, onChange: (i) => changes.push(i) });
+  let music = false;
+  const screen = createScreenLink("s1", { open: h.open, poll: false, audio: () => false, music: () => music });
+  assert.deepEqual(changes.at(-1), { connected: true, audio: false, music: false });
+  music = true; // ljudeffekterna av där, men musiken spelar
+  screen.ping();
+  assert.deepEqual(changes.at(-1), { connected: true, audio: false, music: true });
+  assert.equal(panel.music(), true);
 });
