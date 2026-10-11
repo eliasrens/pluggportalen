@@ -18,6 +18,12 @@
 //   ensureGrottaCss()
 //   grottaHtml({ variant? = "kammare" | "lobby" | "stilla" }) → bakgrundens markup
 //   logoHtml({ size? = "liten" | "stor" }) → "GULDRUSHEN" + guldkistan
+//   createDekorVakt(root, hinder) → { check(), destroy() } – DEKOR BAKOM TEXT
+//     (#591): varje dekorbit ([data-dekor]: kristaller, facklor, guldådror)
+//     som överlappar en av hinder()-ytorna (text, namn, avatarer – DOMRect-
+//     liknande) göms (grg-skymd). Prövas vid storleksändring och varannan
+//     sekund (bara getBoundingClientRect på ~15 bitar). Banderollen räknas
+//     inte – den är ogenomskinlig och kort.
 // ============================================================================
 
 import { ensureLiveCss } from "../../live-css.js";
@@ -68,7 +74,7 @@ function ader(x, y, len, ang, seed) {
   const d = `M${pts.map(([a, b]) => `${r1(a)} ${r1(b)}`).join(" L")}`;
   const glints = pts.slice(1, -1).filter((_, i) => i % 2 === 0).map(([a, b], i) =>
     `<path class="grg-glimt" style="--d:${r1(seed % 5 + i * 1.3)}s" d="M${r1(a)} ${r1(b - 9)} L${r1(a + 2.5)} ${r1(b - 2.5)} L${r1(a + 9)} ${r1(b)} L${r1(a + 2.5)} ${r1(b + 2.5)} L${r1(a)} ${r1(b + 9)} L${r1(a - 2.5)} ${r1(b + 2.5)} L${r1(a - 9)} ${r1(b)} L${r1(a - 2.5)} ${r1(b - 2.5)}Z"/>`).join("");
-  return `<path class="grg-ader" d="${d}"/><path class="grg-ader-ljus" d="${d}"/>${glints}`;
+  return `<g data-dekor><path class="grg-ader" d="${d}"/><path class="grg-ader-ljus" d="${d}"/>${glints}</g>`;
 }
 
 // Kristallklunga (ädelstenar).
@@ -82,11 +88,13 @@ function stenar(x, y, color, seed, s = 1) {
     const tilt = (i - 1.5) * 12 + (r() - 0.5) * 10;
     out += `<g transform="translate(${r1(cx)} ${r1(y)}) rotate(${r1(tilt)})"><path d="M${r1(-w / 2)} 0 L${r1(-w / 2)} ${r1(-h * 0.7)} L0 ${r1(-h)} L${r1(w / 2)} ${r1(-h * 0.7)} L${r1(w / 2)} 0Z" fill="${color}"/><path d="M0 ${r1(-h)} L${r1(w / 2)} ${r1(-h * 0.7)} L${r1(w / 2)} 0 L0 0Z" fill="#000" opacity=".18"/></g>`;
   }
-  return `<g class="grg-sten" style="--d:${seed % 7}s">${out}<circle class="grg-sten-glans" cx="${r1(x)}" cy="${r1(y - 26 * s)}" r="${r1(30 * s)}" fill="${color}"/></g>`;
+  return `<g class="grg-sten" data-dekor style="--d:${seed % 7}s">${out}<circle class="grg-sten-glans" cx="${r1(x)}" cy="${r1(y - 26 * s)}" r="${r1(30 * s)}" fill="${color}"/></g>`;
 }
 
 function fackla(x, y, i) {
-  return `<g class="grg-fackla" transform="translate(${x} ${y})">
+  // data-matt: själva facklan (lågan + skaftet) – skenet får ligga bakom text.
+  return `<g class="grg-fackla" data-dekor transform="translate(${x} ${y})">
+    <rect data-matt x="-16" y="-64" width="32" height="146" fill="none"/>
     <circle class="grg-sken" style="--d:${-i * 0.37}s" r="190" fill="url(#grg-sken)"/>
     <path d="M-14 6 H14 L8 18 H-8Z" fill="#3a2a1e"/><rect x="-5" y="10" width="10" height="70" rx="3" fill="#5f4127"/>
     <path d="M-12 2 Q-14 -6 -8 -8 H8 Q14 -6 12 2Z" fill="#7a5532"/>
@@ -101,7 +109,7 @@ function fackla(x, y, i) {
 function gruvvagn() {
   const mynt = [[-46, -64], [-24, -72], [0, -76], [24, -70], [46, -62], [-34, -54], [-10, -60], [14, -58], [36, -52]]
     .map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="15" ry="9" fill="#ffcf3a" stroke="#c48a00" stroke-width="2.5"/>`).join("");
-  return `<g class="grg-vagn" transform="translate(1680 1012)">
+  return `<g class="grg-vagn" transform="translate(1680 ${RALS_Y})">
     <path d="M-66 -54 Q0 -98 66 -54Z" fill="#f5b81f"/>${mynt}
     <path d="M-30 -66 l3 -8 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3Z" class="grg-glimt" style="--d:1.2s" fill="#fff8d0"/>
     <path d="M-78 -50 H78 L64 -6 H-64Z" fill="#6b4a33" stroke="#3a2516" stroke-width="5" stroke-linejoin="round"/>
@@ -110,11 +118,14 @@ function gruvvagn() {
   </g>`;
 }
 
+// Rälsen ligger under nedersta radens skyltar (golvets kant ≈ y 1042, #591).
+const RALS_Y = 1048;
+
 function rals() {
   let sliprar = "";
-  for (let x = 10; x < 1920; x += 46) sliprar += `<rect x="${x}" y="1018" width="26" height="14" rx="2"/>`;
+  for (let x = 10; x < 1920; x += 46) sliprar += `<rect x="${x}" y="${RALS_Y + 6}" width="26" height="14" rx="2"/>`;
   return `<g class="grg-rals"><g fill="#4a3426">${sliprar}</g>
-    <rect x="0" y="1012" width="1920" height="6" fill="#9a9aa6"/><rect x="0" y="1026" width="1920" height="5" fill="#7c7c88"/></g>`;
+    <rect x="0" y="${RALS_Y}" width="1920" height="6" fill="#9a9aa6"/><rect x="0" y="${RALS_Y + 14}" width="1920" height="5" fill="#7c7c88"/></g>`;
 }
 
 function ingang() {
@@ -125,9 +136,9 @@ function ingang() {
   </g>`;
 }
 
-function liv() {
+function liv(kammare) {
   return `<g class="grg-liv">
-    <g class="grg-spindel" transform="translate(1180 0)">
+    <g class="grg-spindel" transform="translate(${kammare ? 1330 : 1180} 0)">
       <g class="grg-spindel-ner"><line x1="0" y1="-400" x2="0" y2="0" stroke="#d8cfe0" stroke-width="1.5" opacity=".6"/>
         <ellipse cx="0" cy="12" rx="11" ry="13" fill="#1a1216"/><circle cx="0" cy="-2" r="7" fill="#1a1216"/>
         <circle cx="-3" cy="-3" r="1.8" fill="#fff"/><circle cx="3" cy="-3" r="1.8" fill="#fff"/>
@@ -137,11 +148,34 @@ function liv() {
       <path d="M0 0 C-10 -12 -26 -16 -44 -6 C-36 -4 -32 2 -30 8 C-22 2 -12 4 0 8Z" fill="#241a26"/>
       <path d="M0 0 C10 -12 26 -16 44 -6 C36 -4 32 2 30 8 C22 2 12 4 0 8Z" fill="#241a26"/>
       <ellipse cx="0" cy="4" rx="7" ry="9" fill="#2e2230"/><circle cx="-2.5" cy="1" r="1.4" fill="#ffd25a"/><circle cx="2.5" cy="1" r="1.4" fill="#ffd25a"/></g></g>
-    <g transform="translate(760 0)"><path d="M-16 0 L0 118 L16 0Z" fill="#2a1f2c"/><ellipse class="grg-dropp" cx="0" cy="124" rx="4" ry="6" fill="#9fdcf0"/></g>
+    <g transform="translate(${kammare ? 600 : 760} 0)"><path d="M-16 0 L0 118 L16 0Z" fill="#2a1f2c"/><ellipse class="grg-dropp" cx="0" cy="124" rx="4" ry="6" fill="#9fdcf0"/></g>
   </g>`;
 }
 
+// Dekorens platser. Skattkammaren (#591): bara i ytor där inget annat finns –
+// luften under den översta raden (y ≈ 245–380), golvremsan mellan högarnas
+// två rader (y ≈ 690–765 i både 1920×1080 och 1280×720) och hörnet under
+// händelseflödet (x > 1400, y > 600). Dekor-vakten gömmer ändå allt som
+// skulle hamna bakom text (t.ex. i andra bildformat).
+const DEKOR = {
+  kammare: {
+    adror: [[120, 330, 330, -0.2, 11], [800, 300, 280, 0.05, 31], [1130, 372, 210, -0.12, 41], [1500, 760, 260, 0.1, 23]],
+    stenar: [[240, 758, "#86d8e8", 13, 0.7], [760, 758, "#e88fa8", 5, 0.7], [1250, 758, "#ffb648", 9, 0.7], [1080, 330, "#c58cff", 17, 0.7], [1800, 860, "#86d8e8", 3, 1], [1470, 900, "#e88fa8", 19, 0.75]],
+    facklor: [[150, 280], [660, 230], [1260, 230]],
+  },
+  lobby: { facklor: [[420, 330], [1770, 330]] },
+  standard: {
+    adror: [[120, 380, 360, -0.25, 11], [1500, 330, 380, 0.2, 23], [820, 250, 300, 0.1, 31], [1640, 640, 240, -0.4, 41], [360, 660, 240, 0.35, 53]],
+    stenar: [[520, 470, "#86d8e8", 3], [1400, 520, "#e88fa8", 5, 0.9], [1790, 470, "#ffb648", 9, 1.1], [80, 600, "#86d8e8", 13, 0.8], [1080, 330, "#c58cff", 17, 0.7]],
+    facklor: [[150, 330], [660, 230], [1260, 230], [1770, 330]],
+  },
+};
+
 export function grottaHtml({ variant = "kammare" } = {}) {
+  const kammare = variant === "kammare";
+  const d = { ...DEKOR.standard, ...DEKOR[variant] };
+  // Skattkammarens kristaller står på golvet → ritas efter golvet.
+  const dekor = `<g class="grg-adror">${d.adror.map((a) => ader(...a)).join("")}</g>${d.stenar.map((a) => stenar(...a)).join("")}`;
   return `<div class="grg grg-${variant}" aria-hidden="true">
     <svg class="grg-svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" focusable="false">
       <defs>
@@ -155,15 +189,15 @@ export function grottaHtml({ variant = "kammare" } = {}) {
       <path d="M0 0 H1920 V520 Q1700 430 1520 470 Q1300 330 1060 400 Q860 300 640 390 Q420 330 240 450 Q120 420 0 470Z" fill="#2c2230"/>
       <path d="M0 0 H1920 V300 Q1640 220 1400 260 Q1180 160 960 210 Q700 140 480 230 Q240 190 0 260Z" fill="#241c28"/>
       <g fill="#3a2e3f" opacity=".7"><path d="M0 520 Q160 430 300 500 L300 700 L0 700Z"/><path d="M1920 520 Q1760 440 1610 520 L1610 700 L1920 700Z"/></g>
-      <g class="grg-adror">${ader(120, 380, 360, -0.25, 11)}${ader(1500, 330, 380, 0.2, 23)}${ader(820, 250, 300, 0.1, 31)}${ader(1640, 640, 240, -0.4, 41)}${ader(360, 660, 240, 0.35, 53)}</g>
-      ${stenar(520, 470, "#86d8e8", 3)}${stenar(1400, 520, "#e88fa8", 5, 0.9)}${stenar(1790, 470, "#ffb648", 9, 1.1)}${stenar(80, 600, "#86d8e8", 13, 0.8)}${stenar(1080, 330, "#c58cff", 17, 0.7)}
+      ${kammare ? "" : dekor}
       <g fill="#1d1622">${stalaktiter()}</g>
       <path d="M0 690 Q480 640 960 662 Q1440 640 1920 690 V1080 H0Z" fill="url(#grg-golv)"/>
       <path d="M0 690 Q480 640 960 662 Q1440 640 1920 690" fill="none" stroke="#856650" stroke-width="5" opacity=".6"/>
+      ${kammare ? dekor : ""}
       ${variant === "lobby" ? ingang() : ""}
-      ${variant === "lobby" ? `${fackla(420, 330, 0)}${fackla(1770, 330, 3)}` : `${fackla(150, 330, 0)}${fackla(660, 230, 1)}${fackla(1260, 230, 2)}${fackla(1770, 330, 3)}`}
+      ${d.facklor.map(([x, y], i) => fackla(x, y, variant === "lobby" ? i * 3 : i)).join("")}
       ${rals()}${variant === "lobby" ? "" : gruvvagn()}
-      ${variant === "stilla" ? "" : liv()}
+      ${variant === "stilla" ? "" : liv(kammare)}
     </svg>
     <div class="grg-mork"></div>
   </div>`;
@@ -171,4 +205,28 @@ export function grottaHtml({ variant = "kammare" } = {}) {
 
 export function logoHtml({ size = "liten" } = {}) {
   return `<div class="grl grl-${size}"><span class="grl-kista">${chestSvg()}</span><span class="grl-namn">GULD<b>RUSHEN</b></span></div>`;
+}
+
+export function createDekorVakt(root, hinder, { pad = 6, everyMs = 2000 } = {}) {
+  const bitar = [...root.querySelectorAll(".grg [data-dekor]")];
+  function check() {
+    const rs = (hinder() || []).filter((r) => r && r.right > r.left && r.bottom > r.top);
+    for (const el of bitar) {
+      const b = (el.querySelector("[data-matt]") || el).getBoundingClientRect();
+      const krock = b.width > 0 && rs.some((r) => b.left < r.right + pad && b.right > r.left - pad && b.top < r.bottom + pad && b.bottom > r.top - pad);
+      el.classList.toggle("grg-skymd", krock);
+    }
+  }
+  let raf = 0;
+  const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => requestAnimationFrame(check)); });
+  ro.observe(root);
+  const iv = setInterval(check, everyMs);
+  return {
+    check,
+    destroy() {
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+      clearInterval(iv);
+    },
+  };
 }

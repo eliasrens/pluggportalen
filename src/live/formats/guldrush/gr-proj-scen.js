@@ -26,8 +26,9 @@
 //                                   🛡️ vid namnet + bubblan bara då)
 //   milestone(total)              → { prev, next, frac } – nästa delmål
 //   crossedMilestone(from, to)    → högsta delmål som passerades | null
-//   feedItem(ev, { names })       → händelseflödets post (text, avatarer,
-//                                   stor?, ljud, banderoll, reaktioner) | null
+//   feedItem(ev, { names })       → händelseflödets post (text, short = EN
+//                                   kort rad i flödet (#591), avatarer, stor?,
+//                                   ljud, banderoll, reaktioner) | null
 //                                   (null = visas inte: 0 guld tappat/dubblat)
 //   weight(item) / trimPending(list, max?) → händelseflödets gallring vid
 //                                   trängsel (småguld först, stora sist)
@@ -146,6 +147,7 @@ export function feedItem(ev, { names = true } = {}) {
     type,
     chest: chest?.id || null,
     text: eventText(ev, { names }),
+    short: eventText(ev, { names, short: true }),
     avatars: names ? [ev?.uid, ["steal", "swap"].includes(type) ? ev?.victimUid : null].filter(Boolean) : [],
     big: false,
     tone: "",

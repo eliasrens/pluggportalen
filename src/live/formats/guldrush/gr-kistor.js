@@ -23,7 +23,7 @@
 // ============================================================================
 
 import { chestView } from "./gr-elev.js";
-import { withCoinIcon } from "../../../icons.js";
+import { withGrIcons } from "./gr-ikoner.js";
 import { playLook } from "./gr-kistfx.js";
 import { playChestSound } from "./gr-ljud.js";
 
@@ -120,7 +120,7 @@ export function playChests(host, { open, onError = () => {}, onReveal = () => {}
     light?.animate?.([{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(1.1)", offset: 0.4 }, { opacity: 0.85, transform: "scale(1)" }],
       { duration: 420, delay: 60, fill: "forwards", easing: "ease-out" });
     playChestSound(sound, view.sound);
-    text.innerHTML = `<span class="grk-ikon" aria-hidden="true">${withCoinIcon(view.icon)}</span> ${view.caption}`;
+    text.innerHTML = `<span class="grk-ikon" aria-hidden="true">${withGrIcons(view.icon)}</span> ${view.caption}`;
     text.dataset.kind = view.chest?.effect?.kind || "";
     text.classList.remove("syns");
     void text.offsetWidth;
