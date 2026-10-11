@@ -34,7 +34,8 @@
 //                                   trängsel (småguld först, stora sist)
 //   podiumGroups(players)         → [{ rank, players }] ≤ 3 steg, delad plats
 //   classTitle(s)                 → "4B" / "4B + 5E"
-//   togetherText(s, gold)         → "Tillsammans samlade 4B 4 380 guld!"
+//   FINAL_TITLE                   → "🏆 Guldrushen – Prispall" (finalens rubrik)
+//   togetherHtml(gold)            → "Tillsammans: <strong>4 380 guld</strong> 💰"
 //   statSummary(standing)         → klassens siffror (statistikvyn)
 //   standingRows(players, now)    → exakt ställning för alla elever
 //                                   [{ uid, rank, name, gold, correct,
@@ -214,9 +215,10 @@ export function classTitle(s) {
   return (s?.participatingClassIds || []).map((id) => s?.classNames?.[id] || id).join(" + ");
 }
 
-export function togetherText(s, gold) {
-  const k = classTitle(s);
-  return `Tillsammans samlade ${k ? `${k} ` : "ni "}${tal(gold)} guld!`;
+// Finalskärmen (#592): rubrik och totalrad utan klassnamn.
+export const FINAL_TITLE = "🏆 Guldrushen – Prispall";
+export function togetherHtml(gold) {
+  return `Tillsammans: <strong>${tal(gold)} guld</strong> 💰`;
 }
 
 /** Klassens siffror (statistikvyn, ovanför ställningen). */
