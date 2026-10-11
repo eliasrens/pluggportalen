@@ -93,7 +93,7 @@ async function start(sek, two) {
 async function stold() {
   const [, alma, omar] = (await classes(false)).students;
   // Testriggen (bara emulatorn): Alma exakt 100 guld, ingen sköld/inget skydd; Omar har en Stöld att välja offer för.
-  await gpRef(alma.uid).set({ uid: alma.uid, classId: "4b", name: alma.name, gold: 100, shield: false, protectedUntil: null }, { merge: true });
+  await gpRef(alma.uid).set({ uid: alma.uid, classId: "4b", name: alma.name, gold: 100, protectedUntil: null }, { merge: true });
   const omarFore = (await gpRef(omar.uid).get()).data()?.gold || 0;
   const t = Date.now();
   await gpRef(omar.uid).set({

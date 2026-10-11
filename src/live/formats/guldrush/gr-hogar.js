@@ -9,15 +9,16 @@
 // (designtest 5: 4:an → 1:an glider mjukt längst till vänster överst; en
 // plats som byter rad glider också dit).
 // Under varje hög en skylt: placering (👑 för ensam ledare), namn och guld
-// (Elias 2026-10-10, #578: enligt specen). Sköld/stöldskydd = liten 🛡️ vid
-// namnet (§6.5); sköld från kista = dessutom bubblan runt avataren.
+// (Elias 2026-10-10, #578: enligt specen). Skyddad (sköld 60 s/stöldskydd
+// 30 s, #588) = liten 🛡️ vid namnet (§6.5) och bubblan runt avataren – BARA
+// medan skyddet gäller (prot räknas om varje tick av Skattkammaren).
 // Höjden räknas så att båda radernas skyltar får plats: översta radens
 // skylt ligger i glappet ovanför nedersta radens figurer – ingen rad skymmer
 // den andra.
 //
 // API
 //   createHogar(host, { pool }) → {
-//     update(top [{ uid, rank, name, gold, shield, prot }], { ref, leader })
+//     update(top [{ uid, rank, name, gold, prot }], { ref, leader })
 //                                  ritar om bara det som ändrats
 //     bump(uid)                    liten studs på högen (nytt guld)
 //     has(uid), el, destroy()
@@ -133,7 +134,7 @@ export function createHogar(host, { pool }) {
         s.level = level;
         s.hog.style.transform = `scale(${(0.55 + 0.45 * level).toFixed(3)}, ${level.toFixed(3)})`;
       }
-      setAvatarState(pool.el(p.uid), "skyddad", !!p.shield);
+      setAvatarState(pool.el(p.uid), "skyddad", !!p.prot);
       label(s, p, leader);
     });
     for (const [uid, s] of slots) {

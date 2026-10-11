@@ -182,11 +182,10 @@ describe("Guldrushen: eleven skriver inget guld (test 19)", () => {
     await assertFails(updateDoc(doc(a, "liveSessions", "pagar", "answers", "srv-00001"), { chest: "skattkammare" }));
   });
 
-  it("guld, sköld, skydd, väntande stöld: varken skapa eller ändra (egen eller annans)", async () => {
+  it("guld, skydd (protectedUntil), väntande stöld: varken skapa eller ändra (egen eller annans)", async () => {
     const a = elev("alma");
     const me = doc(a, "liveSessions", "pagar", "grPlayers", "alma");
     await assertFails(updateDoc(me, { gold: 10000 }));
-    await assertFails(updateDoc(me, { shield: true }));
     await assertFails(updateDoc(me, { protectedUntil: ts(H) }));
     await assertFails(updateDoc(me, { pending: deleteField() }));
     await assertFails(setDoc(doc(a, "liveSessions", "pagar", "grPlayers", "bo"), { uid: "bo", gold: 0 }));

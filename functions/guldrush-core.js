@@ -17,11 +17,13 @@
 //     i samma transaktion – en andra öppning nekas). Slumpen här (crypto).
 //     Stöld/byte → grPlayers.pending; eleven väljer offer med chooseVictim.
 //   chooseVictim    stöld/byte i EN transaktion som ändrar båda elevernas guld.
-//     Trygghetsreglerna (guldrush-regler.js victimProblem) kontrolleras här:
-//     stöldskydd 30 s, inte samma offer två gånger i rad, byte bara med någon
-//     som har MER guld, sköld stoppar nästa. Ett manipulerat val nekas och
-//     valet ligger kvar; inget val/för sent → servern slumpar; ingen möjlig →
-//     vanlig guldkista (kistans fallback).
+//     Trygghetsreglerna (guldrush-regler.js victimProblem) kontrolleras här,
+//     i ÖGONBLICKET valet görs: skyddad (protectedUntil – Sköld 60 s,
+//     bestulen/bytt 30 s) går inte, inte samma offer två gånger i rad, byte
+//     bara med någon som har MER guld. Ett nekat val ("🛡️ Alma hann skaffa
+//     en sköld!", eller manipulerat) ligger kvar – tjuven väljer om på tiden
+//     som är kvar; inget val/för sent → servern slumpar bland oskyddade;
+//     ingen möjlig → vanlig guldkista (kistans fallback).
 //   Alla tre: sessionen måste vara Guldrushen, status live och inom matchtiden
 //     (startedAt + nedräkning ≤ nu < + matchlängd), annars nekas anropet.
 //
@@ -38,9 +40,9 @@
 //   answerQuestion(deps, uid, { sid, attemptId, factorA?, factorB?, answer?,
 //                  choiceIndex?, q? }) → { attemptId, correct, correctAnswer, nextQ }
 //   openChest(deps, uid, { sid, attemptId, chestIndex }) → { chest, kind,
-//                  delta, gold, shield, pending? }
+//                  delta, gold, protectedUntil (ms | null), pending? }
 //   chooseVictim(deps, uid, { sid, victimUid? }) → { result: "steal"|"swap"|
-//                  "blocked"|"fallback", chest, victimUid?, amount, delta, gold }
+//                  "fallback", chest, victimUid?, amount, delta, gold }
 //   noteLeader(deps, sid) → uid | null (ny ledare skriven)
 //   GrError(code, message) – code = HttpsError-kod, message på svenska
 // ============================================================================
@@ -48,7 +50,7 @@
 import { GR_RULES } from "./guldrush/chests-config.js";
 import {
   toMs, chestById, isVictimKind, rollChest, applySelfEffect, victimProblem, victimMessage,
-  eligibleVictims, resolveVictim,
+  eligibleVictims, resolveVictim, shieldUntil, hitProtectionUntil,
 } from "./guldrush/guldrush-regler.js";
 
 export const GR_FORMAT = "guldrush";
@@ -218,7 +220,7 @@ export async function answerQuestion(deps, uid, raw) {
     });
     const ok = graded.isCorrect;
     const base = g ? {} : {
-      uid, classId: p.classId, name: String(p.name || ""), gold: 0, chests: 0, shield: false,
+      uid, classId: p.classId, name: String(p.name || ""), gold: 0, chests: 0,
       protectedUntil: null, lastVictimUid: null, pending: null, lastHit: null, joinedAt: FieldValue.serverTimestamp(),
     };
     tx.set(r.gp, {
@@ -267,17 +269,22 @@ export async function openChest(deps, uid, raw) {
     if (isVictimKind(chest)) {
       const pending = { kind, chest: chest.id, attemptId, at: stamp, expiresAt: Timestamp.fromMillis(t + GR_RULES.victimPickMs) };
       tx.update(r.gp, { pending, chests: FieldValue.increment(1), lastChestAt: stamp });
-      return { chest: chest.id, kind, delta: 0, gold: g.gold, shield: !!g.shield, pending: { kind, expiresAtMs: t + GR_RULES.victimPickMs } };
+      return {
+        chest: chest.id, kind, delta: 0, gold: g.gold, protectedUntil: toMs(g.protectedUntil),
+        pending: { kind, expiresAtMs: t + GR_RULES.victimPickMs },
+      };
     }
     const eff = applySelfEffect(chest, g.gold);
+    const until = eff.protect ? shieldUntil(t) : toMs(g.protectedUntil);
     tx.update(r.gp, {
-      gold: eff.gold, chests: FieldValue.increment(1), lastChestAt: stamp, ...(eff.shield ? { shield: true } : {}),
+      gold: eff.gold, chests: FieldValue.increment(1), lastChestAt: stamp,
+      ...(eff.protect ? { protectedUntil: Timestamp.fromMillis(until) } : {}),
     });
     tx.create(r.events.doc(), {
       type: "chest", chest: chest.id, uid, name: g.name, classId: g.classId,
       amount: eff.delta, gold: eff.gold, at: FieldValue.serverTimestamp(),
     });
-    return { chest: chest.id, kind, delta: eff.delta, gold: eff.gold, shield: eff.shield || !!g.shield };
+    return { chest: chest.id, kind, delta: eff.delta, gold: eff.gold, protectedUntil: until };
   });
   if (out.delta) await noteLeader(deps, sid).catch(() => null);
   return out;
@@ -294,9 +301,9 @@ export async function chooseVictim(deps, uid, raw) {
   if (asked !== null && (typeof asked !== "string" || !SID_RE.test(asked))) throw bad("Ogiltig klasskamrat.");
   const r = refs(db, sid, uid);
 
-  // Inget val eller för sent → servern slumpar bland dem som går (utan sköld).
-  // Listan läses utanför transaktionen (inga lås på alla spelare);
-  // transaktionen kontrollerar det valda offret igen.
+  // Inget val eller för sent → servern slumpar bland dem som går just nu
+  // (aldrig en skyddad). Listan läses utanför transaktionen (inga lås på alla
+  // spelare); transaktionen prövar det valda offret igen i valets ögonblick.
   const pre = (await r.gp.get()).data();
   if (!pre?.pending) throw new GrError("failed-precondition", "Det finns ingen stöld eller byte att välja.");
   const late = now() > toMs(pre.pending.expiresAt) + GR_RULES.victimGraceMs;
@@ -304,7 +311,7 @@ export async function chooseVictim(deps, uid, raw) {
   let target = asked;
   if (auto) {
     const all = (await r.sess.collection("grPlayers").get()).docs.map((d) => d.data());
-    const cands = eligibleVictims(pre.pending.kind, pre, all, now(), { random: true });
+    const cands = eligibleVictims(pre.pending.kind, pre, all, now());
     target = cands.length ? cands[Math.floor(rng() * cands.length)].uid : null;
   }
 
@@ -320,7 +327,8 @@ export async function chooseVictim(deps, uid, raw) {
     const v = vSnap?.exists ? vSnap.data() : null;
     const problem = s.stealSwap === false ? "av" : victimProblem(kind, g, v, t);
     if (problem && !auto && problem !== "av") {
-      throw new GrError(problem === "saknas" ? "not-found" : "failed-precondition", victimMessage(problem));
+      // Nekat val: pending ligger kvar – tjuven väljer om (tiden går vidare).
+      throw new GrError(problem === "saknas" ? "not-found" : "failed-precondition", victimMessage(problem, v));
     }
     const at = FieldValue.serverTimestamp();
     if (problem) {
@@ -336,19 +344,10 @@ export async function chooseVictim(deps, uid, raw) {
     }
     const res = resolveVictim(kind, g, v);
     const who = { victimUid: v.uid, victimName: v.name, victimClassId: v.classId };
-    const lastHit = {
-      kind: res.blocked ? "blocked" : kind, byUid: uid, byName: g.name, amount: res.amount, at: Timestamp.fromMillis(t),
-    };
+    const lastHit = { kind, byUid: uid, byName: g.name, amount: res.amount, at: Timestamp.fromMillis(t) };
     tx.update(r.gp, { gold: res.thiefGold, pending: null, lastVictimUid: v.uid });
-    if (res.blocked) {
-      tx.update(r.gpOf(v.uid), { shield: false, lastHit });
-      tx.create(r.events.doc(), {
-        type: "shieldBlock", chest: pending.chest, uid, name: g.name, classId: g.classId, ...who, amount: 0, gold: g.gold, auto, at,
-      });
-      return { result: "blocked", chest: pending.chest, victimUid: v.uid, amount: 0, delta: 0, gold: g.gold };
-    }
     tx.update(r.gpOf(v.uid), {
-      gold: res.victimGold, protectedUntil: Timestamp.fromMillis(t + GR_RULES.protectionMs), lastHit,
+      gold: res.victimGold, protectedUntil: Timestamp.fromMillis(hitProtectionUntil(v, t)), lastHit,
     });
     tx.create(r.events.doc(), {
       type: kind, chest: pending.chest, uid, name: g.name, classId: g.classId, ...who,

@@ -21,7 +21,7 @@ import {
 import { GR_CHESTS, GR_RULES } from "../src/live/formats/guldrush/delat/chests-config.js";
 import {
   chestTable, rollChest, applySelfEffect, victimProblem, eligibleVictims, resolveVictim, eventText,
-  chestById, isVictimKind,
+  chestById, isVictimKind, isProtected, protectedLeftMs, shieldUntil, hitProtectionUntil, victimMessage,
 } from "../src/live/formats/guldrush/delat/guldrush-regler.js";
 
 const GR = getFormat("guldrush");
@@ -184,13 +184,13 @@ describe("Guldrushen: kisttabellen (EN konfig)", () => {
   });
 
   it("effekterna nollställer aldrig: dubbla max +150, hål 10 %, guld lägger till", () => {
-    assert.deepEqual(applySelfEffect(chestById("dubbla"), 40), { delta: 40, gold: 80, shield: false });
+    assert.deepEqual(applySelfEffect(chestById("dubbla"), 40), { delta: 40, gold: 80, protect: false });
     assert.equal(applySelfEffect(chestById("dubbla"), 400).delta, 150);
-    assert.deepEqual(applySelfEffect(chestById("hal_i_fickan"), 95), { delta: -9, gold: 86, shield: false });
+    assert.deepEqual(applySelfEffect(chestById("hal_i_fickan"), 95), { delta: -9, gold: 86, protect: false });
     assert.equal(applySelfEffect(chestById("hal_i_fickan"), 5).gold, 5, "under 10 guld tappar man inget");
     assert.equal(applySelfEffect(chestById("skattkammare"), 0).gold, 100);
     assert.equal(applySelfEffect(chestById("tom"), 7).gold, 7);
-    assert.equal(applySelfEffect(chestById("skold"), 7).shield, true);
+    assert.deepEqual(applySelfEffect(chestById("skold"), 7), { delta: 0, gold: 7, protect: true });
     assert.equal(applySelfEffect(chestById("guld"), GR_RULES.maxGold).gold, GR_RULES.maxGold);
   });
 });
@@ -201,7 +201,7 @@ describe("Guldrushen: trygghetsreglerna (§6.5)", () => {
 
   it("test 15: Alma 100 → 85, Omar +15", () => {
     const r = resolveVictim("steal", p("omar", 0), p("alma", 100));
-    assert.deepEqual(r, { blocked: false, amount: 15, thiefGold: 15, victimGold: 85 });
+    assert.deepEqual(r, { amount: 15, thiefGold: 15, victimGold: 85 });
   });
 
   it("test 16: stöldskydd 30 s efter bestulen, inte samma offer två gånger i rad", () => {
@@ -220,16 +220,70 @@ describe("Guldrushen: trygghetsreglerna (§6.5)", () => {
     assert.equal(victimProblem("swap", ines, p("bo", 20), now), "inte-mer-guld");
     assert.equal(victimProblem("swap", ines, p("alma", 90), now), null);
     assert.equal(victimProblem("swap", p("ines", 0), p("alma", 90), now), "inget-eget-guld");
-    assert.deepEqual(resolveVictim("swap", ines, p("alma", 90)), { blocked: false, amount: 70, thiefGold: 90, victimGold: 20 });
+    assert.deepEqual(resolveVictim("swap", ines, p("alma", 90)), { amount: 70, thiefGold: 90, victimGold: 20 });
     const list = eligibleVictims("swap", ines, [p("ines", 20), p("bo", 10), p("alma", 90), p("cia", 50, { protectedUntil: now + 1 })], now);
     assert.deepEqual(list.map((x) => x.uid), ["alma"]);
   });
 
-  it("sköld stoppar nästa stöld/byte; slumpat val tar aldrig någon med sköld", () => {
-    const leo = p("leo", 100, { shield: true });
-    assert.deepEqual(resolveVictim("steal", p("omar", 5), leo), { blocked: true, amount: 0, thiefGold: 5, victimGold: 100 });
-    assert.equal(victimProblem("steal", p("omar", 5), leo, now), null, "manuellt val går – skölden tar smällen");
-    assert.deepEqual(eligibleVictims("steal", p("omar", 5), [leo, p("alma", 50)], now, { random: true }).map((x) => x.uid), ["alma"]);
+});
+
+describe("Guldrushen: ETT tidsbegränsat skydd (#588, spec DEL 3 test 1–8)", () => {
+  const now = 1_000_000;
+  const p = (uid, gold, extra = {}) => ({ uid, name: uid, gold, ...extra });
+
+  it("tiderna ligger i kistkonfigen: sköld 60 s, stöldskydd 30 s", () => {
+    assert.equal(GR_RULES.shieldMs, 60_000);
+    assert.equal(GR_RULES.protectionMs, 30_000);
+  });
+
+  it("test 1: Sköld-kistan → skyddad i 60 s, därefter inte", () => {
+    const alma = p("alma", 50, { protectedUntil: shieldUntil(now) });
+    assert.equal(isProtected(alma, now + 59_999), true);
+    assert.equal(protectedLeftMs(alma, now + 18_000), 42_000);
+    assert.equal(isProtected(alma, now + 60_000), false);
+    assert.equal(protectedLeftMs(alma, now + 70_000), 0);
+    assert.equal(isProtected({ protectedUntil: { toMillis: () => now + 1 } }, now), true, "Firestore-Timestamp");
+    assert.equal(isProtected({}, now), false);
+  });
+
+  it("test 2: ny sköld efter 40 s → förlängs till 60 s från nu", () => {
+    const alma = p("alma", 50, { protectedUntil: shieldUntil(now) });
+    const t = now + 40_000;
+    alma.protectedUntil = shieldUntil(t);
+    assert.equal(alma.protectedUntil, t + 60_000);
+    assert.equal(isProtected(alma, t + 59_000), true);
+  });
+
+  it("test 3: bestulen → skyddad i 30 s (kortar aldrig ett längre skydd)", () => {
+    assert.equal(hitProtectionUntil(p("alma", 85), now), now + 30_000);
+    assert.equal(hitProtectionUntil(p("alma", 85, { protectedUntil: now + 50_000 }), now), now + 50_000);
+  });
+
+  it("test 4: skyddad 4 s till → nekas nu, går när nedräkningen nått noll", () => {
+    const alma = p("alma", 100, { protectedUntil: now + 4_000 });
+    assert.equal(victimProblem("steal", p("omar", 5), alma, now), "skyddad");
+    assert.equal(victimProblem("steal", p("omar", 5), alma, now + 3_999), "skyddad");
+    assert.equal(victimProblem("steal", p("omar", 5), alma, now + 4_000), null);
+  });
+
+  it("test 5/8: valet mot en skyddad elev nekas med 'hann skaffa en sköld'", () => {
+    assert.equal(victimMessage("skyddad", { name: "Alma Berg" }), "🛡️ Alma hann skaffa en sköld!");
+    assert.equal(victimMessage("skyddad"), "🛡️ Klasskamraten hann skaffa en sköld!");
+    assert.equal(victimMessage("samma-igen"), "Du kan inte välja samma elev två gånger i rad.");
+  });
+
+  it("test 6/7: slumpen tar bara oskyddade; alla skyddade → ingen (guldkista)", () => {
+    const list = [p("omar", 5), p("alma", 100, { protectedUntil: now + 1 }), p("leo", 80), p("cia", 60, { protectedUntil: now + 30_000 })];
+    assert.deepEqual(eligibleVictims("steal", list[0], list, now).map((x) => x.uid), ["leo"]);
+    const allSafe = list.map((x) => (x.uid === "omar" ? x : { ...x, protectedUntil: now + 9_000 }));
+    assert.deepEqual(eligibleVictims("steal", allSafe[0], allSafe, now), []);
+    assert.deepEqual(eligibleVictims("steal", allSafe[0], allSafe, now + 9_000).map((x) => x.uid).sort(), ["alma", "cia", "leo"]);
+  });
+
+  it("fältet shield finns inte längre: en gammal sköld-flagga skyddar inte", () => {
+    assert.equal(isProtected({ shield: true }, now), false);
+    assert.equal(victimProblem("steal", p("omar", 5), p("leo", 100, { shield: true }), now), null);
+    assert.deepEqual(resolveVictim("steal", p("omar", 5), p("leo", 100, { shield: true })), { amount: 15, thiefGold: 20, victimGold: 85 });
   });
 
   it("händelsetexten: lekfull, och utan namn när läraren slagit av namnen", () => {
@@ -239,6 +293,8 @@ describe("Guldrushen: trygghetsreglerna (§6.5)", () => {
     assert.equal(eventText({ type: "chest", chest: "skattkammare", name: "Elias", amount: 100 }), "👑 SKATTKAMMARE! Elias hittade 100 guld!");
     assert.equal(eventText({ type: "swap", chest: "byte", name: "Hussein", victimName: "Ines" }), "🔄 Hussein och Ines bytte guld!");
     assert.equal(eventText({ type: "lead", name: "Leo" }), "⭐ Leo tog ledningen!");
+    assert.equal(eventText({ type: "chest", chest: "skold", name: "Alma" }), "🛡️ Alma är skyddad!");
+    assert.equal(eventText({ type: "shieldBlock", chest: "stold", name: "Leo", victimName: "Alma" }), "", "borttagen händelse");
   });
 });
 

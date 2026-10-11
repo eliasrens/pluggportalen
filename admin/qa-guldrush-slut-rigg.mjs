@@ -115,7 +115,7 @@ const setGp = async (sid, uid, data) => {
   const ref = adb.doc(`liveSessions/${sid}/grPlayers/${uid}`);
   // Som serverns första svar (guldrush-core answerQuestion) – uid/namn/klass finns alltid.
   const base = (await ref.get()).exists ? {} : { uid, classId: (await adb.doc(`liveSessions/${sid}/players/${uid}`).get()).get("classId") || "4b",
-    name: (await adb.doc(`students/${uid}`).get()).get("namn") || uid, gold: 0, chests: 0, shield: false, protectedUntil: null,
+    name: (await adb.doc(`students/${uid}`).get()).get("namn") || uid, gold: 0, chests: 0, protectedUntil: null,
     lastVictimUid: null, pending: null, lastHit: null, correct: 0, incorrect: 0 };
   return ref.set({ ...base, ...data }, { merge: true });
 };

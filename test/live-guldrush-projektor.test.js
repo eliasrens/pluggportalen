@@ -70,8 +70,8 @@ test("guldhögarna: växer/krymper med elevens guld, taket sänks aldrig", () =>
   assert.equal(pileLevel(r1 * 3, r1), 1);
 });
 
-test("§6.5: sköld eller stöldskydd = liten sköld vid namnet", () => {
-  assert.equal(isProtected({ shield: true }, T), true);
+test("§6.5/#588: liten sköld vid namnet bara medan skyddet gäller", () => {
+  assert.equal(isProtected({ shield: true }, T), false, "fältet shield finns inte längre");
   assert.equal(isProtected({ protectedUntil: T + 5000 }, T), true);
   assert.equal(isProtected({ protectedUntil: T - 1 }, T), false);
   assert.equal(isProtected({ protectedUntil: { toMillis: () => T + 1 } }, T), true);
@@ -108,11 +108,10 @@ test("flödet: specens exempel, inget hån, tomma fickor visas inte", () => {
   const t = (ev, o) => feedItem(ev, o).text;
   assert.equal(t({ type: "chest", chest: "mycket_guld", uid: "c", name: "Clara", amount: 50 }), "💎 Clara hittade 50 guld!");
   assert.equal(t({ type: "swap", chest: "byte", uid: "h", name: "Hussein", victimUid: "i", victimName: "Ines", amount: 40 }), "🔄 Hussein och Ines bytte guld!");
-  assert.equal(t({ type: "chest", chest: "skold", uid: "l", name: "Leo" }), "🛡️ Leo skaffade en sköld!");
+  assert.equal(t({ type: "chest", chest: "skold", uid: "l", name: "Leo" }), "🛡️ Leo är skyddad!");
   assert.equal(t({ type: "lead", uid: "c", name: "Clara" }), "⭐ Clara tog ledningen!");
-  const block = feedItem({ type: "shieldBlock", chest: "stold", uid: "omar", name: "Omar", victimUid: "tove", victimName: "Tove" });
-  assert.equal(block.text, "🛡️ Toves sköld stoppade Omar!");
-  assert.deepEqual(block.reactions, [{ uid: "tove", reaction: "skyddad" }]);
+  assert.deepEqual(feedItem({ type: "chest", chest: "skold", uid: "l", name: "Leo" }).reactions, [{ uid: "l", reaction: "skyddad" }]);
+  assert.equal(feedItem({ type: "shieldBlock", chest: "stold", uid: "omar", name: "Omar", victimUid: "tove" }), null, "borttagen händelse (före #588) visas inte");
   assert.equal(feedItem({ type: "chest", chest: "hal_i_fickan", name: "Leo", amount: 0 }), null, "tappade 0 guld visas inte");
   assert.equal(feedItem({ type: "chest", chest: "dubbla", name: "Leo", amount: 0 }), null, "dubblade +0 visas inte");
   // Alla kisttyper ger en text utan mallrester och utan hånfulla ord.
@@ -198,9 +197,9 @@ test("statistiken: exakt ställning för alla elever + klassens siffror", () => 
   const st = computeStandings(sess(), {
     players: [{ uid: "x", name: "Xena", classId: "4b" }],
     grPlayers: [
-      { uid: "a", name: "Alma", gold: 120, correct: 6, incorrect: 2, chests: 6, classId: "4b", shield: true },
+      { uid: "a", name: "Alma", gold: 120, correct: 6, incorrect: 2, chests: 6, classId: "4b", protectedUntil: T + 60_000 },
       { uid: "b", name: "Bo", gold: 30, correct: 2, incorrect: 2, chests: 2, classId: "4b", protectedUntil: T + 10_000 },
-      { uid: "c", name: "Cleo", gold: 30, correct: 1, incorrect: 0, chests: 1, classId: "4b" },
+      { uid: "c", name: "Cleo", gold: 30, correct: 1, incorrect: 0, chests: 1, classId: "4b", protectedUntil: T - 1 },
     ],
   });
   const sum = statSummary(st);

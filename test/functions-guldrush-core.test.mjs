@@ -139,8 +139,11 @@ describe("kistan (test 13 + 19)", () => {
     assert.deepEqual([(await open("dubbla")).delta, (await gp(s, "alma")).gold], [150, 550]);
     assert.deepEqual([(await open("hal_i_fickan")).delta, (await gp(s, "alma")).gold], [-55, 495]);
     assert.equal((await open("tom")).delta, 0);
-    assert.equal((await open("skold")).shield, true);
-    assert.equal((await gp(s, "alma")).shield, true);
+    const sk = await open("skold");
+    assert.equal(sk.protectedUntil, ctl.clock + GR_RULES.shieldMs);
+    const alma = await gp(s, "alma");
+    assert.equal(alma.protectedUntil.toMillis(), ctl.clock + GR_RULES.shieldMs);
+    assert.equal("shield" in alma, false, "fältet shield finns inte (#588)");
   });
 });
 

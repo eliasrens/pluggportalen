@@ -80,7 +80,7 @@ export async function makeSession(over = {}, players = ["alma", "omar", "leo", "
 export async function setGold(s, uid, gold, extra = {}) {
   await db.doc(`liveSessions/${s}/grPlayers/${uid}`).set({
     uid, classId: "4b", name: uid[0].toUpperCase() + uid.slice(1), gold, correct: 0, incorrect: 0, chests: 0,
-    shield: false, protectedUntil: null, lastVictimUid: null, pending: null, lastHit: null, ...extra,
+    protectedUntil: null, lastVictimUid: null, pending: null, lastHit: null, ...extra,
   }, { merge: true });
 }
 export const pending = (kind, chest = kind === "steal" ? "stold" : "byte", at = ctl.clock) =>

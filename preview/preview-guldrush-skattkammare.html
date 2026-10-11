@@ -115,7 +115,7 @@
         const uid = `e${i + 1}`;
         if (i >= NAMN.length || players.some((p) => p.uid === uid)) return;
         players.push({ uid, name: NAMN[i], classId: cls(i), correct: 0, incorrect: 0, joinedAt, lastSeenAt: now() });
-        gp.set(uid, { uid, name: NAMN[i], classId: cls(i), gold: 0, correct: 0, incorrect: 0, chests: 0, shield: false, protectedUntil: null, lastVictimUid: null });
+        gp.set(uid, { uid, name: NAMN[i], classId: cls(i), gold: 0, correct: 0, incorrect: 0, chests: 0, protectedUntil: null, lastVictimUid: null });
       }
       function ev(e) { events.unshift({ id: `ev${++evN}`, at: now(), ...e }); events = events.slice(0, 60); }
       function noteLeader() {
@@ -151,15 +151,14 @@
             const res = resolveVictim(kind, g, v);
             const who = { victimUid: v.uid, victimName: v.name, victimClassId: v.classId };
             g.gold = res.thiefGold; g.lastVictimUid = v.uid;
-            if (res.blocked) { v.shield = false; ev({ type: "shieldBlock", chest: chest.id, uid, name: g.name, ...who, amount: 0 }); }
-            else { v.gold = res.victimGold; v.protectedUntil = t + GR_RULES.protectionMs; ev({ type: kind, chest: chest.id, uid, name: g.name, ...who, amount: res.amount }); }
+            v.gold = res.victimGold; v.protectedUntil = t + GR_RULES.protectionMs; ev({ type: kind, chest: chest.id, uid, name: g.name, ...who, amount: res.amount });
             noteLeader();
             return;
           }
         }
         const eff = applySelfEffect(chest, g.gold);
         g.gold = eff.gold;
-        if (eff.shield) g.shield = true;
+        if (eff.protect) g.protectedUntil = t + GR_RULES.shieldMs;
         ev({ type: "chest", chest: chest.id, uid, name: g.name, classId: g.classId, amount: eff.delta, gold: eff.gold });
         noteLeader();
       }
