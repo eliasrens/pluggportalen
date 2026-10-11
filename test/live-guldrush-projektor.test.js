@@ -19,7 +19,7 @@ import { weight, trimPending } from "../src/live/formats/guldrush/gr-proj-scen.j
 import { computeStandings } from "../src/live/formats/guldrush/guldrush-core.js";
 import { createLiveEventTracker } from "../src/live/design/live-events.js";
 import { createSoundGate, CUES } from "../src/live/proj-sound.js";
-import { GR_CHESTS } from "../src/live/formats/guldrush/delat/chests-config.js";
+import { GR_CHESTS, GR_COIN } from "../src/live/formats/guldrush/delat/chests-config.js";
 import { requireFormat } from "../src/live/formats/index.js";
 
 const T = 1_800_000_000_000;
@@ -114,11 +114,12 @@ test("flödet: specens exempel, inget hån, tomma fickor visas inte", () => {
   assert.equal(feedItem({ type: "shieldBlock", chest: "stold", uid: "omar", name: "Omar", victimUid: "tove" }), null, "borttagen händelse (före #588) visas inte");
   assert.equal(feedItem({ type: "chest", chest: "hal_i_fickan", name: "Leo", amount: 0 }), null, "tappade 0 guld visas inte");
   assert.equal(feedItem({ type: "chest", chest: "dubbla", name: "Leo", amount: 0 }), null, "dubblade +0 visas inte");
-  // Alla kisttyper ger en text utan mallrester och utan hånfulla ord.
+  // Alla kisttyper ger en text utan mallrester och utan hånfulla ord
+  // (mynt-markören är ingen rest – UI:t byter den mot coinIcon, #590).
   for (const c of GR_CHESTS) {
     for (const names of [true, false]) {
       const it = feedItem({ type: "chest", chest: c.id, uid: "u", name: "Ali", victimUid: "v", victimName: "Bo", amount: 12 }, { names });
-      assert.doesNotMatch(it.text, /[{}]|undefined|förlorare|dålig|sämst|haha/i);
+      assert.doesNotMatch(it.text.replaceAll(GR_COIN, ""), /[{}]|undefined|förlorare|dålig|sämst|haha/i);
       if (!names) assert.doesNotMatch(it.text, /Ali|Bo\b/);
     }
   }

@@ -1,5 +1,5 @@
 // ============================================================================
-// Live – lärarformulärets "🪙 Pluggmynt efter matchen" (#557). Laddas LATT
+// Live – lärarformulärets "(mynt) Pluggmynt efter matchen" (#557). Laddas LATT
 // som custom-fältet "rewards" (live-rewards.js rewardsSetupField) – samma
 // sektion för alla nya format. Tre tal + förhandsvisning som följer det
 // läraren skriver. value() = råvärdena; formatets validateSetup kontrollerar.

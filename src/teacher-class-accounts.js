@@ -9,7 +9,7 @@
 // lärarens egen session inte kastas ut) och kopplas till klassen.
 //
 // Här bor även "medlemshanteraren" under ett klasskort: klassens elever med döp
-// om/avatar, ge 🪙, Inloggning (teacher-login-edit.js), ta ur klassen och ta
+// om/avatar, ge mynt, Inloggning (teacher-login-edit.js), ta ur klassen och ta
 // bort konto – plus "Skriv ut inloggningskort" (teacher-login-print.js) och
 // panelerna för att skapa nya konton eller lägga till befintliga elever.
 // ============================================================================
@@ -17,6 +17,7 @@
 import * as data from "./data.js";
 import { AVATARS, avatarEmoji } from "./avatars.js";
 import { el, esc, icon } from "./teacher-shared.js";
+import { coinIcon } from "./icons.js";
 import { renderAccountEditor, credentialsPanel } from "./teacher-login-cards.js";
 // credentialsPanel bor i teacher-login-cards.js (fil-cap, #440) – exportnamnet
 // behålls här för befintliga importörer (preview/preview-larare.html).
@@ -121,7 +122,7 @@ function wireGiveCoins(row, student) {
       await data.addCoins(amount, student.id);
       const nytt = await data.getCoins(student.id);
       const namn = student.namn || student.username || "eleven";
-      flashEl.innerHTML = `<span class="gc-ok">✓ ${esc(namn)} fick ${amount} 🪙 – nytt saldo: ${nytt} 🪙</span>`;
+      flashEl.innerHTML = `<span class="gc-ok">✓ ${esc(namn)} fick ${amount} ${coinIcon("1em")} – nytt saldo: ${nytt} ${coinIcon("1em")}</span>`;
     } catch (err) {
       flashEl.innerHTML = `<span class="gc-err">Kunde inte ge coins: ${esc(err.message)}</span>`;
     } finally {
@@ -180,7 +181,7 @@ export function renderMemberManager(ctx, { cls, state, membersEl, countEl, onCha
           <input class="cell gc-amount" type="number" min="1" step="1" value="10" aria-label="Antal coins" />
           <button class="btn ghost small gc-quick" data-add="10">+10</button>
           <button class="btn ghost small gc-quick" data-add="50">+50</button>
-          <button class="btn gron small gc-give">Ge 🪙</button>
+          <button class="btn gron small gc-give">Ge ${coinIcon("1em")}</button>
         </div>
         <div class="gc-flash" aria-live="polite"></div>
       </div>

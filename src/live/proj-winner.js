@@ -13,6 +13,7 @@
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
+import { coinIcon } from "../icons.js";
 import { formatScore } from "./live-core.js";
 import { prizeText } from "./formats/klassmatch/klassmatch-core.js";
 
@@ -113,7 +114,7 @@ export function createWinner(host, { st, colors, onBack, celebrate }) {
     inner.innerHTML = `
         ${TROPHY}
         ${head}
-        ${pris ? `<p class="lp-prize lpw-prize">🪙 ${esc(pris)}</p>` : ""}
+        ${pris ? `<p class="lp-prize lpw-prize">${coinIcon("1em")} ${esc(pris)}</p>` : ""}
         <div class="lpw-cards">${ranked.map((c) => `
           <div class="lpw-card${winners.includes(c.classId) ? " vann" : ""}" style="--c:${colors[c.classId]}">
             ${winners.includes(c.classId) ? `<i class="lpw-crown">👑</i>` : ""}

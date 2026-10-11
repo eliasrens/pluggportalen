@@ -44,10 +44,11 @@ import {
   shieldUntil, hitProtectionUntil, protectedLeftMs,
 } from "./delat/guldrush-regler.js";
 import { GR_CHESTS } from "./delat/chests-config.js";
+import { withCoinIcon } from "../../../icons.js";
 import { DEMO_NAMES, demoMembers } from "../snilleblixt/sb-demo.js";
 
 export { forceReducedMotion } from "../snilleblixt/sb-demo.js";
-export const DEMO_CHESTS = GR_CHESTS.map((c) => ({ id: c.id, icon: c.icon, label: c.label }));
+export const DEMO_CHESTS = GR_CHESTS.map((c) => ({ id: c.id, icon: withCoinIcon(c.icon), label: c.label }));
 
 export function createGrDemo({
   sid = "demo-guldrush", classes = 1, showNames = true, stealSwap = true, screen = false,
@@ -293,7 +294,7 @@ export function createGrDemo({
       // Stöld: från den rikaste som går att välja – ett tydligt belopp i flödet.
       const v = id === "stold" ? eligibleVictims("steal", g, byGold(), now())[0]?.uid : null;
       const out = answer(g.uid, true, id, v);
-      onLog(`${chestById(id).icon} ${g.name}: ${out?.result}${out?.victimUid ? ` → ${gp.get(out.victimUid).name}` : ""}`);
+      onLog(`${chestById(id).label} – ${g.name}: ${out?.result}${out?.victimUid ? ` → ${gp.get(out.victimUid).name}` : ""}`);
     },
     shield({ ms = null } = {}) {
       if (!ensureLive()) return onLog("matchen är slut");
