@@ -9,12 +9,18 @@
 // Issue #453: överst en "Kopiera AI-prompt för mer innehåll"-knapp (+ valfritt
 // önskemål) som bygger prompten med buildMorePrompt (prompts.js) – områdets typer,
 // årskurs och HELA det befintliga innehållet (#471). Merge-logiken är orörd.
+// Tidsjakten (#598): har området Tidsjakten kan läraren välja antal nya händelser
+// till prompten, och Kontrollera visar de nya händelserna (minitidslinje) innan
+// de läggs till.
 // ============================================================================
 
 import * as data from "./data.js";
 import { parseAndMergeArea } from "./merge-area.js";
 import { buildMorePrompt } from "./prompts.js";
 import { el, esc, icon, copyText, warningsHtml } from "./teacher-shared.js";
+import { areaExerciseTypes } from "./exercise-types.js";
+import { TIMELINE_COUNTS, normalizeTimelineCount } from "./validate-timeline.js";
+import { timelineReviewHtml } from "./teacher-timeline-mini.js";
 
 const MERGE_EXAMPLE = JSON.stringify(
   {
@@ -26,6 +32,30 @@ const MERGE_EXAMPLE = JSON.stringify(
   null,
   2
 );
+
+// Med Tidsjakten (#598) visar exemplet även en tidslinjehändelse.
+const MERGE_EXAMPLE_TIMELINE = JSON.stringify(
+  {
+    ...JSON.parse(MERGE_EXAMPLE),
+    timeline: [
+      {
+        event: "Ny händelse",
+        question: "Vilket år hände det?",
+        year: 1523,
+        description: "Kort om vad som hände – utan årtalet.",
+        explanation: "Förklaring som visas efter svaret.",
+      },
+    ],
+  },
+  null,
+  2
+);
+
+/** De nya händelserna efter en lyckad mergning (sist i den mergade listan). */
+function addedTimeline(res) {
+  const n = res.added?.timeline || 0;
+  return n ? (res.value.timeline || []).slice(-n) : [];
+}
 
 /** Bygg svenska text-bitar om vad mergningen lade till/hoppade över. */
 function mergeSummaryHtml(res) {
@@ -51,6 +81,7 @@ function mergeSummaryHtml(res) {
  * @returns {HTMLElement}
  */
 export function buildMergeForm(area, slot, { subjectId, onSaved }) {
+  const hasTimeline = areaExerciseTypes(area).includes("tidsjakt");
   const f = el(`<div class="subpanel merge-panel">
     <div class="merge-ai">
       <div class="merge-ai-row">
@@ -59,13 +90,20 @@ export function buildMergeForm(area, slot, { subjectId, onSaved }) {
           <input type="text" data-act="m-wish" autocomplete="off"
             placeholder="t.ex. fler svåra frågor om handel" />
         </label>
+        ${hasTimeline ? `<label class="merge-wish merge-tl-count">
+          <span>⏳ Nya händelser</span>
+          <select class="select" data-act="m-tl-count">
+            <option value="">AI:n väljer</option>
+            ${TIMELINE_COUNTS.map((n) => `<option value="${n}">${n}</option>`).join("")}
+          </select>
+        </label>` : ""}
         <button type="button" class="btn gron merge-copy" data-act="m-copy">${icon("copy")}<span>Kopiera AI-prompt för mer innehåll</span></button>
       </div>
       <p class="merge-instr">Klistra in prompten i Claude, och klistra sedan in svaret nedan.
         Det läggs till utan dubbletter.</p>
     </div>
     <p class="hint">Klistra in <b>bara det nya</b> innehållet att lägga till i
-      "${esc(area.name)}" – t.ex. fler <code>quiz</code>-frågor eller <code>pairs</code>.
+      "${esc(area.name)}" – t.ex. fler <code>quiz</code>-frågor${hasTimeline ? ", <code>pairs</code> eller <code>timeline</code>-händelser" : " eller <code>pairs</code>"}.
       Befintligt innehåll behålls och dubbletter hoppas över – du behöver alltså
       inte skriva om hela JSON:en.</p>
     <div class="row-inline" style="margin-bottom:10px">
@@ -92,12 +130,16 @@ export function buildMergeForm(area, slot, { subjectId, onSaved }) {
     </div>`;
   };
 
-  f.querySelector('[data-act="m-copy"]').addEventListener("click", (e) =>
-    copyText(buildMorePrompt(area, f.querySelector('[data-act="m-wish"]').value), e.currentTarget)
-  );
+  f.querySelector('[data-act="m-copy"]').addEventListener("click", (e) => {
+    const count = normalizeTimelineCount(f.querySelector('[data-act="m-tl-count"]')?.value);
+    copyText(
+      buildMorePrompt(area, f.querySelector('[data-act="m-wish"]').value, undefined, { timelineCount: count }),
+      e.currentTarget
+    );
+  });
 
   f.querySelector('[data-act="m-example"]').addEventListener("click", () => {
-    ta.value = MERGE_EXAMPLE;
+    ta.value = hasTimeline ? MERGE_EXAMPLE_TIMELINE : MERGE_EXAMPLE;
   });
 
   f.querySelector('input[type="file"]').addEventListener("change", (e) => {
@@ -123,7 +165,10 @@ export function buildMergeForm(area, slot, { subjectId, onSaved }) {
     }
     const { addTxt, skipTxt } = mergeSummaryHtml(res);
     mResult.innerHTML = `<div class="msg ok">✓ Ser bra ut! Detta lägger till ${addTxt} i
-      "${esc(area.name)}".${skipTxt} Klicka <b>Lägg till i området</b> för att spara.</div>${warningsHtml(res.warnings)}`;
+      "${esc(area.name)}".${skipTxt} Klicka <b>Lägg till i området</b> för att spara.</div>${warningsHtml(res.warnings)}${timelineReviewHtml(
+      addedTimeline(res),
+      res.value.timelineSpan
+    )}`;
   });
 
   f.querySelector('[data-act="m-save"]').addEventListener("click", async () => {

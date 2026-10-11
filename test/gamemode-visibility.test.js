@@ -68,18 +68,21 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
     pairs: false,
     sanningsjakt: true, // härleds ur quiz
     generator: false,
+    timeline: false,
   });
   assert.deepEqual(areaContentFlags({ pairs: PAIRS }), {
     quiz: false,
     pairs: true,
     sanningsjakt: true, // ≥2 par
     generator: false,
+    timeline: false,
   });
   assert.deepEqual(areaContentFlags({}), {
     quiz: false,
     pairs: false,
     sanningsjakt: false,
     generator: false,
+    timeline: false,
   });
   // Gamla nivåtexter (readingTexts) tänder inget läge sedan #531.
   assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, undefined);
@@ -222,11 +225,22 @@ test("mergeAreaContent behåller områdets hiddenModes", () => {
 });
 
 // Katalogen ska ha alla lägen (skydd mot att någon råkar tömma den).
-test("GAMEMODES har de sju lägena (inkl. räkna)", () => {
+test("GAMEMODES har de åtta lägena (inkl. räkna + tidsjakt)", () => {
   assert.deepEqual(
     GAMEMODES.map((gm) => gm.id),
-    ["lasforstaelse", "para", "quiz", "kunskapsjakt", "sanningsjakt", "memory", "rakna"]
+    ["lasforstaelse", "para", "quiz", "tidsjakt", "kunskapsjakt", "sanningsjakt", "memory", "rakna"]
   );
+});
+
+// Tidsjakten (#599) tänds av area.timeline – och bara den: händelserna ligger
+// inte i quiz[], så inga quiz-lägen (Kunskapsjakt, Fånga sanningar …) tänds.
+test("timeline-område tänder Tidsjakten men inga quiz-lägen", () => {
+  const tlArea = { timeline: [{ id: "e1", event: "Blodbadet", question: "Vilket år?", year: 1520 }] };
+  assert.equal(areaContentFlags(tlArea).timeline, true);
+  assert.equal(areaContentFlags(tlArea).quiz, false);
+  assert.equal(areaContentFlags(tlArea).sanningsjakt, false);
+  assert.deepEqual(availableGamemodes(tlArea).map((gm) => gm.id), ["tidsjakt"]);
+  assert.equal(areaContentFlags({ timeline: [] }).timeline, false);
 });
 
 // Räkna-läget (issue #279) tänds av ett generator-område. Ett rent generator-område

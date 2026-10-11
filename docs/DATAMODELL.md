@@ -165,6 +165,20 @@ ingen tolerans. Statistikkategori `"tidslinje"`.
    områdets spann behålls – och slutvalideras med `validateArea`.
 5. **Spara:** `saveArea` (`src/data-content.js`) skriver hela dokumentet (`setDoc`).
 
+**Eleven spelar händelserna** (#599, logiken i `src/timeline/tidsjakt-core.js`):
+- **Tidsjakten** (spelläge `tidsjakt`, tänds av `areaContentFlags(area).timeline`):
+  upp till 10 händelser per omgång, roterande urval (`questionRotation[area].tidsjakt`).
+  Felpoäng = 1 per års avvikelse. Stjärnor ur snittavvikelsen mot en tolerans som
+  följer spannet (`max(1, round(bredd/100))` år): ≤ tolerans ★★★, ≤ 5 × tolerans ★★,
+  annars ★. Mynt som Quiz men med träffar (avvikelse ≤ tolerans), grind-skydd som
+  övriga lägen. `progress[area].tidsjakt` = `{ completed, stars, bestScore = träffar,
+  plays }`. Klass-EXP: minst 50 % träffar. Ingen topplista (vanlig träning).
+- **Quiz:** samma `timeline` blandas in – i proportion till poolerna, minst 1 och högst
+  3 per omgång (`questionRotation[area]["quiz-tidslinje"]`, quizets egen rotation är
+  orörd). Svaras på tidslinjen; rätt = exakt år. Räknas i kategorin `fakta`.
+  Kunskapsjakt, Fånga sanningar, Läsförståelse och äventyren läser bara `quiz[]` och
+  får aldrig tidslinjefrågor.
+
 **grade**: valfri årskurs på området (`"ak1"`–`"ak9"`), satt i innehålls-
 formuläret (`src/teacher-content.js`). Fältet är **valfritt och bakåtkompatibelt**:
 saknas det, eller är värdet okänt, räknas området som *ospecificerad* (`null`) och

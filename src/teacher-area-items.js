@@ -8,6 +8,9 @@
 // med ✏️ Redigera och 🗑 Ta bort i en egen scrollyta per flik, "+ Lägg till …"
 // alltid synlig under den.
 // Generatorområden (Räkna) får en kort rad om räknegeneratorn (ändras via pennan).
+// Tidsjakten (#598): fliken "Tidsjakten" listar händelserna (årtal + fråga) med
+// samma redigera/ta bort/lägg till, och överst områdets tidsspann med en
+// minitidslinje som förhandsvisar ändringen innan den sparas (op "span").
 //
 // SPARNING (saveArea = full överskrivning): hämta FÄRSK kopia med data.getArea,
 // applicera ENBART ändringen (teacher-area-items-ops.js → validateArea som grind)
@@ -27,7 +30,9 @@ import {
   pickTab,
   ITEM_TABS,
 } from "./teacher-area-items-ops.js";
-import { buildQuizForm, buildPairForm, buildTextForm } from "./teacher-area-items-forms.js";
+import { buildQuizForm, buildPairForm, buildTextForm, buildTimelineForm } from "./teacher-area-items-forms.js";
+import { miniTimelineHtml } from "./teacher-timeline-mini.js";
+import { formatYear } from "./validate-timeline.js";
 import { createTabs } from "./teacher-area-items-tabs.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { generatorSummary } from "./teacher-generator-labels.js";
@@ -36,6 +41,7 @@ const SECTION = {
   quiz: { title: "Quizfrågor", one: "frågan", add: "Lägg till fråga", ic: "📝" },
   pairs: { title: "Par", one: "paret", add: "Lägg till par", ic: "🔗" },
   texts: { title: "Lästexter", one: "texten", add: "Lägg till text", ic: "📄" },
+  timeline: { title: "Tidslinjehändelser", one: "händelsen", add: "Lägg till händelse", ic: "⏳" },
 };
 
 /** Flikarna i underraden (#455). Quiz-fliken rymmer även läsförståelse-frågorna
@@ -44,12 +50,14 @@ const TAB = {
   quiz: { label: "Quiz & läsförståelse", ic: "📝" },
   pairs: { label: "Para ihop", ic: "🔗" },
   texts: { label: "Lästexter", ic: "📄" },
+  timeline: { label: "Tidsjakten", ic: "⏳" },
 };
 
 const SAVED = {
-  add: { quiz: "Frågan lades till.", pairs: "Paret lades till.", texts: "Texten lades till." },
-  update: { quiz: "Frågan sparades.", pairs: "Paret sparades.", texts: "Texten sparades." },
-  remove: { quiz: "Frågan togs bort.", pairs: "Paret togs bort.", texts: "Texten togs bort." },
+  add: { quiz: "Frågan lades till.", pairs: "Paret lades till.", texts: "Texten lades till.", timeline: "Händelsen lades till." },
+  update: { quiz: "Frågan sparades.", pairs: "Paret sparades.", texts: "Texten sparades.", timeline: "Händelsen sparades." },
+  remove: { quiz: "Frågan togs bort.", pairs: "Paret togs bort.", texts: "Texten togs bort.", timeline: "Händelsen togs bort." },
+  span: { timeline: "Tidsspannet sparades." },
 };
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -74,6 +82,13 @@ function itemHtml(kind, it) {
         <span class="ai-def">${side(it.definition, it.defImage)}</span>
       </div>
       ${it.group ? `<div class="ai-sub"><span class="ai-tag">grupp: ${esc(it.group)}</span></div>` : ""}`;
+  }
+  if (kind === "timeline") {
+    return `<div class="ai-text">${esc(it.event || "")}</div>
+      <div class="ai-sub">
+        <span class="ai-answer">${icon("check", 13)} ${esc(it.year == null ? "–" : formatYear(it.year))}</span>
+        <span>${esc(it.question || "")}</span>
+      </div>`;
   }
   return `<div class="ai-text">${esc(it.title || "")}</div>
     <div class="ai-sub ai-excerpt">${esc(clip(String(it.body || it.passage || "")))}</div>`;
@@ -121,8 +136,8 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
   const reveal = (node) => requestAnimationFrame(() => node.isConnected && node.scrollIntoView({ block: "nearest" }));
 
   const ref = (it, index) => ({ index, id: it?.id, snapshot: it });
-  const formFor = (kind, item, o) =>
-    kind === "quiz" ? buildQuizForm(item, o) : kind === "pairs" ? buildPairForm(item, o) : buildTextForm(item, o);
+  const FORMS = { quiz: buildQuizForm, pairs: buildPairForm, texts: buildTextForm, timeline: buildTimelineForm };
+  const formFor = (kind, item, o) => FORMS[kind](item, o);
 
   /** Gemensamma form-optioner. passage: obligatorisk om frågan har en, eller
    *  (ny fråga) om ALLA frågor i området är läsförståelse-frågor. */
@@ -228,6 +243,7 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
     if (kind === "quiz" && hasPassageMode(area)) {
       sec.prepend(el(`<p class="ai-tabnote">📖 Frågor med källtext används även i Läsförståelse.</p>`));
     }
+    if (kind === "timeline") sec.prepend(buildSpanEditor(list));
     const ol = sec.querySelector(".ai-list");
     list.forEach((it, i) => ol.append(buildRow(kind, it, i, list)));
     if (!list.length) ol.replaceWith(el(`<p class="ai-empty">Inga ${esc(s.title.toLowerCase())} ännu.</p>`));
@@ -258,6 +274,48 @@ export function buildItemsPanel(area, { subjectId, notice, onSaved, tab, onTabCh
     };
     addBtn.addEventListener("click", sec.openAdd);
     return sec;
+  }
+
+  /** Tidsspannet (#598): från/till + minitidslinje som följer fälten direkt.
+   *  Tomt = automatiskt (händelsernas spann med marginal, som elevens linje). */
+  function buildSpanEditor(list) {
+    const span = area.timelineSpan || null;
+    const box = el(`<form class="ai-span" novalidate aria-label="Tidslinjens spann">
+      <div class="ai-span-row">
+        <span class="ai-span-label">Tidslinjens spann</span>
+        <label>Från <input type="number" step="1" name="from" value="${esc(span?.from ?? "")}" /></label>
+        <label>Till <input type="number" step="1" name="to" value="${esc(span?.to ?? "")}" /></label>
+        <button type="submit" class="btn gron small ai-span-save">${icon("save", 14)}<span>Spara spann</span></button>
+        <button type="button" class="btn ghost small ai-span-auto"${span ? "" : " disabled"}>Automatiskt</button>
+      </div>
+      <div class="ai-span-preview">${miniTimelineHtml(list, span)}</div>
+      <p class="ai-hint">Negativt år = f.Kr. Lämna tomt (Automatiskt) så räcker linjen över alla händelser
+        med lite marginal. Spannet ska passa hela området – inte centreras kring ett svar.</p>
+      <div class="ai-form-errors" role="alert" aria-live="polite"></div>
+    </form>`);
+    const from = box.elements.from;
+    const to = box.elements.to;
+    const preview = box.querySelector(".ai-span-preview");
+    const errBox = box.querySelector(".ai-form-errors");
+    const refresh = () => (preview.innerHTML = miniTimelineHtml(list, { from: from.value, to: to.value }));
+    from.addEventListener("input", refresh);
+    to.addEventListener("input", refresh);
+    async function save(next, btn) {
+      btn.disabled = true;
+      errBox.innerHTML = "";
+      const res = await commit({ type: "span", kind: "timeline", span: next });
+      if (!res.ok && box.isConnected) {
+        btn.disabled = false;
+        errBox.innerHTML = `<div class="msg error"><div>Kunde inte spara spannet. Rätta det här:</div>
+          <ul class="error-list">${res.errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></div>`;
+      }
+    }
+    box.addEventListener("submit", (e) => {
+      e.preventDefault();
+      save({ from: from.value, to: to.value }, box.querySelector(".ai-span-save"));
+    });
+    box.querySelector(".ai-span-auto").addEventListener("click", (e) => save(null, e.currentTarget));
+    return box;
   }
 
   // --- Räknegenerator: kort rad, ändras via pennan (wizarden) ----------------

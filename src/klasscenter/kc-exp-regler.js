@@ -19,6 +19,7 @@
 //
 // Reglerna (spec §2):
 //   quiz, lasforstaelse     { ratt, totalt }  → 1 om ratt/totalt ≥ 50 %, annars 0
+//   tidsjakt                { ratt=träffar, totalt } → samma 50 %-regel (#599)
 //   para, memory, kunskapsjakt, sanningsjakt, aventyr
 //                           { klar? }         → 1 de 3 första gångerna per
 //                                               område och elev (räknare
@@ -162,6 +163,8 @@ registreraRegel(
   "lasforstaelse",
   andelRegel("Läsförståelse: varje omgång med minst 50 % rätt", 1, 2)
 );
+// Tidsjakten (#599): ratt = träffar (avvikelse inom områdets tolerans), totalt = händelser.
+registreraRegel("tidsjakt", andelRegel("Tidsjakten: varje omgång med minst 50 % träffar", 1, 2));
 for (const [modul, namn] of [
   ["para", "Para ihop"],
   ["memory", "Memory"],
