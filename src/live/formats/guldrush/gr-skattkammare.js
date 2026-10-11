@@ -48,7 +48,7 @@ import { createFinal } from "./gr-pall.js";
 import { createGuldruta, GULDRUTA_HTML } from "./gr-guldruta.js";
 import {
   matchClock, topPiles, createPileScale, isProtected, feedItem,
-  podiumGroups, classTitle, togetherText,
+  podiumGroups, togetherHtml, FINAL_TITLE,
 } from "./gr-proj-scen.js";
 
 const TICK_MS = 200;
@@ -166,8 +166,8 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     const res = cur.result?.rewards || null;
     return {
       groups: podiumGroups(standing.players),
-      title: `🏆 Guldrushen ${classTitle(sess)} – skattjägarnas final!`,
-      together: standing.totalGold > 0 ? togetherText(sess, standing.totalGold) : "",
+      title: FINAL_TITLE,
+      together: standing.totalGold > 0 ? togetherHtml(standing.totalGold) : "",
       everyone: standing.players.map((p) => p.uid),
       prize: (rank) => {
         const p = res ? Object.values(res).find((r) => r.rank === rank) : null;

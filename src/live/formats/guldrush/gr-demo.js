@@ -32,8 +32,9 @@
 //                                   Guld-kista tar totalen över delmålet, #591)
 //     demo.soonOut(sek)             matchen har sek sekunder kvar
 //     demo.playHistory(n)           n svar direkt (en pågående match)
-//     demo.jumpToFinal(tie)         hoppa till pallplatsen; tie null | "andra"
-//                                   (delad 2:a) | "forsta" (oavgjort om 1:a)
+//     demo.jumpToFinal(tie, n?)     hoppa till pallplatsen; tie null | "andra"
+//                                   (delad 2:a) | "forsta" (oavgjort om 1:a);
+//                                   n = antal elever (alla 30 om utelämnat)
 //     demo.toggleFreeze()           tiden står still (skärmdumpar)
 //     demo.state()                  { session, players, grPlayers, events, answers, reads }
 //   forceReducedMotion(on)          (Snilleblixtens demo) – bara demot
@@ -340,8 +341,8 @@ export function createGrDemo({
       session.startedAt = now() - (session.durationSeconds - sek + session.countdownSeconds) * 1000;
       emit(true);
     },
-    jumpToFinal(tieKind = null) {
-      if (!players.length) join(DEMO_NAMES.length, 0, now() - 900_000);
+    jumpToFinal(tieKind = null, n = DEMO_NAMES.length) {
+      if (!players.length) join(Math.max(1, Math.min(DEMO_NAMES.length, n)), 0, now() - 900_000);
       if (session.status === "lobby") playHistory(260);
       if (tieKind === "forsta") tie(1, 2);
       if (tieKind === "andra") tie(2, 3);

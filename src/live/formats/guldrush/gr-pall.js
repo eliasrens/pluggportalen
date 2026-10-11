@@ -4,11 +4,13 @@
 // sessionStorage – en omladdning visar bara resultatet), ~10 s:
 //   tungt grottljud → grottan mörknar, facklorna lyser upp en pall av
 //   guldtackor → trumvirvel → 3:an → trumvirvel → 2:an → längre trumvirvel →
-//   1:an med guldmyntsregn, konfetti och fanfar → vinnaren jublar → "Tillsammans
-//   samlade 4B 4 380 guld!" med alla elevernas avatarer som jublar →
-//   resultatskärmen (står kvar).
+//   1:an med guldmyntsregn, konfetti och fanfar → vinnaren jublar → den lugna
+//   totalraden "Tillsammans: 4 380 guld 💰" med alla elevernas avatarer som
+//   jublar → resultatskärmen (står kvar). Rubriken "🏆 Guldrushen – Prispall";
+//   inga klassnamn någonstans på skärmen (#592).
 // Pallen visar topp 3 med namn och avatarer (enligt specen, #578). Delad
-// placering = samma pallsteg (podiumGroups). Pluggmyntpriset för placeringen
+// placering = samma pallsteg (podiumGroups). Färre än tre steg → bara de
+// som finns byggs, så pallen står centrerad utan tomma platser (#592). Pluggmyntpriset för placeringen
 // under varje steg (sessionens rewards, #557). Figurerna är avatarpoolens
 // egna element (plats "pall"/"jubel") – kläderna följer med. Reducerad rörelse:
 // samma ordning, toningar i stället för hopp, inget regn/konfetti.
@@ -19,7 +21,8 @@
 //     showResult(data)                 direkt till resultatskärmen
 //     el, destroy()
 //   }
-//   data = { groups, prize(rank) → mynt|0, title, together, everyone: [uid] }
+//   data = { groups, prize(rank) → mynt|0, title, together (betrodd HTML),
+//            everyone: [uid] }
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
@@ -56,14 +59,16 @@ export function createFinal(host, { pool, sound }) {
   const tills = root.querySelector(".grp-tillsammans");
   const folk = root.querySelector(".grp-folk");
 
-  // Pallen: mitten = bästa gruppen, vänster = näst bästa, höger = tredje.
+  // Pallen efter PLACERING: 2:an vänster, 1:an mitten, 3:an höger (delad 1:a
+  // + en 3:a → 3:an står till höger). Saknade steg byggs inte alls –
+  // flexraden centrerar det som finns (#592).
   function build(data) {
     const g = data.groups || [];
     pall.innerHTML = "";
-    [g[1], g[0], g[2]].forEach((grp, col) => {
+    [2, 1, 3].map((rank) => g.find((x) => x.rank === rank)).forEach((grp, col) => {
+      if (!grp) return;
       const steg = document.createElement("div");
       steg.className = `grp-steg grp-steg-${["vanster", "mitten", "hoger"][col]}`;
-      if (!grp) { steg.classList.add("grp-tom"); pall.appendChild(steg); return; }
       steg.dataset.rank = grp.rank;
       steg.style.setProperty("--n", grp.players.length);
       const prize = data.prize?.(grp.rank) || 0;
@@ -79,10 +84,15 @@ export function createFinal(host, { pool, sound }) {
       pall.appendChild(steg);
     });
     root.querySelector(".grp-rubrik").textContent = data.title || "";
-    tills.textContent = data.together || "";
-    // Alla skattjägare jublar längst ned (en rad, krymper med antalet).
+    tills.innerHTML = data.together || "";
+    // Alla skattjägare jublar längst ned: en rad upp till 14, sedan två
+    // (högst tre) rader med större figurer i stället för en lång smal rad.
     const all = data.everyone || [];
-    folk.style.setProperty("--grp-folk-n", Math.max(1, all.length));
+    const n = Math.max(1, all.length);
+    folk.style.setProperty("--grp-folk-n", n);
+    const rader = Math.min(3, Math.ceil(n / 14));
+    folk.style.setProperty("--grp-folk-rader", rader);
+    folk.style.setProperty("--grp-folk-per-rad", Math.ceil(n / rader));
     if (folk.dataset.k !== all.join(",")) {
       folk.dataset.k = all.join(",");
       folk.replaceChildren(...all.map((u) => pool.el(u, "jubel")));

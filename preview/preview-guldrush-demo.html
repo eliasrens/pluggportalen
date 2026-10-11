@@ -85,6 +85,9 @@
         <button data-go="fas=final">Hoppa till pallplats</button>
         <button data-go="fas=final&delad=andra">Delad 2:a</button>
         <button data-go="fas=final&delad=forsta">Oavgjort om 1:a</button>
+        <button data-go="fas=final&antal=2">Pall: 2 spelare</button>
+        <button data-go="fas=final&antal=3">Pall: 3 spelare</button>
+        <button data-go="fas=final&antal=25">Pall: 25 spelare</button>
         <button data-act="historik">📜 Visa historiken</button>
         <b>Visning</b>
         <button data-act="rorelse">Reducerad rörelse</button>
@@ -129,7 +132,7 @@
 
       if (!elev) {
         if (FAS === "kammare") { demo.playHistory(140); demo.setAuto(q.get("auto") !== "av"); }
-        if (FAS === "final") demo.jumpToFinal(q.get("delad") || null);
+        if (FAS === "final") demo.jumpToFinal(q.get("delad") || null, Number(q.get("antal")) || undefined);
       }
 
       const ctx = { app: document.getElementById("app"), go: (h) => log(`navigera till ${h}`) };

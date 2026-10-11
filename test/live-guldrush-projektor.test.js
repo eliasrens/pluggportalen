@@ -4,7 +4,8 @@
 // händelseflödets texter/avatarer (namn på/av), banderoller inkl.
 // ledningsbyte (designtest 5), gallring (designtest 7), händelsesystemet
 // efter omladdning (designtest 10), pallsteg med delad placering (designtest
-// 9), test 15 (stöld syns i flödet) och statistikens exakta ställning.
+// 9), test 15 (stöld syns i flödet), test 12 (#592, finalskärmen) och
+// statistikens exakta ställning.
 // DOM-delarna provas i preview/preview-guldrush-skattkammare.html.
 // ============================================================================
 
@@ -13,7 +14,7 @@ import assert from "node:assert/strict";
 import {
   matchClock, topPiles, pileSlot, createPileScale, pileLevel, isProtected, GR_TOP,
   milestone, crossedMilestone, GR_MILESTONES, feedItem,
-  podiumGroups, togetherText, statSummary, standingRows, createRate, tal,
+  podiumGroups, togetherHtml, FINAL_TITLE, statSummary, standingRows, createRate, tal,
 } from "../src/live/formats/guldrush/gr-proj-scen.js";
 import { weight, trimPending } from "../src/live/formats/guldrush/gr-proj-scen.js";
 import { computeStandings } from "../src/live/formats/guldrush/guldrush-core.js";
@@ -223,8 +224,22 @@ test("designtest 8/9: pallen ur guldet, delad placering på samma steg, bara gul
   const g = podiumGroups(st.players);
   assert.deepEqual(g.map((x) => [x.rank, x.players.map((p) => p.uid)]), [[1, ["a"]], [2, ["b", "c"]]]);
   assert.equal(podiumGroups(computeStandings(s, { grPlayers: [{ uid: "z", gold: 0 }] }).players).length, 0);
-  assert.equal(togetherText(s, 4380), `Tillsammans samlade 4B ${tal(4380)} guld!`);
-  assert.equal(togetherText(sess({ participatingClassIds: ["4b", "5e"], classNames: { "4b": "4B", "5e": "5E" } }), 10), "Tillsammans samlade 4B + 5E 10 guld!");
+});
+
+test("test 12 (#592): finalskärmen – exakt rubrik, lugn totalrad, inga klassnamn, pall efter placering", async () => {
+  assert.equal(FINAL_TITLE, "🏆 Guldrushen – Prispall");
+  assert.equal(togetherHtml(508), `Tillsammans: <strong>${tal(508)} guld</strong> 💰`);
+  const { readFile } = await import("node:fs/promises");
+  const kammare = await readFile(new URL("../src/live/formats/guldrush/gr-skattkammare.js", import.meta.url), "utf8");
+  const fd = kammare.slice(kammare.indexOf("function finalData"), kammare.indexOf("let resultKey"));
+  assert.match(fd, /title: FINAL_TITLE/);
+  assert.doesNotMatch(fd, /classTitle|classNames/, "inga klassnamn på finalskärmen");
+  const pall = await readFile(new URL("../src/live/formats/guldrush/gr-pall.js", import.meta.url), "utf8");
+  // 2:an vänster, 1:an mitten, 3:an höger – saknade steg byggs inte (ingen tom plats).
+  assert.match(pall, /\[2, 1, 3\]\.map\(\(rank\) => g\.find\(\(x\) => x\.rank === rank\)\)/);
+  assert.match(pall, /if \(!grp\) return;/);
+  assert.doesNotMatch(pall, /grp-tom/);
+  assert.match(pall, /coinIcon\("1em"\)} \+\$\{tal\(prize\)\} pluggmynt/);
 });
 
 test("statistiken: exakt ställning för alla elever + klassens siffror", () => {

@@ -204,7 +204,7 @@
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   justify-items: center;
-  padding-bottom: 2vh;
+  padding-bottom: 3vh;
 }
 .grp-mork { position: absolute; inset: calc(var(--gr-topp) * -1) 0 0; background: rgba(10, 4, 12, 0.72); opacity: 0; transition: opacity 1s ease; }
 .grp-ljus {
@@ -223,7 +223,6 @@
 .grp-rubrik { margin: 1vh 0 0; font-size: clamp(34px, 5.4vh, 64px); color: var(--gr-guld); text-shadow: 0 0.05em 0 #7a4a00, 0 0.1em 0.4em #000; text-align: center; }
 .grp-pall { display: flex; align-items: flex-end; justify-content: center; gap: 1.6vw; align-self: end; }
 .grp-steg { display: flex; flex-direction: column; align-items: center; width: clamp(220px, 21vw, 400px); }
-.grp-steg.grp-tom { visibility: hidden; }
 .grp-steg > :not(.grp-block) { opacity: 0; transition: opacity 0.4s ease; }
 .grp-steg.grp-uppe > * { opacity: 1; }
 .grp-figurer { display: flex; justify-content: center; font-size: calc(clamp(90px, 17vh, 200px) / max(1, var(--n) * 0.75)); }
@@ -235,24 +234,29 @@
 .grp-tackor { display: flex; flex-direction: column; align-items: center; padding-top: 3.6vh; }
 .grp-tackrad { display: flex; height: 3vh; }
 .grp-tackrad svg { height: 3.1vh; width: auto; margin: 0 -0.15vh; }
+/* Totalraden (#592): liten och lugn – rubriken är det enda stora. */
 .grp-tillsammans {
-  margin: 1.2vh 0 0;
-  padding: 0.1em 0.8em;
-  border-radius: 999px;
-  background: rgba(29, 22, 34, 0.85);
-  border: 3px solid var(--gr-guld);
-  font-size: clamp(34px, 5.2vh, 64px);
-  font-weight: 800;
-  color: var(--gr-guld);
+  margin: 1.4vh 0 0;
+  font-size: clamp(22px, 3vh, 36px);
+  font-weight: 600;
+  color: var(--gr-kram);
   text-align: center;
+  text-shadow: 0 2px 6px #000;
 }
+.grp-tillsammans strong { color: var(--gr-guld); font-weight: 800; }
+/* Publiken (#592): egen luft under totalraden, smalare än scenen så att den
+   aldrig når gruvvagnen längst ned till höger. */
 .grp-folk {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 96vw;
-  margin-top: 1vh;
-  font-size: clamp(30px, calc(90vw / max(15, var(--grp-folk-n)) / 1.1), 64px);
+  align-content: flex-end;
+  gap: 0.6vh 0.4vw;
+  /* Jämna rader: lika många figurer per rad (gr-pall.js räknar). */
+  max-width: min(64vw, calc(var(--grp-folk-per-rad, 99) * (1em + 0.4vw) + 1px));
+  margin-top: 2.6vh;
+  /* Höjdbudget ~12vh totalt (en figur = 1em × 1.2em), bredd ≤ 60vw per rad. */
+  font-size: clamp(28px, min(calc(10vh / var(--grp-folk-rader, 1)), calc(56vw * var(--grp-folk-rader, 1) / var(--grp-folk-n) / 1.15)), 96px);
   opacity: 0;
   transition: opacity 0.6s ease;
 }
