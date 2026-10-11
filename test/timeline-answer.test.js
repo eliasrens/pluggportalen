@@ -154,7 +154,7 @@ test("avslöjande exakt rätt: extra glädje, men inte med reducerad rörelse", 
   assert.equal(a.h.reveal(1520).diff, 0);
   assert.ok(a.root.classList.contains("tl-exakt"));
   assert.equal(a.q("tl-resultat-rubrik").textContent, "🎉 Exakt rätt!");
-  assert.ok(a.q("tl-fest"), "fest-stjärnor");
+  assert.ok(!!a.q("tl-fest"), "fest-stjärnor");
 
   const b = mount();
   b.doc.defaultView = { matchMedia: () => ({ matches: true }) };
@@ -163,7 +163,8 @@ test("avslöjande exakt rätt: extra glädje, men inte med reducerad rörelse", 
   b.h.lock();
   b.h.reveal(1520);
   assert.ok(b.root.classList.contains("tl-exakt"));
-  assert.equal(b.q("tl-fest"), null, "ingen rörelse-fest");
+  // Aldrig FakeEl i assert.equal: diffen av cykliska objekt spränger minnet.
+  assert.ok(!b.q("tl-fest"), "ingen rörelse-fest");
 });
 
 test("avslöjande utan svar (tid ute): bara rätt markör", () => {
@@ -208,7 +209,7 @@ test("zoomknappar: in kring markören, översikten syns bara inzoomat", () => {
   q("tl-zoom-in").click();
   assert.equal(q("tl-oversikt").hidden, false);
   assert.equal(q("tl-zoom-ut").disabled, false);
-  assert.equal(q("tl-gissning").style.left, "20.000%", "1520 står kvar på samma ställe i fönstret 1505–1555");
+  assert.equal(q("tl-gissning").style.left, "10.000%", "1520 står kvar på samma ställe (fönster 1515–1565)");
 });
 
 test("stegknapp med pekare: ett steg på pointerdown, klicket efteråt dubblar inte", () => {

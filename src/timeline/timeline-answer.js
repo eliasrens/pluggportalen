@@ -283,7 +283,7 @@ export function mountTimelineAnswer(root, opts = {}) {
       if (guess !== null && !exact) d.el("span", "tl-resultat-rad", r, `Du valde ${formatYear(guess)} – rätt år är ${formatYear(c)}.`);
       if (text) d.el("span", "tl-resultat-fakta", r, text);
       r.hidden = false;
-      if (exact && opts.celebrate !== false && !reducedMotion(win)) celebrate(d.el, d.ratt.node);
+      if (exact && opts.celebrate !== false && !reducedMotion(doc.defaultView)) celebrate(d.el, d.ratt.node);
       render();
       return { guess, correct: c, diff };
     },
