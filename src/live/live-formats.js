@@ -87,6 +87,11 @@
 //                 utöver ställningen (Snilleblixten: { scores } ur sbScores)
 //   minQuestions  VALFRI heltal ≥ 1 – färre frågor än så i ett quizområde ger
 //                 läraren en tydlig varning (#553; saknas = 5, plugga-quiz-core.js)
+//   music         VALFRI { src, level?, lobby? } – bakgrundsmusik (#593) på
+//                 projektorn/elevskärmen (proj-music.js): src = URL till en
+//                 sömlös loop (hämtas LATT i lobbyn, aldrig i bootkedjan),
+//                 level 0–1 av effekternas volym (≈ 0,3), lobby 0–1 av level
+//                 (0 = tyst lobby). Utan fält: ingen musik och ingen 🎵-knapp.
 // ============================================================================
 
 const REGISTRY = new Map();
@@ -135,6 +140,13 @@ export function validateFormat(f) {
   if (f.privateDocs != null && !(Array.isArray(f.privateDocs) &&
       f.privateDocs.every((p) => Array.isArray(p) && p.length === 2 && p.every((x) => typeof x === "string" && x)))) {
     errs.push("privateDocs måste vara [[samling, id]]");
+  }
+  if (f.music != null) {
+    const m = f.music;
+    const frac = (x) => x == null || (typeof x === "number" && x >= 0 && x <= 1);
+    if (typeof m !== "object" || typeof m.src !== "string" || !m.src || !frac(m.level) || !frac(m.lobby)) {
+      errs.push("music måste vara { src, level?: 0–1, lobby?: 0–1 }");
+    }
   }
   for (const b of ["classCounters", "classDivisors", "emitOnPlayers"]) {
     if (f[b] != null && typeof f[b] !== "boolean") errs.push(`${b} måste vara bool`);

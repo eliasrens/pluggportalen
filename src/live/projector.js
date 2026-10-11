@@ -6,10 +6,12 @@
 // formatOf(session) (format saknas = Klassmatchen) och laddar dess
 // projectorViews() LATT – Klassmatchen: formats/klassmatch/klassmatch-
 // projector.js (lobby, Raketrace, Statistik, Dragkamp, Trollkarlsduellen,
-// vinnarskärm, nämnare). Skalet äger proj-sound.js (ljud på/av).
+// vinnarskärm, nämnare). Skalet äger proj-sound.js (ljud på/av) och
+// proj-music.js (#593: formatets bakgrundsmusik, `format.music`, 🎵 Musik på/av).
 //
 // GEMENSAMT (Firestore, live-feed.js): status, start, timer, poäng, avslut.
-// LOKALT per webbläsare (localStorage): vyval pp:live:vy, ljud pp:live:ljud –
+// LOKALT per webbläsare (localStorage): vyval pp:live:vy, ljud pp:live:ljud,
+// musik pp:live:musik (#593) –
 // Rasmus kan visa Raketrace samtidigt som Elias visar Statistik.
 // Timern och nedräkningen räknas ur sessionens serverstämplar (startedAt →
 // officiellt slut = endsAt) mot den server-korrigerade klockan, 10 ggr/s –
@@ -18,9 +20,9 @@
 // UTVIDGAD SKÄRM (#533): "📺 Öppna elevskärm" (elevskarm-panel.js) öppnar ett
 // eget fönster med screen: true (#/larare/live?id=<sid>&skarm=elev) – samma
 // vyer men INGA kontroller (elevskarm-skarm.js). Det följer kontrollpanelens
-// vyval och ljud via en BroadcastChannel (elevskarm-kanal.js) och hämtar
-// matchen själv ur Firestore. Ljudet spelas där; panelen tystnar så länge en
-// elevskärm är ansluten. Utan elevskärm: exakt som förut (duplicerad skärm).
+// vyval, ljud och musik via en BroadcastChannel (elevskarm-kanal.js) och hämtar
+// matchen själv ur Firestore. Ljud och musik spelas där; panelen tystnar så
+// länge en elevskärm är ansluten. Utan elevskärm: exakt som förut.
 //
 // API: mountProjector(ctx, sid, { cleanups, uid, deps?, screen? }) → Promise
 //   deps (för förhandsvisning/test; default = riktiga Firestore-lagret):
@@ -47,6 +49,7 @@ import { formatOf } from "./formats/index.js";
 import { phaseAt, formatClock, toMs, sessionTimes } from "./live-core.js";
 import { classColor } from "./proj-scale.js";
 import { createSound } from "./proj-sound.js";
+import { createMusic } from "./proj-music.js";
 import { ensureLiveCss } from "./live-css.js";
 import { createScreenLink } from "./elevskarm-kanal.js";
 import { createScreenControl } from "./elevskarm-panel.js";
@@ -85,6 +88,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
       <div class="lp-es-host"></div>
       <div class="lp-views" role="tablist" hidden></div>
       <button class="lp-btn" data-sound></button>
+      <button class="lp-btn" data-music hidden title="Bakgrundsmusiken – separat från ljudeffekterna"></button>
       <button class="lp-btn" data-fs>⛶ Fullskärm</button>
       <button class="lp-btn" data-divs hidden title="Ändra klassernas nämnare (poäng = rätt ÷ nämnare)">÷ Nämnare</button>
       <button class="lp-btn lp-danger" data-end hidden>Avsluta</button>
@@ -99,6 +103,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
   const overlay = $(".lp-overlay");
 
   const sound = createSound();
+  const music = createMusic({ sound });
   let st = null;
   let colors = {};
   let current = null; // { kind, view, key, ui }
@@ -143,6 +148,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
   };
   document.addEventListener("fullscreenchange", onFs);
   $("[data-sound]").addEventListener("click", () => { sound.toggle(); soundLabel(); es?.publish(); });
+  $("[data-music]").addEventListener("click", () => { music.toggle(); musicLabel(); es?.publish(); });
   $("[data-end]").addEventListener("click", () => {
     if (confirm("Avsluta matchen NU, före tiden? Resultatet räknas som det står.")) d.finish(sid).catch((e) => say(e.message));
   });
@@ -175,7 +181,8 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     chrome = createScreenChrome(root, { sound });
     link = createScreenLink(sid, {
       audio: () => sound.on && sound.unlocked(),
-      onState: ({ view, sound: on }) => { sound.setOn(on); pickView(view); },
+      music: () => music.unlocked(),
+      onState: ({ view, sound: on, music: m }) => { sound.setOn(on); music.setOn(m); pickView(view); },
       onClose: () => window.close(),
     });
     onMove();
@@ -183,9 +190,9 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     es = createScreenControl($(".lp-es-host"), {
       sid,
       say,
-      state: () => ({ view: viewId, sound: sound.on }),
+      state: () => ({ view: viewId, sound: sound.on, music: music.on }),
       // Inga dubbla ljud: tyst här bara när elevskärmen faktiskt kan spela (upplåst).
-      onConnect: ({ connected, audio }) => { sound.mute(connected && audio); if (connected) es?.publish(); },
+      onConnect: ({ connected, audio, music: m }) => { sound.mute(connected && audio); music.mute(connected && m); if (connected) es?.publish(); },
     });
     es.publish();
   }
@@ -198,6 +205,13 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     if (b.textContent !== t) b.textContent = t;
     b.classList.toggle("lp-off", !sound.on);
   }
+
+  function musicLabel() {
+    const b = $("[data-music]");
+    b.textContent = music.on ? "🎵 Musik på" : "🎵 Musik av";
+    b.classList.toggle("lp-off", !music.on);
+  }
+  musicLabel();
 
   const views = () => ui?.views || [];
   function availableViews() {
@@ -231,6 +245,8 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     const s = st?.session;
     if (!s) return;
     const ph = phaseAt(s, d.now());
+    // Musiken (#593): tyst i lobbyn, in efter KÖR!, ut vid 00:00 – före finalen.
+    music.update({ phase: ph.phase, msLeft: sessionTimes(s).endMs == null ? null : ph.msLeft });
     if (ph.phase === "countdown") showCount(ph.countdown);
     else if (shownCount !== null) {
       shownCount = null;
@@ -283,6 +299,9 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     };
     if (!fmt) return fail("Matchen använder ett format som inte finns i den här versionen – ladda om sidan.");
     uiLoading = true;
+    // Formatets musik (#593): hämtas redan i lobbyn; knappen bara i lärarens panel.
+    if (fmt.music) music.load(fmt.music);
+    $("[data-music]").hidden = screen || !fmt.music;
     fmt.projectorViews().then((m) => {
       ui = m;
       $(".lp-views").innerHTML = views().map((v) => `<button class="lp-btn lp-vbtn" role="tab" data-view="${v.id}">${v.label}</button>`).join("");
@@ -370,6 +389,7 @@ export async function mountProjector(ctx, sid, { cleanups, uid, deps, screen = f
     link?.destroy();
     chrome?.destroy();
     window.removeEventListener("pagehide", onHide);
+    music.destroy();
     sound.destroy();
     document.removeEventListener("fullscreenchange", onFs);
     document.removeEventListener("keydown", onKey);
