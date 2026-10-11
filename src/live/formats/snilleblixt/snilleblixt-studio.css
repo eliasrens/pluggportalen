@@ -378,3 +378,13 @@
   .sbm-spot, .sbm-logo-stor .sbm-bolt, .sbk-spanning, .sbs-skriv, .sbl-puls { animation: none !important; }
   .sbk-ring.sbk-spanning { outline: 0.5vh solid #ff4d4d; outline-offset: 0.4vh; border-radius: 50%; }
 }
+
+/* --- Tidslinjefråga (#600): linjen under frågan, rätt år + spridning vid avslöjandet --- */
+.sbs-tidslinje { width: min(78vw, 1500px); }
+.sbs-tidslinje .tl-linje { background: rgba(255, 255, 255, 0.94); box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.35); }
+.sbs[data-kind="timeline"] .sbs-dra { font-size: clamp(28px, 4.6vh, 58px); padding: 1.4vh 3vw; }
+.sbs[data-kind="timeline"] .sbs-dra[hidden] { display: none; }
+.sbs[data-kind="timeline"] .sbs-kontext { text-align: center; }
+.sbs[data-kind="timeline"] .sbs-rattsvar b { font-size: clamp(44px, 8vh, 110px); }
+.sbs[data-kind="timeline"] .sbs-vanliga { font-size: clamp(22px, 3.2vh, 40px); }
+.sbs[data-kind="timeline"] { gap: 1.6vh; }

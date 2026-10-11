@@ -37,6 +37,12 @@ function fordelningHtml(q, sc, kind) {
         <span class="sbx-stapel"><i style="transform:scaleX(${(n / info.max).toFixed(3)})"></i></span><b>${n}</b></li>`).join("")}</ol>
       <p class="sbx-andel"><b>${info.share} %</b> rätt <small>(${info.correct} av ${info.answered} svar)</small></p>`;
   }
+  // Tidslinjefråga (#600): rätt år, andel exakt rätt och spridningen – anonymt.
+  if (info.kind === "timeline") {
+    return `${titel}<p class="sbx-fritt">Rätt år: <b>${esc(info.correctText)}</b></p>
+    <p class="sbx-andel"><b>${info.share} %</b> exakt rätt <small>(${info.correct} av ${info.answered} svar)</small></p>
+    ${info.spreadText ? `<p class="sbx-vanliga">${esc(info.spreadText)}</p>` : ""}`;
+  }
   const wrong = info.topWrong.map((w) => `<span>${esc(w.answer)} <small>(${w.n} st)</small></span>`).join(" · ");
   return `${titel}<p class="sbx-fritt">Rätt svar: <b>${esc(info.correctText)}</b></p>
     <p class="sbx-andel"><b>${info.share} %</b> rätt <small>(${info.correct} av ${info.answered} svar)</small></p>

@@ -10,13 +10,20 @@
 //                       rätt alternativ tänds, fel tonas, staplar växer
 //                       (transform: scaleX) / rätt svar stort, andel rätt
 //                       och de vanligaste felsvaren UTAN namn.
+//                       Tidslinjefråga (#600, kind "timeline"): händelsen +
+//                       frågan, under dem tidslinjen över frågans spann UTAN
+//                       markör (src/timeline/timeline-spread.js, latt) –
+//                       inget som avslöjar svaret. Avslöjandet: rätt år på
+//                       linjen, andel exakt rätt och klassens gissningar som
+//                       anonym spridning. Ingen rangordning.
 // Ritas om bara när frågan byts (key); avslöjandet läggs på samma element.
 //
 // API
 //   createKlocka(host) → { set({ index, count, clock }), destroy() }
 //     clock = questionClock(...) | null (dold ring, t.ex. efter avslöjandet)
 //   createSchakt(host) → {
-//     show(q, { answerKind, land? })   ny fråga (land = blixtlandning)
+//     show(q, { answerKind, land? })   ny fråga (land = blixtlandning);
+//                                      answerKind = sessionens – frågans kind vinner
 //     reveal(info)                     revealInfo(...) ur sb-scen.js
 //     clear()                          töm (intro)
 //     destroy()
@@ -85,23 +92,47 @@ export function createSchakt(host) {
   let kind = "free";
   let revealed = false;
   let facitShown = false;
+  let spread = null; // tidslinjens visning (tidslinjefråga)
+  let spreadKey = null;
+  let pendingReveal = null;
+
+  function dropSpread() {
+    spread?.destroy();
+    spread = null;
+    spreadKey = null;
+    pendingReveal = null;
+  }
+
+  function mountSpread(span) {
+    const k = key;
+    spreadKey = k;
+    import("../../../timeline/timeline-spread.js").then(({ mountTimelineSpread }) => {
+      const box = root.querySelector(".sbs-tidslinje");
+      if (spreadKey !== k || !box) return;
+      spread = mountTimelineSpread(box, { span });
+      if (pendingReveal) spread.reveal(pendingReveal);
+    }, (err) => console.warn("Snilleblixten: tidslinjen kunde inte laddas", err));
+  }
 
   function show(q, { answerKind = "free", land = false } = {}) {
     const k = q?.question?.key ?? `${q?.index}`;
     if (k === key) return;
     key = k;
-    kind = answerKind;
+    const tl = q?.question?.kind === "timeline";
+    kind = tl ? "timeline" : answerKind;
     revealed = false;
     facitShown = false;
+    dropSpread();
     root.classList.remove("sbs-avslojad");
     const text = q?.question?.text || "";
-    const passage = q?.question?.passage || "";
+    const passage = tl ? [q.question.event, q.question.description].filter(Boolean).join(": ") : q?.question?.passage || "";
     const opts = (q?.question?.options || []).slice(0, 4);
     const optLen = textLength(opts, "alt");
-    root.dataset.kind = answerKind;
+    root.dataset.kind = kind;
     root.innerHTML = `
       <div class="sbs-kort">${passage ? `<p class="sbs-kontext">${esc(keepNumbers(passage))}</p>` : ""}<p class="sbs-fraga sbs-t-${textSize(text, !!passage)}">${esc(keepNumbers(text))}</p></div>
-      ${answerKind === "choice" ? `<ol class="sbs-alt" data-n="${opts.length}" data-len="${optLen}">${opts.map((o, i) => `
+      ${tl ? `<div class="sbs-tidslinje"></div><div class="sbs-skriv sbs-dra"><span class="sbs-penna" aria-hidden="true">📅</span> Dra till rätt år!</div>`
+    : kind === "choice" ? `<ol class="sbs-alt" data-n="${opts.length}" data-len="${optLen}">${opts.map((o, i) => `
         <li class="sbs-opt sbs-${CHOICE_STYLES[i].key}" data-i="${i}" aria-label="${esc(CHOICE_STYLES[i].label)}: ${esc(o)}">
           <span class="sbs-stapel" aria-hidden="true"><i></i></span>
           <span class="sbs-form">${choiceShapeSvg(i)}</span>
@@ -110,6 +141,7 @@ export function createSchakt(host) {
         </li>`).join("")}</ol>`
     : `<div class="sbs-skriv"><span class="sbs-penna" aria-hidden="true">✍️</span> Skriv ditt svar!</div>`}
       <div class="sbs-facit" hidden></div>`;
+    if (tl && q.question.span) mountSpread(q.question.span);
     if (land) {
       const reduced = prefersReducedMotion();
       const card = root.querySelector(".sbs-kort");
@@ -127,6 +159,7 @@ export function createSchakt(host) {
     if (!info || (revealed && info.ready)) return;
     const reduced = prefersReducedMotion() || !animate;
     root.classList.add("sbs-avslojad");
+    if (info.kind === "timeline") return revealTimeline(info, reduced);
     if (info.kind === "choice") {
       root.querySelectorAll(".sbs-opt").forEach((li) => {
         const i = Number(li.dataset.i);
@@ -159,11 +192,37 @@ export function createSchakt(host) {
     revealed = !!info.ready;
   }
 
+  function revealTimeline(info, reduced) {
+    const pr = { correct: info.correctYear, guesses: info.ready ? info.guesses : [], animate: !reduced };
+    if (Number.isInteger(info.correctYear)) {
+      pendingReveal = pr;
+      spread?.reveal(pr);
+    }
+    const f = root.querySelector(".sbs-facit");
+    const html = `
+        <div class="sbs-rattsvar"><small>Rätt år</small><b>${esc(info.correctText)}</b></div>
+        <div class="sbs-facit-info">
+          <div class="sbs-andel">${info.ready ? `<b>${info.share} %</b> exakt rätt <small>(${info.correct} av ${info.answered} svar)</small>` : ""}</div>
+          ${info.ready && info.spreadText ? `<div class="sbs-vanliga">${esc(info.spreadText)}</div>` : ""}
+        </div>`;
+    if (f.dataset.html !== html) {
+      f.dataset.html = html;
+      f.innerHTML = html;
+    }
+    f.hidden = false;
+    root.querySelector(".sbs-dra")?.setAttribute("hidden", "");
+    if (!reduced && !facitShown) {
+      f.querySelector(".sbs-rattsvar").animate([{ opacity: 0, transform: "scale(1.6)" }, { opacity: 1, transform: "none" }], { duration: 480, easing: "cubic-bezier(.2,.9,.3,1.2)" });
+    }
+    facitShown = true;
+    revealed = !!info.ready;
+  }
+
   return {
     show,
     reveal,
     get kind() { return kind; },
-    clear() { key = null; revealed = false; facitShown = false; root.innerHTML = ""; root.classList.remove("sbs-avslojad"); },
-    destroy() { root.remove(); },
+    clear() { key = null; revealed = false; facitShown = false; dropSpread(); root.innerHTML = ""; root.classList.remove("sbs-avslojad"); },
+    destroy() { dropSpread(); root.remove(); },
   };
 }
