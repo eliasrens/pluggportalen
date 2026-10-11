@@ -19,6 +19,7 @@
 // Felpoängen påverkar inget annat läge.
 //
 // Quiz (§4): rätt svar = EXAKT år, ingen tolerans (quizets rättning är rätt/fel).
+// I Quiz räknas tidslinjefrågan i kategorin "fakta" (ett årtal = "när").
 // Tidslinjefrågorna läses ur samma area.timeline (ingen kopia). Hur många som
 // blandas in per quizomgång styrs av timelineSlots().
 // ============================================================================
@@ -102,6 +103,9 @@ export function timelineQuestions(area) {
       year: e.year,
       description: String(e.description || ""),
       explanation: String(e.explanation || ""),
+      // Ett årtal är en "när"-fråga → kategorin fakta (vem, vad, var, när), så
+      // Quiz kategoristatistik och "rätt på första försöket" räknar med den.
+      category: "fakta",
     }));
 }
 

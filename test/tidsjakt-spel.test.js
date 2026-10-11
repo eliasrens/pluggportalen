@@ -88,6 +88,7 @@ test("timelineQuestions: samma area.timeline, kind 'timeline', utan alternativ",
     assert.equal(q.kind, "timeline");
     assert.equal(q.options, undefined);
     assert.equal(q.answerIndex, undefined);
+    assert.equal(q.category, "fakta");
   }
   assert.deepEqual(qs.map((q) => q.year), [1520, 1523, 1527, 1541, 1560]);
   // Trasiga händelser (inget heltalsår / ingen fråga) hoppas över.
