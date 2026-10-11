@@ -26,6 +26,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { coinIcon } from "../../../icons.js";
 import { react, prefersReducedMotion } from "../../design/live-reactions.js";
 import { flash } from "./sb-miljo.js";
 
@@ -67,7 +68,7 @@ export function createFinal(host, { pool, sound, flashHost }) {
       steg.innerHTML = `<div class="sbf-figurer"></div>
         <div class="sbf-namn">${grp.players.map((p) => esc(p.name || "?")).join(" & ")}</div>
         <div class="sbf-poang">${tal(grp.players[0].points)} poäng</div>
-        ${prize ? `<div class="sbf-pris">🪙 +${tal(prize)} pluggmynt</div>` : ""}
+        ${prize ? `<div class="sbf-pris">${coinIcon("1em")} +${tal(prize)} pluggmynt</div>` : ""}
         <div class="sbf-block"><span>${MEDALJ[grp.rank] || grp.rank}</span><b>${grp.rank}</b></div>`;
       const fig = steg.querySelector(".sbf-figurer");
       for (const p of grp.players) {

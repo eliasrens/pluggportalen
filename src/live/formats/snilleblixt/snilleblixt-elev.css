@@ -173,7 +173,7 @@
   font-size: clamp(18px, 3.2vh, 28px);
 }
 .sb-mynt li { display: flex; justify-content: space-between; gap: 24px; padding: 2px 0; }
-.sb-mynt li b::after { content: " 🪙"; }
+.sb-mynt li b { white-space: nowrap; } /* myntet = coinIcon() i snilleblixt-student.js (#590) */
 .sb-mynt-tot { margin: 4px 0 0; font-size: clamp(24px, 4.6vh, 40px); font-weight: 900; color: #7a5200; }
 
 /* --- Tillgänglighet ------------------------------------------------------- */

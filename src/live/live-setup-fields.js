@@ -50,6 +50,7 @@
 // ============================================================================
 
 import { defaultAnswerKind } from "./live-formats.js";
+import { withCoinIcon } from "../icons.js";
 
 export const LIVE_DURATIONS_MIN = [5, 10, 15, 20, 25, 30];
 export const CUSTOM_CHOICE = "__egen";
@@ -77,7 +78,7 @@ export function fieldsFor(format) {
 
 const inputId = (f) => f.id || `live-sf-${f.key}`;
 const labelHtml = (f, forId) =>
-  `<label${forId ? ` for="${esc(forId)}"` : ""}>${esc(f.label)}${f.hint ? ` <small class="hint">(${esc(f.hint)})</small>` : ""}</label>`;
+  `<label${forId ? ` for="${esc(forId)}"` : ""}>${withCoinIcon(esc(f.label))}${f.hint ? ` <small class="hint">(${esc(f.hint)})</small>` : ""}</label>`;
 
 function fieldHtml(f) {
   const cls = ["field", f.kind === "perClass" ? "live-perclass" : "", f.cls || ""].filter(Boolean).join(" ");
@@ -99,7 +100,7 @@ function fieldHtml(f) {
           f.placeholder ? ` placeholder="${esc(f.placeholder)}"` : ""}${f.default != null ? ` value="${esc(f.default)}"` : ""} /></div>`;
     case "toggle":
       return `<div ${attrs}><label class="live-toggle"><input id="${esc(inputId(f))}" type="checkbox"${f.default ? " checked" : ""} />
-        <span>${esc(f.label)}</span>${f.hint ? ` <small class="hint">(${esc(f.hint)})</small>` : ""}</label></div>`;
+        <span>${withCoinIcon(esc(f.label))}</span>${f.hint ? ` <small class="hint">(${esc(f.hint)})</small>` : ""}</label></div>`;
     case "perClass":
       return `<div ${attrs} hidden>${labelHtml(f)}<div class="live-divisor-rows"></div></div>`;
     case "custom":

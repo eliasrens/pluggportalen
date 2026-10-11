@@ -39,6 +39,7 @@
 // ============================================================================
 
 import { LIVE_REWARDS, LIVE_REWARD_LIMITS } from "./rewards-config.js";
+import { COIN_MARK } from "../icons.js";
 
 const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
 // Bort med flyttalsbrus (0,85^n, 0,6 × 3 …) före avrundning.
@@ -201,7 +202,7 @@ export function rewardSummary(entry) {
 /** Lärarformulärets fält (läggs i formatets setupFields). */
 export function rewardsSetupField() {
   return {
-    key: "rewards", kind: "custom", label: "🪙 Pluggmynt efter matchen", cls: "live-rewards",
+    key: "rewards", kind: "custom", label: `${COIN_MARK} Pluggmynt efter matchen`, cls: "live-rewards",
     hint: "delas ut när matchen är slut – kan aldrig stjälas",
     load: () => import("./live-rewards-setup.js"),
   };

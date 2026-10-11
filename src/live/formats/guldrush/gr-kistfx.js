@@ -4,7 +4,7 @@
 // delat/chests-config.js, eller lägger sin effekt i LOOKS här. Okänt look →
 // kistans ikon hoppar upp (aldrig ett fel).
 //
-//   mynt-hopp      några mynt hoppar upp              (🪙 Lite guld)
+//   mynt-hopp      några mynt hoppar upp              (mynt: Lite guld)
 //   mynt-fontan    en fontän av mynt                  (💰 Guld)
 //   adelstenar     ädelstenar + mynt som glittrar     (💎 Mycket guld)
 //   guldexplosion  kistan exploderar i guld, krona, stjärnor (👑 Skattkammare)
@@ -28,6 +28,8 @@
 //     avatar  elevens .lav (Sköld flyger dit)
 //   svgOf(name) → inline-SVG (krona, tvättbjörn, pilar, löv, sköld, ädelsten)
 // ============================================================================
+
+import { coinIcon, withCoinIcon } from "../../../icons.js";
 
 const EASE = "cubic-bezier(.2,.8,.3,1)";
 const GEM_COLORS = ["#e53950", "#2f7de1", "#22b573", "#9b51e0"];
@@ -224,7 +226,7 @@ export const LOOKS = Object.freeze(Object.keys(LOOK_FNS));
 
 // Reducerad rörelse: effektens bild tonar in/ut på plats.
 const STILL = {
-  "mynt-hopp": "🪙", "mynt-fontan": "💰", "adelstenar": svgOf("sten", GEM_COLORS[1]), "guldexplosion": svgOf("krona"),
+  "mynt-hopp": coinIcon(48), "mynt-fontan": "💰", "adelstenar": svgOf("sten", GEM_COLORS[1]), "guldexplosion": svgOf("krona"),
   "siffra-delas": "×2", "tvattbjorn": svgOf("tvattbjorn"), "guldpilar": svgOf("pilar"), "mynt-rullar": "🕳️",
   "lov-dammpuff": svgOf("lov"), "skold-glod": svgOf("skold"),
 };
@@ -233,7 +235,7 @@ export function playLook(look, { fx, chest = null, gold = null, avatar = null, i
   if (!fx || typeof fx.animate !== "function") return Promise.resolve();
   const fn = LOOK_FNS[look];
   if (reduced || !fn) {
-    const el = part(fx, "grfx-still", `<b>${STILL[look] || icon}</b>`);
+    const el = part(fx, "grfx-still", `<b>${STILL[look] || withCoinIcon(icon, 48)}</b>`);
     return run(el, [{ transform: at(0, -2.2), opacity: 0 }, { offset: 0.3, opacity: 1 }, { offset: 0.75, opacity: 1 }, { transform: at(0, -2.2), opacity: 0 }],
       { duration: 850, easing: "ease-in-out" });
   }

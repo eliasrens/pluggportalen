@@ -2,7 +2,7 @@
 // Live-projektorn: LOBBYN (#461) – "MATTEMATCH LIVE · 4B VS 5E", "N elever
 // redo" per klass (live), matchtid, "Väntar på start" och den stora STARTA
 // MATCH-knappen i SAMMA vy (läraren speglar sin skärm till projektorn).
-// Mynt-pris (#526): "🪙 Vinnarklassen får 1 000 mynt till klasskassan!".
+// Mynt-pris (#526): "(mynt) Vinnarklassen får 1 000 mynt till klasskassan!".
 // Vilken lärare som helst som öppnat sessionen kan starta – startLiveSession
 // är en transaktion, så två samtidiga tryck startar inte om klockan.
 //
@@ -18,6 +18,7 @@
 // ============================================================================
 
 import { esc } from "../teacher-shared.js";
+import { coinIcon } from "../icons.js";
 import { prizeText } from "./formats/klassmatch/klassmatch-core.js";
 import { resolveWizards, swapWizards, WIZARD_NAMES } from "./trollkarl/trollkarl-val.js";
 
@@ -34,7 +35,7 @@ export function createLobby(host, { st, colors, modeName, actions, say, readonly
     <div class="lpl-badge">⚡ MATTEMATCH LIVE</div>
     <h1 class="lpl-title">${names.join(`<i class="lpl-vs">VS</i>`)}</h1>
     <div class="lpl-sub">${esc(s.name)} · ${esc(modeName)}</div>
-    ${prizeText(s) ? `<div class="lp-prize">🪙 ${esc(prizeText(s))}</div>` : ""}
+    ${prizeText(s) ? `<div class="lp-prize">${coinIcon("1em")} ${esc(prizeText(s))}</div>` : ""}
     <div class="lpl-cards">${st.classes.map((c) => `
       <div class="lpl-card" style="--c:${colors[c.classId]}" data-cid="${esc(c.classId)}">
         <div class="lpl-cname">${esc(c.name)}</div>

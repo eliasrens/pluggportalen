@@ -29,17 +29,23 @@
 //             (alla skyddade, ingen har mer guld …) – "vanlig guldkista"
 //   look/sound  animations- och ljud-id för elevvyn/projektorn
 //   eventText   händelseflödets mall: {namn} öppnaren, {belopp}, {offer}
+//   {mynt} (GR_COIN) i icon/eventText = mynt-ikonen: emojin (Emoji 13) är ▯
+//             på Windows 10, så UI:t byter markören mot coinIcon() (src/icons.js
+//             withCoinIcon, samma markör där) – #590
 //
 // STÖLD OCH BYTE AV (lärarens val, session.stealSwap = false): steal/swap
 // kan inte komma – deras vikt fördelas på guldkistorna (effect "gold") i
 // proportion till guldkistornas egna vikter (guldrush-regler.js chestTable).
 // ============================================================================
 
+// Mynt-markören (= COIN_MARK i src/icons.js; lövmodul, därför en kopia).
+export const GR_COIN = "{mynt}";
+
 export const GR_CHESTS = Object.freeze([
   {
-    id: "lite_guld", icon: "🪙", label: "Lite guld", rarity: "vanlig", weight: 22,
+    id: "lite_guld", icon: GR_COIN, label: "Lite guld", rarity: "vanlig", weight: 22,
     effect: { kind: "gold", amount: 10 },
-    look: "mynt-hopp", sound: "klirr", eventText: "🪙 {namn} hittade {belopp} guld!",
+    look: "mynt-hopp", sound: "klirr", eventText: "{mynt} {namn} hittade {belopp} guld!",
   },
   {
     id: "guld", icon: "💰", label: "Guld", rarity: "vanlig", weight: 20,

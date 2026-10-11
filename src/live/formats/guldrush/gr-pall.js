@@ -23,6 +23,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { coinIcon } from "../../../icons.js";
 import { react, prefersReducedMotion } from "../../design/live-reactions.js";
 import { tal } from "./gr-proj-scen.js";
 
@@ -70,7 +71,7 @@ export function createFinal(host, { pool, sound }) {
       steg.innerHTML = `<div class="grp-figurer"></div>
         <div class="grp-namn">${grp.players.map((p) => esc(p.name || "?")).join(" & ")}</div>
         <div class="grp-guld">💰 ${tal(grp.players[0].gold)} guld</div>
-        ${prize ? `<div class="grp-pris">🪙 +${tal(prize)} pluggmynt</div>` : ""}
+        ${prize ? `<div class="grp-pris">${coinIcon("1em")} +${tal(prize)} pluggmynt</div>` : ""}
         <div class="grp-block"><span class="grp-medalj">${MEDALJ[grp.rank] || grp.rank}</span>
           <div class="grp-tackor">${Array.from({ length: rader }, (_, r) => `<div class="grp-tackrad">${TACKA.repeat(r % 2 ? 2 : 3)}</div>`).join("")}</div></div>`;
       const fig = steg.querySelector(".grp-figurer");

@@ -43,9 +43,10 @@
 //                                     (servern slumpar bland dem)
 //   resolveVictim(kind, thief, victim) → { amount, thiefGold, victimGold }
 //   eventText(ev, { names })        → händelseflödets text (ev från grEvents)
+//                                     ("{mynt}" = mynt-ikonens markör, #590)
 // ============================================================================
 
-import { GR_CHESTS, GR_EVENT_TEXTS, GR_ANON, GR_RULES } from "./chests-config.js";
+import { GR_CHESTS, GR_EVENT_TEXTS, GR_ANON, GR_RULES, GR_COIN } from "./chests-config.js";
 
 const VICTIM_KINDS = ["steal", "swap"];
 const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
@@ -178,6 +179,7 @@ export function eventText(ev, { names = true } = {}) {
     namn: names ? ev?.name || "?" : GR_ANON.namn,
     offer: names ? ev?.victimName || "?" : GR_ANON.offer,
     belopp: Math.abs(Number(ev?.amount) || 0).toLocaleString("sv-SE"),
+    mynt: GR_COIN, // markören står kvar – UI:t byter den mot mynt-ikonen
   };
   if (ev?.type === "lead") return fill(GR_EVENT_TEXTS.lead, vars);
   if (ev?.type && !["chest", ...VICTIM_KINDS].includes(ev.type)) return "";

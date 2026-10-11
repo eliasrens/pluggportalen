@@ -22,6 +22,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { withCoinIcon } from "../../../icons.js";
 import { prefersReducedMotion } from "../../design/live-reactions.js";
 import { trimPending } from "./gr-proj-scen.js";
 
@@ -72,7 +73,7 @@ export function createFlode(host, { pool, max = MAX, ttlMs = TTL_MS }) {
     const [first, second] = item.avatars || [];
     const a = avatar(first, `${id}a`, "grf-av-1");
     if (a) { li.appendChild(a); slots.push([first, `${id}a`]); }
-    li.insertAdjacentHTML("beforeend", `<span class="grf-text">${esc(item.text)}</span>`);
+    li.insertAdjacentHTML("beforeend", `<span class="grf-text">${withCoinIcon(esc(item.text))}</span>`);
     const b = avatar(second, `${id}b`, "grf-av-2");
     if (b) { li.appendChild(b); slots.push([second, `${id}b`]); }
     return { li, slots, t: 0 };
