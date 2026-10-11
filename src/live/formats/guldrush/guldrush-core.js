@@ -24,7 +24,8 @@
 //
 // API
 //   GR_MIN_CLASSES / GR_MAX_CLASSES  1 / 3
-//   GR_DURATIONS_MIN      [5, 10, 15, 20]
+//   GR_DURATIONS_MIN      [3, 5, 10, 15, 20, 30] snabbknappar (+ "Egen tid")
+//   GR_CUSTOM_MIN         { min: 1, max: 60 } – "Egen tid", hela minuter
 //   GR_MODES              spellägen servern kan rätta
 //   GR_PRIVATE_DOC / GR_PUBLIC_DOC   ["grPrivate","snapshot"] / ["grPublic","questions"]
 //   GR_MAX_QUESTIONS      100 (reglerna har samma tak)
@@ -49,7 +50,8 @@ import { questionStats } from "./gr-historik-data.js";
 
 export const GR_MIN_CLASSES = 1;
 export const GR_MAX_CLASSES = 3;
-export const GR_DURATIONS_MIN = [5, 10, 15, 20];
+export const GR_DURATIONS_MIN = [3, 5, 10, 15, 20, 30];
+export const GR_CUSTOM_MIN = { min: 1, max: 60 };
 export const GR_MODES = ["multiplication_0_10", "plugga_quiz"];
 export const GR_PRIVATE_DOC = ["grPrivate", "snapshot"];
 export const GR_PUBLIC_DOC = ["grPublic", "questions"];
@@ -58,17 +60,31 @@ export const GR_MAX_QUESTIONS = 100;
 const QUIZ_MODE = "plugga_quiz";
 const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
 
-/** Speltiden – formatets eget durationMin-fält (kärnan lägger då inte till sitt). */
+/**
+ * Speltiden – formatets eget durationMin-fält (kärnan lägger då inte till
+ * sitt). Snabbknappar + "Egen tid" (#589); validateSetup kontrollerar själv.
+ * Reglerna (grSettingsOk) tar hela minuter 1–60 som durationSeconds.
+ */
 export function durationField() {
   return {
-    key: "durationMin", label: "Speltid", kind: "choice", optionsCls: "live-durations",
+    key: "durationMin", label: "Speltid", kind: "choice", optionsCls: "live-durations", validate: false,
     options: GR_DURATIONS_MIN.map((m) => ({ value: m, label: `${m} min` })), default: 10,
+    custom: { label: "Egen tid", ...GR_CUSTOM_MIN, unit: "min" },
   };
+}
+
+/** Felet för speltiden (hela minuter 1–60) | null. Råsträngar ur "Egen tid" tas också. */
+export function durationError(v) {
+  if (v == null || String(v).trim() === "") return "Skriv in hur många minuter matchen ska vara (1–60).";
+  const n = typeof v === "number" ? v : /^\s*\d+\s*$/.test(String(v)) ? Number(v) : NaN;
+  const { min, max } = GR_CUSTOM_MIN;
+  return Number.isInteger(n) && n >= min && n <= max ? null : `Speltiden måste vara hela minuter mellan ${min} och ${max}.`;
 }
 
 export function validateSetup(input) {
   const errs = [];
-  if (!GR_DURATIONS_MIN.includes(Number(input?.durationMin))) errs.push("Välj speltid (5, 10, 15 eller 20 minuter).");
+  const dur = durationError(input?.durationMin);
+  if (dur) errs.push(dur);
   if (input?.gameMode && !GR_MODES.includes(input.gameMode)) errs.push("Det spelläget går inte i Guldrushen.");
   return errs;
 }

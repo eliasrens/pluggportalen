@@ -16,6 +16,10 @@
 //   "choice"   options [{ value, label }], default?,  → radio-chips
 //              defaultByAnswerKind? { free: v, choice: v } – förvalet följer
 //              svarssättet tills läraren själv valt (Snilleblixtens frågetid)
+//              custom? { label, min, max, unit? } – extra chip ("Egen tid")
+//              med ett heltalsfält (value CUSTOM_CHOICE); värdet läses med
+//              coerceCustomChoice (råsträng om inte ett heltal) – formatets
+//              validateSetup kontrollerar det (sätt validate:false), #589
 //   "number"   min?, max?, placeholder?, id?, inputCls? → heltalsfält (värdet
 //              lämnas som RÅ sträng – tomt = inget värde)
 //   "text"     maxlength?, placeholder?, id?          → textfält
@@ -34,6 +38,7 @@
 //   setupFieldsHtml(fields)               → HTML för alla fält
 //   perClassRowsHtml(field, classes, values) → raderna för ett perClass-fält
 //   coerceSetupValue(field, raw)          → typat värde ur formulärets råvärde
+//   CUSTOM_CHOICE, coerceCustomChoice(raw) choice-fältets "Egen …"-chip/värde
 //   defaultSetupValues(fields)            → { key: standardvärde }
 //   answerKindDefaults(fields, kind)      → { key: förval } för fält med
 //                                         defaultByAnswerKind
@@ -47,6 +52,7 @@
 import { defaultAnswerKind } from "./live-formats.js";
 
 export const LIVE_DURATIONS_MIN = [5, 10, 15, 20, 25, 30];
+export const CUSTOM_CHOICE = "__egen";
 export const ANSWER_KIND_LABELS = { free: "✍️ Skriv själv", choice: "🔘 Flerval" };
 
 const ORDTAL = ["noll", "en", "två", "tre", "fyra", "fem", "sex", "sju", "åtta"];
@@ -80,7 +86,8 @@ function fieldHtml(f) {
     case "choice":
       return `<div ${attrs}>${labelHtml(f)}
         <div class="${esc(f.optionsCls || "live-choices")}">${(f.options || []).map((o) => `<label class="live-chip">
-          <input type="radio" name="sf-${esc(f.key)}" value="${esc(o.value)}" ${String(o.value) === String(f.default) ? "checked" : ""} /><span>${esc(o.label)}</span></label>`).join("")}</div></div>`;
+          <input type="radio" name="sf-${esc(f.key)}" value="${esc(o.value)}" ${String(o.value) === String(f.default) ? "checked" : ""} /><span>${esc(o.label)}</span></label>`).join("")}${
+          f.custom ? customChipHtml(f) : ""}</div></div>`;
     case "number":
       return `<div ${attrs}>${labelHtml(f, inputId(f))}
         <input id="${esc(inputId(f))}"${f.inputCls ? ` class="${esc(f.inputCls)}"` : ""} type="number"${f.min != null ? ` min="${f.min}"` : ""}${
@@ -100,6 +107,15 @@ function fieldHtml(f) {
     default:
       return "";
   }
+}
+
+/** "Egen tid"-chipet: radio + heltalsfält (formuläret kryssar i chipet när fältet används). */
+function customChipHtml(f) {
+  const c = f.custom;
+  return `<label class="live-chip live-chip-egen">
+          <input type="radio" name="sf-${esc(f.key)}" value="${CUSTOM_CHOICE}" /><span>${esc(c.label)}
+          <input class="live-egen" type="number"${c.min != null ? ` min="${c.min}"` : ""}${c.max != null ? ` max="${c.max}"` : ""} step="1" inputmode="numeric" aria-label="${esc(c.label)}${
+            c.unit ? ` (${esc(c.unit)})` : ""}" />${c.unit ? ` ${esc(c.unit)}` : ""}</span></label>`;
 }
 
 /** HTML för formatets alla fält (okänd sort ritas inte). */
@@ -128,6 +144,12 @@ export function coerceSetupValue(f, raw) {
   if (f.kind === "text") return String(raw ?? "");
   if (f.kind === "number") return raw == null ? "" : String(raw);
   return raw;
+}
+
+/** "Egen …"-fältets värde: heltal som tal, annars den råa (trimmade) strängen. */
+export function coerceCustomChoice(raw) {
+  const t = String(raw ?? "").trim();
+  return /^\d+$/.test(t) ? Number(t) : t;
 }
 
 /** Standardvärden (choice/toggle/number/text med default). */

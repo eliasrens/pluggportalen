@@ -146,7 +146,9 @@ export function validateSessionInput(input, opts = {}) {
     errs.push(`Välj minst ${ORDTAL[fmt.minClasses]} ${klass}${hint}.`);
   }
   if (ids.length > fmt.maxClasses) errs.push(`Högst ${fmt.maxClasses} ${fmt.maxClasses === 1 ? "klass" : "klasser"}.`);
-  if (fmt.pacing === "tid" && !LIVE_DURATIONS_MIN.includes(Number(input?.durationMin))) errs.push("Välj matchlängd.");
+  // Ett durationMin-fält med "Egen tid" (Guldrushen, #589) valideras av formatets validateSetup.
+  const ownDuration = (fmt.setupFields || []).some((f) => f.key === "durationMin" && f.custom);
+  if (fmt.pacing === "tid" && !ownDuration && !LIVE_DURATIONS_MIN.includes(Number(input?.durationMin))) errs.push("Välj matchlängd.");
   if (input?.gameMode && !resolveAnswerKind(fmt, modeOf(input), input.answerKind)) {
     errs.push("Välj ett svarssätt som både formatet och spelläget stöder.");
   }

@@ -81,9 +81,15 @@ describe("Guldrushen: skapa sessionen", () => {
     await assertFails(setDoc(sess(elev("alma"), "ny2"), { ...sessionDoc(), createdBy: "alma" }));
   });
 
-  it("ogiltiga inställningar nekas (speltid 25 min, 4 klasser, annat spelläge, quiz med skriv själv, okänt fält)", async () => {
+  it("speltid: hela minuter 1–60 tas (7, 12, 30, 60 min via Egen tid, #589); 0,5 / 61 / 90 s nekas", async () => {
     const t = teacher();
-    await assertFails(setDoc(sess(t, "a"), sessionDoc({ durationSeconds: 1500 })));
+    for (const m of [1, 7, 12, 30, 60]) await assertSucceeds(setDoc(sess(t, `m${m}`), sessionDoc({}, { durationMin: m })));
+    for (const sek of [30, 3660, 90, 0]) await assertFails(setDoc(sess(t, `s${sek}`), sessionDoc({ durationSeconds: sek })));
+  });
+
+  it("ogiltiga inställningar nekas (speltid 25,5 min, 4 klasser, annat spelläge, quiz med skriv själv, okänt fält)", async () => {
+    const t = teacher();
+    await assertFails(setDoc(sess(t, "a"), sessionDoc({ durationSeconds: 1530 })));
     await assertFails(setDoc(sess(t, "b"), sessionDoc({ participatingClassIds: ["4b", "5e", "6a", "6b"] })));
     await assertFails(setDoc(sess(t, "c"), sessionDoc({ gameMode: "annat_lage" })));
     await assertFails(setDoc(sess(t, "d"), sessionDoc({ gameMode: "plugga_quiz", answerKind: "free" })));
