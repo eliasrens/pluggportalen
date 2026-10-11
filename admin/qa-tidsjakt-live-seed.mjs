@@ -10,6 +10,9 @@
 // Lärare: Live → Snilleblixten → Quiz från Plugga → SO → Vasatiden →
 // "Ta med tidslinjefrågor" (på) → Slumpa av → frågorna 1, 3, 4, 5 och 7 är
 // tidslinjefrågor. Vägrar köra utan emulator-variablerna.
+// Guldrushen (#601): efter admin/qa-guldrush-preview.sh (FN_SEKVENS=1) → Live →
+// Guldrushen → Quiz från Plugga → SO → Vasatiden (7 frågor, varav 5 tidslinje)
+// → 4B → STARTA; eleven b01 / lilla123 spelar i egen takt.
 // ============================================================================
 import admin from "firebase-admin";
 import { VASATIDEN_JSON } from "../test/fixtures/vasatiden-tidsjakt.js";

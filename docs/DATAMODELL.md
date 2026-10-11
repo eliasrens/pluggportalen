@@ -141,14 +141,15 @@ fälten skrivs bara när det finns händelser respektive ett spann. Firestore-re
 **I Live (#600):** spelläget `plugga_quiz` kan blanda in områdets `timeline[]` bland
 flervalsfrågorna (`buildQuizSnapshot { timeline, timelineSpan }` i
 `src/live/modes/plugga-quiz-core.js`). Formatet säger `timelineQuestions: true`
-(Snilleblixten) → quizväljaren visar rutan "Ta med tidslinjefrågor" (på som standard)
+(Snilleblixten, Guldrushen #601) → quizväljaren visar rutan "Ta med tidslinjefrågor" (på som standard)
 → sessionen får `quiz.timeline: true` (fältet finns BARA då). Varje sådan fråga har
 `kind: "timeline"`; den elevsynliga delen är `{ id: "tl-<id>", key, kind, text,
 event, description?, span: { min, max } }` (spannet = hela områdets, aldrig
 centrerat på svaret) och årtalet ligger bara i facit `{ year, … }`. Svarssättet
 `"timeline"` gäller **per fråga** och åsidosätter sessionens `answerKind`
 (`questionAnswerKind` i `src/tavling/answer-writes.js`). Rättning: **exakt år = rätt**,
-ingen tolerans. Statistikkategori `"tidslinje"`.
+ingen tolerans. Statistikkategori `"tidslinje"`. I Guldrushen (#601) rättar
+servern (`guldrushAnswer`) – se Guldrushen nedan.
 
 **Innehållsflödet** (gäller alla typer, Tidsjakten är bara en lista till):
 1. **Prompt:** läraren väljer typer i wizarden (steg 2) → `buildAreaPrompt(types,
@@ -1037,13 +1038,22 @@ statKeys, category? }] }` (alla inloggade läser – inget facit) och
 skapas i SAMMA batch som sessionen (lobby), sedan aldrig ändrade. Servern
 väljer elevens nästa fråga (`grPlayers.nextQ`, aldrig samma två gånger i rad)
 och godtar bara svar på den – ingen kan pröva alternativen på samma fråga.
+**Tidslinjefrågor (#601, epic #595):** med `quiz.timeline: true` blandas
+områdets händelser in – `questions[i]` `{ id: "tl-<id>", key, kind: "timeline",
+text, event, description?, span: { min, max }, statKeys }` och
+`facit[i]` `{ year }`. Svaret `{ q, year }` (bara ett heltalsår inom frågans
+`span` ur grPublic – inget `choiceIndex`/`answer`) rättas av servern
+(`functions/guldrush-rattning.js`): exakt år = rätt → kistor som vanligt;
+fel → eleven ser rätt år (`correctYear` i svaret). Samma `attemptId` med ett
+annat år efter lås nekas (`already-exists`); regelgrenen är oförändrad.
 
 **`liveSessions/{sid}/answers/{attemptId}`** – Guldrushens svar skapas BARA av
 servern (`guldrushAnswer`; `liveAnswerCreate` nekar formatet): `{ uid, classId,
 format: "guldrush", mode, isCorrect, at (server), answerKind?/choiceIndex?, …
 }` – multiplikation med Klassmatchens fält (`factorA`, `factorB`, `answer`,
 `correctAnswer`), quiz med `q`, `questionId`, `answer`, `correctAnswer`,
-`statKeys`. Samma samling som Klassmatchen (uid + isCorrect) → räknas i
+`statKeys` (tidslinjefråga, #601: `answerKind: "timeline"`, `year`,
+`correctYear`, `answer`/`correctAnswer` = "1523" / "44 f.Kr."). Samma samling som Klassmatchen (uid + isCorrect) → räknas i
 `collectionGroup("answers")`-träningsstatistiken. När kistan öppnats: `chest`
 (kistans id), `chestIndex` (0–2), `chestAt` – samma transaktion, så ett svar
 ger EN kista.
