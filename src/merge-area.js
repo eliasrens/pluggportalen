@@ -2,13 +2,14 @@
 // Pluggporten – lägg till nytt innehåll i ett befintligt område (merge-area.js)
 // ----------------------------------------------------------------------------
 // Issue #40: i stället för att klistra in/ersätta hela arbetsområdes-JSON:en kan
-// läraren klistra in BARA det nya innehållet (fler texts/quiz/pairs). Här mergas
+// läraren klistra in BARA det nya innehållet (fler texts/quiz/pairs/timeline). Här mergas
 // det in i det som redan finns – befintligt behålls, nytt läggs till, dubbletter
 // hoppas över – och allt slutvalideras med validateArea (src/validate.js).
 // ============================================================================
 
 import { validateArea } from "./validate.js";
 import { normalizeExerciseTypes, deriveExerciseTypes } from "./exercise-types.js";
+import { timelineKey } from "./validate-timeline.js";
 
 // Innehålls-nycklar för dubblettkontroll: vi jämför på INNEHÅLL (inte id), så
 // att en text/fråga/par som redan finns inte läggs till igen. Fälten fogas ihop
@@ -54,12 +55,12 @@ function makeNextId(existingItems, prefix) {
  * Merga in nytt innehåll i ett befintligt arbetsområde.
  *
  * @param {object} existing  redan sparat område (från getArea): { name, id, texts?, quiz?, pairs?, ... }
- * @param {object} incoming  det nya innehållet – ett objekt med "texts", "quiz"
- *                           och/eller "pairs" (får gärna vara ett helt område –
- *                           bara innehållslistorna används).
+ * @param {object} incoming  det nya innehållet – ett objekt med "texts", "quiz",
+ *                           "pairs" och/eller "timeline" (får gärna vara ett helt
+ *                           område – bara innehållslistorna används).
  * @returns {{ ok:boolean, errors:string[], warnings?:string[], value:object|null,
- *             added?:{texts:number,quiz:number,pairs:number},
- *             skipped?:{texts:number,quiz:number,pairs:number} }}
+ *             added?:{texts:number,quiz:number,pairs:number,timeline:number},
+ *             skipped?:{texts:number,quiz:number,pairs:number,timeline:number} }}
  */
 export function mergeAreaContent(existing, incoming) {
   if (!existing || typeof existing !== "object" || Array.isArray(existing)) {
@@ -76,11 +77,12 @@ export function mergeAreaContent(existing, incoming) {
   const inTexts = Array.isArray(incoming.texts) ? incoming.texts : [];
   const inQuiz = Array.isArray(incoming.quiz) ? incoming.quiz : [];
   const inPairs = Array.isArray(incoming.pairs) ? incoming.pairs : [];
-  if (inTexts.length === 0 && inQuiz.length === 0 && inPairs.length === 0) {
+  const inTimeline = Array.isArray(incoming.timeline) ? incoming.timeline : [];
+  if (inTexts.length === 0 && inQuiz.length === 0 && inPairs.length === 0 && inTimeline.length === 0) {
     return {
       ok: false,
       errors: [
-        'Klistra in det NYA innehållet att lägga till – minst en "texts", "quiz" eller "pairs".',
+        'Klistra in det NYA innehållet att lägga till – minst en "texts", "quiz", "pairs" eller "timeline".',
       ],
       value: null,
     };
@@ -94,25 +96,31 @@ export function mergeAreaContent(existing, incoming) {
     texts: inTexts.length ? inTexts : undefined,
     quiz: inQuiz.length ? inQuiz : undefined,
     pairs: inPairs.length ? inPairs : undefined,
+    timeline: inTimeline.length ? inTimeline : undefined,
   });
   if (!probe.ok) return { ok: false, errors: probe.errors, value: null };
 
   const exTexts = Array.isArray(existing.texts) ? existing.texts : [];
   const exQuiz = Array.isArray(existing.quiz) ? existing.quiz : [];
   const exPairs = Array.isArray(existing.pairs) ? existing.pairs : [];
+  const exTimeline = Array.isArray(existing.timeline) ? existing.timeline : [];
 
   const seenText = new Set(exTexts.map(contentKeyText));
   const seenQuiz = new Set(exQuiz.map(contentKeyQuiz));
   const seenPair = new Set(exPairs.map(contentKeyPair));
+  // Tidslinjen: samma händelse + år = dubblett (#596), oavsett frågans ordalydelse.
+  const seenEvent = new Set(exTimeline.map(timelineKey));
 
   const nextText = makeNextId(exTexts, "t");
   const nextQuiz = makeNextId(exQuiz, "q");
   const nextPair = makeNextId(exPairs, "p");
+  const nextEvent = makeNextId(exTimeline, "e");
 
   const addedTexts = [];
   const addedQuiz = [];
   const addedPairs = [];
-  const skipped = { texts: 0, quiz: 0, pairs: 0 };
+  const addedTimeline = [];
+  const skipped = { texts: 0, quiz: 0, pairs: 0, timeline: 0 };
 
   for (const t of probe.value.texts) {
     const k = contentKeyText(t);
@@ -132,10 +140,17 @@ export function mergeAreaContent(existing, incoming) {
     seenPair.add(k);
     addedPairs.push({ ...p, id: nextPair() });
   }
+  for (const e of probe.value.timeline || []) {
+    const k = timelineKey(e);
+    if (seenEvent.has(k)) { skipped.timeline++; continue; }
+    seenEvent.add(k);
+    addedTimeline.push({ ...e, id: nextEvent() });
+  }
 
   const mergedTexts = [...exTexts, ...addedTexts];
   const mergedQuiz = [...exQuiz, ...addedQuiz];
   const mergedPairs = [...exPairs, ...addedPairs];
+  const mergedTimeline = [...exTimeline, ...addedTimeline];
 
   // Övningstyper: behåll lärarens uttryckliga val och slå på nya typer som det
   // tillagda innehållet faktiskt kräver (t.ex. "pairs" när man lägger till par i
@@ -143,7 +158,12 @@ export function mergeAreaContent(existing, incoming) {
   const exerciseTypes = [
     ...new Set([
       ...normalizeExerciseTypes(existing.exerciseTypes),
-      ...deriveExerciseTypes({ quiz: mergedQuiz, pairs: mergedPairs, generator: existing.generator }),
+      ...deriveExerciseTypes({
+        quiz: mergedQuiz,
+        pairs: mergedPairs,
+        generator: existing.generator,
+        timeline: mergedTimeline,
+      }),
     ]),
   ];
 
@@ -169,6 +189,10 @@ export function mergeAreaContent(existing, incoming) {
     // Generator-konfigen (issue #279) hör till området, inte det inklistrade
     // innehållet – behåll den orörd så ett generator-område inte tappar den.
     generator: existing.generator,
+    timeline: mergedTimeline.length ? mergedTimeline : undefined,
+    // Tidsspannet är lärarens inställning på området: det befintliga vinner; har
+    // området inget tar vi det inklistrade (t.ex. första gången Tidsjakten läggs till).
+    timelineSpan: existing.timelineSpan ?? incoming.timelineSpan,
   });
   if (!merged.ok) return { ok: false, errors: merged.errors, value: null };
 
@@ -179,7 +203,12 @@ export function mergeAreaContent(existing, incoming) {
     // frågekategori, #445) – numreringen avser det inklistrade innehållet.
     warnings: probe.warnings || [],
     value: merged.value,
-    added: { texts: addedTexts.length, quiz: addedQuiz.length, pairs: addedPairs.length },
+    added: {
+      texts: addedTexts.length,
+      quiz: addedQuiz.length,
+      pairs: addedPairs.length,
+      timeline: addedTimeline.length,
+    },
     skipped,
   };
 }

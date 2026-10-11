@@ -16,6 +16,8 @@
 //                  { topic, variants, grade } och uppgifterna genereras på
 //                  begäran via matte-generator-adaptern (#278). Tänder räkna-
 //                  läget, INTE quiz/par-lägena (de kräver text/par).
+//   • "tidsjakt" → Tidsjakten + tidslinjefrågor i Quiz/Live (epic #595). Lagras
+//                  i area.timeline[] (se src/validate-timeline.js), inte i quiz[].
 // Arkad-läget "Fånga sanningar" (sanningsjakt) härleder påståenden ur BÅDA
 // källorna: minst 2 textpar, annars quiz. Det syns alltså så fort området har
 // antingen quiz eller (minst två) fakta-par – ingen egen övningstyp behövs.
@@ -56,6 +58,12 @@ export const EXERCISE_TYPES = [
     // ingår därför inte i AI-prompt-rutans kryssruterad (jfr teacher-content-view.js).
     generated: true,
   },
+  {
+    id: "tidsjakt",
+    emoji: "⏳",
+    label: "Tidsjakten",
+    hint: "Dra en markör till rätt årtal på en tidslinje",
+  },
 ];
 
 const EXERCISE_TYPE_IDS = EXERCISE_TYPES.map((t) => t.id);
@@ -74,7 +82,7 @@ export function normalizeExerciseTypes(types) {
 /**
  * Härled övningstyper ur ett områdes faktiska innehåll. Används som fallback för
  * äldre områden som sparats innan "exerciseTypes"-fältet fanns.
- * @param {object} area – { quiz?: [], pairs?: [], generator?: {...} }
+ * @param {object} area – { quiz?: [], pairs?: [], generator?: {...}, timeline?: [] }
  * @returns {string[]}
  */
 export function deriveExerciseTypes(area) {
@@ -87,6 +95,7 @@ export function deriveExerciseTypes(area) {
   // Generator-innehåll: en giltig area.generator (topic + minst en variant) gör
   // området till ett generator-område. Håll isär från quiz/pairs ovan.
   if (hasGeneratorContent(area)) out.push("generator");
+  if (Array.isArray(area?.timeline) && area.timeline.length > 0) out.push("tidsjakt");
   return normalizeExerciseTypes(out);
 }
 

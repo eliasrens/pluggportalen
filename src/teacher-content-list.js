@@ -31,6 +31,7 @@ const TYPE_SHORT = {
   pairs: "Para ihop",
   bildpar: "Bildpar",
   generator: "Räkna",
+  tidsjakt: "Tidsjakten",
 };
 
 /** Bygg typ-badges ur områdets övningstyper (ärlig status – vad området FAKTISKT har). */
