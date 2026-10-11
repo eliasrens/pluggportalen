@@ -11,8 +11,10 @@
 // API
 //   DEMO_NAMES / demoMembers()      30 elever → klassprojektionens members
 //   demoOutfit(i)                   elev i:s kläder (unika kombinationer)
-//   demoSnapshot(kind)              10 multiplikationsfrågor (fråga 1 = 7 × 8)
-//   createSbDemo({ kind, sid, screen?, now?, auto?, onLog? }) → demo
+//   demoSnapshot(kind, fragor?)     10 multiplikationsfrågor (fråga 1 = 7 × 8);
+//                                   fragor "quiz"/"lastext" → långa quizfrågor
+//                                   (flerval, med/utan lästext, #621)
+//   createSbDemo({ kind, fragor?, sid, screen?, now?, auto?, onLog? }) → demo
 //     demo.deps                     mountProjector-deps (subscribe, now, start,
 //                                   finish, remove, loadProjection, snilleblixt)
 //     demo.join(n, staggerMs)       n elever ansluter (lobbyn)
@@ -33,6 +35,7 @@
 import { phaseAt, formatClock } from "../../live-core.js";
 import { planStep } from "./snilleblixt-flode.js";
 import { computeStandings, buildResult } from "./snilleblixt-poang.js";
+import { DEMO_QUIZ } from "../../demo-quiz.js";
 
 export const DEMO_NAMES = ["Alma", "Omar", "Ines", "Leo", "Clara", "Sam", "Ella", "Noah", "Maja", "Elias", "Wilma", "Adam", "Saga",
   "Hugo", "Freja", "Liam", "Alva", "Ali", "Signe", "Vera", "Otto", "Nora", "Ebbe", "Selma", "Malte", "Tove", "Isak", "Lova", "Arvid", "Juni"];
@@ -61,8 +64,18 @@ export function demoMembers() {
 const PAR = [[7, 8], [6, 7], [9, 4], [8, 8], [3, 9], [7, 7], [6, 9], [4, 8], [9, 9], [5, 7]];
 
 /** Ögonblicksbilden (som sbPrivate/snapshot) – statKeys som multiplikationsläget. */
-export function demoSnapshot(kind) {
+export function demoSnapshot(kind, fragor = "mult") {
   const snapshot = { questions: [], facit: [] };
+  if (fragor === "quiz" || fragor === "lastext") {
+    PAR.forEach((_, i) => {
+      const q = DEMO_QUIZ[i % DEMO_QUIZ.length];
+      const pub = { key: `${i}:quiz`, text: q.text, statKeys: [], options: [...q.options] };
+      if (fragor === "lastext" && q.passage) pub.passage = q.passage;
+      snapshot.questions.push(pub);
+      snapshot.facit.push({ correctAnswer: q.options[q.answerIndex], answerIndex: q.answerIndex });
+    });
+    return snapshot;
+  }
   PAR.forEach(([a, b], i) => {
     const pub = { key: `${i}:${a}x${b}`, text: `${a} × ${b}`, statKeys: [...new Set([`t${a}`, `t${b}`])] };
     const ans = a * b;
@@ -79,9 +92,10 @@ export function demoSnapshot(kind) {
   return snapshot;
 }
 
-export function createSbDemo({ kind = "choice", sid = "demo-snilleblixt", screen = false, now: clock = Date.now, auto = true, onLog = () => {}, rng = Math.random } = {}) {
-  const KIND = kind === "free" ? "free" : "choice";
-  const snapshot = demoSnapshot(KIND);
+export function createSbDemo({ kind = "choice", fragor = "mult", sid = "demo-snilleblixt", screen = false, now: clock = Date.now, auto = true, onLog = () => {}, rng = Math.random } = {}) {
+  const QUIZ = fragor === "quiz" || fragor === "lastext";
+  const KIND = kind === "free" && !QUIZ ? "free" : "choice";
+  const snapshot = demoSnapshot(KIND, fragor);
   const members = demoMembers();
   let reads = 0;
   let offset = 0;
