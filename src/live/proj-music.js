@@ -18,7 +18,7 @@
 //                  inte starta före en gest; formatet kan välja `lobby`)
 //   3-2-1-KÖR!     tyst; tonas in FADE_IN_S efter KÖR! (fasen blir "live")
 //   match          music.level (≈ 0,3 = 30 % av effekternas huvudvolym)
-//   00:00          tonas ut FADE_OUT_S – före finalens grottljud/trumvirvel
+//   00:00          tonas ut FADE_OUT_S (1 s) – klar före finalens trumvirvel
 //   av/tystad      tonas ut FADE_TOGGLE_S
 // Ducking: proj-sound onPlay(name) → duckFor(name) – bara effekter som
 // FAKTISKT hördes (ljud av → inga anrop → jämn musik). Stora (fanfar,
@@ -41,7 +41,7 @@ export const MUSIC_KEY = "pp:live:musik";
 export const DEFAULT_LEVEL = 0.3;
 export const LOBBY_LEVEL = 0;
 export const FADE_IN_S = 1.5;
-export const FADE_OUT_S = 1.2;
+export const FADE_OUT_S = 1.0; // klar före finalens trumvirvel (1,1 s efter grottljudet)
 export const FADE_TOGGLE_S = 0.4;
 
 // Effekter som sänker musiken. Namnen = proj-sound CUES + "chest" (play()).

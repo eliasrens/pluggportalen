@@ -4,7 +4,8 @@
 // ducking BARA när effekten hördes, EN delad kontext, valet sparas lokalt.
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, statSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   musicTarget, duckFor, nextDuck, createMusic, MUSIC_KEY, DEFAULT_LEVEL,
@@ -282,5 +283,31 @@ describe("createMusic – Web Audio-loopen", () => {
     const m = createMusic({ sound: createSound() });
     assert.equal(m.on, true);
     m.destroy();
+  });
+});
+
+describe("test 18: aldrig musik på elevdatorerna", () => {
+  it("elevens Live-sida och formatens elevvyer når varken proj-music.js eller projektorn statiskt", () => {
+    const SRC = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src");
+    const starts = ["live/page-elev-live.js", "live/formats/guldrush/guldrush-student.js",
+      "live/formats/snilleblixt/snilleblixt-student.js", "live/formats/klassmatch/klassmatch-student.js"]
+      .map((f) => join(SRC, f)).filter((f) => existsSync(f));
+    assert.ok(starts.length >= 2);
+    const seen = new Set(starts);
+    const queue = [...starts];
+    while (queue.length) {
+      const file = queue.shift();
+      let src;
+      try { src = readFileSync(file, "utf8"); } catch { continue; }
+      src = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+      const re = /\b(?:import|export)\s+(?:[\w*{}\s,$]+?\s+from\s+)?["'](\.[^"']+)["']/g;
+      let m;
+      while ((m = re.exec(src))) {
+        const next = resolve(dirname(file), m[1]);
+        if (!seen.has(next)) { seen.add(next); queue.push(next); }
+      }
+    }
+    assert.ok(seen.has(join(SRC, "live/proj-sound.js")), "BFS:en når elevens kistljud (gr-ljud → proj-sound)");
+    for (const f of ["live/proj-music.js", "live/projector.js"]) assert.equal(seen.has(join(SRC, f)), false, f);
   });
 });
