@@ -138,6 +138,18 @@ spann med marginal ur områdets händelser – linjen centreras **aldrig** på r
 fälten skrivs bara när det finns händelser respektive ett spann. Firestore-reglerna för
 `areas` (lärare skriver, inloggade läser) täcker de nya fälten utan ändring.
 
+**I Live (#600):** spelläget `plugga_quiz` kan blanda in områdets `timeline[]` bland
+flervalsfrågorna (`buildQuizSnapshot { timeline, timelineSpan }` i
+`src/live/modes/plugga-quiz-core.js`). Formatet säger `timelineQuestions: true`
+(Snilleblixten) → quizväljaren visar rutan "Ta med tidslinjefrågor" (på som standard)
+→ sessionen får `quiz.timeline: true` (fältet finns BARA då). Varje sådan fråga har
+`kind: "timeline"`; den elevsynliga delen är `{ id: "tl-<id>", key, kind, text,
+event, description?, span: { min, max } }` (spannet = hela områdets, aldrig
+centrerat på svaret) och årtalet ligger bara i facit `{ year, … }`. Svarssättet
+`"timeline"` gäller **per fråga** och åsidosätter sessionens `answerKind`
+(`questionAnswerKind` i `src/tavling/answer-writes.js`). Rättning: **exakt år = rätt**,
+ingen tolerans. Statistikkategori `"tidslinje"`.
+
 **Innehållsflödet** (gäller alla typer, Tidsjakten är bara en lista till):
 1. **Prompt:** läraren väljer typer i wizarden (steg 2) → `buildAreaPrompt(types,
    önskemål, årskurs, { timelineCount })` (`src/prompts.js` + fragmenten i
@@ -945,11 +957,16 @@ ett steg): STARTA (`status` live + `startedAt`) → öppna 0 → stäng
 index-parallella, skapas i SAMMA batch som sessionen (sessionen kräver den).
 `questions[i]`: `{ key|id, text, options? (flerval), statKeys, category? }`;
 `facit[i]`: `{ answerIndex? (flerval), correctAnswer, explanation? }`.
+Tidslinjefråga (#600, bara quiz med `quiz.timeline`): `questions[i]` =
+`{ key, id, kind: "timeline", text, event, description?, span: { min, max }, statKeys }`,
+`facit[i]` = `{ year, correctAnswer: "1523", explanation }` – årtalet bara i facit.
 Bara lärare läser – eleven kan aldrig läsa kommande frågor eller facit.
 
 **`liveSessions/{sid}/sbAnswers/{i}_{uid}`** – elevens ENDA svar på fråga i
 (bara create): `{ uid, classId, q, answerKind, choiceIndex (0–antal alternativ)
-| answer (sträng 1–40), at = request.time }`. Godtas bara när `q.phase == "open"`,
+| answer (sträng 1–40) | year (tidslinjefråga), at = request.time }`.
+`answerKind` = FRÅGANS svarssätt: `"timeline"` när `q.question.kind == "timeline"`
+(då BARA `year`, ett heltal inom `q.question.span`), annars sessionens (#600). Godtas bara när `q.phase == "open"`,
 `q.index == i`, `openedAt ≤ request.time < openedAt + questionSeconds`, rätt
 svarssätt, klassmedlem i deltagande klass och spelaren anslöt FÖRE frågan
 öppnades (sen anslutning = från nästa fråga). Inget `isCorrect`/poäng – eleven
@@ -960,7 +977,8 @@ får inte veta facit före avslöjandet. Eleven läser bara sitt eget (även
 **`liveSessions/{sid}/sbScores/{i}`** – frågans poäng, skrivs EN gång av
 läraren i avslöjande-/hoppa över-transaktionen (create-only, ingen kan ändra):
 `{ index, skipped, answered, correctCount, points{uid}, correct{uid},
-choiceCounts? [4], topWrong? [{ answer, n }] }`. Läses av lärare och
+choiceCounts? [4], topWrong? [{ answer, n }], guesses? [år…] }` – `guesses`
+(tidslinjefråga, #600) = alla gissade år sorterade, utan namn (projektorns spridning). Läses av lärare och
 deltagare (spelardokument finns).
 
 **Poäng** = `round(1000 − 500 × t / questionSeconds)` för rätt, t = `at − openedAt`

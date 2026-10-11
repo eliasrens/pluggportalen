@@ -233,6 +233,18 @@ Kom ihåg: regeländringar gäller först efter
   (`answerKindsFor(...).length > 0`). Begränsa vid behov till vissa lägen
   (Guldrushen: `GR_MODES`, eftersom servern måste kunna rätta).
 - `plugga_quiz` är bara `"choice"` och syns därför bara i format med `"choice"`.
+- **Svarssätt per fråga – tidslinjefrågor (#600):** ett format som sätter
+  `timelineQuestions: true` får quizväljarens ruta "Ta med tidslinjefrågor"
+  (`session.quiz.timeline`). Formatet skickar då områdets `timeline`/`timelineSpan`
+  till `buildQuizSnapshot` och får frågor med `kind: "timeline"` (elevsynligt:
+  händelse, fråga, beskrivning, `span`; årtalet bara i facit). En sådan fråga
+  svaras med tidslinjen (`src/timeline/timeline-answer.js`, `compact: true`) och
+  åsidosätter sessionens `answerKind` – använd `questionAnswerKind(question,
+  s.answerKind)` och `answerShapeError({ kind, year, span, … })` ur
+  `src/tavling/answer-writes.js`; i reglerna: frågans kind avgör formen
+  (`year is int` inom `question.span`, inget annat fält). Rättning: exakt år = rätt.
+  Projektorn visar linjen utan markör och vid avslöjandet rätt år + anonym spridning
+  (`src/timeline/timeline-spread.js`). Förebild: Snilleblixten.
 - **Svarskomponent:** utan `createStage` monterar elevsidan kärnans komponent
   för svarssättet (`loadAnswerComponent(kind)` i `answer-kinds.js`:
   `free` = `src/mult/fast-answer.js`, `choice` = `src/live/choice-flow.js`).

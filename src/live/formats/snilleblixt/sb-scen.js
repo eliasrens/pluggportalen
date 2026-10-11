@@ -22,7 +22,9 @@
 //   SB_DRUM_MS, SB_REVEAL_HOLD_MS, SB_SKIP_HOLD_MS, SB_TENSION_S, SB_OPEN_DELAY_MS
 //   studioScene(st, { now, revealSeenAt? }) → scen-id (se ovan)
 //   questionClock(s, now) → { msLeft, secs, frac, tension } | null
-//   revealInfo(q, score, answerKind) → avslöjandets siffror (anonyma)
+//   revealInfo(q, score, answerKind) → avslöjandets siffror (anonyma) –
+//     svarssättet per fråga: en tidslinjefråga (#600) ger kind "timeline"
+//   spreadText(guesses) → "Gissningarna: 1510–1560, mitten 1524" (anonymt)
 //   classSummary(scores) → { perQuestion: [{ index, skipped, answered,
 //     correct, share }], answered, correct, share } – klassens andel rätt
 //   podiumGroups(ranking) → [{ rank, players }] högst tre pallsteg, delad
@@ -39,6 +41,7 @@
 
 import { toMs } from "../../live-time.js";
 import { questionWindow } from "./snilleblixt-poang.js";
+import { questionAnswerKind } from "../../../tavling/answer-writes.js";
 
 export const SB_DRUM_MS = 1100;
 export const SB_REVEAL_HOLD_MS = 5500;
@@ -83,14 +86,27 @@ export function questionClock(s, now) {
 }
 
 const pct = (a, b) => (b > 0 ? Math.round((100 * a) / b) : 0);
+const yearText = (y) => (y < 0 ? `${-y} f.Kr.` : String(y));
+
+/** "Gissningarna: 1510–1560, mitten 1524" – anonymt, utan namn (#600). */
+export function spreadText(guesses) {
+  const g = (guesses || []).filter(Number.isInteger).slice().sort((a, b) => a - b);
+  if (!g.length) return "";
+  const mid = g[Math.floor((g.length - 1) / 2)];
+  if (g[0] === g[g.length - 1]) return `Alla gissade ${yearText(g[0])}`;
+  return `Gissningarna: ${yearText(g[0])}–${yearText(g[g.length - 1])}, mitten ${yearText(mid)}`;
+}
 
 /**
  * Avslöjandets siffror ur q.facit + frågans sbScores-dokument.
  *   choice: { kind, correctIndex, counts[4], max, answered, correct, share }
  *   free:   { kind, correctText, answered, correct, share, topWrong[{answer,n}] }
+ *   timeline (#600): { kind, correctYear, correctText, span, guesses[], spreadText,
+ *           answered, correct, share, topWrong: [] } – guesses = anonyma årtal
  * score saknas (hinner inte fram) → nollor, facit visas ändå.
  */
-export function revealInfo(q, score, answerKind) {
+export function revealInfo(q, score, sessionKind) {
+  const answerKind = questionAnswerKind(q?.question, sessionKind);
   const f = q?.facit || {};
   const answered = Number(score?.answered) || 0;
   const correct = Number(score?.correctCount) || 0;
@@ -100,6 +116,19 @@ export function revealInfo(q, score, answerKind) {
     const counts = (score?.choiceCounts || [0, 0, 0, 0]).slice(0, n).map((x) => Number(x) || 0);
     while (counts.length < n) counts.push(0);
     return { kind: "choice", correctIndex: Number.isInteger(f.answerIndex) ? f.answerIndex : -1, counts, max: Math.max(1, ...counts), ...base };
+  }
+  if (answerKind === "timeline") {
+    const guesses = (score?.guesses || []).filter(Number.isInteger).slice().sort((a, b) => a - b);
+    return {
+      kind: "timeline",
+      correctYear: Number.isInteger(f.year) ? f.year : null,
+      correctText: String(f.correctAnswer ?? (Number.isInteger(f.year) ? yearText(f.year) : "")),
+      span: q?.question?.span || null,
+      guesses,
+      spreadText: spreadText(guesses),
+      topWrong: [],
+      ...base,
+    };
   }
   return {
     kind: "free",

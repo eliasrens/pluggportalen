@@ -10,7 +10,12 @@
 //               form, 1–4. Valet låses direkt (ett försök).
 //   Skriv själv src/mult/fast-answer.js: fokus, ENTER, tomt räknas inte,
 //               ingen RÄTT/FEL-rad (feedback:false) – facit kommer vid avslöjandet.
-//   "Visa frågan på elevskärm" av → bara knapparna/svarsfältet.
+//   Tidslinje   (#600) en fråga med kind "timeline" svaras med tidslinjen
+//               (src/timeline/timeline-answer.js, kompakt, laddas latt): dra/
+//               finjustera → "Lås mitt årtal" = svaret (ett försök). Tid ute
+//               utan låst år = obesvarad, som andra frågor. Svarssättet gäller
+//               per fråga – flervalsfrågorna i samma match är orörda.
+//   "Visa frågan på elevskärm" av → bara knapparna/svarsfältet/tidslinjen.
 //   Omladdning: elevens eget svarsdokument läses EN gång för pågående fråga
 //   (finns = "Svar inskickat", inget nytt försök). Reglerna nekar ändå ett
 //   andra svar (create-only {i}_{uid}).
@@ -41,6 +46,7 @@ import { react, setAvatarState } from "../../design/live-reactions.js";
 import { mountChoiceAnswer, choiceShapeSvg, CHOICE_STYLES } from "../../choice-answer.js";
 import { mountFastAnswer } from "../../../mult/fast-answer.js";
 import { submitAnswer, getMyAnswer, watchScores } from "./snilleblixt-data.js";
+import { diffText, formatYear } from "../../../timeline/timeline-logic.js";
 
 const CSS = "src/live/formats/snilleblixt/snilleblixt-elev.css";
 const AV = '<span class="sb-av" data-sb-av aria-hidden="true"></span>';
@@ -99,6 +105,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       <div class="sb-rad"><span class="sb-nr"></span><span class="sb-tid" hidden><i></i></span></div>
       <p class="sb-felrad" role="alert" hidden></p>
       <div class="sb-svar"></div>
+      <div class="sb-svar-tl" hidden></div>
       <div class="sb-skickat" hidden><span class="sb-av-plats"></span><span>⚡ Svar inskickat! Håll tummarna …</span></div>
       <div class="sb-kort" role="status" aria-live="polite" hidden>
         <div class="sb-kort-ikon" aria-hidden="true"></div><span class="sb-av-plats"></span>
@@ -106,6 +113,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       </div></div>`;
   const $ = (s) => host.querySelector(s);
   const svar = $(".sb-svar");
+  const svarTl = $(".sb-svar-tl");
 
   const roster = createAvatarRoster();
   const pool = createAvatarPool({ roster });
@@ -139,6 +147,22 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
   let coinTimers = null;
   let destroyed = false;
 
+  // Tidslinjefrågor (#600): komponenten laddas latt – i förväg om matchen har dem.
+  let tl = null;
+  let tlP = null;
+  let tlIndex = null; // frågan som visas i tidslinjen
+  const isTl = (q) => q?.kind === "timeline";
+  function ensureTl() {
+    if (tl || destroyed) return tl;
+    tlP ||= import("../../../timeline/timeline-answer.js").then(({ mountTimelineAnswer }) => {
+      if (destroyed) return;
+      tl = mountTimelineAnswer(svarTl, { span: { min: 1500, max: 1600 }, compact: true, enabled: false, onLock: (year) => send({ year }) });
+      sync();
+    }, (err) => console.warn("Snilleblixten: tidslinjen kunde inte laddas", err));
+    return null;
+  }
+  if (session.quiz?.timeline === true) ensureTl();
+
   const showQ = session.showQuestionOnStudent !== false;
   const qText = (q) => (!showQ || !q ? "" : numeric && !choice ? `${q.text} = ?` : String(q.text ?? ""));
 
@@ -156,6 +180,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
         console.warn("Snilleblixten: svaret kom inte fram", err);
         mineBy.delete(index);
         shownIndex = null;
+        tlIndex = null;
         const f = $(".sb-felrad");
         f.textContent = "😕 Svaret kom inte fram – försök igen!";
         f.hidden = false;
@@ -193,8 +218,13 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     if (slot && me.parentNode !== slot) slot.appendChild(me);
   }
 
-  function correctHtml(facit) {
+  function correctHtml(facit, mine = null) {
     if (!facit) return "";
+    if (Number.isInteger(facit.year)) {
+      const du = Number.isInteger(mine?.year)
+        ? `<span class="sb-ditt">Du valde <b>${escHtml(formatYear(mine.year))}</b> – ${escHtml(diffText(mine.year, facit.year))}</span>` : "";
+      return `<span class="sb-rattsvar">Rätt år: <b>${escHtml(facit.correctAnswer ?? formatYear(facit.year))}</b></span>${du}`;
+    }
     const i = facit.answerIndex;
     const text = escHtml(facit.correctAnswer ?? st?.session?.q?.question?.options?.[i] ?? "");
     if (choice && Number.isInteger(i) && CHOICE_STYLES[i]) {
@@ -203,7 +233,24 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     return `<span class="sb-rattsvar">Rätt svar: <b>${text}</b></span>`;
   }
 
+  function showTimeline(l, q) {
+    svar.hidden = true;
+    svarTl.hidden = false;
+    if (!ensureTl()) return;
+    if (tlIndex !== l.index) {
+      const ctx = [q.event, q.description].filter(Boolean).join(": ");
+      tl.setQuestion({ span: q.span, question: showQ ? String(q.text ?? "") : "", context: showQ ? ctx : "" });
+      tlIndex = l.index;
+    }
+    if (l.kind === "svarat" && Number.isInteger(l.mine?.year)) {
+      if (tl.locked() !== l.mine.year) tl.showLocked(l.mine.year);
+    } else if (l.kind === "fraga") tl.enable();
+    else tl.disable();
+  }
+
   function showAnswer(l, q) {
+    if (isTl(q)) return showTimeline(l, q);
+    svarTl.hidden = true;
     svar.hidden = false;
     if (choice) {
       if (shownIndex !== l.index) {
@@ -264,15 +311,20 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     clearTimeout(timer);
     if (kind === "fraga" && l.endMs != null) timer = setTimeout(sync, Math.max(50, l.endMs - serverNow() + 30));
 
-    const answerArea = kind === "fraga" || (kind === "svarat" && choice);
+    const tlQ = isTl(q?.question);
+    // Flerval och tidslinje: svaret står kvar (låst) under "Svar inskickat".
+    const keepSent = choice || tlQ;
+    const answerArea = kind === "fraga" || (kind === "svarat" && keepSent);
     if (answerArea) showAnswer({ ...l, kind }, l.question);
     else {
       svar.hidden = true;
+      svarTl.hidden = true;
+      tl?.disable();
       if (!choice) comp.setEnabled(false, "");
       else comp.setEnabled(false);
     }
     const sk = $(".sb-skickat");
-    sk.hidden = !(kind === "svarat" && choice);
+    sk.hidden = !(kind === "svarat" && keepSent);
     if (!sk.hidden) place(sk.querySelector(".sb-av-plats"));
 
     setAvatarState(me, "svarat", kind === "svarat");
@@ -286,8 +338,9 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       const reveal = ["ratt", "fel", "inget-svar", "visa-svar"].includes(kind);
       $(".sb-kort-poang").textContent = kind === "ratt" ? `+${formatPoints(l.points)}` : kind === "fel" ? "0 poäng" : "";
       let text = k.text ? escHtml(k.text) : "";
-      if (kind === "svarat" && !choice && l.mine?.answer != null) text += `<span class="sb-ditt">Ditt svar: <b>${escHtml(l.mine.answer)}</b></span>`;
-      if (reveal && kind !== "ratt") text = correctHtml(l.facit);
+      if (kind === "svarat" && !keepSent && l.mine?.answer != null) text += `<span class="sb-ditt">Ditt svar: <b>${escHtml(l.mine.answer)}</b></span>`;
+      if (reveal && kind !== "ratt") text = correctHtml(l.facit, l.mine);
+      if (kind === "ratt" && Number.isInteger(l.facit?.year)) text = `<span class="sb-rattsvar">Exakt rätt år: <b>${escHtml(formatYear(l.facit.year))}</b> 🎯</span>`;
       $(".sb-kort-text").innerHTML = text;
       $(".sb-kort-plats").textContent = reveal ? relativeText(l.rel) : "";
       const slot = kort.querySelector(".sb-av-plats");
@@ -343,6 +396,7 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
       (coinTimers || []).forEach(clearTimeout);
       unsubScores?.();
       comp.destroy();
+      tl?.destroy();
       pool.destroy();
       view.classList.remove("sb-elev-vy", "sb-ratt", "sb-fel");
     },
