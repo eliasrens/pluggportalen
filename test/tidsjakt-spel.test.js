@@ -286,3 +286,15 @@ test("Tidsjakten och tidslinjen ligger UTANFÖR den statiska bootgrafen från ap
     assert.ok(!seen.has(f), `${f} får inte vara statiskt nåbar från app.js`);
   }
 });
+
+// --- #602: Quiz-kortet får inte byggas i en <template> --------------------------
+// Noder i template.content har ett inert ownerDocument (ingen <head>, ingen
+// defaultView) → tidslinjens CSS laddades aldrig och tangentbordet kopplades
+// till fel dokument när eleven gick direkt till Quiz utan att ha spelat Tidsjakten.
+test("Quiz-tidslinjekortet byggs i sidans dokument (ingen <template>)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(new URL("../src/timeline/quiz-tidslinje.js", import.meta.url), "utf8")
+    .replace(/\/\/.*$/gm, "");
+  assert.doesNotMatch(src, /createElement\(\s*["']template["']\s*\)/);
+  assert.doesNotMatch(src, /\.content\.firstElementChild/);
+});
