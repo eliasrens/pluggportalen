@@ -26,15 +26,18 @@ function esc(s) {
  */
 export function renderTimelineCard({ q, progressHtml = "", reviewButton, onAnswer, onNext, setCleanup }) {
   const doc = document;
-  const t = doc.createElement("template");
-  t.innerHTML = `<div class="quiz-wrap quiz-tidslinje">
+  // En <div>, inte <template>: noder i template.content tillhör ett inert
+  // dokument utan <head>/defaultView – då laddar komponenten aldrig sin CSS och
+  // tangentbord/ResizeObserver kopplas till fel dokument (#602).
+  const box = doc.createElement("div");
+  box.innerHTML = `<div class="quiz-wrap quiz-tidslinje">
       ${progressHtml || ""}
       <div class="quiz-question">${esc(q.question)}</div>
       <div class="quiz-tl"></div>
       <div class="quiz-feedback" id="fb"></div>
       <div class="quiz-next" id="nextwrap"></div>
     </div>`;
-  const wrap = t.content.firstElementChild;
+  const wrap = box.firstElementChild;
   if (reviewButton) wrap.prepend(reviewButton());
   const fb = wrap.querySelector("#fb");
   const nextWrap = wrap.querySelector("#nextwrap");

@@ -50,7 +50,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // (synliga år) – samma linjära mappning som yearToFrac i timeline-logic.js.
 const GEO = `(() => {
   const r = document.querySelector('.tl-root');
-  const yta = r.querySelector('.tl-yta').getBoundingClientRect();
+  const ytaEl = r.querySelector('.tl-yta');
+  const vr = ytaEl.getBoundingClientRect();
+  if (vr.top < 0 || vr.bottom > innerHeight) ytaEl.scrollIntoView({ block: 'center' });
+  const yta = ytaEl.getBoundingClientRect();
   const g = r.querySelector('.tl-gissning');
   const gb = g.getBoundingClientRect();
   const lab = [...r.querySelectorAll('.tl-streck-stor')].map(s => ({ x: s.getBoundingClientRect().left, y: parseInt(s.textContent.replace('−','-').replace(/[^0-9-]/g,''), 10) })).filter(o => Number.isFinite(o.y));
