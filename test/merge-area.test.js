@@ -37,8 +37,8 @@ test("lägger till nya frågor sist och behåller befintliga", () => {
   assert.equal(res.value.quiz[0].id, "q1"); // befintlig kvar först
   assert.equal(res.value.quiz[1].question, "Vem var Oden?");
   assert.equal(res.value.quiz[1].id, "q2"); // nytt unikt id efter q1
-  assert.deepEqual(res.added, { texts: 0, quiz: 1, pairs: 0 });
-  assert.deepEqual(res.skipped, { texts: 0, quiz: 0, pairs: 0 });
+  assert.deepEqual(res.added, { texts: 0, quiz: 1, pairs: 0, timeline: 0 });
+  assert.deepEqual(res.skipped, { texts: 0, quiz: 0, pairs: 0, timeline: 0 });
 });
 
 test("dubblett-fråga (samma frågetext + alternativ) hoppas över", () => {
@@ -50,8 +50,8 @@ test("dubblett-fråga (samma frågetext + alternativ) hoppas över", () => {
   });
   assert.equal(res.ok, true, res.errors.join(" | "));
   assert.equal(res.value.quiz.length, 2); // q1 + en ny (dubbletten hoppades)
-  assert.deepEqual(res.added, { texts: 0, quiz: 1, pairs: 0 });
-  assert.deepEqual(res.skipped, { texts: 0, quiz: 1, pairs: 0 });
+  assert.deepEqual(res.added, { texts: 0, quiz: 1, pairs: 0, timeline: 0 });
+  assert.deepEqual(res.skipped, { texts: 0, quiz: 1, pairs: 0, timeline: 0 });
 });
 
 test("nya par slår på övningstypen 'pairs' i ett tidigare rent quiz-område", () => {
@@ -62,7 +62,7 @@ test("nya par slår på övningstypen 'pairs' i ett tidigare rent quiz-område",
   assert.equal(res.value.pairs.length, 1);
   assert.equal(res.value.pairs[0].id, "p1");
   assert.deepEqual(res.value.exerciseTypes, ["quiz", "pairs"]);
-  assert.deepEqual(res.added, { texts: 0, quiz: 0, pairs: 1 });
+  assert.deepEqual(res.added, { texts: 0, quiz: 0, pairs: 1, timeline: 0 });
 });
 
 test("unika id räknas vidare från högsta befintliga suffix", () => {
@@ -86,7 +86,7 @@ test("dubblett-par (samma term + definition) hoppas över", () => {
   });
   assert.equal(res.ok, true, res.errors.join(" | "));
   assert.equal(res.value.pairs.length, 1);
-  assert.deepEqual(res.skipped, { texts: 0, quiz: 0, pairs: 1 });
+  assert.deepEqual(res.skipped, { texts: 0, quiz: 0, pairs: 1, timeline: 0 });
 });
 
 test("fel i det nya innehållet rapporteras (t.ex. saknat svarsalternativ)", () => {
@@ -100,7 +100,7 @@ test("fel i det nya innehållet rapporteras (t.ex. saknat svarsalternativ)", () 
 test("tomt nytt innehåll ger tydligt fel", () => {
   const res = mergeAreaContent(baseArea(), {});
   assert.equal(res.ok, false);
-  assert.match(res.errors.join(" | "), /minst en "texts", "quiz" eller "pairs"/);
+  assert.match(res.errors.join(" | "), /minst en "texts", "quiz", "pairs" eller "timeline"/);
 });
 
 test("frågor med och utan passage får blandas (lägena håller isär dem)", () => {

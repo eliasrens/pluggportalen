@@ -20,6 +20,7 @@ const CARD_TITLES = {
   pairs: "Para ihop & memory",
   bildpar: "Bildpar",
   generator: "Räkna (generator)",
+  tidsjakt: "Tidsjakten",
 };
 
 /**

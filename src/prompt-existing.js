@@ -25,6 +25,7 @@ const WORDS = {
   texts: ["text", "texter"],
   quiz: ["quizfråga", "quizfrågor"],
   pairs: ["par", "par"],
+  timeline: ["tidslinjehändelse", "tidslinjehändelser"],
 };
 
 const str = (v) => (typeof v === "string" ? v.trim() : "");
@@ -48,11 +49,13 @@ function pick(obj, keys) {
 const QUIZ_KEYS = ["question", "options", "answerIndex", "category", "passage", "explanation"];
 const PAIR_KEYS = ["term", "definition", "termImage", "defImage", "group"];
 const TEXT_KEYS = ["title", "body"];
+const TIMELINE_KEYS = ["event", "question", "year", "description", "explanation"];
 
 const COMPACT = {
   texts: (t) => pick(t, TEXT_KEYS),
   quiz: (q) => pick(q, QUIZ_KEYS),
   pairs: (p) => pick(p, PAIR_KEYS),
+  timeline: (e) => pick(e, TIMELINE_KEYS),
 };
 
 /**
@@ -60,7 +63,7 @@ const COMPACT = {
  *
  * @param {object} source – objekt med listorna (t.ex. området).
  * @param {string[]} kinds – vilka listor som tas med, i ordning
- *   ("texts" | "quiz" | "pairs").
+ *   ("texts" | "quiz" | "pairs" | "timeline").
  * @param {number} [maxChars] – tak för blocket i tecken.
  * @returns {{ json: string, count: number, omitted: Record<string, number> }}
  *   json = giltig JSON (tom sträng om inget finns), count = antal poster som

@@ -10,6 +10,7 @@
 
 import { listPairImageKeys } from "./pair-images.js";
 import { QUESTION_CATEGORY_KEYS } from "./exercise-types.js";
+import { normalizeTimelineCount } from "./validate-timeline.js";
 
 // Punktlista över de inbyggda bildnycklarna (partisymbol-paketet), så att
 // schemat/exemplen alltid matchar pair-images.js utan manuell synk.
@@ -111,6 +112,25 @@ export const EXAMPLE = `{
   ]
 }`;
 
+// Tidsjakten (issue #596): schemat för tidslinjefrågor. Läggs till i prompten
+// BARA när läraren valt Tidsjakten – annars är prompten exakt som förut.
+export const SCHEMA_TIMELINE = `- "timeline": lista med historiska händelser för TIDSJAKTEN. Eleven svarar genom att dra en
+  markör på en tidslinje till rätt årtal – det finns INGA svarsalternativ. Varje händelse:
+    { "id": string, "event": string, "question": string, "year": number,
+      "description": string, "explanation": string }
+    * "event" är händelsens korta namn, t.ex. "Stockholms blodbad".
+    * "question" är frågan eleven ser, t.ex. "Vilket år inträffade Stockholms blodbad?"
+    * "year" är det rätta årtalet som ett HELTAL (inte en sträng), t.ex. 1520.
+      År före Kristus skrivs som NEGATIVA tal: 500 f.Kr. = -500.
+    * "description" är 1–2 korta meningar om vad som hände. Den visas FÖRE svaret och får
+      ALDRIG innehålla årtalet (eller andra siffror som avslöjar det).
+    * "explanation" är en kort förklaring (1–2 meningar) som visas EFTER att eleven svarat –
+      här får årtalet gärna stå.
+    * Varken "event" eller "question" får innehålla årtalet.
+- "timelineSpan": { "from": number, "to": number } – tidslinjens spann i hela år (negativt = f.Kr.).
+    Ska rymma ALLA händelser med lite marginal och passa hela arbetsområdet – centrera det inte
+    kring någon enskild händelse.`;
+
 // Kommentar (ej del av JSON:en): sista paret ovan är ett BILDPAR – "termImage"
 // pekar på en färdig partisymbol och matchas mot partinamnet i "definition".
 // Bildpar fungerar i vilket arbetsområde som helst; just nu finns
@@ -157,6 +177,31 @@ export const SKALA_TEXTER = `Anpassa ANTALET faktatexter efter hur mycket materi
 - Lång text (en sida eller mer): 3–5 faktatexter.
 Dela upp innehållet i tydliga delämnen så att hela materialet täcks.`;
 
+/**
+ * Innehållskravet för Tidsjakten: lärarens antal (5/10/15/20) eller – om inget
+ * antal valts – en skala efter materialets längd, plus kvalitetskraven (spec §1).
+ * @param {*} count – lärarens valda antal händelser.
+ */
+export function skalaTimeline(count) {
+  const n = normalizeTimelineCount(count);
+  const antal = n
+    ? `Skapa EXAKT ${n} händelser.`
+    : `Anpassa ANTALET händelser efter hur mycket text du fått:
+- Kort text: 5 händelser.
+- Medellång text: 10 händelser.
+- Lång text (en sida eller mer): 15–20 händelser.`;
+  return `${antal}
+Kvalitetskrav för varje händelse:
+- Välj tydliga, viktiga händelser från arbetsområdet med BELAGDA årtal som historiker är överens om.
+- Ta INTE med händelser där årtalet är osäkert eller omtvistat.
+- Pressa inte ihop en lång period (ett krig, en epok, en regeringstid) till ett enda år – fråga
+  i stället om en tydlig startpunkt eller enskild händelse ("Vilket år började …?").
+- Skriv åldersanpassat: korta meningar och enkla ord för elevernas årskurs.
+- Beskrivningen ("description") får ALDRIG avslöja årtalet.
+- Förklaringen ("explanation") är kort: 1–2 meningar.
+- Sprid händelserna över hela perioden och undvik dubbletter (samma händelse två gånger).`;
+}
+
 // Slut-blocket där läraren bifogar sitt material. Definieras EN gång så att
 // materialBlock() kan använda det (eller ersätta det med ett önskemåls-block).
 export const MATERIAL_ANCHOR = `Här är materialet du ska utgå ifrån:
@@ -193,7 +238,7 @@ Skapa lämpligt, faktakorrekt och åldersanpassat innehåll för detta utifrån 
  * att exemplet inte visar innehåll AI:n inte ska skapa (t.ex. tomma listor för
  * bortvalda typer, och inget bildpar-exempel om bildpar inte valts).
  */
-export function areaExample({ wantQuiz, wantPairs, wantImages }) {
+export function areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline = false }) {
   const texts = `  "texts": [
     {
       "id": "vem-var-vikingarna",
@@ -225,6 +270,21 @@ export function areaExample({ wantQuiz, wantPairs, wantImages }) {
     }
     pairs = `  "pairs": [\n${lines.join(",\n")}\n  ]`;
   }
+  // Tidsjakten (#596): bara med när den valts, så övriga prompter är oförändrade.
+  const timeline = wantTimeline
+    ? `,
+  "timeline": [
+    {
+      "id": "e1",
+      "event": "Vikingarnas anfall mot Lindisfarne",
+      "question": "Vilket år anföll vikingarna klostret på Lindisfarne?",
+      "year": 793,
+      "description": "Vikingar seglade över Nordsjön och plundrade ett rikt kloster på en ö utanför England. Anfallet brukar räknas som vikingatidens början.",
+      "explanation": "Anfallet mot Lindisfarne skedde år 793 och skrämde hela Europa."
+    }
+  ],
+  "timelineSpan": { "from": 700, "to": 1100 }`
+    : "";
   return `{
   "id": "vikingatiden",
   "name": "Vikingatiden",
@@ -233,6 +293,6 @@ export function areaExample({ wantQuiz, wantPairs, wantImages }) {
   "description": "Lär dig om vikingarna – hur de levde, reste och trodde.",
 ${texts},
 ${quiz},
-${pairs}
+${pairs}${timeline}
 }`;
 }
