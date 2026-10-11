@@ -51,9 +51,13 @@
         <b>Svarssätt (startar om)</b>
         <button data-kind="choice">🔘 Flerval</button>
         <button data-kind="free">✍️ Skriv själv</button>
+        <b>Frågor (startar om, #621)</b>
+        <button data-fragor="mult">✖️ Multiplikation</button>
+        <button data-fragor="quiz">📝 Långa quizfrågor</button>
+        <button data-fragor="lastext">📖 Långa quizfrågor + lästext</button>
         <b>Börja i (startar om)</b>
         <button data-go="lobby">Tom lobby</button>
-        <button data-go="fraga">Fråga 4 pågår</button>
+        <button data-go="fraga">En fråga pågår</button>
         <button data-go="mellan">Mellanbild (efter fråga 4)</button>
         <b>Lobby</b>
         <button data-act="anslut">+30 elever ansluter</button>
@@ -86,7 +90,10 @@
       const elev = location.hash.includes("skarm=elev");
       const panel = document.querySelector(".pv");
       if (elev) panel.hidden = true;
-      const sid = `demo560-${KIND}-${FAS}`;
+      // Långa quizfrågor (#621): ?fragor=quiz | lastext (med lästext), &nr= vilken fråga som visas.
+      const FRAGOR = ["quiz", "lastext"].includes(q.get("fragor")) ? q.get("fragor") : "mult";
+      const NR = q.get("nr") ? Math.max(1, Number(q.get("nr")) || 1) - 1 : FRAGOR === "mult" ? 3 : 4; // 0-baserat index
+      const sid = `demo560-${KIND}-${FAS}${FRAGOR === "mult" ? "" : `-${FRAGOR}${NR}`}`;
       if (!elev) {
         sessionStorage.removeItem(`pp:live:handelser:${sid}`);
         sessionStorage.removeItem(`pp:live:handelser:${sid}:lobby`);
@@ -95,7 +102,7 @@
       const logEl = document.querySelector("[data-log]");
       const log = (t) => { logEl.textContent = `${new Date().toLocaleTimeString("sv-SE")} ${t}\n${logEl.textContent}`.slice(0, 3000); };
 
-      const demo = createSbDemo({ kind: KIND, sid, screen: elev, auto: !elev && q.get("auto") !== "av", onLog: log });
+      const demo = createSbDemo({ kind: KIND, fragor: FRAGOR, sid, screen: elev, auto: !elev && q.get("auto") !== "av", onLog: log });
       // Elevskärmsfönstret (#533) följer lärarflikens låtsasmatch.
       const bus = "BroadcastChannel" in window ? new BroadcastChannel(`pv-sb-demo-${sid}`) : null;
       if (elev && bus) bus.onmessage = (e) => demo.load(e.data);
@@ -103,7 +110,7 @@
 
       if (FAS !== "lobby") {
         demo.join(30, 0, Date.now() - 900_000);
-        if (FAS === "fraga") { demo.playQuestions(3); demo.step("open", 2); }
+        if (FAS === "fraga") { demo.playQuestions(NR); demo.step("open", NR - 1); }
         if (FAS === "mellan") demo.playQuestions(4);
         if (FAS === "final") demo.jumpToFinal(q.get("delad") ? "andra" : q.get("oavgjort") ? "forsta" : null);
       }
@@ -148,13 +155,17 @@
       const go = (patch) => {
         const old = new URLSearchParams(location.search);
         const p = new URLSearchParams();
-        for (const k of ["svar", "vy", "rorelse", "fas"]) if (old.has(k)) p.set(k, old.get(k));
+        for (const k of ["svar", "vy", "rorelse", "fas", "fragor"]) if (old.has(k)) p.set(k, old.get(k));
         for (const [k, v] of Object.entries(patch)) p.set(k, v);
         location.search = p.toString();
       };
       document.querySelectorAll("[data-kind]").forEach((b) => {
         b.setAttribute("aria-pressed", String(b.dataset.kind === KIND));
         b.addEventListener("click", () => go({ svar: b.dataset.kind }));
+      });
+      document.querySelectorAll("[data-fragor]").forEach((b) => {
+        b.setAttribute("aria-pressed", String(b.dataset.fragor === FRAGOR));
+        b.addEventListener("click", () => go({ fragor: b.dataset.fragor }));
       });
       document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go({ fas: b.dataset.go })));
       document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => act[b.dataset.act]()));
