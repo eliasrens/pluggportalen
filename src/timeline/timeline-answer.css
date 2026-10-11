@@ -1,0 +1,347 @@
+/* ==========================================================================
+   Tidslinjekomponent (#597) – src/timeline/timeline-answer.js
+   Pluggportens egna tokens (--bla, --gron, --orange, --panel, --radie,
+   --skugga-mjuk, --font) och appens .btn – inget nytt visuellt system.
+   Inga z-index (DESIGNSYSTEM §1): markörerna staplas i dokumentordning
+   (rätt-markören före gissningen) och allt annat ligger i flödet.
+   .tl-kompakt = Live (Guldrushen/Snilleblixten): samma delar, tätare.
+   ========================================================================== */
+
+.tl-root {
+  --tl-hojd: 132px;
+  --tl-kant: 34px;
+  --tl-knopp: 46px;
+  --tl-bana: #dbe7fb;
+  --tl-streck: #b3c4df;
+  --tl-streck-stor: #7486a6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.tl-kontext {
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-svag);
+  line-height: 1.35;
+}
+
+.tl-fraga {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.25rem, 3.2vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* --- Valt årtal (stort, uppdateras direkt) -------------------------------- */
+.tl-valt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.tl-valt-etikett {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-svag);
+}
+.tl-valt-ar {
+  font-size: clamp(2.8rem, 9vw, 5rem);
+  font-weight: 800;
+  color: var(--bla-mork);
+  font-variant-numeric: tabular-nums;
+  min-height: 1em;
+}
+.tl-valt-tom .tl-valt-ar { color: #b9c6db; }
+
+/* --- Linjen ---------------------------------------------------------------- */
+.tl-linje {
+  position: relative;
+  height: var(--tl-hojd);
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.tl-yta {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--tl-kant);
+  right: var(--tl-kant);
+}
+.tl-bana {
+  position: absolute;
+  left: calc(-1 * var(--tl-kant));
+  right: calc(-1 * var(--tl-kant));
+  top: 44%;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--tl-bana);
+  transform: translateY(-50%);
+}
+.tl-skala { position: absolute; inset: 0; pointer-events: none; }
+.tl-streck {
+  position: absolute;
+  top: calc(44% + 7px);
+  width: 2px;
+  height: 9px;
+  border-radius: 1px;
+  background: var(--tl-streck);
+  transform: translateX(-50%);
+}
+.tl-streck-stor { height: 16px; background: var(--tl-streck-stor); }
+.tl-etikett {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.98rem;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* Avvikelsen mellan gissning och rätt år */
+.tl-band {
+  position: absolute;
+  top: 44%;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--orange);
+  opacity: 0.75;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* --- Markörer -------------------------------------------------------------- */
+.tl-markor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  --tl-farg: var(--bla);
+  transition: left 0.12s ease-out;
+}
+.tl-drar .tl-markor { transition: none; }
+.tl-markor:focus { outline: none; }
+.tl-markor-stav {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--tl-farg);
+  transform: translateX(-50%);
+  opacity: 0.85;
+}
+.tl-markor-knopp {
+  position: absolute;
+  top: 44%;
+  left: 0;
+  width: var(--tl-knopp);
+  height: var(--tl-knopp);
+  border-radius: 50%;
+  background: var(--tl-farg);
+  border: 4px solid #fff;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18), 0 6px 16px rgba(31, 45, 74, 0.25);
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s ease;
+  cursor: grab;
+}
+.tl-drar .tl-gissning .tl-markor-knopp { transform: translate(-50%, -50%) scale(1.12); cursor: grabbing; }
+.tl-gissning:focus-visible .tl-markor-knopp { box-shadow: 0 0 0 4px var(--gul), 0 4px 0 rgba(0, 0, 0, 0.18); }
+
+/* Inget val än: streckad "spök-markör" som bjuder in till att dra */
+.tl-gissning.tl-tom .tl-markor-knopp {
+  background: #fff;
+  border: 4px dashed var(--bla);
+  animation: tl-puls 1.6s ease-in-out infinite;
+}
+.tl-gissning.tl-tom .tl-markor-stav { opacity: 0.3; }
+@keyframes tl-puls {
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.tl-ratt { --tl-farg: var(--gron); }
+.tl-markor-text {
+  position: absolute;
+  left: 0;
+  transform: translateX(-50%);
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--tl-farg);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tl-markor-text:empty { display: none; }
+.tl-gissning .tl-markor-text { bottom: 6px; }
+.tl-ratt .tl-markor-text { top: 6px; }
+.tl-avslojad .tl-etikett { opacity: 0.45; }
+.tl-avslojad .tl-linje { cursor: default; }
+
+/* Exakt rätt: markörerna sammanfaller, stjärnor sprutar */
+.tl-exakt .tl-ratt .tl-markor-knopp { animation: tl-studs 0.6s ease-out 2; }
+@keyframes tl-studs {
+  40% { transform: translate(-50%, -50%) scale(1.3); }
+}
+.tl-fest {
+  position: absolute;
+  top: 44%;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.tl-fest i {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  background: var(--gul);
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: tl-stjarna 1.2s ease-out forwards;
+  --vinkel: calc(var(--i) * 30deg);
+}
+.tl-fest i:nth-child(3n) { background: var(--rosa); }
+.tl-fest i:nth-child(3n + 1) { background: var(--bla); }
+@keyframes tl-stjarna {
+  from { transform: rotate(var(--vinkel)) translateY(0) scale(0.4); opacity: 1; }
+  to { transform: rotate(var(--vinkel)) translateY(-70px) scale(1.2); opacity: 0; }
+}
+
+.tl-hint {
+  margin: -4px 0 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-svag);
+}
+
+/* --- Översikt (panorering när inzoomat) ------------------------------------ */
+.tl-oversikt {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tl-ov-bana {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--tl-bana);
+  cursor: grab;
+}
+.tl-ov-fonster {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 14px;
+  border: 3px solid var(--bla);
+  border-radius: 13px;
+  background: rgba(47, 128, 237, 0.18);
+}
+.tl-ov-prick {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bla-mork);
+  transform: translate(-50%, -50%);
+}
+.tl-ov-ar {
+  grid-row: 1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-svag);
+  font-variant-numeric: tabular-nums;
+}
+.tl-ov-start { grid-column: 1; }
+.tl-ov-slut { grid-column: 3; }
+
+/* --- Knappar --------------------------------------------------------------- */
+.tl-knappar {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+.tl-knappar .btn {
+  min-height: 58px;
+  padding: 10px 4px;
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.tl-knappar .tl-zoom { font-size: 1.1rem; }
+.tl-root .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(0.4);
+}
+.tl-las { touch-action: manipulation; }
+.tl-last .tl-las:disabled { opacity: 1; filter: none; cursor: default; }
+
+/* Smalt (mobil): stegen på en rad, zoom under */
+@media (max-width: 560px) {
+  .tl-root { --tl-kant: 26px; --tl-knopp: 42px; }
+  .tl-knappar { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tl-knappar .tl-zoom { grid-row: 2; grid-column: span 2; min-height: 48px; }
+  .tl-etikett { font-size: 0.88rem; }
+}
+
+/* --- Resultat efter avslöjandet ------------------------------------------- */
+.tl-resultat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: var(--radie);
+  background: var(--ljus);
+  text-align: center;
+}
+.tl-resultat-rubrik { font-size: 1.5rem; font-weight: 800; color: var(--bla-mork); }
+.tl-exakt .tl-resultat-rubrik { color: var(--gron-mork); }
+.tl-resultat-rad { font-weight: 600; }
+.tl-resultat-fakta { color: var(--text-svag); line-height: 1.35; }
+
+/* --- Kompakt (Live) -------------------------------------------------------- */
+.tl-kompakt { --tl-hojd: 108px; --tl-knopp: 40px; gap: 8px; }
+.tl-kompakt .tl-fraga { font-size: clamp(1.1rem, 2.6vw, 1.6rem); }
+.tl-kompakt .tl-valt { flex-direction: row; align-items: baseline; justify-content: center; gap: 10px; }
+.tl-kompakt .tl-valt-ar { font-size: clamp(2.2rem, 6vw, 3.4rem); }
+.tl-kompakt .tl-hint { display: none; }
+.tl-kompakt .tl-knappar { gap: 8px; }
+.tl-kompakt .tl-knappar .btn { min-height: 50px; font-size: 1.2rem; }
+.tl-kompakt .tl-las { padding: 14px 20px; font-size: 1.2rem; }
+
+/* --- Avstängd (tid ute, lobby) -------------------------------------------- */
+.tl-av .tl-linje { cursor: default; opacity: 0.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-markor, .tl-markor-knopp { transition: none; }
+  .tl-gissning.tl-tom .tl-markor-knopp,
+  .tl-exakt .tl-ratt .tl-markor-knopp { animation: none; }
+  .tl-fest { display: none; }
+}
