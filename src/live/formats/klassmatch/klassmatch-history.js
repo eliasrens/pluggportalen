@@ -14,6 +14,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { coinIcon } from "../../../icons.js";
 import { formatScore } from "../../live-core.js";
 import { prizeText, sessionPrize } from "./klassmatch-core.js";
 
@@ -34,7 +35,7 @@ export function detailHtml(s, result) {
   }).join("");
   return `<p class="live-history-winner">${result ? (result.winner === "draw" ? "🤝 OAVGJORT" : `🏆 VINNARE – ${esc(className(s, result.winner))}`) : ""}
       ${result ? `<small class="hint">Totalt ${result.totalCorrect} rätt</small>` : ""}</p>
-    ${sessionPrize(s) ? `<p class="live-prize">🪙 ${esc(prizeText(s, result))}</p>` : ""}
+    ${sessionPrize(s) ? `<p class="live-prize">${coinIcon("1em")} ${esc(prizeText(s, result))}</p>` : ""}
     <table class="live-table"><thead><tr><th>Klass</th><th class="num">Rätt</th><th class="num">Nämnare</th><th class="num">Poäng</th></tr></thead>
       <tbody>${classRows}</tbody></table>`;
 }

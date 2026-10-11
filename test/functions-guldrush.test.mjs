@@ -90,7 +90,7 @@ async function session(sid, over = {}) {
 }
 async function setGold(sid, uid, g, extra = {}) {
   await adb.doc(`liveSessions/${sid}/grPlayers/${uid}`).set({
-    uid, classId: "gr4b", name: uid, gold: g, correct: 0, incorrect: 0, chests: 0, shield: false,
+    uid, classId: "gr4b", name: uid, gold: g, correct: 0, incorrect: 0, chests: 0,
     protectedUntil: null, lastVictimUid: null, pending: null, lastHit: null, ...extra,
   }, { merge: true });
 }
@@ -163,6 +163,18 @@ test("test 16: Alma blev just bestulen → Leos manipulerade anrop nekas", async
   await as("grleo");
   assert.equal(await errCode(chooseVictim({ sid: "gr", victimUid: "gralma" })), "failed-precondition");
   assert.equal(await gold("gr", "gralma"), 85);
+});
+
+test("#588 test 5/8: skyddad elev (Sköld 60 s) → nekas med 'hann skaffa en sköld' genom callablen, valet ligger kvar", async () => {
+  await setGold("gr", "grines", 300, { protectedUntil: Timestamp.fromMillis(Date.now() + 60_000) });
+  await setGold("gr", "grleo", 10, { pending: pending("steal"), lastVictimUid: null });
+  await as("grleo");
+  const err = await chooseVictim({ sid: "gr", victimUid: "grines" }).then(() => null, (e) => e);
+  assert.equal(String(err?.code).replace(/^functions\//, ""), "failed-precondition");
+  assert.equal(err?.message, "🛡️ grines hann skaffa en sköld!");
+  assert.equal(await gold("gr", "grines"), 300);
+  assert.ok((await adb.doc("liveSessions/gr/grPlayers/grleo").get()).get("pending"), "valet ligger kvar");
+  await setGold("gr", "grleo", 10, { pending: null });
 });
 
 test("test 17: Ines (minst guld) försöker byta med någon som har mindre → nekas", async () => {

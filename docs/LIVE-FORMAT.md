@@ -146,6 +146,7 @@ export default MITT_FORMAT;
 | `classCounters: true` | Sessionen har shardade klassräknare (`counters/`) – bara Klassmatchen |
 | `classDivisors: true` | Lärarens nämnare per klass – bara Klassmatchen |
 | `minQuestions` | Varning när ett quizområde har färre frågor |
+| `music` | `{ src, level?, lobby? }` – bakgrundsmusik på projektorn (#593, `proj-music.js`) |
 
 ---
 
@@ -304,6 +305,12 @@ export function createWinner(host, opts) { return createMinVy(host, opts); }
   elevskärmen via kanalen – inget att bygga.
 - Ljud: använd `sound` (skalets `proj-sound.js`); egna effekter som
   `guldrush/gr-ljud.js`.
+- Bakgrundsmusik (#593): sätt `music: { src, level?, lobby? }` på formatet
+  (Guldrushen: `assets/guldrushen-loop.ogg`, `level: 0.3`, `lobby: 0`).
+  Skalet (`proj-music.js`) sköter resten: filen hämtas i lobbyn, loopas
+  sömlöst med Web Audio, tonas in efter KÖR! och ut vid 00:00, sänks när
+  stora effekter via `sound.cue()` hörs, och 🎵-knappen (`pp:live:musik`)
+  följer med till elevskärmen. Ingen musik på elevdatorerna.
 - `createLobby(stage, { st, colors, modeName, actions, say, readonly, sound, deps })`
   och `createWinner(stage, { st, colors, onBack, celebrate, sound, actions, screen, deps })`.
 - Läs data via `deps`, inte direkt ur Firestore – då fungerar samma vy i

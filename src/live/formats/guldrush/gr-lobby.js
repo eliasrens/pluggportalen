@@ -12,6 +12,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { coinIcon } from "../../../icons.js";
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
 import { createLiveRegi } from "../../design/live-regi.js";
 import { sessionRewards, placementPrize } from "../../live-rewards.js";
@@ -46,7 +47,7 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
       ${logoHtml({ size: "stor" })}
       <h1 class="grlb-klass">${esc(classTitle(s))}</h1>
       <div class="grlb-meta">${esc(modeName)} · ${esc(KIND[s.answerKind] || "")}${min ? ` · ⏱ ${min} min` : ""} · ${s.stealSwap === false ? "💰 bara guld" : "🦝 stöld och byte"}</div>
-      ${rw ? `<div class="grlb-pris">🪙 ${esc(prisText(rw))}</div>` : ""}
+      ${rw ? `<div class="grlb-pris">${coinIcon("1em")} ${esc(prisText(rw))}</div>` : ""}
       <div class="grlb-rad">
         <div class="grlb-antal"><b data-n>0</b> <span>skattjägare redo</span></div>
         <div class="grlb-vantar"><i class="grlb-puls"></i>Väntar på start …</div>

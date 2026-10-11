@@ -12,12 +12,17 @@
 //   offer [steal|swap]        b01 får en Stöld/Byte att välja offer för
 //   tvaa                      b01 = 2:a med 42 rätt, matchen avslutas (test 20i;
 //                             lärarens historik skriver result + betalar ut)
+//   skydd <uid|alla|ingen> <s> klasskamratens skydd (protectedUntil) = nu + s
+//                             sekunder (#588 test 4/6/7; alla = alla utom b01)
+//   skold <uid>               klasskamraten öppnar en RIKTIG Sköld-kista genom
+//                             serverkärnan → skyddad 60 s (#588 test 5)
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8568 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9568 \
 //   GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-guldrush-elev.mjs start
 // ============================================================================
 import admin from "firebase-admin";
 import { answerQuestion, openChest, chooseVictim } from "../functions/guldrush-core.js";
+import { chestTable } from "../functions/guldrush/guldrush-regler.js";
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
   console.error("Avbryter: sätt FIRESTORE_EMULATOR_HOST (bara emulator).");
@@ -93,14 +98,16 @@ async function start(mode = "free") {
   }
   const gp = (await ref.collection("grPlayers").get()).docs.map((d) => d.data());
   console.log(`✓ ${SID} (${mode}) pågår 10 min: ${gp.length} klasskamrater med guld (${gp.map((p) => p.gold).sort((a, b) => b - a).join(", ")}); ` +
-    `${gp.filter((p) => p.shield).length} med sköld. Logga in som b01 / lilla123 → #/elev/live`);
+    `${gp.filter((p) => (p.protectedUntil?.toMillis?.() ?? 0) > Date.now()).length} skyddade. Logga in som b01 / lilla123 → #/elev/live`);
 }
 
 /** Tvinga fram en Stöld/Byte för `uid` (servern avgör sedan i chooseVictim). */
 async function forcePending(uid, kind) {
   const t = Date.now();
+  // Namnet som servern annars sätter vid första svaret (lastHit/händelsen behöver det).
+  const name = (await ref.collection("players").doc(uid).get()).get("name") || uid;
   await ref.collection("grPlayers").doc(uid).set({
-    uid, classId: "4b", pending: { kind, chest: kind === "swap" ? "byte" : "stold", attemptId: attempt(), at: Timestamp.fromMillis(t), expiresAt: Timestamp.fromMillis(t + 10_000) },
+    uid, classId: "4b", name, pending: { kind, chest: kind === "swap" ? "byte" : "stold", attemptId: attempt(), at: Timestamp.fromMillis(t), expiresAt: Timestamp.fromMillis(t + 10_000) },
   }, { merge: true });
 }
 
@@ -124,13 +131,37 @@ async function tvaa() {
   console.log(`✓ matchen slut: ettan ${second?.name} ${top} guld, b01 ${top - 7} guld (2:a) med 42 rätt → öppna lärarens Live-historik så skrivs result + pluggmynt`);
 }
 
-const [cmd, arg] = process.argv.slice(2);
+/** #588: sätt skyddet direkt (testrigg, bara emulatorn). */
+async function skydd(who, sek) {
+  const gp = (await ref.collection("grPlayers").get()).docs.map((d) => d.data()).filter((p) => p.uid !== ME);
+  const uids = who === "alla" || who === "ingen" ? gp.map((p) => p.uid) : [who];
+  const until = who === "ingen" ? null : Timestamp.fromMillis(Date.now() + Number(sek) * 1000);
+  for (const uid of uids) await ref.collection("grPlayers").doc(uid).set({ protectedUntil: until }, { merge: true });
+  console.log(`✓ ${uids.join(", ")}: ${until ? `skyddad ${sek} s` : "oskyddad"}`);
+}
+
+/** #588: klasskamraten svarar rätt och öppnar en Sköld-kista – genom servern. */
+async function skold(uid) {
+  const rows = chestTable(true);
+  const total = rows.reduce((n, r) => n + r.weight, 0);
+  let acc = 0;
+  for (const r of rows) { if (r.chest.id === "skold") break; acc += r.weight; }
+  const roll = (acc + rows.find((r) => r.chest.id === "skold").weight / 2) / total;
+  const id = attempt();
+  await answerQuestion(deps, uid, { sid: SID, attemptId: id, factorA: 3, factorB: 4, answer: 12 });
+  const c = await openChest({ ...deps, rng: () => roll }, uid, { sid: SID, attemptId: id, chestIndex: 0 });
+  console.log(`✓ ${uid} öppnade ${c.chest}: skyddad till ${new Date(c.protectedUntil).toLocaleTimeString("sv-SE")}`);
+}
+
+const [cmd, arg, arg2] = process.argv.slice(2);
 try {
   if (cmd === "start") await start(arg || "free");
   else if (cmd === "stjal") await stjal();
   else if (cmd === "offer") { await forcePending(ME, arg === "swap" ? "swap" : "steal"); console.log(`✓ b01 väljer offer (${arg || "steal"})`); }
   else if (cmd === "tvaa") await tvaa();
-  else console.log("start [free|choice|quiz] | stjal | offer [steal|swap] | tvaa");
+  else if (cmd === "skydd") await skydd(arg, arg2 || 0);
+  else if (cmd === "skold") await skold(arg);
+  else console.log("start [free|choice|quiz] | stjal | offer [steal|swap] | tvaa | skydd <uid|alla|ingen> <s> | skold <uid>");
 } catch (e) {
   console.error(e.message || e);
   process.exitCode = 1;

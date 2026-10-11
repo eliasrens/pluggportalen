@@ -85,6 +85,7 @@
 .gr-lage { margin: 0; font-size: clamp(18px, 3.2vh, 30px); font-weight: 800; color: var(--gr-brun-ljus); }
 .gr-skydd {
   display: inline-block;
+  font-variant-numeric: tabular-nums;
   margin: 2px 0 0;
   padding: 1px 12px;
   border-radius: 999px;
@@ -195,7 +196,7 @@
 .gro-av { grid-row: span 3; font-size: var(--gro-av); line-height: 1; }
 .gro-namn { font-weight: 800; font-size: clamp(15px, 2.3vh, 20px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gro-guld { font-weight: 800; color: #8a5a00; font-size: clamp(13px, 2vh, 17px); font-variant-numeric: tabular-nums; }
-.gro-why { font-size: clamp(11px, 1.6vh, 14px); font-weight: 700; color: #134a8a; white-space: nowrap; }
+.gro-why { font-size: clamp(11px, 1.6vh, 14px); font-weight: 700; color: #134a8a; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .gro-why:empty { display: none; }
 .gro-kamrat.gro-av-gra { opacity: 0.55; border-style: dashed; border-color: #b9c4d6; background: #f1f3f7; cursor: not-allowed; }
 .gro-kamrat.gro-av-gra .gro-av { filter: grayscale(0.85); }
@@ -260,7 +261,7 @@
   font-size: clamp(18px, 3.2vh, 28px);
 }
 .gr-mynt li { display: flex; justify-content: space-between; gap: 24px; padding: 2px 0; }
-.gr-mynt li b::after { content: " 🪙"; }
+.gr-mynt li b { white-space: nowrap; } /* myntet = coinIcon() i gr-skarmar.js (#590) */
 .gr-mynt-tot { margin: 4px 0 0; font-size: clamp(24px, 4.6vh, 40px); font-weight: 900; color: #7a5200; }
 
 /* --- Tillgänglighet ------------------------------------------------------- */

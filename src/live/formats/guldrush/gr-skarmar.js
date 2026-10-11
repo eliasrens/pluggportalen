@@ -13,6 +13,7 @@
 // ============================================================================
 
 import { escHtml } from "../../../ui.js";
+import { coinIcon } from "../../../icons.js";
 import { myReward, rewardSummary, sessionRewards, placeText } from "../../live-rewards.js";
 import { endStanding, standingText, formatGold } from "./gr-elev.js";
 
@@ -37,7 +38,7 @@ export function endHtml(st, player) {
   const stats = row ? `${relRad}<p class="gr-final-guld"><b>${formatGold(row.gold)}</b> guld · ${row.correct} rätt</p>` : "";
   let coins = "";
   if (sum) {
-    coins = `<ul class="gr-mynt">${sum.lines.map((l) => `<li><span>${escHtml(l.label)}</span><b>${l.coins}</b></li>`).join("")}</ul>
+    coins = `<ul class="gr-mynt">${sum.lines.map((l) => `<li><span>${escHtml(l.label)}</span><b>${l.coins} ${coinIcon("1em")}</b></li>`).join("")}</ul>
       <p class="gr-mynt-tot">Totalt: <b>${sum.total}</b> pluggmynt 🎉</p>`;
   } else if (sessionRewards(st.session)) {
     coins = `<p class="hint">Inga pluggmynt den här gången – svara på frågorna nästa gång!</p>`;

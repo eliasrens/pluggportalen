@@ -35,8 +35,8 @@ import { myReward } from "../../live-rewards.js";
 import { createAvatarRoster } from "../../design/live-avatars.js";
 import { createAvatarPool } from "../../design/live-avatar-pool.js";
 import { react, setAvatarState, prefersReducedMotion } from "../../design/live-reactions.js";
-import { goldStanding, standingText, createHitWatcher, endStanding, stageAction, chestKey } from "./gr-elev.js";
-import { isProtected, toMs } from "./delat/guldrush-regler.js";
+import { goldStanding, standingText, createHitWatcher, endStanding, stageAction, chestKey, myProtection } from "./gr-elev.js";
+import { protectedLeftMs } from "./delat/guldrush-regler.js";
 import { createQuestionFlow } from "./gr-fraga.js";
 import { playChests } from "./gr-kistor.js";
 import { pickVictim } from "./gr-offer.js";
@@ -123,14 +123,21 @@ export function createStage({ view, host, uid, classId, session, mode, answerKin
     const { rel } = goldStanding(grPlayers, uid);
     const lage = standingText(rel) || (gotPlayers ? "Svara rätt – öppna en kista! 🗝️" : "");
     $(".gr-lage").textContent = lage;
+    drawSkydd();
+  }
+
+  // "🛡️ Skyddad 0:42" bara medan skyddet gäller – räknas ned varje sekund
+  // och försvinner (med avatarens bubbla) när det gått ut.
+  function drawSkydd() {
     const skydd = $(".gr-skydd");
-    const prot = isProtected(mine, serverNow());
-    skydd.hidden = !(mine?.shield || prot);
-    // Stöldskyddet tar slut av sig självt – rita om då.
+    const now = serverNow();
+    const text = myProtection(mine, now);
+    skydd.hidden = !text;
+    if (skydd.textContent !== text) skydd.textContent = text;
+    setAvatarState(me, "skyddad", !!text);
     clearTimeout(protT);
-    if (prot) protT = setTimeout(drawTop, toMs(mine.protectedUntil) - serverNow() + 100);
-    skydd.textContent = mine?.shield ? "🛡️ Sköld – stoppar nästa stöld" : "🛡️ Stöldskydd en liten stund";
-    setAvatarState(me, "skyddad", !!mine?.shield);
+    const left = protectedLeftMs(mine, now);
+    if (left > 0) protT = setTimeout(drawSkydd, (left % 1000 || 1000) + 20);
   }
 
   // --- Lägen i mitten -----------------------------------------------------------

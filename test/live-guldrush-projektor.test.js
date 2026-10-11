@@ -4,7 +4,8 @@
 // händelseflödets texter/avatarer (namn på/av), banderoller inkl.
 // ledningsbyte (designtest 5), gallring (designtest 7), händelsesystemet
 // efter omladdning (designtest 10), pallsteg med delad placering (designtest
-// 9), test 15 (stöld syns i flödet) och statistikens exakta ställning.
+// 9), test 15 (stöld syns i flödet), test 12 (#592, finalskärmen) och
+// statistikens exakta ställning.
 // DOM-delarna provas i preview/preview-guldrush-skattkammare.html.
 // ============================================================================
 
@@ -13,13 +14,14 @@ import assert from "node:assert/strict";
 import {
   matchClock, topPiles, pileSlot, createPileScale, pileLevel, isProtected, GR_TOP,
   milestone, crossedMilestone, GR_MILESTONES, feedItem,
-  podiumGroups, togetherText, statSummary, standingRows, createRate, tal,
+  podiumGroups, togetherHtml, FINAL_TITLE, statSummary, standingRows, createRate, tal,
 } from "../src/live/formats/guldrush/gr-proj-scen.js";
 import { weight, trimPending } from "../src/live/formats/guldrush/gr-proj-scen.js";
 import { computeStandings } from "../src/live/formats/guldrush/guldrush-core.js";
+import { withGrIcons, x2Icon } from "../src/live/formats/guldrush/gr-ikoner.js";
 import { createLiveEventTracker } from "../src/live/design/live-events.js";
 import { createSoundGate, CUES } from "../src/live/proj-sound.js";
-import { GR_CHESTS } from "../src/live/formats/guldrush/delat/chests-config.js";
+import { GR_CHESTS, GR_COIN } from "../src/live/formats/guldrush/delat/chests-config.js";
 import { requireFormat } from "../src/live/formats/index.js";
 
 const T = 1_800_000_000_000;
@@ -70,8 +72,8 @@ test("guldhögarna: växer/krymper med elevens guld, taket sänks aldrig", () =>
   assert.equal(pileLevel(r1 * 3, r1), 1);
 });
 
-test("§6.5: sköld eller stöldskydd = liten sköld vid namnet", () => {
-  assert.equal(isProtected({ shield: true }, T), true);
+test("§6.5/#588: liten sköld vid namnet bara medan skyddet gäller", () => {
+  assert.equal(isProtected({ shield: true }, T), false, "fältet shield finns inte längre");
   assert.equal(isProtected({ protectedUntil: T + 5000 }, T), true);
   assert.equal(isProtected({ protectedUntil: T - 1 }, T), false);
   assert.equal(isProtected({ protectedUntil: { toMillis: () => T + 1 } }, T), true);
@@ -108,21 +110,53 @@ test("flödet: specens exempel, inget hån, tomma fickor visas inte", () => {
   const t = (ev, o) => feedItem(ev, o).text;
   assert.equal(t({ type: "chest", chest: "mycket_guld", uid: "c", name: "Clara", amount: 50 }), "💎 Clara hittade 50 guld!");
   assert.equal(t({ type: "swap", chest: "byte", uid: "h", name: "Hussein", victimUid: "i", victimName: "Ines", amount: 40 }), "🔄 Hussein och Ines bytte guld!");
-  assert.equal(t({ type: "chest", chest: "skold", uid: "l", name: "Leo" }), "🛡️ Leo skaffade en sköld!");
+  assert.equal(t({ type: "chest", chest: "skold", uid: "l", name: "Leo" }), "🛡️ Leo är skyddad!");
   assert.equal(t({ type: "lead", uid: "c", name: "Clara" }), "⭐ Clara tog ledningen!");
-  const block = feedItem({ type: "shieldBlock", chest: "stold", uid: "omar", name: "Omar", victimUid: "tove", victimName: "Tove" });
-  assert.equal(block.text, "🛡️ Toves sköld stoppade Omar!");
-  assert.deepEqual(block.reactions, [{ uid: "tove", reaction: "skyddad" }]);
+  assert.deepEqual(feedItem({ type: "chest", chest: "skold", uid: "l", name: "Leo" }).reactions, [{ uid: "l", reaction: "skyddad" }]);
+  assert.equal(feedItem({ type: "shieldBlock", chest: "stold", uid: "omar", name: "Omar", victimUid: "tove" }), null, "borttagen händelse (före #588) visas inte");
   assert.equal(feedItem({ type: "chest", chest: "hal_i_fickan", name: "Leo", amount: 0 }), null, "tappade 0 guld visas inte");
   assert.equal(feedItem({ type: "chest", chest: "dubbla", name: "Leo", amount: 0 }), null, "dubblade +0 visas inte");
-  // Alla kisttyper ger en text utan mallrester och utan hånfulla ord.
+  // Alla kisttyper ger en text utan mallrester och utan hånfulla ord
+  // (mynt-markören är ingen rest – UI:t byter den mot coinIcon, #590).
   for (const c of GR_CHESTS) {
     for (const names of [true, false]) {
       const it = feedItem({ type: "chest", chest: c.id, uid: "u", name: "Ali", victimUid: "v", victimName: "Bo", amount: 12 }, { names });
-      assert.doesNotMatch(it.text, /[{}]|undefined|förlorare|dålig|sämst|haha/i);
+      assert.doesNotMatch(it.text.replaceAll(GR_COIN, ""), /[{}]|undefined|förlorare|dålig|sämst|haha/i);
       if (!names) assert.doesNotMatch(it.text, /Ali|Bo\b/);
     }
   }
+});
+
+test("#591: flödets korta rad – en rad per händelse, specens exempel", () => {
+  const sh = (ev, o) => feedItem(ev, o).short;
+  assert.equal(sh({ type: "chest", chest: "mycket_guld", uid: "t", name: "testklass101", amount: 50 }), "💎 testklass101 +50");
+  assert.equal(sh({ type: "chest", chest: "dubbla", uid: "t", name: "testklass101", amount: 150 }), "✖️2 testklass101 +150");
+  assert.equal(sh({ type: "steal", chest: "stold", uid: "a", name: "Alma", victimUid: "o", victimName: "Omar", amount: 30 }), "🦝 Alma → Omar 30");
+  assert.equal(sh({ type: "chest", chest: "lite_guld", uid: "a", name: "Alma", amount: 10 }), `${GR_COIN} Alma +10`);
+  assert.equal(sh({ type: "lead", uid: "c", name: "Clara" }), "⭐ Clara leder!");
+  assert.equal(sh({ type: "chest", chest: "skold", uid: "l", name: "Leo" }), "🛡️ Leo skyddad");
+  assert.equal(sh({ type: "steal", chest: "stold", uid: "a", name: "Alma", victimUid: "o", victimName: "Omar", amount: 30 }, { names: false }), "🦝 Någon → en klasskamrat 30");
+  // Alla kisttyper har en kort mall: utan mallrester, utan radbrytning, kortare än den långa texten.
+  for (const c of GR_CHESTS) {
+    for (const names of [true, false]) {
+      const it = feedItem({ type: "chest", chest: c.id, uid: "u", name: "Ali", victimUid: "v", victimName: "Bo", amount: 12 }, { names });
+      assert.ok(c.feedText, `${c.id} saknar feedText`);
+      assert.doesNotMatch(it.short.replaceAll(GR_COIN, ""), /[{}\n]|undefined/);
+      assert.ok(it.short.length < it.text.length, `${c.id}: kort rad ska vara kortare`);
+    }
+  }
+});
+
+test("#591: ✖️2 och {mynt} ritas som SVG – aldrig som \"X 2\" eller ▯", () => {
+  for (const txt of ["✖️2 Leo +150", "\u27162 Leo +150"]) {
+    const html = withGrIcons(txt);
+    assert.doesNotMatch(html, /\u2716/, txt);
+    assert.match(html, /<svg class="gr-x2"[^>]*aria-label="gånger 2"/);
+  }
+  const coin = withGrIcons(`${GR_COIN} Alma +10`);
+  assert.ok(!coin.includes(GR_COIN));
+  assert.match(coin, /<svg class="coin-svg"/);
+  assert.match(x2Icon(), /^<svg/);
 });
 
 test("stora händelser: Skattkammare, Byte och ledningsbyte → banderoll (designtest 5)", () => {
@@ -190,17 +224,31 @@ test("designtest 8/9: pallen ur guldet, delad placering på samma steg, bara gul
   const g = podiumGroups(st.players);
   assert.deepEqual(g.map((x) => [x.rank, x.players.map((p) => p.uid)]), [[1, ["a"]], [2, ["b", "c"]]]);
   assert.equal(podiumGroups(computeStandings(s, { grPlayers: [{ uid: "z", gold: 0 }] }).players).length, 0);
-  assert.equal(togetherText(s, 4380), `Tillsammans samlade 4B ${tal(4380)} guld!`);
-  assert.equal(togetherText(sess({ participatingClassIds: ["4b", "5e"], classNames: { "4b": "4B", "5e": "5E" } }), 10), "Tillsammans samlade 4B + 5E 10 guld!");
+});
+
+test("test 12 (#592): finalskärmen – exakt rubrik, lugn totalrad, inga klassnamn, pall efter placering", async () => {
+  assert.equal(FINAL_TITLE, "🏆 Guldrushen – Prispall");
+  assert.equal(togetherHtml(508), `Tillsammans: <strong>${tal(508)} guld</strong> 💰`);
+  const { readFile } = await import("node:fs/promises");
+  const kammare = await readFile(new URL("../src/live/formats/guldrush/gr-skattkammare.js", import.meta.url), "utf8");
+  const fd = kammare.slice(kammare.indexOf("function finalData"), kammare.indexOf("let resultKey"));
+  assert.match(fd, /title: FINAL_TITLE/);
+  assert.doesNotMatch(fd, /classTitle|classNames/, "inga klassnamn på finalskärmen");
+  const pall = await readFile(new URL("../src/live/formats/guldrush/gr-pall.js", import.meta.url), "utf8");
+  // 2:an vänster, 1:an mitten, 3:an höger – saknade steg byggs inte (ingen tom plats).
+  assert.match(pall, /\[2, 1, 3\]\.map\(\(rank\) => g\.find\(\(x\) => x\.rank === rank\)\)/);
+  assert.match(pall, /if \(!grp\) return;/);
+  assert.doesNotMatch(pall, /grp-tom/);
+  assert.match(pall, /coinIcon\("1em"\)} \+\$\{tal\(prize\)\} pluggmynt/);
 });
 
 test("statistiken: exakt ställning för alla elever + klassens siffror", () => {
   const st = computeStandings(sess(), {
     players: [{ uid: "x", name: "Xena", classId: "4b" }],
     grPlayers: [
-      { uid: "a", name: "Alma", gold: 120, correct: 6, incorrect: 2, chests: 6, classId: "4b", shield: true },
+      { uid: "a", name: "Alma", gold: 120, correct: 6, incorrect: 2, chests: 6, classId: "4b", protectedUntil: T + 60_000 },
       { uid: "b", name: "Bo", gold: 30, correct: 2, incorrect: 2, chests: 2, classId: "4b", protectedUntil: T + 10_000 },
-      { uid: "c", name: "Cleo", gold: 30, correct: 1, incorrect: 0, chests: 1, classId: "4b" },
+      { uid: "c", name: "Cleo", gold: 30, correct: 1, incorrect: 0, chests: 1, classId: "4b", protectedUntil: T - 1 },
     ],
   });
   const sum = statSummary(st);

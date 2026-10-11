@@ -14,11 +14,21 @@
 //                      lead(), end(), win(), destroy() }
 //              key/defaultOn/volume: Guldrushens diskreta kistljud på elevdatorn
 //              (#564) har egen nyckel, AV som standard (designspec §8)
+//              + output({ hold }), onPlay(fn) – bakgrundsmusikens väg (#593)
 //   play(fn)   fn(tone) – egna toner med samma syntes (Guldrushens kistljud)
 //   setOn(on)  elevskärmen (#533) följer kontrollpanelens val (sparar inget)
 //   mute(m)    kontrollpanelen tystnar medan en elevskärm spelar ljudet (#533)
 //   fx(fn)     egna ljud (Trollkarlsduellen, #536): fn(audioCtx, ut) bara när ljudet
 //              är på, upplåst och inte tystat – samma kontext och volym som resten
+//
+// BAKGRUNDSMUSIKEN (#593, proj-music.js) delar kontexten – EN AudioContext:
+//   output({ hold }) → { ctx, out } | null   hold = musiken är på: kontexten
+//              skapas/hålls vaken även när EFFEKTERNA är av (effekterna är ändå
+//              tysta – varje ton kräver `on`). out = samma huvudvolym som effekterna.
+//   running()  kontexten finns och spelar (upplåst) – oavsett effekternas på/av
+//   onPlay(fn) → avregistrera   fn(name) efter varje effekt som FAKTISKT hördes
+//              (cue-namn, "chest" för play()) – musikens ducking. Tyst effekt
+//              (ljud av, tystat, ej upplåst, hoppad i kön) → inget anrop.
 //
 // LJUDKÖN (#571, designspec §8) – för de nya lägena (Snilleblixten, Guldrushen;
 // Guldrushens egna: fanfarKort, stold, vosh, grotta, guldregn – #565):
@@ -99,10 +109,16 @@ export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) 
   let master = null;
   let lastBlip = 0;
   let muted = false;
+  let held = false; // musiken håller kontexten vaken (#593)
+  const listeners = new Set();
   const gate = createSoundGate();
+  const heard = (name) => { for (const fn of listeners) { try { fn(name); } catch (e) { console.warn("Live-ljud:", e); } } };
 
   function ensure() {
-    if (!on) return null;
+    return on ? open() : null;
+  }
+
+  function open() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
@@ -116,7 +132,7 @@ export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) 
   }
 
   // Första gesten i sidan låser upp ljudet (autoplay-reglerna).
-  const onGesture = () => { if (on) ensure(); };
+  const onGesture = () => { if (on || held) open(); };
   window.addEventListener("pointerdown", onGesture, true);
   window.addEventListener("keydown", onGesture, true);
 
@@ -142,19 +158,33 @@ export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) 
   return {
     get on() { return on; },
     unlocked: () => !on || ctx?.state === "running",
-    unlock: () => { ensure(); },
+    unlock: () => { if (on || held) open(); },
     toggle() {
       on = !on;
       try { localStorage.setItem(key, on ? "pa" : "av"); } catch {}
       if (on) ensure();
-      else ctx?.suspend().catch(() => {});
+      else if (!held) ctx?.suspend().catch(() => {});
       return on;
     },
     setOn(v) {
       if (on === !!v) return;
       on = !!v;
       if (on) ensure();
-      else ctx?.suspend().catch(() => {});
+      else if (!held) ctx?.suspend().catch(() => {});
+    },
+    /** Musikens väg (#593): samma kontext och huvudvolym. */
+    output({ hold = true } = {}) {
+      held = !!hold;
+      if (!held) {
+        if (!on) ctx?.suspend().catch(() => {});
+        return ctx ? { ctx, out: master } : null;
+      }
+      return open() ? { ctx, out: master } : null;
+    },
+    running: () => ctx?.state === "running",
+    onPlay(fn) {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
     },
     mute(m) { muted = !!m; },
     fx(fn) {
@@ -198,6 +228,7 @@ export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) 
     play(fn) {
       if (!on || muted || !ctx || ctx.state !== "running") return false;
       try { fn(tone); } catch (e) { console.warn("Live-ljud:", e); }
+      heard("chest");
       return true;
     },
     /** Namngivet ljud via ljudkön (#571): slås ihop/hoppas över vid trängsel. */
@@ -206,11 +237,13 @@ export function createSound({ key = KEY, defaultOn = true, volume = 0.5 } = {}) 
       if (!c || !on || muted || !ctx || ctx.state !== "running") return false;
       if (!gate.allow(name, c)) return false;
       c.play(tone);
+      heard(name);
       return true;
     },
     destroy() {
       window.removeEventListener("pointerdown", onGesture, true);
       window.removeEventListener("keydown", onGesture, true);
+      listeners.clear();
       ctx?.close().catch(() => {});
       ctx = null;
     },

@@ -641,7 +641,9 @@ service cloud.firestore {
         (d.gameMode != 'plugga_quiz' || d.answerKind == 'choice') &&
         d.participatingClassIds is list && d.participatingClassIds.size() >= 1 &&
         d.participatingClassIds.size() <= 3 &&
-        d.durationSeconds in [300, 600, 900, 1200] &&
+        // Speltid: hela minuter 1–60 (snabbknappar + "Egen tid", #589).
+        d.durationSeconds is int && d.durationSeconds >= 60 && d.durationSeconds <= 3600 &&
+        d.durationSeconds % 60 == 0 &&
         d.countdownSeconds is int && d.countdownSeconds >= 0 && d.countdownSeconds <= 10 &&
         d.stealSwap is bool && d.showNames is bool &&
         (!('questionCount' in d) || (d.questionCount is int && d.questionCount >= 1 && d.questionCount <= 100)) &&

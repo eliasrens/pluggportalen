@@ -1,16 +1,22 @@
 // ============================================================================
 // Guldrushen – SKATTKAMMAREN (#565/#578, designspec §6.3): projektorns
 // huvudvy (views-posten "skattkammaren", finale: true – vyn spelar pallen).
-//   Överst   stor timer (matchens serverklocka) + "Tillsammans: 2 140 guld"
-//            (klassens totala guld, "Nästa skatt" = gemensamt delmål)
+//   Överst   stor timer (matchens serverklocka) + guldrutan "Tillsammans:
+//            2 140 guld" med en förloppsmätare mot nästa gemensamma skatt
+//            (gr-guldruta, #591) – en skatt firas I RUTAN (puls, mätaren
+//            fylls och börjar om, kort konfetti, kort ljud). Den översta
+//            raden är fredad: ingen notis, banderoll eller animation läggs
+//            någonsin över logga, timer eller guldruta.
 //   Mitten   topp 10 som avatarer vid egna guldhögar (gr-hogar) – högarna
 //            växer/krymper med guldet, ordningen glider vid stöld/byte
-//   Kanten   händelseflödet (gr-flode) – namn och små avatarer (lärarens
-//            "Visa namn" av → inga namn/avatarer), glider in/tonar ut
-//   Banderoll  stora händelser (Skattkammare, Byte, ledningsbyte) och
-//            klassens delmål i luften mellan timern och högarna – döljer
-//            aldrig timer eller topplista, köade (en i taget, ihopslagna,
-//            för gamla hoppas över), ≤ ~2 s (live-banner)
+//   Kanten   händelseflödet (gr-flode) – högst 4 korta rader med liten
+//            avatar (lärarens "Visa namn" av → inga namn/avatarer)
+//   Banderoll  stora händelser (Skattkammare, Byte, ledningsbyte) i luften
+//            mellan timern och högarna – luften klipper banderollen, så den
+//            når aldrig upp över den översta raden eller ned över topplistan;
+//            köade (en i taget, ihopslagna, för gamla hoppas över), ≤ ~2 s
+//   Dekor    grottans kristaller/facklor/ådror som hamnar bakom text, namn
+//            eller avatarer döljs (gr-grotta createDekorVakt, #591)
 //   Final    pallplatsen EN gång (gr-pall: 3:an → 2:an → 1:an → klassens
 //            totala guld), sedan resultatskärmen
 // Enligt specen (Elias 2026-10-10, #578) – Snilleblixtens "ingen
@@ -35,13 +41,14 @@ import { sessionRewards, placementPrize } from "../../live-rewards.js";
 import { toMs } from "../../live-time.js";
 import { countUp, formatGold } from "./gr-elev.js";
 import { createGrKoppling, avatarRoster } from "./gr-koppling.js";
-import { ensureGrottaCss, grottaHtml, logoHtml } from "./gr-grotta.js";
+import { ensureGrottaCss, grottaHtml, logoHtml, createDekorVakt } from "./gr-grotta.js";
 import { createHogar } from "./gr-hogar.js";
 import { createFlode } from "./gr-flode.js";
 import { createFinal } from "./gr-pall.js";
+import { createGuldruta, GULDRUTA_HTML } from "./gr-guldruta.js";
 import {
-  matchClock, topPiles, createPileScale, isProtected, feedItem, crossedMilestone, milestone, tal,
-  podiumGroups, classTitle, togetherText,
+  matchClock, topPiles, createPileScale, isProtected, feedItem,
+  podiumGroups, togetherHtml, FINAL_TITLE,
 } from "./gr-proj-scen.js";
 
 const TICK_MS = 200;
@@ -85,7 +92,7 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     <header class="grk-topp">
       ${logoHtml({ size: "liten" })}
       <div class="grk-klocka" role="timer" aria-label="Tid kvar"><b data-klocka>00:00</b></div>
-      <div class="grk-tills"><span>Tillsammans</span><b><i data-tills>0</i> guld</b><small data-mal></small></div>
+      <div class="grk-tills">${GULDRUTA_HTML}</div>
     </header>
     <div class="grk-luft"></div>
     <main class="grk-golv"><p class="grk-tom" hidden>⛏️ Första guldet hittas snart …</p></main>
@@ -97,7 +104,6 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
   let dead = false;
   let finalDone = false;
   let lastSec = null;
-  let prevTotal = null; // null = baslinjen inte satt (omladdning: inga gamla delmål)
   const prevGold = new Map();
   const scale = createPileScale();
 
@@ -105,10 +111,17 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
   roster.prefetch(s0?.participatingClassIds || []);
   const pool = createAvatarPool({ roster });
   const tills = createTills($("[data-tills]"));
+  const guldruta = createGuldruta($(".grk-tills"), { sound });
   const banner = createBanner($(".grk-luft"));
   const hogar = createHogar($(".grk-golv"), { pool });
   const flode = createFlode($(".grk-kant"), { pool });
   const final = createFinal(root, { pool, sound });
+  // Dekor får aldrig ligga bakom text, namn eller avatarer: den översta
+  // raden, flödets ruta (fast höjd för 4 rader) och alla tio högplatser.
+  const vakt = createDekorVakt(root, () => [
+    ...[...root.querySelectorAll(".grk-topp > *, .grf, .grk-tom:not([hidden])")].map((el) => el.getBoundingClientRect()),
+    ...hogar.areas(),
+  ]);
   const koppling = createGrKoppling({ sid, deps, onChange: () => render(), say: (t) => console.warn("Guldrushen:", t) });
   const names = () => cur.session?.showNames !== false;
 
@@ -137,18 +150,6 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     return jobs;
   }
 
-  // Klassens delmål: en banderoll när totalen passerar nästa skatt.
-  function milestoneBanner(m, total) {
-    const next = milestone(total).next;
-    regi.push({
-      kind: "banner",
-      mergeKey: "mal",
-      merge: (a, b) => b, // bara det senaste delmålet är sant
-      banner: { icon: "🎉", title: `Tillsammans ${tal(m)} guld!`, sub: next ? `Nästa skatt: ${tal(next)} guld` : "Alla skatter hittade!", tone: "gold" },
-      cue: "fanfarKort",
-    });
-  }
-
   const regi = createLiveRegi({
     sessionId: sid,
     pool,
@@ -165,8 +166,8 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     const res = cur.result?.rewards || null;
     return {
       groups: podiumGroups(standing.players),
-      title: `🏆 Guldrushen ${classTitle(sess)} – skattjägarnas final!`,
-      together: standing.totalGold > 0 ? togetherText(sess, standing.totalGold) : "",
+      title: FINAL_TITLE,
+      together: standing.totalGold > 0 ? togetherHtml(standing.totalGold) : "",
       everyone: standing.players.map((p) => p.uid),
       prize: (rank) => {
         const p = res ? Object.values(res).find((r) => r.rank === rank) : null;
@@ -203,10 +204,9 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     if (!koppling.ready) return;
     const standing = koppling.standings(cur);
     tills.sync(standing.totalGold);
-
-    const goal = milestone(standing.totalGold);
-    const mal = goal.next ? `Nästa skatt: ${tal(goal.next)}` : "Alla skatter hittade! 🎉";
-    if ($("[data-mal]").textContent !== mal) $("[data-mal]").textContent = mal;
+    // Gemensam skatt: firas i guldrutan (bara uppåt, bara under spelet;
+    // första värdet = baslinje, så en omladdning firar inga gamla skatter).
+    guldruta.sync(standing.totalGold, { celebrate: !finished });
 
     // Topp 10 vid guldhögarna – direkt ur guldet.
     const top = topPiles(standing.players).map((p) => ({ ...p, prot: isProtected(p, now) }));
@@ -218,10 +218,6 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
     prevGold.clear();
     for (const p of standing.players) prevGold.set(p.uid, p.gold);
     $(".grk-tom").hidden = top.length > 0 || finished;
-    // Delmål (bara uppåt, bara under spelet; första gången = baslinje).
-    const m = prevTotal == null || finished ? null : crossedMilestone(prevTotal, standing.totalGold);
-    if (m) milestoneBanner(m, standing.totalGold);
-    prevTotal = standing.totalGold;
 
     roster.ensure(cur.players || []);
     regi.sync({
@@ -251,8 +247,10 @@ export function createSkattkammare(host, { st, sound = null, screen = false, dep
       dead = true;
       clearInterval(iv);
       regi.destroy();
+      vakt.destroy();
       koppling.destroy();
       tills.destroy();
+      guldruta.destroy();
       banner.destroy();
       hogar.destroy();
       flode.destroy();

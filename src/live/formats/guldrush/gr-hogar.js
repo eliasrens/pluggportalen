@@ -9,23 +9,28 @@
 // (designtest 5: 4:an → 1:an glider mjukt längst till vänster överst; en
 // plats som byter rad glider också dit).
 // Under varje hög en skylt: placering (👑 för ensam ledare), namn och guld
-// (Elias 2026-10-10, #578: enligt specen). Sköld/stöldskydd = liten 🛡️ vid
-// namnet (§6.5); sköld från kista = dessutom bubblan runt avataren.
+// (Elias 2026-10-10, #578: enligt specen). Skyddad (sköld 60 s/stöldskydd
+// 30 s, #588) = liten 🛡️ vid namnet (§6.5) och bubblan runt avataren – BARA
+// medan skyddet gäller (prot räknas om varje tick av Skattkammaren).
 // Höjden räknas så att båda radernas skyltar får plats: översta radens
 // skylt ligger i glappet ovanför nedersta radens figurer – ingen rad skymmer
 // den andra.
 //
 // API
 //   createHogar(host, { pool }) → {
-//     update(top [{ uid, rank, name, gold, shield, prot }], { ref, leader })
+//     update(top [{ uid, rank, name, gold, prot }], { ref, leader })
 //                                  ritar om bara det som ändrats
 //     bump(uid)                    liten studs på högen (nytt guld)
+//     areas()                      alla GR_TOP platsers yta (figur + skylt) i
+//                                  skärmkoordinater – även tomma platser, så
+//                                  grottans dekor-vakt (#591) inte blinkar
+//                                  när en hög dyker upp
 //     has(uid), el, destroy()
 //   }
 // ============================================================================
 
 import { setAvatarState, prefersReducedMotion } from "../../design/live-reactions.js";
-import { pileSlot, pileLevel, tal } from "./gr-proj-scen.js";
+import { pileSlot, pileLevel, tal, GR_TOP } from "./gr-proj-scen.js";
 
 const OUT_MS = 650;
 const GAP = 8; // px (minst) mellan översta radens skylt och nedersta radens figurer
@@ -133,7 +138,7 @@ export function createHogar(host, { pool }) {
         s.level = level;
         s.hog.style.transform = `scale(${(0.55 + 0.45 * level).toFixed(3)}, ${level.toFixed(3)})`;
       }
-      setAvatarState(pool.el(p.uid), "skyddad", !!p.shield);
+      setAvatarState(pool.el(p.uid), "skyddad", !!p.prot);
       label(s, p, leader);
     });
     for (const [uid, s] of slots) {
@@ -166,6 +171,16 @@ export function createHogar(host, { pool }) {
     el: root,
     update,
     has: (uid) => slots.has(uid) && !slots.get(uid).out,
+    areas() {
+      if (!size.fig) return [];
+      const r = root.getBoundingClientRect();
+      const f = size.fig;
+      return Array.from({ length: GR_TOP }, (_, i) => {
+        const p = place(i);
+        // Figuren (1.3 em hög, 2.3 em bred + hatt/bubbla) och skylten under.
+        return { left: r.left + p.x - 1.25 * f, right: r.left + p.x + 1.25 * f, top: r.top + p.y - 1.5 * f, bottom: r.top + p.y + size.lab };
+      });
+    },
     bump(uid) {
       const s = slots.get(uid);
       if (!s || s.out || prefersReducedMotion()) return;

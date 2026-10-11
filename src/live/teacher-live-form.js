@@ -29,7 +29,7 @@ import { createLiveSession } from "./live-data.js";
 import { validateSessionInput } from "./live-core.js";
 import { defaultSessionName } from "./formats/klassmatch/klassmatch-core.js";
 import {
-  fieldsFor, setupFieldsHtml, perClassRowsHtml, coerceSetupValue, formatPickerHtml, answerKindHtml, classHint,
+  fieldsFor, setupFieldsHtml, perClassRowsHtml, coerceSetupValue, CUSTOM_CHOICE, coerceCustomChoice, formatPickerHtml, answerKindHtml, classHint,
   answerKindDefaults,
 } from "./live-setup-fields.js";
 
@@ -89,6 +89,11 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
     return c;
   });
   const customs = mountCustoms(fields);
+  // "Egen tid" (#589): skriver läraren i fältet gäller det egna värdet.
+  form.querySelectorAll(".live-egen").forEach((i) => i.addEventListener("focus", () => {
+    const r = i.closest(".live-chip-egen")?.querySelector('input[type="radio"]');
+    if (r && !r.checked) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); }
+  }));
 
   // Spellägets egna fält (#553) – ritas om när läget byts.
   let modeFields = [];
@@ -153,7 +158,8 @@ function drawForm(host, { classes, uid, createdByName, onCreated }, keep) {
       } else if (f.kind === "custom") {
         out[f.key] = [...customs, ...modeCustoms].find((c) => c.f === f)?.api?.value();
       } else if (f.kind === "choice") {
-        out[f.key] = coerceSetupValue(f, boxOf(f).querySelector("input:checked")?.value);
+        const v = boxOf(f).querySelector('input[type="radio"]:checked')?.value;
+        out[f.key] = v === CUSTOM_CHOICE ? coerceCustomChoice(boxOf(f).querySelector(".live-egen")?.value) : coerceSetupValue(f, v);
       } else if (f.kind === "toggle") {
         out[f.key] = coerceSetupValue(f, boxOf(f).querySelector("input").checked);
       } else {

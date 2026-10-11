@@ -8,7 +8,7 @@
 //   • flera klasser: guld + rätt per klass
 //   • EXAKT STÄLLNING FÖR ALLA ELEVER (enligt specen, Elias 2026-10-10 #578):
 //     placering (delad vid lika guld), namn, guld, antal rätt, andel rätt;
-//     🛡️ vid namnet = sköld/stöldskydd (§6.5). 1–3 kolumner beroende på
+//     🛡️ vid namnet = skyddad just nu (§6.5, #588). 1–3 kolumner beroende på
 //     antal elever och textstorlek efter rutans höjd, så att 30 elever ryms
 //     utan att scrolla (30 elever i 1280×720 ≈ 26–30 px).
 // finale: true – efter slutet står slutställningen kvar (pallplatsen visas i

@@ -9,7 +9,7 @@
 //   answer({ sid, attemptId, factorA?, factorB?, answer?, choiceIndex?, q? })
 //                                 → { attemptId, correct, correctAnswer, nextQ }
 //   openChest({ sid, attemptId, chestIndex }) → { chest, kind, delta, gold,
-//                                   shield, pending? }
+//                                   protectedUntil (ms|null), pending? }
 //   chooseVictim({ sid, victimUid? })  → { result, chest, victimUid?, amount, gold }
 //     victimUid null/saknas = "slumpa åt mig" (nedräkningen tog slut)
 //     → alla kastar GuldrushError { code, message } (svenskt meddelande)

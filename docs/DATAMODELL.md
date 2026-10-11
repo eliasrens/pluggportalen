@@ -965,28 +965,38 @@ ger EN kista.
 
 **`liveSessions/{sid}/grPlayers/{uid}`** – elevens guld (bara servern skriver,
 deltagare och lärare läser): `{ uid, classId, name, gold, correct, incorrect,
-chests, shield, protectedUntil, lastVictimUid, pending, lastHit, nextQ?,
+chests, protectedUntil, lastVictimUid, pending, lastHit, nextQ?,
 joinedAt, lastAnswerAt, lastChestAt }`. Skapas vid första svaret (sen
 anslutning = 0 guld). `pending` = väntande stöld/byte `{ kind, chest,
 attemptId, at, expiresAt }` (eleven väljer offer inom ~10 s, annars slumpar
-servern); `lastHit` = senaste stöld/byte/stoppade försök MOT eleven (elevens
-notis) `{ kind, byUid, byName, amount, at }`.
+servern); `lastHit` = senaste stöld/byte MOT eleven (elevens notis) `{ kind,
+byUid, byName, amount, at }`. `protectedUntil` (Timestamp | null) = ETT
+tidsbegränsat skydd (#588): Sköld-kistan sätter nu + 60 s (förlänger till 60 s
+från nu), bestulen/bytt nu + 30 s (`GR_RULES.shieldMs`/`protectionMs`). Det
+gamla fältet `shield` (före #588) skrivs inte längre och läses inte – finns det
+kvar i en gammal match betyder det ingenting.
 
 **`liveSessions/{sid}/grEvents/{id}`** – händelseflödet (designspec §9): `{ type:
-"chest"|"steal"|"swap"|"shieldBlock"|"lead", chest?, uid, name, classId,
+"chest"|"steal"|"swap"|"lead", chest?, uid, name, classId,
 victimUid?, victimName?, victimClassId?, amount, gold, victimGold?, auto?,
 fallbackFrom?, previousUid?, at (server) }`. Skrivs i SAMMA transaktion som
 guldet; dokument-id:t är stabilt. Vyn tar första läsningen som baslinje
 (`createEventCursor`) – inget gammalt spelas upp efter omladdning. Texten
-byggs ur kistans mall (`eventText`, utan namn när `showNames` är av).
+byggs ur kistans mall (`eventText`, utan namn när `showNames` är av);
+projektorns flöde visar den korta raden (`feedText`, t.ex. "💎 Alma +50", #591). Sköld-
+kistan = `chest` med `chest: "skold"` ("🛡️ Alma är skyddad!"). Typen
+`shieldBlock` (före #588) skrivs inte längre; gamla sådana visas inte.
 **`grMeta/leader`** `{ uid, gold, at }` – vem som ensam leder; ett byte ger en
 `lead`-händelse (delad etta = ingen ny ledare).
 
-**Trygghet (§6.5, servern):** stöldskydd 30 s efter bestulen/bytt, inte samma
-offer två gånger i rad, byte bara med någon som har MER guld (och bara med eget
-guld), sköld stoppar nästa stöld/byte (förbrukas), stöld ≤ 15 %, hål i fickan
-≤ 10 %, inget nollställer. Ett manipulerat val nekas (valet ligger kvar); ingen
-möjlig → vanlig guldkista. Högst en kista per sekund och elev. Inga heta
+**Trygghet (§6.5, servern):** skyddad elev (`protectedUntil` > nu – Sköld 60 s,
+bestulen/bytt 30 s) går inte att välja, prövat i ÖGONBLICKET valet görs (hann
+offret skaffa en sköld under väljartiden nekas valet: "🛡️ Alma hann skaffa en
+sköld!"), inte samma offer två gånger i rad, byte bara med någon som har MER
+guld (och bara med eget guld), stöld ≤ 15 %, hål i fickan ≤ 10 %, inget
+nollställer. Ett nekat/manipulerat val ligger kvar (tjuven väljer om på tiden
+som är kvar); tiden ute → servern slumpar bland oskyddade; ingen möjlig →
+vanlig guldkista. Högst en kista per sekund och elev. Inga heta
 dokument: ett svar/en kista rör bara elevens egna dokument, en stöld två.
 
 `result` (`buildResult`): `{ format, winner: null, ranking[{ uid, name,

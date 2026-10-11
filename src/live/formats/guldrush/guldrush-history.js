@@ -24,6 +24,7 @@
 // ============================================================================
 
 import { esc } from "../../../teacher-shared.js";
+import { coinIcon } from "../../../icons.js";
 import { getGameMode } from "../../modes/index.js";
 import { ensureLiveCss } from "../../live-css.js";
 import { categoryRates } from "../snilleblixt/sb-historik-data.js";
@@ -88,7 +89,7 @@ function topplistaHtml(s, result, perPlayer) {
   }).join("");
   if (!rows) return `<p class="hint">Inga elever anslöt.</p>`;
   return `<div class="grh-scroll"><table class="live-table"><thead><tr><th class="num">Plats</th><th>Elev</th>${flera ? "<th>Klass</th>" : ""}
-      <th class="num">Rätt</th><th class="num">Fel</th><th class="num">Kistor</th><th class="num">💰 Guld</th>${rw ? `<th class="num">🪙 Pluggmynt</th>` : ""}
+      <th class="num">Rätt</th><th class="num">Fel</th><th class="num">Kistor</th><th class="num">💰 Guld</th>${rw ? `<th class="num">${coinIcon("1em")} Pluggmynt</th>` : ""}
       ${perPlayer ? "<th>Svarade fel på</th>" : ""}</tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }

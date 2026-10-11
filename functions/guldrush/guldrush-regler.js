@@ -6,15 +6,20 @@
 // grå:a ut offer som servern ändå skulle neka. Inga importer utom kistkonfigen.
 //
 // Spelare (grPlayers-dokumentet, se docs/DATAMODELL.md "Guldrushen"):
-//   { uid, gold, shield, protectedUntil, lastVictimUid, … } – tider som ms
-//   eller Firestore-Timestamp (toMs).
+//   { uid, gold, protectedUntil, lastVictimUid, … } – tider som ms eller
+//   Firestore-Timestamp (toMs).
+//
+// ETT SKYDD (#588): protectedUntil. Skyddad = protectedUntil > nu – ingen kan
+// stjäla från eller byta med eleven. Sköld-kistan → nu + GR_RULES.shieldMs
+// (60 s; redan skyddad → förlängs till 60 s från nu), bestulen/bytt → nu +
+// GR_RULES.protectionMs (30 s). Skyddet går ut av sig självt; servern prövar
+// det i ögonblicket valet görs (victimProblem), slumpen tar bara oskyddade.
 //
 // TRYGGHET (§6.5) – kontrolleras här och av servern:
-//   • stöldskydd GR_RULES.protectionMs efter att ha blivit bestulen/bytt
+//   • skyddad elev (ovan) går inte att välja
 //   • ingen stjäl/byter med samma elev två gånger i rad (lastVictimUid)
 //   • ingen effekt nollställer: stöld ≤ 15 %, hål i fickan ≤ 10 %, byte bara
 //     med någon som har MER guld och bara om man själv har guld
-//   • sköld (shield) stoppar NÄSTA stöld/byte och förbrukas då
 //
 // API
 //   toMs(t)                         → ms | null
@@ -22,24 +27,31 @@
 //   isVictimKind(chest)             → bool (stöld/byte – eleven väljer offer)
 //   chestTable(stealSwap)           → [{ chest, weight }] – vikterna som gäller
 //   rollChest(stealSwap, rng)       → kista (rng() i [0,1))
-//   applySelfEffect(chest, gold)    → { delta, gold, shield }  (ej stöld/byte)
+//   applySelfEffect(chest, gold)    → { delta, gold, protect }  (ej stöld/
+//                                     byte; protect = kistan ger skydd)
 //   isProtected(p, now)             → bool
+//   protectedLeftMs(p, now)         → ms kvar av skyddet (0 = oskyddad)
+//   shieldUntil(now)                → protectedUntil (ms) efter Sköld-kistan
+//   hitProtectionUntil(p, now)      → protectedUntil (ms) efter bestulen/bytt
 //   victimProblem(kind, thief, victim, now) → null | orsak ("sig-sjalv",
 //                                     "saknas", "skyddad", "samma-igen",
 //                                     "for-lite-guld", "inte-mer-guld",
 //                                     "inget-eget-guld")
-//   victimMessage(orsak)            → elevvänlig text
-//   eligibleVictims(kind, thief, players, now, { random? }) → spelare som
-//                                     går att välja (random: utan sköld)
-//   resolveVictim(kind, thief, victim, share?) → { blocked, amount,
-//                                     thiefGold, victimGold }
-//   eventText(ev, { names })        → händelseflödets text (ev från grEvents)
+//   victimMessage(orsak, victim?)   → elevvänlig text ("🛡️ Alma hann skaffa
+//                                     en sköld!")
+//   eligibleVictims(kind, thief, players, now) → spelare som går att välja
+//                                     (servern slumpar bland dem)
+//   resolveVictim(kind, thief, victim) → { amount, thiefGold, victimGold }
+//   eventText(ev, { names, short? }) → händelsens text (ev från grEvents);
+//                                     short = flödets korta rad (feedText, #591)
+//                                     ("{mynt}" = mynt-ikonens markör, #590)
 // ============================================================================
 
-import { GR_CHESTS, GR_EVENT_TEXTS, GR_ANON, GR_RULES } from "./chests-config.js";
+import { GR_CHESTS, GR_EVENT_TEXTS, GR_ANON, GR_RULES, GR_COIN } from "./chests-config.js";
 
 const VICTIM_KINDS = ["steal", "swap"];
 const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
+const fill = (tpl, vars) => String(tpl || "").replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? ""));
 
 /** Timestamp | Date | number → ms (null om saknas). */
 export function toMs(t) {
@@ -91,17 +103,31 @@ export function applySelfEffect(chest, gold) {
   else if (e.kind === "double") delta = Math.min(g, int(e.cap));
   else if (e.kind === "lose") delta = -Math.floor(g * Math.min(Number(e.share) || 0, 0.1));
   const next = Math.min(GR_RULES.maxGold, Math.max(0, g + delta));
-  return { delta: next - g, gold: next, shield: e.kind === "shield" };
+  return { delta: next - g, gold: next, protect: e.kind === "shield" };
+}
+
+export function protectedLeftMs(p, now) {
+  const until = toMs(p?.protectedUntil);
+  return until != null && until > now ? until - now : 0;
 }
 
 export function isProtected(p, now) {
-  const until = toMs(p?.protectedUntil);
-  return until != null && until > now;
+  return protectedLeftMs(p, now) > 0;
+}
+
+/** Sköld-kistan: skyddad shieldMs från NU (redan skyddad → förlängs dit). */
+export function shieldUntil(now) {
+  return now + GR_RULES.shieldMs;
+}
+
+/** Bestulen/bytt: stöldskydd protectionMs – kortar aldrig ett längre skydd. */
+export function hitProtectionUntil(p, now) {
+  return Math.max(toMs(p?.protectedUntil) ?? 0, now + GR_RULES.protectionMs);
 }
 
 const stealShare = () => Math.min(Number(chestById("stold")?.effect?.share) || 0.15, 0.15);
 
-/** Varför offret inte går att välja (null = går). Sköld är INTE ett hinder – den stoppar. */
+/** Varför offret inte går att välja (null = går) – i ögonblicket `now`. */
 export function victimProblem(kind, thief, victim, now) {
   if (!victim?.uid) return "saknas";
   if (victim.uid === thief?.uid) return "sig-sjalv";
@@ -118,45 +144,46 @@ export function victimProblem(kind, thief, victim, now) {
 const MESSAGES = {
   "saknas": "Den eleven är inte med i matchen.",
   "sig-sjalv": "Du kan inte välja dig själv.",
-  "skyddad": "Den eleven har stöldskydd en liten stund till 🛡️",
+  "skyddad": "🛡️ {namn} hann skaffa en sköld!",
   "samma-igen": "Du kan inte välja samma elev två gånger i rad.",
   "for-lite-guld": "Den eleven har för lite guld att knycka.",
   "inte-mer-guld": "Du kan bara byta med någon som har mer guld än du.",
   "inget-eget-guld": "Du behöver eget guld för att byta.",
 };
-export function victimMessage(reason) {
-  return MESSAGES[reason] || "Det går inte att välja den eleven.";
+export function victimMessage(reason, victim = null) {
+  const namn = String(victim?.name || "").trim().split(/\s+/)[0] || "Klasskamraten";
+  return fill(MESSAGES[reason] || "Det går inte att välja den eleven.", { namn });
 }
 
-/** Offerlistan (elevens val) – random: servern slumpar bara bland dem utan sköld. */
-export function eligibleVictims(kind, thief, players, now, { random = false } = {}) {
-  return (players || []).filter((v) => !victimProblem(kind, thief, v, now) && !(random && v.shield));
+/** De som går att välja just nu (offerlistan; servern slumpar bland dem). */
+export function eligibleVictims(kind, thief, players, now) {
+  return (players || []).filter((v) => !victimProblem(kind, thief, v, now));
 }
 
 /** Stöldens/bytets utfall (offret är redan kontrollerat med victimProblem). */
 export function resolveVictim(kind, thief, victim) {
   const tg = int(thief?.gold);
   const vg = int(victim?.gold);
-  if (victim?.shield) return { blocked: true, amount: 0, thiefGold: tg, victimGold: vg };
-  if (kind === "swap") return { blocked: false, amount: vg - tg, thiefGold: vg, victimGold: tg };
+  if (kind === "swap") return { amount: vg - tg, thiefGold: vg, victimGold: tg };
   const amount = Math.floor(vg * stealShare());
-  return { blocked: false, amount, thiefGold: Math.min(GR_RULES.maxGold, tg + amount), victimGold: vg - amount };
+  return { amount, thiefGold: Math.min(GR_RULES.maxGold, tg + amount), victimGold: vg - amount };
 }
-
-const fill = (tpl, vars) => String(tpl || "").replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? ""));
 
 /**
  * Händelseflödets text. ev = grEvents-dokumentet:
- *   { type: "chest"|"steal"|"swap"|"shieldBlock"|"lead", chest?, name,
- *     victimName?, amount? }
- * names false (session.showNames av) → "Någon"/"en klasskamrat".
+ *   { type: "chest"|"steal"|"swap"|"lead", chest?, name, victimName?, amount? }
+ * names false (session.showNames av) → "Någon"/"en klasskamrat". Okänd typ
+ * (t.ex. "shieldBlock" från före #588) → "".
  */
-export function eventText(ev, { names = true } = {}) {
+export function eventText(ev, { names = true, short = false } = {}) {
   const vars = {
     namn: names ? ev?.name || "?" : GR_ANON.namn,
     offer: names ? ev?.victimName || "?" : GR_ANON.offer,
     belopp: Math.abs(Number(ev?.amount) || 0).toLocaleString("sv-SE"),
+    mynt: GR_COIN, // markören står kvar – UI:t byter den mot mynt-ikonen
   };
-  if (ev?.type === "shieldBlock" || ev?.type === "lead") return fill(GR_EVENT_TEXTS[ev.type], vars);
-  return fill(chestById(ev?.chest)?.eventText, vars);
+  if (ev?.type === "lead") return fill(short ? GR_EVENT_TEXTS.leadFeed : GR_EVENT_TEXTS.lead, vars);
+  if (ev?.type && !["chest", ...VICTIM_KINDS].includes(ev.type)) return "";
+  const chest = chestById(ev?.chest);
+  return fill(short ? chest?.feedText || chest?.eventText : chest?.eventText, vars);
 }

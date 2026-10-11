@@ -22,13 +22,19 @@
 //     demo.answer(uid, correct, chestId?) ett svar; rätt → kista (slumpad
 //                                   eller chestId)
 //     demo.chest(id)                trigga EN kisttyp (stöld/byte väljer offer)
-//     demo.shieldBlock()            en stöld mot någon med sköld (stoppas)
+//     demo.shield({ ms? })          en elev i topp 3 öppnar Sköld-kistan →
+//                                   skyddad 60 s (ms: kortare, för att se
+//                                   skyddet gå ut); offerlistor hoppar över den
+//     demo.protectedList()          [{ uid, name, leftMs }] – skyddade just nu
 //     demo.leadChange()             en ny elev tar ensam ledningen
 //     demo.storm()                  alla elever öppnar en kista samtidigt
+//     demo.treasure()               klassen når nästa gemensamma skatt (en
+//                                   Guld-kista tar totalen över delmålet, #591)
 //     demo.soonOut(sek)             matchen har sek sekunder kvar
 //     demo.playHistory(n)           n svar direkt (en pågående match)
-//     demo.jumpToFinal(tie)         hoppa till pallplatsen; tie null | "andra"
-//                                   (delad 2:a) | "forsta" (oavgjort om 1:a)
+//     demo.jumpToFinal(tie, n?)     hoppa till pallplatsen; tie null | "andra"
+//                                   (delad 2:a) | "forsta" (oavgjort om 1:a);
+//                                   n = antal elever (alla 30 om utelämnat)
 //     demo.toggleFreeze()           tiden står still (skärmdumpar)
 //     demo.state()                  { session, players, grPlayers, events, answers, reads }
 //   forceReducedMotion(on)          (Snilleblixtens demo) – bara demot
@@ -38,12 +44,15 @@ import { phaseAt, formatClock } from "../../live-core.js";
 import { computeStandings, buildResult } from "./guldrush-core.js";
 import {
   rollChest, chestById, applySelfEffect, resolveVictim, eligibleVictims, isVictimKind,
+  shieldUntil, hitProtectionUntil, protectedLeftMs,
 } from "./delat/guldrush-regler.js";
-import { GR_CHESTS, GR_RULES } from "./delat/chests-config.js";
+import { GR_CHESTS } from "./delat/chests-config.js";
+import { milestone } from "./gr-proj-scen.js";
+import { withGrIcons } from "./gr-ikoner.js";
 import { DEMO_NAMES, demoMembers } from "../snilleblixt/sb-demo.js";
 
 export { forceReducedMotion } from "../snilleblixt/sb-demo.js";
-export const DEMO_CHESTS = GR_CHESTS.map((c) => ({ id: c.id, icon: c.icon, label: c.label }));
+export const DEMO_CHESTS = GR_CHESTS.map((c) => ({ id: c.id, icon: withGrIcons(c.icon), label: c.label }));
 
 export function createGrDemo({
   sid = "demo-guldrush", classes = 1, showNames = true, stealSwap = true, screen = false,
@@ -88,7 +97,7 @@ export function createGrDemo({
     const uid = `e${i + 1}`;
     if (i >= DEMO_NAMES.length || players.some((p) => p.uid === uid)) return;
     players = [...players, { uid, name: DEMO_NAMES[i], classId: cls(i), correct: 0, incorrect: 0, joinedAt, lastSeenAt: now() }];
-    gp.set(uid, { uid, name: DEMO_NAMES[i], classId: cls(i), gold: 0, correct: 0, incorrect: 0, chests: 0, shield: false,
+    gp.set(uid, { uid, name: DEMO_NAMES[i], classId: cls(i), gold: 0, correct: 0, incorrect: 0, chests: 0,
       protectedUntil: null, lastVictimUid: null, pending: null, lastHit: null });
   }
   function ev(e) {
@@ -123,16 +132,10 @@ export function createGrDemo({
       }
       const res = resolveVictim(kind, g, v);
       const who = { victimUid: v.uid, victimName: v.name, victimClassId: v.classId };
-      const lastHit = { kind: res.blocked ? "blocked" : kind, byUid: uid, byName: g.name, amount: res.amount, at: t };
+      const lastHit = { kind, byUid: uid, byName: g.name, amount: res.amount, at: t };
       g.lastVictimUid = v.uid;
-      if (res.blocked) {
-        v.shield = false;
-        v.lastHit = lastHit;
-        ev({ type: "shieldBlock", chest: chest.id, uid, name: g.name, classId: g.classId, ...who, amount: 0, gold: g.gold, auto: false });
-        return { result: "blocked", chest: chest.id, victimUid: v.uid };
-      }
       g.gold = res.thiefGold;
-      Object.assign(v, { gold: res.victimGold, protectedUntil: t + GR_RULES.protectionMs, lastHit });
+      Object.assign(v, { gold: res.victimGold, protectedUntil: hitProtectionUntil(v, t), lastHit });
       ev({ type: kind, chest: chest.id, uid, name: g.name, classId: g.classId, ...who, amount: res.amount, gold: res.thiefGold,
         victimGold: res.victimGold, auto: false });
       noteLeader();
@@ -140,7 +143,7 @@ export function createGrDemo({
     }
     const eff = applySelfEffect(chest, g.gold);
     g.gold = eff.gold;
-    if (eff.shield) g.shield = true;
+    if (eff.protect) g.protectedUntil = shieldUntil(t);
     ev({ type: "chest", chest: chest.id, uid, name: g.name, classId: g.classId, amount: eff.delta, gold: eff.gold });
     noteLeader();
     return { result: "chest", chest: chest.id };
@@ -295,17 +298,19 @@ export function createGrDemo({
       // Stöld: från den rikaste som går att välja – ett tydligt belopp i flödet.
       const v = id === "stold" ? eligibleVictims("steal", g, byGold(), now())[0]?.uid : null;
       const out = answer(g.uid, true, id, v);
-      onLog(`${chestById(id).icon} ${g.name}: ${out?.result}${out?.victimUid ? ` → ${gp.get(out.victimUid).name}` : ""}`);
+      onLog(`${chestById(id).label} – ${g.name}: ${out?.result}${out?.victimUid ? ` → ${gp.get(out.victimUid).name}` : ""}`);
     },
-    shieldBlock() {
+    shield({ ms = null } = {}) {
       if (!ensureLive()) return onLog("matchen är slut");
+      // En av de tre rikaste (syns vid guldhögarna) som inte redan är skyddad.
       const r = byGold();
-      const v = r.find((x) => !x.protectedUntil || x.protectedUntil <= now()) || r[0];
-      v.shield = true;
-      const thief = r.find((g) => g.uid !== v.uid && g.lastVictimUid !== v.uid) || r[r.length - 1];
-      const out = answer(thief.uid, true, "stold", v.uid);
-      onLog(`🛡️ ${thief.name} försökte knycka från ${v.name}: ${out?.result}`);
+      const g = r.slice(0, 3).find((x) => !protectedLeftMs(x, now())) || r[0];
+      answer(g.uid, true, "skold");
+      if (ms != null) { g.protectedUntil = now() + ms; emit(true); }
+      onLog(`🛡️ ${g.name} är skyddad ${Math.round(protectedLeftMs(g, now()) / 1000)} s`);
+      return g.uid;
     },
+    protectedList: () => byGold().map((g) => ({ uid: g.uid, name: g.name, leftMs: protectedLeftMs(g, now()) })).filter((x) => x.leftMs > 0),
     leadChange() {
       if (!ensureLive()) return onLog("matchen är slut");
       const r = byGold();
@@ -314,6 +319,17 @@ export function createGrDemo({
       lo.gold = Math.max(0, r[0].gold - 60); // + Skattkammaren (100) = leder med 40
       const out = answer(lo.uid, true, "skattkammare");
       onLog(`⭐ ${lo.name} tar ledningen (${out?.result})`);
+    },
+    treasure() {
+      if (!ensureLive()) return onLog("matchen är slut");
+      const total = [...gp.values()].reduce((n, x) => n + (x.gold || 0), 0);
+      const next = milestone(total).next;
+      if (!next) return onLog("alla skatter redan hittade");
+      // Tyst påfyllning så att nästa Guld-kista (+25) tar totalen över skatten.
+      const g = byGold()[Math.min(6, players.length - 1)];
+      g.gold += Math.max(0, next - total - 25);
+      answer(g.uid, true, "guld");
+      onLog(`🎉 skatt ${next} – ${g.name}`);
     },
     storm() {
       if (!ensureLive()) return onLog("matchen är slut");
@@ -325,8 +341,8 @@ export function createGrDemo({
       session.startedAt = now() - (session.durationSeconds - sek + session.countdownSeconds) * 1000;
       emit(true);
     },
-    jumpToFinal(tieKind = null) {
-      if (!players.length) join(DEMO_NAMES.length, 0, now() - 900_000);
+    jumpToFinal(tieKind = null, n = DEMO_NAMES.length) {
+      if (!players.length) join(Math.max(1, Math.min(DEMO_NAMES.length, n)), 0, now() - 900_000);
       if (session.status === "lobby") playHistory(260);
       if (tieKind === "forsta") tie(1, 2);
       if (tieKind === "andra") tie(2, 3);
