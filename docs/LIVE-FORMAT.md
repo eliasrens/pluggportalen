@@ -244,7 +244,9 @@ Kom ihåg: regeländringar gäller först efter
   `src/tavling/answer-writes.js`; i reglerna: frågans kind avgör formen
   (`year is int` inom `question.span`, inget annat fält). Rättning: exakt år = rätt.
   Projektorn visar linjen utan markör och vid avslöjandet rätt år + anonym spridning
-  (`src/timeline/timeline-spread.js`). Förebild: Snilleblixten.
+  (`src/timeline/timeline-spread.js`). Förebild: Snilleblixten. Rättar SERVERN
+  (Guldrushen, #601): frågans `kind` läses ur den lagrade ögonblicksbilden, aldrig
+  ur anropet – se `functions/guldrush-rattning.js` (form, spann, låst år).
 - **Svarskomponent:** utan `createStage` monterar elevsidan kärnans komponent
   för svarssättet (`loadAnswerComponent(kind)` i `answer-kinds.js`:
   `free` = `src/mult/fast-answer.js`, `choice` = `src/live/choice-flow.js`).

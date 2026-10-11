@@ -12,7 +12,12 @@
 //     om; quiz: mot det lärarskyddade facit grPrivate/snapshot) och skapar
 //     answers/{attemptId} (create-only, aldrig två gånger). Quiz: servern
 //     väljer elevens nästa fråga (grPlayers.nextQ) – ingen kan pröva sig fram
-//     på samma fråga.
+//     på samma fråga. TIDSLINJEFRÅGOR (#601, epic #595): en fråga med kind
+//     "timeline" i grPublic svaras med { q, year } – bara ett heltalsår inom
+//     frågans span (spannet läses ur grPublic, aldrig ur anropet), inget
+//     choiceIndex/answer. Facit = grPrivate facit[q].year; exakt år = rätt
+//     (→ kistor som vanligt). Ett omförsök med samma attemptId men ANNAT år
+//     (manipulerat efter lås) nekas; ny attemptId på samma fråga nekas av nextQ.
 //   openChest       ett RÄTT svar → EN kista (answers/{attemptId}.chest sätts
 //     i samma transaktion – en andra öppning nekas). Slumpen här (crypto).
 //     Stöld/byte → grPlayers.pending; eleven väljer offer med chooseVictim.
@@ -38,13 +43,15 @@
 //
 // API (deps = { db, FieldValue, Timestamp, now?(), rng?() })
 //   answerQuestion(deps, uid, { sid, attemptId, factorA?, factorB?, answer?,
-//                  choiceIndex?, q? }) → { attemptId, correct, correctAnswer, nextQ }
+//                  choiceIndex?, q?, year? }) → { attemptId, correct, correctAnswer,
+//                  nextQ, correctYear? (tidslinjefråga) }
 //   openChest(deps, uid, { sid, attemptId, chestIndex }) → { chest, kind,
 //                  delta, gold, protectedUntil (ms | null), pending? }
 //   chooseVictim(deps, uid, { sid, victimUid? }) → { result: "steal"|"swap"|
 //                  "fallback", chest, victimUid?, amount, delta, gold }
 //   noteLeader(deps, sid) → uid | null (ny ledare skriven)
 //   GrError(code, message) – code = HttpsError-kod, message på svenska
+// Rättningen (multiplikation, quiz, tidslinje) + GrError: ./guldrush-rattning.js.
 // ============================================================================
 
 import { GR_RULES } from "./guldrush/chests-config.js";
@@ -52,6 +59,9 @@ import {
   toMs, chestById, isVictimKind, rollChest, applySelfEffect, victimProblem, victimMessage,
   eligibleVictims, resolveVictim, shieldUntil, hitProtectionUntil,
 } from "./guldrush/guldrush-regler.js";
+import { GrError, gradeMult, gradeQuiz, pickNextQ, yearOut } from "./guldrush-rattning.js";
+
+export { GrError };
 
 export const GR_FORMAT = "guldrush";
 export const GR_MODES = ["multiplication_0_10", "plugga_quiz"];
@@ -59,14 +69,6 @@ const MULT = "multiplication_0_10";
 const QUIZ = "plugga_quiz";
 const SID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const ATTEMPT_RE = /^[A-Za-z0-9_-]{8,64}$/;
-
-/** Fel med en HttpsError-kod (index.js översätter) och ett svenskt meddelande. */
-export class GrError extends Error {
-  constructor(code, message) {
-    super(message);
-    this.code = code;
-  }
-}
 
 const bad = (msg) => new GrError("invalid-argument", msg);
 const isInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
@@ -130,56 +132,6 @@ function playerOf(snap, s) {
   return p;
 }
 
-// --- Rättning ---------------------------------------------------------------
-
-function parseInt0(v) {
-  if (Number.isInteger(v)) return v;
-  if (typeof v === "string" && /^\s*\d{1,4}\s*$/.test(v)) return Number(v.trim());
-  return null;
-}
-
-/** Multiplikation: facit räknas om här – samma fält som Klassmatchens svar. */
-function gradeMult(s, raw) {
-  const a = raw?.factorA;
-  const b = raw?.factorB;
-  if (!isInt(a, 0, 10) || !isInt(b, 0, 10)) throw bad("Ogiltig fråga.");
-  const answer = parseInt0(raw?.answer);
-  if (answer == null || answer > 9999) throw bad("Ogiltigt svar.");
-  const doc = { mode: MULT, factorA: a, factorB: b, answer, correctAnswer: a * b, isCorrect: answer === a * b };
-  if (s.answerKind === "choice") {
-    if (!isInt(raw?.choiceIndex, 0, 3)) throw bad("Välj ett av alternativen.");
-    Object.assign(doc, { answerKind: "choice", choiceIndex: raw.choiceIndex });
-  } else if (raw?.choiceIndex != null) {
-    throw bad("Den här matchen har skriv själv – inga alternativ.");
-  }
-  return doc;
-}
-
-/** Quiz: mot det lärarskyddade facit, bara den fråga servern gett eleven. */
-function gradeQuiz(s, raw, g, pub, priv) {
-  const questions = pub?.questions || [];
-  const facit = priv?.facit || [];
-  const q = raw?.q;
-  if (!isInt(q, 0, questions.length - 1) || !facit[q]) throw bad("Ogiltig fråga.");
-  if (g?.nextQ != null && q !== g.nextQ) throw new GrError("failed-precondition", "Svara på frågan du fick.");
-  const opts = questions[q].options || [];
-  const ci = raw?.choiceIndex;
-  if (s.answerKind !== "choice" || !isInt(ci, 0, opts.length - 1)) throw bad("Välj ett av alternativen.");
-  const ai = facit[q].answerIndex;
-  return {
-    mode: QUIZ, answerKind: "choice", q, questionId: String(questions[q].id ?? q), choiceIndex: ci,
-    answer: String(opts[ci]), correctAnswer: String(opts[ai] ?? ""), isCorrect: ci === ai,
-    statKeys: (questions[q].statKeys || []).filter((k) => typeof k === "string"),
-  };
-}
-
-/** Nästa quizfråga: slumpad, aldrig samma två gånger i rad. */
-function pickNextQ(n, cur, rng) {
-  if (n <= 1) return 0;
-  const i = Math.floor(rng() * (n - 1));
-  return i >= cur ? i + 1 : i;
-}
-
 // --- Svar --------------------------------------------------------------------
 
 export async function answerQuestion(deps, uid, raw) {
@@ -200,7 +152,9 @@ export async function answerQuestion(deps, uid, raw) {
       // Omförsök efter nätverksfel: samma utfall igen, inget skrivs.
       const a = aSnap.data();
       if (a.uid !== uid) throw new GrError("already-exists", "Svaret finns redan.");
-      return { attemptId, correct: a.isCorrect === true, correctAnswer: a.correctAnswer, nextQ: g?.nextQ ?? null };
+      // Tidslinjen: det låsta årtalet går inte att byta i efterhand.
+      if (a.answerKind === "timeline" && raw?.year !== a.year) throw new GrError("already-exists", "Ditt årtal är redan låst.");
+      return { attemptId, correct: a.isCorrect === true, correctAnswer: a.correctAnswer, nextQ: g?.nextQ ?? null, ...yearOut(a) };
     }
     assertLive(s, now());
     const p = playerOf(pSnap, s);
@@ -230,7 +184,7 @@ export async function answerQuestion(deps, uid, raw) {
       lastAnswerAt: FieldValue.serverTimestamp(),
       ...(nextQ != null ? { nextQ } : {}),
     }, { merge: true });
-    return { attemptId, correct: ok, correctAnswer: graded.correctAnswer, nextQ };
+    return { attemptId, correct: ok, correctAnswer: graded.correctAnswer, nextQ, ...yearOut(graded) };
   });
 }
 

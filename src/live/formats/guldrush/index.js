@@ -12,6 +12,9 @@
 //     utan facit) + grPrivate/snapshot (facit, bara lärare/servern) i SAMMA
 //     batch som sessionen; questionCount = antal frågor. Multiplikation:
 //     inget att kopiera (servern räknar om facit).
+//     Tidslinjefrågor (#601): quiz.timeline = true (lärarens ruta) → områdets
+//     timeline[] blandas in (kind "timeline", årtalet bara i facit).
+//   timelineQuestions   true – quizväljaren visar rutan "Ta med tidslinjefrågor"
 //   privateDocs   grPrivate + grPublic – raderas med en lobby
 //   resultInputs(s) → { grPlayers, answers, questions } – guldet + svaren
 //     (statistik per fråga, #566) till buildResult
@@ -47,6 +50,7 @@ const GULDRUSH = {
   answerKinds: ["free", "choice"],
   pacing: "tid",
   minQuestions: 5,
+  timelineQuestions: true,
   privateDocs: [GR_PRIVATE_DOC, GR_PUBLIC_DOC],
   // Tyst lobby (läraren pratar; ljud får ändå inte starta före STARTA),
   // matchen ≈ 30 % av effekternas volym.
@@ -81,8 +85,11 @@ const GULDRUSH = {
     const getArea = ctx.getArea || (await import("../../../data-content.js")).getArea;
     const area = await getArea(data.quiz.subjectId, data.quiz.areaId);
     const { buildQuizSnapshot } = await import("../../modes/plugga-quiz-core.js");
-    const pool = buildQuizPool(mode, area?.quiz || [], buildQuizSnapshot, ctx.rng,
-      { showPassage: data.quiz.showPassage === true });
+    const opts = { showPassage: data.quiz.showPassage === true };
+    if (data.quiz.timeline === true && Array.isArray(area?.timeline) && area.timeline.length) {
+      Object.assign(opts, { timeline: area.timeline, timelineSpan: area.timelineSpan || null });
+    }
+    const pool = buildQuizPool(mode, area?.quiz || [], buildQuizSnapshot, ctx.rng, opts);
     if (!pool.questions.length) throw new Error("Det finns inga frågor att spela.");
     return {
       data: { questionCount: pool.questions.length },

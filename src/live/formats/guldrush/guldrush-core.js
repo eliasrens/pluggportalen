@@ -33,7 +33,9 @@
 //   validateSetup(input)  → string[]
 //   buildSessionFields(input) → { stealSwap, showNames }
 //   sessionTitle(s) / defaultSessionName(names)
-//   buildQuizPool(mode, quiz, quizSnapshot, rng?, { showPassage? }) → { questions, facit }
+//   buildQuizPool(mode, quiz, quizSnapshot, rng?, { showPassage?, timeline?, timelineSpan? })
+//                         → { questions, facit } – tidslinjefrågor (#601): kind
+//                         "timeline" + span i questions, facit { year } (bara grPrivate)
 //   rankByGold(rows)      → sorterad + rank, DELAD placering (1, 1, 3)
 //   computeStandings(s, { players, grPlayers }) → { players, classes, totalGold,
 //                           totalCorrect, leaderIds, winnerId, draw }
@@ -114,14 +116,19 @@ export function defaultSessionName(names) {
  * ordning blandas en gång här. quizSnapshot = plugga-quiz-core
  * buildQuizSnapshot (injiceras så att kärnan inte laddar quizkoden).
  * showPassage = lärarens ruta "Visa lästext" (session.quiz.showPassage).
+ * timeline/timelineSpan (#601, bara med session.quiz.timeline): områdets
+ * tidslinjefrågor blandas in – servern rättar dem mot facit { year }.
  */
-export function buildQuizPool(mode, quiz, quizSnapshot, rng = Math.random, { showPassage = false } = {}) {
-  const snap = quizSnapshot(quiz || [], { shuffle: true, showPassage, rng });
+export function buildQuizPool(mode, quiz, quizSnapshot, rng = Math.random, { showPassage = false, timeline = null, timelineSpan = null } = {}) {
+  const opts = { shuffle: true, showPassage, rng };
+  if (timeline) Object.assign(opts, { timeline, timelineSpan });
+  const snap = quizSnapshot(quiz || [], opts);
   const questions = [];
   const facit = [];
   snap.questions.slice(0, GR_MAX_QUESTIONS).forEach((q, i) => {
     questions.push({ ...q, statKeys: mode.statKeys(q) });
-    facit.push({ answerIndex: snap.facit[i].answerIndex });
+    const f = snap.facit[i];
+    facit.push(q.kind === "timeline" ? { year: f.year } : { answerIndex: f.answerIndex });
   });
   return { questions, facit };
 }
