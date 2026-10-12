@@ -575,5 +575,9 @@ Frivilliga uppgifter för starka elever. Ren logik i `extra.js`, tester i
   `coins`. Försöket har `extra: true` (samma create-only-idempotens).
   Lärarens räknegång spelar om försöket med rätt spärrar (`rulesForTask`),
   nivåkurvan hoppar över extraförsök.
+- **Färdighetsmodellen (#626):** extraförsök räknas INTE – försökets
+  `skills.obs` är `{}`, så `progress.skills` ändras inte, och de hamnar aldrig
+  i nivåfönstret. Modellen beskriver huvudprogressionen; frivilliga, svårare
+  uppgifter skulle annars ge en skev bild åt båda hållen.
 - ⚠️ **Regler:** `ekvProgressOk` tillåter `extra` (map), `ekvAttemptOk`
   `extra == true`. Kräver `firebase deploy --only firestore:rules`.

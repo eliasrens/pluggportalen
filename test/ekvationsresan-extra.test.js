@@ -211,6 +211,9 @@ test("en extrautmaning ändrar aldrig nivå, fönster eller huvudstatistik – b
   assert.deepEqual(p.extra, { tasks: 10, solved: 10, coins: 70, current: null });
   assert.equal(p.coins, 40 + 70);
   assert.equal(applyExtraCompletion(base, attempt, { now: 1 }).change, null);
+  // Färdighetsmodellen (#626) rörs inte: inga observationer på extraförsöket.
+  assert.deepEqual(attempt.skills.obs, {});
+  assert.deepEqual(p.skills, base.skills);
 });
 
 test("extra.current och huvudprogressionens current lever sida vid sida", () => {
