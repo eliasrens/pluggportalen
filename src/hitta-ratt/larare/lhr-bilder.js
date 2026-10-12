@@ -130,7 +130,7 @@ function bildval(rad, it, { packId, lage }) {
     const visaFlik = (f) => {
       d.querySelectorAll("[data-panel]").forEach((p) => { p.hidden = p.dataset.panel !== f; });
       d.querySelectorAll("[data-flik]").forEach((b) => {
-        b.classList.toggle("gron", b.dataset.flik === f);
+        b.classList.toggle("ghost", b.dataset.flik !== f);
         b.setAttribute("aria-selected", String(b.dataset.flik === f));
       });
     };
