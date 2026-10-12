@@ -21,6 +21,8 @@
 //     spela [fel-km] [n]     hela omgången: facit (+fel-km öst) → Lås → Nästa, n frågor (default alla);
 //                            område: fel-km > 0 = var fel-km:e fråga väljs fel område
 //   --touch: klick/drag/knapp skickas som touch i stället för mus.
+//   --packfil <sökväg>: lärarens egna pack (e-…, #633) finns inte på disk –
+//     peka ut en JSON-dump av hittaRattPacks/{id} i stället.
 // ============================================================================
 import { readFileSync } from "node:fs";
 
@@ -41,6 +43,7 @@ const flagga = (name) => {
 const PORT = opt("port", "9222");
 const URL_PART = opt("url", "127.0.0.1:86");
 const TOUCH = flagga("touch");
+const PACKFIL = opt("packfil", null);
 const [cmd, ...rest] = args;
 const ROOT = new URL("..", import.meta.url);
 const json = (p) => JSON.parse(readFileSync(new URL(p, ROOT), "utf8"));
@@ -147,7 +150,7 @@ const las = () => evalJs(LAS);
 function aktivtPack(s) {
   const id = decodeURIComponent((s.hash.match(/pack=([^&]+)/) || [])[1] || "");
   if (!id) throw new Error(`Inget pack i hashen (${s.hash})`);
-  const pack = json(`src/hitta-ratt/content/packs/${id}.json`);
+  const pack = PACKFIL ? JSON.parse(readFileSync(PACKFIL, "utf8")) : json(`src/hitta-ratt/content/packs/${id}.json`);
   const geo = json(`src/hitta-ratt/content/geo/${pack.geo}.json`);
   return { pack, geo };
 }
