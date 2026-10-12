@@ -1,0 +1,35 @@
+nivå | x min–max | decimal-x | typer (A B C D E F) | F-andel | negativt mellanled i opt. väg | BFS-stickprov
+1 | 1–20 | 0 | 647 60 138 155 0 0 | 0.0 % | 0 | 40/40
+2 | 2–120 | 0 | 564 151 143 142 0 0 | 0.0 % | 0 | 40/40
+3 | 2–10 | 0 | 336 189 119 109 133 114 | 11.4 % | 0 | 40/40
+4 | 2–12 | 0 | 268 273 125 77 110 147 | 14.7 % | 0 | 40/40
+5 | 3–12 | 0 | 185 349 128 53 128 157 | 15.7 % | 0 | 40/40
+6 | 2–171 | 0 | 122 430 131 51 126 140 | 14.0 % | 0 | 40/40
+7 | 2–10 | 0 | 116 447 113 73 111 140 | 14.0 % | 0 | 40/40
+8 | 2–12 | 0 | 83 512 115 63 111 116 | 11.6 % | 0 | 40/40
+9 | 2–12 | 0 | 87 552 128 0 127 106 | 10.6 % | 0 | 40/40
+10 | 2–20 | 216 | 62 564 121 0 130 123 | 12.3 % | 0 | 40/40
+11 | 2–135 | 67 | 49 557 125 0 143 126 | 12.6 % | 0 | 40/40
+12 | 2–20 | 0 | 19 335 89 0 58 499 | 49.9 % | 0 | 40/40
+FEL: inga
+nivå 3 · neutral                    | A 37%  B 19%  C 11%  D 9%  E 11%  F 13% | fokus 0% | former multDiv 100% tvaSteg 100%
+nivå 3 · stark ekv, svag text       | A 15%  B 11%  C 13%  D 10%  E 12%  F 40% | fokus 39.6% | former multDiv 100% tvaSteg 100%
+nivå 3 · våg stark, symboler svaga  | A 14%  B 7%  C 22%  D 32%  E 13%  F 13% | fokus 53.8% | former multDiv 100% tvaSteg 100%
+nivå 3 · svag på x med koefficient  | A 38%  B 18%  C 13%  D 9%  E 11%  F 12% | fokus 0% | former multDiv 100% tvaSteg 100%
+nivå 3 · svag på två steg           | A 34%  B 20%  C 11%  D 11%  E 11%  F 12% | fokus 0% | former multDiv 100% tvaSteg 100%
+nivå 6 · neutral                    | A 12%  B 47%  C 11%  D 4%  E 11%  F 15% | fokus 0% | former multDiv 83.7% tvaSteg 67.7%
+nivå 6 · stark ekv, svag text       | A 5%  B 25%  C 12%  D 6%  E 12%  F 40% | fokus 40% | former multDiv 84.2% tvaSteg 66.2%
+nivå 6 · våg stark, symboler svaga  | A 15%  B 6%  C 26%  D 27%  E 13%  F 15% | fokus 52.4% | former multDiv 82.9% tvaSteg 64.6%
+nivå 6 · svag på x med koefficient  | A 13%  B 44%  C 13%  D 4%  E 11%  F 16% | fokus 0% | former multDiv 91.1% tvaSteg 72.9%
+nivå 6 · svag på två steg           | A 12%  B 42%  C 13%  D 5%  E 15%  F 13% | fokus 0% | former multDiv 89.7% tvaSteg 80%
+nivå 8 · neutral                    | A 7%  B 48%  C 15%  D 6%  E 11%  F 13% | fokus 0% | former multDiv 100% tvaSteg 0%
+nivå 8 · stark ekv, svag text       | A 4%  B 26%  C 12%  D 6%  E 11%  F 41% | fokus 40.9% | former multDiv 100% tvaSteg 0%
+nivå 8 · våg stark, symboler svaga  | A 14%  B 6%  C 25%  D 31%  E 11%  F 13% | fokus 55.4% | former multDiv 100% tvaSteg 0%
+nivå 8 · svag på x med koefficient  | A 9%  B 49%  C 11%  D 6%  E 12%  F 13% | fokus 0% | former multDiv 100% tvaSteg 0%
+nivå 8 · svag på två steg           | A 10%  B 47%  C 12%  D 7%  E 10%  F 15% | fokus 0% | former multDiv 100% tvaSteg 0%
+nivå 11 · neutral                    | A 5%  B 57%  C 12%  D 0%  E 14%  F 13% | fokus 0% | former multDiv 100% tvaSteg 29.4%
+nivå 11 · stark ekv, svag text       | A 2%  B 34%  C 12%  D 0%  E 12%  F 40% | fokus 39.9% | former multDiv 100% tvaSteg 32.2%
+nivå 11 · våg stark, symboler svaga  | A 35%  B 13%  C 26%  D 0%  E 13%  F 13% | fokus 26.3% | former multDiv 100% tvaSteg 29.8%
+nivå 11 · svag på x med koefficient  | A 4%  B 60%  C 10%  D 0%  E 14%  F 12% | fokus 0% | former multDiv 100% tvaSteg 28.4%
+nivå 11 · svag på två steg           | A 5%  B 61%  C 12%  D 0%  E 10%  F 12% | fokus 0% | former multDiv 100% tvaSteg 43.7%
+FEL totalt: 0
