@@ -8,6 +8,9 @@
 //   * de senaste uppgifterna (stjärnor, drag, optimalt, hjälp) – klick på en
 //     rad visar ELEVENS RÄKNEGÅNG som MIN LÖSNING (samma renderare som
 //     spelvyn: min-losning.rowsHtml(replayRows(...))).
+//   * #626 (E2.5) "Vad eleven kan": korta sammanfattningar, behärskar / har
+//     svårt för, problemlösning och färdighetsindikatorer – ur färdighets-
+//     modellen i progressdokumentet (row.fardighet, sammanfattning.js).
 // Här (och bara här) läses försöken – för EN elev (#231).
 // Samma modal-skal (.cx-modal, teacher-dark) som Läsresans elevdetalj.
 // ============================================================================
@@ -47,6 +50,42 @@ function statsGridHtml(r) {
     ${stat(drag == null ? dash : esc(drag), "drag jämfört med optimalt")}
     ${stat(r.started ? r.coins : dash, "mynt i Ekvationsresan")}
   </div>`;
+}
+
+const LAGE = {
+  stark: "behärskar",
+  mitt: "på väg",
+  svag: "svårt",
+  lite: "för lite underlag",
+};
+const TON = { bra: "✓", svart: "!", info: "i" };
+const procent = (e) => (e.n ? `${e.v} %` : "–");
+
+/** Problemlösning och text → ekvation som två korta rader. */
+function problemHtml(p) {
+  const rad = (namn, e) => `<li><b>${esc(namn)}:</b> ${e.n ? `${procent(e)} · ${e.n} ${e.n === 1 ? "uppgift" : "uppgifter"}${e.h >= 50 ? " · ofta med hjälp" : ""}` : "inga uppgifter än"}</li>`;
+  return `<ul class="ekt-problem">${rad("Text → ekvation", p.text)}${rad("Problemlösning hela vägen", p.problem)}</ul>`;
+}
+
+/** "Vad eleven kan" (#626, E2.5). `f` = sammanfattning.fardighetsbild. */
+export function fardighetHtml(f) {
+  if (!f) return "";
+  const lista = (rubrik, saker, ton) =>
+    `<div class="ekt-slag ekt-slag--${ton}"><h4>${esc(rubrik)}</h4>${saker.length ? `<p>${saker.map((t) => `<span class="ekt-chip">${esc(t)}</span>`).join("")}</p>` : `<p class="hint">–</p>`}</div>`;
+  const ind = f.indikatorer.filter((i) => i.n > 0);
+  return `<ul class="ekt-meningar">${f.rader.map((r) => `<li class="ekt-mening ekt-mening--${r.ton}"><span aria-hidden="true">${TON[r.ton]}</span> ${esc(r.text)}</li>`).join("")}</ul>
+    <div class="ekt-slag-grid">${lista("Behärskar", f.slag.kan, "bra")}${lista("Har svårt för", f.slag.svart, "svart")}</div>
+    <h4 class="ekt-h4">Problemlösning</h4>${problemHtml(f.problem)}
+    <h4 class="ekt-h4">Färdighetsindikatorer</h4>
+    ${ind.length ? `<table class="ekt-ind"><tbody>${ind.map((i) => `<tr class="ekt-ind--${i.lage}">
+      <th scope="row">${esc(i.name)}</th>
+      <td class="ekt-ind-bar"><span class="ekt-bar" role="img" aria-label="${esc(`${i.name}: ${i.v} av 100`)}"><span style="width:${i.v}%"></span></span></td>
+      <td class="lrt-num">${i.v}</td>
+      <td>${esc(LAGE[i.lage] || "")}</td>
+      <td class="lrt-of">${[i.h > 0 ? `💡 ${i.h} %` : "", `${i.n} st`].filter(Boolean).join(" · ")}</td>
+    </tr>`).join("")}</tbody></table>
+    <p class="hint">Värdet 0–100 väger de senaste uppgifterna tyngst (⭐⭐⭐ = 100, ⭐⭐ = 60, ⭐ = 20). 💡 = andel uppgifter med hjälp eller visat svar. Eleven ser inte detta.</p>`
+    : `<p class="hint lrt-empty">Inga uppgifter än.</p>`}`;
 }
 
 /** Nivåkurvan: en punkt per uppgift (äldst först), färgad efter stjärnor. */
@@ -164,6 +203,7 @@ export function openEkvationsresanDetail(student, { row, progress, api, canSetLe
       </div>
       <div class="cx-modal-body">
         ${statsGridHtml(row)}
+        ${row.started ? `<div class="cx-detail-sec ekt-fardighet"><h3>Vad eleven kan</h3>${fardighetHtml(row.fardighet)}</div>` : ""}
         ${canSetLevel ? `<div class="cx-detail-sec lrn-sec"><h3>Ändra nivå</h3><div class="ekt-level-slot"></div></div>` : ""}
         <div class="cx-detail-sec"><h3>Nivå över tid</h3><div class="ekt-kurva-host">${row.started ? `<div class="spinner">Laddar…</div>` : `<p class="hint lrt-empty">Eleven har inte börjat Ekvationsresan än.</p>`}</div></div>
         <div class="cx-detail-sec"><h3>Senaste uppgifterna</h3><div class="ekt-attempts"></div></div>

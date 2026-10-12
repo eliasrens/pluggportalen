@@ -138,10 +138,12 @@ function buildTask(level, formId, rng, swap, type) {
  *   previous = förra uppgiften (eller dess key) – samma ekvation två gånger i
  *   följd ges aldrig. form/swap = tvinga form och sida för x (similarTask,
  *   tester). avoidSolution = lösning som inte får komma igen. type = tvinga
- *   uppgiftstyp (A–F).
+ *   uppgiftstyp (A–F). mix = { types?, typeB?, forms? } skriver över nivåns
+ *   andelar (färdighetsmodellen, nasta-uppgift.js #626) – nivån och dess
+ *   spärrar är desamma.
  */
-export function generateTask(level, { rng = Math.random, previous = null, form = null, swap = null, avoidSolution = null, type = null } = {}) {
-  const cfg = levelConfig(level);
+export function generateTask(level, { rng = Math.random, previous = null, form = null, swap = null, avoidSolution = null, type = null, mix = null } = {}) {
+  const cfg = mix ? { ...levelConfig(level), ...mix } : levelConfig(level);
   const prevKey = typeof previous === "string" ? previous : previous?.key || null;
   const avoid = avoidSolution === null ? null : toQ(avoidSolution);
   for (let i = 0; i < MAX_TRIES; i++) {
@@ -172,5 +174,6 @@ export function similarTask(task, { rng = Math.random } = {}) {
   // Äldre uppgifter (Etapp 1) saknar `swapped`: x bara i högerledet = bytt.
   const swap = task.swapped ?? (task.equation.right.some((t) => t.x) && !task.equation.left.some((t) => t.x));
   const type = TASK_TYPES[task.type] ? task.type : null;
-  return generateTask(task.level, { rng, previous: task, form: task.form, swap, avoidSolution: task.solution, type });
+  const next = generateTask(task.level, { rng, previous: task, form: task.form, swap, avoidSolution: task.solution, type });
+  return task.fokus ? { ...next, fokus: task.fokus } : next; // en fokusuppgift (#626) förblir en
 }

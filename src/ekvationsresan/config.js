@@ -322,3 +322,42 @@ export const TYPE_FEEDBACK = Object.freeze({
   shown: "Nu har du sett hur det ska vara. Prova en liknande!",
   none: "Nu har du sett hur det ska vara. Prova en ny!",
 });
+
+// --- Färdighetsmodellen (#626, spec E2.4) ------------------------------------
+// Intern – visas aldrig för eleven. Varje försök ger observationer (0–100) för
+// de färdigheter uppgiften visar (fardigheter.js); modellen är ett glidande
+// medelvärde per färdighet + hur ofta 💡/Visa lösningen behövdes. Lärarvyn
+// (E2.5) och valet av nästa uppgift (nasta-uppgift.js) läser den.
+export const SKILLS = Object.freeze([
+  { key: "balans", name: "Balans och likhet" },
+  { key: "operation", name: "Välja rätt operation" },
+  { key: "addSub", name: "Addition ↔ subtraktion" },
+  { key: "multDiv", name: "Multiplikation ↔ division" },
+  { key: "ettSteg", name: "Enstegsekvationer" },
+  { key: "tvaSteg", name: "Tvåstegsekvationer" },
+  { key: "bada", name: "x i båda leden" },
+  { key: "forenkling", name: "Förenkling" },
+  { key: "skrivsatt", name: "Algebraiskt skrivsätt" },
+  { key: "text", name: "Text → ekvation" },
+  { key: "problem", name: "Problemlösning" },
+  { key: "sjalv", name: "Självständighet" },
+]);
+
+export const FARDIGHET = Object.freeze({
+  alphaMin: 0.25, //    nya observationer väger 1/n i början, sedan minst 25 % (de senaste ~6 uppgifterna)
+  minN: 3, //           underlag innan modellen kallar något starkt eller svagt
+  stark: 75, //         värde ≥ stark = behärskar
+  svag: 50, //          värde < svag = har svårt för
+  hjalpOfta: 50, //     💡 i minst hälften av uppgifterna = "behöver ofta hjälp"
+  hjalpSallan: 20, //   💡 i högst var femte = "självständigt"
+  // Val av nästa uppgift (E2.4) – allt inom nivån som anpassningen gett:
+  textAndel: 0.4, //    andel problemlösning (F) när ekvationerna är starka men text → ekvation svag
+  broD: 0.3, //         andel bild → ekvation (D) när vågen är stark men skrivsättet svagt
+  broC: 0.25, //        … och nästa rad (C)
+  broTypeB: 0.3, //     … och högst så här stor andel "Lös själv" bland A/B (resten vågen i fokus)
+  svagFormVikt: 2, //   former som tränar en svag ekvationsfärdighet väger dubbelt
+  maxAndel: 0.85, //    C–F tillsammans högst så här stor andel
+  // En fokusuppgift (vald för att träna en svag färdighet) som slutar med ⭐
+  // eller ej löst räknas inte i nivåfönstret – eleven ska få träna, inte sänkas.
+  skyddStjarnor: 1,
+});

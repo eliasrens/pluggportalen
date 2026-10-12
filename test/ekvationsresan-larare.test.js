@@ -49,7 +49,7 @@ function student(level, plays) {
 }
 
 test("test 25: klassöversiktens kolumner och värden räknas ur progressdokumentet", () => {
-  assert.deepEqual(KOLUMNER.map((c) => c.label), ["Elev", "Nivå", "Trend", "Uppgifter", "⭐⭐⭐ / ⭐⭐ / ⭐", "Lösta %", "Hjälp %", "Drag jämfört med optimalt"]);
+  assert.deepEqual(KOLUMNER.map((c) => c.label), ["Elev", "Nivå", "Trend", "Uppgifter", "⭐⭐⭐ / ⭐⭐ / ⭐", "Lösta %", "Hjälp %", "Drag jämfört med optimalt", "I korthet"]);
   const a = student(3, [{}, {}, { extra: 1 }, { help: 1 }, { reveal: true }]);
   const rows = klassRader([
     { studentId: "a", namn: "Astrid", progress: a.progress },

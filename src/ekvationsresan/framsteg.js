@@ -15,13 +15,16 @@
 // i ordning (replayRows bygger om räknegången), stjärnor, hjälp och mynt.
 // Försökets id = uppgiftens id → samma uppgift kan bara sparas (och ge mynt)
 // en gång (create-only i firestore.rules).
-// Etapp 2: `skills` (färdighetsmodellen) och `type` C–F ryms utan migrering.
+// Etapp 2: `skills` (färdighetsmodellen, #626) och `type` C–F ryms utan migrering.
+// Försökets `skills` = { fokus, obs } (fardigheter.observera), progressens
+// `skills` = modellen (fardigheter.uppdatera) – samma fält som Etapp 1 förberedde.
 // C–F (#625) lägger till `answers` (elevens svar i ordning) på försöket; drag
 // räknas bara för typer med en lösningsdel (A, B, F).
 // ============================================================================
 
-import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10 } from "./config.js";
+import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10, FARDIGHET } from "./config.js";
 import { recordResult } from "./anpassning.js";
+import { observera, uppdatera } from "./fardigheter.js";
 import { hasSolvePhase, isQuestionType } from "./uppgiftstyper.js";
 import { moveOperand } from "./operations.js";
 
@@ -49,7 +52,7 @@ export function defaultProgress() {
     coins: 0, //         intjänat i Ekvationsresan (saldot är studentData.coins)
     recent: [], //       [{ l: nivå, s: stjärnor }] nyast sist, högst RECENT_MAX
     current: null, //    { id, at, task } – den pågående uppgiften
-    skills: {}, //       Etapp 2: färdighetsmodellen (E2.4)
+    skills: {}, //       färdighetsmodellen (E2.4, #626): { [färdighet]: { v, h, n } }
     levelChangedAt: null,
     updatedAt: null,
   };
@@ -129,16 +132,26 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
     coins: result.coins,
     startedAt,
     completedAt,
-    skills: null, // Etapp 2
   };
   // Elevens svar i C–F: [{ k: frågetyp, a: svaret som text | null, ok, visad? }] (≤ 40).
   if (isQuestionType(task.type)) attempt.answers = Array.isArray(result.answers) ? result.answers.slice(-40) : [];
+  // Färdighetsmodellen (#626): vad försöket visar + om uppgiften valdes för att träna en svag färdighet.
+  attempt.skills = { fokus: task.fokus || null, obs: observera(task, attempt) };
   return attempt;
 }
 
 /**
+ * En fokusuppgift (vald av färdighetsmodellen för att träna en svag färdighet,
+ * #626) som slutar med ⭐ eller ej löst räknas inte i nivåfönstret: eleven ska
+ * få fler sådana uppgifter på sin nivå, inte sänkas till lättare ekvationer.
+ */
+export const skyddadFranFonstret = (attempt) => !!attempt.skills?.fokus && attempt.stars <= FARDIGHET.skyddStjarnor;
+
+/**
  * Lägg ett försök på progressdokumentet. Anpassningen räknas bara om uppgiften
- * hör till elevens nuvarande nivå (läraren kan ha flyttat eleven under tiden).
+ * hör till elevens nuvarande nivå (läraren kan ha flyttat eleven under tiden)
+ * och inte är en misslyckad fokusuppgift (skyddadFranFonstret).
+ * Färdighetsmodellen (`skills`) uppdateras alltid.
  * @param {object} progress normalizeProgress-form
  * @param {object} attempt  buildAttempt-form
  * @param {{now:number, next?:{id,at,task}|null}} opts next = nästa pågående uppgift
@@ -148,7 +161,7 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
   let p = { ...progress };
   let change = null;
   const from = p.level;
-  if (attempt.level === p.level) {
+  if (attempt.level === p.level && !skyddadFranFonstret(attempt)) {
     const r = recordResult({ level: p.level, window: p.window }, attempt.stars);
     p.level = r.state.level;
     p.window = r.state.window;
@@ -170,6 +183,7 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
     coins: p.coins + int(attempt.coins),
     recent: [...p.recent, { l: attempt.level, s: attempt.stars }].slice(-RECENT_MAX),
     current: next,
+    skills: attempt.skills?.obs ? uppdatera(p.skills, attempt.skills.obs) : p.skills,
     levelChangedAt: change ? now : p.levelChangedAt,
     updatedAt: now,
   };
