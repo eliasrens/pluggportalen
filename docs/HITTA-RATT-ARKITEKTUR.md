@@ -471,6 +471,22 @@ Mönstret finns redan: Guldrushens functions (#563) och `updateStudentLogin`.
   Preview: `admin/qa-hitta-ratt-preview.sh` (nu med Functions-emulatorn 5605) +
   `admin/qa-hitta-ratt-topplista-seed.mjs` (40 elever, spelar via kärnan).
 
+**Levererat i E #608:**
+- `src/hitta-ratt/hr-spel.js` (DOM, dynamisk) kör omgången: `startaForsok`
+  innan första frågan blir aktiv, alla frågor i `blanda()`-ordning, lås →
+  `showResult`/`showAreaResult` (facit in i motorn först nu), "Nästa" tar
+  emot klick först efter 450 ms (ingen dubbelklicksfälla), lämna-vakten är
+  på tills resultatet skickas. Sparfel → "Försök igen" med samma `attemptId`.
+- `src/hitta-ratt/hr-omgang.js` (ren): `skapaOmgang` rättar varje lås med
+  `delat/poang.js`, `skapaStoppur` = aktiv tid (pausad under feedbacken),
+  `serverMs` lyfter ett lås snabbare än 700 ms till golvet, feedbacktexter.
+- `src/hitta-ratt/hr-resultat-vy.js` (ren): resultatskärmen med kodritad
+  illustration, personbästa, plats och `topplistaHtml` ur functionens svar.
+  Coins som visas = `result.godkanda` (krediterade EN gång av functionen –
+  ett omförsök ger `coins: 0` men samma `result`).
+- Test: `test/hitta-ratt-spel.test.js` (poäng Sverige/världen, aktiv tid,
+  coins, resultatskärm). Preview: `admin/qa-hitta-ratt-preview.sh`.
+
 ### 4.2 Hot och skydd
 
 | Hot | Skydd |

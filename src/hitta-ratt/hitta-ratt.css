@@ -133,3 +133,144 @@
   .hr-tl-rad { grid-template-columns: 2.4em 1fr; }
   .hr-tl-res { grid-column: 2; white-space: normal; }
 }
+
+/* --- Spelflödet (#608) – en omgång: fråga, karta, lås/nästa --------------- */
+.hr-spel {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.hr-spel .panel { margin: 0; }
+.hr-spel-topp {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap;
+  padding: 12px 18px 16px;
+}
+.hr-spel-info { display: flex; align-items: baseline; gap: 4px 14px; flex-wrap: wrap; flex: 1 1 260px; }
+.hr-spel-titel { margin: 0; font-size: 1.3rem; line-height: 1.2; }
+.hr-spel-nr { color: var(--text-svag); font-weight: 700; white-space: nowrap; }
+.hr-spel-nr b { color: var(--text); }
+.hr-spel-matt { display: flex; gap: 6px; flex-wrap: wrap; }
+.hr-spel-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--ljus); border-radius: 999px; padding: 4px 12px;
+  font-weight: 700; color: var(--text-svag); white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.hr-spel-chip b { color: var(--text); font-size: 1.05rem; }
+.hr-spel-coins { background: #fdf3d3; }
+.hr-spel-paus { color: var(--orange); }
+.hr-spel-avsluta {
+  padding: 8px 16px; font-size: 0.95rem;
+  background: #eef4ff; color: var(--bla-mork); box-shadow: 0 4px 0 #cdddf5;
+}
+.hr-spel-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--ljus); }
+.hr-spel-bar span { display: block; height: 100%; width: 0; background: var(--gron); transition: width 0.3s ease; }
+
+.hr-spel-fraga { display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+.hr-spel-fraga-text { min-width: 0; }
+.hr-spel-fraga p { margin: 0; }
+.hr-spel-namn { font-size: 1.45rem; font-weight: 800; line-height: 1.15; color: var(--text); }
+.hr-spel-prompt { font-size: 1.3rem; font-weight: 800; color: var(--text); line-height: 1.25; }
+.hr-spel-namn:not([hidden]) + .hr-spel-prompt { font-size: 1.02rem; font-weight: 700; color: var(--text-svag); }
+.hr-spel-bild {
+  flex: none; height: 92px; width: auto; max-width: 150px; object-fit: cover;
+  border-radius: 12px; background: var(--ljus); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+.hr-spel-foto { font-size: 0.72rem; color: var(--text-svag); margin-top: 4px !important; }
+.hr-spel-foto a { color: inherit; }
+
+.hr-spel-karta {
+  position: relative; border-radius: var(--radie); overflow: hidden;
+  box-shadow: var(--skugga-mjuk); background: #cfe9f8;
+  height: clamp(320px, calc(100vh - 330px), 820px);
+  height: clamp(320px, calc(100dvh - 330px), 820px);
+}
+/* Bildfrågor (sevärdheter) har en högre frågerad – kartan krymper lika mycket. */
+.hr-spel-med-bild .hr-spel-karta {
+  height: clamp(300px, calc(100vh - 396px), 820px);
+  height: clamp(300px, calc(100dvh - 396px), 820px);
+}
+
+.hr-spel-fot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px;
+  flex-wrap: wrap; padding: 12px 18px; min-height: 76px;
+}
+.hr-spel-feedback {
+  flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  font-size: 1.05rem; color: var(--text);
+}
+.hr-spel-feedback .hint { font-size: 0.95rem; }
+.hr-fb-rubrik { font-size: 1.25rem; }
+.hr-fb-ratt .hr-fb-rubrik { color: var(--gron-mork); }
+.hr-fb-fel .hr-fb-rubrik { color: #c03b3b; }
+.hr-fb-poang {
+  font-weight: 800; font-size: 1.2rem; color: var(--text);
+  background: #e3f6ea; border-radius: 999px; padding: 2px 12px; font-variant-numeric: tabular-nums;
+}
+.hr-fb-noll .hr-fb-poang { background: var(--ljus); }
+.hr-fb-coin {
+  display: inline-flex; align-items: center; gap: 4px; font-weight: 800; color: #9a6b00;
+  animation: hr-coin-pop 0.5s ease-out;
+}
+@keyframes hr-coin-pop { from { transform: translateY(6px) scale(0.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.hr-spel-knappar { display: flex; gap: 10px; margin-left: auto; }
+.hr-spel-knappar .btn { min-width: 150px; min-height: 52px; }
+.hr-spel-knappar .btn:disabled,
+.hr-res-knappar .btn:disabled { background: #b8c2cf; box-shadow: 0 5px 0 #98a3b1; cursor: not-allowed; filter: none; transform: none; }
+
+/* --- Resultatskärmen (#608) ----------------------------------------------- */
+.hr-resultat {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 18px; align-items: start;
+}
+.hr-resultat .panel { margin: 0; }
+.hr-res-kort { text-align: center; padding: 22px 24px 26px; }
+.hr-res-bild { width: min(220px, 70%); height: auto; display: block; margin: 0 auto 4px; }
+.hr-res-kort h1 { margin: 0; font-size: 1.9rem; }
+.hr-res-pack { margin: 0 0 10px; }
+.hr-res-stort { font-size: 2.6rem; font-weight: 800; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.hr-res-stort span { font-size: 1.3rem; color: var(--text-svag); }
+.hr-res-chips { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.hr-res-chip { background: var(--ljus); border-radius: 999px; padding: 4px 14px; font-weight: 700; color: var(--text-svag); }
+.hr-res-chip b { color: var(--text); }
+.hr-res-rekord {
+  margin: 10px auto; display: inline-block; padding: 8px 18px; border-radius: 999px;
+  background: var(--gul); color: var(--text); font-weight: 800; font-size: 1.15rem;
+  box-shadow: 0 4px 0 #d9ac2c; animation: hr-coin-pop 0.6s ease-out;
+}
+.hr-res-pb { margin: 8px 0; color: var(--text-svag); }
+.hr-res-pb b { color: var(--text); }
+.hr-res-coins {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 8px;
+  margin: 12px 0 18px; font-weight: 800; font-size: 1.15rem; color: #9a6b00;
+}
+.hr-res-coins .hint { flex-basis: 100%; font-weight: 600; font-size: 0.88rem; }
+.hr-res-knappar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.hr-res-lista { padding: 20px 22px; }
+.hr-res-lista h2 { margin: 0 0 2px; font-size: 1.3rem; }
+.hr-res-plats { margin: 0 0 12px; font-size: 1.15rem; }
+.hr-res-plats b { font-size: 1.4rem; color: var(--bla-mork); }
+.hr-sparfel .hr-res-knappar { margin-top: 12px; }
+
+@media (max-width: 760px) {
+  .hr-resultat { grid-template-columns: 1fr; }
+  .hr-spel-topp { padding: 10px 12px 14px; }
+  .hr-spel-titel { font-size: 1.1rem; }
+  .hr-spel-fraga { padding: 10px 12px; }
+  .hr-spel-prompt { font-size: 1.1rem; }
+  .hr-spel-bild { height: 64px; max-width: 96px; }
+  /* Mobil: hamburgaren + toppraden på två rader + knappar i full bredd. */
+  .hr-spel-karta { height: clamp(260px, calc(100dvh - 430px), 820px); }
+  .hr-spel-med-bild .hr-spel-karta { height: clamp(240px, calc(100dvh - 500px), 820px); }
+  .hr-spel-feedback .hint { font-size: 0.85rem; }
+  .hr-spel-feedback { font-size: 0.95rem; gap: 2px 8px; }
+  .hr-fb-rubrik { font-size: 1.1rem; }
+  .hr-fb-poang { font-size: 1.05rem; }
+  .hr-spel-fot { padding: 10px 12px; }
+  .hr-spel-knappar { width: 100%; }
+  .hr-spel-knappar .btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hr-spel-bar span { transition: none; }
+  .hr-fb-coin, .hr-res-rekord { animation: none; }
+}
