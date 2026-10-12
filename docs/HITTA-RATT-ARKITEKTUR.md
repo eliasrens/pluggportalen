@@ -1088,6 +1088,42 @@ kartan börjar om från noll."
   Kryssrutan har en plats i formuläret (`[data-plats="topplista"]`, dold).
 - Lärarvyn läser katalogen färskt vid varje besök (1 läsning), inte ur 60-sekunderscachen.
 
+**Levererat i D #635:**
+- `sattTopplista` i `functions/hitta-ratt-egna.js` och callablen `hittaRattSattTopplista`
+  (`token.teacher` + ägaren). Svar: `{ leaderboard, tillagda }`.
+  - AV: en transaktion. `stangTopplistaTx(tx, deps, packId)` i `hitta-ratt-core.js`
+    tar bort topplistan och ledarna. `stangTopplista` använder den och finns kvar.
+  - PÅ: tx 1, frågan `hittaRattBest` (`FieldPath("packs", id, "v") == version`),
+    `students` och packens `classes` via `getAll`, och sist tx 2 enligt §11.5.
+    Har packen stängts eller fått ny version mellan stegen gör tx 2 ingenting.
+- Kryssrutan "Skoltopplista / Gör till skolutmaning" i `lhr-redigera.js` med
+  förklaringen för PÅ och AV (`TOPPLISTA_TEXT` i `lhr-modell.js`). `sattTopplista`
+  finns i `lhr-data.js`.
+- 🏆-vyn: `topplisteGrupper(index, egna)` i `hr-topplista-vy.js`. Gruppen "Från din
+  lärare" ligger först och läses ur samma cachade katalog som startsidan.
+- `motivFor(packId, scope)` och `minaPokaler` tar med `scope` för `e-`-pack.
+- Tester: `test/functions-hitta-ratt-egna-topplista.test.mjs` (8 st), plus tillägg i
+  `hitta-ratt-pokal`, `hitta-ratt-egna` och `hitta-ratt-larare`.
+- Preview: `admin/qa-hitta-ratt-toggle-seed.mjs` (körs av `qa-hitta-ratt-preview.sh`,
+  `--pa`/`--av` utan UI). Skärmdumparna ligger i `docs/hitta-ratt-635/`.
+
+**Avvikelser från §11 i D:**
+- **Kryssrutan gäller vid Spara**, inte direkt. Den hör till formuläret, så lämna-vakten
+  ser den. Efter `hittaRattSparaPack` anropas `hittaRattSattTopplista`, men bara om
+  rutan ändrats. Det fungerar även för ett nytt område. Går anropet fel är området
+  ändå sparat, och felet visas.
+- **Klassen vid återuppbyggnaden** tas ur `classes.studentIds` för packens `classIds`.
+  Den sorteras på namn, som i `lasEgetPack`. Elever som inte längre går i någon av
+  packens klasser hoppas över. `enabledModules` kontrolleras inte, eftersom
+  personbästat redan krävde det.
+- `test:functions` kör nu filerna **en i taget** (`--test-concurrency=1`). B:s test
+  raderade hela katalogdokumentet och fyllde det till 800 kB medan andra filer körde
+  mot samma emulator. Nu städar B:s test bara sina egna poster.
+- **Testrecept:** callable-testerna kräver `FUNCTIONS_EMULATOR_HOST=127.0.0.1:<fn-port>`
+  när emulatorn inte går på 5001. Annars blir svaret `internal`.
+- Cykeln mellan `hitta-ratt-core.js` och `hitta-ratt-egna.js` (via `stangTopplistaTx`)
+  är ofarlig, eftersom bara funktioner anropas efter laddningen.
+
 ### 11.5 Togglen "Skoltopplista / Gör till skolutmaning"
 
 Callable **`hittaRattSattTopplista({ packId, pa })`**. Bara ägaren
