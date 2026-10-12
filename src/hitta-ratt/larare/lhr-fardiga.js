@@ -58,7 +58,7 @@ function kortHtml(p) {
     </div>
     <div class="lhr-knappar">
       <button type="button" class="btn small ghost" data-act="innehall" aria-expanded="false">${icon("book", 16)}<span>Visa innehåll</span></button>
-      <button type="button" class="btn small" data-act="prov">${icon("eye", 16)}<span>Provspela</span></button>
+      <button type="button" class="btn small ghost" data-act="prov">${icon("eye", 16)}<span>Provspela</span></button>
       <button type="button" class="btn small" data-act="kopia">${icon("copy", 16)}<span>Duplicera till Mina områden</span></button>
     </div>
     <div class="lhr-innehall-ruta" hidden></div>

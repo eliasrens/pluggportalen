@@ -148,7 +148,7 @@ const LAS = `(() => {
 const las = () => evalJs(LAS);
 
 function aktivtPack(s) {
-  const id = decodeURIComponent((s.hash.match(/pack=([^&]+)/) || [])[1] || "");
+  const id = decodeURIComponent((s.hash.match(/[?&](?:pack|prov)=([^&]+)/) || [])[1] || ""); // prov= = lärarens provspel (#634)
   if (!id) throw new Error(`Inget pack i hashen (${s.hash})`);
   const pack = PACKFIL ? JSON.parse(readFileSync(PACKFIL, "utf8")) : json(`src/hitta-ratt/content/packs/${id}.json`);
   const geo = json(`src/hitta-ratt/content/geo/${pack.geo}.json`);

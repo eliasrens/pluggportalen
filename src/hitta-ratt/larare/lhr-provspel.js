@@ -29,6 +29,14 @@ export async function provspela(ctx, packId, hem) {
   } catch (err) {
     return visaFel(err?.message || "Kontrollera uppkopplingen och försök igen.");
   }
+  // Elevens spelvy saknar lärarsidans ram – centrera den så länge provspelet pågår.
+  ctx.app.classList.add("lhr-prov");
+  const lamna = () => {
+    if (/[?&]prov=/.test(location.hash)) return;
+    ctx.app.classList.remove("lhr-prov");
+    window.removeEventListener("hashchange", lamna);
+  };
+  window.addEventListener("hashchange", lamna);
   const { spelaPack } = await import("../hr-spel.js");
   await spelaPack({ id: pack.id }, { pack, data: provData(pack, omradesIds), prov: true, hem });
 }

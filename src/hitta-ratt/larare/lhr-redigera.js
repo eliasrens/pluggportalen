@@ -69,7 +69,7 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
     <div class="lhr-msg" aria-live="polite">${flash?.id === f.id ? flash.html : ""}</div>
     <div class="lhr-form-grid">
       <label class="field">Namn<input type="text" data-k="title" maxlength="${GRANS.titel}" value="${esc(f.title)}" placeholder="t.ex. Gästrikland runt" required /></label>
-      <label class="field">Kort beskrivning <span class="hint">(valfri)</span>
+      <label class="field"><span>Kort beskrivning <span class="hint">(valfri)</span></span>
         <textarea data-k="description" maxlength="${GRANS.beskrivning}" rows="2" placeholder="Vad eleverna ska hitta">${esc(f.description)}</textarea></label>
       <fieldset class="lhr-falt"><legend>Ikon</legend><div class="lhr-ikoner">
         ${IKONER.map((ik) => `<label class="lhr-ikon"><input type="radio" name="lhr-ikon" value="${ik}" ${ik === f.ikon ? "checked" : ""} /><span>${ik}</span></label>`).join("")}
@@ -101,8 +101,8 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
       <button type="submit" class="btn gron" data-act="spara">${icon("save", 16)}<span>Spara</span></button>
       <button type="button" class="btn ghost" data-act="avbryt">Tillbaka</button>
       ${f.sparad ? `<span class="lhr-spacer"></span>
-        <button type="button" class="btn small" data-act="prov">${icon("eye", 16)}<span>Provspela</span></button>
-        <button type="button" class="btn small" data-act="kopia">${icon("copy", 16)}<span>Duplicera</span></button>
+        <button type="button" class="btn small ghost" data-act="prov">${icon("eye", 16)}<span>Provspela</span></button>
+        <button type="button" class="btn small ghost" data-act="kopia">${icon("copy", 16)}<span>Duplicera</span></button>
         <button type="button" class="btn small danger" data-act="radera">${icon("trash", 16)}<span>Radera</span></button>` : ""}
     </div>
   </form>`);

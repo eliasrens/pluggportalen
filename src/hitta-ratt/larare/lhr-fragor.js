@@ -33,7 +33,7 @@ function punktRad(it, i) {
     <span class="lhr-fraga-nr">${i + 1}</span>
     <div class="lhr-fraga-falt">
       <label class="lhr-mini">Namn<input type="text" data-f="name" maxlength="${GRANS.namn}" value="${esc(it.name)}" placeholder="t.ex. Gävle" /></label>
-      <label class="lhr-mini">Frågetext <span class="hint">(valfri)</span><input type="text" data-f="prompt" maxlength="${GRANS.prompt}" value="${esc(it.prompt)}" placeholder="${esc(`Var ligger ${it.name || "…"}?`)}" /></label>
+      <label class="lhr-mini"><span>Frågetext <span class="hint">(valfri)</span></span><input type="text" data-f="prompt" maxlength="${GRANS.prompt}" value="${esc(it.prompt)}" placeholder="${esc(`Var ligger ${it.name || "…"}?`)}" /></label>
       <details class="lhr-avancerat"${plats ? "" : " open"}>
         <summary>Avancerat <span class="lhr-plats ${plats ? "" : "saknas"}" data-v="plats">${plats ? `📍 ${esc(plats)}` : "Plats saknas"}</span></summary>
         <div class="lhr-latlon">
@@ -53,7 +53,7 @@ function omradeRad(it, i, namnFor) {
     <div class="lhr-fraga-falt">
       <p class="lhr-omrade-namn">🗺️ ${esc(namnFor(it))}</p>
       <label class="lhr-mini">Namn i frågan<input type="text" data-f="name" maxlength="${GRANS.namn}" value="${esc(it.name)}" /></label>
-      <label class="lhr-mini">Frågetext <span class="hint">(valfri)</span><input type="text" data-f="prompt" maxlength="${GRANS.prompt}" value="${esc(it.prompt)}" placeholder="${esc(`Hitta ${it.name || "…"}`)}" /></label>
+      <label class="lhr-mini"><span>Frågetext <span class="hint">(valfri)</span></span><input type="text" data-f="prompt" maxlength="${GRANS.prompt}" value="${esc(it.prompt)}" placeholder="${esc(`Hitta ${it.name || "…"}`)}" /></label>
     </div>
     <button type="button" class="btn ghost small lhr-ta-bort" data-act="bort" title="Ta bort frågan" aria-label="Ta bort fråga ${i + 1}">${icon("x", 16)}</button>
   </li>`;

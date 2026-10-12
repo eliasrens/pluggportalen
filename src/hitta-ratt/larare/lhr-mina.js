@@ -46,7 +46,7 @@ function kollegaRad(p) {
       <span class="hint">${esc(p.ownerNamn || "Lärare")} · ${esc(geoNamn(p.geo))} · ${typText(p)} · ${p.antal} frågor</span>
       <span class="lhr-knappar">
         <button type="button" class="btn small ghost" data-act="innehall" aria-expanded="false">${icon("book", 16)}<span>Visa innehåll</span></button>
-        <button type="button" class="btn small" data-act="prov">${icon("eye", 16)}<span>Provspela</span></button>
+        <button type="button" class="btn small ghost" data-act="prov">${icon("eye", 16)}<span>Provspela</span></button>
         <button type="button" class="btn small" data-act="kopia">${icon("copy", 16)}<span>Duplicera</span></button>
       </span>
     </div>

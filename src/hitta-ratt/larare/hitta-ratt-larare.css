@@ -46,6 +46,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 14px;
+  align-items: start;
 }
 .lhr-kort {
   display: flex;
@@ -74,10 +75,11 @@
 .lhr-niva-gul { color: #f2d27a; }
 .lhr-niva-rod { color: #ff9d9d; }
 .lhr-innehall-ruta {
-  border-top: 1px solid var(--t-border);
-  padding-top: 8px;
-  max-height: 320px;
-  overflow: auto;
+  padding: 10px 12px;
+  background: var(--t-surface-2);
+  color: var(--t-text);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
 }
 .lhr-innehall { margin: 0; padding-left: 1.6em; columns: 2 220px; column-gap: 24px; }
 .lhr-innehall li { break-inside: avoid; margin: 2px 0; font-size: 0.92rem; }
@@ -111,7 +113,7 @@
 .lhr-kollega .lhr-innehall-ruta { margin-top: 8px; }
 
 /* --- Formuläret ------------------------------------------------------------- */
-.lhr-form { max-width: 980px; }
+.lhr-form { max-width: 980px; margin: 0; }
 .lhr-form-topp .hint { margin: 4px 0 0; }
 .lhr-form-grid {
   display: grid;
@@ -120,11 +122,13 @@
   margin: 14px 0 20px;
 }
 .lhr-form .field { display: flex; flex-direction: column; gap: 6px; font-weight: 650; margin: 0; }
-.lhr-form textarea { resize: vertical; font: inherit; }
+.lhr-form textarea { resize: vertical; font: inherit; font-weight: 400; }
+.lhr-form .field .hint, .lhr-mini .hint { font-weight: 500; }
 .lhr-falt { border: 0; margin: 0; padding: 0; min-width: 0; }
 .lhr-falt legend { font-weight: 650; margin-bottom: 6px; padding: 0; }
 .lhr-falt .hint { font-size: 0.85rem; margin: 6px 0 0; }
-.lhr-falt select { width: 100%; }
+.lhr-falt select { width: 100%; padding: 10px 12px; font: inherit; border-radius: 10px; }
+.lhr-falt select:disabled { opacity: 0.65; cursor: not-allowed; }
 .lhr-ikoner { display: flex; flex-wrap: wrap; gap: 6px; }
 .lhr-ikon input { position: absolute; opacity: 0; pointer-events: none; }
 .lhr-ikon span {
@@ -144,7 +148,8 @@
 .lhr-radio, .lhr-check { display: flex; gap: 9px; align-items: flex-start; font-weight: 500; cursor: pointer; }
 .lhr-radio > span { display: flex; flex-direction: column; }
 .lhr-radio .hint { font-size: 0.85rem; }
-.lhr-radio input:disabled + span { opacity: 0.6; cursor: not-allowed; }
+.lhr-radio input:disabled + span { cursor: not-allowed; }
+.lhr-radio input:disabled:not(:checked) + span { opacity: 0.45; }
 .lhr-radio input, .lhr-check input { margin-top: 3px; accent-color: var(--t-accent); }
 .lhr-klasser { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .lhr-facit-varning { margin: 14px 0 0; }
@@ -220,6 +225,8 @@
 }
 
 /* --- Provspel (elevens spelvy, hitta-ratt.css) ------------------------------- */
+#app.lhr-prov { max-width: 1180px; margin: 0 auto; padding: 16px; }
+#app.lhr-prov .hr-resultat { grid-template-columns: minmax(280px, 460px); justify-content: center; }
 .hr-spel-prov { background: #fff4d6; color: #7a5a00; font-weight: 750; }
 .hr-res-prov {
   margin: 10px 0;
