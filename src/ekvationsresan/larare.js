@@ -33,17 +33,23 @@ export function tolkaNiva(v) {
 
 export const nivaNamn = (level) => (LEVELS.find((l) => l.level === level) || {}).name || "";
 
-/** Kolumnerna i klassöversikten. `sort` = går att sortera på (spec: namn, nivå, uppgifter). */
+/** Hjälpkolumnens tooltip – den räknar alla hjälptryck (framsteg.behovdeHjalp, #647). */
+export const HJALP_TITEL = "Alla hjälptryck, inklusive Visa lösningen och visade svar";
+
+/**
+ * Kolumnerna i klassöversikten. `sort` = går att sortera på (spec: namn, nivå, uppgifter).
+ * "I korthet" ligger direkt efter namnet (#647) så att den syns utan sidscroll.
+ */
 export const KOLUMNER = [
   { key: "namn", label: "Elev", sort: true },
+  { key: "korthet", label: "I korthet" }, // #626: färdighetsmodellens sammanfattning
   { key: "level", label: "Nivå", num: true, sort: true },
   { key: "trend", label: "Trend", num: true },
   { key: "tasks", label: "Uppgifter", num: true, sort: true },
   { key: "stars", label: "⭐⭐⭐ / ⭐⭐ / ⭐", num: true },
   { key: "solvedPct", label: "Lösta %", num: true },
-  { key: "helpPct", label: "Hjälp %", num: true },
+  { key: "helpPct", label: "💡 %", num: true, title: HJALP_TITEL },
   { key: "extraMoves", label: "Drag jämfört med optimalt", num: true },
-  { key: "korthet", label: "I korthet" }, // #626: färdighetsmodellens sammanfattning
 ];
 
 export const TREND = {

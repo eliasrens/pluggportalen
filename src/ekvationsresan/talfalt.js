@@ -7,6 +7,8 @@
 // nivå upp, översikten). Eleven skriver "-4", "+5", "/2", ":2" eller "*3";
 // knapparna + − · ÷ skriver bara tecknet först i fältet, så tangentbord och mus
 // går genom SAMMA text (operand.js tolkar den).
+// Från nivå 9 (#647) går det att dela med ett negativt tal: "/-2", "÷ (−2)" –
+// fältet släpper därför igenom parenteser; operand.js avgör vad som gäller.
 //
 //   const f = mountTalfalt(form, input, { onSubmit(text), onChange(op) })
 //   f.setOp("-")   knappen: byt/sätt tecknet först i fältet
@@ -21,9 +23,9 @@ const NON_TEXT = new Set(["checkbox", "radio", "button", "submit", "reset", "ran
 const isTextField = (a) =>
   a.tagName === "TEXTAREA" || a.isContentEditable || (a.tagName === "INPUT" && !NON_TEXT.has(String(a.type).toLowerCase()));
 
-/** Bara tecken som talfältet kan tolka (siffror, + − · ÷ * / : x , .). */
+/** Bara tecken som talfältet kan tolka (siffror, + − · ÷ * / : x , . och parenteser). */
 export function cleanInput(text) {
-  return String(text).replace(/[^0-9+\-−*·×/:÷xX,.]/g, "").slice(0, 8);
+  return String(text).replace(/[^0-9+\-−*·×/:÷xX,.()]/g, "").slice(0, 10);
 }
 
 /** Byt (eller sätt) operationstecknet först i texten. */
