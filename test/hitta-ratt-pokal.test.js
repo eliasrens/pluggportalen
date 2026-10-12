@@ -2,6 +2,7 @@
 // Hitta rätt! – Kartmästare-pokalerna (#610): ren logik + konst + bootgraf.
 // Servern (ledarna i hittaRattMeta/ledare) testas i
 // functions-hitta-ratt-pokal.test.mjs, reglerna i firestore-rules-hitta-ratt-pokal.test.js.
+// Egna pack (#635): motivet ur ledare.packs.{id}.scope.
 // Körs med: node --test test/hitta-ratt-pokal.test.js
 // ============================================================================
 
@@ -98,6 +99,25 @@ describe("konsten", () => {
     assert.equal(INDEX.length, 12);
     assert.equal(new Set(svgs).size, INDEX.length);
     assert.deepEqual([...new Set(INDEX.map((p) => motivFor(p.id)))].sort(), ["europa", "platser", "sverige", "varlden"]);
+  });
+
+  it("egna pack (e-…): motivet ur kartans scope, okänt scope → världen; scope följer med ur ledarna", () => {
+    assert.equal(motivFor("e-k3f9q0z1m2xa", "sverige"), "sverige");
+    assert.equal(motivFor("e-k3f9q0z1m2xa", "europa"), "europa");
+    assert.equal(motivFor("e-k3f9q0z1m2xa", "varlden"), "varlden");
+    assert.equal(motivFor("e-k3f9q0z1m2xa"), "varlden");
+    assert.equal(motivFor("e-sverigeabcde", "hacke"), "varlden", "id-prefixet styr inte egna pack");
+    assert.equal(motivFor("sverige-stader", "europa"), "sverige", "officiella pack: scope ignoreras");
+    const sv = kartmastareSvg({ packId: "e-k3f9q0z1m2xa", typ: "point", scope: "sverige" });
+    const eu = kartmastareSvg({ packId: "e-k3f9q0z1m2xa", typ: "point", scope: "europa" });
+    assert.notEqual(sv, eu);
+    const sverigeForm = "M54 27 Q60 28"; // Skandinaviska halvön, samma som officiella Sverige-pokaler
+    assert.ok(sv.includes(sverigeForm) && !eu.includes(sverigeForm));
+    assert.ok(kartmastareSvg({ packId: "sverige-stader", typ: "point" }).includes(sverigeForm));
+    const meta = { packs: { "e-k3f9q0z1m2xa": { uids: ["omar"], titel: "Gästrikland runt", typ: "point", scope: "sverige" } } };
+    const [p] = minaPokaler(meta, "omar");
+    assert.deepEqual([p.scope, p.namn], ["sverige", "Kartmästare – Skolrekord Gästrikland runt"]);
+    assert.equal(minaPokaler(META, "omar")[0].scope, undefined, "officiella pack har inget scope");
   });
 
   it("något mindre än Klasscentrets (Live-)pokaler men samma proportioner", () => {

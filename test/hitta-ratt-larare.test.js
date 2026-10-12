@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import {
   nyttFormular, formularFranPack, dupliceraPack, tillIndata, kontrollera, facitAndras, bytKarta,
   omradeslista, sokOmraden, laggTillOmrade, delaKatalog, klassText, raderaText, provData, tal, FACIT_VARNING,
+  topplistaAndras, topplistaKvitto, TOPPLISTA_TEXT,
 } from "../src/hitta-ratt/larare/lhr-modell.js";
 import { normaliseraPack, EGEN_ID_RE } from "../src/hitta-ratt/delat/egna.js";
 
@@ -168,6 +169,7 @@ describe("duplicera", () => {
     assert.ok(f.title.endsWith(" (kopia)"));
     assert.deepEqual(f.classIds, []);
     assert.equal("leaderboard" in tillIndata(f), false);
+    assert.equal(f.leaderboard, false, "kopian startar med topplistan AV");
     assert.equal(facitAndras(eget, f), false, "en kopia är ny – ingen facit-varning");
   });
   it("kopian kan byta karta/typ: områden flyttas via källnyckeln, typbyte tömmer", () => {
@@ -277,5 +279,31 @@ describe("bootgrafen (#271)", () => {
     }
     assert.equal([...seen].some((f) => f.includes("/hitta-ratt/larare/")), false);
     assert.equal(seen.size, 107);
+  });
+});
+
+describe("kryssrutan Skoltopplista (#635)", () => {
+  it("standard AV; följer packen vid redigering; skickas aldrig med sparningen", () => {
+    assert.equal(nyttFormular(ID).leaderboard, false);
+    const pa = formularFranPack({ ...sparat(punktForm()), leaderboard: true });
+    assert.equal(pa.leaderboard, true);
+    assert.equal(formularFranPack(sparat(punktForm())).leaderboard, false);
+    assert.equal("leaderboard" in tillIndata(pa), false);
+  });
+  it("hittaRattSattTopplista anropas bara när kryssrutan ändrats", () => {
+    const orig = { ...sparat(punktForm()), leaderboard: true };
+    const f = formularFranPack(orig);
+    assert.equal(topplistaAndras(orig, f), false);
+    assert.equal(topplistaAndras(orig, { ...f, leaderboard: false }), true);
+    assert.equal(topplistaAndras(null, nyttFormular(ID)), false, "nytt område, AV = inget anrop");
+    assert.equal(topplistaAndras(null, { ...nyttFormular(ID), leaderboard: true }), true);
+  });
+  it("förklaringen säger vad PÅ och AV innebär; kvittot nämner klasserna", () => {
+    assert.match(TOPPLISTA_TEXT.pa, /Top 15/);
+    assert.match(TOPPLISTA_TEXT.pa, /pokal/);
+    assert.match(TOPPLISTA_TEXT.av, /ingen topplista/);
+    assert.match(topplistaKvitto(true, "5A, 5E"), /5A, 5E/);
+    assert.match(topplistaKvitto(true, ""), /ingen klass/);
+    assert.match(topplistaKvitto(false, "5A"), /avstängd/);
   });
 });

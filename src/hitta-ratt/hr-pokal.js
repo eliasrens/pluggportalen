@@ -2,19 +2,20 @@
 // Hitta rätt! – Kartmästare-pokalerna, ren logik (src/hitta-ratt/hr-pokal.js) · #610
 // ----------------------------------------------------------------------------
 // Pokalen är INGEN ägd sak (arkitektur §0/§3.2): den ritas ur
-// hittaRattMeta/ledare = { packs: { [packId]: { uids, titel, typ } } }, som
+// hittaRattMeta/ledare = { packs: { [packId]: { uids, titel, typ, scope? } } }, som
 // bara Cloud Functionen skriver – i samma transaktion som topplistan, med
 // ledarna omräknade ur alla entries (rank.js: alla på plats 1, delad etta →
 // flera). Eleven sparar bara PLACERINGEN i room.placements["hrpokal-<packId>"].
 // Tappar eleven ledningen finns packen inte längre i elevens lista → pokalen
 // ritas inte, ligger inte i lådan och placeringen städas bort. Den kan inte
 // säljas, köpas eller behållas (finns aldrig i ownedItems).
-// Toggle av (epic 2/2): functionen tar bort packs.{packId} → samma väg.
+// Toggle av (hittaRattSattTopplista, #635): functionen tar bort packs.{packId}
+// → samma väg. Egna pack har scope (sverige/europa/varlden) → pokalens motiv.
 //
 // API (rent, testas i Node)
 //   POKAL_PREFIX, arPokalNyckel(key), pokalNyckel(packId), packIdFranNyckel(key)
 //   pokalNamn(titel)              → "Kartmästare – Skolrekord {titel}"
-//   minaPokaler(meta, uid)        → [{ nyckel, packId, titel, typ, namn }] (sorterad på titel)
+//   minaPokaler(meta, uid)        → [{ nyckel, packId, titel, typ, scope?, namn }] (sorterad på titel)
 //   rensaPokaler(placements, giltiga) → antal borttagna (muterar placements)
 // ============================================================================
 
@@ -43,7 +44,8 @@ export function minaPokaler(meta, uid) {
     if (!PACK_RE.test(packId) || !p || p.av === true) continue;
     if (!Array.isArray(p.uids) || !p.uids.includes(uid)) continue;
     const titel = typeof p.titel === "string" && p.titel ? p.titel : packId;
-    ut.push({ nyckel: pokalNyckel(packId), packId, titel, typ: p.typ === "area" ? "area" : "point", namn: pokalNamn(titel) });
+    const scope = typeof p.scope === "string" ? { scope: p.scope } : {};
+    ut.push({ nyckel: pokalNyckel(packId), packId, titel, typ: p.typ === "area" ? "area" : "point", ...scope, namn: pokalNamn(titel) });
   }
   return ut.sort((a, b) => a.titel.localeCompare(b.titel, "sv"));
 }

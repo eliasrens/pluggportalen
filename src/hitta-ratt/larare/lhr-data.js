@@ -6,6 +6,7 @@
 //
 //   sparaPack(indata)     → hittaRattSparaPack → { id, version, nollstalld }
 //   raderaPack(packId)    → hittaRattRaderaPack → { fanns }
+//   sattTopplista(packId, pa) → hittaRattSattTopplista → { leaderboard, tillagda } (#635)
 //   hamtaKatalog()        → hittaRattMeta/egnaPack, EN läsning (färsk vid varje besök)
 //   hamtaPack(id)         → hittaRattPacks/{id} (1 läsning) eller null
 //   hamtaPackIndex()      → content/packs/index.json (officiella, statisk)
@@ -13,7 +14,6 @@
 //   laddaOmraden(geo)     → { lista: [{ id, key, namn }], nycklar, geoOmraden }
 //                           ur <geo>.namn.json + <geo>.nycklar.json (bara lärarvyn)
 // Fel från servern kastas som LhrFel { code, message } med serverns svenska text.
-// (D lägger till sattTopplista → hittaRattSattTopplista.)
 // ============================================================================
 
 import { app, db } from "../../firebase-config.js";
@@ -58,6 +58,7 @@ async function anropa(namn, data) {
 
 export const sparaPack = (pack) => anropa("hittaRattSparaPack", { pack });
 export const raderaPack = (packId) => anropa("hittaRattRaderaPack", { packId });
+export const sattTopplista = (packId, pa) => anropa("hittaRattSattTopplista", { packId, pa: pa === true });
 
 export const hamtaKatalog = () => lasKatalog({ farsk: true });
 

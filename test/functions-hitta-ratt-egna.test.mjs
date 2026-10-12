@@ -35,6 +35,7 @@ const ID = "e-hrgpunkt0001";
 const ID2 = "e-hrgomrade001";
 const KATALOG = db.doc("hittaRattMeta/egnaPack");
 const LEDARE = db.doc("hittaRattMeta/ledare");
+const FYLLNAD = "e-hrgfyllnad1";
 
 const ORTER = [["gavle", "Gävle", 60.6749, 17.1413], ["sandviken", "Sandviken", 60.6167, 16.7667], ["hofors", "Hofors", 60.55, 16.2833], ["ockelbo", "Ockelbo", 60.8917, 16.7167]];
 const punktPack = (over = {}) => ({
@@ -64,7 +65,9 @@ async function rensa() {
     const s = await db.collection(c).get();
     await Promise.all(s.docs.filter((d) => d.id.startsWith("e-hrg") || d.id.startsWith("hrg") || String(d.data().uid || "").startsWith("hrg")).map((d) => d.ref.delete()));
   }
-  await KATALOG.delete();
+  // Bara egna poster – katalogen delas med functions-hitta-ratt-egna-topplista.test.mjs.
+  const egna = { [ID]: FieldValue.delete(), [ID2]: FieldValue.delete(), [FYLLNAD]: FieldValue.delete(), "e-hrgnytt00001": FieldValue.delete() };
+  await KATALOG.set({ packs: egna }, { merge: true });
   await LEDARE.set({ packs: { [ID]: FieldValue.delete(), [ID2]: FieldValue.delete() } }, { merge: true });
 }
 
@@ -91,7 +94,7 @@ async function forsok(uid, packId, sekSedan = 600) {
 const svar = (fel = 0) => ORTER.map(([itemId, , lat, lon]) => ({ itemId, lat: lat - fel / 111, lon }));
 const spela = async (uid, fel = 0, packId = ID) => submit(deps(), uid, { attemptId: await forsok(uid, packId), svar: svar(fel) });
 const slaPaTopplista = async (id = ID) => {
-  // D bygger callablen hittaRattSattTopplista – här sätts flaggan direkt.
+  // Flaggan sätts direkt – hittaRattSattTopplista testas i functions-hitta-ratt-egna-topplista.test.mjs.
   await db.doc(`hittaRattPacks/${id}`).update({ leaderboard: true });
 };
 
@@ -174,11 +177,12 @@ describe("sparaPack", () => {
     await spara("hrg-larare1", punktPack());
     await spara("hrg-larare2", omradePack());
     const k = (await hamta(KATALOG)).packs;
-    assert.deepEqual(Object.keys(k).sort(), [ID2, ID]);
+    assert.deepEqual(Object.keys(k).filter((id) => id.startsWith("e-hrg")).sort(), [ID2, ID]);
     assert.equal(k[ID2].type, "area");
-    await KATALOG.set({ packs: { "e-hrgfyllnad1": { title: "x".repeat(810_000) } } }, { merge: true });
+    await KATALOG.set({ packs: { [FYLLNAD]: { title: "x".repeat(810_000) } } }, { merge: true });
     assert.match(await code(spara("hrg-larare1", punktPack({ id: "e-hrgnytt00001" }))), /^resource-exhausted/);
     assert.equal(await code(spara("hrg-larare1", punktPack({ title: "Befintligt går bra" }))), "ok");
+    await KATALOG.set({ packs: { [FYLLNAD]: FieldValue.delete() } }, { merge: true });
   });
 });
 
