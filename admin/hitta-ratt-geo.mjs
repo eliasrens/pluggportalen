@@ -25,6 +25,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { join } from "node:path";
 import { ROT, GEO_DIR, laddaProjektion, uppdateraRapport } from "./hitta-ratt-delat.mjs";
+import { litenSida } from "../src/hitta-ratt/karta/ringregel.js";
 
 const { byggProjektion, tillKarta, tillLatLon } = await laddaProjektion();
 
@@ -134,7 +135,7 @@ function vag(pts, stang) {
  * när `behallStorsta` (ett interaktivt område får aldrig försvinna).
  */
 function polyVag(p, g, minYta, behallStorsta) {
-  if (!g) return { d: "", n: 0 };
+  if (!g) return { d: "", n: 0, storsta: 0 };
   const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
   const delar = polys.map((rings) => rings.map((r) => projRing(p, r, true)).filter((r) => r.length >= 3))
     .filter((rs) => rs.length)
@@ -150,7 +151,7 @@ function polyVag(p, g, minYta, behallStorsta) {
       n += r.length;
     });
   }
-  return { d, n };
+  return { d, n, storsta: storsta?.yta ?? 0 };
 }
 
 function linjeVag(p, g) {
@@ -197,9 +198,11 @@ function byggOmraden(p, features, fro, minYta) {
     if (!v.n) {
       // Mindre än en kartenhet (Vatikanen i Europa): en liten romb runt den
       // inre punkten. Motorns klickring gör den klickbar ändå.
-      v = { d: `M${cx} ${cy - 2}l2 2-2 2-2-2z`, n: 4 };
+      v = { d: `M${cx} ${cy - 2}l2 2-2 2-2-2z`, n: 4, storsta: 0 };
     }
-    omraden.push({ id, d: v.d, c: [cx, cy] });
+    // Kan området få klickring? Ur största delens verkliga yta (#639).
+    const liten = litenSida(v.storsta, p.s);
+    omraden.push({ id, d: v.d, c: [cx, cy], ...(liten === null ? {} : { liten }) });
     nycklar[f.properties.k] = id;
     n += v.n;
   });

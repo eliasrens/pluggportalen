@@ -89,7 +89,7 @@ export function skapaKarta(yttre, geo, opts = {}) {
   for (const o of geo.omraden || []) {
     const path = el("path", { class: "hr-omrade", d: o.d, "data-id": o.id }, omradeG);
     const [x0, y0, x1, y1] = vagRuta(o.d);
-    omraden.set(o.id, { path, c: o.c || [(x0 + x1) / 2, (y0 + y1) / 2], diag: Math.hypot(x1 - x0, y1 - y0) });
+    omraden.set(o.id, { path, c: o.c || [(x0 + x1) / 2, (y0 + y1) / 2], liten: o.liten });
   }
   lager.sjoar = el("path", { class: "hr-sjoar", d: geo.lager?.sjoar || "" }, kamera);
   lager.vattendrag = el("path", { class: "hr-vattendrag", d: geo.lager?.vattendrag || "" }, kamera);
@@ -242,7 +242,9 @@ export function skapaKarta(yttre, geo, opts = {}) {
       const r = vard.getBoundingClientRect();
       traff = document.elementFromPoint(x + r.left, y + r.top)?.closest?.("[data-id]");
     }
-    const id = traff?.getAttribute("data-id");
+    let id = traff?.getAttribute("data-id");
+    // Överlappande ringar (Levanten): närmaste ringmitt vinner, inte den översta.
+    if (traff?.classList?.contains("hr-ring")) id = skarm.narmasteRing(x, y) ?? id;
     if (id && omraden.has(id)) valj(id);
   }
 

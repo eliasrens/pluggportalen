@@ -8,9 +8,10 @@
 // per bildruta (`rita`). Få element → billigt även under panorering.
 // ============================================================================
 
+import { visaRing } from "./ringregel.js";
+
 const NS = "http://www.w3.org/2000/svg";
-const LITEN_PX = 26; // område vars diagonal är mindre än så (skärm-px) får klickring
-const RING_R = 12;
+const RING_R = 12; // klickytan (24 px); vilka områden som får ring: ringregel.js
 const NAL_D = "M0 0C-3-9-12-13-12-22a12 12 0 1 1 24 0C12-13 3-9 0 0z";
 
 export function svgEl(namn, attr = {}, foralder) {
@@ -26,7 +27,7 @@ const visa = (g, ja) => { g.style.display = ja ? "" : "none"; };
 
 /**
  * @param svg      kartans <svg> (lagret läggs sist = överst)
- * @param omraden  Map id → { path, c: [x, y], diag } (kartenheter)
+ * @param omraden  Map id → { path, c: [x, y], liten? } (kartenheter, se ringregel.js)
  */
 export function skapaSkarmlager(svg, omraden) {
   const skarm = svgEl("g", { class: "hr-skarm" }, svg);
@@ -95,18 +96,28 @@ export function skapaSkarmlager(svg, omraden) {
       this.satRatt(null);
       this.satEtikett("", null);
     },
+    /** Id för den synliga ring vars mitt ligger närmast (x, y) skärm-px, eller null. */
+    narmasteRing(x, y) {
+      let bast = null, bastD = RING_R;
+      for (const [id, o] of omraden) {
+        if (!o.ring || o.ring.style.display === "none") continue;
+        const d = Math.hypot(o.ringPos[0] - x, o.ringPos[1] - y);
+        if (d <= bastD) { bast = id; bastD = d; }
+      }
+      return bast;
+    },
     /** Trycket började på elevens nål? */
     arNal: (mal) => !!mal?.closest?.(".hr-nal-giss"),
 
     /** Räkna om allt till skärm-px. tillSkarm: kartkoordinat → px. */
     rita({ tillSkarm, k, W, H, ringar }) {
       for (const [id, o] of omraden) {
-        const syns = ringar && o.diag * k < LITEN_PX;
+        const syns = ringar && visaRing(o, k);
         if (syns && !o.ring) o.ring = svgEl("circle", { class: "hr-ring", r: RING_R, "data-id": id }, ringG);
         if (!o.ring) continue;
         visa(o.ring, syns);
         if (!syns) continue;
-        const [sx, sy] = tillSkarm(o.c);
+        const [sx, sy] = (o.ringPos = tillSkarm(o.c));
         o.ring.setAttribute("cx", fast(sx));
         o.ring.setAttribute("cy", fast(sy));
         for (const c of ["vald", "ratt", "fel"]) o.ring.classList.toggle(c, o.path.classList.contains(c));

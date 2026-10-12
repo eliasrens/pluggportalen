@@ -101,11 +101,15 @@ Ovanför kameran ligger **skärmlagret** med ringar, nålar och linjen, i skärm
   `pointer-events: none`, så ett klick i Vänern når landskapet under (det
   rimliga svaret för en elev som pekar på Vänern i "Hitta Värmland" är
   landskapet).
-- **Små områden** (Malta, Luxemburg, Andorra, Vatikanen, San Marino,
-  Monaco, Liechtenstein, Åland …): är områdets diagonal under 26 skärm-px
-  vid aktuell zoom ritas en **klickring** med r = 12 px i skärmlagret. Den
-  döljs när området blivit stort nog. Ringen avslöjar inget namn, bara att
-  det finns ett land där – som i Seterra. Ringen markeras också när den är vald.
+- **Små områden** (#639, `karta/ringregel.js`): två steg. Byggskriptet
+  sätter `liten` (sidan på en kvadrat med samma yta som områdets största
+  sammanhängande del, i kartenheter) bara när den delen är under
+  `RING_KM2 = 12 000 km²` – mikrostater och små önationer. Motorn ritar en
+  **klickring** (r = 12 px, hela cirkeln är klickyta) när `liten · k` är
+  under `LITEN_PX = 12` skärm-px. Normalstora länder (Belgien, Israel,
+  Rwanda …) får aldrig ring, oavsett skärmbredd. Överlappar ringar vinner
+  den närmaste ringmitten. Ringen är diskret (tunn, halvgenomskinlig) och
+  avslöjar inget namn; vald = streckad, rätt = heldragen, fel = prickad.
 - **Nålen:** en droppformad SVG i skärmlagret (konstant storlek), med
   spetsen på punkten. Klicka igen eller **dra nålen** för att flytta den
   (`gester.js` ser att trycket började på nålen). Den låses med `lock()`.
