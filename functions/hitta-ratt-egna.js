@@ -148,7 +148,7 @@ export async function sparaPack(deps, uid, data, { namn } = {}) {
     tx.set(r.pack, pack);
     tx.set(r.katalog, { packs: { [ny.id]: katalogPost(pack, FieldValue) }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     oanvanda.forEach((ref) => tx.delete(ref));
-    return { id: ny.id, version: pack.version, nollstalld: andrad, bilderBort: oanvanda.length };
+    return { id: ny.id, version: pack.version, nollstalld: andrad };
   });
 }
 
@@ -174,8 +174,8 @@ export async function raderaPack(deps, uid, data) {
     }
     return { fanns: true };
   });
-  const bilder = await raderaPackBilder(db, packId, { bara: svar.fanns ? null : uid });
-  return { ...svar, bilder };
+  await raderaPackBilder(db, packId, { bara: svar.fanns ? null : uid });
+  return svar;
 }
 
 const sammaLista = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i]);
