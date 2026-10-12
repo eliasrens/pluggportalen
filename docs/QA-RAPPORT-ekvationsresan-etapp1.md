@@ -1,0 +1,201 @@
+# Etapp 1-rapport – Ekvationsresan (#620, epic #614)
+
+Slut-QA av epicgrenen `a68a5d9` (`epic/ekvationsresan-etapp-1-…`) mot spec E1.14, test 1–28.
+Spec: `UTVECKLINGSUPPDRAG_EKVATIONSRESAN.md` (uppladdad till epicen). Teknisk dokumentation:
+`docs/EKVATIONSRESAN.md` §1–§6.
+
+**Resultat: alla 28 acceptanstest är gröna. QA:n hittade inga produktbuggar.** Bootgrafen är kvar på
+**107** filer och är identisk med `main`. Ekvationsresan laddas först när eleven öppnar den och gör
+inga externa anrop. Iakttagelserna O1–O5 nedan blockerar inte landningen. **Etapp 2 är inte påbörjad.**
+Arbetet stannar här och väntar på Elias klartecken.
+
+## Deploy före live
+
+1. `firebase deploy --only firestore:rules`. **Reglerna är ändrade** (#618 och #619):
+   - `studentData/{id}/ekvationsresa/progress`: eleven skriver sitt eget dokument (`ekvProgressOk`). Läraren får bara ändra nivåfälten med ett tomt fönster (`ekvTeacherLevelOk`).
+   - `studentData/{id}/ekvationsresaAttempts/{taskId}`: create-only för eleven själv (`ekvAttemptOk`), läsning för eleven och lärare.
+
+   **Det finns ingen fallback** i `studentData`, till skillnad från Läsresan. Utan deployen kan
+   eleven inte spara någon uppgift och får inga mynt, och läraren kan inte ändra nivå.
+2. Merge till `main` (Pages). **Index och functions är oförändrade.**
+
+Modulen är **av som standard** (`optIn`). En Pages-utrullning före steg 1 syns därför inte för elever
+förrän en lärare slår på Ekvationsresan för en klass. Slå inte på den för någon klass innan reglerna
+är deployade.
+
+## Vad har byggts (och var)
+
+Inga PR:er är öppnade än. Allt ligger på epicgrenen och har landat issue för issue:
+
+| Issue | Commit | Innehåll |
+| --- | --- | --- |
+| #615 A | `1d3b9bf` | Matematikkärnan: exakta rationella tal, ekvationsmodell, operationer och spärrar, skrivsätt (MIN LÖSNING), BFS för optimalt antal drag, generator för nivå 1–6. |
+| #616 B | `4d7b43d` | Hjälp i 4 steg, Visa lösningen, stjärnor, anpassning upp/ner, mynt (konfig i `config.js`). |
+| #617 C | `d51380b` | Den grafiska vågen: 5 teman, föremål/block/stiliserad, förklarande animationer (WAAPI, 0,9 s), hjälpbilder. |
+| #618 D | `a3a26bd` | Spelvyn och MIN LÖSNING, tangentbordsflyt, route och opt-in-modul, progress och försök med regler, idempotenta mynt. |
+| #619 E | `5774650` | Lärarvyn: klassöversikt, elevdetalj med räknegång, nivåstyrning för en elev och för hela klassen. |
+| #620 F | denna gren | Slut-QA, QA-hjälparen `admin/qa-ekvationsresan-uppgift.mjs`, skärmdumpar och den här rapporten. |
+
+Ny kod finns bara i `src/ekvationsresan/` (28 filer, plus `teacher-ekvationsresan*.js`). Befintliga
+filer har bara fått små krokar: `app.js` (dynamisk route), `gamemode-visibility.js` (modulposten),
+`teacher-class-modules.js`, `teacher-class.js` (Statistik-fliken), `ui.js` (menyn) och `firestore.rules`.
+
+## Tekniska val
+
+- **Generatorn** (`generator.js`, `forms.js`, `config.LEVELS`): ingen hårdkodad lista. Varje form väljer x först (ett positivt heltal) och räknar fram talen. `solve()` kontrollerar sedan lösningen exakt.
+  - Nivåerna väljer former med vikter:
+    - nivå 1: x ± a
+    - nivå 2: ax, x/a
+    - nivå 3: ax + b
+    - nivå 4–5: ax ± b
+    - nivå 6: alla former, även x/a ± b, och x står i högerledet i 15 % av uppgifterna.
+  - Andelen typ B ökar från 10 % till 80 %.
+  - Samma ekvation kommer aldrig två gånger i följd.
+  - Uppgiften sparar ekvationen i strukturerad form, lösningen, `optimalMoves`, `optimalPath`, typ och visning.
+- **Optimalt antal drag** (`solver.js`): bredden-först-sökning till högst 6 dragdjup, med samma spärrar som eleven har. Operanderna tas ur talen i det *aktuella* tillståndet. Sökordningen − + ÷ · ger den naturliga vägen för "Visa lösningen". `moveEffect` (närmare/samma/längre bort) styr feedbacken, och inget giltigt drag kallas fel.
+- **Exakt aritmetik:** `{n, d}` med JS-heltal och en `isSafeInteger`-vakt (ingen BigInt). Spärren vid 1 000 håller talen långt under gränsen. Inga flyttal används någonstans.
+- **Skrivsätt** (`notation.js`): raderna är strukturerade segment. Elevens operation har `mark: "op"` och visas röd, även i mellanledet.
+  - Parentes vid ÷ och · av ett led med flera termer, sedan mellanled på nivå 1–6 (`rules.distributionStep`).
+  - Minus skrivs med U+2212 och gånger med `·`.
+  - x delat med ett tal i uppgiften skrivs **alltid med bråkstreck**. Elevens division skrivs **alltid med ÷**.
+  - `5 = x` får en sista rad `x = 5`.
+- **Visningen** (`vag-visning.js`):
+  - Föremål när alla tal är heltal ≤ 20 och x förekommer högst 5 gånger.
+  - Block för tal upp till ungefär 100.
+  - Annars en stiliserad våg.
+  - Visningen räknas över **hela den optimala vägen**, så `x/4 = 6` (som slutar i x = 24) visas med block.
+  - Under spelet blir visningen aldrig mindre abstrakt än uppgiftens. Bytet sker med en lugn övertoning.
+- **Data:** `studentData/{id}/ekvationsresa/progress` (nivå, fönster, sammanfattning, pågående uppgift) och `ekvationsresaAttempts/{taskId}` (create-only, ett försök per uppgift).
+  - Försöket och progress skrivs i en transaktion. Mynten läggs sedan på via `data.addCoins` (Läsresans mönster).
+  - En uppgift kan aldrig ge mynt två gånger.
+  - Lärarvyn läser ett progressdokument per elev. Försöken läses bara för den elev som öppnas i detaljen (lärdomen från #231).
+
+## Sviter och bootgraf
+
+| Svit | Resultat |
+| --- | --- |
+| Enhetstester (`node --test`, alla utom regler, functions och e2e) | ✅ **1911/1911**, varav 99 i `ekvationsresan-*` |
+| `test:rules` (36 filer, bl.a. `firestore-rules-ekvationsresan`) | ✅ **455/455**. I den fulla körningen gav 6 test "client is offline"/timeout i emulatorn (hitta-ratt, klasscenter-fund, -gast, -kassa, klasscenter), samma kända effekt av lite RAM som i #619. Samma filer plus ekvationsresan kördes om seriellt: **105/105** |
+| `test:e2e` | ✅ 5/5 |
+| `test:functions` | ✅ 73/73 (functions är oförändrade i epicen, körd som regression) |
+| Bootgrafen (`admin/qa-bootgraf-bfs.mjs`) | ✅ **107** filer, identisk med `origin/main` och med epicens bas `4ad608a`. 0 `ekvationsresan`-filer i den statiska grafen |
+| Laddning i webbläsaren | ✅ Efter en kall laddning på `#/elev/hus` fanns 0 Ekvationsresan-filer. När modulen öppnades kom 28 filer (26 js + 2 css), alla från egen origin. Inga nya värdar. Boot-värdarna `fonts.googleapis.com` och `www.gstatic.com` (Firebase-SDK) fanns redan före epicen |
+
+Recept: sviterna kördes en i taget i färska `emulators:exec` med egen config
+(`/tmp/ekv620-suite/firebase.json`, FS 8620) och `node_modules` symlänkat från ett syskon-worktree.
+
+## Miljö och metod
+
+- Preview mot emulatorn: `admin/qa-ekvationsresan-preview.sh` (FS 8618, Auth 9618, proxy 8619). Seed: `qa-lasresan-seed` och `qa-ekvationsresan-seed --larare`.
+- **EN** headless Chrome-flik som växlades mellan `elev1` (Astrid, QA-klass 4A, modulen PÅ), `ekv-av` (Av Anton, klassen utan modulen) och läraren `qalarare`.
+- **Ny** `admin/qa-ekvationsresan-uppgift.mjs "2x+4=14" [--niva N] [--typ B]` lägger en *bestämd* ekvation som elevens pågående uppgift (bara emulatorn).
+  - Uppgiften byggs som generatorns `buildTask`: BFS-optimum, visning och form. Formen gissas ur texten, så "Försök igen" fungerar.
+  - Ett nivåbyte nollställer fönstret.
+- Drag gjordes med riktig tangentbordsinmatning (test 1, 26) eller genom att fylla talfältet och skicka formuläret (`requestSubmit`), alltså samma väg som ENTER.
+- Varje påstående om sparad data kontrollerades mot Firestore-emulatorn (progress, försök, saldo).
+
+## Acceptanstest (E1.14)
+
+### Matematik och skrivsätt
+
+| Test | Resultat |
+| --- | --- |
+| **1** `2x + 4 = 14`, −4 och ÷2 | ✅ MIN LÖSNING: `2x + 4 = 14` / `2x + 4 − 4 = 14 − 4` / `2x = 10` / `2x ÷ 2 = 10 ÷ 2` / `x = 5`. "− 4" och "÷ 2" är röda (rgb 214,48,49) i båda leden. ⭐⭐⭐ "Smart lösning! 2 drag …", +2 mynt ([01](qa-ekvationsresan-620/ekv620-01-niva3-start-1366.png), [02](qa-ekvationsresan-620/ekv620-02-test1-losning-3stjarnor-1366.png)) |
+| **2** ÷2 först | ✅ `(2x + 4) ÷ 2 = 14 ÷ 2` → `2x ÷ 2 + 4 ÷ 2 = 7` → `x + 2 = 7`. Aldrig `2x + 4 ÷ 2` |
+| **3** ÷0, ·0 | ✅ "Man kan inte dela med noll." / "Om du gångrar med noll blir båda sidorna 0, och då försvinner x. Prova något annat!" Uppgiften slutade ändå med "2 drag" och ⭐⭐⭐. Försöket sparade `blocked: 5`, `moveCount: 2` |
+| **4** ÷3 på `2x + 4 = 14` | ✅ "Det fungerar matematiskt, men då får du bråk. Prova ett annat drag!" |
+| **5** Minustal | ✅ −10 på `x + 2 = 7`: "Då blir det minustal. Prova ett annat drag!" Även ·200: "Nu blir talen väldigt stora." och −1000: "Skriv ett tal mellan 1 och 999." |
+| **6** +6, −10, ÷2 | ✅ Efter +6: "Det fungerar, men ekvationen blev inte enklare än." Inget kallas fel. Resultat ⭐⭐ "Rätt! Du löste den på 3 drag. Kan du hitta en kortare väg?" och FÖRSÖK IGEN FÖR ⭐⭐⭐ ([03](qa-ekvationsresan-620/ekv620-03-test6-omvag-2stjarnor-1366.png)) |
+| **7** `14 = 2x + 4` → `5 = x` | ✅ Räknas som löst (⭐⭐⭐). Sista raden `x = 5` är dubbelt understruken ([11](qa-ekvationsresan-620/ekv620-11-nivaupp-1920.png), högra kolumnen) |
+| **8** 1 000 ekvationer per nivå | ✅ Enhetstest för nivå 1–6 (positivt heltal, BFS-optimum stämmer, inget drag 1–999 löser en tvåstegsuppgift på ett drag) |
+
+### Vågen
+
+| Test | Resultat |
+| --- | --- |
+| **9** `2x + 3 = 11` | ✅ Vänster skål: 2 spargrisar och 3 mynt (`L:x0 L:x1 L:i0–2`). Höger: 11 mynt (`R:i0–10`) ([06](qa-ekvationsresan-620/ekv620-06-test9-2x+3=11-1366.png)) |
+| **10** −3 och ÷2 | ✅ −3: röda "− 3"-brickor över båda skålarna, och tre mynt lyfts från båda sidor ([07](qa-ekvationsresan-620/ekv620-07-test10-minus3-animation-1366.png), fryst mitt i animationen). ÷2: båda sidor delas i två streckade grupper ([08](qa-ekvationsresan-620/ekv620-08-test10-dela2-animation-1366.png)). Animationerna är 350–900 ms, och nästa drag kan göras direkt |
+| **11** `5x + 13 = 48` | ✅ Fem x-block och talbrickorna "13" och "48". Inga föremål ([13](qa-ekvationsresan-620/ekv620-13-niva5-test11-block-1920.png), [14](qa-ekvationsresan-620/ekv620-14-niva5-test11-block-1366.png)) |
+
+### Hjälp och stjärnor
+
+| Test | Resultat |
+| --- | --- |
+| **12** Hjälp steg 1 + optimalt | ✅ "💡 1/4 x vill stå ensamt. Vad i 3x + 3 står i vägen …" → ⭐⭐⭐ |
+| **13** Hjälp steg 2 + optimalt | ✅ ⭐⭐ "Rätt! 2 drag. Nästa gång klarar du den kanske med mindre hjälp." |
+| **14** Hjälp steg 4 (`4x = 20`) | ✅ Stegen stämmer ordagrant med specen: fråga → "Om fyra lika stora delar …" (vågen visar fyra grupper, [12](qa-ekvationsresan-620/ekv620-12-hjalp-steg2-4x=20-1920.png)) → "Dividera båda leden med 4." + `4x ÷ 4 = 20 ÷ 4` → "4x ÷ 4 blir x. Vad blir 20 ÷ 4?". Ett femte tryck stannar på 4/4. Resultat ⭐, +1 |
+| **15** Visa lösningen | ✅ Två klick ("Säker? Då räknas uppgiften som ej löst."). Lösningen spelas på vågen och i häftet, sedan "Ej löst". Saldot är oförändrat (318 → 318) |
+| **16** Försök igen | ✅ `2x + 4 = 14` (⭐⭐) → ny uppgift `5x + 2 = 7`: samma form, ny ekvation och ny lösning |
+| Erbjudande | ✅ Efter optimalt + 6 = 8 drag (+1/−1) visas "Vill du ha hjälp eller se lösningen?" med båda knapparna, och ingenting tvingas ([16](qa-ekvationsresan-620/ekv620-16-smal-800-hafte-under.png)) |
+
+### Anpassning
+
+| Test | Resultat |
+| --- | --- |
+| **17** 4 × ⭐⭐⭐ på nivå 1 | ✅ I webbläsaren: efter fjärde uppgiften kom skärmen "🎉 NY NIVÅ! NIVÅ 2 – Lika stora grupper" |
+| **18** 5 senaste = 4,2 | ✅ Enhetstest med exakt sekvensen. I webbläsaren gav 3,3,2,2,3 (summa 4,2) på nivå 3 → nivå 4 och skärmen "NY NIVÅ! NIVÅ 4" ([10](qa-ekvationsresan-620/ekv620-10-nivaupp-1366.png), [11](qa-ekvationsresan-620/ekv620-11-nivaupp-1920.png)) |
+| **19** En ej löst efter bra | ✅ Enhetstest |
+| **20** ⭐ ⭐ ej ⭐ ej | ✅ I webbläsaren på nivå 2 → nivå 1, fönstret tomt. **Inget meddelande** (0 träffar på "nivå ner/åkt ner/lägre nivå"), bara rubriken byts |
+| **21** Nivå 1 med dåliga resultat | ✅ I webbläsaren: 5 × Visa lösningen → kvar på nivå 1, fönster `[0,0,0,0,0]` |
+| Mätare och översikt | ✅ Mätaren rör sig tydligt efter ⭐⭐⭐. Knappen "Nivåer" visar `1 ✓ 2 ✓ 3 ✓ 4 ● 5 🔒 6 🔒` som en frivillig ruta |
+
+### Mynt, klass och lärare
+
+| Test | Resultat |
+| --- | --- |
+| **22** Nivå 1, 3, 5 → 1, 2, 3 mynt | ✅ I webbläsaren +1, +2, +3 på det vanliga saldot. Kontroll: elev1 300 → 328 = summan av försökens `coins` (28) = `progress.coins` |
+| **23** Klassynlighet | ✅ `ekv-av` (klassen utan modulen): ingen menylänk, och `#/elev/ekvationsresan` stoppas → `#/elev/hus`. Läraren kryssade i "Ekvationsresan (av som standard)" i Synlighet och tryckte Spara moduler → `enabledModules: ["ekvationsresan"]`. Efter inloggning syns ⚖️ Ekvationsresan och eleven landar direkt i en nivå 1-uppgift |
+| **24** Nivå för en elev / hela klassen | ✅ Maja nivå 3 → 5 i elevdetaljen: `level 5, window [], current null`, och statistiken (8 uppgifter, 14 mynt) finns kvar. Hela klassen → nivå 2 med bekräftelsedialogen ([24](qa-ekvationsresan-620/ekv620-24-larare-hela-klassen-bekrafta-1366.png)): "✓ 10 elever i QA-klass 4A satta till nivå 2". Alla 10 dokument fick ett tomt fönster, även elever som inte börjat (`qa-ny` fick ett tomt dokument) |
+| **25** Översikt och elevdetalj | ✅ Varje cell kontrollerades mot försöksdokumenten för 5 elever (stjärnfördelning, lösta %, hjälp %, extra drag, mynt), till exempel Astrid 26 · 10/4/4 · 69 % · 27 % · +0,1. Huvudet visar "60 uppgifter" (= summan). Sortering på namn, nivå och uppgifter fungerar, och elever som inte börjat hamnar sist. Elevdetaljen visar nyckeltal, nivåkurva, de 20 senaste försöken och räknegången som MIN LÖSNING. Vid Visa lösningen skiljs elevens rader från de visade ([20](qa-ekvationsresan-620/ekv620-20-larare-oversikt-1366.png), [21](qa-ekvationsresan-620/ekv620-21-larare-oversikt-1920.png), [22](qa-ekvationsresan-620/ekv620-22-larare-elevdetalj-1366.png), [23](qa-ekvationsresan-620/ekv620-23-larare-elevdetalj-rakneg-1920.png)). XSS-provnamnet `Bo <b>Svag</b>` visas escapat |
+
+### Flyt och layout
+
+| Test | Resultat |
+| --- | --- |
+| **26** Bara tangentbordet | ✅ Riktiga tangenttryck: `-4` ENTER, `/2` ENTER löste uppgiften. Talfältet har fokus hela tiden, och efter lösningen ligger fokus på NÄSTA UPPGIFT (ENTER) |
+| **27** 1366×768 | ✅ `scrollHeight` = 768 och `scrollWidth` = 1366. Spelet är 672 px och MIN LÖSNING 378 px (64/36). Även med 12 drag (25 rader) scrollar häftet internt och den senaste raden syns. I 1920×1080 ryms allt utan scroll |
+| Smal skärm | ✅ 800 px: MIN LÖSNING ligger under spelet ([16](qa-ekvationsresan-620/ekv620-16-smal-800-hafte-under.png)). 390 px: ingen horisontell scroll och inga rader kapade |
+| **28** Regression | ✅ Alla sviter är gröna (se ovan). Hem, Plugga, Läsresan, Shoppen, Profil och Ekvationsresan öppnades i följd utan fel eller varningar i konsolen. Bootgrafen är oförändrad |
+
+## Skärmdumpar (`docs/qa-ekvationsresan-620/`)
+
+| Vy | 1366×768 | 1920×1080 |
+| --- | --- | --- |
+| Spelvyn nivå 1 | [05](qa-ekvationsresan-620/ekv620-05-niva1-1366.png) | [04](qa-ekvationsresan-620/ekv620-04-niva1-1920.png) |
+| Spelvyn nivå 3 | [01](qa-ekvationsresan-620/ekv620-01-niva3-start-1366.png), [02](qa-ekvationsresan-620/ekv620-02-test1-losning-3stjarnor-1366.png) | [09](qa-ekvationsresan-620/ekv620-09-niva3-1920.png) |
+| Spelvyn nivå 5 | [14](qa-ekvationsresan-620/ekv620-14-niva5-test11-block-1366.png), [15](qa-ekvationsresan-620/ekv620-15-niva5-hjalp-steg2-dela5-1366.png) | [13](qa-ekvationsresan-620/ekv620-13-niva5-test11-block-1920.png) |
+| Nivå upp-skärmen | [10](qa-ekvationsresan-620/ekv620-10-nivaupp-1366.png) | [11](qa-ekvationsresan-620/ekv620-11-nivaupp-1920.png) |
+| Lärarvyn – översikt | [20](qa-ekvationsresan-620/ekv620-20-larare-oversikt-1366.png) | [21](qa-ekvationsresan-620/ekv620-21-larare-oversikt-1920.png) |
+| Lärarvyn – elevdetalj | [22](qa-ekvationsresan-620/ekv620-22-larare-elevdetalj-1366.png) | [23](qa-ekvationsresan-620/ekv620-23-larare-elevdetalj-rakneg-1920.png) |
+| Övrigt | [03](qa-ekvationsresan-620/ekv620-03-test6-omvag-2stjarnor-1366.png) omväg ⭐⭐, [06](qa-ekvationsresan-620/ekv620-06-test9-2x+3=11-1366.png)–[08](qa-ekvationsresan-620/ekv620-08-test10-dela2-animation-1366.png) vågen, [12](qa-ekvationsresan-620/ekv620-12-hjalp-steg2-4x=20-1920.png) hjälp steg 2, [16](qa-ekvationsresan-620/ekv620-16-smal-800-hafte-under.png) smal skärm, [24](qa-ekvationsresan-620/ekv620-24-larare-hela-klassen-bekrafta-1366.png) hela klassen | |
+
+## Iakttagelser (inte buggar, blockerar inte)
+
+- **O1 – ÷-brickan på vågen är svårläst.** Vid ÷ står "÷ 4" i vit text (19 px) på en ljusblå bricka. I skärmdumparna [12](qa-ekvationsresan-620/ekv620-12-hjalp-steg2-4x=20-1920.png) och [15](qa-ekvationsresan-620/ekv620-15-niva5-hjalp-steg2-dela5-1366.png) ser den ut som "+ 4". Texten i SVG:n är korrekt (`÷ 5`). Förslag: mörkare fyllnad eller större tecken för `/` i `vag-konst.js` (`BADGE_FILL`).
+- **O2 – Nivåöversikten efter nivå ner.** En nivå som eleven har nått men åkt ner från visas som 🔒 (5 🔒 efter 5 → 4). Det kan vara rätt, eftersom nivå ner ska vara tyst, men det är värt ett beslut.
+- **O3 – Tillit som i Läsresan.** Eleven skriver sitt eget progressdokument och försök (formen kontrolleras i reglerna, högst 7 mynt per försök), och mynten läggs på via `data.addCoins`. En elev med devtools kan alltså ändra sin egen nivå och statistik. Det är samma modell som Läsresan, ingen ny risk, men nämns inför Etapp 2.
+- **O4 – x = 1 förekommer** (t.ex. `5x + 2 = 7` från Försök igen). Det är tillåtet enligt specen (positivt heltal) men pedagogiskt lite tunt. Generatorn skulle kunna kräva x ≥ 2 på nivå 3+.
+- **O5 – Regelsviten är känslig för RAM.** Med lite ledigt minne ger den fulla `test:rules` timeouts i emulatorn, och samma filer är gröna när de körs seriellt. Det är infrastruktur, inte regler.
+
+## Öppna frågor till Elias
+
+1. **x/a med bråkstreck, elevens division med ÷.** x delat med ett tal *i uppgiften* skrivs `x/4` med bråkstreck (en term). Elevens egen division skrivs alltid `÷ 4` (en operation). Exempel: `(x/3 + 2) · 3 = 6 · 3`. Är det rätt val, eller ska allt skrivas med ÷?
+2. **Elevens operation röd även i mellanledet.** `2x ÷ 2 + 4 ÷ 2 = 7`: båda "÷ 2" är röda, eftersom de är elevens operation fördelad på termerna. Ska bara operationsraden vara röd?
+3. **x i högerledet.** 15 % av uppgifterna på nivå 6 har x i högerledet (`14 = 2x + 4`), vilket ger slutet `5 = x` → `x = 5`. Är andelen lagom, och ska det bara gälla nivå 6?
+4. (Ny, O1) Ska ÷-brickan på vågen få en mörkare färg?
+5. (Ny, O2) Ska en nivå eleven har nått men åkt ner från visas som ✓ eller 🔒 i nivåöversikten?
+
+## Vad återstår eller bör justeras
+
+- Deploya reglerna (se ovan) och merga till `main`. Ingen PR är öppnad. Leaden avgör i vilken ordning.
+- O1, O2 och O4 är små justeringar som kan göras om Elias vill.
+- Etapp 2 enligt specen (E2.1–E2.7). **Påbörjas inte förrän Elias ger klartecken.**
+
+## Hur koden är förberedd för Etapp 2
+
+- **Nivå 7–12:** nya rader i `config.LEVELS` med egna `rules`, till exempel `allowNegative`, `allowDecimals`, `operandX` och `distributionStep: false`. Reglerna tillåter redan nivå 1–12, och myntnivåerna för 7–12 och extrautmaningar (4–7) finns i `config.COINS`.
+- **x i båda leden och decimaler:** modellen `Term = {n, d, x}` rymmer x-termer i båda leden och rationella tal. `formatSv` visar decimalkomma. Talfältet tolkar redan `2x` och `2,5` men stängs av med `rules.operandX` och `rules.operandDecimal`.
+- **Negativa mellanled:** spärrarna (`div0`, `mul0`, `fraction`, `negative`, `tooBig`, `xProduct`) är regler per nivå. Vågen ritar redan minustal som skuldbrickor och x i båda leden som block.
+- **Nya uppgiftstyper (C–F) och former:** nya poster i `generator.TASK_TYPES` och `forms.js`.
+- **Färdighetsmodell:** `skills` finns redan, `{}` i progress och `null` i varje försök. Reglerna tillåter fältet, så ingen migrering behövs.
+- **Lärarvyn:** `larare.js` är ren logik över `teacherSummary`. Nya kolumner läggs där.
