@@ -16,9 +16,9 @@
 // visningen tillfälligt (viewDuring) – vågen motsvarar alltid ekvationen exakt.
 // ============================================================================
 
-import { coefOf, solve, evaluateSide, fromJSON, term } from "./equation.js";
-import { q, isInteger, isDecimal, isNegative, isZero } from "./rational.js";
-import { applyOperation } from "./operations.js";
+import { coefOf, solve, evaluateSide, fromJSON } from "./equation.js";
+import { isInteger, isDecimal, isNegative, isZero } from "./rational.js";
+import { applyStep } from "./operations.js";
 
 export const VIEWS = Object.freeze(["foremal", "block", "stiliserad"]);
 const RANK = Object.freeze({ foremal: 0, block: 1, stiliserad: 2 });
@@ -67,12 +67,12 @@ export function chooseView(states) {
   return states.reduce((v, eq) => moreAbstract(v, viewForEquation(eq)), "foremal");
 }
 
-/** Tillstånden längs en väg [{op, value}] från eq (spärrade steg hoppas över). */
+/** Tillstånden längs en väg [{op, value} | {op, n, d, x}] från eq (stannar vid ett spärrat steg). */
 export function statesAlong(eq, path = [], rules) {
   const out = [eq];
   let cur = eq;
   for (const m of path) {
-    const r = applyOperation(cur, m.op, term(q(m.value), 0), rules);
+    const r = applyStep(cur, m, rules);
     if (!r.ok) break;
     cur = r.after;
     out.push(cur);

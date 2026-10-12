@@ -23,14 +23,16 @@ function series(level, seed = `niva-${level}`) {
   return out;
 }
 
-const SERIES = Object.fromEntries(LEVELS.map((l) => [l.level, series(l.level)]));
+// Etapp 1 = nivå 1–6. Nivå 7–12 (#623) testas i ekvationsresan-etapp2.test.js.
+const ETAPP1 = LEVELS.filter((l) => l.level <= 6);
+const SERIES = Object.fromEntries(ETAPP1.map((l) => [l.level, series(l.level)]));
 
-test("Etapp 1 har nivå 1–6 med namn", () => {
-  assert.equal(LEVEL_MAX, 6);
-  assert.deepEqual(LEVELS.map((l) => l.name), ["Balansen", "Lika stora grupper", "Två steg", "Ekvationslösaren", "Större tal", "Blandat"]);
+test("Etapp 1 har nivå 1–6 med namn (Etapp 2 fortsätter till 12)", () => {
+  assert.equal(LEVEL_MAX, 12);
+  assert.deepEqual(ETAPP1.map((l) => l.name), ["Balansen", "Lika stora grupper", "Två steg", "Ekvationslösaren", "Större tal", "Blandat"]);
 });
 
-for (const { level } of LEVELS) {
+for (const { level } of ETAPP1) {
   test(`Test 8 – nivå ${level}: ${N} ekvationer, lösningen ett positivt heltal och optimalt antal drag stämmer`, () => {
     const rules = rulesFor(level);
     for (const task of SERIES[level]) {
@@ -88,7 +90,7 @@ test("Test 8: BFS-optimum är verkligen minst – inget enda drag 1–999 löser
 });
 
 test("andelen typ B ökar med nivån", () => {
-  const share = LEVELS.map((l) => SERIES[l.level].filter((t) => t.type === "B").length / N);
+  const share = ETAPP1.map((l) => SERIES[l.level].filter((t) => t.type === "B").length / N);
   for (let i = 1; i < share.length; i++) assert.ok(share[i] > share[i - 1], `B-andel ${share.join(", ")}`);
   assert.ok(share[0] < 0.25 && share[5] > 0.65);
 });
@@ -106,7 +108,7 @@ test("samma frö ger samma serie (reproducerbart)", () => {
 
 test("Test 16 (data): Försök igen ger en liknande men aldrig samma ekvation, och ny lösning", () => {
   const rng = seededRng("igen");
-  for (const { level } of LEVELS) {
+  for (const { level } of ETAPP1) {
     for (const task of SERIES[level].slice(0, 200)) {
       const s = similarTask(task, { rng });
       assert.notEqual(s.key, task.key);
