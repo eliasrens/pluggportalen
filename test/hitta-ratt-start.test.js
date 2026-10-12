@@ -87,3 +87,12 @@ test("vakten: OK släpper igenom och avarmerar", () => {
   assert.ok(!lamnaVaktAktiv());
   assert.equal(win.__ppLamnaVakt, null);
 });
+
+test("Logga ut frågar vakten FÖRE utloggningen (#611 F1)", () => {
+  // Annars loggas eleven ut även om hen svarar Avbryt och blir kvar i omgången utloggad.
+  const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
+  const klick = ui.slice(ui.indexOf('"#logout-btn"'));
+  const vakt = klick.indexOf("__ppLamnaVakt");
+  assert.ok(vakt > 0, "logout-knappen frågar lämna-vakten");
+  assert.ok(vakt < klick.indexOf("data.logout()"), "vakten frågas före data.logout()");
+});
