@@ -108,6 +108,60 @@ service cloud.firestore {
       match /lasresaAttempts/{attemptId} {
         allow read, write: if isTeacher() || isSelf(studentId);
       }
+
+      // Ekvationsresan (#618, docs/EKVATIONSRESAN.md §5): ETT progressdokument
+      // (ekvationsresa/progress) + ett försök per uppgift (ekvationsresaAttempts/
+      // {taskId}). Läsning: eleven själv + lärare (inga klasskamrater). Försöket
+      // är CREATE-only med uppgiftens id som dokument-id – samma uppgift kan
+      // aldrig sparas (och ge mynt) två gånger. Läraren får radera (städning)
+      // och skriva progress (nivåstyrning, E1.12).
+      // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
+      match /ekvationsresa/{docId} {
+        allow read: if isTeacher() || isSelf(studentId);
+        allow create, update: if docId == 'progress' && ekvProgressOk(request.resource.data) &&
+          (isSelf(studentId) || (isTeacher() && ekvTeacherLevelOk(request.resource.data, resource)));
+        allow delete: if isTeacher();
+      }
+      match /ekvationsresaAttempts/{taskId} {
+        allow read: if isTeacher() || isSelf(studentId);
+        allow create: if isSelf(studentId) && taskId.matches('^[A-Za-z0-9_-]{8,64}$') &&
+          ekvAttemptOk(request.resource.data, taskId);
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+    }
+
+    // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2
+    // ryms), fönstret ≤ 10 resultat, stjärnor 0–3, mynt 0–7 per uppgift.
+    function ekvProgressOk(d) {
+      return d.keys().hasOnly(['schema', 'level', 'window', 'maxLevel', 'tasks', 'solved', 'revealed',
+          'stars', 'helpTasks', 'movesSolved', 'optimalSolved', 'coins', 'recent', 'current', 'skills',
+          'levelChangedAt', 'updatedAt']) &&
+        d.level is int && d.level >= 1 && d.level <= 12 &&
+        d.window is list && d.window.size() <= 10 &&
+        (!('recent' in d) || (d.recent is list && d.recent.size() <= 10)) &&
+        (!('current' in d) || d.current == null || d.current is map);
+    }
+    // Lärarens nivåstyrning (#619, E1.12): bara nivå/fönster/pågående uppgift
+    // och tidsstämplar – fönstret nollställs alltid. Statistik och mynt rörs
+    // inte. Nytt dokument (eleven har aldrig öppnat modulen) = tomt dokument.
+    function ekvTeacherLevelOk(d, old) {
+      return d.window.size() == 0 &&
+        (old == null
+          ? d.get('tasks', 0) == 0 && d.get('coins', 0) == 0 && d.get('solved', 0) == 0
+          : d.diff(old.data).affectedKeys().hasOnly(['level', 'window', 'maxLevel', 'current',
+              'levelChangedAt', 'updatedAt']));
+    }
+    function ekvAttemptOk(d, taskId) {
+      return d.keys().hasOnly(['schema', 'taskId', 'level', 'type', 'form', 'equation', 'solution',
+          'optimalMoves', 'moves', 'moveCount', 'blocked', 'stars', 'solved', 'revealed', 'helpMax',
+          'helpPresses', 'coins', 'startedAt', 'completedAt', 'skills']) &&
+        d.taskId == taskId &&
+        d.level is int && d.level >= 1 && d.level <= 12 &&
+        d.stars is int && d.stars >= 0 && d.stars <= 3 &&
+        d.coins is int && d.coins >= 0 && d.coins <= 7 &&
+        d.solved is bool && d.moves is list && d.moves.size() <= 500 &&
+        d.equation is map;
     }
 
     // Klasser: alla inloggade läser (eleven behöver sin tilldelning);

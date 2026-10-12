@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Ekvationsresan – lärarvyn (#619). Laddas dynamiskt av teacher-ekvationsresan.js.
+   Tabell, modal och nivåkort ärver Läsresans lrt-/lrn-/cx-stilar (mörk
+   lärardesign); här bara det som är eget: trend, kurva och räknegångens häfte
+   (samma ljusa mattehäfte som elevens MIN LÖSNING).
+   ========================================================================== */
+
+.ekt-teacher .ekt-off { margin: 0 0 12px; }
+.ekt-panel { grid-template-columns: minmax(0, 1fr); }
+.ekt-tbl { min-width: 860px; }
+.ekt-stars { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.ekt-trend { font-size: 1.15rem; font-weight: 800; }
+.ekt-trend--up { color: #5fd38d; }
+.ekt-trend--flat { color: var(--t-muted, #9aa7bd); }
+.ekt-trend--down { color: #ff8a7a; }
+
+.ekt-stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* --- nivåkurvan ----------------------------------------------------------- */
+.ekt-kurva { margin: 0; }
+.ekt-kurva svg { width: 100%; max-height: 170px; display: block; }
+.ekt-kurva-grid { stroke: var(--t-border, #2c3a52); stroke-width: 1; }
+.ekt-kurva-txt { fill: var(--t-muted, #9aa7bd); font-size: 11px; }
+.ekt-kurva-linje { fill: none; stroke: var(--t-accent, #7aa7ff); stroke-width: 2.5; stroke-linejoin: round; }
+.ekt-dot { stroke: #0f1626; stroke-width: 1.5; }
+.ekt-dot--3 { fill: #ffd34d; }
+.ekt-dot--2 { fill: #f0a83a; }
+.ekt-dot--1 { fill: #c07a3a; }
+.ekt-dot--0 { fill: #6b7486; }
+.ekt-dot-key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 3px 0 8px; vertical-align: -1px; }
+.ekt-dot-key.ekt-dot--3 { background: #ffd34d; }
+.ekt-dot-key.ekt-dot--2 { background: #f0a83a; }
+.ekt-dot-key.ekt-dot--1 { background: #c07a3a; }
+.ekt-dot-key.ekt-dot--0 { background: #6b7486; }
+
+/* --- senaste uppgifterna -------------------------------------------------- */
+.ekt-att { cursor: pointer; }
+.ekt-att:hover td, .ekt-att:focus-visible td { background: var(--t-accent-soft, rgba(122, 167, 255, 0.12)); }
+.ekt-att.is-vald td { background: var(--t-accent-soft, rgba(122, 167, 255, 0.18)); }
+.ekt-att.is-vald td:first-child { box-shadow: inset 3px 0 0 var(--t-accent, #7aa7ff); }
+.ekt-att:focus-visible { outline: 2px solid var(--t-accent, #7aa7ff); outline-offset: -2px; }
+.ekt-eq { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ekt-stj { white-space: nowrap; }
+.ekt-ej { color: var(--t-muted, #9aa7bd); font-style: italic; }
+
+/* --- räknegången som MIN LÖSNING (ljust häfte även i mörk vy) ------------- */
+.ekt-hafte {
+  --ekv-rod: #d63031;
+  --ekv-linje: #cfe0f5;
+  color: #1f2d4a;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 4px 16px 14px 44px;
+  border-radius: 12px;
+  background-color: #fffef8;
+  background-image:
+    linear-gradient(90deg, transparent 32px, rgba(214, 48, 49, 0.35) 32px, rgba(214, 48, 49, 0.35) 34px, transparent 34px),
+    repeating-linear-gradient(180deg, transparent 0, transparent calc(2.1rem - 1px), var(--ekv-linje) calc(2.1rem - 1px), var(--ekv-linje) 2.1rem);
+  background-attachment: local;
+}
+.ekt-hafte-rubrik { margin: 0; line-height: 2.1rem; font-size: 0.95rem; letter-spacing: 0.12em; color: #5b6b86; }
+.ekt-hafte-meta { letter-spacing: 0; margin-left: 8px; font-size: 0.85rem; }
+.ekt-hafte .ekv-rader { list-style: none; margin: 0; padding: 0; }
+.ekt-hafte .ekv-rad { min-height: 2.1rem; line-height: 2.1rem; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ekt-hafte .ekv-rad--nytt-drag { margin-top: 2.1rem; }
+.ekt-hafte .ekv-rad--start, .ekt-hafte .ekv-rad--final { font-weight: 800; }
+.ekt-hafte .ekv-rad--final > * { border-bottom: 3px double #1f2d4a; }
+.ekt-hafte .ekv-rad--mid { color: #3d4f6b; }
+.ekt-hafte .ekv-rod { color: var(--ekv-rod); }
+.ekt-hafte .ekv-frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.75em; line-height: 1.05; }
+.ekt-hafte .ekv-frac > span:first-child { border-bottom: 0.12em solid currentColor; padding: 0 0.15em; }
+.ekt-visad { margin: 2.1rem 0 0; line-height: 2.1rem; font-size: 0.9rem; font-style: italic; color: #5b6b86; }
+.ekt-visad-rader .ekv-rad { opacity: 0.6; }
+
+@media (max-width: 700px) {
+  .ekt-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

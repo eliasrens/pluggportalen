@@ -1,0 +1,314 @@
+/* ==========================================================================
+   Ekvationsresan – spelvyn (src/ekvationsresan/ekvationsresan.css) · #618
+   Laddas av page-ekvationsresan.js först när eleven öppnar modulen – inte i
+   index.html/styles.css, så bootgrafen påverkas inte (#271). Prefix ekv-.
+   Spec E1.2: vänster spelet (~64 %), höger MIN LÖSNING (~36 %), ingen
+   vertikal scroll i 1366×768. Smal skärm: MIN LÖSNING under, sidan får
+   scrolla vertikalt men ingen matematik kapas och ingen horisontell scroll.
+   ========================================================================== */
+
+body.ekv-lage .container {
+  max-width: 1280px;
+  padding: 14px 18px 12px;
+}
+@media (max-width: 820px) {
+  body.ekv-lage.med-sidomeny .container { padding-top: 72px; } /* hamburgerknappen */
+}
+
+.ekv-sida {
+  --ekv-rod: #d63031;
+  --ekv-linje: #cfe0f5;
+  --ekv-vag-max-h: clamp(150px, calc(100dvh - 450px), 400px);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 64fr) minmax(0, 36fr);
+  gap: 16px;
+  height: calc(100dvh - 26px);
+  min-height: 540px;
+  font-family: var(--font);
+  color: var(--text);
+}
+.ekv-sida .ekv-vag--diskret { --ekv-vag-max-h: clamp(120px, calc(100dvh - 500px), 300px); }
+
+/* --- vänster: spelet ------------------------------------------------------ */
+.ekv-spel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2vh, 12px);
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 18px 14px;
+  background: var(--panel);
+  border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk);
+}
+
+.ekv-topp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ekv-niva {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--bla-mork);
+  flex: 0 1 auto;
+}
+.ekv-matare {
+  flex: 1 1 120px;
+  max-width: 260px;
+  height: 14px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: #e7eef8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+.ekv-matare-fyll {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #6fcf97, var(--gron));
+  transition: width 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.ekv-oversikt-knapp {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 2px solid #d4e2f4;
+  border-radius: 999px;
+  background: #f4f9ff;
+  color: var(--bla-mork);
+  cursor: pointer;
+}
+.ekv-oversikt {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  padding: 10px 14px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: var(--skugga-mjuk);
+}
+.ekv-oversikt-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ekv-oversikt-lista li { display: flex; gap: 8px; align-items: center; color: var(--text-svag); }
+.ekv-oversikt-lista li.is-done { color: var(--gron-mork); }
+.ekv-oversikt-lista li.is-current { color: var(--bla-mork); font-weight: 800; }
+
+.ekv-vag-plats {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ekv-vag-plats .ekv-vag { width: 100%; }
+
+.ekv-instruktion {
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  letter-spacing: 0.08em;
+  color: var(--text-svag);
+}
+
+/* --- operationer + talfält ------------------------------------------------- */
+.ekv-styr[hidden], .ekv-resultat[hidden] { display: none; }
+.ekv-styr { display: grid; gap: clamp(6px, 1vh, 10px); }
+.ekv-drag {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+.ekv-ops { display: flex; gap: 8px; }
+.ekv-op {
+  width: clamp(44px, 6.4vh, 54px);
+  height: clamp(44px, 6.4vh, 54px);
+  font: inherit;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
+  border: 3px solid #cddcf0;
+  border-radius: 14px;
+  background: #f4f9ff;
+  color: var(--bla-mork);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+.ekv-op:hover { border-color: var(--bla); }
+.ekv-op.is-vald { background: var(--bla); border-color: var(--bla-mork); color: #fff; }
+.ekv-falt {
+  width: 5.2ch;
+  padding: 0.12em 0.35em;
+  font: inherit;
+  font-size: clamp(1.6rem, 4vh, 2rem);
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+  background: #fff;
+  border: 4px solid var(--bla);
+  border-radius: 14px;
+  outline: none;
+  caret-color: var(--bla);
+}
+.ekv-falt:focus { box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.25); }
+.ekv-falt::placeholder { color: #c3d0e2; }
+.ekv-falt:disabled { opacity: 0.45; }
+.ekv-gor, .ekv-nasta, .ekv-fortsatt {
+  font: inherit;
+  font-size: clamp(1.1rem, 2.6vh, 1.35rem);
+  font-weight: 800;
+  padding: 0.35em 1.1em;
+  border: none;
+  border-radius: 14px;
+  background: var(--gron);
+  color: #fff;
+  box-shadow: 0 5px 0 var(--gron-mork);
+  cursor: pointer;
+}
+.ekv-gor:active, .ekv-nasta:active, .ekv-fortsatt:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--gron-mork); }
+
+.ekv-hjalp-rad { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.ekv-hjalp-knapp, .ekv-visa-knapp, .ekv-igen, .ekv-lank {
+  font: inherit;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.ekv-hjalp-knapp { border: 2px solid #f2c94c; background: #fff7d6; color: #6b5200; }
+.ekv-visa-knapp { border: 2px solid #dfe6ef; background: #fff; color: var(--text-svag); }
+.ekv-lank { padding: 2px 10px; border: 2px solid currentColor; background: #fff; color: inherit; margin-left: 6px; }
+
+/* --- pratraden: spärrar, feedback, hjälp ------------------------------------ */
+.ekv-prat {
+  min-height: 2.9em;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: clamp(0.95rem, 2vh, 1.05rem);
+  line-height: 1.35;
+  text-align: center;
+}
+.ekv-prat:empty { background: none; }
+.ekv-prat--sparr { background: #fff1e3; color: #7a3d00; }
+.ekv-prat--feedback { background: #eef5ff; color: var(--bla-mork); }
+.ekv-prat--hjalp { background: #fff7d6; color: #5a4500; text-align: left; }
+.ekv-prat--erbjud { background: #f3ecff; color: #4b2a87; }
+.ekv-prat--info { background: #f4f6f9; color: var(--text); }
+.ekv-prat-etikett { font-weight: 800; margin-right: 4px; }
+.ekv-hjalp-forslag { margin-top: 4px; font-size: 1.15em; font-weight: 700; opacity: 0.85; }
+
+/* --- resultatet ------------------------------------------------------------- */
+.ekv-resultat { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.ekv-stjarnor { font-size: clamp(1.8rem, 5vh, 2.4rem); letter-spacing: 0.1em; line-height: 1.1; }
+.ekv-stjarna { display: inline-block; color: #c9d3e0; }
+.ekv-stjarna.is-pa { animation: ekv-stjarna 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+.ekv-stjarna.is-pa:nth-child(2) { animation-delay: 0.12s; }
+.ekv-stjarna.is-pa:nth-child(3) { animation-delay: 0.24s; }
+@keyframes ekv-stjarna { from { transform: scale(0.2) rotate(-30deg); opacity: 0; } }
+.ekv-ej-lost { font-size: 1.2rem; font-weight: 800; color: var(--text-svag); }
+.ekv-feedback { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.ekv-mynt { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 1.15rem; color: #8a5a00; }
+.ekv-mynt.is-sparar { color: var(--text-svag); font-weight: 600; }
+.ekv-fel { margin: 0; color: #7a3d00; }
+.ekv-resultat-knappar { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+.ekv-igen { border: 3px solid var(--gul); background: #fff7d6; color: #6b5200; font-size: 1.05rem; padding: 6px 16px; border-radius: 14px; }
+.ekv-nasta:disabled { opacity: 0.55; cursor: default; }
+
+/* --- höger: MIN LÖSNING som mattehäfte ------------------------------------- */
+.ekv-hafte {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 16px 18px 44px;
+  border-radius: var(--radie);
+  background-color: #fffef8;
+  background-image:
+    linear-gradient(90deg, transparent 32px, rgba(214, 48, 49, 0.35) 32px, rgba(214, 48, 49, 0.35) 34px, transparent 34px),
+    repeating-linear-gradient(180deg, transparent 0, transparent calc(2.1rem - 1px), var(--ekv-linje) calc(2.1rem - 1px), var(--ekv-linje) 2.1rem);
+  background-attachment: local;
+  box-shadow: var(--skugga-mjuk);
+}
+.ekv-hafte-rubrik {
+  margin: 0 0 2px;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  color: var(--text-svag);
+  line-height: 2.1rem;
+}
+.ekv-rader { list-style: none; margin: 0; padding: 0; }
+.ekv-rad {
+  min-height: 2.1rem;
+  line-height: 2.1rem;
+  font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ekv-rad--nytt-drag { margin-top: 2.1rem; }
+.ekv-rad--start, .ekv-rad--final { font-weight: 800; }
+.ekv-rad--final > * { border-bottom: 3px double var(--text); }
+.ekv-rad--mid { color: #3d4f6b; }
+.ekv-rad--ny { animation: ekv-rad-in 0.35s ease-out both; }
+@keyframes ekv-rad-in { from { opacity: 0; transform: translateX(-8px); } }
+.ekv-rod { color: var(--ekv-rod); }
+.ekv-frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  font-size: 0.75em;
+  line-height: 1.05;
+}
+.ekv-frac > span:first-child { border-bottom: 0.12em solid currentColor; padding: 0 0.15em; }
+
+/* --- nivå upp -------------------------------------------------------------- */
+.ekv-nivaupp {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgba(31, 45, 74, 0.35);
+  border-radius: var(--radie);
+}
+.ekv-nivaupp[hidden] { display: none; }
+.ekv-nivaupp-kort {
+  max-width: 460px;
+  padding: 26px 30px;
+  text-align: center;
+  background: linear-gradient(160deg, #fffbe6, #fff);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(31, 45, 74, 0.3);
+  animation: ekv-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.ekv-nivaupp-kort h2 { margin: 4px 0; font-size: 1.9rem; color: var(--bla-mork); }
+.ekv-nivaupp-namn { margin: 0 0 8px; font-weight: 800; color: var(--gron-mork); }
+.ekv-nivaupp-fest { font-size: 3.4rem; animation: ekv-hopp 0.9s ease-in-out 2; }
+@keyframes ekv-pop { from { transform: scale(0.6); opacity: 0; } }
+@keyframes ekv-hopp { 50% { transform: translateY(-12px) rotate(-8deg); } }
+
+/* --- smal skärm: MIN LÖSNING under spelet ------------------------------------ */
+@media (max-width: 1060px) {
+  .ekv-sida { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; }
+  .ekv-sida { --ekv-vag-max-h: 42vh; }
+  .ekv-hafte { overflow: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ekv-stjarna.is-pa, .ekv-rad--ny, .ekv-nivaupp-kort, .ekv-nivaupp-fest { animation: none; }
+  .ekv-matare-fyll { transition: none; }
+}

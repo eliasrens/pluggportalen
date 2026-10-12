@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Ekvationsresan: den grafiska vågen</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/ekvationsresan/vag.css" data-ekv-vag-css />
+    <style>
+      body { padding: 16px; }
+      .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
+      .rad { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .rad button { margin: 0; padding: 8px 14px; font-size: 1rem; }
+      .rad input[type="text"] { font-size: 1.1rem; padding: 6px 10px; width: 12em; }
+      .rad select { font-size: 1rem; padding: 6px; }
+      .knapp-test { background: var(--lila); box-shadow: 0 5px 0 #7a3cb5; }
+      .knapp-hjalp { background: var(--orange); box-shadow: 0 5px 0 #c8742f; }
+      #meddelande { min-height: 1.4em; font-weight: 700; color: #a05a00; }
+      #logg { font: 13px/1.5 ui-monospace, monospace; color: var(--text-svag); }
+      .galleri { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+      .galleri .panel { min-width: 0; padding: 10px; --ekv-vag-max-h: 220px; }
+      .galleri .ekv-vag-ekvation { font-size: 1.5rem; }
+      .galleri small { color: var(--text-svag); display: block; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <b>Ekvationsresan – den grafiska vågen (issue #617, spec E1.5).</b>
+        Komponenten <code>src/ekvationsresan/vag.js</code> med kärnans riktiga drag
+        (<code>losning.js</code>). Skriv ett drag som i spelet (<code>-3</code>, <code>/2</code>,
+        <code>*3</code>, <code>+5</code>) och tryck ENTER. Ett nytt drag mitt i en animation väntar aldrig.
+      </div>
+
+      <div class="panel">
+        <div class="rad">
+          <b>Acceptanstest:</b>
+          <button class="knapp-test" data-test="9">Test 9: 2x + 3 = 11</button>
+          <button class="knapp-test" data-test="10">Test 10: −3 och ÷2</button>
+          <button class="knapp-test" data-test="11">Test 11: 5x + 13 = 48</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="rad">
+          <input id="ekv" type="text" value="2x + 3 = 11" aria-label="Ekvation" />
+          <button id="visa-ekv">Visa ekvationen</button>
+          <label>Ny uppgift nivå <select id="niva"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+          <button id="ny">Generera</button>
+        </div>
+        <div class="rad" style="margin-top:8px">
+          <label>Tema <select id="tema"><option value="">auto</option></select></label>
+          <label>Visning <select id="visning"><option value="">auto</option><option>foremal</option><option>block</option><option>stiliserad</option></select></label>
+          <label><input type="checkbox" id="reducerad" /> reducerad rörelse</label>
+          <label><input type="checkbox" id="diskret" /> typ B (diskret)</label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div id="vag"></div>
+        <div class="rad" style="justify-content:center;margin-top:6px">
+          <input id="drag" type="text" placeholder="t.ex. -3 eller /2" aria-label="Drag" />
+          <button id="gor">GÖR</button>
+          <button id="losning">Visa lösningen</button>
+          <button id="om">Börja om</button>
+        </div>
+        <div class="rad" style="justify-content:center;margin-top:8px">
+          Hjälpens bild (steg 2):
+          <button class="knapp-hjalp" data-hjalp="groups">grupper ÷n</button>
+          <button class="knapp-hjalp" data-hjalp="remove">ta bort −n</button>
+          <button class="knapp-hjalp" data-hjalp="add">lägg till +n</button>
+          <button class="knapp-hjalp" data-hjalp="copies">kopior ·n</button>
+          <button id="dolj">Dölj hjälp</button>
+          <label>n = <input id="hjalp-n" type="text" value="2" style="width:3em" /></label>
+        </div>
+        <div id="meddelande" role="status"></div>
+        <div id="logg"></div>
+      </div>
+
+      <div class="panel"><b>Galleri</b> – alla teman och visningar (stilla).</div>
+      <div class="galleri" id="galleri"></div>
+    </div>
+
+    <script type="module">
+      import { createVag } from "../src/ekvationsresan/vag.js";
+      import { THEMES, viewForEquation } from "../src/ekvationsresan/vag-visning.js";
+      import { parseEquation, fromJSON } from "../src/ekvationsresan/equation.js";
+      import { rulesFor } from "../src/ekvationsresan/config.js";
+      import { startRun, playMove } from "../src/ekvationsresan/losning.js";
+      import { applyNumber } from "../src/ekvationsresan/operations.js";
+      import { optimalPath } from "../src/ekvationsresan/solver.js";
+      import { generateTask } from "../src/ekvationsresan/generator.js";
+
+      const $ = (id) => document.getElementById(id);
+      const temaSel = $("tema");
+      for (const t of THEMES) temaSel.add(new Option(t.name, t.id));
+
+      let vag = null;
+      let run = null;
+      let task = null;
+
+      function bygg() {
+        vag?.destroy();
+        vag = createVag($("vag"), {
+          theme: temaSel.value || undefined,
+          view: $("visning").value || undefined,
+          reducedMotion: $("reducerad").checked ? true : undefined,
+          diskret: $("diskret").checked,
+        });
+        window.vag = vag;
+        if (task) vag.setTask(task, { animate: false });
+      }
+
+      function ladda(t) {
+        if (typeof t === "string") t = parseEquation(t);
+        run = t.left ? startRun(t) : startRun(fromJSON(t.equation), { rules: rulesFor(t.level) });
+        task = t;
+        if (!vag) bygg();
+        vag.setTask(task);
+        logg(`Ny uppgift ${run.rows[0].text} → visning ${vag.view} (grund ${vag.baseView}), tema ${vag.theme}`);
+      }
+
+      function logg(text) {
+        $("logg").innerHTML = `${text}<br>` + $("logg").innerHTML;
+      }
+
+      function drag(text) {
+        const before = run.current;
+        const { run: next, outcome } = playMove(run, text);
+        $("meddelande").textContent = outcome.message || "";
+        if (outcome.kind !== "move") return false;
+        run = next;
+        const m = run.moves[run.moves.length - 1];
+        vag.visa(run.current, { move: m });
+        logg(`${text} → ${outcome.rows.map((r) => r.text).join("  |  ")}  (visning ${vag.view})`);
+        if (run.solved) $("meddelande").textContent = "Löst! x står ensamt.";
+        return true;
+      }
+
+      $("gor").onclick = () => { drag($("drag").value); $("drag").select(); };
+      $("drag").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.repeat) { drag($("drag").value); $("drag").value = ""; }
+      });
+      $("visa-ekv").onclick = () => ladda($("ekv").value);
+      $("ny").onclick = () => ladda(generateTask(Number($("niva").value), { previous: task }));
+      $("om").onclick = () => ladda(task);
+      for (const id of ["tema", "visning", "reducerad", "diskret"]) $(id).onchange = () => { bygg(); if (run) vag.visa(run.current); };
+
+      $("losning").onclick = () => {
+        const best = optimalPath(run.current, run.rules);
+        const steps = [];
+        let cur = run.current;
+        for (const { op, value } of best?.path || []) {
+          const r = applyNumber(cur, op, value, run.rules);
+          steps.push({ op, value, before: cur, after: r.after });
+          cur = r.after;
+        }
+        for (const s of steps) run = playMove(run, { op: s.op, value: s.value }).run;
+        logg(`Visa lösningen: ${steps.map((s) => s.op + s.value).join(", ")}`);
+        vag.spelaLosning(steps);
+      };
+
+      for (const b of document.querySelectorAll("[data-hjalp]")) {
+        b.onclick = () => {
+          const n = Number($("hjalp-n").value);
+          const action = b.dataset.hjalp;
+          const ok = vag.visaHjalp(action === "groups" || action === "copies" ? { action, count: n } : { action, amount: n });
+          $("meddelande").textContent = ok ? "" : "Den bilden går inte att visa här.";
+        };
+      }
+      $("dolj").onclick = () => vag.doljHjalp();
+
+      const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
+      for (const b of document.querySelectorAll("[data-test]")) {
+        b.onclick = async () => {
+          const t = b.dataset.test;
+          if (t === "11") return ladda("5x + 13 = 48");
+          ladda("2x + 3 = 11");
+          if (t === "10") {
+            await vanta(700);
+            drag("-3");
+            await vanta(1500);
+            drag("/2");
+          }
+        };
+      }
+
+      ladda("2x + 3 = 11");
+
+      // --- galleri ---------------------------------------------------------------
+      const galleri = [
+        ...THEMES.map((t) => ({ eq: "2x + 3 = 11", theme: t.id, note: t.name })),
+        { eq: "x - 3 = 8", theme: "korg", note: "x − 3: tre föremål saknas" },
+        { eq: "4x = 20", theme: "burk", note: "÷4 → fyra grupper (hjälpen)", hjalp: { action: "groups", count: 4 } },
+        { eq: "5x + 13 = 48", note: "block (Test 11)" },
+        { eq: "x/4 = 6", note: "block: x/4 slutar i x = 24" },
+        { eq: "8x + 29 = 141", note: "stiliserad: större tal" },
+        { eq: "3x + 4 = x + 12", note: "Etapp 2: x i båda leden → block" },
+        { eq: "x - 7 = -3", note: "Etapp 2-förberedd: minustal → skuldbricka" },
+      ];
+      for (const g of galleri) {
+        const box = document.createElement("div");
+        box.className = "panel";
+        $("galleri").appendChild(box);
+        const v = createVag(box, { equation: parseEquation(g.eq), theme: g.theme, reducedMotion: true });
+        if (g.hjalp) v.visaHjalp(g.hjalp);
+        box.insertAdjacentHTML("beforeend", `<small>${g.note} · ${v.view} (${viewForEquation(parseEquation(g.eq))})</small>`);
+      }
+    </script>
+  </body>
+</html>

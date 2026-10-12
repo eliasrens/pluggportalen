@@ -21,6 +21,8 @@ classes/{classId}                        ← klass (lärarens gruppering, t.ex. 
 classProjections/{classId}               ← förberäknad by-översikt per klass (O(1) läsningar)
 classProjects/{classId}                  ← gemensamma klassprojekt (donationer till byns ytor)
 studentData/{studentId}/lasresaAttempts/{autoId}  ← Läsresan: ett försök per färdig text (#399)
+studentData/{studentId}/ekvationsresa/progress     ← Ekvationsresan: nivå, fönster, räknare (#618)
+studentData/{studentId}/ekvationsresaAttempts/{taskId}  ← Ekvationsresan: ett försök per uppgift (#618)
 mathCompetitions/{cid}/…                 ← Mattematchen (#457), se "Mattematchen & Live"
 liveSessions/{sid}/…                     ← Live-matcher (#457), se "Mattematchen & Live"
 liveClock/{uid}                          ← Live: klocksynk per inloggad (#460)
@@ -372,6 +374,12 @@ av `completeText` i `src/data-lasresan.js`):
 Regel: läs/skriv för eleven själv eller lärare (striktare läsning än `studentData`).
 ⚠️ Kräver `firebase deploy --only firestore:rules`. Innan dess faller skrivningen
 tillbaka till `studentData.lasresaAttemptsFallback`.
+
+### Ekvationsresan (#618) – `ekvationsresa/progress` + `ekvationsresaAttempts/{taskId}`
+
+Se `docs/EKVATIONSRESAN.md` §5 (fälten, transaktionen, mynt-idempotensen). Läsning:
+eleven själv + lärare. Försöket är create-only med uppgiftens id som dokument-id.
+⚠️ Kräver `firebase deploy --only firestore:rules` – ingen fallback i `studentData`.
 
 ### `studentData.pets[]` – kläckbara husdjuren
 
