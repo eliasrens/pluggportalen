@@ -65,5 +65,5 @@ for (const [i, uid] of elever.entries()) {
   await db.doc(`hittaRattAttempts/${attemptId}`).set({ uid, packId: ID, startedAt: Timestamp.fromMillis(start), status: "open" });
   await submit(deps, uid, { attemptId, svar });
 }
-console.log(`✓ ${elever.length} elever i 5A/5E har spelat ${pack.title} med topplistan AV (personbästa, ingen topplista).`);
+console.log(`✓ ${elever.length} elever i 5A/5E har spelat ${pack.title} med topplistan ${pack.leaderboard ? "PÅ" : "AV (personbästa, ingen topplista)"}.`);
 console.log("Klart: slå på i lärarvyn (qalarare → Hitta rätt! → Mina områden → Gästrikland runt) eller … qa-hitta-ratt-toggle-seed.mjs --pa");
