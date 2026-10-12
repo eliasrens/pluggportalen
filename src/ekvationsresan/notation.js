@@ -80,7 +80,7 @@ function row(kind, left, right) {
 export const equationRow = (eq, kind = "simplified") => row(kind, sideSegments(eq.left), sideSegments(eq.right));
 
 /** Operationsraden för ETT led: "2x + 4 − 4", "(2x + 4) ÷ 2", "10 ÷ 2". */
-function opSide(side, op, operand) {
+export function opSide(side, op, operand) {
   const segs = sideSegments(side);
   const opSeg = opSegment(op, operand);
   if ((op === "*" || op === "/") && side.length > 1) {
