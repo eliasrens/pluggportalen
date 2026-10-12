@@ -14,6 +14,8 @@
 // data.addCoins (mynt.award) – Läsresans mönster. Går nätet ner precis mellan
 // transaktionen och addCoins uteblir mynten för den uppgiften, men de kan aldrig
 // delas ut två gånger.
+// NÄSTA UPPGIFT väljs av färdighetsmodellen (nasta-uppgift.js, #626) på den
+// nivå anpassningen gett.
 // ⚠️ DEPLOY: reglerna för båda sökvägarna kräver `firebase deploy --only firestore:rules`.
 // ============================================================================
 
@@ -31,7 +33,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "../data.js";
 import { newAttemptId } from "../mult/attempt-id.js";
-import { generateTask } from "./generator.js";
+import { nastaUppgift } from "./nasta-uppgift.js";
 import { generateExtraTask } from "./extra.js";
 import { award } from "./mynt.js";
 import {
@@ -76,7 +78,7 @@ export async function enterEkvationsresan(studentId = currentStudentId(), { rng 
   const cur = currentTask(progress);
   if (cur) return { progress, current: cur };
   const previous = progress.current?.task || null;
-  return startTask(generateTask(progress.level, { rng, previous }), studentId, { progress });
+  return startTask(nastaUppgift(progress, { rng, previous }), studentId, { progress });
 }
 
 /**
@@ -91,9 +93,9 @@ export async function enterExtra(studentId = currentStudentId(), { rng = Math.ra
   return startTask(generateExtraTask({ rng, level: progress.level }), studentId, { progress });
 }
 
-/** Nästa uppgift efter `task` – samma läge (huvudprogression eller extra). */
-const nextTaskAfter = (task, level, rng) =>
-  task.extra ? generateExtraTask({ rng, level, previous: task }) : generateTask(level, { rng, previous: task });
+/** Nästa uppgift efter `task` – samma läge (extra, eller huvudprogressionen via färdighetsmodellen). */
+const nextTaskAfter = (task, progress, rng) =>
+  task.extra ? generateExtraTask({ rng, level: progress.level, previous: task }) : nastaUppgift(progress, { rng, previous: task });
 
 /**
  * Avsluta en uppgift: försök + progress (anpassning, räknare, nästa uppgift) i
@@ -116,7 +118,7 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
       return { created: false, progress, change: null, from: progress.level, to: progress.level };
     }
     const r0 = current.task.extra ? applyExtraCompletion(progress, attempt, { now }) : applyCompletion(progress, attempt, { now });
-    const nextTask = nextTaskAfter(current.task, r0.to, rng);
+    const nextTask = nextTaskAfter(current.task, r0.progress, rng); // huvudprogression: färdighetsmodellen (#626)
     const next = { id: newAttemptId(), at: now, task: nextTask };
     const r = { ...r0, progress: withCurrent(r0.progress, nextTask, next) };
     tx.set(aRef, attempt);
@@ -133,7 +135,7 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
     }
   }
   let next = current.task.extra ? currentExtra(res.progress) : currentTask(res.progress);
-  if (!next || next.id === current.id) next = (await startTask(nextTaskAfter(current.task, res.progress.level, rng), studentId, { progress: res.progress })).current;
+  if (!next || next.id === current.id) next = (await startTask(nextTaskAfter(current.task, res.progress, rng), studentId, { progress: res.progress })).current;
   return { ok: true, created: res.created, attempt, progress: res.progress, change: res.change, from: res.from, to: res.to, next, coins: reward.coins, balance: reward.balance };
 }
 

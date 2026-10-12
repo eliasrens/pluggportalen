@@ -14,6 +14,9 @@
 //   Resultat → NÄSTA (ev. nivå upp-skärm) eller FÖRSÖK IGEN FÖR ⭐⭐⭐
 //   Nivåer → ✨ Extrautmaningar (#627, frivilligt): samma vy med task.extra,
 //   ingen mätare, ingen nivåändring, "← Tillbaka till nivå N".
+//   Typ C–F (#625): frågeflödet i spelvy-typer.js tar över (fas "fraga"/"bygg");
+//   F lämnar tillbaka till den vanliga lösningen (onSolve) och får frågan om
+//   vad x betyder när ekvationen är löst. Resultatet räknas av typ-svar.js.
 //
 // Datalagret injiceras (save/retry), så vyn går att köra i en preview utan
 // Firebase. Talfältet har fokus hela tiden (talfalt.js).
@@ -32,6 +35,9 @@ import { createVag, DURATION } from "./vag.js";
 import { levelOverview } from "./framsteg.js";
 import { rowsHtml, rowHtml } from "./min-losning.js";
 import { mountTalfalt } from "./talfalt.js";
+import { isQuestionType } from "./uppgiftstyper.js";
+import { typResultat } from "./typ-svar.js";
+import { createTypFlode } from "./spelvy-typer.js";
 import { shellHtml, levelTitle, resultHtml, levelUpHtml, overviewHtml, hintHtml, esc } from "./spelvy-html.js";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -68,6 +74,9 @@ export function createSpelvy(host, opts) {
     prat: $(".ekv-prat"),
     rader: $(".ekv-rader"),
     nivaupp: $(".ekv-nivaupp"),
+    fraga: $(".ekv-fraga"),
+    text: $(".ekv-uppgiftstext"),
+    rubrik: $(".ekv-hafte-rubrik"),
   };
 
   let progress = opts.progress;
@@ -81,6 +90,7 @@ export function createSpelvy(host, opts) {
   let phase = "play"; // play | reveal | result | levelup
   let confirmReveal = 0;
   let vag = null;
+  let typ = null; //   frågeflödet för typ C–F (spelvy-typer.js)
 
   const falt = mountTalfalt(ui.form, ui.falt, {
     onSubmit: (text) => onMove(text),
@@ -165,12 +175,31 @@ export function createSpelvy(host, opts) {
     root.dataset.niva = String(task.level);
     root.dataset.extra = task.extra ? "1" : "";
     renderHeader();
-    renderRows();
     ui.resultat.hidden = true;
-    ui.styr.hidden = false;
     sayText("");
-    falt.setEnabled(true);
     falt.clear();
+    typ?.destroy();
+    typ = null;
+    if (!isQuestionType(task.type)) return startSolve();
+    phase = "fraga";
+    ui.styr.hidden = true;
+    falt.setEnabled(false);
+    falt.pauseFocus();
+    typ = createTypFlode({
+      root, panel: ui.fraga, text: ui.text, rader: ui.rader, rubrik: ui.rubrik, vag, task, rules,
+      say: (html, kind) => say(html, kind),
+      onSolve: () => startSolve(),
+      onFinish: ({ keepSay }) => finish({ keepSay }),
+    });
+    typ.start();
+  }
+
+  /** Den vanliga lösningsvyn (A, B och F:s lösningsdel). */
+  function startSolve() {
+    phase = "play";
+    renderRows();
+    ui.styr.hidden = false;
+    falt.setEnabled(true);
     falt.resumeFocus();
   }
 
@@ -197,7 +226,7 @@ export function createSpelvy(host, opts) {
     vag.visa(run.current, { move: run.moves[run.moves.length - 1] });
     renderRows(from);
     falt.clear();
-    if (run.solved) return finish();
+    if (run.solved) return typ ? afterSolve() : finish();
     sayText(moveFeedback(moveEffect(before, run.current, rules)), "feedback");
     if (shouldOfferHelp(run, task.optimalMoves)) {
       say(`${esc(HELP.offerText)} <button type="button" class="ekv-lank" data-act="hjalp">💡 Hjälp mig</button>
@@ -242,19 +271,30 @@ export function createSpelvy(host, opts) {
     finish();
   }
 
+  /** F: ekvationen löst → "Vad betyder x i uppgiften?" */
+  function afterSolve() {
+    phase = "fraga";
+    ui.styr.hidden = true;
+    falt.setEnabled(false);
+    falt.pauseFocus();
+    vag.doljHjalp?.();
+    typ.losningKlar(run.rows);
+  }
+
   // --- resultat, nivå upp, nästa ----------------------------------------------
 
-  async function finish() {
+  async function finish({ keepSay = false } = {}) {
     phase = "result";
     falt.setEnabled(false);
     falt.pauseFocus();
     vag.doljHjalp?.();
-    const result = taskResult(task, run, help);
-    sayText("");
+    const result = typ ? typResultat(task, typ.state, { run: task.type === "F" ? run : null, help }) : taskResult(task, run, help);
+    if (!keepSay) sayText("");
     ui.styr.hidden = true;
     ui.resultat.hidden = false;
     ui.resultat.innerHTML = resultHtml(result, { saving: true });
-    const payload = { current, run, help, result, blocked, ownMoves };
+    // C–E har ingen egen lösning – försöket sparar svaren (och C:s räknegång).
+    const payload = { current, run: typ && task.type !== "F" ? null : run, help, result, blocked, ownMoves };
     let saved = null;
     try {
       saved = await opts.save(payload);
@@ -339,6 +379,7 @@ export function createSpelvy(host, opts) {
     },
     destroy() {
       phase = "gone";
+      typ?.destroy();
       falt.destroy();
       vag?.destroy();
       document.removeEventListener("keydown", onKey);

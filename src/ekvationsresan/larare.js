@@ -10,11 +10,16 @@
 //   * nivaKurva      – nivå + stjärnor över tid (äldst först) för kurvan
 //   * rakneGang      – elevens räknegång som MIN LÖSNING-rader (replayRows)
 //   * texter för nivåstyrningen (en elev / hela klassen)
+//   * #626 (E2.5): varje rad har `fardighet` (sammanfattning.fardighetsbild) –
+//     korta sammanfattningar, behärskar/svårt för, problemlösning och
+//     färdighetsindikatorer ur färdighetsmodellen i SAMMA progressdokument.
 // ============================================================================
 
 import { LEVEL_MIN, LEVEL_MAX, LEVELS, BASE_RULES, rulesForTask } from "./config.js";
 import { normalizeProgress, teacherSummary } from "./framsteg.js";
 import { replayRows } from "./losning.js";
+import { TASK_TYPES, hasSolvePhase, isQuestionType } from "./uppgiftstyper.js";
+import { fardighetsbild } from "./sammanfattning.js";
 
 /** Nivåerna läraren kan välja. */
 export const NIVAER = LEVELS.map((l) => ({ level: l.level, name: l.name }));
@@ -38,6 +43,7 @@ export const KOLUMNER = [
   { key: "solvedPct", label: "Lösta %", num: true },
   { key: "helpPct", label: "Hjälp %", num: true },
   { key: "extraMoves", label: "Drag jämfört med optimalt", num: true },
+  { key: "korthet", label: "I korthet" }, // #626: färdighetsmodellens sammanfattning
 ];
 
 export const TREND = {
@@ -51,12 +57,16 @@ export const TREND = {
  * det råa progressdokumentet eller null (har aldrig öppnat Ekvationsresan).
  */
 export function klassRader(entries) {
-  return (entries || []).map(({ studentId, namn, progress }) => ({
-    studentId,
-    namn: namn || studentId,
-    started: !!progress && normalizeProgress(progress).tasks > 0, // en lärarsatt nivå = inte börjat än
-    ...teacherSummary(progress || null),
-  }));
+  return (entries || []).map(({ studentId, namn, progress }) => {
+    const summary = teacherSummary(progress || null);
+    return {
+      studentId,
+      namn: namn || studentId,
+      started: !!progress && normalizeProgress(progress).tasks > 0, // en lärarsatt nivå = inte börjat än
+      ...summary,
+      fardighet: fardighetsbild(normalizeProgress(progress || null), { solvedPct: summary.solvedPct }),
+    };
+  });
 }
 
 const jamfor = (a, b) => (typeof a === "string" ? a.localeCompare(b, "sv") : a - b);
@@ -116,7 +126,17 @@ export function forsokRader(attempts) {
     help: Number.isInteger(a.helpMax) ? a.helpMax : 0,
     blocked: Number.isInteger(a.blocked) ? a.blocked : 0,
     extra: !!a.extra, // extrautmaning (#627) – frivillig, påverkar inte nivån
+    // Uppgiftstyp (#625): C–E har inga egna drag; C–F har elevens svar.
+    type: TASK_TYPES[a.type] ? a.type : "A",
+    typeName: TASK_TYPES[a.type]?.name || TASK_TYPES.A.name,
+    solvePhase: hasSolvePhase(a.type),
+    answers: isQuestionType(a.type) && Array.isArray(a.answers) ? a.answers : null,
   }));
+}
+
+/** Elevens svar i C–F som korta rader: "✗ 2x + 16 = 2", "✓ 2x + 2 = 16", "👁 svaret visades". */
+export function svarRader(answers) {
+  return (answers || []).filter((a) => a && !a.senare && !a.annan).map((a) => (a.visad ? "👁 svaret visades" : `${a.ok ? "✓" : "✗"} ${a.a ?? ""}`));
 }
 
 /** Hjälpen som text: 0 → "–", 1–3 = högsta 💡-steget, "Visa lösningen" eget. */

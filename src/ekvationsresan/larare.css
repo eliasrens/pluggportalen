@@ -73,6 +73,35 @@
 .ekt-visad { margin: 2.1rem 0 0; line-height: 2.1rem; font-size: 0.9rem; font-style: italic; color: #5b6b86; }
 .ekt-visad-rader .ekv-rad { opacity: 0.6; }
 
+/* --- färdighetsmodellen (#626, E2.5) ------------------------------------- */
+.ekt-tbl { min-width: 1080px; }
+.ekt-korthet { min-width: 220px; max-width: 320px; font-size: 0.85rem; line-height: 1.3; }
+.ekt-korthet-txt { display: flex; flex-direction: column; gap: 2px; }
+.ekt-mening--svart { color: #ffb4a8; }
+.ekt-mening--bra { color: #8fe0ad; }
+.ekt-mening--info { color: var(--t-muted, #9aa7bd); }
+.ekt-meningar { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 4px; }
+.ekt-meningar .ekt-mening { font-weight: 600; }
+.ekt-meningar .ekt-mening > span { display: inline-block; width: 1.3em; text-align: center; font-weight: 800; }
+.ekt-slag-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
+.ekt-slag h4, .ekt-h4 { margin: 8px 0 4px; font-size: 0.9rem; color: var(--t-muted, #9aa7bd); text-transform: uppercase; letter-spacing: 0.06em; }
+.ekt-slag p { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ekt-chip { padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; border: 1px solid currentColor; }
+.ekt-slag--bra .ekt-chip { color: #8fe0ad; }
+.ekt-slag--svart .ekt-chip { color: #ffb4a8; }
+.ekt-problem { margin: 0 0 8px; padding-left: 18px; }
+.ekt-ind { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.ekt-ind th { text-align: left; font-weight: 600; padding: 3px 8px 3px 0; white-space: nowrap; }
+.ekt-ind td { padding: 3px 6px; white-space: nowrap; }
+.ekt-ind-bar { width: 40%; }
+.ekt-bar { display: block; height: 8px; border-radius: 4px; background: var(--t-border, #2c3a52); overflow: hidden; }
+.ekt-bar > span { display: block; height: 100%; border-radius: 4px; background: #9aa7bd; }
+.ekt-ind--stark .ekt-bar > span { background: #5fd38d; }
+.ekt-ind--mitt .ekt-bar > span { background: #f0c35a; }
+.ekt-ind--svag .ekt-bar > span { background: #ff8a7a; }
+.ekt-ind--lite { opacity: 0.7; }
+
 @media (max-width: 700px) {
+  .ekt-slag-grid { grid-template-columns: minmax(0, 1fr); }
   .ekt-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
