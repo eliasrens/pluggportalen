@@ -33,7 +33,7 @@ import { currentStudentId } from "../data.js";
 import { newAttemptId } from "../mult/attempt-id.js";
 import { generateTask } from "./generator.js";
 import { award } from "./mynt.js";
-import { normalizeProgress, currentTask, withCurrent, buildAttempt, applyCompletion, teacherSetLevel } from "./framsteg.js";
+import { normalizeProgress, currentTask, withCurrent, buildAttempt, applyCompletion, teacherSetLevel, TEACHER_LEVEL_FIELDS } from "./framsteg.js";
 
 export const PROGRESS_PATH = ["ekvationsresa", "progress"];
 export const ATTEMPTS = "ekvationsresaAttempts";
@@ -130,7 +130,47 @@ export async function setStudentLevel(studentId, level) {
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const next = teacherSetLevel(normalizeProgress(snap.exists() ? snap.data() : null), level, Date.now());
-    tx.set(ref, next);
+    // Befintligt dokument: bara nivåfälten (reglerna, #619, tillåter läraren
+    // inget annat – statistik och mynt ägs av eleven). Nytt: tomt dokument.
+    if (!snap.exists()) tx.set(ref, next);
+    else tx.update(ref, Object.fromEntries(TEACHER_LEVEL_FIELDS.map((k) => [k, next[k]])));
     return next;
   });
+}
+
+/**
+ * Klassöversikten (E1.12): progressdokumentet för varje elev – ett dokument
+ * per elev, en gång när läraren öppnar fliken (Läsresans mönster, #231).
+ * Försöken läses först i elevdetaljen. Fel för en elev → progress null.
+ * @returns {Promise<{studentId:string, progress:(object|null)}[]>}
+ */
+export async function getClassEkvationsresa(studentIds) {
+  const ids = [...new Set((studentIds || []).filter(Boolean))];
+  return Promise.all(
+    ids.map(async (studentId) => {
+      try {
+        const snap = await getDoc(progressRef(studentId));
+        return { studentId, progress: snap.exists() ? snap.data() : null };
+      } catch (err) {
+        console.warn(`[Ekvationsresan] kunde inte läsa ${studentId}`, err);
+        return { studentId, progress: null };
+      }
+    })
+  );
+}
+
+/**
+ * Samma nivå för alla elever i listan (en transaktion per elev, som Läsresans
+ * setClassLevel). Ett misslyckat byte stoppar inte de andra.
+ * @returns {Promise<{level:number, total:number, updated:number, failed:{studentId, error}[]}>}
+ */
+export async function setClassLevel(studentIds, level) {
+  const ids = [...new Set((studentIds || []).filter((x) => typeof x === "string" && x))];
+  const results = await Promise.allSettled(ids.map((id) => setStudentLevel(id, level)));
+  const out = { level, total: ids.length, updated: 0, failed: [] };
+  results.forEach((r, i) => {
+    if (r.status === "fulfilled") out.updated += 1;
+    else out.failed.push({ studentId: ids[i], error: r.reason?.message || String(r.reason) });
+  });
+  return out;
 }

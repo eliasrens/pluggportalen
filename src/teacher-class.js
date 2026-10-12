@@ -125,6 +125,14 @@ const STATS_TABS = [
       }),
   },
   {
+    key: "ekvationsresan", label: "Ekvationsresan", icon: "sliders", what: "Ekvationsresan", lazy: true,
+    // #619: klassöversikt + elevdetalj med räknegång + nivåstyrning.
+    render: async (ctx, pane, o) =>
+      (await import("./teacher-ekvationsresan.js")).renderClassEkvationsresan(ctx, pane, {
+        students: o.students, cls: o.cls, classes: o.classes, studentById: o.studentById,
+      }),
+  },
+  {
     key: "mattematchen", label: "Mattematchen", icon: "trophy", what: "Mattematchen", lazy: true,
     when: (o) => !!o.classId,
     // #459: välj period → klassens tabell.

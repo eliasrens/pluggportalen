@@ -11,7 +11,8 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { createRulesEnv } from "./helpers/rules-env.js";
-import { defaultProgress, buildAttempt } from "../src/ekvationsresan/framsteg.js";
+import assert from "node:assert/strict";
+import { defaultProgress, buildAttempt, normalizeProgress, teacherSetLevel } from "../src/ekvationsresan/framsteg.js";
 import { generateTask, seededRng } from "../src/ekvationsresan/generator.js";
 import { startRun, playMove } from "../src/ekvationsresan/losning.js";
 import { fromJSON } from "../src/ekvationsresan/equation.js";
@@ -81,6 +82,47 @@ describe("ekvationsresa/progress", () => {
     await assertFails(updateDoc(progRef(elev("elev1")), { window: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] }));
     await assertFails(updateDoc(progRef(elev("elev1")), { hack: true }));
     await assertSucceeds(updateDoc(progRef(elev("elev1")), { level: 12 }));
+  });
+});
+
+describe("lärarens nivåstyrning (#619, E1.12)", () => {
+  it("läraren sätter nivå med teacherSetLevel – fönstret nollställs, statistiken orörd", async () => {
+    const played = { ...progress, level: 3, window: [3, 2], tasks: 7, solved: 6, coins: 9 };
+    await testEnv.withSecurityRulesDisabled((ctx) => setDoc(progRef(ctx.firestore()), played));
+    await assertSucceeds(setDoc(progRef(teacher()), teacherSetLevel(normalizeProgress(played), 5, 123)));
+    let snap;
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      snap = (await getDoc(progRef(ctx.firestore()))).data();
+    });
+    assert.equal(snap.level, 5);
+    assert.deepEqual(snap.window, []);
+    assert.equal(snap.tasks, 7);
+    assert.equal(snap.coins, 9);
+  });
+
+  it("läraren kan inte behålla fönstret eller ändra statistik och mynt", async () => {
+    await assertFails(updateDoc(progRef(teacher()), { level: 4, window: [3] }));
+    await assertFails(updateDoc(progRef(teacher()), { level: 4, window: [], coins: 500 }));
+    await assertFails(updateDoc(progRef(teacher()), { window: [], tasks: 99 }));
+    await assertFails(updateDoc(progRef(teacher()), { window: [], helpTasks: 3 }));
+    await assertFails(updateDoc(progRef(teacher()), { window: [], stars: [0, 0, 0, 99] }));
+  });
+
+  it("elev som aldrig öppnat modulen: läraren skapar ett tomt dokument, inte ett med statistik", async () => {
+    await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(progRef(ctx.firestore())));
+    await assertFails(setDoc(progRef(teacher()), { ...teacherSetLevel(defaultProgress(), 4, 1), tasks: 3 }));
+    await assertFails(setDoc(progRef(teacher()), { ...teacherSetLevel(defaultProgress(), 4, 1), window: [2] }));
+    await assertSucceeds(setDoc(progRef(teacher()), teacherSetLevel(defaultProgress(), 4, 1)));
+  });
+
+  it("formen gäller även läraren (nivå 1–12)", async () => {
+    await assertFails(updateDoc(progRef(teacher()), { level: 13, window: [] }));
+    await assertFails(updateDoc(progRef(teacher()), { level: 0, window: [] }));
+  });
+
+  it("eleven skriver fortfarande sin statistik efter en lärarändring", async () => {
+    await assertSucceeds(updateDoc(progRef(teacher()), { level: 2, window: [], current: null }));
+    await assertSucceeds(updateDoc(progRef(elev("elev1")), { tasks: 1, window: [3], coins: 1 }));
   });
 });
 
