@@ -57,9 +57,10 @@ export function topplistaAndras(original, f) {
   return (f.leaderboard === true) !== (original?.leaderboard === true);
 }
 
+/** Kvittot efter sparningen (klasserna står redan i "Sparat!"-raden). */
 export function topplistaKvitto(pa, klasstext) {
   if (!pa) return "Skoltopplistan är avstängd – topplistan och pokalen är borttagna.";
-  return klasstext ? `Skoltopplistan är på – eleverna i ${klasstext} ser den under 🏆 Topplistor.` : "Skoltopplistan är på, men ingen klass ser området ännu.";
+  return klasstext ? "Skoltopplistan är på – eleverna ser den under 🏆 Topplistor." : "Skoltopplistan är på, men ingen klass ser området ännu.";
 }
 
 const KOPIA = " (kopia)";

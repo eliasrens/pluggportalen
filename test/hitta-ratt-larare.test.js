@@ -298,11 +298,11 @@ describe("kryssrutan Skoltopplista (#635)", () => {
     assert.equal(topplistaAndras(null, nyttFormular(ID)), false, "nytt område, AV = inget anrop");
     assert.equal(topplistaAndras(null, { ...nyttFormular(ID), leaderboard: true }), true);
   });
-  it("förklaringen säger vad PÅ och AV innebär; kvittot nämner klasserna", () => {
+  it("förklaringen säger vad PÅ och AV innebär; kvittot pekar på 🏆", () => {
     assert.match(TOPPLISTA_TEXT.pa, /Top 15/);
     assert.match(TOPPLISTA_TEXT.pa, /pokal/);
     assert.match(TOPPLISTA_TEXT.av, /ingen topplista/);
-    assert.match(topplistaKvitto(true, "5A, 5E"), /5A, 5E/);
+    assert.match(topplistaKvitto(true, "5A, 5E"), /Topplistor/);
     assert.match(topplistaKvitto(true, ""), /ingen klass/);
     assert.match(topplistaKvitto(false, "5A"), /avstängd/);
   });
