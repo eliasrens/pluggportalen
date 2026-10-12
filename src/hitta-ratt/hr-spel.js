@@ -24,6 +24,10 @@
 // bara geofilen. startvy "auto"/"hel" räknas om till en ruta (hr-egna.js).
 // Serverns fel för egna pack (ändrad karta, inte delad, borttagen) får en egen
 // vy; "Starta ny omgång" laddar om packet.
+//
+// Provspel (#634, lärarvyn): deps.prov = true + deps.hem (lärarens route) +
+// lokala deps.data (rättning i klienten). Inga coins visas och resultatet
+// säger "Provspel – sparas inte".
 // ============================================================================
 
 import { app, el, go, loading, renderTopbar } from "../ui.js";
@@ -62,7 +66,7 @@ function hamtaJson(rel) {
 
 const bildUrl = (fil) => new URL(`./content/bilder/${fil}`, import.meta.url).href;
 
-function felVy(rubrik, text, igen, igenText = "Försök igen") {
+function felVy(rubrik, text, igen, igenText = "Försök igen", hem = HASH) {
   const vy = el(`<div class="panel center hr-stub" role="alert">
     <div class="big-emoji" aria-hidden="true">🧭</div>
     <h2>${esc(rubrik)}</h2>
@@ -72,7 +76,7 @@ function felVy(rubrik, text, igen, igenText = "Försök igen") {
       <button class="btn hr-tillbaka" data-act="tillbaka">← Till kartorna</button>
     </div>
   </div>`);
-  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(hem));
   vy.querySelector('[data-act="igen"]')?.addEventListener("click", igen);
   app.replaceChildren(vy);
 }
@@ -80,9 +84,11 @@ function felVy(rubrik, text, igen, igenText = "Försök igen") {
 /**
  * Spela ett pack. `meta` = posten i index.json (id, title, type, geo …).
  * deps (tester/preview): { data: { startaForsok, skickaOmgang },
- *   pack: eget pack | () => Promise<pack> (kastar { code: "not-found" } om det saknas) }
+ *   pack: eget pack | () => Promise<pack> (kastar { code: "not-found" } om det saknas),
+ *   prov: true = lärarens provspel, hem: route för "Tillbaka"/"Avsluta" }
  */
 export async function spelaPack(meta, deps = {}) {
+  const hem = deps.hem || HASH;
   let pack, geo, motor, data;
   try {
     [pack, motor, data] = await Promise.all([
@@ -93,14 +99,14 @@ export async function spelaPack(meta, deps = {}) {
     geo = await hamtaJson(`geo/${pack.geo}.json`);
   } catch (err) {
     if (err?.code === "not-found") {
-      felVy("Kartan finns inte längre", "Läraren kan ha tagit bort kartan eller slutat dela den med din klass.");
+      felVy("Kartan finns inte längre", "Läraren kan ha tagit bort kartan eller slutat dela den med din klass.", null, "", hem);
     } else {
-      felVy("Kartan gick inte att ladda", "Kontrollera uppkopplingen och försök igen.", () => spelaPack(meta, deps));
+      felVy("Kartan gick inte att ladda", "Kontrollera uppkopplingen och försök igen.", () => spelaPack(meta, deps), "Försök igen", hem);
     }
     return;
   }
   if (typeof pack.startvy === "string") pack = { ...pack, startvy: startvyAuto(pack, geo) };
-  await nyOmgang({ meta, deps, pack, geo, motor, data });
+  await nyOmgang({ meta, deps, pack, geo, motor, data, hem, prov: deps.prov === true });
 }
 
 async function nyOmgang(ctx) {
@@ -110,14 +116,14 @@ async function nyOmgang(ctx) {
   try {
     attemptId = await data.startaForsok(pack.id);
   } catch (err) {
-    felVy("Omgången kunde inte startas", err?.message || "Försök igen om en stund.", () => nyOmgang(ctx));
+    felVy("Omgången kunde inte startas", err?.message || "Försök igen om en stund.", () => nyOmgang(ctx), "Försök igen", ctx.hem);
     return;
   }
   spelaOmgang(ctx, attemptId);
 }
 
 function spelaOmgang(ctx, attemptId) {
-  const { pack, geo, motor } = ctx;
+  const { pack, geo, motor, prov } = ctx;
   const omrade = pack.type === "area";
   const ordning = blanda(pack.items);
   const omgang = skapaOmgang(pack, ordning);
@@ -137,7 +143,8 @@ function spelaOmgang(ctx, attemptId) {
           ? `<span class="hr-spel-chip" data-v="tid" title="Aktiv svarstid – står still medan du tittar på svaret">⏱️ <b>0:00</b><span class="hr-spel-paus" hidden> · pausad</span></span>
              <span class="hr-spel-chip" data-v="ratt">✅ <b>0</b> rätt</span>`
           : `<span class="hr-spel-chip" data-v="poang">🎯 <b>0</b> p</span>`}
-        <span class="hr-spel-chip hr-spel-coins" data-v="coins" title="Coins den här omgången">${coinIcon(20)} <b>0</b></span>
+        ${prov ? `<span class="hr-spel-chip hr-spel-prov">Provspel</span>`
+          : `<span class="hr-spel-chip hr-spel-coins" data-v="coins" title="Coins den här omgången">${coinIcon(20)} <b>0</b></span>`}
       </div>
       <button class="btn hr-spel-avsluta" data-act="avsluta">Avsluta</button>
       <div class="hr-spel-bar" aria-hidden="true"><span></span></div>
@@ -206,7 +213,7 @@ function spelaOmgang(ctx, attemptId) {
     } else {
       $('[data-v="poang"] b').textContent = s.s;
     }
-    $('[data-v="coins"] b').textContent = godkanda;
+    if (!prov) $('[data-v="coins"] b').textContent = godkanda;
     $(".hr-spel-bar span").style.width = `${(100 * s.besvarade) / omgang.antal}%`;
   }
 
@@ -287,7 +294,7 @@ function spelaOmgang(ctx, attemptId) {
     ritaMatt();
   }
 
-  const coinPop = () => `<span class="hr-fb-coin" aria-label="plus 1 coin">+1 ${coinIcon(18)}</span>`;
+  const coinPop = () => prov ? "" : `<span class="hr-fb-coin" aria-label="plus 1 coin">+1 ${coinIcon(18)}</span>`;
 
   function nasta() {
     if (!karta.last || nastaBtn.disabled || performance.now() < nastaFran) return;
@@ -302,7 +309,7 @@ function spelaOmgang(ctx, attemptId) {
 
   lasBtn.addEventListener("click", las);
   nastaBtn.addEventListener("click", nasta);
-  $('[data-act="avsluta"]').addEventListener("click", () => go(HASH)); // vakten frågar
+  $('[data-act="avsluta"]').addEventListener("click", () => go(ctx.hem)); // vakten frågar
 
   visaFraga();
 }
@@ -316,25 +323,25 @@ async function skicka(ctx, attemptId, svar) {
   } catch (err) {
     const eget = arEget(pack.id) && egetSparFel(err?.code, err?.message);
     if (eget) {
-      felVy(eget.rubrik, eget.text, eget.igen ? () => spelaPack(ctx.meta, ctx.deps) : null, "Starta ny omgång");
+      felVy(eget.rubrik, eget.text, eget.igen ? () => spelaPack(ctx.meta, ctx.deps) : null, "Starta ny omgång", ctx.hem);
       return;
     }
     const vy = el(sparFelHtml(pack, err?.message));
     vy.querySelector('[data-act="spara-igen"]').addEventListener("click", () => skicka(ctx, attemptId, svar));
-    vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+    vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(ctx.hem));
     app.replaceChildren(vy);
     return;
   }
   // Coins krediterade på servern (hr-data.js har invaliderat cachen) → sidomenyns saldo.
-  if (res?.result?.godkanda > 0) renderTopbar().catch(() => {});
-  if (KLASS_EXP_PA && res?.result) {
+  if (!ctx.prov && res?.result?.godkanda > 0) renderTopbar().catch(() => {});
+  if (KLASS_EXP_PA && !ctx.prov && res?.result) {
     import("../klasscenter/kc-koppling.js")
       .then((m) => m.klassExpEfterOvning({ modul: "hittaratt", resultat: { ratt: res.result.godkanda, totalt: res.result.n } }))
       .catch(() => {});
   }
   const vy = el(resultatHtml(pack, res));
   vy.querySelector('[data-act="igen"]').addEventListener("click", () => nyOmgang(ctx));
-  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(ctx.hem));
   app.replaceChildren(vy);
   vy.querySelector('[data-act="igen"]').focus({ preventScroll: true });
 }
