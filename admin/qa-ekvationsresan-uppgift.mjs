@@ -54,5 +54,5 @@ const id = `qa${now.toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 const window = level === progress.level ? progress.window : [];
 const next = withCurrent({ ...progress, level, window, maxLevel: Math.max(progress.maxLevel || 1, level) }, task, { id, at: now });
 await ref.set(next);
-console.log(`✓ ${uid}: nivå ${level}, ${task.text} (optimalt ${task.optimalMoves}: ${task.optimalPath.map((m) => m.op + m.value).join(" ")}, visning ${task.display}, typ ${task.type}, form ${form})`);
+console.log(`✓ ${uid}: nivå ${level}, ${task.text} (optimalt ${task.optimalMoves}: ${task.optimalPath.map((m) => m.op + (m.value ?? `${String(m.n / m.d).replace(".", ",")}${m.x ? "x" : ""}`)).join(" ")}, visning ${task.display}, typ ${task.type}, form ${form})`);
 process.exit(0);
