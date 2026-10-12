@@ -96,3 +96,29 @@ Ren logik: ingen DOM, ingen Firebase. Testas med `node --test`
 - `term.x` är en exponent (0/1); x · x spärras (`xProduct`) så modellen aldrig
   hamnar utanför linjära ekvationer.
 - `rules.maxDecimals` styr decimalspärren; `formatSv` visar decimalkomma.
+
+---
+
+## 3. Hjälp, stjärnor, anpassning och mynt (#616)
+
+Ren logik i `src/ekvationsresan/`, tester i `test/ekvationsresan-hjalp.test.js`
+(spec E1.14 test 12–22). Alla trösklar, poäng, myntnivåer och texter ligger i
+`config.js` (`HELP`, `STARS`, `STAR_POINTS10`, `ADAPT`, `COINS`, `FEEDBACK`).
+
+| Fil | Ansvar |
+| --- | --- |
+| `hjalp.js` | `helpSteps(eq)` – fyra steg ur **aktuell** ekvation (första draget på kortaste vägen därifrån). `startHelp`/`nextHelp` – ett steg per tryck, steg 1 igen efter ett drag, `maxStep` + `log` för stjärnor/statistik. `revealSolution(run)` – resten av lösningen som rader + `steps` för vågen, `run.revealed = true`. `shouldOfferHelp(run, optimal)` – efter optimalt + 6 drag. |
+| `resultat.js` | `starsFor`, `taskResult(task, run, help)` → `{ solved, stars, points10, coins, feedback, offerRetry, … }`, `moveFeedback(moveEffect(...))`. |
+| `anpassning.js` | `{ level, window }`, `recordResult(state, stars)` → `change` up/down/null (ner = inget meddelande i UI), `setLevel` (lärare, nollställer), `progressValue` 0–1. |
+| `mynt.js` | `coinsFor(level, { solved })`, `award(coins, { addCoins })` – lat `data.addCoins`, som Läsresan. |
+
+- **Hjälpsteg:** 1 fråga, 2 vardagligt + `scale` (`remove`/`add` amount,
+  `groups`/`copies` count) till vågen, 3 operation + `row` (förslagsraden),
+  4 "nästan svaret" (`4x ÷ 4 blir x. Vad blir 20 ÷ 4?`). Ger aldrig svaret.
+- **Stjärnor:** minsta av dragstjärnor (≤ opt 3, ≤ opt + 2 2, annars 1) och
+  hjälpgränsen (steg 0–1: 3, 2–3: 2, 4: 1). Visa lösningen = 0, ej löst.
+- **Fönstret** sparar *stjärnor* (0–3, heltal); poängen räknas i tiondelar
+  (10/6/2/0) så att 4,2 ≥ 4,0 och 1,2 ≤ 1,2 blir exakta.
+- **Mätaren** = största andelen av de tre uppvägarna (streak/4, summa5/4,0,
+  summa10/7,0); 1 på högsta nivån.
+- **Mynt** för varje löst uppgift oavsett stjärnor; ingen stjärnbonus.

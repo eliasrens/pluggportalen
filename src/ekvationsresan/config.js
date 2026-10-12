@@ -93,3 +93,76 @@ export const OPERAND_MESSAGES = Object.freeze({
   decimalOff: "Här räknar du bara med heltal.",
   range: "Skriv ett tal mellan 1 och 999.",
 });
+
+// ---------------------------------------------------------------------------
+//  Hjälp, stjärnor, anpassning och mynt (#616, spec E1.6, E1.7, E1.9, E1.10).
+//  Alla trösklar och myntnivåer ligger här så att de kan finjusteras.
+// ---------------------------------------------------------------------------
+
+/** Hjälpen (E1.6): fyra steg. Erbjudandet visas efter optimalt + 6 drag. */
+export const HELP = Object.freeze({
+  steps: 4,
+  offerAfterExtraMoves: 6,
+  offerText: "Vill du ha hjälp eller se lösningen?",
+});
+
+/**
+ * Stjärnor (E1.7). `extraMovesForTwo` = drag utöver optimalt som fortfarande
+ * ger ⭐⭐. `helpCap` = högsta antal stjärnor efter ett visst hjälpsteg
+ * (steg 1 är bara en fråga och kostar inget).
+ */
+export const STARS = Object.freeze({
+  extraMovesForTwo: 2,
+  helpCap: Object.freeze({ 0: 3, 1: 3, 2: 2, 3: 2, 4: 1 }),
+});
+
+/** Poäng per uppgift (E1.9) i TIONDELAR, så att summorna blir exakta (4,2 ≥ 4,0). */
+export const STAR_POINTS10 = Object.freeze({ 3: 10, 2: 6, 1: 2, 0: 0 });
+
+/**
+ * Anpassning (E1.9). Upp om NÅGOT gäller: `upStreak` ⭐⭐⭐ i rad, ELLER summan
+ * av de senaste `upShortCount` ≥ `upShortMin10`/10, ELLER summan av de senaste
+ * `upLongCount` ≥ `upLongMin10`/10 (de två sista först efter `minTasks`). Ner om
+ * summan av de senaste `downCount` ≤ `downMax10`/10 (efter `minTasks`).
+ * Fönstret nollställs vid varje nivåändring.
+ */
+export const ADAPT = Object.freeze({
+  upStreak: 4,
+  upShortCount: 5,
+  upShortMin10: 40,
+  upLongCount: 10,
+  upLongMin10: 70,
+  downCount: 5,
+  downMax10: 12,
+  minTasks: 5,
+  windowSize: 10,
+});
+
+/**
+ * Mynt per löst uppgift (E1.10), oavsett stjärnor; "Visa lösningen" ger 0.
+ * Nivå 7–12 och extrautmaningar är Etapp 2 men finns redan här.
+ */
+export const COINS = Object.freeze({
+  byLevel: Object.freeze([
+    { from: 1, to: 2, coins: 1 },
+    { from: 3, to: 4, coins: 2 },
+    { from: 5, to: 6, coins: 3 },
+    { from: 7, to: 8, coins: 4 },
+    { from: 9, to: 10, coins: 5 },
+    { from: 11, to: 12, coins: 6 },
+  ]),
+  extraChallenge: 7,
+});
+
+/** Feedback efter en uppgift och efter ett giltigt men onödigt drag (E1.7). */
+export const FEEDBACK = Object.freeze({
+  three: (moves) => `Smart lösning! ${moves} drag, precis så kort kunde den lösas.`,
+  twoMoves: (moves) => `Rätt! Du löste den på ${moves} drag. Kan du hitta en kortare väg?`,
+  twoHelp: (moves) => `Rätt! ${moves} drag. Nästa gång klarar du den kanske med mindre hjälp.`,
+  oneMoves: (moves) => `Du löste den på ${moves} drag. Bra kämpat! Finns det en kortare väg?`,
+  oneHelp: () => "Du löste den med hjälp. Prova en liknande och se om du klarar den själv!",
+  revealed: () => "Nu har du sett hur den kan lösas. Prova en ny!",
+  moveSame: "Det fungerar, men ekvationen blev inte enklare än.",
+  moveFurther: "Båda sidor är fortfarande lika. Finns det ett drag som får x närmare att bli ensamt?",
+  retryButton: "FÖRSÖK IGEN FÖR ⭐⭐⭐",
+});
