@@ -12,6 +12,8 @@
 //   💡 → nextHelp (steg 1–4, steg 2 visar bilden på vågen, steg 3 förslagsraden)
 //   Visa lösningen → revealSolution: vågen + häftet steg för steg, ej löst
 //   Resultat → NÄSTA (ev. nivå upp-skärm) eller FÖRSÖK IGEN FÖR ⭐⭐⭐
+//   Nivåer → ✨ Extrautmaningar (#627, frivilligt): samma vy med task.extra,
+//   ingen mätare, ingen nivåändring, "← Tillbaka till nivå N".
 //   Typ C–F (#625): frågeflödet i spelvy-typer.js tar över (fas "fraga"/"bygg");
 //   F lämnar tillbaka till den vanliga lösningen (onSolve) och får frågan om
 //   vad x betyder när ekvationen är löst. Resultatet räknas av typ-svar.js.
@@ -21,13 +23,14 @@
 // ============================================================================
 
 import { fromJSON } from "./equation.js";
-import { rulesFor, HELP, UI_TEXT } from "./config.js";
+import { rulesForTask, HELP, UI_TEXT, EXTRA } from "./config.js";
 import { startRun, playMove } from "./losning.js";
 import { moveEffect } from "./solver.js";
 import { startHelp, nextHelp, revealSolution, shouldOfferHelp } from "./hjalp.js";
 import { taskResult, moveFeedback } from "./resultat.js";
 import { progressValue } from "./anpassning.js";
 import { similarTask } from "./generator.js";
+import { similarExtraTask, extraTitle, extraUnlocked } from "./extra.js";
 import { createVag, DURATION } from "./vag.js";
 import { levelOverview } from "./framsteg.js";
 import { rowsHtml, rowHtml } from "./min-losning.js";
@@ -47,6 +50,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
  *   opts.save(payload) → Promise<{progress, change, to, next, coins}>  (ekv-data.completeTask)
  *   opts.retry(task)   → Promise<{progress, current}>                 (ekv-data.startTask)
  *   opts.reenter()     → efter ett sparfel: börja om från datalagret
+ *   opts.enterExtra()  → Promise<{progress, current}>  extrautmaningarna (ekv-data.enterExtra)
+ *   opts.leaveExtra()  → Promise<{progress, current}>  tillbaka (ekv-data.enterEkvationsresan)
  *   opts.reducedMotion, opts.rng
  */
 export function createSpelvy(host, opts) {
@@ -59,6 +64,7 @@ export function createSpelvy(host, opts) {
     fyll: $(".ekv-matare-fyll"),
     oversiktKnapp: $(".ekv-oversikt-knapp"),
     oversikt: $(".ekv-oversikt"),
+    tillbaka: $(".ekv-extra-tillbaka"),
     styr: $(".ekv-styr"),
     form: $(".ekv-drag"),
     falt: $(".ekv-falt"),
@@ -93,18 +99,42 @@ export function createSpelvy(host, opts) {
 
   // --- rubrik, mätare, översikt ---------------------------------------------
 
+  const isExtra = () => !!task?.extra;
+  const overview = () => overviewHtml(levelOverview(progress), { extra: isExtra() ? null : { unlocked: extraUnlocked(progress) } });
+
   function renderHeader() {
-    ui.niva.textContent = levelTitle(progress.level);
+    const extra = isExtra();
+    ui.niva.textContent = extra ? extraTitle(task) : levelTitle(progress.level);
+    ui.matare.hidden = extra; // extrautmaningar påverkar inte nivån – ingen mätare
+    ui.oversiktKnapp.hidden = extra;
+    ui.tillbaka.hidden = !extra;
+    ui.tillbaka.disabled = false;
+    ui.tillbaka.textContent = EXTRA.back(progress.level);
     const v = Math.round(progressValue(progress) * 100);
     ui.fyll.style.width = `${v}%`;
     ui.matare.setAttribute("aria-valuenow", String(v));
-    if (!ui.oversikt.hidden) ui.oversikt.innerHTML = overviewHtml(levelOverview(progress));
+    if (!ui.oversikt.hidden) ui.oversikt.innerHTML = overview();
   }
 
   function toggleOverview(open = ui.oversikt.hidden) {
     ui.oversikt.hidden = !open;
     ui.oversiktKnapp.setAttribute("aria-expanded", String(open));
-    if (open) ui.oversikt.innerHTML = overviewHtml(levelOverview(progress));
+    if (open) ui.oversikt.innerHTML = overview();
+  }
+
+  /** Byt läge (extrautmaningar ↔ huvudprogressionen). Bara mellan uppgifter eller mitt i en – försöket sparas inte. */
+  async function switchMode(enter, btn) {
+    if (!enter || phase === "reveal" || phase === "levelup") return;
+    if (btn) btn.disabled = true;
+    try {
+      const r = await enter();
+      progress = r.progress;
+      toggleOverview(false);
+      loadTask(r.current);
+    } catch (err) {
+      console.warn("[Ekvationsresan] kunde inte byta läge:", err);
+      if (btn) btn.disabled = false;
+    }
   }
 
   // --- pratraden (spärrar, feedback, hjälp) ------------------------------------
@@ -128,7 +158,7 @@ export function createSpelvy(host, opts) {
   function loadTask(cur, { animate = true } = {}) {
     current = cur;
     task = cur.task;
-    rules = rulesFor(task.level);
+    rules = rulesForTask(task);
     run = startRun(fromJSON(task.equation), { rules });
     help = startHelp();
     blocked = 0;
@@ -143,6 +173,7 @@ export function createSpelvy(host, opts) {
     }
     root.dataset.typ = task.type;
     root.dataset.niva = String(task.level);
+    root.dataset.extra = task.extra ? "1" : "";
     renderHeader();
     ui.resultat.hidden = true;
     sayText("");
@@ -290,7 +321,8 @@ export function createSpelvy(host, opts) {
   async function onRetry(btn) {
     btn.disabled = true;
     try {
-      const r = await opts.retry(similarTask(task, { rng: opts.rng }));
+      const similar = task.extra ? similarExtraTask(task, { rng: opts.rng }) : similarTask(task, { rng: opts.rng });
+      const r = await opts.retry(similar);
       progress = r.progress;
       loadTask(r.current);
     } catch (err) {
@@ -322,6 +354,11 @@ export function createSpelvy(host, opts) {
     if (act === "visa") onReveal();
   });
   ui.oversiktKnapp.addEventListener("click", () => toggleOverview());
+  ui.oversikt.addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-act="extra"]');
+    if (btn) switchMode(opts.enterExtra, btn);
+  });
+  ui.tillbaka.addEventListener("click", () => switchMode(opts.leaveExtra, ui.tillbaka));
   const onKey = (e) => {
     if (e.key === "Escape" && !ui.oversikt.hidden) toggleOverview(false);
   };

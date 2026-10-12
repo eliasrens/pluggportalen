@@ -47,12 +47,34 @@ export function makeEquation(left, right) {
 /** Läs en sparad/okänd ekvation (Firestore, JSON) till modellen. */
 export function fromJSON(raw) {
   if (!raw || !Array.isArray(raw.left) || !Array.isArray(raw.right)) throw new TypeError("Ekvationsresan: ogiltig ekvation");
-  return makeEquation(raw.left, raw.right);
+  const eq = makeEquation(raw.left, raw.right);
+  return raw.parens ? withParens(eq, raw.parens) : eq;
 }
 
 export function toJSON(eq) {
   const plain = (s) => s.map((t) => ({ n: t.n, d: t.d, x: t.x }));
-  return { left: plain(eq.left), right: plain(eq.right) };
+  const out = { left: plain(eq.left), right: plain(eq.right) };
+  if (eq.parens) out.parens = { ...eq.parens };
+  return out;
+}
+
+/**
+ * Enkla parenteser (extrautmaningar, #627): `parens = { left?: 3, right?: 5 }`
+ * – ledet SKRIVS som faktor(…), t.ex. 3(x + 2) = 21. Bara skrivsättet –
+ * termerna är utvecklade (3x + 6), så operationer, BFS och nyckel räknar som
+ * vanligt. Gäller bara starttillståndet: applyOperation bygger ett nytt
+ * tillstånd utan `parens`.
+ */
+export function withParens(eq, parens) {
+  const out = {};
+  for (const side of ["left", "right"]) {
+    const f = parens?.[side];
+    if (f === undefined || f === null) continue;
+    if (!Number.isInteger(f) || f < 2 || eq[side].length < 2) throw new TypeError("Ekvationsresan: ogiltig parentes");
+    out[side] = f;
+  }
+  if (!Object.keys(out).length) return eq;
+  return Object.freeze({ left: eq.left, right: eq.right, parens: Object.freeze(out) });
 }
 
 /** Ledets värde för ett givet x. */

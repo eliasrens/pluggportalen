@@ -20,6 +20,8 @@
 // `skills` = modellen (fardigheter.uppdatera) – samma fält som Etapp 1 förberedde.
 // C–F (#625) lägger till `answers` (elevens svar i ordning) på försöket; drag
 // räknas bara för typer med en lösningsdel (A, B, F).
+// Extrautmaningar (#627): egna räknare + egen pågående uppgift i `extra`;
+// försöket har `extra: true`. Nivån, fönstret och huvudstatistiken rörs inte.
 // ============================================================================
 
 import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10, FARDIGHET } from "./config.js";
@@ -53,8 +55,25 @@ export function defaultProgress() {
     recent: [], //       [{ l: nivå, s: stjärnor }] nyast sist, högst RECENT_MAX
     current: null, //    { id, at, task } – den pågående uppgiften
     skills: {}, //       färdighetsmodellen (E2.4, #626): { [färdighet]: { v, h, n } }
+    extra: defaultExtra(), // extrautmaningarna (#627) – påverkar aldrig nivån
     levelChangedAt: null,
     updatedAt: null,
+  };
+}
+
+/** Extrautmaningarnas del av progress (#627). */
+export function defaultExtra() {
+  return { tasks: 0, solved: 0, coins: 0, current: null };
+}
+
+function normalizeExtra(raw) {
+  if (!raw || typeof raw !== "object") return defaultExtra();
+  const cur = raw.current;
+  return {
+    tasks: int(raw.tasks),
+    solved: int(raw.solved),
+    coins: int(raw.coins),
+    current: cur && TASK_ID_RE.test(cur.id || "") && cur.task?.equation && cur.task.extra ? cur : null,
   };
 }
 
@@ -81,6 +100,7 @@ export function normalizeProgress(raw) {
     recent: (Array.isArray(raw.recent) ? raw.recent : []).filter((r) => r && Number.isInteger(r.s)).slice(-RECENT_MAX),
     current: cur && TASK_ID_RE.test(cur.id || "") && cur.task?.equation ? cur : null,
     skills: raw.skills && typeof raw.skills === "object" ? raw.skills : {},
+    extra: normalizeExtra(raw.extra),
     levelChangedAt: raw.levelChangedAt ?? null,
     updatedAt: raw.updatedAt ?? null,
   };
@@ -92,10 +112,14 @@ export function currentTask(progress) {
   return c && c.task.level === progress.level ? c : null;
 }
 
-/** Sätt en ny pågående uppgift. */
+/** Sätt en ny pågående uppgift (en extrautmaning hamnar i `extra.current`). */
 export function withCurrent(progress, task, { id, at }) {
+  if (task.extra) return { ...progress, extra: { ...progress.extra, current: { id, at, task } }, updatedAt: at };
   return { ...progress, current: { id, at, task }, updatedAt: at };
 }
+
+/** Den pågående extrautmaningen, eller null. */
+export const currentExtra = (progress) => progress.extra?.current || null;
 
 /**
  * Försöksdokumentet för en avslutad uppgift.
@@ -136,8 +160,27 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
   // Elevens svar i C–F: [{ k: frågetyp, a: svaret som text | null, ok, visad? }] (≤ 40).
   if (isQuestionType(task.type)) attempt.answers = Array.isArray(result.answers) ? result.answers.slice(-40) : [];
   // Färdighetsmodellen (#626): vad försöket visar + om uppgiften valdes för att träna en svag färdighet.
-  attempt.skills = { fokus: task.fokus || null, obs: observera(task, attempt) };
+  // Extrautmaningar (#627) är frivilliga och räknas inte i modellen (inga observationer).
+  attempt.skills = { fokus: task.fokus || null, obs: task.extra ? {} : observera(task, attempt) };
+  if (task.extra) attempt.extra = true;
   return attempt;
+}
+
+/**
+ * Lägg ett försök på en EXTRAUTMANING på progress (#627): bara extra-räknarna
+ * och mynten. Nivå, fönster, huvudstatistik och trend rörs inte – läget är
+ * frivilligt och krävs aldrig för huvudprogressionen.
+ * @returns {{ progress, change: null, from, to }}
+ */
+export function applyExtraCompletion(progress, attempt, { now, next = null } = {}) {
+  const x = progress.extra || defaultExtra();
+  const p = {
+    ...progress,
+    coins: progress.coins + int(attempt.coins),
+    extra: { tasks: x.tasks + 1, solved: x.solved + (attempt.solved ? 1 : 0), coins: x.coins + int(attempt.coins), current: next },
+    updatedAt: now,
+  };
+  return { progress: p, change: null, from: p.level, to: p.level };
 }
 
 /**

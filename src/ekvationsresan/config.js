@@ -150,6 +150,34 @@ export function rulesFor(level) {
   return Object.freeze({ ...BASE_RULES, ...(levelConfig(level).rules || {}) });
 }
 
+/** Spärrarna för en uppgift: extrautmaningar (task.extra, #627) har EXTRA_RULES. */
+export function rulesForTask(task) {
+  return task?.extra ? EXTRA_RULES : rulesFor(task.level);
+}
+
+/**
+ * Extrautmaningarna (#627, spec E2.6): frivilliga, nås diskret från
+ * nivåöversikten när eleven nått `minLevel` (huvudprogressionens maxLevel).
+ * Påverkar aldrig nivån. `categories` = vikter för kategorierna i extra.js;
+ * mynten per löst uppgift ligger i COINS.extraChallenge.
+ */
+export const EXTRA = Object.freeze({
+  minLevel: 7,
+  title: "Extrautmaningar",
+  categories: Object.freeze({ negativ: 1, brak: 1, decimal: 1, parentes: 1, klurig: 1 }),
+  names: Object.freeze({
+    negativ: "Negativa x",
+    brak: "Bråk",
+    decimal: "Svårare decimaler",
+    parentes: "Parenteser",
+    klurig: "Kluriga",
+  }),
+  link: "✨ Extrautmaningar",
+  linkHint: "Frivilligt – klurigare uppgifter för den som vill. Påverkar inte din nivå.",
+  locked: (level) => `✨ Extrautmaningar öppnas när du nått nivå ${level}.`,
+  back: (level) => `← Tillbaka till nivå ${level}`,
+});
+
 /** Elevens förklaring när ett drag spärras (E1.4). Spärrar räknas inte som drag. */
 export const BLOCK_MESSAGES = Object.freeze({
   div0: "Man kan inte dela med noll.",

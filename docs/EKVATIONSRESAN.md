@@ -540,3 +540,44 @@ vanligt. "Försök igen" behåller `fokus`.
 qa-bro, qa-koef och qa-omvag (seeden skriver ut varje elevs meningar).
 `qalarare / lilla123` → QA-klass 4A → Statistik → Ekvationsresan.
 
+---
+
+## 10. Extrautmaningar (`#627`, E2.6)
+
+Frivilliga uppgifter för starka elever. Ren logik i `extra.js`, tester i
+`test/ekvationsresan-extra.test.js` (+ två regeltester).
+
+- **Nås diskret** från nivåöversikten (knappen *Nivåer*): en rad sist,
+  "✨ Extrautmaningar – frivilligt, påverkar inte din nivå". Öppen när
+  `maxLevel ≥ EXTRA.minLevel` (7), annars en lågmäld rad "öppnas när du nått
+  nivå 7". I läget: rubriken `EXTRAUTMANING – BRÅK`, ingen mätare, knappen
+  "← Tillbaka till nivå N". En omladdning går alltid till huvudprogressionen.
+- **Kategorier** (`config.EXTRA.categories`, vikter): *negativ* (`x + 9 = 4`,
+  `3x + 20 = 5`, `5x + 3 = 2x − 9`), *brak* (`3x = 5` → `x = 5/3`, `2x/3 = 8`,
+  `2x/3 + 4 = 10`), *decimal* (`1,25x + 0,75 = 5,75`, `0,4x − 1,2 = 0,6` →
+  `x = 4,5`, decimaler i båda leden), *parentes* (`3(x + 2) = 21`,
+  `4(x − 3) = 20`, `4(x + 2) = x + 20`), *klurig* (`20 − 3x = 2 − x`,
+  `4 − 3x = 19` → `x = −5`, `3(x + 4) = 5(x − 2)`).
+- **Spärrar:** `config.EXTRA_RULES` (bråk, minustal, decimaler, x-termer).
+  `rulesForTask(task)` väljer; uppgiften har `extra: true`, `category`, och
+  `level` = elevens nivå (bara sammanhang). Den optimala vägen går alltid att
+  skriva i talfältet – eleven behöver aldrig skriva ett bråk.
+- **Skrivsätt:** bråk som inte är ändliga decimaler får bråkstreck (`5/3`,
+  segment `num`/`den`). En parentes i uppgiften är bara skrivsätt:
+  `equation.parens = { left?: 3, right?: 5 }` (följer med JSON), termerna är
+  utvecklade. Elevens operation läggs efter parentesen:
+  `3(x + 2) ÷ 3 = 21 ÷ 3` → `x + 2 = 7`; `−6` ger `3(x + 2) − 6 = 21 − 6` →
+  `3x = 15`. Efter första draget finns ingen parentes.
+- **Mynt:** `COINS.extraChallenge` = 7 per löst uppgift, 0 vid Visa lösningen.
+- **Data:** `progress.extra = { tasks, solved, coins, current }` – egen
+  pågående uppgift, så huvuduppgiften står kvar. `applyExtraCompletion` rör
+  aldrig nivå, fönster, trend eller huvudstatistiken; bara `extra` och
+  `coins`. Försöket har `extra: true` (samma create-only-idempotens).
+  Lärarens räknegång spelar om försöket med rätt spärrar (`rulesForTask`),
+  nivåkurvan hoppar över extraförsök.
+- **Färdighetsmodellen (#626):** extraförsök räknas INTE – försökets
+  `skills.obs` är `{}`, så `progress.skills` ändras inte, och de hamnar aldrig
+  i nivåfönstret. Modellen beskriver huvudprogressionen; frivilliga, svårare
+  uppgifter skulle annars ge en skev bild åt båda hållen.
+- ⚠️ **Regler:** `ekvProgressOk` tillåter `extra` (map), `ekvAttemptOk`
+  `extra == true`. Kräver `firebase deploy --only firestore:rules`.

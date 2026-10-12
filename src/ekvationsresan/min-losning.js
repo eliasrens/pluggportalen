@@ -28,7 +28,7 @@ export function rowHtml(row) {
   let out = "";
   segs.forEach((s, i) => {
     const prev = segs[i - 1];
-    const tight = i === 0 || (prev.t === "paren" && prev.text === "(") || (s.t === "paren" && s.text === ")");
+    const tight = i === 0 || (prev.t === "paren" && prev.text.endsWith("(")) || (s.t === "paren" && s.text === ")");
     out += (tight ? "" : " ") + segHtml(s);
   });
   return out;

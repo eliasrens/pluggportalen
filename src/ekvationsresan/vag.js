@@ -26,7 +26,7 @@ import { fromJSON, term } from "./equation.js";
 import { q } from "./rational.js";
 import { BASE_RULES } from "./config.js";
 import { applyOperation } from "./operations.js";
-import { equationRow } from "./notation.js";
+import { equationRow, tightAfter } from "./notation.js";
 import { optimalPath } from "./solver.js";
 import { chooseView, statesAlong, taskView, viewDuring, viewForEquation, moreAbstract, themeFor, themeById } from "./vag-visning.js";
 import { SIDES, restScene, movePhases, helpScene, SCALE_ACTIONS, scaleOperand } from "./vag-scen.js";
@@ -64,13 +64,15 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 /** Ekvationen som HTML, med bråkstreck för x/4 (notation.js-segment). */
 export function equationHtml(eq) {
-  return equationRow(eq, "start")
-    .segments.map((s) =>
-      s.num
+  const segs = equationRow(eq, "start").segments;
+  return segs
+    .map((s, i) =>
+      (i > 0 && !tightAfter(segs[i - 1], s) ? " " : "") +
+      (s.num
         ? `<span class="ekv-frac"><span>${esc(s.num)}</span><span>${esc(s.den)}</span></span>`
-        : `<span class="ekv-seg ekv-seg--${s.t}">${esc(s.text)}</span>`,
+        : `<span class="ekv-seg ekv-seg--${s.t}">${esc(s.text)}</span>`),
     )
-    .join(" ");
+    .join("");
 }
 
 function moveOperand(move) {

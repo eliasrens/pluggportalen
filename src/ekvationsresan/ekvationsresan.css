@@ -312,3 +312,20 @@ body.ekv-lage .container {
   .ekv-stjarna.is-pa, .ekv-rad--ny, .ekv-nivaupp-kort, .ekv-nivaupp-fest { animation: none; }
   .ekv-matare-fyll { transition: none; }
 }
+
+/* --- Extrautmaningar (#627): diskret rad i nivåöversikten + tillbaka-knapp --- */
+.ekv-extra-rad { margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed #d4e2f4; font-size: 0.85rem; color: var(--text-svag); max-width: 240px; }
+.ekv-extra-rad .ekv-extra-knapp { margin-left: 0; color: #8a5cc7; }
+.ekv-extra-hint { display: block; margin-top: 4px; font-size: 0.78rem; }
+.ekv-extra-tillbaka {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 2px solid #e2d6f4;
+  border-radius: 999px;
+  background: #faf6ff;
+  color: #6b45a3;
+  cursor: pointer;
+}
+.ekv-sida[data-extra="1"] .ekv-niva { color: #6b45a3; }
