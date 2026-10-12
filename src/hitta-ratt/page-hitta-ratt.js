@@ -3,6 +3,8 @@
 // ----------------------------------------------------------------------------
 //   #/elev/hitta-ratt                 startsidan: kort per kategori + 🏆-knapp
 //   #/elev/hitta-ratt?pack=<packId>   en omgång: alla frågor, resultatskärm (#608, hr-spel.js)
+//   #/elev/hitta-ratt?pack=e-…        lärarens egna pack (#633): läses ur
+//                                     hittaRattPacks (1 läsning) och spelas likadant
 //   #/elev/hitta-ratt?vy=topplistor[&lista=<packId>]   🏆-vyn (#609): skolans
 //                                     Top 15 + egen rad per pack, EN läsning per valt pack
 //
@@ -16,6 +18,7 @@ import { app, el, go, getParams, loading, renderTopbar } from "../ui.js";
 import { startsidaHtml, grupperaPack } from "./hr-start-vy.js";
 import { topplistorVyHtml } from "./hr-topplista-vy.js";
 import { hamtaPersonbasta } from "./hr-best.js";
+import { arEget } from "./hr-egna.js";
 
 const HASH = "#/elev/hitta-ratt";
 
@@ -55,19 +58,23 @@ export function laddaPackIndex() {
 export async function pageHittaRatt() {
   loading();
   const p = getParams();
-  const [, index, bast] = await Promise.all([
+  const start = !p.pack && !p.vy;
+  // Startsidan: index (statisk) + personbästa (1) + katalogen över egna pack (1).
+  const [, index, bast, egna] = await Promise.all([
     ensureStyles(),
     laddaPackIndex(),
-    p.pack || p.vy ? null : hamtaPersonbasta(),
+    start ? hamtaPersonbasta() : null,
+    start ? import("./hr-egna-data.js").then((m) => m.egnaForMig()).catch(() => []) : null,
     renderTopbar(),
   ]);
   if (p.vy === "topplistor") return visaTopplistor(index, p.lista);
+  if (arEget(p.pack)) return visaEgetSpel(p.pack);
   if (p.pack) return visaSpel(index.find((x) => x.id === p.pack));
-  visaStart(index, bast);
+  visaStart(index, bast, egna);
 }
 
-function visaStart(index, bast) {
-  const vy = el(startsidaHtml(index, bast));
+function visaStart(index, bast, egna) {
+  const vy = el(startsidaHtml(index, bast, egna));
   vy.querySelector(".hr-topplistor-knapp").addEventListener("click", () => go(`${HASH}?vy=topplistor`));
   vy.querySelectorAll(".hr-spela").forEach((b) =>
     b.addEventListener("click", () => go(`${HASH}?pack=${encodeURIComponent(b.dataset.pack)}`))
@@ -122,4 +129,12 @@ async function visaSpel(pack) {
   if (!pack) return go(HASH);
   const { spelaPack } = await import("./hr-spel.js");
   await spelaPack(pack);
+}
+
+// Lärarens eget pack (#633): packen läses (och läses om vid "ändrad karta")
+// av hr-spel.js via deps.pack. Borttaget eller inte delat med elevens klass
+// → "Kartan finns inte längre".
+async function visaEgetSpel(id) {
+  const [{ spelaPack }, { hamtaEgetPack }] = await Promise.all([import("./hr-spel.js"), import("./hr-egna-data.js")]);
+  await spelaPack({ id }, { pack: () => hamtaEgetPack(id) });
 }

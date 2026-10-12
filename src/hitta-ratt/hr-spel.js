@@ -18,6 +18,12 @@
 //      personbästa/topplista och krediterar coins EN gång) → resultatskärmen.
 //      Nätfel → "Försök igen" med SAMMA attemptId (idempotent).
 // Lämna-vakten (#605) är på från första frågan tills resultatet skickas.
+//
+// Egna pack (#633): deps.pack = färdigt pack eller en laddare () => Promise<pack>
+// (page-hitta-ratt.js läser hittaRattPacks). Då hämtas ingen packfil ur repot,
+// bara geofilen. startvy "auto"/"hel" räknas om till en ruta (hr-egna.js).
+// Serverns fel för egna pack (ändrad karta, inte delad, borttagen) får en egen
+// vy; "Starta ny omgång" laddar om packet.
 // ============================================================================
 
 import { app, el, go, loading, renderTopbar } from "../ui.js";
@@ -26,6 +32,7 @@ import { esc, formatTid } from "./hr-start-vy.js";
 import { blanda, skapaStoppur, skapaOmgang, berom, omradeText, formatKm } from "./hr-omgang.js";
 import { resultatHtml, sparFelHtml } from "./hr-resultat-vy.js";
 import { armeraLamnaVakt } from "./hr-lamna-vakt.js";
+import { arEget, egetSparFel, startvyAuto } from "./hr-egna.js";
 
 const HASH = "#/elev/hitta-ratt";
 const NASTA_SPARR_MS = 450;
@@ -55,13 +62,13 @@ function hamtaJson(rel) {
 
 const bildUrl = (fil) => new URL(`./content/bilder/${fil}`, import.meta.url).href;
 
-function felVy(rubrik, text, igen) {
+function felVy(rubrik, text, igen, igenText = "Försök igen") {
   const vy = el(`<div class="panel center hr-stub" role="alert">
     <div class="big-emoji" aria-hidden="true">🧭</div>
     <h2>${esc(rubrik)}</h2>
     <p class="hint">${esc(text)}</p>
     <div class="hr-res-knappar">
-      ${igen ? '<button class="btn gron" data-act="igen">Försök igen</button>' : ""}
+      ${igen ? `<button class="btn gron" data-act="igen">${esc(igenText)}</button>` : ""}
       <button class="btn hr-tillbaka" data-act="tillbaka">← Till kartorna</button>
     </div>
   </div>`);
@@ -72,22 +79,28 @@ function felVy(rubrik, text, igen) {
 
 /**
  * Spela ett pack. `meta` = posten i index.json (id, title, type, geo …).
- * deps (tester/preview): { data: { startaForsok, skickaOmgang } }
+ * deps (tester/preview): { data: { startaForsok, skickaOmgang },
+ *   pack: eget pack | () => Promise<pack> (kastar { code: "not-found" } om det saknas) }
  */
 export async function spelaPack(meta, deps = {}) {
   let pack, geo, motor, data;
   try {
     [pack, motor, data] = await Promise.all([
-      hamtaJson(`packs/${meta.id}.json`),
+      typeof deps.pack === "function" ? deps.pack() : deps.pack || hamtaJson(`packs/${meta.id}.json`),
       import("./karta/kartmotor.js"),
       deps.data || import("./hr-data.js"),
     ]);
     geo = await hamtaJson(`geo/${pack.geo}.json`);
-  } catch {
-    felVy("Kartan gick inte att ladda", "Kontrollera uppkopplingen och försök igen.", () => spelaPack(meta, deps));
+  } catch (err) {
+    if (err?.code === "not-found") {
+      felVy("Kartan finns inte längre", "Läraren kan ha tagit bort kartan eller slutat dela den med din klass.");
+    } else {
+      felVy("Kartan gick inte att ladda", "Kontrollera uppkopplingen och försök igen.", () => spelaPack(meta, deps));
+    }
     return;
   }
-  await nyOmgang({ pack, geo, motor, data });
+  if (typeof pack.startvy === "string") pack = { ...pack, startvy: startvyAuto(pack, geo) };
+  await nyOmgang({ meta, deps, pack, geo, motor, data });
 }
 
 async function nyOmgang(ctx) {
@@ -301,6 +314,11 @@ async function skicka(ctx, attemptId, svar) {
   try {
     res = await data.skickaOmgang(attemptId, svar);
   } catch (err) {
+    const eget = arEget(pack.id) && egetSparFel(err?.code, err?.message);
+    if (eget) {
+      felVy(eget.rubrik, eget.text, eget.igen ? () => spelaPack(ctx.meta, ctx.deps) : null, "Starta ny omgång");
+      return;
+    }
     const vy = el(sparFelHtml(pack, err?.message));
     vy.querySelector('[data-act="spara-igen"]').addEventListener("click", () => skicka(ctx, attemptId, svar));
     vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));

@@ -1489,6 +1489,16 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if false;
     }
+    // Lärarens egna pack (#633, epic #612, arkitektur §11.2): ett dok per
+    // pack med alla items. Katalogen hittaRattMeta/egnaPack täcks av regeln
+    // ovan. Läsning för alla inloggade (som subjects, #114) – synligheten per
+    // klass är ett UI-filter, poängen skyddas av hittaRattSubmit. Skriv bara
+    // via hittaRattSparaPack/RaderaPack (Admin SDK): reglerna kan inte loopa
+    // över items, så validering + versionsnollställning ligger på servern.
+    match /hittaRattPacks/{packId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
 
     // Allt annat nekas.
     match /{document=**} {

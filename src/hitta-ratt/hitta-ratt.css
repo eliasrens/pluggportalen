@@ -53,6 +53,7 @@
 .hr-niva-gron { color: var(--gron-mork); background: #e3f6ea; }
 .hr-niva-gul { color: #9a6b00; background: #fdf3d3; }
 .hr-niva-rod { color: #c03b3b; background: #fde6e6; }
+.hr-egen-tagg { color: var(--bla-mork); background: #e4eefc; } /* lärarens egna pack (#633) */
 
 /* Personbästa – diskret, tar alltid samma höjd så korten linjerar. */
 .hr-kort-bast { margin: 0; font-size: 0.88rem; color: var(--text-svag); min-height: 1.3em; }

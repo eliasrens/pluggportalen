@@ -5,6 +5,9 @@
 // Spec §23: kort per kategori (Sverige, Europa, Världen, Kända platser). Varje
 // kort: namn, ikon, typ, antal frågor, svårighet (§15), diskret personbästa och
 // "Spela". Inga topplistor på sidan – bara en 🏆-knapp (§22). Inget är låst.
+// Lärarens egna pack (#633, arkitektur §11.3) visas FÖRST i gruppen "Från din
+// lärare" med packens egen ikon och taggen "Egen karta" i stället för
+// svårighet. Personbästa visas bara om det gäller packens nuvarande version.
 // ============================================================================
 
 /** Kategorierna i visningsordning (packens `category` i index.json). */
@@ -14,6 +17,9 @@ export const KATEGORIER = [
   { id: "varlden", namn: "Världen", ikon: "🌍" },
   { id: "kanda-platser", namn: "Kända platser", ikon: "🗼" },
 ];
+
+/** Gruppen för lärarens egna pack (hr-egna.js egnaForElev). */
+export const EGNA_KATEGORI = { id: "egna", namn: "Från din lärare", ikon: "🧑‍🏫" };
 
 /** Svårighet (§15): grön/gul/röd. Okänd nivå visas som Medel. */
 export const SVARIGHET = {
@@ -83,16 +89,19 @@ export function grupperaPack(index) {
 export function packKortHtml(p, bast) {
   const sv = SVARIGHET[p.difficulty] || SVARIGHET.medel;
   const typ = TYP[p.type] || TYP.point;
-  const b = formatBast(bast, p);
+  const b = formatBast(p.egen && bast?.v !== p.version ? null : bast, p); // gammal version = inget rekord
+  const niva = p.egen
+    ? '<span class="hr-tagg hr-egen-tagg">Egen karta</span>'
+    : `<span class="hr-tagg hr-niva hr-niva-${sv.farg}"><span class="hr-prick" aria-hidden="true"></span>${sv.namn}</span>`;
   return `<article class="hr-kort" data-pack="${esc(p.id)}">
     <div class="hr-kort-topp">
-      <span class="hr-kort-ikon" aria-hidden="true">${PACK_IKON[p.id] || typ.ikon}</span>
+      <span class="hr-kort-ikon" aria-hidden="true">${p.egen ? esc(p.ikon) : PACK_IKON[p.id] || typ.ikon}</span>
       <h3 class="hr-kort-namn">${esc(p.title)}</h3>
     </div>
     <div class="hr-kort-meta">
       <span class="hr-tagg hr-typ" title="${typ.hint}">${typ.ikon} ${typ.namn}</span>
       <span class="hr-tagg">${Number(p.antal) || 0} frågor</span>
-      <span class="hr-tagg hr-niva hr-niva-${sv.farg}"><span class="hr-prick" aria-hidden="true"></span>${sv.namn}</span>
+      ${niva}
     </div>
     <p class="hr-kort-bast">${b ? `Ditt bästa: <b>${esc(b)}</b>` : "&nbsp;"}</p>
     <button class="btn gron hr-spela" data-pack="${esc(p.id)}" aria-label="Spela ${esc(p.title)}">Spela</button>
@@ -103,9 +112,12 @@ export function packKortHtml(p, bast) {
  * Hela startsidan.
  * @param {Array} index  packs/index.json
  * @param {Record<string, object>} bast  hittaRattBest/{uid}.packs ({} om inget)
+ * @param {Array} egna  lärarens pack för elevens klasser (hr-egna.js egnaForElev)
  */
-export function startsidaHtml(index, bast = {}) {
-  const sektioner = grupperaPack(index).map((k) => `<section class="hr-kategori" aria-labelledby="hr-kat-${k.id}">
+export function startsidaHtml(index, bast = {}, egna = []) {
+  const grupper = grupperaPack(index);
+  if (Array.isArray(egna) && egna.length) grupper.unshift({ ...EGNA_KATEGORI, pack: egna });
+  const sektioner = grupper.map((k) => `<section class="hr-kategori" aria-labelledby="hr-kat-${k.id}">
       <h2 class="hr-kategori-namn" id="hr-kat-${k.id}"><span aria-hidden="true">${k.ikon}</span> ${k.namn}</h2>
       <div class="hr-kort-grid">${k.pack.map((p) => packKortHtml(p, bast?.[p.id])).join("")}</div>
     </section>`).join("");
