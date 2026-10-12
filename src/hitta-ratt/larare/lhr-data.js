@@ -11,6 +11,7 @@
 //   hamtaPack(id)         → hittaRattPacks/{id} (1 läsning) eller null
 //   hamtaPackIndex()      → content/packs/index.json (officiella, statisk)
 //   hamtaOfficielltPack(id) → content/packs/<id>.json
+//   hamtaGeo(geo)         → content/geo/<geo>.json (kartvalet, #636)
 //   laddaOmraden(geo)     → { lista: [{ id, key, namn }], nycklar, geoOmraden }
 //                           ur <geo>.namn.json + <geo>.nycklar.json (bara lärarvyn)
 // Fel från servern kastas som LhrFel { code, message } med serverns svenska text.
@@ -80,6 +81,7 @@ function hamtaJson(rel) {
   return jsonCache.get(rel);
 }
 
+export const hamtaGeo = (geo) => hamtaJson(`geo/${geo}.json`);
 export const hamtaPackIndex = () => hamtaJson("packs/index.json");
 export const hamtaOfficielltPack = (id) => hamtaJson(`packs/${id}.json`);
 

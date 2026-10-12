@@ -24,6 +24,7 @@ import {
 } from "./lhr-modell.js";
 import { hamtaOfficielltPack, hamtaPack, laddaOmraden, raderaPack, sattTopplista, sparaPack } from "./lhr-data.js";
 import { ritaFragor } from "./lhr-fragor.js";
+import { skapaKartval } from "./lhr-kartval.js";
 
 const HASH = "#/larare/hitta-ratt";
 let flash = null; // { id, html } – meddelande efter sparning, visas en gång
@@ -133,6 +134,8 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
   async function ritaFragorna() {
     const fh = $(".lhr-fragor-host");
     st.omraden = null;
+    st.kartval?.destroy();
+    st.kartval = null;
     if (st.f.type === "area") {
       fh.replaceChildren(el(`<div class="spinner">Laddar områdena…</div>`));
       try {
@@ -142,8 +145,18 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
         return;
       }
     }
-    ritaFragor(fh, st, { omraden: st.omraden, andrad });
-    andrad();
+    // Kartvalet (#636) ritas EN gång per karta/typ; listan ritas om runt det.
+    const kartvalHost = el(`<div class="lhr-kartval-host"></div>`);
+    const andradOchSynka = () => {
+      st.kartval?.synka();
+      andrad();
+    };
+    const visaLista = () => {
+      ritaFragor(fh, st, { omraden: st.omraden, andrad: andradOchSynka, kartval: st.kartval, kartvalHost });
+      andradOchSynka();
+    };
+    st.kartval = skapaKartval(kartvalHost, st, { omraden: st.omraden, andrad: andradOchSynka, omritaLista: visaLista });
+    visaLista();
   }
 
   vy.querySelectorAll("[data-k]").forEach((inp) => inp.addEventListener("input", () => {

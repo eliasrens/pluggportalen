@@ -36,14 +36,16 @@
 //   k.setLage(lage), k.reset({ hem = true }), k.zoomIn(), k.zoomOut(), k.hem(), k.destroy()
 //     reset() = ny fråga: tömmer svar/resultat och glider tillbaka till startvyn
 //   k.matning() → senaste gestens bildrutor (preview/QA)
+//   k.satGissning(pos, { zooma }), k.markera(ids, { etikett })   bara lärarvyn (redigering.js)
 // ============================================================================
 
 import { tillKarta, tillLatLon, rutaTillKarta } from "./projektion.js";
 import { kopplaGester } from "./gester.js";
-import { vagRuta } from "./kamera.js";
+import { vagRuta, omslutRuta as ruta } from "./kamera.js";
 import { skapaKamerastyrning, VISA_LUFT } from "./kamerastyrning.js";
 import { skapaSkarmlager, svgEl as el } from "./skarmlager.js";
 import { ensureKartaCss } from "./karta-stil.js";
+import { skapaRedigering } from "./redigering.js";
 
 const KNAPP_ZOOM = 1.8;
 const TANGENT_STEG = 80; // px per piltryck
@@ -254,7 +256,7 @@ export function skapaKarta(yttre, geo, opts = {}) {
   }
 
   function valj(id) {
-    if (valtId) omraden.get(valtId)?.path.classList.remove("vald");
+    rensaVal();
     valtId = id;
     const o = omraden.get(id);
     o.path.classList.add("vald");
@@ -262,6 +264,13 @@ export function skapaKarta(yttre, geo, opts = {}) {
     rita();
     emit("val", { id });
   }
+
+  function rensaVal() {
+    if (valtId) omraden.get(valtId)?.path.classList.remove("vald");
+    valtId = null;
+    kontur.vald.removeAttribute("d");
+  }
+  const red = skapaRedigering({ p, omraden, skarm, kam, rita, rensaVal });
 
   // Animera bara om något av områdena (ytterkanter) ligger utanför vyns inre
   // del (samma luft som visaRuta ger, så etiketten och ringen får plats).
@@ -289,6 +298,8 @@ export function skapaKarta(yttre, geo, opts = {}) {
     getVal: () => valtId,
     get lage() { return lage; },
     get last() { return last; },
+    satGissning: red.satGissning,
+    markera: red.markera,
     lock() { last = true; vard.classList.add("last"); rita(); },
 
     showResult({ guess, target, km, label } = {}) {
@@ -377,9 +388,4 @@ export function skapaKarta(yttre, geo, opts = {}) {
   storlek();
   api.reset({ hem: false });
   return api;
-}
-
-function ruta(punkter) {
-  const xs = punkter.map((q) => q[0]), ys = punkter.map((q) => q[1]);
-  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
 }

@@ -1,16 +1,17 @@
 // ============================================================================
 // Hitta rätt! – frågelistan i formuläret (src/hitta-ratt/larare/lhr-fragor.js) · #634
 // ----------------------------------------------------------------------------
-// Den ENKLA frågeinmatningen i C (arkitektur §11.10). E lägger till
-// platssökning och kartklick bredvid; namnlistan för områden finns kvar då
-// (§11.7, tangentbord och små länder).
-//   punkt:  namn, frågetext och lat/lon under "Avancerat"
+// Frågelistan från C (arkitektur §11.10). Kartvalet från E (lhr-kartval.js,
+// platssökning + kartklick) läggs in under rubriken; namnlistan för områden
+// finns kvar (§11.7, tangentbord och små länder).
+//   punkt:  namn, frågetext, "📍 Flytta på kartan" och lat/lon under "Avancerat"
 //   område: sökbar namnlista ur <geo>.namn.json → en fråga per område
 //
-//   ritaFragor(host, st, { omraden, andrad })
+//   ritaFragor(host, st, { omraden, andrad, kartval, kartvalHost })
 //     st.f      formuläret (lhr-modell.js) – items skrivs om här
 //     omraden   laddaOmraden(geo) för områdespack, annars null
 //     andrad()  anropas vid varje ändring (osparat-läge, facit-varning)
+//     kartval   skapaKartval(...) – kartvalHost (med kartan) flyttas in, ritas aldrig om
 // Inmatning i ett fält ritar inte om listan (fokus behålls); lägg till och
 // ta bort ritar om.
 // ============================================================================
@@ -27,14 +28,15 @@ const platsText = (it) => {
   return lat === undefined || lon === undefined ? "" : `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 };
 
-function punktRad(it, i) {
+function punktRad(it, i, kartval) {
   const plats = platsText(it);
   return `<li class="lhr-fraga" data-i="${i}">
     <span class="lhr-fraga-nr">${i + 1}</span>
     <div class="lhr-fraga-falt">
       <label class="lhr-mini">Namn<input type="text" data-f="name" maxlength="${GRANS.namn}" value="${esc(it.name)}" placeholder="t.ex. Gävle" /></label>
       <label class="lhr-mini"><span>Frågetext <span class="hint">(valfri)</span></span><input type="text" data-f="prompt" maxlength="${GRANS.prompt}" value="${esc(it.prompt)}" placeholder="${esc(`Var ligger ${it.name || "…"}?`)}" /></label>
-      <details class="lhr-avancerat"${plats ? "" : " open"}>
+      ${kartval ? `<button type="button" class="btn small ghost lhr-pa-kartan" data-act="karta">📍 <span>${plats ? "Flytta på kartan" : "Välj på kartan"}</span></button>` : ""}
+      <details class="lhr-avancerat"${plats || kartval ? "" : " open"}>
         <summary>Avancerat <span class="lhr-plats ${plats ? "" : "saknas"}" data-v="plats">${plats ? `📍 ${esc(plats)}` : "Plats saknas"}</span></summary>
         <div class="lhr-latlon">
           <label class="lhr-mini">Latitud (N)<input type="text" inputmode="decimal" data-f="lat" value="${esc(it.lat)}" placeholder="60,6749" /></label>
@@ -59,7 +61,7 @@ function omradeRad(it, i, namnFor) {
   </li>`;
 }
 
-export function ritaFragor(host, st, { omraden = null, andrad = () => {} } = {}) {
+export function ritaFragor(host, st, { omraden = null, andrad = () => {}, kartval = null, kartvalHost = null } = {}) {
   const area = st.f.type === "area";
   const namnFor = (it) => omraden?.lista.find((o) => o.id === it.omrade)?.namn || it.key || it.omrade;
   const fullt = st.f.items.length >= GRANS.items;
@@ -74,13 +76,15 @@ export function ritaFragor(host, st, { omraden = null, andrad = () => {} } = {})
         <input type="search" data-v="sok" placeholder="Sök ett namn, t.ex. ${esc(omraden?.lista[0]?.namn || "")}" autocomplete="off" ${fullt ? "disabled" : ""} /></label>
       <div class="lhr-sok-traffar" role="listbox" aria-label="Områden att lägga till"></div>
     </div>` : ""}
-    ${st.f.items.length ? `<ol class="lhr-fraga-lista">${st.f.items.map((it, i) => (area ? omradeRad(it, i, namnFor) : punktRad(it, i))).join("")}</ol>`
-      : `<p class="hint lhr-inga-fragor">${area ? "Inga områden ännu – sök och lägg till ovan." : "Inga frågor ännu."}</p>`}
+    ${st.f.items.length ? `<ol class="lhr-fraga-lista">${st.f.items.map((it, i) => (area ? omradeRad(it, i, namnFor) : punktRad(it, i, kartval))).join("")}</ol>`
+      : `<p class="hint lhr-inga-fragor">${area ? "Inga områden ännu – klicka på kartan eller sök i listan ovan." : kartval ? "Inga frågor ännu – sök en plats eller klicka på kartan." : "Inga frågor ännu."}</p>`}
     ${area ? "" : `<button type="button" class="btn small" data-act="ny" ${fullt ? "disabled" : ""}>${icon("plus", 16)}<span>Lägg till fråga</span></button>`}
   </div>`);
 
+  if (kartvalHost) vy.querySelector(".lhr-fragor-topp").after(kartvalHost);
+
   const omrita = (fokus) => {
-    ritaFragor(host, st, { omraden, andrad });
+    ritaFragor(host, st, { omraden, andrad, kartval, kartvalHost });
     andrad();
     if (fokus) host.querySelector(fokus)?.focus();
   };
@@ -102,6 +106,7 @@ export function ritaFragor(host, st, { omraden = null, andrad = () => {} } = {})
         andrad();
       })
     );
+    rad.querySelector('[data-act="karta"]')?.addEventListener("click", () => kartval.valjFraga(it));
     rad.querySelector('[data-act="bort"]').addEventListener("click", () => {
       st.f.items = st.f.items.filter((x) => x !== it);
       omrita(area ? '[data-v="sok"]' : '[data-act="ny"]');

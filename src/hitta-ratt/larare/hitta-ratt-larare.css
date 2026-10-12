@@ -267,3 +267,45 @@
   gap: 4px 8px;
 }
 .hr-res-prov .hint { flex-basis: 100%; font-weight: 600; font-size: 0.88rem; }
+
+/* --- Kartval: platssökning + karta (#636, lhr-kartval.js) -------------------- */
+.lhr-kartval { margin: 12px 0 4px; display: grid; gap: 10px; }
+.lhr-kartval-hjalp { margin: 0; }
+.lhr-platssok { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.lhr-platssok .lhr-mini { flex: 1 1 260px; max-width: 420px; }
+.lhr-platssok .btn { display: inline-flex; align-items: center; gap: 6px; }
+.lhr-platssok-svar:empty { display: none; }
+.lhr-platssok-svar .hint, .lhr-platssok-fel { margin: 0; }
+.lhr-platssok-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 220px; overflow: auto; }
+.lhr-plats-traff {
+  width: 100%;
+  text-align: left;
+  padding: 7px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--t-border);
+  background: var(--t-surface-2);
+  color: var(--t-text);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.lhr-plats-traff span { color: var(--t-muted); }
+.lhr-plats-traff:hover:not(:disabled), .lhr-plats-traff:focus-visible { border-color: var(--t-accent); }
+.lhr-plats-traff.vald { border-color: var(--t-accent); background: var(--t-accent-soft); }
+.lhr-plats-traff.utanfor { opacity: 0.5; cursor: not-allowed; }
+.lhr-plats-traff em { font-style: normal; font-weight: 700; color: #f2d27a; }
+.lhr-osm { margin: 6px 0 0; font-size: 0.8rem; }
+.lhr-kartval-karta {
+  position: relative;
+  height: clamp(300px, 52vh, 520px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--t-border);
+}
+.lhr-kartval-karta > .spinner, .lhr-kartval-karta > .err-inline { padding: 18px; }
+.lhr-kartval-fot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 36px; }
+.lhr-kartval-fot .btn { display: inline-flex; align-items: center; gap: 6px; }
+.lhr-kartval-status { font-size: 0.92rem; }
+.lhr-utanfor { color: #f2d27a; font-weight: 700; }
+.lhr-pa-kartan { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.lhr-kartval-fot .btn:disabled { opacity: 0.45; cursor: not-allowed; }

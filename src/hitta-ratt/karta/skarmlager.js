@@ -120,7 +120,7 @@ export function skapaSkarmlager(svg, omraden) {
         const [sx, sy] = (o.ringPos = tillSkarm(o.c));
         o.ring.setAttribute("cx", fast(sx));
         o.ring.setAttribute("cy", fast(sy));
-        for (const c of ["vald", "ratt", "fel"]) o.ring.classList.toggle(c, o.path.classList.contains(c));
+        for (const c of ["vald", "ratt", "fel", "markerad"]) o.ring.classList.toggle(c, o.path.classList.contains(c));
       }
       for (const n of [nalGiss, nalRatt]) if (n.pos) flytta(n, tillSkarm(n.pos));
       if (nalGiss.pos && nalRatt.pos) {
