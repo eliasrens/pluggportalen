@@ -341,6 +341,9 @@ export async function renderTopbar() {
   </div>`);
 
   wrap.querySelector("#logout-btn").addEventListener("click", () => {
+    // Hitta rätt!s lämna-vakt (#605) frågar FÖRE utloggningen – "Avbryt" ska inte
+    // lämna eleven kvar i omgången men redan utloggad (#611 F1).
+    if (window.__ppLamnaVakt?.({ oldURL: location.href, newURL: `${location.href.split("#")[0]}#/` })) return;
     data.logout();
     go("#/");
   });
