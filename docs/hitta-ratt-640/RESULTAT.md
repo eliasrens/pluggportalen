@@ -25,8 +25,8 @@ Mätt med `admin/qa-hitta-ratt-traff.mjs` (riktiga CDP-klick) mot
 | QAT / JAM / BHS kärna | 113/113 ×3 | 112 / 113 / 113 |
 | QAT / JAM / BHS hela ringen | 88/88 ×3 | 82 / 82 / 86 (kanten över Förenade Arabemiraten, Kuba, Haiti) |
 | MLT LUX AND VAT SMR MCO LIE hela ringen | 88/88 alla | 88/88 alla |
-| LUX LIE AND MCO kärna | – | 113/113 alla (VAT, LUX även touch) |
-| Europa mittklick touch, alla 7 | OK | OK |
-| Öland ring / kärna / yta | 88/88 / – / 21/21 | 88/88 / 113/113 / 21/21 |
+| LUX LIE AND MCO kärna | ej mätt | 113/113 alla (VAT, LUX även touch) |
+| Europa mittklick touch, alla 7 | ej mätt | OK |
+| Öland ring / kärna / yta | 88/88 / ej mätt / 21/21 | 88/88 / 113/113 / 21/21 |
 
 Skärmdumpar: `hr640-1-israel-helvy-vald.png`, `hr640-2-israel-4x-vald.png`.
