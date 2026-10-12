@@ -1,0 +1,287 @@
+{
+ "id": "vasatiden",
+ "name": "Vasatiden",
+ "order": 5,
+ "coverEmoji": "👑",
+ "description": "Hur Gustav Vasa blev kung, hur kyrkan förändrades och hur hans söner styrde Sverige.",
+ "texts": [
+  {
+   "id": "vagen-till-kronan",
+   "title": "Vägen till kronan",
+   "body": "I början av 1500-talet var Sverige med i Kalmarunionen och styrdes av den danske kungen. Kung Kristian II lät avrätta många svenska stormän i Stockholm. Det kallas Stockholms blodbad. Den unge adelsmannen Gustav Eriksson Vasa flydde till Dalarna och fick bönderna att göra uppror. Efter några år valdes han till Sveriges kung."
+  },
+  {
+   "id": "kungen-och-kyrkan",
+   "title": "Kungen och kyrkan",
+   "body": "Gustav Vasa behövde pengar till armén och för att betala skulder. Kyrkan var mycket rik och ägde mycket mark. På en riksdag i Västerås bestämdes att kungen fick ta över mycket av kyrkans egendom. Sverige blev efter hand ett lutherskt land, och gudstjänsterna började hållas på svenska i stället för latin. Bibeln översattes också till svenska."
+  },
+  {
+   "id": "uppror-och-arvrike",
+   "title": "Uppror och arvrike",
+   "body": "Alla var inte nöjda med kungen. I Småland ledde bonden Nils Dacke ett stort uppror mot höga skatter och nya regler. Kungens armé slog till slut ner upproret. Gustav Vasa gjorde också Sverige till ett arvrike. Det betydde att kungens äldste son skulle ärva kronan i stället för att en ny kung valdes."
+  },
+  {
+   "id": "vasas-soner",
+   "title": "Vasas söner",
+   "body": "Efter Gustav Vasas död blev sonen Erik XIV kung. Erik var misstänksam och lät döda flera män ur släkten Sture. Senare tog hans bror Johan III makten. Under brodern Karl styrde till slut Karl IX. Vid Uppsala möte bestämde präster och stormän att Sverige skulle förbli ett lutherskt land."
+  }
+ ],
+ "quiz": [
+  {
+   "id": "q1",
+   "question": "Vilken union var Sverige med i innan Gustav Vasa blev kung?",
+   "options": [
+    "Kalmarunionen",
+    "Europeiska unionen",
+    "Hansan",
+    "Nordiska rådet"
+   ],
+   "answerIndex": 0,
+   "explanation": "Sverige, Danmark och Norge var förenade i Kalmarunionen under en gemensam kung.",
+   "passage": "Under 1400-talet och början av 1500-talet var Sverige, Danmark och Norge förenade i Kalmarunionen. Unionen hade en gemensam kung, som oftast var dansk. Många svenska stormän var missnöjda med att styras från Danmark. Striderna om makten i unionen pågick i många år.",
+   "category": "fakta"
+  },
+  {
+   "id": "q2",
+   "question": "Vad var Stockholms blodbad?",
+   "options": [
+    "En massavrättning av svenska stormän",
+    "Ett stort slag till sjöss",
+    "En sjukdom som spreds i staden",
+    "En brand i slottet"
+   ],
+   "answerIndex": 0,
+   "explanation": "Den danske kungen Kristian II lät avrätta omkring 80 personer, mest stormän och biskopar.",
+   "passage": "Kung Kristian II ville visa att han bestämde över Sverige. Efter sin kröning i Stockholm bjöd han in svenska stormän till en fest. Några dagar senare lät han avrätta omkring 80 av dem på Stortorget. Händelsen gjorde många svenskar arga på den danske kungen.",
+   "category": "fakta"
+  },
+  {
+   "id": "q3",
+   "question": "I vilket landskap fick Gustav Vasa hjälp av bönderna att göra uppror?",
+   "options": [
+    "Dalarna",
+    "Skåne",
+    "Gotland",
+    "Lappland"
+   ],
+   "answerIndex": 0,
+   "explanation": "Dalkarlarna hjälpte Gustav Vasa i upproret mot Kristian II.",
+   "passage": "Gustav Eriksson Vasa flydde från danskarna och kom till Dalarna. Först ville bönderna inte lyssna på honom. När de hörde om blodbadet i Stockholm ändrade de sig. Dalkarlarna följde Gustav i ett uppror som spred sig över landet.",
+   "category": "fakta"
+  },
+  {
+   "id": "q4",
+   "question": "Varför tog Gustav Vasa över mycket av kyrkans rikedomar?",
+   "options": [
+    "Han behövde pengar till armén och skulder",
+    "Kyrkan ville bli av med sina pengar",
+    "Påven bad honom om det",
+    "Bönderna krävde att kyrkan skulle stängas"
+   ],
+   "answerIndex": 0,
+   "explanation": "Kungen hade stora skulder efter befrielsekriget och behövde pengar till staten.",
+   "passage": "Befrielsekriget mot danskarna hade kostat mycket pengar. Gustav Vasa hade lånat pengar av staden Lübeck och måste betala tillbaka. Kyrkan ägde mycket mark, silver och guld. Därför ville kungen att kyrkans rikedomar skulle gå till kronan.",
+   "category": "analys"
+  },
+  {
+   "id": "q5",
+   "question": "Vad betyder reformation?",
+   "options": [
+    "En stor förändring av kyrkan",
+    "Ett krig mellan två länder",
+    "Ett nytt sätt att odla",
+    "En ny skatt på salt"
+   ],
+   "answerIndex": 0,
+   "explanation": "Reformationen var en förändring av kyrkan som ledde till den lutherska läran.",
+   "passage": "I Tyskland kritiserade munken Martin Luther den katolska kyrkan. Hans tankar spreds snabbt i Europa. Förändringen av kyrkan kallas reformationen. I Sverige blev kyrkan efter hand luthersk, och kungen blev kyrkans överhuvud i stället för påven.",
+   "category": "begrepp"
+  },
+  {
+   "id": "q6",
+   "question": "Vad gjorde Nils Dacke?",
+   "options": [
+    "Ledde ett bondeuppror i Småland",
+    "Översatte Bibeln till svenska",
+    "Blev kung efter Gustav Vasa",
+    "Byggde Vasaskeppet"
+   ],
+   "answerIndex": 0,
+   "explanation": "Nils Dacke ledde det största bondeupproret under Gustav Vasas tid.",
+   "passage": "Bönderna i Småland var missnöjda med höga skatter och med att kyrkans saker togs bort. De fick inte heller handla fritt med Danmark. Bonden Nils Dacke samlade ett stort uppror mot kungen. Upproret kallas Dackefejden och slogs till slut ner av kungens armé.",
+   "category": "fakta"
+  },
+  {
+   "id": "q7",
+   "question": "Vad betyder det att Sverige blev ett arvrike?",
+   "options": [
+    "Kungens äldste son ärver kronan",
+    "Bönderna väljer kung varje år",
+    "Påven väljer kung",
+    "Danmarks kung styr Sverige"
+   ],
+   "answerIndex": 0,
+   "explanation": "I ett arvrike går kronan i arv inom kungens släkt.",
+   "passage": "Tidigare valdes Sveriges kungar av stormännen. Gustav Vasa ville att hans familj skulle få behålla makten. På en riksdag i Västerås bestämdes att kronan skulle gå i arv. Kungens äldste son skulle bli kung efter sin far.",
+   "category": "begrepp"
+  },
+  {
+   "id": "q8",
+   "question": "Vem blev kung efter Gustav Vasa?",
+   "options": [
+    "Erik XIV",
+    "Karl XII",
+    "Gustav II Adolf",
+    "Kristian II"
+   ],
+   "answerIndex": 0,
+   "explanation": "Gustav Vasas äldste son Erik XIV ärvde kronan.",
+   "passage": "När Gustav Vasa dog fick hans söner styra Sverige en efter en. Den äldste sonen hette Erik. Han blev kung som Erik XIV. Erik var intresserad av konst och musik men blev med tiden mycket misstänksam mot adeln.",
+   "category": "fakta"
+  }
+ ],
+ "pairs": [
+  {
+   "id": "p1",
+   "term": "Kalmarunionen",
+   "definition": "Union mellan Sverige, Danmark och Norge",
+   "category": "begrepp"
+  },
+  {
+   "id": "p2",
+   "term": "Kristian II",
+   "definition": "Dansk kung som lät avrätta svenska stormän",
+   "category": "fakta"
+  },
+  {
+   "id": "p3",
+   "term": "Reformationen",
+   "definition": "Kyrkans stora förändring till luthersk tro",
+   "category": "begrepp"
+  },
+  {
+   "id": "p4",
+   "term": "Arvrike",
+   "definition": "Kungens äldste son ärver kronan",
+   "category": "begrepp"
+  },
+  {
+   "id": "p5",
+   "term": "Nils Dacke",
+   "definition": "Ledde ett bondeuppror i Småland",
+   "category": "fakta"
+  },
+  {
+   "id": "p6",
+   "term": "Riksdag",
+   "definition": "Möte där kungen och representanter för stånden beslutade",
+   "category": "begrepp"
+  },
+  {
+   "id": "p7",
+   "term": "Dalkarlar",
+   "definition": "Bönder i Dalarna som hjälpte Gustav Vasa",
+   "category": "fakta"
+  },
+  {
+   "id": "p8",
+   "term": "Erik XIV",
+   "definition": "Gustav Vasas äldste son och nästa kung",
+   "category": "fakta"
+  }
+ ],
+ "timeline": [
+  {
+   "id": "e1",
+   "event": "Stockholms blodbad",
+   "question": "Vilket år inträffade Stockholms blodbad?",
+   "year": 1520,
+   "description": "Den danske kungen Kristian II lät avrätta många svenska stormän på Stortorget i Stockholm.",
+   "explanation": "Stockholms blodbad skedde i november 1520 och gjorde många svenskar arga på danskarna."
+  },
+  {
+   "id": "e2",
+   "event": "Gustav Vasa väljs till kung",
+   "question": "Vilket år valdes Gustav Vasa till Sveriges kung?",
+   "year": "1523",
+   "description": "Efter upproret mot danskarna valdes ledaren för upproret till kung på ett möte i Strängnäs.",
+   "explanation": "Gustav Vasa valdes till kung den 6 juni 1523. Därför är 6 juni Sveriges nationaldag."
+  },
+  {
+   "id": "e3",
+   "event": "Nya testamentet på svenska",
+   "question": "Vilket år trycktes Nya testamentet för första gången på svenska?",
+   "year": 1526,
+   "description": "En del av Bibeln översattes till svenska så att fler kunde förstå den.",
+   "explanation": "Nya testamentet kom ut på svenska 1526. Hela Bibeln kom några år senare."
+  },
+  {
+   "id": "e4",
+   "event": "Riksdagen i Västerås",
+   "question": "Vilket år hölls riksdagen i Västerås där kungen fick kyrkans egendom?",
+   "year": 1527,
+   "description": "På ett stort möte bestämdes att kungen fick ta över mycket av kyrkans mark och rikedomar.",
+   "explanation": "Västerås riksdag 1527 brukar ses som starten på reformationen i Sverige."
+  },
+  {
+   "id": "e5",
+   "event": "Gustav Vasas bibel",
+   "question": "Vilket år trycktes hela Bibeln på svenska?",
+   "year": 1541,
+   "description": "Hela Bibeln översattes till svenska och trycktes i en stor och dyr bok.",
+   "explanation": "Gustav Vasas bibel trycktes 1541 i Uppsala."
+  },
+  {
+   "id": "e6",
+   "event": "Dackefejden börjar",
+   "question": "Vilket år började Dackefejden?",
+   "year": 1542,
+   "description": "Bönder i Småland gjorde uppror mot kungen under ledning av Nils Dacke.",
+   "explanation": "Dackefejden började 1542 och slogs ner året efter."
+  },
+  {
+   "id": "e7",
+   "event": "Sverige blir arvrike",
+   "question": "Vilket år bestämdes det att Sverige skulle bli ett arvrike?",
+   "year": 1544,
+   "description": "På en riksdag bestämdes att kungens äldste son skulle ärva kronan.",
+   "explanation": "Arvföreningen i Västerås 1544 gjorde Sverige till ett arvrike."
+  },
+  {
+   "id": "e8",
+   "event": "Gustav Vasa dör",
+   "question": "Vilket år dog Gustav Vasa?",
+   "year": 1560,
+   "description": "Den gamle kungen dog i Stockholm och hans äldste son tog över.",
+   "explanation": "Gustav Vasa dog 1560 och begravdes i Uppsala domkyrka."
+  },
+  {
+   "id": "e9",
+   "event": "Sturemorden",
+   "question": "Vilket år lät Erik XIV döda flera män ur släkten Sture?",
+   "year": 1567,
+   "description": "Kung Erik blev misstänksam mot adeln och lät döda flera stormän på Uppsala slott.",
+   "explanation": "Sturemorden skedde 1567. Kort därefter blev Erik XIV avsatt."
+  },
+  {
+   "id": "e10",
+   "event": "Uppsala möte",
+   "question": "Vilket år hölls Uppsala möte?",
+   "year": 1593,
+   "description": "Präster och stormän bestämde att Sverige skulle förbli ett lutherskt land.",
+   "explanation": "Uppsala möte 1593 slog fast den lutherska tron i Sverige."
+  },
+  {
+   "id": "e11",
+   "event": "Gustav Vasa dör",
+   "question": "Vilket år dog Gustav Vasa?",
+   "year": 1560,
+   "description": "Den gamle kungen dog i Stockholm och hans äldste son tog över.",
+   "explanation": "Gustav Vasa dog 1560 och begravdes i Uppsala domkyrka."
+  }
+ ],
+ "timelineSpan": {
+  "from": 1500,
+  "to": 1620
+ }
+}

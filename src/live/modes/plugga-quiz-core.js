@@ -42,6 +42,22 @@
 //   eller formatets avslöjande). Alternativens ordning blandas EN gång här, så
 //   att projektorn och alla elever ser samma färg för samma svar.
 //
+// TIDSLINJEFRÅGOR (#600, epic #595) – områdets timeline[] (#596:
+//   { id, event, question, year, description, explanation } + timelineSpan?)
+//   blandas in bland flervalsfrågorna när formatet skickar med dem
+//   (buildQuizSnapshot { timeline, timelineSpan }; Snilleblixten gör det när
+//   lärarens ruta "Ta med tidslinjefrågor" är på, session.quiz.timeline).
+//   Utan timeline i opts är allt EXAKT som förut. Varje sådan fråga får
+//   kind "timeline" och svaras med tidslinjen (src/timeline/), aldrig med
+//   alternativ:
+//     questions[i]  { id: "tl-<id>", key, kind: "timeline", text (= frågan),
+//                     event, description?, span: { min, max } } – span =
+//                     HELA områdets spann (areaSpan), samma för varje fråga,
+//                     aldrig centrerat på svaret
+//     facit[i]      { id, year, explanation } – årtalet finns BARA här
+//   Rättning: exakt år = rätt (checkQuizAnswer), ingen tolerans.
+//   Statistiken: kategorin "tidslinje" (QUIZ_TIMELINE_CATEGORY).
+//
 // API
 //   QUIZ_MAX_OPTIONS            4
 //   QUIZ_DEFAULT_MIN_QUESTIONS  5 – varningströskel om formatet saknar minQuestions
@@ -71,9 +87,15 @@
 //                                 (q utan facit → correct null: formatet rättar)
 //   quizStatKeys(q)             → [kategori|"ovrig", "q:<id>"]
 //   shuffled(arr, rng?)         → blandad kopia
+//   isTimelineQuestion(q)       → q.kind === "timeline"
+//   prepareTimelineQuestion(raw, i, span) → { ok: true, q } | { ok: false, reason }
+//     q = { kind: "timeline", id: "tl-<id>", text, event, description?, span, year, explanation }
+//   selectTimelineQuestions(timeline, timelineSpan?) → { usable: q[], skipped, span }
+//   (summarizeQuizArea/buildQuizSnapshot tar { timeline, timelineSpan } – se ovan)
 // ============================================================================
 
 import { QUESTION_CATEGORY_KEYS, normalizeQuestionCategory } from "../../exercise-types.js";
+import { areaSpan, formatYear } from "../../timeline/timeline-logic.js";
 
 export const QUIZ_MAX_OPTIONS = 4;
 export const QUIZ_DEFAULT_MIN_QUESTIONS = 5;
@@ -84,6 +106,10 @@ export const QUIZ_TEXT_REF_WORDS = Object.freeze([
   "texten", "enligt", "berättelsen", "författaren", "i stycket", "ovan", "i dikten",
 ]);
 export const QUIZ_OTHER_CATEGORY = "ovrig";
+export const QUIZ_TIMELINE_CATEGORY = "tidslinje";
+const TL_PREFIX = "tl-";
+
+export const isTimelineQuestion = (q) => q?.kind === "timeline";
 
 /** Jämförelseform för alternativ och frågetext: NFC, blanksteg ihop, trim. */
 export function normalizeOptionText(s) {
@@ -186,18 +212,73 @@ export function minQuestionsFor(format) {
   return Number.isInteger(n) && n >= 1 ? n : QUIZ_DEFAULT_MIN_QUESTIONS;
 }
 
-/** Vad läraren ser innan Skapa: hur många frågor området har och kan spelas. */
-export function summarizeQuizArea(quiz, { minQuestions = QUIZ_DEFAULT_MIN_QUESTIONS, showPassage = false } = {}) {
+/**
+ * Områdets tidslinjefrågor (#596) som Live-frågor. Spannet räknas ur HELA
+ * områdets händelser (eller lärarens timelineSpan) – samma för varje fråga.
+ */
+export function selectTimelineQuestions(timeline, timelineSpan = null) {
+  const list = Array.isArray(timeline) ? timeline : [];
+  const span = areaSpan({ timeline: list, timelineSpan });
+  const usable = [];
+  const skipped = {};
+  const seenText = new Set();
+  const seenId = new Set();
+  list.forEach((raw, i) => {
+    const r = prepareTimelineQuestion(raw, i, span);
+    let reason = r.ok ? null : r.reason;
+    if (r.ok && seenText.has(r.q.text)) reason = "dubblett";
+    if (reason) {
+      skipped[reason] = (skipped[reason] || 0) + 1;
+      return;
+    }
+    seenText.add(r.q.text);
+    let id = r.q.id;
+    for (let n = 2; seenId.has(id); n++) id = `${r.q.id}-${n}`;
+    seenId.add(id);
+    r.q.id = id;
+    usable.push(r.q);
+  });
+  return { usable, skipped, span };
+}
+
+/** En tidslinjehändelse → Live-fråga (kind "timeline"), eller skälet till att den inte kan spelas. */
+export function prepareTimelineQuestion(raw, i = 0, span) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, reason: "invalid" };
+  const text = normalizeOptionText(raw.question);
+  const year = raw.year;
+  if (!text || !Number.isInteger(year) || !span) return { ok: false, reason: "invalid" };
+  if (year < span.min || year > span.max) return { ok: false, reason: "invalid" };
+  const q = {
+    kind: "timeline",
+    id: `${TL_PREFIX}${normalizeOptionText(raw.id) || `e${i + 1}`}`,
+    text,
+    event: normalizeOptionText(raw.event),
+    span: { min: span.min, max: span.max },
+    year,
+    explanation: typeof raw.explanation === "string" ? raw.explanation.trim() : "",
+  };
+  const description = normalizeOptionText(raw.description);
+  if (description) q.description = description;
+  return { ok: true, q };
+}
+
+/** Vad läraren ser innan Skapa: hur många frågor området har och kan spelas.
+ *  timeline (områdets händelser) räknas med när formatet tar med dem (#600). */
+export function summarizeQuizArea(quiz, { minQuestions = QUIZ_DEFAULT_MIN_QUESTIONS, showPassage = false, timeline = null, timelineSpan = null } = {}) {
   const { usable, skipped } = selectQuizQuestions(quiz, { showPassage });
-  const total = Array.isArray(quiz) ? quiz.length : 0;
+  const tl = timeline ? selectTimelineQuestions(timeline, timelineSpan) : { usable: [], skipped: {} };
+  for (const [k, n] of Object.entries(tl.skipped)) skipped[k] = (skipped[k] || 0) + n;
+  const total = (Array.isArray(quiz) ? quiz.length : 0) + (Array.isArray(timeline) ? timeline.length : 0);
+  const n = usable.length + tl.usable.length;
   return {
     total,
-    usable: usable.length,
+    usable: n,
     skipped,
     minQuestions,
-    tooFew: usable.length < minQuestions,
-    empty: usable.length === 0,
+    tooFew: n < minQuestions,
+    empty: n === 0,
     withPassage: countPassageQuestions(quiz),
+    timeline: tl.usable.length,
   };
 }
 
@@ -227,7 +308,8 @@ export function quizAreaMessage(s, formatName = "") {
       text: `⚠️ Bara ${fr(s.usable)} kan användas – för få. ${vem} minst ${s.minQuestions}.${skipText}`,
     };
   }
-  return { level: "ok", text: `✅ ${fr(s.usable)} kan användas (av ${s.total} i området).${skipText}` };
+  const tl = s.timeline ? `, varav ${s.timeline} ${s.timeline === 1 ? "tidslinjefråga" : "tidslinjefrågor"}` : "";
+  return { level: "ok", text: `✅ ${fr(s.usable)} kan användas (av ${s.total} i området${tl}).${skipText}` };
 }
 
 /** Fisher–Yates-kopia (rng → [0,1)). */
@@ -240,21 +322,44 @@ export function shuffled(arr, rng = Math.random) {
   return a;
 }
 
+/** b sprids jämnt in i a (ordningen behålls i båda) – utan slumpning. */
+function interleave(a, b) {
+  const total = a.length + b.length;
+  if (!b.length || !a.length) return [...a, ...b];
+  const at = new Set(b.map((_, k) => Math.floor(((k + 0.5) * total) / b.length)));
+  const out = [];
+  let ai = 0;
+  let bi = 0;
+  for (let i = 0; i < total; i++) out.push(at.has(i) ? b[bi++] : a[ai++]);
+  return out;
+}
+
 /**
  * Ögonblicksbild för en session: valda frågor, uppdelade i elevsynligt + facit.
+ * timeline/timelineSpan (valfria, #600): områdets tidslinjefrågor blandas in.
  * @param {object[]} quiz områdets quiz-lista
- * @param {{ count?: number|"alla", shuffle?: boolean, shuffleOptions?: boolean, showPassage?: boolean, rng?: () => number }} [opts]
+ * @param {{ count?: number|"alla", shuffle?: boolean, shuffleOptions?: boolean, showPassage?: boolean,
+ *   timeline?: object[], timelineSpan?: object, rng?: () => number }} [opts]
  * @returns {{ questions: object[], facit: object[] }}
  */
 export function buildQuizSnapshot(quiz, opts = {}) {
   const rng = opts.rng || Math.random;
   let picked = selectQuizQuestions(quiz, { showPassage: opts.showPassage === true }).usable;
-  if (opts.shuffle !== false) picked = shuffled(picked, rng);
+  const tl = opts.timeline ? selectTimelineQuestions(opts.timeline, opts.timelineSpan).usable : [];
+  if (opts.shuffle !== false) picked = shuffled([...picked, ...tl], rng);
+  else if (tl.length) picked = interleave(picked, tl);
   const n = Number(opts.count);
   if (Number.isInteger(n) && n > 0) picked = picked.slice(0, n);
   const questions = [];
   const facit = [];
   picked.forEach((q, i) => {
+    if (isTimelineQuestion(q)) {
+      const pub = { id: q.id, key: `${i}:${q.id}`, kind: "timeline", text: q.text, event: q.event, span: { ...q.span } };
+      if (q.description) pub.description = q.description;
+      questions.push(pub);
+      facit.push({ id: q.id, year: q.year, explanation: q.explanation });
+      return;
+    }
     let options = q.options;
     let answerIndex = q.answerIndex;
     if (opts.shuffleOptions !== false) {
@@ -274,14 +379,17 @@ export function buildQuizSnapshot(quiz, opts = {}) {
 /** Elevsynlig fråga + dess facit → hela frågan. */
 export function joinFacit(pub, facit) {
   if (!facit || facit.id !== pub.id) throw new Error(`plugga_quiz: facit saknas för fråga ${pub?.id}`);
+  if (isTimelineQuestion(pub)) return { ...pub, year: facit.year, explanation: facit.explanation || "" };
   return { ...pub, answerIndex: facit.answerIndex, explanation: facit.explanation || "" };
 }
 
 /**
  * Rätta ett valt alternativ (raw = alternativets text). Frågan måste ha facit
  * (answerIndex) för att kunna rättas – utan facit är correct null.
+ * Tidslinjefråga (#600): raw = valt år (heltal inom spannet); exakt år = rätt.
  */
 export function checkQuizAnswer(q, raw) {
+  if (isTimelineQuestion(q)) return checkTimelineAnswer(q, raw);
   const given = normalizeOptionText(raw);
   if (!given || !q?.options?.some((o) => normalizeOptionText(o) === given)) {
     return { valid: false, correct: false, given: null, correctAnswer: null };
@@ -291,8 +399,19 @@ export function checkQuizAnswer(q, raw) {
   return { valid: true, correct: given === correctAnswer, given, correctAnswer };
 }
 
+function checkTimelineAnswer(q, raw) {
+  const y = typeof raw === "string" && /^\s*-?\d+\s*$/.test(raw) ? Number(raw) : raw;
+  const span = q?.span;
+  if (!Number.isInteger(y) || !span || y < span.min || y > span.max) {
+    return { valid: false, correct: false, given: null, correctAnswer: null };
+  }
+  if (!Number.isInteger(q.year)) return { valid: true, correct: null, given: y, correctAnswer: null };
+  return { valid: true, correct: y === q.year, given: y, correctAnswer: formatYear(q.year) };
+}
+
 /** Statistiknycklar: kategorin (eller "ovrig") + frågan själv ("q:<id>"). */
 export function quizStatKeys(q) {
+  if (isTimelineQuestion(q)) return [QUIZ_TIMELINE_CATEGORY, `q:${q?.id}`];
   const cat = QUESTION_CATEGORY_KEYS.includes(q?.category) ? q.category : QUIZ_OTHER_CATEGORY;
   return [cat, `q:${q?.id}`];
 }

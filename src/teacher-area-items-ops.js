@@ -18,14 +18,19 @@
 // normaliserade värde (som skulle härleda exerciseTypes m.m.). validateArea är
 // grinden: går den inte igenom sparas inget. quiz[].passage (läsförståelse #151)
 // bevaras på alla poster som inte ändras, och på den ändrade om formuläret har den.
+//
+// Tidsjakten (#598): "timeline" är en fjärde lista (historiska händelser med
+// heltalsår, src/validate-timeline.js) och op-typen "span" sätter/tar bort
+// områdets timelineSpan – samma färsk-kopia-kontrakt och samma validateArea-grind.
 // ============================================================================
 
 import { validateArea } from "./validate.js";
 import { areaExerciseTypes, hasGeneratorContent } from "./exercise-types.js";
+import { parseYear } from "./validate-timeline.js";
 
 /** Innehållslistorna som underraderna hanterar. */
-export const ITEM_KINDS = ["quiz", "pairs", "texts"];
-const ID_PREFIX = { quiz: "q", pairs: "p", texts: "t" };
+export const ITEM_KINDS = ["quiz", "pairs", "texts", "timeline"];
+const ID_PREFIX = { quiz: "q", pairs: "p", texts: "t", timeline: "e" };
 
 const str = (v) => (v == null ? "" : String(v));
 const trimmed = (v) => str(v).trim();
@@ -62,6 +67,7 @@ export function sectionsFor(area) {
   const out = [];
   if (types.includes("quiz") || n.quiz) out.push("quiz");
   if (types.includes("pairs") || types.includes("bildpar") || n.pairs) out.push("pairs");
+  if (types.includes("tidsjakt") || n.timeline) out.push("timeline");
   if (n.texts) out.push("texts");
   return out;
 }
@@ -140,11 +146,22 @@ export function normalizeItemFields(kind, raw = {}) {
     setOptional(out, "group", raw.group);
     return out;
   }
+  if (kind === "timeline") {
+    // Ett ogiltigt årtal skickas vidare som text så validateArea säger ifrån.
+    const year = parseYear(raw.year);
+    return {
+      event: trimmed(raw.event),
+      question: trimmed(raw.question),
+      year: year ?? trimmed(raw.year),
+      description: trimmed(raw.description),
+      explanation: trimmed(raw.explanation),
+    };
+  }
   return { title: trimmed(raw.title), body: trimmed(raw.body) };
 }
 
 /** Valfria fält som formuläret äger – tomt i formuläret = ta bort från posten. */
-const OPTIONAL_FIELDS = { quiz: ["passage"], pairs: ["termImage", "defImage", "group"], texts: [] };
+const OPTIONAL_FIELDS = { quiz: ["passage"], pairs: ["termImage", "defImage", "group"], texts: [], timeline: [] };
 
 /** Lägg till en post sist i listan (med unikt id). Returnerar ett NYTT område. */
 export function addItem(area, kind, fields) {
@@ -176,6 +193,25 @@ export function removeItem(area, kind, ref) {
   return { ...area, [kind]: list };
 }
 
+/**
+ * Sätt områdets tidsspann (Tidsjakten, #598). span = { from, to } eller null/
+ * tomt → fältet tas bort (komponenten härleder då ett spann ur händelserna).
+ * Returnerar ett NYTT område; validateArea (i applyItemOp) kontrollerar att
+ * spannet är giltigt och rymmer alla händelser.
+ */
+export function setTimelineSpan(area, span) {
+  const next = { ...area };
+  const from = span?.from;
+  const to = span?.to;
+  const blank = (v) => v == null || trimmed(v) === "";
+  if (!span || (blank(from) && blank(to))) {
+    delete next.timelineSpan;
+    return next;
+  }
+  next.timelineSpan = { from: parseYear(from) ?? trimmed(from), to: parseYear(to) ?? trimmed(to) };
+  return next;
+}
+
 export class ItemGoneError extends Error {
   constructor() {
     super("Posten har ändrats eller tagits bort sedan listan laddades. Ladda om och försök igen.");
@@ -185,7 +221,7 @@ export class ItemGoneError extends Error {
 
 /**
  * Applicera EN ändring och kör befintliga validateArea på resultatet.
- * op = { type: "add"|"update"|"remove", kind, ref?, fields? }
+ * op = { type: "add"|"update"|"remove", kind, ref?, fields? } | { type: "span", span }
  * @returns {{ ok:boolean, errors:string[], area:object|null }} area = det råa
  *   dokumentet att spara (färsk kopia + ändringen), aldrig validateArea:s value.
  */
@@ -195,6 +231,7 @@ export function applyItemOp(area, op) {
     if (op.type === "add") next = addItem(area, op.kind, op.fields);
     else if (op.type === "update") next = updateItem(area, op.kind, op.ref, op.fields);
     else if (op.type === "remove") next = removeItem(area, op.kind, op.ref);
+    else if (op.type === "span") next = setTimelineSpan(area, op.span);
     else throw new Error(`Okänd ändring: ${op.type}`);
   } catch (err) {
     return { ok: false, errors: [err.message], area: null };
@@ -207,6 +244,7 @@ const KIND_WORDS = {
   quiz: { none: "inga quizfrågor", mode: "quiz-läget" },
   pairs: { none: "inga par", mode: "Para ihop och Memory" },
   texts: { none: "inga lästexter", mode: "lästexterna" },
+  timeline: { none: "inga tidslinjehändelser", mode: "Tidsjakten" },
 };
 
 /** Varning när SISTA posten av en typ tas bort (annars null). */
@@ -219,11 +257,11 @@ export function lastItemWarning(area, kind) {
 // --- Flikar i underraden (#455) ---------------------------------------------
 
 /** Flikarnas ordning. */
-export const ITEM_TABS = ["quiz", "pairs", "texts"];
+export const ITEM_TABS = ["quiz", "pairs", "timeline", "texts"];
 
 /**
  * Vilka flikar underraden visar, i fast ordning, med antal:
- *   quiz/pairs/texts – samma regel som sectionsFor (typ ELLER innehåll).
+ *   quiz/pairs/timeline/texts – samma regel som sectionsFor (typ ELLER innehåll).
  * `extra` tvingar fram flikar ("+ Lästext" → "texts", senast vald flik efter
  * omritning) även när regeln annars döljer dem.
  * @returns {{id:string, count:number}[]}

@@ -28,6 +28,10 @@ export const GAMEMODES = [
     sub: "Matcha begrepp med förklaring", needs: "pairs" },
   { id: "quiz", name: "Quiz", emoji: "❓", color: "orange",
     sub: "Flervalsfrågor med direkt svar", needs: "quiz" },
+  // Tidsjakten (#599): dra en markör till rätt årtal. Tänds av area.timeline
+  // (samma händelser som tidslinjefrågorna i Quiz). Felpoäng = års avvikelse.
+  { id: "tidsjakt", name: "Tidsjakten", emoji: "⏳", color: "bla",
+    sub: "Dra till rätt årtal – så få felpoäng som möjligt", needs: "timeline" },
   { id: "kunskapsjakt", name: "Kunskapsjakt", emoji: "⚡", color: "rosa",
     sub: "Snabba frågor på tid – bygg combo!", needs: "quiz" },
   { id: "sanningsjakt", name: "Fånga sanningar", emoji: "🙌", color: "orange",
@@ -116,7 +120,7 @@ export function isModeHidden(area, modeId) {
  * Ett läge kan bara spelas (och bockas i/ur) om områdets flagga här är sann.
  * Delas av elevvyn och lärar-UI:t så gaten är exakt densamma på båda hållen.
  * @param {object} area
- * @returns {{quiz:boolean, pairs:boolean, sanningsjakt:boolean}}
+ * @returns {{quiz:boolean, pairs:boolean, sanningsjakt:boolean, generator:boolean, timeline:boolean}}
  */
 export function areaContentFlags(area) {
   return {
@@ -127,6 +131,8 @@ export function areaContentFlags(area) {
     // Räkna-läget (issue #279): tänds av ett giltigt generator-område (topic +
     // varianter). Egen väg – helt frikopplad från quiz/par ovan.
     generator: hasGeneratorContent(area),
+    // Tidsjakten (#599): minst en händelse i area.timeline.
+    timeline: Array.isArray(area?.timeline) && area.timeline.length > 0,
   };
 }
 

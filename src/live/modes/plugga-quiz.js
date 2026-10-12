@@ -34,11 +34,19 @@
 //   statKeys(q) → [kategori|"ovrig", "q:<id>"] – per kategori (statCategories)
 //                och per fråga (etikett = frågans text i snapshoten).
 //
+// TIDSLINJEFRÅGOR (#600): har området timeline[] och formatet säger
+// timelineQuestions: true visar väljaren rutan "Ta med tidslinjefrågor"
+// (på som standard) → session.quiz.timeline = true (fältet finns BARA då –
+// sessioner utan tidslinjefrågor är oförändrade). Formatet blandar in dem i
+// ögonblicksbilden (buildQuizSnapshot { timeline }); varje sådan fråga har
+// kind "timeline" och svaras med tidslinjen: choices(q) → null,
+// answerRecord → { questionId, year }, statKeys → ["tidslinje", "q:<id>"].
+//
 // API: export default PLUGGA_QUIZ (GameMode-objekt, oregistrerat).
 // ============================================================================
 
 import {
-  QUIZ_PASSAGE_POLICY, QUIZ_OTHER_CATEGORY, joinFacit, checkQuizAnswer, quizStatKeys, shuffled,
+  QUIZ_PASSAGE_POLICY, QUIZ_OTHER_CATEGORY, QUIZ_TIMELINE_CATEGORY, isTimelineQuestion, joinFacit, checkQuizAnswer, quizStatKeys, shuffled,
 } from "./plugga-quiz-core.js";
 import { QUESTION_CATEGORIES } from "../../question-categories.js";
 
@@ -63,7 +71,7 @@ const PLUGGA_QUIZ = {
     },
   ],
 
-  /** input.quizArea = väljarens value(): { subjectId, areaId, subjectName, areaName, usable, showPassage } */
+  /** input.quizArea = väljarens value(): { subjectId, areaId, subjectName, areaName, usable, showPassage, timeline? } */
   validateSetup(input) {
     const a = input?.[QUIZ_AREA_FIELD];
     if (!a?.subjectId || !a?.areaId) return ["Välj ämne och arbetsområde för quizet."];
@@ -73,16 +81,16 @@ const PLUGGA_QUIZ = {
 
   buildSessionFields(input) {
     const a = input[QUIZ_AREA_FIELD];
-    return {
-      quiz: {
-        subjectId: String(a.subjectId),
-        areaId: String(a.areaId),
-        subjectName: String(a.subjectName || a.subjectId),
-        areaName: String(a.areaName || a.areaId),
-        passagePolicy: QUIZ_PASSAGE_POLICY,
-        showPassage: a.showPassage === true,
-      },
+    const quiz = {
+      subjectId: String(a.subjectId),
+      areaId: String(a.areaId),
+      subjectName: String(a.subjectName || a.subjectId),
+      areaName: String(a.areaName || a.areaId),
+      passagePolicy: QUIZ_PASSAGE_POLICY,
+      showPassage: a.showPassage === true,
     };
+    if (a.timeline === true) quiz.timeline = true;
+    return { quiz };
   },
 
   createSource(opts = {}) {
@@ -112,10 +120,12 @@ const PLUGGA_QUIZ = {
   },
 
   choices(q) {
+    if (isTimelineQuestion(q)) return null;
     return { options: q.options.slice(), answerIndex: Number.isInteger(q.answerIndex) ? q.answerIndex : null };
   },
 
   answerRecord(q, r) {
+    if (isTimelineQuestion(q)) return { questionId: q.id, year: r.given };
     return { questionId: q.id, answer: r.given };
   },
 
@@ -126,6 +136,7 @@ const PLUGGA_QUIZ = {
   statCategories: [
     ...QUESTION_CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
     { key: QUIZ_OTHER_CATEGORY, label: "Utan kategori" },
+    { key: QUIZ_TIMELINE_CATEGORY, label: "Tidslinjefrågor" },
   ],
 };
 

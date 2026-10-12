@@ -64,13 +64,13 @@ function assertOthersUntouched(before, after, changedKind) {
 
 test("itemCounts och sektioner följer typer och innehåll", () => {
   const a = area();
-  assert.deepEqual(itemCounts(a), { quiz: 3, pairs: 2, texts: 1 });
+  assert.deepEqual(itemCounts(a), { quiz: 3, pairs: 2, texts: 1, timeline: 0 });
   assert.deepEqual(sectionsFor(a), ["quiz", "pairs", "texts"]);
   assert.deepEqual(sectionsFor({ exerciseTypes: ["quiz"], quiz: [q(1)] }), ["quiz"]);
   // Typen finns men inget innehåll ännu → sektionen visas (så man kan lägga till).
   assert.deepEqual(sectionsFor({ exerciseTypes: ["pairs"] }), ["pairs"]);
   assert.deepEqual(sectionsFor({ generator: { topic: "addition", variants: ["enkel"] } }), []);
-  assert.deepEqual(itemCounts({}), { quiz: 0, pairs: 0, texts: 0 });
+  assert.deepEqual(itemCounts({}), { quiz: 0, pairs: 0, texts: 0, timeline: 0 });
 });
 
 // --- Flikar (#455) ----------------------------------------------------------

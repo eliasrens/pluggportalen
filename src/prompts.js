@@ -21,6 +21,7 @@ import { normalizeExerciseTypes, areaExerciseTypes } from "./exercise-types.js";
 import { gradeNr, gradeAge, DEFAULT_GRADE_NR } from "./grades.js";
 import {
   SCHEMA,
+  SCHEMA_TIMELINE,
   EXAMPLE,
   SKALA_QUIZ,
   SKALA_PAR_BAS,
@@ -30,7 +31,9 @@ import {
   REGLER,
   materialBlock,
   areaExample,
+  skalaTimeline,
 } from "./prompt-parts.js";
+import { areaTimelineSpan, formatYear } from "./validate-timeline.js";
 import { EXISTING_MAX_CHARS, existingContentBlock, generatorContext } from "./prompt-existing.js";
 
 // Exempel-JSON som innehållssidan visar som mall ("Visa exempel-JSON").
@@ -49,17 +52,26 @@ export const EXAMPLE_JSON = EXAMPLE;
  * styrning läraren kan sätta, inte tvingande (issue #145). Saknas den används
  * dagens standard (årskurs 4), så äldre områden får samma prompt som förut.
  *
- * @param {string[]} types – valda typ-id ("quiz", "pairs", "bildpar").
+ * Tidsjakten (issue #596): är "tidsjakt" vald ber prompten även om "timeline"
+ * (historiska händelser med heltalsår) – lärarens antal (opts.timelineCount,
+ * 5/10/15/20) eller en skala efter materialet – med kvalitetskraven och ett
+ * exempel. Är den inte vald nämns tidslinjen inte alls (prompten som förut).
+ *
+ * @param {string[]} types – valda typ-id ("quiz", "pairs", "bildpar", "tidsjakt").
  * @param {string} [onskemal] – valfritt fritext-önskemål (vävs in i materialblocket).
  * @param {string|number|null} [grade] – årskurs ("ak1".."ak9" eller null).
+ * @param {{timelineCount?:number}} [opts] – lärarens antal tidslinjehändelser.
  * @returns {string} färdig prompt att kopiera.
  */
-export function buildAreaPrompt(types, onskemal, grade) {
+export function buildAreaPrompt(types, onskemal, grade, opts = {}) {
   const set = new Set(normalizeExerciseTypes(types));
+  // Bara Tidsjakten vald räknas inte som "inget val" – då blir det bara tidslinje
+  // (+ faktatexter), inte quiz + par.
   const inget = set.size === 0;
   const wantQuiz = inget || set.has("quiz");
   const wantPairs = inget || set.has("pairs") || set.has("bildpar");
   const wantImages = set.has("bildpar");
+  const wantTimeline = set.has("tidsjakt");
 
   const valda = [
     wantQuiz && "quiz (Quiz, Läsförståelse och Kunskapsjakt)",
@@ -67,6 +79,7 @@ export function buildAreaPrompt(types, onskemal, grade) {
       (wantImages
         ? "fakta-par inklusive bildpar (Para ihop och Memory)"
         : "fakta-par som text (Para ihop och Memory)"),
+    wantTimeline && "tidslinjefrågor (Tidsjakten – eleven drar en markör till rätt årtal)",
   ]
     .filter(Boolean)
     .join(", ");
@@ -83,6 +96,9 @@ export function buildAreaPrompt(types, onskemal, grade) {
   } else {
     krav.push(`- Skapa INGA fakta-par – låt "pairs" vara en tom lista [].`);
   }
+  if (wantTimeline) {
+    krav.push(`- Tidslinjehändelser i "timeline" (heltalsår, inga svarsalternativ):`, skalaTimeline(opts?.timelineCount));
+  }
 
   // Årskurs: sätt av läraren → styr språk/svårighetsgrad. Saknas den används
   // dagens standard (åk 4) så prompten ser likadan ut som förut.
@@ -97,7 +113,7 @@ Läraren har valt vilka övningstyper området ska ha: ${valda}. Skapa BARA inne
 
 ${gradniva}
 
-${SCHEMA}
+${SCHEMA}${wantTimeline ? `\n${SCHEMA_TIMELINE}` : ""}
 
 Innehållskrav (mängden ska VÄXA med hur mycket text du fått – ju mer text, desto fler frågor och par):
 ${krav.join("\n")}
@@ -105,7 +121,7 @@ ${krav.join("\n")}
 ${REGLER}
 
 Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
-${areaExample({ wantQuiz, wantPairs, wantImages })}
+${areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline })}
 
 ${materialBlock(onskemal)}`;
 }
@@ -126,30 +142,37 @@ export const MORE_PROMPT_MAX_CHARS = EXISTING_MAX_CHARS;
  *
  * @param {object} area – områdesdokumentet ({ name, grade, exerciseTypes, quiz, pairs, … }).
  * @param {string} [onskemal] – lärarens valfria önskemål, t.ex. "fler svåra frågor om handel".
+ * Tidsjakten (#596): har området tidslinjefrågor skickas även de med, och nya
+ * händelser ska ligga inom områdets tidsspann (timelineSpan) om ett sådant finns.
+ *
  * @param {number} [maxChars] – tak för befintligt-blocket (för tester).
+ * @param {{timelineCount?:number}} [opts] – lärarens antal nya tidslinjehändelser.
  * @returns {string}
  */
-export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS) {
+export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS, opts = {}) {
   const name = String(area?.name || "arbetsområdet").trim();
   const types = areaExerciseTypes(area).filter((t) => t !== "generator");
   const extra = String(onskemal || "").trim();
   const bas = buildAreaPrompt(
     types,
     `Mer innehåll till det befintliga arbetsområdet "${name}"${extra ? `. Önskemål: ${extra}` : ""}`,
-    area?.grade ?? null
+    area?.grade ?? null,
+    opts
   );
+  const wantTimeline = types.includes("tidsjakt");
 
   const befintligt = existingContentBlock(
     area,
-    ["texts", "quiz", "pairs"],
+    wantTimeline ? ["texts", "quiz", "pairs", "timeline"] : ["texts", "quiz", "pairs"],
     `allt detta finns redan i "${name}" (samma JSON-format som ovan; "answerIndex" pekar ut rätt svar):`,
     maxChars
   );
   const harPassage = (area?.quiz || []).some((q) => q && String(q.passage || "").trim());
   const generator = generatorContext(area);
 
+  const listor = wantTimeline ? `"texts", "quiz", "pairs" och/eller "timeline"` : `"texts", "quiz" och/eller "pairs"`;
   const krav = [
-    `- Svara med samma JSON-format som ovan, men ta BARA med det NYA innehållet (nya "texts", "quiz" och/eller "pairs"). Behåll "name": "${name}".`,
+    `- Svara med samma JSON-format som ovan, men ta BARA med det NYA innehållet (nya ${listor}). Behåll "name": "${name}".`,
     befintligt && "- Läs igenom det befintliga innehållet nedan och bygg vidare i samma stil, ton och svårighetsnivå.",
     "- Upprepa INTE det som redan finns i området, och skriv inga nära varianter av det (samma fråga med andra ord, samma begrepp, samma faktapåstående).",
     "- Hitta inte på nya övningstyper – skapa bara innehåll för de typer som anges ovan.",
@@ -160,6 +183,12 @@ export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS) {
     );
   }
   if (generator) krav.push(`- ${generator}`);
+  const span = wantTimeline ? areaTimelineSpan(area) : null;
+  if (span) {
+    krav.push(
+      `- Tidslinjen går från ${formatYear(span.from)} till ${formatYear(span.to)}: alla nya händelser MÅSTE ha ett "year" inom det spannet. Skicka inte med "timelineSpan".`
+    );
+  }
 
   return `${bas}
 

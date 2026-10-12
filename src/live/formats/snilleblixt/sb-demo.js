@@ -13,7 +13,9 @@
 //   demoOutfit(i)                   elev i:s kläder (unika kombinationer)
 //   demoSnapshot(kind, fragor?)     10 multiplikationsfrågor (fråga 1 = 7 × 8);
 //                                   fragor "quiz"/"lastext" → långa quizfrågor
-//                                   (flerval, med/utan lästext, #621)
+//                                   (flerval, med/utan lästext, #621);
+//                                   "tidslinje" → varannan fråga en tidslinje-
+//                                   fråga (Vasatiden, kind "timeline", #600)
 //   createSbDemo({ kind, fragor?, sid, screen?, now?, auto?, onLog? }) → demo
 //     demo.deps                     mountProjector-deps (subscribe, now, start,
 //                                   finish, remove, loadProjection, snilleblixt)
@@ -35,7 +37,8 @@
 import { phaseAt, formatClock } from "../../live-core.js";
 import { planStep } from "./snilleblixt-flode.js";
 import { computeStandings, buildResult } from "./snilleblixt-poang.js";
-import { DEMO_QUIZ } from "../../demo-quiz.js";
+import { DEMO_QUIZ, DEMO_TIMELINE } from "../../demo-quiz.js";
+import { selectTimelineQuestions } from "../../modes/plugga-quiz-core.js";
 
 export const DEMO_NAMES = ["Alma", "Omar", "Ines", "Leo", "Clara", "Sam", "Ella", "Noah", "Maja", "Elias", "Wilma", "Adam", "Saga",
   "Hugo", "Freja", "Liam", "Alva", "Ali", "Signe", "Vera", "Otto", "Nora", "Ebbe", "Selma", "Malte", "Tove", "Isak", "Lova", "Arvid", "Juni"];
@@ -66,6 +69,22 @@ const PAR = [[7, 8], [6, 7], [9, 4], [8, 8], [3, 9], [7, 7], [6, 9], [4, 8], [9,
 /** Ögonblicksbilden (som sbPrivate/snapshot) – statKeys som multiplikationsläget. */
 export function demoSnapshot(kind, fragor = "mult") {
   const snapshot = { questions: [], facit: [] };
+  if (fragor === "tidslinje") {
+    const tl = selectTimelineQuestions(DEMO_TIMELINE).usable;
+    PAR.forEach((_, i) => {
+      if (i % 2 === 0) {
+        const t = tl[(i / 2) % tl.length];
+        snapshot.questions.push({ key: `${i}:${t.id}`, id: t.id, kind: "timeline", text: t.text, event: t.event,
+          description: t.description, span: { ...t.span }, statKeys: ["tidslinje", `q:${t.id}`] });
+        snapshot.facit.push({ year: t.year, correctAnswer: String(t.year), explanation: t.explanation });
+        return;
+      }
+      const q = DEMO_QUIZ[i % DEMO_QUIZ.length];
+      snapshot.questions.push({ key: `${i}:quiz`, text: q.text, statKeys: [], options: [...q.options] });
+      snapshot.facit.push({ correctAnswer: q.options[q.answerIndex], answerIndex: q.answerIndex });
+    });
+    return snapshot;
+  }
   if (fragor === "quiz" || fragor === "lastext") {
     PAR.forEach((_, i) => {
       const q = DEMO_QUIZ[i % DEMO_QUIZ.length];
@@ -92,8 +111,16 @@ export function demoSnapshot(kind, fragor = "mult") {
   return snapshot;
 }
 
+/** Ett felaktigt men rimligt år nära rätt (deterministiskt per elev), inom spannet. */
+function guessNear(year, span, seed) {
+  let h = 0;
+  for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) % 9973;
+  const off = [1, -2, 3, -4, 5, -7, 9, -12, 15, 2, -3, 20][h % 12];
+  return Math.min(span.max, Math.max(span.min, year + off));
+}
+
 export function createSbDemo({ kind = "choice", fragor = "mult", sid = "demo-snilleblixt", screen = false, now: clock = Date.now, auto = true, onLog = () => {}, rng = Math.random } = {}) {
-  const QUIZ = fragor === "quiz" || fragor === "lastext";
+  const QUIZ = fragor === "quiz" || fragor === "lastext" || fragor === "tidslinje";
   const KIND = kind === "free" && !QUIZ ? "free" : "choice";
   const snapshot = demoSnapshot(KIND, fragor);
   const members = demoMembers();
@@ -148,7 +175,11 @@ export function createSbDemo({ kind = "choice", fragor = "mult", sid = "demo-sni
     if (session.q?.phase !== "open" || answers.some((a) => a.q === session.q.index && a.uid === uid)) return;
     const f = snapshot.facit[session.q.index];
     const a = { uid, classId: "4b", q: session.q.index, answerKind: KIND, at: at ?? now() };
-    if (KIND === "choice") a.choiceIndex = choice ?? (correct ? f.answerIndex : (f.answerIndex + 1 + (uid.length % 3)) % 4);
+    if (session.q.question?.kind === "timeline") {
+      // Gissningar kring rätt år (spridningen på projektorn).
+      a.answerKind = "timeline";
+      a.year = correct ? f.year : guessNear(f.year, session.q.question.span, uid);
+    } else if (KIND === "choice") a.choiceIndex = choice ?? (correct ? f.answerIndex : (f.answerIndex + 1 + (uid.length % 3)) % 4);
     else a.answer = text ?? (correct ? f.correctAnswer : String(Number(f.correctAnswer) + (uid.charCodeAt(1) % 2 ? -2 : 8)));
     answers.push(a);
     emit(true);
@@ -196,6 +227,11 @@ export function createSbDemo({ kind = "choice", fragor = "mult", sid = "demo-sni
         const at = t0 + 900 + ((j * 397 + i * 131) % (session.questionSeconds * 700));
         const good = (j * 5 + i * 3) % 7 < 4 + (j < 6 ? 2 : 0);
         const f = snapshot.facit[i];
+        if (snapshot.questions[i].kind === "timeline") {
+          answers.push({ uid: p.uid, classId: "4b", q: i, answerKind: "timeline", at,
+            year: good ? f.year : guessNear(f.year, snapshot.questions[i].span, p.uid + i) });
+          return;
+        }
         answers.push({ uid: p.uid, classId: "4b", q: i, answerKind: KIND, at,
           ...(KIND === "choice" ? { choiceIndex: good ? f.answerIndex : (f.answerIndex + 1) % 4 } : { answer: good ? f.correctAnswer : "54" }) });
       });

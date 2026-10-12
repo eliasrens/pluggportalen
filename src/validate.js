@@ -20,6 +20,7 @@ import {
   QUESTION_CATEGORY_KEYS,
 } from "./exercise-types.js";
 import { validateGenerator } from "./validate-generator.js";
+import { validateTimeline } from "./validate-timeline.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { normalizeGrade } from "./grades.js";
 import { normalizeHiddenModes } from "./gamemode-visibility.js";
@@ -271,15 +272,20 @@ export function validateArea(obj) {
   // src/validate-generator.js (tydliga fel mot generator-katalogen).
   const generator = validateGenerator(obj.generator, errors);
 
+  // --- timeline[] + timelineSpan (Tidsjakten, issue #596) -------------------
+  // Historiska händelser med heltalsår; regeln bor i src/validate-timeline.js.
+  const { timeline, timelineSpan } = validateTimeline(obj, errors, warnings);
+
   // --- Minst något innehåll -------------------------------------------------
   if (
     texts.length === 0 &&
     quiz.length === 0 &&
     pairs.length === 0 &&
+    timeline.length === 0 &&
     !generator
   ) {
     errors.push(
-      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par eller en räknegenerator."
+      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par, en tidslinjehändelse eller en räknegenerator."
     );
   }
 
@@ -293,7 +299,7 @@ export function validateArea(obj) {
   // ur innehållet, så fältet alltid finns på det sparade dokumentet.
   let exerciseTypes = normalizeExerciseTypes(obj.exerciseTypes);
   if (exerciseTypes.length === 0) {
-    exerciseTypes = deriveExerciseTypes({ quiz, pairs, generator });
+    exerciseTypes = deriveExerciseTypes({ quiz, pairs, generator, timeline });
   }
 
   // --- Läsförståelse-förkrav (issue #155) -----------------------------------
@@ -320,6 +326,10 @@ export function validateArea(obj) {
   // Generator-fältet (issue #279) tas bara med när det är giltigt satt, så vanliga
   // (quiz/par-)områden inte får ett tomt generator-fält.
   if (generator) value.generator = generator;
+  // Tidslinjen (issue #596) likaså – bara när det finns händelser/ett spann, så
+  // gamla områden sparas exakt som förut.
+  if (timeline.length) value.timeline = timeline;
+  if (timelineSpan) value.timelineSpan = timelineSpan;
   return { ok: true, errors: [], warnings, value };
 }
 
