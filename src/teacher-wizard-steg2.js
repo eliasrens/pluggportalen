@@ -7,10 +7,13 @@
 // generator + quiz i samma område ska gå). Valet = state.types; vid Spara blir det
 // exerciseTypes exakt som förr (teacher-wizard-state.js buildSaveValue).
 // Kortet "Quiz" ger fortfarande typ-id "quiz" – inga nya typ-id (X-10, #151).
+// Tidsjakten (#598): när kortet är valt visas "Antal händelser" (5/10/15/20 eller
+// låt AI:n välja) – state.timelineCount, som går in i AI-prompten i steg 3.
 // ============================================================================
 
 import { EXERCISE_TYPES } from "./exercise-types.js";
 import { toggleType } from "./teacher-wizard-state.js";
+import { TIMELINE_COUNTS, normalizeTimelineCount } from "./validate-timeline.js";
 import { el, esc } from "./teacher-shared.js";
 
 // Kortens rubriker (kortare än katalogens etiketter). Okända typer faller
@@ -20,6 +23,7 @@ const CARD_TITLES = {
   pairs: "Para ihop & memory",
   bildpar: "Bildpar",
   generator: "Räkna (generator)",
+  tidsjakt: "Tidsjakten",
 };
 
 /**
@@ -42,6 +46,15 @@ export function createStep2(wz) {
       ).join("")}
     </div>
     <p class="hint wz-cards-empty" hidden>Inget kort valt – då innehåller prompten både quiz och par.</p>
+    <div class="field wz-tl-count" hidden>
+      <label for="area-tl-count">⏳ Antal händelser till Tidsjakten</label>
+      <select id="area-tl-count" class="select">
+        <option value="">Låt AI:n välja efter materialet</option>
+        ${TIMELINE_COUNTS.map((n) => `<option value="${n}">${n} händelser</option>`).join("")}
+      </select>
+      <p class="hint">Historiska händelser med årtal – eleven drar en markör till rätt år. Samma
+        händelser kan också dyka upp i Quiz och Live.</p>
+    </div>
     <div class="field" style="margin-top:16px">
       <label for="area-onskemal">✍️ Eget önskemål till AI:n (valfritt)</label>
       <textarea id="area-onskemal" class="wz-onskemal" rows="3"
@@ -54,6 +67,8 @@ export function createStep2(wz) {
   const cards = [...root.querySelectorAll(".wz-card")];
   const emptyHint = root.querySelector(".wz-cards-empty");
   const onskemalEl = root.querySelector("#area-onskemal");
+  const tlBox = root.querySelector(".wz-tl-count");
+  const tlCountEl = root.querySelector("#area-tl-count");
 
   function refreshCards() {
     const sel = new Set(wz.state.types);
@@ -63,6 +78,7 @@ export function createStep2(wz) {
       c.setAttribute("aria-pressed", String(on));
     });
     emptyHint.hidden = sel.size > 0;
+    tlBox.hidden = !sel.has("tidsjakt");
   }
 
   cards.forEach((c) =>
@@ -74,9 +90,11 @@ export function createStep2(wz) {
     })
   );
   onskemalEl.addEventListener("input", () => (wz.state.onskemal = onskemalEl.value));
+  tlCountEl.addEventListener("change", () => (wz.state.timelineCount = normalizeTimelineCount(tlCountEl.value)));
 
   function load() {
     onskemalEl.value = wz.state.onskemal || "";
+    tlCountEl.value = wz.state.timelineCount ? String(wz.state.timelineCount) : "";
     refreshCards();
   }
 

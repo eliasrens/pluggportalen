@@ -55,6 +55,7 @@
         <button data-fragor="mult">✖️ Multiplikation</button>
         <button data-fragor="quiz">📝 Långa quizfrågor</button>
         <button data-fragor="lastext">📖 Långa quizfrågor + lästext</button>
+        <button data-fragor="tidslinje">📅 Quiz + tidslinjefrågor (#600)</button>
         <b>Börja i (startar om)</b>
         <button data-go="lobby">Tom lobby</button>
         <button data-go="fraga">En fråga pågår</button>
@@ -91,7 +92,8 @@
       const panel = document.querySelector(".pv");
       if (elev) panel.hidden = true;
       // Långa quizfrågor (#621): ?fragor=quiz | lastext (med lästext), &nr= vilken fråga som visas.
-      const FRAGOR = ["quiz", "lastext"].includes(q.get("fragor")) ? q.get("fragor") : "mult";
+      // Tidslinjefrågor (#600): ?fragor=tidslinje – varannan fråga dras på en tidslinje.
+      const FRAGOR = ["quiz", "lastext", "tidslinje"].includes(q.get("fragor")) ? q.get("fragor") : "mult";
       const NR = q.get("nr") ? Math.max(1, Number(q.get("nr")) || 1) - 1 : FRAGOR === "mult" ? 3 : 4; // 0-baserat index
       const sid = `demo560-${KIND}-${FAS}${FRAGOR === "mult" ? "" : `-${FRAGOR}${NR}`}`;
       if (!elev) {

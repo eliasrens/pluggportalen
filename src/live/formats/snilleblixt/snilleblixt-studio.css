@@ -378,3 +378,17 @@
   .sbm-spot, .sbm-logo-stor .sbm-bolt, .sbk-spanning, .sbs-skriv, .sbl-puls { animation: none !important; }
   .sbk-ring.sbk-spanning { outline: 0.5vh solid #ff4d4d; outline-offset: 0.4vh; border-radius: 50%; }
 }
+
+/* --- Tidslinjefråga (#600): linjen under frågan, rätt år + spridning vid avslöjandet --- */
+.sbs-tidslinje { width: min(78vw, 1500px); }
+.sbs-tidslinje.tl-visning { --tl-hojd: clamp(100px, 16vh, 200px); }
+.sbs-tidslinje .tl-linje { background: rgba(255, 255, 255, 0.94); box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.35); }
+.sbs[data-kind="timeline"] { gap: 1.4vh; }
+.sbs[data-kind="timeline"] .sbs-kort { padding: 1.2vh 2.4vw; }
+.sbs[data-kind="timeline"] .sbs-kontext { text-align: center; margin-bottom: 0.6vh; }
+.sbs[data-kind="timeline"] .sbs-facit { gap: 2vw; }
+.sbs[data-kind="timeline"] .sbs-rattsvar { flex-direction: row; align-items: baseline; gap: 1vw; padding: 0.6vh 2.4vw; }
+.sbs[data-kind="timeline"] .sbs-rattsvar b { font-size: clamp(40px, 7vh, 96px); }
+.sbs[data-kind="timeline"] .sbs-facit-info { gap: 0.6vh; }
+.sbs[data-kind="timeline"] .sbs-andel { font-size: clamp(26px, 3.8vh, 50px); }
+.sbs[data-kind="timeline"] .sbs-vanliga { font-size: clamp(20px, 2.8vh, 36px); }

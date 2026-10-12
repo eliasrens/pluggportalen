@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Tidsjakten (#599) – src/games-tidsjakt.js. Laddas av spelet (dynamiskt).
+   Bygger på Quiz-kortet (.quiz-wrap/.quiz-progress) och komponentens .tl-*.
+   ========================================================================== */
+
+.tj-fel-total {
+  font-weight: 800;
+  color: var(--bla-mork);
+  background: #eaf0fb;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tj-handelse {
+  text-align: center;
+  font-weight: 800;
+  color: var(--text-svag);
+  margin-bottom: 4px;
+}
+
+.tj-poang {
+  margin: 14px auto 0;
+  width: fit-content;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--orange-mork, #b8621b);
+  background: #fff4e6;
+  border-radius: 999px;
+  padding: 6px 18px;
+  animation: tj-pop 0.35s ease-out;
+}
+.tj-poang.tj-noll { color: var(--gron-mork); background: #e9f8ef; }
+
+@keyframes tj-pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.tj-wrap .quiz-next { margin-top: 14px; text-align: center; }
+
+/* Resultatsidan: fyra nyckeltal */
+.tj-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.tj-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #eaf0fb;
+  border-radius: var(--radie);
+  padding: 10px 6px;
+}
+.tj-stat b { font-size: 1.6rem; color: var(--bla-mork); font-variant-numeric: tabular-nums; }
+.tj-stat span { font-size: 0.9rem; font-weight: 700; color: var(--text-svag); }
+.tj-regel { margin-top: 0; }
+
+@media (max-width: 520px) {
+  .tj-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tj-poang { animation: none; }
+}

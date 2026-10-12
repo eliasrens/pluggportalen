@@ -29,8 +29,12 @@ export async function startQuiz(ctx) {
   const pool = plainQuizPool(areaData.quiz || []);
   // Ny session: servera max 10 OSEDDA frågor (roterande urval). Sparar vilka som
   // serverats så nästa session ger nya, tills varvet är klart → nollställs.
+  // Tidslinjefrågor (#599): har området area.timeline blandas några in (samma
+  // händelser som Tidsjakten, ingen kopia) och besvaras på tidslinjen. Dynamisk
+  // import (#271) – ett område utan tidslinje kör exakt som förr.
+  const tl = await quizTimeline(areaData, area, pool.length);
   const seen = await data.getQuestionRotation(area, "quiz");
-  const { questions, seen: nextSeen } = pickSessionQuestions(pool, seen);
+  const { questions, seen: nextSeen } = pickSessionQuestions(pool, seen, tl?.plan.quizLimit);
   data.saveQuestionRotation(area, "quiz", nextSeen);
   const view = gameFrame({ subj, area, title: "Quiz", emoji: "❓" });
   const body = view.querySelector("#game-body");
@@ -38,7 +42,8 @@ export async function startQuiz(ctx) {
 
   runQuestions({
     body,
-    questions,
+    questions: tl ? [...questions, ...tl.plan.timeline] : questions,
+    renderTimeline: tl?.renderTimelineCard,
     onFinish: (correct, total, catStats) => {
       const stars = starsFromRatio(correct / total);
       // Coins ~halverade jämfört med förr: dels via 20→10 frågor (correct*2 halveras),
@@ -58,6 +63,25 @@ export async function startQuiz(ctx) {
       });
     },
   });
+}
+
+/**
+ * Tidslinjefrågorna till en quizomgång, eller null (inga händelser / modulen
+ * gick inte att ladda → vanligt quiz). Roteras för sig, så quizets egen
+ * frågerotation är orörd.
+ */
+async function quizTimeline(areaData, area, quizCount) {
+  if (!Array.isArray(areaData.timeline) || areaData.timeline.length === 0) return null;
+  try {
+    const m = await import("./timeline/quiz-tidslinje.js");
+    const seen = await data.getQuestionRotation(area, m.QUIZ_TIMELINE_ROTATION);
+    const plan = m.planQuizTimeline(areaData, quizCount, seen);
+    if (plan.timeline.length === 0) return null;
+    data.saveQuestionRotation(area, m.QUIZ_TIMELINE_ROTATION, plan.seen);
+    return { plan, renderTimelineCard: m.renderTimelineCard };
+  } catch {
+    return null;
+  }
 }
 
 // --- Läsförståelse ----------------------------------------------------------

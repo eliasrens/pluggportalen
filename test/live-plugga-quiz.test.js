@@ -61,8 +61,8 @@ describe("plugga_quiz – registreringen", () => {
     assert.deepEqual(answerKindsFor(KM, QUIZ), []);
   });
 
-  it("statKeys: kategorier ur QUESTION_CATEGORY_KEYS + ovrig, och per fråga", () => {
-    assert.deepEqual(QUIZ.statCategories.map((c) => c.key), [...QUESTION_CATEGORY_KEYS, "ovrig"]);
+  it("statKeys: kategorier ur QUESTION_CATEGORY_KEYS + ovrig (+ tidslinje, #600), och per fråga", () => {
+    assert.deepEqual(QUIZ.statCategories.map((c) => c.key), [...QUESTION_CATEGORY_KEYS, "ovrig", "tidslinje"]);
     assert.deepEqual(QUIZ.statKeys({ id: "q1", category: "fakta" }), ["fakta", "q:q1"]);
     assert.deepEqual(QUIZ.statKeys({ id: "q2" }), ["ovrig", "q:q2"]);
     assert.deepEqual(quizStatKeys({ id: "q3", category: "hittepå" }), ["ovrig", "q:q3"]);

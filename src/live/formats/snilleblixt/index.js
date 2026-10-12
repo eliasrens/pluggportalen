@@ -12,6 +12,9 @@
 //     live-data createLiveSession kör den före skapandet: frågorna kopieras
 //     som ögonblicksbild till sbPrivate/snapshot (lärarskyddat, samma batch
 //     som sessionen) och questionCount = ögonblicksbildens längd.
+//     Tidslinjefrågor (#600): quiz.timeline = true (lärarens ruta) → områdets
+//     timeline[] blandas in (kind "timeline", årtalet bara i facit).
+//   timelineQuestions   true – quizväljaren visar rutan "Ta med tidslinjefrågor"
 //   privateDocs         [["sbPrivate","snapshot"]] – raderas med en lobby
 //   resultInputs(s)     → Promise<{ scores, questions }> – buildResult behöver
 //                         sbScores (+ ögonblicksbildens frågor, #560)
@@ -46,6 +49,7 @@ const SNILLEBLIXT = {
   answerKinds: ["free", "choice"],
   pacing: "lärarstyrd",
   minQuestions: 5,
+  timelineQuestions: true,
   privateDocs: [SB_PRIVATE_DOC],
 
   setupFields: [
@@ -89,6 +93,10 @@ const SNILLEBLIXT = {
       const area = await getArea(data.quiz.subjectId, data.quiz.areaId);
       opts.quiz = area?.quiz || [];
       opts.showPassage = data.quiz.showPassage === true;
+      if (data.quiz.timeline === true && Array.isArray(area?.timeline) && area.timeline.length) {
+        opts.timeline = area.timeline;
+        opts.timelineSpan = area.timelineSpan || null;
+      }
       opts.quizSnapshot = (await import("../../modes/plugga-quiz-core.js")).buildQuizSnapshot;
     }
     const snap = buildSnapshot(mode, opts);

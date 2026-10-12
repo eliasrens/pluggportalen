@@ -66,11 +66,14 @@ läsning för klienten).
 | `pairs`       | array\<Pair\>  | Fakta-par (begrepp ↔ förklaring)         |
 | `exerciseTypes` | string[]     | Valda övningstyper (se nedan)            |
 | `generator`   | object \| saknas | Räknegenerator – ett eller flera räknesätt (se nedan) |
+| `timeline`    | array\<TimelineEvent\> \| saknas | Tidslinjefrågor för Tidsjakten, Quiz och Live (se nedan, #596) |
+| `timelineSpan` | `{ from, to }` \| saknas | Valfritt tidsspann för tidslinjen (se nedan, #596) |
 
 **exerciseTypes**: läraren kryssar i vilka övningstyper området ska ha i
 "Fix område"-formuläret (`src/teacher-content.js`). Giltiga id (se
 [`src/exercise-types.js`](../src/exercise-types.js)): `"quiz"` (Quiz, Läsförståelse,
-Kunskapsjakt), `"pairs"` (Para ihop, Memory) och `"bildpar"` (fakta-par med bild).
+Kunskapsjakt), `"pairs"` (Para ihop, Memory), `"bildpar"` (fakta-par med bild),
+`"generator"` (räknegeneratorn) och `"tidsjakt"` (Tidsjakten + tidslinjefrågor, #596).
 Valet styr AI-prompten (`buildAreaPrompt`) så att bara passande innehåll efterfrågas
 (t.ex. inga bildpar om `"bildpar"` inte kryssats). Saknas fältet (äldre områden)
 härleds typerna ur innehållet vid validering, så dokumentet får alltid fältet.
@@ -99,6 +102,83 @@ rättning/answerType/bildstöd följer varje uppgifts faktiska topic.
 **Bakåtkompatibelt:** det gamla formatet `{ topic, variants, talstorlek?, bildstod?, grade? }`
 läses som en lista med ett räknesätt (ger exakt samma uppgifter som förut) – ingen
 migrering; nästa sparning skriver det nya formatet.
+
+**timeline** (Tidsjakten, epic #595/#596): historiska händelser som eleven besvarar
+genom att **dra en markör på en tidslinje** till ett årtal – aldrig flerval. EN lagring
+per händelse på området; samma lista används av Tidsjakten, Quiz, Guldrushen och
+Snilleblixten (inga kopior per läge). Ligger i en egen lista, inte i `quiz[]`, så
+lägen som läser `quiz[]` (Kunskapsjakt, Fånga sanningar, äventyr …) aldrig får en
+tidslinjefråga som flerval.
+
+```js
+timeline: [
+  { id: "e1",                                   // "e1", "e2" … (eller eget id, slug)
+    event: "Stockholms blodbad",                // händelsens namn (obligatoriskt)
+    question: "Vilket år inträffade Stockholms blodbad?", // frågan (obligatorisk)
+    year: 1520,                                 // HELTAL, obligatoriskt; negativt = f.Kr.
+    description: "Kristian II lät avrätta …",   // visas FÖRE svaret – får inte avslöja årtalet
+    explanation: "Det skedde i november 1520." } // visas EFTER svaret (årtalet får stå här)
+],
+timelineSpan: { from: 1500, to: 1580 }          // valfritt; heltal, from < to
+```
+
+Regler (`src/validate-timeline.js`, anropas från `validate.js`): `event`, `question`
+och `year` är obligatoriska; `year` är ett heltal mellan −100000 och 2100 (en sträng
+med bara ett heltal, `"1520"`, godtas och blir tal). `event`, `question` och
+`description` får inte innehålla årtalet som fristående tal (årtal under 100
+kontrolleras inte – för många falsklarm). Saknad `description`/`explanation` ger en
+**varning**. Samma händelse + år två gånger tas med en gång (varning). Ett satt
+`timelineSpan` måste rymma alla händelser. Fältet `exerciseTypes` får `"tidsjakt"`
+(härleds ur `timeline` för områden utan uttryckligt val).
+
+`timelineSpan` styr tidslinjens spann. Saknas det härleder tidslinjekomponenten ett
+spann med marginal ur områdets händelser – linjen centreras **aldrig** på rätt svar.
+
+**Bakåtkompatibelt:** områden utan `timeline` valideras och sparas exakt som förut –
+fälten skrivs bara när det finns händelser respektive ett spann. Firestore-reglerna för
+`areas` (lärare skriver, inloggade läser) täcker de nya fälten utan ändring.
+
+**I Live (#600):** spelläget `plugga_quiz` kan blanda in områdets `timeline[]` bland
+flervalsfrågorna (`buildQuizSnapshot { timeline, timelineSpan }` i
+`src/live/modes/plugga-quiz-core.js`). Formatet säger `timelineQuestions: true`
+(Snilleblixten, Guldrushen #601) → quizväljaren visar rutan "Ta med tidslinjefrågor" (på som standard)
+→ sessionen får `quiz.timeline: true` (fältet finns BARA då). Varje sådan fråga har
+`kind: "timeline"`; den elevsynliga delen är `{ id: "tl-<id>", key, kind, text,
+event, description?, span: { min, max } }` (spannet = hela områdets, aldrig
+centrerat på svaret) och årtalet ligger bara i facit `{ year, … }`. Svarssättet
+`"timeline"` gäller **per fråga** och åsidosätter sessionens `answerKind`
+(`questionAnswerKind` i `src/tavling/answer-writes.js`). Rättning: **exakt år = rätt**,
+ingen tolerans. Statistikkategori `"tidslinje"`. I Guldrushen (#601) rättar
+servern (`guldrushAnswer`) – se Guldrushen nedan.
+
+**Innehållsflödet** (gäller alla typer, Tidsjakten är bara en lista till):
+1. **Prompt:** läraren väljer typer i wizarden (steg 2) → `buildAreaPrompt(types,
+   önskemål, årskurs, { timelineCount })` (`src/prompts.js` + fragmenten i
+   `src/prompt-parts.js`). Är `"tidsjakt"` vald läggs schemat för `timeline`, antalet
+   (lärarens 5/10/15/20 eller en skala efter materialet), kvalitetskraven och ett
+   exempel till; annars nämns tidslinjen inte alls.
+2. **Inklistrat AI-svar:** JSON:en klistras in i materialrutan (steg 3).
+3. **Validering:** `parseAndValidateArea` → `validateArea` (`src/validate.js`)
+   normaliserar allt och ger fel (blockerar) och varningar (blockerar inte).
+4. **Sammanslagning ("skapa fler"):** `buildMorePrompt` skickar med befintligt innehåll
+   (även händelserna och spannet); svaret slås ihop med `mergeAreaContent`
+   (`src/merge-area.js`) – dubbletter på händelse + år hoppas över, nya id `eN`,
+   områdets spann behålls – och slutvalideras med `validateArea`.
+5. **Spara:** `saveArea` (`src/data-content.js`) skriver hela dokumentet (`setDoc`).
+
+**Eleven spelar händelserna** (#599, logiken i `src/timeline/tidsjakt-core.js`):
+- **Tidsjakten** (spelläge `tidsjakt`, tänds av `areaContentFlags(area).timeline`):
+  upp till 10 händelser per omgång, roterande urval (`questionRotation[area].tidsjakt`).
+  Felpoäng = 1 per års avvikelse. Stjärnor ur snittavvikelsen mot en tolerans som
+  följer spannet (`max(1, round(bredd/100))` år): ≤ tolerans ★★★, ≤ 5 × tolerans ★★,
+  annars ★. Mynt som Quiz men med träffar (avvikelse ≤ tolerans), grind-skydd som
+  övriga lägen. `progress[area].tidsjakt` = `{ completed, stars, bestScore = träffar,
+  plays }`. Klass-EXP: minst 50 % träffar. Ingen topplista (vanlig träning).
+- **Quiz:** samma `timeline` blandas in – i proportion till poolerna, minst 1 och högst
+  3 per omgång (`questionRotation[area]["quiz-tidslinje"]`, quizets egen rotation är
+  orörd). Svaras på tidslinjen; rätt = exakt år. Räknas i kategorin `fakta`.
+  Kunskapsjakt, Fånga sanningar, Läsförståelse och äventyren läser bara `quiz[]` och
+  får aldrig tidslinjefrågor.
 
 **grade**: valfri årskurs på området (`"ak1"`–`"ak9"`), satt i innehålls-
 formuläret (`src/teacher-content.js`). Fältet är **valfritt och bakåtkompatibelt**:
@@ -878,11 +958,16 @@ ett steg): STARTA (`status` live + `startedAt`) → öppna 0 → stäng
 index-parallella, skapas i SAMMA batch som sessionen (sessionen kräver den).
 `questions[i]`: `{ key|id, text, options? (flerval), statKeys, category? }`;
 `facit[i]`: `{ answerIndex? (flerval), correctAnswer, explanation? }`.
+Tidslinjefråga (#600, bara quiz med `quiz.timeline`): `questions[i]` =
+`{ key, id, kind: "timeline", text, event, description?, span: { min, max }, statKeys }`,
+`facit[i]` = `{ year, correctAnswer: "1523", explanation }` – årtalet bara i facit.
 Bara lärare läser – eleven kan aldrig läsa kommande frågor eller facit.
 
 **`liveSessions/{sid}/sbAnswers/{i}_{uid}`** – elevens ENDA svar på fråga i
 (bara create): `{ uid, classId, q, answerKind, choiceIndex (0–antal alternativ)
-| answer (sträng 1–40), at = request.time }`. Godtas bara när `q.phase == "open"`,
+| answer (sträng 1–40) | year (tidslinjefråga), at = request.time }`.
+`answerKind` = FRÅGANS svarssätt: `"timeline"` när `q.question.kind == "timeline"`
+(då BARA `year`, ett heltal inom `q.question.span`), annars sessionens (#600). Godtas bara när `q.phase == "open"`,
 `q.index == i`, `openedAt ≤ request.time < openedAt + questionSeconds`, rätt
 svarssätt, klassmedlem i deltagande klass och spelaren anslöt FÖRE frågan
 öppnades (sen anslutning = från nästa fråga). Inget `isCorrect`/poäng – eleven
@@ -893,7 +978,8 @@ får inte veta facit före avslöjandet. Eleven läser bara sitt eget (även
 **`liveSessions/{sid}/sbScores/{i}`** – frågans poäng, skrivs EN gång av
 läraren i avslöjande-/hoppa över-transaktionen (create-only, ingen kan ändra):
 `{ index, skipped, answered, correctCount, points{uid}, correct{uid},
-choiceCounts? [4], topWrong? [{ answer, n }] }`. Läses av lärare och
+choiceCounts? [4], topWrong? [{ answer, n }], guesses? [år…] }` – `guesses`
+(tidslinjefråga, #600) = alla gissade år sorterade, utan namn (projektorns spridning). Läses av lärare och
 deltagare (spelardokument finns).
 
 **Poäng** = `round(1000 − 500 × t / questionSeconds)` för rätt, t = `at − openedAt`
@@ -952,13 +1038,22 @@ statKeys, category? }] }` (alla inloggade läser – inget facit) och
 skapas i SAMMA batch som sessionen (lobby), sedan aldrig ändrade. Servern
 väljer elevens nästa fråga (`grPlayers.nextQ`, aldrig samma två gånger i rad)
 och godtar bara svar på den – ingen kan pröva alternativen på samma fråga.
+**Tidslinjefrågor (#601, epic #595):** med `quiz.timeline: true` blandas
+områdets händelser in – `questions[i]` `{ id: "tl-<id>", key, kind: "timeline",
+text, event, description?, span: { min, max }, statKeys }` och
+`facit[i]` `{ year }`. Svaret `{ q, year }` (bara ett heltalsår inom frågans
+`span` ur grPublic – inget `choiceIndex`/`answer`) rättas av servern
+(`functions/guldrush-rattning.js`): exakt år = rätt → kistor som vanligt;
+fel → eleven ser rätt år (`correctYear` i svaret). Samma `attemptId` med ett
+annat år efter lås nekas (`already-exists`); regelgrenen är oförändrad.
 
 **`liveSessions/{sid}/answers/{attemptId}`** – Guldrushens svar skapas BARA av
 servern (`guldrushAnswer`; `liveAnswerCreate` nekar formatet): `{ uid, classId,
 format: "guldrush", mode, isCorrect, at (server), answerKind?/choiceIndex?, …
 }` – multiplikation med Klassmatchens fält (`factorA`, `factorB`, `answer`,
 `correctAnswer`), quiz med `q`, `questionId`, `answer`, `correctAnswer`,
-`statKeys`. Samma samling som Klassmatchen (uid + isCorrect) → räknas i
+`statKeys` (tidslinjefråga, #601: `answerKind: "timeline"`, `year`,
+`correctYear`, `answer`/`correctAnswer` = "1523" / "44 f.Kr."). Samma samling som Klassmatchen (uid + isCorrect) → räknas i
 `collectionGroup("answers")`-träningsstatistiken. När kistan öppnats: `chest`
 (kistans id), `chestIndex` (0–2), `chestAt` – samma transaktion, så ett svar
 ger EN kista.

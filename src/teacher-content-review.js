@@ -11,6 +11,7 @@
 
 import { el, esc } from "./teacher-shared.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
+import { timelineReviewHtml } from "./teacher-timeline-mini.js";
 
 /** En sektion med rubrik + antal; body byggs av respektive render-funktion. */
 function section(emoji, title, count, bodyHtml) {
@@ -81,7 +82,7 @@ function renderTexts(texts) {
 
 /**
  * Bygg den read-only granska-vyn för ett arbetsområde `a`.
- * Läser bara från `a` (quiz/pairs/texts) och renderar; ändrar inget.
+ * Läser bara från `a` (quiz/pairs/texts/timeline) och renderar; ändrar inget.
  */
 export function buildReviewPanel(a) {
   const quiz = Array.isArray(a.quiz) ? a.quiz : [];
@@ -92,6 +93,9 @@ export function buildReviewPanel(a) {
   if (quiz.length) sections.push(section("📝", "Quiz", quiz.length, renderQuiz(quiz)));
   if (pairs.length) sections.push(section("🔗", "Begreppspar", pairs.length, renderPairs(pairs)));
   if (texts.length) sections.push(section("📄", "Texter", texts.length, renderTexts(texts)));
+  // Tidsjakten (#598): händelserna med årtal + minitidslinje över spannet.
+  const timeline = timelineReviewHtml(a.timeline, a.timelineSpan);
+  if (timeline) sections.push(`<section class="rv-section">${timeline}</section>`);
 
   // Läsförståelse-förkrav (issue #155): visa om det är påslaget för området.
   const prereq = normalizeReadingPrereq(a.readingPrereq);

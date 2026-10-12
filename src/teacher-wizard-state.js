@@ -3,7 +3,9 @@
 // ----------------------------------------------------------------------------
 // Issue #442 (epic #438). "Skapa nytt område"-wizarden har ETT gemensamt state-
 // objekt för det som inte redan ägs av en befintlig fabrik:
-//   { name, grade, emoji, types, onskemal }
+//   { name, grade, emoji, types, onskemal, timelineCount }
+// timelineCount (#598) = lärarens antal Tidsjakten-händelser till AI-prompten
+// (5/10/15/20, null = AI:n skalar efter materialet). Sparas inte på området.
 // JSON-texten (materialrutan), generatorvalet och lägesbockarna ägs fortfarande
 // av sina befintliga kontroller (createAreaInput / createGeneratorControl /
 // createModeVisibility) – stegen monteras en gång och lever kvar mellan stegen,
@@ -41,7 +43,7 @@ export const WIZARD_STEPS = [
  * exerciseTypes härleds ur innehållet (areaExerciseTypes).
  */
 export function blankState() {
-  return { name: "", grade: null, emoji: "", types: [], onskemal: "" };
+  return { name: "", grade: null, emoji: "", types: [], onskemal: "", timelineCount: null };
 }
 
 /**
@@ -60,6 +62,7 @@ export function stateFromArea(area) {
     emoji: (a.coverEmoji || "").trim(),
     types: normalizeExerciseTypes(types),
     onskemal: "",
+    timelineCount: null,
   };
 }
 
@@ -137,6 +140,7 @@ export function summaryParts(value) {
   if (value.quiz?.length) bits.push(`${value.quiz.length} frågor`);
   if (value.pairs?.length) bits.push(`${value.pairs.length} par`);
   if (value.texts?.length) bits.push(`${value.texts.length} texter`);
+  if (value.timeline?.length) bits.push(`${value.timeline.length} tidslinjehändelser`);
   const generator = generatorSummary(value.generator);
   return { generator, bits };
 }

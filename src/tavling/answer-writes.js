@@ -26,6 +26,16 @@
 //                  modens record + answerKind: "choice" + choiceIndex.
 //       Fel form → kastar (reglerna nekar också ett svar i fel svarssätt).
 //   liveAnswerKindError(answerKind, choiceIndex) → string | null (felet ovan)
+//   TIDSLINJEFRÅGOR (#600, epic #595) – svarssättet gäller PER FRÅGA:
+//   questionAnswerKind(question, sessionKind) → "timeline" för en fråga med
+//     kind "timeline", annars sessionens svarssätt (oförändrat för allt annat)
+//   timelineAnswerError(year, span) → string | null – ett tidslinjesvar är ett
+//     HELTALSÅR inom frågans spann { min, max } (firestore.rules kollar samma)
+//   answerShapeError({ kind, choiceIndex?, answer?, year?, span? }) → string | null
+//     – svarets form för FRÅGANS svarssätt: choice = bara choiceIndex 0–3,
+//     free = bara answer (sträng), timeline = bara year (inom span). Fel form
+//     för frågans kind (t.ex. choiceIndex på en tidslinjefråga) → fel.
+//     Används av Snilleblixtens svarsplan (och Guldrushen, #601).
 //   planLiveJoin({ sessionId, uid, classId, name, fv }) → Write (spelare/"redo")
 //   planLiveHeartbeat({ sessionId, uid, fv })           → Write
 //   Write = { path: string[], data: object, merge: boolean }
@@ -98,6 +108,38 @@ export function liveAnswerKindError(answerKind, choiceIndex) {
   }
   if (answerKind === "free") return choiceIndex !== undefined ? "skriv själv-svar får inte ha choiceIndex" : null;
   return `okänt svarssätt: ${answerKind}`;
+}
+
+/** Frågans svarssätt: tidslinjefrågor åsidosätter sessionens (#600). */
+export function questionAnswerKind(question, sessionKind) {
+  return question?.kind === "timeline" ? "timeline" : sessionKind;
+}
+
+/** Ett tidslinjesvar: heltalsår inom frågans spann. null = ok. */
+export function timelineAnswerError(year, span) {
+  if (!Number.isInteger(year)) return "tidslinjesvar kräver ett heltalsår";
+  if (!span || !Number.isInteger(span.min) || !Number.isInteger(span.max)) return "tidslinjefrågan saknar spann";
+  if (year < span.min || year > span.max) return `året ${year} ligger utanför frågans spann ${span.min}–${span.max}`;
+  return null;
+}
+
+/** Passar svarets form frågans svarssätt? null = ok. */
+export function answerShapeError({ kind, choiceIndex, answer, year, span } = {}) {
+  const has = { choiceIndex: choiceIndex !== undefined, answer: answer !== undefined, year: year !== undefined };
+  const only = (k) => Object.entries(has).every(([n, v]) => n === k || !v);
+  if (kind === "timeline") {
+    if (!only("year")) return "tidslinjesvar får bara ha year";
+    return timelineAnswerError(year, span);
+  }
+  if (kind === "choice") {
+    if (!only("choiceIndex")) return "flervalssvar får bara ha choiceIndex";
+    return liveAnswerKindError("choice", choiceIndex);
+  }
+  if (kind === "free") {
+    if (!only("answer")) return "skriv själv-svar får bara ha answer";
+    return typeof answer === "string" && answer.trim() !== "" ? null : "skriv själv-svar kräver en text";
+  }
+  return `okänt svarssätt: ${kind}`;
 }
 
 /**

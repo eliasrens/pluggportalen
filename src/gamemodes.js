@@ -234,6 +234,8 @@ export async function pageElevSpela() {
     // Dynamisk import (se noten vid importerna): håller games-rakna.js +
     // rakna-core.js ur den statiska bootgrafen.
     case "rakna": return import("./games-rakna.js").then((m) => m.startRakna(ctx));
+    // Tidsjakten (#599): samma dynamiska mönster.
+    case "tidsjakt": return import("./games-tidsjakt.js").then((m) => m.startTidsjakt(ctx));
     default: return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
   }
 }
