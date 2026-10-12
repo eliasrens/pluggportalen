@@ -152,7 +152,8 @@ function aktivtPack(s) {
   return { pack, geo };
 }
 function aktuellFraga(s, pack) {
-  const it = pack.items.find((i) => (i.prompt || "") === s.prompt)
+  const it = (s.namn && pack.items.find((i) => i.name === s.namn)) // sevärdheter: samma prompt, namnet under bilden
+    || pack.items.find((i) => (i.prompt || "") === s.prompt)
     || pack.items.find((i) => s.prompt?.includes(i.name) || (s.namn && s.namn === i.name));
   if (!it) throw new Error(`Hittar inte frågan "${s.prompt}" i ${pack.id}`);
   return it;
