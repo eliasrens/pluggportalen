@@ -24,7 +24,7 @@ Spiken som bevisar motorn: `preview/preview-hitta-ratt-spik.html` (se §9).
 | Personbästa | Ett dokument per elev med alla pack. Startsidan läser det med en läsning. |
 | Pokal | Ingen ägd sak. Huset ritar Kartmästare-pokalen för de pack där eleven finns i `hittaRattMeta/ledare`. Ledarna räknas om i samma transaktion som topplistan. Borttagning sker därmed av sig själv och idempotent. |
 | Klassaktivering | Opt-in-fältet `classes/{id}.enabledModules: ["hittaratt"]`, som spegling av `hiddenModules` (#412). Av som standard. |
-| Bilder | Wikimedia Commons, nerladdade till repot (≤ 120 kB/bild) med fotograf och licens i packen. |
+| Bilder | Wikimedia Commons, nerladdade till repot (≤ 120 kB/bild) med fotograf och licens i packen. Egna pack: Firestore-dokument per bild, se §11.8. |
 | Bootgraf | Allt nytt laddas dynamiskt. Boot-filerna får bara registerrader. Bootgrafen förblir **107**. |
 
 ---
@@ -354,7 +354,8 @@ svårighet, geo).
   `packId` (t.ex. `europa-alla-v2`), annars jämförs olika omgångar.
 - **Egna pack (epic 2/2):** samma schema i `hittaRattPacks/{packId}` med
   `ownerUid`, `classIds` och `leaderboard` (standard false). Geo är alltid
-  en av de officiella geofilerna.
+  en av de officiella geofilerna. Se §11.1. Egna pack behåller sitt id när
+  facit ändras. Där höjs i stället `version`, och topplistan nollställs (§11.4).
 
 ### 3.2 Firestore
 
@@ -644,7 +645,7 @@ opt-in:
 - **Laddning:** bilderna laddas lat. Bara aktuell fråga laddas och nästa
   förladdas. Speltiden använder aldrig Commons.
 - **Attribution** visas diskret under bilden och samlat i `KALLOR.md`.
-- **Egna bilder (epic 2/2)** laddas upp till Storage. Det beslutet tas i epic 2.
+- **Egna bilder (epic 2/2):** inget Storage. Bilderna sparas nedskalade som Firestore-dokument, och Commons-bilder kopieras (§11.8).
 
 ---
 
@@ -737,3 +738,644 @@ Skärmdumpar finns i `docs/hitta-ratt-604/`:
 5. **Lantmäteriets egna länsgränser:** vill du skapa ett Geotorget-konto och
    ladda ner Topografi 1M en gång? Annars används Natural Earths län, som
    har samma 21 län och är public domain.
+
+---
+
+## 11. Epic 2/2 – egna områden (#632, epic #612)
+
+Beslutsdokument för lärarens egna kartor. Spec: §18–21, §27–30 och §35 test 8.
+Coders B–G bygger direkt efter det här avsnittet. Spikarna finns i §11.12.
+
+### 11.0 Besluten i korthet
+
+| Fråga | Beslut |
+| --- | --- |
+| Lagring | `hittaRattPacks/{packId}`, **ett dokument per pack med alla items** (≤ 60 items ≈ ≤ 40 kB, långt under 1 MB). Bilderna ligger **inte** i packdokumentet. |
+| Id | `e-` + 12 tecken `[a-z0-9]`, skapas i klienten (`e-k3f9q0z1m2xa`). Prefixet `e-` är reserverat, så id:t kan aldrig krocka med officiella pack. Det passar befintlig regex `^[a-z0-9-]{1,60}$` i regler, `hrpokal-<packId>` och topplistor. |
+| Vem skriver | **Bara Cloud Functions.** Läraren sparar, raderar och slår på topplistan via callables. Regler kan inte loopa över en lista med items, så valideringen måste ligga på servern. Inga nya klientskrivningar i packen, och inga nya stora regeluttryck (lärdom #497). |
+| Katalog (#231) | `hittaRattMeta/egnaPack` – **ett dokument** med en kort post per eget pack. Startsidan, 🏆-vyn och lärarens "Mina områden" läser det med **en läsning**. Servern skriver det i samma transaktion som packen. |
+| Synlighet | Packet syns för elever i `classIds`. Servern kontrollerar klassen vid `hittaRattSubmit`. Läsningen av packen är öppen för inloggade (som `subjects`, #114). |
+| Redigering | Bara **ägaren** (`ownerUid`) får spara, radera och slå på topplistan. Alla lärare får läsa och **duplicera**. Geofil och frågetyp är låsta efter skapandet ("Duplicera" för att byta). |
+| Ändrade frågor | Servern räknar en **facitnyckel** (typ, geo, items-id + lat/lon eller område). Ändras den höjs `version`: topplistan och ledarna nollställs i samma transaktion, och gamla personbästa (`v` ≠ `version`) räknas inte längre. Ändras bara texter eller bilder händer inget. |
+| Topplista PÅ | Callable `hittaRattSattTopplista({ packId, pa: true })`. Topplistan **byggs upp ur befintliga personbästa** för aktuell version (frågan mot `hittaRattBest`, en gång per påslag). |
+| Topplista AV | Samma callable med `pa: false` → befintliga `stangTopplista`. Personbästa sparas fortfarande. Pokalen försvinner vid nästa husrendering. |
+| Radering | `hittaRattRaderaPack` tar bort packen, katalogposten, topplistan, ledarna (i en transaktion) och packens bilder. |
+| Platssökning | **Wikidata** (`wbsearchentities` + `wbgetentities`, P625) som huvudkälla, **Nominatim** som reserv. Bara på knapp eller Enter. Kartan själv är alltid en reserv: läraren kan klicka eller dra nålen. |
+| Polygonval | Klick i kartmotorn lägger till eller tar bort en fråga. Namnen kommer från en ny `<geo>.namn.json` (källnyckel → svenskt namn), som bara lärarvyn laddar. |
+| Bilder | **Inget Firebase Storage.** Bilden skalas ned i webbläsaren (WebP, ≤ 800 px, ≤ 120 kB) och sparas som eget dokument `hittaRattBilder/{bildId}` (Firestore `Bytes`). Commons-bilder **kopieras** dit när läraren väljer dem. Eleven hämtar aldrig något från Commons. |
+| Lärarvy | Ny flik i `TEACHER_TABS`: **"Hitta rätt!"** (`#/larare/hitta-ratt`), med `lazyPage`. Allt i `src/hitta-ratt/larare/` laddas dynamiskt. Bootgrafen förblir **107**. |
+| Provspel | Läraren provspelar med `hr-spel.js` och lokala deps (rättning i klienten, inget försök, inga coins). |
+| Deploy | rules → indexes → functions → Pages. Ingen Storage. |
+
+### 11.1 Datamodell
+
+**`hittaRattPacks/{packId}`** – samma schema som officiella pack (§3.1) plus
+fälten för egna pack:
+
+```json
+{ "id": "e-k3f9q0z1m2xa", "official": false,
+  "ownerUid": "<lärarens uid>", "ownerNamn": "Anna L",
+  "classIds": ["5A", "5E"], "leaderboard": false,
+  "version": 3, "facitNyckel": "<sha1>", "facitAt": <Timestamp>,
+  "createdAt": <Timestamp>, "updatedAt": <Timestamp>,
+  "title": "Gästrikland runt", "description": "Orter och natur i Gästrikland",
+  "ikon": "🏞️", "category": "egna", "type": "point",
+  "geo": "sverige-landskap", "startvy": "auto",
+  "items": [
+    { "id": "gavle", "name": "Gävle", "prompt": "Var ligger Gävle?",
+      "lat": 60.6749, "lon": 17.1413, "kalla": "wikidata:Q25748" },
+    { "id": "radhuset", "…": "…",
+      "bild": { "id": "e-k3f9q0z1m2xa--a8d0c2kq", "bredd": 800, "hojd": 533,
+                "kalla": "commons", "fil": "File:Gävle rådhus 01.jpg",
+                "fotograf": "I99pema", "licens": "CC BY-SA 4.0",
+                "licensUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+                "kallaUrl": "https://commons.wikimedia.org/wiki/File:…" } }
+  ] }
+```
+
+- **Områdesitem:** `{ id, name, prompt, omrade: "o5", key: "uppland" }`. Både
+  `omrade` (spelets id) och `key` (källnyckel) sparas. Om en geofil någon gång
+  byggs om med nya id kan `omrade` räknas om ur `key` med `<geo>.nycklar.json`.
+  ⚠️ `admin/hitta-ratt-geo.mjs` får inte blanda om id:n för befintliga geofiler
+  utan en migrering av egna pack (står som varning i skriptet, B).
+- **Härledda fält (sätts av servern, inte av läraren):**
+  - `scoringConfig` och `maxZoom` ur geofilens scope: Sverige 5/90 och 10,
+    Europa 10/220 och 16, världen 25/600 och 24 (§5).
+  - `visaGranser`: punkt → `"svag"`, område → `true`.
+  - `category` är alltid `"egna"`. Egna pack har ingen svårighetsnivå.
+- **`startvy: "auto" | "hel"`.** Specens "anpassat" scope (§19) löses utan ny
+  geodata: `"auto"` passar in startvyn efter itemens utbredning (punkter, eller
+  områdenas inre punkt `c`) med 30 % luft. Minsta spann är 25 % av scope-rutan,
+  och det kräver minst 4 items (annars hela kartan). Det räknas i klienten
+  (`hr-egna.js`) och lagras inte. `"hel"` = hela scope-rutan.
+- **Gränser (servern):**
+
+  | Fält | Gräns |
+  | --- | --- |
+  | `title` | 1–60 tecken |
+  | `description` | ≤ 200 |
+  | `name` | 1–60 |
+  | `prompt` | ≤ 120. Tomt → "Var ligger {name}?" eller "Hitta {name}" |
+  | items | 1–60, `id` unika `^[a-z0-9-]{1,60}$` |
+  | områden | unika per pack |
+  | `classIds` | ≤ 20 befintliga klasser |
+  | `ikon` | en av ~16 emojis i `delat/egna.js` (`IKONER`) |
+  | katalogen | servern vägrar nya pack när den passerat 800 kB (≈ 2 000 pack) |
+
+  - 60 items täcker "Afrikas länder" (54) och ligger över största
+    officiella pack (46). Det begränsar också coins per omgång (§26).
+  - Punkter måste ligga inom geofilens scope-ruta (§1.1). Områden måste
+    finnas i geofilen.
+- **Personbästa:** `hittaRattBest/{uid}.packs.{packId}` som förut plus
+  `v: version` för egna pack. Ett personbästa med fel `v` behandlas som
+  saknat, både av servern (`battre`) och av startsidan. Gamla poster lämnas kvar
+  och är ofarliga.
+
+**`hittaRattMeta/egnaPack`** (katalogen, en läsning):
+
+```json
+{ "packs": { "e-k3f9q0z1m2xa": {
+    "title": "Gästrikland runt", "description": "…", "ikon": "🏞️",
+    "type": "point", "geo": "sverige-landskap", "antal": 12,
+    "classIds": ["5A", "5E"], "ownerUid": "…", "ownerNamn": "Anna L",
+    "leaderboard": false, "version": 3, "updatedAt": <Timestamp> } },
+  "updatedAt": <Timestamp> }
+```
+
+Det följer samma mönster som `hittaRattMeta/ledare` och `classProjections`: ett
+dokument, en map och en läsning. En post är ≈ 300 B.
+
+**`hittaRattBilder/{bildId}`** (§11.8): `{ ownerUid, packId, mime, bredd, hojd,
+data: Bytes, skapad }`, med `bildId = <packId>--<8 tecken [a-z0-9]>`.
+
+**Varför inte i klassdokumentet?** Eleven läser redan alla `classes`, så
+katalogen skulle kosta noll läsningar där. Men då skulle klassdokumenten (som
+lärarsidan läser hela tiden) växa, packen skulle behöva skrivas i flera
+klassdokument per sparning, och regeln för `classes` skulle få ännu ett
+valideringsuttryck. En egen katalog kostar **en** läsning per session och
+håller isär det.
+
+### 11.2 Firestore-regler
+
+Tillägg i Hitta rätt!-blocket (`firestore.rules`, efter `hittaRattMeta`):
+
+```
+match /hittaRattPacks/{packId} {
+  allow read: if signedIn();          // elever i classIds + lärare (förhandsgranska, duplicera)
+  allow write: if false;              // bara hittaRattSparaPack/RaderaPack/SattTopplista (Admin SDK)
+}
+match /hittaRattBilder/{bildId} {     // F
+  allow read: if signedIn();
+  allow create: if isTeacher() &&
+    bildId.matches('^e-[a-z0-9]{12}--[a-z0-9]{8}$') &&
+    request.resource.data.keys().hasOnly(['ownerUid', 'packId', 'mime', 'bredd', 'hojd', 'data', 'skapad']) &&
+    request.resource.data.ownerUid == request.auth.uid &&
+    request.resource.data.packId == bildId.split('--')[0] &&
+    request.resource.data.mime in ['image/webp', 'image/jpeg'] &&
+    request.resource.data.data is bytes && request.resource.data.data.size() <= 150000 &&
+    request.resource.data.bredd is int && request.resource.data.bredd <= 800 &&
+    request.resource.data.hojd is int && request.resource.data.hojd <= 800 &&
+    request.resource.data.skapad == request.time;
+  allow update: if false;
+  allow delete: if isTeacher() && resource.data.ownerUid == request.auth.uid;
+}
+```
+
+- `hittaRattMeta/{docId}` täcker redan katalogen: läs för inloggade, skriv
+  `false`.
+- `hittaRattAttempts` behöver ingen ändring. `e-…` passar packId-regexen.
+  Klasskontrollen görs vid submit, inte vid start, eftersom reglerna inte kan
+  fråga `classes`.
+- **Varför läsning för alla inloggade:**
+  - Reglerna kan bara avgöra klass via `students/{uid}.classIds`. Det skulle
+    kosta en `get()` per läsning och kunna glida isär från
+    `classes.studentIds` (servern använder det senare).
+  - Innehållet är ortnamn, koordinater och bilder, inget elevdata.
+  - Hållningen är densamma som `subjects/areas` (#114). Synligheten är ett
+    UI-filter, och **poängen** skyddas av servern.
+- **Varför Functions och inte regler** för packen: items är en lista med
+  mappar. Regler kan inte loopa, så de kan bara kontrollera längden och inte
+  lat/lon, scope eller områdes-id. Servern kan också höja `version` och
+  nollställa topplistan i samma transaktion, vilket regler inte kan.
+- **Uttryckstaket (1000, #497):** den nya regeln har ≈ 15 uttryck och rör
+  inte de tunga Live- och Klasscentret-grenarna.
+- **Regeltester:**
+  - `test/firestore-rules-hitta-ratt-egna.test.js` (B: pack och katalog,
+    elev och lärare nekas skrivning).
+  - `test/firestore-rules-hitta-ratt-bilder.test.js` (F: create-gränser, fel
+    ägare, för stor, fel mime, update nekas, radera bara egen).
+  - Båda läggs till i `test:rules` i `package.json`.
+
+### 11.3 Elevsidan
+
+**Startsidan** (`page-hitta-ratt.js`, `hr-start-vy.js`):
+1. Läsningar: `index.json` (statisk), `hittaRattBest/{uid}` (1) och **katalogen
+   (1)**. Elevens klasser kommer ur `getClasses()`, som redan ligger i
+   sessionscachen. Inga läsningar per pack (#231).
+2. `egnaForElev(katalog, klassIds)` (ren, i ny `src/hitta-ratt/hr-egna.js`)
+   väljer pack där `classIds ∩ elevens klasser ≠ ∅`. De visas i en egen
+   kategori **"Från din lärare"** (ikon 🧑‍🏫) **först** på sidan, med packens
+   egen ikon. Svårighetstaggen ersätts av "Egen karta".
+3. Personbästa visas bara om `b.v === katalog.version`.
+4. Katalogen cachas i 60 s (som `hr-pokal-rum.js`) och nollas av `skickaOmgang`.
+
+**Spelet:**
+- `#/elev/hitta-ratt?pack=e-…` → `page-hitta-ratt.js` ser `e-`-prefixet,
+  hämtar katalogposten och läser `hittaRattPacks/{id}` (1 läsning). Sedan
+  anropas `spelaPack(meta, { pack })`.
+- `hr-spel.js` får ett valfritt färdigt `pack` i deps och hoppar då över
+  `hamtaJson("packs/…")`. Geofilen hämtas som förut ur repot.
+- Bilditems med `bild.id` hämtas via `hr-bild.js` (F, §11.8).
+- **Saknat pack eller inte delat** → samma `felVy` som okänt pack ("Kartan finns
+  inte längre").
+
+**Felkoder från servern som klienten översätter:**
+
+| Fel | Text |
+| --- | --- |
+| `failed-precondition` "ändrad" | "Läraren har ändrat kartan – starta en ny omgång." |
+| `permission-denied` | "Kartan är inte delad med din klass." |
+
+### 11.4 Servern
+
+Ny delad kod i `src/hitta-ratt/delat/`. Den synkas automatiskt till
+`functions/hitta-ratt/` (sync-skriptet kopierar alla `.js` där).
+
+| Fil | Innehåll |
+| --- | --- |
+| `delat/scope.js` | `SCOPE_RUTA` (§1.1), `GEO_SCOPE` (geo → scope), `STANDARD[scope]` = `{ scoringConfig, maxZoom }`, `inomScope(scope, lon, lat)` |
+| `delat/facit.js` | `kompaktFacit(pack, omraden)` (flyttas från sync-skriptet, så officiella och egna pack rättas identiskt), `facitNyckel(pack)` (kanonisk sträng → sha1 på servern) |
+| `delat/egna.js` | `EGEN_ID_RE`, `IKONER`, gränserna, `normaliseraPack(indata, { geoOmraden, klasser })` → städat pack eller `HrFel` |
+
+`admin/sync-hitta-ratt-functions.mjs` exporterar även `GEO_OMRADEN` (geo → id:n)
+i `packs.js`, så servern vet vilka områden som finns i varje geofil.
+
+**Ny fil `functions/hitta-ratt-egna.js`** (`hitta-ratt-core.js` har 238 rader
+och får inte växa förbi 400). Samma deps-injektion som i core:
+
+1. **`sparaPack(deps, uid, { pack })`** → `{ id, version, nollstalld }`
+   (callable `hittaRattSparaPack`, kräver `token.teacher`).
+   1. Normalisera och validera med `delat/egna.js`. `classIds` kontrolleras mot
+      `classes` (`getAll`).
+   2. **Transaktion:**
+      1. Läs packen, katalogen, topplistan och ledarna.
+      2. Ny packen: `ownerUid = uid` och `version 1`. Befintlig: `ownerUid`
+         måste vara anroparen, och `geo`/`type` får inte ändras.
+      3. `facitNyckel` ändrad → `version + 1`, `facitAt = nu`, topplistan
+         raderas och `ledare.packs.{id}` tas bort. Är topplistan på skapas en
+         tom topplista med `v`.
+      4. Titeln ändrad → `titel` uppdateras i topplistan och i ledarna, så att
+         pokalskylten följer med.
+      5. Packen och katalogposten skrivs.
+   3. `leaderboard` i indata **ignoreras**. Den ändras bara av
+      `hittaRattSattTopplista`.
+   4. (F) Kontrollera att alla `bild.id` finns och hör till packen. Radera
+      packens bilder som inte längre används (`where packId ==`).
+   5. (F) `kopieraFran: packId` (Duplicera) kopierar källpackens bilder till
+      nya id. Allt annat i duplicering sker i klienten (nytt id, "(kopia)", AV,
+      egna `classIds`).
+2. **`raderaPack(deps, uid, { packId })`** – ägaren.
+   1. Transaktion: packen, katalogposten, topplistan och `ledare.packs.{id}`
+      tas bort.
+   2. Sedan en batch som tar bort `hittaRattBilder where packId ==`.
+   3. Idempotent. Försök och personbästa lämnas kvar och är ofarliga (huset
+      och startsidan visar bara pack som finns).
+3. **`sattTopplista(deps, uid, { packId, pa })`** – §11.5.
+
+**`hittaRattSubmit` (core)** för `packId` som börjar på `e-`:
+1. `elevInfo` returnerar även elevens klass-id.
+2. `tx.get(hittaRattPacks/{id})` i transaktionen.
+   - Saknas packen → `not-found`.
+   - `classIds ∩ elevens klasser = ∅` → `permission-denied`.
+   - `attempt.startedAt < pack.facitAt` → `failed-precondition` "Läraren har
+     ändrat kartan – starta en ny omgång". Det sker innan `raknaOmgang`, så
+     eleven aldrig får det obegripliga "svara på alla frågor".
+3. `kompaktFacit(pack, GEO_OMRADEN[pack.geo])` och samma `raknaOmgang`.
+4. `lb = pack.leaderboard === true`. Personbästa skrivs **alltid** (även AV),
+   med `v`. `bestNu` med fel `v` räknas som `null`.
+5. Topplisteposten får klassen ur elevens klasser **∩ packens** `classIds`
+   (sorterad på namn), så att "5E" visas och inte en klass där packen inte
+   delas.
+6. Är topplistans `v` ≠ packens `version` räknas entries som tomma
+   (försvarsrad, ska inte hända).
+7. Ledarposten får `scope` (`ledare.packs.{id} = { uids, titel, typ, scope }`),
+   så att pokalens motiv blir rätt (§11.5).
+8. Coins: 1 per godkänt svar, som i officiella pack (§26).
+
+**Personbästa och topplista vid redigering – valt: versionsnollställning**
+(alternativen var version i nyckeln, nollställning eller låsning):
+
+| Alternativ | Bedömning |
+| --- | --- |
+| Version i nyckeln (`<id>~v3`) | Varje version får ny topplista, ny pokalnyckel `hrpokal-…` och nya placeringar i huset. Gamla nycklar blir skräp överallt. Mest kod och mest att städa. Avvisat. |
+| Lås redigering när resultat finns | Läraren kan inte rätta en felplacerad punkt. Det är dåligt i ett verktyg vars hela poäng är att det ska vara enkelt. Avvisat. |
+| **Nollställ vid ändrat facit** ✔ | Id, pokalnyckel och topplistedokument är stabila. Bara ändringar av svaren (punkter, områden, nya eller borttagna frågor) nollställer. Rättade stavfel, nya bilder, beskrivning och klasser nollställer inget. Personbästa nollställs **lat** via `v`, utan att skriva i alla elevers dokument. |
+
+Lärarvyn varnar före sparning när facit ändrats på ett befintligt pack:
+"Du har ändrat platser eller frågor. Elevernas rekord och skolans topplista för
+kartan börjar om från noll."
+
+### 11.5 Togglen "Skoltopplista / Gör till skolutmaning"
+
+Callable **`hittaRattSattTopplista({ packId, pa })`**. Bara ägaren
+(`token.teacher` + `ownerUid`).
+
+- **AV (`pa: false`):**
+  1. EN transaktion: `pack.leaderboard = false` och katalogens
+     `leaderboard = false`.
+  2. Samma transaktion gör vad befintliga `stangTopplista` gör: topplistan
+     raderas och `ledare.packs.{id}` tas bort.
+     - `stangTopplista` delas upp i en del som tar emot `tx`, så att den kan
+       köras inne i den här transaktionen.
+     - Den fristående funktionen behålls (den har tester från G #610).
+  3. Pokalen försvinner vid nästa husrendering (`rensaPokaler`).
+  4. Personbästa ligger kvar.
+- **PÅ (`pa: true`): återuppbygg ur personbästa.** Valt, eftersom:
+  - specen kräver att "topplistan ska använda elevens personbästa"
+  - personbästa sparas redan när togglen är AV (§21)
+  - en tom start skulle visa en elev med rekordet 1943 p på startsidan men inte
+    i topplistan, och ge pokalen till fel elev tills alla spelat igen
+
+  Flödet:
+  1. **Tx 1:** `leaderboard = true` (pack och katalog), och en tom topplista
+     `{ packId, typ, titel, max, v, entries: {}, leaders: [] }` skapas om den
+     saknas.
+  2. **Fråga:** `hittaRattBest.where(new FieldPath("packs", packId, "v"), "==",
+     version)`.
+     - Firestore indexerar map-underfält automatiskt, och `firestore.indexes.json`
+       har inga undantag för `hittaRattBest`, så frågan behöver inget eget index.
+     - Det kostar en läsning per elev som spelat packen (en klass ≈ 30). Det
+       sker en gång per påslag och inte per visning, så #231 gäller inte.
+  3. Namn och klass hämtas med samma logik som `elevInfo`: `students` via
+     `getAll`, plus en fråga mot `classes`.
+  4. **Tx 2:** läs topplistan, lägg till poster **bara för uid som saknas**,
+     räkna om `leaders` och skriv topplistan och `ledare.packs.{id}`.
+  5. **Inget kapplopp:** en omgång som sparas efter tx 1 ser `leaderboard: true`
+     och skriver sin egen post. Den är alltid elevens nuvarande personbästa, så
+     återuppbyggnaden får aldrig skriva över en befintlig post.
+  6. Idempotent. Ett andra PÅ fyller bara på det som saknas.
+- **🏆-vyn** (`page-hitta-ratt.js` → `visaTopplistor`):
+  - Grupperna = officiella pack med topplista + en grupp **"Från din lärare"**
+    ur katalogen (`leaderboard && classIds ∩ elevens klasser`).
+  - Katalogen är samma cachade läsning som på startsidan, så det blir 0 extra
+    läsningar. Varje vald topplista är 1 läsning, som förut.
+  - Elever i andra klasser ser inte lärarens egna topplistor. En "skolutmaning"
+    för hela skolan = läraren kryssar i alla klasser (§11.11 fråga 1).
+- **Pokalen:** `motivFor(packId, scope)` i `hr-pokal-art.js` får en valfri scope
+  för `e-`-pack, som läses ur `ledare.packs.{id}.scope`. Rosettfärgen räknas
+  redan ur packId. Ingen ny pokallogik behövs, eftersom pokalen ritas ur
+  ledarna.
+- **Radering med topplista PÅ:** `raderaPack` stänger topplistan i samma
+  transaktion (§11.4). Om pokalen står utställd städas den bort av
+  `rensaPokaler` vid nästa husbesök, som vid ledarbyte.
+
+### 11.6 Platssökning för punktfrågor
+
+**Spik:** `admin/hitta-ratt-sok-spik.mjs` (Node) och
+`preview/preview-hitta-ratt-egna-spik.html` (webbläsare), körda 2026-10-12.
+Skärmdump: `docs/hitta-ratt-632/spik-sok-och-bild.png`.
+
+**CORS från webbläsaren, utan nyckel:**
+
+| Tjänst | CORS | Resultat |
+| --- | --- | --- |
+| Wikidata (`origin=*`) | `ACAO: *` | Fungerar |
+| Nominatim | `ACAO: *` | Fungerar |
+| Photon | `ACAO: *` | Fungerar, men **saknar svenska** (`lang` = de/en/fr) |
+
+**Testade sökord (12 st):**
+
+| Sökord | Wikidata | Nominatim |
+| --- | --- | --- |
+| Gävle | "tätort i Gävle kommun, Sverige" | `boundary/administrative` |
+| Höga kusten | "kustområde i Ångermanland" | **Höga Kusten Airport** (fel) |
+| Visby ringmur | ✓ | – (ingen träff) |
+| Sarek | ✓ med limit 10, ✗ med limit 7 | `national_park` |
+
+- Wikidata hittade **11 av 12** (Sarek först med `limit=10`, i webbläsaren).
+  Nominatim hittade 11 av 12.
+- Skillnaden mellan tjänsterna var 0–33 km, och mittpunkten för sjöar och berg
+  skiljer sig naturligt.
+- Wikidata tog ≈ 0,8 s per sökning (två anrop).
+- Wikidata ger också **P18** (Commons-bild), som blir första bildförslaget i
+  §11.8.
+
+**Beslut:**
+1. **Wikidata först.**
+   1. `wbsearchentities` (`language=sv&uselang=sv&limit=10&type=item&origin=*`).
+   2. Sedan `wbgetentities` (`props=claims`) för P625 och P18.
+   3. Bara träffar med koordinat visas. Svenska beskrivningar skiljer "Lund –
+      tätort i Skåne" från andra Lund.
+   - CC0, ingen attribution krävs.
+   - Sparas som `kalla: "wikidata:Q…"`, samma koordinatkälla som officiella
+     pack (#607).
+2. **Nominatim som reserv**, automatiskt när Wikidata ger 0 träffar, och via
+   knappen "Sök i OpenStreetMap".
+   - `format=jsonv2&accept-language=sv&limit=5`.
+   - Användarvillkoren följs: högst **1 anrop/s** (strypning i klienten), ingen
+     autocomplete (bara knapp eller Enter), svar cachas per sökord i sessionen,
+     och webbläsaren skickar `Referer` (sajtens origin) som identifiering.
+   - Sparas som `kalla: "osm:relation/…"`, och lärarvyn visar "Platsdata ©
+     OpenStreetMap-bidragsgivare (ODbL)" vid träffarna.
+3. **Felhantering:**
+   - Nätfel, 429 eller 5xx → "Sökningen fungerar inte just nu. Försök igen om
+     en stund – eller klicka direkt på kartan."
+   - Kartan fungerar alltid utan sökning.
+   - 0 träffar → "Inget hittades. Prova ett annat namn eller klicka på kartan."
+4. **Flöde:**
+   1. Sök → förslag i en lista. Förslag utanför packets scope är gråa med
+      texten "utanför kartan".
+   2. Val → markören sätts och kartan zoomar dit (`satGissning`).
+   3. Läraren kan **dra markören** eller klicka om.
+   4. "Använd denna plats" sparar `lat`/`lon`, avrundade till 5 decimaler
+      (≈ 1 m).
+   5. "Avancerat" visar lat/lon-fält.
+   6. Servern kontrollerar `inomScope` igen.
+5. **Kartmotorn** (`kartmotor.js`) får två API-anrop för redigering:
+   - `satGissning({ lon, lat }, { zooma: true })` sätter nålen programmatiskt.
+     Dragning av nålen finns redan i punktläget.
+   - `markera(ids)` (§11.7).
+   - `kartmotor.js` har 383 rader. Lägg anropen i en liten
+     `karta/redigering.js` som får motorns interna delar via en
+     `opts.redigering`-krok, eller flytta `visaOmraden`/`ruta` till
+     `kamera.js`, så att filen håller sig under 400.
+   - Spelflödet påverkas inte.
+
+### 11.7 Polygonval för områdesfrågor
+
+- Lärarvyn öppnar kartmotorn i `lage: "omrade"` på packets geofil. Varje
+  `val`-händelse **växlar** en fråga: finns området redan tas frågan bort,
+  annars läggs en ny till med föreslaget namn.
+  - `k.markera(ids)` ritar alla valda områden med klassen `markerad` (blå
+    fyllning + kontur, `--bla`).
+  - Senast klickade området får sitt namn som etikett (`skarm.satEtikett`).
+    Lärarvyn får visa namn – det är bara eleven som inte får det.
+- **Namnen:** ny fil `src/hitta-ratt/content/geo/<geo>.namn.json`
+  (källnyckel → svenskt namn). Lärarvyn kombinerar den med
+  `<geo>.nycklar.json` till id → `{ key, namn }`.
+  - Byggs av ett nytt litet skript **`admin/hitta-ratt-namn.mjs`** (C), som
+    varken behöver mapshaper eller ändrar geofilerna. Namnen tas i den här
+    ordningen:
+    1. de officiella packens `name` per `key` (Europa 46, landskap 25, län 21,
+       redan granskade)
+    2. Natural Earth `NAME_SV` (admin-0, kontrollerat: "Elfenbenskusten",
+       "Nordmakedonien", "Tjeckien") för världens övriga ≈ 136 länder
+    3. källnyckeln, om inget annat finns
+  - Ett test kontrollerar att varje id i geofilen har ett namn.
+  - **Eleven laddar aldrig namnfilen.** Inga namn hamnar i DOM:en i spelet
+    (§4.2).
+- **Tillgängligt alternativ:** en sökbar namnlista ("Lägg till område …") bredvid
+  kartan, för tangentbord och för små länder. Den byggs i C och är kvar även
+  när E lagt till kartklicket.
+
+### 11.8 Bilder
+
+**Beslut: Firestore-dokument per bild, nedskalad i klienten. Inget Storage.**
+
+| | Firebase Storage | **Firestore `hittaRattBilder/{id}`** ✔ |
+| --- | --- | --- |
+| Infrastruktur | Ny produkt: bucket, `storage.rules` i ett eget regelspråk, egen deploy, SDK (≈ 30 kB, dynamisk import) | Befintlig SDK och regelfil, en ny `match` |
+| Behörighet | Klass och ägare kräver `firestore.get()` från Storage-regler (extra läsningar, krånglig test) | Samma regelmiljö och emulator som resten |
+| Kostnad | Lagring + egress | ≈ 120 kB/bild. 1 läsning per bildfråga (0,06 USD/100 000). En skola med 50 bildpack × 20 bilder = 120 MB, långt inom kvoten |
+| #231 | 1 hämtning per bild | 1 läsning per bild, alltså O(1) per fråga, aldrig per elev. Bara aktuell och nästa fråga hämtas |
+| Gräns | GB | 1 MiB per dokument räcker gott för ≤ 150 kB |
+
+**Nedskalningen** (bevisad i spiken):
+1. `createImageBitmap` → `OffscreenCanvas`, längsta sidan ≤ 800 px.
+2. `convertToBlob` WebP med kvalitet 0,82 → 0,72 → 0,62 → 0,5. Saknar
+   webbläsaren WebP-kodning (`blob.type` ≠ webp, äldre Safari) blir det JPEG.
+3. Fortfarande > 120 kB → 640 px, sedan 480 px.
+4. Spikens Commons-bild (134 kB JPEG) blev **800 × 533 WebP, 55 kB** i Chrome.
+
+Ren logik i `src/hitta-ratt/larare/lhr-skala.js` (testbar med en
+canvas-stub).
+
+**De tre valen per fråga (alla frivilliga):**
+1. **"Sök bild online"** (Wikimedia Commons, från lärarens webbläsare)
+   1. Första förslaget är Wikidatas P18 om platsen kom därifrån.
+   2. Sökningen:
+      - `generator=search&gsrnamespace=6&gsrsearch=<namn> filetype:bitmap`
+      - `prop=imageinfo&iiprop=url|size|mime|extmetadata`
+      - `iiurlwidth=330` för rutnätet (Commons standardsteg, ovanliga bredder
+        stryps)
+   3. **Licensvitlistan** = samma funktion som `admin/hitta-ratt-bilder.mjs`:
+      PD, CC0, CC BY och CC BY-SA. Den lyfts till
+      `src/hitta-ratt/larare/commons.js`, och adminskriptet importerar den.
+      Spiken: 20 av 21 filer godkändes för "Gävle rådhus".
+   4. Vid val hämtas 960-miniatyren (`thumb.wikimedia.org`, `ACAO: *`, ingen
+      "tainted canvas" – bevisat), skalas ned och sparas som eget
+      bilddokument.
+   5. `fotograf` (Artist rensat från HTML), `licens`, `licensUrl`, `fil` och
+      `kallaUrl` sparas automatiskt i itemets `bild`.
+2. **"Ladda upp egen"**
+   - Filväljare med `accept="image/*"`, samma nedskalning.
+   - Kräver kryssrutan **"Jag har rätt att använda bilden"** (upphovsrätt).
+   - `bild.kalla = "egen"`, ingen attribution.
+3. **"Ingen bild"**, som är standard.
+
+**Commons: kopiera, inte hotlänka.** Regeln "inga externa bildtjänster vid
+speltid" (§0) gäller även egna pack:
+- Elevens webbläsare gör inga anrop till tredje part. Det är bättre för
+  integriteten (elevens IP), fungerar i skolor med filter och påverkas inte av
+  Commons strypning (429, sett i D #607).
+- Bilden visas i samma storlek och väg som uppladdade bilder.
+
+**Attribution:**
+- Under bilden i spelet: "Foto: {fotograf}, {licens}, Wikimedia Commons" (med
+  länk till `kallaUrl`), samma rad som de officiella sevärdhetsbilderna.
+- Egna bilder: ingen rad.
+- Lärarvyn visar raden vid varje bild.
+
+**Spelet** (`src/hitta-ratt/hr-bild.js`, dynamisk):
+- `bildUrl(bild)` → `bild.fil` (repo, officiell) eller `bild.id` →
+  `getDoc(hittaRattBilder/{id})` → `Blob` → `URL.createObjectURL`.
+- Cachen är en `Map` per omgång och frigörs (`revokeObjectURL`) när omgången
+  lämnas. Nästa frågas bild förhämtas som idag.
+- Saknad bild → frågan visas utan bild. Ingen krasch.
+
+**Index:** `firestore.indexes.json` får `fieldOverrides` för
+`hittaRattBilder.data` med `indexes: []`. Fältet behöver aldrig sökas, och
+utan indexering blir skrivningen billigare.
+
+**Föräldralösa bilder:**
+- `sparaPack` raderar packens bilder som inte längre används.
+- `raderaPack` raderar alla bilder för packen.
+- Kvar blir bara bilder i pack som aldrig sparades (läraren avbröt). De är få
+  och små. Ett adminskript kan städa senare (inte i den här epicen).
+
+### 11.9 Lärarvyn
+
+- **Var:** en ny rad i `TEACHER_TABS` (`src/teacher-shared.js`).
+
+  ```js
+  { key: "hittaratt", hash: "#/larare/hitta-ratt", label: "Hitta rätt!", title: "Hitta rätt!",
+    icon: "pin", page: lazyPage(() => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt") },
+  ```
+
+  - Ikonen `pin` finns redan i `ICONS`.
+  - Innehållsstudion valdes bort:
+    - Den handlar om ämnen och arbetsområden (`subjects/areas`), med wizard,
+      AI-flöde och tabell per ämne. Hitta rätt! har en egen datamodell, en egen
+      karta och egen förhandsgranskning.
+    - Att tvinga in den i studion skulle göra båda svårare.
+    - Mattematchen och Live har egna flikar på samma sätt.
+- **Bootgrafen:**
+  - `teacher-shared.js` ligger i den statiska grafen men får bara en registerrad
+    med `import()`. Inga nya statiska importer.
+  - Allt annat ligger i `src/hitta-ratt/larare/` och laddas dynamiskt.
+    `hitta-ratt-larare.css` laddas lat, som `hitta-ratt.css`.
+  - `admin/qa-bootgraf-bfs.mjs` ska fortfarande ge **107**.
+- **Design:** `teacher-page teacher-dark` (mörk lärardesign, så heter klassen i
+  koden), med de befintliga lärarkomponenterna (`teacherNav`, `teacherHead`,
+  `emptyState`, `icon`). Kartan själv behåller sina ljusa färger.
+- **Struktur** (tre flikar i sidan, `?vy=fardiga|mina|ny`):
+  1. **Färdiga områden:**
+     - de 12 officiella packen ur `index.json`, grupperade som på elevens
+       startsida
+     - "Visa innehåll" listar frågorna ur `packs/<id>.json`
+     - **"Provspela"** kör `spelaPack` med lokala deps: `startaForsok` → `"prov"`,
+       `skickaOmgang` → `raknaOmgang` i klienten. Inget sparas, inga coins.
+       Resultatskärmen visar "Provspel – sparas inte".
+     - **"Duplicera till Mina områden"** blir ett eget pack.
+  2. **Mina områden:**
+     - katalogen filtrerad på `ownerUid` (0 extra läsningar)
+     - tabell: namn, typ, antal frågor, klasser, topplista PÅ/AV
+     - åtgärder: Redigera, Provspela, Duplicera, Radera (bekräftelse, och
+       varning om topplistan är på)
+     - **Kollegors områden** (samma katalog, andra `ownerUid`) visas
+       hopfällda och kan provspelas och dupliceras, men inte redigeras
+  3. **Skapa nytt / Redigera** (samma formulär):
+     1. namn, kort beskrivning och ikon
+     2. karta: Sverige (landskap), Sverige (län), Europa eller världen.
+        **Kartan väljs bara när packet skapas.**
+     3. frågetyp punkt eller område (bara när packet skapas)
+     4. klasser (kryssrutor ur `getClasses()`)
+     5. startvy auto/hel
+     6. frågelistan med kartan bredvid (§11.6/§11.7) och bild per fråga
+        (§11.8)
+     7. kryssrutan **"☐ Skoltopplista / Gör till skolutmaning"** (AV som
+        standard), som anropar `hittaRattSattTopplista` direkt. Den finns
+        först när packet sparats en gång.
+     8. **Spara** = `hittaRattSparaPack`.
+     - Osparade ändringar → varning vid lämna (samma mönster som wizarden).
+- **Klient-API:** `src/hitta-ratt/larare/lhr-data.js`
+  (`sparaPack/raderaPack/sattTopplista/hamtaKatalog/hamtaPack`) med
+  `httpsCallable` som i `hr-data.js`. Felmeddelandena på svenska kommer från
+  servern.
+
+### 11.10 Uppdelning (sub-issues, körs seriellt – 8 GB RAM, högst en worker med webbläsare eller emulator)
+
+Leadens förslag behålls, med två justeringar:
+- **B** tar all serverkod för spara och radera, så att C bara är UI.
+- **C** får en enkel frågeinmatning (lat/lon under "Avancerat" och en namnlista
+  för områden), så att CRUD kan testas innan E finns.
+
+| # | Innehåll | Filer | Tester | Beror på |
+| --- | --- | --- | --- | --- |
+| **B** data, regler, server, elevsida | `delat/{scope,facit,egna}.js`. Sync-skriptet använder `kompaktFacit` och exporterar `GEO_OMRADEN`. `functions/hitta-ratt-egna.js` (`sparaPack`, `raderaPack`) + exporterna `hittaRattSparaPack` och `hittaRattRaderaPack`. `hittaRattSubmit` för `e-`-pack (klass, `facitAt`, `v`, `leaderboard`, klass ∩ `classIds`, `scope` i ledarna). Regeln för `hittaRattPacks`. Elevsidan: `hr-egna.js` (katalog, filter, startvy auto), "Från din lärare" på startsidan, `?pack=e-…` → `hittaRattPacks`, `hr-spel.js` tar `pack` i deps, nya felmeddelanden. Seed `admin/qa-hitta-ratt-egna-seed.mjs` (ett punkt- och ett områdespack via kärnan). | `src/hitta-ratt/delat/*`, `functions/*`, `admin/sync-hitta-ratt-functions.mjs`, `firestore.rules`, `src/hitta-ratt/{hr-egna,page-hitta-ratt,hr-start-vy,hr-spel}.js`, `package.json` | `test/hitta-ratt-egna.test.js` (normalisering, gränser, scope, facitnyckel, startvy). `test/functions-hitta-ratt-egna.test.mjs` (spara ny/befintlig, fel ägare, låst geo/typ, version + nollställning, katalog, radera, submit: klass nekad, ändrad karta, `v`, AV skriver personbästa men ingen topplista). `test/firestore-rules-hitta-ratt-egna.test.js`. Befintliga Hitta rätt!-sviter gröna, bootgraf 107. | – |
+| **C** lärarvy CRUD | `TEACHER_TABS`-raden. `src/hitta-ratt/larare/{page-larare-hitta-ratt,lhr-fardiga,lhr-mina,lhr-redigera,lhr-data,lhr-provspel}.js` + `hitta-ratt-larare.css`. Frågeinmatning: lat/lon under "Avancerat" (punkt) och sökbar namnlista (område). `admin/hitta-ratt-namn.mjs` → `geo/<geo>.namn.json`. Duplicera (utan bilder), radera, klass-synlighet, provspel och varning om ändrat facit. | `src/teacher-shared.js` (1 rad), `src/hitta-ratt/larare/*`, `src/hitta-ratt/content/geo/*.namn.json`, `admin/hitta-ratt-namn.mjs` | `test/hitta-ratt-larare.test.js` (ren vy-logik: formulär → indata, facit-varning, duplicera). `test/hitta-ratt-namn.test.js` (varje område har ett namn). Bootgraf 107. Preview med emulatorn (`qa-hitta-ratt-preview.sh` + lärarkonto). | B |
+| **D** toggle skoltopplista | `sattTopplista` (AV: `stangTopplista` i tx; PÅ: tx 1 + fråga + tx 2) + export `hittaRattSattTopplista`. Kryssrutan i C:s formulär. 🏆-vyn får gruppen "Från din lärare". `motivFor(packId, scope)`. | `functions/hitta-ratt-egna.js`, `functions/hitta-ratt-core.js` (tx-variant av `stangTopplista`), `functions/index.js`, `src/hitta-ratt/{page-hitta-ratt,hr-topplista-vy,hr-pokal-art}.js`, `src/hitta-ratt/larare/lhr-redigera.js` | `test/functions-hitta-ratt-egna-topplista.test.mjs` (PÅ återuppbygger ur personbästa med rätt `v`, kapplopp med submit, PÅ två gånger, AV tar bort topplista och ledare, radera med topplista PÅ, fel ägare). Pokal-testet för scope-motivet. | B, C |
+| **E** platssökning + polygonval | `lhr-platssok.js` (Wikidata → Nominatim, strypning 1 s, cache, fel, scope-markering, källa och OSM-attribution). Kartmotorns `satGissning` och `markera` (`karta/redigering.js`, `kartmotor.js` < 400 rader). `lhr-kartval.js` (punkt: sök → markör → dra → "Använd denna plats"; område: klick växlar fråga, namn ur `namn.json`). | `src/hitta-ratt/larare/*`, `src/hitta-ratt/karta/*` | `test/hitta-ratt-platssok.test.js` (fetch-stub: Wikidata-svar, P625-filter, reserv vid 0 träffar, 429-text, strypning). `test/hitta-ratt-karta.test.js` utökas (`satGissning` tur och retur, `markera`). Webbläsare: sök "Gävle" → markör, Europa: klicka 3 länder → 3 frågor, klicka igen → bort. | C |
+| **F** bilder | Regeln och indexundantaget för `hittaRattBilder`. `larare/{commons,lhr-skala,lhr-bilder}.js` (P18-förslag, Commons-sök med vitlistan, kopiering, uppladdning med upphovsrättsruta). `admin/hitta-ratt-bilder.mjs` importerar `commons.js`. `hr-bild.js` (spelet: `Bytes` → `objectURL`, förhämtning, revoke). `hr-spel.js` använder `bildUrl(bild)`. Servern: kontroll av `bild.id`, städning i `sparaPack`, radering i `raderaPack`, `kopieraFran` vid duplicering. | `firestore.rules`, `firestore.indexes.json`, `src/hitta-ratt/larare/*`, `src/hitta-ratt/{hr-bild,hr-spel}.js`, `functions/hitta-ratt-egna.js`, `admin/hitta-ratt-bilder.mjs` | `test/firestore-rules-hitta-ratt-bilder.test.js`. `test/hitta-ratt-bilder-egna.test.js` (vitlista, Artist-rensning, skalstegen med stub). Function-testet utökas (okänd eller fel bild-id nekas, städning, kopiering). Webbläsare: välj Commons-bild → ≤ 120 kB → syns i spelet med attribution, utan nätanrop till wikimedia från elevsidan. | C (körs efter E) |
+| **G** slut-QA | Spec §35 **test 8** steg för steg (punktområde via sökning, visuell bekräftelse, fråga med och utan bild, AV → spela → ingen topplista, PÅ → spela → 🏆-vyn + Top 15 + egen rad + pokal, AV → borta + pokal borta). Plus ändrat facit → nollställt, radera med topplista, områdespack via klick. Regression test 1–7 och 9–12, bootgraf 107, deploylista. | `docs/QA-RAPPORT-hitta-ratt-2.md`, eventuella små rättningar | alla sviter (`test`, `test:rules`, `test:functions` i färsk emulator), CDP-kartklick (`admin/qa-hitta-ratt-input.mjs`) | B–F |
+
+**Ordning:** B → C → D → E → F → G. Inget går parallellt (RAM). D före E så att
+test 8:s toppliste- och pokaldel kan provas tidigt med C:s "Avancerat"-inmatning.
+
+### 11.11 Deploy och öppna frågor
+
+**Deploy före live**, i ordning (ingen deploy i epicen utan Elias OK):
+1. `firebase deploy --only firestore:rules` (`hittaRattPacks`, `hittaRattBilder`).
+2. `firebase deploy --only firestore:indexes` (undantaget för
+   `hittaRattBilder.data`).
+3. `firebase deploy --only functions`:
+   - `hittaRattSubmit` (ändrad)
+   - `hittaRattSparaPack`, `hittaRattRaderaPack`, `hittaRattSattTopplista`
+     (nya)
+   - Predeployen synkar `delat/`.
+4. Pages.
+
+- **Inget Storage**, och ingen `storage.rules`.
+- Epic 1/2:s deploy (rules + functions, PR #631) måste ha gått först eller
+  samtidigt.
+
+**Öppna frågor till Elias:**
+1. **Vem ser en egen topplista?** Förslaget: bara elever i packets klasser
+   (`classIds`). En "skolutmaning" för hela skolan = läraren kryssar i alla
+   klasser. Alternativet är att alla elever ser alla egna topplistor i 🏆-vyn,
+   även för kartor de inte kan spela.
+2. **Ändrade platser nollställer rekord och topplista** (texter och bilder gör
+   det inte). Okej?
+3. **Påslagen topplista byggs upp ur befintliga personbästa** och startar alltså
+   inte tom. Okej?
+4. **Kollegors kartor:** alla lärare ser och kan provspela och duplicera
+   varandras kartor, men bara ägaren redigerar. Okej, eller ska de vara
+   privata?
+5. **Externa tjänster i lärarvyn:**
+   - Lärarens sökord går till Wikidata (Wikimedia, USA) och vid behov till
+     Nominatim (OSMF, Storbritannien).
+   - Bildsökningen går till Commons.
+   - Inga elevdata skickas, och eleverna gör inga sådana anrop.
+   - Okej ur GDPR-synpunkt för skolan?
+6. **Uppladdade bilder** kräver kryssrutan "Jag har rätt att använda bilden".
+   Räcker det?
+7. **Gräns 60 frågor per eget område** (1 coin per godkänt svar, som officiella
+   pack). Okej?
+
+### 11.12 Spikarna – hur de körs
+
+| Spik | Kör | Visar |
+| --- | --- | --- |
+| Platssökning (Node) | `node admin/hitta-ratt-sok-spik.mjs` (eller egna sökord som argument) | Tabell Wikidata mot Nominatim: träff, beskrivning, antal, avstånd. Följer Nominatims 1 anrop/s. |
+| Webbläsare | `PORT=8632 node server.mjs` → `/preview/preview-hitta-ratt-egna-spik.html` | Sök (Wikidata → Nominatim) → markör på kartmotorn + scope-kontroll (Eiffeltornet på Sverigekartan → "utanför"). Commons-sök med vitlistan → hämtning med CORS → WebP-nedskalning med storlek. "Ladda upp egen" med samma pipeline. |
+
+Uppmätt i Chrome 2026-10-12:
+
+| Mätning | Resultat |
+| --- | --- |
+| "Gävle" | 6 träffar |
+| "Eiffeltornet" | 2 träffar, utanför Sverige |
+| "Sarek" | 2 träffar |
+| Wikidata, tid per sökning | 0,7–0,9 s (första 2,9 s, kall anslutning) |
+| Commons "Gävle rådhus" | 21 filer, 20 med godkänd licens |
+| Vald bild | 800 × 533 `image/webp`, 55 kB, från 134 kB |
