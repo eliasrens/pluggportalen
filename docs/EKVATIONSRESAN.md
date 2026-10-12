@@ -606,3 +606,7 @@ Beslut ur de öppna frågorna i `docs/QA-RAPPORT-ekvationsresan-etapp1.md`:
 - **x ≥ 2 från nivå 3** (`xMin: 2` i `config.js`, `xMin` läses av
   `x+a=b`, `ax=b`, `ax+b=c`, `ax-b=c`). Nivå 1–2 oförändrade; x/a-formerna
   ger alltid x ≥ 2.
+- **x ≥ 2 gäller nivå 3–12** (#645): nivå 7–12 har `xMin: 2` och alla
+  Etapp 2-former läser det via `xLo(p)` i `forms.js`. Decimallösningar
+  (`ax+b=c:xdec`, t.ex. 2,5) är alltid > 2; decimalkoefficienterna (`dx=c`,
+  `dx+b=ex+f`) ger heltals-x ≥ 2. Extrautmaningar saknar `xMin` (oförändrade).

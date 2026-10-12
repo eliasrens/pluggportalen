@@ -36,6 +36,12 @@ const pickDecimal = (rng) => {
   return q(n, d);
 };
 
+/**
+ * Minsta lösning för Etapp 2-formerna: nivåns xMin (#643: x ≥ 2 från nivå 3),
+ * men aldrig under formens eget golv (extrautmaningar m.m. saknar xMin).
+ */
+const xLo = (p, floor = 1) => Math.max(floor, p.xMin ?? floor);
+
 /** p = nivåns params; varje build returnerar { equation, solution } eller null. */
 export const FORMS = Object.freeze({
   "x+a=b": {
@@ -119,7 +125,7 @@ export const FORMS = Object.freeze({
     build(p, rng) {
       const a = randInt(rng, Math.max(3, p.aMin ?? 3), p.aMax ?? 5);
       const c = randInt(rng, 1, a - 2);
-      const x = randInt(rng, 1, p.xMax ?? 10);
+      const x = randInt(rng, xLo(p), p.xMax ?? 10);
       return { equation: makeEquation([X(a)], [X(c), C((a - c) * x)]), solution: x };
     },
   },
@@ -128,7 +134,7 @@ export const FORMS = Object.freeze({
     build(p, rng) {
       const a = randInt(rng, Math.max(3, p.aMin ?? 3), p.aMax ?? 5);
       const c = randInt(rng, 1, a - 2);
-      const x = randInt(rng, 1, p.xMax ?? 10);
+      const x = randInt(rng, xLo(p), p.xMax ?? 10);
       const b = randInt(rng, 1, p.bMax ?? 12);
       return { equation: makeEquation([X(a), C(b)], [X(c), C((a - c) * x + b)]), solution: x };
     },
@@ -138,7 +144,7 @@ export const FORMS = Object.freeze({
     build(p, rng) {
       const a = randInt(rng, Math.max(3, p.aMin ?? 3), p.aMax ?? 8);
       const c = randInt(rng, 1, a - 2);
-      const x = randInt(rng, 2, p.xMax ?? 12);
+      const x = randInt(rng, xLo(p, 2), p.xMax ?? 12);
       const b = randInt(rng, 1, Math.min(p.bMax ?? 25, (a - c) * x - 1));
       if (b < 1) return null;
       return { equation: makeEquation([X(a), C(-b)], [X(c), C((a - c) * x - b)]), solution: x };
@@ -149,7 +155,7 @@ export const FORMS = Object.freeze({
     build(p, rng) {
       const a = randInt(rng, 1, Math.max(1, (p.aMax ?? 8) - 2));
       const c = randInt(rng, a + 2, Math.max(a + 2, p.aMax ?? 8));
-      const x = randInt(rng, 2, p.xMax ?? 12);
+      const x = randInt(rng, xLo(p, 2), p.xMax ?? 12);
       const b = randInt(rng, 1, p.bMax ?? 25);
       const d = (c - a) * x - b;
       if (d < 1 || c * x - d < 1) return null;
@@ -160,7 +166,7 @@ export const FORMS = Object.freeze({
     moves: 3,
     build(p, rng) {
       const a = randInt(rng, 2, p.aMax ?? 8);
-      const x = randInt(rng, 1, p.xMax ?? 12);
+      const x = randInt(rng, xLo(p), p.xMax ?? 12);
       const c = randInt(rng, 1, p.bMax ?? 25);
       return { equation: makeEquation([C(a * x + c), X(-a)], [C(c)]), solution: x };
     },
@@ -171,7 +177,7 @@ export const FORMS = Object.freeze({
       const a = randInt(rng, 1, p.aMax ?? 8);
       const c = randInt(rng, 1, Math.max(1, (p.aMax ?? 8) - a));
       if (a + c < 2) return null;
-      const x = randInt(rng, 1, p.xMax ?? 12);
+      const x = randInt(rng, xLo(p), p.xMax ?? 12);
       const d = randInt(rng, 1, p.bMax ?? 25);
       return { equation: makeEquation([C((a + c) * x + d), X(-a)], [X(c), C(d)]), solution: x };
     },
@@ -181,7 +187,7 @@ export const FORMS = Object.freeze({
     build(p, rng) {
       const a = randInt(rng, Math.max(3, p.aMin ?? 3), p.aMax ?? 8);
       const c = randInt(rng, 1, a - 2);
-      const x = randInt(rng, 2, p.xMax ?? 12);
+      const x = randInt(rng, xLo(p, 2), p.xMax ?? 12);
       const d = randInt(rng, 1, Math.min(p.bMax ?? 25, c * x - 1));
       if (d < 1) return null;
       return { equation: makeEquation([X(a), C(-((a - c) * x + d))], [X(c), C(-d)]), solution: x };
@@ -195,7 +201,7 @@ export const FORMS = Object.freeze({
     moves: 1,
     build(p, rng) {
       const a = pickDecimal(rng);
-      const x = randInt(rng, 2, p.xMax ?? 10) * a.d; // a · x blir ett heltal
+      const x = randInt(rng, xLo(p, 2), p.xMax ?? 10) * a.d; // a · x blir ett heltal
       if (x > (p.xMax ?? 10) * 2) return null;
       return { equation: makeEquation([XQ(a)], [CQ(mul(a, q(x)))]), solution: x };
     },
@@ -204,7 +210,7 @@ export const FORMS = Object.freeze({
     moves: 2,
     build(p, rng) {
       const a = pickDecimal(rng);
-      const x = randInt(rng, Math.max(2, p.xMin ?? 2), p.xMax ?? 10);
+      const x = randInt(rng, xLo(p, 2), p.xMax ?? 10);
       const b = randInt(rng, p.bMin ?? 1, p.bMax ?? 20);
       return { equation: makeEquation([XQ(a), C(b)], [CQ(add(mul(a, q(x)), q(b)))]), solution: x };
     },
@@ -213,7 +219,7 @@ export const FORMS = Object.freeze({
     moves: 2,
     build(p, rng) {
       const a = [2, 4, 5][randInt(rng, 0, 2)];
-      const k = randInt(rng, 1, (p.xMax ?? 10) * a);
+      const k = randInt(rng, (p.xMin ?? 0) * a + 1, (p.xMax ?? 10) * a); // x = k/a > xMin
       if (k % a === 0) return null; // lösningen ska vara ett decimaltal
       const b = randInt(rng, p.bMin ?? 1, p.bMax ?? 20);
       return { equation: makeEquation([X(a), C(b)], [C(k + b)]), solution: q(k, a) };
@@ -224,7 +230,7 @@ export const FORMS = Object.freeze({
     build(p, rng) {
       const diff = pickDecimal(rng);
       const c = randInt(rng, 1, 3);
-      const x = randInt(rng, 1, p.xMax ?? 10) * diff.d;
+      const x = randInt(rng, Math.ceil(xLo(p) / diff.d), p.xMax ?? 10) * diff.d;
       if (x > (p.xMax ?? 10) * 2) return null;
       const b = randInt(rng, 1, p.bMax ?? 20);
       return { equation: makeEquation([XQ(add(diff, q(c))), C(b)], [X(c), CQ(add(mul(diff, q(x)), q(b)))]), solution: x };
