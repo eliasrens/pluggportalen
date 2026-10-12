@@ -10,6 +10,7 @@
 //     facit [km-öst]         klicka på rätt plats (punkt, +km österut) / rätt område
 //     plats <lon> <lat>      klicka på en lon/lat (punkt)
 //     omrade <nyckel>        klicka inne i området med packens nyckel (t.ex. NOR, uppland)
+//     larare-omrade <geo> <nyckel>  lärarens kartval (#636): klicka området utan aktivt pack
 //     hjul <deltaY> [n]      n hjulsteg mitt på kartan (negativt = zooma in)
 //     hjulvid <lon> <lat> <deltaY> [n]  hjulsteg över en lon/lat
 //     drag <dx> <dy>         dra kartan dx,dy px från mitten
@@ -251,6 +252,15 @@ switch (cmd) {
     const p = await omradesPunkt(omradeIdFor(pack, rest[0]));
     if (!p) throw new Error("området syns inte");
     await klick(p.x, p.y); ut = p; break;
+  }
+  case "larare-omrade": {
+    // Lärarens kartval (#636): inget aktivt pack – nyckeln slås upp i geons nycklar.
+    const id = json(`src/hitta-ratt/content/geo/${rest[0]}.nycklar.json`)[rest[1]];
+    await evalJs(`document.querySelector('.hr-karta')?.scrollIntoView({ block: 'center' })`);
+    await sleep(200);
+    const p = await omradesPunkt(id);
+    if (!p) throw new Error("området syns inte");
+    await klick(p.x, p.y); ut = { id, ...p }; break;
   }
   case "hjul": {
     const m = await mitt();

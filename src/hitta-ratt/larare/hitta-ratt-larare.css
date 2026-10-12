@@ -308,3 +308,4 @@
 .lhr-kartval-status { font-size: 0.92rem; }
 .lhr-utanfor { color: #f2d27a; font-weight: 700; }
 .lhr-pa-kartan { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.lhr-kartval-fot .btn:disabled { opacity: 0.45; cursor: not-allowed; }

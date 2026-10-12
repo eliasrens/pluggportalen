@@ -1124,6 +1124,55 @@ kartan börjar om från noll."
 - Cykeln mellan `hitta-ratt-core.js` och `hitta-ratt-egna.js` (via `stangTopplistaTx`)
   är ofarlig, eftersom bara funktioner anropas efter laddningen.
 
+**Levererat i E #636:**
+- `src/hitta-ratt/larare/lhr-platssok.js` (ren modul, fetch och klocka injiceras):
+  Wikidata (`wbsearchentities` + `wbgetentities`, P625 på jorden, föredragen rang
+  först) → Nominatim som reserv vid 0 träffar **eller fel**, knappen "Sök i
+  OpenStreetMap" frågar bara Nominatim. Strypning: en sökning startar högst 1 gång/s
+  och Nominatim-anrop ligger alltid ≥ 1 s isär. Cache per sökord och källa (fel
+  cachas inte). Egna texter för inget nät, 429, 5xx, 0 träffar och för kort sökord –
+  alla hänvisar till kartan. `inom` per träff (scope), `OSM_ATTRIBUTION` visas vid
+  OSM-träffar. Källan sparas som `wikidata:Q…` / `osm:<typ>/<id>`.
+- Kartmotorn: `k.satGissning(pos, { zooma })` och `k.markera(ids, { etikett })` i
+  nya `karta/redigering.js` (får motorns delar injicerade, testas utan DOM).
+  `kartmotor.js` 391 rader (`ruta` flyttad till `kamera.js` som `omslutRuta`).
+  Klassen `markerad` (blå fyllning + kontur, även på klickringar). Spelet anropar
+  aldrig de nya funktionerna; `valj` delar bara `rensaVal` med `markera`.
+- `src/hitta-ratt/larare/lhr-kartval.js`: kartan ligger under rubriken "Frågor" och
+  överlever att listan ritas om (värden flyttas in av `ritaFragor`).
+  - Punkt: sök (knapp/Enter, Enter skickar inte formuläret) → förslag (utanför
+    scope gråa och avstängda, "utanför kartan") → markör + zoom → dra eller klicka
+    om → "Använd denna plats" (5 decimaler) lägger till en fråga med träffens namn.
+    "📍 Flytta på kartan" i en frågerad gör den till målet ("Använd för fråga N").
+    "Avancerat" (lat/lon) finns kvar.
+  - Område: klick växlar en fråga, namn ur `<geo>.namn.json`, valda blå, senast
+    tillagda får namnetikett (bara lärarvyn). Namnlistan från C finns kvar och
+    synkar med kartan åt båda hållen.
+  - Kartan laddas dynamiskt som i spelet; går den inte att ladda hänvisar vyn till
+    namnlistan/"Avancerat". Sökningen kan falla utan att kartan påverkas.
+- Tester: `test/hitta-ratt-platssok.test.js` (17 st, fetch-stub),
+  `test/hitta-ratt-karta.test.js` +5 (`satGissning` tur och retur i alla scope,
+  zoom, `markera` lägg till/ta bort/etikett). Enhetssviterna 1903/1903, bootgraf 107.
+- `admin/qa-hitta-ratt-input.mjs larare-omrade <geo> <nyckel>`: CDP-klick på ett
+  område i lärarens kartval (inget aktivt pack behövs).
+- Webbläsare (emulator-preview, qalarare): "Gävle" → markören på Gävle → drag →
+  klick → Använd → 4 platser sparade med `wikidata:Q…`; Eiffeltornet grått på
+  Sverigekartan; Europa: Norge, Frankrike, Polen → 3 frågor, Frankrike igen → bort,
+  Luxemburg via ring, Italien via namnlistan, X i listan avmarkerar. elev1 spelade
+  båda packen (4/4, inga namn på elevkartan). Skärmdumpar i `docs/hitta-ratt-636/`.
+
+**Avvikelser från §11 i E:**
+- **Nominatim även när Wikidata fallerar** (nät/429/5xx), inte bara vid 0 träffar.
+  Fallerar båda visas Wikidatas fel.
+- **Strypningen gäller sökningar**, inte varje HTTP-anrop: `wbgetentities` följer
+  direkt efter `wbsearchentities` i samma sökning (Wikimedia har ingen 1/s-gräns).
+- **Källan följer med när markören justeras** (drag/klick efter en sökträff) – den
+  anger vilken plats frågan gäller (F:s P18-förslag behöver Q-id:t). Klick utan
+  sökning sparar ingen källa.
+- Ingen `User-Agent` från webbläsaren (går inte att sätta); identifiering via
+  `Referer` enligt §11.6.
+- Kartvalet visar bara EN markör (kandidaten), inte alla sparade punkter.
+
 ### 11.5 Togglen "Skoltopplista / Gör till skolutmaning"
 
 Callable **`hittaRattSattTopplista({ packId, pa })`**. Bara ägaren
