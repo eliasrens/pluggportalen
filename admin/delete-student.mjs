@@ -9,10 +9,15 @@
 //   node admin/delete-student.mjs --id=elev1                 # torrkörning
 //   node admin/delete-student.mjs --id=elev1 --commit        # raderar
 //
+// Hitta rätt! (#609): tar även bort elevens rad ur alla skoltopplistor (och
+// räknar om ledarna/pokalerna), personbästa och försök – samma kod som
+// servern (functions/hitta-ratt-core.js taBortElev).
+//
 // Se docs/ADMIN.md. Kräver service-account (live) eller emulator-env.
 // ============================================================================
 
-import { auth, db, parseArgs, isEmulator } from "./_shared.mjs";
+import { auth, db, parseArgs, isEmulator, admin } from "./_shared.mjs";
+import { taBortElev } from "../functions/hitta-ratt-core.js";
 
 const { flags, opts } = parseArgs();
 const id = opts.id;
@@ -36,6 +41,8 @@ async function main() {
   console.log(`  Auth-konto:        ${authUser ? "finns" : "saknas"}`);
   console.log(`  students/${id}:     ${stuDoc.exists ? "finns" : "saknas"}`);
   console.log(`  studentData/${id}:  ${dataDoc.exists ? "finns" : "saknas"}`);
+  const hrBoards = (await db.collection("hittaRattBoards").get()).docs.filter((d) => d.data().entries?.[id]);
+  console.log(`  Hitta rätt!-topplistor: ${hrBoards.length ? hrBoards.map((d) => d.id).join(", ") : "inga"}`);
 
   if (!COMMIT) {
     console.log("\nTorrkörning. Kör med --commit för att radera ovanstående.");
@@ -54,6 +61,8 @@ async function main() {
     await db.collection("studentData").doc(id).delete();
     console.log(`  ✓ studentData/${id} raderat`);
   }
+  const hr = await taBortElev({ db, FieldValue: admin.firestore.FieldValue }, id);
+  console.log(`  ✓ Hitta rätt!: ${hr.boards.length} topplistor, ${hr.attempts} försök, personbästa borttaget`);
   console.log("\nKlart.");
 }
 

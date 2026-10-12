@@ -43,10 +43,16 @@ export function esc(s) {
   );
 }
 
-/** Tid i tiondelar av sekunder → "1:58" (aktiv tid, §11). */
-export function formatTid(tiondelar) {
-  const sek = Math.max(0, Math.round((Number(tiondelar) || 0) / 10));
-  return `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, "0")}`;
+/**
+ * Tid i tiondelar av sekunder → "1:58" (aktiv tid, §11), som ett stoppur
+ * (påbörjad sekund räknas inte). `medTiondelar` → "1:58,4" – topplistan
+ * använder det när två rader annars ser lika ut (arkitektur §3.3).
+ */
+export function formatTid(tiondelar, medTiondelar = false) {
+  const t = Math.max(0, Math.round(Number(tiondelar) || 0));
+  const sek = Math.floor(t / 10);
+  const mss = `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, "0")}`;
+  return medTiondelar ? `${mss},${t % 10}` : mss;
 }
 
 /**

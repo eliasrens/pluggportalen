@@ -3,7 +3,8 @@
 // ----------------------------------------------------------------------------
 //   #/elev/hitta-ratt                 startsidan: kort per kategori + 🏆-knapp
 //   #/elev/hitta-ratt?pack=<packId>   en omgång (E #608 – stubb tills dess)
-//   #/elev/hitta-ratt?vy=topplistor   topplistevyn (F #609 – stubb tills dess)
+//   #/elev/hitta-ratt?vy=topplistor[&lista=<packId>]   🏆-vyn (#609): skolans
+//                                     Top 15 + egen rad per pack, EN läsning per valt pack
 //
 // Routen ligger i app.js med DYNAMISK import (som Läsresan, #271), så inget
 // här hamnar i bootgrafen. Synligheten (opt-in per klass, enabledModules)
@@ -12,7 +13,8 @@
 // ============================================================================
 
 import { app, el, go, getParams, loading, renderTopbar } from "../ui.js";
-import { startsidaHtml, esc } from "./hr-start-vy.js";
+import { startsidaHtml, grupperaPack, esc } from "./hr-start-vy.js";
+import { topplistorVyHtml } from "./hr-topplista-vy.js";
 import { hamtaPersonbasta } from "./hr-best.js";
 
 const HASH = "#/elev/hitta-ratt";
@@ -59,7 +61,7 @@ export async function pageHittaRatt() {
     renderTopbar(),
   ]);
   const p = getParams();
-  if (p.vy === "topplistor") return visaTopplistorStubb();
+  if (p.vy === "topplistor") return visaTopplistor(index, p.lista);
   if (p.pack) return visaSpelStubb(index.find((x) => x.id === p.pack));
   visaStart(index, bast);
 }
@@ -84,9 +86,46 @@ function stubb(emoji, rubrik, text) {
   app.replaceChildren(vy);
 }
 
-// Stubbe tills topplistevyn (F #609) finns.
-function visaTopplistorStubb() {
-  stubb("🏆", "Topplistor", "Här kommer skolans topplistor att visas – Top 15, ditt rekord och din plats.");
+// 🏆-vyn (§22): välj ett pack med skoltopplista → Top 15 + egen rad. Byte av
+// pack ritas om på plats (ingen ny route-rendering); hashen följer med via
+// replaceState så att en omladdning visar samma lista.
+async function visaTopplistor(index, lista) {
+  const grupper = grupperaPack(index.filter((x) => x.leaderboard !== false));
+  const alla = grupper.flatMap((g) => g.pack);
+  let valt = alla.some((x) => x.id === lista) ? lista : alla[0]?.id || null;
+  const { hamtaTopplista } = await import("./hr-data.js");
+  let senast = 0;
+
+  const rita = (data) => {
+    const vy = el(topplistorVyHtml(grupper, valt, data));
+    vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+    vy.querySelectorAll(".hr-tl-pack").forEach((b) =>
+      b.addEventListener("click", () => {
+        if (b.dataset.pack !== valt) valj(b.dataset.pack);
+      })
+    );
+    const fokus = document.activeElement?.dataset?.pack;
+    app.replaceChildren(vy);
+    if (fokus) vy.querySelector(`.hr-tl-pack[data-pack="${CSS.escape(fokus)}"]`)?.focus();
+  };
+
+  async function valj(id) {
+    valt = id;
+    const nr = ++senast;
+    history.replaceState(null, "", `${HASH}?vy=topplistor&lista=${encodeURIComponent(id)}`);
+    rita(null);
+    let data;
+    try {
+      data = await hamtaTopplista(id);
+    } catch {
+      data = { fel: "Topplistan gick inte att hämta just nu. Försök igen om en stund." };
+    }
+    // Ett senare val vinner; har eleven hunnit lämna vyn ritas inget.
+    if (nr === senast && location.hash.startsWith(`${HASH}?vy=topplistor`)) rita(data);
+  }
+
+  if (valt) await valj(valt);
+  else rita(null);
 }
 
 // Stubbe tills spelflödet (E #608) finns.
