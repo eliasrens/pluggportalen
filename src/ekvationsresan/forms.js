@@ -3,15 +3,16 @@
 // ----------------------------------------------------------------------------
 // En FORM är en mall för en sorts ekvation. build(p, rng) väljer lösningen x
 // FÖRST och räknar fram talen ur den, så generatorn vet alltid svaret och x är
-// alltid positivt (E1.8, E2.1) – ett heltal, utom i "ax+b=c:xdec" (nivå 10+,
-// x = 2,5). Nivåerna i config.js väljer former med vikter och ger parametrarna
-// (p). `solution` är ett heltal eller ett exakt tal { n, d }.
+// alltid ett positivt heltal (E1.8). Nivåerna i config.js väljer former med
+// vikter och ger parametrarna (p).
 //
-// Ny form = en rad i FORMS + en vikt i LEVELS. `moves` = formens strukturella optimum, som testerna jämför BFS:en
+// Ny form (Etapp 2, t.ex. "ax+b=cx+d" för nivå 7) = en rad i FORMS + en vikt i
+// LEVELS. `moves` = formens strukturella optimum, som testerna jämför BFS:en
 // mot (solver.js räknar alltid själv; det är BFS-resultatet som sparas).
 // ============================================================================
 
-import { q, add, mul } from "./rational.js";
+import { q } from "./rational.js";
+import { add, mul } from "./rational.js";
 import { term, makeEquation } from "./equation.js";
 
 /** Heltal i [min, max] ur rng (Math.random-lik funktion). */
@@ -188,6 +189,7 @@ export const FORMS = Object.freeze({
   },
 
   // --- Etapp 2 (#623): decimaler, nivå 10+ ------------------------------------
+  // `solution` får här vara ett exakt tal { n, d } (x = 2,5 i "ax+b=c:xdec").
 
   "dx=c": { //                   1,5x = 9
     moves: 1,
