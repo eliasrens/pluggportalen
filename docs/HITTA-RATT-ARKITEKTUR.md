@@ -1053,6 +1053,41 @@ kartan börjar om från noll."
 - Ett försök på ett borttaget pack ger `not-found` även vid omförsök av ett
   redan avslutat försök (sällsynt; resultatet och coins är redan sparade).
 
+**Levererat i C #634:**
+- Fliken "Hitta rätt!" är en rad i `TEACHER_TABS`. Allt i `src/hitta-ratt/larare/`
+  laddas dynamiskt (bootgrafen är kvar på 107):
+  - `page-larare-hitta-ratt.js`: underflikar `?vy=fardiga|mina|ny`, `&id=` (redigera),
+    `&kopia=` (duplicera) och `?prov=<packId>&fran=<vy>` (provspel).
+  - `lhr-fardiga.js`, `lhr-mina.js`, `lhr-redigera.js`, `lhr-data.js`, `lhr-provspel.js`
+    och `hitta-ratt-larare.css`.
+- Provspel: `hr-spel.js` tar `deps.prov` och `deps.hem`. Då visas inga coins, och
+  resultatet säger "Provspel – sparas inte". Rättningen sker med `raknaOmgang` i klienten.
+- Varningen om ändrat facit visas direkt i formuläret och frågas igen vid Spara.
+  Lämna-vakten (`armeraLamnaVakt` med egen text) skyddar osparade ändringar.
+- `admin/hitta-ratt-namn.mjs` skriver `<geo>.namn.json`. Namnen kommer från packen
+  (154 st) och Natural Earth (104), med rättningen Swaziland → Eswatini.
+- Tester: `test/hitta-ratt-larare.test.js` och `test/hitta-ratt-namn.test.js`.
+  Skärmdumpar finns i `docs/hitta-ratt-634/`.
+- `admin/qa-emulator-proxy.mjs` skickar nu vidare `hittaRattSparaPack`, `hittaRattRaderaPack`
+  och `hittaRattSattTopplista` (D). `qa-hitta-ratt-input.mjs` förstår `prov=` i hashen.
+
+**Avvikelser från §11 i C:**
+- Två filer till:
+  - `lhr-modell.js`: den rena logiken, som testas i Node.
+  - `lhr-fragor.js`: frågelistan. Den hölls utanför `lhr-redigera.js` för att filen
+    skulle hålla sig under 400 rader.
+- **Duplicera sparar inte direkt.** Kopian öppnas osparad i formuläret, med
+  "(kopia)", inga klasser och inga bilder. Där kan läraren byta karta och typ innan
+  första sparningen ("Duplicera för att byta", §11.0).
+  - Byter läraren typ töms frågorna.
+  - Områdesfrågor följer med till en ny karta via källnyckeln, till exempel mellan
+    Europa och världen.
+  - Frågor som inte kan följa med tas bort efter en bekräftelse.
+- Startvyn "auto" heter "Anpassad" i formuläret, och "hel" heter "Hela kartan".
+- `lhr-data.js` har ännu ingen `sattTopplista`. Den läggs till i D.
+  Kryssrutan har en plats i formuläret (`[data-plats="topplista"]`, dold).
+- Lärarvyn läser katalogen färskt vid varje besök (1 läsning), inte ur 60-sekunderscachen.
+
 ### 11.5 Togglen "Skoltopplista / Gör till skolutmaning"
 
 Callable **`hittaRattSattTopplista({ packId, pa })`**. Bara ägaren

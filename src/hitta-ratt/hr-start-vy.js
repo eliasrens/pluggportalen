@@ -35,7 +35,7 @@ export const TYP = {
 };
 
 /** Packens egen ikon (lite variation inom kategorin). */
-const PACK_IKON = {
+export const PACK_IKON = {
   "sverige-stader": "🏙️", "sverige-landskap": "🌲", "sverige-lan": "🧭", "sverige-geografi": "⛰️",
   "europa-lander-20": "🗺️", "europa-lander-alla": "🗺️",
   "europa-huvudstader-20": "🏛️", "europa-huvudstader-alla": "🏛️",
