@@ -10,6 +10,8 @@
 //   600 p och blir ledare när topplistan slås PÅ; elev1 hamnar under Top 15
 //   (egen rad). Läraren slår på/av i lärarvyn – eller här:
 //   --pa / --av   anropar sattTopplista som qalarare (utan ny seed)
+//   --pack=<id>   ett annat eget pack än Gästrikland runt (slut-QA #638: lärarens
+//                 nya område, 20 elever spelar det innan topplistan slås på)
 //
 //   FIRESTORE_EMULATOR_HOST=… FIREBASE_AUTH_EMULATOR_HOST=… node admin/qa-hitta-ratt-toggle-seed.mjs [--pa|--av]
 // ============================================================================
@@ -26,7 +28,7 @@ const app = admin.initializeApp({ projectId: process.env.GCLOUD_PROJECT || "plug
 const db = admin.firestore(app);
 const { FieldValue, FieldPath, Timestamp } = admin.firestore;
 const deps = { db, FieldValue, FieldPath, Timestamp, now: Date.now };
-const ID = "e-qaegnapunkt1";
+const ID = process.argv.find((a) => a.startsWith("--pack="))?.slice(7) || "e-qaegnapunkt1";
 
 const larare = await admin.auth(app).getUserByEmail("qalarare@larare.pluggportalen.local").catch(() => null);
 const packSnap = await db.doc(`hittaRattPacks/${ID}`).get();
@@ -38,7 +40,7 @@ if (!larare || !packSnap.exists) {
 const pa = process.argv.includes("--pa") ? true : process.argv.includes("--av") ? false : null;
 if (pa !== null) {
   const r = await sattTopplista(deps, larare.uid, { packId: ID, pa });
-  console.log(`✓ Skoltopplistan för Gästrikland runt: ${r.leaderboard ? "PÅ" : "AV"} (${r.tillagda} poster ur personbästa)`);
+  console.log(`✓ Skoltopplistan för ${packSnap.data().title}: ${r.leaderboard ? "PÅ" : "AV"} (${r.tillagda} poster ur personbästa)`);
   process.exit(0);
 }
 
@@ -52,14 +54,16 @@ const elever = (await db.collection("classes").where("__name__", "in", ["hr-5a",
   .sort()
   .slice(0, 20);
 let nr = 0;
+// Försöket måste starta efter senaste facitändringen (annars "Läraren har ändrat kartan").
+const start = Math.max(Date.now() - 600_000, (pack.facitAt?.toMillis?.() ?? 0) + 1000);
 for (const [i, uid] of elever.entries()) {
   // Omar (hr-elev00) exakt = 600 p, ensam etta; övriga missar 14–50 km på
   // varannan fråga (≤ 5 km ger full poäng) → 15 elever över elev1:s 548 p.
   const km = uid === "hr-elev00" ? 0 : 12 + i * 2;
   const svar = pack.items.map((it, n) => ({ itemId: it.id, lon: it.lon, lat: n % 2 ? it.lat - km / 111.2 : it.lat }));
   const attemptId = `qatoggle${Date.now().toString(36)}${(nr++).toString(36)}`;
-  await db.doc(`hittaRattAttempts/${attemptId}`).set({ uid, packId: ID, startedAt: Timestamp.fromMillis(Date.now() - 600_000), status: "open" });
+  await db.doc(`hittaRattAttempts/${attemptId}`).set({ uid, packId: ID, startedAt: Timestamp.fromMillis(start), status: "open" });
   await submit(deps, uid, { attemptId, svar });
 }
-console.log(`✓ ${elever.length} elever i 5A/5E har spelat Gästrikland runt med topplistan AV (personbästa, ingen topplista).`);
+console.log(`✓ ${elever.length} elever i 5A/5E har spelat ${pack.title} med topplistan ${pack.leaderboard ? "PÅ" : "AV (personbästa, ingen topplista)"}.`);
 console.log("Klart: slå på i lärarvyn (qalarare → Hitta rätt! → Mina områden → Gästrikland runt) eller … qa-hitta-ratt-toggle-seed.mjs --pa");
