@@ -1401,6 +1401,57 @@ utan indexering blir skrivningen billigare.
 - Kvar blir bara bilder i pack som aldrig sparades (läraren avbröt). De är få
   och små. Ett adminskript kan städa senare (inte i den här epicen).
 
+**Levererat i F #637:**
+- Regeln `hittaRattBilder` (enligt §11.2, plus `bredd`/`hojd` > 0) och
+  indexundantaget för `hittaRattBilder.data` i `firestore.indexes.json`.
+- `src/hitta-ratt/larare/commons.js` (ren, fetch injiceras): vitlistan `licens()`,
+  `rensaHtml`/`fotografUr` (Artist utan HTML, ≤ 160 tecken), `skapaCommons()` med
+  `sok` (330-rutnät, bara godkända licenser), `info` (960-miniatyren) och `p18`
+  (Wikidata). `admin/hitta-ratt-bilder.mjs` importerar `licens` och `fotografUr`.
+- `lhr-skala.js`: skalstegen 800/640/480 px × 0,82/0,72/0,62/0,5, WebP → JPEG,
+  ≤ 120 000 byte, annars `SkalaFel`. `lhr-bilder.js`: bildrad per fråga och en
+  `<dialog>` med flikarna "Sök bild online" och "Ladda upp egen" (kryssrutan krävs).
+  `lhr-data.js` `sparaBild` skriver dokumentet (`Bytes`, `serverTimestamp`).
+- Servern: ny `functions/hitta-ratt-bilder.js` (`kopieraBilder`, `bilderFraga`,
+  `granskaBilder`, `raderaPackBilder`), anropad från `sparaPack`/`raderaPack`.
+- Spelet: `hr-bild.js` (`skapaBildCache`: `Bytes` → `objectURL`, förhämtning,
+  `rensa()` när omgången lämnas, saknad bild → frågan utan bild) och
+  `attributionHtml`. `hr-spel.js` använder dem för både egna och officiella bilder.
+- Tester: `test/hitta-ratt-bilder-egna.test.js` (21),
+  `test/firestore-rules-hitta-ratt-bilder.test.js` (9),
+  `test/functions-hitta-ratt-egna-bilder.test.mjs` (11), båda i `test:rules`/`test:functions`.
+  Enhetssviterna 1924/1924, Hitta rätt!-reglerna 32/32, Hitta rätt!-functions 59/59, bootgraf 107.
+- Webbläsare (emulator-preview, qalarare → elev1): Commons "Gävle rådhus 01" →
+  800 × 532 WebP, 77 kB; egen PNG → 800 × 563 WebP, 24 kB; ny fråga "Järbo" utan bild.
+  elev1 spelade packet: bilderna som `blob:` från Firestore, attribution bara under
+  Commons-bilden, **inga anrop till wikimedia/wikidata** (nätverkslistan: bara
+  appen, gstatic och Google Fonts). Officiella "Kända platser" visar repobilderna som förut.
+  P18: platssökning "Gävle" → bilddialogen visar Wikidatas bild först.
+  Skärmdumpar i `docs/hitta-ratt-637/`.
+
+**Avvikelser från §11 i F:**
+- **Servern i en egen fil** `functions/hitta-ratt-bilder.js`, så att
+  `hitta-ratt-egna.js` håller sig långt under 400 rader (295).
+- **Kontrollen läser inte bilderna:** en fråga `where packId == id`
+  `.select(ownerUid, bredd, hojd)` i spara-transaktionen. Den kontrollerar alla
+  `bild.id` (finns, rätt pack, **och anroparen äger bilden**), ger `bredd`/`hojd`
+  från dokumentet och hittar de oanvända (högst 400 raderas per sparning).
+- **Returvärdena är oförändrade** (`{ id, version, nollstalld }` / `{ fanns }`).
+  `raderaPack` på ett pack som inte finns raderar bara anroparens egna bilder.
+- **Duplicera tar med bilderna.** Kopian (C) behåller `bild`; egna packs bilder
+  kopieras av servern vid första sparningen (`kopieraFran`), bara de som frågorna
+  använder. En saknad källbild ger en fråga utan bild. Officiella packs bilder
+  följer med som repofil (`bild.fil`, inget dokument): `normBild` godtar
+  `fil` = `^[a-z0-9-]{1,60}\.webp$` utan `id`.
+- **Bild i båda frågetyperna** (även områdesfrågor). Spelet visade tidigare bilder
+  bara för punktfrågor.
+- **Attribution för alla Commons-bilder**, även PD/CC0 (samma rad som de officiella),
+  ingen rad för egna bilder.
+- **`bildUrl(bild)` heter `skapaBildCache().url(bild)`**, eftersom cachen och
+  `revoke` hör till omgången.
+- Commons-sökningen körs direkt när dialogen öppnas (med frågans namn), och
+  vidare på knapp eller Enter. Vald bild hämtas via `info(fil, 960)`.
+
 ### 11.9 Lärarvyn
 
 - **Var:** en ny rad i `TEACHER_TABS` (`src/teacher-shared.js`).

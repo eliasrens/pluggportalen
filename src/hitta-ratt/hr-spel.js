@@ -25,6 +25,11 @@
 // Serverns fel för egna pack (ändrad karta, inte delad, borttagen) får en egen
 // vy; "Starta ny omgång" laddar om packet.
 //
+// Bilder (#637): bild.id (eget pack) läses ur hittaRattBilder via hr-bild.js
+// (objectURL, nästa frågas bild förhämtas, allt frigörs när omgången lämnas);
+// bild.fil (officiellt) ligger i repot. Bild är frivillig per fråga, i båda
+// frågetyperna. Saknad bild → frågan visas utan bild.
+//
 // Provspel (#634, lärarvyn): deps.prov = true + deps.hem (lärarens route) +
 // lokala deps.data (rättning i klienten). Inga coins visas och resultatet
 // säger "Provspel – sparas inte".
@@ -37,6 +42,7 @@ import { blanda, skapaStoppur, skapaOmgang, berom, omradeText, formatKm } from "
 import { resultatHtml, sparFelHtml } from "./hr-resultat-vy.js";
 import { armeraLamnaVakt } from "./hr-lamna-vakt.js";
 import { arEget, egetSparFel, startvyAuto } from "./hr-egna.js";
+import { attributionHtml, skapaBildCache } from "./hr-bild.js";
 
 const HASH = "#/elev/hitta-ratt";
 const NASTA_SPARR_MS = 450;
@@ -63,8 +69,6 @@ function hamtaJson(rel) {
   }
   return jsonCache.get(rel);
 }
-
-const bildUrl = (fil) => new URL(`./content/bilder/${fil}`, import.meta.url).href;
 
 function felVy(rubrik, text, igen, igenText = "Försök igen", hem = HASH) {
   const vy = el(`<div class="panel center hr-stub" role="alert">
@@ -131,6 +135,8 @@ function spelaOmgang(ctx, attemptId) {
   let godkanda = 0;
   let nastaFran = 0;
   let stadad = false;
+  let bildNr = 0;
+  const bilder = skapaBildCache();
 
   const vy = el(`<div class="hr-spel ${omrade ? "hr-spel-omrade" : "hr-spel-punkt"}">
     <div class="panel hr-spel-topp">
@@ -196,6 +202,7 @@ function spelaOmgang(ctx, attemptId) {
     stadad = true;
     clearInterval(tick);
     karta.destroy();
+    bilder.rensa();
     avarmera?.();
     avarmera = null;
   }
@@ -221,23 +228,7 @@ function spelaOmgang(ctx, attemptId) {
     const it = omgang.aktuell;
     karta.reset();
     $('[data-v="nr"]').innerHTML = `Fråga <b>${omgang.nr + 1}</b> av ${omgang.antal}`;
-    const bild = !omrade && it.bild;
-    const img = $(".hr-spel-bild");
-    img.hidden = !bild;
-    vy.classList.toggle("hr-spel-med-bild", !!bild);
-    $(".hr-spel-namn").hidden = !bild;
-    $(".hr-spel-foto").hidden = !bild;
-    if (bild) {
-      img.src = bildUrl(it.bild.fil);
-      img.alt = it.name;
-      img.width = it.bild.bredd;
-      img.height = it.bild.hojd;
-      $(".hr-spel-namn").textContent = it.name;
-      const b = it.bild;
-      $(".hr-spel-foto").innerHTML = `Foto: ${esc(b.fotograf || "okänd")}, <a href="${esc(b.licensUrl)}" target="_blank" rel="noopener">${esc(b.licens)}</a>, <a href="${esc(b.kallaUrl)}" target="_blank" rel="noopener">Wikimedia Commons</a>`;
-    } else {
-      img.removeAttribute("src");
-    }
+    visaBild(it);
     $(".hr-spel-prompt").textContent = it.prompt || (omrade ? `Hitta ${it.name}` : `Var ligger ${it.name}?`);
     feedback.className = "hr-spel-feedback";
     feedback.innerHTML = `<span class="hint">${omrade
@@ -251,9 +242,32 @@ function spelaOmgang(ctx, attemptId) {
     ritaMatt();
   }
 
+  function visaBild(it, bild = it.bild || null) {
+    const nr = ++bildNr;
+    const img = $(".hr-spel-bild");
+    const foto = $(".hr-spel-foto");
+    img.hidden = !bild;
+    vy.classList.toggle("hr-spel-med-bild", !!bild);
+    $(".hr-spel-namn").hidden = !bild;
+    foto.innerHTML = bild ? attributionHtml(bild, esc) : "";
+    foto.hidden = !foto.innerHTML;
+    img.removeAttribute("src");
+    if (!bild) return;
+    img.alt = it.name;
+    if (bild.bredd && bild.hojd) {
+      img.width = bild.bredd;
+      img.height = bild.hojd;
+    }
+    $(".hr-spel-namn").textContent = it.name;
+    bilder.url(bild).then((u) => {
+      if (stadad || nr !== bildNr) return;
+      if (u) img.src = u;
+      else visaBild(it, null); // saknad bild → frågan utan bild
+    });
+  }
+
   function forladdaNastaBild() {
-    const nasta = ordning[omgang.nr + 1];
-    if (!omrade && nasta?.bild) new Image().src = bildUrl(nasta.bild.fil);
+    bilder.forhamta(ordning[omgang.nr + 1]?.bild);
   }
 
   function las() {

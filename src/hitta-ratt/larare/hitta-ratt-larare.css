@@ -309,3 +309,42 @@
 .lhr-utanfor { color: #f2d27a; font-weight: 700; }
 .lhr-pa-kartan { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
 .lhr-kartval-fot .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* --- Bild per fråga (#637, §11.8) -------------------------------------- */
+.lhr-bild { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; }
+.lhr-bild-tumme, .lhr-bild-tom {
+  width: 72px; height: 54px; flex: none; border-radius: 8px; object-fit: cover;
+  background: var(--t-raised); border: 1px solid var(--t-border);
+}
+.lhr-bild-tom { display: grid; place-items: center; font-size: 1.3rem; opacity: 0.6; }
+.lhr-bild-info { display: grid; gap: 4px; min-width: 0; }
+.lhr-bild-info .hint { margin: 0; font-size: 0.8rem; overflow-wrap: anywhere; }
+.lhr-bild-attr a { color: inherit; }
+.lhr-bild-knappar { display: flex; flex-wrap: wrap; gap: 6px; }
+.lhr-bild-dialog {
+  width: min(880px, calc(100vw - 24px)); max-height: calc(100dvh - 32px);
+  padding: 18px 20px; border: 1px solid var(--t-border); border-radius: 14px;
+  background: var(--t-surface, #161b22); color: var(--t-text, #e6edf3);
+}
+.lhr-bild-dialog::backdrop { background: rgba(4, 7, 11, 0.72); }
+.lhr-bild-dialog.upptagen { cursor: progress; }
+.lhr-bild-dialog.upptagen .lhr-bild-val { pointer-events: none; opacity: 0.6; }
+.lhr-bild-dialog-topp { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.lhr-bild-dialog-topp .subhead { margin: 0; }
+.lhr-bild-flikar { display: flex; gap: 6px; }
+.lhr-bild-dialog section { display: grid; gap: 10px; margin-top: 12px; }
+.lhr-bild-sok { display: flex; gap: 8px; }
+.lhr-bild-sok input { flex: 1; font-size: 1rem; padding: 8px 12px; }
+.lhr-bild-dialog .hint { margin: 0; font-size: 0.82rem; }
+.lhr-bild-rutnat {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;
+  max-height: min(52dvh, 460px); overflow: auto;
+}
+.lhr-bild-val {
+  display: grid; gap: 4px; padding: 4px; border-radius: 10px; cursor: pointer; text-align: left;
+  background: var(--t-surface-2); border: 1px solid var(--t-border); color: var(--t-muted); font-size: 0.75rem;
+}
+.lhr-bild-val:hover, .lhr-bild-val:focus-visible { border-color: var(--bla, #4a90d9); color: var(--t-text); }
+.lhr-bild-val.forslag { border-color: #f2d27a; }
+.lhr-bild-val img { width: 100%; height: 110px; object-fit: cover; border-radius: 7px; }
+.lhr-bild-status { min-height: 1.3em; margin: 10px 0 0; font-size: 0.88rem; }

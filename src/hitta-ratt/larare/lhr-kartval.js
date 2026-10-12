@@ -140,7 +140,7 @@ export function skapaKartval(host, st, { omraden = null, andrad = () => {}, omri
         const t = r.traffar[Number(b.dataset.i)];
         svar.querySelectorAll(".vald").forEach((x) => x.classList.remove("vald"));
         b.classList.add("vald");
-        satKandidat({ lon: t.lon, lat: t.lat, namn: t.namn, kalla: t.kalla }, true);
+        satKandidat({ lon: t.lon, lat: t.lat, namn: t.namn, kalla: t.kalla, p18: t.p18 }, true);
       }));
     } catch (err) {
       svar.replaceChildren(el(`<p class="msg warn lhr-platssok-fel" role="alert">${esc(err?.message || "Sökningen misslyckades.")}</p>`));
@@ -188,9 +188,10 @@ export function skapaKartval(host, st, { omraden = null, andrad = () => {}, omri
     if (it) {
       Object.assign(it, plats);
       if (kandidat.kalla) it.kalla = kandidat.kalla;
+      if (kandidat.p18) it.p18 = kandidat.p18; // bildförslaget (#637), sparas inte
       if (!String(it.name || "").trim() && kandidat.namn) it.name = kandidat.namn.slice(0, GRANS.namn);
     } else {
-      it = { name: (kandidat.namn || "").slice(0, GRANS.namn), prompt: "", ...plats, ...(kandidat.kalla ? { kalla: kandidat.kalla } : {}) };
+      it = { name: (kandidat.namn || "").slice(0, GRANS.namn), prompt: "", ...plats, ...(kandidat.kalla ? { kalla: kandidat.kalla } : {}), ...(kandidat.p18 ? { p18: kandidat.p18 } : {}) };
       st.f.items = [...st.f.items, it];
     }
     const nr = st.f.items.indexOf(it) + 1;

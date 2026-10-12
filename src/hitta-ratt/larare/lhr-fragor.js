@@ -6,6 +6,7 @@
 // finns kvar (§11.7, tangentbord och små länder).
 //   punkt:  namn, frågetext, "📍 Flytta på kartan" och lat/lon under "Avancerat"
 //   område: sökbar namnlista ur <geo>.namn.json → en fråga per område
+//   båda:   frivillig bild per fråga (lhr-bilder.js, #637)
 //
 //   ritaFragor(host, st, { omraden, andrad, kartval, kartvalHost })
 //     st.f      formuläret (lhr-modell.js) – items skrivs om här
@@ -19,6 +20,7 @@
 import { el, esc, icon } from "../../teacher-shared.js";
 import { GRANS } from "../delat/egna.js";
 import { laggTillOmrade, sokOmraden, tal, tomFraga } from "./lhr-modell.js";
+import { bildHtml, kopplaBild } from "./lhr-bilder.js";
 
 const MAX_TRAFFAR = 12;
 
@@ -44,6 +46,7 @@ function punktRad(it, i, kartval) {
         </div>
         <p class="hint">Decimalgrader. Väst och syd skrivs med minus. Kopiera t.ex. från Wikipedia eller en kartsajt.</p>
       </details>
+      ${bildHtml(it)}
     </div>
     <button type="button" class="btn ghost small lhr-ta-bort" data-act="bort" title="Ta bort frågan" aria-label="Ta bort fråga ${i + 1}">${icon("x", 16)}</button>
   </li>`;
@@ -56,6 +59,7 @@ function omradeRad(it, i, namnFor) {
       <p class="lhr-omrade-namn">🗺️ ${esc(namnFor(it))}</p>
       <label class="lhr-mini">Namn i frågan<input type="text" data-f="name" maxlength="${GRANS.namn}" value="${esc(it.name)}" /></label>
       <label class="lhr-mini"><span>Frågetext <span class="hint">(valfri)</span></span><input type="text" data-f="prompt" maxlength="${GRANS.prompt}" value="${esc(it.prompt)}" placeholder="${esc(`Hitta ${it.name || "…"}`)}" /></label>
+      ${bildHtml(it)}
     </div>
     <button type="button" class="btn ghost small lhr-ta-bort" data-act="bort" title="Ta bort frågan" aria-label="Ta bort fråga ${i + 1}">${icon("x", 16)}</button>
   </li>`;
@@ -107,6 +111,7 @@ export function ritaFragor(host, st, { omraden = null, andrad = () => {}, kartva
       })
     );
     rad.querySelector('[data-act="karta"]')?.addEventListener("click", () => kartval.valjFraga(it));
+    kopplaBild(rad, it, { packId: st.f.id, andrad, omrita: () => omrita() });
     rad.querySelector('[data-act="bort"]').addEventListener("click", () => {
       st.f.items = st.f.items.filter((x) => x !== it);
       omrita(area ? '[data-v="sok"]' : '[data-act="ny"]');

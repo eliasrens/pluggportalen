@@ -143,7 +143,7 @@ describe("facit-varningen", () => {
 });
 
 describe("duplicera", () => {
-  it("officiellt punktpack: nytt id, (kopia), inga klasser, inga bilder, wikidata → kalla", () => {
+  it("officiellt punktpack: nytt id, (kopia), inga klasser, bilderna pekar på repofilen, wikidata → kalla", () => {
     const off = lasJson("packs/europa-kanda-platser.json");
     const f = dupliceraPack(off, ID2);
     assert.equal(f.id, ID2);
@@ -152,7 +152,11 @@ describe("duplicera", () => {
     assert.equal(f.title, `${off.title} (kopia)`);
     assert.deepEqual(f.classIds, []);
     assert.equal(f.items.length, off.items.length);
-    assert.equal(f.items.some((it) => "bild" in it || "bildKalla" in it || "inom" in it), false);
+    assert.equal(f.items.some((it) => "bildKalla" in it || "inom" in it), false);
+    // #637: officiella bilder följer med som repofil (inget dokument, ingen kopiering)
+    assert.deepEqual(f.items[0].bild, off.items[0].bild);
+    assert.equal(f.kopieraFran, null);
+    assert.deepEqual(tillIndata(f).items[0].bild, off.items[0].bild);
     assert.equal(f.items[0].kalla, `wikidata:${off.items[0].wikidata}`);
     assert.equal(kontrollera(f).ok, true, kontrollera(f).fel);
   });
