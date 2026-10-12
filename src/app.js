@@ -323,7 +323,10 @@ onSessionLost(() => {
   else window.location.replace(dit);
 });
 
-function router() {
+function router(e) {
+  // Lämna-vakt (#605, hitta-ratt/hr-lamna-vakt.js): en sida mitt i en omgång kan
+  // stoppa ett hash-byte (vakten har då redan återställt hashen).
+  if (e?.oldURL && window.__ppLamnaVakt?.(e)) return;
   // Signalera till bootvakten i index.html att modulgrafen laddats och routern
   // kör – annars visar den sitt "Sajten uppdateras just nu"-läge efter 8 s
   // (rotorsak #271: icke-atomär Pages-utrullning kan fälla modulgrafen).

@@ -9,7 +9,7 @@
 
 /** Kategorierna i visningsordning (packens `category` i index.json). */
 export const KATEGORIER = [
-  { id: "sverige", namn: "Sverige", ikon: "🇸🇪" },
+  { id: "sverige", namn: "Sverige", ikon: "🌲" }, // inte 🇸🇪: Windows ritar flaggor som "SE"
   { id: "europa", namn: "Europa", ikon: "🏰" },
   { id: "varlden", namn: "Världen", ikon: "🌍" },
   { id: "kanda-platser", namn: "Kända platser", ikon: "🗼" },

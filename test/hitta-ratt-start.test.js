@@ -69,15 +69,13 @@ function fakeWin() {
 test("vakten: Avbryt stoppar routern och återställer hashen", () => {
   const win = fakeWin();
   const av = armeraLamnaVakt({ win, fraga: () => false });
-  assert.equal(win.ls.hashchange[0].c, true, "capture-lyssnare");
-  let stoppad = false;
-  win.fire("hashchange", { oldURL: "http://x/#/elev/hitta-ratt?pack=a", newURL: "http://x/#/elev/hus",
-    stopImmediatePropagation: () => (stoppad = true) });
-  assert.ok(stoppad);
+  assert.equal(typeof win.__ppLamnaVakt, "function", "routerns krok");
+  const stanna = win.__ppLamnaVakt({ oldURL: "http://x/#/elev/hitta-ratt?pack=a", newURL: "http://x/#/elev/hus" });
+  assert.equal(stanna, true);
   assert.equal(win.history.replaced, "#/elev/hitta-ratt?pack=a");
   assert.ok(lamnaVaktAktiv());
   av();
-  assert.equal(win.ls.hashchange.length, 0);
+  assert.equal(win.__ppLamnaVakt, null);
   assert.equal(win.ls.beforeunload.length, 0);
   assert.ok(!lamnaVaktAktiv());
 });
@@ -85,9 +83,7 @@ test("vakten: Avbryt stoppar routern och återställer hashen", () => {
 test("vakten: OK släpper igenom och avarmerar", () => {
   const win = fakeWin();
   armeraLamnaVakt({ win, fraga: () => true });
-  let stoppad = false;
-  win.fire("hashchange", { oldURL: "a#/1", newURL: "a#/2", stopImmediatePropagation: () => (stoppad = true) });
-  assert.ok(!stoppad);
+  assert.equal(win.__ppLamnaVakt({ oldURL: "a#/1", newURL: "a#/2" }), false);
   assert.ok(!lamnaVaktAktiv());
-  assert.equal(win.ls.hashchange.length, 0);
+  assert.equal(win.__ppLamnaVakt, null);
 });

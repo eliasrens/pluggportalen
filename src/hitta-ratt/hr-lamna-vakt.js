@@ -6,9 +6,9 @@
 //   • hash-byte (sidomenyn, bakåtknappen, länkar) → confirm(); "Avbryt" =
 //     eleven stannar och hashen återställs utan att routern ritar om.
 //   • stäng/ladda om fliken → webbläsarens egen "Lämna sidan?"-dialog.
-// Vakten lyssnar på hashchange i CAPTURE-fasen: på window (målet) körs
-// capture-lyssnare före appens router (Chrome ≥ 89, Firefox, Safari), så
-// stopImmediatePropagation() hinner stoppa routern. Ingen ändring i app.js.
+// Kroken är `window.__ppLamnaVakt(e)`, som app.js-routern frågar först vid
+// varje hashchange (true = stanna). En capture-lyssnare på window räcker inte:
+// Chrome kör den EFTER routern.
 // ============================================================================
 
 export const LAMNA_TEXT = "Du är mitt i en omgång. Om du går härifrån sparas inte omgången. Vill du lämna?";
@@ -25,28 +25,29 @@ export function armeraLamnaVakt(opt = {}) {
   const text = opt.text || LAMNA_TEXT;
   const fraga = opt.fraga || ((t) => win.confirm(t));
 
-  const onHash = (e) => {
-    if (e.oldURL === e.newURL) return;
+  /** @returns {boolean} true = stanna kvar (routern ska inte rita om) */
+  const vakt = (e) => {
+    if (e.oldURL === e.newURL) return false;
     if (fraga(text)) {
       avarmera(); // eleven valde att gå → routern får bytet
-      return;
+      return false;
     }
-    e.stopImmediatePropagation();
     const gammal = String(e.oldURL || "");
     const i = gammal.indexOf("#");
     // replaceState ger ingen ny hashchange → routern ritar inte om.
     win.history.replaceState(win.history.state, "", i >= 0 ? gammal.slice(i) : "#/elev/hitta-ratt");
+    return true;
   };
   const onUnload = (e) => {
     e.preventDefault();
     e.returnValue = text; // äldre Chrome kräver returnValue
     return text;
   };
-  win.addEventListener("hashchange", onHash, true);
+  win.__ppLamnaVakt = vakt;
   win.addEventListener("beforeunload", onUnload);
 
   function avarmera() {
-    win.removeEventListener("hashchange", onHash, true);
+    if (win.__ppLamnaVakt === vakt) win.__ppLamnaVakt = null;
     win.removeEventListener("beforeunload", onUnload);
     if (aktiv === avarmera) aktiv = null;
   }
