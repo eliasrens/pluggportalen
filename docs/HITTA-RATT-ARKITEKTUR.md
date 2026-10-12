@@ -1015,6 +1015,40 @@ Lärarvyn varnar före sparning när facit ändrats på ett befintligt pack:
 "Du har ändrat platser eller frågor. Elevernas rekord och skolans topplista för
 kartan börjar om från noll."
 
+**Levererat i B #633:**
+- Delad kod `src/hitta-ratt/delat/{scope,facit,egna}.js` (synkas till
+  `functions/hitta-ratt/`). `facitNyckel` ger den kanoniska strängen och
+  servern hashar den (`facitHash`, sha1). `nyttPackId()` och `slugId()` finns
+  för lärarvyn (C). Frågor utan `id` får ett slug-id ur namnet (`on`, `on-2`).
+- `functions/hitta-ratt-egna.js`: `sparaPack`, `raderaPack`, `lasEgetPack`,
+  `katalogPost`, `tomTopplista`. Callables `hittaRattSparaPack` och
+  `hittaRattRaderaPack` i `functions/index.js` (`token.teacher`, `ownerNamn` =
+  tokenens namn eller användarnamnet före `@`).
+- `hittaRattSubmit` för `e-`-pack enligt §11.4. `elevInfo` returnerar även
+  `klasser` ([{ id, name }] sorterade på namn).
+- Regeln `hittaRattPacks` (läs inloggade, skriv `false`).
+- Elevsidan: `hr-egna.js` (ren), `hr-egna-data.js` (läsningarna),
+  "Från din lärare" i `hr-start-vy.js`, `?pack=e-…` i `page-hitta-ratt.js`,
+  `deps.pack` i `hr-spel.js` (pack eller laddare), egna felvyer.
+- Tester: `test/hitta-ratt-egna.test.js`, `test/functions-hitta-ratt-egna.test.mjs`,
+  `test/firestore-rules-hitta-ratt-egna.test.js` (i `test:rules`/`test:functions`).
+  Preview: `admin/qa-hitta-ratt-egna-seed.mjs` (körs av `qa-hitta-ratt-preview.sh`,
+  `--andra` = ändrat facit live). `admin/qa-hitta-ratt-input.mjs --packfil <json>`
+  spelar egna pack (facit ur en dump av packdokumentet).
+
+**Avvikelser från §11 i B:**
+- `GEO_OMRADEN` är `geo → { områdes-id: källnyckel }` (ur `<geo>.nycklar.json`),
+  inte bara en id-lista. Då sätter servern `key` själv och litar inte på
+  klientens. `normaliseraPack` tar även emot en id-lista (då används klientens `key`).
+- Läsningarna ligger i en ny fil `hr-egna-data.js` (dynamisk). `hr-egna.js` är
+  ren så att testerna kan importera den i Node.
+- `?pack=e-…` läser **bara** packdokumentet (1 läsning), inte katalogposten.
+  Synligheten kontrolleras mot `pack.classIds` och elevens klasser ur `getClasses()`.
+- `bild` tas bort av `normaliseraPack` tills F bygger bildkontrollen.
+- Startvyns "30 % luft" = spannet × 1,3 (15 % på var sida), inpassat i scope-rutan.
+- Ett försök på ett borttaget pack ger `not-found` även vid omförsök av ett
+  redan avslutat försök (sällsynt; resultatet och coins är redan sparade).
+
 ### 11.5 Togglen "Skoltopplista / Gör till skolutmaning"
 
 Callable **`hittaRattSattTopplista({ packId, pa })`**. Bara ägaren

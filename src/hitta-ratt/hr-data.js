@@ -25,6 +25,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 import { currentStudentId, invalidateStudentData } from "../data.js";
 import { topplista } from "./delat/rank.js";
 import { invalideraLedare } from "./hr-pokal-rum.js";
+import { invalideraKatalog } from "./hr-egna-data.js";
 
 const REGION = "europe-west1";
 
@@ -59,6 +60,7 @@ export async function skickaOmgang(attemptId, svar) {
     if (res?.coins > 0 || res?.result?.godkanda > 0) invalidateStudentData(currentStudentId());
     // Ledarna kan ha bytts (#610) – huset läser om pokalerna vid nästa besök.
     invalideraLedare();
+    invalideraKatalog(); // egna pack: ny version/topplista syns direkt (#633)
     return res;
   } catch (err) {
     const code = String(err?.code || "").replace(/^functions\//, "");

@@ -12,6 +12,8 @@
 # #610: + qa-hitta-ratt-pokal-seed.mjs → elev1:s rum (#/elev/rum) har en utställd
 # Kartmästare-pokal, en i Möbler-lådan och en tappad (ska vara borta); Sagas rum
 # (#/elev/klasskamrat?id=hr-elev05) visar hennes. Ledarbyte live: … pokal-seed.mjs --byt
+# #633: + qa-hitta-ratt-egna-seed.mjs → elev1 ser "Från din lärare" (Gästrikland runt
+# med rekord, Norden), inte "Bara 6B". Ändrat facit live: … egna-seed.mjs --andra
 #
 #   bash admin/qa-hitta-ratt-preview.sh          # FS 8605, Auth 9605, Functions 5605, proxy 8606
 #   FS=8600 AUTH=9600 FN=5600 PROXY=8601 bash admin/qa-hitta-ratt-preview.sh
@@ -55,6 +57,7 @@ echo "▶ seed…"
 node admin/qa-lasresan-seed.mjs | tail -1
 node admin/qa-hitta-ratt-topplista-seed.mjs
 node admin/qa-hitta-ratt-pokal-seed.mjs
+node admin/qa-hitta-ratt-egna-seed.mjs
 
 echo "▶ proxy på $PROXY…"
 (cd "$DIR" && PORT=$PROXY FUNCTIONS_EMULATOR_HOST=127.0.0.1:$FN setsid -f node "$REPO/admin/qa-emulator-proxy.mjs" > "$DIR/proxy.log" 2>&1 < /dev/null)
