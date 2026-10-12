@@ -2,7 +2,7 @@
 // Hitta rätt! – route-skal (src/hitta-ratt/page-hitta-ratt.js) · #605
 // ----------------------------------------------------------------------------
 //   #/elev/hitta-ratt                 startsidan: kort per kategori + 🏆-knapp
-//   #/elev/hitta-ratt?pack=<packId>   en omgång (E #608 – stubb tills dess)
+//   #/elev/hitta-ratt?pack=<packId>   en omgång: alla frågor, resultatskärm (#608, hr-spel.js)
 //   #/elev/hitta-ratt?vy=topplistor[&lista=<packId>]   🏆-vyn (#609): skolans
 //                                     Top 15 + egen rad per pack, EN läsning per valt pack
 //
@@ -13,7 +13,7 @@
 // ============================================================================
 
 import { app, el, go, getParams, loading, renderTopbar } from "../ui.js";
-import { startsidaHtml, grupperaPack, esc } from "./hr-start-vy.js";
+import { startsidaHtml, grupperaPack } from "./hr-start-vy.js";
 import { topplistorVyHtml } from "./hr-topplista-vy.js";
 import { hamtaPersonbasta } from "./hr-best.js";
 
@@ -54,15 +54,15 @@ export function laddaPackIndex() {
 
 export async function pageHittaRatt() {
   loading();
+  const p = getParams();
   const [, index, bast] = await Promise.all([
     ensureStyles(),
     laddaPackIndex(),
-    hamtaPersonbasta(),
+    p.pack || p.vy ? null : hamtaPersonbasta(),
     renderTopbar(),
   ]);
-  const p = getParams();
   if (p.vy === "topplistor") return visaTopplistor(index, p.lista);
-  if (p.pack) return visaSpelStubb(index.find((x) => x.id === p.pack));
+  if (p.pack) return visaSpel(index.find((x) => x.id === p.pack));
   visaStart(index, bast);
 }
 
@@ -72,17 +72,6 @@ function visaStart(index, bast) {
   vy.querySelectorAll(".hr-spela").forEach((b) =>
     b.addEventListener("click", () => go(`${HASH}?pack=${encodeURIComponent(b.dataset.pack)}`))
   );
-  app.replaceChildren(vy);
-}
-
-function stubb(emoji, rubrik, text) {
-  const vy = el(`<div class="panel center hr-stub">
-    <div class="big-emoji">${emoji}</div>
-    <h2>${rubrik}</h2>
-    <p class="hint">${text}</p>
-    <button class="btn" data-act="tillbaka">Tillbaka till kartorna</button>
-  </div>`);
-  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
   app.replaceChildren(vy);
 }
 
@@ -128,8 +117,9 @@ async function visaTopplistor(index, lista) {
   else rita(null);
 }
 
-// Stubbe tills spelflödet (E #608) finns.
-function visaSpelStubb(pack) {
+// En omgång (#608). Okänt pack → tillbaka till startsidan.
+async function visaSpel(pack) {
   if (!pack) return go(HASH);
-  stubb("🗺️", esc(pack.title), "Den här kartan går snart att spela. Kika tillbaka lite senare!");
+  const { spelaPack } = await import("./hr-spel.js");
+  await spelaPack(pack);
 }

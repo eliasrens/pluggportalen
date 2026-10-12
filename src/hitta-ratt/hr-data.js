@@ -53,7 +53,9 @@ export async function startaForsok(packId, uid = currentStudentId()) {
 export async function skickaOmgang(attemptId, svar) {
   try {
     const res = (await submitFn()({ attemptId, svar })).data;
-    if (res?.coins > 0) invalidateStudentData(currentStudentId()); // saldot ändrat på servern
+    // Saldot ändrat på servern. godkanda (inte coins): ett omförsök efter ett
+    // tappat svar ger coins 0 men krediteringen har ändå skett (#608).
+    if (res?.coins > 0 || res?.result?.godkanda > 0) invalidateStudentData(currentStudentId());
     return res;
   } catch (err) {
     const code = String(err?.code || "").replace(/^functions\//, "");

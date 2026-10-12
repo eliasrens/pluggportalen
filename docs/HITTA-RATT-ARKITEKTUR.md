@@ -471,6 +471,23 @@ Mönstret finns redan: Guldrushens functions (#563) och `updateStudentLogin`.
   Preview: `admin/qa-hitta-ratt-preview.sh` (nu med Functions-emulatorn 5605) +
   `admin/qa-hitta-ratt-topplista-seed.mjs` (40 elever, spelar via kärnan).
 
+**Levererat i E #608:**
+- `src/hitta-ratt/hr-spel.js` (DOM, dynamisk) kör omgången: `startaForsok`
+  innan första frågan blir aktiv, alla frågor i `blanda()`-ordning, lås →
+  `showResult`/`showAreaResult` (facit in i motorn först nu), "Nästa" tar
+  emot klick först efter 450 ms (ingen dubbelklicksfälla), lämna-vakten är
+  på tills resultatet skickas. Sparfel → "Försök igen" med samma `attemptId`.
+- `src/hitta-ratt/hr-omgang.js` (ren): `skapaOmgang` rättar varje lås med
+  `delat/poang.js`, `skapaStoppur` = aktiv tid (pausad under feedbacken),
+  `serverMs` lyfter ett lås snabbare än 700 ms till golvet, feedbacktexter.
+- `src/hitta-ratt/hr-resultat-vy.js` (ren): resultatskärmen med kodritad
+  illustration, personbästa, plats och `topplistaHtml` ur functionens svar.
+  Coins som visas = `result.godkanda` (krediterade EN gång av functionen –
+  ett omförsök ger `coins: 0` men samma `result`).
+- Test: `test/hitta-ratt-spel.test.js` (poäng Sverige/världen, aktiv tid,
+  coins, resultatskärm). Preview: `admin/qa-hitta-ratt-preview.sh`.
+- Klass-EXP-kroken är avstängd (`KLASS_EXP_PA = false`, se §10 fråga 4).
+
 ### 4.2 Hot och skydd
 
 | Hot | Skydd |
@@ -686,6 +703,11 @@ Skärmdumpar finns i `docs/hitta-ratt-604/`:
 4. **Ska omgångar ge Klass-EXP** (Klasscentret, `kc-koppling.js`) som andra
    spellägen? Specen säger inget. Förslaget är ja, med samma krok som Läsresan
    och Mattematchen, i E.
+   **E #608:** kroken finns men är avstängd – `KLASS_EXP_PA = false` i
+   `src/hitta-ratt/hr-spel.js` anropar `klassExpEfterOvning({ modul: "hittaratt",
+   resultat: { ratt: godkända, totalt: n } })` efter sparat resultat. Vid ja:
+   sätt flaggan till `true` och registrera regeln `hittaratt` i
+   `src/klasscenter/kc-exp-regler.js` (raden står i kommentaren vid flaggan).
 5. **Lantmäteriets egna länsgränser:** vill du skapa ett Geotorget-konto och
    ladda ner Topografi 1M en gång? Annars används Natural Earths län, som
    har samma 21 län och är public domain.
