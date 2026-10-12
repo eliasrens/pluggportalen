@@ -60,7 +60,7 @@
 
 .hr-spela { margin-top: auto; width: 100%; padding: 11px 20px; }
 
-/* Stubbvyer (spel = E #608, topplistor = F #609). */
+/* Stubbvy (spel = E #608). */
 .hr-stub { max-width: 640px; text-align: center; }
 .hr-stub .big-emoji { font-size: 3rem; }
 
@@ -71,4 +71,65 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hr-kort, .hr-kort:hover { transition: none; transform: none; }
+}
+
+/* --- 🏆 Topplistor (#609) – hela skolan, Top 15 + egen rad ---------------- */
+.hr-topplistor { max-width: 1100px; margin: 0 auto; }
+.hr-tillbaka { white-space: nowrap; }
+.hr-tl-layout {
+  display: grid; grid-template-columns: minmax(230px, 320px) 1fr;
+  gap: 18px; align-items: start;
+}
+.hr-tl-val { padding: 18px; }
+.hr-tl-grupp + .hr-tl-grupp { margin-top: 14px; }
+.hr-tl-grupp-namn { font-size: 1rem; font-weight: 800; color: var(--text); margin: 0 0 8px 2px; }
+.hr-tl-knappar { display: flex; flex-wrap: wrap; gap: 6px; }
+.hr-tl-pack {
+  font: inherit; font-size: 0.92rem; font-weight: 700; color: var(--text);
+  background: var(--ljus); border: 2px solid transparent; border-radius: 999px;
+  padding: 6px 12px; min-height: 40px; cursor: pointer;
+}
+.hr-tl-pack:hover { border-color: #d6e6fb; }
+.hr-tl-pack:focus-visible { outline: 3px solid var(--bla); outline-offset: 2px; }
+.hr-tl-pack[aria-pressed="true"] { background: var(--orange); color: #fff; box-shadow: 0 3px 0 #c8742f; }
+
+.hr-tl-lista { padding: 20px 22px; min-height: 260px; }
+.hr-tl-rubrik { margin: 0 0 2px; font-size: 1.3rem; }
+.hr-tl-regel { margin: 0 0 12px; font-size: 0.9rem; }
+.hr-tl-mitt {
+  margin: 0 0 14px; padding: 10px 14px; border-radius: var(--radie);
+  background: #fdf3d3; color: var(--text);
+}
+.hr-tl-mitt.hint { background: var(--ljus); }
+.hr-tl-tom { margin: 18px 0; text-align: center; color: var(--text-svag); }
+
+.hr-tl-rader { list-style: none; margin: 0; padding: 0; }
+.hr-tl-rad {
+  display: grid; grid-template-columns: 3.2em 1fr auto; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 12px; font-size: 1rem;
+}
+.hr-tl-rad:nth-child(odd) { background: var(--ljus); }
+.hr-tl-plats { font-weight: 800; text-align: right; color: var(--text-svag); }
+.hr-tl-medalj { font-size: 1.35rem; line-height: 1; }
+.hr-tl-namn { font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+.hr-tl-res { font-weight: 800; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hr-tl-du {
+  font-size: 0.75rem; font-weight: 800; color: #fff; background: var(--bla);
+  border-radius: 999px; padding: 1px 7px; margin-left: 4px; vertical-align: 1px;
+}
+.hr-tl-jag, .hr-tl-rad.hr-tl-jag:nth-child(odd) { background: #e3f0fe; box-shadow: inset 0 0 0 2px var(--bla); }
+.hr-tl-glapp { text-align: center; color: var(--text-svag); font-weight: 800; margin: 2px 0; }
+.hr-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .hr-tl-layout { grid-template-columns: 1fr; }
+  .hr-tl-lista { padding: 16px 12px; }
+  .hr-tl-rad { grid-template-columns: 2.4em 1fr auto; gap: 8px; padding: 7px 8px; font-size: 0.95rem; }
+}
+@media (max-width: 380px) {
+  .hr-tl-rad { grid-template-columns: 2.4em 1fr; }
+  .hr-tl-res { grid-column: 2; white-space: normal; }
 }

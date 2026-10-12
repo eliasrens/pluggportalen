@@ -1455,6 +1455,41 @@ service cloud.firestore {
       }
     }
 
+    // ------------------------------------------------------------------
+    // Hitta rätt! (#609, epic #603) – se docs/HITTA-RATT-ARKITEKTUR.md §3.2/§4.
+    // Klienten skriver BARA starten av ett försök (startedAt = serverns tid,
+    // status "open", inga andra fält). Poäng, personbästa, topplista och
+    // ledare skrivs enbart av Cloud Functionen hittaRattSubmit (Admin SDK,
+    // förbi reglerna) – eleven kan inte skriva högre poäng, sänka någon
+    // annans rekord eller hitta på en klass. Topplistan = ETT dok per pack
+    // (alla inloggade läser – namn + klass + bästa, inget mer); ledarna ett
+    // dok för husens pokaler.
+    // ⚠️ DEPLOY KRÄVS: firebase deploy --only firestore:rules + functions.
+    // ------------------------------------------------------------------
+    match /hittaRattAttempts/{attemptId} {
+      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && validAttemptId(attemptId) &&
+        request.resource.data.keys().hasOnly(['uid', 'packId', 'startedAt', 'status']) &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.packId is string &&
+        request.resource.data.packId.matches('^[a-z0-9-]{1,60}$') &&
+        request.resource.data.startedAt == request.time &&
+        request.resource.data.status == 'open';
+      allow update, delete: if false;
+    }
+    match /hittaRattBest/{uid} {
+      allow read: if isTeacher() || isSelf(uid);
+      allow write: if false;
+    }
+    match /hittaRattBoards/{packId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /hittaRattMeta/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     // Allt annat nekas.
     match /{document=**} {
       allow read, write: if false;

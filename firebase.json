@@ -11,7 +11,10 @@
       "codebase": "default",
       "runtime": "nodejs22",
       "ignore": ["node_modules", ".git", "*.local", "firebase-debug.log"],
-      "predeploy": ["node \"$PROJECT_DIR/admin/sync-guldrush-functions.mjs\""]
+      "predeploy": [
+        "node \"$PROJECT_DIR/admin/sync-guldrush-functions.mjs\"",
+        "node \"$PROJECT_DIR/admin/sync-hitta-ratt-functions.mjs\""
+      ]
     }
   ],
   "emulators": {

@@ -456,6 +456,21 @@ ger ≈ 60 kB.
 
 Mönstret finns redan: Guldrushens functions (#563) och `updateStudentLogin`.
 
+**Levererat i F #609:**
+- Delad kod `src/hitta-ratt/delat/{poang,rank,omgang}.js` → genererad kopia
+  `functions/hitta-ratt/` + kompakt facit `packs.js` (`npm run sync:hitta-ratt`,
+  predeploy-rad 2 i `firebase.json`, testet fäller drift).
+- `functions/hitta-ratt-core.js` (`submit`, `taBortElev`), export
+  `hittaRattSubmit` i `functions/index.js`. Klient: `src/hitta-ratt/hr-data.js`
+  (`startaForsok`, `skickaOmgang`, `hamtaTopplista`).
+- 🏆-vyn: `hr-topplista-vy.js` (`topplistaHtml(lista, max)` återanvänds av E:s
+  resultatskärm med functionens `{ top, egen, plats, antal }`).
+- Top 15 = de 15 första raderna **plus** de som delar plats med rad 15 (tak 25).
+- Tester: `test/hitta-ratt-delat.test.js`, `test/firestore-rules-hitta-ratt.test.js`,
+  `test/functions-hitta-ratt-core.test.mjs`, `test/functions-hitta-ratt.test.mjs`.
+  Preview: `admin/qa-hitta-ratt-preview.sh` (nu med Functions-emulatorn 5605) +
+  `admin/qa-hitta-ratt-topplista-seed.mjs` (40 elever, spelar via kärnan).
+
 ### 4.2 Hot och skydd
 
 | Hot | Skydd |
