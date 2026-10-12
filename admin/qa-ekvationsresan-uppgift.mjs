@@ -3,13 +3,13 @@
 // Firebase-emulatorerna. Spec E1.14 test 1–7 och 9–11 kräver exakta ekvationer
 // (2x + 4 = 14, 2x + 3 = 11, 5x + 13 = 48 …), som generatorn bara ger av slump.
 // Uppgiften byggs som generatorns buildTask (samma fält, optimalt antal drag ur
-// BFS:en, vågens visning över hela vägen). Nivå/fönster/statistik rörs inte,
-// utom att --niva sätter nivån (uppgiften måste höra till elevens nivå).
+// BFS:en, vågens visning över hela vägen). Statistiken rörs inte; --niva sätter
+// nivån (uppgiften måste höra till elevens nivå) och nollställer då fönstret.
 //
 //   FIRESTORE_EMULATOR_HOST=127.0.0.1:8618 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9618 \
 //   GCLOUD_PROJECT=pluggportalen-so-2026 node admin/qa-ekvationsresan-uppgift.mjs "2x+4=14" [--niva 3] [--elev elev1] [--typ A|B]
 //
-// Därefter: ladda om #/elev/ekvationsresan.
+// --form <id> (forms.js) om gissningen inte räcker. Därefter: ladda om #/elev/ekvationsresan.
 // ============================================================================
 import admin from "firebase-admin";
 import { parseEquation, solve, toJSON, equationKey } from "../src/ekvationsresan/equation.js";
@@ -36,8 +36,12 @@ const equation = parseEquation(text);
 const solution = solve(equation);
 const best = optimalPath(equation, rulesFor(level));
 if (!solution || !best) throw new Error(`${text}: ingen lösning inom spärrarna på nivå ${level}`);
+// Formen styr "Försök igen" (similarTask) – gissas ur texten, eller --form.
+const bar = text.replace(/\s/g, "").split("=").find((s) => s.includes("x"));
+const guess = bar.replace(/^\d+x/, "ax").replace(/^x\/\d+/, "x/a").replace(/[+]\d+$/, "+b").replace(/-\d+$/, "-b");
+const form = opt("--form", { "x+b": "x+a=b", "x-b": "x-a=b", ax: "ax=b", "x/a": "x/a=b", "ax+b": "ax+b=c", "ax-b": "ax-b=c", "x/a+b": "x/a+b=c", "x/a-b": "x/a-b=c" }[guess] || "qa");
 const task = {
-  schema: 1, level, form: "qa", type: opt("--typ", "A"),
+  schema: 1, level, form, type: opt("--typ", "A"),
   key: equationKey(equation), equation: toJSON(equation),
   text: equationRow(equation, "start").text,
   solution: { n: solution.n, d: solution.d },
@@ -46,7 +50,9 @@ const task = {
 };
 const now = Date.now();
 const id = `qa${now.toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-const next = withCurrent({ ...progress, level, maxLevel: Math.max(progress.maxLevel || 1, level) }, task, { id, at: now });
+// Nivåbyte nollställer fönstret, som spelet och lärarens nivåstyrning gör.
+const window = level === progress.level ? progress.window : [];
+const next = withCurrent({ ...progress, level, window, maxLevel: Math.max(progress.maxLevel || 1, level) }, task, { id, at: now });
 await ref.set(next);
-console.log(`✓ ${uid}: nivå ${level}, ${task.text} (optimalt ${task.optimalMoves}: ${task.optimalPath.map((m) => m.op + m.value).join(" ")}, visning ${task.display}, typ ${task.type})`);
+console.log(`✓ ${uid}: nivå ${level}, ${task.text} (optimalt ${task.optimalMoves}: ${task.optimalPath.map((m) => m.op + m.value).join(" ")}, visning ${task.display}, typ ${task.type}, form ${form})`);
 process.exit(0);
