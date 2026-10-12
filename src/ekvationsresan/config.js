@@ -2,10 +2,11 @@
 // Ekvationsresan – konfiguration (src/ekvationsresan/config.js) · #615
 // ----------------------------------------------------------------------------
 // Nivåer, spärrar och texter på ETT ställe, så att de kan finjusteras utan att
-// logiken rörs. Nivå 7–12 (Etapp 2, #623) är rader i LEVELS med egna former
-// (forms.js) och spärrar: x-termer i talfältet från nivå 7, negativa mellanled
-// från nivå 9, högst två decimaler från nivå 10. Bråk bara i extrautmaningar
-// (EXTRA_RULES).
+// logiken rörs. Etapp 2 lägger till nivå 7–12 genom att utöka LEVELS (och
+// FORMS i forms.js) – spärrarna är redan per nivå (t.ex. allowNegative från
+// nivå 9, allowDecimals från nivå 10, operandX från nivå 7).
+// #623: nivå 7–12 finns nu (nya poster sist i LEVELS). Bråk bara i
+// extrautmaningar (EXTRA_RULES).
 // ============================================================================
 
 /** Spärrar och fält (E1.4). Etapp 1 = allt detta för nivå 1–6. */
