@@ -166,3 +166,24 @@ export const FEEDBACK = Object.freeze({
   moveFurther: "Båda sidor är fortfarande lika. Finns det ett drag som får x närmare att bli ensamt?",
   retryButton: "FÖRSÖK IGEN FÖR ⭐⭐⭐",
 });
+
+// ---------------------------------------------------------------------------
+//  Spelvyn (#618, spec E1.2, E1.9). Texter som eleven ser.
+// ---------------------------------------------------------------------------
+
+/** Nivå upp-skärmen (E1.9): en glad rad om vad eleven visat + vad som väntar. */
+export const LEVEL_UP = Object.freeze({
+  2: "Du kan hålla vågen i balans när du lägger till och tar bort. Nu ska du dela upp i lika stora grupper!",
+  3: "Du kan få x ensamt i ett steg. Nu blir det två steg – vilket gör du först?",
+  4: "Du löser tvåstegsekvationer. Nu kommer fler varianter, även med minus.",
+  5: "Du har visat att du kan lösa tvåstegsekvationer självständigt. Nu blir ekvationerna lite klurigare…",
+  6: "Du klarar stora tal också. Nu blandas allt – du får själv välja strategi.",
+});
+
+export const UI_TEXT = Object.freeze({
+  instruction: "GÖR SAMMA SAK PÅ BÅDA SIDOR",
+  revealConfirm: "Säker? Då räknas uppgiften som ej löst.",
+  saveError: "Det gick inte att spara just nu. Din lösning syns ändå – fortsätt med nästa!",
+  next: "NÄSTA UPPGIFT →",
+  levelUpContinue: "FORTSÄTT →",
+});

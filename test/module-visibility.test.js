@@ -74,7 +74,7 @@ test("hiddenModulesForStudent: andra klassers val påverkar inte eleven", () => 
 import { normalizeEnabledModules, modulesHiddenForStudent, OPT_IN_MODULES } from "../src/gamemode-visibility.js";
 
 test("Hitta rätt! är en opt-in-modul med egen route", () => {
-  assert.deepEqual(OPT_IN_MODULES, ["hittaratt"]);
+  assert.deepEqual(OPT_IN_MODULES, ["hittaratt", "ekvationsresan"]); // #618
   assert.equal(moduleForRoute("/elev/hitta-ratt"), "hittaratt");
 });
 
@@ -85,9 +85,9 @@ test("normalizeEnabledModules: bara kända OPT-IN-id", () => {
 
 test("modulesHiddenForStudent: opt-in AV utan aktivering (test 7: inaktiv = syns inte)", () => {
   const k = [{ id: "6a", studentIds: ["elev1"] }];
-  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["hittaratt"]);
-  assert.deepEqual(modulesHiddenForStudent([], "elev1"), ["hittaratt"]);
-  assert.deepEqual(modulesHiddenForStudent(k, null), ["hittaratt"]);
+  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), OPT_IN_MODULES);
+  assert.deepEqual(modulesHiddenForStudent([], "elev1"), OPT_IN_MODULES);
+  assert.deepEqual(modulesHiddenForStudent(k, null), OPT_IN_MODULES);
 });
 
 test("modulesHiddenForStudent: aktiverad i någon av elevens klasser → syns", () => {
@@ -96,13 +96,13 @@ test("modulesHiddenForStudent: aktiverad i någon av elevens klasser → syns", 
     { id: "sp", studentIds: ["elev1", "elev2"] },
     { id: "x", studentIds: ["elev3"], enabledModules: ["hittaratt"] },
   ];
-  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), []);
-  assert.deepEqual(modulesHiddenForStudent(k, "elev2"), ["hittaratt"], "annan klass aktivering gäller inte");
+  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["ekvationsresan"]);
+  assert.deepEqual(modulesHiddenForStudent(k, "elev2"), OPT_IN_MODULES, "annan klass aktivering gäller inte");
 });
 
 test("modulesHiddenForStudent: hiddenModules gäller fortfarande (union)", () => {
   const k = [{ id: "6a", studentIds: ["elev1"], hiddenModules: ["lasresan"], enabledModules: ["hittaratt"] }];
-  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["lasresan"]);
+  assert.deepEqual(modulesHiddenForStudent(k, "elev1"), ["lasresan", "ekvationsresan"]);
   const k2 = [{ id: "6a", studentIds: ["elev1"], hiddenModules: ["lasresan"] }];
-  assert.deepEqual(modulesHiddenForStudent(k2, "elev1").sort(), ["hittaratt", "lasresan"]);
+  assert.deepEqual(modulesHiddenForStudent(k2, "elev1").sort(), ["ekvationsresan", "hittaratt", "lasresan"]);
 });

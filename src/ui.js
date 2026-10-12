@@ -247,6 +247,8 @@ const NAV_LANKAR = [
   { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "profil", villkor: "live" },
   // Hitta rätt! (#605): opt-in per klass (enabledModules) – annars dold.
   { hash: "#/elev/hitta-ratt", ikon: "🗺️", label: "Hitta rätt!", grupp: "profil", modul: "hittaratt" },
+  // Ekvationsresan (#618): opt-in per klass (enabledModules) – annars dold.
+  { hash: "#/elev/ekvationsresan", ikon: "⚖️", label: "Ekvationsresan", grupp: "profil", modul: "ekvationsresan" },
 ];
 
 /**

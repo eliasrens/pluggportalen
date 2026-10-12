@@ -19,7 +19,7 @@ import { TOGGLABLE_MODULES, normalizeHiddenModules, normalizeEnabledModules } fr
 import { el, esc, icon } from "./teacher-shared.js";
 
 // Lärarsidans SVG-ikon per modul (samma ikonuppsättning som resten av lärarsidan).
-const LARAR_IKON = { plugga: "grad", lasresan: "book", shop: "sparkle", hittaratt: "pin" };
+const LARAR_IKON = { plugga: "grad", lasresan: "book", shop: "sparkle", hittaratt: "pin", ekvationsresan: "sliders" };
 
 /**
  * Rendera "Synliga moduler"-sektionen för klassen `cls` in i `host`.
