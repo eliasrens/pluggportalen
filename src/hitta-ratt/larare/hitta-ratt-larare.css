@@ -122,13 +122,42 @@
   margin: 14px 0 20px;
 }
 .lhr-form .field { display: flex; flex-direction: column; gap: 6px; font-weight: 650; margin: 0; }
-.lhr-form textarea { resize: vertical; font: inherit; font-weight: 400; }
+/* Alla fält i formuläret: appens typsnitt, normal vikt, samma ram och höjd som Namn. */
+.lhr-form input[type="text"],
+.lhr-form input[type="search"],
+.lhr-form textarea,
+.lhr-form select {
+  box-sizing: border-box;
+  width: 100%;
+  font-family: inherit;
+  font-weight: 400;
+  color: var(--t-text);
+  background-color: var(--t-surface-2);
+  border: 1px solid var(--t-border-strong);
+  border-radius: 10px;
+}
+.lhr-form [data-k="title"],
+.lhr-form textarea,
+.lhr-form select { padding: 14px 16px; font-size: 1.2rem; line-height: 1.4; }
+.lhr-form textarea { resize: vertical; min-height: 61px; }
+.lhr-form input:focus,
+.lhr-form textarea:focus,
+.lhr-form select:focus { outline: none; border-color: var(--t-accent); }
 .lhr-form .field .hint, .lhr-mini .hint { font-weight: 500; }
 .lhr-falt { border: 0; margin: 0; padding: 0; min-width: 0; }
 .lhr-falt legend { font-weight: 650; margin-bottom: 6px; padding: 0; }
 .lhr-falt .hint { font-size: 0.85rem; margin: 6px 0 0; }
-.lhr-falt select { width: 100%; padding: 10px 12px; font: inherit; border-radius: 10px; }
-.lhr-falt select:disabled { opacity: 0.65; cursor: not-allowed; }
+.lhr-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 44px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2393a2b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+.lhr-form select option { background: var(--t-surface-2); color: var(--t-text); }
+.lhr-form select:disabled { opacity: 0.65; cursor: not-allowed; }
 .lhr-ikoner { display: flex; flex-wrap: wrap; gap: 6px; }
 .lhr-ikon input { position: absolute; opacity: 0; pointer-events: none; }
 .lhr-ikon span {
@@ -189,7 +218,7 @@
   gap: 8px 12px;
 }
 .lhr-mini { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 650; color: var(--t-muted); }
-.lhr-mini input { font-size: 0.95rem; padding: 8px 10px; }
+.lhr-mini input { font-size: 1rem; padding: 9px 12px; }
 .lhr-avancerat { grid-column: 1 / -1; }
 .lhr-avancerat summary { cursor: pointer; font-size: 0.88rem; color: var(--t-muted); font-weight: 650; }
 .lhr-avancerat .hint { font-size: 0.82rem; margin: 6px 0 0; }
