@@ -324,3 +324,60 @@ stil som Läsresan (lrt-/lrn-/cx-klasserna) + egna `ekt-`-stilar i
 - **Preview:** `admin/qa-ekvationsresan-preview.sh` seedar nu även
   (`--larare`) qa-hog ↗, qa-mitt, qa-lag ↘, qa-svag med riktiga försök;
   `qalarare / lilla123` → QA-klass 4A → Statistik → Ekvationsresan.
+
+---
+
+## 7. Etapp 2 – kärna och generator nivå 7–12 (`#623`, E2.1, E2.2)
+
+Ren logik, tester i `test/ekvationsresan-etapp2.test.js` (1 000 uppgifter per
+nivå, −x/−2x, minustal, decimaler, mynt, anpassning). Etapp 1-sviterna gäller
+nivå 1–6 som förut; de assertions som hårdkodade "högsta nivån = 6" läser nu
+`LEVEL_MAX` (12).
+
+| Nivå | Namn | Former (forms.js) | Spärrar utöver Etapp 1 |
+| --- | --- | --- | --- |
+| 7 | x i båda leden | `ax=cx+d`, `ax+b=cx+d` | x-termer i talfältet |
+| 8 | Fler steg | `ax+b=cx+d`, `ax-b=cx+d`, `ax+b=cx-d` | x-termer |
+| 9 | Minustal på vägen | `ax+b=cx+d` (x-sidan bytt i 50 %), `b-ax=c`, `b-ax=cx+d`, `ax-b=cx-d` | + negativa mellanled |
+| 10 | Decimaler | `dx=c`, `dx+b=c`, `ax+b=c:xdec` (x = 2,5), `dx+b=ex+f` | + högst två decimaler (operander och resultat) |
+| 11 | Svåra blandade | blandning av 8–10 + `x/a+b=c`, större tal | som 10 |
+| 12 | Problemlösning | `ax+b=c`, `ax-b=c`, `ax=cx+d`, `ax+b=cx+d`, `dx+b=c` | som 10 |
+
+- **Spärrar per nivå** (`config.LEVELS[].rules`): `operandX` från 7,
+  `allowNegative` från 9, `allowDecimals` + `operandDecimal` från 10
+  (`maxDecimals: 2`). Bråk aldrig i huvudprogressionen – `config.EXTRA_RULES`
+  (bråk på) finns för extrautmaningarna (E2.6). Mellanledet vid fördelning
+  visas bara på nivå 1–6 (E1.3), så `distributionStep: false` från 7.
+- **Lösningen** är alltid positiv; heltal på nivå 7–9, från nivå 10 även
+  decimaltal med högst två decimaler (`2x + 3 = 8` → `x = 2,5`).
+- **Talfältet** (`operand.js`): `x`, `2x`, `−2x`, `+1,5x` från 7; `2,5` /
+  `0.25` från 10. Fler än två decimaler → `decimalMax`. `÷x`/`·x` spärras
+  alltid (`xProduct`).
+- **Vägsteg.** Heltal sparas som förut, `{ op, value }`; x-termer och decimaler
+  som `{ op, n, d, x }` (samma form som elevens sparade drag).
+  `operations.moveStep` / `moveOperand` / `applyStep` översätter; vågen,
+  hjälpen och `replayRows` tar båda formerna.
+- **BFS** söker även x-termsoperander (talfältets x-termer ur tillståndet) och
+  decimaltalen själva (÷2,5). x-termer prövas först, så `3x + 4 = x + 12` ger
+  `−x, −4, ÷2`. x/a är "x delat med a", inte 0,25 – vägen blir `·4`, aldrig
+  `÷0,25`. Där minustal är tillåtna väljs bland lika korta vägar en utan
+  minustal (`2x − 4 = 4x − 18` → `+18, −2x, ÷2`), så hjälpen och "Visa
+  lösningen" aldrig styr in i minustal i onödan. Antalet drag är detsamma.
+- **Formernas optimum** (`moves`) jämförs med BFS för varje genererad uppgift,
+  och ett testfall prövar med ett brett operandutbud (heltal 1–999, 1x–12x,
+  decimaler) att ingen kortare väg finns.
+- **Skrivsätt:** `3x + 4 − x = x + 12 − x`, `−2x + 17 = 5`, `−x = −6`,
+  `0 = x − 6`, `2,5x ÷ 2,5 = 15 ÷ 2,5`. Decimaler räknas exakt (`x + 0,1 =
+  0,4` → `x = 0,3`).
+- **Försök igen:** uppgiften har `swapped` (x-sidan bytt), eftersom x i båda
+  leden inte avslöjar sidan; äldre uppgifter utan fältet härleds som förut.
+  Lösningen jämförs exakt: x = 2,5 (5/2) och x = 5 är olika trots samma täljare.
+- **Hjälpen** visar x-termer och decimaler som i räknegången ("Subtrahera x
+  från båda leden", "Dividera båda leden med 2,5"). Vågens bild (`scale`) får
+  då `operand: { n, d, x }` i stället för `amount`/`count`, och vågen hoppar
+  över bilden (den ritar bara heltal) – en uppgift för vågen i Etapp 2.
+- **Mynt** 7–8: 4, 9–10: 5, 11–12: 6 (`config.COINS`, fanns redan).
+  Anpassningen går upp till `LEVEL_MAX` = 12; regler tillåter redan nivå 1–12
+  och mynt ≤ 7, så ingen regeländring.
+- **Nivå 12** har bara ekvationerna; texten (verklighet → ekvation → svar)
+  läggs på av problemlösningstypen.

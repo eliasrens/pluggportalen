@@ -42,7 +42,7 @@ test("progress: ny elev = nivå 1, tomt fönster, inga uppgifter; trasiga fält 
   assert.deepEqual(p.window, []);
   assert.deepEqual(p.stars, [0, 0, 0, 0]);
   const q = normalizeProgress({ level: 99, window: [3, "x", 7, 2], stars: "x", current: { id: "kort" } });
-  assert.equal(q.level, 6);
+  assert.equal(q.level, 12);
   assert.deepEqual(q.window, [3, 2]);
   assert.equal(q.current, null, "ogiltigt uppgifts-id släpps");
 });
@@ -102,7 +102,7 @@ test("hela flödet nivå 1 → 2: fyra ⭐⭐⭐ i rad ger nivå 2, nollställt 
   assert.equal(p.level, 2);
   assert.deepEqual(p.window, []);
   assert.equal(p.maxLevel, 2);
-  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current,locked,locked,locked,locked");
+  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current" + ",locked".repeat(10));
   assert.equal(generateTask(p.level, { rng }).level, 2);
 });
 

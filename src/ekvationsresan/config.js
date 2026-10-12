@@ -2,9 +2,10 @@
 // Ekvationsresan – konfiguration (src/ekvationsresan/config.js) · #615
 // ----------------------------------------------------------------------------
 // Nivåer, spärrar och texter på ETT ställe, så att de kan finjusteras utan att
-// logiken rörs. Etapp 2 lägger till nivå 7–12 genom att utöka LEVELS (och
-// FORMS i forms.js) – spärrarna är redan per nivå (t.ex. allowNegative från
-// nivå 9, allowDecimals från nivå 10, operandX från nivå 7).
+// logiken rörs. Nivå 7–12 (Etapp 2, #623) är rader i LEVELS med egna former
+// (forms.js) och spärrar: x-termer i talfältet från nivå 7, negativa mellanled
+// från nivå 9, högst två decimaler från nivå 10. Bråk bara i extrautmaningar
+// (EXTRA_RULES).
 // ============================================================================
 
 /** Spärrar och fält (E1.4). Etapp 1 = allt detta för nivå 1–6. */
@@ -58,7 +59,66 @@ export const LEVELS = Object.freeze([
     forms: { "x+a=b": 1, "x-a=b": 1, "ax=b": 1, "x/a=b": 1, "ax+b=c": 2, "ax-b=c": 2, "x/a+b=c": 2, "x/a-b=c": 1 },
     params: { maxNumber: 60, aMin: 2, aMax: 9, xMax: 20, bMax: 30 },
   },
+  // --- Etapp 2 (#623, spec E2.1/E2.2). Mellanledet vid fördelning visas bara
+  // på nivå 1–6 (E1.3), därför distributionStep: false härifrån.
+  {
+    level: 7, name: "x i båda leden", typeB: 0.82, swapShare: 0.25,
+    forms: { "ax=cx+d": 1, "ax+b=cx+d": 3 },
+    params: { aMin: 2, aMax: 5, xMax: 10, bMax: 12 },
+    rules: { operandX: true, distributionStep: false },
+  },
+  {
+    level: 8, name: "Fler steg", typeB: 0.85, swapShare: 0.3,
+    forms: { "ax+b=cx+d": 2, "ax-b=cx+d": 2, "ax+b=cx-d": 1 },
+    params: { aMin: 2, aMax: 8, xMax: 12, bMax: 25 },
+    rules: { operandX: true, distributionStep: false },
+  },
+  {
+    level: 9, name: "Minustal på vägen", typeB: 0.88, swapShare: 0.5,
+    forms: { "ax+b=cx+d": 2, "b-ax=c": 1, "b-ax=cx+d": 1, "ax-b=cx-d": 1 },
+    params: { aMin: 2, aMax: 8, xMax: 12, bMax: 25 },
+    rules: { operandX: true, allowNegative: true, distributionStep: false },
+  },
+  {
+    level: 10, name: "Decimaler", typeB: 0.9, swapShare: 0.2,
+    forms: { "dx=c": 1, "dx+b=c": 3, "ax+b=c:xdec": 2, "dx+b=ex+f": 2 },
+    params: { aMin: 2, aMax: 6, xMax: 10, bMax: 20 },
+    rules: { operandX: true, allowNegative: true, allowDecimals: true, operandDecimal: true, distributionStep: false },
+  },
+  {
+    level: 11, name: "Svåra blandade", typeB: 0.92, swapShare: 0.35,
+    forms: {
+      "ax+b=cx+d": 2, "ax-b=cx+d": 2, "ax+b=cx-d": 1, "b-ax=cx+d": 1, "ax-b=cx-d": 1,
+      "x/a+b=c": 1, "dx+b=c": 1, "ax+b=c:xdec": 1, "dx+b=ex+f": 1,
+    },
+    params: { aMin: 2, aMax: 9, xMax: 15, bMax: 40, quotientMax: 15 },
+    rules: { operandX: true, allowNegative: true, allowDecimals: true, operandDecimal: true, distributionStep: false },
+  },
+  {
+    // Tillämpning och problemlösning (E2.1). Här finns ekvationerna; texten
+    // (verklighet → ekvation → lösning → svar) läggs på av problemlösnings-
+    // typen. Formerna är de som brukar bära textuppgifter: påsar och lösa
+    // (ax+b=c), två abonnemang (ax+b=cx+d), pris med decimaler (dx+b=c).
+    level: 12, name: "Problemlösning", typeB: 0.95, swapShare: 0.15,
+    forms: { "ax+b=c": 2, "ax-b=c": 1, "ax=cx+d": 1, "ax+b=cx+d": 2, "dx+b=c": 1 },
+    params: { aMin: 2, aMax: 9, xMin: 2, xMax: 20, bMin: 2, bMax: 50 },
+    rules: { operandX: true, allowNegative: true, allowDecimals: true, operandDecimal: true, distributionStep: false },
+  },
 ]);
+
+/**
+ * Spärrar för extrautmaningarna (E2.6): bråk tillåtna (bara här), minustal,
+ * decimaler och x-termer. Huvudprogressionen (nivå 1–12) använder aldrig dessa.
+ */
+export const EXTRA_RULES = Object.freeze({
+  ...BASE_RULES,
+  allowFractions: true,
+  allowNegative: true,
+  allowDecimals: true,
+  operandX: true,
+  operandDecimal: true,
+  distributionStep: false,
+});
 
 export const LEVEL_MIN = 1;
 export const LEVEL_MAX = LEVELS.length;
@@ -91,6 +151,7 @@ export const OPERAND_MESSAGES = Object.freeze({
   syntax: "Det där kan jag inte läsa. Skriv till exempel −4, +5, /2 eller *3.",
   xOff: "Här räknar du bara med tal.",
   decimalOff: "Här räknar du bara med heltal.",
+  decimalMax: "Skriv högst två decimaler, till exempel 2,5 eller 0,25.",
   range: "Skriv ett tal mellan 1 och 999.",
 });
 
@@ -178,6 +239,12 @@ export const LEVEL_UP = Object.freeze({
   4: "Du löser tvåstegsekvationer. Nu kommer fler varianter, även med minus.",
   5: "Du har visat att du kan lösa tvåstegsekvationer självständigt. Nu blir ekvationerna lite klurigare…",
   6: "Du klarar stora tal också. Nu blandas allt – du får själv välja strategi.",
+  7: "Du löser alla sorters tvåstegsekvationer. Nu står x på båda sidor – flytta x-en först!",
+  8: "x på båda sidor klarar du. Nu blir det fler steg och minus i ekvationerna.",
+  9: "Du väljer smarta vägar. Nu får det bli minustal på vägen – lösningen är ändå positiv.",
+  10: "Minustal skrämmer dig inte. Nu kommer decimaltal, som 2,5x.",
+  11: "Decimaler går också. Nu blandas allt svårt – välj själv hur du löser.",
+  12: "Du löser svåra ekvationer på egen hand. Nu gör du ekvationer av verkliga problem!",
 });
 
 export const UI_TEXT = Object.freeze({

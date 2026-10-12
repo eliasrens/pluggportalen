@@ -13,7 +13,7 @@ import { starsFor, taskResult, feedbackFor, moveFeedback } from "../src/ekvation
 import { startAdaptation, recordResult, setLevel, progressValue } from "../src/ekvationsresan/anpassning.js";
 import { coinsFor, award } from "../src/ekvationsresan/mynt.js";
 import { moveEffect } from "../src/ekvationsresan/solver.js";
-import { FEEDBACK, HELP } from "../src/ekvationsresan/config.js";
+import { FEEDBACK, HELP, LEVEL_MAX } from "../src/ekvationsresan/config.js";
 
 /** En uppgift ur en ekvationstext (som generatorn hade gett den). */
 function taskOf(text, level = 3) {
@@ -261,7 +261,7 @@ test("test 21: nivå 1 med dåliga resultat → stannar på nivå 1", () => {
 });
 
 test("högsta nivån går inte över, lärarens nivåändring nollställer fönstret", () => {
-  assert.equal(feed(startAdaptation(6), [3, 3, 3, 3]).state.level, 6);
+  assert.equal(feed(startAdaptation(LEVEL_MAX), [3, 3, 3, 3]).state.level, LEVEL_MAX);
   const s = setLevel({ level: 2, window: [3, 3, 2] }, 5);
   assert.deepEqual(s, { level: 5, window: [] });
   assert.equal(setLevel(s, 0).level, 1);
@@ -275,7 +275,7 @@ test("progressionsmätaren: 0–1 ur fönstret, rör sig tydligt vid stark prest
   assert.ok(progressValue(three) >= 0.75 && progressValue(three) < 1);
   const weak = feed(startAdaptation(1), [1, 1]).state;
   assert.ok(progressValue(weak) < progressValue(one));
-  assert.equal(progressValue(startAdaptation(6)), 1);
+  assert.equal(progressValue(startAdaptation(LEVEL_MAX)), 1);
 });
 
 // --- mynt (E1.10) – test 22 -----------------------------------------------------
