@@ -12,7 +12,7 @@
 //   * texter för nivåstyrningen (en elev / hela klassen)
 // ============================================================================
 
-import { LEVEL_MIN, LEVEL_MAX, LEVELS } from "./config.js";
+import { LEVEL_MIN, LEVEL_MAX, LEVELS, BASE_RULES, rulesForTask } from "./config.js";
 import { normalizeProgress, teacherSummary } from "./framsteg.js";
 import { replayRows } from "./losning.js";
 
@@ -115,6 +115,7 @@ export function forsokRader(attempts) {
     optimal: a.optimalMoves ?? null,
     help: Number.isInteger(a.helpMax) ? a.helpMax : 0,
     blocked: Number.isInteger(a.blocked) ? a.blocked : 0,
+    extra: !!a.extra, // extrautmaning (#627) – frivillig, påverkar inte nivån
   }));
 }
 
@@ -127,7 +128,7 @@ export function hjalpText(row) {
 /** Punkterna för nivåkurvan, äldst först: [{ level, stars, at }]. */
 export function nivaKurva(attempts) {
   return forsokRader(attempts)
-    .filter((r) => Number.isInteger(r.level))
+    .filter((r) => Number.isInteger(r.level) && !r.extra)
     .sort((a, b) => (a.at ?? 0) - (b.at ?? 0))
     .map((r) => ({ level: r.level, stars: r.stars, at: r.at }));
 }
@@ -141,10 +142,13 @@ export function nivaKurva(attempts) {
 export function rakneGang(attempt) {
   try {
     const moves = Array.isArray(attempt.moves) ? attempt.moves : [];
-    const rows = replayRows(attempt.equation, moves);
+    // Försökets egna spärrar: nivå 7–12 och extrautmaningar har minustal,
+    // decimaler och bråk som BASE_RULES annars spärrar.
+    const rules = attempt.extra || LEVELS.some((l) => l.level === attempt.level) ? rulesForTask(attempt) : BASE_RULES;
+    const rows = replayRows(attempt.equation, moves, { rules });
     if (!attempt.revealed) return { rows, ownRows: rows.length };
     const own = Number.isInteger(attempt.moveCount) ? attempt.moveCount : 0;
-    return { rows, ownRows: replayRows(attempt.equation, moves.slice(0, own)).length };
+    return { rows, ownRows: replayRows(attempt.equation, moves.slice(0, own), { rules }).length };
   } catch (err) {
     return { rows: [], ownRows: 0, error: err.message || String(err) };
   }
