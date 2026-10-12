@@ -7,7 +7,8 @@
 //
 // Formuläret (ett vanligt objekt, vyn muterar det inte direkt):
 //   { id, sparad, kopiaAv, title, description, ikon, geo, type, startvy,
-//     classIds: [], leaderboard, items: [{ id?, name, prompt, lat, lon, kalla } | { id?, name, prompt, omrade, key }] }
+//     classIds: [], leaderboard, kopieraFran?,
+//     items: [{ id?, name, prompt, lat, lon, kalla, bild? } | { id?, name, prompt, omrade, key, bild? }] }
 //   sparad = packet finns på servern → geo och typ är låsta (§11.0).
 //   leaderboard = kryssrutan "Skoltopplista" (#635). Den skickas INTE med
 //   sparningen (servern ignorerar den) utan via hittaRattSattTopplista efteråt.
@@ -21,11 +22,14 @@
 //   omradeslista(namn, nycklar) · sokOmraden(lista, q, valda) · laggTillOmrade(f, o)
 //   delaKatalog(katalog, uid) → { mina, kollegor } · klassText(ids, klasser)
 //   raderaText(post) · provData(pack, omradesIds) (provspel: rättning i klienten)
+//   kopieraFran = egna källpackets id när en kopia har bilder (#637) – skickas
+//   med första sparningen så att servern kopierar bilderna. bild = itemets bild
+//   (delat/egna.js normBild): eget dokument (id) eller officiell repofil (fil).
 //   topplistaAndras(original, f) → ska hittaRattSattTopplista anropas efter sparningen?
 //   TOPPLISTA_TEXT · topplistaKvitto(pa, klasstext)
 // ============================================================================
 
-import { normaliseraPack, IKONER, GRANS } from "../delat/egna.js";
+import { normaliseraPack, normBild, IKONER, GRANS } from "../delat/egna.js";
 import { facitNyckel, kompaktFacit } from "../delat/facit.js";
 import { raknaOmgang, MIN_MS_PER_FRAGA } from "../delat/omgang.js";
 
@@ -73,7 +77,8 @@ export function nyttFormular(id) {
 }
 
 function itemFran(it, type) {
-  const bas = { id: it.id, name: it.name || "", prompt: it.prompt || "" };
+  const bild = normBild(it.bild);
+  const bas = { id: it.id, name: it.name || "", prompt: it.prompt || "", ...(bild ? { bild } : {}) };
   if (type === "area") return { ...bas, omrade: it.omrade || "", key: it.key || "" };
   const kalla = it.kalla || (it.wikidata ? `wikidata:${it.wikidata}` : "");
   return { ...bas, lat: it.lat ?? "", lon: it.lon ?? "", ...(kalla ? { kalla } : {}) };
@@ -95,20 +100,23 @@ export function formularFranPack(pack) {
 
 /**
  * Duplicera ett pack (officiellt, eget eller en kollegas) → ett NYTT osparat
- * formulär: nytt id, "(kopia)", inga klasser, inga bilder, topplistan AV.
+ * formulär: nytt id, "(kopia)", inga klasser, topplistan AV. Bilderna följer
+ * med (#637): egna packs bilder kopieras av servern vid första sparningen
+ * (kopieraFran), officiella pekar på samma repofil.
  * Geo och typ går att byta tills kopian sparats.
  */
 export function dupliceraPack(pack, nyttId) {
   const type = pack.type === "area" ? "area" : "point";
   const titel = String(pack.title || "Karta");
+  const items = (pack.items || []).slice(0, GRANS.items).map((it) => itemFran(it, type));
+  const kopieraFran = String(pack.id || "").startsWith("e-") && items.some((it) => it.bild?.id) ? pack.id : null;
   return {
     id: nyttId, sparad: false, kopiaAv: titel,
     title: titel.slice(0, GRANS.titel - KOPIA.length) + KOPIA,
     description: String(pack.description || "").slice(0, GRANS.beskrivning),
     ikon: IKONER.includes(pack.ikon) ? pack.ikon : TYPER[type].ikon,
     geo: pack.geo, type, startvy: pack.startvy === "hel" ? "hel" : "auto",
-    classIds: [], leaderboard: false,
-    items: (pack.items || []).slice(0, GRANS.items).map((it) => itemFran(it, type)),
+    classIds: [], leaderboard: false, kopieraFran, items,
   };
 }
 
@@ -124,7 +132,8 @@ export function tal(v) {
 /** Formuläret → indata till hittaRattSparaPack (servern normaliserar igen). */
 export function tillIndata(f) {
   const items = f.items.map((it) => {
-    const bas = { ...(it.id ? { id: it.id } : {}), name: String(it.name || "").trim(), prompt: String(it.prompt || "").trim() };
+    const bild = normBild(it.bild);
+    const bas = { ...(it.id ? { id: it.id } : {}), name: String(it.name || "").trim(), prompt: String(it.prompt || "").trim(), ...(bild ? { bild } : {}) };
     if (f.type === "area") return { ...bas, omrade: it.omrade, ...(it.key ? { key: it.key } : {}) };
     return { ...bas, lat: tal(it.lat), lon: tal(it.lon), ...(it.kalla ? { kalla: it.kalla } : {}) };
   });

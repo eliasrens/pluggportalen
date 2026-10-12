@@ -16,9 +16,14 @@
 //      (tom topplista med v om den är PÅ). Ändrad titel → topplistans och
 //      ledarnas titel följer med. Packen + katalogposten skrivs.
 //   `leaderboard` i indata ignoreras (ändras bara av hittaRattSattTopplista, D).
+//   Bilder (#637, hitta-ratt-bilder.js): kopieraFran (Duplicera) kopierar
+//   källpackens bilder till nya id FÖRE transaktionen. I transaktionen måste
+//   varje bild.id finnas i hittaRattBilder med packId = packen och ägas av
+//   anroparen; packens bilder som ingen fråga använder raderas.
 // raderaPack(deps, uid, { packId }) → { fanns }  (callable hittaRattRaderaPack)
 //   EN transaktion: packen, katalogposten, topplistan och ledarna. Idempotent.
-//   Försök och personbästa ligger kvar (ofarliga). Bilderna: F.
+//   Försök och personbästa ligger kvar (ofarliga). Sedan raderas packens
+//   bilder i batchar (packet fanns inte → bara anroparens egna).
 // sattTopplista(deps, uid, { packId, pa }) → { leaderboard, tillagda }
 //   (callable hittaRattSattTopplista, bara ägaren – §11.5, #635). Idempotent.
 //   AV: EN transaktion – leaderboard = false i packen och katalogen +
@@ -46,6 +51,7 @@ import { GEO_SCOPE } from "./hitta-ratt/scope.js";
 import { matt, ledare as raknaLedare } from "./hitta-ratt/rank.js";
 // Cykeln core ↔ egna är ofarlig: bara funktioner som anropas efter laddningen.
 import { stangTopplistaTx } from "./hitta-ratt-core.js";
+import { bilderFraga, granskaBilder, kopieraBilder, raderaPackBilder } from "./hitta-ratt-bilder.js";
 
 export const arEget = (packId) => typeof packId === "string" && packId.startsWith("e-");
 const sha1 = (s) => createHash("sha1").update(s).digest("hex");
@@ -92,12 +98,14 @@ export async function sparaPack(deps, uid, data, { namn } = {}) {
   const indata = data?.pack;
   if (!indata || typeof indata !== "object") throw new HrFel("invalid-argument", "Kartan saknas.");
   const klasser = await befintligaKlasser(db, indata.classIds);
-  const ny = normaliseraPack(indata, { geoOmraden: GEO_OMRADEN, klasser });
+  const ny = await kopieraBilder(deps, uid, normaliseraPack(indata, { geoOmraden: GEO_OMRADEN, klasser }), data.kopieraFran);
   const nyckel = facitHash(ny);
   const r = refs(db, ny.id);
 
   return db.runTransaction(async (tx) => {
-    const [pS, kS, bS, lS] = await Promise.all([tx.get(r.pack), tx.get(r.katalog), tx.get(r.board), tx.get(r.ledare)]);
+    const [pS, kS, bS, lS, bildS] = await Promise.all([
+      tx.get(r.pack), tx.get(r.katalog), tx.get(r.board), tx.get(r.ledare), tx.get(bilderFraga(db, ny.id)),
+    ]);
     const gammal = pS.exists ? pS.data() : null;
     if (gammal) {
       if (gammal.ownerUid !== uid) throw new HrFel("permission-denied", "Bara läraren som skapade kartan kan ändra den.");
@@ -111,10 +119,12 @@ export async function sparaPack(deps, uid, data, { namn } = {}) {
       }
     }
 
+    const { items, oanvanda } = granskaBilder(bildS, uid, ny);
     const andrad = !!gammal && gammal.facitNyckel !== nyckel;
     const nu = Timestamp.fromMillis(now());
     const pack = {
       ...ny,
+      items,
       ownerUid: uid,
       ownerNamn: gammal?.ownerNamn || String(namn || "").trim().slice(0, 40) || "Lärare",
       leaderboard: gammal?.leaderboard === true,
@@ -137,7 +147,8 @@ export async function sparaPack(deps, uid, data, { namn } = {}) {
     }
     tx.set(r.pack, pack);
     tx.set(r.katalog, { packs: { [ny.id]: katalogPost(pack, FieldValue) }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    return { id: ny.id, version: pack.version, nollstalld: andrad };
+    oanvanda.forEach((ref) => tx.delete(ref));
+    return { id: ny.id, version: pack.version, nollstalld: andrad, bilderBort: oanvanda.length };
   });
 }
 
@@ -146,7 +157,7 @@ export async function raderaPack(deps, uid, data) {
   const packId = data?.packId;
   if (typeof packId !== "string" || !EGEN_ID_RE.test(packId)) throw new HrFel("invalid-argument", "Okänd karta.");
   const r = refs(db, packId);
-  return db.runTransaction(async (tx) => {
+  const svar = await db.runTransaction(async (tx) => {
     const [pS, kS, lS] = await Promise.all([tx.get(r.pack), tx.get(r.katalog), tx.get(r.ledare)]);
     const post = kS.exists ? kS.data().packs?.[packId] : null;
     const tomKatalog = () => tx.set(r.katalog, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
@@ -163,6 +174,8 @@ export async function raderaPack(deps, uid, data) {
     }
     return { fanns: true };
   });
+  const bilder = await raderaPackBilder(db, packId, { bara: svar.fanns ? null : uid });
+  return { ...svar, bilder };
 }
 
 const sammaLista = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i]);

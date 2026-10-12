@@ -10,6 +10,8 @@
 // Kryssrutan "Skoltopplista / Gör till skolutmaning" (#635, §11.5) hör till
 // formuläret (lämna-vakten ser den) men skickas efter sparningen via
 // hittaRattSattTopplista – bara om den ändrats.
+// Bilder (#637): frivillig per fråga (lhr-bilder.js). En kopia av ett eget
+// pack skickar kopieraFran vid första sparningen – servern kopierar bilderna.
 // ============================================================================
 
 import { el, esc, icon } from "../../teacher-shared.js";
@@ -66,7 +68,7 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
   const vy = el(`<form class="panel lhr-form" novalidate>
     <div class="lhr-form-topp">
       <h2 class="subhead">${f.sparad ? `Redigera ”${esc(f.title)}”` : f.kopiaAv ? `Kopia av ”${esc(f.kopiaAv)}”` : "Skapa nytt område"}</h2>
-      ${f.kopiaAv ? `<p class="hint">Kopian är inte sparad än. Inga bilder och inga klasser följer med – välj klasser och spara.</p>` : ""}
+      ${f.kopiaAv ? `<p class="hint">Kopian är inte sparad än. Klasserna följer inte med – välj klasser och spara.</p>` : ""}
     </div>
     <div class="lhr-msg" aria-live="polite">${flash?.id === f.id ? flash.html : ""}</div>
     <div class="lhr-form-grid">
@@ -208,7 +210,7 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
     knapp.disabled = true;
     knapp.lastElementChild.textContent = "Sparar…";
     try {
-      const svar = await sparaPack(tillIndata(st.f));
+      const svar = await sparaPack(tillIndata(st.f), { kopieraFran: st.f.sparad ? null : st.f.kopieraFran });
       const klasstext = klassText(st.f.classIds, klasser);
       const delad = st.f.classIds.length ? `Eleverna i ${esc(klasstext)} ser området.` : "Ingen klass ser området ännu.";
       let toppText = "";

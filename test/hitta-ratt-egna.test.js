@@ -79,11 +79,11 @@ describe("normaliseraPack – städning och härledda fält", () => {
     assert.equal(p.maxZoom, 16);
   });
 
-  it("ikon ur listan, annars standard; leaderboard/owner/bild tas aldrig från indata", () => {
+  it("ikon ur listan, annars standard; leaderboard/owner tas aldrig från indata, ogiltig bild tas bort", () => {
     assert.equal(norm(punkt({ ikon: "💩" })).ikon, IKONER[0]);
     const p = norm(punkt({ leaderboard: true, ownerUid: "x", version: 9, items: [{ name: "A", lat: 60, lon: 17, bild: { id: "x" } }] }));
     for (const f of ["leaderboard", "ownerUid", "version"]) assert.equal(f in p, false, f);
-    assert.equal("bild" in p.items[0], false, "bilder: F");
+    assert.equal("bild" in p.items[0], false, "ogiltigt bild-id → ingen bild (#637)");
     assert.equal(norm(punkt({ startvy: "hel" })).startvy, "hel");
     assert.equal(norm(punkt({ startvy: "konstig" })).startvy, "auto");
   });

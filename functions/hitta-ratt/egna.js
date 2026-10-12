@@ -17,7 +17,12 @@
 //         type, geo, startvy, visaGranser, scoringConfig, maxZoom, classIds, items }
 //   Härledda fält (scoringConfig, maxZoom, visaGranser) sätts här, aldrig av
 //   läraren. ownerUid, leaderboard, version och facit sätter servern.
-//   Bilder (bild.id) hanteras i F – här tas `bild` bort.
+//   bild (#637, §11.8) är frivillig per fråga. normBild städar den:
+//     { id: "<packId>--<8 tecken>", kalla: "commons" | "egen", fil?, fotograf?,
+//       licens?, licensUrl?, kallaUrl?, bredd?, hojd? }  – eget bilddokument
+//     { fil: "<itemId>.webp", kalla, fotograf, licens, … } – officiell bild i
+//       repot (kopia av ett officiellt pack, inget dokument)
+//   Att bild.id finns och hör till packet kontrollerar servern (sparaPack).
 // ============================================================================
 
 import { HrFel } from "./omgang.js";
@@ -26,12 +31,16 @@ import { GEO_SCOPE, STANDARD, OMRADE_CFG, inomScope } from "./scope.js";
 export const EGEN_ID_RE = /^e-[a-z0-9]{12}$/;
 export const ITEM_ID_RE = /^[a-z0-9-]{1,60}$/;
 const KLASS_ID_RE = /^[^/]{1,100}$/;
+export const BILD_ID_RE = /^e-[a-z0-9]{12}--[a-z0-9]{8}$/;
+const REPO_FIL_RE = /^[a-z0-9-]{1,60}\.webp$/;
+const HTTPS_RE = /^https:\/\/[^\s"<>]{1,290}$/;
 
 export const IKONER = ["🗺️", "📍", "🏞️", "🏙️", "🏰", "⛰️", "🌲", "🌊", "🏝️", "🌋", "🏛️", "🗽", "⛪", "🚂", "🧭", "🌍"];
 
 export const GRANS = {
   titel: 60, beskrivning: 200, namn: 60, prompt: 120, items: 60, klasser: 20, kalla: 120,
   katalogBytes: 800_000,
+  fotograf: 160, licens: 40, bildKalla: 200,
 };
 
 const ALFABET = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -87,7 +96,7 @@ function normItem(it, { typ, scope, kanda }) {
     const finns = Array.isArray(kanda) ? kanda.includes(omrade) : Object.hasOwn(kanda, omrade);
     if (!finns) throw fel(`Området för "${name}" finns inte på kartan.`);
     const key = Array.isArray(kanda) ? text(it.key).slice(0, 60) : kanda[omrade];
-    return { id, name, prompt, omrade, ...(key ? { key } : {}) };
+    return { id, name, prompt, omrade, ...(key ? { key } : {}), ...medBild(it) };
   }
   const lat = Number(it.lat);
   const lon = Number(it.lon);
@@ -96,7 +105,32 @@ function normItem(it, { typ, scope, kanda }) {
   }
   if (!inomScope(scope, lon, lat)) throw fel(`"${name}" ligger utanför kartan.`);
   const kalla = begransad(it.kalla, GRANS.kalla, "Källan");
-  return { id, name, prompt, lat: avrunda(lat), lon: avrunda(lon), ...(kalla ? { kalla } : {}) };
+  return { id, name, prompt, lat: avrunda(lat), lon: avrunda(lon), ...(kalla ? { kalla } : {}), ...medBild(it) };
+}
+
+function medBild(it) {
+  const bild = normBild(it.bild);
+  return bild ? { bild } : {};
+}
+
+const kort = (v, max) => text(v).slice(0, max);
+const lank = (v) => (typeof v === "string" && HTTPS_RE.test(v) ? v : "");
+
+/** Frågans bild (frivillig) → städad bild eller null. Okända fält följer aldrig med. */
+export function normBild(b) {
+  if (!b || typeof b !== "object") return null;
+  const id = typeof b.id === "string" && BILD_ID_RE.test(b.id) ? b.id : "";
+  const fil = kort(b.fil, GRANS.bildKalla);
+  if (!id && !REPO_FIL_RE.test(fil)) return null;
+  const egen = id && b.kalla === "egen";
+  const ut = id ? { id, kalla: egen ? "egen" : "commons" } : { fil, kalla: kort(b.kalla, GRANS.bildKalla) };
+  if (id && !egen && fil) ut.fil = fil;
+  if (!egen) {
+    const falt = { fotograf: kort(b.fotograf, GRANS.fotograf), licens: kort(b.licens, GRANS.licens), licensUrl: lank(b.licensUrl), kallaUrl: lank(b.kallaUrl) };
+    for (const [k, v] of Object.entries(falt)) if (v) ut[k] = v;
+  }
+  for (const k of ["bredd", "hojd"]) if (Number.isInteger(b[k]) && b[k] > 0 && b[k] <= 4000) ut[k] = b[k];
+  return ut;
 }
 
 /** Unika id: dubbletter från slugId får -2, -3 … (uttryckliga dubbletter nekas). */

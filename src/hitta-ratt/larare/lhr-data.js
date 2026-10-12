@@ -4,7 +4,9 @@
 // Laddas bara DYNAMISKT (lärarfliken), aldrig i bootgrafen (#271).
 // Läraren skriver aldrig i packen själv – allt går via servern (§11.0):
 //
-//   sparaPack(indata)     → hittaRattSparaPack → { id, version, nollstalld }
+//   sparaPack(indata, { kopieraFran }) → hittaRattSparaPack → { id, version, nollstalld }
+//                           kopieraFran = källpackets id vid första sparningen av
+//                           en kopia – servern kopierar dess bilder (#637)
 //   raderaPack(packId)    → hittaRattRaderaPack → { fanns }
 //   sattTopplista(packId, pa) → hittaRattSattTopplista → { leaderboard, tillagda } (#635)
 //   hamtaKatalog()        → hittaRattMeta/egnaPack, EN läsning (färsk vid varje besök)
@@ -12,13 +14,16 @@
 //   hamtaPackIndex()      → content/packs/index.json (officiella, statisk)
 //   hamtaOfficielltPack(id) → content/packs/<id>.json
 //   hamtaGeo(geo)         → content/geo/<geo>.json (kartvalet, #636)
+//   sparaBild(packId, { blob, mime, bredd, hojd }) → bild-id (#637, §11.8):
+//                           hittaRattBilder/{packId}--{8 tecken}, Bytes ≤ 150 kB
+//                           (regeln), ägare = läraren. Ingen uppdatering – nytt id per bild.
 //   laddaOmraden(geo)     → { lista: [{ id, key, namn }], nycklar, geoOmraden }
 //                           ur <geo>.namn.json + <geo>.nycklar.json (bara lärarvyn)
 // Fel från servern kastas som LhrFel { code, message } med serverns svenska text.
 // ============================================================================
 
-import { app, db } from "../../firebase-config.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { app, auth, db } from "../../firebase-config.js";
+import { Bytes, doc, getDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { hamtaKatalog as lasKatalog, invalideraKatalog } from "../hr-egna-data.js";
 import { omradeslista } from "./lhr-modell.js";
@@ -57,11 +62,27 @@ async function anropa(namn, data) {
   }
 }
 
-export const sparaPack = (pack) => anropa("hittaRattSparaPack", { pack });
+export const sparaPack = (pack, { kopieraFran } = {}) => anropa("hittaRattSparaPack", { pack, ...(kopieraFran ? { kopieraFran } : {}) });
 export const raderaPack = (packId) => anropa("hittaRattRaderaPack", { packId });
 export const sattTopplista = (packId, pa) => anropa("hittaRattSattTopplista", { packId, pa: pa === true });
 
 export const hamtaKatalog = () => lasKatalog({ farsk: true });
+
+const ALFABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+const nyttBildId = (packId) => `${packId}--${Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => ALFABET[b % ALFABET.length]).join("")}`;
+
+export async function sparaBild(packId, { blob, mime, bredd, hojd }) {
+  const id = nyttBildId(packId);
+  const data = Bytes.fromUint8Array(new Uint8Array(await blob.arrayBuffer()));
+  try {
+    await setDoc(doc(db, "hittaRattBilder", id), {
+      ownerUid: auth.currentUser?.uid || "", packId, mime, bredd, hojd, data, skapad: serverTimestamp(),
+    });
+  } catch (err) {
+    throw new LhrFel(String(err?.code || ""), "Bilden kunde inte sparas. Försök igen.");
+  }
+  return id;
+}
 
 export async function hamtaPack(id) {
   const snap = await getDoc(doc(db, "hittaRattPacks", id));
