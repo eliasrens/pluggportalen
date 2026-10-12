@@ -5,7 +5,7 @@ D #635 toggle, E #636 platssökning och polygonval, F #637 bilder. Testerna föl
 och issuens extrafall. Som regression kördes test 1–7 och 9–12 för de officiella packen.
 
 **Resultat: alla test är gröna. Inga buggar i produktkoden.** Två QA-hjälpare är förbättrade (se
-O1). Iakttagelserna O1–O5 blockerar inte landningen.
+O1). Iakttagelserna O1–O7 blockerar inte landningen.
 
 ## Deploy före live (i den här ordningen)
 
@@ -93,6 +93,14 @@ utom `firestore-rules-*`, `functions-*` och `e2e-*`). Inget test faller.
 | Färdiga områden: förhandsgranska | ✅ 12 kort, var och ett med Visa innehåll, Provspela och Duplicera till Mina områden. Sveriges län listar alla 21 frågor |
 | Färdiga områden: provspel | ✅ Sveriges län 21/21: "Provspel – sparas inte. 21 av 21 godkända svar = 21 coins för en elev." ([13](qa-hitta-ratt-638/hr638-13-provspel-sparas-inte.png)). Firestore: 0 försök, inget `hittaRattBest` och inget `studentData` för läraren |
 
+## Leadens extrakontroller
+
+| Kontroll | Resultat |
+| --- | --- |
+| Israel på världskartan (ringarna #639) | ⚠️ Israel kan **inte** väljas i helvy. Lärarens kartval, Världen, område: 78 provpunkter inom Israels ruta (3 × 11 px) träffade Cypern-ringen (48), Libanon-ringen (20) och Palestina-ringen (10), men **0 träffade Israel** ([19](qa-hitta-ratt-638/hr638-19-varlden-helvy-ringar.png)). Med hjulzoom över Israel: vid 1,2–1,8× fortfarande 0. Vid **2,2×** gav 2 av 144 punkter träff, vid 2,6× 7, vid 3,2× 12, vid 3,8× 22 och vid **4,6×** 32 av 158 ([18](qa-hitta-ratt-638/hr638-18-israel-ringar-4x.png)). Palestina-ringen täcker fortfarande drygt hälften. Israel finns inte i något officiellt pack, så det gäller bara egna världspack. Läraren kan alltid lägga till Israel via namnlistan, men eleven måste zooma ~3–4× för att kunna klicka på landet (se O6) |
+| Bild med en annan lärares packId | ⚠️/✅ Regeln **släpper igenom** att `qalarare2` skapar `hittaRattBilder/e-07xfnugcackn--ogod5tcp` under `qalarare`s pack (`ownerUid` = qalarare2). Servern vägrar använda bilden. När ägaren sparar packen med en referens till den svarar `sparaPack` med invalid-argument: "Bilden till "Sverige" finns inte längre – välj en bild igen." Ägarens nästa vanliga sparning **städade bort** den främmande bilden (packens bilder: 1 → 0), och `raderaPack` tar den också. Den blir alltså föräldralös bara tills ägaren sparar eller raderar (se O7) |
+| Duplicera behåller bilder | ✅ Kopian `e-al72bs330jf4` fick **egna** bilddokument (`e-al72bs330jf4--kr2cuy48`, ny id-prefix). Även kollegans kopia fick egna dokument, med kollegan som ägare. Originalet `e-rv69dasf84dx` raderades sedan med pack och bilder. Kopians bilddokument finns kvar, och i provspel av kopian visas bilden till "Hudiksvall" (`blob:`, 800 × 450) |
+
 ## Regression (officiella pack, spec §35 test 1–7, 9–12)
 
 Epiken ändrar utanför `src/hitta-ratt/`, `functions/`, regler och index bara **en rad** i
@@ -134,6 +142,19 @@ Inga buggar i produktkoden.
 - **O5 – Wikidata-träffar.** "Gävle" ger även kommun, län, församling, kyrkogård och högskola. Den
   första träffen (tätorten) är rätt, och läraren ser markören innan hen bekräftar. Inget att
   ändra, men skolor bör veta att den första träffen inte alltid är orten.
+
+- **O6 – Israel i helvy på världskartan.** Israel kan inte klickas förrän vid ~2,2× zoom, och
+  först vid ~4× blir det lätt. Det beror på att ringarna för Cypern, Libanon och Palestina täcker
+  det lilla landet. Israel finns inte i något officiellt pack, men en lärare som gör ett eget
+  "Mellanöstern"-pack på världskartan får en fråga som kräver zoom. Förslag om det ska åtgärdas:
+  en egen ring för Israel, eller mindre ringar för grannarna. Det får bli ett eget issue om Elias
+  vill.
+- **O7 – Främmande bilder under fel packId.** Regeln för `hittaRattBilder` kontrollerar inte att
+  packen tillhör den som laddar upp (det kan regler inte göra billigt). En lärare kan alltså skapa
+  bilder under en kollegas pack-id (≤ 150 kB per dokument). Servern använder dem aldrig, och de
+  städas bort vid ägarens nästa sparning eller radering. Risken är kvot eller skräp, inte
+  dataintegritet. Kan stängas med en `get()` mot `hittaRattPacks` i regeln, men bara för packen
+  som redan finns (nya pack har inget dokument när bilderna laddas upp).
 
 ## Öppna frågor till Elias (§11.11)
 
