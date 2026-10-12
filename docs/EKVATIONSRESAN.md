@@ -461,4 +461,82 @@ former de typen klarar och lägger på sin data på uppgiften. Tester:
 - Progress: lärarens "drag jämfört med optimalt" räknar bara typer med en
   lösningsdel (A, B, F). Lärarens försökslista visar typen, "–" för drag i C–E
   och elevens svar (✓/✗/👁) i elevdetaljen. Färdighetsmodell och utbyggd
-  lärarvy är #626.
+  lärarvy: avsnitt 9 (#626).
+
+---
+
+## 9. Etapp 2 – färdighetsmodellen och lärarvyn (`#626`, E2.4, E2.5)
+
+Ren logik, tester i `test/ekvationsresan-fardigheter.test.js`. Modellen är
+**intern** – eleven ser den aldrig. Trösklar och andelar i `config.FARDIGHET`,
+färdigheterna i `config.SKILLS`.
+
+| Fil | Ansvar |
+| --- | --- |
+| `fardigheter.js` | `observera(task, attempt)` → observationer `{ färdighet: { s: 0–100, h: 0/1 } }`; `uppdatera(skills, obs)` (glidande medelvärde: 1/n i början, sedan minst 25 %); `modellUrForsok(attempts)`; `stark/svag/hjalpOfta/sjalvstandig`; `ekvationsslag(task)` ur den optimala vägen. |
+| `nasta-uppgift.js` | `nastaUppgift(progress)` – nästa uppgift på anpassningens nivå med modellens andelar (`generateTask` `mix`). `fokusFor`, `blandning`. |
+| `sammanfattning.js` | Lärarens meningar (`sammanfattningar`), "I korthet", behärskar/svårt för (`slagLagen`), problemlösning, indikatorer (`fardighetsbild`). |
+| `admin/qa-ekvationsresan-spela.mjs` | Spelar en uppgift med spelets logik enligt en plan → försök. Delas av testerna och seeden. |
+
+### Färdigheterna och vad som mäter dem
+
+| Färdighet | Observeras ur |
+| --- | --- |
+| Ekvationsslag: `ettSteg`, `tvaSteg`, `bada` (x i båda leden), `addSub` (+/− i vägen), `multDiv` (·/÷ – x med koefficient) | Lösningsdelen i A, B och F: löst själv 100, med hjälp enligt hjälpgränsen (E1.7), Visa lösningen 0. **Omvägar räknas inte här.** |
+| `operation` (välja rätt operation) | Lösta A/B/F: drag mot optimalt (⭐-trappan), spärrade drag ger högst 60. Visa lösningen ger ingen observation. |
+| `balans` | A (vågen i fokus) och E med felet "bara ena ledet"/"olika operation". |
+| `forenkling` | C (nästa rad) och E med räknefel/"delade bara x-termen". |
+| `skrivsatt` | D (bild → ekvation) och C när eleven skriver raden själv (nivå 4+). |
+| `text` | F: första frågan (skriv ekvationen ur texten). |
+| `problem` | F: hela kedjan (uppgiftens stjärnor). |
+| `sjalv` | Alla: 💡-steg och visade svar. |
+
+Frågor i C–F poängsätts som stjärnreglerna: rätt direkt 100, ett fel 60,
+fler 20, visat svar 0 (och `h = 1`). Svar som inte räknas som fel (annan form,
+följdrad i E) hoppas över.
+
+### Data (inga nya fält, ingen regeländring)
+
+- Försöket: `skills: { fokus: "text"|"bro"|null, obs: { … } }` (fältet fanns, var `null`).
+- Progress: `skills: { [färdighet]: { v: 0–100, h: 0–100, n } }` (fanns, var `{}`).
+- `progress.skills` = `modellUrForsok(alla försök)` – testat och kontrollerat
+  i webbläsaren mot emulatorn för alla seedade elever.
+- Reglerna tillät redan båda fälten → **ingen ny rules-deploy** för #626.
+
+### Val av nästa uppgift (E2.4)
+
+Nivån kommer alltid från anpassningen; modellen ändrar bara andelarna på nivån:
+
+| Fokus | Villkor | Effekt |
+| --- | --- | --- |
+| `text` | Ekvationsslagen sammantaget starka (≥ 75, ≥ 3 uppgifter) och `text` eller `problem` svag (< 50) | F-andelen ≥ 40 % (nivå 1–2: D i stället). |
+| `bro` | `balans` stark och `skrivsatt` eller `forenkling` svag | D ≥ 30 %, C ≥ 25 %, högst 30 % "Lös själv" bland A/B (fler med vågen i fokus). Nivå 9+ saknar D. |
+| svagast slag | Ett ekvationsslag svagt eller 💡 i minst hälften | Nivåns former som tränar det slaget väger dubbelt (bara det svagaste – annars dubblas ofta allt). |
+
+C–F tillsammans högst 85 %. Uppgifter av fokustypen får `fokus`; **en
+fokusuppgift med ⭐ eller ej löst räknas inte i nivåfönstret**
+(`framsteg.skyddadFranFonstret`) – eleven ska få träna på sin nivå, inte sänkas
+(E2.4 "sänk inte till lätta ekvationer"). Lyckade fokusuppgifter räknas som
+vanligt. "Försök igen" behåller `fokus`.
+
+### Lärarvyn (E2.5)
+
+- **Klassöversikten** har kolumnen **I korthet**: det första eleven har svårt
+  för + det första hen behärskar (alla meningar i tooltip). Räknas ur samma
+  progressdokument som förut – inga fler läsningar (#231).
+- **Elevdetaljen** har "Vad eleven kan": meningarna, behärskar / har svårt för
+  (ekvationsslag), problemlösning (text → ekvation, hela kedjan) och
+  färdighetsindikatorer (0–100, läge, 💡-andel, underlag).
+- **Meningarna** (urval): "Behärskar enstegsekvationer självständigt.",
+  "Behöver ofta hjälp när x har en koefficient.", "Löser ekvationer bra men
+  har svårt att skapa ekvation från text.", "Tar ofta många extra steg trots
+  korrekta slutsvar.", "Förstår vågen men har svårt att skriva ekvationen med
+  symboler.". Under 3 uppgifter per färdighet: "För få uppgifter för en
+  sammanfattning än."
+
+### Preview / QA
+
+`bash admin/qa-ekvationsresan-preview.sh` seedar (`--larare`) även qa-text,
+qa-bro, qa-koef och qa-omvag (seeden skriver ut varje elevs meningar).
+`qalarare / lilla123` → QA-klass 4A → Statistik → Ekvationsresan.
+

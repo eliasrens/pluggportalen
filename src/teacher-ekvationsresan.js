@@ -4,7 +4,9 @@
 // Fliken "Ekvationsresan" i klasskortets Statistik-panel (teacher-class.js,
 // issue #619, spec E1.12). Samma upplägg och mörka stil som Läsresan
 // (teacher-lasresan.js):
-//   Elev | Nivå | Trend | Uppgifter | ⭐⭐⭐/⭐⭐/⭐ | Lösta % | Hjälp % | Drag jämfört med optimalt
+//   Elev | Nivå | Trend | Uppgifter | ⭐⭐⭐/⭐⭐/⭐ | Lösta % | Hjälp % | Drag jämfört med optimalt | I korthet
+// "I korthet" (#626, E2.5) = färdighetsmodellens viktigaste sammanfattning
+// (sammanfattning.js) – räknas ur samma progressdokument, inga fler läsningar.
 // Sorterbar på namn, nivå och uppgifter. Klick på en rad → elevdetaljen
 // (teacher-ekvationsresan-elev.js) med räknegången och "Ändra nivå".
 // Ovanför tabellen: "Ändra nivå för hela klassen" (Läsresans nivåstyrning, #506).
@@ -56,6 +58,11 @@ const nivaOptions = (sel) => NIVAER.map((n) => `<option value="${n.level}"${n.le
 export const starsCell = (s) =>
   `<span class="ekt-stars" title="${s.three} med ⭐⭐⭐, ${s.two} med ⭐⭐, ${s.one} med ⭐, ${s.none} ej lösta">${s.three}<span class="lrt-of"> / </span>${s.two}<span class="lrt-of"> / </span>${s.one}</span>`;
 
+/** "I korthet": det eleven har svårt för + det hen behärskar; alla meningar i title. */
+export const korthetHtml = (f) =>
+  `<span class="ekt-korthet-txt" title="${esc(f.rader.map((r) => r.text).join("\n"))}">${f.korthet
+    .map((r) => `<span class="ekt-mening ekt-mening--${r.ton}">${esc(r.text)}</span>`).join("")}</span>`;
+
 function rowHtml(r, student) {
   const name = student ? student.namn || student.username || r.studentId : r.namn;
   const t = TREND[r.trend] || TREND.flat;
@@ -75,6 +82,7 @@ function rowHtml(r, student) {
     <td class="lrt-num">${r.solvedPct == null ? dash : `${r.solvedPct}%`}</td>
     <td class="lrt-num">${r.helpPct == null ? dash : `${r.helpPct}%`}</td>
     <td class="lrt-num" title="${drag == null ? "" : "extra drag per löst uppgift"}">${drag == null ? dash : esc(drag)}</td>
+    <td class="ekt-korthet">${s ? korthetHtml(r.fardighet) : dash}</td>
   </tr>`;
 }
 
@@ -197,6 +205,7 @@ export async function renderClassEkvationsresan(ctx, host, opts = {}) {
       <span class="cx-legend-item">Trend ↗ → ↘ ur de senaste uppgifterna</span>
       <span class="cx-legend-item">Hjälp % = uppgifter där 💡 användes</span>
       <span class="cx-legend-item">Drag = extra drag per löst uppgift jämfört med optimalt</span>
+      <span class="cx-legend-item">I korthet = vad eleven har svårt för och behärskar, ur elevens försök</span>
       <span class="cx-legend-tip">Klicka på en elev för räknegången${cls ? " och för att ändra elevens nivå" : ""}</span>
     </div>
   </div>`);

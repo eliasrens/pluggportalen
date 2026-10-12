@@ -14,6 +14,8 @@
 // data.addCoins (mynt.award) – Läsresans mönster. Går nätet ner precis mellan
 // transaktionen och addCoins uteblir mynten för den uppgiften, men de kan aldrig
 // delas ut två gånger.
+// NÄSTA UPPGIFT väljs av färdighetsmodellen (nasta-uppgift.js, #626) på den
+// nivå anpassningen gett.
 // ⚠️ DEPLOY: reglerna för båda sökvägarna kräver `firebase deploy --only firestore:rules`.
 // ============================================================================
 
@@ -31,7 +33,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { currentStudentId } from "../data.js";
 import { newAttemptId } from "../mult/attempt-id.js";
-import { generateTask } from "./generator.js";
+import { nastaUppgift } from "./nasta-uppgift.js";
 import { award } from "./mynt.js";
 import { normalizeProgress, currentTask, withCurrent, buildAttempt, applyCompletion, teacherSetLevel, TEACHER_LEVEL_FIELDS } from "./framsteg.js";
 
@@ -72,7 +74,7 @@ export async function enterEkvationsresan(studentId = currentStudentId(), { rng 
   const cur = currentTask(progress);
   if (cur) return { progress, current: cur };
   const previous = progress.current?.task || null;
-  return startTask(generateTask(progress.level, { rng, previous }), studentId, { progress });
+  return startTask(nastaUppgift(progress, { rng, previous }), studentId, { progress });
 }
 
 /**
@@ -96,7 +98,7 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
       return { created: false, progress, change: null, from: progress.level, to: progress.level };
     }
     const r0 = applyCompletion(progress, attempt, { now });
-    const nextTask = generateTask(r0.to, { rng, previous: current.task });
+    const nextTask = nastaUppgift(r0.progress, { rng, previous: current.task }); // färdighetsmodellen (#626)
     const next = { id: newAttemptId(), at: now, task: nextTask };
     const r = { ...r0, progress: { ...r0.progress, current: next } };
     tx.set(aRef, attempt);
@@ -113,7 +115,7 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
     }
   }
   let next = currentTask(res.progress);
-  if (!next || next.id === current.id) next = (await startTask(generateTask(res.progress.level, { rng, previous: current.task }), studentId, { progress: res.progress })).current;
+  if (!next || next.id === current.id) next = (await startTask(nastaUppgift(res.progress, { rng, previous: current.task }), studentId, { progress: res.progress })).current;
   return { ok: true, created: res.created, attempt, progress: res.progress, change: res.change, from: res.from, to: res.to, next, coins: reward.coins, balance: reward.balance };
 }
 

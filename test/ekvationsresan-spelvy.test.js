@@ -58,7 +58,7 @@ test("försöket: strukturerad ekvation, lösning, optimalt, dragen i ordning, s
   assert.equal(attempt.stars, 3);
   assert.equal(attempt.solved, true);
   assert.equal(attempt.coins, 2);
-  assert.equal(attempt.skills, null, "Etapp 2-fältet finns");
+  assert.deepEqual(Object.keys(attempt.skills), ["fokus", "obs"], "färdighetsmodellens observation (#626)");
   assert.equal(JSON.stringify(attempt).includes("undefined"), false);
 });
 
