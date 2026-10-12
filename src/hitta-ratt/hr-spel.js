@@ -31,6 +31,14 @@ const HASH = "#/elev/hitta-ratt";
 const NASTA_SPARR_MS = 450;
 const KALLOR = { ne: "Natural Earth", "lm-landskap": "Lantmäteriet (CC0)" };
 
+// Klass-EXP (Klasscentret, kc-koppling.js #479) – AV tills Elias bestämt
+// (arkitektur §10 fråga 4). TODO: sätt true OCH registrera regeln i
+// src/klasscenter/kc-exp-regler.js, t.ex.
+//   registreraRegel("hittaratt", andelRegel("Hitta rätt!: varje omgång med minst 50 % godkända svar", 1, 2));
+// Utan regeln gör anropet ingenting (behoverSkrivning → false), så flaggan
+// ensam ger ingen trafik. Samma fire-and-forget-krok som Läsresan.
+export const KLASS_EXP_PA = false;
+
 const jsonCache = new Map();
 /** Pack- och geofiler (statiska i repot), cachade per session. */
 function hamtaJson(rel) {
@@ -301,6 +309,11 @@ async function skicka(ctx, attemptId, svar) {
   }
   // Coins krediterade på servern (hr-data.js har invaliderat cachen) → sidomenyns saldo.
   if (res?.result?.godkanda > 0) renderTopbar().catch(() => {});
+  if (KLASS_EXP_PA && res?.result) {
+    import("../klasscenter/kc-koppling.js")
+      .then((m) => m.klassExpEfterOvning({ modul: "hittaratt", resultat: { ratt: res.result.godkanda, totalt: res.result.n } }))
+      .catch(() => {});
+  }
   const vy = el(resultatHtml(pack, res));
   vy.querySelector('[data-act="igen"]').addEventListener("click", () => nyOmgang(ctx));
   vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));

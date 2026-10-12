@@ -486,6 +486,7 @@ Mönstret finns redan: Guldrushens functions (#563) och `updateStudentLogin`.
   ett omförsök ger `coins: 0` men samma `result`).
 - Test: `test/hitta-ratt-spel.test.js` (poäng Sverige/världen, aktiv tid,
   coins, resultatskärm). Preview: `admin/qa-hitta-ratt-preview.sh`.
+- Klass-EXP-kroken är avstängd (`KLASS_EXP_PA = false`, se §10 fråga 4).
 
 ### 4.2 Hot och skydd
 
@@ -702,6 +703,11 @@ Skärmdumpar finns i `docs/hitta-ratt-604/`:
 4. **Ska omgångar ge Klass-EXP** (Klasscentret, `kc-koppling.js`) som andra
    spellägen? Specen säger inget. Förslaget är ja, med samma krok som Läsresan
    och Mattematchen, i E.
+   **E #608:** kroken finns men är avstängd – `KLASS_EXP_PA = false` i
+   `src/hitta-ratt/hr-spel.js` anropar `klassExpEfterOvning({ modul: "hittaratt",
+   resultat: { ratt: godkända, totalt: n } })` efter sparat resultat. Vid ja:
+   sätt flaggan till `true` och registrera regeln `hittaratt` i
+   `src/klasscenter/kc-exp-regler.js` (raden står i kommentaren vid flaggan).
 5. **Lantmäteriets egna länsgränser:** vill du skapa ett Geotorget-konto och
    ladda ner Topografi 1M en gång? Annars används Natural Earths län, som
    har samma 21 län och är public domain.
