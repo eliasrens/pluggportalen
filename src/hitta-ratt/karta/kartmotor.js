@@ -46,6 +46,7 @@ import { skapaKamerastyrning, VISA_LUFT } from "./kamerastyrning.js";
 import { skapaSkarmlager, svgEl as el } from "./skarmlager.js";
 import { ensureKartaCss } from "./karta-stil.js";
 import { skapaRedigering } from "./redigering.js";
+import { valjTraff } from "./traff.js";
 
 const KNAPP_ZOOM = 1.8;
 const TANGENT_STEG = 80; // px per piltryck
@@ -91,7 +92,8 @@ export function skapaKarta(yttre, geo, opts = {}) {
   for (const o of geo.omraden || []) {
     const path = el("path", { class: "hr-omrade", d: o.d, "data-id": o.id }, omradeG);
     const [x0, y0, x1, y1] = vagRuta(o.d);
-    omraden.set(o.id, { path, c: o.c || [(x0 + x1) / 2, (y0 + y1) / 2], liten: o.liten });
+    const smal = Math.min(x1 - x0, y1 - y0); // smalaste mått i kartenheter (traff.js)
+    omraden.set(o.id, { path, c: o.c || [(x0 + x1) / 2, (y0 + y1) / 2], liten: o.liten, smal });
   }
   lager.sjoar = el("path", { class: "hr-sjoar", d: geo.lager?.sjoar || "" }, kamera);
   lager.vattendrag = el("path", { class: "hr-vattendrag", d: geo.lager?.vattendrag || "" }, kamera);
@@ -237,16 +239,13 @@ export function skapaKarta(yttre, geo, opts = {}) {
       rita();
       return;
     }
-    // Område: ringen (små områden) eller själva pathen. Sjöar/älvar har
-    // pointer-events:none, så klick i Vänern når landskapet under.
-    let traff = mal?.closest?.("[data-id]");
-    if (!traff) {
-      const r = vard.getBoundingClientRect();
-      traff = document.elementFromPoint(x + r.left, y + r.top)?.closest?.("[data-id]");
-    }
-    let id = traff?.getAttribute("data-id");
-    // Överlappande ringar (Levanten): närmaste ringmitt vinner, inte den översta.
-    if (traff?.classList?.contains("hr-ring")) id = skarm.narmasteRing(x, y) ?? id;
+    // Område: ytan under klicket (ringar borträknade) och ringarna som når
+    // dit avgör tillsammans (traff.js). Sjöar/älvar har pointer-events:none,
+    // så klick i Vänern når landskapet under.
+    const r = vard.getBoundingClientRect();
+    const yta = (mal?.classList?.contains("hr-omrade") ? mal : document.elementsFromPoint(x + r.left, y + r.top)
+      .find((e) => e.classList?.contains("hr-omrade") && vard.contains(e)))?.getAttribute("data-id") ?? null;
+    const id = valjTraff({ yta, smalast: (omraden.get(yta)?.smal ?? 0) * kam.kam.k, ringar: skarm.ringarVid(x, y) });
     if (id && omraden.has(id)) valj(id);
   }
 

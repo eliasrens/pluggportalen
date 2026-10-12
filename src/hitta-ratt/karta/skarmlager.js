@@ -9,9 +9,9 @@
 // ============================================================================
 
 import { visaRing } from "./ringregel.js";
+import { RING_R } from "./traff.js"; // klickytan (24 px); vilka områden som får ring: ringregel.js
 
 const NS = "http://www.w3.org/2000/svg";
-const RING_R = 12; // klickytan (24 px); vilka områden som får ring: ringregel.js
 const NAL_D = "M0 0C-3-9-12-13-12-22a12 12 0 1 1 24 0C12-13 3-9 0 0z";
 
 export function svgEl(namn, attr = {}, foralder) {
@@ -96,15 +96,15 @@ export function skapaSkarmlager(svg, omraden) {
       this.satRatt(null);
       this.satEtikett("", null);
     },
-    /** Id för den synliga ring vars mitt ligger närmast (x, y) skärm-px, eller null. */
-    narmasteRing(x, y) {
-      let bast = null, bastD = RING_R;
+    /** Synliga ringar som når (x, y) skärm-px: [{ id, d }], d = avstånd till mitten. */
+    ringarVid(x, y) {
+      const ut = [];
       for (const [id, o] of omraden) {
         if (!o.ring || o.ring.style.display === "none") continue;
         const d = Math.hypot(o.ringPos[0] - x, o.ringPos[1] - y);
-        if (d <= bastD) { bast = id; bastD = d; }
+        if (d <= RING_R) ut.push({ id, d });
       }
-      return bast;
+      return ut;
     },
     /** Trycket började på elevens nål? */
     arNal: (mal) => !!mal?.closest?.(".hr-nal-giss"),
