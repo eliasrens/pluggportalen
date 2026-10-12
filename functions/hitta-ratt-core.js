@@ -24,14 +24,22 @@
 //   5. Omförsök med samma attemptId (nätfel, dubbelklick) → samma svar,
 //      coins: 0. Idempotent.
 //
+// Egna pack (packId "e-…", #633, arkitektur §11.4): packen läses ur
+// hittaRattPacks I transaktionen (hitta-ratt-egna.js lasEgetPack). Saknas den
+// → not-found; elevens klasser ∩ packens classIds = ∅ → permission-denied;
+// försöket startat före packens facitAt → failed-precondition "ändrad" (innan
+// raknaOmgang). Personbästa får v = packens version (fel v = saknat) och skrivs
+// ALLTID; topplista + ledare bara om packens leaderboard är PÅ. Topplistans
+// klass = elevens klass bland packens classIds; ledarna får packens scope.
+//
 // taBortElev(deps, uid) – admin/delete-student.mjs: tar bort elevens entry ur
 // alla topplistor, räknar om ledarna, raderar personbästa och försök.
 //
-// stangTopplista(deps, packId) – FÖRBEREDD för epic 2/2 (läraren stänger av
-// "Skoltopplista" för ett eget pack, #610): topplistan och packens ledare tas
-// bort i EN transaktion → Kartmästare-pokalen försvinner ur alla hus vid nästa
+// stangTopplista(deps, packId) – topplistan och packens ledare tas bort i EN
+// transaktion → Kartmästare-pokalen försvinner ur alla hus vid nästa
 // rendering (huset ritar bara pack som finns i hittaRattMeta/ledare).
-// Idempotent. Anropas ännu inte av någon callable.
+// Idempotent. stangTopplistaTx(tx, deps, packId) är samma sak inne i en
+// annan transaktion – hittaRattSattTopplista AV (hitta-ratt-egna.js, #635).
 //
 // API (deps = { db, FieldValue, Timestamp, now?(), packs? })
 //   submit → { packId, leaderboard, result, pb, nyttRekord, coins,
@@ -42,6 +50,7 @@
 import { PACKS } from "./hitta-ratt/packs.js";
 import { raknaOmgang, HrFel } from "./hitta-ratt/omgang.js";
 import { battre, matt, topplista, ledare } from "./hitta-ratt/rank.js";
+import { arEget, lasEgetPack } from "./hitta-ratt-egna.js";
 
 export { HrFel };
 
@@ -75,8 +84,13 @@ export async function elevInfo(db, uid) {
   if (!pa.length || lista.some((c) => har(c, "hiddenModules"))) {
     throw new HrFel("permission-denied", "Hitta rätt! är inte aktiverat för din klass.");
   }
-  pa.sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "sv") || (a.id < b.id ? -1 : 1));
-  return { namn: kortNamn(stu.exists ? stu.data().namn : "") || "Elev", klass: kortNamn(pa[0].name, 20) || "?" };
+  const paNamn = (a, b) => String(a.name || "").localeCompare(String(b.name || ""), "sv") || (a.id < b.id ? -1 : 1);
+  pa.sort(paNamn);
+  return {
+    namn: kortNamn(stu.exists ? stu.data().namn : "") || "Elev",
+    klass: kortNamn(pa[0].name, 20) || "?",
+    klasser: lista.sort(paNamn).map((c) => ({ id: c.id, name: kortNamn(c.name, 20) || "?" })),
+  };
 }
 
 /** Rader för klienten: utan uid och tidsstämpel, med jag-flagga. */
@@ -114,18 +128,23 @@ export async function submit(deps, uid, data) {
     if (!aSnap.exists) throw new HrFel("not-found", "Omgången finns inte.");
     const a = aSnap.data();
     if (a.uid !== uid) throw new HrFel("permission-denied", "Omgången är inte din.");
-    const pack = packs[a.packId];
+    const egen = arEget(a.packId);
+    const pack = egen ? await lasEgetPack(tx, db, a.packId, info) : packs[a.packId];
     if (!pack) throw new HrFel("not-found", "Okänd karta.");
     const r = refs(db, uid, pack.id, attemptId);
     const lb = pack.leaderboard !== false;
+    const vEgen = egen ? { v: pack.v } : {};
 
     const [bSnap, boardSnap, metaSnap] = await Promise.all([
       tx.get(r.best),
       lb ? tx.get(r.board) : null,
       lb ? tx.get(r.meta) : null,
     ]);
-    const bestNu = bSnap.exists ? bSnap.data().packs?.[pack.id] || null : null;
-    const entries = { ...(boardSnap?.exists ? boardSnap.data().entries || {} : {}) };
+    const bestRa = bSnap.exists ? bSnap.data().packs?.[pack.id] || null : null;
+    const bestNu = bestRa && (!egen || bestRa.v === pack.v) ? bestRa : null; // gammal version = saknat
+    const boardData = boardSnap?.exists ? boardSnap.data() : {};
+    const inaktuell = egen && !!boardSnap?.exists && boardData.v !== pack.v; // försvarsrad (§11.4.6)
+    const entries = { ...(inaktuell ? {} : boardData.entries || {}) };
 
     if (a.status === "done") {
       // Omförsök: samma resultat, inga nya coins (idempotent).
@@ -138,35 +157,32 @@ export async function submit(deps, uid, data) {
     if (!Number.isFinite(startMs) || nuMs - startMs > MAX_ALDER_MS) {
       throw new HrFel("deadline-exceeded", "Omgången är för gammal – starta en ny.");
     }
+    if (egen && startMs < pack.facitAtMs) {
+      throw new HrFel("failed-precondition", "Läraren har ändrat kartan – starta en ny omgång.");
+    }
 
     const res = raknaOmgang(pack, data.svar, { startMs, nuMs });
     const nytt = battre(matt(res, pack.typ), bestNu, pack.typ);
     const pb = nytt
-      ? { typ: pack.typ, ...matt(res, pack.typ), max: res.max, n: res.n, attempts: (bestNu?.attempts || 0) + 1, at: nuMs }
+      ? { typ: pack.typ, ...matt(res, pack.typ), max: res.max, n: res.n, attempts: (bestNu?.attempts || 0) + 1, at: nuMs, ...vEgen }
       : { ...bestNu, attempts: (bestNu.attempts || 0) + 1 };
 
     tx.set(r.best, { packs: { [pack.id]: pb } }, { merge: true });
 
     if (lb) {
       const gammal = entries[uid];
-      const entry = { n: info.namn, k: info.klass, ...matt(pb, pack.typ), at: pb.at || nuMs };
+      const entry = { n: info.namn, k: egen ? pack.klass : info.klass, ...matt(pb, pack.typ), at: pb.at || nuMs };
       if (!gammal || nytt || gammal.n !== entry.n || gammal.k !== entry.k) {
         entries[uid] = entry;
         const leaders = ledare(entries, pack.typ);
-        const boardData = boardSnap.exists ? boardSnap.data() : {};
-        tx.set(
-          r.board,
-          {
-            packId: pack.id, typ: pack.typ, titel: pack.titel, max: res.max,
-            entries: { [uid]: entry }, leaders, updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
+        const lista = { packId: pack.id, typ: pack.typ, titel: pack.titel, max: res.max, ...vEgen, leaders, updatedAt: FieldValue.serverTimestamp() };
+        if (inaktuell) tx.set(r.board, { ...lista, entries });
+        else tx.set(r.board, { ...lista, entries: { [uid]: entry } }, { merge: true });
         const metaNu = metaSnap.exists ? metaSnap.data().packs?.[pack.id]?.uids : null;
         if (!sammaLista(metaNu, leaders) || !sammaLista(boardData.leaders, leaders)) {
           tx.set(
             r.meta,
-            { packs: { [pack.id]: { uids: leaders, titel: pack.titel, typ: pack.typ } }, updatedAt: FieldValue.serverTimestamp() },
+            { packs: { [pack.id]: { uids: leaders, titel: pack.titel, typ: pack.typ, ...(pack.scope ? { scope: pack.scope } : {}) } }, updatedAt: FieldValue.serverTimestamp() },
             { merge: true }
           );
         }
@@ -218,21 +234,29 @@ export async function taBortElev(deps, uid) {
 }
 
 /**
+ * Transaktionsdelen av stangTopplista (arkitektur §11.5): läser topplistan och
+ * ledarna och raderar dem. Firestore kräver alla läsningar före första
+ * skrivningen – anroparen gör sina EGNA läsningar före och skrivningar efter.
+ * @returns {Promise<boolean>} fanns något att ta bort
+ */
+export async function stangTopplistaTx(tx, deps, packId) {
+  const { db, FieldValue } = deps;
+  const board = db.collection("hittaRattBoards").doc(packId);
+  const meta = db.collection("hittaRattMeta").doc("ledare");
+  const [b, m] = await Promise.all([tx.get(board), tx.get(meta)]);
+  const iMeta = m.exists && !!m.data().packs?.[packId];
+  if (b.exists) tx.delete(board);
+  if (iMeta) tx.set(meta, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  return b.exists || iMeta;
+}
+
+/**
  * Stäng av ett packs skoltopplista (epic 2/2-toggle, arkitektur §4.3):
  * hittaRattBoards/{packId} raderas och hittaRattMeta/ledare.packs.{packId}
  * tas bort i samma transaktion. Ett andra anrop är en no-op.
  * @returns {Promise<{ fanns: boolean }>}
  */
 export async function stangTopplista(deps, packId) {
-  const { db, FieldValue } = deps;
   if (typeof packId !== "string" || !/^[a-z0-9-]{1,60}$/.test(packId)) throw new HrFel("invalid-argument", "Okänd karta.");
-  const board = db.collection("hittaRattBoards").doc(packId);
-  const meta = db.collection("hittaRattMeta").doc("ledare");
-  return db.runTransaction(async (tx) => {
-    const [b, m] = await Promise.all([tx.get(board), tx.get(meta)]);
-    const iMeta = m.exists && !!m.data().packs?.[packId];
-    if (b.exists) tx.delete(board);
-    if (iMeta) tx.set(meta, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    return { fanns: b.exists || iMeta };
-  });
+  return deps.db.runTransaction(async (tx) => ({ fanns: await stangTopplistaTx(tx, deps, packId) }));
 }

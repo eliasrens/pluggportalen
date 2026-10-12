@@ -11,11 +11,14 @@
 //                                       resultatskärmen (E #608), som får
 //                                       samma { top, egen, plats, antal } av
 //                                       hittaRattSubmit
+//   topplisteGrupper(index, egna)       🏆-vyns grupper: "Från din lärare" (egna
+//                                       pack med skoltopplistan PÅ, #635) först,
+//                                       sedan officiella pack med topplista
 //   topplistorVyHtml(grupper, valt, lista?)  🏆-vyn: välj pack + listan
 // Raderna: { plats, n, k, s | r,t, jag? } (delat/rank.js topplista()).
 // ============================================================================
 
-import { esc, formatTid } from "./hr-start-vy.js";
+import { EGNA_KATEGORI, esc, formatTid, grupperaPack } from "./hr-start-vy.js";
 
 const MEDALJ = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
@@ -82,6 +85,17 @@ export function egenSammanfattning(lista, max = null) {
   const min = lista?.egen || (lista?.top || []).find((r) => r.jag);
   if (!min) return `<p class="hr-tl-mitt hint">Du har inte spelat den här kartan än.</p>`;
   return `<p class="hr-tl-mitt">Ditt rekord: <b>${esc(resultatText(min, typ, max))}</b> · Plats <b>${min.plats}</b> av ${lista.antal} på skolan</p>`;
+}
+
+/**
+ * Grupperna i 🏆-vyn (arkitektur §11.5). `egna` = hr-egna.js egnaForElev (redan
+ * filtrerade på elevens klasser) – bara de med topplistan PÅ visas. Ett pack
+ * som slagits AV finns alltså inte i vyn, inte ens via en gammal länk.
+ */
+export function topplisteGrupper(index, egna = []) {
+  const grupper = grupperaPack((Array.isArray(index) ? index : []).filter((x) => x.leaderboard !== false));
+  const mina = (Array.isArray(egna) ? egna : []).filter((p) => p?.egen && p.leaderboard === true);
+  return mina.length ? [{ ...EGNA_KATEGORI, pack: mina }, ...grupper] : grupper;
 }
 
 /**

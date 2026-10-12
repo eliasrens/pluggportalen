@@ -12,6 +12,8 @@
 //   sparFelHtml(pack, fel)      resultatet kunde inte sparas – "Försök igen"
 //   coinsText(n)                "Du fick 16 coins!"
 //
+// Provspel (#634): svar.prov = true → "Provspel – sparas inte" i stället för coins.
+//
 // Coins = result.godkanda: functionen krediterar dem EN gång per försök (ett
 // omförsök med samma attemptId ger samma result men inga nya coins).
 // ============================================================================
@@ -103,8 +105,11 @@ export function resultatHtml(pack, svar) {
       <p class="hint hr-res-pack">${esc(pack.title)}</p>
       ${siffror(pack, { ...result, typ })}
       ${bastHtml(svar, typ, result.max)}
-      <p class="hr-res-coins">${coinIcon(26)} ${coinsText(coins)}
-        <span class="hint">${coins} av ${result.n ?? coins} godkända svar</span></p>
+      ${svar.prov
+        ? `<p class="hr-res-prov" role="status">Provspel – sparas inte.
+            <span class="hint">${coins} av ${result.n ?? coins} godkända svar = ${coins} coins för en elev.</span></p>`
+        : `<p class="hr-res-coins">${coinIcon(26)} ${coinsText(coins)}
+        <span class="hint">${coins} av ${result.n ?? coins} godkända svar</span></p>`}
       <div class="hr-res-knappar">
         <button class="btn gron" data-act="igen">🔁 Spela igen</button>
         <button class="btn hr-tillbaka" data-act="tillbaka">← Till kartorna</button>

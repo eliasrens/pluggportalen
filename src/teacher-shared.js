@@ -236,6 +236,7 @@ export const TEACHER_TABS = [
     icon: "bolt",
     page: lazyPage(() => import("./live/teacher-live.js"), "pageLarareLive"),
   },
+  { key: "hittaratt", hash: "#/larare/hitta-ratt", label: "Hitta rätt!", title: "Hitta rätt!", icon: "pin", page: lazyPage(() => import("./hitta-ratt/larare/page-larare-hitta-ratt.js"), "pageLarareHittaRatt") },
 ];
 
 /** Gemensam lärar-toppnav (flikar) för lärarsidans undersidor. Sticky rad. */

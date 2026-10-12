@@ -36,6 +36,8 @@ const CSS = `
 .hr-karta.granser-av .hr-omrade { stroke: var(--hr-land); stroke-width: 0.8; }
 .hr-omrade.vald, .hr-karta.lage-omrade:not(.last) .hr-omrade.vald:hover { fill: var(--hr-vald); }
 .hr-omrade.ratt { fill: var(--hr-ratt); }
+/* Lärarvyns valda områden (redigering.js, #636) – blå fyllning + kontur. */
+.hr-omrade.markerad, .hr-karta.lage-omrade:not(.last) .hr-omrade.markerad:hover { fill: #a9cdf7; stroke: var(--hr-fokus); stroke-width: 2.2; stroke-opacity: 1; }
 .hr-sjoar { fill: var(--hr-sjo); stroke: var(--hr-sjo-kant); stroke-width: 0.6; pointer-events: none; }
 .hr-vattendrag { fill: none; stroke: var(--hr-alv); stroke-width: 1.1; pointer-events: none; }
 .hr-val-kontur, .hr-ratt-kontur, .hr-fel-kontur { fill: none; pointer-events: none; }
@@ -45,10 +47,15 @@ const CSS = `
 
 /* --- Skärmlagret: ringar, nålar, linje, etiketter (konstant storlek) ------- */
 .hr-skarm { pointer-events: none; }
-.hr-ring { fill: rgba(255, 255, 255, 0.01); stroke: var(--hr-grans); stroke-width: 1.5; pointer-events: all; cursor: pointer; }
-.hr-ring.vald { stroke: var(--hr-mork); stroke-width: 2.5; stroke-dasharray: 4 3; fill: rgba(242, 201, 76, 0.55); }
-.hr-ring.ratt { stroke: #14532d; stroke-width: 3; fill: rgba(39, 174, 96, 0.55); }
-.hr-ring.fel { stroke: #8f1d1d; stroke-width: 2.5; stroke-dasharray: 3 3; fill: rgba(235, 87, 87, 0.5); }
+/* Diskret ring (#639), men hela cirkeln är klickyta. Utan färg: vald =
+   streckad, rätt = heldragen och tjock, fel = prickad. */
+.hr-ring { fill: rgba(255, 255, 255, 0.01); stroke: var(--hr-mork); stroke-opacity: 0.35; stroke-width: 1; pointer-events: all; cursor: pointer; }
+.hr-ring:hover { stroke-opacity: 0.8; }
+.hr-ring.vald, .hr-ring.ratt, .hr-ring.markerad { stroke: var(--hr-fokus); stroke-opacity: 1; stroke-width: 2.2; fill: rgba(47, 128, 237, 0.45); }
+.hr-ring.fel { stroke-opacity: 1; }
+.hr-ring.vald { stroke: var(--hr-mork); stroke-width: 2; stroke-dasharray: 4 3; fill: rgba(242, 201, 76, 0.5); }
+.hr-ring.ratt { stroke: #14532d; stroke-width: 2.5; fill: rgba(39, 174, 96, 0.5); }
+.hr-ring.fel { stroke: #8f1d1d; stroke-width: 2.2; stroke-dasharray: 0.1 4; stroke-linecap: round; fill: rgba(235, 87, 87, 0.45); }
 .hr-karta.last .hr-ring { pointer-events: none; cursor: inherit; }
 .hr-nal path { stroke: #fff; stroke-width: 2.5; }
 .hr-nal-giss path { fill: var(--hr-nal); }

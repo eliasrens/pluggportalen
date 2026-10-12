@@ -4,10 +4,17 @@
 // upp med functions/-mappen, så servern behöver en egen kopia. Källan är
 // alltid src/hitta-ratt/; kopian är genererad (som sync-guldrush-functions).
 //
-//   functions/hitta-ratt/{poang,rank,omgang}.js   ordagranna kopior
-//   functions/hitta-ratt/packs.js                 kompakt facit per officiellt
-//     pack: { id, typ, titel, leaderboard, cfg, items: [{ id, lat, lon } |
-//     { id, omrade }], omraden: geofilens alla område-id (för "känt id") }
+//   functions/hitta-ratt/*.js     ordagranna kopior av src/hitta-ratt/delat/
+//   functions/hitta-ratt/packs.js
+//     PACKS        kompakt facit per officiellt pack (delat/facit.js
+//                  kompaktFacit – samma form som egna pack får på servern):
+//                  { id, typ, titel, leaderboard, cfg, items: [{ id, lat, lon } |
+//                  { id, omrade }], omraden: geofilens alla område-id }
+//     GEO_OMRADEN  geo → { områdes-id: källnyckel } ur <geo>.nycklar.json (#633) –
+//                  egna områdespack valideras mot den (delat/egna.js)
+//   ⚠️ Egna pack i Firestore sparar områdes-id (omrade) + källnyckel (key).
+//   Byggs en geofil om med NYA id måste egna pack migreras (räkna om omrade
+//   ur key) – admin/hitta-ratt-geo.mjs får inte blanda om id:n utan det.
 //
 //   npm run sync:hitta-ratt     (firebase.json kör det också som predeploy)
 //   node admin/sync-hitta-ratt-functions.mjs --check   → exit 1 om kopian glidit
@@ -17,6 +24,7 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { kompaktFacit } from "../src/hitta-ratt/delat/facit.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const SRC = join(ROOT, "src/hitta-ratt/delat");
@@ -32,21 +40,23 @@ export function sharedFiles() {
 
 /** Det kompakta facit som servern rättar mot (bara officiella pack). */
 export function packFacit() {
-  const geoCache = new Map();
-  const omraden = (geo) => {
-    if (!geoCache.has(geo)) geoCache.set(geo, lasJson(join(GEO, `${geo}.json`)).omraden.map((o) => o.id).sort());
-    return geoCache.get(geo);
-  };
+  const omr = geoOmraden();
   const ut = {};
   for (const { id } of lasJson(join(PACKS, "index.json"))) {
     const p = lasJson(join(PACKS, `${id}.json`));
     if (!p.official) continue;
-    const typ = p.type === "area" ? "area" : "point";
-    ut[id] = {
-      id, typ, titel: p.title, leaderboard: p.leaderboard !== false, cfg: p.scoringConfig || {},
-      items: p.items.map((it) => (typ === "area" ? { id: it.id, omrade: it.omrade } : { id: it.id, lat: it.lat, lon: it.lon })),
-      ...(typ === "area" ? { omraden: omraden(p.geo) } : {}),
-    };
+    ut[id] = kompaktFacit(p, Object.keys(omr[p.geo] || {}));
+  }
+  return ut;
+}
+
+/** geo → { områdes-id: källnyckel } för alla geofiler (ur <geo>.nycklar.json). */
+export function geoOmraden() {
+  const ut = {};
+  for (const f of readdirSync(GEO).filter((f) => f.endsWith(".nycklar.json")).sort()) {
+    const nycklar = lasJson(join(GEO, f));
+    const geo = f.replace(/\.nycklar\.json$/, "");
+    ut[geo] = Object.fromEntries(Object.entries(nycklar).map(([k, id]) => [id, k]).sort(([a], [b]) => (a < b ? -1 : 1)));
   }
   return ut;
 }
@@ -54,7 +64,8 @@ export function packFacit() {
 export function packsJs() {
   return (
     "// GENERERAD av admin/sync-hitta-ratt-functions.mjs ur src/hitta-ratt/content/packs/ – redigera inte.\n" +
-    `export const PACKS = ${JSON.stringify(packFacit())};\n`
+    `export const PACKS = ${JSON.stringify(packFacit())};\n` +
+    `export const GEO_OMRADEN = ${JSON.stringify(geoOmraden())};\n`
   );
 }
 

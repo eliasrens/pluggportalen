@@ -245,3 +245,84 @@ test("hjul: mushjulets hack animeras, pekplattans strömmar och nyp gör det int
   assert.equal(hjulMjukt({ deltaY: 100, ctrlKey: true }), false);
   assert.ok(hjulFaktor({ deltaY: -10, ctrlKey: true }) > hjulFaktor({ deltaY: -10 }), "nyp på pekplatta är känsligare");
 });
+
+// --- Redigering (lärarvyn, #636) ------------------------------------------------
+// redigering.js får motorns delar injicerade – här stubbar utan DOM.
+
+import { skapaRedigering, ZOOM } from "../src/hitta-ratt/karta/redigering.js";
+
+function redigeringsStub(scope = "sverige", ids = ["o1", "o2", "o3"]) {
+  const p = byggProjektion(scope);
+  const logg = { ritat: 0, rensat: 0, etikett: null, animera: null, ordning: [] };
+  const klasser = () => {
+    const s = new Set();
+    return { add: (c) => s.add(c), remove: (c) => s.delete(c), contains: (c) => s.has(c) };
+  };
+  const forälder = { appendChild: (path) => logg.ordning.push(path.id) };
+  const omraden = new Map(ids.map((id, i) => [id, { path: { id, classList: klasser(), parentNode: forälder }, c: [i * 10, i * 10] }]));
+  const skarm = {
+    giss: null,
+    satGiss(pos) { this.giss = pos; },
+    satEtikett(text, pos, vid) { logg.etikett = text ? { text, pos, vid } : null; },
+  };
+  const kam = { kam: { k: 2, cx: 0, cy: 0 }, kHem: 1, animera: (mal) => { logg.animera = mal; } };
+  const red = skapaRedigering({ p, omraden, skarm, kam, rita: () => logg.ritat++, rensaVal: () => logg.rensat++ });
+  const markerade = () => ids.filter((id) => omraden.get(id).path.classList.contains("markerad"));
+  return { p, red, skarm, logg, markerade };
+}
+
+test("satGissning: lon/lat → nål → getGuess tur och retur (< 1e-9°), alla scope", () => {
+  const platser = { sverige: [17.1413, 60.6749], europa: [2.2945, 48.8584], varlden: [-58.38, -34.6] };
+  for (const [scope, [lon, lat]] of Object.entries(platser)) {
+    const { p, red, skarm } = redigeringsStub(scope);
+    red.satGissning({ lon, lat });
+    // Samma omräkning som kartmotorns getGuess().
+    const [lon2, lat2] = tillLatLon(p, ...skarm.giss);
+    nara(lon2, lon, 1e-9, `${scope} lon`);
+    nara(lat2, lat, 1e-9, `${scope} lat`);
+  }
+});
+
+test("satGissning: zooma glider till platsen (minst ZOOM × helvyn), utan zooma står kameran still", () => {
+  const { p, red, logg } = redigeringsStub();
+  red.satGissning({ lon: 17.1413, lat: 60.6749 });
+  assert.equal(logg.animera, null);
+  red.satGissning({ lon: 17.1413, lat: 60.6749 }, { zooma: true });
+  const [x, y] = tillKarta(p, 17.1413, 60.6749);
+  assert.equal(logg.animera.k, ZOOM);
+  nara(logg.animera.cx, x, 1e-9);
+  nara(logg.animera.cy, y, 1e-9);
+});
+
+test("satGissning: null eller ogiltig plats tar bort nålen", () => {
+  const { red, skarm } = redigeringsStub();
+  red.satGissning({ lon: 17, lat: 60 });
+  assert.ok(skarm.giss);
+  red.satGissning(null);
+  assert.equal(skarm.giss, null);
+  red.satGissning({ lon: 17, lat: 60 });
+  red.satGissning({ lon: NaN, lat: 60 });
+  assert.equal(skarm.giss, null);
+});
+
+test("markera: lägger till och tar bort klassen, okända id ignoreras, valt område töms", () => {
+  const { red, markerade, logg } = redigeringsStub();
+  red.markera(["o1", "o3", "okänd"]);
+  assert.deepEqual(markerade(), ["o1", "o3"]);
+  assert.deepEqual(red.markerade, ["o1", "o3"]);
+  assert.deepEqual(logg.ordning, ["o1", "o3"], "markerade ritas överst");
+  red.markera(["o3", "o2"]);
+  assert.deepEqual(markerade(), ["o2", "o3"]);
+  red.markera([]);
+  assert.deepEqual(markerade(), []);
+  assert.equal(logg.rensat, 3, "motorns klickval (vald) töms varje gång");
+  assert.ok(logg.ritat >= 3);
+});
+
+test("markera: etiketten bara vid det senast klickade området", () => {
+  const { red, logg } = redigeringsStub();
+  red.markera(["o2"], { etikett: { id: "o2", text: "Norge" } });
+  assert.deepEqual(logg.etikett, { text: "Norge", pos: [10, 10], vid: "mitt" });
+  red.markera([]);
+  assert.equal(logg.etikett, null);
+});

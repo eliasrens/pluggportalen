@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hitta rätt! – klickringar (#639)</title>
+<link rel="icon" href="data:," />
+<!-- QA för #639: produktionsmotorn med den riktiga geodatan och packens
+     inställningar, i områdesläge. Kartan har spelvyns mått (bredd ≤ 1200 px,
+     höjd clamp(320px, 100dvh − 330px, 820px)), så ringarna räknas som i appen.
+     ?pack=varlden-lander-30 (standard) | europa-lander-alla | sverige-landskap | sverige-lan
+     Kör: PORT=8639 node server.mjs → /preview/preview-hitta-ratt-ringar.html -->
+<style>
+  body { margin: 0; padding: 12px 20px; font-family: system-ui, sans-serif; background: #f4f1ea; }
+  .rad { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .rad a { padding: 6px 12px; border-radius: 999px; background: #fff; color: #234; text-decoration: none; font-weight: 700; }
+  .rad a[aria-current] { background: #234; color: #fff; }
+  #info { font-weight: 700; }
+  #karta {
+    position: relative; max-width: 1200px; margin: 0 auto; border-radius: 14px; overflow: hidden; background: #cfe9f8;
+    height: clamp(320px, calc(100dvh - 330px), 820px);
+  }
+</style>
+</head>
+<body>
+<div class="rad" id="packs"></div>
+<p class="rad"><span id="info">Laddar…</span> <span id="valt"></span></p>
+<div id="karta"></div>
+<script type="module">
+  import { skapaKarta } from "../src/hitta-ratt/karta/kartmotor.js";
+  const q = new URLSearchParams(location.search);
+  const PACKS = ["varlden-lander-30", "europa-lander-alla", "sverige-landskap", "sverige-lan"];
+  const packId = PACKS.includes(q.get("pack")) ? q.get("pack") : PACKS[0];
+  document.getElementById("packs").innerHTML = PACKS.map((p) =>
+    `<a href="?pack=${p}"${p === packId ? ' aria-current="page"' : ""}>${p}</a>`).join("");
+  const hamta = (u) => fetch(u).then((r) => r.json());
+  const pack = await hamta(`../src/hitta-ratt/content/packs/${packId}.json`);
+  const [geo, nycklar] = await Promise.all([
+    hamta(`../src/hitta-ratt/content/geo/${pack.geo}.json`),
+    hamta(`../src/hitta-ratt/content/geo/${pack.geo}.nycklar.json`),
+  ]);
+  const namn = Object.fromEntries(Object.entries(nycklar).map(([k, id]) => [id, k]));
+  const karta = skapaKarta(document.getElementById("karta"), geo, {
+    lage: "omrade", maxZoom: pack.maxZoom, startvy: pack.startvy || pack.bounds || undefined, visaGranser: pack.visaGranser,
+  });
+  // QA-krokar: antal synliga ringar och vilka områden de sitter på.
+  const ringar = () => [...document.querySelectorAll(".hr-ring")].filter((r) => r.style.display !== "none");
+  window.hrQa = {
+    karta, nycklar, ringar: () => ringar().map((r) => namn[r.dataset.id]).sort(),
+    ringPos: (k) => {
+      const r = document.querySelector(`.hr-ring[data-id="${nycklar[k]}"]`);
+      if (!r || r.style.display === "none") return null;
+      const b = r.getBoundingClientRect();
+      return [b.left + b.width / 2, b.top + b.height / 2];
+    },
+  };
+  let zoom = 1;
+  const visa = () => {
+    const n = ringar().length;
+    document.getElementById("info").textContent =
+      `${packId}: ${n} ringar · zoom ${zoom.toFixed(2)} · karta ${document.getElementById("karta").clientWidth}×${document.getElementById("karta").clientHeight} px`;
+  };
+  karta.on("kamera", (e) => { zoom = e.zoom; requestAnimationFrame(visa); });
+  karta.on("val", (v) => { document.getElementById("valt").textContent = `Valt: ${namn[v.id]}`; });
+  setTimeout(visa, 300);
+</script>
+</body>
+</html>
