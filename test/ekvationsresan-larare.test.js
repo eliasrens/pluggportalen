@@ -49,7 +49,7 @@ function student(level, plays) {
 }
 
 test("test 25: klassöversiktens kolumner och värden räknas ur progressdokumentet", () => {
-  assert.deepEqual(KOLUMNER.map((c) => c.label), ["Elev", "Nivå", "Trend", "Uppgifter", "⭐⭐⭐ / ⭐⭐ / ⭐", "Lösta %", "Hjälp %", "Drag jämfört med optimalt"]);
+  assert.deepEqual(KOLUMNER.map((c) => c.label), ["Elev", "Nivå", "Trend", "Uppgifter", "⭐⭐⭐ / ⭐⭐ / ⭐", "Lösta %", "Hjälp %", "Drag jämfört med optimalt", "I korthet"]);
   const a = student(3, [{}, {}, { extra: 1 }, { help: 1 }, { reveal: true }]);
   const rows = klassRader([
     { studentId: "a", namn: "Astrid", progress: a.progress },
@@ -136,7 +136,8 @@ test("test 24: nivåstyrning – nollställer fönstret, rör bara nivåfälten"
   assert.ok(changed.every((k) => TEACHER_LEVEL_FIELDS.includes(k)), `bara nivåfält: ${changed}`);
   assert.equal(next.tasks, 3);
   assert.equal(tolkaNiva("4"), 4);
-  assert.equal(tolkaNiva("7"), null);
+  assert.equal(tolkaNiva("12"), 12);
+  assert.equal(tolkaNiva("13"), null);
   assert.equal(tolkaNiva("x"), null);
   assert.match(nivaStatus(next), /fönstret är tomt/);
   assert.match(nivaStatus(null), /inte öppnat/);

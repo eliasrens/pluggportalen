@@ -83,7 +83,7 @@ export function taskResult(task, run, help = { maxStep: 0 }) {
     helpStep,
     stars,
     points10: points10(stars),
-    coins: coinsFor(task.level, { solved }),
+    coins: coinsFor(task.level, { solved, extraChallenge: !!task.extra }),
     feedback: feedbackFor({ stars, moves, optimal, helpStep }),
     offerRetry: stars === 1 || stars === 2,
   };

@@ -17,11 +17,13 @@ import { generateTask, seededRng } from "../src/ekvationsresan/generator.js";
 import { startRun, playMove } from "../src/ekvationsresan/losning.js";
 import { fromJSON } from "../src/ekvationsresan/equation.js";
 import { taskResult } from "../src/ekvationsresan/resultat.js";
+import { generateExtraTask } from "../src/ekvationsresan/extra.js";
+import { EXTRA_RULES } from "../src/ekvationsresan/config.js";
 
 let testEnv, unauth, elev, teacher;
 
 const ID = "aqa0000000000000000001";
-const task = generateTask(1, { rng: seededRng("regler") });
+const task = generateTask(1, { rng: seededRng("regler"), type: "A" });
 const progress = { ...defaultProgress(), current: { id: ID, at: 1, task }, updatedAt: 1 };
 
 function attempt(id = ID) {
@@ -180,5 +182,43 @@ describe("ekvationsresaAttempts (create-only, idempotens)", () => {
     await assertSucceeds(getDoc(attRef(teacher(), "aqa0000000000000000000")));
     await assertFails(setDoc(attRef(teacher()), attempt()));
     await assertSucceeds(deleteDoc(attRef(teacher(), "aqa0000000000000000000")));
+  });
+});
+
+// Extrautmaningar (#627): progress.extra (map) och försökets extra: true, 7 mynt.
+describe("extrautmaningar", () => {
+  const xtask = generateExtraTask({ rng: seededRng("regler-extra"), level: 8 });
+  const XID = "aqa0000000000000000777";
+  function extraAttempt() {
+    let run = startRun(fromJSON(xtask.equation), { rules: EXTRA_RULES });
+    for (const m of xtask.optimalPath) run = playMove(run, m).run;
+    return buildAttempt({ id: XID, task: xtask, run, help: { log: [] }, result: taskResult(xtask, run, { maxStep: 0 }), startedAt: 1, completedAt: 2 });
+  }
+
+  it("eleven sparar progress med extra-delen och ett extraförsök med 7 mynt", async () => {
+    const a = extraAttempt();
+    assert.equal(a.extra, true);
+    assert.equal(a.coins, 7);
+    await assertSucceeds(setDoc(attRef(elev("elev1"), XID), a));
+    const p = { ...progress, extra: { tasks: 1, solved: 1, coins: 7, current: { id: ID, at: 1, task: xtask } } };
+    await assertSucceeds(setDoc(progRef(elev("elev1")), p));
+  });
+
+  it("extra måste vara true i försöket och en map i progress", async () => {
+    await assertFails(setDoc(attRef(elev("elev1"), XID), { ...extraAttempt(), extra: false }));
+    await assertFails(setDoc(attRef(elev("elev1"), XID), { ...extraAttempt(), coins: 8 }));
+    await assertFails(setDoc(progRef(elev("elev1")), { ...progress, extra: "ja" }));
+  });
+});
+
+describe("uppgiftstyperna C–F (#625): elevens svar på försöket", () => {
+  const svar = (n) => Array.from({ length: n }, (_, i) => ({ k: "ekvation", a: `${i}x = 2`, ok: false }));
+  it("ett försök med answers (≤ 40) går att skapa", async () => {
+    const id = "aqa0000000000000000625";
+    await assertSucceeds(setDoc(attRef(elev("elev1"), id), { ...attempt(id), type: "D", answers: svar(3) }));
+  });
+  it("answers måste vara en lista med högst 40 svar", async () => {
+    await assertFails(setDoc(attRef(elev("elev1"), "aqa0000000000000000626"), { ...attempt("aqa0000000000000000626"), answers: svar(41) }));
+    await assertFails(setDoc(attRef(elev("elev1"), "aqa0000000000000000627"), { ...attempt("aqa0000000000000000627"), answers: "fusk" }));
   });
 });

@@ -7,29 +7,31 @@
 // Routen ligger i app.js med DYNAMISK import, så Ekvationsresan aldrig hamnar
 // i bootgrafen (#271). Modulen är opt-in per klass (gamemode-visibility.js,
 // TOGGLABLE_MODULES) – routern släpper bara in elever vars klass slagit på den.
-// Stilarna (ekvationsresan.css + vågens vag.css) laddas härifrån.
+// Stilarna (ekvationsresan.css, typer.css för C–F + vågens vag.css) laddas härifrån.
 // ============================================================================
 
 import { app, el, loading, renderTopbar } from "../ui.js";
-import { enterEkvationsresan, completeTask, startTask } from "./ekv-data.js";
+import { enterEkvationsresan, enterExtra, completeTask, startTask } from "./ekv-data.js";
 import { createSpelvy } from "./spelvy.js";
 import { ensureVagCss } from "./vag.js";
 
 let aktiv = null;
 
 function ensureStyles() {
-  if (document.querySelector("link[data-ekv-css]")) return Promise.resolve();
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = new URL("./ekvationsresan.css", import.meta.url).href;
-  link.dataset.ekvCss = "1";
-  const ready = new Promise((resolve) => {
-    link.addEventListener("load", resolve, { once: true });
-    link.addEventListener("error", resolve, { once: true });
-    setTimeout(resolve, 1500);
-  });
-  document.head.appendChild(link);
-  return ready;
+  return Promise.all(["ekvationsresan.css", "typer.css"].map((fil) => {
+    if (document.querySelector(`link[data-ekv-css="${fil}"]`)) return Promise.resolve();
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = new URL(`./${fil}`, import.meta.url).href;
+    link.dataset.ekvCss = fil;
+    const ready = new Promise((resolve) => {
+      link.addEventListener("load", resolve, { once: true });
+      link.addEventListener("error", resolve, { once: true });
+      setTimeout(resolve, 1500);
+    });
+    document.head.appendChild(link);
+    return ready;
+  }));
 }
 
 /** Avmonteras när eleven lämnar routen (vågens animationer, fokusvakten). */
@@ -61,6 +63,8 @@ export async function pageEkvationsresan() {
     },
     retry: (task) => startTask(task),
     reenter: () => pageEkvationsresan(),
+    enterExtra: () => enterExtra(), //  extrautmaningarna (#627), frivilligt
+    leaveExtra: () => enterEkvationsresan(),
   });
   stadaVidByte();
 }

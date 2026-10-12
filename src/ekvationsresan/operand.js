@@ -5,16 +5,16 @@
 // "+5" = addera 5, "/2" eller ":2" = dividera med 2, "*3" = multiplicera med 3.
 // Står inget tecken först gäller knappen eleven valt (`op`).
 //
-// Förberett för Etapp 2 men AVSTÄNGT via spärrarna (config.js):
-//   rules.operandX        "x", "2x", "-2x"
-//   rules.operandDecimal  "2,5" / "2.5"
+// Etapp 2 (#623) slår på mer via nivåns spärrar (config.js):
+//   rules.operandX        "x", "2x", "-2x", "+2,5x"   nivå 7+
+//   rules.operandDecimal  "2,5" / "2.5", högst rules.maxDecimals decimaler   nivå 10+
 //
 // Resultat: { ok: true, op, operand } där op ∈ "+", "-", "*", "/" och operand
 // är en term (equation.js) – eller { ok: false, error, message }.
 // ============================================================================
 
 import { BASE_RULES, OPERAND_MESSAGES } from "./config.js";
-import { parseDecimalSv, cmp, q, isInteger } from "./rational.js";
+import { parseDecimalSv, cmp, q, isInteger, isDecimal } from "./rational.js";
 import { term } from "./equation.js";
 
 /** Tecken eleven kan skriva/trycka → intern operation. */
@@ -61,6 +61,7 @@ export function parseOperand(text, { op: chosen = null, rules = BASE_RULES } = {
   const value = m[1] ? parseDecimalSv(m[1]) : q(1);
   if (value === null) return fail("syntax");
   if (!isInteger(value) && !rules.operandDecimal) return fail("decimalOff");
+  if (!isDecimal(value, rules.maxDecimals)) return fail("decimalMax");
   if (cmp(value, q(rules.operandMin)) < 0 || cmp(value, q(rules.operandMax)) > 0) return fail("range");
 
   return { ok: true, op, operand: term(value, isX ? 1 : 0) };

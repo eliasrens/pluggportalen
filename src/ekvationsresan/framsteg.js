@@ -15,11 +15,20 @@
 // i ordning (replayRows bygger om räknegången), stjärnor, hjälp och mynt.
 // Försökets id = uppgiftens id → samma uppgift kan bara sparas (och ge mynt)
 // en gång (create-only i firestore.rules).
-// Etapp 2: `skills` (färdighetsmodellen) och `type` C–F ryms utan migrering.
+// Etapp 2: `skills` (färdighetsmodellen, #626) och `type` C–F ryms utan migrering.
+// Försökets `skills` = { fokus, obs } (fardigheter.observera), progressens
+// `skills` = modellen (fardigheter.uppdatera) – samma fält som Etapp 1 förberedde.
+// C–F (#625) lägger till `answers` (elevens svar i ordning) på försöket; drag
+// räknas bara för typer med en lösningsdel (A, B, F).
+// Extrautmaningar (#627): egna räknare + egen pågående uppgift i `extra`;
+// försöket har `extra: true`. Nivån, fönstret och huvudstatistiken rörs inte.
 // ============================================================================
 
-import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10 } from "./config.js";
+import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10, FARDIGHET } from "./config.js";
 import { recordResult } from "./anpassning.js";
+import { observera, uppdatera } from "./fardigheter.js";
+import { hasSolvePhase, isQuestionType } from "./uppgiftstyper.js";
+import { moveOperand } from "./operations.js";
 
 export const PROGRESS_SCHEMA = 1;
 export const ATTEMPT_SCHEMA = 1;
@@ -45,9 +54,26 @@ export function defaultProgress() {
     coins: 0, //         intjänat i Ekvationsresan (saldot är studentData.coins)
     recent: [], //       [{ l: nivå, s: stjärnor }] nyast sist, högst RECENT_MAX
     current: null, //    { id, at, task } – den pågående uppgiften
-    skills: {}, //       Etapp 2: färdighetsmodellen (E2.4)
+    skills: {}, //       färdighetsmodellen (E2.4, #626): { [färdighet]: { v, h, n } }
+    extra: defaultExtra(), // extrautmaningarna (#627) – påverkar aldrig nivån
     levelChangedAt: null,
     updatedAt: null,
+  };
+}
+
+/** Extrautmaningarnas del av progress (#627). */
+export function defaultExtra() {
+  return { tasks: 0, solved: 0, coins: 0, current: null };
+}
+
+function normalizeExtra(raw) {
+  if (!raw || typeof raw !== "object") return defaultExtra();
+  const cur = raw.current;
+  return {
+    tasks: int(raw.tasks),
+    solved: int(raw.solved),
+    coins: int(raw.coins),
+    current: cur && TASK_ID_RE.test(cur.id || "") && cur.task?.equation && cur.task.extra ? cur : null,
   };
 }
 
@@ -74,6 +100,7 @@ export function normalizeProgress(raw) {
     recent: (Array.isArray(raw.recent) ? raw.recent : []).filter((r) => r && Number.isInteger(r.s)).slice(-RECENT_MAX),
     current: cur && TASK_ID_RE.test(cur.id || "") && cur.task?.equation ? cur : null,
     skills: raw.skills && typeof raw.skills === "object" ? raw.skills : {},
+    extra: normalizeExtra(raw.extra),
     levelChangedAt: raw.levelChangedAt ?? null,
     updatedAt: raw.updatedAt ?? null,
   };
@@ -85,10 +112,14 @@ export function currentTask(progress) {
   return c && c.task.level === progress.level ? c : null;
 }
 
-/** Sätt en ny pågående uppgift. */
+/** Sätt en ny pågående uppgift (en extrautmaning hamnar i `extra.current`). */
 export function withCurrent(progress, task, { id, at }) {
+  if (task.extra) return { ...progress, extra: { ...progress.extra, current: { id, at, task } }, updatedAt: at };
   return { ...progress, current: { id, at, task }, updatedAt: at };
 }
+
+/** Den pågående extrautmaningen, eller null. */
+export const currentExtra = (progress) => progress.extra?.current || null;
 
 /**
  * Försöksdokumentet för en avslutad uppgift.
@@ -103,7 +134,9 @@ export function withCurrent(progress, task, { id, at }) {
  *             räknegång som visades, de första `moveCount` är elevens
  */
 export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMoves = null, startedAt = null, completedAt }) {
-  return {
+  // C (Nästa rad) har ingen egen lösning: dragen = räknegången eleven fyllde i.
+  const moves = run ? run.moves : task.type === "C" ? task.optimalPath.map((m) => ({ op: m.op, ...moveOperand(m) })) : [];
+  const attempt = {
     schema: ATTEMPT_SCHEMA,
     taskId: id,
     level: task.level,
@@ -112,7 +145,7 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
     equation: task.equation,
     solution: task.solution,
     optimalMoves: task.optimalMoves,
-    moves: run.moves.map((m) => ({ op: m.op, n: m.n, d: m.d, x: m.x })),
+    moves: moves.map((m) => ({ op: m.op, n: m.n, d: m.d, x: m.x })),
     moveCount: result.revealed && Number.isInteger(ownMoves) ? ownMoves : result.moves,
     blocked: int(blocked),
     stars: result.stars,
@@ -123,13 +156,45 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
     coins: result.coins,
     startedAt,
     completedAt,
-    skills: null, // Etapp 2
   };
+  // Elevens svar i C–F: [{ k: frågetyp, a: svaret som text | null, ok, visad? }] (≤ 40).
+  if (isQuestionType(task.type)) attempt.answers = Array.isArray(result.answers) ? result.answers.slice(-40) : [];
+  // Färdighetsmodellen (#626): vad försöket visar + om uppgiften valdes för att träna en svag färdighet.
+  // Extrautmaningar (#627) är frivilliga och räknas inte i modellen (inga observationer).
+  attempt.skills = { fokus: task.fokus || null, obs: task.extra ? {} : observera(task, attempt) };
+  if (task.extra) attempt.extra = true;
+  return attempt;
 }
 
 /**
+ * Lägg ett försök på en EXTRAUTMANING på progress (#627): bara extra-räknarna
+ * och mynten. Nivå, fönster, huvudstatistik och trend rörs inte – läget är
+ * frivilligt och krävs aldrig för huvudprogressionen.
+ * @returns {{ progress, change: null, from, to }}
+ */
+export function applyExtraCompletion(progress, attempt, { now, next = null } = {}) {
+  const x = progress.extra || defaultExtra();
+  const p = {
+    ...progress,
+    coins: progress.coins + int(attempt.coins),
+    extra: { tasks: x.tasks + 1, solved: x.solved + (attempt.solved ? 1 : 0), coins: x.coins + int(attempt.coins), current: next },
+    updatedAt: now,
+  };
+  return { progress: p, change: null, from: p.level, to: p.level };
+}
+
+/**
+ * En fokusuppgift (vald av färdighetsmodellen för att träna en svag färdighet,
+ * #626) som slutar med ⭐ eller ej löst räknas inte i nivåfönstret: eleven ska
+ * få fler sådana uppgifter på sin nivå, inte sänkas till lättare ekvationer.
+ */
+export const skyddadFranFonstret = (attempt) => !!attempt.skills?.fokus && attempt.stars <= FARDIGHET.skyddStjarnor;
+
+/**
  * Lägg ett försök på progressdokumentet. Anpassningen räknas bara om uppgiften
- * hör till elevens nuvarande nivå (läraren kan ha flyttat eleven under tiden).
+ * hör till elevens nuvarande nivå (läraren kan ha flyttat eleven under tiden)
+ * och inte är en misslyckad fokusuppgift (skyddadFranFonstret).
+ * Färdighetsmodellen (`skills`) uppdateras alltid.
  * @param {object} progress normalizeProgress-form
  * @param {object} attempt  buildAttempt-form
  * @param {{now:number, next?:{id,at,task}|null}} opts next = nästa pågående uppgift
@@ -139,7 +204,7 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
   let p = { ...progress };
   let change = null;
   const from = p.level;
-  if (attempt.level === p.level) {
+  if (attempt.level === p.level && !skyddadFranFonstret(attempt)) {
     const r = recordResult({ level: p.level, window: p.window }, attempt.stars);
     p.level = r.state.level;
     p.window = r.state.window;
@@ -147,6 +212,7 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
   }
   const stars = [...p.stars];
   stars[attempt.stars] += 1;
+  const countMoves = attempt.solved && hasSolvePhase(attempt.type); // C–E har inga egna drag
   p = {
     ...p,
     maxLevel: Math.max(p.maxLevel, p.level),
@@ -155,11 +221,12 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
     revealed: p.revealed + (attempt.revealed ? 1 : 0),
     stars,
     helpTasks: p.helpTasks + (attempt.helpMax > 0 ? 1 : 0),
-    movesSolved: p.movesSolved + (attempt.solved ? attempt.moveCount : 0),
-    optimalSolved: p.optimalSolved + (attempt.solved ? attempt.optimalMoves : 0),
+    movesSolved: p.movesSolved + (countMoves ? attempt.moveCount : 0),
+    optimalSolved: p.optimalSolved + (countMoves ? attempt.optimalMoves : 0),
     coins: p.coins + int(attempt.coins),
     recent: [...p.recent, { l: attempt.level, s: attempt.stars }].slice(-RECENT_MAX),
     current: next,
+    skills: attempt.skills?.obs ? uppdatera(p.skills, attempt.skills.obs) : p.skills,
     levelChangedAt: change ? now : p.levelChangedAt,
     updatedAt: now,
   };

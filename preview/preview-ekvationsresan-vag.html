@@ -30,6 +30,7 @@
         Komponenten <code>src/ekvationsresan/vag.js</code> med kärnans riktiga drag
         (<code>losning.js</code>). Skriv ett drag som i spelet (<code>-3</code>, <code>/2</code>,
         <code>*3</code>, <code>+5</code>) och tryck ENTER. Ett nytt drag mitt i en animation väntar aldrig.
+        Etapp 2 (#624): <code>-x</code>, <code>+2x</code>, <code>/2,5</code> – välj nivå 7+ (x-termer), 9+ (minustal), 10+ (decimaler).
       </div>
 
       <div class="panel">
@@ -39,13 +40,19 @@
           <button class="knapp-test" data-test="10">Test 10: −3 och ÷2</button>
           <button class="knapp-test" data-test="11">Test 11: 5x + 13 = 48</button>
         </div>
+        <div class="rad" style="margin-top:8px">
+          <b>Etapp 2 (#624):</b>
+          <button class="knapp-test" data-test="e2-x">3x + 4 = x + 12: −x</button>
+          <button class="knapp-test" data-test="e2-neg">3x + 17 = 5x + 5: −5x (skuld), +2x, −5, ÷2</button>
+          <button class="knapp-test" data-test="e2-dec">2,5x + 4 = 19: −4, ÷2,5</button>
+        </div>
       </div>
 
       <div class="panel">
         <div class="rad">
           <input id="ekv" type="text" value="2x + 3 = 11" aria-label="Ekvation" />
           <button id="visa-ekv">Visa ekvationen</button>
-          <label>Ny uppgift nivå <select id="niva"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+          <label>Ny uppgift nivå <select id="niva"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
           <button id="ny">Generera</button>
         </div>
         <div class="rad" style="margin-top:8px">
@@ -70,6 +77,7 @@
           <button class="knapp-hjalp" data-hjalp="remove">ta bort −n</button>
           <button class="knapp-hjalp" data-hjalp="add">lägg till +n</button>
           <button class="knapp-hjalp" data-hjalp="copies">kopior ·n</button>
+          <button class="knapp-hjalp" data-hjalp="remove-x">ta bort −nx</button>
           <button id="dolj">Dölj hjälp</button>
           <label>n = <input id="hjalp-n" type="text" value="2" style="width:3em" /></label>
         </div>
@@ -87,7 +95,7 @@
       import { parseEquation, fromJSON } from "../src/ekvationsresan/equation.js";
       import { rulesFor } from "../src/ekvationsresan/config.js";
       import { startRun, playMove } from "../src/ekvationsresan/losning.js";
-      import { applyNumber } from "../src/ekvationsresan/operations.js";
+      import { applyStep, moveOperand } from "../src/ekvationsresan/operations.js";
       import { optimalPath } from "../src/ekvationsresan/solver.js";
       import { generateTask } from "../src/ekvationsresan/generator.js";
 
@@ -113,7 +121,8 @@
 
       function ladda(t) {
         if (typeof t === "string") t = parseEquation(t);
-        run = t.left ? startRun(t) : startRun(fromJSON(t.equation), { rules: rulesFor(t.level) });
+        // fri ekvation: spärrarna för vald nivå (x-termer från 7, minustal från 9, decimaler från 10)
+        run = t.left ? startRun(t, { rules: rulesFor(Number($("niva").value)) }) : startRun(fromJSON(t.equation), { rules: rulesFor(t.level) });
         task = t;
         if (!vag) bygg();
         vag.setTask(task);
@@ -150,13 +159,13 @@
         const best = optimalPath(run.current, run.rules);
         const steps = [];
         let cur = run.current;
-        for (const { op, value } of best?.path || []) {
-          const r = applyNumber(cur, op, value, run.rules);
-          steps.push({ op, value, before: cur, after: r.after });
+        for (const step of best?.path || []) {
+          const r = applyStep(cur, step, run.rules);
+          steps.push({ ...step, before: cur, after: r.after });
           cur = r.after;
         }
-        for (const s of steps) run = playMove(run, { op: s.op, value: s.value }).run;
-        logg(`Visa lösningen: ${steps.map((s) => s.op + s.value).join(", ")}`);
+        for (const s of steps) run = playMove(run, { op: s.op, operand: moveOperand(s) }).run;
+        logg(`Visa lösningen: ${run.rows.map((r) => r.text).join("  |  ")}`);
         vag.spelaLosning(steps);
       };
 
@@ -164,7 +173,10 @@
         b.onclick = () => {
           const n = Number($("hjalp-n").value);
           const action = b.dataset.hjalp;
-          const ok = vag.visaHjalp(action === "groups" || action === "copies" ? { action, count: n } : { action, amount: n });
+          const scale =
+            action === "remove-x" ? { action: "remove", operand: { n, d: 1, x: 1 } }
+            : action === "groups" || action === "copies" ? { action, count: n } : { action, amount: n };
+          const ok = vag.visaHjalp(scale);
           $("meddelande").textContent = ok ? "" : "Den bilden går inte att visa här.";
         };
       }
@@ -175,6 +187,17 @@
         b.onclick = async () => {
           const t = b.dataset.test;
           if (t === "11") return ladda("5x + 13 = 48");
+          // Etapp 2: spärrarna för nivån (x-termer 7+, minustal 9+, decimaler 10+)
+          const e2 = { "e2-x": [7, "3x + 4 = x + 12", ["-x"]], "e2-neg": [9, "3x + 17 = 5x + 5", ["-5x", "+2x", "-5", "/2"]], "e2-dec": [10, "2,5x + 4 = 19", ["-4", "/2,5"]] }[t];
+          if (e2) {
+            $("niva").value = String(e2[0]);
+            ladda(e2[1]);
+            for (const d of e2[2]) {
+              await vanta(t === "e2-x" ? 900 : 1700);
+              drag(d);
+            }
+            return;
+          }
           ladda("2x + 3 = 11");
           if (t === "10") {
             await vanta(700);
@@ -197,6 +220,9 @@
         { eq: "8x + 29 = 141", note: "stiliserad: större tal" },
         { eq: "3x + 4 = x + 12", note: "Etapp 2: x i båda leden → block" },
         { eq: "x - 7 = -3", note: "Etapp 2-förberedd: minustal → skuldbricka" },
+        { eq: "-2x + 17 = 5", note: "Nivå 9: minustal i mellanled (3x + 17 = 5x + 5, −5x) → skuld-x-block" },
+        { eq: "-2x = -12", note: "Nivå 9: skuld-x-block och skuldbricka" },
+        { eq: "2,5x + 4 = 19", note: "Nivå 10: decimaler → stiliserad med etiketter" },
       ];
       for (const g of galleri) {
         const box = document.createElement("div");

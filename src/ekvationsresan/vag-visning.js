@@ -7,8 +7,9 @@
 //                 "ta bort 3"), x högst 5 gånger, x bara i ett led, lösningen
 //                 och båda ledens värden positiva → behållare + föremål
 //   "block"       tal upp till ca 100 → x-block och talbrickor med siffror
-//                 (även x i båda leden och minustal – "skuld"-brickor, Etapp 2)
-//   "stiliserad"  ännu större tal → stiliserad våg med uttrycken som etiketter
+//                 (även x i båda leden och minustal – "skuld"-brickor, #624)
+//   "stiliserad"  ännu större tal → stiliserad våg med uttrycken som etiketter;
+//                 även alla decimaltal (2,5x, x = 2,5), E2.2/#624
 //
 // "Under lösningen" = startekvationen OCH varje tillstånd längs den optimala
 // vägen (x/4 = 6 är litet men slutar i x = 24). En uppgift får EN grundvisning
@@ -16,9 +17,9 @@
 // visningen tillfälligt (viewDuring) – vågen motsvarar alltid ekvationen exakt.
 // ============================================================================
 
-import { coefOf, solve, evaluateSide, fromJSON, term } from "./equation.js";
-import { q, isInteger, isDecimal, isNegative, isZero } from "./rational.js";
-import { applyOperation } from "./operations.js";
+import { coefOf, solve, evaluateSide, fromJSON } from "./equation.js";
+import { isInteger, isNegative, isZero } from "./rational.js";
+import { applyStep } from "./operations.js";
 
 export const VIEWS = Object.freeze(["foremal", "block", "stiliserad"]);
 const RANK = Object.freeze({ foremal: 0, block: 1, stiliserad: 2 });
@@ -34,6 +35,9 @@ export const VIEW_LIMITS = Object.freeze({
 export const moreAbstract = (a, b) => (RANK[a] >= RANK[b] ? a : b);
 
 const value = (c) => Math.abs(c.n) / c.d;
+
+/** Skrivs talet som decimaltal (eller bråk)? x/4 (täljaren 1) är ett bråkblock. */
+const notWhole = (c, isX) => !isInteger(c) && !(isX && Math.abs(c.n) === 1);
 
 /** Visningen för ETT tillstånd. */
 export function viewForEquation(eq) {
@@ -56,8 +60,9 @@ export function viewForEquation(eq) {
     (!sol || (sol.n > 0 && !isZero(sol))) &&
     sidesPositive;
   if (foremal) return "foremal";
-  // Talbrickor visar heltal och korta decimaler (2,5); x/4 blir ett bråkblock.
-  const showable = terms.every((t) => t.x || isDecimal(coefOf(t)));
+  // Decimaltal (2,5x, x = 2,5) ritas inte som brickor – stiliserad våg med
+  // uttrycken som etiketter (#624). x/4 blir ett bråkblock.
+  const showable = !terms.some((t) => notWhole(coefOf(t), t.x)) && !(sol && notWhole(sol, false));
   if (showable && max <= VIEW_LIMITS.blockMax) return "block";
   return "stiliserad";
 }
@@ -67,12 +72,12 @@ export function chooseView(states) {
   return states.reduce((v, eq) => moreAbstract(v, viewForEquation(eq)), "foremal");
 }
 
-/** Tillstånden längs en väg [{op, value}] från eq (spärrade steg hoppas över). */
+/** Tillstånden längs en väg [{op, value} | {op, n, d, x}] från eq (stannar vid ett spärrat steg). */
 export function statesAlong(eq, path = [], rules) {
   const out = [eq];
   let cur = eq;
   for (const m of path) {
-    const r = applyOperation(cur, m.op, term(q(m.value), 0), rules);
+    const r = applyStep(cur, m, rules);
     if (!r.ok) break;
     cur = r.after;
     out.push(cur);

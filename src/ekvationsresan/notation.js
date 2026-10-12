@@ -23,10 +23,13 @@
 //     (segmentet har num "x", den "4"); elevens division skrivs alltid "÷".
 //     Valet är konsekvent: bråkstreck = en term, ÷ = en operation.
 //   * slutar uppgiften med "5 = x" läggs en sista rad "x = 5" till.
+//   * extrautmaningar (#627): bråk som inte är ändliga decimaler skrivs med
+//     bråkstreck (5/3, −2/7); en parentes i uppgiften skrivs 3(x + 2), och
+//     elevens operation läggs efter den: 3(x + 2) ÷ 3 = 21 ÷ 3.
 // ============================================================================
 
-import { abs, isInteger, isNegative, isDecimal, formatSv } from "./rational.js";
-import { coefOf } from "./equation.js";
+import { q, div, abs, isInteger, isNegative, isDecimal, formatSv } from "./rational.js";
+import { coefOf, term } from "./equation.js";
 import { OP_SYMBOL } from "./operand.js";
 
 const MINUS = "−";
@@ -36,6 +39,8 @@ export function termSegment(t, { unsigned = false } = {}) {
   const c = unsigned ? abs(coefOf(t)) : coefOf(t);
   const sign = isNegative(c) ? MINUS : "";
   const a = abs(c);
+  // Bråk som inte är en ändlig decimal (extrautmaningar, #627) – bråkstreck, 5/3.
+  if (!t.x && !isInteger(c) && !isDecimal(c)) return { t: "term", text: formatSv(c), num: `${sign}${a.n}`, den: String(a.d) };
   if (!t.x) return { t: "term", text: formatSv(c) };
   if (a.n === 1 && a.d === 1) return { t: "term", text: `${sign}x` };
   // x/a (täljaren 1) skrivs ALLTID med bråkstreck – även x/4, som annars blev 0,25x.
@@ -60,12 +65,15 @@ export function opSegment(op, operand) {
   return { t: "op", text: `${OP_SYMBOL[op]} ${termSegment(operand, { unsigned: true }).text}`, mark: "op" };
 }
 
+/** Inget mellanslag efter "(" / "3(" eller före ")". */
+export const tightAfter = (prev, seg) => (prev.t === "paren" && prev.text.endsWith("(")) || (seg.t === "paren" && seg.text === ")");
+
 /** Radtext: mellanslag mellan segment, men inte innanför parenteser. */
 export function rowText(segments) {
   let s = "";
   segments.forEach((seg, i) => {
     const prev = segments[i - 1];
-    if (i > 0 && !(prev.t === "paren" && prev.text === "(") && !(seg.t === "paren" && seg.text === ")")) s += " ";
+    if (i > 0 && !tightAfter(prev, seg)) s += " ";
     s += seg.text;
   });
   return s;
@@ -76,14 +84,29 @@ function row(kind, left, right) {
   return { kind, segments, text: rowText(segments) };
 }
 
-/** En ekvation som rad, t.ex. startraden eller den förenklade raden. */
-export const equationRow = (eq, kind = "simplified") => row(kind, sideSegments(eq.left), sideSegments(eq.right));
+/** Ett led med en faktor utanför parentesen (#627): 3x + 6 med faktorn 3 → "3(x + 2)". */
+export function groupedSegments(side, factor) {
+  const inner = side.map((t) => term(div(coefOf(t), q(factor)), t.x));
+  return [{ t: "paren", text: `${factor}(` }, ...sideSegments(inner), { t: "paren", text: ")" }];
+}
 
-/** Operationsraden för ETT led: "2x + 4 − 4", "(2x + 4) ÷ 2", "10 ÷ 2". */
-export function opSide(side, op, operand) {
-  const segs = sideSegments(side);
+/** Ledet `which` ("left"/"right") som segment – med parentes om ekvationen har en där. */
+export function ledSegments(eq, which) {
+  const f = eq.parens?.[which];
+  return f ? groupedSegments(eq[which], f) : sideSegments(eq[which]);
+}
+
+/** En ekvation som rad, t.ex. startraden eller den förenklade raden. */
+export const equationRow = (eq, kind = "simplified") => row(kind, ledSegments(eq, "left"), ledSegments(eq, "right"));
+
+/**
+ * Operationsraden för ETT led: "2x + 4 − 4", "(2x + 4) ÷ 2", "10 ÷ 2".
+ * `grouped` = ledet redan skrivet med parentes (3(x + 2) ÷ 3) – ingen ny parentes.
+ */
+export function opSide(side, op, operand, grouped = null) {
+  const segs = grouped || sideSegments(side);
   const opSeg = opSegment(op, operand);
-  if ((op === "*" || op === "/") && side.length > 1) {
+  if ((op === "*" || op === "/") && side.length > 1 && !grouped) {
     return [{ t: "paren", text: "(" }, ...segs, { t: "paren", text: ")" }, opSeg];
   }
   return [...segs, opSeg];
@@ -106,7 +129,8 @@ function distributedSide(side, simplified, op, operand) {
  */
 export function moveRows(result, rules = {}) {
   const { before, after, op, operand } = result;
-  const rows = [row("op", opSide(before.left, op, operand), opSide(before.right, op, operand))];
+  const grouped = (which) => (before.parens?.[which] ? ledSegments(before, which) : null);
+  const rows = [row("op", opSide(before.left, op, operand, grouped("left")), opSide(before.right, op, operand, grouped("right")))];
   const distributes = (op === "*" || op === "/") && (before.left.length > 1 || before.right.length > 1);
   if (distributes && rules.distributionStep !== false) {
     rows.push(row("mid", distributedSide(before.left, after.left, op, operand), distributedSide(before.right, after.right, op, operand)));

@@ -10,7 +10,7 @@ import { viewForEquation, chooseView, statesAlong, taskView, viewDuring, themeFo
 import { restScene, movePhases, helpScene, sidePieces } from "../src/ekvationsresan/vag-scen.js";
 import { layoutSide, extent, PAN } from "../src/ekvationsresan/vag-layout.js";
 import { parseEquation, term, fromJSON } from "../src/ekvationsresan/equation.js";
-import { applyNumber } from "../src/ekvationsresan/operations.js";
+import { applyNumber, moveOperand } from "../src/ekvationsresan/operations.js";
 import { generateTask, seededRng } from "../src/ekvationsresan/generator.js";
 import { LEVELS, rulesFor } from "../src/ekvationsresan/config.js";
 import { q } from "../src/ekvationsresan/rational.js";
@@ -45,7 +45,7 @@ test("visning: Etapp 2-fallen (x i båda leden, minustal, decimaler) ger aldrig 
   assert.equal(viewForEquation(E("3x + 4 = x + 12")), "block");
   assert.equal(viewForEquation(E("x - 7 = -3")), "block"); //   ett led är negativt → "skuld"-bricka
   assert.equal(viewForEquation(E("x + 9 = 4")), "block"); //    negativ lösning
-  assert.equal(viewForEquation(E("2,5x + 4 = 19")), "block");
+  assert.equal(viewForEquation(E("2,5x + 4 = 19")), "stiliserad"); // decimaler → stiliserad med etiketter (#624)
 });
 
 test("visning: hela vägen räknas, och vågen blir aldrig mindre abstrakt än uppgiften", () => {
@@ -187,7 +187,7 @@ test("layout: allt ryms i skålen för alla genererade uppgifter, i varje tillst
       const task = generateTask(level, { rng });
       const states = statesAlong(fromJSON(task.equation), task.optimalPath, rulesFor(level));
       states.forEach((s, k) => {
-        const phases = k === 0 ? [restScene(s, task.display)] : movePhases(states[k - 1], task.optimalPath[k - 1].op, term(q(task.optimalPath[k - 1].value), 0), s, task.display).phases;
+        const phases = k === 0 ? [restScene(s, task.display)] : movePhases(states[k - 1], task.optimalPath[k - 1].op, moveOperand(task.optimalPath[k - 1]), s, task.display).phases;
         for (const ph of phases) {
           for (const S of ["L", "R"]) {
             const pos = layoutSide(ph[S], task.display);

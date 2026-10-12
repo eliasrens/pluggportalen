@@ -14,10 +14,15 @@
 //   negative  ett led börjar med minus (−6, −2x + …) eller ledens värde vid
 //             lösningen blir negativt. "x − 3" är subtraktion, inget minustal.
 //   tooBig    något tal (täljare eller x/a-nämnare) över rules.maxAbs (1 000)
+//
+// Etapp 2 (#623): operanden kan vara en x-term (−2x, rules.operandX, nivå 7+)
+// eller ett decimaltal (÷2,5, rules.operandDecimal, nivå 10+). Ett drag i en
+// sparad väg är { op, value } för heltal (Etapp 1-formen) och { op, n, d, x }
+// för x-termer och decimaler – moveStep/moveOperand översätter.
 // ============================================================================
 
 import { BASE_RULES, BLOCK_MESSAGES } from "./config.js";
-import { q, mul, div, neg, abs, isZero, isInteger, isNegative, isDecimal } from "./rational.js";
+import { q, mul, div, neg, abs, cmp, isZero, isInteger, isNegative, isDecimal } from "./rational.js";
 import { term, coefOf, simplifySide, makeEquation, solve, evaluateSide } from "./equation.js";
 import { normalizeOp } from "./operand.js";
 
@@ -29,6 +34,9 @@ function applyToSide(side, op, operand) {
   if (op === "*") return side.map((t) => term(mul(coefOf(t), c), t.x + operand.x));
   return side.map((t) => term(div(coefOf(t), c), t.x));
 }
+
+/** Operationen på ETT led, förenklat (felaktiga rader i C/E, #625). */
+export const opOnSide = (side, op, operand) => simplifySide(applyToSide(side, normalizeOp(op) || op, operand));
 
 function termAllowed(t, rules) {
   const c = coefOf(t);
@@ -89,19 +97,51 @@ export function applyOperation(eq, opIn, operand, rules = BASE_RULES) {
 /** Bekvämlighet: applyOperation med ett heltal som operand. */
 export const applyNumber = (eq, op, value, rules) => applyOperation(eq, op, term(q(value), 0), rules);
 
+/** Ett drag som vägsteg: heltal → { op, value } (Etapp 1), annars { op, n, d, x }. */
+export function moveStep(op, operand) {
+  if (!operand.x && operand.d === 1) return { op, value: operand.n };
+  return { op, n: operand.n, d: operand.d, x: operand.x };
+}
+
+/** Operanden (en term) i ett vägsteg/sparat drag: { operand } | { n, d, x } | { value }. */
+export function moveOperand(m) {
+  if (m.operand) return m.operand;
+  if ("n" in m) return term(q(m.n, m.d ?? 1), m.x || 0);
+  return term(q(m.value), 0);
+}
+
+/** Gör ett vägsteg (moveStep-formen) på ekvationen. */
+export const applyStep = (eq, step, rules) => applyOperation(eq, step.op, moveOperand(step), rules);
+
+/** Kan eleven skriva koefficienten c i talfältet med de här spärrarna? */
+function typeable(c, rules) {
+  if (isInteger(c)) return true;
+  return Boolean(rules.operandDecimal) && isDecimal(c, rules.maxDecimals);
+}
+
 /**
- * Rimliga operander för ett tillstånd (BFS i solver.js och hjälpen): talen i
- * ekvationen – konstanternas absolutbelopp, x-koefficienternas täljare och
- * x/a-nämnare – som positiva heltal.
+ * Rimliga operander för ett tillstånd (BFS i solver.js och hjälpen) som
+ * termer: talen i ekvationen – konstanternas absolutbelopp, x-koefficienternas
+ * täljare och x/a-nämnare – som positiva heltal. Med rules.operandDecimal även
+ * decimaltalen själva (2,5), med rules.operandX även x-termerna (x, 3x, 2,5x).
+ * Ordning: x-termer först (det naturliga första draget när x står i båda
+ * leden), sedan talen i storleksordning.
  */
-export function candidateOperands(eq) {
-  const set = new Set();
+export function candidateOperands(eq, rules = BASE_RULES) {
+  const nums = new Map();
+  const xs = new Map();
+  const put = (map, c, x) => map.set(`${c.n}/${c.d}`, term(c, x));
   for (const t of [...eq.left, ...eq.right]) {
     const c = abs(coefOf(t));
-    if (c.n >= 1) set.add(c.n);
-    if (c.d > 1) set.add(c.d);
+    if (c.n >= 1) put(nums, q(c.n), 0);
+    if (c.d > 1) put(nums, q(c.d), 0);
+    // x/4 är "x delat med 4" – inte talet 0,25 (då blev vägen ÷0,25 i stället för ·4).
+    const xa = t.x && c.n === 1 && c.d > 1;
+    if (!isInteger(c) && !xa && typeable(c, rules)) put(nums, c, 0);
+    if (t.x && !xa && rules.operandX && typeable(c, rules)) put(xs, c, 1);
   }
-  return [...set].sort((a, b) => a - b);
+  const byValue = (a, b) => cmp(coefOf(a), coefOf(b));
+  return [...[...xs.values()].sort(byValue), ...[...nums.values()].sort(byValue)];
 }
 
 export const OPS = Object.freeze(["+", "-", "*", "/"]);

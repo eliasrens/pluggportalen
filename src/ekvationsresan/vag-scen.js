@@ -7,8 +7,9 @@
 //   Bit { key, kind, ... }   kind:
 //     föremål     "cont" (behållare = x), "item" (mynt, äpple …), "hole" (ett
 //                 föremål som saknas: x − 3 har tre hål), indexerade med i
-//     block       "xb" (ett x-block, indexerat), "xf" (x-block med etikett:
-//                 x/4, 15x), "tile" (talbricka med siffror; neg = "skuld")
+//     block       "xb" (ett x-block, indexerat), "xn" (ett skuld-x-block, −x,
+//                 indexerat), "xf" (x-block med etikett: x/4, 15x), "tile"
+//                 (talbricka med siffror; neg = "skuld"-bricka)
 //     stiliserad  "label" (ledet som uttryck, segs)
 //     alla        "badge" (dragets operation över skålen), "frame" (grupp)
 //   Flaggor: g (grupp), lift (lyft/markerad), at (ligger på en annan bit),
@@ -19,6 +20,10 @@
 // BÅDA sidor, +a släpper ner a (och fyller hål), ÷a delar i a lika grupper och
 // låter grupp 0 stanna, ·a lägger till a − 1 kopior. Vågen är i balans i
 // varje fas: båda skålarna gungar likadant.
+//
+// Etapp 2 (#624): −x lyfter bort ett x-block från båda sidor (finns inget
+// blir det ett skuld-x-block, −x), +x släpper ner ett x-block som tar ut ett
+// skuld-x-block. Minustal = "skuld": streckade röda brickor och block.
 // ============================================================================
 
 import { coefOf, simplifySide, term } from "./equation.js";
@@ -33,8 +38,8 @@ export const sideOf = (eq, S) => (S === "L" ? eq.left : eq.right);
 export const PHASE_OFFSETS = Object.freeze([0, 0.4, 0.62, 1]);
 /** Högst så många x-block ritas var för sig; fler blir ett block "15x". */
 export const XB_MAX = 12;
-const INDEXED = new Set(["cont", "item", "hole", "xb"]);
-const PREFIX = { cont: "x", xb: "x", item: "i", hole: "h" };
+const INDEXED = new Set(["cont", "item", "hole", "xb", "xn"]);
+const PREFIX = { cont: "x", xb: "x", xn: "nx", item: "i", hole: "h" };
 
 function parts(side) {
   const s = simplifySide(side);
@@ -58,8 +63,8 @@ export function sidePieces(side, view, S) {
     for (let i = 0; i < Math.abs(c.n); i++) out.push(indexed(S, c.n > 0 ? "item" : "hole", i));
     return out;
   }
-  if (isInteger(x) && x.n > 0 && x.n <= XB_MAX) {
-    for (let i = 0; i < x.n; i++) out.push(indexed(S, "xb", i));
+  if (isInteger(x) && x.n !== 0 && Math.abs(x.n) <= XB_MAX) {
+    for (let i = 0; i < Math.abs(x.n); i++) out.push(indexed(S, x.n > 0 ? "xb" : "xn", i));
   } else if (!isZero(x)) {
     out.push({ key: `${S}:xf:${x.n}/${x.d}`, kind: "xf", segs: [termSegment(term(x, 1))], neg: x.n < 0 });
   }
@@ -143,6 +148,34 @@ function blockPlusMinus(bSide, aSide, op, operand, S) {
   return [mid, hold];
 }
 
+// --- ±x på block: x-block lyfts bort / skuld-x-block tas ut --------------------
+
+/** Kan x-termen i ledet ritas som enskilda block (före och efter)? */
+const xBlocks = (c) => isInteger(c) && Math.abs(c.n) <= XB_MAX;
+
+function blockXPlusMinus(bSide, op, k, S) {
+  const p = parts(bSide).x.n;
+  const pieces = sidePieces(bSide, "block", S);
+  const plus = Math.max(p, 0);
+  const debt = Math.max(-p, 0);
+  const extra = [];
+  if (op === "-") {
+    const n = Math.min(plus, k);
+    for (const b of pieces) if (b.kind === "xb" && b.i >= plus - n) b.lift = true;
+    for (let j = 0; j < k - n; j++) extra.push(indexed(S, "xn", debt + j, { enter: "pop" }));
+  } else {
+    const n = Math.min(debt, k);
+    for (let j = 0; j < n; j++) {
+      extra.push({ key: `${S}:xfill${j}`, kind: "xb", i: debt - n + j, at: `${S}:nx${debt - n + j}`, enter: "drop" });
+    }
+    for (let j = 0; j < k - n; j++) extra.push(indexed(S, "xb", plus + j, { enter: "drop" }));
+  }
+  // x-blocken först, som i vila (2x + 5) – annars byter de plats med brickan efteråt
+  const isX = (b) => b.kind === "xb" || b.kind === "xn";
+  const mid = [...pieces, ...extra].sort((a, b) => isX(b) - isX(a));
+  return [mid, mid];
+}
+
 /**
  * Faserna för ett giltigt drag. `view` gäller både före och efter (vag.js gör
  * en lugn övertoning i stället när visningen byts).
@@ -152,6 +185,7 @@ export function movePhases(before, opIn, operand, after, view) {
   const op = normalizeOp(opIn);
   const A = coefOf(operand);
   const simple = !operand.x && isInteger(A) && A.n > 0;
+  const xMove = operand.x && isInteger(A) && A.n > 0 && (op === "+" || op === "-") && view === "block";
   const phases = [restScene(before, view), { L: {}, R: {} }, { L: {}, R: {} }, restScene(after, view)];
   for (const S of SIDES) {
     const bSide = sideOf(before, S);
@@ -167,6 +201,8 @@ export function movePhases(before, opIn, operand, after, view) {
       [mid, hold] = foremalPlusMinus(bSide, op, A.n, S);
     } else if (simple && view === "block") {
       [mid, hold] = blockPlusMinus(bSide, aSide, op, operand, S);
+    } else if (xMove && xBlocks(parts(bSide).x) && xBlocks(parts(aSide).x)) {
+      [mid, hold] = blockXPlusMinus(bSide, op, A.n, S);
     } else {
       mid = hold = sidePieces(bSide, view, S);
     }
@@ -182,14 +218,25 @@ export function movePhases(before, opIn, operand, after, view) {
 export const SCALE_ACTIONS = Object.freeze({ remove: "-", add: "+", groups: "/", copies: "*" });
 
 /**
+ * Bildinstruktionens operand som term: { amount | count } (heltal) eller,
+ * Etapp 2, { operand: { n, d, x } } (−x, ÷2,5). Positiv, annars null.
+ */
+export function scaleOperand(scale) {
+  const o = scale?.operand;
+  if (o && Number.isSafeInteger(o.n) && o.n > 0 && Number.isSafeInteger(o.d ?? 1) && (o.d ?? 1) > 0) return term(q(o.n, o.d ?? 1), o.x ? 1 : 0);
+  const v = scale?.amount ?? scale?.count;
+  return Number.isInteger(v) && v > 0 ? term(q(v), 0) : null;
+}
+
+/**
  * Hjälpens bild (E1.6 steg 2): mittfasen av draget, stillastående. Nya bitar
  * (+, ·) visas som förslag (ghost). → { L, R } eller null om draget inte går.
  */
 export function helpScene(before, scale, after, view) {
   const op = SCALE_ACTIONS[scale?.action];
-  const v = scale?.amount ?? scale?.count;
-  if (!op || !Number.isInteger(v) || v <= 0 || !after) return null;
-  const { phases } = movePhases(before, op, term(q(v), 0), after, view);
+  const operand = scaleOperand(scale);
+  if (!op || !operand || !after) return null;
+  const { phases } = movePhases(before, op, operand, after, view);
   const had = new Set(SIDES.flatMap((S) => phases[0][S].pieces.map((p) => p.key)));
   const out = {};
   for (const S of SIDES) {

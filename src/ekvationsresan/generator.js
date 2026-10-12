@@ -8,32 +8,35 @@
 //   task = { schema, level, form, type, key,
 //            equation,       // strukturerad (equation.toJSON) – sparas så
 //            text,           // "2x + 4 = 14" (visning/loggar)
-//            solution,       // { n, d } – positivt heltal i huvudprogressionen
-//            optimalMoves, optimalPath: [{op, value}],
-//            display }       // vågens visning: "foremal" | "block" | "stiliserad"
+//            solution,       // { n, d } – positivt (heltal; decimal från nivå 10)
+//            optimalMoves, optimalPath: [{op, value} | {op, n, d, x}],
+//            swapped,        // x-sidan bytt (14 = 2x + 4) – för similarTask
+//            display,        // vågens visning: "foremal" | "block" | "stiliserad"
+//            nastaRad | bild | fel | problem }  // typ C | D | E | F (#625)
 //
 // generateTask(level, { rng, previous }) – aldrig samma ekvation som `previous`
 // similarTask(task, { rng })            – "Försök igen": samma nivå och form,
 //                                         ny ekvation OCH ny lösning
-// Uppgiftstyp A/B (TASK_TYPES) dras med nivåns andel B. Etapp 2 lägger till
-// typ C–F i TASK_TYPES och nivå 7–12 i config.js – ingen ombyggnad här.
+// Uppgiftstypen (uppgiftstyper.js) dras först: C–F med nivåns andelar
+// (config LEVELS[].types, #625), annars A/B med nivåns andel B. Typen väljer
+// bland nivåns former de den klarar, och typens data läggs på uppgiften
+// (nastaRad / bild / fel / problem). Nivå 7–12 (#623) är bara rader i
+// config.js + former i forms.js.
 // ============================================================================
 
 import { levelConfig, rulesFor } from "./config.js";
 import { FORMS } from "./forms.js";
 import { toJSON, equationKey, swapSides, solve } from "./equation.js";
-import { isInteger } from "./rational.js";
+import { toQ, eq as same, isInteger, isDecimal } from "./rational.js";
 import { viewForEquation, chooseView, statesAlong } from "./vag-visning.js";
 import { optimalPath } from "./solver.js";
 import { equationRow } from "./notation.js";
+import { TASK_TYPES, supportsForm, forcesUnswapped, extendTask } from "./uppgiftstyper.js";
 
 export const TASK_SCHEMA = 1;
 
-/** Uppgiftstyper (E1.8). Etapp 2: C–F läggs till här. */
-export const TASK_TYPES = Object.freeze({
-  A: { id: "A", name: "Balansen", description: "Vågen i fokus, konkreta föremål." },
-  B: { id: "B", name: "Lös själv", description: "Samma mekanik, vågen diskretare och matematiken större." },
-});
+/** Uppgiftstyperna A–F (E1.8, E2.3) – definierade i uppgiftstyper.js. */
+export { TASK_TYPES };
 
 // --- slump ------------------------------------------------------------------
 
@@ -76,55 +79,101 @@ export function scaleMode(eq) {
 
 const MAX_TRIES = 200;
 
-function buildTask(level, formId, rng, swap) {
+/** Får lösningen förekomma på nivån? Alltid > 0; heltal, eller decimal där decimaler är på. */
+function solutionAllowed(x, rules) {
+  if (!x || x.n <= 0) return false;
+  return isInteger(x) || (rules.allowDecimals && isDecimal(x, rules.maxDecimals));
+}
+
+/**
+ * Typen för nästa uppgift: C–F med nivåns andelar (`types`), annars A/B med
+ * andelen B. `forced` (similarTask, tester) vinner.
+ */
+export function pickType(cfg, rng, forced = null) {
+  if (forced) return forced;
+  let r = rng();
+  for (const [id, share] of Object.entries(cfg.types || {})) {
+    if ((r -= share) < 0) return id;
+  }
+  return rng() < (cfg.typeB ?? 0) ? "B" : "A";
+}
+
+/** Nivåns formvikter som typen klarar (tomt → typen passar inte nivån). */
+function formsFor(type, cfg) {
+  return Object.fromEntries(Object.entries(cfg.forms).filter(([id]) => supportsForm(type, id)));
+}
+
+function buildTask(level, formId, rng, swap, type) {
   const cfg = levelConfig(level);
+  const rules = rulesFor(level);
   const built = FORMS[formId].build(cfg.params || {}, rng);
   if (!built) return null;
   const equation = swap ? swapSides(built.equation) : built.equation;
   const solution = solve(equation);
-  // Vakt: formen och den exakta lösningen måste stämma, och x > 0 heltal.
-  if (!solution || !isInteger(solution) || solution.n <= 0 || solution.n !== built.solution) return null;
-  const best = optimalPath(equation, rulesFor(level));
+  // Vakt: formen och den exakta lösningen måste stämma, och x > 0.
+  if (!solutionAllowed(solution, rules) || !same(solution, toQ(built.solution))) return null;
+  const best = optimalPath(equation, rules);
   if (!best || best.moves === 0) return null;
-  return {
+  const task = {
     schema: TASK_SCHEMA,
     level,
     form: formId,
-    type: rng() < (cfg.typeB ?? 0) ? "B" : "A",
+    type,
     key: equationKey(equation),
     equation: toJSON(equation),
     text: equationRow(equation, "start").text,
     solution: { n: solution.n, d: solution.d },
     optimalMoves: best.moves,
     optimalPath: best.path,
-    display: chooseView(statesAlong(equation, best.path, rulesFor(level))),
+    swapped: Boolean(swap),
+    display: chooseView(statesAlong(equation, best.path, rules)),
   };
+  return extendTask(task, rules, rng);
 }
 
 /**
  * Ny uppgift på nivån.
- * @param {number} level 1–6 (Etapp 1)
+ * @param {number} level 1–12
  * @param {{rng?: () => number, previous?: {key?: string}|string, form?: string}} [opts]
  *   previous = förra uppgiften (eller dess key) – samma ekvation två gånger i
  *   följd ges aldrig. form/swap = tvinga form och sida för x (similarTask,
- *   tester). avoidSolution = lösning som inte får komma igen.
+ *   tester). avoidSolution = lösning som inte får komma igen. type = tvinga
+ *   uppgiftstyp (A–F). mix = { types?, typeB?, forms? } skriver över nivåns
+ *   andelar (färdighetsmodellen, nasta-uppgift.js #626) – nivån och dess
+ *   spärrar är desamma.
  */
-export function generateTask(level, { rng = Math.random, previous = null, form = null, swap = null, avoidSolution = null } = {}) {
-  const cfg = levelConfig(level);
+export function generateTask(level, { rng = Math.random, previous = null, form = null, swap = null, avoidSolution = null, type = null, mix = null } = {}) {
+  const cfg = mix ? { ...levelConfig(level), ...mix } : levelConfig(level);
   const prevKey = typeof previous === "string" ? previous : previous?.key || null;
+  const avoid = avoidSolution === null ? null : toQ(avoidSolution);
   for (let i = 0; i < MAX_TRIES; i++) {
-    const formId = form || pickWeighted(cfg.forms, rng);
-    const swapped = swap ?? rng() < (cfg.swapShare ?? 0);
-    const task = buildTask(level, formId, rng, swapped);
+    // En tvingad typ släpps efter halva försöken (en form som typen sällan klarar).
+    const forced = i < MAX_TRIES / 2 ? type : null;
+    let t = pickType(cfg, rng, forced);
+    let forms = formsFor(t, cfg);
+    // D/F bygger ekvationen ur bild/text med x till vänster – en tvingad sida (swap) går före.
+    if (!Object.keys(forms).length || (form && !Object.hasOwn(forms, form)) || (swap === true && forcesUnswapped(t))) {
+      t = rng() < (cfg.typeB ?? 0) ? "B" : "A";
+      forms = cfg.forms;
+    }
+    const formId = form || pickWeighted(forms, rng);
+    const swapped = forcesUnswapped(t) ? false : swap ?? rng() < (cfg.swapShare ?? 0);
+    const task = buildTask(level, formId, rng, swapped, t);
     if (!task || task.key === prevKey) continue;
-    if (avoidSolution !== null && task.solution.n === avoidSolution) continue;
+    if (avoid && same(toQ(task.solution), avoid)) continue;
     return task;
   }
   throw new Error(`Ekvationsresan: kunde inte generera en uppgift på nivå ${level}`);
 }
 
-/** "Försök igen för ⭐⭐⭐" (E1.7): liknande ekvation, aldrig samma, ny lösning. */
+/**
+ * "Försök igen för ⭐⭐⭐" (E1.7): liknande ekvation, aldrig samma, ny lösning.
+ * Typen behålls (samma sorts uppgift igen).
+ */
 export function similarTask(task, { rng = Math.random } = {}) {
-  const swap = task.equation.right.some((t) => t.x);
-  return generateTask(task.level, { rng, previous: task, form: task.form, swap, avoidSolution: task.solution.n });
+  // Äldre uppgifter (Etapp 1) saknar `swapped`: x bara i högerledet = bytt.
+  const swap = task.swapped ?? (task.equation.right.some((t) => t.x) && !task.equation.left.some((t) => t.x));
+  const type = TASK_TYPES[task.type] ? task.type : null;
+  const next = generateTask(task.level, { rng, previous: task, form: task.form, swap, avoidSolution: task.solution, type });
+  return task.fokus ? { ...next, fokus: task.fokus } : next; // en fokusuppgift (#626) förblir en
 }

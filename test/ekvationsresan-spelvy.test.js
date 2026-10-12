@@ -42,7 +42,7 @@ test("progress: ny elev = nivå 1, tomt fönster, inga uppgifter; trasiga fält 
   assert.deepEqual(p.window, []);
   assert.deepEqual(p.stars, [0, 0, 0, 0]);
   const q = normalizeProgress({ level: 99, window: [3, "x", 7, 2], stars: "x", current: { id: "kort" } });
-  assert.equal(q.level, 6);
+  assert.equal(q.level, 12);
   assert.deepEqual(q.window, [3, 2]);
   assert.equal(q.current, null, "ogiltigt uppgifts-id släpps");
 });
@@ -58,7 +58,7 @@ test("försöket: strukturerad ekvation, lösning, optimalt, dragen i ordning, s
   assert.equal(attempt.stars, 3);
   assert.equal(attempt.solved, true);
   assert.equal(attempt.coins, 2);
-  assert.equal(attempt.skills, null, "Etapp 2-fältet finns");
+  assert.deepEqual(Object.keys(attempt.skills), ["fokus", "obs"], "färdighetsmodellens observation (#626)");
   assert.equal(JSON.stringify(attempt).includes("undefined"), false);
 });
 
@@ -102,15 +102,15 @@ test("hela flödet nivå 1 → 2: fyra ⭐⭐⭐ i rad ger nivå 2, nollställt 
   assert.equal(p.level, 2);
   assert.deepEqual(p.window, []);
   assert.equal(p.maxLevel, 2);
-  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current,locked,locked,locked,locked");
+  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current" + ",locked".repeat(10));
   assert.equal(generateTask(p.level, { rng }).level, 2);
 });
 
 test("#643: nådd nivå som eleven åkt ner från visas ✓, bara nivåer över högsta nådda är 🔒", () => {
   const p = normalizeProgress({ level: 2, maxLevel: 4 });
-  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current,done,done,locked,locked");
+  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current,done,done" + ",locked".repeat(8));
   // Äldre dokument utan maxLevel: nuvarande nivå gäller.
-  assert.equal(levelOverview({ level: 3 }).map((l) => l.state).join(","), "done,done,current,locked,locked,locked");
+  assert.equal(levelOverview({ level: 3 }).map((l) => l.state).join(","), "done,done,current" + ",locked".repeat(9));
   // Nivå ner via anpassningen behåller maxLevel.
   const ner = applyCompletion({ ...normalizeProgress({ level: 3, maxLevel: 3 }), window: [0, 0, 0, 0] }, { level: 3, stars: 0, solved: false, revealed: true, helpMax: 4, moveCount: 0, optimalMoves: 2, coins: 0 }, { now: 1 });
   assert.equal(ner.change, "down");

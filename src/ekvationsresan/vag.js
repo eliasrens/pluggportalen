@@ -11,7 +11,8 @@
 //   vag.setTask(task)        ny uppgift: nytt tema/grundvisning, lugn övertoning
 //   vag.visaHjalp(scale)     hjälpens bild (#616 hjalp.js steg 2):
 //                            {action:"groups", count} visar grupperna,
-//                            "remove"/"add"/"copies" markerar/föreslår → boolean
+//                            "remove"/"add"/"copies" markerar/föreslår → boolean;
+//                            Etapp 2: {action, operand:{n,d,x}} (−x, ÷2,5)
 //   vag.doljHjalp()          tillbaka till vila
 //   vag.spelaLosning(steps)  "Visa lösningen": revealSolution().steps i följd
 //   vag.destroy()
@@ -25,10 +26,10 @@ import { fromJSON, term } from "./equation.js";
 import { q } from "./rational.js";
 import { BASE_RULES } from "./config.js";
 import { applyOperation } from "./operations.js";
-import { equationRow } from "./notation.js";
+import { equationRow, tightAfter } from "./notation.js";
 import { optimalPath } from "./solver.js";
 import { chooseView, statesAlong, taskView, viewDuring, viewForEquation, moreAbstract, themeFor, themeById } from "./vag-visning.js";
-import { SIDES, restScene, movePhases, helpScene, SCALE_ACTIONS } from "./vag-scen.js";
+import { SIDES, restScene, movePhases, helpScene, SCALE_ACTIONS, scaleOperand } from "./vag-scen.js";
 import { layoutSide } from "./vag-layout.js";
 import { VIEWBOX, PAN_AT, standSvg, beamSvg, plateSvg, pieceSvg } from "./vag-konst.js";
 
@@ -63,13 +64,15 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 /** Ekvationen som HTML, med bråkstreck för x/4 (notation.js-segment). */
 export function equationHtml(eq) {
-  return equationRow(eq, "start")
-    .segments.map((s) =>
-      s.num
+  const segs = equationRow(eq, "start").segments;
+  return segs
+    .map((s, i) =>
+      (i > 0 && !tightAfter(segs[i - 1], s) ? " " : "") +
+      (s.num
         ? `<span class="ekv-frac"><span>${esc(s.num)}</span><span>${esc(s.den)}</span></span>`
-        : `<span class="ekv-seg ekv-seg--${s.t}">${esc(s.text)}</span>`,
+        : `<span class="ekv-seg ekv-seg--${s.t}">${esc(s.text)}</span>`),
     )
-    .join(" ");
+    .join("");
 }
 
 function moveOperand(move) {
@@ -261,9 +264,9 @@ export function createVag(host, opts = {}) {
 
   function visaHjalp(scale) {
     const op = SCALE_ACTIONS[scale?.action];
-    const v = scale?.amount ?? scale?.count;
-    if (!current || !op || !Number.isInteger(v)) return false;
-    const r = applyOperation(current, op, term(q(v), 0), LOOSE_RULES);
+    const operand = scaleOperand(scale);
+    if (!current || !op || !operand) return false;
+    const r = applyOperation(current, op, operand, LOOSE_RULES);
     if (!r.ok) return false;
     const scene = helpScene(current, scale, r.after, view);
     if (!scene) return false;

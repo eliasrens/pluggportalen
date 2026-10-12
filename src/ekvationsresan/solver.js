@@ -9,32 +9,35 @@
 // Operationsordningen (− + ÷ ·, små tal först) avgör vilken av flera lika
 // korta vägar som hittas först. Den ger den "naturliga" vägen för "Visa
 // lösningen": 2x + 4 = 14 → −4, ÷2 (inte ÷2, −2).
+//
+// Etapp 2 (#623): med rules.operandX söks även x-termsoperander (−x, −2x) och
+// med rules.operandDecimal decimaltal (÷2,5). x-termer prövas först, så
+// 3x + 4 = x + 12 ger −x, −4, ÷2. Vägsteg: { op, value } för heltal, annars
+// { op, n, d, x } (operations.moveStep).
 // ============================================================================
 
 import { BASE_RULES } from "./config.js";
 import { equationKey, isSolved } from "./equation.js";
-import { applyNumber, candidateOperands } from "./operations.js";
+import { applyOperation, candidateOperands, moveStep } from "./operations.js";
 
 const SEARCH_ORDER = ["-", "+", "/", "*"];
 
-/** Alla giltiga drag från ett tillstånd: [{ op, value, after }]. */
+/** Alla giltiga drag från ett tillstånd: [{ step, after }], step = moveStep-formen. */
 export function legalMoves(eq, rules = BASE_RULES) {
   const out = [];
-  const operands = candidateOperands(eq);
-  for (const op of SEARCH_ORDER) {
-    for (const value of operands) {
-      const r = applyNumber(eq, op, value, rules);
-      if (r.ok) out.push({ op, value, after: r.after });
-    }
-  }
+  const operands = candidateOperands(eq, rules);
+  const tryMove = (op, operand) => {
+    const r = applyOperation(eq, op, operand, rules);
+    if (r.ok) out.push({ step: moveStep(op, operand), after: r.after });
+  };
+  // x-termer först (− x, + 2x): när x står i båda leden flyttas x först.
+  // · och ÷ med x spärras alltid (xProduct) och prövas inte.
+  for (const op of SEARCH_ORDER) for (const o of operands) if (o.x && (op === "-" || op === "+")) tryMove(op, o);
+  for (const op of SEARCH_ORDER) for (const o of operands) if (!o.x) tryMove(op, o);
   return out;
 }
 
-/**
- * Kortaste vägen till löst. → { moves, path: [{op, value}] }, eller null om
- * ekvationen inte går att lösa inom maxDepth drag.
- */
-export function optimalPath(eq, rules = BASE_RULES, maxDepth = rules.maxSearchDepth ?? 6) {
+function bfs(eq, rules, maxDepth) {
   if (isSolved(eq)) return { moves: 0, path: [] };
   const seen = new Set([equationKey(eq)]);
   let frontier = [{ eq, path: [] }];
@@ -45,7 +48,7 @@ export function optimalPath(eq, rules = BASE_RULES, maxDepth = rules.maxSearchDe
         const key = equationKey(m.after);
         if (seen.has(key)) continue;
         seen.add(key);
-        const path = [...node.path, { op: m.op, value: m.value }];
+        const path = [...node.path, m.step];
         if (isSolved(m.after)) return { moves: depth, path };
         next.push({ eq: m.after, path });
       }
@@ -55,9 +58,24 @@ export function optimalPath(eq, rules = BASE_RULES, maxDepth = rules.maxSearchDe
   return null;
 }
 
+/**
+ * Kortaste vägen till löst. → { moves, path: [step] }, eller null om
+ * ekvationen inte går att lösa inom maxDepth drag.
+ *
+ * Där minustal är tillåtna (nivå 9+) väljs bland lika korta vägar en utan
+ * minustal om det finns: "Visa lösningen" och hjälpen visar då den väg som
+ * inte kräver negativa mellanled (antalet drag är detsamma).
+ */
+export function optimalPath(eq, rules = BASE_RULES, maxDepth = rules.maxSearchDepth ?? 6) {
+  const best = bfs(eq, rules, maxDepth);
+  if (!best || best.moves === 0 || !rules.allowNegative) return best;
+  const positive = bfs(eq, { ...rules, allowNegative: false }, best.moves);
+  return positive && positive.moves === best.moves ? positive : best;
+}
+
 /** Minsta antal drag kvar (null = inte inom maxDepth). */
-export function optimalMoves(eq, rules = BASE_RULES, maxDepth) {
-  return optimalPath(eq, rules, maxDepth)?.moves ?? null;
+export function optimalMoves(eq, rules = BASE_RULES, maxDepth = rules.maxSearchDepth ?? 6) {
+  return bfs(eq, rules, maxDepth)?.moves ?? null;
 }
 
 /**

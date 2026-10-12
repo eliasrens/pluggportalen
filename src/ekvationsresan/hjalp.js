@@ -15,12 +15,16 @@
 // Hjälptillståndet (startHelp/nextHelp) minns högsta steget för stjärnorna
 // (resultat.js) och loggar varje tryck för anpassning och lärarstatistik.
 // Byter eleven ekvation (gör ett drag) börjar nästa tryck om på steg 1.
+//
+// Etapp 2 (#623): operanden kan vara en x-term (−x) eller ett decimaltal
+// (÷2,5); texterna visar den som i räknegången. `scale` har då `operand`
+// ({ n, d, x }) i stället för amount/count – vågens bild gäller heltal.
 // ============================================================================
 
 import { BASE_RULES, HELP } from "./config.js";
 import { equationKey, coefOf } from "./equation.js";
-import { applyNumber } from "./operations.js";
-import { moveRows, opSide, sideSegments, rowText } from "./notation.js";
+import { applyStep, moveOperand } from "./operations.js";
+import { moveRows, opSide, sideSegments, rowText, termSegment } from "./notation.js";
 import { optimalPath } from "./solver.js";
 import { playMove } from "./losning.js";
 import { abs, isOne } from "./rational.js";
@@ -29,7 +33,7 @@ const WORDS = ["noll", "ett", "två", "tre", "fyra", "fem", "sex", "sju", "åtta
 const word = (n) => WORDS[n] || String(n);
 
 const sideText = (side) => rowText(sideSegments(side));
-const opSideText = (side, op, value) => rowText(opSide(side, op, { n: value, d: 1, x: 0 }));
+const opSideText = (side, op, operand) => rowText(opSide(side, op, operand));
 
 /** Vilket led har x? (x i båda leden = Etapp 2; då räknas vänster.) */
 function xSideOf(eq) {
@@ -44,16 +48,39 @@ function xCountText(side) {
   return `${word(c.n)} stycken x`;
 }
 
-function stepTexts(op, value, xs, ns) {
+function stepTexts(op, operand, xs, ns) {
   const xsT = sideText(xs);
   const nsT = sideText(ns);
-  const v = value;
-  const w = word(value);
+  const v = termSegment(operand, { unsigned: true }).text;
+  const plain = !operand.x && operand.d === 1; // heltal: vågen kan visa det
+  const w = plain ? word(operand.n) : v;
+  const texts = stepTextsFor(op, v, w, xsT, nsT, xs, operand);
+  if (!plain) texts.scale = { action: texts.scale.action, operand: { n: operand.n, d: operand.d, x: operand.x } };
+  return texts;
+}
+
+function stepTextsFor(op, v, w, xsT, nsT, xs, operand) {
+  if (operand.x && op === "-") {
+    return {
+      question: "x finns på båda sidor. Hur kan du få bort x från den ena sidan?",
+      everyday: `Om du tar bort ${v} från ena sidan av vågen måste du ta bort ${v} från den andra också, annars tippar den.`,
+      scale: { action: "remove" },
+      operation: `Subtrahera ${v} från båda leden.`,
+    };
+  }
+  if (operand.x && op === "+") {
+    return {
+      question: `Det står minus framför x. Vad kan du lägga till på båda sidor så att minus-x:en försvinner?`,
+      everyday: `Lägg till ${v} på båda sidor av vågen, så är den fortfarande i balans.`,
+      scale: { action: "add" },
+      operation: `Addera ${v} till båda leden.`,
+    };
+  }
   if (op === "-") {
     return {
       question: `x vill stå ensamt. Vad i ${xsT} står i vägen, och hur blir du av med det?`,
       everyday: `Om du tar bort ${v} från ena sidan av vågen måste du ta bort ${v} från den andra också, annars tippar den.`,
-      scale: { action: "remove", amount: v },
+      scale: { action: "remove", amount: operand.n },
       operation: `Subtrahera ${v} från båda leden.`,
     };
   }
@@ -61,7 +88,7 @@ function stepTexts(op, value, xs, ns) {
     return {
       question: `${xsT} betyder att ${v} har tagits bort. Hur får du tillbaka det som togs bort?`,
       everyday: `Lägg tillbaka ${v} på ena sidan av vågen och lika mycket på den andra, så är den fortfarande i balans.`,
-      scale: { action: "add", amount: v },
+      scale: { action: "add", amount: operand.n },
       operation: `Addera ${v} till båda leden.`,
     };
   }
@@ -70,36 +97,38 @@ function stepTexts(op, value, xs, ns) {
     return {
       question: many ? `${xsT} betyder ${many}. Hur kan du få bara ett x?` : `Vad kan du dela båda sidorna med så att x kommer närmare att stå ensamt?`,
       everyday: `Om ${w} lika stora delar tillsammans är ${nsT} kan du dela ${nsT} i ${w} lika delar.`,
-      scale: { action: "groups", count: v },
+      scale: { action: "groups", count: operand.n },
       operation: `Dividera båda leden med ${v}.`,
     };
   }
   return {
     question: xs.length === 1 && xs[0].x ? `${xsT} betyder x delat i ${w} lika delar. Hur får du hela x?` : `Vad kan du gångra båda sidorna med så att x kommer närmare att stå ensamt?`,
     everyday: `Om en av ${w} lika delar är ${nsT} så är det hela ${w} gånger så mycket.`,
-    scale: { action: "copies", count: v },
+    scale: { action: "copies", count: operand.n },
     operation: `Multiplicera båda leden med ${v}.`,
   };
 }
 
 /**
  * De fyra hjälpstegen för en ekvation.
- * @returns {{ focus: {op, value}, steps: Array<{step, kind, text, scale?, row?}> } | null}
+ * @returns {{ focus: {op, value} | {op, n, d, x}, steps: Array<{step, kind, text, scale?, row?}> } | null}
  *   null om ekvationen redan är löst eller inte går att lösa inom sökdjupet.
  */
 export function helpSteps(eq, rules = BASE_RULES) {
   const best = optimalPath(eq, rules);
   if (!best || best.moves === 0) return null;
-  const { op, value } = best.path[0];
-  const res = applyNumber(eq, op, value, rules);
+  const focus = best.path[0];
+  const { op } = focus;
+  const operand = moveOperand(focus);
+  const res = applyStep(eq, focus, rules);
   const xKey = xSideOf(eq);
   const nKey = xKey === "left" ? "right" : "left";
   const xs = eq[xKey];
   const ns = eq[nKey];
-  const t = stepTexts(op, value, xs, ns);
-  const almost = `${opSideText(xs, op, value)} blir ${sideText(res.after[xKey])}. Vad blir ${opSideText(ns, op, value)}?`;
+  const t = stepTexts(op, operand, xs, ns);
+  const almost = `${opSideText(xs, op, operand)} blir ${sideText(res.after[xKey])}. Vad blir ${opSideText(ns, op, operand)}?`;
   return {
-    focus: { op, value },
+    focus,
     steps: [
       { step: 1, kind: "question", text: t.question },
       { step: 2, kind: "everyday", text: t.everyday, scale: t.scale },
@@ -134,18 +163,18 @@ export function nextHelp(state, eq, rules = BASE_RULES) {
 
 /**
  * Visa hela lösningen från elevens aktuella läge, steg för steg. Uppgiften
- * räknas som EJ löst (run.revealed). → { run, steps: [{op, value, before, after, rows}] }
+ * räknas som EJ löst (run.revealed). → { run, steps: [{op, value|n,d,x, before, after, rows}] }
  * `steps` driver vågens animation; run.rows har fått raderna i MIN LÖSNING.
  */
 export function revealSolution(run) {
   const best = optimalPath(run.current, run.rules);
   const steps = [];
   let cur = run;
-  for (const { op, value } of best?.path || []) {
+  for (const step of best?.path || []) {
     const before = cur.current;
-    const r = playMove(cur, { op, value });
+    const r = playMove(cur, { op: step.op, operand: moveOperand(step) });
     cur = r.run;
-    steps.push({ op, value, before, after: cur.current, rows: r.outcome.rows });
+    steps.push({ ...step, before, after: cur.current, rows: r.outcome.rows });
   }
   return { run: { ...cur, revealed: true }, steps };
 }

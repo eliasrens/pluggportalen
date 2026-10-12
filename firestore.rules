@@ -134,14 +134,17 @@ service cloud.firestore {
 
     // Ekvationsresan (#618): formen på progress och försök. Nivå 1–12 (Etapp 2
     // ryms), fönstret ≤ 10 resultat, stjärnor 0–3, mynt 0–7 per uppgift.
+    // Extrautmaningar (#627): progress.extra (map) och försökets extra: true.
+    // `answers` (#625): elevens svar i uppgiftstyperna C–F, högst 40.
     function ekvProgressOk(d) {
       return d.keys().hasOnly(['schema', 'level', 'window', 'maxLevel', 'tasks', 'solved', 'revealed',
           'stars', 'helpTasks', 'movesSolved', 'optimalSolved', 'coins', 'recent', 'current', 'skills',
-          'levelChangedAt', 'updatedAt']) &&
+          'extra', 'levelChangedAt', 'updatedAt']) &&
         d.level is int && d.level >= 1 && d.level <= 12 &&
         d.window is list && d.window.size() <= 10 &&
         (!('recent' in d) || (d.recent is list && d.recent.size() <= 10)) &&
-        (!('current' in d) || d.current == null || d.current is map);
+        (!('current' in d) || d.current == null || d.current is map) &&
+        (!('extra' in d) || d.extra is map);
     }
     // Högsta nådda nivå (#643): heltal 1–12 som bara kan öka. Klienten visar
     // max(level, maxLevel), så saknat fält (äldre dokument) = nuvarande nivå.
@@ -163,8 +166,10 @@ service cloud.firestore {
     function ekvAttemptOk(d, taskId) {
       return d.keys().hasOnly(['schema', 'taskId', 'level', 'type', 'form', 'equation', 'solution',
           'optimalMoves', 'moves', 'moveCount', 'blocked', 'stars', 'solved', 'revealed', 'helpMax',
-          'helpPresses', 'coins', 'startedAt', 'completedAt', 'skills']) &&
+          'helpPresses', 'coins', 'startedAt', 'completedAt', 'skills', 'answers', 'extra']) &&
         d.taskId == taskId &&
+        (!('answers' in d) || (d.answers is list && d.answers.size() <= 40)) &&
+        (!('extra' in d) || d.extra == true) &&
         d.level is int && d.level >= 1 && d.level <= 12 &&
         d.stars is int && d.stars >= 0 && d.stars <= 3 &&
         d.coins is int && d.coins >= 0 && d.coins <= 7 &&

@@ -188,12 +188,33 @@ vag.setTask(nextTask);       // nytt tema och ny grundvisning, lugn övertoning
 Vågen visas alltid med ekvationen (rubrik med bråkstreck för `x/4`);
 `showEquation: false` om spelvyn ritar ekvationen själv. `diskret` = typ B.
 
-### Förberett för Etapp 2
+### Etapp 2: x i båda leden, minustal och decimaler (#624, E2.2)
 
-x i båda leden och minustal ritas redan som block (minustal som streckade
-skuldbrickor, E2.2), negativa x-koefficienter som streckat etikettblock.
-Operander med x (`−2x`) animeras med den generella övertoningen tills en egen
-animation behövs (`movePhases`, grenen `simple`).
+Valet av visning är utökat utan att Etapp 1 ändras (nivå 1–6: samma visning,
+scener och positioner för 2 400 genererade uppgifter före/efter).
+
+- **x i båda leden → block.** `−x` lyfter bort ett x-block från BÅDA sidor
+  (som `−3` lyfter föremål), `+x` släpper ner x-block. Badgen visar `− x`.
+- **Minustal = skuld (valet).** Föremål visas aldrig för minustal – man kan inte
+  ha −3 äpplen. I blockvisningen är ett minustal en *skuld*: streckad, röd,
+  ljusrosa – samma språk som hålen i `x − 3` (Etapp 1). Konstanter blir en
+  skuldbricka `−12`, x-termer skuld-x-block `−x` (ett per x, högst 12, annars ett
+  streckat etikettblock `−15x`). `3x + 17 = 5x + 5`, `−5x`: tre x-block lyfts,
+  två skuld-x-block poppar fram (`−2x + 17 = 5`). `+2x` därefter: x-blocken
+  landar på skuld-x-blocken och båda försvinner – de tar ut varandra. I den
+  stiliserade vågen är minustal bara symboliska (etiketterna). Varför skuld och
+  inte bara symboler: eleven ser fortfarande vågen i balans och att −x "saknar"
+  ett x, vilket bär över till `+2x` som det naturliga nästa draget.
+- **Decimaler → stiliserad våg med etiketter.** Allt som skrivs med
+  decimalkomma under lösningen (`2,5x`, `x + 0,5`, lösningen `x = 2,5`) ger
+  `stiliserad`; brickor med decimaler blir svåra att "se" som mängder. `x/4`
+  (täljaren 1) är fortfarande ett bråkblock.
+- **Hjälpens bild** tar också `scale.operand` (`{ n, d, x }`, #623): `−x`
+  markerar ett x-block på båda sidor, `÷2,5` visar badgen över etiketterna
+  (`scaleOperand` i `vag-scen.js`).
+- Förhandsvisningen har knapparna *3x + 4 = x + 12: −x*, *3x + 17 = 5x + 5:
+  −5x, +2x, −5, ÷2* och *2,5x + 4 = 19: −4, ÷2,5*. Tester:
+  `test/ekvationsresan-vag-etapp2.test.js`.
 
 ---
 
@@ -327,7 +348,245 @@ stil som Läsresan (lrt-/lrn-/cx-klasserna) + egna `ekt-`-stilar i
   (`--larare`) qa-hog ↗, qa-mitt, qa-lag ↘, qa-svag med riktiga försök;
   `qalarare / lilla123` → QA-klass 4A → Statistik → Ekvationsresan.
 
-## 7. Finputs efter Etapp 1 (#643)
+---
+
+## 7. Etapp 2 – kärna och generator nivå 7–12 (`#623`, E2.1, E2.2)
+
+Ren logik, tester i `test/ekvationsresan-etapp2.test.js` (1 000 uppgifter per
+nivå, −x/−2x, minustal, decimaler, mynt, anpassning). Etapp 1-sviterna gäller
+nivå 1–6 som förut; de assertions som hårdkodade "högsta nivån = 6" läser nu
+`LEVEL_MAX` (12).
+
+| Nivå | Namn | Former (forms.js) | Spärrar utöver Etapp 1 |
+| --- | --- | --- | --- |
+| 7 | x i båda leden | `ax=cx+d`, `ax+b=cx+d` | x-termer i talfältet |
+| 8 | Fler steg | `ax+b=cx+d`, `ax-b=cx+d`, `ax+b=cx-d` | x-termer |
+| 9 | Minustal på vägen | `ax+b=cx+d` (x-sidan bytt i 50 %), `b-ax=c`, `b-ax=cx+d`, `ax-b=cx-d` | + negativa mellanled |
+| 10 | Decimaler | `dx=c`, `dx+b=c`, `ax+b=c:xdec` (x = 2,5), `dx+b=ex+f` | + högst två decimaler (operander och resultat) |
+| 11 | Svåra blandade | blandning av 8–10 + `x/a+b=c`, större tal | som 10 |
+| 12 | Problemlösning | `ax+b=c`, `ax-b=c`, `ax=cx+d`, `ax+b=cx+d`, `dx+b=c` | som 10 |
+
+- **Spärrar per nivå** (`config.LEVELS[].rules`): `operandX` från 7,
+  `allowNegative` från 9, `allowDecimals` + `operandDecimal` från 10
+  (`maxDecimals: 2`). Bråk aldrig i huvudprogressionen – `config.EXTRA_RULES`
+  (bråk på) finns för extrautmaningarna (E2.6). Mellanledet vid fördelning
+  visas bara på nivå 1–6 (E1.3), så `distributionStep: false` från 7.
+- **Lösningen** är alltid positiv; heltal på nivå 7–9, från nivå 10 även
+  decimaltal med högst två decimaler (`2x + 3 = 8` → `x = 2,5`).
+- **Talfältet** (`operand.js`): `x`, `2x`, `−2x`, `+1,5x` från 7; `2,5` /
+  `0.25` från 10. Fler än två decimaler → `decimalMax`. `÷x`/`·x` spärras
+  alltid (`xProduct`).
+- **Vägsteg.** Heltal sparas som förut, `{ op, value }`; x-termer och decimaler
+  som `{ op, n, d, x }` (samma form som elevens sparade drag).
+  `operations.moveStep` / `moveOperand` / `applyStep` översätter; vågen,
+  hjälpen och `replayRows` tar båda formerna.
+- **BFS** söker även x-termsoperander (talfältets x-termer ur tillståndet) och
+  decimaltalen själva (÷2,5). x-termer prövas först, så `3x + 4 = x + 12` ger
+  `−x, −4, ÷2`. x/a är "x delat med a", inte 0,25 – vägen blir `·4`, aldrig
+  `÷0,25`. Där minustal är tillåtna väljs bland lika korta vägar en utan
+  minustal (`2x − 4 = 4x − 18` → `+18, −2x, ÷2`), så hjälpen och "Visa
+  lösningen" aldrig styr in i minustal i onödan. Antalet drag är detsamma.
+- **Formernas optimum** (`moves`) jämförs med BFS för varje genererad uppgift,
+  och ett testfall prövar med ett brett operandutbud (heltal 1–999, 1x–12x,
+  decimaler) att ingen kortare väg finns.
+- **Skrivsätt:** `3x + 4 − x = x + 12 − x`, `−2x + 17 = 5`, `−x = −6`,
+  `0 = x − 6`, `2,5x ÷ 2,5 = 15 ÷ 2,5`. Decimaler räknas exakt (`x + 0,1 =
+  0,4` → `x = 0,3`).
+- **Försök igen:** uppgiften har `swapped` (x-sidan bytt), eftersom x i båda
+  leden inte avslöjar sidan; äldre uppgifter utan fältet härleds som förut.
+  Lösningen jämförs exakt: x = 2,5 (5/2) och x = 5 är olika trots samma täljare.
+- **Hjälpen** visar x-termer och decimaler som i räknegången ("Subtrahera x
+  från båda leden", "Dividera båda leden med 2,5"). Vågens bild (`scale`) får
+  då `operand: { n, d, x }` i stället för `amount`/`count`, och vågen hoppar
+  över bilden (den ritar bara heltal) – en uppgift för vågen i Etapp 2
+  (gjord i #624, se avsnitt 4).
+- **Mynt** 7–8: 4, 9–10: 5, 11–12: 6 (`config.COINS`, fanns redan).
+  Anpassningen går upp till `LEVEL_MAX` = 12; regler tillåter redan nivå 1–12
+  och mynt ≤ 7, så ingen regeländring.
+- **Nivå 12** har bara ekvationerna; texten (verklighet → ekvation → svar)
+  läggs på av problemlösningstypen.
+
+---
+
+## 8. Etapp 2 – uppgiftstyperna C–F (`#625`, E2.3)
+
+Nivån styr matematiken, typen styr formen. Typen dras först (andelar per
+nivå i `config.LEVELS[].types`, resten A/B som förut), väljer bland nivåns
+former de typen klarar och lägger på sin data på uppgiften. Tester:
+`test/ekvationsresan-typer.test.js`. Preview: `node admin/qa-ekvationsresan-seed.mjs
+--typ C|D|E|F [--niva N]` ger elev1 en pågående uppgift av typen.
+
+| Typ | Vad eleven gör | Data på uppgiften |
+| --- | --- | --- |
+| **C Nästa rad** | Operationsraden står i häftet; eleven skriver (nivå 4+) eller väljer bland tre (nivå 1–3) nästa förenklade rad. Vågen animerar draget efter varje rätt rad. Felalternativen är vanliga missuppfattningar (bara ena ledet, olika operation, halv delning) före räknefel. | `nastaRad: { mode, steg: [{ val: [ekvation ×3] }] }` |
+| **D Bild → ekvation** | Vågen (utan ekvationsrubrik) + texten "Två spargrisar och 3 mynt är lika mycket som 13 mynt." → eleven skriver `2x + 3 = 13`. Bara former med plus och heltal, föremål eller block. | `bild: { text, x }` (vågens tema ger orden) |
+| **E Hitta felet** | Häftet blir "ALVAS LÖSNING"; en påhittad elev gör ETT fel (bara ena ledet, olika operation, räknefel, delade bara x-termen) och räknar sedan rätt vidare till fel x. Eleven klickar på raden där felet börjar. Från nivå 3 (minst två drag). | `fel: { namn, kind, rad, ratt, steg }` (`hitta-felet.js`) |
+| **F Problemlösning** | Text (+ vågens bild när den visar föremål) → eleven skriver ekvationen → **vanliga lösningsvyn** → "Vad betyder x i uppgiften?" (tre meningar med samma tal, en sann) → svaret skrivs i häftet. Från nivå 3 som en mindre andel (12–14 %), 50 % på nivå 12. | `problem: { mall, text, fraga, bild, val, ratt, svar }` (`problem.js`, mallar per form) |
+
+### Rättning (`typ-svar.js`)
+
+- Ekvationer jämförs **led för led, förenklade** (`x + x + 3` = `2x + 3`);
+  ur bild/text får leden byta plats (`13 = 2x + 3`). `3·x`, `3*x`, `−` och
+  decimalkomma tolkas.
+- Ett fel ger en **riktad ledtråd**, aldrig svaret: "Vänster led stämmer. Räkna
+  höger led igen: 89 − 12 = ?", "Ena sidan stämmer. Titta igen på den andra
+  sidan av vågen.", "Den raden stämmer med raden ovanför. Leta vidare!".
+- Räknas **inte** som fel: oläsbart/utan x, en sann ekvation i annan form
+  (`2x = 10` i stället för `2x + 3 = 13` – "skriv den direkt ur uppgiften"),
+  och i E en rad som blev fel som *följd* av felet ("felet började tidigare").
+- Svaret **visas** efter tre fel på en skrivfråga, eller när bara ett
+  alternativ återstår i en valfråga (eleven får läsa och trycka FORTSÄTT).
+
+### Kompletterande stjärnregler (förslag, `config.TYPE_STARS`)
+
+| Resultat | Villkor (C, D, E och frågorna i F) |
+| --- | --- |
+| ⭐⭐⭐ | Alla svar rätt direkt |
+| ⭐⭐ | Ett fel svar i hela uppgiften |
+| ⭐ | Två eller fler fel, **eller** ett delsvar fick visas (motsvarar hjälpsteg 4) |
+| Ej löst | Alla svar fick visas – eleven gjorde inget själv (motsvarar "Visa lösningen") |
+
+- **F** = det lägsta av frågestjärnorna och lösningsdelens stjärnor enligt
+  E1.7 (drag mot optimalt, hjälpgränsen). "Visa lösningen" i lösningsdelen =
+  ej löst, och frågan om x hoppas över.
+- Poäng (anpassningen), mynt (löst = minst ⭐, oavsett stjärnor) och "Försök
+  igen för ⭐⭐⭐" (samma typ, ny liknande uppgift) fungerar som i Etapp 1.
+
+### Data
+
+- Försöket (`ekvationsresaAttempts`) har `type` (fanns) och för C–F även
+  **`answers`**: `[{ k: frågetyp, a: svaret som text | null, ok, visad?, annan?, senare? }]`
+  (≤ 40). A/B-försök saknar fältet. C sparar räknegången eleven fyllde i som
+  `moves` (`moveCount` 0); D/E har inga drag. ⚠️ Regeln `ekvAttemptOk` tillåter
+  nu `answers` – **kräver `firebase deploy --only firestore:rules`** innan
+  C–F-försök kan sparas live (A/B påverkas inte).
+- Progress: lärarens "drag jämfört med optimalt" räknar bara typer med en
+  lösningsdel (A, B, F). Lärarens försökslista visar typen, "–" för drag i C–E
+  och elevens svar (✓/✗/👁) i elevdetaljen. Färdighetsmodell och utbyggd
+  lärarvy: avsnitt 9 (#626).
+
+---
+
+## 9. Etapp 2 – färdighetsmodellen och lärarvyn (`#626`, E2.4, E2.5)
+
+Ren logik, tester i `test/ekvationsresan-fardigheter.test.js`. Modellen är
+**intern** – eleven ser den aldrig. Trösklar och andelar i `config.FARDIGHET`,
+färdigheterna i `config.SKILLS`.
+
+| Fil | Ansvar |
+| --- | --- |
+| `fardigheter.js` | `observera(task, attempt)` → observationer `{ färdighet: { s: 0–100, h: 0/1 } }`; `uppdatera(skills, obs)` (glidande medelvärde: 1/n i början, sedan minst 25 %); `modellUrForsok(attempts)`; `stark/svag/hjalpOfta/sjalvstandig`; `ekvationsslag(task)` ur den optimala vägen. |
+| `nasta-uppgift.js` | `nastaUppgift(progress)` – nästa uppgift på anpassningens nivå med modellens andelar (`generateTask` `mix`). `fokusFor`, `blandning`. |
+| `sammanfattning.js` | Lärarens meningar (`sammanfattningar`), "I korthet", behärskar/svårt för (`slagLagen`), problemlösning, indikatorer (`fardighetsbild`). |
+| `admin/qa-ekvationsresan-spela.mjs` | Spelar en uppgift med spelets logik enligt en plan → försök. Delas av testerna och seeden. |
+
+### Färdigheterna och vad som mäter dem
+
+| Färdighet | Observeras ur |
+| --- | --- |
+| Ekvationsslag: `ettSteg`, `tvaSteg`, `bada` (x i båda leden), `addSub` (+/− i vägen), `multDiv` (·/÷ – x med koefficient) | Lösningsdelen i A, B och F: löst själv 100, med hjälp enligt hjälpgränsen (E1.7), Visa lösningen 0. **Omvägar räknas inte här.** |
+| `operation` (välja rätt operation) | Lösta A/B/F: drag mot optimalt (⭐-trappan), spärrade drag ger högst 60. Visa lösningen ger ingen observation. |
+| `balans` | A (vågen i fokus) och E med felet "bara ena ledet"/"olika operation". |
+| `forenkling` | C (nästa rad) och E med räknefel/"delade bara x-termen". |
+| `skrivsatt` | D (bild → ekvation) och C när eleven skriver raden själv (nivå 4+). |
+| `text` | F: första frågan (skriv ekvationen ur texten). |
+| `problem` | F: hela kedjan (uppgiftens stjärnor). |
+| `sjalv` | Alla: 💡-steg och visade svar. |
+
+Frågor i C–F poängsätts som stjärnreglerna: rätt direkt 100, ett fel 60,
+fler 20, visat svar 0 (och `h = 1`). Svar som inte räknas som fel (annan form,
+följdrad i E) hoppas över.
+
+### Data (inga nya fält, ingen regeländring)
+
+- Försöket: `skills: { fokus: "text"|"bro"|null, obs: { … } }` (fältet fanns, var `null`).
+- Progress: `skills: { [färdighet]: { v: 0–100, h: 0–100, n } }` (fanns, var `{}`).
+- `progress.skills` = `modellUrForsok(alla försök)` – testat och kontrollerat
+  i webbläsaren mot emulatorn för alla seedade elever.
+- Reglerna tillät redan båda fälten → **ingen ny rules-deploy** för #626.
+
+### Val av nästa uppgift (E2.4)
+
+Nivån kommer alltid från anpassningen; modellen ändrar bara andelarna på nivån:
+
+| Fokus | Villkor | Effekt |
+| --- | --- | --- |
+| `text` | Ekvationsslagen sammantaget starka (≥ 75, ≥ 3 uppgifter) och `text` eller `problem` svag (< 50) | F-andelen ≥ 40 % (nivå 1–2: D i stället). |
+| `bro` | `balans` stark och `skrivsatt` eller `forenkling` svag | D ≥ 30 %, C ≥ 25 %, högst 30 % "Lös själv" bland A/B (fler med vågen i fokus). Nivå 9+ saknar D. |
+| svagast slag | Ett ekvationsslag svagt eller 💡 i minst hälften | Nivåns former som tränar det slaget väger dubbelt (bara det svagaste – annars dubblas ofta allt). |
+
+C–F tillsammans högst 85 %. Uppgifter av fokustypen får `fokus`; **en
+fokusuppgift med ⭐ eller ej löst räknas inte i nivåfönstret**
+(`framsteg.skyddadFranFonstret`) – eleven ska få träna på sin nivå, inte sänkas
+(E2.4 "sänk inte till lätta ekvationer"). Lyckade fokusuppgifter räknas som
+vanligt. "Försök igen" behåller `fokus`.
+
+### Lärarvyn (E2.5)
+
+- **Klassöversikten** har kolumnen **I korthet**: det första eleven har svårt
+  för + det första hen behärskar (alla meningar i tooltip). Räknas ur samma
+  progressdokument som förut – inga fler läsningar (#231).
+- **Elevdetaljen** har "Vad eleven kan": meningarna, behärskar / har svårt för
+  (ekvationsslag), problemlösning (text → ekvation, hela kedjan) och
+  färdighetsindikatorer (0–100, läge, 💡-andel, underlag).
+- **Meningarna** (urval): "Behärskar enstegsekvationer självständigt.",
+  "Behöver ofta hjälp när x har en koefficient.", "Löser ekvationer bra men
+  har svårt att skapa ekvation från text.", "Tar ofta många extra steg trots
+  korrekta slutsvar.", "Förstår vågen men har svårt att skriva ekvationen med
+  symboler.". Under 3 uppgifter per färdighet: "För få uppgifter för en
+  sammanfattning än."
+
+### Preview / QA
+
+`bash admin/qa-ekvationsresan-preview.sh` seedar (`--larare`) även qa-text,
+qa-bro, qa-koef och qa-omvag (seeden skriver ut varje elevs meningar).
+`qalarare / lilla123` → QA-klass 4A → Statistik → Ekvationsresan.
+
+---
+
+## 10. Extrautmaningar (`#627`, E2.6)
+
+Frivilliga uppgifter för starka elever. Ren logik i `extra.js`, tester i
+`test/ekvationsresan-extra.test.js` (+ två regeltester).
+
+- **Nås diskret** från nivåöversikten (knappen *Nivåer*): en rad sist,
+  "✨ Extrautmaningar – frivilligt, påverkar inte din nivå". Öppen när
+  `maxLevel ≥ EXTRA.minLevel` (7), annars en lågmäld rad "öppnas när du nått
+  nivå 7". I läget: rubriken `EXTRAUTMANING – BRÅK`, ingen mätare, knappen
+  "← Tillbaka till nivå N". En omladdning går alltid till huvudprogressionen.
+- **Kategorier** (`config.EXTRA.categories`, vikter): *negativ* (`x + 9 = 4`,
+  `3x + 20 = 5`, `5x + 3 = 2x − 9`), *brak* (`3x = 5` → `x = 5/3`, `2x/3 = 8`,
+  `2x/3 + 4 = 10`), *decimal* (`1,25x + 0,75 = 5,75`, `0,4x − 1,2 = 0,6` →
+  `x = 4,5`, decimaler i båda leden), *parentes* (`3(x + 2) = 21`,
+  `4(x − 3) = 20`, `4(x + 2) = x + 20`), *klurig* (`20 − 3x = 2 − x`,
+  `4 − 3x = 19` → `x = −5`, `3(x + 4) = 5(x − 2)`).
+- **Spärrar:** `config.EXTRA_RULES` (bråk, minustal, decimaler, x-termer).
+  `rulesForTask(task)` väljer; uppgiften har `extra: true`, `category`, och
+  `level` = elevens nivå (bara sammanhang). Den optimala vägen går alltid att
+  skriva i talfältet – eleven behöver aldrig skriva ett bråk.
+- **Skrivsätt:** bråk som inte är ändliga decimaler får bråkstreck (`5/3`,
+  segment `num`/`den`). En parentes i uppgiften är bara skrivsätt:
+  `equation.parens = { left?: 3, right?: 5 }` (följer med JSON), termerna är
+  utvecklade. Elevens operation läggs efter parentesen:
+  `3(x + 2) ÷ 3 = 21 ÷ 3` → `x + 2 = 7`; `−6` ger `3(x + 2) − 6 = 21 − 6` →
+  `3x = 15`. Efter första draget finns ingen parentes.
+- **Mynt:** `COINS.extraChallenge` = 7 per löst uppgift, 0 vid Visa lösningen.
+- **Data:** `progress.extra = { tasks, solved, coins, current }` – egen
+  pågående uppgift, så huvuduppgiften står kvar. `applyExtraCompletion` rör
+  aldrig nivå, fönster, trend eller huvudstatistiken; bara `extra` och
+  `coins`. Försöket har `extra: true` (samma create-only-idempotens).
+  Lärarens räknegång spelar om försöket med rätt spärrar (`rulesForTask`),
+  nivåkurvan hoppar över extraförsök.
+- **Färdighetsmodellen (#626):** extraförsök räknas INTE – försökets
+  `skills.obs` är `{}`, så `progress.skills` ändras inte, och de hamnar aldrig
+  i nivåfönstret. Modellen beskriver huvudprogressionen; frivilliga, svårare
+  uppgifter skulle annars ge en skev bild åt båda hållen.
+- ⚠️ **Regler:** `ekvProgressOk` tillåter `extra` (map), `ekvAttemptOk`
+  `extra == true`. Kräver `firebase deploy --only firestore:rules`.
+
+---
+
+## 11. Finputs efter Etapp 1 (#643)
 
 Beslut ur de öppna frågorna i `docs/QA-RAPPORT-ekvationsresan-etapp1.md`:
 
@@ -347,3 +606,7 @@ Beslut ur de öppna frågorna i `docs/QA-RAPPORT-ekvationsresan-etapp1.md`:
 - **x ≥ 2 från nivå 3** (`xMin: 2` i `config.js`, `xMin` läses av
   `x+a=b`, `ax=b`, `ax+b=c`, `ax-b=c`). Nivå 1–2 oförändrade; x/a-formerna
   ger alltid x ≥ 2.
+- **x ≥ 2 gäller nivå 3–12** (#645): nivå 7–12 har `xMin: 2` och alla
+  Etapp 2-former läser det via `xLo(p)` i `forms.js`. Decimallösningar
+  (`ax+b=c:xdec`, t.ex. 2,5) är alltid > 2; decimalkoefficienterna (`dx=c`,
+  `dx+b=ex+f`) ger heltals-x ≥ 2. Extrautmaningar saknar `xMin` (oförändrade).
