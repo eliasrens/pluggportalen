@@ -87,6 +87,30 @@ describe("ekvationsresa/progress", () => {
   });
 });
 
+describe("högsta nådda nivå, maxLevel (#643)", () => {
+  it("maxLevel är heltal 1–12", async () => {
+    await assertSucceeds(updateDoc(progRef(elev("elev1")), { level: 2, maxLevel: 4 }));
+    await assertFails(updateDoc(progRef(elev("elev1")), { maxLevel: 0 }));
+    await assertFails(updateDoc(progRef(elev("elev1")), { maxLevel: 13 }));
+    await assertFails(updateDoc(progRef(elev("elev1")), { maxLevel: "4" }));
+  });
+
+  it("maxLevel kan bara öka – nivå ner behåller den", async () => {
+    await testEnv.withSecurityRulesDisabled((ctx) => setDoc(progRef(ctx.firestore()), { ...progress, level: 4, maxLevel: 4 }));
+    await assertSucceeds(updateDoc(progRef(elev("elev1")), { level: 3, maxLevel: 4 }));
+    await assertFails(updateDoc(progRef(elev("elev1")), { level: 3, maxLevel: 3 }));
+    await assertFails(updateDoc(progRef(teacher()), { level: 2, window: [], maxLevel: 2 }));
+    await assertSucceeds(updateDoc(progRef(teacher()), { level: 2, window: [], maxLevel: 4 }));
+  });
+
+  it("äldre dokument utan maxLevel kan fortfarande skrivas", async () => {
+    const { maxLevel, ...gammal } = { ...progress, level: 3 };
+    await testEnv.withSecurityRulesDisabled((ctx) => setDoc(progRef(ctx.firestore()), gammal));
+    await assertSucceeds(setDoc(progRef(elev("elev1")), { ...gammal, tasks: 1 }));
+    await assertSucceeds(setDoc(progRef(elev("elev1")), normalizeProgress(gammal)));
+  });
+});
+
 describe("lärarens nivåstyrning (#619, E1.12)", () => {
   it("läraren sätter nivå med teacherSetLevel – fönstret nollställs, statistiken orörd", async () => {
     const played = { ...progress, level: 3, window: [3, 2], tasks: 7, solved: 6, coins: 9 };

@@ -106,6 +106,18 @@ test("hela flödet nivå 1 → 2: fyra ⭐⭐⭐ i rad ger nivå 2, nollställt 
   assert.equal(generateTask(p.level, { rng }).level, 2);
 });
 
+test("#643: nådd nivå som eleven åkt ner från visas ✓, bara nivåer över högsta nådda är 🔒", () => {
+  const p = normalizeProgress({ level: 2, maxLevel: 4 });
+  assert.equal(levelOverview(p).map((l) => l.state).join(","), "done,current,done,done,locked,locked");
+  // Äldre dokument utan maxLevel: nuvarande nivå gäller.
+  assert.equal(levelOverview({ level: 3 }).map((l) => l.state).join(","), "done,done,current,locked,locked,locked");
+  // Nivå ner via anpassningen behåller maxLevel.
+  const ner = applyCompletion({ ...normalizeProgress({ level: 3, maxLevel: 3 }), window: [0, 0, 0, 0] }, { level: 3, stars: 0, solved: false, revealed: true, helpMax: 4, moveCount: 0, optimalMoves: 2, coins: 0 }, { now: 1 });
+  assert.equal(ner.change, "down");
+  assert.equal(ner.progress.maxLevel, 3);
+  assert.equal(levelOverview(ner.progress)[2].state, "done");
+});
+
 test("ett försök från en annan nivå (läraren flyttade eleven) rör inte fönstret", () => {
   const p = teacherSetLevel(defaultProgress(), 3, 1);
   assert.equal(p.current, null);

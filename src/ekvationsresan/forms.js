@@ -42,7 +42,7 @@ export const FORMS = Object.freeze({
     moves: 1,
     build(p, rng) {
       const max = p.maxNumber ?? 20;
-      const x = randInt(rng, 1, max - 1);
+      const x = randInt(rng, p.xMin ?? 1, max - 1);
       const a = randInt(rng, 1, max - x);
       return { equation: makeEquation([X(), C(a)], [C(x + a)]), solution: x };
     },
@@ -60,7 +60,7 @@ export const FORMS = Object.freeze({
     moves: 1,
     build(p, rng) {
       const a = randInt(rng, p.aMin ?? 2, p.aMax ?? 10);
-      const x = randInt(rng, 2, p.xMax ?? 12);
+      const x = randInt(rng, Math.max(2, p.xMin ?? 2), p.xMax ?? 12);
       return { equation: makeEquation([X(a)], [C(a * x)]), solution: x };
     },
   },

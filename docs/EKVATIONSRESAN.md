@@ -303,7 +303,9 @@ ingen menylänk och direktlänken stoppas av routerns grind.
 lärare bara `progress` med giltig form (`ekvProgressOk`); radera lärare.
 `ekvationsresaAttempts/{taskId}`: läs eleven själv + lärare; `create` bara
 eleven själv, id `^[A-Za-z0-9_-]{8,64}$` = `taskId`, giltig form
-(`ekvAttemptOk`); ingen update; radera lärare.
+(`ekvAttemptOk`); ingen update; radera lärare. `maxLevel` (högsta nådda
+nivå, #643) är ett heltal 1–12 som bara kan öka (`ekvMaxLevelOk`), även för
+läraren; saknas fältet gäller nuvarande nivå.
 ⚠️ Kräver `firebase deploy --only firestore:rules`. Ingen fallback i
 `studentData` (som Läsresan har) – modulen är av som standard tills läraren
 slår på den.
@@ -581,3 +583,26 @@ Frivilliga uppgifter för starka elever. Ren logik i `extra.js`, tester i
   uppgifter skulle annars ge en skev bild åt båda hållen.
 - ⚠️ **Regler:** `ekvProgressOk` tillåter `extra` (map), `ekvAttemptOk`
   `extra == true`. Kräver `firebase deploy --only firestore:rules`.
+
+---
+
+## 11. Finputs efter Etapp 1 (#643)
+
+Beslut ur de öppna frågorna i `docs/QA-RAPPORT-ekvationsresan-etapp1.md`:
+
+- **F1 behålls:** `x/4` med bråkstreck i uppgiften, `÷ 4` för elevens egen
+  operation – uppgiften är ett uttryck, elevens drag är en handling.
+- **F2 behålls:** elevens "÷ 2" är röd även i mellanledet – det visar att
+  operationen görs på varje term.
+- **F3 behålls:** 15 % x i högerledet, bara på nivå 6.
+
+Ändrat:
+
+- **÷-brickan på vågen** (`vag-konst.js` `BADGE_FILL`) är mörkblå `#2A73B0`
+  (5,0:1 mot den vita texten, WCAG AA). Brickan är densamma i alla teman.
+- **Nivåöversikten** (`framsteg.levelOverview`): nivåer upp till `maxLevel`
+  visas ✓ även efter nivå ner (fortfarande tyst); bara nivåer över högsta
+  nådda är 🔒. Äldre dokument utan `maxLevel` → nuvarande nivå.
+- **x ≥ 2 från nivå 3** (`xMin: 2` i `config.js`, `xMin` läses av
+  `x+a=b`, `ax=b`, `ax+b=c`, `ax-b=c`). Nivå 1–2 oförändrade; x/a-formerna
+  ger alltid x ≥ 2.

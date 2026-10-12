@@ -31,6 +31,7 @@ export const BASE_RULES = Object.freeze({
  * uppgifter för typerna C–F (#625, E2.3; resten blir A/B). Problemlösning (F)
  * finns som en mindre andel från nivå 3 och dominerar nivå 12. `rules` skriver
  * över BASE_RULES.
+ * `xMin` = minsta lösning; från nivå 3 är x ≥ 2 (x = 1 är pedagogiskt tunt, #643).
  */
 export const LEVELS = Object.freeze([
   {
@@ -49,13 +50,13 @@ export const LEVELS = Object.freeze([
     level: 3, name: "Två steg", typeB: 0.35, swapShare: 0,
     types: { C: 0.12, D: 0.1, E: 0.12, F: 0.12 },
     forms: { "ax+b=c": 1 },
-    params: { aMin: 2, aMax: 5, xMax: 10, bMax: 10 },
+    params: { aMin: 2, aMax: 5, xMin: 2, xMax: 10, bMax: 10 },
   },
   {
     level: 4, name: "Ekvationslösaren", typeB: 0.5, swapShare: 0,
     types: { C: 0.12, D: 0.08, E: 0.12, F: 0.14 },
     forms: { "ax+b=c": 1, "ax-b=c": 1 },
-    params: { aMin: 2, aMax: 9, xMax: 12, bMax: 20 },
+    params: { aMin: 2, aMax: 9, xMin: 2, xMax: 12, bMax: 20 },
   },
   {
     level: 5, name: "Större tal", typeB: 0.65, swapShare: 0,
@@ -67,7 +68,7 @@ export const LEVELS = Object.freeze([
     level: 6, name: "Blandat", typeB: 0.8, swapShare: 0.15,
     types: { C: 0.12, D: 0.06, E: 0.12, F: 0.14 },
     forms: { "x+a=b": 1, "x-a=b": 1, "ax=b": 1, "x/a=b": 1, "ax+b=c": 2, "ax-b=c": 2, "x/a+b=c": 2, "x/a-b=c": 1 },
-    params: { maxNumber: 60, aMin: 2, aMax: 9, xMax: 20, bMax: 30 },
+    params: { maxNumber: 60, aMin: 2, aMax: 9, xMin: 2, xMax: 20, bMax: 30 },
   },
   // --- Etapp 2 (#623, spec E2.1/E2.2). Mellanledet vid fördelning visas bara
   // på nivå 1–6 (E1.3), därför distributionStep: false härifrån.
