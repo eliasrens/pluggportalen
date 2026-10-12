@@ -132,6 +132,22 @@ Spiken implementerar exakt detta (`preview/hitta-ratt-spik/kartmotor.js` +
 `gester.js`). `showResult` ritar `target` först efter `lock()` – rätt svar
 kommer aldrig in i motorn före låsning.
 
+**Levererat i C #606** (`src/hitta-ratt/karta/`, preview
+`preview/preview-hitta-ratt-karta.html`, test `test/hitta-ratt-karta.test.js`):
+- Filer: `kartmotor.js` (DOM, svar, API), `kamerastyrning.js` (gränser,
+  animationer), `kamera.js` (ren kameramatte + `vagRuta`), `skarmlager.js`
+  (nålar, ringar, linje, etiketter), `gester.js`, `projektion.js`
+  (+ `rutaTillKarta`), `karta-stil.js` (CSS, injiceras en gång).
+- Utökade options: `minZoom`, `panGrans` (lon/lat-ruta), `visaGranser:
+  true | "svag" | false`, `laddaDetalj` + `detaljVid` (valfri detaljnivå).
+- `showResult({ guess, target, km, label })` ritar km vid linjen och namnet
+  vid rätt nål; `showAreaResult({ valt, ratt, label })` namnet vid området.
+- `reset()` glider tillbaka till startvyn (`reset({ hem: false })` gör det inte).
+- Tangentbord: pilar, +/−, 0/Home = helvy, Enter/mellanslag = svara vid
+  siktet i vyns mitt (syns bara vid tangentbordsfokus).
+- `prefers-reduced-motion` ger direkta hopp. Värdens position läses en gång
+  per gest (ingen tvingad omlayout per pointermove).
+
 ### 1.5 Prestanda (Chromebook)
 
 Mätt i spiken (§9). Sverige har 46 DOM-noder och ≈ 31 000 punkter, Europa

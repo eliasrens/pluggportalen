@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hitta rätt! – kartmotorn (#606)</title>
+<link rel="icon" href="data:," />
+<!-- Preview för C #606: produktionsmotorn i src/hitta-ratt/karta/ med punkt- och
+     områdesläge. Inga externa resurser alls – inga typsnitt, inga kartservrar,
+     inga bilder. Geodatan är spikens (#604) tills D #607 levererar
+     src/hitta-ratt/content/geo/. Kör: PORT=8606 node server.mjs -->
+<style>
+  :root {
+    --bla: #2f80ed; --bla-mork: #1b5fc0; --gron: #27ae60; --gul: #f2c94c; --rod: #eb5757;
+    --text: #22314a; --text-svag: #64748b; --panel: #fff; --ljus: #f4f9ff; --radie: 18px;
+    --skugga: 0 6px 0 rgba(0, 0, 0, 0.12);
+    --font: "Baloo 2", "Segoe UI Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); color: var(--text); background: var(--ljus); }
+  .sida { display: grid; grid-template-rows: auto auto 1fr auto; height: 100vh; height: 100dvh; padding: 12px; gap: 10px; }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  h1 { font-size: 22px; margin: 0 12px 0 0; }
+  h1 small { font-weight: 600; color: var(--text-svag); }
+  .pill { border: 2px solid rgba(34, 49, 74, 0.25); background: var(--panel); border-radius: 999px;
+    padding: 6px 14px; font: 700 15px/1.2 var(--font); color: var(--text); cursor: pointer; min-height: 36px; }
+  .pill[aria-pressed="true"] { background: var(--gul); border-color: var(--text); }
+  .pill:focus-visible, .btn:focus-visible { outline: 3px solid var(--bla-mork); outline-offset: 2px; }
+  .fraga { font-size: clamp(18px, 3vw, 24px); font-weight: 800; margin: 0; }
+  .karta-ram { position: relative; min-height: 220px; border-radius: var(--radie); overflow: hidden;
+    box-shadow: 0 8px 24px rgba(31, 45, 74, 0.14); background: #cfe9f8; }
+  footer { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn { border: 0; border-radius: 14px; padding: 12px 26px; font: 800 18px/1 var(--font); color: #fff;
+    background: var(--gron); box-shadow: var(--skugga); cursor: pointer; min-height: 52px; }
+  .btn:disabled { background: #b8c2cf; cursor: not-allowed; box-shadow: none; }
+  .btn.bla { background: var(--bla); }
+  .feedback { font-size: 18px; font-weight: 700; }
+  .feedback b { font-size: 21px; }
+  .feedback .ratt { color: #14532d; } .feedback .fel { color: #8f1d1d; }
+  .debug { margin-left: auto; font: 12px/1.35 ui-monospace, monospace; color: var(--text-svag);
+    background: var(--panel); border-radius: 10px; padding: 6px 10px; max-width: 560px; }
+  @media (max-width: 600px) { .debug { display: none; } h1 { font-size: 18px; } }
+</style>
+</head>
+<body>
+<div class="sida">
+  <header>
+    <h1>Hitta rätt! <small>kartmotorn #606</small></h1>
+    <button class="pill" data-scope="sverige" aria-pressed="true">Sverige</button>
+    <button class="pill" data-scope="europa" aria-pressed="false">Europa</button>
+    <span style="width:8px"></span>
+    <button class="pill" data-lage="punkt" aria-pressed="true">Punkt (nål)</button>
+    <button class="pill" data-lage="omrade" aria-pressed="false">Område</button>
+  </header>
+  <p class="fraga" id="fraga" aria-live="polite"></p>
+  <div class="karta-ram" id="karta"></div>
+  <footer>
+    <button class="btn" id="las" disabled>Lås svar</button>
+    <button class="btn bla" id="nasta" hidden>Nästa</button>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="debug" id="debug"></div>
+  </footer>
+</div>
+<script type="module">
+  import { skapaKarta } from "../src/hitta-ratt/karta/kartmotor.js";
+  import { avstandKm } from "../src/hitta-ratt/karta/projektion.js";
+  import { poang } from "./hitta-ratt-spik/poang.js";
+
+  // Previewns "pack". I produktionen kommer de från D #607 (packfiler); namnen
+  // här är bara previewns facit – geofilen själv innehåller inga namn.
+  const PACK = {
+    sverige: {
+      omrade: ["Uppland", "Gotland", "Lappland", "Blekinge", "Härjedalen", "Öland", "Värmland"],
+      punkt: [["Gävle", 17.1413, 60.6749], ["Umeå", 20.263, 63.8258], ["Växjö", 14.8059, 56.8777],
+        ["Kiruna", 20.2253, 67.8558], ["Visby", 18.2948, 57.6348], ["Karlstad", 13.5036, 59.3793]],
+      scoring: { fullKm: 5, halvKm: 90 },
+      karta: { maxZoom: 10, attribution: "Kartdata: Natural Earth · Lantmäteriet (CC0)" },
+      // Punktfrågor i Sverige: svaga landskapsgränser som orienteringsstöd.
+      punktGranser: "svag",
+    },
+    europa: {
+      omrade: ["Portugal", "Luxembourg", "Malta", "Switzerland", "Ukraine", "Iceland", "Slovenia"],
+      punkt: [["Paris", 2.3522, 48.8566], ["Wien", 16.3738, 48.2082], ["Reykjavik", -21.9426, 64.1466],
+        ["Rom", 12.4964, 41.9028], ["Warszawa", 21.0122, 52.2297], ["Madrid", -3.7038, 40.4168]],
+      scoring: { fullKm: 10, halvKm: 220 },
+      karta: { maxZoom: 16, startvy: [-24, 34, 42, 71], attribution: "Kartdata: Natural Earth" },
+      punktGranser: true,
+    },
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const cache = {};
+  let karta = null, scope = "sverige", lage = "punkt", nr = 0, namn = {}, geo = null, tider = {};
+
+  const ladda = (sc) => (cache[sc] ||= Promise.all([
+    fetch(`./hitta-ratt-spik/geo-${sc}.json`).then((r) => r.json()),
+    fetch(`./hitta-ratt-spik/namn-${sc}.json`).then((r) => r.json()),
+  ]));
+
+  async function starta() {
+    const t0 = performance.now();
+    [geo, namn] = await ladda(scope);
+    const t1 = performance.now();
+    karta?.destroy();
+    const pack = PACK[scope];
+    karta = skapaKarta($("karta"), geo, {
+      ...pack.karta, lage, visaGranser: lage === "punkt" ? pack.punktGranser : true,
+    });
+    tider = { laddaMs: t1 - t0, byggMs: performance.now() - t1 };
+    karta.on("gissning", () => { $("las").disabled = false; visaDebug(); });
+    karta.on("val", () => { $("las").disabled = false; visaDebug(); });
+    karta.on("kamera", visaDebug);
+    window.__karta = karta; // för mätning i devtools/QA
+    nyFraga();
+  }
+
+  const fraga = () => { const f = PACK[scope][lage]; return f[nr % f.length]; };
+  // Engelska NE-namn i spikens namnfil → svensk visning.
+  const SV = { Luxembourg: "Luxemburg", Switzerland: "Schweiz", Ukraine: "Ukraina", Iceland: "Island", Slovenia: "Slovenien" };
+  const visNamn = (n) => SV[n] || n;
+
+  function nyFraga() {
+    karta.reset();
+    $("las").disabled = true;
+    $("las").hidden = false;
+    $("nasta").hidden = true;
+    $("feedback").textContent = "";
+    const f = fraga();
+    $("fraga").textContent = lage === "omrade" ? `Hitta ${visNamn(f)}` : `Var ligger ${f[0]}?`;
+    visaDebug();
+  }
+
+  function beröm(p) {
+    if (p >= 98) return "Fullträff!";
+    if (p >= 85) return "Otroligt nära!";
+    if (p >= 60) return "Nära!";
+    return "Bra försök!";
+  }
+
+  $("las").addEventListener("click", () => {
+    const f = fraga();
+    if (lage === "punkt") {
+      const g = karta.getGuess();
+      if (!g) return;
+      const km = avstandKm([g.lon, g.lat], [f[1], f[2]]);
+      const p = poang(km, PACK[scope].scoring);
+      karta.showResult({ guess: g, target: { lon: f[1], lat: f[2] }, km, label: f[0] });
+      $("feedback").innerHTML = `${beröm(p)} Du var <b>${Math.round(km)} km</b> från ${f[0]} · <b>${p} / 100 p</b>`;
+    } else {
+      const ratt = Object.keys(namn).find((id) => namn[id] === f);
+      const valt = karta.getVal();
+      if (!valt) return;
+      karta.showAreaResult({ valt, ratt, label: visNamn(f) });
+      $("feedback").innerHTML = valt === ratt
+        ? `<span class="ratt">✅ <b>Rätt!</b></span> Det är ${visNamn(f)}.`
+        : `<span class="fel">❌ <b>Fel</b></span> – du valde ${visNamn(namn[valt])} (randigt). Rätt svar (grönt): ${visNamn(f)}.`;
+    }
+    $("las").hidden = true;
+    $("nasta").hidden = false;
+    $("nasta").focus();
+  });
+  $("nasta").addEventListener("click", () => { nr++; nyFraga(); });
+
+  document.querySelectorAll("[data-scope]").forEach((b) => b.addEventListener("click", () => {
+    scope = b.dataset.scope;
+    document.querySelectorAll("[data-scope]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    nr = 0;
+    starta();
+  }));
+  document.querySelectorAll("[data-lage]").forEach((b) => b.addEventListener("click", () => {
+    lage = b.dataset.lage;
+    document.querySelectorAll("[data-lage]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    nr = 0;
+    starta(); // gränsvisningen skiljer sig per läge → bygg om kartan
+  }));
+
+  function visaDebug() {
+    if (!karta) return;
+    const m = karta.matning();
+    const g = karta.getGuess();
+    const v = karta.getVal();
+    $("debug").textContent =
+      `noder ${karta.noder()} · ladda ${Math.round(tider.laddaMs)} ms · bygg ${Math.round(tider.byggMs)} ms · zoom ${karta.zoom().toFixed(2)}×` +
+      (m ? ` · senaste gest ${m.fps.toFixed(0)} fps (värst ${m.varstaMs.toFixed(0)} ms)` : "") +
+      (g ? ` · nål ${g.lat.toFixed(3)}, ${g.lon.toFixed(3)}` : "") +
+      (v ? ` · valt ${v}` : "");
+  }
+
+  starta();
+</script>
+</body>
+</html>
