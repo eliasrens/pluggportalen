@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hitta rätt! – de 12 officiella packen (#607)</title>
+<link rel="icon" href="data:," />
+<!-- #607: laddar de 12 officiella packen (src/hitta-ratt/content/) i SVG-
+     kartmotorn. Inga externa resurser – allt kommer från samma server.
+     Motorn: spikens, eller ?motor=src för src/hitta-ratt/karta/ (C #606). -->
+<style>
+  :root {
+    --bla: #2f80ed; --bla-mork: #1b5fc0; --gron: #27ae60; --gul: #f2c94c; --rod: #eb5757;
+    --text: #22314a; --text-svag: #64748b; --panel: #fff; --ljus: #f4f9ff; --radie: 18px;
+    --skugga: 0 6px 0 rgba(0, 0, 0, 0.12);
+    --font: "Baloo 2", "Segoe UI Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Kartans färger (förslag till C #606 – bor i hitta-ratt.css) */
+    --hr-hav: #cfe9f8; --hr-land: #fbf3dc; --hr-land-bak: #e9e2cf; --hr-grans: #a99b7d;
+    --hr-sjo: #cfe9f8; --hr-alv: #8ec9ec; --hr-hover: #fff7cf; --hr-vald: #f2c94c;
+    --hr-ratt: #27ae60; --hr-fel: #eb5757; --hr-linje: #22314a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); color: var(--text); background: var(--ljus); }
+  .sida { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; height: 100dvh; padding: 12px; gap: 10px; }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  h1 { font-size: 22px; margin: 0 12px 0 0; }
+  .pill { border: 2px solid rgba(34, 49, 74, 0.25); background: var(--panel); border-radius: 999px;
+    padding: 6px 14px; font: 700 15px/1.2 var(--font); color: var(--text); cursor: pointer; }
+  .pill[aria-pressed="true"] { background: var(--gul); border-color: var(--text); }
+  .fraga { font-size: 20px; font-weight: 800; }
+  .packs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .packs .grupp { font-size: 12px; font-weight: 800; color: var(--text-svag); text-transform: uppercase; margin-left: 6px; }
+  .pill small { font-weight: 600; opacity: 0.7; }
+  .pill.grund { border-color: #27ae60; } .pill.medel { border-color: #e2b93b; } .pill.utmaning { border-color: #eb5757; }
+  .rad { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .bild { display: flex; gap: 10px; align-items: flex-end; }
+  .bild img { height: 120px; width: auto; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,.15); background: #ddd; }
+  .bild .foto { font-size: 11px; color: rgba(34, 49, 74, 0.6); max-width: 360px; }
+  .bild .foto a { color: inherit; }
+  #kontroll { font: 12px/1.4 ui-monospace, monospace; background: var(--panel); border-radius: 10px; padding: 6px 10px; white-space: pre; max-height: 40vh; overflow: auto; }
+  .karta-ram { position: relative; min-height: 0; border-radius: var(--radie); overflow: hidden;
+    box-shadow: 0 8px 24px rgba(31, 45, 74, 0.14); background: var(--hr-hav); }
+  footer { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn { border: 0; border-radius: 14px; padding: 12px 22px; font: 800 18px/1 var(--font); color: #fff;
+    background: var(--gron); box-shadow: var(--skugga); cursor: pointer; min-height: 48px; }
+  .btn:disabled { background: #b8c2cf; cursor: not-allowed; }
+  .btn.bla { background: var(--bla); }
+  .btn:focus-visible, .pill:focus-visible { outline: 3px solid var(--bla-mork); outline-offset: 2px; }
+  .feedback { font-size: 18px; font-weight: 700; }
+  .feedback b { font-size: 22px; }
+  .debug { margin-left: auto; font: 12px/1.35 ui-monospace, monospace; color: var(--text-svag);
+    background: var(--panel); border-radius: 10px; padding: 6px 10px; max-width: 520px; }
+
+  /* --- Kartmotorn ------------------------------------------------------- */
+  .hr-karta { position: absolute; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none;
+    cursor: grab; outline: none; }
+  .hr-karta:active { cursor: grabbing; }
+  .hr-karta:focus-visible { box-shadow: inset 0 0 0 3px var(--bla-mork); }
+  .hr-svg { display: block; width: 100%; height: 100%; }
+  .hr-hav { fill: var(--hr-hav); }
+  .hr-kamera path { vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+  .hr-bakgrund { fill: var(--hr-land-bak); stroke: var(--hr-grans); stroke-width: 0.6; pointer-events: none; }
+  .hr-omrade { fill: var(--hr-land); stroke: var(--hr-grans); stroke-width: 0.9; cursor: pointer; }
+  .hr-karta:not(.last):not(.lage-punkt) .hr-omrade:hover { fill: var(--hr-hover); }
+  .hr-karta.lage-punkt .hr-omrade { cursor: inherit; }
+  .hr-omrade.vald { fill: var(--hr-vald); }
+  .hr-omrade.ratt { fill: var(--hr-ratt); }
+  .hr-omrade.fel { fill: url(#hr-rand); }
+  .hr-sjoar { fill: var(--hr-sjo); stroke: #9ccbe6; stroke-width: 0.6; pointer-events: none; }
+  .hr-vattendrag { fill: none; stroke: var(--hr-alv); stroke-width: 1.1; pointer-events: none; }
+  .hr-val-kontur, .hr-ratt-kontur { fill: none; pointer-events: none; }
+  .hr-val-kontur { stroke: var(--text); stroke-width: 2.6; stroke-dasharray: 7 4; }
+  .hr-ratt-kontur { stroke: #14532d; stroke-width: 3; }
+  .hr-ring { fill: rgba(255, 255, 255, 0.01); stroke: var(--hr-grans); stroke-width: 1.5; cursor: pointer; }
+  .hr-ring.vald { stroke: var(--text); stroke-width: 2.5; stroke-dasharray: 4 3; fill: rgba(242, 201, 76, 0.45); }
+  .hr-karta.last .hr-ring { pointer-events: none; }
+  .hr-nal path { stroke: #fff; stroke-width: 2.5; }
+  .hr-nal-giss path { fill: var(--bla); }
+  .hr-nal-ratt path { fill: var(--gron); }
+  .hr-nal-prick { fill: #fff; }
+  .hr-karta:not(.last) .hr-nal-giss { cursor: move; }
+  .hr-linje { stroke: var(--hr-linje); stroke-width: 2.5; stroke-dasharray: 6 5; }
+  .hr-kontroller { position: absolute; right: 10px; bottom: 26px; display: grid; gap: 6px; }
+  .hr-kontroller button { width: 44px; height: 44px; border-radius: 12px; border: 2px solid rgba(34, 49, 74, 0.2);
+    background: rgba(255, 255, 255, 0.95); font: 800 24px/1 var(--font); color: var(--text); cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1); }
+  .hr-kontroller button:focus-visible { outline: 3px solid var(--bla-mork); }
+  .hr-attribution { position: absolute; left: 8px; bottom: 4px; font-size: 11px; color: rgba(34, 49, 74, 0.6);
+    pointer-events: none; }
+</style>
+
+</head>
+<body>
+<div class="sida">
+  <header>
+    <div class="packs" id="packs"></div>
+    <div class="rad" style="width:100%">
+      <div class="bild" id="bild" hidden><img id="bild-img" alt="" /><div class="foto" id="foto"></div></div>
+      <div class="fraga" id="fraga"></div>
+      <span style="margin-left:auto"></span>
+      <button class="pill" id="facit" aria-pressed="false">Visa facit</button>
+      <button class="pill" id="kontrollera-alla">Kontrollera alla 12</button>
+    </div>
+  </header>
+  <div class="karta-ram" id="karta"></div>
+  <footer>
+    <button class="btn" id="las" disabled>Lås svar</button>
+    <button class="btn bla" id="nasta" hidden>Nästa</button>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="debug" id="debug"></div>
+  </footer>
+  <div id="kontroll" hidden></div>
+</div>
+<script type="module">
+  // ?motor=src → C:s motor i src/hitta-ratt/karta/ (#606); standard = spikens.
+  const SRC = new URLSearchParams(location.search).get("motor") === "src";
+  const motor = await import(SRC ? "../src/hitta-ratt/karta/kartmotor.js" : "./hitta-ratt-spik/kartmotor.js");
+  const proj = await import(SRC ? "../src/hitta-ratt/karta/projektion.js" : "./hitta-ratt-spik/projektion.js");
+  const { poang } = await import("./hitta-ratt-spik/poang.js");
+  const { skapaKarta } = motor, { avstandKm, tillKarta } = proj;
+
+  const BAS = "../src/hitta-ratt/content";
+  const ATTRIB = { sverige: "Kartdata: Natural Earth · Lantmäteriet (CC0)", europa: "Kartdata: Natural Earth", varlden: "Kartdata: Natural Earth" };
+  const GRUPP = { sverige: "Sverige", europa: "Europa", varlden: "Världen", "kanda-platser": "Kända platser" };
+  const $ = (id) => document.getElementById(id);
+  const cache = {};
+  const hamta = (url) => (cache[url] ||= fetch(url).then((r) => { if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); }));
+
+  let karta = null, pack = null, geo = null, nr = 0, ordning = [], facit = false;
+  const index = await hamta(`${BAS}/packs/index.json`);
+
+  let grupp = null;
+  for (const x of index) {
+    if (x.category !== grupp) { grupp = x.category; $("packs").insertAdjacentHTML("beforeend", `<span class="grupp">${GRUPP[grupp]}</span>`); }
+    $("packs").insertAdjacentHTML("beforeend",
+      `<button class="pill ${x.difficulty}" data-pack="${x.id}" aria-pressed="false">${x.title} <small>${x.antal} · ${x.type === "area" ? "område" : "punkt"}</small></button>`);
+  }
+  document.querySelectorAll("[data-pack]").forEach((b) => b.addEventListener("click", () => starta(b.dataset.pack)));
+
+  function blanda(a) {
+    const r = new Uint32Array(a.length); crypto.getRandomValues(r);
+    for (let i = a.length - 1; i > 0; i--) { const j = r[i] % (i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+
+  async function bygg(packId, vard) {
+    const p = await hamta(`${BAS}/packs/${packId}.json`);
+    const g = await hamta(`${BAS}/geo/${p.geo}.json`);
+    const k = skapaKarta(vard, g, {
+      lage: p.type === "area" ? "omrade" : "punkt", maxZoom: p.maxZoom, startvy: p.startvy,
+      attribution: ATTRIB[g.scope], visaGranser: p.visaGranser,
+    });
+    return { p, g, k };
+  }
+
+  async function starta(packId) {
+    document.querySelectorAll("[data-pack]").forEach((x) => x.setAttribute("aria-pressed", x.dataset.pack === packId));
+    karta?.destroy();
+    $("karta").replaceChildren();
+    const t0 = performance.now();
+    ({ p: pack, g: geo, k: karta } = await bygg(packId, $("karta")));
+    window.__tider = { ms: performance.now() - t0 };
+    karta.on("gissning", () => ($("las").disabled = false));
+    karta.on("val", () => ($("las").disabled = false));
+    window.__karta = karta;
+    ordning = blanda([...pack.items]);
+    nr = 0;
+    nyFraga();
+  }
+
+  const item = () => ordning[nr % ordning.length];
+
+  function nyFraga() {
+    karta.reset();
+    const it = item();
+    $("las").disabled = true; $("las").hidden = false; $("nasta").hidden = true;
+    $("feedback").textContent = "";
+    $("fraga").textContent = it.bild ? `${it.name} – ${it.prompt}` : it.prompt;
+    $("bild").hidden = !it.bild;
+    if (it.bild) {
+      $("bild-img").src = `${BAS}/bilder/${it.bild.fil}`;
+      $("bild-img").alt = it.name;
+      const b = it.bild;
+      $("foto").innerHTML = `Foto: ${esc(b.fotograf)}, <a href="${b.licensUrl}" target="_blank" rel="noopener">${b.licens}</a>, <a href="${b.kallaUrl}" target="_blank" rel="noopener">Wikimedia Commons</a>`;
+      const nasta = ordning[(nr + 1) % ordning.length];
+      if (nasta.bild) new Image().src = `${BAS}/bilder/${nasta.bild.fil}`; // förladda nästa
+    }
+    $("debug").textContent = `${pack.id} · fråga ${nr + 1}/${ordning.length} · ${geo.omraden.length} områden · ${Math.round(window.__tider.ms)} ms`;
+    if (facit) visaFacit();
+  }
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  function visaFacit() {
+    const it = item();
+    if (pack.type === "area") karta.showAreaResult({ valt: null, ratt: it.omrade });
+    else karta.showResult({ guess: { lon: it.lon, lat: it.lat }, target: { lon: it.lon, lat: it.lat } });
+    $("feedback").innerHTML = `Facit: <b>${it.name}</b>${it.malpunkt ? ` (målpunkt: ${it.malpunkt})` : ""}`;
+    $("las").hidden = true; $("nasta").hidden = false;
+  }
+
+  $("las").addEventListener("click", () => {
+    const it = item();
+    if (pack.type === "point") {
+      const g = karta.getGuess();
+      const km = avstandKm([g.lon, g.lat], [it.lon, it.lat]);
+      karta.showResult({ guess: g, target: { lon: it.lon, lat: it.lat } });
+      $("feedback").innerHTML = `Du var <b>${Math.round(km)} km</b> från ${it.name} · <b>${poang(km, pack.scoringConfig)} / 100 p</b>`;
+    } else {
+      const valt = karta.getVal();
+      karta.showAreaResult({ valt, ratt: it.omrade });
+      const valtNamn = pack.items.find((x) => x.omrade === valt)?.name;
+      $("feedback").innerHTML = valt === it.omrade ? `✅ <b>Rätt!</b> Det är ${it.name}.`
+        : `❌ <b>Fel</b>${valtNamn ? ` – du valde ${valtNamn}` : ""}. Rätt svar (grönt): ${it.name}.`;
+    }
+    $("las").hidden = true; $("nasta").hidden = false; $("nasta").focus();
+  });
+  $("nasta").addEventListener("click", () => { nr++; nyFraga(); });
+  $("facit").addEventListener("click", () => {
+    facit = !facit;
+    $("facit").setAttribute("aria-pressed", facit);
+    nyFraga();
+  });
+
+  // --- Kontrollera alla 12: bygg varje pack i motorn och pröva varje item ----
+  async function kontrolleraAlla() {
+    const ut = [], fel = [];
+    const vard = document.createElement("div");
+    vard.style.cssText = "position:fixed;left:-2000px;top:0;width:900px;height:700px";
+    document.body.appendChild(vard);
+    for (const x of index) {
+      const t0 = performance.now();
+      try {
+        const { p, g, k } = await bygg(x.id, vard);
+        const ids = new Set([...vard.querySelectorAll("[data-id]")].map((e) => e.getAttribute("data-id")));
+        let ok = 0;
+        for (const it of p.items) {
+          if (p.type === "area") {
+            if (!ids.has(it.omrade)) { fel.push(`${p.id}/${it.id}: ${it.omrade} saknas i DOM`); continue; }
+            k.reset(); k.showAreaResult({ valt: null, ratt: it.omrade });
+          } else {
+            const [px, py] = tillKarta(g.proj, it.lon, it.lat);
+            if (!(px >= 0 && px <= g.proj.bredd && py >= 0 && py <= g.proj.hojd)) { fel.push(`${p.id}/${it.id}: utanför kartan`); continue; }
+            k.reset(); k.showResult({ guess: { lon: it.lon, lat: it.lat }, target: { lon: it.lon, lat: it.lat } });
+          }
+          if (it.bild) {
+            const img = new Image(); img.src = `${BAS}/bilder/${it.bild.fil}`;
+            try { await img.decode(); } catch { fel.push(`${p.id}/${it.id}: bilden laddas inte`); continue; }
+          }
+          ok++;
+        }
+        k.destroy(); vard.replaceChildren();
+        ut.push(`${ok === p.items.length ? "OK " : "FEL"} ${p.id.padEnd(25)} ${ok}/${p.items.length} items  geo ${p.geo.padEnd(17)} ${Math.round(performance.now() - t0)} ms`);
+      } catch (e) {
+        fel.push(`${x.id}: ${e.message}`);
+        ut.push(`FEL ${x.id}`);
+      }
+    }
+    vard.remove();
+    const externa = performance.getEntriesByType("resource").filter((r) => new URL(r.name).origin !== location.origin).map((r) => r.name);
+    ut.push("", `Fel: ${fel.length}`, ...fel, `Externa requests: ${externa.length}`, ...externa);
+    $("kontroll").hidden = false;
+    $("kontroll").textContent = ut.join("\n");
+    window.__kontroll = { fel, externa, rader: ut };
+    return window.__kontroll;
+  }
+  $("kontrollera-alla").addEventListener("click", kontrolleraAlla);
+  window.kontrolleraAlla = kontrolleraAlla;
+
+  starta(new URLSearchParams(location.search).get("pack") || index[0].id);
+</script>
+</body>
+</html>

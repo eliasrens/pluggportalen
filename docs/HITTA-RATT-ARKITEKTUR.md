@@ -343,7 +343,12 @@ svårighet, geo).
 ```
 
 - **Områdesitem:** `{ "id": "uppland", "name": "Uppland", "prompt": "Hitta Uppland", "omrade": "o2" }`.
-- **Bilditem** har dessutom: `"bild": { "fil": "colosseum.jpg", "fotograf": "…", "licens": "CC BY-SA 4.0", "licensUrl": "…", "kallaUrl": "https://commons.wikimedia.org/wiki/File:…" }`.
+- **Bilditem** har dessutom: `"bild": { "fil": "colosseum.webp", "bredd": 800, "hojd": 561, "kalla": "Colosseo 2020.jpg", "fotograf": "…", "licens": "CC BY-SA 4.0", "licensUrl": "…", "kallaUrl": "https://commons.wikimedia.org/wiki/File:…" }`.
+- **Byggt i D (#607):** punktitems har även `wikidata` (koordinatkälla), ofta
+  `inom` (land/landskap-nyckel som testet kontrollerar) och ibland `malpunkt`
+  (förklaring när målpunkten valts för hand). Områdesitems har `key`
+  (källnyckel) som `admin/hitta-ratt-packs.mjs` översätter till `omrade`.
+  Se `src/hitta-ratt/content/KALLOR.md`.
 - **`version`** höjs när items ändras. Personbästa och topplista gäller
   `packId`. En ändring av ett befintligt packs frågor kräver ett nytt
   `packId` (t.ex. `europa-alla-v2`), annars jämförs olika omgångar.
@@ -571,7 +576,7 @@ opt-in:
   2. Anropar Commons API (`prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=800`,
      verifierat att det fungerar).
   3. Laddar ner miniatyren (Commons levererar 960 px-steget) till
-     `src/hitta-ratt/content/bilder/<itemId>.jpg`.
+     `src/hitta-ratt/content/bilder/<itemId>.webp` (D: WebP max 800 px via `npx sharp-cli`, `.webp` finns i `server.mjs`).
   4. Skriver `bild { fotograf, licens, licensUrl, kallaUrl }` i packen.
 - **Bara licenserna** PD, CC0, CC BY och CC BY-SA godtas (vitlista).
   `Artist` rensas från HTML.

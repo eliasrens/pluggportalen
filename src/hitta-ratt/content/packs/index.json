@@ -1,0 +1,124 @@
+[
+ {
+  "id": "sverige-stader",
+  "title": "Sveriges städer",
+  "description": "20 stora och kända svenska städer. Sätt nålen där staden ligger.",
+  "category": "sverige",
+  "type": "point",
+  "difficulty": "grund",
+  "geo": "sverige-landskap",
+  "antal": 20
+ },
+ {
+  "id": "sverige-landskap",
+  "title": "Sveriges landskap",
+  "description": "Alla 25 landskap. Klicka på rätt landskap.",
+  "category": "sverige",
+  "type": "area",
+  "difficulty": "medel",
+  "geo": "sverige-landskap",
+  "antal": 25
+ },
+ {
+  "id": "sverige-lan",
+  "title": "Sveriges län",
+  "description": "Alla 21 län. Klicka på rätt län.",
+  "category": "sverige",
+  "type": "area",
+  "difficulty": "medel",
+  "geo": "sverige-lan",
+  "antal": 21
+ },
+ {
+  "id": "sverige-geografi",
+  "title": "Sveriges geografi",
+  "description": "Sjöar, öar, berg, älvar och andra kända naturplatser i Sverige.",
+  "category": "sverige",
+  "type": "point",
+  "difficulty": "medel",
+  "geo": "sverige-landskap",
+  "antal": 20
+ },
+ {
+  "id": "europa-lander-20",
+  "title": "Europas länder – 20",
+  "description": "20 stora och välkända länder i Europa. Klicka på rätt land.",
+  "category": "europa",
+  "type": "area",
+  "difficulty": "grund",
+  "geo": "europa",
+  "antal": 20
+ },
+ {
+  "id": "europa-lander-alla",
+  "title": "Europas länder – alla",
+  "description": "Alla 46 länder i Europa. Små länder har en ring som går att klicka på.",
+  "category": "europa",
+  "type": "area",
+  "difficulty": "medel",
+  "geo": "europa",
+  "antal": 46
+ },
+ {
+  "id": "europa-huvudstader-20",
+  "title": "Europas huvudstäder – 20",
+  "description": "20 välkända huvudstäder i Europa. Sätt nålen där staden ligger.",
+  "category": "europa",
+  "type": "point",
+  "difficulty": "grund",
+  "geo": "europa",
+  "antal": 20
+ },
+ {
+  "id": "europa-huvudstader-alla",
+  "title": "Europas huvudstäder – alla",
+  "description": "Huvudstäderna i alla 46 länder i Europa.",
+  "category": "europa",
+  "type": "point",
+  "difficulty": "utmaning",
+  "geo": "europa",
+  "antal": 46
+ },
+ {
+  "id": "varlden-lander-30",
+  "title": "Världens länder – 30",
+  "description": "30 stora och kända länder från alla världsdelar. Klicka på rätt land.",
+  "category": "varlden",
+  "type": "area",
+  "difficulty": "utmaning",
+  "geo": "varlden",
+  "antal": 30
+ },
+ {
+  "id": "varlden-huvudstader-30",
+  "title": "Världens huvudstäder – 30",
+  "description": "30 välkända huvudstäder runt om i världen.",
+  "category": "varlden",
+  "type": "point",
+  "difficulty": "utmaning",
+  "geo": "varlden",
+  "antal": 30
+ },
+ {
+  "id": "europa-kanda-platser",
+  "title": "Kända platser i Europa",
+  "description": "Kända byggnader och sevärdheter. Du ser en bild och namnet – var i Europa finns platsen?",
+  "category": "kanda-platser",
+  "type": "point",
+  "difficulty": "medel",
+  "geo": "europa",
+  "antal": 20,
+  "bilder": true
+ },
+ {
+  "id": "varlden-kanda-platser",
+  "title": "Kända platser i världen",
+  "description": "Kända byggnader och naturplatser. Du ser en bild och namnet – var i världen finns platsen?",
+  "category": "kanda-platser",
+  "type": "point",
+  "difficulty": "medel",
+  "geo": "varlden",
+  "antal": 20,
+  "bilder": true
+ }
+]
