@@ -7,8 +7,10 @@
 //
 // Formuläret (ett vanligt objekt, vyn muterar det inte direkt):
 //   { id, sparad, kopiaAv, title, description, ikon, geo, type, startvy,
-//     classIds: [], items: [{ id?, name, prompt, lat, lon, kalla } | { id?, name, prompt, omrade, key }] }
+//     classIds: [], leaderboard, items: [{ id?, name, prompt, lat, lon, kalla } | { id?, name, prompt, omrade, key }] }
 //   sparad = packet finns på servern → geo och typ är låsta (§11.0).
+//   leaderboard = kryssrutan "Skoltopplista" (#635). Den skickas INTE med
+//   sparningen (servern ignorerar den) utan via hittaRattSattTopplista efteråt.
 //   lat/lon får vara text ("60,67") – tillIndata gör om dem till tal.
 //
 //   nyttFormular(id) · formularFranPack(pack) · dupliceraPack(pack, nyttId)
@@ -19,6 +21,8 @@
 //   omradeslista(namn, nycklar) · sokOmraden(lista, q, valda) · laggTillOmrade(f, o)
 //   delaKatalog(katalog, uid) → { mina, kollegor } · klassText(ids, klasser)
 //   raderaText(post) · provData(pack, omradesIds) (provspel: rättning i klienten)
+//   topplistaAndras(original, f) → ska hittaRattSattTopplista anropas efter sparningen?
+//   TOPPLISTA_TEXT · topplistaKvitto(pa, klasstext)
 // ============================================================================
 
 import { normaliseraPack, IKONER, GRANS } from "../delat/egna.js";
@@ -41,12 +45,30 @@ export const TYPER = {
 export const FACIT_VARNING = "Du har ändrat platser eller frågor. Elevernas rekord och skolans topplista för kartan börjar om från noll.";
 export const LAMNA_TEXT = "Du har ändringar som inte är sparade. Vill du lämna utan att spara?";
 
+/** Förklaringen under kryssrutan "Skoltopplista / Gör till skolutmaning" (§11.5). */
+export const TOPPLISTA_TEXT = {
+  pa: "PÅ: eleverna tävlar om skolrekordet. Kartan får en Top 15 under 🏆 Topplistor, och den som leder får Kartmästare-pokalen i sitt hus. Rekord som eleverna redan satt räknas med.",
+  av: "AV: eleverna spelar och ser sina egna rekord, men det finns ingen topplista och ingen pokal. Rekorden sparas ändå, så du kan slå på topplistan senare.",
+  vem: "Bara eleverna i klasserna som ser området ser topplistan.",
+};
+
+/** Ändrade läraren kryssrutan? (Nytt område: bara om den är ikryssad.) */
+export function topplistaAndras(original, f) {
+  return (f.leaderboard === true) !== (original?.leaderboard === true);
+}
+
+/** Kvittot efter sparningen (klasserna står redan i "Sparat!"-raden). */
+export function topplistaKvitto(pa, klasstext) {
+  if (!pa) return "Skoltopplistan är avstängd – topplistan och pokalen är borttagna.";
+  return klasstext ? "Skoltopplistan är på – eleverna ser den under 🏆 Topplistor." : "Skoltopplistan är på, men ingen klass ser området ännu.";
+}
+
 const KOPIA = " (kopia)";
 
 export function nyttFormular(id) {
   return {
     id, sparad: false, kopiaAv: null, title: "", description: "", ikon: IKONER[0],
-    geo: "sverige-landskap", type: "point", startvy: "auto", classIds: [], items: [],
+    geo: "sverige-landskap", type: "point", startvy: "auto", classIds: [], leaderboard: false, items: [],
   };
 }
 
@@ -66,6 +88,7 @@ export function formularFranPack(pack) {
     ikon: IKONER.includes(pack.ikon) ? pack.ikon : IKONER[0],
     geo: pack.geo, type, startvy: pack.startvy === "hel" ? "hel" : "auto",
     classIds: Array.isArray(pack.classIds) ? [...pack.classIds] : [],
+    leaderboard: pack.leaderboard === true,
     items: (pack.items || []).map((it) => itemFran(it, type)),
   };
 }
@@ -84,7 +107,7 @@ export function dupliceraPack(pack, nyttId) {
     description: String(pack.description || "").slice(0, GRANS.beskrivning),
     ikon: IKONER.includes(pack.ikon) ? pack.ikon : TYPER[type].ikon,
     geo: pack.geo, type, startvy: pack.startvy === "hel" ? "hel" : "auto",
-    classIds: [],
+    classIds: [], leaderboard: false,
     items: (pack.items || []).slice(0, GRANS.items).map((it) => itemFran(it, type)),
   };
 }

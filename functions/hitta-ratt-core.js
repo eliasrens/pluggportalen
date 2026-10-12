@@ -35,11 +35,11 @@
 // taBortElev(deps, uid) – admin/delete-student.mjs: tar bort elevens entry ur
 // alla topplistor, räknar om ledarna, raderar personbästa och försök.
 //
-// stangTopplista(deps, packId) – FÖRBEREDD för epic 2/2 (läraren stänger av
-// "Skoltopplista" för ett eget pack, #610): topplistan och packens ledare tas
-// bort i EN transaktion → Kartmästare-pokalen försvinner ur alla hus vid nästa
+// stangTopplista(deps, packId) – topplistan och packens ledare tas bort i EN
+// transaktion → Kartmästare-pokalen försvinner ur alla hus vid nästa
 // rendering (huset ritar bara pack som finns i hittaRattMeta/ledare).
-// Idempotent. Anropas ännu inte av någon callable.
+// Idempotent. stangTopplistaTx(tx, deps, packId) är samma sak inne i en
+// annan transaktion – hittaRattSattTopplista AV (hitta-ratt-egna.js, #635).
 //
 // API (deps = { db, FieldValue, Timestamp, now?(), packs? })
 //   submit → { packId, leaderboard, result, pb, nyttRekord, coins,
@@ -234,21 +234,29 @@ export async function taBortElev(deps, uid) {
 }
 
 /**
+ * Transaktionsdelen av stangTopplista (arkitektur §11.5): läser topplistan och
+ * ledarna och raderar dem. Firestore kräver alla läsningar före första
+ * skrivningen – anroparen gör sina EGNA läsningar före och skrivningar efter.
+ * @returns {Promise<boolean>} fanns något att ta bort
+ */
+export async function stangTopplistaTx(tx, deps, packId) {
+  const { db, FieldValue } = deps;
+  const board = db.collection("hittaRattBoards").doc(packId);
+  const meta = db.collection("hittaRattMeta").doc("ledare");
+  const [b, m] = await Promise.all([tx.get(board), tx.get(meta)]);
+  const iMeta = m.exists && !!m.data().packs?.[packId];
+  if (b.exists) tx.delete(board);
+  if (iMeta) tx.set(meta, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  return b.exists || iMeta;
+}
+
+/**
  * Stäng av ett packs skoltopplista (epic 2/2-toggle, arkitektur §4.3):
  * hittaRattBoards/{packId} raderas och hittaRattMeta/ledare.packs.{packId}
  * tas bort i samma transaktion. Ett andra anrop är en no-op.
  * @returns {Promise<{ fanns: boolean }>}
  */
 export async function stangTopplista(deps, packId) {
-  const { db, FieldValue } = deps;
   if (typeof packId !== "string" || !/^[a-z0-9-]{1,60}$/.test(packId)) throw new HrFel("invalid-argument", "Okänd karta.");
-  const board = db.collection("hittaRattBoards").doc(packId);
-  const meta = db.collection("hittaRattMeta").doc("ledare");
-  return db.runTransaction(async (tx) => {
-    const [b, m] = await Promise.all([tx.get(board), tx.get(meta)]);
-    const iMeta = m.exists && !!m.data().packs?.[packId];
-    if (b.exists) tx.delete(board);
-    if (iMeta) tx.set(meta, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    return { fanns: b.exists || iMeta };
-  });
+  return deps.db.runTransaction(async (tx) => ({ fanns: await stangTopplistaTx(tx, deps, packId) }));
 }

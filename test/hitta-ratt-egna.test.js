@@ -18,6 +18,7 @@ import { HrFel } from "../src/hitta-ratt/delat/omgang.js";
 import { SCOPES } from "../src/hitta-ratt/karta/projektion.js";
 import { egnaForElev, delasMed, startvyAuto, egetSparFel, STARTVY_MIN_ANDEL } from "../src/hitta-ratt/hr-egna.js";
 import { startsidaHtml, packKortHtml } from "../src/hitta-ratt/hr-start-vy.js";
+import { topplisteGrupper, topplistorVyHtml } from "../src/hitta-ratt/hr-topplista-vy.js";
 import { geoOmraden, packFacit } from "../admin/sync-hitta-ratt-functions.mjs";
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
@@ -306,5 +307,31 @@ describe("bootgrafen (#271)", () => {
       assert.equal(seen.has(join(SRC, "hitta-ratt", f)), false, f);
     }
     assert.equal(seen.size, 107);
+  });
+});
+
+describe("🏆-vyn: gruppen Från din lärare (#635)", () => {
+  const INDEX_TL = lasJson("packs/index.json");
+  const katalog = {
+    packs: {
+      [ID]: { title: "Gästrikland runt", type: "point", geo: "sverige-landskap", antal: 4, classIds: ["5E"], leaderboard: true, version: 2 },
+      "e-avavavavavav": { title: "Avstängd", type: "point", geo: "europa", antal: 3, classIds: ["5E"], leaderboard: false, version: 1 },
+      "e-andraklass01": { title: "Annan klass", type: "area", geo: "europa", antal: 3, classIds: ["6C"], leaderboard: true, version: 1 },
+    },
+  };
+  it("bara egna pack med topplistan PÅ i elevens klasser, först; officiella som förut", () => {
+    const g = topplisteGrupper(INDEX_TL, egnaForElev(katalog, ["5E"]));
+    assert.equal(g[0].namn, "Från din lärare");
+    assert.deepEqual(g[0].pack.map((p) => p.id), [ID]);
+    assert.deepEqual(g.slice(1).map((x) => x.id), topplisteGrupper(INDEX_TL, []).map((x) => x.id));
+    assert.ok(!g.some((x) => x.pack.some((p) => p.id === "e-avavavavavav")), "AV syns inte");
+    assert.ok(!g.some((x) => x.pack.some((p) => p.id === "e-andraklass01")), "annan klass syns inte");
+  });
+  it("inga egna med topplista → ingen tom grupp; knappen för packet ritas", () => {
+    assert.ok(!topplisteGrupper(INDEX_TL, egnaForElev(katalog, ["9Z"])).some((x) => x.id === "egna"));
+    const g = topplisteGrupper(INDEX_TL, egnaForElev(katalog, ["5E"]));
+    const html = topplistorVyHtml(g, ID, { typ: "point", top: [], egen: null, plats: null, antal: 0 });
+    assert.match(html, /Från din lärare/);
+    assert.match(html, new RegExp(`data-pack="${ID}" aria-pressed="true">Gästrikland runt`));
   });
 });

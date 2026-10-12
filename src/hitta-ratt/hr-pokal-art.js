@@ -4,7 +4,8 @@
 // En jordglobspokal på träsockel: guldring runt globen, stjärna överst,
 // rosett på skaftet och mässingsskylt. Varje pack får en EGEN pokal:
 //   • globens motiv följer packens kategori (Sverige, Europa, världen,
-//     kända platser),
+//     kända platser) – lärarens egna pack (e-…, #635) får motivet ur kartans
+//     scope (ledare.packs.{id}.scope: sverige/europa/varlden),
 //   • markören följer typen (punkt = röd kartnål, område = markerat fält),
 //   • rosettens färg väljs stabilt ur packId.
 // Glittret återanvänder .kc-glitter (styles.css, pausas vid zoom/reduced motion).
@@ -44,9 +45,15 @@ export function bandFarg(packId) {
   return BAND[h % BAND.length];
 }
 
-/** Globens motiv ur packId-prefixet (officiella pack: sverige-/europa-/varlden-, *-kanda-platser). */
-export function motivFor(packId) {
+const SCOPE_MOTIV = new Set(["sverige", "europa", "varlden"]);
+
+/**
+ * Globens motiv. Officiella pack: ur packId-prefixet (sverige-/europa-/varlden-,
+ * *-kanda-platser). Egna pack (e-…): ur kartans scope, okänt scope → världen.
+ */
+export function motivFor(packId, scope) {
   const id = String(packId || "");
+  if (id.startsWith("e-")) return SCOPE_MOTIV.has(scope) ? scope : "varlden";
   if (id.includes("kanda-platser")) return "platser";
   if (id.startsWith("sverige")) return "sverige";
   if (id.startsWith("europa")) return "europa";
@@ -102,11 +109,11 @@ function stjarna(cx, cy, r) {
 
 /**
  * Inre markup (utan <svg>-ram) för packens pokal.
- * @param {{ packId: string, typ?: "point"|"area" }} p
+ * @param {{ packId: string, typ?: "point"|"area", scope?: string }} p  scope bara för egna pack
  * @param {{ animera?: boolean }} [opts] false → ingen glitter-klass
  */
-export function kartmastareMarkup({ packId, typ }, opts = {}) {
-  const motiv = motivFor(packId);
+export function kartmastareMarkup({ packId, typ, scope }, opts = {}) {
+  const motiv = motivFor(packId, scope);
   const band = bandFarg(packId);
   const glitter = opts.animera === false ? "" : ` class="kc-glitter"`;
   return (
@@ -144,7 +151,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(
 
 /**
  * Fristående <svg> för packens pokal.
- * @param {{ packId: string, typ?: string }} p
+ * @param {{ packId: string, typ?: string, scope?: string }} p
  * @param {{ animera?: boolean, aria?: string }} [opts] aria utelämnad → aria-hidden
  */
 export function kartmastareSvg(p, opts = {}) {

@@ -16,7 +16,8 @@
 // omgångs svar → servern räknar om allt och sparar personbästa, skolans
 // topplista, ledare och coins i EN transaktion. Logiken: hitta-ratt-core.js.
 // Egna pack (#633, epic #612): hittaRattSparaPack / hittaRattRaderaPack – bara
-// lärare, bara ägaren skriver. Logiken: hitta-ratt-egna.js.
+// lärare, bara ägaren skriver. hittaRattSattTopplista (#635) slår på/av
+// skoltopplistan (PÅ = byggs upp ur personbästa). Logiken: hitta-ratt-egna.js.
 //
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
@@ -32,7 +33,7 @@ import { randomInt } from "node:crypto";
 import { LoginError, updateStudentLogin as updateLogin } from "./login-core.js";
 import { GrError, answerQuestion, openChest, chooseVictim } from "./guldrush-core.js";
 import { HrFel, submit as hittaRattSubmitCore } from "./hitta-ratt-core.js";
-import { sparaPack, raderaPack } from "./hitta-ratt-egna.js";
+import { sparaPack, raderaPack, sattTopplista } from "./hitta-ratt-egna.js";
 
 initializeApp();
 
@@ -120,7 +121,7 @@ function hittaRattLarare(namn, core) {
     if (token?.teacher !== true) throw new HttpsError("permission-denied", "Bara lärare kan ändra egna kartor.");
     const lararNamn = token.name || String(token.email || "").split("@")[0];
     try {
-      return await core({ db: getFirestore(), FieldValue, Timestamp, now: Date.now }, request.auth.uid, request.data || {}, { namn: lararNamn });
+      return await core({ db: getFirestore(), FieldValue, FieldPath, Timestamp, now: Date.now }, request.auth.uid, request.data || {}, { namn: lararNamn });
     } catch (err) {
       if (err instanceof HrFel) throw new HttpsError(err.code, err.message);
       logger.error(`${namn} oväntat fel`, err);
@@ -131,3 +132,4 @@ function hittaRattLarare(namn, core) {
 
 export const hittaRattSparaPack = hittaRattLarare("hittaRattSparaPack", sparaPack);
 export const hittaRattRaderaPack = hittaRattLarare("hittaRattRaderaPack", raderaPack);
+export const hittaRattSattTopplista = hittaRattLarare("hittaRattSattTopplista", sattTopplista);

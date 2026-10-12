@@ -7,8 +7,9 @@
 // Arkitektur §11.9 punkt 3. Spara = hittaRattSparaPack (servern validerar
 // igen, höjer versionen vid ändrat facit och skriver katalogen). Geo och typ
 // är låsta när packet sparats. Osparade ändringar → lämna-vakten frågar.
-// Togglen "Skoltopplista / Gör till skolutmaning" byggs i D – platsen är
-// [data-plats="topplista"] nedan.
+// Kryssrutan "Skoltopplista / Gör till skolutmaning" (#635, §11.5) hör till
+// formuläret (lämna-vakten ser den) men skickas efter sparningen via
+// hittaRattSattTopplista – bara om den ändrats.
 // ============================================================================
 
 import { el, esc, icon } from "../../teacher-shared.js";
@@ -18,10 +19,10 @@ import { IKONER, GRANS, nyttPackId } from "../delat/egna.js";
 import { arEget } from "../hr-egna.js";
 import { armeraLamnaVakt } from "../hr-lamna-vakt.js";
 import {
-  GEOER, TYPER, FACIT_VARNING, LAMNA_TEXT, bytKarta, dupliceraPack, facitAndras, formularFranPack,
-  klassText, kontrollera, nyttFormular, raderaText, tillIndata,
+  GEOER, TYPER, FACIT_VARNING, LAMNA_TEXT, TOPPLISTA_TEXT, bytKarta, dupliceraPack, facitAndras, formularFranPack,
+  klassText, kontrollera, nyttFormular, raderaText, tillIndata, topplistaAndras, topplistaKvitto,
 } from "./lhr-modell.js";
-import { hamtaOfficielltPack, hamtaPack, laddaOmraden, raderaPack, sparaPack } from "./lhr-data.js";
+import { hamtaOfficielltPack, hamtaPack, laddaOmraden, raderaPack, sattTopplista, sparaPack } from "./lhr-data.js";
 import { ritaFragor } from "./lhr-fragor.js";
 
 const HASH = "#/larare/hitta-ratt";
@@ -93,8 +94,12 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
       </fieldset>
     </div>
     <div class="lhr-fragor-host"></div>
-    <!-- D (#612): kryssrutan "Skoltopplista / Gör till skolutmaning" (hittaRattSattTopplista) hamnar här – bara för sparade områden. -->
-    <div class="lhr-topplista" data-plats="topplista" hidden></div>
+    <fieldset class="lhr-falt lhr-topplista" data-plats="topplista"><legend>Topplista</legend>
+      <label class="lhr-check"><input type="checkbox" data-k-topplista ${f.leaderboard ? "checked" : ""} />
+        <span><b>Skoltopplista / Gör till skolutmaning</b></span></label>
+      <p class="hint lhr-topplista-text">${esc(f.leaderboard ? TOPPLISTA_TEXT.pa : TOPPLISTA_TEXT.av)}</p>
+      <p class="hint">${esc(TOPPLISTA_TEXT.vem)}</p>
+    </fieldset>
     <div class="msg warn lhr-facit-varning" role="status" hidden>⚠️ ${esc(FACIT_VARNING)}</div>
     <div class="lhr-fel-rad msg error" role="alert" hidden></div>
     <div class="lhr-knappar lhr-form-knappar">
@@ -110,7 +115,7 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
   const $ = (s) => vy.querySelector(s);
 
   // Osparat-läge: jämför med det som senast sparades/laddades.
-  const bild = () => JSON.stringify(tillIndata(st.f));
+  const bild = () => JSON.stringify([tillIndata(st.f), st.f.leaderboard === true]);
   let sparadBild = f.kopiaAv ? "" : bild();
   let avarmera = null;
   const andrad = () => {
@@ -148,6 +153,11 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
   }));
   vy.querySelectorAll('[name="lhr-ikon"]').forEach((r) => r.addEventListener("change", () => { st.f.ikon = r.value; andrad(); }));
   vy.querySelectorAll('[name="lhr-startvy"]').forEach((r) => r.addEventListener("change", () => { st.f.startvy = r.value; andrad(); }));
+  $("[data-k-topplista]").addEventListener("change", (e) => {
+    st.f.leaderboard = e.target.checked;
+    $(".lhr-topplista-text").textContent = st.f.leaderboard ? TOPPLISTA_TEXT.pa : TOPPLISTA_TEXT.av;
+    andrad();
+  });
   vy.querySelectorAll(".lhr-klasser input").forEach((c) => c.addEventListener("change", () => {
     st.f.classIds = [...vy.querySelectorAll(".lhr-klasser input:checked")].map((x) => x.value);
     andrad();
@@ -186,12 +196,22 @@ function ritaFormular(ctx, host, { f, original, klasser }) {
     knapp.lastElementChild.textContent = "Sparar…";
     try {
       const svar = await sparaPack(tillIndata(st.f));
+      const klasstext = klassText(st.f.classIds, klasser);
+      const delad = st.f.classIds.length ? `Eleverna i ${esc(klasstext)} ser området.` : "Ingen klass ser området ännu.";
+      let toppText = "";
+      if (topplistaAndras(original, st.f)) {
+        try {
+          await sattTopplista(svar.id, st.f.leaderboard);
+          toppText = ` ${esc(topplistaKvitto(st.f.leaderboard, klasstext))}`;
+        } catch (err) {
+          toppText = `</div><div class="msg error">Området sparades, men topplistan kunde inte ${st.f.leaderboard ? "slås på" : "stängas av"}: ${esc(err?.message || "okänt fel")} Försök igen.`;
+        }
+      }
       slappVakt();
       sparadBild = bild();
-      const delad = st.f.classIds.length ? `Eleverna i ${esc(klassText(st.f.classIds, klasser))} ser området.` : "Ingen klass ser området ännu.";
       flash = {
         id: svar.id,
-        html: `<div class="msg ok">Sparat! ${svar.nollstalld ? "Rekorden och topplistan började om från noll." : delad}</div>`,
+        html: `<div class="msg ok">Sparat! ${svar.nollstalld ? "Rekorden och topplistan började om från noll." : delad}${toppText}</div>`,
       };
       const hash = `${HASH}?vy=ny&id=${encodeURIComponent(svar.id)}`;
       history.replaceState(null, "", hash);

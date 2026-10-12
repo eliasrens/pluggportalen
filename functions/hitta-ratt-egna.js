@@ -19,6 +19,18 @@
 // raderaPack(deps, uid, { packId }) → { fanns }  (callable hittaRattRaderaPack)
 //   EN transaktion: packen, katalogposten, topplistan och ledarna. Idempotent.
 //   Försök och personbästa ligger kvar (ofarliga). Bilderna: F.
+// sattTopplista(deps, uid, { packId, pa }) → { leaderboard, tillagda }
+//   (callable hittaRattSattTopplista, bara ägaren – §11.5, #635). Idempotent.
+//   AV: EN transaktion – leaderboard = false i packen och katalogen +
+//     stangTopplistaTx (topplistan och ledare.packs.{id} bort). Personbästa kvar.
+//   PÅ: tx 1 – leaderboard = true + tom topplista med v om den saknas (eller har
+//     fel v) · fråga hittaRattBest där packs.{id}.v == version · namn ur
+//     students (getAll), klass = elevens första klass (på namn) bland packens
+//     classIds (getAll; elever som inte längre går där hoppas över, som submit) ·
+//     tx 2 – poster läggs BARA till för uid som saknas (en omgång som sparats
+//     efter tx 1 har redan skrivit elevens nuvarande personbästa), leaders räknas
+//     om och ledarna skrivs. Har packen hunnit stängas eller fått ny version
+//     mellan stegen görs ingenting i tx 2.
 // lasEgetPack(tx, db, packId, info) – hittaRattSubmit för e-pack (core):
 //   packen ur hittaRattPacks → kompakt facit + { v, facitAtMs, scope, klass }.
 //   Saknas → not-found · elevens klasser ∩ classIds = ∅ → permission-denied.
@@ -31,6 +43,9 @@ import { HrFel } from "./hitta-ratt/omgang.js";
 import { kompaktFacit, facitNyckel } from "./hitta-ratt/facit.js";
 import { normaliseraPack, EGEN_ID_RE, GRANS } from "./hitta-ratt/egna.js";
 import { GEO_SCOPE } from "./hitta-ratt/scope.js";
+import { matt, ledare as raknaLedare } from "./hitta-ratt/rank.js";
+// Cykeln core ↔ egna är ofarlig: bara funktioner som anropas efter laddningen.
+import { stangTopplistaTx } from "./hitta-ratt-core.js";
 
 export const arEget = (packId) => typeof packId === "string" && packId.startsWith("e-");
 const sha1 = (s) => createHash("sha1").update(s).digest("hex");
@@ -147,6 +162,102 @@ export async function raderaPack(deps, uid, data) {
       tx.set(r.ledare, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     }
     return { fanns: true };
+  });
+}
+
+const sammaLista = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i]);
+const kortNamn = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+/** Ägarens pack i transaktionen – saknas → not-found, annan lärare → permission-denied. */
+function agarensPack(pS, uid) {
+  if (!pS.exists) throw new HrFel("not-found", "Kartan finns inte längre.");
+  const p = pS.data();
+  if (p.ownerUid !== uid) throw new HrFel("permission-denied", "Bara läraren som skapade kartan kan ändra topplistan.");
+  return { ...p, id: pS.id, version: Number(p.version) || 1 };
+}
+
+/** Topplisteposter ur personbästa för packens nuvarande version (§11.5 punkt 2–3). */
+async function posterUrPersonbasta(deps, p) {
+  const { db, FieldPath } = deps;
+  const typ = p.type === "area" ? "area" : "point";
+  const best = await db.collection("hittaRattBest").where(new FieldPath("packs", p.id, "v"), "==", p.version).get();
+  if (best.empty) return {};
+  const ids = (Array.isArray(p.classIds) ? p.classIds : []).slice(0, GRANS.klasser);
+  const [studs, klasser] = await Promise.all([
+    db.getAll(...best.docs.map((d) => db.collection("students").doc(d.id))),
+    ids.length ? db.getAll(...ids.map((id) => db.collection("classes").doc(id))) : [],
+  ]);
+  const namn = new Map(studs.map((s) => [s.id, kortNamn(s.exists ? s.data().namn : "", 40) || "Elev"]));
+  const delade = klasser
+    .filter((k) => k.exists)
+    .map((k) => ({ name: kortNamn(k.data().name, 20) || "?", id: k.id, elever: new Set(k.data().studentIds || []) }))
+    .sort((a, b) => a.name.localeCompare(b.name, "sv") || (a.id < b.id ? -1 : 1));
+  const poster = {};
+  for (const d of best.docs) {
+    const pb = d.data().packs?.[p.id];
+    const klass = delade.find((k) => k.elever.has(d.id));
+    if (!pb || !klass) continue;
+    poster[d.id] = { n: namn.get(d.id), k: klass.name, ...matt(pb, typ), at: Number(pb.at) || 0 };
+  }
+  return poster;
+}
+
+export async function sattTopplista(deps, uid, data) {
+  const { db, FieldValue } = deps;
+  const packId = data?.packId;
+  if (typeof packId !== "string" || !EGEN_ID_RE.test(packId)) throw new HrFel("invalid-argument", "Okänd karta.");
+  if (typeof data.pa !== "boolean") throw new HrFel("invalid-argument", "Ange om topplistan ska vara på eller av.");
+  const r = refs(db, packId);
+  const flagga = (tx, kS, pa) => {
+    tx.update(r.pack, { leaderboard: pa });
+    if (kS.exists && kS.data().packs?.[packId]) {
+      tx.set(r.katalog, { packs: { [packId]: { leaderboard: pa } }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    }
+  };
+
+  if (!data.pa) {
+    return db.runTransaction(async (tx) => {
+      const [pS, kS] = await Promise.all([tx.get(r.pack), tx.get(r.katalog)]);
+      agarensPack(pS, uid);
+      await stangTopplistaTx(tx, deps, packId);
+      flagga(tx, kS, false);
+      return { leaderboard: false, tillagda: 0 };
+    });
+  }
+
+  // Tx 1: slå på + tom topplista för aktuell version.
+  const p = await db.runTransaction(async (tx) => {
+    const [pS, kS, bS] = await Promise.all([tx.get(r.pack), tx.get(r.katalog), tx.get(r.board)]);
+    const pack = agarensPack(pS, uid);
+    if (!bS.exists || bS.data().v !== pack.version) tx.set(r.board, tomTopplista(pack, FieldValue));
+    flagga(tx, kS, true);
+    return pack;
+  });
+
+  const poster = await posterUrPersonbasta(deps, p);
+
+  // Tx 2: fyll på det som saknas och räkna om ledarna.
+  return db.runTransaction(async (tx) => {
+    const [pS, bS, lS] = await Promise.all([tx.get(r.pack), tx.get(r.board), tx.get(r.ledare)]);
+    const nu = pS.exists ? pS.data() : null;
+    const b = bS.exists ? bS.data() : null;
+    if (!nu || nu.leaderboard !== true || (Number(nu.version) || 1) !== p.version || !b || b.v !== p.version) {
+      return { leaderboard: nu?.leaderboard === true, tillagda: 0 };
+    }
+    const typ = b.typ === "area" ? "area" : "point";
+    const entries = { ...(b.entries || {}) };
+    const nya = Object.keys(poster).filter((id) => !entries[id]);
+    nya.forEach((id) => { entries[id] = poster[id]; });
+    const leaders = raknaLedare(entries, typ);
+    if (nya.length || !sammaLista(b.leaders, leaders)) {
+      tx.set(r.board, { entries: Object.fromEntries(nya.map((id) => [id, poster[id]])), leaders, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    }
+    const iMeta = lS.exists ? lS.data().packs?.[packId] : null;
+    if (leaders.length && (!sammaLista(iMeta?.uids, leaders) || iMeta?.titel !== nu.title)) {
+      const scope = GEO_SCOPE[nu.geo];
+      tx.set(r.ledare, { packs: { [packId]: { uids: leaders, titel: nu.title, typ, ...(scope ? { scope } : {}) } }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    }
+    return { leaderboard: true, tillagda: nya.length };
   });
 }
 

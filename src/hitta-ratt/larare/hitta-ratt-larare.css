@@ -145,6 +145,7 @@
 .lhr-form select:focus { outline: none; border-color: var(--t-accent); }
 .lhr-form .field .hint, .lhr-mini .hint { font-weight: 500; }
 .lhr-falt { border: 0; margin: 0; padding: 0; min-width: 0; }
+.lhr-topplista { margin-top: 20px; } /* #635 kryssrutan Skoltopplista */
 .lhr-falt legend { font-weight: 650; margin-bottom: 6px; padding: 0; }
 .lhr-falt .hint { font-size: 0.85rem; margin: 6px 0 0; }
 .lhr-form select {
