@@ -38,7 +38,8 @@ export function termSegment(t, { unsigned = false } = {}) {
   const a = abs(c);
   if (!t.x) return { t: "term", text: formatSv(c) };
   if (a.n === 1 && a.d === 1) return { t: "term", text: `${sign}x` };
-  if (isInteger(a) || isDecimal(a)) return { t: "term", text: `${sign}${formatSv(a)}x` };
+  // x/a (täljaren 1) skrivs ALLTID med bråkstreck – även x/4, som annars blev 0,25x.
+  if (isInteger(a) || (isDecimal(a) && a.n !== 1)) return { t: "term", text: `${sign}${formatSv(a)}x` };
   const num = a.n === 1 ? "x" : `${a.n}x`;
   return { t: "term", text: `${sign}${num}/${a.d}`, num: `${sign}${num}`, den: String(a.d) };
 }

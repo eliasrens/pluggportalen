@@ -96,3 +96,75 @@ Ren logik: ingen DOM, ingen Firebase. Testas med `node --test`
 - `term.x` är en exponent (0/1); x · x spärras (`xProduct`) så modellen aldrig
   hamnar utanför linjära ekvationer.
 - `rules.maxDecimals` styr decimalspärren; `formatSv` visar decimalkomma.
+
+---
+
+## Den grafiska vågen (`src/ekvationsresan/vag*.js`, #617, E1.5)
+
+Kodritad SVG i Pluggportens stil (`art-style.js`: kontur `#3B3350`, portalens
+palett). Laddas bara dynamiskt; `vag.css` hämtas av komponenten
+(`ensureVagCss`), inte via `styles.css` – bootgrafen påverkas inte (#271).
+Förhandsvisning: `preview/preview-ekvationsresan-vag.html` (test 9–11 som
+knappar, alla teman och visningar i ett galleri). Tester:
+`test/ekvationsresan-vag.test.js`.
+
+| Fil | Ansvar |
+| --- | --- |
+| `vag-visning.js` | Valet av visning (`viewForEquation`, `chooseView`, `taskView`, `viewDuring`), teman (`THEMES`, `themeFor`). Ren logik. |
+| `vag-scen.js` | VAD som ligger i skålarna: bitar med stabila nycklar, fyra faser per drag (`movePhases`), hjälpens bild (`helpScene`). Ren logik. |
+| `vag-layout.js` | VAR bitarna ligger (föremål i rader om fem, block i rader, grupper i kolumner). Ren logik. |
+| `vag-konst.js` | SVG: ställning, bom, skålar, fem behållare + föremål, x-block, talbrickor, etiketter, grupper. Bara strängar. |
+| `vag.js` | Komponenten (DOM + Web Animations). |
+
+### Visning (tabellen i E1.5)
+
+- **Föremål:** alla tal under lösningen är heltal ≤ 20 (`x − 3` = "tre
+  föremål saknas", ritas som streckade hål), x högst 5 gånger, x i ett led,
+  lösningen och ledens värden positiva.
+- **Block:** tal upp till 100 – x-block (≤ 12 st, annars ett block "15x"),
+  bråkblock `x/4` och talbrickor med siffror.
+- **Stiliserad:** större tal – ledens uttryck som etiketter i skålarna.
+- "Under lösningen" = startekvationen **och** varje tillstånd längs den
+  optimala vägen (`x/4 = 6` slutar i `x = 24` → block). Generatorns
+  `task.display` räknas nu så (`scaleMode(eq)` finns kvar för ett tillstånd).
+- Under spelet: aldrig mindre abstrakt än uppgiftens visning; ett tillstånd som
+  kräver mer (eleven gör +30) lyfter visningen tills talen är små igen. Byte =
+  lugn övertoning (0,4 s). Gränserna i `VIEW_LIMITS`.
+
+### Animationer (0,9 s, aldrig blockerande)
+
+Varje drag är fyra faser – före, mitt, håll, efter – och varje bit animeras
+mellan dem via sin nyckel (transform/opacity, kompositerbart). Båda skålarna
+gungar likadant, så vågen är i balans hela tiden.
+
+- **−a:** a föremål lyfts (röd glöd) och flyger bort från båda sidor; finns för
+  få blir resten hål. Block: en skuldbricka "−13" landar på talbrickan.
+- **+a:** a föremål släpps ner; hål fylls först.
+- **÷a:** innehållet delas i a lika grupper med ramar, grupp 0 stannar och
+  resten tonas bort. Block: talbrickan delas i a brickor.
+- **·a:** a − 1 kopior poppar fram i grupper och blir det nya innehållet.
+- Ett nytt `visa()` under en animation hoppar direkt till slutet.
+- **Reducerad rörelse** (`prefers-reduced-motion` eller `reducedMotion: true`):
+  inga animationer, vågen byter direkt.
+
+### API
+
+```js
+const { createVag } = await import("./ekvationsresan/vag.js");
+const vag = createVag(host, { task, showEquation: true, diskret: task.type === "B" });
+vag.visa(run.current, { move: run.moves.at(-1) }); // efter playMove
+vag.visaHjalp(hint.scale);   // hjalp.js steg 2: {action:"groups",count} m.fl. → boolean
+vag.doljHjalp();
+vag.spelaLosning(revealSolution(run).steps); // "Visa lösningen"
+vag.setTask(nextTask);       // nytt tema och ny grundvisning, lugn övertoning
+```
+
+Vågen visas alltid med ekvationen (rubrik med bråkstreck för `x/4`);
+`showEquation: false` om spelvyn ritar ekvationen själv. `diskret` = typ B.
+
+### Förberett för Etapp 2
+
+x i båda leden och minustal ritas redan som block (minustal som streckade
+skuldbrickor, E2.2), negativa x-koefficienter som streckat etikettblock.
+Operander med x (`−2x`) animeras med den generella övertoningen tills en egen
+animation behövs (`movePhases`, grenen `simple`).
