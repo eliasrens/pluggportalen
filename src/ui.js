@@ -8,7 +8,7 @@
 import * as data from "./data.js";
 import { avatarMarkup, DEFAULT_AVATAR } from "./avatars.js";
 import { coinIcon, starIcon } from "./icons.js";
-import { hiddenModulesForStudent } from "./gamemode-visibility.js";
+import { modulesHiddenForStudent, OPT_IN_MODULES } from "./gamemode-visibility.js";
 
 export const app = document.getElementById("app");
 export const sidebar = document.getElementById("sidebar");
@@ -108,17 +108,19 @@ export function flash(text, isError = false) {
 }
 
 /**
- * Modulerna som lärarens klass-val döljer för den inloggade eleven (#412).
+ * Modulerna som lärarens klass-val döljer för den inloggade eleven (#412),
+ * inklusive opt-in-moduler som ingen av elevens klasser aktiverat (#605).
  * Läser den TTL-cachade klasslistan (ingen extra runda vid sidbyte). Fel →
- * [] (öppet, bakåtkompatibelt): en trasig läsning ska aldrig låsa ute eleven.
+ * bara opt-in-modulerna dolda: en trasig läsning ska aldrig låsa ute eleven,
+ * men heller aldrig visa en modul läraren inte slagit på.
  */
 export async function getHiddenModules() {
   const meId = data.currentStudentId();
-  if (!meId) return [];
+  if (!meId) return [...OPT_IN_MODULES];
   try {
-    return hiddenModulesForStudent(await data.getClasses(), meId);
+    return modulesHiddenForStudent(await data.getClasses(), meId);
   } catch {
-    return [];
+    return [...OPT_IN_MODULES];
   }
 }
 
@@ -243,6 +245,8 @@ const NAV_LANKAR = [
   { hash: "#/elev/shop", ikon: "🛒", label: "Shoppen", grupp: "profil", modul: "shop" },
   // Live (#460): bara när klassen har en lobby/pågående match.
   { hash: "#/elev/live", ikon: "⚡", label: "Live", grupp: "profil", villkor: "live" },
+  // Hitta rätt! (#605): opt-in per klass (enabledModules) – annars dold.
+  { hash: "#/elev/hitta-ratt", ikon: "🗺️", label: "Hitta rätt!", grupp: "profil", modul: "hittaratt" },
 ];
 
 /**

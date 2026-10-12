@@ -357,12 +357,22 @@ export const TOGGLABLE_MODULES = [
     routes: ["/elev/plugga", "/elev/omrade", "/elev/spela", "/elev/aventyr"] },
   { id: "lasresan", label: "Läsresan", routes: ["/elev/lasresan"] },
   { id: "shop", label: "Shoppen", routes: ["/elev/shop"] },
+  // Hitta rätt! (#605): OPT-IN – av tills läraren aktiverar den för klassen
+  // (classes/{id}.enabledModules). Läraren kan alltså inte "dölja" den utan
+  // bara slå på/av; en dold opt-in-modul syns inte ens via direktlänk.
+  { id: "hittaratt", label: "Hitta rätt!", routes: ["/elev/hitta-ratt"], optIn: true },
 ];
 
 /** Normalisera hiddenModules: bara kända modul-id, samma regler som lägen. */
 export function normalizeHiddenModules(v) {
   const kanda = new Set(TOGGLABLE_MODULES.map((m) => m.id));
   return normalizeHiddenModes(v).filter((id) => kanda.has(id));
+}
+
+/** Normalisera enabledModules (#605): bara kända OPT-IN-modul-id. */
+export function normalizeEnabledModules(v) {
+  const optIn = new Set(TOGGLABLE_MODULES.filter((m) => m.optIn).map((m) => m.id));
+  return normalizeHiddenModes(v).filter((id) => optIn.has(id));
 }
 
 /** Modul-id som äger elev-routen `path` (utan query), annars null. */
@@ -382,3 +392,24 @@ export function hiddenModulesForStudent(classes, meId) {
   const egna = classes.filter((c) => Array.isArray(c.studentIds) && c.studentIds.includes(meId));
   return [...new Set(egna.flatMap((c) => normalizeHiddenModules(c.hiddenModules)))];
 }
+
+/**
+ * Allt som är dolt för eleven (#605): hiddenModules (#412) PLUS de opt-in-
+ * moduler som INGEN av elevens klasser har aktiverat (enabledModules).
+ * Aktiverad i någon klass → syns, så länge ingen klass döljer den.
+ * Elev utan klass ser alltså inga opt-in-moduler.
+ * @param {Array<{studentIds?:string[], hiddenModules?:string[], enabledModules?:string[]}>} classes
+ * @param {string|null} meId
+ * @returns {string[]}
+ */
+export function modulesHiddenForStudent(classes, meId) {
+  const dolda = new Set(hiddenModulesForStudent(classes, meId));
+  const egna = !meId || !Array.isArray(classes) ? []
+    : classes.filter((c) => Array.isArray(c.studentIds) && c.studentIds.includes(meId));
+  const pa = new Set(egna.flatMap((c) => normalizeEnabledModules(c.enabledModules)));
+  for (const m of TOGGLABLE_MODULES) if (m.optIn && !pa.has(m.id)) dolda.add(m.id);
+  return [...dolda];
+}
+
+/** Opt-in-modulernas id – dolda när klasslistan inte gick att läsa. */
+export const OPT_IN_MODULES = TOGGLABLE_MODULES.filter((m) => m.optIn).map((m) => m.id);

@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Hitta rätt! – modulens stilar (src/hitta-ratt/hitta-ratt.css) · #605
+   Laddas av page-hitta-ratt.js först när eleven öppnar modulen (inte i
+   index.html/styles.css, så bootgrafen och elevsidans laddning påverkas
+   inte). Allt prefixat hr-. Bygger på Pluggportens tokens (01-grund.css).
+   ========================================================================== */
+
+.hr-start { max-width: 1100px; margin: 0 auto; }
+
+.hr-huvud {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.hr-huvud h1 { margin: 0 0 4px; }
+.hr-huvud .hint { margin: 0; }
+.hr-topplistor-knapp {
+  background: var(--orange); box-shadow: 0 5px 0 #c8742f;
+  white-space: nowrap;
+}
+.hr-topplistor-knapp:active { box-shadow: 0 1px 0 #c8742f; }
+
+.hr-kategori { margin: 0 0 26px; }
+.hr-kategori-namn {
+  font-size: 1.35rem; font-weight: 800; color: var(--text);
+  margin: 0 0 12px 4px;
+}
+
+.hr-kort-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.hr-kort {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--panel); border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk); padding: 18px;
+  border: 2px solid transparent;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+.hr-kort:hover { transform: translateY(-2px); border-color: #d6e6fb; }
+.hr-kort-topp { display: flex; align-items: center; gap: 12px; }
+.hr-kort-ikon { font-size: 2.1rem; line-height: 1; }
+.hr-kort-namn { margin: 0; font-size: 1.12rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+
+.hr-kort-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.hr-tagg {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.86rem; font-weight: 700; color: var(--text-svag);
+  background: var(--ljus); border-radius: 999px; padding: 2px 10px;
+}
+.hr-prick { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.hr-niva-gron { color: var(--gron-mork); background: #e3f6ea; }
+.hr-niva-gul { color: #9a6b00; background: #fdf3d3; }
+.hr-niva-rod { color: #c03b3b; background: #fde6e6; }
+
+/* Personbästa – diskret, tar alltid samma höjd så korten linjerar. */
+.hr-kort-bast { margin: 0; font-size: 0.88rem; color: var(--text-svag); min-height: 1.3em; }
+.hr-kort-bast b { color: var(--text); }
+
+.hr-spela { margin-top: auto; width: 100%; padding: 11px 20px; }
+
+/* Stubbvyer (spel = E #608, topplistor = F #609). */
+.hr-stub { max-width: 640px; text-align: center; }
+.hr-stub .big-emoji { font-size: 3rem; }
+
+@media (max-width: 560px) {
+  .hr-huvud { padding: 20px; }
+  .hr-topplistor-knapp { width: 100%; }
+  .hr-kort-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hr-kort, .hr-kort:hover { transition: none; transform: none; }
+}
