@@ -126,6 +126,10 @@
 
 @media (max-width: 760px) {
   .hr-tl-layout { grid-template-columns: 1fr; }
-  .hr-tl-rad { grid-template-columns: 2.6em 1fr; }
+  .hr-tl-lista { padding: 16px 12px; }
+  .hr-tl-rad { grid-template-columns: 2.4em 1fr auto; gap: 8px; padding: 7px 8px; font-size: 0.95rem; }
+}
+@media (max-width: 380px) {
+  .hr-tl-rad { grid-template-columns: 2.4em 1fr; }
   .hr-tl-res { grid-column: 2; white-space: normal; }
 }
