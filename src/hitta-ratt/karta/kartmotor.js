@@ -36,14 +36,17 @@
 //   k.setLage(lage), k.reset({ hem = true }), k.zoomIn(), k.zoomOut(), k.hem(), k.destroy()
 //     reset() = ny fråga: tömmer svar/resultat och glider tillbaka till startvyn
 //   k.matning() → senaste gestens bildrutor (preview/QA)
+//   k.satGissning(pos, { zooma }), k.markera(ids, { etikett })   bara lärarvyn (redigering.js)
 // ============================================================================
 
 import { tillKarta, tillLatLon, rutaTillKarta } from "./projektion.js";
 import { kopplaGester } from "./gester.js";
-import { vagRuta } from "./kamera.js";
+import { vagRuta, omslutRuta as ruta } from "./kamera.js";
 import { skapaKamerastyrning, VISA_LUFT } from "./kamerastyrning.js";
 import { skapaSkarmlager, svgEl as el } from "./skarmlager.js";
 import { ensureKartaCss } from "./karta-stil.js";
+import { skapaRedigering } from "./redigering.js";
+import { valjTraff } from "./traff.js";
 
 const KNAPP_ZOOM = 1.8;
 const TANGENT_STEG = 80; // px per piltryck
@@ -89,7 +92,8 @@ export function skapaKarta(yttre, geo, opts = {}) {
   for (const o of geo.omraden || []) {
     const path = el("path", { class: "hr-omrade", d: o.d, "data-id": o.id }, omradeG);
     const [x0, y0, x1, y1] = vagRuta(o.d);
-    omraden.set(o.id, { path, c: o.c || [(x0 + x1) / 2, (y0 + y1) / 2], diag: Math.hypot(x1 - x0, y1 - y0) });
+    const smal = Math.min(x1 - x0, y1 - y0); // smalaste mått i kartenheter (traff.js)
+    omraden.set(o.id, { path, c: o.c || [(x0 + x1) / 2, (y0 + y1) / 2], liten: o.liten, smal });
   }
   lager.sjoar = el("path", { class: "hr-sjoar", d: geo.lager?.sjoar || "" }, kamera);
   lager.vattendrag = el("path", { class: "hr-vattendrag", d: geo.lager?.vattendrag || "" }, kamera);
@@ -235,14 +239,13 @@ export function skapaKarta(yttre, geo, opts = {}) {
       rita();
       return;
     }
-    // Område: ringen (små områden) eller själva pathen. Sjöar/älvar har
-    // pointer-events:none, så klick i Vänern når landskapet under.
-    let traff = mal?.closest?.("[data-id]");
-    if (!traff) {
-      const r = vard.getBoundingClientRect();
-      traff = document.elementFromPoint(x + r.left, y + r.top)?.closest?.("[data-id]");
-    }
-    const id = traff?.getAttribute("data-id");
+    // Område: ytan under klicket (ringar borträknade) och ringarna som når
+    // dit avgör tillsammans (traff.js). Sjöar/älvar har pointer-events:none,
+    // så klick i Vänern når landskapet under.
+    const r = vard.getBoundingClientRect();
+    const yta = (mal?.classList?.contains("hr-omrade") ? mal : document.elementsFromPoint(x + r.left, y + r.top)
+      .find((e) => e.classList?.contains("hr-omrade") && vard.contains(e)))?.getAttribute("data-id") ?? null;
+    const id = valjTraff({ yta, smalast: (omraden.get(yta)?.smal ?? 0) * kam.kam.k, ringar: skarm.ringarVid(x, y) });
     if (id && omraden.has(id)) valj(id);
   }
 
@@ -252,7 +255,7 @@ export function skapaKarta(yttre, geo, opts = {}) {
   }
 
   function valj(id) {
-    if (valtId) omraden.get(valtId)?.path.classList.remove("vald");
+    rensaVal();
     valtId = id;
     const o = omraden.get(id);
     o.path.classList.add("vald");
@@ -260,6 +263,13 @@ export function skapaKarta(yttre, geo, opts = {}) {
     rita();
     emit("val", { id });
   }
+
+  function rensaVal() {
+    if (valtId) omraden.get(valtId)?.path.classList.remove("vald");
+    valtId = null;
+    kontur.vald.removeAttribute("d");
+  }
+  const red = skapaRedigering({ p, omraden, skarm, kam, rita, rensaVal });
 
   // Animera bara om något av områdena (ytterkanter) ligger utanför vyns inre
   // del (samma luft som visaRuta ger, så etiketten och ringen får plats).
@@ -287,6 +297,8 @@ export function skapaKarta(yttre, geo, opts = {}) {
     getVal: () => valtId,
     get lage() { return lage; },
     get last() { return last; },
+    satGissning: red.satGissning,
+    markera: red.markera,
     lock() { last = true; vard.classList.add("last"); rita(); },
 
     showResult({ guess, target, km, label } = {}) {
@@ -375,9 +387,4 @@ export function skapaKarta(yttre, geo, opts = {}) {
   storlek();
   api.reset({ hem: false });
   return api;
-}
-
-function ruta(punkter) {
-  const xs = punkter.map((q) => q[0]), ys = punkter.map((q) => q[1]);
-  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
 }

@@ -72,6 +72,12 @@ export function passaIn([x0, y0, x1, y1], W, H, luft = {}) {
 }
 
 /** Mjuk in-ut (kvadratisk) för t i [0, 1]. */
+/** Minsta ruta [x0, y0, x1, y1] runt punkterna [[x, y], …]. */
+export function omslutRuta(punkter) {
+  const xs = punkter.map((q) => q[0]), ys = punkter.map((q) => q[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+
 export function lattnad(t) {
   return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
 }

@@ -1,7 +1,7 @@
 {
  "geo": {
   "sverige-landskap": {
-   "kB": 176.4,
+   "kB": 176.5,
    "gzipKB": 70.3,
    "punkter": 34083,
    "omraden": 25,
@@ -13,7 +13,7 @@
    }
   },
   "sverige-lan": {
-   "kB": 167.5,
+   "kB": 167.7,
    "gzipKB": 67,
    "punkter": 31995,
    "omraden": 21,
@@ -25,7 +25,7 @@
    }
   },
   "europa": {
-   "kB": 166.9,
+   "kB": 167,
    "gzipKB": 67,
    "punkter": 31806,
    "omraden": 46,
@@ -37,8 +37,8 @@
    }
   },
   "varlden": {
-   "kB": 133,
-   "gzipKB": 49.5,
+   "kB": 133.2,
+   "gzipKB": 49.6,
    "punkter": 29060,
    "omraden": 166,
    "lager": {

@@ -18,6 +18,21 @@
 //      personbästa/topplista och krediterar coins EN gång) → resultatskärmen.
 //      Nätfel → "Försök igen" med SAMMA attemptId (idempotent).
 // Lämna-vakten (#605) är på från första frågan tills resultatet skickas.
+//
+// Egna pack (#633): deps.pack = färdigt pack eller en laddare () => Promise<pack>
+// (page-hitta-ratt.js läser hittaRattPacks). Då hämtas ingen packfil ur repot,
+// bara geofilen. startvy "auto"/"hel" räknas om till en ruta (hr-egna.js).
+// Serverns fel för egna pack (ändrad karta, inte delad, borttagen) får en egen
+// vy; "Starta ny omgång" laddar om packet.
+//
+// Bilder (#637): bild.id (eget pack) läses ur hittaRattBilder via hr-bild.js
+// (objectURL, nästa frågas bild förhämtas, allt frigörs när omgången lämnas);
+// bild.fil (officiellt) ligger i repot. Bild är frivillig per fråga, i båda
+// frågetyperna. Saknad bild → frågan visas utan bild.
+//
+// Provspel (#634, lärarvyn): deps.prov = true + deps.hem (lärarens route) +
+// lokala deps.data (rättning i klienten). Inga coins visas och resultatet
+// säger "Provspel – sparas inte".
 // ============================================================================
 
 import { app, el, go, loading, renderTopbar } from "../ui.js";
@@ -26,6 +41,8 @@ import { esc, formatTid } from "./hr-start-vy.js";
 import { blanda, skapaStoppur, skapaOmgang, berom, omradeText, formatKm } from "./hr-omgang.js";
 import { resultatHtml, sparFelHtml } from "./hr-resultat-vy.js";
 import { armeraLamnaVakt } from "./hr-lamna-vakt.js";
+import { arEget, egetSparFel, startvyAuto } from "./hr-egna.js";
+import { attributionHtml, skapaBildCache } from "./hr-bild.js";
 
 const HASH = "#/elev/hitta-ratt";
 const NASTA_SPARR_MS = 450;
@@ -53,41 +70,47 @@ function hamtaJson(rel) {
   return jsonCache.get(rel);
 }
 
-const bildUrl = (fil) => new URL(`./content/bilder/${fil}`, import.meta.url).href;
-
-function felVy(rubrik, text, igen) {
+function felVy(rubrik, text, igen, igenText = "Försök igen", hem = HASH) {
   const vy = el(`<div class="panel center hr-stub" role="alert">
     <div class="big-emoji" aria-hidden="true">🧭</div>
     <h2>${esc(rubrik)}</h2>
     <p class="hint">${esc(text)}</p>
     <div class="hr-res-knappar">
-      ${igen ? '<button class="btn gron" data-act="igen">Försök igen</button>' : ""}
+      ${igen ? `<button class="btn gron" data-act="igen">${esc(igenText)}</button>` : ""}
       <button class="btn hr-tillbaka" data-act="tillbaka">← Till kartorna</button>
     </div>
   </div>`);
-  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(hem));
   vy.querySelector('[data-act="igen"]')?.addEventListener("click", igen);
   app.replaceChildren(vy);
 }
 
 /**
  * Spela ett pack. `meta` = posten i index.json (id, title, type, geo …).
- * deps (tester/preview): { data: { startaForsok, skickaOmgang } }
+ * deps (tester/preview): { data: { startaForsok, skickaOmgang },
+ *   pack: eget pack | () => Promise<pack> (kastar { code: "not-found" } om det saknas),
+ *   prov: true = lärarens provspel, hem: route för "Tillbaka"/"Avsluta" }
  */
 export async function spelaPack(meta, deps = {}) {
+  const hem = deps.hem || HASH;
   let pack, geo, motor, data;
   try {
     [pack, motor, data] = await Promise.all([
-      hamtaJson(`packs/${meta.id}.json`),
+      typeof deps.pack === "function" ? deps.pack() : deps.pack || hamtaJson(`packs/${meta.id}.json`),
       import("./karta/kartmotor.js"),
       deps.data || import("./hr-data.js"),
     ]);
     geo = await hamtaJson(`geo/${pack.geo}.json`);
-  } catch {
-    felVy("Kartan gick inte att ladda", "Kontrollera uppkopplingen och försök igen.", () => spelaPack(meta, deps));
+  } catch (err) {
+    if (err?.code === "not-found") {
+      felVy("Kartan finns inte längre", "Läraren kan ha tagit bort kartan eller slutat dela den med din klass.", null, "", hem);
+    } else {
+      felVy("Kartan gick inte att ladda", "Kontrollera uppkopplingen och försök igen.", () => spelaPack(meta, deps), "Försök igen", hem);
+    }
     return;
   }
-  await nyOmgang({ pack, geo, motor, data });
+  if (typeof pack.startvy === "string") pack = { ...pack, startvy: startvyAuto(pack, geo) };
+  await nyOmgang({ meta, deps, pack, geo, motor, data, hem, prov: deps.prov === true });
 }
 
 async function nyOmgang(ctx) {
@@ -97,14 +120,14 @@ async function nyOmgang(ctx) {
   try {
     attemptId = await data.startaForsok(pack.id);
   } catch (err) {
-    felVy("Omgången kunde inte startas", err?.message || "Försök igen om en stund.", () => nyOmgang(ctx));
+    felVy("Omgången kunde inte startas", err?.message || "Försök igen om en stund.", () => nyOmgang(ctx), "Försök igen", ctx.hem);
     return;
   }
   spelaOmgang(ctx, attemptId);
 }
 
 function spelaOmgang(ctx, attemptId) {
-  const { pack, geo, motor } = ctx;
+  const { pack, geo, motor, prov } = ctx;
   const omrade = pack.type === "area";
   const ordning = blanda(pack.items);
   const omgang = skapaOmgang(pack, ordning);
@@ -112,6 +135,8 @@ function spelaOmgang(ctx, attemptId) {
   let godkanda = 0;
   let nastaFran = 0;
   let stadad = false;
+  let bildNr = 0;
+  const bilder = skapaBildCache();
 
   const vy = el(`<div class="hr-spel ${omrade ? "hr-spel-omrade" : "hr-spel-punkt"}">
     <div class="panel hr-spel-topp">
@@ -124,7 +149,8 @@ function spelaOmgang(ctx, attemptId) {
           ? `<span class="hr-spel-chip" data-v="tid" title="Aktiv svarstid – står still medan du tittar på svaret">⏱️ <b>0:00</b><span class="hr-spel-paus" hidden> · pausad</span></span>
              <span class="hr-spel-chip" data-v="ratt">✅ <b>0</b> rätt</span>`
           : `<span class="hr-spel-chip" data-v="poang">🎯 <b>0</b> p</span>`}
-        <span class="hr-spel-chip hr-spel-coins" data-v="coins" title="Coins den här omgången">${coinIcon(20)} <b>0</b></span>
+        ${prov ? `<span class="hr-spel-chip hr-spel-prov">Provspel</span>`
+          : `<span class="hr-spel-chip hr-spel-coins" data-v="coins" title="Coins den här omgången">${coinIcon(20)} <b>0</b></span>`}
       </div>
       <button class="btn hr-spel-avsluta" data-act="avsluta">Avsluta</button>
       <div class="hr-spel-bar" aria-hidden="true"><span></span></div>
@@ -176,6 +202,7 @@ function spelaOmgang(ctx, attemptId) {
     stadad = true;
     clearInterval(tick);
     karta.destroy();
+    bilder.rensa();
     avarmera?.();
     avarmera = null;
   }
@@ -193,7 +220,7 @@ function spelaOmgang(ctx, attemptId) {
     } else {
       $('[data-v="poang"] b').textContent = s.s;
     }
-    $('[data-v="coins"] b').textContent = godkanda;
+    if (!prov) $('[data-v="coins"] b').textContent = godkanda;
     $(".hr-spel-bar span").style.width = `${(100 * s.besvarade) / omgang.antal}%`;
   }
 
@@ -201,23 +228,7 @@ function spelaOmgang(ctx, attemptId) {
     const it = omgang.aktuell;
     karta.reset();
     $('[data-v="nr"]').innerHTML = `Fråga <b>${omgang.nr + 1}</b> av ${omgang.antal}`;
-    const bild = !omrade && it.bild;
-    const img = $(".hr-spel-bild");
-    img.hidden = !bild;
-    vy.classList.toggle("hr-spel-med-bild", !!bild);
-    $(".hr-spel-namn").hidden = !bild;
-    $(".hr-spel-foto").hidden = !bild;
-    if (bild) {
-      img.src = bildUrl(it.bild.fil);
-      img.alt = it.name;
-      img.width = it.bild.bredd;
-      img.height = it.bild.hojd;
-      $(".hr-spel-namn").textContent = it.name;
-      const b = it.bild;
-      $(".hr-spel-foto").innerHTML = `Foto: ${esc(b.fotograf || "okänd")}, <a href="${esc(b.licensUrl)}" target="_blank" rel="noopener">${esc(b.licens)}</a>, <a href="${esc(b.kallaUrl)}" target="_blank" rel="noopener">Wikimedia Commons</a>`;
-    } else {
-      img.removeAttribute("src");
-    }
+    visaBild(it);
     $(".hr-spel-prompt").textContent = it.prompt || (omrade ? `Hitta ${it.name}` : `Var ligger ${it.name}?`);
     feedback.className = "hr-spel-feedback";
     feedback.innerHTML = `<span class="hint">${omrade
@@ -231,9 +242,32 @@ function spelaOmgang(ctx, attemptId) {
     ritaMatt();
   }
 
+  function visaBild(it, bild = it.bild || null) {
+    const nr = ++bildNr;
+    const img = $(".hr-spel-bild");
+    const foto = $(".hr-spel-foto");
+    img.hidden = !bild;
+    vy.classList.toggle("hr-spel-med-bild", !!bild);
+    $(".hr-spel-namn").hidden = !bild;
+    foto.innerHTML = bild ? attributionHtml(bild, esc) : "";
+    foto.hidden = !foto.innerHTML;
+    img.removeAttribute("src");
+    if (!bild) return;
+    img.alt = it.name;
+    if (bild.bredd && bild.hojd) {
+      img.width = bild.bredd;
+      img.height = bild.hojd;
+    }
+    $(".hr-spel-namn").textContent = it.name;
+    bilder.url(bild).then((u) => {
+      if (stadad || nr !== bildNr) return;
+      if (u) img.src = u;
+      else visaBild(it, null); // saknad bild → frågan utan bild
+    });
+  }
+
   function forladdaNastaBild() {
-    const nasta = ordning[omgang.nr + 1];
-    if (!omrade && nasta?.bild) new Image().src = bildUrl(nasta.bild.fil);
+    bilder.forhamta(ordning[omgang.nr + 1]?.bild);
   }
 
   function las() {
@@ -274,7 +308,7 @@ function spelaOmgang(ctx, attemptId) {
     ritaMatt();
   }
 
-  const coinPop = () => `<span class="hr-fb-coin" aria-label="plus 1 coin">+1 ${coinIcon(18)}</span>`;
+  const coinPop = () => prov ? "" : `<span class="hr-fb-coin" aria-label="plus 1 coin">+1 ${coinIcon(18)}</span>`;
 
   function nasta() {
     if (!karta.last || nastaBtn.disabled || performance.now() < nastaFran) return;
@@ -289,7 +323,7 @@ function spelaOmgang(ctx, attemptId) {
 
   lasBtn.addEventListener("click", las);
   nastaBtn.addEventListener("click", nasta);
-  $('[data-act="avsluta"]').addEventListener("click", () => go(HASH)); // vakten frågar
+  $('[data-act="avsluta"]').addEventListener("click", () => go(ctx.hem)); // vakten frågar
 
   visaFraga();
 }
@@ -301,22 +335,27 @@ async function skicka(ctx, attemptId, svar) {
   try {
     res = await data.skickaOmgang(attemptId, svar);
   } catch (err) {
+    const eget = arEget(pack.id) && egetSparFel(err?.code, err?.message);
+    if (eget) {
+      felVy(eget.rubrik, eget.text, eget.igen ? () => spelaPack(ctx.meta, ctx.deps) : null, "Starta ny omgång", ctx.hem);
+      return;
+    }
     const vy = el(sparFelHtml(pack, err?.message));
     vy.querySelector('[data-act="spara-igen"]').addEventListener("click", () => skicka(ctx, attemptId, svar));
-    vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+    vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(ctx.hem));
     app.replaceChildren(vy);
     return;
   }
   // Coins krediterade på servern (hr-data.js har invaliderat cachen) → sidomenyns saldo.
-  if (res?.result?.godkanda > 0) renderTopbar().catch(() => {});
-  if (KLASS_EXP_PA && res?.result) {
+  if (!ctx.prov && res?.result?.godkanda > 0) renderTopbar().catch(() => {});
+  if (KLASS_EXP_PA && !ctx.prov && res?.result) {
     import("../klasscenter/kc-koppling.js")
       .then((m) => m.klassExpEfterOvning({ modul: "hittaratt", resultat: { ratt: res.result.godkanda, totalt: res.result.n } }))
       .catch(() => {});
   }
   const vy = el(resultatHtml(pack, res));
   vy.querySelector('[data-act="igen"]').addEventListener("click", () => nyOmgang(ctx));
-  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(HASH));
+  vy.querySelector('[data-act="tillbaka"]').addEventListener("click", () => go(ctx.hem));
   app.replaceChildren(vy);
   vy.querySelector('[data-act="igen"]').focus({ preventScroll: true });
 }

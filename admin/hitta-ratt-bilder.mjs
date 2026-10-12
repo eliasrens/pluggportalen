@@ -4,7 +4,8 @@
 // Offline-skript. Speltiden använder ALDRIG Commons – bilderna ligger i repot.
 // För varje item med `bildKalla: "File:…"`:
 //   1. Commons API (imageinfo + extmetadata): licens, fotograf, miniatyr-URL,
-//   2. godtar BARA Public domain, CC0, CC BY och CC BY-SA (vitlista),
+//   2. godtar BARA Public domain, CC0, CC BY och CC BY-SA (vitlistan i
+//      src/hitta-ratt/larare/commons.js – samma som lärarvyns bildsökning),
 //   3. laddar ner 960 px-miniatyren och gör WebP, max 800 px (sharp-cli via
 //      npx, pinnad; inga nya beroenden i package.json),
 //   4. skriver `bild { fil, bredd, hojd, kalla, fotograf, licens, licensUrl,
@@ -21,6 +22,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { BILD_DIR, PACK_DIR, formateraPack, lasJson } from "./hitta-ratt-delat.mjs";
+// Licensvitlistan och Artist-rensningen delas med lärarvyns bildsökning (#637).
+import { fotografUr, licens } from "../src/hitta-ratt/larare/commons.js";
 
 const CACHE = process.env.HR_GEO_CACHE || "/tmp/hitta-ratt-geo-cache";
 const SHARP = ["-y", "sharp-cli@5.1.0"];
@@ -29,24 +32,6 @@ const KVALITET = 72;
 const MAX_KB = 120;
 const UA = { "User-Agent": "Pluggporten-HittaRatt/1.0 (elevspel; admin-skript)" };
 const OM = process.argv.includes("--om");
-
-/** Commons-licens → { licens, licensUrl } eller null (inte godkänd). */
-function licens(meta) {
-  const kort = meta.LicenseShortName?.value || "";
-  const url = meta.LicenseUrl?.value || "";
-  const kod = (meta.License?.value || "").toLowerCase();
-  if (/^(pd|public domain)/.test(kod) || /^public domain/i.test(kort)) return { licens: "Public domain", licensUrl: "https://creativecommons.org/publicdomain/mark/1.0/" };
-  if (/^cc0/.test(kod)) return { licens: "CC0 1.0", licensUrl: "https://creativecommons.org/publicdomain/zero/1.0/" };
-  const m = kod.match(/^cc-(by|by-sa)-(\d\.\d)/);
-  if (m) return { licens: `CC ${m[1].toUpperCase()} ${m[2]}`, licensUrl: url.replace(/^http:/, "https:") || `https://creativecommons.org/licenses/${m[1]}/${m[2]}/` };
-  return null;
-}
-
-/** HTML → ren text (Artist-fältet innehåller ofta länkar). */
-function rensa(html) {
-  return (html || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'")
-    .replace(/&nbsp;/g, " ").replace(/&[a-z]+;/g, "").replace(/\s+/g, " ").trim();
-}
 
 const vanta = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -100,7 +85,7 @@ for (const f of packFiler) {
     const lic = licens(ii.extmetadata);
     if (!lic) throw new Error(`${p.id}/${it.id}: licensen "${ii.extmetadata.LicenseShortName?.value}" är inte godkänd – välj en annan bild`);
     // `bildFotograf` i itemet skriver över Commons Artist-fält när det är rörigt.
-    const fotograf = it.bildFotograf || rensa(ii.extmetadata.Artist?.value) || rensa(ii.extmetadata.Credit?.value) || "okänd";
+    const fotograf = it.bildFotograf || fotografUr(ii.extmetadata);
     const ra = join(CACHE, `ra-${it.id}`);
     execFileSync("curl", ["-sSfL", "-m", "120", "-A", UA["User-Agent"], "-o", ra, ii.thumburl || ii.url]);
     let q = KVALITET;

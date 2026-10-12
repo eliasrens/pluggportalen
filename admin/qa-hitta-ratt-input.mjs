@@ -10,6 +10,7 @@
 //     facit [km-öst]         klicka på rätt plats (punkt, +km österut) / rätt område
 //     plats <lon> <lat>      klicka på en lon/lat (punkt)
 //     omrade <nyckel>        klicka inne i området med packens nyckel (t.ex. NOR, uppland)
+//     larare-omrade <geo> <nyckel>  lärarens kartval (#636): klicka området utan aktivt pack
 //     hjul <deltaY> [n]      n hjulsteg mitt på kartan (negativt = zooma in)
 //     hjulvid <lon> <lat> <deltaY> [n]  hjulsteg över en lon/lat
 //     drag <dx> <dy>         dra kartan dx,dy px från mitten
@@ -21,6 +22,8 @@
 //     spela [fel-km] [n]     hela omgången: facit (+fel-km öst) → Lås → Nästa, n frågor (default alla);
 //                            område: fel-km > 0 = var fel-km:e fråga väljs fel område
 //   --touch: klick/drag/knapp skickas som touch i stället för mus.
+//   --packfil <sökväg>: lärarens egna pack (e-…, #633) finns inte på disk –
+//     peka ut en JSON-dump av hittaRattPacks/{id} i stället.
 // ============================================================================
 import { readFileSync } from "node:fs";
 
@@ -41,6 +44,7 @@ const flagga = (name) => {
 const PORT = opt("port", "9222");
 const URL_PART = opt("url", "127.0.0.1:86");
 const TOUCH = flagga("touch");
+const PACKFIL = opt("packfil", null);
 const [cmd, ...rest] = args;
 const ROOT = new URL("..", import.meta.url);
 const json = (p) => JSON.parse(readFileSync(new URL(p, ROOT), "utf8"));
@@ -145,9 +149,9 @@ const LAS = `(() => {
 const las = () => evalJs(LAS);
 
 function aktivtPack(s) {
-  const id = decodeURIComponent((s.hash.match(/pack=([^&]+)/) || [])[1] || "");
+  const id = decodeURIComponent((s.hash.match(/[?&](?:pack|prov)=([^&]+)/) || [])[1] || ""); // prov= = lärarens provspel (#634)
   if (!id) throw new Error(`Inget pack i hashen (${s.hash})`);
-  const pack = json(`src/hitta-ratt/content/packs/${id}.json`);
+  const pack = PACKFIL ? JSON.parse(readFileSync(PACKFIL, "utf8")) : json(`src/hitta-ratt/content/packs/${id}.json`);
   const geo = json(`src/hitta-ratt/content/geo/${pack.geo}.json`);
   return { pack, geo };
 }
@@ -248,6 +252,15 @@ switch (cmd) {
     const p = await omradesPunkt(omradeIdFor(pack, rest[0]));
     if (!p) throw new Error("området syns inte");
     await klick(p.x, p.y); ut = p; break;
+  }
+  case "larare-omrade": {
+    // Lärarens kartval (#636): inget aktivt pack – nyckeln slås upp i geons nycklar.
+    const id = json(`src/hitta-ratt/content/geo/${rest[0]}.nycklar.json`)[rest[1]];
+    await evalJs(`document.querySelector('.hr-karta')?.scrollIntoView({ block: 'center' })`);
+    await sleep(200);
+    const p = await omradesPunkt(id);
+    if (!p) throw new Error("området syns inte");
+    await klick(p.x, p.y); ut = { id, ...p }; break;
   }
   case "hjul": {
     const m = await mitt();

@@ -1489,6 +1489,37 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if false;
     }
+    // Lärarens egna pack (#633, epic #612, arkitektur §11.2): ett dok per
+    // pack med alla items. Katalogen hittaRattMeta/egnaPack täcks av regeln
+    // ovan. Läsning för alla inloggade (som subjects, #114) – synligheten per
+    // klass är ett UI-filter, poängen skyddas av hittaRattSubmit. Skriv bara
+    // via hittaRattSparaPack/RaderaPack (Admin SDK): reglerna kan inte loopa
+    // över items, så validering + versionsnollställning ligger på servern.
+    match /hittaRattPacks/{packId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    // Bilderna till egna pack (#637, arkitektur §11.8): inget Storage – läraren
+    // skalar ned bilden i webbläsaren (WebP/JPEG, ≤ 800 px, ≤ 120 kB) och
+    // skapar ETT dok per bild. id = <packId>--<8 tecken>. Ingen uppdatering
+    // (nytt id per bild); hittaRattSparaPack kontrollerar att packen bara pekar
+    // på egna bilder och raderar oanvända, hittaRattRaderaPack resten.
+    // Läsning som packen (eleven läser bara bilder i packet hen spelar).
+    match /hittaRattBilder/{bildId} {
+      allow read: if signedIn();
+      allow create: if isTeacher() &&
+        bildId.matches('^e-[a-z0-9]{12}--[a-z0-9]{8}$') &&
+        request.resource.data.keys().hasOnly(['ownerUid', 'packId', 'mime', 'bredd', 'hojd', 'data', 'skapad']) &&
+        request.resource.data.ownerUid == request.auth.uid &&
+        request.resource.data.packId == bildId.split('--')[0] &&
+        request.resource.data.mime in ['image/webp', 'image/jpeg'] &&
+        request.resource.data.data is bytes && request.resource.data.data.size() <= 150000 &&
+        request.resource.data.bredd is int && request.resource.data.bredd > 0 && request.resource.data.bredd <= 800 &&
+        request.resource.data.hojd is int && request.resource.data.hojd > 0 && request.resource.data.hojd <= 800 &&
+        request.resource.data.skapad == request.time;
+      allow update: if false;
+      allow delete: if isTeacher() && resource.data.ownerUid == request.auth.uid;
+    }
 
     // Allt annat nekas.
     match /{document=**} {

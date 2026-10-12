@@ -19,6 +19,11 @@
         { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" },
         { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
       ]
+    },
+    {
+      "collectionGroup": "hittaRattBilder",
+      "fieldPath": "data",
+      "indexes": []
     }
   ]
 }
