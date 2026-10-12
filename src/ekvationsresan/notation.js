@@ -17,6 +17,7 @@
 //   * ÷ och · av ett led med FLERA termer får parentes: (2x + 4) ÷ 2 = 14 ÷ 2
 //     – aldrig "2x + 4 ÷ 2". Ett led med en term: 2x ÷ 2 = 10 ÷ 2
 //   * multiplikation skrivs "·", division "÷", minus "−" (U+2212)
+//   * delning med ett negativt tal (#647, nivå 9+) får parentes: −2x ÷ (−2)
 //   * mellanled vid fördelning (rules.distributionStep, nivå 1–6):
 //       (2x + 4) ÷ 2 = 14 ÷ 2  →  2x ÷ 2 + 4 ÷ 2 = 7  →  x + 2 = 7
 //   * x delat med ett tal i UPPGIFTEN skrivs ALLTID med bråkstreck, x/4
@@ -60,9 +61,18 @@ export function sideSegments(side) {
   return out;
 }
 
-/** Elevens operation som ETT markerat segment: "÷ 2", "− 4". */
+/**
+ * Elevens operation som text: "÷ 2", "− 4". Delning med ett negativt tal
+ * (#647, nivå 9+) skrivs med parentes: "÷ (−2)".
+ */
+export function opText(op, operand) {
+  if (isNegative(coefOf(operand))) return `${OP_SYMBOL[op]} (${termSegment(operand).text})`;
+  return `${OP_SYMBOL[op]} ${termSegment(operand, { unsigned: true }).text}`;
+}
+
+/** Elevens operation som ETT markerat segment: "÷ 2", "− 4", "÷ (−2)". */
 export function opSegment(op, operand) {
-  return { t: "op", text: `${OP_SYMBOL[op]} ${termSegment(operand, { unsigned: true }).text}`, mark: "op" };
+  return { t: "op", text: opText(op, operand), mark: "op" };
 }
 
 /** Inget mellanslag efter "(" / "3(" eller före ")". */

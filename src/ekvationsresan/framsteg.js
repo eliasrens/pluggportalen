@@ -36,6 +36,14 @@ export const RECENT_MAX = 10;
 export const TASK_ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
 
 const int = (v, min = 0) => (Number.isInteger(v) && v >= min ? v : min);
+/**
+ * Fick eleven hjälp på uppgiften? Alla hjälptryck räknas: 💡 (minst steg 1),
+ * "Visa lösningen" och visade svar i C–F – samma mått som färdighetsmodellens
+ * `h` (fardigheter.observera), så lärarens "💡 %" stämmer med meningarna (#647).
+ */
+export const behovdeHjalp = (attempt) =>
+  int(attempt?.helpMax) > 0 || !!attempt?.revealed || (Array.isArray(attempt?.answers) && attempt.answers.some((a) => a?.visad));
+
 const clampLevel = (v) => Math.max(LEVEL_MIN, Math.min(LEVEL_MAX, int(v, LEVEL_MIN)));
 
 export function defaultProgress() {
@@ -48,7 +56,7 @@ export function defaultProgress() {
     solved: 0,
     revealed: 0, //      "Visa lösningen"
     stars: [0, 0, 0, 0], // antal uppgifter med 0/1/2/3 stjärnor
-    helpTasks: 0, //     uppgifter där 💡 användes (minst steg 1)
+    helpTasks: 0, //     uppgifter med hjälp: 💡, Visa lösningen eller visat svar (behovdeHjalp)
     movesSolved: 0, //   summa drag i lösta uppgifter …
     optimalSolved: 0, // … och deras optimala drag (lärarens "drag jämfört med optimalt")
     coins: 0, //         intjänat i Ekvationsresan (saldot är studentData.coins)
@@ -220,7 +228,7 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
     solved: p.solved + (attempt.solved ? 1 : 0),
     revealed: p.revealed + (attempt.revealed ? 1 : 0),
     stars,
-    helpTasks: p.helpTasks + (attempt.helpMax > 0 ? 1 : 0),
+    helpTasks: p.helpTasks + (behovdeHjalp(attempt) ? 1 : 0),
     movesSolved: p.movesSolved + (countMoves ? attempt.moveCount : 0),
     optimalSolved: p.optimalSolved + (countMoves ? attempt.optimalMoves : 0),
     coins: p.coins + int(attempt.coins),

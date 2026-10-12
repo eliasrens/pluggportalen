@@ -28,8 +28,8 @@
 
 import { coefOf, simplifySide, term } from "./equation.js";
 import { q, isInteger, isZero, formatSv } from "./rational.js";
-import { termSegment, sideSegments, rowText } from "./notation.js";
-import { OP_SYMBOL, normalizeOp } from "./operand.js";
+import { termSegment, sideSegments, rowText, opText } from "./notation.js";
+import { normalizeOp } from "./operand.js";
 
 export const SIDES = Object.freeze(["L", "R"]);
 export const sideOf = (eq, S) => (S === "L" ? eq.left : eq.right);
@@ -100,7 +100,7 @@ export function replicate(pieces, a, S) {
 const badge = (S, op, operand) => ({
   key: `${S}:badge`,
   kind: "badge",
-  text: `${OP_SYMBOL[op]} ${termSegment(operand, { unsigned: true }).text}`,
+  text: opText(op, operand),
   op,
   enter: "pop",
 });

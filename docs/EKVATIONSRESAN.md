@@ -260,7 +260,7 @@ lobby. Tester: `test/ekvationsresan-spelvy.test.js`,
 | `level`, `window`, `maxLevel` | Nivå 1–6 (1–12 tillåtet i reglerna), fönstret (stjärnor 0–3, ≤ 10) för anpassning.js, högsta nivå |
 | `tasks`, `solved`, `revealed` | Antal uppgifter, lösta, "Visa lösningen" |
 | `stars` | `[0★, 1★, 2★, 3★]` – fördelningen |
-| `helpTasks` | Uppgifter där 💡 användes |
+| `helpTasks` | Uppgifter med hjälp: 💡, "Visa lösningen" eller visat svar (`framsteg.behovdeHjalp`, #647; före #647 bara 💡) |
 | `movesSolved`, `optimalSolved` | Drag och optimala drag i lösta uppgifter (lärarens "drag jämfört med optimalt") |
 | `coins` | Mynt intjänade i Ekvationsresan (saldot är `studentData.coins`) |
 | `recent` | `[{ l, s }]` senaste 10 (nivå, stjärnor) – lärarens trend ↗/→/↘ |
@@ -329,13 +329,15 @@ stil som Läsresan (lrt-/lrn-/cx-klasserna) + egna `ekt-`-stilar i
 | Fil | Ansvar |
 | --- | --- |
 | `ekvationsresan/larare.js` | Ren logik: `klassRader` (ur `teacherSummary`), sortering (namn/nivå/uppgifter), `forsokRader`, `nivaKurva`, `rakneGang` (replayRows; vid "Visa lösningen" skiljs elevens rader från de visade), texter för nivåstyrningen. |
-| `teacher-ekvationsresan.js` | Klassöversikten (Elev, Nivå, Trend ↗→↘, Uppgifter, ⭐⭐⭐/⭐⭐/⭐, Lösta %, Hjälp %, Drag jämfört med optimalt) + kortet "Ändra nivå för hela klassen" (bekräftelsedialogen från Läsresan). Varnar om modulen är avstängd för klassen. |
+| `teacher-ekvationsresan.js` | Klassöversikten (Elev, I korthet, Nivå, Trend ↗→↘, Uppgifter, ⭐⭐⭐/⭐⭐/⭐, Lösta %, 💡 %, Drag jämfört med optimalt) + kortet "Ändra nivå för hela klassen" (bekräftelsedialogen från Läsresan). Varnar om modulen är avstängd för klassen. |
 | `teacher-ekvationsresan-elev.js` | Elevdetaljen: nyckeltal, "Ändra nivå", nivåkurva, de senaste 20 uppgifterna; klick på en uppgift visar elevens räknegång som MIN LÖSNING (`min-losning.rowsHtml`). |
 | `ekv-data.js` | `getClassEkvationsresa(ids)` (ett progressdokument per elev), `setClassLevel(ids, nivå)`, `setStudentLevel` (befintligt dokument: `update` av bara nivåfälten). |
 
 - **Kvot (#231):** översikten läser ett progressdokument per elev, en gång
   (Läsresans mönster); försöken läses bara för EN elev i detaljen.
-- **Hjälp %** = uppgifter där 💡 användes. "Visa lösningen" syns som ej löst.
+- **💡 %** (hette "Hjälp %" före #647) = uppgifter med hjälp: alla hjälptryck,
+  inklusive "Visa lösningen" och visade svar (tooltip). "Visa lösningen" syns
+  dessutom som ej löst.
 - **Drag** = extra drag per löst uppgift jämfört med optimalt (+0,5 / ±0).
 - **Ej börjat** = inga uppgifter än (även om läraren satt en nivå).
 - **Nivåstyrning:** ny nivå, tomt fönster, `current: null` (ny uppgift på
@@ -523,7 +525,8 @@ vanligt. "Försök igen" behåller `fokus`.
 
 ### Lärarvyn (E2.5)
 
-- **Klassöversikten** har kolumnen **I korthet**: det första eleven har svårt
+- **Klassöversikten** har kolumnen **I korthet** (direkt efter namnet sedan
+  #647, så att den syns utan sidscroll på 1366×768): det första eleven har svårt
   för + det första hen behärskar (alla meningar i tooltip). Räknas ur samma
   progressdokument som förut – inga fler läsningar (#231).
 - **Elevdetaljen** har "Vad eleven kan": meningarna, behärskar / har svårt för
@@ -610,3 +613,36 @@ Beslut ur de öppna frågorna i `docs/QA-RAPPORT-ekvationsresan-etapp1.md`:
   Etapp 2-former läser det via `xLo(p)` i `forms.js`. Decimallösningar
   (`ax+b=c:xdec`, t.ex. 2,5) är alltid > 2; decimalkoefficienterna (`dx=c`,
   `dx+b=ex+f`) ger heltals-x ≥ 2. Extrautmaningar saknar `xMin` (oförändrade).
+
+## 12. Finputs efter Etapp 2 (#647, epic #646)
+
+Beslut ur de öppna frågorna i `docs/QA-RAPPORT-ekvationsresan-etapp2.md`.
+Behålls (ingen kodändring):
+
+1. **En misslyckad fokusuppgift räknas inte i nivåfönstret**
+   (`FARDIGHET.skyddStjarnor`, #626) – en uppgift som valts för att öva en
+   svaghet ska inte kunna sänka nivån.
+2. **Extrautmaningarna låses upp på nivå 7** (`EXTRA.minLevel`, #627).
+3. **LEVEL_MAX 12** syns i elevens nivåöversikt och i lärarens nivåväljare.
+4. **Extraförsök påverkar inte färdighetsmodellen** (#627). De syns i
+   försökslistan men inte i "Vad eleven kan".
+
+Ändrat:
+
+- **O1 – "I korthet"** ligger direkt efter Elev i klassöversikten
+  (`larare.KOLUMNER`, `teacher-ekvationsresan.js`), så att den syns utan
+  sidscroll på 1366×768.
+- **O2 – "💡 %"** ersätter "Hjälp %". Tooltip: "Alla hjälptryck, inklusive
+  Visa lösningen och visade svar". `helpTasks` räknas nu med
+  `framsteg.behovdeHjalp` (💡 ≥ 1, `revealed` eller ett `answers[].visad`) –
+  samma mått som färdighetsmodellens `h`, så siffran stämmer med meningarna.
+  Äldre försök (före #647) räknades bara med 💡; siffran kan därför vara lite
+  för låg för elever med gamla försök tills nya uppgifter kommer till.
+- **O3 – ÷ ett negativt tal** från nivå 9 (`rules.allowNegative`):
+  talfältet tar `/-2`, `÷ -2`, `÷ (−2)` och `÷ −2` (`operand.parseOperand`;
+  U+2212 normaliseras till `-`). Räknegången och vågens bricka skriver
+  `−2x ÷ (−2) = −12 ÷ (−2)` (`notation.opText`). Bara division tar ett
+  negativt tal; under nivå 9 blir det samma "Det där kan jag inte läsa" som
+  förut. Talfältet släpper igenom parenteser och tar 10 tecken. Generatorn
+  och hjälpen föreslår aldrig negativa operander. Tester:
+  `test/ekvationsresan-finputs.test.js`.

@@ -40,7 +40,7 @@ export function shellHtml() {
           <div class="ekv-ops" role="group" aria-label="Välj räknesätt">
             ${OP_KNAPPAR.map((k) => `<button type="button" class="ekv-op" data-op="${k.op}" title="${k.namn}" aria-label="${k.namn}">${k.label}</button>`).join("")}
           </div>
-          <input class="ekv-falt" type="text" inputmode="text" maxlength="8" enterkeyhint="send"
+          <input class="ekv-falt" type="text" inputmode="text" maxlength="10" enterkeyhint="send"
             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
             aria-label="Skriv räknesätt och tal, till exempel −4 eller /2" placeholder="−4" />
           <button type="submit" class="ekv-gor">GÖR</button>

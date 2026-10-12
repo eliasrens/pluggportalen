@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ekvationsresan – finputs #647</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../src/styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <main id="app" class="container"></main>
+    </div>
+
+    <script type="module">
+      // #647 (epic #646): STUBBAD preview – ingen inloggning, ingen Firestore.
+      //   ?vy=larare  klassöversikten (riktiga teacher-ekvationsresan.js) med
+      //               progressdokument byggda ur riktiga spelade försök:
+      //               "I korthet" efter namnet, "💡 %" med tooltip.
+      //   ?vy=niva9   spelvyn (riktiga spelvy.js) på nivå 9 med 3x + 17 = 5x + 5;
+      //               −5x, −17 och sedan ÷ -2 / ÷ (−2) i talfältet.
+      import { el, icon, teacherNav, teacherHead } from "/src/teacher-shared.js";
+      import { renderClassEkvationsresan } from "/src/teacher-ekvationsresan.js";
+      import { generateTask, seededRng } from "/src/ekvationsresan/generator.js";
+      import { startRun, playMove } from "/src/ekvationsresan/losning.js";
+      import { fromJSON, parseEquation, solve, toJSON, equationKey } from "/src/ekvationsresan/equation.js";
+      import { taskResult } from "/src/ekvationsresan/resultat.js";
+      import { revealSolution } from "/src/ekvationsresan/hjalp.js";
+      import { applyCompletion, buildAttempt, normalizeProgress } from "/src/ekvationsresan/framsteg.js";
+      import { rulesFor } from "/src/ekvationsresan/config.js";
+      import { optimalPath } from "/src/ekvationsresan/solver.js";
+      import { chooseView, statesAlong } from "/src/ekvationsresan/vag-visning.js";
+      import { equationRow } from "/src/ekvationsresan/notation.js";
+
+      const app = document.getElementById("app");
+      const ctx = { app, go: () => {}, renderTopbar: () => {} };
+      const vy = new URLSearchParams(location.search).get("vy") || "larare";
+      const rng = seededRng("preview-647");
+      let n = 0;
+
+      function play(level, { extra = 0, help = 0, reveal = false } = {}) {
+        const task = generateTask(level, { rng, type: "A" });
+        let run = startRun(fromJSON(task.equation), { rules: rulesFor(level) });
+        for (let i = 0; i < extra; i++) run = playMove(playMove(run, "+1").run, "-1").run;
+        const own = run.moves.length;
+        if (reveal) run = revealSolution(run).run;
+        else for (const m of task.optimalPath) run = playMove(run, "n" in m ? { op: m.op, operand: { n: m.n, d: m.d, x: m.x } } : m).run;
+        const result = taskResult(task, run, { maxStep: help });
+        const at = Date.now() - (100 - ++n) * 3600e3;
+        return buildAttempt({ id: `p${String(n).padStart(9, "0")}`, task, run, help: { log: Array(help).fill(1) }, result, ownMoves: own, completedAt: at });
+      }
+      function progressFor(level, plays) {
+        let p = normalizeProgress({ level, maxLevel: level });
+        for (const o of plays) p = applyCompletion(p, play(p.level, o), { now: Date.now() }).progress;
+        return p;
+      }
+      const rep = (k, o = {}) => Array.from({ length: k }, () => ({ ...o }));
+
+      async function larare() {
+        const students = [
+          { id: "s1", namn: "Astrid Lind", username: "astrid.7a", avatarId: "lion" },
+          { id: "s2", namn: "Bo Ek", username: "bo.7a", avatarId: "frog" },
+          { id: "s3", namn: "Låg Lova", username: "lova.7a", avatarId: "owl" },
+          { id: "s4", namn: "Cleo Nyström", username: "cleo.7a", avatarId: "unicorn" },
+          { id: "s5", namn: "Dan Holm", username: "dan.7a", avatarId: "robot" },
+          { id: "s6", namn: "Elsa Åberg", username: "elsa.7a", avatarId: "cat" },
+        ];
+        const PROG = {
+          s1: progressFor(3, [...rep(4), ...rep(3, { help: 4 }), ...rep(5, { reveal: true }), ...rep(2)]),
+          s2: null,
+          s3: progressFor(4, [...rep(3, { help: 1 }), ...rep(3, { reveal: true }), ...rep(5)]),
+          s4: progressFor(9, [...rep(10), ...rep(2, { extra: 1 })]),
+          s5: progressFor(6, [...rep(4, { extra: 2 }), ...rep(2, { help: 2 }), ...rep(4)]),
+          s6: progressFor(10, [...rep(8), ...rep(3, { reveal: true }), ...rep(1, { help: 1 })]),
+        };
+        const fake = (v) => new Promise((r) => setTimeout(() => r(v), 150));
+        const api = {
+          loadClass: (ids) => fake(ids.filter((id) => PROG[id]).map((studentId) => ({ studentId, progress: PROG[studentId] }))),
+          loadAttempts: () => fake([]),
+          setStudentLevel: () => fake({}),
+          setClassLevel: () => fake([]),
+        };
+        const container = el(`<div class="teacher-page teacher-dark"></div>`);
+        container.appendChild(teacherNav(ctx, "klasser"));
+        container.appendChild(teacherHead(ctx, { icon: "users", title: "Klasser & elever" }));
+        const card = el(`<div class="panel class-card" style="max-width: 962px">
+          <div class="class-head"><div class="class-title">
+            <span class="class-emoji" aria-hidden="true">${icon("school", 22)}</span>
+            <span class="class-name">7A</span><span class="class-count">${students.length} elever</span>
+          </div></div>
+          <div class="class-stats"><div class="stats-pane"></div></div>
+        </div>`);
+        container.appendChild(card);
+        app.replaceChildren(container);
+        const cls = { id: "7a", name: "7A", studentIds: students.map((s) => s.id), enabledModules: ["ekvationsresan"] };
+        renderClassEkvationsresan(ctx, card.querySelector(".stats-pane"), { students, cls, api });
+      }
+
+      async function niva9() {
+        for (const fil of ["ekvationsresan.css", "typer.css"]) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = `/src/ekvationsresan/${fil}`;
+          document.head.appendChild(link);
+        }
+        const { ensureVagCss } = await import("/src/ekvationsresan/vag.js");
+        const { createSpelvy } = await import("/src/ekvationsresan/spelvy.js");
+        await ensureVagCss();
+        const level = Number(new URLSearchParams(location.search).get("niva") || 9);
+        const equation = parseEquation(new URLSearchParams(location.search).get("ekv") || "3x + 17 = 5x + 5");
+        const s = solve(equation);
+        const best = optimalPath(equation, rulesFor(level));
+        const task = {
+          schema: 1, level, form: "qa", type: "A", key: equationKey(equation), equation: toJSON(equation),
+          text: equationRow(equation, "start").text, solution: { n: s.n, d: s.d },
+          optimalMoves: best.moves, optimalPath: best.path,
+          display: chooseView(statesAlong(equation, best.path, rulesFor(level))),
+        };
+        const progress = normalizeProgress({ level, maxLevel: level });
+        const host = el(`<div class="ekv-rot"></div>`);
+        app.replaceChildren(host);
+        createSpelvy(host, {
+          progress,
+          current: { id: "preview647task", at: Date.now(), task },
+          save: async () => ({ progress, change: null, to: level, next: { id: "preview647next", at: Date.now(), task }, coins: 0 }),
+          retry: async () => ({ progress, current: { id: "preview647retry", at: Date.now(), task } }),
+          reenter: () => location.reload(),
+        });
+      }
+
+      (vy === "niva9" ? niva9() : larare()).catch((err) => {
+        console.error(err);
+        app.textContent = `Fel: ${err.message}`;
+      });
+    </script>
+  </body>
+</html>

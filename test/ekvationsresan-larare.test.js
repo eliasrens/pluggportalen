@@ -49,7 +49,7 @@ function student(level, plays) {
 }
 
 test("test 25: klassöversiktens kolumner och värden räknas ur progressdokumentet", () => {
-  assert.deepEqual(KOLUMNER.map((c) => c.label), ["Elev", "Nivå", "Trend", "Uppgifter", "⭐⭐⭐ / ⭐⭐ / ⭐", "Lösta %", "Hjälp %", "Drag jämfört med optimalt", "I korthet"]);
+  assert.deepEqual(KOLUMNER.map((c) => c.label), ["Elev", "I korthet", "Nivå", "Trend", "Uppgifter", "⭐⭐⭐ / ⭐⭐ / ⭐", "Lösta %", "💡 %", "Drag jämfört med optimalt"]);
   const a = student(3, [{}, {}, { extra: 1 }, { help: 1 }, { reveal: true }]);
   const rows = klassRader([
     { studentId: "a", namn: "Astrid", progress: a.progress },
@@ -63,7 +63,7 @@ test("test 25: klassöversiktens kolumner och värden räknas ur progressdokumen
   assert.equal(ra.stars.two, 1, "omvägen (+2 drag) ger ⭐⭐");
   assert.equal(ra.stars.none, 1, "Visa lösningen = ej löst");
   assert.equal(ra.solvedPct, 80);
-  assert.equal(ra.helpPct, 20, "hjälp % = uppgifter med 💡 (Visa lösningen syns som ej löst)");
+  assert.equal(ra.helpPct, 40, "💡 % = alla hjälptryck: 💡 och Visa lösningen (#647)");
   assert.equal(ra.extraMoves, 0.5, "2 extra drag / 4 lösta");
   assert.equal(dragText(ra.extraMoves), "+0,5");
   assert.equal(rb.started, false);

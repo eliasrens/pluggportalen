@@ -180,7 +180,8 @@ test("talfältet: knapparna skriver tecknet först, tangentbordets text rensas",
   assert.equal(withOp("", "*"), "·");
   assert.equal(cleanInput("-4a "), "-4");
   assert.equal(cleanInput(":2"), ":2");
-  assert.equal(cleanInput("1234567890"), "12345678");
+  assert.equal(cleanInput("123456789012"), "1234567890");
+  assert.equal(cleanInput("÷ (−2)"), "÷(−2)", "#647: parenteser släpps igenom");
 });
 
 test("test 23: Ekvationsresan är opt-in – av som standard, på när klassen slår på den", () => {
