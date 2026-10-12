@@ -9,6 +9,9 @@
 # #609: även Functions-emulatorn (hittaRattSubmit) + qa-hitta-ratt-topplista-seed.mjs
 # (40 elever som spelat via serverkärnan, Hitta rätt! PÅ för qa-klass) →
 # elev1 / lilla123 → 🏆 Topplistor: test 3, 5, 6, 10.
+# #610: + qa-hitta-ratt-pokal-seed.mjs → elev1:s rum (#/elev/rum) har en utställd
+# Kartmästare-pokal, en i Möbler-lådan och en tappad (ska vara borta); Sagas rum
+# (#/elev/klasskamrat?id=hr-elev05) visar hennes. Ledarbyte live: … pokal-seed.mjs --byt
 #
 #   bash admin/qa-hitta-ratt-preview.sh          # FS 8605, Auth 9605, Functions 5605, proxy 8606
 #   FS=8600 AUTH=9600 FN=5600 PROXY=8601 bash admin/qa-hitta-ratt-preview.sh
@@ -51,6 +54,7 @@ cd "$REPO"
 echo "▶ seed…"
 node admin/qa-lasresan-seed.mjs | tail -1
 node admin/qa-hitta-ratt-topplista-seed.mjs
+node admin/qa-hitta-ratt-pokal-seed.mjs
 
 echo "▶ proxy på $PROXY…"
 (cd "$DIR" && PORT=$PROXY FUNCTIONS_EMULATOR_HOST=127.0.0.1:$FN setsid -f node "$REPO/admin/qa-emulator-proxy.mjs" > "$DIR/proxy.log" 2>&1 < /dev/null)

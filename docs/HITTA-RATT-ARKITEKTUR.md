@@ -488,6 +488,32 @@ Mönstret finns redan: Guldrushens functions (#563) och `updateStudentLogin`.
   coins, resultatskärm). Preview: `admin/qa-hitta-ratt-preview.sh`.
 - Klass-EXP-kroken är avstängd (`KLASS_EXP_PA = false`, se §10 fråga 4).
 
+**Levererat i G #610 (Kartmästare-pokalerna):**
+- Ingen ägd sak (§0): `src/hitta-ratt/hr-pokal.js` (ren) – `minaPokaler(meta, uid)`
+  ger de pack där eleven finns i `hittaRattMeta/ledare.packs.{id}.uids`
+  (delad etta = alla ettor; `av: true` eller tom lista = ingen pokal).
+  `rensaPokaler` tar bort placeringar som inte längre gäller.
+- `src/hitta-ratt/hr-pokal-art.js`: jordglobspokal, unik per pack (motiv ur
+  kategorin, kartnål/område ur typen, rosettfärg ur packId). 2,85 rums-enheter
+  bred (Klasscentrets pokaler 3,17).
+- `src/hitta-ratt/hr-pokal-rum.js` (dynamisk): EN läsning av ledardokumentet,
+  cachad 60 s och nollad av `skickaOmgang`. `varld-rum.js` ritar pokalen som
+  en golvsak (nyckel `hrpokal-<packId>`, samma drag/🗑️ som möbler), lägger
+  oplacerade först i Möbler-lådan och städar + sparar placeringar för tappade
+  pokaler. `pages-klasskamrat.js` visar kamratens utställda pokaler (läsläge).
+  Hover/vald: skylt "🏆 Kartmästare – Skolrekord {titel}" (`hr-pokal.css`).
+- Servern: oförändrad tilldelning (F:s transaktion). Ny `stangTopplista(deps,
+  packId)` i `functions/hitta-ratt-core.js` – förberedd toggle för epic 2/2,
+  tar bort topplistan och `ledare.packs.{id}` i en transaktion, idempotent,
+  ännu inte kopplad till någon callable.
+- Test 12: `test/hitta-ratt-pokal.test.js`, `test/functions-hitta-ratt-pokal.test.mjs`
+  (tilldelning, delad etta punkt/område, ledarbyte även utställd, 6 samtidiga
+  resultat, två pack samtidigt, omförsök, stängning),
+  `test/firestore-rules-hitta-ratt-pokal.test.js`. Preview:
+  `admin/qa-hitta-ratt-pokal-seed.mjs` (körs av `qa-hitta-ratt-preview.sh`) och
+  `preview/preview-hitta-ratt-pokal.html` (alla 12 pokaler).
+- Ingen regeländring, ingen ny deploy utöver F:s.
+
 ### 4.2 Hot och skydd
 
 | Hot | Skydd |

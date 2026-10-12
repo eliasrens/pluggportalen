@@ -27,6 +27,12 @@
 // taBortElev(deps, uid) – admin/delete-student.mjs: tar bort elevens entry ur
 // alla topplistor, räknar om ledarna, raderar personbästa och försök.
 //
+// stangTopplista(deps, packId) – FÖRBEREDD för epic 2/2 (läraren stänger av
+// "Skoltopplista" för ett eget pack, #610): topplistan och packens ledare tas
+// bort i EN transaktion → Kartmästare-pokalen försvinner ur alla hus vid nästa
+// rendering (huset ritar bara pack som finns i hittaRattMeta/ledare).
+// Idempotent. Anropas ännu inte av någon callable.
+//
 // API (deps = { db, FieldValue, Timestamp, now?(), packs? })
 //   submit → { packId, leaderboard, result, pb, nyttRekord, coins,
 //              top, egen, plats, antal }   (rader: { plats, n, k, s | r,t, jag })
@@ -209,4 +215,24 @@ export async function taBortElev(deps, uid) {
   batch.delete(db.collection("hittaRattBest").doc(uid));
   await batch.commit();
   return { boards: andrade, attempts: forsok.size };
+}
+
+/**
+ * Stäng av ett packs skoltopplista (epic 2/2-toggle, arkitektur §4.3):
+ * hittaRattBoards/{packId} raderas och hittaRattMeta/ledare.packs.{packId}
+ * tas bort i samma transaktion. Ett andra anrop är en no-op.
+ * @returns {Promise<{ fanns: boolean }>}
+ */
+export async function stangTopplista(deps, packId) {
+  const { db, FieldValue } = deps;
+  if (typeof packId !== "string" || !/^[a-z0-9-]{1,60}$/.test(packId)) throw new HrFel("invalid-argument", "Okänd karta.");
+  const board = db.collection("hittaRattBoards").doc(packId);
+  const meta = db.collection("hittaRattMeta").doc("ledare");
+  return db.runTransaction(async (tx) => {
+    const [b, m] = await Promise.all([tx.get(board), tx.get(meta)]);
+    const iMeta = m.exists && !!m.data().packs?.[packId];
+    if (b.exists) tx.delete(board);
+    if (iMeta) tx.set(meta, { packs: { [packId]: FieldValue.delete() }, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    return { fanns: b.exists || iMeta };
+  });
 }

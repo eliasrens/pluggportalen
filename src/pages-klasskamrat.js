@@ -184,6 +184,11 @@ export async function pageElevKlasskamrat() {
       })
     : null;
 
+  // Kamratens Kartmästare-pokaler (Hitta rätt! #610) – ritas ur ledarlistan
+  // (hr-pokal-rum.js, dynamiskt) där kamraten ställt dem; läsläge, ingen städning.
+  let hrPokaler = new Map();
+  let hrPokalMod = null;
+
   // Rita ett givet rum i #stage (bakgrund + fönster + möbler + ev. djur).
   function renderRoomStage() {
     const room = rooms[curRoom];
@@ -198,7 +203,9 @@ export async function pageElevKlasskamrat() {
     const placements = {};
     for (const [key, pos] of Object.entries(room.placements || {})) {
       const id = itemIdFromKey(key);
-      if (owned.includes(id) && !isWearable(id) && getItem(id) && pos) {
+      if (hrPokaler.has(key) && pos) {
+        placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
+      } else if (owned.includes(id) && !isWearable(id) && getItem(id) && pos) {
         placements[key] = { x: clamp(pos.x, 0, 100), y: clamp(pos.y, 0, 100) };
       }
     }
@@ -207,8 +214,9 @@ export async function pageElevKlasskamrat() {
       .sort((a, b) => (isFlatItem(itemIdFromKey(a)) ? 0 : 1) - (isFlatItem(itemIdFromKey(b)) ? 0 : 1))
       .map((key) => {
         const id = itemIdFromKey(key);
-        const item = getItem(id);
         const pos = placements[key];
+        if (hrPokaler.has(key)) return hrPokalMod.pokalLasHtml(hrPokaler.get(key), pos);
+        const item = getItem(id);
         const size = itemSize(id);
         return `<div class="room-item readonly" style="left:${pos.x}%;top:${pos.y}%" title="${esc(item.name)}">
           <span class="ri-emoji" style="width:${size.w}rem;height:${size.h}rem">${itemSvg(id) || item.emoji}</span>
@@ -247,6 +255,15 @@ export async function pageElevKlasskamrat() {
     }
   }
   renderRoomStage();
+  import("./hitta-ratt/hr-pokal-rum.js")
+    .then(async (m) => {
+      const res = await m.laddaHusPokaler({ uid: otherId });
+      if (!res || !res.pokaler.size || !stage.isConnected) return;
+      hrPokalMod = m;
+      hrPokaler = res.pokaler;
+      renderRoomStage();
+    })
+    .catch(() => {});
 
   view.querySelector("#back").addEventListener("click", () => go(back.href));
   view.querySelector("#to-klass").addEventListener("click", () => go(back.href));
