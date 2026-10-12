@@ -136,6 +136,16 @@ service cloud.firestore {
         (request.resource.data.hiddenModules is list &&
          request.resource.data.hiddenModules.size() <= 20);
     }
+    // OPT-IN-MODULER (#605): fältet `enabledModules` (modul-id som SLÅS PÅ för
+    // klassen, t.ex. "hittaratt") är en exakt spegling av hiddenModules ovan:
+    // läsbart för alla inloggade, skrivbart bara av lärare, lista med max 20 id.
+    // Saknat fält = opt-in-modulerna är AV.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validEnabledModules() {
+      return !('enabledModules' in request.resource.data) ||
+        (request.resource.data.enabledModules is list &&
+         request.resource.data.enabledModules.size() <= 20);
+    }
     // FOKUSLÄGE / KLASS-LÅS (#436): fältet `lock` = { mal: { typ, id?, namn? },
     // till: <epoch-ms>, doljOvrigt: bool }. Läsbart för alla inloggade (elevens
     // klient tillämpar låset), skrivbart bara av lärare. Ett NYTT/ändrat lås
@@ -187,7 +197,7 @@ service cloud.firestore {
     match /classes/{classId} {
       allow read:  if signedIn();
       allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules() &&
-                               validLock() && validLasresaStartLevel();
+                               validEnabledModules() && validLock() && validLasresaStartLevel();
       allow delete: if isTeacher();
     }
 

@@ -26,7 +26,7 @@ import {
   normalizeHiddenModes,
   normalizeAreaModes,
   normalizeHiddenVillages,
-  normalizeHiddenModules,
+  normalizeHiddenModules, normalizeEnabledModules,
 } from "./gamemode-visibility.js";
 import { createTtlCache } from "./class-projection.js";
 import {
@@ -262,15 +262,15 @@ export async function setVillageHiddenForAll(villageId, hidden, classIds) {
 }
 
 // ---------------------------------------------------------------------------
-// Modul-synlighet per klass (issue #412): classes/{classId}.hiddenModules =
-// string[] (modul-id som DÖLJS i elevens sidomeny + rutter). Tom/saknad = allt
-// synligt. Registret + elev-filtret bor i gamemode-visibility.js.
+// Modul-synlighet (#412): classes/{id}.hiddenModules = DOLDA modul-id; opt-in (#605) slås
+// PÅ via enabledModules. Registret + elev-filtret bor i gamemode-visibility.js.
 // ---------------------------------------------------------------------------
-
-/** Sätt klassens dolda moduler (ersätter hela listan; okända id rensas bort). */
-export async function setClassHiddenModules(classId, hiddenModules) {
+/** Sätt dolda (+ ev. aktiverade opt-in-) moduler; ersätter listorna, okända id bort. */
+export async function setClassHiddenModules(classId, hiddenModules, enabledModules) {
   const list = normalizeHiddenModules(hiddenModules);
-  await setDoc(doc(db, "classes", classId), { hiddenModules: list }, { merge: true });
+  const upd = { hiddenModules: list };
+  if (enabledModules) upd.enabledModules = normalizeEnabledModules(enabledModules);
+  await setDoc(doc(db, "classes", classId), upd, { merge: true });
   _classCache.invalidate("classes");
   return list;
 }

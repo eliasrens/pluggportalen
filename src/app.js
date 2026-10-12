@@ -15,6 +15,7 @@
 //   #/elev/lasresan   Läsresan: adaptiv läsförståelse på en spelkarta (#398) – laddas DYNAMISKT
 //   #/elev/mattematchen  Mattematchen: multiplikationstävling (#458) – bara under aktiv period, DYNAMISK
 //   #/elev/live       Live: lobby → 3-2-1 → realtidsmatch (#460) – laddas DYNAMISKT
+//   #/elev/hitta-ratt Hitta rätt!: geografi på karta (#605) – opt-in per klass, DYNAMISK
 //   #/elev/shop       shoppen (köp saker för pluggcoins) – pages-shop.js
 //   #/elev/by         husvärlden, by-nivån (klassbyn: alla elevers hus) – pages-varld.js
 //   #/elev/hus        husvärlden, ute-nivån (huset utifrån) – pages-varld.js
@@ -178,6 +179,19 @@ async function pageElevLive() {
   }
 }
 
+// Hitta rätt! (#/elev/hitta-ratt, #605): samma mönster – dynamisk import, snällt fel.
+async function pageElevHittaRatt() {
+  loading();
+  try {
+    return await (await import("./hitta-ratt/page-hitta-ratt.js")).pageHittaRatt();
+  } catch (err) {
+    console.error("Hitta rätt! kunde inte laddas:", err);
+    renderTopbar();
+    app.replaceChildren(el(`<div class="panel center"><div class="big-emoji">🗺️</div>
+      <h2>Hitta rätt! kunde inte laddas</h2><p class="hint">Något gick fel. Prova igen om en stund.</p></div>`));
+  }
+}
+
 // --- Router -----------------------------------------------------------------
 
 const routes = {
@@ -201,6 +215,8 @@ const routes = {
   "/elev/mattematchen": pageElevMattematchen,
   // Live (#460): realtidsmatch klass mot klass – syns bara när klassen är inbjuden.
   "/elev/live": pageElevLive,
+  // Hitta rätt! (#605): opt-in per klass (enabledModules) – grinden nedan.
+  "/elev/hitta-ratt": pageElevHittaRatt,
   // Husvärlden – samma scen för alla tre routes: "by" startar i klassbyn,
   // "hus" ute och "rum" inne. Är scenen redan uppe byter route-bytet bara
   // zoomnivå (sömlöst, ingen omrendering) – se pages-varld.js.
