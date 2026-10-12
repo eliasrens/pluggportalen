@@ -119,6 +119,7 @@ service cloud.firestore {
       match /ekvationsresa/{docId} {
         allow read: if isTeacher() || isSelf(studentId);
         allow create, update: if docId == 'progress' && ekvProgressOk(request.resource.data) &&
+          ekvMaxLevelOk(request.resource.data, resource) &&
           (isSelf(studentId) || (isTeacher() && ekvTeacherLevelOk(request.resource.data, resource)));
         allow delete: if isTeacher();
       }
@@ -141,6 +142,13 @@ service cloud.firestore {
         d.window is list && d.window.size() <= 10 &&
         (!('recent' in d) || (d.recent is list && d.recent.size() <= 10)) &&
         (!('current' in d) || d.current == null || d.current is map);
+    }
+    // Högsta nådda nivå (#643): heltal 1–12 som bara kan öka. Klienten visar
+    // max(level, maxLevel), så saknat fält (äldre dokument) = nuvarande nivå.
+    function ekvMaxLevelOk(d, old) {
+      return !('maxLevel' in d) ||
+        (d.maxLevel is int && d.maxLevel >= 1 && d.maxLevel <= 12 &&
+          (old == null || d.maxLevel >= old.data.get('maxLevel', 1)));
     }
     // Lärarens nivåstyrning (#619, E1.12): bara nivå/fönster/pågående uppgift
     // och tidsstämplar – fönstret nollställs alltid. Statistik och mynt rörs
