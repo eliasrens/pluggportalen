@@ -194,3 +194,102 @@ x i båda leden och minustal ritas redan som block (minustal som streckade
 skuldbrickor, E2.2), negativa x-koefficienter som streckat etikettblock.
 Operander med x (`−2x`) animeras med den generella övertoningen tills en egen
 animation behövs (`movePhases`, grenen `simple`).
+
+---
+
+## 5. Spelvyn, data och mynt (`#618`, E1.1, E1.2, E1.4, E1.9–E1.11, E1.13)
+
+Route `#/elev/ekvationsresan` (dynamisk `import()` i `app.js` – bootgrafen är
+oförändrad, 107 filer; testet i `test/ekvationsresan-spelvy.test.js` vaktar
+det). Eleven landar direkt i nästa uppgift på sin nivå – ingen karta, ingen
+lobby. Tester: `test/ekvationsresan-spelvy.test.js`,
+`test/firestore-rules-ekvationsresan.test.js`.
+
+| Fil | Ansvar |
+| --- | --- |
+| `page-ekvationsresan.js` | Route-skal: laddar stilar, hämtar/skapar den pågående uppgiften, monterar spelvyn med datalagret injicerat. |
+| `spelvy.js` + `spelvy-html.js` | Spelvyn (vänster ~64 %: nivå + mätare, ekvation + våg, operationer, talfält, GÖR, 💡/Visa lösningen; höger ~36 %: MIN LÖSNING), resultat med stjärnor, "FÖRSÖK IGEN FÖR ⭐⭐⭐", nivå upp-skärm, nivåöversikt. |
+| `min-losning.js` | `rowsHtml(rows)` – notation.js-raderna som mattehäfte, elevens operationer i rött, x/4 med bråkstreck. Lärarvyn (#619) ritar `replayRows(attempt.equation, attempt.moves)` med samma funktion. |
+| `talfalt.js` | Talfältet med ständigt fokus (fast-answer-mönstret): ENTER skickar, `e.repeat` ignoreras, fokus tas tillbaka. Knapparna + − · ÷ skriver bara tecknet först i fältet, så mus och tangentbord går genom samma text. |
+| `framsteg.js` | Ren logik: progressdokumentet, försöket, `applyCompletion`, `teacherSetLevel`, `levelOverview`, `teacherSummary`/`trendOf` för lärarens klassöversikt. |
+| `ekv-data.js` | Firestore-bryggan: `enterEkvationsresan`, `startTask`, `completeTask`, `listAttempts`, `setStudentLevel`. |
+| `ekvationsresan.css` | Layouten (ingen vertikal scroll i 1366×768, smal skärm = MIN LÖSNING under). |
+
+### Spelflödet
+
+- ENTER → `playMove`: oläsbart → vänlig rad; **spärr** → förklaringen
+  (config `BLOCK_MESSAGES`), räknas inte som drag (men `blocked` räknas för
+  statistiken); giltigt → vågen animeras, raderna läggs i häftet, ev. kort
+  feedback (`moveFeedback`). Efter optimalt + 6 drag erbjuds hjälp/lösning.
+- 💡 → `nextHelp`: steg 2 visar bilden på vågen, steg 3 förslagsraden.
+- Visa lösningen kräver två klick ("Säker? Då räknas uppgiften som ej löst.").
+  Vågen och häftet spelar lösningen steg för steg; ej löst, inga mynt.
+- Resultat → `NÄSTA UPPGIFT →` (ENTER, knappen har fokus). Nivå upp visar
+  först den glada skärmen (`config.LEVEL_UP`); nivå ner visar ingenting.
+  "Försök igen" ger `similarTask` och sparas som ny pågående uppgift. Vid en
+  nivåändring visas inte "Försök igen" (nästa uppgift hör till nya nivån).
+
+### Data (E1.13)
+
+`studentData/{id}/ekvationsresa/progress` – ett dokument per elev:
+
+| Fält | Beskrivning |
+| --- | --- |
+| `schema` | 1 |
+| `level`, `window`, `maxLevel` | Nivå 1–6 (1–12 tillåtet i reglerna), fönstret (stjärnor 0–3, ≤ 10) för anpassning.js, högsta nivå |
+| `tasks`, `solved`, `revealed` | Antal uppgifter, lösta, "Visa lösningen" |
+| `stars` | `[0★, 1★, 2★, 3★]` – fördelningen |
+| `helpTasks` | Uppgifter där 💡 användes |
+| `movesSolved`, `optimalSolved` | Drag och optimala drag i lösta uppgifter (lärarens "drag jämfört med optimalt") |
+| `coins` | Mynt intjänade i Ekvationsresan (saldot är `studentData.coins`) |
+| `recent` | `[{ l, s }]` senaste 10 (nivå, stjärnor) – lärarens trend ↗/→/↘ |
+| `current` | `{ id, at, task }` – den pågående uppgiften; en omladdning ger samma ekvation |
+| `skills` | `{}` – Etapp 2 (färdighetsmodellen) |
+| `levelChangedAt`, `updatedAt` | ms |
+
+`studentData/{id}/ekvationsresaAttempts/{taskId}` – ett försök per uppgift:
+`schema, taskId, level, type, form, equation` (strukturerad), `solution,
+optimalMoves, moves` (`[{op,n,d,x}]` i ordning – vid "Visa lösningen" hela den
+visade räknegången), `moveCount` (elevens egna drag), `blocked, stars, solved,
+revealed, helpMax, helpPresses, coins, startedAt, completedAt, skills` (null,
+Etapp 2).
+
+Lärarsammanfattningen räknas ur progressdokumentet (`teacherSummary`) – ett
+dokument per elev när läraren öppnar vyn, försöken läses först i elevdetaljen
+(#231-lärdomen, som Läsresan).
+
+### Mynt med säker idempotens (E1.10)
+
+`completeTask` skriver försöket och progress i **en** transaktion. Försökets
+dokument-id är uppgiftens id (`current.id`); finns det redan (dubbelklick,
+omsändning, två flikar) skrivs inget och inga mynt delas ut, och reglerna
+tillåter bara `create` av ett försök. Mynten läggs sedan på det vanliga saldot
+via `data.addCoins` (`mynt.award`, Läsresans mönster). Går nätet ner precis
+mellan transaktionen och `addCoins` uteblir mynten för den uppgiften – men de
+kan aldrig delas ut två gånger. Transaktionen sparar också nästa uppgift som
+`current`, så normalflödet kostar en skrivning per uppgift (+ myntet).
+
+### Klassynlighet (E1.11)
+
+`TOGGLABLE_MODULES` har posten `ekvationsresan` med `optIn: true` (som Hitta
+rätt!): av för nya klasser, påslagen via `classes/{id}.enabledModules` i det
+befintliga "Synliga moduler"-valet (`teacher-class-modules.js`). Avstängd →
+ingen menylänk och direktlänken stoppas av routerns grind.
+
+### Regler
+
+`ekvationsresa/{docId}`: läs eleven själv + lärare; skriv eleven själv +
+lärare bara `progress` med giltig form (`ekvProgressOk`); radera lärare.
+`ekvationsresaAttempts/{taskId}`: läs eleven själv + lärare; `create` bara
+eleven själv, id `^[A-Za-z0-9_-]{8,64}$` = `taskId`, giltig form
+(`ekvAttemptOk`); ingen update; radera lärare.
+⚠️ Kräver `firebase deploy --only firestore:rules`. Ingen fallback i
+`studentData` (som Läsresan har) – modulen är av som standard tills läraren
+slår på den.
+
+### Preview / QA
+
+`bash admin/qa-ekvationsresan-preview.sh` (emulator 8618/9618, proxy 8619):
+`elev1 / lilla123` har modulen PÅ, `ekv-av / lilla123` AV.
+`node admin/qa-ekvationsresan-seed.mjs --niva 3` startar elev1 på en nivå,
+`--av` slår av modulen för elev1:s klass.

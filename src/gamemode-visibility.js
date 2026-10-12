@@ -361,6 +361,7 @@ export const TOGGLABLE_MODULES = [
   // (classes/{id}.enabledModules). Läraren kan alltså inte "dölja" den utan
   // bara slå på/av; en dold opt-in-modul syns inte ens via direktlänk.
   { id: "hittaratt", label: "Hitta rätt!", routes: ["/elev/hitta-ratt"], optIn: true },
+  { id: "ekvationsresan", label: "Ekvationsresan", routes: ["/elev/ekvationsresan"], optIn: true }, // #618, E1.11
 ];
 
 /** Normalisera hiddenModules: bara kända modul-id, samma regler som lägen. */
