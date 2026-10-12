@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Kartmästare-pokalerna (Hitta rätt! #610)</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      /* Fristående testyta för #610: en Kartmästare-pokal per officiellt pack
+         (hr-pokal-art.js) i närbild, och storleken bredvid Klasscentrets
+         Live-pokal i rums-enheter. Ingen inloggning – sidan ritar bara konsten. */
+      body { margin: 0; font-family: "Baloo 2", system-ui, sans-serif; background: #fdf6ec; color: #4a3b2a; }
+      header { padding: 16px 20px 4px; }
+      header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+      header p { margin: 0; font-size: 0.9rem; opacity: 0.85; max-width: 80ch; }
+      .wrap { padding: 12px 20px 40px; }
+      h2 { font-size: 1.05rem; margin: 22px 0 8px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+      .kort { background: #fff; border: 3px solid #3B3350; border-radius: 18px; overflow: hidden; }
+      .kort .bild { height: 210px; padding: 12px; box-sizing: border-box; background: #FFE9CC; }
+      .kort .bild > svg { width: 100%; height: 100%; display: block; }
+      .kort .info { padding: 6px 10px 8px; font-size: 0.85rem; font-weight: 800; }
+      .kort .meta { font-size: 0.75rem; opacity: 0.7; font-weight: 400; }
+      .jamfor { display: flex; gap: 28px; align-items: flex-end; background: #C9925F; border: 3px solid #3B3350; border-radius: 18px; padding: 18px 28px; width: max-content; }
+      .jamfor figure { margin: 0; text-align: center; color: #fff; font-size: 0.8rem; font-weight: 800; }
+      .jamfor svg { display: block; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏆 Kartmästare – Skolrekord</h1>
+      <p>En egen pokal per pack med skoltopplista: globens motiv följer kategorin, markören typen (nål = punkt, streckad ring = område) och rosetten är packens färg. Ritas i huset bara för den eller de som leder topplistan.</p>
+    </header>
+    <div class="wrap">
+      <h2>Alla 12 officiella pack</h2>
+      <div class="grid" id="grid"></div>
+      <h2>Storlek i rummet (rums-enheter × 25 px)</h2>
+      <div class="jamfor" id="jamfor"></div>
+    </div>
+    <script type="module">
+      import { kartmastareSvg, motivFor, POKAL_STORLEK } from "../src/hitta-ratt/hr-pokal-art.js";
+      import { pokalNamn } from "../src/hitta-ratt/hr-pokal.js";
+      import { kcPokalSvg } from "../src/art-klasscenter-pokaler.js";
+      import { KC_POKAL_STORLEK } from "../src/klasscenter/kc-pokal-placering.js";
+
+      const index = await (await fetch("../src/hitta-ratt/content/packs/index.json")).json();
+      document.getElementById("grid").innerHTML = index.map((p) => `
+        <div class="kort">
+          <div class="bild">${kartmastareSvg({ packId: p.id, typ: p.type }, { aria: pokalNamn(p.title) })}</div>
+          <div class="info">${pokalNamn(p.title)}<div class="meta">${p.id} · ${p.type === "area" ? "område" : "punkt"} · motiv ${motivFor(p.id)}</div></div>
+        </div>`).join("");
+
+      const px = (u) => `${u * 25}px`;
+      const fig = (svg, s, text) => `<figure><div style="width:${px(s.w)};height:${px(s.h)}">${svg.replace("<svg", `<svg width="100%" height="100%"`)}</div>${text}</figure>`;
+      document.getElementById("jamfor").innerHTML =
+        fig(kcPokalSvg("pokal-live"), KC_POKAL_STORLEK, "Live-pokal (Klasscentret)") +
+        fig(kartmastareSvg({ packId: "sverige-stader", typ: "point" }), POKAL_STORLEK, "Kartmästare") +
+        fig(kartmastareSvg({ packId: "europa-lander-20", typ: "area" }), POKAL_STORLEK, "Kartmästare (område)");
+    </script>
+  </body>
+</html>
