@@ -43,7 +43,7 @@ grep -q "All emulators ready" "$DIR/emu.log" || { echo "Emulatorn startade inte 
 cd "$REPO"
 echo "▶ seed…"
 node admin/qa-lasresan-seed.mjs | tail -1
-node admin/qa-ekvationsresan-seed.mjs
+node admin/qa-ekvationsresan-seed.mjs --larare   # + lärarvyns elever (#619)
 
 echo "▶ proxy på $PROXY…"
 (cd "$DIR" && PORT=$PROXY setsid -f node "$REPO/admin/qa-emulator-proxy.mjs" > "$DIR/proxy.log" 2>&1 < /dev/null)

@@ -293,3 +293,34 @@ slår på den.
 `elev1 / lilla123` har modulen PÅ, `ekv-av / lilla123` AV.
 `node admin/qa-ekvationsresan-seed.mjs --niva 3` startar elev1 på en nivå,
 `--av` slår av modulen för elev1:s klass.
+
+## 6. Lärarvyn (`#619`, E1.12)
+
+Underfliken **Ekvationsresan** i klasskortets Statistik (`teacher-class.js`
+`STATS_TABS`, dynamisk `import()` – bootgrafen orörd). Samma upplägg och mörka
+stil som Läsresan (lrt-/lrn-/cx-klasserna) + egna `ekt-`-stilar i
+`ekvationsresan/larare.css` (laddas dynamiskt). Test:
+`test/ekvationsresan-larare.test.js`, regler i
+`test/firestore-rules-ekvationsresan.test.js`.
+
+| Fil | Ansvar |
+| --- | --- |
+| `ekvationsresan/larare.js` | Ren logik: `klassRader` (ur `teacherSummary`), sortering (namn/nivå/uppgifter), `forsokRader`, `nivaKurva`, `rakneGang` (replayRows; vid "Visa lösningen" skiljs elevens rader från de visade), texter för nivåstyrningen. |
+| `teacher-ekvationsresan.js` | Klassöversikten (Elev, Nivå, Trend ↗→↘, Uppgifter, ⭐⭐⭐/⭐⭐/⭐, Lösta %, Hjälp %, Drag jämfört med optimalt) + kortet "Ändra nivå för hela klassen" (bekräftelsedialogen från Läsresan). Varnar om modulen är avstängd för klassen. |
+| `teacher-ekvationsresan-elev.js` | Elevdetaljen: nyckeltal, "Ändra nivå", nivåkurva, de senaste 20 uppgifterna; klick på en uppgift visar elevens räknegång som MIN LÖSNING (`min-losning.rowsHtml`). |
+| `ekv-data.js` | `getClassEkvationsresa(ids)` (ett progressdokument per elev), `setClassLevel(ids, nivå)`, `setStudentLevel` (befintligt dokument: `update` av bara nivåfälten). |
+
+- **Kvot (#231):** översikten läser ett progressdokument per elev, en gång
+  (Läsresans mönster); försöken läses bara för EN elev i detaljen.
+- **Hjälp %** = uppgifter där 💡 användes. "Visa lösningen" syns som ej löst.
+- **Drag** = extra drag per löst uppgift jämfört med optimalt (+0,5 / ±0).
+- **Ej börjat** = inga uppgifter än (även om läraren satt en nivå).
+- **Nivåstyrning:** ny nivå, tomt fönster, `current: null` (ny uppgift på
+  nivån vid nästa besök). Statistik och mynt rörs inte.
+- **Regler:** läraren får bara ändra `level, window, maxLevel, current,
+  levelChangedAt, updatedAt` (`TEACHER_LEVEL_FIELDS` = `ekvTeacherLevelOk`),
+  och fönstret måste vara tomt; ett nytt dokument från läraren får inte ha
+  statistik. ⚠️ Kräver `firebase deploy --only firestore:rules`.
+- **Preview:** `admin/qa-ekvationsresan-preview.sh` seedar nu även
+  (`--larare`) qa-hog ↗, qa-mitt, qa-lag ↘, qa-svag med riktiga försök;
+  `qalarare / lilla123` → QA-klass 4A → Statistik → Ekvationsresan.

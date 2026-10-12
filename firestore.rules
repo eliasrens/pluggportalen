@@ -118,8 +118,8 @@ service cloud.firestore {
       // ⚠️ DEPLOY KRÄVS: `firebase deploy --only firestore:rules`.
       match /ekvationsresa/{docId} {
         allow read: if isTeacher() || isSelf(studentId);
-        allow create, update: if (isTeacher() || isSelf(studentId)) && docId == 'progress' &&
-          ekvProgressOk(request.resource.data);
+        allow create, update: if docId == 'progress' && ekvProgressOk(request.resource.data) &&
+          (isSelf(studentId) || (isTeacher() && ekvTeacherLevelOk(request.resource.data, resource)));
         allow delete: if isTeacher();
       }
       match /ekvationsresaAttempts/{taskId} {
@@ -141,6 +141,16 @@ service cloud.firestore {
         d.window is list && d.window.size() <= 10 &&
         (!('recent' in d) || (d.recent is list && d.recent.size() <= 10)) &&
         (!('current' in d) || d.current == null || d.current is map);
+    }
+    // Lärarens nivåstyrning (#619, E1.12): bara nivå/fönster/pågående uppgift
+    // och tidsstämplar – fönstret nollställs alltid. Statistik och mynt rörs
+    // inte. Nytt dokument (eleven har aldrig öppnat modulen) = tomt dokument.
+    function ekvTeacherLevelOk(d, old) {
+      return d.window.size() == 0 &&
+        (old == null
+          ? d.get('tasks', 0) == 0 && d.get('coins', 0) == 0 && d.get('solved', 0) == 0
+          : d.diff(old.data).affectedKeys().hasOnly(['level', 'window', 'maxLevel', 'current',
+              'levelChangedAt', 'updatedAt']));
     }
     function ekvAttemptOk(d, taskId) {
       return d.keys().hasOnly(['schema', 'taskId', 'level', 'type', 'form', 'equation', 'solution',

@@ -166,6 +166,9 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
   return { progress: p, change, from, to: p.level };
 }
 
+/** Fälten lärarens nivåändring rör – samma lista som firestore.rules (ekvTeacherLevelOk). */
+export const TEACHER_LEVEL_FIELDS = Object.freeze(["level", "window", "maxLevel", "current", "levelChangedAt", "updatedAt"]);
+
 /** Lärarens nivåändring (E1.12): ny nivå, nollställt fönster, ny uppgift. */
 export function teacherSetLevel(progress, level, now) {
   const l = clampLevel(level);
