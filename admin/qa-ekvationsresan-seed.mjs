@@ -6,6 +6,8 @@
 //   • slår PÅ Ekvationsresan för qa-klass (enabledModules) – elev1 ser den
 //   • skapar klassen qa-klass-av med eleven ekv-av, där modulen är AV (test 23)
 //   • nollställer elev1:s Ekvationsresan (nivå 1) – eller sätter nivå med --niva N
+//   • --typ C|D|E|F: elev1:s pågående uppgift blir av den typen (#625, nivå
+//     enligt --niva, annars 3) – för att prova uppgiftstyperna i webbläsaren
 //   • --av: slå AV modulen för qa-klass igen (test 23, påslagen → avstängd)
 //   • --larare: spelar fram riktiga försök (spelets egen logik) för qa-hog
 //     (↗, nivå upp), qa-mitt (blandat), qa-lag (↘, Visa lösningen), qa-svag
@@ -34,6 +36,7 @@ const db = admin.firestore(app);
 const PW = "lilla123";
 const args = process.argv.slice(2);
 const niva = args.includes("--niva") ? Number(args[args.indexOf("--niva") + 1]) : null;
+const typ = args.includes("--typ") ? args[args.indexOf("--typ") + 1] : null;
 
 async function ensureUser(uid) {
   const email = `${uid}@elev.pluggportalen.local`;
@@ -50,7 +53,12 @@ async function resetEkv(uid, lvl = niva) {
   const old = await db.collection(`studentData/${uid}/ekvationsresaAttempts`).get();
   await Promise.all(old.docs.map((d) => d.ref.delete()));
   const ref = db.doc(`studentData/${uid}/ekvationsresa/progress`);
-  if (lvl) await ref.set({ schema: 1, level: lvl, window: [], maxLevel: lvl, current: null });
+  if (uid === "elev1" && typ) {
+    const level = lvl || 3;
+    const task = generateTask(level, { rng: seededRng(`qa-typ-${typ}-${Date.now()}`), type: typ });
+    const current = { id: `qa625${typ}${Date.now()}`, at: Date.now(), task };
+    await ref.set({ schema: 1, level, window: [], maxLevel: level, current, updatedAt: Date.now() });
+  } else if (lvl) await ref.set({ schema: 1, level: lvl, window: [], maxLevel: lvl, current: null });
   else await ref.delete();
 }
 
@@ -71,7 +79,7 @@ async function seedLarare() {
     let p = normalizeProgress({ level, maxLevel: level });
     const batch = db.batch();
     plays.forEach((kind, i) => {
-      const task = generateTask(p.level, { rng });
+      const task = generateTask(p.level, { rng, type: "B" }); // lösningsuppgifter (A/B)
       let run = startRun(fromJSON(task.equation));
       if (kind === "omvag") run = playMove(playMove(run, "+1").run, "-1").run;
       const own = run.moves.length;

@@ -1,0 +1,98 @@
+/* ==========================================================================
+   Ekvationsresan – uppgiftstyperna C–F (src/ekvationsresan/typer.css) · #625
+   Laddas av page-ekvationsresan.js ihop med ekvationsresan.css (dynamiskt,
+   utanför bootgrafen, #271). Uppgiftstext, frågepanel, val, felrader (E).
+   ========================================================================== */
+
+.ekv-uppgiftstext[hidden], .ekv-fraga[hidden] { display: none; }
+.ekv-uppgiftstext {
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: #f4f9ff;
+  border: 2px solid #d4e2f4;
+  font-size: clamp(1rem, 2.1vh, 1.15rem);
+  line-height: 1.4;
+}
+.ekv-uppgiftstext p { margin: 0; }
+.ekv-uppgiftstext-x { margin-top: 2px !important; font-weight: 700; color: var(--bla-mork); }
+/* D/F: ekvationen är det eleven ska skriva – vågens rubrik döljs tills dess. */
+.ekv-sida[data-fas="bygg"] .ekv-vag-ekvation { visibility: hidden; }
+/* F utan bild (abonnemang, pris …): texten är verkligheten, vågen kommer i lösningen. */
+.ekv-sida[data-fas="bygg"][data-bild="nej"] .ekv-vag-plats { display: none; }
+.ekv-sida[data-fas="bygg"] .ekv-instruktion, .ekv-sida[data-fas="fraga"] .ekv-instruktion { display: none; }
+.ekv-fraga { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.ekv-typ-etikett {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #efe7ff;
+  color: #4b2a87;
+}
+.ekv-fraga-text { margin: 0; font-weight: 700; font-size: clamp(1rem, 2.2vh, 1.15rem); }
+.ekv-svar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 0; }
+.ekv-svar-falt {
+  width: min(16ch, 70vw);
+  padding: 0.12em 0.4em;
+  font: inherit;
+  font-size: clamp(1.4rem, 3.6vh, 1.8rem);
+  font-weight: 800;
+  text-align: center;
+  border: 4px solid var(--bla);
+  border-radius: 14px;
+  outline: none;
+}
+.ekv-svar-falt:focus { box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.25); }
+.ekv-svar-falt::placeholder { color: #c3d0e2; font-weight: 600; }
+.ekv-val { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.ekv-val-knapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: clamp(1rem, 2.3vh, 1.25rem);
+  font-weight: 700;
+  padding: 8px 14px;
+  border: 3px solid #cddcf0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+.ekv-val-knapp:hover:not(:disabled) { border-color: var(--bla); }
+.ekv-val-knapp.is-fel { opacity: 0.45; text-decoration: line-through; cursor: default; }
+.ekv-val-nr {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: #e7eef8;
+  color: var(--bla-mork);
+  font-size: 0.8em;
+  font-weight: 800;
+}
+.ekv-rad--lucka { color: #9fb2cc; border-bottom: 2px dashed #9fb2cc; width: max-content; padding-right: 2em; }
+.ekv-rad--svar { font-weight: 800; color: var(--gron-mork); margin-top: 1rem; line-height: 1.4; }
+.ekv-rad-knapp {
+  display: block;
+  width: 100%;
+  padding: 0 6px;
+  margin-left: -6px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ekv-rad-knapp:hover:not(:disabled), .ekv-rad-knapp:focus-visible { border-color: var(--bla); background: #eef5ff; outline: none; }
+.ekv-rad-knapp:disabled { cursor: default; }
+.ekv-rad--felet .ekv-rad-knapp { border-color: var(--ekv-rod); background: #ffeceb; }
+
+/* F utan bild: texten och frågan fyller ytan där vågen annars står. */
+.ekv-sida[data-fas="bygg"][data-bild="nej"] .ekv-uppgiftstext { margin-top: auto; font-size: clamp(1.1rem, 2.6vh, 1.35rem); padding: 16px 20px; }
+.ekv-sida[data-fas="bygg"][data-bild="nej"] .ekv-fraga { margin-bottom: auto; }

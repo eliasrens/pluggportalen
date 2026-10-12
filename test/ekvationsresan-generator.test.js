@@ -89,8 +89,9 @@ test("Test 8: BFS-optimum är verkligen minst – inget enda drag 1–999 löser
   }
 });
 
-test("andelen typ B ökar med nivån", () => {
-  const share = ETAPP1.map((l) => SERIES[l.level].filter((t) => t.type === "B").length / N);
+test("andelen typ B (bland A/B) ökar med nivån", () => {
+  const ab = (l) => SERIES[l.level].filter((t) => t.type === "A" || t.type === "B");
+  const share = ETAPP1.map((l) => ab(l).filter((t) => t.type === "B").length / ab(l).length);
   for (let i = 1; i < share.length; i++) assert.ok(share[i] > share[i - 1], `B-andel ${share.join(", ")}`);
   assert.ok(share[0] < 0.25 && share[5] > 0.65);
 });
