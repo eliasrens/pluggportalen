@@ -598,9 +598,16 @@ opt-in:
 Rules och functions ska ut före Pages, annars nekas försöket och
 resultatskärmen visar "kunde inte sparas".
 
-**Krock att känna till:** Tidsjakten (PR #630, ej mergad) ändrar också
-`functions/index.js`, `package.json` (`test:*`) och `firebase.json`
-(predeploy). F ska staplas på eller mergas efter den.
+**Stapling:** epic-grenen ligger ovanpå Tidsjakten (#595, 4d4a957). Dokumentet
+är kontrollerat mot det läget:
+- Bootgrafen är fortfarande 107.
+- `functions/` har nu `guldrush-core.js` + `guldrush-rattning.js`.
+- `firebase.json` har en predeploy-rad (`sync-guldrush-functions.mjs`).
+
+F lägger till `functions/hitta-ratt-core.js`, `admin/sync-hitta-ratt-functions.mjs`
+och en **andra** predeploy-rad, och utökar `package.json`-skripten
+`test:rules`/`test:functions`. Reglerna för Hitta rätt! läggs som ett eget
+block och rör inte Live/Snilleblixten-grenarna som Tidsjakten ändrade.
 
 ---
 
