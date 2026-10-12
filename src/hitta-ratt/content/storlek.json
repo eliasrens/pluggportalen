@@ -1,0 +1,174 @@
+{
+ "geo": {
+  "sverige-landskap": {
+   "kB": 176.4,
+   "gzipKB": 70.3,
+   "punkter": 34083,
+   "omraden": 25,
+   "lager": {
+    "omraden": 8686,
+    "bakgrund": 18267,
+    "sjoar": 5740,
+    "vattendrag": 1390
+   }
+  },
+  "sverige-lan": {
+   "kB": 167.5,
+   "gzipKB": 67,
+   "punkter": 31995,
+   "omraden": 21,
+   "lager": {
+    "omraden": 6598,
+    "bakgrund": 18267,
+    "sjoar": 5740,
+    "vattendrag": 1390
+   }
+  },
+  "europa": {
+   "kB": 166.9,
+   "gzipKB": 67,
+   "punkter": 31806,
+   "omraden": 46,
+   "lager": {
+    "omraden": 16449,
+    "bakgrund": 12851,
+    "sjoar": 1230,
+    "vattendrag": 1276
+   }
+  },
+  "varlden": {
+   "kB": 133,
+   "gzipKB": 49.5,
+   "punkter": 29060,
+   "omraden": 166,
+   "lager": {
+    "omraden": 27303,
+    "bakgrund": 384,
+    "sjoar": 367,
+    "vattendrag": 1006
+   }
+  }
+ },
+ "packs": {
+  "sverige-stader": {
+   "geo": "sverige-landskap",
+   "packKB": 3.2,
+   "packGzipKB": 1,
+   "geoKB": 176.4,
+   "geoGzipKB": 70.3,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "sverige-landskap": {
+   "geo": "sverige-landskap",
+   "packKB": 2.9,
+   "packGzipKB": 0.8,
+   "geoKB": 176.4,
+   "geoGzipKB": 70.3,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "sverige-lan": {
+   "geo": "sverige-lan",
+   "packKB": 2.7,
+   "packGzipKB": 0.7,
+   "geoKB": 167.5,
+   "geoGzipKB": 67,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "sverige-geografi": {
+   "geo": "sverige-landskap",
+   "packKB": 3.1,
+   "packGzipKB": 1.1,
+   "geoKB": 176.4,
+   "geoGzipKB": 70.3,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "europa-lander-20": {
+   "geo": "europa",
+   "packKB": 2.2,
+   "packGzipKB": 0.7,
+   "geoKB": 166.9,
+   "geoGzipKB": 67,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "europa-lander-alla": {
+   "geo": "europa",
+   "packKB": 4.7,
+   "packGzipKB": 1.3,
+   "geoKB": 166.9,
+   "geoGzipKB": 67,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "europa-huvudstader-20": {
+   "geo": "europa",
+   "packKB": 3.3,
+   "packGzipKB": 1.2,
+   "geoKB": 166.9,
+   "geoGzipKB": 67,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "europa-huvudstader-alla": {
+   "geo": "europa",
+   "packKB": 7.1,
+   "packGzipKB": 2.1,
+   "geoKB": 166.9,
+   "geoGzipKB": 67,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "varlden-lander-30": {
+   "geo": "varlden",
+   "packKB": 3.1,
+   "packGzipKB": 0.9,
+   "geoKB": 133,
+   "geoGzipKB": 49.5,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "varlden-huvudstader-30": {
+   "geo": "varlden",
+   "packKB": 4.2,
+   "packGzipKB": 1.4,
+   "geoKB": 133,
+   "geoGzipKB": 49.5,
+   "bilder": 0,
+   "bilderKB": 0,
+   "storstaBildKB": 0
+  },
+  "europa-kanda-platser": {
+   "geo": "europa",
+   "packKB": 11,
+   "packGzipKB": 2.7,
+   "geoKB": 166.9,
+   "geoGzipKB": 67,
+   "bilder": 20,
+   "bilderKB": 1345.6,
+   "storstaBildKB": 107.9
+  },
+  "varlden-kanda-platser": {
+   "geo": "varlden",
+   "packKB": 10.8,
+   "packGzipKB": 2.7,
+   "geoKB": 133,
+   "geoGzipKB": 49.5,
+   "bilder": 20,
+   "bilderKB": 1236.3,
+   "storstaBildKB": 116.3
+  }
+ }
+}

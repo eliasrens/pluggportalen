@@ -30,8 +30,16 @@ import { mountRumVaxlare } from "./varld-rum-vaxlare.js";
 // Inrednings-kärnan (drag/klamring/ritning) delas med Klasscentrets rum (#490).
 import { kopplaRumDrag, ordnaNycklar, nastaPlats, nyPlaceringsNyckel, rumSakHtml } from "./rum-promenad-golv.js";
 
-/** Saker som står på golvet (möbler & husdjur) – får inte hamna på väggen. */
+// Kartmästare-pokaler (Hitta rätt! #610): ingen ägd sak – de ritas ur
+// hittaRattMeta/ledare (src/hitta-ratt/hr-pokal-rum.js, laddas dynamiskt) och
+// bara PLACERINGEN sparas här, under nyckeln "hrpokal-<packId>".
+const HR_POKAL = "hrpokal-";
+const arHrPokal = (id) => String(id).startsWith(HR_POKAL);
+const hrPokalAviserade = new Set(); // "ligger i Möbler"-tipset en gång per pokal och session
+
+/** Saker som står på golvet (möbler, husdjur, pokaler) – får inte hamna på väggen. */
 function isFloorItem(id) {
+  if (arHrPokal(id)) return true;
   const it = getItem(id);
   return !!(it && (it.category === "mobler" || it.category === "husdjur"));
 }
@@ -121,7 +129,10 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     const out = {};
     for (const [key, pos] of Object.entries(saved || {})) {
       const id = itemIdFromKey(key);
-      if (data.ownedCount(sd, id) > 0 && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && pos) {
+      // Pokaler behålls tills ledarlistan lästs (laddaHusPokaler städar då).
+      if (arHrPokal(key) && pos) {
+        out[key] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, FLOOR_TOP - 8, 96) };
+      } else if (data.ownedCount(sd, id) > 0 && !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && pos) {
         // Golvsaker (möbler/husdjur) hålls nere i golvzonen även i gammal data.
         const minY = isFloorItem(id) ? FLOOR_TOP - 8 : 4;
         out[key] = { x: clamp(pos.x, 3, 97), y: clamp(pos.y, minY, 96) };
@@ -156,6 +167,11 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   const roomItemsOwned = owned.filter(
     (id) => !isWearable(id) && !isAnimalItem(id) && !isHouseItem(id) && !isGardenItem(id) && id !== petData.EGG_ITEM_ID && getItem(id)
   );
+
+  // Elevens Kartmästare-pokaler (nyckel → pokal) + modulen som ritar dem –
+  // tomma tills ledarlistan lästs; en pokal utan ledning ritas aldrig.
+  let hrPokaler = new Map();
+  let hrPokalMod = null;
 
   let selectedId = null; // vald placerad sak (visar borttagningsknapp)
   let selectedPetId = null; // djur vars namn-/matnings-vy är öppen (via ✏️)
@@ -365,9 +381,14 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
     // Nycklar kan vara "<id>#<n>" för extra exemplar.
     for (const key of ordnaNycklar(placements, (k) => (isFlatItem(itemIdFromKey(k)) ? 0 : 1))) {
       const id = itemIdFromKey(key);
+      const pos = placements[key];
+      if (arHrPokal(key)) {
+        const p = hrPokaler.get(key);
+        if (p && hrPokalMod) stage.appendChild(el(hrPokalMod.pokalSakHtml(p, { key, x: pos.x, y: pos.y, vald: selectedId === key })));
+        continue;
+      }
       const item = getItem(id);
       if (!item) continue;
-      const pos = placements[key];
       const size = itemSize(id);
       stage.appendChild(el(rumSakHtml({
         key, x: pos.x, y: pos.y, titel: item.name, art: itemSvg(id) || item.emoji,
@@ -429,15 +450,17 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   // single-saker är kvar på max 1. Att "flytta" en möbel till ett annat rum
   // görs genom att plocka bort den här (åter till lådan) och ställa den där.
   function remainingToPlace(id) {
+    if (arHrPokal(id)) return (hrPokaler.has(id) ? 1 : 0) - placedCountAllRooms(id);
     return data.ownedCount(sd, id) - placedCountAllRooms(id);
   }
 
   function renderTray() {
     tray.replaceChildren();
+    const pokalerKvar = [...hrPokaler.values()].filter((p) => remainingToPlace(p.nyckel) > 0);
     const notPlaced = roomItemsOwned.filter((id) => remainingToPlace(id) > 0);
-    if (roomItemsOwned.length === 0) {
+    if (roomItemsOwned.length === 0 && hrPokaler.size === 0) {
       trayHint.textContent = "Du har inga saker än. Köp möbler, husdjur och dekor i shoppen!";
-    } else if (notPlaced.length === 0) {
+    } else if (notPlaced.length === 0 && pokalerKvar.length === 0) {
       trayHint.textContent = "Alla dina saker står i rummet. 🎉";
     } else {
       trayHint.textContent = "Klicka på en sak för att ställa den i rummet.";
@@ -452,6 +475,8 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
         <span class="tray-namn">${namn}</span>
       </button>`));
     }
+    // Pokalerna först i lådan – de kommer och går med topplistan.
+    tray.prepend(...pokalerKvar.map((p) => el(hrPokalMod.pokalLadaHtml(p))));
     // Borttaget fönster kan alltid läggas tillbaka härifrån (hamnar då åter
     // vid väggskarven). Visas bara när fönstret faktiskt är borttaget.
     const winBtn = fonster.trayNode();
@@ -587,6 +612,27 @@ export function mountRumScen({ stage, petPanel, tray, trayHint, djurTray, djurHi
   renderStage();
   renderTray();
   renderPets();
+
+  // Kartmästare-pokalerna (#610): EN läsning av ledarlistan (cachad). Placeringar
+  // för pokaler eleven inte längre har (tappad ledning) städas bort och sparas.
+  import("./hitta-ratt/hr-pokal-rum.js")
+    .then(async (m) => {
+      const res = await m.laddaHusPokaler({ uid: data.currentStudentId(), rum: roomModels.map((r) => r.placements) });
+      if (!res || !stage.isConnected) return;
+      hrPokalMod = m;
+      hrPokaler = res.pokaler;
+      for (const i of res.rensade) {
+        if (i === currentRoom) scheduleSaveRoom();
+        else data.saveRoomAt(i, { placements: roomModels[i].placements }).catch(() => {});
+      }
+      if (selectedId && arHrPokal(selectedId) && !hrPokaler.has(selectedId)) selectedId = null;
+      renderStage();
+      renderTray();
+      const nya = [...hrPokaler.keys()].filter((k) => remainingToPlace(k) > 0 && !hrPokalAviserade.has(k));
+      nya.forEach((k) => hrPokalAviserade.add(k));
+      if (nya.length) flash(`🏆 Du leder topplistan! Din Kartmästare-pokal ligger i Möbler 📦`);
+    })
+    .catch(() => {});
 
   // Placera en sak från lådan (klick).
   tray.addEventListener("click", (e) => {

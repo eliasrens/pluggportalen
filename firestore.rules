@@ -136,6 +136,16 @@ service cloud.firestore {
         (request.resource.data.hiddenModules is list &&
          request.resource.data.hiddenModules.size() <= 20);
     }
+    // OPT-IN-MODULER (#605): fältet `enabledModules` (modul-id som SLÅS PÅ för
+    // klassen, t.ex. "hittaratt") är en exakt spegling av hiddenModules ovan:
+    // läsbart för alla inloggade, skrivbart bara av lärare, lista med max 20 id.
+    // Saknat fält = opt-in-modulerna är AV.
+    // ⚠️ DEPLOY: `firebase deploy --only firestore:rules` (separat från Pages).
+    function validEnabledModules() {
+      return !('enabledModules' in request.resource.data) ||
+        (request.resource.data.enabledModules is list &&
+         request.resource.data.enabledModules.size() <= 20);
+    }
     // FOKUSLÄGE / KLASS-LÅS (#436): fältet `lock` = { mal: { typ, id?, namn? },
     // till: <epoch-ms>, doljOvrigt: bool }. Läsbart för alla inloggade (elevens
     // klient tillämpar låset), skrivbart bara av lärare. Ett NYTT/ändrat lås
@@ -187,7 +197,7 @@ service cloud.firestore {
     match /classes/{classId} {
       allow read:  if signedIn();
       allow create, update: if isTeacher() && validHiddenVillages() && validHiddenModules() &&
-                               validLock() && validLasresaStartLevel();
+                               validEnabledModules() && validLock() && validLasresaStartLevel();
       allow delete: if isTeacher();
     }
 
@@ -1443,6 +1453,41 @@ service cloud.firestore {
         allow create, update: if kcLayoutHistory(slot);
         allow delete: if isTeacher();
       }
+    }
+
+    // ------------------------------------------------------------------
+    // Hitta rätt! (#609, epic #603) – se docs/HITTA-RATT-ARKITEKTUR.md §3.2/§4.
+    // Klienten skriver BARA starten av ett försök (startedAt = serverns tid,
+    // status "open", inga andra fält). Poäng, personbästa, topplista och
+    // ledare skrivs enbart av Cloud Functionen hittaRattSubmit (Admin SDK,
+    // förbi reglerna) – eleven kan inte skriva högre poäng, sänka någon
+    // annans rekord eller hitta på en klass. Topplistan = ETT dok per pack
+    // (alla inloggade läser – namn + klass + bästa, inget mer); ledarna ett
+    // dok för husens pokaler.
+    // ⚠️ DEPLOY KRÄVS: firebase deploy --only firestore:rules + functions.
+    // ------------------------------------------------------------------
+    match /hittaRattAttempts/{attemptId} {
+      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && validAttemptId(attemptId) &&
+        request.resource.data.keys().hasOnly(['uid', 'packId', 'startedAt', 'status']) &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.packId is string &&
+        request.resource.data.packId.matches('^[a-z0-9-]{1,60}$') &&
+        request.resource.data.startedAt == request.time &&
+        request.resource.data.status == 'open';
+      allow update, delete: if false;
+    }
+    match /hittaRattBest/{uid} {
+      allow read: if isTeacher() || isSelf(uid);
+      allow write: if false;
+    }
+    match /hittaRattBoards/{packId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /hittaRattMeta/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     // Allt annat nekas.

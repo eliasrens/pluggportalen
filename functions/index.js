@@ -12,6 +12,10 @@
 //   guldrushChooseVictim stöld/byte i en transaktion + trygghetsreglerna
 // Bara inloggade elever som gått med i matchen. Logiken: guldrush-core.js.
 //
+// Hitta rätt! (#609, epic #603) – hittaRattSubmit: eleven skickar en hel
+// omgångs svar → servern räknar om allt och sparar personbästa, skolans
+// topplista, ledare och coins i EN transaktion. Logiken: hitta-ratt-core.js.
+//
 // ⚠️ DEPLOY KRÄVS: firebase deploy --only functions (Blaze-planen). Klienten
 // (src/data-student-login.js, src/live/formats/guldrush/guldrush-data.js) visar
 // ett tydligt fel tills funktionerna finns.
@@ -25,6 +29,7 @@ import { getFirestore, FieldPath, FieldValue, Timestamp } from "firebase-admin/f
 import { randomInt } from "node:crypto";
 import { LoginError, updateStudentLogin as updateLogin } from "./login-core.js";
 import { GrError, answerQuestion, openChest, chooseVictim } from "./guldrush-core.js";
+import { HrFel, submit as hittaRattSubmitCore } from "./hitta-ratt-core.js";
 
 initializeApp();
 
@@ -84,3 +89,21 @@ function guldrushCall(name, fn) {
 export const guldrushAnswer = guldrushCall("guldrushAnswer", answerQuestion);
 export const guldrushOpenChest = guldrushCall("guldrushOpenChest", openChest);
 export const guldrushChooseVictim = guldrushCall("guldrushChooseVictim", chooseVictim);
+
+// --- Hitta rätt! (#609) ----------------------------------------------------------
+// Ett anrop per avslutad omgång (inte per fråga) – låg last. Retry med samma
+// attemptId ger samma svar utan nya coins (idempotent).
+export const hittaRattSubmit = onCall(
+  { region: "europe-west1", memory: "256MiB", concurrency: 40, cpu: 1, maxInstances: 3 },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Logga in först.");
+    try {
+      return await hittaRattSubmitCore({ db: getFirestore(), FieldValue, Timestamp, now: Date.now }, uid, request.data || {});
+    } catch (err) {
+      if (err instanceof HrFel) throw new HttpsError(err.code, err.message);
+      logger.error("hittaRattSubmit oväntat fel", err);
+      throw new HttpsError("internal", "Något gick fel på servern – försök igen.");
+    }
+  }
+);

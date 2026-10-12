@@ -2,7 +2,7 @@
 // minnet (ingen Firebase). setClassHiddenModules speglar den riktiga
 // skrivvägens semantik (normalisering) och meddelar sidan via ett event så
 // elevens sidomeny ritas om direkt. Övriga funktioner = det renderTopbar behöver.
-import { normalizeHiddenModules } from "/src/gamemode-visibility.js";
+import { normalizeHiddenModules, normalizeEnabledModules } from "/src/gamemode-visibility.js";
 
 export const classes = [
   { id: "4a", name: "4A", order: 1, studentIds: ["alva", "bruno"] },
@@ -32,11 +32,12 @@ export async function getClasses() {
   return classes;
 }
 
-export async function setClassHiddenModules(classId, hiddenModules) {
+export async function setClassHiddenModules(classId, hiddenModules, enabledModules) {
   await new Promise((r) => setTimeout(r, 250)); // känns som en riktig skrivning
   const list = normalizeHiddenModules(hiddenModules);
   const cls = classes.find((c) => c.id === classId);
   if (cls) cls.hiddenModules = list;
+  if (cls && enabledModules) cls.enabledModules = normalizeEnabledModules(enabledModules);
   window.dispatchEvent(new CustomEvent("pv-classes-changed"));
   return list;
 }

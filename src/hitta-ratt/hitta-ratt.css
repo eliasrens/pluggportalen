@@ -1,0 +1,276 @@
+/* ==========================================================================
+   Hitta rätt! – modulens stilar (src/hitta-ratt/hitta-ratt.css) · #605
+   Laddas av page-hitta-ratt.js först när eleven öppnar modulen (inte i
+   index.html/styles.css, så bootgrafen och elevsidans laddning påverkas
+   inte). Allt prefixat hr-. Bygger på Pluggportens tokens (01-grund.css).
+   ========================================================================== */
+
+.hr-start { max-width: 1100px; margin: 0 auto; }
+
+.hr-huvud {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.hr-huvud h1 { margin: 0 0 4px; }
+.hr-huvud .hint { margin: 0; }
+.hr-topplistor-knapp {
+  background: var(--orange); box-shadow: 0 5px 0 #c8742f;
+  white-space: nowrap;
+}
+.hr-topplistor-knapp:active { box-shadow: 0 1px 0 #c8742f; }
+
+.hr-kategori { margin: 0 0 26px; }
+.hr-kategori-namn {
+  font-size: 1.35rem; font-weight: 800; color: var(--text);
+  margin: 0 0 12px 4px;
+}
+
+.hr-kort-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.hr-kort {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--panel); border-radius: var(--radie);
+  box-shadow: var(--skugga-mjuk); padding: 18px;
+  border: 2px solid transparent;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+.hr-kort:hover { transform: translateY(-2px); border-color: #d6e6fb; }
+.hr-kort-topp { display: flex; align-items: center; gap: 12px; }
+.hr-kort-ikon { font-size: 2.1rem; line-height: 1; }
+.hr-kort-namn { margin: 0; font-size: 1.12rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+
+.hr-kort-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.hr-tagg {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.86rem; font-weight: 700; color: var(--text-svag);
+  background: var(--ljus); border-radius: 999px; padding: 2px 10px;
+}
+.hr-prick { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.hr-niva-gron { color: var(--gron-mork); background: #e3f6ea; }
+.hr-niva-gul { color: #9a6b00; background: #fdf3d3; }
+.hr-niva-rod { color: #c03b3b; background: #fde6e6; }
+
+/* Personbästa – diskret, tar alltid samma höjd så korten linjerar. */
+.hr-kort-bast { margin: 0; font-size: 0.88rem; color: var(--text-svag); min-height: 1.3em; }
+.hr-kort-bast b { color: var(--text); }
+
+.hr-spela { margin-top: auto; width: 100%; padding: 11px 20px; }
+
+/* Stubbvy (spel = E #608). */
+.hr-stub { max-width: 640px; text-align: center; }
+.hr-stub .big-emoji { font-size: 3rem; }
+
+@media (max-width: 560px) {
+  .hr-huvud { padding: 20px; }
+  .hr-topplistor-knapp { width: 100%; }
+  .hr-kort-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hr-kort, .hr-kort:hover { transition: none; transform: none; }
+}
+
+/* --- 🏆 Topplistor (#609) – hela skolan, Top 15 + egen rad ---------------- */
+.hr-topplistor { max-width: 1100px; margin: 0 auto; }
+.hr-tillbaka { white-space: nowrap; }
+.hr-tl-layout {
+  display: grid; grid-template-columns: minmax(230px, 320px) 1fr;
+  gap: 18px; align-items: start;
+}
+.hr-tl-val { padding: 18px; }
+.hr-tl-grupp + .hr-tl-grupp { margin-top: 14px; }
+.hr-tl-grupp-namn { font-size: 1rem; font-weight: 800; color: var(--text); margin: 0 0 8px 2px; }
+.hr-tl-knappar { display: flex; flex-wrap: wrap; gap: 6px; }
+.hr-tl-pack {
+  font: inherit; font-size: 0.92rem; font-weight: 700; color: var(--text);
+  background: var(--ljus); border: 2px solid transparent; border-radius: 999px;
+  padding: 6px 12px; min-height: 40px; cursor: pointer;
+}
+.hr-tl-pack:hover { border-color: #d6e6fb; }
+.hr-tl-pack:focus-visible { outline: 3px solid var(--bla); outline-offset: 2px; }
+.hr-tl-pack[aria-pressed="true"] { background: var(--orange); color: #fff; box-shadow: 0 3px 0 #c8742f; }
+
+.hr-tl-lista { padding: 20px 22px; min-height: 260px; }
+.hr-tl-rubrik { margin: 0 0 2px; font-size: 1.3rem; }
+.hr-tl-regel { margin: 0 0 12px; font-size: 0.9rem; }
+.hr-tl-mitt {
+  margin: 0 0 14px; padding: 10px 14px; border-radius: var(--radie);
+  background: #fdf3d3; color: var(--text);
+}
+.hr-tl-mitt.hint { background: var(--ljus); }
+.hr-tl-tom { margin: 18px 0; text-align: center; color: var(--text-svag); }
+
+.hr-tl-rader { list-style: none; margin: 0; padding: 0; }
+.hr-tl-rad {
+  display: grid; grid-template-columns: 3.2em 1fr auto; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 12px; font-size: 1rem;
+}
+.hr-tl-rad:nth-child(odd) { background: var(--ljus); }
+.hr-tl-plats { font-weight: 800; text-align: right; color: var(--text-svag); }
+.hr-tl-medalj { font-size: 1.35rem; line-height: 1; }
+.hr-tl-namn { font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+.hr-tl-res { font-weight: 800; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hr-tl-du {
+  font-size: 0.75rem; font-weight: 800; color: #fff; background: var(--bla);
+  border-radius: 999px; padding: 1px 7px; margin-left: 4px; vertical-align: 1px;
+}
+.hr-tl-jag, .hr-tl-rad.hr-tl-jag:nth-child(odd) { background: #e3f0fe; box-shadow: inset 0 0 0 2px var(--bla); }
+.hr-tl-glapp { text-align: center; color: var(--text-svag); font-weight: 800; margin: 2px 0; }
+.hr-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .hr-tl-layout { grid-template-columns: 1fr; }
+  .hr-tl-lista { padding: 16px 12px; }
+  .hr-tl-rad { grid-template-columns: 2.4em 1fr auto; gap: 8px; padding: 7px 8px; font-size: 0.95rem; }
+}
+@media (max-width: 380px) {
+  .hr-tl-rad { grid-template-columns: 2.4em 1fr; }
+  .hr-tl-res { grid-column: 2; white-space: normal; }
+}
+
+/* --- Spelflödet (#608) – en omgång: fråga, karta, lås/nästa --------------- */
+.hr-spel {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.hr-spel .panel { margin: 0; }
+.hr-spel-topp {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap;
+  padding: 12px 18px 16px;
+}
+.hr-spel-info { display: flex; align-items: baseline; gap: 4px 14px; flex-wrap: wrap; flex: 1 1 260px; }
+.hr-spel-titel { margin: 0; font-size: 1.3rem; line-height: 1.2; }
+.hr-spel-nr { color: var(--text-svag); font-weight: 700; white-space: nowrap; }
+.hr-spel-nr b { color: var(--text); }
+.hr-spel-matt { display: flex; gap: 6px; flex-wrap: wrap; }
+.hr-spel-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--ljus); border-radius: 999px; padding: 4px 12px;
+  font-weight: 700; color: var(--text-svag); white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.hr-spel-chip b { color: var(--text); font-size: 1.05rem; }
+.hr-spel-coins { background: #fdf3d3; }
+.hr-spel-paus { color: var(--orange); }
+.hr-spel-avsluta {
+  padding: 8px 16px; font-size: 0.95rem;
+  background: #eef4ff; color: var(--bla-mork); box-shadow: 0 4px 0 #cdddf5;
+}
+.hr-spel-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--ljus); }
+.hr-spel-bar span { display: block; height: 100%; width: 0; background: var(--gron); transition: width 0.3s ease; }
+
+.hr-spel-fraga { display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+.hr-spel-fraga-text { min-width: 0; }
+.hr-spel-fraga p { margin: 0; }
+.hr-spel-namn { font-size: 1.45rem; font-weight: 800; line-height: 1.15; color: var(--text); }
+.hr-spel-prompt { font-size: 1.3rem; font-weight: 800; color: var(--text); line-height: 1.25; }
+.hr-spel-namn:not([hidden]) + .hr-spel-prompt { font-size: 1.02rem; font-weight: 700; color: var(--text-svag); }
+.hr-spel-bild {
+  flex: none; height: 92px; width: auto; max-width: 150px; object-fit: cover;
+  border-radius: 12px; background: var(--ljus); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+.hr-spel-foto { font-size: 0.72rem; color: var(--text-svag); margin-top: 4px !important; }
+.hr-spel-foto a { color: inherit; }
+
+.hr-spel-karta {
+  position: relative; border-radius: var(--radie); overflow: hidden;
+  box-shadow: var(--skugga-mjuk); background: #cfe9f8;
+  height: clamp(320px, calc(100vh - 330px), 820px);
+  height: clamp(320px, calc(100dvh - 330px), 820px);
+}
+/* Bildfrågor (sevärdheter) har en högre frågerad – kartan krymper lika mycket. */
+.hr-spel-med-bild .hr-spel-karta {
+  height: clamp(300px, calc(100vh - 396px), 820px);
+  height: clamp(300px, calc(100dvh - 396px), 820px);
+}
+
+.hr-spel-fot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px;
+  flex-wrap: wrap; padding: 12px 18px; min-height: 76px;
+}
+.hr-spel-feedback {
+  flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  font-size: 1.05rem; color: var(--text);
+}
+.hr-spel-feedback .hint { font-size: 0.95rem; }
+.hr-fb-rubrik { font-size: 1.25rem; }
+.hr-fb-ratt .hr-fb-rubrik { color: var(--gron-mork); }
+.hr-fb-fel .hr-fb-rubrik { color: #c03b3b; }
+.hr-fb-poang {
+  font-weight: 800; font-size: 1.2rem; color: var(--text);
+  background: #e3f6ea; border-radius: 999px; padding: 2px 12px; font-variant-numeric: tabular-nums;
+}
+.hr-fb-noll .hr-fb-poang { background: var(--ljus); }
+.hr-fb-coin {
+  display: inline-flex; align-items: center; gap: 4px; font-weight: 800; color: #9a6b00;
+  animation: hr-coin-pop 0.5s ease-out;
+}
+@keyframes hr-coin-pop { from { transform: translateY(6px) scale(0.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.hr-spel-knappar { display: flex; gap: 10px; margin-left: auto; }
+.hr-spel-knappar .btn { min-width: 150px; min-height: 52px; }
+.hr-spel-knappar .btn:disabled,
+.hr-res-knappar .btn:disabled { background: #b8c2cf; box-shadow: 0 5px 0 #98a3b1; cursor: not-allowed; filter: none; transform: none; }
+
+/* --- Resultatskärmen (#608) ----------------------------------------------- */
+.hr-resultat {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 18px; align-items: start;
+}
+.hr-resultat .panel { margin: 0; }
+.hr-res-kort { text-align: center; padding: 22px 24px 26px; }
+.hr-res-bild { width: min(220px, 70%); height: auto; display: block; margin: 0 auto 4px; }
+.hr-res-kort h1 { margin: 0; font-size: 1.9rem; }
+.hr-res-pack { margin: 0 0 10px; }
+.hr-res-stort { font-size: 2.6rem; font-weight: 800; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.hr-res-stort span { font-size: 1.3rem; color: var(--text-svag); }
+.hr-res-chips { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.hr-res-chip { background: var(--ljus); border-radius: 999px; padding: 4px 14px; font-weight: 700; color: var(--text-svag); }
+.hr-res-chip b { color: var(--text); }
+.hr-res-rekord {
+  margin: 10px auto; display: inline-block; padding: 8px 18px; border-radius: 999px;
+  background: var(--gul); color: var(--text); font-weight: 800; font-size: 1.15rem;
+  box-shadow: 0 4px 0 #d9ac2c; animation: hr-coin-pop 0.6s ease-out;
+}
+.hr-res-pb { margin: 8px 0; color: var(--text-svag); }
+.hr-res-pb b { color: var(--text); }
+.hr-res-coins {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 8px;
+  margin: 12px 0 18px; font-weight: 800; font-size: 1.15rem; color: #9a6b00;
+}
+.hr-res-coins .hint { flex-basis: 100%; font-weight: 600; font-size: 0.88rem; }
+.hr-res-knappar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.hr-res-lista { padding: 20px 22px; }
+.hr-res-lista h2 { margin: 0 0 2px; font-size: 1.3rem; }
+.hr-res-plats { margin: 0 0 12px; font-size: 1.15rem; }
+.hr-res-plats b { font-size: 1.4rem; color: var(--bla-mork); }
+.hr-sparfel .hr-res-knappar { margin-top: 12px; }
+
+@media (max-width: 760px) {
+  .hr-resultat { grid-template-columns: 1fr; }
+  .hr-spel-topp { padding: 10px 12px 14px; }
+  .hr-spel-titel { font-size: 1.1rem; }
+  .hr-spel-fraga { padding: 10px 12px; }
+  .hr-spel-prompt { font-size: 1.1rem; }
+  .hr-spel-bild { height: 64px; max-width: 96px; }
+  /* Mobil: hamburgaren + toppraden på två rader + knappar i full bredd. */
+  .hr-spel-karta { height: clamp(260px, calc(100dvh - 430px), 820px); }
+  .hr-spel-med-bild .hr-spel-karta { height: clamp(240px, calc(100dvh - 500px), 820px); }
+  .hr-spel-feedback .hint { font-size: 0.85rem; }
+  .hr-spel-feedback { font-size: 0.95rem; gap: 2px 8px; }
+  .hr-fb-rubrik { font-size: 1.1rem; }
+  .hr-fb-poang { font-size: 1.05rem; }
+  .hr-spel-fot { padding: 10px 12px; }
+  .hr-spel-knappar { width: 100%; }
+  .hr-spel-knappar .btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hr-spel-bar span { transition: none; }
+  .hr-fb-coin, .hr-res-rekord { animation: none; }
+}

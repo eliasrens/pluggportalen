@@ -1,0 +1,46 @@
+/* ==========================================================================
+   Hitta rätt! – Kartmästare-pokalen i huset (#610). Laddas av hr-pokal-rum.js.
+   Pokalen är en vanlig .room-item; här bara skylten (hover/vald) och lådans kort.
+   ========================================================================== */
+
+.room-item.hr-pokal .hr-pokal-skylt {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  transform: translateX(-50%);
+  display: block;
+  width: max-content;
+  max-width: 14rem;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(59, 51, 80, 0.92);
+  color: #fff3dc;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+.room-item.hr-pokal:hover .hr-pokal-skylt,
+.room-item.hr-pokal:focus-within .hr-pokal-skylt,
+.room-item.hr-pokal.selected .hr-pokal-skylt {
+  opacity: 1;
+}
+
+.room-item.hr-pokal.dragging .hr-pokal-skylt {
+  opacity: 0;
+}
+
+.tray-item.hr-pokal-lada {
+  border-color: #f7c948;
+  background: #fff8e1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-item.hr-pokal .hr-pokal-skylt { transition: none; }
+}
