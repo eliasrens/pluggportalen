@@ -1,0 +1,209 @@
+<!doctype html>
+<!--
+  Hitta rätt! 2/2 – SPIK (#632, arkitektur §11.6/§11.8). Ingen produktionskod.
+  Bevisar i en riktig webbläsare (inte bara curl):
+    1. Platssökning UTAN API-nyckel: Wikidata (wbsearchentities + wbgetentities,
+       origin=*) och Nominatim som reserv. Sök bara på knapp/Enter, minst 1 s
+       mellan anrop. Träff → markör på kartan (kartmotorn, geofilen) + scope-koll.
+    2. Commons-bildsök från webbläsaren med licensvitlistan (§7), CORS-hämtning
+       av miniatyren (thumb.wikimedia.org, ACAO *) → canvas utan "tainted" →
+       WebP ≤ 800 px och ≤ 120 kB.
+    3. "Ladda upp egen": samma nedskalning.
+  Kör: PORT=8632 node server.mjs → http://localhost:8632/preview/preview-hitta-ratt-egna-spik.html
+-->
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spik – egna områden (#632)</title>
+<style>
+  body { font: 15px/1.4 system-ui, sans-serif; margin: 0; background: #1d2230; color: #e9ecf3; }
+  main { display: grid; grid-template-columns: 380px 1fr; gap: 12px; padding: 12px; height: 100vh; box-sizing: border-box; }
+  section { background: #272d3d; border-radius: 10px; padding: 10px; overflow: auto; }
+  h2 { font-size: 15px; margin: 6px 0; }
+  input, select, button { font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid #4a5370; background: #1d2230; color: inherit; }
+  button { cursor: pointer; background: #3b6fd8; border: 0; }
+  ul { list-style: none; padding: 0; margin: 6px 0; }
+  li button { width: 100%; text-align: left; background: #323a50; margin: 2px 0; }
+  .hint { color: #a7b0c6; font-size: 13px; }
+  .fel { color: #ff9a8a; }
+  #karta { height: 100%; min-height: 420px; position: relative; border-radius: 10px; overflow: hidden; }
+  .bilder { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .bilder img { width: 100%; aspect-ratio: 4/3; object-fit: cover; cursor: pointer; border-radius: 4px; }
+  #vald img { max-width: 100%; }
+  #logg { font: 12px ui-monospace, monospace; white-space: pre-wrap; color: #a7b0c6; }
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h2>1. Sök plats</h2>
+    <select id="geo">
+      <option value="sverige-landskap">Sverige</option>
+      <option value="europa">Europa</option>
+      <option value="varlden">Världen</option>
+    </select>
+    <form id="sokform"><input id="sok" value="Gävle" size="18" /> <button>Sök</button></form>
+    <p class="hint">Söker bara på knapp/Enter. Wikidata först, OpenStreetMap om inget hittas.</p>
+    <ul id="traffar"></ul>
+    <p id="plats" class="hint"></p>
+    <h2>2. Bild (frivillig)</h2>
+    <form id="bildform"><input id="bildsok" size="18" /> <button>Sök bild online</button></form>
+    <label class="hint">eller ladda upp egen: <input type="file" id="fil" accept="image/*" /></label>
+    <div class="bilder" id="bilder"></div>
+    <div id="vald"></div>
+    <div id="logg"></div>
+  </section>
+  <div id="karta"></div>
+</main>
+<script type="module">
+  import { skapaKarta } from "../src/hitta-ratt/karta/kartmotor.js";
+
+  const $ = (id) => document.getElementById(id);
+  const logg = (s) => ($("logg").textContent += s + "\n");
+  window.__spik = { sok: [], bilder: [] };
+
+  // Scope-rutor (arkitektur §1.1: V, S, Ö, N).
+  const SCOPE = { sverige: [9.6, 54.9, 25.4, 69.4], europa: [-25, 33.5, 45, 71.5], varlden: [-180, -60, 180, 84] };
+  const inomScope = (scope, lon, lat) => {
+    const [v, s, o, n] = SCOPE[scope];
+    return lon >= v && lon <= o && lat >= s && lat <= n;
+  };
+
+  // --- Karta -------------------------------------------------------------
+  let geo, karta;
+  async function laddaGeo() {
+    geo = await (await fetch(`../src/hitta-ratt/content/geo/${$("geo").value}.json`)).json();
+    karta?.destroy();
+    karta = skapaKarta($("karta"), geo, { lage: "punkt", visaGranser: "svag", attribution: "Kartdata: Natural Earth · Lantmäteriet (CC0)" });
+  }
+  $("geo").addEventListener("change", laddaGeo);
+  await laddaGeo();
+
+  // --- 1. Platssökning ---------------------------------------------------
+  let senastAnrop = 0;
+  async function strypt(url) {
+    const vanta = senastAnrop + 1000 - Date.now(); // högst 1 anrop/s (Nominatims villkor)
+    if (vanta > 0) await new Promise((r) => setTimeout(r, vanta));
+    senastAnrop = Date.now();
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+  async function wikidata(q) {
+    const s = await fetch(`https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&origin=*&type=item&limit=10&language=sv&uselang=sv&search=${encodeURIComponent(q)}`).then((r) => r.json());
+    const ids = s.search.map((x) => x.id);
+    if (!ids.length) return [];
+    const e = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&props=claims&ids=${ids.join("|")}`).then((r) => r.json());
+    return s.search.map((x) => {
+      const c = e.entities[x.id]?.claims || {};
+      const p = c.P625?.[0]?.mainsnak?.datavalue?.value;
+      return p && { kalla: `wikidata:${x.id}`, namn: x.label, besk: x.description || "", lon: p.longitude, lat: p.latitude, p18: c.P18?.[0]?.mainsnak?.datavalue?.value || null };
+    }).filter(Boolean);
+  }
+  async function nominatim(q) {
+    const r = await strypt(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=sv&q=${encodeURIComponent(q)}`);
+    return r.map((x) => ({ kalla: `osm:${x.osm_type}/${x.osm_id}`, namn: x.name, besk: x.display_name, lon: +x.lon, lat: +x.lat }));
+  }
+  $("sokform").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const q = $("sok").value.trim();
+    if (q.length < 2) return;
+    $("traffar").innerHTML = '<li class="hint">Söker …</li>';
+    const t0 = performance.now();
+    try {
+      let lista = await wikidata(q);
+      let kalla = "Wikidata";
+      if (!lista.length) { lista = await nominatim(q); kalla = "OpenStreetMap"; }
+      const ms = Math.round(performance.now() - t0);
+      window.__spik.sok.push({ q, kalla, antal: lista.length, ms });
+      logg(`sök "${q}": ${lista.length} träffar via ${kalla}, ${ms} ms`);
+      $("traffar").replaceChildren(...(lista.length ? lista : [null]).map((t) => {
+        const li = document.createElement("li");
+        if (!t) { li.className = "hint"; li.textContent = "Inget hittades. Prova ett annat namn."; return li; }
+        const b = document.createElement("button");
+        b.textContent = `${t.namn} – ${t.besk}`;
+        b.addEventListener("click", () => valjPlats(t));
+        li.append(b);
+        return li;
+      }));
+    } catch (err) {
+      $("traffar").innerHTML = `<li class="fel">Sökningen fungerar inte just nu (${err.message}). Försök igen om en stund.</li>`;
+    }
+  });
+  function valjPlats(t) {
+    const ok = inomScope(geo.scope, t.lon, t.lat);
+    $("plats").innerHTML = ok
+      ? `✓ ${t.namn}: ${t.lat.toFixed(4)}, ${t.lon.toFixed(4)} (${t.kalla}) – inom ${geo.scope}`
+      : `<span class="fel">✗ ${t.namn} ligger utanför kartan (${geo.scope}).</span>`;
+    karta.reset({ hem: false });
+    karta.showResult({ target: { lon: t.lon, lat: t.lat }, label: t.namn });
+    window.__spik.vald = { ...t, inom: ok };
+    $("bildsok").value = t.namn;
+  }
+
+  // --- 2. Bilder ---------------------------------------------------------
+  // Samma vitlista som admin/hitta-ratt-bilder.mjs (§7).
+  function licens(meta) {
+    const kod = (meta.License?.value || "").toLowerCase();
+    if (/^(pd|public domain)/.test(kod) || /^public domain/i.test(meta.LicenseShortName?.value || "")) return "Public domain";
+    if (/^cc0/.test(kod)) return "CC0 1.0";
+    const m = kod.match(/^cc-(by|by-sa)-(\d\.\d)/);
+    return m ? `CC ${m[1].toUpperCase()} ${m[2]}` : null;
+  }
+  const rensa = (html) => (html || "").replace(/<[^>]*>/g, " ").replace(/&[a-z#0-9]+;/g, " ").replace(/\s+/g, " ").trim();
+
+  $("bildform").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const q = $("bildsok").value.trim();
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=24&gsrsearch=${encodeURIComponent(q + " filetype:bitmap")}&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiurlwidth=800&iiextmetadatafilter=License|LicenseShortName|LicenseUrl|Artist|Credit`;
+    const j = await fetch(url).then((r) => r.json());
+    const alla = Object.values(j.query?.pages || {});
+    const ok = alla.map((p) => {
+      const ii = p.imageinfo?.[0];
+      const lic = ii && licens(ii.extmetadata || {});
+      return lic && { titel: p.title, thumb: ii.thumburl, sida: ii.descriptionurl, licens: lic, fotograf: rensa(ii.extmetadata.Artist?.value) || rensa(ii.extmetadata.Credit?.value) || "okänd" };
+    }).filter(Boolean);
+    logg(`bildsök "${q}": ${alla.length} filer, ${ok.length} med godkänd licens`);
+    window.__spik.bilder.push({ q, alla: alla.length, ok: ok.length });
+    $("bilder").replaceChildren(...ok.map((b) => {
+      const img = document.createElement("img");
+      img.src = b.thumb; img.alt = b.titel; img.loading = "lazy";
+      img.addEventListener("click", async () => visa(await skala(await (await fetch(b.thumb)).blob()), b));
+      return img;
+    }));
+  });
+  $("fil").addEventListener("change", async () => {
+    const f = $("fil").files[0];
+    if (f) visa(await skala(f), { titel: f.name, fotograf: "läraren", licens: "egen bild" });
+  });
+
+  /** Nedskalning i klienten: längsta sida ≤ 800 px, WebP (JPEG om webbläsaren saknar WebP-kodning), ≤ 120 kB. */
+  async function skala(blob) {
+    const bild = await createImageBitmap(blob);
+    for (const max of [800, 640, 480]) {
+      const f = Math.min(1, max / Math.max(bild.width, bild.height));
+      const c = new OffscreenCanvas(Math.round(bild.width * f), Math.round(bild.height * f));
+      c.getContext("2d").drawImage(bild, 0, 0, c.width, c.height);
+      for (const q of [0.82, 0.72, 0.62, 0.5]) {
+        let ut = await c.convertToBlob({ type: "image/webp", quality: q });
+        if (ut.type !== "image/webp") ut = await c.convertToBlob({ type: "image/jpeg", quality: q });
+        if (ut.size <= 120_000) return { blob: ut, bredd: c.width, hojd: c.height, q, in: blob.size };
+      }
+    }
+    throw new Error("Bilden blev för stor");
+  }
+  function visa(r, b) {
+    const txt = `${r.bredd}×${r.hojd} ${r.blob.type} ${Math.round(r.blob.size / 1024)} kB (q ${r.q}, in ${Math.round(r.in / 1024)} kB)`;
+    logg(`vald bild: ${txt}`);
+    window.__spik.vald_bild = { bredd: r.bredd, hojd: r.hojd, typ: r.blob.type, bytes: r.blob.size, licens: b.licens };
+    $("vald").innerHTML = "";
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(r.blob);
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.textContent = `Foto: ${b.fotograf}, ${b.licens}${b.sida ? ", Wikimedia Commons" : ""} · ${txt}`;
+    $("vald").append(img, p);
+  }
+</script>
+</body>
