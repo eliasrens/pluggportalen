@@ -171,6 +171,11 @@ export function xBlockSvg() {
   return `<rect x="-22" y="-50" width="44" height="50" rx="9" fill="#B79BE0" ${L3}/><rect x="-16" y="-45" width="32" height="7" rx="3.5" fill="#fff" opacity=".35"/><text x="0" y="-15" font-size="28" font-style="italic" font-weight="800" text-anchor="middle" fill="#fff" stroke="${O}" stroke-width="1.2" paint-order="stroke">x</text>`;
 }
 
+/** Skuld-x-block (−x, #624): samma form som x-blocket, streckat och rött – "x som saknas". */
+export function xDebtBlockSvg() {
+  return `<rect x="-22" y="-50" width="44" height="50" rx="9" fill="#FFE3E1" stroke="#EF6F6C" stroke-width="3" stroke-dasharray="6 4"/><text x="-1" y="-16" font-size="21" font-style="italic" font-weight="800" text-anchor="middle" fill="#C9423F">−x</text>`;
+}
+
 export function xLabelBlockSvg(p, w) {
   const stroke = p.neg ? `stroke="#EF6F6C" stroke-width="3" stroke-dasharray="6 4"` : L3;
   return `<rect x="${-w / 2}" y="-50" width="${w}" height="50" rx="9" fill="${p.neg ? "#FFE3E1" : "#D9CBF2"}" ${stroke}/>${segsSvg(p.segs, 24, 0, -17)}`;
@@ -202,6 +207,7 @@ export function pieceSvg(p, theme, size) {
     case "item": return `<g transform="scale(1.15)">${itemSvg(theme.item, p.i)}</g>`;
     case "hole": return `<g transform="scale(1.15)">${holeSvg()}</g>`;
     case "xb": return xBlockSvg();
+    case "xn": return xDebtBlockSvg();
     case "xf": return xLabelBlockSvg(p, size.w);
     case "tile": return tileSvg(p, size.w);
     case "label": return labelSvg(p, size.w);

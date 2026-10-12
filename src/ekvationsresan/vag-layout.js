@@ -34,7 +34,8 @@ export function pieceSize(p) {
     case "cont": return [56, 56];
     case "item":
     case "hole": return [30, 30];
-    case "xb": return [44, 50];
+    case "xb":
+    case "xn": return [44, 50];
     case "xf": return [Math.max(52, segsWidth(p.segs, 24) + 22), 50];
     case "tile": return [Math.max(40, 20 + p.text.length * 15), 40];
     case "label": return [Math.max(90, segsWidth(p.segs, 30) + 40), 58];
