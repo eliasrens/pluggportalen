@@ -16,7 +16,7 @@ import { avatarEmoji } from "./avatars.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { LEVEL_MAX } from "./ekvationsresan/config.js";
 import { NIVAER, NIVA_FEL, TREND, dragText, elevSparadText, forsokRader, hjalpText, ms, nivaKurva,
-  nivaNamn, nivaStatus, rakneGang, tolkaNiva } from "./ekvationsresan/larare.js";
+  nivaNamn, nivaStatus, rakneGang, svarRader, tolkaNiva } from "./ekvationsresan/larare.js";
 import { rowsHtml } from "./ekvationsresan/min-losning.js";
 
 /** Så många senaste uppgifter läses och visas. */
@@ -81,10 +81,10 @@ export function attemptsHtml(attempts) {
       const eq = rakneGang(attempts[i]).rows[0]?.text || "?";
       return `<tr class="ekt-att${i === 0 ? " is-vald" : ""}" data-i="${i}" tabindex="0" role="button" aria-pressed="${i === 0}"
           title="Visa räknegången">
-        <td class="ekt-eq">${esc(eq)}</td>
+        <td class="ekt-eq">${esc(eq)}${r.type !== "A" && r.type !== "B" ? ` <span class="lrt-of">· ${esc(r.typeName)}</span>` : ""}</td>
         <td class="lrt-num">${r.level ?? "–"}</td>
         <td class="lrt-num ekt-stj">${r.solved ? starsTxt(r.stars) : `<span class="ekt-ej">ej löst</span>`}</td>
-        <td class="lrt-num">${r.moves}${r.blocked ? `<span class="lrt-of" title="spärrade drag"> +${r.blocked}✋</span>` : ""}</td>
+        <td class="lrt-num">${!r.solvePhase ? "–" : r.moves}${r.blocked ? `<span class="lrt-of" title="spärrade drag"> +${r.blocked}✋</span>` : ""}</td>
         <td class="lrt-num">${r.optimal ?? "–"}</td>
         <td>${esc(hjalpText(r))}</td>
         <td class="lrt-num lrt-date">${esc(dateText(r.at))}</td>
@@ -100,8 +100,9 @@ export function haftHtml(attempt) {
   const own = rowsHtml(g.rows.slice(0, g.ownRows));
   const shown = g.ownRows < g.rows.length ? rowsHtml(g.rows.slice(g.ownRows), { ghost: true }) : "";
   return `<div class="ekt-hafte" aria-label="Elevens räknegång">
-    <p class="ekt-hafte-rubrik">MIN LÖSNING <span class="ekt-hafte-meta">nivå ${r.level} · ${r.solved ? starsTxt(r.stars) : "ej löst"} · ${r.moves} drag (optimalt ${r.optimal ?? "?"})</span></p>
+    <p class="ekt-hafte-rubrik">MIN LÖSNING <span class="ekt-hafte-meta">nivå ${r.level} · ${r.solved ? starsTxt(r.stars) : "ej löst"}${r.solvePhase ? ` · ${r.moves} drag (optimalt ${r.optimal ?? "?"})` : ""}</span></p>
     <ol class="ekv-rader">${own}</ol>
+    ${r.answers ? `<p class="ekt-visad">${esc(r.typeName)} – elevens svar:</p><ol class="ekv-rader">${svarRader(r.answers).map((t) => `<li class="ekv-rad">${esc(t)}</li>`).join("")}</ol>` : ""}
     ${shown ? `<p class="ekt-visad">Eleven valde ”Visa lösningen” – resten visades av spelet:</p><ol class="ekv-rader ekt-visad-rader">${shown}</ol>` : ""}
   </div>`;
 }

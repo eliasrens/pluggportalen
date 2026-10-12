@@ -90,6 +90,12 @@ export function felVarianter(before, step) {
   return out;
 }
 
+/** Felet ska se ut som ett rimligt elevfel – inte ge tal mycket större än uppgiftens. */
+function tooBigFor(eq, start) {
+  const max = (e) => Math.max(...[...e.left, ...e.right].map((t) => Math.abs(t.n) / t.d));
+  return max(eq) > Math.max(100, 2 * max(start));
+}
+
 /** Fortsätt rätt från en (fel) ekvation till "x = …" med nivåns spärrar. → steg eller null. */
 function continueFrom(eq, rules) {
   if (solvedState(eq).solved) return [];
@@ -118,6 +124,7 @@ export function buildFel(task, rules, rng) {
   for (const t of tries) {
     if (equationKey(t.after) === equationKey(states[t.i + 1])) continue;
     if (checkState(t.after, rules)) continue;
+    if (tooBigFor(t.after, start)) continue;
     const x = solve(t.after);
     if (!x || same(x, correctX)) continue;
     const rest = continueFrom(t.after, rules);

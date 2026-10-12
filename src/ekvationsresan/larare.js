@@ -15,6 +15,7 @@
 import { LEVEL_MIN, LEVEL_MAX, LEVELS } from "./config.js";
 import { normalizeProgress, teacherSummary } from "./framsteg.js";
 import { replayRows } from "./losning.js";
+import { TASK_TYPES, hasSolvePhase, isQuestionType } from "./uppgiftstyper.js";
 
 /** Nivåerna läraren kan välja. */
 export const NIVAER = LEVELS.map((l) => ({ level: l.level, name: l.name }));
@@ -115,7 +116,17 @@ export function forsokRader(attempts) {
     optimal: a.optimalMoves ?? null,
     help: Number.isInteger(a.helpMax) ? a.helpMax : 0,
     blocked: Number.isInteger(a.blocked) ? a.blocked : 0,
+    // Uppgiftstyp (#625): C–E har inga egna drag; C–F har elevens svar.
+    type: TASK_TYPES[a.type] ? a.type : "A",
+    typeName: TASK_TYPES[a.type]?.name || TASK_TYPES.A.name,
+    solvePhase: hasSolvePhase(a.type),
+    answers: isQuestionType(a.type) && Array.isArray(a.answers) ? a.answers : null,
   }));
+}
+
+/** Elevens svar i C–F som korta rader: "✗ 2x + 16 = 2", "✓ 2x + 2 = 16", "👁 svaret visades". */
+export function svarRader(answers) {
+  return (answers || []).filter((a) => a && !a.senare && !a.annan).map((a) => (a.visad ? "👁 svaret visades" : `${a.ok ? "✓" : "✗"} ${a.a ?? ""}`));
 }
 
 /** Hjälpen som text: 0 → "–", 1–3 = högsta 💡-steget, "Visa lösningen" eget. */

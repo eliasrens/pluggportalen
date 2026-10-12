@@ -381,3 +381,62 @@ nivå 1–6 som förut; de assertions som hårdkodade "högsta nivån = 6" läse
   och mynt ≤ 7, så ingen regeländring.
 - **Nivå 12** har bara ekvationerna; texten (verklighet → ekvation → svar)
   läggs på av problemlösningstypen.
+
+---
+
+## 8. Etapp 2 – uppgiftstyperna C–F (`#625`, E2.3)
+
+Nivån styr matematiken, typen styr formen. Typen dras först (andelar per
+nivå i `config.LEVELS[].types`, resten A/B som förut), väljer bland nivåns
+former de typen klarar och lägger på sin data på uppgiften. Tester:
+`test/ekvationsresan-typer.test.js`. Preview: `node admin/qa-ekvationsresan-seed.mjs
+--typ C|D|E|F [--niva N]` ger elev1 en pågående uppgift av typen.
+
+| Typ | Vad eleven gör | Data på uppgiften |
+| --- | --- | --- |
+| **C Nästa rad** | Operationsraden står i häftet; eleven skriver (nivå 4+) eller väljer bland tre (nivå 1–3) nästa förenklade rad. Vågen animerar draget efter varje rätt rad. Felalternativen är vanliga missuppfattningar (bara ena ledet, olika operation, halv delning) före räknefel. | `nastaRad: { mode, steg: [{ val: [ekvation ×3] }] }` |
+| **D Bild → ekvation** | Vågen (utan ekvationsrubrik) + texten "Två spargrisar och 3 mynt är lika mycket som 13 mynt." → eleven skriver `2x + 3 = 13`. Bara former med plus och heltal, föremål eller block. | `bild: { text, x }` (vågens tema ger orden) |
+| **E Hitta felet** | Häftet blir "ALVAS LÖSNING"; en påhittad elev gör ETT fel (bara ena ledet, olika operation, räknefel, delade bara x-termen) och räknar sedan rätt vidare till fel x. Eleven klickar på raden där felet börjar. Från nivå 3 (minst två drag). | `fel: { namn, kind, rad, ratt, steg }` (`hitta-felet.js`) |
+| **F Problemlösning** | Text (+ vågens bild när den visar föremål) → eleven skriver ekvationen → **vanliga lösningsvyn** → "Vad betyder x i uppgiften?" (tre meningar med samma tal, en sann) → svaret skrivs i häftet. Från nivå 3 som en mindre andel (12–14 %), 50 % på nivå 12. | `problem: { mall, text, fraga, bild, val, ratt, svar }` (`problem.js`, mallar per form) |
+
+### Rättning (`typ-svar.js`)
+
+- Ekvationer jämförs **led för led, förenklade** (`x + x + 3` = `2x + 3`);
+  ur bild/text får leden byta plats (`13 = 2x + 3`). `3·x`, `3*x`, `−` och
+  decimalkomma tolkas.
+- Ett fel ger en **riktad ledtråd**, aldrig svaret: "Vänster led stämmer. Räkna
+  höger led igen: 89 − 12 = ?", "Ena sidan stämmer. Titta igen på den andra
+  sidan av vågen.", "Den raden stämmer med raden ovanför. Leta vidare!".
+- Räknas **inte** som fel: oläsbart/utan x, en sann ekvation i annan form
+  (`2x = 10` i stället för `2x + 3 = 13` – "skriv den direkt ur uppgiften"),
+  och i E en rad som blev fel som *följd* av felet ("felet började tidigare").
+- Svaret **visas** efter tre fel på en skrivfråga, eller när bara ett
+  alternativ återstår i en valfråga (eleven får läsa och trycka FORTSÄTT).
+
+### Kompletterande stjärnregler (förslag, `config.TYPE_STARS`)
+
+| Resultat | Villkor (C, D, E och frågorna i F) |
+| --- | --- |
+| ⭐⭐⭐ | Alla svar rätt direkt |
+| ⭐⭐ | Ett fel svar i hela uppgiften |
+| ⭐ | Två eller fler fel, **eller** ett delsvar fick visas (motsvarar hjälpsteg 4) |
+| Ej löst | Alla svar fick visas – eleven gjorde inget själv (motsvarar "Visa lösningen") |
+
+- **F** = det lägsta av frågestjärnorna och lösningsdelens stjärnor enligt
+  E1.7 (drag mot optimalt, hjälpgränsen). "Visa lösningen" i lösningsdelen =
+  ej löst, och frågan om x hoppas över.
+- Poäng (anpassningen), mynt (löst = minst ⭐, oavsett stjärnor) och "Försök
+  igen för ⭐⭐⭐" (samma typ, ny liknande uppgift) fungerar som i Etapp 1.
+
+### Data
+
+- Försöket (`ekvationsresaAttempts`) har `type` (fanns) och för C–F även
+  **`answers`**: `[{ k: frågetyp, a: svaret som text | null, ok, visad?, annan?, senare? }]`
+  (≤ 40). A/B-försök saknar fältet. C sparar räknegången eleven fyllde i som
+  `moves` (`moveCount` 0); D/E har inga drag. ⚠️ Regeln `ekvAttemptOk` tillåter
+  nu `answers` – **kräver `firebase deploy --only firestore:rules`** innan
+  C–F-försök kan sparas live (A/B påverkas inte).
+- Progress: lärarens "drag jämfört med optimalt" räknar bara typer med en
+  lösningsdel (A, B, F). Lärarens försökslista visar typen, "–" för drag i C–E
+  och elevens svar (✓/✗/👁) i elevdetaljen. Färdighetsmodell och utbyggd
+  lärarvy är #626.

@@ -149,7 +149,8 @@ export function generateTask(level, { rng = Math.random, previous = null, form =
     const forced = i < MAX_TRIES / 2 ? type : null;
     let t = pickType(cfg, rng, forced);
     let forms = formsFor(t, cfg);
-    if (!Object.keys(forms).length || (form && !Object.hasOwn(forms, form))) {
+    // D/F bygger ekvationen ur bild/text med x till vänster – en tvingad sida (swap) går före.
+    if (!Object.keys(forms).length || (form && !Object.hasOwn(forms, form)) || (swap === true && forcesUnswapped(t))) {
       t = rng() < (cfg.typeB ?? 0) ? "B" : "A";
       forms = cfg.forms;
     }

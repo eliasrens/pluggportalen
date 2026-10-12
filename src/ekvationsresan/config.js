@@ -304,7 +304,7 @@ export const TYPE_TEXT = Object.freeze({
   C: { title: "NÄSTA RAD", ask: "Hur blir raden när du räknat ut båda leden?", askChoice: "Vilken rad kommer sedan?" },
   D: { title: "BILD → EKVATION", ask: "Skriv ekvationen som vågen visar." },
   E: { title: "HITTA FELET", ask: (namn) => `${namn} har gjort ett fel. Klicka på raden där felet börjar.` },
-  F: { title: "PROBLEMLÖSNING", ask: "Skriv en ekvation som passar texten.", meaning: "Vad betyder x i uppgiften?" },
+  F: { title: "PROBLEMLÖSNING", ask: "Skriv en ekvation som passar texten. Låt x vara det du inte vet.", meaning: "Vad betyder x i uppgiften?" },
   placeholder: "t.ex. 3x + 1 = 7",
   unreadable: "Det där kan jag inte läsa som en ekvation. Skriv till exempel 3x + 1 = 7.",
   needsX: "Ekvationen behöver ett x.",

@@ -30,8 +30,10 @@ export function shellHtml() {
         <button type="button" class="ekv-oversikt-knapp" aria-expanded="false" title="Nivåöversikt">Nivåer</button>
         <div class="ekv-oversikt" hidden></div>
       </header>
+      <div class="ekv-uppgiftstext" hidden></div>
       <div class="ekv-vag-plats"></div>
       <p class="ekv-instruktion">${esc(UI_TEXT.instruction)}</p>
+      <div class="ekv-fraga" hidden></div>
       <div class="ekv-styr">
         <form class="ekv-drag" autocomplete="off" novalidate>
           <div class="ekv-ops" role="group" aria-label="Välj räknesätt">
