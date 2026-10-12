@@ -44,7 +44,7 @@ test("visning: Etapp 2-fallen (x i båda leden, minustal, decimaler) ger aldrig 
   assert.equal(viewForEquation(E("3x + 4 = x + 12")), "block");
   assert.equal(viewForEquation(E("x - 7 = -3")), "block"); //   ett led är negativt → "skuld"-bricka
   assert.equal(viewForEquation(E("x + 9 = 4")), "block"); //    negativ lösning
-  assert.equal(viewForEquation(E("2,5x + 4 = 19")), "block");
+  assert.equal(viewForEquation(E("2,5x + 4 = 19")), "stiliserad"); // decimaler → stiliserad med etiketter (#624)
 });
 
 test("visning: hela vägen räknas, och vågen blir aldrig mindre abstrakt än uppgiften", () => {

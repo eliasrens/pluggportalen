@@ -188,12 +188,33 @@ vag.setTask(nextTask);       // nytt tema och ny grundvisning, lugn övertoning
 Vågen visas alltid med ekvationen (rubrik med bråkstreck för `x/4`);
 `showEquation: false` om spelvyn ritar ekvationen själv. `diskret` = typ B.
 
-### Förberett för Etapp 2
+### Etapp 2: x i båda leden, minustal och decimaler (#624, E2.2)
 
-x i båda leden och minustal ritas redan som block (minustal som streckade
-skuldbrickor, E2.2), negativa x-koefficienter som streckat etikettblock.
-Operander med x (`−2x`) animeras med den generella övertoningen tills en egen
-animation behövs (`movePhases`, grenen `simple`).
+Valet av visning är utökat utan att Etapp 1 ändras (nivå 1–6: samma visning,
+scener och positioner för 2 400 genererade uppgifter före/efter).
+
+- **x i båda leden → block.** `−x` lyfter bort ett x-block från BÅDA sidor
+  (som `−3` lyfter föremål), `+x` släpper ner x-block. Badgen visar `− x`.
+- **Minustal = skuld (valet).** Föremål visas aldrig för minustal – man kan inte
+  ha −3 äpplen. I blockvisningen är ett minustal en *skuld*: streckad, röd,
+  ljusrosa – samma språk som hålen i `x − 3` (Etapp 1). Konstanter blir en
+  skuldbricka `−12`, x-termer skuld-x-block `−x` (ett per x, högst 12, annars ett
+  streckat etikettblock `−15x`). `3x + 17 = 5x + 5`, `−5x`: tre x-block lyfts,
+  två skuld-x-block poppar fram (`−2x + 17 = 5`). `+2x` därefter: x-blocken
+  landar på skuld-x-blocken och båda försvinner – de tar ut varandra. I den
+  stiliserade vågen är minustal bara symboliska (etiketterna). Varför skuld och
+  inte bara symboler: eleven ser fortfarande vågen i balans och att −x "saknar"
+  ett x, vilket bär över till `+2x` som det naturliga nästa draget.
+- **Decimaler → stiliserad våg med etiketter.** Allt som skrivs med
+  decimalkomma under lösningen (`2,5x`, `x + 0,5`, lösningen `x = 2,5`) ger
+  `stiliserad`; brickor med decimaler blir svåra att "se" som mängder. `x/4`
+  (täljaren 1) är fortfarande ett bråkblock.
+- **Hjälpens bild** tar också `scale.operand` (`{ n, d, x }`, #623): `−x`
+  markerar ett x-block på båda sidor, `÷2,5` visar badgen över etiketterna
+  (`scaleOperand` i `vag-scen.js`).
+- Förhandsvisningen har knapparna *3x + 4 = x + 12: −x*, *3x + 17 = 5x + 5:
+  −5x, +2x, −5, ÷2* och *2,5x + 4 = 19: −4, ÷2,5*. Tester:
+  `test/ekvationsresan-vag-etapp2.test.js`.
 
 ---
 
@@ -375,7 +396,8 @@ nivå 1–6 som förut; de assertions som hårdkodade "högsta nivån = 6" läse
 - **Hjälpen** visar x-termer och decimaler som i räknegången ("Subtrahera x
   från båda leden", "Dividera båda leden med 2,5"). Vågens bild (`scale`) får
   då `operand: { n, d, x }` i stället för `amount`/`count`, och vågen hoppar
-  över bilden (den ritar bara heltal) – en uppgift för vågen i Etapp 2.
+  över bilden (den ritar bara heltal) – en uppgift för vågen i Etapp 2
+  (gjord i #624, se avsnitt 4).
 - **Mynt** 7–8: 4, 9–10: 5, 11–12: 6 (`config.COINS`, fanns redan).
   Anpassningen går upp till `LEVEL_MAX` = 12; regler tillåter redan nivå 1–12
   och mynt ≤ 7, så ingen regeländring.

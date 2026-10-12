@@ -7,8 +7,9 @@
 //                 "ta bort 3"), x högst 5 gånger, x bara i ett led, lösningen
 //                 och båda ledens värden positiva → behållare + föremål
 //   "block"       tal upp till ca 100 → x-block och talbrickor med siffror
-//                 (även x i båda leden och minustal – "skuld"-brickor, Etapp 2)
-//   "stiliserad"  ännu större tal → stiliserad våg med uttrycken som etiketter
+//                 (även x i båda leden och minustal – "skuld"-brickor, #624)
+//   "stiliserad"  ännu större tal → stiliserad våg med uttrycken som etiketter;
+//                 även alla decimaltal (2,5x, x = 2,5), E2.2/#624
 //
 // "Under lösningen" = startekvationen OCH varje tillstånd längs den optimala
 // vägen (x/4 = 6 är litet men slutar i x = 24). En uppgift får EN grundvisning
@@ -17,7 +18,7 @@
 // ============================================================================
 
 import { coefOf, solve, evaluateSide, fromJSON } from "./equation.js";
-import { isInteger, isDecimal, isNegative, isZero } from "./rational.js";
+import { isInteger, isNegative, isZero } from "./rational.js";
 import { applyStep } from "./operations.js";
 
 export const VIEWS = Object.freeze(["foremal", "block", "stiliserad"]);
@@ -34,6 +35,9 @@ export const VIEW_LIMITS = Object.freeze({
 export const moreAbstract = (a, b) => (RANK[a] >= RANK[b] ? a : b);
 
 const value = (c) => Math.abs(c.n) / c.d;
+
+/** Skrivs talet som decimaltal (eller bråk)? x/4 (täljaren 1) är ett bråkblock. */
+const notWhole = (c, isX) => !isInteger(c) && !(isX && Math.abs(c.n) === 1);
 
 /** Visningen för ETT tillstånd. */
 export function viewForEquation(eq) {
@@ -56,8 +60,9 @@ export function viewForEquation(eq) {
     (!sol || (sol.n > 0 && !isZero(sol))) &&
     sidesPositive;
   if (foremal) return "foremal";
-  // Talbrickor visar heltal och korta decimaler (2,5); x/4 blir ett bråkblock.
-  const showable = terms.every((t) => t.x || isDecimal(coefOf(t)));
+  // Decimaltal (2,5x, x = 2,5) ritas inte som brickor – stiliserad våg med
+  // uttrycken som etiketter (#624). x/4 blir ett bråkblock.
+  const showable = !terms.some((t) => notWhole(coefOf(t), t.x)) && !(sol && notWhole(sol, false));
   if (showable && max <= VIEW_LIMITS.blockMax) return "block";
   return "stiliserad";
 }

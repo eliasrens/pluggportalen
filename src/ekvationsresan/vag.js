@@ -11,7 +11,8 @@
 //   vag.setTask(task)        ny uppgift: nytt tema/grundvisning, lugn övertoning
 //   vag.visaHjalp(scale)     hjälpens bild (#616 hjalp.js steg 2):
 //                            {action:"groups", count} visar grupperna,
-//                            "remove"/"add"/"copies" markerar/föreslår → boolean
+//                            "remove"/"add"/"copies" markerar/föreslår → boolean;
+//                            Etapp 2: {action, operand:{n,d,x}} (−x, ÷2,5)
 //   vag.doljHjalp()          tillbaka till vila
 //   vag.spelaLosning(steps)  "Visa lösningen": revealSolution().steps i följd
 //   vag.destroy()
@@ -28,7 +29,7 @@ import { applyOperation } from "./operations.js";
 import { equationRow } from "./notation.js";
 import { optimalPath } from "./solver.js";
 import { chooseView, statesAlong, taskView, viewDuring, viewForEquation, moreAbstract, themeFor, themeById } from "./vag-visning.js";
-import { SIDES, restScene, movePhases, helpScene, SCALE_ACTIONS } from "./vag-scen.js";
+import { SIDES, restScene, movePhases, helpScene, SCALE_ACTIONS, scaleOperand } from "./vag-scen.js";
 import { layoutSide } from "./vag-layout.js";
 import { VIEWBOX, PAN_AT, standSvg, beamSvg, plateSvg, pieceSvg } from "./vag-konst.js";
 
@@ -261,9 +262,9 @@ export function createVag(host, opts = {}) {
 
   function visaHjalp(scale) {
     const op = SCALE_ACTIONS[scale?.action];
-    const v = scale?.amount ?? scale?.count;
-    if (!current || !op || !Number.isInteger(v)) return false;
-    const r = applyOperation(current, op, term(q(v), 0), LOOSE_RULES);
+    const operand = scaleOperand(scale);
+    if (!current || !op || !operand) return false;
+    const r = applyOperation(current, op, operand, LOOSE_RULES);
     if (!r.ok) return false;
     const scene = helpScene(current, scale, r.after, view);
     if (!scene) return false;
