@@ -57,7 +57,7 @@ export function sammanfattningar(skills, { solvedPct = null } = {}) {
     add(svart, "skrivsatt", stark(s("balans")) ? "Förstår vågen men har svårt att skriva ekvationen med symboler." : "Har svårt att skriva ekvationen med symboler.");
   }
   if (svag(s("forenkling"))) add(svart, "forenkling", "Har svårt att förenkla raden efter en operation.");
-  if (svag(s("balans"))) add(svart, "balans", "Har svårt med att göra samma sak i båda leden.");
+  if (svag(s("balans"))) add(svart, "balans", "Har svårt att göra samma sak i båda leden.");
   if (svag(s("operation")) && (solvedPct == null || solvedPct >= 60)) add(svart, "operation", "Tar ofta många extra steg trots korrekta slutsvar.");
 
   // Självständighet – bara om inget mer specifikt redan sagts
