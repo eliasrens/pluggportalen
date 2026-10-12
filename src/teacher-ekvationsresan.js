@@ -4,9 +4,11 @@
 // Fliken "Ekvationsresan" i klasskortets Statistik-panel (teacher-class.js,
 // issue #619, spec E1.12). Samma upplägg och mörka stil som Läsresan
 // (teacher-lasresan.js):
-//   Elev | Nivå | Trend | Uppgifter | ⭐⭐⭐/⭐⭐/⭐ | Lösta % | Hjälp % | Drag jämfört med optimalt | I korthet
+//   Elev | I korthet | Nivå | Trend | Uppgifter | ⭐⭐⭐/⭐⭐/⭐ | Lösta % | 💡 % | Drag jämfört med optimalt
 // "I korthet" (#626, E2.5) = färdighetsmodellens viktigaste sammanfattning
 // (sammanfattning.js) – räknas ur samma progressdokument, inga fler läsningar.
+// Den ligger direkt efter namnet (#647) och syns utan sidscroll på 1366×768.
+// "💡 %" (#647) = uppgifter med NÅGON hjälp (💡, Visa lösningen, visat svar).
 // Sorterbar på namn, nivå och uppgifter. Klick på en rad → elevdetaljen
 // (teacher-ekvationsresan-elev.js) med räknegången och "Ändra nivå".
 // Ovanför tabellen: "Ändra nivå för hela klassen" (Läsresans nivåstyrning, #506).
@@ -21,7 +23,7 @@
 
 import { avatarEmoji } from "./avatars.js";
 import { el, esc, emptyState, icon } from "./teacher-shared.js";
-import { KOLUMNER, NIVAER, NIVA_FEL, TREND, dragText, klassBekraftelse, klassResultat, klassRader,
+import { HJALP_TITEL, KOLUMNER, NIVAER, NIVA_FEL, TREND, dragText, klassBekraftelse, klassResultat, klassRader,
   klassSummering, nastaSortering, sorteraRader, tolkaNiva } from "./ekvationsresan/larare.js";
 import { confirmDialog } from "./teacher-lasresan-niva.js";
 import { openEkvationsresanDetail } from "./teacher-ekvationsresan-elev.js";
@@ -75,20 +77,21 @@ function rowHtml(r, student) {
       <span class="lrt-name-txt">${esc(name)}</span>
       ${r.started ? "" : `<span class="lrt-badge">ej börjat</span>`}
     </th>
+    <td class="ekt-korthet">${s ? korthetHtml(r.fardighet) : dash}</td>
     <td class="lrt-num"><span class="lrt-lvl${r.started ? "" : " start"}">${r.level}</span></td>
     <td class="lrt-num ekt-trend ekt-trend--${s ? r.trend : "tom"}" title="${s ? esc(t.text) : "inga uppgifter än"}">${s ? t.sym : dash}</td>
     <td class="lrt-num">${r.started ? r.tasks : dash}</td>
     <td class="lrt-num">${s ? starsCell(r.stars) : dash}</td>
     <td class="lrt-num">${r.solvedPct == null ? dash : `${r.solvedPct}%`}</td>
-    <td class="lrt-num">${r.helpPct == null ? dash : `${r.helpPct}%`}</td>
+    <td class="lrt-num" title="${esc(HJALP_TITEL)}">${r.helpPct == null ? dash : `${r.helpPct}%`}</td>
     <td class="lrt-num" title="${drag == null ? "" : "extra drag per löst uppgift"}">${drag == null ? dash : esc(drag)}</td>
-    <td class="ekt-korthet">${s ? korthetHtml(r.fardighet) : dash}</td>
   </tr>`;
 }
 
 function headHtml(sort) {
   return `<tr>${KOLUMNER.map((c) => {
-    if (!c.sort) return `<th scope="col" class="lrt-th${c.num ? " lrt-num" : ""}">${esc(c.label)}</th>`;
+    const title = c.title ? ` title="${esc(c.title)}"` : "";
+    if (!c.sort) return `<th scope="col" class="lrt-th${c.num ? " lrt-num" : ""}"${title}>${esc(c.label)}</th>`;
     const active = sort.key === c.key;
     const aria = active ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
     const arrow = active ? (sort.dir === "asc" ? "▲" : "▼") : "↕";
@@ -203,7 +206,7 @@ export async function renderClassEkvationsresan(ctx, host, opts = {}) {
     </div>
     <div class="cx-legend lrt-legend">
       <span class="cx-legend-item">Trend ↗ → ↘ ur de senaste uppgifterna</span>
-      <span class="cx-legend-item">Hjälp % = uppgifter där 💡 användes</span>
+      <span class="cx-legend-item">💡 % = uppgifter med hjälp: alla hjälptryck, inklusive Visa lösningen och visade svar</span>
       <span class="cx-legend-item">Drag = extra drag per löst uppgift jämfört med optimalt</span>
       <span class="cx-legend-item">I korthet = vad eleven har svårt för och behärskar, ur elevens försök</span>
       <span class="cx-legend-tip">Klicka på en elev för räknegången${cls ? " och för att ändra elevens nivå" : ""}</span>

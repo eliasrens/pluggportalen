@@ -8,13 +8,17 @@
 // Etapp 2 (#623) slår på mer via nivåns spärrar (config.js):
 //   rules.operandX        "x", "2x", "-2x", "+2,5x"   nivå 7+
 //   rules.operandDecimal  "2,5" / "2.5", högst rules.maxDecimals decimaler   nivå 10+
+//   rules.allowNegative   division med ett negativt tal (#647): "/-2", "÷ -2",
+//                         "÷ (−2)", "÷ −2"   nivå 9+ (där negativa mellanled finns).
+//                         Under nivå 9 blir det samma "kan inte läsa" som förut.
+// Minustecknet U+2212 (−) normaliseras till "-" innan tolkningen.
 //
 // Resultat: { ok: true, op, operand } där op ∈ "+", "-", "*", "/" och operand
 // är en term (equation.js) – eller { ok: false, error, message }.
 // ============================================================================
 
 import { BASE_RULES, OPERAND_MESSAGES } from "./config.js";
-import { parseDecimalSv, cmp, q, isInteger, isDecimal } from "./rational.js";
+import { parseDecimalSv, cmp, q, neg, isInteger, isDecimal } from "./rational.js";
 import { term } from "./equation.js";
 
 /** Tecken eleven kan skriva/trycka → intern operation. */
@@ -44,13 +48,17 @@ function fail(error) {
  * @param {{op?: string, rules?: object}} [opts]  op = vald knapp (valfri)
  */
 export function parseOperand(text, { op: chosen = null, rules = BASE_RULES } = {}) {
-  let src = String(text ?? "").replace(/\s+/g, "");
+  let src = String(text ?? "").replace(/\s+/g, "").replace(/−/g, "-");
   if (!src) return fail("empty");
 
   let op = normalizeOp(src[0]);
   if (op) src = src.slice(1);
   else op = chosen ? normalizeOp(chosen) : null;
   if (!src) return fail("empty");
+
+  // ÷ ett negativt tal (#647): "-2" eller "(-2)" efter divisionstecknet.
+  const negDiv = op === "/" && rules.allowNegative ? /^(?:-(.+)|\(-(.+)\))$/.exec(src) : null;
+  if (negDiv) src = negDiv[1] ?? negDiv[2];
 
   const m = /^(\d+(?:[,.]\d+)?)?(x)?$/i.exec(src);
   if (!m || (!m[1] && !m[2])) return fail("syntax");
@@ -64,5 +72,5 @@ export function parseOperand(text, { op: chosen = null, rules = BASE_RULES } = {
   if (!isDecimal(value, rules.maxDecimals)) return fail("decimalMax");
   if (cmp(value, q(rules.operandMin)) < 0 || cmp(value, q(rules.operandMax)) > 0) return fail("range");
 
-  return { ok: true, op, operand: term(value, isX ? 1 : 0) };
+  return { ok: true, op, operand: term(negDiv ? neg(value) : value, isX ? 1 : 0) };
 }
