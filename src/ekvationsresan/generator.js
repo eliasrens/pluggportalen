@@ -21,8 +21,9 @@
 
 import { levelConfig, rulesFor } from "./config.js";
 import { FORMS } from "./forms.js";
-import { toJSON, equationKey, swapSides, solve, coefOf } from "./equation.js";
-import { isInteger, abs } from "./rational.js";
+import { toJSON, equationKey, swapSides, solve } from "./equation.js";
+import { isInteger } from "./rational.js";
+import { viewForEquation, chooseView, statesAlong } from "./vag-visning.js";
 import { optimalPath } from "./solver.js";
 import { equationRow } from "./notation.js";
 
@@ -63,19 +64,12 @@ function pickWeighted(weights, rng) {
 
 /**
  * Föremål när alla tal (och lösningen) är positiva heltal ≤ 20 och x förekommer
- * högst 5 gånger; block upp till ca 100; annars stiliserad våg.
+ * högst 5 gånger; block upp till ca 100; annars stiliserad våg. Reglerna bor i
+ * vag-visning.js (#617); uppgiftens `display` räknas över hela den optimala
+ * vägen, så x/4 = 6 (som slutar i x = 24) blir block.
  */
-export function scaleMode(eq, solution) {
-  const nums = [...eq.left, ...eq.right].map((t) => abs(coefOf(t)));
-  const all = solution ? [...nums, solution] : nums;
-  const max = Math.max(...all.map((c) => Math.abs(c.n)));
-  const xCoefs = [...eq.left, ...eq.right].filter((t) => t.x).map(coefOf);
-  // x − 3 räknas som "ta bort 3" – beloppet avgör, inte tecknet på termen.
-  const allInts = all.every((c) => isInteger(c));
-  const fewX = xCoefs.every((c) => isInteger(c)) && xCoefs.reduce((s, c) => s + c.n, 0) <= 5;
-  if (allInts && fewX && max <= 20) return "foremal";
-  if (all.every((c) => c.d <= 100) && max <= 100) return "block";
-  return "stiliserad";
+export function scaleMode(eq) {
+  return viewForEquation(eq);
 }
 
 // --- generering ------------------------------------------------------------------
@@ -103,7 +97,7 @@ function buildTask(level, formId, rng, swap) {
     solution: { n: solution.n, d: solution.d },
     optimalMoves: best.moves,
     optimalPath: best.path,
-    display: scaleMode(equation, solution),
+    display: chooseView(statesAlong(equation, best.path, rulesFor(level))),
   };
 }
 
