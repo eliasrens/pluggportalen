@@ -7,7 +7,7 @@
 // ============================================================================
 
 import { coinIcon } from "../icons.js";
-import { FEEDBACK, UI_TEXT, LEVEL_UP, levelConfig } from "./config.js";
+import { FEEDBACK, UI_TEXT, LEVEL_UP, EXTRA, levelConfig } from "./config.js";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -28,6 +28,7 @@ export function shellHtml() {
           <span class="ekv-matare-fyll"></span>
         </div>
         <button type="button" class="ekv-oversikt-knapp" aria-expanded="false" title="Nivåöversikt">Nivåer</button>
+        <button type="button" class="ekv-extra-tillbaka" hidden></button>
         <div class="ekv-oversikt" hidden></div>
       </header>
       <div class="ekv-vag-plats"></div>
@@ -96,12 +97,23 @@ export function levelUpHtml(level) {
     </div>`;
 }
 
-/** Den frivilliga översikten: 1 ✓ 2 ✓ 3 ● 4 🔒 … (framsteg.levelOverview). */
-export function overviewHtml(levels) {
+/**
+ * Den frivilliga översikten: 1 ✓ 2 ✓ 3 ● 4 🔒 … (framsteg.levelOverview).
+ * `extra` = { unlocked } – extrautmaningarna (#627) som en diskret rad sist.
+ */
+export function overviewHtml(levels, { extra = null } = {}) {
   const tecken = { done: "✓", current: "●", locked: "🔒" };
-  return `<ol class="ekv-oversikt-lista">${levels
+  const lista = `<ol class="ekv-oversikt-lista">${levels
     .map((l) => `<li class="is-${l.state}"><b>${l.level}</b> <span aria-hidden="true">${tecken[l.state]}</span> <span class="ekv-oversikt-namn">${esc(l.name)}</span></li>`)
     .join("")}</ol>`;
+  return lista + (extra ? extraLinkHtml(extra) : "");
+}
+
+/** Extrautmaningarnas rad i översikten: länk när den är öppen, annars en lågmäld rad. */
+export function extraLinkHtml({ unlocked }) {
+  if (!unlocked) return `<p class="ekv-extra-rad is-last">${esc(EXTRA.locked(EXTRA.minLevel))}</p>`;
+  return `<p class="ekv-extra-rad"><button type="button" class="ekv-lank ekv-extra-knapp" data-act="extra">${esc(EXTRA.link)}</button>
+    <span class="ekv-extra-hint">${esc(EXTRA.linkHint)}</span></p>`;
 }
 
 /** Hjälpbubblan (E1.6): stegets text + ev. förslagsraden (steg 3). */

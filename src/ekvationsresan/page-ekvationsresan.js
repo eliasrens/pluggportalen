@@ -11,7 +11,7 @@
 // ============================================================================
 
 import { app, el, loading, renderTopbar } from "../ui.js";
-import { enterEkvationsresan, completeTask, startTask } from "./ekv-data.js";
+import { enterEkvationsresan, enterExtra, completeTask, startTask } from "./ekv-data.js";
 import { createSpelvy } from "./spelvy.js";
 import { ensureVagCss } from "./vag.js";
 
@@ -61,6 +61,8 @@ export async function pageEkvationsresan() {
     },
     retry: (task) => startTask(task),
     reenter: () => pageEkvationsresan(),
+    enterExtra: () => enterExtra(), //  extrautmaningarna (#627), frivilligt
+    leaveExtra: () => enterEkvationsresan(),
   });
   stadaVidByte();
 }

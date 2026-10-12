@@ -16,6 +16,8 @@
 // Försökets id = uppgiftens id → samma uppgift kan bara sparas (och ge mynt)
 // en gång (create-only i firestore.rules).
 // Etapp 2: `skills` (färdighetsmodellen) och `type` C–F ryms utan migrering.
+// Extrautmaningar (#627): egna räknare + egen pågående uppgift i `extra`;
+// försöket har `extra: true`. Nivån, fönstret och huvudstatistiken rörs inte.
 // ============================================================================
 
 import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10 } from "./config.js";
@@ -46,8 +48,25 @@ export function defaultProgress() {
     recent: [], //       [{ l: nivå, s: stjärnor }] nyast sist, högst RECENT_MAX
     current: null, //    { id, at, task } – den pågående uppgiften
     skills: {}, //       Etapp 2: färdighetsmodellen (E2.4)
+    extra: defaultExtra(), // extrautmaningarna (#627) – påverkar aldrig nivån
     levelChangedAt: null,
     updatedAt: null,
+  };
+}
+
+/** Extrautmaningarnas del av progress (#627). */
+export function defaultExtra() {
+  return { tasks: 0, solved: 0, coins: 0, current: null };
+}
+
+function normalizeExtra(raw) {
+  if (!raw || typeof raw !== "object") return defaultExtra();
+  const cur = raw.current;
+  return {
+    tasks: int(raw.tasks),
+    solved: int(raw.solved),
+    coins: int(raw.coins),
+    current: cur && TASK_ID_RE.test(cur.id || "") && cur.task?.equation && cur.task.extra ? cur : null,
   };
 }
 
@@ -74,6 +93,7 @@ export function normalizeProgress(raw) {
     recent: (Array.isArray(raw.recent) ? raw.recent : []).filter((r) => r && Number.isInteger(r.s)).slice(-RECENT_MAX),
     current: cur && TASK_ID_RE.test(cur.id || "") && cur.task?.equation ? cur : null,
     skills: raw.skills && typeof raw.skills === "object" ? raw.skills : {},
+    extra: normalizeExtra(raw.extra),
     levelChangedAt: raw.levelChangedAt ?? null,
     updatedAt: raw.updatedAt ?? null,
   };
@@ -85,10 +105,14 @@ export function currentTask(progress) {
   return c && c.task.level === progress.level ? c : null;
 }
 
-/** Sätt en ny pågående uppgift. */
+/** Sätt en ny pågående uppgift (en extrautmaning hamnar i `extra.current`). */
 export function withCurrent(progress, task, { id, at }) {
+  if (task.extra) return { ...progress, extra: { ...progress.extra, current: { id, at, task } }, updatedAt: at };
   return { ...progress, current: { id, at, task }, updatedAt: at };
 }
+
+/** Den pågående extrautmaningen, eller null. */
+export const currentExtra = (progress) => progress.extra?.current || null;
 
 /**
  * Försöksdokumentet för en avslutad uppgift.
@@ -124,7 +148,25 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
     startedAt,
     completedAt,
     skills: null, // Etapp 2
+    ...(task.extra ? { extra: true } : {}),
   };
+}
+
+/**
+ * Lägg ett försök på en EXTRAUTMANING på progress (#627): bara extra-räknarna
+ * och mynten. Nivå, fönster, huvudstatistik och trend rörs inte – läget är
+ * frivilligt och krävs aldrig för huvudprogressionen.
+ * @returns {{ progress, change: null, from, to }}
+ */
+export function applyExtraCompletion(progress, attempt, { now, next = null } = {}) {
+  const x = progress.extra || defaultExtra();
+  const p = {
+    ...progress,
+    coins: progress.coins + int(attempt.coins),
+    extra: { tasks: x.tasks + 1, solved: x.solved + (attempt.solved ? 1 : 0), coins: x.coins + int(attempt.coins), current: next },
+    updatedAt: now,
+  };
+  return { progress: p, change: null, from: p.level, to: p.level };
 }
 
 /**

@@ -32,8 +32,12 @@ import {
 import { currentStudentId } from "../data.js";
 import { newAttemptId } from "../mult/attempt-id.js";
 import { generateTask } from "./generator.js";
+import { generateExtraTask } from "./extra.js";
 import { award } from "./mynt.js";
-import { normalizeProgress, currentTask, withCurrent, buildAttempt, applyCompletion, teacherSetLevel, TEACHER_LEVEL_FIELDS } from "./framsteg.js";
+import {
+  normalizeProgress, currentTask, currentExtra, withCurrent, buildAttempt, applyCompletion, applyExtraCompletion,
+  teacherSetLevel, TEACHER_LEVEL_FIELDS,
+} from "./framsteg.js";
 
 export const PROGRESS_PATH = ["ekvationsresa", "progress"];
 export const ATTEMPTS = "ekvationsresaAttempts";
@@ -76,6 +80,22 @@ export async function enterEkvationsresan(studentId = currentStudentId(), { rng 
 }
 
 /**
+ * Extrautmaningarna (#627): den pågående extrauppgiften, annars en ny som
+ * sparas i `extra.current`. Huvudprogressionens `current` rörs inte.
+ * @returns {Promise<{progress, current:{id, at, task}}>}
+ */
+export async function enterExtra(studentId = currentStudentId(), { rng = Math.random } = {}) {
+  const progress = await getEkvationsresa(studentId);
+  const cur = currentExtra(progress);
+  if (cur) return { progress, current: cur };
+  return startTask(generateExtraTask({ rng, level: progress.level }), studentId, { progress });
+}
+
+/** Nästa uppgift efter `task` – samma läge (huvudprogression eller extra). */
+const nextTaskAfter = (task, level, rng) =>
+  task.extra ? generateExtraTask({ rng, level, previous: task }) : generateTask(level, { rng, previous: task });
+
+/**
  * Avsluta en uppgift: försök + progress (anpassning, räknare, nästa uppgift) i
  * EN transaktion, sedan mynten via addCoins om försöket var nytt.
  * @param {{current:{id,at,task}, run, help, result, blocked?:number, ownMoves?:number}} args
@@ -95,10 +115,10 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
       // Redan sparad: inga mynt igen. Nästa uppgift = den som redan står som pågående.
       return { created: false, progress, change: null, from: progress.level, to: progress.level };
     }
-    const r0 = applyCompletion(progress, attempt, { now });
-    const nextTask = generateTask(r0.to, { rng, previous: current.task });
+    const r0 = current.task.extra ? applyExtraCompletion(progress, attempt, { now }) : applyCompletion(progress, attempt, { now });
+    const nextTask = nextTaskAfter(current.task, r0.to, rng);
     const next = { id: newAttemptId(), at: now, task: nextTask };
-    const r = { ...r0, progress: { ...r0.progress, current: next } };
+    const r = { ...r0, progress: withCurrent(r0.progress, nextTask, next) };
     tx.set(aRef, attempt);
     tx.set(pRef, r.progress);
     return { created: true, ...r };
@@ -112,8 +132,8 @@ export async function completeTask({ current, run, help, result, blocked = 0, ow
       console.warn("[Ekvationsresan] kunde inte lägga till mynt:", err);
     }
   }
-  let next = currentTask(res.progress);
-  if (!next || next.id === current.id) next = (await startTask(generateTask(res.progress.level, { rng, previous: current.task }), studentId, { progress: res.progress })).current;
+  let next = current.task.extra ? currentExtra(res.progress) : currentTask(res.progress);
+  if (!next || next.id === current.id) next = (await startTask(nextTaskAfter(current.task, res.progress.level, rng), studentId, { progress: res.progress })).current;
   return { ok: true, created: res.created, attempt, progress: res.progress, change: res.change, from: res.from, to: res.to, next, coins: reward.coins, balance: reward.balance };
 }
 
