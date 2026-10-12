@@ -35,6 +35,9 @@ function applyToSide(side, op, operand) {
   return side.map((t) => term(div(coefOf(t), c), t.x));
 }
 
+/** Operationen på ETT led, förenklat (felaktiga rader i C/E, #625). */
+export const opOnSide = (side, op, operand) => simplifySide(applyToSide(side, normalizeOp(op) || op, operand));
+
 function termAllowed(t, rules) {
   const c = coefOf(t);
   if (isInteger(c) || rules.allowFractions) return true;

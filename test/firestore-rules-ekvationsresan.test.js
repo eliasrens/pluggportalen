@@ -21,7 +21,7 @@ import { taskResult } from "../src/ekvationsresan/resultat.js";
 let testEnv, unauth, elev, teacher;
 
 const ID = "aqa0000000000000000001";
-const task = generateTask(1, { rng: seededRng("regler") });
+const task = generateTask(1, { rng: seededRng("regler"), type: "A" });
 const progress = { ...defaultProgress(), current: { id: ID, at: 1, task }, updatedAt: 1 };
 
 function attempt(id = ID) {
@@ -156,5 +156,17 @@ describe("ekvationsresaAttempts (create-only, idempotens)", () => {
     await assertSucceeds(getDoc(attRef(teacher(), "aqa0000000000000000000")));
     await assertFails(setDoc(attRef(teacher()), attempt()));
     await assertSucceeds(deleteDoc(attRef(teacher(), "aqa0000000000000000000")));
+  });
+});
+
+describe("uppgiftstyperna C–F (#625): elevens svar på försöket", () => {
+  const svar = (n) => Array.from({ length: n }, (_, i) => ({ k: "ekvation", a: `${i}x = 2`, ok: false }));
+  it("ett försök med answers (≤ 40) går att skapa", async () => {
+    const id = "aqa0000000000000000625";
+    await assertSucceeds(setDoc(attRef(elev("elev1"), id), { ...attempt(id), type: "D", answers: svar(3) }));
+  });
+  it("answers måste vara en lista med högst 40 svar", async () => {
+    await assertFails(setDoc(attRef(elev("elev1"), "aqa0000000000000000626"), { ...attempt("aqa0000000000000000626"), answers: svar(41) }));
+    await assertFails(setDoc(attRef(elev("elev1"), "aqa0000000000000000627"), { ...attempt("aqa0000000000000000627"), answers: "fusk" }));
   });
 });

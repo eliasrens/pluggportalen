@@ -16,10 +16,14 @@
 // Försökets id = uppgiftens id → samma uppgift kan bara sparas (och ge mynt)
 // en gång (create-only i firestore.rules).
 // Etapp 2: `skills` (färdighetsmodellen) och `type` C–F ryms utan migrering.
+// C–F (#625) lägger till `answers` (elevens svar i ordning) på försöket; drag
+// räknas bara för typer med en lösningsdel (A, B, F).
 // ============================================================================
 
 import { LEVEL_MIN, LEVEL_MAX, LEVELS, STAR_POINTS10 } from "./config.js";
 import { recordResult } from "./anpassning.js";
+import { hasSolvePhase, isQuestionType } from "./uppgiftstyper.js";
+import { moveOperand } from "./operations.js";
 
 export const PROGRESS_SCHEMA = 1;
 export const ATTEMPT_SCHEMA = 1;
@@ -103,7 +107,9 @@ export function withCurrent(progress, task, { id, at }) {
  *             räknegång som visades, de första `moveCount` är elevens
  */
 export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMoves = null, startedAt = null, completedAt }) {
-  return {
+  // C (Nästa rad) har ingen egen lösning: dragen = räknegången eleven fyllde i.
+  const moves = run ? run.moves : task.type === "C" ? task.optimalPath.map((m) => ({ op: m.op, ...moveOperand(m) })) : [];
+  const attempt = {
     schema: ATTEMPT_SCHEMA,
     taskId: id,
     level: task.level,
@@ -112,7 +118,7 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
     equation: task.equation,
     solution: task.solution,
     optimalMoves: task.optimalMoves,
-    moves: run.moves.map((m) => ({ op: m.op, n: m.n, d: m.d, x: m.x })),
+    moves: moves.map((m) => ({ op: m.op, n: m.n, d: m.d, x: m.x })),
     moveCount: result.revealed && Number.isInteger(ownMoves) ? ownMoves : result.moves,
     blocked: int(blocked),
     stars: result.stars,
@@ -125,6 +131,9 @@ export function buildAttempt({ id, task, run, help, result, blocked = 0, ownMove
     completedAt,
     skills: null, // Etapp 2
   };
+  // Elevens svar i C–F: [{ k: frågetyp, a: svaret som text | null, ok, visad? }] (≤ 40).
+  if (isQuestionType(task.type)) attempt.answers = Array.isArray(result.answers) ? result.answers.slice(-40) : [];
+  return attempt;
 }
 
 /**
@@ -147,6 +156,7 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
   }
   const stars = [...p.stars];
   stars[attempt.stars] += 1;
+  const countMoves = attempt.solved && hasSolvePhase(attempt.type); // C–E har inga egna drag
   p = {
     ...p,
     maxLevel: Math.max(p.maxLevel, p.level),
@@ -155,8 +165,8 @@ export function applyCompletion(progress, attempt, { now, next = null } = {}) {
     revealed: p.revealed + (attempt.revealed ? 1 : 0),
     stars,
     helpTasks: p.helpTasks + (attempt.helpMax > 0 ? 1 : 0),
-    movesSolved: p.movesSolved + (attempt.solved ? attempt.moveCount : 0),
-    optimalSolved: p.optimalSolved + (attempt.solved ? attempt.optimalMoves : 0),
+    movesSolved: p.movesSolved + (countMoves ? attempt.moveCount : 0),
+    optimalSolved: p.optimalSolved + (countMoves ? attempt.optimalMoves : 0),
     coins: p.coins + int(attempt.coins),
     recent: [...p.recent, { l: attempt.level, s: attempt.stars }].slice(-RECENT_MAX),
     current: next,

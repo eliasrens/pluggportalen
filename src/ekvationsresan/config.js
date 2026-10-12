@@ -25,37 +25,46 @@ export const BASE_RULES = Object.freeze({
 
 /**
  * Nivåerna. `forms` = vikter för uppgiftsformerna i forms.js, `typeB` = andel
- * uppgiftstyp B ("Lös själv"), `swapShare` = andel där x står i högerledet
- * (14 = 2x + 4) – ger "5 = x"-slutet. `rules` skriver över BASE_RULES.
+ * uppgiftstyp B ("Lös själv") bland A/B, `swapShare` = andel där x står i
+ * högerledet (14 = 2x + 4) – ger "5 = x"-slutet. `types` = andel av ALLA
+ * uppgifter för typerna C–F (#625, E2.3; resten blir A/B). Problemlösning (F)
+ * finns som en mindre andel från nivå 3 och dominerar nivå 12. `rules` skriver
+ * över BASE_RULES.
  */
 export const LEVELS = Object.freeze([
   {
     level: 1, name: "Balansen", typeB: 0.1, swapShare: 0,
+    types: { C: 0.15, D: 0.15 },
     forms: { "x+a=b": 1, "x-a=b": 1 },
     params: { maxNumber: 20 },
   },
   {
     level: 2, name: "Lika stora grupper", typeB: 0.2, swapShare: 0,
+    types: { C: 0.15, D: 0.15 },
     forms: { "ax=b": 2, "x/a=b": 1 },
     params: { aMin: 2, aMax: 10, xMax: 12 },
   },
   {
     level: 3, name: "Två steg", typeB: 0.35, swapShare: 0,
+    types: { C: 0.12, D: 0.1, E: 0.12, F: 0.12 },
     forms: { "ax+b=c": 1 },
     params: { aMin: 2, aMax: 5, xMax: 10, bMax: 10 },
   },
   {
     level: 4, name: "Ekvationslösaren", typeB: 0.5, swapShare: 0,
+    types: { C: 0.12, D: 0.08, E: 0.12, F: 0.14 },
     forms: { "ax+b=c": 1, "ax-b=c": 1 },
     params: { aMin: 2, aMax: 9, xMax: 12, bMax: 20 },
   },
   {
     level: 5, name: "Större tal", typeB: 0.65, swapShare: 0,
+    types: { C: 0.12, D: 0.06, E: 0.12, F: 0.14 },
     forms: { "ax+b=c": 1, "ax-b=c": 1 },
     params: { aMin: 3, aMax: 9, xMin: 3, xMax: 12, bMin: 10, bMax: 40 },
   },
   {
     level: 6, name: "Blandat", typeB: 0.8, swapShare: 0.15,
+    types: { C: 0.12, D: 0.06, E: 0.12, F: 0.14 },
     forms: { "x+a=b": 1, "x-a=b": 1, "ax=b": 1, "x/a=b": 1, "ax+b=c": 2, "ax-b=c": 2, "x/a+b=c": 2, "x/a-b=c": 1 },
     params: { maxNumber: 60, aMin: 2, aMax: 9, xMax: 20, bMax: 30 },
   },
@@ -63,30 +72,35 @@ export const LEVELS = Object.freeze([
   // på nivå 1–6 (E1.3), därför distributionStep: false härifrån.
   {
     level: 7, name: "x i båda leden", typeB: 0.82, swapShare: 0.25,
+    types: { C: 0.12, D: 0.08, E: 0.12, F: 0.12 },
     forms: { "ax=cx+d": 1, "ax+b=cx+d": 3 },
     params: { aMin: 2, aMax: 5, xMax: 10, bMax: 12 },
     rules: { operandX: true, distributionStep: false },
   },
   {
     level: 8, name: "Fler steg", typeB: 0.85, swapShare: 0.3,
+    types: { C: 0.12, D: 0.06, E: 0.12, F: 0.12 },
     forms: { "ax+b=cx+d": 2, "ax-b=cx+d": 2, "ax+b=cx-d": 1 },
     params: { aMin: 2, aMax: 8, xMax: 12, bMax: 25 },
     rules: { operandX: true, distributionStep: false },
   },
   {
     level: 9, name: "Minustal på vägen", typeB: 0.88, swapShare: 0.5,
+    types: { C: 0.12, E: 0.12, F: 0.12 },
     forms: { "ax+b=cx+d": 2, "b-ax=c": 1, "b-ax=cx+d": 1, "ax-b=cx-d": 1 },
     params: { aMin: 2, aMax: 8, xMax: 12, bMax: 25 },
     rules: { operandX: true, allowNegative: true, distributionStep: false },
   },
   {
     level: 10, name: "Decimaler", typeB: 0.9, swapShare: 0.2,
+    types: { C: 0.12, E: 0.12, F: 0.12 },
     forms: { "dx=c": 1, "dx+b=c": 3, "ax+b=c:xdec": 2, "dx+b=ex+f": 2 },
     params: { aMin: 2, aMax: 6, xMax: 10, bMax: 20 },
     rules: { operandX: true, allowNegative: true, allowDecimals: true, operandDecimal: true, distributionStep: false },
   },
   {
     level: 11, name: "Svåra blandade", typeB: 0.92, swapShare: 0.35,
+    types: { C: 0.12, E: 0.12, F: 0.12 },
     forms: {
       "ax+b=cx+d": 2, "ax-b=cx+d": 2, "ax+b=cx-d": 1, "b-ax=cx+d": 1, "ax-b=cx-d": 1,
       "x/a+b=c": 1, "dx+b=c": 1, "ax+b=c:xdec": 1, "dx+b=ex+f": 1,
@@ -100,6 +114,7 @@ export const LEVELS = Object.freeze([
     // typen. Formerna är de som brukar bära textuppgifter: påsar och lösa
     // (ax+b=c), två abonnemang (ax+b=cx+d), pris med decimaler (dx+b=c).
     level: 12, name: "Problemlösning", typeB: 0.95, swapShare: 0.15,
+    types: { C: 0.08, E: 0.08, F: 0.5 },
     forms: { "ax+b=c": 2, "ax-b=c": 1, "ax=cx+d": 1, "ax+b=cx+d": 2, "dx+b=c": 1 },
     params: { aMin: 2, aMax: 9, xMin: 2, xMax: 20, bMin: 2, bMax: 50 },
     rules: { operandX: true, allowNegative: true, allowDecimals: true, operandDecimal: true, distributionStep: false },
@@ -253,4 +268,56 @@ export const UI_TEXT = Object.freeze({
   saveError: "Det gick inte att spara just nu. Din lösning syns ändå – fortsätt med nästa!",
   next: "NÄSTA UPPGIFT →",
   levelUpContinue: "FORTSÄTT →",
+});
+
+// ---------------------------------------------------------------------------
+//  Uppgiftstyperna C–F (#625, spec E2.3). Nivån styr matematiken, typen styr
+//  formen. I C–F kan eleven svara FEL, så stjärnorna kompletteras (TYPE_STARS).
+// ---------------------------------------------------------------------------
+
+/**
+ * Kompletterande stjärnregler för C–F (förslaget i docs/EKVATIONSRESAN.md §8):
+ *   ⭐⭐⭐  alla svar rätt direkt
+ *   ⭐⭐    ett fel svar i hela uppgiften
+ *   ⭐      två eller fler fel, ELLER ett delsvar fick visas (som hjälpsteg 4)
+ *   0      alla svar fick visas (eleven gjorde inget själv) – som "Visa lösningen"
+ * F kombinerar frågorna med lösningsdelen: det lägsta av fråge- och
+ * lösningsstjärnorna (E1.7) gäller, och "Visa lösningen" ger ej löst.
+ * `maxWrong` = fel per skrivfråga innan svaret visas. Valfrågor visar svaret när
+ * bara ett alternativ återstår. Ett fel som inte är ett försök (oläsbart, eller
+ * en riktig ekvation i annan form) räknas inte.
+ */
+export const TYPE_STARS = Object.freeze({
+  byErrors: Object.freeze([3, 2]), //  0 fel → 3, 1 fel → 2, fler → 1
+  shownCap: 1,
+  maxWrong: 3,
+});
+
+/** C: välj bland alternativ upp till och med den här nivån, skriv själv därefter. */
+export const NEXT_ROW_CHOICE_MAX_LEVEL = 3;
+
+/** Namn på påhittade elever i "Hitta felet". */
+export const FAKE_NAMES = Object.freeze(["Alva", "Sam", "Noor", "Elis", "Maja", "Omar", "Tilde", "Liam"]);
+
+/** Elevtexter för C–F. */
+export const TYPE_TEXT = Object.freeze({
+  C: { title: "NÄSTA RAD", ask: "Hur blir raden när du räknat ut båda leden?", askChoice: "Vilken rad kommer sedan?" },
+  D: { title: "BILD → EKVATION", ask: "Skriv ekvationen som vågen visar." },
+  E: { title: "HITTA FELET", ask: (namn) => `${namn} har gjort ett fel. Klicka på raden där felet börjar.` },
+  F: { title: "PROBLEMLÖSNING", ask: "Skriv en ekvation som passar texten.", meaning: "Vad betyder x i uppgiften?" },
+  placeholder: "t.ex. 3x + 1 = 7",
+  unreadable: "Det där kan jag inte läsa som en ekvation. Skriv till exempel 3x + 1 = 7.",
+  needsX: "Ekvationen behöver ett x.",
+  sameButOther: "Den ekvationen stämmer, men skriv den direkt ur uppgiften – det som finns på var sida, utan att räkna först.",
+  shown: "Så här ska det vara:",
+  check: "SVARA",
+});
+
+/** Feedback efter en C–F-uppgift (stjärnorna enligt TYPE_STARS). */
+export const TYPE_FEEDBACK = Object.freeze({
+  three: { C: "Rätt rad varje gång – du förenklar säkert!", D: "Precis! Bilden blev en ekvation direkt.", E: "Bra spanat! Du hittade felet direkt.", F: "Ekvation, lösning och svar – allt rätt!" },
+  two: "Rätt till slut – ett fel på vägen. Prova en liknande och se om det går utan fel!",
+  one: "Du kom fram! Prova en liknande och se om det går med färre fel.",
+  shown: "Nu har du sett hur det ska vara. Prova en liknande!",
+  none: "Nu har du sett hur det ska vara. Prova en ny!",
 });
