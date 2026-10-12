@@ -185,7 +185,8 @@ export function labelSvg(p, w) {
   return `<rect x="${-w / 2}" y="-58" width="${w}" height="58" rx="16" fill="#fff" ${L3}/><rect x="${-w / 2 + 8}" y="-52" width="${w - 16}" height="6" rx="3" fill="#C9F0DC"/>${segsSvg(p.segs, 30, 0, -18)}`;
 }
 
-const BADGE_FILL = { "-": "#EF6F6C", "+": "#58C6A9", "/": "#7FC7E8", "*": "#F49E4C" };
+// ÷ är mörkblå (#643): vit text på ljusblå var svårläst – #2A73B0 ger 5,0:1 (WCAG AA).
+const BADGE_FILL = { "-": "#EF6F6C", "+": "#58C6A9", "/": "#2A73B0", "*": "#F49E4C" };
 
 export function badgeSvg(p, w) {
   return `<rect x="${-w / 2}" y="-30" width="${w}" height="30" rx="15" fill="${BADGE_FILL[p.op] || "#B79BE0"}" ${L2}/><text x="0" y="-9" font-size="19" font-weight="800" text-anchor="middle" fill="#fff">${esc(p.text)}</text>`;

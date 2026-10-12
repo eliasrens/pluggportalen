@@ -14,6 +14,7 @@ import { applyNumber } from "../src/ekvationsresan/operations.js";
 import { generateTask, seededRng } from "../src/ekvationsresan/generator.js";
 import { LEVELS, rulesFor } from "../src/ekvationsresan/config.js";
 import { q } from "../src/ekvationsresan/rational.js";
+import { badgeSvg } from "../src/ekvationsresan/vag-konst.js";
 
 const E = parseEquation;
 const kinds = (arr, kind) => arr.pieces.filter((p) => p.kind === kind);
@@ -224,4 +225,13 @@ test("teman: fem teman, stabilt per uppgift och varierat mellan uppgifter", () =
   const seen = new Set();
   for (let i = 0; i < 40; i++) seen.add(themeFor(generateTask(1, { rng })).id);
   assert.equal(seen.size, 5);
+});
+
+test("#643: ÷-brickans vita text har minst 4,5:1 kontrast (WCAG AA)", () => {
+  const fill = badgeSvg({ op: "/", text: "÷ 4" }, 60).match(/fill="(#[0-9A-Fa-f]{6})"/)[1];
+  const lum = (h) => [1, 3, 5]
+    .map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+    .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  assert.ok(1.05 / (lum(fill) + 0.05) >= 4.5, `${fill} mot vitt`);
 });

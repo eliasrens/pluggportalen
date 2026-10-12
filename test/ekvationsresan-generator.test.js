@@ -132,3 +132,15 @@ test("uppgiften är JSON-ren och räknegången kan byggas om ur den", () => {
   assert.deepEqual(copy, task);
   assert.equal(replayRows(copy.equation, copy.optimalPath).at(-1).text, `x = ${task.solution.n}`);
 });
+
+test("#643: från nivå 3 är x ≥ 2 (många frön per nivå); nivå 1 har kvar x = 1", () => {
+  for (const { level } of LEVELS) {
+    let min = Infinity;
+    for (let s = 0; s < 50; s++) {
+      const rng = seededRng(`x-min-${level}-${s}`);
+      for (let i = 0; i < 40; i++) min = Math.min(min, generateTask(level, { rng }).solution.n);
+    }
+    if (level >= 3) assert.ok(min >= 2, `nivå ${level}: x = ${min}`);
+    if (level === 1) assert.equal(min, 1, "nivå 1 är oförändrad");
+  }
+});

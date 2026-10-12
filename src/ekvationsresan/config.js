@@ -26,6 +26,7 @@ export const BASE_RULES = Object.freeze({
  * Nivåerna. `forms` = vikter för uppgiftsformerna i forms.js, `typeB` = andel
  * uppgiftstyp B ("Lös själv"), `swapShare` = andel där x står i högerledet
  * (14 = 2x + 4) – ger "5 = x"-slutet. `rules` skriver över BASE_RULES.
+ * `xMin` = minsta lösning; från nivå 3 är x ≥ 2 (x = 1 är pedagogiskt tunt, #643).
  */
 export const LEVELS = Object.freeze([
   {
@@ -41,12 +42,12 @@ export const LEVELS = Object.freeze([
   {
     level: 3, name: "Två steg", typeB: 0.35, swapShare: 0,
     forms: { "ax+b=c": 1 },
-    params: { aMin: 2, aMax: 5, xMax: 10, bMax: 10 },
+    params: { aMin: 2, aMax: 5, xMin: 2, xMax: 10, bMax: 10 },
   },
   {
     level: 4, name: "Ekvationslösaren", typeB: 0.5, swapShare: 0,
     forms: { "ax+b=c": 1, "ax-b=c": 1 },
-    params: { aMin: 2, aMax: 9, xMax: 12, bMax: 20 },
+    params: { aMin: 2, aMax: 9, xMin: 2, xMax: 12, bMax: 20 },
   },
   {
     level: 5, name: "Större tal", typeB: 0.65, swapShare: 0,
@@ -56,7 +57,7 @@ export const LEVELS = Object.freeze([
   {
     level: 6, name: "Blandat", typeB: 0.8, swapShare: 0.15,
     forms: { "x+a=b": 1, "x-a=b": 1, "ax=b": 1, "x/a=b": 1, "ax+b=c": 2, "ax-b=c": 2, "x/a+b=c": 2, "x/a-b=c": 1 },
-    params: { maxNumber: 60, aMin: 2, aMax: 9, xMax: 20, bMax: 30 },
+    params: { maxNumber: 60, aMin: 2, aMax: 9, xMin: 2, xMax: 20, bMax: 30 },
   },
 ]);
 

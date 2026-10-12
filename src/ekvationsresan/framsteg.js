@@ -177,12 +177,17 @@ export function teacherSetLevel(progress, level, now) {
 
 // --- för vyerna -------------------------------------------------------------
 
-/** Nivåöversikten (E1.9): 1 ✓ 2 ✓ 3 ● 4 🔒 … */
+/**
+ * Nivåöversikten (E1.9): 1 ✓ 2 ✓ 3 ● 4 ✓ 5 🔒 … – en nivå eleven har NÅTT men
+ * åkt ner från är ✓ (#643); bara nivåer över den högsta nådda är 🔒.
+ * Saknas maxLevel (äldre dokument) gäller nuvarande nivå.
+ */
 export function levelOverview(progress) {
+  const max = Math.max(progress.level, Number.isInteger(progress.maxLevel) ? progress.maxLevel : 0);
   return LEVELS.map(({ level, name }) => ({
     level,
     name,
-    state: level < progress.level ? "done" : level === progress.level ? "current" : "locked",
+    state: level === progress.level ? "current" : level <= max ? "done" : "locked",
   }));
 }
 
