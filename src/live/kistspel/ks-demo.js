@@ -29,7 +29,11 @@
 //   demo = { deps, session, emit, answer(uid, correct, chestId?), join(n, staggerMs),
 //     playHistory(n), setAuto(on), auto, chest(id), shield({ ms? }), protectedList(),
 //     leadChange(), treasure(), storm(), soonOut(sek), jumpToFinal(tie, n?),
-//     toggleFreeze(), state(), onChange(f), snapshotState(), load(data), destroy() }
+//     toggleFreeze(), state(), onChange(f), snapshotState(), load(data), destroy(),
+//     event(e)  skriv en färdig händelse (nyast först) + ledningsbyte – för ett
+//               demo som avgjort utfallet själv (Datakuppens kopplade elevskärm, #655)
+//     skip      Set<uid> – elever som den automatiska strömmen aldrig svarar för
+//               och aldrig slumpar som offer (eleven som styrs från elevskärmen) }
 //   (detaljer: src/live/formats/guldrush/gr-demo.js)
 // ============================================================================
 
@@ -75,6 +79,7 @@ export function createKistDemo(theme, {
   const gpCbs = new Set();
   const evCbs = new Set();
   const listeners = new Set();
+  const skip = new Set(); // styrs av någon annan (#655) – inget autosvar, inget slumpat offer
 
   const pick = (list) => list[Math.floor(rng() * list.length)];
   const byGold = () => [...gp.values()].sort((a, b) => b.gold - a.gold || a.uid.localeCompare(b.uid));
@@ -108,7 +113,8 @@ export function createKistDemo(theme, {
     if (isVictimKind(chest)) {
       const kind = chest.effect.kind;
       const cands = eligibleVictims(kind, g, [...gp.values()], t);
-      const v = cands.find((c) => c.uid === victimUid) || (cands.length ? pick(cands) : null);
+      const free = cands.filter((c) => !skip.has(c.uid));
+      const v = cands.find((c) => c.uid === victimUid) || (free.length ? pick(free) : null);
       if (!v) {
         const fb = chestById(chest.fallback) || chestById(ids.fallback);
         const eff = applySelfEffect(fb, g.gold);
@@ -200,8 +206,9 @@ export function createKistDemo(theme, {
     autoTimer = null;
     if (!on || screen) return;
     autoTimer = setInterval(() => {
-      if (!isLive() || !players.length) return;
-      answer(pick(players).uid, rng() < 0.75);
+      const list = players.filter((p) => !skip.has(p.uid));
+      if (!isLive() || !list.length) return;
+      answer(pick(list).uid, rng() < 0.75);
     }, 300);
   }
 
@@ -263,7 +270,7 @@ export function createKistDemo(theme, {
 
   /** En spelare som kan öppna `id` med ett tydligt utfall (byte: någon med mindre saldo). */
   function opener(id) {
-    const r = byGold();
+    const r = byGold().filter((g) => !skip.has(g.uid));
     const kind = chestById(id)?.effect?.kind;
     if (kind === "swap") return r.slice(Math.floor(r.length / 2)).find((g) => eligibleVictims("swap", g, r, now()).length) || r[r.length - 1];
     if (kind === "steal") return r.slice(3).find((g) => eligibleVictims("steal", g, r, now()).length) || r[r.length - 1];
@@ -284,7 +291,7 @@ export function createKistDemo(theme, {
       if (!ensureLive()) return onLog("matchen är slut");
       const g = opener(id);
       // Stöld: från den rikaste som går att välja – ett tydligt belopp i flödet.
-      const v = chestById(id).effect.kind === "steal" ? eligibleVictims("steal", g, byGold(), now())[0]?.uid : null;
+      const v = chestById(id).effect.kind === "steal" ? eligibleVictims("steal", g, byGold(), now()).find((c) => !skip.has(c.uid))?.uid : null;
       const out = answer(g.uid, true, id, v);
       onLog(`${chestById(id).label} – ${g.name}: ${out?.result}${out?.victimUid ? ` → ${gp.get(out.victimUid).name}` : ""}`);
     },
@@ -338,6 +345,8 @@ export function createKistDemo(theme, {
       finishNow();
       emit(true);
     },
+    skip,
+    event(e) { ev(e); noteLeader(); emit(true); },
     toggleFreeze() { frozen = frozen == null ? now() : null; return frozen != null; },
     state: () => ({ session, players, grPlayers: [...gp.values()], events, answers, reads }),
     onChange(f) { listeners.add(f); return () => listeners.delete(f); },
