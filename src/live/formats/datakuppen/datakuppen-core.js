@@ -47,8 +47,10 @@
 //   buildQuizPool(mode, quiz, quizSnapshot, rng?, opts?) → { questions, facit }
 //   computeStandings(s, { players, dkPlayers }) → ks-core-ställningen
 //   hackStats(dkPlayers) → { attempts, success } – hela klassen (lärarstatistik)
+//   hackStatsByClass(dkPlayers, players) → { [classId]: { attempts, success } }
 //   buildResult(s, _classes, players, _mode, { dkPlayers, answers?, questions? })
-//                         → historikens result (+ hacks: hackStats)
+//                         → historikens result (+ hacks: hackStats,
+//                         hacksByClass – Statistik → Live per klass, #655)
 //   createEventCursor()
 // ============================================================================
 
@@ -113,6 +115,24 @@ export function hackStats(dkPlayers = []) {
   return { attempts, success };
 }
 
+/** Samma siffror per klass (klassen ur spelarlistan, annars dkPlayers.classId). */
+export function hackStatsByClass(dkPlayers = [], players = []) {
+  const classOf = new Map((players || []).map((p) => [p.uid, p.classId]));
+  const out = {};
+  for (const p of dkPlayers || []) {
+    const c = classOf.get(p?.uid) ?? p?.classId;
+    if (!c) continue;
+    const r = (out[c] ||= { attempts: 0, success: 0 });
+    r.attempts += int(p.hackAttempts);
+    r.success += int(p.hackSuccess);
+  }
+  return out;
+}
+
 export function buildResult(s, _classes, players = [], _mode = null, { dkPlayers = [], answers = null, questions = null } = {}) {
-  return { ...ksBuildResult(DK_FORMAT, s, players, { grPlayers: dkPlayers, answers, questions }), hacks: hackStats(dkPlayers) };
+  return {
+    ...ksBuildResult(DK_FORMAT, s, players, { grPlayers: dkPlayers, answers, questions }),
+    hacks: hackStats(dkPlayers),
+    hacksByClass: hackStatsByClass(dkPlayers, players),
+  };
 }
