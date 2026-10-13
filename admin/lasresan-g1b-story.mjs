@@ -83,4 +83,80 @@ export const STORY = [
       ["Hur känner sig Majid?", ["Glad", "Trött", "Arg", "Rädd"], "mellan_raderna"],
     ],
   },
+  {
+    id: "lr-g1-biltvatten", title: "Vi tvättar bilen", textType: "story", topic: "vardag",
+    body: [
+      "Edda och pappa ska tvätta bilen. Bilen är full av lera.",
+      "Pappa tar fram en hink med vatten. Edda får en stor svamp.",
+      "Hon gnuggar och gnuggar. Snart är bilen ren.",
+      "Men nu är Edda blöt från topp till tå! Pappa skrattar.",
+    ],
+    q: [
+      ["Vem tvättar bilen med Edda?", ["Pappa", "Mamma", "Morfar", "Storebror"], "fakta"],
+      ["Vad är bilen full av?", ["Lera", "Snö", "Löv", "Sand"], "fakta"],
+      ["Vad får Edda?", ["En stor svamp", "En liten borste", "En slang", "En handduk"], "fakta"],
+      ["Vad händer med Edda till slut?", ["Hon blir blöt", "Hon somnar", "Hon blir arg", "Hon ramlar"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-stadningen", title: "Under sängen", textType: "story", topic: "vardag",
+    body: [
+      "Idris ska städa sitt rum. Han lägger böckerna i hyllan. Han lägger kläderna i lådan.",
+      "Sedan tittar han under sängen. Där är det mörkt och dammigt.",
+      "Men vad är det där? Det är hans gröna bil! Den har varit borta länge.",
+      "Städa är inte så dumt ändå.",
+    ],
+    q: [
+      ["Var lägger Idris böckerna?", ["I hyllan", "I lådan", "På bordet", "Under sängen"], "fakta"],
+      ["Hur är det under sängen?", ["Mörkt och dammigt", "Ljust och fint", "Varmt och blött", "Kallt och kladdigt"], "fakta"],
+      ["Vad hittar Idris?", ["Sin gröna bil", "Sin röda boll", "En gammal sko", "En liten nalle"], "fakta"],
+      ["Varför blir Idris glad?", ["Han hittar sin bil", "Han får glass", "Han får gå ut", "Han får en present"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g1-fisket", title: "Fiske med morfar", textType: "story", topic: "relationer",
+    body: [
+      "Svante och morfar sitter i en båt. De ska fiska.",
+      "Morfar sätter en mask på kroken. Svante kastar ut linan. Sedan väntar de länge.",
+      "Plötsligt rycker det i spöet! Svante drar upp en liten abborre.",
+      "”Den är för liten”, säger morfar. Svante släpper tillbaka den i sjön.",
+    ],
+    q: [
+      ["Var sitter Svante och morfar?", ["I en båt", "På en brygga", "På en sten", "På stranden"], "fakta"],
+      ["Vad sätter morfar på kroken?", ["En mask", "En bit bröd", "En fluga", "En ost"], "fakta"],
+      ["Vilken fisk får Svante?", ["En abborre", "En gädda", "En lax", "En torsk"], "fakta"],
+      ["Varför släpper Svante tillbaka fisken?", ["Den är för liten", "Den är för stor", "Den är sjuk", "Den biter"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-applet", title: "Ett äpple till två", textType: "story", topic: "relationer",
+    body: [
+      "Rio och Lea leker på gården. De blir hungriga.",
+      "Rio har ett äpple i fickan. Lea har ingenting.",
+      "Rio tittar på äpplet. Sedan tittar han på Lea.",
+      "Han ber fröken om hjälp. Fröken delar äpplet i två delar. Nu får båda varsin halva.",
+      "Lea ler. ”Tack!”",
+    ],
+    q: [
+      ["Var leker Rio och Lea?", ["På gården", "I skogen", "I simhallen", "På stranden"], "fakta"],
+      ["Vad har Rio i fickan?", ["Ett äpple", "En banan", "En kaka", "Ett päron"], "fakta"],
+      ["Hur många delar blir äpplet?", ["Två", "Tre", "Fyra", "Fem"], "fakta"],
+      ["Hur är Rio mot Lea?", ["Snäll", "Elak", "Sur", "Rädd"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g1-forsta-stegen", title: "Lillasyster går", textType: "story", topic: "relationer",
+    body: [
+      "Tariq har en lillasyster. Hon heter Mia. Mia kan krypa fort. Men hon kan inte gå än.",
+      "Mia står vid soffan. Tariq sätter sig en bit bort. Han håller ut armarna.",
+      "Mia tar ett steg. Och ett till! Hon går ända fram till Tariq.",
+      "Alla klappar i händerna.",
+    ],
+    q: [
+      ["Vad heter Tariqs lillasyster?", ["Mia", "Mira", "Maja", "Moa"], "fakta"],
+      ["Vad kan Mia göra fort?", ["Krypa", "Springa", "Hoppa", "Simma"], "fakta"],
+      ["Vad gör Tariq med armarna?", ["Håller ut dem", "Viftar med dem", "Gömmer dem", "Korsar dem"], "fakta"],
+      ["Vad handlar texten mest om?", ["Mias första steg", "Tariqs nya soffa", "En lek med boll", "Mias födelsedag"], "helhet_slutsats"],
+    ],
+  },
 ];

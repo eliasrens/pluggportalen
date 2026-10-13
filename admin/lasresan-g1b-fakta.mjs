@@ -82,4 +82,76 @@ export const FAKTA = [
       ["Vad handlar texten mest om?", ["Hur humlan lever", "Hur man odlar blommor", "Hur bin gör honung", "Hur fåglar flyger"], "helhet_slutsats"],
     ],
   },
+  {
+    id: "lr-g1-molnen", title: "Molnen", textType: "fact", topic: "natur",
+    body: [
+      "Molnen finns på himlen. De är gjorda av små, små droppar vatten.",
+      "Små vita moln syns ofta när det är fint väder. Mörka moln kan ge regn.",
+      "När dropparna blir tunga faller de ner. Då regnar det.",
+      "På vintern kan molnen ge snö.",
+    ],
+    q: [
+      ["Vad är molnen gjorda av?", ["Små droppar vatten", "Små bitar bomull", "Rök från eld", "Damm och sand"], "fakta"],
+      ["Vad kan mörka moln ge?", ["Regn", "Sol", "Sand", "Blommor"], "fakta"],
+      ["När faller dropparna ner?", ["När de blir tunga", "När det blir mörkt", "När solen skiner", "När det blåser"], "fakta"],
+      ["Vad kan molnen ge på vintern?", ["Snö", "Sol", "Äpplen", "Löv"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-hosten", title: "Hösten", textType: "fact", topic: "natur",
+    body: [
+      "Efter sommaren kommer hösten. Då blir dagarna kortare och kallare.",
+      "Löven på träden byter färg. De blir gula, röda och bruna. Sedan faller de ner på marken.",
+      "Många fåglar flyger till varmare länder.",
+      "I skogen växer svamp.",
+    ],
+    q: [
+      ["Vad kommer efter sommaren?", ["Hösten", "Våren", "Vintern", "Julen"], "fakta"],
+      ["Vilka färger får löven?", ["Gula, röda och bruna", "Blå, lila och rosa", "Svarta och vita", "Rosa och gröna"], "fakta"],
+      ["Vart flyger många fåglar?", ["Till varmare länder", "Till kallare länder", "Upp i bergen", "In i husen"], "fakta"],
+      ["Vad växer i skogen på hösten?", ["Svamp", "Jordgubbar", "Tulpaner", "Snödroppar"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-maskrosen", title: "Maskrosen", textType: "fact", topic: "natur",
+    body: [
+      "Maskrosen är en gul blomma. Den växer nästan överallt. Den kan växa i gräset och vid vägen.",
+      "När den har blommat blir den en vit boll. Bollen är full av små frön.",
+      "Du kan blåsa på bollen. Då flyger fröna iväg. Där de landar kan nya maskrosor växa.",
+    ],
+    q: [
+      ["Vilken färg har maskrosens blomma?", ["Gul", "Röd", "Blå", "Lila"], "fakta"],
+      ["Vad blir maskrosen när den har blommat?", ["En vit boll", "En röd boll", "Ett litet äpple", "Ett grönt blad"], "fakta"],
+      ["Vad är bollen full av?", ["Små frön", "Små bin", "Vatten", "Socker"], "fakta"],
+      ["Vad händer när du blåser på bollen?", ["Fröna flyger iväg", "Bollen blir gul", "Blomman växer", "Bollen blir större"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-stjarnorna", title: "Stjärnorna", textType: "fact", topic: "rymden",
+    body: [
+      "På natten kan vi se stjärnor på himlen. De ser ut som små prickar av ljus.",
+      "Men stjärnorna är inte små. De är solar. De är mycket långt bort. Därför ser de små ut.",
+      "Solen är också en stjärna. Den är stjärnan som är närmast oss.",
+    ],
+    q: [
+      ["När kan vi se stjärnorna?", ["På natten", "Mitt på dagen", "Vid lunch", "När solen skiner"], "fakta"],
+      ["Vad är stjärnorna?", ["Solar", "Lampor", "Planeter", "Moln"], "ordforstaelse"],
+      ["Varför ser stjärnorna små ut?", ["De är långt bort", "De är mycket små", "De är bakom moln", "De är nya"], "fakta"],
+      ["Vilken stjärna är närmast oss?", ["Solen", "Månen", "Polstjärnan", "Jorden"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-jorden", title: "Jorden", textType: "fact", topic: "rymden",
+    body: [
+      "Vi bor på planeten jorden. Jorden är rund som en boll.",
+      "Det mesta av jorden är täckt av vatten. Därför ser den blå ut från rymden.",
+      "Jorden åker runt solen. Det tar ett helt år. Månen åker runt jorden.",
+    ],
+    q: [
+      ["Vilken form har jorden?", ["Rund som en boll", "Platt som en tallrik", "Fyrkantig som en låda", "Lång som en korv"], "fakta"],
+      ["Vad täcker det mesta av jorden?", ["Vatten", "Sand", "Skog", "Is"], "fakta"],
+      ["Hur lång tid tar det för jorden att åka runt solen?", ["Ett år", "En dag", "En vecka", "En timme"], "fakta"],
+      ["Vad är jorden?", ["En planet", "En stjärna", "En måne", "En sol"], "ordforstaelse"],
+    ],
+  },
 ];
