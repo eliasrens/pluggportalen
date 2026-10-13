@@ -1,0 +1,330 @@
+// ============================================================================
+// Läsresan – källtexter för nivå 2 del b, fact (issue #662)
+// ----------------------------------------------------------------------------
+// 20 fakta-texter, 60–90 ord, 4–5 frågor. Rätt svar står FÖRST i varje
+// options-lista; admin/lasresan-g2b-bygg.mjs flyttar det till en balanserad
+// position och skriver src/lasresan/content/bank/level-2-b.json.
+// ============================================================================
+
+// [fråga, [rätt, fel, fel, fel], kategori]
+export const FAKTA = [
+  {
+    id: "lr-g2-myrstacken", title: "Myrornas stack", textType: "fact", topic: "djur",
+    body: [
+      "En myrstack kan se ut som en hög med barr. Men den är ett hem för väldigt många myror.",
+      "Inne i stacken finns många gångar och rum. Där bor en eller flera drottningar. De lägger äggen.",
+      "De andra myrorna kallas arbetare. De hämtar mat, bär barr och tar hand om äggen.",
+      "Myror är små, men de är starka. En myra kan bära saker som är tyngre än den själv. Myrorna hjälper varandra hela tiden.",
+    ],
+    q: [
+      ["Vad liknar en myrstack?", ["En hög med barr", "En stor sten", "Ett fågelbo", "En snöhög"], "fakta"],
+      ["Vad finns inne i stacken?", ["Gångar och rum", "Vatten och sand", "Blommor och gräs", "Stenar och lera"], "fakta"],
+      ["Vad gör drottningarna?", ["Lägger ägg", "Hämtar mat", "Bär barr", "Bygger gångar"], "fakta"],
+      ["Vad kallas de andra myrorna?", ["Arbetare", "Drottningar", "Vakter", "Larver"], "fakta"],
+      ["Vad kan en myra bära?", ["Saker som är tyngre än den", "Bara ett barr i taget", "Inga saker alls", "Bara saker som flyter"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-pingvinen", title: "Fågeln som simmar", textType: "fact", topic: "djur",
+    body: [
+      "Pingvinen är en fågel. Den har vingar, men den kan inte flyga. I stället är den mycket bra på att simma.",
+      "Under vattnet använder pingvinen vingarna som paddlar. Den simmar snabbt och fångar fisk.",
+      "De flesta pingviner bor på den södra delen av jorden. Många bor där det är kallt, till exempel i Antarktis.",
+      "Pingvinen har tjocka fjädrar och ett lager fett under huden. Det håller den varm i det iskalla vattnet.",
+    ],
+    q: [
+      ["Vad kan pingvinen inte göra?", ["Flyga", "Simma", "Gå", "Äta fisk"], "fakta"],
+      ["Hur använder pingvinen vingarna i vattnet?", ["Som paddlar", "Som ett tak", "Som en mössa", "Som fötter"], "fakta"],
+      ["Var bor de flesta pingviner?", ["På södra delen av jorden", "I skogarna i Sverige", "I varma öknar", "På norra delen av jorden"], "fakta"],
+      ["Vad håller pingvinen varm?", ["Fjädrar och fett", "En tjock päls", "Solen på isen", "Varmt vatten"], "fakta"],
+      ["Vattnet är iskallt. Vad betyder iskallt?", ["Väldigt kallt", "Lite ljummet", "Mycket smutsigt", "Ganska grunt"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-regnbagen", title: "Färgerna på himlen", textType: "fact", topic: "natur",
+    body: [
+      "En regnbåge kan synas när solen lyser samtidigt som det regnar. Då ser man en stor båge med färger på himlen.",
+      "Solljuset ser vitt ut. Men egentligen finns många färger i det. När ljuset går in i regndropparna delas det upp i färger.",
+      "Färgerna kommer alltid i samma ordning. Först kommer rött, sedan orange, gult, grönt, blått och lila.",
+      "För att se regnbågen ska man ha solen bakom sig. Då tittar man mot regnet.",
+    ],
+    q: [
+      ["När kan en regnbåge synas?", ["När solen lyser och det regnar", "När det är mulet och blåser kallt", "När det är mörkt ute", "När det snöar"], "fakta"],
+      ["Vad finns egentligen i solljuset?", ["Många färger", "Små regndroppar", "Bara vitt ljus", "Lite rök"], "fakta"],
+      ["Vilken färg kommer först i regnbågen?", ["Rött", "Blått", "Gult", "Lila"], "fakta"],
+      ["Var ska solen vara när man tittar på regnbågen?", ["Bakom en", "Framför en", "Rakt ovanför", "Under marken"], "fakta"],
+      ["Det finns egentligen många färger. Vad betyder egentligen?", ["I själva verket", "Kanske", "Aldrig", "Ibland"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-hjartat", title: "Hjärtat slår", textType: "fact", topic: "vetenskap",
+    body: [
+      "Hjärtat är en muskel. Det sitter i bröstet, lite till vänster. Ditt hjärta är ungefär lika stort som din knutna hand.",
+      "Hjärtat pumpar blod runt i hela kroppen. Blodet går i rör som heter blodådror. Det tar med sig syre och näring till kroppen.",
+      "När du springer slår hjärtat snabbare. Då behöver musklerna mer syre.",
+      "Du kan känna hjärtat slå. Lägg handen på bröstet och var tyst en stund.",
+    ],
+    q: [
+      ["Vad är hjärtat?", ["En muskel", "Ett ben", "En lunga", "Ett blodkärl"], "fakta"],
+      ["Hur stort är hjärtat ungefär?", ["Som en knuten hand", "Som en fotboll", "Som en ärta", "Som ett huvud"], "fakta"],
+      ["Vad heter rören som blodet går i?", ["Blodådror", "Muskler", "Lungor", "Nervtrådar"], "fakta"],
+      ["Varför slår hjärtat snabbare när du springer?", ["Musklerna behöver mer syre", "Du blir rädd", "Du blir trött och hungrig", "Blodet börjar ta slut"], "fakta"],
+      ["Hjärtat pumpar blod. Vad betyder det?", ["Det trycker runt blodet", "Det gör blodet kallt", "Det äter upp blodet", "Det sparar blodet"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-manen", title: "Månen byter form", textType: "fact", topic: "rymden",
+    body: [
+      "Månen åker runt jorden. Ett varv tar ungefär en månad.",
+      "Månen lyser inte själv. Det är solen som lyser på den. Vi ser bara den del av månen som solen lyser på.",
+      "Därför ser månen olika ut. Ibland ser vi en smal skära. Ibland ser vi en hel rund måne. Den kallas fullmåne.",
+      "Ibland syns månen inte alls. Men månen är alltid lika rund. Det är bara ljuset på den som ändras.",
+    ],
+    q: [
+      ["Vad åker månen runt?", ["Jorden", "Solen", "Stjärnorna", "Mars"], "fakta"],
+      ["Hur lång tid tar ett varv?", ["Ungefär en månad", "En dag", "Ett helt år", "En vecka"], "fakta"],
+      ["Varför lyser månen?", ["Solen lyser på den", "Den brinner", "Den har lampor", "Den är gjord av is"], "fakta"],
+      ["Vad kallas det när vi ser hela månen?", ["Fullmåne", "Halvmåne", "Nymåne", "Månskära"], "fakta"],
+      ["Vad är sant om månen?", ["Den är alltid rund", "Den krymper varje natt", "Den går sönder ibland", "Den byter färg varje natt"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-bina", title: "Bina gör honung", textType: "fact", topic: "djur",
+    body: [
+      "Bin flyger från blomma till blomma. I blommorna finns en söt saft som heter nektar. Bina suger upp nektarn och flyger hem till kupan.",
+      "I kupan gör bina om nektarn till honung. De sparar honungen i små rum av vax. Rummen har sex kanter.",
+      "Bin hjälper också blommorna. När ett bi landar fastnar pollen på dess kropp. Pollen följer med till nästa blomma. Då kan blomman få frön och frukt.",
+    ],
+    q: [
+      ["Vad heter den söta saften i blommorna?", ["Nektar", "Honung", "Vax", "Pollen"], "fakta"],
+      ["Vart flyger bina med nektarn?", ["Till kupan", "Till sjön", "Till skogen", "Till en sten"], "fakta"],
+      ["Vad är rummen i kupan gjorda av?", ["Vax", "Lera", "Trä", "Blad"], "fakta"],
+      ["Hur många kanter har rummen?", ["Sex", "Fyra", "Tre", "Åtta"], "fakta"],
+      ["Hur hjälper bina blommorna?", ["De flyttar pollen", "De vattnar dem", "De äter upp ogräset", "De ger dem honung"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-svampen", title: "Svampar i skogen", textType: "fact", topic: "natur",
+    body: [
+      "På hösten växer det många svampar i skogen. Svampen vi ser är bara en liten del. Under marken finns ett nät av tunna trådar. Det är svampens största del.",
+      "Svampar är varken växter eller djur. De har inga gröna blad och behöver inget solljus.",
+      "Vissa svampar går att äta, till exempel kantareller. Men andra är giftiga och kan göra oss mycket sjuka.",
+      "Plocka därför aldrig svamp själv. Fråga alltid en vuxen som kan mycket om svamp.",
+    ],
+    q: [
+      ["När växer det många svampar?", ["På hösten", "På vintern", "På våren", "Bara på natten"], "fakta"],
+      ["Var finns de tunna trådarna?", ["Under marken", "På träden", "I luften", "I vattnet"], "fakta"],
+      ["Vad är svampar?", ["Varken växter eller djur", "Ett slags blomma", "Små djur som bor i mossan", "Ett slags träd"], "fakta"],
+      ["Vilken svamp går att äta, enligt texten?", ["Kantarell", "Ingen svamp alls", "Alla svampar", "Bara svampar med blad"], "fakta"],
+      ["Vad betyder det att en svamp är giftig?", ["Att den kan göra en sjuk", "Att den smakar sött", "Att den är stor", "Att den är gammal"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-taget", title: "Tåget på rälsen", textType: "fact", topic: "teknik",
+    body: [
+      "Ett tåg kör på räls. Rälsen är två långa skenor av stål. Tågets hjul passar precis på skenorna.",
+      "Längst fram sitter loket. Det drar alla vagnar efter sig. De flesta tåg i Sverige drivs med el. Elen kommer från en ledning ovanför rälsen.",
+      "Förr hade man ånglok. De eldade med kol eller ved och släppte ut mycket rök.",
+      "Tåg kan frakta människor, men också timmer, bilar och mat.",
+    ],
+    q: [
+      ["Vad är rälsen gjord av?", ["Stål", "Trä", "Plast", "Sten"], "fakta"],
+      ["Vad heter delen längst fram som drar vagnarna?", ["Loket", "Rälsen", "Vagnen", "Hjulet"], "fakta"],
+      ["Varifrån kommer elen till tåget?", ["En ledning ovanför rälsen", "Stora batterier i loket", "Solceller på taket", "En motor som går på bensin"], "fakta"],
+      ["Vad eldade ångloken med?", ["Kol eller ved", "Olja och sand", "Papper", "Torrt gräs"], "fakta"],
+      ["Vad kan tåg frakta?", ["Människor och timmer", "Bara människor", "Bara brev och paket", "Bara djur"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-pyramiderna", title: "Pyramiderna i Egypten", textType: "fact", topic: "historia",
+    body: [
+      "I Egypten står stora byggnader av sten. De kallas pyramider. De byggdes för mer än 4000 år sedan.",
+      "Pyramiderna var gravar för kungar. En kung i Egypten kallades farao. När en farao dog fick han sin grav i pyramiden.",
+      "Den största pyramiden är byggd av över två miljoner stenblock. Många människor arbetade i flera år för att bygga den.",
+      "I dag reser turister från hela världen för att se pyramiderna.",
+    ],
+    q: [
+      ["Vad är pyramiderna byggda av?", ["Sten", "Trä", "Sand", "Is"], "fakta"],
+      ["När byggdes pyramiderna?", ["För mer än 4000 år sedan", "För ungefär hundra år sedan", "Förra året", "För tio år sedan"], "fakta"],
+      ["Vad kallades en kung i Egypten?", ["Farao", "Viking", "Riddare", "Prins"], "fakta"],
+      ["Vad var pyramiderna till för?", ["Gravar för kungar", "Hus för bönder", "Skolor för barn", "Förråd för säd och mat"], "fakta"],
+      ["Vad visar det att många arbetade i flera år?", ["Att det var svårt att bygga", "Att pyramiden är liten", "Att det gick snabbt", "Att stenarna var lätta att lyfta"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-olympiska", title: "De olympiska spelen", textType: "fact", topic: "sport",
+    body: [
+      "De olympiska spelen är en stor tävling i idrott. Idrottare från nästan alla länder i världen är med.",
+      "Spelen började för mycket länge sedan i Grekland. Där tävlade man i att springa, brottas och kasta.",
+      "I dag finns sommarspel och vinterspel. Båda hålls vart fjärde år. På sommaren tävlar man till exempel i simning och friidrott. På vintern åker man skidor och skridskor.",
+      "Den som vinner får en guldmedalj. Tvåan får silver och trean får brons.",
+    ],
+    q: [
+      ["I vilket land började spelen?", ["Grekland", "Sverige", "Italien", "Egypten"], "fakta"],
+      ["Hur ofta hålls spelen?", ["Vart fjärde år", "Varje år", "Vartannat år", "Var tionde år"], "fakta"],
+      ["Vilken sport finns på vinterspelen?", ["Skidor", "Simning", "Friidrott", "Brottning"], "fakta"],
+      ["Vad får den som kommer tvåa?", ["Silver", "Guld", "Brons", "En pokal"], "fakta"],
+      ["Vad är en idrottare?", ["En som håller på med sport", "En som bygger hus", "En som lagar mat", "En som tittar på tävlingar"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-solen", title: "Solen är en stjärna", textType: "fact", topic: "rymden",
+    body: [
+      "Solen är en stjärna. Den är mycket större än jorden. Över en miljon jordklot skulle få plats i solen.",
+      "Solen är ett stort klot av heta gaser. Den ger oss ljus och värme. Utan solen skulle det inte finnas liv på jorden.",
+      "Solen ser liten ut på himlen. Det beror på att den är så långt borta.",
+      "Titta aldrig rakt på solen. Ljuset är så starkt att det kan skada ögonen.",
+    ],
+    q: [
+      ["Vad är solen?", ["En stjärna", "En planet", "En måne", "Ett moln"], "fakta"],
+      ["Vad är solen gjord av?", ["Heta gaser", "Is och sten", "Vatten", "Sand"], "fakta"],
+      ["Varför ser solen liten ut?", ["Den är långt borta", "Den är liten", "Den är bakom moln", "Den är kall"], "fakta"],
+      ["Varför ska man aldrig titta rakt på solen?", ["Det kan skada ögonen", "Man blir trött", "Solen blir mörk", "Man blir solbränd i ansiktet"], "fakta"],
+      ["Vad skulle hända utan solen?", ["Det skulle inte finnas liv", "Det skulle bli varmare på jorden", "Ingenting alls", "Det skulle växa fler träd"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-island", title: "Ön med vulkaner", textType: "fact", topic: "geografi",
+    body: [
+      "Island är ett land långt ut i havet. Det ligger på en ö väster om Norge. Där finns många vulkaner.",
+      "Ibland får en vulkan utbrott. Då sprutar het, smält sten upp ur marken. Den kallas lava.",
+      "På Island finns också varma källor. Vattnet värms upp av hettan djupt nere i jorden. Islänningarna använder det varma vattnet för att värma sina hus.",
+      "Det finns också stora glaciärer. En glaciär är ett tjockt lager is. Den ligger kvar året runt.",
+    ],
+    q: [
+      ["Var ligger Island?", ["På en ö i havet", "Mitt i Sverige", "I en öken", "Uppe på ett berg"], "fakta"],
+      ["Vad kallas den heta smälta stenen?", ["Lava", "Is", "Sand", "Lera"], "fakta"],
+      ["Vad använder islänningarna det varma vattnet till?", ["Att värma sina hus", "Att tvätta bilar", "Att göra is", "Att vattna sina åkrar"], "fakta"],
+      ["Vad är en glaciär?", ["Ett tjockt lager is", "En varm källa", "En liten vulkan", "Ett berg av lava och aska"], "ordforstaelse"],
+      ["Vad är sant om Island?", ["Där finns både eld och is", "Där är det alltid varmt", "Där finns inga berg", "Där bor inga människor"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-vikingaskeppen", title: "Vikingarnas skepp", textType: "fact", topic: "historia",
+    body: [
+      "Vikingarna levde i Norden för mer än tusen år sedan. De var skickliga på att bygga båtar.",
+      "Vikingaskeppen var långa och smala. De var byggda av trä, oftast ek. Skeppen hade ett stort segel. När det inte blåste rodde vikingarna med åror.",
+      "Med skeppen reste vikingarna långt. De handlade med andra länder. Ibland plundrade de också.",
+      "Längst fram på skeppet satt ibland ett huvud av trä. Det kunde se ut som en drake.",
+    ],
+    q: [
+      ["När levde vikingarna?", ["För mer än tusen år sedan", "För hundra år sedan", "För ungefär femtio år sedan", "För tio år sedan"], "fakta"],
+      ["Vad var skeppen byggda av?", ["Trä", "Sten", "Järn", "Plast"], "fakta"],
+      ["Vad gjorde vikingarna när det inte blåste?", ["Rodde med åror", "Väntade på land", "Simmade bredvid", "Satte upp ett segel till"], "fakta"],
+      ["Vad kunde huvudet längst fram se ut som?", ["En drake", "En häst", "En fisk", "En örn"], "fakta"],
+      ["Vikingarna var skickliga. Vad betyder skicklig?", ["Duktig", "Lat", "Snäll", "Rädd"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-somnen", title: "Därför sover vi", textType: "fact", topic: "vetenskap",
+    body: [
+      "Alla människor behöver sova. Barn i din ålder behöver sova ungefär tio timmar varje natt.",
+      "När du sover vilar kroppen. Men hjärnan arbetar ändå. Den sorterar allt du har lärt dig under dagen.",
+      "När man sover drömmer man ibland. De flesta drömmar glömmer man när man vaknar.",
+      "Om man sover för lite blir man trött och lättare sur. Det blir också svårare att lära sig nya saker i skolan.",
+    ],
+    q: [
+      ["Hur länge behöver barn sova varje natt?", ["Ungefär tio timmar", "Fyra timmar", "Två timmar", "Tjugo timmar"], "fakta"],
+      ["Vad gör hjärnan när du sover?", ["Sorterar det du lärt dig", "Den stänger av sig helt och hållet", "Blir mindre", "Växer fort"], "fakta"],
+      ["Vad händer med de flesta drömmar?", ["Man glömmer dem", "Man skriver ner dem", "De blir sanna", "Man drömmer dem igen"], "fakta"],
+      ["Hur blir man om man sover för lite?", ["Trött och sur", "Pigg och glad", "Stark och snabb", "Hungrig och varm"], "fakta"],
+      ["Varför är det bra att sova innan ett prov?", ["Det blir lättare att lära sig", "Man får ledigt från skolan", "Då behöver man inte plugga mer", "Proven blir kortare"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-ekorren", title: "Ekorren och vintern", textType: "fact", topic: "djur",
+    body: [
+      "Ekorren är ett litet djur med lång, yvig svans. Den bor i skogar och parker. Den är mycket duktig på att klättra.",
+      "På hösten samlar ekorren mat. Den gömmer nötter och frön på många ställen. Ofta gömmer den dem i marken.",
+      "På vintern letar ekorren upp maten igen. Men den hittar inte allt. Några nötter blir kvar i jorden. Där kan det växa upp nya träd.",
+      "Ekorren sover inte hela vintern. Den bygger ett bo av kvistar och mossa. Boet sitter högt upp i ett träd.",
+    ],
+    q: [
+      ["Hur ser ekorrens svans ut?", ["Lång och yvig", "Kort och tunn", "Kal och rosa", "Platt och bred"], "fakta"],
+      ["Vad gör ekorren på hösten?", ["Samlar mat", "Sover hela tiden", "Flyttar söderut", "Byter till vit päls"], "fakta"],
+      ["Vad kan hända med nötterna som blir kvar?", ["Det kan växa nya träd", "De blir till stenar", "Fåglarna bygger bon av dem", "De smälter"], "fakta"],
+      ["Var bygger ekorren sitt bo?", ["Högt upp i ett träd", "Under en sten", "I ett hål i marken", "Vid en sjö"], "fakta"],
+      ["Svansen är yvig. Vad betyder yvig?", ["Tjock och luftig", "Kort och hård", "Våt och kall", "Liten och smal"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-askan", title: "När det åskar", textType: "fact", topic: "natur",
+    body: [
+      "Åska kommer oftast på sommaren när det är varmt. Då bildas stora, mörka moln högt upp på himlen.",
+      "Inne i molnen bildas elektricitet. Till slut blir det en stark blixt. Blixten är mycket varm och lyser starkt.",
+      "Blixten värmer luften så snabbt att det smäller. Det är det vi kallar åskknall eller muller.",
+      "Ljuset kommer fram före ljudet. Därför ser man blixten först och hör mullret efteråt. Om det åskar ska man gå inomhus.",
+    ],
+    q: [
+      ["När kommer åska oftast?", ["På sommaren", "På vintern", "På hösten", "På våren"], "fakta"],
+      ["Varför smäller det när det åskar?", ["Blixten värmer luften snabbt", "Två stora moln krockar med varandra", "Det regnar hårt", "Vinden blåser"], "fakta"],
+      ["Vad märker man först?", ["Blixten", "Mullret", "Regnet", "Vinden"], "fakta"],
+      ["Mullret hörs efteråt. Vad är muller?", ["Ett dovt ljud", "Ett starkt ljus", "Ett kraftigt regn", "Ett mörkt moln"], "ordforstaelse"],
+      ["Vad ska man göra om det åskar?", ["Gå inomhus", "Klättra i ett träd", "Bada i sjön", "Ställa sig på en kulle"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-kylskapet", title: "Kallt i kylskåpet", textType: "fact", topic: "teknik",
+    body: [
+      "I ett kylskåp är det kallt, ungefär fem grader. Kylan gör att maten håller sig fräsch längre. Bakterier växer mycket långsammare när det är kallt.",
+      "Kylskåpet tar värmen inifrån och släpper ut den på baksidan. Därför kan det kännas varmt bakom kylskåpet.",
+      "I frysen är det ännu kallare, ungefär minus arton grader. Där kan maten hålla sig i flera månader.",
+      "Förr hade man inget kylskåp. Då förvarade man maten i en kall källare.",
+    ],
+    q: [
+      ["Hur kallt är det ungefär i ett kylskåp?", ["Fem grader", "Tjugo grader", "Hundra grader", "Femtio grader"], "fakta"],
+      ["Varför håller sig maten längre i kylan?", ["Bakterier växer långsammare", "Maten blir till is med en gång", "Ljuset är släckt", "Maten blir hård"], "fakta"],
+      ["Var släpper kylskåpet ut värmen?", ["På baksidan", "I frysen", "Inne i maten", "Genom dörren"], "fakta"],
+      ["Hur länge kan maten hålla sig i frysen?", ["I flera månader", "En timme", "En dag", "Bara en enda kväll"], "fakta"],
+      ["Var förvarade man maten förr?", ["I en kall källare", "Uppe på vinden", "I köksskåpet", "Bakom den varma spisen"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-skolan-forr", title: "Skolan för länge sedan", textType: "fact", topic: "historia",
+    body: [
+      "För ungefär hundra år sedan såg skolan annorlunda ut. Ibland gick barn i olika åldrar i samma klassrum. Läraren kallades fröken eller magistern.",
+      "Barnen satt i rader i bänkar av trä. De skrev med en griffel på en liten tavla av sten.",
+      "Det var mycket tyst i klassrummet. Barnen fick inte prata utan lov. Om man ville säga något räckte man upp handen.",
+      "Många barn gick hem och åt lunch. Skolmat fanns inte på alla skolor.",
+    ],
+    q: [
+      ["När såg skolan ut så här?", ["För ungefär hundra år sedan", "För några få år sedan", "För fem tusen år sedan", "I dag"], "fakta"],
+      ["Vad satt barnen i?", ["Bänkar av trä", "Mjuka soffor", "Stolar av plast", "Ringar på golvet"], "fakta"],
+      ["Vad skrev barnen med?", ["En griffel", "En dator", "En kulspetspenna", "En pensel"], "fakta"],
+      ["Vad gjorde man om man ville säga något?", ["Räckte upp handen", "Ropade högt", "Stod på bänken", "Skrev en lapp"], "fakta"],
+      ["Hur var skolan förr jämfört med i dag?", ["Det var strängare", "Det var mer lek", "Det fanns inga lärare", "Barnen fick prata mer"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-atervinning", title: "Burken blir en ny burk", textType: "fact", topic: "vardag",
+    body: [
+      "När du har druckit upp en burk är den inte skräp. Den kan bli en ny burk! Det kallas återvinning.",
+      "Burkar är gjorda av aluminium. I fabriken smälts de gamla burkarna. Av metallen gör man nya burkar.",
+      "Även papper, glas och plast kan återvinnas. Därför sorterar vi soporna i olika kärl.",
+      "Återvinning är bra för naturen. Man behöver inte hämta lika mycket nytt material ur jorden. Det sparar också energi.",
+    ],
+    q: [
+      ["Vad kallas det när en gammal burk blir en ny?", ["Återvinning", "Sophämtning", "Städning", "Tillverkning"], "fakta"],
+      ["Vad är burkar gjorda av?", ["Aluminium", "Glas", "Papper", "Trä"], "fakta"],
+      ["Vad händer med burkarna i fabriken?", ["De smälts", "De målas", "De tvättas", "De slängs"], "fakta"],
+      ["Vad mer kan återvinnas?", ["Papper, glas och plast", "Bara gamla burkar och flaskor", "Ingenting annat", "Bara mat"], "fakta"],
+      ["Varför sorterar vi soporna?", ["Så att de kan återvinnas", "För att det är roligt", "För att soporna ska lukta mindre", "För att kärlen är fina"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-australien", title: "Landet med kängurur", textType: "fact", topic: "geografi",
+    body: [
+      "Australien är ett stort land långt bort, på andra sidan jorden. När det är vinter i Sverige är det sommar där.",
+      "I Australien lever djur som inte finns i svensk natur. Ett av dem är kängurun.",
+      "Kängurun hoppar med sina starka bakben. Den kan hoppa mycket långt. Den använder svansen för att hålla balansen.",
+      "En kängurumamma har en ficka på magen. Där bor ungen när den är liten. Ungen kallas joey.",
+    ],
+    q: [
+      ["Var ligger Australien?", ["På andra sidan jorden", "Nära Sverige", "I norra Europa", "Mitt i havet vid Norge"], "fakta"],
+      ["Vilken årstid är det i Australien när det är vinter i Sverige?", ["Sommar", "Vinter", "Höst", "Vår"], "fakta"],
+      ["Vad använder kängurun svansen till?", ["Att hålla balansen", "Att gräva", "Att simma", "Att bära ungen"], "fakta"],
+      ["Var bor ungen när den är liten?", ["I en ficka på magen", "I ett bo i ett träd", "I en håla", "På mammas rygg"], "fakta"],
+      ["Vad kallas kängurunungen?", ["Joey", "Valp", "Kalv", "Kattunge"], "fakta"],
+    ],
+  },
+];
