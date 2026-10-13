@@ -44,6 +44,12 @@ export const GAMEMODES = [
   // tur inte quiz/par/läs-lägena. Själva spelet byggs i #3; här pekar bara gaten ut det.
   { id: "rakna", name: "Räkna", emoji: "🔢", color: "orange",
     sub: "Räkna ut svaret på genererade tal", needs: "generator" },
+  // Ämnesläsning (#672, docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md): Läsresans läsvy
+  // på områdets egna texter (area.readingTexts), i alla ämnen. Tänds bara av
+  // readingTexts – ett område kan ha enbart ämnestexter (§6.4). Inga stjärnor:
+  // belöningen är mynt och den delade läsnivån. Spelet laddas dynamiskt.
+  { id: "amneslasning", name: "Ämnesläsning", emoji: "📖", color: "lila",
+    sub: "Läs texter om området och svara på frågor", needs: "readingTexts", noStars: true },
 ];
 
 // Frågekälla (questionKind) → innehållsflagga den drar från. Samma mappning som
@@ -120,7 +126,7 @@ export function isModeHidden(area, modeId) {
  * Ett läge kan bara spelas (och bockas i/ur) om områdets flagga här är sann.
  * Delas av elevvyn och lärar-UI:t så gaten är exakt densamma på båda hållen.
  * @param {object} area
- * @returns {{quiz:boolean, pairs:boolean, sanningsjakt:boolean, generator:boolean, timeline:boolean}}
+ * @returns {{quiz:boolean, pairs:boolean, sanningsjakt:boolean, generator:boolean, timeline:boolean, readingTexts:boolean}}
  */
 export function areaContentFlags(area) {
   return {
@@ -133,6 +139,13 @@ export function areaContentFlags(area) {
     generator: hasGeneratorContent(area),
     // Tidsjakten (#599): minst en händelse i area.timeline.
     timeline: Array.isArray(area?.timeline) && area.timeline.length > 0,
+    // Ämnesläsning (#672): minst en ämnestext med nivå 1–3 och frågor. Gamla
+    // nivåtexter (#152, borttagna i #531) i samma fält har formen { levels: {…} }
+    // utan level/questions och tänder alltså inget. Hålls inline – textvalet
+    // (amneslasning/picker.js) får inte hamna i bootgrafen (#271).
+    readingTexts: Array.isArray(area?.readingTexts) &&
+      area.readingTexts.some((t) => t && [1, 2, 3].includes(Number(t.level)) &&
+        Array.isArray(t.questions) && t.questions.length > 0),
   };
 }
 

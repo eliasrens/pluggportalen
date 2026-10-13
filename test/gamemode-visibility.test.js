@@ -69,6 +69,7 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
     sanningsjakt: true, // härleds ur quiz
     generator: false,
     timeline: false,
+    readingTexts: false,
   });
   assert.deepEqual(areaContentFlags({ pairs: PAIRS }), {
     quiz: false,
@@ -76,6 +77,7 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
     sanningsjakt: true, // ≥2 par
     generator: false,
     timeline: false,
+    readingTexts: false,
   });
   assert.deepEqual(areaContentFlags({}), {
     quiz: false,
@@ -83,10 +85,14 @@ test("areaContentFlags speglar faktiskt innehåll", () => {
     sanningsjakt: false,
     generator: false,
     timeline: false,
+    readingTexts: false,
   });
-  // Gamla nivåtexter (readingTexts) tänder inget läge sedan #531.
-  assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, undefined);
-  assert.equal(availableGamemodes({ readingTexts: [{ id: "t1" }] }).length, 0);
+  // Gamla nivåtexter (readingTexts { levels: {…} }, #152) tänder inget läge sedan
+  // #531 – fältet återanvänds av Ämnesläsningen (#672) med formen { level, questions }.
+  const gammal = { id: "t1", title: "Gammal", levels: { 1: { body: "…", questions: [{ id: "q1" }] } } };
+  assert.equal(areaContentFlags({ readingTexts: [{ id: "t1" }] }).readingTexts, false);
+  assert.equal(areaContentFlags({ readingTexts: [gammal] }).readingTexts, false);
+  assert.equal(availableGamemodes({ readingTexts: [gammal] }).length, 0);
   // Räknegenerator (issue #279): en giltig area.generator ger generator-flaggan
   // (och INTE quiz/pairs), medan en ogiltig (okänd topic/ingen variant) inte gör det.
   assert.equal(
@@ -225,10 +231,10 @@ test("mergeAreaContent behåller områdets hiddenModes", () => {
 });
 
 // Katalogen ska ha alla lägen (skydd mot att någon råkar tömma den).
-test("GAMEMODES har de åtta lägena (inkl. räkna + tidsjakt)", () => {
+test("GAMEMODES har de nio lägena (inkl. räkna, tidsjakt + ämnesläsning)", () => {
   assert.deepEqual(
     GAMEMODES.map((gm) => gm.id),
-    ["lasforstaelse", "para", "quiz", "tidsjakt", "kunskapsjakt", "sanningsjakt", "memory", "rakna"]
+    ["lasforstaelse", "para", "quiz", "tidsjakt", "kunskapsjakt", "sanningsjakt", "memory", "rakna", "amneslasning"]
   );
 });
 

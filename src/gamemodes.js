@@ -66,6 +66,17 @@ function adventureCards(themes, areaProgress) {
     .join("");
 }
 
+/** Ämnesläsningens diskreta rad på kortet. Ett fel ger en tom rad, aldrig en trasig sida. */
+async function amnesReadLine(areaData, areaId) {
+  try {
+    const [picker, sd] = await Promise.all([import("./amneslasning/picker.js"), data.getStudentData()]);
+    const state = sd?.amneslasning?.areas?.[areaId] || null;
+    return picker.readProgressLine(picker.readProgress(areaData.readingTexts, state));
+  } catch {
+    return "";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Områdesöversikt: välj gamemode (med stjärnor per övning)
 // ---------------------------------------------------------------------------
@@ -104,6 +115,9 @@ export async function pageElevOmrade() {
 
   const areaProgress = progress?.[area] || {};
   const has = areaContentFlags(areaData);
+  // Ämnesläsning (#672): kortet visar "Du har läst X av Y texter i området" i
+  // stället för stjärnor. Textvalet är en NY fil → dynamisk import (#271).
+  const amnesRad = has.readingTexts ? amnesReadLine(areaData, area) : Promise.resolve("");
 
   // Läsförståelse-förkrav (issue #155): läraren kan kräva att eleven klarar
   // läsförståelsen (godkänt, inte bara påbörjad) innan ÖVRIGA övningar låses upp.
@@ -123,6 +137,7 @@ export async function pageElevOmrade() {
   // OCH som är synliga för elevens klass×område – samma gate som #308
   // (availableGamemodes + effektiv synlighet). Ett läge som HAR underlag men är
   // låst av läsförståelse-förkravet (#155) visas fortfarande som ett låst kort.
+  const amnesText = await amnesRad;
   const visibleModes = GAMEMODES
     .filter((gm) => has[gm.needs])
     .filter((gm) => !isModeHiddenForClassArea(areaData, studentClass, gm.id));
@@ -133,7 +148,9 @@ export async function pageElevOmrade() {
       const locked = lockOthers && gm.id !== "lasforstaelse";
       const statusHtml = locked
         ? `<span class="card-lock">🔒 Gör läsförståelsen först</span>`
-        : `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
+        : gm.id === "amneslasning"
+          ? `<span class="card-rad" data-amnes-rad>${amnesText}</span>`
+          : `<span class="card-stars${stars ? " won" : ""}">${starRow(stars)}</span>`;
       return `<button class="big-card ${gm.color} gm-card${locked ? " locked" : ""}" data-mode="${gm.id}" ${locked ? "disabled" : ""}>
       <span class="emoji">${gm.emoji}</span>
       <span class="title">${gm.name}</span>
@@ -152,7 +169,8 @@ export async function pageElevOmrade() {
   try {
     const mod = await framstegMod;
     const starModes = areaStarModes(areaData, studentClass).map((gm) => gm.id);
-    framsteg = mod ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
+    // Inga stjärn-lägen (t.ex. ett rent Ämnesläsning-område, #672) → ingen panel.
+    framsteg = mod && starModes.length ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
   } catch {}
 
   // Tydlig hint ovanför korten när förkravet ännu inte är uppfyllt.
@@ -236,6 +254,8 @@ export async function pageElevSpela() {
     case "rakna": return import("./games-rakna.js").then((m) => m.startRakna(ctx));
     // Tidsjakten (#599): samma dynamiska mönster.
     case "tidsjakt": return import("./games-tidsjakt.js").then((m) => m.startTidsjakt(ctx));
+    // Ämnesläsning (#672): Läsresans läsvy på områdets texter – samma mönster.
+    case "amneslasning": return import("./amneslasning/page-amneslasning.js").then((m) => m.startAmneslasning(ctx));
     default: return go(`#/elev/omrade?subj=${enc(subj)}&area=${enc(area)}`);
   }
 }
