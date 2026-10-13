@@ -18,9 +18,12 @@
 // Lärarens inställningar (§3): innehåll + svarssätt (kärnan), speltid
 // (snabbknappar 3–30 + egen tid 1–60), Hackning på/av, namn i flödet,
 // Pluggmynt (live-rewards), 1–3 klasser.
-// Vyerna byggs i epicens nästa delar: elevvyn (datakuppen-student.js),
-// projektorn (datakuppen-projector.js, #654: Nätverket + Statistik, lobby,
-// pallplats), historiken (datakuppen-history.js). Bakgrundsmusik (#654):
+// Vyerna: elevvyn (datakuppen-student.js, #653), projektorn
+// (datakuppen-projector.js, #654: Nätverket + Statistik, lobby, pallplats),
+// historiken + Statistik → Live (datakuppen-history.js, #655: hackförsök och
+// andel lyckade för hela klassen). Demoläget: dk-demo.js +
+// preview/preview-datakuppen-demolage.html. Regler, koder och filtyper:
+// docs/DATAKUPPEN.md. Bakgrundsmusik (#654):
 // `music` → assets/hackerlaget-dark-loop.ogg, spelas av projektorskalet
 // (proj-music.js) – bara projektorn och elevskärmsfönstret, aldrig elevdatorn.
 //
