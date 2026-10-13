@@ -12,6 +12,9 @@
 //     tål permission-denied (regeln är inte deployad överallt). Varje försök
 //     går genom normalizeAttempt, så en gammal textnivå visas migrerad (+3)
 //     även från en injicerad källa (#520).
+//   * källfiltret (#674): nyckeltal, frågetyper och senaste texter följer
+//     tabellens filter Alla / Läsresan / Ämnesläsning; under "Alla" märks
+//     ämnestexterna med 📖 och områdets namn saknas (bara id i försöket).
 //   * "Ändra nivå" (#506) – ritas av `renderLevel` (teacher-lasresan-niva.js)
 //     när lärarvyn skickar med den.
 // Samma modal-skal (.cx-modal) och mörka tema som teacher-class-detail.js.
@@ -22,7 +25,7 @@ import { avatarEmoji } from "./avatars.js";
 import { el, esc, icon } from "./teacher-shared.js";
 import { LEVEL_MAX } from "./lasresan/config.js";
 import { normalizeAttempt } from "./lasresan/level-scale.js";
-import { categoryBreakdown, percent } from "./lasresan/stats.js";
+import { SOURCE_FILTERS, attemptSourceKey, categoryBreakdown, filterAttempts, parseSourceFilter, percent } from "./lasresan/stats.js";
 import { pctLevel } from "./lasresan/teacher-rows.js";
 
 /** Så många senaste texter visas i detaljen. */
@@ -46,8 +49,10 @@ function levelPips(level) {
   return `<span class="lrt-pips" aria-hidden="true">${out}</span>`;
 }
 
+const MONEY_LABEL = { alla: "pluggcoins via läsning", lasresan: "pluggcoins via Läsresan", amnes: "pluggcoins via Ämnesläsning" };
+
 /** Nyckeltalsrutnätet (8 kort, 2 rader). */
-function statsGridHtml(row) {
+function statsGridHtml(row, source = "lasresan") {
   const s = row.started;
   const dash = `<span class="lrt-dash">–</span>`;
   const worlds = row.completedWorlds.length;
@@ -67,7 +72,7 @@ function statsGridHtml(row) {
       worlds ? `värld · steg (${worlds} ${worlds === 1 ? "värld" : "världar"} klar${worlds === 1 ? "" : "a"})` : "värld · steg",
       "lrt-stat-world"
     )}
-    ${stat(s ? row.money : dash, "pluggcoins via Läsresan")}
+    ${stat(s ? row.money : dash, MONEY_LABEL[parseSourceFilter(source)])}
   </div>`;
 }
 
@@ -95,9 +100,9 @@ export function categoryHtml(catStats) {
   return `<div class="lrt-cats">${rows}</div>`;
 }
 
-/** Tabell över senaste genomförda texter (nyast först). */
-export function attemptsHtml(attempts) {
-  const list = (attempts || []).filter(Boolean).slice(0, RECENT_TEXTS).map(normalizeAttempt);
+/** Tabell över senaste genomförda texter (nyast först), filtrerade på källa (#674). */
+export function attemptsHtml(attempts, source = "alla") {
+  const list = filterAttempts(attempts, source).slice(0, RECENT_TEXTS).map(normalizeAttempt);
   if (list.length === 0) return `<p class="hint lrt-empty">Inga genomförda texter än.</p>`;
   const rows = list
     .map((a) => {
@@ -105,7 +110,7 @@ export function attemptsHtml(attempts) {
       const correct = Number(a.correct) || 0;
       const pct = Number.isFinite(a.percentage) ? a.percentage : percent(correct, total);
       return `<tr>
-        <td class="lrt-att-title">${esc(a.title || a.textId || "Okänd text")}</td>
+        <td class="lrt-att-title">${attemptSourceKey(a) === "amnes" ? `<span class="lrt-att-src" title="Ämnesläsning">📖</span> ` : ""}${esc(a.title || a.textId || "Okänd text")}</td>
         <td class="lrt-num">${Number.isFinite(a.textLevel) ? a.textLevel : "–"}</td>
         <td class="lrt-num">${correct}<span class="lrt-of">/${total}</span></td>
         <td class="lrt-num lrt-pct ${pctLevel(pct)}">${pct}%</td>
@@ -123,14 +128,19 @@ export function attemptsHtml(attempts) {
 /**
  * Öppna Läsresan-detaljen för en elev.
  * @param {object} student  { id, namn, username, avatarId }
- * @param {{ row: object, lasresa: (object|null),
+ * @param {{ row: object, lasresa?: (object|null), catStats?: object, source?: string,
  *   loadAttempts: (studentId:string, max:number) => Promise<object[]>,
  *   renderLevel?: ((slot:HTMLElement, {updateRow}) => void) | null }} opts
  *   `row` = elevens rad ur teacherClassRows (redan beräknad i tabellen).
+ *   `source` = tabellens källfilter (#674), `catStats` dess frågetypsstatistik
+ *   (saknas → lasresa.catStats).
  *   `renderLevel` ritar "Ändra nivå"-kontrollen (#506) i sin sektion.
  */
-export function openLasresanDetail(student, { row, lasresa, loadAttempts, renderLevel }) {
+export function openLasresanDetail(student, { row, lasresa, catStats, source = "lasresan", loadAttempts, renderLevel }) {
   const name = student.namn || student.username || student.id;
+  const filter = parseSourceFilter(source);
+  const filterLabel = SOURCE_FILTERS.find((f) => f.key === filter).label;
+  const cats = catStats !== undefined ? catStats : lasresa && lasresa.catStats;
   const overlay = el(`<div class="cx-modal-overlay teacher-dark lrt-modal" role="dialog" aria-modal="true"
       aria-label="Läsresan – ${esc(name)}">
     <div class="cx-modal">
@@ -139,21 +149,23 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts, render
         <span class="cx-modal-avatar">${avatarEmoji(student.avatarId)}</span>
         <div>
           <h2 class="cx-modal-name">${esc(name)}</h2>
-          <p class="cx-modal-sub">${icon("book", 14)} Läsresan${student.username ? " · " + esc(student.username) : ""}</p>
+          <p class="cx-modal-sub">${icon("book", 14)} Läsresan${filter === "lasresan" ? "" : ` · visar ${esc(filterLabel.toLowerCase())}`}${student.username ? " · " + esc(student.username) : ""}</p>
         </div>
       </div>
       <div class="cx-modal-body">
-        ${statsGridHtml(row)}
+        ${statsGridHtml(row, filter)}
         <p class="lrt-hidden-note">${icon("eye", 14)} Läsresan-nivån är dold för eleven – den styr bara vilka texter som väljs.</p>
         ${renderLevel ? `<div class="cx-detail-sec lrn-sec"><h3>Ändra nivå</h3><div class="lrn-slot"></div></div>` : ""}
         <div class="cx-detail-sec">
           <h3>Per frågetyp</h3>
-          ${categoryHtml(lasresa && lasresa.catStats)}
+          ${categoryHtml(cats)}
         </div>
         <div class="cx-detail-sec">
           <h3>Senaste texterna</h3>
           <div class="lrt-attempts">${
-            row.started ? `<div class="spinner">Laddar texter…</div>` : `<p class="hint lrt-empty">Eleven har inte börjat Läsresan än.</p>`
+            row.started
+              ? `<div class="spinner">Laddar texter…</div>`
+              : `<p class="hint lrt-empty">${filter === "amnes" ? "Eleven har inte läst några ämnestexter än." : "Eleven har inte börjat Läsresan än."}</p>`
           }</div>
         </div>
       </div>
@@ -179,7 +191,7 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts, render
   // Efter ett nivåbyte ritas nyckeltalen om med elevens nya rad.
   const updateRow = (r) => {
     const grid = overlay.querySelector(".lrt-stat-grid");
-    if (grid && r) grid.replaceWith(el(statsGridHtml(r)));
+    if (grid && r) grid.replaceWith(el(statsGridHtml(r, filter)));
   };
   if (renderLevel) renderLevel(overlay.querySelector(".lrn-slot"), { updateRow });
   overlay.querySelector(".cx-modal-close").focus();
@@ -188,9 +200,10 @@ export function openLasresanDetail(student, { row, lasresa, loadAttempts, render
   if (row.started) {
     const host = overlay.querySelector(".lrt-attempts");
     Promise.resolve()
-      .then(() => loadAttempts(student.id, RECENT_TEXTS))
+      // Filtreras på klienten → hämta fler när bara en källa visas.
+      .then(() => loadAttempts(student.id, filter === "alla" ? RECENT_TEXTS : RECENT_TEXTS * 3))
       .then((attempts) => {
-        if (overlay.isConnected) host.innerHTML = attemptsHtml(attempts);
+        if (overlay.isConnected) host.innerHTML = attemptsHtml(attempts, filter);
       })
       .catch((err) => {
         console.warn("[Läsresan] kunde inte läsa försök", err);

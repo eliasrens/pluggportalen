@@ -11,9 +11,16 @@
 //       subjectId,
 //       read: { [textId]: { count, lastAt } },   ← läst-lista med tidpunkt;
 //                                                  count = omläsningstrappan
-//       currentTextId, currentStartedAt          ← påbörjad text i området
+//       currentTextId, currentStartedAt,         ← påbörjad text i området
+//       totals                                    ← områdets lässtatistik (#674)
 //     } },
+//     totals,                                     ← all ämnesläsning (#674)
 //     updatedAt }
+// totals = { totalTexts, totalQuestions, totalCorrect, totalIncorrect,
+//   moneyEarned, catStats{kategori:{q,correct}} } – samma namn som
+// studentData.lasresa, så lasresan/stats.summarize/categoryBreakdown kan läsa
+// dem. Denormaliserat i SAMMA transaktion som försöket, så lärarvyerna klarar
+// sig med ett studentData-dokument per elev (kvoten, incident #114).
 // Läsnivån ligger kvar i studentData.lasresa (delad med Läsresan, level.js).
 //
 // Försöket sparas i lasresaAttempts som ett Läsresan-försök (buildAttempt) med
@@ -23,6 +30,7 @@
 
 import { AMNES_COINS_PER_CORRECT, AMNES_SOURCE, LASRESAN_SOURCE } from "../lasresan/config.js";
 import { buildAttempt } from "../lasresan/progress.js";
+import { mergeCategoryStats } from "../lasresan/stats.js";
 import { grindMultiplier } from "../leveling.js";
 import { applyAmnesLevel, parseAmnesLevel, readingLevelForAmnes } from "./level.js";
 
@@ -35,9 +43,40 @@ export function attemptSource(attempt) {
   return attempt && attempt.source === AMNES_SOURCE ? AMNES_SOURCE : LASRESAN_SOURCE;
 }
 
+/** Tomma totaler (samma fältnamn som studentData.lasresa). */
+export function emptyTotals() {
+  return { totalTexts: 0, totalQuestions: 0, totalCorrect: 0, totalIncorrect: 0, moneyEarned: 0, catStats: {} };
+}
+
+/** Tvätta lagrade totaler. */
+export function normalizeTotals(raw) {
+  const r = raw && typeof raw === "object" ? raw : {};
+  return {
+    totalTexts: count(r.totalTexts),
+    totalQuestions: count(r.totalQuestions),
+    totalCorrect: count(r.totalCorrect),
+    totalIncorrect: count(r.totalIncorrect),
+    moneyEarned: count(r.moneyEarned),
+    catStats: r.catStats && typeof r.catStats === "object" ? mergeCategoryStats(r.catStats) : {},
+  };
+}
+
+/** Lägg ett färdigt försök på totalerna (nytt objekt). */
+export function addAttemptToTotals(totals, attempt) {
+  const cur = normalizeTotals(totals);
+  return {
+    totalTexts: cur.totalTexts + 1,
+    totalQuestions: cur.totalQuestions + count(attempt.totalQuestions),
+    totalCorrect: cur.totalCorrect + count(attempt.correct),
+    totalIncorrect: cur.totalIncorrect + count(attempt.incorrect),
+    moneyEarned: cur.moneyEarned + count(attempt.earnedMoney),
+    catStats: mergeCategoryStats(cur.catStats, attempt.perCategory),
+  };
+}
+
 /** Tomt tillstånd för ett område. */
 export function defaultArea(subjectId = null) {
-  return { subjectId: str(subjectId), read: {}, currentTextId: null, currentStartedAt: null };
+  return { subjectId: str(subjectId), read: {}, currentTextId: null, currentStartedAt: null, totals: emptyTotals() };
 }
 
 function normalizeRead(raw) {
@@ -59,6 +98,7 @@ export function normalizeArea(raw, subjectId = null) {
     read: normalizeRead(raw.read),
     currentTextId: str(raw.currentTextId),
     currentStartedAt: time(raw.currentStartedAt),
+    totals: normalizeTotals(raw.totals),
   };
 }
 
@@ -69,7 +109,7 @@ export function normalizeAmneslasning(raw) {
   if (r.areas && typeof r.areas === "object") {
     for (const [areaId, a] of Object.entries(r.areas)) if (areaId) areas[areaId] = normalizeArea(a);
   }
-  return { ...r, areas, updatedAt: time(r.updatedAt) };
+  return { ...r, areas, totals: normalizeTotals(r.totals), updatedAt: time(r.updatedAt) };
 }
 
 /** Områdets tillstånd (tomt om eleven inte läst där). */
@@ -151,8 +191,8 @@ export function buildAmnesAttempt(text, answers, { subjectId, areaId, prevReads 
 
 /**
  * Applicera ett färdigt ämnesförsök: den DELADE läsnivån (Läsresans regler,
- * samma streaks, tak 7 uppåt) och områdets läst-lista. Läsresans resa, totaler
- * och seenTextIds rörs inte.
+ * samma streaks, tak 7 uppåt), områdets läst-lista och ämnestotalerna (område
+ * + all ämnesläsning, #674). Läsresans resa, totaler och seenTextIds rörs inte.
  * @param {{lasresa:object, amneslasning:object}} state `lasresa` normaliserad
  *   (normalizeLasresa med klassens startnivå), `amneslasning` lagrad/normaliserad
  * @returns {{lasresa:object, amneslasning:object, levelChanged:boolean}}
@@ -166,10 +206,12 @@ export function applyAmnesCompletion({ lasresa, amneslasning }, attempt, now = D
     read: { ...area.read, [attempt.textId]: { count: (prev ? prev.count : 0) + 1, lastAt: now } },
     currentTextId: null,
     currentStartedAt: null,
+    totals: addAttemptToTotals(area.totals, attempt),
   };
+  const state = withArea(amneslasning, attempt.areaId, next, now);
   return {
     lasresa: lvl.lasresa,
-    amneslasning: withArea(amneslasning, attempt.areaId, next, now),
+    amneslasning: { ...state, totals: addAttemptToTotals(state.totals, attempt) },
     levelChanged: lvl.levelChanged,
   };
 }

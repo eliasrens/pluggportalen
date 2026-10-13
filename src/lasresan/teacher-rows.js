@@ -18,12 +18,17 @@
 //     normalizeLasresa, så lagrad gammal-skala-data (utan level10) visas
 //     migrerad (+3) även om källan inte normaliserat den. Idempotent för
 //     objekt som data-lasresan.getClassLasresa redan normaliserat.
+//   * källfilter (#674): `source` "alla" | "lasresan" | "amnes" styr vilka
+//     totaler (texter/frågor/rätt/fel/%) raden visar – entry.amnesTotals =
+//     studentData.amneslasning.totals. "Ej börjat" följer filtret; nivå,
+//     värld och steg är alltid Läsresans resa. "lasresan" utan ämnesdata ger
+//     exakt samma rader som före #674.
 // ============================================================================
 
 import { DEFAULT_STEPS_PER_WORLD } from "./config.js";
 import { effectiveStartLevel, hasStartedLasresa, parseTeacherLevel } from "./level-control.js";
 import { normalizeLasresa } from "./progress.js";
-import { classRows, sortRows } from "./stats.js";
+import { classRows, parseSourceFilter, sortRows, totalsForSource } from "./stats.js";
 import { WORLDS, firstWorld, getWorld } from "./worlds/index.js";
 
 /** Kolumner i visningsordning. `num` → klick sorterar fallande först. */
@@ -40,22 +45,28 @@ export const TABLE_COLUMNS = [
 ];
 
 /**
- * entries = [{ studentId, namn, lasresa }] (lasresa null = inte börjat, som
- * data-lasresan.getClassLasresa ger). Returnerar en rad per elev.
+ * entries = [{ studentId, namn, lasresa, amnesTotals? }] (lasresa null = inte
+ * börjat, som data-lasresan.getClassLasresa ger). Returnerar en rad per elev.
  * `startLevel` = klassens startnivå (1–10, classStartLevelOf), visas
  * för elever som inte har börjat och saknar lärarsatt nivå.
+ * `source` = källfiltret (#674), standard "alla".
  */
-export function teacherClassRows(entries, registry = WORLDS, { startLevel } = {}) {
+export function teacherClassRows(entries, registry = WORLDS, { startLevel, source } = {}) {
   const first = firstWorld(registry);
   const start = effectiveStartLevel(startLevel);
+  const filter = parseSourceFilter(source);
   const list = (entries || []).map((e) =>
     e && e.lasresa ? { ...e, lasresa: normalizeLasresa(e.lasresa, registry, { startLevel: start }) } : e
   );
-  return classRows(list).map((row, i) => {
+  const shown = list.map((e) => (e ? { ...e, lasresa: totalsForSource(e.lasresa, e.amnesTotals, filter) } : e));
+  return classRows(shown).map((row, i) => {
     const lasresa = list[i] && list[i].lasresa;
-    const r = { ...row, started: row.started && hasStartedLasresa(lasresa) };
-    const world = (r.started && getWorld(r.worldId, registry)) || first;
-    const step = r.started ? r.stepInWorld : 0;
+    const onJourney = hasStartedLasresa(lasresa);
+    const readAmnes = !!(list[i] && list[i].amnesTotals && list[i].amnesTotals.totalTexts > 0);
+    const startedInFilter = filter === "lasresan" ? onJourney : filter === "amnes" ? readAmnes : onJourney || readAmnes;
+    const r = { ...row, started: row.started && startedInFilter };
+    const world = (onJourney && getWorld(r.worldId, registry)) || first;
+    const step = onJourney ? r.stepInWorld : 0;
     const order = world ? world.order || 0 : 0;
     const hasAnswers = r.started && r.questions > 0;
     return {

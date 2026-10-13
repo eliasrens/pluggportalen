@@ -8,7 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   amnesCoinsFor, applyAmnesCompletion, areaOf, attemptSource, buildAmnesAttempt,
-  normalizeAmneslasning, previousReads, readList, withStartedAmnesText,
+  emptyTotals, normalizeAmneslasning, previousReads, readList, withStartedAmnesText,
 } from "../src/amneslasning/progress.js";
 import { AMNES_COINS_PER_CORRECT, AMNES_SOURCE } from "../src/lasresan/config.js";
 import { normalizeLasresa } from "../src/lasresan/progress.js";
@@ -129,9 +129,33 @@ test("läst-listan per område: tidpunkt, äldst först, tål skräpdata", () =>
     { textId: "a", count: 1, lastAt: 2000 },
     { textId: "b", count: 2, lastAt: 3000 },
   ]);
-  assert.deepEqual(areaOf(s, "annat", "so"), { subjectId: "so", read: {}, currentTextId: null, currentStartedAt: null });
+  assert.deepEqual(areaOf(s, "annat", "so"), { subjectId: "so", read: {}, currentTextId: null, currentStartedAt: null, totals: emptyTotals() });
   const junk = normalizeAmneslasning({ areas: { x: { read: { t: { count: -1 }, u: { count: 2, lastAt: "igår" } }, currentTextId: 5 } } });
   assert.deepEqual(junk.areas.x.read, { u: { count: 2, lastAt: null } });
   assert.equal(junk.areas.x.currentTextId, null);
-  assert.deepEqual(normalizeAmneslasning(undefined), { areas: {}, updatedAt: null });
+  assert.deepEqual(normalizeAmneslasning(undefined), { areas: {}, totals: emptyTotals(), updatedAt: null });
+});
+
+test("#674: totaler per område och för all ämnesläsning (denormaliserat, samma transaktion)", () => {
+  let s;
+  s = read(s, amnesText("a"), 6, 1000).amneslasning; // 6/7
+  s = read(s, amnesText("a"), 3, 2000).amneslasning; // omläsning 3/7
+  const other = withStartedAmnesText(s, { subjectId: "so", areaId: "vikingar", textId: "v1" }, 2500).amneslasning;
+  const v = buildAmnesAttempt(amnesText("v1", 4), answersFor(amnesText("v1", 4), 4), { subjectId: "so", areaId: "vikingar", completedAt: 3000 });
+  s = applyAmnesCompletion({ lasresa: normalizeLasresa(undefined), amneslasning: other }, v, 3000).amneslasning;
+  const foto = areaOf(s, "fotosyntes").totals;
+  assert.equal(foto.totalTexts, 2);
+  assert.equal(foto.totalQuestions, 14);
+  assert.equal(foto.totalCorrect, 9);
+  assert.equal(foto.totalIncorrect, 5);
+  assert.equal(foto.catStats.mellan_raderna.q + foto.catStats.fakta.q, 14);
+  assert.equal(areaOf(s, "vikingar").totals.totalTexts, 1);
+  assert.equal(s.totals.totalTexts, 3);
+  assert.equal(s.totals.totalCorrect, 13);
+  assert.equal(s.totals.moneyEarned, foto.moneyEarned + areaOf(s, "vikingar").totals.moneyEarned);
+  // Skräp i lagrade totaler tvättas.
+  const junk = normalizeAmneslasning({ totals: { totalTexts: -2, totalCorrect: "x", catStats: { fakta: { q: 2, correct: 1 } } } });
+  assert.equal(junk.totals.totalTexts, 0);
+  assert.equal(junk.totals.totalCorrect, 0);
+  assert.deepEqual(junk.totals.catStats, { fakta: { q: 2, correct: 1 } });
 });

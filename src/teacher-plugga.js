@@ -15,6 +15,10 @@
 //
 // KVOT (#114): progress läses EN gång per elev via `loadProgress` (delas med
 // matrisen i teacher-class.js); ämnes-/områdesbyten läser inget nytt.
+//
+// Ämnesläsning (#674): under tabellen ritar teacher-amneslasning.js elevernas
+// ämnesläsning i urvalet ur studentData.amneslasning – samma (sessionscachade)
+// studentData-dokument som progress kommer ifrån, så inga extra läsningar.
 // Laddas DYNAMISKT från teacher-class.js – aldrig i bootgrafen (#271).
 // ============================================================================
 
@@ -32,6 +36,14 @@ import {
   sortPluggaRows,
 } from "./plugga-teacher-rows.js";
 import { openPluggaDetail } from "./teacher-plugga-elev.js";
+import { renderAmnesSection } from "./teacher-amneslasning.js";
+
+/** Elev-id → studentData.amneslasning. getStudentData är sessionscachad – samma läsning som progress. */
+async function defaultLoadAmnes(ids) {
+  const { getStudentData } = await import("./data.js");
+  const res = await Promise.all(ids.map((id) => getStudentData(id).then((d) => d && d.amneslasning, () => null)));
+  return new Map(ids.map((id, i) => [id, res[i] || null]));
+}
 
 // Senaste val delas mellan klasser under sessionen (bekvämt vid klassbyte).
 let lastSort = { key: "namn", dir: "asc" };
@@ -132,9 +144,10 @@ function summaryHtml(sum) {
  *   loadAreas: (subjectId:string) => Promise<object[]>,  // områden per ämne (cachad)
  *   loadProgress: () => Promise<Map<string, object>>,    // elev-id → progress (EN läsning)
  *   cls?: object,                                        // klassdokumentet (dolda lägen)
+ *   loadAmnes?: (ids:string[]) => Promise<Map<string, object>>, // #674: elev-id → studentData.amneslasning
  * }} opts
  */
-export async function renderClassPlugga(ctx, host, { students, subjects, loadAreas, loadProgress, cls = null }) {
+export async function renderClassPlugga(ctx, host, { students, subjects, loadAreas, loadProgress, cls = null, loadAmnes = defaultLoadAmnes }) {
   const list = (students || [])
     .slice()
     .sort((a, b) => String(a.namn || "").localeCompare(String(b.namn || ""), "sv"));
@@ -192,6 +205,14 @@ export async function renderClassPlugga(ctx, host, { students, subjects, loadAre
     namn: s.namn || s.username || s.id,
     progress: progressById.get(s.id) || {},
   }));
+  // Ämnesläsningen (#674) är ett tillägg – fel här får inte fälla tabellen.
+  let amnesById = new Map();
+  try {
+    amnesById = (await loadAmnes(list.map((s) => s.id))) || new Map();
+  } catch (err) {
+    console.warn("[Per område] kunde inte läsa ämnesläsning", err);
+  }
+  const amnesEntries = entries.map((e) => ({ studentId: e.studentId, namn: e.namn, amneslasning: amnesById.get(e.studentId) || null }));
 
   let areas = [];
   let rows = [];
@@ -229,8 +250,10 @@ export async function renderClassPlugga(ctx, host, { students, subjects, loadAre
         <span class="cx-legend-item"><span class="cx-dot lag"></span>Under 34 %</span>
         <span class="cx-legend-item">${QUESTION_CATEGORIES.map((c) => `${c.icon} ${esc(c.label)}`).join(" · ")}</span>
         <span class="cx-legend-tip">Klicka på en elev för resultat per kategori</span>
-      </div>`;
+      </div>
+      <div class="am-host"></div>`;
     draw();
+    renderAmnesSection(body.querySelector(".am-host"), { entries: amnesEntries, areas: chosen, byId });
   }
 
   async function loadSubject() {
