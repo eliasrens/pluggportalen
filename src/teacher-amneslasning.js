@@ -46,7 +46,7 @@ function rowHtml(r, student) {
       <span class="lrt-name-txt">${esc(name)}</span>
       ${r.active ? "" : `<span class="lrt-badge">ej läst</span>`}
     </th>
-    <td class="lrt-num">${r.active ? r.read : dash}${r.available ? `<span class="lrt-of"> av ${r.available}</span>` : ""}</td>
+    <td class="lrt-num">${r.active ? `${r.read}${r.available ? `<span class="lrt-of"> av ${r.available}</span>` : ""}` : dash}</td>
     <td class="lrt-num">${r.active ? r.readings : dash}</td>
     <td class="lrt-num lrt-pct ${pctLevel(r.pct)}"
       title="${r.questions ? `${r.correct} av ${r.questions} frågor rätt` : "Inga svar"}">${r.pct == null ? dash : `${r.pct}%`}</td>
