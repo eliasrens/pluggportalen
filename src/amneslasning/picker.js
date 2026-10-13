@@ -15,18 +15,19 @@
 // ============================================================================
 
 import { AMNES_LEVELS } from "../lasresan/config.js";
+import { isPlayableAmnesText, readingTextsOf } from "./content.js";
 import { parseAmnesLevel } from "./level.js";
 
 const AMNES_MIN = AMNES_LEVELS[0];
 const AMNES_MAX = AMNES_LEVELS[AMNES_LEVELS.length - 1];
 
-/** Områdets spelbara ämnestexter (id, giltig nivå 1–3, minst en fråga), i områdets ordning. */
+/**
+ * Områdets spelbara ämnestexter, i områdets ordning. Regeln bor i content.js
+ * (#673): readingTextsOf släpper gamla nivåtexter (#152), isPlayableAmnesText
+ * kräver id, ämnesnivå 1–3 och minst en fråga.
+ */
 export function playableTexts(readingTexts) {
-  if (!Array.isArray(readingTexts)) return [];
-  return readingTexts.filter(
-    (t) => t && typeof t.id === "string" && t.id && parseAmnesLevel(t.level) !== null &&
-      Array.isArray(t.questions) && t.questions.length > 0
-  );
+  return readingTextsOf({ readingTexts }).filter(isPlayableAmnesText);
 }
 
 /** Ämnesnivåer att pröva i ordning: exakt nivå, sedan ±1, ±2 … (lättare först). */

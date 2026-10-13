@@ -11,6 +11,7 @@
 import { listPairImageKeys } from "./pair-images.js";
 import { QUESTION_CATEGORY_KEYS } from "./exercise-types.js";
 import { normalizeTimelineCount } from "./validate-timeline.js";
+import { areaExampleReadingTexts } from "./prompt-amnes.js";
 
 // Punktlista över de inbyggda bildnycklarna (partisymbol-paketet), så att
 // schemat/exemplen alltid matchar pair-images.js utan manuell synk.
@@ -238,14 +239,16 @@ Skapa lämpligt, faktakorrekt och åldersanpassat innehåll för detta utifrån 
  * att exemplet inte visar innehåll AI:n inte ska skapa (t.ex. tomma listor för
  * bortvalda typer, och inget bildpar-exempel om bildpar inte valts).
  */
-export function areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline = false }) {
-  const texts = `  "texts": [
+export function areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline = false, wantAmnes = false, wantTexts = true }) {
+  const texts = wantTexts
+    ? `  "texts": [
     {
       "id": "vem-var-vikingarna",
       "title": "Vilka var vikingarna?",
       "body": "Vikingarna levde i Norden för mer än tusen år sedan, ungefär mellan år 800 och 1050. De flesta var bönder, men de är mest kända för sina resor med snabba skepp."
     }
-  ]`;
+  ]`
+    : `  "texts": []`;
   const quiz = wantQuiz
     ? `  "quiz": [
     {
@@ -293,6 +296,6 @@ export function areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline = fa
   "description": "Lär dig om vikingarna – hur de levde, reste och trodde.",
 ${texts},
 ${quiz},
-${pairs}${timeline}
+${pairs}${timeline}${wantAmnes ? `,\n${areaExampleReadingTexts()}` : ""}
 }`;
 }

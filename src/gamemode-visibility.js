@@ -141,11 +141,11 @@ export function areaContentFlags(area) {
     timeline: Array.isArray(area?.timeline) && area.timeline.length > 0,
     // Ämnesläsning (#672): minst en ämnestext med nivå 1–3 och frågor. Gamla
     // nivåtexter (#152, borttagna i #531) i samma fält har formen { levels: {…} }
-    // utan level/questions och tänder alltså inget. Hålls inline – textvalet
-    // (amneslasning/picker.js) får inte hamna i bootgrafen (#271).
-    readingTexts: Array.isArray(area?.readingTexts) &&
-      area.readingTexts.some((t) => t && [1, 2, 3].includes(Number(t.level)) &&
-        Array.isArray(t.questions) && t.questions.length > 0),
+    // utan level/questions och tänder alltså inget. Inline-kopia av content.js
+    // isPlayableAmnesText (bootgrafen, #271) – testet jämför dem (#673).
+    readingTexts: Array.isArray(area?.readingTexts) && area.readingTexts.some((t) => !!t && typeof t === "object" &&
+      typeof t.id === "string" && !!t.id && Array.isArray(t.questions) && t.questions.length > 0 &&
+      [1, 2, 3].includes(typeof t.level === "string" && /^\s*\d+\s*$/.test(t.level) ? Number(t.level) : t.level)),
   };
 }
 

@@ -35,6 +35,19 @@ import {
 } from "./prompt-parts.js";
 import { areaTimelineSpan, formatYear } from "./validate-timeline.js";
 import { EXISTING_MAX_CHARS, existingContentBlock, generatorContext } from "./prompt-existing.js";
+import {
+  AMNES_TEXTERNA,
+  NIVAER_ORD,
+  REGLER_AMNES,
+  SCHEMA_AREA_HEAD,
+  SCHEMA_READING_TEXTS,
+  amnesFragorna,
+  amnesKrav,
+  amnesNivaer,
+  amnesSvarsformat,
+} from "./prompt-amnes.js";
+import { AMNES_LEVELS } from "./lasresan/config.js";
+import { normalizeTextsPerLevel, readingTextsOf } from "./amneslasning/content.js";
 
 // Exempel-JSON som innehållssidan visar som mall ("Visa exempel-JSON").
 export const EXAMPLE_JSON = EXAMPLE;
@@ -57,10 +70,16 @@ export const EXAMPLE_JSON = EXAMPLE;
  * 5/10/15/20) eller en skala efter materialet – med kvalitetskraven och ett
  * exempel. Är den inte vald nämns tidslinjen inte alls (prompten som förut).
  *
- * @param {string[]} types – valda typ-id ("quiz", "pairs", "bildpar", "tidsjakt").
+ * Ämnesläsning (#673): är "amneslasning" vald ber prompten även om ämnestexter
+ * i "readingTexts" (bilaga A:s nivåer/texter/frågor, opts.amnesCount per nivå,
+ * förval 3). Är den ENSAM vald ber prompten BARA om ämnestexter – texts, quiz
+ * och pairs ska vara tomma (spec §6.4).
+ *
+ * @param {string[]} types – valda typ-id ("quiz", "pairs", "bildpar", "tidsjakt", "amneslasning").
  * @param {string} [onskemal] – valfritt fritext-önskemål (vävs in i materialblocket).
  * @param {string|number|null} [grade] – årskurs ("ak1".."ak9" eller null).
- * @param {{timelineCount?:number}} [opts] – lärarens antal tidslinjehändelser.
+ * @param {{timelineCount?:number, amnesCount?:number}} [opts] – lärarens antal
+ *   tidslinjehändelser / ämnestexter per nivå.
  * @returns {string} färdig prompt att kopiera.
  */
 export function buildAreaPrompt(types, onskemal, grade, opts = {}) {
@@ -72,6 +91,9 @@ export function buildAreaPrompt(types, onskemal, grade, opts = {}) {
   const wantPairs = inget || set.has("pairs") || set.has("bildpar");
   const wantImages = set.has("bildpar");
   const wantTimeline = set.has("tidsjakt");
+  const wantAmnes = set.has("amneslasning");
+  // Bara Ämnesläsning: inga faktatexter, quiz eller par – bara ämnestexter.
+  const onlyAmnes = wantAmnes && set.size === 1;
 
   const valda = [
     wantQuiz && "quiz (Quiz, Läsförståelse och Kunskapsjakt)",
@@ -80,11 +102,14 @@ export function buildAreaPrompt(types, onskemal, grade, opts = {}) {
         ? "fakta-par inklusive bildpar (Para ihop och Memory)"
         : "fakta-par som text (Para ihop och Memory)"),
     wantTimeline && "tidslinjefrågor (Tidsjakten – eleven drar en markör till rätt årtal)",
+    wantAmnes && `ämnestexter (Ämnesläsning – läsförståelsetexter med frågor på ${NIVAER_ORD})`,
   ]
     .filter(Boolean)
     .join(", ");
 
-  const krav = [`- Faktatexter (varje "body" ca 3–6 meningar):`, SKALA_TEXTER];
+  const krav = onlyAmnes
+    ? [`- Skapa INGA faktatexter – låt "texts" vara en tom lista [].`]
+    : [`- Faktatexter (varje "body" ca 3–6 meningar):`, SKALA_TEXTER];
   if (wantQuiz) {
     krav.push("- Quizfrågor med 4 svarsalternativ vardera:", SKALA_QUIZ);
   } else {
@@ -98,6 +123,9 @@ export function buildAreaPrompt(types, onskemal, grade, opts = {}) {
   }
   if (wantTimeline) {
     krav.push(`- Tidslinjehändelser i "timeline" (heltalsår, inga svarsalternativ):`, skalaTimeline(opts?.timelineCount));
+  }
+  if (wantAmnes) {
+    krav.push(`- Ämnestexter i "readingTexts" (INTE i "texts"): ${amnesKrav(normalizeTextsPerLevel(opts?.amnesCount))}`);
   }
 
   // Årskurs: sätt av läraren → styr språk/svårighetsgrad. Saknas den används
@@ -113,15 +141,15 @@ Läraren har valt vilka övningstyper området ska ha: ${valda}. Skapa BARA inne
 
 ${gradniva}
 
-${SCHEMA}${wantTimeline ? `\n${SCHEMA_TIMELINE}` : ""}
+${onlyAmnes ? SCHEMA_AREA_HEAD : SCHEMA}${wantTimeline ? `\n${SCHEMA_TIMELINE}` : ""}${wantAmnes ? `\n${SCHEMA_READING_TEXTS}` : ""}
 
-Innehållskrav (mängden ska VÄXA med hur mycket text du fått – ju mer text, desto fler frågor och par):
+${onlyAmnes ? "Innehållskrav:" : "Innehållskrav (mängden ska VÄXA med hur mycket text du fått – ju mer text, desto fler frågor och par):"}
 ${krav.join("\n")}
 
-${REGLER}
+${onlyAmnes ? REGLER_AMNES : REGLER}
 
 Exempel på hur svaret ska se ut (följ formatet, byt ut innehållet):
-${areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline })}
+${areaExample({ wantQuiz, wantPairs, wantImages, wantTimeline, wantAmnes, wantTexts: !onlyAmnes })}
 
 ${materialBlock(onskemal)}`;
 }
@@ -183,6 +211,8 @@ export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS, o
     );
   }
   if (generator) krav.push(`- ${generator}`);
+  const titles = types.includes("amneslasning") ? existingTitlesList(area) : "";
+  if (titles) krav.push(`- Ämnestexterna nedan finns redan – skriv INTE om samma sak igen:\n${titles}`);
   const span = wantTimeline ? areaTimelineSpan(area) : null;
   if (span) {
     krav.push(
@@ -194,4 +224,56 @@ export function buildMorePrompt(area, onskemal, maxChars = EXISTING_MAX_CHARS, o
 
 VIKTIGT – detta gäller MER innehåll till ett BEFINTLIGT arbetsområde ("${name}"), inte ett nytt område.
 ${krav.join("\n")}${befintligt ? `\n\n${befintligt}` : ""}`;
+}
+
+/** Områdets befintliga ämnestexter som en punktlista ("- Titel (nivå 2)"), eller "". */
+export function existingTitlesList(area) {
+  return readingTextsOf(area)
+    .filter((t) => t && String(t.title || "").trim())
+    .map((t) => `- ${String(t.title).trim()}${AMNES_LEVELS.includes(t.level) ? ` (nivå ${t.level})` : ""}`)
+    .join("\n");
+}
+
+/**
+ * Panelen "📖 Skapa ämnestexter" (#673): AI-prompten enligt bilaga A. Tal,
+ * nivåbeskrivningar och kategorier kommer ur src/lasresan/config.js (via
+ * prompt-amnes.js) – samma som valideringen använder.
+ *
+ * @param {object} p
+ * @param {object} p.area – områdesdokumentet ({ name, grade, readingTexts? }).
+ * @param {string} [p.subjectName] – ämnets namn, t.ex. "SO".
+ * @param {number} [p.count] – texter per nivå (1–5, förval 3).
+ * @param {string} [p.onskemal] – lärarens önskemål (valfritt).
+ * @param {string} [p.material] – lärarens eget material (valfritt).
+ * @returns {string}
+ */
+export function buildAmnesPrompt({ area, subjectName, count, onskemal, material } = {}) {
+  const n = normalizeTextsPerLevel(count);
+  const name = String(area?.name || "arbetsområdet").trim();
+  const subject = String(subjectName || "").trim() || "okänt ämne";
+  const nr = gradeNr(area?.grade) ?? DEFAULT_GRADE_NR;
+  const wish = String(onskemal || "").trim();
+  const mat = String(material || "").trim();
+  const titles = existingTitlesList(area);
+  const extra = [
+    wish && `Lärarens önskemål: ${wish}`,
+    mat && `Utgå från det här materialet och håll dig till fakta som stämmer med det:\n${mat}`,
+    titles && `Området har redan de här texterna – skriv INTE om samma sak igen:\n${titles}`,
+  ].filter(Boolean);
+
+  return `Du skriver läsförståelsetexter till Pluggporten, en lärplattform för elever i
+grundskolan. Texterna ska användas i övningen Ämnesläsning i arbetsområdet
+"${name}" i ämnet ${subject}, för elever i årskurs ${nr}.
+
+UPPDRAG
+Skriv ${n} texter per nivå på ${NIVAER_ORD}, alltså ${n * AMNES_LEVELS.length} texter totalt,
+om arbetsområdet. Varje text har egna flervalsfrågor.${extra.length ? `\n${extra.join("\n")}` : ""}
+
+${amnesNivaer()}
+
+${AMNES_TEXTERNA}
+
+${amnesFragorna()}
+
+${amnesSvarsformat(n)}`;
 }

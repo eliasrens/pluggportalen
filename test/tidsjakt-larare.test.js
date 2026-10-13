@@ -35,7 +35,7 @@ const ny = {
 };
 
 test("Tidsjakten-fliken visas när området har typen eller händelser, före lästexterna", () => {
-  assert.deepEqual(ITEM_TABS, ["quiz", "pairs", "timeline", "texts"]);
+  assert.deepEqual(ITEM_TABS, ["quiz", "pairs", "timeline", "amnes", "texts"]); // "amnes" = Ämnesläsning (#673)
   assert.deepEqual(sectionsFor(vasa()), ["quiz", "pairs", "timeline", "texts"]);
   assert.deepEqual(
     tabsFor(vasa()).find((t) => t.id === "timeline"),

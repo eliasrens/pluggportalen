@@ -209,9 +209,21 @@ grad och exempel anpassas till årskursen – en styrning läraren kan sätta, i
   sparningen) för okända värden – fältet utelämnas då. Samma valfria fält finns på
   **Pair** (används när äventyren gör flervalsfrågor av par).
 
-**Borttaget (#531):** de gamla nivåtexterna `readingTexts` (3 nivåer, #152) och Plugga-läget
-Läsuppdrag/`lastext` finns inte längre. Äldre dokument kan ha kvar fältet – det ignoreras
-(valideras inte, visas inte, skickas inte med i AI-prompten). Läsresan (#398) ersätter dem.
+**ReadingText** (Ämnesläsning, #673) – fältet `readingTexts` på arbetsområdet, **inte** samma sak
+som `texts` (faktatexter utan frågor) eller `quiz[].passage` (Pluggas Läsförståelse):
+`{ id, title, level (ämnesnivå 1–3), textType ("fact"|"story"), body, questions: [{ id, question,
+options: [4], answerIndex, category ("fakta"|"ordforstaelse"|"mellan_raderna"|"helhet_slutsats") }] }`
+– Läsresans innehållskontrakt, så `renderReader` visar texten direkt. Validering i
+`src/amneslasning/content.js` (Läsresans `validateText` med ämnesläsningens tal ur
+`src/lasresan/config.js`): fel stoppar texten, ordantal/frågeantal/svarsposition/längdledtråd/
+för få texter per nivå är varningar. Läraren skriver (Innehållsstudion: panelen "📖 Skapa
+ämnestexter" och fliken Ämnesläsning), eleven läser – samma regel som resten av området.
+Övningstypen heter `amneslasning`; ett område kan ha bara den (inga quiz/par).
+
+**Borttaget (#531):** de gamla nivåtexterna (3 nivåer, #152, `{ id, title, levels: { 1: { body,
+questions } … } }`) och Plugga-läget Läsuppdrag/`lastext` finns inte längre. Äldre dokument kan ha
+kvar sådana poster i `readingTexts` – de känns igen på `levels` (`isLegacyReadingText`) och
+ignoreras (valideras inte, visas inte, räknas inte som ämnestexter). Läsresan (#398) ersätter dem.
 
 **Pair**: `{ id, term, definition, termImage?, defImage?, group? }` – används för para ihop / memory.
 

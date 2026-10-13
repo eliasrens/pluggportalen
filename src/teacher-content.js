@@ -136,6 +136,7 @@ export async function pageLarareInnehall(ctx) {
     areaCardsEl.replaceChildren(
       buildAreaTable(shown, {
         subjectId: selected,
+        subjectName: subjectName(),
         onEdit: wizard.openEdit,
         onRefresh: refreshAreaList,
         sort,
