@@ -228,4 +228,79 @@ export const FAKTA = [
       ["Vad hittar vi i marken?", ["Deras ben", "Deras hus", "Deras kläder", "Deras leksaker"], "fakta"],
     ],
   },
+  {
+    id: "lr-g1-hast-och-vagn", title: "Häst och vagn", textType: "fact", topic: "historia",
+    body: [
+      "Förr fanns det inga bilar. Då åkte folk häst och vagn.",
+      "Det gick inte så fort. En resa kunde ta många dagar.",
+      "Hästen behövde vila, vatten och mat. Den åt hö och havre.",
+      "I dag åker vi bil, buss och tåg. Hästar ser vi mest på ridskolan.",
+    ],
+    q: [
+      ["Vad betyder ”förr”?", ["För länge sedan", "I morgon", "Just nu", "Nästa år"], "ordforstaelse"],
+      ["Hur åkte folk förr?", ["Med häst och vagn", "Med flygplan", "Med buss", "Med bil"], "fakta"],
+      ["Hur lång tid kunde en resa ta?", ["Många dagar", "En minut", "En timme", "En sekund"], "fakta"],
+      ["Vad åt hästen?", ["Hö och havre", "Kött och fisk", "Bröd och smör", "Glass och kakor"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-italien", title: "Landet som ser ut som en stövel", textType: "fact", topic: "geografi",
+    body: [
+      "Italien är ett land i södra Europa. På kartan ser landet ut som en stövel.",
+      "I Italien är det ofta varmt på sommaren. Där växer citroner och oliver.",
+      "Pizza kommer från Italien. Där äter man också mycket pasta.",
+      "Huvudstaden heter Rom. Där finns många gamla hus.",
+    ],
+    q: [
+      ["Vad ser Italien ut som på kartan?", ["En stövel", "En boll", "En fisk", "En hatt"], "fakta"],
+      ["Vad växer i Italien?", ["Citroner och oliver", "Bananer och kokos", "Ananas och mango", "Lingon och hjortron"], "fakta"],
+      ["Vilken mat kommer från Italien?", ["Pizza", "Sushi", "Tacos", "Köttbullar"], "fakta"],
+      ["Vad heter huvudstaden i Italien?", ["Rom", "Paris", "Oslo", "Madrid"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-finland", title: "Finland", textType: "fact", topic: "geografi",
+    body: [
+      "Finland är ett grannland till Sverige. Det ligger öster om Sverige.",
+      "I Finland finns väldigt många sjöar. Där finns också stora skogar.",
+      "I Finland pratar man finska. En del pratar svenska.",
+      "I Finland badar många bastu. Många hem har en egen bastu.",
+    ],
+    q: [
+      ["Åt vilket håll från Sverige ligger Finland?", ["Öster", "Väster", "Söder", "Norr"], "fakta"],
+      ["Vad finns det väldigt många av i Finland?", ["Sjöar", "Berg", "Öknar", "Vulkaner"], "fakta"],
+      ["Vilket språk pratar man i Finland?", ["Finska", "Tyska", "Engelska", "Danska"], "fakta"],
+      ["Vad har många hem i Finland?", ["En egen bastu", "En egen fotbollsplan", "En stor pool", "En lång båt"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-havet", title: "Havet", textType: "fact", topic: "natur",
+    body: [
+      "Havet är mycket stort. Det kan vara djupare än höga berg.",
+      "Vattnet i havet är salt. Det kan man inte dricka.",
+      "I havet bor många djur. Där finns fiskar, maneter och stora valar.",
+      "Längst ner är havet mörkt och kallt. Dit når inget solljus.",
+    ],
+    q: [
+      ["Hur smakar vattnet i havet?", ["Salt", "Sött", "Surt", "Som saft"], "fakta"],
+      ["Kan man dricka vattnet i havet?", ["Nej", "Ja", "Bara på sommaren", "Bara när det regnar"], "fakta"],
+      ["Vilka djur bor i havet?", ["Fiskar och valar", "Kor och hästar", "Ekorrar och älgar", "Katter och hundar"], "fakta"],
+      ["Hur är det längst ner i havet?", ["Mörkt och kallt", "Ljust och varmt", "Ljust och kallt", "Mörkt och varmt"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-djungeln", title: "Djungeln", textType: "fact", topic: "geografi",
+    body: [
+      "Djungeln är en stor och tät skog. Den finns i varma länder.",
+      "I djungeln regnar det nästan varje dag. Därför är allt grönt och blött.",
+      "Träden är mycket höga. Högt uppe bor apor och färgglada fåglar.",
+      "Nere på marken krälar ormar. Många djur finns bara i djungeln.",
+    ],
+    q: [
+      ["Vad är en djungel?", ["En stor tät skog", "En stor torr öken", "Ett stort hav", "Ett högt berg"], "ordforstaelse"],
+      ["Hur ofta regnar det i djungeln?", ["Nästan varje dag", "Nästan aldrig", "En gång om året", "Bara de kalla dagarna"], "fakta"],
+      ["Vilka djur bor högt uppe i träden?", ["Apor och fåglar", "Kor och får", "Fiskar och krabbor", "Älgar och rävar"], "fakta"],
+      ["Varför är allt grönt och blött?", ["Det regnar mycket", "Det snöar ofta", "Solen skiner aldrig", "Havet är nära"], "fakta"],
+    ],
+  },
 ];

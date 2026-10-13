@@ -66,5 +66,6 @@ test("nivå 1: validateBank på hela banken ger 0 fel och 0 varningar, id unika"
   const r = validateBank(all);
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
+  // 30 i level-1.json + 40 i level-1-b.json (#661, egna tester i lasresan-bank-niva1b.test.js).
   assert.equal(r.stats.perLevel[1], 70);
 });

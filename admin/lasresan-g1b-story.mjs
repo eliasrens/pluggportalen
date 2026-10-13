@@ -232,7 +232,80 @@ export const STORY = [
       ["Vad odlar Ludde och farfar?", ["Sallad", "Morötter", "Potatis", "Jordgubbar"], "fakta"],
       ["Vad är det i bladen en morgon?", ["Hål", "Snö", "Myror", "Vatten"], "fakta"],
       ["Var gömmer de sig?", ["Bakom buskarna", "Under bordet", "I garaget", "Inne i växthuset"], "fakta"],
-      ["Vem har ätit av salladen?", ["En kanin", "En snigel", "En fågel", "En mus"], "mellan_raderna"],
+      ["Vem har ätit av salladen?", ["En kanin", "En katt", "En fågel", "En mus"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g1-skattkartan", title: "Kartan till skatten", textType: "story", topic: "äventyr",
+    body: [
+      "Malak hittar en lapp på sin säng. Det är en karta! Ett rött kryss sitter vid den stora eken.",
+      "Malak springer ut i trädgården. Hon går tio steg från eken. Där ligger en platt sten.",
+      "Under stenen finns en låda. I lådan ligger tre guldpengar av choklad. Malak jublar.",
+    ],
+    q: [
+      ["Var hittar Malak lappen?", ["På sin säng", "Under dörren", "I sin väska", "På bordet"], "fakta"],
+      ["Var sitter krysset?", ["Vid den stora eken", "Vid den gamla boden", "Vid dammen", "Vid huset"], "fakta"],
+      ["Hur många steg går Malak?", ["Tio", "Fem", "Tjugo", "Tre"], "fakta"],
+      ["Vad ligger i lådan?", ["Guldpengar av choklad", "Glittriga pärlor av glas", "En ny karta", "En liten nyckel"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-snorkeln", title: "Under vattnet", textType: "story", topic: "äventyr",
+    body: [
+      "Jonah är vid havet med sin moster. Han har fått ett cyklop och en snorkel.",
+      "Han lägger ansiktet i vattnet. Genom snorkeln kan han andas.",
+      "Under vattnet ser han en krabba. Den går åt sidan på sanden. Små fiskar simmar förbi.",
+      "Jonah vill aldrig gå upp ur vattnet.",
+    ],
+    q: [
+      ["Vem är Jonah vid havet med?", ["Sin moster", "Sin farfar", "Sin kompis", "Sin lärare"], "fakta"],
+      ["Vad är snorkeln till för?", ["Att andas med", "Att se med", "Att simma fort", "Att fånga fisk"], "ordforstaelse"],
+      ["Hur går krabban?", ["Åt sidan", "Rakt fram", "Med stora hopp", "Mycket fort"], "fakta"],
+      ["Vad tycker Jonah om att snorkla?", ["Det är roligt", "Det är läskigt", "Det är tråkigt", "Det är kallt"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g1-berget", title: "Upp på berget", textType: "story", topic: "äventyr",
+    body: [
+      "Nikolas familj ska gå upp på ett berg. Stigen är brant och full av stenar.",
+      "Nikola blir trött i benen. Pappa ger honom en bit choklad. Då orkar han lite till.",
+      "Till slut står de på toppen. Där blåser det kallt. Han ser sjöar och skogar långt bort.",
+    ],
+    q: [
+      ["Hur är stigen?", ["Brant och stenig", "Platt och mjuk", "Lerig och blöt", "Bred och slät"], "fakta"],
+      ["Vad ger pappa Nikola?", ["En bit choklad", "En smörgås", "En banan", "Saft"], "fakta"],
+      ["Hur är det på toppen?", ["Det blåser kallt", "Det är varmt", "Det regnar mycket", "Det snöar"], "fakta"],
+      ["Vad ser Nikola från toppen?", ["Sjöar och skogar", "Hus och bilar", "Hav och båtar", "Djur och fåglar"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-glassen", title: "Var tog glassen vägen?", textType: "story", topic: "roliga situationer",
+    body: [
+      "Viola har en stor jordgubbsglass. Hon sätter sig på en bänk.",
+      "Bredvid sitter en hund med sin ägare.",
+      "Viola vänder sig om och tittar på en fågel. Slurp!",
+      "När hon vänder sig tillbaka är glassen borta. Hunden slickar sig om munnen. Ägaren köper en ny glass till Viola.",
+    ],
+    q: [
+      ["Vilken glass har Viola?", ["Jordgubbsglass", "Chokladglass", "Vaniljglass", "Päronglass"], "fakta"],
+      ["Vad tittar Viola på?", ["En fågel", "En katt", "En båt", "En bil"], "fakta"],
+      ["Vem har ätit upp glassen?", ["Hunden", "Fågeln", "Ägaren", "Viola"], "mellan_raderna"],
+      ["Vad gör ägaren?", ["Köper en ny glass", "Skäller på hunden", "Går hem", "Skrattar högt"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-spegeln", title: "Valpen och spegeln", textType: "story", topic: "roliga situationer",
+    body: [
+      "Kasim har fått en valp. Den heter Pricken.",
+      "Pricken springer in i hallen. Där står en stor spegel.",
+      "Pricken stannar. Där är ju en annan hund! Pricken skäller. Hunden i spegeln öppnar också munnen.",
+      "Pricken gömmer sig bakom Kasim. Kasim skrattar. ”Det är ju du!”",
+    ],
+    q: [
+      ["Vad heter valpen?", ["Pricken", "Prickis", "Fläcken", "Tassen"], "fakta"],
+      ["Var står spegeln?", ["I hallen", "I köket", "I badrummet", "I sovrummet"], "fakta"],
+      ["Vad tror Pricken att den ser?", ["En annan hund", "En katt", "En stor boll", "En stor fågel"], "fakta"],
+      ["Vem ser Pricken i spegeln?", ["Sig själv", "En annan valp", "En nalle", "En katt"], "mellan_raderna"],
     ],
   },
 ];
