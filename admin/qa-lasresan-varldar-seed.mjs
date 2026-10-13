@@ -101,7 +101,7 @@ for (const s of ELEVER) {
   try { await auth.getUser(s.uid); await auth.updateUser(s.uid, { email, password: PW }); }
   catch (e) { if (e.code !== "auth/user-not-found") throw e; await auth.createUser({ uid: s.uid, email, password: PW }); }
   await db.doc(`students/${s.uid}`).set({ namn: s.namn, username: s.uid, avatarId: s.avatarId, classIds: [CLASS_ID] });
-  const sd = { coins: 100 + s.coins, progress: {}, avatarId: s.avatarId, ownedItems: ["hatt-1"] };
+  const sd = { coins: 100 + s.coins, progress: {}, avatarId: s.avatarId, avatarChosen: true, ownedItems: ["hatt-1"] };
   if (s.lasresa) sd.lasresa = s.lasresa;
   await db.doc(`studentData/${s.uid}`).set(sd);
   const old = await db.collection(`studentData/${s.uid}/lasresaAttempts`).get();
