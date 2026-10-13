@@ -15,7 +15,10 @@ import { readFileSync } from "node:fs";
 import { wordCount, answerPositionStats, answerLengthStats } from "../src/lasresan/content/validate.js";
 
 const dir = new URL("../src/lasresan/content/bank/", import.meta.url);
-const read = (n) => JSON.parse(readFileSync(new URL(`level-${n}.json`, dir)));
+const json = (f) => JSON.parse(readFileSync(new URL(f, dir)));
+const manifest = json("manifest.json");
+// Alla filer för nivån enligt manifestet (t.ex. level-1.json + level-1-b.json, #661).
+const read = (n) => (manifest.levels[n] || [`level-${n}.json`]).flatMap(json);
 const levels = process.argv.slice(2).map(Number).filter(Boolean);
 const LEVELS = levels.length ? levels : [1, 2, 3, 4];
 

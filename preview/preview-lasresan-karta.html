@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Förhandsvisning – Läsresan: kartvyn</title>
     <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/lasresan/lasresan.css" />
     <style>
       body { padding: 16px; }
       .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
@@ -15,7 +16,7 @@
   <body>
     <div class="wrap">
       <div class="panel">
-        <b>Läsresan – kartvyn (issue #400)</b>. Stubbad progress utan inloggning/Firestore.
+        <b>Läsresan – kartvyn (issue #400, Havet/Djungeln #659, Bergen/Vulkanlandet/Månen #660)</b>. Stubbad progress utan inloggning/Firestore.
         <div class="sim">
           <button data-s="skog0">Skogen · steg 0 (ny elev)</button>
           <button data-s="skog7">Skogen · steg 7</button>
@@ -23,25 +24,85 @@
           <button data-s="skogklar">Skogen · 19→20 (värld klar 🎉)</button>
           <button data-s="oken3">Öknen · steg 3 (Skogen klar)</button>
           <button data-s="oken020">Öknen · gå 0→1</button>
+          <button data-s="okenklar">Öknen · 19→20 (värld klar 🎉)</button>
+          <button data-s="hav0">Havet · steg 0</button>
+          <button data-s="hav10">Havet · steg 10</button>
+          <button data-s="hav56">Havet · gå 5→6 (brygga)</button>
+          <button data-s="havklar">Havet · 19→20 (värld klar 🎉)</button>
+          <button data-s="dj0">Djungeln · steg 0</button>
+          <button data-s="dj10">Djungeln · steg 10</button>
+          <button data-s="dj56">Djungeln · gå 5→6 (hängbro)</button>
+          <button data-s="djklar">Djungeln · 19→20 (värld klar 🎉)</button>
+          <button data-s="berg0">Bergen · steg 0</button>
+          <button data-s="berg10">Bergen · steg 10</button>
+          <button data-s="berg45">Bergen · gå 4→5 (hängbro)</button>
+          <button data-s="bergklar">Bergen · 19→20 (värld klar 🎉)</button>
+          <button data-s="vulk0">Vulkanlandet · steg 0</button>
+          <button data-s="vulk10">Vulkanlandet · steg 10</button>
+          <button data-s="vulk67">Vulkanlandet · gå 6→7 (stenbro)</button>
+          <button data-s="vulkklar">Vulkanlandet · 19→20 (värld klar 🎉)</button>
+          <button data-s="mane0">Månen · steg 0</button>
+          <button data-s="mane10">Månen · steg 10</button>
+          <button data-s="mane1617">Månen · gå 16→17</button>
+          <button data-s="maneklar">Månen · 19→20 (hela resan klar 🎉)</button>
+          <button data-s="maneefter">Månen · efter resan (läser vidare)</button>
+          <br>Världsbyte som på riktiga sidan (sammanfattning → gamla världen klar → knappen vidare):
+          <button data-s="byteOkn">Öknen → Havet</button>
+          <button data-s="byteHav">Havet → Djungeln</button>
+          <button data-s="byteDj">Djungeln → Bergen</button>
+          <button data-s="byteBerg">Bergen → Vulkanlandet</button>
+          <button data-s="byteVulk">Vulkanlandet → Månen</button>
+          <button data-s="byteMane">Månen klar (sista världen)</button>
         </div>
         <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
           Världsväljaren uppe till vänster visar klara/låsta världar.</div>
       </div>
+      <div class="lr-verktyg" id="verktyg" hidden></div>
       <div id="karta"></div>
       <div class="panel hintrad" id="logg">Händelser syns här.</div>
     </div>
 
     <script type="module">
       import { renderJourneyMap } from "../src/lasresan/ui-map.js";
-      import { getWorld } from "../src/lasresan/worlds/index.js";
+      import { getWorld, nextWorld } from "../src/lasresan/worlds/index.js";
+      import { renderSummary } from "../src/lasresan/ui-summary.js";
 
       const host = document.getElementById("karta");
       const logg = document.getElementById("logg");
       const avatar = { avatarId: "fox", avatarItems: [] };
       let view = null;
 
-      function visa(worldId, stepInWorld, completedWorlds, animateFromStep = null, worldCompleted = false) {
+      const verktyg = document.getElementById("verktyg");
+      function knapp(label, onClick) {
+        verktyg.replaceChildren();
+        verktyg.hidden = !label;
+        if (!label) return;
+        const b = document.createElement("button");
+        b.className = "btn liten gron lr-nasta-varld";
+        b.textContent = label;
+        b.addEventListener("click", onClick);
+        verktyg.appendChild(b);
+      }
+
+      /** Samma ordning som page-lasresan.js finish() → showMap(after). */
+      function varldsbyte(fran, klara) {
         if (view) view.destroy();
+        knapp(null);
+        const nasta = nextWorld(fran);
+        view = renderSummary(host, {
+          correct: 6, total: 7, coins: 18, worldDone: getWorld(fran), nextWorld: nasta,
+          onContinue: () => {
+            visa(fran, 20, [...klara, fran], 19, true, false);
+            // Sista världen: ingen knapp vidare – kartan visar "resan klar".
+            if (nasta) knapp(`Vidare till ${nasta.name} →`, () => visa(nasta.id, 0, [...klara, fran]));
+          },
+        });
+        logg.textContent = `Sammanfattning: ${fran} klar → ${nasta ? nasta.id : "hela resan klar"}`;
+      }
+
+      function visa(worldId, stepInWorld, completedWorlds, animateFromStep = null, worldCompleted = false, rensa = true) {
+        if (view) view.destroy();
+        if (rensa) knapp(null);
         view = renderJourneyMap(host, {
           world: getWorld(worldId),
           progress: { worldId, stepInWorld, completedWorlds },
@@ -54,6 +115,9 @@
           (animateFromStep != null ? `, gång från steg ${animateFromStep}` : "");
       }
 
+      const K4 = ["skogen", "oknen", "havet", "djungeln"];
+      const K5 = [...K4, "bergen"];
+      const K6 = [...K5, "vulkanlandet"];
       const scenarier = {
         skog0: () => visa("skogen", 0, []),
         skog7: () => visa("skogen", 7, []),
@@ -61,11 +125,40 @@
         skogklar: () => visa("skogen", 20, ["skogen"], 19, true),
         oken3: () => visa("oknen", 3, ["skogen"]),
         oken020: () => visa("oknen", 1, ["skogen"], 0),
+        okenklar: () => visa("oknen", 20, ["skogen", "oknen"], 19, true),
+        hav0: () => visa("havet", 0, ["skogen", "oknen"]),
+        hav10: () => visa("havet", 10, ["skogen", "oknen"]),
+        hav56: () => visa("havet", 6, ["skogen", "oknen"], 5),
+        havklar: () => visa("havet", 20, ["skogen", "oknen", "havet"], 19, true),
+        dj0: () => visa("djungeln", 0, ["skogen", "oknen", "havet"]),
+        dj10: () => visa("djungeln", 10, ["skogen", "oknen", "havet"]),
+        dj56: () => visa("djungeln", 6, ["skogen", "oknen", "havet"], 5),
+        djklar: () => visa("djungeln", 20, ["skogen", "oknen", "havet", "djungeln"], 19, true),
+        berg0: () => visa("bergen", 0, K4),
+        berg10: () => visa("bergen", 10, K4),
+        berg45: () => visa("bergen", 5, K4, 4),
+        bergklar: () => visa("bergen", 20, [...K4, "bergen"], 19, true),
+        vulk0: () => visa("vulkanlandet", 0, K5),
+        vulk10: () => visa("vulkanlandet", 10, K5),
+        vulk67: () => visa("vulkanlandet", 7, K5, 6),
+        vulkklar: () => visa("vulkanlandet", 20, [...K5, "vulkanlandet"], 19, true),
+        mane0: () => visa("manen", 0, K6),
+        mane10: () => visa("manen", 10, K6),
+        mane1617: () => visa("manen", 17, K6, 16),
+        maneklar: () => visa("manen", 20, [...K6, "manen"], 19, true),
+        maneefter: () => visa("manen", 20, [...K6, "manen"]),
+        byteOkn: () => varldsbyte("oknen", ["skogen"]),
+        byteHav: () => varldsbyte("havet", ["skogen", "oknen"]),
+        byteDj: () => varldsbyte("djungeln", ["skogen", "oknen", "havet"]),
+        byteBerg: () => varldsbyte("bergen", K4),
+        byteVulk: () => varldsbyte("vulkanlandet", K5),
+        byteMane: () => varldsbyte("manen", K6),
       };
       for (const b of document.querySelectorAll("[data-s]")) {
         b.addEventListener("click", () => scenarier[b.dataset.s]());
       }
-      scenarier.skog0();
+      // #hav10 o.s.v. i adressen väljer scenario direkt (skärmdumpar).
+      (scenarier[location.hash.slice(1)] || scenarier.skog0)();
     </script>
   </body>
 </html>

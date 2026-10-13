@@ -84,7 +84,7 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
 | `level-control.js` | Lärarstyrd nivå (#505): `parseTeacherLevel`, `withTeacherLevel`, `applyPendingLevel`, `hasStartedLasresa`, `effectiveStartLevel`, `classStartLevelOf` |
 | `level-scale.js` | Nivåskala 1–10, lat migrering (#519): `readStoredLevels`, `toStoredLasresa`, `readClassStartLevel`, `classStartLevelFields`, `normalizeAttempt` |
-| `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
+| `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `havet.js` + `havet-scen.js`, `djungeln.js` + `djungeln-scen.js` (#659), `bergen.js` + `bergen-scen.js`, `vulkanlandet.js` + `vulkanlandet-scen.js`, `manen.js` + `manen-scen.js` (#660), `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
 | `ui-map.js` | Kartvyn (#400): världs-agnostisk renderare + `ui-map-stil.js` (CSS, injiceras – rör inte styles.css) |
 | `ui-reader.js` | Läsvyn (#401): text + en fråga i taget, låsta svar, ✅/❌ |
@@ -127,7 +127,7 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   läst!", "✅ 5 av 6 rätt", "+15") → "Gå vidare" → kartan med
   `animateFromStep = walk.fromStep`. Rubrikerna är alltid positiva, och nivån eller
   en nivåändring nämns aldrig.
-- **Världsbyte:** sammanfattningen visar "🏆 Skogen är klar! Nu väntar Öknen.".
+- **Världsbyte:** sammanfattningen visar "🏆 Du har klarat Skogen! Nu väntar Öknen." (formuleringen undviker "klar/klart/klara" – Havet, Bergen och Vulkanlandet böjs olika).
   Kartan ritar sedan den **gamla** världen på sista steget (animation 19→20),
   och verktygsraden får knappen "Vidare till Öknen →" som ritar den nya världen.
   Kartan får också de valfria fälten `walk` och `worldCompleted` (utöver kontraktet).
@@ -153,6 +153,24 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   nivå och statistik fungerar som vanligt, men avataren går inte längre. Läggs
   en ny värld till i registret flyttar `normalizeProgress` eleven dit vid nästa
   läsning, utan migrering.
+- **"Resan klar" (#660):** sista världen är Månen. När den klaras visas samma
+  firande som annars ("Du har klarat hela resan!") och sammanfattningen säger
+  att hela resan är klar. Därefter visar kartan (sista världen, steg 20/20) en
+  LUGN ruta längst ner – "Du har klarat hela Läsresan!" + knappen
+  **📖 Läs en text** (anropar `onStartNext`). Den behövs: utan nästa steg finns
+  ingen gul stegmarkör att klicka på. Inget blinkar, inget nytt sparas – nivå,
+  statistik och belöningar räknas exakt som vanligt.
+- **Världsordning (#659):** Skogen (1) → Öknen (2) → Havet (3) → Djungeln (4),
+  `unlockAfter` = världen före. Elever som klarade Öknen när den var sista
+  världen ligger sparade som `oknen`, steg 20, `completedWorlds` med `oknen`;
+  `normalizeProgress` flyttar dem till Havet steg 0 och nästa text går steg 1 där.
+  Inget annat i `lasresa` rörs (nivå, totaler, sedda texter). De ser ingen
+  världsbytes-animation för Öknen (den visades redan när de klarade den).
+- **Världsordning (#660):** … → Djungeln (4) → Bergen (5) → Vulkanlandet (6) →
+  Månen (7). Elever som klarade Djungeln när den var sista världen flyttas på
+  samma sätt till Bergen steg 0. Vulkanlandets ånga gungar sakta (klassen
+  `lr-anga` i `ui-map-stil.js`, avstängd vid `prefers-reduced-motion`); lavan
+  glöder men är helt stilla. Bergen och Månen är helt stilla.
 - Okänd/borttagen värld i sparad data → första ej klarade värld, steg 0.
 
 ### Textval (spec §11)
@@ -338,7 +356,7 @@ renderJourneyMap(container, { world, progress, avatar, animateFromStep, onStartN
   `{worldId, fromStep, toStep}` och `worldCompleted` (bool). Vid världsbyte ritar
   sidan först den GAMLA världen med `stepInWorld = steps` och `animateFromStep =
   walk.fromStep`; kartan går avataren fram till flaggan och firar
-  ("🎉 … är klar!" + "nästa värld öppnas"). Sidans egen "Vidare →"-knapp och
+  ("🎉 Du har klarat …!" + "nästa värld öppnas"). Sidans egen "Vidare →"-knapp och
   verktygsrad ligger OVANFÖR kartans container – kartan ritar inget utanför sin
   container.
 - Firandet visas bara i samband med en gång/`worldCompleted`, inte varje gång en
@@ -452,6 +470,13 @@ Question   = { id, question, options: [4 strängar], answerIndex (0-3), category
   (gammal nivå N = ny nivå N+3; filerna flyttade och `level` +3, inget annat
   ändrat). Nivå 1–3 är nya, enklare nivåer (`level-1..3.json`, tomma tills
   D1–D3 fyller dem). En tom nivå är okej: pickern tar närmaste nivå med texter.
+- **Fler texter per nivå:** läggs i en ny fil bredvid den gamla (t.ex.
+  `level-4-b.json`, #664, 40 texter via `admin/lasresan-n1b-bygg.mjs`) och
+  listas efter den i manifestet. Den gamla filen rörs inte – text-id:n i
+  elevernas historik pekar dit. Nya texter behåller nivåns id-prefix
+  (`lr-n1-…` på nivå 4).
+  Nivå 3 har `level-3-b.json` (#663, 40 texter, 20 story/20 fact, via
+  `admin/lasresan-g3b-bygg.mjs`, test `test/lasresan-bank-niva3b.test.js`).
 - **Frågor per text** (`questionRange(level)`, `QUESTIONS_BY_LEVEL` i
   `config.js`): nivå 1 = 3–4, nivå 2 = 4–5, nivå 3 = 5–7, nivå 4–10 = 5–9.
   Alltid 4 alternativ och exakt ett `answerIndex`.

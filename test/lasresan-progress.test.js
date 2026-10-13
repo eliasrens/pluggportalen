@@ -142,3 +142,61 @@ test("normalizeLasresa tvättar trasig data och behåller okända fält", () => 
   assert.equal(l.extra, "kvar");
   assert.equal(l.worldId, "skogen");
 });
+
+test("#659: elev som klarat Öknen (förr sista världen) → Havet, inget annat nollställs", () => {
+  const sparad = {
+    levelScale: 10, level: 7, highStreak: 1, lowStreak: 0,
+    worldId: "oknen", stepInWorld: 20, completedWorlds: ["skogen", "oknen"],
+    totalTexts: 40, totalQuestions: 280, totalCorrect: 200, totalIncorrect: 80, moneyEarned: 600,
+    seenTextIds: ["a", "b"], catStats: { fakta: { q: 10, correct: 8 } }, lastTextId: "b",
+  };
+  const l = normalizeLasresa(sparad);
+  assert.equal(l.worldId, "havet");
+  assert.equal(l.stepInWorld, 0);
+  assert.deepEqual(l.completedWorlds, ["skogen", "oknen"]);
+  for (const k of ["level", "highStreak", "totalTexts", "totalQuestions", "totalCorrect", "totalIncorrect", "moneyEarned", "lastTextId"]) {
+    assert.equal(l[k], sparad[k], k);
+  }
+  assert.deepEqual(l.seenTextIds, ["a", "b"]);
+  assert.deepEqual(l.catStats.fakta, { q: 10, correct: 8 });
+  // Nästa text: ett steg i Havet, nivå och totaler räknas vidare.
+  const { lasresa, journey } = finish(sparad, makeText("t41", 6), 3);
+  assert.deepEqual(journey.walk, { worldId: "havet", fromStep: 0, toStep: 1 });
+  assert.equal(lasresa.worldId, "havet");
+  assert.equal(lasresa.stepInWorld, 1);
+  assert.equal(lasresa.totalTexts, 41);
+  assert.deepEqual(lasresa.completedWorlds, ["skogen", "oknen"]);
+});
+
+test("#660: efter Månen (sista världen) – texter, coins, nivå och statistik räknas som vanligt", () => {
+  const alla = ["skogen", "oknen", "havet", "djungeln", "bergen", "vulkanlandet"];
+  const fore = {
+    ...normalizeLasresa(undefined),
+    level: 6, worldId: "manen", stepInWorld: 19, completedWorlds: alla,
+    totalTexts: 139, totalQuestions: 970, totalCorrect: 700, totalIncorrect: 270, moneyEarned: 2100,
+  };
+  // Text 140: Månen klar, ingen ny värld.
+  const sista = finish(fore, makeText("m140", 7), 6);
+  assert.equal(sista.journey.worldCompleted, true);
+  assert.equal(sista.journey.unlockedWorldId, null);
+  assert.equal(sista.lasresa.worldId, "manen");
+  assert.equal(sista.lasresa.stepInWorld, 20);
+  assert.deepEqual(sista.lasresa.completedWorlds, [...alla, "manen"]);
+  assert.equal(sista.lasresa.totalTexts, 140);
+  // Fler texter efter resan: står kvar vid flaggan, men allt annat räknas.
+  let l = sista.lasresa;
+  for (let i = 0; i < 3; i++) {
+    const r = finish(l, makeText(`efter${i}`, 7), 6);
+    assert.equal(r.journey.worldCompleted, false);
+    assert.deepEqual(r.journey.walk, { worldId: "manen", fromStep: 20, toStep: 20 });
+    assert.equal(r.attempt.correct, 6);
+    assert.equal(r.lasresa.totalTexts, l.totalTexts + 1);
+    assert.equal(r.lasresa.totalCorrect, l.totalCorrect + 6);
+    assert.equal(r.lasresa.moneyEarned, l.moneyEarned + coinsFor(6));
+    assert.ok(r.lasresa.seenTextIds.includes(`efter${i}`));
+    assert.equal(r.lasresa.stepInWorld, 20);
+    l = r.lasresa;
+  }
+  assert.equal(l.totalTexts, 143);
+  assert.equal(coinsFor(6), 18);
+});
