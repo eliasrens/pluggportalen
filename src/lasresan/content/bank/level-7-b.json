@@ -24,11 +24,11 @@
         "question": "Hur mycket bikarbonat hällde Svante i?",
         "options": [
           "Två skedar",
-          "En halv deciliter",
           "Hela paketet",
+          "En halv deciliter",
           "Tre stora skedar"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -36,23 +36,23 @@
         "question": "Skummet ”vällde upp” ur kratern. Vad betyder det?",
         "options": [
           "Det rann sakta ner i hålet",
-          "Det strömmade upp i mängder",
           "Det steg upp som rök i luften",
+          "Det strömmade upp i mängder",
           "Det stelnade till en hård klump"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Svante tyckte att två skedar lät ”snålt”. Vad menade han?",
         "options": [
-          "Att det var för lite",
           "Att det var för dyrt",
           "Att det var farligt",
-          "Att det var lagom"
+          "Att det var lagom",
+          "Att det var för lite"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -83,24 +83,24 @@
         "id": "q7",
         "question": "Varför blev Svantes rapport så lång?",
         "options": [
-          "Han hade mycket att berätta om vad som hände",
           "Ingela sa att rapporten måste vara lång",
+          "Han hade mycket att berätta om vad som hände",
           "Klara vägrade att skriva något alls i rapporten",
           "Han ville slippa städa golvet"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
         "question": "Vad visar texten?",
         "options": [
-          "Ett misstag kan också lära en något",
           "Man ska aldrig göra experiment i skolan",
+          "Ett misstag kan också lära en något",
           "Det är bäst att arbeta ensam på NO",
           "Lärare blir sällan arga på sina elever"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -111,42 +111,42 @@
     "level": 7,
     "textType": "story",
     "topic": "skola",
-    "body": "Klassen skulle spela teater för föräldrarna, och Elsa hade fått rollen som draken. Det var ingen stor roll, men hon hade den viktigaste repliken i hela pjäsen. När draken sa ”Den som är modig behöver inget svärd”, skulle prinsen lägga ner sitt vapen och allt skulle sluta lyckligt.\n\nElsa hade övat framför spegeln varje kväll. Hon kunde repliken baklänges.\n\nPå premiärkvällen var salen full. Elsa stod i den gröna drakdräkten och väntade. Otto, som spelade prinsen, höjde sitt pappsvärd och tittade på henne. Nu var det hennes tur.\n\nMen huvudet var tomt. Det var som om någon hade suddat ut alla ord. Det blev så tyst att man hörde någon hosta längst bak.\n\nDå såg hon Otto blinka åt henne. Han sänkte svärdet en aning och sa med hög röst: ”Säg inte att du tänker påstå att den som är modig inte behöver något svärd?”\n\nDet stod inte så i manuset, men Elsa förstod. ”Precis det tänker jag säga”, röt hon. ”Den som är modig behöver inget svärd!”\n\nPubliken applåderade. Efteråt kramade Elsa Otto bakom scenen. ”Jag är skyldig dig en glass”, sa hon.\n\n”Två”, sa Otto och skrattade.",
+    "body": "Klassen skulle spela teater för föräldrarna, och Embla hade fått rollen som draken. Det var ingen stor roll, men hon hade den viktigaste repliken i hela pjäsen. När draken sa ”Den som är modig behöver inget svärd”, skulle prinsen lägga ner sitt vapen och allt skulle sluta lyckligt.\n\nEmbla hade övat framför spegeln varje kväll. Hon kunde repliken baklänges.\n\nPå premiärkvällen var salen full. Embla stod i den gröna drakdräkten och väntade. Hannes, som spelade prinsen, höjde sitt pappsvärd och tittade på henne. Nu var det hennes tur.\n\nMen huvudet var tomt. Det var som om någon hade suddat ut alla ord. Det blev så tyst att man hörde någon hosta längst bak.\n\nDå såg hon Hannes blinka åt henne. Han sänkte svärdet en aning och sa med hög röst: ”Säg inte att du tänker påstå att den som är modig inte behöver något svärd?”\n\nDet stod inte så i manuset, men Embla förstod. ”Precis det tänker jag säga”, röt hon. ”Den som är modig behöver inget svärd!”\n\nPubliken applåderade. Efteråt kramade Embla Hannes bakom scenen. ”Jag är skyldig dig en glass”, sa hon.\n\n”Två”, sa Hannes och skrattade.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vilken roll hade Elsa i pjäsen?",
+        "question": "Vilken roll hade Embla i pjäsen?",
         "options": [
           "Prinsen",
           "Prinsessan",
-          "Draken",
-          "Kungen"
-        ],
-        "answerIndex": 2,
-        "category": "fakta"
-      },
-      {
-        "id": "q2",
-        "question": "Vad var Ottos svärd gjort av?",
-        "options": [
-          "Trä",
-          "Plast",
-          "Metall",
-          "Papp"
+          "Kungen",
+          "Draken"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
-        "id": "q3",
-        "question": "Elsa kunde repliken ”baklänges”. Vad betyder det här?",
+        "id": "q2",
+        "question": "Vad var Hannes svärd gjort av?",
         "options": [
-          "Hon kunde den mycket bra",
+          "Trä",
+          "Plast",
+          "Papp",
+          "Metall"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Embla kunde repliken ”baklänges”. Vad betyder det här?",
+        "options": [
           "Hon kunde bara slutet av den",
           "Hon läste den alltid bakifrån",
+          "Hon kunde den mycket bra",
           "Hon hade glömt hur den började"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -154,59 +154,59 @@
         "question": "Vad betyder det att det var ”premiärkväll”?",
         "options": [
           "Det var sista gången pjäsen visades",
+          "Det var första gången pjäsen visades",
           "Det var en kväll utan någon publik",
-          "Det var kvällens sista föreställning",
-          "Det var första gången pjäsen visades"
+          "Det var kvällens sista föreställning"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Varför blev det helt tyst i salen?",
         "options": [
+          "Embla hade glömt sin replik",
           "Publiken hade somnat",
-          "Elsa hade glömt sin replik",
-          "Otto hade tappat sitt svärd",
+          "Hannes hade tappat sitt svärd",
           "Ljuset på scenen hade slocknat"
-        ],
-        "answerIndex": 1,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q6",
-        "question": "Varför sa Otto en mening som inte stod i manuset?",
-        "options": [
-          "Han ville hjälpa Elsa att minnas",
-          "Han hade också glömt sin replik",
-          "Han ville få publiken att skratta",
-          "Han tyckte att manuset var tråkigt"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
+        "id": "q6",
+        "question": "Varför sa Hannes en mening som inte stod i manuset?",
+        "options": [
+          "Han hade också glömt sin replik",
+          "Han ville få publiken att skratta",
+          "Han ville hjälpa Embla att minnas",
+          "Han tyckte att manuset var tråkigt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
         "id": "q7",
-        "question": "Varför sa Otto ”Två” i slutet?",
+        "question": "Varför sa Hannes ”Två” i slutet?",
         "options": [
           "Han skämtade om att han förtjänade mer",
           "Han var mycket hungrig efter pjäsen",
-          "Han ville bjuda Elsa på en glass",
-          "Han trodde att Elsa hade räknat fel på glassarna"
+          "Han ville bjuda Embla på en glass",
+          "Han trodde att Embla hade räknat fel på glassarna"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
-        "question": "Vad visar texten om Otto?",
+        "question": "Vad visar texten om Hannes?",
         "options": [
           "Han vill alltid stå i centrum själv",
+          "Han tänker snabbt och hjälper andra",
           "Han bryr sig mest om att få glass",
-          "Han är rädd för att stå på en scen",
-          "Han tänker snabbt och hjälper andra"
+          "Han är rädd för att stå på en scen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -223,48 +223,48 @@
         "id": "q1",
         "question": "Vad kostade kikaren?",
         "options": [
+          "450 kronor",
           "237 kronor",
           "225 kronor",
-          "450 kronor",
           "380 kronor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Hur fick Idris extra pengar en gång?",
         "options": [
-          "Han tvättade grannens bil",
           "Han krattade löv åt grannen",
+          "Han tvättade grannens bil",
           "Han gick ut med grannens hund",
           "Han hjälpte mamma att städa"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Tre månader ”kändes som en evighet”. Vad betyder det?",
         "options": [
-          "Det kändes väldigt långt",
           "Det kändes alldeles för kort",
           "Det kändes roligt och spännande",
+          "Det kändes väldigt långt",
           "Det kändes som en vanlig vecka"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Idris ”låtsades” att han inte var sugen på godis. Vad betyder det?",
         "options": [
-          "Han gjorde som om han inte ville ha",
           "Han ville verkligen inte ha godis",
+          "Han gjorde som om han inte ville ha",
           "Han berättade att han var sugen",
           "Han bjöd kompisarna på godis"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -273,10 +273,10 @@
         "options": [
           "450 kronor",
           "38 kronor",
-          "225 kronor",
-          "20 kronor"
+          "20 kronor",
+          "225 kronor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -284,23 +284,23 @@
         "question": "Varför klistrade Idris en bild av en kikare på burken?",
         "options": [
           "För att burken skulle bli finare att sälja",
-          "För att mamma skulle veta att burken var hans egen",
           "För att påminna sig om vad han sparade till",
+          "För att mamma skulle veta att burken var hans egen",
           "För att bilden redan satt på syltburken"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Varför var det svårt att gå förbi kiosken?",
         "options": [
-          "Han var sugen på godis men ville spara",
           "Kiosken låg långt bort från skolan",
           "Kompisarna ville inte gå dit med honom",
-          "Han var rädd för personen i kiosken"
+          "Han var rädd för personen i kiosken",
+          "Han var sugen på godis men ville spara"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -323,7 +323,7 @@
     "level": 7,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "Ines skulle tvätta sina fotbollskläder för första gången helt själv. Pappa satt i ett möte vid datorn och hade bara visat henne snabbt: tvättmedel i facket, rätt program och sedan på med knappen.\n\nInes tryckte in allt hon hittade i tvättkorgen, även sitt tunga badlakan och ett par gympaskor. Sedan valde hon programmet som hette Snabb och gick till sitt rum.\n\nEn halvtimme senare hördes ett dunkande från badrummet. Det lät som om någon spelade trumma på en plåttunna. När Ines öppnade dörren stod tvättmaskinen inte längre vid väggen. Den skakade och hoppade och hade vandrat nästan en meter ut på golvet. Katten Sigge satt uppe på handfatet och stirrade.\n\nInes tryckte på stopp. Det blev tyst. Pappa kom springande med hörlurarna fortfarande på huvudet.\n\n”Har vi skaffat ett nytt husdjur?” frågade han.\n\nHan förklarade att allt det tunga hade samlats på ena sidan av trumman. När trumman snurrade fort drog tyngden maskinen åt det hållet. Tillsammans plockade de ut skorna och delade upp tvätten i två omgångar.\n\nSedan dess sitter det en lapp på maskinen: Inga skor. Inte för fullt. Och pappa kallar den fortfarande för Vovven.",
+    "body": "Ines skulle tvätta sina fotbollskläder för första gången helt själv. Pappa satt i ett möte vid datorn och hade bara visat henne snabbt: tvättmedel i facket, rätt program och sedan på med knappen.\n\nInes tryckte in allt hon hittade i tvättkorgen, även sitt tunga badlakan och ett par gympaskor. Sedan valde hon programmet som hette Snabb och gick till sitt rum.\n\nEn halvtimme senare hördes ett dunkande från badrummet. Det lät som om någon spelade trumma på en plåttunna. När Ines öppnade dörren stod tvättmaskinen inte längre vid väggen. Den skakade och hoppade och hade vandrat nästan en meter ut på golvet. Katten Max satt uppe på handfatet och stirrade.\n\nInes tryckte på stopp. Det blev tyst. Pappa kom springande med hörlurarna fortfarande på huvudet.\n\n”Har vi skaffat ett nytt husdjur?” frågade han.\n\nHan förklarade att allt det tunga hade samlats på ena sidan av trumman. När trumman snurrade fort drog tyngden maskinen åt det hållet. Tillsammans plockade de ut skorna och delade upp tvätten i två omgångar.\n\nSedan dess sitter det en lapp på maskinen: Inga skor. Inte för fullt. Och pappa kallar den fortfarande för Vovven.",
     "questions": [
       {
         "id": "q1",
@@ -331,22 +331,22 @@
         "options": [
           "Bomull",
           "Skonsam",
-          "Ylle",
-          "Snabb"
+          "Snabb",
+          "Ylle"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Var satt katten när Ines kom in i badrummet?",
         "options": [
-          "På handfatet",
           "På tvättmaskinen",
           "I tvättkorgen",
-          "Under handduken"
+          "Under handduken",
+          "På handfatet"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -354,23 +354,23 @@
         "question": "Varför började maskinen hoppa?",
         "options": [
           "Ines hade glömt att hälla i tvättmedel",
-          "Tung tvätt hade samlats på ena sidan",
           "Maskinen var gammal och trasig",
+          "Tung tvätt hade samlats på ena sidan",
           "Programmet Snabb var för kort"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Maskinen hade ”vandrat” ut på golvet. Vad betyder det här?",
         "options": [
-          "Den hade flyttat sig bit för bit",
           "Den hade vält omkull på sidan",
           "Den hade läckt vatten på golvet",
-          "Den hade stängt av sig själv"
+          "Den hade stängt av sig själv",
+          "Den hade flyttat sig bit för bit"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -378,11 +378,11 @@
         "question": "Det lät som när någon ”spelade trumma på en plåttunna”. Hur lät det?",
         "options": [
           "Tyst och susande",
-          "Ljust och pipande",
           "Högt och dunkande",
+          "Ljust och pipande",
           "Mjukt och brummande"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -391,10 +391,10 @@
         "options": [
           "Katten hade fått en ny kompis",
           "Han hörde ett djur i badrummet",
-          "Maskinen hade rört sig som ett djur",
-          "Han ville att Ines skulle skaffa hund"
+          "Han ville att Ines skulle skaffa hund",
+          "Maskinen hade rört sig som ett djur"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -403,10 +403,10 @@
         "options": [
           "Han trodde att hon redan kunde",
           "Han tyckte inte om att tvätta",
-          "Han var upptagen med ett möte",
-          "Han hade bråttom till ett tåg"
+          "Han hade bråttom till ett tåg",
+          "Han var upptagen med ett möte"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -415,10 +415,10 @@
         "options": [
           "Att hon aldrig ska tvätta själv igen",
           "Att katten inte får vara i badrummet",
-          "Hur man fyller maskinen på rätt sätt",
-          "Att snabbprogrammet alltid är bäst"
+          "Att snabbprogrammet alltid är bäst",
+          "Hur man fyller maskinen på rätt sätt"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -429,35 +429,35 @@
     "level": 7,
     "textType": "story",
     "topic": "relationer",
-    "body": "På svensklektionerna skulle alla i klassen skriva brev till en elev i en annan skola. Hanna fick Aino, som bodde i Tammerfors i Finland och gick i en skola där man lärde sig svenska.\n\nHanna skrev om sin hamster, sina syskon och att hon tyckte bäst om att rita. Sedan väntade hon. Det tog nästan tre veckor innan svaret kom. Kuvertet hade ett frimärke med en sjöfågel och var fullt av små teckningar i kanten.\n\nAino skrev att hon också älskade att rita. Hon hade två bröder som var ”väldigt högljudda”, och hennes familj hade en bastu vid en sjö där de badade även på vintern. ”Förlåt om jag skriver fel”, stod det längst ner. ”Svenska är svårt men roligt.”\n\nHanna läste brevet flera gånger. Hon såg att Aino hade stavat fel på några ord, men hon förstod allt. Hon tänkte på hur svårt det skulle vara för henne själv att skriva ett helt brev på finska.\n\nI nästa brev ritade Hanna en serie om sin hamster och skrev några ord på finska som hon hade slagit upp: ”Kiitos, ystäväni.” Tack, min vän.\n\nNu har de skrivit till varandra i över ett år. I sommar ska Hanna och hennes pappa åka färja till Finland och hälsa på.",
+    "body": "På svensklektionerna skulle alla i klassen skriva brev till en elev i en annan skola. Julia fick Aino, som bodde i Tammerfors i Finland och gick i en skola där man lärde sig svenska.\n\nJulia skrev om sin hamster, sina syskon och att hon tyckte bäst om att rita. Sedan väntade hon. Det tog nästan tre veckor innan svaret kom. Kuvertet hade ett frimärke med en sjöfågel och var fullt av små teckningar i kanten.\n\nAino skrev att hon också älskade att rita. Hon hade två bröder som var ”väldigt högljudda”, och hennes familj hade en bastu vid en sjö där de badade även på vintern. ”Förlåt om jag skriver fel”, stod det längst ner. ”Svenska är svårt men roligt.”\n\nJulia läste brevet flera gånger. Hon såg att Aino hade stavat fel på några ord, men hon förstod allt. Hon tänkte på hur svårt det skulle vara för henne själv att skriva ett helt brev på finska.\n\nI nästa brev ritade Julia en serie om sin hamster och skrev några ord på finska som hon hade slagit upp: ”Kiitos, ystäväni.” Tack, min vän.\n\nNu har de skrivit till varandra i över ett år. I sommar ska Julia och hennes pappa åka färja till Finland och hälsa på.",
     "questions": [
       {
         "id": "q1",
         "question": "Var bodde Aino?",
         "options": [
           "I Åbo i Finland",
-          "I Tammerfors i Finland",
           "I Oslo i Norge",
-          "I en by i Lappland"
+          "I en by i Lappland",
+          "I Tammerfors i Finland"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vad fanns på frimärket?",
         "options": [
+          "En sjöfågel",
           "En bastu",
           "En hamster",
-          "En flagga",
-          "En sjöfågel"
+          "En flagga"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Hur ska Hanna resa till Finland?",
+        "question": "Hur ska Julia resa till Finland?",
         "options": [
           "Med färja",
           "Med flyg",
@@ -472,47 +472,47 @@
         "question": "Ainos bröder var ”högljudda”. Vad betyder det?",
         "options": [
           "De var längre än Aino",
-          "De pratade mycket och hördes",
           "De var duktiga på att sjunga",
-          "De lyssnade gärna på musik"
+          "De lyssnade gärna på musik",
+          "De pratade mycket och hördes"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Vad betyder ”Kiitos, ystäväni”?",
         "options": [
-          "Tack, min vän",
           "Hej, min vän",
           "Förlåt, min vän",
+          "Tack, min vän",
           "Hej då, min vän"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
-        "question": "Varför brydde sig Hanna inte om att Aino stavade fel på några ord?",
+        "question": "Varför brydde sig Julia inte om att Aino stavade fel på några ord?",
         "options": [
           "Hon såg inte felen när hon läste",
-          "Hon förstod hur svårt det är på ett annat språk",
           "Läraren hade sagt att fel inte gjorde något",
-          "Hon stavade själv lika fel när hon skrev på svenska"
+          "Hon stavade själv lika fel när hon skrev på svenska",
+          "Hon förstod hur svårt det är på ett annat språk"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Varför skrev Hanna några ord på finska i sitt brev?",
+        "question": "Varför skrev Julia några ord på finska i sitt brev?",
         "options": [
-          "Hon ville visa Aino att hon brydde sig",
           "Läraren hade bestämt att hon skulle göra det",
           "Aino kunde inte läsa svenska alls",
-          "Hon ville visa att finska var lätt"
+          "Hon ville visa att finska var lätt",
+          "Hon ville visa Aino att hon brydde sig"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -521,10 +521,10 @@
         "options": [
           "Hur man reser med färja till Finland",
           "Hur man lär sig finska på kort tid",
-          "Varför hamstrar är bra husdjur",
-          "Hur en vänskap växer fram genom brev"
+          "Hur en vänskap växer fram genom brev",
+          "Varför hamstrar är bra husdjur"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -535,7 +535,7 @@
     "level": 7,
     "textType": "story",
     "topic": "relationer",
-    "body": "Varje dag efter skolan spelade sexorna fotboll på den lilla konstgräsplanen bakom idrottshallen. Farah var bäst av dem alla, och det var oftast hon som bestämde lagen.\n\nEn dag stod fyra treor vid sidlinjen med en egen boll. ”Får vi vara här också?” frågade en liten kille som hette Valle.\n\n”Nej, ni är för små”, sa någon. ”Ni kan spela på gruset.”\n\nTreorna gick därifrån. Men nästa dag var de tillbaka, och dagen efter också. De satt på bänken och tittade. Farah märkte att Valle följde varje passning hon gjorde.\n\nGruset var fullt av gropar, och bollen studsade åt alla håll. Farah mindes plötsligt hur det hade varit när hon själv gick i trean och de stora aldrig lät henne vara med.\n\nPå fredagen gick hon fram till bänken. ”Vi delar på planen”, sa hon. ”Ni får den på måndagar och onsdagar. Och den som vill får spela med oss på fredagar.”\n\nNågra av sexorna muttrade, men ingen sa emot henne.\n\nDen första fredagen gjorde Valle mål genom att skjuta mellan benen på en sexa. Han jublade så mycket att han ramlade. Farah skrattade och gav honom tummen upp. ”Det där”, sa hon, ”har du inte lärt dig på gruset.”",
+    "body": "Varje dag efter skolan spelade sexorna fotboll på den lilla konstgräsplanen bakom idrottshallen. Lilja var bäst av dem alla, och det var oftast hon som bestämde lagen.\n\nEn dag stod fyra treor vid sidlinjen med en egen boll. ”Får vi vara här också?” frågade en liten kille som hette Valle.\n\n”Nej, ni är för små”, sa någon. ”Ni kan spela på gruset.”\n\nTreorna gick därifrån. Men nästa dag var de tillbaka, och dagen efter också. De satt på bänken och tittade. Lilja märkte att Valle följde varje passning hon gjorde.\n\nGruset var fullt av gropar, och bollen studsade åt alla håll. Lilja mindes plötsligt hur det hade varit när hon själv gick i trean och de stora aldrig lät henne vara med.\n\nPå fredagen gick hon fram till bänken. ”Vi delar på planen”, sa hon. ”Ni får den på måndagar och onsdagar. Och den som vill får spela med oss på fredagar.”\n\nNågra av sexorna muttrade, men ingen sa emot henne.\n\nDen första fredagen gjorde Valle mål genom att skjuta mellan benen på en sexa. Han jublade så mycket att han ramlade. Lilja skrattade och gav honom tummen upp. ”Det där”, sa hon, ”har du inte lärt dig på gruset.”",
     "questions": [
       {
         "id": "q1",
@@ -565,12 +565,12 @@
         "id": "q3",
         "question": "Några sexor ”muttrade”. Vad gjorde de?",
         "options": [
-          "De skrek högt åt Farah",
-          "De gick därifrån utan ett ord",
           "De klagade tyst för sig själva",
+          "De skrek högt åt Lilja",
+          "De gick därifrån utan ett ord",
           "De skrattade åt treorna"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -578,11 +578,11 @@
         "question": "Treorna stod vid ”sidlinjen”. Var stod de?",
         "options": [
           "Mitt på planen",
-          "Vid kanten av planen",
           "Inne i ett av målen",
+          "Vid kanten av planen",
           "Uppe på en läktare"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -590,47 +590,47 @@
         "question": "Varför kom treorna tillbaka dag efter dag?",
         "options": [
           "De ville bråka med sexorna",
-          "De ville gärna spela på den fina planen",
           "De väntade på att någon skulle hämta dem",
-          "De hade glömt sin boll där"
+          "De hade glömt sin boll där",
+          "De ville gärna spela på den fina planen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ändrade sig Lilja?",
+        "options": [
+          "Hon mindes hur det kändes att bli utestängd",
+          "Hennes lärare hade sagt åt henne att dela planen",
+          "Sexorna ville inte spela längre",
+          "Treorna lovade att ge henne godis"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menade Lilja med att Valle inte hade lärt sig skottet ”på gruset”?",
+        "options": [
+          "Han hade övat hemma i sin trädgård",
+          "Han spelade bättre på en jämn plan",
+          "Gruset var bättre att spela på",
+          "Han hade fått tips av sin storebror"
         ],
         "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
-        "id": "q6",
-        "question": "Varför ändrade sig Farah?",
-        "options": [
-          "Hennes lärare hade sagt åt henne att dela planen",
-          "Sexorna ville inte spela längre",
-          "Treorna lovade att ge henne godis",
-          "Hon mindes hur det kändes att bli utestängd"
-        ],
-        "answerIndex": 3,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q7",
-        "question": "Vad menade Farah med att Valle inte hade lärt sig skottet ”på gruset”?",
-        "options": [
-          "Han hade övat hemma i sin trädgård",
-          "Gruset var bättre att spela på",
-          "Han hade fått tips av sin storebror",
-          "Han spelade bättre på en jämn plan"
-        ],
-        "answerIndex": 3,
-        "category": "mellan_raderna"
-      },
-      {
         "id": "q8",
-        "question": "Vad visar texten om Farah?",
+        "question": "Vad visar texten om Lilja?",
         "options": [
-          "Hon använder sin makt till att vara rättvis",
           "Hon vill helst spela fotboll ensam",
           "Hon tycker att treorna spelar bättre än sexorna",
-          "Hon är rädd för de andra sexorna"
+          "Hon är rädd för de andra sexorna",
+          "Hon använder sin makt till att vara rättvis"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -684,11 +684,11 @@
         "question": "Mira ”grep tag i” fingret. Vad betyder det?",
         "options": [
           "Hon sköt bort det med handen",
+          "Hon tog tag i det och höll fast",
           "Hon tittade länge på det",
-          "Hon stoppade det i munnen",
-          "Hon tog tag i det och höll fast"
+          "Hon stoppade det i munnen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -697,10 +697,10 @@
         "options": [
           "Han väntade på att mormor skulle komma",
           "Han hade fått utegångsförbud",
-          "Han kände sig bortglömd och ledsen",
-          "Han ville titta på stjärnorna"
+          "Han ville titta på stjärnorna",
+          "Han kände sig bortglömd och ledsen"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -732,11 +732,11 @@
         "question": "Hur förändras Omids känslor under texten?",
         "options": [
           "Från glad till arg på sin lillasyster",
-          "Från rädd för mormor till trygg med henne",
           "Från bortglömd till nöjdare som storebror",
+          "Från rädd för mormor till trygg med henne",
           "Från uttråkad till trött på kortspel"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -747,7 +747,7 @@
     "level": 7,
     "textType": "story",
     "topic": "sport",
-    "body": "Elvin kunde simma, men bara där han bottnade. Så fort han märkte att fötterna inte nådde ner blev bröstet trångt, och han fick bråttom mot kanten.\n\nNu var det simprov på idrotten. Alla skulle simma tvåhundra meter i den stora bassängen, där det var djupt i ena änden. Elvin hade redan sagt två gånger att han hade ont i magen. En tredje gång skulle ingen tro på honom.\n\nSimläraren Torsten såg hur Elvin stod och trampade vid kanten. ”Du behöver inte simma fort”, sa han. ”Du behöver bara inte stanna. Räkna dina simtag om du vill. Och jag går bredvid hela tiden.”\n\nElvin hoppade i. Första längden gick bra. Andra också. Sedan kom den djupa delen. Vattnet blev mörkare under honom, och andningen blev snabbare.\n\nEtt, två, tre, räknade han tyst. Fyra, fem, sex. Torsten gick långsamt längs kanten, hela tiden i jämnhöjd med honom. Efter några längder vågade Elvin titta upp. Han var halvvägs.\n\nNär han till slut tog tag i stegen var han sist av alla. Men några i klassen stod och klappade, och Torsten gav honom ett papper med ett märke på.\n\n”Det svåraste var inte att simma”, sa Elvin till pappa på kvällen. ”Det var att hoppa i.”",
+    "body": "Wilhelm kunde simma, men bara där han bottnade. Så fort han märkte att fötterna inte nådde ner blev bröstet trångt, och han fick bråttom mot kanten.\n\nNu var det simprov på idrotten. Alla skulle simma tvåhundra meter i den stora bassängen, där det var djupt i ena änden. Wilhelm hade redan sagt två gånger att han hade ont i magen. En tredje gång skulle ingen tro på honom.\n\nSimläraren Torsten såg hur Wilhelm stod och trampade vid kanten. ”Du behöver inte simma fort”, sa han. ”Du behöver bara inte stanna. Räkna dina simtag om du vill. Och jag går bredvid hela tiden.”\n\nWilhelm hoppade i. Första längden gick bra. Andra också. Sedan kom den djupa delen. Vattnet blev mörkare under honom, och andningen blev snabbare.\n\nEtt, två, tre, räknade han tyst. Fyra, fem, sex. Torsten gick långsamt längs kanten, hela tiden i jämnhöjd med honom. Efter några längder vågade Wilhelm titta upp. Han var halvvägs.\n\nNär han till slut tog tag i stegen var han sist av alla. Men några i klassen stod och klappade, och Torsten gav honom ett papper med ett märke på.\n\n”Det svåraste var inte att simma”, sa Wilhelm till pappa på kvällen. ”Det var att hoppa i.”",
     "questions": [
       {
         "id": "q1",
@@ -763,7 +763,7 @@
       },
       {
         "id": "q2",
-        "question": "Vad fick Elvin av Torsten efter provet?",
+        "question": "Vad fick Wilhelm av Torsten efter provet?",
         "options": [
           "En medalj av guld",
           "Ett papper med ett märke",
@@ -775,31 +775,31 @@
       },
       {
         "id": "q3",
-        "question": "Elvin kunde simma där han ”bottnade”. Vad betyder det?",
+        "question": "Wilhelm kunde simma där han ”bottnade”. Vad betyder det?",
         "options": [
-          "Där han nådde botten med fötterna",
           "Där han kunde dyka ner till botten",
           "Där han var bäst i hela klassen",
-          "Där vattnet var som varmast"
-        ],
-        "answerIndex": 0,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q4",
-        "question": "Torsten gick ”i jämnhöjd” med Elvin. Vad betyder det?",
-        "options": [
-          "Han gick en bit före Elvin hela tiden",
-          "Han stod helt stilla vid stegen och väntade",
-          "Han gick på samma höjd som vattnet",
-          "Han höll samma takt som Elvin"
+          "Där vattnet var som varmast",
+          "Där han nådde botten med fötterna"
         ],
         "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
+        "id": "q4",
+        "question": "Torsten gick ”i jämnhöjd” med Wilhelm. Vad betyder det?",
+        "options": [
+          "Han gick en bit före Wilhelm hela tiden",
+          "Han stod helt stilla vid stegen och väntade",
+          "Han höll samma takt som Wilhelm",
+          "Han gick på samma höjd som vattnet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
         "id": "q5",
-        "question": "Varför hade Elvin säkert sagt att han hade ont i magen tidigare?",
+        "question": "Varför hade Wilhelm säkert sagt att han hade ont i magen tidigare?",
         "options": [
           "Han hade ätit för mycket till lunch",
           "Han var sjuk med feber den veckan",
@@ -811,38 +811,38 @@
       },
       {
         "id": "q6",
-        "question": "Varför räknade Elvin sina simtag?",
+        "question": "Varför räknade Wilhelm sina simtag?",
         "options": [
+          "Det hjälpte honom att inte tänka på djupet",
           "Torsten ville veta hur många simtag det blev",
           "Han tävlade mot de andra i klassen",
-          "Det hjälpte honom att inte tänka på djupet",
           "Det var en regel på simprovet"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Hur hjälpte Torsten Elvin?",
+        "question": "Hur hjälpte Torsten Wilhelm?",
         "options": [
           "Han lät honom simma på det grunda",
-          "Han gav råd och fanns nära hela tiden",
           "Han simmade hela tiden bredvid honom i vattnet",
-          "Han lät honom slippa provet"
+          "Han lät honom slippa provet",
+          "Han gav råd och fanns nära hela tiden"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       },
       {
         "id": "q8",
-        "question": "Vad menade Elvin med att det svåraste var att hoppa i?",
+        "question": "Vad menade Wilhelm med att det svåraste var att hoppa i?",
         "options": [
+          "Att våga börja var svårare än att simma",
           "Att det var kallt i vattnet när man hoppade",
           "Att han inte visste hur man hoppar rätt",
-          "Att han hade halkat på kanten",
-          "Att våga börja var svårare än att simma"
+          "Att han hade halkat på kanten"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -853,18 +853,18 @@
     "level": 7,
     "textType": "story",
     "topic": "sport",
-    "body": "Det var tio sekunder kvar av handbollsmatchen, och ställningen var 21–21. Då blev Melina nedknuffad när hon skulle skjuta, och domaren blåste och pekade på sjumeterslinjen. Straffkast.\n\nTränaren tittade mot bänken. Lagkaptenen Leona brukade alltid kasta straffarna, men hon hade stukat foten i första halvlek och satt med en ispåse på ankeln.\n\n”Melina, det är du”, sa tränaren.\n\nMelina gick fram till linjen. Bollen kändes hal i händerna, och läktaren var plötsligt mycket högljudd. Målvakten i det andra laget var lång och hade räddat nästan allt hela matchen. Hon vaggade från sida till sida, som för att göra målet mindre.\n\nMelina mindes vad Leona hade sagt på träningen: ”Bestäm dig innan du står på linjen. Och ändra dig aldrig när du väl har bestämt dig.”\n\nHon hade redan bestämt sig. Nere i vänstra hörnet.\n\nDomaren blåste. Melina lyfte armen högt, som om hon skulle skjuta upp i krysset, men släppte bollen lågt. Målvakten kastade sig åt rätt håll men en sekund för sent. Bollen rullade in under armen på henne.\n\nLäktaren exploderade. Laget kastade sig över Melina. Men det första hon gjorde när hon kom loss var att springa till bänken och krama Leona.",
+    "body": "Det var tio sekunder kvar av handbollsmatchen, och ställningen var 21–21. Då blev Maja nedknuffad när hon skulle skjuta, och domaren blåste och pekade på sjumeterslinjen. Straffkast.\n\nTränaren tittade mot bänken. Lagkaptenen Leona brukade alltid kasta straffarna, men hon hade stukat foten i första halvlek och satt med en ispåse på ankeln.\n\n”Maja, det är du”, sa tränaren.\n\nMaja gick fram till linjen. Bollen kändes hal i händerna, och läktaren var plötsligt mycket högljudd. Målvakten i det andra laget var lång och hade räddat nästan allt hela matchen. Hon vaggade från sida till sida, som för att göra målet mindre.\n\nMaja mindes vad Leona hade sagt på träningen: ”Bestäm dig innan du står på linjen. Och ändra dig aldrig när du väl har bestämt dig.”\n\nHon hade redan bestämt sig. Nere i vänstra hörnet.\n\nDomaren blåste. Maja lyfte armen högt, som om hon skulle skjuta upp i krysset, men släppte bollen lågt. Målvakten kastade sig åt rätt håll men en sekund för sent. Bollen rullade in under armen på henne.\n\nLäktaren exploderade. Laget kastade sig över Maja. Men det första hon gjorde när hon kom loss var att springa till bänken och krama Leona.",
     "questions": [
       {
         "id": "q1",
         "question": "Vad var ställningen när det var tio sekunder kvar?",
         "options": [
           "20–21",
-          "21–21",
           "21–20",
+          "21–21",
           "22–21"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -884,11 +884,11 @@
         "question": "Läktaren ”exploderade”. Vad betyder det här?",
         "options": [
           "Läktaren gick sönder och rasade",
-          "Publiken blev tyst och besviken",
           "Publiken började jubla och skrika",
+          "Publiken blev tyst och besviken",
           "Något började brinna på läktaren"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -896,11 +896,11 @@
         "question": "Målvakten ”vaggade” från sida till sida. Hur rörde hon sig?",
         "options": [
           "Hon sprang snabbt ut ur målet",
-          "Hon stod alldeles stilla",
           "Hon gungade fram och tillbaka",
+          "Hon stod alldeles stilla",
           "Hon hoppade högt upp i luften"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -909,7 +909,7 @@
         "options": [
           "Hon frös i den kalla hallen",
           "Hon hade ont i sina ben",
-          "Hon ville göra Melina osäker",
+          "Hon ville göra Maja osäker",
           "Hon dansade till musiken"
         ],
         "answerIndex": 2,
@@ -917,7 +917,7 @@
       },
       {
         "id": "q6",
-        "question": "Varför lyfte Melina armen högt innan hon släppte bollen lågt?",
+        "question": "Varför lyfte Maja armen högt innan hon släppte bollen lågt?",
         "options": [
           "Hon höll på att tappa bollen",
           "Domaren hade sagt åt henne att göra så",
@@ -929,26 +929,26 @@
       },
       {
         "id": "q7",
-        "question": "Varför sprang Melina först till Leona?",
+        "question": "Varför sprang Maja först till Leona?",
         "options": [
-          "Leonas råd hade hjälpt henne att göra mål",
           "Leona hade ramlat av bänken",
           "Hon ville ge Leona matchbollen",
-          "Tränaren hade sagt åt henne att göra just det"
+          "Tränaren hade sagt åt henne att göra just det",
+          "Leonas råd hade hjälpt henne att göra mål"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
         "question": "Vilken rubrik skulle också passa bra till texten?",
         "options": [
-          "Målvakten som räddade allt",
           "Rådet som avgjorde matchen",
+          "Målvakten som räddade allt",
           "Laget som förlorade på slutet",
           "Kaptenen som kastade straffen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -966,11 +966,11 @@
         "question": "Hur långt var terrängloppet?",
         "options": [
           "Fem kilometer",
+          "Tre kilometer",
           "En kilometer",
-          "Två kilometer",
-          "Tre kilometer"
+          "Två kilometer"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -990,23 +990,23 @@
         "question": "Vilken plats kom Tyko på i år?",
         "options": [
           "21 av 34",
-          "31 av 34",
           "17 av 34",
-          "34 av 34"
+          "34 av 34",
+          "31 av 34"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Tyko sprang ”i sin egen takt”. Vad betyder det?",
         "options": [
+          "I den fart som passade honom",
           "Så fort han bara kunde",
           "Lika fort som de snabbaste",
-          "I den fart som passade honom",
           "Med musik i öronen"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -1014,35 +1014,35 @@
         "question": "Han visste att han ”låg bra till”. Vad betyder det här?",
         "options": [
           "Att han vilade på marken",
-          "Att han låg först i loppet",
           "Att det såg ut att gå bra",
+          "Att han låg först i loppet",
           "Att han hade gått vilse"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
         "question": "Varför hatade Tyko terrängloppet från början?",
         "options": [
-          "Han hade blivit retad förra året",
           "Han tyckte inte om att vara i skogen",
+          "Han hade blivit retad förra året",
           "Han hade fått ont i foten förra året",
           "Han tyckte att regnet var jobbigt"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Varför spelade det ingen roll om någon ropade den här gången?",
         "options": [
-          "Han visste själv hur mycket bättre han blivit",
           "Han hade hörlurar och hörde ingenting",
           "Han hade kommit först i mål",
+          "Han visste själv hur mycket bättre han blivit",
           "Han brydde sig aldrig någonsin om vad andra sa"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -1065,59 +1065,59 @@
     "level": 7,
     "textType": "story",
     "topic": "äventyr",
-    "body": "Mormors sommarstuga låg vid en stor sjö, och en bit ut från stranden låg en flytbrygga. Den var fastkedjad vid en sten på botten. Mormor hade bara en regel: den som gick ut på bryggan skulle ha flytväst på sig. Siri tyckte att det var löjligt, men hon gjorde som mormor sa.\n\nEn blåsig eftermiddag låg Siri och kusinen Frans på bryggan och tittade på småfisk. Plötsligt hördes ett skarpt knak. Bryggan gungade till, och när Siri tittade upp hade avståndet till stranden blivit större. Kedjan hade gått av.\n\nVinden tog tag i bryggan och förde den långsamt ut mot mitten av sjön. Frans började gråta. ”Vi kommer att hamna på andra sidan!”\n\nSiri kände hur hjärtat slog fort, men hon försökte tänka klart. På bryggan låg en lös bräda som mormor hade tänkt laga. Siri tog den och började paddla. Frans la sig på magen och paddlade med händerna.\n\nDet gick tungt, men de lyckades styra bryggan in mot en vassrugge en bit bort längs stranden. Där fastnade den.\n\nMormor kom springande längs strandkanten. Hon var blek, men när hon såg flytvästarna drog hon en djup suck.\n\n”Nu förstår ni varför jag tjatar”, sa hon.",
+    "body": "Mormors sommarstuga låg vid en stor sjö, och en bit ut från stranden låg en flytbrygga. Den var fastkedjad vid en sten på botten. Mormor hade bara en regel: den som gick ut på bryggan skulle ha flytväst på sig. Emmy tyckte att det var löjligt, men hon gjorde som mormor sa.\n\nEn blåsig eftermiddag låg Emmy och kusinen Frans på bryggan och tittade på småfisk. Plötsligt hördes ett skarpt knak. Bryggan gungade till, och när Emmy tittade upp hade avståndet till stranden blivit större. Kedjan hade gått av.\n\nVinden tog tag i bryggan och förde den långsamt ut mot mitten av sjön. Frans började gråta. ”Vi kommer att hamna på andra sidan!”\n\nEmmy kände hur hjärtat slog fort, men hon försökte tänka klart. På bryggan låg en lös bräda som mormor hade tänkt laga. Emmy tog den och började paddla. Frans la sig på magen och paddlade med händerna.\n\nDet gick tungt, men de lyckades styra bryggan in mot en vassrugge en bit bort längs stranden. Där fastnade den.\n\nMormor kom springande längs strandkanten. Hon var blek, men när hon såg flytvästarna drog hon en djup suck.\n\n”Nu förstår ni varför jag tjatar”, sa hon.",
     "questions": [
       {
         "id": "q1",
         "question": "Vad var mormors enda regel?",
         "options": [
           "Man fick inte bada ensam",
-          "Man skulle ha flytväst på bryggan",
           "Man skulle vara inne före middagen",
+          "Man skulle ha flytväst på bryggan",
           "Man fick inte fiska från bryggan på kvällen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad använde Siri som paddel?",
+        "question": "Vad använde Emmy som paddel?",
         "options": [
           "En gammal åra",
-          "Ett fiskespö",
           "En lös bräda",
+          "Ett fiskespö",
           "En trasig stol"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Bryggan var ”fastkedjad” vid en sten. Vad betyder det?",
         "options": [
+          "Den satt fast med en kedja",
           "Den var byggd av sten",
           "Den låg på botten av sjön",
-          "Den satt fast med en kedja",
           "Den var låst med ett hänglås i stugan"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Mormor ”drog en djup suck”. Vad visar det här?",
         "options": [
+          "Att hon blev lättad",
           "Att hon blev arg",
           "Att hon tänkte somna",
-          "Att hon var trött på barnen",
-          "Att hon blev lättad"
+          "Att hon var trött på barnen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
-        "question": "Varför tyckte Siri först att regeln var löjlig?",
+        "question": "Varför tyckte Emmy först att regeln var löjlig?",
         "options": [
           "Hon trodde inte att något farligt kunde hända",
           "Hon kunde inte simma alls",
@@ -1132,23 +1132,23 @@
         "question": "Varför blev mormor lugnare när hon såg flytvästarna?",
         "options": [
           "Hon tyckte att färgen var så fin",
-          "Hon visste att barnen inte skulle drunkna",
           "Hon hade glömt att hon köpt dem",
+          "Hon visste att barnen inte skulle drunkna",
           "Hon ville att barnen skulle simma i land"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Hur löste Siri problemet?",
+        "question": "Hur löste Emmy problemet?",
         "options": [
-          "Hon ropade på hjälp tills någon kom",
           "Hon tänkte klart och använde det som fanns",
+          "Hon ropade på hjälp tills någon kom",
           "Hon simmade i land och hämtade mormor",
           "Hon väntade på att vinden skulle vända"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       },
       {
@@ -1156,11 +1156,11 @@
         "question": "Vad vill texten visa?",
         "options": [
           "Att man aldrig ska åka till en sjö",
-          "Att regler kan finnas av goda skäl",
           "Att kusiner alltid bråkar med varandra",
-          "Att det är roligt när det blåser"
+          "Att det är roligt när det blåser",
+          "Att regler kan finnas av goda skäl"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -1179,10 +1179,10 @@
         "options": [
           "På ängen vid huset",
           "Under björkarna vid sjön",
-          "Längs grusvägen i diket",
-          "I mossan under granarna"
+          "I mossan under granarna",
+          "Längs grusvägen i diket"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1213,12 +1213,12 @@
         "id": "q4",
         "question": "Han var ”omgiven” av granar. Vad betyder det?",
         "options": [
-          "Han hade klättrat upp högt i en stor gran",
           "Det fanns granar runt omkring honom",
+          "Han hade klättrat upp högt i en stor gran",
           "Han satt under en enda gran",
           "Han hade fått en gran av farmor"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -1226,11 +1226,11 @@
         "question": "Varför gick Dino för långt bort?",
         "options": [
           "Han ville skrämma farmor",
+          "Han glömde bort allt när han såg svampen",
           "Han letade efter korpen",
-          "Han ville hinna hem till huset före farmor",
-          "Han glömde bort allt när han såg svampen"
+          "Han ville hinna hem till huset före farmor"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -1249,12 +1249,12 @@
         "id": "q7",
         "question": "Vad gjorde att Dino hittade tillbaka?",
         "options": [
-          "Han sprang tills han hittade vägen",
           "Han höll sig lugn och följde farmors råd",
+          "Han sprang tills han hittade vägen",
           "Korpen visade honom vägen hem",
           "Farmor kom och hämtade honom i skogen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       },
       {
@@ -1263,10 +1263,10 @@
         "options": [
           "Hon behöver hjälp att gå i skogen",
           "Hon tycker om att hålla Dino i handen",
-          "Hon vill att han ska bära korgen åt henne",
-          "Hon vill inte att han går vilse igen"
+          "Hon vill inte att han går vilse igen",
+          "Hon vill att han ska bära korgen åt henne"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -1283,12 +1283,12 @@
         "id": "q1",
         "question": "Vad hittade Edit hål i?",
         "options": [
-          "Påsen med havregryn",
           "Paketet med mjöl",
           "Brödpåsen",
-          "Sockerpaketet"
+          "Sockerpaketet",
+          "Påsen med havregryn"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1296,11 +1296,11 @@
         "question": "Vad strödde Edit på hyllan?",
         "options": [
           "Socker",
-          "Mjöl",
           "Salt",
+          "Mjöl",
           "Havregryn"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1308,11 +1308,11 @@
         "question": "Karl såg ”generad” ut. Vad betyder det?",
         "options": [
           "Han var mycket arg",
-          "Han var sömnig",
           "Han skämdes lite",
+          "Han var sömnig",
           "Han var hungrig"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -1320,11 +1320,11 @@
         "question": "Edit behövde ”bevis”. Vad betyder det?",
         "options": [
           "En vuxen som hjälper henne",
-          "Något som visar vad som är sant",
           "En plats att gömma sig på",
-          "Ett nytt lås till dörren till skafferiet"
+          "Ett nytt lås till dörren till skafferiet",
+          "Något som visar vad som är sant"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -1332,23 +1332,23 @@
         "question": "Varför strödde Edit mjöl framför påsen?",
         "options": [
           "Så att påsen skulle bli fin",
-          "Så att musen skulle äta mjölet i stället",
           "Så att den som kom dit skulle lämna spår",
+          "Så att musen skulle äta mjölet i stället",
           "Så att Karl skulle halka"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Varför bad Karl om förlåtelse?",
         "options": [
+          "Han hade skyllt på Edit i onödan",
           "Han hade ätit upp kexen",
           "Han hade släppt in musen",
-          "Han hade skyllt på Edit i onödan",
           "Han hade väckt Edit alldeles för tidigt på morgonen"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -1356,23 +1356,23 @@
         "question": "Varför täppte pappa till hålet bakom diskbänken?",
         "options": [
           "Så att vattnet inte skulle läcka ut",
-          "Så att det skulle bli varmare i köket",
           "Så att inga fler möss skulle komma in",
+          "Så att det skulle bli varmare i köket",
           "Så att musen inte kunde komma ut ur fällan"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
         "question": "Hur löste Edit mysteriet?",
         "options": [
-          "Hon gjorde ett eget litet experiment",
           "Hon frågade grannarna om råd",
           "Hon höll vakt i köket hela natten",
-          "Hon läste om möss i en bok"
+          "Hon läste om möss i en bok",
+          "Hon gjorde ett eget litet experiment"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -1389,24 +1389,24 @@
         "id": "q1",
         "question": "Var hittade barnen boken?",
         "options": [
-          "Under en bänk i klassrummet",
           "Längst in i ett gammalt skåp",
+          "Under en bänk i klassrummet",
           "I vaktmästarens verkstad",
           "I en låda på vinden hemma"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Varför hade Kjell aldrig lämnat tillbaka boken?",
         "options": [
-          "Han tyckte så mycket om den att han ville behålla den",
           "Han trodde att han tappat bort den",
+          "Han tyckte så mycket om den att han ville behålla den",
           "Han flyttade från skolan samma vecka",
           "Han glömde att han hade lånat den"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -1414,35 +1414,35 @@
         "question": "Ruben sa det ”fundersamt”. Hur sa han det?",
         "options": [
           "Som om han var mycket arg",
-          "Som om han tänkte på något",
           "Som om han ville skämta",
+          "Som om han tänkte på något",
           "Som om han var rädd"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Vad är en ”förseningsavgift”?",
         "options": [
-          "Ett pris man får för att man läser mycket",
           "Pengar man betalar för att man är sen",
+          "Ett pris man får för att man läser mycket",
           "En stämpel som visar när boken ska tillbaka",
           "En lapp som man skriver sitt namn på"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Varför letade Gerd fram skolkatalogen från 1975?",
         "options": [
-          "Hon ville ta reda på vem Kjell Berg var",
           "Hon letade efter fler försvunna böcker",
+          "Hon ville ta reda på vem Kjell Berg var",
           "Hon ville se hur biblioteket såg ut förr",
           "Hon behövde en bild till en utställning"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -1462,23 +1462,23 @@
         "question": "Varför vill Gerd att Kjell ska berätta för klassen?",
         "options": [
           "Hon vill att Kjell ska skämmas inför alla",
-          "Barnen kan lära sig hur skolan var förr",
           "Klassen behöver hjälp att laga stolar",
+          "Barnen kan lära sig hur skolan var förr",
           "Hon vill att Kjell ska läsa boken högt"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       },
       {
         "id": "q8",
         "question": "Vilken rubrik passar också bra till texten?",
         "options": [
+          "Lånet som tog femtio år",
           "Bibliotekarien som var arg",
           "Stolen i källaren",
-          "Det försvunna klassfotot",
-          "Lånet som tog femtio år"
+          "Det försvunna klassfotot"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -1520,11 +1520,11 @@
         "question": "Kopplen hade ”trasslat in sig”. Vad betyder det?",
         "options": [
           "De hade gått sönder",
-          "De hade blivit längre",
           "De hade snott sig om varandra",
+          "De hade blivit längre",
           "De hade fastnat i ett träd i parken"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -1533,10 +1533,10 @@
         "options": [
           "Förklara vad som hade hänt",
           "Sätta ihop det igen",
-          "Ta reda på vem som gjort det",
-          "Få isär det som satt ihop"
+          "Få isär det som satt ihop",
+          "Ta reda på vem som gjort det"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -1544,11 +1544,11 @@
         "question": "Hur kunde hundarna bli utbytta?",
         "options": [
           "Damen ville ha Morris i stället",
-          "De var likadana och kopplen trasslade ihop sig",
           "Albert hade glömt hur grannens hund Morris såg ut",
-          "Morris sprang själv iväg med damen"
+          "Morris sprang själv iväg med damen",
+          "De var likadana och kopplen trasslade ihop sig"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -1556,11 +1556,11 @@
         "question": "Vad borde ha fått Albert att förstå under promenaden att det inte var Morris?",
         "options": [
           "Hunden skällde på alla",
-          "Hunden lyfte aldrig på benet",
           "Hunden ville inte gå",
+          "Hunden lyfte aldrig på benet",
           "Hunden hade längre öron"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -1568,11 +1568,11 @@
         "question": "Varför var damen röd i ansiktet?",
         "options": [
           "Hon hade ätit något starkt",
-          "Hon var arg på Albert",
           "Hon skämdes över misstaget",
+          "Hon var arg på Albert",
           "Hon frös i kylan"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -1601,24 +1601,24 @@
         "id": "q1",
         "question": "Varför stod dörren till klassrummet öppen?",
         "options": [
+          "Åsa ville få in frisk luft",
           "Någon hade glömt att stänga den",
           "Klassen väntade på en gäst",
-          "Dörren gick inte att stänga",
-          "Åsa ville få in frisk luft"
+          "Dörren gick inte att stänga"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Var bodde Gullan?",
         "options": [
-          "Hos Arash",
           "På en bondgård",
           "I en bur på skolgården",
+          "Hos Arash",
           "Hos Åsa"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1627,10 +1627,10 @@
         "options": [
           "Snabbt och rädd",
           "Haltande och trött",
-          "Lugnt och självsäkert",
-          "Försiktigt och tyst"
+          "Försiktigt och tyst",
+          "Lugnt och självsäkert"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -1638,11 +1638,11 @@
         "question": "Gullan ”burrade upp” fjädrarna. Vad gjorde hon?",
         "options": [
           "Hon tappade några fjädrar",
-          "Hon fick fjädrarna att resa sig",
           "Hon putsade fjädrarna noga",
-          "Hon la fjädrarna platt mot kroppen"
+          "Hon la fjädrarna platt mot kroppen",
+          "Hon fick fjädrarna att resa sig"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -1661,12 +1661,12 @@
         "id": "q6",
         "question": "Varför kände Arash genast igen hönan?",
         "options": [
-          "Han hade sett henne hemma många gånger",
           "Han hade sett henne på en bild",
+          "Han hade sett henne hemma många gånger",
           "Hon hade hans namn på foten",
           "Hon brukade gå i hans klass"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -1674,11 +1674,11 @@
         "question": "Vad visar texten om Åsa?",
         "options": [
           "Hon blir lätt arg och skäller på sina elever",
-          "Hon tar det lugnt när något oväntat händer",
           "Hon tycker inte om djur",
-          "Hon vill alltid bestämma allt"
+          "Hon vill alltid bestämma allt",
+          "Hon tar det lugnt när något oväntat händer"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       },
       {
@@ -1709,10 +1709,10 @@
         "options": [
           "I april",
           "I maj",
-          "I februari",
-          "I december"
+          "I december",
+          "I februari"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1732,23 +1732,23 @@
         "question": "Fåglarna är ”kräsna”. Vad betyder det?",
         "options": [
           "De är rädda för människor",
+          "De är noga med vad de väljer",
           "De är hungriga hela tiden",
-          "De flyger ofta iväg långt",
-          "De är noga med vad de väljer"
+          "De flyger ofta iväg långt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Vad menar Daniel med ”hyresgäster”?",
         "options": [
-          "Fåglarna som har flyttat in i holken",
           "Grannarna som bor i huset bredvid",
+          "Fåglarna som har flyttat in i holken",
           "Morfar som ska komma och hälsa på",
           "Larverna som fåglarna äter"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -1757,10 +1757,10 @@
         "options": [
           "Så att Daniel kunde se in i hålet",
           "Så att holken skulle sitta fastare i trädet",
-          "Så att det inte skulle blåsa in",
-          "Så att katter inte skulle hitta holken"
+          "Så att katter inte skulle hitta holken",
+          "Så att det inte skulle blåsa in"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -1768,11 +1768,11 @@
         "question": "Varför blev det ”lugnare” efter några veckor?",
         "options": [
           "Fåglarna hade flyttat till en annan holk",
+          "Boet var klart och fåglarna ruvade",
           "Daniel hade slutat titta",
-          "Det började regna varje dag",
-          "Boet var klart och fåglarna ruvade"
+          "Det började regna varje dag"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -1791,12 +1791,12 @@
         "id": "q8",
         "question": "Vad lär sig Daniel i texten?",
         "options": [
+          "Att man ibland måste vänta länge på något",
           "Att fåglar inte tycker om björkar",
           "Att holkar ska vara stora och färgglada",
-          "Att morfar egentligen inte vet så mycket om fåglar",
-          "Att man ibland måste vänta länge på något"
+          "Att morfar egentligen inte vet så mycket om fåglar"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -1807,11 +1807,11 @@
     "level": 7,
     "textType": "story",
     "topic": "vardag",
-    "body": "Freja hade fått tandställning på tisdagen. Hela kvällen kändes det som om munnen var full av små gem. Tänderna värkte när hon tuggade, och hon fick äta yoghurt och soppa till middag.\n\nMen det värsta var inte smärtan. Det värsta var att alla skulle se.\n\nPå onsdagsmorgonen övade hon framför spegeln på att le med stängd mun. Det såg konstigt ut, som om hon bar på en hemlighet. Hon bestämde sig för att inte skratta alls i skolan.\n\nDet höll i ungefär en timme. På matten berättade hennes kompis Sander ett skämt om en räka som inte ville dela med sig, och Freja kunde inte hålla sig. Hon skrattade högt med hela munnen öppen.\n\nSander tittade på henne. Sedan log han brett. Där, på hans egna tänder, satt samma sorts metallbågar.\n\n”Sedan i somras”, sa han. ”Har du inte märkt det?”\n\nFreja skakade på huvudet. Hon hade inte märkt något alls, fast hon satt bredvid honom varje dag.\n\n”Ingen märker det efter ett tag”, sa Sander. ”Det enda jobbiga är popcorn.”\n\nPå eftermiddagen räknade Freja hur många i klassen som hade tandställning. Det var fem stycken. Hon hade bara aldrig tittat efter förut.",
+    "body": "Thilda hade fått tandställning på tisdagen. Hela kvällen kändes det som om munnen var full av små gem. Tänderna värkte när hon tuggade, och hon fick äta yoghurt och soppa till middag.\n\nMen det värsta var inte smärtan. Det värsta var att alla skulle se.\n\nPå onsdagsmorgonen övade hon framför spegeln på att le med stängd mun. Det såg konstigt ut, som om hon bar på en hemlighet. Hon bestämde sig för att inte skratta alls i skolan.\n\nDet höll i ungefär en timme. På matten berättade hennes kompis Sander ett skämt om en räka som inte ville dela med sig, och Thilda kunde inte hålla sig. Hon skrattade högt med hela munnen öppen.\n\nSander tittade på henne. Sedan log han brett. Där, på hans egna tänder, satt samma sorts metallbågar.\n\n”Sedan i somras”, sa han. ”Har du inte märkt det?”\n\nThilda skakade på huvudet. Hon hade inte märkt något alls, fast hon satt bredvid honom varje dag.\n\n”Ingen märker det efter ett tag”, sa Sander. ”Det enda jobbiga är popcorn.”\n\nPå eftermiddagen räknade Thilda hur många i klassen som hade tandställning. Det var fem stycken. Hon hade bara aldrig tittat efter förut.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad fick Freja äta till middag första kvällen?",
+        "question": "Vad fick Thilda äta till middag första kvällen?",
         "options": [
           "Yoghurt och soppa",
           "Pannkakor och sylt",
@@ -1827,27 +1827,27 @@
         "options": [
           "Två",
           "Tre",
-          "Fem",
-          "Tio"
+          "Tio",
+          "Fem"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Tänderna ”värkte”. Vad betyder det?",
         "options": [
+          "De gjorde ont",
           "De lossnade",
           "De blev vita",
-          "De kliade",
-          "De gjorde ont"
+          "De kliade"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
-        "question": "Freja ”kunde inte hålla sig”. Vad betyder det här?",
+        "question": "Thilda ”kunde inte hålla sig”. Vad betyder det här?",
         "options": [
           "Hon kunde inte låta bli att skratta",
           "Hon kunde inte sitta still på stolen",
@@ -1859,31 +1859,31 @@
       },
       {
         "id": "q5",
-        "question": "Varför övade Freja på att le med stängd mun?",
+        "question": "Varför övade Thilda på att le med stängd mun?",
         "options": [
           "Hon tyckte att det såg finare ut på foton",
-          "Hon ville gömma tandställningen",
           "Hon hade ont i läpparna",
-          "Tandläkaren hade sagt åt henne att göra så"
+          "Tandläkaren hade sagt åt henne att göra så",
+          "Hon ville gömma tandställningen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
-        "question": "Varför hade Freja aldrig sett Sanders tandställning?",
+        "question": "Varför hade Thilda aldrig sett Sanders tandställning?",
         "options": [
-          "Han gömde den med handen",
           "Hon hade aldrig tittat efter",
+          "Han gömde den med handen",
           "Han hade fått den samma dag",
           "Den var helt genomskinlig"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Vilket ord beskriver bäst hur Freja känner sig i början av texten?",
+        "question": "Vilket ord beskriver bäst hur Thilda känner sig i början av texten?",
         "options": [
           "Stolt",
           "Orolig",
@@ -1895,14 +1895,14 @@
       },
       {
         "id": "q8",
-        "question": "Vad har Freja förstått i slutet?",
+        "question": "Vad har Thilda förstått i slutet?",
         "options": [
           "Att hon måste byta till en osynlig tandställning",
-          "Att Sander har ljugit för henne",
           "Att det inte var så farligt som hon trott",
+          "Att Sander har ljugit för henne",
           "Att man aldrig får skratta på matten"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -1920,11 +1920,11 @@
         "question": "Varför skulle farfar flytta?",
         "options": [
           "Han ville bo närmare havet",
-          "Huset var för stort att sköta",
           "Huset skulle rivas",
+          "Huset var för stort att sköta",
           "Han hade fått ett nytt jobb i stan"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1943,12 +1943,12 @@
         "id": "q3",
         "question": "Verktygen hängde i ”prydliga” rader. Vad betyder det?",
         "options": [
-          "Snygga och ordnade",
           "Smutsiga och röriga",
           "Långa och krokiga",
+          "Snygga och ordnade",
           "Gamla och rostiga"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -1968,23 +1968,23 @@
         "question": "Varför stod farfar tyst en lång stund?",
         "options": [
           "Han försökte komma ihåg var hammaren skulle",
-          "Det var svårt att lämna verktygen och huset",
           "Han var trött efter att ha packat",
+          "Det var svårt att lämna verktygen och huset",
           "Han lyssnade efter pappa i garaget"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Vad menade farfar med ”Nu får du lära någon annan”?",
         "options": [
+          "Alfons ska föra kunskapen vidare",
           "Alfons ska börja arbeta som lärare",
           "Alfons ska sälja verktygen",
-          "Alfons ska lära farfar att spika",
-          "Alfons ska föra kunskapen vidare"
+          "Alfons ska lära farfar att spika"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -2003,12 +2003,12 @@
         "id": "q8",
         "question": "Vad handlar texten mest om?",
         "options": [
+          "Något som går i arv i en familj",
           "Hur man lagar en trasig cykel",
           "Varför äldre människor flyttar",
-          "Hur man packar inför en flytt",
-          "Något som går i arv i en familj"
+          "Hur man packar inför en flytt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -2019,30 +2019,30 @@
     "level": 7,
     "textType": "story",
     "topic": "mysterier",
-    "body": "Första kvällen i fjällstugan började Lykke på ett pussel med tusen bitar. Det föreställde en fyr vid havet. Hon la hela ramen innan hon gick och la sig, men mitten var bara ett hav av blå bitar.\n\nNär hon kom ut i köket nästa morgon hade någon lagt nästan hela himlen.\n\n”Vem har pusslat?” frågade hon. Mamma och pappa skakade på huvudet. Lillebror var bara fyra år och kunde inte ens lägga en bit rätt. Mormor satt och läste tidningen och sa ingenting.\n\nSamma sak hände nästa natt. Nu var fyren nästan klar. Lykke bestämde sig för att lösa mysteriet. Hon tog bort en enda bit, den med fyrens lampa, och gömde den i fickan på sin pyjamas.\n\nMitt i natten vaknade hon av ett prasslande ljud. Hon smög ut. Vid köksbordet satt mormor med läsglasögonen på näsan och vände på bitarna under en liten lampa.\n\n”Jag kan inte sova i främmande sängar”, viskade mormor. ”Och jag hittar inte den sista biten till fyren.”\n\nLykke tog fram biten ur fickan och la den på plats. Fyren lyste i lampskenet.\n\nResten av veckan pusslade de tillsammans varje kväll. Lykke tyckte att det var roligare så.",
+    "body": "Första kvällen i fjällstugan började Edda på ett pussel med tusen bitar. Det föreställde en fyr vid havet. Hon la hela ramen innan hon gick och la sig, men mitten var bara ett hav av blå bitar.\n\nNär hon kom ut i köket nästa morgon hade någon lagt nästan hela himlen.\n\n”Vem har pusslat?” frågade hon. Mamma och pappa skakade på huvudet. Lillebror var bara fyra år och kunde inte ens lägga en bit rätt. Mormor satt och läste tidningen och sa ingenting.\n\nSamma sak hände nästa natt. Nu var fyren nästan klar. Edda bestämde sig för att lösa mysteriet. Hon tog bort en enda bit, den med fyrens lampa, och gömde den i fickan på sin pyjamas.\n\nMitt i natten vaknade hon av ett prasslande ljud. Hon smög ut. Vid köksbordet satt mormor med läsglasögonen på näsan och vände på bitarna under en liten lampa.\n\n”Jag kan inte sova i främmande sängar”, viskade mormor. ”Och jag hittar inte den sista biten till fyren.”\n\nEdda tog fram biten ur fickan och la den på plats. Fyren lyste i lampskenet.\n\nResten av veckan pusslade de tillsammans varje kväll. Edda tyckte att det var roligare så.",
     "questions": [
       {
         "id": "q1",
         "question": "Vad föreställde pusslet?",
         "options": [
           "En fjälltopp",
-          "En fyr vid havet",
           "En segelbåt",
+          "En fyr vid havet",
           "En stuga i skogen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Var gömde Lykke pusselbiten?",
+        "question": "Var gömde Edda pusselbiten?",
         "options": [
           "Under kudden",
           "I en sko",
-          "I pyjamasfickan",
-          "Under mattan"
+          "Under mattan",
+          "I pyjamasfickan"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -2050,11 +2050,11 @@
         "question": "Mitten var ”ett hav av blå bitar”. Vad betyder det?",
         "options": [
           "Bitarna var blöta av vatten",
+          "Det var väldigt många blå bitar",
           "Pusslet föreställde bara hav",
-          "Bitarna låg i en stor blå skål på bordet",
-          "Det var väldigt många blå bitar"
+          "Bitarna låg i en stor blå skål på bordet"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -2062,40 +2062,40 @@
         "question": "Mormor kan inte sova i ”främmande” sängar. Vad betyder det?",
         "options": [
           "Sängar som är för hårda",
+          "Sängar som hon inte är van vid",
           "Sängar som står i kalla rum",
-          "Sängar som är för små för henne",
-          "Sängar som hon inte är van vid"
+          "Sängar som är för små för henne"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
-        "question": "Varför gömde Lykke biten med fyrens lampa?",
+        "question": "Varför gömde Edda biten med fyrens lampa?",
         "options": [
           "Hon ville ha pusslet för sig själv",
           "Hon var rädd att lillebror skulle äta den",
-          "Hon hade tappat den i fickan av misstag",
-          "Hon ville se vem som skulle leta efter den"
+          "Hon ville se vem som skulle leta efter den",
+          "Hon hade tappat den i fickan av misstag"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sa mormor ingenting när Edda frågade?",
+        "options": [
+          "Hon hörde inte frågan",
+          "Hon var arg på Edda",
+          "Hon visste inte vad ett pussel var",
+          "Hon ville inte avslöja sig"
         ],
         "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
-        "id": "q6",
-        "question": "Varför sa mormor ingenting när Lykke frågade?",
-        "options": [
-          "Hon ville inte avslöja sig",
-          "Hon hörde inte frågan",
-          "Hon var arg på Lykke",
-          "Hon visste inte vad ett pussel var"
-        ],
-        "answerIndex": 0,
-        "category": "mellan_raderna"
-      },
-      {
         "id": "q7",
-        "question": "Hur löste Lykke mysteriet?",
+        "question": "Hur löste Edda mysteriet?",
         "options": [
           "Hon frågade alla i familjen tills någon erkände",
           "Hon satte upp en kamera i köket",
@@ -2109,12 +2109,12 @@
         "id": "q8",
         "question": "Vad visar slutet?",
         "options": [
-          "Att Lykke var arg på mormor resten av veckan",
-          "Att de aldrig blev klara med pusslet",
+          "Att Edda var arg på mormor resten av veckan",
           "Att de fick en ny sak att göra tillsammans",
+          "Att de aldrig blev klara med pusslet",
           "Att mormor fick sova bättre i stugan"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -2131,12 +2131,12 @@
         "id": "q1",
         "question": "Vilken färg har fjällrävens päls på vintern?",
         "options": [
-          "Vit",
           "Grå och brun",
           "Rödbrun",
+          "Vit",
           "Svart"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2144,11 +2144,11 @@
         "question": "Vad är fjällrävens viktigaste mat?",
         "options": [
           "Fisk",
-          "Lämlar",
           "Bär och svamp",
-          "Ripor"
+          "Ripor",
+          "Lämlar"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -2156,35 +2156,35 @@
         "question": "När blev fjällräven fridlyst i Sverige?",
         "options": [
           "1900",
-          "1928",
           "1958",
-          "2000"
+          "2000",
+          "1928"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Pälsen ”smälter in” i snön. Vad betyder det?",
         "options": [
-          "Den syns dåligt mot snön",
           "Den blir blöt av snön",
           "Den blir varm i snön",
-          "Den lyser mot snön"
+          "Den lyser mot snön",
+          "Den syns dåligt mot snön"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Fjällräven är ”fridlyst”. Vad betyder det?",
         "options": [
-          "Det är förbjudet att jaga den",
           "Den lever i fred med andra djur",
+          "Det är förbjudet att jaga den",
           "Den sover hela vintern i sin lya",
           "Den har flyttat till ett lugnare område"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -2203,12 +2203,12 @@
         "id": "q7",
         "question": "Varför tog det lång tid innan fjällrävarna blev fler, trots att de var fridlysta?",
         "options": [
-          "Det fanns mycket få djur kvar att börja med",
           "Fjällrävarna tyckte inte om att vara fridlysta",
           "Det fanns för många lämlar på fjället",
-          "Människor fortsatte att köpa deras päls"
+          "Människor fortsatte att köpa deras päls",
+          "Det fanns mycket få djur kvar att börja med"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -2217,10 +2217,10 @@
         "options": [
           "Hur man känner igen en rödräv på fjället",
           "Varför lämlar blir så många vissa år",
-          "Fjällrävens liv och hot mot den",
-          "Hur man jagar räv på vintern"
+          "Hur man jagar räv på vintern",
+          "Fjällrävens liv och hot mot den"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -2237,24 +2237,24 @@
         "id": "q1",
         "question": "Vad finns i kamelens puckel?",
         "options": [
-          "Fett",
           "Vatten",
           "Luft",
+          "Fett",
           "Muskler"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Hur många pucklar har en dromedar?",
         "options": [
+          "En",
           "Två",
           "Tre",
-          "Ingen",
-          "En"
+          "Ingen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -2262,11 +2262,11 @@
         "question": "Vintrarna är ”stränga”. Vad betyder det här?",
         "options": [
           "Korta och milda",
+          "Mycket kalla och hårda",
           "Blöta och regniga",
-          "Ljusa och soliga",
-          "Mycket kalla och hårda"
+          "Ljusa och soliga"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -2287,46 +2287,46 @@
         "options": [
           "Vattnet i puckeln tar slut",
           "Solen gör att puckeln krymper i värmen",
-          "Kroppen använder fettet som energi",
-          "Kamelen svettas ut fettet"
+          "Kamelen svettas ut fettet",
+          "Kroppen använder fettet som energi"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Varför är det bra att kamelen svettas så lite?",
         "options": [
+          "Den förlorar mindre vatten",
           "Den luktar mindre illa",
           "Den blir inte lika smutsig",
-          "Den förlorar mindre vatten",
           "Den slipper frysa på natten"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Vad visar texten om kamelens kropp?",
         "options": [
-          "Den är anpassad för livet i öknen",
           "Den är svag och behöver mycket hjälp",
           "Den fungerar bäst i fuktiga skogar",
+          "Den är anpassad för livet i öknen",
           "Den behöver dricka vatten varje dag"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       },
       {
         "id": "q8",
         "question": "Varför har kamelen kallats ”öknens skepp”?",
         "options": [
+          "Den fraktar varor genom öknen",
           "Den kan simma lika bra som den går",
           "Den gungar fram och tillbaka när den går",
-          "Den har pucklar som liknar segel",
-          "Den fraktar varor genom öknen"
+          "Den har pucklar som liknar segel"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -2343,12 +2343,12 @@
         "id": "q1",
         "question": "Var i världen finns kolibrier?",
         "options": [
-          "I Nord- och Sydamerika",
           "I Afrika och Asien",
           "I hela Europa",
-          "I Australien"
+          "I Australien",
+          "I Nord- och Sydamerika"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -2356,23 +2356,23 @@
         "question": "Hur mycket väger en bikolibri ungefär?",
         "options": [
           "Tjugo gram",
+          "Två gram",
           "Två hekto",
-          "Ett halvt kilo",
-          "Två gram"
+          "Ett halvt kilo"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Vad äter kolibrin?",
         "options": [
-          "Frön och nötter",
           "Nektar från blommor",
+          "Frön och nötter",
           "Små fiskar",
           "Löv och gräs"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -2391,12 +2391,12 @@
         "id": "q5",
         "question": "Kolibrin går ner i ”dvala”. Vad betyder det?",
         "options": [
-          "En djup vila som sparar energi",
           "En lång flygtur till varmare länder",
           "En sorts lek mellan två fåglar",
+          "En djup vila som sparar energi",
           "Ett bo som byggs nere i marken"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -2404,11 +2404,11 @@
         "question": "Varför måste kolibrin besöka så många blommor varje dag?",
         "options": [
           "Den tycker om att titta på blommor",
-          "Flygandet gör av med mycket energi",
           "Blommorna behöver den för att växa",
+          "Flygandet gör av med mycket energi",
           "Den letar efter ett ställe att sova"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -2416,23 +2416,23 @@
         "question": "Varför skulle kolibrin kunna svälta ihjäl på natten?",
         "options": [
           "Andra fåglar tar maten på natten",
-          "Den blir rädd i mörkret och flyger bort",
           "Den kan inte äta när den sover",
+          "Den blir rädd i mörkret och flyger bort",
           "Den glömmer var blommorna finns"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
         "question": "Vilken rubrik passar bäst till texten?",
         "options": [
-          "Fåglar som flyttar söderut",
           "En liten fågel med stor energi",
+          "Fåglar som flyttar söderut",
           "Blommor som behöver bin",
           "Världens största fåglar"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -2450,11 +2450,11 @@
         "question": "Vad är isbjörnens favoritmat?",
         "options": [
           "Lax",
-          "Säl",
           "Ren",
+          "Säl",
           "Bär"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2463,46 +2463,46 @@
         "options": [
           "Vit",
           "Rosa",
-          "Svart",
-          "Brun"
+          "Brun",
+          "Svart"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Hur mycket väger en isbjörnsunge när den föds?",
         "options": [
-          "Ungefär ett halvt kilo",
           "Ungefär fem kilo",
           "Ungefär ett hekto",
-          "Ungefär femtio kilo"
+          "Ungefär femtio kilo",
+          "Ungefär ett halvt kilo"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Björnen väntar ”tålmodigt”. Vad betyder det?",
         "options": [
-          "Lugnt och utan att ge upp",
           "Argt och otåligt",
           "Snabbt och ivrigt",
+          "Lugnt och utan att ge upp",
           "Rädd och mycket försiktigt"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Isbjörnen kan simma flera mil ”i sträck”. Vad betyder det?",
         "options": [
-          "Utan att stanna och vila",
           "Bara rakt fram",
           "Mycket långsamt",
+          "Utan att stanna och vila",
           "Bara när det är varmt"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -2511,22 +2511,22 @@
         "options": [
           "Det är varmare nära det öppna vattnet",
           "Ungarna leker gärna vid hålen",
-          "Den dricker vatten ur hålen",
-          "Där kommer sälar upp för att andas"
+          "Där kommer sälar upp för att andas",
+          "Den dricker vatten ur hålen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Varför blir det svårare för isbjörnen när isen smälter tidigt?",
         "options": [
+          "Den får mindre tid att fånga säl",
           "Den får för varmt i pälsen",
           "Ungarna kan inte simma",
-          "Den hittar ingen snö att gräva lya i",
-          "Den får mindre tid att fånga säl"
+          "Den hittar ingen snö att gräva lya i"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -2555,12 +2555,12 @@
         "id": "q1",
         "question": "Vad kallas droppstenar som hänger från taket?",
         "options": [
-          "Stalaktiter",
           "Stalagmiter",
           "Istappar",
+          "Stalaktiter",
           "Pelare"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2568,83 +2568,83 @@
         "question": "I vilken sorts sten bildas droppstenar?",
         "options": [
           "Granit",
+          "Kalksten",
           "Sandsten",
-          "Skiffer",
-          "Kalksten"
+          "Skiffer"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Var i Sverige finns droppstenar enligt texten?",
         "options": [
-          "På Gotland",
           "I Skåne",
+          "På Gotland",
           "I Lappland",
           "På Öland"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Vattnet ”sipprar” ner genom marken. Vad betyder det?",
         "options": [
-          "Det rinner långsamt i små mängder",
           "Det forsar fram med mycket stor kraft",
+          "Det rinner långsamt i små mängder",
           "Det fryser till is i jorden",
           "Det stiger upp mot ytan"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Vad är en ”formation” i texten?",
         "options": [
+          "Något som har fått en viss form",
           "En sorts liten grotta",
           "Ett slags vatten",
-          "Något som har fått en viss form",
           "Ett djur som lever i grottor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
         "question": "Varför tar det så lång tid för en droppsten att bli stor?",
         "options": [
-          "Varje droppe lämnar mycket lite kalk",
           "Det regnar nästan aldrig över de flesta grottor",
           "Vattnet droppar bara på vintern",
+          "Varje droppe lämnar mycket lite kalk",
           "Kalken smälter bort på sommaren"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Varför växer stalagmiter just under stalaktiter?",
         "options": [
-          "Dropparna landar där",
           "Där är golvet varmast",
           "Där är det mest ljus",
-          "Där har människor gått minst"
+          "Där har människor gått minst",
+          "Dropparna landar där"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q8",
         "question": "Vad är texten främst till för?",
         "options": [
+          "Att förklara hur droppstenar bildas",
           "Att locka turister till Gotland",
           "Att berätta en spännande grottsaga",
-          "Att förklara hur droppstenar bildas",
           "Att lära ut hur man klättrar i grottor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -2674,11 +2674,11 @@
         "question": "Hur fort kan vinden blåsa i de kraftigaste tornadorna?",
         "options": [
           "Ungefär 30 kilometer i timmen",
+          "Mer än 300 kilometer i timmen",
           "Ungefär 100 kilometer i timmen",
-          "Mer än 3 000 kilometer i timmen",
-          "Mer än 300 kilometer i timmen"
+          "Mer än 3 000 kilometer i timmen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2698,11 +2698,11 @@
         "question": "En tornado kan lämna ”ett spår av förstörelse”. Vad betyder det?",
         "options": [
           "Fotspår som syns i leran efter den",
+          "Skador där den har dragit fram",
           "Ett moln som hänger kvar i luften",
-          "En väg som har byggts där den varit",
-          "Skador där den har dragit fram"
+          "En väg som har byggts där den varit"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -2710,11 +2710,11 @@
         "question": "Vad betyder det att tornador ”förekommer” i Sverige?",
         "options": [
           "Att de är farligast",
-          "Att de finns",
           "Att de är förbjudna",
+          "Att de finns",
           "Att de aldrig kommer"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -2735,10 +2735,10 @@
         "options": [
           "Sirenerna skrämmer bort tornadon",
           "Sirenerna mäter hur fort det blåser",
-          "De spelar musik när vädret är fint",
-          "Människor behöver hinna söka skydd"
+          "Människor behöver hinna söka skydd",
+          "De spelar musik när vädret är fint"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -2746,11 +2746,11 @@
         "question": "Vad handlar texten mest om?",
         "options": [
           "Varför det är farligt att bo i USA",
-          "Hur man bygger ett hus med en stor källare",
           "Vad tornador är och hur man skyddar sig",
+          "Hur man bygger ett hus med en stor källare",
           "Hur åskmoln blir till regn"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -2791,12 +2791,12 @@
         "id": "q3",
         "question": "Vilket träd är det högsta i världen enligt texten?",
         "options": [
-          "Kustsequoian",
           "Jättesequoian",
+          "Kustsequoian",
           "Granen",
           "Eken"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2815,12 +2815,12 @@
         "id": "q5",
         "question": "Vad menas med ”livstid”?",
         "options": [
+          "Hur länge något lever",
           "Hur stort något blir",
           "När något föds",
-          "Hur länge något lever",
           "Vad något äter"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -2839,12 +2839,12 @@
         "id": "q7",
         "question": "Varför nämner texten vikingarna?",
         "options": [
-          "För att visa hur gamla träden är",
           "För att vikingarna planterade träden",
+          "För att visa hur gamla träden är",
           "För att vikingarna byggde skepp av dem",
           "För att vikingarna bodde i Kalifornien"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       },
       {
@@ -2909,24 +2909,24 @@
         "id": "q4",
         "question": "Vad är en ”ljusstrimma”?",
         "options": [
+          "Ett smalt streck av ljus",
           "En stor och rund lampa",
           "En ljus fläck på marken",
-          "Ett moln som lyser",
-          "Ett smalt streck av ljus"
+          "Ett moln som lyser"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Luften ”pressas ihop”. Vad betyder det?",
         "options": [
+          "Den trycks samman",
           "Den blir kallare",
           "Den försvinner",
-          "Den blåser bort",
-          "Den trycks samman"
+          "Den blåser bort"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -2934,11 +2934,11 @@
         "question": "Varför är det bäst att titta långt från gatlampor?",
         "options": [
           "Det faller fler stjärnfall ute på landet",
-          "Det blir mörkare och lättare att se",
           "Gatlampor lockar till sig stjärnfall",
-          "Man får bättre luft att andas"
+          "Man får bättre luft att andas",
+          "Det blir mörkare och lättare att se"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -2947,10 +2947,10 @@
         "options": [
           "Kornen kommer från en stjärna",
           "Forskarna har bestämt det namnet helt nyligen",
-          "Det ser ut som om en stjärna faller",
-          "Stjärnorna tappar korn varje år"
+          "Stjärnorna tappar korn varje år",
+          "Det ser ut som om en stjärna faller"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -2979,24 +2979,24 @@
         "id": "q1",
         "question": "Vilken planet från solen är Uranus?",
         "options": [
-          "Den femte",
           "Den sjunde",
+          "Den femte",
           "Den åttonde",
           "Den tredje"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vem upptäckte Uranus?",
         "options": [
+          "William Herschel",
           "Galileo Galilei",
           "Isaac Newton",
-          "Voyager 2",
-          "William Herschel"
+          "Voyager 2"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -3015,12 +3015,12 @@
         "id": "q4",
         "question": "Något får ”följder”. Vad betyder det?",
         "options": [
-          "Det leder till andra saker",
           "Det följer efter något annat",
           "Det blir mindre och mindre",
-          "Det glöms bort med tiden"
+          "Det glöms bort med tiden",
+          "Det leder till andra saker"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -3028,11 +3028,11 @@
         "question": "Vad är en ”himlakropp”?",
         "options": [
           "En ängel på himlen",
-          "Ett föremål ute i rymden",
           "Ett moln av gas",
-          "En sorts raket"
+          "En sorts raket",
+          "Ett föremål ute i rymden"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -3041,22 +3041,22 @@
         "options": [
           "Uranus snurrar inte alls",
           "Solen ligger närmare Uranus",
-          "Molnen på Uranus lyser av sig själva hela tiden",
-          "Polen är vänd mot solen halva varvet"
+          "Polen är vänd mot solen halva varvet",
+          "Molnen på Uranus lyser av sig själva hela tiden"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Varför vet forskarna ganska lite om Uranus?",
         "options": [
-          "Bara en rymdsond har varit där",
           "Planeten är för liten för att synas",
+          "Bara en rymdsond har varit där",
           "Den är dold bakom solen",
           "Ingen har tittat på den i teleskop"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -3087,10 +3087,10 @@
         "options": [
           "Tegel och betong",
           "Trä och lera",
-          "Järn och sten",
-          "Packad jord och sten"
+          "Packad jord och sten",
+          "Järn och sten"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -3098,11 +3098,11 @@
         "question": "Hur lång är muren om man lägger ihop alla delar?",
         "options": [
           "Ungefär 2 000 kilometer",
+          "Över 20 000 kilometer",
           "Ungefär 500 kilometer",
-          "Över 200 000 kilometer",
-          "Över 20 000 kilometer"
+          "Över 200 000 kilometer"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -3110,11 +3110,11 @@
         "question": "Hur skickade soldaterna meddelanden mellan tornen?",
         "options": [
           "Med brevduvor",
-          "Med trummor",
           "Med rök från eldar",
+          "Med trummor",
           "Med flaggor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -3134,11 +3134,11 @@
         "question": "Vad betyder ”med blotta ögat”?",
         "options": [
           "Med ett öga stängt",
-          "Utan några hjälpmedel",
           "Bara på natten",
+          "Utan några hjälpmedel",
           "Genom ett fönster"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
@@ -3158,23 +3158,1083 @@
         "question": "Vilken vanlig tro om muren säger texten är fel?",
         "options": [
           "Att den är byggd av tegel",
-          "Att den syns från rymden",
           "Att den har vakttorn",
-          "Att den finns i Kina"
+          "Att den finns i Kina",
+          "Att den syns från rymden"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       },
       {
         "id": "q8",
         "question": "Varför kallar texten muren för ”många murar”?",
         "options": [
+          "Den byggdes i delar under lång tid",
           "Den består av två murar bredvid varandra",
           "Den har byggts om efter varje krig",
-          "Den byggdes i delar under lång tid",
           "Den har många olika namn"
         ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-hallristningar",
+    "title": "Bilderna på berghällen",
+    "level": 7,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "I Bohuslän på Sveriges västkust finns tusentals bilder som är huggna i berget. De kallas hällristningar och gjordes under bronsåldern, för ungefär 3 000 år sedan. Området runt Tanum har så många och så fina ristningar att det finns med på Unescos världsarvslista.\n\nMänniskorna som gjorde bilderna hade inga metallverktyg som var hårda nog för att hugga i berg. I stället knackade de fram bilderna med en hårdare sten. Slag för slag fick de fram små gropar som tillsammans bildade linjer och figurer. Det måste ha tagit mycket lång tid.\n\nDet vanligaste motivet är skepp. Det finns också människor, djur, vagnar, fotsulor och runda tecken som kanske föreställer solen. Många bilder visar män med yxor eller spjut.\n\nVad bilderna betydde vet ingen säkert. Bronsåldersfolket hade inget skriftspråk, så de lämnade inga förklaringar efter sig. Kanske berättade bilderna om viktiga händelser. Kanske var de en del av fester och offer till gudarna.\n\nFör att ristningarna ska synas bättre har en del av dem målats i rött. I dag är man försiktigare med det, eftersom färgen kan skada berget. Väder, mossa och lavar gör att bilderna långsamt nöts bort.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Under vilken tid gjordes hällristningarna?",
+        "options": [
+          "Stenåldern",
+          "Vikingatiden",
+          "Bronsåldern",
+          "Medeltiden"
+        ],
         "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket är det vanligaste motivet?",
+        "options": [
+          "Hästar",
+          "Skepp",
+          "Fåglar",
+          "Hus"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ett ”motiv” i texten?",
+        "options": [
+          "Skälet till att man gör något",
+          "Det som en bild föreställer",
+          "En sorts verktyg av sten",
+          "Färgen som bilden målas med"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Bilderna ”nöts bort”. Vad betyder det?",
+        "options": [
+          "De försvinner sakta när ytan slits",
+          "De tas bort av människor",
+          "De målas över med ny färg",
+          "De flyttas till ett museum i stan för att skyddas"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tog det lång tid att göra en hällristning?",
+        "options": [
+          "Färgen behövde torka i många år",
+          "Berget var täckt av snö större delen av året",
+          "Man fick bara rista på sommaren",
+          "Bilden knackades fram slag för slag med sten"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför vet ingen säkert vad bilderna betyder?",
+        "options": [
+          "Folket som gjorde dem kunde inte skriva",
+          "Bilderna har målats om för många gånger",
+          "Forskarna har inte hunnit titta på dem",
+          "Bilderna föreställer saker som inte finns"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill texten främst berätta?",
+        "options": [
+          "Vad hällristningar är och hur de gjordes",
+          "Hur man själv gör en hällristning på en sten hemma",
+          "Varför Bohuslän har så många turister",
+          "Hur människor levde på stenåldern"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilket påstående stämmer med texten?",
+        "options": [
+          "Ristningarna gjordes för ungefär 300 år sedan",
+          "Alla ristningar visar solen",
+          "Forskarna vet exakt vad bilderna betyder",
+          "Ristningarna är gamla men kan försvinna"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-akvedukterna",
+    "title": "Vatten som rann över dalar",
+    "level": 7,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För ungefär 2 000 år sedan bodde omkring en miljon människor i Rom. Alla behövde vatten att dricka, laga mat med och tvätta sig i. Floden genom staden räckte inte, och vattnet i den var inte heller rent. Därför byggde romarna akvedukter.\n\nEn akvedukt är en lång ränna som leder vatten från källor och sjöar uppe i bergen in till staden. Vattnet drivs inte av någon pump. Det rinner av sig självt, eftersom rännan hela tiden lutar en aning nedåt. Lutningen fick inte vara för stor, för då skulle vattnet forsa fram och slita sönder rännan. Den fick inte heller vara för liten, för då skulle vattnet bli stillastående. Ofta lutade rännan bara några decimeter på en kilometer.\n\nDe flesta tror att akvedukter är stora broar med valv. Men den största delen av rännorna gick faktiskt under marken eller längs marken. Broarna byggdes bara där rännan behövde korsa en dal.\n\nTill Rom ledde till slut elva akvedukter. Vattnet rann till offentliga brunnar, där folk hämtade vatten, och till stora badhus där tusentals människor kunde bada samtidigt. Rika familjer hade egna ledningar hem.\n\nNågra akvedukter står kvar än i dag. En av dem leder fortfarande vatten till fontäner i Rom.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många akvedukter ledde till slut till Rom?",
+        "options": [
+          "Tre",
+          "Tjugo",
+          "Elva",
+          "En"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var gick den största delen av rännorna?",
+        "options": [
+          "Uppe på höga broar",
+          "Genom husen i staden",
+          "Under eller längs marken",
+          "Längs flodens botten"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vattnet blev ”stillastående”. Vad betyder det?",
+        "options": [
+          "Det blev kallt",
+          "Det rann för fort",
+          "Det blev salt",
+          "Det rörde sig inte"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad betyder ”offentliga” brunnar?",
+        "options": [
+          "Brunnar som bara rika fick använda",
+          "Brunnar som låg inne i husen",
+          "Brunnar som var gamla och trasiga",
+          "Brunnar som alla fick använda"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför hämtades vattnet uppe i bergen?",
+        "options": [
+          "Därifrån kunde det rinna ner till staden",
+          "Där var vattnet varmare",
+          "Där fanns inga människor som tog det",
+          "Där regnade det aldrig"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför hade bara rika familjer egna ledningar hem?",
+        "options": [
+          "De bodde närmare bergen",
+          "Det kostade mycket att få en egen ledning",
+          "De tyckte inte om att bada",
+          "De drack mer vatten än andra"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken mening sammanfattar texten bäst?",
+        "options": [
+          "Romarna badade mer än människor gör i dag",
+          "Romarna byggde smarta vattenledningar",
+          "Akvedukter var broar som byggdes för att pynta staden",
+          "Rom hade ont om vatten i över tusen år"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad visar det att en akvedukt fortfarande leder vatten i Rom?",
+        "options": [
+          "Att Rom saknar egna vattenrör i dag",
+          "Att akvedukterna byggdes för hundra år sedan",
+          "Att fontänerna är nya",
+          "Att romarna byggde mycket hållbart"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-marie-curie",
+    "title": "Kvinnan som fick två nobelpris",
+    "level": 7,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "Marie Curie föddes 1867 i Warszawa i Polen. Hon hette då Maria Skłodowska. Hon var duktig i skolan, men i Polen fick kvinnor inte studera vid universitetet på den tiden. Därför arbetade hon i flera år som guvernant och sparade pengar. När hon var 24 år flyttade hon till Paris för att studera fysik och matematik.\n\nI Paris träffade hon Pierre Curie, som också var forskare. De gifte sig och började arbeta tillsammans. De undersökte ämnen som sände ut en osynlig strålning. Marie kallade det för radioaktivitet. Efter flera års hårt arbete i ett kallt och dragigt skjul hittade de två nya grundämnen. Det ena döpte Marie till polonium, efter sitt hemland Polen. Det andra fick namnet radium.\n\nÅr 1903 fick Marie och Pierre dela Nobelpriset i fysik med en annan forskare. Marie var den första kvinnan som fick ett nobelpris. År 1911 fick hon ett nobelpris till, den här gången i kemi. Hon är fortfarande den enda som har fått nobelpris i två olika naturvetenskaper.\n\nMen ingen visste då hur farlig strålningen var. Marie bar provrör med radium i fickorna och blev sjuk. Hon dog 1934. Hennes anteckningsböcker är fortfarande så radioaktiva att de förvaras i blylådor.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför flyttade Maria till Paris?",
+        "options": [
+          "Hon hade fått jobb som guvernant i Paris",
+          "Hon fick inte studera i Polen",
+          "Pierre Curie hade bjudit dit henne",
+          "Hennes familj flyttade dit"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad döpte Marie det ena grundämnet efter?",
+        "options": [
+          "Sin man",
+          "Sitt hemland",
+          "Sin dotter",
+          "Staden Paris"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Skjulet var ”dragigt”. Vad betyder det?",
+        "options": [
+          "Det var mörkt och trångt",
+          "Det luktade starkt",
+          "Det var fullt av damm",
+          "Det blåste in kall luft"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Marie och Pierre fick ”dela” priset. Vad betyder det?",
+        "options": [
+          "De fick var sitt eget pris",
+          "De gav bort priset till någon annan",
+          "De fick priset vid olika tillfällen",
+          "De fick priset tillsammans med andra"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför bar Marie radium i fickorna utan att vara rädd?",
+        "options": [
+          "Hon ville visa att den var ofarlig",
+          "Ingen visste hur farlig strålningen var",
+          "Fickorna var gjorda av bly",
+          "Hon tyckte om att det lyste"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför förvaras anteckningsböckerna i blylådor?",
+        "options": [
+          "Böckerna är mycket dyra",
+          "Bly skyddar mot strålningen",
+          "Bly håller böckerna torra",
+          "Ingen får läsa dem"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar texten om Marie Curie?",
+        "options": [
+          "Hon tyckte inte om att forska",
+          "Hon arbetade alltid ensam",
+          "Hon gav inte upp trots motgångar",
+          "Hon blev känd för att hon var rik"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför är Marie Curie så känd än i dag?",
+        "options": [
+          "Hennes upptäckter var stora och banbrytande",
+          "Hon var den första som flyttade till Paris",
+          "Hon byggde det första skjulet för forskning",
+          "Hon uppfann ett nytt sätt att skriva"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-flygplanet",
+    "title": "Hur kan ett flygplan flyga?",
+    "level": 7,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "De största passagerarplanen kan väga mer än 400 ton. Ändå kan de lyfta och flyga över halva jorden. Hur går det till?\n\nDet viktigaste är vingarna. De är formade och lite lutade, så att luften som strömmar förbi trycks nedåt bakom vingen. När vingen trycker luften nedåt, trycker luften vingen uppåt. Samtidigt blir lufttrycket lägre ovanför vingen än under den. Tillsammans ger det en kraft som kallas lyftkraft.\n\nMen lyftkraften kommer bara om luften strömmar fort förbi vingarna. Därför måste planet först rusa fram längs startbanan. Motorerna ger kraften som driver planet framåt. När farten är tillräckligt hög, ofta runt 250 kilometer i timmen, lyfter planet.\n\nUppe i luften flyger planet oftast på omkring tio kilometers höjd. Där är luften tunnare, och då bromsas planet mindre. Det sparar bränsle. Ett vanligt passagerarplan flyger ungefär 900 kilometer i timmen.\n\nVid landningen fäller piloterna ut klaffar på vingarna. Då blir vingarna större och mer böjda, så att planet kan flyga långsamt utan att falla. När hjulen har tagit mark bromsar planet med både hjulbromsar och motorerna.\n\nFåglar har använt samma knep i miljontals år. Deras vingar är också formade för att ge lyftkraft.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "På vilken höjd flyger passagerarplan oftast?",
+        "options": [
+          "Omkring tio kilometer",
+          "Omkring en kilometer",
+          "Omkring hundra kilometer",
+          "Omkring hundra meter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fäller piloterna ut vid landningen?",
+        "options": [
+          "Ett extra hjul",
+          "En fallskärm",
+          "Ett ankare",
+          "Klaffar på vingarna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Luften är ”tunnare” högt upp. Vad betyder det?",
+        "options": [
+          "Luften är varmare",
+          "Luften är renare",
+          "Det finns mindre luft",
+          "Det blåser mer"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hjulen ”tar mark”. Vad betyder det?",
+        "options": [
+          "De lossnar",
+          "De nuddar marken",
+          "De fälls in",
+          "De blir smutsiga"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför måste planet köra fort på startbanan innan det lyfter?",
+        "options": [
+          "Vingarna ger bara lyft i hög fart",
+          "Piloterna vill komma iväg snabbt",
+          "Motorerna behöver bli riktigt varma först",
+          "Hjulen måste snurra fort för att lossna"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför flyger planen högt upp när de ska långt?",
+        "options": [
+          "Där finns det inga fåglar",
+          "Där är det varmare för passagerarna",
+          "De använder mindre bränsle där",
+          "Där är det lättare att se vägen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken mening sammanfattar texten bäst?",
+        "options": [
+          "Flygplan är tyngre än alla andra fordon",
+          "Piloter måste träna i många år för att få flyga",
+          "Vingarna och farten gör att planet kan flyga",
+          "Fåglar flyger snabbare än flygplan"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför nämner texten fåglar i slutet?",
+        "options": [
+          "För att varna för fåglar nära flygplatser",
+          "För att visa att naturen använder samma knep",
+          "För att fåglar kan flyga högre än plan",
+          "För att berätta vilka fåglar som flyger längst"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-pappersbruket",
+    "title": "Från stock till papper",
+    "level": 7,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "Varje dag använder vi papper: i skolböcker, på toaletten, i kartonger och påsar. Det mesta av pappret i Sverige görs av trä från våra skogar.\n\nFörst körs stockarna till ett pappersbruk. Där tas barken bort, och stockarna hackas sönder till små flisor. Flisorna kokas med kemikalier eller mals sönder tills träet blir till tunna, små fibrer. Blandningen av fibrer och vatten kallas massa och ser ut som grå gröt.\n\nMassan sprutas ut på en snabb vira, ett slags långt finmaskigt nät. Vattnet rinner ner genom hålen, och kvar blir ett tunt lager av fibrer som har trasslat in sig i varandra. Sedan pressas lagret mellan valsar och torkas mot heta cylindrar. Till slut rullas pappret upp på enorma rullar som kan väga flera ton. En modern pappersmaskin kan vara längre än en fotbollsplan.\n\nPapper uppfanns i Kina för ungefär 2 000 år sedan. Då gjordes det för hand av bland annat gamla tygbitar och bark.\n\nDet mesta pappret kan återvinnas. Fibrerna blir kortare varje gång, men de går ofta att använda fem till sju gånger. Därför är det bra att sortera tidningar och kartonger rätt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var uppfanns papper?",
+        "options": [
+          "I Sverige",
+          "I Egypten",
+          "I Kina",
+          "I Italien"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur många gånger kan pappersfibrer ofta återvinnas?",
+        "options": [
+          "En enda gång",
+          "Hundra gånger",
+          "Hur många gånger som helst",
+          "Fem till sju gånger"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”vira” enligt texten?",
+        "options": [
+          "Ett långt finmaskigt nät",
+          "En stor kokande gryta",
+          "En sorts trämaskin",
+          "En tjock rulle papper"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Stockarna hackas till ”flisor”. Vad är det?",
+        "options": [
+          "Långa tunna brädor",
+          "Små bitar av trä",
+          "Pappersark",
+          "Torra löv"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blir fibrerna kvar på viran när vattnet rinner bort?",
+        "options": [
+          "Vattnet kokar bort direkt",
+          "Fibrerna fastnar i varandra",
+          "Fibrerna är tyngre än vattnet och sjunker",
+          "Valsarna suger upp fibrerna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kan pappret inte återvinnas hur många gånger som helst?",
+        "options": [
+          "Färgen går inte att få bort",
+          "Pappret blir för tjockt",
+          "Fibrerna blir för korta till slut",
+          "Det finns inte tillräckligt med vatten"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur är texten mest uppbyggd?",
+        "options": [
+          "Den berättar en saga om en gran i skogen",
+          "Den jämför olika sorters papper med varandra",
+          "Den beskriver steg för steg hur papper görs",
+          "Den ger råd om hur man ritar bäst"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vad vill texten få läsaren att göra?",
+        "options": [
+          "Köpa mer papper",
+          "Sortera papper till återvinning",
+          "Plantera nya träd i skogen varje år",
+          "Skriva mindre i skolan"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-mongoliet",
+    "title": "Landet där många bor i tält",
+    "level": 7,
+    "textType": "fact",
+    "topic": "länder",
+    "body": "Mongoliet ligger i Asien, mellan Ryssland och Kina. Landet är över tre gånger så stort som Sverige men har bara omkring tre miljoner invånare. Stora delar består av gräsklädda slätter, berg och öken. Vintrarna är långa och kalla, och temperaturen kan sjunka under minus 30 grader.\n\nMånga mongoler lever som nomader. De föder upp får, getter, hästar, kameler och jakar, och de flyttar med djuren när gräset tar slut. Därför bor de i jurtor, runda tält av tjock filt som spänns över en ram av trä. En jurta kan monteras ner på ett par timmar och lastas på en vagn eller på djurens ryggar. Mitt i jurtan står en kamin, och dörren vetter nästan alltid mot söder.\n\nHästar är mycket viktiga i Mongoliet. Varje sommar firas en stor fest som heter Naadam. Då tävlar man i brottning, bågskytte och hästkapplöpning. I kapplöpningen är jockeyerna ofta barn, eftersom de är lätta.\n\nUngefär hälften av alla invånare bor i dag i huvudstaden Ulaanbaatar. Den räknas som världens kallaste huvudstad. Runt staden finns stora områden där familjer bor i jurtor, fast de har flyttat in till stan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Mellan vilka länder ligger Mongoliet?",
+        "options": [
+          "Kina och Indien",
+          "Ryssland och Kina",
+          "Ryssland och Finland",
+          "Japan och Korea"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken av de här tävlingarna finns på Naadam?",
+        "options": [
+          "Simning",
+          "Bågskytte",
+          "Skidåkning",
+          "Cykling"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Dörren ”vetter” mot söder. Vad betyder det?",
+        "options": [
+          "Den är låst mot söder",
+          "Den är vänd mot söder",
+          "Den blåser upp mot söder",
+          "Den öppnas bara på sommaren"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "En jurta kan ”monteras ner”. Vad betyder det?",
+        "options": [
+          "Tas isär i delar",
+          "Byggas högre",
+          "Grävas ner i marken",
+          "Värmas upp med kaminen"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför bor många nomader i jurtor i stället för i hus?",
+        "options": [
+          "Jurtor är varmare än alla hus",
+          "Det är förbjudet att bygga hus där",
+          "De tycker inte om trä",
+          "De måste kunna flytta med djuren"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför vill man ha lätta jockeyer i kapplöpningen?",
+        "options": [
+          "Barnen är bättre på att rida än vuxna",
+          "Vuxna får inte tävla på Naadam",
+          "Hästarna kan springa fortare då",
+          "Barnen har mest tid på sommaren"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man bygger en jurta av filt och trä",
+          "Hur Naadam-festen började",
+          "Hur människor lever i Mongoliet",
+          "Varför det är kallt i Asien"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken slutsats kan man dra av sista stycket?",
+        "options": [
+          "Alla mongoler bor fortfarande ute på slätten",
+          "Ulaanbaatar är världens varmaste stad",
+          "Jurtor är förbjudna i staden",
+          "Jurtan är viktig även i staden"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-chile",
+    "title": "Det långa, smala landet",
+    "level": 7,
+    "textType": "fact",
+    "topic": "länder",
+    "body": "Chile ligger längs Sydamerikas västkust och är ett av världens längsta länder. Från norr till söder är det ungefär 430 mil, nästan lika långt som från norra Norge till Sahara. Men landet är smalt, i genomsnitt bara omkring 18 mil brett. På ena sidan ligger Stilla havet och på andra sidan bergskedjan Anderna.\n\nEftersom landet är så långt finns nästan alla sorters natur där. Längst i norr ligger Atacamaöknen, en av de torraste platserna på jorden. På vissa ställen där har det inte regnat på många år. Luften är så torr och klar att forskare från hela världen har byggt stora teleskop där för att titta på stjärnorna.\n\nI mitten av landet är klimatet milt. Där ligger huvudstaden Santiago, och där odlas mycket frukt och vindruvor. Längst i söder är det kallt och blåsigt, med glaciärer, fjordar och tusentals öar.\n\nChile ligger där två av jordskorpans stora plattor möts. Därför finns det många vulkaner i landet, och jordbävningar är vanliga. Husen byggs för att klara skakningar.\n\nÄven Påskön, mitt ute i Stilla havet, tillhör Chile. Där står hundratals stora stenstatyer som kallas moai. De höggs ut av öns invånare för flera hundra år sedan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad ligger längst i norr i Chile?",
+        "options": [
+          "Glaciärer och fjordar",
+          "Huvudstaden Santiago",
+          "Påskön",
+          "Atacamaöknen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför byggs husen i Chile för att klara skakningar?",
+        "options": [
+          "Det blåser mycket i hela landet",
+          "Husen står på lös sand",
+          "Tågen skakar husen",
+          "Det är vanligt med jordbävningar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Landet är ”i genomsnitt” 18 mil brett. Vad betyder det?",
+        "options": [
+          "Ungefär så brett på de flesta ställen",
+          "Exakt så brett överallt",
+          "Så brett just på det allra bredaste stället",
+          "Så brett på det smalaste stället"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en ”glaciär”?",
+        "options": [
+          "En sorts vulkan",
+          "Ett högt vattenfall",
+          "En stor massa av is",
+          "En ö i havet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan man se stjärnorna så bra i Atacamaöknen?",
+        "options": [
+          "Det är nästan aldrig moln där",
+          "Stjärnorna är närmare där",
+          "Det är mörkt hela dygnet",
+          "Det finns inga människor alls där"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför odlas mycket frukt i mitten av landet?",
+        "options": [
+          "Där regnar det aldrig",
+          "Klimatet där är milt",
+          "Där är det kallt och blåsigt",
+          "Där finns det inga berg"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför jämför texten Chile med vägen från Norge till Sahara?",
+        "options": [
+          "För att visa hur långt landet är",
+          "För att Chile liknar Norge",
+          "För att Sahara ligger nära Chile",
+          "För att visa hur varmt det är"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Vilken mening stämmer bäst med texten?",
+        "options": [
+          "Chile är ett litet land med samma väder överallt",
+          "Chiles natur skiftar mycket",
+          "Chile ligger mitt i Afrika",
+          "Det regnar mycket i hela Chile"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-lungorna",
+    "title": "Andetagen du aldrig tänker på",
+    "level": 7,
+    "textType": "fact",
+    "topic": "kroppen",
+    "body": "Just nu andas du, utan att du behöver tänka på det. En vuxen människa som vilar andas ungefär 12–20 gånger i minuten. Det blir mer än 20 000 andetag varje dygn.\n\nNär du andas in strömmar luften genom näsan eller munnen och ner i luftstrupen. Luftstrupen delar sig i två rör, ett till varje lunga. Inne i lungorna förgrenar sig rören som grenarna på ett träd, i allt mindre och mindre rör. Längst ut sitter små blåsor som kallas lungblåsor. Det finns hundratals miljoner av dem i varje lunga.\n\nLungblåsorna är omgivna av tunna blodkärl. Där går syret från luften över till blodet, som sedan för det ut i hela kroppen. Samtidigt lämnar blodet ifrån sig koldioxid, som du andas ut.\n\nUnder lungorna sitter en platt muskel som heter diafragman. När den drar ihop sig sugs luft in i lungorna. När den slappnar av pressas luften ut.\n\nDu kan hålla andan en stund, men inte hur länge som helst. När koldioxiden ökar i blodet skickar hjärnan signaler om att du måste andas. Till slut tar kroppen över, hur mycket du än försöker hålla emot.\n\nDen vänstra lungan är lite mindre än den högra. Den har fått lämna plats åt hjärtat.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter muskeln under lungorna?",
+        "options": [
+          "Luftstrupen",
+          "Lungblåsan",
+          "Hjärtat",
+          "Diafragman"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför är den vänstra lungan lite mindre?",
+        "options": [
+          "Den används mindre",
+          "Den lämnar plats åt hjärtat",
+          "Den växer långsammare",
+          "Den har färre blodkärl"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Rören ”förgrenar sig”. Vad betyder det?",
+        "options": [
+          "De blir tjockare och tjockare",
+          "De växer ihop till ett enda rör",
+          "De delar sig i fler och fler rör",
+          "De blir gröna som blad"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Diafragman ”slappnar av”. Vad betyder det?",
+        "options": [
+          "Den blir mjuk och vilar",
+          "Den drar ihop sig hårt",
+          "Den går sönder",
+          "Den växer"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför andas man fortare när man springer?",
+        "options": [
+          "Lungorna blir mindre",
+          "Diafragman blir trött",
+          "Kroppen behöver mer syre",
+          "Luften blir tunnare"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför behöver lungblåsorna vara omgivna av blodkärl?",
+        "options": [
+          "Syret ska kunna gå över till blodet",
+          "Blodkärlen håller lungorna varma",
+          "Blodkärlen gör lungorna starkare",
+          "Blodet ska tvätta lungblåsorna rena"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är lungornas viktigaste uppgift enligt texten?",
+        "options": [
+          "Att pumpa blod runt i kroppen hela dagen och natten",
+          "Att hålla kroppen varm",
+          "Att ta in syre och släppa ut koldioxid",
+          "Att skicka signaler till hjärnan"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför heter texten ”Andetagen du aldrig tänker på”?",
+        "options": [
+          "Andningen sker av sig själv",
+          "Man glömmer ofta att andas",
+          "Det är farligt att tänka på andningen",
+          "Man andas bara när man sover"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-saret",
+    "title": "När skinnet går sönder",
+    "level": 7,
+    "textType": "fact",
+    "topic": "kroppen",
+    "body": "Nästan alla har skrapat upp ett knä någon gång. Det svider och blöder lite, men efter en vecka eller två syns nästan ingenting. Kroppen har lagat sig själv. Hur går det till?\n\nFörst måste blödningen stoppas. När ett blodkärl går sönder samlas små delar i blodet som kallas blodplättar vid skadan. De klibbar ihop sig och bildar en propp tillsammans med trådar av ett ämne i blodet. Det kallas att blodet levrar sig.\n\nProppen torkar och blir till en sårskorpa. Skorpan fungerar som ett plåster och skyddar såret mot smuts och bakterier. Om bakterier ändå tar sig in kommer vita blodkroppar dit och tar hand om dem. Därför kan ett sår bli rött, varmt och lite svullet de första dagarna.\n\nUnder skorpan börjar nya hudceller växa in från kanterna. Det kan klia, och det är ett tecken på att såret läker. Man ska ändå inte pilla bort skorpan, för då kan såret börja blöda igen och ta längre tid att läka.\n\nDet bästa man kan göra med ett vanligt skrapsår är att skölja det rent med vatten och sätta på ett plåster. Om ett sår är djupt, blöder mycket eller blir mer och mer rött och ömt efter några dagar, ska man visa det för en vuxen eller söka vård.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter de små delarna i blodet som samlas vid skadan?",
+        "options": [
+          "Vita blodkroppar",
+          "Blodplättar",
+          "Hudceller",
+          "Bakterier"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är bäst att göra med ett vanligt skrapsår?",
+        "options": [
+          "Pilla bort skorpan direkt",
+          "Låta det vara smutsigt",
+          "Skölja det och sätta på plåster",
+          "Blåsa på det tills det slutar svida"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Blodet ”levrar sig”. Vad betyder det?",
+        "options": [
+          "Det blir tunnt och rinner fort",
+          "Det byter färg till blått",
+          "Det blir tjockt och slutar rinna",
+          "Det försvinner tillbaka in i kroppen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Såret är ”ömt”. Vad betyder det?",
+        "options": [
+          "Det är mjukt och skönt att känna på",
+          "Det är torrt och hårt",
+          "Det gör ont när man rör vid det",
+          "Det luktar illa"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan det vara ett bra tecken att ett sår kliar?",
+        "options": [
+          "Det betyder att ny hud växer",
+          "Det betyder att bakterier har kommit in",
+          "Det betyder att skorpan ska bort",
+          "Det betyder att plåstret sitter fel"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blir ett sår ibland rött och varmt de första dagarna?",
+        "options": [
+          "Kroppen bekämpar bakterier där",
+          "Plåstret har suttit för hårt",
+          "Solen har bränt huden",
+          "Skorpan har ramlat av"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är texten främst till för?",
+        "options": [
+          "Att förklara hur kroppen lagar ett sår",
+          "Att sälja en ny sorts plåster",
+          "Att berätta om ett barn som ramlade med cykeln",
+          "Att varna för att leka ute"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför jämförs skorpan med ett plåster?",
+        "options": [
+          "Båda klistras fast med lim",
+          "Båda köps på apoteket",
+          "Båda är gjorda av tyg",
+          "Båda skyddar såret"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n4-maraton",
+    "title": "Loppet som är 42 kilometer",
+    "level": 7,
+    "textType": "fact",
+    "topic": "sport",
+    "body": "Ett maratonlopp är exakt 42 195 meter långt. Det är ett av de mest kända loppen i världen, och varje år springer hundratusentals människor maraton i olika städer.\n\nNamnet kommer från en gammal grekisk berättelse. År 490 före Kristus vann grekerna ett slag mot perserna vid staden Marathon. Enligt berättelsen sprang en budbärare hela vägen till Aten för att berätta om segern. När han hade ropat ut nyheten föll han ihop och dog. Ingen vet om det verkligen hände, men berättelsen har levt kvar i över 2 000 år.\n\nNär de första moderna olympiska spelen hölls i Aten 1896 ville man hedra berättelsen. Därför fanns ett lopp från Marathon till Aten med på programmet. Det var ungefär 40 kilometer långt.\n\nDen udda längden 42 195 meter kommer från de olympiska spelen i London 1908. Där drogs banan så att loppet startade vid ett slott och slutade framför kungafamiljens plats på arenan. Senare bestämdes det att alla maratonlopp ska vara exakt så långa.\n\nDe snabbaste löparna i världen springer ett maraton på lite över två timmar. Många motionärer tar fyra eller fem timmar på sig. Efter ungefär 30 kilometer tar kroppens snabba energi ofta slut. Löparna kallar det för att gå in i väggen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt är ett maratonlopp?",
+        "options": [
+          "42 195 meter",
+          "40 000 meter",
+          "21 097 meter",
+          "49 000 meter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var bestämdes den udda längden?",
+        "options": [
+          "I Aten 1896",
+          "I Marathon 490 före Kristus",
+          "I London 1908",
+          "I Stockholm 1912"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Man ville ”hedra” berättelsen. Vad betyder det?",
+        "options": [
+          "Visa respekt för den",
+          "Glömma bort den",
+          "Ändra på den",
+          "Skämta lite om den"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Löparna ”går in i väggen”. Vad betyder det här?",
+        "options": [
+          "De blir plötsligt helt slut på krafter",
+          "De springer in i en vägg av misstag",
+          "De stannar för att vila en stund vid en vägg",
+          "De springer snabbare på slutet"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför vet ingen säkert om budbäraren verkligen fanns?",
+        "options": [
+          "Det hände för väldigt länge sedan",
+          "Budbäraren hade inget namn",
+          "Perserna förstörde alla bilder",
+          "Ingen bodde i Aten då"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför slutade loppet 1908 framför kungafamiljens plats?",
+        "options": [
+          "Kungafamiljen skulle se målgången",
+          "Det var kortaste vägen till arenan",
+          "Löparna ville vila där",
+          "Slottet låg mitt på arenan"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Maratonloppets historia",
+          "Hur man tränar inför ett maraton",
+          "Vem som är världens snabbaste löpare",
+          "Varför grekerna vann mot perserna"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      },
+      {
+        "id": "q8",
+        "question": "Varför kallas maratonlängden ”udda” i texten?",
+        "options": [
+          "Den är inget jämnt antal kilometer",
+          "Den är längre än alla andra lopp",
+          "Den ändras varje år",
+          "Den bestämdes av en budbärare"
+        ],
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
