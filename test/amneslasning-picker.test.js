@@ -89,6 +89,10 @@ test("Test 11: allt läst → texten som lästes längst tillbaka, med vänligt 
 test("textvalet hoppar över trasiga texter och ger null för ett tomt område", () => {
   const blandat = [null, { id: "utan-fragor", level: 1, questions: [] }, { id: "fel-niva", level: 7, questions: [q("q1")] }, t("ok", 2)];
   assert.deepEqual(playableTexts(blandat).map((x) => x.id), ["ok"]);
+  // Gamla nivåtexter (#152) räknas aldrig – samma regel som content.isAmnesText (#673).
+  const gammal = { id: "g1", title: "Gammal", levels: { 1: { body: "…", questions: [q("q1")] } } };
+  assert.deepEqual(playableTexts([gammal, t("ny", 1)]).map((x) => x.id), ["ny"]);
+  assert.deepEqual(readProgress([gammal], { read: { g1: { count: 1 } } }), { read: 0, total: 0 });
   assert.equal(pickAmnesText([], 2, areaOf(undefined, "a")), null);
   assert.equal(pickAmnesText(undefined, 2, areaOf(undefined, "a")), null);
 });
