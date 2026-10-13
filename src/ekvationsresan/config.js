@@ -29,38 +29,39 @@ export const BASE_RULES = Object.freeze({
  * uppgiftstyp B ("Lös själv") bland A/B, `swapShare` = andel där x står i
  * högerledet (14 = 2x + 4) – ger "5 = x"-slutet. `types` = andel av ALLA
  * uppgifter för typerna C–F (#625, E2.3; resten blir A/B). Problemlösning (F)
- * finns som en mindre andel från nivå 3 och dominerar nivå 12. `rules` skriver
+ * finns som en mindre andel från nivå 3 och dominerar nivå 12. Nästa rad (C)
+ * och Hitta felet (E) börjar på nivå 6 (TYPE_MIN_LEVEL, #657). `rules` skriver
  * över BASE_RULES.
  * `xMin` = minsta lösning; från nivå 3 är x ≥ 2 (x = 1 är pedagogiskt tunt, #643).
  */
 export const LEVELS = Object.freeze([
   {
     level: 1, name: "Balansen", typeB: 0.1, swapShare: 0,
-    types: { C: 0.15, D: 0.15 },
+    types: { D: 0.15 },
     forms: { "x+a=b": 1, "x-a=b": 1 },
     params: { maxNumber: 20 },
   },
   {
     level: 2, name: "Lika stora grupper", typeB: 0.2, swapShare: 0,
-    types: { C: 0.15, D: 0.15 },
+    types: { D: 0.15 },
     forms: { "ax=b": 2, "x/a=b": 1 },
     params: { aMin: 2, aMax: 10, xMax: 12 },
   },
   {
     level: 3, name: "Två steg", typeB: 0.35, swapShare: 0,
-    types: { C: 0.12, D: 0.1, E: 0.12, F: 0.12 },
+    types: { D: 0.1, F: 0.12 },
     forms: { "ax+b=c": 1 },
     params: { aMin: 2, aMax: 5, xMin: 2, xMax: 10, bMax: 10 },
   },
   {
     level: 4, name: "Ekvationslösaren", typeB: 0.5, swapShare: 0,
-    types: { C: 0.12, D: 0.08, E: 0.12, F: 0.14 },
+    types: { D: 0.08, F: 0.14 },
     forms: { "ax+b=c": 1, "ax-b=c": 1 },
     params: { aMin: 2, aMax: 9, xMin: 2, xMax: 12, bMax: 20 },
   },
   {
     level: 5, name: "Större tal", typeB: 0.65, swapShare: 0,
-    types: { C: 0.12, D: 0.06, E: 0.12, F: 0.14 },
+    types: { D: 0.06, F: 0.14 },
     forms: { "ax+b=c": 1, "ax-b=c": 1 },
     params: { aMin: 3, aMax: 9, xMin: 3, xMax: 12, bMin: 10, bMax: 40 },
   },
@@ -323,7 +324,22 @@ export const TYPE_STARS = Object.freeze({
   maxWrong: 3,
 });
 
-/** C: välj bland alternativ upp till och med den här nivån, skriv själv därefter. */
+/**
+ * Lägsta nivå per uppgiftstyp (#657, Elias 2026-10-13): Nästa rad (C) och Hitta
+ * felet (E) aldrig på nivå 1–5. Generatorn respekterar spärren för ALLA vägar
+ * (nivåns andelar, färdighetsmodellens mix, tvingad typ, "Försök igen").
+ * Saknas typen här finns ingen spärr.
+ */
+export const TYPE_MIN_LEVEL = Object.freeze({ C: 6, E: 6 });
+
+/** Får uppgiftstypen förekomma på nivån? */
+export const typeAllowed = (type, level) => !(level < (TYPE_MIN_LEVEL[type] ?? 0));
+
+/**
+ * C: välj bland alternativ upp till och med den här nivån, skriv själv därefter.
+ * #657: C börjar på nivå 6 (TYPE_MIN_LEVEL), så välj-läget används inte i dag –
+ * konstanten behålls tills Elias väljer om nivå 6 ska börja i välj-läge.
+ */
 export const NEXT_ROW_CHOICE_MAX_LEVEL = 3;
 
 /** Namn på påhittade elever i "Hitta felet". */
