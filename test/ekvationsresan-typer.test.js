@@ -15,7 +15,7 @@ import { fromJSON, solve, equationKey, parseEquation } from "../src/ekvationsres
 import { eq as same, q } from "../src/ekvationsresan/rational.js";
 import { statesAlong } from "../src/ekvationsresan/vag-visning.js";
 import { felRader } from "../src/ekvationsresan/hitta-felet.js";
-import { fragor, hasSolvePhase } from "../src/ekvationsresan/uppgiftstyper.js";
+import { fragor, hasSolvePhase, extendTask } from "../src/ekvationsresan/uppgiftstyper.js";
 import { readEquation, compareEquation, startTyp, svara, losningKlar, typStars, typResultat, typKlar } from "../src/ekvationsresan/typ-svar.js";
 import { startRun, playMove } from "../src/ekvationsresan/losning.js";
 import { revealSolution } from "../src/ekvationsresan/hjalp.js";
@@ -34,6 +34,14 @@ const SERIES = Object.fromEntries(
 );
 const ofType = (type) => LEVELS.flatMap(({ level }) => SERIES[level].filter((t) => t.type === type));
 const rng = seededRng("typer-svar");
+/** C i välj-läget (nivå ≤ NEXT_ROW_CHOICE_MAX_LEVEL): generatorn ger inte C under nivå 6 (#657), så den byggs direkt. */
+function valjTask(level, seed, form = "ax+b=c") {
+  const r = seededRng(seed);
+  for (;;) {
+    const t = extendTask({ ...generateTask(level, { rng: r, type: "A", form, swap: false }), type: "C" }, rulesFor(level), r);
+    if (t) return t;
+  }
+}
 
 /** Firestore tål inte listor direkt i listor. */
 function noNestedArrays(v, inArray = false) {
@@ -57,12 +65,12 @@ const txt = (eq) => {
 
 // --- generering ---------------------------------------------------------------------
 
-test("typerna varierar inom nivåerna; problemlösning (F) först från nivå 3, störst på nivå 12", () => {
+test("typerna varierar inom nivåerna; problemlösning (F) först från nivå 3, nästa rad (C) och hitta felet (E) från nivå 6, F störst på nivå 12", () => {
   for (const { level } of LEVELS) {
     const types = new Set(SERIES[level].map((t) => t.type));
-    assert.ok(types.has("C"), `C på nivå ${level}`);
+    assert.equal(types.has("C"), level >= 6, `C på nivå ${level}`);
     assert.equal(types.has("F"), level >= 3, `F på nivå ${level}`);
-    if (level >= 3) assert.ok(types.has("E"), `E på nivå ${level}`);
+    assert.equal(types.has("E"), level >= 6, `E på nivå ${level}`);
     assert.ok(types.has("A") || types.has("B"), `vanliga lösningsuppgifter finns kvar på nivå ${level}`);
   }
   const f = (l) => SERIES[l].filter((t) => t.type === "F").length / N;
@@ -79,12 +87,10 @@ test("alla uppgifter är JSON-rena utan listor i listor (sparas i Firestore)", (
   }
 });
 
-test("C Nästa rad: välj på nivå 1–3 (rätt rad + två olika fel), skriv från nivå 4", () => {
-  for (const t of ofType("C")) {
-    if (t.level > 3) {
-      assert.equal(t.nastaRad.mode, "skriv");
-      continue;
-    }
+test("C Nästa rad: skriv på alla nivåer där C finns (6–12); välj-läget (nivå ≤ 3) ger rätt rad + två olika fel", () => {
+  assert.ok(ofType("C").every((t) => t.level >= 6 && t.nastaRad.mode === "skriv"));
+  const valj = [1, 2, 3].flatMap((level) => LEVELS[level - 1] && Object.keys(LEVELS[level - 1].forms).map((form) => valjTask(level, `valj-${level}-${form}`, form)));
+  for (const t of valj) {
     assert.equal(t.nastaRad.mode, "valj");
     const states = statesAlong(fromJSON(t.equation), t.optimalPath, rulesFor(t.level));
     assert.equal(t.nastaRad.steg.length, t.optimalPath.length);
@@ -184,7 +190,7 @@ test("compareEquation: leden förenklas (x + x + 3), leden får byta plats", () 
 });
 
 test("C skriv: riktad ledtråd för fel led, oläsbart räknas inte, rätt → nästa rad", () => {
-  const t = generateTask(4, { rng: seededRng("c-skriv"), type: "C", form: "ax+b=c" });
+  const t = generateTask(6, { rng: seededRng("c-skriv"), type: "C", form: "ax+b=c", swap: false });
   let st = startTyp(t);
   const f = st.fragor[0];
   let r = svara(st, "hej");
@@ -205,7 +211,7 @@ test("C skriv: riktad ledtråd för fel led, oläsbart räknas inte, rätt → n
 });
 
 test("C välj: ett fel stryker alternativet, andra felet visar svaret (ett alternativ kvar)", () => {
-  const t = generateTask(3, { rng: seededRng("c-valj"), type: "C", form: "ax+b=c" });
+  const t = valjTask(3, "c-valj");
   let st = startTyp(t);
   const f = st.fragor[0];
   const right = f.val.findIndex((e) => equationKey(e) === equationKey(f.after));
@@ -302,7 +308,7 @@ test("stjärnreglerna för C–F: 0 fel ⭐⭐⭐, 1 fel ⭐⭐, fler ⭐, visat
 // --- data -------------------------------------------------------------------------
 
 test("försöket sparar typ och svar; C sparar räknegången, drag räknas bara för A/B/F", () => {
-  const t = generateTask(4, { rng: seededRng("c-data"), type: "C" });
+  const t = generateTask(6, { rng: seededRng("c-data"), type: "C" });
   let st = startTyp(t);
   while (!typKlar(st)) st = svara(st, rattSvar(st)).st;
   const result = typResultat(t, st);
@@ -312,7 +318,7 @@ test("försöket sparar typ och svar; C sparar räknegången, drag räknas bara 
   assert.equal(a.moveCount, 0);
   assert.equal(a.answers.length, t.optimalMoves);
   assert.ok(a.answers.every((x) => x.ok && typeof x.a === "string"));
-  const p = applyCompletion({ ...defaultProgress(), level: 4 }, a, { now: 1 }).progress;
+  const p = applyCompletion({ ...defaultProgress(), level: 6 }, a, { now: 1 }).progress;
   assert.equal(p.movesSolved, 0);
   assert.equal(p.optimalSolved, 0, "C–E påverkar inte lärarens drag jämfört med optimalt");
   assert.equal(p.solved, 1);
@@ -330,7 +336,7 @@ test("försöket sparar typ och svar; C sparar räknegången, drag räknas bara 
 });
 
 test("frågorna per typ", () => {
-  const kinds = (type) => fragor(generateTask(5, { rng: seededRng(`fr-${type}`), type }), rulesFor(5)).map((f) => f.kind);
+  const kinds = (type) => fragor(generateTask(6, { rng: seededRng(`fr-${type}`), type }), rulesFor(6)).map((f) => f.kind);
   assert.ok(kinds("C").every((k) => k === "rad"));
   assert.deepEqual(kinds("D"), ["ekvation"]);
   assert.deepEqual(kinds("E"), ["steg"]);
