@@ -1,0 +1,702 @@
+[
+  {
+    "id": "lr-g2-skolfotot",
+    "title": "Håret som stod upp",
+    "level": 2,
+    "textType": "story",
+    "topic": "skola",
+    "body": "I dag ska klassen fotograferas. Ella har tagit på sig sin finaste klänning. Hon har borstat håret länge.\n\nPå rasten leker Ella kull. Hon springer och springer. När hon kommer in står håret rakt upp åt alla håll.\n\nFotografen skrattar vänligt. Han ger Ella en kam och lite vatten. Hon kammar håret tills det ligger platt.\n\nSedan sätter hon sig på pallen och ler stort. Klick! Bilden blir jättefin.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad ska hända i klassen i dag?",
+        "options": [
+          "De ska bada",
+          "De ska åka på utflykt",
+          "De ska baka bullar",
+          "De ska fotograferas"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad leker Ella på rasten?",
+        "options": [
+          "Kurragömma",
+          "Hoppa hage",
+          "Kull",
+          "Fotboll"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad ger fotografen Ella?",
+        "options": [
+          "En mössa",
+          "En spegel",
+          "En kam och vatten",
+          "Ett rosa hårband"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var sitter Ella när bilden tas?",
+        "options": [
+          "På golvet",
+          "På en bänk ute",
+          "I en soffa",
+          "På en pall"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur känner sig Ella när bilden tas?",
+        "options": [
+          "Arg",
+          "Ledsen",
+          "Glad",
+          "Rädd"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-laxan-blaste",
+    "title": "Läxan som blåste bort",
+    "level": 2,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Noah går hem från skolan. Han har sin matteläxa i handen. Det blåser mycket.\n\nPlötsligt kommer en stark vind. Papperet flyger iväg! Det landar högt uppe i en buske.\n\nNoah når inte upp. Då kommer grannen Vera med sin hund. Vera är lång. Hon sträcker ut armen och tar papperet.\n\n”Tack!” säger Noah. Hemma gör han läxan direkt. Sedan lägger han papperet i ryggsäcken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad har Noah i handen?",
+        "options": [
+          "Sin mössa",
+          "Sin matteläxa",
+          "En glass",
+          "En bok om djur"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var landar papperet?",
+        "options": [
+          "I en pöl",
+          "I en buske",
+          "På ett tak",
+          "I en bäck"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem hjälper Noah?",
+        "options": [
+          "Hans mamma",
+          "Grannen Vera",
+          "Hans storasyster",
+          "En kompis"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur får Vera tag i papperet?",
+        "options": [
+          "Hon hämtar en stege",
+          "Hon sträcker ut armen",
+          "Hunden hoppar upp",
+          "Hon klättrar i busken"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför lägger Noah papperet i ryggsäcken?",
+        "options": [
+          "Så att det inte blåser bort",
+          "För att det är blött",
+          "För att ryggsäcken är tom",
+          "För att mamma vill ha det så"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-pannkakan",
+    "title": "Pannkakan i taket",
+    "level": 2,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det är lördag. Pappa steker pannkakor. Alva och Sam sitter vid bordet och väntar.\n\n”Nu ska ni få se ett trick”, säger pappa. Han kastar pannkakan högt upp i luften. Den ska vända sig och landa i pannan.\n\nMen pannkakan kommer inte ner. Den sitter fast i taket! Alla tittar upp. Det är helt tyst.\n\nSedan faller den rakt ner på pappas huvud. Alva och Sam skrattar så att de nästan ramlar av stolarna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag är det?",
+        "options": [
+          "Söndag",
+          "Fredag",
+          "Lördag",
+          "Måndag"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad steker pappa?",
+        "options": [
+          "Köttbullar",
+          "Pannkakor",
+          "Ägg",
+          "Fisk"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer när pappa kastar pannkakan?",
+        "options": [
+          "Den landar på golvet",
+          "Hunden tar den",
+          "Den hamnar i pannan",
+          "Den fastnar i taket"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var landar pannkakan till slut?",
+        "options": [
+          "På pappas huvud",
+          "På Alvas tallrik",
+          "I pannan",
+          "På bordet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad tycker barnen om det som händer?",
+        "options": [
+          "Att det är läskigt",
+          "Att det är tråkigt",
+          "Att det är sorgligt",
+          "Att det är roligt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-guldfisken",
+    "title": "Grannens guldfisk",
+    "level": 2,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Grannen Ali ska resa bort en vecka. Han ber Lina att ta hand om hans guldfisk. Den heter Bubbel.\n\nVarje morgon går Lina in till Ali. Hon ger Bubbel en liten nypa mat. Inte mer, för då blir vattnet smutsigt.\n\nEn dag ligger Bubbel helt stilla bakom en sten. Lina blir rädd. Men när hon knackar lätt på glaset simmar han fram.\n\nNär Ali kommer hem får Lina en ask choklad. ”Tack för hjälpen”, säger han.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur länge ska Ali vara borta?",
+        "options": [
+          "En dag",
+          "En månad",
+          "Två veckor",
+          "En vecka"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad heter guldfisken?",
+        "options": [
+          "Plask",
+          "Guld",
+          "Simmis",
+          "Bubbel"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför får Bubbel bara lite mat?",
+        "options": [
+          "Han är aldrig hungrig",
+          "Maten räcker inte hela veckan",
+          "Ali vill spara pengar",
+          "Annars blir vattnet smutsigt"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad gör Bubbel när Lina knackar på glaset?",
+        "options": [
+          "Hoppar upp",
+          "Gömmer sig",
+          "Simmar fram",
+          "Somnar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Lina ger en nypa mat. Vad är en nypa?",
+        "options": [
+          "En stor skål",
+          "En hel burk",
+          "Lite grann",
+          "En sked vatten"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-spar-i-snon",
+    "title": "Spåren i snön",
+    "level": 2,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "En morgon ser Hugo spår i snön utanför huset. Spåren går över hela gräsmattan.\n\n”Är det en tjuv?” undrar Hugo. Han tar på sig stövlarna och följer spåren. De går förbi gungan och fram till ett träd.\n\nSpåren är små. De ser inte alls ut som fotspår från en människa. Under trädet ligger lite fågelmat.\n\nDå ser Hugo något rött uppe i trädet. Det är en ekorre! Den sitter på en gren och äter av fågelmaten.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var ser Hugo spåren?",
+        "options": [
+          "I sanden vid sjön",
+          "På golvet i köket",
+          "I leran bakom skolan",
+          "I snön utanför huset"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad tror Hugo först att spåren kommer från?",
+        "options": [
+          "En tjuv",
+          "En hund",
+          "En katt",
+          "Ett barn"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad tar Hugo på sig?",
+        "options": [
+          "Mössan",
+          "Jackan",
+          "Skidbyxorna",
+          "Stövlarna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad ligger under trädet?",
+        "options": [
+          "Fågelmat",
+          "En vante",
+          "En nyckel",
+          "Ett äpple"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vem har gjort spåren?",
+        "options": [
+          "En tjuv",
+          "En fågel",
+          "Grannens katt",
+          "En ekorre"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-myrstacken",
+    "title": "Myrornas stack",
+    "level": 2,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "En myrstack kan se ut som en hög med barr. Men den är ett hem för väldigt många myror.\n\nInne i stacken finns många gångar och rum. Där bor en eller flera drottningar. De lägger äggen.\n\nDe andra myrorna kallas arbetare. De hämtar mat, bär barr och tar hand om äggen.\n\nMyror är små, men de är starka. En myra kan bära saker som är tyngre än den själv. Myrorna hjälper varandra hela tiden.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad liknar en myrstack?",
+        "options": [
+          "En stor sten",
+          "Ett fågelbo",
+          "En hög med barr",
+          "En snöhög"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad finns inne i stacken?",
+        "options": [
+          "Vatten och sand",
+          "Blommor och gräs",
+          "Stenar och lera",
+          "Gångar och rum"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör drottningarna?",
+        "options": [
+          "Hämtar mat",
+          "Lägger ägg",
+          "Bär barr",
+          "Bygger gångar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad kallas de andra myrorna?",
+        "options": [
+          "Drottningar",
+          "Vakter",
+          "Arbetare",
+          "Larver"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kan en myra bära?",
+        "options": [
+          "Bara ett barr i taget",
+          "Saker som är tyngre än den",
+          "Inga saker alls",
+          "Bara saker som flyter"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-pingvinen",
+    "title": "Fågeln som simmar",
+    "level": 2,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Pingvinen är en fågel. Den har vingar, men den kan inte flyga. I stället är den mycket bra på att simma.\n\nUnder vattnet använder pingvinen vingarna som paddlar. Den simmar snabbt och fångar fisk.\n\nDe flesta pingviner bor på den södra delen av jorden. Många bor där det är kallt, till exempel i Antarktis.\n\nPingvinen har tjocka fjädrar och ett lager fett under huden. Det håller den varm i det iskalla vattnet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kan pingvinen inte göra?",
+        "options": [
+          "Flyga",
+          "Simma",
+          "Gå",
+          "Äta fisk"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur använder pingvinen vingarna i vattnet?",
+        "options": [
+          "Som paddlar",
+          "Som ett tak",
+          "Som en mössa",
+          "Som fötter"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var bor de flesta pingviner?",
+        "options": [
+          "I skogarna i Sverige",
+          "I varma öknar",
+          "På södra delen av jorden",
+          "På norra delen av jorden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad håller pingvinen varm?",
+        "options": [
+          "En tjock päls",
+          "Fjädrar och fett",
+          "Solen på isen",
+          "Varmt vatten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vattnet är iskallt. Vad betyder iskallt?",
+        "options": [
+          "Väldigt kallt",
+          "Lite ljummet",
+          "Mycket smutsigt",
+          "Ganska grunt"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-regnbagen",
+    "title": "Färgerna på himlen",
+    "level": 2,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "En regnbåge kan synas när solen lyser samtidigt som det regnar. Då ser man en stor båge med färger på himlen.\n\nSolljuset ser vitt ut. Men egentligen finns många färger i det. När ljuset går in i regndropparna delas det upp i färger.\n\nFärgerna kommer alltid i samma ordning. Först kommer rött, sedan orange, gult, grönt, blått och lila.\n\nFör att se regnbågen ska man ha solen bakom sig. Då tittar man mot regnet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När kan en regnbåge synas?",
+        "options": [
+          "När det är mulet och blåser kallt",
+          "När solen lyser och det regnar",
+          "När det är mörkt ute",
+          "När det snöar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad finns egentligen i solljuset?",
+        "options": [
+          "Små regndroppar",
+          "Bara vitt ljus",
+          "Många färger",
+          "Lite rök"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilken färg kommer först i regnbågen?",
+        "options": [
+          "Rött",
+          "Blått",
+          "Gult",
+          "Lila"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var ska solen vara när man tittar på regnbågen?",
+        "options": [
+          "Framför en",
+          "Rakt ovanför",
+          "Bakom en",
+          "Under marken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Det finns egentligen många färger. Vad betyder egentligen?",
+        "options": [
+          "Kanske",
+          "I själva verket",
+          "Aldrig",
+          "Ibland"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-hjartat",
+    "title": "Hjärtat slår",
+    "level": 2,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Hjärtat är en muskel. Det sitter i bröstet, lite till vänster. Ditt hjärta är ungefär lika stort som din knutna hand.\n\nHjärtat pumpar blod runt i hela kroppen. Blodet går i rör som heter blodådror. Det tar med sig syre och näring till kroppen.\n\nNär du springer slår hjärtat snabbare. Då behöver musklerna mer syre.\n\nDu kan känna hjärtat slå. Lägg handen på bröstet och var tyst en stund.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad är hjärtat?",
+        "options": [
+          "En muskel",
+          "Ett ben",
+          "En lunga",
+          "Ett blodkärl"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur stort är hjärtat ungefär?",
+        "options": [
+          "Som en fotboll",
+          "Som en knuten hand",
+          "Som en ärta",
+          "Som ett huvud"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad heter rören som blodet går i?",
+        "options": [
+          "Muskler",
+          "Blodådror",
+          "Lungor",
+          "Nervtrådar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför slår hjärtat snabbare när du springer?",
+        "options": [
+          "Du blir rädd",
+          "Du blir trött och hungrig",
+          "Musklerna behöver mer syre",
+          "Blodet börjar ta slut"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hjärtat pumpar blod. Vad betyder det?",
+        "options": [
+          "Det trycker runt blodet",
+          "Det gör blodet kallt",
+          "Det äter upp blodet",
+          "Det sparar blodet"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-manen",
+    "title": "Månen byter form",
+    "level": 2,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Månen åker runt jorden. Ett varv tar ungefär en månad.\n\nMånen lyser inte själv. Det är solen som lyser på den. Vi ser bara den del av månen som solen lyser på.\n\nDärför ser månen olika ut. Ibland ser vi en smal skära. Ibland ser vi en hel rund måne. Den kallas fullmåne.\n\nIbland syns månen inte alls. Men månen är alltid lika rund. Det är bara ljuset på den som ändras.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad åker månen runt?",
+        "options": [
+          "Jorden",
+          "Solen",
+          "Stjärnorna",
+          "Mars"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur lång tid tar ett varv?",
+        "options": [
+          "Ungefär en månad",
+          "En dag",
+          "Ett helt år",
+          "En vecka"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför lyser månen?",
+        "options": [
+          "Den brinner",
+          "Solen lyser på den",
+          "Den har lampor",
+          "Den är gjord av is"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad kallas det när vi ser hela månen?",
+        "options": [
+          "Halvmåne",
+          "Nymåne",
+          "Månskära",
+          "Fullmåne"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är sant om månen?",
+        "options": [
+          "Den är alltid rund",
+          "Den krymper varje natt",
+          "Den går sönder ibland",
+          "Den byter färg varje natt"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
