@@ -218,8 +218,8 @@ export function renderJourneyMap(container, opts = {}) {
     el.innerHTML =
       bitar +
       `<div class="lr-firande-kort"><div class="lr-stor">🎉</div>` +
-      `<h3>${v.name} är klar!</h3>` +
-      (nasta ? `<p>🔓 ${nasta.name} öppnas!</p>` : `<p>Du har klarat hela resan! ⭐</p>`) +
+      `<h3>Du har klarat ${v.name}!</h3>` +
+      (nasta ? `<p>🔓 ${nasta.name} öppnas!</p>` : `<p>Hela Läsresan är klar! ⭐</p>`) +
       `</div>`;
     el.addEventListener("click", () => el.remove(), { signal });
     karta.appendChild(el);

@@ -127,7 +127,7 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   läst!", "✅ 5 av 6 rätt", "+15") → "Gå vidare" → kartan med
   `animateFromStep = walk.fromStep`. Rubrikerna är alltid positiva, och nivån eller
   en nivåändring nämns aldrig.
-- **Världsbyte:** sammanfattningen visar "🏆 Skogen är klar! Nu väntar Öknen.".
+- **Världsbyte:** sammanfattningen visar "🏆 Du har klarat Skogen! Nu väntar Öknen." (formuleringen undviker "klar/klart/klara" – Havet, Bergen och Vulkanlandet böjs olika).
   Kartan ritar sedan den **gamla** världen på sista steget (animation 19→20),
   och verktygsraden får knappen "Vidare till Öknen →" som ritar den nya världen.
   Kartan får också de valfria fälten `walk` och `worldCompleted` (utöver kontraktet).
@@ -356,7 +356,7 @@ renderJourneyMap(container, { world, progress, avatar, animateFromStep, onStartN
   `{worldId, fromStep, toStep}` och `worldCompleted` (bool). Vid världsbyte ritar
   sidan först den GAMLA världen med `stepInWorld = steps` och `animateFromStep =
   walk.fromStep`; kartan går avataren fram till flaggan och firar
-  ("🎉 … är klar!" + "nästa värld öppnas"). Sidans egen "Vidare →"-knapp och
+  ("🎉 Du har klarat …!" + "nästa värld öppnas"). Sidans egen "Vidare →"-knapp och
   verktygsrad ligger OVANFÖR kartans container – kartan ritar inget utanför sin
   container.
 - Firandet visas bara i samband med en gång/`worldCompleted`, inte varje gång en
