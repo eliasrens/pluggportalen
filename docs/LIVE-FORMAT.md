@@ -66,6 +66,52 @@ Använd `docs/DESIGNSYSTEM.md` och stöd `prefers-reduced-motion`.
 > `test/live-formats.test.js` ("Bootgrafen: formaten bara dynamiskt") fäller
 > en statisk import. Se även `admin/qa-bootgraf-bfs.mjs`.
 
+### 1.1 Kistspel – gemensam motor för Guldrushen-lika format (#651)
+
+Ett format där eleverna svarar i egen takt, öppnar kistor och kan ta från
+varandra (Guldrushen, Datakuppen) bygger på **`src/live/kistspel/`** i stället
+för att kopiera Guldrushen. Modulen är valutaneutral: valutans namn/enhet/ikon,
+kisttabellen, texterna, SVG:erna, ljuden och CSS-prefixen kommer från formatet.
+Saldot heter `gold` i spelardokumenten för alla format (Datakuppen visar det
+som MB). Ingen fil i `kistspel/` importerar ett format (testat i
+`test/live-kistspel.test.js`); formatet importerar modulen. Guldrushens
+`gr-*.js` är exempel på hur ett tema skrivs.
+
+| Fil | Vad | API (kort) |
+| --- | --- | --- |
+| `delat/ks-regler.js` | Kistmotorn (tabelldriven slump), skyddet (`protectedUntil`), trygghetsreglerna, stöld/byte, händelsetexter. **Delas med servern** | `createKistRegler({ chests, rules, eventTexts, anon, messages, vars?, stealCap?, loseCap? })` → `chestTable`, `rollChest`, `applySelfEffect`, `victimProblem`, `eligibleVictims`, `resolveVictim`, `shieldUntil`, `hitProtectionUntil`, `eventText` … |
+| `ks-core.js` | Speltid, quizets ögonblicksbild, ställning, `result`, händelsemarkör | `durationField`, `durationError`, `buildQuizPool`, `computeStandings(s, { players, grPlayers })`, `buildResult(format, s, players, inputs)`, `createEventCursor` |
+| `ks-proj-scen.js` | Projektorns rena logik | rena: `matchClock`, `topPiles`, `pileSlot`, `pileLevel`, `podiumGroups`, `statSummary`, `standingRows`, `createRate`, `tal`; tema: `createProjScen({ regler, milestones, title, unit, icon?, feed })` → `feedItem`, `trimPending`, `milestone`, `FINAL_TITLE`, `togetherHtml` |
+| `ks-elev.js` | Elevskärmens rena logik (ingen placering som nummer) | rena: `goldStanding`, `myProtection`, `endStanding` …; tema: `createKistElev({ regler, rules, eventTexts, keyPrefix, jubelChests?, texts })` → `standingText`, `victimRows`, `chestView`, `victimView`, `createHitWatcher`, `chestKey` |
+| `ks-historik-data.js` | Andel rätt per fråga/kategori, pall ur `result` | `questionStats`, `playerAnswerStats`, `hardestQuestions`, `podiumGroups` |
+| `ks-fraga.js` | Fråga → svar (skriv själv, flerval, tidslinje) | `createQuestionFlow(host, { mode, answerKind, send, onCorrect, questions?, tlCls })` |
+| `ks-offer.js` | Offerväljaren (levande, skyddade gråade med nedräkning) | `pickVictim(host, { …, theme: { cls, elev, rules, texts, runnerHtml } })` |
+| `ks-koppling.js` | Projektorns lyssnare på spelare + händelser, avatar-roster | `createKoppling({ sid, deps, onChange, dataKey, loadData, computeStandings, texts })`, `avatarRoster` |
+| `ks-flode.js` | Händelseflödet (≤ 4 rader, tempo, gallring) | `createFlode(host, { pool, cls, label, heading, empty, icons, trim })` |
+| `ks-hogar.js` | Topp 10 vid egna "högar" | `createHogar(host, { pool, cls, pileHtml, defs?, amount, leaderMark? })` |
+| `ks-totalruta.js` | Totalrutan med förloppsmätare, firande i rutan | `totalrutaHtml({ cls, label, unit, meterLabel })`, `createTotalruta(box, { cls, scen, texts, colors, cue?, sound })` |
+| `ks-pall.js` | Pallplatsen + lugn totalrad | `createFinal(host, { pool, sound, cls, piece, amountHtml, colors, cues })` |
+| `ks-demo.js` | Isolerat demoläge | `createKistDemo(theme, opts)` |
+
+**CSS-prefixen:** komponenterna sätter `<cls>`, `<cls>-post`, `<cls>-steg` …
+(Guldrushen: `grf`, `grh`, `grk`, `grp`, `gro`). Ett nytt format väljer egna
+prefix och skriver egen CSS – inga klasser delas mellan formaten.
+
+**Servern:** `functions/kistspel-core.js` `createKistServer({ format, regler,
+rules, collections, fallbackChest, texts })` → `answerQuestion`, `openChest`,
+`chooseVictim`, `noteLeader`, `matchWindow`; rättningen i
+`functions/kistspel-rattning.js` (`KsError`, multiplikation, quiz, tidslinje).
+Guldrushen: `functions/guldrush-core.js` (samlingarna `grPlayers`,
+`grPrivate`, `grPublic`, `grMeta`, `grEvents`).
+
+**Synk till `functions/`:** `npm run sync:kistspel` (= `sync:guldrush`, körs
+som `predeploy`) kopierar `src/live/kistspel/delat/` → `functions/kistspel/`
+och formatets `delat/` → `functions/<id>/`. Formatets delat importerar motorn
+som `"../../../kistspel/delat/ks-regler.js"`; i kopian skrivs vägen om till
+`"../kistspel/ks-regler.js"`. Lägg formatets rad i `PAIRS` i
+`admin/sync-guldrush-functions.mjs`; `test/live-guldrush-delat.test.js` fäller
+en kopia som glidit isär.
+
 ---
 
 ## 2. Format-objektet (`index.js`)
@@ -246,7 +292,7 @@ Kom ihåg: regeländringar gäller först efter
   Projektorn visar linjen utan markör och vid avslöjandet rätt år + anonym spridning
   (`src/timeline/timeline-spread.js`). Förebild: Snilleblixten. Rättar SERVERN
   (Guldrushen, #601): frågans `kind` läses ur den lagrade ögonblicksbilden, aldrig
-  ur anropet – se `functions/guldrush-rattning.js` (form, spann, låst år).
+  ur anropet – se `functions/kistspel-rattning.js` (form, spann, låst år).
 - **Svarskomponent:** utan `createStage` monterar elevsidan kärnans komponent
   för svarssättet (`loadAnswerComponent(kind)` i `answer-kinds.js`:
   `free` = `src/mult/fast-answer.js`, `choice` = `src/live/choice-flow.js`).
@@ -525,6 +571,7 @@ Tester i `test/functions-<id>*.test.mjs`, tillagda i `test:functions` i
 ## 10. Checklista
 
 - [ ] `src/live/formats/<id>/` med `index.js`, ren `<id>-core.js`, lata vyer
+- [ ] Kistformat (kistor, stöld, skydd)? Bygg på `src/live/kistspel/` (§1.1)
 - [ ] En rad i `BUILTIN_FORMATS` (`src/live/formats/index.js`)
 - [ ] Regelgren i `firestore.rules` + routning i `allow create`/`allow update`
 - [ ] `test/live-<id>.test.js` + `test/firestore-rules-live-<id>.test.js`

@@ -16,7 +16,7 @@
 //
 // API
 //   KsError(code, message)        HttpsError-kod + svenskt meddelande
-//                                 (guldrush-rattning.js: samma klass som GrError)
+//                                 (guldrush-core.js exporterar den som GrError)
 //   gradeMult(s, raw)             → svarsdokumentets fält (mode multiplikation)
 //   gradeQuiz(s, raw, g, pub, priv) → svarsdokumentets fält (flerval/tidslinje)
 //   pickNextQ(n, cur, rng)        → nästa frågeindex, aldrig samma två i rad

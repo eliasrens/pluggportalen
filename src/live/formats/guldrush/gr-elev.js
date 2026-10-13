@@ -15,6 +15,7 @@
 // ks-elev.js – här bara Guldrushens texter. Samma API som förut.
 //
 // API
+//   GR_ELEV                       Guldrushens tema (kistspel createKistElev)
 //   goldStanding(grPlayers, uid) → { gold, rel }   rel = relativeStanding (guld)
 //   standingText(rel) → "20 guld bakom Alma" | "Du leder! 💰" | "Lika med Alma" | ""
 //   victimRows(kind, me, grPlayers, now) → [{ uid, name, first, classId, gold,

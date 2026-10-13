@@ -16,6 +16,7 @@
 // ljuden, finalens rubrik och totalrad). Samma API som förut.
 //
 // API
+//   GR_SCEN                       Guldrushens tema (kistspel createProjScen)
 //   GR_TOP                        10 guldhögar
 //   GR_TICK_S                     tick sista 10 s
 //   GR_MILESTONES                 klassens gemensamma delmål (guld)
