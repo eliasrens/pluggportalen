@@ -17,6 +17,8 @@
 // och all geometri kommer ur världens config. Stegmarkörer, avatar,
 // gånganimation, firande och världsväljaren är generiska.
 // Ingen nivå visas någonsin. prefers-reduced-motion → hopp i stället för gång.
+// Sista världen klar (#660): lugn "resan klar"-ruta med knappen "Läs en text"
+// (anropar onStartNext) – eleven kan alltid läsa vidare.
 // ============================================================================
 
 import { avatarMarkup } from "../avatars.js";
@@ -117,6 +119,7 @@ export function renderJourneyMap(container, opts = {}) {
       scen + stegen + (medAvatar ? avatarGroup(avatar) : "") +
       `</svg>` +
       varldsPills(v) +
+      (arAktiv && at >= v.steps && !nextWorld(v.id) ? resanKlar() : "") +
       `</div>`;
 
     const nastaEl = container.querySelector("[data-lr-nasta]");
@@ -126,6 +129,10 @@ export function renderJourneyMap(container, opts = {}) {
       nastaEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") start(e);
       }, { signal });
+    }
+    const lasVidare = container.querySelector("[data-lr-las-vidare]");
+    if (lasVidare && onStartNext) {
+      lasVidare.addEventListener("click", (e) => { e.preventDefault(); onStartNext(); }, { signal });
     }
     for (const btn of container.querySelectorAll("[data-lr-varld]")) {
       btn.addEventListener("click", () => {
@@ -150,6 +157,19 @@ export function renderJourneyMap(container, opts = {}) {
       );
     }).join("");
     return `<div class="lr-varldar" role="group" aria-label="Världar">${pills}</div>`;
+  }
+
+  /** Hela resan klar (sista världen, sista steget): en lugn ruta – inget
+   *  blinkar – med en knapp så eleven alltid kan läsa vidare. Stegen tar
+   *  slut, men texterna gör det inte. Nivå/statistik/belöningar rörs inte. */
+  function resanKlar() {
+    return (
+      `<div class="lr-resan-klar" role="status">` +
+      `<span class="lr-resan-klar-ikon" aria-hidden="true">🌟</span>` +
+      `<span class="lr-resan-klar-text"><b>Du har klarat hela Läsresan!</b> Läs gärna fler texter – de ger pluggcoins som vanligt.</span>` +
+      (onStartNext ? `<button type="button" class="btn liten gron" data-lr-las-vidare>📖 Läs en text</button>` : "") +
+      `</div>`
+    );
   }
 
   /** Ställ avataren på ett steg (0 = startpunkten). */
@@ -198,8 +218,8 @@ export function renderJourneyMap(container, opts = {}) {
     el.innerHTML =
       bitar +
       `<div class="lr-firande-kort"><div class="lr-stor">🎉</div>` +
-      `<h3>${v.name} är klar!</h3>` +
-      (nasta ? `<p>🔓 ${nasta.name} öppnas!</p>` : `<p>Du har klarat hela resan! ⭐</p>`) +
+      `<h3>Du har klarat ${v.name}!</h3>` +
+      (nasta ? `<p>🔓 ${nasta.name} öppnas!</p>` : `<p>Hela Läsresan är klar! ⭐</p>`) +
       `</div>`;
     el.addEventListener("click", () => el.remove(), { signal });
     karta.appendChild(el);
@@ -213,8 +233,9 @@ export function renderJourneyMap(container, opts = {}) {
     stall(g, v, fran == null ? at : fran);
     ga(g, v, fran, at).then(() => {
       // Fira bara i samband med en genomförd gång/världsbyte – inte varje
-      // gång en redan klar värld ritas om.
-      if (!signal.aborted && (fran != null || opts.worldCompleted) && at >= v.steps) fira(v);
+      // gång en redan klar värld ritas om, och inte för texter som läses
+      // efter sista världen (gången 20 → 20, #668).
+      if (!signal.aborted && ((fran != null && fran < at) || opts.worldCompleted) && at >= v.steps) fira(v);
     });
   } else if (!signal.aborted && opts.worldCompleted && v.id === world.id) {
     fira(v);

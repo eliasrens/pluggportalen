@@ -11,7 +11,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { generateTask, seededRng } from "../src/ekvationsresan/generator.js";
-import { levelConfig, FARDIGHET, SKILLS } from "../src/ekvationsresan/config.js";
+import { levelConfig, rulesFor, FARDIGHET, SKILLS } from "../src/ekvationsresan/config.js";
+import { extendTask } from "../src/ekvationsresan/uppgiftstyper.js";
 import { applyCompletion, normalizeProgress, skyddadFranFonstret } from "../src/ekvationsresan/framsteg.js";
 import { ekvationsslag, observera, uppdatera, modellUrForsok, las, fragePoang, ekvationer, indikatorer } from "../src/ekvationsresan/fardigheter.js";
 import { fokusFor, blandning, nastaUppgift, formSlag } from "../src/ekvationsresan/nasta-uppgift.js";
@@ -87,19 +88,21 @@ test("observera: lösningsdelen ger ekvationsslag, operation, självständighet 
 });
 
 test("observera: C förenkling (+ skrivsätt när eleven skriver), D skrivsätt, E balans/förenkling, F text + problemlösning", () => {
-  const c = generateTask(4, { rng: seededRng("obs-c"), type: "C" });
+  const c = generateTask(6, { rng: seededRng("obs-c"), type: "C" });
   assert.equal(c.nastaRad.mode, "skriv");
   const oc = spela(c, { fel: { rad: 1 } }).skills.obs;
   assert.equal(oc.forenkling.s, c.optimalMoves === 1 ? 60 : 20);
   assert.equal(oc.skrivsatt.s, oc.forenkling.s);
-  const cValj = spela(generateTask(2, { rng: seededRng("obs-cv"), type: "C" })).skills.obs;
+  // Välj-läget (nivå ≤ NEXT_ROW_CHOICE_MAX_LEVEL) nås inte av generatorn sedan C börjar på nivå 6 (#657) – byggs här direkt.
+  const rngCv = seededRng("obs-cv");
+  const cValj = spela(extendTask({ ...generateTask(2, { rng: rngCv, type: "A", form: "ax=b" }), type: "C" }, rulesFor(2), rngCv)).skills.obs;
   assert.ok(!("skrivsatt" in cValj), "välj-läget är inget skrivsätt");
   const od = spela(generateTask(3, { rng: seededRng("obs-d"), type: "D" }), { fel: { ekvation: "visa" } }).skills.obs;
   assert.deepEqual(od.skrivsatt, { s: 0, h: 1 });
   assert.deepEqual(od.sjalv, { s: 0, h: 1 });
   const rngE = seededRng("obs-e");
   let e;
-  do e = generateTask(4, { rng: rngE, type: "E" }); while (e.fel.kind !== "enaSidan" || e.fel.rad === 0);
+  do e = generateTask(6, { rng: rngE, type: "E" }); while (e.fel.kind !== "enaSidan" || e.fel.rad === 0);
   assert.deepEqual(spela(e, { fel: { steg: 1 } }).skills.obs.balans, { s: 60, h: 0 });
   const f = generateTask(4, { rng: seededRng("obs-f"), type: "F" });
   const of = spela(f, { fel: { ekvation: 2 } }).skills.obs;
@@ -197,7 +200,7 @@ test("scenario 1: misslyckade fokusuppgifter räknas inte i nivåfönstret – v
 });
 
 test("scenario 2: förstår vågen men svårt med symboler ⇒ fler broar mellan bild och skrivsätt", () => {
-  const { progress } = elev(4, [
+  const { progress } = elev(6, [
     { type: "A", antal: 4 },
     { type: "D", plan: { fel: { ekvation: "visa" } }, antal: 2 },
     { type: "C", plan: { fel: { rad: 2 } }, antal: 2 },
@@ -216,6 +219,11 @@ test("scenario 2: förstår vågen men svårt med symboler ⇒ fler broar mellan
   const aAvAB = (ts) => andel(ts.filter((t) => t.type === "A" || t.type === "B"), (t) => t.type === "A");
   assert.ok(aAvAB(med) > aAvAB(utan) + 0.1, `vågen i fokus oftare än Lös själv: ${aAvAB(med)} mot ${aAvAB(utan)}`);
   assert.ok(med.every((t) => t.level === progress.level));
+  // nivå 1–5 saknar C (#657): broarna blir D + A, aldrig nästa rad
+  const lag = blandning(4, progress.skills);
+  assert.ok(!("C" in lag.mix.types) && !("E" in lag.mix.types));
+  assert.equal(lag.mix.types.D, FARDIGHET.broD);
+  assert.ok(dragningar({ ...progress, level: 4 }).every((t) => t.type !== "C" && t.type !== "E"));
   // nivå 9+ saknar D: broarna blir C + A
   const hog = blandning(10, progress.skills);
   assert.ok(!("D" in hog.mix.types));
@@ -289,7 +297,7 @@ test("sammanfattning: 'Tar ofta många extra steg trots korrekta slutsvar.'", ()
 });
 
 test("sammanfattning: 'Förstår vågen men har svårt att skriva ekvationen med symboler.'", () => {
-  const { progress } = elev(4, [{ type: "A", antal: 4 }, { type: "D", plan: { fel: { ekvation: "visa" } }, antal: 2 }, { type: "C", plan: { fel: { rad: 2 } }, antal: 2 }], "bro");
+  const { progress } = elev(6, [{ type: "A", antal: 4 }, { type: "D", plan: { fel: { ekvation: "visa" } }, antal: 2 }, { type: "C", plan: { fel: { rad: 2 } }, antal: 2 }], "bro");
   assert.ok(meningar(progress).includes("Förstår vågen men har svårt att skriva ekvationen med symboler."));
 });
 

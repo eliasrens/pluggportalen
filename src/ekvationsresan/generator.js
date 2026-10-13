@@ -24,7 +24,7 @@
 // config.js + former i forms.js.
 // ============================================================================
 
-import { levelConfig, rulesFor } from "./config.js";
+import { levelConfig, rulesFor, typeAllowed } from "./config.js";
 import { FORMS } from "./forms.js";
 import { toJSON, equationKey, swapSides, solve } from "./equation.js";
 import { toQ, eq as same, isInteger, isDecimal } from "./rational.js";
@@ -87,12 +87,14 @@ function solutionAllowed(x, rules) {
 
 /**
  * Typen för nästa uppgift: C–F med nivåns andelar (`types`), annars A/B med
- * andelen B. `forced` (similarTask, tester) vinner.
+ * andelen B. `forced` (similarTask, tester) vinner. En typ under sin lägsta
+ * nivå (TYPE_MIN_LEVEL, #657) dras aldrig – dess andel går till A/B.
  */
 export function pickType(cfg, rng, forced = null) {
   if (forced) return forced;
   let r = rng();
   for (const [id, share] of Object.entries(cfg.types || {})) {
+    if (!typeAllowed(id, cfg.level)) continue;
     if ((r -= share) < 0) return id;
   }
   return rng() < (cfg.typeB ?? 0) ? "B" : "A";
@@ -152,7 +154,8 @@ export function generateTask(level, { rng = Math.random, previous = null, form =
     let t = pickType(cfg, rng, forced);
     let forms = formsFor(t, cfg);
     // D/F bygger ekvationen ur bild/text med x till vänster – en tvingad sida (swap) går före.
-    if (!Object.keys(forms).length || (form && !Object.hasOwn(forms, form)) || (swap === true && forcesUnswapped(t))) {
+    // En typ under sin lägsta nivå (tvingad, gammal uppgift i "Försök igen") blir A/B (#657).
+    if (!typeAllowed(t, level) || !Object.keys(forms).length || (form && !Object.hasOwn(forms, form)) || (swap === true && forcesUnswapped(t))) {
       t = rng() < (cfg.typeB ?? 0) ? "B" : "A";
       forms = cfg.forms;
     }

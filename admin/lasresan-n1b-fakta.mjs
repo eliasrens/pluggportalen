@@ -1,0 +1,360 @@
+// ============================================================================
+// Läsresan – källtexter för nivå 4 fil b, fact (issue #664)
+// ----------------------------------------------------------------------------
+// Faktatexter, 60–110 ord, 6–7 frågor. Rätt svar står FÖRST i varje
+// options-lista; admin/lasresan-n1b-bygg.mjs flyttar det till en balanserad
+// position och skriver src/lasresan/content/bank/level-4-b.json.
+// ============================================================================
+
+// [fråga, [rätt, fel, fel, fel], kategori]
+export const FAKTA = [
+  {
+    id: "lr-n1-huggormen", title: "Ormen med sicksackmönster", textType: "fact", topic: "djur",
+    body: [
+      "Huggormen är Sveriges enda giftiga orm. Man känner igen den på ett mörkt sicksackmönster längs ryggen.",
+      "Huggormen är växelvarm. Den har ingen egen värme. Därför ligger den gärna på en varm sten i solen på morgonen. När den har blivit varm kan den jaga möss och sorkar.",
+      "Huggormen är skygg. Den känner när marken skakar och glider oftast undan när någon kommer. Den hugger bara om den blir trampad på eller känner sig hotad.",
+      "Den som blir biten ska hålla sig lugn och åka till sjukhuset.",
+    ],
+    q: [
+      ["Vad är speciellt med huggormen?", ["Sveriges enda giftiga orm", "Sveriges största och längsta orm", "Den lever bara i vatten", "Den har små ben"], "fakta"],
+      ["Hur känner man igen en huggorm?", ["Sicksackmönster på ryggen", "Röda prickar", "Gula ränder runt hela halsen", "Den är helt vit"], "fakta"],
+      ["Huggormen är växelvarm. Vad betyder det?", ["Den har ingen egen värme", "Den byter färg", "Den är alltid varm", "Den flyttar söderut på hösten"], "ordforstaelse"],
+      ["Vad äter huggormen?", ["Möss och sorkar", "Blad och gräs", "Fisk från sjön", "Myror och skalbaggar"], "fakta"],
+      ["Vad gör huggormen oftast när en människa kommer?", ["Glider undan", "Hugger direkt", "Jagar efter människan", "Klättrar upp i ett träd"], "fakta"],
+      ["Varför kan det vara bra att gå med tunga steg i skogen?", ["Ormen känner det och hinner undan", "Då blir ormen varm", "Då hittar man fler möss", "Då blir man mindre trött"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-n1-tararna", title: "Tårar som skyddar", textType: "fact", topic: "kroppen",
+    body: [
+      "Varje gång du blinkar sprids en tunn hinna av tårvätska över ögat. Den håller ögat fuktigt och tvättar bort damm. Tårvätskan kommer från en liten körtel ovanför ögat.",
+      "Om du får något i ögat, till exempel sand, rinner det plötsligt mer tårar. Då spolas skräpet ut.",
+      "Man gråter när man är ledsen, men ibland också när man är mycket glad. Efter en stunds gråt känner många sig lite bättre.",
+      "Tårarna rinner sedan ut genom en liten kanal till näsan. Därför blir man snorig när man gråter.",
+    ],
+    q: [
+      ["Vad händer när du blinkar?", ["Tårvätska sprids över ögat", "Ögat blir torrt", "Ögat byter färg", "Näsan blir täppt och röd"], "fakta"],
+      ["Vad händer om du får sand i ögat?", ["Det rinner mer tårar", "Ögat slutar att blinka helt", "Man somnar", "Man nyser alltid"], "fakta"],
+      ["Skräpet spolas ut. Vad betyder spolas?", ["Sköljs bort", "Plockas bort med fingrarna", "Blåses bort", "Fastnar"], "ordforstaelse"],
+      ["Varför blir man snorig när man gråter?", ["Tårarna rinner till näsan", "Man blir förkyld", "Man andas fortare", "Ögonen blir röda och svullna"], "fakta"],
+      ["Hur vet man att tårar inte bara betyder att man är ledsen?", ["Man kan gråta av glädje", "Bara vuxna gråter", "Tårar är alltid salta", "Man gråter aldrig ute"], "mellan_raderna"],
+      ["Vad gör tårarna mest, enligt texten?", ["Skyddar och rengör ögat", "Gör oss ledsna", "Värmer ansiktet", "Hjälper oss att höra bättre"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-mars", title: "Den röda planeten", textType: "fact", topic: "rymden",
+    body: [
+      "Mars är den fjärde planeten från solen. Den kallas ofta den röda planeten. Marken där är täckt av rött damm, nästan som rost.",
+      "På Mars är det mycket kallt. Det finns ingen luft som vi kan andas, och inga sjöar eller hav. Men vid polerna finns det is.",
+      "Ett år på Mars är nästan dubbelt så långt som ett år på jorden. Det beror på att Mars har en längre väg runt solen.",
+      "Människor har aldrig varit på Mars. Men forskare har skickat dit robotar på hjul. De kör runt, tar bilder och undersöker stenar.",
+    ],
+    q: [
+      ["Vilken planet från solen är Mars?", ["Den fjärde", "Den första", "Den andra", "Den åttonde"], "fakta"],
+      ["Varför kallas Mars den röda planeten?", ["Marken har rött damm", "Den är väldigt varm", "Den har röda moln", "Solen lyser rött där"], "fakta"],
+      ["Var finns det is på Mars?", ["Vid polerna", "I stora sjöar", "Mitt på planeten", "Inuti robotarna"], "fakta"],
+      ["Robotarna undersöker stenar. Vad gör de?", ["Tittar noga på dem", "Kastar bort dem", "Målar dem röda", "Bygger hus av dem"], "ordforstaelse"],
+      ["Varför skulle det vara svårt för en människa att bo på Mars?", ["Det finns ingen luft att andas", "Det finns för mycket vatten", "Planeten är för liten att stå på", "Det är alltid mörkt"], "mellan_raderna"],
+      ["Vad har forskare skickat till Mars?", ["Robotar på hjul", "Astronauter i rymddräkt", "En ballong med en kamera", "Ett flygplan med passagerare"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-n1-potatisen", title: "Potatisens långa resa", textType: "fact", topic: "mat",
+    body: [
+      "Potatis är något som många svenskar äter nästan varje vecka. Men från början växte den inte här. Den kommer från bergen i Sydamerika.",
+      "För flera hundra år sedan kom potatisen till Europa med båt. Först ville inte så många äta den. Folk tyckte att den såg konstig ut.",
+      "Det är knölarna som vi äter. De växer under jorden. Ovanför jorden växer gröna blad och blommor. Bladen och de andra gröna delarna ska man inte äta, för de är giftiga.",
+      "I dag äter vi potatis kokt, stekt, som mos och som pommes frites.",
+    ],
+    q: [
+      ["Var kommer potatisen från?", ["Från bergen i Sydamerika", "Från skogarna i Sverige", "Från de varma öknarna i Afrika", "Från öarna i Asien"], "fakta"],
+      ["Hur kom potatisen till Europa?", ["Med båt", "Med flygplan", "Med tåg", "Med häst och vagn"], "fakta"],
+      ["Varför ville folk inte äta potatis först?", ["Den såg konstig ut", "Den var för dyr", "Den smakade salt", "Den var för stor"], "fakta"],
+      ["Vad är knölarna?", ["Delarna som växer under jorden", "De vita blommorna högst upp på plantan", "De gröna bladen", "Fröna i blomman"], "ordforstaelse"],
+      ["Vilka delar av potatisplantan ska man inte äta?", ["De gröna delarna", "De kokta knölarna", "Den stekta potatisen", "Det färdiga moset"], "fakta"],
+      ["Vad handlar texten mest om?", ["Potatisens historia och hur den växer", "Hur man lagar pommes frites hemma i köket", "Bönder som bor i bergen", "Vackra blommor i trädgården"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-runstenar", title: "Stenar som berättar", textType: "fact", topic: "historia",
+    body: [
+      "I Sverige finns det tusentals runstenar. De flesta restes för ungefär tusen år sedan, på vikingatiden.",
+      "På stenarna finns tecken som kallas runor. Runorna var vikingarnas bokstäver. De var raka och kantiga, eftersom de var lätta att hugga in i sten och trä.",
+      "Ofta skrev man till minne av någon som hade dött. Det kunde stå: ”Tore reste stenen efter sin far.” Många stenar var målade i starka färger, men färgen har regnat bort.",
+      "Runorna slingrar sig ofta i en lång orm runt stenen. Kanske finns det en runsten nära dig?",
+    ],
+    q: [
+      ["När restes de flesta runstenar?", ["För ungefär tusen år sedan", "För tio år sedan", "För hundra år sedan", "För en miljon år sedan"], "fakta"],
+      ["Vad är runor?", ["Vikingarnas bokstäver", "Vikingarnas vapen", "Gamla mynt av silver", "Stenar vid vägen"], "ordforstaelse"],
+      ["Varför var runorna raka och kantiga?", ["De var lätta att hugga in", "De var vackrast så", "Kungen bestämde det", "De syntes bättre i mörker"], "fakta"],
+      ["Varför skrev man ofta på stenarna?", ["Till minne av någon som dött", "För att sälja fisk och tyg på marknaden", "För att visa vägen", "För att lära barnen att läsa"], "fakta"],
+      ["Varför ser de flesta runstenar inte färgglada ut i dag?", ["Regnet har tvättat bort färgen", "Vikingarna målade aldrig", "Färgen var osynlig", "Stenarna har bytts ut mot nya stenar"], "mellan_raderna"],
+      ["Vad kan man lära sig av runstenar?", ["Om människor på vikingatiden", "Hur man bygger ett vikingaskepp av trä", "Hur ormar ser ut på riktigt", "Var det finns guld gömt i marken"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-bina", title: "Bina gör honung", textType: "fact", topic: "djur",
+    body: [
+      "I en bikupa kan det bo över 40 000 bin. De flesta är arbetsbin. Det finns bara en drottning, och hon lägger alla ägg.",
+      "Arbetsbina flyger ut till blommor. Där suger de upp en söt saft som heter nektar. Hemma i kupan gör de om nektarn till honung. Honungen blir mat till vintern.",
+      "Bina hjälper också blommorna. När ett bi flyger från blomma till blomma följer det gula pollenet med. Då kan blommorna bli till frukt och bär.",
+      "Ett bi som hittar många blommor dansar en särskild dans. Så visar det de andra vägen.",
+    ],
+    q: [
+      ["Hur många bin kan bo i en kupa?", ["Över 40 000", "Omkring 40", "Ungefär 400", "Exakt 4"], "fakta"],
+      ["Vem lägger alla ägg?", ["Drottningen", "Arbetsbina", "De äldsta bina", "Alla bin"], "fakta"],
+      ["Vad är nektar?", ["En söt saft i blommor", "Ett slags gult pollen", "Vaxet i kupan", "Ett bis gadd"], "ordforstaelse"],
+      ["Vad gör bina med nektarn?", ["Gör om den till honung", "Ger den till fåglarna", "Bygger hus av den", "Häller ut den på marken"], "fakta"],
+      ["Varför skulle det bli mindre frukt om det inte fanns några bin?", ["Ingen skulle flytta pollenet", "Träden skulle frysa", "Det skulle bli för mycket honung", "Fåglarna skulle äta upp blommorna"], "mellan_raderna"],
+      ["Hur visar ett bi vägen till blommorna?", ["Det dansar", "Det surrar högt", "Det ritar en karta", "Det lyser"], "fakta"],
+      ["Vilken rubrik passar också till texten?", ["Små djur med stora jobb", "Bin är farliga", "Så gör du sylt", "Blommor på vintern"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-regnet", title: "Varför regnar det?", textType: "fact", topic: "natur",
+    body: [
+      "Solen värmer vattnet i hav, sjöar och pölar. Då blir lite av vattnet till ånga. Ångan är så lätt att den stiger upp i luften. Du kan inte se den.",
+      "Högt upp är luften kall. Där blir ångan till små, små vattendroppar. Miljontals droppar tillsammans blir ett moln.",
+      "När dropparna i molnet slår ihop sig blir de större och tyngre. Till slut är de så tunga att de faller ner. Då regnar det.",
+      "Regnet rinner ut i bäckar, älvar och hav. Sedan börjar resan om igen. Vattnet går runt, runt hela tiden.",
+    ],
+    q: [
+      ["Vad värmer vattnet i haven?", ["Solen", "Månen", "Vinden", "Molnen"], "fakta"],
+      ["Ångan stiger. Vad betyder det?", ["Den rör sig uppåt", "Den blir kallare", "Den faller ner", "Den blir synlig"], "ordforstaelse"],
+      ["Vad händer med ångan högt upp?", ["Den blir till små droppar", "Den blir varmare och varmare", "Den försvinner för alltid", "Den blir till fina sandkorn"], "fakta"],
+      ["Vad är ett moln?", ["Massor av små droppar", "Rök från skorstenar", "Bomull som flyger", "Snö som smälter"], "fakta"],
+      ["När faller dropparna ner?", ["När de blir för tunga", "När solen går ner", "När det blåser", "När det blir natt"], "fakta"],
+      ["Varför tar vattnet på jorden inte slut?", ["Samma vatten går runt hela tiden", "Det kommer nytt vatten från rymden", "Människor tillverkar nytt vatten", "Molnen gör vatten av luft"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-australien", title: "Landet med kängurur", textType: "fact", topic: "länder",
+    body: [
+      "Australien ligger långt bort, på andra sidan jorden. Det är både ett land och en kontinent. När det är vinter i Sverige är det sommar i Australien.",
+      "Mitt i landet är det torrt och varmt. Där finns stora öknar med röd sand. De flesta människor bor nära havet, i stora städer.",
+      "I Australien lever djur som är ovanliga i resten av världen. Kängurun hoppar fram på sina starka bakben. Ungen bor i en pung på mammans mage. Koalan sover nästan hela dagen uppe i träden.",
+      "Vid kusten finns ett stort korallrev med färgglada fiskar.",
+    ],
+    q: [
+      ["Var ligger Australien?", ["På andra sidan jorden", "Nära Sverige", "Mitt i Europa", "Vid Nordpolen"], "fakta"],
+      ["Vilken årstid är det i Australien när det är vinter i Sverige?", ["Sommar", "Vinter", "Höst", "Vår"], "fakta"],
+      ["Var bor de flesta människor i Australien?", ["Nära havet", "Mitt i öknen", "Uppe i bergen", "I små byar i skogen"], "fakta"],
+      ["Vad är en pung?", ["En ficka på mammans mage", "Ett bo högt uppe i ett träd", "En sorts boll", "En liten unge"], "ordforstaelse"],
+      ["Vad gör koalan nästan hela dagen?", ["Sover", "Hoppar", "Simmar", "Äter gräs"], "fakta"],
+      ["Varför bor få människor mitt i landet?", ["Det är torrt och varmt där", "Kängurur bor där", "Det är för kallt där", "Det finns för många städer"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-n1-fjarrkontrollen", title: "Det osynliga ljuset", textType: "fact", topic: "teknik",
+    body: [
+      "Du trycker på en knapp, och tv:n byter kanal. Hur går det till?",
+      "Längst fram på fjärrkontrollen sitter en liten lampa. När du trycker på en knapp blinkar den mycket snabbt. Ljuset kallas infrarött ljus, och det kan människors ögon inte se.",
+      "Varje knapp har sitt eget blinkmönster. Tv:n har ett litet öga som tar emot ljuset och förstår vad du vill.",
+      "Ljuset kan inte gå igenom väggar. Därför måste du rikta fjärrkontrollen mot tv:n.",
+      "Titta på lampan genom kameran i en mobil och tryck på en knapp. Ofta syns då en svag blinkning.",
+    ],
+    q: [
+      ["Var sitter lampan?", ["Längst fram på fjärrkontrollen", "Inuti tv:n", "Bredvid batteriet", "I taket ovanför soffan i vardagsrummet"], "fakta"],
+      ["Vad kallas ljuset?", ["Infrarött ljus", "Ultraviolett ljus", "Blått ljus", "Solljus"], "fakta"],
+      ["Varför syns inte ljuset?", ["Våra ögon kan inte se det", "Det är för mörkt", "Lampan är trasig", "Tv:n släcker det med en gång"], "fakta"],
+      ["Hur vet tv:n vilken knapp du tryckt på?", ["Varje knapp blinkar på sitt sätt", "Den hör klicket", "Den gissar", "Knapparna har olika färger och former"], "fakta"],
+      ["Du måste rikta fjärrkontrollen. Vad betyder rikta?", ["Peka mot något", "Laga", "Skaka", "Ladda"], "ordforstaelse"],
+      ["Varför går det inte att byta kanal från rummet bredvid?", ["Ljuset går inte genom väggen", "Batteriet räcker inte så långt", "Tv:n sover", "Kameran är avstängd"], "mellan_raderna"],
+      ["Vad visar tipset med mobilkameran?", ["Att det finns ljus som ögat inte ser", "Att mobilen kan styra tv:n", "Att lampan är trasig", "Att kameran är bättre än tv:n"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-allemansratten", title: "Allemansrätten", textType: "fact", topic: "samhälle",
+    body: [
+      "I Sverige finns något som heter allemansrätten. Den betyder att alla får vara ute i naturen, även i skog som någon annan äger.",
+      "Du får gå, cykla och plocka bär och svamp. Du får bada i sjöar och tälta ett par dygn på samma ställe.",
+      "Men allemansrätten har också regler. Man ska inte störa eller förstöra. Du får inte bryta grenar från levande träd eller gå över någons tomt. Fåglarnas bon och ungar ska få vara i fred.",
+      "Allt skräp tar du med dig hem. En bra regel är: lämna platsen som du själv vill hitta den.",
+    ],
+    q: [
+      ["Vad betyder allemansrätten?", ["Att alla får vara ute i naturen", "Att alla får bestämma i skogen", "Att man får bygga hus var man vill", "Att alla måste plocka bär"], "ordforstaelse"],
+      ["Hur länge får man tälta på ett ställe?", ["Ett par dygn", "En hel månad", "Ett helt år", "Hur länge man vill"], "fakta"],
+      ["Vad får du inte göra?", ["Bryta grenar från levande träd", "Plocka blåbär och lingon i skogen", "Bada i en sjö", "Cykla på en stig i skogen"], "fakta"],
+      ["Vad ska du göra med skräpet?", ["Ta med det hem", "Gräva ner det", "Lägga det under en sten", "Elda upp det"], "fakta"],
+      ["Du hittar ett fågelbo med ungar. Vad ska du göra?", ["Låta det vara", "Ta med det hem", "Flytta det till ett annat träd", "Klappa ungarna"], "mellan_raderna"],
+      ["Vad menas med att lämna platsen som du själv vill hitta den?", ["Den ska vara ren och hel", "Den ska ha fler träd än förut", "Du ska bygga något där", "Du ska ta med dig stenar"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-curling", title: "Stenen som glider", textType: "fact", topic: "sport",
+    body: [
+      "Curling är en sport som spelas på is. Två lag turas om att skjuta tunga stenar mot en måltavla i andra änden av banan. Måltavlan kallas boet.",
+      "En sten väger nästan 20 kilo. Den är gjord av granit och har ett handtag på ovansidan.",
+      "Medan stenen glider sopar två spelare isen framför den med borstar. Då blir isen lite varmare och blankare, och stenen glider längre och rakare.",
+      "Laget som har sina stenar närmast mitten av boet får poäng. Sverige har vunnit många mästerskap i curling.",
+    ],
+    q: [
+      ["Var spelas curling?", ["På is", "På gräs", "På sand", "I vatten"], "fakta"],
+      ["Vad är stenen gjord av?", ["Granit", "Trä", "Hård plast", "Is"], "fakta"],
+      ["Vad kallas måltavlan?", ["Boet", "Målet", "Ringen", "Korgen"], "fakta"],
+      ["Hur mycket väger en sten?", ["Nästan 20 kilo", "Ett kilo", "Ungefär hundra kilo", "Fem kilo"], "fakta"],
+      ["Vad händer med isen när spelarna sopar?", ["Den blir varmare och blankare", "Den blir smutsig", "Den spricker", "Den blir kallare och mycket strävare"], "fakta"],
+      ["Stenen glider. Vad betyder glider?", ["Åker mjukt över ytan", "Rullar runt", "Hoppar", "Står alldeles still på samma ställe"], "ordforstaelse"],
+      ["Vad kan hända om ingen sopar?", ["Stenen stannar för tidigt", "Isen smälter", "Stenen går sönder", "Laget får fler poäng"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-n1-kamelen", title: "Öknens skepp", textType: "fact", topic: "djur",
+    body: [
+      "Kamelen kallas ibland öknens skepp. Den kan bära tunga saker långt genom heta öknar.",
+      "Många tror att kamelen har vatten i sina pucklar. Men det är fel. Pucklarna är fulla av fett. Fettet blir som ett förråd av energi när det inte finns mat.",
+      "Kamelen kan klara sig länge utan att dricka. Men när den väl hittar vatten kan den dricka över hundra liter på en kvart.",
+      "Kamelen har långa ögonfransar och kan stänga näsborrarna. Då kommer inte sanden in när det blåser.",
+    ],
+    q: [
+      ["Varför kallas kamelen öknens skepp?", ["Den bär saker genom öknen", "Den kan simma i sanden", "Den ser ut som en båt", "Den bor nära havet"], "ordforstaelse"],
+      ["Vad finns i pucklarna?", ["Fett", "Vatten", "Sand", "Luft"], "fakta"],
+      ["Hur mycket kan kamelen dricka på en kvart?", ["Över hundra liter", "En liter", "Tio liter", "En hink"], "fakta"],
+      ["Vad skyddar de långa ögonfransarna mot?", ["Sanden", "Kylan", "Regnet", "Myggorna i öknen"], "fakta"],
+      ["En kamel har inte ätit på länge. Vad händer nog med pucklarna?", ["De blir mindre", "De blir större", "De blir blöta", "De byter färg"], "mellan_raderna"],
+      ["Vad visar texten om kamelen?", ["Den är gjord för öknen", "Den tycker inte om värme", "Den behöver dricka hela tiden", "Den är rädd för sand"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-fallskarmen", title: "Tyget som bromsar", textType: "fact", topic: "teknik",
+    body: [
+      "Om man hoppar ur ett flygplan faller man fortare och fortare. Utan hjälp skulle man slå i marken med väldig fart. Därför har den som hoppar en fallskärm.",
+      "Fallskärmen är ett stort tygstycke, som ett tak. Den ligger hopvikt i en ryggsäck. När hopparen drar i ett handtag vecklar den ut sig.",
+      "Luften fångas under tyget. Den trycker uppåt och bromsar fallet. Ju större fallskärmen är, desto mer luft fångar den.",
+      "Med linor kan hopparen styra mot rätt plats och landa mjukt.",
+    ],
+    q: [
+      ["Vad händer med farten om man faller utan fallskärm?", ["Den ökar hela tiden", "Den minskar", "Den är alltid lika", "Man stannar i luften"], "fakta"],
+      ["Var ligger fallskärmen innan den öppnas?", ["Hopvikt i en ryggsäck", "I flygplanet", "I fickan", "I en låda under sätet"], "fakta"],
+      ["Vad gör hopparen för att öppna den?", ["Drar i ett handtag", "Blåser i en visselpipa", "Trycker på en knapp i planet", "Ropar högt"], "fakta"],
+      ["Vad bromsar fallet?", ["Luften under tyget", "Vinden från flygplanet", "Linorna", "Ryggsäcken"], "fakta"],
+      ["Fallskärmen vecklar ut sig. Vad betyder det?", ["Den öppnar sig", "Den går sönder", "Den viks ihop", "Den blir mindre"], "ordforstaelse"],
+      ["Vilken fallskärm bromsar bäst?", ["En stor", "En liten", "En röd", "En tung"], "mellan_raderna"],
+      ["Vad handlar texten mest om?", ["Hur en fallskärm gör landningen mjuk", "Hur flygplan kan flyga", "Varför luft är osynlig", "Hur man syr kläder av tyg"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-telefonen", title: "När telefonen var ny", textType: "fact", topic: "historia",
+    body: [
+      "För ungefär 150 år sedan fick en man som hette Alexander Graham Bell patent på telefonen. Plötsligt kunde människor prata med varandra fast de var långt ifrån varandra.",
+      "De första telefonerna satt på väggen. Man vevade på ett handtag och fick prata med en telefonist. Telefonisten kopplade sedan samtalet vidare med sladdar till rätt person.",
+      "Först hade bara några få rika familjer telefon. Många gick till posten eller en affär för att ringa.",
+      "I dag har nästan alla en mobiltelefon i fickan. Med den kan man både prata, skicka bilder och se film.",
+    ],
+    q: [
+      ["Vad hette mannen som fick patent på telefonen?", ["Alexander Graham Bell", "Alfred Nobel", "Carl von Linné", "Christofer Columbus"], "fakta"],
+      ["Var satt de första telefonerna?", ["På väggen", "På bordet", "I fickan", "I bilen"], "fakta"],
+      ["Vad gjorde en telefonist?", ["Kopplade samtal vidare", "Lagade trasiga telefoner", "Sålde telefoner i affären", "Bar ut brev"], "ordforstaelse"],
+      ["Varför gick många till posten för att ringa?", ["De hade ingen egen telefon", "Det var roligare där", "Posten låg nära", "Det var gratis"], "mellan_raderna"],
+      ["Vad kan man göra med en mobil i dag?", ["Skicka bilder", "Veva på ett handtag", "Koppla sladdar", "Skriva runor"], "fakta"],
+      ["Vad visar texten?", ["Att telefonen har ändrats mycket", "Att telefoner alltid sett likadana ut", "Att bara rika har mobil i dag", "Att telefonen är tusen år gammal"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-italien", title: "Landet som liknar en stövel", textType: "fact", topic: "länder",
+    body: [
+      "Titta på en karta över Europa. I söder ser du ett land som liknar en stövel. Det är Italien. Stöveln sticker ut i Medelhavet.",
+      "Huvudstaden heter Rom. Där finns en jättestor, gammal arena som heter Colosseum. Den byggdes för nästan 2 000 år sedan.",
+      "I Italien finns också vulkaner. Etna på ön Sicilien är en av Europas mest aktiva vulkaner. Den sprutar ut aska och lava då och då.",
+      "Många maträtter kommer från Italien, till exempel pizza och pasta. Pizzan kommer från staden Neapel.",
+    ],
+    q: [
+      ["Vad liknar Italien på kartan?", ["En stövel", "En vante", "En fisk", "En hatt"], "fakta"],
+      ["Vad heter Italiens huvudstad?", ["Rom", "Neapel", "Sicilien", "Etna"], "fakta"],
+      ["När byggdes Colosseum?", ["För nästan 2 000 år sedan", "För 20 år sedan", "För ungefär 200 år sedan", "För ungefär 20 000 år sedan"], "fakta"],
+      ["Etna är en aktiv vulkan. Vad betyder det?", ["Den får utbrott ibland", "Den är mycket gammal", "Den är täckt av snö", "Den har slocknat för alltid"], "ordforstaelse"],
+      ["Varför kan det vara farligt att bo nära Etna?", ["Det kan komma lava och aska", "Det är alldeles för långt till Rom", "Havet är för kallt att bada i", "Det finns inga affärer"], "mellan_raderna"],
+      ["Var kommer pizzan ifrån?", ["Från Neapel", "Från Rom", "Från Sicilien", "Från Sverige"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-n1-uppvarmning", title: "Varför värmer man upp?", textType: "fact", topic: "sport",
+    body: [
+      "Innan en match eller ett träningspass brukar man värma upp. Man joggar lugnt, hoppar och svänger med armarna i några minuter.",
+      "Varför gör man det? När musklerna blir varma blir de mjukare och fungerar bättre. Då är det mindre risk att man skadar sig. Hjärtat börjar slå lite fortare och skickar mer blod till musklerna.",
+      "Uppvärmningen gör också att man tänker på det man ska göra. Man blir redo i både kroppen och huvudet.",
+      "Efter träningen är det bra att jogga lugnt en stund och sträcka ut musklerna. Det kallas nedvarvning.",
+    ],
+    q: [
+      ["Vad gör man när man värmer upp?", ["Joggar lugnt och hoppar", "Ligger och vilar", "Äter en stor måltid", "Sitter still på bänken"], "fakta"],
+      ["Vad händer med musklerna när de blir varma?", ["De blir mjukare", "De blir kalla", "De krymper", "De somnar"], "fakta"],
+      ["Vad kan hända om man inte värmer upp?", ["Man kan lättare skada sig", "Man blir hungrig", "Matchen blir inställd", "Man blir längre"], "mellan_raderna"],
+      ["Vad gör hjärtat under uppvärmningen?", ["Slår lite fortare", "Slutar slå", "Blir mindre", "Slår långsammare"], "fakta"],
+      ["Man blir redo. Vad betyder redo?", ["Beredd", "Trött", "Ledsen", "Sjuk"], "ordforstaelse"],
+      ["Vad kallas det man gör efter träningen?", ["Nedvarvning", "Uppvärmning", "Halvtid", "Paus"], "fakta"],
+      ["Vad är det viktigaste med uppvärmning?", ["Kroppen blir redo för att träna", "Man blir trött innan matchen", "Man hinner prata med kompisarna", "Man får vänta på domaren"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-ormbunken", title: "Växten från dinosauriernas tid", textType: "fact", topic: "natur",
+    body: [
+      "Ormbunken är en mycket gammal växt. Den fanns redan när dinosaurierna levde. Då kunde vissa ormbunkar bli lika höga som träd.",
+      "Ormbunken har inga blommor och inga frön. I stället har den sporer. Sporerna är små som damm och sitter i bruna prickar under bladen. Vinden sprider dem.",
+      "På våren rullar nya blad upp sig ur marken. De ser ut som små snäckor.",
+      "Ormbunkar trivs bäst där det är fuktigt och skuggigt, till exempel vid en bäck i granskogen.",
+    ],
+    q: [
+      ["När fanns ormbunkar redan?", ["När dinosaurierna levde", "Bara de senaste åren", "När vikingarna levde", "Först i början av 1900-talet"], "fakta"],
+      ["Vad har ormbunken i stället för frön?", ["Sporer", "Bär", "Kottar", "Nötter"], "fakta"],
+      ["Hur små är sporerna?", ["Små som damm", "Stora som ärtor", "Som riskorn", "Som små stenar på stigen"], "fakta"],
+      ["Var sitter sporerna?", ["Under bladen", "Inne i roten", "I en liten blomma", "Längst upp på stjälken"], "fakta"],
+      ["Vinden sprider sporerna. Vad betyder sprider?", ["För ut åt olika håll", "Samlar ihop i en stor hög", "Gör större", "Tar sönder"], "ordforstaelse"],
+      ["Var är det störst chans att hitta ormbunkar?", ["I en fuktig granskog", "På en solig sandstrand", "Mitt på en åker", "Uppe på ett torrt berg"], "mellan_raderna"],
+      ["Vad handlar texten mest om?", ["En gammal växt och hur den sprids", "Vad dinosaurierna åt", "Hur man planterar frön", "Varför skogar brinner"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-luften", title: "Luften du inte ser", textType: "fact", topic: "vetenskap",
+    body: [
+      "Luften finns runt omkring oss hela tiden. Vi kan inte se den, men vi kan känna den när det blåser.",
+      "Luft tar plats, fast den är osynlig. Det kan du testa själv. Tryck ner ett tomt glas, med öppningen nedåt, i en balja med vatten. Vattnet kan inte fylla glaset. Det beror på att glaset redan är fullt av luft.",
+      "Luft väger också lite. En stor ballong full med luft är lite tyngre än en tom ballong.",
+      "En viktig del av luften är syre. Människor, djur och växter behöver syre för att leva.",
+    ],
+    q: [
+      ["När kan vi känna luften?", ["När det blåser", "När det är mörkt", "När vi sover", "När det snöar"], "fakta"],
+      ["Luften är osynlig. Vad betyder det?", ["Man kan inte se den", "Man kan inte känna den", "Den är mycket kall", "Den luktar illa"], "ordforstaelse"],
+      ["Hur ska man hålla glaset i testet?", ["Med öppningen nedåt", "Med öppningen uppåt", "Liggande på sidan", "Med ett lock på"], "fakta"],
+      ["Varför kan vattnet inte fylla glaset?", ["Glaset är fullt av luft", "Glaset är för litet", "Vattnet är för kallt", "Baljan är tom"], "fakta"],
+      ["Du blåser upp en ballong. Vad fyller du den med?", ["Luft från lungorna", "Vatten", "Sand", "Ingenting"], "mellan_raderna"],
+      ["Vilken väger mest?", ["En ballong full med luft", "En tom ballong", "De väger exakt lika", "Ingen av dem väger något"], "fakta"],
+      ["Vad vill texten visa?", ["Att luft finns fast den inte syns", "Att man klarar sig bra utan luft", "Att glas flyter i vatten", "Att ballonger alltid spricker"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-cykelhjalmen", title: "Hjälmen som skyddar", textType: "fact", topic: "teknik",
+    body: [
+      "När du cyklar ska du ha hjälm. I Sverige är det en lag för alla barn under 15 år.",
+      "Utanpå är hjälmen gjord av hård plast. Inuti finns ett tjockt lager av en lätt sorts skumplast. Om du ramlar och slår i huvudet trycks skumplasten ihop. Då tar hjälmen emot en stor del av smällen i stället för ditt huvud.",
+      "En hjälm måste sitta rätt för att skydda. Den ska sitta rakt på huvudet, en bit ovanför ögonbrynen. Remmen under hakan ska vara spänd.",
+      "Om hjälmen har fått en hård smäll ska den bytas, även om den ser hel ut.",
+    ],
+    q: [
+      ["Vilka måste enligt lagen ha hjälm i Sverige?", ["Barn under 15 år", "Bara vuxna", "Alla över 15 år", "Ingen alls"], "fakta"],
+      ["Vad är hjälmen gjord av utanpå?", ["Hård plast", "Mjukt tyg", "Tunt papper", "Trä"], "fakta"],
+      ["Vad händer med skumplasten vid en smäll?", ["Den trycks ihop", "Den blir blöt", "Den börjar lysa", "Den blir större"], "fakta"],
+      ["Remmen ska vara spänd. Vad betyder det?", ["Den ska sitta åt", "Den ska hänga löst", "Den ska vara lång", "Den ska vara bortklippt"], "ordforstaelse"],
+      ["Var ska hjälmen sitta?", ["En bit ovanför ögonbrynen", "Långt bak i nacken", "Över öronen", "På sned över ena örat"], "fakta"],
+      ["Varför ska man byta en hjälm som fått en smäll fast den ser hel ut?", ["Skummet inuti kan vara förstört", "Den har blivit för liten för huvudet", "Färgen har gått ur", "Den luktar konstigt"], "mellan_raderna"],
+      ["Vad handlar texten mest om?", ["Hur en hjälm skyddar huvudet", "Hur man cyklar fort", "Hur man lagar en cykel", "Var man köper hjälm"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-n1-forsta-fotot", title: "Fotot som tog flera timmar", textType: "fact", topic: "historia",
+    body: [
+      "För ungefär 200 år sedan tog en fransman som hette Niépce ett av de första fotona i världen. Han ställde en låda med en lins i ett fönster. Inne i lådan låg en platta som var känslig för ljus.",
+      "Det tog minst åtta timmar innan bilden syntes på plattan. Bilden visade taken utanför hans fönster.",
+      "Senare blev kamerorna snabbare. Men länge måste man sitta helt stilla i flera minuter. Därför ser människor på gamla foton ofta allvarliga ut.",
+      "I dag tar en mobil en bild på mindre än en sekund.",
+    ],
+    q: [
+      ["När togs ett av de första fotona?", ["För ungefär 200 år sedan", "För ungefär 20 år sedan", "För ungefär 2 000 år sedan", "Förra året"], "fakta"],
+      ["Vad visade bilden?", ["Taken utanför fönstret", "Fotografens hela familj", "En häst", "Havet"], "fakta"],
+      ["Hur lång tid tog det att ta bilden?", ["Minst åtta timmar", "En sekund", "Fem minuter", "Exakt en hel vecka"], "fakta"],
+      ["Plattan var känslig för ljus. Vad betyder det här?", ["Ljuset ändrade den", "Den gick lätt sönder", "Den lyste själv", "Den var mjuk"], "ordforstaelse"],
+      ["Varför ser människor på gamla foton allvarliga ut?", ["Det är svårt att le länge", "De var alltid arga förr", "Fotografen bestämde det så", "De hade ont i tänderna"], "mellan_raderna"],
+      ["Vad visar texten om kameror?", ["De har blivit mycket snabbare", "De har blivit långsammare", "De har inte ändrats alls", "De fungerar bara i fönster"], "helhet_slutsats"],
+    ],
+  },
+];

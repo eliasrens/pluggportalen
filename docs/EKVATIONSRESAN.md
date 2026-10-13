@@ -418,11 +418,20 @@ former de typen klarar och lägger på sin data på uppgiften. Tester:
 `test/ekvationsresan-typer.test.js`. Preview: `node admin/qa-ekvationsresan-seed.mjs
 --typ C|D|E|F [--niva N]` ger elev1 en pågående uppgift av typen.
 
+**Lägsta nivå per typ (#657, Elias 2026-10-13):** `config.TYPE_MIN_LEVEL =
+{ C: 6, E: 6 }` – Nästa rad och Hitta felet förekommer aldrig på nivå 1–5.
+Nivå 1–5 har därför inga C/E i `types` (den andelen går till A/B), och
+generatorn spärrar dessutom själv (`config.typeAllowed`) för alla vägar:
+nivåns andelar, färdighetsmodellens `mix` (bro-fokus höjer bara C där C får
+finnas), tvingad typ (`type`, QA-seed) och "Försök igen" på en äldre C/E-
+uppgift – en spärrad typ blir A/B. Extrautmaningarna är alltid B. Nivå 6–12
+är oförändrade.
+
 | Typ | Vad eleven gör | Data på uppgiften |
 | --- | --- | --- |
-| **C Nästa rad** | Operationsraden står i häftet; eleven skriver (nivå 4+) eller väljer bland tre (nivå 1–3) nästa förenklade rad. Vågen animerar draget efter varje rätt rad. Felalternativen är vanliga missuppfattningar (bara ena ledet, olika operation, halv delning) före räknefel. | `nastaRad: { mode, steg: [{ val: [ekvation ×3] }] }` |
+| **C Nästa rad** | **Från nivå 6** (#657). Operationsraden står i häftet; eleven skriver nästa förenklade rad (välj bland tre finns kvar för nivå ≤ `NEXT_ROW_CHOICE_MAX_LEVEL` = 3, men nås inte i dag). Vågen animerar draget efter varje rätt rad. Felalternativen är vanliga missuppfattningar (bara ena ledet, olika operation, halv delning) före räknefel. | `nastaRad: { mode, steg: [{ val: [ekvation ×3] }] }` |
 | **D Bild → ekvation** | Vågen (utan ekvationsrubrik) + texten "Två spargrisar och 3 mynt är lika mycket som 13 mynt." → eleven skriver `2x + 3 = 13`. Bara former med plus och heltal, föremål eller block. | `bild: { text, x }` (vågens tema ger orden) |
-| **E Hitta felet** | Häftet blir "ALVAS LÖSNING"; en påhittad elev gör ETT fel (bara ena ledet, olika operation, räknefel, delade bara x-termen) och räknar sedan rätt vidare till fel x. Eleven klickar på raden där felet börjar. Från nivå 3 (minst två drag). | `fel: { namn, kind, rad, ratt, steg }` (`hitta-felet.js`) |
+| **E Hitta felet** | Häftet blir "ALVAS LÖSNING"; en påhittad elev gör ETT fel (bara ena ledet, olika operation, räknefel, delade bara x-termen) och räknar sedan rätt vidare till fel x. Eleven klickar på raden där felet börjar. **Från nivå 6** (#657; minst två drag). | `fel: { namn, kind, rad, ratt, steg }` (`hitta-felet.js`) |
 | **F Problemlösning** | Text (+ vågens bild när den visar föremål) → eleven skriver ekvationen → **vanliga lösningsvyn** → "Vad betyder x i uppgiften?" (tre meningar med samma tal, en sann) → svaret skrivs i häftet. Från nivå 3 som en mindre andel (12–14 %), 50 % på nivå 12. | `problem: { mall, text, fraga, bild, val, ratt, svar }` (`problem.js`, mallar per form) |
 
 ### Rättning (`typ-svar.js`)
@@ -514,7 +523,7 @@ Nivån kommer alltid från anpassningen; modellen ändrar bara andelarna på niv
 | Fokus | Villkor | Effekt |
 | --- | --- | --- |
 | `text` | Ekvationsslagen sammantaget starka (≥ 75, ≥ 3 uppgifter) och `text` eller `problem` svag (< 50) | F-andelen ≥ 40 % (nivå 1–2: D i stället). |
-| `bro` | `balans` stark och `skrivsatt` eller `forenkling` svag | D ≥ 30 %, C ≥ 25 %, högst 30 % "Lös själv" bland A/B (fler med vågen i fokus). Nivå 9+ saknar D. |
+| `bro` | `balans` stark och `skrivsatt` eller `forenkling` svag | D ≥ 30 %, C ≥ 25 %, högst 30 % "Lös själv" bland A/B (fler med vågen i fokus). Nivå 1–5 saknar C, nivå 9+ saknar D. |
 | svagast slag | Ett ekvationsslag svagt eller 💡 i minst hälften | Nivåns former som tränar det slaget väger dubbelt (bara det svagaste – annars dubblas ofta allt). |
 
 C–F tillsammans högst 85 %. Uppgifter av fokustypen får `fokus`; **en
@@ -646,3 +655,21 @@ Behålls (ingen kodändring):
   förut. Talfältet släpper igenom parenteser och tar 10 tecken. Generatorn
   och hjälpen föreslår aldrig negativa operander. Tester:
   `test/ekvationsresan-finputs.test.js`.
+
+## #657 – Nästa rad (C) och Hitta felet (E) från nivå 6
+
+Elias beslut 2026-10-13. `TYPE_MIN_LEVEL = { C: 6, E: 6 }` (`config.js`);
+nivå 1–5 har bara D (och F från nivå 3) bland C–F, resten A/B.
+
+- **Välj-läget för C** (`NEXT_ROW_CHOICE_MAX_LEVEL = 3`) nås inte längre –
+  C börjar i skriv-läget på nivå 6. Konstanten och koden är kvar; vill Elias
+  att nivå 6 börjar i välj-läge räcker det att höja konstanten till 6.
+  Välj-läget testas genom att bygga uppgiften direkt (`extendTask`).
+- **Färdighetsmodellen:** `forenkling` observeras bara ur C och E, så en elev
+  på nivå 1–5 får inget underlag där. Lärarvyns indikatorer visar bara
+  färdigheter med underlag (`n > 0`) och sammanfattningarna kräver ≥ 3
+  observationer – inga tomma eller missvisande rader. Bro-fokus kan fortfarande
+  slå till via `skrivsatt` (D); på nivå 1–5 höjs då D, inte C. Äldre försök
+  med C/E på låga nivåer och deras modellvärden bevaras och visas som förut.
+- Tester: `test/ekvationsresan-typniva.test.js` (inga C/E på nivå 1–5 över
+  alla vägar, C och E på 6–12) + uppdaterade typ- och färdighetstester.
