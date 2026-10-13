@@ -7,7 +7,8 @@
 //   • skapar klassen qa-klass-av med eleven ekv-av, där modulen är AV (test 23)
 //   • nollställer elev1:s Ekvationsresan (nivå 1) – eller sätter nivå med --niva N
 //   • --typ C|D|E|F: elev1:s pågående uppgift blir av den typen (#625, nivå
-//     enligt --niva, annars 3) – för att prova uppgiftstyperna i webbläsaren
+//     enligt --niva, annars 3 – för C/E 6, de finns först där, #657) – för att
+//     prova uppgiftstyperna i webbläsaren
 //   • --av: slå AV modulen för qa-klass igen (test 23, påslagen → avstängd)
 //   • --larare: spelar fram riktiga försök (spelets egen logik) för qa-hog
 //     (↗, nivå upp), qa-mitt (blandat), qa-lag (↘, Visa lösningen), qa-svag
@@ -25,6 +26,7 @@
 import admin from "firebase-admin";
 import { generateTask, seededRng } from "../src/ekvationsresan/generator.js";
 import { applyCompletion, normalizeProgress } from "../src/ekvationsresan/framsteg.js";
+import { TYPE_MIN_LEVEL } from "../src/ekvationsresan/config.js";
 import { sammanfattningar } from "../src/ekvationsresan/sammanfattning.js";
 import { spela } from "./qa-ekvationsresan-spela.mjs";
 
@@ -56,7 +58,7 @@ async function resetEkv(uid, lvl = niva) {
   await Promise.all(old.docs.map((d) => d.ref.delete()));
   const ref = db.doc(`studentData/${uid}/ekvationsresa/progress`);
   if (uid === "elev1" && typ) {
-    const level = lvl || 3;
+    const level = Math.max(lvl || 3, TYPE_MIN_LEVEL[typ] ?? 0);
     const task = generateTask(level, { rng: seededRng(`qa-typ-${typ}-${Date.now()}`), type: typ });
     const current = { id: `qa625${typ}${Date.now()}`, at: Date.now(), task };
     await ref.set({ schema: 1, level, window: [], maxLevel: level, current, updatedAt: Date.now() });
@@ -77,7 +79,7 @@ const LARARE = {
   "qa-svag": { level: 2, plays: losa("omvag omvag hjalp ok omvag hjalp") },
   // #626 – färdighetsmodellen (E2.4/E2.5)
   "qa-text": { namn: "Text Tova", level: 5, plays: [...losa("ok ok ok ok ok ok"), ...ganger(3, { type: "F", plan: { fel: { ekvation: "visa" } } })] },
-  "qa-bro": { namn: "Våg Vera", level: 4, plays: [...ganger(4, { type: "A" }), ...ganger(2, { type: "D", plan: { fel: { ekvation: "visa" } } }), ...ganger(2, { type: "C", plan: { fel: { rad: 2 } } })] },
+  "qa-bro": { namn: "Våg Vera", level: 6, plays: [...ganger(4, { type: "A" }), ...ganger(2, { type: "D", plan: { fel: { ekvation: "visa" } } }), ...ganger(2, { type: "C", plan: { fel: { rad: 2 } } })] },
   "qa-koef": { namn: "Koef Kim", level: 6, plays: ["x+a=b", "ax=b", "x/a=b", "x-a=b", "ax=b", "x/a=b", "x+a=b", "ax=b", "x/a=b"].map((form) => ({ type: "B", form, plan: /^x[+-]/.test(form) ? {} : { help: 2 } })) },
   "qa-omvag": { namn: "Omväg Olle", level: 3, plays: ganger(5, { type: "B", plan: { extra: 3 } }) },
 };

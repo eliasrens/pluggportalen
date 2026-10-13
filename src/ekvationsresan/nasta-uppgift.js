@@ -10,7 +10,8 @@
 //         (Nivå 1–2 saknar F; där blir det fler bild → ekvation, D.)
 //   bro   Förstår vågen men har svårt med symboler (skrivsätt/förenkling):
 //         fler broar mellan bild och skrivsätt – bild → ekvation (D), nästa
-//         rad (C) och fler uppgifter med vågen i fokus (A i stället för B).
+//         rad (C, först från nivå 6 – TYPE_MIN_LEVEL #657) och fler uppgifter
+//         med vågen i fokus (A i stället för B).
 //   slag  Det svagaste ekvationsslaget (svagt eller ofta 💡, t.ex. x med
 //         koefficient): nivåns former som tränar det väger dubbelt.
 //
@@ -18,7 +19,7 @@
 // den inte i nivåfönstret (framsteg.skyddadFranFonstret).
 // ============================================================================
 
-import { levelConfig, FARDIGHET } from "./config.js";
+import { levelConfig, typeAllowed, FARDIGHET } from "./config.js";
 import { generateTask, seededRng } from "./generator.js";
 import { las, stark, svag, hjalpOfta, ekvationer, ekvationsslag, EKVATIONSSLAG } from "./fardigheter.js";
 
@@ -82,7 +83,7 @@ export function blandning(level, skills) {
   let typeB = cfg.typeB ?? 0;
   const fokusTyper = {};
   const hojAndel = (t, andel, varfor) => {
-    if (!(t in types) || fokusTyper[t]) return false;
+    if (!(t in types) || !typeAllowed(t, level) || fokusTyper[t]) return false;
     types[t] = Math.max(types[t], andel);
     fokusTyper[t] = varfor;
     return true;
