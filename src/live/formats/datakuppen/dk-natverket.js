@@ -116,7 +116,8 @@ export function createNatverket(host, { st, sound = null, screen = false, deps =
   // Dekor får aldrig ligga bakom text, namn eller avatarer: den översta
   // raden, terminalens ruta och alla tio serverplatser.
   const vakt = createDekorVakt(root, () => [
-    ...[...root.querySelectorAll(".dknv-topp > *, .dknf, .dknv-tom:not([hidden])")].map((el) => el.getBoundingClientRect()),
+    ...[...root.querySelectorAll(".dknv-topp > *, .dknf, .dknv-tom:not([hidden]), .dknp-rubrik, .dknp-steg, .dknp-tillsammans, .dknp-tips, .dknp-folk")]
+      .map((el) => el.getBoundingClientRect()),
     ...servrar.areas(),
   ]);
   const names = () => cur.session?.showNames !== false;
