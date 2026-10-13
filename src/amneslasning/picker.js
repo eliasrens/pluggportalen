@@ -20,13 +20,20 @@ import { parseAmnesLevel } from "./level.js";
 const AMNES_MIN = AMNES_LEVELS[0];
 const AMNES_MAX = AMNES_LEVELS[AMNES_LEVELS.length - 1];
 
-/** Områdets spelbara ämnestexter (id, giltig nivå 1–3, minst en fråga), i områdets ordning. */
+/**
+ * Samma regel som content.isAmnesText (#673): en ämnestext har egna frågor
+ * (questions-array); gamla nivåtexter (#152, { levels: {…} }) räknas aldrig.
+ * När #673 landat byts detta mot readingTextsOf(area) – en regel, ett ställe.
+ */
+const isAmnesText = (t) => !!t && typeof t === "object" && Array.isArray(t.questions);
+
+/** Går att läsa: id, ämnesnivå 1–3 och minst en fråga (sparade texter är validerade så). */
+const isPlayable = (t) => typeof t.id === "string" && !!t.id && parseAmnesLevel(t.level) !== null && t.questions.length > 0;
+
+/** Områdets spelbara ämnestexter, i områdets ordning. */
 export function playableTexts(readingTexts) {
   if (!Array.isArray(readingTexts)) return [];
-  return readingTexts.filter(
-    (t) => t && typeof t.id === "string" && t.id && parseAmnesLevel(t.level) !== null &&
-      Array.isArray(t.questions) && t.questions.length > 0
-  );
+  return readingTexts.filter(isAmnesText).filter(isPlayable);
 }
 
 /** Ämnesnivåer att pröva i ordning: exakt nivå, sedan ±1, ±2 … (lättare först). */
