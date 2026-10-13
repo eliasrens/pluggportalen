@@ -218,8 +218,8 @@ export function renderJourneyMap(container, opts = {}) {
     el.innerHTML =
       bitar +
       `<div class="lr-firande-kort"><div class="lr-stor">🎉</div>` +
-      `<h3>${v.name} är klar!</h3>` +
-      (nasta ? `<p>🔓 ${nasta.name} öppnas!</p>` : `<p>Du har klarat hela resan! ⭐</p>`) +
+      `<h3>Du har klarat ${v.name}!</h3>` +
+      (nasta ? `<p>🔓 ${nasta.name} öppnas!</p>` : `<p>Hela Läsresan är klar! ⭐</p>`) +
       `</div>`;
     el.addEventListener("click", () => el.remove(), { signal });
     karta.appendChild(el);
@@ -233,8 +233,9 @@ export function renderJourneyMap(container, opts = {}) {
     stall(g, v, fran == null ? at : fran);
     ga(g, v, fran, at).then(() => {
       // Fira bara i samband med en genomförd gång/världsbyte – inte varje
-      // gång en redan klar värld ritas om.
-      if (!signal.aborted && (fran != null || opts.worldCompleted) && at >= v.steps) fira(v);
+      // gång en redan klar värld ritas om, och inte för texter som läses
+      // efter sista världen (gången 20 → 20, #668).
+      if (!signal.aborted && ((fran != null && fran < at) || opts.worldCompleted) && at >= v.steps) fira(v);
     });
   } else if (!signal.aborted && opts.worldCompleted && v.id === world.id) {
     fira(v);
