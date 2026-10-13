@@ -88,4 +88,83 @@ export const FAKTA = [
       ["Vad är sant om månen?", ["Den är alltid rund", "Den krymper varje natt", "Den går sönder ibland", "Den byter färg varje natt"], "helhet_slutsats"],
     ],
   },
+  {
+    id: "lr-g2-bina", title: "Bina gör honung", textType: "fact", topic: "djur",
+    body: [
+      "Bin flyger från blomma till blomma. I blommorna finns en söt saft som heter nektar. Bina suger upp nektarn och flyger hem till kupan.",
+      "I kupan gör bina om nektarn till honung. De sparar honungen i små rum av vax. Rummen har sex kanter.",
+      "Bin hjälper också blommorna. När ett bi landar fastnar pollen på dess kropp. Pollen följer med till nästa blomma. Då kan blomman få frön och frukt.",
+    ],
+    q: [
+      ["Vad heter den söta saften i blommorna?", ["Nektar", "Honung", "Vax", "Pollen"], "fakta"],
+      ["Vart flyger bina med nektarn?", ["Till kupan", "Till sjön", "Till skogen", "Till en sten"], "fakta"],
+      ["Vad är rummen i kupan gjorda av?", ["Vax", "Lera", "Trä", "Blad"], "fakta"],
+      ["Hur många kanter har rummen?", ["Sex", "Fyra", "Tre", "Åtta"], "fakta"],
+      ["Hur hjälper bina blommorna?", ["De flyttar pollen", "De vattnar dem", "De äter upp ogräset", "De ger dem honung"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-svampen", title: "Svampar i skogen", textType: "fact", topic: "natur",
+    body: [
+      "På hösten växer det många svampar i skogen. Svampen vi ser är bara en liten del. Under marken finns ett nät av tunna trådar. Det är svampens största del.",
+      "Svampar är varken växter eller djur. De har inga gröna blad och behöver inget solljus.",
+      "Vissa svampar går att äta, till exempel kantareller. Men andra är giftiga och kan göra oss mycket sjuka.",
+      "Plocka därför aldrig svamp själv. Fråga alltid en vuxen som kan mycket om svamp.",
+    ],
+    q: [
+      ["När växer det många svampar?", ["På hösten", "På vintern", "På våren", "Bara på natten"], "fakta"],
+      ["Var finns de tunna trådarna?", ["Under marken", "På träden", "I luften", "I vattnet"], "fakta"],
+      ["Vad är svampar?", ["Varken växter eller djur", "Ett slags blomma", "Små djur som bor i mossan", "Ett slags träd"], "fakta"],
+      ["Vilken svamp går att äta, enligt texten?", ["Kantarell", "Ingen svamp alls", "Alla svampar", "Bara svampar med blad"], "fakta"],
+      ["Vad betyder det att en svamp är giftig?", ["Att den kan göra en sjuk", "Att den smakar sött", "Att den är stor", "Att den är gammal"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-taget", title: "Tåget på rälsen", textType: "fact", topic: "teknik",
+    body: [
+      "Ett tåg kör på räls. Rälsen är två långa skenor av stål. Tågets hjul passar precis på skenorna.",
+      "Längst fram sitter loket. Det drar alla vagnar efter sig. De flesta tåg i Sverige drivs med el. Elen kommer från en ledning ovanför rälsen.",
+      "Förr hade man ånglok. De eldade med kol eller ved och släppte ut mycket rök.",
+      "Tåg kan frakta människor, men också timmer, bilar och mat.",
+    ],
+    q: [
+      ["Vad är rälsen gjord av?", ["Stål", "Trä", "Plast", "Sten"], "fakta"],
+      ["Vad heter delen längst fram som drar vagnarna?", ["Loket", "Rälsen", "Vagnen", "Hjulet"], "fakta"],
+      ["Varifrån kommer elen till tåget?", ["En ledning ovanför rälsen", "Stora batterier i loket", "Solceller på taket", "En motor som går på bensin"], "fakta"],
+      ["Vad eldade ångloken med?", ["Kol eller ved", "Olja och sand", "Papper", "Torrt gräs"], "fakta"],
+      ["Vad kan tåg frakta?", ["Människor och timmer", "Bara människor", "Bara brev och paket", "Bara djur"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-pyramiderna", title: "Pyramiderna i Egypten", textType: "fact", topic: "historia",
+    body: [
+      "I Egypten står stora byggnader av sten. De kallas pyramider. De byggdes för mer än 4000 år sedan.",
+      "Pyramiderna var gravar för kungar. En kung i Egypten kallades farao. När en farao dog fick han sin grav i pyramiden.",
+      "Den största pyramiden är byggd av över två miljoner stenblock. Många människor arbetade i flera år för att bygga den.",
+      "I dag reser turister från hela världen för att se pyramiderna.",
+    ],
+    q: [
+      ["Vad är pyramiderna byggda av?", ["Sten", "Trä", "Sand", "Is"], "fakta"],
+      ["När byggdes pyramiderna?", ["För mer än 4000 år sedan", "För ungefär hundra år sedan", "Förra året", "För tio år sedan"], "fakta"],
+      ["Vad kallades en kung i Egypten?", ["Farao", "Viking", "Riddare", "Prins"], "fakta"],
+      ["Vad var pyramiderna till för?", ["Gravar för kungar", "Hus för bönder", "Skolor för barn", "Förråd för säd och mat"], "fakta"],
+      ["Vad visar det att många arbetade i flera år?", ["Att det var svårt att bygga", "Att pyramiden är liten", "Att det gick snabbt", "Att stenarna var lätta att lyfta"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-olympiska", title: "De olympiska spelen", textType: "fact", topic: "sport",
+    body: [
+      "De olympiska spelen är en stor tävling i idrott. Idrottare från nästan alla länder i världen är med.",
+      "Spelen började för mycket länge sedan i Grekland. Där tävlade man i att springa, brottas och kasta.",
+      "I dag finns sommarspel och vinterspel. Båda hålls vart fjärde år. På sommaren tävlar man till exempel i simning och friidrott. På vintern åker man skidor och skridskor.",
+      "Den som vinner får en guldmedalj. Tvåan får silver och trean får brons.",
+    ],
+    q: [
+      ["I vilket land började spelen?", ["Grekland", "Sverige", "Italien", "Egypten"], "fakta"],
+      ["Hur ofta hålls spelen?", ["Vart fjärde år", "Varje år", "Vartannat år", "Var tionde år"], "fakta"],
+      ["Vilken sport finns på vinterspelen?", ["Skidor", "Simning", "Friidrott", "Brottning"], "fakta"],
+      ["Vad får den som kommer tvåa?", ["Silver", "Guld", "Brons", "En pokal"], "fakta"],
+      ["Vad är en idrottare?", ["En som håller på med sport", "En som bygger hus", "En som lagar mat", "En som tittar på tävlingar"], "ordforstaelse"],
+    ],
+  },
 ];
