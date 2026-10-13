@@ -4,7 +4,7 @@ Slut-QA av epic-grenen `epic/l-sresan-5-nya-v-rldar-havet-djungeln-be-de01e6` (b
 Epicen innehåller världarna i #659/#660 och texterna i #661–#667.
 
 **Resultat:** grenen fungerar. Två små fel i världsbytet är rättade på den här grenen (F1, F2).
-Ett större innehållsfynd (F3) är inte rättat. Det gäller nya texter som liknar texter på andra nivåer.
+Ett större innehållsfynd (F3) gällde nya texter som liknade texter på andra nivåer. Det är rättat i #684.
 
 ## Sammanfattning
 
@@ -37,7 +37,40 @@ Orsaken: gången 20 → 20 räknades som en ny gång.
 Villkoret i `ui-map.js` kräver nu att avataren faktiskt har gått (`fran < at`), eller att världen just blev klar.
 Kontrollerat i appen: firandet kommer när Månen blir klar, men inte efter nästa text. Rutan "Du har klarat hela Läsresan!" med knappen "Läs en text" visas fortfarande.
 
-### F3 – Nya texter liknar texter på andra nivåer (inte rättat, beslut behövs)
+### F3 – Nya texter liknar texter på andra nivåer (rättat i #684)
+**Rättat i #684:** 26 nya texter är utbytta mot texter med nya ämnen (källorna `admin/lasresan-*b-*.mjs`, sedan byggskripten). De gamla filerna `level-N.json` och `level-6-b.json` är inte ändrade. Varje bytt text har lika många frågor som den gamla, så inga andra texters svarspositioner har flyttats.
+Nu ger `node admin/qa-lasresan-varldar-overlapp.mjs` **0 par**, och `test/lasresan-bank-overlapp.test.js` kontrollerar hela banken (inga par över 0,12 och inga dubblerade titlar). Den högsta överlappen för en ny text är 0,07.
+
+| Nivå | Gammal text | Ny text |
+|---|---|---|
+| 1 | `lr-g1-hosten` – Hösten | `lr-g1-kastanjen` – Kastanjen |
+| 1 | `lr-g1-mars` – Den röda planeten | `lr-g1-neptunus` – Neptunus |
+| 2 | `lr-g2-solen` – Solen är en stjärna | `lr-g2-sjostjarnan` – Stjärnan i havet |
+| 2 | `lr-g2-manen` – Månen byter form | `lr-g2-pandan` – Björnen som äter bambu |
+| 2 | `lr-g2-svampen` – Svampar i skogen | `lr-g2-kakaon` – Choklad växer på träd |
+| 2 | `lr-g2-myrstacken` – Myrornas stack | `lr-g2-trollslandan` – Trollsländan |
+| 2 | `lr-g2-hjartat` – Hjärtat slår | `lr-g2-gaspningen` – Ett stort gäsp |
+| 2 | `lr-g2-australien` – Landet med kängurur | `lr-g2-danmark` – Grannlandet Danmark |
+| 2 | `lr-g2-bina` – Bina gör honung | `lr-g2-krokodilen` – Krokodilen i floden |
+| 2 | `lr-g2-regnbagen` – Färgerna på himlen | `lr-g2-nackrosen` – Blomman som flyter |
+| 2 | `lr-g2-ekorren` – Ekorren och vintern | `lr-g2-vildsvinet` – Grisen i skogen |
+| 2 | `lr-g2-skolan-forr` – Skolan för länge sedan | `lr-g2-traskorna` – Skor av trä |
+| 2 | `lr-g2-kartan-vinden` – Kartan på vinden | `lr-g2-krabborna` – Krabborna i hinken |
+| 2 | `lr-g2-spar-i-snon` – Spåren i snön | `lr-g2-paraplyet` – Det gula paraplyet |
+| 3 | `lr-g3-havssaltet` – Varför är havet salt? | `lr-g3-studsen` – Därför studsar bollen |
+| 3 | `lr-g3-reflexen` – Reflexen i mörkret | `lr-g3-brandvarnaren` – Pipet i taket |
+| 3 | `lr-g3-andningen` – Luften du andas | `lr-g3-skrattet` – Skratt smittar |
+| 4 | `lr-n1-svamparna` – Skogens svampar | `lr-n1-ormbunken` – Växten från dinosauriernas tid |
+| 4 | `lr-n1-hjartat` – Hjärtat slutar aldrig | `lr-n1-tararna` – Tårar som skyddar |
+| 4 | `lr-n1-igelkotten` – Djuret med tusentals taggar | `lr-n1-huggormen` – Ormen med sicksackmönster |
+| 4 | `lr-n1-ljuset-i-kojan` – Ljuset i trädkojan | `lr-n1-ringklockan` – Ingen vid dörren |
+| 4 | `lr-n1-skelettet` – Benen i din kropp | `lr-n1-curling` – Stenen som glider |
+| 4 | `lr-n1-rymdstationen` – Ett hem i rymden | `lr-n1-fallskarmen` – Tyget som bromsar |
+| 4 | `lr-n1-solceller` – El från solen | `lr-n1-fjarrkontrollen` – Det osynliga ljuset |
+| 4 | `lr-n1-vasaskeppet` – Skeppet som sjönk direkt | `lr-n1-forsta-fotot` – Fotot som tog flera timmar |
+| 5 | `lr-n2-venus` – Den heta grannen | `lr-n2-pilgrimsfalken` – Snabbast i luften |
+
+Nedan står det ursprungliga fyndet.
 `node admin/qa-lasresan-varldar-overlapp.mjs` jämför alla texter med varandra (andel gemensamma ord-trigram).
 - **27 par** ligger över gränsen 0,12, och i alla par är minst en text ny.
 - Bland de gamla texterna finns **0** sådana par.

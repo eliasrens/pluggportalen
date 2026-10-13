@@ -37,9 +37,9 @@ Byggs med `node admin/lasresan-g1b-bygg.mjs` (källtexter i `admin/lasresan-g1b-
 | lr-g1-salen | djur | Sälen |
 | lr-g1-humlan | djur | Humlan |
 | lr-g1-molnen | natur | Molnen |
-| lr-g1-hosten | natur | Hösten |
+| lr-g1-kastanjen | natur | Kastanjen (#684, ersätter lr-g1-hosten) |
 | lr-g1-maskrosen | natur | Maskrosen |
-| lr-g1-mars | rymden | Den röda planeten |
+| lr-g1-neptunus | rymden | Neptunus (#684, ersätter lr-g1-mars) |
 | lr-g1-jorden | rymden | Jorden |
 | lr-g1-nasan | vetenskap | Näsan |
 | lr-g1-oronen | vetenskap | Våra öron |

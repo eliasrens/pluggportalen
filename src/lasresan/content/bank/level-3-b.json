@@ -2466,84 +2466,84 @@
     ]
   },
   {
-    "id": "lr-g3-reflexen",
-    "title": "Reflexen i mörkret",
+    "id": "lr-g3-brandvarnaren",
+    "title": "Pipet i taket",
     "level": 3,
     "textType": "fact",
-    "topic": "trafik",
-    "body": "När det är mörkt ute är det svårt för en bilförare att se den som går. Med mörka kläder syns man kanske först på 25 meters håll. En bil som kör fort hinner inte stanna på så kort sträcka.\n\nMed en reflex syns man på mer än hundra meters håll. Då har föraren gott om tid att sakta ner.\n\nHur fungerar en reflex? Den lyser inte själv. Den är gjord av plast med många små kanter och ytor. När ljuset från bilens strålkastare träffar reflexen studsar det rakt tillbaka mot bilen. Därför ser föraren reflexen lysa starkt.\n\nReflexen ska hänga lågt, ungefär i höjd med knäet. Där träffar ljuset från bilen bäst. Det är bra med en reflex på varje sida.",
+    "topic": "säkerhet",
+    "body": "Brandvarnaren är liten och rund, men den kan rädda liv.\n\nNär något brinner bildas rök. Röken är varm och stiger uppåt. Därför ska brandvarnaren sitta högt, i taket. Inne i den finns en känslig del som märker rök. Då börjar brandvarnaren tjuta högt.\n\nLjudet är starkt för att det ska väcka dem som sover. En brand som börjar på natten är farlig, eftersom ingen är vaken och ser den.\n\nBrandvarnaren har ett batteri. Man ska trycka på knappen och testa den ofta, gärna en gång i månaden. Om den piper svagt då och då är batteriet nästan slut.\n\nDet bör finnas en brandvarnare i varje våning i huset, gärna nära sovrummen.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur långt bort syns man med mörka kläder?",
+        "question": "Var ska brandvarnaren sitta?",
         "options": [
-          "Mer än hundra meter",
-          "Kanske bara 25 meter",
-          "Ungefär en hel kilometer",
-          "Fem meter"
+          "På golvet",
+          "I taket",
+          "Bakom dörren",
+          "Ute på balkongen"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Hur långt bort syns man med en reflex?",
+        "question": "Varför ska den sitta högt?",
         "options": [
-          "Mer än hundra meter",
-          "25 meter",
-          "Bara några få meter",
-          "Två meter"
+          "Röken stiger uppåt",
+          "Barn ska inte nå den",
+          "Den syns bättre där uppe",
+          "Ljudet blir lägre"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Varför ser föraren reflexen lysa?",
+        "question": "Varför är ljudet så starkt?",
         "options": [
-          "Ljuset från bilen studsar tillbaka",
-          "Reflexen har ett eget batteri inuti",
-          "Den laddas av solen",
-          "Den lyser bara på vintern"
+          "Det ska väcka dem som sover",
+          "Det ska skrämma bort elden",
+          "Grannen ska kunna sjunga med",
+          "Det ska låta som en klocka"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Ljuset studsar tillbaka. Vad betyder studsar här?",
+        "question": "Vad betyder det när den piper svagt ibland?",
         "options": [
-          "Försvinner",
-          "Vänder och åker tillbaka",
-          "Blir varmt",
-          "Byter färg"
+          "Det brinner",
+          "Batteriet är nästan slut",
+          "Den är alldeles ny",
+          "Någon lagar mat"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q5",
-        "question": "Var ska reflexen hänga?",
-        "options": [
-          "På huvudet",
-          "Under skon",
-          "I höjd med knäet",
-          "Inne i jackfickan"
-        ],
-        "answerIndex": 2,
         "category": "fakta"
       },
       {
-        "id": "q6",
-        "question": "Varför är det viktigt att synas på långt håll?",
+        "id": "q5",
+        "question": "Delen är känslig. Vad betyder känslig här?",
         "options": [
-          "Det ser snyggt ut",
-          "Bilen hinner sakta ner",
-          "Bilen kan köra fortare",
-          "Man hittar hem lättare"
+          "Den går lätt sönder",
+          "Den blir lätt ledsen",
+          "Den märker lite rök",
+          "Den är varm"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det viktigt att testa brandvarnaren?",
+        "options": [
+          "Då blir batteriet nytt",
+          "Annars vet man inte om den fungerar",
+          "Den piper annars hela tiden",
+          "Det gör den tystare"
         ],
         "answerIndex": 1,
-        "category": "helhet_slutsats"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -3076,178 +3076,178 @@
     ]
   },
   {
-    "id": "lr-g3-andningen",
-    "title": "Luften du andas",
+    "id": "lr-g3-skrattet",
+    "title": "Skratt smittar",
     "level": 3,
     "textType": "fact",
     "topic": "kroppen",
-    "body": "Du andas hela tiden, även när du sover. Ett barn andas ungefär tjugo gånger i minuten när det är lugnt. Du behöver inte ens tänka på det.\n\nLuften går in genom näsan eller munnen. Sedan går den ner genom luftstrupen till lungorna. Lungorna ser ut som två stora svampar i bröstet. När du andas in fylls de med luft, och bröstet blir större.\n\nI luften finns syre. Kroppen behöver syre för att musklerna och hjärnan ska fungera. Från lungorna går syret ut i blodet. Hjärtat pumpar sedan runt blodet i hela kroppen.\n\nNär du andas ut lämnar en gas som heter koldioxid kroppen. Den måste kroppen göra sig av med.\n\nNär du springer fort andas du snabbare. Då behöver musklerna mer syre.",
+    "body": "Alla människor skrattar. Ett barn skrattar många gånger varje dag. Vuxna skrattar mycket mer sällan.\n\nNär du skrattar arbetar många muskler. Musklerna i ansiktet drar upp mungiporna. Magen skakar, och luften pressas ut i korta stötar: ha-ha-ha!\n\nEfter ett riktigt gapskratt känner man sig ofta lugn och glad.\n\nSkratt smittar. Om en kompis börjar fnissa är det svårt att låta bli. Forskare tror att vi skrattar för att visa att vi tycker om varandra. Vi skrattar mycket oftare tillsammans med andra än när vi är ensamma.\n\nÄven djur kan skratta. Råttor piper glatt när man kittlar dem, och apor flämtar när de leker.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur många gånger i minuten andas ett lugnt barn ungefär?",
+        "question": "Vem skrattar oftast, enligt texten?",
         "options": [
-          "Två",
-          "Tjugo",
-          "Tvåhundra",
-          "Sextio"
+          "Vuxna",
+          "Barn",
+          "Råttor",
+          "Apor"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vilken väg går luften ner till lungorna?",
+        "question": "Vad gör musklerna i ansiktet när man skrattar?",
         "options": [
-          "Genom magen",
-          "Genom hjärtat och magen",
-          "Genom luftstrupen",
-          "Genom öronen"
+          "Stänger ögonen helt och hållet",
+          "Drar ner pannan",
+          "Drar upp mungiporna",
+          "Ingenting alls"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad liknar lungorna?",
+        "question": "Vad händer med magen när man skrattar?",
         "options": [
-          "Två stora svampar",
-          "Två hårda och tunga stenar",
-          "Två långa rör",
-          "Ett hjärta"
+          "Den skakar",
+          "Den blir kall",
+          "Den gör ont",
+          "Den blir alldeles stilla"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad behöver kroppen syre till?",
+        "question": "Hur känner man sig efter ett gapskratt?",
         "options": [
-          "Att håret ska växa",
-          "Musklerna och hjärnan",
-          "Att man ska bli lång",
-          "Att maten ska smaka gott"
+          "Trött och arg",
+          "Lugn och glad",
+          "Hungrig",
+          "Ledsen"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Kroppen gör sig av med koldioxid. Vad betyder göra sig av med?",
+        "question": "Ett gapskratt. Vad är det?",
         "options": [
-          "Spara",
-          "Få bort",
-          "Hämta",
-          "Tillverka"
+          "Ett litet fniss",
+          "Ett stort skratt",
+          "En gäspning",
+          "Ett skrik av rädsla"
         ],
         "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
-        "question": "Varför andas du snabbare när du springer?",
+        "question": "Vilka djur kan skratta, enligt texten?",
         "options": [
-          "Lungorna blir mindre",
-          "Luften blir varm",
-          "Musklerna behöver mer syre",
-          "Man blir rädd"
+          "Fiskar och fåglar",
+          "Hundar och katter",
+          "Råttor och apor",
+          "Ormar och grodor"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q7",
-        "question": "Vad handlar texten mest om?",
+        "question": "Varför skrattar vi mer när vi är med andra?",
         "options": [
-          "Hur kroppen får syre",
-          "Hur man springer fortare",
-          "Varför man sover",
-          "Hur hjärtat ser ut"
+          "Skratt visar att vi gillar varandra",
+          "Man ser roligare saker då",
+          "Det är tyst när man är ensam",
+          "Andra kittlar oss alltid"
         ],
         "answerIndex": 0,
-        "category": "helhet_slutsats"
+        "category": "mellan_raderna"
       }
     ]
   },
   {
-    "id": "lr-g3-havssaltet",
-    "title": "Varför är havet salt?",
+    "id": "lr-g3-studsen",
+    "title": "Därför studsar bollen",
     "level": 3,
     "textType": "fact",
     "topic": "vetenskap",
-    "body": "Har du badat i havet och fått vatten i munnen? Då vet du att havet smakar salt. Men vattnet i sjöar och älvar smakar inte salt alls. Hur kommer det sig?\n\nRegnvatten rinner över berg och stenar. Det tar med sig mycket små mängder salt från marken. Vattnet rinner ut i bäckar och älvar och till sist ut i havet. Det har pågått i miljontals år.\n\nI havet värmer solen vattnet så att det avdunstar. Men saltet följer inte med upp i luften. Det stannar kvar. Därför har det samlats mer och mer salt i havet.\n\nVästerhavet är saltare än Östersjön. Östersjön får mycket sötvatten från alla älvar som rinner ut i den.",
+    "body": "Släpp en fotboll mot golvet. Den studsar upp igen. Men varför gör den det?\n\nNär bollen slår i golvet trycks den ihop lite på undersidan. Det går så fort att man inte hinner se det. Luften inne i bollen trycks också ihop. Sedan vill bollen och luften ta tillbaka sin form. Då trycker de ifrån mot golvet, och bollen skjuts uppåt.\n\nEn boll med för lite luft i studsar dåligt. Den trycks ihop, men den får inte så mycket kraft tillbaka.\n\nIngen boll studsar lika högt som där du släppte den. En del av kraften blir till ljud och lite värme. Därför blir studsarna lägre och lägre, tills bollen ligger still.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad tar regnvattnet med sig från marken?",
+        "question": "Vad händer med bollen när den slår i golvet?",
         "options": [
-          "Sand och stora stenar",
-          "Socker",
-          "Is",
-          "Små mängder salt"
+          "Den blir större",
+          "Den blir mjuk som deg",
+          "Den spricker",
+          "Den trycks ihop lite"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad händer med saltet när havsvattnet avdunstar?",
+        "question": "Varför ser man inte att bollen trycks ihop?",
         "options": [
-          "Det följer med upp",
-          "Det fryser",
-          "Det stannar kvar",
-          "Det blir socker"
+          "Bollen är för liten",
+          "Det är för mörkt i rummet",
+          "Det går för fort",
+          "Bollen är för hård"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Hur länge har saltet samlats i havet?",
+        "question": "Hur studsar en boll med för lite luft i?",
         "options": [
-          "I hundra år",
-          "I miljontals år",
-          "Bara sedan i somras",
-          "I tio år"
+          "Högre än vanligt",
+          "Dåligt",
+          "Lika högt som förut",
+          "Snett åt sidan"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vilket hav är saltast?",
+        "question": "Vad blir en del av kraften till?",
         "options": [
-          "Östersjön",
-          "Västerhavet",
-          "De är lika salta",
-          "Inget av dem"
+          "Ljus",
+          "Ljud och lite värme",
+          "Mer luft i bollen",
+          "Vatten på golvet"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Sötvatten är vatten som …",
+        "question": "Bollen vill ta tillbaka sin form. Vad betyder det?",
         "options": [
-          "inte är salt",
-          "smakar socker",
-          "är varmt",
-          "är smutsigt"
+          "Bli rund igen",
+          "Bli platt",
+          "Byta färg",
+          "Bli tyngre"
         ],
         "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
-        "question": "Varför smakar sjövatten inte salt?",
+        "question": "Varför slutar bollen till slut att studsa?",
         "options": [
-          "Vattnet rinner vidare och tar med saltet",
-          "Det regnar aldrig på sjöar",
-          "Fiskarna äter upp saltet",
-          "Sjöar är för kalla"
+          "Den tappar lite kraft vid varje studs",
+          "Golvet blir mjukare",
+          "All luft går ur på en gång",
+          "Någon fångar den alltid"
         ],
         "answerIndex": 0,
-        "category": "mellan_raderna"
+        "category": "helhet_slutsats"
       }
     ]
   },
