@@ -233,8 +233,9 @@ export function renderJourneyMap(container, opts = {}) {
     stall(g, v, fran == null ? at : fran);
     ga(g, v, fran, at).then(() => {
       // Fira bara i samband med en genomförd gång/världsbyte – inte varje
-      // gång en redan klar värld ritas om.
-      if (!signal.aborted && (fran != null || opts.worldCompleted) && at >= v.steps) fira(v);
+      // gång en redan klar värld ritas om, och inte för texter som läses
+      // efter sista världen (gången 20 → 20, #668).
+      if (!signal.aborted && ((fran != null && fran < at) || opts.worldCompleted) && at >= v.steps) fira(v);
     });
   } else if (!signal.aborted && opts.worldCompleted && v.id === world.id) {
     fira(v);
