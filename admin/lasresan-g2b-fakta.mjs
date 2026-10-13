@@ -167,4 +167,84 @@ export const FAKTA = [
       ["Vad är en idrottare?", ["En som håller på med sport", "En som bygger hus", "En som lagar mat", "En som tittar på tävlingar"], "ordforstaelse"],
     ],
   },
+  {
+    id: "lr-g2-solen", title: "Solen är en stjärna", textType: "fact", topic: "rymden",
+    body: [
+      "Solen är en stjärna. Den är mycket större än jorden. Över en miljon jordklot skulle få plats i solen.",
+      "Solen är ett stort klot av heta gaser. Den ger oss ljus och värme. Utan solen skulle det inte finnas liv på jorden.",
+      "Solen ser liten ut på himlen. Det beror på att den är så långt borta.",
+      "Titta aldrig rakt på solen. Ljuset är så starkt att det kan skada ögonen.",
+    ],
+    q: [
+      ["Vad är solen?", ["En stjärna", "En planet", "En måne", "Ett moln"], "fakta"],
+      ["Vad är solen gjord av?", ["Heta gaser", "Is och sten", "Vatten", "Sand"], "fakta"],
+      ["Varför ser solen liten ut?", ["Den är långt borta", "Den är liten", "Den är bakom moln", "Den är kall"], "fakta"],
+      ["Varför ska man aldrig titta rakt på solen?", ["Det kan skada ögonen", "Man blir trött", "Solen blir mörk", "Man blir solbränd i ansiktet"], "fakta"],
+      ["Vad skulle hända utan solen?", ["Det skulle inte finnas liv", "Det skulle bli varmare på jorden", "Ingenting alls", "Det skulle växa fler träd"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-island", title: "Ön med vulkaner", textType: "fact", topic: "geografi",
+    body: [
+      "Island är ett land långt ut i havet. Det ligger på en ö väster om Norge. Där finns många vulkaner.",
+      "Ibland får en vulkan utbrott. Då sprutar het, smält sten upp ur marken. Den kallas lava.",
+      "På Island finns också varma källor. Vattnet värms upp av hettan djupt nere i jorden. Islänningarna använder det varma vattnet för att värma sina hus.",
+      "Det finns också stora glaciärer. En glaciär är ett tjockt lager is. Den ligger kvar året runt.",
+    ],
+    q: [
+      ["Var ligger Island?", ["På en ö i havet", "Mitt i Sverige", "I en öken", "Uppe på ett berg"], "fakta"],
+      ["Vad kallas den heta smälta stenen?", ["Lava", "Is", "Sand", "Lera"], "fakta"],
+      ["Vad använder islänningarna det varma vattnet till?", ["Att värma sina hus", "Att tvätta bilar", "Att göra is", "Att vattna sina åkrar"], "fakta"],
+      ["Vad är en glaciär?", ["Ett tjockt lager is", "En varm källa", "En liten vulkan", "Ett berg av lava och aska"], "ordforstaelse"],
+      ["Vad är sant om Island?", ["Där finns både eld och is", "Där är det alltid varmt", "Där finns inga berg", "Där bor inga människor"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-vikingaskeppen", title: "Vikingarnas skepp", textType: "fact", topic: "historia",
+    body: [
+      "Vikingarna levde i Norden för mer än tusen år sedan. De var skickliga på att bygga båtar.",
+      "Vikingaskeppen var långa och smala. De var byggda av trä, oftast ek. Skeppen hade ett stort segel. När det inte blåste rodde vikingarna med åror.",
+      "Med skeppen reste vikingarna långt. De handlade med andra länder. Ibland plundrade de också.",
+      "Längst fram på skeppet satt ibland ett huvud av trä. Det kunde se ut som en drake.",
+    ],
+    q: [
+      ["När levde vikingarna?", ["För mer än tusen år sedan", "För hundra år sedan", "För ungefär femtio år sedan", "För tio år sedan"], "fakta"],
+      ["Vad var skeppen byggda av?", ["Trä", "Sten", "Järn", "Plast"], "fakta"],
+      ["Vad gjorde vikingarna när det inte blåste?", ["Rodde med åror", "Väntade på land", "Simmade bredvid", "Satte upp ett segel till"], "fakta"],
+      ["Vad kunde huvudet längst fram se ut som?", ["En drake", "En häst", "En fisk", "En örn"], "fakta"],
+      ["Vikingarna var skickliga. Vad betyder skicklig?", ["Duktig", "Lat", "Snäll", "Rädd"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-somnen", title: "Därför sover vi", textType: "fact", topic: "vetenskap",
+    body: [
+      "Alla människor behöver sova. Barn i din ålder behöver sova ungefär tio timmar varje natt.",
+      "När du sover vilar kroppen. Men hjärnan arbetar ändå. Den sorterar allt du har lärt dig under dagen.",
+      "När man sover drömmer man ibland. De flesta drömmar glömmer man när man vaknar.",
+      "Om man sover för lite blir man trött och lättare sur. Det blir också svårare att lära sig nya saker i skolan.",
+    ],
+    q: [
+      ["Hur länge behöver barn sova varje natt?", ["Ungefär tio timmar", "Fyra timmar", "Två timmar", "Tjugo timmar"], "fakta"],
+      ["Vad gör hjärnan när du sover?", ["Sorterar det du lärt dig", "Den stänger av sig helt och hållet", "Blir mindre", "Växer fort"], "fakta"],
+      ["Vad händer med de flesta drömmar?", ["Man glömmer dem", "Man skriver ner dem", "De blir sanna", "Man drömmer dem igen"], "fakta"],
+      ["Hur blir man om man sover för lite?", ["Trött och sur", "Pigg och glad", "Stark och snabb", "Hungrig och varm"], "fakta"],
+      ["Varför är det bra att sova innan ett prov?", ["Det blir lättare att lära sig", "Man får ledigt från skolan", "Då behöver man inte plugga mer", "Proven blir kortare"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-ekorren", title: "Ekorren och vintern", textType: "fact", topic: "djur",
+    body: [
+      "Ekorren är ett litet djur med lång, yvig svans. Den bor i skogar och parker. Den är mycket duktig på att klättra.",
+      "På hösten samlar ekorren mat. Den gömmer nötter och frön på många ställen. Ofta gömmer den dem i marken.",
+      "På vintern letar ekorren upp maten igen. Men den hittar inte allt. Några nötter blir kvar i jorden. Där kan det växa upp nya träd.",
+      "Ekorren sover inte hela vintern. Den bygger ett bo av kvistar och mossa. Boet sitter högt upp i ett träd.",
+    ],
+    q: [
+      ["Hur ser ekorrens svans ut?", ["Lång och yvig", "Kort och tunn", "Kal och rosa", "Platt och bred"], "fakta"],
+      ["Vad gör ekorren på hösten?", ["Samlar mat", "Sover hela tiden", "Flyttar söderut", "Byter till vit päls"], "fakta"],
+      ["Vad kan hända med nötterna som blir kvar?", ["Det kan växa nya träd", "De blir till stenar", "Fåglarna bygger bon av dem", "De smälter"], "fakta"],
+      ["Var bygger ekorren sitt bo?", ["Högt upp i ett träd", "Under en sten", "I ett hål i marken", "Vid en sjö"], "fakta"],
+      ["Svansen är yvig. Vad betyder yvig?", ["Tjock och luftig", "Kort och hård", "Våt och kall", "Liten och smal"], "ordforstaelse"],
+    ],
+  },
 ];

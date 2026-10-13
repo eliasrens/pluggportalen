@@ -168,4 +168,84 @@ export const STORY = [
       ["Något blankt glimmar. Vad betyder glimmar?", ["Lyser lite", "Låter högt", "Luktar illa", "Känns mjukt"], "ordforstaelse"],
     ],
   },
+  {
+    id: "lr-g2-skridskor", title: "Första gången på isen", textType: "story", topic: "sport",
+    body: [
+      "Sjön har frusit. Pappa har kollat att isen är tjock nog. Nu ska Wilma åka skridskor för första gången.",
+      "Hon står på isen med raka ben. Fötterna glider åt olika håll. Pladask! Wilma sitter på rumpan.",
+      "”Böj lite på knäna”, säger pappa. ”Och titta framåt, inte ner på fötterna.”",
+      "Wilma försöker igen. Hon böjer knäna och tar små steg. Nu glider hon en bit! Efter en timme vill hon inte gå hem.",
+    ],
+    q: [
+      ["Var åker Wilma skridskor?", ["På en frusen sjö", "I en ishall", "På isen vid skolan", "På en åker"], "fakta"],
+      ["Vad har pappa kollat?", ["Att isen är tjock nog", "Att det är varmt ute", "Att skridskorna är vassa", "Att Wilma har mössa"], "fakta"],
+      ["Vad händer när Wilma står på isen första gången?", ["Hon ramlar", "Hon åker fort", "Hon börjar gråta", "Hon går hem"], "fakta"],
+      ["Vad säger pappa att hon ska göra med knäna?", ["Böja dem", "Sträcka dem", "Hålla dem stilla", "Lyfta dem högt"], "fakta"],
+      ["Pladask! Vad betyder det här?", ["Att någon ramlar", "Att någon skrattar", "Att någon ropar", "Att någon springer"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-papegojan", title: "Papegojan som pratade", textType: "story", topic: "roliga situationer",
+    body: [
+      "Faster Lena har en papegoja som heter Kiwi. Kiwi är grön och kan säga några ord.",
+      "När Elsa kommer på besök sitter Kiwi i sin bur. ”Hej hej!” säger Kiwi. Elsa skrattar.",
+      "Sedan ringer faster Lenas telefon. Hon går ut i köket och pratar.",
+      "Plötsligt hör Elsa en signal. Det låter precis som telefonen! Faster Lena springer in. Men telefonen är tyst. Det var Kiwi som härmade den. ”Hej hej!” säger Kiwi igen.",
+    ],
+    q: [
+      ["Vad heter papegojan?", ["Kiwi", "Lena", "Elsa", "Polly"], "fakta"],
+      ["Vilken färg har Kiwi?", ["Grön", "Röd", "Blå", "Gul"], "fakta"],
+      ["Vad säger Kiwi när Elsa kommer?", ["Hej hej", "God morgon", "Tack så mycket", "Hej då"], "fakta"],
+      ["Vad gör faster Lena när telefonen ringer?", ["Går ut i köket", "Stänger av den", "Ger den till Elsa", "Lägger den i buren"], "fakta"],
+      ["Kiwi härmade telefonen. Vad betyder det?", ["Kiwi gjorde samma ljud", "Kiwi tog sönder den", "Kiwi gömde den", "Kiwi bet i den"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g2-tomatfrot", title: "Fröet i fönstret", textType: "story", topic: "skola",
+    body: [
+      "Klassen ska odla tomater. Alla får en liten kruka med jord. Elin stoppar ner ett frö och vattnar försiktigt.",
+      "Krukorna står i fönstret där solen lyser in. Varje dag tittar Elin på sin kruka. Men ingenting händer.",
+      "Efter en vecka syns en liten grön stjälk. Den har två små blad. Elin blir så glad att hon hoppar.",
+      "Före sommarlovet tar hon hem plantan. I augusti får hon äta sin första egna tomat.",
+    ],
+    q: [
+      ["Vad ska klassen odla?", ["Tomater", "Gurkor", "Blommor", "Morötter"], "fakta"],
+      ["Var står krukorna?", ["I fönstret", "På golvet", "I ett skåp", "Ute på gården"], "fakta"],
+      ["Hur länge dröjer det innan något syns?", ["En vecka", "En dag", "En månad", "Ett år"], "fakta"],
+      ["När får Elin äta sin första tomat?", ["I augusti", "I maj", "I december", "I mars"], "fakta"],
+      ["Varför tittar Elin på krukan varje dag?", ["Hon vill se om fröet har växt", "Fröken säger åt henne", "Hon vill vattna blommorna", "Hon tycker att krukan är så fin"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g2-malvakten", title: "Den nya målvakten", textType: "story", topic: "sport",
+    body: [
+      "Lagets målvakt är sjuk. Tränaren frågar vem som vill stå i mål. Ingen räcker upp handen. Till slut säger Amir: ”Jag kan försöka.”",
+      "Amir tar på sig de stora handskarna. Han är nervös. Det andra laget skjuter hårt.",
+      "Första bollen räddar han med foten. Den andra fångar han med båda händerna. Hans kompisar jublar.",
+      "Matchen slutar ett–noll till Amirs lag. ”Du var bäst i dag”, säger tränaren.",
+    ],
+    q: [
+      ["Varför behöver laget en ny målvakt?", ["Målvakten är sjuk", "Målvakten har flyttat", "Målvakten kommer för sent", "Målvakten vill spela anfall"], "fakta"],
+      ["Vad tar Amir på sig?", ["Stora handskar", "En mössa", "Nya skor", "En hjälm"], "fakta"],
+      ["Hur räddar Amir den första bollen?", ["Med foten", "Med huvudet", "Med händerna", "Med knät"], "fakta"],
+      ["Hur slutar matchen?", ["Ett–noll till Amirs lag", "Oavgjort", "Noll–ett till andra laget", "Tre–två till Amirs lag"], "fakta"],
+      ["Vad visar Amir när han ställer sig i mål?", ["Att han är modig", "Att han är lat", "Att han är rädd", "Att han är sur"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g2-handlingslappen", title: "Lappen i fickan", textType: "story", topic: "vardag",
+    body: [
+      "Mamma skickar Leo till affären. Han får en lapp och pengar. På lappen står: mjölk, bröd, ägg och bananer.",
+      "Leo tycker att han kan komma ihåg allt. Han stoppar lappen i fickan och tittar inte på den.",
+      "I affären tar han mjölk, bröd och bananer. Sedan går han hem.",
+      "”Var är äggen?” frågar mamma. Leo tar fram lappen. Där står det ju! Han får gå tillbaka en gång till.",
+    ],
+    q: [
+      ["Vad får Leo av mamma?", ["En lapp och pengar", "En väska", "En tygpåse och en nyckel", "En glass"], "fakta"],
+      ["Hur många saker står på lappen?", ["Fyra", "Tre", "Två", "Fem"], "fakta"],
+      ["Vad glömmer Leo att köpa?", ["Ägg", "Mjölk", "Bröd", "Bananer"], "fakta"],
+      ["Var har Leo lappen?", ["I fickan", "I handen", "I väskan", "I mössan"], "fakta"],
+      ["Vad borde Leo ha gjort?", ["Tittat på lappen", "Sprungit fortare", "Köpt mer bröd", "Stannat hemma"], "helhet_slutsats"],
+    ],
+  },
 ];
