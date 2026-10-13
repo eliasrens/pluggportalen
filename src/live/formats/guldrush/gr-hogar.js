@@ -16,7 +16,11 @@
 // skylt ligger i glappet ovanför nedersta radens figurer – ingen rad skymmer
 // den andra.
 //
+// Komponenten är den gemensamma kistspelsmodulen (#651): src/live/kistspel/
+// ks-hogar.js – här bara guldhögen (SVG), skyltens "guld" och prefixet grh.
+//
 // API
+//   pileSvg()                    guldhögens markup
 //   createHogar(host, { pool }) → {
 //     update(top [{ uid, rank, name, gold, prot }], { ref, leader })
 //                                  ritar om bara det som ändrats
@@ -29,11 +33,8 @@
 //   }
 // ============================================================================
 
-import { setAvatarState, prefersReducedMotion } from "../../design/live-reactions.js";
-import { pileSlot, pileLevel, tal, GR_TOP } from "./gr-proj-scen.js";
-
-const OUT_MS = 650;
-const GAP = 8; // px (minst) mellan översta radens skylt och nedersta radens figurer
+import { createHogar as ksCreateHogar } from "../../kistspel/ks-hogar.js";
+import { tal } from "./gr-proj-scen.js";
 
 // Guldhögen (ritas en gång per plats; höjden = transform).
 export function pileSvg() {
@@ -55,144 +56,5 @@ const DEFS = `<svg width="0" height="0" style="position:absolute" aria-hidden="t
 </defs></svg>`;
 
 export function createHogar(host, { pool }) {
-  const root = document.createElement("div");
-  root.className = "grh";
-  root.innerHTML = `${DEFS}<div class="grh-skylt grh-matt" aria-hidden="true"><b class="grh-namn">Å</b><span class="grh-guld">0</span></div>`;
-  host.appendChild(root);
-  const matt = root.querySelector(".grh-matt");
-  const slots = new Map(); // uid → { el, hog, level, i, key, out: timer|0 }
-  let size = { w: 0, h: 0, fig: 0, lab: 0 };
-  let last = [];
-  let lastRef = 1;
-  let lastLeader = null;
-
-  // Platsens fotpunkt i px (rad 0 överst, rad 1 underst, samma storlek).
-  // Skylten hänger under figuren: nedersta radens fot ligger en skylthöjd
-  // ovanför golvets kant, översta radens skylt slutar minst GAP ovanför
-  // nedersta radens figurer.
-  function place(i) {
-    const { row, col } = pileSlot(i);
-    const x = size.w * (0.02 + 0.96 * ((col + 0.5) / 5));
-    const bottom = size.h - size.lab;
-    // Ledig höjd (figuren begränsas av bredden): en tredjedel ovanför
-    // översta raden, resten mellan raderna.
-    const free = Math.max(0, size.h - 2 * size.lab - GAP - 2 * size.fig * 1.3);
-    const y = row === 0 ? size.fig * 1.3 + free / 3 : bottom;
-    return { x, y };
-  }
-
-  function slotFor(uid) {
-    let s = slots.get(uid);
-    if (s) {
-      if (s.out) {
-        clearTimeout(s.out);
-        s.out = 0;
-        s.el.classList.remove("grh-ut");
-      }
-      return s;
-    }
-    const el = document.createElement("div");
-    el.className = "grh-plats grh-ny";
-    el.dataset.uid = uid;
-    el.innerHTML = `<div class="grh-hog">${pileSvg()}</div>
-      <div class="grh-skylt"><b class="grh-namn"><i class="grh-nr"></i><span class="grh-text"></span><i class="grh-skold" hidden>🛡️</i></b><span class="grh-guld"></span></div>`;
-    const av = pool.el(uid);
-    av.classList.add("vantar");
-    el.prepend(av);
-    root.appendChild(el);
-    s = { el, hog: el.querySelector(".grh-hog"), level: -1, i: -1, key: "", out: 0 };
-    slots.set(uid, s);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("grh-ny")));
-    return s;
-  }
-
-  function position(s, i) {
-    const p = place(i);
-    s.i = i;
-    s.el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
-  }
-
-  function label(s, p, leader) {
-    const lead = p.uid === leader;
-    const key = `${p.rank}|${p.name}|${p.gold}|${!!p.prot}|${lead}`;
-    if (key === s.key) return;
-    s.key = key;
-    s.el.querySelector(".grh-nr").textContent = lead ? "👑" : `${p.rank}.`;
-    s.el.querySelector(".grh-text").textContent = p.name || "";
-    s.el.querySelector(".grh-skold").hidden = !p.prot;
-    s.el.querySelector(".grh-guld").textContent = `${tal(p.gold)} guld`;
-    s.el.classList.toggle("grh-ledare", lead);
-  }
-
-  function update(top = [], { ref = lastRef, leader = lastLeader } = {}) {
-    last = top;
-    lastRef = ref;
-    lastLeader = leader;
-    const keep = new Set();
-    top.forEach((p, i) => {
-      keep.add(p.uid);
-      const s = slotFor(p.uid);
-      if (s.i !== i || s.needsPos) { position(s, i); s.needsPos = false; }
-      const level = Math.round(pileLevel(p.gold, ref) * 100) / 100;
-      if (level !== s.level) {
-        s.level = level;
-        s.hog.style.transform = `scale(${(0.55 + 0.45 * level).toFixed(3)}, ${level.toFixed(3)})`;
-      }
-      setAvatarState(pool.el(p.uid), "skyddad", !!p.prot);
-      label(s, p, leader);
-    });
-    for (const [uid, s] of slots) {
-      if (keep.has(uid) || s.out) continue;
-      s.el.classList.add("grh-ut");
-      s.i = -1;
-      s.out = setTimeout(() => {
-        s.el.remove();
-        pool.drop(uid);
-        slots.delete(uid);
-      }, OUT_MS);
-    }
-  }
-
-  const ro = new ResizeObserver(() => {
-    const r = root.getBoundingClientRect();
-    if (!r.width || (r.width === size.w && r.height === size.h)) return;
-    // Figurens storlek: fem platser i bredd, och i höjd två rader figurer
-    // (1.3 em) + två skyltar + glappet.
-    const lab = Math.ceil(matt.getBoundingClientRect().height) || 64;
-    const fig = Math.max(24, Math.floor(Math.min(r.width / 5 / 2.3, (r.height - 2 * lab - GAP) / 2.6)));
-    size = { w: r.width, h: r.height, fig, lab };
-    root.style.setProperty("--grh-fig", `${fig}px`);
-    for (const s of slots.values()) s.needsPos = true;
-    update(last);
-  });
-  ro.observe(root);
-
-  return {
-    el: root,
-    update,
-    has: (uid) => slots.has(uid) && !slots.get(uid).out,
-    areas() {
-      if (!size.fig) return [];
-      const r = root.getBoundingClientRect();
-      const f = size.fig;
-      return Array.from({ length: GR_TOP }, (_, i) => {
-        const p = place(i);
-        // Figuren (1.3 em hög, 2.3 em bred + hatt/bubbla) och skylten under.
-        return { left: r.left + p.x - 1.25 * f, right: r.left + p.x + 1.25 * f, top: r.top + p.y - 1.5 * f, bottom: r.top + p.y + size.lab };
-      });
-    },
-    bump(uid) {
-      const s = slots.get(uid);
-      if (!s || s.out || prefersReducedMotion()) return;
-      s.hog.querySelector(".grh-svg")?.animate(
-        [{ transform: "none" }, { transform: "translateY(-6%) scale(1.06)", offset: 0.35 }, { transform: "none" }],
-        { duration: 420, easing: "ease-out" });
-    },
-    destroy() {
-      ro.disconnect();
-      for (const [uid, s] of slots) { clearTimeout(s.out); pool.drop(uid); }
-      slots.clear();
-      root.remove();
-    },
-  };
+  return ksCreateHogar(host, { pool, cls: "grh", pileHtml: pileSvg, defs: DEFS, amount: (n) => `${tal(n)} guld` });
 }

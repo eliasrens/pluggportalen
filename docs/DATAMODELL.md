@@ -1051,7 +1051,7 @@ områdets händelser in – `questions[i]` `{ id: "tl-<id>", key, kind: "timelin
 text, event, description?, span: { min, max }, statKeys }` och
 `facit[i]` `{ year }`. Svaret `{ q, year }` (bara ett heltalsår inom frågans
 `span` ur grPublic – inget `choiceIndex`/`answer`) rättas av servern
-(`functions/guldrush-rattning.js`): exakt år = rätt → kistor som vanligt;
+(`functions/kistspel-rattning.js`): exakt år = rätt → kistor som vanligt;
 fel → eleven ser rätt år (`correctYear` i svaret). Samma `attemptId` med ett
 annat år efter lås nekas (`already-exists`); regelgrenen är oförändrad.
 
