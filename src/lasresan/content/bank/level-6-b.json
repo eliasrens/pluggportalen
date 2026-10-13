@@ -2167,11 +2167,11 @@
     "level": 6,
     "textType": "story",
     "topic": "roliga situationer",
-    "body": "Julia hade lovat att hämta grannens hund Bamse på hunddagiset efter skolan. Bamse var en stor golden retriever med ljus päls och ett glatt humör.\n\nPå dagiset var det fullt av hundar. En av personalen frågade vem hon skulle hämta.\n\n”Bamse, en golden”, sa Julia.\n\n”Han är där borta”, sa kvinnan och pekade utan att titta upp från datorn.\n\nEn golden kom springande och viftade så att hela bakkroppen svängde. Julia satte på kopplet och gick hem.\n\nHalvvägs märkte hon att något var konstigt. Bamse brukade gå fint i koppel, men den här hunden drog mot varenda buske. Bamse var rädd för cyklar, men den här skällde glatt på dem. Och Bamse hade ett blått halsband. Det här var rött.\n\nJulia stannade och läste på brickan. Där stod det ”Doffe”.\n\nHon vände och gick tillbaka så fort hon kunde. Vid dagiset stod en förvånad man med en golden i koppel.\n\n”Jag tror att vi har bytt hund”, sa han och höll fram Bamse.\n\nJulia rodnade ända upp till öronen. Bamse viftade bara, som om han tyckte att alltihop var ett roligt äventyr.",
+    "body": "Julia hade lovat att hämta grannens hund Rufus på hunddagiset efter skolan. Rufus var en stor golden retriever med ljus päls och ett glatt humör.\n\nPå dagiset var det fullt av hundar. En av personalen frågade vem hon skulle hämta.\n\n”Rufus, en golden”, sa Julia.\n\n”Han är där borta”, sa kvinnan och pekade utan att titta upp från datorn.\n\nEn golden kom springande och viftade så att hela bakkroppen svängde. Julia satte på kopplet och gick hem.\n\nHalvvägs märkte hon att något var konstigt. Rufus brukade gå fint i koppel, men den här hunden drog mot varenda buske. Rufus var rädd för cyklar, men den här skällde glatt på dem. Och Rufus hade ett blått halsband. Det här var rött.\n\nJulia stannade och läste på brickan. Där stod det ”Doffe”.\n\nHon vände och gick tillbaka så fort hon kunde. Vid dagiset stod en förvånad man med en golden i koppel.\n\n”Jag tror att vi har bytt hund”, sa han och höll fram Rufus.\n\nJulia rodnade ända upp till öronen. Rufus viftade bara, som om han tyckte att alltihop var ett roligt äventyr.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vilken färg hade Bamses halsband?",
+        "question": "Vilken färg hade Rufus halsband?",
         "options": [
           "Blått",
           "Rött",
@@ -2185,7 +2185,7 @@
         "id": "q2",
         "question": "Vad hette hunden som Julia tog med sig?",
         "options": [
-          "Bamse",
+          "Rufus",
           "Golden",
           "Doffe",
           "Fido"
@@ -2221,9 +2221,9 @@
         "id": "q5",
         "question": "Varför fick Julia fel hund?",
         "options": [
-          "Bamse hade rymt från dagiset",
+          "Rufus hade rymt från dagiset",
           "Kvinnan på dagiset tittade inte ordentligt",
-          "Julia hade aldrig sett Bamse förut",
+          "Julia hade aldrig sett Rufus förut",
           "Mannen hade bytt halsband på hundarna i smyg för att lura henne"
         ],
         "answerIndex": 1,
@@ -2236,7 +2236,7 @@
           "Hunden kunde inte gå",
           "Hunden hade en annan färg på pälsen",
           "Hunden var mycket mindre",
-          "Hunden betedde sig inte som Bamse"
+          "Hunden betedde sig inte som Rufus"
         ],
         "answerIndex": 3,
         "category": "mellan_raderna"
@@ -2815,6 +2815,946 @@
           "Hur teleskop i rymden hjälper oss att se långt bort"
         ],
         "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-myrvandringen",
+    "title": "Spången över myren",
+    "level": 6,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Morbror Ulf hade lovat Ylvi att de skulle vandra till det gamla brandtornet på andra sidan myren. Stigen gick på spänger, smala plankor som låg på rad över den blöta marken.\n\n”Gå aldrig bredvid spången”, sa Ulf. ”Myren ser ut som en gräsmatta, men under är det bara vatten och mossa.”\n\nYlvi tyckte att det lät överdrivet. Myren var vacker. Det luktade sött av pors, och tranor ropade långt borta.\n\nHalvvägs såg hon hjortron, gula och mogna, bara en meter från spången. Hon klev ut för att plocka dem.\n\nMed en gång sjönk foten ner till knät. Det kalla vattnet forsade in i kängan. När hon försökte dra upp benet sög myren fast ännu hårdare.\n\n”Stå still!” ropade Ulf. Han lade sig på mage på spången och sträckte ut handen. ”Luta dig mot mig. Dra långsamt.”\n\nMed ett slurpande ljud släppte myren taget. Men kängan blev kvar där nere.\n\nResten av vägen gick Ylvi med en strumpa och en plastpåse på ena foten. Från brandtornet såg de hela myren glittra i solen.\n\n”Den var värd det”, sa Ylvi. ”Men nästa gång stannar jag på spången.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart var Ylvi och Ulf på väg?",
+        "options": [
+          "Till en sjö att bada i",
+          "Till en stuga i skogen",
+          "Till ett brandtorn",
+          "Till en fågelholk"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad ville Ylvi plocka bredvid spången?",
+        "options": [
+          "Blåbär",
+          "Hjortron",
+          "Lingon",
+          "Svamp"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är en ”spång”?",
+        "options": [
+          "En stor sten mitt i vattnet",
+          "En smal gångbro av plankor",
+          "En sorts båt",
+          "En gammal stig i skogen"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Ulfs varning lät ”överdriven”. Vad tyckte Ylvi?",
+        "options": [
+          "Att han pratade för tyst",
+          "Att han hade glömt vägen",
+          "Att det var farligare i hans ord än i verkligheten",
+          "Att han skämtade om tranorna som ropade långt borta"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför lade sig Ulf på mage när han hjälpte Ylvi?",
+        "options": [
+          "För att han var trött efter vandringen",
+          "För att han ville se hjortronen bättre",
+          "För att spången var för smal att stå på",
+          "Så att han inte själv skulle sjunka ner"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför gick Ylvi med en plastpåse på foten?",
+        "options": [
+          "Hennes känga satt kvar i myren",
+          "Hon hade fått skavsår",
+          "Hon ville skydda kängan mot vattnet",
+          "Ulf ville skämta med henne"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad lärde sig Ylvi under vandringen?",
+        "options": [
+          "Att hjortron växer bäst på spången",
+          "Att det finns goda skäl att följa regler i naturen",
+          "Att hon aldrig mer vill vandra",
+          "Att myrar är torra och säkra att gå på om man har kängor"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-tradtopparna",
+    "title": "Banan högt uppe",
+    "level": 6,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Klätterparken låg mitt i en granskog. Mellan träden hängde rep, gungande broar och linbanor, högt över marken.\n\nHolly hade sett fram emot det i flera veckor. Men när hon stod på den första plattformen, åtta meter upp, blev benen mjuka som spagetti. Marken såg mycket längre bort ut än den gjort nerifrån.\n\n”Du sitter fast i två karbinhakar hela tiden”, sa pappa, som stod på plattformen bredvid. ”Du kan inte falla.”\n\nHolly visste att han hade rätt. Ändå kändes kroppen som om den inte trodde på det.\n\nHon bestämde sig för att bara titta på nästa steg, aldrig ner. Ett steg på den gungande bron. Ett till. Hon räknade högt för sig själv.\n\nDen första banan tog lång tid. Den andra gick lite snabbare. På den tredje märkte hon att hon hade slutat räkna.\n\nSist väntade den långa linbanan över en bäck. Holly satte sig i selen, tog sats och släppte taget. Vinden susade i öronen och hon skrek hela vägen, men det var ett glatt skrik.\n\nNär hon landade ville hon bara en sak: åka en gång till.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur högt upp låg den första plattformen?",
+        "options": [
+          "Två meter",
+          "Tjugo meter",
+          "Hundra meter",
+          "Åtta meter"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gick den sista linbanan över?",
+        "options": [
+          "En väg",
+          "En sjö",
+          "En bäck",
+          "En äng"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Benen blev ”mjuka som spagetti”. Vad betyder det?",
+        "options": [
+          "De kändes svaga och darriga",
+          "De blev mycket starka",
+          "De blev kalla och stela",
+          "De kliade och stack"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Holly ”tog sats”. Vad gjorde hon?",
+        "options": [
+          "Hon tog fart innan hon åkte",
+          "Hon tog en paus och vilade",
+          "Hon tog av sig selen",
+          "Hon tog pappas hand"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför bestämde sig Holly för att inte titta ner?",
+        "options": [
+          "Hon hade tappat sina glasögon",
+          "Det gjorde henne mindre rädd",
+          "Pappa hade förbjudit det",
+          "Det fanns inget att se där nere"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar det att Holly hade slutat räkna på tredje banan?",
+        "options": [
+          "Hon hade glömt siffrorna",
+          "Hon var för trött för att räkna",
+          "Pappa räknade åt henne",
+          "Hon hade blivit tryggare"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur förändras Holly under berättelsen?",
+        "options": [
+          "Från glad till ledsen",
+          "Från modig till rädd",
+          "Från rädd till modig och glad",
+          "Från arg och sur till trött och sömnig"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-nattvandringen",
+    "title": "Ugglan som svarade",
+    "level": 6,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Klockan var nio på kvällen när naturskolans guide Gerd samlade gruppen vid skogsbrynet. Det var oktober och redan beckmörkt.\n\n”I kväll ska vi lyssna efter kattugglor”, sa hon. ”Och vi ska klara oss utan ficklampor.”\n\nAhmad trodde att hon skämtade. Han höll hårt i sin lampa. Men efter en stund i skogen gick batteriet ur, och lampan slocknade.\n\nFörst såg han ingenting. Det var som att ha en svart filt över ögonen. Han hörde bara grenar som knakade och någon som fnissade nervöst.\n\n”Vänta”, viskade Gerd. ”Ge ögonen tid.”\n\nSakta började världen komma tillbaka. Han såg stammarna som mörkgrå streck och himlen som en ljusare rand mellan trädtopparna. Han kunde till och med se stigen.\n\nGerd formade händerna till en skål och blåste i dem. Ett ihåligt hoande ljud ekade mellan träden.\n\nDet blev helt tyst. Sedan, långt borta, kom ett svar: ”Ho-hooo.”\n\nAhmad kände hur det pirrade i hela kroppen.\n\nPå vägen tillbaka bad han de andra att släcka sina lampor också. Det var mycket mer spännande så.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken sorts ugglor lyssnade gruppen efter?",
+        "options": [
+          "Berguvar",
+          "Hornugglor",
+          "Kattugglor",
+          "Fjälluvar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför slocknade Ahmads ficklampa?",
+        "options": [
+          "Batteriet tog slut",
+          "Gerd stängde av den",
+          "Han tappade den i en bäck",
+          "Lampan gick sönder när han föll"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Det var ”beckmörkt”. Vad betyder det?",
+        "options": [
+          "Lite skumt",
+          "Helt mörkt",
+          "Ljust av månen",
+          "Dimmigt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Ljudet var ”ihåligt”. Hur lät det?",
+        "options": [
+          "Ljust och pipigt",
+          "Högt och skrikande",
+          "Snabbt och knackande",
+          "Dovt och tomt, som ur en tunnel"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa Gerd att ögonen behövde tid?",
+        "options": [
+          "Hon ville att gruppen skulle vila",
+          "Ugglorna kommer bara fram efter en stund",
+          "Ögonen vänjer sig långsamt vid mörker",
+          "Ahmad hade fått något i ögat"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vem svarade på Gerds hoande?",
+        "options": [
+          "En uggla långt borta",
+          "Ett eko från berget",
+          "Någon i gruppen som skämtade",
+          "En hund i en by"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför ville Ahmad att de andra skulle släcka sina lampor?",
+        "options": [
+          "Han ville spara på deras batterier",
+          "Han var rädd för ljuset",
+          "Gerd hade sagt att alla som tände lampan skulle få böter",
+          "Han upptäckte att mörkret gjorde skogen mer spännande"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-simprovet",
+    "title": "Tvåhundra meter",
+    "level": 6,
+    "textType": "story",
+    "topic": "sport",
+    "body": "I slutet av femman skulle alla i klassen simma tvåhundra meter, varav femtio på rygg. Dina hade bävat för det hela terminen.\n\nHon kunde simma, men hon blev så trött. Förra gången hade hon gett upp efter halva sträckan och hållit sig i kanten med andfådda andetag.\n\nSimläraren Anneli hade sett det. ”Du simmar som om det vore ett race”, sa hon. ”Du behöver inte vara snabb. Du behöver bara hålla i.”\n\nDe övade tillsammans. Anneli lärde Dina att andas ut under vattnet och in när hon vände huvudet. Hon visade att långa, lugna simtag gav mer fart än korta och stressade.\n\nProvdagen kom. Dina hoppade i och tänkte: lugnt, lugnt. Fyra längder. Hon räknade varje andetag. Sex längder. Armarna började värka. Hon vände på rygg, tittade upp i det vita taket och lät vattnet bära henne en stund.\n\nPå den sista längden hörde hon hur klasskamraterna ropade hennes namn från kanten.\n\nNär handen slog i väggen tittade hon upp. Anneli satt på huk med ett stort leende.\n\n”Du var nästan sist”, sa hon. ”Och det gör ingenting alls.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur långt skulle eleverna simma på provet?",
+        "options": [
+          "Femtio meter",
+          "Tvåhundra meter",
+          "Hundra meter",
+          "Fyrahundra meter"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad var det Dina tittade upp på när hon simmade på rygg?",
+        "options": [
+          "Det vita taket",
+          "Klasskamraterna",
+          "Klockan på väggen",
+          "Simläraren"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Dina hade ”bävat” för provet. Vad betyder det?",
+        "options": [
+          "Hon hade längtat efter det",
+          "Hon hade glömt det",
+          "Hon hade tränat inför det",
+          "Hon hade varit rädd för det"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Armarna började ”värka”. Vad betyder det?",
+        "options": [
+          "De blev starkare",
+          "De blev kalla",
+          "De gjorde ont",
+          "De somnade"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menade Anneli med att Dina simmade som i ett race?",
+        "options": [
+          "Hon var den snabbaste i klassen",
+          "Hon tog i för hårt och blev för fort trött",
+          "Hon simmade åt fel håll i bassängen och krockade med andra",
+          "Hon tävlade mot sina kompisar"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför ropade klasskamraterna Dinas namn?",
+        "options": [
+          "De ville att hon skulle skynda sig upp",
+          "De skrattade åt hur långsam hon var",
+          "De ville att hon skulle sluta simma",
+          "De ville peppa henne att orka sista biten"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menade Anneli med att det inte gjorde någonting att Dina var nästan sist?",
+        "options": [
+          "Att provet inte räknades",
+          "Att de andra hade fuskat",
+          "Att det viktiga var att Dina klarade hela sträckan",
+          "Att Dina skulle få göra om provet nästa termin igen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-terranglopp",
+    "title": "Loppet genom skogen",
+    "level": 6,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Varje höst hade skolan terränglopp i skogen bakom fotbollsplanen. Morris hade tränat i flera veckor. I år skulle han vinna, det hade han bestämt.\n\nStartskottet gick. Morris kom iväg bra och låg snart tvåa, precis bakom Tea från parallellklassen. Banan gick uppför en brant backe, över en bäck och ner genom en granskog full av rötter.\n\nI nedförsbacken snubblade Tea över en rot. Hon föll hårt och blev sittande på stigen med händerna om fotleden.\n\nMorris saktade in. Han kunde se mållinjen mellan träden. Om han sprang vidare skulle han vinna.\n\n”Spring!” sa Tea och bet ihop tänderna. ”Jag klarar mig.”\n\nMen hon var blek, och det fanns inga vuxna i närheten. Morris stannade och hjälpte henne att resa sig. Med armen om hans axlar haltade hon den sista biten. Fyra löpare hann förbi dem.\n\nVid målet tog skolsköterskan hand om Tea. Det var bara en stukning.\n\nMorris kom på sjätte plats. Han hade trott att han skulle vara besviken. Men när rektorn gav honom en extra applåd inför hela skolan kändes det inte alls som en förlust.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken plats låg Morris på innan Tea föll?",
+        "options": [
+          "Andra plats",
+          "Första plats",
+          "Sjätte plats",
+          "Fjärde plats"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade hänt med Teas fot?",
+        "options": [
+          "Den var bruten",
+          "Den var stukad",
+          "Den hade ett sår",
+          "Den var blöt"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Backen var ”brant”. Hur var den?",
+        "options": [
+          "Lång och platt",
+          "Hal och lerig",
+          "Mycket lutande",
+          "Smal och slingrig"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Tea ”haltade”. Hur gick hon?",
+        "options": [
+          "Mycket fort",
+          "Baklänges",
+          "På tå",
+          "Ojämnt, för att foten gjorde ont"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför sa Tea åt Morris att springa vidare?",
+        "options": [
+          "Hon ville vara ensam",
+          "Hon ville inte att han skulle förlora för hennes skull",
+          "Hon var arg på honom",
+          "Hon trodde att han redan var sist och inte kunde vinna"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför stannade Morris ändå?",
+        "options": [
+          "Det fanns ingen annan som kunde hjälpa Tea",
+          "Han var för trött för att springa",
+          "Han ville vila i skogen",
+          "Han hade också fått ont i foten av rötterna i backen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad menas med att det inte kändes som en förlust?",
+        "options": [
+          "Att han egentligen vann loppet",
+          "Att han inte brydde sig om sport",
+          "Att han säkert skulle vinna nästa år i stället",
+          "Att det var viktigare att hjälpa än att vinna"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-stjarnornas-liv",
+    "title": "Stjärnor föds och dör",
+    "level": 6,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Stjärnorna på himlen ser ut att lysa för evigt. Men precis som allt annat föds de, lever och dör, fast det tar miljarder år.\n\nEn stjärna föds i ett jättelikt moln av gas och stoft. Tyngdkraften drar ihop en del av molnet till en klump som blir allt tätare och varmare. Till slut blir det så hett i mitten att det börjar ske kärnreaktioner. Då börjar stjärnan lysa.\n\nVår sol är en ganska vanlig stjärna. Den är ungefär 4,6 miljarder år gammal och har alltså levt ungefär halva sitt liv. Om några miljarder år kommer den att svälla upp till en röd jätte. Sedan krymper den till en liten, het vit dvärg som sakta svalnar.\n\nStjärnor som är mycket större än solen lever kortare. När de dör exploderar de i en supernova som för en kort tid kan lysa starkare än en hel galax.\n\nI stjärnorna skapas nya ämnen, som järn och kalcium, och vid explosionerna sprids de ut i rymden. Ur resterna bildas nya stjärnor och planeter. Järnet i ditt blod kommer alltså ursprungligen från en stjärna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var föds en stjärna?",
+        "options": [
+          "Inne i en planet",
+          "I ett moln av gas och stoft",
+          "I ett svart hål",
+          "Bredvid månen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur gammal är solen ungefär?",
+        "options": [
+          "4,6 miljarder år",
+          "4 600 år",
+          "46 miljoner år",
+          "100 miljarder år"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Solen ska ”svälla upp”. Vad betyder det?",
+        "options": [
+          "Bli mycket kallare",
+          "Försvinna helt",
+          "Bli mycket större",
+          "Byta plats"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Järnet kommer ”ursprungligen” från en stjärna. Vad betyder det?",
+        "options": [
+          "Bara ibland",
+          "Nästan aldrig",
+          "Från början",
+          "Just nu"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menar texten med att solen har levt ”ungefär halva sitt liv”?",
+        "options": [
+          "Den kommer att slockna i morgon",
+          "Den är yngre än jorden",
+          "Den har just fötts",
+          "Den har lika lång tid kvar som den redan har levt"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skriver texten att järnet i ditt blod kommer från en stjärna?",
+        "options": [
+          "Järn bildas i stjärnor och sprids när de exploderar",
+          "Blodet är varmt som en stjärna",
+          "Människor bodde förr i rymden",
+          "Järn faller ner från himlen varje natt när stjärnorna lyser"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är det viktigaste texten vill visa?",
+        "options": [
+          "Att solen snart kommer att explodera",
+          "Att stjärnor har ett liv som tar slut och blir nya stjärnor",
+          "Att alla stjärnor är lika stora",
+          "Att stjärnor bara finns i vår egen galax och ingen annanstans"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-atervinningen",
+    "title": "Soporna som blir nya saker",
+    "level": 6,
+    "textType": "fact",
+    "topic": "miljö",
+    "body": "När du slänger en tom mjölkkartong eller en syltburk i rätt kärl hemma eller på återvinningsstationen, börjar en resa. Förpackningen kan bli något helt nytt.\n\nPappersförpackningar körs till ett bruk. Där blötläggs de och rörs om tills de blir en grå gröt av fibrer. Av gröten görs nytt papper och ny kartong. Fibrerna blir lite kortare för varje gång, men de kan återvinnas ungefär sju gånger.\n\nGlas är ännu bättre. Det krossas, smälts och formas till nya flaskor och burkar, om och om igen, utan att bli sämre. Därför är det viktigt att sortera färgat och ofärgat glas för sig.\n\nPlast är svårare. Det finns många sorters plast, och de är svåra att skilja åt. En del plast blir nya förpackningar eller bänkar, men mycket plast eldas fortfarande upp för att bli värme.\n\nAtt återvinna sparar energi och råvaror. Att göra en ny burk av gammalt glas kräver mindre energi än att börja från sand.\n\nMen det allra bästa för miljön är ändå att slänga mindre. En sak som används länge behöver aldrig återvinnas.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Ungefär hur många gånger kan pappersfibrer återvinnas?",
+        "options": [
+          "Sju gånger",
+          "En gång",
+          "Hundra gånger",
+          "Hur många gånger som helst"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket material kan återvinnas om och om igen utan att bli sämre?",
+        "options": [
+          "Papper",
+          "Glas",
+          "Plast",
+          "Kartong"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad är ”råvaror”?",
+        "options": [
+          "Mat som man inte har lagat",
+          "Saker som har gått sönder",
+          "Sopor som ska eldas upp",
+          "Material som man gör nya saker av"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Förpackningarna ”blötläggs”. Vad betyder det?",
+        "options": [
+          "De torkas i solen",
+          "De pressas ihop",
+          "De läggs i vatten en stund",
+          "De klipps i små bitar"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför är det svårt att återvinna plast?",
+        "options": [
+          "Det finns många olika sorter som är svåra att skilja åt",
+          "Plast går inte att smälta",
+          "Plast väger för mycket",
+          "Ingen vill ha saker av plast"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det bästa att slänga mindre?",
+        "options": [
+          "Då slipper man gå hela vägen till återvinningsstationen",
+          "Då blir soptunnan lättare att bära",
+          "Då kan man elda mer plast",
+          "Då behövs varken ny tillverkning eller återvinning"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten framför allt om?",
+        "options": [
+          "Hur man bygger en ny återvinningsstation i ett bostadsområde",
+          "Vad som händer med förpackningar som sorteras",
+          "Varför plast är bättre än glas",
+          "Hur man lagar sylt"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-finland",
+    "title": "Grannlandet i öster",
+    "level": 6,
+    "textType": "fact",
+    "topic": "geografi",
+    "body": "Finland ligger på andra sidan Östersjön, öster om Sverige. Landet kallas ibland för de tusen sjöarnas land, men det är egentligen en underdrift. Där finns nästan 190 000 sjöar! Mellan sjöarna växer skog, som täcker större delen av landet.\n\nUnder flera hundra år var Finland en del av Sverige. År 1809 förlorade Sverige ett krig mot Ryssland, och Finland hamnade under den ryska kejsaren. Först 1917 blev Finland ett självständigt land.\n\nDet är därför många finländare fortfarande talar svenska. Finland har två officiella språk, finska och svenska. Gatuskyltarna i huvudstaden Helsingfors är skrivna på båda språken. Finskan är däremot inte alls släkt med svenskan. Den hör till samma familj som estniska och samiska.\n\nFinland har gett hela världen ordet sauna, som betyder bastu. I Finland finns det ungefär tre miljoner bastur, nästan en för varannan invånare. Att basta är något man gör med familjen eller vänner, och efteråt kanske man doppar sig i en sjö eller rullar sig i snön.\n\nLångt i norr, i Lappland, går solen inte upp alls under några veckor mitt i vintern.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många sjöar finns det ungefär i Finland?",
+        "options": [
+          "Tusen",
+          "Hundra",
+          "Nästan 190 000",
+          "Femtio miljoner"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år blev Finland ett självständigt land?",
+        "options": [
+          "1809",
+          "1917",
+          "1521",
+          "1945"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Att kalla det ”de tusen sjöarnas land” är en ”underdrift”. Vad betyder det?",
+        "options": [
+          "Det är en lögn",
+          "Det är ett gammalt namn",
+          "Det låter mer än det egentligen är",
+          "Det låter mindre än det egentligen är"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Finland blev ”självständigt”. Vad betyder det?",
+        "options": [
+          "Det blev en del av Ryssland",
+          "Det fick en ny huvudstad",
+          "Det bestämde över sig självt",
+          "Det bytte språk"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför talar många finländare svenska?",
+        "options": [
+          "Finland var en del av Sverige under lång tid",
+          "Alla finländare har bott i Sverige",
+          "Finska och svenska är samma språk",
+          "Svenska är mycket lättare att lära sig än finska"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan man förstå av att det finns tre miljoner bastur?",
+        "options": [
+          "Bastun är mycket viktig i Finland",
+          "Finländarna fryser hela tiden",
+          "Det bor tre miljoner människor i Finland",
+          "Bastur är förbjudna i Sverige"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilket påstående stämmer bäst med texten?",
+        "options": [
+          "Finland har alltid varit ett eget land",
+          "I Finland talar alla bara finska och ingen kan svenska",
+          "Finland är ett sjörikt grannland med nära band till Sverige",
+          "Finland ligger väster om Sverige, på andra sidan Norge"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-friktion",
+    "title": "Kraften som bromsar",
+    "level": 6,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Om du knuffar till en bok på bordet glider den en bit och stannar. Varför fortsätter den inte? Svaret är friktion.\n\nFriktion uppstår när två ytor gnids mot varandra. Även ytor som ser släta ut har små ojämnheter. De små topparna hakar i varandra och bromsar rörelsen.\n\nOlika ytor ger olika mycket friktion. Gummi mot asfalt ger mycket friktion. Därför har bildäck och skosulor gummi med mönster. Is är tvärtom. Isen är så slät och hal att friktionen blir liten, och därför halkar man lätt. På vintern strör man sand eller grus på gångvägarna för att öka friktionen.\n\nFriktion skapar också värme. Gnid händerna mot varandra en kall dag, så märker du det. Förr tände människor eld genom att snurra en pinne snabbt mot en träbit tills det började glöda.\n\nIbland vill man ha mindre friktion. Därför smörjer man cykelkedjan med olja och vallar skidorna.\n\nUtan friktion skulle det inte gå att gå. Fötterna skulle bara glida bakåt. Knutar skulle glida upp, och spikar skulle inte sitta fast i väggen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad strör man på gångvägarna på vintern?",
+        "options": [
+          "Socker",
+          "Sand eller grus",
+          "Snö",
+          "Olja"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör man med cykelkedjan för att minska friktionen?",
+        "options": [
+          "Strör sand på den",
+          "Lindar gummi runt den",
+          "Värmer den",
+          "Smörjer den med olja"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Ytorna har ”ojämnheter”. Vad betyder det?",
+        "options": [
+          "Olika färger",
+          "Stora hål",
+          "Blanka fläckar",
+          "Små gropar och toppar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Man ”vallar” skidorna. Vad gör man?",
+        "options": [
+          "Målar dem i nya färger",
+          "Kortar av dem",
+          "Stryker på något som gör dem lättare att glida med",
+          "Spänner fast pjäxorna"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför har skosulor gummi med mönster?",
+        "options": [
+          "För att de ska bli lättare",
+          "För att få bättre grepp mot marken",
+          "För att de ska se snyggare ut",
+          "För att de ska glida bättre på isen"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blir händerna varma när man gnider dem mot varandra?",
+        "options": [
+          "Friktionen skapar värme",
+          "Blodet blir varmare av rörelsen i luften",
+          "Händerna svettas",
+          "Huden blir tjockare"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill texten visa om friktion?",
+        "options": [
+          "Att den bara finns på vintern",
+          "Att den alltid är ett problem",
+          "Att den både hjälper och stoppar oss i vardagen",
+          "Att man inte kan påverka den på något sätt alls"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-ljudet",
+    "title": "Hur ljudet når ditt öra",
+    "level": 6,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Allt ljud du hör börjar med att något vibrerar, alltså skakar fram och tillbaka mycket snabbt. Lägg handen på halsen när du pratar, så känner du hur stämbanden vibrerar.\n\nNär något vibrerar knuffar det till luften runt omkring. Luftens små delar knuffar i sin tur till nästa, och nästa. Så sprids en ljudvåg genom luften, ungefär som när man knuffar på den första personen i en lång kö.\n\nNär ljudvågen når ditt öra får den trumhinnan att vibrera. Trumhinnan är en tunn hinna inne i örat. Vibrationerna går vidare till tre pyttesmå ben och sedan till nerver som skickar signaler till hjärnan. Först där blir det ljud du kan förstå.\n\nLjud färdas ungefär 340 meter i sekunden genom luften. I vatten går det mer än fyra gånger fortare, och i stål ännu snabbare. Därför kan man höra ett tåg komma genom att lyssna på rälsen.\n\nI rymden finns ingen luft. Där finns ingenting som kan föra ljudet vidare. Om en stjärna exploderar långt ute i rymden sker det alltså helt tyst.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur fort färdas ljud genom luften?",
+        "options": [
+          "Ungefär 340 meter i sekunden",
+          "Ungefär tre meter i sekunden",
+          "Ungefär lika fort som ljuset",
+          "Ungefär tusen mil i sekunden"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad heter den tunna hinnan inne i örat?",
+        "options": [
+          "Stämbandet",
+          "Rälsen",
+          "Ljudvågen",
+          "Trumhinnan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Något ”vibrerar”. Vad betyder det?",
+        "options": [
+          "Det står helt stilla",
+          "Det skakar snabbt fram och tillbaka",
+          "Det blir varmt",
+          "Det lyser starkt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Benen i örat är ”pyttesmå”. Vad betyder det?",
+        "options": [
+          "Mycket små",
+          "Mycket hårda",
+          "Mycket gamla",
+          "Mycket mjuka"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan man höra ett tåg tidigare genom att lyssna på rälsen?",
+        "options": [
+          "Rälsen förstärker tågets tutande",
+          "Tåget kör snabbare än ljudet",
+          "Luften stoppar allt ljud från tåg som är långt borta",
+          "Ljudet går snabbare i stål än i luft"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför jämför texten ljudvågen med en kö?",
+        "options": [
+          "Ljudet måste vänta på sin tur",
+          "Varje del knuffar till nästa del",
+          "Ljudet går bara åt ett håll",
+          "Folk i köer pratar högt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför är det helt tyst i rymden?",
+        "options": [
+          "Det är alldeles för kallt för att ljudet ska kunna höras",
+          "Stjärnorna exploderar aldrig",
+          "Det finns ingen luft som kan föra ljudet vidare",
+          "Astronauterna har öronproppar"
+        ],
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
