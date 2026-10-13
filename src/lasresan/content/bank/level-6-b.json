@@ -1878,5 +1878,945 @@
         "category": "helhet_slutsats"
       }
     ]
+  },
+  {
+    "id": "lr-n3-spagettitornet",
+    "title": "Tornet av spagetti",
+    "level": 6,
+    "textType": "story",
+    "topic": "skola",
+    "body": "På teknikdagen fick varje grupp tjugo okokta spagettistrån, en meter tejp och en marshmallow. Uppgiften var att bygga det högsta tornet som kunde stå själv i en minut med marshmallowen i toppen.\n\n”Lätt”, sa Tariq. ”Vi tejpar ihop allt till en lång pinne.”\n\nPinnen blev nästan en meter hög. Men när Leonie satte marshmallowen överst böjde sig spagettin som ett grässtrå och knäcktes mitt itu.\n\n”Den behöver ben”, sa Ludde. ”Som ett kamerastativ.”\n\nDe började om. Den här gången byggde de trianglar av spagetti och tejpade ihop dem till en bred fot. Ovanpå den byggde de fler trianglar, mindre och mindre ju högre upp de kom. Tornet blev lägre än pinnen, men det stod stadigt.\n\nLäraren Marianne gick runt med måttbandet. Den grupp som hade det högsta tornet från början hade satt marshmallowen sist, och deras torn rasade direkt.\n\nTariqs grupp kom inte först. Men deras torn var ett av få som stod kvar efter en minut.\n\n”Trianglar”, sa Marianne och nickade. ”Det är därför broar och elstolpar ser ut som de gör.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad skulle sitta överst på tornet?",
+        "options": [
+          "En spagetti",
+          "En bit tejp",
+          "En marshmallow",
+          "En flagga av papper"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad byggde gruppen sitt andra torn av?",
+        "options": [
+          "En enda lång pinne",
+          "Fyrkanter",
+          "Runda ringar",
+          "Trianglar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Tornet stod ”stadigt”. Vad betyder det?",
+        "options": [
+          "Det stod stabilt utan att vingla",
+          "Det var mycket högt",
+          "Det föll långsamt omkull",
+          "Det lutade åt sidan som ett gammalt träd"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Ett ”kamerastativ” är",
+        "options": [
+          "en väska som man bär runt en kamera i på resor",
+          "ett ställ med ben som en kamera står på",
+          "en knapp som tar ett foto",
+          "en skärm som visar bilden"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför gick det första tornet sönder?",
+        "options": [
+          "Tejpen tog slut",
+          "Leonie råkade knuffa till det med armbågen",
+          "Spagettin var kokt",
+          "Det var för smalt för att bära vikten"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför rasade den andra gruppens torn direkt?",
+        "options": [
+          "De hade för lite spagetti",
+          "De hade inte provat med marshmallowen förrän i slutet",
+          "Marianne råkade stöta till det när hon gick förbi med måttbandet",
+          "De byggde det upp och ner"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad lärde sig gruppen på teknikdagen?",
+        "options": [
+          "Att högst alltid är bäst",
+          "Att det är omöjligt att bygga med spagetti",
+          "Att en bred grund och trianglar gör ett bygge starkt",
+          "Att man ska bygga helt ensam om man vill vinna tävlingen"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-sparburken",
+    "title": "Elva veckor till hjälmen",
+    "level": 6,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Ivan ville ha en riktig skateboardhjälm, en mattsvart med blixtar på sidorna. Den kostade 550 kronor.\n\n”Spara till den”, sa pappa. ”Du får femtio kronor i veckopeng.”\n\nIvan räknade på en lapp. Femtio gånger elva var 550. Elva veckor kändes som en evighet.\n\nHan tog en tom syltburk, klistrade en bild av hjälmen på den och ställde den på hyllan. Varje fredag stoppade han ner sin femtiolapp.\n\nDen tredje veckan gick han förbi kiosken med kompisarna. Alla köpte godis och glass. Ivan stod med händerna i fickorna och kände sig dum. Den sjätte veckan var det värre. Det fanns ett nytt spel som alla pratade om.\n\nMen varje gång han såg burken på hyllan kom han ihåg bilden av hjälmen. Han började hjälpa grannen att bära in ved och fick en extra tjuga. Sedan sålde han gamla serietidningar på skolans loppmarknad.\n\nEfter nio veckor var burken full. Han hade 560 kronor.\n\nNär han satte på sig hjälmen i affären kändes den bättre än något godis i hela världen. Och de tio kronorna som blev över stoppade han tillbaka i burken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur mycket kostade hjälmen?",
+        "options": [
+          "550 kronor",
+          "500 kronor",
+          "50 kronor",
+          "650 kronor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur fick Ivan extra pengar?",
+        "options": [
+          "Han fick pengar av mormor",
+          "Han sålde sin gamla skateboard till en kompis i klassen",
+          "Han bar in ved och sålde serietidningar",
+          "Han hittade pengar i kiosken"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Elva veckor kändes som en ”evighet”. Vad betyder det?",
+        "options": [
+          "En kort stund",
+          "En väldigt lång tid",
+          "En rolig tid",
+          "En helt vanlig vecka"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hjälmen var ”mattsvart”. Hur såg den ut?",
+        "options": [
+          "Svart och mycket blank",
+          "Svart med vita prickar",
+          "Svart och genomskinlig",
+          "Svart utan att glänsa"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför klistrade Ivan en bild av hjälmen på burken?",
+        "options": [
+          "Den skulle påminna honom om varför han sparade",
+          "Han ville visa alla kompisarna hur hans nya hjälm skulle se ut",
+          "Burken var för ful utan bild",
+          "Pappa sa att han måste göra det"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kände sig Ivan dum vid kiosken?",
+        "options": [
+          "Han hade tappat sina pengar",
+          "Kompisarna skrattade åt honom för att han inte hade hjälm",
+          "Kiosken hade stängt",
+          "Han var den ende som inte köpte något"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför stoppade Ivan tillbaka tiokronan i burken?",
+        "options": [
+          "Han ville inte ha mynt i fickan",
+          "Han hade märkt att det lönar sig att spara",
+          "Pappa bestämde det åt honom innan de gick till affären",
+          "Tio kronor räckte inte till godis"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-tidskapseln",
+    "title": "Lådan under eken",
+    "level": 6,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Mejra hittade kartan inne i en gammal bok om svampar på skolbiblioteket. Den var ritad med blyerts. Ett kryss var utsatt vid den stora eken bakom skolan, och bredvid stod det: ”Öppnas år 2025. Klass 6A.”\n\n”Det är en skattkarta!” viskade hennes kompis Frans.\n\nMejra var inte så säker. Skattkartor brukade inte ha årtal. Men det var redan 2026, så de var ett år sena.\n\nDe visade kartan för vaktmästaren, som hämtade en spade. Under eken, en halv meter ner, slog spaden i något hårt. Det var en plåtlåda, rostig i kanterna.\n\nInuti låg en plastpåse. I påsen fanns ett klassfoto, en lapp med elevernas namn, en kassett, några bilder av konstiga mobiltelefoner och en hög brev.\n\nEtt av breven var adresserat till ”Den som hittar lådan”. Där stod det: ”Hej framtiden! Har ni flygande bilar nu?”\n\nFrans skrattade. ”Inte än.”\n\nRektorn läste namnen på lappen och blev plötsligt tyst. Ett av dem var hennes eget.\n\nVeckan efter samlades den gamla klass 6A i skolans aula, för första gången på trettio år.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var hittade Mejra kartan?",
+        "options": [
+          "Under eken",
+          "I en plåtlåda",
+          "I en bok om svampar",
+          "I rektorns skrivbord"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilket år skulle lådan öppnas enligt kartan?",
+        "options": [
+          "2025",
+          "2026",
+          "1995",
+          "2050"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Lådan var ”rostig” i kanterna. Vad betyder det?",
+        "options": [
+          "Metallen hade blivit brun och angripen",
+          "Den var målad röd",
+          "Den var sönderbiten av djur som bor under jorden",
+          "Den var täckt av mossa"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Brevet var ”adresserat” till någon. Vad betyder det?",
+        "options": [
+          "Det hade ett gammalt frimärke fastklistrat på sig",
+          "Det var mycket hemligt",
+          "Det var skrivet med blyerts",
+          "Det stod vem brevet var skrivet till"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tvivlade Mejra på att det var en skattkarta?",
+        "options": [
+          "Den var ritad med blyerts",
+          "Det stod ett årtal på den",
+          "Den låg i en bok om svampar",
+          "Frans hade gjort den själv"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blev rektorn plötsligt tyst?",
+        "options": [
+          "Hon blev arg för att de hade grävt",
+          "Hon kunde inte läsa handstilen",
+          "Hon förstod att hon själv hade gått i klassen",
+          "Hon var rädd att det fanns något farligt inuti lådan"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad var lådan egentligen?",
+        "options": [
+          "En pirats gömda skatt",
+          "En låda som vaktmästaren hade tappat bort för länge sedan",
+          "En gammal postlåda",
+          "En tidskapsel som en klass hade grävt ner"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-fel-hund",
+    "title": "Fel golden",
+    "level": 6,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Julia hade lovat att hämta grannens hund Bamse på hunddagiset efter skolan. Bamse var en stor golden retriever med ljus päls och ett glatt humör.\n\nPå dagiset var det fullt av hundar. En av personalen frågade vem hon skulle hämta.\n\n”Bamse, en golden”, sa Julia.\n\n”Han är där borta”, sa kvinnan och pekade utan att titta upp från datorn.\n\nEn golden kom springande och viftade så att hela bakkroppen svängde. Julia satte på kopplet och gick hem.\n\nHalvvägs märkte hon att något var konstigt. Bamse brukade gå fint i koppel, men den här hunden drog mot varenda buske. Bamse var rädd för cyklar, men den här skällde glatt på dem. Och Bamse hade ett blått halsband. Det här var rött.\n\nJulia stannade och läste på brickan. Där stod det ”Doffe”.\n\nHon vände och gick tillbaka så fort hon kunde. Vid dagiset stod en förvånad man med en golden i koppel.\n\n”Jag tror att vi har bytt hund”, sa han och höll fram Bamse.\n\nJulia rodnade ända upp till öronen. Bamse viftade bara, som om han tyckte att alltihop var ett roligt äventyr.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg hade Bamses halsband?",
+        "options": [
+          "Blått",
+          "Rött",
+          "Grönt",
+          "Svart"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hette hunden som Julia tog med sig?",
+        "options": [
+          "Bamse",
+          "Golden",
+          "Doffe",
+          "Fido"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hunden ”viftade” så att bakkroppen svängde. Vad gjorde den?",
+        "options": [
+          "Den hoppade upp och ner",
+          "Den rörde svansen snabbt fram och tillbaka",
+          "Den rullade runt på golvet",
+          "Den skakade av sig vatten efter ett bad i sjön"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Julia rodnade ”ända upp till öronen”. Vad betyder det?",
+        "options": [
+          "Hon fick ont i öronen av allt skällande",
+          "Hon blev mycket arg",
+          "Hon blev mycket röd av skam",
+          "Hon hörde dåligt"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför fick Julia fel hund?",
+        "options": [
+          "Bamse hade rymt från dagiset",
+          "Kvinnan på dagiset tittade inte ordentligt",
+          "Julia hade aldrig sett Bamse förut",
+          "Mannen hade bytt halsband på hundarna i smyg för att lura henne"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur kunde Julia till slut förstå att det var fel hund?",
+        "options": [
+          "Hunden kunde inte gå",
+          "Hunden hade en annan färg på pälsen",
+          "Hunden var mycket mindre",
+          "Hunden betedde sig inte som Bamse"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad gör berättelsen rolig?",
+        "options": [
+          "Två hundar som ser likadana ut blir förväxlade",
+          "En hund lär sig cykla",
+          "Julia blir rädd för hundar",
+          "Personalen på dagiset tappar bort alla hundarna på en gång"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-farmors-ord",
+    "title": "Tio ord till farmor",
+    "level": 6,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Aliyas farmor hade flyttat från Syrien för två år sedan. Hon bodde i en lägenhet i samma hus och lagade den godaste maten Aliya visste. Men de kunde nästan inte prata med varandra. Farmor talade arabiska, och Aliya kunde bara några få ord.\n\nNär de var tillsammans log de mycket och pekade. Pappa fick översätta allt. Det kändes som om det stod en glasvägg mellan dem.\n\nEn dag bestämde sig Aliya. Hon bad pappa skriva tio arabiska ord på en lapp, med uttalet bredvid. ”Tack.” ”Gott.” ”Jag älskar dig.” ”Hur mår du?” Hon övade varje kväll innan hon somnade.\n\nNästa söndag ställde hon sig i farmors kök. ”Kayfa haluki?” sa hon försiktigt. Hur mår du?\n\nFarmor släppte sleven. Sedan började hon gråta och skratta på samma gång. Hon kramade Aliya så hårt att det gjorde lite ont.\n\nEfter det gav farmor henne ett nytt ord varje gång de sågs. Aliya lärde farmor ett svenskt ord tillbaka. Glasväggen blev tunnare för varje vecka.\n\nFarmors favoritord på svenska blev ”mysigt”.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varifrån hade farmor flyttat?",
+        "options": [
+          "Irak",
+          "Egypten",
+          "Syrien",
+          "Libanon"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem skrev orden på lappen åt Aliya?",
+        "options": [
+          "Farmor",
+          "Pappa",
+          "Läraren",
+          "Aliya själv"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Pappa fick ”översätta”. Vad gjorde han?",
+        "options": [
+          "Sa samma sak på ett annat språk",
+          "Skrev ner allt som sades",
+          "Pratade högre så att alla hörde",
+          "Bestämde vad de skulle prata om"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ”uttalet” av ett ord?",
+        "options": [
+          "Hur ordet stavas",
+          "Vad ordet betyder på svenska och engelska",
+          "Hur gammalt ordet är",
+          "Hur ordet ska låta när man säger det"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad menas med ”glasväggen” mellan Aliya och farmor?",
+        "options": [
+          "Att farmor bodde bakom ett stort fönster i en annan lägenhet",
+          "Att de var arga på varandra",
+          "Att de inte kunde prata med varandra",
+          "Att farmor inte ville träffa henne"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför grät och skrattade farmor samtidigt?",
+        "options": [
+          "Hon blev rörd och glad över Aliyas ord",
+          "Hon hade bränt sig på spisen",
+          "Hon förstod inte vad Aliya sa",
+          "Hon tyckte att Aliya uttalade orden helt fel"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Hur man lagar mat från Syrien",
+          "Hur svårt det är att flytta",
+          "Varför farmor inte gillar att bo i Sverige med familjen",
+          "Hur språket kan föra två människor närmare varandra"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-salarna",
+    "title": "Sälarna i Östersjön",
+    "level": 6,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "I havet runt Sverige lever tre sorters sälar: gråsäl, knubbsäl och vikare. Gråsälen är störst. En stor hane kan väga över tvåhundra kilo.\n\nSälar är däggdjur, precis som vi. De andas luft och måste upp till ytan för att andas. Ändå kan en gråsäl stanna under vattnet i flera minuter, ibland i över en kvart. När sälen dyker stänger den näsborrarna, och hjärtat slår mycket långsammare. Då räcker syret längre.\n\nUnder huden har sälen ett tjockt lager fett som kallas späck. Späcket fungerar som en varm jacka och gör att sälen klarar det kalla vattnet. På land rör sig sälen klumpigt genom att åla sig fram på magen. I vattnet är den däremot snabb och smidig.\n\nSälar äter fisk. Med sina långa morrhår kan de känna rörelser i vattnet och hitta fisk även när det är mörkt.\n\nVikaren behöver is för att föda sina ungar. I slutet av vintern gräver honan en grotta i snön på isen. Där är ungen skyddad mot kyla och fiender. Varma vintrar med lite is är därför ett hot mot vikaren.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken säl är störst i havet runt Sverige?",
+        "options": [
+          "Knubbsälen",
+          "Gråsälen",
+          "Vikaren",
+          "De är lika stora"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör sälen med näsborrarna när den dyker?",
+        "options": [
+          "Den stänger dem",
+          "Den blåser luft genom dem",
+          "Den fyller dem med vatten",
+          "Den tar in fisk genom dem"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Sälen ”ålar” sig fram. Hur rör den sig?",
+        "options": [
+          "Den hoppar på bakbenen",
+          "Den rullar runt som en boll över klipporna",
+          "Den glider fram på magen",
+          "Den springer fort"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Sälen är ”smidig” i vattnet. Vad betyder det?",
+        "options": [
+          "Den är mycket stor",
+          "Den rör sig lätt och mjukt",
+          "Den är långsam och tung som en sten",
+          "Den är rädd för vatten"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför slår sälens hjärta långsammare när den dyker?",
+        "options": [
+          "Sälen blir trött av att simma",
+          "Vattnet är för kallt för hjärtat",
+          "Sälen vill sova under vattnet",
+          "Syret i kroppen räcker då längre"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är varma vintrar ett hot mot vikaren?",
+        "options": [
+          "Vikaren tål inte varmt vatten",
+          "Fisken simmar bort när det är varmt",
+          "Det blir för lite is för ungarnas snögrottor",
+          "Späcket smälter bort när vattnet blir varmt på vintern"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förklarar texten mest?",
+        "options": [
+          "Hur man ska mata sälar",
+          "Varför sälar inte kan simma",
+          "Hur man fångar fisk med hjälp av långa morrhår",
+          "Hur sälarna klarar sig i det kalla havet"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-havets-salt",
+    "title": "Varför är havet salt?",
+    "level": 6,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Har du fått havsvatten i munnen någon gång? Då vet du att det smakar salt. Men vattnet i sjöar och floder smakar inte salt alls. Hur kan det komma sig?\n\nSvaret börjar med regnet. När regnvattnet rinner över berg och stenar löser det upp små, små mängder salt och andra ämnen. Vattnet rinner vidare i bäckar och floder och tar med sig saltet ut i havet. Mängden är så liten att vi inte känner den i floden.\n\nI havet värmer solen vattnet så att det avdunstar. Vattnet stiger upp och bildar moln, men saltet följer inte med. Det blir kvar i havet. Så har det hållit på i miljontals år, och därför har saltet samlats i havet.\n\nI världshaven finns ungefär 35 gram salt i varje liter vatten. Östersjön är mycket mindre salt. Dit rinner många floder med sötvatten, och havet har bara en smal öppning mot de salta haven.\n\nDöda havet mellan Israel och Jordanien är så salt att man flyter som en kork. Där kan man ligga på rygg och läsa en tidning.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur mycket salt finns det ungefär i en liter vatten från världshaven?",
+        "options": [
+          "35 gram",
+          "35 kilo",
+          "Tre gram",
+          "350 gram"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var ligger Döda havet?",
+        "options": [
+          "Mellan Sverige och Finland i norr",
+          "Mellan Israel och Jordanien",
+          "Mitt i Australien",
+          "I norra Kina"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Regnvattnet ”löser upp” salt. Vad betyder det?",
+        "options": [
+          "Saltet blir till sten",
+          "Saltet blandas in i vattnet",
+          "Saltet fryser till is",
+          "Saltet tvättas bort helt från stenarna"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Floderna har ”sötvatten”. Vad är det?",
+        "options": [
+          "Vatten med socker i",
+          "Vatten som smakar bär",
+          "Vatten som är mycket varmt",
+          "Vatten som inte är salt"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför blir havet saltare men inte molnen?",
+        "options": [
+          "Saltet följer inte med vattnet upp i luften",
+          "Molnen är för kalla för salt",
+          "Fiskarna i havet äter upp saltet innan det når molnen",
+          "Molnen bildas över sjöar"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är Östersjön mindre salt än världshaven?",
+        "options": [
+          "Östersjön är djupare än andra hav",
+          "Solen skiner aldrig på Östersjön",
+          "Mycket sötvatten rinner in och lite saltvatten kommer in",
+          "Fisken i Östersjön äter saltet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är textens huvudsakliga förklaring?",
+        "options": [
+          "Saltet kommer från fiskarna",
+          "Saltet har alltid funnits i havet från början",
+          "Saltet kommer från land och blir kvar i havet",
+          "Saltet faller ner med snön"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-hjarnan",
+    "title": "Kroppens kontrollrum",
+    "level": 6,
+    "textType": "fact",
+    "topic": "kroppen",
+    "body": "Hjärnan väger lite mer än ett kilo och ser ut ungefär som en skrynklig valnöt. Ändå styr den nästan allt du gör, tänker och känner.\n\nHjärnan består av miljarder nervceller. De skickar små elektriska signaler till varandra, blixtsnabbt. När du bestämmer dig för att lyfta handen går en signal från hjärnan genom ryggmärgen och nerverna ut till musklerna i armen. Signaler går också åt andra hållet. Ögon, öron, näsa och hud skickar hela tiden information till hjärnan om vad som händer runt dig.\n\nHjärnan har två halvor. Det märkliga är att den vänstra halvan styr kroppens högra sida, och den högra halvan styr den vänstra.\n\nFast hjärnan bara är en liten del av kroppens vikt, använder den ungefär en femtedel av all energi du får från maten.\n\nNär du sover vilar inte hjärnan. Den sorterar det du har varit med om under dagen och sparar det viktigaste som minnen. Därför är sömnen viktig när man ska lära sig nya saker.\n\nHjärnan skyddas av skallbenet och ligger i en vätska som dämpar stötar. En hjälm ger ännu mer skydd.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken halva av hjärnan styr kroppens högra sida?",
+        "options": [
+          "Den högra",
+          "Den vänstra",
+          "Båda lika mycket",
+          "Ingen av dem"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur stor del av kroppens energi använder hjärnan?",
+        "options": [
+          "Ungefär en femtedel",
+          "Nästan ingenting",
+          "Ungefär hälften av all energi",
+          "All energi"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Valnöten är ”skrynklig”. Hur ser den ut?",
+        "options": [
+          "Helt slät och blank",
+          "Rund som en boll",
+          "Mjuk och genomskinlig som gelé",
+          "Full av veck och rynkor"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vätskan ”dämpar” stötar. Vad betyder det?",
+        "options": [
+          "Gör dem starkare",
+          "Gör dem svagare",
+          "Räknar hur många de är",
+          "Skickar dem vidare"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan du dra undan handen snabbt från något varmt?",
+        "options": [
+          "Handen har en egen liten hjärna",
+          "Huden kan inte känna värme",
+          "Signalerna går blixtsnabbt mellan hjärna och kropp",
+          "Hjärnan sover när du är vaken och vaknar när du sover"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det bra att sova natten före ett prov?",
+        "options": [
+          "Hjärnan sparar det du lärt dig som minnen",
+          "Man växer mest när man sover",
+          "Hjärnan får vila helt och hållet",
+          "Man drömmer om alla svaren som kommer på provet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Varför kallas hjärnan ”kroppens kontrollrum” i rubriken?",
+        "options": [
+          "Den sitter högst upp i kroppen",
+          "Den är kroppens största organ",
+          "Den kan bara arbeta på natten när man sover",
+          "Den styr och tar emot information från hela kroppen"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-pengarna",
+    "title": "Från byteshandel till kort",
+    "level": 6,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För länge sedan fanns det inga pengar. Om en bonde ville ha ett par skor fick han byta till sig dem mot till exempel spannmål eller en get. Det kallas byteshandel. Men det var krångligt. Skomakaren kanske inte ville ha en get.\n\nDärför började människor använda saker som alla ville ha, som snäckor, salt eller bitar av metall. För ungefär 2 600 år sedan präglade man de första mynten i ett land som hette Lydien, i nuvarande Turkiet. Mynten var av en blandning av guld och silver, och varje mynt hade ett märke som visade vad det var värt.\n\nI Sverige fanns en tid något mycket otympligt: plåtmynt av koppar. Det största vägde nästan tjugo kilo! Det var inte lätt att gå och handla med.\n\nDärför började Stockholms banco år 1661 att ge ut papperslappar som visade att man ägde pengar i banken. Det var de första sedlarna i Europa.\n\nI dag betalar de flesta med kort eller med mobilen. Då flyttas pengarna mellan olika bankkonton, utan att någon behöver röra ett enda mynt.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var präglades de första mynten?",
+        "options": [
+          "I Sverige",
+          "I Kina",
+          "I Egypten",
+          "I Lydien"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur mycket vägde det största svenska plåtmyntet?",
+        "options": [
+          "Ungefär ett hekto",
+          "Två kilo",
+          "Nästan tjugo kilo",
+          "Hundra kilo"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Plåtmynten var ”otympliga”. Vad betyder det?",
+        "options": [
+          "Stora och svåra att hantera",
+          "Små och lätta att tappa i fickan",
+          "Gamla och värdelösa",
+          "Vackra och dyrbara"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är ”byteshandel”?",
+        "options": [
+          "Att köpa saker med kort",
+          "Att handla genom att byta saker mot varandra",
+          "Att sälja saker på en marknad",
+          "Att låna pengar av banken när man vill köpa ett hus"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför var byteshandeln krånglig?",
+        "options": [
+          "Man hittade inte alltid någon som ville ha det man hade",
+          "Det fanns inga marknader",
+          "Getter var för dyra",
+          "Skomakarna kunde inte räkna ut hur mycket en get var värd"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför blev sedlarna populära i Sverige?",
+        "options": [
+          "De var gjorda av guld",
+          "De gick inte att förstöra",
+          "De var mycket lättare att bära än kopparplåtarna",
+          "Kungen tyckte att mynten var fula och ville förbjuda dem"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar texten?",
+        "options": [
+          "Att mynt alltid har varit gjorda av koppar och väger mycket",
+          "Att byteshandel är det bästa sättet att handla",
+          "Att Sverige uppfann de första mynten",
+          "Att människor har hittat allt smidigare sätt att betala"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-rymdteleskopet",
+    "title": "Ögon i rymden",
+    "level": 6,
+    "textType": "fact",
+    "topic": "rymden",
+    "body": "Om du tittar på stjärnorna en klar natt ser du att de blinkar. Det beror på att luften runt jorden hela tiden rör sig och böjer stjärnljuset lite hit och dit. För den som vill se riktigt långt ut i rymden är det ett problem.\n\nLösningen blev att skicka upp teleskop i rymden, ovanför luften. År 1990 sköts rymdteleskopet Hubble upp. Det är ungefär lika stort som en buss och åker runt jorden på femtio mils höjd.\n\nFörst var bilderna suddiga. En av teleskopets speglar var slipad en aning fel. Tre år senare flög astronauter dit och monterade en sorts glasögon på teleskopet. Efter det tog Hubble skarpa bilder av galaxer och stjärnor som föds.\n\nÅr 2021 sköts ett ännu större teleskop upp, James Webb. Dess stora spegel består av arton sexkantiga delar som är täckta med ett tunt lager guld. Webb befinner sig ungefär 150 000 mil från jorden.\n\nLjus från de mest avlägsna galaxerna har färdats i miljarder år innan det når teleskopen. Därför ser vi galaxerna som de såg ut för länge sedan. Ett rymdteleskop är alltså också ett slags tidsmaskin.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilket år sköts Hubble upp?",
+        "options": [
+          "1969",
+          "1990",
+          "2021",
+          "2001"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är James Webbs spegel täckt med?",
+        "options": [
+          "Ett tunt lager is",
+          "Svart färg som tar upp ljus",
+          "Guld",
+          "Silverpapper"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Spegeln var ”slipad en aning fel”. Vad betyder ”en aning”?",
+        "options": [
+          "Väldigt mycket",
+          "Lite grann",
+          "Helt och hållet",
+          "Flera gånger om"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Galaxerna är ”avlägsna”. Vad betyder det?",
+        "options": [
+          "De är mycket ljusa och klara",
+          "De är alldeles nya",
+          "De rör sig mycket snabbt",
+          "De ligger långt bort"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tar teleskop i rymden skarpare bilder än teleskop på jorden?",
+        "options": [
+          "Luften stör inte ljuset där",
+          "Det är mycket varmare i rymden än på jorden",
+          "Stjärnorna är närmare när man är i rymden",
+          "Det är alltid dag i rymden"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kallas teleskopet ”ett slags tidsmaskin”?",
+        "options": [
+          "Vi ser galaxerna som de var förr",
+          "Teleskopet kan resa bakåt i tiden",
+          "Astronauterna blir yngre där uppe",
+          "Teleskopet har en stor klocka ombord som går baklänges"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man blir astronaut",
+          "Varför stjärnorna blinkar på sommaren",
+          "Hur man bygger ett eget stort teleskop hemma i trädgården",
+          "Hur teleskop i rymden hjälper oss att se långt bort"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
   }
 ]
