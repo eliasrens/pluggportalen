@@ -1,10 +1,11 @@
 // ============================================================================
-// Guldrushen – RÄTTNINGEN på servern (functions/guldrush-rattning.js, #563/#601)
+// Kistspel – RÄTTNINGEN på servern (functions/kistspel-rattning.js, #563/#601,
+// utbruten ur Guldrushen #651 – gemensam för alla kistformat)
 // ----------------------------------------------------------------------------
-// Ren logik utan Firestore: answerQuestion (guldrush-core.js) läser sessionen,
-// grPublic/questions och grPrivate/snapshot i sin transaktion och låter den här
-// filen avgöra rätt/fel och svarsdokumentets fält. Testas via guldrush-core i
-// test/functions-guldrush-core.test.mjs (+ tidslinje: …-tidslinje.test.mjs).
+// Ren logik utan Firestore: answerQuestion (kistspel-core.js) läser sessionen,
+// formatets publika frågor och privata facit i sin transaktion och låter den
+// här filen avgöra rätt/fel och svarsdokumentets fält. Testas via Guldrushen
+// i test/functions-guldrush-core.test.mjs (+ tidslinje: …-tidslinje.test.mjs).
 //
 //   multiplikation  facit räknas om (a·b); flerval kräver choiceIndex 0–3
 //   quiz/flerval    mot facit[q].answerIndex; bara den fråga servern gav (nextQ)
@@ -14,7 +15,8 @@
 //                   Facit = facit[q].year; exakt år = rätt.
 //
 // API
-//   GrError(code, message)        HttpsError-kod + svenskt meddelande
+//   KsError(code, message)        HttpsError-kod + svenskt meddelande
+//                                 (guldrush-rattning.js: samma klass som GrError)
 //   gradeMult(s, raw)             → svarsdokumentets fält (mode multiplikation)
 //   gradeQuiz(s, raw, g, pub, priv) → svarsdokumentets fält (flerval/tidslinje)
 //   pickNextQ(n, cur, rng)        → nästa frågeindex, aldrig samma två i rad
@@ -26,14 +28,14 @@ const MULT = "multiplication_0_10";
 const QUIZ = "plugga_quiz";
 
 /** Fel med en HttpsError-kod (index.js översätter) och ett svenskt meddelande. */
-export class GrError extends Error {
+export class KsError extends Error {
   constructor(code, message) {
     super(message);
     this.code = code;
   }
 }
 
-const bad = (msg) => new GrError("invalid-argument", msg);
+const bad = (msg) => new KsError("invalid-argument", msg);
 const isInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
 
 function parseInt0(v) {
@@ -84,7 +86,7 @@ export function gradeQuiz(s, raw, g, pub, priv) {
   const facit = priv?.facit || [];
   const q = raw?.q;
   if (!isInt(q, 0, questions.length - 1) || !facit[q]) throw bad("Ogiltig fråga.");
-  if (g?.nextQ != null && q !== g.nextQ) throw new GrError("failed-precondition", "Svara på frågan du fick.");
+  if (g?.nextQ != null && q !== g.nextQ) throw new KsError("failed-precondition", "Svara på frågan du fick.");
   if (questions[q].kind === "timeline") return gradeTimeline(questions[q], facit[q], q, raw);
   if (raw?.year !== undefined) throw bad("Välj ett av alternativen.");
   const opts = questions[q].options || [];
