@@ -16,6 +16,9 @@
 // session (klassprojektionen, en läsning per klass), delad mellan lobbyn och
 // spelvyerna.
 //
+// Kopplingen är den gemensamma kistspelsmodulen (#651): src/live/kistspel/
+// ks-koppling.js – här bara deps-nyckeln, datafilen och texterna.
+//
 // API
 //   avatarRoster(sid, deps?) → roster (design/live-avatars.js), cachad per session
 //   createGrKoppling({ sid, deps, onChange, say? }) → {
@@ -28,93 +31,17 @@
 //   }
 // ============================================================================
 
-import { createAvatarRoster } from "../../design/live-avatars.js";
+import { avatarRoster, createKoppling } from "../../kistspel/ks-koppling.js";
 import { computeStandings } from "./guldrush-core.js";
 
-let rosterCache = null; // { sid, roster }
-const CACHE_MS = 4000;
+export { avatarRoster };
 
-/** Avatarlistan för sessionen – samma instans för lobby och spelvyer. */
-export function avatarRoster(sid, deps = null) {
-  if (rosterCache?.sid === sid) return rosterCache.roster;
-  rosterCache?.roster.destroy();
-  const roster = createAvatarRoster(deps?.loadProjection ? { load: deps.loadProjection } : {});
-  rosterCache = { sid, roster };
-  return roster;
-}
-
-export function createGrKoppling({ sid, deps = null, onChange = () => {}, say = () => {} }) {
-  let dead = false;
-  let grPlayers = [];
-  let events = [];
-  let gotPlayers = false;
-  let gotEvents = false;
-  let ready = false;
-  let markReady = () => {};
-  const whenReady = new Promise((r) => { markReady = r; });
-  const unsubs = [];
-  let offline = false;
-  let sawPlayers = false;
-  let sawEvents = false;
-  const offT = setTimeout(() => {
-    offline = true;
-    gotPlayers = gotPlayers || sawPlayers;
-    gotEvents = gotEvents || sawEvents;
-    check();
-    onChange();
-  }, CACHE_MS);
-
-  const check = () => {
-    if (!ready && gotPlayers && gotEvents) {
-      clearTimeout(offT);
-      ready = true;
-      markReady();
-    }
-  };
-  const fail = (what) => (e) => {
-    say(`${what}: ${e?.message || e}`);
-    if (what === "Guldet") gotPlayers = true;
-    else gotEvents = true;
-    check();
-    onChange();
-  };
-
-  (deps?.guldrush ? Promise.resolve(deps.guldrush) : import("./guldrush-data.js")).then((api) => {
-    if (dead) return;
-    unsubs.push(api.watchGrPlayers(sid, (list, meta) => {
-      grPlayers = list || [];
-      sawPlayers = true;
-      gotPlayers = gotPlayers || !meta?.fromCache || offline;
-      check();
-      onChange("players");
-    }, fail("Guldet")));
-    unsubs.push(api.watchEvents(sid, (list, meta) => {
-      events = list || [];
-      sawEvents = true;
-      gotEvents = gotEvents || !meta?.fromCache || offline;
-      check();
-      onChange("events");
-    }, fail("Händelserna")));
-  }).catch((e) => {
-    gotPlayers = gotEvents = true;
-    check();
-    say(`Guldrushen kunde inte laddas: ${e?.message || e}`);
-    onChange();
+export function createGrKoppling(opts) {
+  return createKoppling({
+    ...opts,
+    dataKey: "guldrush",
+    loadData: () => import("./guldrush-data.js"),
+    computeStandings,
+    texts: { players: "Guldet", events: "Händelserna", loadFailed: "Guldrushen kunde inte laddas" },
   });
-
-  return {
-    get grPlayers() { return grPlayers; },
-    get events() { return events; },
-    get ready() { return ready; },
-    whenReady,
-    standings(st) {
-      return computeStandings(st?.session, { players: st?.players || [], grPlayers });
-    },
-    now: () => (deps?.now ? deps.now() : Date.now()),
-    destroy() {
-      dead = true;
-      clearTimeout(offT);
-      unsubs.forEach((u) => { try { u?.(); } catch {} });
-    },
-  };
 }
