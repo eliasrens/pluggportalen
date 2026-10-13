@@ -247,4 +247,84 @@ export const FAKTA = [
       ["Svansen är yvig. Vad betyder yvig?", ["Tjock och luftig", "Kort och hård", "Våt och kall", "Liten och smal"], "ordforstaelse"],
     ],
   },
+  {
+    id: "lr-g2-askan", title: "När det åskar", textType: "fact", topic: "natur",
+    body: [
+      "Åska kommer oftast på sommaren när det är varmt. Då bildas stora, mörka moln högt upp på himlen.",
+      "Inne i molnen bildas elektricitet. Till slut blir det en stark blixt. Blixten är mycket varm och lyser starkt.",
+      "Blixten värmer luften så snabbt att det smäller. Det är det vi kallar åskknall eller muller.",
+      "Ljuset kommer fram före ljudet. Därför ser man blixten först och hör mullret efteråt. Om det åskar ska man gå inomhus.",
+    ],
+    q: [
+      ["När kommer åska oftast?", ["På sommaren", "På vintern", "På hösten", "På våren"], "fakta"],
+      ["Varför smäller det när det åskar?", ["Blixten värmer luften snabbt", "Två stora moln krockar med varandra", "Det regnar hårt", "Vinden blåser"], "fakta"],
+      ["Vad märker man först?", ["Blixten", "Mullret", "Regnet", "Vinden"], "fakta"],
+      ["Mullret hörs efteråt. Vad är muller?", ["Ett dovt ljud", "Ett starkt ljus", "Ett kraftigt regn", "Ett mörkt moln"], "ordforstaelse"],
+      ["Vad ska man göra om det åskar?", ["Gå inomhus", "Klättra i ett träd", "Bada i sjön", "Ställa sig på en kulle"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-kylskapet", title: "Kallt i kylskåpet", textType: "fact", topic: "teknik",
+    body: [
+      "I ett kylskåp är det kallt, ungefär fem grader. Kylan gör att maten håller sig fräsch längre. Bakterier växer mycket långsammare när det är kallt.",
+      "Kylskåpet tar värmen inifrån och släpper ut den på baksidan. Därför kan det kännas varmt bakom kylskåpet.",
+      "I frysen är det ännu kallare, ungefär minus arton grader. Där kan maten hålla sig i flera månader.",
+      "Förr hade man inget kylskåp. Då förvarade man maten i en kall källare.",
+    ],
+    q: [
+      ["Hur kallt är det ungefär i ett kylskåp?", ["Fem grader", "Tjugo grader", "Hundra grader", "Femtio grader"], "fakta"],
+      ["Varför håller sig maten längre i kylan?", ["Bakterier växer långsammare", "Maten blir till is med en gång", "Ljuset är släckt", "Maten blir hård"], "fakta"],
+      ["Var släpper kylskåpet ut värmen?", ["På baksidan", "I frysen", "Inne i maten", "Genom dörren"], "fakta"],
+      ["Hur länge kan maten hålla sig i frysen?", ["I flera månader", "En timme", "En dag", "Bara en enda kväll"], "fakta"],
+      ["Var förvarade man maten förr?", ["I en kall källare", "Uppe på vinden", "I köksskåpet", "Bakom den varma spisen"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-skolan-forr", title: "Skolan för länge sedan", textType: "fact", topic: "historia",
+    body: [
+      "För ungefär hundra år sedan såg skolan annorlunda ut. Ibland gick barn i olika åldrar i samma klassrum. Läraren kallades fröken eller magistern.",
+      "Barnen satt i rader i bänkar av trä. De skrev med en griffel på en liten tavla av sten.",
+      "Det var mycket tyst i klassrummet. Barnen fick inte prata utan lov. Om man ville säga något räckte man upp handen.",
+      "Många barn gick hem och åt lunch. Skolmat fanns inte på alla skolor.",
+    ],
+    q: [
+      ["När såg skolan ut så här?", ["För ungefär hundra år sedan", "För några få år sedan", "För fem tusen år sedan", "I dag"], "fakta"],
+      ["Vad satt barnen i?", ["Bänkar av trä", "Mjuka soffor", "Stolar av plast", "Ringar på golvet"], "fakta"],
+      ["Vad skrev barnen med?", ["En griffel", "En dator", "En kulspetspenna", "En pensel"], "fakta"],
+      ["Vad gjorde man om man ville säga något?", ["Räckte upp handen", "Ropade högt", "Stod på bänken", "Skrev en lapp"], "fakta"],
+      ["Hur var skolan förr jämfört med i dag?", ["Det var strängare", "Det var mer lek", "Det fanns inga lärare", "Barnen fick prata mer"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-atervinning", title: "Burken blir en ny burk", textType: "fact", topic: "vardag",
+    body: [
+      "När du har druckit upp en burk är den inte skräp. Den kan bli en ny burk! Det kallas återvinning.",
+      "Burkar är gjorda av aluminium. I fabriken smälts de gamla burkarna. Av metallen gör man nya burkar.",
+      "Även papper, glas och plast kan återvinnas. Därför sorterar vi soporna i olika kärl.",
+      "Återvinning är bra för naturen. Man behöver inte hämta lika mycket nytt material ur jorden. Det sparar också energi.",
+    ],
+    q: [
+      ["Vad kallas det när en gammal burk blir en ny?", ["Återvinning", "Sophämtning", "Städning", "Tillverkning"], "fakta"],
+      ["Vad är burkar gjorda av?", ["Aluminium", "Glas", "Papper", "Trä"], "fakta"],
+      ["Vad händer med burkarna i fabriken?", ["De smälts", "De målas", "De tvättas", "De slängs"], "fakta"],
+      ["Vad mer kan återvinnas?", ["Papper, glas och plast", "Bara gamla burkar och flaskor", "Ingenting annat", "Bara mat"], "fakta"],
+      ["Varför sorterar vi soporna?", ["Så att de kan återvinnas", "För att det är roligt", "För att soporna ska lukta mindre", "För att kärlen är fina"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-australien", title: "Landet med kängurur", textType: "fact", topic: "geografi",
+    body: [
+      "Australien är ett stort land långt bort, på andra sidan jorden. När det är vinter i Sverige är det sommar där.",
+      "I Australien lever djur som inte finns i svensk natur. Ett av dem är kängurun.",
+      "Kängurun hoppar med sina starka bakben. Den kan hoppa mycket långt. Den använder svansen för att hålla balansen.",
+      "En kängurumamma har en ficka på magen. Där bor ungen när den är liten. Ungen kallas joey.",
+    ],
+    q: [
+      ["Var ligger Australien?", ["På andra sidan jorden", "Nära Sverige", "I norra Europa", "Mitt i havet vid Norge"], "fakta"],
+      ["Vilken årstid är det i Australien när det är vinter i Sverige?", ["Sommar", "Vinter", "Höst", "Vår"], "fakta"],
+      ["Vad använder kängurun svansen till?", ["Att hålla balansen", "Att gräva", "Att simma", "Att bära ungen"], "fakta"],
+      ["Var bor ungen när den är liten?", ["I en ficka på magen", "I ett bo i ett träd", "I en håla", "På mammas rygg"], "fakta"],
+      ["Vad kallas kängurunungen?", ["Joey", "Valp", "Kalv", "Kattunge"], "fakta"],
+    ],
+  },
 ];

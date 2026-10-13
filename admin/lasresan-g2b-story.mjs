@@ -248,4 +248,84 @@ export const STORY = [
       ["Vad borde Leo ha gjort?", ["Tittat på lappen", "Sprungit fortare", "Köpt mer bröd", "Stannat hemma"], "helhet_slutsats"],
     ],
   },
+  {
+    id: "lr-g2-lucia", title: "Lucia i klassen", textType: "story", topic: "skola",
+    body: [
+      "Den trettonde december har klassen luciatåg. Saga ska vara lucia. Hon har ett vitt linne och en krona med ljus.",
+      "Ljusen i kronan är inte riktiga. De lyser med batteri. Ändå är Saga nervös. Alla föräldrar sitter och tittar.",
+      "Klassen går in i en lång rad. De sjunger ”Sankta Lucia”. Mitt i sången slocknar ett ljus i kronan.",
+      "Ingen bryr sig. Alla sjunger vidare. Efteråt får alla barn lussekatter och varm saft.",
+    ],
+    q: [
+      ["Vilket datum har klassen luciatåg?", ["Den trettonde december", "Den första december", "Den tjugofjärde december", "Den trettonde januari"], "fakta"],
+      ["Vem ska vara lucia?", ["Saga", "Fröken", "Mamma", "Hela klassen"], "fakta"],
+      ["Hur lyser ljusen i kronan?", ["Med batteri", "Med riktig eld", "Med en sladd", "Med solljus"], "fakta"],
+      ["Vad händer mitt i sången?", ["Ett ljus slocknar", "Kronan ramlar av", "Saga glömmer orden", "Någon börjar gråta"], "fakta"],
+      ["Vad får barnen efteråt?", ["Lussekatter och saft", "Glass och läsk", "Pepparkakor och te", "Ingenting"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g2-kanoten", title: "Paddla till ön", textType: "story", topic: "äventyr",
+    body: [
+      "Mitt i sjön ligger en liten ö. Tove och hennes storebror Jonas vill dit. De tar på sig flytvästar och sätter sig i kanoten.",
+      "Jonas paddlar bak och Tove paddlar fram. Först åker kanoten i en cirkel. De skrattar och försöker igen. Nu paddlar de i takt.",
+      "Efter en stund kommer de fram. På ön växer blåbär. Där finns också ett gammalt fågelbo i en tall.",
+      "De äter blåbär tills händerna blir blå. Sedan paddlar de hem igen.",
+    ],
+    q: [
+      ["Var ligger ön?", ["Mitt i sjön", "Vid havet", "I en flod", "Bakom huset"], "fakta"],
+      ["Vad tar barnen på sig?", ["Flytvästar", "Mössor", "Stövlar", "Regnjackor"], "fakta"],
+      ["Vad händer första gången de paddlar?", ["Kanoten åker i en cirkel", "Kanoten välter", "Kanoten börjar läcka vatten", "De tappar en paddel"], "fakta"],
+      ["Vad finns i tallen?", ["Ett gammalt fågelbo", "En koja", "En ekorre", "Ett rep"], "fakta"],
+      ["Varför blir händerna blå?", ["De har ätit blåbär", "De fryser", "De har fått färg från kanoten", "Vattnet är blått"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g2-kartan-vinden", title: "Kartan på vinden", textType: "story", topic: "äventyr",
+    body: [
+      "Morfar och Nils städar på vinden. I en gammal låda hittar Nils en karta. Den är ritad med blyerts. Ett stort kryss står vid en sten.",
+      "”Den ritade jag när jag var liten”, säger morfar och ler.",
+      "De går ut i trädgården och letar upp den stora stenen. Nils gräver i jorden bredvid. Snart slår spaden mot något hårt.",
+      "Det är en rostig burk! I burken ligger tre kulor. Där ligger också ett gammalt foto på morfar som barn.",
+    ],
+    q: [
+      ["Var hittar Nils kartan?", ["I en låda på vinden", "Under sängen", "I bokhyllan", "I en väska i källaren"], "fakta"],
+      ["Vad står vid stenen på kartan?", ["Ett kryss", "En pil", "En stjärna", "En siffra"], "fakta"],
+      ["Vem har ritat kartan?", ["Morfar", "Nils", "Mormor", "Nils pappa"], "fakta"],
+      ["Vad ligger i burken?", ["Kulor och ett foto", "Pengar och ett guldur", "En nyckel", "Ett brev"], "fakta"],
+      ["Hur länge har burken legat i jorden?", ["Väldigt länge", "En dag", "En vecka", "Sedan i går"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g2-nya-rummet", title: "Första natten i nya rummet", textType: "story", topic: "relationer",
+    body: [
+      "Ebba och hennes familj har flyttat till en ny stad. I kväll ska Ebba sova i sitt nya rum. Det är första gången.",
+      "Rummet känns konstigt. Väggarna är vita och tomma. Det luktar ny färg. Utanför fönstret hör hon bilar i stället för fåglar.",
+      "Ebba kan inte somna. Hon saknar sitt gamla rum och sin bästa kompis Nora.",
+      "Då kommer pappa in. Han sätter upp Ebbas stjärnlampa i taket. Nu lyser små stjärnor överallt. Ebba känner sig lite mer hemma.",
+    ],
+    q: [
+      ["Varför har Ebba ett nytt rum?", ["Familjen har flyttat", "Hon har fyllt år", "Rummet har målats om", "Hon har fått en lillasyster"], "fakta"],
+      ["Hur ser väggarna ut?", ["Vita och tomma", "Rosa och fina", "Fulla av bilder", "Blå med stjärnor"], "fakta"],
+      ["Vad hör Ebba utanför fönstret?", ["Bilar", "Fåglar", "Regn", "Musik"], "fakta"],
+      ["Vem saknar Ebba?", ["Sin kompis Nora", "Sin mormor", "Sin katt", "Sin fröken"], "fakta"],
+      ["Varför hjälper stjärnlampan Ebba?", ["Den påminner om hemma", "Den är jättestor", "Den spelar musik", "Den gör rummet varmare"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g2-fel-ryggsack", title: "Fel ryggsäck", textType: "story", topic: "roliga situationer",
+    body: [
+      "Viktor har bråttom på morgonen. Han tar en blå ryggsäck i hallen och springer till bussen.",
+      "På lektionen ska han ta fram sin mattebok. Men i ryggsäcken ligger en docka, en banan och balettskor.",
+      "Klassen tittar. Viktor blir alldeles röd i ansiktet. Det är hans storasyster Moas ryggsäck!",
+      "Efter skolan möts de vid busshållplatsen. Moa håller Viktors ryggsäck. ”Dina böcker var tunga”, säger hon och skrattar.",
+    ],
+    q: [
+      ["Vilken färg har ryggsäcken?", ["Blå", "Röd", "Grön", "Svart"], "fakta"],
+      ["Vad ska Viktor ta fram på lektionen?", ["Sin mattebok", "Sin penna", "Sitt lunchpaket", "Sin läsebok"], "fakta"],
+      ["Vad ligger INTE i ryggsäcken?", ["En mattebok", "En docka", "En banan", "Balettskor"], "fakta"],
+      ["Vems ryggsäck har Viktor tagit?", ["Storasyster Moas", "Mammas gamla", "En klasskompis", "Lillebror Elliots"], "fakta"],
+      ["Varför blir Viktor röd i ansiktet?", ["Han skäms", "Han är arg", "Han har feber", "Han har ätit stark mat"], "mellan_raderna"],
+    ],
+  },
 ];
