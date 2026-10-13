@@ -115,7 +115,7 @@ test("banken: 40 texter per nivå 4–10 (lr-n<N> → nivå N+3), manifest 10 ni
     }
   }
   // Nivå 1–3 fylls av delarna D1–D3 (epic #516) och räknas i egna banktester.
-  for (const lvl of [4, 5, 6, 7, 8, 9, 10]) assert.equal(perLevel[lvl], 40, `nivå ${lvl}`);
+  for (const lvl of [4, 5, 6, 7, 8, 9, 10]) assert.ok(perLevel[lvl] >= 40, `nivå ${lvl}: ${perLevel[lvl]}`);
 });
 
 test("loader + picker: tomma nivå 1–3 → närmaste nivå med texter", async () => {

@@ -1,0 +1,942 @@
+[
+  {
+    "id": "lr-n3-skolradion",
+    "title": "Rösten i högtalaren",
+    "level": 6,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Varje fredag sände klass 5B ett kort radioprogram i skolans högtalare. Den här veckan var det Noor som skulle läsa nyheterna.\n\nHela veckan hade hon övat hemma framför spegeln. Men när hon satt i det lilla rummet bredvid biblioteket och såg den röda lampan tändas, blev munnen alldeles torr. Händerna darrade så att papperet prasslade.\n\n”God morgon, alla elever”, började hon. Rösten lät tunn och pipig. Hon tappade bort sig i texten och sa ”matsalen” i stället för ”gympasalen”.\n\nTeo, som skötte tekniken, höll upp en lapp. På den stod det: ”Andas. Ingen ser dig.”\n\nNoor tog ett djupt andetag. Sedan läste hon resten långsammare. Hon berättade om fotbollsturneringen, om den borttappade mössan och om att det skulle bli pannkakor till lunch. Till slut skrattade hon till och med åt sitt eget misstag.\n\nPå rasten kom en flicka från ettan fram till henne.\n\n”Är det du som är rösten?” frågade hon med stora ögon.\n\nNoor nickade. Plötsligt kände hon sig nästan lite känd.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem skulle läsa nyheterna den här veckan?",
+        "options": [
+          "Noor",
+          "Teo",
+          "Läraren",
+          "En flicka från ettan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad skulle det bli till lunch enligt nyheterna?",
+        "options": [
+          "Fiskbullar",
+          "Köttbullar",
+          "Tacos",
+          "Pannkakor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Papperet ”prasslade”. Vad betyder det?",
+        "options": [
+          "Det gick sönder i mitten",
+          "Det blev blött av svett",
+          "Det lät som när papper rör sig",
+          "Det föll ner på golvet under bordet"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Rösten lät ”pipig”. Hur lät den?",
+        "options": [
+          "Djup och mycket mörk",
+          "Ljus och lite gnällig",
+          "Hes och förkyld",
+          "Stark, lugn och mycket säker"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skrev Teo ”Ingen ser dig” på lappen?",
+        "options": [
+          "Han ville skämta om att hon var osynlig",
+          "Han ville att Noor skulle känna sig lugnare",
+          "Han tyckte att hon borde gå därifrån",
+          "Han ville klaga på att hon läste fel"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur kändes det för Noor när den röda lampan tändes?",
+        "options": [
+          "Hon blev sömnig",
+          "Hon blev arg på Teo och tekniken",
+          "Hon blev mycket nervös",
+          "Hon blev hungrig"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar berättelsen mest om?",
+        "options": [
+          "Att våga trots att man är nervös",
+          "Hur man bygger en radiostation",
+          "Varför ettorna gillar pannkakor",
+          "Hur man hittar en borttappad mössa"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-fel-hallplats",
+    "title": "En hållplats för långt",
+    "level": 6,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Simon hade åkt buss nummer fyra till simhallen många gånger, men aldrig ensam. Den här lördagen kunde pappa inte följa med.\n\n”Du kliver av vid Torget, precis efter den stora kyrkan”, sa pappa. ”Det är inte svårt.”\n\nSimon satte sig längst bak och tog på sig hörlurarna. Han lyssnade på en spännande ljudbok om pirater. När han till slut tittade upp var kyrkan borta. Utanför fönstret syntes bara lagerhus och en stor parkering.\n\nHjärtat började slå hårt. Han visste inte ens vad området hette.\n\nSimon gick fram till chauffören. ”Förlåt, jag skulle ha klivit av vid Torget”, sa han.\n\nChauffören, en kvinna med grått hår, log. ”Det händer de flesta någon gång. Bussen vänder vid nästa hållplats. Sitt kvar här fram, så åker du tillbaka med mig.”\n\nTio minuter senare var Simon vid Torget igen. Han kom fem minuter för sent till simträningen, men det gjorde ingenting.\n\nPå hemvägen satt han längst fram. Hörlurarna låg kvar i fickan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vid vilken hållplats skulle Simon kliva av?",
+        "options": [
+          "Kyrkan",
+          "Simhallen",
+          "Parkeringen",
+          "Torget"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad lyssnade Simon på i bussen?",
+        "options": [
+          "En ljudbok om pirater",
+          "Musik från radion",
+          "Ett program om simning",
+          "En podd om bussar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Simon såg ”lagerhus” utanför fönstret. Vad är det?",
+        "options": [
+          "Små hus där familjer bor",
+          "Gamla hus som ska rivas",
+          "Hus där man köper biljetter till bussen",
+          "Stora hus där man förvarar varor"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Bussen ”vänder” vid nästa hållplats. Vad betyder det?",
+        "options": [
+          "Den stannar för alltid",
+          "Den kör tillbaka åt andra hållet",
+          "Den kör in i ett garage för natten",
+          "Den byter chaufför"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför missade Simon sin hållplats?",
+        "options": [
+          "Chauffören körde en annan väg",
+          "Han somnade på bussen",
+          "Han var upptagen av ljudboken",
+          "Kyrkan hade rivits"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför låg hörlurarna kvar i fickan på hemvägen?",
+        "options": [
+          "Simon ville hålla koll på var han var",
+          "Hörlurarna hade gått sönder i vattnet",
+          "Chauffören hade förbjudit hörlurar",
+          "Ljudboken var redan slut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad lärde sig Simon av resan?",
+        "options": [
+          "Att han aldrig mer ska åka buss",
+          "Att simträningen börjar för tidigt",
+          "Att piratböcker är för spännande",
+          "Att det går att be om hjälp när något blir fel"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-tomaterna",
+    "title": "Tjuven i odlingslotten",
+    "level": 6,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Morfar Gösta var stolt över sina tomater. I hela sommar hade han vattnat dem i odlingslotten bakom hyreshusen. Men nu försvann de röda tomaterna, en eller två varje dag.\n\n”Det är säkert grävlingen”, sa morfar och muttrade.\n\nHanna trodde inte på det. En grävling skulle trampa ner plantorna, och de stod helt orörda. Dessutom var det bara de mogna tomaterna som var borta. De gröna satt kvar.\n\nHon bestämde sig för att spana. En eftermiddag gömde hon sig bakom komposten med en bok.\n\nEfter en stund kom en liten pojke gående med en korg. Han var kanske fyra år. Försiktigt plockade han en röd tomat och lade den i korgen bredvid några stenar och ett äpple.\n\n”Hej”, sa Hanna mjukt. ”Vad gör du?”\n\n”Jag har en affär”, sa pojken allvarligt. ”Vill du handla?”\n\nPojken hette Amir och bodde på bottenvåningen. Nästa dag fick han en egen liten tomatplanta av morfar. Och morfar köpte en tomat i hans affär, för en kotte.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilka tomater försvann från odlingslotten?",
+        "options": [
+          "De gröna",
+          "De största",
+          "De mogna röda",
+          "Alla på en gång"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var gömde sig Hanna när hon spanade?",
+        "options": [
+          "Under en buske",
+          "Bakom komposten",
+          "Inne i ett förråd",
+          "Bakom en bil"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Morfar ”muttrade”. Hur pratade han?",
+        "options": [
+          "Högt och glatt",
+          "Lågt och lite surt",
+          "Fort och nervöst utan att andas",
+          "Tyst och ledsamt"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Plantorna stod ”orörda”. Vad betyder det?",
+        "options": [
+          "De var nyplanterade",
+          "De hade vissnat",
+          "Någon hade flyttat dem",
+          "Ingen hade skadat dem"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför trodde Hanna inte att en grävling var tjuven?",
+        "options": [
+          "Plantorna var inte nedtrampade",
+          "Hon hade aldrig sett en grävling",
+          "Grävlingar äter bara gröna tomater",
+          "Morfar brukade alltid ha fel"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför tog Amir tomaterna?",
+        "options": [
+          "Han var mycket hungrig",
+          "Hans mamma hade bett honom",
+          "Han lekte att han hade en affär",
+          "Han ville retas med morfar och Hanna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur löstes problemet med tomaterna?",
+        "options": [
+          "Morfar satte upp ett högt staket",
+          "Hanna fångade grävlingen",
+          "Amir fick inte gå ut längre",
+          "Amir fick en egen planta att plocka från"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-gasen",
+    "title": "Gåsen som ville ha mer",
+    "level": 6,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det var Majas idé att mata fåglarna vid dammen i parken. Hon och hennes kusin Rasmus hade tagit med sig en påse med havregryn. Bröd är inte bra för fåglar, hade Maja läst.\n\nFörst kom några ankor och snattrade vänligt. Sedan dök en stor grå gås upp. Den åt ur handen på Rasmus och tittade på påsen med sina små svarta ögon.\n\n”Nu är det slut”, sa Maja och vände påsen upp och ner.\n\nGåsen höll inte med. Den sträckte ut halsen, fräste och började gå rakt mot dem.\n\n”Spring!” skrek Rasmus.\n\nDe sprang runt dammen, och gåsen vaggade efter dem i full fart. Folk på bänkarna började skratta. En gammal man ställde sig upp och applåderade.\n\nTill slut klättrade Maja och Rasmus upp på en stor sten. Gåsen stannade nedanför och gav dem en lång, sur blick. Sedan vände den och gick tillbaka till dammen, som om ingenting hade hänt.\n\n”Nästa gång”, flämtade Rasmus, ”tar vi med två påsar.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad hade Maja och Rasmus med sig för att mata fåglarna?",
+        "options": [
+          "Havregryn",
+          "Bröd",
+          "Fågelfrön",
+          "Kex"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var tog barnen skydd till slut?",
+        "options": [
+          "Bakom en bänk",
+          "Uppe på en stor sten",
+          "Inne i en lekstuga",
+          "Uppe i ett högt träd vid dammen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Gåsen ”fräste”. Vad gjorde den?",
+        "options": [
+          "Den flaxade upp i luften",
+          "Den la sig ner på marken",
+          "Den gav ifrån sig ett argt väsande ljud",
+          "Den simmade ut på dammen"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Rasmus ”flämtade”. Hur pratade han?",
+        "options": [
+          "Han viskade lugnt",
+          "Han sjöng glatt",
+          "Han andades fort och tungt",
+          "Han grät tyst för sig själv"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför började gåsen jaga barnen?",
+        "options": [
+          "Den var rädd för ankorna",
+          "Den ville ha mer mat",
+          "Den ville leka kull med dem",
+          "Den hade ont i benet"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad tyckte folket på bänkarna om jakten?",
+        "options": [
+          "De blev rädda för gåsen",
+          "De blev arga på barnen",
+          "De märkte inte vad som hände",
+          "De tyckte att den var rolig"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilken mening passar bäst som sammanfattning?",
+        "options": [
+          "Ett besök vid dammen blev en vild jakt",
+          "Två barn lär sig allt om ankor",
+          "En gås blir barnens bästa vän",
+          "En parkvakt stoppar en farlig gås med en håv"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-brevvannen",
+    "title": "Brev från Tammerfors",
+    "level": 6,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "I början av terminen fick hela klassen var sin brevvän i Finland. Wilma fick en flicka som hette Aino och bodde i Tammerfors.\n\n”Brev? Med penna och papper?” sa Wilma. ”Varför kan vi inte bara skicka meddelanden?”\n\nMen hon skrev ändå. Hon berättade om sin katt, om handbollen och om lillasyster som alltid tog hennes hårsnoddar. Sedan väntade hon. Och väntade.\n\nEfter nästan tre veckor låg ett tjockt kuvert i brevlådan. Aino skrev på svenska, för hon gick i en skola där man pratade både finska och svenska. Hon hade ritat sin hund och skickat med ett pressat blad från en björk utanför fönstret. Längst ner stod det: ”Jag har också en lillasyster. Hon tar mina strumpor!”\n\nWilma skrattade högt.\n\nSedan dess skrev de varannan vecka. Det var något speciellt med att vänta på brevet, att känna på papperet och se Ainos slarviga handstil.\n\nTill sommaren skulle Wilmas familj åka färja till Finland. Wilma hade redan bestämt att det första hon skulle göra var att knacka på hos Aino.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "I vilken stad bodde Aino?",
+        "options": [
+          "Tammerfors",
+          "Helsingfors",
+          "Åbo",
+          "Uleåborg"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad hade Aino skickat med i sitt första brev?",
+        "options": [
+          "Ett foto av sin katt",
+          "Ett pressat blad från en björk",
+          "En hårsnodd",
+          "En karta över staden"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Aino hade en ”slarvig” handstil. Vad betyder det?",
+        "options": [
+          "Bokstäverna var mycket små",
+          "Hon skrev med blyerts",
+          "Hon skrev bara med stora bokstäver",
+          "Bokstäverna var lite stökiga"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Ett ”kuvert” är",
+        "options": [
+          "ett slags frimärke",
+          "en låda för paket",
+          "ett omslag som man lägger brev i",
+          "ett tunt papper som man ritar och målar på"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skrattade Wilma högt när hon läste brevet?",
+        "options": [
+          "Ainos hund såg rolig ut",
+          "Aino hade samma problem med sin lillasyster",
+          "Brevet var skrivet på finska",
+          "Aino hade stavat fel på hennes namn"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad tyckte Wilma om att skriva brev i början?",
+        "options": [
+          "Hon tyckte att det verkade gammaldags",
+          "Hon tyckte att det var det roligaste som fanns",
+          "Hon var rädd att Aino inte kunde läsa",
+          "Hon tyckte att papperet var för dyrt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur förändrades Wilmas syn på brevskrivandet?",
+        "options": [
+          "Hon slutade skriva efter första brevet",
+          "Hon bytte till att bara skicka meddelanden",
+          "Hon började tycka att breven var speciella",
+          "Hon tyckte att det blev tråkigare och tråkigare"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-havsornen",
+    "title": "Örnen som kom tillbaka",
+    "level": 6,
+    "textType": "fact",
+    "topic": "djur",
+    "body": "Havsörnen är Nordens största rovfågel. Med utbredda vingar kan den mäta mer än två meter från vingspets till vingspets. Den vuxna fågeln känns igen på sin vita stjärt och sin stora gula näbb.\n\nHavsörnen lever nära kuster och stora sjöar. Den äter mest fisk, men tar också sjöfåglar och äter gärna döda djur som den hittar. Ett par håller ihop hela livet och bygger ett jättelikt bo högt upp i ett gammalt träd. Samma bo används år efter år och kan till slut väga flera hundra kilo.\n\nPå 1970-talet var havsörnen nära att försvinna från Sverige. Längs Östersjökusten fanns det bara några tiotal par kvar. Orsaken var miljögifter som spreds i Östersjön. Gifterna samlades i fisken, och när örnarna åt fisken blev deras äggskal så tunna att de gick sönder.\n\nMänniskor började hjälpa till. Farliga gifter förbjöds, och under vintrarna lade man ut ren mat åt örnarna. Långsamt ökade de igen. I dag finns det åter flera hundra par i Sverige.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur känns en vuxen havsörn igen?",
+        "options": [
+          "På den röda fläcken på huvudet",
+          "På de svarta fötterna och den korta näbben",
+          "På de randiga vingarna",
+          "På den vita stjärten och den gula näbben"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad äter havsörnen mest?",
+        "options": [
+          "Möss",
+          "Bär",
+          "Fisk",
+          "Insekter"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Havsörnen var nära att ”försvinna” från Sverige. Vad betyder det?",
+        "options": [
+          "Att det inte skulle finnas några kvar",
+          "Att den skulle flytta till en ny sjö långt bort",
+          "Att den skulle bli större",
+          "Att den skulle sluta flyga"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Gifterna ”spreds” i Östersjön. Vad betyder det?",
+        "options": [
+          "De blev rensade ur vattnet",
+          "De kom ut till många ställen",
+          "De sjönk till botten och försvann",
+          "De frös till is"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför föddes nästan inga ungar på 1970-talet?",
+        "options": [
+          "Örnarna hittade inga gamla träd att bygga sina bon i",
+          "Det fanns ingen fisk i Östersjön",
+          "Ungarna frös ihjäl i boet",
+          "Äggen gick sönder innan ungarna kläcktes"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför lade man ut ren mat åt örnarna på vintern?",
+        "options": [
+          "Så att de skulle bli tama",
+          "Så att de skulle flytta närmare städerna",
+          "Så att forskarna kunde räkna dem",
+          "Så att de skulle få i sig mindre gift"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar texten om havsörnen?",
+        "options": [
+          "Att människor kan hjälpa ett hotat djur att komma tillbaka",
+          "Att havsörnen är farlig för människor",
+          "Att alla rovfåglar äter fisk",
+          "Att Östersjön alltid har varit ren"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-jordbavningar",
+    "title": "När marken skakar",
+    "level": 6,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Jordens yta är inte en enda hel skorpa. Den består av stora plattor som långsamt rör sig, ungefär lika fort som dina naglar växer. Ibland fastnar två plattor i varandra. Spänningen byggs upp under många år, och plötsligt glider plattorna med ett ryck. Då skakar marken. Det kallas jordbävning.\n\nPlatsen där rycket sker ligger oftast djupt nere i marken. Därifrån sprider sig vågor genom berget åt alla håll, ungefär som ringar på vattnet när man kastar en sten.\n\nDe flesta jordbävningar är så små att ingen märker dem. Men de stora kan få hus att rasa. Om jordbävningen sker under havet kan den skapa en tsunami, en våg som blir hög och farlig när den når land.\n\nI länder som Japan och Chile byggs husen så att de kan svaja lite utan att gå sönder. Barnen i skolan övar på att krypa in under bänken och hålla sig fast.\n\nI Sverige skakar det nästan aldrig så att man känner det, eftersom vi bor mitt på en platta, långt från kanterna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur fort rör sig jordens plattor enligt texten?",
+        "options": [
+          "Lika fort som en bil kör på motorvägen",
+          "Ungefär lika fort som naglarna växer",
+          "Ungefär en meter om dagen",
+          "De rör sig inte alls"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad övar skolbarn i Japan och Chile på?",
+        "options": [
+          "Att springa upp på taket",
+          "Att simma ut i havet",
+          "Att krypa in under bänken",
+          "Att ringa till brandkåren"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Husen kan ”svaja” lite. Vad betyder det?",
+        "options": [
+          "Sjunka ner i marken bit för bit",
+          "Bli varmare",
+          "Lysa i mörkret",
+          "Röra sig fram och tillbaka"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Spänningen ”byggs upp”. Vad betyder det?",
+        "options": [
+          "Den försvinner helt",
+          "Den blir större och större",
+          "Den flyttar ut till havet och sprids",
+          "Den blir synlig"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför märks nästan inga jordbävningar i Sverige?",
+        "options": [
+          "Svenska hus är byggda av sten och tål allt",
+          "Det är för kallt i Sverige",
+          "Sverige ligger långt från plattornas kanter",
+          "Sverige har inget hav runt sig"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför jämför texten skakningarna med ringar på vattnet?",
+        "options": [
+          "För att visa hur vågorna sprider sig åt alla håll",
+          "För att visa att jordbävningar bara sker i sjöar",
+          "För att visa att stenar orsakar jordbävningar",
+          "För att visa att marken blir blöt"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förklarar texten framför allt?",
+        "options": [
+          "Hur man bygger ett hus i Sverige",
+          "Varför jordbävningar uppstår och vad de kan leda till",
+          "Varför naglarna växer så långsamt",
+          "Hur man surfar på en tsunami"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-lungorna",
+    "title": "Luften du andas",
+    "level": 6,
+    "textType": "fact",
+    "topic": "kroppen",
+    "body": "Du andas hela tiden, även när du sover, utan att behöva tänka på det. En vuxen människa andas ungefär tolv till tjugo gånger varje minut när hon vilar.\n\nNär du andas in går luften genom näsan eller munnen och ner i luftstrupen. Luftstrupen delar sig i två rör, ett till varje lunga. Inne i lungorna delar sig rören i mindre och mindre grenar, nästan som ett träd. Längst ut finns miljontals små blåsor som kallas lungblåsor.\n\nRunt lungblåsorna finns tunna blodkärl. Där går syret från luften över till blodet. Blodet för sedan syret vidare till hela kroppen. Samtidigt lämnar blodet ifrån sig koldioxid, som du andas ut.\n\nUnder lungorna ligger en stor muskel som heter diafragman. När den drar ihop sig blir det mer plats i bröstkorgen, och luften strömmar in.\n\nNär du springer behöver musklerna mer syre. Därför andas du snabbare och djupare. Näsan har ett viktigt jobb också. De små håren och slemmet inne i den fångar damm, så att luften blir renare innan den når lungorna.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter de små blåsorna längst ut i lungorna?",
+        "options": [
+          "Luftstrupar",
+          "Diafragmor",
+          "Andningsrör",
+          "Lungblåsor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör diafragman?",
+        "options": [
+          "Den pumpar blodet runt i kroppen",
+          "Den fångar damm i näsan",
+          "Den gör plats så att luften strömmar in",
+          "Den gör om syret i luften till koldioxid i blodet"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Luften ”strömmar” in. Vad betyder det?",
+        "options": [
+          "Den rör sig in i en jämn ström",
+          "Den stannar helt",
+          "Den blir mycket varm",
+          "Den byter färg"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Rören delar sig i ”grenar”. Vad menar texten?",
+        "options": [
+          "Allt mindre rör som går åt olika håll",
+          "Små träbitar inne i kroppen",
+          "Muskler som håller ihop de två lungorna",
+          "Hårstrån inne i näsan"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför jämför texten lungornas rör med ett träd?",
+        "options": [
+          "Lungorna är gröna som löv",
+          "Rören delar sig i fler och fler grenar",
+          "Lungorna växer lika långsamt som träd",
+          "Träd behöver också koldioxid"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är det bra att andas genom näsan?",
+        "options": [
+          "Man andas mindre ofta då",
+          "Man slipper att använda lungorna",
+          "Luften blir renare innan den når lungorna",
+          "Man får mer koldioxid i blodet och kan springa längre"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är det viktigaste lungorna gör enligt texten?",
+        "options": [
+          "Håller kroppen varm",
+          "Hjälper oss att smaka och lukta på maten",
+          "Gör att håret växer",
+          "Låter syre komma in i blodet"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-kinesiska-muren",
+    "title": "Muren genom bergen",
+    "level": 6,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "Kinesiska muren är ett av de största byggen som människor någonsin har gjort. Den slingrar sig över berg, genom öknar och längs floder i norra Kina.\n\nDet är egentligen inte en enda mur, utan många murar som byggdes under mer än tvåtusen år. Olika kejsare lät bygga nya delar och laga gamla. Den mur som de flesta turister besöker i dag byggdes för ungefär fem hundra år sedan. Räknar man ihop alla delar blir de mer än två tusen mil långa.\n\nMuren byggdes för att skydda riket mot folk som red in från norr. Längs muren fanns vakttorn. Om soldaterna såg fiender tände de en eld, och röken kunde ses från nästa torn. På det sättet kunde ett meddelande färdas många mil på kort tid.\n\nHundratusentals människor arbetade med bygget. Många var soldater, bönder eller fångar, och arbetet var tungt och farligt.\n\nDet sägs ibland att muren syns från månen, men det stämmer inte. Den är visserligen mycket lång, men alldeles för smal.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur gammal är den del av muren som de flesta turister besöker?",
+        "options": [
+          "Ungefär femtio år",
+          "Ungefär tvåtusen år",
+          "Ungefär fem hundra år",
+          "Ungefär tio tusen år"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur skickade soldaterna meddelanden längs muren?",
+        "options": [
+          "De tände eldar i vakttornen",
+          "De skickade brevduvor",
+          "De red med brev på snabba hästar",
+          "De slog på stora trummor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Muren ”slingrar sig” över bergen. Vad betyder det?",
+        "options": [
+          "Den går helt rakt",
+          "Den går i svängar och kurvor",
+          "Den är byggd under marken",
+          "Den håller på att rasa"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en ”kejsare”?",
+        "options": [
+          "En soldat som vaktar ett torn på muren",
+          "En bonde som odlar ris",
+          "En byggare som lägger sten",
+          "En mäktig härskare över ett rike"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför byggdes vakttornen nära varandra?",
+        "options": [
+          "Så att soldaterna kunde prata med varandra",
+          "Så att turisterna skulle få vila",
+          "Så att röken syntes från det ena tornet till det andra",
+          "Så att muren skulle bli högre"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför syns inte muren från månen?",
+        "options": [
+          "Den är för smal",
+          "Den är för gammal",
+          "Den är målad grön",
+          "Den ligger under jorden"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vilket påstående stämmer bäst med texten?",
+        "options": [
+          "Muren byggdes av en enda kejsare på ett år",
+          "Muren byggdes i många delar under lång tid",
+          "Muren byggdes för att turister skulle komma",
+          "Muren byggdes för att stoppa floderna"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n3-batteriet",
+    "title": "Kraften i en liten burk",
+    "level": 6,
+    "textType": "fact",
+    "topic": "teknik",
+    "body": "I fjärrkontrollen, i mobilen och i en elsparkcykel finns det batterier. Ett batteri är ett sätt att spara energi tills man behöver den.\n\nInne i ett batteri finns två olika ämnen, en pluspol och en minuspol, med något emellan som kallas elektrolyt. När batteriet kopplas in i till exempel en ficklampa börjar ämnena reagera med varandra. Då vandrar små laddade delar, elektroner, genom sladden från den ena polen till den andra. Det är det som är elektrisk ström, och den får lampan att lysa.\n\nEfter en tid är ämnena förbrukade. Då är batteriet urladdat. Vissa batterier kan laddas igen. När du sätter mobilen i laddaren trycks elektronerna tillbaka, och batteriet blir fullt på nytt.\n\nDet första batteriet byggdes år 1800 av en italiensk forskare, Alessandro Volta. Han staplade skivor av två olika metaller med tyg doppat i saltvatten emellan. Ordet volt, som används när man mäter el, kommer från hans namn.\n\nGamla batterier ska aldrig slängas i soporna. De innehåller ämnen som är farliga för naturen och ska lämnas till återvinning.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem byggde det första batteriet?",
+        "options": [
+          "En svensk uppfinnare",
+          "Ingen vet vem det var",
+          "En lärare i Frankrike",
+          "Alessandro Volta"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var ska gamla batterier lämnas?",
+        "options": [
+          "Till återvinning",
+          "I soporna",
+          "I komposten",
+          "Tillbaka i mobilen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Batteriet är ”urladdat”. Vad betyder det?",
+        "options": [
+          "Det är alldeles nytt",
+          "Det är för varmt",
+          "Det har ingen energi kvar",
+          "Det har gått sönder i mitten"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Volta ”staplade” skivor. Vad gjorde han?",
+        "options": [
+          "Skar dem i bitar",
+          "Lade dem ovanpå varandra",
+          "Smälte ihop dem",
+          "Målade dem i olika färger"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför lyser ficklampan bara när batteriet är inkopplat?",
+        "options": [
+          "Lampan behöver vila när den är ute",
+          "Batteriet blir kallt när det ligger löst",
+          "Elektronerna finns bara i lampan",
+          "Strömmen behöver en väg mellan polerna"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad är skillnaden mellan mobilens batteri och vissa andra batterier?",
+        "options": [
+          "Mobilens batteri saknar minuspol",
+          "Mobilens batteri innehåller saltvatten",
+          "Mobilens batteri går att ladda igen",
+          "Mobilens batteri tar aldrig slut"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man bygger en elsparkcykel",
+          "Hur ett batteri fungerar och var det kommer ifrån",
+          "Varför mobiler går sönder",
+          "Hur man sorterar sopor i köket och i garaget"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  }
+]
