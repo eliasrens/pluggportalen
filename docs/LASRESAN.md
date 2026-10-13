@@ -452,6 +452,11 @@ Question   = { id, question, options: [4 strängar], answerIndex (0-3), category
   (gammal nivå N = ny nivå N+3; filerna flyttade och `level` +3, inget annat
   ändrat). Nivå 1–3 är nya, enklare nivåer (`level-1..3.json`, tomma tills
   D1–D3 fyller dem). En tom nivå är okej: pickern tar närmaste nivå med texter.
+- **Fler texter per nivå:** läggs i en ny fil bredvid den gamla (t.ex.
+  `level-4-b.json`, #664, 40 texter via `admin/lasresan-n1b-bygg.mjs`) och
+  listas efter den i manifestet. Den gamla filen rörs inte – text-id:n i
+  elevernas historik pekar dit. Nya texter behåller nivåns id-prefix
+  (`lr-n1-…` på nivå 4).
 - **Frågor per text** (`questionRange(level)`, `QUESTIONS_BY_LEVEL` i
   `config.js`): nivå 1 = 3–4, nivå 2 = 4–5, nivå 3 = 5–7, nivå 4–10 = 5–9.
   Alltid 4 alternativ och exakt ett `answerIndex`.

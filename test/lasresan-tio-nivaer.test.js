@@ -99,7 +99,7 @@ test("positions-/längdkontroll fungerar på nivåer med få frågor per text", 
   assert.ok(!validateBank(skewBank(3)).warnings.some((w) => w.includes("skev fördelning")));
 });
 
-test("banken: 40 texter per nivå 4–10 (lr-n<N> → nivå N+3), manifest 10 nivåer", () => {
+test("banken: minst 40 texter per nivå 4–10 (lr-n<N> → nivå N+3), manifest 10 nivåer", () => {
   const dir = new URL("../src/lasresan/content/bank/", import.meta.url);
   const manifest = JSON.parse(readFileSync(new URL("manifest.json", dir)));
   assert.deepEqual(Object.keys(manifest.levels).map(Number), LEVELS);
@@ -115,7 +115,8 @@ test("banken: 40 texter per nivå 4–10 (lr-n<N> → nivå N+3), manifest 10 ni
     }
   }
   // Nivå 1–3 fylls av delarna D1–D3 (epic #516) och räknas i egna banktester.
-  for (const lvl of [4, 5, 6, 7, 8, 9, 10]) assert.equal(perLevel[lvl], 40, `nivå ${lvl}`);
+  // Minst 40: fler texter per nivå läggs i egna filer (t.ex. level-4-b.json, #664).
+  for (const lvl of [4, 5, 6, 7, 8, 9, 10]) assert.ok(perLevel[lvl] >= 40, `nivå ${lvl}: ${perLevel[lvl]}`);
 });
 
 test("loader + picker: tomma nivå 1–3 → närmaste nivå med texter", async () => {
