@@ -23,9 +23,10 @@
 
 import skogen from "./skogen.js";
 import oknen from "./oknen.js";
+import havet from "./havet.js";
 
 /** Alla världar, sorterade på `order`. Lägg till nya världar här. */
-export const WORLDS = sortWorlds([skogen, oknen]);
+export const WORLDS = sortWorlds([skogen, oknen, havet]);
 
 function sortWorlds(list) {
   return [...list].sort((a, b) => (a.order || 0) - (b.order || 0));

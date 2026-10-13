@@ -15,7 +15,7 @@
   <body>
     <div class="wrap">
       <div class="panel">
-        <b>Läsresan – kartvyn (issue #400)</b>. Stubbad progress utan inloggning/Firestore.
+        <b>Läsresan – kartvyn (issue #400, Havet/Djungeln #659)</b>. Stubbad progress utan inloggning/Firestore.
         <div class="sim">
           <button data-s="skog0">Skogen · steg 0 (ny elev)</button>
           <button data-s="skog7">Skogen · steg 7</button>
@@ -23,6 +23,11 @@
           <button data-s="skogklar">Skogen · 19→20 (värld klar 🎉)</button>
           <button data-s="oken3">Öknen · steg 3 (Skogen klar)</button>
           <button data-s="oken020">Öknen · gå 0→1</button>
+          <button data-s="okenklar">Öknen · 19→20 (värld klar 🎉)</button>
+          <button data-s="hav0">Havet · steg 0</button>
+          <button data-s="hav10">Havet · steg 10</button>
+          <button data-s="hav56">Havet · gå 5→6 (brygga)</button>
+          <button data-s="havklar">Havet · 19→20 (värld klar 🎉)</button>
         </div>
         <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
           Världsväljaren uppe till vänster visar klara/låsta världar.</div>
@@ -61,11 +66,17 @@
         skogklar: () => visa("skogen", 20, ["skogen"], 19, true),
         oken3: () => visa("oknen", 3, ["skogen"]),
         oken020: () => visa("oknen", 1, ["skogen"], 0),
+        okenklar: () => visa("oknen", 20, ["skogen", "oknen"], 19, true),
+        hav0: () => visa("havet", 0, ["skogen", "oknen"]),
+        hav10: () => visa("havet", 10, ["skogen", "oknen"]),
+        hav56: () => visa("havet", 6, ["skogen", "oknen"], 5),
+        havklar: () => visa("havet", 20, ["skogen", "oknen", "havet"], 19, true),
       };
       for (const b of document.querySelectorAll("[data-s]")) {
         b.addEventListener("click", () => scenarier[b.dataset.s]());
       }
-      scenarier.skog0();
+      // #hav10 o.s.v. i adressen väljer scenario direkt (skärmdumpar).
+      (scenarier[location.hash.slice(1)] || scenarier.skog0)();
     </script>
   </body>
 </html>
