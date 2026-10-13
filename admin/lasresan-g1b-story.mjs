@@ -9,18 +9,18 @@
 // [fråga, [rätt, fel, fel, fel], kategori]
 export const STORY = [
   {
-    id: "lr-g1-bonan", title: "Bönan i koppen", textType: "story", topic: "skola",
+    id: "lr-g1-matsalen", title: "Grön soppa", textType: "story", topic: "skola",
     body: [
-      "Klassen ska så bönor. Alla får en kopp med jord. Mateo lägger en böna i sin kopp.",
-      "Han vattnar varje dag. Koppen står i fönstret.",
-      "En morgon ser Mateo något grönt. Ett litet blad tittar upp!",
-      "Mateo ler stort. Hans böna växer.",
+      "I dag är det ny mat i matsalen. Det är en grön soppa.",
+      "Mateo tittar på soppan. Han rynkar på näsan. ”Den ser konstig ut”, säger han.",
+      "Fröken säger: ”Smaka en sked.”",
+      "Mateo tar en liten sked. Soppan är varm och god! Den smakar ärtor. Mateo tar mer.",
     ],
     q: [
-      ["Vad ska klassen så?", ["Bönor", "Blommor", "Gräs", "Morötter"], "fakta"],
-      ["Var står koppen?", ["I fönstret", "På golvet", "I hallen", "Under bordet"], "fakta"],
-      ["Vad ser Mateo en morgon?", ["Ett litet blad", "En stor blomma", "En liten mask", "Ett gult bär"], "fakta"],
-      ["Hur känner sig Mateo i slutet?", ["Glad", "Arg", "Ledsen", "Rädd"], "mellan_raderna"],
+      ["Vilken färg har soppan?", ["Grön", "Röd", "Gul", "Brun"], "fakta"],
+      ["Vad säger Mateo om soppan först?", ["Den ser konstig ut", "Den luktar gott", "Den är för kall", "Den är min favorit"], "fakta"],
+      ["Vad smakar soppan?", ["Ärtor", "Tomat", "Fisk", "Svamp"], "fakta"],
+      ["Varför tar Mateo mer?", ["Soppan är god", "Han är sen", "Han måste", "Tallriken är liten"], "mellan_raderna"],
     ],
   },
   {
@@ -160,18 +160,18 @@ export const STORY = [
     ],
   },
   {
-    id: "lr-g1-simningen", title: "Jag kan simma!", textType: "story", topic: "sport",
+    id: "lr-g1-hinderbanan", title: "Hinderbanan", textType: "story", topic: "sport",
     body: [
-      "Ayan går på simskola. Hon har armpuffar på sig.",
-      "I dag ska Ayan simma utan armpuffar. Hon är lite rädd.",
-      "Hon tar ett djupt andetag. Hon sparkar med benen.",
-      "Ett, två, tre simtag! Ayan når kanten. ”Jag kan simma!” ropar hon.",
+      "Det är idrottsdag. På gården står en hinderbana.",
+      "Först kryper Ayan under ett rep. Sedan hoppar hon över en bänk. Sist kryper hon genom en lång tunnel.",
+      "Ayan blir smutsig på knäna. Men hon kommer i mål!",
+      "Hon får en medalj av papper. Hon sätter den på väggen hemma.",
     ],
     q: [
-      ["Var går Ayan?", ["På simskola", "På fotboll", "På dans", "På ridning"], "fakta"],
-      ["Vad ska Ayan göra i dag?", ["Simma utan armpuffar", "Hoppa från tornet", "Dyka efter en ring", "Simma med en bräda"], "fakta"],
-      ["Hur känner sig Ayan först?", ["Lite rädd", "Mycket arg", "Jätteglad", "Väldigt trött"], "fakta"],
-      ["Hur många simtag tar Ayan?", ["Tre", "Två", "Fyra", "Tio"], "fakta"],
+      ["Var står hinderbanan?", ["På gården", "I simhallen", "I skogen", "I parken"], "fakta"],
+      ["Vad gör Ayan först?", ["Kryper under ett rep", "Hoppar över en bänk", "Kryper genom en tunnel", "Springer runt en kon"], "fakta"],
+      ["Var blir Ayan smutsig?", ["På knäna", "På näsan", "I håret", "På ryggen"], "fakta"],
+      ["Vad får Ayan?", ["En medalj av papper", "En stor guldpokal", "En glass", "En ny boll"], "fakta"],
     ],
   },
   {
@@ -236,17 +236,18 @@ export const STORY = [
     ],
   },
   {
-    id: "lr-g1-skattkartan", title: "Kartan till skatten", textType: "story", topic: "äventyr",
+    id: "lr-g1-tradet", title: "Högt upp i trädet", textType: "story", topic: "äventyr",
     body: [
-      "Malak hittar en lapp på sin säng. Det är en karta! Ett rött kryss sitter vid den stora eken.",
-      "Malak springer ut i trädgården. Hon går tio steg från eken. Där ligger en platt sten.",
-      "Under stenen finns en låda. I lådan ligger tre guldpengar av choklad. Malak jublar.",
+      "Bakom huset står en stor ek. Malak vill klättra upp i den.",
+      "Hon sätter foten på en tjock gren. Sedan tar hon tag i nästa. Upp, upp, upp!",
+      "Högt uppe finns ett fågelbo. I boet ligger tre små blå ägg.",
+      "Malak rör inte äggen. Hon klättrar försiktigt ner igen.",
     ],
     q: [
-      ["Var hittar Malak lappen?", ["På sin säng", "Under dörren", "I sin väska", "På bordet"], "fakta"],
-      ["Var sitter krysset?", ["Vid den stora eken", "Vid den gamla boden", "Vid dammen", "Vid huset"], "fakta"],
-      ["Hur många steg går Malak?", ["Tio", "Fem", "Tjugo", "Tre"], "fakta"],
-      ["Vad ligger i lådan?", ["Guldpengar av choklad", "Glittriga pärlor av glas", "En ny karta", "En liten nyckel"], "fakta"],
+      ["Vilket träd står bakom huset?", ["En ek", "En gran", "En björk", "En tall"], "fakta"],
+      ["Vad hittar Malak högt uppe?", ["Ett fågelbo", "En boll", "En drake", "En ekorre"], "fakta"],
+      ["Vilken färg har äggen?", ["Blå", "Vita", "Bruna", "Prickiga"], "fakta"],
+      ["Hur klättrar Malak ner?", ["Försiktigt", "Väldigt fort", "Med en stege", "Hon hoppar"], "fakta"],
     ],
   },
   {
