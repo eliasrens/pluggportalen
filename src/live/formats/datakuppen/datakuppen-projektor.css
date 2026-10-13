@@ -1,0 +1,395 @@
+/* ==========================================================================
+   Datakuppen – NÄTVERKET (#654, spec §0.2, §4.2): huvudvyn (timer, klassens
+   data, topp 10 vid serverskåpen, terminalen, hack-linjen), pallen och
+   statistiken. Egen fil – laddas av dk-natverk.js. Grunden, bakgrunden,
+   loggan och lobbyn: datakuppen-natverk.css. 16:9: vh-mått, viktig text
+   ≥ 28 px (clamp-golv).
+   Layout: den översta raden (logga · timer · totalruta) är FREDAD – inget
+   läggs någonsin över den. Golvet (servrarna) till vänster, terminalen
+   (fast höjd, 4 rader) till höger. Hack-linjen ritas INNE i golvet, UNDER
+   serverplatserna; skyltarna har egen mörk platta, så linjen skymmer aldrig
+   text eller topplista. Milstolpar firas i totalrutan.
+   ========================================================================== */
+
+.dknv {
+  --dknv-kant: clamp(400px, 32vw, 620px);
+  display: grid;
+  grid-template-columns: 1fr var(--dknv-kant);
+  grid-template-rows: minmax(calc(var(--dkn-topp) + clamp(84px, 15vh, 170px)), auto) 1fr;
+}
+.dknv > .dknb { grid-area: 1 / 1 / -1 / -1; }
+
+/* --- Överst: logga · timer · tillsammans (fredad) ------------------------- */
+.dknv-topp {
+  grid-area: 1 / 1 / 2 / -1;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2vw;
+  padding: var(--dkn-topp) 2.4vw 0;
+}
+.dknv-topp .dkn-logo { justify-self: start; }
+.dknv-klocka {
+  padding: 0.08em 0.55em 0.1em;
+  border-radius: 0.3em;
+  background: #061230;
+  border: 0.05em solid var(--dkn-cyan);
+  box-shadow: 0 0 0.35em rgba(62, 232, 255, 0.3), inset 0 0 0.3em rgba(62, 232, 255, 0.15);
+  font-size: clamp(54px, 9.6vh, 116px);
+  line-height: 1;
+}
+.dknv-klocka b {
+  font-family: var(--dkn-mono);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--dkn-gron);
+  text-shadow: 0 0 0.2em rgba(57, 255, 159, 0.6);
+}
+.dknv-klocka.dknv-spanning { border-color: var(--dkn-orange); animation: dknv-puls 1s ease-in-out infinite; }
+.dknv-klocka.dknv-spanning b { color: #ffd9a0; text-shadow: 0 0 0.2em rgba(255, 181, 71, 0.6); }
+@keyframes dknv-puls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+.dknv-tills {
+  position: relative;
+  justify-self: end;
+  min-width: clamp(260px, 18vw, 400px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.05;
+  padding: 0.2em 0.6em;
+  border-radius: 0.4em;
+  background: var(--dkn-panel);
+  border: 3px solid var(--dkn-kant);
+  transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+.dknv-tills span { font-size: clamp(28px, 3.2vh, 40px); font-weight: 700; color: var(--dkn-dov); }
+.dknv-tills b {
+  font-size: clamp(36px, 5.8vh, 72px);
+  font-weight: 800;
+  color: var(--dkn-gron);
+  text-shadow: 0 0 0.18em rgba(57, 255, 159, 0.5);
+  white-space: nowrap;
+}
+.dknv-tills i { font-style: normal; font-family: var(--dkn-mono); font-variant-numeric: tabular-nums; }
+.dknv-tills small { font-size: clamp(20px, 2.2vh, 28px); font-weight: 700; color: var(--dkn-dov); white-space: nowrap; }
+/* Förloppsmätaren mot nästa milstolpe (dk-totalruta). */
+.dknk-matare {
+  align-self: stretch;
+  height: clamp(14px, 1.8vh, 22px);
+  margin: 0.3vh 0 0.4vh;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(62, 232, 255, 0.55);
+  overflow: hidden;
+}
+.dknk-fyll {
+  display: block;
+  height: 100%;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #12a86a, var(--dkn-gron) 55%, var(--dkn-cyan));
+  transition: transform 0.45s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+/* Milstolpe! Rutan pulserar (bara transform) och lyser grönt. */
+.dknv-tills.dknk-fira { animation: dknk-fira 0.6s ease-in-out 2; border-color: var(--dkn-gron); }
+.dknv-tills.dknk-fira-lugn { border-color: var(--dkn-gron); background: rgba(10, 70, 52, 0.92); }
+@keyframes dknk-fira { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+/* Datakonfetti: ettor och nollor i stället för pappersbitar. */
+.dknk-konfetti { position: absolute; inset: 0; pointer-events: none; }
+.dknk-konfetti i {
+  position: absolute;
+  width: auto;
+  height: auto;
+  background: none !important;
+  font: 800 clamp(18px, 2.2vh, 28px)/1 var(--dkn-mono);
+  font-style: normal;
+  color: var(--dkn-gron);
+  text-shadow: 0 0 0.3em rgba(57, 255, 159, 0.7);
+}
+.dknk-konfetti i:nth-child(odd)::before { content: "1"; }
+.dknk-konfetti i:nth-child(even)::before { content: "0"; }
+.dknk-konfetti i:nth-child(3n) { color: var(--dkn-cyan); }
+.dknk-konfetti i:nth-child(5n) { color: var(--dkn-orange); }
+
+/* --- Golvet: topp 10 vid serverskåpen + hack-linjen ----------------------- */
+.dknv-golv { grid-area: 2 / 1 / 3 / 2; position: relative; margin: 2.5vh 1vw 3.2vh; min-height: 0; }
+.dknv-tom {
+  position: absolute;
+  inset: 30% 0 auto;
+  margin: 0;
+  text-align: center;
+  font-family: var(--dkn-mono);
+  font-size: clamp(26px, 3.4vh, 42px);
+  font-weight: 700;
+  color: var(--dkn-gron);
+  text-shadow: 0 0 0.3em rgba(57, 255, 159, 0.5);
+}
+.dknh { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.dknh-glod { fill: none; stroke: var(--dkn-orange); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; opacity: 0.28; }
+.dknh-karna { fill: none; stroke: #ffe2a8; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.dknh-ring { fill: none; stroke: var(--dkn-orange); stroke-width: 4; opacity: 0; transform-box: fill-box; transform-origin: center; }
+
+.dkns { position: absolute; inset: 0; --dkns-fig: 110px; --dkns-lab: clamp(26px, 2.9vh, 34px); }
+.dkns-plats {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  font-size: var(--dkns-fig);
+  width: 2.3em;
+  height: 1.3em;
+  margin: -1.3em 0 0 -1.15em;
+  transform-origin: 50% 100%;
+  transition: transform 0.85s cubic-bezier(0.3, 0.9, 0.3, 1), opacity 0.5s ease;
+  will-change: transform;
+}
+.dkns-plats.dkns-ny, .dkns-plats.dkns-ut { opacity: 0; }
+.dkns-plats > .lav { flex: none; margin-right: -0.12em; position: relative; z-index: 1; }
+/* Skåpet har alltid samma storlek – lysdioderna visar datan (dk-servrar). */
+.dkns-hog { flex: none; width: 0.88em; height: 1.28em; transform: none !important; }
+.dkns-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.dkns-skugga { fill: #000; opacity: 0.35; }
+.dkns-skap { fill: #0b1a3a; stroke: var(--dkn-cyan); stroke-width: 3; }
+.dkns-tak { fill: #16305e; }
+.dkns-fack { fill: #0f2550; stroke: #23467e; stroke-width: 1; }
+.dkns-led { fill: #17304f; transition: fill 0.5s ease; }
+.dkns-led.dkns-pa { fill: var(--dkn-gron); }
+.dkns-ledare .dkns-skap { stroke: var(--dkn-orange); }
+.dkns-ledare .dkns-led.dkns-pa { fill: #9dffcf; }
+/* Skylten under figuren: placering · namn · 🛡️ / MB – på en egen mörk platta. */
+.dkns-skylt {
+  position: absolute;
+  top: 100%;
+  left: 0.05em;
+  right: 0.05em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.06em 0.2em 0.1em;
+  border-radius: 0.35em;
+  background: rgba(4, 12, 30, 0.9);
+  border: 2px solid rgba(62, 232, 255, 0.3);
+  font-size: var(--dkns-lab);
+  line-height: 1.08;
+  white-space: nowrap;
+  z-index: 1;
+}
+.dkns-matt { position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; }
+.dkns-namn { display: flex; gap: 0.25em; max-width: 100%; font-weight: 800; color: var(--dkn-text); }
+.dkns-text { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.dkns-nr { font-style: normal; color: var(--dkn-cyan); }
+.dkns-skold { font-style: normal; font-size: 0.85em; }
+.dkns-guld { font-family: var(--dkn-mono); font-weight: 800; color: var(--dkn-gron); font-variant-numeric: tabular-nums; }
+.dkns-ledare .dkns-skylt { border-color: rgba(255, 181, 71, 0.75); }
+.dkns-ledare .dkns-namn { color: #ffe2a8; }
+
+/* --- Kanten: terminalen ----------------------------------------------------- */
+.dknv-kant { grid-area: 2 / 2 / 3 / 3; position: relative; padding: 2.5vh 1.4vw 3vh 0; min-height: 0; }
+/* Högst --dknf-max (4) rader, EN rad var (aldrig radbrytning), fast höjd. */
+.dknf {
+  --dknf-f: clamp(20px, 2.5vh, 31px);
+  --dknf-rad: calc(var(--dknf-f) * 1.7);
+  --dknf-gap: 0.4vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6vh;
+  padding: 0 0.7em 0.8em;
+  border-radius: 0.6em;
+  background: rgba(2, 9, 22, 0.94);
+  border: 2px solid rgba(57, 255, 159, 0.45);
+  box-shadow: 0 0 0.8em rgba(57, 255, 159, 0.12);
+  font-family: var(--dkn-mono);
+  font-size: var(--dknf-f);
+}
+.dknf-h {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  margin: 0 -0.7em;
+  padding: 0.25em 0.7em;
+  border-bottom: 2px solid rgba(57, 255, 159, 0.3);
+  font: 700 clamp(20px, 2.3vh, 28px)/1.2 var(--dkn-mono);
+  color: var(--dkn-dov);
+}
+.dknf-prick { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--dkn-gron); box-shadow: 0 0 0.3em var(--dkn-gron); }
+.dknf-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dknf-gap);
+  height: calc(var(--dknf-max, 4) * var(--dknf-rad) + (var(--dknf-max, 4) - 1) * var(--dknf-gap));
+  overflow: hidden;
+}
+.dknf-post {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  height: var(--dknf-rad);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--dkn-gron);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dknf-post[data-typ="steal"] { color: var(--dkn-orange); }
+.dknf-post[data-typ="lead"] { color: var(--dkn-cyan); }
+.dknf-stor { color: #b6ffe0; text-shadow: 0 0 0.35em rgba(57, 255, 159, 0.6); }
+.dknf-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dknf-av { flex: none; font-size: 1.45em; display: grid; place-items: center; }
+.dknf-tom { display: none; margin: 0; color: var(--dkn-gron); opacity: 0.75; }
+.dknf-tomt .dknf-tom { display: block; }
+
+/* --- Finalen: pallen av serverskåp ------------------------------------------ */
+.dknv-final > :is(.dknv-topp, .dknv-golv, .dknv-kant) { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+.dknp {
+  position: absolute;
+  inset: var(--dkn-topp) 0 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto auto;
+  justify-items: center;
+  padding-bottom: 2.6vh;
+}
+.dknp-mork { position: absolute; inset: calc(var(--dkn-topp) * -1) 0 0; background: rgba(2, 6, 16, 0.72); opacity: 0; transition: opacity 1s ease; }
+.dknp-ljus {
+  position: absolute;
+  left: 50%;
+  bottom: 16vh;
+  width: 70vw;
+  height: 80vh;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 70%, rgba(62, 232, 255, 0.32), rgba(57, 255, 159, 0.1) 45%, transparent 70%);
+  opacity: 0;
+  transition: opacity 1.2s ease 0.3s;
+}
+.dknp-pa .dknp-mork, .dknp-pa .dknp-ljus { opacity: 1; }
+.dknp > :is(.dknp-rubrik, .dknp-pall, .dknp-tillsammans, .dknp-tips, .dknp-folk) { position: relative; }
+.dknp-rubrik {
+  margin: 1vh 0 0;
+  font-size: clamp(34px, 5.4vh, 64px);
+  color: var(--dkn-text);
+  text-shadow: 0 0 0.3em rgba(62, 232, 255, 0.55);
+  text-align: center;
+}
+.dknp-pall { display: flex; align-items: flex-end; justify-content: center; gap: 1.6vw; align-self: end; }
+.dknp-steg { display: flex; flex-direction: column; align-items: center; width: clamp(220px, 21vw, 400px); }
+.dknp-steg > :not(.dknp-block) { opacity: 0; transition: opacity 0.4s ease; }
+.dknp-steg.dknp-uppe > * { opacity: 1; }
+.dknp-figurer { display: flex; justify-content: center; font-size: calc(clamp(84px, 16vh, 190px) / max(1, var(--n) * 0.75)); }
+.dknp-namn { font-size: clamp(30px, 4.2vh, 50px); font-weight: 800; text-align: center; line-height: 1.05; text-shadow: 0 2px 6px #000; }
+.dknp-guld { font-family: var(--dkn-mono); font-size: clamp(26px, 3.2vh, 38px); font-weight: 800; color: var(--dkn-gron); }
+.dknp-pris { font-size: clamp(26px, 3vh, 36px); font-weight: 700; color: var(--dkn-orange); }
+.dknp-block { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 0.6vh; }
+.dknp-medalj { position: absolute; top: -0.2em; font-size: clamp(40px, 6vh, 70px); z-index: 1; filter: drop-shadow(0 2px 4px #000); }
+.dknp-tackor { display: flex; flex-direction: column; align-items: center; padding-top: 3.6vh; }
+.dknp-tackrad { display: flex; height: 3vh; }
+.dknp-tackrad svg { height: 3.1vh; width: auto; margin: 0 -0.1vh; }
+/* Totalraden: liten och lugn – rubriken är det enda stora. */
+.dknp-tillsammans {
+  margin: 1.2vh 0 0;
+  font-size: clamp(22px, 3vh, 36px);
+  font-weight: 600;
+  color: var(--dkn-text);
+  text-align: center;
+}
+.dknp-tillsammans strong { font-family: var(--dkn-mono); color: var(--dkn-gron); font-weight: 800; }
+.dknp-tips {
+  margin: 1vh 0 0;
+  max-width: min(80vw, 1200px);
+  padding: 0.2em 0.8em;
+  border-radius: 0.5em;
+  font-size: clamp(22px, 2.6vh, 32px);
+  font-weight: 600;
+  text-align: center;
+  background: var(--dkn-panel);
+  border: 2px solid rgba(255, 181, 71, 0.55);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.dknp-tips b { color: var(--dkn-orange); }
+.dknp-slut .dknp-tips { opacity: 1; }
+.dknp-folk {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-end;
+  gap: 0.6vh 0.4vw;
+  max-width: min(64vw, calc(var(--dknp-folk-per-rad, 99) * (1em + 0.4vw) + 1px));
+  margin-top: 2vh;
+  font-size: clamp(26px, min(calc(9vh / var(--dknp-folk-rader, 1)), calc(56vw * var(--dknp-folk-rader, 1) / var(--dknp-folk-n) / 1.15)), 90px);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.dknp-slut .dknp-folk { opacity: 1; }
+.dknp-regn { position: absolute; inset: calc(var(--dkn-topp) * -1) 0 0; overflow: hidden; pointer-events: none; }
+.dknp-regn i { position: absolute; top: 0; display: block; font-style: normal; }
+/* Dataregn: ettor och nollor. */
+.dknp-mynt { font: 800 2.6vh/1 var(--dkn-mono); color: var(--dkn-gron); text-shadow: 0 0 0.3em rgba(57, 255, 159, 0.7); }
+.dknp-mynt:nth-child(odd)::before { content: "1"; }
+.dknp-mynt:nth-child(even)::before { content: "0"; }
+.dknp-mynt:nth-child(3n) { color: var(--dkn-cyan); }
+.dknp-konf { width: 1vh; height: 1.6vh; border-radius: 2px; }
+
+/* --- Statistiken: klassens siffror + exakt ställning ------------------------ */
+.dknx { display: flex; flex-direction: column; gap: 1.5vh; padding: var(--dkn-topp) 2.4vw 2.5vh; }
+.dknx > :not(.dknb) { position: relative; }
+.dknx-topp { display: flex; align-items: center; gap: 2vw; }
+.dknx-rubrik { margin: 0; flex: 1; font-size: clamp(34px, 5vh, 60px); color: var(--dkn-text); }
+.dknx-tid { font-size: clamp(32px, 5vh, 60px); font-weight: 800; color: var(--dkn-text); }
+.dknx-tid b { font-family: var(--dkn-mono); font-variant-numeric: tabular-nums; color: var(--dkn-gron); }
+.dknx-tid b.dknx-varm { color: var(--dkn-orange); }
+.dknx-kort-rad { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.8vw; }
+.dknx-kort, .dknx-ruta {
+  border-radius: 0.6em;
+  background: var(--dkn-panel);
+  border: 3px solid var(--dkn-kant);
+}
+.dknx-kort { display: grid; grid-template-columns: auto 1fr; column-gap: 0.35em; align-items: center; padding: 0.8vh 0.6vw; font-size: clamp(18px, 2.3vh, 28px); min-width: 0; }
+.dknx-hack { border-color: rgba(255, 181, 71, 0.6); }
+.dknx-ikon { grid-row: span 3; font-size: 1.5em; }
+.dknx-label { font-size: 0.9em; font-weight: 700; color: var(--dkn-dov); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dknx-varde { font-family: var(--dkn-mono); font-size: 1.35em; line-height: 1.1; color: var(--dkn-gron); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dknx-hack .dknx-varde { color: var(--dkn-orange); }
+.dknx-kort small { font-size: 0.75em; color: var(--dkn-dov); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dknx-klassrad { margin: 0; display: flex; flex-wrap: wrap; gap: 0.5em 1.2em; font-size: clamp(24px, 2.8vh, 34px); }
+.dknx-klass { padding: 0.1em 0.6em; border-radius: 999px; background: var(--dkn-panel); border: 2px solid var(--dkn-kant); }
+.dknx-klass b { color: var(--dkn-cyan); }
+.dknx-stallning { flex: 1; min-height: 0; padding: 1vh 1.2vw; }
+.dknx-kolumner {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(var(--kol, 1), minmax(0, 1fr));
+  gap: 2vw;
+  font-size: 28px; /* sätts efter rutans höjd (dk-statistik fit) */
+}
+.dknx-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-content: start;
+  min-width: 0;
+}
+.dknx-rad { display: contents; font-weight: 700; }
+.dknx-rad > span { padding: 0.06em 0.2em; line-height: 1.3; border-bottom: 2px solid rgba(62, 232, 255, 0.12); }
+.dknx-huvud > span { font-size: 0.75em; color: var(--dkn-dov); border-bottom-color: var(--dkn-kant); align-self: end; }
+.dknx-nr { color: var(--dkn-cyan); text-align: right; font-variant-numeric: tabular-nums; }
+.dknx-namn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dkn-text); }
+.dknx-namn i { font-style: normal; font-size: 0.85em; }
+.dknx-mb { color: var(--dkn-gron); }
+.dknx-etta > span { background: rgba(57, 255, 159, 0.12); }
+.dknx-rad .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 0.4em; }
+/* Siffrorna lite mindre än namnen – i tre kolumner (25–30 elever) får namnen plats. */
+.dknx-rad:not(.dknx-huvud) .num, .dknx-rad:not(.dknx-huvud) .dknx-nr { font-size: 0.84em; align-self: center; }
+.dknx-tom { margin: 0; font-family: var(--dkn-mono); font-size: clamp(26px, 3.2vh, 38px); color: var(--dkn-gron); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dkns-plats { transition: opacity 0.5s ease; }
+  .dknv-klocka.dknv-spanning { animation: none; }
+}
