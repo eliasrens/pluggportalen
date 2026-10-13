@@ -10,7 +10,7 @@
 // toningar, inget regn.
 //
 // Komponenten är den gemensamma kistspelsmodulen (#651): src/live/kistspel/
-// ks-pall.js – här bara byggstenen, "💾 … MB", färgerna, ljuden, prefixet
+// ks-pall.js – här bara byggstenen, disketten (dk-ikoner) + "… MB", färgerna, ljuden, prefixet
 // dknp och säkerhetstipset under totalraden.
 //
 // API
@@ -22,6 +22,7 @@
 import { esc } from "../../../teacher-shared.js";
 import { createFinal as ksCreateFinal } from "../../kistspel/ks-pall.js";
 import { tal, tipAt } from "./dk-proj-scen.js";
+import { dataIcon } from "./dk-ikoner.js";
 
 const FARGER = ["#39ff9f", "#3ee8ff", "#ffb547", "#ff7ad9", "#e6fbff"];
 
@@ -33,7 +34,7 @@ export function createFinal(host, { pool, sound, now = () => Date.now() }) {
     pool, sound,
     cls: "dknp",
     piece: BLOCK,
-    amountHtml: (n) => `💾 ${tal(n)} MB`,
+    amountHtml: (n) => `${dataIcon("1em")} ${tal(n)} MB`,
     colors: FARGER,
     cues: { open: "dkStart", drum: "trumvirvel", win: "fanfar", rain: "dkRegn" },
   });
