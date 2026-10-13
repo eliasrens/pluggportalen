@@ -13,12 +13,12 @@
 // ============================================================================
 
 import { categoryBreakdown, mergeCategoryStats, percent } from "../lasresan/stats.js";
-import { playableTexts } from "./picker.js";
+import { isPlayableAmnesText, readingTextsOf } from "./content.js";
 import { areaOf } from "./progress.js";
 
 /** Antal spelbara ämnestexter i områdena (nämnaren i "4 av 9"). */
 export function availableAmnesTexts(areas) {
-  return (areas || []).reduce((n, a) => n + playableTexts(a && a.readingTexts).length, 0);
+  return (areas || []).reduce((n, a) => n + readingTextsOf(a).filter(isPlayableAmnesText).length, 0);
 }
 
 /**
