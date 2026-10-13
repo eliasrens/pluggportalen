@@ -1,0 +1,189 @@
+/* ==========================================================================
+   Datakuppen – NÄTVERKET (#654, spec §4.1, §4.4): grunden för projektorns
+   vyer, bakgrunden (kretsbanor, noder, datapaket, robotar), loggan och
+   LOBBYN. Egen fil – laddas av dk-natverk.js ensureNatverkCss. Vyerna
+   (Nätverket, terminalen, pallen, statistiken): datakuppen-projektor.css.
+   Mörkt med neon (grönt + cyan, varm orange/magenta för viktiga saker),
+   barnvänligt: inga blinkningar, ingen strobe – noderna tonar långsamt.
+   16:9: vh-mått, viktig text ≥ 28 px. Bara transform/opacitet animeras;
+   reducerad rörelse = stilla nätverk.
+   ========================================================================== */
+
+.dkn {
+  --dkn-gron: #39ff9f;
+  --dkn-cyan: #3ee8ff;
+  --dkn-orange: #ffb547;
+  --dkn-magenta: #ff7ad9;
+  --dkn-text: #e6fbff;
+  --dkn-dov: #9fc4e0;
+  --dkn-panel: rgba(6, 16, 40, 0.9);
+  --dkn-kant: rgba(62, 232, 255, 0.45);
+  --dkn-mono: ui-monospace, "Cascadia Mono", "Consolas", "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --dkn-topp: 54px;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: var(--dkn-text);
+  font-family: "Baloo 2", system-ui, sans-serif;
+  background: #040a1a;
+}
+.lp-elevskarm .dkn { --dkn-topp: 1.4vh; }
+
+/* --- Bakgrunden --------------------------------------------------------------- */
+.dknb { position: absolute; inset: 0; pointer-events: none; }
+.dknb-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.dknb-svg * { transform-box: fill-box; }
+.dknb-svg .dknb-skymd { visibility: hidden; }
+.dknb-banor path { fill: none; stroke: var(--dkn-cyan); stroke-width: 3; stroke-linejoin: round; opacity: 0.13; }
+.dknb-banor path:nth-child(3n + 1) { stroke: var(--dkn-gron); opacity: 0.11; }
+.dknb-nod {
+  fill: #0a1838;
+  stroke: var(--dkn-gron);
+  stroke-width: 3;
+  opacity: 0.3;
+  animation: dknb-nod 6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes dknb-nod { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.62; } }
+.dknb-paket { fill: var(--dkn-cyan); opacity: 0; animation: dknb-paket 7.5s linear infinite; animation-delay: var(--d, 0s); }
+.dknb-paket.dknb-g { fill: var(--dkn-gron); }
+.dknb-paket.dknb-o { fill: var(--dkn-orange); }
+@keyframes dknb-paket {
+  0% { opacity: 0; transform: translateX(0); }
+  8%, 82% { opacity: 0.7; }
+  92%, 100% { opacity: 0; transform: translateX(var(--len, 600px)); }
+}
+.dknb-robot { animation: dknb-svava 4.5s ease-in-out infinite; animation-delay: var(--d, 0s); opacity: 0.85; }
+@keyframes dknb-svava { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.dknb-vinjett { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(2, 5, 14, 0.6) 100%); }
+.dknb-stilla *, .dknb-stilla { animation: none !important; }
+
+/* --- Roboten (loggan, bakgrunden) ------------------------------------------- */
+.dkr .dkr-huvud { fill: #10264f; stroke: var(--dkn-cyan); stroke-width: 3; }
+.dkr .dkr-skarm { fill: #061230; stroke: #1f4f88; stroke-width: 1.5; }
+.dkr .dkr-oga { fill: var(--dkn-gron); }
+.dkr .dkr-mun { fill: none; stroke: var(--dkn-gron); stroke-width: 3; stroke-linecap: round; }
+.dkr .dkr-ant { stroke: var(--dkn-cyan); stroke-width: 3; stroke-linecap: round; }
+.dkr .dkr-lampa { fill: var(--dkn-orange); }
+.dkr .dkr-ora { fill: var(--dkn-cyan); }
+
+/* --- Loggan ----------------------------------------------------------------- */
+.dkn-logo { display: flex; align-items: center; gap: 0.3em; line-height: 1; }
+.dkn-logo-robot { display: block; width: 1.25em; filter: drop-shadow(0 0 0.18em rgba(62, 232, 255, 0.45)); }
+.dkn-logo-robot svg { display: block; width: 100%; height: auto; }
+.dkn-logo-namn {
+  font-family: var(--dkn-mono);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--dkn-cyan);
+  text-shadow: 0 0 0.25em rgba(62, 232, 255, 0.55);
+}
+.dkn-logo-namn b { color: var(--dkn-gron); font-weight: 800; text-shadow: 0 0 0.25em rgba(57, 255, 159, 0.55); }
+.dkn-logo-liten { font-size: clamp(26px, 3.6vh, 42px); }
+.dkn-logo-stor { font-size: clamp(56px, 10.5vh, 132px); }
+
+/* --- Lobbyn: eleverna loggar in vid noder ------------------------------------- */
+.dknl-mitt {
+  position: absolute;
+  inset: var(--dkn-topp) 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1vh;
+  padding-top: 1.6vh;
+  text-align: center;
+}
+.dknl-klass { margin: 0; font-size: clamp(36px, 5.6vh, 70px); line-height: 1; color: var(--dkn-text); }
+.dknl-meta, .dknl-pris {
+  font-size: clamp(26px, 2.9vh, 36px);
+  font-weight: 700;
+  padding: 0.1em 0.8em;
+  border-radius: 999px;
+  background: var(--dkn-panel);
+  border: 2px solid var(--dkn-kant);
+}
+.dknl-pris { color: var(--dkn-orange); border-color: rgba(255, 181, 71, 0.5); }
+.dknl-rad { display: flex; align-items: center; gap: 1.2em; font-size: clamp(30px, 3.8vh, 46px); font-weight: 800; }
+.dknl-antal b { color: var(--dkn-gron); font-size: 1.3em; font-family: var(--dkn-mono); }
+.dknl-vantar { display: flex; align-items: center; gap: 0.35em; color: var(--dkn-dov); }
+.dknl-puls { width: 0.45em; height: 0.45em; border-radius: 50%; background: var(--dkn-gron); animation: dknl-puls 2s ease-in-out infinite; }
+@keyframes dknl-puls { 0%, 100% { opacity: 0.35; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.05); } }
+.dknl-start {
+  font: 800 clamp(38px, 6vh, 76px)/1 "Baloo 2", system-ui, sans-serif;
+  padding: 0.2em 1.3em 0.25em;
+  border-radius: 0.5em;
+  border: 0.06em solid #c9fff0;
+  color: #032016;
+  background: linear-gradient(180deg, #b6ffe0, var(--dkn-gron) 55%, #18c27a);
+  box-shadow: 0 0.12em 0 #0d7a4c, 0 0 0.6em rgba(57, 255, 159, 0.35);
+  cursor: pointer;
+}
+.dknl-start:hover:not(:disabled) { transform: translateY(-2px); }
+.dknl-start:focus-visible { outline: 5px solid #fff; outline-offset: 4px; }
+.dknl-start:disabled { opacity: 0.7; cursor: progress; }
+.dknl-fot { display: flex; gap: 1em; align-items: center; font-size: clamp(16px, 2vh, 22px); color: var(--dkn-dov); }
+.dknl-fot .lp-link { color: var(--dkn-text); }
+.dknl-tips {
+  margin: 0.4vh 0 0;
+  max-width: min(86vw, 1300px);
+  padding: 0.25em 0.9em;
+  border-radius: 0.5em;
+  font-size: clamp(24px, 2.9vh, 36px);
+  font-weight: 600;
+  background: var(--dkn-panel);
+  border: 2px solid rgba(255, 181, 71, 0.55);
+}
+.dknl-tips b { color: var(--dkn-orange); }
+
+/* Inloggade elever vid sina noder, nedifrån och upp; en kretsbana genom raden. */
+.dknl-folk {
+  position: absolute;
+  left: 4vw;
+  right: 4vw;
+  bottom: 2.6vh;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 0.6vh 0;
+  font-size: var(--dknl-fig, clamp(40px, 7vh, 86px));
+}
+.dknl-plats { position: relative; display: flex; flex-direction: column; align-items: center; width: 1.5em; }
+.dknl-plats > .lav { position: relative; z-index: 1; }
+/* Kretsbanan: ett streck genom nodens mitt som når grannarna. */
+.dknl-plats::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(1.12em + 0.07em);
+  height: 3px;
+  background: rgba(62, 232, 255, 0.35);
+}
+.dknl-nod {
+  position: relative;
+  display: block;
+  width: 0.62em;
+  height: 0.16em;
+  margin-top: -0.06em;
+  border-radius: 50%;
+  border: 3px solid var(--dkn-gron);
+  background: #0a1838;
+  box-shadow: 0 0 0.25em rgba(57, 255, 159, 0.55);
+}
+.dknl-namn {
+  max-width: 5.4em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--dkn-mono);
+  font-size: max(0.22em, 15px);
+  font-weight: 700;
+  color: var(--dkn-gron);
+  text-shadow: 0 1px 3px #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dknb *, .dknl-puls { animation: none !important; }
+  .dknb-paket { display: none; }
+}
