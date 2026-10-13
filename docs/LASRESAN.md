@@ -84,7 +84,7 @@ Allt utom Firestore-bryggan är ren logik utan DOM och Firestore, och testas med
 | `progress.js` | Elevens tillstånd: `defaultLasresa`, `normalizeLasresa`, `withStartedText`, `buildAttempt`, `applyCompletion` (kärnan i completeText-transaktionen) |
 | `level-control.js` | Lärarstyrd nivå (#505): `parseTeacherLevel`, `withTeacherLevel`, `applyPendingLevel`, `hasStartedLasresa`, `effectiveStartLevel`, `classStartLevelOf` |
 | `level-scale.js` | Nivåskala 1–10, lat migrering (#519): `readStoredLevels`, `toStoredLasresa`, `readClassStartLevel`, `classStartLevelFields`, `normalizeAttempt` |
-| `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
+| `worlds/` | `index.js` (register + schema + `validateWorld`), `skogen.js` + `skogen-scen.js`, `oknen.js` + `oknen-scen.js`, `havet.js` + `havet-scen.js`, `djungeln.js` + `djungeln-scen.js` (#659), `stig.js` (stig-geometri, delas av konst och gånganimation), `layout.js` |
 | `content/` | `loader.js` (fetch + fallback), `validate.js`, `dev-seed.js` |
 | `ui-map.js` | Kartvyn (#400): världs-agnostisk renderare + `ui-map-stil.js` (CSS, injiceras – rör inte styles.css) |
 | `ui-reader.js` | Läsvyn (#401): text + en fråga i taget, låsta svar, ✅/❌ |
@@ -153,6 +153,12 @@ som `<link>` av sidan själv, så `index.html` är orörd.
   nivå och statistik fungerar som vanligt, men avataren går inte längre. Läggs
   en ny värld till i registret flyttar `normalizeProgress` eleven dit vid nästa
   läsning, utan migrering.
+- **Världsordning (#659):** Skogen (1) → Öknen (2) → Havet (3) → Djungeln (4),
+  `unlockAfter` = världen före. Elever som klarade Öknen när den var sista
+  världen ligger sparade som `oknen`, steg 20, `completedWorlds` med `oknen`;
+  `normalizeProgress` flyttar dem till Havet steg 0 och nästa text går steg 1 där.
+  Inget annat i `lasresa` rörs (nivå, totaler, sedda texter). De ser ingen
+  världsbytes-animation för Öknen (den visades redan när de klarade den).
 - Okänd/borttagen värld i sparad data → första ej klarade värld, steg 0.
 
 ### Textval (spec §11)

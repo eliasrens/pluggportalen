@@ -91,3 +91,17 @@ test("skalan 1–10 (#520): rå gammal-skala-data visas migrerad (+3), ny data o
   // Normaliserat objekt (levelScale 10) flyttas aldrig en gång till.
   assert.equal(teacherClassRows([{ studentId: "x", lasresa: { levelScale: 10, level: 7, seenTextIds: ["a"] } }])[0].level, 7);
 });
+
+test("#659: Havet och Djungeln i lärartabellen – namn, steg och sorteringsordning", () => {
+  const rows = teacherClassRows([
+    { studentId: "h", namn: "Hav", lasresa: lr({ level: 5, totalTexts: 45, totalQuestions: 300, totalCorrect: 200, totalIncorrect: 100, worldId: "havet", stepInWorld: 5, completedWorlds: ["skogen", "oknen"] }) },
+    { studentId: "d", namn: "Djung", lasresa: lr({ level: 5, totalTexts: 61, totalQuestions: 400, totalCorrect: 300, totalIncorrect: 100, worldId: "djungeln", stepInWorld: 1, completedWorlds: ["skogen", "oknen", "havet"] }) },
+    // Klarade Öknen när den var sista världen → visas i Havet steg 0.
+    { studentId: "o", namn: "Ök", lasresa: lr({ level: 5, totalTexts: 40, totalQuestions: 280, totalCorrect: 200, totalIncorrect: 80, worldId: "oknen", stepInWorld: 20, completedWorlds: ["skogen", "oknen"] }) },
+  ]);
+  const by = Object.fromEntries(rows.map((r) => [r.studentId, r]));
+  assert.deepEqual([by.h.worldName, by.h.stepInWorld, by.h.steps], ["Havet", 5, 20]);
+  assert.deepEqual([by.d.worldName, by.d.stepInWorld, by.d.steps], ["Djungeln", 1, 20]);
+  assert.deepEqual([by.o.worldName, by.o.stepInWorld], ["Havet", 0]);
+  assert.deepEqual(sortTeacherRows(rows, "journey", "desc").map((r) => r.studentId), ["d", "h", "o"]);
+});
