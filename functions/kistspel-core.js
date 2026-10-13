@@ -37,7 +37,10 @@
 //                     ("grPlayers", "grPrivate", "grPublic", "grMeta", "grEvents")
 //     fallbackChest,  kistans id när en offer-kista saknar egen fallback
 //     texts,          { wrongFormat, modeUnsupported, pendingFirst, noPending }
-//   }) → { answerQuestion, openChest, chooseVictim, noteLeader, matchWindow }
+//     toggle?,        sessionens på/av-fält för offer-kistorna (standard
+//                     "stealSwap"; Datakuppen: "hacking", #652)
+//   }) → { answerQuestion, openChest, chooseVictim, noteLeader, matchWindow, refs,
+//          sessionOf, assertLive, parseSid, victimsOn }
 //     answerQuestion(deps, uid, { sid, attemptId, factorA?, factorB?, answer?,
 //                    choiceIndex?, q?, year? }) → { attemptId, correct, correctAnswer,
 //                    nextQ, correctYear? }
@@ -99,7 +102,7 @@ function playerOf(snap, s) {
   return p;
 }
 
-export function createKistServer({ format, regler, rules, collections: col, fallbackChest, texts }) {
+export function createKistServer({ format, regler, rules, collections: col, fallbackChest, texts, toggle = "stealSwap" }) {
   const {
     chestById, isVictimKind, rollChest, applySelfEffect, victimProblem, victimMessage,
     eligibleVictims, resolveVictim, shieldUntil, hitProtectionUntil,
@@ -119,6 +122,9 @@ export function createKistServer({ format, regler, rules, collections: col, fall
       gpOf: (id) => sess.collection(col.players).doc(id),
     };
   }
+
+  /** Offer-kistorna (stöld/byte, hack) på? Lärarens val – saknat fält = på. */
+  const victimsOn = (s) => s[toggle] !== false;
 
   /** Sessionen måste finnas och vara formatets. */
   function sessionOf(snap) {
@@ -212,7 +218,7 @@ export function createKistServer({ format, regler, rules, collections: col, fall
       if (last != null && t - last < rules.minChestGapMs) {
         throw new KsError("resource-exhausted", "En kista i taget!");
       }
-      const chest = rollChest(s.stealSwap !== false, rng);
+      const chest = rollChest(victimsOn(s), rng);
       const kind = chest.effect.kind;
       const stamp = Timestamp.fromMillis(t);
       tx.update(r.answer(attemptId), { chest: chest.id, chestIndex, chestAt: FieldValue.serverTimestamp() });
@@ -275,7 +281,7 @@ export function createKistServer({ format, regler, rules, collections: col, fall
       if (!pending) throw new KsError("failed-precondition", texts.noPending);
       const kind = pending.kind;
       const v = vSnap?.exists ? vSnap.data() : null;
-      const problem = s.stealSwap === false ? "av" : victimProblem(kind, g, v, t);
+      const problem = !victimsOn(s) ? "av" : victimProblem(kind, g, v, t);
       if (problem && !auto && problem !== "av") {
         // Nekat val: pending ligger kvar – tjuven väljer om (tiden går vidare).
         throw new KsError(problem === "saknas" ? "not-found" : "failed-precondition", victimMessage(problem, v));
@@ -344,5 +350,6 @@ export function createKistServer({ format, regler, rules, collections: col, fall
     });
   }
 
-  return { answerQuestion, openChest, chooseVictim, noteLeader, matchWindow };
+  // Byggstenarna för ett formats egna anrop (Datakuppens hack, #652).
+  return { answerQuestion, openChest, chooseVictim, noteLeader, matchWindow, refs, sessionOf, assertLive, parseSid, victimsOn };
 }

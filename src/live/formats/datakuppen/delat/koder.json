@@ -1,0 +1,405 @@
+{
+ "_kommentar": "Datakuppens koder: roliga ord med 2–3 bokstäver utbytta mot siffror. Systemet föreslår koder ur listan – eleven skriver aldrig in en egen. Lägg till/ta bort fritt; håll orden barnvänliga, utan namn och varumärken.",
+ "koder": [
+  {
+   "kod": "f0tb01l",
+   "ord": "fotboll"
+  },
+  {
+   "kod": "p4nnk4k4",
+   "ord": "pannkaka"
+  },
+  {
+   "kod": "glas57ru7",
+   "ord": "glasstrut"
+  },
+  {
+   "kod": "b4n4n",
+   "ord": "banan"
+  },
+  {
+   "kod": "rak37",
+   "ord": "raket"
+  },
+  {
+   "kod": "dr4k3",
+   "ord": "drake"
+  },
+  {
+   "kod": "p1ra7",
+   "ord": "pirat"
+  },
+  {
+   "kod": "r0b0t",
+   "ord": "robot"
+  },
+  {
+   "kod": "n1nj4",
+   "ord": "ninja"
+  },
+  {
+   "kod": "k4ne1bu1le",
+   "ord": "kanelbulle"
+  },
+  {
+   "kod": "p1zz4",
+   "ord": "pizza"
+  },
+  {
+   "kod": "t4c0s",
+   "ord": "tacos"
+  },
+  {
+   "kod": "g0d1s",
+   "ord": "godis"
+  },
+  {
+   "kod": "k4ktu5",
+   "ord": "kaktus"
+  },
+  {
+   "kod": "p1n9v1n",
+   "ord": "pingvin"
+  },
+  {
+   "kod": "g1r4ff",
+   "ord": "giraff"
+  },
+  {
+   "kod": "4pe15in",
+   "ord": "apelsin"
+  },
+  {
+   "kod": "vattenm310n",
+   "ord": "vattenmelon"
+  },
+  {
+   "kod": "b11xt",
+   "ord": "blixt"
+  },
+  {
+   "kod": "vu1k4n",
+   "ord": "vulkan"
+  },
+  {
+   "kod": "kom37",
+   "ord": "komet"
+  },
+  {
+   "kod": "p14net",
+   "ord": "planet"
+  },
+  {
+   "kod": "astr0n4u7",
+   "ord": "astronaut"
+  },
+  {
+   "kod": "7rol1k4rl",
+   "ord": "trollkarl"
+  },
+  {
+   "kod": "ska77",
+   "ord": "skatt"
+  },
+  {
+   "kod": "di4m4n7",
+   "ord": "diamant"
+  },
+  {
+   "kod": "m4gn3t",
+   "ord": "magnet"
+  },
+  {
+   "kod": "h4m57er",
+   "ord": "hamster"
+  },
+  {
+   "kod": "k4n1n",
+   "ord": "kanin"
+  },
+  {
+   "kod": "i9e1kot7",
+   "ord": "igelkott"
+  },
+  {
+   "kod": "v41r0ss",
+   "ord": "valross"
+  },
+  {
+   "kod": "pe11k4n",
+   "ord": "pelikan"
+  },
+  {
+   "kod": "pape90j4",
+   "ord": "papegoja"
+  },
+  {
+   "kod": "krok0d11",
+   "ord": "krokodil"
+  },
+  {
+   "kod": "fl4min90",
+   "ord": "flamingo"
+  },
+  {
+   "kod": "g0r11la",
+   "ord": "gorilla"
+  },
+  {
+   "kod": "p4nd4",
+   "ord": "panda"
+  },
+  {
+   "kod": "7ig3r",
+   "ord": "tiger"
+  },
+  {
+   "kod": "l3j0n",
+   "ord": "lejon"
+  },
+  {
+   "kod": "de1f1n",
+   "ord": "delfin"
+  },
+  {
+   "kod": "u9g1a",
+   "ord": "uggla"
+  },
+  {
+   "kod": "myr510k",
+   "ord": "myrslok"
+  },
+  {
+   "kod": "p0pc0rn",
+   "ord": "popcorn"
+  },
+  {
+   "kod": "k14ddk4ka",
+   "ord": "kladdkaka"
+  },
+  {
+   "kod": "5pag3tt1",
+   "ord": "spagetti"
+  },
+  {
+   "kod": "mjukg14s5",
+   "ord": "mjukglass"
+  },
+  {
+   "kod": "chok1adb01l",
+   "ord": "chokladboll"
+  },
+  {
+   "kod": "14kr1ts",
+   "ord": "lakrits"
+  },
+  {
+   "kod": "k4ram31l",
+   "ord": "karamell"
+  },
+  {
+   "kod": "m4r5ip4n",
+   "ord": "marsipan"
+  },
+  {
+   "kod": "muff1n5",
+   "ord": "muffins"
+  },
+  {
+   "kod": "v4ff10r",
+   "ord": "vafflor"
+  },
+  {
+   "kod": "m0ro7",
+   "ord": "morot"
+  },
+  {
+   "kod": "9urk4",
+   "ord": "gurka"
+  },
+  {
+   "kod": "h0ppb0r9",
+   "ord": "hoppborg"
+  },
+  {
+   "kod": "stud5mat74",
+   "ord": "studsmatta"
+  },
+  {
+   "kod": "5p4rkcyke1",
+   "ord": "sparkcykel"
+  },
+  {
+   "kod": "ru7schk4n4",
+   "ord": "rutschkana"
+  },
+  {
+   "kod": "b4db0l1",
+   "ord": "badboll"
+  },
+  {
+   "kod": "fr15b3e",
+   "ord": "frisbee"
+  },
+  {
+   "kod": "h4ndb0l1",
+   "ord": "handboll"
+  },
+  {
+   "kod": "1nn3b4ndy",
+   "ord": "innebandy"
+  },
+  {
+   "kod": "ba5k3t",
+   "ord": "basket"
+  },
+  {
+   "kod": "51mh0pp",
+   "ord": "simhopp"
+  },
+  {
+   "kod": "kurr49omm4",
+   "ord": "kurragomma"
+  },
+  {
+   "kod": "d4t0rsp3l",
+   "ord": "datorspel"
+  },
+  {
+   "kod": "5ch4ck",
+   "ord": "schack"
+  },
+  {
+   "kod": "pus5e1",
+   "ord": "pussel"
+  },
+  {
+   "kod": "kor75p3l",
+   "ord": "kortspel"
+  },
+  {
+   "kod": "rymd5k3pp",
+   "ord": "rymdskepp"
+  },
+  {
+   "kod": "sate1l17",
+   "ord": "satellit"
+  },
+  {
+   "kod": "m37eor",
+   "ord": "meteor"
+  },
+  {
+   "kod": "rob074rm",
+   "ord": "robotarm"
+  },
+  {
+   "kod": "la53r",
+   "ord": "laser"
+  },
+  {
+   "kod": "j0y57ick",
+   "ord": "joystick"
+  },
+  {
+   "kod": "pix31",
+   "ord": "pixel"
+  },
+  {
+   "kod": "7urb0",
+   "ord": "turbo"
+  },
+  {
+   "kod": "5up3rd4tor",
+   "ord": "superdator"
+  },
+  {
+   "kod": "pyj4m45",
+   "ord": "pyjamas"
+  },
+  {
+   "kod": "70ffl0r",
+   "ord": "tofflor"
+  },
+  {
+   "kod": "s4ndsl07t",
+   "ord": "sandslott"
+  },
+  {
+   "kod": "7r4mpol1n",
+   "ord": "trampolin"
+  },
+  {
+   "kod": "ba1l0n9",
+   "ord": "ballong"
+  },
+  {
+   "kod": "k0nfet71",
+   "ord": "konfetti"
+  },
+  {
+   "kod": "ka1a5",
+   "ord": "kalas"
+  },
+  {
+   "kod": "fyrv3rk3r1",
+   "ord": "fyrverkeri"
+  },
+  {
+   "kod": "r39nr0ck",
+   "ord": "regnrock"
+  },
+  {
+   "kod": "pinng14s5",
+   "ord": "pinnglass"
+  },
+  {
+   "kod": "kan315nurra",
+   "ord": "kanelsnurra"
+  },
+  {
+   "kod": "7u9gumm1",
+   "ord": "tuggummi"
+  },
+  {
+   "kod": "bubb31b4d",
+   "ord": "bubbelbad"
+  },
+  {
+   "kod": "p1r4tsk3pp",
+   "ord": "piratskepp"
+  },
+  {
+   "kod": "5nig3l",
+   "ord": "snigel"
+  },
+  {
+   "kod": "banan5k41",
+   "ord": "bananskal"
+  },
+  {
+   "kod": "h3m1is",
+   "ord": "hemlis"
+  },
+  {
+   "kod": "d474kupp",
+   "ord": "datakupp"
+  },
+  {
+   "kod": "50ckerv4dd",
+   "ord": "sockervadd"
+  },
+  {
+   "kod": "j0rd9ubb3",
+   "ord": "jordgubbe"
+  },
+  {
+   "kod": "z3br4",
+   "ord": "zebra"
+  },
+  {
+   "kod": "k0mp1s",
+   "ord": "kompis"
+  }
+ ]
+}

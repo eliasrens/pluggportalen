@@ -5,9 +5,11 @@
 // genererad.
 //   src/live/kistspel/delat/          → functions/kistspel/   (motorn)
 //   src/live/formats/guldrush/delat/  → functions/guldrush/   (kistor + regler)
+//   src/live/formats/datakuppen/delat/ → functions/datakuppen/ (filer, regler,
+//                                        koder.json – #652)
 // Formatets delat/ importerar motorn som "../../../kistspel/delat/…" – i
 // kopian skrivs vägen om till "../kistspel/…" (samma fil, functions-trädet).
-// Ett nytt kistformat (Datakuppen) lägger till sin rad i PAIRS.
+// Ett nytt kistformat lägger till sin rad i PAIRS. Kopierar .js och .json.
 //
 //   npm run sync:guldrush   (= sync:kistspel; firebase.json kör det som predeploy)
 //   node admin/sync-guldrush-functions.mjs --check   → exit 1 om en kopia glidit
@@ -23,6 +25,8 @@ export const SRC = join(ROOT, "src/live/formats/guldrush/delat");
 export const DST = join(ROOT, "functions/guldrush");
 export const KS_SRC = join(ROOT, "src/live/kistspel/delat");
 export const KS_DST = join(ROOT, "functions/kistspel");
+export const DK_SRC = join(ROOT, "src/live/formats/datakuppen/delat");
+export const DK_DST = join(ROOT, "functions/datakuppen");
 
 /** Motorns importväg i ett formats delat/ → i functions-kopian. */
 const KS_IMPORT = /(["'])\.\.\/\.\.\/\.\.\/kistspel\/delat\//g;
@@ -31,13 +35,19 @@ export const toFunctionsCopy = (src) => src.replace(KS_IMPORT, "$1../kistspel/")
 export const PAIRS = [
   { name: "kistspel", src: KS_SRC, dst: KS_DST, transform: (s) => s },
   { name: "guldrush", src: SRC, dst: DST, transform: toFunctionsCopy },
+  { name: "datakuppen", src: DK_SRC, dst: DK_DST, transform: toFunctionsCopy },
 ];
 
-const jsFiles = (dir) => readdirSync(dir).filter((f) => f.endsWith(".js")).sort();
+const jsFiles = (dir) => readdirSync(dir).filter((f) => f.endsWith(".js") || f.endsWith(".json")).sort();
 
 /** Guldrushens delade filer (formatets delat/). */
 export function sharedFiles() {
   return jsFiles(SRC);
+}
+
+/** Datakuppens delade filer (formatets delat/, #652). */
+export function datakuppenFiles() {
+  return jsFiles(DK_SRC);
 }
 
 /** Motorns delade filer (src/live/kistspel/delat/). */
@@ -69,7 +79,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       console.error(`functions/ är inte synkad (${d.join(", ")}) – kör npm run sync:guldrush`);
       process.exit(1);
     }
-    console.log("functions/kistspel/ och functions/guldrush/ är synkade.");
+    console.log("functions/kistspel/, functions/guldrush/ och functions/datakuppen/ är synkade.");
   } else {
     syncAll();
     for (const p of PAIRS) console.log(`Kopierade ${jsFiles(p.src).join(", ")} → functions/${p.name}/`);
