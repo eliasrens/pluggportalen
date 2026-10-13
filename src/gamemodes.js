@@ -169,7 +169,8 @@ export async function pageElevOmrade() {
   try {
     const mod = await framstegMod;
     const starModes = areaStarModes(areaData, studentClass).map((gm) => gm.id);
-    framsteg = mod ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
+    // Inga stjärn-lägen (t.ex. ett rent Ämnesläsning-område, #672) → ingen panel.
+    framsteg = mod && starModes.length ? mod.areaProgressHtml({ areaId: area, areaData, progress, starModes }) : "";
   } catch {}
 
   // Tydlig hint ovanför korten när förkravet ännu inte är uppfyllt.
