@@ -11,12 +11,12 @@
         "id": "q1",
         "question": "Vad tycker mormor om sin nya mobil?",
         "options": [
-          "Att den är krånglig",
           "Att den är för liten",
+          "Att den är krånglig",
           "Att den är för dyr",
           "Att den är för tung"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -24,11 +24,11 @@
         "question": "Var skriver mormor upp allt?",
         "options": [
           "På en lapp på kylskåpet",
-          "I ett litet block",
           "I mobilen",
-          "På handen"
+          "På handen",
+          "I ett litet block"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -47,24 +47,24 @@
         "id": "q4",
         "question": "Mormor suckar. Vad gör hon då?",
         "options": [
-          "Andas ut tungt",
           "Skrattar högt",
           "Sjunger tyst",
+          "Andas ut tungt",
           "Nyser flera gånger"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Varför syns bara mormors näsa på skärmen?",
         "options": [
-          "Hon håller mobilen för nära",
           "Skärmen är trasig",
           "Selma har ritat på skärmen",
+          "Hon håller mobilen för nära",
           "Selma har ritat en näsa på skärmen"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -73,10 +73,10 @@
         "options": [
           "Mormor har gett bort mobilen",
           "Selma är trött på mormor",
-          "Mormor har lärt sig använda mobilen",
-          "Mormor ringer bara till tandläkaren"
+          "Mormor ringer bara till tandläkaren",
+          "Mormor har lärt sig använda mobilen"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -95,22 +95,22 @@
         "options": [
           "Juli",
           "Oktober",
-          "April",
-          "December"
+          "December",
+          "April"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Varför vandrar paddorna till sjön?",
         "options": [
-          "För att lägga ägg",
           "För att leta mat",
           "För att sova över vintern",
+          "För att lägga ägg",
           "För att bada i varmt vatten"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -118,59 +118,59 @@
         "question": "Hur känner sig Ebba när bilen kör över paddorna?",
         "options": [
           "Glad",
-          "Ledsen",
           "Uttråkad",
+          "Ledsen",
           "Hungrig"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Vad har de med sig nästa kväll?",
         "options": [
+          "Västar, ficklampor och hinkar",
           "Håvar, stövlar och en båt",
           "Filtar, smörgåsar och ett litet tält",
-          "En kamera och en karta",
-          "Västar, ficklampor och hinkar"
+          "En kamera och en karta"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q5",
         "question": "Varför har de gula västar på sig?",
         "options": [
-          "Så att paddorna hittar dem",
           "Så att bilarna ser dem",
+          "Så att paddorna hittar dem",
           "För att det är kallt ute",
           "För att det är pappas favoritfärg"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Hur många paddor hjälper Ebba?",
         "options": [
-          "Fyrtiosju",
           "Sjutton",
           "Fyrtio",
+          "Fyrtiosju",
           "Sjuttiofyra"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Ebba somnar med ett leende. Vad säger det om henne?",
         "options": [
-          "Hon är nöjd med kvällen",
           "Hon är rädd för paddor",
+          "Hon är nöjd med kvällen",
           "Hon vill aldrig åka dit igen",
           "Hon har glömt paddorna"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -187,24 +187,24 @@
         "id": "q1",
         "question": "Var är Elvin?",
         "options": [
-          "I hamnen",
           "På stranden",
+          "I hamnen",
           "I parken",
           "På torget"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vilken glass väljer Elvin?",
         "options": [
+          "Jordgubb med strössel",
           "Choklad med hackade nötter",
           "Vanilj med kola",
-          "Jordgubb med strössel",
           "Päron med strössel"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -235,12 +235,12 @@
         "id": "q5",
         "question": "Varför skrattar Elvin när måsen tar Miras glass?",
         "options": [
+          "Nu har samma sak hänt Mira",
           "Han tycker inte om Mira",
           "Han har redan ätit upp sin glass",
-          "Måsen har tappat en fjäder",
-          "Nu har samma sak hänt Mira"
+          "Måsen har tappat en fjäder"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -249,10 +249,10 @@
         "options": [
           "Det börjar regna",
           "Solen är alldeles för stark vid vattnet",
-          "Bänken är blöt",
-          "Där kommer måsen inte åt glassen"
+          "Där kommer måsen inte åt glassen",
+          "Bänken är blöt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       }
     ]
@@ -269,12 +269,12 @@
         "id": "q1",
         "question": "Vad gör familjen när strömmen går?",
         "options": [
-          "Äter middag",
           "Tittar på film",
+          "Äter middag",
           "Sover",
           "Borstar tänderna"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -282,11 +282,11 @@
         "question": "Vad tror mamma har hänt?",
         "options": [
           "Någon har dragit ur sladden",
-          "Ett träd har fallit på en ledning",
           "Alla lampor har gått sönder",
-          "Grannen har stängt av all ström i huset"
+          "Grannen har stängt av all ström i huset",
+          "Ett träd har fallit på en ledning"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -294,11 +294,11 @@
         "question": "Var hittar pappa ficklampan?",
         "options": [
           "I garaget",
-          "I kökslådan",
           "Under sängen",
-          "I bilen"
+          "I bilen",
+          "I kökslådan"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -306,11 +306,11 @@
         "question": "Det blir kolsvart. Vad betyder kolsvart?",
         "options": [
           "Lite grått",
-          "Väldigt kallt",
           "Helt mörkt",
+          "Väldigt kallt",
           "Mycket tyst"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -351,12 +351,12 @@
         "id": "q1",
         "question": "Vad handlar Tures saga om?",
         "options": [
+          "En igelkott som vill flyga",
           "En fågel som vill simma",
           "En katt som vill sjunga",
-          "En igelkott som bor i ett träd",
-          "En igelkott som vill flyga"
+          "En igelkott som bor i ett träd"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -375,12 +375,12 @@
         "id": "q3",
         "question": "Vem ger Ture ett råd?",
         "options": [
+          "Hans storasyster",
           "Läraren",
           "Mamma",
-          "Hans bästa kompis",
-          "Hans storasyster"
+          "Hans bästa kompis"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -388,23 +388,23 @@
         "question": "Ture är nervös. Hur känner han sig?",
         "options": [
           "Lugn",
+          "Orolig",
           "Arg",
-          "Sömnig",
-          "Orolig"
+          "Sömnig"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Vad gör att Ture blir modigare?",
         "options": [
-          "Läraren håller hans hand",
+          "Läraren står bredvid och håller hans hand",
           "Nallen sitter i klassrummet",
-          "Klassen skrattar åt det roliga",
-          "Han får läsa allra sist"
+          "Han får läsa allra sist",
+          "Klassen skrattar åt det roliga"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -434,11 +434,11 @@
         "question": "Vad ska Amir och mamma plocka?",
         "options": [
           "Lingon och blåbär",
-          "Kantareller",
           "Lingon",
+          "Kantareller",
           "Kottar"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -470,11 +470,11 @@
         "question": "Ingen täckning betyder att mobilen …",
         "options": [
           "är avstängd",
-          "inte får någon kontakt",
           "har tappat skalet",
-          "har fått en spricka i glaset"
+          "har fått en spricka i glaset",
+          "inte får någon kontakt"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -494,11 +494,11 @@
         "question": "Varför kallar mamma Amir en riktig skogsmänniska?",
         "options": [
           "Han plockade flest svampar",
-          "Han kom på hur de skulle hitta hem",
           "Han har bott i skogen",
-          "Han kan klättra i träd"
+          "Han kan klättra i träd",
+          "Han kom på hur de skulle hitta hem"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       }
     ]
@@ -527,12 +527,12 @@
         "id": "q2",
         "question": "Vad tror Vidar?",
         "options": [
+          "Att det spökar",
           "Att en tjuv tar cykeln",
           "Att vinden flyttar cykeln",
-          "Att det spökar",
           "Att pappa har lånat den"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -541,22 +541,22 @@
         "options": [
           "En nyckel",
           "En borttappad vante",
-          "En tidning",
-          "Ett brev"
+          "Ett brev",
+          "En tidning"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Varför lägger Hugo en pinne framför hjulet?",
         "options": [
-          "Han vill se om cykeln flyttas",
           "Cykeln ska inte rulla iväg",
+          "Han vill se om cykeln flyttas",
           "Han vill reta Vidar",
           "Han ska laga hjulet"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -575,12 +575,12 @@
         "id": "q6",
         "question": "Varför lånar Rasmus Hugos cykel?",
         "options": [
-          "Hugos cykel är snabbare",
           "Hans egen cykel är trasig",
+          "Hugos cykel är snabbare",
           "Han har ingen egen cykel",
-          "Han vill busa med Hugo"
+          "Han vill busa lite med sin lillebror"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -588,11 +588,11 @@
         "question": "Vad tycker Hugo att Rasmus borde ha gjort?",
         "options": [
           "Köpt en ny cykel",
+          "Frågat först",
           "Gått i stället",
-          "Väckt Vidar",
-          "Frågat först"
+          "Väckt Vidar"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -621,12 +621,12 @@
         "id": "q2",
         "question": "Var står Daria på rasten?",
         "options": [
+          "Vid staketet",
           "Vid gungorna",
           "I klassrummet",
-          "Vid staketet",
           "Vid förrådet"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -670,11 +670,11 @@
         "question": "Vad har Majken lärt sig efter några månader?",
         "options": [
           "Att rita hästar som ser riktiga ut",
+          "Att räkna till tio på Darias språk",
           "Att hoppa längre",
-          "Att skriva Darias namn",
-          "Att räkna till tio på Darias språk"
+          "Att skriva Darias namn"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -703,36 +703,36 @@
         "id": "q1",
         "question": "Vad kommer ut ur Glöds mun?",
         "options": [
-          "Såpbubblor",
           "Eld",
           "Rök",
-          "Små snöflingor"
+          "Små snöflingor",
+          "Såpbubblor"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vart flyger Glöd när han är ledsen?",
         "options": [
-          "Till en grotta",
           "Till skogen",
           "Till en sjö",
+          "Till en grotta",
           "Upp bland molnen"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Vad händer i skogen?",
         "options": [
+          "Det börjar brinna",
           "Det börjar snöa",
           "Ett träd faller",
-          "Det börjar brinna",
           "En jätte kommer"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -752,23 +752,23 @@
         "question": "Varför kan de stora drakarna inte hjälpa till?",
         "options": [
           "De sover i grottan",
-          "De är rädda för djuren",
           "De kan bara spruta eld",
+          "De är rädda för djuren",
           "De har flugit bort"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Vad vill sagan säga?",
         "options": [
-          "Det som gör en annorlunda kan vara bra",
           "Drakar är farliga",
           "Man ska aldrig leka med eld",
+          "Det som gör en annorlunda kan vara bra",
           "Bubblor är roliga"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -786,23 +786,23 @@
         "question": "Vart ska Leia och mamma resa?",
         "options": [
           "Till Norge",
-          "Till Spanien",
           "Till Grekland",
-          "Till Finland"
+          "Till Finland",
+          "Till Spanien"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Var sitter Leia i flygplanet?",
         "options": [
+          "Vid fönstret",
           "Vid gången",
           "Bredvid piloten",
-          "Bredvid morbror",
-          "Vid fönstret"
+          "Bredvid morbror"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -810,11 +810,11 @@
         "question": "Vad ser husen ut som när planet lyfter?",
         "options": [
           "Myror",
+          "Leksaker",
           "Stenar",
-          "Tändstickor",
-          "Leksaker"
+          "Tändstickor"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -833,37 +833,917 @@
         "id": "q5",
         "question": "Molnen ligger som ett vitt täcke. Vad betyder det?",
         "options": [
-          "Molnen täcker allt under planet",
           "Det snöar inne i planet",
           "Molnen är varma och mjuka",
-          "Det har blivit natt"
+          "Det har blivit natt",
+          "Molnen täcker allt under planet"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
         "question": "Varför skiner solen fast det regnade hemma?",
         "options": [
-          "Planet flyger ovanför molnen",
-          "Det har slutat regna hemma",
+          "Det har slutat regna hemma i Sverige",
           "Solen följer med planet",
-          "Fönstret är gult"
+          "Fönstret är gult",
+          "Planet flyger ovanför molnen"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Hur länge flyger de?",
         "options": [
+          "Tre timmar",
           "En timme",
           "Sex timmar",
-          "Tio timmar",
-          "Tre timmar"
+          "Tio timmar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-hundpromenaden",
+    "title": "Bamse behöver gå ut",
+    "level": 3,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Grannen Gunnel har brutit benet. Hon halkade på isen utanför affären. Nu har hon gips och måste gå med kryckor.\n\nGunnel har en hund som heter Bamse. Han är stor, svart och lurvig. Bamse behöver gå ut tre gånger om dagen. Men Gunnel kan inte gå med honom nu.\n\nSaga erbjuder sig att hjälpa till. Efter skolan hämtar hon Bamse. De går runt parken och tillbaka. En dag ser Bamse en katt och drar hårt i kopplet. Saga håller emot och säger ”Fot!” med bestämd röst. Då lugnar han sig.\n\nVarje dag bjuder Gunnel på saft och kanelbullar. Hon berättar om när Bamse var en liten valp.\n\nEfter sex veckor tas gipset bort. Nu går Gunnel, Saga och Bamse promenaden tillsammans.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur bröt Gunnel benet?",
+        "options": [
+          "Hon ramlade av cykeln",
+          "Hon halkade på isen",
+          "Hon snubblade på Bamse",
+          "Hon föll i trappan"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur ser Bamse ut?",
+        "options": [
+          "Liten, vit och lockig",
+          "Brun med korta ben",
+          "Stor, svart och lurvig",
+          "Grå med en lång och tunn svans"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur många gånger om dagen behöver Bamse gå ut?",
+        "options": [
+          "Tre",
+          "En",
+          "Två",
+          "Fem"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Saga erbjuder sig att hjälpa till. Vad betyder det?",
+        "options": [
+          "Hon blir tvingad av mamma att hjälpa",
+          "Hon säger att hon gärna hjälper",
+          "Hon ber Gunnel om hjälp",
+          "Hon säger nej"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör Bamse när han ser katten?",
+        "options": [
+          "Drar i kopplet",
+          "Lägger sig ner",
+          "Springer hem",
+          "Gömmer sig bakom Saga"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför bjuder Gunnel på saft och bullar?",
+        "options": [
+          "Saga har sagt att hon är hungrig",
+          "Bamse vill också ha bullar",
+          "Hon vill tacka Saga",
+          "Det är Gunnels födelsedag"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur slutar texten?",
+        "options": [
+          "De går promenaden alla tre",
+          "Saga slutar gå med Bamse",
+          "Bamse springer bort",
+          "Saga slutar gå ut med Bamse efter skolan"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-loppisen",
+    "title": "Loppis på uppfarten",
+    "level": 3,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Jonna och Sami har för många leksaker. De vill sälja några av dem. Pengarna ska gå till ett hem för hemlösa katter.\n\nPå lördagsmorgonen bär de ut ett bord på uppfarten. De ställer fram bilar, pussel och böcker. Sami gör en skylt: LOPPIS! ALLT KOSTAR 5 ELLER 10 KRONOR.\n\nFörst kommer ingen. Jonna börjar tvivla. Men sedan stannar en mamma med en liten pojke. Pojken pekar på en gul brandbil. ”Den!” säger han. Mamman betalar tio kronor.\n\nEfter det kommer fler. En farbror köper alla pusslen. En flicka köper tre böcker.\n\nPå eftermiddagen räknar de pengarna. Det blir 185 kronor. På måndagen lämnar de pengarna på katthemmet. Där får de klappa en liten kattunge som heter Pepparkaka.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart ska pengarna gå?",
+        "options": [
+          "Till ett katthem",
+          "Till nya leksaker",
+          "Till en resa",
+          "Till skolan"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad står det på skylten?",
+        "options": [
+          "Att allt är gratis",
+          "Att loppisen är stängd",
+          "Att de säljer katter",
+          "Vad sakerna kostar"
         ],
         "answerIndex": 3,
         "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad köper den lilla pojken?",
+        "options": [
+          "Ett pussel",
+          "Tre böcker",
+          "En gul brandbil",
+          "En röd polisbil"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Jonna börjar tvivla. Vad betyder det?",
+        "options": [
+          "Hon börjar skratta",
+          "Hon tror inte att det ska gå bra",
+          "Hon börjar räkna pengarna",
+          "Hon blir hungrig"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur mycket pengar får de ihop?",
+        "options": [
+          "185 kronor",
+          "85 kronor",
+          "158 kronor",
+          "1 850 kronor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför säljer de leksakerna?",
+        "options": [
+          "De vill hjälpa katterna",
+          "De ska flytta",
+          "Mamma säger åt dem",
+          "Leksakerna har gått sönder"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-taltnatten",
+    "title": "Någon i godispåsen",
+    "level": 3,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Theo och kusinen Wilma får sova i tält i trädgården. De har sovsäckar, ficklampor och en påse godis.\n\nFörst är det spännande. De berättar spökhistorier och tittar på stjärnorna genom tältöppningen. Sedan släcker de lamporna.\n\nMitt i natten vaknar Wilma. Något prasslar utanför tältet. Sedan hörs ett ljud som fnyser och smaskar. ”Theo!” viskar hon. ”Det är någon där ute.”\n\nTheo lyssnar. Hjärtat dunkar. Han tar ficklampan och öppnar tältet en liten bit. I ljuset ser han en brun boll med taggar. Den har nosen nere i godispåsen!\n\n”En igelkott”, skrattar Theo. Den har hittat påsen som de glömde utanför.\n\nIgelkotten lunkar iväg in under buskarna. Theo och Wilma somnar om. Nästa kväll har de godiset inne i tältet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var sover Theo och Wilma?",
+        "options": [
+          "I ett tält i trädgården",
+          "I en liten stuga ute i skogen",
+          "På en båt",
+          "I en trädkoja"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör de innan de släcker?",
+        "options": [
+          "Spelar kort",
+          "Berättar spökhistorier",
+          "Läser en bok med ficklampan",
+          "Grillar korv"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem vaknar mitt i natten?",
+        "options": [
+          "Wilma",
+          "Theo",
+          "Mamma",
+          "Morfar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hjärtat dunkar. Hur känner sig Theo?",
+        "options": [
+          "Lugn och sömnig",
+          "Arg och sur",
+          "Hungrig och väldigt trött",
+          "Spänd och lite rädd"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör igelkotten?",
+        "options": [
+          "Sover i en sovsäck",
+          "Äter ur godispåsen",
+          "Gräver ett hål",
+          "Jagar en mus"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför har de godiset i tältet nästa kväll?",
+        "options": [
+          "Så att det inte blir blött",
+          "Så att igelkotten inte äter upp det",
+          "Så att de kan äta i sovsäcken",
+          "Så att mamma inte ser det"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-klattervaggen",
+    "title": "Högst upp på väggen",
+    "level": 3,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Sara har börjat klättra i en klätterhall. Väggen är tolv meter hög och full av färgade grepp. Man har en sele runt magen och benen. I selen sitter ett rep som går upp till taket och ner till tränaren. Om man halkar fångar repet upp en.\n\nSara klättrar fort upp till mitten. Sedan tittar hon ner. Golvet ser långt bort ut. Hennes ben börjar skaka, och hon kramar ett grepp.\n\n”Titta inte ner. Titta bara på nästa grepp!” ropar tränaren Mona.\n\nSara andas djupt. Hon tar ett blått grepp. Sedan ett gult. Sedan ett rött. Till slut slår hennes hand i klockan högst upp. Pling!\n\nMona firar ner henne sakta. Saras ben skakar fortfarande. Men hon ler med hela ansiktet.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur hög är väggen?",
+        "options": [
+          "Tre meter",
+          "Tjugo meter",
+          "Tolv meter",
+          "Sex meter"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad gör repet om man halkar?",
+        "options": [
+          "Går sönder",
+          "Drar upp en till taket",
+          "Ringer i klockan",
+          "Fångar upp en"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför börjar Saras ben skaka?",
+        "options": [
+          "Hon fryser i hallen",
+          "Hon blir rädd när hon tittar ner",
+          "Hon har sprungit innan",
+          "Selen sitter för hårt"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad ska Sara titta på enligt Mona?",
+        "options": [
+          "Nästa grepp",
+          "Golvet",
+          "Klockan högst upp på väggen",
+          "Repet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vilken färg har greppet som Sara tar först efter att hon andats djupt?",
+        "options": [
+          "Gult",
+          "Rött",
+          "Blått",
+          "Grönt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Mona firar ner henne. Vad betyder firar här?",
+        "options": [
+          "Släpper ner med repet",
+          "Ordnar en fest för henne i hallen",
+          "Hejar på",
+          "Lyfter upp"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man knyter ett rep",
+          "Att tävla i klättring",
+          "Hur man bygger en klätterhall",
+          "Att våga fast man är rädd"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-simprovet",
+    "title": "Bubblor i bassängen",
+    "level": 3,
+    "textType": "story",
+    "topic": "sport",
+    "body": "Omar går på simskola varje tisdag. Han kan simma, men bara en liten bit. Han tycker inte om att få vatten i ansiktet. Då blir han rädd och ställer sig upp.\n\nSimläraren Petra har en idé. ”Vi börjar med bubblor”, säger hon. Omar får blåsa bubblor i vattnet, först med munnen och sedan med näsan. Det låter som en kokande gryta. Omar skrattar så att han får vatten i munnen.\n\nVarje tisdag övar han lite mer. Snart kan han ha ansiktet i vattnet länge.\n\nSista tisdagen före sommarlovet är det prov. Omar ska simma tjugofem meter utan att stanna. Pappa sitter på läktaren.\n\nHalvvägs blir armarna trötta. Men Omar tänker på bubblorna och fortsätter. Till slut slår han handen i kanten. Pappa ställer sig upp och klappar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken dag går Omar på simskola?",
+        "options": [
+          "Måndag",
+          "Tisdag",
+          "Onsdag",
+          "Fredag"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad tycker Omar inte om?",
+        "options": [
+          "Att simma på rygg",
+          "Att hoppa från kanten",
+          "Att få vatten i ansiktet",
+          "Att ha badmössa på huvudet hela tiden"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad låter bubblorna som?",
+        "options": [
+          "En kokande gryta",
+          "En bil som startar",
+          "Regn som smattrar på taket",
+          "En fågel"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför låter Petra Omar blåsa bubblor?",
+        "options": [
+          "Han ska vänja sig vid vatten i ansiktet",
+          "Hon vill höra vem som låter mest",
+          "Han ska lära sig att dyka djupt",
+          "Det är bra för halsen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Halvvägs blir armarna trötta. Var är Omar då?",
+        "options": [
+          "Mitt i bassängen",
+          "Precis vid starten",
+          "Vid kanten på andra sidan",
+          "Uppe på läktaren"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur långt ska Omar simma på provet?",
+        "options": [
+          "Tio meter",
+          "Femtio meter",
+          "Hundra meter",
+          "Tjugofem meter"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Varför ställer sig pappa upp och klappar?",
+        "options": [
+          "Pappa vill gå hem",
+          "Omar har slutat simma",
+          "Omar har klarat provet",
+          "Pappa ska också simma"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-klasstidningen",
+    "title": "Fyrahundra portioner",
+    "level": 3,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Klass 3B gör en egen tidning. Varje elev ska skriva en artikel. Fatima vill intervjua Hasse, som är kock i skolköket.\n\nHon skriver frågor i ett block. Sedan knackar hon på köksdörren. Hasse har vitt förkläde och en mössa på huvudet.\n\n”Hur mycket mat lagar du varje dag?” frågar Fatima.\n\n”Mat till fyrahundra elever”, svarar Hasse. ”Jag börjar jobba klockan sex på morgonen.”\n\nFatima får också veta att Hasses favoritmat är fiskgratäng. Men den populäraste maten i skolan är pannkakor. På pannkaksdagen går det åt nästan tusen pannkakor! Hasse ger Fatima en pannkaka att smaka på.\n\nNär tidningen är klar får alla elever ett eget ex. Hasse sätter upp Fatimas artikel på väggen i köket. Han läser den varje morgon.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem intervjuar Fatima?",
+        "options": [
+          "Rektorn",
+          "Kocken i skolköket",
+          "Sin lärare i svenska",
+          "Vaktmästaren"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "När börjar Hasse jobba?",
+        "options": [
+          "Klockan åtta",
+          "Mitt på dagen",
+          "Klockan sex på morgonen",
+          "Klockan halv tio på förmiddagen"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vilken mat tycker Hasse bäst om?",
+        "options": [
+          "Pannkakor",
+          "Köttbullar med potatis",
+          "Fiskgratäng",
+          "Pizza"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vilken mat är populärast bland eleverna?",
+        "options": [
+          "Fiskgratäng",
+          "Soppa",
+          "Spagetti",
+          "Pannkakor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Att intervjua betyder att …",
+        "options": [
+          "laga mat åt någon",
+          "rita av någon",
+          "skriva en saga",
+          "ställa frågor till någon"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför sätter Hasse upp artikeln i köket?",
+        "options": [
+          "Han blev glad och stolt över den",
+          "Han vill rätta stavfelen",
+          "Det fanns ingen plats i matsalen",
+          "Han ska slänga den senare"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-roboten",
+    "title": "Musen som letade ost",
+    "level": 3,
+    "textType": "story",
+    "topic": "teknik",
+    "body": "I dag har klassen teknik. Läraren Vera ställer en liten robot på golvet. Den ser ut som en skalbagge med två hjul.\n\n”Ni ska få roboten att åka genom labyrinten”, säger Vera. Labyrinten är byggd av böcker och kartonger. I mitten ligger en ost av papper. Roboten ska vara en mus som letar efter osten.\n\nMan styr roboten med pilknappar på ryggen. Först trycker man in alla steg. Sedan trycker man på start.\n\nElla och Kim trycker: framåt, framåt, höger, framåt. Roboten åker iväg men krockar med en bok. Pip!\n\n”Vi svängde för tidigt”, säger Kim. De räknar rutorna på golvet igen. Nu lägger de till ett steg framåt innan roboten ska svänga.\n\nAndra gången åker roboten hela vägen fram till osten. Ella och Kim jublar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur ser roboten ut?",
+        "options": [
+          "Som en liten bil med blinkande lampor",
+          "Som en hund",
+          "Som en skalbagge",
+          "Som en boll med armar"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad ligger i mitten av labyrinten?",
+        "options": [
+          "En ost av papper",
+          "En mus av tyg",
+          "En bok",
+          "En kartong med godis"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur styr man roboten?",
+        "options": [
+          "Med en mobil",
+          "Med rösten",
+          "Genom att knuffa den med handen",
+          "Med pilknappar på ryggen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad händer första gången?",
+        "options": [
+          "Roboten hittar osten",
+          "Roboten åker baklänges ut ur labyrinten",
+          "Roboten krockar med en bok",
+          "Roboten stannar direkt"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad är en labyrint?",
+        "options": [
+          "En hög med saker",
+          "Gångar där det är svårt att hitta rätt",
+          "En sorts robot",
+          "En lång och rak väg"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför lyckas de andra gången?",
+        "options": [
+          "Vera har flyttat osten närmare starten",
+          "Roboten har fått nya hjul",
+          "Kim knuffar roboten",
+          "De har räknat om och ändrat stegen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad lär sig Ella och Kim?",
+        "options": [
+          "Att man kan rätta sina misstag",
+          "Att robotar aldrig fungerar som man vill",
+          "Att möss gillar ost",
+          "Att böcker är tunga"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-appelmusten",
+    "title": "Must hos farfar",
+    "level": 3,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "I farfars trädgård står fem gamla äppelträd. I september är grenarna så tunga att de nästan når marken.\n\nEn lördag ska Liv och farfar göra must. De plockar röda och gula äpplen i stora backar. Äpplena som har ramlat ner får ligga kvar. Där kryper getingar omkring.\n\nSedan tvättar de äpplena. Farfar maler dem i en kvarn som man vevar. Det blir en mosig gröt. Gröten läggs i en press. Liv vrider på ett stort hjul. Långsamt rinner gulbrun saft ner i en hink.\n\nDet luktar sött i hela trädgården. Snart surrar getingarna runt hinken också.\n\nLiv får smaka det första glaset. Det är det godaste hon någonsin har druckit.\n\nFarfar häller resten i flaskor. ”De här räcker hela vintern”, säger han.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur många äppelträd har farfar?",
+        "options": [
+          "Fem",
+          "Två",
+          "Tio",
+          "Tjugo"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad kryper omkring bland äpplena på marken?",
+        "options": [
+          "Myror",
+          "Getingar",
+          "Sniglar",
+          "Nyckelpigor"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad gör de med äpplena innan de mals?",
+        "options": [
+          "Tvättar dem",
+          "Skär dem i små bitar",
+          "Kokar dem",
+          "Steker dem"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Det blir en mosig gröt. Hur är gröten?",
+        "options": [
+          "Hård och torr",
+          "Varm och salt",
+          "Söndermald och blöt",
+          "Tunn som vatten"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför surrar getingarna runt hinken?",
+        "options": [
+          "De vill bygga ett bo i den tomma hinken",
+          "De lockas av den söta lukten",
+          "De är rädda för Liv",
+          "Det är kallt ute"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad menar farfar med att flaskorna räcker hela vintern?",
+        "options": [
+          "Musten fryser på vintern",
+          "Flaskorna går sönder i kylan",
+          "De har gjort mycket must",
+          "Han ska sälja musten"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-hembygdsgarden",
+    "title": "Tunnbröd som förr",
+    "level": 3,
+    "textType": "story",
+    "topic": "historia",
+    "body": "Klassen är på utflykt till hembygdsgården. Där står gamla hus av timmer med gräs på taken. Så här bodde man på landet för tvåhundra år sedan.\n\nEn kvinna i lång kjol och huvudduk tar emot dem. Hon heter Sigrid och visar ett stort rum med en öppen spis. ”Här lagade man all mat”, säger hon. ”Härifrån kom också värmen på vintern.”\n\nSedan får barnen baka tunnbröd. De kavlar ut degen tills den är tunn som papper. Sedan rullar de en kruskavel över den. Det är en kavel med små knoppar som gör hål.\n\nSigrid gräddar brödet i en stor ugn av sten. Det tar bara en minut.\n\nBrödet är knaprigt och smakar lite rökigt. ”Förr bakade man många bröd på en gång”, berättar Sigrid. ”De hängdes upp under taket. Där höll de sig i flera månader.”",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad växer på husens tak?",
+        "options": [
+          "Blommor",
+          "Gräs",
+          "Små granar",
+          "Vete"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var lagade man mat förr?",
+        "options": [
+          "I en mikrovågsugn",
+          "Vid en öppen spis",
+          "På en spis med el",
+          "På en grill ute"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur tunn ska degen bli?",
+        "options": [
+          "Tjock som en bok",
+          "Tjock som ett finger",
+          "Tunn som ett snöre",
+          "Tunn som papper"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad är en kruskavel?",
+        "options": [
+          "En stor ugn av sten",
+          "En sorts deg",
+          "En pinne under taket",
+          "En kavel med små knoppar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Hur lång tid tar det att grädda brödet?",
+        "options": [
+          "En timme",
+          "Tio minuter",
+          "En minut",
+          "En hel dag"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför bakade man många bröd på en gång förr?",
+        "options": [
+          "Ugnen var för liten",
+          "Barnen tyckte att det var roligt att baka",
+          "Brödet höll sig länge",
+          "Brödet var mjukt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad får klassen lära sig på utflykten?",
+        "options": [
+          "Hur man bygger hus av timmer",
+          "Hur man levde och bakade förr",
+          "Hur man syr en lång kjol",
+          "Hur man murar en ugn"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-glasogonen",
+    "title": "Varje löv på trädet",
+    "level": 3,
+    "textType": "story",
+    "topic": "kroppen",
+    "body": "Alice har svårt att se vad läraren skriver på tavlan. Bokstäverna ser suddiga ut, som om de har blivit blöta. Hon brukar fråga kompisen bredvid.\n\nSkolsköterskan testar hennes ögon. Alice ska läsa bokstäver på en tavla långt bort. De stora går bra. De små kan hon inte läsa alls.\n\n”Du är närsynt”, säger sköterskan. ”Du ser bra nära, men sämre långt bort.”\n\nNågra veckor senare får Alice glasögon. De har gröna bågar. När hon sätter på sig dem händer något. Hon ser varje löv på träden utanför fönstret! Förut var träden bara gröna klumpar.\n\nPå vägen hem pekar hon på allt. Skyltar, fåglar och flygplan högt uppe på himlen.\n\n”Har det alltid sett ut så här?” frågar hon mamma.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad har Alice svårt att se?",
+        "options": [
+          "Bokstäverna i sin egen bok",
+          "Sina egna händer",
+          "Färgerna på kläderna",
+          "Det som står på tavlan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vem testar Alices ögon?",
+        "options": [
+          "Skolsköterskan",
+          "Läraren i klassrummet",
+          "Mamma",
+          "Kompisen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad betyder närsynt?",
+        "options": [
+          "Man ser sämre på nära håll",
+          "Man ser inga färger alls",
+          "Man ser sämre långt bort",
+          "Man ser ingenting i mörker"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vilken färg har bågarna?",
+        "options": [
+          "Röda",
+          "Blå",
+          "Svarta",
+          "Gröna"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Hur såg träden ut innan Alice fick glasögon?",
+        "options": [
+          "Som spetsiga pinnar",
+          "Som gula prickar",
+          "Som gröna klumpar",
+          "Som mörka skuggor"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför frågar Alice om det alltid har sett ut så?",
+        "options": [
+          "Hon tror att träden är nya",
+          "Mamma har målat om husen",
+          "Hon har glömt vägen hem",
+          "Hon har inte sett så tydligt förut"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
       }
     ]
   }
