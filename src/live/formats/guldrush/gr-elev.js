@@ -11,6 +11,9 @@
 // Snilleblixten): toppraden visar läget mot närmaste elev FRAMFÖR ("20 guld
 // bakom Alma" / "Du leder! 💰"); bara topp 3 ser sin pallplats på slutskärmen.
 //
+// Logiken är den gemensamma kistspelsmodulen (#651): src/live/kistspel/
+// ks-elev.js – här bara Guldrushens texter. Samma API som förut.
+//
 // API
 //   goldStanding(grPlayers, uid) → { gold, rel }   rel = relativeStanding (guld)
 //   standingText(rel) → "20 guld bakom Alma" | "Du leder! 💰" | "Lika med Alma" | ""
@@ -35,167 +38,37 @@
 // ============================================================================
 
 import { GR_EVENT_TEXTS, GR_RULES } from "./delat/chests-config.js";
-import { chestById, victimProblem, protectedLeftMs, toMs } from "./delat/guldrush-regler.js";
-import { relativeStanding, firstName } from "../snilleblixt/snilleblixt-elev.js";
+import { GR_REGLER } from "./delat/guldrush-regler.js";
+import {
+  firstName, formatGold, goldStanding, protectionText, myProtection, endStanding, stageAction, countUp, createKistElev,
+} from "../../kistspel/ks-elev.js";
 
-export { firstName };
+export { firstName, formatGold, goldStanding, protectionText, myProtection, endStanding, stageAction, countUp };
 
-const int = (v) => Math.max(0, Math.floor(Number(v) || 0));
+/** Guldrushens tema för elevskärmen (kistspel createKistElev). */
+export const GR_ELEV = createKistElev({
+  regler: GR_REGLER,
+  rules: GR_RULES,
+  eventTexts: GR_EVENT_TEXTS,
+  keyPrefix: "pp:gr:kista",
+  jubelChests: ["skattkammare"],
+  texts: {
+    lead: "Du leder! 💰",
+    leadTie: (n) => `Lika med ${n} – ni leder! 💰`,
+    tie: (n) => `Lika med ${n}`,
+    behind: (diff, n) => `${diff} guld bakom ${n}`,
+    why: { "samma-igen": "Nyss vald", "for-lite-guld": "För lite guld" },
+    gain: (x) => `+${x} guld`,
+    lose: (x) => `−${x} guld`,
+    loseEmpty: "Puh, fickan var tom!",
+    empty: "Bara ett löv …",
+    shield: (sek) => `Skyddad i ${sek} s!`,
+    steal: "Stöld! Välj vem",
+    swap: "Byte! Välj vem",
+    fallback: (x) => `Ingen att välja – +${x} guld`,
+    swapped: (who) => `🔄 Du bytte guld med ${who}!`,
+    stole: (x, who) => `🦝 +${x} guld från ${who}!`,
+  },
+});
 
-export function formatGold(n) {
-  return Math.round(Number(n) || 0).toLocaleString("sv-SE").replace(/\s/g, " ");
-}
-
-/** Mitt guld + läget mot närmaste framför (aldrig ett placeringsnummer). */
-export function goldStanding(grPlayers, uid) {
-  const list = (grPlayers || []).filter((p) => p?.uid).map((p) => ({ uid: p.uid, points: int(p.gold), name: firstName(p.name) }));
-  if (!list.some((p) => p.uid === uid)) list.push({ uid, points: 0, name: "" });
-  const gold = list.find((p) => p.uid === uid).points;
-  return { gold, rel: relativeStanding(list, uid) };
-}
-
-const NAMNLOS = "en klasskompis";
-
-export function standingText(rel) {
-  const n = (rel?.name || "").trim() || NAMNLOS;
-  switch (rel?.kind) {
-    case "leder": return "Du leder! 💰";
-    case "lika-topp": return `Lika med ${n} – ni leder! 💰`;
-    case "lika": return `Lika med ${n}`;
-    case "bakom": return `${formatGold(rel.diff)} guld bakom ${n}`;
-    default: return "";
-  }
-}
-
-const WHY = {
-  "samma-igen": "Nyss vald",
-  "for-lite-guld": "För lite guld",
-};
-
-/** Skyddets nedräkning: 4 200 ms → "0:05" (når 0:00 först när skyddet är slut). */
-export function protectionText(ms) {
-  const s = Math.ceil(Math.max(0, Number(ms) || 0) / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
-
-/** Elevens egen rad: bara medan skyddet gäller. */
-export function myProtection(me, now) {
-  const left = protectedLeftMs(me, now);
-  return left > 0 ? `🛡️ Skyddad ${protectionText(left)}` : "";
-}
-
-/**
- * Offerväljarens rader. Skyddade visas gråade med "🛡️ 0:04" (designspec
- * §6.5, #588) och blir valbara när nedräkningen når noll – servern prövar
- * samma regel i valets ögonblick och slumpar aldrig fram en skyddad.
- */
-export function victimRows(kind, me, grPlayers, now) {
-  const myGold = int(me?.gold);
-  return (grPlayers || [])
-    .filter((p) => p?.uid && p.uid !== me?.uid)
-    .filter((p) => kind !== "swap" || int(p.gold) > myGold)
-    .map((p) => {
-      const problem = victimProblem(kind, me, p, now);
-      const leftMs = problem === "skyddad" ? protectedLeftMs(p, now) : 0;
-      return {
-        uid: p.uid, name: String(p.name || ""), first: firstName(p.name), classId: p.classId ?? null, gold: int(p.gold),
-        ok: !problem, shield: leftMs > 0, leftMs,
-        why: leftMs > 0 ? `🛡️ ${protectionText(leftMs)}` : problem ? WHY[problem] || "Går inte" : "",
-      };
-    })
-    .sort((a, b) => b.gold - a.gold || a.name.localeCompare(b.name, "sv") || a.uid.localeCompare(b.uid));
-}
-
-export function pendingLeftMs(pending, now) {
-  const end = pending?.expiresAtMs ?? toMs(pending?.expiresAt);
-  if (end == null) return GR_RULES.victimPickMs;
-  return Math.max(0, end - now);
-}
-
-// Stämning per effekt → avatarens reaktion (live-reactions.js).
-const MOOD = { gold: "glad", double: "glad", shield: "skyddad", lose: "aj", empty: null, steal: "glad", swap: "glad" };
-
-function caption(chest, delta) {
-  const k = chest?.effect?.kind;
-  if (k === "gold" || k === "double") return `+${formatGold(delta)} guld`;
-  if (k === "lose") return delta ? `−${formatGold(-delta)} guld` : "Puh, fickan var tom!";
-  if (k === "empty") return "Bara ett löv …";
-  if (k === "shield") return `Skyddad i ${Math.round(GR_RULES.shieldMs / 1000)} s!`;
-  if (k === "steal") return "Stöld! Välj vem";
-  if (k === "swap") return "Byte! Välj vem";
-  return chest?.label || "";
-}
-
-/** Kistans visning ur openChest-svaret: { chest, kind, delta, gold, protectedUntil, pending? }. */
-export function chestView(result) {
-  const chest = chestById(result?.chest);
-  const delta = Number(result?.delta) || 0;
-  let mood = MOOD[chest?.effect?.kind] ?? null;
-  if (chest?.id === "skattkammare") mood = "jubel";
-  return {
-    chest, look: chest?.look || "", sound: chest?.sound || "", icon: chest?.icon || "🎁", label: chest?.label || "",
-    delta, gold: int(result?.gold), mood, caption: caption(chest, delta), pending: result?.pending || null,
-  };
-}
-
-/** Stöldens/bytets utfall ur chooseVictim: { result, chest, victimUid?, amount, delta, gold }. */
-export function victimView(res, names = {}) {
-  const who = names[res?.victimUid] || NAMNLOS;
-  const delta = Number(res?.delta) || 0;
-  if (res?.result === "fallback") return { ...chestView(res), caption: `Ingen att välja – +${formatGold(delta)} guld` };
-  const chest = chestById(res?.chest);
-  const base = { chest, look: chest?.look || "", sound: chest?.sound || "", icon: chest?.icon || "", delta, gold: int(res?.gold) };
-  if (res?.result === "swap") return { ...base, mood: delta > 0 ? "glad" : null, caption: `🔄 Du bytte guld med ${who}!`, run: true };
-  return { ...base, mood: delta > 0 ? "glad" : null, caption: `🦝 +${formatGold(delta)} guld från ${who}!`, run: true };
-}
-
-const fill = (tpl, vars) => String(tpl || "").replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? ""));
-
-/**
- * Notisen till den som blev bestulen (grPlayers.lastHit, skrivet av servern).
- * Första take() = baslinjen: en omladdning visar aldrig en gammal stöld igen.
- */
-export function createHitWatcher() {
-  let seen;
-  const keyOf = (h) => (h ? `${toMs(h.at) ?? ""}|${h.byUid || ""}|${h.kind || ""}` : "");
-  return {
-    take(me) {
-      const hit = me?.lastHit || null;
-      const key = keyOf(hit);
-      if (seen === undefined) { seen = key; return null; }
-      if (!hit || key === seen) return null;
-      seen = key;
-      const tpl = { steal: GR_EVENT_TEXTS.victimSteal, swap: GR_EVENT_TEXTS.victimSwap }[hit.kind];
-      if (!tpl) return null;
-      const name = firstName(hit.byName) || "Någon";
-      return {
-        kind: hit.kind, byUid: hit.byUid || null, name,
-        text: fill(tpl, { namn: name, belopp: formatGold(Math.abs(Number(hit.amount) || 0)) }),
-        mood: "aj",
-      };
-    },
-  };
-}
-
-/** Slutskärmen ur result.ranking: topp 3 (med guld) → pallplats, annars läget mot närmaste framför. */
-export function endStanding(result, uid) {
-  const ranking = result?.ranking || [];
-  const row = ranking.find((p) => p.uid === uid) || null;
-  const podium = row && row.gold > 0 && row.rank <= 3 ? row.rank : null;
-  const list = ranking.map((p) => ({ uid: p.uid, points: int(p.gold), name: firstName(p.name) }));
-  return { podium, row, rel: row ? relativeStanding(list, uid) : { kind: "ingen" } };
-}
-
-export function stageAction(phase) {
-  if (phase === "live") return "spel";
-  if (phase === "lobby") return "lobby";
-  if (phase === "ended" || phase === "finished" || phase === "cancelled") return "slut";
-  return null;
-}
-
-export function countUp(from, to, t) {
-  const x = Math.min(1, Math.max(0, Number(t) || 0));
-  return Math.round(from + (to - from) * (1 - (1 - x) ** 3));
-}
-
-export const chestKey = (sid, uid) => `pp:gr:kista:${sid}:${uid}`;
+export const { standingText, victimRows, pendingLeftMs, chestView, victimView, createHitWatcher, chestKey } = GR_ELEV;
