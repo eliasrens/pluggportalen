@@ -17,6 +17,10 @@
 //   position (A–D) per nivå, längdledtråd (rätt svar unikt längst i >45 % eller
 //   <10 % av flervalsfrågorna på en nivå).
 //
+// Ämnesläsningen (#673, src/amneslasning/content.js) återanvänder validateText
+// med egna regler (nivå 1–3, egna ordintervall, fel frågeantal = varning) och
+// bankWarnings för svarsposition/längdledtråd per nivå.
+//
 // Ren logik – körs av testerna (dev-seed + ev. bank) och av loadern i webbläsaren.
 // ============================================================================
 
@@ -61,19 +65,38 @@ export function levelFromId(id) {
   return hit[1] === "g" ? Number(hit[2]) : Number(hit[2]) + 3;
 }
 
+/** Läsresans regler (standard). Ämnesläsningen (#673) skickar egna i `rules`. */
+const LASRESAN_RULES = {
+  levels: null, // null = LEVEL_MIN–LEVEL_MAX
+  wordRanges: LEVEL_WORD_RANGES,
+  questionRange,
+  questionCountIsWarning: false,
+  requireTopic: true,
+  tag: null,
+};
+
 /**
  * Validera EN text.
+ * @param {object} text
+ * @param {object} [rules] – avvikande regler (Ämnesläsningen, #673):
+ *   levels: tillåtna nivåer (lista), wordRanges: { nivå: [min, max] },
+ *   questionRange: (nivå) => [min, max], questionCountIsWarning: fel antal
+ *   frågor ger varning i stället för fel, requireTopic: varna om topic saknas,
+ *   tag: namnet texten får i meddelandena (annars id:t).
  * @returns {{errors:string[], warnings:string[]}}
  */
-export function validateText(text) {
+export function validateText(text, rules = {}) {
+  const r = { ...LASRESAN_RULES, ...rules };
   const errors = [];
   const warnings = [];
   if (!text || typeof text !== "object") return { errors: ["texten är inte ett objekt"], warnings };
-  const tag = isStr(text.id) ? text.id : "(utan id)";
+  const tag = r.tag || (isStr(text.id) ? text.id : "(utan id)");
 
   if (!isStr(text.id)) errors.push(`${tag}: id saknas`);
   if (!isStr(text.title)) errors.push(`${tag}: title saknas`);
-  if (!Number.isInteger(text.level) || text.level < LEVEL_MIN || text.level > LEVEL_MAX) {
+  if (r.levels) {
+    if (!r.levels.includes(text.level)) errors.push(`${tag}: level måste vara ${r.levels.join(", ")}`);
+  } else if (!Number.isInteger(text.level) || text.level < LEVEL_MIN || text.level > LEVEL_MAX) {
     errors.push(`${tag}: level måste vara ett heltal ${LEVEL_MIN}–${LEVEL_MAX}`);
   }
   if (!TEXT_TYPES.includes(text.textType)) errors.push(`${tag}: textType måste vara ${TEXT_TYPES.join("/")}`);
@@ -81,10 +104,10 @@ export function validateText(text) {
   if (idLevel !== null && Number.isInteger(text.level) && idLevel !== text.level) {
     warnings.push(`${tag}: id:t hör till nivå ${idLevel} men level är ${text.level}`);
   }
-  if (!isStr(text.topic)) warnings.push(`${tag}: topic saknas`);
+  if (r.requireTopic && !isStr(text.topic)) warnings.push(`${tag}: topic saknas`);
   if (!isStr(text.body)) errors.push(`${tag}: body saknas`);
 
-  const range = LEVEL_WORD_RANGES[text.level];
+  const range = r.wordRanges[text.level];
   if (range && isStr(text.body)) {
     const n = wordCount(text.body);
     if (n < range[0] || n > range[1]) {
@@ -97,9 +120,11 @@ export function validateText(text) {
     errors.push(`${tag}: questions saknas`);
     return { errors, warnings };
   }
-  const [qMin, qMax] = questionRange(text.level);
+  const [qMin, qMax] = r.questionRange(text.level);
   if (qs.length < qMin || qs.length > qMax) {
-    errors.push(`${tag}: ${qs.length} frågor (ska vara ${qMin}–${qMax})`);
+    // Som varning (Ämnesläsningen) – men en text helt utan frågor är alltid fel.
+    const soft = r.questionCountIsWarning && qs.length > 0;
+    (soft ? warnings : errors).push(`${tag}: ${qs.length} frågor (ska vara ${qMin}–${qMax})`);
   }
   const qids = new Set();
   qs.forEach((q, i) => {
@@ -188,29 +213,8 @@ export function validateBank(texts) {
     warnings.push(...r.warnings);
     if (r.errors.length === 0) validTexts.push(t);
   }
-  const positions = answerPositionStats(validTexts);
-  for (const [level, row] of Object.entries(positions)) {
-    const n = row.reduce((a, b) => a + b, 0);
-    if (n < ANSWER_SKEW_MIN_QUESTIONS) continue;
-    const letters = "ABCD";
-    row.forEach((c, i) => {
-      if (c / n > ANSWER_SKEW_MAX_SHARE) {
-        warnings.push(`nivå ${level}: rätt svar är ${letters[i]} i ${c} av ${n} frågor (skev fördelning)`);
-      }
-    });
-  }
-  const lengths = answerLengthStats(validTexts);
-  for (const [level, { longest, total }] of Object.entries(lengths)) {
-    if (total < ANSWER_SKEW_MIN_QUESTIONS) continue;
-    const share = longest / total;
-    if (share > LENGTH_CUE_MAX_SHARE || share < LENGTH_CUE_MIN_SHARE) {
-      const pct = Math.round(share * 100);
-      const dir = share > LENGTH_CUE_MAX_SHARE ? `över ${LENGTH_CUE_MAX_SHARE * 100}` : `under ${LENGTH_CUE_MIN_SHARE * 100}`;
-      warnings.push(
-        `nivå ${level}: rätt svar är unikt längst i ${longest} av ${total} frågor (${pct} %, ${dir} %) – längdledtråd`,
-      );
-    }
-  }
+  const { warnings: skew, positions, lengths } = bankWarnings(validTexts);
+  warnings.push(...skew);
   const perLevel = {};
   for (const t of validTexts) perLevel[t.level] = (perLevel[t.level] || 0) + 1;
   return {
@@ -220,4 +224,37 @@ export function validateBank(texts) {
     validTexts,
     stats: { texts: validTexts.length, perLevel, answerPositions: positions, answerLengths: lengths },
   };
+}
+
+/**
+ * Varningar över en hel nivå: skev fördelning av rätt svars position och
+ * längdledtråd. Kontrolleras per nivå först vid `minQuestions` frågor.
+ * @returns {{warnings:string[], positions:object, lengths:object}}
+ */
+export function bankWarnings(validTexts, { minQuestions = ANSWER_SKEW_MIN_QUESTIONS } = {}) {
+  const warnings = [];
+  const positions = answerPositionStats(validTexts);
+  for (const [level, row] of Object.entries(positions)) {
+    const n = row.reduce((a, b) => a + b, 0);
+    if (n < minQuestions) continue;
+    const letters = "ABCD";
+    row.forEach((c, i) => {
+      if (c / n > ANSWER_SKEW_MAX_SHARE) {
+        warnings.push(`nivå ${level}: rätt svar är ${letters[i]} i ${c} av ${n} frågor (skev fördelning)`);
+      }
+    });
+  }
+  const lengths = answerLengthStats(validTexts);
+  for (const [level, { longest, total }] of Object.entries(lengths)) {
+    if (total < minQuestions) continue;
+    const share = longest / total;
+    if (share > LENGTH_CUE_MAX_SHARE || share < LENGTH_CUE_MIN_SHARE) {
+      const pct = Math.round(share * 100);
+      const dir = share > LENGTH_CUE_MAX_SHARE ? `över ${LENGTH_CUE_MAX_SHARE * 100}` : `under ${LENGTH_CUE_MIN_SHARE * 100}`;
+      warnings.push(
+        `nivå ${level}: rätt svar är unikt längst i ${longest} av ${total} frågor (${pct} %, ${dir} %) – längdledtråd`,
+      );
+    }
+  }
+  return { warnings, positions, lengths };
 }

@@ -18,6 +18,8 @@
 //                  läget, INTE quiz/par-lägena (de kräver text/par).
 //   • "tidsjakt" → Tidsjakten + tidslinjefrågor i Quiz/Live (epic #595). Lagras
 //                  i area.timeline[] (se src/validate-timeline.js), inte i quiz[].
+//   • "amneslasning" → Ämnesläsning (#673): texter med frågor på tre nivåer i
+//                  area.readingTexts[] (inte texts/passage). Alla ämnen; kan stå ensam.
 // Arkad-läget "Fånga sanningar" (sanningsjakt) härleder påståenden ur BÅDA
 // källorna: minst 2 textpar, annars quiz. Det syns alltså så fort området har
 // antingen quiz eller (minst två) fakta-par – ingen egen övningstyp behövs.
@@ -64,6 +66,7 @@ export const EXERCISE_TYPES = [
     label: "Tidsjakten",
     hint: "Dra en markör till rätt årtal på en tidslinje",
   },
+  { id: "amneslasning", emoji: "📖", label: "Ämnesläsning", hint: "Läsförståelsetexter om området, på tre nivåer" },
 ];
 
 const EXERCISE_TYPE_IDS = EXERCISE_TYPES.map((t) => t.id);
@@ -82,7 +85,7 @@ export function normalizeExerciseTypes(types) {
 /**
  * Härled övningstyper ur ett områdes faktiska innehåll. Används som fallback för
  * äldre områden som sparats innan "exerciseTypes"-fältet fanns.
- * @param {object} area – { quiz?: [], pairs?: [], generator?: {...}, timeline?: [] }
+ * @param {object} area – { quiz?: [], pairs?: [], generator?: {...}, timeline?: [], readingTexts?: [] }
  * @returns {string[]}
  */
 export function deriveExerciseTypes(area) {
@@ -96,6 +99,8 @@ export function deriveExerciseTypes(area) {
   // området till ett generator-område. Håll isär från quiz/pairs ovan.
   if (hasGeneratorContent(area)) out.push("generator");
   if (Array.isArray(area?.timeline) && area.timeline.length > 0) out.push("tidsjakt");
+  // Ämnestexter har egna frågor; gamla nivåtexter (#152, `levels`) räknas inte.
+  if (Array.isArray(area?.readingTexts) && area.readingTexts.some((t) => Array.isArray(t?.questions))) out.push("amneslasning");
   return normalizeExerciseTypes(out);
 }
 

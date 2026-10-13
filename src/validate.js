@@ -24,6 +24,7 @@ import { validateTimeline } from "./validate-timeline.js";
 import { normalizeReadingPrereq } from "./reading-prereq.js";
 import { normalizeGrade } from "./grades.js";
 import { normalizeHiddenModes } from "./gamemode-visibility.js";
+import { isLegacyReadingText, validateReadingTexts } from "./amneslasning/content.js";
 
 /** Gör en läsbar sträng till ett slug-id: gemener, bindestreck, a–z0–9. */
 export function slugify(str) {
@@ -276,16 +277,31 @@ export function validateArea(obj) {
   // Historiska händelser med heltalsår; regeln bor i src/validate-timeline.js.
   const { timeline, timelineSpan } = validateTimeline(obj, errors, warnings);
 
+  // --- readingTexts[] (Ämnesläsning, issue #673) ----------------------------
+  // Läsförståelsetexter med frågor på tre nivåer – INTE samma som texts[].
+  // Regeln bor i src/amneslasning/content.js (Läsresans validator med
+  // ämnesläsningens tal); fel stoppar, varningar (ordantal m.m.) gör det inte.
+  // Gamla nivåtexter i samma fält (#152, borttagna i #531) släpps som förut.
+  let readingTexts = [];
+  if (obj.readingTexts !== undefined && obj.readingTexts !== null) {
+    const list = Array.isArray(obj.readingTexts) ? obj.readingTexts.filter((t) => !isLegacyReadingText(t)) : obj.readingTexts;
+    const rt = validateReadingTexts(list, { label: "Ämnestext" });
+    errors.push(...rt.errors);
+    warnings.push(...rt.warnings);
+    readingTexts = rt.valid;
+  }
+
   // --- Minst något innehåll -------------------------------------------------
   if (
     texts.length === 0 &&
     quiz.length === 0 &&
     pairs.length === 0 &&
     timeline.length === 0 &&
+    readingTexts.length === 0 &&
     !generator
   ) {
     errors.push(
-      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par, en tidslinjehändelse eller en räknegenerator."
+      "Arbetsområdet har inget innehåll. Lägg till minst en text, en quizfråga, ett fakta-par, en tidslinjehändelse, en ämnestext eller en räknegenerator."
     );
   }
 
@@ -299,7 +315,7 @@ export function validateArea(obj) {
   // ur innehållet, så fältet alltid finns på det sparade dokumentet.
   let exerciseTypes = normalizeExerciseTypes(obj.exerciseTypes);
   if (exerciseTypes.length === 0) {
-    exerciseTypes = deriveExerciseTypes({ quiz, pairs, generator, timeline });
+    exerciseTypes = deriveExerciseTypes({ quiz, pairs, generator, timeline, readingTexts });
   }
 
   // --- Läsförståelse-förkrav (issue #155) -----------------------------------
@@ -330,6 +346,8 @@ export function validateArea(obj) {
   // gamla områden sparas exakt som förut.
   if (timeline.length) value.timeline = timeline;
   if (timelineSpan) value.timelineSpan = timelineSpan;
+  // Ämnestexterna (#673) likaså – bara när de finns.
+  if (readingTexts.length) value.readingTexts = readingTexts;
   return { ok: true, errors: [], warnings, value };
 }
 

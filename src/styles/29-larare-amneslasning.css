@@ -1,0 +1,184 @@
+/* ---- Ämnesläsning i lärarflödet (issue #673) -----------------------------
+   Underradens flik "📖 Ämnesläsning" (lista per nivå + redigering), panelen
+   "Skapa ämnestexter" (beställ → klistra in → förhandsgranska per nivå → spara)
+   och förhandsgranskningen i Läsresans läsvy (modal, ljus som elevens vy).
+   Mörka lärardesignen: accentgrön, gult = varning, rött = fel. */
+.teacher-dark .amn-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+.teacher-dark .amn-top .ai-tabnote { margin: 0; }
+.teacher-dark .amn-create-slot:not([hidden]) {
+  padding: 14px 16px;
+  background: var(--t-raised);
+  border: 1px solid var(--t-border-strong);
+  border-radius: 12px;
+}
+.teacher-dark .amn-gaps:empty { display: none; }
+.teacher-dark .amn-gap-msg { margin: 0; padding: 8px 12px; }
+.teacher-dark .amn-gap-msg .error-list { margin: 0; padding-left: 4px; list-style: none; }
+.teacher-dark .amn-group + .amn-group { margin-top: 6px; }
+.teacher-dark .amn-level-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 6px;
+  color: var(--t-text);
+  font-size: 0.95rem;
+}
+.teacher-dark .amn-level-n {
+  padding: 1px 8px;
+  color: var(--t-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 999px;
+}
+.teacher-dark .amn-level-n.none { color: #f2c94c; border-color: rgba(242, 201, 76, 0.45); }
+
+/* Redigeringsformuläret: frågeblock */
+.teacher-dark .amn-sub { color: var(--t-muted); font-size: 0.85rem; font-weight: 600; }
+.teacher-dark .amn-qs { display: flex; flex-direction: column; gap: 10px; }
+.teacher-dark .amn-q {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px 12px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+}
+.teacher-dark .amn-q legend { padding: 0 4px; color: var(--t-text); font-weight: 700; font-size: 0.88rem; }
+.teacher-dark .amn-q .ai-field { gap: 6px; }
+.teacher-dark .amn-q-del { position: absolute; top: 6px; right: 6px; }
+.teacher-dark .amn-q .ai-opt-nr { width: 16px; font-weight: 700; }
+
+/* Panelen "Skapa ämnestexter" */
+.teacher-dark .amn-create { display: flex; flex-direction: column; gap: 10px; }
+.teacher-dark .amn-create-h { margin: 0; color: var(--t-text); font-size: 1.05rem; }
+.teacher-dark .amn-step { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; color: var(--t-text); font-weight: 700; }
+.teacher-dark .amn-step-nr {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: #0f1419;
+  font-size: 0.8rem;
+  background: var(--t-accent);
+  border-radius: 50%;
+}
+.teacher-dark .amn-create-grid { display: grid; grid-template-columns: 200px 1fr; gap: 10px 14px; }
+.teacher-dark .amn-material { grid-column: 1 / -1; }
+.teacher-dark .amn-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.teacher-dark .amn-field > span:first-child { color: var(--t-muted); font-size: 0.85rem; font-weight: 600; }
+.teacher-dark .amn-field input,
+.teacher-dark .amn-field textarea,
+.teacher-dark .amn-field select { box-sizing: border-box; width: 100%; padding: 9px 11px; font: inherit; font-size: 0.95rem; }
+.teacher-dark .amn-total { color: var(--t-muted); font-size: 0.8rem; }
+.teacher-dark .amn-copy-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.teacher-dark .amn-copy-row .hint { margin: 0; }
+.teacher-dark .amn-paste { min-height: 120px; }
+.teacher-dark .amn-check-row { margin: 0; }
+.teacher-dark .amn-result:empty,
+.teacher-dark .amn-save-msg:empty { display: none; }
+.teacher-dark .amn-result { display: flex; flex-direction: column; gap: 10px; }
+.teacher-dark .amn-result > .msg { margin: 0; }
+.teacher-dark .amn-levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.teacher-dark .amn-level {
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+}
+.teacher-dark .amn-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.teacher-dark .amn-empty { margin: 0; color: #f2c94c; font-size: 0.88rem; }
+.teacher-dark .amn-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  background: var(--t-raised);
+  border: 1px solid var(--t-border);
+  border-left: 3px solid var(--t-accent);
+  border-radius: 8px;
+}
+.teacher-dark .amn-item.bad { border-left-color: #eb5757; }
+.teacher-dark .amn-item.off { opacity: 0.55; border-left-color: var(--t-border-strong); }
+.teacher-dark .amn-item.off .amn-item-title { text-decoration: line-through; }
+.teacher-dark .amn-item-title { color: var(--t-text); font-weight: 700; overflow-wrap: anywhere; }
+.teacher-dark .amn-item-meta { color: var(--t-muted); font-size: 0.8rem; }
+.teacher-dark .amn-notes { margin: 2px 0 0; padding-left: 18px; font-size: 0.8rem; }
+.teacher-dark .amn-notes .bad { color: #ff8a8a; }
+.teacher-dark .amn-notes .warn { color: #f2c94c; }
+.teacher-dark .amn-item-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.teacher-dark .amn-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: 1px;
+  border-radius: 999px;
+}
+.teacher-dark .amn-badge.ok { color: #7ee0a6; background: var(--t-accent-soft); }
+.teacher-dark .amn-badge.warn { color: #f2c94c; background: rgba(242, 201, 76, 0.12); }
+.teacher-dark .amn-badge.bad { color: #ff8a8a; background: rgba(235, 87, 87, 0.14); }
+.teacher-dark .amn-badge.off { color: var(--t-muted); background: var(--t-surface); }
+.teacher-dark .amn-save-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.teacher-dark .amn-save-row[hidden] { display: none; }
+.teacher-dark .amn-save-row .hint { margin: 0; }
+@media (max-width: 720px) {
+  .teacher-dark .amn-create-grid { grid-template-columns: 1fr; }
+}
+
+/* Förhandsgranskningen: Läsresans läsvy i en ljus modal (som eleven ser den). */
+.amn-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(8, 12, 18, 0.72);
+}
+.amn-preview-box {
+  --lr-ovan: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(1180px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 14px 18px 18px;
+  background: #eef4fb;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.amn-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.amn-preview-tag { color: #3a4a63; font-size: 0.9rem; font-weight: 700; }
+.amn-preview-close {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #22314a;
+  background: #fff;
+  border: 1px solid #d5e0ee;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.amn-preview-close:focus-visible { outline: 3px solid #4c9bff; outline-offset: 2px; }
+.amn-preview-done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  color: #1d5e37;
+  background: #e3f7ea;
+  border-radius: 12px;
+}
+.amn-preview-done[hidden] { display: none; }
