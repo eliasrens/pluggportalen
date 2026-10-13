@@ -66,7 +66,8 @@ test("nivå 2: validateBank på hela banken ger 0 fel och 0 varningar, id unika"
   const r = validateBank(all);
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
-  assert.equal(r.stats.perLevel[2], 30);
+  // level-2-b.json (#662) ligger också på nivå 2 och testas i lasresan-bank-niva2b.test.js.
+  assert.equal(r.stats.perLevel[2], 70);
 });
 
 test("nivå 2: mest faktafrågor och högst en slutsatsfråga per text", () => {
