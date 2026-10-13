@@ -1,7 +1,7 @@
 {
   "version": 1,
   "levels": {
-    "1": ["level-1.json"],
+    "1": ["level-1.json", "level-1-b.json"],
     "2": ["level-2.json"],
     "3": ["level-3.json"],
     "4": ["level-4.json"],
