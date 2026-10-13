@@ -88,6 +88,7 @@
   flex: 1;
   min-height: 0;
   max-height: 46vh;
+  container-type: inline-size;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(10px, 2vw, 28px);
@@ -103,12 +104,14 @@
   border: 3px solid var(--dk-cyan);
   background: var(--dk-panel);
   color: var(--dk-text);
-  font-size: clamp(26px, min(6.4vh, 3.6vw), 54px);
+  font-size: clamp(18px, 4.4vh, 40px);
   box-shadow: 0 6px 0 #06101f, 0 0 22px rgba(62, 230, 255, 0.18);
   cursor: pointer;
   overflow: hidden;
   transition: transform 0.12s ease, border-color 0.12s ease, opacity 0.3s ease, background 0.2s ease;
 }
+/* Koderna är 4–11 tecken (--n, codeHtml): så stora som kortets bredd tillåter. */
+.dkk-kort .dk-kod { font-size: max(16px, min(6.4vh, 54px, calc(28cqi / (var(--n, 8) * 0.68)))); }
 .dkk-kort:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--dk-gron); background: var(--dk-panel-ljus); }
 .dkk-nr {
   position: absolute;

@@ -12,7 +12,7 @@
 // API
 //   codeHtml(kod)  → (escapad) HTML: <span class="dk-kod">f<b>0</b>tb<b>0</b><b>1</b>l</span>
 //   createCodePicker(host, { lobby, pick(index) → Promise, sound? })
-//     → { set({ offers, code, leftMs, show }), destroy() }
+//     → { set({ offers, code, leftMs, show }), error(msg), destroy() }
 // ============================================================================
 
 import { codeChars, protectionText } from "./dk-elev.js";
@@ -22,7 +22,8 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 
 export function codeHtml(kod) {
   const inner = codeChars(kod).map((c) => (c.digit ? `<b>${esc(c.ch)}</b>` : esc(c.ch))).join("");
-  return `<span class="dk-kod" aria-label="${esc(String(kod || "").split("").join(" "))}">${inner}</span>`;
+  // --n = antal tecken: kortens CSS skalar texten så att även 11 tecken ryms.
+  return `<span class="dk-kod" style="--n:${Math.max(4, String(kod || "").length)}" aria-label="${esc(String(kod || "").split("").join(" "))}">${inner}</span>`;
 }
 
 export function createCodePicker(host, { lobby = false, pick, sound = null }) {
@@ -63,7 +64,7 @@ export function createCodePicker(host, { lobby = false, pick, sound = null }) {
   return {
     set({ offers = [], code = null, leftMs = null, show = true } = {}) {
       if (destroyed) return;
-      root.hidden = !show && !(lobby && code);
+      root.hidden = !show && !(lobby && code) && fel.hidden;
       const picking = show && offers.length > 0;
       row.hidden = !picking;
       root.querySelector(".dkv-rubrik").hidden = !picking;
@@ -77,6 +78,12 @@ export function createCodePicker(host, { lobby = false, pick, sound = null }) {
       if (leftMs != null) tid.textContent = protectionText(leftMs);
       mine.hidden = !(code && (lobby ? !picking : false));
       if (!mine.hidden) mine.innerHTML = `Din kod: ${codeHtml(code)} <span class="dkv-bock">✓</span><small>Den är hemlig – berätta den inte för någon.</small>`;
+    },
+    error(msg) {
+      if (destroyed) return;
+      fel.textContent = msg ? `😕 ${msg}` : "";
+      fel.hidden = !msg;
+      if (msg) root.hidden = false;
     },
     destroy() {
       destroyed = true;

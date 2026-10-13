@@ -45,7 +45,9 @@ export function createCodeArea({ view, box, api, sid, sound = null, reduced = fa
     asked = tag;
     api.pickCode({ sid }).catch((err) => {
       asked = "";
-      onError(err);
+      // Lobbyns felrad syns i lobbyn; spelytans via vyn.
+      if (tag === "lobby" && lobbyPicker) lobbyPicker.error(err?.message || "Det gick inte – försök igen.");
+      else onError(err);
     });
   }
 
