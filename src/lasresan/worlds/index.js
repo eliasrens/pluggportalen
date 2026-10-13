@@ -27,9 +27,10 @@ import havet from "./havet.js";
 import djungeln from "./djungeln.js";
 import bergen from "./bergen.js";
 import vulkanlandet from "./vulkanlandet.js";
+import manen from "./manen.js";
 
 /** Alla världar, sorterade på `order`. Lägg till nya världar här. */
-export const WORLDS = sortWorlds([skogen, oknen, havet, djungeln, bergen, vulkanlandet]);
+export const WORLDS = sortWorlds([skogen, oknen, havet, djungeln, bergen, vulkanlandet, manen]);
 
 function sortWorlds(list) {
   return [...list].sort((a, b) => (a.order || 0) - (b.order || 0));

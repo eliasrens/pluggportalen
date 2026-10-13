@@ -60,6 +60,16 @@ const CSS = `
   50% { transform: translateY(-8px) scale(1.06); }
 }
 
+/* --- Hela resan klar (#660): lugn ruta längst ner i kartan ----------------- */
+.lr-resan-klar { position: absolute; left: 50%; bottom: 12px; z-index: 3;
+  transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px);
+  display: flex; align-items: center; gap: 12px; line-height: 1.35;
+  background: rgba(255, 248, 231, 0.95); color: #3b3350;
+  border: 3px solid #3b3350; border-radius: 16px; padding: 10px 14px;
+  box-shadow: 0 6px 18px rgba(59, 51, 80, 0.25); font-size: clamp(13px, 1.6vw, 16px); }
+.lr-resan-klar-ikon { font-size: clamp(22px, 3vw, 32px); line-height: 1; }
+.lr-resan-klar .btn { white-space: nowrap; }
+
 /* --- Firande (värld klar) --------------------------------------------------- */
 .lr-firande { position: absolute; inset: 0; z-index: 4; display: grid;
   place-items: center; background: rgba(59, 51, 80, 0.35); line-height: 1.4;
