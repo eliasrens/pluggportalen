@@ -54,6 +54,7 @@
 
     <script type="module">
       import { createDkStage } from "../src/live/formats/datakuppen/dk-elev-vy.js";
+      import { createFullscreenButton } from "../src/live/kistspel/ks-helskarm.js";
       import { lobbyHtml, endHtml, joinedText } from "../src/live/formats/datakuppen/dk-skarmar.js";
       import { DK_FILES } from "../src/live/formats/datakuppen/delat/files-config.js";
       import { codeList } from "../src/live/formats/datakuppen/delat/datakuppen-regler.js";
@@ -118,6 +119,9 @@
         { view, host: $(".live-elev-play"), uid: "e0", classId: "4b", session, mode, answerKind },
         { api: sim.api, now: () => Date.now(), roster },
       );
+      // Som datakuppen-student.js: helskärmsknappen uppe till höger.
+      const full = createFullscreenButton(view, { cls: "dk-helskarm" });
+      if (full) view.appendChild(full.el);
       const player = { uid: "e0", name: "Jag", classId: "4b" };
       function setPhase(p) {
         phase = p;
