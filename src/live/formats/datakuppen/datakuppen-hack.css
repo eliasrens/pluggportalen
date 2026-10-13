@@ -180,10 +180,13 @@
 }
 @keyframes dk-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-/* Stor skärm / helskärm (1920×1080): bredare kort så att namnen får plats. */
+/* Helskärm på stor skärm (1920×1080): bredare kort så att namnen får plats.
+   Bara i helskärm – i appen är elevytan lika smal (~840 px) som på en
+   Chromebook, och breda kort gav 3 kolumner och en målväljare som inte
+   rymdes utan scroll (slut-QA #656). */
 @media (min-width: 1500px) {
-  .dko .dko-rutnat, .dko[data-many] .dko-rutnat { --dko-w: 200px; --dko-av: clamp(50px, 6.4vh, 72px); gap: 10px; }
-  .dko-guld { font-size: clamp(14px, 1.9vh, 19px); }
+  .dk-elev-vy:fullscreen .dko .dko-rutnat, .dk-elev-vy:fullscreen .dko[data-many] .dko-rutnat { --dko-w: 200px; --dko-av: clamp(50px, 6.4vh, 72px); gap: 10px; }
+  .dk-elev-vy:fullscreen .dko-guld { font-size: clamp(14px, 1.9vh, 19px); }
 }
 .dk-elev-vy:fullscreen .dko-rutnat { align-content: center; }
 
