@@ -12,7 +12,7 @@
    ========================================================================== */
 
 .dknv {
-  --dknv-kant: clamp(360px, 29vw, 600px);
+  --dknv-kant: clamp(400px, 32vw, 620px);
   display: grid;
   grid-template-columns: 1fr var(--dknv-kant);
   grid-template-rows: minmax(calc(var(--dkn-topp) + clamp(84px, 15vh, 170px)), auto) 1fr;
@@ -190,7 +190,7 @@
 .dknv-kant { grid-area: 2 / 2 / 3 / 3; position: relative; padding: 2.5vh 1.4vw 3vh 0; min-height: 0; }
 /* Högst --dknf-max (4) rader, EN rad var (aldrig radbrytning), fast höjd. */
 .dknf {
-  --dknf-f: clamp(22px, 2.5vh, 31px);
+  --dknf-f: clamp(20px, 2.5vh, 31px);
   --dknf-rad: calc(var(--dknf-f) * 1.7);
   --dknf-gap: 0.4vh;
   display: flex;
@@ -349,10 +349,10 @@
   background: var(--dkn-panel);
   border: 3px solid var(--dkn-kant);
 }
-.dknx-kort { display: grid; grid-template-columns: auto 1fr; column-gap: 0.35em; align-items: center; padding: 0.8vh 0.7vw; font-size: clamp(18px, 2.3vh, 28px); min-width: 0; }
+.dknx-kort { display: grid; grid-template-columns: auto 1fr; column-gap: 0.35em; align-items: center; padding: 0.8vh 0.6vw; font-size: clamp(18px, 2.3vh, 28px); min-width: 0; }
 .dknx-hack { border-color: rgba(255, 181, 71, 0.6); }
 .dknx-ikon { grid-row: span 3; font-size: 1.5em; }
-.dknx-label { font-weight: 700; color: var(--dkn-dov); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dknx-label { font-size: 0.9em; font-weight: 700; color: var(--dkn-dov); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dknx-varde { font-family: var(--dkn-mono); font-size: 1.35em; line-height: 1.1; color: var(--dkn-gron); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dknx-hack .dknx-varde { color: var(--dkn-orange); }
 .dknx-kort small { font-size: 0.75em; color: var(--dkn-dov); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -382,9 +382,11 @@
 .dknx-nr { color: var(--dkn-cyan); text-align: right; font-variant-numeric: tabular-nums; }
 .dknx-namn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dkn-text); }
 .dknx-namn i { font-style: normal; font-size: 0.85em; }
-.dknx-mb { color: var(--dkn-gron); font-family: var(--dkn-mono); }
+.dknx-mb { color: var(--dkn-gron); }
 .dknx-etta > span { background: rgba(57, 255, 159, 0.12); }
-.dknx-rad .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 0.5em; }
+.dknx-rad .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 0.4em; }
+/* Siffrorna lite mindre än namnen – i tre kolumner (25–30 elever) får namnen plats. */
+.dknx-rad:not(.dknx-huvud) .num, .dknx-rad:not(.dknx-huvud) .dknx-nr { font-size: 0.84em; align-self: center; }
 .dknx-tom { margin: 0; font-family: var(--dkn-mono); font-size: clamp(26px, 3.2vh, 38px); color: var(--dkn-gron); }
 
 @media (prefers-reduced-motion: reduce) {

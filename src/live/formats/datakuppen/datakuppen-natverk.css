@@ -172,7 +172,7 @@
   box-shadow: 0 0 0.25em rgba(57, 255, 159, 0.55);
 }
 .dknl-namn {
-  max-width: 5.4em;
+  max-width: calc(var(--dknl-fig, 60px) * 1.5);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -181,6 +181,15 @@
   font-weight: 700;
   color: var(--dkn-gron);
   text-shadow: 0 1px 3px #000;
+}
+
+/* Låga skärmar (720p): tätare mittkolumn, så att 25–30 inloggade får plats under tipset. */
+@media (max-height: 820px) {
+  .dknl-mitt { gap: 0.7vh; padding-top: 0.6vh; }
+  .dknl-mitt .dkn-logo-stor { font-size: 8.4vh; }
+  .dknl-klass { font-size: 4.6vh; }
+  .dknl-rad { font-size: 28px; }
+  .dknl-start { font-size: 5vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

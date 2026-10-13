@@ -57,7 +57,7 @@ export const DK_FILES = Object.freeze([
     id: "serverhall", icon: "🖥️", label: "Serverhall", rarity: "sällsynt", weight: 3,
     effect: { kind: "gold", amount: 100 },
     look: "serverhall", sound: "uppladdning", eventText: "🖥️ SERVERHALL! {namn} laddade ner {belopp} MB",
-    feedText: "> {namn} hittade en serverhall: +{belopp} MB",
+    feedText: "> {namn}: serverhall +{belopp} MB",
   },
   {
     id: "overklockning", icon: "⚡", label: "Överklockning", rarity: "ovanlig", weight: 7,

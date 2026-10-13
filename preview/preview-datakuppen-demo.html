@@ -132,6 +132,8 @@
         if (FAS === "spel") {
           demo.join(ANTAL, 0, Date.now() - 120_000);
           demo.playHistory(Math.min(140, ANTAL * 6));
+          // Historiken spelades på en sekund – annars vore nästan alla skyddade (30 s efter hack).
+          demo.state().grPlayers.forEach((g, i) => { if (i % 6) g.protectedUntil = null; });
           demo.setAuto(q.get("auto") !== "av");
         }
         if (FAS === "final") demo.jumpToFinal(q.get("delad") || null, ANTAL);

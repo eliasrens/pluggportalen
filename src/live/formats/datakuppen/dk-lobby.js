@@ -138,11 +138,27 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
     seats.set(p.uid, { el, name: p.name || "" });
   }
 
+  // De inloggade får aldrig hamna över tipset: krymp figurerna tills de ryms
+  // under det (små skärmar, många elever).
+  const tipsBox = root.querySelector(".dknl-tips");
+  function fitFolk() {
+    folk.style.setProperty("--dknl-fig", figSize(seats.size));
+    if (!seats.size) return;
+    let px = parseFloat(getComputedStyle(folk).fontSize) || 0;
+    const limit = tipsBox.getBoundingClientRect().bottom + 6;
+    for (let i = 0; i < 16 && px > 34 && folk.getBoundingClientRect().top < limit; i++) {
+      px -= 2;
+      folk.style.setProperty("--dknl-fig", `${px}px`);
+    }
+  }
+  const ro = new ResizeObserver(() => fitFolk());
+  ro.observe(root);
+
   function update(next) {
     const players = next.players || [];
     roster.ensure(players);
     players.forEach(seat);
-    folk.style.setProperty("--dknl-fig", figSize(seats.size));
+    fitFolk();
     regi.sync({ phase: "lobby", players: players.map((p) => ({ uid: p.uid, name: p.name })) });
     root.querySelector("[data-n]").textContent = String(players.length);
     vakt?.check();
@@ -153,6 +169,7 @@ export function createLobby(host, { st, modeName = "", actions = {}, say = () =>
     update,
     destroy() {
       clearInterval(iv);
+      ro.disconnect();
       vakt.destroy();
       regi.destroy();
       pool.destroy();

@@ -54,7 +54,7 @@ export function createStatsView(host, { st, screen = false, deps = null }) {
   let rader = 1;
   function fit() {
     const h = $(".dknx-kolumner").clientHeight;
-    if (h > 0) $(".dknx-kolumner").style.fontSize = `${Math.max(16, Math.min(40, Math.floor(h / rader / RAD_EM)))}px`;
+    if (h > 0) $(".dknx-kolumner").style.fontSize = `${Math.max(16, Math.min(34, Math.floor(h / rader / RAD_EM)))}px`;
   }
   const ro = new ResizeObserver(fit);
   ro.observe($(".dknx-kolumner"));
@@ -87,9 +87,9 @@ export function createStatsView(host, { st, screen = false, deps = null }) {
       kort("💾", "Tillsammans", `${tal(sum.totalGold)} MB`),
       kort("✅", "Rätt svar", tal(sum.correct), `av ${tal(sum.answered)} svar`),
       kort("🎯", "Andel rätt", `${sum.share} %`),
-      kort("⚡", "Svarsfrekvens", perMin == null ? "–" : `${tal(perMin)}/min`, perMin == null && !fin ? "mäts …" : "senaste minuten"),
+      kort("⚡", "Svar/min", perMin == null ? "–" : tal(perMin), perMin == null && !fin ? "mäts …" : "senaste minuten"),
       kort("💻", "Hackförsök", hackOff ? "–" : tal(hacks.attempts), hackOff ? "hackning av" : "hela klassen", " dknx-hack"),
-      kort("🔓", "Lyckade hack", hackOff || share == null ? "–" : `${share} %`, hackOff ? "hackning av" : `${tal(hacks.success)} av ${tal(hacks.attempts)}`, " dknx-hack"),
+      kort("🔓", "Lyckade", hackOff || share == null ? "–" : `${share} %`, hackOff ? "hackning av" : `${tal(hacks.success)} av ${tal(hacks.attempts)} hack`, " dknx-hack"),
       kort("👥", "Spelare", tal(sum.joined), `${tal(sum.active)} har svarat`),
     ].join("");
 
