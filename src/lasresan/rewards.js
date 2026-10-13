@@ -21,11 +21,12 @@ export function coinsFor(correct) {
 /**
  * Dela ut belöningen för en färdig text.
  * @param {number} correct antal rätt
- * @param {{studentId?:string, addCoins?:(amount:number, studentId?:string)=>Promise<number>}} [opts]
+ * @param {{studentId?:string, addCoins?:(amount:number, studentId?:string)=>Promise<number>, coins?:number}} [opts]
+ *   `coins` = färdigräknat belopp (Ämnesläsningen: 5/rätt + omläsningstrappa); annars coinsFor(correct).
  * @returns {Promise<{coins:number, balance:(number|null)}>} utdelat belopp + nytt saldo
  */
-export async function award(correct, { studentId, addCoins } = {}) {
-  const coins = coinsFor(correct);
+export async function award(correct, { studentId, addCoins, coins: amount } = {}) {
+  const coins = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : coinsFor(correct);
   if (coins <= 0) return { coins: 0, balance: null };
   const add = addCoins || (await import("../data.js")).addCoins;
   const balance = studentId === undefined ? await add(coins) : await add(coins, studentId);
