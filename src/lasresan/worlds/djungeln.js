@@ -19,7 +19,7 @@ const STEG = [
   { x: 840, y: 900 }, { x: 700, y: 860 }, { x: 575, y: 800 }, { x: 450, y: 740 },
   { x: 330, y: 660 }, { x: 285, y: 545 }, { x: 370, y: 450 }, { x: 510, y: 420 },
   { x: 655, y: 455 }, { x: 800, y: 480 }, { x: 945, y: 455 }, { x: 1085, y: 400 },
-  { x: 1210, y: 330 }, { x: 1240, y: 210 }, { x: 1110, y: 140 }, { x: 950, y: 120 },
+  { x: 1210, y: 330 }, { x: 1240, y: 210 }, { x: 1110, y: 150 }, { x: 950, y: 135 },
 ];
 
 export default {
@@ -66,7 +66,7 @@ export default {
     { type: "ormbunke", x: 1180, y: 990, s: 0.85 },
     // Papegojor, fjärilar, blommor
     { type: "papegoja", x: 700, y: 270 }, { type: "papegoja", x: 270, y: 200, s: 0.9 },
-    { type: "papegoja", x: 1010, y: 300, s: 0.85 }, { type: "papegoja", x: 620, y: 650, s: 0.85 },
+    { type: "papegoja", x: 1010, y: 300, s: 0.85 },
     { type: "fjaril", x: 760, y: 590 }, { type: "fjaril", x: 1360, y: 300, s: 0.9 },
     { type: "fjaril", x: 380, y: 590, s: 0.85 },
     { type: "blomma", x: 520, y: 540 }, { type: "blomma", x: 900, y: 590, s: 0.9 },
@@ -89,5 +89,5 @@ export default {
     { x: 70, l: 230 }, { x: 190, l: 170 }, { x: 330, l: 250 }, { x: 430, l: 140 },
     { x: 1300, l: 160 }, { x: 1420, l: 240 }, { x: 1540, l: 200 },
   ],
-  mal: { x: 950, y: 120 },
+  mal: { x: 950, y: 135 },
 };

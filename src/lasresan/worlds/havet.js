@@ -12,7 +12,8 @@ import { havetScen } from "./havet-scen.js";
 const SCENE = { width: 1600, height: 1000 };
 
 // 20 handplacerade steg: stranden nere till vänster, ut på bryggan, över
-// fyra öar (bryggor mellan dem) och fram till fyrön uppe till vänster.
+// fyra öar (bryggor mellan dem) och fram till fyrön uppe till vänster
+// (målet ligger så lågt att avataren inte hamnar under världsknapparna).
 // Steg 1–4 strand, 5–6 brygga, 7–8 ö A, 9 brygga, 10–11 ö B, 12 brygga,
 // 13–15 ö C, 16–17 brygga, 18–20 fyrön.
 const STEG = [
@@ -20,7 +21,7 @@ const STEG = [
   { x: 760, y: 830 }, { x: 895, y: 790 }, { x: 1030, y: 760 }, { x: 1165, y: 720 },
   { x: 1290, y: 640 }, { x: 1395, y: 540 }, { x: 1330, y: 420 }, { x: 1190, y: 380 },
   { x: 1015, y: 405 }, { x: 880, y: 440 }, { x: 745, y: 410 }, { x: 610, y: 360 },
-  { x: 480, y: 300 }, { x: 345, y: 245 }, { x: 250, y: 160 }, { x: 390, y: 120 },
+  { x: 480, y: 320 }, { x: 345, y: 300 }, { x: 230, y: 240 }, { x: 340, y: 195 },
 ];
 
 export default {
@@ -75,9 +76,9 @@ export default {
     { type: "snacka", x: 120, y: 975, s: 0.9 }, { type: "krabba", x: 690, y: 950 },
     { type: "sjostjarna", x: 420, y: 838, s: 0.75 },
     // Öarna
-    { type: "palm", x: 1150, y: 805, s: 0.9 }, { type: "palm", x: 1470, y: 480, s: 0.9 },
+    { type: "sjostjarna", x: 1110, y: 805, s: 0.8 }, { type: "palm", x: 1470, y: 480, s: 0.9 },
     { type: "palm", x: 960, y: 355, s: 0.85 }, { type: "palm", x: 790, y: 495, s: 0.8 },
-    { type: "palm", x: 230, y: 285, s: 0.85 }, { type: "sjostjarna", x: 1440, y: 560, s: 0.7 },
+    { type: "palm", x: 150, y: 235, s: 0.85 }, { type: "sjostjarna", x: 1440, y: 560, s: 0.7 },
     { type: "snacka", x: 960, y: 795, s: 0.75 },
   ],
   // Strand + öar – läses bara av havet-scen.js. Stigen ritas som sandstig på
@@ -87,8 +88,8 @@ export default {
     { x: 1080, y: 745, rx: 150, ry: 85 },
     { x: 1385, y: 490, rx: 130, ry: 110 },
     { x: 880, y: 425, rx: 175, ry: 95 },
-    { x: 300, y: 185, rx: 210, ry: 125 },
+    { x: 290, y: 230, rx: 200, ry: 120 },
   ],
-  fyr: { x: 165, y: 248 },
-  mal: { x: 390, y: 120 },
+  fyr: { x: 440, y: 222 },
+  mal: { x: 340, y: 195 },
 };

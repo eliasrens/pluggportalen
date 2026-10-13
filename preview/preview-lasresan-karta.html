@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Förhandsvisning – Läsresan: kartvyn</title>
     <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="../src/lasresan/lasresan.css" />
     <style>
       body { padding: 16px; }
       .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
@@ -32,25 +33,58 @@
           <button data-s="dj10">Djungeln · steg 10</button>
           <button data-s="dj56">Djungeln · gå 5→6 (hängbro)</button>
           <button data-s="djklar">Djungeln · 19→20 (hela resan klar 🎉)</button>
+          <br>Världsbyte som på riktiga sidan (sammanfattning → gamla världen klar → knappen vidare):
+          <button data-s="byteOkn">Öknen → Havet</button>
+          <button data-s="byteHav">Havet → Djungeln</button>
         </div>
         <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
           Världsväljaren uppe till vänster visar klara/låsta världar.</div>
       </div>
+      <div class="lr-verktyg" id="verktyg" hidden></div>
       <div id="karta"></div>
       <div class="panel hintrad" id="logg">Händelser syns här.</div>
     </div>
 
     <script type="module">
       import { renderJourneyMap } from "../src/lasresan/ui-map.js";
-      import { getWorld } from "../src/lasresan/worlds/index.js";
+      import { getWorld, nextWorld } from "../src/lasresan/worlds/index.js";
+      import { renderSummary } from "../src/lasresan/ui-summary.js";
 
       const host = document.getElementById("karta");
       const logg = document.getElementById("logg");
       const avatar = { avatarId: "fox", avatarItems: [] };
       let view = null;
 
-      function visa(worldId, stepInWorld, completedWorlds, animateFromStep = null, worldCompleted = false) {
+      const verktyg = document.getElementById("verktyg");
+      function knapp(label, onClick) {
+        verktyg.replaceChildren();
+        verktyg.hidden = !label;
+        if (!label) return;
+        const b = document.createElement("button");
+        b.className = "btn liten gron lr-nasta-varld";
+        b.textContent = label;
+        b.addEventListener("click", onClick);
+        verktyg.appendChild(b);
+      }
+
+      /** Samma ordning som page-lasresan.js finish() → showMap(after). */
+      function varldsbyte(fran, klara) {
         if (view) view.destroy();
+        knapp(null);
+        const nasta = nextWorld(fran);
+        view = renderSummary(host, {
+          correct: 6, total: 7, coins: 18, worldDone: getWorld(fran), nextWorld: nasta,
+          onContinue: () => {
+            visa(fran, 20, [...klara, fran], 19, true, false);
+            knapp(`Vidare till ${nasta.name} →`, () => visa(nasta.id, 0, [...klara, fran]));
+          },
+        });
+        logg.textContent = `Sammanfattning: ${fran} klar → ${nasta.id}`;
+      }
+
+      function visa(worldId, stepInWorld, completedWorlds, animateFromStep = null, worldCompleted = false, rensa = true) {
+        if (view) view.destroy();
+        if (rensa) knapp(null);
         view = renderJourneyMap(host, {
           world: getWorld(worldId),
           progress: { worldId, stepInWorld, completedWorlds },
@@ -79,6 +113,8 @@
         dj10: () => visa("djungeln", 10, ["skogen", "oknen", "havet"]),
         dj56: () => visa("djungeln", 6, ["skogen", "oknen", "havet"], 5),
         djklar: () => visa("djungeln", 20, ["skogen", "oknen", "havet", "djungeln"], 19, true),
+        byteOkn: () => varldsbyte("oknen", ["skogen"]),
+        byteHav: () => varldsbyte("havet", ["skogen", "oknen"]),
       };
       for (const b of document.querySelectorAll("[data-s]")) {
         b.addEventListener("click", () => scenarier[b.dataset.s]());
