@@ -5,8 +5,14 @@
 // minnesmomentet). Ingen Firestore, inga riktiga koder, inga pluggmynt.
 // Används bara av preview/preview-datakuppen-elev.html.
 //
+// Demoläget (#655, preview-datakuppen-demolage.html): shared:true → `me` och
+// `players` är projektordemons EGNA spelardokument (inga kopior) – data som
+// flyttas här syns direkt på projektorn; onAction(kind, data) berättar vad som
+// hände så att projektorn kan skriva händelsen: "fil" { file, delta, gold },
+// "hack" { targetUid, amount }, "fel" { targetUid }, "hackad" { byUid, amount }.
+//
 // API
-//   createSim({ codes, me, players, latency(), forced() }) → {
+//   createSim({ codes, me, players, latency(), forced(), shared?, onAction? }) → {
 //     api,                    datakuppen-data.js-formen (answer, openFile, …)
 //     state,                  { me, players, self, secret }
 //     hackMe(byUid),          en klasskamrat knäcker min kod (notis + ny kod)
@@ -24,14 +30,16 @@ import {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const err = (code, message) => Object.assign(new Error(message), { code });
 
-export function createSim({ codes, me, players, latency = () => 150, forced = () => null, phase = () => "live", quiz = null }) {
+export function createSim({
+  codes, me, players, latency = () => 150, forced = () => null, phase = () => "live", quiz = null, shared = false, onAction = () => {},
+}) {
   const now = () => Date.now();
   const secret = {}; // uid → kod (bara "servern")
   const memory = {}; // mål → { version, decoys, struck, shown }
   const versions = {};
   const taken = () => new Set(Object.values(secret));
   for (const p of players) secret[p.uid] = codeOffers(codes, [taken()], Math.random, 1)[0];
-  const state = { me: { ...me, pending: null, lastHit: null }, players, self: { code: null, offers: null, offersExpiresAt: null, hack: null } };
+  const state = { me: shared ? Object.assign(me, { pending: null, lastHit: null }) : { ...me, pending: null, lastHit: null }, players, self: { code: null, offers: null, offersExpiresAt: null, hack: null } };
   const pl = new Set();
   const sl = new Set();
   const all = () => [state.me, ...state.players];
@@ -61,6 +69,7 @@ export function createSim({ codes, me, players, latency = () => 150, forced = ()
         correctAnswer = factorA * factorB;
       }
       state.me.correct = (state.me.correct || 0) + (correct ? 1 : 0);
+      if (shared && !correct) state.me.incorrect = (state.me.incorrect || 0) + 1;
       const nextQ = quiz ? Math.floor(Math.random() * quiz.length) : null;
       return { attemptId, correct, correctAnswer, nextQ };
     },
@@ -79,6 +88,7 @@ export function createSim({ codes, me, players, latency = () => 150, forced = ()
       state.me.gold = eff.gold;
       if (eff.protect) state.me.protectedUntil = shieldUntil(now());
       setTimeout(emit, 30);
+      onAction("fil", { file: file.id, delta: eff.gold - prev, gold: eff.gold });
       return { file: file.id, kind: file.effect.kind, delta: eff.gold - prev, gold: eff.gold, protectedUntil: state.me.protectedUntil ?? null };
     },
     async pickCode({ index = null } = {}) {
@@ -119,6 +129,7 @@ export function createSim({ codes, me, players, latency = () => 150, forced = ()
         state.me.gold = eff.gold;
         state.me.pending = null;
         setTimeout(emit, 30);
+        onAction("fil", { file: fb.id, delta: eff.gold - prev, gold: eff.gold });
         return { result: "fallback", file: fb.id, delta: eff.gold - prev, gold: eff.gold };
       }
       const right = secret[v.uid];
@@ -146,6 +157,7 @@ export function createSim({ codes, me, players, latency = () => 150, forced = ()
       if (guess !== secret[h.targetUid]) {
         memory[h.targetUid].struck.push(guess);
         done();
+        onAction("fel", { targetUid: h.targetUid });
         return { result: "wrong", targetUid: h.targetUid, code: guess, left: h.options.length - 1 };
       }
       const res = resolveVictim("steal", state.me, v);
@@ -156,6 +168,7 @@ export function createSim({ codes, me, players, latency = () => 150, forced = ()
       secret[v.uid] = codeOffers(codes, [taken()], Math.random, 1)[0];
       versions[v.uid] = (versions[v.uid] || 0) + 1;
       done();
+      onAction("hack", { targetUid: v.uid, amount: res.amount });
       return { result: "hacked", targetUid: v.uid, amount: res.amount, delta: res.thiefGold - prev, gold: res.thiefGold, victimGold: res.victimGold };
     },
     watchDkPlayers(_sid, cb) {
@@ -196,6 +209,7 @@ export function createSim({ codes, me, players, latency = () => 150, forced = ()
         offersExpiresAt: now() + DK_RULES.codePickMs,
       };
       emit();
+      onAction("hackad", { byUid: by.uid, amount: res.amount });
     },
   };
 }

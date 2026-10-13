@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Förhandsvisning – Datakuppens historik i lärarvyn (#655)</title>
+    <!-- Lärarsidans esc utan auth/Firebase (samma stubb som #557). -->
+    <script type="importmap">
+      { "imports": { "../src/teacher-shared.js": "./pluggmynt-stubs/teacher-shared.js" } }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../src/styles.css" />
+    <style>
+      body { margin: 0; padding: 16px 20px 40px; }
+      .wrap { max-width: 1100px; margin: 0 auto; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Datakuppens RIKTIGA historikvy (datakuppen-history.js) som lärarsidan ritar
+      den (teacher-live-history.js: rubrik + detailHtml, Statistik → Live:
+      classStats + classSummaryHtml). Matchen kommer ur demoläget: inbäddad i
+      preview-datakuppen-demolage.html läses dess match (parent.__dkLage),
+      fristående spelas en egen demomatch (dk-demo.js) till slut. Ingen
+      Firestore, inga pluggmynt.
+    -->
+    <div class="wrap" id="app"><div class="spinner">Laddar …</div></div>
+    <script type="module">
+      import * as H from "../src/live/formats/datakuppen/datakuppen-history.js";
+      import { createDkDemo } from "../src/live/formats/datakuppen/dk-demo.js";
+
+      let P = window.parent !== window ? window.parent.__dkLage?.P : null;
+      if (!P?.session?.result) {
+        P = createDkDemo({ sid: "pv-dk-historik" });
+        P.join(30, 0, Date.now() - 900_000);
+        P.playHistory(200);
+        for (let i = 0; i < 6; i++) P.hack();
+        for (let i = 0; i < 5; i++) P.hackFail();
+        P.jumpToFinal();
+        await new Promise((r) => { const t = setInterval(() => { if (P.session.result) { clearInterval(t); r(); } }, 100); });
+      }
+      const s = { ...P.session, id: P.session.id, startedAt: P.session.startedAt };
+      const result = P.session.result;
+      const answers = P.state().answers;
+      const detail = await H.detailHtml(s, result, { getAnswers: async () => answers });
+      const fmt = (t) => new Date(t).toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "short" });
+      document.getElementById("app").innerHTML = `<div class="panel live-history-detail">
+          <a class="back-link">← Till Live</a>
+          <h2 class="live-h2">💾 ${s.name}</h2>
+          <p class="hint">${fmt(s.startedAt)} · Multiplikation 0–10 · ${Math.round(s.durationSeconds / 60)} min · demo</p>
+          ${detail}
+        </div>
+        <div class="panel"><h2 class="live-h2">Statistik → Live (klass 4B)</h2>
+          <h4>Matcher</h4>
+          <table class="live-table"><thead><tr><th>Match</th><th>Datum</th>${H.classStats.head}<th class="num">Elever</th></tr></thead>
+          <tbody><tr><th scope="row">${s.name}</th><td>${fmt(s.startedAt)}</td>${H.classStats.cells(s, result, "4b")}<td class="num">${P.state().players.length}</td></tr></tbody></table>
+          ${H.classSummaryHtml([{ s, result }], "4b")}
+        </div>`;
+      window.__dkHistorik = { result };
+    </script>
+  </body>
+</html>

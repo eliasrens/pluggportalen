@@ -61,8 +61,21 @@
       import { createAvatarRoster } from "../src/live/design/live-avatars.js";
       import { requireGameMode } from "../src/live/modes/index.js";
       import { createSim } from "./datakuppen-elev-sim.js";
+      import { demoMembers } from "../src/live/formats/snilleblixt/sb-demo.js";
 
       const qs = new URLSearchParams(location.search);
+      // Demoläget (#655): ?koppla=1 i preview-datakuppen-demolage.html – eleven är
+      // en av projektordemons 30 (samma spelardokument, samma avatarer), panelen
+      // göms och sidan styrs av window.__dkDrive.
+      const KOPPLA = qs.get("koppla") === "1";
+      const k = KOPPLA ? await new Promise((res) => {
+        const t = setInterval(() => { const x = window.parent?.__dkKoppling?.(); if (x) { clearInterval(t); res(x); } }, 50);
+      }) : null;
+      if (KOPPLA) {
+        document.querySelector(".pv").hidden = true;
+        document.querySelector(".pv-topbar span").textContent = `Elev: ${k.me.name}`;
+        for (const key of Object.keys(localStorage)) if (key.startsWith("pp:dk:minne:pv-dk-655")) localStorage.removeItem(key);
+      }
       const quizOn = qs.get("quiz") === "1";
       const answerKind = quizOn || qs.get("svar") === "choice" ? "choice" : "free";
       const mode = requireGameMode(quizOn ? "plugga_quiz" : "multiplication_0_10");
@@ -81,20 +94,20 @@
         "Vera", "Liam", "Nora", "Ali", "Selma", "Melvin", "Tyra", "Isak", "Juni", "Otto", "Stella", "Malte", "Siri", "Ebbe", "Lova"];
       const members = {};
       NAMN.forEach((n, i) => { members[`e${i}`] = { namn: n, avatarId: DJUR[i], avatarItems: KLADER[i % KLADER.length] }; });
-      const roster = createAvatarRoster({ load: async () => ({ members }) });
+      const roster = createAvatarRoster({ load: async () => ({ members: KOPPLA ? demoMembers() : members }) });
 
       const codes = codeList(await (await fetch("../src/live/formats/datakuppen/delat/koder.json")).json());
       const now0 = Date.now();
-      const players = NAMN.slice(1).map((n, i) => ({
+      const players = KOPPLA ? k.players : NAMN.slice(1).map((n, i) => ({
         uid: `e${i + 1}`, name: n, classId: "4b", gold: Math.max(5, 330 - i * 11 + (i % 4) * 6), correct: 10 - (i % 7),
         protectedUntil: i === 3 ? now0 + 42_000 : i === 8 ? now0 + 600_000 : null,
       }));
       const $ = (s) => document.querySelector(s);
       let forcedFile = "";
       let phase = "lobby";
+      const ME = KOPPLA ? k.me : { uid: "e0", name: "Jag", classId: "4b", gold: 250, correct: 12, protectedUntil: null };
       const sim = createSim({
-        codes, players, quiz: quizOn ? QUIZ : null,
-        me: { uid: "e0", name: "Jag", classId: "4b", gold: 250, correct: 12, protectedUntil: null },
+        codes, players, quiz: quizOn ? QUIZ : null, me: ME, shared: KOPPLA, onAction: k?.onAction,
         latency: () => Number($("[data-lat]").value) || 0,
         forced: () => { const f = forcedFile; if ($("[data-fil]").value === "") forcedFile = ""; return f || $("[data-fil]").value || null; },
         phase: () => phase,
@@ -104,7 +117,7 @@
       for (const f of DK_FILES) $("[data-fil]").insertAdjacentHTML("beforeend", `<option value="${f.id}">${f.icon} ${f.label}</option>`);
 
       // Kärnans elevvy (page-elev-live.js) i liten skala: lobby / spel / slut.
-      const session = { id: "pv-dk-653", name: "Datakuppen 4B", format: "datakuppen", gameMode: mode.id, answerKind, participatingClassIds: ["4b"] };
+      const session = { id: KOPPLA ? "pv-dk-655" : "pv-dk-653", name: "Datakuppen 4B", format: "datakuppen", gameMode: mode.id, answerKind, participatingClassIds: ["4b"] };
       $("#app").innerHTML = `<div class="live-elev">
           <header class="live-elev-head"><span class="live-elev-badge">⚡ LIVE</span>
             <h1 class="live-elev-title">Datakuppen 4B</h1><span class="live-elev-me"></span></header>
@@ -116,13 +129,13 @@
           </div></div>`;
       const view = $(".live-elev");
       const stage = createDkStage(
-        { view, host: $(".live-elev-play"), uid: "e0", classId: "4b", session, mode, answerKind },
+        { view, host: $(".live-elev-play"), uid: ME.uid, classId: "4b", session, mode, answerKind },
         { api: sim.api, now: () => Date.now(), roster },
       );
       // Som datakuppen-student.js: helskärmsknappen uppe till höger.
       const full = createFullscreenButton(view, { cls: "dk-helskarm" });
       if (full) view.appendChild(full.el);
-      const player = { uid: "e0", name: "Jag", classId: "4b" };
+      const player = { uid: ME.uid, name: ME.name, classId: "4b" };
       function setPhase(p) {
         phase = p;
         const part = p === "lobby" ? "lobby" : p === "live" ? "play" : "end";
@@ -135,12 +148,61 @@
       }
       document.querySelectorAll("[data-fas]").forEach((b) => b.addEventListener("click", () => setPhase(b.dataset.fas)));
       setPhase(qs.get("fas") || "lobby");
+      if (KOPPLA) window.__dkDrive = createDrive();
 
       const stat = $("[data-stat]");
       setInterval(() => {
         const s = sim.state.self;
         stat.textContent = `min kod: ${s.code || "–"}\nförslag: ${(s.offers || []).join(", ") || "–"}\ndata: ${sim.state.me.gold} MB`;
       }, 400);
+
+      // Demoläget (#655): styr elevvyn som en elev skulle – klick i den riktiga vyn.
+      function createDrive() {
+        const wait = (sel, ms = 8000) => new Promise((res, rej) => {
+          const t0 = Date.now();
+          const t = setInterval(() => {
+            const el = typeof sel === "function" ? sel() : document.querySelector(sel);
+            if (el) { clearInterval(t); res(el); } else if (Date.now() - t0 > ms) { clearInterval(t); rej(new Error(`väntade på ${sel}`)); }
+          }, 60);
+        });
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+        const svara = async () => { await wait(".dk-svar .fa-input, .dk-svar .ca-knapp"); $("[data-act=svara]").click(); };
+        return {
+          sim, wait, sleep, setPhase,
+          phase: () => phase,
+          /** Lobbyns kodval: klicka ett av förslagen. */
+          async pickLobbyCode(i = 1) { (await wait(".live-elev-lobby .dkv-kort")).parentElement.children[i]?.click(); },
+          /** Svara rätt och öppna en fil med givet innehåll; → filens id. */
+          async openFile(fileId, i = 1) {
+            forcedFile = fileId;
+            const filer = () => document.querySelectorAll(".dkf-fil").length && document.querySelectorAll(".dkf-fil");
+            // Svaret kan komma medan vyn fortfarande byter fråga – försök igen.
+            for (let n = 0; !filer() && n < 5; n++) {
+              await svara();
+              await wait(filer, 2500).catch(() => null);
+            }
+            (await wait(filer, 1000))[i]?.click();
+          },
+          /** Hack steg 1: välj målet (uid) i målväljaren. */
+          async pickTarget(uid) { (await wait(`.dko-kamrat[data-uid="${uid}"]:not([disabled])`)).click(); },
+          /** Hack steg 2: rätt (true) eller fel (false) kod; → koderna som visades. */
+          async guess(right) {
+            await wait(".dkk-kort[data-i]");
+            await sleep(900);
+            const target = sim.state.self.hack;
+            const btns = [...document.querySelectorAll(".dkk-kort[data-i]")];
+            const code = (x) => x.querySelector(".dk-kod")?.textContent || "";
+            btns.find((x) => (code(x) === sim.secret[target.targetUid]) === right)?.click();
+            return { shown: btns.length, struck: document.querySelectorAll(".dkk-borta").length };
+          },
+          /** Bli hackad → välj en av de nya koderna. */
+          async hackedBy(uid, i = 2) {
+            sim.hackMe(uid);
+            (await wait(".live-elev-play .dkv-kort", 12000)).parentElement.children[i]?.click();
+          },
+          stage,
+        };
+      }
 
       $("[data-act=svara]").addEventListener("click", () => {
         const fa = document.querySelector(".dk-svar .fa-input");

@@ -19,8 +19,14 @@
 //     → kistdemon (ks-demo) + {
 //       hack()           ett lyckat hack (från en elev längre ned mot den rikaste
 //                        som går att välja) – hack-linjen + terminalraden
-//       hackFail()       ett misslyckat hackförsök (bara statistiken räknar)
+//       hackFail(uid?)   ett misslyckat hackförsök (bara statistiken räknar)
 //       hackStats()      { attempts, success } hela klassen
+//       // Den kopplade elevskärmen (#655, preview-datakuppen-demolage.html):
+//       // eleven där avgör utfallet själv (låtsasservern, samma regler) och
+//       // flyttar data i SAMMA spelardokument – projektorn får bara händelsen.
+//       logFile(uid, fileId, delta, gold)   en öppnad fil (inte Hack)
+//       logHack(uid, victimUid, amount)     ett lyckat hack (räknas i statistiken)
+//       logHackFail(uid)                    fel kod (ingen händelse, bara statistiken)
 //     }
 //   DEMO_FILES        [{ id, icon, label }] filtyperna (demopanelen)
 //   forceReducedMotion(on)
@@ -49,7 +55,14 @@ const THEME = {
 
 export function createDkDemo(opts = {}) {
   const hacking = opts.hacking !== false;
-  const demo = createKistDemo(THEME, { sid: "demo-datakuppen", ...opts, stealSwap: hacking });
+  const stats = new Map(); // uid → { a, s }
+  const decorate = (g) => ({ ...g, hackAttempts: stats.get(g.uid)?.a || 0, hackSuccess: stats.get(g.uid)?.s || 0 });
+  // Resultatet (pallen, historiken) räknar hackförsöken som servern skulle ha skrivit dem.
+  const theme = {
+    ...THEME,
+    buildResult: (s, c, players, m, { grPlayers, answers }) => buildResult(s, c, players, m, { dkPlayers: grPlayers.map(decorate), answers }),
+  };
+  const demo = createKistDemo(theme, { sid: "demo-datakuppen", ...opts, stealSwap: hacking });
   demo.session.hacking = hacking;
   delete demo.session.stealSwap;
   // Kistdemon slår filer med session.stealSwap – Datakuppens fält heter hacking.
@@ -57,7 +70,6 @@ export function createDkDemo(opts = {}) {
 
   // Klassens hackförsök: varje lyckat hack (händelse) räknas, plus ibland ett
   // misslyckat försök före (minnesmomentet: andra försöket lyckas oftare).
-  const stats = new Map(); // uid → { a, s }
   const seen = new Set();
   const bump = (uid, ok) => {
     const x = stats.get(uid) || { a: 0, s: 0 };
@@ -69,26 +81,47 @@ export function createDkDemo(opts = {}) {
     for (const e of demo.state().events) {
       if (seen.has(e.id)) continue;
       seen.add(e.id);
-      if (e.type === "steal" && e.chest === "hack") {
+      if (e.type === "steal" && e.chest === "hack" && !e.demoExact) {
         if (Number(e.id.replace(/\D/g, "")) % 2) bump(e.uid, false);
         bump(e.uid, true);
       }
     }
   });
-  const decorate = (g) => ({ ...g, hackAttempts: stats.get(g.uid)?.a || 0, hackSuccess: stats.get(g.uid)?.s || 0 });
   const api = demo.deps.datakuppen;
   const watch = api.watchGrPlayers;
   api.watchGrPlayers = (s, f) => watch(s, (list, meta) => f(list.map(decorate), meta));
 
+  const gpOf = (uid) => demo.state().grPlayers.find((g) => g.uid === uid);
+
   return Object.assign(demo, {
     hack: () => demo.chest("hack"),
-    hackFail() {
+    hackFail(uid = null) {
       const r = demo.state().grPlayers;
       if (!r.length) return;
-      const g = r[Math.floor((opts.rng || Math.random)() * r.length)];
+      const g = (uid && gpOf(uid)) || r[Math.floor((opts.rng || Math.random)() * r.length)];
       bump(g.uid, false);
       demo.emit(true);
       opts.onLog?.(`💻 ${g.name} gissade fel kod (ingen händelse – bara statistiken)`);
+    },
+    logFile(uid, fileId, delta, gold) {
+      const g = gpOf(uid);
+      if (!g) return;
+      g.chests = (g.chests || 0) + 1;
+      demo.event({ type: "chest", chest: fileId, uid, name: g.name, classId: g.classId, amount: delta, gold });
+    },
+    logHack(uid, victimUid, amount) {
+      const g = gpOf(uid);
+      const v = gpOf(victimUid);
+      if (!g || !v) return;
+      g.chests = (g.chests || 0) + 1;
+      bump(uid, true);
+      demo.event({ type: "steal", chest: "hack", uid, name: g.name, classId: g.classId, victimUid, victimName: v.name,
+        victimClassId: v.classId, amount, gold: g.gold, victimGold: v.gold, auto: false, demoExact: true });
+    },
+    logHackFail(uid) {
+      if (!gpOf(uid)) return;
+      bump(uid, false);
+      demo.emit(true);
     },
     hackStats() {
       let attempts = 0;
