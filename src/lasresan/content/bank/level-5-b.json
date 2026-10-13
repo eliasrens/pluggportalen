@@ -35,12 +35,12 @@
         "id": "q3",
         "question": "Ebba har fyra repliker. Vad är en replik?",
         "options": [
-          "En dräkt som man har på scenen",
           "Något som en person säger i en pjäs",
+          "En dräkt som man har på scenen",
           "En sång som alla sjunger tillsammans",
           "En plats där skådespelarna står"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -48,11 +48,11 @@
         "question": "Varför blir det tyst i salen?",
         "options": [
           "Ljuset på scenen slocknar",
+          "Ebba har glömt vad hon ska säga",
           "Publiken har somnat",
-          "Jamal har gått av scenen",
-          "Ebba har glömt vad hon ska säga"
+          "Jamal har gått av scenen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -60,11 +60,11 @@
         "question": "Vad säger Ebba att draken har ätit upp?",
         "options": [
           "Hennes tårta",
-          "Hennes glass",
           "Hennes kakor",
+          "Hennes glass",
           "Hennes kronor"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -83,12 +83,12 @@
         "id": "q7",
         "question": "Vad visar texten om Ebba?",
         "options": [
-          "Hon klarar sig fast hon glömmer",
           "Hon tycker inte om att spela teater",
           "Hon ville hellre spela draken",
+          "Hon klarar sig fast hon glömmer",
           "Hon övade inte alls hemma"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -105,36 +105,36 @@
         "id": "q1",
         "question": "Vad tar alla med sig till bokbytet?",
         "options": [
-          "En bok hemifrån",
           "En lapp med sitt namn",
           "En tidning från biblioteket",
+          "En bok hemifrån",
           "Ett spel som de har tröttnat på"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vilket nummer får Noah?",
         "options": [
+          "Tjugo",
           "Två",
           "Tolv",
-          "Tjugo",
           "Femton"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Hur ser boken ut?",
         "options": [
+          "Tunn med ett grått omslag",
           "Tjock med ett rött omslag",
           "Stor med många bilder",
-          "Liten med guldiga bokstäver",
-          "Tunn med ett grått omslag"
+          "Liten med guldiga bokstäver"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -143,10 +143,10 @@
         "options": [
           "Han har redan läst den",
           "Han ville vara först i kön",
-          "Han tror att den är tråkig",
-          "Han tycker inte om fyrar"
+          "Han tycker inte om fyrar",
+          "Han tror att den är tråkig"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -178,11 +178,11 @@
         "question": "Vad lär sig Noah?",
         "options": [
           "Det är bäst att få välja bok allra först",
+          "En bok kan vara bättre än den ser ut",
           "Det är farligt att bo i en fyr",
-          "Det är tråkigt att läsa på kvällen",
-          "En bok kan vara bättre än den ser ut"
+          "Det är tråkigt att läsa på kvällen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -199,24 +199,24 @@
         "id": "q1",
         "question": "Vad får Vera och Liv i början?",
         "options": [
-          "En karta och en kompass",
           "En klocka och en karta",
           "En kompass och en ficklampa",
+          "En karta och en kompass",
           "En lapp som visar vägen"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Hur många kontroller finns på kartan?",
         "options": [
+          "Åtta",
           "Fem",
           "Sex",
-          "Åtta",
           "Tolv"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -237,10 +237,10 @@
         "options": [
           "Den första",
           "Den sista",
-          "Den femte",
-          "Den andra"
+          "Den andra",
+          "Den femte"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -248,11 +248,11 @@
         "question": "Vad gör Vera med kartan?",
         "options": [
           "Viker ihop den",
-          "Ger den till Liv",
           "Vrider den åt rätt håll",
+          "Ger den till Liv",
           "Lägger den i fickan och springer"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -294,23 +294,23 @@
         "question": "Vem håller i repet?",
         "options": [
           "Hugos pappa",
-          "Hugos storasyster",
           "En tränare i hallen",
-          "Hugos bästa kompis"
+          "Hugos bästa kompis",
+          "Hugos storasyster"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vad händer med Hugos ben halvvägs upp?",
         "options": [
+          "De börjar skaka",
           "De somnar",
           "De blir alldeles stela",
-          "De halkar",
-          "De börjar skaka"
+          "De halkar"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -319,34 +319,34 @@
         "options": [
           "Golvet under honom",
           "Taket",
-          "Nästa grepp",
-          "Henne"
+          "Henne",
+          "Nästa grepp"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Varför ska Hugo inte titta ner?",
         "options": [
+          "Då blir han mer rädd",
           "Då ser han inte Maja",
           "Då tappar han hjälmen",
-          "Då kan repet gå av",
-          "Då blir han mer rädd"
+          "Då kan repet gå av"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q5",
         "question": "Vad finns högst upp på väggen?",
         "options": [
-          "En röd knapp",
           "En flagga",
           "En klocka som ringer",
-          "En lampa"
+          "En lampa",
+          "En röd knapp"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -366,11 +366,11 @@
         "question": "Hur känner sig Hugo i slutet?",
         "options": [
           "Trött och vill gå hem",
-          "Modig och vill klättra mer",
           "Rädd och vill aldrig mer",
-          "Arg på sin syster"
+          "Arg på sin syster",
+          "Modig och vill klättra mer"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -389,22 +389,22 @@
         "options": [
           "Nummer fem",
           "Nummer tio",
-          "Nummer åtta",
-          "Nummer fyra"
+          "Nummer fyra",
+          "Nummer åtta"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Varför missar Elvin bussen?",
         "options": [
+          "Bussen går tidigare nu",
           "Han har försovit sig",
           "Han glömde sin väska",
-          "Bussen går tidigare nu",
           "Bussen var alldeles full av folk"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -437,10 +437,10 @@
         "options": [
           "Längs järnvägen",
           "Över torget",
-          "Runt sjön",
-          "Genom parken"
+          "Genom parken",
+          "Runt sjön"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -461,10 +461,10 @@
         "options": [
           "Han tycker inte om skolan",
           "Han brukar alltid komma för sent",
-          "Han löser problemet själv",
-          "Han är rädd för fröken"
+          "Han är rädd för fröken",
+          "Han löser problemet själv"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -482,11 +482,11 @@
         "question": "Var har Isak sin loppis?",
         "options": [
           "På skolgården",
-          "På garageuppfarten",
           "I parken",
-          "Vid affären"
+          "Vid affären",
+          "På garageuppfarten"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -494,11 +494,11 @@
         "question": "Vad kostar sakerna på bordet?",
         "options": [
           "Mellan tjugo och femtio kronor",
-          "Fem eller tio kronor",
           "En krona styck",
+          "Fem eller tio kronor",
           "Hundra kronor"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -518,11 +518,11 @@
         "question": "Vad köper pojken?",
         "options": [
           "Ett pussel",
-          "Bilbanan",
           "Nallen",
-          "En boll"
+          "En boll",
+          "Bilbanan"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -530,11 +530,11 @@
         "question": "Flickan skiner upp. Vad betyder det?",
         "options": [
           "Hon börjar gråta",
-          "Hon blir rädd",
           "Hon ser glad ut",
+          "Hon blir rädd",
           "Hon blir trött"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -543,10 +543,10 @@
         "options": [
           "Han är förkyld",
           "Han har ätit för fort",
-          "Han är arg på flickan",
-          "Han tycker ändå om nallen"
+          "Han tycker ändå om nallen",
+          "Han är arg på flickan"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -575,48 +575,48 @@
         "id": "q1",
         "question": "När syns gubben på spegeln?",
         "options": [
-          "När spegeln blir immig",
           "När lampan släcks",
+          "När spegeln blir immig",
           "När solen lyser in",
           "När någon knackar på dörren"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Spegeln blir immig. Vad betyder immig?",
         "options": [
-          "Grå av fukt",
           "Sprucken på mitten",
           "Alldeles blank och ren",
+          "Grå av fukt",
           "Täckt av damm"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q3",
         "question": "Vad svarar mamma när Siri frågar?",
         "options": [
-          "Inte jag",
           "Det var pappa",
           "Jag vet inte",
+          "Inte jag",
           "Fråga Teo"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Vad gör Siri med spegeln?",
         "options": [
-          "Täcker den med ett stort papper",
           "Torkar den ren",
+          "Täcker den med ett stort papper",
           "Tar ner den från väggen",
           "Målar över den"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -648,11 +648,11 @@
         "question": "Vem har ritat gubben, tror du?",
         "options": [
           "Mamma",
-          "Teo",
           "Siri själv",
+          "Teo",
           "Pappa"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -669,36 +669,36 @@
         "id": "q1",
         "question": "Vad lägger farmor ut varje kväll?",
         "options": [
-          "Frön och äppelbitar",
           "Bröd och ost",
           "Nötter och morötter",
+          "Frön och äppelbitar",
           "Talg och russin"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vem tror farmor tar maten?",
         "options": [
-          "En räv",
           "Grannens hund",
+          "En räv",
           "En katt",
           "Skatorna"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Varför tror inte Selma att det är hunden?",
         "options": [
+          "Bordet sitter för högt",
           "Hunden är alltid inne",
           "Hunden tycker inte om äpplen",
-          "Bordet sitter för högt",
           "Hon har sett hunden sova"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -706,23 +706,23 @@
         "question": "Vad är en viltkamera?",
         "options": [
           "En kamera som bara kan filma under vatten",
+          "En kamera som tar bilder av sig själv",
           "En kamera för att fota stjärnor",
-          "En leksakskamera för barn",
-          "En kamera som tar bilder av sig själv"
+          "En leksakskamera för barn"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "När kommer djuret till fågelbordet?",
         "options": [
-          "Tidigt på kvällen",
           "Klockan tre på natten",
+          "Tidigt på kvällen",
           "Mitt på dagen",
           "Strax innan frukost"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -741,12 +741,12 @@
         "id": "q7",
         "question": "Vad tänker farmor göra i slutet?",
         "options": [
+          "Ge rådjuren ett eget bord",
           "Jaga bort rådjuren",
           "Sluta mata fåglarna",
-          "Ta bort äppelträdet",
-          "Ge rådjuren ett eget bord"
+          "Ta bort äppelträdet"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -775,12 +775,12 @@
         "id": "q2",
         "question": "Vilken sorts hund är Kanel?",
         "options": [
-          "En brun tax",
           "En svart pudel",
+          "En brun tax",
           "En vit terrier",
           "En grå vinthund"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -799,36 +799,36 @@
         "id": "q4",
         "question": "Varför tar Omar fel hund?",
         "options": [
-          "Hundarna ser nästan likadana ut",
           "Han ser dåligt utan glasögon",
+          "Hundarna ser nästan likadana ut",
           "Den riktiga hunden hade gömt sig i buskarna",
           "Grannen bad honom om det"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
         "id": "q5",
         "question": "Hur märker Omar att det är fel hund?",
         "options": [
+          "Hunden har en vit fläck",
           "Hunden har en röd sele",
           "Hunden skäller annorlunda",
-          "Hunden har en vit fläck",
           "Hunden är mycket större"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q6",
         "question": "Mannen ser förvirrad ut. Vad betyder det?",
         "options": [
-          "Han förstår ingenting",
           "Han är jättearg på Omar",
+          "Han förstår ingenting",
           "Han är mycket trött",
           "Han är glad och nöjd"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -836,11 +836,11 @@
         "question": "Vad är roligt med slutet?",
         "options": [
           "Omar får behålla den nya hunden",
-          "Grannen skrattar inte alls",
           "Hundarna bryr sig inte",
+          "Grannen skrattar inte alls",
           "Mannen blir jättearg på Omar"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -869,24 +869,24 @@
         "id": "q2",
         "question": "Vad ser Alva först på skärmen?",
         "options": [
-          "Ett tak och en lampa",
           "Morfars näsa",
           "Morfars katt",
+          "Ett tak och en lampa",
           "Ett fönster"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Vad ser Alva efter det?",
         "options": [
-          "Morfars fötter",
           "Ett stort öra",
+          "Morfars fötter",
           "En kopp kaffe",
           "Hela köket"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -895,34 +895,34 @@
         "options": [
           "Gråter",
           "Gäspar stort",
-          "Ropar högt",
-          "Skrattar lite tyst"
+          "Skrattar lite tyst",
+          "Ropar högt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Var sitter morfars glasögon?",
         "options": [
+          "På pannan",
           "På näsan",
           "I fickan",
-          "På pannan",
           "På bordet"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q6",
         "question": "Varför ler morfar stolt?",
         "options": [
-          "Han har lyckats till slut",
           "Han har fått nya glasögon",
           "Alva har ringt till honom",
-          "Han har köpt en ny lampa"
+          "Han har köpt en ny lampa",
+          "Han har lyckats till slut"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -930,11 +930,11 @@
         "question": "Varför suckar och skrattar Alva samtidigt?",
         "options": [
           "Samtalet har varit tråkigt",
+          "Morfar behöver hjälp igen",
           "Hon är arg på telefonen",
-          "Hon vill inte säga hej då",
-          "Morfar behöver hjälp igen"
+          "Hon vill inte säga hej då"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -975,12 +975,12 @@
         "id": "q3",
         "question": "Nora tar lyra. Vad betyder det?",
         "options": [
-          "Hon tappar bollen",
           "Hon fångar bollen i luften",
+          "Hon tappar bollen",
           "Hon springer i mål",
           "Hon kastar bollen till läraren"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -988,11 +988,11 @@
         "question": "Vad gör Ines när hon blir ute?",
         "options": [
           "Skrattar högt",
-          "Stampar i gräset",
           "Springer hem",
+          "Stampar i gräset",
           "Gråter"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1001,10 +1001,10 @@
         "options": [
           "Hon har ont i benet",
           "Hon har inte sett Nora på rasten",
-          "Hon har bråttom hem",
-          "Hon är sur över lyran"
+          "Hon är sur över lyran",
+          "Hon har bråttom hem"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -1012,11 +1012,11 @@
         "question": "Vad säger Nora till Ines efter skolan?",
         "options": [
           "Att hon vill byta lag",
-          "Att det var ett bra slag",
           "Att hon är ledsen",
+          "Att det var ett bra slag",
           "Att brännboll är tråkigt"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1045,24 +1045,24 @@
         "id": "q1",
         "question": "Hur gammal är Stina?",
         "options": [
+          "Fem år",
           "Tre år",
           "Sju år",
-          "Tio år",
-          "Fem år"
+          "Tio år"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Hur ser Stinas häst ut?",
         "options": [
+          "Lila med sex ben",
           "Brun med lång svans",
           "Svart med vit man",
-          "Lila med sex ben",
           "Grå med fyra ben"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -1070,11 +1070,11 @@
         "question": "Vad säger Melvin att hästen liknar?",
         "options": [
           "En stor hund",
-          "En lila potatis",
           "Ett moln",
+          "En lila potatis",
           "En lila gurka"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1083,10 +1083,10 @@
         "options": [
           "Hon fryser om händerna",
           "Hon är jättehungrig",
-          "Hon är nära att gråta",
-          "Hon ska börja sjunga"
+          "Hon ska börja sjunga",
+          "Hon är nära att gråta"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -1095,10 +1095,10 @@
         "options": [
           "Läxan är redan klar",
           "Läraren sa att den var frivillig",
-          "Han ångrar vad han sa",
-          "Han har tappat sin penna"
+          "Han har tappat sin penna",
+          "Han ångrar vad han sa"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -1106,23 +1106,23 @@
         "question": "Hur ser benen på Melvins häst ut?",
         "options": [
           "Som pinnar",
-          "Som potatisar",
           "Som korvar",
+          "Som potatisar",
           "Som pennor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Varför ritar Melvin en egen häst?",
         "options": [
+          "För att be om förlåtelse",
           "För att visa att han är bäst",
           "För att läxan kräver det",
-          "För att be om förlåtelse",
           "För att Stina ber honom"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -1151,24 +1151,24 @@
         "id": "q2",
         "question": "Vad har de med sig i termosen?",
         "options": [
-          "Varm choklad",
           "Te",
           "Soppa",
+          "Varm choklad",
           "Kaffe"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Vad gör pappa när han har somnat?",
         "options": [
-          "Snarkar",
           "Pratar i sömnen",
           "Sparkar",
-          "Skrattar"
+          "Skrattar",
+          "Snarkar"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1176,11 +1176,11 @@
         "question": "Det hörs ett frustande ljud. Vad är det för ljud?",
         "options": [
           "Ett högt och argt vrål",
-          "Ett tunt och ljust pip",
           "En sorts fnysning",
+          "Ett tunt och ljust pip",
           "Ett hårt knackande"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
@@ -1211,12 +1211,12 @@
         "id": "q7",
         "question": "Hur känner sig Felix när han somnar?",
         "options": [
-          "Lugn",
           "Rädd",
+          "Lugn",
           "Arg",
           "Ledsen"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -1247,58 +1247,58 @@
         "options": [
           "Ha flytväst på sig",
           "Komma hem före middagen",
-          "Dra upp båten på land",
-          "Inte klättra på stenar"
+          "Inte klättra på stenar",
+          "Dra upp båten på land"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Vad leker barnen på ön?",
         "options": [
-          "Pirater",
           "Affär",
           "Kurragömma",
-          "Tafatt"
+          "Tafatt",
+          "Pirater"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Varför har båten flutit iväg?",
         "options": [
+          "De drog inte upp den",
           "Någon har tagit den",
           "Det blåste storm",
-          "De drog inte upp den",
           "Morfar flyttade den"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q5",
         "question": "Båten guppar på vattnet. Vad betyder guppar?",
         "options": [
-          "Gungar upp och ner",
           "Sjunker till botten",
+          "Gungar upp och ner",
           "Åker mycket fort",
           "Ligger helt still"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
         "question": "Hur ber Amir om hjälp?",
         "options": [
+          "Viftar med sin tröja",
           "Ropar så högt han kan",
           "Tänder en eld",
-          "Ringer till morfar",
-          "Viftar med sin tröja"
+          "Ringer till morfar"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -1339,12 +1339,12 @@
         "id": "q2",
         "question": "Vad får Juni andra dagen?",
         "options": [
-          "Ett blåmärke på knät",
           "Ett skrapsår på armen",
+          "Ett blåmärke på knät",
           "En ny bräda",
           "En medalj"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -1363,12 +1363,12 @@
         "id": "q4",
         "question": "Juni tappar räkningen. Vad betyder det?",
         "options": [
+          "Hon vet inte längre antalet",
           "Hon tappar sin lapp med siffror",
           "Hon räknar fel med flit",
-          "Hon slutar öva helt",
-          "Hon vet inte längre antalet"
+          "Hon slutar öva helt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -1389,22 +1389,492 @@
         "options": [
           "Första dagen hon övar",
           "En tidig morgon före skolan",
-          "Mitt på dagen",
-          "En kväll i solnedgången"
+          "En kväll i solnedgången",
+          "Mitt på dagen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Vad visar texten?",
         "options": [
+          "Man lär sig genom att öva mycket",
           "Att skateboard är för farligt för barn",
           "Att Juni ger upp lätt",
-          "Att Rakel är elak",
-          "Man lär sig genom att öva mycket"
+          "Att Rakel är elak"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-kassen",
+    "title": "Kassen som gick sönder",
+    "level": 5,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Pappa ber Lova att handla mjölk, ägg och mjöl till pannkakorna. Han ger henne en papperskasse och lite pengar.\n\nI affären hittar Lova allt hon ska ha. Hon köper också en påse popcorn för växelpengarna. Det har pappa inte sagt något om, men han säger säkert inget.\n\nPå vägen hem börjar det regna. Kassen blir blöt och tung. Plötsligt hörs ett ritsch. Botten går sönder, och allt ramlar ner på trottoaren.\n\nMjölkpaketet studsar. Mjölet pyser ut i ett vitt moln. Äggkartongen landar med ett klafs.\n\nLova står alldeles stilla. Sedan samlar hon upp det som går att rädda och bär hem det i famnen.\n\nPappa tittar på mjölet i hennes hår och på de trasiga äggen.\n\n”Ska vi äta popcorn till middag i stället?” frågar han.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad ska Lova handla?",
+        "options": [
+          "Mjölk, ägg och mjöl",
+          "Bröd, ost och smör",
+          "Mjölk, socker och bananer",
+          "Ägg, saft och glass"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad köper Lova för växelpengarna?",
+        "options": [
+          "Godis",
+          "Popcorn",
+          "En glass",
+          "En tidning"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför går kassen sönder?",
+        "options": [
+          "Regnet gör papperet blött",
+          "Lova tappar den i en pöl",
+          "Den är för liten",
+          "En hund biter i den"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vad händer med mjölet?",
+        "options": [
+          "Det blir kvar i påsen",
+          "Det pyser ut i ett moln",
+          "Det blir blött och klibbigt",
+          "Det rullar ner i en brunn"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Äggkartongen landar med ett klafs. Vad är ett klafs?",
+        "options": [
+          "Ett högt pip",
+          "Ett blött och kladdigt ljud",
+          "Ett ljust pling",
+          "Ett tyst sus"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur bär Lova hem sakerna?",
+        "options": [
+          "I en ny kasse",
+          "I mössan",
+          "I famnen",
+          "På cykeln"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Hur tar pappa det som har hänt?",
+        "options": [
+          "Han blir väldigt arg",
+          "Han tar det med humor",
+          "Han börjar gråta",
+          "Han skickar iväg Lova igen"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-roboten",
+    "title": "Roboten som körde fel",
+    "level": 5,
+    "textType": "story",
+    "topic": "teknik",
+    "body": "På tekniken ska Sam och Edith programmera en liten robot. Den ser ut som en rund skalbagge med knappar på ryggen. Uppdraget är att få den att åka genom en labyrint av klossar och fram till en banan av plast.\n\nDe trycker in stegen: fram, fram, vänster, höger, fram. Sedan trycker de på start.\n\nRoboten piper och åker iväg. Fram, fram, vänster, höger … och sedan rakt in i väggen. Där står den och surrar.\n\n”Den är trasig”, säger Edith.\n\nSam tittar på labyrinten. Han räknar rutorna med fingret.\n\n”Nej”, säger han. ”Vi glömde ett fram efter vänster. Den gör precis det vi säger.”\n\nDe lägger till steget och provar igen. Den här gången rullar roboten hela vägen fram och stannar vid bananen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur ser roboten ut?",
+        "options": [
+          "Som en rund skalbagge",
+          "Som en liten hund",
+          "Som en fyrkantig bil",
+          "Som en människa"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vart ska roboten åka?",
+        "options": [
+          "Fram till en banan av plast",
+          "Ut genom dörren",
+          "Upp på bordet",
+          "Runt hela klassrummet"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer första gången de trycker på start?",
+        "options": [
+          "Roboten åker in i väggen",
+          "Roboten snurrar runt i en cirkel",
+          "Ingenting händer alls",
+          "Roboten somnar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Roboten surrar. Vad betyder det?",
+        "options": [
+          "Den pratar",
+          "Den låter som ett lågt brummande",
+          "Den piper högt",
+          "Den är tyst"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför tror Edith att roboten är trasig?",
+        "options": [
+          "Den åkte in i väggen",
+          "Den luktar bränt",
+          "Den piper inte",
+          "Batteriet är slut"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad hade de glömt?",
+        "options": [
+          "Ett fram efter vänster",
+          "Att trycka på start",
+          "Att ladda batteriet",
+          "Ett höger i början"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förstår Sam om roboten?",
+        "options": [
+          "Den bestämmer själv",
+          "Den gör bara exakt det man säger",
+          "Den är trasig",
+          "Den tycker inte om bananer"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-svampturen",
+    "title": "Mormors svampregel",
+    "level": 5,
+    "textType": "story",
+    "topic": "natur",
+    "body": "Tindra och mormor går ut i skogen med varsin korg. Det har regnat i flera dagar, och nu är det svamptid.\n\n”Kom ihåg min regel”, säger mormor. ”Plocka bara svampar som du känner igen helt säkert.”\n\nMormor visar kantareller. De är gula som äggulor och växer ofta i mossan. Snart är Tindras korg halvfull.\n\nUnder en gran hittar Tindra en stor, vit svamp. Den är fin och ren och ser god ut.\n\n”Mormor, ska jag ta den?”\n\nMormor böjer sig ner och tittar noga. Sedan skakar hon på huvudet.\n\n”Den liknar en svamp som heter vit flugsvamp. Den är en av de giftigaste i hela Sverige. Om jag inte är säker låter vi den stå.”\n\nTindra drar snabbt bort handen. Hon bestämmer sig för att lära sig mormors regel utantill.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför är det svamptid nu?",
+        "options": [
+          "Det har varit varmt och torrt",
+          "Mormor har semester",
+          "Det är vinter",
+          "Det har regnat i flera dagar"
         ],
         "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad är mormors regel?",
+        "options": [
+          "Plocka bara gula svampar",
+          "Plocka så många som möjligt",
+          "Plocka aldrig under granar",
+          "Plocka bara svampar du känner igen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur ser kantarellerna ut?",
+        "options": [
+          "Gula som äggulor",
+          "Vita och stora",
+          "Röda med prickar",
+          "Bruna och små"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Var hittar Tindra den vita svampen?",
+        "options": [
+          "Vid en bäck",
+          "Under en gran",
+          "På en stubbe",
+          "Mitt på stigen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Tindra ska lära sig regeln utantill. Vad betyder utantill?",
+        "options": [
+          "Så att man kan den lite grann",
+          "Så att man kan den utan att titta",
+          "Så att man glömmer den",
+          "Så att man kan skriva den"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför låter mormor svampen stå?",
+        "options": [
+          "Den är för liten",
+          "Korgen är redan full",
+          "Den är inte mogen än",
+          "Den kan vara giftig"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad vill texten lära oss?",
+        "options": [
+          "Alla vita svampar är goda",
+          "Det är farligt att gå i skogen",
+          "Man ska vara försiktig med svamp",
+          "Mormor kan inte så mycket om svamp"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-kattungen",
+    "title": "Mjauandet under altanen",
+    "level": 5,
+    "textType": "story",
+    "topic": "djur",
+    "body": "En morgon hör Oskar ett tunt mjauande. Det kommer under altanen. Han lägger sig på mage och kikar in. Längst in sitter en liten grå kattunge och darrar.\n\nOskar vill krypa in och hämta den, men mamma stoppar honom.\n\n”Vänta”, säger hon. ”Kanske är kattmamman i närheten. Då ska vi inte ta ungen.”\n\nDe går in och tittar ut genom fönstret i flera timmar. Ingen kattmamma kommer. Kattungen mjauar allt svagare.\n\nDå ringer mamma till ett katthem. En kvinna kommer med en bur och en filt. Hon lockar ut kattungen med lite blöt mat.\n\n”Hon är bara sex veckor”, säger kvinnan. ”Bra att ni ringde.”\n\nNågra veckor senare får Oskar ett brev från katthemmet. I kuvertet ligger ett foto av kattungen. Hon har fått ett nytt hem och heter Dimma.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var sitter kattungen?",
+        "options": [
+          "Under altanen",
+          "I ett träd",
+          "I garaget",
+          "Under bilen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken färg har kattungen?",
+        "options": [
+          "Svart",
+          "Grå",
+          "Vit",
+          "Randig"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför ska de vänta innan de tar kattungen?",
+        "options": [
+          "Kattungen sover",
+          "Det regnar ute",
+          "Kattmamman kan komma tillbaka",
+          "Mamma är rädd för katter"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q4",
+        "question": "Vem ringer mamma till?",
+        "options": [
+          "En granne",
+          "En veterinär",
+          "Pappa",
+          "Ett katthem"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Kvinnan lockar ut kattungen. Vad betyder locka?",
+        "options": [
+          "Dra ut den med händerna",
+          "Skrämma den",
+          "Fånga den med ett nät",
+          "Få den att vilja komma"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Hur gammal är kattungen?",
+        "options": [
+          "Ett år",
+          "Två dagar",
+          "Sex månader",
+          "Sex veckor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Hur slutar berättelsen?",
+        "options": [
+          "Kattungen får ett nytt hem",
+          "Oskar får behålla kattungen",
+          "Kattmamman kommer tillbaka",
+          "Kattungen springer bort"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-alg-pa-sparet",
+    "title": "Stopp mitt i skogen",
+    "level": 5,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "Mira åker tåg med mormor till Östersund. De har ätit sina mackor och spelat tre omgångar Fia. Utanför fönstret syns bara skog, skog och skog.\n\nPlötsligt bromsar tåget hårt. Väskorna glider på hyllan, och mormors kaffe skvimpar över.\n\n”Vad hände?” frågar Mira.\n\nDet knastrar i högtalaren. ”Hej, det är föraren. Vi har fått stanna på grund av djur på spåret.”\n\nMira trycker näsan mot rutan. Där, mitt på rälsen, står en älgko med en liten kalv. De tittar lugnt på tåget. Sedan börjar kalven äta på en buske bredvid spåret.\n\nPassagerarna skrattar och tar fram sina telefoner. Efter tio minuter kliver älgarna långsamt in i skogen.\n\n”Nu kör vi igen”, säger föraren.\n\nMira vinkar till älgarna. Det här ska hon berätta för hela klassen.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem åker Mira tåg med?",
+        "options": [
+          "Mormor",
+          "Mamma",
+          "Farfar",
+          "Sin klass"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad har de gjort på tåget?",
+        "options": [
+          "Ätit mackor och spelat Fia",
+          "Läst böcker och sovit",
+          "Tittat på film",
+          "Pratat med föraren"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Kaffet skvimpar över. Vad betyder det?",
+        "options": [
+          "Det blir alldeles för kallt",
+          "Det börjar koka",
+          "Det skvätter ut ur muggen",
+          "Det tar slut"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vad står på spåret?",
+        "options": [
+          "En älgko med en kalv",
+          "En stor björn",
+          "Ett rådjur",
+          "En flock renar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skrattar passagerarna, tror du?",
+        "options": [
+          "Föraren säger ett skämt",
+          "De tycker att älgarna är söta",
+          "Tåget har gått sönder",
+          "Någon har ramlat i gången"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur länge står tåget still?",
+        "options": [
+          "En timme",
+          "Tio minuter",
+          "En minut",
+          "Hela natten"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad tycker Mira om det som hände?",
+        "options": [
+          "Att det var läskigt",
+          "Att det var tråkigt",
+          "Att det var spännande",
+          "Att det var obehagligt"
+        ],
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -1433,48 +1903,48 @@
         "id": "q2",
         "question": "Hur mycket kan en törstig kamel dricka på tio minuter?",
         "options": [
+          "Över hundra liter",
           "Ungefär tio liter",
           "Nästan tusen liter",
-          "Bara några glas",
-          "Över hundra liter"
+          "Bara några glas"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Vad skyddar kamelens ögon mot sanden?",
         "options": [
-          "Långa ögonfransar",
           "Tjocka ögonbryn",
+          "Långa ögonfransar",
           "Stora öron",
           "Ett tjockt lager fett"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Kamelen bär tunga lass. Vad är ett lass?",
         "options": [
+          "Saker som man lastar på",
           "En sorts sadel",
           "En lång resa",
-          "Ett stort tält",
-          "Saker som man lastar på"
+          "Ett stort tält"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Varför sjunker inte kamelen ner i sanden?",
         "options": [
-          "Fötterna är breda och mjuka",
           "Den går mycket fort",
           "Den väger nästan ingenting",
-          "Den hoppar fram"
+          "Den hoppar fram",
+          "Fötterna är breda och mjuka"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1482,11 +1952,11 @@
         "question": "Varför kallas kamelen öknens skepp, tror du?",
         "options": [
           "Den kan simma långt ute i havet",
-          "Den reser långt över sanden",
           "Den sover gärna i båtar",
+          "Den reser långt över sanden",
           "Den har segel på ryggen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -1495,10 +1965,10 @@
         "options": [
           "Hur man rider på en kamel",
           "Vilka djur som bor i öknen",
-          "Hur man hittar vatten i sanden",
-          "Hur kamelen klarar öknen"
+          "Hur kamelen klarar öknen",
+          "Hur man hittar vatten i sanden"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -1515,12 +1985,12 @@
         "id": "q1",
         "question": "Vad är snabeln?",
         "options": [
+          "Näsan och överläppen",
           "Elefantens tunga",
           "En lång och böjd framtand",
-          "Näsan och överläppen",
           "Elefantens arm"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -1528,11 +1998,11 @@
         "question": "Vad saknas i snabeln?",
         "options": [
           "Muskler",
-          "Ben",
           "Hud",
-          "Känsel"
+          "Känsel",
+          "Ben"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1551,12 +2021,12 @@
         "id": "q4",
         "question": "Elefanten vill svalka sig. Vad betyder det?",
         "options": [
-          "Bli torr",
           "Bli lite kallare",
+          "Bli torr",
           "Bli ren",
           "Leka med de andra"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -1565,22 +2035,22 @@
         "options": [
           "Elefanten kan bära sina ungar",
           "Elefanten kan gräva djupa hål i marken",
-          "Elefanten kan äta små saker",
-          "Elefanten kan klättra upp i träd"
+          "Elefanten kan klättra upp i träd",
+          "Elefanten kan äta små saker"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Hur hälsar elefanter på varandra?",
         "options": [
-          "De trampar med fötterna",
           "De flätar ihop snablarna",
+          "De trampar med fötterna",
           "De viftar med öronen",
           "De lägger sig ner"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -1589,10 +2059,10 @@
         "options": [
           "Elefanter är farliga djur",
           "Elefanter lever bara i Afrika",
-          "Snabeln kan användas till mycket",
-          "Elefanter sover alltid stående"
+          "Elefanter sover alltid stående",
+          "Snabeln kan användas till mycket"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -1610,47 +2080,47 @@
         "question": "Var bor sengångaren?",
         "options": [
           "I öknen",
+          "I regnskogen",
           "På savannen",
-          "Uppe i bergen",
-          "I regnskogen"
+          "Uppe i bergen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vad äter sengångaren?",
         "options": [
-          "Insekter",
           "Löv",
+          "Insekter",
           "Fisk",
           "Nötter"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Varför rör sig sengångaren så långsamt?",
         "options": [
-          "Den har ont i benen",
           "Maten ger den lite kraft",
+          "Den har ont i benen",
           "Den är rädd för höjder",
           "Den har för korta armar"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q4",
         "question": "Varför är pälsen ofta grön?",
         "options": [
-          "Det växer alger i den",
           "Den rullar sig i gräset",
           "Den äter så mycket gröna löv",
+          "Det växer alger i den",
           "Den föds med grön päls"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1658,35 +2128,35 @@
         "question": "Sengångaren smälter in bland löven. Vad betyder det?",
         "options": [
           "Den blir varm där",
+          "Den syns dåligt där",
           "Den blir blöt där",
-          "Den äter upp dem",
-          "Den syns dåligt där"
+          "Den äter upp dem"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
         "question": "Hur ofta klättrar sengångaren ner till marken?",
         "options": [
-          "En gång i veckan",
           "Flera gånger varje dag",
           "En gång om året",
+          "En gång i veckan",
           "Varje timme"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Varför har rubriken ett frågetecken?",
         "options": [
-          "Sengångaren är inte lat på riktigt",
           "Ingen vet var den bor",
           "Djuret är egentligen snabbt",
-          "Texten handlar om flera djur"
+          "Texten handlar om flera djur",
+          "Sengångaren är inte lat på riktigt"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -1703,12 +2173,12 @@
         "id": "q1",
         "question": "Var sparar kaktusen vatten?",
         "options": [
-          "I den tjocka stammen",
           "I taggarna",
           "I blommorna",
+          "I den tjocka stammen",
           "I sanden under sig"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1740,11 +2210,11 @@
         "question": "Vad har de flesta kaktusar i stället för blad?",
         "options": [
           "Blommor",
-          "Taggar",
           "Rötter",
+          "Taggar",
           "Frukter"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -1753,22 +2223,22 @@
         "options": [
           "Den skulle växa mycket fortare",
           "Den skulle bli mer stickig",
-          "Den skulle tåla mer sol",
-          "Den skulle förlora mer vatten"
+          "Den skulle förlora mer vatten",
+          "Den skulle tåla mer sol"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
         "question": "Hur länge kan en saguarokaktus leva?",
         "options": [
-          "Mer än hundra år",
           "Ungefär tio år",
           "Bara en sommar",
-          "Ungefär femtio dagar"
+          "Ungefär femtio dagar",
+          "Mer än hundra år"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1776,11 +2246,11 @@
         "question": "Vad förklarar texten?",
         "options": [
           "Hur man vattnar en kaktus",
-          "Hur kaktusen klarar torka",
           "Varför det är varmt i öknen",
+          "Hur kaktusen klarar torka",
           "Vilka djur som äter kaktus"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -1797,24 +2267,24 @@
         "id": "q1",
         "question": "Vad är bärnsten egentligen?",
         "options": [
+          "Kåda från gamla träd",
           "En sorts glas",
           "Hårda snäckskal",
-          "Smält guld",
-          "Kåda från gamla träd"
+          "Smält guld"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Hur gammal kan bärnsten vara?",
         "options": [
-          "Miljontals år",
           "Hundra år",
           "Tio år",
-          "Tusen år"
+          "Tusen år",
+          "Miljontals år"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1823,22 +2293,22 @@
         "options": [
           "Blev varm och mjuk",
           "Rann iväg",
-          "Blev fast",
-          "Försvann helt"
+          "Försvann helt",
+          "Blev fast"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q4",
         "question": "Vad kan man hitta inuti bärnsten?",
         "options": [
+          "Små djur som myggor",
           "Små vita pärlor av glas",
           "Gamla mynt",
-          "Vattendroppar",
-          "Små djur som myggor"
+          "Vattendroppar"
         ],
-        "answerIndex": 3,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -1857,24 +2327,24 @@
         "id": "q6",
         "question": "När sköljs ofta nya bitar upp på stranden?",
         "options": [
+          "Efter en storm",
           "Mitt i vintern",
           "När havet är lugnt",
-          "Efter en storm",
           "Varje natt"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Varför heter texten Guld från havet, tror du?",
         "options": [
-          "Bärnsten är gul och fin",
           "Det finns guld på havsbotten",
           "Fiskarna är värdefulla",
-          "Sanden på stranden är gul"
+          "Sanden på stranden är gul",
+          "Bärnsten är gul och fin"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -1903,12 +2373,12 @@
         "id": "q2",
         "question": "Vad får man plocka enligt texten?",
         "options": [
-          "Bär och svamp",
           "Blommor från trädgårdar",
           "Fågelägg",
-          "Grenar från levande träd"
+          "Grenar från levande träd",
+          "Bär och svamp"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -1916,11 +2386,11 @@
         "question": "Vilken kort regel nämns i texten?",
         "options": [
           "Först till kvarn",
-          "Ta det lugnt i skogen",
           "Inte störa, inte förstöra",
+          "Ta det lugnt i skogen",
           "Alla får göra som de vill"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -1941,22 +2411,22 @@
         "options": [
           "En hel vecka",
           "En hel sommar",
-          "En natt eller två",
-          "Inte en enda natt"
+          "Inte en enda natt",
+          "En natt eller två"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q6",
         "question": "Varför får man inte elda när det är mycket torrt?",
         "options": [
-          "Maten blir inte varm",
           "Det kan börja brinna i skogen",
+          "Maten blir inte varm",
           "Röken luktar illa",
           "Det är för varmt att sitta vid elden"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
@@ -1964,11 +2434,11 @@
         "question": "Vad är viktigast enligt texten?",
         "options": [
           "Att plocka så mycket bär som möjligt",
-          "Att vara rädd om naturen",
           "Att alltid tälta nära ett hus",
+          "Att vara rädd om naturen",
           "Att bara gå ut när det är sol"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -1986,11 +2456,11 @@
         "question": "Vad är ett stjärnfall egentligen?",
         "options": [
           "En stjärna som slocknar och faller ner",
-          "Ett flygplan med lampor",
           "Ett litet korn som brinner upp",
+          "Ett flygplan med lampor",
           "En blixt långt borta"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -1998,11 +2468,11 @@
         "question": "Hur stora är de flesta kornen?",
         "options": [
           "Som en fotboll",
+          "Som ett sandkorn",
           "Som ett hus",
-          "Som en bil",
-          "Som ett sandkorn"
+          "Som en bil"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2023,22 +2493,22 @@
         "options": [
           "Står helt stilla",
           "Snurrar långsamt",
-          "Rör sig mycket snabbt",
-          "Låter högt"
+          "Låter högt",
+          "Rör sig mycket snabbt"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "När kan man se extra många stjärnfall?",
         "options": [
-          "I mitten av augusti",
           "På julafton",
           "Mitt i juni",
-          "I början av april"
+          "I början av april",
+          "I mitten av augusti"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -2046,23 +2516,23 @@
         "question": "Varför ska man titta långt från gatlampor?",
         "options": [
           "Det är mycket tystare där",
-          "Himlen blir mörkare där",
           "Där landar kornen oftare",
+          "Himlen blir mörkare där",
           "Det är varmare på natten där"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
         "question": "Vad vill texten främst förklara?",
         "options": [
-          "Att stjärnor ofta faller ner på jorden",
           "Att ett stjärnfall inte är en stjärna",
+          "Att stjärnor ofta faller ner på jorden",
           "Att det är farligt att titta på himlen",
           "Att man bara ser stjärnor i augusti"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "helhet_slutsats"
       }
     ]
@@ -2079,12 +2549,12 @@
         "id": "q1",
         "question": "Hur stor är Venus?",
         "options": [
-          "Nästan lika stor som jorden",
           "Mycket större än jorden",
+          "Nästan lika stor som jorden",
           "Ungefär lika liten som månen",
           "Hälften så stor som solen"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2116,11 +2586,11 @@
         "question": "Vad är längre på Venus än ett år?",
         "options": [
           "En vecka",
-          "En dag",
           "En timme",
+          "En dag",
           "En månad"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2139,24 +2609,24 @@
         "id": "q6",
         "question": "När kan man se Venus på himlen?",
         "options": [
-          "Kväll eller tidig morgon",
           "Bara mitt på dagen",
           "Bara under sommarlovet i juli",
-          "Aldrig utan en kikare"
+          "Aldrig utan en kikare",
+          "Kväll eller tidig morgon"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Vad handlar texten mest om?",
         "options": [
-          "Hur det är på planeten Venus",
           "Hur man reser till en annan planet",
           "Varför stjärnor lyser",
-          "Hur man bygger en raket"
+          "Hur man bygger en raket",
+          "Hur det är på planeten Venus"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -2175,10 +2645,10 @@
         "options": [
           "Man lånade dem",
           "Man vann dem i tävlingar",
-          "Man fick dem gratis",
-          "Man bytte saker"
+          "Man bytte saker",
+          "Man fick dem gratis"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2187,10 +2657,10 @@
         "options": [
           "Det fanns inga marknader någonstans",
           "Ingen kunde räkna till tio",
-          "Allt man bytte var för tungt",
-          "Alla ville inte ha samma saker"
+          "Alla ville inte ha samma saker",
+          "Allt man bytte var för tungt"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
@@ -2198,11 +2668,11 @@
         "question": "Vad betalade man med på vissa platser?",
         "options": [
           "Stenar, pinnar eller löv",
+          "Snäckor, salt eller pärlor",
           "Sand, vatten eller is",
-          "Fjädrar, ben eller hår",
-          "Snäckor, salt eller pärlor"
+          "Fjädrar, ben eller hår"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2211,10 +2681,10 @@
         "options": [
           "Trä",
           "Glas",
-          "Metall",
-          "Lera"
+          "Lera",
+          "Metall"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -2234,23 +2704,23 @@
         "question": "Var kom de första sedlarna ifrån?",
         "options": [
           "Sverige",
-          "Kina",
           "Egypten",
+          "Kina",
           "Italien"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q7",
         "question": "Vad visar texten?",
         "options": [
-          "Att pengar har förändrats",
           "Hur man sparar pengar på banken",
           "Varför guld är dyrare än silver",
-          "Hur man tillverkar mynt"
+          "Hur man tillverkar mynt",
+          "Att pengar har förändrats"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -2267,48 +2737,48 @@
         "id": "q1",
         "question": "Hur många hjul hade bilen?",
         "options": [
+          "Tre",
           "Fyra",
           "Två",
-          "Tre",
           "Sex"
         ],
-        "answerIndex": 2,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vilka följde med Bertha på resan?",
         "options": [
-          "Hennes två söner",
           "Hennes man Carl",
           "Hennes mamma",
-          "En skomakare"
+          "En skomakare",
+          "Hennes två söner"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
         "question": "Var köpte Bertha bränsle?",
         "options": [
-          "På ett apotek",
           "På en bensinstation",
           "På en bondgård",
+          "På ett apotek",
           "I en skoaffär"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
         "question": "Hur långt åkte hon?",
         "options": [
-          "Ungefär tio mil",
           "Ungefär en mil",
+          "Ungefär tio mil",
           "Över hundra mil",
           "Några hundra meter"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2328,11 +2798,11 @@
         "question": "Varför tog Bertha bilen utan att fråga, tror du?",
         "options": [
           "Hon hade bråttom till ett apotek",
+          "Hon ville visa vad bilen kunde",
           "Hon var arg på Carl",
-          "Hon ville sälja bilen",
-          "Hon ville visa vad bilen kunde"
+          "Hon ville sälja bilen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -2341,10 +2811,10 @@
         "options": [
           "Den gjorde Bertha rik",
           "Den var den första resan med ett tåg",
-          "Den gav Bertha en medalj",
-          "Den fick fler att tro på bilen"
+          "Den fick fler att tro på bilen",
+          "Den gav Bertha en medalj"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "helhet_slutsats"
       }
     ]
@@ -2386,11 +2856,11 @@
         "question": "Vad såg George i mikroskopet?",
         "options": [
           "Små hål",
-          "Små krokar",
           "Små hår",
+          "Små krokar",
           "Små vingar"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2399,10 +2869,10 @@
         "options": [
           "Han blev arg",
           "Han blev trött",
-          "Han ville veta mer",
-          "Han blev rädd"
+          "Han blev rädd",
+          "Han ville veta mer"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
@@ -2435,10 +2905,10 @@
         "options": [
           "Hundar är bra på att hitta frön",
           "Det är farligt att gå i skogen",
-          "Naturen kan ge goda idéer",
-          "Astronauter uppfann kardborrebandet"
+          "Astronauter uppfann kardborrebandet",
+          "Naturen kan ge goda idéer"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
@@ -2456,11 +2926,11 @@
         "question": "Vad är kompassnålen?",
         "options": [
           "En tunn pinne av trä",
-          "En liten klocka",
           "En liten magnet",
+          "En liten klocka",
           "En pil av plast"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2491,12 +2961,12 @@
         "id": "q4",
         "question": "Nålen kan snurra fritt. Vad betyder fritt här?",
         "options": [
-          "Utan att det kostar något",
           "Utan att fastna",
+          "Utan att det kostar något",
           "Mycket långsamt",
           "Bara åt ett håll"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "ordforstaelse"
       },
       {
@@ -2505,10 +2975,10 @@
         "options": [
           "När det var varmt",
           "När det var lugnt",
-          "När de låg i hamn",
-          "När det var molnigt"
+          "När det var molnigt",
+          "När de låg i hamn"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2528,11 +2998,11 @@
         "question": "Vad handlar texten mest om?",
         "options": [
           "Hur man blir sjöman",
+          "Hur en kompass fungerar",
           "Var magneter tillverkas",
-          "Varför jorden är rund",
-          "Hur en kompass fungerar"
+          "Varför jorden är rund"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -2549,12 +3019,12 @@
         "id": "q1",
         "question": "Vad är Australien förutom ett land?",
         "options": [
-          "En kontinent",
           "En stad",
           "En del av Afrika",
+          "En kontinent",
           "Ett berg"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2574,11 +3044,11 @@
         "question": "Varför firar många julafton på stranden?",
         "options": [
           "Stränderna är bara öppna då",
+          "Det är sommar i december",
           "Det är för kallt inomhus",
-          "Tomten bor vid havet",
-          "Det är sommar i december"
+          "Tomten bor vid havet"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -2586,23 +3056,23 @@
         "question": "Årstiderna är omvända. Vad betyder omvända?",
         "options": [
           "Lika långa",
-          "Tvärtom",
           "Mycket kalla",
-          "Försvunna"
+          "Försvunna",
+          "Tvärtom"
         ],
-        "answerIndex": 1,
+        "answerIndex": 3,
         "category": "ordforstaelse"
       },
       {
         "id": "q5",
         "question": "Var bor kängurungen?",
         "options": [
-          "I en pung på mammans mage",
           "I ett hål långt ner under marken",
           "I ett bo i trädet",
+          "I en pung på mammans mage",
           "På mammans rygg"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
@@ -2622,11 +3092,11 @@
         "question": "Vad handlar texten mest om?",
         "options": [
           "Hur man reser till Australien",
+          "Hur det är i Australien",
           "Hur kängurur hoppar",
-          "Varför det finns öknar",
-          "Hur det är i Australien"
+          "Varför det finns öknar"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "helhet_slutsats"
       }
     ]
@@ -2656,11 +3126,11 @@
         "question": "Vad täcker nästan hela ön?",
         "options": [
           "Grön skog",
-          "Sand",
           "Ett tjockt istäcke",
+          "Sand",
           "Gräs och blommor"
         ],
-        "answerIndex": 2,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2679,12 +3149,12 @@
         "id": "q4",
         "question": "Var bor de flesta människorna?",
         "options": [
-          "Längs kusten",
           "Mitt på isen",
+          "Längs kusten",
           "Uppe i bergen",
           "Under marken"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
@@ -2693,22 +3163,22 @@
         "options": [
           "Med tåg",
           "Med buss",
-          "Med bil på motorvägen",
-          "Med båt eller flyg"
+          "Med båt eller flyg",
+          "Med bil på motorvägen"
         ],
-        "answerIndex": 3,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q6",
         "question": "Varför är namnet Grönland lite konstigt?",
         "options": [
-          "Ön är mest vit av is",
           "Ön är mycket liten",
+          "Ön är mest vit av is",
           "Ingen bor där",
           "Det växer bara röda blommor"
         ],
-        "answerIndex": 0,
+        "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
@@ -2738,23 +3208,23 @@
         "question": "Vilka renar har horn?",
         "options": [
           "Bara hanarna",
-          "Både hanar och honor",
           "Bara de allra äldsta hanarna",
+          "Både hanar och honor",
           "Bara ungarna"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
         "question": "Vilka äger nästan alla renar i Sverige?",
         "options": [
-          "Bönderna",
           "Samerna",
+          "Bönderna",
           "Staten",
           "Kommunerna"
         ],
-        "answerIndex": 1,
+        "answerIndex": 0,
         "category": "fakta"
       },
       {
@@ -2774,23 +3244,23 @@
         "question": "Var betar renarna på sommaren?",
         "options": [
           "Nere vid havet",
-          "Uppe på fjället",
           "Inne i städerna",
+          "Uppe på fjället",
           "I skogen"
         ],
-        "answerIndex": 1,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q5",
         "question": "Vad äter renarna på vintern?",
         "options": [
-          "Lav",
           "Gräs",
           "Bär",
-          "Bark"
+          "Bark",
+          "Lav"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
@@ -2799,10 +3269,10 @@
         "options": [
           "Renskötarna vill motionera",
           "De letar efter tappade horn",
-          "Maten finns på olika ställen",
-          "De tycker om att resa långt varje år"
+          "De tycker om att resa långt varje år",
+          "Maten finns på olika ställen"
         ],
-        "answerIndex": 2,
+        "answerIndex": 3,
         "category": "mellan_raderna"
       },
       {
@@ -2811,8 +3281,478 @@
         "options": [
           "Hur man jagar renar",
           "Djur i hela Europa",
-          "Renar och renskötsel",
-          "Hur samerna bygger hus"
+          "Hur samerna bygger hus",
+          "Renar och renskötsel"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-nysningen",
+    "title": "Atjo!",
+    "level": 5,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Ibland kittlar det i näsan, och sedan kommer det: Atjo! En nysning är kroppens sätt att rensa näsan.\n\nInne i näsan finns små hårstrån och slem. De fångar damm, pollen och bakterier som vi andas in. När något retar näsan skickar nerverna ett meddelande till hjärnan. Hjärnan svarar snabbt. Du drar ett djupt andetag, och sedan blåser luften ut med full fart genom näsan och munnen.\n\nLuften i en nysning går mycket fort. Små droppar kan flyga flera meter. Därför ska man nysa i armvecket. Då sprids inte bakterierna till andra.\n\nNästan alla blundar när de nyser. Det är mycket svårt att hålla ögonen öppna, hur mycket man än försöker.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Varför nyser man?",
+        "options": [
+          "För att värma näsan",
+          "För att man är trött",
+          "För att man är hungrig",
+          "För att rensa näsan"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad fångar hårstråna och slemmet i näsan?",
+        "options": [
+          "Damm, pollen och bakterier",
+          "Vatten och salt",
+          "Mat och smulor",
+          "Ljud och ljus"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Något retar näsan. Vad betyder retar här?",
+        "options": [
+          "Irriterar",
+          "Värmer",
+          "Lugnar",
+          "Torkar"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur långt kan dropparna flyga?",
+        "options": [
+          "Några centimeter",
+          "En kilometer",
+          "Flera meter",
+          "Ingenstans"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kan hända om du får pollen i näsan?",
+        "options": [
+          "Du somnar",
+          "Du blir hungrig",
+          "Du börjar nysa",
+          "Du hör sämre"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gör nästan alla när de nyser?",
+        "options": [
+          "Blundar",
+          "Skrattar",
+          "Gäspar",
+          "Hostar"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man botar en förkylning",
+          "Varför vi blundar",
+          "Hur näsan känner lukt",
+          "Vad som händer när vi nyser"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-sarskorpan",
+    "title": "Kroppen lagar sig själv",
+    "level": 5,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Om du ramlar och skrapar upp knät börjar kroppen genast att laga skadan. Först blöder det. Blodet sköljer bort lite smuts från såret.\n\nSedan händer något smart. Små delar i blodet, som kallas blodplättar, klumpar ihop sig. De gör blodet tjockt så att det slutar rinna. Efter en stund torkar det och blir en hård, mörk skorpa.\n\nSårskorpan fungerar som ett plåster. Under den bygger kroppen ny hud. Det tar ofta en eller två veckor.\n\nNär den nya huden är klar lossnar skorpan av sig själv. Om man pillar bort den för tidigt kan såret börja blöda igen. Det kan också bli ett ärr.\n\nDärför är det bäst att skölja såret med vatten och sedan låta skorpan vara.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör blodet först?",
+        "options": [
+          "Blir till ny hud",
+          "Sköljer bort smuts",
+          "Värmer knät",
+          "Gör ont"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad heter de små delarna som klumpar ihop sig?",
+        "options": [
+          "Hudceller",
+          "Skorpor",
+          "Plåster",
+          "Blodplättar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Blodplättarna klumpar ihop sig. Vad betyder det?",
+        "options": [
+          "De försvinner",
+          "De blir mjuka",
+          "De flyter iväg",
+          "De samlas i små högar"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur lång tid tar det ofta att bygga ny hud?",
+        "options": [
+          "Ungefär ett halvår eller mer",
+          "En timme",
+          "En dag",
+          "En eller två veckor"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "På vilket sätt liknar sårskorpan ett plåster?",
+        "options": [
+          "Den är rosa",
+          "Den sitter fast med lim",
+          "Den skyddar såret",
+          "Den kan köpas på apoteket"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan hända om man pillar bort skorpan för tidigt?",
+        "options": [
+          "Huden blir starkare",
+          "Såret läker fortare",
+          "Ingenting alls",
+          "Det kan börja blöda igen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad visar texten?",
+        "options": [
+          "Man ska alltid sätta på plåster",
+          "Kroppen kan laga sig själv",
+          "Sår läker aldrig helt",
+          "Blod är farligt"
+        ],
+        "answerIndex": 1,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-gashud",
+    "title": "Prickar på armen",
+    "level": 5,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Har du någon gång frusit så att det har blivit små knottror på armarna? Det kallas gåshud. Huden ser då ut som skinnet på en plockad gås.\n\nGåshud kommer från de små hårstråna på kroppen. Vid varje hårstrå sitter en pytteliten muskel. När du fryser drar musklerna ihop sig. Då reser sig hårstråna, och huden runt dem bildar en liten knottra.\n\nHos djur med tjock päls hjälper det mot kylan. När håren står upp fångas mer varm luft mellan dem. En katt som fryser ser därför lite fluffigare ut. Människor har för lite hår för att det ska göra någon nytta.\n\nMan kan också få gåshud när man blir rädd eller hör vacker musik. Då får håren en signal från hjärnan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "När kan man få gåshud?",
+        "options": [
+          "När man fryser",
+          "När man äter",
+          "När man sover",
+          "När man springer"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad sitter vid varje hårstrå?",
+        "options": [
+          "Ett litet ben",
+          "En liten muskel",
+          "En liten tand",
+          "En liten fjäder"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Det blir små knottror. Vad är en knottra?",
+        "options": [
+          "Ett litet hål",
+          "En liten upphöjning",
+          "En liten fläck",
+          "En liten spricka"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Hur hjälper det djur med tjock päls?",
+        "options": [
+          "Pälsen blir blank",
+          "Mer varm luft fångas",
+          "Djuret blir snabbare",
+          "Pälsen blir ren"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad händer med en katts päls när katten blir rädd, tror du?",
+        "options": [
+          "Pälsen blir våt",
+          "Pälsen byter färg",
+          "Håren faller av",
+          "Håren reser sig"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad kan också ge gåshud?",
+        "options": [
+          "Varm mat",
+          "Vacker musik",
+          "En lång promenad",
+          "Ett varmt bad"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad förklarar texten?",
+        "options": [
+          "Varför vi får gåshud",
+          "Hur gäss lever",
+          "Varför katter har päls",
+          "Hur man håller sig varm"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-saltvattnet",
+    "title": "Varför är havet salt?",
+    "level": 5,
+    "textType": "fact",
+    "topic": "vetenskap",
+    "body": "Om du har badat i havet vet du att vattnet smakar salt. Men vattnet i sjöar och bäckar smakar inte salt. Hur kommer det sig?\n\nNär det regnar rinner vattnet över berg och stenar. Det löser upp små, små mängder salt. Floderna för med sig saltet ut i havet.\n\nSedan värmer solen havet. Vattnet avdunstar och blir moln, men saltet stannar kvar. Så har det hållit på i miljontals år. Därför finns det så mycket salt i havet.\n\nI salt vatten är det lättare att flyta. I Döda havet är vattnet så salt att man kan ligga på rygg och läsa en tidning.\n\nÖstersjön är inte lika salt som de stora haven. Hit rinner nämligen mycket sötvatten från floder och älvar.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör regnvattnet när det rinner över berg och stenar?",
+        "options": [
+          "Gör dem större",
+          "Färgar dem blå",
+          "Löser upp lite salt",
+          "Gör dem varma"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Hur kommer saltet ut i havet?",
+        "options": [
+          "Fåglarna bär dit det",
+          "Vinden blåser dit det",
+          "Fiskarna gör det",
+          "Floderna för dit det"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vattnet avdunstar. Vad betyder avdunstar?",
+        "options": [
+          "Blir till ånga i luften",
+          "Fryser till is",
+          "Rinner ner i marken",
+          "Blir saltare"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Varför blir inte molnen salta?",
+        "options": [
+          "Solen bränner upp saltet",
+          "Vinden blåser bort saltet",
+          "Saltet stannar kvar i havet",
+          "Fiskarna äter upp saltet"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kan man göra i Döda havet?",
+        "options": [
+          "Ligga på rygg och läsa",
+          "Dricka vattnet",
+          "Fiska stora fiskar",
+          "Åka skridskor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför är Östersjön mindre salt?",
+        "options": [
+          "Det bor så många fiskar i den",
+          "Mycket sötvatten rinner dit",
+          "Den är så kall",
+          "Den är så djup"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad är det viktigaste texten förklarar?",
+        "options": [
+          "Hur man badar säkert",
+          "Varför fiskar simmar",
+          "Hur saltet hamnar i havet",
+          "Hur moln ser ut"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-n2-frimarket",
+    "title": "Den lilla lappen på brevet",
+    "level": 5,
+    "textType": "fact",
+    "topic": "historia",
+    "body": "För länge sedan var det mottagaren som fick betala för ett brev. Priset berodde på hur långt brevet hade rest. Ibland ville den som fick brevet inte betala. Då fick brevbäraren gå därifrån med brevet, och arbetet hade varit förgäves.\n\nI England kom man på en bättre idé. Den som skickade brevet skulle betala i förväg. Som bevis klistrade man en liten lapp på kuvertet. Lappen kallades frimärke.\n\nDet första frimärket kom år 1840. Det var svart och hade en bild av drottning Viktoria.\n\nIdén spred sig snabbt till andra länder. Sverige fick sina första frimärken år 1855.\n\nI dag skickar vi mest meddelanden med mobilen. Men många samlar fortfarande på gamla frimärken.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vem betalade för brevet förr?",
+        "options": [
+          "Den som skickade det",
+          "Mottagaren",
+          "Brevbäraren",
+          "Kungen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad berodde priset på?",
+        "options": [
+          "Hur långt brevet hade rest",
+          "Vem som hade skrivit det",
+          "Hur många ord det fanns",
+          "Vilken färg kuvertet hade"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Arbetet hade varit förgäves. Vad betyder förgäves?",
+        "options": [
+          "Mycket roligt",
+          "Väldigt snabbt",
+          "Helt gratis",
+          "Till ingen nytta"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q4",
+        "question": "Vilket år kom det första frimärket?",
+        "options": [
+          "1855",
+          "1840",
+          "1900",
+          "1740"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vem fanns på det första frimärket?",
+        "options": [
+          "En kung från Sverige",
+          "En häst",
+          "En brevbärare",
+          "Drottning Viktoria"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför var frimärket en bra idé?",
+        "options": [
+          "Breven kom fram snabbare",
+          "Kuverten blev vackrare",
+          "Brevbäraren fick alltid betalt",
+          "Breven blev lättare"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man skriver ett brev",
+          "Varför drottningar är kända",
+          "Hur frimärket kom till",
+          "Hur mobilen fungerar"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
