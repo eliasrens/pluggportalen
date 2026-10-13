@@ -139,3 +139,50 @@ export const AMNES_COINS_PER_CORRECT = 5;
 /** Försökets `source` i lasresaAttempts. Försök utan source = Läsresan. */
 export const AMNES_SOURCE = "amnesläsning";
 export const LASRESAN_SOURCE = "lasresan";
+
+// --- Ämnesläsning: lärarens innehåll (#673, spec §6–7 och bilaga A) ----------
+// AI-prompten (src/prompt-parts.js) och valideringen (src/amneslasning/content.js)
+// läser BÅDA talen och texterna härifrån, så att de aldrig glider isär.
+
+/** Antal texter per nivå i panelen "Skapa ämnestexter": [min, max] och förval. */
+export const AMNES_TEXTS_PER_LEVEL_RANGE = [1, 5];
+export const AMNES_TEXTS_PER_LEVEL_DEFAULT = 3;
+/** Färre texter än så på en nivå (befintliga + nya) → varning, aldrig fel. */
+export const AMNES_MIN_TEXTS_PER_LEVEL = 2;
+/**
+ * Svarsposition/längdledtråd kontrolleras först när en nivå har minst så här
+ * många frågor. Lägre än Läsresans bank (12): ett område har bara några texter.
+ */
+export const AMNES_ANSWER_SKEW_MIN_QUESTIONS = 8;
+/** Fältet på arbetsområdet (spec §7.1). Inte samma som områdets `texts`. */
+export const AMNES_FIELD_ON_AREA = "readingTexts";
+
+/**
+ * Nivåbeskrivningar till AI-prompten (bilaga A). Ordantal och frågeantal
+ * hämtas ur AMNES_WORD_RANGES / AMNES_QUESTIONS_BY_LEVEL – här bara orden.
+ */
+export const AMNES_LEVEL_DESCRIPTIONS = {
+  1: {
+    reader: "för elever som är ovana läsare",
+    language: "korta meningar, vanliga ord, ett tydligt huvudbudskap",
+    questions: "nästan alla svar står direkt i texten",
+  },
+  2: {
+    reader: "för elever som läser på en normal nivå för åldern",
+    language: "något längre meningar och några ämnesord som förklaras i texten",
+    questions: "med en eller två frågor där eleven måste dra en enkel slutsats",
+  },
+  3: {
+    reader: "för elever som läser bra",
+    language: "mer varierat språk och fler ämnesbegrepp, information som behöver kopplas ihop",
+    questions: "med flera frågor om orsak och följd, slutsatser och textens huvudbudskap",
+  },
+};
+
+/** Vad varje frågekategori testar – AI-promptens förklaring (bilaga A). */
+export const CATEGORY_AI_HINTS = {
+  fakta: "svaret står tydligt i texten",
+  ordforstaelse: "förstå ett ord eller uttryck i sammanhanget",
+  mellan_raderna: "dra en slutsats som inte står uttryckligen",
+  helhet_slutsats: "huvudbudskap, orsak och följd, varför något händer",
+};
