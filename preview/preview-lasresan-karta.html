@@ -37,10 +37,15 @@
           <button data-s="berg10">Bergen · steg 10</button>
           <button data-s="berg45">Bergen · gå 4→5 (hängbro)</button>
           <button data-s="bergklar">Bergen · 19→20 (värld klar 🎉)</button>
+          <button data-s="vulk0">Vulkanlandet · steg 0</button>
+          <button data-s="vulk10">Vulkanlandet · steg 10</button>
+          <button data-s="vulk67">Vulkanlandet · gå 6→7 (stenbro)</button>
+          <button data-s="vulkklar">Vulkanlandet · 19→20 (värld klar 🎉)</button>
           <br>Världsbyte som på riktiga sidan (sammanfattning → gamla världen klar → knappen vidare):
           <button data-s="byteOkn">Öknen → Havet</button>
           <button data-s="byteHav">Havet → Djungeln</button>
           <button data-s="byteDj">Djungeln → Bergen</button>
+          <button data-s="byteBerg">Bergen → Vulkanlandet</button>
         </div>
         <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
           Världsväljaren uppe till vänster visar klara/låsta världar.</div>
@@ -103,6 +108,7 @@
       }
 
       const K4 = ["skogen", "oknen", "havet", "djungeln"];
+      const K5 = [...K4, "bergen"];
       const scenarier = {
         skog0: () => visa("skogen", 0, []),
         skog7: () => visa("skogen", 7, []),
@@ -123,9 +129,14 @@
         berg10: () => visa("bergen", 10, K4),
         berg45: () => visa("bergen", 5, K4, 4),
         bergklar: () => visa("bergen", 20, [...K4, "bergen"], 19, true),
+        vulk0: () => visa("vulkanlandet", 0, K5),
+        vulk10: () => visa("vulkanlandet", 10, K5),
+        vulk67: () => visa("vulkanlandet", 7, K5, 6),
+        vulkklar: () => visa("vulkanlandet", 20, [...K5, "vulkanlandet"], 19, true),
         byteOkn: () => varldsbyte("oknen", ["skogen"]),
         byteHav: () => varldsbyte("havet", ["skogen", "oknen"]),
         byteDj: () => varldsbyte("djungeln", ["skogen", "oknen", "havet"]),
+        byteBerg: () => varldsbyte("bergen", K4),
       };
       for (const b of document.querySelectorAll("[data-s]")) {
         b.addEventListener("click", () => scenarier[b.dataset.s]());

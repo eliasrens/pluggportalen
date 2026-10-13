@@ -51,6 +51,15 @@ const CSS = `
   50% { transform: translateY(-7px); }
 }
 
+/* --- Lugn omgivningsrörelse i scenerna (#660) ------------------------------
+   Bara ånga som sakta gungar uppåt – inget blinkar. Avstängd vid reduced motion. */
+.lr-anga { transform-box: fill-box; transform-origin: center;
+  animation: lr-anga 6s ease-in-out infinite; }
+@keyframes lr-anga {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.06); }
+}
+
 /* --- Firande (värld klar) --------------------------------------------------- */
 .lr-firande { position: absolute; inset: 0; z-index: 4; display: grid;
   place-items: center; background: rgba(59, 51, 80, 0.35); line-height: 1.4;
@@ -71,7 +80,7 @@ const CSS = `
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lr-puls, .lr-avatar--gar .lr-avatar-inner, .lr-konfetti { animation: none; }
+  .lr-puls, .lr-avatar--gar .lr-avatar-inner, .lr-konfetti, .lr-anga { animation: none; }
   .lr-firande, .lr-firande-kort { animation: none; }
 }
 `;
