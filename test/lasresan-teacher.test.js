@@ -105,3 +105,20 @@ test("#659: Havet och Djungeln i lärartabellen – namn, steg och sorteringsord
   assert.deepEqual([by.o.worldName, by.o.stepInWorld], ["Havet", 0]);
   assert.deepEqual(sortTeacherRows(rows, "journey", "desc").map((r) => r.studentId), ["d", "h", "o"]);
 });
+
+test("#660: Bergen, Vulkanlandet och Månen i lärartabellen – namn, steg och sorteringsordning", () => {
+  const fyra = ["skogen", "oknen", "havet", "djungeln"];
+  const rows = teacherClassRows([
+    { studentId: "b", namn: "Berg", lasresa: lr({ level: 5, totalTexts: 85, totalQuestions: 600, totalCorrect: 400, totalIncorrect: 200, worldId: "bergen", stepInWorld: 5, completedWorlds: fyra }) },
+    { studentId: "v", namn: "Vulk", lasresa: lr({ level: 5, totalTexts: 101, totalQuestions: 700, totalCorrect: 500, totalIncorrect: 200, worldId: "vulkanlandet", stepInWorld: 1, completedWorlds: [...fyra, "bergen"] }) },
+    { studentId: "m", namn: "Måne", lasresa: lr({ level: 5, totalTexts: 150, totalQuestions: 1000, totalCorrect: 800, totalIncorrect: 200, worldId: "manen", stepInWorld: 20, completedWorlds: [...fyra, "bergen", "vulkanlandet", "manen"] }) },
+    // Klarade Djungeln när den var sista världen → visas i Bergen steg 0.
+    { studentId: "d", namn: "Djung", lasresa: lr({ level: 5, totalTexts: 80, totalQuestions: 560, totalCorrect: 400, totalIncorrect: 160, worldId: "djungeln", stepInWorld: 20, completedWorlds: fyra }) },
+  ]);
+  const by = Object.fromEntries(rows.map((r) => [r.studentId, r]));
+  assert.deepEqual([by.b.worldName, by.b.stepInWorld, by.b.steps], ["Bergen", 5, 20]);
+  assert.deepEqual([by.v.worldName, by.v.stepInWorld, by.v.steps], ["Vulkanlandet", 1, 20]);
+  assert.deepEqual([by.m.worldName, by.m.stepInWorld, by.m.steps], ["Månen", 20, 20]);
+  assert.deepEqual([by.d.worldName, by.d.stepInWorld], ["Bergen", 0]);
+  assert.deepEqual(sortTeacherRows(rows, "journey", "desc").map((r) => r.studentId), ["m", "v", "b", "d"]);
+});

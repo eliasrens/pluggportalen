@@ -35,7 +35,7 @@ function bindOnce(container, selector, fn) {
 export function renderSummary(container, { correct = 0, total = 0, coins = 0, worldDone = null, nextWorld = null, onContinue } = {}) {
   const c = cheer(correct, total);
   const world = worldDone
-    ? `<div class="lr-varld-klar">🏆 <b>${esc(worldDone.name)}</b> är klar!${nextWorld ? ` Nu väntar <b>${esc(nextWorld.name)}</b>.` : ""}</div>`
+    ? `<div class="lr-varld-klar">🏆 <b>${esc(worldDone.name)}</b> är klar!${nextWorld ? ` Nu väntar <b>${esc(nextWorld.name)}</b>.` : " Du har klarat hela resan! 🌟"}</div>`
     : "";
   container.innerHTML = `
     <div class="panel lr-summary" role="status">

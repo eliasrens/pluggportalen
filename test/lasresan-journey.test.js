@@ -1,6 +1,7 @@
 // ============================================================================
 // Läsresan (#399): reseprogression + världsregister – journey.js, worlds/.
-// Spec-acceptanstest 1 (start), 2 (+1 steg), 7 (Skogen → Öknen) + sista världen.
+// Spec-acceptanstest 1 (start), 2 (+1 steg), 7 (Skogen → Öknen) + sista världen
+// (Månen sedan #660) + hela kedjan med sju världar.
 // ============================================================================
 
 import { test } from "node:test";
@@ -8,14 +9,20 @@ import assert from "node:assert/strict";
 import { completeStep, normalizeProgress } from "../src/lasresan/journey.js";
 import { WORLDS, firstWorld, nextWorld, getWorld, isWorldUnlocked, validateWorld } from "../src/lasresan/worlds/index.js";
 
-test("registret: Skogen → Öknen → Havet → Djungeln, alla följer schemat", () => {
-  assert.deepEqual(WORLDS.map((w) => w.id), ["skogen", "oknen", "havet", "djungeln"]);
-  assert.deepEqual(WORLDS.map((w) => w.order), [1, 2, 3, 4]);
+test("registret: sju världar Skogen → … → Månen, alla följer schemat (#660)", () => {
+  assert.deepEqual(WORLDS.map((w) => w.id), ["skogen", "oknen", "havet", "djungeln", "bergen", "vulkanlandet", "manen"]);
+  assert.deepEqual(WORLDS.map((w) => w.order), [1, 2, 3, 4, 5, 6, 7]);
+  assert.deepEqual(WORLDS.slice(4).map((w) => w.name), ["Bergen", "Vulkanlandet", "Månen"]);
+  // id:n är rena ASCII-nycklar (sparas i Firestore), namnen får ha å/ä/ö.
+  for (const w of WORLDS) assert.match(w.id, /^[a-z]+$/, w.id);
   assert.equal(firstWorld().id, "skogen");
   assert.equal(nextWorld("skogen").id, "oknen");
   assert.equal(nextWorld("oknen").id, "havet");
   assert.equal(nextWorld("havet").id, "djungeln");
-  assert.equal(nextWorld("djungeln"), null);
+  assert.equal(nextWorld("djungeln").id, "bergen");
+  assert.equal(nextWorld("bergen").id, "vulkanlandet");
+  assert.equal(nextWorld("vulkanlandet").id, "manen");
+  assert.equal(nextWorld("manen"), null);
   for (const w of WORLDS) assert.deepEqual(validateWorld(w), [], w.id);
   assert.equal(getWorld("skogen").steps, 20);
   assert.equal(getWorld("oknen").unlockAfter, "skogen");
@@ -30,10 +37,21 @@ test("unlockAfter-kedjan: varje värld låses upp av den före (#659)", () => {
   assert.equal(isWorldUnlocked(getWorld("havet"), ["skogen", "oknen"]), true);
   assert.equal(isWorldUnlocked(getWorld("djungeln"), ["skogen", "oknen"]), false);
   assert.equal(isWorldUnlocked(getWorld("djungeln"), ["skogen", "oknen", "havet"]), true);
+  // #660: Djungeln → Bergen → Vulkanlandet → Månen
+  const fyra = ["skogen", "oknen", "havet", "djungeln"];
+  assert.equal(getWorld("bergen").unlockAfter, "djungeln");
+  assert.equal(getWorld("vulkanlandet").unlockAfter, "bergen");
+  assert.equal(getWorld("manen").unlockAfter, "vulkanlandet");
+  assert.equal(isWorldUnlocked(getWorld("bergen"), fyra.slice(0, 3)), false);
+  assert.equal(isWorldUnlocked(getWorld("bergen"), fyra), true);
+  assert.equal(isWorldUnlocked(getWorld("vulkanlandet"), fyra), false);
+  assert.equal(isWorldUnlocked(getWorld("vulkanlandet"), [...fyra, "bergen"]), true);
+  assert.equal(isWorldUnlocked(getWorld("manen"), [...fyra, "bergen"]), false);
+  assert.equal(isWorldUnlocked(getWorld("manen"), [...fyra, "bergen", "vulkanlandet"]), true);
 });
 
-test("Havet och Djungeln: 20 steg, 20 positioner inne i scenen, rendererbar scen (#659)", () => {
-  for (const id of ["havet", "djungeln"]) {
+test("Havet–Månen: 20 steg, 20 positioner inne i scenen, rendererbar scen (#659, #660)", () => {
+  for (const id of ["havet", "djungeln", "bergen", "vulkanlandet", "manen"]) {
     const w = getWorld(id);
     assert.equal(w.steps, 20, id);
     assert.equal(w.stepPositions.length, 20, id);
@@ -97,23 +115,73 @@ test("elev som redan klarat Öknen (förr sista världen) går vidare till Havet
   assert.deepEqual(r.progress, { worldId: "havet", stepInWorld: 1, completedWorlds: ["skogen", "oknen"] });
 });
 
-test("sista världen (Djungeln): klar → står kvar på sista steget, kan fortsätta läsa", () => {
-  const alla = ["skogen", "oknen", "havet"];
-  const r = completeStep({ worldId: "djungeln", stepInWorld: 19, completedWorlds: alla });
+test("hela kedjan: 7 × 20 texter går genom alla världar i ordning till Månen (#660)", () => {
+  let p = normalizeProgress(undefined);
+  const byten = [];
+  for (let i = 0; i < 7 * 20; i++) {
+    const r = completeStep(p);
+    assert.equal(r.walk.toStep, r.walk.fromStep + 1, `text ${i + 1}: exakt ett steg`);
+    if (r.worldCompleted) byten.push([r.completedWorldId, r.unlockedWorldId]);
+    p = r.progress;
+  }
+  assert.deepEqual(byten, [
+    ["skogen", "oknen"], ["oknen", "havet"], ["havet", "djungeln"], ["djungeln", "bergen"],
+    ["bergen", "vulkanlandet"], ["vulkanlandet", "manen"], ["manen", null],
+  ]);
+  assert.deepEqual(p, { worldId: "manen", stepInWorld: 20, completedWorlds: WORLDS.map((w) => w.id) });
+});
+
+test("text 20 i Djungeln → Bergen; Bergen → Vulkanlandet; Vulkanlandet → Månen (#660)", () => {
+  const fyra = ["skogen", "oknen", "havet"];
+  const d = completeStep({ worldId: "djungeln", stepInWorld: 19, completedWorlds: fyra });
+  assert.equal(d.worldCompleted, true);
+  assert.equal(d.completedWorldId, "djungeln");
+  assert.equal(d.unlockedWorldId, "bergen");
+  assert.deepEqual(d.walk, { worldId: "djungeln", fromStep: 19, toStep: 20 });
+  assert.deepEqual(d.progress, { worldId: "bergen", stepInWorld: 0, completedWorlds: [...fyra, "djungeln"] });
+  const b = completeStep({ worldId: "bergen", stepInWorld: 19, completedWorlds: [...fyra, "djungeln"] });
+  assert.equal(b.unlockedWorldId, "vulkanlandet");
+  assert.deepEqual(b.progress, { worldId: "vulkanlandet", stepInWorld: 0, completedWorlds: [...fyra, "djungeln", "bergen"] });
+  const v = completeStep(b.progress);
+  assert.deepEqual(v.walk, { worldId: "vulkanlandet", fromStep: 0, toStep: 1 });
+  const v20 = completeStep({ ...b.progress, stepInWorld: 19 });
+  assert.equal(v20.unlockedWorldId, "manen");
+  assert.deepEqual(v20.progress, { worldId: "manen", stepInWorld: 0, completedWorlds: [...fyra, "djungeln", "bergen", "vulkanlandet"] });
+});
+
+test("elev som redan klarat Djungeln (förr sista världen) går vidare till Bergen (#660)", () => {
+  const sparad = { worldId: "djungeln", stepInWorld: 20, completedWorlds: ["skogen", "oknen", "havet", "djungeln"] };
+  assert.deepEqual(normalizeProgress(sparad), { worldId: "bergen", stepInWorld: 0, completedWorlds: sparad.completedWorlds });
+  const r = completeStep(sparad);
+  assert.equal(r.worldCompleted, false);
+  assert.deepEqual(r.walk, { worldId: "bergen", fromStep: 0, toStep: 1 });
+  assert.deepEqual(r.progress, { worldId: "bergen", stepInWorld: 1, completedWorlds: sparad.completedWorlds });
+});
+
+test("sista världen (Månen): klar → står kvar på sista steget, kan fortsätta läsa", () => {
+  const alla = ["skogen", "oknen", "havet", "djungeln", "bergen", "vulkanlandet"];
+  const r = completeStep({ worldId: "manen", stepInWorld: 19, completedWorlds: alla });
   assert.equal(r.worldCompleted, true);
+  assert.equal(r.completedWorldId, "manen");
   assert.equal(r.unlockedWorldId, null);
-  assert.deepEqual(r.progress, { worldId: "djungeln", stepInWorld: 20, completedWorlds: [...alla, "djungeln"] });
-  const again = completeStep(r.progress);
-  assert.equal(again.worldCompleted, false);
-  assert.deepEqual(again.progress, r.progress);
-  assert.deepEqual(again.walk, { worldId: "djungeln", fromStep: 20, toStep: 20 });
+  assert.deepEqual(r.progress, { worldId: "manen", stepInWorld: 20, completedWorlds: [...alla, "manen"] });
+  // Varje ny text därefter: ingen gång, inget nytt firande, samma läge.
+  let p = r.progress;
+  for (let i = 0; i < 5; i++) {
+    const again = completeStep(p);
+    assert.equal(again.worldCompleted, false);
+    assert.deepEqual(again.progress, r.progress);
+    assert.deepEqual(again.walk, { worldId: "manen", fromStep: 20, toStep: 20 });
+    p = again.progress;
+  }
+  assert.deepEqual(normalizeProgress(r.progress), r.progress);
 });
 
 test("ny värld tillagd efter den sista → eleven flyttas dit automatiskt", () => {
-  const rymden = { ...getWorld("djungeln"), id: "rymden", name: "Rymden", order: 5, unlockAfter: "djungeln" };
+  const rymden = { ...getWorld("manen"), id: "rymden", name: "Rymden", order: 8, unlockAfter: "manen" };
   const registry = [...WORLDS, rymden];
-  const klara = ["skogen", "oknen", "havet", "djungeln"];
-  const p = normalizeProgress({ worldId: "djungeln", stepInWorld: 20, completedWorlds: klara }, registry);
+  const klara = WORLDS.map((w) => w.id);
+  const p = normalizeProgress({ worldId: "manen", stepInWorld: 20, completedWorlds: klara }, registry);
   assert.deepEqual(p, { worldId: "rymden", stepInWorld: 0, completedWorlds: klara });
 });
 

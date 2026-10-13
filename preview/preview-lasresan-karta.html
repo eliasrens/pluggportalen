@@ -16,7 +16,7 @@
   <body>
     <div class="wrap">
       <div class="panel">
-        <b>Läsresan – kartvyn (issue #400, Havet/Djungeln #659)</b>. Stubbad progress utan inloggning/Firestore.
+        <b>Läsresan – kartvyn (issue #400, Havet/Djungeln #659, Bergen/Vulkanlandet/Månen #660)</b>. Stubbad progress utan inloggning/Firestore.
         <div class="sim">
           <button data-s="skog0">Skogen · steg 0 (ny elev)</button>
           <button data-s="skog7">Skogen · steg 7</button>
@@ -32,10 +32,27 @@
           <button data-s="dj0">Djungeln · steg 0</button>
           <button data-s="dj10">Djungeln · steg 10</button>
           <button data-s="dj56">Djungeln · gå 5→6 (hängbro)</button>
-          <button data-s="djklar">Djungeln · 19→20 (hela resan klar 🎉)</button>
+          <button data-s="djklar">Djungeln · 19→20 (värld klar 🎉)</button>
+          <button data-s="berg0">Bergen · steg 0</button>
+          <button data-s="berg10">Bergen · steg 10</button>
+          <button data-s="berg45">Bergen · gå 4→5 (hängbro)</button>
+          <button data-s="bergklar">Bergen · 19→20 (värld klar 🎉)</button>
+          <button data-s="vulk0">Vulkanlandet · steg 0</button>
+          <button data-s="vulk10">Vulkanlandet · steg 10</button>
+          <button data-s="vulk67">Vulkanlandet · gå 6→7 (stenbro)</button>
+          <button data-s="vulkklar">Vulkanlandet · 19→20 (värld klar 🎉)</button>
+          <button data-s="mane0">Månen · steg 0</button>
+          <button data-s="mane10">Månen · steg 10</button>
+          <button data-s="mane1617">Månen · gå 16→17</button>
+          <button data-s="maneklar">Månen · 19→20 (hela resan klar 🎉)</button>
+          <button data-s="maneefter">Månen · efter resan (läser vidare)</button>
           <br>Världsbyte som på riktiga sidan (sammanfattning → gamla världen klar → knappen vidare):
           <button data-s="byteOkn">Öknen → Havet</button>
           <button data-s="byteHav">Havet → Djungeln</button>
+          <button data-s="byteDj">Djungeln → Bergen</button>
+          <button data-s="byteBerg">Bergen → Vulkanlandet</button>
+          <button data-s="byteVulk">Vulkanlandet → Månen</button>
+          <button data-s="byteMane">Månen klar (sista världen)</button>
         </div>
         <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
           Världsväljaren uppe till vänster visar klara/låsta världar.</div>
@@ -76,10 +93,11 @@
           correct: 6, total: 7, coins: 18, worldDone: getWorld(fran), nextWorld: nasta,
           onContinue: () => {
             visa(fran, 20, [...klara, fran], 19, true, false);
-            knapp(`Vidare till ${nasta.name} →`, () => visa(nasta.id, 0, [...klara, fran]));
+            // Sista världen: ingen knapp vidare – kartan visar "resan klar".
+            if (nasta) knapp(`Vidare till ${nasta.name} →`, () => visa(nasta.id, 0, [...klara, fran]));
           },
         });
-        logg.textContent = `Sammanfattning: ${fran} klar → ${nasta.id}`;
+        logg.textContent = `Sammanfattning: ${fran} klar → ${nasta ? nasta.id : "hela resan klar"}`;
       }
 
       function visa(worldId, stepInWorld, completedWorlds, animateFromStep = null, worldCompleted = false, rensa = true) {
@@ -97,6 +115,9 @@
           (animateFromStep != null ? `, gång från steg ${animateFromStep}` : "");
       }
 
+      const K4 = ["skogen", "oknen", "havet", "djungeln"];
+      const K5 = [...K4, "bergen"];
+      const K6 = [...K5, "vulkanlandet"];
       const scenarier = {
         skog0: () => visa("skogen", 0, []),
         skog7: () => visa("skogen", 7, []),
@@ -113,8 +134,25 @@
         dj10: () => visa("djungeln", 10, ["skogen", "oknen", "havet"]),
         dj56: () => visa("djungeln", 6, ["skogen", "oknen", "havet"], 5),
         djklar: () => visa("djungeln", 20, ["skogen", "oknen", "havet", "djungeln"], 19, true),
+        berg0: () => visa("bergen", 0, K4),
+        berg10: () => visa("bergen", 10, K4),
+        berg45: () => visa("bergen", 5, K4, 4),
+        bergklar: () => visa("bergen", 20, [...K4, "bergen"], 19, true),
+        vulk0: () => visa("vulkanlandet", 0, K5),
+        vulk10: () => visa("vulkanlandet", 10, K5),
+        vulk67: () => visa("vulkanlandet", 7, K5, 6),
+        vulkklar: () => visa("vulkanlandet", 20, [...K5, "vulkanlandet"], 19, true),
+        mane0: () => visa("manen", 0, K6),
+        mane10: () => visa("manen", 10, K6),
+        mane1617: () => visa("manen", 17, K6, 16),
+        maneklar: () => visa("manen", 20, [...K6, "manen"], 19, true),
+        maneefter: () => visa("manen", 20, [...K6, "manen"]),
         byteOkn: () => varldsbyte("oknen", ["skogen"]),
         byteHav: () => varldsbyte("havet", ["skogen", "oknen"]),
+        byteDj: () => varldsbyte("djungeln", ["skogen", "oknen", "havet"]),
+        byteBerg: () => varldsbyte("bergen", K4),
+        byteVulk: () => varldsbyte("vulkanlandet", K5),
+        byteMane: () => varldsbyte("manen", K6),
       };
       for (const b of document.querySelectorAll("[data-s]")) {
         b.addEventListener("click", () => scenarier[b.dataset.s]());
