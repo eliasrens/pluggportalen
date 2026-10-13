@@ -19,7 +19,10 @@
 // (snabbknappar 3–30 + egen tid 1–60), Hackning på/av, namn i flödet,
 // Pluggmynt (live-rewards), 1–3 klasser.
 // Vyerna byggs i epicens nästa delar: elevvyn (datakuppen-student.js),
-// projektorn (datakuppen-projector.js), historiken (datakuppen-history.js).
+// projektorn (datakuppen-projector.js, #654: Nätverket + Statistik, lobby,
+// pallplats), historiken (datakuppen-history.js). Bakgrundsmusik (#654):
+// `music` → assets/hackerlaget-dark-loop.ogg, spelas av projektorskalet
+// (proj-music.js) – bara projektorn och elevskärmsfönstret, aldrig elevdatorn.
 //
 // API: export default DATAKUPPEN (format-objekt, oregistrerat).
 // ============================================================================
@@ -45,6 +48,8 @@ const DATAKUPPEN = {
   minQuestions: 5,
   timelineQuestions: true,
   privateDocs: [DK_PRIVATE_DOC, DK_PUBLIC_DOC],
+  // Som Guldrushen: tyst lobby, matchen ≈ 30 % av effekternas volym.
+  music: { src: new URL("./assets/hackerlaget-dark-loop.ogg", import.meta.url).href, level: 0.3, lobby: 0 },
 
   setupFields: [
     durationField(),
