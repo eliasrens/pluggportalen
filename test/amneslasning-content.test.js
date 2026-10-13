@@ -336,3 +336,33 @@ test("underradens flik Ämnesläsning: visas med ämnestexter eller vald typ, in
   assert.deepEqual(ids({ readingTexts: [{ id: "rt1", title: "x", levels: { 1: {} } }] }), []);
   assert.deepEqual(ids(area()), ["quiz:1", "amnes:1"]);
 });
+
+test("gamemode-visibility (inline, bootgrafen) ger samma svar som content.js-regeln", async () => {
+  const { areaContentFlags } = await import("../src/gamemode-visibility.js");
+  const { isPlayableAmnesText } = await import("../src/amneslasning/content.js");
+  const giltig = text("ok", 2);
+  const cases = {
+    "gammal #152-post": [{ id: "rt1", title: "x", levels: { 1: { body: "b", questions: [q(1)] } } }],
+    "nivå 0": [text("a", 0)],
+    "nivå 4": [text("a", 4)],
+    "nivå 2.5": [text("a", 2.5)],
+    'nivå "3"': [text("a", "3")],
+    'nivå "2.0"': [text("a", "2.0")],
+    "nivå true": [text("a", true)],
+    "nivå null": [{ ...text("a", 1), level: null }],
+    "tomma questions": [text("a", 1, { questions: [] })],
+    "questions saknas": [{ id: "a", title: "x", level: 1, body: "b" }],
+    "id saknas": [{ ...text("a", 1), id: "" }],
+    "id ej sträng": [{ ...text("a", 1), id: 7 }],
+    "null och tal": [null, 3, "x", []],
+    "giltig": [giltig],
+    "gammal + giltig": [{ id: "rt1", levels: {} }, giltig],
+    "tom lista": [],
+  };
+  for (const [namn, readingTexts] of Object.entries(cases)) {
+    const regel = readingTextsOf({ readingTexts }).filter(isPlayableAmnesText).length > 0;
+    assert.equal(areaContentFlags({ readingTexts }).readingTexts, regel, namn);
+  }
+  assert.equal(areaContentFlags({ readingTexts: [giltig] }).readingTexts, true);
+  assert.equal(areaContentFlags({}).readingTexts, false);
+});

@@ -65,6 +65,16 @@ export function isAmnesText(t) {
   return !!t && typeof t === "object" && Array.isArray(t.questions) && !isLegacyReadingText(t);
 }
 
+/**
+ * Spelbar ämnestext (elevens textval, src/amneslasning/picker.js): en ämnestext
+ * med id, ämnesnivå 1–3 och minst en fråga. Sparade texter är validerade så.
+ * gamemode-visibility.js (bootgrafen, får inte importera hit, #271) har samma
+ * regel inline – test/amneslasning-content.test.js jämför dem.
+ */
+export function isPlayableAmnesText(t) {
+  return isAmnesText(t) && typeof t.id === "string" && !!t.id && parseAmnesLevel(t.level) !== null && t.questions.length > 0;
+}
+
 /** Hela fältet som det ligger i dokumentet (även gamla nivåtexter), som ny array. */
 function rawReadingTexts(area) {
   const list = area?.[AMNES_FIELD_ON_AREA];
