@@ -98,18 +98,18 @@ export const FAKTA = [
     ],
   },
   {
-    id: "lr-g1-hosten", title: "Hösten", textType: "fact", topic: "natur",
+    id: "lr-g1-kastanjen", title: "Kastanjen", textType: "fact", topic: "natur",
     body: [
-      "Efter sommaren kommer hösten. Då blir dagarna kortare och kallare.",
-      "Löven på träden byter färg. De blir gula, röda och bruna. Sedan faller de ner på marken.",
-      "Många fåglar flyger till varmare länder.",
-      "I skogen växer svamp.",
+      "Kastanjen växer på ett stort träd. Först sitter den i ett grönt skal med taggar.",
+      "På hösten faller skalet ner och spricker. Då syns en blank, brun kastanj.",
+      "Barn samlar kastanjer. De gör små djur av dem med pinnar.",
+      "Men kastanjer ska man inte äta.",
     ],
     q: [
-      ["Vad kommer efter sommaren?", ["Hösten", "Våren", "Vintern", "Julen"], "fakta"],
-      ["Vilka färger får löven?", ["Gula, röda och bruna", "Blå, lila och rosa", "Svarta och vita", "Rosa och gröna"], "fakta"],
-      ["Vart flyger många fåglar?", ["Till varmare länder", "Till kallare länder", "Upp i bergen", "In i husen"], "fakta"],
-      ["Vad växer i skogen på hösten?", ["Svamp", "Jordgubbar", "Tulpaner", "Snödroppar"], "fakta"],
+      ["Var sitter kastanjen först?", ["I ett skal", "I en blomma", "Under jorden", "I ett fågelbo"], "fakta"],
+      ["Vilken färg har skalet?", ["Grön", "Brun", "Svart", "Gul"], "fakta"],
+      ["När spricker skalet?", ["På hösten", "På våren", "På natten", "På julen"], "fakta"],
+      ["Vad gör barn av kastanjer?", ["Små djur", "Soppa", "Små båtar", "Pärlor till halsband"], "fakta"],
     ],
   },
   {
@@ -127,17 +127,17 @@ export const FAKTA = [
     ],
   },
   {
-    id: "lr-g1-mars", title: "Den röda planeten", textType: "fact", topic: "rymden",
+    id: "lr-g1-neptunus", title: "Neptunus", textType: "fact", topic: "rymden",
     body: [
-      "Mars är en planet. Mars ser röd ut. Marken är full av rött damm.",
-      "På Mars är det mycket kallt. Där finns ingen luft att andas.",
-      "Inga människor har varit på Mars. Men det finns robotar där. De kör runt och tar bilder.",
+      "Neptunus är en planet. Den ligger längst bort från solen av alla planeter.",
+      "Där är det mycket kallt och mörkt. Neptunus är blå. Det blåser mer där än på någon annan planet.",
+      "Ingen människa har varit där. Det är alldeles för långt att resa.",
     ],
     q: [
-      ["Vilken färg har Mars?", ["Röd", "Blå", "Grön", "Vit"], "fakta"],
-      ["Varför ser Mars röd ut?", ["Rött damm på marken", "Röd eld överallt", "Röda blommor", "Röda moln"], "fakta"],
-      ["Hur är det på Mars?", ["Mycket kallt", "Mycket varmt", "Blött och grönt", "Fullt av folk"], "fakta"],
-      ["Vad gör robotarna på Mars?", ["Tar bilder", "Bygger hus", "Planterar träd", "Letar efter folk"], "fakta"],
+      ["Var ligger Neptunus?", ["Längst bort från solen", "Närmast solen", "Bredvid månen", "Mitt i solen"], "fakta"],
+      ["Vilken färg har Neptunus?", ["Blå", "Röd", "Gul", "Grön"], "fakta"],
+      ["Hur är vädret där?", ["Det blåser mycket", "Det är soligt", "Det är varmt", "Det är stilla"], "fakta"],
+      ["Varför är det så kallt där?", ["Solen är långt borta", "Den snurrar fort", "Planeten är liten", "Månen skymmer"], "mellan_raderna"],
     ],
   },
   {

@@ -1508,57 +1508,57 @@
     ]
   },
   {
-    "id": "lr-g1-hosten",
-    "title": "Hösten",
+    "id": "lr-g1-kastanjen",
+    "title": "Kastanjen",
     "level": 1,
     "textType": "fact",
     "topic": "natur",
-    "body": "Efter sommaren kommer hösten. Då blir dagarna kortare och kallare.\n\nLöven på träden byter färg. De blir gula, röda och bruna. Sedan faller de ner på marken.\n\nMånga fåglar flyger till varmare länder.\n\nI skogen växer svamp.",
+    "body": "Kastanjen växer på ett stort träd. Först sitter den i ett grönt skal med taggar.\n\nPå hösten faller skalet ner och spricker. Då syns en blank, brun kastanj.\n\nBarn samlar kastanjer. De gör små djur av dem med pinnar.\n\nMen kastanjer ska man inte äta.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad kommer efter sommaren?",
+        "question": "Var sitter kastanjen först?",
         "options": [
-          "Våren",
-          "Vintern",
-          "Julen",
-          "Hösten"
+          "I en blomma",
+          "Under jorden",
+          "I ett fågelbo",
+          "I ett skal"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vilka färger får löven?",
+        "question": "Vilken färg har skalet?",
         "options": [
-          "Gula, röda och bruna",
-          "Blå, lila och rosa",
-          "Svarta och vita",
-          "Rosa och gröna"
+          "Grön",
+          "Brun",
+          "Svart",
+          "Gul"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vart flyger många fåglar?",
+        "question": "När spricker skalet?",
         "options": [
-          "Till kallare länder",
-          "Upp i bergen",
-          "Till varmare länder",
-          "In i husen"
+          "På våren",
+          "På natten",
+          "På hösten",
+          "På julen"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad växer i skogen på hösten?",
+        "question": "Vad gör barn av kastanjer?",
         "options": [
-          "Jordgubbar",
-          "Tulpaner",
-          "Snödroppar",
-          "Svamp"
+          "Soppa",
+          "Små båtar",
+          "Pärlor till halsband",
+          "Små djur"
         ],
         "answerIndex": 3,
         "category": "fakta"
@@ -1624,60 +1624,60 @@
     ]
   },
   {
-    "id": "lr-g1-mars",
-    "title": "Den röda planeten",
+    "id": "lr-g1-neptunus",
+    "title": "Neptunus",
     "level": 1,
     "textType": "fact",
     "topic": "rymden",
-    "body": "Mars är en planet. Mars ser röd ut. Marken är full av rött damm.\n\nPå Mars är det mycket kallt. Där finns ingen luft att andas.\n\nInga människor har varit på Mars. Men det finns robotar där. De kör runt och tar bilder.",
+    "body": "Neptunus är en planet. Den ligger längst bort från solen av alla planeter.\n\nDär är det mycket kallt och mörkt. Neptunus är blå. Det blåser mer där än på någon annan planet.\n\nIngen människa har varit där. Det är alldeles för långt att resa.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vilken färg har Mars?",
+        "question": "Var ligger Neptunus?",
         "options": [
-          "Blå",
-          "Röd",
-          "Grön",
-          "Vit"
+          "Närmast solen",
+          "Längst bort från solen",
+          "Bredvid månen",
+          "Mitt i solen"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Varför ser Mars röd ut?",
+        "question": "Vilken färg har Neptunus?",
         "options": [
-          "Röd eld överallt",
-          "Röda blommor",
-          "Rött damm på marken",
-          "Röda moln"
+          "Röd",
+          "Gul",
+          "Blå",
+          "Grön"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Hur är det på Mars?",
+        "question": "Hur är vädret där?",
         "options": [
-          "Mycket varmt",
-          "Mycket kallt",
-          "Blött och grönt",
-          "Fullt av folk"
+          "Det är soligt",
+          "Det blåser mycket",
+          "Det är varmt",
+          "Det är stilla"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad gör robotarna på Mars?",
+        "question": "Varför är det så kallt där?",
         "options": [
-          "Bygger hus",
-          "Tar bilder",
-          "Planterar träd",
-          "Letar efter folk"
+          "Den snurrar fort",
+          "Solen är långt borta",
+          "Planeten är liten",
+          "Månen skymmer"
         ],
         "answerIndex": 1,
-        "category": "fakta"
+        "category": "mellan_raderna"
       }
     ]
   },

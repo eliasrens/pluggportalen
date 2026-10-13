@@ -280,69 +280,69 @@
     ]
   },
   {
-    "id": "lr-g2-spar-i-snon",
-    "title": "Spåren i snön",
+    "id": "lr-g2-paraplyet",
+    "title": "Det gula paraplyet",
     "level": 2,
     "textType": "story",
     "topic": "mysterier",
-    "body": "En morgon ser Hugo spår i snön utanför huset. Spåren går över hela gräsmattan.\n\n”Är det en tjuv?” undrar Hugo. Han tar på sig stövlarna och följer spåren. De går förbi gungan och fram till ett träd.\n\nSpåren är små. De ser inte alls ut som fotspår från en människa. Under trädet ligger lite fågelmat.\n\nDå ser Hugo något rött uppe i trädet. Det är en ekorre! Den sitter på en gren och äter av fågelmaten.",
+    "body": "Varje gång det regnar står ett gult paraply i klassrummets hörn. Ingen vet vems det är.\n\n”Det kanske är ett spökparaply”, viskar Stellan. Hela klassen skrattar.\n\nYrsa vill lösa gåtan. En regnig morgon kommer hon till skolan tidigt. Hon gömmer sig bakom dörren och väntar.\n\nDå kommer vaktmästaren in. Han ställer det gula paraplyet i hörnet.\n\n”Det är till den som har glömt sitt eget”, säger han. Sedan blinkar han.",
     "questions": [
       {
         "id": "q1",
-        "question": "Var ser Hugo spåren?",
+        "question": "Vilken färg har paraplyet?",
         "options": [
-          "I sanden vid sjön",
-          "I snön utanför huset",
-          "På golvet i köket",
-          "I leran bakom skolan"
+          "Röd",
+          "Gul",
+          "Blå",
+          "Svart"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad tror Hugo först att spåren kommer från?",
+        "question": "När står paraplyet i hörnet?",
         "options": [
-          "En hund",
-          "En tjuv",
-          "En katt",
-          "Ett barn"
+          "På fredagar",
+          "När det regnar",
+          "När det snöar",
+          "På sommarlovet"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad tar Hugo på sig?",
+        "question": "Vad tror Stellan att paraplyet är?",
         "options": [
-          "Mössan",
-          "Stövlarna",
-          "Jackan",
-          "Skidbyxorna"
+          "Lärarens paraply",
+          "Ett spökparaply",
+          "Ett nytt paraply från affären",
+          "Yrsas paraply"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad ligger under trädet?",
+        "question": "Var gömmer sig Yrsa?",
         "options": [
-          "En vante",
-          "En nyckel",
-          "Fågelmat",
-          "Ett äpple"
+          "Under bänken",
+          "I ett skåp",
+          "Bakom dörren",
+          "Bakom tavlan"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vem har gjort spåren?",
+        "question": "Varför ställer vaktmästaren dit paraplyet?",
         "options": [
-          "En ekorre",
-          "En tjuv",
-          "En fågel",
-          "Grannens katt"
+          "Han vill hjälpa den som glömt sitt",
+          "Han har glömt det själv",
+          "Han vill skrämma barnen",
+          "Han vill sälja det"
         ],
         "answerIndex": 0,
         "category": "helhet_slutsats"
@@ -1190,69 +1190,69 @@
     ]
   },
   {
-    "id": "lr-g2-kartan-vinden",
-    "title": "Kartan på vinden",
+    "id": "lr-g2-krabborna",
+    "title": "Krabborna i hinken",
     "level": 2,
     "textType": "story",
-    "topic": "äventyr",
-    "body": "Morfar och Nils städar på vinden. I en gammal låda hittar Nils en karta. Den är ritad med blyerts. Ett stort kryss står vid en sten.\n\n”Den ritade jag när jag var liten”, säger morfar och ler.\n\nDe går ut i trädgården och letar upp den stora stenen. Nils gräver i jorden bredvid. Snart slår spaden mot något hårt.\n\nDet är en rostig burk! I burken ligger tre kulor. Där ligger också ett gammalt foto på morfar som barn.",
+    "topic": "natur",
+    "body": "Ilja och farmor Berit sitter på bryggan. De har ett snöre med en musselbit i änden. Snöret sjunker ner i vattnet.\n\nEfter en stund drar Ilja upp det. En liten grön krabba håller fast i musslan! Ilja släpper ner den i hinken.\n\nSnart har de sju krabbor. De kryper åt sidan och klättrar på varandra.\n\n”Nu ska de hem igen”, säger farmor. Ilja häller försiktigt ut hinken i vattnet. Krabborna försvinner bland tången.",
     "questions": [
       {
         "id": "q1",
-        "question": "Var hittar Nils kartan?",
+        "question": "Var sitter Ilja och farmor?",
         "options": [
-          "Under sängen",
-          "I en låda på vinden",
-          "I bokhyllan",
-          "I en väska i källaren"
+          "I en båt",
+          "På bryggan",
+          "På stranden",
+          "På en klippa"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad står vid stenen på kartan?",
+        "question": "Vad sitter i änden av snöret?",
         "options": [
-          "En pil",
-          "Ett kryss",
-          "En stjärna",
-          "En siffra"
+          "En mask",
+          "En musselbit",
+          "En krok",
+          "En korv"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vem har ritat kartan?",
+        "question": "Hur många krabbor får de?",
         "options": [
-          "Nils",
-          "Mormor",
-          "Nils pappa",
-          "Morfar"
+          "Tre",
+          "Tio",
+          "En",
+          "Sju"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad ligger i burken?",
+        "question": "Hur kryper krabborna?",
         "options": [
-          "Kulor och ett foto",
-          "Pengar och ett guldur",
-          "En nyckel",
-          "Ett brev"
+          "Åt sidan",
+          "Baklänges",
+          "Rakt fram",
+          "I cirklar"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Hur länge har burken legat i jorden?",
+        "question": "Vad vill farmor med krabborna?",
         "options": [
-          "En dag",
-          "En vecka",
-          "Sedan i går",
-          "Väldigt länge"
+          "Att de ska bli middag",
+          "Att de ska bo i hinken",
+          "Att Ilja ska ta med dem hem",
+          "Att de ska få leva vidare"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"
@@ -1400,72 +1400,72 @@
     ]
   },
   {
-    "id": "lr-g2-myrstacken",
-    "title": "Myrornas stack",
+    "id": "lr-g2-trollslandan",
+    "title": "Trollsländan",
     "level": 2,
     "textType": "fact",
     "topic": "djur",
-    "body": "En myrstack kan se ut som en hög med barr. Men den är ett hem för väldigt många myror.\n\nInne i stacken finns många gångar och rum. Där bor en eller flera drottningar. De lägger äggen.\n\nDe andra myrorna kallas arbetare. De hämtar mat, bär barr och tar hand om äggen.\n\nMyror är små, men de är starka. En myra kan bära saker som är tyngre än den själv. Myrorna hjälper varandra hela tiden.",
+    "body": "Trollsländan är en insekt med fyra långa vingar. Vingarna är tunna och genomskinliga. Den kan flyga framåt, bakåt och stå still i luften.\n\nTrollsländan har jättestora ögon. Den ser nästan åt alla håll på en gång. Därför är den bra på att jaga. Den fångar myggor och flugor i flykten.\n\nUngen bor i vatten i flera år. Den kallas nymf. En dag kryper den upp på ett strå. Då spricker skalet, och en trollslända flyger ut.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad liknar en myrstack?",
+        "question": "Hur många vingar har trollsländan?",
         "options": [
-          "En stor sten",
-          "En hög med barr",
-          "Ett fågelbo",
-          "En snöhög"
+          "Två",
+          "Fyra",
+          "Sex",
+          "Åtta"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad finns inne i stacken?",
+        "question": "Hur kan trollsländan flyga?",
         "options": [
-          "Vatten och sand",
-          "Blommor och gräs",
-          "Stenar och lera",
-          "Gångar och rum"
+          "Bara rakt framåt",
+          "Bara uppåt",
+          "Bara när det blåser",
+          "Framåt, bakåt och stå still"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad gör drottningarna?",
+        "question": "Vad fångar trollsländan?",
         "options": [
-          "Hämtar mat",
-          "Bär barr",
-          "Bygger gångar",
-          "Lägger ägg"
+          "Små fiskar i sjön",
+          "Fåglar",
+          "Blad",
+          "Myggor och flugor"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad kallas de andra myrorna?",
+        "question": "Var bor ungen?",
         "options": [
-          "Drottningar",
-          "Arbetare",
-          "Vakter",
-          "Larver"
+          "I ett träd",
+          "I vatten",
+          "Under en sten",
+          "I en blomma"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vad kan en myra bära?",
+        "question": "Var ser man nog flest trollsländor?",
         "options": [
-          "Saker som är tyngre än den",
-          "Bara ett barr i taget",
-          "Inga saker alls",
-          "Bara saker som flyter"
+          "Nära sjöar och dammar",
+          "I öknen",
+          "På ett berg med snö",
+          "Inne i hus"
         ],
         "answerIndex": 0,
-        "category": "fakta"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -1540,352 +1540,352 @@
     ]
   },
   {
-    "id": "lr-g2-regnbagen",
-    "title": "Färgerna på himlen",
+    "id": "lr-g2-nackrosen",
+    "title": "Blomman som flyter",
     "level": 2,
     "textType": "fact",
     "topic": "natur",
-    "body": "En regnbåge kan synas när solen lyser samtidigt som det regnar. Då ser man en stor båge med färger på himlen.\n\nSolljuset ser vitt ut. Men egentligen finns många färger i det. När ljuset går in i regndropparna delas det upp i färger.\n\nFärgerna kommer alltid i samma ordning. Först kommer rött, sedan orange, gult, grönt, blått och lila.\n\nFör att se regnbågen ska man ha solen bakom sig. Då tittar man mot regnet.",
+    "body": "I många svenska sjöar växer näckrosor. De har stora, runda blad som flyter på vattnet. Bladen är gröna och blanka. Vattnet rinner av dem som av en regnjacka.\n\nBlomman är vit. Den öppnar sig när solen skiner. På kvällen stänger den sig igen.\n\nNäckrosen har en lång stjälk. Den går hela vägen ner till botten. Där sitter roten fast i dyn.\n\nGrodor sitter gärna på bladen och vilar.",
     "questions": [
       {
         "id": "q1",
-        "question": "När kan en regnbåge synas?",
+        "question": "Hur ser bladen ut?",
         "options": [
-          "När det är mulet och blåser kallt",
-          "När solen lyser och det regnar",
-          "När det är mörkt ute",
-          "När det snöar"
+          "Små och spetsiga",
+          "Stora och runda",
+          "Långa och smala",
+          "Röda och lurviga"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad finns egentligen i solljuset?",
+        "question": "När öppnar sig blomman?",
         "options": [
-          "Små regndroppar",
-          "Bara vitt ljus",
-          "Lite rök",
-          "Många färger"
+          "Mitt i natten",
+          "När det regnar",
+          "Bara på vintern",
+          "När solen skiner"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vilken färg kommer först i regnbågen?",
+        "question": "Var sitter roten?",
         "options": [
-          "Blått",
-          "Gult",
-          "Rött",
-          "Lila"
+          "Uppe på ett blad",
+          "Ute i luften",
+          "I dyn på botten",
+          "På stranden"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Var ska solen vara när man tittar på regnbågen?",
+        "question": "Roten sitter i dyn. Vad är dy?",
         "options": [
-          "Framför en",
-          "Rakt ovanför",
-          "Under marken",
-          "Bakom en"
-        ],
-        "answerIndex": 3,
-        "category": "fakta"
-      },
-      {
-        "id": "q5",
-        "question": "Det finns egentligen många färger. Vad betyder egentligen?",
-        "options": [
-          "Kanske",
-          "Aldrig",
-          "Ibland",
-          "I själva verket"
+          "Ett slags fisk",
+          "Ett torrt löv",
+          "Varm sand på stranden",
+          "Gyttja på botten"
         ],
         "answerIndex": 3,
         "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan en groda sitta på bladet?",
+        "options": [
+          "Grodan är mycket tung",
+          "Bladet är vasst",
+          "Blomman är vit",
+          "Bladet flyter och är stort"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
       }
     ]
   },
   {
-    "id": "lr-g2-hjartat",
-    "title": "Hjärtat slår",
+    "id": "lr-g2-gaspningen",
+    "title": "Ett stort gäsp",
     "level": 2,
     "textType": "fact",
-    "topic": "vetenskap",
-    "body": "Hjärtat är en muskel. Det sitter i bröstet, lite till vänster. Ditt hjärta är ungefär lika stort som din knutna hand.\n\nHjärtat pumpar blod runt i hela kroppen. Blodet går i rör som heter blodådror. Det tar med sig syre och näring till kroppen.\n\nNär du springer slår hjärtat snabbare. Då behöver musklerna mer syre.\n\nDu kan känna hjärtat slå. Lägg handen på bröstet och var tyst en stund.",
+    "topic": "kroppen",
+    "body": "Ett gäsp är när munnen öppnas stort. Man drar in mycket luft. Alla människor gäspar. Det gör också hundar, katter och fåglar.\n\nVi gäspar ofta när vi är trötta eller har tråkigt. Forskarna vet inte säkert varför. Kanske hjälper gäspet hjärnan att vakna lite.\n\nGäsp smittar! Om du ser någon gäspa vill du ofta gäspa själv. Ibland räcker det att läsa om gäsp. Har du gäspat nu?",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad är hjärtat?",
+        "question": "Vad gör man när man gäspar?",
         "options": [
-          "Ett ben",
-          "En lunga",
-          "En muskel",
-          "Ett blodkärl"
+          "Blundar hårt med båda ögonen",
+          "Hostar högt",
+          "Öppnar munnen stort",
+          "Visslar en låt"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Hur stort är hjärtat ungefär?",
+        "question": "Vilka djur gäspar, enligt texten?",
         "options": [
-          "Som en fotboll",
-          "Som en ärta",
-          "Som en knuten hand",
-          "Som ett huvud"
+          "Bara hundar",
+          "Inga djur alls",
+          "Hundar, katter och fåglar",
+          "Fiskar, maskar och sniglar"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad heter rören som blodet går i?",
+        "question": "När gäspar vi ofta?",
         "options": [
-          "Muskler",
-          "Lungor",
-          "Nervtrådar",
-          "Blodådror"
+          "När vi äter",
+          "När vi springer fort i skogen",
+          "När vi är arga",
+          "När vi är trötta"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Varför slår hjärtat snabbare när du springer?",
+        "question": "Gäsp smittar. Vad betyder det här?",
         "options": [
-          "Du blir rädd",
-          "Du blir trött och hungrig",
-          "Musklerna behöver mer syre",
-          "Blodet börjar ta slut"
+          "Man blir sjuk",
+          "Man får feber",
+          "Man gäspar när andra gäspar",
+          "Man somnar direkt"
         ],
         "answerIndex": 2,
-        "category": "fakta"
-      },
-      {
-        "id": "q5",
-        "question": "Hjärtat pumpar blod. Vad betyder det?",
-        "options": [
-          "Det gör blodet kallt",
-          "Det äter upp blodet",
-          "Det sparar blodet",
-          "Det trycker runt blodet"
-        ],
-        "answerIndex": 3,
         "category": "ordforstaelse"
-      }
-    ]
-  },
-  {
-    "id": "lr-g2-manen",
-    "title": "Månen byter form",
-    "level": 2,
-    "textType": "fact",
-    "topic": "rymden",
-    "body": "Månen åker runt jorden. Ett varv tar ungefär en månad.\n\nMånen lyser inte själv. Det är solen som lyser på den. Vi ser bara den del av månen som solen lyser på.\n\nDärför ser månen olika ut. Ibland ser vi en smal skära. Ibland ser vi en hel rund måne. Den kallas fullmåne.\n\nIbland syns månen inte alls. Men månen är alltid lika rund. Det är bara ljuset på den som ändras.",
-    "questions": [
-      {
-        "id": "q1",
-        "question": "Vad åker månen runt?",
-        "options": [
-          "Solen",
-          "Jorden",
-          "Stjärnorna",
-          "Mars"
-        ],
-        "answerIndex": 1,
-        "category": "fakta"
-      },
-      {
-        "id": "q2",
-        "question": "Hur lång tid tar ett varv?",
-        "options": [
-          "En dag",
-          "Ett helt år",
-          "Ungefär en månad",
-          "En vecka"
-        ],
-        "answerIndex": 2,
-        "category": "fakta"
-      },
-      {
-        "id": "q3",
-        "question": "Varför lyser månen?",
-        "options": [
-          "Den brinner",
-          "Solen lyser på den",
-          "Den har lampor",
-          "Den är gjord av is"
-        ],
-        "answerIndex": 1,
-        "category": "fakta"
-      },
-      {
-        "id": "q4",
-        "question": "Vad kallas det när vi ser hela månen?",
-        "options": [
-          "Halvmåne",
-          "Nymåne",
-          "Månskära",
-          "Fullmåne"
-        ],
-        "answerIndex": 3,
-        "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vad är sant om månen?",
+        "question": "Varför frågar texten till sist om du har gäspat?",
         "options": [
-          "Den är alltid rund",
-          "Den krymper varje natt",
-          "Den går sönder ibland",
-          "Den byter färg varje natt"
+          "Du ska gå och lägga dig",
+          "Texten är tråkig",
+          "Den vill veta vad klockan är",
+          "Det kan smitta att läsa om gäsp"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "helhet_slutsats"
       }
     ]
   },
   {
-    "id": "lr-g2-bina",
-    "title": "Bina gör honung",
+    "id": "lr-g2-pandan",
+    "title": "Björnen som äter bambu",
     "level": 2,
     "textType": "fact",
     "topic": "djur",
-    "body": "Bin flyger från blomma till blomma. I blommorna finns en söt saft som heter nektar. Bina suger upp nektarn och flyger hem till kupan.\n\nI kupan gör bina om nektarn till honung. De sparar honungen i små rum av vax. Rummen har sex kanter.\n\nBin hjälper också blommorna. När ett bi landar fastnar pollen på dess kropp. Pollen följer med till nästa blomma. Då kan blomman få frön och frukt.",
+    "body": "Jättepandan är en björn som bor i Kina. Den har vit päls med svarta fläckar runt ögonen.\n\nPandan äter nästan bara bambu. Bambu är ett slags högt gräs. Det ger inte så mycket kraft. Därför äter pandan nästan hela dagen. Den äter mer än tio kilo varje dag.\n\nNär pandan inte äter, sover den ofta. Då sparar den på krafterna.\n\nEn pandaunge är mycket liten när den föds. Den väger ungefär lika lite som ett äpple.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad heter den söta saften i blommorna?",
+        "question": "Var bor jättepandan?",
         "options": [
-          "Honung",
-          "Vax",
-          "Pollen",
-          "Nektar"
+          "I Afrika",
+          "I Kina",
+          "I Sverige",
+          "I Brasilien"
         ],
-        "answerIndex": 3,
+        "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vart flyger bina med nektarn?",
+        "question": "Vad äter pandan nästan bara?",
         "options": [
-          "Till kupan",
-          "Till sjön",
-          "Till skogen",
-          "Till en sten"
+          "Fisk",
+          "Honung",
+          "Bambu",
+          "Bär"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad är rummen i kupan gjorda av?",
+        "question": "Hur mycket äter pandan varje dag?",
         "options": [
-          "Lera",
-          "Vax",
-          "Trä",
-          "Blad"
+          "Ett kilo",
+          "Mer än tio kilo",
+          "Hundra kilo",
+          "Bara ett litet äpple"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Hur många kanter har rummen?",
+        "question": "Hur mycket väger en nyfödd pandaunge?",
         "options": [
-          "Fyra",
-          "Tre",
-          "Åtta",
-          "Sex"
+          "Som en hund",
+          "Som en vuxen panda",
+          "Som en stor och tjock katt",
+          "Ungefär som ett äpple"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Hur hjälper bina blommorna?",
+        "question": "Varför sover pandan så mycket?",
         "options": [
-          "De vattnar dem",
-          "De äter upp ogräset",
-          "De flyttar pollen",
-          "De ger dem honung"
+          "Maten ger inte så mycket kraft",
+          "Den är rädd för andra djur",
+          "Det är mörkt i skogen",
+          "Den har ont i magen"
         ],
-        "answerIndex": 2,
-        "category": "fakta"
+        "answerIndex": 0,
+        "category": "mellan_raderna"
       }
     ]
   },
   {
-    "id": "lr-g2-svampen",
-    "title": "Svampar i skogen",
+    "id": "lr-g2-krokodilen",
+    "title": "Krokodilen i floden",
     "level": 2,
     "textType": "fact",
-    "topic": "natur",
-    "body": "På hösten växer det många svampar i skogen. Svampen vi ser är bara en liten del. Under marken finns ett nät av tunna trådar. Det är svampens största del.\n\nSvampar är varken växter eller djur. De har inga gröna blad och behöver inget solljus.\n\nVissa svampar går att äta, till exempel kantareller. Men andra är giftiga och kan göra oss mycket sjuka.\n\nPlocka därför aldrig svamp själv. Fråga alltid en vuxen som kan mycket om svamp.",
+    "topic": "djur",
+    "body": "Krokodilen är ett kräldjur. Den bor i varma floder och sjöar. Huden är tjock och hård, nästan som ett pansar.\n\nKrokodilen ligger ofta helt stilla i vattnet. Bara ögonen och näsan syns ovanför ytan. Så kan den smyga sig på djur som kommer för att dricka.\n\nEn krokodil har många vassa tänder. Om en tand går sönder växer en ny ut.\n\nUngarna kläcks ur ägg. Mamman bär försiktigt ungarna till vattnet i munnen.",
     "questions": [
       {
         "id": "q1",
-        "question": "När växer det många svampar?",
+        "question": "Var bor krokodilen?",
         "options": [
-          "På hösten",
-          "På vintern",
-          "På våren",
-          "Bara på natten"
+          "I kalla hav",
+          "I öknen",
+          "Uppe i träden",
+          "I varma floder"
         ],
-        "answerIndex": 0,
+        "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Var finns de tunna trådarna?",
+        "question": "Vad syns när krokodilen ligger i vattnet?",
         "options": [
-          "Under marken",
-          "På träden",
-          "I luften",
-          "I vattnet"
+          "Ögonen och näsan",
+          "Hela kroppen",
+          "Bara den långa svansen",
+          "Ingenting"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad är svampar?",
+        "question": "Vad händer när en tand går sönder?",
         "options": [
-          "Ett slags blomma",
-          "Små djur som bor i mossan",
-          "Varken växter eller djur",
-          "Ett slags träd"
+          "Krokodilen kan inte äta",
+          "En ny tand växer ut",
+          "Den letar upp tanden",
+          "Mamman lagar den"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Hur kommer ungarna till vattnet?",
+        "options": [
+          "De flyger",
+          "Pappan knuffar dem",
+          "De rullar nerför backen",
+          "Mamman bär dem i munnen"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ligger krokodilen så stilla?",
+        "options": [
+          "Den sover alltid",
+          "Vattnet är kallt",
+          "Djuren ska inte märka den",
+          "Den har ont i benen"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g2-kakaon",
+    "title": "Choklad växer på träd",
+    "level": 2,
+    "textType": "fact",
+    "topic": "natur",
+    "body": "Visste du att choklad kommer från ett träd? Trädet heter kakaoträd. Det växer där det är varmt hela året, till exempel i Afrika.\n\nDirekt på stammen växer stora frukter. De är gula eller röda och ser ut som avlånga bollar. Inne i frukten finns vita bönor.\n\nBönorna får ligga och jäsa några dagar. Sedan torkas de i solen. Till sist rostas de och mals till ett pulver.\n\nAv pulvret, socker och mjölk blir det choklad.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad heter trädet?",
+        "options": [
+          "Kakaoträd",
+          "Äppelträd",
+          "Palm",
+          "Ek"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var på trädet växer frukterna?",
+        "options": [
+          "På stammen",
+          "Under jorden",
+          "Längst upp i toppen",
+          "Ute på löven"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad finns inne i frukten?",
+        "options": [
+          "Färdig choklad",
+          "Mjölk",
+          "Vita bönor",
+          "Vatten"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vilken svamp går att äta, enligt texten?",
+        "question": "Vad händer med bönorna efter att de torkat?",
         "options": [
-          "Ingen svamp alls",
-          "Kantarell",
-          "Alla svampar",
-          "Bara svampar med blad"
+          "De planteras",
+          "De rostas och mals",
+          "De kastas",
+          "De kokas i mjölk"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vad betyder det att en svamp är giftig?",
+        "question": "Varför växer inga kakaoträd ute i Sverige?",
         "options": [
-          "Att den smakar sött",
-          "Att den kan göra en sjuk",
-          "Att den är stor",
-          "Att den är gammal"
+          "Svenskar äter inte choklad",
+          "Det är för kallt här",
+          "Det finns för lite jord",
+          "Det är för mycket sol"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -2100,72 +2100,72 @@
     ]
   },
   {
-    "id": "lr-g2-solen",
-    "title": "Solen är en stjärna",
+    "id": "lr-g2-sjostjarnan",
+    "title": "Stjärnan i havet",
     "level": 2,
     "textType": "fact",
-    "topic": "rymden",
-    "body": "Solen är en stjärna. Den är mycket större än jorden. Över en miljon jordklot skulle få plats i solen.\n\nSolen är ett stort klot av heta gaser. Den ger oss ljus och värme. Utan solen skulle det inte finnas liv på jorden.\n\nSolen ser liten ut på himlen. Det beror på att den är så långt borta.\n\nTitta aldrig rakt på solen. Ljuset är så starkt att det kan skada ögonen.",
+    "topic": "djur",
+    "body": "Sjöstjärnan bor på havets botten. Den har oftast fem armar. Men den har inget huvud och ingen hjärna.\n\nUnder armarna sitter hundratals små fötter. De ser ut som små rör. Med dem kryper sjöstjärnan sakta framåt.\n\nSjöstjärnan äter gärna musslor. Den drar isär musslans skal med sina armar.\n\nOm en arm går av kan det växa ut en ny. Det tar lång tid, ibland ett helt år.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad är solen?",
+        "question": "Hur många armar har en sjöstjärna oftast?",
         "options": [
-          "En stjärna",
-          "En planet",
-          "En måne",
-          "Ett moln"
+          "Fem",
+          "Tre",
+          "Åtta",
+          "Tio"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad är solen gjord av?",
+        "question": "Vad sitter under armarna?",
         "options": [
-          "Is och sten",
-          "Vatten",
-          "Heta gaser",
-          "Sand"
+          "Långa hår",
+          "Små tänder",
+          "Små fötter",
+          "Fjäll"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Varför ser solen liten ut?",
+        "question": "Vad äter sjöstjärnan gärna?",
         "options": [
-          "Den är långt borta",
-          "Den är liten",
-          "Den är bakom moln",
-          "Den är kall"
+          "Musslor",
+          "Tång",
+          "Sand",
+          "Små hajar"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Varför ska man aldrig titta rakt på solen?",
+        "question": "Hur öppnar den en mussla?",
         "options": [
-          "Man blir trött",
-          "Solen blir mörk",
-          "Man blir solbränd i ansiktet",
-          "Det kan skada ögonen"
+          "Den biter sönder skalet",
+          "Den slår musslan mot en sten",
+          "Den väntar tills musslan öppnar sig",
+          "Den drar isär skalet"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vad skulle hända utan solen?",
+        "question": "Varför är det bra att en arm kan växa ut igen?",
         "options": [
-          "Det skulle bli varmare på jorden",
-          "Det skulle inte finnas liv",
-          "Ingenting alls",
-          "Det skulle växa fler träd"
+          "Den blir snabbare då",
+          "Den kan leva vidare efter en skada",
+          "Den kan börja simma",
+          "Den får fler ögon"
         ],
         "answerIndex": 1,
-        "category": "fakta"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -2380,72 +2380,72 @@
     ]
   },
   {
-    "id": "lr-g2-ekorren",
-    "title": "Ekorren och vintern",
+    "id": "lr-g2-vildsvinet",
+    "title": "Grisen i skogen",
     "level": 2,
     "textType": "fact",
     "topic": "djur",
-    "body": "Ekorren är ett litet djur med lång, yvig svans. Den bor i skogar och parker. Den är mycket duktig på att klättra.\n\nPå hösten samlar ekorren mat. Den gömmer nötter och frön på många ställen. Ofta gömmer den dem i marken.\n\nPå vintern letar ekorren upp maten igen. Men den hittar inte allt. Några nötter blir kvar i jorden. Där kan det växa upp nya träd.\n\nEkorren sover inte hela vintern. Den bygger ett bo av kvistar och mossa. Boet sitter högt upp i ett träd.",
+    "body": "Vildsvinet är en vild släkting till grisen. Det har grov, mörk päls och en lång nos. Hanen har vassa betar som sticker ut ur munnen.\n\nVildsvin lever i grupper i skogen. De äter nästan allt, till exempel rötter, nötter, maskar och små djur.\n\nMed nosen bökar de i marken efter mat. Ibland bökar de upp en hel gräsmatta på en enda natt.\n\nUngarna kallas kultingar. De är randiga i gult och brunt. Då syns de sämre bland löven.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur ser ekorrens svans ut?",
+        "question": "Vilket djur är vildsvinet släkt med?",
         "options": [
-          "Kort och tunn",
-          "Kal och rosa",
-          "Platt och bred",
-          "Lång och yvig"
+          "Hunden",
+          "Björnen",
+          "Hästen",
+          "Grisen"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad gör ekorren på hösten?",
+        "question": "Vad har hanen som sticker ut ur munnen?",
         "options": [
-          "Sover hela tiden",
-          "Flyttar söderut",
-          "Samlar mat",
-          "Byter till vit päls"
+          "En lång tunga",
+          "Ett horn",
+          "Vassa betar",
+          "Morrhår"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad kan hända med nötterna som blir kvar?",
+        "question": "Vad gör vildsvinen med nosen?",
         "options": [
-          "Det kan växa nya träd",
-          "De blir till stenar",
-          "Fåglarna bygger bon av dem",
-          "De smälter"
+          "Bökar i marken",
+          "Luktar på blommor",
+          "Dricker vatten",
+          "Bygger bon"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Var bygger ekorren sitt bo?",
+        "question": "Vad kallas ungarna?",
         "options": [
-          "Under en sten",
-          "I ett hål i marken",
-          "Högt upp i ett träd",
-          "Vid en sjö"
+          "Kalvar",
+          "Valpar",
+          "Kultingar",
+          "Kycklingar"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Svansen är yvig. Vad betyder yvig?",
+        "question": "Varför blir många som har trädgård arga på vildsvin?",
         "options": [
-          "Kort och hård",
-          "Tjock och luftig",
-          "Våt och kall",
-          "Liten och smal"
+          "Vildsvinen äter deras katter",
+          "Vildsvinen bökar upp gräset",
+          "Vildsvinen låter högt på dagen",
+          "Vildsvinen badar i poolen"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -2590,72 +2590,72 @@
     ]
   },
   {
-    "id": "lr-g2-skolan-forr",
-    "title": "Skolan för länge sedan",
+    "id": "lr-g2-traskorna",
+    "title": "Skor av trä",
     "level": 2,
     "textType": "fact",
     "topic": "historia",
-    "body": "För ungefär hundra år sedan såg skolan annorlunda ut. Ibland gick barn i olika åldrar i samma klassrum. Läraren kallades fröken eller magistern.\n\nBarnen satt i rader i bänkar av trä. De skrev med en griffel på en liten tavla av sten.\n\nDet var mycket tyst i klassrummet. Barnen fick inte prata utan lov. Om man ville säga något räckte man upp handen.\n\nMånga barn gick hem och åt lunch. Skolmat fanns inte på alla skolor.",
+    "body": "För länge sedan hade många barn i Sverige träskor. Skorna var gjorda av ett enda stycke trä. Ibland hade de en ovandel av läder.\n\nOfta var det skomakaren eller pappan i familjen som gjorde skorna. Han högg och karvade i träet med kniv.\n\nTräskor var bra på gården. De höll fötterna torra i lera och smuts. Och de gick nästan aldrig sönder.\n\nMen de var hårda och tunga. När barnen sprang på stengolvet klapprade det högt.",
     "questions": [
       {
         "id": "q1",
-        "question": "När såg skolan ut så här?",
+        "question": "Vad var träskorna gjorda av?",
         "options": [
-          "För några få år sedan",
-          "För fem tusen år sedan",
-          "I dag",
-          "För ungefär hundra år sedan"
+          "Gummi och plast",
+          "Mjukt tyg",
+          "Tjockt papper från affären",
+          "Ett stycke trä"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad satt barnen i?",
+        "question": "Vem gjorde ofta skorna?",
         "options": [
-          "Bänkar av trä",
-          "Mjuka soffor",
-          "Stolar av plast",
-          "Ringar på golvet"
+          "Skomakaren eller pappan",
+          "Barnen själva",
+          "En fabrik i en stad långt bort",
+          "Läraren"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad skrev barnen med?",
+        "question": "Varför var träskor bra på gården?",
         "options": [
-          "En dator",
-          "En griffel",
-          "En kulspetspenna",
-          "En pensel"
+          "De var lätta",
+          "Fötterna höll sig torra",
+          "De var mjuka",
+          "De gick lätt att vika ihop"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad gjorde man om man ville säga något?",
+        "question": "Vad hördes när barnen sprang på stengolvet?",
         "options": [
-          "Ropade högt",
-          "Stod på bänken",
-          "Skrev en lapp",
-          "Räckte upp handen"
+          "Ingenting",
+          "Musik",
+          "Ett tjut",
+          "Ett högt klapper"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Hur var skolan förr jämfört med i dag?",
+        "question": "Varför har barn i dag nog andra skor?",
         "options": [
-          "Det var mer lek",
-          "Det fanns inga lärare",
-          "Det var strängare",
-          "Barnen fick prata mer"
+          "Det finns inga träd kvar",
+          "Träskor är förbjudna",
+          "Träskor är hårda och tunga",
+          "Barn springer aldrig"
         ],
         "answerIndex": 2,
-        "category": "helhet_slutsats"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -2730,72 +2730,72 @@
     ]
   },
   {
-    "id": "lr-g2-australien",
-    "title": "Landet med kängurur",
+    "id": "lr-g2-danmark",
+    "title": "Grannlandet Danmark",
     "level": 2,
     "textType": "fact",
     "topic": "geografi",
-    "body": "Australien är ett stort land långt bort, på andra sidan jorden. När det är vinter i Sverige är det sommar där.\n\nI Australien lever djur som inte finns i svensk natur. Ett av dem är kängurun.\n\nKängurun hoppar med sina starka bakben. Den kan hoppa mycket långt. Den använder svansen för att hålla balansen.\n\nEn kängurumamma har en ficka på magen. Där bor ungen när den är liten. Ungen kallas joey.",
+    "body": "Danmark är Sveriges granne i söder. Mellan länderna ligger Öresund. Över det går en lång bro.\n\nDanmark är ett platt land. Där finns inga höga berg. Den högsta platsen är bara ungefär 170 meter hög.\n\nLandet består av en stor halvö och många öar. Man är aldrig långt från havet.\n\nI Danmark cyklar många till jobbet och skolan. Huvudstaden heter Köpenhamn. Legoklossarna uppfanns också i Danmark.",
     "questions": [
       {
         "id": "q1",
-        "question": "Var ligger Australien?",
+        "question": "Var ligger Danmark?",
         "options": [
-          "Nära Sverige",
-          "I norra Europa",
-          "På andra sidan jorden",
-          "Mitt i havet vid Norge"
+          "Norr om Sverige",
+          "Mitt i Sverige",
+          "Söder om Sverige",
+          "Långt bort i Asien"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vilken årstid är det i Australien när det är vinter i Sverige?",
+        "question": "Hur ser landskapet ut?",
         "options": [
-          "Sommar",
-          "Vinter",
-          "Höst",
-          "Vår"
+          "Platt utan höga berg",
+          "Fullt av höga berg",
+          "Bara öken",
+          "Bara skog och snö"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad använder kängurun svansen till?",
+        "question": "Vad heter huvudstaden?",
         "options": [
-          "Att gräva",
-          "Att simma",
-          "Att hålla balansen",
-          "Att bära ungen"
+          "Oslo",
+          "Stockholm",
+          "Köpenhamn",
+          "Helsingfors"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Var bor ungen när den är liten?",
+        "question": "Vad uppfanns i Danmark?",
         "options": [
-          "I ett bo i ett träd",
-          "I en håla",
-          "I en ficka på magen",
-          "På mammas rygg"
+          "Cykeln",
+          "Bilen",
+          "Legoklossar",
+          "Telefonen"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vad kallas kängurunungen?",
+        "question": "Varför är det lätt att cykla i Danmark?",
         "options": [
-          "Valp",
-          "Joey",
-          "Kalv",
-          "Kattunge"
+          "Där finns många bilar",
+          "Landet är platt",
+          "Alla har nya cyklar",
+          "Det är alltid sol"
         ],
         "answerIndex": 1,
-        "category": "fakta"
+        "category": "mellan_raderna"
       }
     ]
   }

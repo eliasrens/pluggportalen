@@ -2068,93 +2068,93 @@
     ]
   },
   {
-    "id": "lr-n2-venus",
-    "title": "Den heta grannen",
+    "id": "lr-n2-pilgrimsfalken",
+    "title": "Snabbast i luften",
     "level": 5,
     "textType": "fact",
-    "topic": "rymden",
-    "body": "Venus är den planet som kan komma närmast jorden. Den är nästan lika stor som vår planet. Ändå skulle ingen människa kunna leva där.\n\nRunt Venus finns mycket tjock luft och ett lager av moln. Den släpper in solens värme men håller kvar den. Därför är det över 400 grader varmt på marken. Det är varmare än i en ugn, och varmare än på Merkurius, som ligger närmare solen.\n\nVenus snurrar mycket långsamt. En dag på Venus är längre än ett år där.\n\nPå kvällen eller tidigt på morgonen kan man ofta se Venus lysa starkt på himlen. Förr kallades den aftonstjärnan eller morgonstjärnan, fast den inte är någon stjärna.",
+    "topic": "djur",
+    "body": "Pilgrimsfalken är världens snabbaste djur. Den jagar andra fåglar i luften. Först flyger den högt upp och spanar. Synen är så skarp att den kan se en duva på över en kilometers håll.\n\nNär falken har valt ett byte fäller den ihop vingarna och störtdyker. Då kan den nå över 300 kilometer i timmen, snabbare än ett snabbtåg. I näsborrarna har den små knölar som gör att luften inte pressas in för hårt. Så kan den andas trots farten.\n\nPilgrimsfalken bygger inget riktigt bo. Den lägger äggen direkt på en hylla på en brant klippa. I vissa städer häckar den i stället högt upp på kyrktorn och skyskrapor. Där finns gott om duvor att jaga.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur stor är Venus?",
+        "question": "Vad är pilgrimsfalken känd för?",
         "options": [
-          "Mycket större än jorden",
-          "Nästan lika stor som jorden",
-          "Ungefär lika liten som månen",
-          "Hälften så stor som solen"
+          "Den är världens största fågel",
+          "Den är världens snabbaste djur",
+          "Den kan simma under vatten",
+          "Den flyger aldrig högt"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Hur varmt är det på marken?",
+        "question": "Hur långt bort kan falken se en duva?",
         "options": [
-          "Över 400 grader",
-          "Ungefär 20 grader",
-          "Under noll grader",
-          "Exakt 100 grader"
+          "Över en kilometer",
+          "Tio meter",
+          "Hundra kilometer",
+          "Bara några få steg"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Varför är Venus varmare än Merkurius?",
+        "question": "Vad gör falken med vingarna när den störtdyker?",
         "options": [
-          "Värmen kommer inte ut",
-          "Den ligger närmare solen",
-          "Det finns vulkaner överallt",
-          "Den snurrar mycket fortare"
+          "Fäller ihop dem",
+          "Breder ut dem",
+          "Flaxar fort",
+          "Viker dem bakåt en i taget"
         ],
         "answerIndex": 0,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q4",
-        "question": "Vad är längre på Venus än ett år?",
-        "options": [
-          "En vecka",
-          "En timme",
-          "En dag",
-          "En månad"
-        ],
-        "answerIndex": 2,
         "category": "fakta"
       },
       {
-        "id": "q5",
-        "question": "Venus kallades aftonstjärnan. Vad betyder afton?",
+        "id": "q4",
+        "question": "Vad är knölarna i näsborrarna bra för?",
         "options": [
-          "Morgon",
-          "Kväll",
-          "Natt",
-          "Vinter"
+          "Att lukta bättre på bytet",
+          "Att hålla värmen",
+          "Att andas i hög fart",
+          "Att låta högt"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Falken störtdyker. Vad betyder störtdyker?",
+        "options": [
+          "Simmar under vattnet",
+          "Faller snabbt nedåt",
+          "Flyger sakta i cirklar",
+          "Landar på en gren"
         ],
         "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
         "id": "q6",
-        "question": "När kan man se Venus på himlen?",
+        "question": "Var lägger pilgrimsfalken äggen?",
         "options": [
-          "Bara mitt på dagen",
-          "Bara under sommarlovet i juli",
-          "Kväll eller tidig morgon",
-          "Aldrig utan en kikare"
+          "I ett hål i marken",
+          "I ett stort bo av pinnar",
+          "På en klipphylla",
+          "I vassen"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q7",
-        "question": "Vad handlar texten mest om?",
+        "question": "Varför kan pilgrimsfalken trivas i en stad?",
         "options": [
-          "Hur man reser till en annan planet",
-          "Varför stjärnor lyser",
-          "Hur man bygger en raket",
-          "Hur det är på planeten Venus"
+          "Där är det varmare på vintern",
+          "Där finns inga människor",
+          "Där får den mat av barn",
+          "Där finns höga hus och många duvor"
         ],
         "answerIndex": 3,
         "category": "helhet_slutsats"

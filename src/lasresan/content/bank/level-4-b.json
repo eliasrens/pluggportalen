@@ -610,81 +610,81 @@
     ]
   },
   {
-    "id": "lr-n1-ljuset-i-kojan",
-    "title": "Ljuset i trädkojan",
+    "id": "lr-n1-ringklockan",
+    "title": "Ingen vid dörren",
     "level": 4,
     "textType": "story",
     "topic": "mysterier",
-    "body": "Det är sent på kvällen. Ebba ska just somna när hon ser något genom fönstret. Uppe i trädkojan i trädgården lyser ett litet ljus. Det rör sig fram och tillbaka.\n\nEbba blir rädd. Vem är där ute så här sent? Hon smyger in till sin storebror Viktor, men hans säng är tom.\n\nEbba tar på sig stövlarna och går ut. Hon klättrar upp för stegen och tittar in. Där ligger Viktor med en ficklampa och en tjock bok.\n\n”Boken var så spännande”, viskar han. ”Jag ville inte väcka dig med lampan.”",
+    "body": "Det ringer på dörren. Svala springer och öppnar. Men ingen står där. Trappan är tom, och gatan också.\n\nTio minuter senare ringer det igen. Svala rycker upp dörren direkt. Ingen där heller!\n\n”Är det någon som busar?” säger mamma. Svala ställer sig vid fönstret och spanar. Det blåser hårt, och syrenbusken vid dörren vajar fram och tillbaka.\n\nPlötsligt ser hon det. En lång gren slår mot ringklockan. Pling-plong!\n\nMamma hämtar en sekatör och klipper av grenen. Sedan är det tyst resten av kvällen.",
     "questions": [
       {
         "id": "q1",
-        "question": "När ser Ebba ljuset?",
+        "question": "Vad ser Svala när hon öppnar första gången?",
         "options": [
-          "Sent på kvällen",
-          "Tidigt på morgonen",
-          "Mitt på dagen",
-          "Direkt efter skolan"
+          "Ingen står där",
+          "Mormor står där",
+          "Ett paket ligger där",
+          "En hund skäller"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Var lyser ljuset?",
+        "question": "Vad gör Svala för att ta reda på vad som händer?",
         "options": [
-          "I trädkojan",
-          "I garaget",
-          "Hos grannen",
-          "I köket"
+          "Spanar från fönstret",
+          "Ringer polisen",
+          "Gömmer sig i syrenbusken",
+          "Frågar grannen"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Ebba smyger in till Viktor. Hur går hon?",
+        "question": "Vilket väder är det?",
         "options": [
-          "Tyst och försiktigt",
-          "Snabbt och högljutt",
-          "Baklänges",
-          "Hoppande på ett ben"
+          "Det blåser hårt",
+          "Det snöar",
+          "Det är varmt och stilla",
+          "Det åskar"
         ],
         "answerIndex": 0,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q4",
-        "question": "Vad har Viktor med sig?",
-        "options": [
-          "En kudde och en filt",
-          "En ficklampa och en bok",
-          "En kikare och en karta",
-          "Ett ljus och en tändsticksask"
-        ],
-        "answerIndex": 1,
         "category": "fakta"
       },
       {
-        "id": "q5",
-        "question": "Varför läser Viktor i trädkojan och inte i sitt rum?",
+        "id": "q4",
+        "question": "Busken vajar. Vad betyder vajar?",
         "options": [
-          "Det är varmare där ute",
-          "Han gömmer sig för mamma",
-          "Han vill inte väcka Ebba",
-          "Lampan i rummet är trasig"
+          "Står helt still",
+          "Rör sig fram och tillbaka",
+          "Blommar",
+          "Går sönder i många bitar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ringde det bara när det blåste?",
+        "options": [
+          "Grannen kom bara då",
+          "Klockan gick på batteri",
+          "Vinden fick grenen att slå mot klockan",
+          "Fåglarna blev rädda"
         ],
         "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q6",
-        "question": "Hur känner sig Ebba nog när hon ser Viktor?",
+        "question": "Hur löser de gåtan och problemet?",
         "options": [
-          "Ännu mer rädd",
-          "Sur på mamma",
-          "Lättad",
-          "Avundsjuk på kojan"
+          "De flyttar till ett annat hus",
+          "De tar bort ringklockan",
+          "Svala spanar och mamma klipper grenen",
+          "De sätter upp en arg skylt"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
@@ -1772,163 +1772,163 @@
     ]
   },
   {
-    "id": "lr-n1-igelkotten",
-    "title": "Djuret med tusentals taggar",
+    "id": "lr-n1-huggormen",
+    "title": "Ormen med sicksackmönster",
     "level": 4,
     "textType": "fact",
     "topic": "djur",
-    "body": "Igelkotten är ett litet djur med ungefär 6 000 taggar på ryggen. När den blir rädd rullar den ihop sig till en taggig boll. Då kan de flesta djur inte äta den.\n\nIgelkotten är vaken på natten. Den letar efter maskar, sniglar och skalbaggar att äta.\n\nPå hösten äter den extra mycket och blir tjock. Sedan bygger den ett bo av löv under en buske. Där sover den hela vintern. Det kallas vinterdvala.\n\nOm du ser en igelkott ska du inte ge den mjölk. Den får ont i magen av det. Ge den hellre vatten.",
+    "body": "Huggormen är Sveriges enda giftiga orm. Man känner igen den på ett mörkt sicksackmönster längs ryggen.\n\nHuggormen är växelvarm. Den har ingen egen värme. Därför ligger den gärna på en varm sten i solen på morgonen. När den har blivit varm kan den jaga möss och sorkar.\n\nHuggormen är skygg. Den känner när marken skakar och glider oftast undan när någon kommer. Den hugger bara om den blir trampad på eller känner sig hotad.\n\nDen som blir biten ska hålla sig lugn och åka till sjukhuset.",
     "questions": [
       {
         "id": "q1",
-        "question": "Ungefär hur många taggar har en igelkott?",
+        "question": "Vad är speciellt med huggormen?",
         "options": [
-          "60",
-          "600",
-          "6 000",
-          "60 000"
+          "Sveriges största och längsta orm",
+          "Den lever bara i vatten",
+          "Sveriges enda giftiga orm",
+          "Den har små ben"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad gör igelkotten när den blir rädd?",
+        "question": "Hur känner man igen en huggorm?",
         "options": [
-          "Springer upp i ett träd",
-          "Rullar ihop sig till en boll",
-          "Gräver ner sig i jorden",
-          "Hoppar ner i vattnet"
+          "Röda prickar",
+          "Sicksackmönster på ryggen",
+          "Gula ränder runt hela halsen",
+          "Den är helt vit"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "När är igelkotten vaken?",
+        "question": "Huggormen är växelvarm. Vad betyder det?",
         "options": [
-          "På morgonen",
-          "Mitt på dagen",
-          "Bara på vintern",
-          "På natten"
+          "Den byter färg",
+          "Den är alltid varm",
+          "Den flyttar söderut på hösten",
+          "Den har ingen egen värme"
         ],
         "answerIndex": 3,
-        "category": "fakta"
-      },
-      {
-        "id": "q4",
-        "question": "Vad betyder vinterdvala?",
-        "options": [
-          "Att djuret flyttar söderut",
-          "Att djuret sover hela vintern",
-          "Att djuret byter till vit päls",
-          "Att djuret äter snö"
-        ],
-        "answerIndex": 1,
         "category": "ordforstaelse"
       },
       {
-        "id": "q5",
-        "question": "Varför äter igelkotten extra mycket på hösten?",
+        "id": "q4",
+        "question": "Vad äter huggormen?",
         "options": [
-          "Den har fått ungar",
-          "Det finns mest mat då",
-          "Den ska klara vintern utan mat",
-          "Den vill kunna springa snabbare"
+          "Blad och gräs",
+          "Möss och sorkar",
+          "Fisk från sjön",
+          "Myror och skalbaggar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör huggormen oftast när en människa kommer?",
+        "options": [
+          "Hugger direkt",
+          "Jagar efter människan",
+          "Glider undan",
+          "Klättrar upp i ett träd"
         ],
         "answerIndex": 2,
-        "category": "mellan_raderna"
+        "category": "fakta"
       },
       {
         "id": "q6",
-        "question": "Vad ska du ge en igelkott att dricka?",
+        "question": "Varför kan det vara bra att gå med tunga steg i skogen?",
         "options": [
-          "Mjölk",
-          "Saft",
-          "Te",
-          "Vatten"
+          "Då blir ormen varm",
+          "Då hittar man fler möss",
+          "Då blir man mindre trött",
+          "Ormen känner det och hinner undan"
         ],
         "answerIndex": 3,
-        "category": "fakta"
+        "category": "mellan_raderna"
       }
     ]
   },
   {
-    "id": "lr-n1-hjartat",
-    "title": "Hjärtat slutar aldrig",
+    "id": "lr-n1-tararna",
+    "title": "Tårar som skyddar",
     "level": 4,
     "textType": "fact",
     "topic": "kroppen",
-    "body": "Lägg handen på bröstet, lite till vänster. Känner du något som slår? Det är ditt hjärta.\n\nHjärtat är en muskel som är ungefär lika stor som din knutna hand. Det pumpar runt blodet i hela kroppen. Blodet bär med sig syre och näring till alla delar av kroppen.\n\nHjärtat vilar aldrig, inte ens när du sover. Hos ett barn slår det ungefär 80 till 100 gånger i minuten.\n\nNär du springer behöver kroppen mer syre. Då slår hjärtat fortare. Det kan du känna själv efter en löptur.",
+    "body": "Varje gång du blinkar sprids en tunn hinna av tårvätska över ögat. Den håller ögat fuktigt och tvättar bort damm. Tårvätskan kommer från en liten körtel ovanför ögat.\n\nOm du får något i ögat, till exempel sand, rinner det plötsligt mer tårar. Då spolas skräpet ut.\n\nMan gråter när man är ledsen, men ibland också när man är mycket glad. Efter en stunds gråt känner många sig lite bättre.\n\nTårarna rinner sedan ut genom en liten kanal till näsan. Därför blir man snorig när man gråter.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur stort är hjärtat?",
+        "question": "Vad händer när du blinkar?",
         "options": [
-          "Som din knutna hand",
-          "Som en fotboll",
-          "Som en ärta",
-          "Som ditt huvud"
+          "Tårvätska sprids över ögat",
+          "Ögat blir torrt",
+          "Ögat byter färg",
+          "Näsan blir täppt och röd"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad gör hjärtat?",
+        "question": "Vad händer om du får sand i ögat?",
         "options": [
-          "Tar in luft",
-          "Pumpar runt blodet",
-          "Tar hand om maten",
-          "Tänker åt dig"
+          "Ögat slutar att blinka helt",
+          "Det rinner mer tårar",
+          "Man somnar",
+          "Man nyser alltid"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad bär blodet med sig?",
+        "question": "Skräpet spolas ut. Vad betyder spolas?",
         "options": [
-          "Ljud och ljus",
-          "Syre och näring",
-          "Tankar och minnen",
-          "Sand och sten"
+          "Plockas bort med fingrarna",
+          "Sköljs bort",
+          "Blåses bort",
+          "Fastnar"
         ],
         "answerIndex": 1,
-        "category": "fakta"
-      },
-      {
-        "id": "q4",
-        "question": "Hjärtat vilar aldrig. Vad betyder det?",
-        "options": [
-          "Det är alltid trött",
-          "Det slår bara på dagen",
-          "Det arbetar hela tiden",
-          "Det tar en paus på natten"
-        ],
-        "answerIndex": 2,
         "category": "ordforstaelse"
       },
       {
-        "id": "q5",
-        "question": "Ungefär hur många gånger i minuten slår ett barns hjärta?",
+        "id": "q4",
+        "question": "Varför blir man snorig när man gråter?",
         "options": [
-          "80 till 100",
-          "5 till 10",
-          "Omkring 500",
-          "Omkring 2 000"
+          "Man blir förkyld",
+          "Man andas fortare",
+          "Tårarna rinner till näsan",
+          "Ögonen blir röda och svullna"
         ],
-        "answerIndex": 0,
+        "answerIndex": 2,
         "category": "fakta"
       },
       {
-        "id": "q6",
-        "question": "Varför slår hjärtat fortare när du springer?",
+        "id": "q5",
+        "question": "Hur vet man att tårar inte bara betyder att man är ledsen?",
         "options": [
-          "Hjärtat blir rädd",
-          "Blodet blir kallt och trögt",
-          "Kroppen behöver mer syre",
-          "Man blir hungrig"
+          "Man kan gråta av glädje",
+          "Bara vuxna gråter",
+          "Tårar är alltid salta",
+          "Man gråter aldrig ute"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad gör tårarna mest, enligt texten?",
+        "options": [
+          "Gör oss ledsna",
+          "Värmer ansiktet",
+          "Skyddar och rengör ögat",
+          "Hjälper oss att höra bättre"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
@@ -2440,93 +2440,93 @@
     ]
   },
   {
-    "id": "lr-n1-solceller",
-    "title": "El från solen",
+    "id": "lr-n1-fjarrkontrollen",
+    "title": "Det osynliga ljuset",
     "level": 4,
     "textType": "fact",
     "topic": "teknik",
-    "body": "På en del hustak ser man blanka, mörkblå plattor. De kallas solceller eller solpaneler. De gör el av solljus.\n\nNär solen lyser på plattorna händer något inuti dem. Ljuset sätter fart på mycket små delar, och då blir det elektrisk ström. Strömmen går sedan in i huset. Där kan den få lampor, kylskåp och datorer att fungera.\n\nSolceller låter inte och släpper inte ut någon rök. Därför är de bra för miljön.\n\nMen på natten ger de ingen el alls. Och en mulen dag ger de mindre.",
+    "body": "Du trycker på en knapp, och tv:n byter kanal. Hur går det till?\n\nLängst fram på fjärrkontrollen sitter en liten lampa. När du trycker på en knapp blinkar den mycket snabbt. Ljuset kallas infrarött ljus, och det kan människors ögon inte se.\n\nVarje knapp har sitt eget blinkmönster. Tv:n har ett litet öga som tar emot ljuset och förstår vad du vill.\n\nLjuset kan inte gå igenom väggar. Därför måste du rikta fjärrkontrollen mot tv:n.\n\nTitta på lampan genom kameran i en mobil och tryck på en knapp. Ofta syns då en svag blinkning.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vilken färg har plattorna i texten?",
+        "question": "Var sitter lampan?",
         "options": [
-          "Ljusgröna",
-          "Knallröda",
-          "Mörkblå",
-          "Vita"
+          "Inuti tv:n",
+          "Bredvid batteriet",
+          "Längst fram på fjärrkontrollen",
+          "I taket ovanför soffan i vardagsrummet"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad gör solceller av solljus?",
+        "question": "Vad kallas ljuset?",
         "options": [
-          "Vatten",
-          "Bensin",
-          "El",
-          "Ljud"
+          "Ultraviolett ljus",
+          "Blått ljus",
+          "Infrarött ljus",
+          "Solljus"
         ],
         "answerIndex": 2,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vad kan strömmen få att fungera i huset?",
+        "question": "Varför syns inte ljuset?",
         "options": [
-          "Kranar och duschar",
-          "Fönster och dörrar",
-          "Trappor och golv",
-          "Lampor och kylskåp"
+          "Det är för mörkt",
+          "Lampan är trasig",
+          "Tv:n släcker det med en gång",
+          "Våra ögon kan inte se det"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Vad är en mulen dag?",
+        "question": "Hur vet tv:n vilken knapp du tryckt på?",
         "options": [
-          "En dag med sol",
-          "En väldigt varm dag",
-          "En dag mitt i sommaren",
-          "En dag med moln"
+          "Den hör klicket",
+          "Den gissar",
+          "Knapparna har olika färger och former",
+          "Varje knapp blinkar på sitt sätt"
         ],
         "answerIndex": 3,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q5",
-        "question": "Varför är solceller bra för miljön?",
-        "options": [
-          "De är blanka och fina",
-          "De släpper inte ut rök",
-          "De sitter uppe på taket",
-          "De är lätta att bära"
-        ],
-        "answerIndex": 1,
         "category": "fakta"
       },
       {
-        "id": "q6",
-        "question": "Varför behöver ett hus med solceller också få el på annat sätt?",
+        "id": "q5",
+        "question": "Du måste rikta fjärrkontrollen. Vad betyder rikta?",
         "options": [
-          "Plattorna går sönder när det regnar",
-          "Plattorna är för små för ett hus",
-          "De ger ingen el på natten",
-          "Grannarna tar elen"
+          "Laga",
+          "Peka mot något",
+          "Skaka",
+          "Ladda"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför går det inte att byta kanal från rummet bredvid?",
+        "options": [
+          "Batteriet räcker inte så långt",
+          "Tv:n sover",
+          "Ljuset går inte genom väggen",
+          "Kameran är avstängd"
         ],
         "answerIndex": 2,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Vad handlar texten mest om?",
+        "question": "Vad visar tipset med mobilkameran?",
         "options": [
-          "Hur man bygger ett tak",
-          "Varför solen är varm",
-          "Hur solceller gör el av ljus",
-          "Hur man lagar en lampa"
+          "Att mobilen kan styra tv:n",
+          "Att lampan är trasig",
+          "Att det finns ljus som ögat inte ser",
+          "Att kameran är bättre än tv:n"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
@@ -2616,96 +2616,96 @@
     ]
   },
   {
-    "id": "lr-n1-skelettet",
-    "title": "Benen i din kropp",
+    "id": "lr-n1-curling",
+    "title": "Stenen som glider",
     "level": 4,
     "textType": "fact",
-    "topic": "kroppen",
-    "body": "Utan skelett skulle du vara mjuk som en geléklump. Skelettet är kroppens stomme. Det håller dig upprätt och skyddar det som finns inuti.\n\nSkallen skyddar hjärnan. Revbenen bildar en bur runt hjärtat och lungorna.\n\nEn vuxen människa har 206 ben. En nyfödd bebis har ännu fler, ungefär 300. När barnet växer, växer en del av benen ihop.\n\nDet minsta benet sitter inne i örat. Det är inte större än ett riskorn. Det längsta benet är lårbenet.\n\nBen behöver kalk för att bli starka. Kalk finns till exempel i mjölk, ost och gröna grönsaker.",
+    "topic": "sport",
+    "body": "Curling är en sport som spelas på is. Två lag turas om att skjuta tunga stenar mot en måltavla i andra änden av banan. Måltavlan kallas boet.\n\nEn sten väger nästan 20 kilo. Den är gjord av granit och har ett handtag på ovansidan.\n\nMedan stenen glider sopar två spelare isen framför den med borstar. Då blir isen lite varmare och blankare, och stenen glider längre och rakare.\n\nLaget som har sina stenar närmast mitten av boet får poäng. Sverige har vunnit många mästerskap i curling.",
     "questions": [
       {
         "id": "q1",
-        "question": "Vad betyder stomme?",
+        "question": "Var spelas curling?",
         "options": [
-          "Något som är mjukt och slappt",
-          "En sorts muskel",
-          "Det som håller upp något",
-          "Ett skydd mot kyla"
+          "På gräs",
+          "På sand",
+          "På is",
+          "I vatten"
         ],
         "answerIndex": 2,
-        "category": "ordforstaelse"
+        "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad skyddar skallen?",
+        "question": "Vad är stenen gjord av?",
         "options": [
-          "Hjärnan",
-          "Hjärtat",
-          "Magen",
-          "Lungorna"
+          "Granit",
+          "Trä",
+          "Hård plast",
+          "Is"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Hur många ben har en vuxen människa?",
+        "question": "Vad kallas måltavlan?",
         "options": [
-          "26",
-          "2 006",
-          "600",
-          "206"
+          "Målet",
+          "Ringen",
+          "Korgen",
+          "Boet"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Varför har en bebis fler ben än en vuxen?",
+        "question": "Hur mycket väger en sten?",
         "options": [
-          "Bebisar dricker mer mjölk",
-          "Vuxna tappar sina ben",
-          "Bebisar är större",
-          "En del ben växer ihop"
+          "Ett kilo",
+          "Ungefär hundra kilo",
+          "Fem kilo",
+          "Nästan 20 kilo"
         ],
         "answerIndex": 3,
-        "category": "mellan_raderna"
+        "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Var sitter det minsta benet?",
+        "question": "Vad händer med isen när spelarna sopar?",
         "options": [
-          "Inne i örat",
-          "I lilltån",
-          "I näsan",
-          "I fingret"
+          "Den blir varmare och blankare",
+          "Den blir smutsig",
+          "Den spricker",
+          "Den blir kallare och mycket strävare"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q6",
-        "question": "Vad behöver benen för att bli starka?",
+        "question": "Stenen glider. Vad betyder glider?",
         "options": [
-          "Socker",
-          "Kalk",
-          "Salt",
-          "Luft"
+          "Rullar runt",
+          "Åker mjukt över ytan",
+          "Hoppar",
+          "Står alldeles still på samma ställe"
         ],
         "answerIndex": 1,
-        "category": "fakta"
+        "category": "ordforstaelse"
       },
       {
         "id": "q7",
-        "question": "Vad skulle hända om vi inte hade något skelett?",
+        "question": "Vad kan hända om ingen sopar?",
         "options": [
-          "Vi skulle bli mycket längre",
-          "Vi skulle springa fortare",
-          "Vi skulle inte kunna stå upp",
-          "Vi skulle inte behöva äta"
+          "Isen smälter",
+          "Stenen går sönder",
+          "Stenen stannar för tidigt",
+          "Laget får fler poäng"
         ],
         "answerIndex": 2,
-        "category": "helhet_slutsats"
+        "category": "mellan_raderna"
       }
     ]
   },
@@ -2792,93 +2792,93 @@
     ]
   },
   {
-    "id": "lr-n1-rymdstationen",
-    "title": "Ett hem i rymden",
+    "id": "lr-n1-fallskarmen",
+    "title": "Tyget som bromsar",
     "level": 4,
     "textType": "fact",
-    "topic": "rymden",
-    "body": "Högt över jorden svävar en stor rymdstation. Där bor och arbetar astronauter i flera månader i taget.\n\nInne i stationen är allt tyngdlöst. Astronauterna svävar i stället för att gå. De sover i sovsäckar som sitter fast på väggen, så att de inte flyter iväg.\n\nMaten finns i påsar och burkar. Smulor är farliga, eftersom de kan flyga in i maskiner. Därför äter astronauterna mjuka bröd i stället för vanligt bröd.\n\nRymdstationen åker runt jorden på ungefär en och en halv timme. Därför ser astronauterna solen gå upp sexton gånger varje dygn.",
+    "topic": "teknik",
+    "body": "Om man hoppar ur ett flygplan faller man fortare och fortare. Utan hjälp skulle man slå i marken med väldig fart. Därför har den som hoppar en fallskärm.\n\nFallskärmen är ett stort tygstycke, som ett tak. Den ligger hopvikt i en ryggsäck. När hopparen drar i ett handtag vecklar den ut sig.\n\nLuften fångas under tyget. Den trycker uppåt och bromsar fallet. Ju större fallskärmen är, desto mer luft fångar den.\n\nMed linor kan hopparen styra mot rätt plats och landa mjukt.",
     "questions": [
       {
         "id": "q1",
-        "question": "Hur länge bor astronauterna i stationen?",
+        "question": "Vad händer med farten om man faller utan fallskärm?",
         "options": [
-          "En dag",
-          "En timme",
-          "Tio år",
-          "Flera månader"
+          "Den minskar",
+          "Den är alltid lika",
+          "Man stannar i luften",
+          "Den ökar hela tiden"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Allt är tyngdlöst. Vad betyder det?",
+        "question": "Var ligger fallskärmen innan den öppnas?",
         "options": [
-          "Att allt svävar",
-          "Att allt blir tungt",
-          "Att allt fryser",
-          "Att allt går sönder"
+          "Hopvikt i en ryggsäck",
+          "I flygplanet",
+          "I fickan",
+          "I en låda under sätet"
         ],
         "answerIndex": 0,
-        "category": "ordforstaelse"
+        "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Var sitter sovsäckarna?",
+        "question": "Vad gör hopparen för att öppna den?",
         "options": [
-          "På golvet",
-          "I en säng",
-          "Utanför stationen",
-          "På väggen"
+          "Blåser i en visselpipa",
+          "Trycker på en knapp i planet",
+          "Ropar högt",
+          "Drar i ett handtag"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Varför äter astronauterna mjuka bröd?",
+        "question": "Vad bromsar fallet?",
         "options": [
-          "Mjukt bröd är godare",
-          "Vanligt bröd smular",
-          "Det finns inget mjöl",
-          "Vanligt bröd är för tungt"
+          "Vinden från flygplanet",
+          "Luften under tyget",
+          "Linorna",
+          "Ryggsäcken"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vad skulle hända med en boll som du släpper i stationen?",
+        "question": "Fallskärmen vecklar ut sig. Vad betyder det?",
         "options": [
-          "Den skulle falla ner",
-          "Den skulle sväva",
-          "Den skulle studsa",
-          "Den skulle gå sönder"
+          "Den går sönder",
+          "Den öppnar sig",
+          "Den viks ihop",
+          "Den blir mindre"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vilken fallskärm bromsar bäst?",
+        "options": [
+          "En liten",
+          "En stor",
+          "En röd",
+          "En tung"
         ],
         "answerIndex": 1,
         "category": "mellan_raderna"
       },
       {
-        "id": "q6",
-        "question": "Hur många gånger ser de solen gå upp varje dygn?",
-        "options": [
-          "En",
-          "Sexton",
-          "Två",
-          "Hundra"
-        ],
-        "answerIndex": 1,
-        "category": "fakta"
-      },
-      {
         "id": "q7",
         "question": "Vad handlar texten mest om?",
         "options": [
-          "Hur det är att leva i rymden",
-          "Hur man bygger en raket",
-          "Hur solen går upp",
-          "Hur man blir astronaut"
+          "Hur en fallskärm gör landningen mjuk",
+          "Hur flygplan kan flyga",
+          "Varför luft är osynlig",
+          "Hur man syr kläder av tyg"
         ],
         "answerIndex": 0,
         "category": "helhet_slutsats"
@@ -3144,93 +3144,93 @@
     ]
   },
   {
-    "id": "lr-n1-svamparna",
-    "title": "Skogens svampar",
+    "id": "lr-n1-ormbunken",
+    "title": "Växten från dinosauriernas tid",
     "level": 4,
     "textType": "fact",
     "topic": "natur",
-    "body": "På hösten växer det mycket svamp i skogen. Det vi ser ovanför marken är bara en liten del av svampen. Under jorden finns långa, tunna trådar som kallas mycel. De kan sprida sig över ett stort område.\n\nSvampar är varken växter eller djur. De har inga gröna blad och behöver inte solljus. De får sin näring från döda löv, gamla trädstammar och jorden.\n\nVissa svampar är goda att äta, till exempel kantareller. Men andra är mycket giftiga. Därför ska man aldrig plocka eller äta svamp utan en vuxen som kan svamp ordentligt.",
+    "body": "Ormbunken är en mycket gammal växt. Den fanns redan när dinosaurierna levde. Då kunde vissa ormbunkar bli lika höga som träd.\n\nOrmbunken har inga blommor och inga frön. I stället har den sporer. Sporerna är små som damm och sitter i bruna prickar under bladen. Vinden sprider dem.\n\nPå våren rullar nya blad upp sig ur marken. De ser ut som små snäckor.\n\nOrmbunkar trivs bäst där det är fuktigt och skuggigt, till exempel vid en bäck i granskogen.",
     "questions": [
       {
         "id": "q1",
-        "question": "När växer det mycket svamp?",
+        "question": "När fanns ormbunkar redan?",
         "options": [
-          "På vintern",
-          "På våren",
-          "Bara på natten",
-          "På hösten"
+          "Bara de senaste åren",
+          "När vikingarna levde",
+          "Först i början av 1900-talet",
+          "När dinosaurierna levde"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vad är mycel?",
+        "question": "Vad har ormbunken i stället för frön?",
         "options": [
-          "En sorts mycket giftig svamp",
-          "Trådar under jorden",
-          "Den runda hatten",
-          "Ett slags löv"
+          "Bär",
+          "Sporer",
+          "Kottar",
+          "Nötter"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
+        "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Behöver svampar solljus?",
+        "question": "Hur små är sporerna?",
         "options": [
-          "Ja, hela dagen",
-          "Nej",
-          "Ja, men bara på morgonen",
-          "Bara på sommaren"
+          "Stora som ärtor",
+          "Små som damm",
+          "Som riskorn",
+          "Som små stenar på stigen"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q4",
-        "question": "Var får svamparna sin näring ifrån?",
+        "question": "Var sitter sporerna?",
         "options": [
-          "Från döda löv och stammar",
-          "Bara från solljuset på dagen",
-          "Från fåglar som äter dem",
-          "Från snö som smälter"
+          "Under bladen",
+          "Inne i roten",
+          "I en liten blomma",
+          "Längst upp på stjälken"
         ],
         "answerIndex": 0,
         "category": "fakta"
       },
       {
         "id": "q5",
-        "question": "Vilken svamp är god att äta enligt texten?",
+        "question": "Vinden sprider sporerna. Vad betyder sprider?",
         "options": [
-          "Kantarell",
-          "Flugsvamp",
-          "Ingen alls",
-          "Alla svampar"
+          "För ut åt olika håll",
+          "Samlar ihop i en stor hög",
+          "Gör större",
+          "Tar sönder"
         ],
         "answerIndex": 0,
-        "category": "fakta"
+        "category": "ordforstaelse"
       },
       {
         "id": "q6",
-        "question": "Varför ska en vuxen som kan svamp vara med?",
+        "question": "Var är det störst chans att hitta ormbunkar?",
         "options": [
-          "Vissa svampar är giftiga",
-          "Svampkorgarna är tunga att bära",
-          "Barn får inte gå i skogen",
-          "Svampar är dyra att köpa"
+          "I en fuktig granskog",
+          "På en solig sandstrand",
+          "Mitt på en åker",
+          "Uppe på ett torrt berg"
         ],
         "answerIndex": 0,
         "category": "mellan_raderna"
       },
       {
         "id": "q7",
-        "question": "Vilken rubrik passar också till texten?",
+        "question": "Vad handlar texten mest om?",
         "options": [
-          "Livet under marken",
-          "Hur man lagar svampsoppa",
-          "Träd som tappar löv",
-          "Djuren i skogen"
+          "En gammal växt och hur den sprids",
+          "Vad dinosaurierna åt",
+          "Hur man planterar frön",
+          "Varför skogar brinner"
         ],
         "answerIndex": 0,
         "category": "helhet_slutsats"
@@ -3426,81 +3426,81 @@
     ]
   },
   {
-    "id": "lr-n1-vasaskeppet",
-    "title": "Skeppet som sjönk direkt",
+    "id": "lr-n1-forsta-fotot",
+    "title": "Fotot som tog flera timmar",
     "level": 4,
     "textType": "fact",
     "topic": "historia",
-    "body": "För nästan 400 år sedan byggdes ett stort och vackert krigsskepp i Stockholm. Det hette Vasa. Skeppet hade många kanoner och var fullt av utskurna figurer.\n\nÅr 1628 skulle Vasa segla ut för första gången. Men skeppet hade bara seglat en liten bit när det började luta. Vatten forsade in genom hålen för kanonerna. Vasa sjönk mitt i hamnen.\n\nI över 300 år låg skeppet på botten. År 1961 lyftes det upp igen. I dag kan man se det på ett museum i Stockholm. Det är nästan helt.",
+    "body": "För ungefär 200 år sedan tog en fransman som hette Niépce ett av de första fotona i världen. Han ställde en låda med en lins i ett fönster. Inne i lådan låg en platta som var känslig för ljus.\n\nDet tog minst åtta timmar innan bilden syntes på plattan. Bilden visade taken utanför hans fönster.\n\nSenare blev kamerorna snabbare. Men länge måste man sitta helt stilla i flera minuter. Därför ser människor på gamla foton ofta allvarliga ut.\n\nI dag tar en mobil en bild på mindre än en sekund.",
     "questions": [
       {
         "id": "q1",
-        "question": "Var byggdes Vasa?",
+        "question": "När togs ett av de första fotona?",
         "options": [
-          "I Göteborg",
-          "I Stockholm",
-          "I Norge",
-          "I Danmark"
+          "För ungefär 20 år sedan",
+          "För ungefär 200 år sedan",
+          "För ungefär 2 000 år sedan",
+          "Förra året"
         ],
         "answerIndex": 1,
         "category": "fakta"
       },
       {
         "id": "q2",
-        "question": "Vilket år sjönk Vasa?",
+        "question": "Vad visade bilden?",
         "options": [
-          "1961",
-          "1826",
-          "1682",
-          "1628"
+          "Fotografens hela familj",
+          "En häst",
+          "Havet",
+          "Taken utanför fönstret"
         ],
         "answerIndex": 3,
         "category": "fakta"
       },
       {
         "id": "q3",
-        "question": "Vatten forsade in. Vad betyder det?",
+        "question": "Hur lång tid tog det att ta bilden?",
         "options": [
-          "Lite vatten droppade in",
-          "Mycket vatten rann in snabbt",
-          "Vattnet frös till is",
-          "Vattnet blev varmt"
+          "En sekund",
+          "Minst åtta timmar",
+          "Fem minuter",
+          "Exakt en hel vecka"
         ],
         "answerIndex": 1,
-        "category": "ordforstaelse"
-      },
-      {
-        "id": "q4",
-        "question": "Varför kom vatten in genom kanonhålen?",
-        "options": [
-          "Någon hade glömt att stänga en dörr",
-          "Det regnade kraftigt",
-          "Kanonerna sköt hål i båten",
-          "Skeppet lutade för mycket"
-        ],
-        "answerIndex": 3,
-        "category": "mellan_raderna"
-      },
-      {
-        "id": "q5",
-        "question": "Hur länge låg skeppet på botten?",
-        "options": [
-          "I tre veckor",
-          "I tio år",
-          "I över 300 år",
-          "I tusen år"
-        ],
-        "answerIndex": 2,
         "category": "fakta"
       },
       {
-        "id": "q6",
-        "question": "Vad är det märkliga med Vasa?",
+        "id": "q4",
+        "question": "Plattan var känslig för ljus. Vad betyder det här?",
         "options": [
-          "Det seglade jorden runt",
-          "Det hade inga kanoner",
-          "Det sjönk på sin första resa",
-          "Det var världens minsta skepp"
+          "Den gick lätt sönder",
+          "Den lyste själv",
+          "Den var mjuk",
+          "Ljuset ändrade den"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför ser människor på gamla foton allvarliga ut?",
+        "options": [
+          "De var alltid arga förr",
+          "Fotografen bestämde det så",
+          "Det är svårt att le länge",
+          "De hade ont i tänderna"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar texten om kameror?",
+        "options": [
+          "De har blivit långsammare",
+          "De har inte ändrats alls",
+          "De har blivit mycket snabbare",
+          "De fungerar bara i fönster"
         ],
         "answerIndex": 2,
         "category": "helhet_slutsats"
