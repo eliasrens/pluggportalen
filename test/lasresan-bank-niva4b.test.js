@@ -15,7 +15,7 @@ const read = (f) => JSON.parse(readFileSync(new URL(f, dir)));
 const texts = read("level-4-b.json");
 const old = read("level-4.json");
 const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, " ");
-const EXPECTED = 30;
+const EXPECTED = 40;
 
 test("nivå 4b: texter, hälften story/fact, id lr-n1- utan åäö, level 4, i manifestet", () => {
   assert.equal(texts.length, EXPECTED);
