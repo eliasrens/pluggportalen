@@ -457,6 +457,8 @@ Question   = { id, question, options: [4 strängar], answerIndex (0-3), category
   listas efter den i manifestet. Den gamla filen rörs inte – text-id:n i
   elevernas historik pekar dit. Nya texter behåller nivåns id-prefix
   (`lr-n1-…` på nivå 4).
+  Nivå 3 har `level-3-b.json` (#663, 40 texter, 20 story/20 fact, via
+  `admin/lasresan-g3b-bygg.mjs`, test `test/lasresan-bank-niva3b.test.js`).
 - **Frågor per text** (`questionRange(level)`, `QUESTIONS_BY_LEVEL` i
   `config.js`): nivå 1 = 3–4, nivå 2 = 4–5, nivå 3 = 5–7, nivå 4–10 = 5–9.
   Alltid 4 alternativ och exakt ett `answerIndex`.
