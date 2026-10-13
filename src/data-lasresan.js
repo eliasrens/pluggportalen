@@ -223,7 +223,9 @@ export async function listAttempts(studentId = currentStudentId(), max = 20) {
  * Läsresan-tillstånd för flera elever (lärarens klasstabell). En getDoc per
  * elev (läraren, ~30 elever, inte varje elevsida). Elev som inte börjat →
  * lasresa: null. Nekad/saknad läsning hoppas över per elev.
- * @returns {Promise<{studentId:string, lasresa:(object|null)}[]>}
+ * `amnesTotals` (#674) = studentData.amneslasning.totals ur SAMMA dokument
+ * (källfiltret Alla/Läsresan/Ämnesläsning) – ingen extra läsning.
+ * @returns {Promise<{studentId:string, lasresa:(object|null), amnesTotals:(object|null)}[]>}
  */
 export async function getClassLasresa(studentIds) {
   const ids = [...new Set((studentIds || []).filter(Boolean))];
@@ -231,11 +233,17 @@ export async function getClassLasresa(studentIds) {
     ids.map(async (studentId) => {
       try {
         const snap = await getDoc(doc(db, "studentData", studentId));
-        const raw = snap.exists() ? snap.data().lasresa : null;
-        return { studentId, lasresa: raw ? normalizeLasresa(raw, WORLDS) : null };
+        const d = snap.exists() ? snap.data() : {};
+        const raw = d.lasresa || null;
+        const amnes = d.amneslasning && d.amneslasning.totals;
+        return {
+          studentId,
+          lasresa: raw ? normalizeLasresa(raw, WORLDS) : null,
+          amnesTotals: amnes && typeof amnes === "object" ? amnes : null,
+        };
       } catch (err) {
         console.warn(`[Läsresan] kunde inte läsa ${studentId}`, err);
-        return { studentId, lasresa: null };
+        return { studentId, lasresa: null, amnesTotals: null };
       }
     })
   );

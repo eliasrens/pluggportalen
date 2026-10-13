@@ -13,6 +13,10 @@
 // studentData.lasresa (getClassLasresa, ett dokument per elev, en gång).
 // Försöken (lasresaAttempts) hämtas först när läraren öppnar EN elev.
 //
+// KÄLLFILTER (#674, Ämnesläsning): Alla / Läsresan / Ämnesläsning ovanför
+// tabellen. Ämnesläsningens totaler ligger i studentData.amneslasning.totals
+// i SAMMA dokument (getClassLasresa → amnesTotals), så filtret läser inget nytt.
+//
 // Laddas DYNAMISKT från teacher-class.js – aldrig i app.js statiska bootgraf
 // (#271, vaktas av test/lasresan-reader.test.js). Datakällorna kan injiceras
 // (preview/preview-lasresan-larare.html kör utan Firebase).
@@ -23,6 +27,7 @@ import { el, esc, emptyState, icon } from "./teacher-shared.js";
 import { LEVEL_MAX } from "./lasresan/config.js";
 import { classStartLevelOf } from "./lasresan/level-control.js";
 import { levelCell } from "./lasresan/teacher-niva.js";
+import { SOURCE_FILTERS, parseSourceFilter, totalsForSource } from "./lasresan/stats.js";
 import { TABLE_COLUMNS, nextSort, pctLevel, sortTeacherRows, teacherClassRows } from "./lasresan/teacher-rows.js";
 import { openLasresanDetail } from "./teacher-lasresan-elev.js";
 import { DEFAULT_LEVEL_API, renderLevelPanel, renderStudentLevelControl } from "./teacher-lasresan-niva.js";
@@ -33,6 +38,8 @@ const defaultLoadAttempts = async (id, max) => (await import("./data-lasresan.js
 
 // Senaste sortering delas mellan klasskort under sessionen (bekvämt vid byte).
 let lastSort = { key: "namn", dir: "asc" };
+// Källfiltret (#674) delas likadant. Standard "Alla".
+let lastSource = parseSourceFilter();
 
 const dash = `<span class="lrt-dash" aria-label="inget än">–</span>`;
 const numCell = (row, v) => (row.started ? String(v) : dash);
@@ -73,6 +80,15 @@ function headHtml(sort) {
     </th>`;
   }).join("");
   return `<tr>${cols}</tr>`;
+}
+
+/** Källfiltret Alla / Läsresan / Ämnesläsning (#674). */
+function filterHtml(source) {
+  const btns = SOURCE_FILTERS.map(
+    (f) => `<button type="button" class="lrt-src${f.key === source ? " active" : ""}" data-source="${f.key}"
+      aria-pressed="${f.key === source}">${f.key === "amnes" ? "📖 " : ""}${esc(f.label)}</button>`
+  ).join("");
+  return `<div class="lrt-srcs" role="group" aria-label="Visa statistik från">${btns}</div>`;
 }
 
 /** Klassens summering ovanför tabellen. */
@@ -128,15 +144,19 @@ export async function renderClassLasresan(ctx, host, opts = {}) {
 
   const byId = new Map(list.map((s) => [s.id, s]));
   const lasresaById = new Map((entries || []).map((e) => [e.studentId, e.lasresa || null]));
+  const amnesById = new Map((entries || []).map((e) => [e.studentId, e.amnesTotals || null]));
   // En rad för VARJE elev i klassen – även de som saknas i svaret (= ej börjat).
   // Byggs om efter en nivåändring (#506), därför `let`.
   let rows = [];
   let rowById = new Map();
   const buildRows = () => {
     rows = teacherClassRows(
-      list.map((s) => ({ studentId: s.id, namn: s.namn || s.username || s.id, lasresa: lasresaById.get(s.id) || null })),
+      list.map((s) => ({
+        studentId: s.id, namn: s.namn || s.username || s.id,
+        lasresa: lasresaById.get(s.id) || null, amnesTotals: amnesById.get(s.id) || null,
+      })),
       undefined,
-      { startLevel: cls ? classStartLevelOf(cls) : null }
+      { startLevel: cls ? classStartLevelOf(cls) : null, source: lastSource }
     );
     rowById = new Map(rows.map((r) => [r.studentId, r]));
   };
@@ -145,6 +165,7 @@ export async function renderClassLasresan(ctx, host, opts = {}) {
   const view = el(`<div class="lrt-teacher">
     <div class="lrt-intro">
       <h3 class="subhead lrt-title">${icon("book", 18)}<span>Läsresan</span></h3>
+      ${filterHtml(lastSource)}
       ${summaryHtml(rows)}
     </div>
     <div class="lrn-host"></div>
@@ -173,6 +194,20 @@ export async function renderClassLasresan(ctx, host, opts = {}) {
       .join("");
   }
 
+  // Källfilter: rita om raderna med de andra totalerna (ingen ny läsning).
+  view.querySelector(".lrt-srcs").addEventListener("click", (e) => {
+    const btn = e.target.closest(".lrt-src");
+    if (!btn) return;
+    lastSource = parseSourceFilter(btn.dataset.source);
+    view.querySelectorAll(".lrt-src").forEach((b) => {
+      const on = b.dataset.source === lastSource;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    buildRows();
+    draw();
+  });
+
   // Sortering: klick på rubrik (delegerat – rubrikerna ritas om vid varje klick).
   thead.addEventListener("click", (e) => {
     const btn = e.target.closest(".lrt-sort");
@@ -185,8 +220,11 @@ export async function renderClassLasresan(ctx, host, opts = {}) {
   // Läs om elever (alla eller en) efter en nivåändring och rita om tabellen.
   const reload = async (ids = list.map((s) => s.id)) => {
     const fresh = await (loadClass || defaultLoadClass)(ids);
-    ids.forEach((id) => lasresaById.set(id, null));
-    (fresh || []).forEach((e) => lasresaById.set(e.studentId, e.lasresa || null));
+    ids.forEach((id) => { lasresaById.set(id, null); amnesById.set(id, null); });
+    (fresh || []).forEach((e) => {
+      lasresaById.set(e.studentId, e.lasresa || null);
+      amnesById.set(e.studentId, e.amnesTotals || null);
+    });
     buildRows();
     draw();
   };
@@ -205,7 +243,8 @@ export async function renderClassLasresan(ctx, host, opts = {}) {
     if (!student) return;
     openLasresanDetail(student, {
       row: rowById.get(id),
-      lasresa: lasresaById.get(id) || null,
+      source: lastSource,
+      catStats: (totalsForSource(lasresaById.get(id) || null, amnesById.get(id), lastSource) || {}).catStats,
       loadAttempts: loadAttempts || defaultLoadAttempts,
       renderLevel: cls
         ? (slot, { updateRow }) =>
