@@ -28,6 +28,10 @@
           <button data-s="hav10">Havet · steg 10</button>
           <button data-s="hav56">Havet · gå 5→6 (brygga)</button>
           <button data-s="havklar">Havet · 19→20 (värld klar 🎉)</button>
+          <button data-s="dj0">Djungeln · steg 0</button>
+          <button data-s="dj10">Djungeln · steg 10</button>
+          <button data-s="dj56">Djungeln · gå 5→6 (hängbro)</button>
+          <button data-s="djklar">Djungeln · 19→20 (hela resan klar 🎉)</button>
         </div>
         <div class="hintrad">Klicka på det gula steget = "spela". Låsta steg går inte att klicka.
           Världsväljaren uppe till vänster visar klara/låsta världar.</div>
@@ -71,6 +75,10 @@
         hav10: () => visa("havet", 10, ["skogen", "oknen"]),
         hav56: () => visa("havet", 6, ["skogen", "oknen"], 5),
         havklar: () => visa("havet", 20, ["skogen", "oknen", "havet"], 19, true),
+        dj0: () => visa("djungeln", 0, ["skogen", "oknen", "havet"]),
+        dj10: () => visa("djungeln", 10, ["skogen", "oknen", "havet"]),
+        dj56: () => visa("djungeln", 6, ["skogen", "oknen", "havet"], 5),
+        djklar: () => visa("djungeln", 20, ["skogen", "oknen", "havet", "djungeln"], 19, true),
       };
       for (const b of document.querySelectorAll("[data-s]")) {
         b.addEventListener("click", () => scenarier[b.dataset.s]());
