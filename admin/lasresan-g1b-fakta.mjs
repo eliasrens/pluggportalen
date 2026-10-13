@@ -154,4 +154,78 @@ export const FAKTA = [
       ["Vad är jorden?", ["En planet", "En stjärna", "En måne", "En sol"], "ordforstaelse"],
     ],
   },
+  {
+    id: "lr-g1-nasan", title: "Näsan", textType: "fact", topic: "vetenskap",
+    body: [
+      "Mitt i ansiktet sitter näsan. Med näsan kan du känna lukter.",
+      "Du känner när maten luktar gott. Du känner också när något luktar illa.",
+      "Vi andas genom näsan. Små hår i näsan stoppar damm.",
+      "När något kittlar i näsan nyser vi. Atjo!",
+    ],
+    q: [
+      ["Var sitter näsan?", ["Mitt i ansiktet", "Uppe på huvudet", "Bakom örat", "Under hakan"], "fakta"],
+      ["Vad stoppar de små håren i näsan?", ["Damm", "Vatten", "Mat", "Ljud"], "fakta"],
+      ["Vad gör vi när något kittlar i näsan?", ["Nyser", "Skrattar", "Hostar", "Gäspar"], "fakta"],
+      ["Vad betyder ”luktar illa”?", ["Luktar inte gott", "Luktar mycket gott", "Låter högt", "Smakar sött"], "ordforstaelse"],
+    ],
+  },
+  {
+    id: "lr-g1-somnen", title: "Vi behöver sova", textType: "fact", topic: "vetenskap",
+    body: [
+      "Alla människor behöver sova. Barn behöver sova mer än vuxna.",
+      "När du sover vilar kroppen. Den får ny kraft till nästa dag.",
+      "Hjärnan arbetar ändå när du sover. Den sparar det du har lärt dig.",
+      "Ibland drömmer vi. Den som sover gott orkar mer på dagen.",
+    ],
+    q: [
+      ["Vem behöver sova mer, barn eller vuxna?", ["Barn", "Vuxna", "Lika mycket", "Ingen av dem"], "fakta"],
+      ["Vad gör kroppen när du sover?", ["Vilar", "Springer", "Äter", "Leker"], "fakta"],
+      ["Vad sparar hjärnan när du sover?", ["Det du lärt dig", "Maten du ätit", "Dina leksaker", "Dina pengar"], "fakta"],
+      ["Vad handlar texten mest om?", ["Varför vi sover", "Hur man bäddar", "Hur drömmar ser ut", "Var vi sover"], "helhet_slutsats"],
+    ],
+  },
+  {
+    id: "lr-g1-cykeln", title: "Cykeln", textType: "fact", topic: "teknik",
+    body: [
+      "En cykel har två hjul. Du trampar på pedalerna. Då snurrar hjulen och cykeln rullar.",
+      "Du styr med styret. När du vill stanna bromsar du.",
+      "På cykeln ska det finnas en ringklocka. När det är mörkt behövs lampor.",
+      "Ha alltid hjälm på huvudet när du cyklar!",
+    ],
+    q: [
+      ["Hur många hjul har en cykel?", ["Två", "Tre", "Fyra", "Ett"], "fakta"],
+      ["Vad trampar du på?", ["Pedalerna", "Styret", "Sadeln", "Ringklockan"], "fakta"],
+      ["Vad gör du med styret?", ["Styr cykeln", "Bromsar", "Ringer", "Trampar"], "ordforstaelse"],
+      ["Vad ska du ha på huvudet när du cyklar?", ["Hjälm", "Mössa", "Keps", "Hörlurar"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-taget", title: "Tåget", textType: "fact", topic: "teknik",
+    body: [
+      "Tåget åker på räls. Rälsen är två långa skenor av stål.",
+      "Ett tåg har många vagnar. I vagnarna sitter folk.",
+      "De flesta tåg i Sverige går på el. Elen kommer från en ledning ovanför tåget.",
+      "Tåget stannar på stationer. Där kan man kliva på och av.",
+    ],
+    q: [
+      ["Vad åker tåget på?", ["Räls", "Vägar", "Is", "Vatten"], "fakta"],
+      ["Vad är räls?", ["Två långa skenor", "En lång väg", "En stor vagn", "En sorts el"], "ordforstaelse"],
+      ["Var kommer elen från?", ["En ledning ovanför", "Batterier under golvet", "Solen", "Hjulen"], "fakta"],
+      ["Var stannar tåget?", ["På stationer", "Vid affärer", "På parkeringar", "Vid sjöar"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-dinosaurierna", title: "Dinosaurierna", textType: "fact", topic: "historia",
+    body: [
+      "För mycket, mycket länge sedan levde dinosaurierna. Det var långt innan det fanns människor.",
+      "Vissa dinosaurier var stora som hus. Andra var små som hönor. Vissa åt växter. Andra åt kött.",
+      "Nu är dinosaurierna borta. Men fåglarna är släkt med dem. Vi hittar deras ben i marken.",
+    ],
+    q: [
+      ["När levde dinosaurierna?", ["För mycket länge sedan", "För hundra år sedan", "I somras", "Förra veckan"], "fakta"],
+      ["Vad åt dinosaurierna?", ["Växter eller kött", "Bara fisk", "Bara frukt", "Bara insekter"], "fakta"],
+      ["Vilka djur är släkt med dinosaurierna?", ["Fåglarna", "Fiskarna", "Katterna", "Hästarna"], "fakta"],
+      ["Vad hittar vi i marken?", ["Deras ben", "Deras hus", "Deras kläder", "Deras leksaker"], "fakta"],
+    ],
+  },
 ];

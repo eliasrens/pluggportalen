@@ -159,4 +159,80 @@ export const STORY = [
       ["Vad handlar texten mest om?", ["Mias första steg", "Tariqs nya soffa", "En lek med boll", "Mias födelsedag"], "helhet_slutsats"],
     ],
   },
+  {
+    id: "lr-g1-simningen", title: "Jag kan simma!", textType: "story", topic: "sport",
+    body: [
+      "Ayan går på simskola. Hon har armpuffar på sig.",
+      "I dag ska Ayan simma utan armpuffar. Hon är lite rädd.",
+      "Hon tar ett djupt andetag. Hon sparkar med benen.",
+      "Ett, två, tre simtag! Ayan når kanten. ”Jag kan simma!” ropar hon.",
+    ],
+    q: [
+      ["Var går Ayan?", ["På simskola", "På fotboll", "På dans", "På ridning"], "fakta"],
+      ["Vad ska Ayan göra i dag?", ["Simma utan armpuffar", "Hoppa från tornet", "Dyka efter en ring", "Simma med en bräda"], "fakta"],
+      ["Hur känner sig Ayan först?", ["Lite rädd", "Mycket arg", "Jätteglad", "Väldigt trött"], "fakta"],
+      ["Hur många simtag tar Ayan?", ["Tre", "Två", "Fyra", "Tio"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-pingisen", title: "Pingis med mamma", textType: "story", topic: "sport",
+    body: [
+      "Lilly och mamma spelar pingis. Bordet står i garaget.",
+      "Mamma slår bollen. Lilly slår tillbaka. Pling, plong, pling, plong!",
+      "Sedan slår Lilly för hårt. Bollen flyger över bordet och in under bilen.",
+      "Mamma kryper under bilen och letar. Lilly fnissar. Mamma har spindelnät i håret!",
+    ],
+    q: [
+      ["Var står pingisbordet?", ["I garaget", "I köket", "På gården", "I källaren"], "fakta"],
+      ["Vart flyger bollen?", ["In under bilen", "Upp på taket", "Ut genom dörren", "In i en hink"], "fakta"],
+      ["Vem letar efter bollen?", ["Mamma", "Lilly", "Pappa", "Grannen"], "fakta"],
+      ["Varför fnissar Lilly?", ["Spindelnät i mammas hår", "Bollen är borta", "Mamma vinner", "Bilen tutar"], "mellan_raderna"],
+    ],
+  },
+  {
+    id: "lr-g1-kullerbyttan", title: "Kullerbytta på mattan", textType: "story", topic: "sport",
+    body: [
+      "En tjock blå matta ligger i gympasalen. I dag ska klassen göra kullerbyttor.",
+      "Vilmer sätter händerna på mattan. Han tittar på sin mage. Sedan rullar han runt.",
+      "Hoppsan! Han hamnar på sidan.",
+      "Vilmer försöker igen. Nu rullar han rakt. Han sitter på mattan och ler.",
+    ],
+    q: [
+      ["Vilken färg har mattan?", ["Blå", "Röd", "Grön", "Gul"], "fakta"],
+      ["Vad ska klassen göra?", ["Kullerbyttor", "Höga hopp", "Armhävningar", "Stafett"], "fakta"],
+      ["Vad händer första gången?", ["Han hamnar på sidan", "Han rullar rakt", "Han rullar av mattan", "Han vågar inte"], "fakta"],
+      ["Hur går det andra gången?", ["Han rullar rakt", "Han ramlar av", "Han ger upp", "Han gråter"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-taket", title: "Ljud på taket", textType: "story", topic: "mysterier",
+    body: [
+      "Soraya ligger i sin säng. Det är tidig morgon.",
+      "Tick, tick, tick! Något låter på taket. Är det regn? Nej, himlen är blå.",
+      "Soraya går ut och tittar upp. Där sitter en svartvit fågel. Den hackar på taket.",
+      "Det är en skata! Den letar efter mat.",
+    ],
+    q: [
+      ["När hör Soraya ljudet?", ["Tidigt på morgonen", "Sent på kvällen", "Precis före middagen", "På eftermiddagen"], "fakta"],
+      ["Varför är det inte regn?", ["Himlen är blå", "Det är vinter", "Taket är nytt", "Det blåser"], "fakta"],
+      ["Vilken färg har fågeln?", ["Svartvit", "Helt röd", "Gul och grön", "Brun"], "fakta"],
+      ["Vad gör skatan på taket?", ["Letar efter mat", "Bygger ett bo", "Sover", "Sjunger"], "fakta"],
+    ],
+  },
+  {
+    id: "lr-g1-salladen", title: "Hål i salladen", textType: "story", topic: "mysterier",
+    body: [
+      "Ludde och farfar odlar sallad. En morgon är det hål i bladen.",
+      "”Vem har ätit av vår sallad?” undrar Ludde.",
+      "På kvällen gömmer de sig bakom buskarna. De väntar tyst.",
+      "Då hoppar en liten kanin fram. Den börjar tugga på ett blad.",
+      "Farfar sätter ett nät runt salladen.",
+    ],
+    q: [
+      ["Vad odlar Ludde och farfar?", ["Sallad", "Morötter", "Potatis", "Jordgubbar"], "fakta"],
+      ["Vad är det i bladen en morgon?", ["Hål", "Snö", "Myror", "Vatten"], "fakta"],
+      ["Var gömmer de sig?", ["Bakom buskarna", "Under bordet", "I garaget", "Inne i växthuset"], "fakta"],
+      ["Vem har ätit av salladen?", ["En kanin", "En snigel", "En fågel", "En mus"], "mellan_raderna"],
+    ],
+  },
 ];
