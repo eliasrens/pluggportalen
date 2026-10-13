@@ -1,0 +1,870 @@
+[
+  {
+    "id": "lr-g3-videosamtalet",
+    "title": "Mormors nya mobil",
+    "level": 3,
+    "textType": "story",
+    "topic": "relationer",
+    "body": "Mormor Ingrid har fått en ny mobil. Men hon tycker att den är krånglig. ”Den gör aldrig som jag vill”, suckar hon.\n\nDärför går Selma hem till henne efter skolan. Hon visar hur man låser upp skärmen. Sedan visar hon den gröna knappen som man ringer med. Mormor skriver upp allt i ett litet block.\n\nFörst trycker mormor fel hela tiden. En gång ringer hon till tandläkaren av misstag! De skrattar så att de får tårar i ögonen.\n\nTill sist ska de prova ett videosamtal. Selma går ut i hallen och ringer. På skärmen syns bara mormors näsa, alldeles stor och nära.\n\n”Håll mobilen längre bort!” ropar Selma.\n\nNu ringer mormor till Selma varje söndag. Hon visar sina blommor och frågar hur det går i skolan.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad tycker mormor om sin nya mobil?",
+        "options": [
+          "Att den är krånglig",
+          "Att den är för liten",
+          "Att den är för dyr",
+          "Att den är för tung"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var skriver mormor upp allt?",
+        "options": [
+          "På en lapp på kylskåpet",
+          "I ett litet block",
+          "I mobilen",
+          "På handen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem ringer mormor av misstag?",
+        "options": [
+          "Brandkåren",
+          "Tandläkaren",
+          "Selmas pappa",
+          "Grannen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Mormor suckar. Vad gör hon då?",
+        "options": [
+          "Andas ut tungt",
+          "Skrattar högt",
+          "Sjunger tyst",
+          "Nyser flera gånger"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför syns bara mormors näsa på skärmen?",
+        "options": [
+          "Hon håller mobilen för nära",
+          "Skärmen är trasig",
+          "Selma har ritat på skärmen",
+          "Selma har ritat en näsa på skärmen"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad visar slutet av texten?",
+        "options": [
+          "Mormor har gett bort mobilen",
+          "Selma är trött på mormor",
+          "Mormor har lärt sig använda mobilen",
+          "Mormor ringer bara till tandläkaren"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-paddorna",
+    "title": "Paddorna på vägen",
+    "level": 3,
+    "textType": "story",
+    "topic": "natur",
+    "body": "En kväll i april kör Ebba och pappa förbi sjön. Plötsligt bromsar pappa. På vägen hoppar massor av små bruna djur. Det är paddor!\n\n”De är på väg till sjön för att lägga ägg”, säger pappa. ”Varje vår vandrar de dit. Men först måste de över vägen.”\n\nEbba ser att en bil kör över flera paddor. Hon blir ledsen och tyst hela vägen hem.\n\nNästa kväll kommer de tillbaka. De har gula västar, ficklampor och två hinkar. Där finns redan några andra människor. Alla lyfter försiktigt upp paddorna i hinkarna. Sedan bär de dem över vägen och släpper dem vid stranden.\n\nEbba räknar varje padda som hon hjälper. När det är dags att åka hem har hon kommit till fyrtiosju.\n\nHon somnar i bilen med ett leende.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken månad händer det?",
+        "options": [
+          "Juli",
+          "Oktober",
+          "April",
+          "December"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Varför vandrar paddorna till sjön?",
+        "options": [
+          "För att lägga ägg",
+          "För att leta mat",
+          "För att sova över vintern",
+          "För att bada i varmt vatten"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Hur känner sig Ebba när bilen kör över paddorna?",
+        "options": [
+          "Glad",
+          "Ledsen",
+          "Uttråkad",
+          "Hungrig"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad har de med sig nästa kväll?",
+        "options": [
+          "Håvar, stövlar och en båt",
+          "Filtar, smörgåsar och ett litet tält",
+          "En kamera och en karta",
+          "Västar, ficklampor och hinkar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Varför har de gula västar på sig?",
+        "options": [
+          "Så att paddorna hittar dem",
+          "Så att bilarna ser dem",
+          "För att det är kallt ute",
+          "För att det är pappas favoritfärg"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Hur många paddor hjälper Ebba?",
+        "options": [
+          "Fyrtiosju",
+          "Sjutton",
+          "Fyrtio",
+          "Sjuttiofyra"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Ebba somnar med ett leende. Vad säger det om henne?",
+        "options": [
+          "Hon är nöjd med kvällen",
+          "Hon är rädd för paddor",
+          "Hon vill aldrig åka dit igen",
+          "Hon har glömt paddorna"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-masen",
+    "title": "Måsen i hamnen",
+    "level": 3,
+    "textType": "story",
+    "topic": "roliga situationer",
+    "body": "Det är sommar, och Elvin är i hamnen med pappa och lillasyster Mira. De köper var sin glass. Elvin väljer jordgubb med strössel.\n\nDe sätter sig på en bänk vid vattnet. Elvin lyfter glassen och ska ta första tuggan. Då hörs ett skrik ovanför. En stor vit mås dyker ner. Swisch! Glassen är borta. Kvar i handen finns bara struten.\n\nMira skrattar så att hon nästan trillar av bänken. Pappa köper en ny glass till Elvin.\n\nMen efter en liten stund kommer måsen tillbaka. Den här gången tar den Miras glass! Nu är det Elvin som skrattar.\n\nPappa skakar på huvudet. ”Nu äter vi under parasollet vid kiosken”, säger han.\n\nMåsen sitter kvar på en stolpe och tittar på dem.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Var är Elvin?",
+        "options": [
+          "I hamnen",
+          "På stranden",
+          "I parken",
+          "På torget"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken glass väljer Elvin?",
+        "options": [
+          "Choklad med hackade nötter",
+          "Vanilj med kola",
+          "Jordgubb med strössel",
+          "Päron med strössel"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad finns kvar i Elvins hand?",
+        "options": [
+          "En servett",
+          "En sked",
+          "Struten",
+          "En fjäder"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Måsen dyker ner. Vad betyder dyker här?",
+        "options": [
+          "Flyger snabbt neråt",
+          "Simmar under vattnet",
+          "Gömmer sig bakom något",
+          "Landar sakta"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför skrattar Elvin när måsen tar Miras glass?",
+        "options": [
+          "Han tycker inte om Mira",
+          "Han har redan ätit upp sin glass",
+          "Måsen har tappat en fjäder",
+          "Nu har samma sak hänt Mira"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Varför vill pappa äta under parasollet?",
+        "options": [
+          "Det börjar regna",
+          "Solen är alldeles för stark vid vattnet",
+          "Bänken är blöt",
+          "Där kommer måsen inte åt glassen"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-stromavbrottet",
+    "title": "När lamporna slocknade",
+    "level": 3,
+    "textType": "story",
+    "topic": "vardag",
+    "body": "Det stormar ute. Vinden viner runt huset, och regnet smattrar mot fönstren. Familjen sitter och äter middag.\n\nPlötsligt blir det kolsvart. Kylskåpet slutar brumma och tv:n tystnar. ”Strömavbrott”, säger mamma. ”Ett träd har nog fallit på en elledning.”\n\nPappa letar fram en ficklampa i kökslådan. Sedan tänder han stearinljus på bordet. Det blir mysigt och lite spöklikt.\n\nUtan tv och dator vet Nils först inte vad han ska göra. Men mamma hämtar ett gammalt kortspel. De spelar och berättar historier i skenet från ljusen. Pappa berättar om när han var liten och snön räckte ända upp till fönstren.\n\nKlockan tio tänds lamporna igen. Nils blir nästan lite besviken.\n\n”Kan vi inte släcka ändå?” frågar han.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad gör familjen när strömmen går?",
+        "options": [
+          "Äter middag",
+          "Tittar på film",
+          "Sover",
+          "Borstar tänderna"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad tror mamma har hänt?",
+        "options": [
+          "Någon har dragit ur sladden",
+          "Ett träd har fallit på en ledning",
+          "Alla lampor har gått sönder",
+          "Grannen har stängt av all ström i huset"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Var hittar pappa ficklampan?",
+        "options": [
+          "I garaget",
+          "I kökslådan",
+          "Under sängen",
+          "I bilen"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Det blir kolsvart. Vad betyder kolsvart?",
+        "options": [
+          "Lite grått",
+          "Väldigt kallt",
+          "Helt mörkt",
+          "Mycket tyst"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad berättar pappa om?",
+        "options": [
+          "Ett spöke i huset",
+          "När han var liten",
+          "En resa till havet",
+          "Hur elen fungerar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför vill Nils släcka lamporna igen?",
+        "options": [
+          "Han är rädd för ljuset",
+          "Han tyckte att kvällen var mysig",
+          "Lamporna surrar och blinkar hela tiden",
+          "Han vill sova"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-upplasningen",
+    "title": "Sagan om den flygande igelkotten",
+    "level": 3,
+    "textType": "story",
+    "topic": "skola",
+    "body": "Klassen har skrivit egna sagor. På fredag ska alla läsa sin saga högt. Ture har skrivit om en igelkott som vill lära sig flyga.\n\nMen Ture är nervös. Han tycker inte om att prata inför många. På torsdagskvällen ligger han vaken länge.\n\nStorasyster Alva ger honom ett råd. ”Öva för din nalle. Läs långsamt och titta upp ibland.”\n\nTure övar tre gånger. Nallen sitter stilla och lyssnar.\n\nPå fredagen darrar papperet i hans händer. Rösten låter pipig i början. Men så kommer han till delen där igelkotten fastnar i en trädkrona. Då börjar alla skratta. Ture blir modigare. Han läser högre och tittar upp på klassen.\n\nNär han är klar klappar alla händerna. ”Kan du skriva en fortsättning?” frågar läraren.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad handlar Tures saga om?",
+        "options": [
+          "En fågel som vill simma",
+          "En katt som vill sjunga",
+          "En igelkott som bor i ett träd",
+          "En igelkott som vill flyga"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vilken dag ska klassen läsa sina sagor?",
+        "options": [
+          "Måndag",
+          "Fredag",
+          "Torsdag",
+          "Lördag"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vem ger Ture ett råd?",
+        "options": [
+          "Läraren",
+          "Mamma",
+          "Hans bästa kompis",
+          "Hans storasyster"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Ture är nervös. Hur känner han sig?",
+        "options": [
+          "Lugn",
+          "Arg",
+          "Sömnig",
+          "Orolig"
+        ],
+        "answerIndex": 3,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad gör att Ture blir modigare?",
+        "options": [
+          "Läraren håller hans hand",
+          "Nallen sitter i klassrummet",
+          "Klassen skrattar åt det roliga",
+          "Han får läsa allra sist"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför frågar läraren efter en fortsättning?",
+        "options": [
+          "Sagan var alldeles för kort",
+          "Ture hade glömt slutet",
+          "Läraren hörde inte vad han läste",
+          "Sagan var bra och alla tyckte om den"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-kantarellerna",
+    "title": "Med solen i nacken",
+    "level": 3,
+    "textType": "story",
+    "topic": "äventyr",
+    "body": "En lördag i augusti går Amir och mamma till skogen. De har med sig en korg och en kniv. De ska plocka kantareller.\n\nMamma vet ett bra ställe. Vid en stor mossig sten växer det gula svampar varje år. De plockar tills korgen är halvfull.\n\nMen när de ska gå hem ser alla träd likadana ut. Vilket håll kom de ifrån? Amir känner sig lite rädd.\n\nMamma tar fram mobilen. Men här i skogen finns ingen täckning. Då minns Amir något.\n\n”Solen sken oss i ansiktet när vi gick hit”, säger han. ”Då ska den skina i nacken när vi går hem.”\n\nDe går med solen i nacken. Efter en stund ser de stigen och sedan bilen.\n\nHemma steker de svamparna i smör. ”Du är en riktig skogsmänniska”, säger mamma.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad ska Amir och mamma plocka?",
+        "options": [
+          "Lingon och blåbär",
+          "Kantareller",
+          "Lingon",
+          "Kottar"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var växer svamparna?",
+        "options": [
+          "Vid en stor mossig sten",
+          "Under en stor gran nere vid sjön",
+          "Precis bredvid stigen",
+          "På en äng"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Varför kan de inte använda mobilen?",
+        "options": [
+          "Batteriet är slut",
+          "Den ligger kvar hemma i bilen",
+          "Den har blivit blöt",
+          "Det finns ingen täckning"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Ingen täckning betyder att mobilen …",
+        "options": [
+          "är avstängd",
+          "inte får någon kontakt",
+          "har tappat skalet",
+          "har fått en spricka i glaset"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Vad kommer Amir ihåg?",
+        "options": [
+          "Att de gick över en bäck",
+          "Att de såg ett rådjur",
+          "Var solen var på vägen dit",
+          "Att stigen var röd"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q6",
+        "question": "Varför kallar mamma Amir en riktig skogsmänniska?",
+        "options": [
+          "Han plockade flest svampar",
+          "Han kom på hur de skulle hitta hem",
+          "Han har bott i skogen",
+          "Han kan klättra i träd"
+        ],
+        "answerIndex": 1,
+        "category": "mellan_raderna"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-cykeln",
+    "title": "Cykeln som flyttade sig",
+    "level": 3,
+    "textType": "story",
+    "topic": "mysterier",
+    "body": "Varje kväll ställer Hugo sin blå cykel vid staketet. Men varje morgon står den på ett annat ställe. En gång står den vid soptunnan. En annan gång står den vid garaget.\n\n”Det spökar”, säger lillebror Vidar.\n\nHugo tror inte på spöken. Han lägger en liten pinne framför hjulet. Nästa morgon ligger pinnen i två bitar. På pakethållaren ligger en hopvikt tidning.\n\nDå får Hugo en idé. Han ställer väckarklockan på kvart över fem. Sedan står han tyst vid fönstret och väntar.\n\nDär är storebror Rasmus! Han leder ut Hugos cykel och lastar den med tidningar. Rasmus har fått jobb som tidningsbud. Hans egen cykel har punktering.\n\n”Du kunde ha frågat”, säger Hugo. Rasmus lovar att laga sin egen cykel. Som tack bjuder han Hugo på glass.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vilken färg har Hugos cykel?",
+        "options": [
+          "Röd",
+          "Grön",
+          "Svart",
+          "Blå"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vad tror Vidar?",
+        "options": [
+          "Att en tjuv tar cykeln",
+          "Att vinden flyttar cykeln",
+          "Att det spökar",
+          "Att pappa har lånat den"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad hittar Hugo på pakethållaren?",
+        "options": [
+          "En nyckel",
+          "En borttappad vante",
+          "En tidning",
+          "Ett brev"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför lägger Hugo en pinne framför hjulet?",
+        "options": [
+          "Han vill se om cykeln flyttas",
+          "Cykeln ska inte rulla iväg",
+          "Han vill reta Vidar",
+          "Han ska laga hjulet"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Rasmus är tidningsbud. Vad gör ett tidningsbud?",
+        "options": [
+          "Skriver tidningar",
+          "Delar ut tidningar",
+          "Säljer cyklar i en affär",
+          "Lagar cyklar"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför lånar Rasmus Hugos cykel?",
+        "options": [
+          "Hugos cykel är snabbare",
+          "Hans egen cykel är trasig",
+          "Han har ingen egen cykel",
+          "Han vill busa med Hugo"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad tycker Hugo att Rasmus borde ha gjort?",
+        "options": [
+          "Köpt en ny cykel",
+          "Gått i stället",
+          "Väckt Vidar",
+          "Frågat först"
+        ],
+        "answerIndex": 3,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-ritade-ord",
+    "title": "Ord som man ritar",
+    "level": 3,
+    "textType": "story",
+    "topic": "skola",
+    "body": "En dag kommer en ny elev till klass 3A. Hon heter Daria och har flyttat från ett annat land. Hon kan bara några få ord på svenska.\n\nPå rasten står Daria ensam vid staketet. Majken vill prata med henne. Men hur ska hon göra?\n\nDå tar Majken fram sitt ritblock. Hon ritar en boll och pekar mot planen. Daria skakar på huvudet och ritar ett hopprep. Majken hämtar ett hopprep från förrådet. Sedan hoppar de tillsammans hela rasten.\n\nEfter det ritar de varje dag. Majken ritar en katt och skriver ordet katt under. Daria lär sig ordet. Sedan skriver hon samma ord på sitt eget språk.\n\nEfter några månader pratar Daria nästan bara svenska. Och Majken kan räkna till tio på Darias språk.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Hur mycket svenska kan Daria i början?",
+        "options": [
+          "Väldigt mycket",
+          "Inte ett enda ord",
+          "Några få ord",
+          "Bara siffrorna"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var står Daria på rasten?",
+        "options": [
+          "Vid gungorna",
+          "I klassrummet",
+          "Vid staketet",
+          "Vid förrådet"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad ritar Daria?",
+        "options": [
+          "En boll",
+          "En katt",
+          "Ett hopprep",
+          "Ett hus med ett träd"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Varför ritar Majken i stället för att prata?",
+        "options": [
+          "Majken har ont i halsen",
+          "Man får inte prata på rasten",
+          "Majken vill visa hur bra hon ritar",
+          "Daria förstår inte så mycket svenska"
+        ],
+        "answerIndex": 3,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q5",
+        "question": "Daria skakar på huvudet. Vad menar hon då?",
+        "options": [
+          "Ja",
+          "Hej då",
+          "Nej",
+          "Kom hit"
+        ],
+        "answerIndex": 2,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Vad har Majken lärt sig efter några månader?",
+        "options": [
+          "Att rita hästar som ser riktiga ut",
+          "Att hoppa längre",
+          "Att skriva Darias namn",
+          "Att räkna till tio på Darias språk"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q7",
+        "question": "Vad handlar texten mest om?",
+        "options": [
+          "Hur man hoppar hopprep",
+          "En lärare som tycker om att rita",
+          "Hur två barn blir vänner trots olika språk",
+          "Ett land som ligger långt borta"
+        ],
+        "answerIndex": 2,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-draken-glod",
+    "title": "Draken som blåste bubblor",
+    "level": 3,
+    "textType": "story",
+    "topic": "sagor",
+    "body": "Högt uppe i bergen bor draken Glöd. Alla drakar kan spruta eld. Men inte Glöd. När han försöker kommer det bara såpbubblor ur munnen.\n\nDe andra drakarna skrattar. ”En drake med bubblor!” Glöd blir ledsen och flyger iväg till en grotta.\n\nEn dag börjar det brinna i skogen nedanför berget. Djuren springer åt alla håll. De stora drakarna vet inte vad de ska göra. Eld kan ju inte släcka eld.\n\nDå flyger Glöd ner. Han andas djupt och blåser. Tusentals bubblor singlar ner över lågorna. Det fräser och ryker. Snart är elden släckt.\n\nDjuren jublar. Till och med de stora drakarna bugar för Glöd.\n\nSedan dess är det Glöd som vaktar skogen. Ingen skrattar åt hans bubblor längre.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vad kommer ut ur Glöds mun?",
+        "options": [
+          "Såpbubblor",
+          "Eld",
+          "Rök",
+          "Små snöflingor"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Vart flyger Glöd när han är ledsen?",
+        "options": [
+          "Till en grotta",
+          "Till skogen",
+          "Till en sjö",
+          "Upp bland molnen"
+        ],
+        "answerIndex": 0,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad händer i skogen?",
+        "options": [
+          "Det börjar snöa",
+          "Ett träd faller",
+          "Det börjar brinna",
+          "En jätte kommer"
+        ],
+        "answerIndex": 2,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Bubblorna singlar ner. Hur faller de?",
+        "options": [
+          "Snabbt och hårt",
+          "Sakta och svävande",
+          "Rakt uppåt mot himlen",
+          "Inte alls"
+        ],
+        "answerIndex": 1,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q5",
+        "question": "Varför kan de stora drakarna inte hjälpa till?",
+        "options": [
+          "De sover i grottan",
+          "De är rädda för djuren",
+          "De kan bara spruta eld",
+          "De har flugit bort"
+        ],
+        "answerIndex": 2,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q6",
+        "question": "Vad vill sagan säga?",
+        "options": [
+          "Det som gör en annorlunda kan vara bra",
+          "Drakar är farliga",
+          "Man ska aldrig leka med eld",
+          "Bubblor är roliga"
+        ],
+        "answerIndex": 0,
+        "category": "helhet_slutsats"
+      }
+    ]
+  },
+  {
+    "id": "lr-g3-flygresan",
+    "title": "Ovanför molnen",
+    "level": 3,
+    "textType": "story",
+    "topic": "resor",
+    "body": "Leia ska flyga för första gången. Hon och mamma ska hälsa på morbror i Spanien. På flygplatsen är det fullt med människor och resväskor.\n\nLeia har en plats vid fönstret. När flygplanet rusar fram på banan trycks hon bak i sätet. Sedan lyfter det. Husen blir små som leksaker.\n\nEfter en stund slår det lock för öronen. Det känns som om de är fulla av bomull. ”Tugga på en karamell”, säger mamma. ”Eller gäspa stort.” Leia gäspar, och det klickar till. Nu hör hon bra igen.\n\nUtanför fönstret ligger molnen som ett vitt täcke. Här uppe skiner solen, fast det regnade hemma.\n\nEfter tre timmar landar de. När dörren öppnas slår varm luft emot dem. ”Välkomna!” ropar morbror.",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Vart ska Leia och mamma resa?",
+        "options": [
+          "Till Norge",
+          "Till Spanien",
+          "Till Grekland",
+          "Till Finland"
+        ],
+        "answerIndex": 1,
+        "category": "fakta"
+      },
+      {
+        "id": "q2",
+        "question": "Var sitter Leia i flygplanet?",
+        "options": [
+          "Vid gången",
+          "Bredvid piloten",
+          "Bredvid morbror",
+          "Vid fönstret"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q3",
+        "question": "Vad ser husen ut som när planet lyfter?",
+        "options": [
+          "Myror",
+          "Stenar",
+          "Tändstickor",
+          "Leksaker"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q4",
+        "question": "Vad kan man göra när det slår lock för öronen?",
+        "options": [
+          "Sjunga en sång",
+          "Dricka kallt vatten",
+          "Blunda hårt",
+          "Gäspa stort"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      },
+      {
+        "id": "q5",
+        "question": "Molnen ligger som ett vitt täcke. Vad betyder det?",
+        "options": [
+          "Molnen täcker allt under planet",
+          "Det snöar inne i planet",
+          "Molnen är varma och mjuka",
+          "Det har blivit natt"
+        ],
+        "answerIndex": 0,
+        "category": "ordforstaelse"
+      },
+      {
+        "id": "q6",
+        "question": "Varför skiner solen fast det regnade hemma?",
+        "options": [
+          "Planet flyger ovanför molnen",
+          "Det har slutat regna hemma",
+          "Solen följer med planet",
+          "Fönstret är gult"
+        ],
+        "answerIndex": 0,
+        "category": "mellan_raderna"
+      },
+      {
+        "id": "q7",
+        "question": "Hur länge flyger de?",
+        "options": [
+          "En timme",
+          "Sex timmar",
+          "Tio timmar",
+          "Tre timmar"
+        ],
+        "answerIndex": 3,
+        "category": "fakta"
+      }
+    ]
+  }
+]
