@@ -21,6 +21,19 @@
 export const XP_BASE = 20;
 export const XP_PER_STAR = 10;
 
+// ---------------------------------------------------------------------------
+// GRIND-TRAPPA för omspel (game-shared.awardExercise, Ämnesläsningens mynt):
+// belöningen skalas ned steg för steg ju fler gånger samma övning körts, med
+// ett golv på 20 %. n = antal TIDIGARE avklarade körningar (0 = första gången).
+//   n=0 → 100 %, 1 → 80 %, 2 → 60 %, 3 → 40 %, 4 → 20 %, 5+ → 20 % (golv).
+// ---------------------------------------------------------------------------
+export const GRIND_STEP = 0.2; // hur mycket varje omspel drar av
+export const GRIND_FLOOR = 0.2; // lägsta andel man kan sjunka till
+/** max(0.2, 1 − 0.2·n) – andelen av full pott vid n tidigare körningar. */
+export function grindMultiplier(prevPlays) {
+  return Math.max(GRIND_FLOOR, 1 - GRIND_STEP * prevPlays);
+}
+
 /** Full XP (förstagång) för en avklarad övning med `stars` stjärnor. */
 export function xpForExercise(stars = 0) {
   const s = Math.max(0, Math.round(Number(stars) || 0));

@@ -6,8 +6,9 @@
 // beroenden, så den kan importeras av både webbläsarkod och `node --test`.
 // Se docs/LASRESAN.md för hur talen används.
 //
-// OBS: Läsresans dolda nivå (1–10) är HELT skild från Läsuppdragens lärarsatta
-// studentData.readingLevel (1–3, src/reading-level.js). Blanda aldrig ihop dem.
+// OBS: den gamla lärarsatta studentData.readingLevel (1–3) är borttagen (#531)
+// och läses inte längre. Läsresans dolda nivå (1–10) är elevens ENDA läsnivå –
+// den delas med Ämnesläsningen (talen längst ned, src/amneslasning/).
 // ============================================================================
 
 // --- Dold adaptiv läsnivå (level.js) ----------------------------------------
@@ -92,3 +93,49 @@ export const ANSWER_SKEW_MIN_QUESTIONS = 12;
  */
 export const LENGTH_CUE_MAX_SHARE = 0.45;
 export const LENGTH_CUE_MIN_SHARE = 0.1;
+
+// --- Ämnesläsning (src/amneslasning/, docs/UTVECKLINGSUPPDRAG_AMNESLASNING.md) ---
+// Läsförståelse i arbetsområdena med Läsresans motor och SAMMA dolda läsnivå.
+// Områdets texter har tre ämnesnivåer (1–3); elevens läsnivå (1–10) avgör vilken.
+
+/** Ämnesnivåerna ett område har texter på. */
+export const AMNES_LEVELS = [1, 2, 3];
+/**
+ * Läsnivå (1–10) → ämnesnivå (spec §2.1): [ämnesnivå, lägsta läsnivå, högsta läsnivå].
+ * 1–2 → 1, 3–4 → 2, 5–10 → 3.
+ */
+export const AMNES_LEVEL_FROM_READING = [
+  [1, 1, 2],
+  [2, 3, 4],
+  [3, 5, 10],
+];
+/**
+ * Läsnivån (1–10) en ämnestext motsvarar, som sparas i försökets textLevel
+ * (spec §2.2/§8): övre änden av nivåns intervall 1–2 / 3–4 / 5–6.
+ */
+export const AMNES_TEXT_READING_LEVEL = { 1: 2, 2: 4, 3: 6 };
+/**
+ * Tak uppåt (spec §3.4): Ämnesläsningen höjer läsnivån till HÖGST hit. Nivå 8–10
+ * nås bara genom Läsresan. Nedåt är det fritt (till LEVEL_MIN).
+ */
+export const AMNES_LEVEL_CAP = 7;
+/** Riktintervall för ordantal per ämnesnivå (spec §2.2) – VARNING, aldrig fel. */
+export const AMNES_WORD_RANGES = {
+  1: [40, 90],
+  2: [80, 150],
+  3: [130, 220],
+};
+/** Frågeintervall [min, max] per ämnesnivå (spec §2.2) – VARNING, aldrig fel. */
+export const AMNES_QUESTIONS_BY_LEVEL = {
+  1: [3, 5],
+  2: [4, 6],
+  3: [5, 7],
+};
+/**
+ * Pluggcoins per rätt svar (spec §5), till det VANLIGA saldot som Läsresans.
+ * Omläsning av samma text skalas med leveling.grindMultiplier (per text och elev).
+ */
+export const AMNES_COINS_PER_CORRECT = 5;
+/** Försökets `source` i lasresaAttempts. Försök utan source = Läsresan. */
+export const AMNES_SOURCE = "amnesläsning";
+export const LASRESAN_SOURCE = "lasresan";

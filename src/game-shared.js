@@ -9,7 +9,7 @@ import * as data from "./data.js";
 import { app, el, go, renderTopbar } from "./ui.js";
 import { confetti, sound, isMuted, toggleMuted } from "./fx.js";
 import { addXp } from "./data-xp.js";
-import { xpForExercise, xpIntoLevel } from "./leveling.js";
+import { grindMultiplier, xpForExercise, xpIntoLevel } from "./leveling.js";
 import { awardProjectionPatch, mirrorStudentProjection } from "./projection-sync.js";
 import { coinIcon } from "./icons.js";
 import { MAX_QUESTIONS_PER_SESSION, pickRotatingQuestions } from "./question-rotation.js";
@@ -174,16 +174,9 @@ export function muteButton() {
 // oförändrat grind-skydd. Rör inte de par-baserade lägena.
 const FULL_REWARD_MODES = new Set(["quiz", "lasforstaelse"]);
 
-// Grind-trappa för omspel i icke-quiz/läsförståelse-lägen: belöningen skalas ned
-// steg för steg ju fler gånger samma övning körts i samma läge, med ett golv på
-// 20 %. n = antal TIDIGARE avklarade körningar (0 = första gången).
-//   n=0 → 100 %, 1 → 80 %, 2 → 60 %, 3 → 40 %, 4 → 20 %, 5+ → 20 % (golv).
-const GRIND_STEP = 0.2; // hur mycket varje omspel drar av
-const GRIND_FLOOR = 0.2; // lägsta andel man kan sjunka till
-/** max(0.2, 1 − 0.2·n) – andelen av full pott vid n tidigare körningar. */
-function grindMultiplier(prevPlays) {
-  return Math.max(GRIND_FLOOR, 1 - GRIND_STEP * prevPlays);
-}
+// Grind-trappan för omspel i icke-quiz/läsförståelse-lägen (100 → 80 → 60 →
+// 40 → 20 % golv) bor i leveling.js (grindMultiplier, ren → testbar och delad
+// med Ämnesläsningen).
 
 /**
  * Dela ut belöning (coins + XP) + spara framsteg för en avklarad övning.
